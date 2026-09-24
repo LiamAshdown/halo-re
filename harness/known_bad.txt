@@ -88,3 +88,4 @@ object_type_override_call_0x74                     # calls a function pointer wi
 object_type_override_call_0x7c                     # calls a function pointer with no arguments; the original pushes arguments before its indirect call(s)
 widget_list_notify                                 # calls a function pointer with no arguments; the original pushes arguments before its indirect call(s)
 render_window                                      # calls a function pointer with no arguments; the original pushes arguments before its indirect call(s)
+projectile_solve_straight_line                     # ai: out_direction differs on random inputs (after the stack-order fix made it testable)

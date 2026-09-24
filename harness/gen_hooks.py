@@ -51,7 +51,7 @@ def parse_cc(text, param_names, type_words=None):
     written with spaces for underscores ("element size in EBX")."""
     blocks = [re.sub(r"\n//\s*", " ", m.group(1)) for m in
               re.finditer(r"(?:blam-cc|register convention):\s*([^\n]*(?:\n//\s{2,}[^\n]*)*)", text[:6000])]
-    if not blocks: return {}, False, {}
+    if not blocks: return {}, False, {}, []
     s = " ; ".join(blocks)
     s = re.sub(r"\b(?:in|unaff|extraout)_(E?[A-D]X|E?[SD]I|[A-D][LH])\b", r"\1", s)   # Ghidra's in_EAX / unaff_EBX
     alias = {}
@@ -73,7 +73,9 @@ def parse_cc(text, param_names, type_words=None):
             r, n = (a, b) if re.fullmatch(REGWORD, a) else (b, a)
             regs.setdefault(alias[n], REG32.get(r))
             widths.setdefault(alias[n], width_of(r, note))
-    return regs, True, widths
+    so = re.search(r"stack\s*->\s*\(?([A-Za-z_][\w ,/]*)\)?", s)
+    stack_order = [alias[w] for w in re.split(r"[,/]\s*", so.group(1).strip()) if w.strip() in alias] if so else []
+    return regs, True, widths, stack_order
 
 FUNC_SIZES = {}          # entry address -> size, from the src headers (filled in main)
 import threading
@@ -249,7 +251,7 @@ def main():
         above = b[:d[0].start()].rstrip(chr(10)).split(chr(10)); k_ = len(above)
         while k_ > 0 and above[k_ - 1].lstrip().startswith('//'): k_ -= 1
         own += chr(10) + chr(10).join(above[k_:])
-        regs, has_cc, widths = parse_cc(own, [x['name'] for x in params], {x['name']: (re.findall(r'[A-Za-z_]\w*', x['type'].replace('const', '').replace('struct', '')) or [''])[-1] for x in params})
+        regs, has_cc, widths, stack_order = parse_cc(own, [x['name'] for x in params], {x['name']: (re.findall(r'[A-Za-z_]\w*', x['type'].replace('const', '').replace('struct', '')) or [''])[-1] for x in params})
         if len(set(regs.values())) != len(regs): skipped["two parameters mapped to one register"].append(name); continue
         unknown = [n for n in regs if n not in {x["name"] for x in params}]
         if unknown: skipped["blam-cc names a register argument that is not a parameter"].append(f"{name} ({','.join(unknown)})"); continue
@@ -259,7 +261,7 @@ def main():
                ("int64" if re.search(r"\b(u?int64_t|__int64)\s*$", prefix) else
                 ("byte" if re.search(r"\b(u?int8_t|bool|boolean|char|BOOLEAN|byte)\s*$", prefix) else
                  ("word" if re.search(r"\b(u?int16_t|short|word)\s*$", prefix) else "int"))))
-        funcs[name] = dict(module=mod, addr=int(h.group(1), 16), size=int(h.group(2)), params=params, regs=regs, widths=widths,
+        funcs[name] = dict(module=mod, addr=int(h.group(1), 16), size=int(h.group(2)), params=params, regs=regs, widths=widths, stack_order=stack_order,
                            has_cc=has_cc, ret=ret, obj=os.path.join(ROOT, "build", "obj", mod, name + ".obj"))
     # original stack cleanup, in parallel
     from concurrent.futures import ThreadPoolExecutor
@@ -333,7 +335,18 @@ def main():
         body = [f"PUBLIC _hk_{n}", f"EXTERN _{n}:PROC", f"_hk_{n}:", f"    inc dword ptr [_hk_count_{n}]", "    push ebp", "    mov ebp, esp"]
         body += [f"    push {r}" for r in save]
         pushes, stack_off, total = [], 8, 0
+        # caller's stack slot of each stack parameter: in the order the notes give ("stack -> (speed, origin, out)"),
+        # which came from the disassembly, else in C declaration order
+        stack_params = [x for x in f["params"] if x["name"] not in f["regs"]]
+        order = f.get("stack_order") or []
+        if sorted(order) != sorted(x["name"] for x in stack_params): order = [x["name"] for x in stack_params]
+        slot, o_ = {}, 8
+        for nm in order:
+            slot[nm] = o_; o_ += next(x["size"] for x in stack_params if x["name"] == nm)
+        f["stack_order_used"] = order
         for x in f["params"]:
+            if x["name"] not in f["regs"]:
+                stack_off = slot[x["name"]]
             if x["name"] in f["regs"]:
                 # a byte or word register argument: only the low part is defined, so extend it in the pushed copy
                 # (bytes zero-extended: flags and small counts; words sign-extended: indexes where -1 means none)
@@ -344,7 +357,6 @@ def main():
             else:
                 if x["size"] == 8: pushes.append([f"    push dword ptr [ebp+{stack_off + 4}]", f"    push dword ptr [ebp+{stack_off}]"])
                 else: pushes.append([f"    push dword ptr [ebp+{stack_off}]"])
-                stack_off += x["size"]
             total += x["size"]
         # registers are still the caller's values here (only pushes so far), so they can be pushed in any order
         for pp in reversed(pushes): body += pp
@@ -353,7 +365,7 @@ def main():
         if eax_returns.get(n, "preserve") != "preserve":   # void in C, but the original hands an input register back in EAX
             body += [f"    mov eax, {eax_returns[n]}"]
         body += ["    pop ebp", f"    ret {cleanup}" if cleanup else "    ret"]
-        stack_bytes = stack_off - 8
+        stack_bytes = sum(x["size"] for x in stack_params)
         if cleanup and cleanup != stack_bytes: skipped["ret N disagrees with the stack parameters"].append(f"{n} (ret {cleanup}, params {stack_bytes})"); continue
         asm += body
         table.append((n, f))
@@ -377,7 +389,9 @@ def main():
     dt += [f"extern void hk_{n}(void);" for n, _ in table]
     dt += ["const difftest_entry difftest_table[] = {"]
     for n, f in table:
-        shape = ",".join(f"{REGIDX[f['regs'][x['name']]] if x['name'] in f['regs'] else -1}{kind(x)}" for x in f["params"])
+        by_name = {x["name"]: x for x in f["params"]}
+        ordered = [x for x in f["params"] if x["name"] in f["regs"]] + [by_name[nm] for nm in f.get("stack_order_used", [])]
+        shape = ",".join(f"{REGIDX[f['regs'][x['name']]] if x['name'] in f['regs'] else -1}{kind(x)}" for x in ordered)
         dt.append(f'    {{0x{f["addr"]:08x}u, hk_{n}, "{n}", "{f["module"]}", "{shape}", \'{f["ret"][0]}\', {0 if n in unsafe else 1}}},')
     dt += ["};", f"const unsigned difftest_count = {len(table)};", ""]
     open(os.path.join(GEN, "difftest_table.c"), "w").write("\n".join(dt))
