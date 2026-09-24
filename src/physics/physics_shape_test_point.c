@@ -23,7 +23,7 @@ extern uint8_t physics_shape_sphere_test_point(real_point3d *point, physics_mode
 extern uint32_t physics_shape_pill_test_point(real_point3d *point, physics_model_pill *pill,
                                                real_plane3d *out_normal,
                                                float *out_depth); // 0x503f90, this batch
-extern uint32_t physics_shape_polygon_test_point(physics_model_shape *shape, real_point3d *point,
+extern uint8_t physics_shape_polygon_test_point(physics_model_shape *shape, real_point3d *point,
                                                   float *out_depth,
                                                   real_plane3d *out_normal); // 0x504120, this batch
 

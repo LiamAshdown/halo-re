@@ -19,7 +19,7 @@ extern uint8_t bit_mask_keep[9];  // 0x0065c2c0, entry i = (uint8_t)((1 << i) - 
 // merging into partially-filled bytes with the mask tables above. bit_count must fit in the
 // stream's remaining bounds as one contiguous run; on success the cursor is advanced by
 // bit_count bits and 1 is returned, otherwise the stream is left untouched and 0 is returned.
-uint32_t bit_stream_write_bits(uint32_t bit_count, uint32_t value, bit_stream *stream)
+uint8_t bit_stream_write_bits(uint32_t bit_count, uint32_t value, bit_stream *stream)
 {
     int32_t initial_bit_cursor;
     uint32_t last_pos;

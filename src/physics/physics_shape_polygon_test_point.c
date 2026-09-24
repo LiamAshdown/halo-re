@@ -18,7 +18,7 @@ extern const projection_axis_pair k_projection_axes[6]; // 0x0065c29c, types/mat
                                                         // match src/math/*.c own declaration)
 
 // blam-cc: ECX -> shape, EDX -> point, stack -> out_depth, out_normal
-uint32_t physics_shape_polygon_test_point(physics_model_shape *shape, real_point3d *point,
+uint8_t physics_shape_polygon_test_point(physics_model_shape *shape, real_point3d *point,
                                            float *out_depth, real_plane3d *out_normal)
 {
     float dist = shape->plane_i * point->x + shape->plane_k * point->z +

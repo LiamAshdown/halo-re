@@ -30,7 +30,7 @@ extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, re
 // Projects a world-space point and radius into screen space for the projected dynamic-light/
 // shadow renderer. Returns 0 (without writing the outputs) when the radius is non-positive or the
 // point lies behind the light's near plane (projected w <= 0).
-uint16_t rasterizer_sun_glow_project_point(real_point3d *point, float radius, float *out_screen,
+uint8_t rasterizer_sun_glow_project_point(real_point3d *point, float radius, float *out_screen,
                                                  float *out_scale)
 {
     int16_t viewport_width;

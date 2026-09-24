@@ -39,7 +39,7 @@ extern rasterizer_dynamic_screen_vertex rasterizer_shadow_screen_quad[4]; // 0x0
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 // blam-cc: EAX -> out, ECX -> packed
 extern real_vector3d *vector3d_unpack_normal_11_11_10(real_vector3d *out, uint32_t packed); // 0x513400
-extern uint16_t rasterizer_sun_glow_project_point(real_point3d *point, float radius, float *out_screen,
+extern uint8_t rasterizer_sun_glow_project_point(real_point3d *point, float radius, float *out_screen,
                                                       float *out_scale); // 0x525130
 // blam-cc: ESI -> rect (left, right, top, bottom), stack -> target_index
 extern void rasterizer_sun_glow_capture(int16_t target_index, const float *rect); // 0x525320
