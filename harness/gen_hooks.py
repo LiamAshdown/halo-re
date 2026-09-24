@@ -119,7 +119,7 @@ def live_in(addr, size, _depth=0):
         for s_ in srcs: reads |= regs_in(s_)
         if "[" in dst: reads |= regs_in(dst)                 # address registers of a memory destination
         elif op == "push": reads |= regs_in(dst)
-        elif not (op in ("mov", "movzx", "movsx", "lea") or op.startswith("set")):
+        elif not (op in ("mov", "movzx", "movsx", "lea", "fnstsw", "fstsw", "lahf", "rdtsc", "cpuid") or op.startswith("set")):
             reads |= regs_in(dst)                            # read-modify-write
         rep = op.startswith("rep"); sop = (args.split() or [""])[0] if rep else op
         if "xmm" not in args:
@@ -210,10 +210,10 @@ def main():
     cache = json.load(open(cache_p)) if os.path.exists(cache_p) else {}
     key = lambda f: f"{f['addr']:x}:{f['size']}"
     FUNC_SIZES.update({f["addr"]: f["size"] for f in funcs.values()})
-    todo = [f for f in funcs.values() if key(f) not in cache or not isinstance(cache[key(f)], dict) or cache[key(f)].get("v") != 2]
+    todo = [f for f in funcs.values() if key(f) not in cache or not isinstance(cache[key(f)], dict) or cache[key(f)].get("v") != 3]
     with ThreadPoolExecutor(16) as ex:
         for f, res in zip(todo, ex.map(lambda f: (sorted(ret_cleanup(f["addr"], f["size"])), live_in(f["addr"], f["size"])), todo)):
-            cache[key(f)] = {"rets": res[0], "live_in": res[1], "v": 2}
+            cache[key(f)] = {"rets": res[0], "live_in": res[1], "v": 3}
     json.dump(cache, open(cache_p, "w"))
     for f in funcs.values(): f["rets"] = cache[key(f)]["rets"]; f["live_in"] = cache[key(f)]["live_in"]
     # reachability over the DLL's own C-to-C calls

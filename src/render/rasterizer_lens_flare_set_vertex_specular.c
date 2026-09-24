@@ -17,7 +17,7 @@
 extern uint32_t lens_flare_vertex_specular; // 0x0069e708
 extern float unknown_00672b60;              // 0x00672b60 UNSURE: assumed to be 255.0
 
-extern int32_t __cdecl _ftol(double value); // 0x6391b4, CRT __ftol (value on the FPU stack)
+// __ftol (0x6391b4, input on the FPU stack, chops toward zero) is written as a (long long) cast below
 
 // Scales a normalized intensity to a byte and broadcasts it into all four bytes of the packed
 // ARGB specular color every lens flare vertex shares.
@@ -26,7 +26,7 @@ void rasterizer_lens_flare_set_vertex_specular(float intensity)
     uint32_t byte_value;
     uint32_t packed;
 
-    byte_value = (uint32_t)_ftol((double)(intensity * unknown_00672b60)) & 0xff;
+    byte_value = (uint32_t)(int32_t)(long long)((double)(intensity * unknown_00672b60)) & 0xff;
     packed = byte_value;
     packed = (packed << 8) | byte_value;
     packed = (packed << 8) | byte_value;

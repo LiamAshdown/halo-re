@@ -36,7 +36,7 @@ extern const projection_axis_pair k_projection_axes[6]; // 0x0065c29c, types/mat
 // the polygon's 2D projection (Cyrus-Beck line clipping); reports the entry fraction t_min when
 // the clipped interval is still non-empty after every edge.
 // blam-cc: EAX -> origin, ECX -> shape, EDX -> delta, stack -> out_t, out_plane
-uint32_t physics_shape_polygon_test_ray(real_point3d *origin, physics_model_shape *shape,
+uint8_t physics_shape_polygon_test_ray(real_point3d *origin, physics_model_shape *shape,
                                          real_vector3d *delta, float *out_t, real_plane3d *out_plane)
 {
     float dist = origin->x * shape->plane_i + shape->plane_k * origin->z +

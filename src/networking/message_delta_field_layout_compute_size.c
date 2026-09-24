@@ -22,7 +22,7 @@ extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
 extern uint8_t message_delta_item_count_bits[];                 // 0x0065d51f
 extern uint8_t message_delta_parameters_enabled;                // 0x0071cfa8
 
-extern int32_t message_delta_field_bindings_lazy_init(message_delta_static_fields *list); // 0x4ec840, this module
+extern uint8_t message_delta_field_bindings_lazy_init(message_delta_static_fields *list); // 0x4ec840, this module
 
 // blam-cc: ESI -> definition
 // Computes and caches a message type's total encoded size (header, static fields, and array

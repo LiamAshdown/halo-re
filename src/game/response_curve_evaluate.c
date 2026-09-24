@@ -18,7 +18,7 @@
 #include "math.h"
 #include "game.h"
 
-extern double response_curve_scale_limit; // 0x00672c08, UNSURE exact meaning; a fixed clamp ceiling
+extern double response_curve_scale_limit; // 0x00672c08, the double 0.0: a floor on the scaled position
 
 extern double fabs(double x);
 
@@ -33,10 +33,11 @@ real response_curve_evaluate(int16_t table_count, real x, real *table)
     int32_t lower, upper;
     real result;
 
-    if (scaled >= response_curve_scale_limit) {
+    // 0x470fe4: fcom [0.0]; test ah,5; jp -> the normal path unless scaled < 0.0 (the draft read this as a
+    // ceiling and clamped every non-negative value to 0, so every curve returned its first entry)
+    if (scaled < response_curve_scale_limit) {
         scaled = response_curve_scale_limit;
-    }
-    if (scaled > (double)max_index) {
+    } else if (scaled > (double)max_index) { // only reached when the floor did not apply (0x470ff9 jumps past it)
         scaled = (double)max_index;
     }
 

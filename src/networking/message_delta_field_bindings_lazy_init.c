@@ -28,7 +28,7 @@ extern message_delta_field_type_vtable message_delta_field_type_table[]; // 0x00
 // list (a field type's init/compute-size pair only ever runs once, cached via field_type+0x64),
 // then marks every visited binding. Returns 1 only if the whole list was walked without hitting
 // an early sentinel and the entry immediately after it is itself all-zero.
-int32_t message_delta_field_bindings_lazy_init(message_delta_static_fields *list)
+uint8_t message_delta_field_bindings_lazy_init(message_delta_static_fields *list)
 {
     int32_t count;
     int32_t i;

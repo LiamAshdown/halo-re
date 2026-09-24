@@ -29,7 +29,7 @@ extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 // reports the near root when it falls within [0, 1] of delta. On a hit, out_plane is the
 // outward-facing separating plane at the hit point.
 // blam-cc: EAX -> origin, ECX -> delta, ESI -> sphere, EDI -> out_plane, stack -> out_t
-uint32_t physics_shape_sphere_test_ray(real_point3d *origin, real_vector3d *delta,
+uint8_t physics_shape_sphere_test_ray(real_point3d *origin, real_vector3d *delta,
                                         physics_model_sphere *sphere, real_plane3d *out_plane,
                                         float *out_t)
 {

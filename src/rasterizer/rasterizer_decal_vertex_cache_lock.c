@@ -23,7 +23,7 @@ extern void *rasterizer_decal_vertex_cache;                         // 0x0071d1b
 extern uint8_t *rasterizer_decal_vertex_cache_handle;               // 0x0071d1c0 UNSURE: +0x2c shift, +0x3c data_array
 extern int16_t rasterizer_vertex_buffer_lock_state;                 // 0x0069c632
 
-extern int32_t __cdecl _ftol(double value);                         // 0x6391b4, CRT __ftol (value on the FPU stack)
+// __ftol (0x6391b4, input on the FPU stack, chops toward zero) is written as a (long long) cast below
 
 typedef int32_t (__stdcall *d3d_lock_fn)(void *self, uint32_t offset, uint32_t size, void **data, uint32_t flags);
 
@@ -40,8 +40,8 @@ void *rasterizer_decal_vertex_cache_lock(uint32_t decal_index, int32_t byte_coun
     int32_t size;
 
     rasterizer_vertex_buffer_lock_state = 5;
-    size = _ftol((double)byte_count * 1.5);
-    if (((d3d_lock_fn)(*(void ***)buffer)[0x2c / 4])(buffer, (uint32_t)_ftol((double)offset * 1.5), (uint32_t)size, &data, 0) < 0) {
+    size = (int32_t)(long long)((double)byte_count * 1.5);
+    if (((d3d_lock_fn)(*(void ***)buffer)[0x2c / 4])(buffer, (uint32_t)(int32_t)(long long)((double)offset * 1.5), (uint32_t)size, &data, 0) < 0) {
         succeeded = 0;
     }
     rasterizer_vertex_buffer_lock_state = 4;

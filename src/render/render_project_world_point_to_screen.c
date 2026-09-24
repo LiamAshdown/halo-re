@@ -40,13 +40,17 @@ uint8_t render_project_world_point_to_screen(real_point2d *screen_out, real_poin
     clip_x = (frustum->projection[2][0] * world_point->z + frustum->projection[0][0] * world_point->x) * inverse_z;
     clip_y = -((frustum->projection[2][1] * world_point->z + frustum->projection[1][1] * world_point->y) * inverse_z);
 
+    // 0x50de66 / 0x50de8a: the clip-space point is stored before the range test, so a caller still gets it
+    // for a point off screen (the return value says whether it was converted to screen pixels)
+    screen_out->x = clip_x;
+    screen_out->y = clip_y;
     if (clip_x < -1.0f || clip_x > 1.0f || clip_y < -1.0f || clip_y > 1.0f) {
         return 0;
     }
 
-    screen_out->x = (clip_x + 1.0f) * 0.5f * (float)k_render_virtual_screen_width +
+    screen_out->x = (screen_out->x + 1.0f) * 0.5f * (float)k_render_virtual_screen_width +
                     (float)camera->viewport_bounds.left;
-    screen_out->y = (clip_y + 1.0f) * 0.5f * (float)k_render_virtual_screen_height +
+    screen_out->y = (screen_out->y + 1.0f) * 0.5f * (float)k_render_virtual_screen_height +
                     (float)camera->viewport_bounds.top;
     return 1;
 }

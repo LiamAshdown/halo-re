@@ -19,10 +19,10 @@ void value_step_toward_target(float *value, float target, float max_step)
 {
     float delta = target - *value;
 
-    if (delta > max_step) {
-        delta = max_step;
-    } else if (delta < -max_step) {
+    if (delta < -max_step) {          // 0x470d54: the lower bound is tested first
         delta = -max_step;
+    } else if (delta > max_step) {
+        delta = max_step;
     }
     *value = *value + delta;
 }

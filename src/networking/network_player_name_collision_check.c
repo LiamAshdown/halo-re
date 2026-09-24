@@ -20,7 +20,7 @@
 extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, this batch
 
 // blam-cc: EAX -> session, EBX -> candidate_name
-int32_t network_player_name_collision_check(network_game_session *session, uint16_t *candidate_name)
+uint8_t network_player_name_collision_check(network_game_session *session, uint16_t *candidate_name)
 {
     int32_t i;
 

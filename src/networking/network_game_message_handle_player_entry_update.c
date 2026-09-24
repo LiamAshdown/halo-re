@@ -22,7 +22,7 @@
 extern data_packet_group network_game_messages_group; // 0x006994f8
 extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,
     const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class); // 0x4d09d0
-extern uint32_t network_player_entry_update(void); // 0x4de5f0, this module,
+extern uint8_t network_player_entry_update(void); // 0x4de5f0, this module,
     // called here with no visible arguments (UNSURE, see header)
 extern uint32_t network_game_broadcast_player_set_changed(void); // 0x4e1bf0, this module,
     // called here with no visible arguments (UNSURE, see header)

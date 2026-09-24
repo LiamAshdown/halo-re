@@ -19,12 +19,21 @@ extern double log10(double x); // FYL2X with LG2, Ghidra's log2()+scale pseudo-c
 // [k_sound_minimum_volume, maximum] (so `maximum` shifts the 0 dB point, as for EAX reflections /
 // reverb levels). A gain of 0 (silence) returns k_sound_minimum_volume
 // directly.
+/* The original converts with the game's __ftol (0x6391b4): FISTP of a chopped value into a 64-bit integer, of which
+   only EAX is used. A NaN or out-of-range value becomes the integer indefinite 0x8000000000000000, whose low dword
+   is 0 -- so log10 of a negative gain gives 0 (full volume), not the minimum volume a C cast would give. */
+static int32_t ftol_low_dword(double value)
+{
+    if (value != value || value >= 9.2233720368547758e18 || value < -9.2233720368547758e18) return 0;
+    return (int32_t)(long long)value;
+}
+
 int32_t sound_gain_to_directsound_volume(float gain, int32_t maximum)
 {
     int32_t volume;
 
     if (gain != 0.0f) {
-        volume = (int32_t)(log10((double)gain) * 2000.0 + (double)maximum); // fiadd: the ceiling is also an offset
+        volume = ftol_low_dword(log10((double)gain) * 2000.0 + (double)maximum); // fiadd: the ceiling is also an offset
         if (volume > k_sound_minimum_volume - 1) {
             if (maximum < volume) {
                 volume = maximum;

@@ -16,7 +16,7 @@
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 
 // blam-cc: EAX -> point, ECX -> sphere, EDX -> out_normal, stack -> out_depth
-uint32_t physics_shape_sphere_test_point(real_point3d *point, physics_model_sphere *sphere,
+uint8_t physics_shape_sphere_test_point(real_point3d *point, physics_model_sphere *sphere,
                                           real_plane3d *out_normal, float *out_depth)
 {
     float dx = point->x - sphere->center_x;

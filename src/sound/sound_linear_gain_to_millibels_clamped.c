@@ -22,12 +22,21 @@ extern double log10(double x); // FYL2X with LG2, Ghidra's log2()+scale pseudo-c
 // blam-cc: stack -> (gain, bias_and_maximum), ESI -> minimum
 // Converts a linear gain to a millibel-like integer volume: 0 returns `minimum` unconditionally;
 // otherwise `2000*log10(gain) + bias_and_maximum`, clamped to [minimum, bias_and_maximum].
+/* The original converts with the game's __ftol (0x6391b4): FISTP of a chopped value into a 64-bit integer, of which
+   only EAX is used. A NaN or out-of-range value becomes the integer indefinite 0x8000000000000000, whose low dword
+   is 0 -- so log10 of a negative gain gives 0 (full volume), not the minimum volume a C cast would give. */
+static int32_t ftol_low_dword(double value)
+{
+    if (value != value || value >= 9.2233720368547758e18 || value < -9.2233720368547758e18) return 0;
+    return (int32_t)(long long)value;
+}
+
 int32_t sound_linear_gain_to_millibels_clamped(int32_t minimum, float gain, int32_t bias_and_maximum)
 {
     int32_t result;
 
     if (gain != 0.0f) {
-        result = (int32_t)(log10((double)gain) * 2000.0 + (float)bias_and_maximum);
+        result = ftol_low_dword(log10((double)gain) * 2000.0 + (float)bias_and_maximum);
         if (minimum <= result) {
             if (bias_and_maximum < result) {
                 result = bias_and_maximum;

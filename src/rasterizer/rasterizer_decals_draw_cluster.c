@@ -44,7 +44,7 @@ extern void chimera__rasterizer_set_framebuffer_blend_function(int16_t mode); //
 // blam-cc: EAX -> bitmap_tag_id, the rest on the stack
 extern int16_t *chimera__rasterizer_set_texture(uint32_t bitmap_tag_id, int16_t stage, int16_t bitmap_type,
                                                 int16_t default_index, int16_t frame); // 0x518960
-extern int32_t __cdecl _ftol(double value);                         // 0x6391b4, CRT __ftol (value on the FPU stack)
+// __ftol (0x6391b4, input on the FPU stack, chops toward zero) is written as a (long long) cast below
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
@@ -172,7 +172,7 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
 
             // quads were expanded to six vertices each: first vertex = (offset / 16) * 1.5
             primitive_count = *(int16_t *)(decal + 0x2a) * 2;
-            first_vertex = _ftol((double)(first_offset >> 4) * 1.5);
+            first_vertex = (int32_t)(long long)((double)(first_offset >> 4) * 1.5);
 
             frame = *(int8_t *)(decal + 0x1b);
             if (rasterizer_decal_bitmap_tag != *(uint32_t *)(definition + 0x28) ||

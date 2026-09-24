@@ -22,7 +22,7 @@ extern int32_t QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 
 // blam-cc: ESI -> entry
-int32_t network_game_search_entry_is_fresh(network_game_search_entry *entry)
+uint8_t network_game_search_entry_is_fresh(network_game_search_entry *entry)
 {
     large_integer counter;
     int32_t now_ms;

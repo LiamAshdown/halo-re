@@ -36,7 +36,7 @@ float sound_location_distance_squared(int16_t listener_index, sound_location *lo
                location->position.x * location->position.x;
     }
     if (location->type != _sound_location_absolute) {
-        return (float)(int32_t)location; // UNSURE: unreachable, see file header
+        { union { sound_location *p; float f; } bits; bits.p = location; return bits.f; } // not a valid type: the original returns the stack slot holding the saved ECX (this pointer) as a float (0x54bcc2: fld [esp])
     }
 
     listener = &sound_listeners[listener_index];

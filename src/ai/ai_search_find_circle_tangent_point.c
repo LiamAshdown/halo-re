@@ -39,8 +39,8 @@ void ai_search_find_circle_tangent_point(real_point2d *center, real_point2d *tar
         tangent_pts[2] = (dx * radius - cross_dy) * inv + center->x;
         tangent_pts[3] = (cross_dx + dy * radius) * inv + center->y;
 
-        which = (0.0f < (tangent_pts[3] - target->y) * (tangent_pts[0] - target->x) -
-                         (tangent_pts[2] - target->x) * (tangent_pts[1] - target->y)) != (side != 0);
+        which = (uint32_t)(0.0f < (tangent_pts[3] - target->y) * (tangent_pts[0] - target->x) -
+                         (tangent_pts[2] - target->x) * (tangent_pts[1] - target->y)) != (uint32_t)side; // 0x43d062: cmp eax,movzx(side)
 
         out_point->x = tangent_pts[which * 2];
         out_point->y = tangent_pts[which * 2 + 1];

@@ -17,6 +17,7 @@ void difftest_call(void *target, unsigned long regs[6], unsigned long *stack, in
 
 #define IMAGE_BASE 0x400000u
 #define BUF_BYTES 1024
+#define GUARD 256   /* identical bytes before and after every buffer, so small out-of-range reads compare equal */
 #define MAX_PARAMS 16
 static unsigned char *data_start; static size_t data_size;
 static unsigned char *data_snapshot, *data_after_original;
@@ -114,7 +115,8 @@ int main(int argc, char **argv)
     _controlfp_s(&cw, _PC_24, _MCW_PC);          /* Direct3D leaves the x87 unit in single precision in the game */
     for (t = 0; t < difftest_count; t++) {
         const difftest_entry *e = &difftest_table[t];
-        static unsigned char bufs_a[MAX_PARAMS][BUF_BYTES], bufs_b[MAX_PARAMS][BUF_BYTES];
+        static unsigned char store_a[MAX_PARAMS][BUF_BYTES + 2 * GUARD], store_b[MAX_PARAMS][BUF_BYTES + 2 * GUARD];
+        unsigned char *bufs_a[MAX_PARAMS], *bufs_b[MAX_PARAMS];
         unsigned s, ran = 0, crashed_orig = 0, bad = 0; char first[256] = "";
         if (!selected(e, argc, argv)) continue;
         for (s = 0; s < samples; s++) {
@@ -124,8 +126,9 @@ int main(int argc, char **argv)
             while (*p) {                                 /* build the inputs from the shape string */
                 int reg = strtol(p, (char **)&p, 10); char kind = *p++; unsigned long va, vb, hi = 0;
                 if (kind == 'p') {
-                    for (k = 0; k < BUF_BYTES / 4; k++) ((float *)bufs_a[np])[k] = rndf();
-                    memcpy(bufs_b[np], bufs_a[np], BUF_BYTES);
+                    bufs_a[np] = store_a[np] + GUARD; bufs_b[np] = store_b[np] + GUARD;
+                    for (k = 0; k < (BUF_BYTES + 2 * GUARD) / 4; k++) ((float *)store_a[np])[k] = rndf();
+                    memcpy(store_b[np], store_a[np], BUF_BYTES + 2 * GUARD);
                     va = (unsigned long)bufs_a[np]; vb = (unsigned long)bufs_b[np]; np++;
                 } else if (kind == 'f') { float f = rndf(); va = vb = *(unsigned long *)&f; }
                 else if (kind == 'd') { double d = rndf(); va = vb = ((unsigned long *)&d)[0]; hi = ((unsigned long *)&d)[1]; }

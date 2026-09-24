@@ -150,6 +150,10 @@ def main():
             asm += [f"EXTERN {imp}:DWORD", f"PUBLIC {s}", f"{s}:", "    push ebp", "    mov ebp, esp"]
             asm += [f"    push dword ptr [ebp+{8 + off}]" for off in range(nb - 4, -4, -4)]
             asm += [f"    call dword ptr [{imp}]", "    pop ebp", "    ret"]; report["SDK import (cdecl->stdcall adapter)"] += 1; continue
+        # compiler helpers (64-bit arithmetic, float->int, stack probe) have register/FPU conventions and the game's
+        # FID labels for them are unreliable (___alldiv was labelled __allmul): always take them from the MSVC runtime
+        if re.fullmatch(r"_*(a?ll(div|mul|rem|shl|shr)|aull(div|rem|shr)|ftol2?(_sse)?|chkstk|alloca_probe\w*)", n):
+            left.append((s, "compiler helper: must come from the MSVC runtime")); continue
         if a is None and n in crt: a = crt[n]; k = "func"; report["game CRT"] += 1
         if a is None and n.startswith("_") and n.lstrip("_") in crt:   # Ghidra's CRT names carry the C underscore
             a = crt[n.lstrip("_")]; k = "func"; report["game CRT"] += 1

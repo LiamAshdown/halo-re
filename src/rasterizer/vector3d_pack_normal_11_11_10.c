@@ -38,13 +38,13 @@ uint32_t vector3d_pack_normal_11_11_10(real_vector3d *direction)
     int32_t xi, yi, zi;
 
     cx = clamp_unit(direction->i);
-    xi = (int32_t)((float)floor((double)(cx * 1023.5f)) + 0.5f); // ROUND
+    xi = (int32_t)(float)floor((double)(cx * 1023.5f)); // floor, stored as a float, then FISTP of that whole number
 
     cy = clamp_unit(direction->j);
-    yi = (int32_t)((float)floor((double)(cy * 1023.5f)) + 0.5f); // ROUND
+    yi = (int32_t)(float)floor((double)(cy * 1023.5f)); // floor, stored as a float, then FISTP of that whole number
 
     cz = clamp_unit(direction->k);
-    zi = (int32_t)((float)floor((double)(cz * 511.5f)) + 0.5f); // ROUND
+    zi = (int32_t)(float)floor((double)(cz * 511.5f)); // floor, stored as a float, then FISTP of that whole number
 
     return (uint32_t)(((zi << 0xb | (yi & 0x7ff)) << 0xb) | (xi & 0x7ff));
 }

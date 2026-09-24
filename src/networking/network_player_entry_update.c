@@ -21,7 +21,7 @@
 extern char network_player_entry_find(network_game_session *session, network_player_entry *key); // 0x4de900, this batch
 
 // blam-cc: EAX -> incoming, ECX -> session
-uint32_t network_player_entry_update(network_player_entry *incoming, network_game_session *session)
+uint8_t network_player_entry_update(network_player_entry *incoming, network_game_session *session)
 {
     int32_t slot_index;
     network_player_entry *slot;

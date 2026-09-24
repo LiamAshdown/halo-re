@@ -11,3 +11,18 @@ float fabsf(float x) { float r; __asm { fld x } __asm { fabs } __asm { fstp r } 
 /* ROUND / fistp_round: FISTP in the current rounding mode (the engine leaves it at round-to-nearest) */
 int32_t ROUND(float x) { int32_t r; __asm { fld x } __asm { fistp r } return r; }
 int32_t fistp_round(float x) { int32_t r; __asm { fld x } __asm { fistp r } return r; }
+
+/* MSVC 7.1 runtime helpers that some rewrites call by name (they were visible in Ghidra's output). The real ones
+   take their input on the x87 stack (__ftol) or use a stdcall-like convention (__alldiv/__allmul), so a C call
+   would pass garbage; these take the arguments the rewrites declare and compute the same result. */
+int32_t __ftol(double x) { return (int32_t)(long long)x; }                     /* chop toward zero, low dword */
+long long __allmul(int32_t a_low, int32_t a_high, int32_t b_low, int32_t b_high)
+{
+    return (long long)(((unsigned long long)(unsigned long)a_high << 32) | (unsigned long)a_low) *
+           (long long)(((unsigned long long)(unsigned long)b_high << 32) | (unsigned long)b_low);
+}
+int32_t __alldiv(long long a, int32_t b_low, int32_t b_high)
+{
+    long long b = (long long)(((unsigned long long)(unsigned long)b_high << 32) | (unsigned long)b_low);
+    return b ? (int32_t)(a / b) : 0;
+}

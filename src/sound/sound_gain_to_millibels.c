@@ -17,12 +17,21 @@ extern double log10(double x); // FYL2X with LG2, Ghidra's log2()+scale pseudo-c
 // Converts a linear gain/occlusion factor (1.0 = fully open, 0.0 = fully closed) to a millibel
 // attenuation: 2000*log10(1-gain), clamped to [k_sound_minimum_volume, 0]. gain == 1.0 (no
 // attenuation) returns k_sound_minimum_volume directly (the log would be undefined/-infinity).
+/* The original converts with the game's __ftol (0x6391b4): FISTP of a chopped value into a 64-bit integer, of which
+   only EAX is used. A NaN or out-of-range value becomes the integer indefinite 0x8000000000000000, whose low dword
+   is 0 -- so log10 of a negative gain gives 0 (full volume), not the minimum volume a C cast would give. */
+static int32_t ftol_low_dword(double value)
+{
+    if (value != value || value >= 9.2233720368547758e18 || value < -9.2233720368547758e18) return 0;
+    return (int32_t)(long long)value;
+}
+
 int __cdecl sound_gain_to_millibels(float gain)
 {
     int32_t millibels;
 
     if (1.0f - gain != 0.0f) {
-        millibels = (int32_t)(log10((double)(1.0f - gain)) * 2000.0);
+        millibels = ftol_low_dword(log10((double)(1.0f - gain)) * 2000.0);
         if (millibels > k_sound_minimum_volume - 1) {
             if (millibels > 0) {
                 millibels = 0;

@@ -19,7 +19,7 @@ extern autopatch_download_slot autopatch_download_slots[2]; // 0x006ef93c
 // blam-cc: ECX -> slot_index, stack -> out_data, out_size
 // Retrieves the completed data pointer and size from a finished download pool slot, if ready.
 // Returns 1 (with *out_data/*out_size filled) on success, 0 otherwise.
-uint32_t autopatch_download_get_result(void **out_data, int32_t *out_size, int32_t slot_index)
+uint8_t autopatch_download_get_result(void **out_data, int32_t *out_size, int32_t slot_index)
 {
     if (slot_index >= 0 && slot_index < 2 &&
         autopatch_download_slots[slot_index].state == k_autopatch_download_ready &&
