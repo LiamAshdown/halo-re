@@ -20,6 +20,9 @@
 // the direction vectors of `chain_head`'s own node and a candidate side-linked node) is
 // reproduced exactly but not independently rederived here.
 
+// FIXED (difftest + objdump 0x43b6f0..0x43b76b): a new node's parent is chain_head and both side links
+//   are -1 (the draft had them swapped); the best node is tracked by length, not cost; the return is
+//   the 16-bit index in AX.
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -30,7 +33,7 @@ extern void ai_search_heap_sift_up(ai_search_context *context, int16_t index); /
 
 // blam-cc: EDI -> context, EBX -> chain_head, stack -> position, z, point_id, side, extra_cost
 // Returns the new or reused node's index in the low 16 bits, or -1 on failure/rejection.
-int32_t ai_search_add_node(ai_search_context *context, int16_t chain_head, real_point2d *position,
+int16_t ai_search_add_node(ai_search_context *context, int16_t chain_head, real_point2d *position,
                            float z, int16_t point_id, uint8_t side, float extra_cost)
 {
     float dx, dy;
@@ -63,11 +66,11 @@ int32_t ai_search_add_node(ai_search_context *context, int16_t chain_head, real_
             node->point_id = point_id;
             node->cost = node->length + extra_cost;
             node->side = side;
-            node->side_link = chain_head;
-            node->parent = -1; // UNSURE: `-NAN` in the original, see header on this field's dual use
+            node->parent = chain_head;          // mov [esi+0x24],bx
+            *(int32_t *)&node->side_link = -1;  // mov dword [esi+0x1c],-1: both side links (0x1c, 0x1e)
 
-            if ((goal_side_established != 0) && (node->cost < context->best_cost)) {
-                context->best_cost = node->cost;
+            if ((goal_side_established != 0) && (node->length < context->best_cost)) { // fcomp [esi+0x14]
+                context->best_cost = node->length;
                 context->best_node = new_index;
             }
 

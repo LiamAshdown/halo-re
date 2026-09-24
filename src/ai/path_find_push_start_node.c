@@ -22,11 +22,14 @@
 // function's own `context` since the value is known here regardless of the register
 // mismatch.
 
+// FIXED (difftest + objdump): the start node's distance is the start-to-goal distance and its key
+//   ftol(distance * 10); the draft used 0 for both.
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
 
+extern double sqrt(double x); // FSQRT
 extern int32_t __ftol(double x); // FISTP-based float-to-int truncation
 extern void path_find_heap_push(path_find_context *context, int16_t node, int16_t key); // 0x43b0f0
 
@@ -46,8 +49,15 @@ uint8_t path_find_push_start_node(path_find_context *context)
         value = 0.0f;
         key = 0;
     } else {
-        value = 0.0f; // UNSURE, see header
-        key = __ftol((double)value);
+        // 0x43a787..0x43a7c0: straight-line distance from the start to the goal; the heap key is
+        // ftol(distance * 10.0) (0x672c4c)
+        // (kept in double: the original holds the distance on the x87 stack, unrounded, into the multiply)
+        double dx = (double)context->goal_position.x - context->start_position.x;
+        double dy = (double)context->goal_position.y - context->start_position.y;
+        double dz = (double)context->goal_position.z - context->start_position.z;
+        double distance = sqrt(dx * dx + dy * dy + dz * dz);
+        value = (float)distance;
+        key = __ftol(distance * 10.0);
         if (0x7ffe < key) {
             return 0;
         }

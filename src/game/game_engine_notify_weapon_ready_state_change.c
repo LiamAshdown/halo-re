@@ -7,11 +7,9 @@
 // unnamed here); types/game.h game_engine_definition::unknown_40/object_expired (+0x40/+0x44);
 // src/game/game_engine_is_valid_team_player.c's player_index_from_unit_index signature; types/objects.h
 // object::definition_tag (+0x00); types/cache.h tag_instance (stride 0x20, data at +0x14).
-// register convention: a weapon object handle in ECX (forwarded to object_try_and_get, matching
-// its own established "object handle in ECX" convention); param_1/param_2 are this function's
-// own stack parameters (param_1 the same weapon handle reused for player_index_from_unit_index, param_2 a
-// second object whose definition tag's weapon_flags is tested).
-//   // blam-cc: ECX -> weapon (== param_1), stack -> param_1, other_object
+// register convention: two stack arguments, the unit (arg 1, handed to player_index_from_unit_index) and
+//   the weapon (arg 2, which the function itself loads into ECX for object_try_and_get).
+//   // blam-cc: stack -> unit_index, weapon_index
 // UNSURE: weapon_data::flags bit 0x20 has no established name; player_index_from_unit_index and the vtable slots
 // at +0x40/+0x44 are called with the argument lists Ghidra shows, which may be incomplete.
 
@@ -28,43 +26,42 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern datum_index player_index_from_unit_index(datum_index object_or_unit); // 0x474db0, UNSURE signature/behavior
+extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x474db0
 
-// blam-cc: ECX -> weapon (== param_1), stack -> param_1, other_object
-uint32_t game_engine_notify_weapon_ready_state_change(uint32_t param_1, uint32_t other_object)
+// blam-cc: stack -> unit_index, weapon_index
+// FIXED (difftest + objdump 0x462000): the first stack argument is the unit and the second the weapon.
+//   object_try_and_get is called with ECX = the SECOND argument (`mov ebp,[esp+0x10]` ... `mov ecx,ebp`),
+//   so the flag at +0x22c belongs to the weapon; the draft looked the weapon up from the unit. The
+//   player lookup takes the first argument (`mov edx,[esp+0x14]; push edx; call 0x474db0`). Returns a
+//   byte: 1 on every early path (`mov al,bl`), else the game engine callback's result.
+uint8_t game_engine_notify_weapon_ready_state_change(datum_index unit_index, datum_index weapon_index)
 {
     object *weapon;
-    Object *other_definition;
+    Object *weapon_definition;
 
     if (current_game_engine == 0) {
         return 1;
     }
-
-    weapon = object_try_and_get((datum_index)param_1, _object_mask_weapon);
+    weapon = object_try_and_get(weapon_index, _object_mask_weapon);
     if (weapon == 0) {
         return 1;
     }
-
-    other_definition = (Object *)tag_instances[
-        (((object_header *)object_headers->data)[other_object & 0xffff].data->definition_tag) & 0xffff
+    weapon_definition = (Object *)tag_instances[
+        (((object_header *)object_headers->data)[weapon_index & 0xffff].data->definition_tag) & 0xffff
     ].data;
-
-    if (((*(uint32_t *)((uint8_t *)other_definition + 0x308) >> 3) & 1) == 0) {
+    if (((*(uint32_t *)((uint8_t *)weapon_definition + 0x308) >> 3) & 1) == 0) {
         return 1;
     }
-
     if ((*(uint32_t *)((uint8_t *)weapon + 0x22c) & 0x20) != 0) {
         *(uint32_t *)((uint8_t *)weapon + 0x22c) &= 0xffffffdf;
         if (current_game_engine->object_expired != 0) {
-            ((void (*)(uint32_t))current_game_engine->object_expired)(other_object);
+            ((void (*)(datum_index))current_game_engine->object_expired)(weapon_index);
         }
     }
     *(uint32_t *)((uint8_t *)weapon + 0x22c) |= 0x20;
-
     if (current_game_engine->unknown_40 != 0) {
-        uint32_t identifier_result = player_index_from_unit_index(param_1);
-        return ((uint32_t (*)(uint32_t, uint32_t))current_game_engine->unknown_40)
-            (other_object, identifier_result);
+        return ((uint8_t (*)(datum_index, datum_index))current_game_engine->unknown_40)
+            (weapon_index, player_index_from_unit_index(unit_index));
     }
     return 1;
 }

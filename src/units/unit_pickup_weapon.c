@@ -33,7 +33,7 @@ extern void unit_drop_inventory_weapons_except_current(uint32_t unit_index);    
 extern int16_t unit_find_empty_weapon_slot(uint32_t unit_index);                                  // 0x56d660, UNSURE signature
 extern uint8_t unit_check_weapon_use_permission(uint32_t unit_index);                                  // 0x56da00, UNSURE signature
 extern int16_t unit_find_next_zone_permitted_weapon_slot(int16_t start_slot, uint8_t direction);                // 0x56dba0, UNSURE signature  // real signature (unit_find_next_zone_permitted_weapon_slot.c): int16_t unit_find_next_zone_permitted_weapon_slot(uint32_t unit_index, int32_t start_slot, int16_t direction); Ghidra recovered 2 of 3 args at this call site
-extern uint8_t game_engine_notify_weapon_ready_state_change(uint32_t weapon_index);                                // 0x462000, UNSURE signature
+extern uint8_t game_engine_notify_weapon_ready_state_change(datum_index unit_index, datum_index weapon_index);                                // 0x462000, UNSURE signature
 extern void item_set_holder(datum_index object_index);                                // 0x4bcfc0, UNSURE signature
 extern void unit_set_local_player_weapon_index(int16_t slot);                                           // 0x472100, UNSURE signature
 
@@ -60,7 +60,7 @@ uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t 
 
     if (((weapon_obj->flags & 0x800) != 0) && (weapon_obj->parent_object == k_datum_index_none)) {
         if (unit_check_weapon_use_permission(unit_index) != 0) {
-            if (game_engine_notify_weapon_ready_state_change(weapon_index) != 0) {
+            if (game_engine_notify_weapon_ready_state_change(unit_index, weapon_index) != 0 /* push edi (weapon); push esi (unit) at 0x56d4d4 */) {
                 if (pickup_mode == 2) {
                     unit_drop_inventory_weapons_except_current(unit_index);
                 }

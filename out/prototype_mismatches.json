@@ -4532,15 +4532,6 @@
   ]
  },
  {
-  "caller": "src\\cutscene\\recorded_animation_start.c",
-  "callee": "players_iterate_and_discard",
-  "definition": "src\\game\\players_iterate_and_discard.c",
-  "declared": "extern int32_t players_iterate_and_discard(uint32_t unit_index);",
-  "problems": [
-   "1 parameters declared, 0 defined"
-  ]
- },
- {
   "caller": "src\\effects\\ambient_color_marker_visible.c",
   "callee": "scenario_location_fog_region",
   "definition": "src\\scenario\\scenario_location_fog_region.c",
@@ -5257,15 +5248,6 @@
   ]
  },
  {
-  "caller": "src\\game\\game_engine_attribute_player_death.c",
-  "callee": "players_iterate_and_discard",
-  "definition": "src\\game\\players_iterate_and_discard.c",
-  "declared": "extern datum_index players_iterate_and_discard(datum_index unit);",
-  "problems": [
-   "1 parameters declared, 0 defined"
-  ]
- },
- {
   "caller": "src\\game\\game_engine_build_end_game_result_text.c",
   "callee": "string_format_wide_va_bounded",
   "definition": "src\\text\\string_format_wide_va_bounded.c",
@@ -5511,15 +5493,6 @@
   ]
  },
  {
-  "caller": "src\\game\\game_engine_is_valid_team_player.c",
-  "callee": "players_iterate_and_discard",
-  "definition": "src\\game\\players_iterate_and_discard.c",
-  "declared": "extern datum_index players_iterate_and_discard(datum_index object_or_unit);",
-  "problems": [
-   "1 parameters declared, 0 defined"
-  ]
- },
- {
   "caller": "src\\game\\game_engine_koth_ball_idle_tick.c",
   "callee": "weapon_must_be_readied",
   "definition": "src\\items\\weapon_must_be_readied.c",
@@ -5754,15 +5727,6 @@
   "declared": "extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3,\n    uint32_t unknown_4, uint32_t unknown_5);",
   "problems": [
    "6 parameters declared, 7 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_notify_weapon_ready_state_change.c",
-  "callee": "players_iterate_and_discard",
-  "definition": "src\\game\\players_iterate_and_discard.c",
-  "declared": "extern datum_index players_iterate_and_discard(datum_index object_or_unit);",
-  "problems": [
-   "1 parameters declared, 0 defined"
   ]
  },
  {
@@ -6461,15 +6425,6 @@
   "declared": "extern int object_collect_local_player_relevant_objects(void *callback, datum_index *player_handle, int32_t max_count,\n    datum_index *out_candidates);",
   "problems": [
    "4 parameters declared, 0 defined"
-  ]
- },
- {
-  "caller": "src\\game\\hud_find_nearby_teammate_for_nameplate.c",
-  "callee": "players_iterate_and_discard",
-  "definition": "src\\game\\players_iterate_and_discard.c",
-  "declared": "extern datum_index players_iterate_and_discard(datum_index object_or_unit);",
-  "problems": [
-   "1 parameters declared, 0 defined"
   ]
  },
  {
@@ -7313,15 +7268,6 @@
  },
  {
   "caller": "src\\hs\\hs_object_detach_and_place_at_location.c",
-  "callee": "players_iterate_and_discard",
-  "definition": "src\\game\\players_iterate_and_discard.c",
-  "declared": "extern uint32_t players_iterate_and_discard(datum_index object_index);",
-  "problems": [
-   "1 parameters declared, 0 defined"
-  ]
- },
- {
-  "caller": "src\\hs\\hs_object_detach_and_place_at_location.c",
   "callee": "unit_update_animation_state_machine",
   "definition": "src\\units\\unit_update_animation_state_machine.c",
   "declared": "extern char unit_update_animation_state_machine(datum_index object_index);",
@@ -7372,15 +7318,6 @@
   "declared": "extern void game_engine_compute_look_angles_from_vector(void);",
   "problems": [
    "0 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\hs\\hs_object_hierarchy_test.c",
-  "callee": "players_iterate_and_discard",
-  "definition": "src\\game\\players_iterate_and_discard.c",
-  "declared": "extern uint32_t players_iterate_and_discard(datum_index object_index);",
-  "problems": [
-   "1 parameters declared, 0 defined"
   ]
  },
  {
@@ -7529,15 +7466,6 @@
   "problems": [
    "3 parameters declared, 4 defined",
    "return p vs v"
-  ]
- },
- {
-  "caller": "src\\interface\\blip_type_get.c",
-  "callee": "players_iterate_and_discard",
-  "definition": "src\\game\\players_iterate_and_discard.c",
-  "declared": "extern datum_index players_iterate_and_discard(datum_index object_index);",
-  "problems": [
-   "1 parameters declared, 0 defined"
   ]
  },
  {
@@ -8796,15 +8724,6 @@
   "declared": "extern void network_index_cache_insert_if_free(int32_t object_hash);",
   "problems": [
    "1 parameters declared, 4 defined"
-  ]
- },
- {
-  "caller": "src\\items\\weapon_fire_trigger.c",
-  "callee": "players_iterate_and_discard",
-  "definition": "src\\game\\players_iterate_and_discard.c",
-  "declared": "extern void players_iterate_and_discard(datum_index holder_index);",
-  "problems": [
-   "1 parameters declared, 0 defined"
   ]
  },
  {
@@ -12225,15 +12144,6 @@
  },
  {
   "caller": "src\\objects\\object_apply_damage.c",
-  "callee": "players_iterate_and_discard",
-  "definition": "src\\game\\players_iterate_and_discard.c",
-  "declared": "extern int32_t players_iterate_and_discard(datum_index object_index);",
-  "problems": [
-   "1 parameters declared, 0 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_apply_damage.c",
   "callee": "unit_point_in_front_and_asleep",
   "definition": "src\\units\\unit_point_in_front_and_asleep.c",
   "declared": "extern int8_t unit_point_in_front_and_asleep(void);",
@@ -12433,15 +12343,6 @@
  },
  {
   "caller": "src\\objects\\object_damage_notify_and_impulse.c",
-  "callee": "players_iterate_and_discard",
-  "definition": "src\\game\\players_iterate_and_discard.c",
-  "declared": "extern int32_t players_iterate_and_discard(datum_index object_index);",
-  "problems": [
-   "1 parameters declared, 0 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_damage_notify_and_impulse.c",
   "callee": "game_engine_attribute_player_death",
   "definition": "src\\game\\game_engine_attribute_player_death.c",
   "declared": "extern void game_engine_attribute_player_death(datum_index responsible_player,\n    datum_index responsible_object, int16_t team_index, int32_t param_4);",
@@ -12528,15 +12429,6 @@
   "declared": "extern void effect_new_on_object();",
   "problems": [
    "0 parameters declared, 6 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_get_controlling_player_index.c",
-  "callee": "players_iterate_and_discard",
-  "definition": "src\\game\\players_iterate_and_discard.c",
-  "declared": "extern int32_t players_iterate_and_discard(datum_index object_index);",
-  "problems": [
-   "1 parameters declared, 0 defined"
   ]
  },
  {
@@ -13067,15 +12959,6 @@
   "problems": [
    "0 parameters declared, 2 defined",
    "return f vs v"
-  ]
- },
- {
-  "caller": "src\\objects\\object_update_vitality_and_regeneration.c",
-  "callee": "players_iterate_and_discard",
-  "definition": "src\\game\\players_iterate_and_discard.c",
-  "declared": "extern int32_t players_iterate_and_discard(datum_index object_index);",
-  "problems": [
-   "1 parameters declared, 0 defined"
   ]
  },
  {
@@ -15669,15 +15552,6 @@
  },
  {
   "caller": "src\\units\\unit_pickup_weapon.c",
-  "callee": "game_engine_notify_weapon_ready_state_change",
-  "definition": "src\\game\\game_engine_notify_weapon_ready_state_change.c",
-  "declared": "extern uint8_t game_engine_notify_weapon_ready_state_change(uint32_t weapon_index);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_pickup_weapon.c",
   "callee": "item_set_holder",
   "definition": "src\\items\\item_set_holder.c",
   "declared": "extern void item_set_holder(datum_index object_index);",
@@ -16268,15 +16142,6 @@
  },
  {
   "caller": "src\\units\\unit_try_give_grenade.c",
-  "callee": "players_iterate_and_discard",
-  "definition": "src\\game\\players_iterate_and_discard.c",
-  "declared": "extern int32_t players_iterate_and_discard(uint32_t unit_index);",
-  "problems": [
-   "1 parameters declared, 0 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_try_give_grenade.c",
   "callee": "equipment_pickup_play_sound",
   "definition": "src\\items\\equipment_pickup_play_sound.c",
   "declared": "extern void equipment_pickup_play_sound(void);",
@@ -16309,15 +16174,6 @@
   "declared": "extern void object_for_each_light_attachment(uint32_t object_index, uint32_t flag);",
   "problems": [
    "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_try_select_equipment.c",
-  "callee": "players_iterate_and_discard",
-  "definition": "src\\game\\players_iterate_and_discard.c",
-  "declared": "extern int32_t players_iterate_and_discard(uint32_t unit_index);",
-  "problems": [
-   "1 parameters declared, 0 defined"
   ]
  },
  {
@@ -16417,15 +16273,6 @@
   "declared": "extern void unit_set_custom_animation(TagID animation_graph_tag, int16_t animation_index);",
   "problems": [
    "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_update.c",
-  "callee": "players_iterate_and_discard",
-  "definition": "src\\game\\players_iterate_and_discard.c",
-  "declared": "extern int32_t players_iterate_and_discard(uint32_t unit_index);",
-  "problems": [
-   "1 parameters declared, 0 defined"
   ]
  },
  {
@@ -16868,15 +16715,6 @@
   "declared": "extern void object_set_shield_depleted_flag(void);",
   "problems": [
    "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_validate_and_clear_weapon_switch.c",
-  "callee": "players_iterate_and_discard",
-  "definition": "src\\game\\players_iterate_and_discard.c",
-  "declared": "extern int32_t players_iterate_and_discard(uint32_t unit_index);",
-  "problems": [
-   "1 parameters declared, 0 defined"
   ]
  },
  {

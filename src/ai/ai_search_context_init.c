@@ -20,7 +20,7 @@
 
 extern int16_t ai_search_find_covering_point(ai_search_obstacle_list *list, real_point2d *position,
                                              int16_t exclude_index, float extra_radius); // 0x43c890
-extern int32_t ai_search_add_node(ai_search_context *context, int16_t chain_head, real_point2d *position,
+extern int16_t ai_search_add_node(ai_search_context *context, int16_t chain_head, real_point2d *position,
                                   float z, int16_t point_id, uint8_t side, float extra_cost); // 0x43b5a0
 
 // blam-cc: ECX -> unknown_0c, EAX -> obstacles, EDX -> origin, stack -> context, unknown_04,
