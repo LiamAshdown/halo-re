@@ -224,6 +224,8 @@ def main():
     if os.path.exists(up): stubs |= {l.split("\t")[0] for l in open(up) if l.strip()}
     kb = os.path.join(H, "known_bad.txt")                                             # shown wrong by harness/difftest
     known_bad = {l.split("#")[0].strip() for l in open(kb)} - {""} if os.path.exists(kb) else set()
+    ir = os.path.join(H, "incomplete_rewrites.txt")                                    # rewrites that say they are incomplete
+    if os.path.exists(ir): known_bad |= {l.split("#")[0].strip() for l in open(ir)} - {""}
     stubs |= {"_" + n for n in known_bad}
     # a caller whose extern for a rewritten function disagrees with the definition passes the wrong arguments C-to-C
     pm = os.path.join(ROOT, "out", "prototype_mismatches.json")
