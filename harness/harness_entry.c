@@ -133,7 +133,7 @@ static void log_counts(void)
     for (i = 0; i < hook_count; i++) if (installed[i]) { idx[n++] = i; total += *hook_table[i].calls; }
     qsort(idx, n, sizeof *idx, by_calls);
     harness_log("calls into rewritten functions: %lu total across %u hooked functions", total, n);
-    for (i = 0; i < n && i < 60; i++) if (*hook_table[idx[i]].calls)
+    for (i = 0; i < n; i++) if (*hook_table[idx[i]].calls)
         harness_log("  %10lu  %s (%s)", *hook_table[idx[i]].calls, hook_table[idx[i]].name, hook_table[idx[i]].module);
     free(idx);
 }

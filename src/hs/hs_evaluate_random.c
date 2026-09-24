@@ -28,6 +28,9 @@
 // the first call zeroes ((child_count + 31) / 32) words -- so a `random` form with more than 32
 // alternatives clears the result slot as part of the bitmap. k_hs_maximum_random_children is 0x40
 // only in the sense that the bit arithmetic can address that many.
+// FIXED (verified against the retail bytes): an evaluated call node's first child is the function-name
+//   node; the original starts at its next_node ([first_child*0x14 + 8]), so arguments begin at the second
+//   child. The draft started at the name node itself (scripts ran with misaligned arguments).
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -80,7 +83,7 @@ void hs_evaluate_random(hs_thread *thread, uint32_t thread_index, char first)
     if (first != 0) {
         node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data +
             (frame->syntax_node & 0xffff) * 0x14);
-        child = node->data.first_child;
+        child = ((hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node->data.first_child & 0xffff) * 0x14))->next_node;
         state->child_count = 0;
         while (child != k_datum_index_none) {
             node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (child & 0xffff) * 0x14);
@@ -111,7 +114,7 @@ void hs_evaluate_random(hs_thread *thread, uint32_t thread_index, char first)
                 }
                 node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data +
                     (frame->syntax_node & 0xffff) * 0x14);
-                chosen_child = node->data.first_child;
+                chosen_child = ((hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node->data.first_child & 0xffff) * 0x14))->next_node;
                 for (i = 0; i < (uint32_t)chosen_index; i++) {
                     node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data +
                         (chosen_child & 0xffff) * 0x14);

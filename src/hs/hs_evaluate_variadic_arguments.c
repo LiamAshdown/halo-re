@@ -20,6 +20,9 @@
 // address on every resumption, and hs_thread_return's write (through the parent hs frame's
 // result_address, recorded by push) is the last thing the child's handler does before unwinding
 // back to that same depth. Worth confirming with a hook before relying on it.
+// FIXED (verified against the retail bytes): an evaluated call node's first child is the function-name
+//   node; the original starts at its next_node ([first_child*0x14 + 8]), so arguments begin at the second
+//   child. The draft started at the name node itself (scripts ran with misaligned arguments).
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
@@ -67,7 +70,7 @@ char hs_evaluate_variadic_arguments(uint32_t thread_index, int32_t value, uint32
         *argument_count = 0;
         node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data +
             (frame->syntax_node & 0xffff) * 0x14);
-        *next_node_slot = node->data.first_child;
+        *next_node_slot = ((hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node->data.first_child & 0xffff) * 0x14))->next_node;
         *evaluated_count = 0;
         for (i = 0; i < 0x20; i++) {
             values[i] = 0;

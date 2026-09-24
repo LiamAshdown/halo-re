@@ -8,6 +8,9 @@
 // node_index (in_ECX) and out_indices (unaff_EBX) are unrecognized, which by the blam-cc
 // convention are the second and fourth register slots, ECX and EBX.
 
+// FIXED (verified against the retail bytes): an evaluated call node's first child is the function-name
+//   node; the original starts at its next_node ([first_child*0x14 + 8]), so arguments begin at the second
+//   child. The draft started at the name node itself (scripts ran with misaligned arguments).
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
@@ -31,7 +34,7 @@ char hs_get_parameter_indices(char *function_name, int16_t required_count, datum
 
     nodes = hs_syntax_data;
     node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & 0xffff) * nodes->size);
-    child = node->data.first_child;
+    child = ((hs_syntax_node *)((uint8_t *)nodes->data + (node->data.first_child & 0xffff) * nodes->size))->next_node;
     success = 1;
     for (count = 0; (child != k_datum_index_none) && (count < required_count); count = count + 1) {
         out_indices[count] = child;

@@ -195,6 +195,23 @@ def eax_return_register(f):
         if dst == chosen and op not in ("push", "pop", "cmp", "test"): return None
     return chosen
 
+def scratch_written_on_entry(f):
+    """eax/ecx/edx the original writes unconditionally before its first branch, call (which clobbers all three)
+    or ret: no caller can rely on those surviving the call"""
+    r = subprocess.run([OBJDUMP, "-d", "-M", "intel", "--no-show-raw-insn", f"--start-address=0x{f['addr']:x}",
+                        f"--stop-address=0x{f['addr'] + f['size']:x}", os.path.join(ROOT, "bin", "halo.exe")], capture_output=True, text=True)
+    full = {"eax": "eax", "ecx": "ecx", "edx": "edx"}; written = set()
+    for l in r.stdout.splitlines():
+        m = re.match(r"\s*[0-9a-f]+:\s+(\w+)\s*(.*)$", l.rstrip(chr(13)))
+        if not m: continue
+        op, args = m.group(1), m.group(2).split("#")[0].strip()
+        if op == "call": return {"eax", "ecx", "edx"}
+        if op == "ret" or op.startswith("j") or op.startswith("loop"): break
+        dst = args.split(",")[0].strip()
+        if dst in full and op not in ("push", "cmp", "test"): written.add(dst)
+        if op == "cdq": written.add("edx")
+    return written
+
 def ret_cleanup(addr, size):
     r = subprocess.run([OBJDUMP, "-d", "-M", "intel", f"--start-address=0x{addr:x}", f"--stop-address=0x{addr + size:x}",
                         os.path.join(ROOT, "bin", "halo.exe")], capture_output=True, text=True)
@@ -262,7 +279,8 @@ def main():
                ("int64" if re.search(r"\b(u?int64_t|__int64)\s*$", prefix) else
                 ("byte" if re.search(r"\b(u?int8_t|bool|boolean|char|BOOLEAN|byte)\s*$", prefix) else
                  ("word" if re.search(r"\b(u?int16_t|short|word)\s*$", prefix) else "int"))))
-        funcs[name] = dict(module=mod, addr=int(h.group(1), 16), size=int(h.group(2)), params=params, regs=regs, widths=widths, stack_order=stack_order,
+        addr_taken = any(re.search(r"(?<![&\w])&\s*" + re.escape(x['name']) + r"\b(?!\s*[\[.]|->)", b[d[0].end():]) for x in params)
+        funcs[name] = dict(addr_taken=addr_taken, module=mod, addr=int(h.group(1), 16), size=int(h.group(2)), params=params, regs=regs, widths=widths, stack_order=stack_order,
                            has_cc=has_cc, ret=ret, obj=os.path.join(ROOT, "build", "obj", mod, name + ".obj"))
     # original stack cleanup, in parallel
     from concurrent.futures import ThreadPoolExecutor
@@ -305,7 +323,7 @@ def main():
         for l in open(dis):
             m = re.search(r"\t(?:j\w+|call)\s+0x([0-9a-f]+)\s*$", l)
             if m: jump_targets.add(int(m.group(1), 16))
-    eax_returns = {}
+    eax_returns = {}; passthru = []
     used_addrs = void_functions_with_eax_readers({f["addr"] for f in funcs.values() if f["ret"] == "void"})
     void_used = {n for n, f in funcs.items() if f["addr"] in used_addrs}
     image = open(os.path.join(ROOT, "bin", "halo.exe"), "rb").read()
@@ -333,6 +351,17 @@ def main():
         cleanup = f["rets"][0]
         save = ["ebx", "esi", "edi"] + [r for r in ("ecx", "edx", "eax") if not
                 ((r == "eax" and f["ret"] in ("int", "int64", "byte", "word")) or (r == "edx" and f["ret"] == "int64"))]
+        # a rewrite that takes the address of one of its own stack parameters hands that address on (the hs
+        # argument collectors give hs_thread_push '&value', and the child's result is written there later, after
+        # this call has returned): it must run on the caller's own argument slots, not on a re-pushed copy.
+        # Possible when every parameter is a stack parameter in C order, the caller pops them (plain ret), and
+        # the original clobbers the scratch registers anyway (so no caller relies on them): tail-jump straight in.
+        if f.get("addr_taken") and not f["regs"] and not cleanup and                 (not f.get("stack_order") or f["stack_order"] == [x["name"] for x in f["params"]]):
+            need = {"ecx", "edx"} | ({"eax"} if f["ret"] == "void" and eax_returns.get(n, "preserve") == "preserve" else set())
+            if need <= scratch_written_on_entry(f):
+                asm += [f"PUBLIC _hk_{n}", f"EXTERN _{n}:PROC", f"_hk_{n}:", f"    inc dword ptr [_hk_count_{n}]", f"    jmp _{n}"]
+                table.append((n, f)); passthru.append(n); continue
+            skipped["takes a parameter's address, but the original preserves a scratch register"].append(n); continue
         body = [f"PUBLIC _hk_{n}", f"EXTERN _{n}:PROC", f"_hk_{n}:", f"    inc dword ptr [_hk_count_{n}]", "    push ebp", "    mov ebp, esp"]
         body += [f"    push {r}" for r in save]
         pushes, stack_off, total = [], 8, 0
@@ -398,7 +427,7 @@ def main():
     open(os.path.join(GEN, "difftest_table.c"), "w").write("\n".join(dt))
     rep = {"adapters": len(table), "hookable": sum(1 for n, _ in table if n not in unsafe),
            "unsafe (reach an original register-convention function)": {n: unsafe[n] for n, _ in table if n in unsafe},
-           "skipped": {k: v for k, v in skipped.items()}}
+           "pass-through (run on the caller's argument slots)": passthru, "skipped": {k: v for k, v in skipped.items()}}
     json.dump(rep, open(os.path.join(OUT, "hooks_report.json"), "w"), indent=1)
     print("functions parsed:", len(funcs), "| adapters:", len(table), "| hookable (safe call tree):", rep["hookable"])
     print("skipped:", {k: len(v) for k, v in skipped.items()})
