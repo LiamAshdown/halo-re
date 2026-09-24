@@ -1,0 +1,254 @@
+# objects module: 252 functions (address, current Ghidra name, size, agent confidence, summary)
+
+- 0x4088e0 FUN_004088e0 size=59 conf=0.4 :: Looks up an object by index (in_ECX) and copies its center-of-mass vector and a trailing scale/related scalar into the caller-supplied output pointers (in_EAX=vector3d*, param_1=scalar*).
+- 0x4ed440 FUN_004ed440 size=198 conf=0.4 :: Sets a pair of vitality-threshold fields on an object (with optional per-call overrides) and stores two derived boolean-style flags based on whether each threshold is positive.
+- 0x4ed510 object_update_vitality_and_regeneration size=1152 conf=0.5 :: Advances an object's shield/health regeneration counters and stun flags each tick, and includes an instant-kill path (via a self-targeted object_apply_damage call) for an out-of-bounds/crushed conditi
+- 0x4ed990 damage_data_initialize size=52 conf=0.6 :: Clears and initializes a damage_data record (damage definition id, -1 causer sentinels, 1.0 multipliers) in the EDX-pointed buffer before it is passed to the apply-damage code.
+- 0x4ed9d0 FUN_004ed9d0 size=80 conf=0.35 :: If an object's health-frozen status bit is clear and its health fraction is below full, restores full health and marks the object as changed.
+- 0x4eda20 FUN_004eda20 size=231 conf=0.4 :: Clears an object's stun bit, notifies any linked object, flags eligible seated/attached children, and forwards to the related sleep-clearing routine.
+- 0x4edb10 FUN_004edb10 size=136 conf=0.35 :: Clears an object's stationary/asleep bit, resets an associated timer, and forwards to region-lock refresh code.
+- 0x4edba0 FUN_004edba0 size=101 conf=0.4 :: Kicks off shield-regeneration bookkeeping: flags the object as recharging, seeds a minimum shield value when empty, and resets flicker state.
+- 0x4edc10 FUN_004edc10 size=101 conf=0.4 :: Recursively walks an object's attachment hierarchy, recursing further into any child for which FUN_004f41d0 fails.
+- 0x4edc80 FUN_004edc80 size=166 conf=0.4 :: Tears down an object's active links: clears stun state, notifies any linked object, recurses through its children, and runs type-specific cleanup for lifecycle states 0 and 3.
+- 0x4edd30 damage_apply_area_effect size=119 conf=0.5 :: Applies an area-of-effect damage_data to every nearby object gathered by FUN_004f6fe0, then finalizes/cleans up the damage record.
+- 0x4eddb0 object_damage_apply_line_of_sight size=1294 conf=0.5 :: Performs a line-of-sight/occlusion test between a damage source and a candidate object, computes distance-based falloff, and recursively applies object damage to it and its attached objects when unobs
+- 0x4ee2e0 object_get_controlling_player_index size=135 conf=0.5 :: Walks up an object's ancestor chain to find the nearest valid biped/vehicle and returns the player index controlling it, or -1 if none is found.
+- 0x4ee370 FUN_004ee370 size=67 conf=0.4 :: Refreshes a cached lighting probe roughly once every couple of ticks by comparing a cached tick counter against the current tick.
+- 0x4ee3c0 FUN_004ee3c0 size=260 conf=0.3 :: Validates a target object then queues a UI/network event (message type 0x32), falling back to a lighting-probe refresh when the pickup/target conditions are not met.
+- 0x4ee4d0 FUN_004ee4d0 size=260 conf=0.3 :: Applies an energy/charge value to a target object's shield-flicker fields and dispatches a follow-up event, gated by a lookup-table validity check.
+- 0x4ee5e0 object_apply_damage size=2939 conf=0.75 :: Applies a damage_data record to an object and every object in its parent/attachment chain, distributing the damage across shields, health, per-region effects, and attached children.
+- 0x4ef160 object_hash_clear_flag_bit3 size=149 conf=0.5 :: Walks a hash-chain of objects keyed by an index and clears status bit 0x8 on each one visited.
+- 0x4ef200 object_hash_set_flag_bit3 size=149 conf=0.5 :: Walks the same hash-chain of objects and sets status bit 0x8 on each one (paired setter for object_hash_clear_flag_bit3).
+- 0x4ef2a0 object_apply_body_damage size=1403 conf=0.6 :: Applies the body/health portion of a damage_data to an object, handling low/critical health thresholds, per-region destruction, and death/impact-effect spawning.
+- 0x4ef820 object_apply_shield_damage size=976 conf=0.6 :: Applies the shield portion of a damage_data to an object, absorbing damage up to the shield's remaining capacity and returning the leftover for body damage.
+- 0x4efbf0 FUN_004efbf0 size=136 conf=0.35 :: Packages a damage-related argument block into a network/UI event (type 0x31) and dispatches it.
+- 0x4efc80 FUN_004efc80 size=112 conf=0.3 :: Validates a linked object then scales a direction vector by a magnitude and forwards it as a physics impulse.
+- 0x4efcf0 object_damage_notify_and_impulse size=432 conf=0.5 :: After damage lands, applies a knockback impulse, fires object-kind-specific reaction effects (e.g. biped stagger vs vehicle recoil), and forwards the event to HUD/network and post-damage handlers.
+- 0x4efea0 mdp_decode_stateless_iterated size=8 conf=0.3 :: A zero-caller stub whose body is identical to the tail of object_damage_notify_and_impulse (HUD/network notify then post-damage dispatch); the inherited 'mdp_decode' name does not match the actual (no
+- 0x4efea8 caseD_0 size=104 conf=0.35 :: Outlined switch-case block (kind 0/1 reaction) belonging to object_damage_notify_and_impulse's dispatch, followed by the shared HUD/network-notify epilogue.
+- 0x4eff10 mdp_decode_incremental_iterated size=199 conf=0.3 :: Outlined default-case block of object_damage_notify_and_impulse's kind-based dispatch, followed by the same shared HUD/network-notify epilogue; the inherited name does not match the code.
+- 0x4efff0 FUN_004efff0 size=20 conf=0.35 :: Thin wrapper that forwards to the object-changed notifier FUN_004507a0.
+- 0x4f0010 damage_effect_new_at_location size=640 conf=0.9 :: Spawns a damage_effect at an impact location, computing normal/incident/negative-incident/reflection/gravity oriented placements relative to the surface or object velocity.
+- 0x4f0250 mdpi_encode size=56 conf=0.3 :: Thin wrapper forwarding to the damage-effect placement routine FUN_00450870; despite its inherited name it performs no encoding.
+- 0x4f02d0 object_destroy_region size=268 conf=0.75 :: Marks an object region as destroyed, triggers its '~damaged' state change, and propagates the region's damage-response flags onto the object.
+- 0x4f03e0 FUN_004f03e0 size=132 conf=0.35 :: For each multi-permutation region flagged 0x10 on the object's type, writes a per-region lock byte on the object based on a caller flag.
+- 0x4f0530 hash_table_set_or_remove size=173 conf=0.75 :: Generic hash-table helper: removes a key's entry (returning it to the freelist) when the new value is -1, otherwise inserts or updates the key's stored value.
+- 0x4f05e0 hash_table_get size=58 conf=0.8 :: Looks up a key in the open hash table shared with hash_table_set_or_remove, returning its stored value or -1 if not found.
+- 0x4f0620 hash_table_grow_freelist size=170 conf=0.7 :: Allocates a new block of hash-table node storage via GlobalAlloc and links its slots onto the table's freelist.
+- 0x4f06d0 vector3d_barycentric_interpolate size=87 conf=0.55 :: Computes a barycentric-weighted interpolation of a 3D point among a base vector and two edge vectors, given two blend weights.
+- 0x4f0730 bsp_lightmap_sample_vertex_color size=459 conf=0.5 :: Samples and barycentrically interpolates a BSP triangle's lightmap or raw vertex color (handling both quantized and raw-float formats) and forwards it for accumulation.
+- 0x4f0900 bsp_lightmap_sample_vertex_incident size=284 conf=0.5 :: Samples and interpolates a BSP triangle's lightmap incident-direction vectors, the companion routine to bsp_lightmap_sample_vertex_color.
+- 0x4f0a20 lights_initialize size=115 conf=0.7 :: Initializes the object-lights data_array (0x380-byte element stride) and its associated cluster partition.
+- 0x4f0aa0 lights_dispose_all size=76 conf=0.55 :: Tears down the lights data_array and two related tables, deleting all entries in each and resetting a lookup index array.
+- 0x4f0af0 FUN_004f0af0 size=217 conf=0.45 :: Allocates and initializes a new attached light record on an object (color, marker bindings, owner, lifetime), only when the object is eligible.
+- 0x4f0bd0 FUN_004f0bd0 size=51 conf=0.45 :: Deregisters and frees a light datum, undoing light_new_attached/light_new_positioned's allocation.
+- 0x4f0c10 FUN_004f0c10 size=215 conf=0.45 :: Allocates a new light datum positioned either at an explicit world position/direction or relative to a marker, seeding its lifetime from the current tick counter.
+- 0x4f0cf0 object_lights_update_all size=1591 conf=0.5 :: Per-frame update of every active light: expires stale ones, computes their attenuated/attached colors, and appends up to 128 of them to the render queue.
+- 0x4f133c FUN_004f133c size=694 conf=0.4 :: Continuation of object_lights_update_all's per-light update loop, processing the remaining active lights and appending them to the render queue.
+- 0x4f1600 FUN_004f1600 size=253 conf=0.45 :: Adds a transient per-frame dynamic light entry into a fixed 8-slot table, storing its position, color, and owning-object data.
+- 0x4f1700 FUN_004f1700 size=125 conf=0.4 :: Collects up to N light-datum indices from a hash-chain into a caller-provided array.
+- 0x4f1780 FUN_004f1780 size=453 conf=0.45 :: Applies spot/cone falloff to each active light based on its half-angle and forwards the resulting intensity and position for rendering.
+- 0x4f1950 FUN_004f1950 size=474 conf=0.4 :: Variant of lights_apply_spot_falloff that also applies a per-type brightness scale before forwarding to a different render sink.
+- 0x4f1b30 FUN_004f1b30 size=226 conf=0.45 :: Recursively computes an object's total perceptual-luminance across its own visible regions plus every attached child/sibling object.
+- 0x4f1c20 FUN_004f1c20 size=571 conf=0.45 :: Computes total lighting at a point by combining a default/lightmap ambient sample with nearby dynamic lights, clamped to [0,1].
+- 0x4f1e60 FUN_004f1e60 size=144 conf=0.45 :: Samples a point's ambient lightmap color and incident-direction vector, applying a small brightening bias to the color.
+- 0x4f1ef0 object_cause_damage size=439 conf=0.4 :: Samples a BSP triangle's static lightmap color and incident-direction vectors once frame/material validity checks pass; despite its inherited name it performs lighting sampling, not damage application
+- 0x4f20b0 object_sample_ambient_lighting size=892 conf=0.5 :: Builds an averaged ambient-lighting sample for an object by probing its center and several offset points around its bounding volume.
+- 0x4f2430 FUN_004f2430 size=280 conf=0.4 :: Gathers the visible/nearby light-datum indices for an object into its light list and resolves each to a light-record pointer.
+- 0x4f2550 object_lighting_sample_point size=1132 conf=0.5 :: Casts a probe ray from a point (optionally along a supplied normal) against the BSP and returns the interpolated lightmap color and incident direction at the hit point.
+- 0x4f29c0 chimera__light_table size=58 conf=0.5 :: Deregisters a light datum from the render list and clears its 'queued' status bit when set.
+- 0x4f2a00 FUN_004f2a00 size=674 conf=0.45 :: Recomputes an attached light's world-space transform (from its marker or a default basis) and, when flagged, its spotlight cone parameters.
+- 0x4f2d50 FUN_004f2d50 size=157 conf=0.45 :: Sweeps all light datums and recomputes the transform of every one flagged as dirty.
+- 0x4f2df0 FUN_004f2df0 size=503 conf=0.45 :: Finds the strongest nearby lights (by distance-attenuated luminance) around a point from a spatial hash, keeping the top N results in the caller's arrays.
+- 0x4f2ff0 FUN_004f2ff0 size=1049 conf=0.3 :: Builds a per-effect parameter block (color, randomized direction, saturation thresholds) from an object's base/damage colors and normal vector, likely feeding a decal or particle-effect spawn; registe
+- 0x4f3410 FUN_004f3410 size=172 conf=0.4 :: Rescales an in-place RGB color vector (in_ECX) so its brightest channel does not exceed an intensity target derived from param_1.
+- 0x4f3680 FUN_004f3680 size=102 conf=0.3 :: Extracts one of six 3-bit sub-fields from a cached/refreshed packed control-configuration word, selected by an implicit selector register.
+- 0x4f3700 FUN_004f3700 size=197 conf=0.3 :: Rebuilds the object/network control-binding lookup table used to associate machines or players with controlled objects.
+- 0x4f37d0 FUN_004f37d0 size=162 conf=0.3 :: Records that a given object/id (register args) is now bound to a slot in the control-binding table, subject to a per-controller-type bit filter.
+- 0x4f3890 FUN_004f3890 size=260 conf=0.3 :: Updates one variant of the control-binding table, assigning pending entries to left/right sub-slots by comparing counter thresholds, with a controller-type-specific jump-table fallback.
+- 0x4f39d0 FUN_004f39d0 size=179 conf=0.3 :: Alternate control-binding table update pass, flagging pending bindings as active or deferring to a per-controller-type jump table.
+- 0x4f3ad0 FUN_004f3ad0 size=197 conf=0.35 :: Looks up whether object/id param_1 has a recorded control binding and returns its stored flag, defaulting to true when unbound or the table is inactive.
+- 0x4f3ba0 FUN_004f3ba0 size=521 conf=0.4 :: Per-tick orchestrator that rebuilds and applies the network/local control-binding table across object types, then runs a follow-up transform+garbage-collect pass on affected objects (param_1: register
+- 0x4f3db0 FUN_004f3db0 size=120 conf=0.4 :: Builds a combined linked list of all object-type sub-definitions and calls each one's initialization vtable hook (offset +0x14).
+- 0x4f3e30 FUN_004f3e30 size=106 conf=0.3 :: Broadcasts an argument-less event to every sub-definition of an object's type through vtable slot +0x24; object index passed in an implicit register.
+- 0x4f3ea0 FUN_004f3ea0 size=80 conf=0.35 :: AND-style predicate dispatch: calls every sub-definition's +0x28 hook with param_1 and returns true only if none of them report failure.
+- 0x4f3ef0 index_resolution_table_translate size=40 conf=0.25 :: Decompiled fragment duplicating the tail of the +0x28 predicate-dispatch loop; likely a shared code tail with no independent callers rather than a distinct function.
+- 0x4f3f20 FUN_004f3f20 size=110 conf=0.3 :: Broadcasts a two-argument event to every sub-definition of an object's type through vtable slot +0x2c.
+- 0x4f3f90 FUN_004f3f90 size=104 conf=0.3 :: Broadcasts an argument-less event to every sub-definition of an object's type through vtable slot +0x30.
+- 0x4f4000 FUN_004f4000 size=115 conf=0.3 :: OR-style predicate dispatch: calls every sub-definition's +0x34 hook with param_1 and returns true if any of them reports success.
+- 0x4f4080 FUN_004f4080 size=104 conf=0.3 :: Broadcasts an argument-less event to every sub-definition of an object's type through vtable slot +0x38.
+- 0x4f40f0 FUN_004f40f0 size=106 conf=0.3 :: Broadcasts an argument-less event to every sub-definition of an object's type through vtable slot +0x3c.
+- 0x4f4160 FUN_004f4160 size=111 conf=0.3 :: Broadcasts an argument-less event to every sub-definition of an object's type through vtable slot +0x40.
+- 0x4f41d0 FUN_004f41d0 size=115 conf=0.3 :: OR-style predicate dispatch through vtable slot +0x44: returns true if any sub-definition's hook reports success for param_1.
+- 0x4f4250 FUN_004f4250 size=110 conf=0.3 :: Broadcasts a two-argument event to every sub-definition of an object's type through vtable slot +0x48.
+- 0x4f42c0 FUN_004f42c0 size=106 conf=0.3 :: Broadcasts an argument-less event to every sub-definition of an object's type through vtable slot +0x4c.
+- 0x4f4330 FUN_004f4330 size=104 conf=0.3 :: Broadcasts an argument-less event to every sub-definition of an object's type through vtable slot +0x50.
+- 0x4f43a0 FUN_004f43a0 size=104 conf=0.3 :: Broadcasts an argument-less event to every sub-definition of an object's type through vtable slot +0x54.
+- 0x4f4410 FUN_004f4410 size=104 conf=0.3 :: Broadcasts an argument-less event to every sub-definition of an object's type through vtable slot +0x5c.
+- 0x4f4480 FUN_004f4480 size=111 conf=0.3 :: Broadcasts an argument-less event to every sub-definition of an object's type through vtable slot +0x58.
+- 0x4f44f0 FUN_004f44f0 size=97 conf=0.35 :: Finds the highest-priority sub-definition override for the current object and invokes/returns its +0x64 vtable hook, or 0 if none exists.
+- 0x4f4560 FUN_004f4560 size=74 conf=0.35 :: Finds the highest-priority sub-definition override for the current object (via FUN_004f6ec0) and invokes its +0x68 vtable hook.
+- 0x4f45b0 FUN_004f45b0 size=103 conf=0.3 :: Finds the highest-priority sub-definition override for a register-passed object and invokes/returns its +0x6c vtable hook.
+- 0x4f4620 FUN_004f4620 size=87 conf=0.3 :: Invokes the highest-priority sub-definition's +0x70 vtable hook for the current object, or FUN_004ec670 as a fallback when no current object exists.
+- 0x4f4680 FUN_004f4680 size=46 conf=0.25 :: Releases one node back to a pooled free-list before dispatching the +0x70 object-type override for param_1.
+- 0x4f46b0 FUN_004f46b0 size=78 conf=0.3 :: Tests and clears a pending-event flag on an object's slot descriptor (index via in_ECX), also consuming a related one-shot latch byte.
+- 0x4f4700 FUN_004f4700 size=88 conf=0.3 :: Finds the highest-priority sub-definition override for a register-passed object and invokes its +0x74 vtable hook, defaulting to true when absent.
+- 0x4f4760 FUN_004f4760 size=83 conf=0.3 :: Finds the highest-priority sub-definition override for a register-passed object and invokes its +0x7c vtable hook.
+- 0x4f47c0 FUN_004f47c0 size=149 conf=0.3 :: Sweeps objects of two specific object types with no attached marker and deletes each one, immediately or recursively depending on its parent-role category.
+- 0x4f4880 FUN_004f4880 size=588 conf=0.45 :: Per-local-player pass that recomputes which objects of certain types are visible/relevant to the current local player and updates their per-player visibility bitmask, optionally pruning invalid ones.
+- 0x4f4ad0 objects_initialize size=212 conf=0.9 :: One-time module bring-up: creates the object and object-type data arrays, builds the type-definition chain, and registers the object memory regions for checksumming and cluster partitioning.
+- 0x4f4bb0 objects_reset size=261 conf=0.5 :: Tears down all currently-existing objects and their per-category data arrays (object, unit-like, item-like, device-like) in preparation for a new map/game, without disposing the module's own state.
+- 0x4f4cc0 FUN_004f4cc0 size=237 conf=0.3 :: Notifies each object type of a flush event and clears change-tracking flags on the object/category data arrays, re-validating any still-populated object slots.
+- 0x4f4db0 objects_dispose size=217 conf=0.55 :: Final module shutdown: runs registered dispose callbacks and per-type dispose hooks, then clears every object/category data-array pointer the module owns.
+- 0x4f4e90 FUN_004f4e90 size=592 conf=0.45 :: Main per-tick object-array pass: reconciles the frame's changed-object bitset and processes each object's pending delete/create/activate flags before running garbage collection.
+- 0x4f50f0 FUN_004f50f0 size=57 conf=0.4 :: Flags an ownerless, non-persistent object's data-array slot as pending deletion (register arg: object index in in_EAX).
+- 0x4f5130 FUN_004f5130 size=33 conf=0.4 :: Clears the pending-delete flag previously set by object_mark_pending_delete (register arg: object index in in_EAX).
+- 0x4f5160 FUN_004f5160 size=92 conf=0.3 :: Resets an object's scale/tint fields to engine default values and notifies its type's sub-definitions (vtable +0x50).
+- 0x4f51c0 FUN_004f51c0 size=248 conf=0.35 :: Sets an object's velocity plus forward/up orientation vectors (deriving a default up-vector when none is supplied) and re-links its cluster/parent state.
+- 0x4f52c0 FUN_004f52c0 size=139 conf=0.3 :: Sets an object's velocity vector and refreshes its cluster/placement linkage.
+- 0x4f5350 FUN_004f5350 size=66 conf=0.3 :: Sets an object's velocity vector and updates its cluster/parent linkage, a lighter variant of object_set_velocity_and_relink.
+- 0x4f53a0 FUN_004f53a0 size=190 conf=0.45 :: Builds and default-initializes the object-creation parameter block later consumed by object_new_with_datum_role_control, given a tag id (param_1) and parent-role value (param_2).
+- 0x4f5460 FUN_004f5460 size=67 conf=0.35 :: Thin wrapper entry point that forwards directly to object_new_with_datum_role_control.
+- 0x4f54b0 object_new_with_datum_role_control size=1308 conf=0.75 :: Core object constructor: allocates a new object datum for a tag/type, populates it from a creation-parameter block (param_1) and role/control value (param_2), runs post-creation setup hooks, and logs 
+- 0x4f59d0 FUN_004f59d0 size=197 conf=0.4 :: Recursively deletes an object along with its child/sibling hierarchy, marking each slot deleted and releasing role-control ownership before finalizing.
+- 0x4f5aa0 FUN_004f5aa0 size=171 conf=0.4 :: Performs the actual work of deleting a single object with no parent: notifies scripts, unlinks it from its cluster, and raises an object-deleted event.
+- 0x4f5b50 FUN_004f5b50 size=117 conf=0.3 :: Deletes the object associated with a pooled marker/attachment id after validating engine-state preconditions.
+- 0x4f5bd0 FUN_004f5bd0 size=58 conf=0.45 :: Top-level object deletion entry point that dispatches to the immediate or recursive deletion path based on the object's parent-role category.
+- 0x4f5c10 FUN_004f5c10 size=27 conf=0.4 :: Tests whether an object's data-array slot has already been marked deleted by object_delete_recursive.
+- 0x4f5c30 FUN_004f5c30 size=432 conf=0.4 :: Assigns an object's containing cluster (if unparented) or links it into its parent's child chain, then updates cluster-membership bookkeeping and may trigger deletion of stale sub-objects.
+- 0x4f5de0 FUN_004f5de0 size=172 conf=0.35 :: Removes an object from its current cluster/placement bookkeeping, or notifies its parent object when it is owned by one.
+- 0x4f5f00 FUN_004f5f00 size=57 conf=0.3 :: Resolves an object id stored in a per-category index table (selected by param_2) to its datum address and category/type tag.
+- 0x4f5f70 FUN_004f5f70 size=137 conf=0.3 :: Finds the outermost (unparented) ancestor of an object and returns its category data-array pointer and marker-placement id/address.
+- 0x4f6000 FUN_004f6000 size=41 conf=0.35 :: Returns the address of a specific node/marker record (index param_1) within the current object's node array (object index in in_EAX).
+- 0x4f6030 FUN_004f6030 size=74 conf=0.25 :: Given an object index and a node index, returns a pointer to that node's entry in the object's model tag definition if the index is in range, else 0.
+- 0x4f6080 FUN_004f6080 size=252 conf=0.45 :: Fills a caller-supplied transform buffer with one of an object's node-local transforms (rotation, position, scale), honoring the object's mirrored-geometry flag.
+- 0x4f6180 FUN_004f6180 size=358 conf=0.3 :: Recomputes an object's world orientation relative to a marker and then reattaches/updates it via the attach helper.
+- 0x4f62f0 FUN_004f62f0 size=332 conf=0.3 :: Computes a new orientation for an object relative to another transform and normalizes the resulting basis vectors.
+- 0x4f6440 object_attach_to_object size=451 conf=0.6 :: Attaches object param_2 to parent object param_1 at marker param_3, refusing the operation if it would create an attachment cycle.
+- 0x4f6610 FUN_004f6610 size=453 conf=0.45 :: Bakes an attached object's final world transform from its parent marker one last time, then detaches it from that parent.
+- 0x4f67e0 FUN_004f67e0 size=106 conf=0.25 :: Sets or clears a per-object state flag (byte at table-entry+2), invoking a follow-up routine only when transitioning from active to inactive.
+- 0x4f6850 FUN_004f6850 size=163 conf=0.25 :: Registers or unregisters an object with an external visibility/collision system and updates its per-slot flag bits accordingly.
+- 0x4f6900 object_get_position size=107 conf=0.6 :: Returns an object's world-space position, resolving through its attachment parent's marker when the object is attached.
+- 0x4f6970 object_get_orientation size=167 conf=0.6 :: Returns an object's world-space forward and up orientation vectors, accounting for marker attachment.
+- 0x4f6a20 object_get_world_matrix size=127 conf=0.5 :: Builds an object's world transform matrix, composing with its attachment parent's marker transform if attached.
+- 0x4f6aa0 FUN_004f6aa0 size=105 conf=0.45 :: Finds the top-most ancestor of an attached-object chain and returns its linear and angular velocity vectors.
+- 0x4f6b10 FUN_004f6b10 size=81 conf=0.25 :: Finds the root of an object's attachment chain and copies two unidentified 32-bit fields from it.
+- 0x4f6b70 FUN_004f6b70 size=146 conf=0.35 :: Copies the model's default per-node function data into the object's runtime node-function buffer and grows the tracked count if needed.
+- 0x4f6c10 FUN_004f6c10 size=68 conf=0.3 :: Adds a translation offset to an object's cached node-function translation value.
+- 0x4f6c60 object_set_permutation_by_name size=240 conf=0.6 :: Sets an object's active region permutation by matching a permutation name, optionally restricted to one region.
+- 0x4f6d60 FUN_004f6d60 size=265 conf=0.3 :: Computes a relative transform between two markers by walking their shared node hierarchy.
+- 0x4f6e70 object_function_get_value size=70 conf=0.55 :: Returns a cached "object function" output value and its validity flag for the given function index.
+- 0x4f6ec0 object_try_and_get size=92 conf=0.65 :: Resolves an object handle to its data pointer only if the object still exists and matches the requested type mask, otherwise returns null.
+- 0x4f6f20 object_iterator_next size=129 conf=0.65 :: Advances an object iterator to the next object matching the requested type and flag mask, returning its data pointer.
+- 0x4f6fb0 object_get_root_object_index size=43 conf=0.55 :: Returns the index of the top-most object in an attachment chain starting from the given object.
+- 0x4f6fe0 object_find_in_sphere size=400 conf=0.5 :: Finds objects of a given type mask whose bounding sphere intersects a query sphere, using cluster data to narrow the search.
+- 0x4f7180 object_collect_in_clusters size=477 conf=0.5 :: Gathers the unique set of objects referenced by a list of BSP clusters into an output array.
+- 0x4f7370 FUN_004f7370 size=72 conf=0.2 :: Resolves a local-player-relative marker/offset value and forwards it to another helper function; exact purpose unclear from the visible code.
+- 0x4f73c0 FUN_004f73c0 size=28 conf=0.25 :: Looks up a value in a fixed 512-entry table by index, returning -1 for an invalid index.
+- 0x4f73e0 FUN_004f73e0 size=112 conf=0.4 :: Scans all objects and clears a stored reference field wherever it points at the given object, notifying another subsystem for each object visited.
+- 0x4f7450 FUN_004f7450 size=150 conf=0.3 :: Adds or removes the current object from a global tracked-object list based on a flag bit.
+- 0x4f74f0 FUN_004f74f0 size=123 conf=0.3 :: Sweeps all objects performing a per-object visibility/PVS-related update pass.
+- 0x4f7570 FUN_004f7570 size=353 conf=0.4 :: Recomputes which BSP cluster/leaf each flagged object currently occupies.
+- 0x4f76e0 FUN_004f76e0 size=607 conf=0.3 :: Tests whether an object currently lies within one of the map's atmospheric/weather effect zones.
+- 0x4f7950 FUN_004f7950 size=120 conf=0.45 :: Computes debug/statistics counters for how many objects exist and how full a related data pool is.
+- 0x4f79d0 FUN_004f79d0 size=115 conf=0.3 :: Forces a global "current cluster" override used by some ambient/HUD system, or clears the override.
+- 0x4f7a50 FUN_004f7a50 size=125 conf=0.3 :: Returns the "current" cluster used for ambient effects, either overridden or derived from a tracked object.
+- 0x4f7ad0 FUN_004f7ad0 size=37 conf=0.25 :: Forwards to a notification routine only if the given handle is valid.
+- 0x4f7b00 FUN_004f7b00 size=99 conf=0.3 :: Recursively visits an object and all of its attached children/siblings, invoking a notification callback on each valid one.
+- 0x4f7b70 FUN_004f7b70 size=195 conf=0.3 :: Optionally repositions an object to a stored/spawn location and refreshes its cluster and bounding radius.
+- 0x4f7c40 FUN_004f7c40 size=270 conf=0.25 :: Nudges a position by a velocity-scaled amount over time, gated on several object state flags.
+- 0x4f7d50 FUN_004f7d50 size=130 conf=0.4 :: Allocates a new sized data block associated with a fresh (or specific) datum id.
+- 0x4f7de0 FUN_004f7de0 size=105 conf=0.4 :: Frees a previously allocated data block and its associated datum.
+- 0x4f7e50 FUN_004f7e50 size=156 conf=0.4 :: Grows an existing data block by the requested number of elements, zero-initializing the new space.
+- 0x4f7ef0 object_update size=465 conf=0.6 :: Performs the per-tick update of an object and recursively updates every object attached to it.
+- 0x4f8207 object_types_place_objects_mod_processed_bsps__read size=347 conf=0.55 :: Maps an "object function input" selector code to the corresponding scalar value (a fixed variable, a random constant, or a computed heading), matching Blam's generic object-function evaluation.
+- 0x4f82b0 object_recalculate_bounding_radius_recursive size=96 conf=0.55 :: Recomputes the bounding radius of an object and all of its attached children.
+- 0x4f8310 object_recalculate_bounding_radius size=485 conf=0.5 :: Recomputes an object's world node transforms and derives its current bounding radius from them.
+- 0x4f84e2 objects_initialize_for_new_map_mod_processed_bsps size=850 conf=0.3 :: A specialized variant of the bounding-radius recomputation that additionally evaluates a periodic or random per-node function offset.
+- 0x4f8834 objects_update__object_in_player_pvs_nop1 size=553 conf=0.3 :: Another specialized variant of the bounding-radius recomputation that applies an extra scale factor to the marker transform.
+- 0x4f8a70 object_reset size=148 conf=0.3 :: Computes an object's bounding radius directly from its current orientation without walking a full node chain.
+- 0x4f8b10 FUN_004f8b10 size=82 conf=0.25 :: Runs a node-based effect update only when the object's type has both referenced tag definitions present.
+- 0x4f8b70 FUN_004f8b70 size=86 conf=0.3 :: Forwards to object_set_position_network; likely a differently-conditioned call site for network position updates.
+- 0x4f8bd0 object_set_position_network size=234 conf=0.4 :: Applies a batch of predicted/network positions to objects, snapping to tolerance and clamping derived blend weights.
+- 0x4f8cb0 object_placement_data_new size=176 conf=0.3 :: A variant of the network position update loop that clamps the same derived blend weights; appears to duplicate object_set_position_network's logic.
+- 0x4f8d80 FUN_004f8d80 size=64 conf=0.35 :: Collects the indices of a region's permutations that belong to a requested probability group.
+- 0x4f8dc0 object_new_with_role size=7 conf=0.2 :: A tiny (7-byte) function whose true behavior cannot be determined from the decompiled listing shown; likely a thunk into a neighboring permutation-scan routine.
+- 0x4f8dd0 FUN_004f8dd0 size=284 conf=0.45 :: Randomly assigns a valid permutation to each region of an object, respecting per-permutation probability groups.
+- 0x4f8ef0 FUN_004f8ef0 size=93 conf=0.3 :: Returns the probability group of the first region whose active permutation has one set.
+- 0x4f8f50 FUN_004f8f50 size=143 conf=0.35 :: Refreshes an object's region permutations when its cached probability-group state is out of date.
+- 0x4f8fe0 FUN_004f8fe0 size=69 conf=0.4 :: Removes an object from its parent's linked list of sibling/attached objects.
+- 0x4f9030 object_delete_4f9030 size=210 conf=0.65 :: Fully destroys an object, recursively deleting its children, running per-type cleanup callbacks, and releasing its allocated data.
+- 0x4f9110 object_update_change_colors size=480 conf=0.5 :: Recomputes an object's blended "change color" values for each region from its model's change-color definitions.
+- 0x4f92f0 object_update_functions size=185 conf=0.55 :: Evaluates all of an object's model-defined periodic/scalar functions each tick and caches their outputs for later use by shaders/effects.
+- 0x4f93b0 object_delete_to_network size=314 conf=0.6 :: Recomputes an object's exported periodic "function" values (used to drive markers/effects) from scratch, as needed when the object leaves network scope for deletion.
+- 0x4f94e0 object_delete size=86 conf=0.6 :: Recomputes an object's exported function values before/at full deletion of the object.
+- 0x4f9540 object_reconnect_to_map size=337 conf=0.6 :: Recomputes an object's exported function values when the object reconnects to (re-enters) the map/network scope.
+- 0x4f96a0 FUN_004f96a0 size=70 conf=0.3 :: Stores a value on an object's attachment node and, if certain status flags are unset, invokes a follow-up handler.
+- 0x4f96f0 object_disconnect_from_map size=39 conf=0.6 :: Tests whether an object's attachment was not visited during the current map traversal (i.e. is effectively disconnected).
+- 0x4f9750 object_create_attachments size=412 conf=0.7 :: Creates the runtime instance for every attachment (light/looping-sound/effect/contrail/particle) defined on an object's type.
+- 0x4f9900 object_delete_attachments size=214 conf=0.65 :: Releases all runtime attachment instances (light/looping-sound/effect/contrail/particle) previously created for an object.
+- 0x4f9990 object_get_marker_by_name size=41 conf=0.3 :: Duplicate/alternate compiled entry for the attachment-deletion loop (see object_delete_attachments); despite its prior name it does not look up a marker by name.
+- 0x4f9a20 object_for_each_light_attachment size=146 conf=0.5 :: Iterates an object's light attachments, optionally registering each in the active-light table and/or invoking a per-light callback.
+- 0x4f9ac0 FUN_004f9ac0 size=54 conf=0.35 :: Reserves a free slot in a small render/permutation cache table for an object and remembers the slot index on the object.
+- 0x4f9b00 FUN_004f9b00 size=99 conf=0.45 :: Releases an object's previously reserved render/permutation cache slot.
+- 0x4f9b70 FUN_004f9b70 size=234 conf=0.35 :: Returns a cached render permutation index for a tag/object combination, building and caching a new one on first use.
+- 0x4f9c60 objects_garbage_collection size=1149 conf=0.9 :: Periodic object-pool garbage collector that frees/evicts objects when free memory or free slots drop below thresholds, reporting via debug strings.
+- 0x4fa0f0 object_tree_collect_matching size=168 conf=0.5 :: Recursively walks a binary tree of objects of a given type/definition, collecting up to a limit into an array, optionally filtered by a callback.
+- 0x4fa1a0 FUN_004fa1a0 size=233 conf=0.3 :: Finds the local player's object and, if any bit is set in a per-definition flag bitfield, hands off to object_get_orientation for that bit range.
+- 0x4fa280 object_get_orientation size=272 conf=0.35 :: Scans a bitfield of type/definition flags and, for each set bit, collects matching objects via object_tree_collect_matching, recursing across the whole bit range; despite its name it does not appear t
+- 0x4fa3a0 object_dump_compare_by_total_size size=35 conf=0.6 :: qsort comparator that orders object/definition memory-dump records by their accumulated total size field.
+- 0x4fa3d0 object_dump_accumulate_stats size=185 conf=0.65 :: Tallies one object's statistics (size, garbage/dead/outside-map/at-rest/no-physics flags) into a per-type or per-definition memory-dump accumulator.
+- 0x4fa490 object_dump_write size=111 conf=0.8 :: Writes one formatted line of the object memory-dump report (counts, garbage/dead/outside/at-rest tallies, and a definition/type name) to a file.
+- 0x4fa500 objects_dump_memory size=725 conf=0.85 :: Builds and writes object_memory.txt, a full debug report of object counts and memory usage broken down by object type and by object definition.
+- 0x4fa8d0 object_start_animation size=214 conf=0.55 :: Looks up a named animation in an animation graph and starts it on the object, logging an error if the animation is not found.
+- 0x4fa9b0 object_animation_get_frames_remaining size=101 conf=0.55 :: Returns the number of frames left in the object's currently playing animation, or 0 if none is active.
+- 0x4faa20 antennas_initialize size=28 conf=0.65 :: Creates the global antenna instance data array (data_new("antenna", 12)).
+- 0x4faa40 antennas_dispose size=18 conf=0.55 :: Marks the antenna data array as disposing and deletes all antenna instances.
+- 0x4faa60 FUN_004faa60 size=10 conf=0.45 :: Clears the antenna subsystem's disposing flag.
+- 0x4faa70 FUN_004faa70 size=20 conf=0.4 :: Resets the antenna data-array pointer/handle if one is currently set.
+- 0x4faa90 antenna_new size=487 conf=0.55 :: Creates a new antenna instance for an attachment, laying out its initial chain of segment vertices from the antenna tag definition.
+- 0x4fad20 antennas_update size=235 conf=0.55 :: Advances the physics simulation of every active antenna instance by one (clamped) timestep.
+- 0x4fae10 antenna_update_physics size=943 conf=0.5 :: Simulates one timestep of antenna segment motion, bending each segment relative to its parent based on marker movement and elapsed time.
+- 0x4fb1c0 FUN_004fb1c0 size=378 conf=0.4 :: Shifts a widget's stored point cloud (antenna chain or flag rope) by the movement of its anchoring marker since the last update.
+- 0x4fb3e0 object_definition_predict size=228 conf=0.45 :: Draws an antenna's chain of segments as connected line segments (used for antenna wire rendering), despite its earlier 'predict' name.
+- 0x4fb4d0 flags_initialize size=28 conf=0.7 :: Creates the global CTF flag instance data array (data_new("flag", 2)).
+- 0x4fb4f0 flags_dispose size=18 conf=0.6 :: Marks the flag data array as disposing and deletes all flag instances.
+- 0x4fb510 FUN_004fb510 size=10 conf=0.45 :: Clears the flag subsystem's disposing flag.
+- 0x4fb520 FUN_004fb520 size=20 conf=0.4 :: Resets the flag data-array pointer/handle if one is currently set.
+- 0x4fb540 flag_new size=391 conf=0.55 :: Creates a new flag instance and builds its cloth simulation grid (vertex UV grid and edge/shape constraints) from the flag tag definition.
+- 0x4fb6d0 FUN_004fb6d0 size=159 conf=0.4 :: Marks the border cells along each row of the flag's cloth grid, used to set up edge constraints for the cloth simulation.
+- 0x4fb770 FUN_004fb770 size=207 conf=0.4 :: Sets up the flag cloth grid's corner/shape constraints according to the tag-selected flag shape.
+- 0x4fb840 FUN_004fb840 size=290 conf=0.4 :: Stamps a rectangular region of the flag cloth grid with a quad-diagonal-split code later used when triangulating the cloth mesh for rendering.
+- 0x4fba00 flags_update size=210 conf=0.55 :: Advances the cloth simulation of every active flag instance by one timestep.
+- 0x4fbae0 flag_cloth_update size=1340 conf=0.5 :: Updates one timestep of the flag's cloth simulation, blending each vertex toward a wind-perturbed target position relative to the flag pole's current marker positions.
+- 0x4fc020 FUN_004fc020 size=805 conf=0.45 :: Resolves the current world position of each flag-pole marker segment and builds the row-interpolation table used to place the cloth grid along the pole.
+- 0x4fc350 flag_render size=1775 conf=0.55 :: Builds the flag's cloth mesh geometry (vertex normals and triangulated index list) for the current frame and submits it for rendering.
+- 0x4fca60 FUN_004fca60 size=147 conf=0.4 :: Evaluates a cubic polynomial fit through four (position, value) sample pairs at a given position, via Newton's divided differences.
+- 0x4fcb00 FUN_004fcb00 size=168 conf=0.45 :: Applies cubic_interpolate_scalar per-axis to interpolate a 3D vector through four control points.
+- 0x4fcdb0 FUN_004fcdb0 size=199 conf=0.4 :: Looks up a lightning instance by handle and drives its per-frame update, marker attachment, and rendering.
+- 0x4fce80 lightning_update size=1300 conf=0.55 :: Per-frame update of a lightning effect: orders its segment chain, ages and retires old segments, and spawns new ones according to the tag's rate.
+- 0x4fd3a0 FUN_004fd3a0 size=121 conf=0.45 :: Computes a lightning segment's fade-out fraction from its remaining lifetime, when the tag enables fading.
+- 0x4fd420 FUN_004fd420 size=128 conf=0.45 :: Computes a lightning segment's current render color, fading it toward zero over its lifetime when the tag enables color fade.
+- 0x4fd4a0 FUN_004fd4a0 size=431 conf=0.4 :: Computes a lightning segment's position and intensity by interpolating tag-defined ranges according to the object's driving function value.
+- 0x4fd650 FUN_004fd650 size=469 conf=0.45 :: Advances a lightning segment's animation timer by dt, handling clamp/ping-pong looping and triggering a reposition when it wraps.
+- 0x4fd830 FUN_004fd830 size=166 conf=0.45 :: Builds the initial chain of lightning segments for a lightning instance from its tag definition.
+- 0x4fd8e0 FUN_004fd8e0 size=572 conf=0.45 :: Allocates and randomly initializes one lightning segment's amplitude, period, color and phase from the tag's configured ranges.
+- 0x4fdb20 FUN_004fdb20 size=699 conf=0.45 :: Allocates and initializes a new lightning segment spawned during ongoing simulation, giving it an initial position, velocity and color.
+- 0x4fdde0 FUN_004fdde0 size=84 conf=0.4 :: Allocates one lightning segment/shard datum, verifying it against the array's slot table before returning it.
+- 0x4fde40 FUN_004fde40 size=1832 conf=0.4 :: Recomputes which anchor markers a lightning segment currently spans and its smoothly-interpolated position along the bolt's path.
+- 0x4fe570 lightning_render size=259 conf=0.5 :: Renders a lightning instance's segment chain as a sequence of connected line segments.
+- 0x4fe740 FUN_004fe740 size=443 conf=0.35 :: Interpolates a marker transform between two states using an object function-driven blend weight, returning a pointer to the blended result.
+- 0x4fe900 FUN_004fe900 size=326 conf=0.35 :: Conditionally creates a light-volume instance on an object's marker, based on the light-volume tag's marker count and an optional object-function gate.
+- 0x4fea50 FUN_004fea50 size=33 conf=0.4 :: Returns a value unchanged when its weight is exactly 1.0, otherwise evaluates it through a secondary (interpolation/curve) helper.
+- 0x4fef40 FUN_004fef40 size=197 conf=0.4 :: Applies a small random jitter, oriented by the object's transform, to a position (e.g. antenna tip wobble).
+- 0x4ff010 FUN_004ff010 size=2476 conf=0.4 :: Builds and renders the light-shaft geometry for a light-volume instance across its tag-defined markers.
+- 0x4ff9d0 widgets_initialize size=56 conf=0.6 :: Initializes the generic object-widget subsystem: the widget instance array plus each concrete widget type (antenna, flag, and others via a per-type vtable).
+- 0x4ffa10 widgets_dispose size=46 conf=0.55 :: Disposes the widget instance array and every concrete widget type (antenna, flag, and others) it manages.
+- 0x4ffa50 widgets_dispose_clear_flag size=42 conf=0.5 :: Clears the disposing flag for every widget type and then for the widget subsystem itself.
+- 0x4ffa80 widget_new size=334 conf=0.55 :: Creates a widget attachment instance of the appropriate concrete type for each matching attachment on an object, and links it into the object's widget list.
+- 0x4ffbe0 widget_delete_all size=122 conf=0.55 :: Deletes every widget attached to an object, dispatching to each widget's type-specific dispose routine.
+- 0x4ffc60 FUN_004ffc60 size=64 conf=0.4 :: Returns whether any widget attached to an object belongs to a type marked in a per-type flag table.
+- 0x4ffca0 FUN_004ffca0 size=106 conf=0.4 :: Invokes a per-type notification callback for every widget attached to an object.
+- 0x4ffd10 widgets_update_all size=39 conf=0.5 :: Advances every concrete widget subsystem (antennas, flags, and others) by one timestep.
+- 0x4ffd40 FUN_004ffd40 size=90 conf=0.3 :: Initializes a fixed-size 16-zone table of -1 index slots followed by 16 blocks of unity-weight floats; likely a per-zone light or ambient lookup grid.
+- 0x4ffda0 FUN_004ffda0 size=52 conf=0.3 :: Tests whether a given index's bit is set in the zone/light lookup table initialized by zone_light_table_initialize.

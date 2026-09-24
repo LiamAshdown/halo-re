@@ -1,0 +1,17 @@
+{
+ "slice": 1,
+ "decisions": [
+  {
+   "addr": "0x43ed20",
+   "module": "main",
+   "confidence": 0.55,
+   "evidence": "Reject lib:bink. Every Bink symbol here is a DLL import thunk (IAT at 0x6a0050: PTR__BinkOpen@8_006a0064, PTR__BinkDoFrame@4_006a0070, ...), i.e. binkw32.dll - no Bink library code is statically linked into halo.exe, so the lib:* fence cannot apply to anything in the image. The body is Halo engine glue: it drives the D3D device global DAT_0071d174 (vtable +0x90 device create, +0x98, +0x88 present), calls engine functions FUN_00515d90 (rasterizer window/D3D device creation) and FUN_00518180 (rasterizer.c state setter), handles D3DERR_DEVICELOST (0x88760868) by rebuilding the device from DAT_007c04a0, and runs a PeekMessage pump setting a skip flag on ESC/Space/SC_CLOSE. Both callers are already main: 0x4c7610 (main init - bungie.bik/gearbox.bik/mgs.bik, cea-string-hint main(4)) and 0x4921a0 (main-menu music - ending.bik). cutscene is also wrong: that module is in-engine cinematics/recorded animations, not attract-mode .bik playback. Keep main as a lone object file between the ai run ending 0x43ecf0 and the bitmaps run starting 0x43f030; confidence raised 0.4 -> 0.55 on the caller evidence."
+  },
+  {
+   "addr": "0x43fe60",
+   "module": "bitmaps",
+   "confidence": 0.8,
+   "evidence": "Keep bitmaps. The cea-pdb hint 'targa_export (main)' reflects the CE-Anniversary source's file layout, not the retail object layout, and the retail layout contradicts it: main.c's screenshot/movie-dump code forms a run at 0x4c9530 (movie\\frame%06d.tga) and 0x4ca1a0 (screenshots, %s\\%dscreenshot%d%d.tga, cea-string-hint main(1)) - those two are the ONLY callers of 0x43fe60, so if it lived in main.c's .obj it would sit beside them, not ~0x8B000 earlier. At 0x43fe60 it is instead inside one contiguous run: 0x43fd30 (validates the 'bitm' group magic 0x6269746d) plus its helper 0x43fe30 immediately before, and 0x43ff80/0x43ffe0 (DXT endpoint interpolation) immediately after. Its row loop calls FUN_0043f8e0, which is mipmap-offset math over the bitmap_data block using the bits-per-pixel table DAT_006571f4, and its row count is the bitmap_data height at +6 - this is the bitmap-utilities object file's TGA writer sharing the file-I/O wrappers 0x5555b0/0x5557a0/0x555890/0x555a90. Carving one function out of that run would break MSVC object-file contiguity."
+  }
+ ]
+}

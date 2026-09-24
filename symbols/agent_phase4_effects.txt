@@ -1,0 +1,153 @@
+# effects module (0x44c800..0x53fc80, 124 Ghidra functions) names established by the
+# phase-4/5 C rewrite in src/effects/*.c; each name is justified in that file's header
+# comment and in out/phase4/effects_types_notes.md. The confidence column is that file's
+# own `name confidence` line, not a flat 0.8, matching symbols/agent_phase4_physics.txt.
+#
+# Renames that CONTRADICT a pre-existing inherited name, with the evidence. Ghidra's own
+# auto-analysis had named a whole family of this module particle_system_*; they operate on
+# the effe tag and the 0xfc byte effect_data record at 0x0087abdc, not on the pctl tag and
+# the 0x158 byte particle_system_data record at 0x0087abd4, which is a different table with
+# a different initializer. out/phase4/effects_types_notes.md carries the full table:
+#   0x450630 particle_system_try_and_get        -> effect_try_and_get
+#   0x450be0 particle_system_delete_450be0      -> effect_delete
+#   0x451290 particle_system_property_random_value -> effect_property_random_value
+#   0x451500 particle_system_new                -> effect_new
+#   0x451a30 particle_system_update             -> effect_update
+#   0x451f90 particle_system_spawn_particles    -> effect_spawn_particles
+#   0x453f60 particle_system_delete_453f60      -> particle_system_delete (this one really is
+#                                                 the pctl table; only the suffix is dropped)
+#   0x453290 transition_function_evaluate       -> effect_distribution_function_evaluate. The
+#            math module owns the real transition_function_evaluate at 0x4ccac0; this is the
+#            effect distribution-function evaluator and the two were conflated.
+#   0x44cb50 sig__contrail_update_sig           -> contrail_update (Chimera signature label)
+#   0x44e2b0 sig__decal_table_sig               -> decals_update_fade (Chimera signature label;
+#            the function is the per-frame fade driver over the whole decal table)
+#
+# Corrections made by the phase-4 integration pass, against the two rewriter passes:
+#   0x44edc0 FUN_0044edc0 is decal_place and its first parameter is the Decal TAG index, not an
+#            object index (raw 0x004502b4 `mov edx,[ebp+8]; mov [esi+0x2c],edx`, and [ebp+8] is
+#            the same value 0x0044edee resolves tag data from). Phase 2 had guessed decal_new
+#            for this address; decal_new is 0x44dd90.
+#   0x451310 effect_random_velocity_vector's param_3/param_4 are OUTPUT pointers, not min/max
+#            values: Ghidra writes *param_3 = *param_2 and reads param_3 back to build param_4,
+#            and effect_spawn_particles 0x451f90 reads both back as 3-float vectors. min/max are
+#            param_5/param_6. This resolved the signature conflict the first rewriter flagged.
+#
+# Thirteen of the module's 124 addresses are deliberately NOT named here because they belong to
+# other modules (out/phase4/effects_types_notes.md): 0x44d820, 0x44d860, 0x44d8e0, 0x44d950,
+# 0x44d9e0, 0x44da20, 0x44da60 (math / cseries), 0x44dad0, 0x44db30 (structures / bitmaps),
+# 0x453330 (players), 0x4588e0 (math), 0x458990 (render) and 0x458b50 (structures). No file in
+# src/ implements any of them yet.
+#
+# addr name kind confidence source evidence
+0x44c800 effect_random_int_between func 0.35 agent-phase4 src/effects/effect_random_int_between.c_header_comment
+0x44c840 effect_random_scaled_range func 0.40 agent-phase4 src/effects/effect_random_scaled_range.c_header_comment
+0x44c8b0 contrails_initialize func 0.90 agent-phase4 src/effects/contrails_initialize.c_header_comment
+0x44c910 contrail_new func 0.40 agent-phase4 src/effects/contrail_new.c_header_comment
+0x44ca60 contrail_advance func 0.50 agent-phase4 src/effects/contrail_advance.c_header_comment
+0x44cad0 contrail_delete func 0.55 agent-phase4 src/effects/contrail_delete.c_header_comment
+0x44cb50 contrail_update func 0.50 agent-phase4 src/effects/contrail_update.c_header_comment_(renames_sig__contrail_update_sig)
+0x44cda0 contrail_refresh_lightmap func 0.40 agent-phase4 src/effects/contrail_refresh_lightmap.c_header_comment
+0x44ced0 contrail_next_sequence func 0.50 agent-phase4 src/effects/contrail_next_sequence.c_header_comment
+0x44cf80 contrail_points_due func 0.50 agent-phase4 src/effects/contrail_points_due.c_header_comment
+0x44d020 contrail_generate_points func 0.50 agent-phase4 src/effects/contrail_generate_points.c_header_comment
+0x44d470 contrail_age_points func 0.50 agent-phase4 src/effects/contrail_age_points.c_header_comment
+0x44da40 effect_random_uint16 func 0.45 agent-phase4 src/effects/effect_random_uint16.c_header_comment
+0x44dc30 decal_update_fade func 0.50 agent-phase4 src/effects/decal_update_fade.c_header_comment
+0x44dd30 decal_link func 0.50 agent-phase4 src/effects/decal_link.c_header_comment
+0x44dd90 decal_new func 0.50 agent-phase4 src/effects/decal_new.c_header_comment
+0x44df90 decals_initialize func 0.80 agent-phase4 src/effects/decals_initialize.c_header_comment
+0x44e000 decal_rehash_object_decals func 0.40 agent-phase4 src/effects/decal_rehash_object_decals.c_header_comment
+0x44e220 decal_clear_flags func 0.40 agent-phase4 src/effects/decal_clear_flags.c_header_comment
+0x44e2b0 decals_update_fade func 0.55 agent-phase4 src/effects/decals_update_fade.c_header_comment_(renames_sig__decal_table_sig)
+0x44e310 decal_evict_object_decals func 0.40 agent-phase4 src/effects/decal_evict_object_decals.c_header_comment
+0x44e3c0 decal_delete func 0.55 agent-phase4 src/effects/decal_delete.c_header_comment
+0x44e460 decal_build_projection func 0.40 agent-phase4 src/effects/decal_build_projection.c_header_comment
+0x44e730 decal_flood_surfaces func 0.40 agent-phase4 src/effects/decal_flood_surfaces.c_header_comment
+0x44ece0 decal_spawn_for_response func 0.40 agent-phase4 src/effects/decal_spawn_for_response.c_header_comment
+0x44edc0 decal_place func 0.60 agent-phase4 src/effects/decal_place.c_header_comment
+0x4505b0 effect_random_fraction func 0.50 agent-phase4 src/effects/effect_random_fraction.c_header_comment
+0x4505e0 effect_random_direction_from_table func 0.45 agent-phase4 src/effects/effect_random_direction_from_table.c_header_comment
+0x450630 effect_try_and_get func 0.50 agent-phase4 src/effects/effect_try_and_get.c_header_comment_(renames_particle_system_try_and_get)
+0x450680 effect_first_person_screen_timer_active func 0.25 agent-phase4 src/effects/effect_first_person_screen_timer_active.c_header_comment
+0x4506d0 effect_new_at_texture_coordinate func 0.35 agent-phase4 src/effects/effect_new_at_texture_coordinate.c_header_comment
+0x4507a0 effect_new_on_object func 0.30 agent-phase4 src/effects/effect_new_on_object.c_header_comment
+0x450870 effect_new_on_object_with_node_table func 0.30 agent-phase4 src/effects/effect_new_on_object_with_node_table.c_header_comment
+0x450980 effect_new_with_color func 0.30 agent-phase4 src/effects/effect_new_with_color.c_header_comment
+0x450aa0 effects_update_all func 0.35 agent-phase4 src/effects/effects_update_all.c_header_comment
+0x450b20 effect_stop func 0.35 agent-phase4 src/effects/effect_stop.c_header_comment
+0x450be0 effect_delete func 0.50 agent-phase4 src/effects/effect_delete.c_header_comment_(renames_particle_system_delete_450be0)
+0x450cb0 effect_reattach_markers_for_object func 0.30 agent-phase4 src/effects/effect_reattach_markers_for_object.c_header_comment
+0x450d50 effect_release_first_person_markers func 0.40 agent-phase4 src/effects/effect_release_first_person_markers.c_header_comment
+0x450fa0 effect_check_object_collisions func 0.40 agent-phase4 src/effects/effect_check_object_collisions.c_header_comment
+0x451290 effect_property_random_value func 0.50 agent-phase4 src/effects/effect_property_random_value.c_header_comment_(renames_particle_system_property_random_value)
+0x451310 effect_random_velocity_vector func 0.40 agent-phase4 src/effects/effect_random_velocity_vector.c_header_comment
+0x451450 effect_random_direction_vector func 0.40 agent-phase4 src/effects/effect_random_direction_vector.c_header_comment
+0x451500 effect_new func 0.50 agent-phase4 src/effects/effect_new.c_header_comment_(renames_particle_system_new)
+0x451600 effect_set_placement func 0.40 agent-phase4 src/effects/effect_set_placement.c_header_comment
+0x451660 effect_start_event func 0.50 agent-phase4 src/effects/effect_start_event.c_header_comment
+0x451710 effect_rebuild_markers func 0.45 agent-phase4 src/effects/effect_rebuild_markers.c_header_comment
+0x4517d0 effect_marker_new func 0.55 agent-phase4 src/effects/effect_marker_new.c_header_comment
+0x451930 effect_compute_spawn_basis func 0.30 agent-phase4 src/effects/effect_compute_spawn_basis.c_header_comment
+0x451a30 effect_update func 0.50 agent-phase4 src/effects/effect_update.c_header_comment_(renames_particle_system_update)
+0x451f90 effect_spawn_particles func 0.50 agent-phase4 src/effects/effect_spawn_particles.c_header_comment_(renames_particle_system_spawn_particles)
+0x4529d0 object_change_color_evaluate func 0.50 agent-phase4 src/effects/object_change_color_evaluate.c_header_comment
+0x452cf0 effect_event_apply func 0.70 agent-phase4 src/effects/effect_event_apply.c_header_comment
+0x453180 effect_marker_next func 0.40 agent-phase4 src/effects/effect_marker_next.c_header_comment
+0x453220 effect_resolve_marker_transform func 0.35 agent-phase4 src/effects/effect_resolve_marker_transform.c_header_comment
+0x453290 effect_distribution_function_evaluate func 0.50 agent-phase4 src/effects/effect_distribution_function_evaluate.c_header_comment_(renames_transition_function_evaluate)
+0x4533b0 effect_marker_environment_probe func 0.35 agent-phase4 src/effects/effect_marker_environment_probe.c_header_comment
+0x453490 material_effects_play_at_marker func 0.50 agent-phase4 src/effects/material_effects_play_at_marker.c_header_comment
+0x4535b0 particle_systems_delete_all func 0.45 agent-phase4 src/effects/particle_systems_delete_all.c_header_comment
+0x453600 particle_system_new_at_point func 0.50 agent-phase4 src/effects/particle_system_new_at_point.c_header_comment
+0x4536f0 particle_system_new_on_marker func 0.50 agent-phase4 src/effects/particle_system_new_on_marker.c_header_comment
+0x4538b0 particle_system_new_type_states func 0.50 agent-phase4 src/effects/particle_system_new_type_states.c_header_comment
+0x453a10 player_weapon_locality_for_object func 0.30 agent-phase4 src/effects/player_weapon_locality_for_object.c_header_comment
+0x453b10 particle_system_spawn func 0.40 agent-phase4 src/effects/particle_system_spawn.c_header_comment
+0x453f60 particle_system_delete func 0.60 agent-phase4 src/effects/particle_system_delete.c_header_comment_(renames_particle_system_delete_453f60)
+0x454000 particle_systems_update func 0.40 agent-phase4 src/effects/particle_systems_update.c_header_comment
+0x454080 particle_system_resolve_local_players func 0.40 agent-phase4 src/effects/particle_system_resolve_local_players.c_header_comment
+0x454250 particle_system_roll_particle_state func 0.55 agent-phase4 src/effects/particle_system_roll_particle_state.c_header_comment
+0x4543b0 particle_system_advance_type_state func 0.40 agent-phase4 src/effects/particle_system_advance_type_state.c_header_comment
+0x454450 particle_system_advance_particle_state func 0.40 agent-phase4 src/effects/particle_system_advance_particle_state.c_header_comment
+0x4544f0 particle_system_update func 0.50 agent-phase4 src/effects/particle_system_update.c_header_comment
+0x454b40 particle_systems_render func 0.40 agent-phase4 src/effects/particle_systems_render.c_header_comment
+0x454bf0 particle_system_render func 0.60 agent-phase4 src/effects/particle_system_render.c_header_comment
+0x455740 particle_new func 0.60 agent-phase4 src/effects/particle_new.c_header_comment
+0x455b60 particles_update func 0.60 agent-phase4 src/effects/particles_update.c_header_comment
+0x455c80 particles_delete_by_first_person_weapon func 0.60 agent-phase4 src/effects/particles_delete_by_first_person_weapon.c_header_comment
+0x455e60 particle_next_sequence func 0.60 agent-phase4 src/effects/particle_next_sequence.c_header_comment
+0x456000 particle_advance_frame func 0.60 agent-phase4 src/effects/particle_advance_frame.c_header_comment
+0x4560c0 particle_advance_animation func 0.60 agent-phase4 src/effects/particle_advance_animation.c_header_comment
+0x4561a0 particle_update_motion func 0.60 agent-phase4 src/effects/particle_update_motion.c_header_comment
+0x456550 particle_impact func 0.50 agent-phase4 src/effects/particle_impact.c_header_comment
+0x4565a0 particle_impact_response_dispatch func 0.50 agent-phase4 src/effects/particle_impact_response_dispatch.c_header_comment
+0x4566f0 particle_current_radius func 0.60 agent-phase4 src/effects/particle_current_radius.c_header_comment
+0x456730 player_effect_clear_dead_players func 0.50 agent-phase4 src/effects/player_effect_clear_dead_players.c_header_comment
+0x4567c0 player_effect_apply_continuous_damage func 0.60 agent-phase4 src/effects/player_effect_apply_continuous_damage.c_header_comment
+0x456900 player_effect_apply_at_object func 0.50 agent-phase4 src/effects/player_effect_apply_at_object.c_header_comment
+0x456980 player_effect_set_screen_flash_for_player func 0.40 agent-phase4 src/effects/player_effect_set_screen_flash_for_player.c_header_comment
+0x4569d0 player_effect_apply_generic_damage_feedback func 0.30 agent-phase4 src/effects/player_effect_apply_generic_damage_feedback.c_header_comment
+0x456ad0 player_effect_mark_damage_direction_dispatch func 0.30 agent-phase4 src/effects/player_effect_mark_damage_direction_dispatch.c_header_comment
+0x456bc0 player_effect_send_network_update func 0.50 agent-phase4 src/effects/player_effect_send_network_update.c_header_comment
+0x456cf0 player_effect_mark_damage_direction func 0.50 agent-phase4 src/effects/player_effect_mark_damage_direction.c_header_comment
+0x457000 player_effect_build_screen_flash func 0.50 agent-phase4 src/effects/player_effect_build_screen_flash.c_header_comment
+0x457220 player_effect_fade_damage_indicators func 0.55 agent-phase4 src/effects/player_effect_fade_damage_indicators.c_header_comment
+0x457280 player_effect_random_shake_offset func 0.30 agent-phase4 src/effects/player_effect_random_shake_offset.c_header_comment
+0x457390 player_effect_build_camera_shake_matrix func 0.50 agent-phase4 src/effects/player_effect_build_camera_shake_matrix.c_header_comment
+0x4578a0 player_effect_set_screen_flash func 0.55 agent-phase4 src/effects/player_effect_set_screen_flash.c_header_comment
+0x4579b0 player_effect_set_camera_impulse func 0.50 agent-phase4 src/effects/player_effect_set_camera_impulse.c_header_comment
+0x457d50 player_effect_set_camera_shake func 0.55 agent-phase4 src/effects/player_effect_set_camera_shake.c_header_comment
+0x457e20 weather_instance_activate func 0.60 agent-phase4 src/effects/weather_instance_activate.c_header_comment
+0x457f00 weather_instance_deactivate func 0.60 agent-phase4 src/effects/weather_instance_deactivate.c_header_comment
+0x457fc0 weather_instance_adjust_count func 0.60 agent-phase4 src/effects/weather_instance_adjust_count.c_header_comment
+0x458070 weather_particle_new func 0.60 agent-phase4 src/effects/weather_particle_new.c_header_comment
+0x458420 weather_instance_update func 0.60 agent-phase4 src/effects/weather_instance_update.c_header_comment
+0x458630 weather_particle_update func 0.60 agent-phase4 src/effects/weather_particle_update.c_header_comment
+0x458a90 weather_update_local_player func 0.60 agent-phase4 src/effects/weather_update_local_player.c_header_comment
+0x458bf0 weather_instance_build_render_geometry func 0.35 agent-phase4 src/effects/weather_instance_build_render_geometry.c_header_comment
+0x53f5c0 weather_update func 0.75 agent-phase4 src/effects/weather_update.c_header_comment
+0x53f860 ambient_color_marker_visible func 0.40 agent-phase4 src/effects/ambient_color_marker_visible.c_header_comment
+0x53f940 ambient_color_for_marker func 0.50 agent-phase4 src/effects/ambient_color_for_marker.c_header_comment
+0x53fa70 ambient_color_randomize func 0.60 agent-phase4 src/effects/ambient_color_randomize.c_header_comment
+0x53fc80 ambient_color_sample func 0.60 agent-phase4 src/effects/ambient_color_sample.c_header_comment

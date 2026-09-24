@@ -1,0 +1,126 @@
+# effects module: 124 functions (address, current Ghidra name, size, agent confidence, summary)
+
+- 0x44c800 FUN_0044c800 size=49 conf=0.35 :: Register-based helper that returns a pseudo-random 16-bit integer between an implicit ECX minimum and param_1 maximum using the effect module's local RNG state.
+- 0x44c840 FUN_0044c840 size=112 conf=0.35 :: Evaluates a randomized value between a min and max bound, each optionally multiplied by a scale factor selected by per-bit flags, using the module-local RNG.
+- 0x44c8b0 contrails_initialize size=89 conf=0.9 :: Creates the contrail and contrail-point datum tables used by the rest of the contrail effect system, clearing both handles on partial failure.
+- 0x44c910 FUN_0044c910 size=318 conf=0.4 :: Creates a new contrail instance attached to the given owner id and seeds its initial point/marker state.
+- 0x44ca60 FUN_0044ca60 size=101 conf=0.35 :: Advances a single contrail's time accumulator, generating new trail points if due, and optionally detaches the contrail from its owning marker.
+- 0x44cad0 contrail_delete size=109 conf=0.55 :: Frees all contrail-point datums owned by a contrail and then deletes the contrail record.
+- 0x44cb50 chimera__contrail_update size=571 conf=0.5 :: Per-frame driver that updates every active contrail: advances timers, regenerates and ages trail points, and deletes contrails that have finished.
+- 0x44cda0 FUN_0044cda0 size=287 conf=0.35 :: Refreshes the cached lightmap color index for every point of every contrail (callers=0 in this batch, so invoked from outside this region).
+- 0x44ced0 FUN_0044ced0 size=167 conf=0.4 :: Periodically re-randomizes which marker permutation a contrail point tracks once its current index becomes invalid or its refresh counter expires.
+- 0x44cf80 FUN_0044cf80 size=155 conf=0.4 :: Computes how many new contrail points are due given elapsed distance/time and the contrail's point-spacing rate.
+- 0x44d020 contrail_generate_points size=1094 conf=0.5 :: Subdivides a contrail segment by allocating and interpolating new contrail-point datums between the last recorded point and the marker's current position.
+- 0x44d470 FUN_0044d470 size=944 conf=0.45 :: Ages every point of a contrail, regenerating expired segment lifetimes, submitting live segments for rendering, and freeing points that have fully faded.
+- 0x44d820 vector3d_major_axis_index size=63 conf=0.55 :: Returns the index (0=x,1=y,2=z) of the largest-magnitude component of an implicit 3-float vector, used to pick a projection axis.
+- 0x44d860 FUN_0044d860 size=113 conf=0.35 :: Given two known coordinates of a point and a plane equation, back-solves for the third (dominant-axis) coordinate using a precomputed axis-permutation table.
+- 0x44d8e0 vector3d_scalar_triple_product size=107 conf=0.5 :: Returns the scalar triple product of three vectors passed in registers, typically used to test the signed orientation/volume of a tetrahedron.
+- 0x44d950 FUN_0044d950 size=135 conf=0.4 :: Constructs the normal-form 2D line equation (nx, ny, d) through two points, returning NULL for a degenerate (near-zero-length) segment.
+- 0x44d9e0 FUN_0044d9e0 size=50 conf=0.4 :: Builds a Plane3D structure (normal xyz plus distance term) from an implicit normal vector and reference point.
+- 0x44da20 plane3d_negate size=31 conf=0.55 :: Negates a Plane3D's normal and distance components in place.
+- 0x44da40 FUN_0044da40 size=25 conf=0.45 :: Returns the next 16-bit pseudo-random value from the effects module's local LCG state.
+- 0x44da60 color_real_to_argb_pack size=106 conf=0.6 :: Quantizes a floating point alpha and RGB triple to bytes and packs them into a single 0xAARRGGBB value.
+- 0x44dad0 FUN_0044dad0 size=86 conf=0.35 :: Looks up an indexed 4-float table entry, optionally negated by the sign of the index, useful for signed plane/BSP-leaf plane references.
+- 0x44db30 FUN_0044db30 size=253 conf=0.35 :: Computes a 2D projection rectangle (uv-like offsets) for a surface/lightmap corner, used when placing a decal or contrail segment onto BSP geometry.
+- 0x44dc30 decal_update_fade size=244 conf=0.5 :: Advances a single decal's fade state, computing its current alpha byte and evicting the decal's cached geometry once it has fully faded.
+- 0x44dd30 FUN_0044dd30 size=86 conf=0.45 :: Inserts a decal into the spatial hash grid bucket for its (x,y) surface-cell coordinates.
+- 0x44dd90 FUN_0044dd90 size=499 conf=0.45 :: Allocates a new decal datum, assigns it a permanence class with budget-based eviction of old temporary decals, and inserts it into the spatial grid at the given cell.
+- 0x44df90 decals_initialize size=99 conf=0.8 :: Registers the decal datum table and allocates/registers the decal spatial-grid storage block with the renderer.
+- 0x44e000 FUN_0044e000 size=311 conf=0.35 :: Keeps decals stuck to moving/animating objects rehashed into the correct spatial grid bucket as their attachment node changes.
+- 0x44e220 FUN_0044e220 size=141 conf=0.35 :: Clears per-frame/temporary decal flags across the whole decal table and rebalances the associated budget counters.
+- 0x44e2b0 chimera__decal_table size=85 conf=0.55 :: Per-frame driver that updates the fade state of every decal in the decal table.
+- 0x44e310 FUN_0044e310 size=168 conf=0.4 :: Evicts the object-attached decals in a given grid cell (or all cells), clearing their state and freeing their cached render geometry.
+- 0x44e3c0 decal_delete size=147 conf=0.55 :: Removes a decal from its spatial hash-grid bucket and frees its datum.
+- 0x44e460 FUN_0044e460 size=705 conf=0.35 :: Builds a decal's texture-projection basis (dominant axis, edge gradients and inverse determinant) from its plane and transform, used to rasterize a decal polygon onto BSP surfaces.
+- 0x44e730 FUN_0044e730 size=1444 conf=0.4 :: Recursively floods across adjacent BSP surfaces from a starting surface, clipping and accumulating a decal's polygon vertices so it can wrap across multiple surfaces/edges.
+- 0x44ece0 FUN_0044ece0 size=209 conf=0.4 :: Decides whether a decal should be spawned for the current collision/damage response (checking enable flags and a tunable) and, if so, invokes the decal placement algorithm.
+- 0x44edc0 FUN_0044edc0 size=6111 conf=0.45 :: Top-level decal placement algorithm: projects a decal onto the BSP starting from a surface normal, flood-fills across neighbouring surfaces to build its polygon, and allocates/inserts the finished dec
+- 0x4505b0 effect_random_fraction size=41 conf=0.5 :: Returns the next pseudo-random fraction in [0,1) from the effects module's local RNG state.
+- 0x4505e0 FUN_004505e0 size=78 conf=0.45 :: Picks a pseudo-random 3D vector (e.g. a direction on a sphere/cone) from a precomputed lookup table.
+- 0x450630 particle_system_try_and_get size=67 conf=0.5 :: Validates a particle-system index (with salt) against the particle-system datum table and returns its record pointer, or NULL if stale/out of range.
+- 0x450680 FUN_00450680 size=65 conf=0.3 :: Looks up a fixed object slot and, if it has a certain attachment flag, validates a linked node index, returning whether a related condition (likely local/first-person player context) holds.
+- 0x4506d0 FUN_004506d0 size=199 conf=0.35 :: Creates a new particle system attached to an object at an explicit 2D marker/texture coordinate, binding it to matching object markers.
+- 0x4507a0 FUN_004507a0 size=201 conf=0.3 :: Creates a new particle system on an object with an explicit min/max scale range, binding it to the object's markers.
+- 0x450870 FUN_00450870 size=265 conf=0.3 :: Creates a new particle system on an object with an explicit orientation/placement and an associated node-table entry.
+- 0x450980 FUN_00450980 size=282 conf=0.3 :: Creates a new particle system with an explicit (or default) tint color and resolved lightmap index, binding it to the object's markers.
+- 0x450aa0 FUN_00450aa0 size=120 conf=0.45 :: Per-frame driver that advances every active particle system by the given time delta.
+- 0x450b20 FUN_00450b20 size=189 conf=0.35 :: Stops or loops a particle system's current state, deleting it if it cannot continue or scheduling its next randomized state.
+- 0x450be0 particle_system_delete_450be0 size=208 conf=0.5 :: Frees all per-node attachment datums owned by a particle system and then deletes the particle-system record.
+- 0x450cb0 FUN_00450cb0 size=159 conf=0.3 :: Re-binds every particle system attached to a given object to a new first-person-weapon marker index.
+- 0x450d50 FUN_00450d50 size=304 conf=0.3 :: Invalidates and removes attachment references to a marker index that is being freed, across all particle systems that used it.
+- 0x450fa0 FUN_00450fa0 size=738 conf=0.3 :: Scans particle systems and nearby objects for the first bounding-sphere overlap, returning whether any particle system is currently touching an object.
+- 0x451290 particle_system_property_random_value size=122 conf=0.5 :: Evaluates a randomized property value between a min and max bound, scaled by a particle system's own scale-min/scale-max factors, using an explicit RNG seed.
+- 0x451310 FUN_00451310 size=309 conf=0.4 :: Computes a random-length velocity/offset vector, optionally rotated by a random angle about a given axis, for a particle system's spawn parameters.
+- 0x451450 FUN_00451450 size=168 conf=0.4 :: Picks a random spawn direction vector for a particle system from a precomputed direction table, scaled by a random magnitude, or a default direction if the magnitude is zero.
+- 0x451500 particle_system_new size=246 conf=0.5 :: Allocates a new particle-system datum for an object, evicting an older temporary instance if the pool is exhausted, and initializes its basic fields.
+- 0x451600 FUN_00451600 size=83 conf=0.4 :: Initializes a new particle system's scale range, orientation and position/velocity fields, with sensible defaults when no vectors are supplied.
+- 0x451660 FUN_00451660 size=172 conf=0.4 :: Selects and initializes the marker/state a particle system will play next, including rolling its randomized scale for that state.
+- 0x451710 FUN_00451710 size=182 conf=0.45 :: Rebuilds a particle system's per-node marker attachment lists by looking up matching object markers through a caller-supplied callback.
+- 0x4517d0 FUN_004517d0 size=117 conf=0.4 :: Allocates and links a single resolved marker attachment record into a particle system's per-node marker list.
+- 0x451930 FUN_00451930 size=251 conf=0.3 :: Resolves a spawn point (from a fixed table or a transform) and builds an orthonormal basis around it for particle system placement.
+- 0x451a30 particle_system_update size=1358 conf=0.5 :: Advances a single particle system's playback state machine for one frame: evaluating its driving function, spawning particles, and transitioning between or finishing states.
+- 0x451f90 particle_system_spawn_particles size=2600 conf=0.5 :: Evaluates a particle system's attachment points each frame and spawns new individual particles with randomized position, velocity, rotation and scale where the spawn condition is met.
+- 0x4529d0 FUN_004529d0 size=770 conf=0.35 :: Evaluates the change-color function chain for each region of an object and writes the resulting primary/secondary colors back into the object's render state.
+- 0x452cf0 effect_event_apply size=1156 conf=0.7 :: Applies a single effect event/part by tag group, spawning the corresponding object, decal, damage, light, particle system, or sound.
+- 0x453180 FUN_00453180 size=151 conf=0.3 :: Walks a chained object-function-input list to resolve the active link for the given evaluation mode.
+- 0x453220 FUN_00453220 size=100 conf=0.35 :: Returns a pointer to a skeletal node's transform, special-casing first-person weapon nodes.
+- 0x453290 transition_function_evaluate size=124 conf=0.5 :: Evaluates a standard easing/transition curve (linear, early, late, smooth, or step) for a 0..1 input.
+- 0x453330 FUN_00453330 size=125 conf=0.35 :: Returns whether any local player is within 10 world units of a given point.
+- 0x4533b0 FUN_004533b0 size=222 conf=0.3 :: Probes the environment near an object marker and, on a hit, triggers a marker-attached effect.
+- 0x453490 FUN_00453490 size=287 conf=0.4 :: Spawns an effect and/or sound at a specific marker on a specific object.
+- 0x4535b0 FUN_004535b0 size=73 conf=0.45 :: Deletes every active particle system, used to fully reset the particle system pool.
+- 0x453600 FUN_00453600 size=236 conf=0.45 :: Creates a new particle system instance at a given position/orientation from a pctl tag.
+- 0x4536f0 FUN_004536f0 size=442 conf=0.35 :: Creates a new particle system instance attached to a marker on an object.
+- 0x4538b0 FUN_004538b0 size=338 conf=0.4 :: Initializes per-particle-type runtime state for a newly created particle system.
+- 0x453a10 FUN_00453a10 size=249 conf=0.25 :: Searches active particle systems for one associated with a given object and reports a match state.
+- 0x453b10 FUN_00453b10 size=1085 conf=0.35 :: Spawns new child particle records for one particle-type of a particle system, up to its target emission count.
+- 0x453f60 particle_system_delete_453f60 size=146 conf=0.5 :: Deletes a particle system and all of its spawned particle records.
+- 0x454000 FUN_00454000 size=120 conf=0.4 :: Updates every active particle system for one simulation tick.
+- 0x454080 FUN_00454080 size=456 conf=0.25 :: Unused routine that would re-resolve local-player associations for every particle system and its particle-type slots.
+- 0x454250 FUN_00454250 size=343 conf=0.3 :: Generates a random point/normal pair interpolated within a marker region's stored bounds.
+- 0x4543b0 FUN_004543b0 size=159 conf=0.3 :: Advances a bounded, optionally looping/ping-ponging index by one step.
+- 0x454450 FUN_00454450 size=147 conf=0.3 :: Advances a second bounded, optionally looping index by one step, mirroring FUN_004543b0 for a different field.
+- 0x4544f0 FUN_004544f0 size=1608 conf=0.45 :: Per-tick update for a single particle system: advances physics, evaluates its behavior callback, and updates each particle-type's render state.
+- 0x454b40 FUN_00454b40 size=176 conf=0.3 :: Re-evaluates particle systems whose BSP cluster/region was marked as changed.
+- 0x454bf0 FUN_00454bf0 size=1708 conf=0.3 :: Recomputes local lighting contribution for each active particle-type slot of a particle system from nearby scene lights.
+- 0x455740 FUN_00455740 size=1043 conf=0.4 :: Creates a new individual particle from a particle-type definition.
+- 0x455b60 FUN_00455b60 size=272 conf=0.4 :: Per-tick update for every active particle: ages, animates, or deletes each one.
+- 0x455c80 FUN_00455c80 size=147 conf=0.35 :: Deletes all live particles belonging to a specific particle type.
+- 0x455e60 FUN_00455e60 size=406 conf=0.35 :: Advances a particle's sprite sequence state machine and picks the next random frame index.
+- 0x456000 FUN_00456000 size=184 conf=0.3 :: Decrements/refreshes a particle's current-frame hold counter, advancing the sequence when it expires.
+- 0x4560c0 FUN_004560c0 size=223 conf=0.3 :: Advances a particle's frame animation across a given elapsed time by repeatedly consuming per-frame durations.
+- 0x4561a0 FUN_004561a0 size=929 conf=0.35 :: Updates a particle's motion, handling collision response and object-attached particle damping.
+- 0x456550 FUN_00456550 size=78 conf=0.3 :: Triggers a particle's impact effect if one is defined, otherwise deletes the particle.
+- 0x4565a0 FUN_004565a0 size=326 conf=0.45 :: Dispatches a particle's impact response, spawning an effect or playing a sound depending on the referenced tag's group.
+- 0x4566f0 FUN_004566f0 size=64 conf=0.3 :: Computes a particle's current render scale from its lifetime fraction and the owning object type's radius range.
+- 0x456730 FUN_00456730 size=137 conf=0.45 :: Clears out contrail instances whose owning object no longer exists.
+- 0x4567c0 FUN_004567c0 size=316 conf=0.35 :: Emits/updates a contrail segment once the object has traveled far enough since the last point.
+- 0x456900 FUN_00456900 size=115 conf=0.35 :: Computes distance traveled since the last update and forwards it to the contrail point-emission routine.
+- 0x456980 FUN_00456980 size=75 conf=0.35 :: Adds a new point to an object's contrail if one is currently attached.
+- 0x4569d0 FUN_004569d0 size=251 conf=0.3 :: Resets a contrail's point buffer to defaults and adds an initial point.
+- 0x456ad0 FUN_00456ad0 size=237 conf=0.3 :: Allocates or looks up a contrail slot for an object and hands off to the contrail creation routine.
+- 0x456bc0 FUN_00456bc0 size=293 conf=0.4 :: Encodes and sends a network update for a newly added contrail point.
+- 0x456cf0 FUN_00456cf0 size=779 conf=0.35 :: Creates or extends a contrail on an object and evaluates local-player visibility/facing to set its render flags.
+- 0x457000 FUN_00457000 size=529 conf=0.3 :: Computes the interpolated color/alpha for a contrail segment based on its age.
+- 0x457220 FUN_00457220 size=84 conf=0.3 :: Fades a contrail's stored alpha bytes upward over time, clamped to 255.
+- 0x457280 FUN_00457280 size=262 conf=0.3 :: Computes a randomly-rotated positional jitter offset for a contrail point.
+- 0x457390 FUN_00457390 size=1295 conf=0.3 :: Computes the transform matrix used to render one contrail point, blending between fade-in states.
+- 0x4578a0 FUN_004578a0 size=264 conf=0.35 :: Adds a new contrail point only if enough angular or distance change has accumulated since the previous point.
+- 0x4579b0 FUN_004579b0 size=925 conf=0.3 :: Computes the orientation and basis vectors for a new contrail point from the object's stored yaw/pitch.
+- 0x457d50 FUN_00457d50 size=201 conf=0.3 :: Adds a new contrail point with a caller-supplied scale factor applied to its width/rate.
+- 0x457e20 FUN_00457e20 size=210 conf=0.35 :: Activates a weather effect instance for a region and seeds each weather-particle-type's initial random age.
+- 0x457f00 FUN_00457f00 size=177 conf=0.35 :: Deletes all weather particles for a weather instance's particle types and deactivates the slot.
+- 0x457fc0 FUN_00457fc0 size=174 conf=0.35 :: Grows or shrinks the number of live weather particles for one weather-particle-type toward a target count.
+- 0x458070 FUN_00458070 size=941 conf=0.4 :: Creates a new individual weather particle (raindrop/snowflake) with randomized position, velocity and lifetime.
+- 0x458420 FUN_00458420 size=520 conf=0.35 :: Per-tick update for one weather effect instance: fades, replenishes, and advances all of its particles.
+- 0x458630 FUN_00458630 size=686 conf=0.3 :: Updates one weather particle's velocity, collision response and position for a tick.
+- 0x4588e0 FUN_004588e0 size=168 conf=0.3 :: Adds noise to a vector's components, biased by the sign of a reference direction vector.
+- 0x458990 FUN_00458990 size=250 conf=0.3 :: Builds a camera-facing transform matrix for weather rendering geometry.
+- 0x458a90 FUN_00458a90 size=192 conf=0.35 :: Manages the local player's active weather instance and rebuilds its render geometry each tick.
+- 0x458b50 FUN_00458b50 size=142 conf=0.3 :: Finds up to 8 nearby regions within a given radius of the weather effect's center.
+- 0x458bf0 FUN_00458bf0 size=1786 conf=0.25 :: Builds the procedural render geometry (vertex grid) for a weather effect instance.
+- 0x53f5c0 weather_update size=663 conf=0.75 :: Per-tick update of the global weather system's wind direction random walk for each active weather-particle-type.
+- 0x53f860 FUN_0053f860 size=219 conf=0.35 :: Determines whether an effect marker's containing cluster matches a requested sky/indoor visibility filter, computing the marker's ambient color as a side effect via FUN_0053f940.
+- 0x53f940 FUN_0053f940 size=303 conf=0.45 :: Computes the ambient light/color for an effect marker by sampling the ambient color grid and blending it with the marker's stored tint, writing the RGB result through the implicit EDI output pointer.
+- 0x53fa70 FUN_0053fa70 size=518 conf=0.35 :: Periodically re-randomizes entries of the ambient color probe grid and smoothly interpolates the transition between old and new values.
+- 0x53fc80 FUN_0053fc80 size=219 conf=0.4 :: Samples and dithers three entries from the ambient color probe grid to produce a smoothed, intensity-scaled RGB color.

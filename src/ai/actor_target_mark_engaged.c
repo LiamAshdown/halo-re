@@ -1,0 +1,79 @@
+// actor_target_mark_engaged  (Ghidra: actor_target_mark_engaged; named from out/phase2/results/ai_02.json)
+// address 0x41fa80, size 120 bytes
+// name confidence: 0.45   rewrite confidence: 0.35
+// evidence: out/phase2/results/ai_02.json -- sets or clears the engagement timestamp fields
+//   at target-data+0x9c/+0xa0 (using the game-time global) based on param_1, then refreshes
+//   derived fields via the functions now named actor_target_update_active_flag (0x41fc60) and
+//   actor_rate_potential_target (0x41fd50), storing the latter into +0x50. Matches
+//   prop.unknown_9c/unknown_a0/engaged/desirability in types/ai.h.
+// register convention: EAX -> target_prop_index; param_1 (char) is Ghidra's recognized stack
+//   parameter, the mark/clear flag.
+//   // blam-cc: EAX -> target_prop_index, stack -> mark_engaged
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "ai.h"
+
+extern data_array *prop_data;      // 0x008802c0
+extern game_time_globals *game_time; // 0x006f1d6c
+
+// UNSURE signature: the real functions take (actor_index, target_prop_index) -- see their own
+// rewrites -- but Ghidra recovers no arguments at this call site (both registers are
+// presumably still live from this function's own, only partially recovered, entry state).
+extern uint8_t actor_target_update_active_flag(void); // 0x41fc60, UNSURE signature
+extern float actor_rate_potential_target(void);        // 0x41fd50, UNSURE signature
+
+// blam-cc: EAX -> target_prop_index, stack -> mark_engaged
+// Marks (or clears) the given prop (target-data record) as actively engaged and refreshes its
+// derived combat timing fields.
+void actor_target_mark_engaged(datum_index target_prop_index, uint8_t mark_engaged)
+{
+    prop *target;
+
+    target = (prop *)((uint8_t *)prop_data->data + (target_prop_index & 0xffff) * sizeof(prop));
+
+    if (mark_engaged == 0) {
+        target->unknown_9c = 0;
+        target->unknown_a0 = -1;
+    } else {
+        if (target->unknown_9c == 0) {
+            target->unknown_9c = 1;
+        }
+        target->unknown_a0 = game_time->game_time;
+    }
+
+    target->engaged = actor_target_update_active_flag();
+    target->desirability = actor_rate_potential_target();
+}
+
+#if 0
+Original Ghidra decompilation (0x41fa80):
+
+void FUN_0041fa80(char param_1)
+
+{
+  undefined1 uVar1;
+  uint in_EAX;
+  int iVar2;
+  float10 fVar3;
+
+  iVar2 = (in_EAX & 0xffff) * 0x138 + *(int *)(DAT_008802c0 + 0x34);
+  if (param_1 == '\0') {
+    *(undefined2 *)(iVar2 + 0x9c) = 0;
+    *(undefined4 *)(iVar2 + 0xa0) = 0xffffffff;
+  }
+  else {
+    if (*(short *)(iVar2 + 0x9c) == 0) {
+      *(undefined2 *)(iVar2 + 0x9c) = 1;
+    }
+    *(undefined4 *)(iVar2 + 0xa0) = *(undefined4 *)(DAT_006f1d6c + 0xc);
+  }
+  uVar1 = FUN_0041fc60();
+  *(undefined1 *)(iVar2 + 0xa4) = uVar1;
+  fVar3 = (float10)actor_rate_potential_target();
+  *(float *)(iVar2 + 0x50) = (float)fVar3;
+  return;
+}
+#endif

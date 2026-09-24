@@ -1,0 +1,24 @@
+# text module: 22 functions (address, current Ghidra name, size, agent confidence, summary)
+
+- 0x5561b0 text_language_initialize_from_string_list size=161 conf=0.55 :: Reads a config string from a string list, converts it to the text engine's active language/codepage id (DAT_006e4800, clamped 0-5), and resets related text-state globals.
+- 0x5562d0 FUN_005562d0 size=222 conf=0.3 :: Resolves the current edit box font/override, invokes the styled word-wrap routine to (re)compute cursor position, and stores the resulting extents into an on-screen cursor/selection structure passed i
+- 0x5563b0 text_set_render_context size=74 conf=0.55 :: Sets the active font id, bounding rectangle, and horizontal/vertical justification flags used by the subsequent word-wrap/draw calls.
+- 0x556400 FUN_00556400 size=859 conf=0.4 :: Word-wraps and lays out a run of markup-tagged text (color/bold/italic/underline/tab/newline codes), invoking a caller-supplied draw callback for each visible span and reporting the final cursor posit
+- 0x556780 FUN_00556780 size=863 conf=0.35 :: Word-wraps and lays out a run of plain (non-markup) text, calling FUN_005572b0 to draw each visible span; a simplified twin of text_word_wrap_and_draw_styled without inline formatting-code support.
+- 0x556b00 FUN_00556b00 size=169 conf=0.4 :: Initializes the text-parsing/cursor state struct (font id, bounds pointer, style word, resolved font record, and packed flag bytes) that the tokenizer and draw routines subsequently operate on.
+- 0x556bb0 FUN_00556bb0 size=787 conf=0.4 :: Advances the text cursor by one token, recognizing '|x' inline formatting codes (color/bold/italic/kerning/justify/tab/underline) as well as plain characters, updating the shared parser state and retu
+- 0x556f10 FUN_00556f10 size=125 conf=0.4 :: Simplified token classifier used by the plain-text word-wrap path: recognizes end-of-string, tab, carriage return and an explicit newline escape, treating all other characters as literal glyphs.
+- 0x557030 FUN_00557030 size=626 conf=0.4 :: Draws a clipped range of markup-tokenized characters via a caller-supplied glyph-blit callback, inverting color for the selected-text sub-range.
+- 0x5572b0 FUN_005572b0 size=626 conf=0.35 :: Draws a clipped range of plain (non-markup) text characters via a caller-supplied glyph-blit callback; the plain-text twin of text_draw_character_range_styled.
+- 0x557530 text_measure_string_fit_width size=245 conf=0.5 :: Measures how many characters of the current parser string fit within a given pixel width, returning the column index where the text must break and reducing *max_width_inout by the consumed width.
+- 0x557650 text_get_character_metrics size=76 conf=0.5 :: Resolves the glyph-metrics record for a given character code within the current font, returning null if the character is not mapped.
+- 0x5576a0 FUN_005576a0 size=41 conf=0.45 :: Reads and returns the next character (1 or 2 bytes, DBCS-aware) from a string and advances the cursor offset.
+- 0x5576d0 FUN_005576d0 size=70 conf=0.4 :: Scans a string to find the last valid character boundary at or before a given byte length, so a string can be truncated without splitting a double-byte character; returns the character code at that bo
+- 0x557720 FUN_00557720 size=40 conf=0.4 :: Adjusts an in-place byte-length value so it lands on a valid (non-split) DBCS character boundary.
+- 0x557750 text_char_is_double_byte size=266 conf=0.55 :: Determines whether the two bytes at the current string position should be consumed together as one unit: either a '|x' inline formatting escape or a double-byte character in the active codepage.
+- 0x557870 FUN_00557870 size=71 conf=0.4 :: DBCS-aware search for a target character within a string, returning the byte offset and whether the character was found before the string ended.
+- 0x5578c0 text_string_list_get_string size=73 conf=0.5 :: Fetches a string by index from a tag-referenced string list, returning a pointer to the (possibly trimmed) string or the default empty string if the id/index is invalid.
+- 0x557910 string_format_wide_va_bounded size=25 conf=0.5 :: Thin wrapper around the length-bounded wide vswprintf that forwards a destination buffer, format string, and varargs list.
+- 0x557930 string_format_wide_va size=20 conf=0.5 :: Thin wrapper around the unbounded CRT vswprintf for wide strings.
+- 0x557950 FUN_00557950 size=60 conf=0.4 :: Converts a wide-character string into a fixed-capacity narrow (single-byte) buffer, replacing any non-ASCII wide characters with spaces.
+- 0x557990 FUN_00557990 size=66 conf=0.4 :: Widens a narrow ASCII string into a caller-owned length-prefixed unicode (UTF-16-ish) character buffer, truncating to fit the destination's byte capacity.

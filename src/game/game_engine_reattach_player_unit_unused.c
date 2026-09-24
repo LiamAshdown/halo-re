@@ -1,0 +1,398 @@
+// game_engine_reattach_player_unit_unused  (Ghidra: FUN_00475270; named per this rewrite)
+// address 0x475270, size 1331 bytes, callers=0 (dead code in this retail build)
+// name confidence: 0.3   rewrite confidence: 0.2
+// evidence: out/phase4/game_functions.md ("Unused variant that reattaches a player's unit to a
+//   new parent object, recomputing its transform and light attachments"); shares its exact
+//   3-parameter shape with FUN_004757b0 and FUN_00475c60 (both this batch), which it calls/
+//   parallels; types/units.h unit_data (parent_object via its object-level +0x11c,
+//   vehicle_seat_index +0x2f0, driver_unit_index +0x324, gunner_unit_index +0x328,
+//   last_parent_object_index +0x32c, last_seat_change_tick +0x330, controlling_player +0x218);
+//   types/objects.h object (network_role +0x04, type +0xb4); types/game.h player_globals
+//   (unknown_12 +0x12, unknown_16 +0x16), game_time_globals::game_time (+0xc).
+// objdump -d -M intel --start-address=0x475270 --stop-address=0x4752b0 bin/halo.exe confirms
+// this function (unusually for this batch) uses a real EBP frame with genuine __cdecl stack
+// parameters, matching Ghidra's own signature exactly.
+// register convention: stack -> player_index, target_object, local_offset.
+//
+// UNSURE (pervasive): this function has zero callers in the retail binary and was clearly
+// superseded by FUN_00475c60; most of its deep internals (the node-local-transform math, the
+// weapon/seat marker offsets at unit+0x1ea and +0x2a3/+0x2a7, and several of the callees below)
+// are transcribed as raw offsets rather than named fields, since the payoff of fully re-deriving
+// them for dead code is low. Preserved for completeness of the address range only.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "objects.h"
+#include "units.h"
+#include "game.h"
+#include <string.h>
+
+extern player_globals *local_player_globals; // 0x0087a478
+extern data_array *player_data;              // 0x0087a480
+extern data_array *object_data;              // 0x008603b0
+extern Scenario *global_scenario;            // 0x00746f8c
+extern tag_instance *tag_instances;          // 0x0087bc14
+extern int16_t network_game_mode;            // 0x00719720
+extern game_time_globals *game_time;         // 0x006f1d6c
+extern uint8_t *network_client;              // 0x0071c2d8
+
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
+extern char scenario_trigger_volume_contains_point(int32_t trigger_volume_index, datum_index unit_handle); // 0x53f020
+extern int32_t bsp3d_node_find_leaf(void); // 0x5013a0, not in this batch; UNSURE args/return
+extern void object_get_node_local_transform(datum_index object_index, int32_t node_index,
+                                             void *out_transform, int32_t unknown); // 0x4f6080, UNSURE args
+extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x4cc0d0
+extern void unit_try_set_animation_state(datum_index unit_handle, int32_t state); // 0x565f90
+extern void object_snap_to_parent_marker_and_detach(datum_index object_index); // 0x4f6610, not in this batch
+extern void object_set_position_and_orientation(datum_index object_index,
+    real_vector3d *forward, real_vector3d *up, real_point3d *position); // 0x4f51c0, canonical
+    // 4-parameter form (cheat_teleport_to_camera.c / game_engine_update_teleporter.c);
+    // UNSURE at the call site below, where Ghidra shows fewer arguments.
+extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table,
+                                              int32_t invoke_callback); // 0x4f9a20, established elsewhere
+extern void unit_recompute_seat_occupants(void); // 0x56ce30, units module, not in this batch
+extern void unit_pick_and_ready_next_weapon(void); // 0x56d6a0, units module, not in this batch
+extern void unit_update_animation_state_machine(datum_index unit_handle); // 0x565420
+extern void unit_reset_orientation_and_find_position(datum_index unit_handle); // 0x55add0, units module, not in this batch
+extern void object_recalculate_bounding_radius_recursive(datum_index object_index); // 0x4f82b0
+extern uint8_t unit_all_seats_unoccupied(void); // 0x566910, units module, not in this batch
+extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, memory
+    // module's canonical form; blam-cc: EDX -> handle, ESI -> array. UNSURE at the call site
+    // below: Ghidra elides both register arguments there.
+extern void player_update_history_free_all(void *queue); // 0x4e6f20
+extern void unit_dispatch_scripted_event_9(uint8_t flag); // 0x56c370, units module, not in this batch
+extern uint8_t FUN_004757b0(uint32_t player_index, uint32_t target_object, void *local_offset);
+    // this batch, 0x4757b0
+
+// UNSURE, dead code: see header. Best-effort transcription of a "reattach unit to new parent"
+// path that overlaps heavily with FUN_00475c60.
+void game_engine_reattach_player_unit_unused(uint32_t player_index, uint32_t target_object,
+                                              void *local_offset)
+{
+    datum_index unit_handle;
+    object *target_obj;
+    uint8_t skip_trigger_check;
+    int32_t unknown_result;
+
+    unit_handle = *(datum_index *)((uint8_t *)player_data->data +
+                                    (player_index & 0xffff) * sizeof(player) + 0x34);
+    target_obj = object_try_and_get((datum_index)target_object, _object_mask_biped);
+    if (target_obj == (object *)0) {
+        return;
+    }
+
+    if (local_player_globals->unknown_12 == -1 ||
+        (unit_handle != (datum_index)-1 &&
+         scenario_trigger_volume_contains_point(local_player_globals->unknown_12, unit_handle) != 0)) {
+        skip_trigger_check = 0;
+    } else {
+        skip_trigger_check = 1;
+    }
+
+    unknown_result = bsp3d_node_find_leaf();
+    if (unknown_result == -1 || skip_trigger_check != 0) {
+        object *current_parent_obj = ((object_header *)object_data->data)[unit_handle & 0xffff].data;
+        // UNSURE: raw comparison of parent_object handles at object+0x11c
+        if (target_obj->parent_object != (datum_index)-1 &&
+            target_obj->parent_object != current_parent_obj->parent_object &&
+            network_game_mode != 1) {
+            object *unit_obj = ((object_header *)object_data->data)[unit_handle & 0xffff].data;
+            unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+            datum_index driver = unit->driver_unit_index;
+
+            if (driver != (datum_index)-1 && *((int16_t *)((uint8_t *)unit_obj + 0x2f0)) != -1) {
+                object *driver_obj = ((object_header *)object_data->data)[driver & 0xffff].data;
+                unit_data *driver_unit = (unit_data *)((uint8_t *)driver_obj + k_unit_data_offset);
+                Unit *driver_tag = (Unit *)tag_instances[driver_obj->definition_tag & 0xffff].data;
+                real_matrix4x3 local_transform;
+                real_matrix4x3 result_transform;
+                Unit *unit_tag;
+                Vehicle *unit_as_vehicle_tag;
+
+                object_get_node_local_transform(
+                    driver, (int32_t)((uint8_t *)driver_tag->seats.pointer + 0x24 +
+                                       *((int16_t *)((uint8_t *)unit_obj + 0x2f0)) * 0x11c),
+                    &local_transform, 1);
+
+                unit_tag = (Unit *)tag_instances[unit_obj->definition_tag & 0xffff].data;
+                unit_as_vehicle_tag = (Vehicle *)tag_instances[
+                    ((TagID *)((uint8_t *)unit_tag + 0x34))->index & 0xffff].data; // UNSURE offset
+                {
+                    uint8_t *unknown_block = (uint8_t *)unit_as_vehicle_tag + 0xbc;
+
+                    if (driver_unit->driver_unit_index == unit_handle &&
+                        *((int8_t *)driver_obj + 0x2a3) != '%' && unit_obj->parent_object != (datum_index)-1) {
+                        unit_try_set_animation_state(unit_obj->parent_object, 0x25);
+                    }
+
+                    unit->last_parent_object_index = driver;
+                    unit->last_seat_change_tick = game_time->game_time;
+                    if (unit->driver_unit_index == unit_handle) {
+                        unit->driver_unit_index = (datum_index)-1;
+                    }
+                    if (unit->gunner_unit_index == unit_handle) {
+                        unit->gunner_unit_index = (datum_index)-1;
+                    }
+
+                    object_snap_to_parent_marker_and_detach(unit_handle);
+                    // Dead code (callers=0, superseded by 0x475c60); its live twin
+                    // player_attach_unit_to_parent.c also passes a computed position in EDI.
+                    object_set_position_and_orientation(unit_handle, 0, 0, 0); // UNSURE
+                    matrix4x3_multiply(&local_transform, (real_matrix4x3 *)(unknown_block + 0xac),
+                                        &result_transform);
+                    unit_obj->forward = result_transform.forward; // UNSURE field mapping
+                    unit_obj->up = result_transform.up;
+
+                    {
+                        // UNSURE: raw offset into the unit's own tag data (Biped or Vehicle);
+                        // the field at +0x34 is not identified.
+                        uint8_t *unit_tag_data = (uint8_t *)tag_instances[unit_obj->definition_tag & 0xffff].data;
+                        if (*(int32_t *)(unit_tag_data + 0x34) != -1) {
+                            if ((unit_obj->flags & 1) != 0) {
+                                object_for_each_light_attachment(0, 1, 0); // UNSURE arg shapes
+                            }
+                            if (*(int32_t *)(unit_tag_data + 0x34) != -1) {
+                                object_header *unit_header = &((object_header *)object_data->data)[unit_handle & 0xffff];
+                                unit_obj->flags = unit_obj->flags & ~1u;
+                                unit_header->flags = unit_header->flags | 2;
+                            }
+                        }
+                    }
+
+                    *((int16_t *)((uint8_t *)unit_obj + 0x2f0)) = -1; // vehicle_seat_index = -1
+                    *((uint8_t *)unit_obj + 0x2a7) = 2; // UNSURE
+                    if (driver_unit->driver_unit_index == unit_handle) {
+                        driver_unit->driver_unit_index = (datum_index)-1;
+                    }
+                    if (driver_unit->gunner_unit_index == unit_handle) {
+                        driver_unit->gunner_unit_index = (datum_index)-1;
+                    }
+                }
+
+                unit_recompute_seat_occupants();
+                unit_pick_and_ready_next_weapon();
+                unit_update_animation_state_machine(unit_handle);
+
+                {
+                    uint8_t *marker_ptr = (uint8_t *)unit_obj + *((int16_t *)((uint8_t *)unit_obj + 0x1ea)) + 0x10;
+                    memcpy(marker_ptr, &result_transform.forward, sizeof(result_transform.forward));
+                }
+
+                if (unit_obj->type == _object_type_biped) {
+                    unit_reset_orientation_and_find_position(unit_handle);
+                }
+                object_recalculate_bounding_radius_recursive(unit_handle);
+
+                if (unit_all_seats_unoccupied() == 1) {
+                    object *local_obj = object_try_and_get((datum_index)-1, _object_mask_vehicle); // UNSURE arg
+                    if (local_obj != (object *)0) {
+                        *(int32_t *)((uint8_t *)local_obj + 0x5ac) = game_time->game_time; // UNSURE offset
+                    }
+                }
+
+                if (network_game_mode == 1) {
+                    void *datum = datum_get(unit_handle, object_data); // UNSURE: both arguments are
+                        // register-elided by Ghidra; modeled as the object lookup the
+                        // surrounding code performs.
+                    if (datum != (void *)0 && *(int16_t *)((uint8_t *)datum + 2) == -1) {
+                        circular_queue *cq1 = (circular_queue *)((uint8_t *)datum + 0x170);
+                        circular_queue *cq2 = (circular_queue *)((uint8_t *)datum + 0x1d0);
+                        cq1->read_index = 0;
+                        cq1->write_index = 0;
+                        cq2->read_index = 0;
+                        cq2->write_index = 0;
+                    }
+                }
+            }
+
+            if (unit_obj->network_role == 0) {
+                unit_dispatch_scripted_event_9(1); // UNSURE, not in this batch
+            }
+
+            if (network_game_mode == 1) {
+                datum_index controlling_player = unit->controlling_player;
+                if (controlling_player != (datum_index)-1) {
+                    int16_t index = (int16_t)controlling_player;
+                    if (index >= 0 && index < player_data->maximum_count) {
+                        player *plr = (player *)((uint8_t *)player_data->data + (uint32_t)(uint16_t)index * player_data->size);
+                        int16_t salt = (int16_t)(controlling_player >> 16);
+                        if (plr->identifier != 0 && (salt == 0 || plr->identifier == salt) &&
+                            plr->local_player_index == -1 && network_client != (uint8_t *)0) {
+                            player_update_history_free_all(*(void **)(network_client + 0xf48));
+                        }
+                    }
+                }
+            }
+        }
+
+        if (target_obj->parent_object == (datum_index)-1) {
+            FUN_004757b0(player_index, target_object, local_offset);
+        }
+        local_player_globals->unknown_16 = 0;
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x475270), from tools/pack.py 0x475270 -- best-effort transcription
+above; several deep field offsets in this dead-code function were not independently re-verified,
+see the header UNSURE note.
+
+void FUN_00475270(uint param_1,uint param_2,undefined4 param_3)
+
+{
+  byte *pbVar1;
+  undefined4 *puVar2;
+  uint uVar3;
+  uint *puVar4;
+  uint uVar5;
+  uint *puVar6;
+  int iVar7;
+  undefined4 uVar8;
+  undefined4 uVar9;
+  undefined4 uVar10;
+  int iVar11;
+  uint *puVar12;
+  bool bVar13;
+  char cVar14;
+  int iVar15;
+  int iVar16;
+  short sVar17;
+  short sVar18;
+  undefined1 local_b0 [4];
+  uint uStack_ac;
+  uint uStack_a8;
+  uint uStack_a4;
+  uint uStack_94;
+  uint uStack_90;
+  uint uStack_8c;
+  undefined1 local_78 [116];
+
+  uVar3 = *(uint *)((param_1 & 0xffff) * 0x200 + 0x34 + *(int *)(DAT_0087a480 + 0x34));
+  iVar15 = object_try_and_get(1);
+  if (iVar15 != 0) {
+    if ((*(short *)(DAT_0087a478 + 0x12) == -1) ||
+       ((uVar3 != 0xffffffff && (cVar14 = scenario_trigger_volume_contains_point(), cVar14 != '\0'))
+       )) {
+      bVar13 = false;
+    }
+    else {
+      bVar13 = true;
+    }
+    iVar16 = FUN_005013a0();
+    if ((iVar16 == -1) || (bVar13)) {
+      if ((*(int *)(iVar15 + 0x11c) != -1) &&
+         ((*(int *)(iVar15 + 0x11c) !=
+           *(int *)(*(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 + (param_2 & 0xffff) * 0xc) + 0x11c)
+          && (DAT_00719720 != 1)))) {
+        iVar16 = (uVar3 & 0xffff) * 0xc;
+        puVar4 = *(uint **)(*(int *)(DAT_008603b0 + 0x34) + 8 + iVar16);
+        uVar5 = puVar4[0x47];
+        if ((uVar5 != 0xffffffff) && ((short)puVar4[0xbc] != -1)) {
+          puVar6 = *(uint **)(*(int *)(DAT_008603b0 + 0x34) + 8 + (uVar5 & 0xffff) * 0xc);
+          object_get_node_local_transform
+                    (uVar5,*(int *)(*(int *)((*puVar6 & 0xffff) * 0x20 + 0x14 + DAT_0087bc14) +
+                                   0x2e8) + 0x24 + (short)puVar4[0xbc] * 0x11c,local_78,1);
+          iVar7 = *(int *)(*(int *)((*(uint *)(*(int *)((*puVar4 & 0xffff) * 0x20 + 0x14 +
+                                                       DAT_0087bc14) + 0x34) & 0xffff) * 0x20 + 0x14
+                                   + DAT_0087bc14) + 0xbc);
+          uVar8 = *(undefined4 *)(iVar7 + 0x28);
+          uVar9 = *(undefined4 *)(iVar7 + 0x2c);
+          uVar10 = *(undefined4 *)(iVar7 + 0x30);
+          if (((puVar6[0xc9] == uVar3) && (*(char *)((int)puVar6 + 0x2a3) != '%')) &&
+             (puVar4[0x47] != 0xffffffff)) {
+            unit_try_set_animation_state(puVar4[0x47],0x25);
+          }
+          iVar11 = DAT_006f1d6c;
+          puVar4[0xcb] = uVar5;
+          puVar4[0xcc] = *(uint *)(iVar11 + 0xc);
+          if (puVar4[0xc9] == uVar3) {
+            puVar4[0xc9] = 0xffffffff;
+          }
+          if (puVar4[0xca] == uVar3) {
+            puVar4[0xca] = 0xffffffff;
+          }
+          FUN_004f6610(uVar3);
+          object_set_position_and_orientation(uVar3,0,0);
+          iVar11 = *(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 + iVar16);
+          (*(code *)PTR_matrix4x3_multiply_00696664)
+                    (*(short *)(iVar11 + 0x1f2) + iVar11,iVar7 + 0x68,local_b0);
+          puVar4[0x1d] = uStack_ac;
+          puVar4[0x1e] = uStack_a8;
+          puVar4[0x1f] = uStack_a4;
+          puVar4[0x20] = uStack_94;
+          puVar4[0x21] = uStack_90;
+          iVar7 = DAT_008603b0;
+          puVar4[0x22] = uStack_8c;
+          puVar12 = *(uint **)(*(int *)(iVar7 + 0x34) + 8 + iVar16);
+          iVar7 = *(int *)((*puVar12 & 0xffff) * 0x20 + 0x14 + DAT_0087bc14);
+          if (*(int *)(iVar7 + 0x34) != -1) {
+            if ((puVar12[4] & 1) != 0) {
+              object_for_each_light_attachment(0,1);
+            }
+            if (*(int *)(iVar7 + 0x34) != -1) {
+              iVar7 = *(int *)(DAT_008603b0 + 0x34);
+              puVar12[4] = puVar12[4] & 0xfffffffe;
+              pbVar1 = (byte *)(iVar7 + iVar16 + 2);
+              *pbVar1 = *pbVar1 | 2;
+            }
+          }
+          *(undefined2 *)(puVar4 + 0xbc) = 0xffff;
+          *(undefined1 *)((int)puVar4 + 0x2a7) = 2;
+          if (puVar6[0xc9] == uVar3) {
+            puVar6[0xc9] = 0xffffffff;
+          }
+          if (puVar6[0xca] == uVar3) {
+            puVar6[0xca] = 0xffffffff;
+          }
+          FUN_0056ce30();
+          FUN_0056d6a0();
+          FUN_00565420(uVar3);
+          puVar2 = (undefined4 *)(*(short *)((int)puVar4 + 0x1ea) + 0x10 + (int)puVar4);
+          *puVar2 = uVar8;
+          puVar2[1] = uVar9;
+          puVar2[2] = uVar10;
+          if ((short)puVar4[0x2d] == 0) {
+            FUN_0055add0(uVar3);
+          }
+          object_recalculate_bounding_radius_recursive(uVar3);
+          cVar14 = FUN_00566910();
+          if ((cVar14 == '\x01') && (iVar16 = object_try_and_get(2), iVar16 != 0)) {
+            *(undefined4 *)(iVar16 + 0x5ac) = *(undefined4 *)(DAT_006f1d6c + 0xc);
+          }
+          if (((DAT_00719720 == 1) && (iVar16 = datum_get(), iVar16 != 0)) &&
+             (*(short *)(iVar16 + 2) == -1)) {
+            *(undefined4 *)(iVar16 + 0x180) = 0;
+            *(undefined4 *)(iVar16 + 0x17c) = 0;
+            *(undefined4 *)(iVar16 + 0x1e0) = 0;
+            *(undefined4 *)(iVar16 + 0x1dc) = 0;
+          }
+        }
+        if (puVar4[1] == 0) {
+          FUN_0056c370(1);
+        }
+        if ((((DAT_00719720 == 1) && (uVar3 = puVar4[0x86], uVar3 != 0xffffffff)) &&
+            (sVar18 = (short)uVar3, -1 < sVar18)) && (sVar18 < *(short *)(DAT_0087a480 + 0x20))) {
+          iVar16 = (int)*(short *)(DAT_0087a480 + 0x22) * (int)sVar18;
+          sVar18 = *(short *)(iVar16 + *(int *)(DAT_0087a480 + 0x34));
+          if ((((sVar18 != 0) &&
+               ((sVar17 = (short)(uVar3 >> 0x10), sVar17 == 0 || (sVar18 == sVar17)))) &&
+              (*(short *)(iVar16 + *(int *)(DAT_0087a480 + 0x34) + 2) != -1)) && (DAT_0071c2d8 != 0)
+             ) {
+            player_update_history_free_all(*(undefined4 *)(DAT_0071c2d8 + 0xf48));
+          }
+        }
+      }
+      if (*(int *)(iVar15 + 0x11c) == -1) {
+        cVar14 = FUN_004757b0(param_1,param_2,param_3);
+      }
+      else {
+        cVar14 = '\x01';
+      }
+      *(bool *)(DAT_0087a478 + 0x16) = cVar14 == '\0';
+    }
+  }
+  return;
+}
+#endif

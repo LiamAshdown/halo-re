@@ -1,0 +1,486 @@
+{
+  "module": "hs",
+  "batch": 0,
+  "results": [
+    {
+      "addr": "0x482b20",
+      "name": "hs_evaluate_external_004e4b50",
+      "confidence": 0.3,
+      "evidence": "77-byte trampoline: decodes two script arguments via FUN_0048ad60(param_2,param_3,&local_4,&local_8) then, on success, forwards local_8 alone to unnamed native setter FUN_004e4b50; identical shape to the sv_name/sv_password trampolines below whose target IS named, so this is almost certainly another single-argument HS external-function evaluate stub, but the specific script function it implements is unknown.",
+      "prototype": "",
+      "summary": "HS external-function evaluate stub that decodes one script argument via FUN_0048ad60 and forwards it to native setter FUN_004e4b50."
+    },
+    {
+      "addr": "0x482b70",
+      "name": "hs_evaluate_external_004e4ac0",
+      "confidence": 0.3,
+      "evidence": "Byte-identical trampoline pattern to 0x482b20, differing only in its native target FUN_004e4ac0.",
+      "prototype": "",
+      "summary": "HS external-function evaluate stub that decodes one script argument via FUN_0048ad60 and forwards it to native setter FUN_004e4ac0."
+    },
+    {
+      "addr": "0x482cb0",
+      "name": "hs_evaluate_external_004e3a80",
+      "confidence": 0.3,
+      "evidence": "Same trampoline pattern as 0x482b20, target FUN_004e3a80.",
+      "prototype": "",
+      "summary": "HS external-function evaluate stub that decodes one script argument via FUN_0048ad60 and forwards it to native setter FUN_004e3a80."
+    },
+    {
+      "addr": "0x482d00",
+      "name": "hs_evaluate_external_004e3cd0",
+      "confidence": 0.3,
+      "evidence": "Same trampoline pattern as 0x482b20, target FUN_004e3cd0.",
+      "prototype": "",
+      "summary": "HS external-function evaluate stub that decodes one script argument via FUN_0048ad60 and forwards it to native setter FUN_004e3cd0."
+    },
+    {
+      "addr": "0x482d50",
+      "name": "hs_evaluate_external_004e3d40",
+      "confidence": 0.3,
+      "evidence": "Same trampoline pattern as 0x482b20, target FUN_004e3d40.",
+      "prototype": "",
+      "summary": "HS external-function evaluate stub that decodes one script argument via FUN_0048ad60 and forwards it to native setter FUN_004e3d40."
+    },
+    {
+      "addr": "0x482da0",
+      "name": "hs_evaluate_external_004e3db0",
+      "confidence": 0.3,
+      "evidence": "Same trampoline pattern as 0x482b20, target FUN_004e3db0.",
+      "prototype": "",
+      "summary": "HS external-function evaluate stub that decodes one script argument via FUN_0048ad60 and forwards it to native setter FUN_004e3db0."
+    },
+    {
+      "addr": "0x482ed0",
+      "name": "sv_name_evaluate",
+      "confidence": 0.7,
+      "evidence": "Identical trampoline pattern to its siblings, but its call target at 0x4e2ed0 is already named sv_name in this project's symbol data, so this stub is the HS 'evaluate' implementation that decodes one script argument and passes it to sv_name.",
+      "prototype": "",
+      "summary": "HS external-function evaluate stub for the sv_name script function: decodes one argument via FUN_0048ad60 and calls sv_name with it."
+    },
+    {
+      "addr": "0x482f20",
+      "name": "sv_password_evaluate",
+      "confidence": 0.7,
+      "evidence": "Identical trampoline pattern; call target at 0x4e2ff0 is already named sv_password, so this is the evaluate stub for the sv_password script function.",
+      "prototype": "",
+      "summary": "HS external-function evaluate stub for the sv_password script function: decodes one argument via FUN_0048ad60 and calls sv_password with it."
+    },
+    {
+      "addr": "0x482f70",
+      "name": "hs_evaluate_external_004e4810",
+      "confidence": 0.3,
+      "evidence": "Same trampoline pattern as 0x482b20, target FUN_004e4810.",
+      "prototype": "",
+      "summary": "HS external-function evaluate stub that decodes one script argument via FUN_0048ad60 and forwards it to native setter FUN_004e4810."
+    },
+    {
+      "addr": "0x482fc0",
+      "name": "hs_evaluate_external_004e49a0",
+      "confidence": 0.3,
+      "evidence": "Same trampoline pattern as 0x482b20, target FUN_004e49a0.",
+      "prototype": "",
+      "summary": "HS external-function evaluate stub that decodes one script argument via FUN_0048ad60 and forwards it to native setter FUN_004e49a0."
+    },
+    {
+      "addr": "0x483010",
+      "name": "hs_evaluate_external_004e4470",
+      "confidence": 0.3,
+      "evidence": "Same FUN_0048ad60-based decode, but this variant forwards BOTH decoded values (local_4,local_8) to the target FUN_004e4470, unlike the single-argument stubs above.",
+      "prototype": "",
+      "summary": "HS external-function evaluate stub that decodes two script arguments via FUN_0048ad60 and forwards both to native setter FUN_004e4470."
+    },
+    {
+      "addr": "0x483060",
+      "name": "hs_evaluate_external_004e4600",
+      "confidence": 0.3,
+      "evidence": "Same two-argument trampoline pattern as 0x483010, target FUN_004e4600.",
+      "prototype": "",
+      "summary": "HS external-function evaluate stub that decodes two script arguments via FUN_0048ad60 and forwards both to native setter FUN_004e4600."
+    },
+    {
+      "addr": "0x4830b0",
+      "name": "hs_evaluate_external_004e3100",
+      "confidence": 0.3,
+      "evidence": "Same two-argument trampoline pattern as 0x483010, target FUN_004e3100.",
+      "prototype": "",
+      "summary": "HS external-function evaluate stub that decodes two script arguments via FUN_0048ad60 and forwards both to native setter FUN_004e3100."
+    },
+    {
+      "addr": "0x483100",
+      "name": "hs_allocate_script_node_table",
+      "confidence": 0.7,
+      "evidence": "Calls data_new(\"script node\",0x4a39) to allocate a fresh syntax-node datum array, sets its 'in use'/reserved flag byte, runs data_delete_all() on it, and if a live network/game-globals structure exists (DAT_00746f8c) swaps it into that structure's node-table pointer/tag fields, freeing the old block via GlobalFree; matches naming hint 'hs_allocate' (via string 'script node').",
+      "prototype": "void __cdecl hs_allocate_script_node_table(void)",
+      "summary": "Allocates (or reallocates and hot-swaps) the datum array used to hold compiled HS syntax-node data."
+    },
+    {
+      "addr": "0x483190",
+      "name": "hs_scripts_compile_and_link",
+      "confidence": 0.5,
+      "evidence": "Saves/clears the active node table via FUN_00483100, checks whether existing runtime bytecode can be reused (globals count==0 && script count>0) before falling back to hs_compile_source()+hs_compile_postprocess(); restores the previous DAT_0087a474 table when its single char parameter is non-zero.",
+      "prototype": "char __cdecl hs_scripts_compile_and_link(char restore_previous)",
+      "summary": "(Re)compiles and postprocesses/links all HS scripts into a fresh syntax-node table, optionally restoring the previously active table afterward."
+    },
+    {
+      "addr": "0x483250",
+      "name": "hs_scripts_reload",
+      "confidence": 0.5,
+      "evidence": "Reallocates the node table (FUN_00483100), optionally finishes a pending compile via hs_scripts_compile_and_link(0), marks two other datum arrays (DAT_0087a464/DAT_0087a468) dirty and empties them with data_delete_all(), then calls FUN_00489ef0.",
+      "prototype": "void __cdecl hs_scripts_reload(void)",
+      "summary": "Full reset/reload of the HS scripting subsystem's syntax-node table plus two auxiliary datum arrays after scripts are rebuilt or recompiled."
+    },
+    {
+      "addr": "0x4832b0",
+      "name": "hs_scripts_free",
+      "confidence": 0.5,
+      "evidence": "If a node table (DAT_0087a474) exists, runs the garbage-collect pass FUN_00483310, zeroes and GlobalFree()s the block when DAT_007102fc marks it heap-owned, then clears the two auxiliary datum arrays' 'in use' flag bytes (offset+0x24) and calls FUN_0048a130.",
+      "prototype": "void __cdecl hs_scripts_free(void)",
+      "summary": "Tears down and frees the currently active HS syntax-node table and marks the two auxiliary datum arrays unused."
+    },
+    {
+      "addr": "0x483310",
+      "name": "hs_syntax_node_garbage_collect",
+      "confidence": 0.5,
+      "evidence": "Iterates the active node table's entries via FUN_004d0630 (a used-slot iterator) and calls datum_delete() on every entry whose flag byte lacks bit 0x8, i.e. removes unreferenced syntax nodes.",
+      "prototype": "void __cdecl hs_syntax_node_garbage_collect(void)",
+      "summary": "Garbage-collects unreferenced entries out of the active HS syntax-node datum table."
+    },
+    {
+      "addr": "0x4833a0",
+      "name": "hs_script_find_by_name",
+      "confidence": 0.6,
+      "evidence": "Linear-scans the scripts array at DAT_00746f8c+0x4a0 (stride 0x5c) doing a manual case-insensitive two-byte-at-a-time compare of each entry's name against the given string, returning the matching index or -1; used by hs_add_script to detect duplicate script names.",
+      "prototype": "",
+      "summary": "Looks up a compiled script's index by name in the runtime scripts table, or returns -1 if none matches."
+    },
+    {
+      "addr": "0x483420",
+      "name": "hs_global_get_type",
+      "confidence": 0.4,
+      "evidence": "Given a packed global index in EAX (high bit selects the builtin table PTR_PTR_0068b398 vs. the script-defined globals array at DAT_00746f8c+0x4ac, stride 0x5c), returns CONCAT22(hi-word, the global's type field at offset+4/+0x20) -- same table-selection logic as hs_global_get_address/hs_parse_variable.",
+      "prototype": "",
+      "summary": "Returns the declared type (and a packed high word) of a global variable identified by a builtin/script-global packed index."
+    },
+    {
+      "addr": "0x483430",
+      "name": "hs_null_with_params_evaluate",
+      "confidence": 0.7,
+      "evidence": "5-byte stub that just returns *(short*)(in_EAX+4), i.e. the node's stored type field; consistent with being one of the per-node-type 'evaluate' callbacks (table DAT_0065b668 indexed in hs_parse_primitive) for a node type that is a no-op placeholder carrying only its own type.",
+      "prototype": "",
+      "summary": "Trivial evaluate handler for a 'null with params' HS syntax-node type that just returns the node's type field."
+    },
+    {
+      "addr": "0x483450",
+      "name": "hs_global_get_address",
+      "confidence": 0.5,
+      "evidence": "Mirrors hs_global_get_type's builtin-vs-script-global selection (high bit of packed index chooses PTR_PTR_0068b398 or the DAT_00746f8c+0x4ac globals array, stride 0x5c) but returns the storage address itself rather than a type field.",
+      "prototype": "",
+      "summary": "Returns the storage address of a global variable identified by a builtin/script-global packed index."
+    },
+    {
+      "addr": "0x483480",
+      "name": "chimera__get_global_index",
+      "confidence": 0.9,
+      "evidence": "Already-named and code-confirmed: linear-searches the ~491-entry (0x1eb) builtin global-name table PTR_PTR_0068b398 then the script-defined globals array via __stricmp, returning a packed index (bit 0x8000 = builtin) or 0xffff; used everywhere a global name must be resolved (hs_parse_set, hs_parse_variable, hs_add_global, chimera__execute_script, autocomplete scan).",
+      "prototype": "",
+      "summary": "Resolves a global-variable name string to a packed builtin/script-global index, or 0xffff if unknown."
+    },
+    {
+      "addr": "0x483520",
+      "name": "hs_find_function_by_name",
+      "confidence": 0.9,
+      "evidence": "Already-named and code-confirmed: string data shows deprecated-alias handling ('player_effect_set_max_rumble' remapped to 'player_effect_set_max_vibrate') then a __stricmp linear search over the 0x20a-entry HS function table PTR_DAT_00688b58.",
+      "prototype": "",
+      "summary": "Looks up an HS script function's table index by name, applying one legacy name-alias rewrite first."
+    },
+    {
+      "addr": "0x4835b0",
+      "name": "hs_gametype_flag_test",
+      "confidence": 0.4,
+      "evidence": "Tests bit `param_1` of DAT_006b14ac's low word against the caller-supplied flag byte in_AL, and independently tests the corresponding bit of the high word as a 'forbidden unless set' override; used repeatedly by FUN_00483600 with values 1..6.",
+      "prototype": "",
+      "summary": "Tests whether a given per-gametype capability bit is satisfied by the current gametype flags."
+    },
+    {
+      "addr": "0x483600",
+      "name": "hs_function_valid_for_all_gametypes",
+      "confidence": 0.4,
+      "evidence": "After a couple of bit tests on DAT_006b14ac, calls hs_gametype_flag_test for flag values 1,2,3,4,6,5 in sequence (Halo's six non-'none' multiplayer game types) and only returns true if every one passes.",
+      "prototype": "",
+      "summary": "Checks whether a script function/global is applicable across every one of Halo's built-in multiplayer game types."
+    },
+    {
+      "addr": "0x483690",
+      "name": "chimera__autocomplete_match_and_add",
+      "confidence": 0.4,
+      "evidence": "Computes the length of the shared prefix string DAT_006b14a4 and does an __strnicmp against the candidate string (unaff_EDI); on a match appends it to the results array DAT_006b14b4, bounded by the shared count/limit globals DAT_006b14b0/DAT_006b14a0.",
+      "prototype": "",
+      "summary": "Tests one candidate string against the current autocomplete prefix and appends it to the results array on a match."
+    },
+    {
+      "addr": "0x4836f0",
+      "name": "chimera__autocomplete_scan_string_array",
+      "confidence": 0.4,
+      "evidence": "Same prefix strnicmp/append logic as chimera__autocomplete_match_and_add, but looped over an array of `in_AX-in_CX` string pointers starting at param_1+in_CX*4 -- a batch version for tables of fixed keyword strings (e.g. the startup/dormant/continuous/static table).",
+      "prototype": "",
+      "summary": "Scans an array of candidate strings against the current autocomplete prefix, appending every match."
+    },
+    {
+      "addr": "0x483770",
+      "name": "chimera__autocomplete_scan_globals",
+      "confidence": 0.5,
+      "evidence": "Loops over a (count, base-pointer, stride) global-array description, resolves each candidate's global index via chimera__get_global_index and gates builtin ones on hs_function_valid_for_all_gametypes, then reuses the same prefix strnicmp/append logic as chimera__autocomplete_match_and_add.",
+      "prototype": "",
+      "summary": "Scans a table of global-variable names against the current autocomplete prefix, filtering builtins by gametype applicability."
+    },
+    {
+      "addr": "0x483840",
+      "name": "chimera__autocomplete_add_keywords",
+      "confidence": 0.4,
+      "evidence": "Calls chimera__autocomplete_match_and_add (FUN_00483690) twice with no visible arguments besides the ambient prefix state; the function's own referenced strings are exactly 'script' and 'global', HS's two special-form keywords.",
+      "prototype": "",
+      "summary": "Adds the 'script' and 'global' special-form keywords to the autocomplete results if they match the current prefix."
+    },
+    {
+      "addr": "0x483860",
+      "name": "chimera__autocomplete_add_startup",
+      "confidence": 0.5,
+      "evidence": "Calls chimera__autocomplete_scan_string_array (FUN_004836f0) with &PTR_s_startup_00688b3c, the same 'startup/dormant/continuous/static' script-type keyword table referenced by hs_add_script's type-check string.",
+      "prototype": "",
+      "summary": "Adds the HS script-type keywords (startup/dormant/continuous/static) to the autocomplete results if they match the current prefix."
+    },
+    {
+      "addr": "0x483c90",
+      "name": "chimera__autocomplete_gather",
+      "confidence": 0.5,
+      "evidence": "Resets the shared prefix/count/output globals (DAT_006b14a0/a4/b0/b4/ac), then walks an 18-entry (0x12) function-pointer table PTR_FUN_00689380 invoking each category whose bit is set in param_1 (two known members are chimera__autocomplete_add_keywords/_add_startup), and finally _qsort()s the collected matches with FUN_00617340.",
+      "prototype": "",
+      "summary": "Driver that gathers autocomplete candidates for a given prefix across a set of selectable categories and returns them sorted."
+    },
+    {
+      "addr": "0x483d20",
+      "name": "hs_file_display_name_compare",
+      "confidence": 0.3,
+      "evidence": "For each of its two struct arguments it builds a display/localized name via the same FUN_00555ec0/FUN_00556000/FUN_005560d0 helper sequence, then __stricmp()s the two resulting names; used only as the qsort comparator passed from FUN_00483e20 and the file-scanning logic at 0x483f40.",
+      "prototype": "",
+      "summary": "qsort comparator that orders two file-entry records by their display/localized name, case-insensitively."
+    },
+    {
+      "addr": "0x483e20",
+      "name": "hs_rebuild_source",
+      "confidence": 0.7,
+      "evidence": "Naming hint plus strings 'data\\\\%s', 'scripts', 'data\\\\global_scripts.hsc' match: builds the 'data\\\\scripts' directory path, enumerates *.hsc files with the FUN_00555720/b90/c10/ec0/f80 file-iteration wrappers, sorts them via hs_file_display_name_compare, then appends every file except global_scripts.hsc into the combined source buffer, returning whether anything changed.",
+      "prototype": "char __cdecl hs_rebuild_source(void)",
+      "summary": "Rebuilds the combined HS source buffer from every .hsc file in the scripts directory (excluding global_scripts.hsc), sorted by display name."
+    },
+    {
+      "addr": "0x483f40",
+      "name": "hs_rebuild_source_scan_tail",
+      "confidence": 0.3,
+      "evidence": "Body is essentially the same file-gather/rename/qsort/concatenate sequence as hs_rebuild_source (same helper calls FUN_00555c10/qsort/hs_file_display_name_compare/FUN_005560d0/FUN_00556000/FUN_00555720, same '.hsc' extension check) but operates purely on caller-frame stack offsets (in_stack_00000010/0018/0138) with no real prologue of its own, suggesting Ghidra split a shared tail/continuation of that routine into its own 'function'; the existing name hs_null_evaluate does not match this file-scanning behaviour at all.",
+      "prototype": "",
+      "summary": "Continuation of the .hsc file-gathering/concatenation logic (near-duplicate of hs_rebuild_source's body); the prior name 'hs_null_evaluate' does not match what the code actually does."
+    },
+    {
+      "addr": "0x484090",
+      "name": "hs_compile_source",
+      "confidence": 0.9,
+      "evidence": "Already-named and code-confirmed by the exact string 'scripts successfully compiled.': resets all compile-state globals, calls data_delete_all(), then hs_compile() on every registered script's source range, printing a success message via FUN_004c67c0 (console print) if every script compiled cleanly.",
+      "prototype": "char __cdecl hs_compile_source(void)",
+      "summary": "Recompiles every registered HS script's source text in turn, printing a success message if all of them compiled without error."
+    },
+    {
+      "addr": "0x4841b0",
+      "name": "hs_help_print_function",
+      "confidence": 0.5,
+      "evidence": "Looks up a function name via hs_find_function_by_name, formats its full signature+doc string with hs_format_function_signature (FUN_00484300), then prints it to the console via chimera__console_out one line at a time, splitting on newline with FUN_006257e0 (a strchr-style search).",
+      "prototype": "",
+      "summary": "Console command handler that prints a single HS function's formatted signature and documentation string."
+    },
+    {
+      "addr": "0x484270",
+      "name": "hs_doc",
+      "confidence": 0.8,
+      "evidence": "Naming hint plus the literal string 'hs_doc.txt' match: opens that file and writes every one of the 0x20a HS functions' formatted signature (via hs_format_function_signature) followed by its documentation string.",
+      "prototype": "void __cdecl hs_doc(void)",
+      "summary": "Writes the signature and documentation string of every registered HS script function to hs_doc.txt."
+    },
+    {
+      "addr": "0x484300",
+      "name": "hs_format_function_signature",
+      "confidence": 0.5,
+      "evidence": "Builds a '(name arg1<type> arg2<type> ...)' style prototype string for a function-table entry from PTR_DAT_00688b58, looking up each parameter's type name in the PTR_s_unparsed_00688a78 type-name table (the same table used by hs_parse_variable/hs_add_global for type names).",
+      "prototype": "",
+      "summary": "Formats a human-readable '(name arg<type> ...)' prototype string for an HS function-table entry."
+    },
+    {
+      "addr": "0x484400",
+      "name": "chimera__execute_script",
+      "confidence": 0.85,
+      "evidence": "Already-named and behaviour-confirmed: the literal string '(set %s)' plus logic that auto-wraps a bare 'global value' into '(set global value)' or a bare 'function' into '(function)' via chimera__get_global_index before compiling (hs_compile_expression) and running (FUN_0048a250) matches Chimera's documented ability to type unparenthesized commands into its console; also triggers hs_rebuild_source+hs_compile_source when DAT_006b14a8 requests a script reload.",
+      "prototype": "char __cdecl chimera__execute_script(char *command)",
+      "summary": "Compiles and immediately executes a single console/script command line, auto-wrapping bare global-set or bare-call syntax, and triggers a full script reload when requested."
+    },
+    {
+      "addr": "0x484780",
+      "name": "hs_parse_if",
+      "confidence": 0.85,
+      "evidence": "Naming hint plus exact string match 'i expected (if <condition> <then> [<else>]).': validates that the node has a condition child, a then child, and an optional else child, recursively type-checking each via hs_parse (FUN_00486420).",
+      "prototype": "",
+      "summary": "Parses/type-checks an (if <condition> <then> [<else>]) special-form syntax node."
+    },
+    {
+      "addr": "0x4848f0",
+      "name": "hs_parse_cond_recursive",
+      "confidence": 0.9,
+      "evidence": "Already-named and code-confirmed by its three distinctive error strings about cond argument pairs and syntax-node allocation failure; recursively rewrites a chain of (condition result) pairs into nested if-nodes via repeated datum_new() allocations.",
+      "prototype": "",
+      "summary": "Recursively desugars a cond special-form's list of condition/result pairs into a chain of nested if syntax nodes."
+    },
+    {
+      "addr": "0x484be0",
+      "name": "hs_parse_set",
+      "confidence": 0.9,
+      "evidence": "Already-named and code-confirmed by its four distinctive error strings ('i expected a variable to set and a value.', 'i expected an assignment value.', etc.); resolves the target as a global via chimera__get_global_index, checks its type against the value's parsed type, then parses the value node.",
+      "prototype": "",
+      "summary": "Parses/type-checks a (set <global> <value>) special-form syntax node."
+    },
+    {
+      "addr": "0x484fb0",
+      "name": "hs_get_parameter_indices",
+      "confidence": 0.9,
+      "evidence": "Already-named and code-confirmed by the exact string 'the %s call requires %d arguments.': walks a node's argument-list chain collecting each argument's node index into an output array until either it runs out of expected arguments or the list, reporting an arity error on mismatch.",
+      "prototype": "",
+      "summary": "Collects a function call node's argument-node indices into an output array, reporting an error if the argument count doesn't match."
+    },
+    {
+      "addr": "0x485060",
+      "name": "hs_verify_binary_numeric_args",
+      "confidence": 0.4,
+      "evidence": "Fetches two argument node indices via hs_get_parameter_indices(...,2), then cross-propagates an unresolved (type 0) argument's type from the other argument via hs_parse (FUN_00486420), defaulting both to type 6 if neither is resolved -- a generic 'these two arguments must share one type' checker.",
+      "prototype": "",
+      "summary": "Type-check callback that forces a function's two arguments to resolve to a single shared (numeric) type."
+    },
+    {
+      "addr": "0x485150",
+      "name": "hs_verify_object_or_unit_args",
+      "confidence": 0.3,
+      "evidence": "Same two-argument fetch-and-cross-propagate pattern as hs_verify_binary_numeric_args, but the type-range tests (0x1f<type<0x25 or 5<type<9) target the object/unit-family type-id ranges rather than plain numerics.",
+      "prototype": "",
+      "summary": "Type-check callback that forces a function's two arguments to resolve to a compatible object/unit-family type."
+    },
+    {
+      "addr": "0x485540",
+      "name": "hs_compile_expression",
+      "confidence": 0.5,
+      "evidence": "Copies the given source text into the shared compiled-source buffer (GlobalAlloc'ing it or reusing the runtime buffer per DAT_0069e8d4), tokenizes it via hs_tokenize (FUN_00486120), then wraps the resulting node in a synthetic call/argument pair via two datum_new() allocations before returning the new root node index; used by chimera__execute_script to compile a single console command.",
+      "prototype": "",
+      "summary": "Tokenizes and wraps a single standalone expression string into a syntax-node tree ready for immediate evaluation."
+    },
+    {
+      "addr": "0x4856f0",
+      "name": "hs_source_buffer_append",
+      "confidence": 0.5,
+      "evidence": "Grows the shared compiled-source heap block DAT_006b14c0 (via GlobalAlloc/GlobalReAlloc) by `unaff_EBX` bytes, copies param_1's bytes into the new space, updates the length global DAT_006b14bc, and NUL-terminates -- the buffer-growth primitive underlying hs_compile/hs_compile_expression.",
+      "prototype": "",
+      "summary": "Appends raw bytes to the shared growable HS compiled-source buffer, reallocating as needed."
+    },
+    {
+      "addr": "0x485770",
+      "name": "hs_compile",
+      "confidence": 0.9,
+      "evidence": "Already-named and code-confirmed by the exact string \"couldn't allocate memory for compiled source.\": copies the given source range into the compile buffer via hs_source_buffer_append, then repeatedly tokenizes (hs_tokenize) and parses (hs_parse_primitive/hs_parse_nonprimitive) each top-level expression until EOF or error, producing an error message/offset pair on failure.",
+      "prototype": "void __cdecl hs_compile(int source_length_field, int source_ptr_field, int *error_message, int *error_offset)",
+      "summary": "Compiles one script's source text into syntax nodes, returning an error message and offset on failure."
+    },
+    {
+      "addr": "0x4858a0",
+      "name": "hs_verify_source_offset",
+      "confidence": 0.8,
+      "evidence": "Naming hint plus exact string match 'bad source offset (you need to recompile.)': a one-line bounds check that an offset (in_ECX) falls within [0, DAT_006b14bc).",
+      "prototype": "",
+      "summary": "Validates that a source-text offset still falls within the current compiled-source buffer, flagging a recompile-needed error otherwise."
+    },
+    {
+      "addr": "0x4858c0",
+      "name": "hs_compile_postprocess",
+      "confidence": 0.9,
+      "evidence": "Already-named and code-confirmed by its six distinctive 'you need to recompile' error strings; walks every allocated syntax node validating its type, resolving function names via hs_find_function_by_name, validating script indices and source offsets via hs_verify_source_offset, and re-parsing primitives, failing the whole pass on any inconsistency.",
+      "prototype": "",
+      "summary": "Second compilation pass that resolves function references and re-validates every syntax node's type/offset consistency after hs_compile_source."
+    },
+    {
+      "addr": "0x485b60",
+      "name": "hs_add_global",
+      "confidence": 0.9,
+      "evidence": "Already-named and code-confirmed by its five distinctive error strings about global declaration syntax; parses a (global<type> <name> <value>) form, validates the type via hs_format_function_signature's type table (FUN_004875c0), checks for name collisions via chimera__get_global_index, and allocates storage on success.",
+      "prototype": "",
+      "summary": "Parses and registers a (global<type> <name> <value>) declaration as a new script-defined global variable."
+    },
+    {
+      "addr": "0x485d50",
+      "name": "hs_add_script",
+      "confidence": 0.9,
+      "evidence": "Already-named and code-confirmed by its ten distinctive error strings covering script declaration syntax, return types, and stub-override rules; parses (script <type> [<returntype>] <name> <body>), validates the type/name against the scripts table via hs_script_find_by_name, and allows only static scripts to override same-typed stub scripts.",
+      "prototype": "",
+      "summary": "Parses and registers a (script <type> ... <name> <body>) declaration, enforcing naming, typing, and stub-override rules."
+    },
+    {
+      "addr": "0x486120",
+      "name": "hs_tokenize",
+      "confidence": 0.8,
+      "evidence": "Several sibling functions' naming hints point to 'hs_tokenize' via the shared \"i couldn't allocate a syntax node.\" string, and this function is exactly that dispatcher: allocates one syntax-node datum, marks it 'not a list' unless the text starts with '(', and calls hs_tokenize_primitive or hs_tokenize_nonprimitive accordingly.",
+      "prototype": "",
+      "summary": "Allocates one syntax-node datum for the next token/expression and dispatches to the primitive or nonprimitive tokenizer."
+    },
+    {
+      "addr": "0x4861b0",
+      "name": "hs_tokenize_primitive",
+      "confidence": 0.9,
+      "evidence": "Already-named and code-confirmed by the exact string 'this quoted constant is unterminated.': handles both quoted-string literals (scanning to the closing '\"') and bare-word primitives (scanning to whitespace/')'/';').",
+      "prototype": "",
+      "summary": "Tokenizes a single primitive value (quoted string or bare word) from the source cursor."
+    },
+    {
+      "addr": "0x486290",
+      "name": "hs_tokenize_nonprimitive",
+      "confidence": 0.9,
+      "evidence": "Already-named and code-confirmed by its two distinctive strings 'this left parenthesis is unmatched.' and 'this expression is empty.': repeatedly calls hs_tokenize on child expressions inside a parenthesized list until the matching ')' or an error/EOF.",
+      "prototype": "",
+      "summary": "Tokenizes a parenthesized list expression by recursively tokenizing each child element until the closing paren."
+    },
+    {
+      "addr": "0x486350",
+      "name": "skip_whitespace",
+      "confidence": 0.9,
+      "evidence": "Already-named and code-confirmed by the exact string 'unterminated comment.': a small state machine advancing a cursor (in_EDX) over whitespace, ';'-style line comments, and ';* ... *;' block comments.",
+      "prototype": "",
+      "summary": "Advances a source-text cursor past whitespace and both line and block HS comment syntax."
+    },
+    {
+      "addr": "0x486420",
+      "name": "hs_parse",
+      "confidence": 0.6,
+      "evidence": "Mirrors hs_tokenize's dispatcher role for the parse phase: given a node index and an expected type, sets the node's resolved type if unset, then calls hs_parse_primitive or hs_parse_nonprimitive depending on the node's primitive flag; called repeatedly from every parse_* routine in this batch (hs_parse_if, hs_parse_set, hs_parse_cond_recursive's callers, hs_verify_binary_numeric_args, etc.) to recursively parse/type-check a child node.",
+      "prototype": "",
+      "summary": "Recursively parses/type-checks a single syntax node against an expected type, dispatching to the primitive or nonprimitive parser."
+    },
+    {
+      "addr": "0x486480",
+      "name": "hs_parse_primitive",
+      "confidence": 0.9,
+      "evidence": "Already-named and code-confirmed by its three distinctive strings about void-typed expressions and unsupported types: for a primitive node either resolves it as a variable via hs_parse_variable or invokes the per-type constant-evaluate callback table DAT_0065b668.",
+      "prototype": "",
+      "summary": "Parses/type-checks a primitive (non-list) syntax node as either a variable reference or a typed constant."
+    },
+    {
+      "addr": "0x486560",
+      "name": "hs_parse_variable",
+      "confidence": 0.9,
+      "evidence": "Already-named and code-confirmed by its two distinctive strings about invalid variable names and type mismatches: resolves the node's text as a global name via chimera__get_global_index, looks up that global's declared type, and checks/records it against the node's expected type.",
+      "prototype": "",
+      "summary": "Parses/type-checks a bare-word syntax node as a reference to a global variable."
+    }
+  ]
+}

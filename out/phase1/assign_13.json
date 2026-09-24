@@ -1,0 +1,1824 @@
+{
+ "slice": 13,
+ "assignments": [
+  {
+   "addr": "0x57b470",
+   "module": "shell",
+   "confidence": 0.4,
+   "evidence": "run 0x57b470-0x57d340: helper of DX device-requirements parser FUN_57af10 + config.txt reader 0x57d410"
+  },
+  {
+   "addr": "0x57b4c0",
+   "module": "shell",
+   "confidence": 0.4,
+   "evidence": "run 0x57b470-0x57d340: helper of DX device-requirements parser FUN_57af10 + config.txt reader 0x57d410"
+  },
+  {
+   "addr": "0x57b520",
+   "module": "shell",
+   "confidence": 0.4,
+   "evidence": "run 0x57b470-0x57d340: helper of DX device-requirements parser FUN_57af10 + config.txt reader 0x57d410"
+  },
+  {
+   "addr": "0x57b560",
+   "module": "shell",
+   "confidence": 0.4,
+   "evidence": "run 0x57b470-0x57d340: helper of DX device-requirements parser FUN_57af10 + config.txt reader 0x57d410"
+  },
+  {
+   "addr": "0x57b590",
+   "module": "shell",
+   "confidence": 0.4,
+   "evidence": "run 0x57b470-0x57d340: helper of DX device-requirements parser FUN_57af10 + config.txt reader 0x57d410"
+  },
+  {
+   "addr": "0x57b5b0",
+   "module": "shell",
+   "confidence": 0.4,
+   "evidence": "run 0x57b470-0x57d340: helper of DX device-requirements parser FUN_57af10 + config.txt reader 0x57d410"
+  },
+  {
+   "addr": "0x57b5e0",
+   "module": "shell",
+   "confidence": 0.4,
+   "evidence": "run 0x57b470-0x57d340: helper of DX device-requirements parser FUN_57af10 + config.txt reader 0x57d410"
+  },
+  {
+   "addr": "0x57b670",
+   "module": "shell",
+   "confidence": 0.4,
+   "evidence": "run 0x57b470-0x57d340: helper of DX device-requirements parser FUN_57af10 + config.txt reader 0x57d410"
+  },
+  {
+   "addr": "0x57b6e0",
+   "module": "shell",
+   "confidence": 0.4,
+   "evidence": "run 0x57b470-0x57d340: helper of DX device-requirements parser FUN_57af10 + config.txt reader 0x57d410"
+  },
+  {
+   "addr": "0x57b7a0",
+   "module": "shell",
+   "confidence": 0.4,
+   "evidence": "run 0x57b470-0x57d340: helper of DX device-requirements parser FUN_57af10 + config.txt reader 0x57d410"
+  },
+  {
+   "addr": "0x57b800",
+   "module": "shell",
+   "confidence": 0.4,
+   "evidence": "run 0x57b470-0x57d340: helper of DX device-requirements parser FUN_57af10 + config.txt reader 0x57d410"
+  },
+  {
+   "addr": "0x57b830",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57b920",
+   "module": "shell",
+   "confidence": 0.4,
+   "evidence": "run 0x57b470-0x57d340: helper of DX device-requirements parser FUN_57af10 + config.txt reader 0x57d410"
+  },
+  {
+   "addr": "0x57b990",
+   "module": "shell",
+   "confidence": 0.4,
+   "evidence": "run 0x57b470-0x57d340: helper of DX device-requirements parser FUN_57af10 + config.txt reader 0x57d410"
+  },
+  {
+   "addr": "0x57b9e0",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57ba50",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57bbd0",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57bc20",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57bc90",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57bd80",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57be00",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57be20",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57bfec",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57c0a8",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57c130",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57c1a0",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57c310",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57c390",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57c530",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57c5e0",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57c640",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57c6d0",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57c743",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57c76c",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57c7e2",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57c820",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57cb10",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57cb70",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57cb90",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57cbf0",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57cc30",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57ccc4",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57cce0",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57cd20",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57cd40",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57cda0",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57cde0",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57ce10",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57ce80",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57ced1",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57cf10",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57cf50",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57cfa3",
+   "module": "shell",
+   "confidence": 0.35,
+   "evidence": "run 0x57b470-0x57d340: STL vector/map internals inside the config.txt/DX device-requirements parser object"
+  },
+  {
+   "addr": "0x57cfe0",
+   "module": "shell",
+   "confidence": 0.4,
+   "evidence": "run 0x57b470-0x57d340: helper of DX device-requirements parser FUN_57af10 + config.txt reader 0x57d410"
+  },
+  {
+   "addr": "0x57d080",
+   "module": "shell",
+   "confidence": 0.4,
+   "evidence": "run 0x57b470-0x57d340: helper of DX device-requirements parser FUN_57af10 + config.txt reader 0x57d410"
+  },
+  {
+   "addr": "0x57d240",
+   "module": "shell",
+   "confidence": 0.4,
+   "evidence": "run 0x57b470-0x57d340: helper of DX device-requirements parser FUN_57af10 + config.txt reader 0x57d410"
+  },
+  {
+   "addr": "0x57d2b0",
+   "module": "shell",
+   "confidence": 0.4,
+   "evidence": "run 0x57b470-0x57d340: helper of DX device-requirements parser FUN_57af10 + config.txt reader 0x57d410"
+  },
+  {
+   "addr": "0x57d2e0",
+   "module": "shell",
+   "confidence": 0.4,
+   "evidence": "run 0x57b470-0x57d340: helper of DX device-requirements parser FUN_57af10 + config.txt reader 0x57d410"
+  },
+  {
+   "addr": "0x57d310",
+   "module": "shell",
+   "confidence": 0.4,
+   "evidence": "run 0x57b470-0x57d340: helper of DX device-requirements parser FUN_57af10 + config.txt reader 0x57d410"
+  },
+  {
+   "addr": "0x57d340",
+   "module": "shell",
+   "confidence": 0.4,
+   "evidence": "run 0x57b470-0x57d340: helper of DX device-requirements parser FUN_57af10 + config.txt reader 0x57d410"
+  },
+  {
+   "addr": "0x57d410",
+   "module": "shell",
+   "confidence": 0.6,
+   "evidence": "run 0x57d410-0x57e0ff: 'config.txt','ForceShader','CpuSpeed' + DxDiag/ddraw detect, called from startup FUN_5411e0"
+  },
+  {
+   "addr": "0x57d7f0",
+   "module": "shell",
+   "confidence": 0.6,
+   "evidence": "run 0x57d410-0x57e0ff: 'config.txt','ForceShader','CpuSpeed' + DxDiag/ddraw detect, called from startup FUN_5411e0"
+  },
+  {
+   "addr": "0x57d830",
+   "module": "shell",
+   "confidence": 0.6,
+   "evidence": "run 0x57d410-0x57e0ff: 'config.txt','ForceShader','CpuSpeed' + DxDiag/ddraw detect, called from startup FUN_5411e0"
+  },
+  {
+   "addr": "0x57d880",
+   "module": "shell",
+   "confidence": 0.6,
+   "evidence": "run 0x57d410-0x57e0ff: 'config.txt','ForceShader','CpuSpeed' + DxDiag/ddraw detect, called from startup FUN_5411e0"
+  },
+  {
+   "addr": "0x57e110",
+   "module": "shell",
+   "confidence": 0.45,
+   "evidence": "run 0x57e110-0x57e1a0: FindResourceEx/LoadStringA resource-string loader for startup error paths"
+  },
+  {
+   "addr": "0x57e1a0",
+   "module": "shell",
+   "confidence": 0.45,
+   "evidence": "run 0x57e110-0x57e1a0: FindResourceEx/LoadStringA resource-string loader for startup error paths"
+  },
+  {
+   "addr": "0x57e1f0",
+   "module": "dialogs",
+   "confidence": 0.4,
+   "evidence": "run 0x57e1f0-0x57e4c0: DialogBoxIndirectParamA + Static subclassing 'Old_Proc'/'Old_Font'"
+  },
+  {
+   "addr": "0x57e350",
+   "module": "dialogs",
+   "confidence": 0.4,
+   "evidence": "run 0x57e1f0-0x57e4c0: DialogBoxIndirectParamA + Static subclassing 'Old_Proc'/'Old_Font'"
+  },
+  {
+   "addr": "0x57e4c0",
+   "module": "dialogs",
+   "confidence": 0.4,
+   "evidence": "run 0x57e1f0-0x57e4c0: DialogBoxIndirectParamA + Static subclassing 'Old_Proc'/'Old_Font'"
+  },
+  {
+   "addr": "0x57e850",
+   "module": "shell",
+   "confidence": 0.6,
+   "evidence": "run 0x57e850-0x57f3f0: Halo registry key, 'Halo - Error' window, strings.dll, DigitalProductID CD-key hash"
+  },
+  {
+   "addr": "0x57ea10",
+   "module": "shell",
+   "confidence": 0.6,
+   "evidence": "run 0x57e850-0x57f3f0: Halo registry key, 'Halo - Error' window, strings.dll, DigitalProductID CD-key hash"
+  },
+  {
+   "addr": "0x57ea70",
+   "module": "shell",
+   "confidence": 0.6,
+   "evidence": "run 0x57e850-0x57f3f0: Halo registry key, 'Halo - Error' window, strings.dll, DigitalProductID CD-key hash"
+  },
+  {
+   "addr": "0x57efa0",
+   "module": "shell",
+   "confidence": 0.6,
+   "evidence": "run 0x57e850-0x57f3f0: Halo registry key, 'Halo - Error' window, strings.dll, DigitalProductID CD-key hash"
+  },
+  {
+   "addr": "0x57f2a0",
+   "module": "shell",
+   "confidence": 0.6,
+   "evidence": "run 0x57e850-0x57f3f0: Halo registry key, 'Halo - Error' window, strings.dll, DigitalProductID CD-key hash"
+  },
+  {
+   "addr": "0x57f330",
+   "module": "shell",
+   "confidence": 0.6,
+   "evidence": "run 0x57e850-0x57f3f0: Halo registry key, 'Halo - Error' window, strings.dll, DigitalProductID CD-key hash"
+  },
+  {
+   "addr": "0x57f360",
+   "module": "shell",
+   "confidence": 0.6,
+   "evidence": "run 0x57e850-0x57f3f0: Halo registry key, 'Halo - Error' window, strings.dll, DigitalProductID CD-key hash"
+  },
+  {
+   "addr": "0x57f3f0",
+   "module": "shell",
+   "confidence": 0.6,
+   "evidence": "run 0x57e850-0x57f3f0: Halo registry key, 'Halo - Error' window, strings.dll, DigitalProductID CD-key hash"
+  },
+  {
+   "addr": "0x57f52d",
+   "module": "lib:crt",
+   "confidence": 0.45,
+   "evidence": "run 0x57f52d-0x57f5ce: delayimp delay-load ordinal thunks via __delayLoadHelper2@8"
+  },
+  {
+   "addr": "0x57f537",
+   "module": "lib:crt",
+   "confidence": 0.45,
+   "evidence": "run 0x57f52d-0x57f5ce: delayimp delay-load ordinal thunks via __delayLoadHelper2@8"
+  },
+  {
+   "addr": "0x57f54e",
+   "module": "lib:crt",
+   "confidence": 0.45,
+   "evidence": "run 0x57f52d-0x57f5ce: delayimp delay-load ordinal thunks via __delayLoadHelper2@8"
+  },
+  {
+   "addr": "0x57f55e",
+   "module": "lib:crt",
+   "confidence": 0.45,
+   "evidence": "run 0x57f52d-0x57f5ce: delayimp delay-load ordinal thunks via __delayLoadHelper2@8"
+  },
+  {
+   "addr": "0x57f56e",
+   "module": "lib:crt",
+   "confidence": 0.45,
+   "evidence": "run 0x57f52d-0x57f5ce: delayimp delay-load ordinal thunks via __delayLoadHelper2@8"
+  },
+  {
+   "addr": "0x57f57e",
+   "module": "lib:crt",
+   "confidence": 0.45,
+   "evidence": "run 0x57f52d-0x57f5ce: delayimp delay-load ordinal thunks via __delayLoadHelper2@8"
+  },
+  {
+   "addr": "0x57f58e",
+   "module": "lib:crt",
+   "confidence": 0.45,
+   "evidence": "run 0x57f52d-0x57f5ce: delayimp delay-load ordinal thunks via __delayLoadHelper2@8"
+  },
+  {
+   "addr": "0x57f59e",
+   "module": "lib:crt",
+   "confidence": 0.45,
+   "evidence": "run 0x57f52d-0x57f5ce: delayimp delay-load ordinal thunks via __delayLoadHelper2@8"
+  },
+  {
+   "addr": "0x57f5ae",
+   "module": "lib:crt",
+   "confidence": 0.45,
+   "evidence": "run 0x57f52d-0x57f5ce: delayimp delay-load ordinal thunks via __delayLoadHelper2@8"
+  },
+  {
+   "addr": "0x57f5be",
+   "module": "lib:crt",
+   "confidence": 0.45,
+   "evidence": "run 0x57f52d-0x57f5ce: delayimp delay-load ordinal thunks via __delayLoadHelper2@8"
+  },
+  {
+   "addr": "0x57f5ce",
+   "module": "lib:crt",
+   "confidence": 0.45,
+   "evidence": "run 0x57f52d-0x57f5ce: delayimp delay-load ordinal thunks via __delayLoadHelper2@8"
+  },
+  {
+   "addr": "0x57f5de",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57f604",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57f620",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57f705",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57f72a",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57f754",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57f80c",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57f862",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57f892",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57f8a5",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57f934",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57f947",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57f9f9",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57fa23",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57fab1",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57fadb",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57fb8a",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57fbb9",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57fbfc",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57fc20",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57fc44",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57fc68",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57fca5",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57fd53",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57fd7d",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57fe4e",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57fe7d",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x57ff72",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58002a",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58003d",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x580054",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5800cd",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58015c",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5802d4",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5803a5",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5803cf",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5804c2",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5804f1",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x580614",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5807bb",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x580a04",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x580cc7",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x581079",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x581109",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x581193",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5811af",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x581229",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x581245",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5812c0",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5812dc",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x581358",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x581378",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58147a",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58156f",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58159d",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5815ae",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5815d5",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x581858",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x581878",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5818d4",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5819e1",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x581b4d",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x581c11",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x581c9f",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x581d4a",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x581e57",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x581e81",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x581ed8",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x581f18",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x581fa0",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5822a3",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x582373",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5825dc",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x582688",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5826f3",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x582776",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5827f3",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58288b",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5828c7",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58291b",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5829b8",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x582a74",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x582b53",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x582ce0",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x582ee0",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x583086",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5832b7",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5832f0",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5835a4",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58367e",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x583b17",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x583bc2",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x583dca",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x583ddc",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x583e1a",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x583f26",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5840a3",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5841d0",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5841e9",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x584242",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58425e",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x584d8a",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x584da8",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x584df0",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x585068",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5855e0",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5858b3",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x585e04",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x586170",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5861a0",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x586389",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x586393",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5863b1",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5863c4",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5863da",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x586696",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x586824",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58694c",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58697a",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x586a64",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x586b7c",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x586bb4",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x586be3",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x586c11",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x586d61",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x586e85",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x586fd4",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x587127",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x587266",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x587301",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58744d",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58756e",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5876ba",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x5877f9",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x587936",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x587a14",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x587c09",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x587e02",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x588211",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x588646",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x588738",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x588ac7",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x589146",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x589192",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x589856",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x589e44",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x589f73",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x589f86",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58a063",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58a119",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58a603",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58a619",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58abdd",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58ac57",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58ad58",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58ada8",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58adef",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58b060",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58b0e9",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58b1bc",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58b22c",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58b4ae",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58b5e4",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58b6f5",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58b83e",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58b963",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58ba88",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58bbad",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58bcf0",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58be39",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58bf5e",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58c02a",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58c173",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58c298",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58c3e1",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58c52a",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58c64f",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58c746",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58c88f",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58ca10",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58cb57",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58cc31",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58cd19",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58ce34",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58cf44",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58d03f",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58d169",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58d29b",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58d3fa",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58d4f5",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58d654",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58d7eb",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58d8f0",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58d9da",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58da3c",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58da9f",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58dae7",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58db3c",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58db99",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58dbec",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58dd02",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58de15",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58deba",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58df79",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58e02e",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58e0e8",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58e19f",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58e264",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58e328",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58e417",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58e4d6",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  },
+  {
+   "addr": "0x58e58b",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x57f5de-0x58e58b+: D3DX static lib - PSGP stubs via FUN_592cfa 'DisableD3DXPSGP', HKLM Software\\Microsoft\\Direct3D, libpng/libjpeg image codecs"
+  }
+ ],
+ "boundaries": [
+  {
+   "addr": "0x57d410",
+   "note": "start of the Halo Windows-startup group (config.txt reader, DxDiag hardware detect); the preceding run is the STL-based DX device-requirements parser object that began back in slice 12 near 0x578000"
+  },
+  {
+   "addr": "0x57e1f0",
+   "note": "sub-boundary: resource-dialog + Static-control subclassing helpers (dialogs) inside the shell startup run"
+  },
+  {
+   "addr": "0x57f52d",
+   "note": "delay-load ordinal thunk block (delayimp) separating application code from the static-library region"
+  },
+  {
+   "addr": "0x57f5de",
+   "note": "start of the D3DX static-library run; everything from here to the end of the slice and onward into slice 14 is lib:d3dx"
+  }
+ ],
+ "notes": "Three parts. (1) 0x57b470-0x57d340 finishes an object file started in slice 12: a C++/STL (vector, map, operator new, C++ EH) parser for DirectX device 'Requirements'/'propertyset'/'applytoall' data plus its container internals; it is shared with the config.txt reader so I kept it in shell, but it may really be Microsoft-supplied device-detection library code (lib:other) - confidence deliberately low. (2) 0x57d410-0x57f3f0 is Halo's Windows startup layer: config.txt parsing, DxDiag/ddraw hardware detection, registry under Software\\Microsoft\\Microsoft Games\\Halo, the 'Halo - Error' message window (FUN_57ea70, 22 engine-wide callers), strings.dll localisation load and the DigitalProductID CD-key hash - all reached from FUN_005411e0; three dialog-resource/control-subclass helpers inside it are labelled dialogs. (3) From 0x57f5de to the end of the slice is one contiguous D3DX static-library run. Confirmed by FUN_592cfa referencing 'DisablePSGP'/'DisableD3DXPSGP' (Processor Specific Graphics Pipeline dispatch) - the ~120 tiny stubs that call FUN_592cfa(1) and then jump through a function-pointer table are D3DX math PSGP dispatch stubs; by FUN_5840a3 reading HKLM Software\\Microsoft\\Direct3D; and by the image codecs behind D3DXLoadSurfaceFromFile (FUN_5858b3 calls a png_create_read_struct-style API with version literal '1.0.5' plus __setjmp3, FUN_584df0 uses the libjpeg-style setjmp path into 0x5b8xxx). The trailing mass of near-identical functions calling FUN_58a619/FUN_58b22c/FUN_58b1bc/FUN_58b4ae are per-opcode/per-format handlers in the same library and continue into slice 14."
+}

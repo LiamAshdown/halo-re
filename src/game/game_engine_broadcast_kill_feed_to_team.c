@@ -1,0 +1,72 @@
+// game_engine_broadcast_kill_feed_to_team  (Ghidra: FUN_00460ba0; renamed per its summary)
+// address 0x460ba0, size 101 bytes
+// name confidence: 0.3   rewrite confidence: 0.2
+// evidence: out/phase4/game_functions.md ("Broadcasts a kill-feed message to every entry in the
+// current data iteration that belongs to a given group/team id"); types/game.h player::team
+// (+0x20); types/memory.h data_iterator; the identical explicit `data_iterator iter` idiom
+// already committed in game_engine_on_player_death.c for the same "drain the players array"
+// shape Ghidra renders here with the iterator struct optimized away.
+// register convention: a "still allowed to broadcast" gate in ESI (unaff_ESI, tested every
+// iteration exactly like the sibling broadcast helpers in this same address range);
+// param_1 is this function's own stack parameter (the team id to match).
+//   // blam-cc: unaff_ESI -> broadcast_enabled, stack -> team
+// UNSURE: chimera__kill_feed needs four more values (this function's own stack param_1 fixed at
+// -1, plus message_type, subject and a broadcast flag) that Ghidra shows nowhere in this
+// function's body -- they must be genuine pass-through registers/stack slots from this
+// function's own, unrecovered caller. Modeled as three additional forwarded parameters so the
+// call still compiles against chimera__kill_feed's real signature; their names are guesses.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+
+extern data_array *player_data; // 0x0087a480
+
+extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
+extern void chimera__kill_feed(datum_index recipient, int32_t param_1, uint32_t message_type,
+    datum_index subject, char broadcast); // 0x460a30, this batch
+
+// blam-cc: unaff_ESI -> broadcast_enabled, stack -> team
+// Walks every in-use player and, for each one on `team`, broadcasts a kill-feed message to it
+// (recipient = that player's own handle) while `broadcast_enabled` holds.
+void game_engine_broadcast_kill_feed_to_team(int32_t broadcast_enabled, int32_t team,
+    uint32_t forwarded_message_type, datum_index forwarded_subject, char forwarded_broadcast) // UNSURE: last 3 params
+{
+    data_iterator iter;
+    void *element;
+
+    iter.data = player_data;
+    iter.next_index = 0;
+    iter.index = (datum_index)0xffffffff;
+
+    element = data_iterator_next(&iter);
+    while (element != 0) {
+        player *p = (player *)element;
+        if (p->team == team && broadcast_enabled != -1) {
+            chimera__kill_feed(iter.index, 0xffffffff, forwarded_message_type, forwarded_subject,
+                forwarded_broadcast);
+        }
+        element = data_iterator_next(&iter);
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x460ba0), from tools/pack.py 0x460ba0:
+
+void FUN_00460ba0(int param_1)
+
+{
+  int iVar1;
+  int unaff_ESI;
+  
+  iVar1 = data_iterator_next();
+  while (iVar1 != 0) {
+    if ((*(int *)(iVar1 + 0x20) == param_1) && (unaff_ESI != -1)) {
+      chimera__kill_feed(0xffffffff);
+    }
+    iVar1 = data_iterator_next();
+  }
+  return;
+}
+#endif

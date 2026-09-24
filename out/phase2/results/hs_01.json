@@ -1,0 +1,486 @@
+{
+  "module": "hs",
+  "batch": 1,
+  "results": [
+    {
+      "addr": "0x486680",
+      "name": "hs_resolve_identifier_as_function_or_script",
+      "confidence": 0.5,
+      "evidence": "Indexes the 0x14-byte syntax-node table (DAT_0087a474) for a node and its specifier child; calls hs_find_function_by_name and, on failure, FUN_004833a0 against a name in the string heap (DAT_006b14c0), caching the resolved index and setting a 'resolved as script' flag bit consumed later by hs_parse_nonprimitive.",
+      "prototype": "",
+      "summary": "Resolves an unparsed identifier syntax-node to either a builtin function index or a user-script index, caching the result on the node."
+    },
+    {
+      "addr": "0x486710",
+      "name": "hs_parse_nonprimitive",
+      "confidence": 0.9,
+      "evidence": "Strings 'global'/'script'/'i expected \"script\" or \"global\".' plus calls to hs_add_global/hs_add_script match the name exactly; code implements identifier resolution, type-compatibility checks (FUN_0048ac90) and 'global'/'script' keyword parsing.",
+      "prototype": "",
+      "summary": "Parses a non-primitive expression token, resolving it as a global, script, function call, or variable reference and reporting the matching HS syntax errors."
+    },
+    {
+      "addr": "0x486ae0",
+      "name": "hs_parse_real",
+      "confidence": 0.9,
+      "evidence": "String 'this is not a valid real number.' plus digit/'.'-scanning loop and a call to _atof storing the result as a float on the syntax node.",
+      "prototype": "",
+      "summary": "Validates and parses a floating point literal token from the script source text into the node's real value field."
+    },
+    {
+      "addr": "0x486ce0",
+      "name": "hs_parse_enum_value",
+      "confidence": 0.4,
+      "evidence": "Linearly scans a table (count at DAT_00746f8c+0x4b4, entries at +0x4b8, stride 0x28, name pointer at +0x1c) for an exact match of the token text, then checks the matched entry's category field against a per-return-type table (DAT_006574e4) before storing the entry's value on the node.",
+      "prototype": "",
+      "summary": "Looks up a parsed enum/keyword token by exact name in a scenario reference table and stores its numeric value if the category matches the expected type."
+    },
+    {
+      "addr": "0x486dc0",
+      "name": "hs_report_expected_enum_values",
+      "confidence": 0.55,
+      "evidence": "String '%s must be ' plus __stricmp scan of a per-type name table (PTR_LAB_0065b538/0065b53c indexed by return-type) and manual construction of a comma-separated, quoted list of valid names into the shared error buffer (DAT_006b14d8/dc).",
+      "prototype": "",
+      "summary": "Builds the '<type> must be \"a\", \"b\" or \"c\"' compiler error message when a keyword/enum token fails to match any valid name for its expected type."
+    },
+    {
+      "addr": "0x486f90",
+      "name": "hs_parse_scenario_datum",
+      "confidence": 0.85,
+      "evidence": "String 'this is not a valid %s name' plus a generic {count,array}-pair scan using __stricmp with a caller-supplied element stride (param_1), matching the name-lookup pattern used by scenario tag-block name parsers.",
+      "prototype": "",
+      "summary": "Generic parser that resolves a quoted name token against an arbitrary-stride scenario tag-block array by exact case-insensitive string match, storing the found index or reporting an error."
+    },
+    {
+      "addr": "0x487030",
+      "name": "hs_parse_scenario_reference",
+      "confidence": 0.3,
+      "evidence": "Trivial thunk that calls hs_parse_scenario_datum(0x60); the fixed 0x60-byte stride identifies a specific (unidentified) scenario name-bearing tag block, so the inherited name 'hs_compile_and_evaluate' is not supported by the code shown.",
+      "prototype": "",
+      "summary": "Thin wrapper around hs_parse_scenario_datum specialized for a 0x60-byte-stride scenario reference table whose exact tag block could not be identified."
+    },
+    {
+      "addr": "0x487230",
+      "name": "hs_parse_object_name",
+      "confidence": 0.9,
+      "evidence": "Strings 'this is not a valid object name.' and 'this is not an object of type %s.'; looks up the name via FUN_0053ebb0 against the object_names block (DAT_00746f8c+0x208, stride 0x24, matching hs_parse_scenario_datum's family) and checks the object's type bit against the expected-type mask (DAT_006574e2).",
+      "prototype": "",
+      "summary": "Parses an object-name token, resolves it to a scenario object_names index, and verifies the referenced object matches the expected HS object type."
+    },
+    {
+      "addr": "0x4875c0",
+      "name": "hs_string_table_find_index",
+      "confidence": 0.35,
+      "evidence": "Generic byte-wise string comparison loop against an array of char* (param_2, count param_1) using an implicit search key in the in_EAX register; returns the matching index or -1.",
+      "prototype": "",
+      "summary": "Linearly searches an array of C strings for an exact case-sensitive match and returns its index, or -1 if not found."
+    },
+    {
+      "addr": "0x487630",
+      "name": "hs_object_datum_reference_list_build",
+      "confidence": 0.3,
+      "evidence": "Walks a 0x200-byte-stride datum array (DAT_0087a480) via FUN_004d0630's iterator convention, and for every entry whose 0x34 field is valid, creates a chained 0xc-byte reference-list node (datum_new into DAT_0087a464/DAT_0087a468) copying that field.",
+      "prototype": "",
+      "summary": "Builds a linked reference list collecting a per-entry index field from every valid slot of an object-related datum array."
+    },
+    {
+      "addr": "0x487750",
+      "name": "hs_object_datum_table_reset_all",
+      "confidence": 0.3,
+      "evidence": "Iterates the same 0x200-byte datum array (DAT_0087a480) via the 'iter'-XOR iterator convention and, for entries passing a predicate (FUN_0053f020==0), calls FUN_00487f50(entry,1,1), the object detach/place routine.",
+      "prototype": "",
+      "summary": "Iterates all entries of an object-related datum array and resets/detaches each one whose predicate check fails."
+    },
+    {
+      "addr": "0x487820",
+      "name": "hs_reference_list_test_predicate",
+      "confidence": 0.3,
+      "evidence": "Walks the DAT_0087a464/DAT_0087a468 chained reference list calling FUN_0053f020 per node, returning early with 0 or 1 depending on the char param_2 flag, implementing an AND-vs-OR short-circuit reduction over the list.",
+      "prototype": "",
+      "summary": "Evaluates a boolean predicate across every object in a reference list, short-circuiting as either an 'all' or an 'any' test selected by a flag."
+    },
+    {
+      "addr": "0x4878f0",
+      "name": "hs_object_test_angle_condition",
+      "confidence": 0.3,
+      "evidence": "Guards on FUN_004f6ec0(3) (a camera/context lookup) then converts param_2 from degrees to radians (x*0.017453292) before delegating to FUN_0056c100, matching the per-object predicate callback used by FUN_004879b0/FUN_00487ad0.",
+      "prototype": "",
+      "summary": "Per-object predicate helper that converts an angle argument from degrees to radians and forwards it to a lower-level geometry test, gated by a context validity check."
+    },
+    {
+      "addr": "0x4879b0",
+      "name": "hs_reference_list_any_matches_angle",
+      "confidence": 0.3,
+      "evidence": "Walks the DAT_0087a464/DAT_0087a468 reference list, filters entries by an object-type bitmask (mask 3) and a nonzero field, and calls FUN_004878f0(object,angle) per candidate, returning true on the first success.",
+      "prototype": "",
+      "summary": "Returns true if any filtered object in a reference list satisfies the angle-based predicate implemented by FUN_004878f0."
+    },
+    {
+      "addr": "0x487ad0",
+      "name": "hs_reference_list_any_matches_angle_filtered",
+      "confidence": 0.25,
+      "evidence": "Same reference-list walk and object-type mask as FUN_004879b0 but calls FUN_0056c100 directly with a degrees-to-radians converted angle and an extra unaff_BX gate flag.",
+      "prototype": "",
+      "summary": "Variant of the reference-list angle test that adds an extra caller-supplied gating flag before invoking the geometry predicate."
+    },
+    {
+      "addr": "0x487c10",
+      "name": "hs_object_hierarchy_matches_type_mask",
+      "confidence": 0.3,
+      "evidence": "Recurses over an object's attachment chain (fields at 0x114/0x118/0x11c off the pointer stored in the 0xc-entry object table DAT_008603b0) calling FUN_00474db0, then falls back to checking a type-bitmask (0x1c) at +0xb4 combined with a flag bit at +500.",
+      "prototype": "",
+      "summary": "Recursively checks whether an object or any of its attached child objects matches a small object-type bitmask or a specific flag."
+    },
+    {
+      "addr": "0x487d20",
+      "name": "hs_object_slot_validate_or_reset",
+      "confidence": 0.25,
+      "evidence": "Bounds-checks param_1 against a 0x200-entry table (DAT_006b8cb8); if the slot holds a valid object and FUN_00487c10 fails, calls FUN_004f5bd0, otherwise falls through to FUN_004f7370.",
+      "prototype": "",
+      "summary": "Validates a cached object-slot reference against a type-mask test, resetting it via a fallback path when invalid or absent."
+    },
+    {
+      "addr": "0x487dd0",
+      "name": "hs_object_datum_table_cleanup",
+      "confidence": 0.3,
+      "evidence": "First loop follows each object's 0x11c child-chain to its terminal element and calls FUN_0056c640(obj,0,1,1) (an object-delete-shaped call) when it differs from the head; second loop uses the data_iterator_next/FUN_004f6f20 'iter'-XOR cookie pattern over DAT_0087a480 to delete stray created objects by type via FUN_004f5aa0/FUN_004f59d0.",
+      "prototype": "",
+      "summary": "Cleans up an object-related datum table at HS runtime reset, deleting orphaned children and dynamically created objects left over from the previous state."
+    },
+    {
+      "addr": "0x487ef0",
+      "name": "hs_object_names_for_each",
+      "confidence": 0.5,
+      "evidence": "Iterates the scenario object_names block (count at DAT_00746f8c+0x204, array at +0x208, stride 0x24) - the same block hs_parse_object_name resolves names against - and invokes the caller-supplied callback for every entry that passes predicate FUN_00625430.",
+      "prototype": "",
+      "summary": "Enumerates every scenario object_names entry and invokes a callback for each one that satisfies a predicate check."
+    },
+    {
+      "addr": "0x487f50",
+      "name": "hs_object_detach_and_place_at_flag",
+      "confidence": 0.35,
+      "evidence": "When param_2 set and the object's parent-link field (index 0x47 in its pointer-table entry) is valid, unlinks it from the parent hierarchy using matrix4x3_inverse/matrix4x3_transform_normal/matrix4x3_multiply to convert into world space and clears the parent/attachment bookkeeping fields; afterwards computes a forward vector from a scenario location table entry's yaw/pitch (DAT_00746f8c+0x4e8, stride 0x5c) and calls FUN_004f51c0 to (re)apply position/facing.",
+      "prototype": "",
+      "summary": "Detaches an object from its current parent object using full 3D-transform math, then repositions and reorients it based on a scenario location-table entry."
+    },
+    {
+      "addr": "0x488570",
+      "name": "hs_reference_list_skip",
+      "confidence": 0.35,
+      "evidence": "Walks the DAT_0087a464/DAT_0087a468 chained reference list a fixed number of steps (register in_ECX) starting from the list head of object in_EAX, discarding intermediate values, matching an index-seek helper for the reference-list abstraction used throughout this file.",
+      "prototype": "",
+      "summary": "Advances N nodes down a reference list starting at a given object's list head, used to seek to the Nth element."
+    },
+    {
+      "addr": "0x488600",
+      "name": "hs_object_set_clamped_fraction",
+      "confidence": 0.35,
+      "evidence": "Clamps param_1 to [0,1] (treating negative as 0) and stores param_1 * *(float*)(obj+0xdc) into *(float*)(obj+0xe4), the classic 'current = fraction * max' setter pattern; exact field (health/shield) not confirmed from this fragment alone.",
+      "prototype": "",
+      "summary": "Sets an object field to a fraction (0.0-1.0, clamped) of a corresponding maximum field, consistent with a health or shield percentage setter."
+    },
+    {
+      "addr": "0x488670",
+      "name": "hs_object_resolve_named_reference",
+      "confidence": 0.3,
+      "evidence": "If the register-passed name string is non-empty, follows the object's tag through the tag_instances array (DAT_0087bc14, stride 0x20, data pointer at +0x14 - the standard Blam tag lookup pattern) to a nested sub-tag's 0x4c-byte-stride named entry list (count at +0xc4, array at +0xc8) and __stricmp-matches the name, then forwards the resolved index to FUN_004f6c60.",
+      "prototype": "",
+      "summary": "Resolves a name string to an index within a named sub-list of an object's tag data (e.g. a seat, region, or marker list) and passes the result to a setter."
+    },
+    {
+      "addr": "0x488740",
+      "name": "hs_reference_list_apply",
+      "confidence": 0.3,
+      "evidence": "Walks the DAT_0087a464/DAT_0087a468 chained reference list end to end, calling FUN_004f7b00(value) for every referenced entry.",
+      "prototype": "",
+      "summary": "Applies a callback to every object referenced by a reference list."
+    },
+    {
+      "addr": "0x4887d0",
+      "name": "hs_objects_delete_by_type",
+      "confidence": 0.55,
+      "evidence": "Iterates the objects datum array via FUN_004f6f20 using the same 'iter'-XOR iterator cookie convention, matches each object's type field against unaff_ESI, deletes matches via FUN_004f5aa0/FUN_004f59d0, and finishes by calling the already-named objects_garbage_collection and block_list_compact.",
+      "prototype": "",
+      "summary": "Deletes every live object of a given object type, then runs garbage collection and compacts the block list."
+    },
+    {
+      "addr": "0x488870",
+      "name": "hs_effect_new_at_flag",
+      "confidence": 0.4,
+      "evidence": "Computes a forward vector from cos/sin of a scenario location entry's yaw/pitch fields (DAT_00746f8c+0x4e8, stride 0x5c, offsets 0x30/0x34) and passes it with the entry's position (+0x24) to FUN_00450980 alongside a fixed effect-table pointer (PTR_DAT_00696714), matching an effect-spawn call signature.",
+      "prototype": "",
+      "summary": "Spawns a visual effect positioned and oriented at a scenario location (flag/camera point) table entry."
+    },
+    {
+      "addr": "0x4888f0",
+      "name": "hs_effect_new_on_object_marker",
+      "confidence": 0.3,
+      "evidence": "Guards on two register-passed object/marker handles being valid and a state check via FUN_004f6080, then calls FUN_00450870 with position/orientation buffers and a fixed-scale trailing argument list matching the effect-spawn signature used by FUN_00488870.",
+      "prototype": "",
+      "summary": "Spawns a visual effect attached to an object's marker, gated on the object and marker both being valid."
+    },
+    {
+      "addr": "0x488960",
+      "name": "hs_sound_impulse_at_flag",
+      "confidence": 0.35,
+      "evidence": "Builds a fixed-size request structure from a scenario location entry's position (DAT_00746f8c+0x4e8, stride 0x5c, offset 0x24), resolves a sound id via FUN_005013a0/DAT_00746f9c's stride-0x10 table, and passes the structure to FUN_004edd30 with no attached object (-1).",
+      "prototype": "",
+      "summary": "Plays a positional sound impulse at a scenario location's coordinates, not attached to any object."
+    },
+    {
+      "addr": "0x488a40",
+      "name": "hs_object_apply_damage_effect",
+      "confidence": 0.4,
+      "evidence": "Builds the identical fixed-size request structure as FUN_00488960 (position/sound-id fields) but sources the position via FUN_004f6900 and finishes by calling the already-named chimera__apply_damage on it, gated on a valid unaff_EBX object handle.",
+      "prototype": "",
+      "summary": "Applies a damage effect (with an embedded sound) to an object using the same request structure shape as the flag sound-impulse helper."
+    },
+    {
+      "addr": "0x488b10",
+      "name": "hs_sound_get_gain_reference",
+      "confidence": 0.85,
+      "evidence": "String \"the sound '%s' does not exist\" plus two tag_lookup calls into the tag_instances array (DAT_0087bc14, stride 0x20, data pointer at +0x14), first returning a direct gain-modifier field, then falling back to a sound_looping-style tag's detail-sound gain field.",
+      "prototype": "",
+      "summary": "Looks up a sound or sound_looping tag by name and returns a pointer to its gain-modifier value, reporting an error if neither tag exists."
+    },
+    {
+      "addr": "0x488c60",
+      "name": "hs_evaluate_random",
+      "confidence": 0.55,
+      "evidence": "Uses the Borland/Numerical-Recipes LCG constants (0x19660d, 0x3c6ef35f) to advance a PRNG state (DAT_00719cd0), maintains a bitset sized to the argument count to avoid re-picking the same branch, and drives the evaluation via the shared hs_evaluate_next_argument/hs_coerce_evaluated_result pair (FUN_0048a560/FUN_0048a640).",
+      "prototype": "",
+      "summary": "Implements the HS 'random' special form: randomly selects and evaluates one not-yet-chosen child expression per invocation, avoiding repeats until the set is exhausted."
+    },
+    {
+      "addr": "0x489120",
+      "name": "hs_evaluate_boolean_and_or",
+      "confidence": 0.5,
+      "evidence": "Seeds the running boolean result to true only when the opcode selector param_1 equals 5, then on each subsequent call combines the new evaluated boolean with the running result using AND semantics when param_1==5 and OR semantics otherwise - the classic short-circuit boolean reduce pattern.",
+      "prototype": "",
+      "summary": "Per-call reducer implementing the HS 'and'/'or' special forms, short-circuiting the boolean combination based on the selected opcode."
+    },
+    {
+      "addr": "0x489250",
+      "name": "hs_evaluate_arithmetic_reduce",
+      "confidence": 0.55,
+      "evidence": "Switch on the opcode selector param_1 implements +=(7), -=(8), *=(9), /=(10), min(11) and max(12) against a running float accumulator, matching the built-in arithmetic script functions '+','-','*','/','min','max'.",
+      "prototype": "",
+      "summary": "Per-call reducer implementing the HS numeric '+','-','*','/','min' and 'max' special forms over a variadic argument list."
+    },
+    {
+      "addr": "0x489800",
+      "name": "hs_evaluate_sleep",
+      "confidence": 0.5,
+      "evidence": "Initializes a default duration of 0x1e (30 ticks, i.e. one second at Halo's 30 Hz tick rate) and a start-tick snapshot from DAT_006f1d6c+0xc (current game tick), then on completion stores start_tick+duration (clamped to an optional end bound) into the thread frame's deferred-time field.",
+      "prototype": "",
+      "summary": "Implements the HS 'sleep'/'sleep_until' special form, computing the game tick at which the calling thread should resume."
+    },
+    {
+      "addr": "0x489d50",
+      "name": "hs_evaluate_argument_list_fixed32",
+      "confidence": 0.35,
+      "evidence": "Reserves a fixed 32-element (0x80 byte) undefined4 array plus a count field on the thread frame; each reentrant call appends one evaluated value into the array (capped at 0x20 entries) until the reference-list link is exhausted.",
+      "prototype": "",
+      "summary": "Collects up to 32 evaluated argument values into a fixed-size array, one value per reentrant call, for a variadic HS operation."
+    },
+    {
+      "addr": "0x489e70",
+      "name": "hs_runtime_initialize",
+      "confidence": 0.85,
+      "evidence": "Strings 'hs thread' and 'hs globals' passed to FUN_005380d0 (a datum-array allocator) plus data_delete_all() and a loop of 0x1eb datum_new_at_index_with_salt calls reserving the fixed low-index globals range.",
+      "prototype": "void __cdecl hs_runtime_initialize(void)",
+      "summary": "Allocates the HS thread and globals datum arrays and reserves the first 0x1eb global slots at engine start-up."
+    },
+    {
+      "addr": "0x489ef0",
+      "name": "hs_scenario_scripts_initialize",
+      "confidence": 0.55,
+      "evidence": "Clears runtime state and calls data_delete_all(), creates a root thread datum, then for every scenario global (DAT_00746f8c+0x4a8/0x4ac) allocates its runtime slot and evaluates its default-value expression, writing the result back via the global-write dispatcher (FUN_0048b030); a second loop over the scripts block (+0x49c/+0x4a0) auto-starts every script whose type is not 3 or 4 (static/stub), matching HS's startup/dormant/continuous auto-run rule.",
+      "prototype": "",
+      "summary": "Resets the HS runtime for a newly loaded scenario: reinitializes global variables to their default values and auto-starts all non-static, non-stub scripts."
+    },
+    {
+      "addr": "0x48a130",
+      "name": "hs_globals_delete_temporary",
+      "confidence": 0.4,
+      "evidence": "Clears the hs-thread-array active flag then calls datum_delete for every globals-array slot at or beyond index 0x1eb, the same reserved-slot boundary established by hs_runtime_initialize.",
+      "prototype": "",
+      "summary": "Deletes every dynamically allocated HS global beyond the fixed reserved range, used when tearing down the HS runtime."
+    },
+    {
+      "addr": "0x48a1a0",
+      "name": "hs_runtime_update",
+      "confidence": 0.5,
+      "evidence": "Iterates all active HS threads (FUN_004d0630) and, for each whose scheduled-time field is at or before the current game tick (DAT_006f1d6c+0xc), steps it via FUN_0048a370; tracks whether any thread is an immediate-evaluation thread and conditionally triggers a recompile/reload path (FUN_00483310).",
+      "prototype": "",
+      "summary": "Per-tick HS scheduler: advances every thread whose deadline has arrived and triggers a reload check when nothing else is pending."
+    },
+    {
+      "addr": "0x48a250",
+      "name": "hs_evaluate_expression_immediate",
+      "confidence": 0.45,
+      "evidence": "Only runs while DAT_006b15e8 (scripts-enabled flag) is set; allocates a type-2 thread via FUN_0048a2f0(2) for the given node, drives it once with hs_evaluate_next_argument (FUN_0048a560), and either finalizes/deletes it (FUN_0048a370) if flagged complete or returns its stored result field.",
+      "prototype": "",
+      "summary": "Synchronously compiles and evaluates a single HS expression node to completion, returning its result value or failure."
+    },
+    {
+      "addr": "0x48a2d0",
+      "name": "hs_call_script_by_name",
+      "confidence": 0.5,
+      "evidence": "Combines hs_thread_find_by_script_name (FUN_0048a9f0) with hs_thread_restart (FUN_0048a790), matching HS's ability to invoke a named user script as if it were a function call.",
+      "prototype": "",
+      "summary": "Finds a script's existing thread by name and restarts it, implementing calling a named HS script like a function."
+    },
+    {
+      "addr": "0x48a2f0",
+      "name": "hs_thread_new",
+      "confidence": 0.55,
+      "evidence": "Calls datum_new on the thread array, clears the scratch-list head/cursor fields, stores the target node index (in_EAX) and type (param_1), and initializes the deferred-time field to a 'not scheduled' sentinel (-2) for 'static'-typed scripts based on the scripts table's return-type field.",
+      "prototype": "",
+      "summary": "Allocates and initializes a new HS thread datum for evaluating a given syntax node."
+    },
+    {
+      "addr": "0x48a370",
+      "name": "hs_thread_evaluate_node",
+      "confidence": 0.45,
+      "evidence": "Drives the thread's current node through hs_evaluate_next_argument (FUN_0048a560) in a loop while its scratch-cursor list is non-empty and the game tick budget (DAT_006f1d6c+0xc) has not been exceeded, then on completion either yields the result to its parent's global slot or deletes the thread datum if it is a type-2 (immediate) thread.",
+      "prototype": "",
+      "summary": "Steps an HS thread's evaluation of its current syntax node, resuming later if the per-tick time budget runs out, and finalizes it on completion."
+    },
+    {
+      "addr": "0x48a560",
+      "name": "hs_evaluate_next_argument",
+      "confidence": 0.45,
+      "evidence": "Reads the syntax-node flags byte and either pushes a new scratch-list frame for the node's child (allocating and linking a new list entry) or, when a 'resolved constant/global' flag is set, calls hs_global_get_value_pointer (FUN_0048a720) and hs_coerce_global_value (FUN_0048ad10) to fetch a ready value directly.",
+      "prototype": "",
+      "summary": "Schedules the next child expression of a syntax node for evaluation, or short-circuits by fetching an already-resolved constant or global's value."
+    },
+    {
+      "addr": "0x48a640",
+      "name": "hs_coerce_evaluated_result",
+      "confidence": 0.45,
+      "evidence": "Compares the just-evaluated child's declared type against the parent's expected return type and, if they differ and neither is the wildcard type 3, calls a coercion function via the large per-type-pair dispatch table DAT_0068bc10 (or FUN_004f73c0 for the boolean-ish type range), then stores the result into the parent's argument slot.",
+      "prototype": "",
+      "summary": "Coerces an evaluated child expression's result to the type expected by its parent node using a per-type-pair conversion dispatch table."
+    },
+    {
+      "addr": "0x48a720",
+      "name": "hs_global_get_value_pointer",
+      "confidence": 0.5,
+      "evidence": "Splits the register-passed reference on its high bit to index either the low or high half of the HS globals datum array (DAT_0087a46c, stride 8) and returns the stored value pointer field at offset 4.",
+      "prototype": "",
+      "summary": "Returns the storage pointer for an HS global variable given its packed reference/index."
+    },
+    {
+      "addr": "0x48a770",
+      "name": "hs_thread_frame_advance",
+      "confidence": 0.35,
+      "evidence": "Dereferences the thread frame's scratch-list cursor pointer (offset 0x10) through itself, advancing to the next linked scratch chunk - the pop/advance half of the reference-list-node allocator used elsewhere in this file.",
+      "prototype": "",
+      "summary": "Advances an HS thread frame's scratch-list cursor to the next linked chunk."
+    },
+    {
+      "addr": "0x48a790",
+      "name": "hs_thread_restart",
+      "confidence": 0.45,
+      "evidence": "If the thread's scratch cursor is active it is reset to zero, restoring a saved resume value from offset 0xc when the 'has saved continuation' flag (bit 1 of the flags byte) is set; otherwise it checks the first child's resolved type against 0x14 (a 'script'/block node type) to decide whether to restart from the beginning via hs_thread_frame_advance.",
+      "prototype": "",
+      "summary": "Restarts or resumes an existing (dormant) HS thread, either continuing from its saved state or beginning evaluation over."
+    },
+    {
+      "addr": "0x48a850",
+      "name": "hs_evaluate_typed_arguments",
+      "confidence": 0.45,
+      "evidence": "Reserves a param_2-sized int array plus a count field on the thread frame; on init evaluates the reference-list head, and while the running count is below param_2 and the just-evaluated value's type matches the expected-type array (param_3), evaluates the next argument via hs_evaluate_next_argument, otherwise returns the fully-typed argument buffer.",
+      "prototype": "",
+      "summary": "Evaluates a fixed-arity, statically typed argument list one argument per call, validating each against an expected-type array before returning the completed buffer."
+    },
+    {
+      "addr": "0x48a960",
+      "name": "hs_thread_find_by_script_index",
+      "confidence": 0.45,
+      "evidence": "Iterates active HS threads (FUN_004d0630) comparing each thread frame's script-index field (offset 4) against the given short param_1, returning the matching thread handle.",
+      "prototype": "",
+      "summary": "Finds the currently active or dormant HS thread associated with a given script index."
+    },
+    {
+      "addr": "0x48a9f0",
+      "name": "hs_thread_find_by_script_name",
+      "confidence": 0.5,
+      "evidence": "Iterates active HS threads (FUN_004d0630), and for each with a valid script-index field, __stricmp-compares the inline name embedded in the scenario scripts table entry (DAT_00746f8c+0x4a0, stride 0x5c) against param_1, returning the matching thread handle.",
+      "prototype": "",
+      "summary": "Finds the currently active or dormant HS thread whose associated script matches the given name."
+    },
+    {
+      "addr": "0x48aaf0",
+      "name": "hs_string_is_single_char",
+      "confidence": 0.5,
+      "evidence": "Computes the string length via a scan-to-nul loop and returns true only when (length-1)==0, i.e. the string is exactly one character long.",
+      "prototype": "int __cdecl hs_string_is_single_char(const char *param_1)",
+      "summary": "Returns whether a C string consists of exactly one character."
+    },
+    {
+      "addr": "0x48ab80",
+      "name": "hs_object_orient",
+      "confidence": 0.5,
+      "evidence": "Nine-byte thunk that tail-calls FUN_006391b4 with no explicit arguments visible in the decompilation, implying register-passthrough; the pre-existing non-FUN_ name is plausible for an HS builtin but unverifiable from this fragment alone.",
+      "prototype": "",
+      "summary": "Thin forwarding wrapper to an object-orientation routine, consistent with an HS built-in function implementation."
+    },
+    {
+      "addr": "0x48ac10",
+      "name": "hs_reference_list_append_new",
+      "confidence": 0.3,
+      "evidence": "Guards on param_1 != -1, allocates a new 0xc-byte reference-list datum via datum_new (clearing its flags/next fields), and calls FUN_0048b2a0(param_1) to link it in.",
+      "prototype": "",
+      "summary": "Allocates and appends a new reference-list node for a given object index, if valid."
+    },
+    {
+      "addr": "0x48ac60",
+      "name": "hs_type_mask_is_subset",
+      "confidence": 0.5,
+      "evidence": "Looks up two type bitmasks in table DAT_00657538 indexed by in_AX and in_CX and returns true only when in_CX's mask fully contains in_AX's bits, implementing a polymorphic-type membership test.",
+      "prototype": "",
+      "summary": "Tests whether one HS type's bitmask is fully contained within another's, used for polymorphic type compatibility (e.g. 'object' encompassing 'unit'/'vehicle')."
+    },
+    {
+      "addr": "0x48ac90",
+      "name": "hs_types_are_compatible",
+      "confidence": 0.6,
+      "evidence": "Returns true immediately for an exact match or the wildcard type 3, otherwise consults the same per-type-pair dispatch presence table (DAT_0068bc10) used by hs_coerce_evaluated_result, with hs_type_mask_is_subset (FUN_0048ac60) handling the polymorphic type ranges; called by hs_parse_nonprimitive to produce its 'i expected a %s, but this function/script returns a %s.' compile errors.",
+      "prototype": "",
+      "summary": "Compile-time check for whether a value of one HS type can be used where another HS type is expected."
+    },
+    {
+      "addr": "0x48ad10",
+      "name": "hs_coerce_global_value",
+      "confidence": 0.4,
+      "evidence": "Mirrors hs_coerce_evaluated_result's per-type-pair dispatch (DAT_0068bc10) and boolean-range special case (FUN_004f73c0), but operates on a plain register-passed value/type pair rather than an evaluated node result; used from hs_evaluate_next_argument's short-circuit global-fetch path.",
+      "prototype": "",
+      "summary": "Coerces a raw HS global's value to a requested type using the shared per-type-pair conversion dispatch table."
+    },
+    {
+      "addr": "0x48ad60",
+      "name": "hs_evaluate_variadic_arguments",
+      "confidence": 0.5,
+      "evidence": "Reserves a 32-element (0x80 byte) undefined4 array plus a count field on the thread frame, appends one caller-supplied value per call, and once the reference-list is exhausted or 32 entries are reached, writes the count and array pointer out through param_3/param_4 and returns success; used by 13 call sites, far more than the fixed-arity typed variant.",
+      "prototype": "",
+      "summary": "Generic variadic argument collector used pervasively for evaluating HS script/function calls, accumulating up to 32 values before returning the completed list."
+    },
+    {
+      "addr": "0x48aec0",
+      "name": "hs_global_read_value",
+      "confidence": 0.5,
+      "evidence": "Switches on a per-global type code (5 through 0x2b) stored in a descriptor table (PTR_PTR_0068b398) to read the underlying live game variable through a typed pointer into the HS global's own storage at offset 4, matching the get half of a globals variable get/set dispatcher.",
+      "prototype": "",
+      "summary": "Copies the current value of a bound engine global variable into its corresponding HS global's storage, dispatched by type."
+    },
+    {
+      "addr": "0x48b030",
+      "name": "hs_global_write_value",
+      "confidence": 0.5,
+      "evidence": "Mirrors hs_global_read_value's type-code switch over the same descriptor table (PTR_PTR_0068b398) but writes the HS global's stored value back through the typed pointer into the underlying engine variable.",
+      "prototype": "",
+      "summary": "Writes an HS global's current value back into its bound underlying engine variable, dispatched by type."
+    }
+  ]
+}

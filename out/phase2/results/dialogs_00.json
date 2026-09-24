@@ -1,0 +1,28 @@
+{
+  "results": [
+    {
+      "addr": "0x57e1f0",
+      "name": "dialog_box_show_localized",
+      "confidence": 0.7,
+      "evidence": "Calls FindResourceExA with the current language id (DAT_0069ff20), then LoadResource/LockResource/DialogBoxIndirectParamA; on failure retries with language 0x409 (English US) if different, and finally falls back to a plain DialogBoxParamA(param_1) lookup by name/ID.",
+      "prototype": "",
+      "summary": "Shows a modal dialog box by resource name, trying the current UI language, then falling back to English, then to a default resource lookup."
+    },
+    {
+      "addr": "0x57e4c0",
+      "name": "dialog_static_hyperlink_install",
+      "confidence": 0.65,
+      "evidence": "Subclasses the parent window to 0x57e2a0 (via SetPropA \"Old_Proc\"/SetWindowLongA) if not already done, subclasses the control itself to FUN_0057e350 (0x57e350), adds SS_NOTIFY (0x100) to its style, saves/replaces its font with an underlined variant via CreateFontIndirectA, and marks the control with a \"Static\" prop.",
+      "prototype": "",
+      "summary": "Converts a static text control into a clickable, underlined hyperlink-style control by subclassing it and its parent and applying an underlined font."
+    },
+    {
+      "addr": "0x57e350",
+      "name": "dialog_static_hyperlink_subclass_proc",
+      "confidence": 0.6,
+      "evidence": "Retrieves the saved original window procedure via GetPropA(\"Old_Proc\") and forwards via CallWindowProcA (standard subclass pattern); on WM_DESTROY (2) it unsubclasses and restores the font/props saved by FUN_0057e4c0; on WM_SETCURSOR (0x20) it sets a hand-style cursor; on WM_MOUSEMOVE (0x200) it tracks mouse capture and calls InvalidateRect for hover-state redraw.",
+      "prototype": "LRESULT __stdcall dialog_static_hyperlink_subclass_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)",
+      "summary": "Window-subclass procedure implementing hover/hand-cursor tracking and cleanup for a hyperlink-style static control installed by FUN_0057e4c0."
+    }
+  ]
+}

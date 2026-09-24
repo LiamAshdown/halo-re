@@ -1,0 +1,1832 @@
+{
+ "slice": 3,
+ "assignments": [
+  {
+   "addr": "0x45bdb0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x45bdb0-0x45c130: 10x10 symmetric team bit-matrix at globals 0x6b0b84+0x94 = game_allegiance.c"
+  },
+  {
+   "addr": "0x45be00",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x45bdb0-0x45c130: 10x10 symmetric team bit-matrix at globals 0x6b0b84+0x94 = game_allegiance.c"
+  },
+  {
+   "addr": "0x45be50",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x45bdb0-0x45c130: 10x10 symmetric team bit-matrix at globals 0x6b0b84+0x94 = game_allegiance.c"
+  },
+  {
+   "addr": "0x45bf10",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x45bdb0-0x45c130: 10x10 symmetric team bit-matrix at globals 0x6b0b84+0x94 = game_allegiance.c"
+  },
+  {
+   "addr": "0x45bfc0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x45bdb0-0x45c130: 10x10 symmetric team bit-matrix at globals 0x6b0b84+0x94 = game_allegiance.c"
+  },
+  {
+   "addr": "0x45c090",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x45bdb0-0x45c130: 10x10 symmetric team bit-matrix at globals 0x6b0b84+0x94 = game_allegiance.c"
+  },
+  {
+   "addr": "0x45c0f0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x45bdb0-0x45c130: 10x10 symmetric team bit-matrix at globals 0x6b0b84+0x94 = game_allegiance.c"
+  },
+  {
+   "addr": "0x45c130",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x45bdb0-0x45c130: 10x10 symmetric team bit-matrix at globals 0x6b0b84+0x94 = game_allegiance.c"
+  },
+  {
+   "addr": "0x45c2c0",
+   "module": "game",
+   "confidence": 0.65,
+   "evidence": "run 0x45c2c0-0x45cc90: game_engine variant clamp (0x466730) + map-list/kill-feed helpers"
+  },
+  {
+   "addr": "0x45c330",
+   "module": "game",
+   "confidence": 0.65,
+   "evidence": "run 0x45c2c0-0x45cc90: game_engine variant clamp (0x466730) + map-list/kill-feed helpers"
+  },
+  {
+   "addr": "0x45c370",
+   "module": "game",
+   "confidence": 0.65,
+   "evidence": "run 0x45c2c0-0x45cc90: game_engine variant clamp (0x466730) + map-list/kill-feed helpers"
+  },
+  {
+   "addr": "0x45c440",
+   "module": "game",
+   "confidence": 0.65,
+   "evidence": "run 0x45c2c0-0x45cc90: game_engine variant clamp (0x466730) + map-list/kill-feed helpers"
+  },
+  {
+   "addr": "0x45c570",
+   "module": "game",
+   "confidence": 0.65,
+   "evidence": "run 0x45c2c0-0x45cc90: game_engine variant clamp (0x466730) + map-list/kill-feed helpers"
+  },
+  {
+   "addr": "0x45c6a0",
+   "module": "game",
+   "confidence": 0.65,
+   "evidence": "run 0x45c2c0-0x45cc90: game_engine variant clamp (0x466730) + map-list/kill-feed helpers"
+  },
+  {
+   "addr": "0x45c6f0",
+   "module": "game",
+   "confidence": 0.65,
+   "evidence": "run 0x45c2c0-0x45cc90: game_engine variant clamp (0x466730) + map-list/kill-feed helpers"
+  },
+  {
+   "addr": "0x45c750",
+   "module": "game",
+   "confidence": 0.65,
+   "evidence": "run 0x45c2c0-0x45cc90: game_engine variant clamp (0x466730) + map-list/kill-feed helpers"
+  },
+  {
+   "addr": "0x45c830",
+   "module": "game",
+   "confidence": 0.65,
+   "evidence": "run 0x45c2c0-0x45cc90: game_engine variant clamp (0x466730) + map-list/kill-feed helpers"
+  },
+  {
+   "addr": "0x45c9e0",
+   "module": "game",
+   "confidence": 0.65,
+   "evidence": "run 0x45c2c0-0x45cc90: game_engine variant clamp (0x466730) + map-list/kill-feed helpers"
+  },
+  {
+   "addr": "0x45cab0",
+   "module": "game",
+   "confidence": 0.65,
+   "evidence": "run 0x45c2c0-0x45cc90: game_engine variant clamp (0x466730) + map-list/kill-feed helpers"
+  },
+  {
+   "addr": "0x45cae0",
+   "module": "game",
+   "confidence": 0.65,
+   "evidence": "run 0x45c2c0-0x45cc90: game_engine variant clamp (0x466730) + map-list/kill-feed helpers"
+  },
+  {
+   "addr": "0x45cbc0",
+   "module": "game",
+   "confidence": 0.65,
+   "evidence": "run 0x45c2c0-0x45cc90: game_engine variant clamp (0x466730) + map-list/kill-feed helpers"
+  },
+  {
+   "addr": "0x45cbe0",
+   "module": "game",
+   "confidence": 0.65,
+   "evidence": "run 0x45c2c0-0x45cc90: game_engine variant clamp (0x466730) + map-list/kill-feed helpers"
+  },
+  {
+   "addr": "0x45cc30",
+   "module": "game",
+   "confidence": 0.65,
+   "evidence": "run 0x45c2c0-0x45cc90: game_engine variant clamp (0x466730) + map-list/kill-feed helpers"
+  },
+  {
+   "addr": "0x45cc90",
+   "module": "game",
+   "confidence": 0.65,
+   "evidence": "run 0x45c2c0-0x45cc90: game_engine variant clamp (0x466730) + map-list/kill-feed helpers"
+  },
+  {
+   "addr": "0x45ce90",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x45ce90-0x45d700: multiplayer scoreboard text, 'ui\\multiplayer_game_text' + tab-separated rows, cea-hint game"
+  },
+  {
+   "addr": "0x45cee0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x45ce90-0x45d700: multiplayer scoreboard text, 'ui\\multiplayer_game_text' + tab-separated rows, cea-hint game"
+  },
+  {
+   "addr": "0x45cf30",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x45ce90-0x45d700: multiplayer scoreboard text, 'ui\\multiplayer_game_text' + tab-separated rows, cea-hint game"
+  },
+  {
+   "addr": "0x45d440",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x45ce90-0x45d700: multiplayer scoreboard text, 'ui\\multiplayer_game_text' + tab-separated rows, cea-hint game"
+  },
+  {
+   "addr": "0x45d4a0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x45ce90-0x45d700: multiplayer scoreboard text, 'ui\\multiplayer_game_text' + tab-separated rows, cea-hint game"
+  },
+  {
+   "addr": "0x45d670",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x45ce90-0x45d700: multiplayer scoreboard text, 'ui\\multiplayer_game_text' + tab-separated rows, cea-hint game"
+  },
+  {
+   "addr": "0x45d700",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x45ce90-0x45d700: multiplayer scoreboard text, 'ui\\multiplayer_game_text' + tab-separated rows, cea-hint game"
+  },
+  {
+   "addr": "0x45e340",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x45e340-0x45f220: game_engine message/scoreboard chain into 0x465690, 'ui\\multiplayer_game_text'"
+  },
+  {
+   "addr": "0x45e520",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x45e340-0x45f220: game_engine message/scoreboard chain into 0x465690, 'ui\\multiplayer_game_text'"
+  },
+  {
+   "addr": "0x45e680",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x45e340-0x45f220: game_engine message/scoreboard chain into 0x465690, 'ui\\multiplayer_game_text'"
+  },
+  {
+   "addr": "0x45f220",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x45e340-0x45f220: game_engine message/scoreboard chain into 0x465690, 'ui\\multiplayer_game_text'"
+  },
+  {
+   "addr": "0x45f320",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x45f320-0x45fc20: game_engine HUD element drawing helpers shared by the multiplayer variants (caller 0x468260)"
+  },
+  {
+   "addr": "0x45f510",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x45f320-0x45fc20: game_engine HUD element drawing helpers shared by the multiplayer variants (caller 0x468260)"
+  },
+  {
+   "addr": "0x45f560",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x45f320-0x45fc20: game_engine HUD element drawing helpers shared by the multiplayer variants (caller 0x468260)"
+  },
+  {
+   "addr": "0x45f6e0",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x45f320-0x45fc20: game_engine HUD element drawing helpers shared by the multiplayer variants (caller 0x468260)"
+  },
+  {
+   "addr": "0x45f720",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x45f320-0x45fc20: game_engine HUD element drawing helpers shared by the multiplayer variants (caller 0x468260)"
+  },
+  {
+   "addr": "0x45f7c0",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x45f320-0x45fc20: game_engine HUD element drawing helpers shared by the multiplayer variants (caller 0x468260)"
+  },
+  {
+   "addr": "0x45f850",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x45f320-0x45fc20: game_engine HUD element drawing helpers shared by the multiplayer variants (caller 0x468260)"
+  },
+  {
+   "addr": "0x45f8f0",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x45f320-0x45fc20: game_engine HUD element drawing helpers shared by the multiplayer variants (caller 0x468260)"
+  },
+  {
+   "addr": "0x45f9f0",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x45f320-0x45fc20: game_engine HUD element drawing helpers shared by the multiplayer variants (caller 0x468260)"
+  },
+  {
+   "addr": "0x45fc50",
+   "module": "interface",
+   "confidence": 0.7,
+   "evidence": "seed: OpenSauce name hud_render_scoreboard_ingame (interface); sits at end of game_engine HUD run"
+  },
+  {
+   "addr": "0x45fc80",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x45fd20",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x45fd90",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x45fdf0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x45ff30",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x460200",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x460890",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x4608d0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x4609d0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x460a30",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x460ba0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x460c10",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x460d10",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x460db0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x460e40",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x460f30",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x460f70",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x461080",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x461180",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x4611b0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x4611f0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x4613c0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x461550",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x461610",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x461630",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x461a80",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x461ad0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x461c60",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x461d90",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x461e60",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x461f20",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x462000",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x4620c0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x462190",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x462230",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x462260",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x4622d0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x462a80",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x462a90",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x45fc80-0x462a90: game_engine core - 'Game Complete. Dedicated server is now idle.', 'classic_slayer' variant table, teleport; seed game_engine_rasterize_message @0x462a80"
+  },
+  {
+   "addr": "0x462bd0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x462bf0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x462c10",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x462c30",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x462df0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x4630b0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x463100",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x463150",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x463290",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x463300",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x4633a0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x4633f0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x463480",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x4635e0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x463620",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x463660",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x463730",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x4637c0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x463810",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x4638b0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x463920",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x463980",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x463b20",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x463b90",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x463c40",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x463d20",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x463e00",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x463ee0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x463fc0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x4640a0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x464180",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x464260",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x464340",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x464430",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x464510",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x464600",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x464700",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x464800",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x464900",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x4649d0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x464aa0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x464b70",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x464c40",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x464d30",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x464e20",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x464f10",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x465000",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x4650e0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x4651c0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x4652a0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x462bd0-0x4652a0: 25 near-identical built-in game-variant builders called from 0x4622d0 ('classic_slayer' etc, cea-hint game) + map-list alloc"
+  },
+  {
+   "addr": "0x465380",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x465380-0x465690: multiplayer scoreboard renderer, 'Ping'/tab rows/inet_ntoa, draw_16_bit_text"
+  },
+  {
+   "addr": "0x4653f0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x465380-0x465690: multiplayer scoreboard renderer, 'Ping'/tab rows/inet_ntoa, draw_16_bit_text"
+  },
+  {
+   "addr": "0x4655d0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x465380-0x465690: multiplayer scoreboard renderer, 'Ping'/tab rows/inet_ntoa, draw_16_bit_text"
+  },
+  {
+   "addr": "0x465690",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x465380-0x465690: multiplayer scoreboard renderer, 'Ping'/tab rows/inet_ntoa, draw_16_bit_text"
+  },
+  {
+   "addr": "0x466340",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x466390",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x466420",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x466530",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x4666c0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x466730",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x466890",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x466b60",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x466bc0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x466c20",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x466c60",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x466cb0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x466d00",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x466e60",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x466e80",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x466ee0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x467010",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x4670c0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x4670f0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x467180",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x4671d0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x467230",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x467270",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x467370",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x467450",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x467540",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x467650",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x467730",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x467830",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x467920",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x467a10",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x467af0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x467c00",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x467cf0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x467de0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x466340-0x467de0: game_engine globals/variant accessors (0x466730 clamps variant params), team/player bookkeeping"
+  },
+  {
+   "addr": "0x467e60",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x467e60-0x468460: game_engine shared HUD/marker helpers used by the variant vtables (dispatcher 0x468260)"
+  },
+  {
+   "addr": "0x467f70",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x467e60-0x468460: game_engine shared HUD/marker helpers used by the variant vtables (dispatcher 0x468260)"
+  },
+  {
+   "addr": "0x468010",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x467e60-0x468460: game_engine shared HUD/marker helpers used by the variant vtables (dispatcher 0x468260)"
+  },
+  {
+   "addr": "0x468150",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x467e60-0x468460: game_engine shared HUD/marker helpers used by the variant vtables (dispatcher 0x468260)"
+  },
+  {
+   "addr": "0x4681a0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x467e60-0x468460: game_engine shared HUD/marker helpers used by the variant vtables (dispatcher 0x468260)"
+  },
+  {
+   "addr": "0x468260",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x467e60-0x468460: game_engine shared HUD/marker helpers used by the variant vtables (dispatcher 0x468260)"
+  },
+  {
+   "addr": "0x4682c0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x467e60-0x468460: game_engine shared HUD/marker helpers used by the variant vtables (dispatcher 0x468260)"
+  },
+  {
+   "addr": "0x468320",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x467e60-0x468460: game_engine shared HUD/marker helpers used by the variant vtables (dispatcher 0x468260)"
+  },
+  {
+   "addr": "0x468360",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x467e60-0x468460: game_engine shared HUD/marker helpers used by the variant vtables (dispatcher 0x468260)"
+  },
+  {
+   "addr": "0x468430",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x467e60-0x468460: game_engine shared HUD/marker helpers used by the variant vtables (dispatcher 0x468260)"
+  },
+  {
+   "addr": "0x468460",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x467e60-0x468460: game_engine shared HUD/marker helpers used by the variant vtables (dispatcher 0x468260)"
+  },
+  {
+   "addr": "0x468840",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x4688b0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x468910",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x468990",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x4689e0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x468b50",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x468bf0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x469780",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x4697e0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46a130",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46a1b0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46a240",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46a670",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46aa60",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46ab00",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46acb0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46b250",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46b2f0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46b7f0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46bbd0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46bca0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46bd00",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46bd80",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46bde0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46be40",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46beb0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46bfe0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46c1a0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46c230",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46c320",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46c3e0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46c5d0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46ce10",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46d060",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46d520",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46d800",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46d890",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46db70",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46dde0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46df30",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46dfe0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46e080",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46e250",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46e310",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46ec10",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46efe0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46f1a0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46f450",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "run 0x468840-0x46f450: multiplayer variant implementations (ctf/oddball/king/race) - 'flag_blue','ball_blue','default', many callers=0 vtable entries, cea-hint game"
+  },
+  {
+   "addr": "0x46fe10",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x46fe10-0x470a80: game/player support routines feeding 0x4760b0/0x476250 player code"
+  },
+  {
+   "addr": "0x46fe70",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x46fe10-0x470a80: game/player support routines feeding 0x4760b0/0x476250 player code"
+  },
+  {
+   "addr": "0x46ff00",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x46fe10-0x470a80: game/player support routines feeding 0x4760b0/0x476250 player code"
+  },
+  {
+   "addr": "0x4704d0",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x46fe10-0x470a80: game/player support routines feeding 0x4760b0/0x476250 player code"
+  },
+  {
+   "addr": "0x4705f0",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x46fe10-0x470a80: game/player support routines feeding 0x4760b0/0x476250 player code"
+  },
+  {
+   "addr": "0x470630",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x46fe10-0x470a80: game/player support routines feeding 0x4760b0/0x476250 player code"
+  },
+  {
+   "addr": "0x470690",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x46fe10-0x470a80: game/player support routines feeding 0x4760b0/0x476250 player code"
+  },
+  {
+   "addr": "0x470720",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x46fe10-0x470a80: game/player support routines feeding 0x4760b0/0x476250 player code"
+  },
+  {
+   "addr": "0x470790",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x46fe10-0x470a80: game/player support routines feeding 0x4760b0/0x476250 player code"
+  },
+  {
+   "addr": "0x470810",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x46fe10-0x470a80: game/player support routines feeding 0x4760b0/0x476250 player code"
+  },
+  {
+   "addr": "0x470a10",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x46fe10-0x470a80: game/player support routines feeding 0x4760b0/0x476250 player code"
+  },
+  {
+   "addr": "0x470a80",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x46fe10-0x470a80: game/player support routines feeding 0x4760b0/0x476250 player code"
+  },
+  {
+   "addr": "0x470ae0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x470ae0-0x470e80: game_time globals 0x6f1d6c tick accumulation (0x470bf0 drives game_tick 0x45b780) + player_control look-angle init"
+  },
+  {
+   "addr": "0x470b30",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x470ae0-0x470e80: game_time globals 0x6f1d6c tick accumulation (0x470bf0 drives game_tick 0x45b780) + player_control look-angle init"
+  },
+  {
+   "addr": "0x470bf0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x470ae0-0x470e80: game_time globals 0x6f1d6c tick accumulation (0x470bf0 drives game_tick 0x45b780) + player_control look-angle init"
+  },
+  {
+   "addr": "0x470cd0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x470ae0-0x470e80: game_time globals 0x6f1d6c tick accumulation (0x470bf0 drives game_tick 0x45b780) + player_control look-angle init"
+  },
+  {
+   "addr": "0x470ce0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x470ae0-0x470e80: game_time globals 0x6f1d6c tick accumulation (0x470bf0 drives game_tick 0x45b780) + player_control look-angle init"
+  },
+  {
+   "addr": "0x470d10",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x470ae0-0x470e80: game_time globals 0x6f1d6c tick accumulation (0x470bf0 drives game_tick 0x45b780) + player_control look-angle init"
+  },
+  {
+   "addr": "0x470d40",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x470ae0-0x470e80: game_time globals 0x6f1d6c tick accumulation (0x470bf0 drives game_tick 0x45b780) + player_control look-angle init"
+  },
+  {
+   "addr": "0x470d80",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x470ae0-0x470e80: game_time globals 0x6f1d6c tick accumulation (0x470bf0 drives game_tick 0x45b780) + player_control look-angle init"
+  },
+  {
+   "addr": "0x470de0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x470ae0-0x470e80: game_time globals 0x6f1d6c tick accumulation (0x470bf0 drives game_tick 0x45b780) + player_control look-angle init"
+  },
+  {
+   "addr": "0x470e80",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x470ae0-0x470e80: game_time globals 0x6f1d6c tick accumulation (0x470bf0 drives game_tick 0x45b780) + player_control look-angle init"
+  },
+  {
+   "addr": "0x470fb0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x470fb0-0x472760: player_control globals 0x6b145c (64-byte per-player control state, button flags, look angles); sig__spectate_fp_camera_position_sig @0x472020"
+  },
+  {
+   "addr": "0x471070",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x470fb0-0x472760: player_control globals 0x6b145c (64-byte per-player control state, button flags, look angles); sig__spectate_fp_camera_position_sig @0x472020"
+  },
+  {
+   "addr": "0x4710b0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x470fb0-0x472760: player_control globals 0x6b145c (64-byte per-player control state, button flags, look angles); sig__spectate_fp_camera_position_sig @0x472020"
+  },
+  {
+   "addr": "0x471ae0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x470fb0-0x472760: player_control globals 0x6b145c (64-byte per-player control state, button flags, look angles); sig__spectate_fp_camera_position_sig @0x472020"
+  },
+  {
+   "addr": "0x471f40",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x470fb0-0x472760: player_control globals 0x6b145c (64-byte per-player control state, button flags, look angles); sig__spectate_fp_camera_position_sig @0x472020"
+  },
+  {
+   "addr": "0x471f90",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x470fb0-0x472760: player_control globals 0x6b145c (64-byte per-player control state, button flags, look angles); sig__spectate_fp_camera_position_sig @0x472020"
+  },
+  {
+   "addr": "0x472020",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x470fb0-0x472760: player_control globals 0x6b145c (64-byte per-player control state, button flags, look angles); sig__spectate_fp_camera_position_sig @0x472020"
+  },
+  {
+   "addr": "0x472100",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x470fb0-0x472760: player_control globals 0x6b145c (64-byte per-player control state, button flags, look angles); sig__spectate_fp_camera_position_sig @0x472020"
+  },
+  {
+   "addr": "0x472160",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x470fb0-0x472760: player_control globals 0x6b145c (64-byte per-player control state, button flags, look angles); sig__spectate_fp_camera_position_sig @0x472020"
+  },
+  {
+   "addr": "0x4726b0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x470fb0-0x472760: player_control globals 0x6b145c (64-byte per-player control state, button flags, look angles); sig__spectate_fp_camera_position_sig @0x472020"
+  },
+  {
+   "addr": "0x4726f0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x470fb0-0x472760: player_control globals 0x6b145c (64-byte per-player control state, button flags, look angles); sig__spectate_fp_camera_position_sig @0x472020"
+  },
+  {
+   "addr": "0x472740",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x470fb0-0x472760: player_control globals 0x6b145c (64-byte per-player control state, button flags, look angles); sig__spectate_fp_camera_position_sig @0x472020"
+  },
+  {
+   "addr": "0x472760",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x470fb0-0x472760: player_control globals 0x6b145c (64-byte per-player control state, button flags, look angles); sig__spectate_fp_camera_position_sig @0x472020"
+  },
+  {
+   "addr": "0x472aa0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x472aa0-0x473500: player action queues - 'update server queues'/'update client queues' ring buffer at 0x6f1d8c, cea-hint game"
+  },
+  {
+   "addr": "0x472b00",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x472aa0-0x473500: player action queues - 'update server queues'/'update client queues' ring buffer at 0x6f1d8c, cea-hint game"
+  },
+  {
+   "addr": "0x472b70",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x472aa0-0x473500: player action queues - 'update server queues'/'update client queues' ring buffer at 0x6f1d8c, cea-hint game"
+  },
+  {
+   "addr": "0x472c90",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x472aa0-0x473500: player action queues - 'update server queues'/'update client queues' ring buffer at 0x6f1d8c, cea-hint game"
+  },
+  {
+   "addr": "0x472cc0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x472aa0-0x473500: player action queues - 'update server queues'/'update client queues' ring buffer at 0x6f1d8c, cea-hint game"
+  },
+  {
+   "addr": "0x472ea0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x472aa0-0x473500: player action queues - 'update server queues'/'update client queues' ring buffer at 0x6f1d8c, cea-hint game"
+  },
+  {
+   "addr": "0x472f40",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x472aa0-0x473500: player action queues - 'update server queues'/'update client queues' ring buffer at 0x6f1d8c, cea-hint game"
+  },
+  {
+   "addr": "0x472fa0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x472aa0-0x473500: player action queues - 'update server queues'/'update client queues' ring buffer at 0x6f1d8c, cea-hint game"
+  },
+  {
+   "addr": "0x473090",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x472aa0-0x473500: player action queues - 'update server queues'/'update client queues' ring buffer at 0x6f1d8c, cea-hint game"
+  },
+  {
+   "addr": "0x4730d0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x472aa0-0x473500: player action queues - 'update server queues'/'update client queues' ring buffer at 0x6f1d8c, cea-hint game"
+  },
+  {
+   "addr": "0x473270",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x472aa0-0x473500: player action queues - 'update server queues'/'update client queues' ring buffer at 0x6f1d8c, cea-hint game"
+  },
+  {
+   "addr": "0x473310",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x472aa0-0x473500: player action queues - 'update server queues'/'update client queues' ring buffer at 0x6f1d8c, cea-hint game"
+  },
+  {
+   "addr": "0x473390",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x472aa0-0x473500: player action queues - 'update server queues'/'update client queues' ring buffer at 0x6f1d8c, cea-hint game"
+  },
+  {
+   "addr": "0x473430",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x472aa0-0x473500: player action queues - 'update server queues'/'update client queues' ring buffer at 0x6f1d8c, cea-hint game"
+  },
+  {
+   "addr": "0x4734b0",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x472aa0-0x473500: player action queues - 'update server queues'/'update client queues' ring buffer at 0x6f1d8c, cea-hint game"
+  },
+  {
+   "addr": "0x473500",
+   "module": "game",
+   "confidence": 0.6,
+   "evidence": "run 0x472aa0-0x473500: player action queues - 'update server queues'/'update client queues' ring buffer at 0x6f1d8c, cea-hint game"
+  },
+  {
+   "addr": "0x473560",
+   "module": "game",
+   "confidence": 0.65,
+   "evidence": "run 0x473560-0x473bb0: players.c - player new/delete/rename over the 0x200-byte player array at 0x87a480 ('players','teams')"
+  },
+  {
+   "addr": "0x4735b0",
+   "module": "game",
+   "confidence": 0.65,
+   "evidence": "run 0x473560-0x473bb0: players.c - player new/delete/rename over the 0x200-byte player array at 0x87a480 ('players','teams')"
+  },
+  {
+   "addr": "0x473670",
+   "module": "game",
+   "confidence": 0.65,
+   "evidence": "run 0x473560-0x473bb0: players.c - player new/delete/rename over the 0x200-byte player array at 0x87a480 ('players','teams')"
+  },
+  {
+   "addr": "0x4736d0",
+   "module": "game",
+   "confidence": 0.65,
+   "evidence": "run 0x473560-0x473bb0: players.c - player new/delete/rename over the 0x200-byte player array at 0x87a480 ('players','teams')"
+  },
+  {
+   "addr": "0x473730",
+   "module": "game",
+   "confidence": 0.65,
+   "evidence": "run 0x473560-0x473bb0: players.c - player new/delete/rename over the 0x200-byte player array at 0x87a480 ('players','teams')"
+  },
+  {
+   "addr": "0x473780",
+   "module": "game",
+   "confidence": 0.65,
+   "evidence": "run 0x473560-0x473bb0: players.c - player new/delete/rename over the 0x200-byte player array at 0x87a480 ('players','teams')"
+  },
+  {
+   "addr": "0x473940",
+   "module": "game",
+   "confidence": 0.65,
+   "evidence": "run 0x473560-0x473bb0: players.c - player new/delete/rename over the 0x200-byte player array at 0x87a480 ('players','teams')"
+  },
+  {
+   "addr": "0x473ae0",
+   "module": "game",
+   "confidence": 0.65,
+   "evidence": "run 0x473560-0x473bb0: players.c - player new/delete/rename over the 0x200-byte player array at 0x87a480 ('players','teams')"
+  },
+  {
+   "addr": "0x473bb0",
+   "module": "game",
+   "confidence": 0.65,
+   "evidence": "run 0x473560-0x473bb0: players.c - player new/delete/rename over the 0x200-byte player array at 0x87a480 ('players','teams')"
+  },
+  {
+   "addr": "0x473c50",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x473c50-0x474d50: per-player update/camera and structure-bsp switch driven from game_tick 0x45b780"
+  },
+  {
+   "addr": "0x473d70",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x473c50-0x474d50: per-player update/camera and structure-bsp switch driven from game_tick 0x45b780"
+  },
+  {
+   "addr": "0x473e90",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x473c50-0x474d50: per-player update/camera and structure-bsp switch driven from game_tick 0x45b780"
+  },
+  {
+   "addr": "0x4740a0",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x473c50-0x474d50: per-player update/camera and structure-bsp switch driven from game_tick 0x45b780"
+  },
+  {
+   "addr": "0x474590",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x473c50-0x474d50: per-player update/camera and structure-bsp switch driven from game_tick 0x45b780"
+  },
+  {
+   "addr": "0x4749a0",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x473c50-0x474d50: per-player update/camera and structure-bsp switch driven from game_tick 0x45b780"
+  },
+  {
+   "addr": "0x474d30",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x473c50-0x474d50: per-player update/camera and structure-bsp switch driven from game_tick 0x45b780"
+  },
+  {
+   "addr": "0x474d50",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x473c50-0x474d50: per-player update/camera and structure-bsp switch driven from game_tick 0x45b780"
+  }
+ ],
+ "boundaries": [
+  {
+   "addr": "0x45bdb0",
+   "note": "slice starts mid-file: 0x45bcf0 (slice 02) also calls 0x45c130, so the game_allegiance run begins before this slice"
+  },
+  {
+   "addr": "0x45fc50",
+   "note": "OpenSauce seed says interface (hud_render_scoreboard_ingame) but the surrounding run is game_engine HUD code; likely game_engine_render_scoreboard"
+  },
+  {
+   "addr": "0x468840",
+   "note": "start of the multiplayer game-variant implementations (ctf/oddball/king/race); dense block of callers=0 vtable entries through 0x46f450"
+  },
+  {
+   "addr": "0x470ae0",
+   "note": "transition from game_engine variants to game_time / player_control / players files"
+  },
+  {
+   "addr": "0x4749a0",
+   "note": "'tried to switch to ... structure-bsp' with cea-hint main(2); could be main or scenario rather than game"
+  },
+  {
+   "addr": "0x474d50",
+   "note": "slice ends mid-file; slice 04 continues at 0x474db0 with the same player/object helpers"
+  }
+ ],
+ "notes": "Slice 03 is almost entirely the game module: game_allegiance, game_engine plus the built-in variant table, the multiplayer scoreboard/HUD text, the four multiplayer variant implementations (a dense block of callers=0 vtable entries), then game_time, player_control (globals 0x6b145c), the player action queues and players.c (player array at 0x87a480). Only the OpenSauce-seeded 0x45fc50 is labelled interface, and even that is probably game_engine scoreboard code. Lowest confidence on 0x46a670/0x46b2f0 (3D drawing through 0x51x-0x52x rasterizer helpers) and 0x4749a0 (structure-bsp switch, cea-hint main)."
+}

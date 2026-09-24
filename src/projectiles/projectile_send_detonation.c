@@ -1,0 +1,96 @@
+// projectile_send_detonation  (Ghidra: FUN_004bda60; renamed per
+// out/phase4/projectiles_types_notes.md "Renames this pass establishes")
+// address 0x4bda60, size 214 bytes
+// name confidence: 0.75   rewrite confidence: 0.7
+// evidence: out/phase4/projectiles_types_notes.md: "builds {hash, object.position} and encodes
+//   message 0x30, then forces object.network_role = 3"; types/projectiles.h
+//   projectile_detonation_message (size 0x10, object_hash + position) and
+//   k_message_projectile_detonation = 0x30. The hash_table_get / message_delta_encode_message /
+//   network_session_broadcast_to_flagged sequence and the object_pooled_node_globals name follow the precedent in
+//   src/items/weapon_notify_ammo_pickup.c; the network_index_cache_remove(globals, object_index) signature
+//   follows src/objects/object_delete_by_pooled_node_id.c, and 0x006870d8 (this function's own
+//   "globals referenced" list) matches that call's globals argument exactly.
+// register convention: Ghidra recovered a single formal parameter despite the top-level
+//   signature reading "undefined FUN_004bda60(void)"; every sibling in this module that takes
+//   the projectile/object index alone (projectile_request_state, item_compute_rotation, ...)
+//   takes it in EAX, so this is treated the same way.
+// blam-cc: EAX -> projectile_index
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "objects.h"
+#include "projectiles.h"
+
+extern data_array *object_data; // 0x008603b0
+extern uint8_t *object_pooled_node_globals; // 0x00687130
+extern uint8_t object_network_message_scratch[0x7ff8]; // 0x00871de0
+extern void *object_pooled_node_globals_006870d8; // 0x006870d8, see
+    // src/objects/object_delete_by_pooled_node_id.c
+
+extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, memory module
+extern int message_delta_encode_message(int flag, int message_type, int changed_offset,
+    void **items, int type_offset, int count, char force_changed); // 0x4ec940
+extern void network_session_broadcast_to_flagged(uint32_t a1, void *a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6); // 0x4e1a80, opaque, out of range
+extern void network_index_cache_remove(void *globals, uint32_t object_index); // 0x4e9d40, opaque, out of range
+
+// Broadcasts a projectile-detonation network event (thrown-grenade projectiles only; see
+// projectile_update's thrown_grenade check) with the projectile's own hash and its current
+// position, forces the object into network_role 3 (the "waiting to be deleted by the network"
+// role the receiver 0x4bdb40 also uses), and, unless the object is already pending delete,
+// notifies the pooled-node globals of the role change.
+void projectile_send_detonation(datum_index projectile_index)
+{
+    object *obj = ((object_header *)object_data->data)[projectile_index & 0xffff].data;
+    projectile_detonation_message message;
+    void *items[1];
+
+    message.object_hash = 0;
+    if (projectile_index != (datum_index)0xffffffff) {
+        message.object_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0x0c), projectile_index);
+    }
+    message.position = obj->position;
+
+    items[0] = &message;
+    message_delta_encode_message(0, k_message_projectile_detonation, 0, items, 0, 1, 0);
+    network_session_broadcast_to_flagged(1, object_network_message_scratch, 1, 0, 0, 3);
+
+    obj->network_role = 3;
+    if ((((object_header *)object_data->data)[projectile_index & 0xffff].flags & _object_header_delete_pending_bit) == 0) {
+        network_index_cache_remove(object_pooled_node_globals_006870d8, projectile_index);
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x4bda60):
+
+void FUN_004bda60(undefined4 *param_1)
+
+{
+  int iVar1;
+  int iVar2;
+  undefined4 local_10;
+  undefined4 local_c;
+  undefined4 local_8;
+  undefined4 local_4;
+
+  iVar2 = ((uint)param_1 & 0xffff) * 0xc;
+  iVar1 = *(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 + iVar2);
+  local_10 = 0;
+  if (param_1 != (void *)0xffffffff) {
+    local_10 = hash_table_get();
+  }
+  local_c = *(undefined4 *)(iVar1 + 0x5c);
+  local_8 = *(undefined4 *)(iVar1 + 0x60);
+  local_4 = *(undefined4 *)(iVar1 + 100);
+  param_1 = &local_10;
+  message_delta_encode_message(0,0x30,0,&param_1,0,1,'\0');
+  FUN_004e1a80(1,&DAT_00871de0,1,0,0,3);
+  iVar1 = DAT_008603b0;
+  *(undefined4 *)(*(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 + iVar2) + 4) = 3;
+  if ((*(byte *)(*(int *)(iVar1 + 0x34) + 2 + iVar2) & 8) == 0) {
+    FUN_004e9d40();
+  }
+  return;
+}
+#endif

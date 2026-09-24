@@ -1,0 +1,1892 @@
+// Blam ai module (halo.exe 1.0.10 retail, 0x401090..0x43ecf0, 519 functions).
+// The actor layer: one actor record per AI-controlled unit, the runtime encounter /
+// squad / platoon bookkeeping built from the scenario encounter blocks, the prop records
+// that hold an actor perception of one object, the swarm aggregation, the A*-style
+// navigation-mesh search and the separate obstacle-graph point search, and the AI
+// conversation and communication state.
+//
+// Offsets in comments are byte offsets from the struct base. Where the binary carries the
+// layout it is preferred over the decompiler and said so:
+//   - The five data arrays are created by name and capacity, which fixes their element
+//     strides through the (index & 0xffff) * stride arithmetic every accessor uses:
+//       actors_initialize @0x426710      "actor" 0x100            stride 0x724
+//                                        "swarm" 0x20             stride 0x98
+//                                        "swarm component" 0x100  stride 0x40
+//       ai_initialize_for_new_map        "prop" 0x300             stride 0x138
+//         @0x42a7c0                      (the name is the literal at 0x0065f008)
+//       encounters_initialize @0x435c00  "encounter" 0x80         stride 0x6c
+//                                        "ai pursuit" 0x100       stride 0x28
+//       ai_communication_initialize      "ai conversation" 8      stride 0x64
+//         @0x42cf20                      (the data_array header is built inline)
+//   - The two flat tables encounters_initialize reserves out of the game state fix the two
+//     sub-record strides: 0x8000 bytes at 0x008802cc over 1024 encounter_squad_state
+//     records (0x20 each) and 0x1000 bytes at 0x008802c4 over 256 encounter_platoon_state
+//     records (0x10 each). encounter_new @0x437060 hands out consecutive runs of both, one
+//     run per ScenarioEncounter, sized by ScenarioEncounter.squads.count and
+//     ScenarioEncounter.platoons.count.
+//   - ai_initialize_for_new_map allocates 0x8dc bytes for ai_globals and crc32s that size,
+//     so 0x8dc is the structure size and not a guess.
+//   - path_find_context_init @0x43a700 zeroes 0x4023 dwords, which is the 0x1008c size of
+//     path_find_context; the three arrays inside it are pinned by the literal offsets
+//     0x84, 0xd084 and 0xe08a that the node, heap and hash accessors use, and those
+//     offsets divide exactly into 1024 nodes of 0x34 and 1025 heap slots of 4.
+//   - actor_new @0x426760 is the actor constructor and is the primary evidence for the
+//     actor layout; actor_set_mode @0x40d8d0, actor_snapshot_orientation @0x4294d0 and
+//     the movement action setters pin the rest.
+//   - The actor tag itself supplies three actor fields: Actor+0x14 type -> actor.type,
+//     Actor.flags bit 26 "swarm" -> actor.swarm, bit 21 "flying" -> actor.flying, and
+//     Actor+0x90 glass_ignorance_chance is rolled once into actor.ignores_glass.
+//
+// This header uses types declared in types/math.h and types/memory.h, so those two must
+// be parsed before it.
+//
+// Types this module operates on that already have a definition, and are therefore NOT
+// redefined here:
+//   types/memory.h   datum_index, data_array, data_iterator
+//   types/math.h     real_point2d, real_point3d, real_vector2d, real_vector3d,
+//                    real_matrix4x3
+//   types/objects.h  object (0x1f4), object_header, object_type_definition
+//   types/units.h    unit_data (the 0x1f4 extension; unit+0x1f4 is the controlling actor
+//                    handle, unit+0x1f8 / +0x1fc / +0x200 the actor cluster links)
+//   types/cache.h    tag_instance (0x0087bc14, tag data at +0x14)
+//   types/tags.h     Actor (the actor tag), ActorVariant, ActorType, Scenario
+//                    (encounters at 0x42c, command_lists at 0x438, ai_conversations at
+//                    0x468), ScenarioEncounter (0xb0; squads 0x80, platoons 0x8c,
+//                    firing_positions 0x98), ScenarioSquad (0xe8), ScenarioPlatoon (0xac),
+//                    ScenarioFiringPosition (0x18), ScenarioAIConversation (0x74),
+//                    ScenarioAIConversationParticipant (0x54), ScenarioCommandList (0x60)
+//
+// Functions in this address range that do NOT belong to the actor system, and whose types
+// are therefore not defined here, are listed in out/phase4/ai_types_notes.md.
+
+#pragma pack(push, 1)
+typedef unsigned char uint8_t; typedef signed char int8_t; typedef unsigned short uint16_t; typedef short int16_t;
+typedef unsigned int uint32_t; typedef int int32_t;
+
+// ---------------------------------------------------------------------------
+// constants
+// ---------------------------------------------------------------------------
+typedef enum ai_constants {
+    k_actor_data_maximum_count = 0x100,        // actors_initialize
+    k_actor_size = 0x724,
+    k_swarm_data_maximum_count = 0x20,
+    k_swarm_size = 0x98,
+    k_swarm_maximum_components = 16,           // (0x98 - 0x58) / 4, and (0x58 - 0x18) / 4
+    k_swarm_component_data_maximum_count = 0x100,
+    k_swarm_component_size = 0x40,
+    k_prop_data_maximum_count = 0x300,         // ai_initialize_for_new_map
+    k_prop_size = 0x138,
+    k_encounter_data_maximum_count = 0x80,     // encounters_initialize
+    k_encounter_size = 0x6c,
+    k_encounter_squad_state_size = 0x20,
+    k_encounter_squad_state_count = 0x400,     // 0x8000 bytes at 0x008802cc
+    k_encounter_platoon_state_size = 0x10,
+    k_encounter_platoon_state_count = 0x100,   // 0x1000 bytes at 0x008802c4
+    k_ai_pursuit_data_maximum_count = 0x100,
+    k_ai_pursuit_size = 0x28,
+    k_ai_pursuit_object_count = 6,             // 0x436b10 wraps the cursor modulo 6
+    k_ai_conversation_data_maximum_count = 8,  // the inline data_array header
+    k_ai_conversation_size = 0x64,
+    k_ai_globals_size = 0x8dc,                 // the game-state allocation size
+    k_ai_conversation_event_count = 16,        // squad_despawn masks the cursor with 0xf
+    k_actor_mode_count = 16,                   // the 0x38-stride table at 0x00655254
+    k_actor_mode_definition_size = 0x38,
+    k_actor_recognition_count = 4,             // 0x4141a0 wraps the cursor modulo 4
+    k_actor_mode_data_size = 0x84,             // the stack block 0x40e260 hands to actor_set_mode
+    k_path_find_maximum_nodes = 0x400,         // (0xd084 - 0x84) / 0x34
+    k_path_find_maximum_heap = 0x400,          // path_find_heap_push bound
+    k_path_find_hash_buckets = 0x200,          // (vertex_id & 0x1ff)
+    k_path_find_hash_bucket_size = 8,          // the bucket is probed 8 entries wide
+    k_path_find_maximum_waypoints = 0x40,      // 0x43a4d0 drops nodes at or past this
+    k_ai_search_maximum_nodes = 0x80,          // 0x43b5a0 bound
+    k_ai_search_maximum_obstacles = 0x80,      // 0x43c4b0 bound
+    k_actor_movement_maximum_obstacles = 0x400 // actor_movement_collect_obstacle_candidates
+} ai_constants;
+
+// The mode index in actor.mode selects a row of the 0x38-stride definition table at
+// 0x00655254. The mode numbers below are the ones the decompiled module tests directly;
+// nothing in the module carries mode names, so the rest are left out rather than guessed.
+typedef enum actor_mode {
+    _actor_mode_none = 0,                 // actor_run_mode_transition_loop forces this
+                                          //   when the machine will not settle in 10 passes
+    _actor_mode_death = 4,                // 0x40dd50 transitions here once on death
+    _actor_mode_vocalize = 9,             // 0x40e260 plays a line through this mode
+    _actor_mode_vehicle = 10,             // 0x429430 counts boredom faster in this mode
+    _actor_mode_flee = 11,                // 0x434d90 / 0x434df0 switch members to it
+    _actor_mode_conversation = 12         // squad_despawn only clears actor+0x9c in it
+} actor_mode;
+
+// actor_order_code_is_grenade_throw @0x404340 is the only place the module states an
+// order-code range outright.
+typedef enum actor_order_code {
+    _actor_order_code_grenade_first = 9,   // codes 9..12 inclusive are grenade throws
+    _actor_order_code_grenade_last = 12
+} actor_order_code;
+
+typedef enum actor_flags {
+    _actor_flag_unknown_bit1 = 0x00000002,   // 0x42a5b0 sets it and nothing else reads it here
+    _actor_flag_unknown_bit10 = 0x00000400,  // 0x4347b0 sets or clears it for a whole squad
+    _actor_flag_override_target = 0x00000800 // 0x42a5e0 pairs it with actor.override_target
+} actor_flags;
+
+// ---------------------------------------------------------------------------
+// the mode and per-actor-type dispatch tables (read-only, in .data)
+// ---------------------------------------------------------------------------
+// The procedure fields are plain addresses rather than function pointers so the CParser
+// does not have to resolve a signature it cannot see.
+typedef struct actor_mode_definition {
+    uint32_t data_size;               // 0x00 how many bytes actor_set_mode copies into actor.mode_data
+    int16_t combat_grade;             // 0x04 nonzero raises actor.awareness_level to 3, zero clamps it to 2
+    uint8_t unknown_06[2];            // 0x06
+    uint32_t enter_proc;              // 0x08 actor_set_mode calls it after switching in
+    uint8_t unknown_0c[8];            // 0x0c
+    uint32_t update_proc;             // 0x14 actor_invoke_type_handler calls it
+    uint32_t exit_proc;               // 0x18 actor_set_mode calls the outgoing mode proc first
+    uint8_t unknown_1c[28];           // 0x1c
+} actor_mode_definition; // size 0x38
+// global 0x00655254: actor_mode_definition actor_mode_definitions[16]
+//   actor_set_mode reads the exit proc at +0x18 of the outgoing row and the enter proc at
+//   +0x08 of the incoming row; actor_invoke_type_handler reads +0x14; 0x40e760 returns the
+//   int16 at +0x04. The row count is not stated in the module, so 16 is the largest mode
+//   index the code tests (0xc) rounded to the next power of two. UNRESOLVED.
+// global 0x006853b8: void *actor_type_procs[16]
+//   one vtable pointer per ActorType (actor.type indexes it). actor_dispatch_type_vtable
+//   @0x426670 / 0x4266a0 / 0x4266d0 call slots +0x10, +0x18 and +0x1c, and 0x435420 reads
+//   the byte at +0x0d and compares it against actor.swarm. ActorType has 16 values.
+
+// ---------------------------------------------------------------------------
+// actor
+// ---------------------------------------------------------------------------
+// The order record the builders at 0x401090..0x4049d0 fill in and actor_process_order_request
+// consumes. 0x401090 zeroes 0x17 dwords, which fixes the size at 0x5c.
+typedef struct actor_order {
+    int16_t order_code;               // 0x00 the requested order; forced to 0 when actor.swarm is set
+    int16_t unknown_02;               // 0x02 zeroed
+    uint8_t valid;                    // 0x04 set to 1 by every builder that succeeds
+    uint8_t unknown_05;               // 0x05
+    int16_t target_index;             // 0x06 0xffff sentinel in the default order
+    int16_t parameter;                // 0x08 the caller-supplied word
+    uint8_t unknown_0a;               // 0x0a zeroed
+    uint8_t unknown_0b[81];           // 0x0b
+} actor_order;          // size 0x5c
+
+// The queued / active movement action pair inside the actor. The setters at 0x417610,
+// 0x417750, 0x417830 and 0x417910 write the queued copy at actor+0x400 and then copy all
+// six dwords to the active copy at actor+0x46c, which is what fixes the 0x18-byte layout.
+typedef struct actor_movement_action {
+    int16_t type;                     // 0x00 0 stop, 2 explicit point, and the firing-position / formation / near-target kinds
+    uint8_t cancelled;                // 0x02 actor_movement_action_cancel sets it
+    uint8_t unknown_03;               // 0x03
+    real_point3d destination;         // 0x04
+    int32_t parameter;                // 0x10 object index, firing-position index or formation slot depending on type
+    uint32_t extra;                   // 0x14
+} actor_movement_action; // size 0x18
+
+// The perception tally at actor+0x1ec. actor_choose_best_target @0x4203a0 is the only
+// writer: it zeroes 0x1e dwords plus a word plus a byte starting at actor+0x1ec -- exactly
+// 0x7b bytes -- and then, for every prop on the prop list of the actor whose kind is 2 or 3
+// and which is not a vault, bumps the counters below. The three 16-wide runs are indexed by the
+// ActorType of the tracked unit, or 6 when the object has a parent (object+0x218), or 14
+// (actortype_none) when the object is not driven by an actor at all.
+typedef struct actor_target_tally {
+    uint8_t unit_props;                    // 0x00 (actor+0x1ec) bumped for every prop with prop.is_unit set
+    uint8_t unit_props_unseen;             // 0x01 ... whose prop.unknown_9c is zero
+    uint8_t by_threat_class[10];           // 0x02 histogram, index 0..8, of the threat class the scan derives
+                                           //   from prop.unknown_122 / unknown_12f / unknown_74 / distance
+    uint8_t threat_class_ge_1;             // 0x0c (0x1f8) bumped whenever the prop is not a low-priority kind
+    uint8_t threat_class_2;                // 0x0d (0x1f9)
+    uint8_t threat_class_3;                // 0x0e (0x1fa)
+    uint8_t threat_class_4;                // 0x0f (0x1fb)
+    uint8_t threat_class_5;                // 0x10 (0x1fc)
+    uint8_t threat_class_6;                // 0x11 (0x1fd)
+    uint8_t threat_class_7;                // 0x12 (0x1fe)
+    uint8_t threat_class_8;                // 0x13 (0x1ff)
+    uint8_t group_a_total;                 // 0x14 (0x200) prop within 8 world units, or further away but
+                                           //   fighting the same object this actor is fighting
+    uint8_t group_a_marked;                // 0x15 (0x201) ... and prop.unknown_12d set
+    uint8_t group_a_marked_135;            // 0x16 (0x202) ... and prop.unknown_135 set as well
+    uint8_t group_a_by_actor_type[16];     // 0x17 (0x203)
+    uint8_t group_a_marked_by_actor_type[16];// 0x27 (0x213)
+    uint8_t group_b_total;                 // 0x37 (0x223) prop.unknown_38 is 0 or 1
+    uint8_t group_b_marked;                // 0x38 (0x224)
+    uint8_t group_b_by_actor_type[16];     // 0x39 (0x225)
+    uint8_t group_b_marked_by_actor_type[16];// 0x49 (0x235)
+    uint8_t group_c_total;                 // 0x59 (0x245) group b and closer than 3 world units
+    uint8_t group_c_marked;                // 0x5a (0x246)
+    uint8_t group_c_by_actor_type[16];     // 0x5b (0x247)
+    uint8_t group_c_marked_by_actor_type[16];// 0x6b (0x257)
+} actor_target_tally;   // size 0x7b
+
+typedef struct actor_recognition_entry {
+    uint8_t type;                     // 0x00 the DL byte 0x4141a0 was handed
+    uint8_t unknown_01;               // 0x01
+    int16_t firing_position_index;    // 0x02 index into the encounter ScenarioFiringPosition block
+} actor_recognition_entry; // size 0x4
+
+typedef struct actor {
+    int16_t identifier;               // 0x00 datum_header
+    uint8_t unknown_02[2];            // 0x02
+    int16_t type;                     // 0x04 ActorType, copied from the actor tag type at Actor+0x14 by actor_new; indexes actor_type_procs
+    uint8_t swarm;                    // 0x06 Actor.flags bit 26 "swarm"; the order builders refuse to act while it is set
+    uint8_t unknown_07;               // 0x07 actor_new sets 1
+    uint8_t active;                   // 0x08 actor_set_units_active and squad_activate gate on this
+    uint8_t unknown_09;               // 0x09 actor_new sets 0
+    uint8_t unknown_0a;               // 0x0a
+    uint8_t swarm_pending;            // 0x0b encounter_activate sets it when a swarm actor could not get a swarm
+    datum_index unknown_0c;           // 0x0c actor_new sets none
+    uint8_t unknown_10[2];            // 0x10
+    uint8_t unknown_12;               // 0x12 actor_new sets 1
+    uint8_t keep_unit_alive;          // 0x13 actor_attach_to_unit marks the unit pending-delete when this is clear
+    uint8_t unknown_14[4];            // 0x14
+    datum_index unit_index;           // 0x18 the one unit object this actor controls; the unit points back at 0x1f4
+    uint8_t counts_toward_encounter;  // 0x1c actor_unlink_unit decrements encounter+0x1c only when set
+    uint8_t unknown_1d;               // 0x1d
+    int16_t cluster_count;            // 0x1e actor_link_to_unit_cluster increments, actor_remove_from_unit_cluster decrements
+    int16_t unknown_20;               // 0x20 moved in step with cluster_count
+    uint8_t unknown_22[2];            // 0x22
+    datum_index cluster_unit_index;   // 0x24 head of the unit cluster list, chained through object+0x1fc
+    datum_index swarm_index;          // 0x28 actor_create_swarm / actor_delete_swarm
+    datum_index next_in_encounter;    // 0x2c next actor in the encounter member list, or in the unassigned list
+    datum_index unknown_30;           // 0x30 actor_new sets none
+    datum_index encounter_index;      // 0x34 owning encounter datum, none while unassigned
+    int16_t unknown_38;               // 0x38 actor_new sets 0xffff
+    int16_t squad_index;              // 0x3a index of this actor encounter_squad_state, relative to encounter.first_squad
+    int16_t platoon_index;            // 0x3c index of this actor encounter_platoon_state, or -1
+    int16_t team;                     // 0x3e kept in sync with object+0xb8 and encounter.team
+    uint8_t unknown_40[10];           // 0x40
+    int16_t idle_counter;             // 0x4a 0x429430 advances it and trips the global update stagger past 15
+    uint8_t needs_new_path;           // 0x4c 0x4017b0 issues a fresh path request while set; 0x429430 also writes it
+    uint8_t unknown_4d[3];            // 0x4d
+    datum_index first_prop;           // 0x50 head of the prop list, chained through prop.next_in_actor at +0x08
+    datum_index unknown_54;           // 0x54 actor_new sets none
+    datum_index actor_definition_tag; // 0x58 the actor tag index; actor_get_actor_definition can override it per unit
+    datum_index actor_variant_tag;    // 0x5c the actor_variant tag index actor_new was called with
+    int16_t unknown_60;               // 0x60 0x435420 sets 2
+    int16_t unknown_62;               // 0x62 0x435420 sets 2
+    int32_t unknown_64;               // 0x64 actor_new sets -1
+    uint8_t unknown_68;               // 0x68 0x435420 zeroes it
+    uint8_t unknown_69;               // 0x69
+    int16_t awareness_level;          // 0x6a 0..3; actor_set_mode clamps it to 2 or 3 by mode, actor_update_awareness_level drives it
+    int16_t mode;                     // 0x6c actor_set_mode writes it; indexes actor_mode_definitions
+    int16_t unknown_6e;               // 0x6e burst / vitality grade, compared against 4 in several gates
+    uint8_t mode_changed;             // 0x70 actor_set_mode sets 1
+    uint8_t unknown_71;               // 0x71
+    int16_t unknown_72;               // 0x72 per-burst counter compared against unknown_6e by 0x428180
+    int16_t unknown_74;               // 0x74
+    int16_t unknown_76;               // 0x76
+    int32_t unknown_78;               // 0x78
+    int32_t unknown_7c;               // 0x7c
+    int32_t unknown_80;               // 0x80
+    int32_t unknown_84;               // 0x84
+    int32_t unknown_88;               // 0x88 actor_new sets -1
+    uint8_t unknown_8c;               // 0x8c
+    uint8_t unknown_8d;               // 0x8d
+    uint8_t unknown_8e;               // 0x8e actor_new sets 0
+    uint8_t unknown_8f;               // 0x8f
+    int16_t unknown_90;               // 0x90 actor_new sets 0xffff
+    int16_t unknown_92;               // 0x92 0x435420 sets 2
+    int32_t unknown_94;               // 0x94 actor_new sets -1
+    uint8_t unknown_98;               // 0x98 actor_new sets 0
+    uint8_t flying;                   // 0x99 Actor.flags bit 21 "flying"; read by every steering and step-test routine
+    uint8_t unknown_9a[2];            // 0x9a
+    uint8_t mode_data[0x84];          // 0x9c actor_set_mode memcpys actor_mode_definition.data_size bytes here.
+                                      //   0x84 and not 0xbc: actor_play_first_valid_vocalization
+                                      //   @0x40e260 reserves exactly 132 bytes of stack for the block it
+                                      //   hands to actor_set_mode, and the two points below are refreshed
+                                      //   every tick by the aiming code, so they cannot be inside the union.
+    real_point3d aim_origin;          // 0x120 the firing / eye origin; 0x40e7b0 traces from it and 0x40fcb0
+                                      //   measures the aim target against it
+    real_point3d body_position;       // 0x12c the position every range and scoring routine uses; read by
+                                      //   0x4112b0, 0x411bf0, 0x412ba0, 0x4180c0 and the avoidance sampler
+    uint8_t unknown_138[0x20];        // 0x138
+    datum_index active_unit_index;    // 0x158 preferred unit object for movement; 0x4193d0 falls back to unit_index
+    uint8_t unknown_15c;              // 0x15c
+    uint8_t unknown_15d;              // 0x15d
+    int16_t unknown_15e;              // 0x15e read by the turn-bound and stop-turning helpers
+    uint8_t order_committed;          // 0x160 the order builders set it once the actor commits to the order they built
+    uint8_t unknown_161;              // 0x161
+    uint8_t unknown_162[2];           // 0x162
+    int32_t unknown_164;              // 0x164
+    int32_t unknown_168;              // 0x168
+    int32_t unknown_16c;              // 0x16c
+    int32_t unknown_170;              // 0x170
+    real_vector3d facing;             // 0x174 the actor unit forward vector, NOT a position: all 35 arithmetic
+                                      //   uses across the module dot it against a normalized delta and compare
+                                      //   the result against a cosine (0.4, 0.5, 0.8660254, 0.984). The real
+                                      //   position is body_position at 0x12c. Together with the two vectors
+                                      //   below it forms the 3x3 basis actor_snapshot_orientation @0x4294d0
+                                      //   copies to 0x6fc / 0x708 / 0x714, which is what that name describes.
+    real_vector3d facing_unknown_180; // 0x180 snapshotted to 0x708
+    real_vector3d facing_unknown_18c; // 0x18c snapshotted to 0x714
+    uint8_t unknown_198[4];           // 0x198
+    int32_t unknown_19c;              // 0x19c
+    uint8_t unknown_1a0[8];           // 0x1a0
+    int32_t unknown_1a8;              // 0x1a8
+    uint8_t unknown_1ac[4];           // 0x1ac
+    int32_t unknown_1b0;              // 0x1b0
+    uint8_t unknown_1b4[4];           // 0x1b4
+    float unknown_1b8;                // 0x1b8
+    uint8_t unknown_1bc[4];           // 0x1bc
+    float unknown_1c0;                // 0x1c0
+    uint8_t unknown_1c4[4];           // 0x1c4
+    uint8_t unknown_1c8;              // 0x1c8
+    uint8_t unknown_1c9;              // 0x1c9 encounter_add_actor copies the platoon state byte here and to unknown_374
+    uint8_t unknown_1ca;              // 0x1ca
+    uint8_t unknown_1cb;              // 0x1cb 0x434d40 sets it on every member of a squad
+    uint8_t unknown_1cc;              // 0x1cc actor_new sets 0
+    uint8_t unknown_1cd[3];           // 0x1cd
+    datum_index unknown_1d0;          // 0x1d0 actor_new sets none
+    int16_t unknown_1d4;              // 0x1d4 actor_new sets 0
+    uint8_t unknown_1d6[6];           // 0x1d6
+    datum_index conversation_index;   // 0x1dc ai_conversation_stop clears this and conversation_participant
+    datum_index conversation_participant;// 0x1e0
+    int16_t unknown_1e4;              // 0x1e4
+    uint8_t unknown_1e6[2];           // 0x1e6
+    datum_index unknown_1e8;          // 0x1e8
+    actor_target_tally tally;         // 0x1ec the 0x7b-byte perception tally actor_choose_best_target
+                                      //   zeroes (0x1e dwords, then a word, then a byte) and refills
+                                      //   every time it walks the prop list. The three per-actor-type
+                                      //   runs inside it are what fixes the 0x1ec base: the last one
+                                      //   ends at 0x266, one byte short of target_combat_status.
+    uint8_t unknown_267;              // 0x267 the byte the zeroing run does not reach
+    int16_t target_combat_status;     // 0x268 actor_update_target_combat_status writes it, actor_update_awareness_level reads it
+    uint8_t unknown_26a[2];           // 0x26a
+    datum_index unknown_26c;          // 0x26c actor_new sets none
+    datum_index target_unit_index;    // 0x270 the unit the actor is fighting; actor_choose_best_target writes it
+    uint8_t unknown_274[4];           // 0x274
+    int32_t unknown_278;              // 0x278 actor_new sets -1
+    uint8_t unknown_27c;              // 0x27c
+    uint8_t unknown_27d[3];           // 0x27d
+    int16_t danger_type;              // 0x280 0x41ea60 and 0x41ec90 only register a danger that outranks this
+    int16_t danger_unknown_282;       // 0x282
+    int16_t danger_unknown_284;       // 0x284
+    uint8_t danger_unknown_286;       // 0x286
+    uint8_t unknown_287[3];           // 0x287
+    uint8_t unknown_28a;              // 0x28a
+    uint8_t unknown_28b;              // 0x28b
+    datum_index danger_object_index;  // 0x28c
+    uint32_t danger_unknown_290;      // 0x290
+    float danger_unknown_294;         // 0x294
+    float danger_unknown_298;         // 0x298
+    float danger_unknown_29c;         // 0x29c
+    float danger_unknown_2a0;         // 0x2a0
+    uint32_t danger_unknown_2a4;      // 0x2a4
+    uint32_t danger_unknown_2a8;      // 0x2a8
+    uint32_t danger_unknown_2ac;      // 0x2ac
+    real_point3d flee_from_point;     // 0x2b0 0x4146c0 resolves the point the actor flees away from; the
+                                      //   danger scoring rule also uses it as a segment start
+    uint8_t unknown_2bc[12];          // 0x2bc
+    real_point3d danger_segment_end;  // 0x2c8 0x4112b0 builds the segment flee_from_point -> here
+    float danger_unknown_2d4;         // 0x2d4
+    float danger_radius;              // 0x2d8 the sphere around danger_center a candidate has to be inside
+    real_point3d danger_center;       // 0x2dc
+    uint8_t unknown_2e8[5];           // 0x2e8
+    uint8_t unknown_2ed;              // 0x2ed
+    int16_t look_at_priority;         // 0x2ee 0x421bc0 keeps only the highest-priority look-at point
+    uint8_t unknown_2f0[4];           // 0x2f0
+    uint32_t look_at_unknown_2f4;     // 0x2f4
+    float look_at_unknown_2f8;        // 0x2f8
+    uint32_t look_at_unknown_2fc;     // 0x2fc
+    float look_at_unknown_300;        // 0x300
+    uint32_t look_at_unknown_304;     // 0x304
+    int16_t unknown_308;              // 0x308
+    uint8_t unknown_30a[2];           // 0x30a
+    uint32_t unknown_30c;             // 0x30c
+    uint8_t unknown_310[2];           // 0x310
+    int16_t search_priority;          // 0x312 0x421af0 keeps only the highest-priority search position
+    uint8_t search_unknown_314;       // 0x314
+    uint8_t unknown_315[3];           // 0x315
+    uint32_t search_unknown_318;      // 0x318
+    uint32_t search_unknown_31c;      // 0x31c
+    uint32_t search_unknown_320;      // 0x320
+    uint32_t search_unknown_324;      // 0x324
+    uint32_t search_unknown_328;      // 0x328
+    uint8_t search_unknown_32c;       // 0x32c
+    uint8_t unknown_32d[3];           // 0x32d
+    uint32_t search_unknown_330;      // 0x330
+    int16_t unknown_334;              // 0x334
+    int16_t unknown_336;              // 0x336
+    uint32_t search_unknown_338;      // 0x338
+    uint32_t search_unknown_33c;      // 0x33c
+    uint32_t search_unknown_340;      // 0x340
+    uint32_t search_unknown_344;      // 0x344
+    uint8_t search_unknown_348;       // 0x348
+    uint8_t unknown_349;              // 0x349
+    int16_t perception_event;         // 0x34a 0x422070 records the highest-priority pending perception event
+    int32_t perception_event_data;    // 0x34c
+    uint8_t unknown_350[0x1c];        // 0x350 actor_new zeroes 0x1a dwords starting here, i.e. 0x350..0x3b7
+    datum_index unknown_36c;          // 0x36c actor_new sets none
+    datum_index unknown_370;          // 0x370 actor_new sets none
+    uint8_t unknown_374;              // 0x374 encounter_add_actor copies the platoon state byte here
+    uint8_t unknown_375;              // 0x375
+    uint8_t ignores_glass;            // 0x376 actor_new rolls Actor.glass_ignorance_chance at Actor+0x90 once into this
+    uint8_t unknown_377;              // 0x377
+    uint8_t unknown_378;              // 0x378 stance selector read by 0x4106b0
+    uint8_t unknown_379;              // 0x379
+    uint8_t unknown_37a[2];           // 0x37a
+    float search_wait_time;           // 0x37c 0x4028e0 reads this and unknown_388 as reaction wait thresholds
+    float unknown_380;                // 0x380
+    uint32_t unknown_384;             // 0x384 actor_new sets -1
+    float unknown_388;                // 0x388
+    uint8_t unknown_38c;              // 0x38c
+    uint8_t unknown_38d[3];           // 0x38d
+    datum_index unknown_390;          // 0x390 actor_new sets none
+    datum_index unknown_394;          // 0x394 actor_new sets none
+    datum_index unknown_398;          // 0x398 actor_new sets none
+    datum_index unknown_39c;          // 0x39c actor_new sets none
+    datum_index unknown_3a0;          // 0x3a0 actor_new sets none
+    datum_index unknown_3a4;          // 0x3a4 actor_new sets none
+    int16_t unknown_3a8;              // 0x3a8
+    uint8_t unknown_3aa[2];           // 0x3aa
+    datum_index unknown_3ac;          // 0x3ac actor_new sets none
+    datum_index unknown_3b0;          // 0x3b0 actor_new sets none
+    float unknown_3b4;                // 0x3b4 actor_new sets 1.0
+    int16_t firing_position_index;    // 0x3b8 the encounter firing position this actor has claimed, or -1
+    uint8_t unknown_3ba;              // 0x3ba
+    uint8_t unknown_3bb;              // 0x3bb
+    uint8_t unknown_3bc;              // 0x3bc
+    uint8_t unknown_3bd[3];           // 0x3bd
+    datum_index unknown_3c0;          // 0x3c0 actor_new sets none
+    uint8_t unknown_3c4[2];           // 0x3c4
+    int16_t recognition_cursor;       // 0x3c6 ring cursor, advanced modulo 4 by 0x4141a0
+    actor_recognition_entry recognition[4];// 0x3c8 actor_set_mode and 0x414140 reset all four firing_position_index to -1
+    uint8_t recognition_valid;        // 0x3d8 0x4141a0 sets it, 0x414140 and actor_set_mode clear it
+    uint8_t recognition_type;         // 0x3d9
+    uint8_t unknown_3da[2];           // 0x3da
+    real_point3d recognition_position;// 0x3dc copied out of the encounter ScenarioFiringPosition block (stride 0x18)
+    int16_t vocalization_unknown_3e8; // 0x3e8
+    uint8_t unknown_3ea[2];           // 0x3ea
+    int16_t vocalization_unknown_3ec; // 0x3ec
+    uint8_t unknown_3ee[14];          // 0x3ee
+    int16_t unknown_3fc;              // 0x3fc
+    uint8_t unknown_3fe[2];           // 0x3fe
+    actor_movement_action queued_movement;// 0x400 the action the setters at 0x417610..0x417910 write
+    int16_t secondary_action;         // 0x418 0x417a60 queues it, actor_action_has_queued_secondary reads it
+    uint8_t unknown_41a[16];          // 0x41a
+    uint8_t unknown_42a;              // 0x42a
+    uint8_t unknown_42b[5];           // 0x42b
+    uint8_t unknown_430;              // 0x430 when set, actor_movement_update steers straight at
+                                      //   unknown_434 instead of running the avoidance sampler
+    uint8_t unknown_431[3];           // 0x431
+    real_vector3d unknown_434;        // 0x434 the explicit steering direction copied to unknown_518
+    uint8_t unknown_440;              // 0x440 gate on the "no order, stand and face" fallback
+    uint8_t unknown_441;              // 0x441
+    uint8_t unknown_442;              // 0x442 when set, unknown_444..0x450 is a valid facing record
+    uint8_t unknown_443;              // 0x443
+    real_vector2d unknown_444;        // 0x444 copied to unknown_530[4]/[8] by actor_movement_update
+    float unknown_44c;                // 0x44c copied to unknown_530[12]
+    float unknown_450;                // 0x450 copied to unknown_530[16]
+    uint8_t unknown_454;              // 0x454
+    uint8_t unknown_455[2];           // 0x455
+    uint8_t unknown_457;              // 0x457
+    float unknown_458;                // 0x458
+    uint8_t unknown_45c;              // 0x45c
+    uint8_t unknown_45d[15];          // 0x45d
+    actor_movement_action active_movement;// 0x46c the six dwords the setters copy over from queued_movement
+    uint8_t movement_completed;       // 0x484 actor_movement_action_complete sets it
+    uint8_t unknown_485[3];           // 0x485
+    real_point3d unknown_488;         // 0x488
+    uint32_t unknown_494;             // 0x494 actor_new sets -1
+    uint32_t unknown_498;             // 0x498
+    uint8_t unknown_49c[4];           // 0x49c
+    int32_t movement_timer;           // 0x4a0 actor_movement_action_complete zeroes it
+    uint8_t unknown_4a4;              // 0x4a4
+    uint8_t unknown_4a5[3];           // 0x4a5
+    uint8_t movement_action_complete; // 0x4a8 actor_movement_action_is_complete returns it
+    uint8_t unknown_4a9[19];          // 0x4a9
+    float unknown_4bc;                // 0x4bc
+    uint8_t unknown_4c0[12];          // 0x4c0
+    uint32_t unknown_4cc;             // 0x4cc
+    uint8_t unknown_4d0[52];          // 0x4d0
+    uint8_t unknown_504;              // 0x504 actor_new sets 0
+    uint8_t unknown_505;              // 0x505 actor_new sets 0
+    uint8_t unknown_506;              // 0x506
+    uint8_t unknown_507;              // 0x507
+    uint8_t unknown_508;              // 0x508
+    uint8_t unknown_509;              // 0x509
+    int16_t unknown_50a;              // 0x50a
+    uint8_t unknown_50c[12];          // 0x50c
+    real_point3d unknown_518;         // 0x518 look-direction source used by 0x4146c0 and 0x4287a0
+    real_vector3d unknown_524;        // 0x524 steering scratch written by 0x4180c0
+    uint8_t unknown_530[20];          // 0x530
+    int16_t vocalization_line;        // 0x544 actor_clear_vocalization zeroes 0x544, 0x546 and 0x548
+    int16_t vocalization_variant;     // 0x546
+    int16_t vocalization_state;       // 0x548
+    uint8_t unknown_54a[2];           // 0x54a
+    uint32_t vocalization_unknown_54c;// 0x54c
+    uint32_t vocalization_unknown_550;// 0x550
+    uint32_t vocalization_unknown_554;// 0x554
+    uint32_t vocalization_unknown_558;// 0x558
+    uint8_t unknown_55c;              // 0x55c
+    uint8_t unknown_55d;              // 0x55d
+    uint8_t unknown_55e[6];           // 0x55e
+    int32_t unknown_564;              // 0x564
+    uint8_t unknown_568[4];           // 0x568
+    int16_t unknown_56c;              // 0x56c
+    uint8_t unknown_56e[35];          // 0x56e
+    uint8_t unknown_591;              // 0x591
+    uint8_t unknown_592[2];           // 0x592
+    float unknown_594[4];             // 0x594 turn-smoothing scratch written by 0x4180c0
+    real_point3d position_cache_a;    // 0x5a4 actor_movement_update copies position here every tick
+    real_point3d position_cache_b;    // 0x5b0 actor_new seeds all three caches from the zero vector at 0x00696718
+    real_point3d position_cache_c;    // 0x5bc
+    datum_index unknown_5c8;          // 0x5c8 actor_new sets none
+    datum_index unknown_5cc;          // 0x5cc actor_new sets none
+    datum_index unknown_5d0;          // 0x5d0 actor_new sets none
+    datum_index unknown_5d4;          // 0x5d4 actor_new sets none
+    int16_t unknown_5d8;              // 0x5d8 actor_new sets 0xffff; read by the avoidance sampler
+    uint8_t unknown_5da[2];           // 0x5da
+    real_vector3d avoidance_direction;// 0x5dc actor_movement_update low-pass filters the avoidance
+                                      //   sampler output into this vector (0.05 or 0.3 blend)
+    float avoidance_scale;            // 0x5e8 the matching low-pass filtered magnitude, snapped to
+                                      //   0 below 0.001; passed to actor_movement_apply_steering
+    float unknown_5ec;                // 0x5ec
+    int16_t unknown_5f0;              // 0x5f0 actor_new sets 0xffff
+    int16_t unknown_5f2;              // 0x5f2 actor_new sets 1
+    int16_t unknown_5f4;              // 0x5f4 actor_new sets 0
+    int16_t unknown_5f6;              // 0x5f6 actor_new sets 0
+    int16_t unknown_5f8;              // 0x5f8 actor_new sets 0
+    int16_t unknown_5fa;              // 0x5fa actor_new sets 0
+    int16_t unknown_5fc;              // 0x5fc actor_update_firing_state ages it and reseeds it from
+                                      //   ActorVariant.special_fire_delay
+    int16_t unknown_5fe;              // 0x5fe set to 3 when special_fire_situation is 3
+    uint8_t unknown_600;              // 0x600
+    uint8_t unknown_601;              // 0x601
+    uint8_t unknown_602;              // 0x602
+    uint8_t unknown_603;              // 0x603
+    uint8_t unknown_604;              // 0x604
+    uint8_t unknown_605[3];           // 0x605
+    float vitality_wait_time;         // 0x608 0x4028e0 uses it as the vitality-based reaction delay
+    int16_t unknown_60c;              // 0x60c
+    uint8_t unknown_60e[2];           // 0x60e
+    datum_index unknown_610;          // 0x610 actor_new sets none
+    uint8_t unknown_614[8];           // 0x614
+    int32_t unknown_61c;              // 0x61c actor_new sets 0
+    uint8_t unknown_620[8];           // 0x620
+    uint8_t unknown_628;              // 0x628
+    uint8_t unknown_629[3];           // 0x629
+    float wander_unknown_62c;         // 0x62c 0x40fcb0 destination and velocity scratch
+    float wander_unknown_630;         // 0x630
+    float wander_unknown_634;         // 0x634
+    float wander_unknown_638;         // 0x638
+    uint8_t unknown_63c[16];          // 0x63c
+    real_vector3d wander_unknown_64c; // 0x64c
+    uint8_t unknown_658[12];          // 0x658
+    real_vector3d wander_unknown_664; // 0x664
+    real_vector3d wander_unknown_670; // 0x670
+    real_vector3d grenade_aim_direction;// 0x67c written by 0x40f7e0 and 0x40fcb0
+    uint8_t unknown_688;              // 0x688
+    uint8_t unknown_689[3];           // 0x689
+    real_vector3d unknown_68c;        // 0x68c
+    float unknown_698;                // 0x698
+    float perception_scale;           // 0x69c 0x42aa90 scales hearing and awareness ranges by this
+    uint8_t unknown_6a0;              // 0x6a0
+    uint8_t unknown_6a1[3];           // 0x6a1
+    uint32_t unknown_6a4;             // 0x6a4 actor_new sets -1
+    real_point3d grenade_impact_point;// 0x6a8 0x410710 records a validated landing point
+    uint32_t unknown_6b4;             // 0x6b4 actor_new sets -1
+    uint8_t unknown_6b8[4];           // 0x6b8
+    float grenade_unknown_6bc;        // 0x6bc throw-direction scratch written by 0x410a60
+    float grenade_unknown_6c0;        // 0x6c0
+    float grenade_unknown_6c4;        // 0x6c4
+    float grenade_unknown_6c8;        // 0x6c8
+    uint8_t grenade_eligible;         // 0x6cc 0x42f260 caches the eligibility test here
+    uint8_t unknown_6cd;              // 0x6cd
+    int16_t grenade_recheck_ticks;    // 0x6ce actor_new sets 30
+    uint32_t flags;                   // 0x6d0 bit 0x2 set by 0x42a5b0, bit 0x400 by 0x4347b0, bit 0x800 by 0x42a5e0 (override target)
+    int16_t unknown_6d4;              // 0x6d4
+    uint8_t unknown_6d6[2];           // 0x6d6
+    uint32_t unknown_6d8;             // 0x6d8
+    int16_t unknown_6dc;              // 0x6dc
+    uint8_t unknown_6de[2];           // 0x6de
+    real_vector3d queued_look_vector; // 0x6e0 actor_snapshot_orientation seeds it from the zero vector at 0x00696714
+    int16_t unknown_6ec;              // 0x6ec actor_snapshot_orientation sets 0xffff
+    uint8_t unknown_6ee[14];          // 0x6ee
+    real_vector3d snapshot_facing;    // 0x6fc copy of facing taken by actor_snapshot_orientation
+    real_vector3d snapshot_unknown_708;// 0x708 copy of facing_unknown_180
+    real_vector3d snapshot_unknown_714;// 0x714 copy of facing_unknown_18c
+    datum_index override_target;      // 0x720 0x42a5e0 writes it together with flags bit 0x800
+} actor;                // size 0x724
+// global 0x00880360: data_array *actor_data          element size 0x724, capacity 0x100
+
+// ---------------------------------------------------------------------------
+// swarm
+// ---------------------------------------------------------------------------
+typedef struct swarm {
+    int16_t identifier;               // 0x00 datum_header
+    int16_t component_count;          // 0x02 0..16
+    datum_index actor_index;          // 0x04 the actor that owns this swarm
+    uint8_t unknown_08[4];            // 0x08
+    real_point3d aggregate_position;  // 0x0c the mean of the swarm_component.position of every
+                                      //      component, recomputed each tick by
+                                      //      actor_refresh_combat_context @0x4297a0 (which
+                                      //      seeds all THREE floats from the vector at
+                                      //      0x006966f8, sums component+0x04/+0x08/+0x0c into
+                                      //      them and divides by component_count)
+    datum_index unit_index[16];       // 0x18 one unit object per component
+    datum_index component_index[16];  // 0x58 the matching swarm_component datums
+} swarm;                // size 0x98
+// global 0x0088035c: data_array *swarm_data          element size 0x98, capacity 0x20
+
+typedef struct swarm_component {
+    int16_t identifier;               // 0x00 datum_header
+    uint8_t flags;                    // 0x02 bit 3 read by ai_object_list_max_flee_grade
+    uint8_t unknown_03;               // 0x03
+    real_point3d position;            // 0x04 object_get_position of the component unit
+    datum_index marker_index;         // 0x10 object+0x4d8 when object+0xb4 is 0, otherwise none
+    uint32_t unknown_14;              // 0x14 swarm_add_component sets -1
+    uint8_t unknown_18[40];           // 0x18
+} swarm_component;      // size 0x40
+// global 0x00880358: data_array *swarm_component_data  element size 0x40, capacity 0x100
+
+// ---------------------------------------------------------------------------
+// prop -- one record per object an actor currently perceives
+// ---------------------------------------------------------------------------
+// Every actor keeps a singly linked list of these at actor.first_prop. 0x43e270 finds or
+// allocates one, 0x43e640 initializes it from the tracked object and links it in, and
+// 0x43ea20 unlinks it. The repurpose path in 0x43e270 zeroes 0x4e dwords while preserving
+// the datum identifier, which is what fixes the size at 0x138.
+typedef struct prop {
+    int16_t identifier;               // 0x00 datum_header
+    uint8_t unknown_02[2];            // 0x02
+    datum_index actor_index;          // 0x04 the actor whose prop list this is on
+    datum_index next_in_actor;        // 0x08 next prop in actor.first_prop list
+    datum_index pair_index;           // 0x0c the paired prop allocated by 0x43e910 / 0x43e980
+    int16_t actor_type;               // 0x10 the owning actor type, or 6 for a swarm prop, or -1
+    int16_t object_type;              // 0x12 object+0xb8 of the tracked object
+    uint8_t has_parent;               // 0x14 set when the tracked object has a parent unit (object+0x1f8)
+    uint8_t unknown_15;               // 0x15
+    int16_t unknown_16;               // 0x16
+    datum_index object_index;         // 0x18 the tracked object
+    datum_index owner_actor_index;    // 0x1c the actor that currently owns the tracked object, or none
+    float unknown_20;                 // 0x20 copied from the object type definition at +0x284
+    int16_t kind;                     // 0x24 0..1 are reserved kinds, 4..5 the shared / vault kinds, 6 the parented kind
+    uint8_t unknown_26[2];            // 0x26
+    int32_t unknown_28;               // 0x28 the tick a parented prop was created
+    datum_index unknown_2c;           // 0x2c
+    int16_t unknown_30;               // 0x30
+    int16_t unknown_32;               // 0x32
+    int32_t unknown_34;               // 0x34
+    int16_t unknown_38;               // 0x38
+    int16_t unknown_3a;               // 0x3a
+    int16_t unknown_3c;               // 0x3c
+    uint8_t unknown_3e[2];            // 0x3e
+    uint32_t unknown_40;              // 0x40
+    uint32_t unknown_44;              // 0x44
+    uint32_t unknown_48;              // 0x48
+    int16_t unknown_4c;               // 0x4c
+    uint8_t unknown_4e;               // 0x4e 0x43e640 zeroes it
+    uint8_t unknown_4f;               // 0x4f
+    float desirability;               // 0x50 actor_rate_potential_target writes the score here
+    float unknown_54;                 // 0x54
+    float unknown_58;                 // 0x58 actor_begin_vocalization raises it to unknown_54
+    int32_t unknown_5c;               // 0x5c
+    uint8_t is_unit;                  // 0x60 0x45bd50 classifies the tracked object; 46 functions branch on it
+    uint8_t unknown_61;               // 0x61 0x45bdb0
+    uint8_t unknown_62;               // 0x62 0x45be00 of object_type
+    uint8_t unknown_63;               // 0x63
+    uint8_t combat_dirty;             // 0x64 actor_target_reset_combat_flags sets it
+    uint8_t unknown_65;               // 0x65
+    int16_t unknown_66;               // 0x66 0x43e640 sets 0xffff
+    int16_t unknown_68;               // 0x68
+    int16_t unknown_6a;               // 0x6a 0x43e640 zeroes it
+    int16_t seen_state;               // 0x6c actor_target_reset_seen_flags sets 0xffff
+    int16_t unknown_6e;               // 0x6e
+    float unknown_70;                 // 0x70 0x43e640 zeroes it
+    uint8_t seen;                     // 0x74 actor_target_reset_seen_flags clears it
+    uint8_t unknown_75;               // 0x75
+    int16_t unknown_76;               // 0x76 0x43e640 sets 1000 for a vault prop, otherwise 0
+    float unknown_78;                 // 0x78
+    int32_t unknown_7c;               // 0x7c
+    real_point3d unknown_80;          // 0x80
+    int32_t unknown_8c;               // 0x8c
+    uint32_t unknown_90;              // 0x90
+    uint32_t unknown_94;              // 0x94
+    uint32_t unknown_98;              // 0x98
+    int16_t unknown_9c;               // 0x9c
+    uint8_t unknown_9e[2];            // 0x9e
+    int32_t unknown_a0;               // 0xa0 0x43e640 sets -1
+    uint8_t engaged;                  // 0xa4 0x41fa80 marks the target actively engaged
+    uint8_t unknown_a5;               // 0xa5
+    int16_t unknown_a6;               // 0xa6
+    int16_t unknown_a8;               // 0xa8
+    int16_t shots_fired;              // 0xaa actor_target_reset_shot_counters zeroes 0xaa, 0xac and 0xae
+    int16_t shots_hit;                // 0xac
+    int16_t shots_unknown_ae;         // 0xae
+    int16_t unknown_b0;               // 0xb0
+    uint8_t unknown_b2[2];            // 0xb2
+    int32_t unknown_b4;               // 0xb4 0x43e640 sets -1
+    uint8_t unknown_b8;               // 0xb8 0x43e640 zeroes it
+    uint8_t noticed_a;                // 0xb9 set by 0x41fb00 (unit+0xb9), cleared by actor_target_reset_combat_flags
+    uint8_t noticed_b;                // 0xba set by 0x41fb60 (unit+0xba)
+    uint8_t noticed_c;                // 0xbb set by 0x41fbc0
+    real_point3d last_known_position; // 0xbc
+    real_point3d aim_offset;          // 0xc8 0x41c4b0 refreshes the aim marker offsets
+    real_point3d unknown_d4;          // 0xd4
+    real_point3d unknown_e0;          // 0xe0
+    int32_t path_surface_index;       // 0xec actor_target_data_refresh @0x41c4b0 resets it to -1
+                                      //   and actor_movement_action_resolve @0x41a460 hands it to
+                                      //   the pathfinder as the destination surface index. The
+                                      //   header used to frame 0xec..0xf7 as one real_point3d,
+                                      //   which is one dword low: 0x41a460 reads the point at
+                                      //   0xf0/0xf4/0xf8 and the surface index at 0xec.
+    real_point3d ground_position;     // 0xf0 the destination a non-flying actor steers to for a
+                                      //   type-5 movement action; the flying path uses aim_offset
+    float unknown_fc;                 // 0xfc
+    int16_t cluster_index;            // 0x100 the BSP cluster the tracked object was last seen in, or -1
+    int16_t unknown_102;              // 0x102
+    uint32_t unknown_104;             // 0x104
+    uint32_t unknown_108;             // 0x108
+    uint32_t unknown_10c;             // 0x10c
+    int32_t relationship_object_index;// 0x110 actor_target_get_relationship_object caches it lazily
+    float unknown_114;                // 0x114
+    uint8_t unknown_118;              // 0x118
+    uint8_t unknown_119[3];           // 0x119
+    float distance;                   // 0x11c the ascending sort key of ai_target_distance_qsort_compare
+    uint8_t unknown_120;              // 0x120
+    uint8_t unknown_121;              // 0x121
+    uint8_t unknown_122;              // 0x122
+    uint8_t unknown_123;              // 0x123
+    uint8_t unknown_124;              // 0x124
+    uint8_t unknown_125;              // 0x125
+    uint8_t unknown_126;              // 0x126
+    uint8_t is_vault;                 // 0x127 Unit type definition byte +0x106 bit 2; 29 functions branch on it
+    uint8_t unknown_128;              // 0x128 set when is_vault and the object seat count is 0
+    uint8_t unknown_129;              // 0x129
+    uint8_t unknown_12a;              // 0x12a
+    uint8_t unknown_12b;              // 0x12b
+    uint8_t unknown_12c;              // 0x12c
+    uint8_t unknown_12d;              // 0x12d
+    uint8_t is_parented;              // 0x12e 0x43e640 sets it when the tracked object has a parent (object+0x30)
+    uint8_t unknown_12f;              // 0x12f
+    uint8_t unknown_130;              // 0x130
+    uint8_t unknown_131;              // 0x131
+    uint8_t unknown_132;              // 0x132
+    uint8_t unknown_133;              // 0x133
+    uint8_t unknown_134;              // 0x134
+    uint8_t unknown_135;              // 0x135
+    uint8_t unknown_136;              // 0x136
+    uint8_t unknown_137;              // 0x137
+} prop;                 // size 0x138
+// global 0x008802c0: data_array *prop_data           element size 0x138, capacity 0x300
+
+// ---------------------------------------------------------------------------
+// encounter, and its per-squad and per-platoon sub-records
+// ---------------------------------------------------------------------------
+// One encounter datum per ScenarioEncounter. encounter_new @0x437060 (currently named
+// squad_create) builds it, and encounters_reset @0x435cb0 calls it once per scenario
+// encounter block while threading two running index counters through it, which is how the
+// first_squad / first_platoon runs are assigned.
+typedef struct encounter {
+    int16_t identifier;               // 0x00 datum_header
+    int16_t team;                     // 0x02 ScenarioEncounter.team_index
+    int16_t first_squad;              // 0x04 index of this encounter first encounter_squad_state
+    int16_t squad_count;              // 0x06 ScenarioEncounter.squads.count
+    int16_t first_platoon;            // 0x08 index of this encounter first encounter_platoon_state
+    int16_t platoon_count;            // 0x0a ScenarioEncounter.platoons.count
+    uint8_t unknown_0c;               // 0x0c
+    uint8_t units_active;             // 0x0d encounter_add_actor calls actor_set_units_active when set
+    int16_t activation_delay;         // 0x0e ticks remaining before encounters_update_activation re-evaluates this encounter; encounter_add_actor sets 0x96
+    int32_t activation_tick;          // 0x10 encounter_new sets -1; encounter_activate stamps the current game tick
+    datum_index first_actor;          // 0x14 head of the member list, chained through actor.next_in_encounter
+    int16_t member_count;             // 0x18 encounter_add_actor increments, squad_remove_actor decrements
+    int16_t unknown_1a;               // 0x1a encounter_recompute_morale snapshots unknown_2a here when the retreat latch clears
+    int16_t live_count;               // 0x1c only actors with counts_toward_encounter set are counted
+    uint8_t unknown_1e[2];            // 0x1e
+    int16_t unknown_20;               // 0x20 squad_create zeroes it; 0x437820 records recent zone ids near here
+    int16_t unknown_22;               // 0x22
+    int16_t unknown_24;               // 0x24
+    uint8_t unknown_26[2];            // 0x26
+    uint8_t dirty;                    // 0x28 set by every member add / remove; 0x435f00 re-runs morale for dirty encounters
+    uint8_t unknown_29;               // 0x29
+    int16_t unknown_2a;               // 0x2a
+    int16_t unknown_2c;               // 0x2c
+    int16_t unknown_2e;               // 0x2e
+    int16_t unknown_30;               // 0x30
+    uint8_t unknown_32[2];            // 0x32
+    float average_vitality;           // 0x34 encounter_recompute_morale sums one vitality sample per live member here and then divides by member_count
+    datum_index first_pursuit;        // 0x38 head of the ai_pursuit ("recently seen object") list
+    uint8_t unknown_3c;               // 0x3c ScenarioEncounter.flags bit 1
+    uint8_t unknown_3d;               // 0x3d
+    int16_t unknown_3e;               // 0x3e squad_create zeroes it
+    uint8_t unknown_40;               // 0x40 ScenarioEncounter.flags bit 2
+    uint8_t unknown_41;               // 0x41 ScenarioEncounter.flags bit 3
+    uint8_t unknown_42;               // 0x42 squad_create sets 1
+    uint8_t unknown_43;               // 0x43
+    uint8_t unknown_44;               // 0x44 squad_create zeroes it
+    uint8_t unknown_45;               // 0x45 squad_create zeroes it
+    uint8_t unknown_46;               // 0x46 squad_create zeroes it
+    uint8_t unknown_47;               // 0x47
+    uint8_t unknown_48;               // 0x48
+    uint8_t unknown_49;               // 0x49
+    int16_t unknown_4a;               // 0x4a
+    int16_t unknown_4c;               // 0x4c
+    uint8_t unknown_4e[2];            // 0x4e
+    datum_index unknown_50;           // 0x50 squad_create sets -1
+    datum_index unknown_54;           // 0x54 squad_create sets -1
+    int32_t unknown_58;               // 0x58 squad_create sets -1; 0x43e270 compares it against actor+0x3a0
+    datum_index unknown_5c;           // 0x5c squad_create sets -1
+    uint8_t unknown_60;               // 0x60
+    uint8_t unknown_61;               // 0x61
+    int16_t unknown_62;               // 0x62
+    int32_t unknown_64;               // 0x64
+    int16_t unknown_68;               // 0x68
+    int16_t unknown_6a;               // 0x6a
+} encounter;            // size 0x6c
+// global 0x008802c8: data_array *encounter_data      element size 0x6c, capacity 0x80
+
+// One record per ScenarioSquad of the owning encounter, addressed as
+// encounter_squad_states[encounter.first_squad + actor.squad_index].
+typedef struct encounter_squad_state {
+    // The two parallel starting-location bit masks, one bit per
+    // ScenarioSquad.starting_locations entry.
+    // encounter_squad_reset_starting_location_mask @0x436f90 fills +0x00 from the tag
+    // (bit 0 of ScenarioActorStartingLocation.flags) and sets every bit of +0x04, and
+    // squad_pick_random_starting_location @0x437220 consumes +0x00 first, then +0x04,
+    // refilling +0x04 when it runs out. Both are addressed as mask[index >> 5], so the
+    // squad is limited to 32 starting locations in practice.
+    uint32_t starting_location_mask;  // 0x00 locations this squad is allowed to use
+    uint32_t starting_location_free;  // 0x04 locations not yet handed out this round
+    float unknown_08;                 // 0x08
+    int16_t respawn_budget;           // 0x0c ScenarioSquad.respawn_total (999 when that is 0), only set when the squad has a respawn range; the reinforcement spawner decrements it
+    int16_t unknown_0e;               // 0x0e
+    uint8_t unknown_10;               // 0x10 ScenarioSquad.flags bit 5
+    uint8_t unknown_11;               // 0x11 encounter_new zeroes it
+    int16_t squad_delay_ticks;        // 0x12 ftol(ScenarioSquad.squad_delay_time * 30), or 999 when ScenarioSquad.flags bit 3 is set
+    uint8_t unknown_14;               // 0x14 read as a flag by encounter_gather_occupied_bsp_clusters
+    uint8_t unknown_15;               // 0x15
+    int16_t member_count;             // 0x16 encounter_add_actor increments, squad_remove_actor decrements
+    int16_t unknown_18;               // 0x18
+    int16_t unknown_1a;               // 0x1a
+    float average_vitality;           // 0x1c encounter_recompute_morale @0x437940 sums one vitality sample per live member here and then divides by member_count
+} encounter_squad_state; // size 0x20
+// global 0x008802cc: encounter_squad_state *encounter_squad_states  0x8000 bytes, 0x400 records
+
+// One record per ScenarioPlatoon of the owning encounter, addressed as
+// encounter_platoon_states[encounter.first_platoon + actor.platoon_index].
+typedef struct encounter_platoon_state {
+    uint8_t unknown_00;               // 0x00 ScenarioPlatoon.flags bit 2
+    uint8_t unknown_01[3];            // 0x01
+    int16_t member_count;             // 0x04 encounter_add_actor increments, squad_remove_actor decrements
+    int16_t unknown_06;               // 0x06
+    int16_t unknown_08;               // 0x08
+    int16_t unknown_0a;               // 0x0a
+    float average_vitality;           // 0x0c same running sum as encounter_squad_state.average_vitality, divided by member_count at 0x04
+} encounter_platoon_state; // size 0x10
+// global 0x008802c4: encounter_platoon_state *encounter_platoon_states  0x1000 bytes, 0x100 records
+
+// The iterator the encounter sweeps use: a types/memory.h data_iterator over encounter_data
+// with a trailing "skip encounters whose units_active is clear" flag. Recovered from the
+// disassembly of encounters_recompute_dirty @0x435f00 (objdump -d -M intel
+// --start-address=0x435f00 --stop-address=0x435f85 bin/halo.exe): the 0x18-byte frame is
+// seeded with encounter_data, a word 0, -1, data XOR 'iter' and a byte 0, and
+// data_iterator_next is called with EDI pointing at its first field.
+typedef struct encounter_iterator {
+    data_array *data;            // 0x00 encounter_data
+    int16_t next_index;          // 0x04 written as an int16, read as an int32 by data_iterator_next
+    uint8_t pad_06[2];           // 0x06
+    datum_index index;           // 0x08 handle of the encounter the last _next returned
+    uint32_t signature;          // 0x0c data XOR 0x69746572 ('iter'), the data_iterator self-check
+    datum_index encounter_index; // 0x10 the loop body copy of index
+    uint8_t active_only;         // 0x14 skip encounters whose units_active is clear
+    uint8_t pad_15[3];           // 0x15
+} encounter_iterator;            // size 0x18
+
+// One candidate slot of the four-bucket vocalization table encounter_choose_vocalizations
+// @0x438580 builds. Each bucket is two of these (a best and a runner-up);
+// ai_insert_scored_candidate_pair @0x4383f0 keeps each pair sorted by descending score and
+// ai_pick_weighted_candidate @0x438480 draws one bucket in proportion to its best score.
+typedef struct ai_scored_candidate {
+    datum_index handle;   // 0x00 the actor the candidate belongs to; none marks an empty slot
+    float score;          // 0x04 the weight, always positive for a live slot
+    datum_index payload;  // 0x08 the prop the score came from, or none
+    datum_index key;      // 0x0c the object that prop tracks, or none
+} ai_scored_candidate;    // size 0x10
+
+// One row of the 32-entry table at ai_globals + 0x3b8 that ai_object_attention_find_or_create
+// @0x435900 hands out and ai_object_attention_remove @0x435990 compacts, keyed by an object
+// handle. The count lives in ai_globals.unknown_3b6 and the table runs 0x3b8..0x8b7, which is
+// exactly up to ai_globals.vehicle_entry_count at 0x8b8.
+// UNSURE: ai_globals is not re-laid-out around this table because the communication code
+// reads ai_globals.unknown_3f0 and unknown_3fa, which fall inside row 1. Use
+// (ai_object_attention_record *)ai_globals->unknown_3b8 to address it.
+typedef struct ai_object_attention_record {
+    datum_index object_index;  // 0x00 the key; the search compares the whole 32-bit handle
+    float weight;              // 0x04 seeded to 8.0 on creation
+    uint8_t unknown_08[0x20];  // 0x08 zeroed on creation, never read inside this module
+} ai_object_attention_record;  // size 0x28
+
+// The "ai pursuit" datum: a per-encounter, per-type ring of recently seen objects.
+typedef struct ai_pursuit {
+    int16_t identifier;               // 0x00 datum_header
+    int16_t type;                     // 0x02 the per-type key squad_recent_object_get_or_create matches on
+    int32_t last_tick;                // 0x04 the tick of the last sighting, or -1 while empty
+    int16_t count;                    // 0x08 total sightings recorded
+    int16_t cursor;                   // 0x0a next slot to overwrite, modulo 6
+    datum_index object_index[6];      // 0x0c
+    datum_index next;                 // 0x24 next pursuit record in the encounter list
+} ai_pursuit;           // size 0x28
+// global 0x008802d0: data_array *ai_pursuit_data     element size 0x28, capacity 0x100
+
+// ---------------------------------------------------------------------------
+// ai conversation
+// ---------------------------------------------------------------------------
+// A running instance of one Scenario.ai_conversations entry. The data_array is built
+// inline by ai_communication_initialize with the name "ai conversation", maximum_count 8
+// and element size 0x64.
+typedef struct ai_conversation {
+    int16_t identifier;               // 0x00 datum_header
+    int16_t definition_index;         // 0x02 index into Scenario.ai_conversations (stride 0x74)
+    uint8_t priority;                 // 0x04 ai_conversation_new stores its allow_eviction argument here
+    uint8_t unknown_05;               // 0x05
+    uint8_t unknown_06;               // 0x06
+    uint8_t unknown_07[5];            // 0x07
+    int32_t start_tick;               // 0x0c the game tick the instance was created
+    int32_t unknown_10;               // 0x10
+    uint32_t participant_mask;        // 0x14 bit i set once participant i has been resolved
+    uint32_t unknown_18;              // 0x18
+    uint32_t unknown_1c;              // 0x1c
+    int16_t unknown_20;               // 0x20
+    int16_t unknown_22;               // 0x22
+    uint32_t unknown_24;              // 0x24
+    datum_index participant_actor[8]; // 0x28 one actor datum per resolved participant
+    int16_t unknown_48;               // 0x48 ai_conversation_new sets 0xffff
+    int16_t unknown_4a;               // 0x4a
+    int16_t unknown_4c;               // 0x4c
+    int16_t unknown_4e;               // 0x4e
+    int32_t unknown_50;               // 0x50
+    int32_t unknown_54;               // 0x54
+    uint32_t unknown_58;              // 0x58
+    uint32_t unknown_5c;              // 0x5c
+    uint8_t unknown_60;               // 0x60
+    uint8_t unknown_61;               // 0x61
+    uint8_t unknown_62;               // 0x62
+    uint8_t unknown_63;               // 0x63
+} ai_conversation;      // size 0x64
+// global 0x008802d4: data_array *ai_conversation_data  element size 0x64, capacity 8
+
+typedef struct ai_conversation_event {
+    int16_t definition_index;         // 0x00 the ai_conversation definition that stopped
+    uint8_t reason_a;                 // 0x02
+    uint8_t reason_b;                 // 0x03
+    int32_t tick;                     // 0x04 game time at 0x006f1d6c+0x0c
+    uint8_t unknown_08[8];            // 0x08
+} ai_conversation_event; // size 0x10
+
+// ---------------------------------------------------------------------------
+// ai globals
+// ---------------------------------------------------------------------------
+typedef struct ai_globals {
+    uint8_t initialized;              // 0x00 ai_reset_for_new_map sets it
+    uint8_t actors_valid;             // 0x01 every actor and encounter entry point returns early when this is clear
+    uint8_t unknown_02;               // 0x02 ai_reset_for_new_map sets it
+    uint8_t stagger_claimed;          // 0x03 0x429430 claims the per-tick idle slot
+    int16_t stagger_threshold;        // 0x04
+    int16_t stagger_highest;          // 0x06 0x429430 tracks the highest idle counter seen
+    datum_index unknown_08;           // 0x08 ai_reset_for_new_map sets none; also the head of the unassigned actor list
+    float unknown_0c;                 // 0x0c
+    uint8_t communication_valid;      // 0x10 0x42d230 sets it
+    uint8_t unknown_11;               // 0x11
+    int16_t unknown_12;               // 0x12
+    datum_index unknown_14;           // 0x14 0x42d230 zeroes 0x14..0x2b, ai_reset_for_new_map sets them all to none
+    datum_index unknown_18;           // 0x18
+    datum_index unknown_1c;           // 0x1c
+    datum_index unknown_20;           // 0x20
+    datum_index unknown_24;           // 0x24
+    datum_index unknown_28;           // 0x28
+    int16_t conversation_event_count; // 0x2c high-water mark, capped at 16
+    int16_t conversation_event_cursor;// 0x2e next ring slot, modulo 16
+    ai_conversation_event conversation_events[16];// 0x30 0x42d230 zeroes the whole 0x100-byte ring
+    int16_t unknown_130;              // 0x130 ai_reset_for_new_map zeroes it
+    int16_t unknown_132;              // 0x132 ai_reset_for_new_map zeroes it
+    uint8_t unknown_134[0x280];       // 0x134 ai_reset_for_new_map zeroes 0xa0 dwords from here
+    uint8_t unknown_3b4;              // 0x3b4 ai_reset_for_new_map sets it
+    uint8_t unknown_3b5;              // 0x3b5
+    int16_t unknown_3b6;              // 0x3b6 0x435900 uses it as the per-object record table count
+    uint8_t unknown_3b8[56];          // 0x3b8
+    int32_t unknown_3f0;              // 0x3f0 ai_communication_record_line_played
+    uint8_t unknown_3f4[6];           // 0x3f4
+    int16_t unknown_3fa;              // 0x3fa
+    uint8_t unknown_3fc[1212];        // 0x3fc
+    int16_t vehicle_entry_count;      // 0x8b8 ai_process_vehicle_entry_queue drains the queue and zeroes this
+    uint8_t unknown_8ba[2];           // 0x8ba
+    datum_index vehicle_entry_queue[8];// 0x8bc unit object indices waiting for a seat
+} ai_globals;           // size 0x8dc
+// global 0x00880354: ai_globals *ai_globals
+
+// ---------------------------------------------------------------------------
+// path_find -- the A*-style search over the navigation mesh
+// ---------------------------------------------------------------------------
+typedef struct path_find_node {
+    int16_t unknown_00;               // 0x00
+    int16_t parent;                   // 0x02 0xffff on the start node; the reconstruction walks this chain
+    int32_t unknown_04;               // 0x04 path_find_push_start_node sets -1
+    uint32_t vertex_id;               // 0x08 hashed as (vertex_id & 0x1ff) into the 512-bucket table
+    real_point3d position;            // 0x0c
+    float cost;                       // 0x18 g, zero on the start node
+    float unknown_1c;                 // 0x1c path_find_push_start_node sets FLT_MAX
+    float unknown_20;                 // 0x20
+    float unknown_24;                 // 0x24
+    float distance;                   // 0x28 the heuristic distance to the goal
+    int16_t key;                      // 0x2c the heap ordering key
+    int16_t waypoint;                 // 0x2e index into the caller waypoint array, must stay below 0x40
+    int16_t heap_index;               // 0x30 the heap keeps this in sync as it sifts
+    uint8_t unknown_32[2];            // 0x32
+} path_find_node;       // size 0x34
+
+typedef struct path_find_heap_entry {
+    int16_t node;                     // 0x00 index into path_find_context.nodes
+    int16_t key;                      // 0x02 copy of node.key; the heap is ordered on this
+} path_find_heap_entry; // size 0x4
+
+// path_find_context_init zeroes 0x4023 dwords and then overwrites the first 0x48 bytes
+// with the callers request block, so the leading fields below are the request and not
+// search state. The context is far too large for a stack frame and is passed in by
+// pointer; the owning buffer is outside this module.
+typedef struct path_find_context {
+    uint8_t unknown_00[0x14];         // 0x00 the first 0x48 bytes are copied wholesale from the callers request block
+    real_point3d start_position;      // 0x14 path_find_push_start_node rejects a z below -1000.0
+    uint32_t start_vertex_id;         // 0x20 none means there is nothing to search from
+    uint8_t unknown_24[36];           // 0x24
+    uint32_t unknown_48;              // 0x48 path_find_context_init stores its second argument here
+    uint8_t have_goal;                // 0x4c the whole search and the reconstruction are gated on this
+    uint8_t unknown_4d[3];            // 0x4d
+    real_point3d goal_position;       // 0x50
+    uint32_t goal_vertex_id;          // 0x5c
+    float goal_cost;                  // 0x60
+    int32_t bsp_generation;           // 0x64 path_find_context_init copies the global at 0x00746f9c
+    int16_t best_node;                // 0x68
+    uint8_t unknown_6a[2];            // 0x6a
+    float best_cost;                  // 0x6c
+    float unknown_70;                 // 0x70
+    real_point3d best_position;       // 0x74
+    int16_t node_count;               // 0x80 capped at 1024 by the array below
+    uint8_t unknown_82[2];            // 0x82
+    path_find_node nodes[1024];       // 0x84
+    int16_t heap_count;               // 0xd084 path_find_heap_push refuses past 0x400
+    path_find_heap_entry heap[1025];  // 0xd086 one-based, slot 0 unused
+    int16_t vertex_hash[4096];        // 0xe08a 512 buckets of 8 entries, probed linearly modulo 0x1000
+    uint8_t unknown_1008a[2];         // 0x1008a
+} path_find_context;    // size 0x1008c
+
+// ---------------------------------------------------------------------------
+// ai point search -- the separate obstacle-graph search (0x43b450..0x43be90)
+// ---------------------------------------------------------------------------
+typedef struct ai_search_obstacle {
+    uint16_t flags;                   // 0x00 bit 0 counts toward the flagged total
+    int16_t link;                     // 0x02 the paired obstacle entry, or -1
+    uint32_t object_index;            // 0x04
+    real_point2d position;            // 0x08
+    float radius;                     // 0x10
+} ai_search_obstacle;   // size 0x14
+
+// ai_search_gather_obstacles @0x43c510 fills this from object_find_in_sphere plus each
+// objects vault / cover surface points; 0x43c4b0 appends and refuses past 0x80 entries.
+typedef struct ai_search_obstacle_list {
+    int16_t unknown_00;               // 0x00
+    int16_t count;                    // 0x02 0x43c4b0 refuses to append past 0x80
+    int16_t flagged_count;            // 0x04 entries whose flags bit 0 is set
+    uint8_t unknown_06[2];            // 0x06
+    ai_search_obstacle obstacles[128];// 0x08
+} ai_search_obstacle_list; // size 0xa08
+
+typedef struct ai_search_node {
+    real_point2d position;            // 0x00
+    float z;                          // 0x08
+    real_vector2d direction;          // 0x0c normalized delta from the node to the search origin
+    float length;                     // 0x14 the length the normalize returned
+    int16_t point_id;                 // 0x18 index into the obstacle list, or -1 for a free point
+    uint8_t side;                     // 0x1a which tangent side this node bends around
+    uint8_t unknown_1b;               // 0x1b
+    int16_t side_link;                // 0x1c two child links, one per side; initialized to -1
+    uint8_t unknown_1e[2];            // 0x1e
+    float cost;                       // 0x20 length plus the inherited cost
+    int16_t parent;                   // 0x24 the node this one was expanded from
+    uint8_t unknown_26[2];            // 0x26
+} ai_search_node;       // size 0x28
+
+// 0x43b790 initializes the context and pushes the first node; 0x43bcb0 runs one pop /
+// expand step and 0x43be20 drives it to completion. The heap count is addressed both as
+// context+0x1430 and as the dword index 0x50c of the same base, which is the same byte.
+typedef struct ai_search_context {
+    uint32_t unknown_00;              // 0x00
+    uint8_t unknown_04;               // 0x04
+    uint8_t unknown_05[3];            // 0x05
+    uint32_t obstacles;               // 0x08 pointer to the ai_search_obstacle_list this search reads
+    uint32_t unknown_0c;              // 0x0c
+    real_point2d origin;              // 0x10
+    uint32_t unknown_18;              // 0x18
+    int16_t goal_point_id;            // 0x1c taken from obstacle[goal].link, or -1
+    int16_t result_node;              // 0x1e -1 until a node reaches the goal
+    int16_t best_node;                // 0x20 the fallback best-effort node
+    uint8_t unknown_22[2];            // 0x22
+    float best_cost;                  // 0x24 FLT_MAX until best_node is set
+    uint8_t complete;                 // 0x28 set when result_node is valid
+    uint8_t unknown_29;               // 0x29
+    uint8_t unknown_2a;               // 0x2a
+    uint8_t unknown_2b;               // 0x2b
+    int16_t node_count;               // 0x2c 0x43b5a0 refuses past 0x80
+    uint8_t unknown_2e[2];            // 0x2e
+    ai_search_node nodes[128];        // 0x30
+    int16_t heap_count;               // 0x1430 capped at 0x80
+    int16_t heap[128];                // 0x1432 node indices, ordered by ai_search_node.cost
+} ai_search_context;    // size 0x1532
+
+// ---------------------------------------------------------------------------
+// actor movement obstacle avoidance
+// ---------------------------------------------------------------------------
+typedef struct actor_movement_obstacle {
+    datum_index object_index;         // 0x00
+    real_point2d position;            // 0x04 object+0xa0 and object+0xa4
+    float bottom;                     // 0x0c object+0xa8 minus (object+0xac minus radius)
+    float height;                     // 0x10 twice object+0xac minus twice radius, clamped at zero
+    float radius;                     // 0x14 the largest marker-projected radius of the objects collision spheres
+} actor_movement_obstacle; // size 0x18
+
+// The stack frame actor_movement_choose_avoidance_direction @0x4193d0 builds and hands to
+// actor_movement_collect_obstacle_candidates and actor_movement_test_obstacle_ray. The
+// obstacle array runs from 0x40 to 0x603f, which divides exactly into 0x400 entries of
+// 0x18, and the two trailing floats are the last two locals of that frame.
+typedef struct actor_movement_context {
+    int32_t bsp_generation;           // 0x00 the global at 0x00746f9c
+    int32_t bsp_index;                // 0x04 the global at 0x00746f98
+    datum_index unit_index;           // 0x08 actor.active_unit_index, or actor.unit_index
+    real_point3d position;            // 0x0c object_get_position of that unit
+    real_vector3d forward;            // 0x18 object+0x74
+    real_vector3d left;               // 0x24 forward cross up
+    real_vector3d up;                 // 0x30 object+0x80
+    int16_t obstacle_count;           // 0x3c actor_movement_collect_obstacle_candidates refuses past 0x400
+    uint8_t unknown_3e[2];            // 0x3e
+    actor_movement_obstacle obstacles[1024];// 0x40
+    float unknown_6040;               // 0x6040 1.0
+    float search_radius;              // 0x6044 12.0
+} actor_movement_context; // size 0x6048
+
+// ---------------------------------------------------------------------------
+// firing position selection (0x411000..0x414130)
+// ---------------------------------------------------------------------------
+// actor_find_best_firing_position @0x412ba0 walks the owning ScenarioEncounter
+// firing_positions block, wraps every position whose group_index bit is in
+// actor_firing_position_query.group_mask in one of these candidate records, runs the
+// scoring table at 0x006555c0 and the rejection table at 0x006555f8 over them, sorts by
+// score and returns the winning firing position index. The 0x3c stride is fixed by the
+// initializer in that function, which writes every field below, and by the four scoring
+// routines, which all step their cursors by 0xf floats.
+typedef struct actor_firing_position_candidate {
+    uint32_t position;                 // 0x00 -> the ScenarioFiringPosition (a real_point3d then group_index)
+    int16_t firing_position_index;     // 0x04 index of that position inside the encounter block
+    int16_t request_result;            // 0x06 actor_report_firing_position_request stores the perception result code here
+    float distance_from_actor;         // 0x08 path length, or the straight-line distance while flying; FLT_MAX until filled
+    real_vector3d direction_from_actor;// 0x0c unit vector, zero until filled
+    float distance_from_target;        // 0x18 second path query, run from the target position
+    float segment_distance;            // 0x1c distance to the actor-to-target segment
+    real_vector3d direction_from_target;// 0x20
+    float distance_squared_to_target;  // 0x2c actor_score_firing_positions_by_range takes its square root
+    uint8_t valid;                     // 0x30 cleared by a rejection rule; the initializer sets 1
+    uint8_t rejected;                  // 0x31 a rejection rule fired but query.collect_all kept the candidate alive
+    uint8_t unknown_32[2];             // 0x32
+    float score_before_rejects;        // 0x34 copy of score taken between the scoring and the rejection pass
+    float score;                       // 0x38 HIGHER is better: every rule adds desirability, and
+                                       //   actor_find_best_firing_position keeps the largest surviving score
+} actor_firing_position_candidate; // size 0x3c
+
+// One entry of the danger-sphere array inside the query.
+typedef struct actor_firing_position_danger_sphere {
+    float radius;                      // 0x00
+    real_point3d position;             // 0x04
+} actor_firing_position_danger_sphere; // size 0x10
+
+// One entry of the hazard array inside the query. kind 0 and 1 are the two marked-object
+// kinds actor_score_firing_positions_by_history counts, kind 2 is the avoidance plane
+// actor_score_firing_positions_by_range projects candidates onto.
+typedef struct actor_firing_position_hazard {
+    int16_t kind;                      // 0x00
+    uint8_t unknown_02[2];             // 0x02
+    real_point3d position;             // 0x04
+    real_vector3d direction;           // 0x10
+} actor_firing_position_hazard; // size 0x1c
+
+// The caller-owned request-and-result block every routine in the firing position pipeline
+// is handed. The two array bounds are the literal caps the gatherer enforces (0x20 danger
+// spheres, 0x20 hazards); the trailing fields are the resolved threat description the
+// scoring rules read. 0x664 is where the last field ends, not a size the binary states.
+typedef struct actor_firing_position_query {
+    uint32_t group_mask;               // 0x00 ScenarioSquadAttacking bits; actor_get_firing_position_group_mask builds it
+    int16_t goal_kind;                 // 0x04 selects table rows: bit (1 << goal_kind) against each rule mask
+    int16_t unknown_06;                // 0x06
+    uint8_t unknown_08[8];             // 0x08
+    uint8_t score_instead_of_reject;   // 0x10 the pursuit rule adds a penalty rather than rejecting
+    uint8_t unknown_11[3];             // 0x11
+    uint8_t collect_all;               // 0x14 mark rejected candidates instead of clearing valid
+    uint8_t allow_random_fallback;     // 0x15 when nothing is in range, pick one candidate at random
+    uint8_t unknown_16[2];             // 0x16
+    float maximum_distance;            // 0x18 15.0, or 80.0 when actor.unknown_15e is nonzero
+    float search_radius;               // 0x1c defaults to maximum_distance when the caller leaves it zero
+    uint8_t have_explicit_target;      // 0x20 use the explicit block below instead of the actor own threat
+    uint8_t unknown_21[3];             // 0x21
+    real_point3d explicit_target_position;// 0x24
+    uint32_t explicit_target_object;   // 0x30
+    int16_t explicit_target_unknown_34;// 0x34
+    uint8_t unknown_36;                // 0x36
+    uint8_t unknown_37;                // 0x37
+    float unknown_38;                  // 0x38 copied to the avoidance radius when have_explicit_target
+    float unknown_3c;                  // 0x3c
+    uint8_t danger_active;             // 0x40 the actor is registering a danger; the threat rule runs the segment tests
+    uint8_t unknown_41;                // 0x41 prefer the alternate aim point of the target
+    uint8_t unknown_42;                // 0x42 goal_kind == 5
+    uint8_t want_direction_from_target;// 0x43 also fill direction_from_target on each candidate
+    uint8_t flying;                    // 0x44 copy of actor.flying; skips every path query
+    uint8_t unknown_45;                // 0x45 run the ally aim-cone test
+    uint8_t unknown_46;                // 0x46
+    uint8_t unknown_47;                // 0x47
+    uint32_t marked_group_mask;        // 0x48 a second group mask; matching candidates take marked_group_penalty
+    float marked_group_penalty;        // 0x4c
+    int32_t danger_sphere_count;       // 0x50 capped at 0x20 by the gatherer
+    actor_firing_position_danger_sphere danger_spheres[32]; // 0x54
+    int16_t hazard_count;              // 0x254
+    int16_t hazard_count_kind_01;      // 0x256
+    int16_t hazard_count_kind_2;       // 0x258
+    uint8_t unknown_25a[2];            // 0x25a
+    actor_firing_position_hazard hazards[32];// 0x25c
+    uint8_t have_standing_gun_offset;  // 0x5dc
+    uint8_t unknown_5dd[3];            // 0x5dd
+    real_vector3d standing_gun_offset; // 0x5e0 ActorVariant.custom_stand_gun_offset, else Actor.standing_gun_offset
+    uint8_t have_crouching_gun_offset; // 0x5ec
+    uint8_t unknown_5ed[3];            // 0x5ed
+    real_vector3d crouching_gun_offset;// 0x5f0 ActorVariant.custom_crouch_gun_offset, else Actor.crouching_gun_offset
+    uint8_t have_target;               // 0x5fc every threat-relative rule is gated on this
+    uint8_t unknown_5fd[3];            // 0x5fd
+    float target_distance;             // 0x600 prop.distance, or the straight-line distance for an explicit target
+    real_point3d target_position;      // 0x604 prop.last_known_position
+    real_point3d target_aim_position;  // 0x610 prop+0x104
+    real_point3d target_lead_position; // 0x61c prop+0x90 when unknown_41 and prop+0x8c is set, else prop+0x104
+    uint8_t target_is_large;           // 0x628 goal_kind 4 or 6
+    uint8_t unknown_629[3];            // 0x629
+    int32_t target_relationship_object;// 0x62c prop.relationship_object_index
+    uint32_t target_surface_index;     // 0x630 prop+0xec, or explicit_target_object; a navmesh surface id
+    real_point3d target_surface_point; // 0x634 prop+0xf0, or explicit_target_position; the point on it
+    int16_t target_unknown_640;        // 0x640 prop+0x100
+    uint8_t unknown_642[2];            // 0x642
+    datum_index target_prop_index;     // 0x644 the prop the block above was read from, or none
+    uint8_t have_target_vault_point;   // 0x648 set when the prop kind is 4 or 5
+    uint8_t unknown_649[3];            // 0x649
+    real_point3d target_vault_point;   // 0x64c prop+0x40
+    float target_unknown_658;          // 0x658 prop.unknown_20
+    uint8_t baseline_accept;           // 0x65c the rejection table run with no candidate at all
+    uint8_t unknown_65d[3];            // 0x65d
+    float baseline_penalty;            // 0x660 the score an ideal candidate would earn; used as the
+                                       //   early-out margin while scanning the sorted candidates
+} actor_firing_position_query; // size 0x664
+
+// One row of the two rule tables. A rule runs when (1 << query.goal_kind) & kinds. The
+// procedure field is a plain address so the CParser does not need its signature.
+//   0x006555c0 actor_firing_position_score_rules[7]
+//     0xffff 0x4112b0, 0x0009 0x411bf0, 0x004d 0x411ee0, 0x0010 0x411b60,
+//     0x0002 0x411980, 0x0020 0x411840, then the { 0, 0 } terminator
+//   0x006555f8 actor_firing_position_reject_rules[6]
+//     0xffff 0x412290, 0x0051 0x412620, 0x0008 0x412570, 0x0006 0x4124c0,
+//     0x0020 0x412350, then the { 0, 0 } terminator
+// Read straight out of bin/halo.exe. The five procedures 0x411840, 0x411980, 0x411b60,
+// 0x4124c0 and 0x412570 have no entry in out/functions.json: Ghidra never created
+// functions there because nothing but these tables reaches them, so they are missing from
+// out/phase4/ai_functions.md as well and have no rewrite under src/ai.
+// The 0x48-byte request block path_find_context_init copies over the head of a
+// path_find_context. actor_firing_position_near_point @0x412960 and
+// actor_find_best_firing_position @0x412ba0 both build one on the stack, zero it, fill the
+// fields below and then memcpy it in, which is what names the fields the header could only
+// call unknown up to 0x48.
+typedef struct path_find_request {
+    float pathfinding_radius;          // 0x00 Actor.pathfinding_radius
+    uint8_t ignores_glass;             // 0x04 actor.ignores_glass
+    uint8_t unknown_05[3];             // 0x05
+    datum_index unknown_08;            // 0x08 both callers set none
+    datum_index unknown_0c;            // 0x0c both callers set none
+    uint8_t have_start;                // 0x10
+    uint8_t unknown_11[3];             // 0x11
+    real_point3d start_position;       // 0x14
+    uint32_t start_surface_index;      // 0x20
+    uint8_t have_avoid_sphere;         // 0x24
+    uint8_t unknown_25[3];             // 0x25
+    real_point3d avoid_position;       // 0x28
+    datum_index avoid_object_index;    // 0x34
+    float avoid_radius;                // 0x38
+    float avoid_weight;                // 0x3c
+    uint8_t have_limit;                // 0x40
+    uint8_t unknown_41[3];             // 0x41
+    float limit_distance;              // 0x44
+} path_find_request; // size 0x48
+
+typedef struct actor_firing_position_rule {
+    int16_t kinds;                     // 0x00 bitmask over goal_kind
+    uint8_t unknown_02[2];             // 0x02
+    uint32_t proc;                     // 0x04 zero terminates the table
+} actor_firing_position_rule; // size 0x8
+
+// ---------------------------------------------------------------------------
+// small caller-owned request blocks
+// ---------------------------------------------------------------------------
+// The block actor_build_order_look @0x4046c0 fills in.
+typedef struct actor_look_request {
+    uint8_t unknown_00[8];             // 0x00
+    int16_t explicit_direction;        // 0x08 -1 when no explicit direction or waypoint is given
+    uint8_t unknown_0a[2];             // 0x0a
+    int16_t force_random;              // 0x0c nonzero forces the combat timing table
+    uint8_t unknown_0e[18];            // 0x0e
+    uint8_t has_target_point;          // 0x20 nonzero: target_point below is valid
+    uint8_t unknown_21[3];             // 0x21
+    real_point3d target_point;         // 0x24
+} actor_look_request; // size 0x30, only verified up to 0x2f
+
+// The block actor_get_body_axis_vector @0x405390 fills in; actor_squad_action_execute
+// builds one on the stack purely to call it.
+typedef struct actor_axis_request {
+    uint8_t unknown_00[8];             // 0x00
+    int16_t axis;                      // 0x08 0 forward, 1 back, 2 and 3 a perpendicular pair
+    uint8_t unknown_0a[2];             // 0x0a
+    real_vector3d result;              // 0x0c
+} actor_axis_request; // size 0x18, only verified up to 0x17
+
+// The block actor_consider_combat_mode @0x401a60 fills in and
+// actor_get_consideration_wait_threshold @0x4028e0 reads back.
+typedef struct actor_combat_consideration {
+    int32_t game_tick;                 // 0x00 snapshot of the current tick
+    int16_t mode;                      // 0x04 the resulting consideration mode
+    uint8_t unknown_06[4];             // 0x06
+    uint8_t grenade_eligible;          // 0x0a a random-chance melee-leap or grenade roll succeeded
+    uint8_t unknown_0b[33];            // 0x0b
+    float wait_threshold;              // 0x2c actor_get_consideration_wait_threshold result
+    uint8_t suicidal;                  // 0x30 Actor.flags has suicidal_melee_attack
+    uint8_t unknown_31;                // 0x31
+    int16_t position_index;            // 0x32
+    float distance_delta;              // 0x34
+} actor_combat_consideration; // size 0x38
+
+// The 16-byte block actor_begin_vocalization @0x4142d0 is handed and copies wholesale
+// into actor.vocalization_unknown_54c..558.
+typedef struct actor_vocalization_context {
+    int16_t kind;          // 0x00 1 means handle below names a prop
+    int16_t unknown_02;    // 0x02
+    datum_index handle;    // 0x04
+    uint32_t unknown_08;   // 0x08
+    uint32_t unknown_0c;   // 0x0c
+} actor_vocalization_context; // size 0x10
+
+// The out-parameter of actor_get_grenade_launch_velocity @0x410980, which
+// actor_commit_grenade_toss @0x411180 passes through.
+typedef struct grenade_solution {
+    real_vector3d velocity;            // 0x00 aim direction scaled by the solved speed
+    float unknown_0c;                  // 0x0c
+    float unknown_10;                  // 0x10
+    float unknown_14;                  // 0x14
+} grenade_solution; // size 0x18
+
+// The out-parameter of ai_conversation_get_run_to_player_range @0x402cf0.
+typedef struct ai_conversation_range_lookup {
+    uint32_t conversation_index;       // 0x00 echoes the caller index
+    uint32_t unknown_04;               // 0x04 always zero
+    float run_to_player_dist;          // 0x08 ScenarioAIConversation.run_to_player_dist, or 0 when disabled
+    int32_t unknown_0c;                // 0x0c ai_conversation.unknown_10, or -1 when the range is disabled
+    uint32_t unknown_10;               // 0x10 always -1
+} ai_conversation_range_lookup; // size 0x14
+
+// One row of the per-ActorType table actor_type_procs points at. Only the offsets the
+// module actually reads are named.
+typedef struct actor_type_table_entry {
+    uint8_t unknown_00[6];             // 0x00
+    int16_t unknown_06;                // 0x06
+    int16_t unknown_08;                // 0x08
+    int16_t unknown_0a;                // 0x0a
+    uint8_t unknown_0c;                // 0x0c compared against actor.swarm by 0x435420
+    uint8_t unknown_0d[3];             // 0x0d
+    uint32_t proc_10;                  // 0x10 actor_dispatch_type_vtable @0x426670
+    uint32_t unknown_14;               // 0x14
+    uint32_t proc_18;                  // 0x18 @0x4266a0
+    uint32_t proc_1c;                  // 0x1c @0x4266d0
+} actor_type_table_entry; // size 0x20, only verified up to 0x1f
+
+// The 8-byte {flag, candidate} record the recognition/look scan helpers fill in through an
+// out-parameter. Written by actor_select_facing_target_prop @0x414a90 and read back by
+// actor_resolve_look_target @0x414d00 and actor_look_randomize_direction @0x414f50.
+typedef struct actor_recognition_scan_result {
+    int16_t flag;             // 0x00 set to 1 on success
+    uint8_t unused_02[2];     // 0x02 padding
+    datum_index candidate;    // 0x04 the winning prop datum handle
+} actor_recognition_scan_result; // size 0x08
+
+// The ad hoc {code, payload} record every caller of actor_resolve_flee_source_point @0x4146c0
+// builds on its own stack. The code selects which of seven source kinds to resolve; the
+// payload is either a datum handle or a point, never both.
+typedef struct actor_flee_source_reason {
+    int16_t code;              // 0x00 selects which of the 7 source kinds to resolve
+    uint8_t unused_02[2];      // 0x02 padding
+    union {
+        uint32_t handle;       // 0x04 reason 1: prop_data datum; reason 6: object_data datum
+        real_point3d point;    // 0x04 reason 3 (relative to the actor) or 4 (absolute)
+    } payload;
+} actor_flee_source_reason; // size 0x10
+
+// One bucket of the call-for-help grouping table ai_group_bucket_find_or_add @0x420de0
+// maintains on the caller stack for actor_scan_allies_for_backup_request @0x420ec0.
+typedef struct ai_group_bucket_entry {
+    int16_t unknown_00;    // 0x00 priority/urgency rank claimed for this key so far
+    uint8_t unknown_02[2]; // 0x02
+    int32_t unknown_04;    // 0x04 claiming actor prop datum index for this object, or none
+    int32_t key;           // 0x08 the object index this bucket groups calls-for-help by
+    prop *unknown_0c;      // 0x0c pointer to the claiming actor prop record
+    int16_t unknown_10;    // 0x10 number of times a candidate refreshed this bucket distance
+    uint8_t unknown_12[2]; // 0x12
+    float unknown_14;      // 0x14 FLT_MAX sentinel, then smallest claim distance^2 seen
+    int32_t unknown_18;    // 0x18 nearest/first claiming ally actor index
+} ai_group_bucket_entry; // size 0x1c
+
+// One entry of the two perception candidate lists actor_target_scan_potential_targets
+// @0x41d7e0 builds on its stack, sorted with ai_target_distance_qsort_compare @0x41d7a0.
+typedef struct ai_target_candidate {
+    datum_index object_index; // 0x00 prop.object_index of the candidate
+    datum_index prop_index;   // 0x04 an existing prop datum index, or none for a fresh one
+    float distance;           // 0x08 distance^2 * 0.6944444, the qsort key
+} ai_target_candidate; // size 0x0c
+
+typedef struct ai_target_candidate_list {
+    int16_t seen_count;  // 0x00 how many candidates this list accepted (the caller caps it at 4)
+    int16_t entry_count; // 0x02 how many of the entries below are valid
+    ai_target_candidate entries[128];
+} ai_target_candidate_list; // size 0x604
+
+// The callback actor_swarm_for_each_component @0x407040 and its thunk invoke per member.
+typedef void (*actor_swarm_member_callback)(uint32_t actor_index, datum_index unit_index,
+                                            uint16_t extra, void *component_record,
+                                            int32_t unused, uint32_t callback_extra);
+
+// ---------------------------------------------------------------------------
+// Caller-owned scratch records
+//
+// These are stack blocks the functions of this module pass to each other, not entries of any
+// data_array, so nothing in the image declares their size directly; each layout below is
+// the union of the offsets the functions that build and read it actually touch. They were
+// folded here from per-file TYPES-GAP typedefs in src/ai/*.c during the phase-4 review pass
+// so that every file that shares one shares the same declaration.
+// ---------------------------------------------------------------------------
+
+// The filter/cursor block actor_iterator_next @0x436a70 walks. Every caller builds it
+// inline: filter_array is the data_array the scan is restricted to (encounter_data in every
+// call site seen so far), cursor and actor_index start at -1, active is 1, and signature is
+// filter_array XOR 0x69746572 (ASCII iter, little-endian) -- the same self-check
+// data_iterator uses. actor_index is the field callers read back to learn which actor the
+// last _next returned; established from the disassembly of
+// ai_communication_select_speaker_by_team (mov esi,[esp+0x34] at 0x43025d = iterator + 0x14).
+typedef struct actor_iterator_state {
+    data_array *filter_array;  // 0x00
+    int16_t unknown_04;        // 0x04 zeroed
+    uint8_t unknown_06[2];     // 0x06
+    int32_t cursor;            // 0x08 -1 (not yet started)
+    uint32_t signature;        // 0x0c filter_array XOR 0x69746572
+    uint8_t unknown_10;        // 0x10 zeroed
+    uint8_t active;            // 0x11 1
+    uint8_t unknown_12[2];     // 0x12
+    datum_index actor_index;   // 0x14 handle of the actor the last _next returned, else none
+    int32_t unknown_18;        // 0x18 -1
+} actor_iterator_state; // size 0x20
+
+// The iterator the pair at 0x432650 (new; ECX -> iterator, stack -> packed ai reference) and
+// 0x4326d0 (next; EDX -> iterator) use instead, for every actor named by one packed
+// squad/team reference. Only its size (a 0x18-byte stack slot in both call sites) and the
+// actor-handle slot are established.
+typedef struct ai_reference_actor_iterator {
+    uint8_t unknown_00[0x10]; // 0x00
+    datum_index actor_index;  // 0x10 handle of the actor the last _next returned
+    uint8_t unknown_14[4];    // 0x14
+} ai_reference_actor_iterator; // size 0x18
+
+// One candidate of the grenade-avoidance scan: built by actor_grenade_avoidance_entry_init
+// @0x42ad40, filled in bulk by actor_gather_nearby_grenade_targets, and consumed by
+// actor_grenade_trajectory_blocked and actor_grenade_parabolic_path_clear.
+typedef struct ai_grenade_avoidance_entry {
+    uint8_t already_clear;        // 0x00 1 when the crouch-offset lookup returned exactly 0.0
+    uint8_t unknown_01[3];        // 0x01
+    real_point3d target_position; // 0x04 UNSURE: read by the trajectory tests, writer not identified
+    uint32_t unknown_10;          // 0x10 zeroed by the writer; read as target_offset.x
+    uint32_t unknown_14;          // 0x14 zeroed by the writer; read as target_offset.y
+    float crouch_offset;          // 0x18 the first result of the crouch-offset lookup
+    datum_index prop_index;       // 0x1c
+    datum_index object_index;     // 0x20
+    float avoid_until;            // 0x24 the second result of that lookup plus a fixed 0.15s window
+} ai_grenade_avoidance_entry; // size 0x28
+
+// The list ai_build_priority_target_list @0x42a4a0 fills and ai_squad_priority_compare
+// @0x42a5d0 sorts (a qsort comparator, stride 0x0c).
+typedef struct ai_priority_target_record {
+    uint8_t tiebreak;   // 0x00
+    uint8_t pad[3];     // 0x01
+    uint32_t handle;    // 0x04
+    int32_t priority;   // 0x08
+} ai_priority_target_record; // size 0x0c
+
+typedef struct ai_priority_target_list {
+    int16_t count;      // 0x00
+    int16_t unknown_02; // 0x02
+    ai_priority_target_record records[256];
+} ai_priority_target_list; // size 0xc04
+
+// One slot of the 32-entry ring at ai_globals.unknown_134 that ai_accumulate_repeated_event
+// @0x42c0f0 maintains.
+typedef struct ai_recent_event_record {
+    int16_t event_id;      // 0x00 -1 marks an expired or free slot
+    int16_t count;         // 0x02
+    real_point3d position; // 0x04 running (weighted) average position
+    int32_t last_tick;     // 0x10
+} ai_recent_event_record; // size 0x14
+
+// The trace scratch actor_evaluate_engagement_reachability @0x42b1f0 hands to the collision
+// request at 0x505880.
+typedef struct ai_reachability_scratch {
+    uint8_t unknown_00[20]; // 0x00
+    float closing_speed;    // 0x14 UNSURE: read back only when the trace reports a hit
+} ai_reachability_scratch; // size 0x18, only verified up to 0x17
+
+// The 0x20-byte AI communication event record. ai_communication_broadcast @0x42d340 builds
+// one on its stack (Ghidra local_438..local_41c) and passes it to
+// ai_propagate_communication_reaction @0x42e9c0, ai_communication_play_event_line @0x42eee0
+// and ai_dispatch_queued_order @0x42c5a0. Those readers interpret overlapping but different
+// field sets, so the record is declared once per reader rather than merged into one guess:
+// ai_queued_order and ai_communication_order are the SAME storage seen two ways.
+// Established so far: +0x08 is the event "kind" ai_communication_play_event_line matches a
+// table row required_kind field against, and +0x0c / +0x0e are a short pair.
+typedef struct ai_queued_order {
+    uint8_t unknown_00[0xc]; // 0x00
+    int16_t single_target;   // 0x0c
+    int16_t target_count;    // 0x0e
+    datum_index object_a;    // 0x10
+    uint8_t unknown_14[12];  // 0x14
+} ai_queued_order; // size 0x20
+
+typedef struct ai_communication_order {
+    uint8_t unknown_00[0xc];  // 0x00
+    int16_t count;            // 0x0c
+    uint8_t unknown_0e[6];    // 0x0e
+    int16_t order_type;       // 0x14 0 or 1
+    uint8_t unknown_16[2];    // 0x16
+    int16_t team_a;           // 0x18 UNSURE
+    int16_t team_b;           // 0x1a UNSURE
+    uint8_t status;           // 0x1c UNSURE
+    uint8_t unknown_1d[3];    // 0x1d
+} ai_communication_order; // size 0x20
+
+// The 0x20-byte block ai_communication_target_result_reset @0x42d2c0 clears.
+typedef struct ai_communication_target_result {
+    datum_index target;       // 0x00 set to none
+    int16_t unknown_04;       // 0x04 set to -1
+    int16_t unknown_06;       // 0x06 set to -1
+    int16_t unknown_08;       // 0x08 set to -1
+    int16_t unknown_0a;       // 0x0a left zeroed
+    uint8_t unknown_0c[20];   // 0x0c left zeroed
+} ai_communication_target_result; // size 0x20
+
+// The record ai_communication_gate_line_played @0x42cfe0 inspects.
+typedef struct ai_communication_record {
+    datum_index object_index; // 0x00 UNSURE: guessed from context
+    uint8_t unknown_04[6];    // 0x04
+    uint8_t silenced;         // 0x0a
+} ai_communication_record; // size 0x0c, only verified up to 0x0a
+
+// One row of the AI communication event table at 0x00656b08, terminated by a row whose
+// event_id is -1. Stride 0x24, confirmed by the PTR_FUN_00656b28 / PTR_FUN_00656b4c
+// predicate slots sitting exactly 0x24 apart. class_index selects a column of the three
+// eight-entry per-class tables at 0x006558c4 (int16 line class), 0x006558d4 (float delay)
+// and 0x006558f4 (int16 follow-up order).
+typedef struct ai_communication_event_definition {
+    int16_t event_id;            // 0x00
+    int16_t required_kind;       // 0x02 -1 = any; else must equal +0x08 of the event record
+    int16_t selection;           // 0x04 2 = squad speaker, 3 = fixed object, 4 = hostile speaker
+    int16_t line_id;             // 0x06
+    int16_t seat_filter;         // 0x08
+    int16_t class_index;         // 0x0a
+    uint8_t flags;               // 0x0c bit 0 = ignore the global warm-up tick
+    uint8_t unknown_0d[3];       // 0x0d
+    float probability;           // 0x10 0 = never, unless the caller forces it
+    float unknown_14;            // 0x14
+    float delay_seconds;         // 0x18
+    float unknown_1c;            // 0x1c
+    uint8_t (*predicate)(datum_index object_index, void *event_record,
+                         datum_index speaker_actor_index); // 0x20 optional extra gate
+} ai_communication_event_definition; // size 0x24
+
+// One row of the second, larger AI communication table at 0x00655aa0 -- the "ai conversation"
+// line table ai_communication_broadcast @0x42d340 walks. A chain of rows shares one event_id
+// and ends at the first row whose event_id no longer matches the id being looked up; the
+// starting row index for an event code comes from the int16 index table at 0x008802e0.
+// Stride 0x28, recovered from the row arithmetic in ai_communication_broadcast. Sibling of
+// ai_communication_event_definition above; several field names are guessed by analogy and
+// carry an UNSURE tag.
+typedef struct ai_communication_line_definition {
+    int16_t event_id;             // 0x00 chain key; matched against the broadcast event code
+    int16_t class_index;          // 0x02 column into the three per-class tables at
+                                  //      0x006558c4 (tier) / 0x006558d4 (unused by the
+                                  //      broadcast path) / 0x006558f4 (follow_up_order)
+    int16_t table_arg_a;          // 0x04 UNSURE: default direction_class, also forwarded
+                                  //      verbatim to 0x4300d0 / 0x42ff80 / 0x42ec90
+    int16_t table_arg_b;          // 0x06 UNSURE: forwarded alongside table_arg_a
+    int16_t participant_selector; // 0x08 which resolved unit/object speaks or is addressed
+                                  //      (switch on this field, cases 0/1/2/4)
+    int16_t fallback_order;       // 0x0a UNSURE: alternate lookup key; -1 and 1 both mean
+                                  //      "use the per-class default"
+    int16_t look_target_selector; // 0x0c who looks at whom (switch, cases 1..4)
+    int16_t look_marker_selector; // 0x0e UNSURE: node/marker id override
+    float   probability;          // 0x10 multiplies directly into the candidate weight
+    uint8_t unknown_14[4];        // 0x14 UNSURE: never read by the broadcast path
+    uint8_t flags;                // 0x18 bit0/bit4/bit5 build the flag byte of 0x4300d0; bit1 =
+                                  //      broadcast to every recognizer; bit3 = allow a
+                                  //      no-actor object as a valid speaker
+    uint8_t unknown_19;           // 0x19 (one byte only -- +0x1a is read as an int16, see
+                                  //      the DAT_00655aba reference in 0x42d340)
+    int16_t capability_index;     // 0x1a UNSURE: index into the per-participant capability
+                                  //      byte array (self_capability / other_capability)
+    int16_t required_kind;        // 0x1c index into the 5-slot reason bucket array
+    int16_t relationship_gate;    // 0x1e UNSURE: index into the 8-byte combat flag block
+    uint16_t source_type_mask;    // 0x20 must intersect the source object type/team mask
+    uint16_t target_type_mask;    // 0x22 must intersect the target object type/team mask
+    int16_t required_seat;        // 0x24 must equal the broadcast seat argument unless -1
+    uint8_t unknown_26[2];        // 0x26 never read by the broadcast path
+} ai_communication_line_definition; // size 0x28
+
+// The per-candidate scratch record ai_communication_broadcast @0x42d340 builds on its stack,
+// one per surviving ai_communication_line_definition row (up to 16), scores, and then hands
+// to four different readers that each use a different overlapping field set. The byte offsets
+// are confirmed by stack-offset arithmetic against the disassembly of 0x42d340..0x42e930
+// (entry_esp - N for every Ghidra local_N, with a flat sub esp,0x4cc prologue); the field
+// names beyond score / entry_index / participant_object_index are best-effort. entry_index is
+// independently confirmed: it is the value passed to ai_communication_record_line_played as
+// its communication_line_id.
+typedef struct ai_communication_candidate {
+    float    score;                    // 0x00 selection weight; <= 0 candidates are dropped
+    uint8_t  global_broadcast;          // 0x04 bit 1 of the row flags byte
+    uint8_t  already_played;            // 0x05 "already resolved a target" end gate
+    int16_t  direction_class;           // 0x06 table_arg_a, or a 0x00655914 override
+    int16_t  tier;                      // 0x08 the line class/tier 0..7, from 0x006558c4
+    int16_t  raw_field_0a;              // 0x0a table_arg_b; re-read as +10 for a -1
+                                        //      "no marker" test
+    int16_t  line_delay_low;            // 0x0c low 16 bits of a recency fraction
+    int16_t  look_marker;               // 0x0e low 16 bits of a look-marker id
+    int16_t  result_index;              // 0x10 UNSURE: an object/prop table index
+    uint8_t  unknown_12[2];             // 0x12
+    datum_index participant_object_index; // 0x14 the object handed to the queue/marker calls
+    datum_index speaker_actor_index;    // 0x18 the resolved speaker/listener actor
+    datum_index other_object_index;     // 0x1c UNSURE: a second resolved object handle
+    datum_index object_result;          // 0x20 result of the 0x42ec90 target search, or -1
+    int16_t  follow_up_order;           // 0x24 fallback_order, or a per-class default
+    int16_t  look_node_a;               // 0x26 UNSURE: look-node id
+    int16_t  look_node_b;               // 0x28 UNSURE: look-node id
+    uint8_t  unknown_2a[2];             // 0x2a
+    datum_index order_target;           // 0x2c the object/actor 0x4302e0 should target
+    datum_index order_fallback;         // 0x30 the fallback 0x4302e0 should use instead
+    uint16_t entry_index;               // 0x34 row index into ai_communication_lines
+    uint8_t  unused_36[2];              // 0x36 stride padding, never referenced
+} ai_communication_candidate; // size 0x38
+
+// Not a game structure: the shape this module uses to model one specific MSVC calling-
+// convention artifact, a helper that returns a boolean in AL and a float in ST0 at the same
+// time. Two ai functions call such helpers (actor_rate_potential_target @0x41dc50 through
+// 0x41d800, actor_target_hearing_check @0x41e470 through 0x53e810) and both used to declare
+// their own identical local copy of this record.
+typedef struct bool_float_return {
+    uint8_t truthy; // AL
+    float value;    // ST0
+} bool_float_return;
+
+// The block actor_fill_unit_position_context @0x41b930 fills for its callers.
+typedef struct actor_unit_position_context {
+    real_point3d local_transform_position; // 0x00 UNSURE
+    uint8_t unknown_0c[12];                // 0x0c never written by that function
+    real_vector3d forward;                 // 0x18 object.forward of the given unit
+    float root_position_x;                 // 0x24 UNSURE offset (root object + 0x98)
+    float root_position_y;                 // 0x28 UNSURE offset (root object + 0x9c)
+} actor_unit_position_context; // size 0x2c, only verified up to 0x2b
+
+// The spawn request actor_place_new_unit @0x421ea0 reads out of EAX.
+typedef struct actor_placement_request {
+    real_point3d position;  // 0x00
+    float yaw;              // 0x0c
+    uint8_t unknown_10[2];  // 0x10 UNSURE
+    uint8_t unknown_12;     // 0x12 read as a signed byte
+    uint8_t unknown_13[2];  // 0x13
+    int16_t unknown_16;     // 0x16 actor.unknown_60 override when positive
+    uint8_t unknown_18[2];  // 0x18
+    uint8_t unknown_1a[2];  // 0x1a UNSURE
+    int16_t unknown_1c;     // 0x1c UNSURE, actor.unknown_62 default
+} actor_placement_request; // size 0x1e, only verified up to 0x1d
+
+// The block actor_reset_perception_scratch @0x41d3b0 zeroes.
+typedef struct actor_perception_request {
+    uint8_t flag_a;         // 0x00
+    uint8_t flag_b;         // 0x01
+    uint16_t unknown_02;    // 0x02
+    int16_t unknown_04;     // 0x04
+    int16_t unknown_06;     // 0x06
+    int16_t unknown_08;     // 0x08
+    real_vector3d origin;   // 0x0a UNSURE offset/alignment
+} actor_perception_request; // size 0x16
+
+// The header actor_dispatch_squad_order @0x41ff40 reads off a squad order block.
+typedef struct actor_squad_order_header {
+    uint8_t unknown_00[0x14]; // 0x00
+    int16_t type;             // 0x14
+} actor_squad_order_header; // size 0x16, only verified up to 0x15
+
+// ---------------------------------------------------------------------------
+// caller-owned scratch records
+// These are stack records that one function fills and another reads; none of them is a
+// datum array element. They were each recovered inside a single file during the phase-4
+// rewrite and are collected here so every file that touches one agrees on the layout.
+// ---------------------------------------------------------------------------
+
+typedef struct ai_reference_squad_iterator {
+    int32_t encounter_index; // 0x00
+    int32_t platoon_filter;  // 0x04
+    int32_t cursor;          // 0x08
+    int32_t squad_start;     // 0x0c
+    int32_t squad_end;       // 0x10
+} ai_reference_squad_iterator; // size 0x14
+
+typedef struct ai_reference_platoon_range {
+    int32_t encounter_index;
+    int32_t platoon_start;
+    int32_t platoon_end;
+} ai_reference_platoon_range;
+
+typedef struct path_find_boundary_crossing {
+    uint8_t found;
+    uint8_t unknown_01[3];
+    real_point3d position;
+    int32_t edge_a;
+    int32_t edge_b;
+    float fraction;
+} path_find_boundary_crossing;
+
+typedef struct path_find_adjacent_edge {
+    int32_t edge_id;        // 0x00 the neighboring vertex id (despite the name every caller uses it as a vertex, not an edge)
+    uint8_t flag;           // 0x04
+    uint8_t unknown_05[3];  // 0x05
+    float start_x;          // 0x08
+    float start_y;          // 0x0c
+    float start_z;          // 0x10
+    float direction_x;      // 0x14
+    float direction_y;      // 0x18
+    float direction_z;      // 0x1c
+} path_find_adjacent_edge; // size 0x20
+
+typedef struct actor_prop_iterator {
+    datum_index current; // 0x00
+    datum_index next;    // 0x04
+} actor_prop_iterator;
+
+typedef struct path_find_simplify_scratch {
+    uint8_t unknown_00[8];
+    real_point3d point_a; // UNSURE: local_70/6c/68 region
+    float unknown_1c;
+    uint8_t unknown_20[8];
+    uint8_t unknown_28[24];
+    uint8_t unknown_40[4];
+    real_point3d point_b;
+    int32_t vertex_id;
+    uint8_t unknown_58[20];
+    int32_t result;
+} path_find_simplify_scratch;
+
+typedef struct ai_search_nearest_point_result {
+    float distance;    // 0x00
+    int16_t point_id;  // 0x04
+    int16_t link;       // 0x06
+} ai_search_nearest_point_result;
+
+typedef struct ai_search_edge_result {
+    float cost;             // 0x00
+    float heading_x;        // 0x04
+    float heading_y;        // 0x08
+    int16_t point_id;       // 0x0c
+    uint8_t unknown_0e[2];  // 0x0e (only ever written as a raw 2-byte copy of the upper half of unknown_18; see header)
+} ai_search_edge_result; // size 0x10, only verified up to 0xf
+
+typedef struct ai_platoon_condition {
+    int16_t code;           // 0x00 1..9 select the case below; anything else is always false
+    int16_t platoon_index;  // 0x02 an encounter_platoon_state index, or out of range to mean: use the totals of the encounter itself
+} ai_platoon_condition;
+
+typedef struct ai_path_candidate_goal {
+    uint8_t valid;              // 0x00
+    uint8_t unknown_01[3];      // 0x01
+    real_point3d position;      // 0x04
+    uint32_t unknown_10;        // 0x10 set to 0xffffffff on success
+    uint32_t unknown_14;        // 0x14 set to 0 on success
+    uint8_t reachable;          // 0x18 out_success of path_find_test_direct_reachability
+    uint8_t flag_19;            // 0x19 set to 1 on success
+    uint8_t flag_1a;            // 0x1a set to 0 on success
+    uint8_t unknown_1b;         // 0x1b
+    uint32_t unknown_1c;        // 0x1c set to 0xffffffff on success
+    real_point3d alt_position;  // 0x20 out_position of path_find_test_direct_reachability
+    uint8_t unknown_2c[0x30];   // 0x2c zeroed, never independently written here
+} ai_path_candidate_goal; // size 0x5c
+
+typedef struct ai_nearby_actor_candidate {
+    datum_index actor_index;
+    float distance_squared;
+    uint8_t is_type_9;
+    uint8_t pad[3];
+} ai_nearby_actor_candidate; // size 0xc, matches the stride of object_sort_by_flag_then_distance
+
+typedef struct ai_conversation_speech_request {
+    int16_t priority;             // 0x00
+    int16_t scream_type;          // 0x02
+    datum_index sound_tag;        // 0x04
+    int16_t delay_ticks;          // 0x08
+    int16_t lipsync_ticks;        // 0x0a
+    int16_t tail_ticks;           // 0x0c
+    int16_t unknown_0e;           // 0x0e
+    int32_t unknown_10;           // 0x10
+    int16_t unknown_14;           // 0x14
+    int16_t ai_line_index;        // 0x16
+    int16_t unknown_18;           // 0x18
+    uint8_t suppress_line_record; // 0x1a
+    uint8_t unknown_1b;           // 0x1b
+    int16_t unsure_flag_a;        // 0x1c UNSURE: always 1 at this call site
+    int16_t unsure_flag_b;        // 0x1e UNSURE: always 1 at this call site
+    datum_index unsure_unit_index;// 0x20 UNSURE: the unit this speech plays on
+    uint8_t unknown_24[12];       // 0x24
+} ai_conversation_speech_request; // size 0x30
+
+// ---------------------------------------------------------------------------
+// globals this module owns
+// ---------------------------------------------------------------------------
+// global 0x00880354: ai_globals *ai_globals             0x8dc bytes out of the game state
+// global 0x00880360: data_array *actor_data             stride 0x724, capacity 0x100
+// global 0x0088035c: data_array *swarm_data             stride 0x98, capacity 0x20
+// global 0x00880358: data_array *swarm_component_data   stride 0x40, capacity 0x100
+// global 0x008802c0: data_array *prop_data              stride 0x138, capacity 0x300
+// global 0x008802c8: data_array *encounter_data         stride 0x6c, capacity 0x80
+// global 0x008802cc: encounter_squad_state *encounter_squad_states      0x8000 bytes
+// global 0x008802c4: encounter_platoon_state *encounter_platoon_states  0x1000 bytes
+// global 0x008802d0: data_array *ai_pursuit_data        stride 0x28, capacity 0x100
+// global 0x008802d4: data_array *ai_conversation_data   stride 0x64, capacity 8
+//
+// The direction-sample tables FUN_0041a2d0 (called once from ai_initialize_for_new_map)
+// precomputes for the obstacle-avoidance sampler. The bases and strides come from the
+// pointer arithmetic in that function; the three runs are contiguous and do not overlap.
+// global 0x00880380: float actor_avoidance_samples_a[16][7]   stride 0x1c, 0x880380..0x88053f
+// global 0x00880540: float actor_avoidance_circle[8][3]       stride 0x0c, 0x880540..0x88059f
+// global 0x008805a0: float actor_avoidance_samples_b[9][7]    stride 0x1c, 0x8805a0..0x88069b
+//   Each 7-float row is { 1.0 or 0.7, 0.0, plane i, plane j, cos(elevation),
+//   sin(elevation)*i, sin(elevation)*j }; the source angles and radii are the .rdata
+//   constants at 0x006556a0, 0x006556c8, 0x006556ec, 0x00655714, 0x00655734 and 0x0065573c.
+//
+// Globals this module reads but does not own, listed so the ownership stays honest:
+//   0x008603b0 data_array *object_data                (types/objects.h)
+//   0x0087bc14 tag_instance *tag_instances            (types/cache.h)
+//   0x00746f8c global_scenario                        the scenario tag data
+//   0x00746f98 / 0x00746f9c the collision BSP index and generation counter
+//   0x006f1d6c the game time globals, current tick at +0x0c
+//   0x006e2dc8 / 0x006e2dcc / 0x006e2dd4 the game-state bump allocator and its crc
+//   0x00719cd0 random_seed_global                     (types/math.h)
+//   0x00696714 / 0x00696718 the shared zero vectors   (types/math.h)
+//   0x00655254 the actor mode definition table and 0x006853b8 the per-type vtable table
+//   0x006f0c98 / 0x006f0c9c and 0x006f0ca0 / 0x006f0ca4 the two communication timestamp
+//              tables 0x42d230 resets (count and base, 8 bytes per entry, two per index)
+#pragma pack(pop)

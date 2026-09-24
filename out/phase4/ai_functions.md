@@ -1,0 +1,521 @@
+# ai module: 519 functions (address, current Ghidra name, size, agent confidence, summary)
+
+- 0x401090 FUN_00401090 size=80 conf=0.35 :: Builds a default/idle actor order record (zeroed body, 0xffff target) that is cleared out if the actor is currently unable to act.
+- 0x4014c0 FUN_004014c0 size=744 conf=0.4 :: Selects the next, previous, or a random free formation/firing position for the actor from its unit type's position list, skipping slots already claimed by nearby squadmates.
+- 0x4017b0 FUN_004017b0 size=156 conf=0.4 :: Issues a pathfinding request for the actor when its 'needs new path' flag is set and returns whether the computed path reaches the destination exactly.
+- 0x401a60 actor_consider_combat_mode size=737 conf=0.5 :: Evaluates whether the actor should switch to a new combat sub-mode (grenade, search, guard, engage) and, if so, fills in the resulting order parameters.
+- 0x4028e0 FUN_004028e0 size=243 conf=0.45 :: Computes the wait/reaction-time threshold the actor should use for its current consideration mode (search wait vs vitality-based delay).
+- 0x4029e0 FUN_004029e0 size=184 conf=0.4 :: Issues a trace request from a cached or newly fetched source point toward a target point, used when evaluating a grenade throw.
+- 0x402cf0 FUN_00402cf0 size=128 conf=0.3 :: Fetches a range/threshold value and an associated datum handle from an actor-type definition table entry for a given command index, filling caller-provided output fields.
+- 0x402f80 actor_schedule_grenade_throw size=499 conf=0.5 :: Once a grenade target has been resolved, computes a randomized throw delay and records a pending grenade-throw order on the actor.
+- 0x403180 FUN_00403180 size=946 conf=0.4 :: Decides whether the actor needs a new movement destination based on target visibility and morale, and if so issues a pathfinding request for one.
+- 0x403630 FUN_00403630 size=264 conf=0.45 :: Builds a grenade-throw-or-melee order for the actor, randomly biasing toward a grenade throw for certain order codes and otherwise checking for a valid melee attack.
+- 0x403dc0 FUN_00403dc0 size=305 conf=0.45 :: Returns whether the actor still perceives its last known target position as within engagement range, accounting for a leading squadmate's status.
+- 0x403f00 FUN_00403f00 size=717 conf=0.4 :: Computes a path to the actor's melee target and validates whether the melee attack is currently reachable, recording distance and obstruction results.
+- 0x4041d0 FUN_004041d0 size=296 conf=0.4 :: Checks whether the actor can path to and pick up a weapon held by another unit, copying the target position into the record on success.
+- 0x404340 actor_order_code_is_grenade_throw size=21 conf=0.6 :: Returns whether an order code (passed in AX) falls in the grenade-throw code range 9-12.
+- 0x4044b0 FUN_004044b0 size=82 conf=0.4 :: Builds an order that sends the actor back to its anchor/home position.
+- 0x404510 FUN_00404510 size=143 conf=0.4 :: Builds a stationary guard order, either at the actor's current position or at its designated anchor point.
+- 0x4045a0 FUN_004045a0 size=260 conf=0.4 :: Builds a search-and-wait order at a scenario search position, scaling the wait duration by target category, unless morale has broken.
+- 0x4046c0 FUN_004046c0 size=345 conf=0.45 :: Builds an order making the actor look in a randomly chosen direction, or at an explicit target point when one is supplied.
+- 0x4048b0 FUN_004048b0 size=243 conf=0.4 :: Reports the actor's scripted command-list status as a chatter/status event keyed by command index and target shield state, once per actor.
+- 0x4049d0 FUN_004049d0 size=439 conf=0.4 :: Issues a move-and-face pathfinding request for the actor and schedules a follow-up random wait once the move completes.
+- 0x4052c0 vector3d_cross_product size=81 conf=0.9 :: Computes the cross product of two 3D vectors (registers in_EAX=out, param_1=a, in_ECX=b).
+- 0x405320 random_int_range size=49 conf=0.5 :: Returns a pseudo-random integer linearly interpolated between an implicit lower bound (ECX) and param_1.
+- 0x405360 float_compare_ascending size=45 conf=0.6 :: qsort comparator that orders two floats ascending by the values they point to.
+- 0x405390 FUN_00405390 size=376 conf=0.4 :: Returns one of the actor's four body-relative axis vectors (forward, back, or a perpendicular pair) for use in aiming/orientation math.
+- 0x405520 actor_squad_action_execute size=4338 conf=0.5 :: Executes the squad's current scripted action-list entry for this actor, branching on the entry's action type (aim, look, grenade, flag set, proximity wait, ...).
+- 0x4066d0 actor_squad_action_is_complete size=1318 conf=0.5 :: Tests whether the actor's current squad action-list entry has finished, based on its action type's completion condition.
+- 0x406c50 FUN_00406c50 size=312 conf=0.4 :: Resets/cleans up per-entry state for the actor's current squad action-list item before moving to the next one.
+- 0x406e30 actor_squad_action_list_process size=246 conf=0.5 :: Drives a squad's scripted action list for this actor to completion, calling the per-entry check/reset/execute functions in sequence.
+- 0x407040 FUN_00407040 size=244 conf=0.4 :: Invokes a callback for every member of the actor's squad (or just the actor alone), optionally resetting each member's per-callback state first.
+- 0x407140 FUN_00407140 size=249 conf=0.45 :: Records a squad member's updated status bits and broadcasts the change to the rest of the squad.
+- 0x407240 FUN_00407240 size=51 conf=0.35 :: Convenience wrapper that forwards to actor_squad_for_each_member using the caller's register arguments.
+- 0x4077d0 FUN_004077d0 size=77 conf=0.4 :: Builds a flee-style order for the actor and marks it as having committed to a new order.
+- 0x407820 FUN_00407820 size=193 conf=0.4 :: Builds an order that has the actor face a specific seat marker on its target unit.
+- 0x4078f0 FUN_004078f0 size=68 conf=0.35 :: Builds a minimal 'stop/idle' order, only valid while the actor is inactive.
+- 0x4080c0 FUN_004080c0 size=75 conf=0.35 :: Builds a simple wait order carrying a single caller-supplied byte parameter.
+- 0x408110 FUN_00408110 size=193 conf=0.45 :: Builds a face-seat-marker order like actor_build_order_face_seat_marker but without committing the actor to it.
+- 0x408300 FUN_00408300 size=358 conf=0.4 :: Issues a pathfinding query that optionally includes grenade-arc parameters and records whether the requested destination changed.
+- 0x408920 actor_build_order_search_object size=267 conf=0.5 :: Builds an order sending the actor to investigate a specific object, chaining range, waypoint, visibility, and reachability checks.
+- 0x408a30 actor_build_order_investigate_encounter_point size=287 conf=0.5 :: Builds an order sending the actor to investigate an encounter-derived point of interest, subject to vitality and perception checks.
+- 0x408ba0 FUN_00408ba0 size=732 conf=0.4 :: Maintains and periodically advances the actor's 'investigating a disturbance' state, abandoning the search after too many failed attempts.
+- 0x408f30 actor_is_within_alert_range size=319 conf=0.5 :: Returns whether a point or object lies within a given alert radius of the actor, subject to the actor's perception and vitality state.
+- 0x409070 FUN_00409070 size=342 conf=0.45 :: Scans a cluster's list of candidate search positions and returns the index and data for the highest-scoring one.
+- 0x4091d0 FUN_004091d0 size=1003 conf=0.4 :: Evaluates one candidate search/junction node against a from-to object pair, returning its direction, orientation, and a visibility-based score.
+- 0x4095c0 FUN_004095c0 size=1219 conf=0.4 :: Adjusts a destination point to avoid a nearby obstacle and projects the result onto the ground via a ray cast.
+- 0x409a90 FUN_00409a90 size=153 conf=0.4 :: Builds a wait order with a randomized duration between roughly 300 and 600 ticks.
+- 0x409e70 actor_invoke_type_handler size=44 conf=0.5 :: Invokes the type-specific AI handler function for the actor's current behavior type, if one is registered.
+- 0x409ea0 actor_process_order_request size=621 conf=0.5 :: Central dispatcher that turns a requested order code into a concrete built order for the actor, subject to per-code cooldowns.
+- 0x40a700 FUN_0040a700 size=235 conf=0.35 :: Gates whether the actor may perform a jump/climb-style traversal action, applying a per-actor cooldown and a scripted animation trigger.
+- 0x40ab80 FUN_0040ab80 size=161 conf=0.4 :: Returns whether the actor currently wants to reload or swap weapons, based on ammo state, squad-wide low-ammo signaling, and morale.
+- 0x40b080 FUN_0040b080 size=1767 conf=0.35 :: Detaches or re-seats an actor's controlled unit relative to a vehicle seat, updating seat, transform, and multiplayer bookkeeping as needed.
+- 0x40b840 actor_should_throw_grenade size=224 conf=0.5 :: Returns whether the actor is currently eligible to throw a grenade, based on cooldowns, combat status, and vitality thresholds.
+- 0x40b920 FUN_0040b920 size=800 conf=0.4 :: Periodically checks for nearby grenade threats and expiring morale timers, triggering dodge or flee reactions as needed.
+- 0x40c620 actor_evaluate_combat_state_transition size=1443 conf=0.5 :: Decides whether the actor should transition into full combat/alert state and, if so, commits the corresponding order.
+- 0x40cc70 actor_get_target_state_flags size=375 conf=0.5 :: Computes a set of target-state flags (shields down, morale-gated, target invalid) used by the combat decision routines.
+- 0x40cdf0 FUN_0040cdf0 size=1742 conf=0.45 :: Chooses and commits the actor's next melee/close-combat action (charge, retreat, wait, or reposition) based on its behavior type and target state.
+- 0x40d4c0 FUN_0040d4c0 size=91 conf=0.45 :: While fleeing, makes the actor look away from the threat by committing a randomized-look order.
+- 0x40d520 FUN_0040d520 size=93 conf=0.4 :: Determines whether the actor should stay at its current combat status level rather than escalating, based on morale and scripted command restrictions.
+- 0x40d580 FUN_0040d580 size=132 conf=0.4 :: Checks whether the scenario's scripted command-list settings permit the actor to escalate to a higher alert/combat status.
+- 0x40d610 FUN_0040d610 size=374 conf=0.45 :: Runs the combat-behavior update appropriate to the actor's archetype, choosing between the state-transition check and the melee/combat decision logic.
+- 0x40d7a0 FUN_0040d7a0 size=114 conf=0.45 :: Conditionally re-runs the combat state-transition check, but only while the actor is already in the relevant combat sub-state.
+- 0x40d820 FUN_0040d820 size=162 conf=0.3 :: Checks whether the actor's current special mode (5, 7, or 8) is ready to proceed and, if so, invokes the matching per-mode helper before a common cleanup step.
+- 0x40d8d0 actor_set_mode size=236 conf=0.5 :: Central actor mode setter: runs the outgoing mode's exit callback, updates housekeeping fields, copies mode-specific data, and runs the new mode's entry callback.
+- 0x40d9c0 FUN_0040d9c0 size=318 conf=0.4 :: Determines whether the actor can currently throw a grenade at its target by validating a clear, safe trajectory.
+- 0x40db00 FUN_0040db00 size=300 conf=0.4 :: Checks whether the actor is now facing closely enough toward its grenade target and, if so, commits to the throw and timestamps the threat record.
+- 0x40dc30 FUN_0040dc30 size=287 conf=0.4 :: Periodically rolls whether the actor decides to throw a grenade, using a randomized cooldown/probability from its grenade tag data.
+- 0x40dd50 FUN_0040dd50 size=198 conf=0.3 :: One-time actor death handling that clears its current threat and transitions it into mode 4 (death handling).
+- 0x40de20 FUN_0040de20 size=75 conf=0.3 :: Checks a pain/reaction condition and transitions the actor into the associated mode if satisfied.
+- 0x40de70 FUN_0040de70 size=485 conf=0.35 :: Evaluates whether the actor's current threat is positioned well enough to grenade and, if so, requests a grenade throw toward it.
+- 0x40e260 FUN_0040e260 size=275 conf=0.45 :: Picks the first still-valid vocalization line from a candidate list and triggers the actor to play it via mode 9.
+- 0x40e380 FUN_0040e380 size=273 conf=0.4 :: Determines whether two actors are considered to share the same target/threat descriptor, with a random tie-break for the ambiguous case.
+- 0x40e4a0 FUN_0040e4a0 size=159 conf=0.4 :: Validates a candidate actor (by handle) as eligible for a grenade-related interaction based on its current mode and team.
+- 0x40e540 FUN_0040e540 size=530 conf=0.35 :: Counts and finds the nearest eligible ally actor for a coordinated grenade attack and records it on the actor.
+- 0x40e760 FUN_0040e760 size=36 conf=0.4 :: Returns a per-mode property value from the mode definition table for the actor's currently active mode.
+- 0x40e790 FUN_0040e790 size=25 conf=0.3 :: Looks up an entry in a small fixed-size table by index, returning zero if the index is out of range.
+- 0x40e7b0 FUN_0040e7b0 size=3752 conf=0.35 :: The actor's main per-tick combat/movement update: refreshes cooldowns, re-derives the current threat, and drives the movement/aiming state machine.
+- 0x40f670 FUN_0040f670 size=139 conf=0.35 :: Checks mode- and timing-based gating rules to decide whether a particular grenade behavior kind is currently allowed for the actor.
+- 0x40f700 FUN_0040f700 size=145 conf=0.35 :: For grenade-target kind 3, revalidates that the previously chosen target is still a good throw candidate.
+- 0x40f7e0 FUN_0040f7e0 size=391 conf=0.35 :: Computes the aim direction for a grenade throw, nudging it away from a too-close firing line when needed.
+- 0x40f970 FUN_0040f970 size=61 conf=0.4 :: Resolves the actor's current possessed unit to its associated actor-type tag definition block.
+- 0x40f9b0 FUN_0040f9b0 size=177 conf=0.4 :: Returns the 3D position to aim/look from for the actor (its eye offset if flagged, otherwise its object's base position).
+- 0x40fa70 actor_get_actor_definition size=127 conf=0.5 :: Returns the actor definition (tag data block) to use, preferring a possessed unit's actor-type override when present.
+- 0x40faf0 FUN_0040faf0 size=436 conf=0.45 :: Chooses a randomized point within a given radius of the actor, pulling it back toward the actor if the line to it is obstructed.
+- 0x40fcb0 FUN_0040fcb0 size=2092 conf=0.4 :: Recomputes the actor's desired movement destination and velocity each tick, applying randomized wander and turn-rate limits.
+- 0x4104e0 FUN_004104e0 size=213 conf=0.4 :: Reseeds the actor's short movement-pause timer with a new randomized value.
+- 0x4105c0 FUN_004105c0 size=237 conf=0.35 :: Decides whether the actor should currently hold its position, forcing a flee for dangerous-weapon threats.
+- 0x4106b0 FUN_004106b0 size=95 conf=0.3 :: Selects which stance-specific offset pair (crouching, in-cover, leaning) to use for subsequent position math.
+- 0x410710 FUN_00410710 size=112 conf=0.35 :: Validates and records a candidate grenade impact point on the actor if the area is clear.
+- 0x410780 FUN_00410780 size=499 conf=0.35 :: Solves for a grenade lob trajectory toward the target and commits it if the throw direction is acceptably forward-facing.
+- 0x410980 FUN_00410980 size=221 conf=0.35 :: Computes and returns a grenade launch velocity vector (and optional gravity scale) for the given throw parameters.
+- 0x410a60 FUN_00410a60 size=560 conf=0.35 :: Produces the final grenade throw direction vector, correcting it toward the actor's facing cone when needed.
+- 0x410c90 FUN_00410c90 size=263 conf=0.4 :: Finds a suitable grenade landing point at the current threat's position when it is within the actor's configured grenade range.
+- 0x410da0 FUN_00410da0 size=979 conf=0.45 :: Scores hostiles within a blast radius of a point and checks no friendlies are within a safety radius, returning whether the spot is clear to throw at.
+- 0x411180 FUN_00411180 size=295 conf=0.35 :: Computes and commits the final grenade toss parameters once a valid landing solution has been accepted.
+- 0x4112b0 FUN_004112b0 size=1405 conf=0.35 :: Adds danger weighting to a list of candidate movement points based on proximity to a threat's line of sight, marked danger zones, and allies' aim direction.
+- 0x411bf0 FUN_00411bf0 size=737 conf=0.35 :: Further weights candidate movement points by penalizing proximity to grenade/blast danger and marked avoidance planes.
+- 0x411ee0 FUN_00411ee0 size=508 conf=0.3 :: Weights candidate movement points to discourage the actor from revisiting positions it has used recently.
+- 0x4120f0 FUN_004120f0 size=415 conf=0.3 :: Reports the outcome of a movement/aim request back to the perception system based on the type of movement goal requested.
+- 0x412290 FUN_00412290 size=184 conf=0.3 :: Applies avoidance-danger scoring to a candidate movement point, rejecting it when a required avoidance condition isn't satisfied.
+- 0x412350 FUN_00412350 size=365 conf=0.3 :: Scores a candidate movement point against a timed hazard, penalizing points near the hazard soon and rejecting unsafe ones.
+- 0x412620 FUN_00412620 size=198 conf=0.3 :: Applies a simple fixed-penalty scoring rule for a candidate movement point against one class of hazard.
+- 0x4126f0 FUN_004126f0 size=64 conf=0.35 :: Dispatches to each applicable per-hazard-type scoring callback for the actor's set of active danger flags.
+- 0x412730 FUN_00412730 size=62 conf=0.35 :: Runs applicable per-hazard rejection checks for a candidate movement point, stopping as soon as one rejects it.
+- 0x412770 FUN_00412770 size=62 conf=0.35 :: Same per-hazard rejection dispatch as actor_apply_danger_rejection_checks, but first resets the actor's avoidance cooldown accumulator.
+- 0x412820 FUN_00412820 size=82 conf=0.3 :: Runs the full danger-scoring and rejection pipeline for one candidate movement point, producing its final validity flag and score.
+- 0x412880 FUN_00412880 size=224 conf=0.4 :: Resolves which grenade/weapon tag index to use for the actor for a given request kind, accounting for handedness and per-unit overrides.
+- 0x412960 FUN_00412960 size=554 conf=0.3 :: Checks whether any of the actor-type's marked hazard points obstruct a shot toward a given target position.
+- 0x412ba0 FUN_00412ba0 size=4754 conf=0.3 :: Gathers and assembles the full combat-decision context for the actor (target data, nearby hazards, candidate points, visibility) used by the rest of the AI pipeline.
+- 0x413e50 FUN_00413e50 size=516 conf=0.3 :: Selects which grenade type to use and finds (or falls back to a randomized blind) a valid target position for the actor to throw at.
+- 0x414060 FUN_00414060 size=214 conf=0.35 :: Sets or clears which perception/threat record the actor is currently recognizing, evicting any other actor previously bound to it.
+- 0x414140 FUN_00414140 size=95 conf=0.35 :: Clears the actor's recent target-recognition history ring buffer.
+- 0x4141a0 FUN_004141a0 size=173 conf=0.35 :: Pushes a newly recognized object into the actor's recognition-history ring buffer along with a position snapshot.
+- 0x414250 FUN_00414250 size=113 conf=0.3 :: Tracks how long a flee condition has persisted and, once past a threshold, queries and commits a fleeing response.
+- 0x4142d0 FUN_004142d0 size=647 conf=0.4 :: Attempts to start playing a vocalization line for the actor, applying mode/cooldown gating and computing a randomized playback duration.
+- 0x414560 actor_clear_vocalization size=46 conf=0.5 :: Clears the actor's currently selected vocalization/dialogue line state.
+- 0x414590 FUN_00414590 size=301 conf=0.35 :: Computes a numeric priority weight for how attractive a potential threat/target is, combining class, distance, occupancy and relationship factors.
+- 0x4146c0 FUN_004146c0 size=555 conf=0.4 :: Resolves the source point/direction to flee away from, based on a caller-selected flee-reason code.
+- 0x414910 FUN_00414910 size=128 conf=0.45 :: Tests whether a 2D direction lies within a given angular cone of another direction.
+- 0x414990 FUN_00414990 size=255 conf=0.35 :: Tests whether one point lies within a directional lane/cone relative to another point and forward direction, using per-side angular thresholds.
+- 0x414a90 FUN_00414a90 size=613 conf=0.3 :: Scans nearby recognized threats for the best-weighted one matching lane/direction criteria, used to pick which threat to react or dodge to.
+- 0x414d00 FUN_00414d00 size=580 conf=0.3 :: Sets up the actor's evasive response to a nearby dangerous threat, computing turn bounds and requesting the appropriate dodge/avoid movement.
+- 0x414f50 FUN_00414f50 size=401 conf=0.45 :: Picks a new random gaze/look direction constrained to the unit's aim cone and arms the look timer for the actor.
+- 0x4150f0 FUN_004150f0 size=84 conf=0.35 :: Returns a pointer into the actor's unit structure holding the aim-pitch limit pair appropriate for the actor's current posture.
+- 0x415150 actor_look_get_wait_ticks size=267 conf=0.5 :: Computes a randomized delay in ticks (at 30 fps) before the actor's next look-direction update, optionally scaled by an urgency flag.
+- 0x415260 actor_look_pick_random_point_in_cone size=540 conf=0.55 :: Generates a normalized random direction vector within a given yaw/pitch cone, retrying against a validity test when requested.
+- 0x415480 FUN_00415480 size=3896 conf=0.4 :: Large per-tick routine that decides where the actor should be looking (aim target, idle scan, vehicle-relative) and updates its stored look vector and timers.
+- 0x4163e0 FUN_004163e0 size=796 conf=0.4 :: Advances the actor along a queued dodge waypoint path, or computes a fresh lateral dodge destination when no path is queued.
+- 0x416700 FUN_00416700 size=138 conf=0.45 :: Checks whether the actor has moved close enough to its planned grenade-throw position and marks the action complete if so.
+- 0x416790 actor_movement_update size=3074 conf=0.5 :: Per-tick actor movement decision routine that selects a movement mode and desired direction, then applies obstacle-aware steering to it.
+- 0x4173a0 FUN_004173a0 size=460 conf=0.35 :: Computes linear/angular turning-radius bounds (from vehicle physics or defaults) used elsewhere for movement path cost estimation.
+- 0x417570 actor_movement_action_stop size=152 conf=0.55 :: Cancels the actor's current movement goal by queuing a trivial 'stop/hold position' action (or redirecting into a dodge return point).
+- 0x417610 actor_movement_set_destination_point size=308 conf=0.6 :: Queues a movement action that sends the actor directly to an explicit world-space point.
+- 0x417750 actor_movement_set_destination_firing_point size=212 conf=0.55 :: Queues a movement action that sends the actor to a specific encounter firing/anchor position by index.
+- 0x417830 actor_movement_set_destination_formation_point size=220 conf=0.55 :: Queues a movement action that sends the actor to a specific squad formation slot by index.
+- 0x417910 actor_movement_set_destination_near_target size=284 conf=0.5 :: Queues a movement action that sends the actor toward (within a given radius of) a tracked target object.
+- 0x417a30 actor_movement_action_cancel size=37 conf=0.55 :: Marks the actor's currently queued/active movement action as cancelled.
+- 0x417a60 FUN_00417a60 size=127 conf=0.4 :: Attempts to queue a secondary actor action into an available slot, failing if one is already pending.
+- 0x417ae0 FUN_00417ae0 size=139 conf=0.35 :: If no secondary action is pending, resets the actor's look/movement bias to a default direction.
+- 0x417b70 actor_action_has_queued_secondary size=57 conf=0.5 :: Reports whether the actor currently has a secondary action pending (or an equivalent target-driven condition).
+- 0x417bb0 FUN_00417bb0 size=661 conf=0.35 :: Tests whether the actor can move a given distance forward along a direction without hitting an obstacle, adjusting height/side as needed.
+- 0x417e50 FUN_00417e50 size=304 conf=0.35 :: Tries stepping to one side (or both, picking randomly first) and reports which side succeeded via *param_3.
+- 0x417fa0 FUN_00417fa0 size=275 conf=0.4 :: Computes (and clamps) the actor's stored jump/leap launch velocity vector for use by movement code.
+- 0x4180c0 FUN_004180c0 size=2239 conf=0.45 :: Core steering/turn-smoothing routine that converts a desired movement direction into the actor's applied heading, honoring per-mode special handling and a maximum turn rate.
+- 0x418a40 FUN_00418a40 size=477 conf=0.4 :: Chooses whichever of four candidate axis-aligned directions best matches two reference vectors, for use in movement/orientation snapping.
+- 0x418c20 FUN_00418c20 size=189 conf=0.35 :: Rotates a direction vector into (or out of) the actor's local orientation frame, in either a 2D or full 3D variant.
+- 0x418ce0 actor_movement_collect_obstacle_candidates size=656 conf=0.55 :: Builds the actor's list of nearby dynamic obstacles (with effective radii) used by the movement obstacle-avoidance system.
+- 0x418f70 actor_movement_test_obstacle_ray size=710 conf=0.55 :: Casts a probe ray along a candidate movement direction and reports the nearest obstacle clearance distance.
+- 0x419240 FUN_00419240 size=396 conf=0.4 :: Generic helper that finds where a direction vector crosses the boundary of a small convex polygon, used by the obstacle-avoidance sampler.
+- 0x4193d0 actor_movement_choose_avoidance_direction size=3829 conf=0.55 :: Core obstacle-avoidance steering computation: samples several candidate directions around the desired heading and picks the best compromise between goal direction and obstacle clearance.
+- 0x41a2d0 FUN_0041a2d0 size=325 conf=0.45 :: One-time initialization routine that precomputes direction-sample vector tables used by the movement obstacle-avoidance system.
+- 0x41a430 actor_movement_action_complete size=44 conf=0.6 :: Marks the actor's current movement action as finished (clears cancel flag, sets completion flag, resets timer).
+- 0x41a460 actor_movement_action_resolve size=1253 conf=0.55 :: Resolves the actor's currently queued movement action into a concrete destination and drives the pathfinder toward it, called once per tick.
+- 0x41a960 actor_movement_action_is_complete size=28 conf=0.6 :: Returns whether the actor's current movement action has finished.
+- 0x41a980 actor_movement_action_in_progress size=52 conf=0.5 :: Reports whether the actor still has an active (not yet completed) movement action.
+- 0x41a9c0 FUN_0041a9c0 size=236 conf=0.45 :: Assembles a pathfinding request block describing the actor's current position, orientation, and speed limits.
+- 0x41aab0 FUN_0041aab0 size=275 conf=0.4 :: Checks whether the actor is close enough to its destination and well enough aligned that it can stop actively turning toward it.
+- 0x41abd0 FUN_0041abd0 size=3351 conf=0.45 :: Per-tick think routine for one actor/target relationship record: advances its engagement state machine and drives related combat behaviors and dialogue.
+- 0x41b980 FUN_0041b980 size=355 conf=0.45 :: Releases a linked target-data record (deleting its datum and clearing the link) once the actor is done actively engaging it.
+- 0x41baf0 actor_target_reset_combat_flags size=55 conf=0.5 :: Resets a target-data record's combat status flags, e.g. after losing track of or re-acquiring a target.
+- 0x41bb30 FUN_0041bb30 size=133 conf=0.3 :: Dispatches to one of several per-posture handler functions via a jump table, gated on the actor's current stance.
+- 0x41be10 FUN_0041be10 size=189 conf=0.45 :: Computes a priority/urgency class (0-3) for a given target relative to the actor, used to rank target handling.
+- 0x41bed0 FUN_0041bed0 size=348 conf=0.45 :: Blends the unit's near/far movement speed settings based on distance-to-target, producing forward and turn speed scalars.
+- 0x41c030 FUN_0041c030 size=429 conf=0.35 :: Determines whether the actor can hear a nearby target based on distance and acoustic cluster propagation, returning a graded detection level.
+- 0x41c1e0 actor_get_firing_positions size=213 conf=0.55 :: Fetches the actor's set of candidate firing positions, either its cached local list or the nearest cluster of encounter firing points.
+- 0x41c2c0 FUN_0041c2c0 size=492 conf=0.45 :: Finds the nearest object to a given point among either a raw object linked list or a squad's member list, optionally marking group ownership.
+- 0x41c4b0 FUN_0041c4b0 size=1075 conf=0.4 :: Refreshes a target-data record's cached object reference, aim marker offsets, and root-object status for combat targeting.
+- 0x41c8f0 FUN_0041c8f0 size=3753 conf=0.45 :: Classifies a target's current speed and closing rate relative to the actor's aim into discrete buckets used for lead/prediction logic.
+- 0x41d7a0 ai_target_distance_qsort_compare size=57 conf=0.6 :: qsort comparator that orders candidate-target records by an ascending float distance field.
+- 0x41d7e0 FUN_0041d7e0 size=2847 conf=0.45 :: Per-tick perception scan that rebuilds the actor's list of currently-relevant potential targets from its squad/encounter and BSP visibility data.
+- 0x41e320 FUN_0041e320 size=1849 conf=0.4 :: Iterates a squad's list of known targets evaluating danger radius and distance to select the most relevant one for the actor to assist against.
+- 0x41ea60 FUN_0041ea60 size=557 conf=0.45 :: Detects a nearby stationary hazardous object (such as a landed grenade) and records it as the actor's current danger if more urgent than what's already tracked.
+- 0x41ec90 FUN_0041ec90 size=259 conf=0.45 :: Registers a point-based threat (e.g. an explosion or projectile) as the actor's current danger if it outranks the one already tracked.
+- 0x41eda0 FUN_0041eda0 size=1533 conf=0.45 :: Per-tick update of the actor's active danger record: refreshes its position/distance and decides whether the actor should react (dodge, call out) to it.
+- 0x41f3a0 actor_target_get_relationship_object size=112 conf=0.5 :: Lazily resolves and caches a target-data record's associated relationship/obstruction object handle.
+- 0x41f410 FUN_0041f410 size=311 conf=0.4 :: Checks whether another of the actor's tracked targets occupies a conflicting firing position or object, to avoid duplicate assignment.
+- 0x41f550 FUN_0041f550 size=345 conf=0.4 :: Selects the most relevant recent-attacker target from a specific squad member's short-term memory table.
+- 0x41f6b0 FUN_0041f6b0 size=274 conf=0.4 :: Selects the most relevant recent-attacker target from the actor's own object's short-term attacker memory.
+- 0x41f7d0 FUN_0041f7d0 size=512 conf=0.45 :: Finds (creating if necessary) the target-data record for a given object and refreshes its tracking information, transferring ownership between squad members as needed.
+- 0x41f9d0 actor_target_reset_seen_flags size=71 conf=0.55 :: Clears the visibility/'seen' state of every target-data record the actor is currently tracking.
+- 0x41fa20 actor_target_reset_shot_counters size=84 conf=0.55 :: Resets per-target shot/hit statistics counters for every target-data record the actor is tracking.
+- 0x41fa80 FUN_0041fa80 size=120 conf=0.45 :: Marks (or clears) the current target as actively engaged and refreshes its derived combat timing fields.
+- 0x41fb00 FUN_0041fb00 size=85 conf=0.3 :: Marks a per-unit alert/notice flag (byte at unit+0xb9) and, if that unit is the caller actor's current target, refreshes the actor's target combat status.
+- 0x41fb60 FUN_0041fb60 size=85 conf=0.3 :: Marks a second per-unit alert/notice flag (byte at unit+0xba) and refreshes the actor's target combat status if that unit is the actor's current target.
+- 0x41fbc0 FUN_0041fbc0 size=158 conf=0.3 :: Marks the third per-unit alert flag and promotes the unit's combat state, or, when no target unit is supplied, clears the actor's own perception/awareness accumulator fields.
+- 0x41fc60 FUN_0041fc60 size=240 conf=0.4 :: Recomputes whether a unit counts as actively engaged in combat this tick and clears stale backup/aim-assist bookkeeping when it stops being active.
+- 0x41fd50 actor_rate_potential_target size=888 conf=0.6 :: Computes a floating-point desirability score for a candidate unit as the given actor's next combat target, combining visibility, distance, alertness and prior-target continuity bonuses.
+- 0x4200d0 actor_update_target_combat_status size=415 conf=0.55 :: Recomputes the actor's cached combat-status code and aim/visibility flag for its currently selected target unit.
+- 0x420290 actor_update_awareness_level size=258 conf=0.5 :: Advances the actor's alertness/awareness state machine each tick from the highest-priority perception event and the current target's combat status.
+- 0x4203a0 actor_choose_best_target size=1266 conf=0.65 :: Re-evaluates all units the actor currently perceives, selects the highest-scoring one as the new combat target, and refreshes the actor's target/awareness state.
+- 0x4208a0 actor_consider_target_candidate size=196 conf=0.55 :: Evaluates one specific unit against the actor's current target and swaps to it as the new target if it scores higher.
+- 0x420970 FUN_00420970 size=404 conf=0.4 :: Produces an aim/attack direction for the actor's controlled unit (vehicle hardpoint or fallback path) and, in the fallback case, reports whether that line of fire is clear of nearby allies.
+- 0x420b10 FUN_00420b10 size=376 conf=0.35 :: Classifies whether a candidate side/flank position relative to a threat and cover direction is usable, returning a small validity code.
+- 0x420c90 FUN_00420c90 size=322 conf=0.4 :: Adjusts a caller-supplied probability/weight downward based on how many nearby allies of the same type are already exposed or engaged, to avoid redundant reactions.
+- 0x420de0 FUN_00420de0 size=103 conf=0.3 :: Finds or allocates a small fixed-capacity aggregation-bucket slot keyed by an id, used by the nearby-actor scanning helpers to group results per actor type.
+- 0x420e50 FUN_00420e50 size=106 conf=0.45 :: Returns a small integer priority ranking how urgently a unit needs backup/assistance based on its current combat sub-state.
+- 0x420ec0 FUN_00420ec0 size=1256 conf=0.4 :: Scans nearby allies for outstanding calls for backup, buckets the most urgent candidates by type, and ages down the actor's own backup-request cooldown.
+- 0x4213b0 FUN_004213b0 size=1653 conf=0.4 :: Runs the actor's per-tick melee-charge/flanking decision logic: updates aim accuracy smoothing, squad flanking flags, evaluates the definition-specified charge trigger, and toggles the charging state.
+- 0x421a40 actor_set_combat_alert_flag size=163 conf=0.5 :: Toggles the actor's (and, for grouped actors, its whole cluster's) combat-alert object flag when the alert state changes.
+- 0x421af0 FUN_00421af0 size=199 conf=0.4 :: Records a candidate 'investigate/search' position for the actor if its priority is at least as high as any currently queued one.
+- 0x421bc0 FUN_00421bc0 size=88 conf=0.4 :: Records a single higher-priority 'look at' point of interest for the actor, replacing any lower-priority one.
+- 0x421c20 FUN_00421c20 size=1104 conf=0.4 :: Evaluates whether a perceived unit is newly noticed/visible, queues a 'sighted' dialogue event with a randomized duration, and updates the actor's look-at target accordingly.
+- 0x422070 FUN_00422070 size=72 conf=0.45 :: Records the highest-priority pending perception event for the actor, to be consumed by the next awareness-level update.
+- 0x4220c0 FUN_004220c0 size=107 conf=0.35 :: Notifies the actor's squad-event system that a target unit has become engaged, choosing between two event codes based on a flag.
+- 0x422130 FUN_00422130 size=115 conf=0.35 :: Marks the start of a search/investigation timer and queues a corresponding search position for the actor.
+- 0x4221b0 FUN_004221b0 size=63 conf=0.45 :: Clears any currently queued search/investigate position for the actor.
+- 0x4221f0 FUN_004221f0 size=121 conf=0.3 :: Clears the queued search position and, if the related unit still warrants attention, re-queues a perception event for the awareness system.
+- 0x422270 FUN_00422270 size=725 conf=0.35 :: Queues a directional or point-based combat dialogue/reaction event for the actor, choosing the event subtype from a lookup table.
+- 0x422550 FUN_00422550 size=556 conf=0.35 :: Queues a combat dialogue/reaction event of a fixed category once its per-target cooldown has elapsed.
+- 0x422780 FUN_00422780 size=432 conf=0.35 :: Queues a position-based combat dialogue/reaction event of category 1 for the actor.
+- 0x422930 FUN_00422930 size=707 conf=0.3 :: Updates the actor's look/notify state toward a computed direction and queues a matching category-3 dialogue event.
+- 0x422c00 FUN_00422c00 size=696 conf=0.3 :: Updates the actor's look/notify state toward a supplied point, optionally flags a flee-related perception event, and queues a category-6 dialogue event.
+- 0x422ec0 FUN_00422ec0 size=858 conf=0.3 :: Reacts to a change in a controlled unit's alive/dead state, running the appropriate follow-up checks and queuing a category-7 dialogue event.
+- 0x423220 FUN_00423220 size=423 conf=0.3 :: Recomputes a fallback aim/backup target for the given unit and occasionally nudges its exposure tracking counters.
+- 0x4233d0 FUN_004233d0 size=275 conf=0.3 :: Randomly decides whether to raise a backup-request for a unit that recently took damage, recording the responsible target for allies to respond to.
+- 0x4234f0 FUN_004234f0 size=269 conf=0.3 :: Notifies the squad of an incoming threat/grenade direction and updates the actor's look and search queues accordingly.
+- 0x423600 FUN_00423600 size=99 conf=0.35 :: Sends a squad notification event and optionally raises a generic search request for the actor.
+- 0x423670 FUN_00423670 size=208 conf=0.3 :: Once an alert condition clears, resets the alert flag, records a random variant, and nudges the actor's smoothed accuracy upward if its target is nearby.
+- 0x424090 FUN_00424090 size=1267 conf=0.35 :: Evaluates the 'custom' charge-trigger condition for melee/charge behavior, combining distance thresholds, aggression flags, and a randomized roll weighted by nearby allies and enemies.
+- 0x424aa0 FUN_00424aa0 size=212 conf=0.35 :: Advances the actor's RNG for certain dialogue categories and returns a clamped random dialogue-variant index.
+- 0x424b80 FUN_00424b80 size=160 conf=0.35 :: Variant of actor_pick_dialogue_variant_a with a slightly different RNG-advance condition, used for a different dialogue category.
+- 0x425c70 FUN_00425c70 size=755 conf=0.35 :: Computes a per-swarm-member avoidance/spacing offset vector, either mirroring the member's own velocity or invoking a steering helper, clamped to a maximum radius.
+- 0x426670 actor_dispatch_type_vtable_0x10 size=46 conf=0.55 :: Invokes the per-actor-type virtual callback at vtable slot 0x10, if one is registered for this actor's type.
+- 0x4266a0 actor_dispatch_type_vtable_0x18 size=41 conf=0.55 :: Invokes the per-actor-type virtual callback at vtable slot 0x18.
+- 0x4266d0 actor_dispatch_type_vtable_0x1c size=63 conf=0.55 :: Invokes the per-actor-type virtual callback at vtable slot 0x1c, if one is registered.
+- 0x426710 actors_initialize size=78 conf=0.9 :: Creates the actor, swarm, and swarm-component data arrays used by the rest of the AI actor module.
+- 0x426760 actor_new size=860 conf=0.75 :: Allocates and default-initializes a new actor record for the unit type referenced by the given object/placement index.
+- 0x426ac0 actor_new_and_attach_to_unit size=553 conf=0.55 :: Creates a brand-new actor (or reuses a compatible existing squad member) and binds it to a newly placed unit, or deletes it again on failure.
+- 0x426cf0 FUN_00426cf0 size=901 conf=0.45 :: Applies a unit definition's AI-related properties (grenade timing, notice range, attached weapon/child objects, shield flags) to a newly placed unit object.
+- 0x427080 actor_place_new_unit size=500 conf=0.55 :: Creates and places a new AI-controlled unit object at a starting-location/encounter placement, applying its AI properties and binding an actor to it.
+- 0x427280 FUN_00427280 size=716 conf=0.45 :: Spawns one or more additional units around an existing actor's position and attaches new actors to them, optionally randomizing their health/scale.
+- 0x427560 actor_attach_to_unit size=382 conf=0.55 :: Binds an actor to a unit object as its controller, cleaning up any prior bindings and updating related squad/cluster bookkeeping.
+- 0x4276e0 FUN_004276e0 size=214 conf=0.35 :: Propagates a caller-provided value into the object-header field of every unit the actor (or its cluster/swarm) currently controls.
+- 0x4277c0 FUN_004277c0 size=155 conf=0.45 :: Toggles the actor's active/dormant flag, tearing down or (re)establishing its cluster/swarm and activation state as appropriate.
+- 0x427860 actor_set_units_active size=305 conf=0.5 :: Applies an activate/deactivate transition to every unit object the actor controls, whether it is a lone unit, a cluster, or a swarm.
+- 0x4279a0 swarm_add_component size=78 conf=0.5 :: Adds a new actor as a member of a swarm's component list and triggers the swarm's member-renumbering step.
+- 0x4279f0 FUN_004279f0 size=457 conf=0.45 :: Adds an actor to a unit's multi-actor cluster (linked list of controlling actors), creating a backing swarm entry and updating squad bookkeeping.
+- 0x427bc0 actor_unlink_unit size=197 conf=0.5 :: Detaches the actor from its single bound unit, updating the unit's back-reference and squad-count bookkeeping.
+- 0x427c90 actor_remove_from_unit_cluster size=360 conf=0.5 :: Removes an actor from a unit's cluster (and its swarm's component list, if any), undoing actor_link_to_unit_cluster.
+- 0x427e00 FUN_00427e00 size=89 conf=0.45 :: Empties and frees every entry in the actor's perceived-unit list.
+- 0x427e60 actor_delete size=216 conf=0.6 :: Fully tears down and frees an actor: detaches it from its unit(s), clears its perception state, scrubs dangling references elsewhere, and deletes its datum.
+- 0x427f40 actor_create_swarm size=355 conf=0.5 :: Creates a new swarm record for an actor and populates it with a swarm-component entry for every actor sharing the same unit cluster.
+- 0x4280b0 actor_delete_swarm size=121 conf=0.55 :: If the actor has an associated swarm, deletes every swarm-member datum and the swarm datum itself, then clears the actor's swarm reference.
+- 0x428130 FUN_00428130 size=80 conf=0.45 :: Given a swarm-slot index (EAX) and a unit index (ECX), records either that unit's death-position marker or -1 into the shared swarm-member position cache.
+- 0x428180 FUN_00428180 size=45 conf=0.3 :: Returns whether the actor's combat sub-state (0x6a) is 3 and a per-burst counter (0x72) has not yet reached its configured length (0x6e); exact semantics of the state value are not confirmed.
+- 0x4281b0 FUN_004281b0 size=56 conf=0.3 :: Boolean check combining the actor's burst-length field (0x6e), a mode value (0x6c), and a secondary counter (0xa8); precise behavioral meaning is not confirmed from the code alone.
+- 0x4281f0 FUN_004281f0 size=126 conf=0.35 :: Writes one of two cached 3-float positions into the output vector supplied via EDX, selected by internal actor state flags; returns whether a position was produced.
+- 0x428270 FUN_00428270 size=76 conf=0.35 :: For an actor in vehicle mode with a particular sub-state, checks whether a per-actor tick counter has exceeded a global time threshold.
+- 0x4282c0 actor_get_threat_weapon_object_index size=176 conf=0.5 :: Returns the weapon object index of the actor's currently perceived hostile unit, or falls back to the actor's own unit's weapon.
+- 0x428370 FUN_00428370 size=84 conf=0.4 :: Reports whether a weapon threat exists via FUN_004282c0, suppressing the result when the associated unit carries a particular status flag (byte+0x107 bit 0).
+- 0x4283d0 FUN_004283d0 size=66 conf=0.3 :: Getter that returns a per-squad dword field (offset 0x18) for the squad referenced by the actor's squad index, or -1 when it has none; exact meaning of the field is unconfirmed.
+- 0x428420 FUN_00428420 size=75 conf=0.3 :: Looks up a field on the actor's squad and forwards it, together with a caller-supplied value, to FUN_0041f7d0; likely used for a squad-name-based callout, but not confirmed.
+- 0x428470 actor_replace_object_reference size=469 conf=0.55 :: Scans an actor's numerous cached object-index fields (and its swarm members') for a stale object reference and replaces it with a new one, clearing dependent state and notifying the per-type callback.
+- 0x428650 FUN_00428650 size=101 conf=0.4 :: Clears a cached target field and, if the actor is in mode 3 or 4, resets its secondary target sub-state, then invokes the per-type callback table.
+- 0x4286c0 FUN_004286c0 size=212 conf=0.45 :: Invalidates the actor's cached target/threat references (including its swarm members') and invokes the per-type callback table.
+- 0x4287a0 FUN_004287a0 size=155 conf=0.4 :: Computes and normalizes a direction vector for the actor to look toward, choosing between a fixed field and the delta to a cached target position; returns whether the result was non-degenerate.
+- 0x428840 FUN_00428840 size=153 conf=0.35 :: Applies a time delta to a squad's timer/flags (and a linked squad's, if any) before invoking further per-actor cleanup via FUN_00422270.
+- 0x4288e0 actor_delete_or_release_unit size=215 conf=0.5 :: Deletes or detaches the game object(s) tied to an actor (or each of its swarm members), branching on whether the target is dead and on its unit type.
+- 0x4289c0 FUN_004289c0 size=235 conf=0.4 :: Marks the actor's (or each swarm member's) object with a status bit and, unless suppressed, deactivates and frees the actor(s) via the shared teardown helpers.
+- 0x428ab0 actor_attempt_grenade_throw size=645 conf=0.55 :: Per-tick decision that rolls a difficulty-scaled random chance for a suitable actor (valid weapon, isolated target) to throw a grenade, then updates related grenade-count/timing housekeeping.
+- 0x428d35 actor_died_unit_grenade_count_mod size=281 conf=0.6 :: Cleanup path invoked when the actor whose grenade decision was being processed has become invalid, randomizing its grenade-count/timing fields before releasing it from its encounter.
+- 0x428e50 FUN_00428e50 size=80 conf=0.4 :: Reduces an actor use-count and, once it reaches zero, notifies the actor's associated encounter via the shared release helpers.
+- 0x428ea0 ai_release_actors_and_swarms size=152 conf=0.5 :: Iterates every active actor as part of AI global cleanup, tearing down/resetting swarm actors and deleting the remainder.
+- 0x428f40 FUN_00428f40 size=190 conf=0.4 :: Resets a per-actor perception/aim scratch structure, seeding it from the current unit's orientation fields before clearing related lookahead state.
+- 0x429000 FUN_00429000 size=120 conf=0.45 :: Runs the per-unit perception reset either once for a solo actor or once per swarm member, then marks the actor as initialized.
+- 0x429080 ai_reset_all_actors_perception size=105 conf=0.5 :: Iterates all active actors and re-runs their perception-reset dispatcher.
+- 0x4290f0 FUN_004290f0 size=98 conf=0.4 :: Runs a sequence of squad/encounter notification callbacks after clearing an actor's target state, branching on a couple of actor/context flags.
+- 0x429160 actor_update_activation_state size=265 conf=0.5 :: Per-tick actor combat-state update: validates via FUN_00429270 then refreshes threat/perception/orientation sub-state and either continues an in-progress transition or performs a full combat activatio
+- 0x429270 actor_update_squad_link_state size=438 conf=0.5 :: Per-tick housekeeping for an actor's link to its squad/encounter — expiring timers, checking removed/disabled state, and forcing a reassignment once the link becomes stale for too long.
+- 0x429430 FUN_00429430 size=145 conf=0.4 :: Advances a per-actor idle/boredom counter (faster while boarding a vehicle) and, once it exceeds a global cap, resets it and raises a global flag, while also tracking the observed maximum.
+- 0x4294d0 actor_snapshot_orientation size=160 conf=0.5 :: Snapshots the actor's current orientation/position fields into a secondary cache block and resets an associated status word and target field, used when starting a new activation cycle.
+- 0x429570 actor_update_target_lead_position size=161 conf=0.5 :: Computes and caches a predicted intercept/lead position for the actor's target, choosing a generic or vehicle-specific calculation depending on the tracked threat's type.
+- 0x429620 FUN_00429620 size=156 conf=0.45 :: Computes the actor's effective accuracy scale for the current tick, based on difficulty settings and special-cased combat modes 9 and 11.
+- 0x4296c0 FUN_004296c0 size=211 conf=0.45 :: Fills a caller-provided struct with the actor's unit position/orientation plus a pair of fields from the root object at the top of its parent chain.
+- 0x4297a0 actor_refresh_combat_context size=1845 conf=0.5 :: Full per-tick recomputation of an actor's (or swarm's) combat context: aggregated swarm position, current target/threat/vehicle relationship with its controlling player, nearby perceived threats, and 
+- 0x429ee0 actor_run_mode_transition_loop size=216 conf=0.5 :: Drives an actor's mode-transition state machine, invoking the per-mode handler and per-type transition callback until settled, forcing mode 0 if it never settles within 10 iterations.
+- 0x429fc0 FUN_00429fc0 size=275 conf=0.45 :: Broadcasts an AI communication/order event (selected by event_type) to every eligible active actor, gating delivery per-actor through a relevance test.
+- 0x42a0e0 ai_alert_actors_in_grenade_radius size=699 conf=0.5 :: Given a grenade/threat's originating object, marks nearby pathfinding nodes within a radius and triggers a squad reaction (FUN_0042a3a0) for every actor whose firing position sits inside that radius.
+- 0x42a3a0 actor_squad_react_to_grenade size=388 conf=0.5 :: Reacts a squad to an incoming grenade of a given type by triggering the corresponding avoidance behavior (dive, throw back, retreat, or panic), unless the squad is already handling one.
+- 0x42a540 FUN_0042a540 size=104 conf=0.4 :: Dispatches one of several squad-order handlers based on an order record's type field.
+- 0x42a5b0 FUN_0042a5b0 size=39 conf=0.3 :: Sets a single status-flag bit (0x2) on the actor's general flags field (+0x6d0); the precise meaning of the bit is not confirmed.
+- 0x42a5e0 FUN_0042a5e0 size=82 conf=0.35 :: Enables or disables an override-target flag (bit 0x800 of the actor's flags word) and records the supplied value into the override-target field.
+- 0x42a640 FUN_0042a640 size=384 conf=0.4 :: Applies queued look-direction and state changes to the actor's unit once it is no longer held in a vehicle seat (or when a global debug flag forces it).
+- 0x42a7c0 ai_initialize_for_new_map size=119 conf=0.55 :: Allocates and zero-initializes the main AI globals structure for a newly loaded map, then initializes the actor, squad, encounter, and communication subsystems.
+- 0x42a840 ai_reset_for_new_map size=184 conf=0.5 :: Clears all AI data arrays (actors, swarms, position cache, squads) and resets the AI globals structure to its default state, e.g. when restarting or reloading a map.
+- 0x42a900 FUN_0042a900 size=74 conf=0.45 :: Top-level AI subsystem tick dispatcher: runs the main per-frame update pipeline or the reset/perception-reinitialize pipeline based on global AI state flags.
+- 0x42a950 FUN_0042a950 size=107 conf=0.4 :: Returns a difficulty-tuning scalar or a boolean pair selected by a small enumerated request code, backed by FUN_0046fe10's difficulty table.
+- 0x42a9d0 FUN_0042a9d0 size=180 conf=0.4 :: Randomly nudges a per-zone/index bias value up or down, bounded by a floor derived from a global rate, used to slowly drift an AI behavior parameter over time.
+- 0x42aa90 FUN_0042aa90 size=99 conf=0.4 :: Applies a per-actor perception-scaling factor to a caller-provided float (such as a hearing or awareness range), based on a zone flag and an actor state byte.
+- 0x42ab00 FUN_0042ab00 size=203 conf=0.45 :: Releases all active actors, or only those matching a given encounter/squad filter, as part of AI cleanup.
+- 0x42abd0 ai_release_inactive_swarms size=178 conf=0.9 :: Iterates all actors, releasing each currently-inactive swarm and accumulating its total unit count into a '%d swarm units' status string, reporting whether any were released.
+- 0x42ac90 ai_squad_priority_compare size=54 conf=0.55 :: qsort comparator that orders candidate entries by a priority dword (descending) with a tie-break on a leading byte (ascending).
+- 0x42acd0 ai_build_priority_target_list size=372 conf=0.5 :: Assembles and sorts a combined list of active actor-groups and eligible encounters, used to prioritize which AI groups to process or release.
+- 0x42ae50 ai_release_inactive_encounters size=241 conf=0.9 :: Iterates a prioritized encounter/actor list one entry per call, releasing each entry (a whole encounter or a lone actor) and formatting a status string describing what was released.
+- 0x42af50 FUN_0042af50 size=98 conf=0.4 :: Initializes a per-actor grenade-avoidance timer/record with a small random jitter and a fixed 0.15-second window.
+- 0x42afc0 actor_gather_nearby_grenade_targets size=456 conf=0.5 :: Collects up to a requested number of nearby friendly actors/squads (excluding the source) and starts a grenade-avoidance timer for each, returning how many were selected.
+- 0x42b190 FUN_0042b190 size=218 conf=0.4 :: Checks whether a grenade's trajectory or landing radius intersects any nearby gathered actor other than the thrower, returning the blocking actor's index if so.
+- 0x42b270 FUN_0042b270 size=851 conf=0.4 :: Determines whether and how an actor can reach or engage a target, combining a pathfinding/LOS query with distance and speed checks, returning a graded result code from clear (0) to unreachable (4).
+- 0x42b5d0 FUN_0042b5d0 size=565 conf=0.4 :: Steps a projected parabolic trajectory forward in short segments, checking line-of-sight and proximity to nearby actors along each segment to determine whether the whole path stays clear.
+- 0x42b810 FUN_0042b810 size=111 conf=0.4 :: Checks whether an actor's vehicle target is currently available and, if not, optionally flags the actor to pursue boarding it.
+- 0x42b880 FUN_0042b880 size=179 conf=0.4 :: Reassigns an actor's vehicle seat when it differs from the vehicle's currently assigned seat, then runs follow-up squad/vehicle bookkeeping.
+- 0x42b940 ai_notify_actors_of_encounter_state_change size=304 conf=0.5 :: Updates squad status flags and a derived timing value for every squad tied to actors in either of two specified zones, used when an encounter/zone's active state changes.
+- 0x42ba80 FUN_0042ba80 size=287 conf=0.35 :: For actors belonging to either of two given teams, marks all of their recognized objects belonging to the matching team with reaction flags, apparently used by the AI communication system to propagate
+- 0x42bbb0 FUN_0042bbb0 size=439 conf=0.4 :: Recomputes the perceived-relationship (friend/foe) flags for every recognized object of every actor in the level, likely run after a team or difficulty change.
+- 0x42bd70 FUN_0042bd70 size=201 conf=0.3 :: When an object resolves to a biped, removes the current-weapon object of it and of another (register-passed) unit from the AI's recognized-object cache.
+- 0x42be40 FUN_0042be40 size=324 conf=0.4 :: Handles a unit reacting to being hit or threatened by a given amount/type, choosing and broadcasting an appropriate AI communication (pain/notice) event.
+- 0x42bf90 ai_process_vehicle_entry_queue size=423 conf=0.5 :: Processes all queued 'unit wants to enter a vehicle' requests by finding a free/matching seat and calling unit_enter_vehicle_seat for each, then empties the queue.
+- 0x42c140 FUN_0042c140 size=351 conf=0.45 :: Cleans up all AI-side references (recognized-object cache entries, squad references, vehicle-entry queue) to an object index that has just been deleted.
+- 0x42c2a0 FUN_0042c2a0 size=202 conf=0.3 :: Refreshes a stimulus timestamp on a unit and forwards the notification to its vehicle passengers (or directly if it is a biped).
+- 0x42c370 FUN_0042c370 size=97 conf=0.3 :: Fires a one-shot AI communication event (id 0x25) tied to a unit's current weapon, guarded by a 'already notified' flag.
+- 0x42c3e0 FUN_0042c3e0 size=547 conf=0.3 :: Scans all currently recognized objects for one that indicates recent nearby combat activity within a difficulty-dependent time/distance window, returning whether such activity was found.
+- 0x42c610 FUN_0042c610 size=813 conf=0.4 :: Accumulates and averages the positions of repeated identical events (keyed by id) within a short time window, reporting the merged event once ready.
+- 0x42c940 FUN_0042c940 size=1358 conf=0.3 :: Bulk-resets fire-group/assignment bookkeeping for a table of actor groups and clears stale recognized-object linkage fields across all actors; appears unused (0 callers) in this build.
+- 0x42cf20 ai_communication_initialize size=775 conf=0.9 :: Initializes the AI conversation/communication subsystem: builds lookup indices for the conversation and communication line tables and resets related runtime state.
+- 0x42d230 FUN_0042d230 size=221 conf=0.4 :: Resets the AI communication timers and the squad datum table to a clean state, used during AI subsystem (re)initialization.
+- 0x42d310 FUN_0042d310 size=45 conf=0.3 :: Resets a small ai-communication target/result record to its empty (no target) state.
+- 0x42d340 ai_communication_broadcast size=5603 conf=0.55 :: Central AI communication/dialogue dispatcher: given an event id and up to two involved unit indices, selects and queues the appropriate conversation line to be spoken and issues any associated look/or
+- 0x42e970 FUN_0042e970 size=50 conf=0.3 :: Gates whether a communication-played timestamp should be recorded for a given event id, skipping a handful of event types and silenced records.
+- 0x42e9c0 FUN_0042e9c0 size=711 conf=0.4 :: Propagates an AI communication event's effect (marking/acknowledging it) to nearby actors of the appropriate team within a fixed radius.
+- 0x42ec90 FUN_0042ec90 size=585 conf=0.35 :: Selects a target object matching a given communication-order definition, applying probability and recency weighting, for use by the AI communication system.
+- 0x42eee0 FUN_0042eee0 size=888 conf=0.4 :: Attempts to select and queue playback of a communication line for a given event id and unit, gated by probability, target validity and an optional condition callback.
+- 0x42f260 FUN_0042f260 size=268 conf=0.3 :: Recomputes and caches whether an actor currently qualifies to throw/react with a grenade, along with a recheck timer.
+- 0x42f370 FUN_0042f370 size=261 conf=0.3 :: Periodically re-evaluates an actor's grenade-eligibility state and, once a countdown expires, queues a corresponding communication/behavior event.
+- 0x42f480 FUN_0042f480 size=100 conf=0.3 :: Checks whether a given unit is currently a close, appropriately-categorized recognized object.
+- 0x42f840 FUN_0042f840 size=126 conf=0.3 :: Dispatches a queued AI order record to either the single-target or multi-target order-issuing routine based on its target count.
+- 0x42f8c0 FUN_0042f8c0 size=220 conf=0.35 :: Computes a fade/volume multiplier for a currently-playing or about-to-play communication line based on its type and elapsed time.
+- 0x42f9a0 FUN_0042f9a0 size=58 conf=0.3 :: Classifies an object's type for communication purposes into one of three categories based on its type-definition flag bits.
+- 0x42f9e0 ai_communication_record_line_played size=421 conf=0.5 :: Records the current tick as the last-played time for a spoken line across the relevant per-unit, per-class, and per-line-id timestamp tables.
+- 0x42fb90 FUN_0042fb90 size=1002 conf=0.4 :: Computes a priority score for how suitable a given actor is to speak a particular communication line, based on distance, cooldown, team, and visibility criteria.
+- 0x42ff80 FUN_0042ff80 size=326 conf=0.45 :: Iterates the actors of a squad (or reference), scoring each as a candidate speaker and returning the best match.
+- 0x4300d0 FUN_004300d0 size=522 conf=0.4 :: Iterates all actors matching a team filter, scoring each as a candidate speaker/target and returning the best match.
+- 0x4302e0 FUN_004302e0 size=180 conf=0.35 :: Issues an AI order (e.g. 'go to' or 'attack') targeting a specific unit, or a randomly-chosen fallback target if the unit is unsuitable.
+- 0x4303a0 FUN_004303a0 size=69 conf=0.3 :: Issues a simple AI order with no explicit target once basic register-context validity checks pass.
+- 0x4303f0 FUN_004303f0 size=965 conf=0.35 :: Computes a desirability/weight value (used for grenade-throw or cover decisions) based on nearby group members' exposure and distance.
+- 0x4307c0 FUN_004307c0 size=105 conf=0.35 :: Attempts to activate (or clean up) the squad associated with a given starting-location index, returning whether it is active/usable.
+- 0x430830 FUN_00430830 size=282 conf=0.4 :: Returns a coarse status code (not-spawned/spawning/partially-placed/dead/etc.) for the squad(s) matching a given squad definition index.
+- 0x430960 FUN_00430960 size=94 conf=0.3 :: Returns the current formation/actor-type index stored on the live squad instance for a given squad definition, or 999 if none exists.
+- 0x4309c0 FUN_004309c0 size=90 conf=0.35 :: Destroys every live squad instance belonging to a given squad definition.
+- 0x430a20 FUN_00430a20 size=77 conf=0.3 :: Marks every live instance of a given squad definition with a flag (likely 'do not respawn/re-place').
+- 0x430a70 FUN_00430a70 size=490 conf=0.45 :: Per-tick update of every squad instance: spawns, incrementally places members, links leader references, and despawns squads as appropriate.
+- 0x430c70 FUN_00430c70 size=185 conf=0.45 :: Removes a specific object index from any squad member slot that references it, destroying the squad if configured to do so.
+- 0x430d30 squad_clear_unit_references size=354 conf=0.5 :: Clears all cross-references from squad instances (and their members' weapon objects) to a given object index, optionally forcing a full member scan.
+- 0x430ea0 squad_despawn size=279 conf=0.5 :: Destroys a squad runtime instance, recording the reason/tick in a recent-squad-events ring buffer and clearing member back-references.
+- 0x430fc0 FUN_00430fc0 size=1471 conf=0.4 :: Decides whether a squad should regroup/retreat and, if so, drives the corresponding member mode changes, reporting the outcome through an output flag.
+- 0x431590 squad_new_instance size=233 conf=0.5 :: Allocates a new runtime squad instance for a given squad definition, optionally evicting a lower-priority existing instance if the pool is full.
+- 0x431680 FUN_00431680 size=1632 conf=0.4 :: Resolves what object/unit should occupy a given squad member slot, either from a fixed reference or by searching nearby candidates.
+- 0x431d10 FUN_00431d10 size=352 conf=0.4 :: Activates the next resolved member slot for a squad instance, setting up its leader/weapon reference and status bookkeeping.
+- 0x431e70 FUN_00431e70 size=646 conf=0.35 :: Determines whether the currently-activated squad member is ready to be placed into the world, gating on leader validity and a short delay/queue.
+- 0x432100 FUN_00432100 size=246 conf=0.4 :: Performs a weighted random selection over an array of float weights, excluding indices flagged in a bitmask.
+- 0x432200 FUN_00432200 size=80 conf=0.4 :: Looks up a squad definition's index by name within the encounter's squad table.
+- 0x432260 FUN_00432260 size=80 conf=0.35 :: Looks up a starting-location's index by name within a given squad definition.
+- 0x4322c0 FUN_004322c0 size=80 conf=0.3 :: Looks up an index by name within a second per-squad nested table (likely platoons or move positions).
+- 0x432320 FUN_00432320 size=254 conf=0.4 :: Parses a scripted 'squad/location' style reference string into a single packed squad+location identifier.
+- 0x432420 FUN_00432420 size=197 conf=0.4 :: Expands a packed squad/location reference value into a validated squad index and starting-location index pair.
+- 0x4324f0 FUN_004324f0 size=179 conf=0.45 :: Initializes an iterator over all starting locations matched by a packed squad/location reference.
+- 0x4325b0 FUN_004325b0 size=151 conf=0.45 :: Advances an ai-reference iterator and returns the next matching starting-location record, or 0 when exhausted.
+- 0x432650 FUN_00432650 size=121 conf=0.4 :: Initializes an iterator over the actors belonging to a squad/team reference, based on a decoded packed reference value.
+- 0x4326d0 FUN_004326d0 size=97 conf=0.45 :: Advances an actor iterator initialized by actor_iterator_by_squad_new, returning the next actor record matching the given filters.
+- 0x432740 FUN_00432740 size=371 conf=0.35 :: Builds a linked list of every object (and vehicle passenger) associated with a squad/team reference, for later batch processing.
+- 0x4328c0 FUN_004328c0 size=383 conf=0.3 :: Resolves a starting location's associated object and triggers an associated scripted animation/communication effect on it.
+- 0x432a40 FUN_00432a40 size=143 conf=0.3 :: Iterates every member/location produced by ai_reference_build_member_list and triggers the associated scripted effect on each.
+- 0x432ad0 FUN_00432ad0 size=173 conf=0.3 :: Iterates every member produced by ai_reference_build_member_list and clears its current order/target if it has an active weapon object.
+- 0x432b80 FUN_00432b80 size=79 conf=0.3 :: Unpacks a packed squad/ai reference value and forwards it to an internal squad-activation routine (FUN_00437510).
+- 0x432bd0 FUN_00432bd0 size=66 conf=0.25 :: For each member produced by a squad iterator, invokes a per-member callback with an uninitialized/garbage secondary argument.
+- 0x432c20 FUN_00432c20 size=82 conf=0.25 :: Decodes the sub-index byte of a packed ai reference and passes it to FUN_0042ab00.
+- 0x432c80 FUN_00432c80 size=171 conf=0.35 :: Resolves a packed squad/actor reference to a concrete actor-placement slot index within the owning encounter's squad definition.
+- 0x432d30 FUN_00432d30 size=81 conf=0.3 :: Re-spawns squad members that already have an assigned object or order reference.
+- 0x432d90 FUN_00432d90 size=82 conf=0.3 :: Iterates a datum collection via data_iterator_next and respawns every member found.
+- 0x432df0 FUN_00432df0 size=134 conf=0.3 :: Worker that tears down an existing squad member placement (marking it with state 0x96) and creates its replacement.
+- 0x432e80 FUN_00432e80 size=142 conf=0.35 :: Walks all squads associated with a given key in an internal hash map and respawns each one via FUN_00432df0.
+- 0x432f10 FUN_00432f10 size=52 conf=0.3 :: Sets a byte flag at offset 0x11 on every record produced by the design-squad-member iterator.
+- 0x432f50 FUN_00432f50 size=60 conf=0.25 :: Invokes a per-record callback (FUN_00439270) for every entry from the design-squad-member iterator.
+- 0x432f90 FUN_00432f90 size=491 conf=0.3 :: Given a packed ai reference, fetches one of two related 16-bit stat fields (or their difference) from the referenced squad, starting-location, or formation record, plus an object index and datum handl
+- 0x433180 FUN_00433180 size=125 conf=0.35 :: Checks whether any starting-location entry in a squad's given index range is marked in use (non-zero leading byte).
+- 0x433200 FUN_00433200 size=105 conf=0.3 :: Clears the leading (in-use) byte of every starting-location entry in a squad's index range.
+- 0x433270 FUN_00433270 size=105 conf=0.3 :: Marks every starting-location entry in a squad's index range as used (leading byte = 1).
+- 0x4332e0 FUN_004332e0 size=106 conf=0.25 :: Sets a second per-entry flag byte (offset +1) on every starting-location entry in a squad's index range.
+- 0x433350 FUN_00433350 size=114 conf=0.3 :: Sets a per-entry boolean (offset +2) on every starting-location entry in a squad's index range based on the caller-supplied flag.
+- 0x4333d0 FUN_004333d0 size=437 conf=0.4 :: Scans a squad's design member list for the best actor_variant match against requested index/variant/parent criteria, returning the chosen member's slot index.
+- 0x433590 FUN_00433590 size=982 conf=0.4 :: Merges/reassigns live squad members from one squad into another, matching by actor_variant, transferring leader status and starting-location ownership.
+- 0x433970 FUN_00433970 size=241 conf=0.4 :: Re-maps a unit's controlling actor onto a matching member slot of a target squad, notifying via FUN_00423600 when requested.
+- 0x433a70 FUN_00433a70 size=296 conf=0.4 :: For every actor associated with a key (directly or via a linked chain), reassigns its squad-member mapping via FUN_00433970.
+- 0x433ba0 FUN_00433ba0 size=199 conf=0.25 :: Compares two type/category values with a wildcard rule and reports the match result to FUN_0045be50.
+- 0x433c70 object_sort_by_flag_then_distance size=71 conf=0.5 :: qsort comparator that orders candidate objects by a boolean flag first, then by ascending squared distance.
+- 0x433cc0 FUN_00433cc0 size=335 conf=0.35 :: Finds objects near the current object, sorts them by distance (deprioritizing type-9 objects), and processes them nearest-first via FUN_0040e260.
+- 0x433e20 FUN_00433e20 size=124 conf=0.3 :: Counts iterator entries matching a fixed type value (9) and a caller-supplied group/id field.
+- 0x433ea0 FUN_00433ea0 size=1627 conf=0.4 :: Iterates active squad members and updates each unit's weapon-holster/attach state, including transform, light attachments, and holster animation.
+- 0x434500 FUN_00434500 size=139 conf=0.3 :: Raises or clears a per-member combat-status field, resetting related state when clearing.
+- 0x434590 FUN_00434590 size=537 conf=0.3 :: Applies the same combat-status set/clear logic as squad_members_set_combat_status across an entire squad group.
+- 0x4347b0 FUN_004347b0 size=259 conf=0.25 :: Sets or clears flag bit 0x400 on the flags field of every actor in a squad group.
+- 0x4348c0 FUN_004348c0 size=259 conf=0.25 :: Sets or clears flag bit 0x800 on the flags field of every actor in a squad group.
+- 0x4349d0 FUN_004349d0 size=276 conf=0.3 :: Orients idle squad members to face a designer-specified default direction taken from their squad placement data.
+- 0x434af0 FUN_00434af0 size=391 conf=0.3 :: Updates per-member derived combat booleans and randomizes a grenade-count style counter using an LCG PRNG.
+- 0x434c80 FUN_00434c80 size=57 conf=0.35 :: Clears the search-target type field on every squad member (search-target enum value 0 = none).
+- 0x434cc0 FUN_00434cc0 size=63 conf=0.35 :: Sets every squad member's search-target type to 1 (point) and stores an associated reference value.
+- 0x434d00 FUN_00434d00 size=57 conf=0.35 :: Sets every squad member's search-target type to 2 (area), with no additional payload.
+- 0x434d40 FUN_00434d40 size=64 conf=0.25 :: Sets a per-member boolean flag (offset 0x1cb) on every squad member based on a caller-supplied byte.
+- 0x434d90 FUN_00434d90 size=91 conf=0.35 :: For each squad member, if a readiness predicate (FUN_00407140) is satisfied, switches the actor into mode 0xb (consistent with a flee state).
+- 0x434df0 FUN_00434df0 size=93 conf=0.35 :: For one specific unit's actor, switches it into mode 0xb (flee) if the readiness predicate FUN_00407140 is satisfied.
+- 0x434e60 FUN_00434e60 size=102 conf=0.25 :: Registers a fixed callback (LAB_00406f80) against every squad member via FUN_00407040.
+- 0x434ed0 FUN_00434ed0 size=75 conf=0.3 :: Looks up a per-actor-type morale/threat grade (1-3) from tag data, used by the squad morale calculation.
+- 0x434f20 FUN_00434f20 size=666 conf=0.35 :: Computes the highest morale/danger grade across all actors belonging to a squad group, used to drive flee/retreat decisions.
+- 0x4351c0 FUN_004351c0 size=153 conf=0.3 :: Propagates a globally-recorded attacker as the current target to every squad member, setting target and aim-limit fields.
+- 0x435260 FUN_00435260 size=433 conf=0.3 :: Propagates a globally-recorded attacker as the target across every member of a squad group.
+- 0x435420 FUN_00435420 size=276 conf=0.3 :: Allocates and initializes a fresh actor record with default combat/status field values for a newly recognized unit.
+- 0x435540 FUN_00435540 size=75 conf=0.25 :: Sets a response/behavior byte on a unit's actor, but only while it currently has an active target.
+- 0x435590 squad_members_assign_team_and_request_order size=147 conf=0.5 :: Assigns a team id to every squad member and re-requests a default order for members whose current order category qualifies.
+- 0x435630 squad_members_request_order size=69 conf=0.5 :: Requests an order re-evaluation for every squad member.
+- 0x435680 FUN_00435680 size=121 conf=0.4 :: Classifies a squad's current processing/combat activity into an ordinal stage from 0 (inactive) to 6 (fully engaged).
+- 0x435700 FUN_00435700 size=69 conf=0.4 :: Computes the highest activity level among all of an encounter's squads.
+- 0x435750 FUN_00435750 size=431 conf=0.3 :: Records which design squad-member slot a unit's actor corresponds to, and notifies other actors that were targeting it.
+- 0x435900 FUN_00435900 size=133 conf=0.3 :: Finds or allocates a per-object record in a small fixed table, initializing a new entry with a default 8.0 timer value.
+- 0x435990 FUN_00435990 size=111 conf=0.35 :: Removes a per-object record from the fixed table populated by ai_get_or_create_unit_record.
+- 0x435a00 FUN_00435a00 size=76 conf=0.25 :: Dispatches a fixed dialogue/message event (type 0xd, parameter 6) for a unit that has an associated actor.
+- 0x435a50 FUN_00435a50 size=83 conf=0.3 :: Clears a group of three timer/counter fields on a unit's actor record.
+- 0x435ab0 FUN_00435ab0 size=51 conf=0.25 :: Sets a byte field (offset 0x10) on every design-squad-member record to a caller-supplied value passed in a register.
+- 0x435af0 FUN_00435af0 size=64 conf=0.2 :: Invokes a fixed callback (FUN_00421a40) for every squad member.
+- 0x435b30 FUN_00435b30 size=136 conf=0.25 :: Updates a short field on a squad record and notifies all of its current members.
+- 0x435bc0 FUN_00435bc0 size=56 conf=0.3 :: Sets a per-record boolean flag (offset 0x14) on every design-squad-member record based on a caller-supplied byte.
+- 0x435c00 encounters_initialize size=170 conf=0.9 :: Initializes the runtime squad ('encounter') and 'ai pursuit' datum arrays and reserves their backing scratch buffers for a loaded scenario.
+- 0x435cb0 encounters_reset size=149 conf=0.5 :: Tears down all runtime squads and ai-pursuit data and rebuilds the squad set from the scenario's tag encounter blocks.
+- 0x435d50 FUN_00435d50 size=172 conf=0.4 :: Iterates all pending squads and activates each one that has not already been flagged active.
+- 0x435e00 FUN_00435e00 size=246 conf=0.4 :: Per-tick top-level dispatcher that iterates live squads and, on a staggered schedule, invokes each squad's morale, timer-decay, reinforcement, and target-selection update routines.
+- 0x435f00 FUN_00435f00 size=129 conf=0.4 :: Scans all squads and re-runs the morale/combat-status recompute routine for any squad flagged dirty since the last pass.
+- 0x435f90 FUN_00435f90 size=306 conf=0.3 :: Counts actors whose assigned label/zone does not match a given squad's target label, tallying the mismatch count on each unmatched actor.
+- 0x4360d0 FUN_004360d0 size=178 conf=0.35 :: Builds a lookup table mapping each connected zone/cluster index to the actor id currently occupying it for a given squad.
+- 0x436190 FUN_00436190 size=1147 conf=0.45 :: Computes (and optionally records per-actor) the set of BSP zones/clusters that a squad's living actors currently occupy, expanded through door/portal adjacency tables.
+- 0x436620 squad_remove_actor size=229 conf=0.55 :: Unlinks an actor from its squad's member list and updates the squad's per-state/per-type occupancy counters.
+- 0x436710 FUN_00436710 size=83 conf=0.35 :: Lazily stamps a squad's label from a unit's tag data the first time the squad is populated.
+- 0x436770 FUN_00436770 size=452 conf=0.45 :: Registers a newly spawned actor as a member of a squad, recording its starting-location/type and updating the squad's occupancy counters.
+- 0x436940 FUN_00436940 size=76 conf=0.4 :: Links an actor into the global list of actors that are not currently assigned to any squad.
+- 0x436990 FUN_00436990 size=92 conf=0.45 :: Removes an actor from the global list of squad-less actors.
+- 0x4369f0 FUN_004369f0 size=61 conf=0.35 :: Initializes a lightweight removal-safe iterator over one squad's actor member list (or the global unassigned list).
+- 0x436a30 FUN_00436a30 size=62 conf=0.45 :: Constructs the iterator context used to walk every actor across all squads (and the unassigned pool), optionally filtering to only active actors.
+- 0x436a70 actor_iterator_next size=154 conf=0.5 :: Advances a global actor iterator, yielding the next actor across all squads and the unassigned pool.
+- 0x436b10 FUN_00436b10 size=120 conf=0.45 :: Records an object id into a squad's per-type 'recently seen' ring buffer, returning whether it was newly added.
+- 0x436b90 FUN_00436b90 size=122 conf=0.45 :: Checks whether a given object id is present in a squad's 'recently seen' list for a type, also returning the record's count and timestamp.
+- 0x436c10 squad_recent_object_list_clear size=73 conf=0.5 :: Destroys all of a squad's 'recently seen object' tracking records.
+- 0x436c60 squad_recent_object_get_or_create size=223 conf=0.5 :: Finds or (optionally) creates and resets a squad's per-type 'recently seen object' tracking record.
+- 0x436d40 FUN_00436d40 size=128 conf=0.3 :: Derives a set of placement-rule output flags for an actor starting location based on its tag attribute bits.
+- 0x436dc0 FUN_00436dc0 size=451 conf=0.3 :: Evaluates a squad's current combat-state counts to produce boolean flags describing whether it needs reinforcement or additional support.
+- 0x436f90 FUN_00436f90 size=196 conf=0.3 :: Builds a per-starting-location exclusion bitmask from a list of flagged sub-records (used for the squad's per-state placement bookkeeping).
+- 0x437060 squad_create size=435 conf=0.5 :: Allocates and initializes a new squad runtime datum from its tag definition, setting up its per-state and per-type sub-records.
+- 0x437220 squad_pick_random_starting_location size=640 conf=0.55 :: Randomly selects an as-yet-unused starting location within a squad's state bucket, recycling the pool once every location has been used.
+- 0x4374a0 FUN_004374a0 size=97 conf=0.3 :: Resolves the activity/behavior type associated with a squad's assigned zone, defaulting to a fallback type when unresolved.
+- 0x437510 FUN_00437510 size=468 conf=0.45 :: Spawns the actors for a squad's starting locations, scaling counts by difficulty and rolling per-location spawn chances for certain zone activity types.
+- 0x437710 squad_activate size=263 conf=0.5 :: Brings a squad's actors to life, spawning swarms and marking units active, and records the squad as activated.
+- 0x437820 FUN_00437820 size=80 conf=0.3 :: Records a zone id into a squad's small recent-zone history list if it isn't already present and there is room.
+- 0x437870 squad_deactivate size=204 conf=0.55 :: Deactivates a squad, deleting swarms and marking units inactive for every currently active member.
+- 0x437940 FUN_00437940 size=1234 conf=0.45 :: Recomputes a squad's aggregate morale/combat statistics from its members and decides whether the squad should begin retreating or disperse its actor-group links.
+- 0x437e20 FUN_00437e20 size=1139 conf=0.45 :: Master per-tick pass that updates every actor's cluster-visibility/active state and decides which squads should be activated or deactivated based on player-relevant BSP clusters and dependent squads.
+- 0x4382b0 FUN_004382b0 size=303 conf=0.35 :: Detaches and frees stale shared-group references held by a squad's actors (e.g. vehicle/target groupings no longer relevant to this squad).
+- 0x4383f0 FUN_004383f0 size=130 conf=0.35 :: Inserts a scored candidate into a 2-element sorted (ascending) list of best candidates.
+- 0x438480 FUN_00438480 size=242 conf=0.3 :: Selects one of up to four weighted candidate records at random, proportionally to their weight values.
+- 0x438580 FUN_00438580 size=2079 conf=0.35 :: Scores nearby positions/targets to choose a retreat or regroup destination for a squad under morale pressure.
+- 0x438db0 FUN_00438db0 size=107 conf=0.4 :: Advances or resets a squad's grenade-related cooldown timers each tick based on its current combat flags.
+- 0x438e20 FUN_00438e20 size=316 conf=0.4 :: Spawns a single actor unit for a squad at a resolved starting location, mapping the location to its placed object type first.
+- 0x438f60 FUN_00438f60 size=317 conf=0.4 :: Spawns an actor for a squad and updates the squad's per-state spawn bookkeeping counters on success.
+- 0x4390a0 FUN_004390a0 size=454 conf=0.45 :: Periodically spawns reinforcement actors for a squad into starting-location buckets that still have spawn capacity.
+- 0x439270 FUN_00439270 size=123 conf=0.35 :: Resets a squad state's grenade-throw cooldown and, for eligible starting locations, triggers the grenade-throw behavior.
+- 0x4392f0 FUN_004392f0 size=184 conf=0.4 :: Decays each of a squad's per-state grenade-throw cooldowns and triggers grenade throws once they expire.
+- 0x4393b0 FUN_004393b0 size=225 conf=0.3 :: Re-evaluates and updates a per-type behavior flag for each populated actor type in a squad.
+- 0x4394a0 FUN_004394a0 size=2235 conf=0.35 :: Redistributes actors between squads and starting locations to keep the squad near one or more tracked target objects (e.g. players or a followed object).
+- 0x439d80 FUN_00439d80 size=397 conf=0.35 :: Propagates squad-level combat/behavior flags down to each member actor and kicks off wander behavior where indicated.
+- 0x439f20 FUN_00439f20 size=285 conf=0.3 :: Evaluates one of several scripted morale/count-based conditions used to decide a squad type's behavior flag.
+- 0x43a070 FUN_0043a070 size=47 conf=0.3 :: Records a secondary 'fallback' waypoint (position plus extra parameters) in the pathfinding search context.
+- 0x43a0a0 FUN_0043a0a0 size=234 conf=0.3 :: Tests whether two 3D points are effectively coincident along a computed interpolation fraction, used as a pathfinding proximity check.
+- 0x43a190 FUN_0043a190 size=136 conf=0.3 :: Attempts to validate and record a candidate pathfinding goal point.
+- 0x43a220 FUN_0043a220 size=236 conf=0.3 :: Finds the first pathfinding search-reference node matching a given test, or returns a default reference if none match.
+- 0x43a310 FUN_0043a310 size=439 conf=0.45 :: Computes the pathfinding heuristic distance from a search node to its goal, including an optional leash radius and look-ahead direction.
+- 0x43a4d0 FUN_0043a4d0 size=551 conf=0.4 :: Reconstructs and smooths the final waypoint path from a completed pathfinding search's node chain.
+- 0x43a700 path_find_context_init size=44 conf=0.5 :: Initializes a pathfinding search context, clearing its working buffers and recording the current BSP generation and start parameters.
+- 0x43a730 FUN_0043a730 size=40 conf=0.3 :: Records a primary/near 'fallback' waypoint (position plus extra parameters) in the pathfinding search context.
+- 0x43a760 path_find_push_start_node size=321 conf=0.5 :: Creates and pushes the initial node onto a pathfinding search's open list.
+- 0x43a8b0 path_find_run size=1716 conf=0.55 :: Runs the main A*-style pathfinding search loop over the navigation mesh, expanding nodes from a priority open list until the goal is reached or the list is exhausted.
+- 0x43af70 path_find_heap_sift_up size=150 conf=0.6 :: Restores the pathfinding open-list min-heap property by sifting a newly inserted or decreased-key node upward.
+- 0x43b010 path_find_heap_sift_down size=213 conf=0.6 :: Restores the pathfinding open-list min-heap property by sifting a node downward after removal of the root.
+- 0x43b0f0 path_find_heap_push size=63 conf=0.6 :: Inserts a new entry into the pathfinding open-list min-heap.
+- 0x43b130 FUN_0043b130 size=137 conf=0.35 :: Computes the distance between two pathfinding vertices after resolving their coordinates through a transform step.
+- 0x43b1c0 FUN_0043b1c0 size=227 conf=0.45 :: Gathers the navigation-mesh edges adjacent to a given vertex for expansion during pathfinding search.
+- 0x43b2b0 FUN_0043b2b0 size=57 conf=0.45 :: Looks up the existing search-node index for a given vertex id in the pathfinding context's hash table.
+- 0x43b2f0 path_find_closest_point_on_segment size=192 conf=0.5 :: Computes the closest point on a line segment to a given point, clamped to the segment's extent.
+- 0x43b3b0 FUN_0043b3b0 size=150 conf=0.3 :: Computes a linear-falloff proximity penalty (and outputs the raw distance) of a position relative to a radius/weight record, used as a cost term inside the AI point search.
+- 0x43b450 ai_search_heap_sift_up size=119 conf=0.55 :: Sifts a newly pushed open-list entry upward in the AI point search's binary min-heap, ordered by node cost.
+- 0x43b4d0 ai_search_heap_sift_down size=202 conf=0.55 :: Sifts the heap root down to restore min-heap order in the AI point search's open list after removing the minimum.
+- 0x43b5a0 FUN_0043b5a0 size=483 conf=0.45 :: Adds a new open-list node to the AI point-search graph (reusing an existing chained node when appropriate) and pushes it onto the cost-ordered min-heap.
+- 0x43b790 FUN_0043b790 size=157 conf=0.4 :: Initializes an AI point-search context and pushes its initial open-list node.
+- 0x43b830 FUN_0043b830 size=560 conf=0.35 :: Evaluates the cheapest way (direct or bending around an obstacle) to move between two points for the AI point search, writing the chosen cost and heading.
+- 0x43ba60 FUN_0043ba60 size=579 conf=0.35 :: Breadth-first expands a point's neighbors in the AI navigation point graph, scoring and pushing viable successors onto the open list.
+- 0x43bcb0 FUN_0043bcb0 size=354 conf=0.4 :: Performs one iteration of the AI point search: pop the cheapest open node and either connect it to the goal or expand its neighbors.
+- 0x43be20 FUN_0043be20 size=105 conf=0.4 :: Drives an AI point search to completion, returning whether a full or best-effort path was found.
+- 0x43be90 FUN_0043be90 size=1196 conf=0.3 :: Top-level AI pathfinding entry point that builds an obstacle-aware point graph around a list of waypoints and searches it to produce a full route.
+- 0x43c340 FUN_0043c340 size=64 conf=0.4 :: Tests whether two 3D points referenced via register operands are within a given radius of each other.
+- 0x43c380 FUN_0043c380 size=125 conf=0.4 :: Ray-versus-circle intersection test used while routing a path around a circular obstacle, returning the entry distance along the ray when it hits.
+- 0x43c400 FUN_0043c400 size=163 conf=0.35 :: Computes the two tangent directions from an offset to a circle of a given radius by rotating a base direction vector by the tangent angle in each sense.
+- 0x43c4b0 FUN_0043c4b0 size=83 conf=0.35 :: Appends a blocker/obstacle record to a capped 128-entry list built while gathering nearby obstacles for the AI point search.
+- 0x43c510 ai_search_gather_obstacles size=883 conf=0.5 :: Gathers nearby blocking objects (and their vault/cover surface points) around a candidate search position into the obstacle list used by the AI point search.
+- 0x43c890 FUN_0043c890 size=95 conf=0.4 :: Finds a point in the search's fixed point array whose coverage radius reaches a given position, or -1 if none does.
+- 0x43c8f0 FUN_0043c8f0 size=163 conf=0.4 :: Finds the closest point in the point array visible along a given direction, optionally excluding flagged points, returning its distance and id.
+- 0x43c9a0 FUN_0043c9a0 size=149 conf=0.35 :: Computes tangent offset directions for steering around a specific point-array entry, used while scoring candidate path edges.
+- 0x43ca40 FUN_0043ca40 size=285 conf=0.35 :: Flood-fills the set of point-graph indices reachable from a starting point through pairwise proximity links.
+- 0x43cb60 FUN_0043cb60 size=159 conf=0.4 :: Partitions the point graph into connected groups by repeatedly flood-filling from each ungrouped point.
+- 0x43cc00 FUN_0043cc00 size=846 conf=0.4 :: Simplifies a raw waypoint path into a small set of shortcut points by greedily extending clear segments and snapping to occluding navmesh corners.
+- 0x43cf60 FUN_0043cf60 size=415 conf=0.35 :: Finds the tangent point where a path must bend around a circular navmesh obstacle vertex, on the requested side.
+- 0x43d100 FUN_0043d100 size=308 conf=0.3 :: Computes where a given-radius circle crosses a portal edge, falling back to a direction-based offset if the edge geometry is degenerate.
+- 0x43d240 FUN_0043d240 size=614 conf=0.35 :: Chooses whichever of two candidate polygon corners produces the shorter combined turn when a path bends around an obstacle.
+- 0x43d4b0 FUN_0043d4b0 size=716 conf=0.3 :: Walks a BSP cluster's boundary edges to find where a proposed straight-line move first crosses a blocked or permission boundary.
+- 0x43d790 FUN_0043d790 size=383 conf=0.3 :: Traces along a cluster's boundary edges from a starting vertex, returning the nearest edge that would block a proposed move within range.
+- 0x43d910 FUN_0043d910 size=160 conf=0.3 :: Checks whether two navmesh cluster locations sit at nearly the same height, used to reject path steps needing a large vertical jump.
+- 0x43d9b0 FUN_0043d9b0 size=1237 conf=0.3 :: Recursively traces a straight segment across a BSP cluster's connected edges to find the first portal boundary it crosses.
+- 0x43de90 FUN_0043de90 size=988 conf=0.35 :: Determines whether a straight segment between two points is unobstructed across BSP cluster portals within a margin, reporting the first blocking crossing if any.
+- 0x43e270 FUN_0043e270 size=973 conf=0.4 :: Finds or allocates a per-actor firing-position node of the requested type, reinitializing it when newly allocated or repurposed.
+- 0x43e640 FUN_0043e640 size=504 conf=0.4 :: Initializes a firing-position node's fields from its target object (cluster, cover flags, timers) and links it into that object's node list.
+- 0x43e840 FUN_0043e840 size=205 conf=0.3 :: Copies a firing-position node record into another slot and resets its per-instance runtime state.
+- 0x43e910 FUN_0043e910 size=101 conf=0.4 :: Allocates a new firing-position node and links it as the paired counterpart of an existing node.
+- 0x43e980 FUN_0043e980 size=146 conf=0.4 :: Allocates and links a new firing-position node as the counterpart of an existing one, propagating a bounded type value from a third reference node.
+- 0x43ea20 FUN_0043ea20 size=95 conf=0.4 :: Removes a firing-position node from its owning object's linked list of nodes.
+- 0x43ea80 FUN_0043ea80 size=166 conf=0.35 :: Searches an object's firing-position node list for one owned by a given actor or matching a target's cluster, skipping reserved node types.
+- 0x43eb30 FUN_0043eb30 size=411 conf=0.45 :: Finds or creates a shared firing-position node between an actor and a target object and initializes its combat-relevant fields.
+- 0x43ecd0 FUN_0043ecd0 size=32 conf=0.35 :: Returns the head index of the current object's firing-position node linked list.
+- 0x43ecf0 FUN_0043ecf0 size=41 conf=0.4 :: Advances a {current,next} iterator over the firing-position node linked list, returning the current node's record offset.

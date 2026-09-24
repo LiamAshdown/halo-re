@@ -1,0 +1,23 @@
+{
+  "slice": 2,
+  "decisions": [
+    {
+      "addr": "0x449450",
+      "module": "cseries",
+      "confidence": 0.75,
+      "evidence": "Keep cseries. Decisive structural evidence: halo.exe's object files are linked in alphabetical DIRECTORY order, and main's objects are a well-identified block at 0x4c6340-0x4ca4a0 (between items 0x4bbb50 and math 0x4ca4b0). The three callers of 0x449450 are exactly the main/console.c-style printf wrappers at 0x4c67c0/0x4c6860/0x4c6920 inside that main block - if write_to_error_file lived in main's error object it would sit beside them, not ~0x7D000 earlier. 0x449450 instead sits in the c-run: cache 0x442290 -> camera 0x444c00 -> THIS run 0x4491e0-0x449450 -> cutscene 0x449590 -> devices 0x44a930. Only 'cseries' sorts between camera and cutscene; 'main' cannot appear there. The run itself is a cluster of small cseries OS-layer objects: 0x449210 QueryPerformanceCounter system timer, 0x449250 recursive CreateDirectoryA path builder (files_windows), 0x449370/0x449380 GlobalAlloc/GlobalFree wrappers, 0x449390 profile-path '-path' resolver, and 0x449450 the debug.txt writer (cseries/errors.c). The cea-pdb hint 'write_to_error_file (main)' reflects the CE-Anniversary source's re-homed file layout, not the retail object layout - the same class of hint was already rejected for 0x43fe60 (targa_export) in slice 01 for the same reason."
+    },
+    {
+      "addr": "0x459300",
+      "module": "game",
+      "confidence": 0.75,
+      "evidence": "Keep game, and the run is aim-assist/target-acquisition, not camera. Decompiling the block: 0x459e80 reads the unit's current weapon (unit +0x2f2 index, +0x2f8 weapon array) and pulls the weapon tag's autoaim/magnetism float fields at +0x3e4..+0x3f4, scaling them by the zoom factor from 0x4c2d70 - that is weapon autoaim angle/range, not a camera. 0x459a00 builds and qsorts (0x38-byte records, comparator LAB_0045a4a0) a candidate-target list via 0x459f70/0x45a0e0 and filters it with 0x459dd0 - target acquisition. 0x4593b0 fetches the aiming origin, collision-tests toward the candidate (0x505880 mask 0x1000e9) and blends the result, writing to the 0x200-byte per-PLAYER record (DAT_0087a480 data array, 0x200 = s_player) - player magnetism, not a camera struct. Callers confirm: 0x4593b0's sole caller is 0x4c4c40 = trigger_create_projectiles (items, cea-pdb via 'primary/secondary trigger') bending new projectiles toward the target, and 0x4596f0/0x459900 are called by 0x4710b0 inside the game/player_control.c run (0x470fb0-0x472760). The calls into 0x446a90/0x447290 are ordinary cross-module calls to camera's aiming-origin helpers ('primary trigger' marker), not evidence of shared authorship. Alphabetical object order also forbids camera here: camera's block is 0x444c00-0x449170, far earlier; 0x459300 sits immediately after the last effects object and immediately before game/cheats (0x45a530 'warthog', 'Camera is outside BSP... cannot initiate teleportation') and game.c (0x45a9c0), so the effects->game boundary at 0x459300 stands."
+    },
+    {
+      "addr": "0x456730",
+      "module": "effects",
+      "confidence": 0.7,
+      "evidence": "Keep effects. The run is the player-effect (damage-response) file, and it is bracketed on both sides by unambiguous effects objects, so under MSVC's alphabetical-directory link order it must be inside effects/: before it is the particle/particle-system core ending 0x4566f0, and after it is 0x457e20-0x458bf0, which I decompiled and identified as weather particles - 0x457e20 allocates a 0x9c-byte instance into the DAT_006b0ae0/006b0ae4 array from a tag block of 0x25c-byte particle types with randomized per-type values, 0x458070 resolves bitmaps (0x43f6a0) plus the particle helper 0x4505e0, and 0x458bf0 renders it through 0x50d5b0/0x511620/0x511700 in render. game objects cannot be interleaved between two effects objects; game starts at 0x459300. Within effects the file order also works: particle < particle_system < player_effects < weather. The function-level evidence is consistent with an effects file rather than game: 0x456730 just clears the 0xEC-byte per-local-player effect records at DAT_006f1884 when the local player has no unit, and 0x4578a0 (the core) copies 0x38 bytes of a tag definition (priority at +2, duration/scale fields) into that record, scales +0x28 by 30.0 ticks/sec and sets the active flag at +0xe8 - i.e. effect instancing driven by a tag, the same shape as the other effects objects. Being invoked from apply_damage (0x4ee5e0 -> 0x456bc0/0x456cf0), from game_engine teleport (0x461630) and from bsp-switch (0x4749a0) is expected for a service module; no caller implies authorship."
+    }
+  ]
+}

@@ -1,0 +1,484 @@
+{
+  "results": [
+    {
+      "addr": "0x4529d0",
+      "name": "object_change_color_evaluate",
+      "prototype": "",
+      "confidence": 0.35,
+      "evidence": "Iterates an object's region change-color records, evaluates the function chain via FUN_00453180 and matrix4x3_transform_point, and defaults to the colors in PTR_DAT_0069672c/00696718 while switching on the record's type field (0-3).",
+      "summary": "Evaluates the change-color function chain for each region of an object and writes the resulting primary/secondary colors back into the object's render state."
+    },
+    {
+      "addr": "0x452cf0",
+      "name": "effect_event_apply",
+      "prototype": "",
+      "confidence": 0.7,
+      "evidence": "Dispatches on the effect part's tag-group hash ('obje','deca','jpt!','ligh','pctl','snd!'), calling object creation, decal spawn, damage_apply_area_effect, light spawn, particle_system_new, and sound playback respectively.",
+      "summary": "Applies a single effect event/part by tag group, spawning the corresponding object, decal, damage, light, particle system, or sound."
+    },
+    {
+      "addr": "0x453180",
+      "name": "object_function_chain_resolve",
+      "prototype": "",
+      "confidence": 0.3,
+      "evidence": "Recursively walks a function-input linked list (DAT_0087abe0 table, 0x3c stride), selecting the next link based on param_3 and bit 0x8000 of the entry's flags.",
+      "summary": "Walks a chained object-function-input list to resolve the active link for the given evaluation mode."
+    },
+    {
+      "addr": "0x453220",
+      "name": "object_get_node_matrix_pointer",
+      "prototype": "",
+      "confidence": 0.35,
+      "evidence": "When the node's high bit is set, resolves a first-person-weapon node matrix at DAT_006b2d98 (matching FUN_00453b10's fp-weapon node usage); otherwise resolves the regular model's node array via the object's tag definition.",
+      "summary": "Returns a pointer to a skeletal node's transform, special-casing first-person weapon nodes."
+    },
+    {
+      "addr": "0x453290",
+      "name": "transition_function_evaluate",
+      "prototype": "",
+      "confidence": 0.5,
+      "evidence": "Switches over a curve-type parameter implementing step, squared (early), (2-x)x (late), and (3-2x)x^2 (smooth) easing curves, matching Blam's standard transition shapes.",
+      "summary": "Evaluates a standard easing/transition curve (linear, early, late, smooth, or step) for a 0..1 input."
+    },
+    {
+      "addr": "0x453330",
+      "name": "local_player_near_point",
+      "prototype": "",
+      "confidence": 0.35,
+      "evidence": "Loops over up to 2 local players (DAT_0087a478 table) testing squared distance to *in_EDX against 100.0 (10 units), or short-circuits true when a difficulty/player-count field exceeds 2.",
+      "summary": "Returns whether any local player is within 10 world units of a given point."
+    },
+    {
+      "addr": "0x4533b0",
+      "name": "object_marker_environment_probe",
+      "prototype": "",
+      "confidence": 0.3,
+      "evidence": "Offsets a marker position by a fixed vector and 0.15 on Z, calls FUN_00505880 (line/collision test), and on a hit calls FUN_0053ed60 and FUN_00453490 to spawn a marker effect.",
+      "summary": "Probes the environment near an object marker and, on a hit, triggers a marker-attached effect."
+    },
+    {
+      "addr": "0x453490",
+      "name": "object_marker_spawn_effect_and_sound",
+      "prototype": "",
+      "confidence": 0.4,
+      "evidence": "Resolves an object marker's world position, calls FUN_00450980 to place something there when one tag field is valid, and FUN_00543d80 (color+id args) for a second tag field.",
+      "summary": "Spawns an effect and/or sound at a specific marker on a specific object."
+    },
+    {
+      "addr": "0x4535b0",
+      "name": "particle_system_delete_all",
+      "prototype": "",
+      "confidence": 0.45,
+      "evidence": "Guarded by a 'dirty' flag on the particle-system table header, iterates every entry via FUN_004d0630 calling FUN_00453f60 (particle-system delete) until exhausted, then clears the flag.",
+      "summary": "Deletes every active particle system, used to fully reset the particle system pool."
+    },
+    {
+      "addr": "0x453600",
+      "name": "particle_system_new",
+      "prototype": "",
+      "confidence": 0.45,
+      "evidence": "Allocates a 0x158-byte datum in the particle-system table (DAT_0087abd4), stores the pctl tag id (param_1) and position/forward/velocity vectors from EAX/ECX/EDX, then initializes it via FUN_004538b0, deleting on failure.",
+      "summary": "Creates a new particle system instance at a given position/orientation from a pctl tag."
+    },
+    {
+      "addr": "0x4536f0",
+      "name": "particle_system_new_on_object_marker",
+      "prototype": "",
+      "confidence": 0.35,
+      "evidence": "Same allocation pattern as FUN_00453600 but derives placement from param_2 (object index) and in_AX (marker index) via the object's node array at tag offset 0x144.",
+      "summary": "Creates a new particle system instance attached to a marker on an object."
+    },
+    {
+      "addr": "0x4538b0",
+      "name": "particle_system_initialize_particle_types",
+      "prototype": "",
+      "confidence": 0.4,
+      "evidence": "Iterates the pctl tag's particle-type block (offset 0x5c), initializing each per-instance sub-record and rolling a random initial age from the type's min/max age fields.",
+      "summary": "Initializes per-particle-type runtime state for a newly created particle system."
+    },
+    {
+      "addr": "0x453a10",
+      "name": "particle_system_find_matching_object",
+      "prototype": "",
+      "confidence": 0.25,
+      "evidence": "Walks the global particle-system iteration table via data_iterator_next comparing each entry's associated object id against param_1, returning a tri-state result.",
+      "summary": "Searches active particle systems for one associated with a given object and reports a match state."
+    },
+    {
+      "addr": "0x453b10",
+      "name": "particle_system_type_spawn_particles",
+      "prototype": "",
+      "confidence": 0.35,
+      "evidence": "Computes a target particle count for one particle-type slot from object/marker rate data (first_person_weapon_get_marker_data, FUN_0050fcd0), then datum_new's entries in a 0x80-stride table and invokes a per-shape constructor via the &DAT_00657444 function-pointer table.",
+      "summary": "Spawns new child particle records for one particle-type of a particle system, up to its target emission count."
+    },
+    {
+      "addr": "0x453f60",
+      "name": "particle_system_delete",
+      "prototype": "",
+      "confidence": 0.5,
+      "evidence": "For each particle-type slot walks and datum_delete's every linked particle record, then datum_delete's the particle-system entry itself.",
+      "summary": "Deletes a particle system and all of its spawned particle records."
+    },
+    {
+      "addr": "0x454000",
+      "name": "particle_system_update_all",
+      "prototype": "",
+      "confidence": 0.4,
+      "evidence": "Iterates every particle-system datum via FUN_004d0630 calling FUN_004544f0(param_1, index) for each, matching the per-tick update pattern.",
+      "summary": "Updates every active particle system for one simulation tick."
+    },
+    {
+      "addr": "0x454080",
+      "name": "particle_system_refresh_local_player_bindings",
+      "prototype": "",
+      "confidence": 0.25,
+      "evidence": "Callers=0 (dead code); iterates all particle systems, resolving/clearing a local-player index (FUN_005013a0, DAT_00746f9c+0xe4) per system and per particle-type slot.",
+      "summary": "Unused routine that would re-resolve local-player associations for every particle system and its particle-type slots."
+    },
+    {
+      "addr": "0x454250",
+      "name": "object_marker_random_point_in_bounds",
+      "prototype": "",
+      "confidence": 0.3,
+      "evidence": "Reads an object-definition marker/region record (stride 0x178) and writes randomly interpolated values between its min/max fields into the output vector.",
+      "summary": "Generates a random point/normal pair interpolated within a marker region's stored bounds."
+    },
+    {
+      "addr": "0x4543b0",
+      "name": "sequence_index_advance",
+      "prototype": "",
+      "confidence": 0.3,
+      "evidence": "Steps a ping-pong index (in_EAX[0]/[1]) by +-1, and on hitting the bound either clamps, wraps, or reflects direction based on flag bits 0/1 of in_ECX+0x20.",
+      "summary": "Advances a bounded, optionally looping/ping-ponging index by one step."
+    },
+    {
+      "addr": "0x454450",
+      "name": "sequence_index_advance_secondary",
+      "prototype": "",
+      "confidence": 0.3,
+      "evidence": "Same ping-pong stepping logic as FUN_004543b0 but against a different bound (in_ECX+0x74) and flag bits 2/3.",
+      "summary": "Advances a second bounded, optionally looping index by one step, mirroring FUN_004543b0 for a different field."
+    },
+    {
+      "addr": "0x4544f0",
+      "name": "particle_system_update",
+      "prototype": "",
+      "confidence": 0.45,
+      "evidence": "Recomputes object position/velocity scaling for the system, invokes a per-system-type update via the &DAT_0065743c function-pointer table, then iterates and updates each particle-type slot's interpolated position/orientation and colors; deletes the system via FUN_00453f60 when finished.",
+      "summary": "Per-tick update for a single particle system: advances physics, evaluates its behavior callback, and updates each particle-type's render state."
+    },
+    {
+      "addr": "0x454b40",
+      "name": "particle_system_refresh_cluster_bit",
+      "prototype": "",
+      "confidence": 0.3,
+      "evidence": "Iterates particle systems via FUN_004d0630, testing each system's stored cluster/region index against a changed-bit array (DAT_0087a478+0x58) and calling FUN_00454bf0 when set.",
+      "summary": "Re-evaluates particle systems whose BSP cluster/region was marked as changed."
+    },
+    {
+      "addr": "0x454bf0",
+      "name": "particle_system_update_lighting",
+      "prototype": "",
+      "confidence": 0.3,
+      "evidence": "For each active particle-type slot walks a light list (DAT_007c3350 bit array, DAT_007c3178.. light position/color globals), computes matrix4x3_transform_point and blends between two lights based on a falloff ratio.",
+      "summary": "Recomputes local lighting contribution for each active particle-type slot of a particle system from nearby scene lights."
+    },
+    {
+      "addr": "0x455740",
+      "name": "particle_new",
+      "prototype": "",
+      "confidence": 0.4,
+      "evidence": "Allocates a 0x70-byte datum in the particle table (DAT_0087abd0, referenced by later functions), copying shader/random range fields from the particle-type block and computing lifetime/fade via random_range_real.",
+      "summary": "Creates a new individual particle from a particle-type definition."
+    },
+    {
+      "addr": "0x455b60",
+      "name": "particle_update_all",
+      "prototype": "",
+      "confidence": 0.4,
+      "evidence": "Iterates the particle table (DAT_0087abd0, 0x70 stride) via FUN_004d0630, advancing age by param_1 and either deleting expired particles or dispatching to FUN_004560c0/FUN_004561a0/FUN_00456550.",
+      "summary": "Per-tick update for every active particle: ages, animates, or deletes each one."
+    },
+    {
+      "addr": "0x455c80",
+      "name": "particle_delete_by_type",
+      "prototype": "",
+      "confidence": 0.35,
+      "evidence": "Iterates the particle table deleting entries whose stored particle-type index matches unaff_BX and whose flag bit 0x40 is set.",
+      "summary": "Deletes all live particles belonging to a specific particle type."
+    },
+    {
+      "addr": "0x455e60",
+      "name": "particle_advance_sequence_state",
+      "prototype": "",
+      "confidence": 0.35,
+      "evidence": "Drives a 4-state machine (field +0xe) selecting a random sprite-sheet frame index from ranges (+0x98/0x9a/0x9c/0x9e) on the particle-type tag, matching a sprite animation start/loop/end sequence.",
+      "summary": "Advances a particle's sprite sequence state machine and picks the next random frame index."
+    },
+    {
+      "addr": "0x456000",
+      "name": "particle_advance_frame_hold",
+      "prototype": "",
+      "confidence": 0.3,
+      "evidence": "Manages a frame-hold counter, refreshing it from a per-frame duration table (iVar1+0x58) via FUN_00455e60 when exhausted.",
+      "summary": "Decrements/refreshes a particle's current-frame hold counter, advancing the sequence when it expires."
+    },
+    {
+      "addr": "0x4560c0",
+      "name": "particle_animation_advance",
+      "prototype": "",
+      "confidence": 0.3,
+      "evidence": "Loops calling FUN_00456000 to consume elapsed time (param_1) across per-frame durations, matching a fixed-timestep animation advance.",
+      "summary": "Advances a particle's frame animation across a given elapsed time by repeatedly consuming per-frame durations."
+    },
+    {
+      "addr": "0x4561a0",
+      "name": "particle_physics_update",
+      "prototype": "",
+      "confidence": 0.35,
+      "evidence": "When unattached performs a collision test via FUN_0050b530 and on impact spawns marker effects/sounds (FUN_00453330/FUN_00453490) or deletes the particle; when attached to an object blends velocity toward the object via object_try_and_get and damping curves.",
+      "summary": "Updates a particle's motion, handling collision response and object-attached particle damping."
+    },
+    {
+      "addr": "0x456550",
+      "name": "particle_apply_impact_or_delete",
+      "prototype": "",
+      "confidence": 0.3,
+      "evidence": "Checks the particle-type's impact-effect tag field (+0x100 on its definition) and either calls FUN_004565a0(0) to trigger it or datum_delete's the particle.",
+      "summary": "Triggers a particle's impact effect if one is defined, otherwise deletes the particle."
+    },
+    {
+      "addr": "0x4565a0",
+      "name": "particle_impact_response_dispatch",
+      "prototype": "",
+      "confidence": 0.45,
+      "evidence": "Dispatches on a tag-group magic: 'effe' calls vector3d_normalize_with_length + FUN_00450980 (effect spawn); 'snd!' calls FUN_00543d80 (sound play).",
+      "summary": "Dispatches a particle's impact response, spawning an effect or playing a sound depending on the referenced tag's group."
+    },
+    {
+      "addr": "0x4566f0",
+      "name": "particle_compute_current_scale",
+      "prototype": "",
+      "confidence": 0.3,
+      "evidence": "Linearly interpolates between an object type's min/max radius (offsets 0x74/0x78) using the particle's lifetime fraction (+0x14/+0x18), then multiplies by the particle's base scale (+0x5c).",
+      "summary": "Computes a particle's current render scale from its lifetime fraction and the owning object type's radius range."
+    },
+    {
+      "addr": "0x456730",
+      "name": "contrail_clear_invalid",
+      "prototype": "",
+      "confidence": 0.45,
+      "evidence": "Iterates the fixed contrail array (DAT_006f1884, 0xec stride) via an index walk over DAT_0087a478, zeroing an entry's fields whenever its associated object slot is missing or invalid.",
+      "summary": "Clears out contrail instances whose owning object no longer exists."
+    },
+    {
+      "addr": "0x4567c0",
+      "name": "contrail_emit_point_by_distance",
+      "prototype": "",
+      "confidence": 0.35,
+      "evidence": "When the accumulated distance (param_1) exceeds a stored threshold, evaluates periodic_function_evaluate and blends new point-density/emission values into the contrail record at DAT_006f1884[in_DX].",
+      "summary": "Emits/updates a contrail segment once the object has traveled far enough since the last point."
+    },
+    {
+      "addr": "0x456900",
+      "name": "contrail_update_from_position",
+      "prototype": "",
+      "confidence": 0.35,
+      "evidence": "Computes an object's traveled distance via object_get_position against a cached point, then forwards it to FUN_004567c0.",
+      "summary": "Computes distance traveled since the last update and forwards it to the contrail point-emission routine."
+    },
+    {
+      "addr": "0x456980",
+      "name": "contrail_add_point",
+      "prototype": "",
+      "confidence": 0.35,
+      "evidence": "Resolves a contrail slot index from the object table (DAT_0087a480) and forwards to FUN_004578a0 with a fixed scale of 1.0.",
+      "summary": "Adds a new point to an object's contrail if one is currently attached."
+    },
+    {
+      "addr": "0x4569d0",
+      "name": "contrail_reset_and_add_point",
+      "prototype": "",
+      "confidence": 0.3,
+      "evidence": "Zero-initializes a large local contrail-point scratch buffer, fills default color from PTR_DAT_006851fc, then calls FUN_004578a0 and FUN_00457d50 to (re)seed the contrail.",
+      "summary": "Resets a contrail's point buffer to defaults and adds an initial point."
+    },
+    {
+      "addr": "0x456ad0",
+      "name": "contrail_create_for_object",
+      "prototype": "",
+      "confidence": 0.3,
+      "evidence": "Checks a validity flag on *in_EAX, otherwise walks data_iterator_next to find a slot via FUN_004ec590/FUN_004ec670, and forwards packed state to FUN_00456cf0.",
+      "summary": "Allocates or looks up a contrail slot for an object and hands off to the contrail creation routine."
+    },
+    {
+      "addr": "0x456bc0",
+      "name": "contrail_send_network_update",
+      "prototype": "",
+      "confidence": 0.4,
+      "evidence": "Validates a contrail slot index, builds a message payload from object/point data, calls message_delta_encode_message and network_session_send_to_machine to replicate the contrail point to clients.",
+      "summary": "Encodes and sends a network update for a newly added contrail point."
+    },
+    {
+      "addr": "0x456cf0",
+      "name": "contrail_create",
+      "prototype": "",
+      "confidence": 0.35,
+      "evidence": "Resolves a contrail slot from the object table, adds a point (FUN_004578a0/FUN_004579b0/FUN_00457d50), then for local players tests facing/visibility via local_player_to_player_index, object_try_and_get and vector3d_cross_product/fpatan before flagging the contrail's visibility bytes.",
+      "summary": "Creates or extends a contrail on an object and evaluates local-player visibility/facing to set its render flags."
+    },
+    {
+      "addr": "0x457000",
+      "name": "contrail_compute_segment_color",
+      "prototype": "",
+      "confidence": 0.3,
+      "evidence": "When not disabled, blends stored min/max color fields via FUN_004ccac0 based on elapsed lifetime, or seeds a fresh segment from the DAT_00687218 color table.",
+      "summary": "Computes the interpolated color/alpha for a contrail segment based on its age."
+    },
+    {
+      "addr": "0x457220",
+      "name": "contrail_fade_alpha_up",
+      "prototype": "",
+      "confidence": 0.3,
+      "evidence": "Increments 4 consecutive alpha-like bytes at contrail record offset 0xe4 by a per-tick amount, clamped at 0xff.",
+      "summary": "Fades a contrail's stored alpha bytes upward over time, clamped to 255."
+    },
+    {
+      "addr": "0x457280",
+      "name": "contrail_random_point_offset",
+      "prototype": "",
+      "confidence": 0.3,
+      "evidence": "Uses matrix4x3_from_axis_angle with a random rotation seed and a node array at DAT_006b7af4 to produce a jittered offset vector for a contrail point.",
+      "summary": "Computes a randomly-rotated positional jitter offset for a contrail point."
+    },
+    {
+      "addr": "0x457390",
+      "name": "contrail_get_point_transform",
+      "prototype": "",
+      "confidence": 0.3,
+      "evidence": "Builds an output transform matrix for a contrail point either from a cached blend (DAT_006f1884 fields 0x118/0x11c/0x120) or freshly via matrix4x3_from_euler_angles/matrix4x3_from_axis_angle/vector3d_cross_product depending on the contrail's fade state.",
+      "summary": "Computes the transform matrix used to render one contrail point, blending between fade-in states."
+    },
+    {
+      "addr": "0x4578a0",
+      "name": "contrail_add_point_if_needed",
+      "prototype": "",
+      "confidence": 0.35,
+      "evidence": "Checks an angle/distance threshold against the last recorded point before copying 14 dwords of new point state into the contrail record and recomputing its next threshold via FUN_006391b4.",
+      "summary": "Adds a new contrail point only if enough angular or distance change has accumulated since the previous point."
+    },
+    {
+      "addr": "0x4579b0",
+      "name": "contrail_compute_point_geometry",
+      "prototype": "",
+      "confidence": 0.3,
+      "evidence": "Computes basis vectors via fcos/fsin of stored yaw/pitch fields, validates them with vector3d_normalize_with_length, then uses vector2d_angle_between and vector3d_rotate_about_axis to orient a new contrail point.",
+      "summary": "Computes the orientation and basis vectors for a new contrail point from the object's stored yaw/pitch."
+    },
+    {
+      "addr": "0x457d50",
+      "name": "contrail_add_scaled_point",
+      "prototype": "",
+      "confidence": 0.3,
+      "evidence": "Same threshold/copy pattern as FUN_004578a0 but scales width/rate fields by param_2 before copying and re-timestamping.",
+      "summary": "Adds a new contrail point with a caller-supplied scale factor applied to its width/rate."
+    },
+    {
+      "addr": "0x457e20",
+      "name": "weather_instance_activate",
+      "prototype": "",
+      "confidence": 0.35,
+      "evidence": "Initializes a weather-instance slot (DAT_006b0ae4, 0x9c stride) with a tag id and duration, then rolls random initial ages for every weather particle-type block (0x25c stride) from its age range fields.",
+      "summary": "Activates a weather effect instance for a region and seeds each weather-particle-type's initial random age."
+    },
+    {
+      "addr": "0x457f00",
+      "name": "weather_instance_type_clear",
+      "prototype": "",
+      "confidence": 0.35,
+      "evidence": "For each weather particle-type of the instance, walks and datum_delete's its linked weather-particle chain, then decrements the active weather instance count.",
+      "summary": "Deletes all weather particles for a weather instance's particle types and deactivates the slot."
+    },
+    {
+      "addr": "0x457fc0",
+      "name": "weather_particle_type_update_count",
+      "prototype": "",
+      "confidence": 0.35,
+      "evidence": "Computes a target count via FUN_006391b4, then repeatedly calls FUN_00458070 to create or datum_delete's entries in the weather-particle-type's linked list until the live count matches.",
+      "summary": "Grows or shrinks the number of live weather particles for one weather-particle-type toward a target count."
+    },
+    {
+      "addr": "0x458070",
+      "name": "weather_particle_new",
+      "prototype": "",
+      "confidence": 0.4,
+      "evidence": "Allocates a 0x54-byte datum (DAT_0087abcc table) for a weather instance/type slot, randomizing its start position, velocity and lifetime fields from the weather-particle-type's stored min/max ranges.",
+      "summary": "Creates a new individual weather particle (raindrop/snowflake) with randomized position, velocity and lifetime."
+    },
+    {
+      "addr": "0x458420",
+      "name": "weather_instance_update",
+      "prototype": "",
+      "confidence": 0.35,
+      "evidence": "Advances the instance's elapsed time, computes near/far fade ratios per weather-particle-type, calls FUN_00457fc0 to keep particle counts up to target, then updates each live particle's velocity/turbulence via FUN_00628cca and FUN_00458630.",
+      "summary": "Per-tick update for one weather effect instance: fades, replenishes, and advances all of its particles."
+    },
+    {
+      "addr": "0x458630",
+      "name": "weather_particle_update_physics",
+      "prototype": "",
+      "confidence": 0.3,
+      "evidence": "Blends velocity toward a randomly-sampled wind direction (DAT_006b7af4 table), performs a collision test via FUN_0050b530 for splash/impact, then integrates position via FUN_004588e0.",
+      "summary": "Updates one weather particle's velocity, collision response and position for a tick."
+    },
+    {
+      "addr": "0x4588e0",
+      "name": "vector3d_add_directional_noise",
+      "prototype": "",
+      "confidence": 0.3,
+      "evidence": "Adds param_1-or-0 noise (via FUN_00628cca) to each axis of *unaff_EDI depending on the sign of the corresponding axis in *unaff_ESI.",
+      "summary": "Adds noise to a vector's components, biased by the sign of a reference direction vector."
+    },
+    {
+      "addr": "0x458990",
+      "name": "weather_compute_billboard_matrix",
+      "prototype": "",
+      "confidence": 0.3,
+      "evidence": "Builds a rotation/translation matrix in the caller's struct from fixed camera-basis globals (DAT_007c3120.. / DAT_007c31e0..), used to orient weather quads toward the camera.",
+      "summary": "Builds a camera-facing transform matrix for weather rendering geometry."
+    },
+    {
+      "addr": "0x458a90",
+      "name": "weather_update_for_local_player",
+      "prototype": "",
+      "confidence": 0.35,
+      "evidence": "Gated on DAT_00687350 and a valid local weather tag index (DAT_007c3108); activates/deactivates a weather instance via FUN_00457e20/FUN_00457f00 when the tag changes, evaluates FUN_0053ed60 for its function value, and drives geometry rebuild via FUN_00458bf0.",
+      "summary": "Manages the local player's active weather instance and rebuilds its render geometry each tick."
+    },
+    {
+      "addr": "0x458b50",
+      "name": "weather_find_nearby_regions",
+      "prototype": "",
+      "confidence": 0.3,
+      "evidence": "Scans up to 8 region records within a param_1 radius of the weather center, matching squared distance against each region's stored radius, returning the matched indices/count.",
+      "summary": "Finds up to 8 nearby regions within a given radius of the weather effect's center."
+    },
+    {
+      "addr": "0x458bf0",
+      "name": "weather_build_render_geometry",
+      "prototype": "",
+      "confidence": 0.25,
+      "evidence": "Consumes the outputs of FUN_00458420/FUN_00458990/FUN_00458b50 and fills very large local float/short arrays, matching a procedural mesh/quad-strip generator for weather rendering.",
+      "summary": "Builds the procedural render geometry (vertex grid) for a weather effect instance."
+    },
+    {
+      "addr": "0x53f5c0",
+      "name": "weather_update",
+      "prototype": "",
+      "confidence": 0.75,
+      "evidence": "The hint name 'chimera__weather_update' is confirmed by the code: iterates weather-particle-type blocks in the weather tag (DAT_00746f9c+0x1b4/0x1b8), random-walks direction components each clamped, and computes a per-type wind direction unit vector via fpatan/fcos/fsin.",
+      "summary": "Per-tick update of the global weather system's wind direction random walk for each active weather-particle-type."
+    }
+  ]
+}

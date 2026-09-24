@@ -1,0 +1,82 @@
+# physics module: 80 functions (address, current Ghidra name, size, agent confidence, summary)
+
+- 0x4ffde0 FUN_004ffde0 size=305 conf=0.35 :: Updates a physics/spring point's stored extension value with a randomized target scaled by a per-node weight, clearing its active flag and firing a contact callback when the extension crosses zero.
+- 0x4fff20 FUN_004fff20 size=356 conf=0.3 :: Scans all physics/spring points against a list of reference positions+radii and resets (deactivates) any point that has moved outside its allowed range.
+- 0x500090 FUN_00500090 size=4764 conf=0.3 :: Searches the local BSP region around a physics contact point for a valid surface, picks a pseudo-random sample position within it, and spawns an effect/decal there.
+- 0x501340 FUN_00501340 size=78 conf=0.35 :: Descends a 2D binary-partition (bsp2d) node tree to locate the leaf/edge index containing a 2D point.
+- 0x5013a0 FUN_005013a0 size=92 conf=0.45 :: Descends the 3D structure-BSP split-plane tree for a given point and returns the index of the leaf that contains it.
+- 0x501400 FUN_00501400 size=112 conf=0.45 :: Follows a collision-BSP surface's boundary edge loop and writes out the 3D position of each vertex around the polygon.
+- 0x501470 FUN_00501470 size=47 conf=0.15 :: Thin pass-through helper that invokes an unnamed utility function and returns its second argument unchanged.
+- 0x5014a0 FUN_005014a0 size=252 conf=0.3 :: Tests which side of a collision-BSP surface's projected 2D boundary a query point falls on by walking the surface's edge loop.
+- 0x5015a0 FUN_005015a0 size=576 conf=0.35 :: Finds the closest point on a collision-BSP surface's 2D boundary polygon to a given 2D query point.
+- 0x5017f0 FUN_005017f0 size=393 conf=0.3 :: Clips a 2D parametric line against a collision-BSP surface's boundary, returning the entry/exit fractions and the edges hit.
+- 0x501980 FUN_00501980 size=130 conf=0.4 :: Initializes a BSP sphere-collision query record and kicks off the recursive node search, returning whether any surfaces or geometry were found nearby.
+- 0x501a10 FUN_00501a10 size=632 conf=0.4 :: Recursively descends the 3D structure-BSP for a sphere-shaped query, tracking the planes crossed and recording touched material/leaf indices into the query's result lists.
+- 0x501c90 FUN_00501c90 size=136 conf=0.3 :: Recurses along a BSP leaf's boundary edges while a sphere query's margin extends past them, dispatching to geometry collection at the terminal leaf edges.
+- 0x501d20 FUN_00501d20 size=830 conf=0.4 :: For a surface potentially touched by a moving sphere, records the nearby unique vertices, leaf-edges and the surface itself into the collision query's result lists.
+- 0x502060 FUN_00502060 size=216 conf=0.3 :: Initializes a segment/pill collision query record with a clamped parametric fraction before running the recursive BSP node test.
+- 0x502140 FUN_00502140 size=787 conf=0.35 :: Recursively clips a line segment against the 3D structure-BSP, finding the nearest surface the segment crosses and filling in its material/vertex data.
+- 0x502460 FUN_00502460 size=407 conf=0.35 :: Within a BSP leaf, finds the surface (if any) whose projected polygon contains a given point, accounting for two-sided material handling.
+- 0x502600 FUN_00502600 size=299 conf=0.35 :: Tests whether a 2D point lies inside a collision-BSP surface's projected boundary polygon.
+- 0x502730 FUN_00502730 size=110 conf=0.3 :: Initializes a swept-sphere/segment collision query record before invoking the recursive BSP node search.
+- 0x5027a0 FUN_005027a0 size=1458 conf=0.35 :: Recursively tests a swept sphere/pill against the 3D structure-BSP, computing the deepest contact fraction and a projected contact point for collision response.
+- 0x502d60 FUN_00502d60 size=261 conf=0.3 :: Descends a BSP leaf's local plane structure for a swept-sphere query, recursing toward the edges that the query's margin overlaps.
+- 0x502e70 FUN_00502e70 size=474 conf=0.3 :: Tests a swept sphere against each edge of a BSP leaf's boundary, keeping the closest valid contact found.
+- 0x503050 FUN_00503050 size=569 conf=0.4 :: Computes the fraction along a swept segment at which a moving sphere (of given radius) first touches a fixed point/edge.
+- 0x503290 FUN_00503290 size=203 conf=0.3 :: Fallback ray-vs-sphere intersection helper returning the entry fraction when a point already lies outside a given radius.
+- 0x503360 FUN_00503360 size=291 conf=0.35 :: Converts a BSP vertex (optionally offset by a collision margin) into one or two sphere collision-proxy entries appended to a local physics shape list.
+- 0x503490 FUN_00503490 size=1028 conf=0.4 :: Converts a BSP edge (with a collision margin) into rounded pill collision proxies at its ends plus a flat quad shape proxy along its length.
+- 0x5038a0 FUN_005038a0 size=437 conf=0.4 :: Converts a collision-BSP surface's polygon (optionally offset along its normal) into a physics-model polygon/shape collision-proxy entry.
+- 0x503a60 FUN_00503a60 size=126 conf=0.3 :: Wrapper that transforms a BSP vertex into world/local space (if a matrix is given) and appends it as a sphere collision proxy.
+- 0x503ae0 FUN_00503ae0 size=355 conf=0.3 :: Wrapper that filters out redundant/coplanar BSP edges and appends the remaining ones as pill/quad collision proxies.
+- 0x503c50 FUN_00503c50 size=307 conf=0.3 :: Wrapper that transforms a BSP surface's polygon (accounting for a moving reference frame) and appends it as a shape collision proxy.
+- 0x503d90 FUN_00503d90 size=283 conf=0.35 :: Builds a local sphere/pill/shape physics model from a BSP collision query's collected vertices, edges and surfaces.
+- 0x503ec0 FUN_00503ec0 size=199 conf=0.4 :: Tests a point against a sphere-shaped collision proxy, returning the penetration depth and separating normal when they overlap.
+- 0x503f90 FUN_00503f90 size=391 conf=0.4 :: Tests a point against a pill/capsule-shaped collision proxy, returning the penetration depth and separating normal when they overlap.
+- 0x504120 FUN_00504120 size=318 conf=0.4 :: Tests a point against a flat polygon (shape) collision proxy, returning the penetration depth when the point lies within the polygon's projected area.
+- 0x504260 FUN_00504260 size=455 conf=0.4 :: Tests a point against every sphere, pill and polygon shape in a local physics model, returning the deepest overlapping contact.
+- 0x504430 FUN_00504430 size=396 conf=0.4 :: Tests a directed ray/segment against a sphere collision proxy, returning the hit fraction and surface normal.
+- 0x5045c0 FUN_005045c0 size=784 conf=0.4 :: Tests a directed ray/segment against a pill/capsule collision proxy, returning the hit fraction and surface normal.
+- 0x5048d0 FUN_005048d0 size=731 conf=0.4 :: Tests a directed ray/segment against a flat polygon (shape) collision proxy, returning the entry fraction where it crosses the polygon.
+- 0x504bb0 FUN_00504bb0 size=603 conf=0.4 :: Tests a directed ray/segment against every sphere, pill and polygon shape in a local physics model, returning the closest facing hit.
+- 0x504e10 FUN_00504e10 size=117 conf=0.3 :: Looks up an object's collision-model shape and material data via its tag definition, failing if it has no attached physics.
+- 0x504e90 FUN_00504e90 size=202 conf=0.3 :: Checks whether all of an object's collision nodes resolve to a valid BSP leaf, i.e. are not embedded outside the world's collision geometry.
+- 0x504f60 FUN_00504f60 size=314 conf=0.3 :: Tests each of an object's collision nodes as a capsule/pill query against the local BSP, recording the first node that reports a valid contact.
+- 0x5050b0 FUN_005050b0 size=321 conf=0.3 :: Tests each of an object's collision nodes as a scaled segment query against the local BSP, recording the first node that reports a valid contact.
+- 0x505200 FUN_00505200 size=296 conf=0.3 :: Iterates an object's collision nodes, running a sphere collision query at each and building local physics-model contact proxies for any node that touches geometry.
+- 0x505330 FUN_00505330 size=28 conf=0.3 :: Returns the model node index associated with a given marker index, or -1 if the marker index is invalid.
+- 0x505350 FUN_00505350 size=305 conf=0.35 :: Recursively searches a chain of nearby objects for one whose collision geometry overlaps a given position, excluding a specified object.
+- 0x505490 FUN_00505490 size=172 conf=0.3 :: Walks the group of objects associated with a cluster/parent to test whether any of them collides with a given point.
+- 0x505540 FUN_00505540 size=102 conf=0.3 :: Thin wrapper that re-evaluates a physics point's containing BSP leaf and refreshes its active/contact state.
+- 0x5055b0 FUN_005055b0 size=714 conf=0.35 :: Recursively casts a ray/segment against a chain of nearby objects, keeping track of the closest valid collision result.
+- 0x505880 FUN_00505880 size=1972 conf=0.35 :: Casts a movement segment through the world, testing it against structure doors and nearby objects, and nudges the endpoint out of any surfaces it would otherwise penetrate.
+- 0x506040 FUN_00506040 size=371 conf=0.3 :: Variant movement-segment collision test that queries the local physics-model shapes rather than raw BSP surfaces directly.
+- 0x5061c0 FUN_005061c0 size=613 conf=0.3 :: Searches nearby objects along a movement path for collisions, spawning contact effects for some material types and running detailed node collision tests for others.
+- 0x506440 FUN_00506440 size=659 conf=0.35 :: Performs a movement collision test against both static BSP geometry and nearby dynamic objects, deduplicating repeated object visits, and reports which kinds of contact occurred.
+- 0x5066e0 point3d_project_onto_line size=121 conf=0.5 :: Projects a 3D point onto an infinite line defined by an origin and direction vector.
+- 0x5067b0 FUN_005067b0 size=1257 conf=0.35 :: Iteratively slides a moving point along the planes, edges or vertices it collides with, producing a final constrained position/velocity.
+- 0x506fb0 FUN_00506fb0 size=277 conf=0.3 :: Sweeps a capsule-approximated movement step through the world, sliding along any surfaces it touches.
+- 0x5070d0 FUN_005070d0 size=143 conf=0.3 :: Walks a physics point step-by-step toward a target position while collision-testing each step, stopping as soon as it becomes blocked.
+- 0x507170 FUN_00507170 size=695 conf=0.35 :: Searches for a nearby non-colliding position for a physics point by sampling a ring of candidate offsets when the direct position is blocked, then settles the point there.
+- 0x507430 FUN_00507430 size=123 conf=0.4 :: Computes a clamped linear interpolation fraction of a value between two reference values, returning 0 or 1 at the extremes.
+- 0x5074b0 FUN_005074b0 size=220 conf=0.35 :: Computes an object's velocity relative to its physics-parent object, used when a physics point is attached to a moving parent.
+- 0x507590 FUN_00507590 size=124 conf=0.4 :: Transforms a point into an antenna object's local space and reports whether it lies inside any of the object's per-vertex collision spheres, returning the hit index.
+- 0x507610 antenna_test_ray_against_vertex_spheres size=374 conf=0.5 :: Casts a ray, transformed into an antenna object's local space, against its per-vertex collision spheres and returns the closest intersection point and normal in world space.
+- 0x507790 FUN_00507790 size=168 conf=0.3 :: Iterates an antenna object's vertices, transforming each one and issuing a debug draw call for it.
+- 0x507840 FUN_00507840 size=503 conf=0.45 :: Per-tick physics update for an antenna/flexible-physics object: accumulates and integrates forces across its vertices and resolves collisions with nearby objects.
+- 0x507a40 FUN_00507a40 size=114 conf=0.35 :: Looks up the collision-material id for a given vertex slot of an object, or a global default table entry when no object index is supplied.
+- 0x507ac0 FUN_00507ac0 size=306 conf=0.4 :: Tests one antenna vertex's contact point against world collision and updates its resting plane, material id, and contact flags on a hit.
+- 0x507c00 FUN_00507c00 size=188 conf=0.35 :: Builds and blends two per-vertex constraint-axis vectors, chosen and scaled by a per-vertex mode, into a single combined vector.
+- 0x507cc0 antenna_object_compute_vertex_forces size=3403 conf=0.55 :: Computes per-vertex gravity, spring, limit and collision-reaction forces for every vertex of an antenna object and sums them into the object's total force and torque.
+- 0x508a10 FUN_00508a10 size=351 conf=0.45 :: Finds objects near a physics/antenna object and dispatches per-object collision handling (impact damage or vertex-pair resolution) for each one found.
+- 0x508b70 FUN_00508b70 size=1355 conf=0.45 :: Checks whether a physics/antenna object is hitting another object hard enough to hurt it and, if so, applies damage via object_apply_damage.
+- 0x5090c0 FUN_005090c0 size=1573 conf=0.4 :: Detects overlapping collision spheres between the vertices of two physics/antenna objects and applies a repulsion impulse to separate them.
+- 0x5096f0 FUN_005096f0 size=227 conf=0.4 :: Rotates and re-orthonormalizes a vertex's forward/twist orientation vectors by a small axis-angle rotation each tick.
+- 0x5097e0 antenna_object_integrate_and_test_rest size=1692 conf=0.5 :: Integrates an antenna object's linear and angular momentum for the tick, resolves resulting world collisions in sub-steps, and updates its sleep/at-rest flags.
+- 0x509e80 FUN_00509e80 size=5129 conf=0.35 :: Alternate, single-pass implementation of the antenna physics tick (force computation, integration and collision response combined) used instead of the general multi-vertex path.
+- 0x50b290 FUN_0050b290 size=86 conf=0.3 :: Advances a scalar physics state value by a delta and clamps or wraps it to stay within a given range.
+- 0x50b2f0 FUN_0050b2f0 size=127 conf=0.3 :: Moves a physics scalar toward a target value at a fixed rate, snapping exactly to the target once reached.
+- 0x50b370 FUN_0050b370 size=227 conf=0.3 :: Clamps a scalar spring-related value against direction-dependent upper and lower limits scaled by a rate parameter.
+- 0x50b460 FUN_0050b460 size=110 conf=0.3 :: Attempts to move a clamped scalar value toward a target using physics_clamp_value_to_spring_range, reporting whether the target was reached.
+- 0x50b4d0 FUN_0050b4d0 size=86 conf=0.35 :: Computes which direction, if any, a value should move in order to approach a target, optionally accounting for wraparound.
+- 0x50b530 FUN_0050b530 size=1195 conf=0.45 :: Advances a point-physics object's position for one tick, applying gravity and resolving up to three bounce/friction collisions against the world along the way.

@@ -1,0 +1,570 @@
+{
+ "slice": 20,
+ "assignments": [
+  {
+   "addr": "0x63163c",
+   "module": "lib:crt",
+   "confidence": 0.92,
+   "evidence": "run 0x63163c-0x637933: MSVC CRT tail - x87/libm helpers (___libm_error_support, __startOneArgErrorHandling, __87except), __getptd/__unlock_fhandle/__amsg_exit, C++ EH frame teardown"
+  },
+  {
+   "addr": "0x632670",
+   "module": "lib:crt",
+   "confidence": 0.92,
+   "evidence": "run 0x63163c-0x637933: MSVC CRT tail - x87/libm helpers (___libm_error_support, __startOneArgErrorHandling, __87except), __getptd/__unlock_fhandle/__amsg_exit, C++ EH frame teardown"
+  },
+  {
+   "addr": "0x6326d0",
+   "module": "lib:crt",
+   "confidence": 0.92,
+   "evidence": "run 0x63163c-0x637933: MSVC CRT tail - x87/libm helpers (___libm_error_support, __startOneArgErrorHandling, __87except), __getptd/__unlock_fhandle/__amsg_exit, C++ EH frame teardown"
+  },
+  {
+   "addr": "0x6326e5",
+   "module": "lib:crt",
+   "confidence": 0.92,
+   "evidence": "run 0x63163c-0x637933: MSVC CRT tail - x87/libm helpers (___libm_error_support, __startOneArgErrorHandling, __87except), __getptd/__unlock_fhandle/__amsg_exit, C++ EH frame teardown"
+  },
+  {
+   "addr": "0x6326fc",
+   "module": "lib:crt",
+   "confidence": 0.92,
+   "evidence": "run 0x63163c-0x637933: MSVC CRT tail - x87/libm helpers (___libm_error_support, __startOneArgErrorHandling, __87except), __getptd/__unlock_fhandle/__amsg_exit, C++ EH frame teardown"
+  },
+  {
+   "addr": "0x632758",
+   "module": "lib:crt",
+   "confidence": 0.92,
+   "evidence": "run 0x63163c-0x637933: MSVC CRT tail - x87/libm helpers (___libm_error_support, __startOneArgErrorHandling, __87except), __getptd/__unlock_fhandle/__amsg_exit, C++ EH frame teardown"
+  },
+  {
+   "addr": "0x63276e",
+   "module": "lib:crt",
+   "confidence": 0.92,
+   "evidence": "run 0x63163c-0x637933: MSVC CRT tail - x87/libm helpers (___libm_error_support, __startOneArgErrorHandling, __87except), __getptd/__unlock_fhandle/__amsg_exit, C++ EH frame teardown"
+  },
+  {
+   "addr": "0x6327b9",
+   "module": "lib:crt",
+   "confidence": 0.92,
+   "evidence": "run 0x63163c-0x637933: MSVC CRT tail - x87/libm helpers (___libm_error_support, __startOneArgErrorHandling, __87except), __getptd/__unlock_fhandle/__amsg_exit, C++ EH frame teardown"
+  },
+  {
+   "addr": "0x6328a0",
+   "module": "lib:crt",
+   "confidence": 0.92,
+   "evidence": "run 0x63163c-0x637933: MSVC CRT tail - x87/libm helpers (___libm_error_support, __startOneArgErrorHandling, __87except), __getptd/__unlock_fhandle/__amsg_exit, C++ EH frame teardown"
+  },
+  {
+   "addr": "0x6328b9",
+   "module": "lib:crt",
+   "confidence": 0.92,
+   "evidence": "run 0x63163c-0x637933: MSVC CRT tail - x87/libm helpers (___libm_error_support, __startOneArgErrorHandling, __87except), __getptd/__unlock_fhandle/__amsg_exit, C++ EH frame teardown"
+  },
+  {
+   "addr": "0x6338e7",
+   "module": "lib:crt",
+   "confidence": 0.92,
+   "evidence": "run 0x63163c-0x637933: MSVC CRT tail - x87/libm helpers (___libm_error_support, __startOneArgErrorHandling, __87except), __getptd/__unlock_fhandle/__amsg_exit, C++ EH frame teardown"
+  },
+  {
+   "addr": "0x633abb",
+   "module": "lib:crt",
+   "confidence": 0.92,
+   "evidence": "run 0x63163c-0x637933: MSVC CRT tail - x87/libm helpers (___libm_error_support, __startOneArgErrorHandling, __87except), __getptd/__unlock_fhandle/__amsg_exit, C++ EH frame teardown"
+  },
+  {
+   "addr": "0x634e13",
+   "module": "lib:crt",
+   "confidence": 0.92,
+   "evidence": "run 0x63163c-0x637933: MSVC CRT tail - x87/libm helpers (___libm_error_support, __startOneArgErrorHandling, __87except), __getptd/__unlock_fhandle/__amsg_exit, C++ EH frame teardown"
+  },
+  {
+   "addr": "0x634e1a",
+   "module": "lib:crt",
+   "confidence": 0.92,
+   "evidence": "run 0x63163c-0x637933: MSVC CRT tail - x87/libm helpers (___libm_error_support, __startOneArgErrorHandling, __87except), __getptd/__unlock_fhandle/__amsg_exit, C++ EH frame teardown"
+  },
+  {
+   "addr": "0x6357d6",
+   "module": "lib:crt",
+   "confidence": 0.92,
+   "evidence": "run 0x63163c-0x637933: MSVC CRT tail - x87/libm helpers (___libm_error_support, __startOneArgErrorHandling, __87except), __getptd/__unlock_fhandle/__amsg_exit, C++ EH frame teardown"
+  },
+  {
+   "addr": "0x6359dc",
+   "module": "lib:crt",
+   "confidence": 0.92,
+   "evidence": "run 0x63163c-0x637933: MSVC CRT tail - x87/libm helpers (___libm_error_support, __startOneArgErrorHandling, __87except), __getptd/__unlock_fhandle/__amsg_exit, C++ EH frame teardown"
+  },
+  {
+   "addr": "0x635d60",
+   "module": "lib:crt",
+   "confidence": 0.92,
+   "evidence": "run 0x63163c-0x637933: MSVC CRT tail - x87/libm helpers (___libm_error_support, __startOneArgErrorHandling, __87except), __getptd/__unlock_fhandle/__amsg_exit, C++ EH frame teardown"
+  },
+  {
+   "addr": "0x635d7e",
+   "module": "lib:crt",
+   "confidence": 0.92,
+   "evidence": "run 0x63163c-0x637933: MSVC CRT tail - x87/libm helpers (___libm_error_support, __startOneArgErrorHandling, __87except), __getptd/__unlock_fhandle/__amsg_exit, C++ EH frame teardown"
+  },
+  {
+   "addr": "0x63669d",
+   "module": "lib:crt",
+   "confidence": 0.92,
+   "evidence": "run 0x63163c-0x637933: MSVC CRT tail - x87/libm helpers (___libm_error_support, __startOneArgErrorHandling, __87except), __getptd/__unlock_fhandle/__amsg_exit, C++ EH frame teardown"
+  },
+  {
+   "addr": "0x637933",
+   "module": "lib:crt",
+   "confidence": 0.92,
+   "evidence": "run 0x63163c-0x637933: MSVC CRT tail - x87/libm helpers (___libm_error_support, __startOneArgErrorHandling, __87except), __getptd/__unlock_fhandle/__amsg_exit, C++ EH frame teardown"
+  },
+  {
+   "addr": "0x638e09",
+   "module": "lib:bink",
+   "confidence": 0.7,
+   "evidence": "run 0x638e09-0x638e6a: delay-load thunks for binkw32.dll (BinkOpen/BinkDoFrame/BinkSetSoundSystem) + shared __tailMerge helper 0x638e13 (9 callers = 9 Bink imports)"
+  },
+  {
+   "addr": "0x638e13",
+   "module": "lib:bink",
+   "confidence": 0.7,
+   "evidence": "run 0x638e09-0x638e6a: delay-load thunks for binkw32.dll (BinkOpen/BinkDoFrame/BinkSetSoundSystem) + shared __tailMerge helper 0x638e13 (9 callers = 9 Bink imports)"
+  },
+  {
+   "addr": "0x638e24",
+   "module": "lib:bink",
+   "confidence": 0.7,
+   "evidence": "run 0x638e09-0x638e6a: delay-load thunks for binkw32.dll (BinkOpen/BinkDoFrame/BinkSetSoundSystem) + shared __tailMerge helper 0x638e13 (9 callers = 9 Bink imports)"
+  },
+  {
+   "addr": "0x638e2e",
+   "module": "lib:bink",
+   "confidence": 0.7,
+   "evidence": "run 0x638e09-0x638e6a: delay-load thunks for binkw32.dll (BinkOpen/BinkDoFrame/BinkSetSoundSystem) + shared __tailMerge helper 0x638e13 (9 callers = 9 Bink imports)"
+  },
+  {
+   "addr": "0x638e38",
+   "module": "lib:bink",
+   "confidence": 0.7,
+   "evidence": "run 0x638e09-0x638e6a: delay-load thunks for binkw32.dll (BinkOpen/BinkDoFrame/BinkSetSoundSystem) + shared __tailMerge helper 0x638e13 (9 callers = 9 Bink imports)"
+  },
+  {
+   "addr": "0x638e42",
+   "module": "lib:bink",
+   "confidence": 0.7,
+   "evidence": "run 0x638e09-0x638e6a: delay-load thunks for binkw32.dll (BinkOpen/BinkDoFrame/BinkSetSoundSystem) + shared __tailMerge helper 0x638e13 (9 callers = 9 Bink imports)"
+  },
+  {
+   "addr": "0x638e4c",
+   "module": "lib:bink",
+   "confidence": 0.7,
+   "evidence": "run 0x638e09-0x638e6a: delay-load thunks for binkw32.dll (BinkOpen/BinkDoFrame/BinkSetSoundSystem) + shared __tailMerge helper 0x638e13 (9 callers = 9 Bink imports)"
+  },
+  {
+   "addr": "0x638e56",
+   "module": "lib:bink",
+   "confidence": 0.7,
+   "evidence": "run 0x638e09-0x638e6a: delay-load thunks for binkw32.dll (BinkOpen/BinkDoFrame/BinkSetSoundSystem) + shared __tailMerge helper 0x638e13 (9 callers = 9 Bink imports)"
+  },
+  {
+   "addr": "0x638e60",
+   "module": "lib:bink",
+   "confidence": 0.7,
+   "evidence": "run 0x638e09-0x638e6a: delay-load thunks for binkw32.dll (BinkOpen/BinkDoFrame/BinkSetSoundSystem) + shared __tailMerge helper 0x638e13 (9 callers = 9 Bink imports)"
+  },
+  {
+   "addr": "0x638e6a",
+   "module": "lib:bink",
+   "confidence": 0.7,
+   "evidence": "run 0x638e09-0x638e6a: delay-load thunks for binkw32.dll (BinkOpen/BinkDoFrame/BinkSetSoundSystem) + shared __tailMerge helper 0x638e13 (9 callers = 9 Bink imports)"
+  },
+  {
+   "addr": "0x638e74",
+   "module": "lib:crt",
+   "confidence": 0.65,
+   "evidence": "0x638e74/0x638eb4: STL std::basic_string throw helpers (_Xran 'invalid string position', _Xlen 'string too long') via _CxxThrowException"
+  },
+  {
+   "addr": "0x638eb4",
+   "module": "lib:crt",
+   "confidence": 0.65,
+   "evidence": "0x638e74/0x638eb4: STL std::basic_string throw helpers (_Xran 'invalid string position', _Xlen 'string too long') via _CxxThrowException"
+  },
+  {
+   "addr": "0x638ef4",
+   "module": "lib:other",
+   "confidence": 0.5,
+   "evidence": "run 0x638ef4-0x639041: linker delay-load thunks for Windows DLLs - WININET (InternetQueryOptionA), VERSION (3 imports via 0x638f19), WSOCK32 (15 ordinal imports via 0x638f5a); confirmed against halo.exe delay-import descriptors"
+  },
+  {
+   "addr": "0x638f0f",
+   "module": "lib:other",
+   "confidence": 0.5,
+   "evidence": "run 0x638ef4-0x639041: linker delay-load thunks for Windows DLLs - WININET (InternetQueryOptionA), VERSION (3 imports via 0x638f19), WSOCK32 (15 ordinal imports via 0x638f5a); confirmed against halo.exe delay-import descriptors"
+  },
+  {
+   "addr": "0x638f19",
+   "module": "lib:other",
+   "confidence": 0.5,
+   "evidence": "run 0x638ef4-0x639041: linker delay-load thunks for Windows DLLs - WININET (InternetQueryOptionA), VERSION (3 imports via 0x638f19), WSOCK32 (15 ordinal imports via 0x638f5a); confirmed against halo.exe delay-import descriptors"
+  },
+  {
+   "addr": "0x638f30",
+   "module": "lib:other",
+   "confidence": 0.5,
+   "evidence": "run 0x638ef4-0x639041: linker delay-load thunks for Windows DLLs - WININET (InternetQueryOptionA), VERSION (3 imports via 0x638f19), WSOCK32 (15 ordinal imports via 0x638f5a); confirmed against halo.exe delay-import descriptors"
+  },
+  {
+   "addr": "0x638f40",
+   "module": "lib:other",
+   "confidence": 0.5,
+   "evidence": "run 0x638ef4-0x639041: linker delay-load thunks for Windows DLLs - WININET (InternetQueryOptionA), VERSION (3 imports via 0x638f19), WSOCK32 (15 ordinal imports via 0x638f5a); confirmed against halo.exe delay-import descriptors"
+  },
+  {
+   "addr": "0x638f50",
+   "module": "lib:other",
+   "confidence": 0.5,
+   "evidence": "run 0x638ef4-0x639041: linker delay-load thunks for Windows DLLs - WININET (InternetQueryOptionA), VERSION (3 imports via 0x638f19), WSOCK32 (15 ordinal imports via 0x638f5a); confirmed against halo.exe delay-import descriptors"
+  },
+  {
+   "addr": "0x638f5a",
+   "module": "lib:other",
+   "confidence": 0.5,
+   "evidence": "run 0x638ef4-0x639041: linker delay-load thunks for Windows DLLs - WININET (InternetQueryOptionA), VERSION (3 imports via 0x638f19), WSOCK32 (15 ordinal imports via 0x638f5a); confirmed against halo.exe delay-import descriptors"
+  },
+  {
+   "addr": "0x638f71",
+   "module": "lib:other",
+   "confidence": 0.5,
+   "evidence": "run 0x638ef4-0x639041: linker delay-load thunks for Windows DLLs - WININET (InternetQueryOptionA), VERSION (3 imports via 0x638f19), WSOCK32 (15 ordinal imports via 0x638f5a); confirmed against halo.exe delay-import descriptors"
+  },
+  {
+   "addr": "0x638f81",
+   "module": "lib:other",
+   "confidence": 0.5,
+   "evidence": "run 0x638ef4-0x639041: linker delay-load thunks for Windows DLLs - WININET (InternetQueryOptionA), VERSION (3 imports via 0x638f19), WSOCK32 (15 ordinal imports via 0x638f5a); confirmed against halo.exe delay-import descriptors"
+  },
+  {
+   "addr": "0x638f91",
+   "module": "lib:other",
+   "confidence": 0.5,
+   "evidence": "run 0x638ef4-0x639041: linker delay-load thunks for Windows DLLs - WININET (InternetQueryOptionA), VERSION (3 imports via 0x638f19), WSOCK32 (15 ordinal imports via 0x638f5a); confirmed against halo.exe delay-import descriptors"
+  },
+  {
+   "addr": "0x638fa1",
+   "module": "lib:other",
+   "confidence": 0.5,
+   "evidence": "run 0x638ef4-0x639041: linker delay-load thunks for Windows DLLs - WININET (InternetQueryOptionA), VERSION (3 imports via 0x638f19), WSOCK32 (15 ordinal imports via 0x638f5a); confirmed against halo.exe delay-import descriptors"
+  },
+  {
+   "addr": "0x638fb1",
+   "module": "lib:other",
+   "confidence": 0.5,
+   "evidence": "run 0x638ef4-0x639041: linker delay-load thunks for Windows DLLs - WININET (InternetQueryOptionA), VERSION (3 imports via 0x638f19), WSOCK32 (15 ordinal imports via 0x638f5a); confirmed against halo.exe delay-import descriptors"
+  },
+  {
+   "addr": "0x638fc1",
+   "module": "lib:other",
+   "confidence": 0.5,
+   "evidence": "run 0x638ef4-0x639041: linker delay-load thunks for Windows DLLs - WININET (InternetQueryOptionA), VERSION (3 imports via 0x638f19), WSOCK32 (15 ordinal imports via 0x638f5a); confirmed against halo.exe delay-import descriptors"
+  },
+  {
+   "addr": "0x638fd1",
+   "module": "lib:other",
+   "confidence": 0.5,
+   "evidence": "run 0x638ef4-0x639041: linker delay-load thunks for Windows DLLs - WININET (InternetQueryOptionA), VERSION (3 imports via 0x638f19), WSOCK32 (15 ordinal imports via 0x638f5a); confirmed against halo.exe delay-import descriptors"
+  },
+  {
+   "addr": "0x638fe1",
+   "module": "lib:other",
+   "confidence": 0.5,
+   "evidence": "run 0x638ef4-0x639041: linker delay-load thunks for Windows DLLs - WININET (InternetQueryOptionA), VERSION (3 imports via 0x638f19), WSOCK32 (15 ordinal imports via 0x638f5a); confirmed against halo.exe delay-import descriptors"
+  },
+  {
+   "addr": "0x638ff1",
+   "module": "lib:other",
+   "confidence": 0.5,
+   "evidence": "run 0x638ef4-0x639041: linker delay-load thunks for Windows DLLs - WININET (InternetQueryOptionA), VERSION (3 imports via 0x638f19), WSOCK32 (15 ordinal imports via 0x638f5a); confirmed against halo.exe delay-import descriptors"
+  },
+  {
+   "addr": "0x639001",
+   "module": "lib:other",
+   "confidence": 0.5,
+   "evidence": "run 0x638ef4-0x639041: linker delay-load thunks for Windows DLLs - WININET (InternetQueryOptionA), VERSION (3 imports via 0x638f19), WSOCK32 (15 ordinal imports via 0x638f5a); confirmed against halo.exe delay-import descriptors"
+  },
+  {
+   "addr": "0x639011",
+   "module": "lib:other",
+   "confidence": 0.5,
+   "evidence": "run 0x638ef4-0x639041: linker delay-load thunks for Windows DLLs - WININET (InternetQueryOptionA), VERSION (3 imports via 0x638f19), WSOCK32 (15 ordinal imports via 0x638f5a); confirmed against halo.exe delay-import descriptors"
+  },
+  {
+   "addr": "0x639021",
+   "module": "lib:other",
+   "confidence": 0.5,
+   "evidence": "run 0x638ef4-0x639041: linker delay-load thunks for Windows DLLs - WININET (InternetQueryOptionA), VERSION (3 imports via 0x638f19), WSOCK32 (15 ordinal imports via 0x638f5a); confirmed against halo.exe delay-import descriptors"
+  },
+  {
+   "addr": "0x639031",
+   "module": "lib:other",
+   "confidence": 0.5,
+   "evidence": "run 0x638ef4-0x639041: linker delay-load thunks for Windows DLLs - WININET (InternetQueryOptionA), VERSION (3 imports via 0x638f19), WSOCK32 (15 ordinal imports via 0x638f5a); confirmed against halo.exe delay-import descriptors"
+  },
+  {
+   "addr": "0x639041",
+   "module": "lib:other",
+   "confidence": 0.5,
+   "evidence": "run 0x638ef4-0x639041: linker delay-load thunks for Windows DLLs - WININET (InternetQueryOptionA), VERSION (3 imports via 0x638f19), WSOCK32 (15 ordinal imports via 0x638f5a); confirmed against halo.exe delay-import descriptors"
+  },
+  {
+   "addr": "0x6391b4",
+   "module": "lib:crt",
+   "confidence": 0.9,
+   "evidence": "0x6391b4: _ftol2 - x87 float-to-int64 conversion helper, 125 callers across the engine"
+  },
+  {
+   "addr": "0x6392ea",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x639300",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x639320",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x639360",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x639390",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x6393b0",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x6393d0",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x6393db",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x6393e6",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x6393f1",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x6393fc",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x63940a",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x639440",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x639460",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x639480",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x63948b",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x639496",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x6394a1",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x6394ac",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x6394ba",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x6394c7",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x6394e0",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x6394e8",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x6394f0",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x639510",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x639530",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x63953b",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x639550",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x639558",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x639570",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x63957e",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x6392ea-0x63957e: MSVC EH unwind funclets at end of .text; targets are the STL/C++ object file at 0x578000-0x57c000 already labelled lib:other (FUN_57b560/FUN_579fe0/FUN_5785b0, _free)"
+  },
+  {
+   "addr": "0x6b4c00",
+   "module": "render",
+   "confidence": 0.6,
+   "evidence": "0x6b4c00 in .data not .text: 'render_window' global (OpenSauce name), render globals block"
+  },
+  {
+   "addr": "0x6bd180",
+   "module": "dialogs",
+   "confidence": 0.35,
+   "evidence": "0x6bd180-0x6bd1b8 in .data: Keystone widget-toolkit function pointers (ks_/kw_/kc_ = keystone screen/window/control) used by Halo PC's dialog UI glue; data labels, not code"
+  },
+  {
+   "addr": "0x6bd188",
+   "module": "dialogs",
+   "confidence": 0.35,
+   "evidence": "0x6bd180-0x6bd1b8 in .data: Keystone widget-toolkit function pointers (ks_/kw_/kc_ = keystone screen/window/control) used by Halo PC's dialog UI glue; data labels, not code"
+  },
+  {
+   "addr": "0x6bd198",
+   "module": "dialogs",
+   "confidence": 0.35,
+   "evidence": "0x6bd180-0x6bd1b8 in .data: Keystone widget-toolkit function pointers (ks_/kw_/kc_ = keystone screen/window/control) used by Halo PC's dialog UI glue; data labels, not code"
+  },
+  {
+   "addr": "0x6bd19c",
+   "module": "dialogs",
+   "confidence": 0.35,
+   "evidence": "0x6bd180-0x6bd1b8 in .data: Keystone widget-toolkit function pointers (ks_/kw_/kc_ = keystone screen/window/control) used by Halo PC's dialog UI glue; data labels, not code"
+  },
+  {
+   "addr": "0x6bd1b8",
+   "module": "dialogs",
+   "confidence": 0.35,
+   "evidence": "0x6bd180-0x6bd1b8 in .data: Keystone widget-toolkit function pointers (ks_/kw_/kc_ = keystone screen/window/control) used by Halo PC's dialog UI glue; data labels, not code"
+  }
+ ],
+ "boundaries": [
+  {
+   "addr": "0x638e09",
+   "note": "end of MSVC CRT code / start of linker-generated delay-load thunk block"
+  },
+  {
+   "addr": "0x638e74",
+   "note": "STL string throw helpers wedged between Bink and version/wininet thunk groups"
+  },
+  {
+   "addr": "0x6392ea",
+   "note": "start of contiguous MSVC EH unwind-funclet block (end of .text at 0x639596)"
+  },
+  {
+   "addr": "0x6b4c00",
+   "note": "past end of .text - remaining entries are .data globals mislabelled as functions (size=1, 0 callers)"
+  }
+ ],
+ "notes": "Slice 20 is the tail of .text plus two stray .data labels. Almost all of it is non-Halo code: MSVC CRT x87/libm and EH support (0x63163c-0x637933, 0x6391b4), linker delay-load thunks (0x638e09-0x639041, DLLs confirmed by parsing halo.exe's delay-import descriptors: binkw32, WININET, VERSION, WSOCK32), and EH unwind funclets for the STL-heavy object file at 0x578000-0x57c000 (0x6392ea-0x63957e). Only 0x6b4c00 (render_window) and the five ks_/kw_/kc_ Keystone pointers at 0x6bd180+ are engine-side, and those are .data globals, not functions."
+}

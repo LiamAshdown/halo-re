@@ -1,0 +1,17 @@
+{
+  "slice": 6,
+  "decisions": [
+    {
+      "addr": "0x4b8da0",
+      "module": "networking",
+      "confidence": 0.55,
+      "evidence": "Keep networking (run 0x4b5d70-0x4bab50). The skeptic's central claim is factually wrong: FUN_5764a0/576890/576990/576a20 are NOT UI widget-list functions. pack.py shows they are packed game-variant bitfield decoders living in the networking run 0x575fa0-0x577e40 (gamespy/bungie.net net layer, assign:12, 0.6) - 0x5764a0 does _sscanf(in_EDX,\"%d,%d\",...) on an advertised variant string and switches on bits 0-1 / 2-4; 0x576890, 0x576990 and 0x576a20 unpack bits 3..17 of that same word into per-rule structs. So 0x4b8da0(param_1, packed_variant_word, variant_name, ...) is the server-browser's 'decode the remote server's advertised game rules and render them' routine - the server-info panel of the join-game screen - which is exactly what the enclosing run does. Contiguity is airtight: 0x4b8d30+107 = 0x4b8da0 and 0x4b8da0+5301 = 0x4ba255 (next function 0x4ba270), so it is fully interior; its only caller is FUN_4b80f0, also interior to the run and itself calling FUN_4ba320 (GameSpy 0x616f50/0x617040/0x6175e0) and FUN_4baae0/4ba9c0; and its private helpers FUN_4b8a60 (5 callers, all in-run) and FUN_4b8d30 sit immediately before it. One function cannot be carved out of the middle of an MSVC object file. The big20 'interface' prior is a semantic judgement about a menu routine, not evidence of a different translation unit, and the cea hints are generic format-string collisions ('%s %s', '%s%s', '(%s)'). Confidence is capped at 0.55 because the RUN label itself is only 0.45 with '(alt: interface)' - the whole 0x4b5d70-0x4bab50 stretch is the join-game menu screen sandwiched between two interface runs (0x4b43c0-0x4b5b20 player_profile, 0x4baba0-0x4bb640 video settings); if that run is ever reclassified to interface, this function should move with it as a unit rather than alone."
+    },
+    {
+      "addr": "0x4bab50",
+      "module": "interface",
+      "confidence": 0.85,
+      "evidence": "Accept the skeptic: move to interface (video-settings run 0x4baba0-0x4bb640). Proven by direct evidence rather than inference - pack.py on FUN_4bad40 (already interface, 0.5) shows it zeroing the 0x260-dword resolution table at DAT_006b6690, calling FUN_4baba0 (the '-vidmode' display-mode enumerator) and then literally _qsort(&DAT_006b6690, DAT_007196cc, 0x4c, FUN_004bab50), followed by a per-entry inner _qsort(..., 4, &LAB_004bab80) - i.e. 0x4bab50 and the refresh-rate comparator at 0x4bab80 (48 bytes later, the tail of this 'function') are both comparators belonging to the video-mode enumeration object file. 0x4bab50's body is a bare {uint,uint} lexicographic comparator (width then height) with no strings, globals or callees; callers=0 in the slice because its only reference is the address-taken qsort argument. The preceding server-browser code has its own comparator pair 0x4ba9c0 -> 0x4baa60 ('numplayers', FUN_617c10 GameSpy key lookup), so nothing in the networking run needs it. The run boundary is therefore 0x4baae0 | 0x4bab50, not 0x4bab50 | 0x4baba0; this is a boundary correction, not a carve-out, and the assigner itself only gave it 0.3 as a 'boundary stub ... no direct evidence'."
+    }
+  ]
+}

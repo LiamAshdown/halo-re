@@ -1,0 +1,484 @@
+{
+  "results": [
+    {
+      "addr": "0x45c9e0",
+      "name": "game_engine_team_find_active_player",
+      "confidence": 0.3,
+      "evidence": "Walks data_iterator_next entries skipping ones flagged dead (+0xd5) or unit-less (+0x34==-1) unless a leader/threshold condition (FUN_00460e40, DAT_006f1cd8) applies, then compares the surviving entry's team field (+0x20) to param_1.",
+      "prototype": "",
+      "summary": "Finds the next eligible (alive, unit-bearing) entry in the current data iteration and reports whether it belongs to team param_1."
+    },
+    {
+      "addr": "0x45cab0",
+      "name": "game_engine_get_time_remaining",
+      "confidence": 0.4,
+      "evidence": "Computes DAT_006f1d00 (a configured time limit) minus the current game time (*(DAT_006f1d6c+0xc)) plus an adjustment DAT_0087aa20, clamped to >=0, or -1 when DAT_006f1d00<=0 (no time limit).",
+      "prototype": "",
+      "summary": "Returns the number of ticks remaining before the game's time limit expires, or -1 if there is no time limit."
+    },
+    {
+      "addr": "0x45cae0",
+      "name": "game_engine_announce_time_remaining",
+      "confidence": 0.4,
+      "evidence": "Gated on game state DAT_00719720==2; obtains remaining time via FUN_0045cab0(=game_engine_get_time_remaining) and, at milestone moduli (30s/900/9000-tick bands), broadcasts chimera__kill_feed(-1,0x1e,remaining,1) to every data_iterator entry.",
+      "prototype": "",
+      "summary": "Periodically broadcasts a 'time remaining' kill-feed style announcement to all players once the game's remaining time crosses configured milestones."
+    },
+    {
+      "addr": "0x45cbc0",
+      "name": "game_engine_scoreboard_compare_by_time",
+      "confidence": 0.3,
+      "evidence": "Pure two-pointer comparator returning -1/0/1 from an ascending compare of *(a+4) vs *(b+4); passed to _qsort (and selected via a mode flag) inside FUN_0045cc90.",
+      "prototype": "int __cdecl game_engine_scoreboard_compare_by_time(int *a, int *b)",
+      "summary": "Ascending qsort comparator on a single 4-byte field of the scoreboard entry struct."
+    },
+    {
+      "addr": "0x45cbe0",
+      "name": "game_engine_scoreboard_compare_full",
+      "confidence": 0.3,
+      "evidence": "Pure comparator cascading ascending comparisons over fields at offsets 8, 0xc, 0x10, 0x14; used by _qsort as the alternate sort mode (param_2==0) in FUN_0045cc90.",
+      "prototype": "int __cdecl game_engine_scoreboard_compare_full(int *a, int *b)",
+      "summary": "Multi-field ascending qsort comparator used to fully order scoreboard entries when the primary sort key ties."
+    },
+    {
+      "addr": "0x45cc30",
+      "name": "game_engine_scoreboard_pack_sort_key",
+      "confidence": 0.3,
+      "evidence": "Register-argument (in_ECX index, in_EDX value) helper that indexes the player array (DAT_0087a480+0x34, stride 0x200), sets high bits 0x40000000/0x20000000 based on the +0xae kills counter vs DAT_006f1cd8 and the +0xd5 dead flag, and ORs them with a clamped (in_EDX+1000).",
+      "prototype": "",
+      "summary": "Builds a packed sort/status key for a player combining a clamped numeric value with elimination and threshold flag bits."
+    },
+    {
+      "addr": "0x45cc90",
+      "name": "game_engine_build_sorted_player_list",
+      "confidence": 0.5,
+      "evidence": "Collects up to 16 entries via data_iterator_next into 0x1c-byte records, sorts them with _qsort using game_engine_scoreboard_compare_full/_by_time depending on param_2, then assigns tie-aware rank into field[10]; its output is consumed directly by select_players_to_display.",
+      "prototype": "",
+      "summary": "Builds and rank-sorts a fixed-size list of scoreboard entries from the active data iterator, used as the basis for scoreboard display."
+    },
+    {
+      "addr": "0x45ce90",
+      "name": "game_engine_get_default_multiplayer_text",
+      "confidence": 0.35,
+      "evidence": "Calls tag_lookup(\"ui\\\\multiplayer_game_text\") then FUN_005578c0 to fetch a string, falling back to &DAT_00660c34 (an empty/default string) if the tag is missing.",
+      "prototype": "",
+      "summary": "Looks up a default string from the ui\\\\multiplayer_game_text string list, or returns an empty fallback string if the tag can't be found."
+    },
+    {
+      "addr": "0x45cee0",
+      "name": "game_engine_get_scoreboard_entry_for_player",
+      "confidence": 0.35,
+      "evidence": "Calls FUN_0045cc90 (game_engine_build_sorted_player_list) then linearly searches its 7-int-stride entries for one whose last field matches in_EAX, copying that 7-int entry out through unaff_EBX.",
+      "prototype": "",
+      "summary": "Looks up and copies out a single player's scoreboard entry from the sorted scoreboard list."
+    },
+    {
+      "addr": "0x45cf30",
+      "name": "game_engine_build_end_game_result_text",
+      "confidence": 0.45,
+      "evidence": "Uses DAT_006f1d20 vtable calls (+0x50 get score, +0x54/+0x5c per-participant score/name) to compare scores/teams and formats the outcome using tag_lookup(\"ui\\\\multiplayer_game_text\") strings via FUN_005578c0/FUN_00557910 into the wchar_t param_2 output buffer.",
+      "prototype": "",
+      "summary": "Builds the localized end-of-game result text (e.g. who is leading or tied) by comparing player or team scores through the active game engine's callbacks."
+    },
+    {
+      "addr": "0x45d440",
+      "name": "game_engine_get_player_scoreboard_placement",
+      "confidence": 0.4,
+      "evidence": "Runs game_engine_build_sorted_player_list (called here with a single visible arg) and counts distinct score groups (piVar3[-7]!=*piVar3) while scanning until an entry's last field matches unaff_EDI, returning that running count.",
+      "prototype": "",
+      "summary": "Computes a player's rank/placement number within the sorted scoreboard list, accounting for tied entries."
+    },
+    {
+      "addr": "0x45d4a0",
+      "name": "select_players_to_display",
+      "confidence": 0.85,
+      "evidence": "Matches previously identified strings 'player_count=%d, maxcount=%d' and 'found local player'; filters game_engine_build_sorted_player_list's output down to local (split-screen) players (short at +2 != -1) and repacks the array with _memmove.",
+      "prototype": "",
+      "summary": "Filters and reorders the sorted scoreboard list down to just the local split-screen players for HUD display."
+    },
+    {
+      "addr": "0x45d670",
+      "name": "hud_draw_corner_text",
+      "confidence": 0.3,
+      "evidence": "Sets the shared DAT_006e4734 text-draw-state color/scale globals then calls chimera__draw_16_bit_text anchored relative to screen-size globals DAT_007c3148/DAT_007c314c; the same text-draw state block is reused by game_engine_post_rasterize_post_game and hud_draw_teammate_nameplate_text.",
+      "prototype": "",
+      "summary": "Draws a short piece of HUD text anchored to a screen corner using the engine's shared 16-bit text drawing state."
+    },
+    {
+      "addr": "0x45d700",
+      "name": "game_engine_post_rasterize_post_game",
+      "confidence": 0.8,
+      "evidence": "Referenced tab-delimited format strings ('\\t%s\\t%s\\t%s\\t%s\\t%s\\t%s', ' \\t%s', etc.) and heavy use of the shared DAT_006e47xx text-draw globals, consistent with rendering a postgame carnage-report style scoreboard table.",
+      "prototype": "",
+      "summary": "Renders the postgame carnage report / scoreboard overlay by formatting per-player or per-team score columns."
+    },
+    {
+      "addr": "0x45e340",
+      "name": "hud_find_nearby_teammate_for_nameplate",
+      "confidence": 0.4,
+      "evidence": "Gathers candidate bipeds via FUN_004fa1a0, computes squared distance and calls FUN_00459cc0 for an aim-cone/angle test (ABS(angle)<0.13, distance<20/30 units), returning the closest matching object's id through FUN_00474db0.",
+      "prototype": "",
+      "summary": "Searches nearby units for the closest one within the player's aim cone and short range, used to pick a HUD nameplate target."
+    },
+    {
+      "addr": "0x45e520",
+      "name": "hud_update_teammate_nameplate",
+      "confidence": 0.4,
+      "evidence": "Maintains a sticky target index in the player struct at +0x7c with a hysteresis counter at +0x80 (0..15), reads the target's short name field and calls FUN_00461f20 (hud_draw_teammate_nameplate_text) with it and a value from FUN_006283c0*0.5.",
+      "prototype": "",
+      "summary": "Tracks a hysteresis-stabilized nameplate target found by hud_find_nearby_teammate_for_nameplate and draws its name and a scaled value onscreen."
+    },
+    {
+      "addr": "0x45e680",
+      "name": "game_engine_build_kill_feed_message_text",
+      "confidence": 0.55,
+      "evidence": "Large switch over a message-type index (param_1) matching the message-type parameter chimera__kill_feed passes it; uses datum_get to resolve participant(s) and tag_lookup(\"ui\\\\multiplayer_game_text\")/FUN_005578c0 for localized strings, writing the formatted result into the unaff_EBX buffer of size param_3.",
+      "prototype": "",
+      "summary": "Formats the localized text for a specific kill-feed/HUD message type (kill, suicide, betrayal, etc.) into a caller-supplied buffer."
+    },
+    {
+      "addr": "0x45f220",
+      "name": "hud_update_teammate_nameplate_fade",
+      "confidence": 0.35,
+      "evidence": "Invokes hud_update_teammate_nameplate (FUN_0045e520) then fades an opacity value at &DAT_0087aa14+index*4 by +-1/15 per tick (0.0667 ~= 1/15), calling FUN_00465690 when the value crosses zero.",
+      "prototype": "",
+      "summary": "Drives the fade-in/fade-out opacity of the teammate nameplate HUD element per screen/player."
+    },
+    {
+      "addr": "0x45f320",
+      "name": "game_engine_cleanup_dropped_objects",
+      "confidence": 0.5,
+      "evidence": "Iterates the object list via FUN_004f6f20; deletes stale corpses whose age field (+0x204, i.e. puVar1[0x81]) is more than 900 ticks past the current game time (DAT_006f1d6c+0xc) and lacks the 0x40 'kept' flag, then separately expires dropped items whose age (+0xbc) exceeds 900 with byte+0x106 bit 4 set.",
+      "prototype": "",
+      "summary": "Periodically deletes old corpses and expired dropped items that have exceeded their lifetime (about 30 seconds)."
+    },
+    {
+      "addr": "0x45f510",
+      "name": "game_engine_notify_item_despawned",
+      "confidence": 0.4,
+      "evidence": "Clears the 0x20 flag bit at object+0x22c when +0x11c==-1 (unowned) and byte+500 bit0 is clear, then invokes the DAT_006f1d20 vtable's +0x44 callback (a game-variant despawn notification).",
+      "prototype": "",
+      "summary": "Notifies the active game variant callback when an unclaimed item object is about to be despawned."
+    },
+    {
+      "addr": "0x45f560",
+      "name": "game_engine_update_object_pickup_state",
+      "confidence": 0.35,
+      "evidence": "For each live object sets a friction/traction field (+0x2c) from tag data+0x184 (default 1.0), then for pickup-eligible objects (tag bit 0x308>>3&1) calls game_engine_notify_item_despawned and the DAT_006f1d20 vtable +0x3c callback.",
+      "prototype": "",
+      "summary": "Updates a per-object friction value each tick and notifies the game variant about pickup-eligible objects."
+    },
+    {
+      "addr": "0x45f6e0",
+      "name": "random_consume_n_values",
+      "confidence": 0.3,
+      "evidence": "Register-based (in_EAX points to a count); loops calling FUN_006391b4 (a random-draw routine) *in_EAX times, discarding all but the last result.",
+      "prototype": "",
+      "summary": "Advances the game's random number generator by a caller-specified number of draws."
+    },
+    {
+      "addr": "0x45f720",
+      "name": "random_pick_weighted_permutation_index",
+      "confidence": 0.4,
+      "evidence": "Advances the LCG state DAT_00719cd0 = DAT_00719cd0*0x19660d + 0x3c6ef35f (classic Numerical-Recipes constants), then walks a tag permutation reflexive (count/pointer pair, stride 0x54) drawing FUN_006391b4 per entry until a negative draw selects that entry's field at +0x30.",
+      "prototype": "",
+      "summary": "Advances the PRNG and picks a weighted-random permutation/index from a tag reflexive block."
+    },
+    {
+      "addr": "0x45f7c0",
+      "name": "netgame_equipment_is_valid_for_game_type",
+      "confidence": 0.45,
+      "evidence": "Called as FUN_0045f7c0(pbVar13+4) against entries of the 0x90-byte netgame_equipment table in game_engine_update_netgame_equipment; checks the block's type-id list against the active game engine's type ids (0xc/0xd/0xe) with an exact-match fallback when no game engine is active.",
+      "prototype": "",
+      "summary": "Checks whether a netgame equipment placement's allowed game-type list matches the currently active game variant."
+    },
+    {
+      "addr": "0x45f850",
+      "name": "game_engine_dispatch_pickup_event",
+      "confidence": 0.35,
+      "evidence": "Resolves an id via hash_table_get (or FUN_004e9c20 fallback), then routes it through FUN_004ec940(0,0x2f,...) and FUN_004e1a80(...,3) - the same hash_table_get + FUN_004ec940 dispatch pattern used by game_engine_dispatch_kill_event, here with event id 0x2f.",
+      "prototype": "",
+      "summary": "Dispatches a networked game-event notification (event id 0x2f, apparently item pickup) through the engine's event/message system."
+    },
+    {
+      "addr": "0x45f8f0",
+      "name": "game_engine_process_spawn_equipment_event",
+      "confidence": 0.45,
+      "evidence": "Indexes the netgame_equipment table (DAT_00746f8c+0x388, stride 0x90) by local_90, builds a spawn transform from its position/yaw fields (+0x40/+0x44/+0x48/+0x4c using fcos/fsin), and calls object_new_with_datum_role_control(...,1); branches on *(int*)*in_EAX to build locally (FUN_004ec590) or replay a received placement (FUN_004ec670).",
+      "prototype": "",
+      "summary": "Spawns (or replays a network message spawning) a single netgame-equipment item at its configured position and orientation."
+    },
+    {
+      "addr": "0x45f9f0",
+      "name": "game_engine_update_netgame_equipment",
+      "confidence": 0.55,
+      "evidence": "Iterates the scenario's netgame_equipment reflexive (DAT_00746f8c+900 count / +0x388 array, stride 0x90), gates each entry on netgame_equipment_is_valid_for_game_type, computes a respawn interval from tag data (or default 900 ticks), and spawns via object_new_with_datum_role_control(...,3) once the interval elapses or param_1 forces a respawn.",
+      "prototype": "",
+      "summary": "Per-tick update that respawns scenario netgame-equipment items once their configured respawn timer has elapsed."
+    },
+    {
+      "addr": "0x45fc50",
+      "name": "game_engine_update_netgame_equipment_variant",
+      "confidence": 0.25,
+      "evidence": "The decompiled body duplicates game_engine_update_netgame_equipment's respawn logic almost verbatim (same 0x90-byte stride, 900-tick interval math, and object_new_with_datum_role_control(...,3) call) even though the file header reports only 45 bytes for this symbol, so the extracted C for this specific address may not be reliable.",
+      "prototype": "",
+      "summary": "Appears to be another copy of the netgame-equipment respawn tick logic, but the size/content mismatch in the extracted data makes this uncertain."
+    },
+    {
+      "addr": "0x45fc80",
+      "name": "game_engine_sync_default_variant_options",
+      "confidence": 0.4,
+      "evidence": "Copies a 0x26-dword default options block (DAT_0087aa80) into DAT_0087ab20 and, when the session pointer DAT_0071c2d4 differs, into the session's variant-options slot at +0x10c, then calls FUN_004e1bf0 to push the change and resets DAT_00719754 defaults when no session/local game is active.",
+      "prototype": "",
+      "summary": "Synchronizes the active game variant's default option block into the local cache and, if hosting, into the network session state."
+    },
+    {
+      "addr": "0x45fd20",
+      "name": "game_engine_reset_unit_damage_tracking",
+      "confidence": 0.3,
+      "evidence": "When DAT_006f1cc0 bit 3 is set, zeroes the current unit's fields at +0xdc and +0xe4 via the player's unit index looked up from DAT_0087a480+0x34.",
+      "prototype": "",
+      "summary": "Clears a pair of per-unit tracking fields (likely recent-damage bookkeeping) each tick when a game option flag is enabled."
+    },
+    {
+      "addr": "0x45fd90",
+      "name": "game_engine_begin_end_game_sequence",
+      "confidence": 0.5,
+      "evidence": "Transitions DAT_0087aa10 from 0 to 1 when the game is in progress (DAT_00719720==2), sets a countdown DAT_0087aa08 and a session flag at DAT_0071c2d4+0xa0f, and triggers FUN_0046be40/FUN_00498650/FUN_004671d0 (end-of-round sound/transition cues).",
+      "prototype": "",
+      "summary": "Kicks off the end-of-game sequence once a win condition is detected, starting the post-game countdown and cue sounds."
+    },
+    {
+      "addr": "0x45fdf0",
+      "name": "game_engine_update_end_game_sequence",
+      "confidence": 0.55,
+      "evidence": "References the string 'Game Complete. Dedicated server is now idle.'; ticks the DAT_0087aa08/DAT_0087aa0c timers through DAT_0087aa10 states 2 and 3, printing the idle message via chimera__console_out and calling FUN_004aa900 once the post-game display window elapses.",
+      "prototype": "",
+      "summary": "Advances the post-game sequence timers, printing the dedicated-server-idle message and finalizing the round once its display duration ends."
+    },
+    {
+      "addr": "0x45ff30",
+      "name": "game_engine_tick",
+      "confidence": 0.55,
+      "evidence": "Top-level per-frame update: calls object cleanup (game_engine_cleanup_dropped_objects/game_engine_update_object_pickup_state), conditional equipment respawn (game_engine_update_netgame_equipment), a per-player loop calling game_engine_reset_unit_damage_tracking and game_engine_update_teleporter, then drives the DAT_0087aa10 end-game state machine via game_engine_announce_time_remaining/game_engine_begin_end_game_sequence and ambient-sound triggers.",
+      "prototype": "",
+      "summary": "The main per-tick update for the multiplayer game engine, driving object cleanup, equipment respawns, teleporters, and the end-of-game state machine."
+    },
+    {
+      "addr": "0x460200",
+      "name": "game_engine_on_player_death",
+      "confidence": 0.5,
+      "evidence": "Sets the victim's respawn-time field (+0x2c) from the DAT_006f1cd0/DAT_006f1cd4/DAT_006f1cf8 tuning globals, then builds/broadcasts a kill message via game_engine_build_kill_feed_message_text and chimera__multiplayer_message, networking it through game_engine_dispatch_kill_event, branching on suicide/betrayal-style cause codes.",
+      "prototype": "",
+      "summary": "Handles a player death event: schedules the victim's respawn timer and builds/broadcasts the appropriate kill-feed message."
+    },
+    {
+      "addr": "0x460890",
+      "name": "game_engine_build_message_text",
+      "confidence": 0.35,
+      "evidence": "Tries the game-variant custom text callback (DAT_006f1d20+0x6c) first and falls back to FUN_0045e680(param_2) (game_engine_build_kill_feed_message_text) - the same message-type text builder used by game_engine_kill_feed_message.",
+      "prototype": "",
+      "summary": "Builds a HUD/kill-feed message's text, preferring a game-variant-supplied override before falling back to the default builder."
+    },
+    {
+      "addr": "0x4608d0",
+      "name": "game_engine_dispatch_kill_event",
+      "confidence": 0.4,
+      "evidence": "Same hash_table_get + FUN_004ec940 dispatch pattern as game_engine_dispatch_pickup_event but with event id 0x18, then scans a per-machine table at DAT_0071c2d4+0x3b8 (stride 0x60) for a matching machine-id byte before calling FUN_004e1930 to broadcast.",
+      "prototype": "",
+      "summary": "Dispatches a networked kill-event notification (event id 0x18) to machines whose recorded machine id matches the local player."
+    },
+    {
+      "addr": "0x4609d0",
+      "name": "game_engine_process_kill_feed_event",
+      "confidence": 0.4,
+      "evidence": "Branches on *(int*)*in_EAX like game_engine_process_spawn_equipment_event/game_engine_dispatch_kill_event's local-vs-replay pattern, resolving a killer object id from PTR_DAT_00687558+0x28 before calling game_engine_kill_feed_message.",
+      "prototype": "",
+      "summary": "Handles an incoming or locally-generated kill-feed network event by resolving the killer and forwarding it to the kill-feed message system."
+    },
+    {
+      "addr": "0x460a30",
+      "name": "game_engine_kill_feed_message",
+      "confidence": 0.5,
+      "evidence": "Validates the target player (DAT_0087a480 array, +0x20/+0xd5 team/valid checks), builds text via the game-variant callback or game_engine_build_kill_feed_message_text, routes to chimera__multiplayer_message for a fixed set of message-type ids (0-6, 8, 0xd, 0x13, 0x1b, 0x1c) and chimera__hud_message otherwise, and networks the event via game_engine_dispatch_kill_event when hosting.",
+      "prototype": "",
+      "summary": "Central kill-feed entry point: validates the recipient, formats the message text, and routes it to the multiplayer-message or HUD-message display system."
+    },
+    {
+      "addr": "0x460ba0",
+      "name": "game_engine_broadcast_kill_feed_by_group",
+      "confidence": 0.3,
+      "evidence": "Iterates data_iterator_next, calling game_engine_kill_feed_message for every entry whose field at +0x20 equals param_1.",
+      "prototype": "",
+      "summary": "Broadcasts a kill-feed message to every entry in the current data iteration that belongs to a given group/team id."
+    },
+    {
+      "addr": "0x460c10",
+      "name": "game_engine_broadcast_kill_feed_by_team_relation",
+      "confidence": 0.35,
+      "evidence": "For each data_iterator_next entry compares its team field (+0x20) against the source player's team, choosing between param_2/param_3/param_4 message ids, falling back to a 10x10 team-relationship bitmask (DAT_006b0b84+0xa4) when no game engine is active.",
+      "prototype": "",
+      "summary": "Broadcasts one of several kill-feed message variants to each recipient depending on their team relationship to the source player."
+    },
+    {
+      "addr": "0x460d10",
+      "name": "game_engine_broadcast_kill_feed_message",
+      "confidence": 0.3,
+      "evidence": "Loops over data_iterator_next calling game_engine_kill_feed_message with param_1 (or a -1 fallback), gated by unaff_ESI.",
+      "prototype": "",
+      "summary": "Broadcasts a single kill-feed message id to every entry in the current data iteration."
+    },
+    {
+      "addr": "0x460db0",
+      "name": "game_engine_broadcast_kill_feed_conditional",
+      "confidence": 0.3,
+      "evidence": "Loops over data_iterator_next calling game_engine_kill_feed_message with param_2 (or a -1 fallback) only when param_1 != -1.",
+      "prototype": "",
+      "summary": "Conditionally broadcasts a kill-feed message id to every entry in the current data iteration."
+    },
+    {
+      "addr": "0x460e40",
+      "name": "game_engine_player_is_next_to_respawn",
+      "confidence": 0.4,
+      "evidence": "For a dead player (unit==-1) under the DAT_006f1cc8 single-life rule, scans all other dead players' priority field (+0x84) to determine whether this player has priority (lowest value, index tiebreak), caching the result at +0x8c.",
+      "prototype": "",
+      "summary": "Determines whether a dead player has priority to respawn next under a single-life-per-round game rule."
+    },
+    {
+      "addr": "0x460f30",
+      "name": "game_engine_player_is_eliminated",
+      "confidence": 0.4,
+      "evidence": "True when DAT_006f1cd8>0, the player's unit is -1 (dead), and its counter at +0xae has reached that threshold - the same fields tested by game_engine_team_find_active_player.",
+      "prototype": "",
+      "summary": "Checks whether a player has been dead long enough (or accumulated enough of a counter) to be considered eliminated for the round."
+    },
+    {
+      "addr": "0x460f70",
+      "name": "game_engine_player_ready_to_respawn",
+      "confidence": 0.5,
+      "evidence": "Decrements a respawn countdown at +0x2c, playing FUN_0046be40 cues at milestones 90/60/30/1 ticks, gated by game_engine_player_is_eliminated/game_engine_player_is_next_to_respawn and a round-robin stagger check against the current time modulo 32.",
+      "prototype": "",
+      "summary": "Per-tick check that counts down a dead player's respawn timer, playing countdown cues and staggering respawns across frames."
+    },
+    {
+      "addr": "0x461080",
+      "name": "game_engine_find_valid_starting_locations",
+      "confidence": 0.5,
+      "evidence": "Walks the DAT_00746f8c+0x378/+0x37c starting-location reflexive (stride 0x94), filtering by team (+0x10) and type (+0x12) and an optional distance-from-point test, collecting up to param_5 matching indices into param_6.",
+      "prototype": "int __cdecl game_engine_find_valid_starting_locations(float max_horizontal_dist_sq, float max_height_delta, short team, short type, int max_results, int *results)",
+      "summary": "Searches the scenario's player-starting-location list for entries matching a team/type and optional proximity filter."
+    },
+    {
+      "addr": "0x461180",
+      "name": "game_engine_check_starting_locations",
+      "confidence": 0.3,
+      "evidence": "Calls game_engine_find_valid_starting_locations(param_1,param_2) purely for its side effects and unconditionally returns 0xffffffff regardless of the result.",
+      "prototype": "",
+      "summary": "Thin wrapper around the starting-location search that discards the results, apparently used only to trigger its side effects."
+    },
+    {
+      "addr": "0x4611b0",
+      "name": "game_engine_get_player_team",
+      "confidence": 0.35,
+      "evidence": "Uses the DAT_006f1d20 vtable's +0x74 callback when present, otherwise derives a 0/1 team value from the player's short field at +2 via a sign-normalizing bit trick and stores it at +0x20.",
+      "prototype": "",
+      "summary": "Resolves and stores a player's team id, preferring the active game variant's callback over the default derivation."
+    },
+    {
+      "addr": "0x4611f0",
+      "name": "game_engine_spawn_player_starting_loadout",
+      "confidence": 0.5,
+      "evidence": "Walks a weapon_starting_profile-style reflexive (DAT_00746f8c+0x390/+0x394, stride 0xcc) gated by netgame_equipment_is_valid_for_game_type, spawns up to 5 loadout slots (stride 0x10) via object_new_with_datum_role_control, and applies ammo-reset flags (*local_90 & 1/2) into param_2/param_3.",
+      "prototype": "",
+      "summary": "Spawns a player's starting weapon/equipment loadout from the scenario's starting-profile table and applies its ammo-reset rules."
+    },
+    {
+      "addr": "0x4613c0",
+      "name": "game_engine_apply_player_grenade_counts",
+      "confidence": 0.5,
+      "evidence": "Reads scenario default grenade counts (psVar1[1]/[0x23]), overrides them via DAT_0087aa00 option bits (no-grenades=8, fixed=4), optionally spawns the loadout via game_engine_spawn_player_starting_loadout, merges per DAT_006f1ce4 mode (frag/plasma combine), then clamps and stores the result into the unit's grenade-count bytes at +0x31e/+0x31f.",
+      "prototype": "",
+      "summary": "Computes and applies a player's starting frag and plasma grenade counts based on scenario defaults and game option overrides."
+    },
+    {
+      "addr": "0x461550",
+      "name": "game_engine_get_time_scale_multiplier",
+      "confidence": 0.35,
+      "evidence": "Derives a base scale from 1/DAT_006f1cdc (clamped 0.25-4.0 'game speed' option), then applies extra 1.5x/0.5x factors from two DAT_006f1d20 vtable +0x88 callback checks.",
+      "prototype": "",
+      "summary": "Computes a time-scaling multiplier from the game speed option and the active game variant's callback overrides."
+    },
+    {
+      "addr": "0x461610",
+      "name": "game_engine_is_inactive",
+      "confidence": 0.55,
+      "evidence": "Returns true when DAT_006f1d20==0 (no game engine active) or DAT_0087aa10==0 (pregame/idle state).",
+      "prototype": "",
+      "summary": "Reports whether the game engine is currently inactive (no game variant loaded, or not yet started)."
+    },
+    {
+      "addr": "0x461630",
+      "name": "game_engine_update_teleporter",
+      "confidence": 0.75,
+      "evidence": "References the string 'failed to teleport %d'; looks up a unit's active teleporter (+0x70), finds a matching destination via game_engine_find_valid_starting_locations, validates placement with FUN_00506440/FUN_00504260, and moves the object or logs the failure message via FUN_004c67c0.",
+      "prototype": "",
+      "summary": "Handles teleporting a unit through a level teleporter, finding and validating a destination and reporting failures."
+    },
+    {
+      "addr": "0x461a80",
+      "name": "game_engine_post_rasterize_dispatch",
+      "confidence": 0.4,
+      "evidence": "Gates calls to game_engine_post_rasterize_post_game() and FUN_00498330() behind DAT_006f1d20!=0 and DAT_0087aa10>1 (the end-game display states).",
+      "prototype": "",
+      "summary": "Invokes the postgame carnage-report rendering only while the game engine is in one of its end-of-game display states."
+    },
+    {
+      "addr": "0x461ad0",
+      "name": "game_engine_get_proximity_damage_scale",
+      "confidence": 0.35,
+      "evidence": "Iterates data_iterator_next accumulating a 0.0-1.0 scale based on distance (FUN_004f6900) to entries matching/not-matching the source's field at +0x20, reducing the scale within 0.25-1.0 and 2.0-5.0 distance bands.",
+      "prototype": "",
+      "summary": "Computes a damage-scaling factor based on the proximity of teammates or other entities to a given point."
+    },
+    {
+      "addr": "0x461c60",
+      "name": "game_engine_get_nearby_teammate_bonus_scale",
+      "confidence": 0.3,
+      "evidence": "Sums FUN_006283c0 contributions from entries sharing the source's field at +0x20 within a 1.0-6.0 distance band (via FUN_004f6900), clamps the sum to 3.0, and returns sum*3.0+1.0.",
+      "prototype": "",
+      "summary": "Computes a scaling bonus that grows with the number of nearby same-team entities within a mid-range distance band."
+    },
+    {
+      "addr": "0x461d90",
+      "name": "game_engine_get_player_damage_multiplier",
+      "confidence": 0.4,
+      "evidence": "Combines game_engine_get_proximity_damage_scale with an optional game_engine_get_nearby_teammate_bonus_scale factor (gated by DAT_006f1cbc) and a final DAT_006f1d20 vtable +0x70 game-variant multiplier.",
+      "prototype": "",
+      "summary": "Computes the overall damage multiplier for a player by combining proximity, teammate-count, and game-variant scaling factors."
+    },
+    {
+      "addr": "0x461e60",
+      "name": "game_engine_find_nearby_hostile_unit",
+      "confidence": 0.3,
+      "evidence": "Uses FUN_005013a0/FUN_004f6fe0 (an object-type query with mask 0x11f) to gather up to 16 nearby objects and returns whether any of them has its team field (+0xb4) equal to 1.",
+      "prototype": "",
+      "summary": "Searches nearby objects for one belonging to a specific team, returning whether a match was found."
+    },
+    {
+      "addr": "0x461f20",
+      "name": "hud_draw_teammate_nameplate_text",
+      "confidence": 0.4,
+      "evidence": "Sets the shared DAT_006e47xx text-draw state and calls chimera__draw_16_bit_text(param_1,param_2) at fixed HUD coordinates (0x46,0x5e); invoked by hud_update_teammate_nameplate with the target's name and a health-like value.",
+      "prototype": "",
+      "summary": "Draws the teammate nameplate's name and value text at a fixed position on the HUD."
+    },
+    {
+      "addr": "0x462000",
+      "name": "game_engine_query_item_pickup_permission",
+      "confidence": 0.4,
+      "evidence": "Clears then re-sets the object's 0x22c bit 0x20 pickup-notify flag around a DAT_006f1d20 vtable +0x44 callback, then returns the vtable +0x40 game-variant callback's verdict using an id converted via FUN_00474db0.",
+      "prototype": "",
+      "summary": "Notifies the game variant about a pickup-flag state change and asks it whether the item pickup is permitted."
+    }
+  ]
+}

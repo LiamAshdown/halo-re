@@ -1,0 +1,29 @@
+{
+ "slice": 11,
+ "decisions": [
+  {
+   "addr": "0x53ec30",
+   "module": "scenario",
+   "confidence": 0.87,
+   "evidence": "Keep scenario. pack.py shows the exact signature of CEA's scenario_get_fog_region_index(const location *location, const real_point3d *position) (symbols/candidates_cea.json -> module scenario, scenario/scenario_get_fog_region_index.c): in_EAX is a location struct whose +4 is the cluster index, unaff_EBX is the point, and the body reads clusters[cluster].fog (bsp+0x138, stride 0x68, field +2); if the high bit is set it indexes the fog-planes block (bsp+0x17c, stride 0x20), does plane-dot-point - d + fog-tag depth (+0x74) and returns 0xffff when above the plane, else returns the plane's front_region. The skeptic is right that it only touches structure_bsp data, but so does every scenario_* fog helper - the global DAT_00746f9c is set by scenario_switch_structure_bsp (0x53eeb0) itself, so keying off it is not evidence of structures.c. CEA's structures-side fog function is structure_get_planar_fog_definition_index(const structure_bsp*, int16 cluster_index, uint8) - it takes the bsp explicitly and no point, which does not match. Contiguity also forbids the split: 0x53e660/0x53e680 are called by 0x53eeb0 and 0x53e6a0 calls 0x53eeb0, so the scenario bsp code straddles this block, and a foreign .obj cannot be spliced into the middle of one object file's address range."
+  },
+  {
+   "addr": "0x53ed10",
+   "module": "scenario",
+   "confidence": 0.9,
+   "evidence": "Keep scenario. This is literally CEA's scenario_fog_region_get_fog_index(int16_t fog_region_index) (candidates_cea.json -> scenario): the short in AX indexes the fog-regions block at bsp+0x188 (stride 0x28 = name[32] + pad + short fog_palette at +0x24 + short weather_palette at +0x26), then indexes the fog palette at bsp+0x194 (stride 0x88 = 136-byte fog_palette element) and returns the tag_reference tag index at +0x2c (= name_ptr/len/index layout of a 16-byte tag_reference at element offset 32). Both the argument type and the two-level fog_region->fog_palette->tag walk match the named scenario function; there is no structures counterpart with this signature."
+  },
+  {
+   "addr": "0x53ed60",
+   "module": "scenario",
+   "confidence": 0.8,
+   "evidence": "Keep scenario. It is the combined accessor over the same fog_region table: it calls 0x53ec30 (scenario_get_fog_region_index), reads fog_regions[r]+0x26 (weather palette index) into the short* out-param, falls back to clusters[cluster]+8 when there is no fog region, and returns bit 0 of the fog tag's first byte via 0x53ed10. Weather-palette lookup on the scenario side is exactly what CEA's scenario_get_current_from_weather_palette(..., int16_t weather_palette_index) consumes, i.e. the weather palette index is produced by scenario code and passed out. High caller count (10) only shows it is the public entry point of this scenario fog/weather query group, not that it lives in structures - the genuinely-structures cluster helpers (cluster_partition_new run at 0x551e30+, sig__cluster_sound_distance_func at 0x552210) are a separate contiguous run later in the slice."
+  },
+  {
+   "addr": "0x53ee00",
+   "module": "scenario",
+   "confidence": 0.85,
+   "evidence": "Keep scenario. Matches CEA's scenario_fog_at_point(const location *viewer_location, const real_point3d *viewer_point, const real_point3d *point) (candidates_cea.json -> scenario): location in EAX, point in EDI, float10 return, +-FLT_MAX sentinels, and the body is the signed distance to the cluster's fog plane (bsp+0x17c element +4..+0x10) offset by the fog tag's depth field at +0x74, gated on fog-tag flag bit 0 fetched through 0x53ed10. Same fog data, same globals, same object file as 0x53ec30/0x53ed10/0x53ed60; it is the only float-returning member of that group and its callers (atmospheric/planar fog in slices 02, 09, 12) are consumers, not owners."
+  }
+ ]
+}

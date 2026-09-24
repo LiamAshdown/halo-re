@@ -1,0 +1,484 @@
+{
+  "results": [
+    {
+      "addr": "0x40f970",
+      "name": "actor_get_threat_weapon_definition",
+      "confidence": 0.5,
+      "evidence": "Calls actor_get_threat_weapon_object_index then resolves the returned object handle to its tag id via the object table (DAT_008603b0) and applies the standard (tag_id&0xffff)*0x20+0x14+DAT_0087bc14 tag-data lookup used for tag definition fetch elsewhere in this batch.",
+      "prototype": "",
+      "summary": "Returns the tag definition pointer for the actor's current threat weapon object, or 0 if the actor has no threat weapon."
+    },
+    {
+      "addr": "0x40f9b0",
+      "name": "actor_get_eye_or_weapon_position",
+      "confidence": 0.45,
+      "evidence": "Selects the actor's object handle (+0x18) or, when flag +0x161 is set, its look-target handle (+0x158) whose tag definition flag bit 0x100 at +0x2f0 gates using marker-array offsets (+0x1d/+0x1e/+0x1f) vs falling back to object position fields (+0x23c/+0x240/+0x244) via FUN_005697a0.",
+      "prototype": "",
+      "summary": "Writes the world-space eye or weapon-marker position of the actor's target object into the ECX output vector."
+    },
+    {
+      "addr": "0x40faf0",
+      "name": "actor_pick_random_nearby_point",
+      "confidence": 0.45,
+      "evidence": "Builds a point 1.5 units ahead along PTR_DAT_00696720, generates a random angle using the LCG on random_seed_global, offsets by radius param_1, and validates the resulting point via FUN_00505880 before committing it back into unaff_ESI.",
+      "prototype": "",
+      "summary": "Picks a randomized point on a circle of the given radius around the actor and updates the actor's position in place if the candidate point is valid."
+    },
+    {
+      "addr": "0x40fcb0",
+      "name": "actor_update_movement_goal",
+      "confidence": 0.4,
+      "evidence": "Reads actor-definition turn/speed fields, calls actor_pick_random_nearby_point for grenade-avoidance nudging, computes a randomized wander direction with the LCG, throttles the turn by stored turn-rate ticks (+0x5f4) via fptan, writes goal position/velocity fields (+0x64c..+0x684), and finally calls ai_communication_broadcast.",
+      "prototype": "",
+      "summary": "Recomputes the actor's desired wander/movement goal position and velocity each tick, applying turn-rate limiting and grenade-avoidance offsets, then broadcasts a status/communication event."
+    },
+    {
+      "addr": "0x4104e0",
+      "name": "actor_reset_move_pause_timer",
+      "confidence": 0.4,
+      "evidence": "Fetches the actor definition and stance offsets, advances the LCG on random_seed_global, and reseeds the +0x5f4 pause-timer field via FUN_006391b4 (__ftol).",
+      "prototype": "",
+      "summary": "Reseeds the actor's movement pause-timer field with a new randomized value."
+    },
+    {
+      "addr": "0x4105c0",
+      "name": "actor_should_hold_position",
+      "confidence": 0.35,
+      "evidence": "If the actor has a grenade target (+0x60c==1) whose weapon class is 4 or 5 it forces the flee flag at +0x3bc and returns false; otherwise checks a stay-put flag at +0x457, or reseeds the +0x5f4 pause timer and returns true.",
+      "prototype": "",
+      "summary": "Decides whether the actor should hold its current position this tick, reacting to nearby grenade threats and a stay-put flag."
+    },
+    {
+      "addr": "0x4106b0",
+      "name": "actor_get_stance_offsets",
+      "confidence": 0.3,
+      "evidence": "Given a base struct pointer in_EDX, writes an offset pair through out-params unaff_EDI/unaff_ESI, selecting between +0xcc/+0x130 (crouch flag +0x378), +0x100 (cover flag +0x600), +0x118 (lean flag +0x601), or 0.",
+      "prototype": "",
+      "summary": "Selects a pair of pose-dependent field offsets (crouch/cover/lean) from a base struct pointer and returns them via two output pointers."
+    },
+    {
+      "addr": "0x410710",
+      "name": "actor_store_grenade_impact_point",
+      "confidence": 0.35,
+      "evidence": "Looks up the actor's weapon object's tag definition and validates the grenade/projectile tag pair via FUN_00410da0; on success stores the incoming point (from EDI) into the actor's throw-impact fields (+0x6a8/+0x6ac/+0x6b0).",
+      "prototype": "",
+      "summary": "Validates and records an incoming grenade's projected impact point on the actor."
+    },
+    {
+      "addr": "0x410780",
+      "name": "actor_compute_grenade_lob_solution",
+      "confidence": 0.35,
+      "evidence": "Looks up a per-weapon-class throw-arc record via DAT_00746fa0 (tag id at unit weapon +0x180), calls the ballistic-arc solver FUN_004beec0, checks the solution lies within a forward cone (0.866 dot threshold), and validates it via FUN_0042b5d0 before committing to actor fields +0x6bc..+0x6c8.",
+      "prototype": "",
+      "summary": "Computes and validates a lobbed-grenade trajectory solution toward a target, storing the accepted arc parameters on the actor."
+    },
+    {
+      "addr": "0x410980",
+      "name": "actor_get_grenade_launch_velocity",
+      "confidence": 0.35,
+      "evidence": "Looks up a weapon-class throw record via DAT_00746fa0 keyed by in_AX, calls the ballistic solver FUN_004beec0, and on success scales the resulting direction (unaff_ESI) by a launch speed (*param_5) while outputting a pitch/spin value derived from +0x1cc.",
+      "prototype": "",
+      "summary": "Computes a grenade launch velocity vector and spin value for a given weapon class and target offset."
+    },
+    {
+      "addr": "0x410a60",
+      "name": "actor_get_grenade_throw_direction",
+      "confidence": 0.35,
+      "evidence": "Resolves the grenade target's weapon class from the threat record at +0x6b4 (feeding FUN_00410710/actor_compute_grenade_lob_solution via FUN_00410780), then optionally rotates the throw direction with vector3d_rotate_about_axis when it falls outside a forward cone before scaling by the stored throw speed (+0x6c8).",
+      "prototype": "",
+      "summary": "Computes the final grenade throw direction vector and returns the associated weapon-type index."
+    },
+    {
+      "addr": "0x410c90",
+      "name": "actor_find_grenade_landing_point",
+      "confidence": 0.4,
+      "evidence": "Looks up the actor's current threat record (+0x270) and, when it falls within the actor definition's near/far grenade-range band (+0x194/+0x198 vs threat distance +0x11c), copies the threat's position (+0xbc..+0xc4) as the landing point and optionally perturbs it via actor_pick_random_nearby_point.",
+      "prototype": "",
+      "summary": "Selects a grenade landing point at the actor's current threat if it lies within the actor's configured grenade throw range."
+    },
+    {
+      "addr": "0x410da0",
+      "name": "actor_evaluate_grenade_blast_area",
+      "confidence": 0.45,
+      "evidence": "Given a point and two radii, walks the actor's nearby-threat list (+0x50, target-data class 2/3) tallying a weighted danger score for hostiles within param_1, then walks the encounter squad list and the actor's own squad chain checking a smaller radius param_2, returning whether the point is still considered clear (local_99).",
+      "prototype": "",
+      "summary": "Tallies a danger/occupancy score for hostiles and squadmates near a candidate grenade point and reports whether the area is still clear to throw into."
+    },
+    {
+      "addr": "0x411180",
+      "name": "actor_finalize_grenade_toss",
+      "confidence": 0.35,
+      "evidence": "Computes a launch velocity via actor_get_grenade_launch_velocity toward the landing point param_1 and, if FUN_0042b5d0 accepts the resulting arc, commits the throw parameters into the actor's grenade-toss fields (+0x6a8..+0x6c8).",
+      "prototype": "",
+      "summary": "Finalizes and commits a validated grenade toss (position, direction, and arc) onto the actor's state."
+    },
+    {
+      "addr": "0x4112b0",
+      "name": "actor_score_candidate_points_los",
+      "confidence": 0.4,
+      "evidence": "Iterates a candidate-point list (param_4, stride 0xf words) computing danger via point3d_distance_squared_to_segment/segment3d_distance_squared_to_segment against a line-of-sight segment, penalizes points near the actor's aim/crosshair direction toward its vehicle/target object (+0x158), and tallies proximity to a list of hazard spheres (param_2+0x58).",
+      "prototype": "",
+      "summary": "Scores a list of candidate movement points by line-of-sight exposure and proximity to the player's aim direction and other hazard volumes."
+    },
+    {
+      "addr": "0x411bf0",
+      "name": "actor_score_candidate_points_hazards",
+      "confidence": 0.35,
+      "evidence": "For each candidate point (same list/stride as actor_score_candidate_points_los) adds a penalty based on distance from a grenade/blast danger radius taken from the actor definition (+0x74 near, +0xa0 far, or +0x16c when crouched), and a separate penalty from proximity to a list of encounter danger planes (param_2+0x270).",
+      "prototype": "",
+      "summary": "Adds grenade-danger and danger-plane proximity penalties onto a list of candidate movement points."
+    },
+    {
+      "addr": "0x411ee0",
+      "name": "actor_score_candidate_points_recent_visits",
+      "confidence": 0.3,
+      "evidence": "Applies a distance-scaled penalty to candidate points near the actor's last position (param_2+0x18) and, separately, a table-driven bonus/penalty (constants 0/1.5/6/8.5/10) based on how recently/often nearby squadmates have visited each point via FUN_00420b10.",
+      "prototype": "",
+      "summary": "Penalizes candidate movement points that are close to the actor's last position or have been recently visited by squadmates."
+    },
+    {
+      "addr": "0x4120f0",
+      "name": "actor_report_move_result",
+      "confidence": 0.3,
+      "evidence": "Branches on a request record's kind field (in_ECX+4): danger-point (5, with a distance check), no-target (1/2), or fixed/chase target (else, using in_ECX+0x5dc/+0x610 position), calling FUN_00569190 to store the reason vector and FUN_0042b270 to finalize a result code.",
+      "prototype": "",
+      "summary": "Builds and reports the outcome/reason vector for a completed actor movement request."
+    },
+    {
+      "addr": "0x412290",
+      "name": "actor_evaluate_danger_avoidance_response",
+      "confidence": 0.3,
+      "evidence": "For a danger record whose avoid flag (param_2+0x44) is set, adds a fixed cooldown penalty (+0x660 += 15.0) when there is no candidate point, otherwise checks visibility via FUN_0041aab0/FUN_0043a0a0 and marks the candidate rejected (+0x31=1) if not avoidable.",
+      "prototype": "",
+      "summary": "Evaluates whether a danger source requires avoidance and either penalizes the actor's cooldown or rejects the current candidate point."
+    },
+    {
+      "addr": "0x412350",
+      "name": "actor_evaluate_time_danger_response",
+      "confidence": 0.3,
+      "evidence": "For a danger record with a time-based trigger (param_3+6/+8), queries FUN_00436b90/FUN_00436b10 keyed by the actor's target (+0x34) for a countdown/phase, then accumulates a time-decayed danger score into param_3+0x38 based on ticks-until-trigger and phase.",
+      "prototype": "",
+      "summary": "Computes a time-decayed danger score for a scripted/timed danger trigger and accumulates it onto the candidate point record."
+    },
+    {
+      "addr": "0x412620",
+      "name": "actor_evaluate_simple_danger_response",
+      "confidence": 0.3,
+      "evidence": "For a danger record flagged always-avoid (param_2+0x5fc), applies a fixed or halved penalty (15.0/6.0/5.0/2.5) depending on point classification (param_3+6) and a secondary flag (param_2+0x628), or rejects the candidate outright when neither applies.",
+      "prototype": "",
+      "summary": "Applies a simple table-driven danger penalty or outright rejection to a candidate point based on its classification."
+    },
+    {
+      "addr": "0x4126f0",
+      "name": "actor_apply_danger_scores",
+      "confidence": 0.35,
+      "evidence": "Walks a table of (bitmask, function-pointer) entries at PTR_FUN_006555c4 and, for each danger type whose bit is set in the danger record's type byte (unaff_EDI+4), calls the associated scoring callback (e.g. actor_score_candidate_points_los/actor_score_candidate_points_hazards) with param_1.",
+      "prototype": "",
+      "summary": "Dispatches to the scoring callback for each active danger type against a set of candidate points."
+    },
+    {
+      "addr": "0x412730",
+      "name": "actor_apply_danger_rejection_checks",
+      "confidence": 0.35,
+      "evidence": "Same bitmask-dispatch table walk as actor_apply_danger_scores but over PTR_FUN_006555fc (actor_evaluate_danger_avoidance_response/actor_evaluate_simple_danger_response among the callbacks), stopping as soon as a callback returns false.",
+      "prototype": "",
+      "summary": "Runs the accept/reject danger callbacks for a candidate point, short-circuiting on the first rejection."
+    },
+    {
+      "addr": "0x412770",
+      "name": "actor_reset_and_apply_danger_rejection_checks",
+      "confidence": 0.35,
+      "evidence": "Identical callback-table walk to actor_apply_danger_rejection_checks over PTR_FUN_006555fc, but first zeroes the accumulator field at unaff_EDI+0x660 before running it.",
+      "prototype": "",
+      "summary": "Resets the danger cooldown accumulator and then runs the accept/reject danger callbacks for a candidate point."
+    },
+    {
+      "addr": "0x412820",
+      "name": "actor_evaluate_candidate_point_danger",
+      "confidence": 0.3,
+      "evidence": "Initializes a candidate-point record (valid=1, score fields 0), calls actor_apply_danger_scores to accumulate per-danger scores, optionally reports the result via actor_report_move_result, then finalizes validity via actor_apply_danger_rejection_checks.",
+      "prototype": "",
+      "summary": "Runs the full danger-scoring and rejection pipeline on a single candidate point and returns whether it remains valid."
+    },
+    {
+      "addr": "0x412880",
+      "name": "actor_get_grenade_type_index",
+      "confidence": 0.4,
+      "evidence": "Looks up the actor's unit-type grenade table record via global_scenario (unit type index at +0x34, variant +0x3a) then, based on a request kind (unaff_SI 1/4/5) and an override flag (+0x374), returns one of several stored grenade-type/mask fields (+0x54..+0x6c).",
+      "prototype": "",
+      "summary": "Returns the grenade type or mask appropriate for the actor's unit and the requested grenade-use case."
+    },
+    {
+      "addr": "0x412960",
+      "name": "actor_check_grenade_landing_clear",
+      "confidence": 0.3,
+      "evidence": "Builds a large obstruction-test record from the actor and target definitions and runs path_find_run, then iterates the encounter's hazard-point list checking each grenade-affected point's landing type mask against actor_get_grenade_type_index's result and testing clearance via FUN_0043a310/FUN_0043a0a0.",
+      "prototype": "",
+      "summary": "Checks whether any nearby grenade-hazard point at the given landing location is unsafe for the requested grenade type."
+    },
+    {
+      "addr": "0x412ba0",
+      "name": "actor_select_candidate_point",
+      "confidence": 0.3,
+      "evidence": "Fills a large request record (param_2) from either the actor's current threat object or an explicit caller-provided position/velocity, gathers candidate points from the encounter's danger-point list, scores/filters them through actor_apply_danger_scores/actor_apply_danger_rejection_checks/actor_reset_and_apply_danger_rejection_checks and path_find_run, ranks survivors via qsort_dword_array, and returns the index (and world position via out params) of the chosen point, or a weighted-random pick when the request's random-select flag is set.",
+      "prototype": "",
+      "summary": "Builds a candidate-point request from the actor's current threat/target context, scores and filters candidates through the danger-response pipeline and pathfinding, then selects and returns the best (or random) surviving candidate point. Largest function in this batch (4754 bytes)."
+    },
+    {
+      "addr": "0x413e50",
+      "name": "actor_choose_grenade_target_point",
+      "confidence": 0.3,
+      "evidence": "Compares grenade-type masks from actor_get_grenade_type_index(0/1/2) to pick a primary vs combined direct+bounce mask, sets handedness/lean fields, calls actor_select_candidate_point (FUN_00412ba0) to pick a scored point, and falls back to a raw encounter danger-point plus actor_evaluate_candidate_point_danger validation when none is found.",
+      "prototype": "",
+      "summary": "Selects a grenade target point for the actor, preferring a scored candidate from the movement-point selector and falling back to a raw encounter danger point."
+    },
+    {
+      "addr": "0x414060",
+      "name": "actor_set_recognized_target",
+      "confidence": 0.35,
+      "evidence": "Manages the actor's currently-recognized perception slot (+0x3b8): clears it via actor_movement_action_stop when the new target (in_CX) is -1, evicts a conflicting owner on another actor (param_2) via FUN_004141a0, and otherwise stores the new slot and calls actor_movement_set_destination_formation_point.",
+      "prototype": "",
+      "summary": "Sets or clears the actor's currently recognized perception target slot, coordinating ownership with another actor when needed."
+    },
+    {
+      "addr": "0x414140",
+      "name": "actor_clear_recognition_history",
+      "confidence": 0.35,
+      "evidence": "Resets the actor's short recognition-history ring buffer (+0x3c6 count, four +0x3ca entries reset to 0xffff) and conditionally clears a has-history flag at +0x3d8 depending on param_1 and flag +0x3d9.",
+      "prototype": "",
+      "summary": "Clears the actor's short-term object-recognition history ring buffer."
+    },
+    {
+      "addr": "0x4141a0",
+      "name": "actor_push_recognition_history",
+      "confidence": 0.35,
+      "evidence": "Appends a new recognized-object slot (index in_CX, flag in_DL) into the +0x3c6/+0x3ca ring buffer with modulo-4 wrapping, and snapshots the object's position (+0x3dc..+0x3e4) from the encounter's point array via global_scenario.",
+      "prototype": "",
+      "summary": "Records a newly recognized object into the actor's short recognition-history ring buffer along with its position."
+    },
+    {
+      "addr": "0x414250",
+      "name": "actor_update_flee_check",
+      "confidence": 0.3,
+      "evidence": "Manages a flee counter (+0x3ec) alongside a related short counter at +1000 (0x3e8); once the counter exceeds 2 while a nonzero flee-trigger persists, calls FUN_004146c0 (actor_get_flee_direction_source) and latches the result into +0x505.",
+      "prototype": "",
+      "summary": "Determines whether the actor should begin fleeing this tick based on an accumulated flee-trigger counter."
+    },
+    {
+      "addr": "0x4142d0",
+      "name": "actor_start_vocalization",
+      "confidence": 0.4,
+      "evidence": "Gates on the actor's mode class (+0x6a), a per-line minimum-mode threshold (param_1 vs +0x544), and combat-time counters (+1000); for a 'unique speaker' line (*param_3==1) checks the source actor's cooldown via datum_get, then stores the chosen line/variant/duration into the actor's vocalization fields (+0x544..+0x558) scaled by a random duration multiplier via random_real_range.",
+      "prototype": "",
+      "summary": "Attempts to start a dialogue/vocalization line on the actor, gated by mode, cooldowns, and combat-time thresholds, and records the chosen line's timing."
+    },
+    {
+      "addr": "0x414590",
+      "name": "actor_get_target_priority_weight",
+      "confidence": 0.35,
+      "evidence": "Computes a priority weight for a potential threat based on its unit class (+0x24 in 2..3), disabled/dead flags (+0x60/+0x127), a distance-threshold check (+0x76 vs 0xd2), current-target/lookalike bonuses (in_ECX matches +0x18/+0x110), and vehicle-seat/threat-level multipliers (+0x123/+0x12f/+0x121).",
+      "prototype": "",
+      "summary": "Computes a heuristic priority weight for how much a given potential threat should be preferred as the actor's target."
+    },
+    {
+      "addr": "0x4146c0",
+      "name": "actor_get_flee_direction_source",
+      "confidence": 0.4,
+      "evidence": "Switches on a flee-reason code (0-6) selecting the source point/direction: a stored flee point (+0x504/+0x518), nearest threat via datum_get, current facing (+0x68c/+0x63c), a caller-provided point, an encounter flee point (+0x2b0), or a locked object's position via object_get_position/FUN_00568f50, then normalizes the resulting direction via vector3d_normalize_with_length.",
+      "prototype": "",
+      "summary": "Resolves the direction vector the actor should flee along, given a flee-reason code selecting among several possible source points."
+    },
+    {
+      "addr": "0x414910",
+      "name": "actor_is_direction_within_forward_cone",
+      "confidence": 0.5,
+      "evidence": "Normalizes the 2D vector in_EAX and checks whether its dot product with a second vector in_EDX is at least param_1 - a straightforward forward-cone/angle threshold test.",
+      "prototype": "",
+      "summary": "Tests whether a direction lies within a given forward-facing angular cone relative to a reference direction."
+    },
+    {
+      "addr": "0x414990",
+      "name": "actor_is_position_within_lane",
+      "confidence": 0.4,
+      "evidence": "Same normalize-and-dot-product cone test as actor_is_direction_within_forward_cone between two points (in_EAX, in_ECX) plus a forward direction (in_EDX), followed by a perpendicular-side check against a two-entry threshold table (param_2) selected by cross-product sign.",
+      "prototype": "",
+      "summary": "Tests whether a target position lies within an angular lane/cone in front of a reference position, accounting for left/right side thresholds."
+    },
+    {
+      "addr": "0x414a90",
+      "name": "actor_find_best_grenade_avoid_lane",
+      "confidence": 0.3,
+      "evidence": "Walks the actor's nearby-threat list (+0x50) scoring each valid grenade-class entry by a time-decayed weight (fields +0x54/+0x58 vs game time +0x5c), filtering by actor_is_direction_within_forward_cone/actor_is_position_within_lane, and returns the highest-scoring threat's info via the out params.",
+      "prototype": "",
+      "summary": "Selects the highest-priority nearby grenade threat that the actor should react/orient to avoid."
+    },
+    {
+      "addr": "0x414d00",
+      "name": "actor_setup_grenade_avoid_response",
+      "confidence": 0.3,
+      "evidence": "Calls actor_find_best_grenade_avoid_lane (unless overridden by param_5) to find a reaction threat, computes yaw/pitch avoidance bounds from the actor's aim-limit table fields (+0xac/+0xb0/+0xcc/+0xd0), picks a random look point via actor_look_pick_random_point_in_cone, then arms a wait-tick timer from actor_look_get_wait_ticks.",
+      "prototype": "",
+      "summary": "Sets up the actor's grenade-avoidance look response, choosing a random reaction direction within the actor's aim limits and arming a wait timer."
+    },
+    {
+      "addr": "0x414f50",
+      "name": "actor_look_pick_random_direction",
+      "confidence": 0.45,
+      "evidence": "Uses actor_find_best_grenade_avoid_lane and, when no reaction threat is found, computes yaw/pitch limits from the unit's aim-limit table (via FUN_004150f0/actor_get_unit_aim_pitch_limits) and picks a random look direction via actor_look_pick_random_point_in_cone, arming a wait-tick timer.",
+      "prototype": "",
+      "summary": "Picks a random idle look direction for the actor within its aim limits and arms the corresponding wait timer."
+    },
+    {
+      "addr": "0x4150f0",
+      "name": "actor_get_unit_aim_pitch_limits",
+      "confidence": 0.35,
+      "evidence": "Selects one of three unit-struct offsets (+0xf4, +0x10c, or +0xdc) based on the actor's posture/state field (+0x3fc), returning a pointer into the unit's aim-limit table.",
+      "prototype": "",
+      "summary": "Returns a pointer to the actor's current pitch/aim-limit table entry, chosen by the actor's posture state."
+    },
+    {
+      "addr": "0x415480",
+      "name": "actor_update_look_target",
+      "confidence": 0.4,
+      "evidence": "Reads the actor's look-mode field (+0x6dc), branches on unit posture/vehicle seat (+0x6a==3) selecting orientation fields (0xbc/0xb4), calls actor_get_flee_direction_source/actor_is_direction_within_forward_cone/actor_is_position_within_lane/actor_setup_grenade_avoid_response/actor_look_pick_random_direction to update primary/secondary look targets (+0x5a4..+0x5c4), then blends toward a final look direction and turn-rate output (+0x6fc..+0x71c).",
+      "prototype": "",
+      "summary": "Runs the actor's per-tick head/aim-look state machine, choosing and blending toward the appropriate look target (threat, flee direction, grenade reaction, or idle wander) and writing the resulting look direction."
+    },
+    {
+      "addr": "0x4163e0",
+      "name": "actor_update_melee_dodge_waypoints",
+      "confidence": 0.4,
+      "evidence": "Walks an array of dodge waypoints at actor+0x4a8 (stride 0x10) using index bounds +0x4c1/+0x4c2, testing proximity/line-segment distance (thresholds 0.0225/0.0625) to advance through the path, and calls actor_movement_action_resolve when the path is blocked.",
+      "prototype": "",
+      "summary": "Advances the actor along its stored melee-dodge waypoint path, resolving the movement action when the path is complete or blocked."
+    },
+    {
+      "addr": "0x416700",
+      "name": "actor_check_grenade_throw_reached",
+      "confidence": 0.45,
+      "evidence": "Compares squared distance from the actor's current position (+300/+0x130/+0x134) to a stored throw target (+0x488..+0x490) against a max-throw-distance from FUN_00429620, setting the throw-complete flag at +0x484 when exceeded.",
+      "prototype": "",
+      "summary": "Checks whether the actor has reached its stored grenade-throw waypoint and marks the throw action complete if so."
+    },
+    {
+      "addr": "0x4173a0",
+      "name": "actor_get_movement_turn_radii",
+      "confidence": 0.35,
+      "evidence": "Reads vehicle physics fields (turning-radius floats at +0x334/+0x33c/+0x340, scaled by handling +0x34c) when the actor is riding a vehicle-like object (bit 4 of flags at +0x2f4 via object_try_and_get), or unit orientation-derived cross-product otherwise, then computes forward/turn radii into the EDI/EBX out params.",
+      "prototype": "",
+      "summary": "Computes the actor's current forward and turn movement radii, accounting for whether it is riding a vehicle with custom handling."
+    },
+    {
+      "addr": "0x417a60",
+      "name": "actor_action_try_queue_secondary",
+      "confidence": 0.4,
+      "evidence": "Checks the secondary action slot (actor+0x418 == -1, or clears it via FUN_00569c90 when the actor already has a target object at +0x18), then stores param_1/param_2 into +0x418/+0x41c/+0x420, calling actor_set_units_active first.",
+      "prototype": "",
+      "summary": "Attempts to queue a secondary action on the actor if its secondary-action slot is free."
+    },
+    {
+      "addr": "0x417ae0",
+      "name": "actor_action_try_start_default_look",
+      "confidence": 0.35,
+      "evidence": "Same secondary-action-slot availability check on actor+0x418 as actor_action_try_queue_secondary, but on success clears the dodge flag (+0x504) and copies a default look direction from PTR_DAT_00696714 into +0x6e0..+0x6e8, clearing +0x6ec.",
+      "prototype": "",
+      "summary": "Starts the actor's default idle look action if its secondary-action slot is currently free."
+    },
+    {
+      "addr": "0x417bb0",
+      "name": "actor_movement_try_step",
+      "confidence": 0.35,
+      "evidence": "Builds a candidate step position (param_1 * direction + actor position via actor_update_target_lead_position) and validates it via a path/surface trace FUN_0043de90 and a sphere/shape overlap test FUN_00502060 against a swept capsule, marking blocked/stepped-down outcomes via out params.",
+      "prototype": "",
+      "summary": "Tests whether the actor can step to a position offset in a given direction, validating against surface geometry and nearby obstacles."
+    },
+    {
+      "addr": "0x417e50",
+      "name": "actor_movement_try_side_step",
+      "confidence": 0.35,
+      "evidence": "Wraps actor_movement_try_step (FUN_00417bb0) in a small retry loop over one or two side choices tracked in *param_3, randomizing the initial side via random_seed_global when *param_3==4, and records which side succeeded.",
+      "prototype": "",
+      "summary": "Attempts a sidestep movement in one or both lateral directions, retrying the opposite side if the first attempt fails."
+    },
+    {
+      "addr": "0x417fa0",
+      "name": "actor_get_jump_velocity",
+      "confidence": 0.4,
+      "evidence": "When the actor is not attached to an object (+0x158==-1) and a stored jump-velocity flag (+0x530) is set, computes a velocity vector from stored jump physics fields (+0x534..+0x540) via actor_dispatch_type_vtable_0x1c, optionally clamping its magnitude to param_2.",
+      "prototype": "",
+      "summary": "Computes and, when appropriate, clamps the actor's pending jump-launch velocity vector."
+    },
+    {
+      "addr": "0x4180c0",
+      "name": "actor_movement_apply_direction",
+      "confidence": 0.45,
+      "evidence": "Normalizes the input direction, dispatches through a movement-submode jump table (PTR_LAB_00418a04) for special modes (in_AX 0..3, using vector3d_pick_closest_axis_direction), otherwise blends toward the new direction, tests an obstacle-avoidance trace via FUN_0043d9b0, clamps the resulting speed by acceleration limits and turn rate via vector3d_rotate_about_axis, and writes the final blended direction and velocity through the out params.",
+      "prototype": "",
+      "summary": "Computes the actor's blended movement direction and velocity for this tick, applying obstacle avoidance, acceleration limits, and turn-rate clamping."
+    },
+    {
+      "addr": "0x418a40",
+      "name": "vector3d_pick_closest_axis_direction",
+      "confidence": 0.4,
+      "evidence": "Iterates 4 candidate direction vectors (a facing vector and its axis-aligned/negated permutations) scoring each by two dot products against reference vectors unaff_EDI/unaff_ESI, and returns the best-scoring vector plus its index.",
+      "prototype": "",
+      "summary": "Selects the best-aligned of four candidate axis-relative directions against two reference vectors."
+    },
+    {
+      "addr": "0x418c20",
+      "name": "vector3d_transform_by_basis",
+      "confidence": 0.35,
+      "evidence": "Transforms param_1 by a 2x2 (in_AL==0) or 3x3 (in_AL!=0) basis matrix read from in_ECX (or FUN_0055eed0's output), then renormalizes the result via vector3d_normalize_with_length.",
+      "prototype": "",
+      "summary": "Transforms a direction vector by a 2D or 3D orientation basis and renormalizes the result."
+    },
+    {
+      "addr": "0x419240",
+      "name": "geometry_ray_polygon_edge_intersect",
+      "confidence": 0.4,
+      "evidence": "Iterates a small polygon's edges computing cross products against direction in_ECX to find the edge the ray direction crosses, then interpolates a parametric intersection value into the output params.",
+      "prototype": "",
+      "summary": "Finds the polygon edge a given ray direction crosses and returns the interpolated intersection parameters."
+    },
+    {
+      "addr": "0x41a2d0",
+      "name": "actor_movement_precompute_direction_tables",
+      "confidence": 0.45,
+      "evidence": "Fills fixed global direction-lookup arrays (DAT_008805a4.., DAT_0088038c..) with sin/cos-derived unit vectors at regular angular increments using constant angle/radius tables (DAT_006556ec etc), building movement wander-direction lookup tables.",
+      "prototype": "",
+      "summary": "Precomputes fixed lookup tables of unit direction vectors at regular angular increments, used elsewhere for randomized movement direction selection."
+    },
+    {
+      "addr": "0x41a9c0",
+      "name": "actor_movement_build_path_request",
+      "confidence": 0.45,
+      "evidence": "Zeroes an 18-dword pathfinding request block (unaff_EBX) and fills it with the actor's tag data pointer, target/squad index, a per-target max-speed override from the target's tag definition (+0x38c), and unit orientation vectors from actor_update_target_lead_position.",
+      "prototype": "",
+      "summary": "Builds and zero-initializes a pathfinding request block populated with the actor's current target and movement parameters."
+    },
+    {
+      "addr": "0x41aab0",
+      "name": "actor_movement_should_settle_orientation",
+      "confidence": 0.4,
+      "evidence": "Only applies when action state (+0x15e)==4, requiring a non-negative danger-relevance value from the current unit's tag definition (+0x388), a near-idle speed threshold (+0x5ec<0.9), and a facing-alignment dot-product test (>=0.984) against the passed-in direction, via vector3d_normalize_with_length.",
+      "prototype": "",
+      "summary": "Determines whether the actor has settled close enough to its final orientation to stop actively turning."
+    },
+    {
+      "addr": "0x41abd0",
+      "name": "actor_target_relationship_think",
+      "confidence": 0.4,
+      "evidence": "Large per-target-data state machine (target-data state field +0x24, values 0-5) iterated over the actor's nearby-threat list (+0x50): calls actor_rate_potential_target, dodge/aim updates (FUN_0041c4b0/FUN_0041c8f0), releases stale target data via actor_target_data_release, and issues squad communications via ai_communication_broadcast for spotted/lost/covering-fire events.",
+      "prototype": "",
+      "summary": "Runs the actor's per-tick perception/relationship think loop over its nearby-threat list, updating target-data state, aim reactions, and squad communications."
+    },
+    {
+      "addr": "0x41b980",
+      "name": "actor_target_data_release",
+      "confidence": 0.45,
+      "evidence": "For target-data states outside 2..3, copies summary fields (+0x50-0x5c positional history, +0x9c-0xa8 timers) from a linked entry, calls actor_replace_object_reference/FUN_0043ea20/datum_delete to release the associated resources, resets the state to 3 (lost), and calls FUN_00421c20.",
+      "prototype": "",
+      "summary": "Releases a target-data entry's linked resources and resets its state, propagating summary info from a linked target-data record first."
+    }
+  ]
+}

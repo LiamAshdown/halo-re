@@ -1,0 +1,486 @@
+{
+  "module": "math",
+  "batch": 0,
+  "results": [
+    {
+      "addr": "0x401050",
+      "name": "random_real_range",
+      "confidence": 0.7,
+      "evidence": "Global LCG (DAT_00719cd0 = x*0x19660d+0x3c6ef35f) then scales the high 16 bits by 1/65536 and lerps between the two float args, the standard Blam pseudo-random-in-range pattern.",
+      "summary": "Returns a pseudo-random float linearly interpolated between param_1 and param_2 using the engine's global LCG seed.",
+      "prototype": "float __cdecl random_real_range(float min, float max)"
+    },
+    {
+      "addr": "0x4018e0",
+      "name": "vector2d_normalize_with_length",
+      "confidence": 0.7,
+      "evidence": "Computes sqrt(x^2+y^2) of the 2-float vector at ECX, and if above the 1e-4 epsilon constant (DAT_00672bd8) divides both components by it in place.",
+      "summary": "Normalizes a 2D vector in place and returns its original length, leaving it unchanged if the length is near zero.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x401930",
+      "name": "point3d_add_scaled",
+      "confidence": 0.6,
+      "evidence": "out[i] = param_2*dir[i] + base[i] for 3 components (EAX=out, param_1=base, ECX=dir, param_2=scalar): an affine combination / point-along-direction computation.",
+      "summary": "Computes out = base + scale*direction for a 3-component vector (a point offset along a direction by a scalar distance).",
+      "prototype": ""
+    },
+    {
+      "addr": "0x401960",
+      "name": "vector3d_length",
+      "confidence": 0.8,
+      "evidence": "return sqrt(v.z^2+v.y^2+v.x^2) for the 3-float vector at EAX; no side effects.",
+      "summary": "Returns the Euclidean length of a 3D vector.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x401990",
+      "name": "vector3d_normalize_with_length",
+      "confidence": 0.8,
+      "evidence": "Computes the length of the 3-vector at ECX, and if it exceeds the ~1e-4 epsilon rescales the vector in place to unit length; otherwise leaves it and returns 0. Mirrors the 2D version at 0x4018e0.",
+      "summary": "Normalizes a 3D vector in place and returns its original length (or 0 if degenerate).",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4019f0",
+      "name": "random_real",
+      "confidence": 0.7,
+      "evidence": "Advances the same global LCG seed (DAT_00719cd0) as 0x401050 and returns (seed>>16)*1/65536 with no interpolation, i.e. a value in [0,1).",
+      "summary": "Returns a pseudo-random float in the range [0,1) using the engine's global LCG seed.",
+      "prototype": "float __cdecl random_real(void)"
+    },
+    {
+      "addr": "0x4088b0",
+      "name": "vector3d_distance",
+      "confidence": 0.8,
+      "evidence": "sqrt of the sum of squared component differences between the 3-vectors at EAX and ECX -- textbook Euclidean distance.",
+      "summary": "Returns the Euclidean distance between two 3D points.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4ca4b0",
+      "name": "sphere_mesh_generate",
+      "confidence": 0.55,
+      "evidence": "Copies 6 base vertices from DAT_0065c190 and iterates 8 entries of 3 indices from DAT_0065c1da (6 verts/8 faces = octahedron topology), allocates vertex/index buffers sized by N^2 formulas, and calls FUN_004ca5f0 per face to subdivide it.",
+      "summary": "Builds a subdivided-octahedron point/triangle-index mesh (allocated via GlobalAlloc) used to seed a table of quasi-uniform directions on the unit sphere.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4ca5f0",
+      "name": "sphere_mesh_build_face",
+      "confidence": 0.5,
+      "evidence": "Allocates a (N+1)^2-sized cache table, walks a triangular grid of barycentric rows for one octahedron face, and calls FUN_004ca7c0 to resolve/cache each subdivided point index while emitting triangle-strip indices.",
+      "summary": "Subdivides one face of the base octahedron into a barycentric grid of points and index triples, caching shared points via a scratch table.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4ca7c0",
+      "name": "sphere_mesh_get_face_point",
+      "confidence": 0.5,
+      "evidence": "Given barycentric coordinates (param_3,param_4) within a face, returns a cached point index or creates one: falls back to FUN_004ca8c0 for points on a face edge, otherwise allocates a fresh interior index and calls FUN_004ca9a0 to compute it.",
+      "summary": "Resolves (with caching) the point index for a given barycentric position inside a subdivided octahedron face.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4ca8c0",
+      "name": "sphere_mesh_get_edge_point",
+      "confidence": 0.5,
+      "evidence": "Uses a shared edge-cache array so two adjacent faces reuse the same subdivided points along their common edge, calling FUN_004ca9a0 to fill in unseen edge positions.",
+      "summary": "Resolves (with caching) the shared point index for a position along an edge between two base vertices, so adjacent faces don't duplicate vertices.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4ca9a0",
+      "name": "sphere_mesh_interpolate_vertex",
+      "confidence": 0.55,
+      "evidence": "Linearly interpolates between two base vertices (param_2,param_3) using fraction in_AX/in_CX, writes the result into the vertex array at param_1, then calls FUN_00401990 to renormalize it back onto the unit sphere -- the classic geodesic-sphere subdivision step.",
+      "summary": "Computes a new sphere-mesh vertex by lerping between two existing vertices and re-projecting the result onto the unit sphere.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4caa40",
+      "name": "point2d_set_classify",
+      "confidence": 0.35,
+      "evidence": "Walks up to param_1 points from an array, calling FUN_0044d950 (an epsilon/sign classifier) and comparing against an accumulated plane, returning a 0/1/2 state; used as the entry test before FUN_004caae0's hull walk.",
+      "summary": "Classifies a point set as degenerate (coincident/collinear) or in general position, feeding the convex-hull builder at 0x4caae0.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4caae0",
+      "name": "polygon2d_convex_hull_build",
+      "confidence": 0.55,
+      "evidence": "After checking degeneracy via FUN_004caa40, finds the lowest point, then repeatedly picks the next hull vertex by minimum polar angle (fpatan) relative to the running direction, writing indices to param_2 until the walk closes back to the start -- a textbook gift-wrapping convex hull.",
+      "summary": "Computes the convex hull of a 2D point array using an angular gift-wrapping walk, returning hull vertex indices.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cad80",
+      "name": "polygon2d_point_inside_tolerance",
+      "confidence": 0.6,
+      "evidence": "For each polygon edge (Point2D array, ECX), computes the signed perpendicular distance of the test point from the edge line and rejects if it exceeds param_3 outside the edge, matching a tolerant point-in-convex-polygon test.",
+      "summary": "Tests whether a 2D point lies inside a convex polygon within a given distance tolerance.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cae60",
+      "name": "polygon2d_point_inside_margin",
+      "confidence": 0.55,
+      "evidence": "Same edge-walk structure as 0x4cad80 but compares the raw (un-normalized) edge cross product directly against -param_3 instead of a true perpendicular distance -- a cheaper approximate variant.",
+      "summary": "Cheaper variant of the convex-polygon containment test that compares raw cross-product margin instead of true distance.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4caee0",
+      "name": "polygon2d_clip_to_planes",
+      "confidence": 0.5,
+      "evidence": "Loops param_1 times calling FUN_0044d950 as a trivial-accept test and FUN_004caff0 (single-plane 2D clip) otherwise, double-buffering the vertex list between two 0x400-float stack scratch regions.",
+      "summary": "Iteratively clips a 2D polygon against a sequence of planes/edges, double-buffering the vertex list between clips.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4caff0",
+      "name": "polygon2d_clip_to_plane",
+      "confidence": 0.6,
+      "evidence": "Classic Sutherland-Hodgman clip: walks Point2D vertices (stride 2 floats), tests each against a plane (param_3={a,b,c}), interpolates new vertices at sign changes within tolerance param_7, and merges near-duplicate output points.",
+      "summary": "Clips a 2D polygon against a single line/plane, emitting the clipped vertex list.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cb380",
+      "name": "polygon3d_clip_to_plane",
+      "confidence": 0.55,
+      "evidence": "Same Sutherland-Hodgman structure as 0x4caff0 but with 3-float stride vertices and a 4-component plane (param_3={a,b,c,d}) -- the 3D counterpart.",
+      "summary": "Clips a 3D polygon against a single plane, emitting the clipped vertex list.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cb740",
+      "name": "uint32_log2_floor",
+      "confidence": 0.5,
+      "evidence": "Repeatedly right-shifts the ECX argument until it equals 1, counting shifts -- computes the index of the highest set bit (floor(log2(x))).",
+      "summary": "Returns the bit-index of the highest set bit of its (register-passed) integer argument.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cb760",
+      "name": "bitvector_or_assign",
+      "confidence": 0.3,
+      "evidence": "Computes a word count from a bit count (CX), then ORs 32-bit words from one buffer into another using pointer-offset arithmetic relative to a base (EAX) -- the pattern of a bitset OR/union operation, though register roles could not be fully resolved from the decompilation.",
+      "summary": "Bitwise-ORs one fixed-size bit array into another, word by word.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cb7a0",
+      "name": "matrix4x3_inverse",
+      "confidence": 0.9,
+      "evidence": "Pre-existing chimera__ name (hint); code computes the closed-form inverse of the engine's scale+3x3-rotation+translation matrix format (transposes the rotation block, negates/rescales the translation), zeroing the whole matrix when scale is 0.",
+      "summary": "Computes the inverse of a matrix4x3 (uniform scale + rotation + translation).",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cb880",
+      "name": "matrix4x3_from_axis_angle",
+      "confidence": 0.65,
+      "evidence": "Builds a 3x3 rotation block from an axis vector (ECX) and separate sin/cos scalars (param_1,param_2) using exactly the Rodrigues rotation formula (diag = cos+(1-cos)*axis_i^2, off-diag = (1-cos)*axis_i*axis_j +/- sin*axis_k); zeroes the translation.",
+      "summary": "Builds a matrix4x3 rotation from a rotation axis and precomputed sin/cos of the angle (Rodrigues' formula).",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cb970",
+      "name": "matrix4x3_build_basis_from_vectors",
+      "confidence": 0.45,
+      "evidence": "Writes vector ECX into rotation row 0, cross(EAX,ECX) into row 1, and vector EAX into row 2 of a matrix4x3, with scale=1 and translation left untouched -- builds a basis from two input vectors.",
+      "summary": "Builds the rotation part of a matrix4x3 from two vectors and their cross product, leaving scale=1 and translation unset.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cba10",
+      "name": "matrix4x3_from_euler_angles",
+      "confidence": 0.55,
+      "evidence": "Computes sin/cos of three angle parameters and combines them with the standard 3-axis Euler rotation composition to fill the 3x3 rotation block of a matrix4x3, setting scale=1 and translation=0.",
+      "summary": "Builds a matrix4x3 rotation from three Euler angles.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cbad0",
+      "name": "matrix4x3_from_quaternion",
+      "confidence": 0.75,
+      "evidence": "Uses the standard quaternion-to-rotation-matrix formulas (products of q.x,q.y,q.z,q.w scaled by 2/|q|^2) to fill the 3x3 block of a matrix4x3 at EDX from the quaternion at ECX, zeroing translation.",
+      "summary": "Converts a quaternion (ECX) into the rotation part of a matrix4x3 (EDX).",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cbc00",
+      "name": "quaternion_from_matrix4x3",
+      "confidence": 0.7,
+      "evidence": "Classic Shepperd's-method quaternion extraction: checks the trace of the 3x3 block (at offsets +4,+0x14,+0x24, the diagonal of the matrix4x3 rotation), and otherwise picks the largest diagonal element via a cyclic index table (DAT_0069665c).",
+      "summary": "Extracts a quaternion from the rotation part of a matrix4x3.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cbd60",
+      "name": "matrix4x3_build_from_vectors_and_position",
+      "confidence": 0.4,
+      "evidence": "Calls FUN_004cb970 to build the rotation block from two vectors, then copies a 3-float position from an object at unaff_ESI into the translation slots (offsets 0x28/0x2c/0x30, indices 10-12) of the output matrix4x3.",
+      "summary": "Builds a full matrix4x3 (rotation from two vectors, plus a translation copied from another object) in one call.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cbd90",
+      "name": "matrix4x3_get_basis_and_position",
+      "confidence": 0.4,
+      "evidence": "Reads matrix4x3 fields at offsets matching rotation row 0 (+4..+0xc), rotation row 2 (+0x1c..+0x24) and translation (+0x28..+0x30) into three separate output vectors -- the inverse of the fields set by 0x4cbd60/0x4cb970.",
+      "summary": "Unpacks two rotation-basis vectors and the translation out of a matrix4x3 structure.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cbde0",
+      "name": "matrix4x3_transform_point",
+      "confidence": 0.9,
+      "evidence": "Pre-existing chimera__ name (hint); code scales the input point by the matrix's scale field then applies the 3x3 rotation and adds the translation, exactly matrix4x3*point.",
+      "summary": "Transforms a point by a matrix4x3 (scale, rotate, translate).",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cbe50",
+      "name": "matrix4x3_transform_vector",
+      "confidence": 0.65,
+      "evidence": "Identical scale+rotate math to matrix4x3_transform_point (0x4cbde0) but omits adding the translation -- transforms a direction/vector rather than a point.",
+      "summary": "Transforms a vector by a matrix4x3's scale and rotation, without translation.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cbec0",
+      "name": "matrix4x3_transform_normal",
+      "confidence": 0.9,
+      "evidence": "Pre-existing chimera__ name (hint); applies only the 3x3 rotation block (no scale, no translation) to the input vector, as appropriate for surface normals.",
+      "summary": "Transforms a normal/direction by only the rotation part of a matrix4x3.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cbf10",
+      "name": "matrix4x3_transform_plane",
+      "confidence": 0.6,
+      "evidence": "Rotates the plane normal (EDX, a Plane3D) by the matrix's 3x3 block the same way transform_vector does, then computes the new distance term as scale*d + dot(new_normal, translation) -- the standard plane-transform formula.",
+      "summary": "Transforms a plane equation (normal+distance) by a matrix4x3.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cbf80",
+      "name": "matrix4x3_inverse_transform_point",
+      "confidence": 0.65,
+      "evidence": "Subtracts the matrix's translation from the input point, divides by scale, then multiplies by the transpose of the 3x3 rotation block -- the closed-form inverse-transform of a point without building a full inverse matrix; zeroes output when scale is 0.",
+      "summary": "Transforms a point from world space into a matrix4x3's local space (inverse transform) without computing a full inverse matrix.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cc010",
+      "name": "matrix4x3_inverse_transform_vector",
+      "confidence": 0.6,
+      "evidence": "Divides the input vector by the matrix's scale, then multiplies by the transpose of the rotation block (row pattern (1,2,3)/(4,5,6)/(7,8,9), the transpose of transform_vector's column pattern) -- no translation subtracted, matching a vector rather than a point.",
+      "summary": "Transforms a vector from world space into a matrix4x3's local space, without translation.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cc080",
+      "name": "matrix4x3_inverse_transform_normal",
+      "confidence": 0.55,
+      "evidence": "Multiplies the input vector by the transpose of the 3x3 rotation block only (no scale division, no translation) -- the normal-space counterpart of matrix4x3_inverse_transform_vector.",
+      "summary": "Transforms a normal/direction into a matrix4x3's local space using only the transposed rotation.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cc0d0",
+      "name": "matrix4x3_multiply",
+      "confidence": 0.9,
+      "evidence": "Pre-existing chimera__ name (hint); computes param_3 = param_1 * param_2 for the 13-float matrix4x3 layout (scale multiplies together, rotation blocks combine, translation is transformed by param_1), with self-aliasing handled via a local copy.",
+      "summary": "Multiplies two matrix4x3 matrices (param_1 * param_2) into a third.",
+      "prototype": "void __cdecl matrix4x3_multiply(float *a, float *b, float *out)"
+    },
+    {
+      "addr": "0x4cc3a0",
+      "name": "matrix4x3_multiply_sse",
+      "confidence": 0.65,
+      "evidence": "Same input/output layout and self-aliasing handling as matrix4x3_multiply (0x4cc0d0) but implemented with PackedFloatingMUL/ADD (SSE packed-float) intrinsics; installed as the multiply function pointer at 0x4cd3f0 when a CPU feature test (bit 0x1a) passes.",
+      "summary": "SSE-optimized implementation of matrix4x3 multiplication, selected at startup when the CPU supports the required feature.",
+      "prototype": "void __cdecl matrix4x3_multiply_sse(float *a, float *b, float *out)"
+    },
+    {
+      "addr": "0x4cc500",
+      "name": "matrix3x3_transpose",
+      "confidence": 0.7,
+      "evidence": "Swaps the three off-diagonal pairs of a 9-float matrix (indices 1<->3, 2<->6, 5<->7) in place when source==dest, or writes the full transpose to a separate destination otherwise.",
+      "summary": "Transposes a 3x3 matrix, handling in-place (aliased) transposition.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cc560",
+      "name": "matrix3x3_build_basis_from_vectors",
+      "confidence": 0.45,
+      "evidence": "Writes vector EDX into row 0, cross(ECX,EDX) into row 1, and vector ECX into row 2 of a 9-float output -- the pure-Matrix (no scale/translate) counterpart of 0x4cb970.",
+      "summary": "Builds a 3x3 basis matrix from two vectors and their cross product.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cc5f0",
+      "name": "matrix3x3_multiply",
+      "confidence": 0.75,
+      "evidence": "Standard 3x3*3x3 matrix multiply formula over two 9-float inputs, with self-aliasing handled by copying to a local 9-float buffer first; matches the tags.h Matrix (float m[3][3]) layout.",
+      "summary": "Multiplies two 3x3 matrices.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cc710",
+      "name": "matrix3x3_inverse_transform_vector",
+      "confidence": 0.5,
+      "evidence": "Multiplies the input vector by the matrix using column-stride access (0,3,6 / 1,4,7 / 2,5,8), the transpose of a normal row-multiply, with self-aliasing handled via local copy -- matches the transpose/inverse pattern used elsewhere for orthonormal matrices.",
+      "summary": "Transforms a vector by the transpose of a 3x3 matrix (inverse transform for an orthonormal matrix).",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cc780",
+      "name": "quaternion_from_matrix3x3",
+      "confidence": 0.7,
+      "evidence": "Same Shepperd's-method structure as quaternion_from_matrix4x3 (0x4cbc00) but reading the diagonal at plain 3x3 offsets (0,4,8) and using a separate cyclic-index table (DAT_00696668) sized for a 9-float matrix.",
+      "summary": "Extracts a quaternion from a 3x3 rotation matrix.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cc8d0",
+      "name": "periodic_function_tables_init",
+      "confidence": 0.65,
+      "evidence": "Allocates twelve 0x400-byte buffers (DAT_006b7aa8 array) filled via FUN_004ccdb0 and six more (DAT_006b7ad8) filled via FUN_004cccb0, matching the lookup tables consumed by periodic_function_evaluate's DAT_006b7aa8 indexing.",
+      "summary": "Allocates and fills the byte lookup tables backing the engine's periodic (wave) function evaluator.",
+      "prototype": "void __cdecl periodic_function_tables_init(void)"
+    },
+    {
+      "addr": "0x4cc960",
+      "name": "periodic_function_tables_free",
+      "confidence": 0.65,
+      "evidence": "Frees the same eighteen buffers (DAT_006b7aa8[12] and DAT_006b7ad8[6]) allocated by 0x4cc8d0, guarded by the DAT_006b7af0 init flag.",
+      "summary": "Frees the periodic-function lookup tables allocated by periodic_function_tables_init.",
+      "prototype": "void __cdecl periodic_function_tables_free(void)"
+    },
+    {
+      "addr": "0x4cc9b0",
+      "name": "periodic_function_evaluate",
+      "confidence": 0.85,
+      "evidence": "Pre-existing chimera__ name (hint); samples one of the DAT_006b7aa8 byte tables at a phase derived from param_1 (time) via FUN_00628cca, interpolating between adjacent samples and handling wraparound for certain function types.",
+      "summary": "Samples the precomputed periodic (wave) function table selected by the type index in AX at the given time, returning an interpolated [0,1] value.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4ccac0",
+      "name": "periodic_function_evaluate_at_phase",
+      "confidence": 0.45,
+      "evidence": "Clamps param_1 to [0,1] and uses it directly as a table phase (rather than deriving phase from time as 0x4cc9b0 does), indexing the secondary DAT_006b7ad8 table set by in_CX.",
+      "summary": "Samples one of the secondary periodic-function tables at an explicit [0,1] phase rather than by elapsed time.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4ccbb0",
+      "name": "periodic_function_build_warp_table",
+      "confidence": 0.4,
+      "evidence": "Fills a 1024-float array with a running sum of (1 + weighted cosines at three frequencies + jittered LCG noise), then normalizes the whole array by the final accumulated total -- produces a monotonically increasing warp curve used by 0x4ccdb0's 'variant' cosine case.",
+      "summary": "Builds a normalized cumulative noise/warp table used to distort one of the periodic wave types.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cccb0",
+      "name": "periodic_function_build_variant_table",
+      "confidence": 0.4,
+      "evidence": "Fills a 1024-byte table using a switch on an outer selector, calling an external noise routine (FUN_006283c0) for most cases and a raw sine for the last, then quantizing each sample to a byte via FUN_006391b4 -- the secondary-table counterpart of FUN_004ccdb0.",
+      "summary": "Builds one of the six secondary periodic-function byte tables.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4ccdb0",
+      "name": "periodic_function_build_table",
+      "confidence": 0.55,
+      "evidence": "Switches on a type index 0-11 to fill a 1024-sample float buffer (constant 1/0, cosine, cosine warped via 0x4ccbb0's table, folded/raw noise from FUN_00628cca, per-sample LCG noise, and sums of sines/cosines), tracks min/max, then quantizes to bytes via FUN_006391b4 into the output table.",
+      "summary": "Builds one of the twelve primary periodic-function byte lookup tables (constant, cosine, noise, wander, etc.) for a given type index.",
+      "prototype": "void __cdecl periodic_function_build_table(short type, unsigned char *out)"
+    },
+    {
+      "addr": "0x4cd070",
+      "name": "random_seed_generate",
+      "confidence": 0.6,
+      "evidence": "Combines the CRT rand() with two QueryPerformanceCounter readings converted to milliseconds via 64-bit division, XOR-ing all three together.",
+      "summary": "Produces a hard-to-predict seed value by XOR-combining rand() with two high-resolution timer readings.",
+      "prototype": "unsigned int __cdecl random_seed_generate(void)"
+    },
+    {
+      "addr": "0x4cd0e0",
+      "name": "sphere_point_table_init",
+      "confidence": 0.55,
+      "evidence": "Seeds a second global RNG state (DAT_00719cd4) from random_seed_generate, builds a sphere mesh via FUN_004ca4b0, and copies its vertex array into the global DAT_006b7af4/DAT_006b7af8 point table before freeing the mesh's scratch buffers.",
+      "summary": "Initializes the global table of quasi-uniform unit-sphere sample points used for randomized directions.",
+      "prototype": "void __cdecl sphere_point_table_init(void)"
+    },
+    {
+      "addr": "0x4cd170",
+      "name": "random_real_range_seeded",
+      "confidence": 0.6,
+      "evidence": "Same LCG-and-lerp formula as random_real_range (0x401050), but advances an explicit seed pointed to by ECX rather than the global DAT_00719cd0 -- a per-object/instance random generator.",
+      "summary": "Returns a pseudo-random float between two bounds, advancing a caller-supplied RNG state instead of the global seed.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cd1b0",
+      "name": "random_scatter_direction",
+      "confidence": 0.35,
+      "evidence": "Copies a 3-float point from EAX, advances the DAT_00719cd4 seed, normalizes it via FUN_00401990, and (if non-degenerate) picks a random angle in [param_1,param_2] to compute sin/cos which it passes to FUN_004cd820 -- consistent with generating a randomized dispersion direction, though several register roles couldn't be pinned down from this fragment alone.",
+      "summary": "Helper that derives a randomly rotated direction (used for weapon/effect dispersion) from a sphere sample point and a random angle.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cd2e0",
+      "name": "vector2d_normalize",
+      "confidence": 0.65,
+      "evidence": "Normalizes the 2-float vector at ECX in place if its squared length is non-zero; unlike 0x4018e0 it uses a plain !=0 check and does not return the original length.",
+      "summary": "Normalizes a 2D vector in place (no length returned, no epsilon tolerance).",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cd320",
+      "name": "vector3d_normalize",
+      "confidence": 0.65,
+      "evidence": "Same pattern as 0x4cd2e0 but for a 3-float vector at ECX.",
+      "summary": "Normalizes a 3D vector in place (no length returned, no epsilon tolerance).",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cd380",
+      "name": "vector3d_cross_product_length",
+      "confidence": 0.65,
+      "evidence": "Computes the full 3-component cross product of the vectors at EAX and ECX, then returns SQRT of the sum of its squared components -- i.e. only the magnitude of the cross product is returned, not the vector.",
+      "summary": "Returns the magnitude of the cross product of two 3D vectors (e.g. twice the area of the triangle they span).",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cd3f0",
+      "name": "math_initialize",
+      "confidence": 0.8,
+      "evidence": "Calls sphere_point_table_init and periodic_function_tables_init, installs matrix4x3_multiply as the default multiply function pointer then upgrades it to SSE/3DNow variants based on CPU-feature checks (FUN_005402a0), and scans the command line for the \"-noSSE\" string to skip that upgrade.",
+      "summary": "One-time engine startup routine that initializes the math subsystem's tables and selects the best available matrix-multiply implementation for the CPU.",
+      "prototype": "void __cdecl math_initialize(void)"
+    },
+    {
+      "addr": "0x4cd480",
+      "name": "vector2d_angle_between",
+      "confidence": 0.6,
+      "evidence": "Computes acos of the clamped dot product of two 2D vectors (unaff_ESI, unaff_EDI) via FUN_00628140, then negates the result if their cross product (z) is negative -- a signed angle-between-vectors.",
+      "summary": "Returns the signed angle between two 2D vectors.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4cd4f0",
+      "name": "vector3d_angle_between",
+      "confidence": 0.6,
+      "evidence": "Computes the angle between two 3D vectors (ECX,EDX) using the cos(2*theta)=2*cos^2(theta)-1 identity on the normalized dot product before calling acos (FUN_00628140) and halving, with a supplementary-angle correction when the dot product is negative -- a precision-friendly way to get the unsigned angle between vectors.",
+      "summary": "Returns the unsigned angle between two 3D vectors.",
+      "prototype": ""
+    }
+  ]
+}

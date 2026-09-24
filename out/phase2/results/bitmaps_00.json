@@ -1,0 +1,220 @@
+{
+  "results": [
+    {
+      "addr": "0x43f030",
+      "name": "bitmap_group_postprocess",
+      "confidence": 0.4,
+      "evidence": "Looks up tag data via the standard tag_array[(id&0xffff)*0x20+0x14] idiom, iterates the bitmap_data reflexive (stride 0x30) computing pixel counts via FUN_0043fc10/FUN_0043fb70, resets cache fields (offset 0x24=-1, 0x28/0x2c=0), validates via FUN_0043fd30 (which checks a 'bitm' fourCC cache header), then iterates the sequence reflexive (stride 0x40) clearing stale sprite indices and returns a bool success flag.",
+      "prototype": "",
+      "summary": "Post-processes a loaded bitmap group tag: computes per-bitmap-data pixel sizes/cache offsets, validates against any cached bitmap header, and clears invalid sequence sprite entries, returning whether the tag data is usable."
+    },
+    {
+      "addr": "0x43f250",
+      "name": "bitmap_group_get_bitmap_data",
+      "confidence": 0.6,
+      "evidence": "Resolves tag data via tag_array[(EAX&0xffff)*0x20+0x14], then bounds-checks index in_DX against the bitmap_data reflexive count at +0x60 and returns &array[index*0x30] from the pointer at +0x64 (bitmap_data element size 0x30 matches the known struct).",
+      "prototype": "",
+      "summary": "Given a bitmap tag id (EAX) and a bitmap_data index (DX), returns a pointer to that bitmap_data element, or 0 if the index/tag is invalid."
+    },
+    {
+      "addr": "0x43f290",
+      "name": "bitmap_group_sequence_get_bitmap_data",
+      "confidence": 0.5,
+      "evidence": "Same tag lookup pattern, then indexes the sequence reflexive (stride 0x40, count at +0x54) by param_1 modulo count, reads a sprite/bitmap sub-count at +0x22 and either indexes a sprite array (+0x38, stride 0x20) or wraps unaff_DI modulo that count plus the sequence's first_bitmap_index (+0x20), finally returning the resolved bitmap_data pointer (index*0x30+ptr) bounds-checked against the bitmap_data count at +0x60.",
+      "prototype": "",
+      "summary": "Resolves which bitmap_data entry corresponds to a given bitmap-group-sequence index and sub-index (handling looping/sprite sequences), returning a pointer to it."
+    },
+    {
+      "addr": "0x43f330",
+      "name": "color_rgb_to_hsv",
+      "confidence": 0.7,
+      "evidence": "Classic min/max/mid computation over three float components (in_ECX), computes value=max, saturation=(max-min)/max, and hue via the standard 6-case (r==max / g==max / b==max) formula scaled by 1/6 and wrapped into [0,1), written to out (in_EDX).",
+      "prototype": "",
+      "summary": "Converts an RGB float triplet to HSV (hue in [0,1), saturation, value)."
+    },
+    {
+      "addr": "0x43f460",
+      "name": "color_hsv_to_rgb",
+      "confidence": 0.65,
+      "evidence": "Uses FUN_006391b4 to get an integer sector plus fractional part of hue*N, then computes the standard p/q/t interpolation values and a 6-way switch that assigns them to R/G/B in the pattern used by canonical HSV->RGB conversions.",
+      "prototype": "",
+      "summary": "Converts an HSV color (unaff_EDI: hue fraction/saturation/value) back to an RGB float triplet (unaff_ESI), degenerating to greyscale when saturation is 0."
+    },
+    {
+      "addr": "0x43f5a0",
+      "name": "color_argb_int_to_real",
+      "confidence": 0.75,
+      "evidence": "Unpacks a packed 32-bit color (in_ECX) into 4 floats via >>0x18, >>0x10&0xff, >>8&0xff, &0xff each multiplied by 1/255 (0.003921569), the standard ARGB8888-to-float conversion, output in_EAX order A,R,G,B.",
+      "prototype": "",
+      "summary": "Converts a packed 32-bit ARGB color into a 4-component float color (each channel /255)."
+    },
+    {
+      "addr": "0x43f630",
+      "name": "color_rgb_int_to_real",
+      "confidence": 0.75,
+      "evidence": "Same unpack pattern as FUN_0043f5a0 but only 3 channels (R,G,B from bits 16-23,8-15,0-7), no alpha extraction.",
+      "prototype": "",
+      "summary": "Converts a packed 24-bit RGB color (low 3 bytes of in_ECX) into a 3-component float color."
+    },
+    {
+      "addr": "0x43f6a0",
+      "name": "color_interpolate",
+      "confidence": 0.55,
+      "evidence": "param_2 & 1 selects a plain per-channel linear lerp of two RGB float triplets (in_EAX/in_ECX) by param_3, versus calling FUN_0043f330 (rgb_to_hsv) twice and FUN_0043f460 (hsv_to_rgb) for a hue-space blend.",
+      "prototype": "",
+      "summary": "Blends two RGB colors by a factor param_3, either linearly in RGB space or by converting to HSV and interpolating hue, depending on a mode flag in param_2."
+    },
+    {
+      "addr": "0x43f7d0",
+      "name": "color_blend_layers",
+      "confidence": 0.3,
+      "evidence": "Calls FUN_0043f6a0 (color_interpolate) then, if a fourth color pointer is non-null, either multiplies two colors together (when both reference channels are ~0) or does a weighted lerp between them using param_2 and the two reference values as blend thresholds.",
+      "prototype": "",
+      "summary": "Combines two colors into a destination, either by straight multiply or by a threshold-weighted interpolation, used for layered color blending (e.g. detail/base color combination)."
+    },
+    {
+      "addr": "0x43f880",
+      "name": "bitmap_group_free",
+      "confidence": 0.5,
+      "evidence": "If the high bit of the flags byte at +0xe is set and the cache slot at +0x24 is valid it calls cache_evict_entry(); it releases a COM-like object at +0x28 via its vtable Release (offset +8), and if flag bit 0x40 is set it GlobalFree()s the buffer at +0x2c and then GlobalFree()s the struct itself.",
+      "prototype": "",
+      "summary": "Tears down a bitmap group runtime structure: evicts any cache entry, releases an attached object, and frees GlobalAlloc'd pixel/self memory depending on flag bits."
+    },
+    {
+      "addr": "0x43f8e0",
+      "name": "bitmap_data_get_row_address",
+      "confidence": 0.55,
+      "evidence": "Sums mip-level pixel counts for in_AX levels (halving width/height each iteration, same pattern as FUN_0043fbb0's mip clamp), then computes (x + width*y + accumulated_offset) scaled by the bpp table DAT_006571f4[format] and adds the pixel-data base pointer at +0x2c; called from targa_export as FUN_0043f8e0(0, row) to fetch each scanline.",
+      "prototype": "",
+      "summary": "Computes the byte address of pixel (param_1, param_2) within a 2D bitmap_data's pixel buffer, accounting for bits-per-pixel."
+    },
+    {
+      "addr": "0x43f990",
+      "name": "bitmap_data_get_pixel_address_3d",
+      "confidence": 0.45,
+      "evidence": "Same accumulation pattern as FUN_0043f8e0 but reads width/height/depth (offsets 4,6,8) and takes an extra depth-slice parameter (param_4) combined with param_1..3, matching a volume/3D texture pixel-address computation.",
+      "prototype": "",
+      "summary": "Computes the byte address of a pixel within a 3D (volume) bitmap_data's pixel buffer given x, y, z coordinates."
+    },
+    {
+      "addr": "0x43fa90",
+      "name": "bitmap_data_get_pixel_address_cubemap",
+      "confidence": 0.4,
+      "evidence": "Same mip-accumulation pattern but multiplies the per-level pixel count by 6 (iVar4*iVar4*6), matching the 6-face cube map layout, using in_CX as the face/level count.",
+      "prototype": "",
+      "summary": "Computes the byte address of a pixel within a cube-map bitmap_data's pixel buffer, accounting for the 6 faces per mip level."
+    },
+    {
+      "addr": "0x43fb20",
+      "name": "bitmap_data_get_pixel_address",
+      "confidence": 0.55,
+      "evidence": "Dispatches on the bitmap_data type field at +0xa (in_ECX+10): 0 -> FUN_0043f8e0 (2D), 1 -> FUN_0043f990 (3D), 2 -> FUN_0043fa90 (cubemap), matching the standard bitmap_data type enum values.",
+      "prototype": "",
+      "summary": "Dispatches to the appropriate 2D/3D/cubemap pixel-address routine based on a bitmap_data's type field."
+    },
+    {
+      "addr": "0x43fb70",
+      "name": "bitmap_data_calculate_pixel_data_size",
+      "confidence": 0.55,
+      "evidence": "Sums FUN_0043fc10 (per-mip-level pixel count) over all mip levels (+0x14), then scales by the bpp table DAT_006571f4[format] and rounds, the same size formula used inline in FUN_0043f030.",
+      "prototype": "",
+      "summary": "Computes the total byte size of a bitmap_data's pixel data across all its mip levels."
+    },
+    {
+      "addr": "0x43fbb0",
+      "name": "bitmap_data_calculate_mip_dimension",
+      "confidence": 0.6,
+      "evidence": "Right-shifts a dimension (in_EDX+6, i.e. height) by the mip level in CL, clamps to a minimum of 1, and if the compressed-format flag (bit1 of flags byte +0xe) is set, rounds up to a multiple of 4 -- the standard DXT block-aligned mip size computation.",
+      "prototype": "",
+      "summary": "Computes a bitmap's height at a given mip level, rounding up to a multiple of 4 for block-compressed formats."
+    },
+    {
+      "addr": "0x43fbe0",
+      "name": "bitmap_data_calculate_mip_depth",
+      "confidence": 0.5,
+      "evidence": "Right-shifts the depth field (in_EAX+8) by the mip level and clamps to a minimum of 1, without the block-compression rounding seen in FUN_0043fbb0 (depth is never block compressed).",
+      "prototype": "",
+      "summary": "Computes a bitmap's depth (number of volume slices) at a given mip level, clamped to at least 1."
+    },
+    {
+      "addr": "0x43fc10",
+      "name": "bitmap_data_calculate_mip_level_pixel_count",
+      "confidence": 0.6,
+      "evidence": "Inlines the same width/height/depth mip-shrink-and-clamp logic as FUN_0043fbb0/FUN_0043fbe0 for all three dimensions (+4,+6,+8), multiplies them together, and multiplies by 6 if type (+0xa) == 2 (cubemap).",
+      "prototype": "",
+      "summary": "Computes the total pixel count of a bitmap_data at the current mip level (width*height*depth, times 6 for cubemaps)."
+    },
+    {
+      "addr": "0x43fcb0",
+      "name": "bitmap_data_calculate_mip_level_byte_size",
+      "confidence": 0.55,
+      "evidence": "Calls FUN_0043fc10 (mip-level pixel count) then scales by the bpp table DAT_006571f4[format], the same rounding formula seen throughout this file for converting pixel counts to bytes.",
+      "prototype": "",
+      "summary": "Computes the byte size of a single mip level's pixel data, given its pixel count and the bitmap's pixel format."
+    },
+    {
+      "addr": "0x43fce0",
+      "name": "bitmap_data_calculate_mip_row_byte_size",
+      "confidence": 0.5,
+      "evidence": "Computes the mip-level width (shift+clamp+compressed-block rounding, same as FUN_0043fbb0 but on the width field +4) and scales it by the format's bpp table entry, i.e. a row pitch in bytes.",
+      "prototype": "",
+      "summary": "Computes the byte pitch (row size) of a bitmap_data at a given mip level for its pixel format."
+    },
+    {
+      "addr": "0x43fd30",
+      "name": "bitmap_data_validate_cache_chunk_header",
+      "confidence": 0.45,
+      "evidence": "Checks that *in_EDX == 0x6269746d ('bitm' fourCC), validates format/width/height ranges against constants (0x12, 0x7531), calls FUN_0043fe30 and uint32_log2_floor to compare a computed log2 dimension against a stored mip-count field (+0x14), returning a packed success flag.",
+      "prototype": "",
+      "summary": "Validates a raw 'bitm'-tagged bitmap cache chunk header's format/dimensions/mip-count against expectations before it is used, returning a success byte plus a resolved pointer."
+    },
+    {
+      "addr": "0x43fe30",
+      "name": "bitmap_data_dimension_is_valid_or_single",
+      "confidence": 0.3,
+      "evidence": "Returns true only if in_AX is in (0,256] and either in_AX==1 or param_1==1, a small range/degenerate-size check used as a gate inside FUN_0043fd30.",
+      "prototype": "",
+      "summary": "Checks whether a dimension value is within a valid small range and that either it or the paired dimension is exactly 1 (used to validate degenerate/1D bitmap dimensions)."
+    },
+    {
+      "addr": "0x43fe60",
+      "name": "targa_export",
+      "confidence": 0.9,
+      "evidence": "cea-pdb hint plus matching strings 'couldn't open file'/'couldn't write header'/'couldn't write row' and callees file_reference_create/open/write/close used exactly in that order while writing a TGA header then each row via FUN_0043f8e0.",
+      "prototype": "",
+      "summary": "Exports a bitmap to a Targa (.tga) file, creating/opening the file reference, writing the header, then writing each pixel row, returning an error string or NULL on success."
+    },
+    {
+      "addr": "0x43ff80",
+      "name": "color_565_unpack_to_rgb888",
+      "confidence": 0.55,
+      "evidence": "Unpacks a 16-bit value (5:6:5 bit layout matching *in_EAX >>5 for 11-bit remainder, byte shifts by 3/5/8) into a 3-byte RGB output with the classic bit-replication expansion used for 16-bit-to-8-bit color widening (as used by DXT1 color decoding).",
+      "prototype": "",
+      "summary": "Unpacks a packed 16-bit RGB565 color into 8-bit-per-channel RGB bytes."
+    },
+    {
+      "addr": "0x43ffe0",
+      "name": "dxt1_decode_block_texel",
+      "confidence": 0.7,
+      "evidence": "Calls FUN_0043ff80 twice to unpack color0/color1 (RGB565), builds a 4-entry color palette using the classic DXT1 formulas (opaque 4-color via *0x55555556 fixed-point /3 when color1<color0, else 3-color+transparent via /2), then selects one palette entry using a 2-bit index extracted from the block's index bitfield at the (param_2,param_3) texel position.",
+      "prototype": "",
+      "summary": "Decodes a single texel's color from a DXT1-compressed 4x4 block, handling both the opaque and 1-bit-alpha (3-color) block modes."
+    },
+    {
+      "addr": "0x440150",
+      "name": "dxt3_decode_alpha_texel",
+      "confidence": 0.55,
+      "evidence": "Calls FUN_0043ffe0 to decode the block's color, then reads a 4-bit explicit alpha nibble for the texel and replicates it into a full byte (bVar1<<4|bVar1), the standard DXT2/3 explicit alpha expansion, storing it at output+3.",
+      "prototype": "",
+      "summary": "Decodes a single texel's color and 4-bit explicit alpha from a DXT2/DXT3-compressed block."
+    },
+    {
+      "addr": "0x440190",
+      "name": "dxt5_decode_alpha_texel",
+      "confidence": 0.65,
+      "evidence": "Calls FUN_0043ffe0 for the block color, then builds the standard DXT5 7-value or 5-value interpolated alpha ramp depending on alpha0>alpha1, and selects one entry using a 3-bit index extracted from the 48-bit packed alpha index table, matching canonical DXT5 alpha decoding.",
+      "prototype": "",
+      "summary": "Decodes a single texel's color and interpolated alpha from a DXT5-compressed block."
+    }
+  ]
+}

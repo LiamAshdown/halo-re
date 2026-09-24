@@ -1,0 +1,154 @@
+// unit_update_recoil_decay  (Ghidra: already named unit_update_recoil_decay)
+// address 0x574780, size 379 bytes
+// name confidence: 0.5 (functions.md summary matches; matches vehicle_update's call site
+//   `if (0 < vehicle->unknown_4ce) { unit_update_recoil_decay(); FUN_00575170(); }`)
+// rewrite confidence: 0.4
+// evidence: types/objects.h object.velocity (0x068), .angular_velocity (0x08c), .position
+//   (0x05c), .forward (0x074), .up (0x080); types/units.h vehicle_data.unknown_4ce (0x4ce,
+//   "reloaded with 0xf while the controls move; unit_update_recoil_decay counts it down and
+//   fires on the 0 edge"); callee object_set_position_and_orientation (established 4-argument
+//   form in src/units/biped_update.c).
+// register convention: unit object index in EAX (param_1).
+//   // blam-cc: EAX -> object_index
+// UNSURE: the two matrix4x3_transform_vector calls have no visible arguments; read as rotating
+//   the object's own forward and up vectors by the axis-angle matrix built from the normalized
+//   angular velocity and its length (treated directly as a rotation angle in radians).
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "objects.h"
+#include "units.h"
+
+extern data_array *object_data; // 0x008603b0
+
+extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, in place
+extern void matrix4x3_from_axis_angle(real_matrix4x3 *out, real_vector3d *axis, real sin_angle,
+                                       real cos_angle); // 0x4cb880, UNSURE signature
+extern void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); // 0x4cbe50
+extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward,
+                                                 real_vector3d *up, real_point3d *position); // 0x4f51c0
+extern double sin(double x);
+extern double cos(double x);
+
+// Decays the unit's camera/weapon recoil offset toward zero each tick while its recoil
+// countdown timer (vehicle_data.unknown_4ce) is active: exponentially decays velocity and
+// angular velocity, rotates the object's forward/up vectors by the resulting angular-velocity
+// axis-angle, snaps both velocities to zero once the countdown expires, and reapplies the
+// resulting orientation and offset position.
+void unit_update_recoil_decay(uint32_t object_index)
+{
+    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
+    real_vector3d forward = obj->forward;
+    real_vector3d up = obj->up;
+    real_point3d target_point;
+    real_vector3d axis;
+    real length;
+
+    vehicle->unknown_4ce -= 1;
+
+    obj->velocity.i *= 0.835f;
+    obj->velocity.j *= 0.835f;
+    obj->velocity.k *= 0.835f;
+    obj->angular_velocity.i *= 0.835f;
+    obj->angular_velocity.j *= 0.835f;
+    obj->angular_velocity.k *= 0.835f;
+
+    axis = obj->angular_velocity;
+    target_point.x = obj->velocity.i + obj->position.x;
+    target_point.y = obj->velocity.j + obj->position.y;
+    target_point.z = obj->velocity.k + obj->position.z;
+
+    length = vector3d_normalize_with_length(&axis);
+    if (length == 0.0f) {
+        forward = obj->forward;
+        up = obj->up;
+    } else {
+        real_matrix4x3 rotation;
+        matrix4x3_from_axis_angle(&rotation, &axis, (real)sin((double)length), (real)cos((double)length));
+        matrix4x3_transform_vector(&forward, &obj->forward, &rotation);
+        matrix4x3_transform_vector(&up, &obj->up, &rotation);
+    }
+
+    if (vehicle->unknown_4ce == 0) {
+        obj->velocity.i = 0.0f;
+        obj->velocity.j = 0.0f;
+        obj->velocity.k = 0.0f;
+        obj->angular_velocity.i = 0.0f;
+        obj->angular_velocity.j = 0.0f;
+        obj->angular_velocity.k = 0.0f;
+    }
+
+    object_set_position_and_orientation(object_index, &forward, &up, &target_point);
+}
+
+#if 0
+Original Ghidra decompilation (0x574780):
+
+void unit_update_recoil_decay(uint param_1)
+
+{
+  float *pfVar1;
+  float *pfVar2;
+  int iVar3;
+  undefined *puVar4;
+  undefined4 uVar5;
+  float10 fVar6;
+  float10 fVar7;
+  undefined1 local_64 [60];
+  float local_28;
+  float local_24;
+  float local_20;
+  undefined4 local_1c;
+  undefined4 local_18;
+  undefined4 local_14;
+  float local_10;
+  undefined4 local_c;
+  undefined4 local_8;
+
+  iVar3 = *(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 + (param_1 & 0xffff) * 0xc);
+  *(short *)(iVar3 + 0x4ce) = *(short *)(iVar3 + 0x4ce) + -1;
+  pfVar1 = (float *)(iVar3 + 0x68);
+  *pfVar1 = *(float *)(iVar3 + 0x68) * 0.835;
+  pfVar2 = (float *)(iVar3 + 0x8c);
+  *(float *)(iVar3 + 0x6c) = *(float *)(iVar3 + 0x6c) * 0.835;
+  *(float *)(iVar3 + 0x70) = *(float *)(iVar3 + 0x70) * 0.835;
+  *pfVar2 = *pfVar2 * 0.835;
+  *(float *)(iVar3 + 0x90) = *(float *)(iVar3 + 0x90) * 0.835;
+  *(float *)(iVar3 + 0x94) = *(float *)(iVar3 + 0x94) * 0.835;
+  local_10 = *pfVar2;
+  local_c = *(undefined4 *)(iVar3 + 0x90);
+  local_28 = *pfVar1 + *(float *)(iVar3 + 0x5c);
+  local_8 = *(undefined4 *)(iVar3 + 0x94);
+  local_24 = *(float *)(iVar3 + 0x6c) + *(float *)(iVar3 + 0x60);
+  local_20 = *(float *)(iVar3 + 0x70) + *(float *)(iVar3 + 100);
+  fVar6 = (float10)vector3d_normalize_with_length();
+  if (fVar6 == (float10)0.0) {
+    local_1c = *(undefined4 *)(iVar3 + 0x74);
+    local_18 = *(undefined4 *)(iVar3 + 0x78);
+    local_14 = *(undefined4 *)(iVar3 + 0x7c);
+    local_10 = *(float *)(iVar3 + 0x80);
+    local_c = *(undefined4 *)(iVar3 + 0x84);
+    local_8 = *(undefined4 *)(iVar3 + 0x88);
+  }
+  else {
+    fVar7 = (float10)fcos(fVar6);
+    fVar6 = (float10)fsin(fVar6);
+    uVar5 = matrix4x3_from_axis_angle((float)fVar6,(float)fVar7);
+    matrix4x3_transform_vector(uVar5);
+    matrix4x3_transform_vector(local_64);
+  }
+  puVar4 = PTR_DAT_00696714;
+  if (*(short *)(iVar3 + 0x4ce) == 0) {
+    *pfVar1 = *(float *)PTR_DAT_00696714;
+    *(undefined4 *)(iVar3 + 0x6c) = *(undefined4 *)(puVar4 + 4);
+    *(undefined4 *)(iVar3 + 0x70) = *(undefined4 *)(puVar4 + 8);
+    *pfVar2 = *(float *)puVar4;
+    *(undefined4 *)(iVar3 + 0x90) = *(undefined4 *)(puVar4 + 4);
+    *(undefined4 *)(iVar3 + 0x94) = *(undefined4 *)(puVar4 + 8);
+  }
+  object_set_position_and_orientation(param_1,&local_1c,&local_10);
+  return;
+}
+#endif

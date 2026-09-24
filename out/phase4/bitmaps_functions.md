@@ -1,0 +1,29 @@
+# bitmaps module: 27 functions (address, current Ghidra name, size, agent confidence, summary)
+
+- 0x43f030 FUN_0043f030 size=534 conf=0.4 :: Post-processes a loaded bitmap group tag: computes per-bitmap-data pixel sizes/cache offsets, validates against any cached bitmap header, and clears invalid sequence sprite entries, returning whether 
+- 0x43f250 bitmap_group_get_bitmap_data size=53 conf=0.6 :: Given a bitmap tag id (EAX) and a bitmap_data index (DX), returns a pointer to that bitmap_data element, or 0 if the index/tag is invalid.
+- 0x43f290 bitmap_group_sequence_get_bitmap_data size=153 conf=0.5 :: Resolves which bitmap_data entry corresponds to a given bitmap-group-sequence index and sub-index (handling looping/sprite sequences), returning a pointer to it.
+- 0x43f330 color_rgb_to_hsv size=290 conf=0.7 :: Converts an RGB float triplet to HSV (hue in [0,1), saturation, value).
+- 0x43f460 color_hsv_to_rgb size=296 conf=0.65 :: Converts an HSV color (unaff_EDI: hue fraction/saturation/value) back to an RGB float triplet (unaff_ESI), degenerating to greyscale when saturation is 0.
+- 0x43f5a0 color_argb_int_to_real size=135 conf=0.75 :: Converts a packed 32-bit ARGB color into a 4-component float color (each channel /255).
+- 0x43f630 color_rgb_int_to_real size=105 conf=0.75 :: Converts a packed 24-bit RGB color (low 3 bytes of in_ECX) into a 3-component float color.
+- 0x43f6a0 color_interpolate size=303 conf=0.55 :: Blends two RGB colors by a factor param_3, either linearly in RGB space or by converting to HSV and interpolating hue, depending on a mode flag in param_2.
+- 0x43f7d0 FUN_0043f7d0 size=166 conf=0.3 :: Combines two colors into a destination, either by straight multiply or by a threshold-weighted interpolation, used for layered color blending (e.g. detail/base color combination).
+- 0x43f880 bitmap_group_free size=94 conf=0.5 :: Tears down a bitmap group runtime structure: evicts any cache entry, releases an attached object, and frees GlobalAlloc'd pixel/self memory depending on flag bits.
+- 0x43f8e0 bitmap_data_get_row_address size=165 conf=0.55 :: Computes the byte address of pixel (param_1, param_2) within a 2D bitmap_data's pixel buffer, accounting for bits-per-pixel.
+- 0x43f990 FUN_0043f990 size=241 conf=0.45 :: Computes the byte address of a pixel within a 3D (volume) bitmap_data's pixel buffer given x, y, z coordinates.
+- 0x43fa90 FUN_0043fa90 size=136 conf=0.4 :: Computes the byte address of a pixel within a cube-map bitmap_data's pixel buffer, accounting for the 6 faces per mip level.
+- 0x43fb20 bitmap_data_get_pixel_address size=80 conf=0.55 :: Dispatches to the appropriate 2D/3D/cubemap pixel-address routine based on a bitmap_data's type field.
+- 0x43fb70 bitmap_data_calculate_pixel_data_size size=62 conf=0.55 :: Computes the total byte size of a bitmap_data's pixel data across all its mip levels.
+- 0x43fbb0 bitmap_data_calculate_mip_dimension size=47 conf=0.6 :: Computes a bitmap's height at a given mip level, rounding up to a multiple of 4 for block-compressed formats.
+- 0x43fbe0 bitmap_data_calculate_mip_depth size=34 conf=0.5 :: Computes a bitmap's depth (number of volume slices) at a given mip level, clamped to at least 1.
+- 0x43fc10 bitmap_data_calculate_mip_level_pixel_count size=156 conf=0.6 :: Computes the total pixel count of a bitmap_data at the current mip level (width*height*depth, times 6 for cubemaps).
+- 0x43fcb0 bitmap_data_calculate_mip_level_byte_size size=33 conf=0.55 :: Computes the byte size of a single mip level's pixel data, given its pixel count and the bitmap's pixel format.
+- 0x43fce0 bitmap_data_calculate_mip_row_byte_size size=75 conf=0.5 :: Computes the byte pitch (row size) of a bitmap_data at a given mip level for its pixel format.
+- 0x43fd30 FUN_0043fd30 size=245 conf=0.45 :: Validates a raw 'bitm'-tagged bitmap cache chunk header's format/dimensions/mip-count against expectations before it is used, returning a success byte plus a resolved pointer.
+- 0x43fe30 FUN_0043fe30 size=34 conf=0.3 :: Checks whether a dimension value is within a valid small range and that either it or the paired dimension is exactly 1 (used to validate degenerate/1D bitmap dimensions).
+- 0x43fe60 targa_export size=277 conf=0.9 :: Exports a bitmap to a Targa (.tga) file, creating/opening the file reference, writing the header, then writing each pixel row, returning an error string or NULL on success.
+- 0x43ff80 color_565_unpack_to_rgb888 size=85 conf=0.55 :: Unpacks a packed 16-bit RGB565 color into 8-bit-per-channel RGB bytes.
+- 0x43ffe0 dxt1_decode_block_texel size=357 conf=0.7 :: Decodes a single texel's color from a DXT1-compressed 4x4 block, handling both the opaque and 1-bit-alpha (3-color) block modes.
+- 0x440150 dxt3_decode_alpha_texel size=54 conf=0.55 :: Decodes a single texel's color and 4-bit explicit alpha from a DXT2/DXT3-compressed block.
+- 0x440190 dxt5_decode_alpha_texel size=440 conf=0.65 :: Decodes a single texel's color and interpolated alpha from a DXT5-compressed block.

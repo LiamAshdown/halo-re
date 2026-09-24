@@ -1,0 +1,140 @@
+{
+  "results": [
+    {
+      "addr": "0x53e660",
+      "name": "scenario_structure_bsp_deactivate_callbacks",
+      "confidence": 0.4,
+      "evidence": "Calls 10 consecutive function pointers from a table (&PTR_FUN_0069e910); invoked first inside FUN_0053eeb0 (structure bsp switch) before the active bsp index is changed, matching an unload/deactivate callback fan-out.",
+      "prototype": "void __cdecl scenario_structure_bsp_deactivate_callbacks(void)",
+      "summary": "Calls each of 10 registered function pointers in sequence, used as a pre-switch (deactivate) callback fan-out when leaving the current structure bsp."
+    },
+    {
+      "addr": "0x53e680",
+      "name": "scenario_structure_bsp_activate_callbacks",
+      "confidence": 0.4,
+      "evidence": "Calls 13 consecutive function pointers from a table (&PTR_FUN_0069e8dc); invoked inside FUN_0053eeb0 only after a new bsp index has successfully loaded, mirroring FUN_0053e660's deactivate table.",
+      "prototype": "void __cdecl scenario_structure_bsp_activate_callbacks(void)",
+      "summary": "Calls each of 13 registered function pointers in sequence, used as a post-switch (activate) callback fan-out after a new structure bsp becomes current."
+    },
+    {
+      "addr": "0x53e6a0",
+      "name": "scenario_load",
+      "confidence": 0.85,
+      "evidence": "Already named scenario_load and the code matches: calls cache_file_load(), on success derives the scenario tag data pointer (DAT_00746f8c) from the tag array, looks up \"globals\\\\globals\" via tag_lookup, and calls FUN_0053eeb0 (structure bsp switch) to activate the initial bsp.",
+      "prototype": "unsigned int __cdecl scenario_load(void)",
+      "summary": "Loads the map's cache file, resolves the scenario and matg globals tag data pointers, and switches in the initial structure bsp."
+    },
+    {
+      "addr": "0x53e780",
+      "name": "scenario_locate_and_get_secondary_index",
+      "confidence": 0.3,
+      "evidence": "Stores the FUN_005013a0() result into *unaff_ESI and, unless it is -1, reads a related int16 from a table at DAT_00746f9c+0xe4 (stride 0x10, +8) into unaff_ESI[1]; register-only ('unaff_ESI') calling convention prevented a stronger identification.",
+      "prototype": "",
+      "summary": "Resolves an index via FUN_005013a0 and, if found, fetches an associated 16-bit field from a stride-0x10 table, writing both values through a caller-supplied struct pointer in ESI."
+    },
+    {
+      "addr": "0x53e7c0",
+      "name": "material_globals_get",
+      "confidence": 0.4,
+      "evidence": "Bounds-checks in_AX against a count at DAT_00746fa0+0x194 (DAT_00746fa0 is the matg globals tag data set by scenario_load's tag_lookup(\"globals\\\\globals\")) and indexes a 0x374-byte-stride array at +0x198, falling back to a static default record (&DAT_006e3208) with a one-time cache reset otherwise.",
+      "prototype": "",
+      "summary": "Returns a pointer to the globals-tag block element for a given index (0x374-byte stride), or a static default element if the index is out of range."
+    },
+    {
+      "addr": "0x53e810",
+      "name": "structure_bsp_cluster_tag_flag_get",
+      "confidence": 0.35,
+      "evidence": "Follows a leaf-table lookup at DAT_00746f9c+0x138+4 into a bounded cluster-like array at DAT_00746f9c+0x1fc/0x200 (stride 0x74, +0x2c holds a tag id), then reads bit 0 of the referenced tag's first byte via the tag-data-pointer table at DAT_0087bc14.",
+      "prototype": "",
+      "summary": "Given an implicit object/leaf reference, resolves its cluster's referenced tag and returns whether that tag's low bit flag is set."
+    },
+    {
+      "addr": "0x53e870",
+      "name": "scenario_slot_allocate_with_aging",
+      "confidence": 0.3,
+      "evidence": "Repeatedly calls FUN_005013a0() up to 150 times while it returns -1, incrementing *(float*)(iVar1+8) by 0.05 each retry before trying again; takes no explicit or implicit-register parameters.",
+      "prototype": "int __cdecl scenario_slot_allocate_with_aging(void)",
+      "summary": "Retries an allocation/lookup helper up to 150 times, aging a floating-point field by 0.05 per failed attempt, and reports whether the first attempt already succeeded."
+    },
+    {
+      "addr": "0x53e8c0",
+      "name": "sound_environment_interpolate_for_position",
+      "confidence": 0.4,
+      "evidence": "Looks up a per-cluster/per-object environment record from DAT_00746f8c+0x30/0x34, computes distance from a stored position to param_2 with SQRT, and if the object moved less than 15 units it smoothly decays gain/pitch-like fields via FUN_00470d40/FUN_0050f520 instead of snapping; writes an interpolated result plus a clamped [0,1] blend factor to param_3.",
+      "prototype": "",
+      "summary": "Smoothly blends a per-object ambient/background sound environment record toward a new value as the listener moves, snapping instead when the jump exceeds 15 world units."
+    },
+    {
+      "addr": "0x53eb60",
+      "name": "structure_bsp_cluster_visibility_test",
+      "confidence": 0.4,
+      "evidence": "Tests bit ((param_1 * row_words) + (in_CX>>5)) of a bit-vector at DAT_00746f9c+0x14c sized from the cluster count at +0x134, the classic NxN cluster-to-cluster visibility/portal bit-matrix layout used by structure bsp code.",
+      "prototype": "",
+      "summary": "Tests a single bit in the structure bsp's cluster-by-cluster visibility bit matrix for a given (row, column) cluster pair."
+    },
+    {
+      "addr": "0x53ebb0",
+      "name": "scenario_object_name_find_index",
+      "confidence": 0.45,
+      "evidence": "Linearly scans a count/array pair at in_ECX+0x204/+0x208 (36-byte stride) comparing each element's leading bytes against param_1 with an unrolled byte-compare loop, returning the matching element's index or 0xffff, typical of a name-block lookup (e.g. scenario object_names).",
+      "prototype": "",
+      "summary": "Searches a 36-byte-stride name/record array for an entry whose text matches the given string and returns its index, or 0xffff if not found."
+    },
+    {
+      "addr": "0x53ec30",
+      "name": "structure_bsp_leaf_find_portal",
+      "confidence": 0.4,
+      "evidence": "Reads a signed 16-bit field from the leaf table at DAT_00746f9c+0x138 (stride 0x68, +2); a negative value indexes a 0x20-byte plane/portal record table at +0x17c whose plane equation is tested against a caller-supplied point (unaff_EBX), returning the portal index or 0xffff.",
+      "prototype": "",
+      "summary": "Given an object's leaf reference, locates the boundary portal (if any) facing outward and tests whether a supplied point is on its far side."
+    },
+    {
+      "addr": "0x53ed10",
+      "name": "structure_bsp_leaf_get_surface_reference",
+      "confidence": 0.4,
+      "evidence": "Chains two table lookups off DAT_00746f9c (+0x188 stride 0x28+0x24, then +0x194 stride 0x88+0x2c) starting from an implicit in_AX leaf index, returning -1 whenever any link is -1, matching a leaf-to-surface indirection.",
+      "prototype": "",
+      "summary": "Resolves a leaf index through two chained indirection tables down to a final surface/material reference, or -1 if any link is unset."
+    },
+    {
+      "addr": "0x53ed60",
+      "name": "structure_bsp_leaf_get_portal_and_material",
+      "confidence": 0.4,
+      "evidence": "Calls FUN_0053ec30 (portal lookup) then FUN_0053ed10 (surface reference) for the same implicit leaf state, combines their results into a packed material/flags value, and also writes out a fallback cluster field from param_1 via param_2 when no portal keeps a valid sky field.",
+      "prototype": "",
+      "summary": "Combines the portal-search and surface-reference helpers to return a packed material flag for the current leaf and optionally outputs a related cluster field."
+    },
+    {
+      "addr": "0x53ee00",
+      "name": "structure_bsp_leaf_plane_distance",
+      "confidence": 0.4,
+      "evidence": "Reuses the same leaf-table field at DAT_00746f9c+0x138+2 as FUN_0053ec30, and when it references a plane record (+0x17c), computes a float10 signed distance of unaff_EDI against that plane, adjusted by a per-tag float at pbVar2+0x74 when the tag's low bit flag is set.",
+      "prototype": "",
+      "summary": "Computes the signed distance from an implicit point/vector to the current leaf's boundary plane, biased by a referenced tag's flag-gated offset."
+    },
+    {
+      "addr": "0x53eeb0",
+      "name": "scenario_structure_bsp_switch",
+      "confidence": 0.65,
+      "evidence": "Bounds-checks a requested bsp index (unaff_SI) against DAT_00746f8c+0x5a4/+0x5a8 (scenario tag's structure_bsps block), calls the 10-entry deactivate table then the 13-entry activate table around updating DAT_00746f9c/DAT_00746f90/DAT_00746f98 and the active index globals DAT_0069e8d8/*DAT_00746f94.",
+      "prototype": "",
+      "summary": "Switches the currently active structure bsp to the requested index, running deactivate/activate callback tables and refreshing the cached bsp tag-data pointers."
+    },
+    {
+      "addr": "0x53efc0",
+      "name": "scenario_structure_bsp_update",
+      "confidence": 0.45,
+      "evidence": "Compares *DAT_00746f94 (requested bsp index storage, set by scenario_load/FUN_0053eeb0) against the active index DAT_0069e8d8; when they differ it clears the old bsp's tag-data slot, resets DAT_0069e8d8 to -1, and calls FUN_0053eeb0 again to perform the pending switch.",
+      "prototype": "void __cdecl scenario_structure_bsp_update(void)",
+      "summary": "Checks whether a new structure bsp has been requested and, if so, unloads the previous one and performs the switch."
+    },
+    {
+      "addr": "0x53f020",
+      "name": "scenario_trigger_volume_contains_point",
+      "confidence": 0.6,
+      "evidence": "Indexes a 0x60-byte-stride array off DAT_00746f8c+0x364 (scenario trigger_volumes block) by type field: type 0 does an axis-aligned min/max box test directly against in_ECX, type 1 first calls matrix4x3_inverse_transform_point to bring the point into the volume's local space before the same box test.",
+      "prototype": "",
+      "summary": "Tests whether a world-space point lies inside a scenario trigger volume, supporting both axis-aligned box and oriented (matrix-transformed) box variants."
+    }
+  ]
+}

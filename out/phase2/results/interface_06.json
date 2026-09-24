@@ -1,0 +1,132 @@
+{
+  "results": [
+    {
+      "addr": "0x4b5760",
+      "name": "network_game_list_find_entry",
+      "confidence": 0.4,
+      "evidence": "Selects the 4-slot list (DAT_006b53d8/DAT_00719448) or 8-slot list (DAT_006b42d8/DAT_0071944c) by pointer identity of an incoming register arg, then scans 0x88-dword entries comparing a 4-dword key at entry+0x10 against param_1+0x20c..0x21c, returning the matching index or -1.",
+      "prototype": "",
+      "summary": "Searches whichever of two fixed-size server-entry lists (history, max 4; favorites, max 8) is selected via a register pointer for an entry whose key fields match the caller's record, returning its index or -1."
+    },
+    {
+      "addr": "0x4b5800",
+      "name": "network_game_list_add_entry",
+      "confidence": 0.45,
+      "evidence": "Same list-selection pattern as 0x4b5760 (DAT_006b53d8/DAT_00719448 max 4 vs DAT_006b42d8/DAT_0071944c max 8); if the selected list's count is below its max it copies a 0x88-dword entry into the next free slot and increments the count.",
+      "prototype": "",
+      "summary": "Appends a 0x88-dword entry to whichever of the two server-entry lists is addressed by a register pointer, if that list has not reached its capacity (4 or 8), returning success."
+    },
+    {
+      "addr": "0x4b5850",
+      "name": "network_game_list_remove_entry",
+      "confidence": 0.45,
+      "evidence": "Calls network_game_list_find_entry (0x4b5760) to locate the entry, then memmove()s the remaining 0x220-byte entries down over it and decrements the list's count global.",
+      "prototype": "",
+      "summary": "Removes the entry matching the caller's key from whichever server-entry list is addressed by a register pointer, compacting the array and decrementing its count."
+    },
+    {
+      "addr": "0x4b58d0",
+      "name": "network_game_list_load",
+      "confidence": 0.35,
+      "evidence": "Zeroes both DAT_006b53d8 (max 4) and DAT_006b42d8 (max 8) arrays and their counts, then (if a profile-loaded flag in DAT_00714e7c is set) copies a set of default/system entries (DAT_006b1868, count DAT_006b1844) into the first list via network_game_list_add_entry, and copies up to 4 profile-stored entries (from a structure at offset 0x1108) directly into the same list, deduplicating via network_game_list_remove_entry.",
+      "prototype": "",
+      "summary": "Resets the history/favorites server-entry lists and repopulates the history list from built-in defaults and the player's saved profile, removing any duplicate entries."
+    },
+    {
+      "addr": "0x4b5a70",
+      "name": "network_game_list_restore_matching_options",
+      "confidence": 0.3,
+      "evidence": "Copies the current ~8KB options block at DAT_00714e80 into a local buffer, calls FUN_0053b5a0/FUN_0053b2b0 (UI setup) and then for each of the DAT_00719448 history entries calls FUN_0053b470 to test a match, restoring the full options via FUN_0053b700 into the local buffer when found, before FUN_0053b620 closes out.",
+      "prototype": "",
+      "summary": "Iterates the history server list looking for an entry matching the current game options and, on a match, restores the saved full option set for use by the network-game UI."
+    },
+    {
+      "addr": "0x4b5b20",
+      "name": "network_game_list_toggle_favorite",
+      "confidence": 0.4,
+      "evidence": "Uses FUN_004b5560 to resolve two UI list-box identities/id-arrays (4-slot and 8-slot, matching the history/favorites lists), locates param_1 in whichever list-box it belongs to, copies the corresponding 0x88-dword entry into the other list via network_game_list_add_entry, and calls network_game_list_remove_entry (0x4b5850) on the source; also updates linked widget selection fields afterward.",
+      "prototype": "",
+      "summary": "Moves a selected server entry between the history and favorites lists (e.g. an \"add/remove favorite\" UI action), updating the affected list-box widgets."
+    },
+    {
+      "addr": "0x4bab50",
+      "name": "video_resolution_compare",
+      "confidence": 0.6,
+      "evidence": "Passed as the comparator to _qsort over the DAT_006b6690 resolution table (stride 0x4c) in video_resolution_list_build (0x4bad40); compares the first dword (width) then the second dword (height) of each record.",
+      "prototype": "int __cdecl video_resolution_compare(unsigned int *a, unsigned int *b)",
+      "summary": "qsort comparator that orders two (width,height) resolution records ascending by width then by height."
+    },
+    {
+      "addr": "0x4bab80",
+      "name": "video_refresh_rate_compare",
+      "confidence": 0.6,
+      "evidence": "Passed as the comparator to _qsort over each resolution's per-mode refresh-rate array in video_resolution_list_build (0x4bad40), sizeof element 4; compares two plain uint values.",
+      "prototype": "unsigned int __cdecl video_refresh_rate_compare(unsigned int *a, unsigned int *b)",
+      "summary": "qsort comparator that orders two refresh-rate values ascending."
+    },
+    {
+      "addr": "0x4baba0",
+      "name": "video_display_modes_enumerate",
+      "confidence": 0.55,
+      "evidence": "Enumerates modes through a DirectDraw/Direct3D-style vtable (offsets 0x18/0x1c on DAT_0071d178), filters by colour depth (DAT_0069fe3c), available video memory (DAT_00722bb0), a \"-vidmode\" command-line override (string referenced, checked via __stricmp), and resolution/aspect limits, then calls video_resolution_add (0x4badc0) for each accepted mode.",
+      "prototype": "",
+      "summary": "Enumerates the display device's supported video modes and, after filtering by memory, colour depth, command-line override and resolution/aspect limits, feeds each valid width/height/refresh combination into the resolution list builder."
+    },
+    {
+      "addr": "0x4bad40",
+      "name": "video_resolution_list_build",
+      "confidence": 0.6,
+      "evidence": "Zeroes the DAT_006b6690 resolution table and DAT_007196cc count, calls video_display_modes_enumerate (0x4baba0) to populate it, sorts it with video_resolution_compare, then sorts each entry's refresh-rate sub-array with video_refresh_rate_compare.",
+      "prototype": "void __cdecl video_resolution_list_build(void)",
+      "summary": "Rebuilds the sorted list of available screen resolutions and, for each, the sorted list of supported refresh rates."
+    },
+    {
+      "addr": "0x4badc0",
+      "name": "video_resolution_add",
+      "confidence": 0.85,
+      "evidence": "Matches the naming hint (cea-pdb: video_resolution_add) and the code: dedups a (width,height) pair against DAT_006b6690/DAT_006b6694, formats its display name with FUN_00557930(L\"%d x %d\", ...), and inserts a refresh-rate value into that resolution's rate list (max 8) if not already present.",
+      "prototype": "",
+      "summary": "Adds a width/height resolution entry to the video mode table (creating it if new) and records an associated refresh rate for it, up to 8 rates per resolution; width is passed on the stack, height in EAX, refresh rate on the stack."
+    },
+    {
+      "addr": "0x4bae80",
+      "name": "video_refresh_rate_find_index",
+      "confidence": 0.5,
+      "evidence": "Bounds-checks a resolution index (in_ECX) against DAT_007196cc, then scans that resolution's DAT_006b66bc rate sub-array (length from DAT_006b66b8) for a value equal to an incoming register (unaff_EDI), returning its index or -1.",
+      "prototype": "",
+      "summary": "Finds the index of a given refresh-rate value within a specific resolution's rate list, both passed in registers; returns -1 if not found."
+    },
+    {
+      "addr": "0x4baec0",
+      "name": "video_options_menu_populate_from_settings",
+      "confidence": 0.45,
+      "evidence": "Walks a widget tree (child/sibling links at +0x34/+0x2c, type tag at +0xe==2) locating resolution/refresh, gamma, and several boolean/quality controls, and writes each control's value (widget+0x40/+0x12/+0x24) from fields of a settings struct at param_2 offsets 0xa68 (width), 0xa6a (height), 0xa6c (refresh), 0xa6f/0xa70/0xa71/0xa72/0xa73/0xa74 (quality/toggle bytes) and 0xa76 (gamma), also matching the resolution against the video_resolution_add table and calling chimera__gamma to apply gamma changes.",
+      "prototype": "",
+      "summary": "Populates the video-options menu's widgets (resolution, refresh rate, gamma, and several quality/toggle controls) from a video settings structure, disabling controls the current hardware/driver does not support."
+    },
+    {
+      "addr": "0x4bb5e0",
+      "name": "video_options_menu_open",
+      "confidence": 0.4,
+      "evidence": "Calls FUN_0053b000 to fetch the current video/game options into a stack buffer, and on success passes them to video_options_menu_populate_from_settings (0x4baec0) before calling widget_play_sound_effect.",
+      "prototype": "",
+      "summary": "Handles opening the video options menu: fetches the current settings and populates the menu's widgets from them, playing the UI open sound on success."
+    },
+    {
+      "addr": "0x4bb640",
+      "name": "video_options_menu_update",
+      "confidence": 0.75,
+      "evidence": "Matches the naming hint (cea-pdb: video_menu_update) and the code: reformats the resolution label from the video_resolution_add table, formats the selected refresh rate with FUN_00557930(L\"%d Hz\", ...), nudges a gamma value up/down based on a widget direction field and calls chimera__gamma to apply it, then calls FUN_004a66b0.",
+      "prototype": "",
+      "summary": "Updates the video options menu after the user changes a control: refreshes the resolution/refresh-rate display text and adjusts and applies the gamma setting."
+    },
+    {
+      "addr": "0x4c9c80",
+      "name": "command_line_process_connect",
+      "confidence": 0.35,
+      "evidence": "References the strings \"-connect\", \"-name\", and \"-password\" and calls FUN_00542760 (command-line argument lookup) plus player_profile_load and a wcscmp; Ghidra removed most of the branch logic as unreachable, leaving only the \"-connect\" lookup visible.",
+      "prototype": "unsigned int __cdecl command_line_process_connect(void)",
+      "summary": "Checks the command line for a \"-connect\" (with associated \"-name\"/\"-password\") launch argument to auto-join a multiplayer server at startup."
+    }
+  ]
+}

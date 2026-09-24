@@ -1,0 +1,484 @@
+{
+  "results": [
+    {
+      "addr": "0x543a30",
+      "name": "game_sound_initialize",
+      "confidence": 0.9,
+      "evidence": "Creates a datum array named \"object looping sounds\" (max 0x400) via FUN_005380d0 and registers a 12-byte block in the crc-tracked globals table (crc32_update); existing name already matches the code.",
+      "prototype": "void __cdecl game_sound_initialize(void)",
+      "summary": "Initializes the object-looping-sounds subsystem by allocating its datum array and registering its save-game/crc globals block."
+    },
+    {
+      "addr": "0x543a90",
+      "name": "looping_sound_detach_object_references",
+      "confidence": 0.4,
+      "evidence": "Iterates every allocated entry of the object-looping-sounds datum array (DAT_007461a0) via a datum iterator and, for the object referenced by each entry's owner field, clears the object's cached looping-sound-datum index (offset 0x1c) when it still points back at that datum; original name 'chimera__revert' is a hint prefix, not a real engine name.",
+      "prototype": "void __cdecl looping_sound_detach_object_references(void)",
+      "summary": "Clears every object's cached back-reference to its currently attached looping-sound datum, walking the whole looping-sound datum array."
+    },
+    {
+      "addr": "0x543b30",
+      "name": "looping_sound_reconnect_objects",
+      "confidence": 0.35,
+      "evidence": "Iterates the looping-sound datum array; for datums flagged 0x10 it either re-links the owning object's back-reference (offset 0x1c) or calls datum_delete when the object is marked dead (flag bit 2), then walks all tags with tag_iterator_next resetting a cached field (offset 0x90) to -1.",
+      "prototype": "void __cdecl looping_sound_reconnect_objects(void)",
+      "summary": "Re-establishes or tears down object<->looping-sound datum links and invalidates a per-tag cached looping-sound-definition index."
+    },
+    {
+      "addr": "0x543c20",
+      "name": "looping_sound_new",
+      "confidence": 0.5,
+      "evidence": "Calls datum_new() on the looping-sound array and fills object index (in_EAX), owning tag/definition id (unaff_EDI), state=2, id=param_1, and (when attached to an object) copies extra parameter/gain fields from caller stack locals into the new datum.",
+      "prototype": "",
+      "summary": "Allocates a new object-looping-sound datum, optionally binding it to an object and copying its initial playback parameters (register-passed arguments)."
+    },
+    {
+      "addr": "0x543ce0",
+      "name": "looping_sound_start",
+      "confidence": 0.4,
+      "evidence": "Builds a small start-parameter block (enabled=1, gain=1.0, marker=-1, definition id=param_3) and, if FUN_005448c0's marker/object validity check succeeds, forwards it to the low-level play routine FUN_00549af0.",
+      "prototype": "",
+      "summary": "Validates an object-relative looping-sound start request and forwards it to the core sound-start routine when the check passes."
+    },
+    {
+      "addr": "0x543d80",
+      "name": "looping_sound_play_forward_params",
+      "confidence": 0.3,
+      "evidence": "Copies an 11-dword (44-byte) parameter block pointed to by in_EAX onto the stack, then tail-calls the same low-level play routine FUN_00549af0 used by neighboring start/stop wrappers.",
+      "prototype": "",
+      "summary": "Forwards a pointer-supplied looping-sound parameter block to the core sound-start/stop routine by copying it onto the stack."
+    },
+    {
+      "addr": "0x543dd0",
+      "name": "looping_sound_play_trampoline",
+      "confidence": 0.25,
+      "evidence": "Trivial wrapper that does nothing but tail-call FUN_00549af0 with no additional locals; likely a thin start/stop entry point used by 7 callers.",
+      "prototype": "",
+      "summary": "Thin trampoline that forwards directly into the core looping-sound play/stop routine."
+    },
+    {
+      "addr": "0x543e10",
+      "name": "looping_sound_update_refresh_timer",
+      "confidence": 0.4,
+      "evidence": "Uses a looping-sound datum's duration-like field (offset 0x84) scaled by 30/1000 added to the current tick counter (DAT_006f1d6c+0xc) to set a 'next refresh' field (offset 0x90); then either replays via FUN_00549af0 or restarts the sound via FUN_00543ce0 and stores the resulting handle at offset 0x94.",
+      "prototype": "",
+      "summary": "Recomputes a looping-sound datum's periodic refresh deadline and (re)starts or forwards its playback, caching the resulting sound handle."
+    },
+    {
+      "addr": "0x543fc0",
+      "name": "looping_sound_get_refresh_ticks_remaining",
+      "confidence": 0.45,
+      "evidence": "Reads the 'next refresh' tick field (offset 0x90) set by the sibling function at 0x543e10, subtracts the current tick counter (DAT_006f1d6c+0xc), and clamps the result to be non-negative.",
+      "prototype": "",
+      "summary": "Returns the number of ticks remaining until a looping-sound datum's next scheduled refresh, clamped to zero."
+    },
+    {
+      "addr": "0x544000",
+      "name": "object_stop_attached_looping_sounds",
+      "confidence": 0.3,
+      "evidence": "Walks an object's attachment/marker table (count at 0x3c, entries stride 0xa0 at 0x40, each holding a looping-sound datum index at +0x4c); for entries whose looping-sound state field equals 1 and whose definition flag (offset 0x3c of the definition) is set, calls the external FUN_00443e10(1,0).",
+      "prototype": "",
+      "summary": "Scans an object's attached parts for active looping sounds flagged for cleanup and invokes an external stop/kill routine on them."
+    },
+    {
+      "addr": "0x544090",
+      "name": "looping_sound_object_restart",
+      "confidence": 0.4,
+      "evidence": "Detaches the object's current looping sound (FUN_00544120), optionally sweeps stale links (FUN_00544c70) if flag bit 4 is set, creates a fresh unattached looping-sound datum (FUN_00543c20), links it to the object's back-reference field (offset 0x1c), and marks the new datum as object-attached (flag bit 0x10).",
+      "prototype": "",
+      "summary": "Replaces an object's currently attached looping sound with a newly created one bound to the given definition."
+    },
+    {
+      "addr": "0x544120",
+      "name": "looping_sound_object_detach",
+      "confidence": 0.5,
+      "evidence": "If the object (in_EAX) has an attached looping-sound datum (its offset 0x1c field), clears that datum's object-attached flag (bit 0x10), sets its 'stopping' flag (bit 1), and clears the object's back-reference to -1.",
+      "prototype": "",
+      "summary": "Detaches an object's currently attached looping sound, marking the datum as no longer object-bound and pending stop."
+    },
+    {
+      "addr": "0x544180",
+      "name": "looping_sound_object_set_gain",
+      "confidence": 0.55,
+      "evidence": "Clamps param_1 to [0.0, 1.0] and writes it to the gain field (offset 8) of the looping-sound datum currently attached to object in_EAX.",
+      "prototype": "",
+      "summary": "Sets the playback gain (clamped to 0..1) of the looping sound currently attached to the given object."
+    },
+    {
+      "addr": "0x544200",
+      "name": "looping_sound_object_set_option_flag",
+      "confidence": 0.35,
+      "evidence": "Sets or clears bit 0x8 of the flags field (offset 4) on the looping-sound datum attached to object in_EAX based on the boolean param_1.",
+      "prototype": "",
+      "summary": "Sets or clears an option flag on the looping sound currently attached to the given object."
+    },
+    {
+      "addr": "0x544250",
+      "name": "looping_sound_start_unattached",
+      "confidence": 0.4,
+      "evidence": "Creates a new looping-sound datum not bound to any object (FUN_00543c20(0xffffffff)), sets its enabled flag (bit 0) and gain/definition field (offset 8) to param_1.",
+      "prototype": "",
+      "summary": "Starts a new object-independent (global/ambient) looping sound with the given gain or definition parameter."
+    },
+    {
+      "addr": "0x544290",
+      "name": "looping_sound_check_environment_audibility",
+      "confidence": 0.35,
+      "evidence": "For a looping-sound datum (unaff_ESI), determines whether it is stale (object index invalid or equal to *DAT_007461a4 - 1) and looks up a per-cluster/zone permission bit from the scenario tag block via DAT_008603b0; if inaudible or stale-and-not-ambient, calls the stop routine FUN_00549f50.",
+      "prototype": "",
+      "summary": "Checks whether a looping-sound datum's owning object is still valid and its cluster/zone permits the sound, stopping it if not."
+    },
+    {
+      "addr": "0x544330",
+      "name": "looping_sound_datum_update",
+      "confidence": 0.45,
+      "evidence": "Performs the full per-datum audibility check (same zone-permission logic as 0x544290), computes a marker's world position/normal via matrix4x3_transform_point/normal when relevant, and calls FUN_00549fa0 to start/update the underlying channel or datum_delete to tear the datum down.",
+      "prototype": "",
+      "summary": "Runs the full per-tick update for one looping-sound datum: audibility/zone check, world-position computation, and start, update, or delete of its playback channel."
+    },
+    {
+      "addr": "0x5445c0",
+      "name": "game_sound_update",
+      "confidence": 0.5,
+      "evidence": "Reads QueryPerformanceCounter to throttle updates to roughly 33ms; on a light tick just runs the audibility check (FUN_00544290) over every looping-sound datum, on a full tick refreshes listener globals (FUN_0053f150 -> DAT_0072525c), rebuilds the cluster-range bitmap (FUN_00544980), and runs the heavy per-datum update (FUN_00544330) or deletes stale datums.",
+      "prototype": "",
+      "summary": "Per-frame master update for the object-looping-sound system: throttled listener refresh, cluster-audibility rebuild, and per-datum audibility/placement update."
+    },
+    {
+      "addr": "0x5448c0",
+      "name": "object_marker_try_get_world_transform",
+      "confidence": 0.35,
+      "evidence": "Validates a global object via object_try_and_get(-1) and FUN_004f6b10, then looks up a marker's local transform from the scenario object-type tag block (DAT_008603b0) and writes the world-space position/normal into the destination via matrix4x3_transform_point/normal; returns 1 on success, 0 otherwise.",
+      "prototype": "",
+      "summary": "Attempts to resolve a marker's world-space position and orientation for a currently-valid global object, returning success/failure."
+    },
+    {
+      "addr": "0x544980",
+      "name": "sound_build_cluster_range_bitmap",
+      "confidence": 0.5,
+      "evidence": "Clears a bitmap sized to the BSP cluster count (DAT_00746f9c+0x134) and, for a valid listener cluster (DAT_0087a478+4, DAT_006ac6e0), sets a bit per cluster whose triangular-matrix portal distance (field 0x220) times 2.015748 is below 256.0.",
+      "prototype": "",
+      "summary": "Rebuilds the bitmap of BSP clusters within sound-audible range of the current listener cluster."
+    },
+    {
+      "addr": "0x544aa0",
+      "name": "sound_compute_cluster_obstruction",
+      "confidence": 0.45,
+      "evidence": "Uses the named callee chimera__cluster_sound_distance_func to get a cluster-distance metric, and when within range and the two clusters are marked potentially blocked, performs a collision raycast (FUN_00505880, flags 0xc0e1) between listener and sound position to compute an obstruction gain fraction (offset 0x38/0x3c).",
+      "prototype": "",
+      "summary": "Computes distance-based attenuation and, when clusters may be occluded, a raycast-derived obstruction factor for a sound source relative to the listener."
+    },
+    {
+      "addr": "0x544c10",
+      "name": "object_find_looping_sound_by_class",
+      "confidence": 0.35,
+      "evidence": "Scans an object's attachment table (count 0x3c, stride 0xa0, entry field +0x4c holds a looping-sound datum index) for one whose type field (short at offset 4 of the resolved object entry) equals 0x20, returning a found flag with the pointer.",
+      "prototype": "",
+      "summary": "Searches an object's attached parts for a looping sound of a specific class (0x20) and reports whether one was found."
+    },
+    {
+      "addr": "0x544c70",
+      "name": "looping_sound_sweep_detach_class_32",
+      "confidence": 0.35,
+      "evidence": "Iterates all looping-sound datums that are not object-bound (offset 0x10 == -1); for each, uses FUN_00544c10 to test the owning object for a class-0x20 looping sound and, if found, detaches the object's currently attached looping sound (same pattern as FUN_00544120) and marks this datum's flag bit 2.",
+      "prototype": "",
+      "summary": "Sweeps unattached looping-sound datums and detaches any conflicting class-0x20 looping sound currently bound to the associated object."
+    },
+    {
+      "addr": "0x544e00",
+      "name": "sound_ogg_seek_callback",
+      "confidence": 0.55,
+      "evidence": "Immediately precedes the ov_open_callbacks call at 0x544eb0 in the same region; implements SEEK_SET/SEEK_CUR/SEEK_END style semantics (in_EAX selects set/add/subtract-from-end) with 64-bit range/overflow checks against a stored size limit, matching the shape of a custom ov_callbacks seek function.",
+      "prototype": "",
+      "summary": "Implements a fseek-style (SEEK_SET/CUR/END) position update with bounds checking, used as a custom seek callback for the Ogg Vorbis stream reader."
+    },
+    {
+      "addr": "0x544eb0",
+      "name": "sound_ogg_stream_open",
+      "confidence": 0.5,
+      "evidence": "Selects one of two internal OggVorbis_File-sized buffer areas based on a 'currently open' flag (offset 0x5a9), stores param_1/param_2 as the read-callback user data, and calls ov_open_callbacks with four local callback pointers, setting a per-buffer 'open' flag on success.",
+      "prototype": "",
+      "summary": "Opens an Ogg Vorbis decode stream over a memory buffer, choosing between two double-buffered stream slots for gapless loop transitions."
+    },
+    {
+      "addr": "0x544f70",
+      "name": "sound_ogg_error_to_string",
+      "confidence": 0.75,
+      "evidence": "Switches over libvorbisfile error codes (OV_EREAD, OV_EFAULT, OV_EIMPL, OV_EINVAL, OV_ENOTVORBIS, OV_EBADHEADER, OV_EVERSION, OV_ENOTAUDIO, OV_EBADPACKET, OV_EBADLINK, OV_ENOSEEK, EOF, etc.) formatting the matching human-readable string literals via sprintf.",
+      "prototype": "void __cdecl sound_ogg_error_to_string(int vorbis_error_code)",
+      "summary": "Formats a libvorbisfile/Ogg Vorbis error code into its corresponding human-readable description string."
+    },
+    {
+      "addr": "0x5451d0",
+      "name": "sound_ogg_stream_read",
+      "confidence": 0.6,
+      "evidence": "Calls ov_read to decode PCM into param_3's buffer in a loop, uses ov_crosslap/ov_clear to cross-fade between the dual stream buffers on the first read of a new segment, and reports failures via sound_ogg_error_to_string with the string \"ov_read failed trying to read %d bytes\".",
+      "prototype": "",
+      "summary": "Decodes the requested number of PCM bytes from the active Ogg Vorbis stream, cross-lapping into the other buffer when switching streams."
+    },
+    {
+      "addr": "0x545330",
+      "name": "sound_class_update_gain_fade",
+      "confidence": 0.5,
+      "evidence": "Loops over 51 sound-class gain-fade records (matches the sound_class count seen elsewhere in this file), interpolating each record's current gain toward its target over param_1 ticks and decrementing its timer, or snapping to target when the timer expires.",
+      "prototype": "",
+      "summary": "Advances the per-sound-class gain fade timers by the given number of ticks, interpolating or snapping each class's gain toward its target."
+    },
+    {
+      "addr": "0x545390",
+      "name": "sound_class_set_gain_by_name",
+      "confidence": 0.5,
+      "evidence": "Iterates a 51-entry sound-class name table containing \"projectile_impact\"/\"projectile_detonation\" string pointers, matches by tag name via FUN_00625430, and on match writes a clamped [0,1] gain and a clamped countdown into the matching class's per-class record.",
+      "prototype": "",
+      "summary": "Sets the gain and countdown timer for a sound class identified by name, e.g. the projectile impact/detonation classes."
+    },
+    {
+      "addr": "0x545420",
+      "name": "sound_class_set_flag_by_name",
+      "confidence": 0.4,
+      "evidence": "Iterates the same 51-entry sound-class name table (\"projectile_impact\"/\"projectile_detonation\"), matches by name via FUN_00625430, and on match writes a boolean derived from unaff_BL into a per-class flag byte array (DAT_0069eb08, stride 0x2c).",
+      "prototype": "",
+      "summary": "Sets or clears a per-sound-class boolean flag for the sound class identified by name."
+    },
+    {
+      "addr": "0x545460",
+      "name": "object_get_sound_gain_scale",
+      "confidence": 0.3,
+      "evidence": "Reads a float field (offset 0xc) from an object's datum (via DAT_0087bc14 object table), falling back to a per-sound-class default scale table (DAT_0069eafc, stride 0x2c indexed by the object's class field at offset 4) when the object's own value is zero.",
+      "prototype": "",
+      "summary": "Returns an object's sound gain/scale override, or its sound class's default scale when the object has none set."
+    },
+    {
+      "addr": "0x5454a0",
+      "name": "sound_permutation_pick_for_pitch",
+      "confidence": 0.55,
+      "evidence": "Given a target pitch (param_1), first checks whether the currently-selected permutation (in_AX) is still in range and enabled (definition fields 0x24/0x28 pitch bounds, 0x3c flag), then scans all permutations (count at 0x98, stride 0x48) for an exact range match or the closest pitch-ratio match.",
+      "prototype": "",
+      "summary": "Selects the sound permutation whose pitch range best matches the requested pitch, preferring the currently playing one if still valid."
+    },
+    {
+      "addr": "0x545590",
+      "name": "sound_permutation_pick_random",
+      "confidence": 0.5,
+      "evidence": "Performs a weighted pseudo-random permutation selection (up to 16 attempts) using a per-permutation skip-fraction/history bitmask (fields 0x2c/0x34/0x38/0x40), avoiding immediate repeats, and special-cases certain language-id ranges (0x12,0x13,0x20-0x23,0x2c) when returning the chosen permutation index.",
+      "prototype": "",
+      "summary": "Randomly selects a sound permutation to play next, weighting against recently used permutations and honoring language-specific exceptions."
+    },
+    {
+      "addr": "0x545710",
+      "name": "sound_linear_gain_to_attenuation",
+      "confidence": 0.5,
+      "evidence": "Converts a linear gain (param_1) to a logarithmic attenuation value via log2 followed by FUN_006391b4 (a fixed-point/centibel conversion helper), clamping the result between -10000 and param_2, returning -10000 for silence when param_1 is 0.",
+      "prototype": "",
+      "summary": "Converts a linear gain value to a clamped logarithmic (centibel-style) attenuation value for DirectSound APIs."
+    },
+    {
+      "addr": "0x545760",
+      "name": "sound_ogg_stream_reset_buffer",
+      "confidence": 0.4,
+      "evidence": "Clears whichever of the two internal OggVorbis_File-sized buffer areas (offset 8/0x2d8 or 0xb6-word regions) is currently active via ov_clear, then zeroes the associated bookkeeping fields (0x16f-0x172 / 0x16b-0x16e), toggling the double-buffer selection flag at offset 0x5a9.",
+      "prototype": "",
+      "summary": "Closes and clears one of the two double-buffered Ogg Vorbis decode streams, swapping which buffer slot is considered active."
+    },
+    {
+      "addr": "0x545860",
+      "name": "sound_pcm_buffer_read",
+      "confidence": 0.5,
+      "evidence": "Copies up to in_ECX bytes from a bounds-checked PCM sample pool (validated against DAT_006ac554/DAT_006869c4) into the destination, or, when out of range, appends the debug string \"trying to queue sound but samples is null.\" to a ring log buffer (DAT_006e35c8).",
+      "prototype": "",
+      "summary": "Copies raw PCM audio bytes from a bounds-checked sample pool into a destination buffer, logging an error if the source range is invalid."
+    },
+    {
+      "addr": "0x545920",
+      "name": "sound_ogg_buffer_fill",
+      "confidence": 0.5,
+      "evidence": "Validates the source sample pool range (same bounds check as sound_pcm_buffer_read), opens the Ogg stream on first use (FUN_00544eb0), decodes via sound_ogg_stream_read (FUN_005451d0), zero-pads any shortfall, and increments an underrun counter (_DAT_00721f14) on success.",
+      "prototype": "",
+      "summary": "Fills a destination buffer with decoded Ogg Vorbis PCM data from a bounds-checked compressed sample pool, padding and counting underruns."
+    },
+    {
+      "addr": "0x545a30",
+      "name": "sound_channel_pool_allocate",
+      "confidence": 0.4,
+      "evidence": "Builds several DSBUFFERDESC-like parameter blocks (format tags 0x10001/0x20001, sizes 0xac44/0x15888) and repeatedly calls a COM interface (DAT_0074610c) vtable method at offset 0xc (matching the CreateSoundBuffer call pattern used in sound_channel_create) to allocate three groups of channel buffers selected by bitmask flags in param_9.",
+      "prototype": "",
+      "summary": "Creates several pools of DirectSound channel buffers (mono/stereo/3D variants) selected by bitmask, recording counts into the caller's output parameters."
+    },
+    {
+      "addr": "0x545b70",
+      "name": "sound_channel_pool_initialize",
+      "confidence": 0.35,
+      "evidence": "Despite the existing name, this function has no relation to command-line arguments: it builds the same DSBUFFERDESC-style parameter blocks (0xac44/0x15888/0x2b110 sizes, format 0x10001/0x20001) and repeatedly calls the DirectSound object's vtable+0xc to create channel buffers gated by flag bits (0x10/0x100) in a caller-supplied flags byte, then releases any partially-created interfaces on the failure paths.",
+      "prototype": "",
+      "summary": "Allocates the full set of DirectSound channel buffer pools at startup and releases any interfaces left over from a failed allocation; the previous name (shell_get_command_line_argument) does not match this behavior."
+    },
+    {
+      "addr": "0x546760",
+      "name": "sound_channel_create",
+      "confidence": 0.6,
+      "evidence": "Builds a DSBUFFERDESC-style structure sized from the requested format flags (in_CX), calls the DirectSound object's CreateSoundBuffer-style vtable method (offset 0xc), and for non-hardware-forced channels additionally QueryInterfaces for a 3D buffer using a static GUID (PTR_DAT_00696718) and sets default 3D parameters.",
+      "prototype": "",
+      "summary": "Creates a single DirectSound secondary buffer for a sound channel, optionally obtaining its 3D-buffer interface and default 3D properties."
+    },
+    {
+      "addr": "0x546a60",
+      "name": "game_sound_dispose",
+      "confidence": 0.6,
+      "evidence": "Releases every channel's buffer/3D interfaces (loop over DAT_00725428 using vtable Release calls), frees and releases the EAX environment interface (DAT_00721f24), releases the primary buffer and listener interfaces (DAT_00746114/00746110), and finally releases the main DirectSound object (DAT_0074610c) after SetCooperativeLevel.",
+      "prototype": "void __cdecl game_sound_dispose(void)",
+      "summary": "Shuts down the sound engine, releasing all channel, listener, EAX, and DirectSound device COM interfaces."
+    },
+    {
+      "addr": "0x546b40",
+      "name": "sound_channel_update_streaming_all",
+      "confidence": 0.4,
+      "evidence": "Loops over the active channel count (DAT_0074602a) and, for each channel flagged as streaming (DAT_00725439 stride 0x678), calls the channel streaming-fill routine FUN_005478c0(0).",
+      "prototype": "",
+      "summary": "Runs the streaming buffer-fill update for every channel currently marked as streaming."
+    },
+    {
+      "addr": "0x546b80",
+      "name": "sound_channels_fade_and_report",
+      "confidence": 0.35,
+      "evidence": "Ramps a global mute/unmute fade factor (_DAT_0074611c) up or down each tick, adjusting every active channel's frequency (log2 + FUN_006391b4) or stopping it (vtable+0x48) when fully muted, then calls the streaming update (FUN_00546b40) and builds debug HUD text listing channel counts by category (\"mono 3D channels\", \"mono channels\", \"stereo channels\", \"44k stereo channels\").",
+      "prototype": "",
+      "summary": "Per-frame fades all sound channels in/out for a mute transition, updates streaming buffers, and formats a debug channel-usage report."
+    },
+    {
+      "addr": "0x547070",
+      "name": "sound_listener_update",
+      "confidence": 0.55,
+      "evidence": "Compares a caller-supplied listener state block (position, orientation, velocity, and an 0x48-byte environment sub-struct) against cached values with small epsilon thresholds (0.05/0.01), and calls the DirectSound listener vtable's SetPosition/SetOrientation/SetVelocity (offsets 0x38/0x34/0x40) and the EAX interface's set-environment call only when values changed.",
+      "prototype": "",
+      "summary": "Updates the 3D audio listener's position, orientation, velocity, and EAX environment settings only when they have changed since the last call."
+    },
+    {
+      "addr": "0x5472d0",
+      "name": "sound_channel_update_3d_position",
+      "confidence": 0.45,
+      "evidence": "Toggles a channel's 3D-buffer mode (vtable+0x48) between head-relative and normal based on a mute-like flag, and updates its position/orientation (vtable+0x4c/0x38) against cached values (DAT_0072543c..DAT_00725478) with epsilon thresholds, notifying the EAX interface of changes when supported.",
+      "prototype": "",
+      "summary": "Updates a 3D sound channel's positional/orientation parameters and mute mode when they differ from the last committed values."
+    },
+    {
+      "addr": "0x5475b0",
+      "name": "sound_channel_update_playback_params",
+      "confidence": 0.4,
+      "evidence": "Converts pitch to a frequency value via sound_linear_gain_to_attenuation-style log2 math and calls SetFrequency (vtable+0x3c); for non-2D channels also updates volume/pan and, when the channel is positional (DAT_00725468 bit 0), its min/max distance and cone parameters against cached values.",
+      "prototype": "",
+      "summary": "Updates a channel's frequency, volume, and (for positional channels) distance and cone parameters whenever they change."
+    },
+    {
+      "addr": "0x547890",
+      "name": "sound_channel_get_play_cursor",
+      "confidence": 0.45,
+      "evidence": "Looks up channel in_AX's DirectSoundBuffer interface pointer and calls its GetCurrentPosition-style vtable method (offset 0x10), returning the interface pointer while refreshing the play/write cursor as a side effect.",
+      "prototype": "",
+      "summary": "Refreshes a channel's play/write cursor via the DirectSoundBuffer interface and returns that interface pointer."
+    },
+    {
+      "addr": "0x5478c0",
+      "name": "sound_channel_stream_fill",
+      "confidence": 0.45,
+      "evidence": "Computes the channel's ring-buffer size from its format flags, and when active or in the streaming state, determines how many bytes have been consumed since the last fill (via the play cursor, handling wraparound) and calls FUN_00547a00 to refill that many bytes, tracking loop-pending state (DAT_007254b4).",
+      "prototype": "",
+      "summary": "Determines how much ring-buffer space a streaming channel needs refilled and triggers the fill, tracking loop transitions."
+    },
+    {
+      "addr": "0x547a00",
+      "name": "sound_channel_lock_and_fill",
+      "confidence": 0.5,
+      "evidence": "Locks the channel's DirectSoundBuffer for the requested byte range (vtable+0x2c, returning up to two write segments), calls sound_channel_fill_pcm_data (FUN_00547ab0) on each segment, then unlocks (vtable+0x4c).",
+      "prototype": "",
+      "summary": "Locks a channel's DirectSound ring buffer, fills the returned write segment(s) with queued audio data, and unlocks it."
+    },
+    {
+      "addr": "0x547ab0",
+      "name": "sound_channel_fill_pcm_data",
+      "confidence": 0.5,
+      "evidence": "Pulls the channel's current queued sound-source entry (DAT_007254b8), dispatches to sound_pcm_buffer_read or sound_ogg_buffer_fill based on the source type field (offset 0x28: 0/1 raw, 3 ogg), resetting the ogg stream via sound_ogg_stream_reset_buffer when starting a new segment, and advances through the queue until the requested size is satisfied.",
+      "prototype": "",
+      "summary": "Supplies PCM audio bytes for a channel by pulling from its queue of raw or Ogg Vorbis sound sources, advancing the queue as sources are exhausted."
+    },
+    {
+      "addr": "0x547c10",
+      "name": "sound_channel_poll_status",
+      "confidence": 0.35,
+      "evidence": "Calls a COM interface's vtable method at offset 0x24 (restore-like) and, if a status bit is set, spin-loops calling vtable+0x50 while it returns a DirectSound-style negative error code, sleeping between polls (Sleep(0)).",
+      "prototype": "",
+      "summary": "Restores a DirectSound buffer interface and, if requested, spin-waits for a pending operation on it to complete."
+    },
+    {
+      "addr": "0x547c80",
+      "name": "sound_channel_queue_source",
+      "confidence": 0.4,
+      "evidence": "Manages a channel's playback-queue state machine (states 0/1/2 at DAT_00725430), initializing queue offsets from the current play cursor (sound_channel_get_play_cursor), filling the initial buffer (sound_channel_lock_and_fill), restoring/polling the buffer (sound_channel_poll_status), and calling Play (vtable+0x30) or chaining into sound_channel_stream_fill when a source is already queued.",
+      "prototype": "",
+      "summary": "Queues a new sound source for playback on a channel, initializing or chaining onto the channel's streaming state machine."
+    },
+    {
+      "addr": "0x547f60",
+      "name": "sound_channel_release",
+      "confidence": 0.45,
+      "evidence": "Clears a channel's queue pointers (DAT_007254b8/bc), either marks it pending-streaming and kicks off a fill (sound_channel_stream_fill) when positional/category==4/not muted, or stops the buffer outright (vtable+0x48), and resets the channel's busy/free/reverb-zone bookkeeping (DAT_00725438=1, DAT_00725a78=0, category=-1).",
+      "prototype": "",
+      "summary": "Resets a sound channel back to the idle/free pool, stopping or restarting its stream as appropriate."
+    },
+    {
+      "addr": "0x547ff0",
+      "name": "sound_channel_try_reclaim",
+      "confidence": 0.4,
+      "evidence": "Queries the channel's buffer status (vtable+0x24-based GetStatus pattern); if not streaming and playing/looping status bits are still set, returns 0 (not reclaimable); otherwise clears the loop-pending marker, marks the channel as no longer free (DAT_00725438=0), and returns 1.",
+      "prototype": "",
+      "summary": "Checks whether a channel has finished playing and, if so, claims it as no longer free for reuse."
+    },
+    {
+      "addr": "0x548050",
+      "name": "sound_channel_check_loop_transition",
+      "confidence": 0.4,
+      "evidence": "Reads the channel's play cursor and compares it against a recorded loop-region boundary (DAT_007254a8/ac), and when the cursor has crossed the boundary (accounting for wraparound), advances the channel's transition state (2->1->0), clearing the recorded boundary.",
+      "prototype": "",
+      "summary": "Detects when a channel's playback has crossed a recorded loop boundary and advances its playback-transition state accordingly."
+    },
+    {
+      "addr": "0x5480f0",
+      "name": "sound_environment_set_quality",
+      "confidence": 0.4,
+      "evidence": "Clamps and stores a global sound quality level (DAT_00746128), determines EAX support/enable state from DAT_00746121/00746120 and the EAX interface's capability level, toggling EAX support (FUN_005514d0) on change, then applies the environment defaults via FUN_00548200.",
+      "prototype": "",
+      "summary": "Sets the sound engine quality level and toggles EAX environmental audio support to match, then reapplies the environment defaults."
+    },
+    {
+      "addr": "0x548170",
+      "name": "sound_engine_handle_focus_change",
+      "confidence": 0.3,
+      "evidence": "Calls FUN_0054adb0, sets a one-shot flag (DAT_00725202) and notifies an interface (DAT_00725208 vtable+0x28) once, then calls FUN_00443fd0; the globals used (0x725202/0x725208) sit within the same sound-channel-array address region used throughout this file.",
+      "prototype": "",
+      "summary": "Notifies a registered interface once of a state change (likely device focus/pause) alongside two external update calls."
+    },
+    {
+      "addr": "0x548200",
+      "name": "sound_eax_environment_reset",
+      "confidence": 0.45,
+      "evidence": "Bails out if sound is uninitialized (DAT_007252e0==0); otherwise sets the EAX-enabled flag (DAT_00746121) and resets a block of EAX environment reverb parameters (DAT_0069f514.. matching typical EAX_ENVIRONMENT default values) and the cached environment id (DAT_0074612c=-1), then reapplies via FUN_005494a0.",
+      "prototype": "",
+      "summary": "Enables or disables EAX environmental audio and resets the cached EAX reverb environment parameters to their defaults."
+    },
+    {
+      "addr": "0x5482e0",
+      "name": "sound_channel_assign_for_class",
+      "confidence": 0.4,
+      "evidence": "Searches the channel array (count DAT_00725428) for one matching the requested type (DAT_0069f528 table) that is either free (DAT_00725438) or reclaimable (sound_channel_try_reclaim), then records the assignment for the requested id (param_1) in DAT_007252e4/DAT_00725432.",
+      "prototype": "",
+      "summary": "Finds and assigns a free or reclaimable sound channel of the required type to the given logical sound-class/id."
+    },
+    {
+      "addr": "0x548520",
+      "name": "sound_channel_flags_match",
+      "confidence": 0.4,
+      "evidence": "Pure boolean predicate testing multiple bit positions of a channel-capability word (in_DX) against four boolean/short parameters (3D, stereo-related, hardware, and a fourth condition), used to decide whether a channel's capabilities satisfy a requested configuration.",
+      "prototype": "",
+      "summary": "Tests whether a channel's capability flag bits match a requested combination of 3D/stereo/hardware options."
+    }
+  ]
+}

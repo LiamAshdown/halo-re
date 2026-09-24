@@ -1,0 +1,12 @@
+# cutscene module (0x449590..0x44a790) names established by the phase-4 C rewrite in
+# src/cutscene/*.c; each name is justified in that file's header comment and in
+# out/phase4/cutscene_types_notes.md. Evidence fields use underscores for spaces, matching
+# symbols/functions.txt.
+# addr name kind confidence source evidence
+0x449f80 recorded_animation_find_by_name func 0.8 agent-phase4 ESI_Scenario*_walks_recorded_animations_(count_+0x36c_pointer_+0x370_stride_0x40)_and___stricmp(entry.name,EBX_name)_returning_the_int16_index_or_-1;_only_caller_actor_squad_action_execute_0x405520
+0x449fd0 unit_control_data_unpack func 0.8 agent-phase4 EBX_unit_control_data*_zeroed_(rep_stosd_0x10)_zoom_level_+0x08_:=_-1_then_tables_0x686d88[0..max(version,1)-1]_of_{bysw*,size,offset}_copied_from_*cursor;_called_from_both_codec_begin_routines_0x44a550/0x44a890
+0x44a110 recorded_animation_apply_char_difference func 0.8 agent-phase4 EAX_int16_yaw/pitch_pair_plus_EDX_int8_pair_(movsx),_yaw_wrapped_by_1000_outside_-1000..1000;_bysw_vector_char_difference_data_(2_bytes)
+0x44a150 recorded_animation_apply_short_difference func 0.8 agent-phase4 byte_for_byte_twin_of_0x44a110_with_int16_deltas_(mov_cx,[edx])_and_a_4_byte_payload;_bysw_vector_short_difference_data
+0x44a1d0 recorded_animation_decode_char_difference_event func 0.8 agent-phase4 compressed_handler_table_0x686d98_types_7..14_(mask_=_(byte>>2)-7_over_facing/aiming/looking);_consumes_one_2_byte_delta_and_advances_*cursor_by_2
+0x44a390 recorded_animation_decode_short_difference_event func 0.8 agent-phase4 compressed_handler_table_0x686d98_types_15..22_(mask_=_(byte>>2)-15);_objdump_identical_to_0x44a1d0_except_int16_deltas,_calls_0x44a150_and_cursor_+=_4
+0x44a790 recorded_animation_decode_angle_vector_event_v1 func 0.8 agent-phase4 v1_handler_table_0x686ea8_types_0x10..0x16;_builds_the_unit_vector_from_real_euler_angles2d_at_event+4_and_writes_facing/aiming/looking_except_0x15/0x14/0x13;_cursor_+=_0x0c_=_bysw_angle_vector_set_event_v1

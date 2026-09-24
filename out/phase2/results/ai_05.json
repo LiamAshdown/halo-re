@@ -1,0 +1,484 @@
+{
+  "results": [
+    {
+      "addr": "0x42ba80",
+      "name": "ai_communication_mark_team_recognized_objects",
+      "confidence": 0.35,
+      "evidence": "Iterates actors via FUN_00436a70 filtering on team field +0x3e against param_1/param_2, then walks each matching actor's recognized-object list (0x138-stride records chained from actor+0x50) setting flags +0x60/+0x61/+0x62/+0xa4 and a float at +0x50 from FUN_0041fd50 on entries whose own team field +0x12 matches.",
+      "summary": "For actors belonging to either of two given teams, marks all of their recognized objects belonging to the matching team with reaction flags, apparently used by the AI communication system to propagate a reaction across a team.",
+      "prototype": "void __cdecl ai_communication_mark_team_recognized_objects(short team_a, short team_b, unsigned char flag)"
+    },
+    {
+      "addr": "0x42bbb0",
+      "name": "actor_recompute_all_perceived_relationships",
+      "confidence": 0.4,
+      "evidence": "Takes no arguments; iterates every actor (0x724-stride records) and every recognized-object entry (0x138-stride, chained via +0x50/+8) recomputing each entry's team field (+0x12) and a friend/foe flag (+0x60/+0x61) from the global relationship bitmask DAT_006b0b84 (or a simple team compare when DAT_006f1d20 is set), then stamps +0xa4 and a distance/time float at +0x50.",
+      "summary": "Recomputes the perceived-relationship (friend/foe) flags for every recognized object of every actor in the level, likely run after a team or difficulty change.",
+      "prototype": "void __cdecl actor_recompute_all_perceived_relationships(void)"
+    },
+    {
+      "addr": "0x42bd70",
+      "name": "unit_clear_weapon_recognition_references",
+      "confidence": 0.3,
+      "evidence": "Resolves a unit via object_try_and_get(3) and its target field(+0x324/+0x328); for biped-type objects (object header field +0xb4==0) resolves the current-weapon object (offset +500) of both that unit and an implicit second unit (unaff_EBX) through FUN_0043eb30 (recognized-object lookup) and clears the entry via FUN_0042a3a0.",
+      "summary": "When an object resolves to a biped, removes the current-weapon object of it and of another (register-passed) unit from the AI's recognized-object cache.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x42be40",
+      "name": "ai_communication_react_to_damage",
+      "confidence": 0.4,
+      "evidence": "Resolves a target unit via object_try_and_get(3), determines a relation class (self/friend/foe via FUN_0045bd50), then dispatches an ai_communication_broadcast (FUN_0042d340) with event type 2 or 3 depending on the relation and the param_4 intensity threshold (0.3); also plays a reaction via FUN_00428840 when not silent, matching a unit-was-hit/pain notification pattern.",
+      "summary": "Handles a unit reacting to being hit or threatened by a given amount/type, choosing and broadcasting an appropriate AI communication (pain/notice) event.",
+      "prototype": "void __cdecl ai_communication_react_to_damage(unsigned int unit_index, unsigned int other_unit_index, unsigned int damage_type, float amount, unsigned int param_5, char silent)"
+    },
+    {
+      "addr": "0x42bf90",
+      "name": "ai_process_vehicle_entry_queue",
+      "confidence": 0.5,
+      "evidence": "Iterates the queue array at DAT_00880354+0x8bc (count at +0x8b8), and for each queued unit walks the vehicle's seat-marker list (+0x2e4/+0x2e8, stride 0x11c), computing seat placement via matrix4x3_transform_point and resolving/creating an actor via FUN_00427080 before calling unit_enter_vehicle_seat; clears the queue count at the end.",
+      "summary": "Processes all queued 'unit wants to enter a vehicle' requests by finding a free/matching seat and calling unit_enter_vehicle_seat for each, then empties the queue.",
+      "prototype": "void __cdecl ai_process_vehicle_entry_queue(void)"
+    },
+    {
+      "addr": "0x42c140",
+      "name": "ai_handle_object_deleted",
+      "confidence": 0.45,
+      "evidence": "Guarded by the AI-active flag and the deleted object's type bitmask; unlinks/destroys any recognized-object records referencing param_1 (field +0x18 or +0x110), calls squad_clear_unit_references (FUN_00430d30) with force=1, and removes param_1 from the vehicle-entry queue array (DAT_00880354+0x8bc).",
+      "summary": "Cleans up all AI-side references (recognized-object cache entries, squad references, vehicle-entry queue) to an object index that has just been deleted.",
+      "prototype": "void __cdecl ai_handle_object_deleted(unsigned int object_index)"
+    },
+    {
+      "addr": "0x42c2a0",
+      "name": "unit_propagate_perception_timestamp_to_passengers",
+      "confidence": 0.3,
+      "evidence": "Updates a unit's last-seen fields (+0x21c/+0x220) from register-passed time/threshold values, then for a vehicle-type unit (+0xb4==1) walks its passenger chain (+0x118/+0x114) calling FUN_0042a0e0 on biped passengers, or calls it directly if the unit itself is a biped.",
+      "summary": "Refreshes a stimulus timestamp on a unit and forwards the notification to its vehicle passengers (or directly if it is a biped).",
+      "prototype": ""
+    },
+    {
+      "addr": "0x42c370",
+      "name": "unit_trigger_weapon_dialogue_once",
+      "confidence": 0.3,
+      "evidence": "Resolves the current weapon object (offset +500) of a register-passed unit, and if the actor record's +0x38c flag is clear, calls ai_communication_broadcast (FUN_0042d340) with a fixed event id (0x25) and then clears the flag so it fires only once.",
+      "summary": "Fires a one-shot AI communication event (id 0x25) tied to a unit's current weapon, guarded by a 'already notified' flag.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x42c3e0",
+      "name": "ai_query_recent_combat_activity",
+      "confidence": 0.3,
+      "evidence": "Iterates the recognized-object datum array (data_iterator_next) checking valid/active entries (+0x12e, +0x60) whose owning actor has a target (+0x218!=-1), then compares elapsed-time and distance fields (+0x11c vs 4.0/15.0, +0x8c vs current tick) with param_1 selecting a stricter threshold, returning true on the first qualifying entry.",
+      "summary": "Scans all currently recognized objects for one that indicates recent nearby combat activity within a difficulty-dependent time/distance window, returning whether such activity was found.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x42c610",
+      "name": "ai_communication_accumulate_event_position",
+      "confidence": 0.4,
+      "evidence": "Maintains a small ring buffer in ai_globals (+0x130/+0x132 head/tail, +0x134 array of {id,count,position,timestamp} records) keyed by param_3; merges new positions into a running average for matching, recent (within 0x78 ticks) entries and evicts stale ones, finally calling FUN_00429fc0 once an entry is deemed stable.",
+      "summary": "Accumulates and averages the positions of repeated identical events (keyed by id) within a short time window, reporting the merged event once ready.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x42c940",
+      "name": "ai_reset_fire_group_assignments",
+      "confidence": 0.3,
+      "evidence": "Zero callers; iterates a 0x6c-stride table (DAT_008802c8) filtering on hostility via DAT_006b0b84 and per-actor difficulty checks, clears each entry's field +0xe and calls FUN_00437870, then separately walks the actor list clearing recognized-object fields (+0x100/+0xfc/+0xec) to -1.",
+      "summary": "Bulk-resets fire-group/assignment bookkeeping for a table of actor groups and clears stale recognized-object linkage fields across all actors; appears unused (0 callers) in this build.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x42cf20",
+      "name": "ai_communication_initialize",
+      "confidence": 0.9,
+      "evidence": "Referenced by the string \"ai conversation\"; counts and CRC32-hashes the DAT_00655aa0 conversation table and a second DAT_00656b08 table, then builds an index array (DAT_008802e0) mapping event ids to conversation entries and resets the squad datum-array header (DAT_008802d4).",
+      "summary": "Initializes the AI conversation/communication subsystem: builds lookup indices for the conversation and communication line tables and resets related runtime state.",
+      "prototype": "void __cdecl ai_communication_initialize(void)"
+    },
+    {
+      "addr": "0x42d230",
+      "name": "ai_reset_communication_and_squad_state",
+      "confidence": 0.4,
+      "evidence": "Sets the communication-enabled flag (DAT_00880354+0x10), clears the per-category last-spoken-time arrays (+0x14..+0x28), resets both conversation timestamp tables (DAT_006f0c9c/DAT_006f0ca4) to -1 pairs, and clears/reinitializes the squad datum-array header (DAT_008802d4) including all currently allocated squad records' first field.",
+      "summary": "Resets the AI communication timers and the squad datum table to a clean state, used during AI subsystem (re)initialization.",
+      "prototype": "void __cdecl ai_reset_communication_and_squad_state(void)"
+    },
+    {
+      "addr": "0x42d310",
+      "name": "ai_reference_clear",
+      "confidence": 0.3,
+      "evidence": "Zeroes an 8-dword buffer pointed to by in_EAX and then stamps sentinel values (0xffffffff/0xffff) into its first three fields, matching the small fixed-size record used elsewhere to hold a resolved ai communication target.",
+      "summary": "Resets a small ai-communication target/result record to its empty (no target) state.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x42d340",
+      "name": "ai_communication_broadcast",
+      "confidence": 0.55,
+      "evidence": "Looks up an event id (param_1) in DAT_008802e0 to find a chain of DAT_00655aa0 'ai conversation' entries sharing that id, filters candidates by difficulty/team/object-type masks, scores and randomly selects one, then queues it for playback via FUN_00560d00/FUN_00560f20 and triggers follow-up look/order calls (FUN_0042e9c0, FUN_0042eee0, FUN_00569530, FUN_004302e0); called with 21 distinct sites throughout the module as the central dialogue trigger.",
+      "summary": "Central AI communication/dialogue dispatcher: given an event id and up to two involved unit indices, selects and queues the appropriate conversation line to be spoken and issues any associated look/order side effects.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x42e970",
+      "name": "ai_communication_notify_if_needed",
+      "confidence": 0.3,
+      "evidence": "Switches on a register-passed event id (in_CX); for a small excluded set (0,1,2,7,10) does nothing, otherwise calls FUN_0042f9e0 (record-line-played) only if the record's +10 'silence' byte is clear.",
+      "summary": "Gates whether a communication-played timestamp should be recorded for a given event id, skipping a handful of event types and silenced records.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x42e9c0",
+      "name": "ai_communication_propagate_to_nearby_actors",
+      "confidence": 0.4,
+      "evidence": "For an event record whose kind field (+0x14) is 1, first calls ai_communication_mark_team_recognized_objects (FUN_0042ba80); then obtains the source position (FUN_004f6080) and iterates all actors (FUN_00436a70), filtering by team relation (DAT_006b0b84/DAT_006f1d20) and a 30-unit distance check, resolving each nearby actor's recognized-object entry via FUN_0043eb30 for further processing (FUN_0041c030/FUN_0042a540/FUN_0042f840).",
+      "summary": "Propagates an AI communication event's effect (marking/acknowledging it) to nearby actors of the appropriate team within a fixed radius.",
+      "prototype": "void __cdecl ai_communication_propagate_to_nearby_actors(unsigned int unit_index, int event_record)"
+    },
+    {
+      "addr": "0x42ec90",
+      "name": "ai_communication_find_order_target",
+      "confidence": 0.35,
+      "evidence": "Scans the DAT_00656b08 order/communication table for entries matching param_3/param_4, applies a random-chance gate (DAT_00719cd0 PRNG vs a per-entry probability float), then resolves a target object via FUN_004300d0 or object_try_and_get depending on the entry's type field, weighting the result by recency from DAT_006f0ca4.",
+      "summary": "Selects a target object matching a given communication-order definition, applying probability and recency weighting, for use by the AI communication system.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x42eee0",
+      "name": "ai_communication_try_play_line",
+      "confidence": 0.4,
+      "evidence": "Walks the chain of DAT_00656b08 entries sharing param_2's id, resolves a target object (via FUN_0042ff80/FUN_004300d0/object_try_and_get depending on entry type), checks a per-entry random chance (random_real) and an optional callback function pointer, then builds and queues a playback request via FUN_00560d00.",
+      "summary": "Attempts to select and queue playback of a communication line for a given event id and unit, gated by probability, target validity and an optional condition callback.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x42f260",
+      "name": "actor_update_grenade_eligibility_cache",
+      "confidence": 0.3,
+      "evidence": "Computes whether the actor (register-passed) is in state 3 with a low grenade-related counter (+0x6e < +0x72... comparison against +0x6a/+0x6e/+0x72), caches the boolean at +0x6cc and a recheck timestamp (FUN_006391b4) at +0x6ce.",
+      "summary": "Recomputes and caches whether an actor currently qualifies to throw/react with a grenade, along with a recheck timer.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x42f370",
+      "name": "actor_update_grenade_warning_timer",
+      "confidence": 0.3,
+      "evidence": "Refreshes the grenade-eligibility cache (FUN_0042f260) when stale or changed, decrements a countdown at +0x6ce, and on reaching zero builds and queues an event (FUN_00560d00/FUN_00560f20) then clears the result record via ai_reference_clear (FUN_0042d310).",
+      "summary": "Periodically re-evaluates an actor's grenade-eligibility state and, once a countdown expires, queues a corresponding communication/behavior event.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x42f480",
+      "name": "actor_check_nearby_recognized_unit",
+      "confidence": 0.3,
+      "evidence": "Resolves param_3 (a unit index) to its recognized-object entry via FUN_0043eb30, then checks the entry's distance field (+0x11c < 5.0) and category field (+0x38 == 0 or 1) to decide success.",
+      "summary": "Checks whether a given unit is currently a close, appropriately-categorized recognized object.",
+      "prototype": "unsigned int __cdecl actor_check_nearby_recognized_unit(unsigned int param_1, unsigned int param_2, unsigned int unit_index)"
+    },
+    {
+      "addr": "0x42f840",
+      "name": "ai_communication_dispatch_order",
+      "confidence": 0.3,
+      "evidence": "Reads a small record via register (in_ECX) with a count/type at +0xe/+0xc, and depending on whether it names 1 or 2 targets, forwards to FUN_004302e0 (single unit order) or FUN_004303a0 (list order) with a computed order code (8 or 9).",
+      "summary": "Dispatches a queued AI order record to either the single-target or multi-target order-issuing routine based on its target count.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x42f8c0",
+      "name": "ai_communication_get_line_volume",
+      "confidence": 0.35,
+      "evidence": "Calls FUN_00560d00 to fetch a queued line's type/time; if the type is 1, halves(*0.3) the caller-supplied volume (param_6); then, when requested, fades the volume based on elapsed ticks since the recorded start time, returning 0 (silence) once too old.",
+      "summary": "Computes a fade/volume multiplier for a currently-playing or about-to-play communication line based on its type and elapsed time.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x42f9a0",
+      "name": "object_get_type_communication_class",
+      "confidence": 0.3,
+      "evidence": "Looks up the object's type vtable entry via PTR_PTR_006853b8 and tests two flag bits (2 and 4) in its type-flags field, returning 0, 1, or -1.",
+      "summary": "Classifies an object's type for communication purposes into one of three categories based on its type-definition flag bits.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x42f9e0",
+      "name": "ai_communication_record_line_played",
+      "confidence": 0.5,
+      "evidence": "Updates a unit's actor record time-since-last-spoke field (+0x3f0) and, for its linked weapon object, the per-class last-played arrays at DAT_00880354+0x14 and object+0x1c/+0x24; also stamps the conversation timestamp table DAT_006f0c9c (indexed by param_2) and the second communication table DAT_006f0ca4 (indexed by param_3), matching the tables built by ai_communication_initialize.",
+      "summary": "Records the current tick as the last-played time for a spoken line across the relevant per-unit, per-class, and per-line-id timestamp tables.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x42fb90",
+      "name": "ai_communication_score_actor_for_line",
+      "confidence": 0.4,
+      "evidence": "Combines distance checks against caller-supplied positions, a random cooldown gate via FUN_004303f0, team/self exclusion flags (param_10 bitmask), and line-of-sight/state checks (FUN_0041bb30/FUN_0041be10) into a single float10 priority score used by the selection loops in FUN_0042ff80/FUN_004300d0.",
+      "summary": "Computes a priority score for how suitable a given actor is to speak a particular communication line, based on distance, cooldown, team, and visibility criteria.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x42ff80",
+      "name": "ai_communication_choose_best_actor_in_squad",
+      "confidence": 0.45,
+      "evidence": "Uses the actor_iterator_by_squad_new/next pair (FUN_00432650/FUN_004326d0) to enumerate a squad's actors, scoring each with ai_communication_score_actor_for_line (FUN_0042fb90) and keeping the highest-scoring index.",
+      "summary": "Iterates the actors of a squad (or reference), scoring each as a candidate speaker and returning the best match.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4300d0",
+      "name": "ai_communication_choose_best_actor_by_team",
+      "confidence": 0.4,
+      "evidence": "Iterates the global actor list (FUN_00436a70) filtering by team relative to a register-passed team (param_1 selects same/different/either), scoring candidates with FUN_0042fb90 and tracking the best-scoring actor.",
+      "summary": "Iterates all actors matching a team filter, scoring each as a candidate speaker/target and returning the best match.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4302e0",
+      "name": "ai_communication_issue_order_to_unit",
+      "confidence": 0.35,
+      "evidence": "Resolves a target unit (object_try_and_get(3) or a register-passed unit), checks its recognized-object category (+0x24 in range [2,3]), then packs either a direct-unit order (type 1) or a fallback random order (type 3 via FUN_00568f50) and forwards it to FUN_004142d0.",
+      "summary": "Issues an AI order (e.g. 'go to' or 'attack') targeting a specific unit, or a randomly-chosen fallback target if the unit is unsuitable.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4303a0",
+      "name": "ai_communication_issue_simple_order",
+      "confidence": 0.3,
+      "evidence": "Validates register-passed context (unaff_EDI/ESI/BX) and an object lookup (object_try_and_get(0xffffffff)) before forwarding param_1 to FUN_004142d0 with no extra target data.",
+      "summary": "Issues a simple AI order with no explicit target once basic register-context validity checks pass.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4303f0",
+      "name": "ai_grenade_throw_desirability",
+      "confidence": 0.35,
+      "evidence": "Iterates a datum list (data_iterator_next) of nearby linked entries within a 30-unit radius, checking exposure via FUN_00505880 and scaling a returned float by distance falloff curves (thresholds at 3 and 15 units); consumed by FUN_0042fb90 and FUN_00431680 as a weighting factor.",
+      "summary": "Computes a desirability/weight value (used for grenade-throw or cover decisions) based on nearby group members' exposure and distance.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4307c0",
+      "name": "squad_try_activate_by_index",
+      "confidence": 0.35,
+      "evidence": "Validates a register-passed starting-location index against DAT_00746f8c+0x468, allocates/reuses a squad instance via squad_new_instance (FUN_00431590), checks its readiness via FUN_00430fc0, and destroys it via squad_despawn (FUN_00430ea0) if not usable.",
+      "summary": "Attempts to activate (or clean up) the squad associated with a given starting-location index, returning whether it is active/usable.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x430830",
+      "name": "squad_get_status",
+      "confidence": 0.4,
+      "evidence": "Iterates live squad instances (data_iterator_next) whose definition index (+2) matches param_1, deriving a status code (1-4) from flags at +4/+5/+6/+8; falls back to a secondary table at DAT_00880354+0x34 (stride 0x10) when no live instance exists, deriving codes 5-7.",
+      "summary": "Returns a coarse status code (not-spawned/spawning/partially-placed/dead/etc.) for the squad(s) matching a given squad definition index.",
+      "prototype": "int __cdecl squad_get_status(short squad_definition_index)"
+    },
+    {
+      "addr": "0x430960",
+      "name": "squad_get_formation_index",
+      "confidence": 0.3,
+      "evidence": "Iterates squad instances (data_iterator_next) matching a register-passed definition index (unaff_BX) and returns the stored field at offset +0x48, or 999 if no instance is found.",
+      "summary": "Returns the current formation/actor-type index stored on the live squad instance for a given squad definition, or 999 if none exists.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4309c0",
+      "name": "squad_destroy_all_instances",
+      "confidence": 0.35,
+      "evidence": "Iterates all squad instances (data_iterator_next) matching a register-passed definition index (unaff_SI) and force-despawns each via FUN_00430ea0(-1,0,0).",
+      "summary": "Destroys every live squad instance belonging to a given squad definition.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x430a20",
+      "name": "squad_disable_respawn_for_definition",
+      "confidence": 0.3,
+      "evidence": "Iterates squad instances matching a register-passed definition index and sets a byte flag at offset +9 on each.",
+      "summary": "Marks every live instance of a given squad definition with a flag (likely 'do not respawn/re-place').",
+      "prototype": ""
+    },
+    {
+      "addr": "0x430a70",
+      "name": "squad_update_all",
+      "confidence": 0.45,
+      "evidence": "Takes no arguments; iterates every squad instance in DAT_008802d4 (data_iterator_next), driving unplaced squads through squad_evaluate_regroup_decision/spawn checks (FUN_00430fc0) every 30 ticks, placing members incrementally via FUN_00431d10/FUN_00431e70 until fully placed (+7 flag), and despawning fully-decayed squads via FUN_00430ea0.",
+      "summary": "Per-tick update of every squad instance: spawns, incrementally places members, links leader references, and despawns squads as appropriate.",
+      "prototype": "void __cdecl squad_update_all(void)"
+    },
+    {
+      "addr": "0x430c70",
+      "name": "squad_remove_member_reference",
+      "confidence": 0.45,
+      "evidence": "Iterates squad instances and their member slot arrays (+0x28+i*4) looking for slots equal to param_1; on the 'always destroy' flag (record+0x20 bit0) despawns the squad via FUN_00430ea0, otherwise clears the slot and marks a replan flag (+99) if it was the active formation member.",
+      "summary": "Removes a specific object index from any squad member slot that references it, destroying the squad if configured to do so.",
+      "prototype": "void __cdecl squad_remove_member_reference(int object_index)"
+    },
+    {
+      "addr": "0x430d30",
+      "name": "squad_clear_unit_references",
+      "confidence": 0.5,
+      "evidence": "Clears a squad instance's leader (+0x54), secondary-leader (+0x58), and attacker (+0x10) fields when they equal param_1, and, when param_2 or the squad's 'always scan' flag (record+0x20 bit0) is set, also scans member weapon-objects clearing their +0xa8/+0x1e0 cross-references, despawning the squad (FUN_00430ea0) if any critical reference matched.",
+      "summary": "Clears all cross-references from squad instances (and their members' weapon objects) to a given object index, optionally forcing a full member scan.",
+      "prototype": "void __cdecl squad_clear_unit_references(int object_index, char force_full_scan)"
+    },
+    {
+      "addr": "0x430ea0",
+      "name": "squad_despawn",
+      "confidence": 0.5,
+      "evidence": "Appends an entry (definition index, param_2, param_3, current tick) to the ring buffer at DAT_00880354+0x2c/+0x34, clears cross-references from member weapon-objects (+0x1dc/+0x1e0/+0x9c) back to this squad instance, then calls datum_delete to free the instance.",
+      "summary": "Destroys a squad runtime instance, recording the reason/tick in a recent-squad-events ring buffer and clearing member back-references.",
+      "prototype": "void __cdecl squad_despawn(unsigned int squad_instance_index, unsigned char reason_a, unsigned char reason_b)"
+    },
+    {
+      "addr": "0x430fc0",
+      "name": "squad_evaluate_regroup_decision",
+      "confidence": 0.4,
+      "evidence": "Evaluates each member slot via FUN_00431680, tracks whether a valid retreat/regroup point exists, may call actor_set_mode(...,0xc,...) to switch a member into that mode, and searches for an alternate target/cover via FUN_0056c100 and object distance comparisons (FUN_0043ea80) before writing a boolean result through param_2.",
+      "summary": "Decides whether a squad should regroup/retreat and, if so, drives the corresponding member mode changes, reporting the outcome through an output flag.",
+      "prototype": "unsigned int __cdecl squad_evaluate_regroup_decision(unsigned int squad_instance_index, unsigned char *out_result)"
+    },
+    {
+      "addr": "0x431590",
+      "name": "squad_new_instance",
+      "confidence": 0.5,
+      "evidence": "Calls datum_new to allocate a squad instance record and initializes its definition index (+2), placement-target (+0x48=-1) and spawn tick (+0xc); on allocation failure, when param_2 is set, scans existing instances (data_iterator_next) for the lowest-priority one to make room.",
+      "summary": "Allocates a new runtime squad instance for a given squad definition, optionally evicting a lower-priority existing instance if the pool is full.",
+      "prototype": "unsigned int __cdecl squad_new_instance(unsigned short squad_definition_index, char allow_eviction)"
+    },
+    {
+      "addr": "0x431680",
+      "name": "squad_resolve_member_slot",
+      "confidence": 0.4,
+      "evidence": "For a member slot whose definition type (read from the squad-definition table at +0x54) is 1, assigns a fixed unit reference directly; otherwise searches nearby squad members (gathered via the actor_iterator_by_squad pair) and uses ai_grenade_throw_desirability-style scoring (FUN_004303f0) plus object lookups to pick a candidate object for the slot.",
+      "summary": "Resolves what object/unit should occupy a given squad member slot, either from a fixed reference or by searching nearby candidates.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x431d10",
+      "name": "squad_activate_next_member",
+      "confidence": 0.4,
+      "evidence": "Reads the resolved member slot data (as produced by squad_resolve_member_slot) and populates the squad instance's active-member bookkeeping fields (+0x4a formation index, +0x50/+0x54/+0x58 leader/weapon references, +0x60 vehicle flag, +0x4c timestamp, +0x4e flag copy), clearing status bytes at +99/+0x61/+0x62.",
+      "summary": "Activates the next resolved member slot for a squad instance, setting up its leader/weapon reference and status bookkeeping.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x431e70",
+      "name": "squad_check_member_ready_to_place",
+      "confidence": 0.35,
+      "evidence": "On first evaluation (record+0x61==0), validates the active member's leader reference across weapon objects, optionally waits via FUN_00543e10/FUN_00543fc0 or queues an event via FUN_00560d00/FUN_00560f20, then sets +0x61/+5; subsequently decrements a countdown at +0x4c and returns the decision byte once it expires.",
+      "summary": "Determines whether the currently-activated squad member is ready to be placed into the world, gating on leader validity and a short delay/queue.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x432100",
+      "name": "weighted_random_pick_excluding_mask",
+      "confidence": 0.4,
+      "evidence": "Sums an array of floats skipping indices whose bit is set in a bitmask (param_4), then walks the array again picking the index where a PRNG-scaled (DAT_00719cd0) running sum first exceeds the target, again skipping masked indices.",
+      "summary": "Performs a weighted random selection over an array of float weights, excluding indices flagged in a bitmask.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x432200",
+      "name": "encounter_find_squad_by_name",
+      "confidence": 0.4,
+      "evidence": "Linearly scans an array (count at object+0x42c, entries at +0x430, stride 0xb0) using __strnicmp against param_1 (up to 0x20 chars), matching the same base object (DAT_00746f8c) and offsets used by the ai-reference parsing/resolving functions.",
+      "summary": "Looks up a squad definition's index by name within the encounter's squad table.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x432260",
+      "name": "squad_find_starting_location_by_name",
+      "confidence": 0.35,
+      "evidence": "Same linear name-search pattern as encounter_find_squad_by_name but over a nested per-squad array (count at +0x80, entries at +0x84, stride 0xe8), matching the starting-locations array referenced by ai_reference_resolve (FUN_00432420).",
+      "summary": "Looks up a starting-location's index by name within a given squad definition.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4322c0",
+      "name": "squad_find_platoon_by_name",
+      "confidence": 0.3,
+      "evidence": "Same linear name-search pattern over another nested per-squad array (count at +0x8c, entries at +0x90, stride 0xac), distinct from the starting-locations array used by squad_find_starting_location_by_name.",
+      "summary": "Looks up an index by name within a second per-squad nested table (likely platoons or move positions).",
+      "prototype": ""
+    },
+    {
+      "addr": "0x432320",
+      "name": "encounter_parse_squad_reference_string",
+      "confidence": 0.4,
+      "evidence": "Special-cases the string \"none\" (__stricmp) to -1, otherwise splits on '/' (_strrchr) and resolves the portion before the slash via encounter_find_squad_by_name and the portion after via squad_find_starting_location_by_name or squad_find_platoon_by_name, packing the two indices with a type tag (0x4000/0x8000) into one value.",
+      "summary": "Parses a scripted 'squad/location' style reference string into a single packed squad+location identifier.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x432420",
+      "name": "ai_reference_resolve",
+      "confidence": 0.4,
+      "evidence": "Decodes a packed reference (low 16 bits = squad index, bits 0x1e = a 2-bit type selector, byte at bit 0x10 = sub-index), validates the squad index against DAT_00746f8c+0x42c/+0x430, and writes out a {squad_index, location_type_index, validated_location_index} triple, matching the format produced by encounter_parse_squad_reference_string.",
+      "summary": "Expands a packed squad/location reference value into a validated squad index and starting-location index pair.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4324f0",
+      "name": "ai_reference_iterator_new",
+      "confidence": 0.45,
+      "evidence": "Decodes the same packed reference format as ai_reference_resolve but instead of a single index, initializes a 5-field iterator record (squad index, type filter, current, min, max range) consumed by ai_reference_iterator_next.",
+      "summary": "Initializes an iterator over all starting locations matched by a packed squad/location reference.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4325b0",
+      "name": "ai_reference_iterator_next",
+      "confidence": 0.45,
+      "evidence": "Advances the iterator record built by ai_reference_iterator_new (fields [3]/[4] as current/max), optionally filtering entries by a type value in field [1], and returns a pointer into a stride-0x20 array (DAT_008802cc) computed from the squad's base offset plus the current index.",
+      "summary": "Advances an ai-reference iterator and returns the next matching starting-location record, or 0 when exhausted.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x432650",
+      "name": "actor_iterator_by_squad_new",
+      "confidence": 0.4,
+      "evidence": "Decodes a packed reference (squad index plus a 2-bit type selector at bit 0x1e) into an iterator record's filter fields (in_ECX[1]/[2]) and, when the squad index is valid, calls FUN_004369f0 to initialize traversal state, mirroring the ai_reference_resolve/iterator_new pattern but for actors rather than starting locations.",
+      "summary": "Initializes an iterator over the actors belonging to a squad/team reference, based on a decoded packed reference value.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4326d0",
+      "name": "actor_iterator_by_squad_next",
+      "confidence": 0.45,
+      "evidence": "Walks a linked list of actor records (0x724-stride, chained via field +0x2c into DAT_00880360) starting from the iterator's current pointer (in_EDX+0x10/+0x14), filtering by two optional criteria (in_EDX+4/+8) compared against the actor's +0x3a/+0x3c fields, returning the matching record pointer or 0.",
+      "summary": "Advances an actor iterator initialized by actor_iterator_by_squad_new, returning the next actor record matching the given filters.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x432740",
+      "name": "ai_reference_build_member_list",
+      "confidence": 0.35,
+      "evidence": "Allocates a root datum in DAT_0087a464 keyed by param_1, then iterates matching actors via actor_iterator_by_squad_new/next (FUN_00432650/FUN_004326d0), adding a child datum in DAT_0087a468 for each actor's linked object (+0x18) and recursively for each of its vehicle passengers (chained via +0x1fc through the object table).",
+      "summary": "Builds a linked list of every object (and vehicle passenger) associated with a squad/team reference, for later batch processing.",
+      "prototype": "unsigned int __cdecl ai_reference_build_member_list(int packed_reference)"
+    },
+    {
+      "addr": "0x4328c0",
+      "name": "squad_trigger_starting_location_script",
+      "confidence": 0.3,
+      "evidence": "Resolves a packed starting-location reference (param_2, same decoding as ai_reference_resolve) down through nested tables (DAT_00746f8c+0x424, DAT_0087bc14 cluster array) to an object index, then invokes a dispatcher (FUN_00426ac0) with numerous packed parameters followed by FUN_00435f00.",
+      "summary": "Resolves a starting location's associated object and triggers an associated scripted animation/communication effect on it.",
+      "prototype": "void __cdecl squad_trigger_starting_location_script(int param_1, unsigned int packed_location_reference)"
+    },
+    {
+      "addr": "0x432a40",
+      "name": "ai_reference_for_each_member_trigger_script",
+      "confidence": 0.3,
+      "evidence": "Walks the two-level linked list built by ai_reference_build_member_list (DAT_0087a464/DAT_0087a468) and calls squad_trigger_starting_location_script (FUN_004328c0) for every entry in the list.",
+      "summary": "Iterates every member/location produced by ai_reference_build_member_list and triggers the associated scripted effect on each.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x432ad0",
+      "name": "ai_reference_for_each_member_clear_target",
+      "confidence": 0.3,
+      "evidence": "Walks the same two-level linked list (DAT_0087a464/DAT_0087a468) as ai_reference_for_each_member_trigger_script, and for each entry whose current-weapon field (offset +500) is valid, calls FUN_00427e60(0) (a target/order clear routine).",
+      "summary": "Iterates every member produced by ai_reference_build_member_list and clears its current order/target if it has an active weapon object.",
+      "prototype": ""
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "results": [
+    {
+      "addr": "0x574900",
+      "name": "vehicle_create_hover_thruster_effects",
+      "confidence": 0.55,
+      "evidence": "cea-pdb hints list create_ghost_effect/create_pelican_effect/damage_effect_new_at_location via the same string set ('hover thrusters','jet thrusters','incident','normal','reflected'); code finds all 'hover thrusters' and 'jet thrusters' markers (FUN_004f6080), raycasts downward from each (FUN_00505880 flag 0x61), and spawns a reflected damage-effect (FUN_00450980) scaled by the unit's 0x13b/0x13c turn values.",
+      "summary": "Spawns hover/jet-thruster exhaust visual effects at each thruster marker of a vehicle, oriented against the surface below it.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x574bc0",
+      "name": "vehicle_create_hover_thruster_midpoint_effects",
+      "confidence": 0.5,
+      "evidence": "Same marker/raycast/effect pattern as FUN_00574900 but restricted to 'hover thrusters' markers and adds a 'midpoint' incident/normal/reflected effect parameter, gated on the unit's speed (offset 0xce > 0); called from vehicle_update's per-type dispatch tail (FUN_00573ee0) and from the hover-lift functions FUN_005738b0/FUN_005739a0.",
+      "summary": "Spawns hover-thruster ground-effect visuals positioned at the midpoint between each hover marker and the surface below it, scaled by vehicle speed.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x574f30",
+      "name": "unit_update_steering_deviation_effects",
+      "confidence": 0.35,
+      "evidence": "Computes the angular/positional deviation between the unit's stored direction (0x1a-0x1c) and a reference (in_ECX), and if any ground-contact marker is active (flag bit1 in a 0x130-stride array), applies damage to a related steering-wheel-like sub-object and drives a light-intensity effect (FUN_00543ce0) at unit+0x3cc scaled by the deviation.",
+      "summary": "Applies a steering-deviation based damage/light-intensity effect while any of the unit's ground-contact markers are active.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x575170",
+      "name": "unit_update_marker_traction_effects",
+      "confidence": 0.35,
+      "evidence": "Iterates the unit's node/marker list, transforms each into world space (matrix4x3_transform_point/normal) and runs a surface-material test (FUN_00505880, flag 0xc0a0) to smoothly blend a per-marker traction/wear byte (offset 0x4f4+index), then drives a friction/spark light effect (FUN_00543ce0 at offset 0x3bc) once the aggregate change exceeds 0.3.",
+      "summary": "Updates a per-marker traction/wear value for each of the unit's contact points via surface material tests, triggering a friction-spark light effect when wear accumulates enough.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x575460",
+      "name": "unit_update_marker_skid_effects",
+      "confidence": 0.35,
+      "evidence": "For each active contact marker (flag bit1 in a 0x130-stride array), computes the marker's local velocity magnitude and, above a 0.03 threshold, triggers a skid/spark effect via FUN_00453490 scaled to the speed, distinguishing a marker sub-type via a bit test at (marker*0x80+0x24).",
+      "summary": "Triggers skid/spark effects at each fast-moving ground-contact marker of the vehicle.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x575640",
+      "name": "unit_update_ground_contact_counter",
+      "confidence": 0.4,
+      "evidence": "Increments an airborne-time counter at offset 0x134 each tick, but resets it to 0 whenever any contact marker reports full contact (flag bit1) or partial contact (flag bit4, 0x10) \u2014 full contact additionally increments a separate landing-recovery counter at offset 0x4d3.",
+      "summary": "Tracks how long the unit has been airborne, resetting the counter and bumping a landing-recovery counter whenever ground contact resumes.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x5756f0",
+      "name": "unit_calculate_animation_controls",
+      "confidence": 0.55,
+      "evidence": "Large switch (cases 1-0x24) computing normalized [0,1] scalar 'control' values from the unit's physics state (velocity components 0x135-0x137, turn accumulators 0x138-0x13c, angular velocity 0x1a-0x1c) against per-axis maximum fields on the unit tag (0x2f8,0x2fc,0x308,0x30c,0x330,0x334), writing results into an output array at unit+0x49*4 \u2014 matches the Blam 'unit control' animation-driving system.",
+      "summary": "Evaluates a table of physics-derived control values (speed, turn rate, vertical motion, etc., each normalized to 0-1) used to drive the unit's procedural animation blending.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x575c50",
+      "name": "unit_is_area_clear_of_fast_objects",
+      "confidence": 0.25,
+      "evidence": "Resolves a small globally-tracked list of parentless unit objects (DAT_0087a478/DAT_0087a480) and returns whether no other nearby object (within 100 units, via object_iterator_next) has significant velocity (squared speed >= ~0.0011), suggesting an 'area is clear' safety check (e.g. before a vehicle drop-off or spawn).",
+      "summary": "Checks whether the area around a small set of tracked unit objects is free of other fast-moving objects, likely used as a spawn/landing safety check.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x575e30",
+      "name": "unit_get_average_active_marker_direction",
+      "confidence": 0.3,
+      "evidence": "For each set bit in the unit's marker-activity bitmask at offset 0x520 (part of the 0x4cc-0x520 block cleared by unit_reset_control_state), averages the corresponding parent-object marker positions (stride-0x80 array) via matrix4x3_transform_point, then returns the normalized direction from the unit's current position to that average via param_2.",
+      "summary": "Computes and returns the normalized direction from the unit toward the averaged position of its currently active markers.",
+      "prototype": ""
+    }
+  ]
+}

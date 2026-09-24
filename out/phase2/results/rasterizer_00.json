@@ -1,0 +1,484 @@
+{
+  "results": [
+    {
+      "addr": "0x5132b0",
+      "name": "color_channel_real_to_byte",
+      "confidence": 0.5,
+      "evidence": "return = (byte)round(param_1 * 255.0); classic normalized-float-to-8-bit-channel conversion",
+      "prototype": "unsigned char __cdecl color_channel_real_to_byte(float param_1)",
+      "summary": "Converts a normalized float in [0,1] to a rounded byte value by multiplying by 255 and rounding."
+    },
+    {
+      "addr": "0x5132d0",
+      "name": "vector3d_pack_normal_11_11_10",
+      "confidence": 0.45,
+      "evidence": "Clamps 3 floats to [-1,1], scales x/y by 1023.5 (11-bit) and z by 511.5 (10-bit), rounds via FUN_00623e40 and packs them as ((z<<11|y)<<11)|x",
+      "prototype": "",
+      "summary": "Packs a 3-component direction vector (pointed to by unaff_ESI) into a single 32-bit value using an 11:11:10-bit signed encoding."
+    },
+    {
+      "addr": "0x513400",
+      "name": "vector3d_unpack_normal_11_11_10",
+      "confidence": 0.5,
+      "evidence": "Shifts a packed uint (in_ECX) left by 0x15 (21=32-11) per 11-bit field and rescales by 2^-20, the inverse bit layout of FUN_005132d0's 11:11:10 packer",
+      "prototype": "",
+      "summary": "Unpacks a compressed 11:11:10-bit direction vector from in_ECX into the 3 floats pointed to by in_EAX (also returned in EAX)."
+    },
+    {
+      "addr": "0x513490",
+      "name": "vector3d_copy_unpacked_normal",
+      "confidence": 0.3,
+      "evidence": "Calls vector3d_unpack_normal_11_11_10 then copies the 3 resulting floats into *unaff_ESI",
+      "prototype": "",
+      "summary": "Fetches a compressed direction vector via vector3d_unpack_normal_11_11_10 and copies it into a caller-supplied vector."
+    },
+    {
+      "addr": "0x5134c0",
+      "name": "vector3d_copy_unpacked_normal",
+      "confidence": 0.3,
+      "evidence": "Byte-identical to FUN_00513490: calls vector3d_unpack_normal_11_11_10 then copies the 3 floats into *unaff_ESI",
+      "prototype": "",
+      "summary": "Duplicate wrapper that fetches a compressed direction vector via vector3d_unpack_normal_11_11_10 and copies it into a caller-supplied vector."
+    },
+    {
+      "addr": "0x5134f0",
+      "name": "decal_get_shadow_texel_pointer",
+      "confidence": 0.4,
+      "evidence": "Uses a short at in_ECX+0x1e as sign flag to address either the large DAT_006be810 bitmap or the DAT_006bc510 table (stride 10) with an offset/byte at in_ECX+0x20/0x22; same addressing is duplicated inline in FUN_00513780 against the DAT_006ce8xx decal-record arrays",
+      "prototype": "",
+      "summary": "Computes a byte pointer into the decal shadow bitmap or its static allocation table from fields of a decal record pointed to by in_ECX."
+    },
+    {
+      "addr": "0x513540",
+      "name": "decal_compute_light_rotation_angle",
+      "confidence": 0.45,
+      "evidence": "Selects a vector pair via switch(unaff_DI) using vector3d_cross_product and camera-basis globals (DAT_007c12c4.. / DAT_007c12d0..), then returns fpatan(...)* (1/2pi); only caller is the decal draw routine FUN_00513cf0",
+      "prototype": "",
+      "summary": "Computes a normalized (0..1) rotation angle of a decal's basis vector relative to a light/view direction, used to orient its texture."
+    },
+    {
+      "addr": "0x513780",
+      "name": "decal_shadow_value_update",
+      "confidence": 0.5,
+      "evidence": "Guarded by the shared in-game/not-paused check (DAT_006893ff/00719aac/00696568); iterates DAT_0071d134 decal records, resolves each shadow texel address, and blends the stored byte toward a target computed as FUN_00537b40()*255/count, i.e. a temporal smoothing filter",
+      "prototype": "",
+      "summary": "Per-frame smoothing pass that blends each active decal's cached shadow intensity byte toward a freshly sampled target value and resets the decal count."
+    },
+    {
+      "addr": "0x5138a0",
+      "name": "decal_add_to_active_list",
+      "confidence": 0.55,
+      "evidence": "Copies a 10-dword (40-byte) record from unaff_EBX into the DAT_006ce818 array at index DAT_0071d134 (capped at 0x400) after a view-space depth/visibility test, then packs shadow-address fields at record+0x1e/+0x20",
+      "prototype": "",
+      "summary": "Culls a candidate decal by view-space depth/flags and, if visible, appends its 40-byte record to the active decal list (max 1024 entries)."
+    },
+    {
+      "addr": "0x513a00",
+      "name": "decal_group_project_and_add",
+      "confidence": 0.4,
+      "evidence": "Loops over a marker group's count field (*(ushort*)(iVar1+0x42)), calling vector3d_build_perpendicular/vector3d_normalize_with_length twice, packing the results with FUN_005132d0 (vector3d_pack_normal_11_11_10) and finally decal_add_to_active_list",
+      "prototype": "",
+      "summary": "Builds a tangent-space basis for each decal projection marker in a group and submits the resulting decal instances to the active list."
+    },
+    {
+      "addr": "0x513ba0",
+      "name": "decal_sample_shadow_intensity",
+      "confidence": 0.45,
+      "evidence": "Guarded by the same in-game check plus (short)DAT_007c1220==1; iterates active decals filtering by a byte-flag match against DAT_007c1220._2_2_, calls point3d_add_scaled and FUN_00512190, storing the result into DAT_006ce83c[i*10]",
+      "prototype": "",
+      "summary": "For each active decal matching the current render pass, offsets its position along its normal and computes a per-decal shadow sample count/value."
+    },
+    {
+      "addr": "0x513cf0",
+      "name": "decal_render_active_list",
+      "confidence": 0.55,
+      "evidence": "Iterates DAT_0071d134 active decal records, computes view-space projection, calls decal_compute_light_rotation_angle, color_pack_argb_from_real, periodic_function_evaluate and chimera__rasterizer_set_frustum_z_func, building per-decal vertex data",
+      "prototype": "",
+      "summary": "Main per-frame draw routine that projects each active decal onto its surface and builds/submits its shaded vertex quad."
+    },
+    {
+      "addr": "0x514560",
+      "name": "rasterizer_scratch_memory_alloc",
+      "confidence": 0.6,
+      "evidence": "Bumps a running offset DAT_0071d140 within a fixed-size (0x18001) pool based at DAT_0071d13c and optionally memcpy's from in_EAX; chimera__ prefix is a hint, replaced per naming rules",
+      "prototype": "",
+      "summary": "Linear/bump allocator that carves a block from a fixed scratch memory pool and optionally copies caller data into it."
+    },
+    {
+      "addr": "0x5145a0",
+      "name": "bitmap_compute_mipmap_count",
+      "confidence": 0.5,
+      "evidence": "Reads width/height/depth-like shorts at unaff_EBX+4/6/8 and a flag word at +0xe (cubemap/3D bits), then calls uint32_log2_floor on the max dimension to derive a mip level count",
+      "prototype": "",
+      "summary": "Computes the number of mipmap levels for a bitmap based on its dimensions and type flags."
+    },
+    {
+      "addr": "0x5146c0",
+      "name": "bitmap_compute_texture_data_size",
+      "confidence": 0.55,
+      "evidence": "Calls bitmap_compute_mipmap_count then sums per-mip sizes using a bytes-per-block table DAT_006571f4 indexed by format at in_EAX+0xc, rounding to 8-pixel blocks and multiplying by 6 for cubemaps",
+      "prototype": "",
+      "summary": "Computes the total byte size of a (possibly mipmapped/cubemap) bitmap's pixel data given its format and dimensions."
+    },
+    {
+      "addr": "0x514820",
+      "name": "text_font_system_initialize",
+      "confidence": 0.55,
+      "evidence": "Allocates a 0x30-byte struct tagged 0x6269746d ('bitm' as a C multi-char constant), sizes and allocates its pixel buffer via bitmap_compute_texture_data_size-style helper, zeroes the DAT_006d8828 glyph cache area, calls FUN_00523fa0 to populate it, then stores the struct into DAT_006d8834 and sets the ready flag DAT_006d8828",
+      "prototype": "int __cdecl text_font_system_initialize(void)",
+      "summary": "Allocates and initializes the bitmap-tagged font atlas structure and glyph metrics used by the debug text renderers."
+    },
+    {
+      "addr": "0x5148b0",
+      "name": "text_draw_string_8bit",
+      "confidence": 0.55,
+      "evidence": "Gated by DAT_00689402 (debug-text flag) and pass-mode DAT_007c1220==1; builds clip/position rects and calls FUN_00556400 with an 8-bit char* string; chimera__ prefix replaced per naming rules",
+      "prototype": "",
+      "summary": "Draws an 8-bit (single-byte) debug text string at a given position/clip rect using the cached font bitmap."
+    },
+    {
+      "addr": "0x514ab0",
+      "name": "text_draw_string_16bit",
+      "confidence": 0.55,
+      "evidence": "Same structure and gating as text_draw_string_8bit but takes a short* string and converts it via FUN_00625b7a before calling FUN_00556780; chimera__ prefix replaced per naming rules",
+      "prototype": "",
+      "summary": "Draws a wide (16-bit character) debug text string at a given position/clip rect using the cached font bitmap."
+    },
+    {
+      "addr": "0x514cb0",
+      "name": "font_glyph_cache_clear_all",
+      "confidence": 0.55,
+      "evidence": "Loops 0x200 times over the DAT_006d8838 slot array, invalidating each referenced glyph record's cache index field (+0xc = 0xffff) and clearing the slot",
+      "prototype": "void __cdecl font_glyph_cache_clear_all(void)",
+      "summary": "Invalidates and clears every entry in the font glyph texture cache's slot table."
+    },
+    {
+      "addr": "0x514ed0",
+      "name": "font_glyph_cache_allocate_and_upload",
+      "confidence": 0.5,
+      "evidence": "Manages a ring buffer (DAT_006d882a/DAT_006d882c) over a fixed-width texture atlas cursor (DAT_006d8830), evicting cached glyph slots, then blits pixel data via FUN_0043f8e0 and uploads through FUN_00524100/270/3c0",
+      "prototype": "",
+      "summary": "Finds or evicts a slot in the font glyph texture atlas for a glyph's bitmap and uploads its pixels into the atlas."
+    },
+    {
+      "addr": "0x5151c0",
+      "name": "transparent_geometry_pool_initialize",
+      "confidence": 0.55,
+      "evidence": "GlobalAlloc's three buffers (0xfc00, 0x300, 0x1500 bytes) whose sizes exactly match the 0xa8-byte-stride capacities used by the group allocator/sort/dispose functions in this same cluster, then calls FUN_00534e50",
+      "prototype": "int __cdecl transparent_geometry_pool_initialize(void)",
+      "summary": "Allocates the primary/secondary transparent-geometry-group pools and their sort-index buffer, then performs further subsystem init."
+    },
+    {
+      "addr": "0x515230",
+      "name": "transparent_geometry_group_allocate",
+      "confidence": 0.5,
+      "evidence": "Returns a slot from the DAT_0071d14c pool (stride 0xa8) capped at DAT_0071d154<0x180 (384), matching the 0xfc00-byte pool size allocated in transparent_geometry_pool_initialize",
+      "prototype": "int __cdecl transparent_geometry_group_allocate(void)",
+      "summary": "Allocates the next free slot from the primary transparent-geometry-group pool (max 384 entries)."
+    },
+    {
+      "addr": "0x515260",
+      "name": "transparent_geometry_group_allocate_secondary",
+      "confidence": 0.5,
+      "evidence": "Same allocation pattern as transparent_geometry_group_allocate but against DAT_0071d150/DAT_0071d158 with cap 0x20 (32), matching the 0x1500-byte secondary pool",
+      "prototype": "int __cdecl transparent_geometry_group_allocate_secondary(void)",
+      "summary": "Allocates the next free slot from the smaller secondary transparent-geometry-group pool (max 32 entries)."
+    },
+    {
+      "addr": "0x515290",
+      "name": "transparent_geometry_group_get_next_sorted",
+      "confidence": 0.45,
+      "evidence": "Given a group pointer (in_EAX) reads its stored sort index at +0x98, advances by 1, and looks up the next group pointer via the DAT_0071d15c sorted index array",
+      "prototype": "",
+      "summary": "Returns the transparent-geometry group that follows a given one in the current depth-sorted order."
+    },
+    {
+      "addr": "0x5152d0",
+      "name": "transparent_geometry_group_index_from_pointer",
+      "confidence": 0.55,
+      "evidence": "Range-checks in_ECX against [DAT_0071d14c, DAT_0071d14c+DAT_0071d154*0xa8) and divides the offset by the 0xa8 record stride to get an index",
+      "prototype": "",
+      "summary": "Converts a pointer into the primary transparent-geometry-group pool back into its slot index, or -1 if out of range."
+    },
+    {
+      "addr": "0x515310",
+      "name": "transparent_geometry_group_test_flag",
+      "confidence": 0.4,
+      "evidence": "Computes the same pool-index-from-pointer arithmetic as transparent_geometry_group_index_from_pointer, then tests a bit in the DAT_006d983c bitmap (12 dwords = 384 bits, matching the 384-slot pool)",
+      "prototype": "",
+      "summary": "Tests a per-slot flag bit in the transparent-geometry-group bitmask for the group whose pool address is in_EAX."
+    },
+    {
+      "addr": "0x515370",
+      "name": "transparent_geometry_group_set_flag",
+      "confidence": 0.45,
+      "evidence": "Same index-from-address arithmetic as transparent_geometry_group_test_flag, then sets or clears the corresponding bit in DAT_006d983c depending on param_1",
+      "prototype": "",
+      "summary": "Sets or clears the per-slot flag bit in the transparent-geometry-group bitmask for the group whose pool address is in_EAX."
+    },
+    {
+      "addr": "0x515400",
+      "name": "material_get_bitmap_index",
+      "confidence": 0.3,
+      "evidence": "Reads a pointer at in_EDX+0x58 and, failing that, an index at in_EDX+0x54 used with a stride-0x10 table DAT_006d99d8, returning a packed 0xffff:short value",
+      "prototype": "",
+      "summary": "Looks up a packed material/bitmap reference for an object, preferring a direct pointer field over a table-indexed fallback."
+    },
+    {
+      "addr": "0x515430",
+      "name": "transparent_geometry_pool_dispose",
+      "confidence": 0.6,
+      "evidence": "Releases DAT_0071d270 via its vtable, then GlobalFree's DAT_0071d14c/0071d15c/0071d150 (the exact three buffers allocated by transparent_geometry_pool_initialize) and resets their counts; chimera__ prefix replaced per naming rules",
+      "prototype": "void __cdecl transparent_geometry_pool_dispose(void)",
+      "summary": "Frees the transparent-geometry-group pools and their associated COM object, resetting all counts to zero."
+    },
+    {
+      "addr": "0x5154a0",
+      "name": "transparent_geometry_group_draw_all",
+      "confidence": 0.6,
+      "evidence": "Iterates DAT_0071d154 groups in DAT_0071d15c sorted order, optionally re-sorting first via FUN_005156d0, and calls chimera__transparent_geometry_group_draw on each, toggling frustum-z state around back-facing groups",
+      "prototype": "",
+      "summary": "Draws every active transparent-geometry group in depth-sorted order, optionally re-sorting the list first."
+    },
+    {
+      "addr": "0x5155b0",
+      "name": "transparent_geometry_group_compare",
+      "confidence": 0.5,
+      "evidence": "Signature and usage match a qsort comparator (called via FUN_005156d0 -> _qsort); compares two group records by shader/material sort-key (offset+0x24/+0x29) and view-space depth (offset+0x78 vs +0x1e*4)",
+      "prototype": "int __cdecl transparent_geometry_group_compare(short *param_1, short *param_2)",
+      "summary": "qsort comparator that orders transparent-geometry groups by shader type/back-to-front depth for correct alpha blending."
+    },
+    {
+      "addr": "0x5156d0",
+      "name": "transparent_geometry_group_sort",
+      "confidence": 0.55,
+      "evidence": "Fills the DAT_0071d15c index array 0..DAT_0071d154-1, calls _qsort with transparent_geometry_group_compare, then writes each slot's new position back into its record at +0x98",
+      "prototype": "void __cdecl transparent_geometry_group_sort(void)",
+      "summary": "Re-sorts the active transparent-geometry groups by depth/shader and records each group's new sorted index."
+    },
+    {
+      "addr": "0x515740",
+      "name": "decal_and_font_system_reset",
+      "confidence": 0.45,
+      "evidence": "Zeroes the decal shadow buffers DAT_006bc510 (0x8c0 dwords) and DAT_006be810 (0x4002 dwords), resets the active decal count DAT_0071d134, calls font_glyph_cache_clear_all, and resets misc structs DAT_0071cfc4/DAT_0071cfc0",
+      "prototype": "void __cdecl decal_and_font_system_reset(void)",
+      "summary": "Clears the decal shadow bitmap/table, resets the active decal count, and clears the font glyph cache and related state."
+    },
+    {
+      "addr": "0x5157e0",
+      "name": "rasterizer_draw_loading_splash",
+      "confidence": 0.4,
+      "evidence": "For mode 1, creates an offscreen surface via the D3D device vtable (+0x90), renders into it via FUN_0057f80c using resource id DAT_00722bb8, then presents via rasterizer_texture_bind/related helper; otherwise clears the device (vtable+0xac)",
+      "prototype": "",
+      "summary": "Renders and presents a loading/splash screen resource to the device, or simply clears the screen as a fallback."
+    },
+    {
+      "addr": "0x515930",
+      "name": "rasterizer_create_game_window",
+      "confidence": 0.7,
+      "evidence": "Registers a window class, computes a centered rect via GetDesktopWindow/AdjustWindowRect, calls CreateWindowExA, and shows the \"ERROR - failed to create window\" MessageBoxA string on failure",
+      "prototype": "",
+      "summary": "Registers the window class and creates/centers the game's main window, reporting a message box on failure."
+    },
+    {
+      "addr": "0x515b20",
+      "name": "rasterizer_resize_game_window",
+      "confidence": 0.55,
+      "evidence": "Recomputes a centered window rect and calls MoveWindow/ShowWindow when it differs, then updates several mouse/client-area globals (DAT_0069c634..DAT_0069c64c)",
+      "prototype": "",
+      "summary": "Repositions/resizes the game window to the requested client size and updates cached client-area/mouse bounds."
+    },
+    {
+      "addr": "0x515c30",
+      "name": "rasterizer_get_target_surface_for_mode",
+      "confidence": 0.4,
+      "evidence": "Switches on a mode field at in_EAX+0xa to select among DAT_0069c66c/670/678, the same COM surface pointers released in rasterizer_shutdown",
+      "prototype": "",
+      "summary": "Returns the render-target/surface pointer appropriate for the requested capture/blit mode."
+    },
+    {
+      "addr": "0x515c70",
+      "name": "display_get_refresh_rate",
+      "confidence": 0.45,
+      "evidence": "Lazily populates a refresh-rate list via FUN_005427e0 when DAT_00721ef0 is 0, then returns the requested rate or a 60Hz (0x3c) default when the list is too small",
+      "prototype": "",
+      "summary": "Returns the display refresh rate to use, falling back to 60Hz when no enumerated list is available."
+    },
+    {
+      "addr": "0x515ca0",
+      "name": "display_mode_get_current",
+      "confidence": 0.5,
+      "evidence": "Fills an output struct (unaff_EDI) with DAT_007c04a0/a4 (width/height), a refresh rate (default 0x3c or table value), and a vsync bool from DAT_007c04d4",
+      "prototype": "",
+      "summary": "Builds a display-mode descriptor (width, height, refresh rate, vsync) from the current cached display settings."
+    },
+    {
+      "addr": "0x515d10",
+      "name": "display_mode_has_changed",
+      "confidence": 0.45,
+      "evidence": "Compares an incoming display-mode record (unaff_EDI) against DAT_007c04a0/a4/DAT_007c04d4, additionally re-checking refresh rate via display_get_refresh_rate when in fullscreen",
+      "prototype": "",
+      "summary": "Determines whether the requested display mode differs from the currently active one."
+    },
+    {
+      "addr": "0x515d90",
+      "name": "rasterizer_device_reset",
+      "confidence": 0.55,
+      "evidence": "Calls the D3D device vtable's Reset-related slots (0x134, 0x104, 0x170, 0x1ac), releases cached surfaces/textures/vertex buffers, calls FUN_005160d0 (default render states) and rasterizer_draw_loading_splash, and special-cases D3DERR_DEVICELOST (-0x7789f7d9)",
+      "prototype": "",
+      "summary": "Tears down and recreates the Direct3D device state (surfaces, buffers, render states), handling device-lost/reset errors."
+    },
+    {
+      "addr": "0x515fc0",
+      "name": "rasterizer_build_present_parameters",
+      "confidence": 0.55,
+      "evidence": "When in_EAX (a template) is null it copies the current cached 14-dword present-parameters block from DAT_007c04a0 into param_1; otherwise it builds a new one from in_EAX and flags such as DAT_0071d16c (windowed) and DAT_00721ef0 (adapter/refresh)",
+      "prototype": "",
+      "summary": "Reads or constructs a Direct3D presentation-parameters block (dimensions, windowed flag, refresh rate, vsync)."
+    },
+    {
+      "addr": "0x5160d0",
+      "name": "rasterizer_set_default_render_states",
+      "confidence": 0.6,
+      "evidence": "Issues roughly 90 sequential SetRenderState (vtable+0xe4) and SetSamplerState (vtable+0x10c) calls on DAT_0071d174, the cached D3D device pointer",
+      "prototype": "void __cdecl rasterizer_set_default_render_states(void)",
+      "summary": "Initializes the Direct3D device's render states and sampler states to their default values after device creation/reset."
+    },
+    {
+      "addr": "0x516810",
+      "name": "rasterizer_select_hardware_codepaths",
+      "confidence": 0.5,
+      "evidence": "Chooses among alternate function pointers (_DAT_007c048c/0490/0494, DAT_007bf050) based on vendor id DAT_007c117c and driver version DAT_007c118c returned by FUN_00523ec0/FUN_0052b630",
+      "prototype": "void __cdecl rasterizer_select_hardware_codepaths(void)",
+      "summary": "Selects vendor/driver-specific rendering code paths (function pointers) based on the detected GPU vendor and driver version."
+    },
+    {
+      "addr": "0x5168c0",
+      "name": "rasterizer_parse_vidmode_commandline",
+      "confidence": 0.65,
+      "evidence": "Uses FUN_00542760 to look up the \"-vidmode\" and \"-refresh\" command-line switches and parses them with sscanf(\"%d,%d,%d\") / atol",
+      "prototype": "",
+      "summary": "Parses the -vidmode and -refresh command-line switches to override the startup video resolution and refresh rate."
+    },
+    {
+      "addr": "0x5169c0",
+      "name": "rasterizer_initialize_direct3d",
+      "confidence": 0.6,
+      "evidence": "Parses numerous command-line switches (-adapter, -useref, -useff, -use00/11/14/20/2a, -usefxfile), probes NVCPL.dll's NvCplGetDataInt, creates the window and enumerates/creates the Direct3D device",
+      "prototype": "",
+      "summary": "Top-level Direct3D startup routine: parses rendering command-line options, detects the GPU/driver, creates the window, and creates the D3D device."
+    },
+    {
+      "addr": "0x517470",
+      "name": "cinematic_screen_effect_update",
+      "confidence": 0.45,
+      "evidence": "Updates the cinematic-bar height DAT_0069c65c from DAT_0071cfc4+0x74, copies incoming clip-plane-like values from in_ECX into DAT_007c1200.., and calls decal_shadow_value_update plus chimera__decal_table when DAT_006893f5 is set; chimera__ prefix replaced per naming rules",
+      "prototype": "",
+      "summary": "Per-frame update of cinematic letterbox height and clip parameters that also drives the decal shadow-smoothing pass."
+    },
+    {
+      "addr": "0x517500",
+      "name": "rasterizer_reset_device_if_needed",
+      "confidence": 0.5,
+      "evidence": "Copies a 14-dword present-parameters block and calls rasterizer_device_reset (FUN_00515d90) when DAT_007c10b0 (device-lost flag) is set, then checks the device vtable's slot 0xa4 before setting DAT_0071d16f",
+      "prototype": "bool __cdecl rasterizer_reset_device_if_needed(void)",
+      "summary": "Resets the Direct3D device when a device-lost condition is flagged and reports whether the device is usable afterward."
+    },
+    {
+      "addr": "0x5175c0",
+      "name": "rasterizer_begin_frame",
+      "confidence": 0.5,
+      "evidence": "Bulk-copies a 0x96-dword (600-byte) parameter block from param_1 into the pervasive DAT_007c1220 view/frustum globals, resets decal/light/transparent-group state, and calls rasterizer_set_fog_and_clip_constants",
+      "prototype": "void __cdecl rasterizer_begin_frame(short *param_1)",
+      "summary": "Latches the current frame's camera/view/frustum parameters into the global rasterizer state and resets per-frame subsystems (decals, lights, transparent groups)."
+    },
+    {
+      "addr": "0x5176d0",
+      "name": "rasterizer_set_fog_and_clip_constants",
+      "confidence": 0.45,
+      "evidence": "Copies a 20-dword struct from in_EDX into DAT_007c1408.., computes linear/exp fog start/end and a user clip-plane equation from the camera basis (DAT_007c1234../DAT_007c1228..), and uploads them as vertex shader constants via vtable+0x178",
+      "prototype": "",
+      "summary": "Derives fog distance factors and a user clip-plane equation from the current camera and uploads them as shader constants."
+    },
+    {
+      "addr": "0x517b90",
+      "name": "rasterizer_draw_cinematic_letterbox",
+      "confidence": 0.45,
+      "evidence": "Guarded by DAT_0069c630==1 (cinematic mode); builds a quad's worth of vertex data sized to the current viewport and draws it via the D3D device vtable, then restores common render states; chimera__ prefix replaced per naming rules",
+      "prototype": "",
+      "summary": "Draws the black cinematic letterbox bars over the current viewport when in cinematic mode, then restores standard render state."
+    },
+    {
+      "addr": "0x5180d0",
+      "name": "rasterizer_service_pending_device_events",
+      "confidence": 0.4,
+      "evidence": "When windowed (DAT_0071d16c) and the device exists, conditionally calls device vtable slot 0xa8 (guarded by DAT_0071d16f) and slot 0x44 (guarded by DAT_0071d16e), clearing each flag afterward",
+      "prototype": "void __cdecl rasterizer_service_pending_device_events(void)",
+      "summary": "Services deferred windowed-mode device operations (an update/present and a clear) flagged by earlier code."
+    },
+    {
+      "addr": "0x518130",
+      "name": "rasterizer_clear_texture_stages",
+      "confidence": 0.45,
+      "evidence": "Loops twice calling device vtable slot 0x104 (SetTexture-style) with NULL for stages 0 and 1, then clears stream source (slot 400/0x190) and vertex declaration (slot 0x1a0)",
+      "prototype": "void __cdecl rasterizer_clear_texture_stages(void)",
+      "summary": "Unbinds the first two texture stages and clears the current stream source/vertex declaration on the Direct3D device."
+    },
+    {
+      "addr": "0x518180",
+      "name": "rasterizer_present_and_capture_frame",
+      "confidence": 0.45,
+      "evidence": "Creates an offscreen surface and copies GetRenderTargetData/LockRect output row-by-row via FUN_0043f8e0 when DAT_00722b54 is set (capture path), then calls the device's Present (vtable+0x44), setting DAT_007c10b0 on D3DERR_DEVICELOST/NOTRESET",
+      "prototype": "",
+      "summary": "Optionally captures the current back buffer into a caller buffer (screenshot/movie capture) and then presents the frame, flagging device loss."
+    },
+    {
+      "addr": "0x518450",
+      "name": "rasterizer_shutdown",
+      "confidence": 0.6,
+      "evidence": "Frees the scratch pool, disposes transparent-geometry pools and decal/free memory, releases the font bitmap, all cached surfaces/textures/vertex buffers, destroys the window, and releases the D3D device/object",
+      "prototype": "void __cdecl rasterizer_shutdown(void)",
+      "summary": "Full rasterizer teardown: releases all cached D3D resources, destroys the window, and releases the Direct3D device."
+    },
+    {
+      "addr": "0x5185d0",
+      "name": "rasterizer_set_framebuffer_blend_function",
+      "confidence": 0.6,
+      "evidence": "Sets SRCBLEND/DESTBLEND/BLENDOP render states (0x13/0x14/0xab) from a per-mode table (DAT_0065dfbc/dfe0/e004) indexed by in_CX, with a special-cased path for modes 5/6 when DAT_00722b7c is set; chimera__ prefix replaced per naming rules",
+      "prototype": "",
+      "summary": "Configures the framebuffer alpha-blend function (src/dest blend and blend op) for the requested blend mode."
+    },
+    {
+      "addr": "0x518680",
+      "name": "rasterizer_texture_bind_stage_d3d9",
+      "confidence": 0.4,
+      "evidence": "Calls FUN_00444550(1,1) then device vtable slot 0x104 (SetTexture) with a texture pointer from unaff_ESI+0x28; used by rasterizer_texture_set_direct_d3d9",
+      "prototype": "",
+      "summary": "Binds a texture directly to a render-state slot on the D3D9-style device interface after a synchronization call."
+    },
+    {
+      "addr": "0x5186c0",
+      "name": "rasterizer_texture_bind_stage_d3dx",
+      "confidence": 0.4,
+      "evidence": "Calls FUN_00444550(1,1) then device vtable slot 0xd0 (a different interface offset than rasterizer_texture_bind_stage_d3d9) with a texture pointer from unaff_ESI+0x28; used by rasterizer_texture_set_direct_d3dx",
+      "prototype": "",
+      "summary": "Binds a texture directly via the alternate (d3dx-style) device interface slot after a synchronization call."
+    },
+    {
+      "addr": "0x518700",
+      "name": "rasterizer_texture_set_direct_d3dx",
+      "confidence": 0.55,
+      "evidence": "Looks up a bitmap-group entry via DAT_0087bc14 and selects a sub-bitmap by (param_2 % count) before calling rasterizer_texture_bind_stage_d3dx; chimera__ prefix replaced per naming rules",
+      "prototype": "",
+      "summary": "Selects an animated sub-bitmap frame from a bitmap group and binds it directly through the d3dx-style texture path."
+    },
+    {
+      "addr": "0x518770",
+      "name": "rasterizer_texture_set_direct_d3d9",
+      "confidence": 0.55,
+      "evidence": "Identical structure to rasterizer_texture_set_direct_d3dx but calls rasterizer_texture_bind_stage_d3d9 instead; chimera__ prefix replaced per naming rules",
+      "prototype": "",
+      "summary": "Selects an animated sub-bitmap frame from a bitmap group and binds it directly through the d3d9-style texture path."
+    }
+  ]
+}

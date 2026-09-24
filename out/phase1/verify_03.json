@@ -1,0 +1,26 @@
+{
+ "slice": 3,
+ "reviewed_assignments": 300,
+ "boundary_check": "PASS - the 300 addresses in assign_03.json exactly match the 300 function addresses in slices/03.md (no gaps, duplicates, or renumbered runs).",
+ "summary": "Slice 03 (0x45bdb0-0x474d50) was assigned almost uniformly to 'game' (multiplayer game_engine variant logic: allegiance matrix, scoreboard, built-in variant builders for slayer/ctf/oddball/koth/race, player-control/player-array/camera-tick support code), with one correct outlier (0x45fc50 hud_render_scoreboard_ingame -> interface, matching its 0.8 seed). The run segmentation is internally consistent with MSVC contiguous-linking and the string/cea-hint evidence lines up with 'game' for essentially every run. Two real problems were found: one function has a direct cea-pdb name/module match to a different module ('main') that the assigner ignored in favor of generic run evidence, and a small camera-math pair inside the 'player_control globals' run computes first-person spectate camera angles rather than generic player state.",
+ "disputes": [
+  {
+   "addr": "0x4749a0",
+   "current": "game (0.55)",
+   "proposed": "main",
+   "reason": "python tools/pack.py 0x4749a0 surfaces a direct cea-pdb hint: 'main_switch_structure_bsp (main)' matched via the two unique strings this function references ('tried to switch to current structure-bsp %d' / 'tried to switch to invalid structure-bsp %d'). This is a named-symbol match from the CE Anniversary source, not a generic string-topic hint, and it explicitly assigns the function to module 'main'. The assigner's evidence field only cites the generic run label ('per-player update/camera and structure-bsp switch driven from game_tick 0x45b780') and does not mention or override the stronger cea-pdb hint. The slice-wide cea-string-hint scan confirms this is the ONLY 'main' hint in the entire 300-function slice (all 11 other cea-string-hints say 'game' or 'game+rasterizer'), so it is a genuine outlier inside an otherwise-correct 'game' run, not evidence that the whole run is main. The neighboring functions in the same run (0x473c50-0x474590, 0x474d30, 0x474d50) reference the per-player array globals (0x87a478/0x87a480) directly and have no such hint, so they should stay 'game'; only 0x4749a0 itself should move."
+  },
+  {
+   "addr": "0x472160",
+   "current": "game (0.6)",
+   "proposed": "camera",
+   "reason": "python tools/pack.py 0x472160 shows this function takes (float param_1, float param_2) look-angle deltas, adds them into the per-player control record, then computes a target facing angle with fpatan(local_2c, local_30) against a stored aim point, clamping to +/-pi and to a fixed FOV-style range (-1.4922565..1.4922565 rad, i.e. ~-85.5..85.5 deg) - i.e. it IS the first-person/spectate camera-angle solver, not generic per-player bookkeeping. It directly inlines sig__spectate_fp_camera_position_sig (0x472020) to fetch the spectated unit's object record. The run evidence ('player_control globals 0x6b145c... camera') already half-acknowledges the camera content but the assigner defaulted the whole run to 'game'. Given the canonical module list has a distinct 'camera' module and this function's entire body is camera-angle math, it is a better fit than 'game'."
+  },
+  {
+   "addr": "0x472020",
+   "current": "game (0.6)",
+   "proposed": "camera",
+   "reason": "This is the function directly inlined by 0x472160's camera-angle solver (see above): python tools/pack.py 0x472020 shows it reads the player-control record's spectate-target index (0x6b145c+0x10), resolves the spectated player's object/unit record, and returns that unit's camera-attach node index and offset (puVar5[0xbc]*0x11c + ... + 0x84) or a fallback default offset (+0x1a8) when no attach point is found - i.e. it computes where to anchor the spectate camera. Its own Ghidra-recovered name (sig__spectate_fp_camera_position_sig) is a Chimera hook-site hint that also names it as camera-position code. Weaker evidence than the 0x4749a0 case (no cea hint, and it does read the shared player-control global also used by unambiguous 'game' functions), so flagged at moderate rather than high confidence, but it forms one coherent camera-math unit with 0x472160 and both should move together if either does."
+  }
+ ]
+}

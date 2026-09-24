@@ -1,0 +1,452 @@
+{
+  "results": [
+    {
+      "addr": "0x53b6b0",
+      "name": "controller_profile_find_slot_by_id",
+      "confidence": 0.35,
+      "evidence": "Linear search (max 4 iterations, stride 0x220 bytes) over an array at in_EDX+0x1314 comparing a 20-byte id (piVar3[4] plus 4 leading dwords) against unaff_EBX+0x20c/+0x21c; returns slot index 0-3 or -1, matching a fixed 4-slot controller/profile table.",
+      "prototype": "",
+      "summary": "Searches up to 4 profile/controller slots in a table for one whose 20-byte identifier matches a caller-supplied id, returning the matching slot index or -1."
+    },
+    {
+      "addr": "0x53b700",
+      "name": "controller_profile_copy_slot_data",
+      "confidence": 0.35,
+      "evidence": "Calls FUN_0053b6b0 twice to resolve source/destination slot indices, then (after a validation call to FUN_0053b370) copies several fixed-size blocks (0x40, 0x80, 0x100 bytes plus two single bytes) between param_1 and param_2 at offsets scaled by the slot index.",
+        "prototype": "",
+      "summary": "Looks up matching profile slots in two profile tables and, if valid, copies that slot's per-controller data blocks from one table to the other."
+    },
+    {
+      "addr": "0x53b7f0",
+      "name": "controller_profile_populate_default_slots",
+      "confidence": 0.3,
+      "evidence": "Checks up to 4 profile fields at param_1+0x1108/0x1328/0x1548/0x1768 (0x220-byte stride matching FUN_0053b6b0's table), then iterates DAT_006b1868 default-profile templates (stride 0x240, copies 0x220 bytes) calling FUN_00490110/FUN_0053b470 to add up to 4 entries, gated by DAT_006b1844 count.",
+      "prototype": "",
+      "summary": "Fills any empty controller/profile slots (up to 4) with default profile templates from a global table until either all slots are used or the template list is exhausted."
+    },
+    {
+      "addr": "0x53b9b0",
+      "name": "saved_game_delete_matching_display_name",
+      "confidence": 0.4,
+      "evidence": "Widens in_ECX (a narrow string) into a local wide buffer, enumerates saved games via FUN_0053c4e0(0, local_2598, 0), compares each entry's display name (via FUN_0053a770) with wcsicmp, and on a match with local_1eec bit 2 set calls FUN_0053c960 (the XDeleteSaveGame-based delete helper) then a completion callback.",
+      "prototype": "",
+      "summary": "Finds the saved-game whose display name matches a given string and deletes it, then signals completion."
+    },
+    {
+      "addr": "0x53bae0",
+      "name": "player_profile_rename_thread_join",
+      "confidence": 0.4,
+      "evidence": "Polls GetExitCodeThread/CloseHandle on DAT_00721324 (the background-thread handle set by FUN_0053c0b0's network_thread_create call) until it exits, then zeroes the DAT_00721288 parameter block reused by that thread.",
+      "prototype": "void __cdecl player_profile_rename_thread_join(void)",
+      "summary": "Waits for the background profile-rename worker thread to finish and clears its shared parameter block."
+    },
+    {
+      "addr": "0x53bb50",
+      "name": "playlist_profile_create_custom",
+      "confidence": 0.45,
+      "evidence": "Creates a new saved-game slot via FUN_0053c660(1, param_2) (type 1 matches the blam.lst/playlist path used elsewhere), builds a file reference (FUN_0053c9f0), copies game_engine_variant_defaults_classic_slayer output and sanitizes it via game_variant_sanitize_options, copies the display name with _wcsncpy, computes a crc32_update checksum, and writes it out, deleting the slot on failure (FUN_0053c960).",
+      "prototype": "",
+      "summary": "Creates a new custom playlist/game-variant profile file seeded from the classic-slayer default options and a caller-supplied name, rolling back on write failure."
+    },
+    {
+      "addr": "0x53bc70",
+      "name": "playlist_profile_create_default_profiles_on_disk",
+      "confidence": 0.85,
+      "evidence": "Already carries a real Blam-style name (kept per instructions); code matches: iterates a jump table of game_engine_variant_defaults_* functions, builds \"%s\\%02d\\blam.lst\" paths under DAT_00721a49 (the saved\\playlists\\default_playlist directory), and writes each via crc32_update + the file wrapper functions.",
+      "prototype": "void __cdecl playlist_profile_create_default_profiles_on_disk(void)",
+      "summary": "Writes out the full set of built-in default multiplayer playlist/game-variant files (one blam.lst per default game type) to the default_playlist folder."
+    },
+    {
+      "addr": "0x53bee0",
+      "name": "player_profile_get_display_name",
+      "confidence": 0.35,
+      "evidence": "Shares the DAT_00721324 thread-join preamble with FUN_0053bae0/FUN_0053c0b0; for param_1>=0 fetches the display name of that handle via FUN_0053c600 into param_2, otherwise takes the DAT_0072143c/DAT_00721440 mutexes, validates via FUN_0053c9f0/crc32_update, and falls back to the default classic-slayer name.",
+      "prototype": "",
+      "summary": "Returns the wide display name for a given profile handle, either by direct lookup or, for the 'current' profile, by validating the on-disk record and falling back to a generated default name."
+    },
+    {
+      "addr": "0x53c0b0",
+      "name": "player_profile_rename_start_async",
+      "confidence": 0.4,
+      "evidence": "Joins any prior thread (same code as FUN_0053bae0), stores param_1 into DAT_00721288 and copies param_2 (0x26 dwords) into DAT_0072128c, then calls network_thread_create(0, FUN_0053c150, &DAT_00721288, &DAT_00721324).",
+      "prototype": "",
+      "summary": "Kicks off a background worker thread (FUN_0053c150) to apply a pending player-profile id/name change asynchronously."
+    },
+    {
+      "addr": "0x53c150",
+      "name": "player_profile_rename_thread_proc",
+      "confidence": 0.4,
+      "evidence": "Runs as the thread entry passed to network_thread_create by FUN_0053c0b0; takes the DAT_0072143c mutex, builds a file reference from param_1+4, computes a crc32_update checksum, writes it, and on success calls FUN_0053ce80(param_1+4) which matches the copy_files_for_player_profile hint family.",
+      "prototype": "",
+      "summary": "Background-thread worker that writes the pending profile record and applies the associated profile file rename/copy."
+    },
+    {
+      "addr": "0x53c260",
+      "name": "saved_game_files_initialize",
+      "confidence": 0.9,
+      "evidence": "Already carries a real Blam-style name matching the cea-pdb hint; builds every saved_games path global (savegames, saved\\player_profiles, saved\\playlists, lastprof.txt, lastmpvr.txt, lastmpmp.txt, hdmu.map) via __snprintf and creates the mutexes used by the rest of the module.",
+      "prototype": "void __cdecl saved_game_files_initialize(void)",
+      "summary": "One-time module init: builds all saved-game/profile/playlist path strings, creates the module's directories and synchronization mutexes, and resets the in-memory save index."
+    },
+    {
+      "addr": "0x53c480",
+      "name": "saved_game_files_dispose",
+      "confidence": 0.55,
+      "evidence": "Closes the DAT_0072143c and DAT_00721440 mutex/handle objects created by saved_game_files_initialize, joins the background thread (FUN_0053bae0), calls FUN_00539a40, and clears DAT_00721446 (the 'mutexes valid' flag set in saved_game_files_initialize).",
+      "prototype": "void __cdecl saved_game_files_dispose(void)",
+      "summary": "Shuts down the saved-games module: closes its synchronization handles, waits for any background worker thread, and clears the initialized flag."
+    },
+    {
+      "addr": "0x53c4e0",
+      "name": "saved_game_enumerate_by_type",
+      "confidence": 0.5,
+      "evidence": "Rebuilds the index (FUN_0053d720) if DAT_00721447 is dirty, takes both module mutexes, then scans the FUN_0053e420-sized index filtering entries whose type (local_c) equals param_1 and whose flag byte matches param_3, resolving each match to a handle via FUN_0053e630 and writing it into param_2; returns the match count through unaff_EBX.",
+      "prototype": "",
+      "summary": "Returns, via an output array, the handles of all saved-game index entries whose type matches the requested filter."
+    },
+    {
+      "addr": "0x53c600",
+      "name": "saved_game_index_get_name",
+      "confidence": 0.45,
+      "evidence": "Extracts a 12-bit index from in_EAX (>>0x10 & 0xfff), fetches the record via FUN_0053e0e0 into a local buffer, and copies its wide name into the global DAT_006e3008 buffer which it returns.",
+      "prototype": "",
+      "summary": "Given a packed save-game handle, looks up its index record and returns a pointer to its cached wide display name."
+    },
+    {
+      "addr": "0x53c660",
+      "name": "saved_game_create_slot",
+      "confidence": 0.55,
+      "evidence": "Validates disk space/slot count via FUN_0053d120 and FUN_0053e420, builds \"blam.sav\"/\"blam.lst\" (matching the referenced strings) via XCreateSaveGame, writes a crc32_update-checked payload, registers the entry with FUN_0053e300, and returns a handle via FUN_0053e630; deletes the newly created slot with XDeleteSaveGame on any failure.",
+      "prototype": "unsigned int __cdecl saved_game_create_slot(unsigned short param_1, wchar_t *param_2)",
+      "summary": "Creates and registers a new saved-game (blam.sav) or playlist (blam.lst) slot with the given type and display name, rolling back the XCreateSaveGame allocation on failure."
+    },
+    {
+      "addr": "0x53c960",
+      "name": "saved_game_delete_by_handle",
+      "confidence": 0.55,
+      "evidence": "Decodes a packed handle (unaff_EDI: low nibble = type, bits 16-27 = index, bit 30 = 'keep on disk' flag), validates it against FUN_0053e0e0, calls XDeleteSaveGame() unless the keep-flag is set, then removes the entry from the index via FUN_0053e4a0.",
+      "prototype": "",
+      "summary": "Deletes a saved-game entry identified by a packed handle, both from disk (via XDeleteSaveGame) and from the in-memory index."
+    },
+    {
+      "addr": "0x53c9f0",
+      "name": "saved_game_open_file_by_handle",
+      "confidence": 0.5,
+      "evidence": "Uses in_EAX (>>0x10 & 0xfff) as an index into FUN_0053e0e0, builds a file-reference struct (magic 0x66696c6f, type 2), refreshes the cached path via FUN_00555f80/FUN_00555ec0, and opens it read/write with FUN_005557a0(3).",
+      "prototype": "",
+      "summary": "Builds a file-reference for a save-game handle's on-disk file and opens it for reading and writing."
+    },
+    {
+      "addr": "0x53ca80",
+      "name": "saved_game_allocate_new_slot",
+      "confidence": 0.5,
+      "evidence": "Looks up the 'ui\\\\saved_game_file_strings' tag, then repeatedly formats a localized name (FUN_00557910) and calls XCreateSaveGame(&DAT_00721549, 3, &local_108, 0x100) with increasing indices until it succeeds or 999 attempts are exhausted, returning the resulting index/name through unaff_EBX.",
+      "prototype": "",
+      "summary": "Finds the next free save-game slot (up to 999) and creates it with an auto-generated localized display name from a string-table tag."
+    },
+    {
+      "addr": "0x53cb70",
+      "name": "player_profile_copy_files",
+      "confidence": 0.6,
+      "evidence": "Matches the cea-pdb hint 'copy_files_for_player_profile'; copies blam.sav and savegame.bin from a source directory to param_1 via CopyFileA, then enumerates and copies every '%scheckpoints\\\\*.sav' and '%scheckpoints\\\\*.bin' file with FindFirstFileA/FindNextFileA.",
+      "prototype": "unsigned int __cdecl player_profile_copy_files(char *param_1)",
+      "summary": "Copies a player profile's blam.sav, savegame.bin, and all checkpoint save files into a new destination directory."
+    },
+    {
+      "addr": "0x53ce80",
+      "name": "player_profile_rename",
+      "confidence": 0.5,
+      "evidence": "Compares the cached display name against param_1; if different it XCreateSaveGame's a new slot (directory-based via FUN_0053cb70's copy, matching the copy_files_for_player_profile hint, or single-file via CopyFileA for the blam.lst case), then XDeleteSaveGame's the old slot and updates the cached name/path via FUN_0053e1f0.",
+      "prototype": "",
+      "summary": "Renames the current player profile: creates a new save slot with the requested name, copies the profile's files across, deletes the old slot, and updates the in-memory index."
+    },
+    {
+      "addr": "0x53d080",
+      "name": "saved_game_get_directory_by_handle",
+      "confidence": 0.4,
+      "evidence": "Validates in_EAX as a handle (!=-1, index<999), fetches its record via FUN_0053e0e0, and for types 0/1 copies the path into unaff_ESI then truncates it at the filename found by FUN_00625430, returning success/failure in the return value.",
+      "prototype": "",
+      "summary": "Resolves a save-game handle to its containing directory path (stripping the trailing file name)."
+    },
+    {
+      "addr": "0x53d120",
+      "name": "saved_game_check_storage_availability",
+      "confidence": 0.5,
+      "evidence": "Calls GetDiskFreeSpaceExA on DAT_00721549 (the savegames directory) returning 1 if free space is below 0x2800000 (~40MB); otherwise counts existing files via savegame_find_first/savegame_find_next up to 999, returning 2 if the limit is exceeded.",
+      "prototype": "unsigned int __cdecl saved_game_check_storage_availability(void)",
+      "summary": "Checks whether the save directory has enough free disk space and whether the save-file count is under the 999-slot limit, returning an error code for each failure case."
+    },
+    {
+      "addr": "0x53d1e0",
+      "name": "saved_game_id_slot_exists",
+      "confidence": 0.35,
+      "evidence": "Given in_EAX pointing at a short id, if the id is non-zero it calls XCreateSaveGame(&DAT_00721549, 3, local_100, 0x100) (the same 'query' mode used by FUN_0053ca80) and returns whether it succeeded.",
+      "prototype": "",
+      "summary": "Checks whether a save slot already exists for a given short id using an XCreateSaveGame query call."
+    },
+    {
+      "addr": "0x53d220",
+      "name": "saved_game_last_profile_clear",
+      "confidence": 0.55,
+      "evidence": "Builds a file-reference for DAT_00721b49 (lastprof.txt, per saved_game_files_initialize) and opens it write-only via FUN_005557a0(2), matching the read counterpart FUN_0053d2b0.",
+      "prototype": "void __cdecl saved_game_last_profile_clear(void)",
+      "summary": "Creates/truncates the lastprof.txt marker file that records the most recently used player profile."
+    },
+    {
+      "addr": "0x53d2b0",
+      "name": "saved_game_last_profile_read",
+      "confidence": 0.5,
+      "evidence": "Uses the same DAT_00721b49 (lastprof.txt) file reference, opens it read-only via FUN_005557a0(1), then reads its contents into param_1 via FUN_00555a20 and NUL-terminates at param_1+0xff.",
+      "prototype": "char __cdecl saved_game_last_profile_read(int param_1)",
+      "summary": "Reads the previously saved 'last used player profile' record from lastprof.txt into the caller's buffer."
+    },
+    {
+      "addr": "0x53d360",
+      "name": "saved_game_last_mp_variant_clear",
+      "confidence": 0.5,
+      "evidence": "Identical shape to FUN_0053d220 but targets DAT_00721c49 (lastmpvr.txt per saved_game_files_initialize), opening it write-only.",
+      "prototype": "void __cdecl saved_game_last_mp_variant_clear(void)",
+      "summary": "Creates/truncates the lastmpvr.txt marker file that records the most recently used multiplayer game variant."
+    },
+    {
+      "addr": "0x53d3f0",
+      "name": "saved_game_last_mp_variant_read",
+      "confidence": 0.45,
+      "evidence": "Same read pattern as FUN_0053d2b0 (open read, FUN_00555a20, terminate at +0xff) but against DAT_00721c49 (lastmpvr.txt).",
+      "prototype": "char __cdecl saved_game_last_mp_variant_read(int param_1)",
+      "summary": "Reads the previously saved 'last used multiplayer variant' record from lastmpvr.txt."
+    },
+    {
+      "addr": "0x53d4a0",
+      "name": "saved_game_find_by_name",
+      "confidence": 0.5,
+      "evidence": "Takes both module mutexes (DAT_0072143c, DAT_00721440), iterates the FUN_0053e420-sized index reading each entry with FUN_00555a20, and returns FUN_0053e630's handle for the first entry whose type (local_c) equals param_2 and whose name case-insensitively prefix-matches param_1 via __strnicmp.",
+      "prototype": "",
+      "summary": "Searches the saved-game index for an entry with the given type and name (case-insensitive) and returns its handle, or -1 if not found."
+    },
+    {
+      "addr": "0x53d5e0",
+      "name": "saved_game_last_mp_map_clear",
+      "confidence": 0.5,
+      "evidence": "Same write-clear pattern as FUN_0053d220/FUN_0053d360 but against DAT_00721d49 (lastmpmp.txt per saved_game_files_initialize).",
+      "prototype": "void __cdecl saved_game_last_mp_map_clear(void)",
+      "summary": "Creates/truncates the lastmpmp.txt marker file that records the most recently played multiplayer map."
+    },
+    {
+      "addr": "0x53d670",
+      "name": "saved_game_last_mp_map_read",
+      "confidence": 0.45,
+      "evidence": "Same read pattern as the other 'last_*' readers but against DAT_00721d49 (lastmpmp.txt).",
+      "prototype": "char __cdecl saved_game_last_mp_map_read(int param_1)",
+      "summary": "Reads the previously saved 'last used multiplayer map' record from lastmpmp.txt."
+    },
+    {
+      "addr": "0x53d720",
+      "name": "saved_game_list_rebuild_index",
+      "confidence": 0.6,
+      "evidence": "References the string 'random crap found by XFindNextSaveGame()...', enumerates all saves via savegame_find_first/savegame_find_next validating blam.sav/blam.lst with crc32_update, rebuilds DAT_00721444's count, then calls FUN_0053db40 and FUN_0053dde0 to re-register defaults, and finally clears the DAT_00721447 dirty flag that gates this call everywhere else (e.g. FUN_0053c4e0, FUN_0053c660).",
+      "prototype": "",
+      "summary": "Rescans the saved-games directory tree, validates and re-registers every save/playlist/profile entry (including the built-in defaults) into the in-memory index, and clears the index-dirty flag."
+    },
+    {
+      "addr": "0x53daa0",
+      "name": "saved_game_index_file_open",
+      "confidence": 0.4,
+      "evidence": "Builds a file-reference from the DAT_00721330 struct, calls FUN_005555b0 (create) then FUN_005557a0(2) (open GENERIC_WRITE) and on success resets DAT_00721444 to 0 and sets the DAT_00721448 'loaded' flag; called as the first step of FUN_0053d720's rebuild.",
+      "prototype": "",
+      "summary": "Creates/opens the on-disk save-game index file for writing at the start of an index rebuild, resetting the in-memory entry count."
+    },
+    {
+      "addr": "0x53db40",
+      "name": "saved_game_index_register_default_playlists",
+      "confidence": 0.5,
+      "evidence": "Looks up the 'ui\\\\default_multiplayer_game_setting_names' tag (same tag as playlist_profile_create_default_profiles_on_disk), formats '%s\\\\%02d\\\\blam.lst' under DAT_00721a49, checks existence (FUN_00555720), opens/reads it, crc32_update-validates against the tag data, and increments the shared DAT_00721444 index counter used by FUN_0053d720.",
+      "prototype": "",
+      "summary": "Validates and re-registers each built-in default playlist's blam.lst against its expected tag data into the shared save-game index."
+    },
+    {
+      "addr": "0x53dde0",
+      "name": "saved_game_index_register_default_profiles",
+      "confidence": 0.5,
+      "evidence": "Looks up the 'ui\\\\shell\\\\strings\\\\default_player_profile_names' tag, formats '%s\\\\%02d.sav' under DAT_00721849 (saved\\\\player_profiles\\\\default_profile), validates via crc32_update, and increments the shared DAT_00721444 index counter, mirroring FUN_0053db40 for player profiles instead of playlists.",
+      "prototype": "",
+      "summary": "Validates and re-registers each built-in default player profile's .sav file against its expected tag data into the shared save-game index."
+    },
+    {
+      "addr": "0x5554c0",
+      "name": "file_reference_initialize",
+      "confidence": 0.45,
+      "evidence": "Zeroes a 0x110-byte struct, stamps it with the recurring magic 0x66696c6f and type field 2, then either directly appends the name (FUN_00555ec0) when param_3 is set or normalizes/appends it, matching the same struct layout used throughout the module's file-reference helpers.",
+      "prototype": "",
+      "summary": "Initializes a generic file-reference record (magic, type, and name) used by the saved-games file I/O helpers."
+    },
+    {
+      "addr": "0x555520",
+      "name": "directory_prepare_empty",
+      "confidence": 0.4,
+      "evidence": "Builds a directory-typed file reference (type 0xffff), and if FUN_00555720 says it doesn't exist creates it via FUN_005555b0, otherwise enumerates its contents with FUN_00555b90/FUN_00555c10 and deletes every entry with FUN_00555670 until the enumeration is exhausted.",
+      "prototype": "",
+      "summary": "Ensures a directory exists and is empty, creating it if missing or deleting all of its contents if it already exists."
+    },
+    {
+      "addr": "0x5555b0",
+      "name": "file_reference_create",
+      "confidence": 0.5,
+      "evidence": "Builds the full path via FUN_005560d0 then, based on the 'is file' flag at offset+4, either calls CreateDirectoryA (ignoring ERROR_ALREADY_EXISTS) or CreateFileA/CloseHandle to touch-create the file; reports the Win32 error via FormatMessageA on failure, matching the shared file-reference struct.",
+      "prototype": "",
+      "summary": "Creates the directory or file described by a file-reference struct, tolerating an already-exists error."
+    },
+    {
+      "addr": "0x555670",
+      "name": "file_reference_delete",
+      "confidence": 0.5,
+      "evidence": "Builds the full path via FUN_005560d0 then, based on the 'is file' flag, calls RemoveDirectoryA or SetFileAttributesA(FILE_ATTRIBUTE_NORMAL)+DeleteFileA; reports the Win32 error via FormatMessageA on failure.",
+      "prototype": "",
+      "summary": "Deletes the directory or file described by a file-reference struct."
+    },
+    {
+      "addr": "0x555720",
+      "name": "file_reference_exists",
+      "confidence": 0.55,
+      "evidence": "Builds the full path via FUN_005560d0 and calls GetFileAttributesA, returning true on success; on failure, if the error isn't ERROR_FILE_NOT_FOUND/ERROR_PATH_NOT_FOUND it reports it via FUN_00556170.",
+      "prototype": "",
+      "summary": "Checks whether the path described by a file-reference struct currently exists on disk."
+    },
+    {
+      "addr": "0x5557a0",
+      "name": "file_reference_open",
+      "confidence": 0.55,
+      "evidence": "Builds the full path via FUN_005560d0, translates param_1 bit flags into GENERIC_READ/GENERIC_WRITE for CreateFileA, optionally seeks to end-of-file (SetFilePointer, ...,2), and stores the resulting HANDLE at unaff_ESI+0x108, the same offset every other file_reference_* helper uses for the handle.",
+      "prototype": "",
+      "summary": "Opens the file described by a file-reference struct with caller-specified read/write/append flags and stores the resulting handle."
+    },
+    {
+      "addr": "0x555890",
+      "name": "file_reference_close",
+      "confidence": 0.55,
+      "evidence": "Calls CloseHandle on the HANDLE stored at unaff_ESI+0x108 (the handle field written by FUN_005557a0) and clears it on success, reporting the Win32 error otherwise.",
+      "prototype": "",
+      "summary": "Closes the file handle previously opened by file_reference_open and clears the stored handle."
+    },
+    {
+      "addr": "0x5558f0",
+      "name": "file_reference_seek",
+      "confidence": 0.5,
+      "evidence": "Calls SetFilePointer(handle-at+0x108, in_EAX, NULL, FILE_BEGIN) using the same +0x108 handle field as the other file_reference_* helpers.",
+      "prototype": "",
+      "summary": "Seeks the open file-reference handle to an absolute byte offset."
+    },
+    {
+      "addr": "0x555950",
+      "name": "file_reference_get_size",
+      "confidence": 0.5,
+      "evidence": "Calls GetFileSize on the handle at in_EAX+0x108, matching the shared +0x108 handle convention, reporting the Win32 error on failure.",
+      "prototype": "",
+      "summary": "Returns the size in bytes of the currently open file-reference handle."
+    },
+    {
+      "addr": "0x5559b0",
+      "name": "file_reference_set_length",
+      "confidence": 0.45,
+      "evidence": "Calls FUN_005558f0 (seek) then SetEndOfFile on the handle at unaff_ESI+0x108, truncating/extending the file to the previously-set position.",
+      "prototype": "",
+      "summary": "Seeks to a position and then truncates or extends the open file to that length."
+    },
+    {
+      "addr": "0x555a20",
+      "name": "file_reference_read",
+      "confidence": 0.55,
+      "evidence": "Calls ReadFile on the handle at in_EDX+0x108 with buffer in_ECX and size unaff_ESI, treating a short read as an error via SetLastError(ERROR_HANDLE_EOF) before reporting via FormatMessageA.",
+      "prototype": "",
+      "summary": "Reads an exact number of bytes from the open file-reference handle, failing if fewer bytes were read than requested."
+    },
+    {
+      "addr": "0x555a90",
+      "name": "file_reference_write",
+      "confidence": 0.55,
+      "evidence": "Calls WriteFile on the handle at in_EDX+0x108 with buffer in_ECX and size unaff_ESI, requiring the written byte count to match the requested size.",
+      "prototype": "",
+      "summary": "Writes an exact number of bytes to the open file-reference handle."
+    },
+    {
+      "addr": "0x555b00",
+      "name": "file_reference_get_size_on_disk",
+      "confidence": 0.4,
+      "evidence": "Builds the full path via FUN_005560d0 then calls GetFileAttributesExA(GetFileExInfoStandard); local_90c sits at the byte offset of WIN32_FILE_ATTRIBUTE_DATA.nFileSizeLow, which is copied into *param_1.",
+      "prototype": "",
+      "summary": "Retrieves a file's size on disk by path (without opening it) via GetFileAttributesExA."
+    },
+    {
+      "addr": "0x555b90",
+      "name": "file_enumerate_initialize",
+      "confidence": 0.45,
+      "evidence": "Closes any still-open FindFirstFileA handles in the DAT_0069fb60 array, stores param_1 into the DAT_0069fa58 flags global, sets the DAT_0069fa5c depth/count from *(param_2+6), and copies the base path from param_2+8 into DAT_0069fa60, initializing the state used by FUN_00555c10/FUN_00555f80.",
+      "prototype": "",
+      "summary": "Initializes the shared (possibly recursive) directory-enumeration state from a path/flags record, closing any stale find handles first."
+    },
+    {
+      "addr": "0x555c10",
+      "name": "file_enumerate_find_next",
+      "confidence": 0.5,
+      "evidence": "Uses the DAT_0069fa5c depth counter and DAT_0069fb60 handle-per-depth array to FindFirstFileA/advance a possibly-recursive directory walk, skipping '.' and '..', descending into subdirectories when DAT_0069fa58 requests recursion, and filling a param_1 file-reference struct (magic 0x66696c6f) for each matching file/dir.",
+      "prototype": "",
+      "summary": "Advances a (possibly recursive) directory enumeration and returns the next matching file or directory entry as a file-reference struct."
+    },
+    {
+      "addr": "0x555d30",
+      "name": "file_enumerate_find_next_continued",
+      "confidence": 0.3,
+      "evidence": "Ghidra-supplied name 'structure_render_lightmaps' does not match the code, which is a near-duplicate of FUN_00555c10's body (same DAT_0069fa5c/DAT_0069fb60/DAT_0069fa58 globals, FindNextFileA/FindFirstFileA loop, '.'/'..'  skipping); has 0 callers, suggesting it is a compiler-duplicated continuation of the same directory-walk loop rather than an independently invoked function.",
+      "prototype": "",
+      "summary": "A duplicated/continuation copy of the recursive directory-enumeration loop in file_enumerate_find_next; not reachable via any direct call in this batch."
+    },
+    {
+      "addr": "0x555ec0",
+      "name": "path_append_component",
+      "confidence": 0.5,
+      "evidence": "If unaff_EBX (the component to append) is non-empty, appends a backslash to unaff_ESI (the destination path buffer) when needed then _strncpy's unaff_EBX onto the end, truncated to 0xff bytes.",
+      "prototype": "",
+      "summary": "Appends a path component onto a destination path buffer, inserting a backslash separator as needed."
+    },
+    {
+      "addr": "0x555f20",
+      "name": "path_append_extension",
+      "confidence": 0.45,
+      "evidence": "Identical structure to FUN_00555ec0 but appends a '.' separator instead of '\\\\' before the suffix, then _strncpy's it onto the destination path.",
+      "prototype": "",
+      "summary": "Appends a suffix onto a destination path buffer using a '.' separator, e.g. to add a file extension."
+    },
+    {
+      "addr": "0x555f80",
+      "name": "path_remove_last_component",
+      "confidence": 0.5,
+      "evidence": "Scans unaff_EBX backward for the last '\\\\' (via FUN_005576d0/FUN_00557750, presumably narrow/wide char helpers) and NUL-terminates the string there, truncating off the trailing path component.",
+      "prototype": "",
+      "summary": "Truncates a path string in place by removing its trailing path component (file name or last directory)."
+    },
+    {
+      "addr": "0x556000",
+      "name": "path_split_components",
+      "confidence": 0.4,
+      "evidence": "Scans unaff_ESI backward character by character (FUN_005576d0) looking for '.' and '\\\\', and sets four output pointers (param_1, param_2, unaff_EBX, unaff_EDI) to the boundaries between directory, filename and extension, similar to a CRT _splitpath.",
+      "prototype": "",
+      "summary": "Splits a path string into directory, filename-stem and extension boundary pointers, similar to _splitpath."
+    },
+    {
+      "addr": "0x5560d0",
+      "name": "path_build_full",
+      "confidence": 0.4,
+      "evidence": "Selects among three modes via in_CX: shift-copy in place (mode 2), prefix a relative path with '.\\\\' if it isn't already drive/absolute (mode <1), or prepend the global base path DAT_0069fa50 and _strncat the source (mode 1); used by every file_reference_* helper (via FUN_005560d0 calls) before touching the filesystem.",
+      "prototype": "",
+      "summary": "Builds a fully-qualified path into a destination buffer from a source path and a path-kind selector, prefixing a base directory or a relative-path marker as needed."
+    },
+    {
+      "addr": "0x556170",
+      "name": "win32_report_last_error",
+      "confidence": 0.45,
+      "evidence": "Minimal GetLastError/FormatMessageA(0x12ff,...)/SetLastError(0) sequence, the same error-reporting boilerplate inlined in every other file_reference_* function, factored out here for the ERROR_FILE_NOT_FOUND/ERROR_PATH_NOT_FOUND-excluded branch of file_reference_exists.",
+      "prototype": "void __cdecl win32_report_last_error(void)",
+      "summary": "Formats and discards the current Win32 last-error code into a scratch buffer, matching the error-reporting pattern used throughout this module's file helpers."
+    }
+  ]
+}

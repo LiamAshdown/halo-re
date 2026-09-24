@@ -1,0 +1,60 @@
+{
+  "results": [
+    {
+      "addr": "0x4491e0",
+      "name": "string_to_lowercase",
+      "confidence": 0.6,
+      "evidence": "Iterates a null-terminated byte string (unaff_EDI) calling _tolower on each character in place until the terminating NUL, a plain in-place ASCII lowercasing loop.",
+      "prototype": "",
+      "summary": "Lowercases a null-terminated string in place using the CRT tolower()."
+    },
+    {
+      "addr": "0x449210",
+      "name": "time_query_performance_counter_ms",
+      "confidence": 0.4,
+      "evidence": "Calls QueryPerformanceCounter, multiplies the 64-bit counter by 1000 with __allmul, then divides by the cached frequency (DAT_006ac8f8/DAT_006ac8fc) with __alldiv; the decompiler drops the EAX:EDX return of the final __alldiv, but the arithmetic is the standard QPC-to-milliseconds conversion.",
+      "prototype": "",
+      "summary": "Reads the high-resolution performance counter and converts it to milliseconds using a previously cached counter frequency."
+    },
+    {
+      "addr": "0x449250",
+      "name": "directory_create_recursive",
+      "confidence": 0.8,
+      "evidence": "Calls GetFileAttributesA to check if the path already exists; if not, walks the path splitting on '\\' (skipping the first two components for UNC \"\\\\server\\share\" paths via _strpbrk) and calls CreateDirectoryA on each successive prefix, wrapped in SetErrorMode(0x8000) to suppress the critical-error dialog for missing drives.",
+      "prototype": "char __cdecl directory_create_recursive(char *path)",
+      "summary": "Creates a directory and all of its missing parent directories, correctly skipping the server/share components of UNC paths, returning whether the full path exists or was successfully created."
+    },
+    {
+      "addr": "0x449370",
+      "name": "memory_global_alloc",
+      "confidence": 0.5,
+      "evidence": "Direct passthrough to GlobalAlloc(0, size) with the size taken from an implicit register argument (in_EAX) and no fixed-flag/moveable handling beyond flags=0.",
+      "prototype": "",
+      "summary": "Thin wrapper allocating a block via the Win32 GlobalAlloc API."
+    },
+    {
+      "addr": "0x449380",
+      "name": "memory_global_free",
+      "confidence": 0.5,
+      "evidence": "Direct passthrough to GlobalFree(handle) with the handle taken from an implicit register argument (in_EAX).",
+      "prototype": "",
+      "summary": "Thin wrapper freeing a block via the Win32 GlobalFree API."
+    },
+    {
+      "addr": "0x449390",
+      "name": "profile_path_initialize",
+      "confidence": 0.6,
+      "evidence": "Checks the \"-path\" command-line flag (command_line_check_flag) to optionally override the profile directory; otherwise calls an SHGetFolderPath-style function pointer (DAT_0074626c) and formats \"%s\\\\My Games\\\\Halo\" into DAT_006ac900 via __snprintf, printing \"Using profile path %s.\\n\"; falls back to \".\" and shell_display_fatal_error_dialog on failure.",
+      "prototype": "",
+      "summary": "Determines and stores the player's profile directory path, honoring a -path command-line override or defaulting to \"<Documents>\\My Games\\Halo\", with a fatal-error fallback if the special-folder lookup fails."
+    },
+    {
+      "addr": "0x449450",
+      "name": "write_to_error_file",
+      "confidence": 0.85,
+      "evidence": "Naming hint 'write_to_error_file' matches the code exactly: on first use it self-recursively writes a header block (\"halo pc 01.00.10.0621(CACHE) ----...\") including its own address (write_to_error_file) and the literal string \"_write_to_error_file\"; otherwise it opens debug.txt via FUN_004e40a0/FUN_00624186, optionally prefixes a localtime timestamp, and fprintf's param_1 as the message.",
+      "prototype": "void __cdecl write_to_error_file(char *message, char with_timestamp)",
+      "summary": "Appends a (optionally timestamped) message string to the game's debug.txt log file, writing a one-time header block on first use."
+    }
+  ]
+}

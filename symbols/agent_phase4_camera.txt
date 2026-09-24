@@ -1,0 +1,51 @@
+# camera module (0x444c00..0x449170) names established by the phase-4 C rewrite in src/camera/*.c;
+# each name is justified in that file's header comment (register convention checked in objdump).
+# Seven entries have no Ghidra function yet (0x445560, 0x4464f0, 0x4469a0, 0x446a10, 0x446e90,
+# 0x447870, 0x447a60). Three entries rename mis-split tails that are NOT functions, so that the
+# OpenSauce CE names (physical_memory_*, director_load_camera) stop being applied there.
+# addr name kind confidence source
+0x4450e0 dead_camera_new func 0.8 agent-phase4 objdump_0x4450e0:_EAX=dead_camera_data,_DX=local_player,_stack=unit;_seeds_focus_from_observer_camera,_random_yaw/pitch/distance,_transition_3.0,_target=player.previous_unit;_no_shake_logic_(was_camera_shake_initialize)
+0x445230 dead_camera_new_epilogue func 0.8 agent-phase4 not_a_function:_pop_esi;ret_alternate_epilogue_inside_dead_camera_new_0x4450e0..0x445239
+0x445240 camera_dead_player_has_teammate func 0.8 agent-phase4 objdump_0x445240:_data_iterator_over_players_comparing_team_+0x20_with_the_stack_player;_AL_result_read_by_0x4454eb
+0x4452c0 camera_dead_find_next_teammate func 0.8 agent-phase4 objdump_0x4452c0:_BL=same_team_flag,_stack=(player,current_target);_first_later_player_with_a_unit_else_wrap_to_first
+0x445350 camera_dead_find_next_teammate_loop_tail func 0.8 agent-phase4 not_a_function:_iterator_loop_tail_of_0x4452c0_(0x445347..0x445370)
+0x445560 director_game_state_loaded func 0.8 agent-phase4 game_state_after_load_procs[12]_(.data_0x0069e7e0):_camera_initialize_then_camera_control(*0x0087bc0c)
+0x4455f0 camera_is_local_player_default_first_person func 0.8 agent-phase4 objdump_0x4455f0:_first_valid_local_player_whose_director.pov_proc==0x446d60
+0x445b20 camera_get_seat_camera_state func 0.8 agent-phase4 objdump_0x445b20:_ECX=unit,_stack=&state;_UnitSeat_flags_0x10/0x40_and_unit_animation_state_0x1a/0x1b;_AX_result
+0x445c00 director_update_seat_camera func 0.8 agent-phase4 objdump_0x445c00:_AX=local_player,_BL=force;_switches_director.pov_proc_between_0x446d60_and_0x447370_from_the_seat_state
+0x445cc0 camera_control func 0.8 agent-phase4 hs_camera_control:_stores_the_byte_through_0x0087bc0c_and_camera_script_globals+0x00,_switches_to_the_scripted_pov_0x444d50_or_back
+0x445dc0 director_choose_gameplay_camera func 0.8 agent-phase4 objdump_0x445dc0:_DI=local_player,_stack=reset;_dead_player_(unit==-1,deaths>0)_selects_the_dead_camera_0x445380
+0x445f40 director_set_flying_camera func 0.8 agent-phase4 objdump_0x445f40:_AX=local_player,_CL=force;_flying_camera_initialize_then_pov_proc=0x4464f0
+0x445f90 director_build_camera_input func 0.8 agent-phase4 objdump_0x445f90:_ESI=camera_input,_stack=local_player;_zeroes_0x24_bytes,_debug_key_bits,_mouse_look,_axis_deltas
+0x446170 camera_input_axes_update func 0.8 agent-phase4 objdump_0x446170:_AX=local_player,_stack=(key_bits,zoom);_look_scale*=pow(1.3,zoom)_clamp_0.01..50,_four_damped_axes_stride_0x1c
+0x4462a0 camera_input_axes_update_loop_tail func 0.8 agent-phase4 not_a_function:_second_half_of_the_0x446170_axis_loop,_entered_by_the_jne_0x4461f0_back-edge
+0x446350 flying_camera_initialize func 0.8 agent-phase4 objdump_0x446350:_EAX=editor_camera_data,_stack=local_player;_home_from_Scenario_player_starting_locations,_tail_jump_to_transition_proc
+0x446470 flying_camera_attach_to_object func 0.8 agent-phase4 objdump_0x446470:_EAX=object;_stores_0x00686aa0_and_the_offset_from_object_bounding_center_at_0x006f181c
+0x4464f0 flying_camera_compute_pov func 0.8 agent-phase4 director.pov_proc_installed_by_0x445f40;_dispatches_flying_camera_update_procs[mode]_(0x00686aa8)
+0x4465d0 flying_camera_update func 0.8 agent-phase4 flying_camera_update_procs[0]_(0x00686aa8);_yaw/pitch/roll_input,_yaw-rotated_move_times_flying_camera_speed_(was_camera_debug_update_transform)
+0x446870 orbiting_camera_update func 0.8 agent-phase4 flying_camera_update_procs[1]_(0x00686aac);_orbits_the_unit_first_person_position_(0x472020)_at_orbiting_camera_data_distance/yaw/pitch
+0x4469a0 flying_camera_enter_flying func 0.8 agent-phase4 flying_camera_transition_procs[1][0]_(.data_0x00686ab8):_saves_orbiting_record_to_0x006f1850,_seeds_flying_from_the_render_camera
+0x446a10 flying_camera_enter_orbiting func 0.8 agent-phase4 flying_camera_transition_procs[1][1]_(.data_0x00686abc):_saves_flying_record_to_0x006f1830,_restores_or_seeds_the_orbit
+0x446d30 first_person_camera_command_for_unit func 0.8 agent-phase4 objdump_0x446d30:_ECX=unit,_stack=command;_tail_of_0x446b70_with_EAX=unit+0x23c_aiming_vector
+0x446e30 editor_camera_set_position_and_direction func 0.8 agent-phase4 objdump_0x446e30:_EAX=out,_ECX=direction,_EDX=position;_position_plus_yaw/pitch_atan2,_roll_0,_fov_70deg
+0x446e90 editor_camera_compute_pov func 0.8 agent-phase4 director.pov_proc_installed_by_camera_debug_load_from_file_0x445a95
+0x447110 unit_get_camera_properties func 0.8 agent-phase4 objdump_0x447110:_EAX=unit;_returns_UnitSeat+0x84_when_seat_flags&0x15_else_Unit_tag+0x1a8
+0x447190 first_person_camera_track_offset func 0.8 agent-phase4 samples_unit_camera_properties.camera_tracks_(+0x4c)_with_catmull-rom_0x447000/0x447080
+0x447290 first_person_camera_apply_weapon_offset func 0.8 agent-phase4 objdump_0x447290:_EAX=position,_EBX=unit,_ESI=aim;_asin(aim.k)_(0x628630_CIasin)_track_offset_rotated_into_the_horizontal_aim
+0x447740 observer_new func 0.8 agent-phase4 objdump_0x447740:_EDX=observer;_writes_signature_0x72616421_at_+0x000_and_+0x298
+0x447870 observer_initialize func 0.8 agent-phase4 game_state_after_load_procs[5]_(.data_0x0069e7c0):_mov_edx,0x6ac65c;_jmp_observer_new
+0x447880 observer_update func 0.8 agent-phase4 objdump_0x447880:_sets_observer_dt,_observer_set_command/advance/commit,_first_person_bob_via_0x55cca0;_no_shake_logic_(was_camera_shake_tick)
+0x4479a0 observer_get_camera func 0.8 agent-phase4 objdump_0x4479a0:_CX=local_player;_returns_0x006ac6d0+i*0x29c=observers[i].camera_(was_camera_get_globals_for_player)
+0x4479c0 vector3d_compute_up_from_forward func 0.8 agent-phase4 objdump_0x4479c0:_ESI=forward,_EDI=out_up;_roll-free_up_from_the_horizontal_projection
+0x447a60 observer_update_location func 0.8 agent-phase4 .data_0x0069e900_procedure_slot:_recomputes_observers[0].camera_leaf/cluster_with_bsp3d_node_find_leaf
+0x447ab0 observer_set_command func 0.8 agent-phase4 objdump_0x447ab0:_DX=local_player;_channel_time_merge_then_rep_movs_0x1a_dwords_into_observer+0x08
+0x447b50 observer_advance func 0.8 agent-phase4 objdump_0x447b50:_DI=local_player;_frozen_bit_0x20_gate,_remaining_offset,_spline_fit/evaluate,_countdown_decay
+0x447be0 observer_compute_spline_coefficients func 0.8 agent-phase4 objdump_0x447be0:_DX=local_player;_quintic_coefficients_at_observer+0x158..+0x260
+0x447e40 observer_evaluate_spline_acceleration func 0.8 agent-phase4 objdump_0x447e40:_AX=local_player;_second_derivative_into_observer+0x120,_limit_table_0x006572c4
+0x448010 observer_evaluate_spline_velocity func 0.8 agent-phase4 objdump_0x448010:_AX=local_player;_first_derivative_into_observer+0xe8
+0x448210 observer_evaluate_spline_value_and_orthonormalize func 0.8 agent-phase4 objdump_0x448210:_AX=local_player;_P(T-dt)_added_to_observer+0xb0,_forward/up_re-orthonormalised
+0x448710 observer_compute_remaining_offset func 0.8 agent-phase4 objdump_0x448710:_EAX=target,_ECX=current,_EDX=out;_8_float_difference_plus_quaternion_axis*angle
+0x448880 vector3d_rotate_basis_by_axis_angle func 0.8 agent-phase4 objdump_0x448880:_EAX=axis_angle,_stack=(forward,up);_two_vector3d_rotate_about_axis_calls
+0x448900 observer_commit func 0.8 agent-phase4 objdump_0x448900:_AX=local_player;_clamps,_focus_offset,_collision,_leaf/cluster,_water_nudge,_publishes_observer_camera
+0x448d40 observer_avoid_collision func 0.8 agent-phase4 objdump_0x448d40:_EAX=forward,_stack=(position,up,&distance,0.02);_four_probes_plus_10-step_bisection
+0x449170 observer_collision_test_ray func 0.8 agent-phase4 objdump_0x449170:_EAX=origin,_ESI=target,_DL=mask_selector,_stack=&fraction;_collision_test_movement_segment_wrapper

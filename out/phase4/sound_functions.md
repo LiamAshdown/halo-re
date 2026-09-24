@@ -1,0 +1,136 @@
+# sound module: 134 functions (address, current Ghidra name, size, agent confidence, summary)
+
+- 0x543a30 game_sound_initialize size=88 conf=0.9 :: Initializes the object-looping-sounds subsystem by allocating its datum array and registering its save-game/crc globals block.
+- 0x543a90 chimera__revert size=151 conf=0.4 :: Clears every object's cached back-reference to its currently attached looping-sound datum, walking the whole looping-sound datum array.
+- 0x543b30 FUN_00543b30 size=233 conf=0.35 :: Re-establishes or tears down object<->looping-sound datum links and invalidates a per-tag cached looping-sound-definition index.
+- 0x543c20 looping_sound_new size=185 conf=0.5 :: Allocates a new object-looping-sound datum, optionally binding it to an object and copying its initial playback parameters (register-passed arguments).
+- 0x543ce0 FUN_00543ce0 size=156 conf=0.4 :: Validates an object-relative looping-sound start request and forwards it to the core sound-start routine when the check passes.
+- 0x543d80 FUN_00543d80 size=71 conf=0.3 :: Forwards a pointer-supplied looping-sound parameter block to the core sound-start/stop routine by copying it onto the stack.
+- 0x543dd0 FUN_00543dd0 size=51 conf=0.25 :: Thin trampoline that forwards directly into the core looping-sound play/stop routine.
+- 0x543e10 FUN_00543e10 size=427 conf=0.4 :: Recomputes a looping-sound datum's periodic refresh deadline and (re)starts or forwards its playback, caching the resulting sound handle.
+- 0x543fc0 FUN_00543fc0 size=56 conf=0.45 :: Returns the number of ticks remaining until a looping-sound datum's next scheduled refresh, clamped to zero.
+- 0x544000 FUN_00544000 size=130 conf=0.3 :: Scans an object's attached parts for active looping sounds flagged for cleanup and invokes an external stop/kill routine on them.
+- 0x544090 FUN_00544090 size=135 conf=0.4 :: Replaces an object's currently attached looping sound with a newly created one bound to the given definition.
+- 0x544120 looping_sound_object_detach size=88 conf=0.5 :: Detaches an object's currently attached looping sound, marking the datum as no longer object-bound and pending stop.
+- 0x544180 looping_sound_object_set_gain size=114 conf=0.55 :: Sets the playback gain (clamped to 0..1) of the looping sound currently attached to the given object.
+- 0x544200 FUN_00544200 size=75 conf=0.35 :: Sets or clears an option flag on the looping sound currently attached to the given object.
+- 0x544250 FUN_00544250 size=64 conf=0.4 :: Starts a new object-independent (global/ambient) looping sound with the given gain or definition parameter.
+- 0x544290 FUN_00544290 size=160 conf=0.35 :: Checks whether a looping-sound datum's owning object is still valid and its cluster/zone permits the sound, stopping it if not.
+- 0x544330 FUN_00544330 size=655 conf=0.45 :: Runs the full per-tick update for one looping-sound datum: audibility/zone check, world-position computation, and start, update, or delete of its playback channel.
+- 0x5445c0 game_sound_update size=759 conf=0.5 :: Per-frame master update for the object-looping-sound system: throttled listener refresh, cluster-audibility rebuild, and per-datum audibility/placement update.
+- 0x5448c0 FUN_005448c0 size=183 conf=0.35 :: Attempts to resolve a marker's world-space position and orientation for a currently-valid global object, returning success/failure.
+- 0x544980 sound_build_cluster_range_bitmap size=274 conf=0.5 :: Rebuilds the bitmap of BSP clusters within sound-audible range of the current listener cluster.
+- 0x544aa0 FUN_00544aa0 size=360 conf=0.45 :: Computes distance-based attenuation and, when clusters may be occluded, a raycast-derived obstruction factor for a sound source relative to the listener.
+- 0x544c10 FUN_00544c10 size=87 conf=0.35 :: Searches an object's attached parts for a looping sound of a specific class (0x20) and reports whether one was found.
+- 0x544c70 FUN_00544c70 size=223 conf=0.35 :: Sweeps unattached looping-sound datums and detaches any conflicting class-0x20 looping sound currently bound to the associated object.
+- 0x544e00 sound_ogg_seek_callback size=176 conf=0.55 :: Implements a fseek-style (SEEK_SET/CUR/END) position update with bounds checking, used as a custom seek callback for the Ogg Vorbis stream reader.
+- 0x544eb0 sound_ogg_stream_open size=192 conf=0.5 :: Opens an Ogg Vorbis decode stream over a memory buffer, choosing between two double-buffered stream slots for gapless loop transitions.
+- 0x544f70 sound_ogg_error_to_string size=407 conf=0.75 :: Formats a libvorbisfile/Ogg Vorbis error code into its corresponding human-readable description string.
+- 0x5451d0 sound_ogg_stream_read size=340 conf=0.6 :: Decodes the requested number of PCM bytes from the active Ogg Vorbis stream, cross-lapping into the other buffer when switching streams.
+- 0x545330 sound_class_update_gain_fade size=88 conf=0.5 :: Advances the per-sound-class gain fade timers by the given number of ticks, interpolating or snapping each class's gain toward its target.
+- 0x545390 sound_class_set_gain_by_name size=140 conf=0.5 :: Sets the gain and countdown timer for a sound class identified by name, e.g. the projectile impact/detonation classes.
+- 0x545420 FUN_00545420 size=63 conf=0.4 :: Sets or clears a per-sound-class boolean flag for the sound class identified by name.
+- 0x545460 FUN_00545460 size=54 conf=0.3 :: Returns an object's sound gain/scale override, or its sound class's default scale when the object has none set.
+- 0x5454a0 sound_permutation_pick_for_pitch size=228 conf=0.55 :: Selects the sound permutation whose pitch range best matches the requested pitch, preferring the currently playing one if still valid.
+- 0x545590 sound_permutation_pick_random size=384 conf=0.5 :: Randomly selects a sound permutation to play next, weighting against recently used permutations and honoring language-specific exceptions.
+- 0x545710 sound_linear_gain_to_attenuation size=71 conf=0.5 :: Converts a linear gain value to a clamped logarithmic (centibel-style) attenuation value for DirectSound APIs.
+- 0x545760 FUN_00545760 size=252 conf=0.4 :: Closes and clears one of the two double-buffered Ogg Vorbis decode streams, swapping which buffer slot is considered active.
+- 0x545860 sound_pcm_buffer_read size=186 conf=0.5 :: Copies raw PCM audio bytes from a bounds-checked sample pool into a destination buffer, logging an error if the source range is invalid.
+- 0x545920 sound_ogg_buffer_fill size=264 conf=0.5 :: Fills a destination buffer with decoded Ogg Vorbis PCM data from a bounds-checked compressed sample pool, padding and counting underruns.
+- 0x545a30 FUN_00545a30 size=320 conf=0.4 :: Creates several pools of DirectSound channel buffers (mono/stereo/3D variants) selected by bitmask, recording counts into the caller's output parameters.
+- 0x545b70 shell_get_command_line_argument size=673 conf=0.35 :: Allocates the full set of DirectSound channel buffer pools at startup and releases any interfaces left over from a failed allocation; the previous name (shell_get_command_line_argument) does not match
+- 0x546760 sound_channel_create size=763 conf=0.6 :: Creates a single DirectSound secondary buffer for a sound channel, optionally obtaining its 3D-buffer interface and default 3D properties.
+- 0x546a60 game_sound_dispose size=220 conf=0.6 :: Shuts down the sound engine, releasing all channel, listener, EAX, and DirectSound device COM interfaces.
+- 0x546b40 FUN_00546b40 size=59 conf=0.4 :: Runs the streaming buffer-fill update for every channel currently marked as streaming.
+- 0x546b80 FUN_00546b80 size=1037 conf=0.35 :: Per-frame fades all sound channels in/out for a mute transition, updates streaming buffers, and formats a debug channel-usage report.
+- 0x547070 sound_listener_update size=595 conf=0.55 :: Updates the 3D audio listener's position, orientation, velocity, and EAX environment settings only when they have changed since the last call.
+- 0x5472d0 FUN_005472d0 size=728 conf=0.45 :: Updates a 3D sound channel's positional/orientation parameters and mute mode when they differ from the last committed values.
+- 0x5475b0 FUN_005475b0 size=723 conf=0.4 :: Updates a channel's frequency, volume, and (for positional channels) distance and cone parameters whenever they change.
+- 0x547890 FUN_00547890 size=46 conf=0.45 :: Refreshes a channel's play/write cursor via the DirectSoundBuffer interface and returns that interface pointer.
+- 0x5478c0 FUN_005478c0 size=307 conf=0.45 :: Determines how much ring-buffer space a streaming channel needs refilled and triggers the fill, tracking loop transitions.
+- 0x547a00 sound_channel_lock_and_fill size=172 conf=0.5 :: Locks a channel's DirectSound ring buffer, fills the returned write segment(s) with queued audio data, and unlocks it.
+- 0x547ab0 sound_channel_fill_pcm_data size=337 conf=0.5 :: Supplies PCM audio bytes for a channel by pulling from its queue of raw or Ogg Vorbis sound sources, advancing the queue as sources are exhausted.
+- 0x547c10 FUN_00547c10 size=97 conf=0.35 :: Restores a DirectSound buffer interface and, if requested, spin-waits for a pending operation on it to complete.
+- 0x547c80 FUN_00547c80 size=721 conf=0.4 :: Queues a new sound source for playback on a channel, initializing or chaining onto the channel's streaming state machine.
+- 0x547f60 FUN_00547f60 size=130 conf=0.45 :: Resets a sound channel back to the idle/free pool, stopping or restarting its stream as appropriate.
+- 0x547ff0 FUN_00547ff0 size=84 conf=0.4 :: Checks whether a channel has finished playing and, if so, claims it as no longer free for reuse.
+- 0x548050 FUN_00548050 size=146 conf=0.4 :: Detects when a channel's playback has crossed a recorded loop boundary and advances its playback-transition state accordingly.
+- 0x5480f0 FUN_005480f0 size=122 conf=0.4 :: Sets the sound engine quality level and toggles EAX environmental audio support to match, then reapplies the environment defaults.
+- 0x548170 FUN_00548170 size=46 conf=0.3 :: Notifies a registered interface once of a state change (likely device focus/pause) alongside two external update calls.
+- 0x548200 FUN_00548200 size=148 conf=0.45 :: Enables or disables EAX environmental audio and resets the cached EAX reverb environment parameters to their defaults.
+- 0x5482e0 FUN_005482e0 size=150 conf=0.4 :: Finds and assigns a free or reclaimable sound channel of the required type to the given logical sound-class/id.
+- 0x548520 FUN_00548520 size=104 conf=0.4 :: Tests whether a channel's capability flag bits match a requested combination of 3D/stereo/hardware options.
+- 0x548590 FUN_00548590 size=225 conf=0.4 :: Sets the global master sound gain (DAT_007252ac) with pop-avoidance hysteresis around silence, flushing cached sounds via FUN_0054adb0/FUN_0054c900 when it changes.
+- 0x548680 sound_set_music_gain size=300 conf=0.6 :: Sets the music sound-class gain (DAT_007252a8), toggling a per-class mute flag for the "music" sound_class when the gain crosses zero.
+- 0x5487b0 sound_set_effects_gain size=2876 conf=0.9 :: Sets the effects sound gain (DAT_007252b0), refreshing per-sound_class mute flags for every effects-related class name.
+- 0x5492f0 sound_initialize size=425 conf=0.9 :: Allocates the sounds/looping-sounds datum tables, resets the four gain sliders to 1.0, and opens the sound device via its driver vtable.
+- 0x5494a0 FUN_005494a0 size=319 conf=0.4 :: Stops all playing sounds and reopens the sound device with a new parameter, re-seeding the looping-sound slot table on success.
+- 0x5495f0 FUN_005495f0 size=355 conf=0.3 :: Waits (up to 300ms) for the sound device to become available again after a focus/device-lost state, then clears the lost-focus flag and resumes.
+- 0x549760 sound_dispose size=166 conf=0.55 :: Shuts down the sound device and frees all sound/looping-sound/cache-file tables allocated by sound_initialize.
+- 0x549810 sound_update size=336 conf=0.5 :: Per-tick sound system update: handles focus loss/regain and, at a fixed cadence, updates the 3D listener, looping sounds, channel assignment and instance gains.
+- 0x549960 FUN_00549960 size=151 conf=0.3 :: Lightweight per-tick sound update (clock + instance gain pass only) used while waiting for the device to resume.
+- 0x549af0 FUN_00549af0 size=1003 conf=0.4 :: Creates a new playing-sound datum entry for a sound tag reference, applying pitch-range selection, randomized gain and a recent-play throttle, recursing through promotion/random-permutation sounds as 
+- 0x549ee0 FUN_00549ee0 size=110 conf=0.3 :: Validates a pitch-range handle and, if the sound has not started playing yet, schedules its initial gain fade-in.
+- 0x549f50 FUN_00549f50 size=76 conf=0.3 :: Finds a looping-sound datum by reference and stamps it with the current double-buffer flag, when the sound system is active.
+- 0x549fa0 sound_looping_set_state size=3548 conf=0.5 :: Sets the playback state/immediate flag on a looping-sound datum for an object, evicting cached resources for permutations that are no longer needed.
+- 0x54adb0 FUN_0054adb0 size=166 conf=0.4 :: Stops every currently playing sound and resets the sound datum table, used when a gain slider transitions across silence or on shutdown.
+- 0x54ae60 sound_update_clock size=88 conf=0.5 :: Advances the sound engine's millisecond clock and computes the per-tick blend weight used by crossfade/ducking calculations.
+- 0x54aec0 FUN_0054aec0 size=73 conf=0.4 :: Computes a randomized playback gain by combining a random-gain-modifier range with a distance-interpolated attenuation gain.
+- 0x54af10 FUN_0054af10 size=67 conf=0.35 :: Returns whether an object has loaded sound permutations for a sound class that is not currently muted.
+- 0x54af60 FUN_0054af60 size=233 conf=0.45 :: Schedules a smooth gain transition on one or two pitch-range playback slots over a short time window.
+- 0x54b050 FUN_0054b050 size=176 conf=0.4 :: Rate-limits how often a sound on an object may be (re)triggered, returning whether to play, substitute a promotion sound, or refuse.
+- 0x54b100 sound_compute_class_gain size=116 conf=0.5 :: Looks up a sound class's base gain and scales it by the appropriate combination of master/music/effects gain sliders.
+- 0x54b180 sound_instance_stop size=2003 conf=0.55 :: Stops a single playing-sound datum, evicting its cached permutation data and deleting its datum entry.
+- 0x54b970 sound_update_listener size=431 conf=0.55 :: Recomputes the 3D audio listener's orientation and position from the local player/camera each update and pushes it to the sound driver.
+- 0x54bb20 FUN_0054bb20 size=171 conf=0.35 :: Selects the nearest spatial (cluster/portal) bucket for a sound instance based on distance.
+- 0x54bbd0 FUN_0054bbd0 size=115 conf=0.4 :: Computes the squared distance from a target position to a numbered spatial cluster/portal position.
+- 0x54bc50 FUN_0054bc50 size=119 conf=0.4 :: Computes the real distance from a target position to a numbered spatial cluster/portal position.
+- 0x54bcd0 FUN_0054bcd0 size=133 conf=0.4 :: Invokes a pending predicted-resource load callback for a pitch-range slot once its scheduled time has arrived, clearing it on failure.
+- 0x54bd60 FUN_0054bd60 size=692 conf=0.35 :: Processes pending pitch-range loads and gradually ducks/restores the shared game-sound gain depending on whether music-class sounds are active.
+- 0x54c020 FUN_0054c020 size=426 conf=0.4 :: Per-tick pass that assigns newly-due sound instances to pitch-range playback channels, stealing or releasing channels as needed.
+- 0x54c1d0 FUN_0054c1d0 size=279 conf=0.35 :: Builds a list of active playback channels that match a candidate sound's class/tag, for channel-replacement decisions.
+- 0x54c2f0 FUN_0054c2f0 size=322 conf=0.35 :: Chooses (or steals) a pitch-range playback channel for a new sound instance to occupy.
+- 0x54c440 FUN_0054c440 size=410 conf=0.35 :: Finds the lowest-priority currently-playing channel eligible to be reused by a new sound instance.
+- 0x54c5e0 FUN_0054c5e0 size=207 conf=0.35 :: Picks a candidate playback channel that has played long enough and is close enough in distance to be safely replaced.
+- 0x54c6b0 FUN_0054c6b0 size=146 conf=0.35 :: Compares two playback channels by sound-class priority (and distance as a tiebreaker) to decide which is more important.
+- 0x54c750 FUN_0054c750 size=426 conf=0.4 :: Computes and applies the current gain for a non-looping (one-shot) playing sound instance, starting or updating its driver voice.
+- 0x54c900 sound_update_active_instances size=1058 conf=0.5 :: Per-tick update of every active playback channel: repositions/attenuates it in 3D, applies gain via the instant or looping gain path, and retires finished channels.
+- 0x54cd30 FUN_0054cd30 size=107 conf=0.35 :: Releases a playback channel's cached detail-sound reference and notifies the sound driver.
+- 0x54cda0 FUN_0054cda0 size=65 conf=0.3 :: Converts a linear gain value into a clamped logarithmic (DirectSound-style) volume unit.
+- 0x54cdf0 FUN_0054cdf0 size=83 conf=0.35 :: Evaluates a volume curve for a given attenuation value, passing silence through unchanged and clamping the result to a min/max range.
+- 0x54d020 FUN_0054d020 size=176 conf=0.3 :: Releases a channel's cached detail-sound buffers once the driver's active voice budget requires it, and accumulates its play-time weight.
+- 0x54d0d0 FUN_0054d0d0 size=106 conf=0.35 :: Releases a channel's cached detail-sound references and stops its driver voice.
+- 0x54d140 FUN_0054d140 size=293 conf=0.35 :: Allocates a new looping-sound state datum for an object/sound pair, seeding its per-permutation random selection values.
+- 0x54d270 FUN_0054d270 size=1886 conf=0.4 :: Per-tick maintenance of all looping-sound state datums: triggers due detail sounds and evicts predicted-resource cache entries that are no longer needed.
+- 0x54d9f0 FUN_0054d9f0 size=541 conf=0.45 :: Creates a new one-shot "detail sound" playing instance associated with a looping sound's cluster/permutation.
+- 0x54dc70 FUN_0054dc70 size=275 conf=0.35 :: Fills in a detail sound's 3D orientation/position parameters, used as a predicted-resource callback by the driver.
+- 0x54dd90 FUN_0054dd90 size=39 conf=0.3 :: Updates a pitch-range channel's tracked object id when it changes.
+- 0x54ddc0 FUN_0054ddc0 size=239 conf=0.3 :: Reassigns a pitch-range channel's predicted-resource target object, freeing a conflicting channel for non-music sound classes.
+- 0x54deb0 FUN_0054deb0 size=848 conf=0.4 :: Computes and applies the current gain and playback state for a looping playing sound instance, triggering detail sounds and starting/continuing its driver voice.
+- 0x54e200 sound_stop_all size=442 conf=0.35 :: Finalizes stopping a playing sound's channel/state and issues the last driver position/voice update, appearing to share code with the looping-gain state-transition logic.
+- 0x54e3c0 FUN_0054e3c0 size=269 conf=0.4 :: Evaluates a playback channel's current gain-fade progress between its scheduled start and end gain values.
+- 0x54e4d0 FUN_0054e4d0 size=251 conf=0.45 :: Computes a random 3D direction vector within configured yaw/pitch ranges, used to place ambient/detail sounds around a listener.
+- 0x54e5d0 FUN_0054e5d0 size=130 conf=0.4 :: Finds a looping-sound state datum whose stored reference matches the given value.
+- 0x54e660 FUN_0054e660 size=103 conf=0.3 :: Clamps a gain value against a scaled/divided comparison value, used when applying a looping sound's distance-based gain.
+- 0x54e6d0 render_debug_sound size=97 conf=0.6 :: Formats a debug string with a playing sound's tag name and two float parameters when sound debug display is enabled.
+- 0x54e740 FUN_0054e740 size=178 conf=0.35 :: Checks whether a looping sound's permutations would actually be audible before allowing a state change to proceed.
+- 0x54e830 FUN_0054e830 size=137 conf=0.3 :: Dispatches to a codec-specific decode function selected by a compression-format index.
+- 0x54e8c0 FUN_0054e8c0 size=92 conf=0.3 :: Computes one clamped 16-bit delta-decoded sample from a selector byte and shifted prediction value, as used by an ADPCM-style codec.
+- 0x54ec40 FUN_0054ec40 size=25 conf=0.45 :: Releases a cached EAX-related COM interface pointer if one is currently held.
+- 0x54ec60 FUN_0054ec60 size=238 conf=0.45 :: Queries a sound buffer for one or more EAX property-set COM interfaces and records which capability levels are supported.
+- 0x54ed50 FUN_0054ed50 size=148 conf=0.4 :: Pushes obstruction/occlusion/room-related EAX buffer properties to the previously-acquired property-set interface.
+- 0x54ee70 sound_gain_to_directsound_volume size=71 conf=0.5 :: Converts a linear gain value into a DirectSound-style logarithmic volume unit clamped to [-10000, param_2].
+- 0x54eec0 sound_gain_to_millibels size=66 conf=0.6 :: Converts a linear gain/occlusion factor into a clamped millibel attenuation value for DirectSound/EAX properties.
+- 0x54ef30 sound_eax20_effect_shutdown size=825 conf=0.55 :: Restores default EAX 2.0 listener/buffer reverb parameters and releases all cached IKsPropertySet interfaces held by the sound effects object.
+- 0x54f270 sound_eax20_effect_initialize size=1126 conf=0.6 :: Initializes the EAX 2.0 sound effects object by querying IKsPropertySet support for listener and buffer reverb properties and reports whether both are fully supported.
+- 0x54fa80 sound_eax20_effect_apply_listener size=1188 conf=0.6 :: Applies a reverb environment's parameters to the active EAX 2.0 listener property set, converting several fields to millibels first.
+- 0x54fff0 sound_eax30_effect_shutdown size=882 conf=0.5 :: Restores default EAX 3.0-style listener/buffer reverb parameters and releases all cached property-set interfaces held by the sound effects object.
+- 0x550370 sound_eax30_effect_initialize size=1300 conf=0.5 :: Initializes the EAX 3.0-style sound effects object, querying property-set support for listener and buffer reverb properties.
+- 0x550890 sound_eax30_effect_apply_channel size=884 conf=0.6 :: Computes and applies per-channel obstruction/occlusion EAX 3.0 buffer reverb parameters for one sound channel.
+- 0x550c10 FUN_00550c10 size=91 conf=0.35 :: Normalizes a frequency-like environment parameter (roughly in the 20-20000 Hz range) into the scale expected by an EAX 3.0 reverb property, with special-cased boundary values.
+- 0x550c70 sound_eax30_effect_apply_listener size=1284 conf=0.55 :: Applies a reverb environment's parameters to the active EAX 3.0-style listener property set, including a size/frequency scale computed via sound_reverb_size_scale.
+- 0x551270 sound_effects_object_detect_mode size=406 conf=0.7 :: Probes for EAX3, EAX2, then EAX1 sound-effects backend support in order, selects the first available implementation, and formats a Sound effect mode set to %s status string.
+- 0x551420 sound_effects_object_shutdown size=49 conf=0.6 :: Releases and frees the current global sound effects object, if one exists.
+- 0x551460 FUN_00551460 size=19 conf=0.3 :: Returns the result of invoking the active sound effects object's vtable+8 method, or 0 if no effects object is active.
+- 0x551480 sound_effects_object_apply_all_channels size=65 conf=0.6 :: Iterates all sound channels and invokes the effects object's per-channel apply method for each channel flagged as EAX-enabled.
+- 0x5514d0 sound_effects_object_reinitialize size=321 conf=0.6 :: Enables or disables the global EAX sound effects object, (re)initializing it against the current listener by trying EAX3, EAX2, then EAX1 backends in order.

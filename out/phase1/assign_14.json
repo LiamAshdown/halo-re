@@ -1,0 +1,1836 @@
+{
+ "slice": 14,
+ "assignments": [
+  {
+   "addr": "0x58e636",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58e725",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58e82c",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58e8e3",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58e96e",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58ea35",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58ea51",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58eb05",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58eb21",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58ebbe",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58ebda",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58ec72",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58ec8e",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58ed15",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58ed31",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58edcf",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58edeb",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58ee89",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58eea5",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58ef2e",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58ef4a",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f005",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f021",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f03d",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f11d",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f139",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f205",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f221",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f23d",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f338",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f354",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f416",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f432",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f44e",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f46a",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f583",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f59f",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f5bb",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f6d2",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f6ee",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f7cf",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f7eb",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f807",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f8a3",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f8bf",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f950",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f96c",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58f988",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58fa15",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58fa31",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58fa88",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58fb25",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58fb87",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58fc2e",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58fc4a",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58fc66",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58fd0b",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58fd27",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58fe19",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58fe35",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58fe51",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x58fe6d",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x59017d",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x590199",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x5901b5",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x5901d1",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x5901ed",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x5905b9",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x5905d8",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x5905f4",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x590610",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x5906ae",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x59072d",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x590919",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x590931",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x590949",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x590961",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x59097d",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x590dc2",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x591081",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x5910a8",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x5910c0",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x5910d8",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x5910f0",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x591108",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x591120",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x591138",
+   "module": "lib:d3dx",
+   "confidence": 0.92,
+   "evidence": "run 0x58e636-0x5918ff: D3DFORMAT pixel converters + ctor thunks, factory FUN_591138 switches on 'DXT1'/D3DFMT codes"
+  },
+  {
+   "addr": "0x591900",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x591900-0x59217f: unstringed D3DX helper math, bracketed by confirmed D3DX runs"
+  },
+  {
+   "addr": "0x591a1f",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x591900-0x59217f: unstringed D3DX helper math, bracketed by confirmed D3DX runs"
+  },
+  {
+   "addr": "0x591a86",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x591900-0x59217f: unstringed D3DX helper math, bracketed by confirmed D3DX runs"
+  },
+  {
+   "addr": "0x591ad6",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x591900-0x59217f: unstringed D3DX helper math, bracketed by confirmed D3DX runs"
+  },
+  {
+   "addr": "0x59212f",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x591900-0x59217f: unstringed D3DX helper math, bracketed by confirmed D3DX runs"
+  },
+  {
+   "addr": "0x59216e",
+   "module": "lib:d3dx",
+   "confidence": 0.8,
+   "evidence": "run 0x591900-0x59217f: unstringed D3DX helper math, bracketed by confirmed D3DX runs"
+  },
+  {
+   "addr": "0x592180",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x592180-0x5923a7: D3DX resource/file loader (FindResourceA/W, CreateFileMappingA)"
+  },
+  {
+   "addr": "0x5922a1",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x592180-0x5923a7: D3DX resource/file loader (FindResourceA/W, CreateFileMappingA)"
+  },
+  {
+   "addr": "0x5922e2",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x592180-0x5923a7: D3DX resource/file loader (FindResourceA/W, CreateFileMappingA)"
+  },
+  {
+   "addr": "0x5922ed",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x592180-0x5923a7: D3DX resource/file loader (FindResourceA/W, CreateFileMappingA)"
+  },
+  {
+   "addr": "0x5922fb",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x592180-0x5923a7: D3DX resource/file loader (FindResourceA/W, CreateFileMappingA)"
+  },
+  {
+   "addr": "0x59231a",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x592180-0x5923a7: D3DX resource/file loader (FindResourceA/W, CreateFileMappingA)"
+  },
+  {
+   "addr": "0x5923a8",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5923a8-0x592df5: strings 'DisableD3DXPSGP', 'Software\\Microsoft\\Direct3D', 'GenuineIntel'"
+  },
+  {
+   "addr": "0x5927b2",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5923a8-0x592df5: strings 'DisableD3DXPSGP', 'Software\\Microsoft\\Direct3D', 'GenuineIntel'"
+  },
+  {
+   "addr": "0x592b80",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5923a8-0x592df5: strings 'DisableD3DXPSGP', 'Software\\Microsoft\\Direct3D', 'GenuineIntel'"
+  },
+  {
+   "addr": "0x592ba5",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5923a8-0x592df5: strings 'DisableD3DXPSGP', 'Software\\Microsoft\\Direct3D', 'GenuineIntel'"
+  },
+  {
+   "addr": "0x592c55",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5923a8-0x592df5: strings 'DisableD3DXPSGP', 'Software\\Microsoft\\Direct3D', 'GenuineIntel'"
+  },
+  {
+   "addr": "0x592c8f",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5923a8-0x592df5: strings 'DisableD3DXPSGP', 'Software\\Microsoft\\Direct3D', 'GenuineIntel'"
+  },
+  {
+   "addr": "0x592c9b",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5923a8-0x592df5: strings 'DisableD3DXPSGP', 'Software\\Microsoft\\Direct3D', 'GenuineIntel'"
+  },
+  {
+   "addr": "0x592cfa",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5923a8-0x592df5: strings 'DisableD3DXPSGP', 'Software\\Microsoft\\Direct3D', 'GenuineIntel'"
+  },
+  {
+   "addr": "0x592df6",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x592e61",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x592e7d",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x592ec4",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x592edc",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x592f3f",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x592f5b",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x592f84",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x592f9a",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x592fc2",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x5931b3",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x5931d4",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x5931f0",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x59321f",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x59323b",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x59327f",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x593433",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x5936c2",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x593705",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x5937f3",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x59380a",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x593918",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x59392f",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x593c75",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x593c9e",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x593f07",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x593f3a",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x593f40",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x593f5d",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x593f7f",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x593f9f",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x593fce",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x59410f",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x594165",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "run 0x592df6-0x5941cd: D3DX COM/allocator support for the HLSL compiler (E_NOINTERFACE GUID compare)"
+  },
+  {
+   "addr": "0x5941ce",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x5941d2",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x5941ec",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x594254",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x5942ad",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x594429",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x5944a8",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x5945b4",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x5945fa",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x594681",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x5946e9",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x5947b2",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x594913",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x594a56",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x594b86",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x594c2b",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x594ca7",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x594d48",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x594ede",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x594fe1",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x595020",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x595103",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x595281",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x59529d",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x5952cb",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x5952e7",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x595300",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x595340",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x59535c",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x595411",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x595461",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x5954ea",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x595505",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x595897",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x59596f",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x5959b3",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x595ba6",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x595d63",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x5941ce-0x59610f: HLSL lexer, strings 'error X%u: ' + 'hex value truncated to 32bits'"
+  },
+  {
+   "addr": "0x597426",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x5974b7",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x597533",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x5975af",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x5975d0",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x598141",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x5981ac",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x5982fa",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x598359",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x598598",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x5985e7",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x598647",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59867a",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x5986c5",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x5986e5",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x598706",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x598724",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x598758",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x598774",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x598798",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x5987eb",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59887e",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x5988ba",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x598940",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x598a1d",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x598c02",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x598cd1",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x598daf",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x598e7e",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x598f5c",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x599048",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x599136",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x599222",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x599312",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x599381",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59940a",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x599664",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59967f",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x599842",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59985d",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x599879",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x599b1a",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x599c58",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x599d82",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x599e1b",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x599fbd",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59a025",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59a08d",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59a25d",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59a443",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59a613",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59a7f9",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59a878",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59a8f7",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59a977",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59a9f7",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59aa76",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59aaf5",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59ab75",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59abf5",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59ac61",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59accd",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59ad81",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59ae45",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59af91",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59b01a",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59b0c3",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59b14c",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59b1f3",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59b287",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59b342",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59b41e",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59b4fa",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59b5c7",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59b699",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59b75d",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59b82b",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59b847",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59bf6c",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59bfc3",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59bfdf",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59c094",
+   "module": "lib:d3dx",
+   "confidence": 0.9,
+   "evidence": "run 0x596110-0x59c81e: HLSL/effect symbol tables, callers of the 'error X%u' reporter"
+  },
+  {
+   "addr": "0x59c81f",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59c830",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59c85c",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59c98a",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59c9de",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59ca29",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59ca7f",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59cab0",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59cb10",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59cb90",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59cd77",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59cd93",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59cd9f",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59ce32",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59cebd",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59cf2b",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59cf4a",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59cfbc",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59d045",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59d0f3",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59d3b6",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59d47e",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59d633",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59d673",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59d7b3",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59d80f",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59d886",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59d99c",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59d9df",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59da46",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59db36",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59db4f",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59dbf0",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59dce5",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59e35f",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59e46c",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59e581",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59e630",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  },
+  {
+   "addr": "0x59e95e",
+   "module": "lib:d3dx",
+   "confidence": 0.95,
+   "evidence": "run 0x59c81f-0x59e95e: HLSL semantics, 'internal error: unknown node' + 'cannot %sconvert from'"
+  }
+ ],
+ "boundaries": [
+  {
+   "addr": "0x58e636",
+   "note": "slice start continues the D3DX pixel-format conversion run begun in slice 13 (same FUN_58b1bc/FUN_58b4ae callee pair) - no source-file boundary here"
+  },
+  {
+   "addr": "0x591900",
+   "note": "end of the D3DFORMAT converter object file (FUN_591138 is its factory); a new D3DX object file starts"
+  },
+  {
+   "addr": "0x592180",
+   "note": "start of D3DX Win32 file/resource loading object file"
+  },
+  {
+   "addr": "0x5923a8",
+   "note": "start of D3DX CPU-detect / PSGP setup object file"
+  },
+  {
+   "addr": "0x5941ce",
+   "note": "start of the HLSL lexer/diagnostics object file ('error X%u: ')"
+  },
+  {
+   "addr": "0x59c81f",
+   "note": "start of the HLSL semantic-analysis object file; run continues into slice 15 (0x59ea05+ is still HLSL type checking)"
+  },
+  {
+   "addr": "0x59e95e",
+   "note": "slice end falls mid-run; slice 15 continues the same HLSL compiler source file"
+  }
+ ],
+ "notes": "Entire slice is statically linked D3DX9 (Gearbox linked d3dx9 into halo.exe). Two large library components: the D3DX surface/pixel-format conversion machinery (0x58e636-0x59217f: D3DFORMAT fourcc dispatch, A2R10G10B10/DXT converters, verified by decompiling 0x58e636 and 0x591138), and the D3DX9 HLSL/effect compiler (0x5941ce onward; the 'error X%u: ' / 'warning X%u: ' diagnostic format is the unmistakable HLSL signature, plus 'internal error: unknown node', \"cannot %sconvert from '%s' to '%s'\", 'redefinition of formal parameter', 'object literals are not allowed inside functions'). The CPU-detect block carries 'DisableD3DXPSGP' and 'Software\\Microsoft\\Direct3D'. No Blam engine code anywhere in the slice - no tag paths, no snake_case engine identifiers, no Halo developer error messages. Slices 13 and 15 are the same library on both sides, so no run boundary coincides with a slice edge. Confidence is lowest (0.8) for 0x591900-0x59217f, which has no strings, but it is bracketed by confirmed D3DX runs."
+}

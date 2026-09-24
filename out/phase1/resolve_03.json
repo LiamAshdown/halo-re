@@ -1,0 +1,23 @@
+{
+  "slice": 3,
+  "decisions": [
+    {
+      "addr": "0x4749a0",
+      "module": "game",
+      "confidence": 0.75,
+      "evidence": "Keep game (players.c run). pack.py shows the body is a player-datum iteration loop: FUN_4d05d0 is the player iterator, it decrements the respawn timer at +0xcc, calls kill_feed (0x460a30) and the spawn helpers 0x478400/0x478500, then scans the scenario bsp-switch-trigger-volume block (DAT_00746f8c+0x39c / +0x5a4). The two bsp strings are printed inside that scan, before the call to 0x4aa2a0 - i.e. the tiny validator main_switch_structure_bsp was INLINED here; the 902-byte enclosing function is a per-player update, not main.c. MSVC contiguity is decisive: a single out-of-line main.c function cannot sit between 0x474590 and 0x474d30, and 0x4749a0 shares the private globals DAT_0087a478/0x87a480/0x719720/0x8603b0 with 0x4740a0 and 0x474590 and has the same lone caller (the game-tick function in slice 02 that calls 0x4740a0, 0x474590, 0x4749a0 in sequence). The cea-pdb hint is real but is explained by inlining. Run 0x473c50-0x474d50 stays contiguous."
+    },
+    {
+      "addr": "0x472160",
+      "module": "game",
+      "confidence": 0.7,
+      "evidence": "Keep game (player_control.c run 0x470fb0-0x472760). The function's subject is the per-player control record DAT_006b145c + index*0x40: it adds the look-angle deltas into +0xc, wraps to [0,2pi), reads the seat/unit aiming limits (+0x40/+0x44/+0x48 of the pointer produced by 0x472020) and clamps the per-tick delta to 0.012271847 rad against +0x38 - this is player aiming/look-angle integration, not camera placement. The +/-1.4922565 clamp is the unit's aim-pitch limit, not an FOV. The camera module's real home is the 0x444c00-0x449170 run (director/observer, 'primary trigger' cea-hint camera); 0x472160 lies inside the player_control run, calls its neighbour 0x470d40, and is called by 0x471ae0 in the same run. Moving it would split an otherwise coherent object-file run."
+    },
+    {
+      "addr": "0x472020",
+      "module": "game",
+      "confidence": 0.7,
+      "evidence": "Keep game, and keep it with 0x472160. It is a small out-param helper that resolves a player's unit index, seat index and the pointer to the seat's aiming/camera data (seat block at +0x2e8 stride 0x11c, else unit definition +0x1a8) from the player-control record DAT_006b145c. It is a shared accessor: its three callers are 0x472160 here plus 0x446870 and 0x447370, which are in the camera run in slice 02 - being called by camera code does not make it camera code. Address contiguity puts its home in the player_control run 0x470fb0-0x472760 (between 0x471f90 and 0x472100), far from the camera run at 0x444c00-0x449170. The Ghidra name is a Chimera hook-site label describing what Chimera uses the hook for (spectate first-person camera), not a Halo symbol."
+    }
+  ]
+}

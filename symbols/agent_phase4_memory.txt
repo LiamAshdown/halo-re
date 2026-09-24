@@ -1,0 +1,23 @@
+# memory module (0x4cf810..0x4d2370) names established by the phase-4/5 C rewrite
+# in src/memory/*.c; each name is justified in that file's header comment.
+# addr name kind confidence source
+0x4cf8f0 bit_stream_write_bits_chunked func 0.40 agent-phase4:memory_rewrite_src/memory/bit_stream_write_bits_chunked.c
+0x4cf950 bit_stream_read_bits_chunked func 0.40 agent-phase4:memory_rewrite_src/memory/bit_stream_read_bits_chunked.c
+0x4d02c0 datum_index_invalidate func 0.30 agent-phase4:memory_rewrite_src/memory/datum_index_invalidate.c
+0x4d0630 datum_next func 0.45 agent-phase4:memory_rewrite_src/memory/datum_next.c
+0x4d06c0 datum_element_initialize func 0.45 agent-phase4:memory_rewrite_src/memory/datum_element_initialize.c
+0x4d0700 byte_stream_write_ranged_integer func 0.45 agent-phase4:memory_rewrite_src/memory/byte_stream_write_ranged_integer.c
+0x4d08a0 byte_stream_read_ranged_integer func 0.45 agent-phase4:memory_rewrite_src/memory/byte_stream_read_ranged_integer.c
+0x4d0980 struct_definition_table_compute_sizes func 0.60 agent-phase4:memory_rewrite_src/memory/struct_definition_table_compute_sizes.c
+0x4d0bc0 data_packet_group_encode_packet_body func 0.55 agent-phase4:memory_rewrite_src/memory/data_packet_group_encode_packet_body.c
+0x4d0c70 data_packet_group_decode_packet_body func 0.55 agent-phase4:memory_rewrite_src/memory/data_packet_group_decode_packet_body.c
+0x4d1840 cache_allocate_block func 0.80 agent-phase4:memory_rewrite_src/memory/cache_allocate_block.c
+0x4d1ca0 cache_build_status_bitmap func 0.80 agent-phase4:memory_rewrite_src/memory/cache_build_status_bitmap.c
+0x4d2020 heap_resize_block func 0.70 agent-phase4:memory_rewrite_src/memory/heap_resize_block.c
+0x4d20a0 heap_unlink_block func 0.85 agent-phase4:memory_rewrite_src/memory/heap_unlink_block.c
+0x4d20f0 heap_get_free_bytes func 0.85 agent-phase4:memory_rewrite_src/memory/heap_get_free_bytes.c
+0x4d2110 heap_find_first_free_slot func 0.90 agent-phase4:memory_rewrite_src/memory/heap_find_first_free_slot.c
+0x4d2140 heap_advance_free_slot func 0.90 agent-phase4:memory_rewrite_src/memory/heap_advance_free_slot.c
+0x4d2180 heap_allocate_raw func 0.75 agent-phase4:memory_rewrite_src/memory/heap_allocate_raw.c
+0x4d2310 heap_compact func 0.80 agent-phase4:memory_rewrite_src/memory/heap_compact.c
+0x4d2370 heap_find_free_block func 0.85 agent-phase4:memory_rewrite_src/memory/heap_find_free_block.c

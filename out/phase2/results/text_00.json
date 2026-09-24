@@ -1,0 +1,180 @@
+{
+  "results": [
+    {
+      "addr": "0x5561b0",
+      "name": "text_language_initialize_from_string_list",
+      "confidence": 0.55,
+      "evidence": "Uses the datum_get-style lookup (idx*0x20+0x14+DAT_0087bc14) on a string-list id (DAT_006e4728) to fetch a string, atol()s it into DAT_006e4800 clamped to 0..5 (matches the 5-way DBCS codepage switch in FUN_00557750/text_char_is_double_byte), then resets several text-engine globals (selection/font override state).",
+      "prototype": "",
+      "summary": "Reads a config string from a string list, converts it to the text engine's active language/codepage id (DAT_006e4800, clamped 0-5), and resets related text-state globals."
+    },
+    {
+      "addr": "0x5562d0",
+      "name": "text_edit_box_reset_cursor_font",
+      "confidence": 0.3,
+      "evidence": "Resets clip-rect defaults (0x7fff/0x8000), resolves a per-character font override via a 0x10-byte table at font_record+0x48 (same pattern as FUN_00556b00), stores the resolved font record pointer, then calls FUN_00556780 with a callback address; the result is used to populate a cursor/selection record (unaff_ESI/unaff_EDI pairs).",
+      "prototype": "",
+      "summary": "Resolves the current edit box font/override, invokes the styled word-wrap routine to (re)compute cursor position, and stores the resulting extents into an on-screen cursor/selection structure passed in via ESI/EDI."
+    },
+    {
+      "addr": "0x5563b0",
+      "name": "text_set_render_context",
+      "confidence": 0.55,
+      "evidence": "Stores the font id (in_ECX) into DAT_006e472c, copies a 4-dword rect from in_EAX into DAT_006e4738..DAT_006e4744 (the same rect later passed as &DAT_006e4738 to FUN_00556b00 by every word-wrap entry point), and stores justification flags (param_1/param_2) and draw flags (param_3) into DAT_006e4734/DAT_006e4730.",
+      "prototype": "",
+      "summary": "Sets the active font id, bounding rectangle, and horizontal/vertical justification flags used by the subsequent word-wrap/draw calls."
+    },
+    {
+      "addr": "0x556400",
+      "name": "text_word_wrap_and_draw_styled",
+      "confidence": 0.4,
+      "evidence": "Calls FUN_00556b00 to init the parser state, drives a loop over FUN_00556bb0 (the markup-aware tokenizer), accumulates line/column offsets and justification (local_30: right/center), and for each measured span calls FUN_00557030(param_1,...) which itself dispatches a draw callback per character.",
+      "prototype": "",
+      "summary": "Word-wraps and lays out a run of markup-tagged text (color/bold/italic/underline/tab/newline codes), invoking a caller-supplied draw callback for each visible span and reporting the final cursor position through param_3."
+    },
+    {
+      "addr": "0x556780",
+      "name": "text_word_wrap_and_draw_plain",
+      "confidence": 0.35,
+      "evidence": "Near-identical structure to FUN_00556400 (same field layout, same DAT_006e47xx globals, same clip logic) but drives the loop with FUN_00556f10 (the plain tab/CR/newline-only tokenizer) instead of FUN_00556bb0, and draws via FUN_005572b0 instead of FUN_00557030.",
+      "prototype": "",
+      "summary": "Word-wraps and lays out a run of plain (non-markup) text, calling FUN_005572b0 to draw each visible span; a simplified twin of text_word_wrap_and_draw_styled without inline formatting-code support."
+    },
+    {
+      "addr": "0x556b00",
+      "name": "text_parser_state_init",
+      "confidence": 0.4,
+      "evidence": "Called first by every word-wrap/measure loop (FUN_00556400/00556780/00557530) as FUN_00556b00(font_id, &rect); stores font id, rect pointer, and a per-character font-override id into a caller-owned struct (unaff_ESI), and resolves the active font record pointer via the same idx*0x10 override-table pattern used elsewhere in the module.",
+      "prototype": "",
+      "summary": "Initializes the text-parsing/cursor state struct (font id, bounds pointer, style word, resolved font record, and packed flag bytes) that the tokenizer and draw routines subsequently operate on."
+    },
+    {
+      "addr": "0x556bb0",
+      "name": "text_parse_next_token_styled",
+      "confidence": 0.4,
+      "evidence": "Reads characters via FUN_00557750 (DBCS/markup-escape detection); on a '|'-prefixed control character, switches over b/c/i/k/l/n/p/r/t/u to set style fields (font override, justification, kerning) in the parser struct and returns a token type; falls back to a string-list lookup (DAT_006e4728, same pattern as FUN_005561b0) for diagnostic text on malformed input.",
+      "prototype": "",
+      "summary": "Advances the text cursor by one token, recognizing '|x' inline formatting codes (color/bold/italic/kerning/justify/tab/underline) as well as plain characters, updating the shared parser state and returning the token type."
+    },
+    {
+      "addr": "0x556f10",
+      "name": "text_parse_next_token_plain",
+      "confidence": 0.4,
+      "evidence": "Reads the next 16-bit code from the parser struct (in_EAX+8/+0xc) and classifies only NUL(0)->0, tab(9)->3, CR(0xd)->1, and the two-character sequence \"|n\"->1; everything else returns 6 (ordinary character), unlike the richer FUN_00556bb0 tokenizer.",
+      "prototype": "",
+      "summary": "Simplified token classifier used by the plain-text word-wrap path: recognizes end-of-string, tab, carriage return and an explicit newline escape, treating all other characters as literal glyphs."
+    },
+    {
+      "addr": "0x557030",
+      "name": "text_draw_character_range_styled",
+      "confidence": 0.4,
+      "evidence": "Intersects two caller-supplied rectangles into local clip bounds, then for each column from param_6 to param_7 calls FUN_00556bb0 to resolve the glyph for that column, looks up glyph metrics (char-to-glyph table at struct+0x34, metrics array at struct+0x80), clips the glyph's source/dest rect against the bounds, XORs the color with 0xffffff outside the [DAT_006e476a,DAT_006e476c) selection range, and invokes the caller-supplied draw callback (*param_1) per visible glyph.",
+      "prototype": "",
+      "summary": "Draws a clipped range of markup-tokenized characters via a caller-supplied glyph-blit callback, inverting color for the selected-text sub-range."
+    },
+    {
+      "addr": "0x5572b0",
+      "name": "text_draw_character_range_plain",
+      "confidence": 0.35,
+      "evidence": "Structurally identical to FUN_00557030 (same clip/intersection and selection-XOR logic against DAT_006e476a/476c) but resolves each column's glyph via FUN_00556f10 (the plain tokenizer) instead of FUN_00556bb0.",
+      "prototype": "",
+      "summary": "Draws a clipped range of plain (non-markup) text characters via a caller-supplied glyph-blit callback; the plain-text twin of text_draw_character_range_styled."
+    },
+    {
+      "addr": "0x557530",
+      "name": "text_measure_string_fit_width",
+      "confidence": 0.5,
+      "evidence": "Drives FUN_00556f10 in a loop accumulating glyph advance widths (iVar4) via the same char-to-glyph/metrics lookup pattern as the draw routines; stops and returns the last committed column (local_20) once the accumulated width would exceed *param_1, and writes back the remaining width into *param_1.",
+      "prototype": "int __cdecl text_measure_string_fit_width(int *max_width_inout)",
+      "summary": "Measures how many characters of the current parser string fit within a given pixel width, returning the column index where the text must break and reducing *max_width_inout by the consumed width."
+    },
+    {
+      "addr": "0x557650",
+      "name": "text_get_character_metrics",
+      "confidence": 0.5,
+      "evidence": "Looks up a character code (in_EDX) via unaff_EDI+0x34 (char-to-glyph index table, same layout used inline in FUN_00556400/00557030) and returns a pointer into unaff_EDI+0x80 (the glyph metrics array), or 0 if the character has no glyph.",
+      "prototype": "",
+      "summary": "Resolves the glyph-metrics record for a given character code within the current font, returning null if the character is not mapped."
+    },
+    {
+      "addr": "0x5576a0",
+      "name": "text_get_next_character",
+      "confidence": 0.45,
+      "evidence": "Uses FUN_00557750 to decide whether the byte pair at the string cursor forms a double-byte character; reads and returns either 1 or 2 bytes as a combined code, advancing the short cursor (unaff_ESI) accordingly.",
+      "prototype": "",
+      "summary": "Reads and returns the next character (1 or 2 bytes, DBCS-aware) from a string and advances the cursor offset."
+    },
+    {
+      "addr": "0x5576d0",
+      "name": "text_find_character_boundary",
+      "confidence": 0.4,
+      "evidence": "Steps forward through the string one character at a time (via FUN_00557750's DBCS check) until the running offset reaches *param_2, then writes back the last complete-character offset into *param_2 rather than a value that could split a double-byte character.",
+      "prototype": "",
+      "summary": "Scans a string to find the last valid character boundary at or before a given byte length, so a string can be truncated without splitting a double-byte character; returns the character code at that boundary."
+    },
+    {
+      "addr": "0x557720",
+      "name": "text_clamp_byte_length_to_character_boundary",
+      "confidence": 0.4,
+      "evidence": "Nearly identical loop to FUN_005576d0 (uses FUN_00557750 to step 1 or 2 bytes at a time) but only rewrites the length in place (*unaff_EDI = sVar2) without returning a character code.",
+      "prototype": "",
+      "summary": "Adjusts an in-place byte-length value so it lands on a valid (non-split) DBCS character boundary."
+    },
+    {
+      "addr": "0x557750",
+      "name": "text_char_is_double_byte",
+      "confidence": 0.55,
+      "evidence": "Naming hint 'double_byte_character' matches the string \"ibukprlctn\"; treats a '|' followed by one of those letters as a 2-byte markup escape, and otherwise classifies the byte pair as a DBCS lead/trail pair per the active codepage in DAT_006e4800 (5 distinct lead/trail-byte range tables, i.e. Shift-JIS/Big5/GBK/EUC-style codepages).",
+      "prototype": "",
+      "summary": "Determines whether the two bytes at the current string position should be consumed together as one unit: either a '|x' inline formatting escape or a double-byte character in the active codepage."
+    },
+    {
+      "addr": "0x557870",
+      "name": "text_find_character",
+      "confidence": 0.4,
+      "evidence": "Walks the string via FUN_00557750-driven character reads, comparing each decoded character to unaff_BX; returns the byte offset with a found flag set in the low byte when a match occurs, or offset<<8 with flag 0 at the terminating NUL.",
+      "prototype": "",
+      "summary": "DBCS-aware search for a target character within a string, returning the byte offset and whether the character was found before the string ended."
+    },
+    {
+      "addr": "0x5578c0",
+      "name": "text_string_list_get_string",
+      "confidence": 0.5,
+      "evidence": "Uses the datum_get-style lookup ((idx&0xffff)*0x20+0x14+DAT_0087bc14) on a list id (in_ECX) to reach a string-list record, indexes into its entry array by in_DX, and returns the entry's string pointer (null-terminating it one short early), falling back to the shared empty string PTR_DAT_00671fac when the index is out of range.",
+      "prototype": "",
+      "summary": "Fetches a string by index from a tag-referenced string list, returning a pointer to the (possibly trimmed) string or the default empty string if the id/index is invalid."
+    },
+    {
+      "addr": "0x557910",
+      "name": "string_format_wide_va_bounded",
+      "confidence": 0.5,
+      "evidence": "Directly forwards to FID_conflict_vswprintf(dest, count, format, args), i.e. the bounded (_vsnwprintf-style) wide sprintf variant, with the count taken from an implicit register argument.",
+      "prototype": "",
+      "summary": "Thin wrapper around the length-bounded wide vswprintf that forwards a destination buffer, format string, and varargs list."
+    },
+    {
+      "addr": "0x557930",
+      "name": "string_format_wide_va",
+      "confidence": 0.5,
+      "evidence": "Directly forwards to the CRT _vswprintf(dest, format, args) with no length bound, distinguishing it from the bounded FUN_00557910 wrapper.",
+      "prototype": "",
+      "summary": "Thin wrapper around the unbounded CRT vswprintf for wide strings."
+    },
+    {
+      "addr": "0x557950",
+      "name": "wide_string_to_narrow_padded",
+      "confidence": 0.4,
+      "evidence": "Gets a length (FUN_00625b7a) for a wide-char source, then copies each wchar's low byte when its high byte is zero (pure ASCII) or substitutes a space (0x20) otherwise, null-terminating the output; returns the destination pointer or 0 if the source is too long for param_1.",
+      "prototype": "",
+      "summary": "Converts a wide-character string into a fixed-capacity narrow (single-byte) buffer, replacing any non-ASCII wide characters with spaces."
+    },
+    {
+      "addr": "0x557990",
+      "name": "string_convert_ascii_to_unicode",
+      "confidence": 0.4,
+      "evidence": "Computes strlen of a narrow source string (unaff_EBX), clamps it to the destination capacity (unaff_EDI, in bytes), then widens each byte into a 2-byte code stored into a length-prefixed buffer at in_EAX+2, copying back-to-front to stay overlap-safe, and NUL-terminates.",
+      "prototype": "",
+      "summary": "Widens a narrow ASCII string into a caller-owned length-prefixed unicode (UTF-16-ish) character buffer, truncating to fit the destination's byte capacity."
+    }
+  ]
+}

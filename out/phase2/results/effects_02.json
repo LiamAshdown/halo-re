@@ -1,0 +1,36 @@
+{
+  "results": [
+    {
+      "addr": "0x53f860",
+      "name": "effect_marker_test_sky_visibility",
+      "confidence": 0.35,
+      "evidence": "Follows a marker index (via FUN_0053ec30) through a chain of struct lookups ending in a per-cluster flags byte at DAT_0087bc14[...]+0x14 & 1 (the same cluster table and offset used by FUN_0053f940 for lighting), and compares it against request flags in param_3 (bits 4/8) before always calling FUN_0053f940 to compute the marker's ambient color.",
+      "prototype": "",
+      "summary": "Determines whether an effect marker's containing cluster matches a requested sky/indoor visibility filter, computing the marker's ambient color as a side effect via FUN_0053f940."
+    },
+    {
+      "addr": "0x53f940",
+      "name": "effect_marker_get_ambient_color",
+      "confidence": 0.45,
+      "evidence": "For a marker index bounds-checked against DAT_00746b84, looks up its cluster ambient sample via FUN_0053fc80 and blends it with per-marker tint arrays (DAT_00746b98/9c/ba0/ba4, indexed marker*8), applying an optional falloff when param_2 bit1 is set, and falls back to the constant default color at PTR_DAT_00696714 when the marker is invalid or disabled.",
+      "prototype": "",
+      "summary": "Computes the ambient light/color for an effect marker by sampling the ambient color grid and blending it with the marker's stored tint, writing the RGB result through the implicit EDI output pointer."
+    },
+    {
+      "addr": "0x53fa70",
+      "name": "effect_ambient_color_grid_update",
+      "confidence": 0.35,
+      "evidence": "Advances a persistent LCG random seed (DAT_00719cd0, multiplier 0x19660d/increment 0x3c6ef35f, classic PRNG constants) to pick new samples from a source table (DAT_006b7af4) into &DAT_00746284 -- the same ambient color grid sampled by FUN_0053fc80 -- then blends old and new samples over 8 steps via FUN_00447080.",
+      "prototype": "",
+      "summary": "Periodically re-randomizes entries of the ambient color probe grid and smoothly interpolates the transition between old and new values."
+    },
+    {
+      "addr": "0x53fc80",
+      "name": "effect_sample_ambient_color_grid",
+      "confidence": 0.4,
+      "evidence": "Averages three dithered lookups into the &DAT_00746284 color grid table (the same table FUN_0053fa70 randomizes), using a noise-like fractional offset derived from param_1/DAT_00746f88 and scaling the accumulated result by param_2/3.0, defaulting the output to the constant color at PTR_DAT_00696714.",
+      "prototype": "",
+      "summary": "Samples and dithers three entries from the ambient color probe grid to produce a smoothed, intensity-scaled RGB color."
+    }
+  ]
+}

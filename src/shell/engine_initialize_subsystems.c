@@ -1,0 +1,180 @@
+// engine_initialize_subsystems  (Ghidra: engine_initialize_subsystems, already named)
+// address 0x540ee0, size 297 bytes
+// name confidence: 0.6   rewrite confidence: 0.75
+// evidence: the four LoadLibraryA/GetProcAddress pairs match the string literals
+// ("d3d9.dll"/"Direct3DCreate9", "dsound.dll"/"DirectSoundCreate8", "dinput8.dll"/
+// "DirectInput8Create", "shfolder.dll"/"SHGetFolderPathA") and the four cached FARPROC globals
+// shell.h documents at 0x00746264/68/6c/70/74; the 0x41-dword-plus-one-byte zero fill at
+// 0x006ac900 matches profile_directory[0x104] in types/cache.h (shell.h notes the memset runs
+// one byte past that array).
+// register convention: __cdecl, no arguments.
+// UNSURE: data_file_open, directory_create_recursive, profile_path_initialize,
+// input_directinput_initialize, math_initialize, game_state_startup, sound_initialize and
+// render_initialize belong to other modules; their prototypes below are inferred only from this call
+// site's argument/return usage, not verified against their own definitions. DAT_0087ac00/01/04/05
+// and DAT_0087ac08 are likewise owned by another module (interface/networking, both of which
+// claim 0x0087ac06 differently as console_verbosity vs network_statistics_level); typed here
+// only from the byte/dword width Ghidra shows for this write.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "rasterizer.h"
+#include "shell.h"
+
+extern large_integer performance_frequency;   // 0x006ac8f8 QueryPerformanceFrequency result
+extern char profile_directory[0x104];         // 0x006ac900 (types/cache.h); memset clears 0x105
+                                               // bytes here, one past the declared array
+extern void *d3d9_module;                     // 0x00746264
+extern void *dsound_module;                   // 0x0074625c
+extern void *dinput8_module;                  // 0x00746258
+extern void *shfolder_module;                 // 0x00746260
+extern void *direct3d_create9;                // 0x00746274 FARPROC
+extern void *direct_sound_create8;            // 0x00746270 FARPROC
+extern void *direct_input8_create;            // 0x00746268 FARPROC
+extern void *sh_get_folder_path;              // 0x0074626c FARPROC
+extern int32_t nosound;                       // 0x007196e4 -nosound (32 bit BOOL)
+extern uint8_t network_statistics_flag;       // 0x007252b6 DAT_007252b6, copy of nosound
+
+// UNSURE: dual-claimed by interface.h (console_verbosity, int32_t) and networking.h
+// (network_statistics_level, int16_t); this function only clears them.
+extern uint8_t console_debug_flag_0;          // 0x0087ac00
+extern uint8_t console_debug_flag_1;          // 0x0087ac01
+extern uint8_t console_debug_flag_4;          // 0x0087ac04
+extern uint8_t console_debug_flag_5;          // 0x0087ac05
+extern uint8_t console_verbosity_low;         // 0x0087ac06
+extern uint16_t console_debug_word_8;         // 0x0087ac08 (16 bit store, mov word [0x87ac08],bx at 0x540fcc)
+
+extern void *LoadLibraryA(const char *file_name);
+extern void *GetProcAddress(void *module, const char *proc_name);
+extern uint32_t QueryPerformanceFrequency(large_integer *frequency);
+extern uint32_t timeBeginPeriod(uint32_t period_ms);
+
+extern uint8_t data_file_open(void);                    // 0x00442840
+extern void directory_create_recursive(char *path);     // 0x00449250
+extern void profile_path_initialize(void);               // 0x00449390
+extern void input_directinput_initialize(void);          // 0x00490520
+extern void math_initialize(void);                        // 0x004cd3f0
+extern uint32_t render_initialize(void);                       // 0x00511da0, module unknown
+extern void game_state_startup(void);                     // 0x00537f90
+extern uint32_t sound_initialize(void);                    // 0x005492f0
+
+// Top-level engine bring-up routine: sets timer resolution, resolves the D3D9/DirectSound/
+// DirectInput/Shell entry points, and initializes the data-file, math, and (conditionally)
+// sound subsystems, returning true only if game_state_startup's prerequisite check passes.
+uint8_t engine_initialize_subsystems(void)
+{
+    int32_t i;
+    uint32_t startup_ok;
+
+    timeBeginPeriod(1);
+    QueryPerformanceFrequency(&performance_frequency);
+
+    for (i = 0; i < 0x104; i++) {
+        profile_directory[i] = 0;
+    }
+    profile_directory[0x104] = 0; // one byte past the array, matching the original memset
+
+    profile_path_initialize();
+
+    if (direct3d_create9 == 0) {
+        d3d9_module = LoadLibraryA("d3d9.dll");
+        direct3d_create9 = GetProcAddress(d3d9_module, "Direct3DCreate9");
+
+        if (nosound == 0) {
+            dsound_module = LoadLibraryA("dsound.dll");
+            direct_sound_create8 = GetProcAddress(dsound_module, "DirectSoundCreate8");
+        } else {
+            dsound_module = 0;
+            direct_sound_create8 = 0;
+        }
+
+        dinput8_module = LoadLibraryA("dinput8.dll");
+        direct_input8_create = GetProcAddress(dinput8_module, "DirectInput8Create");
+
+        shfolder_module = LoadLibraryA("shfolder.dll");
+        sh_get_folder_path = GetProcAddress(shfolder_module, "SHGetFolderPathA");
+    }
+
+    directory_create_recursive(profile_directory);
+
+    console_verbosity_low = 0;
+    console_debug_flag_1 = 1;
+    console_debug_flag_4 = 1;
+    console_debug_flag_5 = 0;
+    console_debug_flag_0 = 0;
+    console_debug_word_8 = 0;
+
+    data_file_open();
+    math_initialize();
+    game_state_startup();
+
+    startup_ok = render_initialize();
+    if ((uint8_t)startup_ok != 0) {
+        input_directinput_initialize();
+        network_statistics_flag = (uint8_t)nosound; // low byte only (mov al,[0x7196e4] at 0x540ff0)
+        sound_initialize();
+        return 1;
+    }
+    return (uint8_t)startup_ok;
+}
+
+#if 0
+Original Ghidra decompilation (0x540ee0):
+
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+int __cdecl engine_initialize_subsystems(void)
+
+{
+  uint uVar1;
+  undefined4 uVar2;
+  int iVar3;
+  undefined4 *puVar4;
+  
+  timeBeginPeriod(1);
+  QueryPerformanceFrequency((LARGE_INTEGER *)&DAT_006ac8f8);
+  puVar4 = &DAT_006ac900;
+  for (iVar3 = 0x41; iVar3 != 0; iVar3 = iVar3 + -1) {
+    *puVar4 = 0;
+    puVar4 = puVar4 + 1;
+  }
+  *(undefined1 *)puVar4 = 0;
+  profile_path_initialize();
+  if (DAT_00746274 == (FARPROC)0x0) {
+    DAT_00746264 = LoadLibraryA("d3d9.dll");
+    DAT_00746274 = GetProcAddress(DAT_00746264,"Direct3DCreate9");
+    if (DAT_007196e4 == 0) {
+      DAT_0074625c = LoadLibraryA("dsound.dll");
+      DAT_00746270 = GetProcAddress(DAT_0074625c,"DirectSoundCreate8");
+    }
+    else {
+      DAT_0074625c = (HMODULE)0x0;
+      DAT_00746270 = (FARPROC)0x0;
+    }
+    DAT_00746258 = LoadLibraryA("dinput8.dll");
+    DAT_00746268 = GetProcAddress(DAT_00746258,"DirectInput8Create");
+    DAT_00746260 = LoadLibraryA("shfolder.dll");
+    DAT_0074626c = GetProcAddress(DAT_00746260,"SHGetFolderPathA");
+  }
+  directory_create_recursive((char *)&DAT_006ac900);
+  DAT_0087ac06 = 0;
+  DAT_0087ac01 = 1;
+  DAT_0087ac04 = 1;
+  DAT_0087ac05 = 0;
+  DAT_0087ac00 = 0;
+  _DAT_0087ac08 = 0;
+  data_file_open();
+  math_initialize();
+  game_state_startup();
+  uVar1 = FUN_00511da0();
+  if ((char)uVar1 != '\0') {
+    input_directinput_initialize();
+    DAT_007252b6 = (undefined1)DAT_007196e4;
+    uVar2 = sound_initialize();
+    return CONCAT31((int3)((uint)uVar2 >> 8),1);
+  }
+  return uVar1 & 0xffffff00;
+}
+#endif

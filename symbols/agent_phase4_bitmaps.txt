@@ -1,0 +1,10 @@
+# bitmaps module (0x43f030..0x440347) names established by the phase-4 C rewrite and review
+# in src/bitmaps/*.c; each name is justified in that file's header comment.
+# addr name kind confidence source
+0x43f030 bitmap_group_postprocess func 0.8 agent-phase4 phase4_review_objdump:walks_Bitmap+0x60/0x64_bitmap_data_computing_pixel_data_size,_calls_bitmap_data_verify,_uploads_via_0x524100/0x524270/0x5243c0_src/bitmaps/bitmap_group_postprocess.c
+0x43f7d0 color_interpolate_argb_with_tint func 0.8 agent-phase4 phase4_review_objdump:color_interpolate(EBX+4,arg+4)_then_optional_EDI_tint_multiply_or_alpha_weighted_blend_src/bitmaps/color_interpolate_argb_with_tint.c
+0x43f880 bitmap_data_free func 0.8 agent-phase4 phase4_review_objdump:ESI_is_one_BitmapData_(caller_0x43f010_index*0x30),_evicts_+0x24,_Releases_+0x28,_GlobalFrees_+0x2c_and_self_src/bitmaps/bitmap_data_free.c
+0x43f990 bitmap_data_get_volume_pixel_address func 0.8 agent-phase4 phase4_review_objdump:mip_walk_over_width*height*depth,_x+(height*z+y)*width,_dispatched_for_type_1_by_0x43fb20_src/bitmaps/bitmap_data_get_volume_pixel_address.c
+0x43fa90 bitmap_data_get_cube_map_pixel_address func 0.8 agent-phase4 phase4_review_objdump:mip_walk_of_width*width*6,_x+(face*width+y)*width,_dispatched_for_type_2_by_0x43fb20_src/bitmaps/bitmap_data_get_cube_map_pixel_address.c
+0x43fd30 bitmap_data_verify func 0.8 agent-phase4 phase4_review_objdump:checks_BitmapData_bitm_class,_flags,_type,_format,_dimensions,_mip_count<=log2(max(w,h,d)),_require_runtime_src/bitmaps/bitmap_data_verify.c
+0x43fe30 bitmap_data_depth_valid_for_type func 0.8 agent-phase4 phase4_review_objdump:0<depth<=256_and_(depth==1_or_type==3d)_called_only_by_0x43fd30_src/bitmaps/bitmap_data_depth_valid_for_type.c

@@ -1,0 +1,484 @@
+{
+  "results": [
+    {
+      "addr": "0x465690",
+      "name": "game_engine_rasterize_in_game_score",
+      "confidence": 0.75,
+      "evidence": "Matches the cea-pdb hint via the '%s (%s)' string; builds tab-separated scoreboard rows (name/service-tag/ping columns, header string 'Ping', row formats '\\t%s...' and '*\\t%s...') using select_players_to_display, tag_lookup(\"ui\\\\multiplayer_game_text\"), and renders them with chimera__draw_16_bit_text; also formats and draws the server address via inet_ntoa.",
+      "prototype": "",
+      "summary": "Renders the in-game/post-game multiplayer scoreboard (per-player rows with ping, plus the server's IP:port) using the ui\\multiplayer_game_text UI tag and chimera__draw_16_bit_text."
+    },
+    {
+      "addr": "0x466340",
+      "name": "player_team_score_is_positive",
+      "confidence": 0.35,
+      "evidence": "Looks up the player's team index from the players array (DAT_0087a480, stride 0x200, +2), then tests a per-team float table (DAT_0087aa14) for >0.0, returning the inverse as a boolean-like predicate; only active when the game engine is running (DAT_006f1d20 != 0).",
+      "prototype": "",
+      "summary": "Given a player identifier in EAX, returns whether that player's team currently has a non-positive score (used as a UI/logic predicate)."
+    },
+    {
+      "addr": "0x466390",
+      "name": "unit_current_weapon_prevents_camo_depower",
+      "confidence": 0.5,
+      "evidence": "Follows player->unit (players array +0x34) into the object table, reads the unit's current-weapon index (+0x2f2) and weapon object handle (+0x2f8 array), then tests bit 13 of the weapon tag's WeaponFlags field at Item+0x308 (types/tags.h: WeaponFlags bit 13 = does_not_depower_active_camo_in_multilplayer).",
+      "prototype": "",
+      "summary": "Returns whether the player's currently-held weapon has the 'does not depower active camouflage in multiplayer' flag set."
+    },
+    {
+      "addr": "0x466420",
+      "name": "unit_update_active_camouflage_timer",
+      "confidence": 0.45,
+      "evidence": "Calls FUN_00466390 (weapon camo-depower flag test) to pick a decay amount, then decrements a per-unit float field at offset 0x37c each call, clamping it to a 0.05 floor and setting a dirty bit at +0x422; only runs while the field is >= 0.05.",
+      "prototype": "",
+      "summary": "Decays a unit's active-camouflage-related timer field each tick, using the current weapon's camo-depower flag to determine how fast it counts down."
+    },
+    {
+      "addr": "0x466530",
+      "name": "game_time_format_minutes_seconds",
+      "confidence": 0.55,
+      "evidence": "Divides an ECX-supplied tick count by 30 (ticks->seconds) then splits into minutes (/60) and seconds (%60), formats each half via FUN_00557910, and combines them with the literal format string L\"%s:%s\".",
+      "prototype": "",
+      "summary": "Formats a tick-count time value (register argument) as a \"minutes:seconds\" wide string."
+    },
+    {
+      "addr": "0x4666c0",
+      "name": "ctf_flag_object_clear_carrier",
+      "confidence": 0.5,
+      "evidence": "For a given player's unit object, clears flag bit 0x20 at +0x22c, sets +0x204 to the current game time (DAT_006f1d6c+0xc), and resets +0x200 to -1; these exact offsets (+0x200/+0x204/+0x22c bit0x20) are later tested in FUN_00468bf0's auto-return timer logic (elapsed = now - obj+0x204).",
+      "prototype": "",
+      "summary": "Resets an objective (flag) game object's carrier/drop-time tracking fields, used when the flag is returned or reset."
+    },
+    {
+      "addr": "0x466730",
+      "name": "game_variant_sanitize_options",
+      "confidence": 0.5,
+      "evidence": "Clamps a series of numeric fields in a struct pointed to by ECX to sane ranges (e.g. +0x30 clamped 1..5, +0x54 float clamped 0.25..4.0, +0x5c clamped 0..13, +0x60 low nibble clamped <=8) and coerces several byte fields to strict booleans -- the shape and offsets match the ~0x98-byte game-variant options struct built by the game_engine_variant_defaults_* functions.",
+      "prototype": "",
+      "summary": "Clamps/sanitizes the numeric and boolean fields of a game-variant options struct (passed in ECX) to valid ranges."
+    },
+    {
+      "addr": "0x466890",
+      "name": "game_engine_resolve_equipment_tag_dependencies",
+      "confidence": 0.35,
+      "evidence": "Switches on DAT_006f1ce8 & 0xf; in most cases walks six TagDependency-sized (stride 0x10) fields at object+0x24 and, for each non -1 dependency, calls FUN_004449f0 (a tag-dependency resolver); afterwards does the same over sixteen TagDependency-sized entries at object+0x150, plus two extra checks gated on DAT_006f1cb8==3/1.",
+      "prototype": "",
+      "summary": "Resolves a set of tag dependencies (a 6-entry and a 16-entry TagDependency array) inside a map-globals-like structure, selected by a difficulty/type index."
+    },
+    {
+      "addr": "0x466b60",
+      "name": "game_engine_is_valid_spawn_candidate",
+      "confidence": 0.3,
+      "evidence": "Returns false when the game engine is active and either flag bit1 of DAT_0087aa00 is set or DAT_0068944c < 1; otherwise, when DAT_0068944c < 2, resolves param_1 via FUN_00474db0 and checks that the resulting player's team field (players array +2) is not -1 (i.e. not an observer).",
+      "prototype": "",
+      "summary": "Predicate checking whether a given identifier refers to a usable, team-assigned player under current game-engine constraints."
+    },
+    {
+      "addr": "0x466bc0",
+      "name": "unit_current_weapon_must_be_readied_in_ctf",
+      "confidence": 0.4,
+      "evidence": "Requires the game engine active and DAT_006f1cb8==1 (matches the classic_ctf variant-defaults local_70 value of 1, from out/phase2/results/game_02.json's decoded default builders), then tests bit 3 (must_be_readied) of the current object's WeaponFlags field at +0x308 via the players/objects array chain.",
+      "prototype": "",
+      "summary": "Returns whether the current weapon has the must-be-readied flag while the active game-variant type equals the CTF value (1)."
+    },
+    {
+      "addr": "0x466c20",
+      "name": "player_profile_cache_initialize",
+      "confidence": 0.5,
+      "evidence": "Guarded by a one-shot flag (DAT_006f1d38); zero-fills the 16-entry, 0x30-byte-stride table at DAT_006b0b88..0x6b0e88 and resets the active-entry count DAT_006f1d34, matching the table layout walked by FUN_00466c60/e80/ee0/00466d00.",
+      "prototype": "",
+      "summary": "One-time initializer that clears the 16-slot player-profile cache table used elsewhere in this file."
+    },
+    {
+      "addr": "0x466c60",
+      "name": "player_profile_cache_register_player",
+      "confidence": 0.45,
+      "evidence": "Skips registration if FUN_00466e80 already finds a matching entry; otherwise scans the same 16x0x30 table for the first free slot (flag byte ==0), stores the passed-in handle (in_EAX) there, marks it active, and increments DAT_006f1d34.",
+      "prototype": "",
+      "summary": "Adds a player handle to the profile-cache table in the first free slot, unless it is already present."
+    },
+    {
+      "addr": "0x466cb0",
+      "name": "player_profile_cache_flush_all",
+      "confidence": 0.45,
+      "evidence": "Walks all 16 entries of the DAT_006b0b88 profile-cache table calling FUN_00466ee0 on each active one, then invokes an optional engine callback through the vtable-like pointer at DAT_006f1d20+0x90.",
+      "prototype": "",
+      "summary": "Processes every active entry in the player-profile cache and then fires an optional game-engine callback."
+    },
+    {
+      "addr": "0x466d00",
+      "name": "player_profile_apply_cached_entry",
+      "confidence": 0.4,
+      "evidence": "Locates the caller's slot via FUN_00466e80, then either validates (FUN_004ec590) or updates-and-restores (FUN_004ec600 around a temp copy) the cached profile before copying its fields (offsets 0x9c..0x6c, matching FUN_00466ee0's field list) into a datum_get() result; special-cases DAT_006f1cb8==4 (king-of-the-hill local_70 value) by rescaling a duration field by /30.",
+      "prototype": "",
+      "summary": "Applies a cached player-profile entry's fields onto a newly-created datum, with a King-variant-specific time-field rescale."
+    },
+    {
+      "addr": "0x466e60",
+      "name": "game_engine_invoke_optional_engine_callback_94",
+      "confidence": 0.3,
+      "evidence": "Trivial wrapper: if the function pointer at DAT_006f1d20+0x94 is non-null, calls it with no arguments -- part of the same vtable-style callback pattern seen at +0x90/+0x58/+0x54/+0xac elsewhere in this file.",
+      "prototype": "",
+      "summary": "Invokes the current game-engine's optional callback stored at offset 0x94, if one is registered."
+    },
+    {
+      "addr": "0x466e80",
+      "name": "player_profile_cache_find_slot_by_handle",
+      "confidence": 0.45,
+      "evidence": "Walks the 16x0x30 table in groups of 4 unrolled comparisons, matching each entry's active flag and stored value against unaff_ESI, returning the matching slot index (0..15) or -1.",
+      "prototype": "",
+      "summary": "Searches the player-profile cache table for an active entry whose stored handle matches the given value, returning its slot index."
+    },
+    {
+      "addr": "0x466ee0",
+      "name": "player_profile_cache_capture_player",
+      "confidence": 0.4,
+      "evidence": "Given a table slot index, resolves the stored handle via hash_table_get, copies profile-like fields (position/short fields/color-ish dword, offsets 0x9c-0x6c) out of the live players-array entry into a local buffer, rescales a duration field when DAT_006f1cb8==4, forwards the buffer to FUN_00467010, and optionally (param_1==1) writes it back into the cache table.",
+      "prototype": "",
+      "summary": "Captures a player's current profile-like fields from the live player record, forwards them for network sync, and optionally refreshes the cache table entry."
+    },
+    {
+      "addr": "0x467010",
+      "name": "game_engine_send_profile_update_message",
+      "confidence": 0.4,
+      "evidence": "Copies the caller's profile buffer onto the stack, calls FUN_004ec940(...,0x15,...) (a message-type-tagged send/validate primitive used the same way at 0x4671d0/0x17 and 0x4682c0/0x16), and on success dispatches via FUN_004e1a80/FUN_004e1930 into the shared network-message-queue global DAT_00871de0.",
+      "prototype": "",
+      "summary": "Packages a player-profile buffer as network message type 0x15 and enqueues it for sending/delivery."
+    },
+    {
+      "addr": "0x4670c0",
+      "name": "game_engine_countdown_message_stage1",
+      "confidence": 0.35,
+      "evidence": "Sets DAT_0087aa10 = 1 and a paired float DAT_0087aa08 = 7.0, then calls FUN_0046be40(0) and FUN_00498650(); reached only from FUN_00467230's in_ECX==1 branch.",
+      "prototype": "",
+      "summary": "First stage of a countdown/notification sequence: sets state 1 with a 7-second timer and triggers an update/sound callback."
+    },
+    {
+      "addr": "0x4670f0",
+      "name": "game_engine_countdown_message_stage2",
+      "confidence": 0.35,
+      "evidence": "Sets DAT_0087aa10 = 2 and DAT_0087aa08 = 5.0, then iterates every player via data_iterator_next clearing bit 0x20 of the corresponding unit's byte field at +0x106; reached from FUN_00467230's in_ECX==2 branch.",
+      "prototype": "",
+      "summary": "Second stage of the countdown sequence: sets state 2 with a 5-second timer and clears a per-unit flag for all players."
+    },
+    {
+      "addr": "0x467180",
+      "name": "game_engine_countdown_message_stage3",
+      "confidence": 0.3,
+      "evidence": "Sets DAT_0087aa10 = 3, then either zeroes DAT_0087aa18/DAT_0087aa1c (when DAT_006f1d25=='\\x01') or, if DAT_006f1d28 > 0, sets DAT_0087aa18=1 and DAT_0087aa1c to that value; reached from FUN_00467230's in_ECX==3 branch.",
+      "prototype": "",
+      "summary": "Third stage of the countdown sequence: sets state 3 and configures a follow-on duration from global settings."
+    },
+    {
+      "addr": "0x4671d0",
+      "name": "game_engine_send_network_message_0x16",
+      "confidence": 0.3,
+      "evidence": "Builds a tiny fixed payload and calls FUN_004ec940(0,0x16,0,&local_8,0,1,0); on success (>0) forwards it via FUN_004e1a80(1,&DAT_00871de0,1,0,0,3), mirroring the send pattern in FUN_00467010/FUN_004682c0 with a different message-type constant.",
+      "prototype": "",
+      "summary": "Sends a small fixed-payload network message tagged with type 0x16."
+    },
+    {
+      "addr": "0x467230",
+      "name": "game_engine_countdown_message_dispatch",
+      "confidence": 0.4,
+      "evidence": "Validates an incoming message via FUN_004ec590 (falls back to FUN_004ec670 on failure) and then dispatches on in_ECX to FUN_004670c0 (1), FUN_004670f0 (2), or FUN_00467180 (3), the three countdown-stage handlers.",
+      "prototype": "",
+      "summary": "Validates and dispatches an incoming countdown/notification message to one of its three stage handlers."
+    },
+    {
+      "addr": "0x467270",
+      "name": "game_engine_variant_defaults_assault",
+      "confidence": 0.7,
+      "evidence": "Reached as the terminal fallback of game_engine_get_variant_by_name (0x4622d0) when __stricmp(in_ECX,\"assault\") == 0; fills a fixed 0x98-byte (0x26-dword) game-variant options buffer identically in shape to the sibling classic_* default builders in game_02.json.",
+      "prototype": "void __cdecl game_engine_variant_defaults_assault(void *variant_options)",
+      "summary": "Fills a game-variant options buffer with the hardcoded default settings for the built-in \"assault\" multiplayer game type."
+    },
+    {
+      "addr": "0x467370",
+      "name": "game_engine_variant_defaults_crazy_king",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name's __stricmp(in_ECX,\"crazy_king\") branch, which calls this exact function to fill the caller's buffer; identical 0x26-dword fixed-write shape to the classic_* builders.",
+      "prototype": "void __cdecl game_engine_variant_defaults_crazy_king(void *variant_options)",
+      "summary": "Fills a game-variant options buffer with the hardcoded default settings for the built-in \"crazy_king\" multiplayer game type."
+    },
+    {
+      "addr": "0x467450",
+      "name": "game_engine_variant_defaults_stalker",
+      "confidence": 0.35,
+      "evidence": "Reached from game_engine_get_variant_by_name via a __stricmp against a string that Ghidra shows only as an overlapping pointer into an unrelated symbol (PTR_s_g_objects_equipment_00667450+0x13), so the literal text could not be confirmed directly; positionally it sits between the 'juggernaut' and 'crazy_king' branches, mirroring the classic_juggernaut/classic_stalker/classic_crazy_king ordering in game_02.json, which is the basis for the 'stalker' guess.",
+      "prototype": "void __cdecl game_engine_variant_defaults_stalker(void *variant_options)",
+      "summary": "Fills a game-variant options buffer with hardcoded default settings for a built-in variant reached between the 'juggernaut' and 'crazy_king' name checks (name inferred as \"stalker\" by analogy, not directly confirmed)."
+    },
+    {
+      "addr": "0x467540",
+      "name": "game_engine_variant_defaults_juggernaut",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name's __stricmp(in_ECX,\"juggernaut\") branch, which calls this exact function to fill the caller's buffer.",
+      "prototype": "void __cdecl game_engine_variant_defaults_juggernaut(void *variant_options)",
+      "summary": "Fills a game-variant options buffer with the hardcoded default settings for the built-in \"juggernaut\" multiplayer game type."
+    },
+    {
+      "addr": "0x467650",
+      "name": "game_engine_variant_defaults_king",
+      "confidence": 0.7,
+      "evidence": "Directly reached from game_engine_get_variant_by_name's __stricmp(in_ECX,\"king\") branch (a string that is pooled as a suffix of \"classic_king\" and so isn't separately listed in the strings table).",
+      "prototype": "void __cdecl game_engine_variant_defaults_king(void *variant_options)",
+      "summary": "Fills a game-variant options buffer with the hardcoded default settings for the built-in \"king\" (King of the Hill) multiplayer game type."
+    },
+    {
+      "addr": "0x467730",
+      "name": "game_engine_variant_defaults_oddball",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name's __stricmp(in_ECX,\"oddball\") branch, which calls this exact function to fill the caller's buffer.",
+      "prototype": "void __cdecl game_engine_variant_defaults_oddball(void *variant_options)",
+      "summary": "Fills a game-variant options buffer with the hardcoded default settings for the built-in \"oddball\" multiplayer game type."
+    },
+    {
+      "addr": "0x467830",
+      "name": "game_engine_variant_defaults_race",
+      "confidence": 0.7,
+      "evidence": "Directly reached from game_engine_get_variant_by_name's __stricmp(in_ECX,\"race\") branch (pooled as a suffix of \"classic_race\", hence not separately listed in the strings table).",
+      "prototype": "void __cdecl game_engine_variant_defaults_race(void *variant_options)",
+      "summary": "Fills a game-variant options buffer with the hardcoded default settings for the built-in \"race\" multiplayer game type."
+    },
+    {
+      "addr": "0x467920",
+      "name": "game_engine_variant_defaults_slayer",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name's __stricmp(in_ECX,\"slayer\") branch, which calls this exact function to fill the caller's buffer.",
+      "prototype": "void __cdecl game_engine_variant_defaults_slayer(void *variant_options)",
+      "summary": "Fills a game-variant options buffer with the hardcoded default settings for the built-in \"slayer\" multiplayer game type."
+    },
+    {
+      "addr": "0x467a10",
+      "name": "game_engine_variant_defaults_team_king",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name's __stricmp(in_ECX,\"team_king\") branch, which calls this exact function to fill the caller's buffer.",
+      "prototype": "void __cdecl game_engine_variant_defaults_team_king(void *variant_options)",
+      "summary": "Fills a game-variant options buffer with the hardcoded default settings for the built-in \"team_king\" multiplayer game type."
+    },
+    {
+      "addr": "0x467af0",
+      "name": "game_engine_variant_defaults_team_oddball",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name's __stricmp(in_ECX,\"team_oddball\") branch, which calls this exact function to fill the caller's buffer.",
+      "prototype": "void __cdecl game_engine_variant_defaults_team_oddball(void *variant_options)",
+      "summary": "Fills a game-variant options buffer with the hardcoded default settings for the built-in \"team_oddball\" multiplayer game type."
+    },
+    {
+      "addr": "0x467c00",
+      "name": "game_engine_variant_defaults_team_race",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name's __stricmp(in_ECX,\"team_race\") branch, which calls this exact function to fill the caller's buffer.",
+      "prototype": "void __cdecl game_engine_variant_defaults_team_race(void *variant_options)",
+      "summary": "Fills a game-variant options buffer with the hardcoded default settings for the built-in \"team_race\" multiplayer game type."
+    },
+    {
+      "addr": "0x467cf0",
+      "name": "game_engine_variant_defaults_team_slayer",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name's __stricmp(in_ECX,\"team_slayer\") branch, which calls this exact function to fill the caller's buffer.",
+      "prototype": "void __cdecl game_engine_variant_defaults_team_slayer(void *variant_options)",
+      "summary": "Fills a game-variant options buffer with the hardcoded default settings for the built-in \"team_slayer\" multiplayer game type."
+    },
+    {
+      "addr": "0x467de0",
+      "name": "game_engine_clear_all_player_unit_flags",
+      "confidence": 0.4,
+      "evidence": "Iterates every player via data_iterator_next, and for those with a valid unit handle (+0x34 != -1), clears two byte flags at unit offsets 0x31e and 0x31f (799) in the object table.",
+      "prototype": "",
+      "summary": "Clears two per-unit flag bytes for every player's current unit, likely as part of a new-round/new-life reset pass."
+    },
+    {
+      "addr": "0x467e60",
+      "name": "game_engine_objective_reset_and_cleanup_objects",
+      "confidence": 0.4,
+      "evidence": "When DAT_00719720==2 (multiplayer game active), zeroes a lifetime-ish field (+0x2c) on every entry from a second data_iterator, clamping a related duration global to a minimum of 0x5a; unconditionally afterwards, walks every object via object_iterator_next deleting/regenerating garbage (object type 0 or 3) via FUN_004f5aa0/FUN_004f59d0.",
+      "prototype": "",
+      "summary": "In multiplayer, resets a per-entry duration field across a data table and then sweeps all game objects, deleting stray biped/weapon-type garbage."
+    },
+    {
+      "addr": "0x467f70",
+      "name": "game_engine_cleanup_dead_objects",
+      "confidence": 0.4,
+      "evidence": "Walks every game object via object_iterator_next and, for any whose type field (+4) is 0 or 3, calls FUN_004f5aa0 followed by FUN_004f59d0(handle,0) -- the same delete/garbage pattern used in the sibling cleanup functions in this file.",
+      "prototype": "",
+      "summary": "Sweeps all live game objects and deletes/garbage-collects any of a specific type (biped or weapon-class, per the +4 type field)."
+    },
+    {
+      "addr": "0x468010",
+      "name": "game_engine_cleanup_orphaned_pickup_objects",
+      "confidence": 0.35,
+      "evidence": "Walks every game object; for each, if (DAT_00719720 != 1) or the object's type field is 3, and it isn't a valid, tag-flag-permitted (bit 2 of tag flags) unit-owned parent, it is treated as orphaned and deleted via FUN_004f5aa0/FUN_004f59d0, unless a byte flag (+0x7d bit 0x41) marks it exempt.",
+      "prototype": "",
+      "summary": "Sweeps game objects and deletes weapon/pickup-type objects that are no longer validly parented, except when engine type 1 (CTF) applies special handling."
+    },
+    {
+      "addr": "0x468150",
+      "name": "player_profile_cache_clear_player_stats_block",
+      "confidence": 0.4,
+      "evidence": "Walks the 16-entry profile-cache table (DAT_006b0b88, stride 0x30) and, for each active entry, zeroes a 0x3c-byte (0xf dword) block at players-array offset +0x90 for that player's index.",
+      "prototype": "",
+      "summary": "Zeroes a per-player statistics/state block for every player currently registered in the profile cache."
+    },
+    {
+      "addr": "0x4681a0",
+      "name": "game_engine_cleanup_or_reset_objects",
+      "confidence": 0.35,
+      "evidence": "When DAT_006f1cb8==5 (matches the classic_race local_70 value of 5), iterates all objects deleting type-0/3 garbage exactly like FUN_004681a0's siblings; otherwise iterates all objects calling FUN_00570de0 on each -- a different, race-specific-vs-general split.",
+      "prototype": "",
+      "summary": "Performs the standard object-cleanup sweep when the active variant type equals the Race value (5), otherwise runs a different per-object handler over all objects."
+    },
+    {
+      "addr": "0x468260",
+      "name": "game_engine_initialize_new_round",
+      "confidence": 0.45,
+      "evidence": "Runs the full reset sequence used elsewhere in this file in order: FUN_00467de0 (clear unit flags), FUN_00467e60 and FUN_00468010/FUN_00467f70 (object cleanup), an optional engine callback at +0xac, sets DAT_0087aa20 from the current game time, calls the already-named game_engine_update_netgame_equipment(1), FUN_004681a0, and FUN_00468150 (clear profile stats block).",
+      "prototype": "",
+      "summary": "Runs the game engine's per-round reset sequence: clears unit flags, garbage-collects stray objects, reloads netgame equipment, and clears cached player stats."
+    },
+    {
+      "addr": "0x4682c0",
+      "name": "game_engine_send_network_message_0x17",
+      "confidence": 0.3,
+      "evidence": "Builds a one-byte payload and calls FUN_004ec940(0,0x17,0,&local_8,0,1,0), then on success forwards it through FUN_004e1a80(1,&DAT_00871de0,...), matching the send pattern of FUN_00467010/FUN_004671d0 with message-type constant 0x17.",
+      "prototype": "",
+      "summary": "Sends a small one-byte-payload network message tagged with type 0x17."
+    },
+    {
+      "addr": "0x468320",
+      "name": "game_engine_reset_message_handler",
+      "confidence": 0.4,
+      "evidence": "Validates an incoming message via FUN_004ec590 (falls back to FUN_004ec670 on failure), and on success runs the same object-cleanup trio as FUN_00468260 (FUN_00467e60, FUN_00468010, FUN_00467f70) followed by the optional engine callback at DAT_006f1d20+0xac.",
+      "prototype": "",
+      "summary": "Validates an incoming network message and, if valid, triggers the object-cleanup/reset pass and an engine callback."
+    },
+    {
+      "addr": "0x468360",
+      "name": "ctf_flag_object_create",
+      "confidence": 0.45,
+      "evidence": "Builds a placement/location struct from an EAX-supplied Point3D-like triple, resolves a role/owner value (0 in certain multiplayer + tag-dependency cases, else 3) and calls the already-named object_new_with_datum_role_control to spawn it, then clears a flags bit and optionally calls FUN_004f50f0.",
+      "prototype": "",
+      "summary": "Creates a new objective (flag) game object at a given location with a role/owner determined by the current multiplayer/tag state."
+    },
+    {
+      "addr": "0x468430",
+      "name": "ctf_flag_object_respawn_for_team",
+      "confidence": 0.45,
+      "evidence": "If the per-team flag-exists table (DAT_006b0e88[team]) is non-zero, calls FUN_00468360 to spawn a fresh flag object and, on success, stores its handle into the per-team object-handle table DAT_006b0e90[team].",
+      "prototype": "",
+      "summary": "Respawns a team's objective (flag) object if that team is configured to have one, recording the new object's handle."
+    },
+    {
+      "addr": "0x468460",
+      "name": "ctf_flag_update_score_for_both_teams",
+      "confidence": 0.35,
+      "evidence": "Computes two team indices by toggling the low bit of unaff_EAX (x&0x80000001 and (x+1)&0x80000001, the same two-team wraparound idiom used throughout this cluster) and calls FUN_00460ba0 once for each, i.e. once per team.",
+      "prototype": "",
+      "summary": "Invokes a per-team update/notify routine for both the current team and its opposing team."
+    },
+    {
+      "addr": "0x468840",
+      "name": "ctf_flag_reset_team_return_credit",
+      "confidence": 0.45,
+      "evidence": "Zeroes the per-team defense/credit arrays DAT_006b0ea4 and DAT_006b0ea8 at the unit's team index (+0xb8), and if that team currently has a flag object (DAT_006b0e88[team] != 0) calls FUN_004666c0 (clear carrier fields) and sets/clears object flag bits at +0x22c/+0x10.",
+      "prototype": "",
+      "summary": "Resets a team's flag-return credit tracking and, if a flag object exists for that team, clears its carrier state and updates its flag bits."
+    },
+    {
+      "addr": "0x4688b0",
+      "name": "ctf_flag_attach_to_unit",
+      "confidence": 0.35,
+      "evidence": "Resolves the unit handle from a player index, and if that unit's object-type field (+4) is 0 calls FUN_0056dcd0(1); unconditionally calls FUN_0056dec0(handle,1) and then FUN_00468840 (reset team return credit).",
+      "prototype": "",
+      "summary": "Attaches/updates a flag-carry state on a player's unit, then resets the associated team's flag-return credit."
+    },
+    {
+      "addr": "0x468910",
+      "name": "ctf_flag_award_touch_medal",
+      "confidence": 0.4,
+      "evidence": "Increments a per-team touch counter (DAT_006b0e98[team]) and a per-player short field (players-array +200), optionally notifies via FUN_00466cb0(-1) when DAT_00719720==2, calls FUN_0046be40(1), then FUN_00460c10(param_1,0x21,0x23,0x22,param_1) -- the same helper used elsewhere in this file with medal/event-id-like constants.",
+      "prototype": "",
+      "summary": "Increments a player's/team's flag-touch counters and fires an associated medal/event notification."
+    },
+    {
+      "addr": "0x468990",
+      "name": "ctf_flag_position_within_radius",
+      "confidence": 0.35,
+      "evidence": "Treats DAT_006b0e88[in_EAX] as a float* (position) and, if non-null, computes squared 3D distance to a passed-in point (in_ECX) and compares it against param_1 squared, returning a boolean-ish packed result.",
+      "prototype": "",
+      "summary": "Tests whether a given point lies within a given radius of a per-team position (interpreted here as the team's flag location)."
+    },
+    {
+      "addr": "0x4689e0",
+      "name": "ctf_flag_periodic_update_throttle",
+      "confidence": 0.4,
+      "evidence": "Compares a stored timestamp DAT_006b0eb4 against the current game time (DAT_006f1d6c+0xc); once it elapses, calls FUN_0046be40(1) and reschedules DAT_006b0eb4 to now + 0x78 (120 ticks / 4 seconds).",
+      "prototype": "",
+      "summary": "Throttles a periodic flag-related update/notify call to at most once every four seconds."
+    },
+    {
+      "addr": "0x468b50",
+      "name": "ctf_flag_find_referencing_datum",
+      "confidence": 0.3,
+      "evidence": "Iterates every entry via data_iterator_next and, for valid ones, scans a 4-element handle array at object+0x2f8 for a match against unaff_EBX; both the match and no-match paths return 0xffffffff in the decompiled form, suggesting a hidden register carries the real result that Ghidra did not recover.",
+      "prototype": "",
+      "summary": "Scans all datum entries' 4-slot handle arrays for a match against a given handle; the decompiled result is always -1, indicating an unmodeled output register."
+    },
+    {
+      "addr": "0x468bf0",
+      "name": "ctf_engine_flag_tick",
+      "confidence": 0.55,
+      "evidence": "References the strings 'flag_blue'/'default'; toggles the active team between 0/1 via the (x+1)&0x80000001 idiom, counts down a return timer DAT_006b0eb0 against DAT_006f1d08, resets the DAT_006f18xx flag position/rotation fields and DAT_006b0eaX credit arrays, and calls chimera__kill_feed(0xffffffff,0x2d,...) (a flag-returned style event) when the flag auto-returns; also force-returns a flag left dropped for more than 0x1fe (~17s at 30 ticks/s) ticks, gated on the carrying unit's current weapon must_be_readied flag.",
+      "prototype": "",
+      "summary": "Per-tick update of the CTF flag object: advances the auto-return countdown, resets flag state and cycles the active team when it expires, and force-returns a flag idle too long."
+    },
+    {
+      "addr": "0x469780",
+      "name": "ctf_flag_unit_is_valid_carrier",
+      "confidence": 0.4,
+      "evidence": "Checks that the caller's per-team flag-handle table entry (DAT_006b0e90[team]) is valid, resolves the corresponding equipment/weapon-slot object via object_try_and_get, and that a further chained field (+0xc0 then +0x11c) is also valid, returning 1 only if the whole chain resolves.",
+      "prototype": "",
+      "summary": "Checks whether a unit is currently a valid holder of its team's objective (flag) object by walking the object/equipment reference chain."
+    },
+    {
+      "addr": "0x4697e0",
+      "name": "ctf_flag_carrier_tick",
+      "confidence": 0.45,
+      "evidence": "For a given (unit, team) pair in multiplayer (DAT_00719720==2), compares the unit's own team (+0xb8) against the passed team; when they match and the unit isn't already flagged as carrying (+0x22c bit 0x40), calls game_engine_is_inactive and, once inactive, resets per-team credit arrays, bumps a touch counter, and calls FUN_00460c10 with event ids; when they differ, sets the carrying flag and records touch/defense counters.",
+      "prototype": "",
+      "summary": "Per-tick per-player handling of objective (flag) pickup/carry/drop bookkeeping and associated event notifications."
+    },
+    {
+      "addr": "0x46a130",
+      "name": "point3d_array_extract_xz_pairs",
+      "confidence": 0.5,
+      "evidence": "Copies from a stride-0xc (3-float, Point3D-sized) source array into a stride-8 (2-float) destination array, taking elements 0 and 2 of each triple (skipping the middle float) -- exactly the shape needed to feed 2D (x,z) points into the polygon2d_convex_hull_build call in its caller, FUN_0046a240.",
+      "prototype": "",
+      "summary": "Extracts the X/Z components of an array of 3D points into a packed 2D point array, dropping the Y (vertical) component."
+    },
+    {
+      "addr": "0x46a1b0",
+      "name": "game_engine_pick_random_value_excluding",
+      "confidence": 0.4,
+      "evidence": "Advances a linear-congruential state (DAT_00719cd0 = DAT_00719cd0*0x19660d+0x3c6ef35f) and uses it to index a fixed-size candidate list (DAT_006b1070, length DAT_006b106c), returning the first candidate encountered that differs from the passed-in value.",
+      "prototype": "",
+      "summary": "Picks a pseudo-random entry from a small fixed list that differs from a given value, using an inline LCG random-number generator."
+    },
+    {
+      "addr": "0x46a240",
+      "name": "game_engine_build_starting_location_boundary",
+      "confidence": 0.45,
+      "evidence": "Calls the already-named game_engine_find_valid_starting_locations to gather spawn points, runs FUN_0046a130 (extract 2D points) and polygon2d_convex_hull_build over them, then computes the resulting hull's axis-aligned bounding box and stores its center (DAT_006b1044/48/4c) and vertical range (DAT_006b105c/1060, expanded by 0.8/-0.1).",
+      "prototype": "",
+      "summary": "Builds a 2D convex-hull boundary around a set of valid starting locations and computes its bounding-box center and vertical extent."
+    },
+    {
+      "addr": "0x46a670",
+      "name": "game_engine_render_starting_location_boundary_fence",
+      "confidence": 0.4,
+      "evidence": "Walks the convex-hull vertex list built by FUN_0046a240 (DAT_006b0f50 count, DAT_006b0f54.. positions), computes per-edge lengths and a normalized edge-plane normal (cross product against a vertically offset copy of the edge, offset by 0.8), and submits per-edge vertex/UV/normal data to FUN_0046b2f0.",
+      "prototype": "",
+      "summary": "Generates and submits a fence-like quad mesh (with per-edge normals and UVs) along the starting-location boundary polygon, likely for a visual boundary effect."
+    }
+  ]
+}

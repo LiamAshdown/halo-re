@@ -1,0 +1,484 @@
+{
+  "results": [
+    {
+      "addr": "0x4f93b0",
+      "name": "object_delete_to_network",
+      "confidence": 0.6,
+      "evidence": "Loop calls periodic_function_evaluate per node and writes results into object+0x134 / dirty bits at +0x123, identical to object_delete and object_reconnect_to_map; likely a recompute of exported function values at a network-scope transition.",
+      "prototype": "",
+      "summary": "Recomputes an object's exported periodic \"function\" values (used to drive markers/effects) from scratch, as needed when the object leaves network scope for deletion."
+    },
+    {
+      "addr": "0x4f94e0",
+      "name": "object_delete",
+      "confidence": 0.6,
+      "evidence": "Byte-identical per-node periodic_function_evaluate loop to object_delete_to_network/object_reconnect_to_map, writing into object+0x134 value array and +0x123 dirty bitmask.",
+      "prototype": "",
+      "summary": "Recomputes an object's exported function values before/at full deletion of the object."
+    },
+    {
+      "addr": "0x4f9540",
+      "name": "object_reconnect_to_map",
+      "confidence": 0.6,
+      "evidence": "Same shared periodic_function_evaluate recompute loop as object_delete/object_delete_to_network; fits an object re-entering map scope needing a fresh (non-incremental) function value.",
+      "prototype": "",
+      "summary": "Recomputes an object's exported function values when the object reconnects to (re-enters) the map/network scope."
+    },
+    {
+      "addr": "0x4f96a0",
+      "name": "object_attachment_set_callback",
+      "confidence": 0.3,
+      "evidence": "Looks up the object's attachment node through the DAT_008603b0 index table, stores param_1 into node+0xb0, and conditionally invokes FUN_004f6b70 when flag bits (node+0xb4 & 0xfe0) are all clear.",
+      "prototype": "",
+      "summary": "Stores a value on an object's attachment node and, if certain status flags are unset, invokes a follow-up handler."
+    },
+    {
+      "addr": "0x4f96f0",
+      "name": "object_disconnect_from_map",
+      "confidence": 0.6,
+      "evidence": "Compares the attachment node's +0x14 epoch field against DAT_008603cc, a counter incremented once per traversal in object_get_orientation; returns whether the object was not touched in the current pass.",
+      "prototype": "",
+      "summary": "Tests whether an object's attachment was not visited during the current map traversal (i.e. is effectively disconnected)."
+    },
+    {
+      "addr": "0x4f9750",
+      "name": "object_create_attachments",
+      "confidence": 0.7,
+      "evidence": "Switches on each attachment definition's fourcc tag ('ligh','lsnd','effe','cont','pctl') and calls the matching subsystem's *_new (FUN_004f0af0 light, FUN_00543c20 looping_sound, FUN_004506d0 effect, FUN_0044c910 contrail, FUN_004536f0 particle), recording type+handle per attachment slot.",
+      "prototype": "",
+      "summary": "Creates the runtime instance for every attachment (light/looping-sound/effect/contrail/particle) defined on an object's type."
+    },
+    {
+      "addr": "0x4f9900",
+      "name": "object_delete_attachments",
+      "confidence": 0.65,
+      "evidence": "Switches on the same 5 stored attachment type codes (0..4) used by object_create_attachments, calling FUN_004f0bd0 (light), datum_delete (looping sound), FUN_00450be0 (effect), FUN_004f8310+FUN_0044ca60 (contrail), and inline particle-block cleanup for type 4.",
+      "prototype": "",
+      "summary": "Releases all runtime attachment instances (light/looping-sound/effect/contrail/particle) previously created for an object."
+    },
+    {
+      "addr": "0x4f9990",
+      "name": "object_delete_attachments_tail",
+      "confidence": 0.3,
+      "evidence": "Contains the identical attachment-type delete switch as object_delete_attachments but structured as a self-looping goto back to its own start; almost certainly a duplicate compiled entry point rather than a marker-name lookup (no name string or comparison is present).",
+      "prototype": "",
+      "summary": "Duplicate/alternate compiled entry for the attachment-deletion loop (see object_delete_attachments); despite its prior name it does not look up a marker by name."
+    },
+    {
+      "addr": "0x4f9a20",
+      "name": "object_for_each_light_attachment",
+      "confidence": 0.5,
+      "evidence": "Only runs when the object's cached 0x100 flag (set by object_create_attachments when a light attachment exists) is set, then walks attachments of stored type 0 (light) calling chimera__light_table and/or a per-light callback FUN_004f2a00 based on the two boolean params.",
+      "prototype": "",
+      "summary": "Iterates an object's light attachments, optionally registering each in the active-light table and/or invoking a per-light callback."
+    },
+    {
+      "addr": "0x4f9ac0",
+      "name": "object_reserve_render_cache_slot",
+      "confidence": 0.35,
+      "evidence": "Writes the object index (in_EDX) into the first free entry of table DAT_006b8cb8[in_CX] and records the slot index on the object at +0xba.",
+      "prototype": "",
+      "summary": "Reserves a free slot in a small render/permutation cache table for an object and remembers the slot index on the object."
+    },
+    {
+      "addr": "0x4f9b00",
+      "name": "object_release_render_cache_slot",
+      "confidence": 0.45,
+      "evidence": "Clears the object's +0xba cache-slot field and scrubs any DAT_006b8cb8 table entries that still reference this object, undoing object_reserve_render_cache_slot.",
+      "prototype": "",
+      "summary": "Releases an object's previously reserved render/permutation cache slot."
+    },
+    {
+      "addr": "0x4f9b70",
+      "name": "object_get_or_create_render_permutation",
+      "confidence": 0.35,
+      "evidence": "Validates a cached permutation index against DAT_006b8cbc/DAT_006b8cb8 tables, and if missing looks up the tag block via param_1 and creates+caches one through FUN_004f53a0/FUN_004cdde0/FUN_004f5460, finally reserving it with object_reserve_render_cache_slot (FUN_004f9ac0).",
+      "prototype": "",
+      "summary": "Returns a cached render permutation index for a tag/object combination, building and caching a new one on first use."
+    },
+    {
+      "addr": "0x4f9c60",
+      "name": "objects_garbage_collection",
+      "confidence": 0.9,
+      "evidence": "cea-pdb match on strings '%d slots free' and 'garbage collection %scritical (%s)'; body walks the object memory pool computing free-memory thresholds and evicting objects via block_list_compact and related helpers.",
+      "prototype": "",
+      "summary": "Periodic object-pool garbage collector that frees/evicts objects when free memory or free slots drop below thresholds, reporting via debug strings."
+    },
+    {
+      "addr": "0x4fa0f0",
+      "name": "object_tree_collect_matching",
+      "confidence": 0.5,
+      "evidence": "Recursively descends a per-definition binary tree of objects via child links at node+0x118/+0x114, appending nodes that satisfy an optional filter callback (param_2) into an output array bounded by param_5, returning the running count.",
+      "prototype": "",
+      "summary": "Recursively walks a binary tree of objects of a given type/definition, collecting up to a limit into an array, optionally filtered by a callback."
+    },
+    {
+      "addr": "0x4fa1a0",
+      "name": "object_local_player_scan_flags",
+      "confidence": 0.3,
+      "evidence": "Resolves the local player's controlled object via FUN_005013a0/DAT_00746f9c, then scans a per-definition flag-word array (object+0x14c) for any nonzero word before delegating to object_get_orientation with the matching bit range.",
+      "prototype": "",
+      "summary": "Finds the local player's object and, if any bit is set in a per-definition flag bitfield, hands off to object_get_orientation for that bit range."
+    },
+    {
+      "addr": "0x4fa280",
+      "name": "object_get_orientation",
+      "confidence": 0.35,
+      "evidence": "Kept prior non-FUN_ name, but the body only walks a bitfield (in_stack_00000024) calling object_tree_collect_matching (FUN_004fa0f0) for each set bit and recursing on the next 32-bit range; no rotation/orientation math is present, so the existing name likely does not match this code.",
+      "prototype": "",
+      "summary": "Scans a bitfield of type/definition flags and, for each set bit, collects matching objects via object_tree_collect_matching, recursing across the whole bit range; despite its name it does not appear to compute an orientation."
+    },
+    {
+      "addr": "0x4fa3a0",
+      "name": "object_dump_compare_by_total_size",
+      "confidence": 0.6,
+      "evidence": "Used as the comparator passed to _qsort by objects_dump_memory, comparing the field at offset +8 of each record (matches the accumulated 'totsize' column in the dump report).",
+      "prototype": "int __cdecl object_dump_compare_by_total_size(int param_1, int param_2)",
+      "summary": "qsort comparator that orders object/definition memory-dump records by their accumulated total size field."
+    },
+    {
+      "addr": "0x4fa3d0",
+      "name": "object_dump_accumulate_stats",
+      "confidence": 0.65,
+      "evidence": "Increments per-type/per-definition counters (count, total size, garbage/dead/outside/at-rest/no-physics) whose layout and order exactly match the columns printed by objects_dump_memory's '[garbage/dead/outside/at-rest]' format string.",
+      "prototype": "",
+      "summary": "Tallies one object's statistics (size, garbage/dead/outside-map/at-rest/no-physics flags) into a per-type or per-definition memory-dump accumulator."
+    },
+    {
+      "addr": "0x4fa490",
+      "name": "object_dump_write",
+      "confidence": 0.8,
+      "evidence": "cea-pdb match via the shared 'unknown' string and the printf format '% 6d (% 6d) [...] %s\\r\\n' also used by objects_dump_memory.",
+      "prototype": "",
+      "summary": "Writes one formatted line of the object memory-dump report (counts, garbage/dead/outside/at-rest tallies, and a definition/type name) to a file."
+    },
+    {
+      "addr": "0x4fa500",
+      "name": "objects_dump_memory",
+      "confidence": 0.85,
+      "evidence": "cea-pdb match; references literal strings 'object_memory.txt', 'OBJECTS BY TYPE', 'OBJECTS BY DEFINITION', and calls object_dump_write/object_dump_accumulate_stats/qsort with object_dump_compare_by_total_size.",
+      "prototype": "",
+      "summary": "Builds and writes object_memory.txt, a full debug report of object counts and memory usage broken down by object type and by object definition."
+    },
+    {
+      "addr": "0x4fa8d0",
+      "name": "object_start_animation",
+      "confidence": 0.55,
+      "evidence": "cea-pdb hints tie the shared error string \"the animation '%s' doesn't exist in the graph '%s'\" to unit_start_user_animation/scenery_animation_start_private; this object-level routine sets the animation graph (+0xcc), index (+0xd0) and start frame (+0xd2) fields and raises FUN_004c6920 with that string when FUN_004d6ab0 fails to resolve the animation.",
+      "prototype": "",
+      "summary": "Looks up a named animation in an animation graph and starts it on the object, logging an error if the animation is not found."
+    },
+    {
+      "addr": "0x4fa9b0",
+      "name": "object_animation_get_frames_remaining",
+      "confidence": 0.55,
+      "evidence": "Uses the same animation-state fields (+500 flag, +0xd0 index, +0xd2 frame, +0xcc graph reference) set up by object_start_animation to compute a remaining-frame count from the referenced animation graph.",
+      "prototype": "",
+      "summary": "Returns the number of frames left in the object's currently playing animation, or 0 if none is active."
+    },
+    {
+      "addr": "0x4faa20",
+      "name": "antennas_initialize",
+      "confidence": 0.65,
+      "evidence": "cea-pdb hint ties string 'antenna' to a saved_games antennas_initialize; calls FUN_005380d0(\"antenna\", 0xc), the standard data_new(name, max_count) pattern seen for other subsystems in this module.",
+      "prototype": "",
+      "summary": "Creates the global antenna instance data array (data_new(\"antenna\", 12))."
+    },
+    {
+      "addr": "0x4faa40",
+      "name": "antennas_dispose",
+      "confidence": 0.55,
+      "evidence": "Sets a dispose-in-progress flag at DAT_008603ac+0x24 then calls data_delete_all, matching the antennas_initialize datum array and the analogous flags_dispose (FUN_004fb4f0).",
+      "prototype": "",
+      "summary": "Marks the antenna data array as disposing and deletes all antenna instances."
+    },
+    {
+      "addr": "0x4faa60",
+      "name": "antennas_dispose_clear_flag",
+      "confidence": 0.45,
+      "evidence": "Clears the same DAT_008603ac+0x24 flag set by antennas_dispose.",
+      "prototype": "",
+      "summary": "Clears the antenna subsystem's disposing flag."
+    },
+    {
+      "addr": "0x4faa70",
+      "name": "antennas_reset",
+      "confidence": 0.4,
+      "evidence": "Zeroes DAT_008603ac if non-zero; a small guarded reset alongside the other antenna lifecycle helpers.",
+      "prototype": "",
+      "summary": "Resets the antenna data-array pointer/handle if one is currently set."
+    },
+    {
+      "addr": "0x4faa90",
+      "name": "antenna_new",
+      "confidence": 0.55,
+      "evidence": "Allocates a 700-int record via datum_new keyed by the DAT_008603ac antenna array, then fills a per-segment vertex/velocity array (stride 0x20) from the antenna tag's segment count (+0xc4) and per-segment lengths (+0x74/0x78/0x7c), matching an antenna's initial hanging-chain layout.",
+      "prototype": "",
+      "summary": "Creates a new antenna instance for an attachment, laying out its initial chain of segment vertices from the antenna tag definition."
+    },
+    {
+      "addr": "0x4fad20",
+      "name": "antennas_update",
+      "confidence": 0.55,
+      "evidence": "Iterates the antenna datum array (via FUN_004d0630) and, for antennas still connected to a valid object, calls FUN_004fae10 with dt clamped to 0.06666667 (30Hz), matching the per-instance physics-update pattern also used by flags_update.",
+      "prototype": "",
+      "summary": "Advances the physics simulation of every active antenna instance by one (clamped) timestep."
+    },
+    {
+      "addr": "0x4fae10",
+      "name": "antenna_update_physics",
+      "confidence": 0.5,
+      "evidence": "Per-segment loop using vector3d_normalize_with_length/vector3d_angle_between_4cd4f0/vector3d_rotate_about_axis and a marker transform helper (FUN_004fb1c0) to bend each antenna segment toward the previous one, i.e. a simple verlet/IK-style antenna sway.",
+      "prototype": "",
+      "summary": "Simulates one timestep of antenna segment motion, bending each segment relative to its parent based on marker movement and elapsed time."
+    },
+    {
+      "addr": "0x4fb1c0",
+      "name": "widget_apply_marker_delta",
+      "confidence": 0.4,
+      "evidence": "Recomputes a marker's current world transform (FUN_004f6080) versus its previous stored position (unaff_ESI+0x10.. ) and, unless the delta is negligible (three FUN_006391b4 magnitude checks), shifts every stored point in the attached point array (param_1+0xc4 entries) by that delta.",
+      "prototype": "",
+      "summary": "Shifts a widget's stored point cloud (antenna chain or flag rope) by the movement of its anchoring marker since the last update."
+    },
+    {
+      "addr": "0x4fb3e0",
+      "name": "antenna_render",
+      "confidence": 0.45,
+      "evidence": "Iterates an antenna's segments (count at unaff_EDI+0xc4) computing per-segment delta positions and, when bit 0x44 is set on in_EAX, calls the same debug/immediate line-drawing pair (FUN_00511700/FUN_00511620) used by lightning_render; the previous name 'object_definition_predict' does not match this line-drawing behaviour.",
+      "prototype": "",
+      "summary": "Draws an antenna's chain of segments as connected line segments (used for antenna wire rendering), despite its earlier 'predict' name."
+    },
+    {
+      "addr": "0x4fb4d0",
+      "name": "flags_initialize",
+      "confidence": 0.7,
+      "evidence": "Calls FUN_005380d0(&DAT_0066e99c, 2); the referenced global resolves (via the .rdata string table) to the literal \"flag\", and 2 matches Halo's fixed two-team CTF flag count.",
+      "prototype": "",
+      "summary": "Creates the global CTF flag instance data array (data_new(\"flag\", 2))."
+    },
+    {
+      "addr": "0x4fb4f0",
+      "name": "flags_dispose",
+      "confidence": 0.6,
+      "evidence": "Sets DAT_008603a8+0x24 disposing flag then calls data_delete_all, mirroring antennas_dispose against the flags_initialize array.",
+      "prototype": "",
+      "summary": "Marks the flag data array as disposing and deletes all flag instances."
+    },
+    {
+      "addr": "0x4fb510",
+      "name": "flags_dispose_clear_flag",
+      "confidence": 0.45,
+      "evidence": "Clears the DAT_008603a8+0x24 flag set by flags_dispose.",
+      "prototype": "",
+      "summary": "Clears the flag subsystem's disposing flag."
+    },
+    {
+      "addr": "0x4fb520",
+      "name": "flags_reset",
+      "confidence": 0.4,
+      "evidence": "Zeroes DAT_008603a8 if non-zero, mirroring antennas_reset.",
+      "prototype": "",
+      "summary": "Resets the flag data-array pointer/handle if one is currently set."
+    },
+    {
+      "addr": "0x4fb540",
+      "name": "flag_new",
+      "confidence": 0.55,
+      "evidence": "Allocates a large (0x16bc-byte) record from the flags datum array, validates the flag tag's grid dimensions (rows*cols<0xe1 and rows<0x28), fills a rows*cols grid of default UV pairs (PTR_DAT_006966f8/006966714), and calls FUN_004fb6d0/FUN_004fb770 to set up per-cell constraints -- consistent with building the flag's cloth simulation mesh.",
+      "prototype": "",
+      "summary": "Creates a new flag instance and builds its cloth simulation grid (vertex UV grid and edge/shape constraints) from the flag tag definition."
+    },
+    {
+      "addr": "0x4fb6d0",
+      "name": "flag_cloth_init_edge_constraints",
+      "confidence": 0.4,
+      "evidence": "Iterates the flag's cloth rows, computing a clamped span for each row and calling FUN_004fb840 twice per row -- consistent with tagging left/right (or top/bottom) edge cells of the cloth grid.",
+      "prototype": "",
+      "summary": "Marks the border cells along each row of the flag's cloth grid, used to set up edge constraints for the cloth simulation."
+    },
+    {
+      "addr": "0x4fb770",
+      "name": "flag_cloth_init_shape_constraints",
+      "confidence": 0.4,
+      "evidence": "Switches on the flag tag's shape field (+4: values 1-4) calling FUN_004fb840 once or twice per shape, matching different cloth-grid diagonal/shape configurations.",
+      "prototype": "",
+      "summary": "Sets up the flag cloth grid's corner/shape constraints according to the tag-selected flag shape."
+    },
+    {
+      "addr": "0x4fb840",
+      "name": "flag_cloth_set_region_split_flags",
+      "confidence": 0.4,
+      "evidence": "Fills a rectangular sub-region of the per-cell diagonal-split table (offset +0x1534, the same table consumed by flag_render's quad-triangulation switch) with a direction code (param_5), bounded by the grid's row/column counts.",
+      "prototype": "",
+      "summary": "Stamps a rectangular region of the flag cloth grid with a quad-diagonal-split code later used when triangulating the cloth mesh for rendering."
+    },
+    {
+      "addr": "0x4fba00",
+      "name": "flags_update",
+      "confidence": 0.55,
+      "evidence": "Walks the flags datum array (FUN_004d0630) and calls FUN_004fbae0 with a nonzero dt for each connected flag, mirroring antennas_update's structure against the flags array.",
+      "prototype": "",
+      "summary": "Advances the cloth simulation of every active flag instance by one timestep."
+    },
+    {
+      "addr": "0x4fbae0",
+      "name": "flag_cloth_update",
+      "confidence": 0.5,
+      "evidence": "Computes per-row anchor positions via flag_pole_get_marker_positions (FUN_004fc020), then for each cloth vertex blends a wind offset sampled from a pseudo-random wind-field table (DAT_006b7af4/DAT_006b7af8) using the LCG at DAT_00719cd4, and calls FUN_0050b530 (marker/tint transform) -- consistent with simulating flag-cloth vertex motion under wind.",
+      "prototype": "",
+      "summary": "Updates one timestep of the flag's cloth simulation, blending each vertex toward a wind-perturbed target position relative to the flag pole's current marker positions."
+    },
+    {
+      "addr": "0x4fc020",
+      "name": "flag_pole_get_marker_positions",
+      "confidence": 0.45,
+      "evidence": "For each of the flag's pole segments (count at unaff_EDI+0x54) resolves the segment's marker transform via FUN_004f6080 into an output position array, then (in the flag==-1 branch) builds an edge/interpolation index table used to place cloth vertices between pole segments.",
+      "prototype": "",
+      "summary": "Resolves the current world position of each flag-pole marker segment and builds the row-interpolation table used to place the cloth grid along the pole."
+    },
+    {
+      "addr": "0x4fc350",
+      "name": "flag_render",
+      "confidence": 0.55,
+      "evidence": "Builds per-vertex normals (cross product of grid neighbours) and a triangle index list from the same per-cell diagonal-split table written by flag_cloth_set_region_split_flags, then issues draw calls through FUN_0052b050/FUN_0052b180/FUN_0052b530, matching a cloth-grid mesh render.",
+      "prototype": "",
+      "summary": "Builds the flag's cloth mesh geometry (vertex normals and triangulated index list) for the current frame and submits it for rendering."
+    },
+    {
+      "addr": "0x4fca60",
+      "name": "cubic_interpolate_scalar",
+      "confidence": 0.4,
+      "evidence": "Pure floating-point Newton divided-difference cubic interpolation over 4 (x,y) sample pairs evaluated at param_9, with no register-passed/unaff_ state -- a self-contained math helper.",
+      "prototype": "",
+      "summary": "Evaluates a cubic polynomial fit through four (position, value) sample pairs at a given position, via Newton's divided differences."
+    },
+    {
+      "addr": "0x4fcb00",
+      "name": "vector3d_cubic_interpolate",
+      "confidence": 0.45,
+      "evidence": "Calls cubic_interpolate_scalar (FUN_004fca60) three times, once per axis, using four control vectors (param_2, unaff_EBX/EDI/ESI) and shared parametric arguments.",
+      "prototype": "",
+      "summary": "Applies cubic_interpolate_scalar per-axis to interpolate a 3D vector through four control points."
+    },
+    {
+      "addr": "0x4fcdb0",
+      "name": "lightning_instance_update",
+      "confidence": 0.4,
+      "evidence": "Resolves a lightning instance handle through the DAT_008603a0 datum table, reads its tag block via the +0x224-style offset, then calls lightning_update (FUN_004fce80), a marker transform (FUN_004f6080), and lightning_render (FUN_004fe570) in sequence.",
+      "prototype": "",
+      "summary": "Looks up a lightning instance by handle and drives its per-frame update, marker attachment, and rendering."
+    },
+    {
+      "addr": "0x4fce80",
+      "name": "lightning_update",
+      "confidence": 0.55,
+      "evidence": "Maintains a linked list of lightning segment records (0x6c-byte nodes at object+0x250/+0x254), orders them by nearest-neighbour chaining, accumulates total chain length, spawns new segments via lightning_segment_spawn (FUN_004fdb20) at a tag-defined rate, and retires expired ones (datum_delete) -- consistent with a procedurally-jittered lightning-bolt effect.",
+      "prototype": "",
+      "summary": "Per-frame update of a lightning effect: orders its segment chain, ages and retires old segments, and spawns new ones according to the tag's rate."
+    },
+    {
+      "addr": "0x4fd3a0",
+      "name": "lightning_segment_compute_fade",
+      "confidence": 0.45,
+      "evidence": "Computes a 0..1 fade value from the segment's lifetime fields (+0x50/+0x52) only when the tag's flag bit 0x08 is set, storing it at +0x58; used inside lightning_update's per-segment tick.",
+      "prototype": "",
+      "summary": "Computes a lightning segment's fade-out fraction from its remaining lifetime, when the tag enables fading."
+    },
+    {
+      "addr": "0x4fd420",
+      "name": "lightning_segment_compute_color",
+      "confidence": 0.45,
+      "evidence": "When the tag's flag bit 0x20 is set, scales the segment's base color (+0x38/0x3c/0x40) by its lifetime fraction into the render color fields (+0x44/0x48/0x4c); otherwise copies the base color unchanged.",
+      "prototype": "",
+      "summary": "Computes a lightning segment's current render color, fading it toward zero over its lifetime when the tag enables color fade."
+    },
+    {
+      "addr": "0x4fd4a0",
+      "name": "lightning_segment_compute_position",
+      "confidence": 0.4,
+      "evidence": "Uses the object's exported function-value array (object+0x134, gated by the +0x123 dirty bitmask -- the same fields populated by object_delete/object_reconnect_to_map) to interpolate the segment's position and a secondary intensity value across tag-defined ranges.",
+      "prototype": "",
+      "summary": "Computes a lightning segment's position and intensity by interpolating tag-defined ranges according to the object's driving function value."
+    },
+    {
+      "addr": "0x4fd650",
+      "name": "lightning_segment_advance_time",
+      "confidence": 0.45,
+      "evidence": "Advances the segment's lifetime fraction (+0x28) by param_1, wrapping or clamping according to the tag's loop-mode field (+0x22: clamp vs ping-pong), and calls lightning_segment_reposition (FUN_004fde40) whenever the timer wraps.",
+      "prototype": "",
+      "summary": "Advances a lightning segment's animation timer by dt, handling clamp/ping-pong looping and triggering a reposition when it wraps."
+    },
+    {
+      "addr": "0x4fd830",
+      "name": "lightning_bolt_build_chain",
+      "confidence": 0.45,
+      "evidence": "Allocates the tag-specified number of segments (in_EAX+0x24c) via lightning_segment_new (FUN_004fd8e0), linking each into the object's segment list (+0x250/+0x254) and applying tag flag bits 0x02/0x04 to alternate segment life flags.",
+      "prototype": "",
+      "summary": "Builds the initial chain of lightning segments for a lightning instance from its tag definition."
+    },
+    {
+      "addr": "0x4fd8e0",
+      "name": "lightning_segment_new",
+      "confidence": 0.45,
+      "evidence": "Allocates a segment via lightning_shard_datum_new (FUN_004fdde0) and, using the DAT_00719cd4 LCG, randomizes its offset/period/color/phase fields from the lightning tag's ranges (+0x84-0x90, 0xa0-0xa4, 0xb8-0xd0), matching the initial-chain construction path from lightning_bolt_build_chain.",
+      "prototype": "",
+      "summary": "Allocates and randomly initializes one lightning segment's amplitude, period, color and phase from the tag's configured ranges."
+    },
+    {
+      "addr": "0x4fdb20",
+      "name": "lightning_segment_spawn",
+      "confidence": 0.45,
+      "evidence": "Allocates a segment via lightning_shard_datum_new (FUN_004fdde0), sets its velocity either from the parent object (when node count < 2) or by random direction scaled by tag speed fields, and is the segment allocator called from lightning_update's per-frame spawn loop (unlike lightning_segment_new which is used for the initial chain).",
+      "prototype": "",
+      "summary": "Allocates and initializes a new lightning segment spawned during ongoing simulation, giving it an initial position, velocity and color."
+    },
+    {
+      "addr": "0x4fdde0",
+      "name": "lightning_shard_datum_new",
+      "confidence": 0.4,
+      "evidence": "Calls datum_new against the DAT_008603a4 array and then validates the returned handle's generation/salt against the array's hash-slot table, the standard 'allocate + verify' pattern used elsewhere in this module.",
+      "prototype": "",
+      "summary": "Allocates one lightning segment/shard datum, verifying it against the array's slot table before returning it."
+    },
+    {
+      "addr": "0x4fde40",
+      "name": "lightning_segment_reposition",
+      "confidence": 0.4,
+      "evidence": "Selects which pair of anchor markers (from in_EDX's node list) a segment currently lies between based on cumulative-distance thresholds, then uses vector3d_cubic_interpolate (FUN_004fcb00) to place it smoothly along the bolt's path.",
+      "prototype": "",
+      "summary": "Recomputes which anchor markers a lightning segment currently spans and its smoothly-interpolated position along the bolt's path."
+    },
+    {
+      "addr": "0x4fe570",
+      "name": "lightning_render",
+      "confidence": 0.5,
+      "evidence": "Resolves a lightning instance via the DAT_008603a0 hash table then walks its segment list (+0x250) issuing FUN_00511700 line-draw calls per segment before flushing with FUN_00511620 -- the same debug/immediate line-render pair used by antenna_render.",
+      "prototype": "",
+      "summary": "Renders a lightning instance's segment chain as a sequence of connected line segments."
+    },
+    {
+      "addr": "0x4fe740",
+      "name": "object_attachment_get_blended_marker",
+      "confidence": 0.35,
+      "evidence": "Blends two copies of a marker-like structure's position/forward/up/scale fields (offsets +0x10.. +0x8c) by a weight derived from one of the object's exported function values, writing the result into a static scratch buffer at DAT_006b8cc0.",
+      "prototype": "",
+      "summary": "Interpolates a marker transform between two states using an object function-driven blend weight, returning a pointer to the blended result."
+    },
+    {
+      "addr": "0x4fe900",
+      "name": "light_volume_new",
+      "confidence": 0.35,
+      "evidence": "Resolves a handle via the DAT_006b8d70 hash-slot table (matching the .rdata string 'light volumes' found near 'antenna'/'flag'), checks the tag's marker/attachment counts, and calls FUN_00536ff0 to add the instance -- consistent with creating a light-volume attachment.",
+      "prototype": "",
+      "summary": "Conditionally creates a light-volume instance on an object's marker, based on the light-volume tag's marker count and an optional object-function gate."
+    },
+    {
+      "addr": "0x4fea50",
+      "name": "object_function_select_or_evaluate",
+      "confidence": 0.4,
+      "evidence": "Returns param_1 unchanged when param_2 equals 1.0, otherwise delegates to FUN_006283c0 with the same arguments -- a small blend/passthrough helper with clean stack parameters.",
+      "prototype": "",
+      "summary": "Returns a value unchanged when its weight is exactly 1.0, otherwise evaluates it through a secondary (interpolation/curve) helper."
+    }
+  ]
+}

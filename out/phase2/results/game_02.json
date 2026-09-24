@@ -1,0 +1,484 @@
+{
+  "results": [
+    {
+      "addr": "0x4620c0",
+      "name": "game_engine_waypoint_matches_filter",
+      "confidence": 0.4,
+      "evidence": "Reads a 32-byte-stride record from the DAT_006f1888 table (fields for filter player index, team/type short, owner filter) and compares them against param_1/in_EAX; called by the waypoint collector and broadcaster below.",
+      "summary": "Register-argument helper that tests whether one entry of the 32-slot custom-waypoint table applies to a given object/player, honoring -1 wildcard sentinels for player, team-type and owner filters.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x462190",
+      "name": "game_engine_waypoint_collect_for_player",
+      "confidence": 0.4,
+      "evidence": "Iterates the same 32-entry, 32-byte-stride DAT_006f1888 table calling FUN_004620c0 as a filter and copies matching position/id pairs into caller buffers param_2/param_3 up to param_4, returning the count.",
+      "summary": "For a given player/object filter, walks the custom waypoint table and copies the positions and slot indices of all matching entries into the caller-supplied output arrays.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x462230",
+      "name": "game_engine_waypoint_get_position",
+      "confidence": 0.4,
+      "evidence": "Copies the three leading dwords (x, y, z) of a DAT_006f1888 record selected by in_CX into the output pointed to by in_EAX; used by interface FUN_004afb90 for HUD nav-marker type 1.",
+      "summary": "Fetches the stored 3D position of a single custom-waypoint slot into a caller-supplied Point3D-sized buffer.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x462260",
+      "name": "game_engine_waypoint_add",
+      "confidence": 0.45,
+      "evidence": "Writes a new record into the DAT_006f1888 table: copies a position from unaff_EBX, resolves an icon/name index via FUN_004af070 (string table lookup), stores player/type filters from param_2/param_3, marks the slot active, and adds a plus 0.63 height offset plus param_1 to the z coordinate.",
+      "summary": "Registers a new custom HUD waypoint marker at a world position (raised slightly above it) with an icon looked up by name and optional player/type filters.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4622d0",
+      "name": "game_engine_get_variant_by_name",
+      "confidence": 0.9,
+      "evidence": "Long __stricmp chain against every classic/short multiplayer variant name string (classic_slayer, team_slayer, assault, and so on), each branch calling one of the FUN_00463c40..FUN_004652a0/FUN_00467xxx default-builder functions; falls back to the custom-variant/profile cache otherwise. Also matches the cea-pdb naming hint.",
+      "summary": "Looks up a built-in multiplayer game-variant name and either reports whether it exists (param_1 is NULL) or fills the caller buffer with that variant default option values, falling back to the custom/playlist variant cache for unrecognized names.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x462a80",
+      "name": "game_engine_rasterize_message",
+      "confidence": 0.4,
+      "evidence": "Function body is empty (immediate return); name is an existing non-FUN_ hint that the empty body neither confirms nor contradicts.",
+      "summary": "Stub with no body in this retail build; presumably an on-screen game-engine message rasterizer that was compiled out or disabled.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x462a90",
+      "name": "game_engine_waypoint_broadcast_update",
+      "confidence": 0.4,
+      "evidence": "Iterates the DAT_006f1888 waypoint table with FUN_004620c0 as filter and, for matching entries, calls interface functions FUN_004af540/FUN_004af5e0 (HUD nav-marker add/update) guarded by DAT_006f1d20 game-engine type and team-visibility checks.",
+      "summary": "For each active custom waypoint that passes the player/team filter, pushes an add-or-update call into the interface HUD nav-point system.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x462bd0",
+      "name": "game_engine_pack_object_display_flags",
+      "confidence": 0.25,
+      "evidence": "Returns (in_EAX and 0xFFFFFF00) unchanged when DAT_0087aa00 bit2 is set, otherwise overwrites the value with bits extracted from the game-option field DAT_006f1cc0 (bit2 into the low bit, bits 10 and up into the upper bytes).",
+      "summary": "Low-confidence: builds a packed flags/color byte for an object from the game engine option bitfield when not in the DAT_0087aa00-bit2 mode, otherwise passes the input through unchanged in its low byte.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x462bf0",
+      "name": "game_engine_get_teams_enabled",
+      "confidence": 0.55,
+      "evidence": "Returns DAT_006f1cc4 (0 when engine inactive); the same field is tested as ==0 for free-for-all and ==1 for teams in FUN_00462190, FUN_00462a90 and FUN_004635e0 in this same file.",
+      "summary": "Returns whether the active game engine has team play enabled.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x462c10",
+      "name": "game_engine_get_misc_option_flag",
+      "confidence": 0.3,
+      "evidence": "Returns the inverse of bit 3 of the game-option field DAT_006f1cc0 when the engine is active and the passed object/id is not -1, else defaults to 1.",
+      "summary": "Low-confidence boolean accessor for one bit of the game engine option bitfield, gated on the engine being active and a valid object id.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x462c30",
+      "name": "game_engine_remap_netgame_equipment",
+      "confidence": 0.3,
+      "evidence": "Looks up in_EAX in a scenario placement table at DAT_00746fa0+0x14c/0x150 (0x10-byte entries); when the match index is 0xc or 0xd it substitutes via a PRNG-driven table entry gated by DAT_0087aa00 bits 3/4, otherwise it applies visibility rules keyed by DAT_006f1ce4 (current game-engine/variant type) and DAT_006f1cc0 option bits 3/4, returning -1 to hide the object.",
+      "summary": "Resolves a scenario multiplayer object placement (paired with FUN_00462df0 flag variant) to the actual object/index that should be used for the active game variant, hiding it (-1) when the relevant vehicle/equipment-visibility option is off.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x462df0",
+      "name": "game_engine_remap_netgame_flag",
+      "confidence": 0.3,
+      "evidence": "Uses the same DAT_00746fa0+0x14c/0x150 placement table lookup as FUN_00462c30, then a large switch on DAT_006f1ce4 (game-engine/variant type) remaps the found placement index into a different category, honoring a DAT_006f1d24/DAT_006f1cc0-bit7 override.",
+      "summary": "Resolves a scenario netgame_flag-style placement index into the role/category appropriate for the currently active multiplayer variant type.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4630b0",
+      "name": "game_engine_remap_start_position",
+      "confidence": 0.35,
+      "evidence": "Dereferences a per-slot pointer from the DAT_0087bc14 table (offset 0x14, 0x20-byte stride) to read a leading type field, then dispatches type 2 to FUN_00462df0 and type 3 to FUN_00462c30, doing nothing for type 1.",
+      "summary": "Given a player referenced start/placement object, dispatches to the netgame-flag or netgame-equipment remapping routine based on that placement stored type.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x463100",
+      "name": "game_engine_player_is_winner_or_leader",
+      "confidence": 0.35,
+      "evidence": "Reads the DAT_0087a480+0x34 player-slot struct fields +0xd5 (elimination flag) and +0xae (score, compared against score-limit global DAT_006f1cd8), falling back to the FFA leader check FUN_00460e40 when neither condition already resolves the outcome.",
+      "summary": "Returns true automatically for an eliminated player or one who has already reached the score limit in a free-for-all game, otherwise returns whether the player is the current FFA leader.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x463150",
+      "name": "game_engine_update_player_hint_message",
+      "confidence": 0.35,
+      "evidence": "Reads/writes a per-player current-hint-id field (+0x74) in the DAT_0087a480 player table, computing a new id from FUN_00460f30 (score-limit reached) / FUN_00460e40 (is leader) / elapsed-time comparisons against DAT_006f1d6c, then routes it through the game-engine vtable slot +0x6c or the fallback FUN_0045e680(text_id, extra).",
+      "summary": "Determines and dispatches which contextual HUD hint (for example leader, score-limit reached, eliminated) should currently be shown to a player.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x463290",
+      "name": "game_engine_get_player_color",
+      "confidence": 0.5,
+      "evidence": "Selects between two fixed RGB triples (PTR_DAT_00686b10/PTR_DAT_00686b18) based on a player-slot field (+0x20), or calls FUN_00539c20 (confirmed elsewhere to convert a palette index into a normalized RGB float triple) when DAT_006f1cbc is clear.",
+      "summary": "Returns a 3-float RGB color for a player: either a resolved custom palette color or one of two fixed default colors.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x463300",
+      "name": "game_engine_team_has_active_member",
+      "confidence": 0.3,
+      "evidence": "Looks up the caller team datum (DAT_008603b0 array indexed by the player team field at +0x34) and scans up to 4 stored member indices at offset +0x2f8, testing a bit (>>3 and 1) of a field on each referenced player via the DAT_0087bc14 indirection table.",
+      "summary": "Checks whether any of up to four registered members of a player team currently satisfy a status bit (plausibly alive/active), returning 1 if found.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4633a0",
+      "name": "game_engine_reset_team_status_gauge",
+      "confidence": 0.3,
+      "evidence": "Looks up the caller object team datum via DAT_008603b0 and, if bit 0x10 of a status byte at +0x204 is set, writes the float 0.5 into +0x37c on that team structure.",
+      "summary": "Resets a per-team floating-point gauge/timer field to 0.5 when a particular team status bit is set.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4633f0",
+      "name": "game_engine_get_multiplayer_text_list",
+      "confidence": 0.55,
+      "evidence": "Calls tag_lookup(ui multiplayer_game_text) and, if found, returns the string-list block via FUN_005578c0; otherwise falls back to the fixed address &DAT_00660c34.",
+      "summary": "Returns the string-list data for the ui\\multiplayer_game_text tag (or a built-in fallback list) used for multiplayer HUD/game text strings.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x463480",
+      "name": "game_engine_compare_player_score_rank",
+      "confidence": 0.35,
+      "evidence": "Uses the game-engine vtable slot +0x4c as a per-object score getter, calls it for the given object then for every other object via data_iterator_next, counting ties/greater-scores to build a result bitmask (win/tie/rank-count flags).",
+      "summary": "Compares one object score against every other tracked object (via the game engine score callback) to compute whether it is winning, tied, and how many objects tie with it.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4635e0",
+      "name": "game_engine_get_uses_individual_scoring",
+      "confidence": 0.4,
+      "evidence": "Returns (DAT_006f1cc0 bit0) OR (DAT_006f1cc4==0), i.e. true when the score-individually option bit is set or the engine is not in team mode; a DAT_006f1cb8==2 and DAT_006f1d06==0 combination forces the team-mode branch instead.",
+      "summary": "Returns whether player scores should be tracked/displayed individually rather than by team, based on the team-mode flag and an option bit.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x463620",
+      "name": "game_engine_reset_player_round_state",
+      "confidence": 0.3,
+      "evidence": "Calls FUN_00476250(0) (confirmed elsewhere to clear a per-player team-slot field and run cleanup callbacks for a given player) and then the game-engine vtable slot +0x98 if present.",
+      "summary": "Clears a player per-round engine bookkeeping and invokes the active game variant optional reset callback.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x463660",
+      "name": "game_engine_object_is_on_winning_team",
+      "confidence": 0.3,
+      "evidence": "Compares team scores via the game-engine vtable slot +0x50 (team 0)/+0x50 (team 1), or via FUN_0045c750/FUN_0045c9e0/FUN_0045cee0 when DAT_006f1cbc is clear, then checks the given object team field (+0x20) against the winning side.",
+      "summary": "Determines whether a given object belongs to the currently leading/winning team.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x463730",
+      "name": "game_engine_object_wins_round",
+      "confidence": 0.3,
+      "evidence": "Finds the matching entry via data_iterator_next on field +0x20, then calls the game-engine vtable slot +0x8c (a per-variant is-winner callback) if present, else falls back to FUN_00463660.",
+      "summary": "Returns whether a given tracked object should be treated as this round winner, deferring to the active variant custom win-check callback when one exists.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4637c0",
+      "name": "game_engine_scenario_list_find_index",
+      "confidence": 0.2,
+      "evidence": "Loops over a DAT_00746f8c+0x37c array (0x94-byte stride, count at +0x378) comparing a field at +0x10 to unaff_DI; the inner loop increments a counter without any other visible side effect in the decompilation.",
+      "summary": "Low-confidence: appears to search a scenario placement list for a matching short identifier, but the decompiled loop body has no observable effect, suggesting lost side effects (for example an element shift/removal) in the Ghidra output.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x463810",
+      "name": "game_engine_validate_scenario_lists",
+      "confidence": 0.2,
+      "evidence": "Calls FUN_004637c0 twice and then repeats a counting loop against the count field at DAT_00746f8c+900 five times with no other visible effect.",
+      "summary": "Low-confidence: repeatedly walks scenario placement-list counts with no clear side effect in the decompilation; may be a validation/assert routine or a decompiler artifact.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4638b0",
+      "name": "game_engine_free_custom_variant_cache",
+      "confidence": 0.6,
+      "evidence": "Frees each pair of GlobalAlloc allocated name/data pointers in the DAT_00687b0c array (stride 0xA4, count DAT_00687b10) then frees the array itself and resets the cache globals; the same globals are populated by FUN_00463980 and consumed by FUN_00463b20/FUN_00463b90.",
+      "summary": "Releases the dynamically allocated recent/custom game-variant cache and resets its bookkeeping globals to empty.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x463920",
+      "name": "game_engine_variant_supported_on_current_map",
+      "confidence": 0.4,
+      "evidence": "Extracts the map filename via _strrchr, resolves it to an index with sig__load_multiplayer_maps_demo_sig, checks that index against the map table DAT_00712dcc/DAT_00712dd0 (per-entry enabled flag at +8), and optionally confirms the current variant exists via game_engine_get_variant_by_name.",
+      "summary": "Checks whether the currently loaded map is present/enabled in the multiplayer maps table and, optionally, that the active game variant is a recognized one.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x463980",
+      "name": "game_engine_variant_add_to_history",
+      "confidence": 0.5,
+      "evidence": "Validates via FUN_00463920, duplicates the variant name/settings (via GlobalAlloc or FUN_00463920/game_engine_get_variant_by_name defaults) and appends a new 0xA4-byte entry to the DAT_00687b0c array, growing it with GlobalAlloc/GlobalReAlloc as needed.",
+      "summary": "Adds a named custom game variant (with either supplied or default option data) to the dynamically-grown recent/custom variant cache.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x463b20",
+      "name": "game_engine_variant_history_ensure_populated",
+      "confidence": 0.4,
+      "evidence": "Frees the cache via FUN_004638b0; if it is still empty and DAT_00714e78 is set, copies a saved 0x26-dword variant block from DAT_00714de0 and re-adds it through FUN_00463980, returning whether the cache is non-empty afterward.",
+      "summary": "Ensures the recent/custom game-variant cache has at least one entry, restoring a previously saved default variant into it if it was empty.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x463b90",
+      "name": "game_engine_apply_current_custom_variant",
+      "confidence": 0.5,
+      "evidence": "Advances the selection cursor DAT_00687b18 through the DAT_00687b0c cache (wrapping at DAT_00687b10), then copies the selected entry name (via _strncpy) and 0x26-dword settings block into the active-variant globals DAT_0087aa40/DAT_0087aa80, deriving a couple of related fields.",
+      "summary": "Cycles to and loads the next entry of the custom game-variant cache into the currently active variant state.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x463c40",
+      "name": "game_engine_variant_defaults_classic_slayer",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_slayer\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_slayer\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_slayer(void *variant_options)"
+    },
+    {
+      "addr": "0x463d20",
+      "name": "game_engine_variant_defaults_classic_slayer_pro",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_slayer_pro\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_slayer_pro\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_slayer_pro(void *variant_options)"
+    },
+    {
+      "addr": "0x463e00",
+      "name": "game_engine_variant_defaults_classic_elimination",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_elimination\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_elimination\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_elimination(void *variant_options)"
+    },
+    {
+      "addr": "0x463ee0",
+      "name": "game_engine_variant_defaults_classic_phantoms",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_phantoms\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_phantoms\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_phantoms(void *variant_options)"
+    },
+    {
+      "addr": "0x463fc0",
+      "name": "game_engine_variant_defaults_classic_endurance",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_endurance\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_endurance\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_endurance(void *variant_options)"
+    },
+    {
+      "addr": "0x4640a0",
+      "name": "game_engine_variant_defaults_classic_rockets",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_rockets\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_rockets\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_rockets(void *variant_options)"
+    },
+    {
+      "addr": "0x464180",
+      "name": "game_engine_variant_defaults_classic_snipers",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_snipers\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_snipers\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_snipers(void *variant_options)"
+    },
+    {
+      "addr": "0x464260",
+      "name": "game_engine_variant_defaults_classic_team_slayer",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_team_slayer\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_team_slayer\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_team_slayer(void *variant_options)"
+    },
+    {
+      "addr": "0x464340",
+      "name": "game_engine_variant_defaults_classic_oddball",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_oddball\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_oddball\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_oddball(void *variant_options)"
+    },
+    {
+      "addr": "0x464430",
+      "name": "game_engine_variant_defaults_classic_team_oddball",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_team_oddball\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_team_oddball\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_team_oddball(void *variant_options)"
+    },
+    {
+      "addr": "0x464510",
+      "name": "game_engine_variant_defaults_classic_reverse_tag",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_reverse_tag\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_reverse_tag\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_reverse_tag(void *variant_options)"
+    },
+    {
+      "addr": "0x464600",
+      "name": "game_engine_variant_defaults_classic_accumulation",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_accumulation\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_accumulation\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_accumulation(void *variant_options)"
+    },
+    {
+      "addr": "0x464700",
+      "name": "game_engine_variant_defaults_classic_juggernaut",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_juggernaut\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_juggernaut\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_juggernaut(void *variant_options)"
+    },
+    {
+      "addr": "0x464800",
+      "name": "game_engine_variant_defaults_classic_stalker",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_stalker\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_stalker\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_stalker(void *variant_options)"
+    },
+    {
+      "addr": "0x464900",
+      "name": "game_engine_variant_defaults_classic_king",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_king\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_king\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_king(void *variant_options)"
+    },
+    {
+      "addr": "0x4649d0",
+      "name": "game_engine_variant_defaults_classic_king_pro",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_king_pro\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_king_pro\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_king_pro(void *variant_options)"
+    },
+    {
+      "addr": "0x464aa0",
+      "name": "game_engine_variant_defaults_classic_crazy_king",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_crazy_king\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_crazy_king\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_crazy_king(void *variant_options)"
+    },
+    {
+      "addr": "0x464b70",
+      "name": "game_engine_variant_defaults_classic_team_king",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_team_king\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_team_king\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_team_king(void *variant_options)"
+    },
+    {
+      "addr": "0x464c40",
+      "name": "game_engine_variant_defaults_classic_ctf",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_ctf\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_ctf\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_ctf(void *variant_options)"
+    },
+    {
+      "addr": "0x464d30",
+      "name": "game_engine_variant_defaults_classic_ctf_pro",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_ctf_pro\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_ctf_pro\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_ctf_pro(void *variant_options)"
+    },
+    {
+      "addr": "0x464e20",
+      "name": "game_engine_variant_defaults_classic_invasion",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_invasion\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_invasion\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_invasion(void *variant_options)"
+    },
+    {
+      "addr": "0x464f10",
+      "name": "game_engine_variant_defaults_classic_iron_ctf",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_iron_ctf\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_iron_ctf\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_iron_ctf(void *variant_options)"
+    },
+    {
+      "addr": "0x465000",
+      "name": "game_engine_variant_defaults_classic_race",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_race\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_race\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_race(void *variant_options)"
+    },
+    {
+      "addr": "0x4650e0",
+      "name": "game_engine_variant_defaults_classic_rally",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_rally\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_rally\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_rally(void *variant_options)"
+    },
+    {
+      "addr": "0x4651c0",
+      "name": "game_engine_variant_defaults_classic_team_race",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_team_race\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_team_race\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_team_race(void *variant_options)"
+    },
+    {
+      "addr": "0x4652a0",
+      "name": "game_engine_variant_defaults_classic_team_rally",
+      "confidence": 0.75,
+      "evidence": "Directly reached from game_engine_get_variant_by_name __stricmp(in_ECX, \"classic_team_rally\") branch, which calls this exact function to fill the caller buffer; body is a fixed sequence of about 0x26 dword/byte writes (score limit, time limit, team-play byte, etc) with no branches.",
+      "summary": "Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in \"classic_team_rally\" multiplayer game type.",
+      "prototype": "void __cdecl game_engine_variant_defaults_classic_team_rally(void *variant_options)"
+    },
+    {
+      "addr": "0x465380",
+      "name": "game_engine_get_default_setting_value",
+      "confidence": 0.25,
+      "evidence": "A pure switch(in_EAX) over cases 0-7 returning fixed constants/addresses (0x249240, 1, 0x42, 0x203, &DAT_00001004, 0x8005, 0x40006, 0x200007) with a shared default for out-of-range input.",
+      "summary": "Low-confidence table of hardcoded default constants selected by a small integer index; exact meaning of the returned values is unclear.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4653f0",
+      "name": "game_engine_draw_hud_text_label",
+      "confidence": 0.3,
+      "evidence": "Computes a distance-based scale/fade, optionally brightens an RGB color by 0.4 when param_2 is set, fills gradient-box globals (DAT_006e474a/474e/4752/4756) and per-glyph color globals, then calls chimera__draw_16_bit_text.",
+      "summary": "Renders a world-relative HUD text label (with optional highlighted background and distance-based scaling/fade) via the engine 16-bit text rasterizer.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4655d0",
+      "name": "game_engine_get_setup_wizard_state",
+      "confidence": 0.3,
+      "evidence": "Reads a state pointer from DAT_0071c2d4/DAT_0071c2d8 and switches on a field at +0x134 (cases 1-5), further branching on flag bytes at +0x180/+0x184/+400, returning one of a dozen small integer ids (default 8).",
+      "summary": "Maps the current multiplayer game-setup wizard internal state into a small integer id used to drive other UI logic.",
+      "prototype": ""
+    }
+  ]
+}

@@ -1,0 +1,484 @@
+{
+  "results": [
+    {
+      "addr": "0x440350",
+      "name": "network_packet_buffer_allocate_and_copy",
+      "confidence": 0.3,
+      "evidence": "GlobalAlloc's a buffer sized param_1+2 if none given, writes a packed length/flags header into the first word, then copies param_1 bytes from the source (in_ECX) after the header; classic length-prefixed buffer builder but exact call site/consumer not visible.",
+      "prototype": "",
+      "summary": "Allocates (or reuses) a small heap buffer, encodes a length+flags header in its first word, and copies the supplied data after the header."
+    },
+    {
+      "addr": "0x4403b0",
+      "name": "network_random_value_generate",
+      "confidence": 0.3,
+      "evidence": "Seeds the CRT RNG once via a time32()-derived seed and FUN_006240c2 (srand-shaped call), then calls _rand() and post-processes it through FUN_006391b4 before adding an unaff_ESI base value.",
+      "prototype": "",
+      "summary": "Lazily seeds the C runtime random number generator from the current time, then returns a random value offset by a caller-supplied base held in ESI."
+    },
+    {
+      "addr": "0x440420",
+      "name": "network_mutex_slot_allocate",
+      "confidence": 0.6,
+      "evidence": "Scans a fixed 40-byte-stride table (DAT_006f0db0..006f12d4) for a free slot (flag byte == 0), zeroes the handle/name fields, marks it used, and returns a pointer whose layout (handle dword + name buffer) exactly matches what FUN_00440510 (mutex_create) fills in.",
+      "prototype": "void * __cdecl network_mutex_slot_allocate(void)",
+      "summary": "Finds and reserves a free entry in the static mutex-record table used by the named-mutex allocator."
+    },
+    {
+      "addr": "0x440460",
+      "name": "network_thread_create",
+      "confidence": 0.55,
+      "evidence": "Finds a free slot in a 32-entry HANDLE table, calls CreateThread, maps param_1 flag bits to a SetThreadPriority level, calls ResumeThread, and rolls back with CloseHandle on failure.",
+      "prototype": "",
+      "summary": "Creates a worker thread, tracks its handle in a small internal table, applies a priority derived from flag bits, resumes it, and reports success/failure through an out parameter."
+    },
+    {
+      "addr": "0x440510",
+      "name": "mutex_create",
+      "confidence": 0.8,
+      "evidence": "Matches naming-hint string 'mutex_%ld' exactly: allocates a slot via FUN_00440420, snprintf's the name 'mutex_%ld' with an incrementing counter, calls CreateMutexA, and returns success/handle through an out param.",
+      "prototype": "",
+      "summary": "Allocates a table slot and creates a uniquely-named Win32 mutex ('mutex_<n>'), returning the handle via an output parameter."
+    },
+    {
+      "addr": "0x440570",
+      "name": "network_address_to_string",
+      "confidence": 0.75,
+      "evidence": "Formats a network address struct into a static buffer using '%hd.%hd.%hd.%hd:%hu' when the address-family/length field (in_EAX[8]) is 4, or the 8-group hex ':%hu' format when it is 0x10, matching Blam's s_network_address (4-byte vs 16-byte address) layout.",
+      "prototype": "",
+      "summary": "Converts an s_network_address structure to a human-readable 'ip:port' (or IPv6-style) string in a shared static buffer."
+    },
+    {
+      "addr": "0x440610",
+      "name": "enum_value_to_display_char",
+      "confidence": 0.25,
+      "evidence": "Pure switch mapping input values 3,4,5,6,8 to fixed byte codes (0x37,0x38,0x39,0x2e,0x31) with default 0x2b; no strings/globals/callees to confirm the domain, so purpose (likely a UI glyph/char lookup) is a guess.",
+      "prototype": "",
+      "summary": "Maps a small integer enum value to a fixed output byte via a lookup switch, purpose unconfirmed."
+    },
+    {
+      "addr": "0x440670",
+      "name": "network_stats_summary_log_open",
+      "confidence": 0.55,
+      "evidence": "When enabled (DAT_006869bc flag), builds a timestamped '...\\Game Summary <date>.xls' filename via strftime + FUN_00449250, opens it with FUN_00624186, writes the tab-separated header row, and starts a new averaging interval (FUN_00449210 stores the interval start tick).",
+      "prototype": "void __cdecl network_stats_summary_log_open(void)",
+      "summary": "Opens a new tab-delimited 'Game Summary' bandwidth-statistics log file (writing its header) and resets the interval accumulators."
+    },
+    {
+      "addr": "0x440820",
+      "name": "network_stats_summary_log_write",
+      "confidence": 0.6,
+      "evidence": "Uses the same interval-accumulator globals (DAT_0087bea0..beb8) reset by FUN_00440670 and appends one fprintf row of computed rates/bytes/packets to DAT_006a6140, then fflush's it.",
+      "prototype": "void __cdecl network_stats_summary_log_write(void)",
+      "summary": "Computes per-interval bandwidth/packet statistics and appends one summary row to the open 'Game Summary' log file."
+    },
+    {
+      "addr": "0x440a80",
+      "name": "network_connection_stats_lookup_or_add",
+      "confidence": 0.5,
+      "evidence": "Linear-searches a 0xff-entry, 0x22-stride table for a record matching (unaff_EBX id, unaff_DI value); on miss it allocates the next free slot (bumping DAT_006f14bc) and zero-initializes its many per-connection counters (bec0..bf00 family), matching the fields updated by FUN_00440b20/FUN_00440d20.",
+      "prototype": "",
+      "summary": "Finds the per-connection statistics record matching a given id/value pair, creating and zero-initializing a new one if none exists."
+    },
+    {
+      "addr": "0x440b20",
+      "name": "network_connection_stats_record_packet",
+      "confidence": 0.45,
+      "evidence": "Looks up the connection's stats slot via FUN_00440a80 and increments send- or receive-side byte/packet counters (bed4/bee4/bef4/befc for sent, bed8/bee8/bef8/bf00 for received) based on param_1, with extra reliable/unreliable breakdowns gated by param_2/param_3.",
+      "prototype": "",
+      "summary": "Updates a connection's per-packet statistics counters (bytes/packets sent or received, including reliable/unreliable breakdowns) for one transmitted or received packet."
+    },
+    {
+      "addr": "0x440d20",
+      "name": "network_connection_stats_end",
+      "confidence": 0.5,
+      "evidence": "Looks up the connection slot via FUN_00440a80, and if marked active (bec8!=0) folds the elapsed time since bec4 into the cumulative bec0 field and clears the active flag.",
+      "prototype": "void __cdecl network_connection_stats_end(void)",
+      "summary": "Finalizes a connection's tracked lifetime by adding the time since it became active into its cumulative duration and marking it inactive."
+    },
+    {
+      "addr": "0x440d80",
+      "name": "network_connection_stats_log_tick",
+      "confidence": 0.5,
+      "evidence": "Opens a timestamped '...\\gamespy <date>.xls' log with per-connection tab-separated headers (strings match exactly), then every 100ms dumps one row per tracked connection (DAT_0087bee4 table) and accumulates ping-like values from a linked list (DAT_0071c2d8/DAT_0071c2d4) into DAT_0087beb4/beb8.",
+      "prototype": "void __cdecl network_connection_stats_log_tick(void)",
+      "summary": "Periodically (every 100ms) opens/writes a per-connection 'gamespy' traffic log, one row per active connection, and rolls those per-connection stats back into the overall averages."
+    },
+    {
+      "addr": "0x441300",
+      "name": "network_channels_open",
+      "confidence": 0.55,
+      "evidence": "Builds two local addresses via FUN_006148b0 from DAT_006869b0 (local IP) and two port globals, then creates the game-data and gamespy/query channels (thunk_FUN_0061c3e0) storing handles in DAT_006f14c4/DAT_006f14c8, wiring up callbacks with FUN_0061e550/FUN_00614850/FUN_00614800.",
+      "prototype": "",
+      "summary": "Creates and binds the two main UDP network channels (game data and query) if they are not already open, wiring up their receive/error callbacks."
+    },
+    {
+      "addr": "0x441480",
+      "name": "network_channels_close",
+      "confidence": 0.6,
+      "evidence": "Closes DAT_006f14c8 and DAT_006f14c4 via FUN_00614860 (the same close routine used elsewhere on channel handles) and zeroes both globals.",
+      "prototype": "void __cdecl network_channels_close(void)",
+      "summary": "Closes both of the module's main network channel handles and clears their globals."
+    },
+    {
+      "addr": "0x4414c0",
+      "name": "network_game_initialize",
+      "confidence": 0.45,
+      "evidence": "Calls FUN_004415c0 (winsock/network startup) and, on success, sets default rate/flag globals; separately registers the game message dispatch table via FUN_004d0980(&PTR_s_network_game_messages_group_006994f8) the first time DAT_007196ec is zero.",
+      "prototype": "void __cdecl network_game_initialize(void)",
+      "summary": "Initializes networking (winsock etc.) and, on first run, registers the network game-message dispatch group used to route incoming gameplay packets."
+    },
+    {
+      "addr": "0x441510",
+      "name": "network_hostname_thread_proc",
+      "confidence": 0.55,
+      "evidence": "Calls gethostname(param_1, 0x100), sets a completion flag (DAT_006f14cc), and terminates via ExitThread(0); used as the CreateThread routine in FUN_00441540.",
+      "prototype": "void __stdcall network_hostname_thread_proc(char *hostname_buffer)",
+      "summary": "Thread entry point that retrieves the local machine's hostname into a buffer, signals completion, and exits the thread."
+    },
+    {
+      "addr": "0x441540",
+      "name": "network_local_hostent_get",
+      "confidence": 0.55,
+      "evidence": "Spawns FUN_00441510 (gethostname thread) with a timeout via WaitForSingleObject/TerminateThread, then on success calls gethostbyname on the retrieved name and returns the hostent pointer through *param_1.",
+      "prototype": "int __cdecl network_local_hostent_get(void **out_hostent)",
+      "summary": "Resolves and returns the local machine's hostent structure, retrieving the hostname on a watchdog-timed worker thread first."
+    },
+    {
+      "addr": "0x4415c0",
+      "name": "network_initialize",
+      "confidence": 0.55,
+      "evidence": "Performs WSAStartup, resolves/derives the local IP (via configured DAT_006869b0 or FUN_00441540 hostname lookup), starts the main network worker thread (FUN_005771c0), and records the startup tick via FUN_00449210, guarded by the DAT_006869b8 'initialized' flag.",
+      "prototype": "",
+      "summary": "One-time networking subsystem startup: calls WSAStartup, determines the local IP address, and launches the background network processing thread."
+    },
+    {
+      "addr": "0x4416e0",
+      "name": "network_shutdown",
+      "confidence": 0.6,
+      "evidence": "Guarded by DAT_006869b8, closes both channel handles, closes the bandwidth summary log, and if the per-connection ('gamespy') log is open writes final per-connection and aggregate totals ('Connection [%d] ... Log file closed') before fclose'ing it.",
+      "prototype": "",
+      "summary": "Tears down the networking subsystem: closes channels, flushes and closes both statistics log files with final summary lines, and clears the initialized flag."
+    },
+    {
+      "addr": "0x4418d0",
+      "name": "network_update",
+      "confidence": 0.55,
+      "evidence": "Uses QueryPerformanceCounter plus __allmul/__alldiv to compute a scaled current time into DAT_006a6144, then calls the per-connection log tick (FUN_00440d80) and services both channels (FUN_00614540) once per call.",
+      "prototype": "",
+      "summary": "Per-frame networking service routine: updates the high-resolution clock, drives the connection-statistics log, and pumps both network channels."
+    },
+    {
+      "addr": "0x441960",
+      "name": "network_channel_list_new",
+      "confidence": 0.45,
+      "evidence": "Allocates a 0x114-byte header via GlobalAlloc and, if the requested count (in_AX) is under 65, allocates a parallel dword array (GlobalAlloc(0x40,count*4)) and initializes count/head fields at offsets 0x104/0x108/0x10c/0x110 - the same offsets read by FUN_004419d0 (unaff_EDI+0x104/0x10c).",
+      "prototype": "",
+      "summary": "Allocates a small fixed-capacity array/queue container object (pointer array plus header fields) used to track a bounded set of network channels."
+    },
+    {
+      "addr": "0x4419d0",
+      "name": "network_channel_list_poll",
+      "confidence": 0.45,
+      "evidence": "Walks the array at unaff_EDI+0x104 up to unaff_EDI+0x10c entries, and for each channel checks either a 'ready' flag byte or computes a ring-buffer fill level (read/write offsets at +8/+0xc/+0x10) to decide if data is pending, setting bit 4 on the channel when so.",
+      "prototype": "",
+      "summary": "Iterates a channel list, marking each channel that has data ready to read (either explicitly flagged or via a nonzero circular-buffer fill level)."
+    },
+    {
+      "addr": "0x441a40",
+      "name": "network_channel_list_add",
+      "confidence": 0.55,
+      "evidence": "Stores the new channel pointer into the array at in_ECX[0x41] (bounds-checked against in_ECX[0x42]/[0x43]), then maintains a Winsock fd_set-shaped unique-value list (count at in_ECX[0], up to 64 values at in_ECX[1..0x40]) keyed on a value from the channel (offset 8), finally OR's flag bit 0x8 onto the channel.",
+      "prototype": "",
+      "summary": "Adds a channel to a bounded (fd_set-style) channel list, deduplicating it in an accompanying up-to-64-entry key array, and marks the channel as 'in list'."
+    },
+    {
+      "addr": "0x441b00",
+      "name": "network_channel_list_remove",
+      "confidence": 0.55,
+      "evidence": "Finds the matching channel pointer in the array, removes its key from the same fd_set-style unique-value array (shifting subsequent entries down), swaps the last array slot into the found index, decrements the count, and clears flag bit 0x8 on the channel (mirrors FUN_00441a40's add logic).",
+      "prototype": "",
+      "summary": "Removes a channel from the bounded channel list and its associated key-dedup array, clearing the channel's 'in list' flag."
+    },
+    {
+      "addr": "0x441bb0",
+      "name": "network_handle_table_cleanup",
+      "confidence": 0.4,
+      "evidence": "Iterates a global table of (HANDLE, flag) pairs from DAT_006f14d0 to DAT_006f16d0 (stride 8) and CloseHandle's + zeroes any entry whose flag is set.",
+      "prototype": "void __cdecl network_handle_table_cleanup(void)",
+      "summary": "Closes and clears any outstanding handles left in a fixed-size global handle/flag table."
+    },
+    {
+      "addr": "0x441bf0",
+      "name": "network_receive_queue_new",
+      "confidence": 0.55,
+      "evidence": "Resets channel/handle state (FUN_00441300, FUN_00441bb0) then allocates a 0x1c-byte wrapper plus an inner 0x10019-byte buffer object stamped with the 'circ' magic tag and the name string 'received_data_queue', matching the naming hint that ties this cluster to a circular_buffer implementation.",
+      "prototype": "void * __cdecl network_receive_queue_new(void)",
+      "summary": "Constructs the network receive-queue object: a small header wrapping a large tagged circular buffer named 'received_data_queue'."
+    },
+    {
+      "addr": "0x441c80",
+      "name": "network_receive_queue_free",
+      "confidence": 0.5,
+      "evidence": "Mirrors FUN_00441bf0's construction: tears down the channel referenced by the wrapper (FUN_006175f0/FUN_006147d0/FUN_00440d20/FUN_00614830), frees the inner circular-buffer object and the wrapper itself via GlobalFree, then cleans up the handle table (FUN_00441bb0).",
+      "prototype": "",
+      "summary": "Destroys a network receive-queue object created by FUN_00441bf0: closes its channel, frees the inner buffer and the wrapper, and cleans up handles."
+    },
+    {
+      "addr": "0x441ce0",
+      "name": "network_channel_get_remote_address",
+      "confidence": 0.6,
+      "evidence": "Reads 4 address bytes and a port either from a per-object channel (if FUN_006147a0 reports type 1) or from the fallback global channel DAT_006f14c4, and writes them into an output struct at the exact offsets (dword addr, +0x12 port, +4*4=+16 family=4) matching the s_network_address layout used by FUN_00440570.",
+      "prototype": "",
+      "summary": "Fills an s_network_address structure with the remote IPv4 address and port of a channel (or of the shared fallback channel), reporting an error code if neither is available."
+    },
+    {
+      "addr": "0x441ed0",
+      "name": "network_channel_receive_callback",
+      "confidence": 0.5,
+      "evidence": "Looks up the channel object via FUN_00614840; if its 'connectionless' flag (bit0) is clear it captures/formats the sender address (FUN_006175f0/FUN_006147d0/FUN_006148b0), otherwise for a connection-oriented channel with data it forwards the payload straight into circular_buffer_write.",
+      "prototype": "",
+      "summary": "Per-channel data-received handler: records the sender's address for connectionless channels, or appends the payload to the channel's receive circular buffer for connection-oriented ones."
+    },
+    {
+      "addr": "0x441f60",
+      "name": "network_channel_reconnect",
+      "confidence": 0.4,
+      "evidence": "Reopens the channel pair (FUN_00441300), selects DAT_006f14c8 or DAT_006f14c4 based on param_2, attempts FUN_006145a0 on it, and on failure marks the channel disconnected, sets a UI/status code (DAT_00718fa4, DAT_0071c2de) and calls FUN_004aa900 (likely a disconnect notification), returning error 0xfff0.",
+      "prototype": "",
+      "summary": "Attempts to (re)establish a network channel connection, flagging a disconnect/error state and notifying elsewhere if the attempt fails."
+    },
+    {
+      "addr": "0x442040",
+      "name": "network_channel_teardown",
+      "confidence": 0.4,
+      "evidence": "Deregisters the shared listening channel's callback (thunk_FUN_0061c660(DAT_006f14c4,0)) when the object's flag byte is set, then closes its own channel handle (FUN_006147a0/FUN_00614710) and clears state, mirroring the field layout used across the 0x441xxx channel-object functions.",
+      "prototype": "",
+      "summary": "Tears down a single channel object: unregisters it from the listening channel if needed, closes its handle, and resets its fields."
+    },
+    {
+      "addr": "0x442090",
+      "name": "network_listen_connection_request_handler",
+      "confidence": 0.55,
+      "evidence": "Registered as the callback for the listening channel (see FUN_00442170: thunk_FUN_0061c660(DAT_006f14c4, FUN_00442090)); on invocation it queues the incoming request's address/port/callback info into the bounded (0x1e/30-slot) DAT_0087bc20 table indexed by DAT_006f16d0, and reports a status code back to the caller via thunk_FUN_0061cee0.",
+      "prototype": "",
+      "summary": "Callback invoked when a connection request arrives on the listening channel; queues the pending request (up to 30 outstanding) for later accept/reject."
+    },
+    {
+      "addr": "0x442170",
+      "name": "network_listen_start",
+      "confidence": 0.5,
+      "evidence": "Marks the local listen-state flag, calls FUN_00614810 on DAT_006f14c4, sets flag bit 0x2 on the object, and registers FUN_00442090 as the channel's event callback via thunk_FUN_0061c660.",
+      "prototype": "",
+      "summary": "Puts the shared network channel into a listening state and installs the incoming-connection-request callback."
+    },
+    {
+      "addr": "0x4421b0",
+      "name": "network_listen_accept_pending_connection",
+      "confidence": 0.5,
+      "evidence": "When the pending-request queue (DAT_006f16d0) is non-empty, calls thunk_FUN_0061ce80 to accept the queued request, and on success constructs a receive-queue object via FUN_00441bf0, links it to the channel (FUN_00614830), sets flag bit 0x1, and fills its address via FUN_00441ce0/FUN_00440570.",
+      "prototype": "",
+      "summary": "Pops the most recent pending incoming connection request from the queue and, if it can be accepted, builds a fully-initialized channel/receive-queue object for it."
+    },
+    {
+      "addr": "0x442250",
+      "name": "network_listen_reject_pending_connection",
+      "confidence": 0.45,
+      "evidence": "When the pending-request queue (DAT_006f16d0) is non-empty, rejects/cancels the most recent queued entry via thunk_FUN_0061cee0 and decrements the queue count, mirroring FUN_004421b0's accept path.",
+      "prototype": "",
+      "summary": "Cancels (rejects) the most recently queued pending incoming connection request without accepting it."
+    },
+    {
+      "addr": "0x4b5d70",
+      "name": "master_server_query_tick",
+      "confidence": 0.4,
+      "evidence": "State-machine tick over a bitmask (DAT_0071969c) driving distinct master-server operations: server-list query (FUN_00617290 over DAT_007196bc), heartbeat send (FUN_006171d0/FUN_006171a0 chosen by DAT_006953f0), and single-server refresh, each guarded by a mutex (WaitForSingleObject/ReleaseMutex on DAT_007196a8).",
+      "prototype": "",
+      "summary": "Background master-server processing tick: services pending server-list queries, heartbeats, and single-server refresh requests indicated by a request flag bitmask."
+    },
+    {
+      "addr": "0x4b6000",
+      "name": "master_server_connection_start",
+      "confidence": 0.55,
+      "evidence": "Resets connection state globals, calls the confirmed mutex_create (FUN_00440510) then network_thread_create (FUN_00440460) with routine 'sig__setup_master_server_connection_sig', storing the thread handle in DAT_007196ac; rolls back the mutex handle on thread-create failure.",
+      "prototype": "",
+      "summary": "Creates the mutex and background worker thread that establish the master-server connection, cleaning up on failure."
+    },
+    {
+      "addr": "0x4b6070",
+      "name": "master_server_connection_wait",
+      "confidence": 0.45,
+      "evidence": "Polls the connection thread (DAT_007196ac) with GetExitCodeThread in a Sleep(20) loop, periodically invoking FUN_00549960 (likely a UI progress pump) using a QueryPerformanceCounter-based interval, then closes both the thread and mutex handles once the thread exits.",
+      "prototype": "void __cdecl master_server_connection_wait(void)",
+      "summary": "Waits for the master-server connection worker thread to finish, periodically pumping a UI update, then cleans up its handles."
+    },
+    {
+      "addr": "0x4b6160",
+      "name": "network_get_ticker_label_string",
+      "confidence": 0.45,
+      "evidence": "Looks up the tag 'ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels', retrieves a string-list entry via FUN_005578c0, and copies it into the caller's buffer with wcsncpy, indexed by an implicit register argument (called as FUN_004b6160(4) elsewhere).",
+      "prototype": "",
+      "summary": "Copies one of the localized 'join game' ticker status strings (selected by index) from a tag's string list into the caller's buffer."
+    },
+    {
+      "addr": "0x4b61c0",
+      "name": "server_browser_ui_configure_widgets",
+      "confidence": 0.35,
+      "evidence": "Walks a chain of sibling UI widgets (offset 0x2c = next) toggling visible/enabled byte pairs at offsets 0x10/0x12 based on param_1, and pushes numeric filter settings (DAT_006953fa/fb, DAT_00719490, DAT_0071948d/e/f) into widget value fields at offset 0x40/0x48, consistent with this engine's list_item/dialog widget layout.",
+      "prototype": "",
+      "summary": "Configures the visibility and value fields of a chain of server-browser filter UI widgets, switching between two display modes (e.g. internet vs LAN)."
+    },
+    {
+      "addr": "0x4b65f0",
+      "name": "server_list_reset",
+      "confidence": 0.5,
+      "evidence": "Zeroes the server-list scroll/selection globals (DAT_00719478 scroll offset, DAT_006953f4 selection reset to -1, etc.), calls FUN_004ba7c0, then three FUN_004b8a60 calls with mode arguments 2/1/0 that mirror the UI-refresh helper FUN_004b73a0.",
+      "prototype": "void __cdecl server_list_reset(void)",
+      "summary": "Clears the server-browser's list state (selection, scroll position) and refreshes its associated UI display elements."
+    },
+    {
+      "addr": "0x4b6660",
+      "name": "master_server_list_refresh_request",
+      "confidence": 0.5,
+      "evidence": "Sets bit 0x8 in the master-server request bitmask (DAT_0071969c, the same field consumed by FUN_004b5d70's tick function), computes a QueryPerformanceCounter-based 10-second timeout into DAT_006953fc, and sets the busy flag DAT_00719488.",
+      "prototype": "void __cdecl master_server_list_refresh_request(void)",
+      "summary": "Requests a server-list refresh from the master server by setting a pending-request flag and a 10-second timeout deadline."
+    },
+    {
+      "addr": "0x4b66c0",
+      "name": "master_server_list_connect_or_refresh",
+      "confidence": 0.4,
+      "evidence": "Checks the list channel's connection state via FUN_00616ff0; if idle it tries to begin connecting (FUN_00617030), falling back to the refresh-timer path (FUN_004b6660) on failure, otherwise sets a 'connecting' bit and a 9999 timeout marker.",
+      "prototype": "void __cdecl master_server_list_connect_or_refresh(void)",
+      "summary": "Ensures the master-server list connection is established or being (re)connected, scheduling a retry if the connection attempt cannot start."
+    },
+    {
+      "addr": "0x4b6730",
+      "name": "master_server_select_server_for_join",
+      "confidence": 0.45,
+      "evidence": "Under the connection mutex, validates the current selection index (DAT_006953f4) against the server list count, caches the selected server handle in DAT_00719450, checks its 'password' key via FUN_006174d0, and if set opens a password prompt (FUN_004a89a0) before flagging a pending join.",
+      "prototype": "void __cdecl master_server_select_server_for_join(void)",
+      "summary": "Latches the currently selected server-list entry as the join target, prompting for a password first if the server requires one."
+    },
+    {
+      "addr": "0x4b67e0",
+      "name": "server_list_row_set_fields",
+      "confidence": 0.4,
+      "evidence": "Sets checkbox-style UI widget bytes (offset 0x10/0x58) from boolean parameters, and populates player-name/rank text fields via heap_reallocate+_wcsncpy plus a '%d / %d' players ratio and a clamped ping/'%d'-style value, matching a per-row server/player list entry.",
+      "prototype": "",
+      "summary": "Populates one server/player list UI row's text and checkbox fields (name, player ratio, ping) from the supplied values."
+    },
+    {
+      "addr": "0x4b69c0",
+      "name": "server_browser_populate_server_info_row",
+      "confidence": 0.4,
+      "evidence": "Reads server-info fields (hostname/mapname/gametype/etc., matching the referenced key strings) via FUN_006174d0/FUN_00617490/FUN_00617c10, resolves the friendly map name (map_list_get_friendly_level_name), and forwards everything to FUN_004b67e0 to populate the row's UI widgets.",
+      "prototype": "",
+      "summary": "Gathers one server's queried info fields (name, map, player counts, ping range) and hands them to the row-population routine for display."
+    },
+    {
+      "addr": "0x4b6be0",
+      "name": "server_list_compare_string_field",
+      "confidence": 0.3,
+      "evidence": "Generic qsort-style comparator: fetches a string field from each of two entries via FUN_00617490, compares with __stricmp, and inverts the result based on the DAT_006953f8 sort-direction flag; the specific field key is passed in a register not captured by the decompiler.",
+      "prototype": "",
+      "summary": "Sort comparator that compares a string field (key supplied by the caller) between two server-list entries, honoring the current sort direction."
+    },
+    {
+      "addr": "0x4b6c20",
+      "name": "server_list_compare_by_mapname",
+      "confidence": 0.65,
+      "evidence": "Looks up the 'mapname' field on both entries, resolves each to its friendly level name via map_list_get_friendly_level_name, and wcscmp's the results, inverted by the DAT_006953f8 sort-direction flag.",
+      "prototype": "",
+      "summary": "Sort comparator that orders two server-list entries by their (friendly) map name, honoring the current sort direction."
+    },
+    {
+      "addr": "0x4b6da0",
+      "name": "server_list_compare_by_ping_then_hostname",
+      "confidence": 0.5,
+      "evidence": "Primarily compares a numeric field via FUN_00617c10 (defaulting unset values to 9999, consistent with a ping value), then falls back to comparing the 'hostname' string field and finally raw pointer order for a stable sort, all honoring DAT_006953f8's direction flag.",
+      "prototype": "",
+      "summary": "Sort comparator that orders server-list entries primarily by a numeric field (likely ping) and falls back to hostname, then entry order, as tie-breakers."
+    },
+    {
+      "addr": "0x4b6f20",
+      "name": "server_list_compare_by_mapname_then_hostname",
+      "confidence": 0.55,
+      "evidence": "Delegates to FUN_004b6c20 (mapname comparator) first, and only if that reports equality falls back to comparing the 'hostname' string field, both honoring DAT_006953f8's sort direction.",
+      "prototype": "",
+      "summary": "Sort comparator that orders server-list entries by map name, breaking ties by hostname."
+    },
+    {
+      "addr": "0x4b7080",
+      "name": "server_browser_server_passes_filter",
+      "confidence": 0.65,
+      "evidence": "Reads a server's numplayers/maxplayers/ping range, dedicated/password/teamplay flags, and gametype string, rejecting it against the current filter globals (DAT_0071948b dedicated-only, DAT_006953f9/fa/fb not-full/not-empty toggles, DAT_00719490 ping cap, and a gametype match against literal 'CTF'/'Slayer'/'Oddball'/'King'/'Race' strings), finally checking a teamplay/demo-map condition via sig__load_multiplayer_maps_demo_sig.",
+      "prototype": "",
+      "summary": "Determines whether a queried server entry satisfies all of the server-browser's active filter settings (player count, ping, password, gametype, teamplay, dedicated)."
+    },
+    {
+      "addr": "0x4b7360",
+      "name": "server_list_scroll_position_clamp",
+      "confidence": 0.45,
+      "evidence": "Computes an effective server count (either from in_EAX or FUN_004ba820) and clamps the scroll offset DAT_00719478 into [0, count-15].",
+      "prototype": "",
+      "summary": "Clamps the server-browser list's current scroll offset to stay within the valid range for the current server count."
+    },
+    {
+      "addr": "0x4b73a0",
+      "name": "server_browser_ui_refresh_display",
+      "confidence": 0.45,
+      "evidence": "Calls the same three FUN_004b8a60(...) UI-update invocations (modes 2, 1, and message-text) used inside FUN_004b65f0's list reset, without touching the underlying state globals.",
+      "prototype": "void __cdecl server_browser_ui_refresh_display(void)",
+      "summary": "Refreshes the server-browser's on-screen list/header/status UI elements without altering the underlying list state."
+    },
+    {
+      "addr": "0x4b73e0",
+      "name": "server_browser_player_list_populate",
+      "confidence": 0.55,
+      "evidence": "Reads the 'numplayers' field, clears the player list UI (FUN_004b8a60(0,0)), then for each player fetches name/score via FUN_00617530 and formats '  %s %d     ' or '  %S %S     ' before adding each row with FUN_004b8a60.",
+      "prototype": "",
+      "summary": "Populates the server-browser's per-player list UI with each player's name and score, one formatted row per player."
+    },
+    {
+      "addr": "0x4b74e0",
+      "name": "server_browser_game_variant_description_populate",
+      "confidence": 0.4,
+      "evidence": "Clears a UI element (FUN_004b8a60(0,1)) then, given a valid entry, reads game-variant/fraglimit-related fields (matching the referenced 'game_flags'/'gamevariant'/'fraglimit' strings) and builds a description via FUN_00557990/FUN_004b8da0.",
+      "prototype": "",
+      "summary": "Builds and displays a text description of the selected server's game variant / fraglimit settings in the server-browser UI."
+    },
+    {
+      "addr": "0x4b75b0",
+      "name": "server_browser_open",
+      "confidence": 0.55,
+      "evidence": "Initializes networking (FUN_00441300, FUN_004b6000), resets list state (FUN_004b65f0), sets up a LAN broadcast target (FUN_0057e1a0/FUN_00576e60), loads a ticker label (FUN_004b6160), restores or defaults filter settings into the widget/global fields also touched by FUN_004b7d80/FUN_004b61c0, sets initial UI widget focus states, and calls FUN_004b80f0 to kick off the initial list population.",
+      "prototype": "",
+      "summary": "Entry point that opens the multiplayer server-browser screen: starts networking/master-server connection, restores filter settings, configures the initial UI widget states, and begins listing servers."
+    },
+    {
+      "addr": "0x4b7b20",
+      "name": "server_list_scroll_page_up",
+      "confidence": 0.55,
+      "evidence": "Decrements the scroll offset DAT_00719478 by 14 rows (or to 0 on a 'home' flag), clamps it against the server count via FUN_004ba820, sets a negative scroll-direction marker (DAT_00719484 = -16), and updates whether the current selection is still on-screen.",
+      "prototype": "",
+      "summary": "Scrolls the server list up by one page (or jumps to the top), reclamping the view and updating whether the selection is still visible."
+    },
+    {
+      "addr": "0x4b7bb0",
+      "name": "server_list_scroll_page_down",
+      "confidence": 0.55,
+      "evidence": "Mirrors FUN_004b7b20: increments the scroll offset by 14 rows (or jumps to the bottom via FUN_004ba820 on the 'end' flag), clamps it, sets a positive scroll-direction marker (DAT_00719484 = 0x10), and updates selection visibility.",
+      "prototype": "",
+      "summary": "Scrolls the server list down by one page (or jumps to the bottom), reclamping the view and updating whether the selection is still visible."
+    },
+    {
+      "addr": "0x4b7d80",
+      "name": "server_browser_filter_widget_clicked",
+      "confidence": 0.55,
+      "evidence": "Identifies which widget in a sibling chain (iVar1..iVar7, matching the traversal pattern used elsewhere for this dialog) was activated and toggles the matching filter boolean (DAT_006953f9/DAT_0071948b/DAT_0071948c) or the 5-way gametype radio state (DAT_00719489 selecting among the same CTF/Slayer/Oddball/King/Race options checked in FUN_004b7080), then forces a refresh (FUN_00498e90, DAT_007196c8=9999).",
+      "prototype": "",
+      "summary": "Handles a click on one of the server-browser's filter checkboxes/radio buttons (including the 5-way gametype selector), toggling the corresponding filter state and forcing a list refresh."
+    }
+  ]
+}

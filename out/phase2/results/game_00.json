@@ -1,0 +1,484 @@
+{
+  "results": [
+    {
+      "addr": "0x459300",
+      "name": "vector3d_clamp_length",
+      "confidence": 0.5,
+      "evidence": "computes squared length of the ECX vector, compares to param_1^2, and if longer rescales *ECX by param_1/sqrt(len); returns packed compare flags",
+      "prototype": "",
+      "summary": "Clamps a 3D vector (passed in ECX) to a maximum length given in param_1, scaling it down if it exceeds that length."
+    },
+    {
+      "addr": "0x459360",
+      "name": "distance_falloff_fraction",
+      "confidence": 0.3,
+      "evidence": "returns 0 if param_1>=param_2, 1 if param_1 is below half of param_2, else linearly interpolates between half and full range",
+      "prototype": "",
+      "summary": "Computes a 0..1 falloff fraction of param_1 relative to a maximum range param_2, with a dead zone below half range."
+    },
+    {
+      "addr": "0x4593b0",
+      "name": "camera_observer_update",
+      "confidence": 0.3,
+      "evidence": "indexes the player table via in_EAX*0x200, calls camera_observer_find_best_target (FUN_00459a00) and player_get_camera_frustum_extents (FUN_00459e80), then writes results into the player struct at offsets 0x40/0x44",
+      "prototype": "",
+      "summary": "Per-player update that finds the best nearby target/track and stores an orientation-derived state into the player's structure; register arg EAX selects the player index."
+    },
+    {
+      "addr": "0x4596f0",
+      "name": "camera_observer_get_target_angles",
+      "confidence": 0.3,
+      "evidence": "calls the same camera_observer_find_best_target helper (FUN_00459a00) used by 0x4593b0/0x459900, then derives yaw/pitch via fpatan and angular rates via FUN_004f6aa0 into param_3/param_4",
+      "prototype": "",
+      "summary": "Returns a yaw/pitch pair and their rates of change toward the currently selected observer target for a player (in_AX = player index)."
+    },
+    {
+      "addr": "0x459900",
+      "name": "camera_observer_get_target_id",
+      "confidence": 0.3,
+      "evidence": "same lookup pattern as 0x4596f0 (player table indexed by unaff_SI, calls camera_observer_find_best_target) but only returns a single id/value pair",
+      "prototype": "",
+      "summary": "Simplified variant that returns the current observer target's id (via *param_1) and a status value for a player (unaff_SI = player index)."
+    },
+    {
+      "addr": "0x459a00",
+      "name": "camera_observer_find_best_target",
+      "confidence": 0.35,
+      "evidence": "generates a 14-dword candidate list via camera_observer_generate_target_candidates, qsorts it with the camera_observer_target_compare comparator, then returns the first candidate that passes camera_observer_target_is_valid",
+      "prototype": "",
+      "summary": "Builds, sorts, and filters a list of nearby candidate targets, returning the highest-priority valid one."
+    },
+    {
+      "addr": "0x459b10",
+      "name": "camera_observer_target_score",
+      "confidence": 0.3,
+      "evidence": "computes distance and angle from a reference cone (param_1: angle/distance maxes) using vector3d_normalize_with_length and distance_falloff_fraction (FUN_00459360), storing weight fields at offsets 0xc/0xd of the candidate entry",
+      "prototype": "",
+      "summary": "Scores a candidate target entry by combining distance and angular falloff against a caller-supplied detection cone."
+    },
+    {
+      "addr": "0x459cc0",
+      "name": "camera_observer_target_direction",
+      "confidence": 0.3,
+      "evidence": "computes a normalized direction vector between two points (vector3d_normalize_with_length), then a clamped dot-product angle via FUN_00628140 (acos-style)",
+      "prototype": "",
+      "summary": "Computes the direction, distance, and angle between a candidate target and a reference position/orientation."
+    },
+    {
+      "addr": "0x459dd0",
+      "name": "camera_observer_target_is_valid",
+      "confidence": 0.35,
+      "evidence": "walks a 'next' link chain (offset 0x11c) on the object datum table (DAT_008603b0), then checks a short field against a comparison result from FUN_004f6fb0 called twice",
+      "prototype": "",
+      "summary": "Validity filter applied to a candidate target datum before it can be selected by camera_observer_find_best_target."
+    },
+    {
+      "addr": "0x459e80",
+      "name": "player_get_camera_frustum_extents",
+      "confidence": 0.3,
+      "evidence": "reads five floats from an object's structure at fixed offsets (0x3e4,1000,0x3ec,0x3f0,0x3f4) scaled by an aspect ratio from FUN_004c2d70",
+      "prototype": "",
+      "summary": "Fetches the local player's camera field-of-view / frustum bound values, aspect-corrected, for on-screen tests."
+    },
+    {
+      "addr": "0x459f70",
+      "name": "camera_observer_generate_target_candidates",
+      "confidence": 0.3,
+      "evidence": "samples directions with fsin/fcos across the largest field-of-view axis, calls FUN_00554e30 then FUN_004f7180 to build a batch, and accumulates results from camera_observer_collect_target_candidates (FUN_0045a0e0)",
+      "prototype": "",
+      "summary": "Generates a batch of candidate target-observation directions/positions and collects matching objects into the caller's candidate array."
+    },
+    {
+      "addr": "0x45a0e0",
+      "name": "camera_observer_collect_target_candidates",
+      "confidence": 0.35,
+      "evidence": "recursively walks the object datum table's cluster/BSP-leaf linked list (field 0x45), filters by flags and teams_are_enemies (FUN_0045bd50), and copies matching 14-dword entries into the output array up to the requested count",
+      "prototype": "",
+      "summary": "Recursively collects nearby enemy objects (excluding a given index) into a fixed-size candidate array for observer/camera target selection."
+    },
+    {
+      "addr": "0x45a280",
+      "name": "vector3d_closest_point_on_segment",
+      "confidence": 0.45,
+      "evidence": "computes a cross-product magnitude to detect a degenerate segment, otherwise projects param_1 onto the segment and clamps t to [0,1] before writing the closest point to param_2, then nudges the result via vector3d_clamp_length",
+      "prototype": "",
+      "summary": "Finds the closest point on a line segment (unaff_EBX direction, two endpoint statics) to an input point param_1, storing the result (with a small clamp-based offset) in param_2."
+    },
+    {
+      "addr": "0x45a4a0",
+      "name": "camera_observer_target_compare",
+      "confidence": 0.4,
+      "evidence": "compares candidate entries' float fields at dword offsets 0xc,0xd,10,11 in priority order, falling back to comparing the low 16 bits of the first dword; used directly as the qsort comparator in camera_observer_find_best_target",
+      "prototype": "int __cdecl camera_observer_target_compare(unsigned int *entry_a, unsigned int *entry_b)",
+      "summary": "qsort comparator ordering candidate target entries by their scored weight fields."
+    },
+    {
+      "addr": "0x45a530",
+      "name": "cheat_spawn_all_object_tags",
+      "confidence": 0.4,
+      "evidence": "if a specific tag/count override is set in DAT_00746fa0 it spawns that directly; otherwise collects up to 16 tags via tag_iterator_next and passes them to cheat_spawn_objects_near_camera (FUN_0045a800)",
+      "prototype": "void __cdecl cheat_spawn_all_object_tags(void)",
+      "summary": "Debug/cheat routine that spawns either a specifically selected tag or up to 16 iterated tags near the camera."
+    },
+    {
+      "addr": "0x45a5c0",
+      "name": "cheat_spawn_warthog",
+      "confidence": 0.85,
+      "evidence": "naming hint 'cheat_spawn_warthog' backed by the literal string \"warthog\"; code searches a tag table for a name matching \"warthog\" (FUN_00625430) and spawns one via cheat_spawn_objects_near_camera",
+      "prototype": "void __cdecl cheat_spawn_warthog(void)",
+      "summary": "Debug cheat that finds the warthog vehicle tag by name and spawns one near the camera."
+    },
+    {
+      "addr": "0x45a630",
+      "name": "cheat_teleport_to_camera",
+      "confidence": 0.9,
+      "evidence": "already-named function matches: string \"Camera is outside BSP... cannot initiate teleportation...\" is printed exactly when the camera's BSP lookup fails, otherwise teleports the target unit via FUN_004f51c0",
+      "prototype": "void __cdecl cheat_teleport_to_camera(void)",
+      "summary": "Debug cheat that teleports the selected/controlled unit to the current camera position, or prints an error if the camera is outside the BSP."
+    },
+    {
+      "addr": "0x45a6c0",
+      "name": "cheat_make_selected_object_invincible",
+      "confidence": 0.45,
+      "evidence": "looks up the selected object via cheat_get_target_object_index (FUN_0045a7a0), forces its shield/field at offset 0x37c to 1.0f, and sets flag bits 0x10/0x20 at offset 0x204",
+      "prototype": "void __cdecl cheat_make_selected_object_invincible(void)",
+      "summary": "Debug cheat that forces the currently selected object's shield field to full and sets its invincibility-style flag bits."
+    },
+    {
+      "addr": "0x45a720",
+      "name": "cheat_make_player_invincible",
+      "confidence": 0.45,
+      "evidence": "identical field writes to FUN_0045a6c0 (offset 0x37c set to 1.0f, flags 0x10/0x20 at 0x204) but looks the object up via a player index (in_AX) through DAT_0087a478 instead of the selected-object helper",
+      "prototype": "",
+      "summary": "Debug cheat that applies the same invincibility-style flag/field writes as cheat_make_selected_object_invincible to a specific player's unit (register arg in_AX = player index)."
+    },
+    {
+      "addr": "0x45a7a0",
+      "name": "cheat_get_target_object_index",
+      "confidence": 0.35,
+      "evidence": "iterates data_iterator_next filtering on a valid unit-control field at offset 0x34; used as the object lookup by cheat_teleport_to_camera and cheat_make_selected_object_invincible",
+      "prototype": "unsigned int __cdecl cheat_get_target_object_index(void)",
+      "summary": "Finds the first object datum with a valid controlling-unit index, used by the debug cheat helpers to find their target object."
+    },
+    {
+      "addr": "0x45a800",
+      "name": "cheat_spawn_objects_near_camera",
+      "confidence": 0.5,
+      "evidence": "for each tag in the param_1 array, computes an offset position from the camera (fpatan/fcos/fsin, +1.5 units and +0.8 height) and spawns it via object_new_with_datum_role_control",
+      "prototype": "void __cdecl cheat_spawn_objects_near_camera(int tag_array, unsigned short count)",
+      "summary": "Spawns up to param_2 objects from a tag-index array at positions offset from the current camera, used by the tag/warthog spawn cheats."
+    },
+    {
+      "addr": "0x45a9c0",
+      "name": "game_initialize",
+      "confidence": 0.4,
+      "evidence": "sequentially bump-allocates and zeroes memory pools (crc32_update-tracked) for particles, effects, effect locations, weather particles, particle systems, contrails, then calls objects_initialize, game_sound_initialize, hs_runtime_initialize, hs_scripts_reload, object_lists_initialize, and saved_game_files_initialize; the existing name 'particle_systems_initialize' covers only a fraction of this",
+      "prototype": "void __cdecl game_initialize(void)",
+      "summary": "One-time post-map-load initialization that allocates the runtime memory pools and starts the object, sound, script, and save-file subsystems (previous name particle_systems_initialize was too narrow)."
+    },
+    {
+      "addr": "0x45acd0",
+      "name": "game_dispose",
+      "confidence": 0.4,
+      "evidence": "frees/zeroes the same set of global buffers set up in game_initialize (0x87abcc/0x87a480/etc.), calls objects_dispose, and releases Win32 handles via GlobalFree/CloseHandle",
+      "prototype": "void __cdecl game_dispose(void)",
+      "summary": "Tears down the memory pools and Win32 resources allocated by game_initialize."
+    },
+    {
+      "addr": "0x45aea0",
+      "name": "cache_file_switch_map_by_path",
+      "confidence": 0.35,
+      "evidence": "extracts the filename from a path with strrchr, looks it up with cache_file_find_slot_by_name, and on a miss/mismatch triggers cache reload helpers and an error dialog (FUN_0057ea70)",
+      "prototype": "",
+      "summary": "Resolves a map cache slot from a path and switches/queues loading of it if it is not already the active cache file."
+    },
+    {
+      "addr": "0x45afb0",
+      "name": "game_unload_map",
+      "confidence": 0.4,
+      "evidence": "spins on FUN_004434a0 until the cache load state finishes, then calls cache_file_unload and resets the tag-index globals (DAT_00746f8c/90/94/98/9c/a0) to their empty state",
+      "prototype": "",
+      "summary": "Waits for any pending cache load to finish, then unloads the current map cache file and clears the cached tag-index bookkeeping."
+    },
+    {
+      "addr": "0x45b050",
+      "name": "game_start_new_map",
+      "confidence": 0.4,
+      "evidence": "resets/re-zeroes numerous per-map globals, calls objects_reset and data_delete_all for each effect/particle/weather pool, hs_scripts_reload, update_server_new, and __control87",
+      "prototype": "void __cdecl game_start_new_map(void)",
+      "summary": "Resets game state (objects, scripts, particle/effect pools, network server) to begin a new game on the currently loaded map."
+    },
+    {
+      "addr": "0x45b370",
+      "name": "game_stop_current_map",
+      "confidence": 0.45,
+      "evidence": "mirrors game_start_new_map's globals but clears their 'active' flags to 0 instead of setting them, and calls hs_scripts_free, cache_flush, and chimera__revert",
+      "prototype": "void __cdecl game_stop_current_map(void)",
+      "summary": "Shuts down the currently running game (frees scripts, flushes cache, reverts state) as the counterpart to game_start_new_map."
+    },
+    {
+      "addr": "0x45b4cb",
+      "name": "game_initialize_mod_per_map_upgrade_effects",
+      "confidence": 0.2,
+      "evidence": "already-named from a prior session; decompiled body reads uninitialized in_ZF/unaff_BL flags and only calls FUN_00498650 plus a one-byte global write, consistent with this being a mid-function/overlap artifact rather than a clean standalone function",
+      "prototype": "",
+      "summary": "Small fragment (kept prior name) that writes a byte and calls FUN_00498650; the decompilation looks like an overlap/alignment artifact so its true behavior is uncertain."
+    },
+    {
+      "addr": "0x45b4e4",
+      "name": "game_initialize_mod_per_map_upgrade_effect_locations",
+      "confidence": 0.15,
+      "evidence": "1-byte 'function' that decompiles to a single INT3/software interrupt (swi 3); almost certainly a padding byte between real functions rather than real code",
+      "prototype": "",
+      "summary": "Single-byte stub (kept prior name) that is most likely padding/alignment between functions, not genuine code."
+    },
+    {
+      "addr": "0x45b4f0",
+      "name": "game_effects_update",
+      "confidence": 0.5,
+      "evidence": "scales a delta-time parameter by a slow-motion factor (from DAT_006b0b80+2) and forwards it to chimera__contrail_update, chimera__weather_update, and other per-tick effect updaters",
+      "prototype": "void __cdecl game_effects_update(float delta_time)",
+      "summary": "Per-tick update that advances contrail, weather, and other particle/effect systems by a (possibly slow-motion-scaled) delta time."
+    },
+    {
+      "addr": "0x45b590",
+      "name": "game_engine_flag_local_player_units",
+      "confidence": 0.3,
+      "evidence": "only runs when a game engine is loaded (DAT_006f1d20); iterates a datum pool checking an owner-index field (0xd0) against the local player unless free-for-all (DAT_00719720==1), then sets a flag byte (0xd5) and either calls FUN_00473bb0 or ORs 0x20 into the owning object's byte at 0x107",
+      "prototype": "void __cdecl game_engine_flag_local_player_units(void)",
+      "summary": "Marks datum entries owned by the local viewport's player(s) with a flag, and sets a matching bit on their controlled object."
+    },
+    {
+      "addr": "0x45b680",
+      "name": "game_engine_server_send_full_sync",
+      "confidence": 0.3,
+      "evidence": "gated on DAT_00719720==2 (server) and a network state check; iterates objects with a 0x86868686-tagged iterator struct and packs data into a large (0x7ff8-byte) buffer sent via FUN_004e1a80",
+      "prototype": "void __cdecl game_engine_server_send_full_sync(void)",
+      "summary": "Server-side routine that gathers qualifying object data into a large buffer and sends it as a network update, likely a full-state sync."
+    },
+    {
+      "addr": "0x45b780",
+      "name": "game_time_update",
+      "confidence": 0.4,
+      "evidence": "orchestrates the per-frame update: calls hs_runtime_update, main_switch_structure_bsp, players_client_catchup_on_server_updates, and branches on DAT_00719720 (client=1/server=2) for network-specific steps",
+      "prototype": "void __cdecl game_time_update(int param_1)",
+      "summary": "Main per-tick game update that advances scripts, structure-BSP switching, and network client/server catch-up logic."
+    },
+    {
+      "addr": "0x45b8b0",
+      "name": "game_engine_reset_all_players",
+      "confidence": 0.35,
+      "evidence": "iterates the player datum pool calling game_engine_reset_player (FUN_0045c440) for each, then dispatches through the current game-engine vtable at offset 0x20",
+      "prototype": "void __cdecl game_engine_reset_all_players(void)",
+      "summary": "Resets every player's per-round state and notifies the active multiplayer game engine of the reset."
+    },
+    {
+      "addr": "0x45b920",
+      "name": "game_engine_set_variant_by_name",
+      "confidence": 0.4,
+      "evidence": "calls game_engine_get_variant_by_name then copies a 0x26-dword variant struct into DAT_0087ab20 (the current-variant buffer) and, if a network game is active and the checksum field (offset 0x13c) differs, propagates it via FUN_004e1bf0",
+      "prototype": "",
+      "summary": "Looks up a game variant by name and installs it as the active variant, propagating the change to the network layer if needed."
+    },
+    {
+      "addr": "0x45b990",
+      "name": "game_engine_apply_variant",
+      "confidence": 0.4,
+      "evidence": "same copy/propagate logic as game_engine_set_variant_by_name but takes the variant data directly via a pointer (in_EDX) instead of looking it up by name",
+      "prototype": "",
+      "summary": "Installs a game variant struct (passed by pointer) as the active variant, propagating the change over the network if it changed."
+    },
+    {
+      "addr": "0x45b9e0",
+      "name": "game_safe_to_pause",
+      "confidence": 0.45,
+      "evidence": "runs a subset of the danger checks used in game_safe_to_save (FUN_004bcf50/FUN_00450fa0/FUN_0056c070/FUN_0042c3e0 via the same 0x86868686 iterator pattern) but omits the player-alive/vehicle checks and prints no diagnostics",
+      "prototype": "int __cdecl game_safe_to_pause(void)",
+      "summary": "Checks whether it is currently safe to pause (no nearby dangerous projectiles/items/effects/units), a quieter subset of game_safe_to_save's checks."
+    },
+    {
+      "addr": "0x45ba50",
+      "name": "game_safe_to_save",
+      "confidence": 0.9,
+      "evidence": "each referenced string ('not safe to save: ai_enemies_can_see_player', ...vehicle_moving_near_any_player, etc.) is printed via FUN_004c6920 in exact correspondence with the failing predicate in the if/else-if chain",
+      "prototype": "char __cdecl game_safe_to_save(void)",
+      "summary": "Returns whether it is currently safe to auto/quick-save, checking for nearby AI threats, dangerous projectiles/items/effects, dangerous units, airborne/dead players, and moving vehicles, logging the specific reason on failure."
+    },
+    {
+      "addr": "0x45bbe0",
+      "name": "game_no_player_is_dead",
+      "confidence": 0.45,
+      "evidence": "runs only the single predicate that corresponds to the 'any_player_is_dead' message in game_safe_to_save (same iterator/callee), returning 1 only when it is false",
+      "prototype": "int __cdecl game_no_player_is_dead(void)",
+      "summary": "Returns true if no player is currently dead, reusing the same per-player death check used inside game_safe_to_save."
+    },
+    {
+      "addr": "0x45bc30",
+      "name": "team_pair_table_allocate",
+      "confidence": 0.3,
+      "evidence": "bump-allocates a 0xb4-byte (180-byte) block from the crc32-tracked pool and zeroes it; the size exactly matches a count field + 8 18-byte override entries + two 16-byte 10x10 bitmasks used by the sibling functions at 0x45bc80-0x45c130",
+      "prototype": "void __cdecl team_pair_table_allocate(void)",
+      "summary": "Allocates and zero-initializes the pair-relationship table (bitmasks plus an override entry list) used by the following team/pair functions."
+    },
+    {
+      "addr": "0x45bc80",
+      "name": "team_pair_table_init_defaults",
+      "confidence": 0.35,
+      "evidence": "sets bit index i+i*10 for i=0..9 in the same bitmask later queried by teams_are_enemies (offset 0xa4), i.e. the diagonal (x==y) entries of a 10x10 relation",
+      "prototype": "void __cdecl team_pair_table_init_defaults(void)",
+      "summary": "Marks each of the 10 possible indices as compatible/related to itself in the pair-relationship bitmask (reflexive default)."
+    },
+    {
+      "addr": "0x45bcf0",
+      "name": "team_pair_overrides_tick",
+      "confidence": 0.3,
+      "evidence": "walks the up-to-8-entry override list decrementing each entry's countdown field [8]; when it hits zero it decrements a refcount [7] and, once that also reaches zero, calls team_pair_set(0)",
+      "prototype": "void __cdecl team_pair_overrides_tick(void)",
+      "summary": "Ticks down the countdown timers on active pair-relationship override entries, clearing the corresponding bit once an entry's refcount expires."
+    },
+    {
+      "addr": "0x45bd50",
+      "name": "teams_are_enemies",
+      "confidence": 0.4,
+      "evidence": "queried by camera_observer_collect_target_candidates for enemy filtering; when no game engine is loaded it consults the 0xa4 bitmask for the (x,y) pair, otherwise falls back to a simple index-inequality test; 18 callers across the module suggest a fundamental predicate",
+      "prototype": "",
+      "summary": "Predicate testing whether two 0-9 team/relationship indices are hostile, consulting an explicit table outside of network games and a simple index test otherwise (register args in_CX/in_DX)."
+    },
+    {
+      "addr": "0x45bdb0",
+      "name": "team_pair_flag_test",
+      "confidence": 0.3,
+      "evidence": "tests the other bitmask (offset 0x94) for a pair using the mirrored index formula (in_DX + in_CX*10) versus teams_are_enemies' (in_CX + in_DX*10) on offset 0xa4",
+      "prototype": "",
+      "summary": "Tests a secondary per-pair flag bit (distinct from the teams_are_enemies bitmask) for a given pair of 0-9 indices (register args in_CX/in_DX)."
+    },
+    {
+      "addr": "0x45be00",
+      "name": "team_pair_override_get_flag",
+      "confidence": 0.3,
+      "evidence": "scans the up-to-8-entry override list for a matching (x,y) pair in either order and returns the byte at offset 0xb of the matching entry, or 0 if not found",
+      "prototype": "",
+      "summary": "Looks up an override entry for a given pair (either index order) and returns its extra status byte."
+    },
+    {
+      "addr": "0x45be50",
+      "name": "team_pair_override_add",
+      "confidence": 0.35,
+      "evidence": "finds an existing entry for the (x,y) pair or allocates a new slot (capped at 8), initializes its fields (reset value, counter, flag=1), and calls team_pair_set(0)",
+      "prototype": "",
+      "summary": "Inserts or refreshes a pair-relationship override entry with the given parameters, activating its bit via team_pair_set."
+    },
+    {
+      "addr": "0x45bf10",
+      "name": "team_pair_override_remove",
+      "confidence": 0.35,
+      "evidence": "finds the matching override entry, calls team_pair_set(1) to clear its bit, then compacts the list by shifting the last entry into its place",
+      "prototype": "",
+      "summary": "Removes a pair-relationship override entry and clears its corresponding bit, compacting the remaining entry list."
+    },
+    {
+      "addr": "0x45bfc0",
+      "name": "team_pair_override_adjust_counter",
+      "confidence": 0.35,
+      "evidence": "finds a matching active override entry and adjusts its counter [7] by +1/+3/-1 depending on param_2, refreshing the countdown [8] and calling team_pair_set(0) plus writing an out-flag once the entry's threshold [2] is reached",
+      "prototype": "",
+      "summary": "Adjusts an override entry's accumulating counter by a selectable amount and triggers team_pair_set once its configured threshold is reached."
+    },
+    {
+      "addr": "0x45c090",
+      "name": "team_pair_override_refresh",
+      "confidence": 0.3,
+      "evidence": "finds a matching active override entry and, if its counter [7] is still positive and its reset value [3] is valid, resets the countdown [8] back to that reset value",
+      "prototype": "",
+      "summary": "Refreshes an active pair-relationship override's countdown back to its configured reset value."
+    },
+    {
+      "addr": "0x45c0f0",
+      "name": "team_pair_override_clear_flag",
+      "confidence": 0.3,
+      "evidence": "finds a matching override entry (either order) and clears the extra status byte at offset 0xb, the same field read by team_pair_override_get_flag",
+      "prototype": "",
+      "summary": "Clears the extra status byte on a matching pair-relationship override entry."
+    },
+    {
+      "addr": "0x45c130",
+      "name": "team_pair_set",
+      "confidence": 0.25,
+      "evidence": "stores a new flag on the override entry's own field [5], updates the 0x94 bitmask according to param_1 and the 0xa4 bitmask according to a second (register-passed) boolean at both (x,y) and (y,x) indices, then calls FUN_0042b940(x,y)",
+      "prototype": "",
+      "summary": "Updates a pair's cached flag and the two 10x10 relationship bitmasks (set/clear governed by two independent boolean inputs) and notifies a dependent system; exact semantics of the two flags are not fully certain from this code alone."
+    },
+    {
+      "addr": "0x45c2c0",
+      "name": "game_engine_load_from_variant",
+      "confidence": 0.5,
+      "evidence": "zeroes the current-game-engine globals, and if a variant pointer (unaff_EBX) with a valid engine-type field (index 0xc) is given, copies its data and looks up DAT_006f1d20 from a jump table (&DAT_00688308 + type*4) of per-gametype vtables",
+      "prototype": "",
+      "summary": "Installs the game engine matching a variant's type by loading its vtable pointer from the built-in gametype table."
+    },
+    {
+      "addr": "0x45c330",
+      "name": "game_engine_unload",
+      "confidence": 0.5,
+      "evidence": "calls the dispose slot (offset 8) of the current game-engine vtable (DAT_006f1d20) then clears it, and zeroes a related 0xc0-dword buffer if flagged",
+      "prototype": "void __cdecl game_engine_unload(void)",
+      "summary": "Disposes of the currently loaded game engine (via its vtable's dispose entry) and clears its associated state."
+    },
+    {
+      "addr": "0x45c370",
+      "name": "game_engine_start",
+      "confidence": 0.45,
+      "evidence": "resets several network/game-state globals (including the team-alternation counter DAT_0087aa04), calls the current game engine's 'start' vtable slot (offset 0xc) and rolls back via game_engine_unload if it returns failure",
+      "prototype": "void __cdecl game_engine_start(void)",
+      "summary": "Starts the currently loaded multiplayer game engine, resetting round state and rolling back if the engine's start callback fails."
+    },
+    {
+      "addr": "0x45c440",
+      "name": "game_engine_reset_player",
+      "confidence": 0.4,
+      "evidence": "resets a player's spawn/camera-related fields (offsets 0x6c-0xc4), performs a two-team round-robin assignment using the DAT_0087aa04 counter (masked with 0x80000001, mirroring team_pair_table_init_defaults' 0-9 indexing), clears kill-feed entries via chimera__kill_feed, then dispatches the game-engine vtable slot at offset 0x14",
+      "prototype": "void __cdecl game_engine_reset_player(unsigned int player_index)",
+      "summary": "Resets a player's per-life state, optionally auto-assigns them a team by round-robin, clears their kill-feed entries, and notifies the active game engine."
+    },
+    {
+      "addr": "0x45c570",
+      "name": "game_engine_dispatch_generic_event",
+      "confidence": 0.2,
+      "evidence": "the loop body was fully optimized away ('Removing unreachable block' x11) leaving only an empty data_iterator_next loop before dispatching the game-engine vtable slot at offset 0x18 with param_1",
+      "prototype": "void __cdecl game_engine_dispatch_generic_event(unsigned int param)",
+      "summary": "Forwards a single parameter to the active game engine's vtable slot 0x18; most of its original per-object logic was eliminated by the compiler in this build."
+    },
+    {
+      "addr": "0x45c6a0",
+      "name": "players_count_active",
+      "confidence": 0.4,
+      "evidence": "counts entries by repeatedly calling data_iterator_next; used by players_all_ready_for_bsp_switch and players_bsp_switch_should_force to check 'fewer than 2 players'",
+      "prototype": "int __cdecl players_count_active(void)",
+      "summary": "Returns the number of active player datum entries."
+    },
+    {
+      "addr": "0x45c6f0",
+      "name": "player_get_nth_active",
+      "confidence": 0.3,
+      "evidence": "iterates data_iterator_next decrementing a register-held index (in_EAX) until it reaches the requested entry",
+      "prototype": "",
+      "summary": "Returns the player datum at a given index among active players (register arg in_EAX = index), or -1 if out of range."
+    },
+    {
+      "addr": "0x45c750",
+      "name": "players_all_ready_for_bsp_switch",
+      "confidence": 0.45,
+      "evidence": "returns true immediately if players_count_active()<2, otherwise checks each player's spawn/unit state against DAT_006f1cd8 and huge fixed-offset scenario-BSP fields also touched by main_switch_structure_bsp's neighborhood",
+      "prototype": "char __cdecl players_all_ready_for_bsp_switch(void)",
+      "summary": "Checks whether all active players are in a state (spawned, on the target structure-BSP) that allows a structure-BSP switch to proceed."
+    },
+    {
+      "addr": "0x45c830",
+      "name": "players_bsp_switch_should_force",
+      "confidence": 0.3,
+      "evidence": "similar single/two-player special cases as players_all_ready_for_bsp_switch but additionally tracks whether players disagree on the desired BSP (bVar1) across the iteration",
+      "prototype": "char __cdecl players_bsp_switch_should_force(void)",
+      "summary": "More thorough variant of the BSP-switch readiness check that also detects disagreement between players about which structure-BSP to switch to."
+    }
+  ]
+}

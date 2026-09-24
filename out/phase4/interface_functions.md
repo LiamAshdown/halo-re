@@ -1,0 +1,378 @@
+# interface module: 376 functions (address, current Ghidra name, size, agent confidence, summary)
+
+- 0x44c290 FUN_0044c290 size=785 conf=0.35 :: Handles special edit-key codes on a widget's text buffer, inserting/deleting characters and shifting bytes with memmove while updating cursor/selection fields.
+- 0x44c5b0 FUN_0044c5b0 size=36 conf=0.3 :: Recomputes and caches a text-edit control's string length and clears its selection after the underlying string changed.
+- 0x44c5e0 FUN_0044c5e0 size=85 conf=0.35 :: Computes the clamped selection start/end offsets for a text-edit control and reports whether a selection is active.
+- 0x44c640 FUN_0044c640 size=310 conf=0.35 :: Inserts (or replaces the current selection with) a C string into a widget text-edit buffer, honoring its maximum length.
+- 0x44c780 FUN_0044c780 size=123 conf=0.35 :: Normalizes/clamps a text-edit control's cursor and selection-anchor fields to the current string length and fires a change notification.
+- 0x4923d0 FUN_004923d0 size=96 conf=0.4 :: Per-frame entry point for local player 0's first-person weapon interface: re-initializes the cached weapon-interface block when the controlled unit changed, then runs its tick update.
+- 0x492430 FUN_00492430 size=123 conf=0.4 :: Determines whether the local player's first-person weapon view should be active based on zoom/action state, toggles it, and refreshes weapon animation controls when active.
+- 0x4924b0 FUN_004924b0 size=568 conf=0.3 :: When the local player's weapon HUD elements are present, gathers first-person weapon node data and dispatches it (twice, for two different HUD interface elements) to a lower-level effect/render routin
+- 0x4926f0 FUN_004926f0 size=62 conf=0.4 :: Finds which local player's interface record currently references the given object, returning -1 if none matches.
+- 0x492730 FUN_00492730 size=82 conf=0.35 :: Routes a weapon action event for a given unit: applies it locally if the unit belongs to a local player, otherwise plays a fallback notification.
+- 0x492790 FUN_00492790 size=38 conf=0.35 :: Routes a weapon action event keyed by weapon object: applies it if the weapon belongs to a local player, otherwise plays a fallback notification.
+- 0x4927c0 FUN_004927c0 size=109 conf=0.3 :: Remaps a weapon/equipment type enum to a HUD message/animation index used by the pickup-notification logic.
+- 0x492880 FUN_00492880 size=164 conf=0.3 :: Second-stage remap of a weapon/equipment type enum into an index used to look up a HUD pickup animation/message entry.
+- 0x492990 FUN_00492990 size=320 conf=0.35 :: Plays a HUD notification (sound/animation) reflecting a unit's weapon/equipment state, gated on the equipment item actually existing.
+- 0x492ad0 first_person_weapon_get_marker_data size=176 conf=0.6 :: Looks up a named marker (e.g. "flashlight") on the local player's first-person weapon model and returns its transform data.
+- 0x492b80 first_person_weapon_center_flashlight size=172 conf=0.75 :: Computes the centered world-space origin, extents, and direction of the local player's first-person weapon flashlight marker.
+- 0x492c30 FUN_00492c30 size=225 conf=0.35 :: Fetches a first-person weapon marker's transform for an object, but only if that object belongs to the current local player.
+- 0x492d20 FUN_00492d20 size=269 conf=0.45 :: Given the local player's current first-person weapon animation state, decides whether/how to transition to a new state via FUN_00492e60.
+- 0x492e60 first_person_weapon_set_state size=524 conf=0.55 :: Weapon animation state machine: validates and applies a state transition for the local player's first-person weapon, recording the previous pose for blending when needed.
+- 0x4930b0 FUN_004930b0 size=160 conf=0.4 :: Saves the current first-person weapon animation control block as the 'previous pose' for blending into the next animation state.
+- 0x493150 first_person_weapon_update size=1510 conf=0.5 :: Main per-frame update for a local player's first-person weapon: advances state, idle animation selection, aim-sway smoothing, and interface timers.
+- 0x493740 first_person_weapon_update_animation_controls size=1299 conf=0.5 :: Computes the local player's aim direction and builds the first-person weapon's animation control block (grip/trigger/lean values) each frame, feeding it to the animation-control system.
+- 0x493c60 FUN_00493c60 size=487 conf=0.45 :: (Re)initializes a local player's first-person weapon interface record when the controlled unit/weapon changes, wiring up the HUD elements it finds.
+- 0x493e50 chimera__first_person_node_base_address size=77 conf=0.5 :: Enables or disables the local player's first-person weapon view, attaching or detaching the weapon model accordingly.
+- 0x493ea0 FUN_00493ea0 size=84 conf=0.35 :: Copies a permuted set of animation-node records (indexed via a lookup table) into a contiguous output buffer for later effect/HUD processing.
+- 0x493f00 FUN_00493f00 size=258 conf=0.35 :: Scans a HUD interface's meter/element list for entries matching a target table, recording matches by index for later use.
+- 0x494010 FUN_00494010 size=135 conf=0.4 :: Finds which local player currently has the given weapon object equipped.
+- 0x4940a0 FUN_004940a0 size=72 conf=0.4 :: Finds which local player is controlling the given unit object.
+- 0x4940f0 first_person_weapon_process_action size=453 conf=0.5 :: Central handler that applies a weapon HUD action code (charge, reload, swap, drop) to a local player's weapon interface and drives the resulting animation-state change.
+- 0x4942e0 FUN_004942e0 size=90 conf=0.3 :: Tears down/resets a local player's first-person weapon interface state and reseeds its interface timer.
+- 0x494340 FUN_00494340 size=73 conf=0.4 :: Allocates space for one local-player interface record from a bump allocator and updates a running checksum of engine state, while also initializing the terminal/console.
+- 0x494390 FUN_00494390 size=145 conf=0.4 :: Clears and re-initializes the freshly-allocated local-player interface record and a handful of related default values.
+- 0x494430 FUN_00494430 size=140 conf=0.3 :: Looks up a cyclic color entry (e.g. a flash/blink color) from a HUD meter's color-animation tag block.
+- 0x4944c0 FUN_004944c0 size=145 conf=0.3 :: Selects a HUD meter flash color entry and caches it as the currently active flash-effect parameters.
+- 0x494560 FUN_00494560 size=457 conf=0.35 :: Determines the zoom/scope overlay object to display for the local player's current weapon, used by the screen-effect update.
+- 0x494730 FUN_00494730 size=946 conf=0.4 :: Per-frame computation of the local player's screen tint/flash and widescreen letterbox effect, followed by HUD post-render and post-game overlay handling.
+- 0x494af0 FUN_00494af0 size=425 conf=0.3 :: Computes a randomized static/flicker color tint applied while the local player is zoomed in, e.g. for a scope battery or camera-distortion effect.
+- 0x494ca0 FUN_00494ca0 size=207 conf=0.45 :: Updates/shows the shared 'error_modal' UI widget for one or more players when an error condition and player-count conditions are met.
+- 0x494d70 FUN_00494d70 size=475 conf=0.35 :: Constructs and submits a rotated, scaled screen-space quad (e.g. a HUD icon or waypoint marker) for rendering.
+- 0x494f50 map_list_get_friendly_level_name size=145 conf=0.75 :: Resolves the display-friendly multiplayer level name for a map, using the built-in map-list tag when the map is a known one, else its filename.
+- 0x494ff0 map_list_find_known_map_index size=195 conf=0.5 :: Looks up whether a given map path matches one of the engine's known/built-in multiplayer maps, returning its index or -1 for a custom map.
+- 0x4950c0 chimera__load_multiplayer_maps size=208 conf=0.55 :: Appends one map-file entry (path, id, cache-exists flag) to the growable multiplayer map list, allocating/reallocating storage as needed.
+- 0x495190 first_person_weapons_update size=96 conf=0.3 :: A near-duplicate map-list entry appender (path copy + extension handling + cache check), likely an alternate call site of the same underlying logic as map_list_add_entry; the previous 'first_person_we
+- 0x4951f0 first_person_weapon_render_update size=111 conf=0.3 :: Finalizes a map-list entry already stored at the current index: lowercases its path, checks cache_file_exists, and advances the entry count.
+- 0x495260 chimera__free_map_index size=89 conf=0.6 :: Frees every map-list entry's allocated path buffer plus the map-list array itself and resets the map list to empty.
+- 0x4952c0 FUN_004952c0 size=174 conf=0.4 :: Attempts to automatically select and load an existing player profile at startup, falling back to a default (-1) profile if none is found valid.
+- 0x495370 FUN_00495370 size=372 conf=0.4 :: Initializes the player-profile subsystem: clears profile globals and loads (or creates/saves) the appropriate profile at startup.
+- 0x4954f0 player_profile_find_index_by_id size=33 conf=0.5 :: Finds the profile-slot index whose stored id matches the requested controller/profile id.
+- 0x495520 FUN_00495520 size=87 conf=0.35 :: Tears down the multiplayer game-setup UI widget and clears the transient network/game-setup state and buffers.
+- 0x495580 FUN_00495580 size=584 conf=0.4 :: Applies a set of video/display options (vsync-like mode, gamma, misc toggles) from the current profile data, flushing the cache if the mode changed.
+- 0x4957d0 FUN_004957d0 size=409 conf=0.4 :: Applies the current profile's audio settings (music/effects/voice volume and related toggles) to the sound system.
+- 0x495970 player_profile_load size=238 conf=0.55 :: Loads a player profile record into the active-profile globals and applies its video, audio, and network settings.
+- 0x495a60 FUN_00495a60 size=84 conf=0.35 :: Looks up a per-profile flag/byte value for the profile matching the given id.
+- 0x495ac0 network_game_host_start size=288 conf=0.55 :: Starts hosting a multiplayer game: tears down any prior host, loads the selected variant, shows the pre-game lobby UI, and stands up the network host/session.
+- 0x495be0 FUN_00495be0 size=169 conf=0.4 :: Selects a saved map or game-variant entry (by combined type/id) into the profile's current working-copy buffers, or resets to defaults for id -1.
+- 0x495c90 FUN_00495c90 size=82 conf=0.35 :: Checks whether the display name of the currently-selected saved map or variant differs from its on-disk name.
+- 0x495cf0 FUN_00495cf0 size=77 conf=0.3 :: Validates the currently-selected saved map or variant's name (e.g. for uniqueness/legality) before it can be saved.
+- 0x495d40 player_profile_save size=290 conf=0.7 :: Saves the currently-selected map or game-variant profile entry to disk, refusing to overwrite an unmodified default profile.
+- 0x495e70 FUN_00495e70 size=38 conf=0.4 :: Compares a given name string against the currently-selected saved map/variant's name, returning a match indicator.
+- 0x495ea0 FUN_00495ea0 size=163 conf=0.45 :: Determines whether the currently-selected saved map or variant has unsaved changes by comparing its working copy against the on-disk copy.
+- 0x495f50 FUN_00495f50 size=86 conf=0.35 :: Walks a generic data-array (register-passed) and dispatches chimera__hud_message() for every entry with a valid id field, used to flush pending HUD/chat messages before a profile switch.
+- 0x495fb0 player_profile_save_495fb0 size=171 conf=0.75 :: Saves the active player profile to disk unless it is the default (unsaved) profile, in which case it shows a status message instead, then refreshes the UI settings cache.
+- 0x496060 FUN_00496060 size=878 conf=0.4 :: Converts a saved profile's raw settings (difficulty, name, 0-9 sensitivity/acceleration slider indices) into the live per-controller settings block used by the input and UI systems, mapping slider ind
+- 0x4963d0 terminal_initialize size=80 conf=0.9 :: Allocates the terminal-output data array and resets developer-console/terminal state globals.
+- 0x496420 console_message_new size=110 conf=0.5 :: Allocates a new fading on-screen console message slot from the console data array, evicting the oldest message first if the array (max 0x20 entries) is full.
+- 0x496490 console_message_delete size=117 conf=0.5 :: Removes and frees one entry from the on-screen console message linked list.
+- 0x496510 console_open size=100 conf=0.5 :: Lazily activates the developer console/terminal for the first time, wiring up its edit-line structure and restoring the console cursor.
+- 0x496580 console_close size=82 conf=0.55 :: Deactivates the developer console for the given handle, hiding the win32 console cursor.
+- 0x4965e0 console_process_queued_input size=248 conf=0.5 :: Per-frame update of the developer console that feeds a queued/scripted stream of characters into the console input line one at a time, debounced by elapsed time.
+- 0x4966e0 chimera__console_fade_fn size=79 conf=0.55 :: Ages every on-screen console message each frame and deletes any that have been visible for more than 150 frames.
+- 0x496730 console_draw_overlay size=835 conf=0.55 :: Renders the developer console overlay: the current input line with a text caret, plus the list of recently faded console/hud messages above it.
+- 0x496a80 FUN_00496a80 size=206 conf=0.45 :: Formats a string with vsnprintf and appends it to the console message list, but only when a verbosity/debug-level global exceeds 3.
+- 0x496b50 chimera__console_out size=193 conf=0.6 :: Formats and appends a message to the on-screen developer console, echoing it to the native win32 console/rcon as well.
+- 0x496c20 FUN_00496c20 size=94 conf=0.4 :: Restores the console cursor visibility and refreshes the console window title/input line.
+- 0x496c80 console_process_input_events size=178 conf=0.6 :: Polls the native win32 console for input events and forwards key-down events to the console key handler.
+- 0x496d40 FUN_00496d40 size=167 conf=0.45 :: Refreshes the console's displayed title/input line and cursor position only when they have actually changed since the last frame.
+- 0x496df0 FUN_00496df0 size=158 conf=0.4 :: Generic helper that finds every occurrence of a substring in a string and inserts a replacement string at each match point, shifting the remaining text.
+- 0x496e90 chimera__console_out_copy size=242 conf=0.55 :: Flushes the current console line to the rcon output and/or the native win32 console window.
+- 0x496f90 console_clear_screen size=124 conf=0.7 :: Clears the entire native win32 console screen buffer.
+- 0x497010 console_clear_bottom_line size=140 conf=0.55 :: Moves the console cursor to the bottom row and optionally clears that row, used before redrawing the input prompt.
+- 0x4970a0 console_draw_input_line size=254 conf=0.55 :: Composes and draws the developer-console prompt/input line onto the bottom row of the native win32 console.
+- 0x4971a0 console_position_cursor size=164 conf=0.6 :: Positions the native console text cursor at the end of the currently typed console input.
+- 0x497250 interface_update_for_resolution_change size=105 conf=0.5 :: Stores and clamps the interface's cached screen width/height, flagging a change when the resolution differs from the previous frame.
+- 0x4972c0 FUN_004972c0 size=189 conf=0.4 :: Per-frame helper that obtains the current viewport size (or cursor position) and feeds it into the resolution-change tracker.
+- 0x497380 interface_draw_cursor size=132 conf=0.6 :: Draws the mouse cursor bitmap over the interface, or a fallback fill if the cursor bitmap has not loaded yet.
+- 0x497410 chimera__do_show_loading_screen size=224 conf=0.5 :: Advances the timer-driven state machine for the loading/saving/connecting progress screen each frame.
+- 0x4974f0 interface_draw_screen size=863 conf=0.55 :: Draws the current loading/saving/connecting progress screen text and background for the active interface state.
+- 0x4978a0 FUN_004978a0 size=34 conf=0.35 :: Sets or clears the text shown on the current loading/progress screen.
+- 0x4978d0 interface_loading_screen_reset size=46 conf=0.6 :: Resets all state for the loading/saving progress screen back to its inactive defaults.
+- 0x497900 color_pack_argb_from_real size=99 conf=0.6 :: Converts a floating point ARGB color into a packed 32-bit ARGB color value.
+- 0x497970 color_argb_scale_alpha size=52 conf=0.55 :: Returns a copy of a packed ARGB color with its alpha channel scaled by the given factor, used to fade UI elements.
+- 0x4979b0 widget_memory_pool_initialize size=181 conf=0.8 :: Allocates and initializes the fixed-size heap used to allocate all UI widget instances.
+- 0x497a70 chimera__load_ui_widget size=365 conf=0.55 :: Loads a UI widget tag, allocates and initializes an instance of it, replacing whatever widget currently occupies the requested layer slot.
+- 0x497c00 widget_close size=627 conf=0.6 :: Recursively destroys a widget and all of its children, unlinking them and returning their memory to the widget pool.
+- 0x497e80 interface_tick size=736 conf=0.5 :: Main per-frame update for the interface/menu system: advances timers, watches the background loading thread, and updates the active widget's input/selection state.
+- 0x498160 multiplayer_map_list_dispose size=459 conf=0.35 :: Clears a small results buffer and commits the currently hovered list/slider widget's selection, toggling a busy-state flag; likely used when leaving a map/server list screen.
+- 0x498330 FUN_00498330 size=379 conf=0.35 :: Draws the active UI widget clipped to one local player's half of a split-screen viewport.
+- 0x4984c0 FUN_004984c0 size=368 conf=0.4 :: Draws all currently active full-screen UI widgets, an optional fade overlay, and the mouse cursor on top.
+- 0x498630 widget_list_get_child_by_index size=29 conf=0.5 :: Returns the Nth child widget of a parent widget by walking its sibling linked list.
+- 0x498650 widget_close_all size=88 conf=0.5 :: Tears down the entire active widget tree and clears any cached list/results data associated with it.
+- 0x4986b0 widget_list_select_next size=366 conf=0.55 :: Moves a list or scrollable widget's current selection to the next item, wrapping around at the end.
+- 0x498820 widget_list_select_previous size=449 conf=0.55 :: Moves a list or scrollable widget's current selection to the previous item, wrapping around at the start.
+- 0x4989f0 chimera__load_main_menu size=184 conf=0.7 :: Loads and opens the main menu UI widget, handling demo-mode teardown, pending error display, and virtual keyboard setup.
+- 0x498ab0 FUN_00498ab0 size=111 conf=0.35 :: Starts the main menu's title music the first time it is shown and arms a deferred transition/timeout on the active widget.
+- 0x498b20 FUN_00498b20 size=737 conf=0.45 :: Draws a bitmap stretched to fill a destination rectangle while keeping its border corners/edges from distorting (nine-patch style scaling).
+- 0x498e10 FUN_00498e10 size=17 conf=0.35 :: Walks to and returns the last sibling in a widget's linked list.
+- 0x498e30 widget_get_sibling_index size=35 conf=0.55 :: Returns the zero-based position of a widget among its parent's children, or -1 if it isn't found.
+- 0x498e60 FUN_00498e60 size=40 conf=0.4 :: Recursively sets a state/flag byte on a widget and all of its descendants.
+- 0x498e90 widget_play_sound_effect size=114 conf=0.65 :: Plays one of the standard UI sound effects (cursor move, forward, back, or failure) selected by an enum id.
+- 0x498f20 display_error size=559 conf=0.9 :: Queues or immediately opens the appropriately-sized modal/non-modal error dialog widget for the given error message id.
+- 0x499170 interface_handle_quit_request size=125 conf=0.5 :: Either force-quits the game immediately or arms a 'are you sure you want to quit' confirmation prompt.
+- 0x4991f0 player_help_screen_select_by_name size=496 conf=0.5 :: Selects and opens a specific player-help screen tag based on matching the current profile's name against hardcoded name lists.
+- 0x4993e0 main_menu_play_title_music size=66 conf=0.55 :: Starts the main menu's title theme music if it is not already playing.
+- 0x499430 FUN_00499430 size=46 conf=0.35 :: Allocates a small linked-list node from the widget heap, copies template data into it, and pushes it onto the front of a list.
+- 0x499460 FUN_00499460 size=68 conf=0.35 :: Pops the first node off a small linked list, returning its fields and freeing the node.
+- 0x4994b0 FUN_004994b0 size=129 conf=0.4 :: Frees every node of a linked list back into the widget memory pool.
+- 0x499540 widget_create_children_from_tag size=569 conf=0.55 :: Instantiates and links in all of a widget's static child widgets (list items and nested widgets) as defined by its tag.
+- 0x499780 widget_initialize_from_tag size=456 conf=0.6 :: Populates a freshly-allocated widget instance's fields from its tag definition and builds its child widgets.
+- 0x499950 widget_find_by_tag_id size=64 conf=0.5 :: Recursively searches a widget tree for a node whose id/tag field matches the given value.
+- 0x499990 FUN_00499990 size=95 conf=0.45 :: Adjusts a list widget's layout rectangle to leave room for its up/down scroll-arrow bitmaps.
+- 0x4999f0 widget_instance_point_in_bounds size=161 conf=0.5 :: Given a widget instance in EAX, tests whether the current UI cursor position falls within that widget's on-screen bounding rectangle, accounting for offsets inherited from every ancestor widget.
+- 0x499aa0 FUN_00499aa0 size=33 conf=0.3 :: Validates that a widget's offset-0x30 chain is a consistent doubly-linked list by checking each node's back-pointer, used to sanity-check a modal widget stack.
+- 0x499ad0 widget_instance_find_at_point size=331 conf=0.55 :: Recursively searches a widget instance and its descendants for the topmost widget whose bounding rectangle contains the given screen point, honoring visibility and list-type widget rules.
+- 0x499c20 widget_instance_get_cumulative_scale size=27 conf=0.6 :: Returns the effective render scale of a widget instance by multiplying its own scale with that of every ancestor up the parent chain.
+- 0x499c40 FUN_00499c40 size=109 conf=0.3 :: Checks whether every widget in this instance's ancestor chain is either flagged interactive or a list-type widget, used to gate list/selection interactions.
+- 0x499cb0 FUN_00499cb0 size=69 conf=0.4 :: Determines whether the widget instance in EAX is the topmost entry of its offset-0x30 linked chain, i.e. the active widget in a modal stack.
+- 0x499d00 widget_instance_handle_input_event size=1504 conf=0.5 :: Processes an input event against a widget instance's bound UI events, triggering matching event actions and propagating the event to the widget's focused or listed child widgets.
+- 0x49a2e0 render_ui_cursor size=254 conf=0.35 :: Forwards an input event to the appropriate child widget (a single matched child, or the full child list until one consumes it) and updates a global list-changed flag afterward; despite its current nam
+- 0x49a430 ui_widget_list_item_activate size=1148 conf=0.5 :: Executes the set of actions encoded in a widget event/list-item definition (script call, tag-based widget swap, focus change, close list, sound) when that item is triggered.
+- 0x49a8c0 widget_instance_render size=320 conf=0.6 :: Recursively renders a widget instance and all of its children: applies inherited scale/fade, draws its background and per-type content, and triggers any bound periodic ("on frame") event.
+- 0x49aa00 ui_widget_load_by_name_or_tag size=559 conf=0.3 :: A register-convention duplicate of widget_instance_render's content-drawing tail (fade, per-type dispatch, child recursion, on-frame event); the existing "load by name or tag" name does not match what
+- 0x49ac30 ui_button_prompt_index_from_string size=66 conf=0.5 :: Looks up which button-prompt token (e.g. "a-button") a wide string begins with, returning its index into the button caption table or 0xFFFF if no token matches.
+- 0x49ac80 FUN_0049ac80 size=163 conf=0.35 :: Prepares a timestamp (game time, or a high-resolution timer value when requested) and forwards it with a widget's sound-tag reference to queue a UI sound effect.
+- 0x49ad30 FUN_0049ad30 size=106 conf=0.45 :: Draws one span of a button-prompt caption via chimera__draw_16_bit_text, adjusting the running horizontal clip offset beforehand.
+- 0x49ada0 ui_string_has_button_prompt_token size=50 conf=0.5 :: Returns true if the given wide string contains at least one recognised "%buttonname" prompt-substitution token.
+- 0x49ade0 ui_widget_draw_formatted_prompt_string size=983 conf=0.5 :: Renders a caption string mixing plain text with "%button" placeholders, drawing each text span and substituting the matching controller-button icon or label for every recognised token.
+- 0x49b1d0 widget_instance_render_text_box size=845 conf=0.8 :: Prepares and draws a text-box widget's caption: performs text substitutions, computes colour pulsing/fade, and dispatches to plain or button-prompt-substituted text rendering.
+- 0x49b450 render_ui_widgets size=54 conf=0.4 :: Chooses between drawing a raw string directly or running it through the button-prompt substitution formatter, based on a caller-supplied flag.
+- 0x49b560 widget_instance_render_list_head size=1372 conf=0.5 :: Renders a list_head-type widget: draws its scroll-arrow indicators and then assembles and draws the caption text of the currently selected list entry.
+- 0x49bac0 FUN_0049bac0 size=153 conf=0.45 :: Renders every visible entry of a list-type widget's children, marking whichever entry matches the current selection index, and clears the selection-changed counter afterward.
+- 0x49bb60 FUN_0049bb60 size=55 conf=0.35 :: Finds the topmost ancestor of the current widget and, if it matches the supplied lookup key, updates the modal widget-stack linkage.
+- 0x49bba0 FUN_0049bba0 size=324 conf=0.35 :: Re-links a widget instance into the modal/selection stack, preferring the closest visible or list-type sibling if the direct target widget is hidden.
+- 0x49bd00 FUN_0049bd00 size=200 conf=0.4 :: Moves the widget-stack's current selection to a specific list index (or, for a negative index, re-validates and relinks the existing selection), updating the target's stored selection field.
+- 0x49bdd0 FUN_0049bdd0 size=59 conf=0.3 :: Plays a sound effect via FUN_00549af0 provided the caller-supplied sound-tag index is valid.
+- 0x49be10 ui_string_replace_all size=489 conf=0.55 :: Replaces every occurrence of one wide substring with another inside a (possibly reallocated) wide-character buffer, returning the number of replacements performed.
+- 0x49c000 FUN_0049c000 size=63 conf=0.4 :: Clears and re-applies the "selected" flag across a list widget's children so that only the currently active list_head child is marked selected.
+- 0x49c040 FUN_0049c040 size=55 conf=0.4 :: Updates each list_head child's "selected" flag to match whether it is currently the widget's active selection.
+- 0x49c080 FUN_0049c080 size=112 conf=0.4 :: Advances a list widget's current selection to the next selectable sibling, wrapping to the first child when the end of the list is reached.
+- 0x49c0f0 FUN_0049c0f0 size=168 conf=0.4 :: Moves a list widget's current selection to the previous selectable sibling, wrapping to the last child when the start of the list is reached.
+- 0x49c1a0 ui_check_for_pause_game size=489 conf=0.8 :: Determines which pause-menu widget (1p/2p/4p multiplayer or solo/split-screen) to load based on the current player count and session state, loads it, and decrements the pending pause-request counter.
+- 0x49c369 display_scenario_help_fail size=66 conf=0.3 :: A compiler-duplicated tail fragment of ui_check_for_pause_game: conditionally loads the default single-player pause-game widget and decrements the pending-pause counter; the existing "display_scenario
+- 0x49c3e0 FUN_0049c3e0 size=214 conf=0.45 :: Closes the current widget chain and reloads whichever widget was previously saved for this controller slot, re-applying its saved list selection if the reload fails.
+- 0x49c4c0 FUN_0049c4c0 size=202 conf=0.4 :: Loads (or re-focuses) a child widget identified by a tag id, passing along a type-appropriate initial value and this widget's sibling position so the loaded widget can restore prior state.
+- 0x49c5c0 FUN_0049c5c0 size=82 conf=0.3 :: Copies a previously saved three-component colour value from globals into the caller's output buffer.
+- 0x49c620 FUN_0049c620 size=93 conf=0.35 :: Builds a 4-component colour value (a base colour plus saved RGB) used as the source colour for a widget's pulsing or animated tint effect.
+- 0x49c680 FUN_0049c680 size=136 conf=0.45 :: Initializes the player profile system on startup: creates default profile files on disk if needed, then loads and selects the current profile.
+- 0x49c710 set_profile_name size=149 conf=0.8 :: Builds a profile display name by formatting a base name together with an optional localized suffix string looked up from the common button captions string list.
+- 0x49c7b0 FUN_0049c7b0 size=86 conf=0.35 :: Checks whether the elapsed time since a saved timestamp exceeds a threshold and, if so, raises a timeout flag used to abandon a pending network/UI wait state.
+- 0x49c810 FUN_0049c810 size=81 conf=0.4 :: Starts (or confirms already started) the timestamp used by ui_network_wait_timeout_check, and marks a network/UI wait as active.
+- 0x49c870 ui_draw_trouble_brewing_indicator size=128 conf=0.5 :: Draws the "trouble brewing" network-wait indicator bitmap while a network operation is pending, falling back to a hide/cleanup call if the bitmap tag cannot be resolved.
+- 0x49c8f0 ui_build_level_select_list size=892 conf=0.55 :: Populates the level-selection widget's list with up to ten playable campaign levels (localized name, level index, current-selection flag) based on the player's unlock progress.
+- 0x49cc80 FUN_0049cc80 size=318 conf=0.45 :: Builds the same level-selection list as ui_build_level_select_list, but treats a level as unlocked if either player's (single or co-op) progress buffer has unlocked it.
+- 0x49ce00 FUN_0049ce00 size=409 conf=0.4 :: Validates the level currently selected in the level-list widget against the active player's unlock progress and, if unlocked, records its scenario path as the level to start.
+- 0x49cfd0 FUN_0049cfd0 size=248 conf=0.4 :: Starts a new campaign game from the first level, applying the chosen difficulty/option index if valid, or reporting an error and falling back to single-player mode if not.
+- 0x49d210 multiplayer_host_session_start size=201 conf=0.5 :: Establishes a hosted multiplayer session by creating the host game engine, applying the active game variant, and opening the network session, cleaning up any partial state if a step fails.
+- 0x49d2e0 FUN_0049d2e0 size=351 conf=0.45 :: Initiates a network connection to the server currently selected in the server-list widget and, once connected, transitions the UI to the connected pre-game lobby screen.
+- 0x49d850 render_widget_recursive size=82 conf=0.3 :: Searches a table of name strings for a case-insensitive match and returns the result of a follow-up lookup call; despite its current name it performs a name search, not widget rendering.
+- 0x49dd70 ui_build_profile_list size=492 conf=0.5 :: Builds the player-profile selection list: resets scroll bookkeeping, allocates the selection array, and records every valid saved profile, pre-selecting whichever profile is currently loaded.
+- 0x49df70 FUN_0049df70 size=74 conf=0.45 :: Releases the player-profile list's allocated array and resets its entry count as part of widget teardown.
+- 0x49dfc0 FUN_0049dfc0 size=206 conf=0.45 :: Applies the currently selected entry of the profile list by validating it and loading the associated saved player profile.
+- 0x49e090 FUN_0049e090 size=212 conf=0.4 :: Validates and loads the profile selected in a per-player (e.g. split-screen) profile-list widget, recording a help-text prompt for that player slot if no profile has been created yet.
+- 0x4a0050 FUN_004a0050 size=492 conf=0.45 :: Populates the controller/options menu's list_head widgets (control scheme, invert, sensitivity, etc.) with the values from the currently loaded player profile.
+- 0x4a0a30 FUN_004a0a30 size=68 conf=0.35 :: Releases a widget's allocated child array and performs generic teardown, mirroring ui_free_profile_list for the controls/options widget context.
+- 0x4a0b50 FUN_004a0b50 size=109 conf=0.4 :: Reloads the current player profile to apply any pending option changes, then clears the pending-changes flag.
+- 0x4a1110 FUN_004a1110 size=109 conf=0.4 :: Resumes the in-progress saved campaign game (unless a save operation is already underway), applying the current level/profile state so the game begins loading.
+- 0x4a1670 FUN_004a1670 size=38 conf=0.4 :: Resets the hosted multiplayer game's statistics/state fields to zero on the active host session structure.
+- 0x4a1940 FUN_004a1940 size=91 conf=0.45 :: Prepares a default player name and opens the name-entry text input for a specific player/controller slot when creating a new profile.
+- 0x4a19a0 FUN_004a19a0 size=342 conf=0.45 :: Finishes new-profile creation after name entry: verifies the chosen name is available, creates and loads the resulting profile, or shows an error and cancels entry if creation fails.
+- 0x4a1c30 FUN_004a1c30 size=80 conf=0.3 :: Refreshes the current profile's on-disk record via FUN_0053c4e0, likely to reload it after an external change.
+- 0x4a1ff0 FUN_004a1ff0 size=126 conf=0.45 :: Determines which side of a widget's bounding-rectangle midpoint the current cursor position falls on, returning +1 or -1 accordingly.
+- 0x4a2070 FUN_004a2070 size=116 conf=0.35 :: Handles left/right navigation input for a cyclable list widget, adjusting its selected index with wraparound and triggering a refresh.
+- 0x4a20f0 FUN_004a20f0 size=160 conf=0.3 :: Populates three list-widget display values from byte fields in an unidentified settings/profile structure.
+- 0x4a2270 FUN_004a2270 size=99 conf=0.3 :: List-widget build/refresh callback that populates values then refreshes the widget.
+- 0x4a22e0 FUN_004a22e0 size=424 conf=0.3 :: Populates a row of settings list-widgets (sensitivity-like 0-10 values and enable flags) from a controller/profile byte block.
+- 0x4a26a0 audio_options_apply_from_profile size=688 conf=0.5 :: Compares displayed volume slider values against the stored profile and applies changed values to the sound engine gain controls.
+- 0x4a29a0 FUN_004a29a0 size=96 conf=0.25 :: Small helper that resets/initializes something via FUN_0053c4e0 and FUN_00495be0, likely tied to the player-profile subsystem.
+- 0x4a2ad0 FUN_004a2ad0 size=375 conf=0.3 :: Initializes default profile name fields and a resolution/quality-like list selection, enabling widgets based on network-capability globals.
+- 0x4a2cb0 FUN_004a2cb0 size=605 conf=0.35 :: Refreshes the network game host setup widgets (player/team name, list selections, local IP address) and commits changes via set_profile_name.
+- 0x4a30e0 restart_map_dialog_choice_handler size=103 conf=0.5 :: Handles the two-choice restart-map confirmation dialog, restarting the current map unless the game has already ended.
+- 0x4a3180 FUN_004a3180 size=544 conf=0.3 :: Decodes a packed bitfield (likely controller action bindings) into six list-widget values with per-field enable state.
+- 0x4a3960 FUN_004a3960 size=89 conf=0.35 :: Populates a network game-options list-widget value and two related global settings from a session/options structure.
+- 0x4a3b30 FUN_004a3b30 size=56 conf=0.35 :: Build/refresh callback for the network game-options list widget.
+- 0x4a3ce0 hud_text_message_queue_init size=96 conf=0.5 :: Initializes the on-screen text-message queue (capacity, count, base timestamp) used by the HUD message system.
+- 0x4a3d90 hud_text_message_queue_add size=145 conf=0.55 :: Appends a HUD text/chat message to the message queue, recognizing embedded \s (sound) and \h escape markers.
+- 0x4a3e30 hud_text_message_queue_update_and_draw size=716 conf=0.5 :: Updates message timers/removes expired entries, pulls in new messages, and draws the remaining HUD text message queue.
+- 0x4a4650 FUN_004a4650 size=338 conf=0.4 :: Refreshes detail widgets (type flag and name) for the currently selected network adapter list entry.
+- 0x4a47c0 FUN_004a47c0 size=73 conf=0.3 :: Dispatches to one of several handler routines via a jump table based on which sibling widget was activated.
+- 0x4a4880 autopatch_status_widget_update size=288 conf=0.6 :: Drives the 'checking for update' UI state machine widget by polling the autopatch subsystem and updating its display/timer.
+- 0x4a49c0 FUN_004a49c0 size=99 conf=0.3 :: Resets the network name/team text-entry globals to blank, guarded by the current-profile check used elsewhere.
+- 0x4a4a30 FUN_004a4a30 size=177 conf=0.4 :: Commits an edited text field (likely a server/game name) into the network options block and saves the player profile.
+- 0x4a4b60 FUN_004a4b60 size=272 conf=0.35 :: Refreshes the name/team display widgets from the pending name-entry globals and commits the change.
+- 0x4a4cb0 FUN_004a4cb0 size=60 conf=0.3 :: Synchronizes a 7-option tab/list group's selected index into a linked display widget.
+- 0x4a4cf0 FUN_004a4cf0 size=60 conf=0.3 :: Synchronizes a 5-option tab/list group's selected index into a linked display widget.
+- 0x4a4d30 FUN_004a4d30 size=204 conf=0.3 :: Synchronizes a tab/list group's selected index into a target widget using special-cased index groupings.
+- 0x4a4e20 FUN_004a4e20 size=185 conf=0.4 :: Refreshes the controller/profile-assignment display widgets for one local (split-screen) player slot.
+- 0x4a4ee0 FUN_004a4ee0 size=115 conf=0.4 :: Iterates up to three local-player slots, refreshing each one's profile-assignment widget.
+- 0x4a4f60 FUN_004a4f60 size=126 conf=0.35 :: Refreshes a 4-item profile/slot selector, highlighting the currently selected entry and syncing its paired display.
+- 0x4a4fe0 FUN_004a4fe0 size=89 conf=0.3 :: Ensures a widget's text buffer exists and refreshes it from a global text field.
+- 0x4a5040 server_list_menu_update size=1724 conf=0.7 :: Rebuilds the multiplayer server-browser list, matching each discovered game's map/variant and populating the on-screen list widgets.
+- 0x4a5ad0 FUN_004a5ad0 size=239 conf=0.25 :: Walks the network session's player slots clearing a per-player flag (likely 'ready'/'loaded') based on team and game-state checks.
+- 0x4a5bc0 multiplayer_settings_select_list_update_item size=1018 conf=0.85 :: Updates one multiplayer-settings selection list item, formatting its description from the game-variant tag data or profile-description labels.
+- 0x4a5ff0 multiplayer_settings_select_list_refresh_3wide size=263 conf=0.5 :: Refreshes the 3-wide visible window of the multiplayer game-variant selection list.
+- 0x4a6100 player_profile_details_widget_refresh size=434 conf=0.5 :: Refreshes the player-profile detail widgets (name, sensitivity, controller type, invert flag) for a selected profile, or blanks them if none is selected.
+- 0x4a62d0 FUN_004a62d0 size=143 conf=0.3 :: Synchronizes a 9-option tab group's selected index, disabling specific options based on network-availability flags.
+- 0x4a6380 player_profile_1wide_list_update size=802 conf=0.85 :: Rebuilds the single-wide player-profile selection list item, including its formatted description text.
+- 0x4a66b0 FUN_004a66b0 size=182 conf=0.3 :: Enables or disables a widget group depending on whether the associated list currently has any (non-hidden) items.
+- 0x4a6810 FUN_004a6810 size=105 conf=0.3 :: Generic build/refresh callback for a selection list widget that mirrors its selected value into a paired display widget.
+- 0x4a6940 FUN_004a6940 size=160 conf=0.35 :: Refreshes the 3-wide visible window of a per-network-adapter configuration list.
+- 0x4a69f0 FUN_004a69f0 size=107 conf=0.4 :: Fetches and stores the name of the Nth stored player profile into a widget's text buffer.
+- 0x4a6b00 FUN_004a6b00 size=107 conf=0.35 :: Fetches a clamped sensitivity-like value from the Nth stored player profile into a widget field.
+- 0x4a7360 FUN_004a7360 size=106 conf=0.3 :: Sets a widget flag based on a per-profile status byte located via the root dialog's id.
+- 0x4a7400 FUN_004a7400 size=163 conf=0.4 :: Computes the selected item plus its previous/next neighbor indices for a 3-wide scrolling list widget.
+- 0x4a74b0 FUN_004a74b0 size=185 conf=0.45 :: Assigns up to three profile pointers into the profile-carousel slot cache, validating each with FUN_0053a770.
+- 0x4a7570 FUN_004a7570 size=189 conf=0.45 :: Assigns up to three game-variant entries into the variant-selection carousel slot cache.
+- 0x4a7630 FUN_004a7630 size=38 conf=0.4 :: qsort comparator that sorts valid (non -1) carousel entries before empty ones.
+- 0x4a76d0 FUN_004a76d0 size=426 conf=0.45 :: Applies the current volume-slider widget values live to the sound engine and refreshes a related widget's enabled state.
+- 0x4a7b20 FUN_004a7b20 size=116 conf=0.45 :: Frees all GlobalAlloc'd network-adapter list entries across the three port/group arrays and resets their counts.
+- 0x4a7ba0 FUN_004a7ba0 size=172 conf=0.45 :: Adds a named entry (with optional data blob) to the current network-adapter/port list.
+- 0x4a7c50 FUN_004a7c50 size=40 conf=0.45 :: Returns the stored data pointer for the given index in the current network-adapter list.
+- 0x4a7c80 FUN_004a7c80 size=41 conf=0.4 :: Returns the stored id value for the given index in the current network-adapter list.
+- 0x4a7cb0 FUN_004a7cb0 size=67 conf=0.4 :: Finds the first non-priority-flagged entry in the current network-adapter list, or the first entry if none are flagged.
+- 0x4a7d00 FUN_004a7d00 size=174 conf=0.35 :: Computes/clamps the current scroll offset for a scrollable list widget.
+- 0x4a7db0 FUN_004a7db0 size=1365 conf=0.4 :: Rebuilds a scrollable selection list widget's visible rows from the current network-adapter/group array, using a caller-supplied item-formatting callback.
+- 0x4a8360 FUN_004a8360 size=102 conf=0.3 :: Build/refresh callback for a port/profile selection list that also refreshes the linked profile-assignment widget.
+- 0x4a83d0 FUN_004a83d0 size=111 conf=0.45 :: Formats the display name for one network-adapter list entry and returns its associated configuration flag, for use as a list-widget item callback.
+- 0x4a8440 FUN_004a8440 size=134 conf=0.4 :: Build/refresh callback for the network-adapter selection list, syncing the chosen adapter's configuration value into linked widgets.
+- 0x4a84d0 FUN_004a84d0 size=140 conf=0.35 :: Build/refresh callback for a game-variant selection list that also updates its linked description widget.
+- 0x4a8560 FUN_004a8560 size=140 conf=0.35 :: Build/refresh callback for a game-variant selection list that also toggles an associated flag widget based on the variant's data.
+- 0x4a85f0 player_profile_select_list_widget_build size=307 conf=0.55 :: Build/refresh callback for the player-profile selection list, driving the profile-details widget refresh for the current selection.
+- 0x4a8730 FUN_004a8730 size=32 conf=0.35 :: Returns the display-name string for one of four network group/tab types by index.
+- 0x4a8790 registry_get_product_id size=115 conf=0.55 :: Reads (once) the game's registry "PID" value under HKLM\...\Halo and returns a pointer to the cached 4-byte value.
+- 0x4a88f0 virtual_keyboard_initialize size=175 conf=0.9 :: Looks up the UI font/bitmap tags used by the on-screen virtual keyboard and initializes its glyph/caret state globals.
+- 0x4a89a0 virtual_keyboard_open size=362 conf=0.55 :: Opens the on-screen virtual keyboard for a caller-supplied wide-string buffer (passed in ESI) with a maximum length and initial keyset mode, loading the matching prompt UI tag.
+- 0x4a8b10 FUN_004a8b10 size=55 conf=0.4 :: Scans a wide string (pointer in EAX) and returns true if it contains at least one non-whitespace character.
+- 0x4a8b50 FUN_004a8b50 size=37 conf=0.35 :: Checks whether the text currently being edited does not collide with an existing game-variant name.
+- 0x4a8b80 FUN_004a8b80 size=87 conf=0.45 :: Returns whether a typed character (CL) is legal for the current virtual-keyboard field type (EAX): digits only, hostname/IP-like charset, or a general blacklist check.
+- 0x4a8be0 virtual_keyboard_process_input size=1498 conf=0.5 :: Per-frame virtual-keyboard input pump that consumes queued key events and performs text editing, cursor movement, cancel and name-validation/commit actions.
+- 0x4a9250 virtual_keyboard_close size=175 conf=0.55 :: Commits/closes the on-screen virtual keyboard, writing the final text back to the caller-owned buffer and clearing keyboard UI state.
+- 0x4a9300 virtual_keyboard_draw_text size=521 conf=0.5 :: Renders the virtual keyboard's current text buffer, including a time-based blinking cursor/highlight box.
+- 0x4a9510 virtual_keyboard_render size=472 conf=0.55 :: Draws the full on-screen virtual keyboard dialog: title, prompt text, and current edit text.
+- 0x4a96f0 virtual_keyboard_backspace size=88 conf=0.6 :: Deletes the wide character immediately before the caret in the virtual keyboard's edit buffer.
+- 0x4a9750 FUN_004a9750 size=39 conf=0.3 :: Tests whether a zoom/meter-state record (pointed to by EAX) is at its default (unscaled) values.
+- 0x4a9780 FUN_004a9780 size=330 conf=0.4 :: Lays out and checksums the sub-regions of the shared HUD runtime-state buffer, recording each sub-struct's base offset into module globals.
+- 0x4a98d0 FUN_004a98d0 size=178 conf=0.45 :: Clears and re-initializes the per-round HUD runtime-state buffers (weapon HUD, waypoint, chat, etc.) to their default values.
+- 0x4a9990 FUN_004a9990 size=93 conf=0.4 :: Per-frame HUD update dispatcher that drives the motion sensor, meters, and messaging sub-systems.
+- 0x4a99f0 hud_update_player size=321 conf=0.5 :: Updates and renders the full player HUD (spectate overlay, unit interface, motion sensor, messages) for the currently displayed local player.
+- 0x4a9b40 FUN_004a9b40 size=58 conf=0.4 :: Resolves an object index (EAX) to its weapon's HUD-interface tag index, or -1 if none.
+- 0x4a9b80 FUN_004a9b80 size=1632 conf=0.4 :: Evaluates the active weapon's HUD "message" state machine (pickup prompts, ammo warnings, zoom messages, name text) and pushes the resulting HUD text/index via the ae0b0/ae050 setters.
+- 0x4aa2a0 FUN_004aa2a0 size=101 conf=0.35 :: Displays one of two weapon-HUD messages (e.g. reload/no-ammo) selected by a boolean flag in AL, after resetting related flash timers.
+- 0x4aa310 FUN_004aa310 size=219 conf=0.35 :: Displays a weapon pickup/swap HUD message chosen by DL and plays its associated pickup sound.
+- 0x4aa3f0 hud_get_message_string size=67 conf=0.5 :: Resolves a weapon-HUD message index (EDX) to its localized message string, or an empty string if out of range.
+- 0x4aa440 FUN_004aa440 size=419 conf=0.45 :: Projects a tracked object's position into screen space and draws its HUD waypoint icon, fading it near the screen edge.
+- 0x4aa5f0 FUN_004aa5f0 size=179 conf=0.45 :: Finds all world objects that should show a HUD waypoint marker for the local player and draws each one.
+- 0x4aa6b0 FUN_004aa6b0 size=80 conf=0.4 :: Resets the multiplayer chat window's screen position and clears its message listbox, used on UI (re)initialization.
+- 0x4aa700 chimera__chat_open size=512 conf=0.6 :: Opens the multiplayer chat input dialog for the requested scope (all, team, or vehicle), populating its prompt text.
+- 0x4aa900 chat_close size=169 conf=0.5 :: Closes the multiplayer chat input dialog and clears the associated chat-open state.
+- 0x4aa9b0 chat_submit_input size=210 conf=0.5 :: Reads the text typed into the open chat editbox and sends it as a chat message before closing the dialog.
+- 0x4aaa90 FUN_004aaa90 size=102 conf=0.4 :: Polls the chat hotkey action flags each frame, opening the chat dialog in the requested scope, and updates the chat message listbox.
+- 0x4aab00 chimera__chat_out size=197 conf=0.55 :: Encodes a chat text message and queues it for network transmission on the given channel.
+- 0x4aabd0 FUN_004aabd0 size=512 conf=0.4 :: Server-side relay that re-broadcasts a received chat message only to the machines/players matching its addressed scope (everyone, team, or vehicle).
+- 0x4aade0 FUN_004aade0 size=398 conf=0.4 :: Queues an encoded chat message for delivery to every connected machine whose player is on the given team (or everyone if team_index is -1).
+- 0x4aaf70 FUN_004aaf70 size=502 conf=0.35 :: Dispatches an incoming chat-related message to the server-side or client-side handler depending on host role.
+- 0x4ab170 player_index_from_unit_index size=105 conf=0.55 :: Converts a salted unit-object index (ECX) into its owning player index, or -1 if invalid.
+- 0x4ab1e0 FUN_004ab1e0 size=87 conf=0.4 :: Returns the team index of the first active player found, used as the default chat channel.
+- 0x4ab240 hud_chat_listbox_remove_oldest size=177 conf=0.5 :: Removes the oldest entry from the on-screen chat message listbox and its timestamp array.
+- 0x4ab300 hud_chat_listbox_update size=252 conf=0.5 :: Expires timed-out chat messages from the HUD chat listbox and toggles its visibility.
+- 0x4ab400 hud_chat_listbox_clear size=172 conf=0.55 :: Removes every entry from the HUD chat message listbox and resets its timestamp bookkeeping.
+- 0x4ab4b0 chimera__multiplayer_message size=214 conf=0.55 :: Appends a new line of text to the on-screen chat/message listbox with an 8-second expiry timestamp.
+- 0x4ab590 FUN_004ab590 size=56 conf=0.4 :: Rounds a float to the nearest integer, correcting for round-to-even bias near .5 boundaries.
+- 0x4ab5d0 color_rgb_float_to_int size=90 conf=0.55 :: Converts a 3-component float RGB color into a packed 0x00RRGGBB integer.
+- 0x4ab630 bitmap_group_sequence_get_bitmap_offset size=83 conf=0.5 :: Resolves a specific animation frame of a bitmap-group sequence to its bitmap-data offset, used for animated HUD sprites/digits.
+- 0x4ab690 FUN_004ab690 size=315 conf=0.45 :: Converts a HUD element's anchor-relative offset into an absolute 640x480 screen position.
+- 0x4ab8d0 FUN_004ab8d0 size=166 conf=0.4 :: Resolves the bitmap data to draw for a HUD meter/icon, animating through its sequence frames when the tag defines more than one bitmap.
+- 0x4ab980 FUN_004ab980 size=573 conf=0.4 :: Computes the current blended/flashing color for a HUD meter element based on elapsed game time.
+- 0x4abbc0 FUN_004abbc0 size=1254 conf=0.4 :: Computes the interpolated fill color for a HUD meter (e.g. health/shield bar) from its current value fraction and draws it.
+- 0x4ac0b0 FUN_004ac0b0 size=402 conf=0.35 :: Draws a single ammo-counter digit for the current weapon at a computed HUD screen offset.
+- 0x4ac6f0 FUN_004ac6f0 size=595 conf=0.4 :: Draws each segment/tick of a multi-part HUD meter (e.g. a segmented shield or grenade counter).
+- 0x4ac950 FUN_004ac950 size=372 conf=0.35 :: Draws every HUD icon in an array whose flag bits match the requested mask, optionally using a flashing color.
+- 0x4acad0 FUN_004acad0 size=216 conf=0.45 :: Draws a single HUD bitmap element positioned and scaled at its configured screen anchor.
+- 0x4acbb0 FUN_004acbb0 size=152 conf=0.4 :: Draws a HUD bitmap element at its default (unrotated) position, a simplified entry point to the shared quad-draw routine.
+- 0x4acc50 FUN_004acc50 size=87 conf=0.3 :: Selects the draw-mode routine for a HUD bitmap and passes it the element's scaled width/height.
+- 0x4acd50 FUN_004acd50 size=410 conf=0.45 :: Builds a rotated screen-space quad for a HUD bitmap and submits it to the renderer.
+- 0x4acef0 FUN_004acef0 size=226 conf=0.3 :: Determines whether the current weapon should show its HUD "flash" state and, if so, fills the caller's flash-state buffer.
+- 0x4acfe0 FUN_004acfe0 size=2224 conf=0.35 :: Evaluates a HUD meter segment's animated function bindings (position, scale, color) and draws the resulting rotated quad.
+- 0x4ad8e0 FUN_004ad8e0 size=144 conf=0.35 :: Draws a HUD text element with special handling to align it against a second reference text position (e.g. label/value pairing).
+- 0x4ad970 FUN_004ad970 size=447 conf=0.35 :: Draws the current weapon's ammo counter bitmap and updates its cached animation frame.
+- 0x4adb30 FUN_004adb30 size=73 conf=0.3 :: Caches a bitmap-group offset (indexed by param_1) from the flashlight/device HUD tag into the shared HUD-state buffer.
+- 0x4adb80 FUN_004adb80 size=106 conf=0.3 :: Selects and caches a device/flashlight HUD sub-element definition matching the given index into the shared HUD-state buffer.
+- 0x4adbf0 FUN_004adbf0 size=101 conf=0.3 :: Initializes a timed HUD animation value and its associated stage counter and start-time stamp.
+- 0x4adc60 FUN_004adc60 size=85 conf=0.3 :: Advances a timed HUD animation value based on elapsed game time and a direction flag.
+- 0x4adcc0 hud_counter_get_value size=65 conf=0.5 :: Computes the current display value of a HUD numeric counter widget, returning -1 when the counter holds the 'no value' sentinel.
+- 0x4add10 chimera__fix_counters_timer_begin size=56 conf=0.4 :: Per-frame update entry point for a local player's HUD counter widget: fetches its value then dispatches to a per-counter-type handler via a jump table.
+- 0x4add40 hud_chat_to_network size=202 conf=0.35 :: One of the per-type handlers reached through the HUD counter's jump table; re-encodes an extra tag-derived byte alongside the counter value before falling into the same per-type dispatch as hud_counte
+- 0x4adfc0 FUN_004adfc0 size=140 conf=0.3 :: Records (or clears) which network player's name-table entry a local player's HUD widget is currently pointing at.
+- 0x4ae050 FUN_004ae050 size=88 conf=0.35 :: Stores a raw numeric substitution argument for the local player's current HUD action/message text and marks that argument slot as non-string.
+- 0x4ae0b0 FUN_004ae0b0 size=91 conf=0.35 :: Stores a short+byte substitution argument (e.g. a string id) for the local player's current HUD action/message text and marks that argument slot as a string.
+- 0x4ae110 FUN_004ae110 size=102 conf=0.35 :: Enables or disables the local player's HUD action-prompt widget (the on-screen text tied to the +0x230 buffer), clearing its text when turned on.
+- 0x4ae180 chimera__hud_message size=126 conf=0.65 :: Adds a new timestamped text message into the local player's HUD message slot array, evicting the oldest/least-relevant slot if needed.
+- 0x4ae200 FUN_004ae200 size=332 conf=0.35 :: Scans nearby pickup-able items for the local player and, depending on item category, flags the referenced object and/or triggers a HUD pickup notification/sound.
+- 0x4ae350 FUN_004ae350 size=166 conf=0.4 :: Sends a HUD message/counter update over the network when playing multiplayer, or applies it locally otherwise.
+- 0x4ae400 FUN_004ae400 size=127 conf=0.35 :: Applies a HUD message/counter increment directly to the local player's message slot without going over the network.
+- 0x4ae480 FUN_004ae480 size=128 conf=0.45 :: Finds an existing HUD message slot for a given source/type, or otherwise the oldest slot available for reuse.
+- 0x4ae500 FUN_004ae500 size=45 conf=0.4 :: Ordering comparator for sorting HUD message slots by timestamp, then source id, then priority.
+- 0x4ae550 hud_messaging_update size=2826 conf=0.8 :: Per-frame update that assembles and draws the local player's HUD counter, action-prompt, and queued text messages.
+- 0x4af070 FUN_004af070 size=94 conf=0.3 :: Case-insensitive lookup of a named entry's index within a small interface-related name table.
+- 0x4af0d0 FUN_004af0d0 size=206 conf=0.4 :: Stores or updates one entry of a small (4-slot) per-object waypoint/marker table used by the HUD navigation-arrow system.
+- 0x4af1b0 FUN_004af1b0 size=122 conf=0.4 :: Applies hud_waypoint_set to every active datum of a given type, e.g. to add/refresh waypoint markers for all objects of that category.
+- 0x4af230 FUN_004af230 size=123 conf=0.4 :: Removes one entry from the per-object waypoint/marker table.
+- 0x4af2b0 FUN_004af2b0 size=112 conf=0.4 :: Clears waypoint/marker table entries for every active datum of a given type.
+- 0x4af320 FUN_004af320 size=75 conf=0.35 :: Runs the per-player waypoint/marker update for every active local player.
+- 0x4af370 FUN_004af370 size=462 conf=0.4 :: Refreshes each of a local player's active waypoint/marker slots for the current frame.
+- 0x4af540 FUN_004af540 size=151 conf=0.3 :: Looks up a small type/flag value (via a hashed setting lookup) used to classify a waypoint/marker entry.
+- 0x4af5e0 hud_waypoint_draw size=1452 conf=0.5 :: Computes screen position (or clamped edge-of-screen bearing arrow) for a single HUD waypoint marker and draws its icon.
+- 0x4afb90 FUN_004afb90 size=397 conf=0.45 :: Draws all of a local player's active waypoint/navigation-arrow markers for the current frame.
+- 0x4afd30 FUN_004afd30 size=422 conf=0.45 :: Starts, stops, or updates the looping sound datums referenced by a hud_interface tag block so they match the caller-supplied active-flag bitmask.
+- 0x4afee0 FUN_004afee0 size=557 conf=0.4 :: Computes the blink/low-health/empty state flags for a local player's shield or health meter and drives its associated warning sounds.
+- 0x4b0110 FUN_004b0110 size=71 conf=0.4 :: Runs the per-player shield/health meter smoothing update for every active local player.
+- 0x4b0160 hud_meter_update_value size=442 conf=0.5 :: Per-frame smoothing/animation of a local player's displayed shield or health meter value toward the unit's actual current value.
+- 0x4b0320 hud_render_unit_interface size=4468 conf=0.85 :: Builds and draws the on-screen weapon/vehicle HUD interface (crosshairs, meters, team icon) for the local player's controlled unit.
+- 0x4b14c0 FUN_004b14c0 size=520 conf=0.3 :: Draws up to four fixed-direction on-screen indicator icons (e.g. edge-of-screen pings) around the viewport border.
+- 0x4b16e0 FUN_004b16e0 size=95 conf=0.4 :: Immediately subtracts a damage amount from a local player's cached shield/health meter display, ahead of the next authoritative object-state update.
+- 0x4b1740 FUN_004b1740 size=557 conf=0.4 :: For every local player, determines which weapon/vehicle hud_interface tag currently applies to their unit and caches it for later meter updates.
+- 0x4b1970 FUN_004b1970 size=373 conf=0.45 :: Updates every active meter/crosshair element of a unit's weapon hud_interface by dispatching to a per-meter-type handler table.
+- 0x4b1e20 chimera__spectate_hud size=453 conf=0.4 :: Resolves and updates the weapon HUD interface state for an arbitrary (e.g. spectated/followed) unit rather than only the local player's own unit.
+- 0x4b1ff0 FUN_004b1ff0 size=2747 conf=0.35 :: Computes the crosshair/meter bitfield state for one of a unit's weapons, recursing once to also handle a secondary (dual-wielded) weapon.
+- 0x4b2ac0 FUN_004b2ac0 size=552 conf=0.45 :: Updates a unit's ammo, dual-trigger, and grenade-count HUD meters from its current weapon and grenade state.
+- 0x4b2cf0 FUN_004b2cf0 size=653 conf=0.4 :: Builds the list of renderable crosshair/meter element parameters from a weapon's hud_interface tag data.
+- 0x4b2f8a FUN_004b2f8a size=681 conf=0.2 :: Likely draws a screen-space HUD indicator icon guarded by a visibility check, but the exact behavior could not be recovered from the decompiler output.
+- 0x4b3450 blip_type_get size=415 conf=0.55 :: Classifies an object (relative to the local player) into a small set of radar/HUD blip categories: friendly, vehicle, dropship, or invalid/unavailable.
+- 0x4b35f0 FUN_004b35f0 size=110 conf=0.4 :: Fills in a blip record's primary type (via blip_type_get) and a secondary subtype code for an object.
+- 0x4b3660 motion_sensor_reset size=57 conf=0.55 :: Clears the motion sensor's blip history buffer, marking every history-frame slot as empty.
+- 0x4b36a0 motion_sensor_object_is_detected size=244 conf=0.5 :: Determines whether a given object should currently register as a blip on the local player's motion sensor.
+- 0x4b37a0 FUN_004b37a0 size=370 conf=0.45 :: Plots a single detected object as a blip on the motion sensor display, oriented relative to the viewer's facing.
+- 0x4b3920 chimera__motion_sensor_update size=1238 conf=0.55 :: Per-frame update of the motion sensor: advances the history ring buffer and re-scans all objects for detection against each local player.
+- 0x4b3e10 motion_sensor_update_for_player size=773 conf=0.5 :: Refreshes one local player's motion sensor blip slots for the current frame, dropping blips that have left detection range.
+- 0x4b4120 motion_sensor_render size=663 conf=0.5 :: Draws the motion sensor display for a local player by rendering each historical blip with age-based fading.
+- 0x4b43c0 FUN_004b43c0 size=26 conf=0.35 :: Checks whether a given action/id value is present in the reserved-values table used by the controls-binding UI.
+- 0x4b43e0 FUN_004b43e0 size=214 conf=0.35 :: Enumerates the next assignable control-binding action, skipping values already reserved or already listed.
+- 0x4b44c0 FUN_004b44c0 size=90 conf=0.4 :: Returns the localized display name for a control-binding action, or '???' if none is available.
+- 0x4b4520 FUN_004b4520 size=622 conf=0.35 :: Updates the text and enabled/dimmed state of the control-binding list widgets for one input mapping row.
+- 0x4b4790 FUN_004b4790 size=148 conf=0.3 :: Refreshes every visible row of the control-binding list widget, tracking which row currently has focus.
+- 0x4b4830 FUN_004b4830 size=92 conf=0.4 :: Registers a new named input-device entry in the controls-menu device label table.
+- 0x4b4890 controls_build_device_label_table size=227 conf=0.5 :: Builds the controls-menu's device name table from the controls_device_labels tag and the currently connected input devices.
+- 0x4b4c50 FUN_004b4c50 size=414 conf=0.35 :: Applies a stock or looked-up control-binding preset to the current input configuration.
+- 0x4b4df0 FUN_004b4df0 size=41 conf=0.4 :: Returns whether a given input's primary or secondary binding is still at its default (unmodified) value.
+- 0x4b4e20 FUN_004b4e20 size=259 conf=0.35 :: Clears a single control binding back to its unbound/default state.
+- 0x4b4f30 FUN_004b4f30 size=943 conf=0.35 :: Handles input on the currently focused control-binding row, including looking up its display name and a keyboard shortcut to clear it.
+- 0x4b53a0 FUN_004b53a0 size=243 conf=0.3 :: Enables or disables a pair of control-binding row widgets depending on whether a compatible input device is connected.
+- 0x4b5560 FUN_004b5560 size=107 conf=0.35 :: Collects pointers to a fixed set of controls-menu widget nodes for later use by the binding-list update code.
+- 0x4b55d0 FUN_004b55d0 size=394 conf=0.4 :: Populates the controls menu's device-selection widget lists with the names of connected input devices, padding unused entries with placeholders.
+- 0x4b5760 FUN_004b5760 size=146 conf=0.4 :: Searches whichever of two fixed-size server-entry lists (history, max 4; favorites, max 8) is selected via a register pointer for an entry whose key fields match the caller's record, returning its ind
+- 0x4b5800 FUN_004b5800 size=80 conf=0.45 :: Appends a 0x88-dword entry to whichever of the two server-entry lists is addressed by a register pointer, if that list has not reached its capacity (4 or 8), returning success.
+- 0x4b5850 FUN_004b5850 size=127 conf=0.45 :: Removes the entry matching the caller's key from whichever server-entry list is addressed by a register pointer, compacting the array and decrementing its count.
+- 0x4b58d0 FUN_004b58d0 size=405 conf=0.35 :: Resets the history/favorites server-entry lists and repopulates the history list from built-in defaults and the player's saved profile, removing any duplicate entries.
+- 0x4b5a70 FUN_004b5a70 size=170 conf=0.3 :: Iterates the history server list looking for an entry matching the current game options and, on a match, restores the saved full option set for use by the network-game UI.
+- 0x4b5b20 FUN_004b5b20 size=441 conf=0.4 :: Moves a selected server entry between the history and favorites lists (e.g. an "add/remove favorite" UI action), updating the affected list-box widgets.
+- 0x4bab50 video_resolution_compare size=48 conf=0.6 :: qsort comparator that orders two (width,height) resolution records ascending by width then by height.
+- 0x4bab80 video_refresh_rate_compare size=30 conf=0.6 :: qsort comparator that orders two refresh-rate values ascending.
+- 0x4baba0 video_display_modes_enumerate size=414 conf=0.55 :: Enumerates the display device's supported video modes and, after filtering by memory, colour depth, command-line override and resolution/aspect limits, feeds each valid width/height/refresh combinatio
+- 0x4bad40 video_resolution_list_build size=117 conf=0.6 :: Rebuilds the sorted list of available screen resolutions and, for each, the sorted list of supported refresh rates.
+- 0x4badc0 video_resolution_add size=189 conf=0.85 :: Adds a width/height resolution entry to the video mode table (creating it if new) and records an associated refresh rate for it, up to 8 rates per resolution; width is passed on the stack, height in E
+- 0x4bae80 video_refresh_rate_find_index size=59 conf=0.5 :: Finds the index of a given refresh-rate value within a specific resolution's rate list, both passed in registers; returns -1 if not found.
+- 0x4baec0 FUN_004baec0 size=975 conf=0.45 :: Populates the video-options menu's widgets (resolution, refresh rate, gamma, and several quality/toggle controls) from a video settings structure, disabling controls the current hardware/driver does n
+- 0x4bb5e0 FUN_004bb5e0 size=92 conf=0.4 :: Handles opening the video options menu: fetches the current settings and populates the menu's widgets from them, playing the UI open sound on success.
+- 0x4bb640 video_options_menu_update size=410 conf=0.75 :: Updates the video options menu after the user changes a control: refreshes the resolution/refresh-rate display text and adjusts and applies the gamma setting.
+- 0x4c9c80 FUN_004c9c80 size=330 conf=0.35 :: Checks the command line for a "-connect" (with associated "-name"/"-password") launch argument to auto-join a multiplayer server at startup.

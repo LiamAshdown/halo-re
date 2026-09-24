@@ -1,0 +1,484 @@
+{
+  "results": [
+    {
+      "addr": "0x414f50",
+      "name": "actor_look_pick_random_direction",
+      "prototype": "",
+      "confidence": 0.45,
+      "evidence": "Uses unit pitch/yaw limit pair (via 004150f0) and calls actor_look_pick_random_point_in_cone (00415260, hint vector3d) then actor_look_get_wait_ticks (00415150) storing result at actor+0x580/0x568",
+      "summary": "Picks a new random gaze/look direction constrained to the unit's aim cone and arms the look timer for the actor."
+    },
+    {
+      "addr": "0x4150f0",
+      "name": "actor_get_unit_aim_pitch_limits",
+      "prototype": "",
+      "confidence": 0.35,
+      "evidence": "Selects one of three offsets (unit+0xf4/0x10c/0xdc) into the unit struct based on an actor posture/state field at actor+0x3fc; register-only (in_EAX) argument",
+      "summary": "Returns a pointer into the actor's unit structure holding the aim-pitch limit pair appropriate for the actor's current posture."
+    },
+    {
+      "addr": "0x415150",
+      "name": "actor_look_get_wait_ticks",
+      "prototype": "",
+      "confidence": 0.5,
+      "evidence": "Picks one of three unaff_EDI vector pairs by param_1, mixes in a PRNG (DAT_00719cd0 LCG) fraction, scales by unit field +0x410 and an urgency multiplier of 1.5, then multiplies by 30.0 (fps) rounding to a frame count clamped >=1",
+      "summary": "Computes a randomized delay in ticks (at 30 fps) before the actor's next look-direction update, optionally scaled by an urgency flag."
+    },
+    {
+      "addr": "0x415260",
+      "name": "actor_look_pick_random_point_in_cone",
+      "prototype": "",
+      "confidence": 0.55,
+      "evidence": "Randomly rotates a base vector by yaw/pitch drawn uniformly from [param_2,param_3]x[param_4,param_5] using vector3d_rotate_about_axis and fsin/fcos, optionally validating the resulting look point via FUN_00505880 up to 10 tries, then renormalizes into *param_6",
+      "summary": "Generates a normalized random direction vector within a given yaw/pitch cone, retrying against a validity test when requested."
+    },
+    {
+      "addr": "0x415480",
+      "name": "actor_update_look_target",
+      "prototype": "",
+      "confidence": 0.4,
+      "evidence": "Reads actor look-mode field at +0x6dc, branches on unit posture/vehicle seat (+0x6a==3) selecting different unit orientation fields (0xbc/0xb4 etc.), and calls the look-direction helpers 00414910/00414990/00414d00/00414f50/004150f0/00415150 plus obstacle/vector helpers",
+      "summary": "Large per-tick routine that decides where the actor should be looking (aim target, idle scan, vehicle-relative) and updates its stored look vector and timers."
+    },
+    {
+      "addr": "0x4163e0",
+      "name": "actor_update_melee_dodge_waypoints",
+      "prototype": "",
+      "confidence": 0.4,
+      "evidence": "Walks an array of dodge waypoints at actor+0x4a8 (stride 0x10) using offsets +0x4c1/+0x4c2 as index bounds, testing proximity/line-segment distance (0.0225/0.0625 thresholds) to advance the index, and falls back to picking a lateral dodge offset when action state (+0x15e)==4",
+      "summary": "Advances the actor along a queued dodge waypoint path, or computes a fresh lateral dodge destination when no path is queued."
+    },
+    {
+      "addr": "0x416700",
+      "name": "actor_check_grenade_throw_reached",
+      "prototype": "",
+      "confidence": 0.45,
+      "evidence": "Compares squared distance from actor position (+300/+0x130/+0x134) to a stored throw target (+0x488..0x490) against a max-throw-distance from FUN_00429620, setting completion flag at +0x484 when the throw mode (+0x46c) isn't 0/1 and target is out of range",
+      "summary": "Checks whether the actor has moved close enough to its planned grenade-throw position and marks the action complete if so."
+    },
+    {
+      "addr": "0x416790",
+      "name": "actor_movement_update",
+      "prototype": "",
+      "confidence": 0.5,
+      "evidence": "Reads/derives movement mode at actor+0x6dc from posture (+0x6a), computes a desired velocity vector into +0x5a4/+0x5a8/+0x5ac from several sub-cases (dodge, dive, dodge-to-explicit-point), and feeds it to actor_movement_apply_direction (004180c0)",
+      "summary": "Per-tick actor movement decision routine that selects a movement mode and desired direction, then applies obstacle-aware steering to it."
+    },
+    {
+      "addr": "0x4173a0",
+      "name": "actor_get_movement_turn_radii",
+      "prototype": "",
+      "confidence": 0.35,
+      "evidence": "Reads vehicle physics fields (object flags bit 4 at +0x2f4, turning-radius floats at +0x334/0x33c/0x340) when the actor is attached to a vehicle-like object (obj+0x158==-1 path), else falls back to fixed constants (0.0833/0.0167/0.0267), outputting via unaff_EBX/EDI pointers",
+      "summary": "Computes linear/angular turning-radius bounds (from vehicle physics or defaults) used elsewhere for movement path cost estimation."
+    },
+    {
+      "addr": "0x417570",
+      "name": "actor_movement_action_stop",
+      "prototype": "",
+      "confidence": 0.55,
+      "evidence": "Sets the pending movement-action type field (actor+0x400) to 1 and copies it into the active slot (+0x46c) unless already 1, then calls the action dispatcher 0041a460 which treats type 0/1 as an immediately-complete no-op action; redirects to actor_movement_set_destination_point when a dodge is active (+0x15e==4 && +0x504)",
+      "summary": "Cancels the actor's current movement goal by queuing a trivial 'stop/hold position' action (or redirecting into a dodge return point)."
+    },
+    {
+      "addr": "0x417610",
+      "name": "actor_movement_set_destination_point",
+      "prototype": "",
+      "confidence": 0.6,
+      "evidence": "Queues movement-action type 2 with a literal position from in_EAX vector plus param_2/param_3; the dispatcher (0041a460) case 2 copies this position directly into the active destination fields (+0x488..0x494)",
+      "summary": "Queues a movement action that sends the actor directly to an explicit world-space point."
+    },
+    {
+      "addr": "0x417750",
+      "name": "actor_movement_set_destination_firing_point",
+      "prototype": "",
+      "confidence": 0.55,
+      "evidence": "Queues movement-action type 4 with a short index (param_1); dispatcher case 4 looks the index up in an encounter firing-position table (DAT_00746f8c chunk, entry stride 0x50) to build the destination",
+      "summary": "Queues a movement action that sends the actor to a specific encounter firing/anchor position by index."
+    },
+    {
+      "addr": "0x417830",
+      "name": "actor_movement_set_destination_formation_point",
+      "prototype": "",
+      "confidence": 0.55,
+      "evidence": "Queues movement-action type 3 with a short index (param_1); dispatcher case 3 looks the index up in a squad formation-position table (DAT_00746f8c chunk, entry stride 0x18) to build the destination",
+      "summary": "Queues a movement action that sends the actor to a specific squad formation slot by index."
+    },
+    {
+      "addr": "0x417910",
+      "name": "actor_movement_set_destination_near_target",
+      "prototype": "",
+      "confidence": 0.5,
+      "evidence": "Queues movement-action type 5 with an object index (in_EAX) and a float radius (param_2); dispatcher case 5 reads the target's stored position from the actor-target-data record (offsets 0xf0/200) to build the destination",
+      "summary": "Queues a movement action that sends the actor toward (within a given radius of) a tracked target object."
+    },
+    {
+      "addr": "0x417a30",
+      "name": "actor_movement_action_cancel",
+      "prototype": "",
+      "confidence": 0.55,
+      "evidence": "Sets both the pending-action cancel flag (actor+0x402) and the active-action mirror flag (+0x46e) to 1, matching the cancellation flags cleared to 0 whenever a new movement action is queued elsewhere",
+      "summary": "Marks the actor's currently queued/active movement action as cancelled."
+    },
+    {
+      "addr": "0x417a60",
+      "name": "actor_action_try_queue_secondary",
+      "prototype": "",
+      "confidence": 0.4,
+      "evidence": "Checks a secondary action slot (actor+0x418 == -1, or clears via FUN_00569c90 when the actor has a target), then stores param_1/param_2 into +0x418/0x41c/0x420 and returns success",
+      "summary": "Attempts to queue a secondary actor action into an available slot, failing if one is already pending."
+    },
+    {
+      "addr": "0x417ae0",
+      "name": "actor_action_try_start_default_look",
+      "prototype": "",
+      "confidence": 0.35,
+      "evidence": "Similar slot-availability check on actor+0x418 as 00417a60, but on success resets the dodge flag (+0x504) and copies a default direction constant (PTR_DAT_00696714) into +0x6e0..0x6e8, clearing +0x6ec",
+      "summary": "If no secondary action is pending, resets the actor's look/movement bias to a default direction."
+    },
+    {
+      "addr": "0x417b70",
+      "name": "actor_action_has_queued_secondary",
+      "prototype": "",
+      "confidence": 0.5,
+      "evidence": "Returns true if actor+0x418 != -1, or if the actor has a target object and FUN_00569c90 (a target-related check) returns true; mirrors the gating logic in 00417a60/0417ae0",
+      "summary": "Reports whether the actor currently has a secondary action pending (or an equivalent target-driven condition)."
+    },
+    {
+      "addr": "0x417bb0",
+      "name": "actor_movement_try_step",
+      "prototype": "",
+      "confidence": 0.35,
+      "evidence": "Builds a candidate step position (param_1 * direction + actor position) and validates it via FUN_0043de90 (path/surface trace) and FUN_00502060 (a sphere/shape sweep against DAT_00746f98), writing an 'adjusted' flag through param_3",
+      "summary": "Tests whether the actor can move a given distance forward along a direction without hitting an obstacle, adjusting height/side as needed."
+    },
+    {
+      "addr": "0x417e50",
+      "name": "actor_movement_try_side_step",
+      "prototype": "",
+      "confidence": 0.35,
+      "evidence": "Wraps actor_movement_try_step (00417bb0) in a small retry loop over one or two side choices (*param_3 selects/records which side), randomizing the initial side via the DAT_00719cd0 PRNG when the caller passes side value 4",
+      "summary": "Tries stepping to one side (or both, picking randomly first) and reports which side succeeded via *param_3."
+    },
+    {
+      "addr": "0x417fa0",
+      "name": "actor_get_jump_velocity",
+      "prototype": "",
+      "confidence": 0.4,
+      "evidence": "When the actor is not attached to an object (obj index == -1) and a stored jump-velocity flag (+0x530) is set, computes a velocity vector from stored jump physics fields (+0x534..0x540) and clamps its magnitude to param_2",
+      "summary": "Computes (and clamps) the actor's stored jump/leap launch velocity vector for use by movement code."
+    },
+    {
+      "addr": "0x4180c0",
+      "name": "actor_movement_apply_direction",
+      "prototype": "",
+      "confidence": 0.45,
+      "evidence": "Normalizes an input direction, dispatches through a movement-submode jump table (PTR_LAB_00418a04) for special modes (in_AX 0..3), otherwise blends the new direction against the actor's previous heading using a max-turn-angle threshold (cos(30deg)=0.866) before writing the smoothed result",
+      "summary": "Core steering/turn-smoothing routine that converts a desired movement direction into the actor's applied heading, honoring per-mode special handling and a maximum turn rate."
+    },
+    {
+      "addr": "0x418a40",
+      "name": "vector3d_pick_closest_axis_direction",
+      "prototype": "",
+      "confidence": 0.4,
+      "evidence": "Iterates 4 candidate direction vectors (a vector and its negations/permutations) scoring each by two dot products against unaff_EDI/unaff_ESI reference vectors and returns the best-scoring index and vector via param_2/param_1",
+      "summary": "Chooses whichever of four candidate axis-aligned directions best matches two reference vectors, for use in movement/orientation snapping."
+    },
+    {
+      "addr": "0x418c20",
+      "name": "vector_transform_by_actor_orientation",
+      "prototype": "",
+      "confidence": 0.35,
+      "evidence": "Transforms param_1 by a 2x2 (in_AL==0) or 3x3 (in_AL!=0) basis pulled from in_ECX / FUN_0055eed0, then renormalizes via vector3d_normalize_with_length",
+      "summary": "Rotates a direction vector into (or out of) the actor's local orientation frame, in either a 2D or full 3D variant."
+    },
+    {
+      "addr": "0x418ce0",
+      "name": "actor_movement_collect_obstacle_candidates",
+      "prototype": "",
+      "confidence": 0.55,
+      "evidence": "Calls object_find_in_sphere around the actor's object position, filters hits with a positive marker-list count (obj+0x280), transforms each marker with matrix4x3_transform_point, and fills an obstacle array (param_1+0x40+i*0x18) with position/radius data",
+      "summary": "Builds the actor's list of nearby dynamic obstacles (with effective radii) used by the movement obstacle-avoidance system."
+    },
+    {
+      "addr": "0x418f70",
+      "name": "actor_movement_test_obstacle_ray",
+      "prototype": "",
+      "confidence": 0.55,
+      "evidence": "Computes a probe ray from actor state (unaff_EDI struct) and tests it against a self-collision cylinder via FUN_00502060 and against each obstacle in the list built by actor_movement_collect_obstacle_candidates via ray_intersects_cylinder, returning the nearest clearance distance and a touch counter",
+      "summary": "Casts a probe ray along a candidate movement direction and reports the nearest obstacle clearance distance."
+    },
+    {
+      "addr": "0x419240",
+      "name": "geometry_ray_polygon_edge_intersect",
+      "prototype": "",
+      "confidence": 0.4,
+      "evidence": "Iterates a small polygon's edges computing cross products against in_ECX to find the edge the ray direction crosses, then interpolates a parametric value into *param_3/*param_4",
+      "summary": "Generic helper that finds where a direction vector crosses the boundary of a small convex polygon, used by the obstacle-avoidance sampler."
+    },
+    {
+      "addr": "0x4193d0",
+      "name": "actor_movement_choose_avoidance_direction",
+      "prototype": "",
+      "confidence": 0.55,
+      "evidence": "Builds an 8-direction weight table (local_6090), calls actor_movement_collect_obstacle_candidates (0418ce0) and actor_movement_test_obstacle_ray (0418f70) per sample direction, blends in target-direction bias via geometry_ray_polygon_edge_intersect (0419240), and outputs a turn value/speed scale used by actor_movement_update",
+      "summary": "Core obstacle-avoidance steering computation: samples several candidate directions around the desired heading and picks the best compromise between goal direction and obstacle clearance."
+    },
+    {
+      "addr": "0x41a2d0",
+      "name": "actor_movement_precompute_direction_tables",
+      "prototype": "",
+      "confidence": 0.45,
+      "evidence": "Fills fixed global arrays (DAT_008805a4.., DAT_0088038c..) with sin/cos-derived unit vectors at regular angular increments using constant tables (DAT_006556ec etc.), consistent with a one-time lookup-table initializer for the 8-direction avoidance sampler used in 004193d0",
+      "summary": "One-time initialization routine that precomputes direction-sample vector tables used by the movement obstacle-avoidance system."
+    },
+    {
+      "addr": "0x41a430",
+      "name": "actor_movement_action_complete",
+      "prototype": "",
+      "confidence": 0.6,
+      "evidence": "Sets actor+0x4a8=0 (not-cancelled), +0x484=1 (done), +0x4a0=0 (elapsed timer), the same trio of writes performed at the tail of the movement-action dispatcher (0041a460) and by actor_update_melee_dodge_waypoints on early-out",
+      "summary": "Marks the actor's current movement action as finished (clears cancel flag, sets completion flag, resets timer)."
+    },
+    {
+      "addr": "0x41a460",
+      "name": "actor_movement_action_resolve",
+      "prototype": "",
+      "confidence": 0.55,
+      "evidence": "Switches on the active movement-action type (actor+0x46c: 2=explicit point, 3=squad formation index, 4=encounter firing index, 5=tracked-target object) to build a destination, then invokes pathfinding helpers (FUN_0043a070/0043a190/0043a4d0/0043a700/0043a730/0043a8b0) and reports success/failure",
+      "summary": "Resolves the actor's currently queued movement action into a concrete destination and drives the pathfinder toward it, called once per tick."
+    },
+    {
+      "addr": "0x41a960",
+      "name": "actor_movement_action_is_complete",
+      "prototype": "",
+      "confidence": 0.6,
+      "evidence": "Returns the raw byte at actor+0x4a8, the same flag set to 1 by actor_movement_action_complete (0041a430) and cleared to 0 whenever a new action is queued",
+      "summary": "Returns whether the actor's current movement action has finished."
+    },
+    {
+      "addr": "0x41a980",
+      "name": "actor_movement_action_in_progress",
+      "prototype": "",
+      "confidence": 0.5,
+      "evidence": "Returns false only when actor+0x4a8 (complete) is set and actor+0x484 (cancelled/done) is clear, i.e. the inverse combination used elsewhere to detect a still-running action",
+      "summary": "Reports whether the actor still has an active (not yet completed) movement action."
+    },
+    {
+      "addr": "0x41a9c0",
+      "name": "actor_movement_build_path_request",
+      "prototype": "",
+      "confidence": 0.45,
+      "evidence": "Zeroes an 18-dword request block (unaff_EBX) and fills it with the actor's squad/target index, per-target max-speed override (obj+0x38c), and unit orientation vectors (actor+0x164..0x170), then calls FUN_00429570 (a pathfinding entry point elsewhere in this module)",
+      "summary": "Assembles a pathfinding request block describing the actor's current position, orientation, and speed limits."
+    },
+    {
+      "addr": "0x41aab0",
+      "name": "actor_movement_should_settle_orientation",
+      "prototype": "",
+      "confidence": 0.4,
+      "evidence": "Only applies when action state (+0x15e)==4, requiring a non-negative danger-relevance value (obj+0x388), a near-idle speed threshold (+0x5ec<0.9), and a facing dot-product test (>=0.984, i.e. within ~10 degrees) before returning false ('stop turning')",
+      "summary": "Checks whether the actor is close enough to its destination and well enough aligned that it can stop actively turning toward it."
+    },
+    {
+      "addr": "0x41abd0",
+      "name": "actor_target_relationship_think",
+      "prototype": "",
+      "confidence": 0.45,
+      "evidence": "Large per-target-data state machine (actor+targetdata offset 0x24 states 0-5) that calls dodge/aim updates (0041c4b0/0041c8f0), target-data release (0041b980), squad communication events (FUN_0042d340 with ids 8/0xf/0x19), and posture escalation (FUN_00422130/004221b0)",
+      "summary": "Per-tick think routine for one actor/target relationship record: advances its engagement state machine and drives related combat behaviors and dialogue."
+    },
+    {
+      "addr": "0x41b980",
+      "name": "actor_target_data_release",
+      "prototype": "",
+      "confidence": 0.45,
+      "evidence": "For target-data states outside 2..3, copies summary fields (0x50-0x5c, 0x9c-0xa8) from a linked entry, calls FUN_00428470/FUN_0043ea20/datum_delete, clears the link field, sets state=3 and cleared combat flags (0xb9/0xba/0xbb), matching actor_target_reset_combat_flags's tail",
+      "summary": "Releases a linked target-data record (deleting its datum and clearing the link) once the actor is done actively engaging it."
+    },
+    {
+      "addr": "0x41baf0",
+      "name": "actor_target_reset_combat_flags",
+      "prototype": "",
+      "confidence": 0.5,
+      "evidence": "Clears target-data flags at +0xb9/+0xba/+0xbb and sets +0x64=1, then calls FUN_00421c20; identical tail sequence appears inside actor_target_data_release (0041b980)",
+      "summary": "Resets a target-data record's combat status flags, e.g. after losing track of or re-acquiring a target."
+    },
+    {
+      "addr": "0x41bb30",
+      "name": "actor_dispatch_look_handler_by_posture",
+      "prototype": "",
+      "confidence": 0.3,
+      "evidence": "Early-outs unless unaff_BX is 0 or 1, calls actor_get_actor_definition, then jumps through a function-pointer table (PTR_LAB_0041be00) indexed by in_stack_00000018",
+      "summary": "Dispatches to one of several per-posture handler functions via a jump table, gated on the actor's current stance."
+    },
+    {
+      "addr": "0x41be10",
+      "name": "actor_target_get_priority_class",
+      "prototype": "",
+      "confidence": 0.45,
+      "evidence": "Classifies a target-data record into a small integer (0-3) based on its combat state (2..3 or seat state 1/2 forces 3) and awareness flags at target-data+0x60/+0x127, falling back to actor posture (+0x6a/+0x6e) when in_ECX is -1",
+      "summary": "Computes a priority/urgency class (0-3) for a given target relative to the actor, used to rank target handling."
+    },
+    {
+      "addr": "0x41bed0",
+      "name": "unit_get_move_speed_for_range",
+      "prototype": "",
+      "confidence": 0.45,
+      "evidence": "Pure math helper interpolating forward/turn speed outputs (*param_4/*param_5) from unit speed-profile thresholds at unit+0x1c/0x20/0x28/0x2c based on a distance param_3, with no actor-array access besides the implicit unit lookup via in_EAX",
+      "summary": "Blends the unit's near/far movement speed settings based on distance-to-target, producing forward and turn speed scalars."
+    },
+    {
+      "addr": "0x41c030",
+      "name": "actor_target_hearing_check",
+      "prototype": "",
+      "confidence": 0.35,
+      "evidence": "Computes squared planar distance to a target and compares it against a stealth/crouch-scaled hearing radius, then calls chimera__cluster_sound_distance_func to test an actual acoustic path, returning a 0-3 detection level",
+      "summary": "Determines whether the actor can hear a nearby target based on distance and acoustic cluster propagation, returning a graded detection level."
+    },
+    {
+      "addr": "0x41c1e0",
+      "name": "actor_get_firing_positions",
+      "prototype": "",
+      "confidence": 0.55,
+      "evidence": "When actor flag +6 is clear, bulk-copies the actor's local 14-vec4 firing-position block from +0x120; otherwise scans an encounter firing-point cluster table (DAT_0088035c chunk, stride 0x40) for the nearest entry to *in_EDX, returning the minimum squared distance",
+      "summary": "Fetches the actor's set of candidate firing positions, either its cached local list or the nearest cluster of encounter firing points."
+    },
+    {
+      "addr": "0x41c2c0",
+      "name": "object_find_nearest_squad_member",
+      "prototype": "",
+      "confidence": 0.45,
+      "evidence": "Searches either a linked-object list (object+0x1fc chain) or an encounter squad member array (DAT_0088035c chunk) for the object nearest param_1's position, applying a same-object distance penalty (0.36) and optionally stamping a shared group id (param_3)",
+      "summary": "Finds the nearest object to a given point among either a raw object linked list or a squad's member list, optionally marking group ownership."
+    },
+    {
+      "addr": "0x41c4b0",
+      "name": "actor_target_data_refresh",
+      "prototype": "",
+      "confidence": 0.4,
+      "evidence": "Revalidates a target-data record's tracked object (possibly reassigning via object_find_nearest_squad_member/0041c2c0 for squad-shared targets), then fetches marker-based aim/firing offsets (FUN_004f6080 with marker names DAT_0066bfa0/DAT_00672034) and root-object shield state via object_get_root_object_index/FUN_0053ed60",
+      "summary": "Refreshes a target-data record's cached object reference, aim marker offsets, and root-object status for combat targeting."
+    },
+    {
+      "addr": "0x41c8f0",
+      "name": "actor_target_update_tracking_speed",
+      "prototype": "",
+      "confidence": 0.45,
+      "evidence": "Computes the target's velocity magnitude via FUN_004f6aa0 and buckets it into 0-3 (thresholds 0.00333/0.0167/0.0333) at target-data+0x123, and buckets a closing-speed dot product into 0-6 at +0x124, storing both for use in aim prediction",
+      "summary": "Classifies a target's current speed and closing rate relative to the actor's aim into discrete buckets used for lead/prediction logic."
+    },
+    {
+      "addr": "0x41d7a0",
+      "name": "ai_target_distance_qsort_compare",
+      "prototype": "int __cdecl ai_target_distance_qsort_compare(void *record_a, void *record_b)",
+      "confidence": 0.6,
+      "evidence": "Pure two-pointer function comparing *(float*)(param+8) between the two records, returning -1/0/1; passed as the comparator to _qsort inside actor_target_scan_potential_targets (0041d7e0)",
+      "summary": "qsort comparator that orders candidate-target records by an ascending float distance field."
+    },
+    {
+      "addr": "0x41d7e0",
+      "name": "actor_target_scan_potential_targets",
+      "prototype": "",
+      "confidence": 0.45,
+      "evidence": "Builds a PVS/visibility bitmask for the actor's cluster (or encounter squad list), iterates the actor's linked target-data list checking distance/visibility gates, sorts candidates with _qsort using ai_target_distance_qsort_compare, and creates/discards target-data datums (FUN_0041c4b0, datum_delete) accordingly",
+      "summary": "Per-tick perception scan that rebuilds the actor's list of currently-relevant potential targets from its squad/encounter and BSP visibility data."
+    },
+    {
+      "addr": "0x41e320",
+      "name": "actor_target_evaluate_squad_link",
+      "prototype": "",
+      "confidence": 0.4,
+      "evidence": "Walks a squad's target linked list (object+0x1fc-style chain via param_2), for each entry checking a danger-radius overlap (obj+0x284) and calling actor_get_firing_positions/object_find_nearest_squad_member/actor_danger_register_point (0041c1e0/0041c2c0/0041ec90) to pick the most relevant assist target",
+      "summary": "Iterates a squad's list of known targets evaluating danger radius and distance to select the most relevant one for the actor to assist against."
+    },
+    {
+      "addr": "0x41ea60",
+      "name": "actor_danger_register_stationary_object",
+      "prototype": "",
+      "confidence": 0.45,
+      "evidence": "Checks an object's flag byte at +0x2f0 (sign bit) and near-zero velocity (obj[0x1a..0x1c]^2 < 0.0011) to detect a landed hazardous object (e.g. a grenade), then registers it into the actor's danger record at +0x280 (state=3) if closer/newer than the current one",
+      "summary": "Detects a nearby stationary hazardous object (such as a landed grenade) and records it as the actor's current danger if more urgent than what's already tracked."
+    },
+    {
+      "addr": "0x41ec90",
+      "name": "actor_danger_register_point",
+      "prototype": "",
+      "confidence": 0.45,
+      "evidence": "Compares an incoming danger radius (param_1) and distance (param_2) against the actor's existing danger record priority (+0x2d4), and if it wins, zeroes and refills the +0x280 danger block (state=1) with the source object's position/velocity",
+      "summary": "Registers a point-based threat (e.g. an explosion or projectile) as the actor's current danger if it outranks the one already tracked."
+    },
+    {
+      "addr": "0x41eda0",
+      "name": "actor_danger_update",
+      "prototype": "",
+      "confidence": 0.45,
+      "evidence": "Requires an active danger record (+0x280>0), refetches the tracked object via object_try_and_get, recomputes distance/relative bearing, then branches on danger type (1: object/grenade, 2: other threat) to decide whether to trigger a dodge via actor_dispatch_look_handler_by_posture (0041bb30) and communication event FUN_0042b270",
+      "summary": "Per-tick update of the actor's active danger record: refreshes its position/distance and decides whether the actor should react (dodge, call out) to it."
+    },
+    {
+      "addr": "0x41f3a0",
+      "name": "actor_target_get_relationship_object",
+      "prototype": "",
+      "confidence": 0.5,
+      "evidence": "Lazily resolves target-data field +0xec: if a linked relationship (+0x110) exists uses FUN_00571de0, otherwise looks up the object via object_try_and_get and FUN_0055ab30, caching the result",
+      "summary": "Lazily resolves and caches a target-data record's associated relationship/obstruction object handle."
+    },
+    {
+      "addr": "0x41f410",
+      "name": "actor_target_has_conflicting_neighbor",
+      "prototype": "",
+      "confidence": 0.4,
+      "evidence": "Walks the actor's own target-data linked list (via actor+0x50 chain, entry size 0x138) looking for another entry that shares the same tracked object/group or whose firing position is within 2.5 units and facing similarly (dot product > 0.5)",
+      "summary": "Checks whether another of the actor's tracked targets occupies a conflicting firing position or object, to avoid duplicate assignment."
+    },
+    {
+      "addr": "0x41f550",
+      "name": "actor_get_relevant_squad_member_target",
+      "prototype": "",
+      "confidence": 0.4,
+      "evidence": "Iterates a squad member's fixed 4-entry recent-attacker table (object+0x438), resolving each via actor_target_data_acquire-family lookups (FUN_0043ea80) and picking the highest-priority entry whose target-data state is 2/3 and (optionally) visible",
+      "summary": "Selects the most relevant recent-attacker target from a specific squad member's short-term memory table."
+    },
+    {
+      "addr": "0x41f6b0",
+      "name": "actor_get_squad_recent_attacker_target",
+      "prototype": "",
+      "confidence": 0.4,
+      "evidence": "Nearly identical structure to actor_get_relevant_squad_member_target (0041f550) but iterates the actor's own object's recent-attacker table (object+0x430) instead of a specific squad member's",
+      "summary": "Selects the most relevant recent-attacker target from the actor's own object's short-term attacker memory."
+    },
+    {
+      "addr": "0x41f7d0",
+      "name": "actor_target_data_acquire",
+      "prototype": "",
+      "confidence": 0.45,
+      "evidence": "Resolves or creates a target-data record for an object via FUN_0043eb30/FUN_0043e910/FUN_0043e980, merging fields when the target moves between squad-member owners, then refreshes it via actor_target_data_refresh (0041c4b0) and actor_target_update_tracking_speed (0041c8f0)",
+      "summary": "Finds (creating if necessary) the target-data record for a given object and refreshes its tracking information, transferring ownership between squad members as needed."
+    },
+    {
+      "addr": "0x41f9d0",
+      "name": "actor_target_reset_seen_flags",
+      "prototype": "",
+      "confidence": 0.55,
+      "evidence": "Walks the actor's linked target-data list (actor+0x50 chain, stride 0x138) clearing the 'seen' byte at +0x74 and resetting the last-seen-node id at +0x6c to -1 for every entry",
+      "summary": "Clears the visibility/'seen' state of every target-data record the actor is currently tracking."
+    },
+    {
+      "addr": "0x41fa20",
+      "name": "actor_target_reset_shot_counters",
+      "prototype": "",
+      "confidence": 0.55,
+      "evidence": "Walks the same actor+0x50 target-data linked list as actor_target_reset_seen_flags, zeroing three adjacent short counters at +0xaa/+0xac/+0xae per entry",
+      "summary": "Resets per-target shot/hit statistics counters for every target-data record the actor is tracking."
+    },
+    {
+      "addr": "0x41fa80",
+      "name": "actor_target_mark_engaged",
+      "prototype": "",
+      "confidence": 0.45,
+      "evidence": "Sets or clears the engagement timestamp fields at target-data+0x9c/+0xa0 (using DAT_006f1d6c global tick counter) based on param_1, then refreshes derived fields via FUN_0041fc60/FUN_0041fd50, storing the latter into +0x50",
+      "summary": "Marks (or clears) the current target as actively engaged and refreshes its derived combat timing fields."
+    }
+  ]
+}

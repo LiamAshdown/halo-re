@@ -1,0 +1,1840 @@
+{
+ "slice": 9,
+ "assignments": [
+  {
+   "addr": "0x4f67e0",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f6850",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f6900",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f6970",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f6a20",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f6aa0",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f6b10",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f6b70",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f6c10",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f6c60",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f6d60",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f6e70",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f6ec0",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f6f20",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f6fb0",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f6fe0",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f7180",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f7370",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f73c0",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f73e0",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f7450",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f74f0",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f7570",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f76e0",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f7950",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f79d0",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f7a50",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f7ad0",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f7b00",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f7b70",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f7c40",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f7d50",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f7de0",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f7e50",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f7ef0",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f8207",
+   "module": "objects",
+   "confidence": 0.85,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'; seed object_types_place_objects_mod_processed_bsps__read"
+  },
+  {
+   "addr": "0x4f82b0",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f8310",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f84e2",
+   "module": "objects",
+   "confidence": 0.85,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'; seed objects_initialize_for_new_map_mod_processed_bsps"
+  },
+  {
+   "addr": "0x4f8834",
+   "module": "objects",
+   "confidence": 0.85,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'; seed objects_update__object_in_player_pvs_nop1"
+  },
+  {
+   "addr": "0x4f8a70",
+   "module": "objects",
+   "confidence": 0.85,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'; seed object_reset"
+  },
+  {
+   "addr": "0x4f8b10",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f8b70",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f8bd0",
+   "module": "objects",
+   "confidence": 0.85,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'; seed object_set_position_network"
+  },
+  {
+   "addr": "0x4f8cb0",
+   "module": "objects",
+   "confidence": 0.85,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'; seed object_placement_data_new"
+  },
+  {
+   "addr": "0x4f8d80",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f8dc0",
+   "module": "objects",
+   "confidence": 0.85,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'; seed object_new_with_role"
+  },
+  {
+   "addr": "0x4f8dd0",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f8ef0",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f8f50",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f8fe0",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f9030",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f9110",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f92f0",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f93b0",
+   "module": "objects",
+   "confidence": 0.85,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'; seed object_delete_to_network"
+  },
+  {
+   "addr": "0x4f94e0",
+   "module": "objects",
+   "confidence": 0.85,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'; seed object_delete"
+  },
+  {
+   "addr": "0x4f9540",
+   "module": "objects",
+   "confidence": 0.85,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'; seed object_reconnect_to_map"
+  },
+  {
+   "addr": "0x4f96a0",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f96f0",
+   "module": "objects",
+   "confidence": 0.85,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'; seed object_disconnect_from_map"
+  },
+  {
+   "addr": "0x4f9750",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f9900",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f9990",
+   "module": "objects",
+   "confidence": 0.85,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'; seed object_get_marker_by_name"
+  },
+  {
+   "addr": "0x4f9a20",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f9ac0",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f9b00",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f9b70",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4f9c60",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4fa0f0",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4fa1a0",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4fa280",
+   "module": "objects",
+   "confidence": 0.85,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'; seed object_get_orientation"
+  },
+  {
+   "addr": "0x4fa3d0",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4fa490",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4fa500",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4fa8d0",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4fa9b0",
+   "module": "objects",
+   "confidence": 0.75,
+   "evidence": "run 0x4f67e0-0x4fa9b0 objects.c: seeds object_reset/object_delete + strings 'garbage collection %scritical','object_memory.txt'"
+  },
+  {
+   "addr": "0x4faa20",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4faa40",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4faa60",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4faa70",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4faa90",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fad20",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fae10",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fb1c0",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fb3e0",
+   "module": "objects",
+   "confidence": 0.85,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples; seed object_definition_predict"
+  },
+  {
+   "addr": "0x4fb4d0",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fb4f0",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fb510",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fb520",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fb540",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fb6d0",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fb770",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fb840",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fba00",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fbae0",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fc020",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fc350",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fca60",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fcb00",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fcdb0",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fce80",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fd3a0",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fd420",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fd4a0",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fd650",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fd830",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fd8e0",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fdb20",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fdde0",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fde40",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fe570",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fe740",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fe900",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fea50",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4fef40",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4ff010",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4ff9d0",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4ffa10",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4ffa50",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4ffa80",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4ffbe0",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4ffc60",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4ffca0",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4ffd10",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4ffd40",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4ffda0",
+   "module": "objects",
+   "confidence": 0.6,
+   "evidence": "run 0x4faa20-0x4ffda0 object widgets: data_new('antenna')/data_new('widget'), per-type init/dispose/new/update/render tuples"
+  },
+  {
+   "addr": "0x4ffde0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x4ffde0-0x501333 breakable_surfaces: per-BSP surface vitality decrement + broken-surface bitvector + shatter effect"
+  },
+  {
+   "addr": "0x4fff20",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x4ffde0-0x501333 breakable_surfaces: per-BSP surface vitality decrement + broken-surface bitvector + shatter effect"
+  },
+  {
+   "addr": "0x500090",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x4ffde0-0x501333 breakable_surfaces: per-BSP surface vitality decrement + broken-surface bitvector + shatter effect"
+  },
+  {
+   "addr": "0x501340",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x5013a0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x501400",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x501470",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x5014a0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x5015a0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x5017f0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x501980",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x501a10",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x501c90",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x501d20",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x502060",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x502140",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x502460",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x502600",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x502730",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x5027a0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x502d60",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x502e70",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x503050",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x503290",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x503360",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x503490",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x5038a0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x503a60",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x503ae0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x503c50",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x503d90",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x503ec0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x503f90",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x504120",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x504260",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x504430",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x5045c0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x5048d0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x504bb0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x504e10",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x504e90",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x504f60",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x5050b0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x505200",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x505330",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x505350",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x505490",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x505540",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x5055b0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x505880",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x506040",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x5061c0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x506440",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x5066e0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x5067b0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x506fb0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x5070d0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x507170",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x507430",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x5074b0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x507590",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x507610",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x507790",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x507840",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x507a40",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x507ac0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x507c00",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x507cc0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x508a10",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x508b70",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x5090c0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x5096f0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x5097e0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x509e80",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x50b290",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x50b2f0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x50b370",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x50b460",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x50b4d0",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x50b530",
+   "module": "physics",
+   "confidence": 0.6,
+   "evidence": "run 0x501340-0x50b9db collision/physics: recursive bsp2d/bsp3d walkers, matrix4x3_inverse/transform_point, apply_damage, point_physics_update at 0x50b530"
+  },
+  {
+   "addr": "0x50ba80",
+   "module": "render",
+   "confidence": 0.7,
+   "evidence": "run 0x50ba80-0x50df1f render frame: render_camera_build_frustum 0x50cc40, render_window 0x50bfb0, letterbox/loading-screen callees, frustum helpers"
+  },
+  {
+   "addr": "0x50bdc0",
+   "module": "render",
+   "confidence": 0.7,
+   "evidence": "run 0x50ba80-0x50df1f render frame: render_camera_build_frustum 0x50cc40, render_window 0x50bfb0, letterbox/loading-screen callees, frustum helpers"
+  },
+  {
+   "addr": "0x50bea0",
+   "module": "render",
+   "confidence": 0.7,
+   "evidence": "run 0x50ba80-0x50df1f render frame: render_camera_build_frustum 0x50cc40, render_window 0x50bfb0, letterbox/loading-screen callees, frustum helpers"
+  },
+  {
+   "addr": "0x50bfb0",
+   "module": "render",
+   "confidence": 0.7,
+   "evidence": "run 0x50ba80-0x50df1f render frame: render_camera_build_frustum 0x50cc40, render_window 0x50bfb0, letterbox/loading-screen callees, frustum helpers"
+  },
+  {
+   "addr": "0x50c590",
+   "module": "render",
+   "confidence": 0.7,
+   "evidence": "run 0x50ba80-0x50df1f render frame: render_camera_build_frustum 0x50cc40, render_window 0x50bfb0, letterbox/loading-screen callees, frustum helpers"
+  },
+  {
+   "addr": "0x50c660",
+   "module": "render",
+   "confidence": 0.7,
+   "evidence": "run 0x50ba80-0x50df1f render frame: render_camera_build_frustum 0x50cc40, render_window 0x50bfb0, letterbox/loading-screen callees, frustum helpers"
+  },
+  {
+   "addr": "0x50c9a0",
+   "module": "render",
+   "confidence": 0.7,
+   "evidence": "run 0x50ba80-0x50df1f render frame: render_camera_build_frustum 0x50cc40, render_window 0x50bfb0, letterbox/loading-screen callees, frustum helpers"
+  },
+  {
+   "addr": "0x50ca90",
+   "module": "render",
+   "confidence": 0.7,
+   "evidence": "run 0x50ba80-0x50df1f render frame: render_camera_build_frustum 0x50cc40, render_window 0x50bfb0, letterbox/loading-screen callees, frustum helpers"
+  },
+  {
+   "addr": "0x50cb70",
+   "module": "render",
+   "confidence": 0.7,
+   "evidence": "run 0x50ba80-0x50df1f render frame: render_camera_build_frustum 0x50cc40, render_window 0x50bfb0, letterbox/loading-screen callees, frustum helpers"
+  },
+  {
+   "addr": "0x50cc40",
+   "module": "render",
+   "confidence": 0.7,
+   "evidence": "run 0x50ba80-0x50df1f render frame: render_camera_build_frustum 0x50cc40, render_window 0x50bfb0, letterbox/loading-screen callees, frustum helpers"
+  },
+  {
+   "addr": "0x50d4c0",
+   "module": "render",
+   "confidence": 0.7,
+   "evidence": "run 0x50ba80-0x50df1f render frame: render_camera_build_frustum 0x50cc40, render_window 0x50bfb0, letterbox/loading-screen callees, frustum helpers"
+  },
+  {
+   "addr": "0x50d5b0",
+   "module": "render",
+   "confidence": 0.7,
+   "evidence": "run 0x50ba80-0x50df1f render frame: render_camera_build_frustum 0x50cc40, render_window 0x50bfb0, letterbox/loading-screen callees, frustum helpers"
+  },
+  {
+   "addr": "0x50d890",
+   "module": "render",
+   "confidence": 0.7,
+   "evidence": "run 0x50ba80-0x50df1f render frame: render_camera_build_frustum 0x50cc40, render_window 0x50bfb0, letterbox/loading-screen callees, frustum helpers"
+  },
+  {
+   "addr": "0x50dac0",
+   "module": "render",
+   "confidence": 0.7,
+   "evidence": "run 0x50ba80-0x50df1f render frame: render_camera_build_frustum 0x50cc40, render_window 0x50bfb0, letterbox/loading-screen callees, frustum helpers"
+  },
+  {
+   "addr": "0x50ddc0",
+   "module": "render",
+   "confidence": 0.7,
+   "evidence": "run 0x50ba80-0x50df1f render frame: render_camera_build_frustum 0x50cc40, render_window 0x50bfb0, letterbox/loading-screen callees, frustum helpers"
+  },
+  {
+   "addr": "0x50de30",
+   "module": "render",
+   "confidence": 0.7,
+   "evidence": "run 0x50ba80-0x50df1f render frame: render_camera_build_frustum 0x50cc40, render_window 0x50bfb0, letterbox/loading-screen callees, frustum helpers"
+  },
+  {
+   "addr": "0x50df20",
+   "module": "render",
+   "confidence": 0.45,
+   "evidence": "run 0x50df20-0x50e92f render pass: transparent-geometry callees 51bd60/51bdd0/51be40, called from render_window"
+  },
+  {
+   "addr": "0x50e000",
+   "module": "render",
+   "confidence": 0.45,
+   "evidence": "run 0x50df20-0x50e92f render pass: transparent-geometry callees 51bd60/51bdd0/51be40, called from render_window"
+  },
+  {
+   "addr": "0x50e090",
+   "module": "render",
+   "confidence": 0.45,
+   "evidence": "run 0x50df20-0x50e92f render pass: transparent-geometry callees 51bd60/51bdd0/51be40, called from render_window"
+  },
+  {
+   "addr": "0x50e930",
+   "module": "render",
+   "confidence": 0.4,
+   "evidence": "run 0x50e930-0x50fccf object shadow/lighting: luminance 0.299/0.587/0.114 + distance falloff, recursion over object nodes"
+  },
+  {
+   "addr": "0x50ea00",
+   "module": "render",
+   "confidence": 0.4,
+   "evidence": "run 0x50e930-0x50fccf object shadow/lighting: luminance 0.299/0.587/0.114 + distance falloff, recursion over object nodes"
+  },
+  {
+   "addr": "0x50ea50",
+   "module": "render",
+   "confidence": 0.4,
+   "evidence": "run 0x50e930-0x50fccf object shadow/lighting: luminance 0.299/0.587/0.114 + distance falloff, recursion over object nodes"
+  },
+  {
+   "addr": "0x50eac0",
+   "module": "render",
+   "confidence": 0.4,
+   "evidence": "run 0x50e930-0x50fccf object shadow/lighting: luminance 0.299/0.587/0.114 + distance falloff, recursion over object nodes"
+  },
+  {
+   "addr": "0x50eb70",
+   "module": "render",
+   "confidence": 0.4,
+   "evidence": "run 0x50e930-0x50fccf object shadow/lighting: luminance 0.299/0.587/0.114 + distance falloff, recursion over object nodes"
+  },
+  {
+   "addr": "0x50eba0",
+   "module": "render",
+   "confidence": 0.4,
+   "evidence": "run 0x50e930-0x50fccf object shadow/lighting: luminance 0.299/0.587/0.114 + distance falloff, recursion over object nodes"
+  },
+  {
+   "addr": "0x50ee20",
+   "module": "render",
+   "confidence": 0.4,
+   "evidence": "run 0x50e930-0x50fccf object shadow/lighting: luminance 0.299/0.587/0.114 + distance falloff, recursion over object nodes"
+  },
+  {
+   "addr": "0x50f150",
+   "module": "render",
+   "confidence": 0.4,
+   "evidence": "run 0x50e930-0x50fccf object shadow/lighting: luminance 0.299/0.587/0.114 + distance falloff, recursion over object nodes"
+  },
+  {
+   "addr": "0x50f270",
+   "module": "render",
+   "confidence": 0.4,
+   "evidence": "run 0x50e930-0x50fccf object shadow/lighting: luminance 0.299/0.587/0.114 + distance falloff, recursion over object nodes"
+  },
+  {
+   "addr": "0x50f520",
+   "module": "render",
+   "confidence": 0.4,
+   "evidence": "run 0x50e930-0x50fccf object shadow/lighting: luminance 0.299/0.587/0.114 + distance falloff, recursion over object nodes"
+  },
+  {
+   "addr": "0x50f5c0",
+   "module": "render",
+   "confidence": 0.4,
+   "evidence": "run 0x50e930-0x50fccf object shadow/lighting: luminance 0.299/0.587/0.114 + distance falloff, recursion over object nodes"
+  },
+  {
+   "addr": "0x50f690",
+   "module": "render",
+   "confidence": 0.4,
+   "evidence": "run 0x50e930-0x50fccf object shadow/lighting: luminance 0.299/0.587/0.114 + distance falloff, recursion over object nodes"
+  },
+  {
+   "addr": "0x50f740",
+   "module": "render",
+   "confidence": 0.4,
+   "evidence": "run 0x50e930-0x50fccf object shadow/lighting: luminance 0.299/0.587/0.114 + distance falloff, recursion over object nodes"
+  },
+  {
+   "addr": "0x50f830",
+   "module": "render",
+   "confidence": 0.4,
+   "evidence": "run 0x50e930-0x50fccf object shadow/lighting: luminance 0.299/0.587/0.114 + distance falloff, recursion over object nodes"
+  },
+  {
+   "addr": "0x50f980",
+   "module": "render",
+   "confidence": 0.4,
+   "evidence": "run 0x50e930-0x50fccf object shadow/lighting: luminance 0.299/0.587/0.114 + distance falloff, recursion over object nodes"
+  },
+  {
+   "addr": "0x50fcd0",
+   "module": "render",
+   "confidence": 0.6,
+   "evidence": "run 0x50fcd0-0x511d7f object rendering: seed render_window_call_hook_weather_particle_systems_render 0x50fd3c, render_object core 0x511700"
+  },
+  {
+   "addr": "0x50fd3c",
+   "module": "render",
+   "confidence": 0.85,
+   "evidence": "run 0x50fcd0-0x511d7f object rendering: seed render_window_call_hook_weather_particle_systems_render 0x50fd3c, render_object core 0x511700; seed render_window_call_hook_weather_particle_systems_render"
+  },
+  {
+   "addr": "0x50fd90",
+   "module": "render",
+   "confidence": 0.6,
+   "evidence": "run 0x50fcd0-0x511d7f object rendering: seed render_window_call_hook_weather_particle_systems_render 0x50fd3c, render_object core 0x511700"
+  },
+  {
+   "addr": "0x510410",
+   "module": "render",
+   "confidence": 0.6,
+   "evidence": "run 0x50fcd0-0x511d7f object rendering: seed render_window_call_hook_weather_particle_systems_render 0x50fd3c, render_object core 0x511700"
+  },
+  {
+   "addr": "0x510500",
+   "module": "render",
+   "confidence": 0.6,
+   "evidence": "run 0x50fcd0-0x511d7f object rendering: seed render_window_call_hook_weather_particle_systems_render 0x50fd3c, render_object core 0x511700"
+  },
+  {
+   "addr": "0x5107e0",
+   "module": "render",
+   "confidence": 0.6,
+   "evidence": "run 0x50fcd0-0x511d7f object rendering: seed render_window_call_hook_weather_particle_systems_render 0x50fd3c, render_object core 0x511700"
+  },
+  {
+   "addr": "0x510830",
+   "module": "render",
+   "confidence": 0.6,
+   "evidence": "run 0x50fcd0-0x511d7f object rendering: seed render_window_call_hook_weather_particle_systems_render 0x50fd3c, render_object core 0x511700"
+  },
+  {
+   "addr": "0x5108f0",
+   "module": "render",
+   "confidence": 0.6,
+   "evidence": "run 0x50fcd0-0x511d7f object rendering: seed render_window_call_hook_weather_particle_systems_render 0x50fd3c, render_object core 0x511700"
+  },
+  {
+   "addr": "0x510980",
+   "module": "render",
+   "confidence": 0.6,
+   "evidence": "run 0x50fcd0-0x511d7f object rendering: seed render_window_call_hook_weather_particle_systems_render 0x50fd3c, render_object core 0x511700"
+  },
+  {
+   "addr": "0x5109d0",
+   "module": "render",
+   "confidence": 0.6,
+   "evidence": "run 0x50fcd0-0x511d7f object rendering: seed render_window_call_hook_weather_particle_systems_render 0x50fd3c, render_object core 0x511700"
+  },
+  {
+   "addr": "0x510a90",
+   "module": "render",
+   "confidence": 0.6,
+   "evidence": "run 0x50fcd0-0x511d7f object rendering: seed render_window_call_hook_weather_particle_systems_render 0x50fd3c, render_object core 0x511700"
+  },
+  {
+   "addr": "0x510b20",
+   "module": "render",
+   "confidence": 0.6,
+   "evidence": "run 0x50fcd0-0x511d7f object rendering: seed render_window_call_hook_weather_particle_systems_render 0x50fd3c, render_object core 0x511700"
+  },
+  {
+   "addr": "0x510ba0",
+   "module": "render",
+   "confidence": 0.6,
+   "evidence": "run 0x50fcd0-0x511d7f object rendering: seed render_window_call_hook_weather_particle_systems_render 0x50fd3c, render_object core 0x511700"
+  },
+  {
+   "addr": "0x510c50",
+   "module": "render",
+   "confidence": 0.6,
+   "evidence": "run 0x50fcd0-0x511d7f object rendering: seed render_window_call_hook_weather_particle_systems_render 0x50fd3c, render_object core 0x511700"
+  },
+  {
+   "addr": "0x511190",
+   "module": "render",
+   "confidence": 0.6,
+   "evidence": "run 0x50fcd0-0x511d7f object rendering: seed render_window_call_hook_weather_particle_systems_render 0x50fd3c, render_object core 0x511700"
+  },
+  {
+   "addr": "0x5111f0",
+   "module": "render",
+   "confidence": 0.6,
+   "evidence": "run 0x50fcd0-0x511d7f object rendering: seed render_window_call_hook_weather_particle_systems_render 0x50fd3c, render_object core 0x511700"
+  },
+  {
+   "addr": "0x511330",
+   "module": "render",
+   "confidence": 0.6,
+   "evidence": "run 0x50fcd0-0x511d7f object rendering: seed render_window_call_hook_weather_particle_systems_render 0x50fd3c, render_object core 0x511700"
+  },
+  {
+   "addr": "0x5113b0",
+   "module": "render",
+   "confidence": 0.6,
+   "evidence": "run 0x50fcd0-0x511d7f object rendering: seed render_window_call_hook_weather_particle_systems_render 0x50fd3c, render_object core 0x511700"
+  },
+  {
+   "addr": "0x511410",
+   "module": "render",
+   "confidence": 0.6,
+   "evidence": "run 0x50fcd0-0x511d7f object rendering: seed render_window_call_hook_weather_particle_systems_render 0x50fd3c, render_object core 0x511700"
+  },
+  {
+   "addr": "0x511520",
+   "module": "render",
+   "confidence": 0.6,
+   "evidence": "run 0x50fcd0-0x511d7f object rendering: seed render_window_call_hook_weather_particle_systems_render 0x50fd3c, render_object core 0x511700"
+  },
+  {
+   "addr": "0x511620",
+   "module": "render",
+   "confidence": 0.6,
+   "evidence": "run 0x50fcd0-0x511d7f object rendering: seed render_window_call_hook_weather_particle_systems_render 0x50fd3c, render_object core 0x511700"
+  },
+  {
+   "addr": "0x511700",
+   "module": "render",
+   "confidence": 0.6,
+   "evidence": "run 0x50fcd0-0x511d7f object rendering: seed render_window_call_hook_weather_particle_systems_render 0x50fd3c, render_object core 0x511700"
+  },
+  {
+   "addr": "0x511b40",
+   "module": "render",
+   "confidence": 0.6,
+   "evidence": "run 0x50fcd0-0x511d7f object rendering: seed render_window_call_hook_weather_particle_systems_render 0x50fd3c, render_object core 0x511700"
+  },
+  {
+   "addr": "0x511d80",
+   "module": "render",
+   "confidence": 0.5,
+   "evidence": "run 0x511d80-0x5132af render debug overlay: seed object_render_state_refresh 0x512b80, framerate-graph strings + QueryPerformanceCounter 0x512e80"
+  },
+  {
+   "addr": "0x511da0",
+   "module": "render",
+   "confidence": 0.5,
+   "evidence": "run 0x511d80-0x5132af render debug overlay: seed object_render_state_refresh 0x512b80, framerate-graph strings + QueryPerformanceCounter 0x512e80"
+  },
+  {
+   "addr": "0x511df0",
+   "module": "render",
+   "confidence": 0.5,
+   "evidence": "run 0x511d80-0x5132af render debug overlay: seed object_render_state_refresh 0x512b80, framerate-graph strings + QueryPerformanceCounter 0x512e80"
+  },
+  {
+   "addr": "0x511e80",
+   "module": "render",
+   "confidence": 0.5,
+   "evidence": "run 0x511d80-0x5132af render debug overlay: seed object_render_state_refresh 0x512b80, framerate-graph strings + QueryPerformanceCounter 0x512e80"
+  },
+  {
+   "addr": "0x511ef0",
+   "module": "render",
+   "confidence": 0.5,
+   "evidence": "run 0x511d80-0x5132af render debug overlay: seed object_render_state_refresh 0x512b80, framerate-graph strings + QueryPerformanceCounter 0x512e80"
+  },
+  {
+   "addr": "0x5120f0",
+   "module": "render",
+   "confidence": 0.5,
+   "evidence": "run 0x511d80-0x5132af render debug overlay: seed object_render_state_refresh 0x512b80, framerate-graph strings + QueryPerformanceCounter 0x512e80"
+  },
+  {
+   "addr": "0x512120",
+   "module": "render",
+   "confidence": 0.5,
+   "evidence": "run 0x511d80-0x5132af render debug overlay: seed object_render_state_refresh 0x512b80, framerate-graph strings + QueryPerformanceCounter 0x512e80"
+  },
+  {
+   "addr": "0x512150",
+   "module": "render",
+   "confidence": 0.5,
+   "evidence": "run 0x511d80-0x5132af render debug overlay: seed object_render_state_refresh 0x512b80, framerate-graph strings + QueryPerformanceCounter 0x512e80"
+  },
+  {
+   "addr": "0x512190",
+   "module": "render",
+   "confidence": 0.5,
+   "evidence": "run 0x511d80-0x5132af render debug overlay: seed object_render_state_refresh 0x512b80, framerate-graph strings + QueryPerformanceCounter 0x512e80"
+  },
+  {
+   "addr": "0x5121a0",
+   "module": "render",
+   "confidence": 0.5,
+   "evidence": "run 0x511d80-0x5132af render debug overlay: seed object_render_state_refresh 0x512b80, framerate-graph strings + QueryPerformanceCounter 0x512e80"
+  },
+  {
+   "addr": "0x5121d0",
+   "module": "render",
+   "confidence": 0.5,
+   "evidence": "run 0x511d80-0x5132af render debug overlay: seed object_render_state_refresh 0x512b80, framerate-graph strings + QueryPerformanceCounter 0x512e80"
+  },
+  {
+   "addr": "0x512230",
+   "module": "render",
+   "confidence": 0.5,
+   "evidence": "run 0x511d80-0x5132af render debug overlay: seed object_render_state_refresh 0x512b80, framerate-graph strings + QueryPerformanceCounter 0x512e80"
+  },
+  {
+   "addr": "0x5122a0",
+   "module": "render",
+   "confidence": 0.5,
+   "evidence": "run 0x511d80-0x5132af render debug overlay: seed object_render_state_refresh 0x512b80, framerate-graph strings + QueryPerformanceCounter 0x512e80"
+  },
+  {
+   "addr": "0x512360",
+   "module": "render",
+   "confidence": 0.5,
+   "evidence": "run 0x511d80-0x5132af render debug overlay: seed object_render_state_refresh 0x512b80, framerate-graph strings + QueryPerformanceCounter 0x512e80"
+  },
+  {
+   "addr": "0x512530",
+   "module": "render",
+   "confidence": 0.5,
+   "evidence": "run 0x511d80-0x5132af render debug overlay: seed object_render_state_refresh 0x512b80, framerate-graph strings + QueryPerformanceCounter 0x512e80"
+  },
+  {
+   "addr": "0x512700",
+   "module": "render",
+   "confidence": 0.5,
+   "evidence": "run 0x511d80-0x5132af render debug overlay: seed object_render_state_refresh 0x512b80, framerate-graph strings + QueryPerformanceCounter 0x512e80"
+  },
+  {
+   "addr": "0x5129a0",
+   "module": "render",
+   "confidence": 0.5,
+   "evidence": "run 0x511d80-0x5132af render debug overlay: seed object_render_state_refresh 0x512b80, framerate-graph strings + QueryPerformanceCounter 0x512e80"
+  },
+  {
+   "addr": "0x512b80",
+   "module": "render",
+   "confidence": 0.5,
+   "evidence": "run 0x511d80-0x5132af render debug overlay: seed object_render_state_refresh 0x512b80, framerate-graph strings + QueryPerformanceCounter 0x512e80; seed said objects (object_render_state_refresh) - kept run label"
+  },
+  {
+   "addr": "0x512d90",
+   "module": "render",
+   "confidence": 0.5,
+   "evidence": "run 0x511d80-0x5132af render debug overlay: seed object_render_state_refresh 0x512b80, framerate-graph strings + QueryPerformanceCounter 0x512e80"
+  },
+  {
+   "addr": "0x512e80",
+   "module": "render",
+   "confidence": 0.5,
+   "evidence": "run 0x511d80-0x5132af render debug overlay: seed object_render_state_refresh 0x512b80, framerate-graph strings + QueryPerformanceCounter 0x512e80"
+  },
+  {
+   "addr": "0x5132b0",
+   "module": "structures",
+   "confidence": 0.35,
+   "evidence": "run 0x5132b0-0x51454b detail-object/BSP vertices: 11/11/10 compressed-normal pack/unpack, sprite vertex build w/ periodic_function_evaluate"
+  },
+  {
+   "addr": "0x5132d0",
+   "module": "structures",
+   "confidence": 0.35,
+   "evidence": "run 0x5132b0-0x51454b detail-object/BSP vertices: 11/11/10 compressed-normal pack/unpack, sprite vertex build w/ periodic_function_evaluate"
+  },
+  {
+   "addr": "0x513400",
+   "module": "structures",
+   "confidence": 0.35,
+   "evidence": "run 0x5132b0-0x51454b detail-object/BSP vertices: 11/11/10 compressed-normal pack/unpack, sprite vertex build w/ periodic_function_evaluate"
+  },
+  {
+   "addr": "0x513490",
+   "module": "structures",
+   "confidence": 0.35,
+   "evidence": "run 0x5132b0-0x51454b detail-object/BSP vertices: 11/11/10 compressed-normal pack/unpack, sprite vertex build w/ periodic_function_evaluate"
+  },
+  {
+   "addr": "0x5134c0",
+   "module": "structures",
+   "confidence": 0.35,
+   "evidence": "run 0x5132b0-0x51454b detail-object/BSP vertices: 11/11/10 compressed-normal pack/unpack, sprite vertex build w/ periodic_function_evaluate"
+  },
+  {
+   "addr": "0x5134f0",
+   "module": "structures",
+   "confidence": 0.35,
+   "evidence": "run 0x5132b0-0x51454b detail-object/BSP vertices: 11/11/10 compressed-normal pack/unpack, sprite vertex build w/ periodic_function_evaluate"
+  },
+  {
+   "addr": "0x513540",
+   "module": "structures",
+   "confidence": 0.35,
+   "evidence": "run 0x5132b0-0x51454b detail-object/BSP vertices: 11/11/10 compressed-normal pack/unpack, sprite vertex build w/ periodic_function_evaluate"
+  },
+  {
+   "addr": "0x513780",
+   "module": "structures",
+   "confidence": 0.35,
+   "evidence": "run 0x5132b0-0x51454b detail-object/BSP vertices: 11/11/10 compressed-normal pack/unpack, sprite vertex build w/ periodic_function_evaluate"
+  },
+  {
+   "addr": "0x5138a0",
+   "module": "structures",
+   "confidence": 0.35,
+   "evidence": "run 0x5132b0-0x51454b detail-object/BSP vertices: 11/11/10 compressed-normal pack/unpack, sprite vertex build w/ periodic_function_evaluate"
+  },
+  {
+   "addr": "0x513a00",
+   "module": "structures",
+   "confidence": 0.35,
+   "evidence": "run 0x5132b0-0x51454b detail-object/BSP vertices: 11/11/10 compressed-normal pack/unpack, sprite vertex build w/ periodic_function_evaluate"
+  },
+  {
+   "addr": "0x513ba0",
+   "module": "structures",
+   "confidence": 0.35,
+   "evidence": "run 0x5132b0-0x51454b detail-object/BSP vertices: 11/11/10 compressed-normal pack/unpack, sprite vertex build w/ periodic_function_evaluate"
+  },
+  {
+   "addr": "0x513cf0",
+   "module": "structures",
+   "confidence": 0.35,
+   "evidence": "run 0x5132b0-0x51454b detail-object/BSP vertices: 11/11/10 compressed-normal pack/unpack, sprite vertex build w/ periodic_function_evaluate"
+  },
+  {
+   "addr": "0x514560",
+   "module": "rasterizer",
+   "confidence": 0.65,
+   "evidence": "run 0x514560-0x5148af rasterizer: sig__rasterizer_memory_alloc_sig + GlobalAlloc pool, slice 10 continues rasterizer_dispose_free_memory"
+  },
+  {
+   "addr": "0x5145a0",
+   "module": "rasterizer",
+   "confidence": 0.65,
+   "evidence": "run 0x514560-0x5148af rasterizer: sig__rasterizer_memory_alloc_sig + GlobalAlloc pool, slice 10 continues rasterizer_dispose_free_memory"
+  },
+  {
+   "addr": "0x5146c0",
+   "module": "rasterizer",
+   "confidence": 0.65,
+   "evidence": "run 0x514560-0x5148af rasterizer: sig__rasterizer_memory_alloc_sig + GlobalAlloc pool, slice 10 continues rasterizer_dispose_free_memory"
+  },
+  {
+   "addr": "0x514820",
+   "module": "rasterizer",
+   "confidence": 0.65,
+   "evidence": "run 0x514560-0x5148af rasterizer: sig__rasterizer_memory_alloc_sig + GlobalAlloc pool, slice 10 continues rasterizer_dispose_free_memory"
+  },
+  {
+   "addr": "0x5148b0",
+   "module": "text",
+   "confidence": 0.55,
+   "evidence": "run 0x5148b0-0x514ab0 text: sig__draw_8_bit_text_sig/sig__draw_16_bit_text_sig = draw_string/draw_unicode_string pair"
+  },
+  {
+   "addr": "0x514ab0",
+   "module": "text",
+   "confidence": 0.55,
+   "evidence": "run 0x5148b0-0x514ab0 text: sig__draw_8_bit_text_sig/sig__draw_16_bit_text_sig = draw_string/draw_unicode_string pair"
+  }
+ ],
+ "boundaries": [
+  {
+   "addr": "0x4faa20",
+   "note": "objects.c core ends; object widget files (antenna/flag/glow/lightning/widgets) begin - data_new('antenna')"
+  },
+  {
+   "addr": "0x4ffde0",
+   "note": "widgets end; physics/breakable_surfaces.c begins (surface vitality + shatter effect)"
+  },
+  {
+   "addr": "0x501340",
+   "note": "breakable_surfaces ends; collision/physics BSP test code begins"
+  },
+  {
+   "addr": "0x50ba80",
+   "note": "physics ends (point_physics_update at 0x50b530); render frame/window code begins"
+  },
+  {
+   "addr": "0x50fcd0",
+   "note": "object shadow/lighting block ends; object rendering block begins (render seed at 0x50fd3c)"
+  },
+  {
+   "addr": "0x5132b0",
+   "note": "render overlay ends; compressed-vertex / detail-object block begins (uncertain: structures vs rasterizer)"
+  },
+  {
+   "addr": "0x514560",
+   "note": "rasterizer memory pool block begins"
+  },
+  {
+   "addr": "0x5148b0",
+   "note": "text draw_string / draw_unicode_string pair; slice 10 resumes rasterizer"
+  }
+ ],
+ "notes": "Slice 09 splits into four large regions: objects (0x4f67e0-0x4ffda0, core objects.c then the widget files), physics (0x4ffde0-0x50b9db, breakable surfaces then collision/BSP/physics update), render (0x50ba80-0x5132af, render_frame/render_window/camera-frustum, shadows+lighting, object rendering, debug overlay), and a small tail of compressed-vertex/detail-object code, rasterizer memory pool and text draw_string. Lowest-confidence spans: 0x50e930-0x50fccf (render object shadows vs objects/lights_*) and 0x5132b0-0x51454b (structures detail objects vs rasterizer)."
+}

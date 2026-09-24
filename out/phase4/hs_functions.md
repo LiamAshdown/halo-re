@@ -1,0 +1,127 @@
+# hs module: 125 functions (address, current Ghidra name, size, agent confidence, summary)
+
+- 0x482b20 FUN_00482b20 size=77 conf=0.3 :: HS external-function evaluate stub that decodes one script argument via FUN_0048ad60 and forwards it to native setter FUN_004e4b50.
+- 0x482b70 FUN_00482b70 size=77 conf=0.3 :: HS external-function evaluate stub that decodes one script argument via FUN_0048ad60 and forwards it to native setter FUN_004e4ac0.
+- 0x482cb0 FUN_00482cb0 size=77 conf=0.3 :: HS external-function evaluate stub that decodes one script argument via FUN_0048ad60 and forwards it to native setter FUN_004e3a80.
+- 0x482d00 FUN_00482d00 size=77 conf=0.3 :: HS external-function evaluate stub that decodes one script argument via FUN_0048ad60 and forwards it to native setter FUN_004e3cd0.
+- 0x482d50 FUN_00482d50 size=77 conf=0.3 :: HS external-function evaluate stub that decodes one script argument via FUN_0048ad60 and forwards it to native setter FUN_004e3d40.
+- 0x482da0 FUN_00482da0 size=77 conf=0.3 :: HS external-function evaluate stub that decodes one script argument via FUN_0048ad60 and forwards it to native setter FUN_004e3db0.
+- 0x482ed0 sv_name_evaluate size=77 conf=0.7 :: HS external-function evaluate stub for the sv_name script function: decodes one argument via FUN_0048ad60 and calls sv_name with it.
+- 0x482f20 sv_password_evaluate size=77 conf=0.7 :: HS external-function evaluate stub for the sv_password script function: decodes one argument via FUN_0048ad60 and calls sv_password with it.
+- 0x482f70 FUN_00482f70 size=77 conf=0.3 :: HS external-function evaluate stub that decodes one script argument via FUN_0048ad60 and forwards it to native setter FUN_004e4810.
+- 0x482fc0 FUN_00482fc0 size=77 conf=0.3 :: HS external-function evaluate stub that decodes one script argument via FUN_0048ad60 and forwards it to native setter FUN_004e49a0.
+- 0x483010 FUN_00483010 size=78 conf=0.3 :: HS external-function evaluate stub that decodes two script arguments via FUN_0048ad60 and forwards both to native setter FUN_004e4470.
+- 0x483060 FUN_00483060 size=78 conf=0.3 :: HS external-function evaluate stub that decodes two script arguments via FUN_0048ad60 and forwards both to native setter FUN_004e4600.
+- 0x4830b0 FUN_004830b0 size=78 conf=0.3 :: HS external-function evaluate stub that decodes two script arguments via FUN_0048ad60 and forwards both to native setter FUN_004e3100.
+- 0x483100 hs_allocate_script_node_table size=139 conf=0.7 :: Allocates (or reallocates and hot-swaps) the datum array used to hold compiled HS syntax-node data.
+- 0x483190 hs_scripts_compile_and_link size=179 conf=0.5 :: (Re)compiles and postprocesses/links all HS scripts into a fresh syntax-node table, optionally restoring the previously active table afterward.
+- 0x483250 hs_scripts_reload size=91 conf=0.5 :: Full reset/reload of the HS scripting subsystem's syntax-node table plus two auxiliary datum arrays after scripts are rebuilt or recompiled.
+- 0x4832b0 hs_scripts_free size=87 conf=0.5 :: Tears down and frees the currently active HS syntax-node table and marks the two auxiliary datum arrays unused.
+- 0x483310 hs_syntax_node_garbage_collect size=128 conf=0.5 :: Garbage-collects unreferenced entries out of the active HS syntax-node datum table.
+- 0x4833a0 hs_script_find_by_name size=120 conf=0.6 :: Looks up a compiled script's index by name in the runtime scripts table, or returns -1 if none matches.
+- 0x483420 FUN_00483420 size=42 conf=0.4 :: Returns the declared type (and a packed high word) of a global variable identified by a builtin/script-global packed index.
+- 0x483430 hs_null_with_params_evaluate size=5 conf=0.7 :: Trivial evaluate handler for a 'null with params' HS syntax-node type that just returns the node's type field.
+- 0x483450 hs_global_get_address size=42 conf=0.5 :: Returns the storage address of a global variable identified by a builtin/script-global packed index.
+- 0x483480 chimera__get_global_index size=145 conf=0.9 :: Resolves a global-variable name string to a packed builtin/script-global index, or 0xffff if unknown.
+- 0x483520 hs_find_function_by_name size=144 conf=0.9 :: Looks up an HS script function's table index by name, applying one legacy name-alias rewrite first.
+- 0x4835b0 FUN_004835b0 size=69 conf=0.4 :: Tests whether a given per-gametype capability bit is satisfied by the current gametype flags.
+- 0x483600 FUN_00483600 size=140 conf=0.4 :: Checks whether a script function/global is applicable across every one of Halo's built-in multiplayer game types.
+- 0x483690 FUN_00483690 size=81 conf=0.4 :: Tests one candidate string against the current autocomplete prefix and appends it to the results array on a match.
+- 0x4836f0 FUN_004836f0 size=119 conf=0.4 :: Scans an array of candidate strings against the current autocomplete prefix, appending every match.
+- 0x483770 chimera__autocomplete_scan_globals size=197 conf=0.5 :: Scans a table of global-variable names against the current autocomplete prefix, filtering builtins by gametype applicability.
+- 0x483840 FUN_00483840 size=23 conf=0.4 :: Adds the 'script' and 'global' special-form keywords to the autocomplete results if they match the current prefix.
+- 0x483860 chimera__autocomplete_add_startup size=19 conf=0.5 :: Adds the HS script-type keywords (startup/dormant/continuous/static) to the autocomplete results if they match the current prefix.
+- 0x483c90 chimera__autocomplete_gather size=137 conf=0.5 :: Driver that gathers autocomplete candidates for a given prefix across a set of selectable categories and returns them sorted.
+- 0x483d20 FUN_00483d20 size=245 conf=0.3 :: qsort comparator that orders two file-entry records by their display/localized name, case-insensitively.
+- 0x483e20 hs_rebuild_source size=288 conf=0.7 :: Rebuilds the combined HS source buffer from every .hsc file in the scripts directory (excluding global_scripts.hsc), sorted by display name.
+- 0x483f40 hs_null_evaluate size=328 conf=0.3 :: Continuation of the .hsc file-gathering/concatenation logic (near-duplicate of hs_rebuild_source's body); the prior name 'hs_null_evaluate' does not match what the code actually does.
+- 0x484090 hs_compile_source size=279 conf=0.9 :: Recompiles every registered HS script's source text in turn, printing a success message if all of them compiled without error.
+- 0x4841b0 hs_help_print_function size=183 conf=0.5 :: Console command handler that prints a single HS function's formatted signature and documentation string.
+- 0x484270 hs_doc size=136 conf=0.8 :: Writes the signature and documentation string of every registered HS script function to hs_doc.txt.
+- 0x484300 hs_format_function_signature size=251 conf=0.5 :: Formats a human-readable '(name arg<type> ...)' prototype string for an HS function-table entry.
+- 0x484400 chimera__execute_script size=502 conf=0.85 :: Compiles and immediately executes a single console/script command line, auto-wrapping bare global-set or bare-call syntax, and triggers a full script reload when requested.
+- 0x484780 hs_parse_if size=352 conf=0.85 :: Parses/type-checks an (if <condition> <then> [<else>]) special-form syntax node.
+- 0x4848f0 hs_parse_cond_recursive size=581 conf=0.9 :: Recursively desugars a cond special-form's list of condition/result pairs into a chain of nested if syntax nodes.
+- 0x484be0 hs_parse_set size=451 conf=0.9 :: Parses/type-checks a (set <global> <value>) special-form syntax node.
+- 0x484fb0 hs_get_parameter_indices size=161 conf=0.9 :: Collects a function call node's argument-node indices into an output array, reporting an error if the argument count doesn't match.
+- 0x485060 FUN_00485060 size=236 conf=0.4 :: Type-check callback that forces a function's two arguments to resolve to a single shared (numeric) type.
+- 0x485150 FUN_00485150 size=291 conf=0.3 :: Type-check callback that forces a function's two arguments to resolve to a compatible object/unit-family type.
+- 0x485540 hs_compile_expression size=430 conf=0.5 :: Tokenizes and wraps a single standalone expression string into a syntax-node tree ready for immediate evaluation.
+- 0x4856f0 hs_source_buffer_append size=125 conf=0.5 :: Appends raw bytes to the shared growable HS compiled-source buffer, reallocating as needed.
+- 0x485770 hs_compile size=295 conf=0.9 :: Compiles one script's source text into syntax nodes, returning an error message and offset on failure.
+- 0x4858a0 hs_verify_source_offset size=27 conf=0.8 :: Validates that a source-text offset still falls within the current compiled-source buffer, flagging a recompile-needed error otherwise.
+- 0x4858c0 hs_compile_postprocess size=672 conf=0.9 :: Second compilation pass that resolves function references and re-validates every syntax node's type/offset consistency after hs_compile_source.
+- 0x485b60 hs_add_global size=484 conf=0.9 :: Parses and registers a (global<type> <name> <value>) declaration as a new script-defined global variable.
+- 0x485d50 hs_add_script size=964 conf=0.9 :: Parses and registers a (script <type> ... <name> <body>) declaration, enforcing naming, typing, and stub-override rules.
+- 0x486120 hs_tokenize size=130 conf=0.8 :: Allocates one syntax-node datum for the next token/expression and dispatches to the primitive or nonprimitive tokenizer.
+- 0x4861b0 hs_tokenize_primitive size=212 conf=0.9 :: Tokenizes a single primitive value (quoted string or bare word) from the source cursor.
+- 0x486290 hs_tokenize_nonprimitive size=190 conf=0.9 :: Tokenizes a parenthesized list expression by recursively tokenizing each child element until the closing paren.
+- 0x486350 skip_whitespace size=193 conf=0.9 :: Advances a source-text cursor past whitespace and both line and block HS comment syntax.
+- 0x486420 hs_parse size=83 conf=0.6 :: Recursively parses/type-checks a single syntax node against an expected type, dispatching to the primitive or nonprimitive parser.
+- 0x486480 hs_parse_primitive size=218 conf=0.9 :: Parses/type-checks a primitive (non-list) syntax node as either a variable reference or a typed constant.
+- 0x486560 hs_parse_variable size=285 conf=0.9 :: Parses/type-checks a bare-word syntax node as a reference to a global variable.
+- 0x486680 hs_resolve_identifier_as_function_or_script size=132 conf=0.5 :: Resolves an unparsed identifier syntax-node to either a builtin function index or a user-script index, caching the result on the node.
+- 0x486710 hs_parse_nonprimitive size=768 conf=0.9 :: Parses a non-primitive expression token, resolving it as a global, script, function call, or variable reference and reporting the matching HS syntax errors.
+- 0x486ae0 hs_parse_real size=155 conf=0.9 :: Validates and parses a floating point literal token from the script source text into the node's real value field.
+- 0x486ce0 FUN_00486ce0 size=216 conf=0.4 :: Looks up a parsed enum/keyword token by exact name in a scenario reference table and stores its numeric value if the category matches the expected type.
+- 0x486dc0 hs_report_expected_enum_values size=460 conf=0.55 :: Builds the '<type> must be "a", "b" or "c"' compiler error message when a keyword/enum token fails to match any valid name for its expected type.
+- 0x486f90 hs_parse_scenario_datum size=149 conf=0.85 :: Generic parser that resolves a quoted name token against an arbitrary-stride scenario tag-block array by exact case-insensitive string match, storing the found index or reporting an error.
+- 0x487030 hs_compile_and_evaluate size=36 conf=0.3 :: Thin wrapper around hs_parse_scenario_datum specialized for a 0x60-byte-stride scenario reference table whose exact tag block could not be identified.
+- 0x487230 hs_parse_object_name size=191 conf=0.9 :: Parses an object-name token, resolves it to a scenario object_names index, and verifies the referenced object matches the expected HS object type.
+- 0x4875c0 FUN_004875c0 size=102 conf=0.35 :: Linearly searches an array of C strings for an exact case-sensitive match and returns its index, or -1 if not found.
+- 0x487630 FUN_00487630 size=279 conf=0.3 :: Builds a linked reference list collecting a per-entry index field from every valid slot of an object-related datum array.
+- 0x487750 FUN_00487750 size=200 conf=0.3 :: Iterates all entries of an object-related datum array and resets/detaches each one whose predicate check fails.
+- 0x487820 FUN_00487820 size=207 conf=0.3 :: Evaluates a boolean predicate across every object in a reference list, short-circuiting as either an 'all' or an 'any' test selected by a flag.
+- 0x4878f0 FUN_004878f0 size=180 conf=0.3 :: Per-object predicate helper that converts an angle argument from degrees to radians and forwards it to a lower-level geometry test, gated by a context validity check.
+- 0x4879b0 FUN_004879b0 size=274 conf=0.3 :: Returns true if any filtered object in a reference list satisfies the angle-based predicate implemented by FUN_004878f0.
+- 0x487ad0 FUN_00487ad0 size=308 conf=0.25 :: Variant of the reference-list angle test that adds an extra caller-supplied gating flag before invoking the geometry predicate.
+- 0x487c10 FUN_00487c10 size=218 conf=0.3 :: Recursively checks whether an object or any of its attached child objects matches a small object-type bitmask or a specific flag.
+- 0x487d20 FUN_00487d20 size=98 conf=0.25 :: Validates a cached object-slot reference against a type-mask test, resetting it via a fallback path when invalid or absent.
+- 0x487dd0 FUN_00487dd0 size=275 conf=0.3 :: Cleans up an object-related datum table at HS runtime reset, deleting orphaned children and dynamically created objects left over from the previous state.
+- 0x487ef0 hs_object_names_for_each size=79 conf=0.5 :: Enumerates every scenario object_names entry and invokes a callback for each one that satisfies a predicate check.
+- 0x487f50 FUN_00487f50 size=1568 conf=0.35 :: Detaches an object from its current parent object using full 3D-transform math, then repositions and reorients it based on a scenario location-table entry.
+- 0x488570 FUN_00488570 size=136 conf=0.35 :: Advances N nodes down a reference list starting at a given object's list head, used to seek to the Nth element.
+- 0x488600 FUN_00488600 size=98 conf=0.35 :: Sets an object field to a fraction (0.0-1.0, clamped) of a corresponding maximum field, consistent with a health or shield percentage setter.
+- 0x488670 FUN_00488670 size=195 conf=0.3 :: Resolves a name string to an index within a named sub-list of an object's tag data (e.g. a seat, region, or marker list) and passes the result to a setter.
+- 0x488740 FUN_00488740 size=142 conf=0.3 :: Applies a callback to every object referenced by a reference list.
+- 0x4887d0 hs_objects_delete_by_type size=152 conf=0.55 :: Deletes every live object of a given object type, then runs garbage collection and compacts the block list.
+- 0x488870 FUN_00488870 size=113 conf=0.4 :: Spawns a visual effect positioned and oriented at a scenario location (flag/camera point) table entry.
+- 0x4888f0 FUN_004888f0 size=97 conf=0.3 :: Spawns a visual effect attached to an object's marker, gated on the object and marker both being valid.
+- 0x488960 FUN_00488960 size=220 conf=0.35 :: Plays a positional sound impulse at a scenario location's coordinates, not attached to any object.
+- 0x488a40 FUN_00488a40 size=198 conf=0.4 :: Applies a damage effect (with an embedded sound) to an object using the same request structure shape as the flag sound-impulse helper.
+- 0x488b10 hs_sound_get_gain_reference size=115 conf=0.85 :: Looks up a sound or sound_looping tag by name and returns a pointer to its gain-modifier value, reporting an error if neither tag exists.
+- 0x488c60 hs_evaluate_random size=508 conf=0.55 :: Implements the HS 'random' special form: randomly selects and evaluates one not-yet-chosen child expression per invocation, avoiding repeats until the set is exhausted.
+- 0x489120 hs_evaluate_boolean_and_or size=296 conf=0.5 :: Per-call reducer implementing the HS 'and'/'or' special forms, short-circuiting the boolean combination based on the selected opcode.
+- 0x489250 hs_evaluate_arithmetic_reduce size=373 conf=0.55 :: Per-call reducer implementing the HS numeric '+','-','*','/','min' and 'max' special forms over a variadic argument list.
+- 0x489800 hs_evaluate_sleep size=542 conf=0.5 :: Implements the HS 'sleep'/'sleep_until' special form, computing the game tick at which the calling thread should resume.
+- 0x489d50 FUN_00489d50 size=278 conf=0.35 :: Collects up to 32 evaluated argument values into a fixed-size array, one value per reentrant call, for a variadic HS operation.
+- 0x489e70 hs_runtime_initialize size=115 conf=0.85 :: Allocates the HS thread and globals datum arrays and reserves the first 0x1eb global slots at engine start-up.
+- 0x489ef0 hs_scenario_scripts_initialize size=576 conf=0.55 :: Resets the HS runtime for a newly loaded scenario: reinitializes global variables to their default values and auto-starts all non-static, non-stub scripts.
+- 0x48a130 FUN_0048a130 size=110 conf=0.4 :: Deletes every dynamically allocated HS global beyond the fixed reserved range, used when tearing down the HS runtime.
+- 0x48a1a0 hs_runtime_update size=166 conf=0.5 :: Per-tick HS scheduler: advances every thread whose deadline has arrived and triggers a reload check when nothing else is pending.
+- 0x48a250 FUN_0048a250 size=124 conf=0.45 :: Synchronously compiles and evaluates a single HS expression node to completion, returning its result value or failure.
+- 0x48a2d0 hs_call_script_by_name size=31 conf=0.5 :: Finds a script's existing thread by name and restarts it, implementing calling a named HS script like a function.
+- 0x48a2f0 hs_thread_new size=127 conf=0.55 :: Allocates and initializes a new HS thread datum for evaluating a given syntax node.
+- 0x48a370 FUN_0048a370 size=480 conf=0.45 :: Steps an HS thread's evaluation of its current syntax node, resuming later if the per-tick time budget runs out, and finalizes it on completion.
+- 0x48a560 FUN_0048a560 size=212 conf=0.45 :: Schedules the next child expression of a syntax node for evaluation, or short-circuits by fetching an already-resolved constant or global's value.
+- 0x48a640 FUN_0048a640 size=212 conf=0.45 :: Coerces an evaluated child expression's result to the type expected by its parent node using a per-type-pair conversion dispatch table.
+- 0x48a720 hs_global_get_value_pointer size=74 conf=0.5 :: Returns the storage pointer for an HS global variable given its packed reference/index.
+- 0x48a770 FUN_0048a770 size=31 conf=0.35 :: Advances an HS thread frame's scratch-list cursor to the next linked chunk.
+- 0x48a790 FUN_0048a790 size=192 conf=0.45 :: Restarts or resumes an existing (dormant) HS thread, either continuing from its saved state or beginning evaluation over.
+- 0x48a850 FUN_0048a850 size=265 conf=0.45 :: Evaluates a fixed-arity, statically typed argument list one argument per call, validating each against an expected-type array before returning the completed buffer.
+- 0x48a960 FUN_0048a960 size=138 conf=0.45 :: Finds the currently active or dormant HS thread associated with a given script index.
+- 0x48a9f0 hs_thread_find_by_script_name size=181 conf=0.5 :: Finds the currently active or dormant HS thread whose associated script matches the given name.
+- 0x48aaf0 hs_string_is_single_char size=31 conf=0.5 :: Returns whether a C string consists of exactly one character.
+- 0x48ab80 hs_object_orient size=9 conf=0.5 :: Thin forwarding wrapper to an object-orientation routine, consistent with an HS built-in function implementation.
+- 0x48ac10 FUN_0048ac10 size=75 conf=0.3 :: Allocates and appends a new reference-list node for a given object index, if valid.
+- 0x48ac60 hs_type_mask_is_subset size=38 conf=0.5 :: Tests whether one HS type's bitmask is fully contained within another's, used for polymorphic type compatibility (e.g. 'object' encompassing 'unit'/'vehicle').
+- 0x48ac90 hs_types_are_compatible size=125 conf=0.6 :: Compile-time check for whether a value of one HS type can be used where another HS type is expected.
+- 0x48ad10 FUN_0048ad10 size=75 conf=0.4 :: Coerces a raw HS global's value to a requested type using the shared per-type-pair conversion dispatch table.
+- 0x48ad60 hs_evaluate_variadic_arguments size=338 conf=0.5 :: Generic variadic argument collector used pervasively for evaluating HS script/function calls, accumulating up to 32 values before returning the completed list.
+- 0x48aec0 hs_global_read_value size=202 conf=0.5 :: Copies the current value of a bound engine global variable into its corresponding HS global's storage, dispatched by type.
+- 0x48b030 hs_global_write_value size=124 conf=0.5 :: Writes an HS global's current value back into its bound underlying engine variable, dispatched by type.
+- 0x48b220 object_list_reference_chain_delete size=40 conf=0.6 :: Given a reference-node data array pointer (EAX) and a chain head index (EDX), deletes every node in that singly-linked reference chain via datum_delete.
+- 0x48b250 object_lists_initialize size=80 conf=0.8 :: Creates the two global data arrays (list headers, and reference-list nodes) backing the engine's object-list system.
+- 0x48b2a0 object_list_reference_add size=76 conf=0.6 :: Pushes a new value (param_1) onto the front of the reference list identified by a list index in EAX, allocating a node from the reference-node data array and bumping the list's element count.
+- 0x48b2f0 FUN_0048b2f0 size=70 conf=0.45 :: Given a list index in ECX and an output iterator pointer in EDX, returns the first value stored in that reference list (or -1 if empty/invalid) and writes the next node index for iteration.
+- 0x48b340 object_lists_dispose_empty size=152 conf=0.55 :: Sweeps the object-list header array and deletes (chain and header) any list whose element count has dropped to zero.

@@ -1,0 +1,99 @@
+// unit_is_seat_control_available  (Ghidra: FUN_005693a0)
+// address 0x5693a0, size 176 bytes, name confidence 0.3, rewrite confidence 0.4
+// functions.md: "Reports whether a specific seat control is currently available to the unit,
+// depending on its animation state and seating."
+// evidence: types/units.h unit_data.animation_state (0x2a3), .vehicle_seat_index (0x2f0);
+//   types/tags.h Unit.seats (0x2e4, pointer at +4), UnitSeat.flags (bit 0x100 =
+//   allow_vehicle_communication_animations); types/objects.h object.parent_object (0x11c).
+// blam-cc: in_EAX -> unit_index, unaff_DI -> command.
+// UNSURE: the upper 24 bits of every returned "boolean" here are undefined register garbage in
+//   the original (CONCAT31/pointer-cast idioms), matching the house simplification used
+//   throughout this codebase (see src/memory/bit_stream_write_bit.c); only the low byte matters.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "objects.h"
+#include "units.h"
+
+extern data_array *object_data;     // 0x008603b0
+extern tag_instance *tag_instances; // 0x0087bc14
+
+extern object * object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
+
+uint8_t unit_is_seat_control_available(uint32_t unit_index, int16_t command) // blam-cc: in_EAX, unaff_DI
+{
+    object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+
+    switch (unit->animation_state) {
+    case 0x17: case 0x18: case 0x19: case 0x1a: case 0x1b: case 0x1d: case 0x1e: case 0x1f:
+    case 0x20: case 0x21: case 0x22: case 0x23: case 0x27: case 0x29:
+        return 0;
+    default:
+        if (unit_obj->parent_object != k_datum_index_none) {
+            int16_t seat_index = unit->vehicle_seat_index;
+            if ((seat_index != -1) && (object_try_and_get(unit_obj->parent_object, _object_mask_unit) != (object *)0) &&
+                (11 < command) && (command < 14)) {
+                object *parent = ((object_header *)object_data->data)[unit_obj->parent_object & 0xffff].data;
+                Unit *parent_tag = (Unit *)tag_instances[parent->definition_tag & 0xffff].data;
+                UnitSeat *seat = (UnitSeat *)parent_tag->seats.pointer + seat_index;
+                return (seat->flags >> 8) & 1;
+            }
+            return 0;
+        }
+        if ((command < 12) || (13 < command)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+#if 0
+Original Ghidra decompilation (0x5693a0):
+
+uint FUN_005693a0(void)
+
+{
+  uint uVar1;
+  uint in_EAX;
+  uint *puVar2;
+  short unaff_DI;
+
+  puVar2 = *(uint **)(*(int *)(DAT_008603b0 + 0x34) + 8 + (in_EAX & 0xffff) * 0xc);
+  switch(*(undefined1 *)((int)puVar2 + 0x2a3)) {
+  case 0x17:
+  case 0x18:
+  case 0x19:
+  case 0x1a:
+  case 0x1b:
+  case 0x1d:
+  case 0x1e:
+  case 0x1f:
+  case 0x20:
+  case 0x21:
+  case 0x22:
+  case 0x23:
+  case 0x27:
+  case 0x29:
+    break;
+  default:
+    if (puVar2[0x47] != 0xffffffff) {
+      uVar1 = puVar2[0xbc];
+      if (((((short)uVar1 != -1) && (puVar2 = (uint *)object_try_and_get(3), puVar2 != (uint *)0x0))
+          && (0xb < unaff_DI)) && (unaff_DI < 0xe)) {
+        return *(uint *)((short)uVar1 * 0x11c +
+                        *(int *)(*(int *)((*puVar2 & 0xffff) * 0x20 + 0x14 + DAT_0087bc14) + 0x2e8))
+               >> 8 & 0xffffff01;
+      }
+      return (uint)puVar2 & 0xffffff00;
+    }
+    puVar2 = (uint *)(int)unaff_DI;
+    if (((int)puVar2 < 0xc) || (0xd < (int)puVar2)) {
+      return CONCAT31((int3)(char)((ushort)unaff_DI >> 8),1);
+    }
+  }
+  return (uint)puVar2 & 0xffffff00;
+}
+#endif

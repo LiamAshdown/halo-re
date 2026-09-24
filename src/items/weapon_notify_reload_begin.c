@@ -1,0 +1,92 @@
+// weapon_notify_reload_begin  (Ghidra: FUN_004c3470; named from
+// out/phase4/items_functions.md, "Packages a trigger's current ammo counts into a network/UI
+// event (id 0x2b) and dispatches it when a reload begins")
+// address 0x4c3470, size 183 bytes
+// name confidence: 0.35   rewrite confidence: 0.35
+// evidence: types/items.h weapon_magazine_ammo_message (message type k_message_weapon_reload_begin
+//   = 0x2b), weapon_data.magazines[].rounds_unloaded/.rounds_loaded; same hash_table_get /
+//   message_delta_encode_message / network_session_broadcast_to_flagged pattern as weapon_notify_ammo_pickup.c.
+// register convention: item index in ECX; magazine index in BX (unaff_BX).
+// blam-cc: ECX -> item_index, BX -> magazine_index
+// UNSURE: the decompiled code never visibly writes magazine_index into the message (it only
+// assigns object_hash, rounds_unloaded and rounds_loaded, and separately zeroes an unrelated
+// stack slot); rendered here populating magazine_index from BX to match the single
+// weapon_magazine_ammo_message shape the header documents for messages 0x2b/0x2d/0x2e, since
+// the sibling encoders for those other two message ids DO set it explicitly the same way.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "objects.h"
+#include "items.h"
+
+extern data_array *object_data; // 0x008603b0
+extern uint8_t *object_pooled_node_globals; // 0x00687130
+extern uint8_t object_network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, memory module
+extern int message_delta_encode_message(int flag, int message_type, int changed_offset,
+    void **items, int type_offset, int count, char force_changed); // 0x4ec940
+extern void network_session_broadcast_to_flagged(uint32_t a1, void *a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6); // 0x4e1a80
+
+// Broadcasts a reload-begin network event for one weapon magazine.
+void weapon_notify_reload_begin(datum_index item_index, int16_t magazine_index)
+{
+    object *item_obj;
+    weapon_data *wd;
+    weapon_magazine_ammo_message message;
+    void *items[2];
+
+    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
+
+    message.object_hash = 0;
+    if (item_index != (datum_index)0xffffffff) {
+        message.object_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0x0c), item_index);
+        if (message.object_hash == -1) {
+            message.object_hash = 0;
+        }
+    }
+    message.magazine_index = magazine_index;
+    message.rounds_unloaded = wd->magazines[magazine_index].rounds_unloaded;
+    message.rounds_loaded = wd->magazines[magazine_index].rounds_loaded;
+
+    // The 4th argument is an array of record pointers, not the record itself: the
+    // original writes `items[0] = &message; items[1] = 0;` and then passes `items`.
+    items[0] = &message;
+    items[1] = 0;
+    message_delta_encode_message(0, k_message_weapon_reload_begin, 0, items, 0, 1, 0);
+    network_session_broadcast_to_flagged(1, object_network_message_scratch, 1, 0, 0, 3);
+}
+
+#if 0
+Original Ghidra decompilation (0x4c3470):
+
+void FUN_004c3470(void)
+
+{
+  int iVar1;
+  uint in_ECX;
+  short unaff_BX;
+  int *local_14;
+  undefined4 local_10;
+  int local_c;
+  undefined2 local_6;
+  undefined2 local_4;
+
+  iVar1 = *(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 + (in_ECX & 0xffff) * 0xc);
+  local_c = 0;
+  if (in_ECX != 0xffffffff) {
+    local_c = hash_table_get();
+    if (local_c == -1) {
+      local_c = 0;
+    }
+  }
+  local_6 = *(undefined2 *)(iVar1 + 0x2b6 + unaff_BX * 0xc);
+  local_4 = *(undefined2 *)(iVar1 + (unaff_BX * 3 + 0xae) * 4);
+  local_14 = &local_c;
+  local_10 = 0;
+  message_delta_encode_message(0,0x2b,0,&local_14,0,1,'\0');
+  FUN_004e1a80(1,&DAT_00871de0,1,0,0,3);
+  return;
+}
+#endif

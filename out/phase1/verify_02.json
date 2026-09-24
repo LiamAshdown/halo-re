@@ -1,0 +1,32 @@
+{
+ "slice": 2,
+ "verdict": "mostly sound, with 3 disputes",
+ "disputes": [
+  {
+   "addr": "0x449450",
+   "current": "cseries",
+   "proposed": "main",
+   "reason": "pack.py decompile shows a naming hint 'cea-pdb: write_to_error_file (main)' plus the slice's own cea-string-hint 'main(1)' for this exact function (strings '_write_to_error_file', 'debug.txt', 'reference function: %s'). It is the last function of the 0x4491e0-0x449450 run before the cutscene boundary; its neighbors (perf-counter timer 0x449210, CreateDirectoryA path helper 0x449250, profile-path helper 0x449390) are genuine low-level cseries utilities, but this specific crash/error-log writer has a direct name match to a main.c function in the CE Anniversary source, not merely a shared string. Worth checking whether the object-file boundary actually falls one function earlier and this single function belongs to 'main' rather than 'cseries'."
+  },
+  {
+   "addr": "0x459300",
+   "current": "game",
+   "proposed": "camera",
+   "reason": "The assigning agent already flagged 0x459300-0x45a280 as a weak boundary ('game vs camera') but chose game. Decompiling 0x4593b0 (pack.py) shows it is the SOLE caller of 0x446a90 and 0x447290, both squarely inside the established camera run (0x444c00-0x449170); the block has zero referenced strings and is pure floating-point camera-collision/candidate-position math ending in fcos/fsin calls feeding a camera-struct offset (iVar7+0x40/0x44). 0x459b10/0x459cc0/0x45a0e0/0x45a280 form a tight recursive cluster with 0x459300 and share globals with it. Nothing in this block resembles the actual 'game' run that starts at 0x45a9c0 (which has clear game_initialize/particle/weather strings). The evidence leans toward this being extended camera logic (e.g. chase-camera obstacle avoidance) rather than game."
+  },
+  {
+   "addr": "0x456730",
+   "current": "effects",
+   "proposed": "game",
+   "reason": "Assigning agent flagged 0x456730-0x457d50 as weak ('effects vs game'), citing that 0x456bc0 is called from sig__apply_damage_sig. Decompiling 0x456bc0 (pack.py) confirms it operates on per-player 0xEC-byte records including screen-flash bytes, gated behind a damage-record check, and dispatches through what looks like a HUD/feedback call (FUN_004ec940/FUN_004e1930) rather than particle/decal creation like the surrounding true-effects runs (contrail 0x44c800-0x44d470, decals 0x44d820-0x45059f which register tag strings 'contrail'/'decals'). Being driven directly off apply_damage and touching per-player status bytes reads more like the game module's damage-feedback/screen-flash logic than the effects (particle/decal) module; no tag-registration strings tie it to effects the way the earlier sub-runs have."
+  }
+ ],
+ "agreements_worth_noting": [
+  "0x442bb0-0x444b30 (cache): strong, string-backed (maps\, cache%03d.map, pc sound/texture cache); the seed conflict at 0x444420 (data_file_read, seed=memory 0.8) was already transparently flagged by the assigning agent and its neighbors (0x4438d0/0x443b30 'Invalid data file id in data file %s') support keeping it in the cache run - agree, no change.",
+  "0x44a930-0x44c1a0 (devices): DAT_0087abf0 device-group array spans it exactly - solid.",
+  "0x44c800-0x45059f (effects: contrails + decals): tag-registration strings ('contrail', 'contrail point', 'decals') make this solid.",
+  "0x449fd0-0x44a790 (cutscene, flagged uncertain vs networking): decompiled 0x44a1d0/0x44a390 (pack.py) show int16 delta-angle decode into cos/sin pairs on a 2000-unit circle, sharing DAT_00672dd8 with the camera-track function 0x445f90 in the camera run - this confirms cutscene/camera-track compression, not networking. Agree with assigner's choice.",
+  "0x45a530-0x45a800 and 0x45a9c0-0x45bd50 (game): strings ('warthog', 'Camera is outside BSP... cannot initiate teleportation...', game_initialize particle/weather strings) make these solid.",
+  "0x445230/0x445350 OpenSauce physical_memory_* names inside the camera run: assigner correctly identified these as misaligned Chimera/OpenSauce symbol hints rather than true module evidence; agree they should stay camera at reduced confidence."
+ ]
+}

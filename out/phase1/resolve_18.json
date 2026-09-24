@@ -1,0 +1,413 @@
+{
+ "slice": 18,
+ "decisions": [
+  {
+   "addr": "0x606360",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x606410",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x606560",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x606640",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x606900",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x6069d0",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x6070c0",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x607870",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x6078c0",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x607a00",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x607cd0",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x607df0",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x607ed0",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x608490",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x6084d0",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x6090d0",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x609540",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x6096c0",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x609750",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x609a30",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x609af0",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x609d80",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x609ee0",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x60a4b0",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x60a530",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x60a5b0",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x60a7a0",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x60ab10",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x60ac30",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x60ada0",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x60be10",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x60be20",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x60bff0",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x60c340",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x60c570",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x60cac0",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x60cb40",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x60cb70",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x60cb90",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x60cc90",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x60cce0",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg embedded in static D3DX9 (run 0x606360-0x60cce0): 0x606360 walks cinfo->comp_info at +0xdc with 0x54 stride (jpeg_component_info) and allocates via cinfo->mem->alloc_* = (**(cinfo+4))(); 0x6078c0 and 0x60a5b0 call FUN_5d2e40 inside assign_16's confirmed 'libjpeg jmemmgr embedded in D3DX9' run 0x5d1670-0x5d2ee0 (lib:d3dx); 0x60cb40/_malloc + 0x60cb70/_free = jpeg_get_small/free_small; 0x60cc90 uses _tmpfile = jmemansi backing store. Assigner's own text said 'bundled in static D3DX9' but tagged lib:other."
+  },
+  {
+   "addr": "0x60ccf0",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "zlib inflate embedded in D3DX9 (PNG path). 0x60ccf0/0x60cd56/0x60d520/0x60cdd4 are called directly by FUN_5d2f00/5d2f3f/5d2f7c/5d3071, which assign_16.json labels lib:d3dx conf 0.9 ('zlib inflate ... zlib inside D3DX9'). 0x60cdd4 calls the inftrees/infcodes group at 0x612540-0x61310f. Callee side must match the already-D3DX caller side."
+  },
+  {
+   "addr": "0x60cd56",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "zlib inflate embedded in D3DX9 (PNG path). 0x60ccf0/0x60cd56/0x60d520/0x60cdd4 are called directly by FUN_5d2f00/5d2f3f/5d2f7c/5d3071, which assign_16.json labels lib:d3dx conf 0.9 ('zlib inflate ... zlib inside D3DX9'). 0x60cdd4 calls the inftrees/infcodes group at 0x612540-0x61310f. Callee side must match the already-D3DX caller side."
+  },
+  {
+   "addr": "0x60cdd4",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "zlib inflate embedded in D3DX9 (PNG path). 0x60ccf0/0x60cd56/0x60d520/0x60cdd4 are called directly by FUN_5d2f00/5d2f3f/5d2f7c/5d3071, which assign_16.json labels lib:d3dx conf 0.9 ('zlib inflate ... zlib inside D3DX9'). 0x60cdd4 calls the inftrees/infcodes group at 0x612540-0x61310f. Callee side must match the already-D3DX caller side."
+  },
+  {
+   "addr": "0x60d520",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "zlib inflate embedded in D3DX9 (PNG path). 0x60ccf0/0x60cd56/0x60d520/0x60cdd4 are called directly by FUN_5d2f00/5d2f3f/5d2f7c/5d3071, which assign_16.json labels lib:d3dx conf 0.9 ('zlib inflate ... zlib inside D3DX9'). 0x60cdd4 calls the inftrees/infcodes group at 0x612540-0x61310f. Callee side must match the already-D3DX caller side."
+  },
+  {
+   "addr": "0x60d553",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "zlib inflate embedded in D3DX9 (PNG path). 0x60ccf0/0x60cd56/0x60d520/0x60cdd4 are called directly by FUN_5d2f00/5d2f3f/5d2f7c/5d3071, which assign_16.json labels lib:d3dx conf 0.9 ('zlib inflate ... zlib inside D3DX9'). 0x60cdd4 calls the inftrees/infcodes group at 0x612540-0x61310f. Callee side must match the already-D3DX caller side."
+  },
+  {
+   "addr": "0x60d66e",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "zlib inflate embedded in D3DX9 (PNG path). 0x60ccf0/0x60cd56/0x60d520/0x60cdd4 are called directly by FUN_5d2f00/5d2f3f/5d2f7c/5d3071, which assign_16.json labels lib:d3dx conf 0.9 ('zlib inflate ... zlib inside D3DX9'). 0x60cdd4 calls the inftrees/infcodes group at 0x612540-0x61310f. Callee side must match the already-D3DX caller side."
+  },
+  {
+   "addr": "0x60d6a0",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "SSE/3DNow 4-wide packed-float variants of D3DX9 math - not contiguity-only. Callers are all confirmed D3DX: 0x60d6a0<-0x5d648c (assign_16 lib:d3dx 0.8 'D3DX vector/matrix transform-array'); 0x60d889<-0x5da66a, 0x60dbc0<-0x5db7b2/5dc012/5dc15e, 0x60dac0+0x60e2a0<-0x5dbd58, 0x60e1a0<-0x5dbcec/5de5d7/5decb0 (assign_17 run 0x5d8a1f-0x5e1fcb lib:d3dx 0.85); 0x60e659/0x60e69f<-0x5e23e1/0x5e24e9 in the HLSL compiler run 0x5e20ad-0x602876 (lib:d3dx 0.92). 0x60e658 is a 1-byte RET stub, placed by address."
+  },
+  {
+   "addr": "0x60d889",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "SSE/3DNow 4-wide packed-float variants of D3DX9 math - not contiguity-only. Callers are all confirmed D3DX: 0x60d6a0<-0x5d648c (assign_16 lib:d3dx 0.8 'D3DX vector/matrix transform-array'); 0x60d889<-0x5da66a, 0x60dbc0<-0x5db7b2/5dc012/5dc15e, 0x60dac0+0x60e2a0<-0x5dbd58, 0x60e1a0<-0x5dbcec/5de5d7/5decb0 (assign_17 run 0x5d8a1f-0x5e1fcb lib:d3dx 0.85); 0x60e659/0x60e69f<-0x5e23e1/0x5e24e9 in the HLSL compiler run 0x5e20ad-0x602876 (lib:d3dx 0.92). 0x60e658 is a 1-byte RET stub, placed by address."
+  },
+  {
+   "addr": "0x60dac0",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "SSE/3DNow 4-wide packed-float variants of D3DX9 math - not contiguity-only. Callers are all confirmed D3DX: 0x60d6a0<-0x5d648c (assign_16 lib:d3dx 0.8 'D3DX vector/matrix transform-array'); 0x60d889<-0x5da66a, 0x60dbc0<-0x5db7b2/5dc012/5dc15e, 0x60dac0+0x60e2a0<-0x5dbd58, 0x60e1a0<-0x5dbcec/5de5d7/5decb0 (assign_17 run 0x5d8a1f-0x5e1fcb lib:d3dx 0.85); 0x60e659/0x60e69f<-0x5e23e1/0x5e24e9 in the HLSL compiler run 0x5e20ad-0x602876 (lib:d3dx 0.92). 0x60e658 is a 1-byte RET stub, placed by address."
+  },
+  {
+   "addr": "0x60dbc0",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "SSE/3DNow 4-wide packed-float variants of D3DX9 math - not contiguity-only. Callers are all confirmed D3DX: 0x60d6a0<-0x5d648c (assign_16 lib:d3dx 0.8 'D3DX vector/matrix transform-array'); 0x60d889<-0x5da66a, 0x60dbc0<-0x5db7b2/5dc012/5dc15e, 0x60dac0+0x60e2a0<-0x5dbd58, 0x60e1a0<-0x5dbcec/5de5d7/5decb0 (assign_17 run 0x5d8a1f-0x5e1fcb lib:d3dx 0.85); 0x60e659/0x60e69f<-0x5e23e1/0x5e24e9 in the HLSL compiler run 0x5e20ad-0x602876 (lib:d3dx 0.92). 0x60e658 is a 1-byte RET stub, placed by address."
+  },
+  {
+   "addr": "0x60e1a0",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "SSE/3DNow 4-wide packed-float variants of D3DX9 math - not contiguity-only. Callers are all confirmed D3DX: 0x60d6a0<-0x5d648c (assign_16 lib:d3dx 0.8 'D3DX vector/matrix transform-array'); 0x60d889<-0x5da66a, 0x60dbc0<-0x5db7b2/5dc012/5dc15e, 0x60dac0+0x60e2a0<-0x5dbd58, 0x60e1a0<-0x5dbcec/5de5d7/5decb0 (assign_17 run 0x5d8a1f-0x5e1fcb lib:d3dx 0.85); 0x60e659/0x60e69f<-0x5e23e1/0x5e24e9 in the HLSL compiler run 0x5e20ad-0x602876 (lib:d3dx 0.92). 0x60e658 is a 1-byte RET stub, placed by address."
+  },
+  {
+   "addr": "0x60e2a0",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "SSE/3DNow 4-wide packed-float variants of D3DX9 math - not contiguity-only. Callers are all confirmed D3DX: 0x60d6a0<-0x5d648c (assign_16 lib:d3dx 0.8 'D3DX vector/matrix transform-array'); 0x60d889<-0x5da66a, 0x60dbc0<-0x5db7b2/5dc012/5dc15e, 0x60dac0+0x60e2a0<-0x5dbd58, 0x60e1a0<-0x5dbcec/5de5d7/5decb0 (assign_17 run 0x5d8a1f-0x5e1fcb lib:d3dx 0.85); 0x60e659/0x60e69f<-0x5e23e1/0x5e24e9 in the HLSL compiler run 0x5e20ad-0x602876 (lib:d3dx 0.92). 0x60e658 is a 1-byte RET stub, placed by address."
+  },
+  {
+   "addr": "0x60e658",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "SSE/3DNow 4-wide packed-float variants of D3DX9 math - not contiguity-only. Callers are all confirmed D3DX: 0x60d6a0<-0x5d648c (assign_16 lib:d3dx 0.8 'D3DX vector/matrix transform-array'); 0x60d889<-0x5da66a, 0x60dbc0<-0x5db7b2/5dc012/5dc15e, 0x60dac0+0x60e2a0<-0x5dbd58, 0x60e1a0<-0x5dbcec/5de5d7/5decb0 (assign_17 run 0x5d8a1f-0x5e1fcb lib:d3dx 0.85); 0x60e659/0x60e69f<-0x5e23e1/0x5e24e9 in the HLSL compiler run 0x5e20ad-0x602876 (lib:d3dx 0.92). 0x60e658 is a 1-byte RET stub, placed by address."
+  },
+  {
+   "addr": "0x60e659",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "SSE/3DNow 4-wide packed-float variants of D3DX9 math - not contiguity-only. Callers are all confirmed D3DX: 0x60d6a0<-0x5d648c (assign_16 lib:d3dx 0.8 'D3DX vector/matrix transform-array'); 0x60d889<-0x5da66a, 0x60dbc0<-0x5db7b2/5dc012/5dc15e, 0x60dac0+0x60e2a0<-0x5dbd58, 0x60e1a0<-0x5dbcec/5de5d7/5decb0 (assign_17 run 0x5d8a1f-0x5e1fcb lib:d3dx 0.85); 0x60e659/0x60e69f<-0x5e23e1/0x5e24e9 in the HLSL compiler run 0x5e20ad-0x602876 (lib:d3dx 0.92). 0x60e658 is a 1-byte RET stub, placed by address."
+  },
+  {
+   "addr": "0x60e69f",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "SSE/3DNow 4-wide packed-float variants of D3DX9 math - not contiguity-only. Callers are all confirmed D3DX: 0x60d6a0<-0x5d648c (assign_16 lib:d3dx 0.8 'D3DX vector/matrix transform-array'); 0x60d889<-0x5da66a, 0x60dbc0<-0x5db7b2/5dc012/5dc15e, 0x60dac0+0x60e2a0<-0x5dbd58, 0x60e1a0<-0x5dbcec/5de5d7/5decb0 (assign_17 run 0x5d8a1f-0x5e1fcb lib:d3dx 0.85); 0x60e659/0x60e69f<-0x5e23e1/0x5e24e9 in the HLSL compiler run 0x5e20ad-0x602876 (lib:d3dx 0.92). 0x60e658 is a 1-byte RET stub, placed by address."
+  },
+  {
+   "addr": "0x610f50",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg jpeg_idct_islow and its MMX siblings: 0x610f50's 8x8 loop uses 0x1151 (4433=FIX_0_541196100), 0x187e (6270=FIX_0_765366865), -0x3b21 (-15137=FIX_1_847759065), 0x2000 - the exact jidctint.c constant set; 0x611410/0x612400 are the packed (ulonglong) variants. Same D3DX9-embedded libjpeg as 0x606360-0x60cce0."
+  },
+  {
+   "addr": "0x611410",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg jpeg_idct_islow and its MMX siblings: 0x610f50's 8x8 loop uses 0x1151 (4433=FIX_0_541196100), 0x187e (6270=FIX_0_765366865), -0x3b21 (-15137=FIX_1_847759065), 0x2000 - the exact jidctint.c constant set; 0x611410/0x612400 are the packed (ulonglong) variants. Same D3DX9-embedded libjpeg as 0x606360-0x60cce0."
+  },
+  {
+   "addr": "0x612400",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "libjpeg jpeg_idct_islow and its MMX siblings: 0x610f50's 8x8 loop uses 0x1151 (4433=FIX_0_541196100), 0x187e (6270=FIX_0_765366865), -0x3b21 (-15137=FIX_1_847759065), 0x2000 - the exact jidctint.c constant set; 0x611410/0x612400 are the packed (ulonglong) variants. Same D3DX9-embedded libjpeg as 0x606360-0x60cce0."
+  },
+  {
+   "addr": "0x612540",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "zlib inflate embedded in D3DX9 (PNG path). 0x60ccf0/0x60cd56/0x60d520/0x60cdd4 are called directly by FUN_5d2f00/5d2f3f/5d2f7c/5d3071, which assign_16.json labels lib:d3dx conf 0.9 ('zlib inflate ... zlib inside D3DX9'). 0x60cdd4 calls the inftrees/infcodes group at 0x612540-0x61310f. Callee side must match the already-D3DX caller side. (0x612540-0x61310f included for consistency; its only callers are 0x60cdd4 and 0x612573.)"
+  },
+  {
+   "addr": "0x612573",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "zlib inflate embedded in D3DX9 (PNG path). 0x60ccf0/0x60cd56/0x60d520/0x60cdd4 are called directly by FUN_5d2f00/5d2f3f/5d2f7c/5d3071, which assign_16.json labels lib:d3dx conf 0.9 ('zlib inflate ... zlib inside D3DX9'). 0x60cdd4 calls the inftrees/infcodes group at 0x612540-0x61310f. Callee side must match the already-D3DX caller side. (0x612540-0x61310f included for consistency; its only callers are 0x60cdd4 and 0x612573.)"
+  },
+  {
+   "addr": "0x612aca",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "zlib inflate embedded in D3DX9 (PNG path). 0x60ccf0/0x60cd56/0x60d520/0x60cdd4 are called directly by FUN_5d2f00/5d2f3f/5d2f7c/5d3071, which assign_16.json labels lib:d3dx conf 0.9 ('zlib inflate ... zlib inside D3DX9'). 0x60cdd4 calls the inftrees/infcodes group at 0x612540-0x61310f. Callee side must match the already-D3DX caller side. (0x612540-0x61310f included for consistency; its only callers are 0x60cdd4 and 0x612573.)"
+  },
+  {
+   "addr": "0x612adb",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "zlib inflate embedded in D3DX9 (PNG path). 0x60ccf0/0x60cd56/0x60d520/0x60cdd4 are called directly by FUN_5d2f00/5d2f3f/5d2f7c/5d3071, which assign_16.json labels lib:d3dx conf 0.9 ('zlib inflate ... zlib inside D3DX9'). 0x60cdd4 calls the inftrees/infcodes group at 0x612540-0x61310f. Callee side must match the already-D3DX caller side. (0x612540-0x61310f included for consistency; its only callers are 0x60cdd4 and 0x612573.)"
+  },
+  {
+   "addr": "0x612e5a",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "zlib inflate embedded in D3DX9 (PNG path). 0x60ccf0/0x60cd56/0x60d520/0x60cdd4 are called directly by FUN_5d2f00/5d2f3f/5d2f7c/5d3071, which assign_16.json labels lib:d3dx conf 0.9 ('zlib inflate ... zlib inside D3DX9'). 0x60cdd4 calls the inftrees/infcodes group at 0x612540-0x61310f. Callee side must match the already-D3DX caller side. (0x612540-0x61310f included for consistency; its only callers are 0x60cdd4 and 0x612573.)"
+  },
+  {
+   "addr": "0x612ed3",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "zlib inflate embedded in D3DX9 (PNG path). 0x60ccf0/0x60cd56/0x60d520/0x60cdd4 are called directly by FUN_5d2f00/5d2f3f/5d2f7c/5d3071, which assign_16.json labels lib:d3dx conf 0.9 ('zlib inflate ... zlib inside D3DX9'). 0x60cdd4 calls the inftrees/infcodes group at 0x612540-0x61310f. Callee side must match the already-D3DX caller side. (0x612540-0x61310f included for consistency; its only callers are 0x60cdd4 and 0x612573.)"
+  },
+  {
+   "addr": "0x612fcd",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "zlib inflate embedded in D3DX9 (PNG path). 0x60ccf0/0x60cd56/0x60d520/0x60cdd4 are called directly by FUN_5d2f00/5d2f3f/5d2f7c/5d3071, which assign_16.json labels lib:d3dx conf 0.9 ('zlib inflate ... zlib inside D3DX9'). 0x60cdd4 calls the inftrees/infcodes group at 0x612540-0x61310f. Callee side must match the already-D3DX caller side. (0x612540-0x61310f included for consistency; its only callers are 0x60cdd4 and 0x612573.)"
+  },
+  {
+   "addr": "0x612ffe",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "zlib inflate embedded in D3DX9 (PNG path). 0x60ccf0/0x60cd56/0x60d520/0x60cdd4 are called directly by FUN_5d2f00/5d2f3f/5d2f7c/5d3071, which assign_16.json labels lib:d3dx conf 0.9 ('zlib inflate ... zlib inside D3DX9'). 0x60cdd4 calls the inftrees/infcodes group at 0x612540-0x61310f. Callee side must match the already-D3DX caller side. (0x612540-0x61310f included for consistency; its only callers are 0x60cdd4 and 0x612573.)"
+  },
+  {
+   "addr": "0x61310f",
+   "module": "lib:d3dx",
+   "confidence": 0.88,
+   "evidence": "zlib inflate embedded in D3DX9 (PNG path). 0x60ccf0/0x60cd56/0x60d520/0x60cdd4 are called directly by FUN_5d2f00/5d2f3f/5d2f7c/5d3071, which assign_16.json labels lib:d3dx conf 0.9 ('zlib inflate ... zlib inside D3DX9'). 0x60cdd4 calls the inftrees/infcodes group at 0x612540-0x61310f. Callee side must match the already-D3DX caller side. (0x612540-0x61310f included for consistency; its only callers are 0x60cdd4 and 0x612573.)"
+  }
+ ]
+}

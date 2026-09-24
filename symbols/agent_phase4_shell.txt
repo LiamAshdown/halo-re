@@ -1,0 +1,20 @@
+# shell module (0x5402a0..0x6bd1b8) names established by the phase-4 C rewrite and its review
+# in src/shell/*.c; each name is justified in that file's header comment.
+# addr name kind confidence source
+0x5788f0 hwreq_parser_find_property_set func 0.8 agent-phase4 vtable_0x006721e8_slot_0x0c;_map_find_on_this+0x6a0_(property_sets),_returns_node+0x28_or_NULL_(src/shell/hwreq_parser_find_property_set.c)
+0x578410 hwreq_property_set_upsert func 0.8 agent-phase4 walks_set+4..+8_stride_0x38,_stricmp_on_key,_reassigns_value_or_push_back_(src/shell/hwreq_property_set_upsert.c)
+0x5786a0 hwreq_parser_scalar_deleting_destructor func 0.8 agent-phase4 vtable_slot_0x04;_calls_hwreq_parser_destruct_then_frees_on_flag_bit_0
+0x57a220 hwreq_parser_scan_for_applytoall_or_vendor func 0.8 agent-phase4 line_scan_for_applytoall_/_vendor_keywords,_then_parse_block_into_this+0x18
+0x57a320 hwreq_parser_scan_for_applytoall func 0.8 agent-phase4 line_scan_for_applytoall_keyword,_then_parse_block_into_this+0x18
+0x57a680 hwreq_parser_parse_vendor_block func 0.8 agent-phase4 vendor=id_"name"_compares_adapter_vendor_id_+0x4e4,_device_lines_+0x4e8,_assigns_+0x5c_/_+0x40
+0x57aa40 hwreq_parser_parse_audiovendor_block func 0.8 agent-phase4 audiovendor=id_compares_sound_device_+0x690_/_+0x694,_assigns_+0x94_/_+0x78
+0x57d080 config_set_maximum_resolution func 0.8 agent-phase4 config.txt_MaximumResolution_setter,_sscanf_%d_range_0x280..0x1000_into_0x0069fe3c
+0x57d2b0 config_set_decal_z_bias func 0.8 agent-phase4 config.txt_DecalZBiasValue_setter,_sscanf_%f_into_0x00722b80
+0x57d2e0 config_set_decal_slope_z_bias func 0.8 agent-phase4 config.txt_DecalSlopeZBiasValue_setter,_sscanf_%f_into_0x00722b88
+0x57d310 config_set_transparent_decal_z_bias func 0.8 agent-phase4 config.txt_TransparentDecalZBiasValue_setter,_sscanf_%f_into_0x00722b84
+0x57d340 config_set_transparent_decal_slope_z_bias func 0.8 agent-phase4 config.txt_TransparentDecalSlopeZBiasValue_setter,_sscanf_%f_into_0x00722b8c
+0x57e850 shell_check_previous_run_crash func 0.8 agent-phase4 ExitFlag_"bad_1"/"bad_2"_registry_state_and_a_.pdb_debug-build_bypass;_not_a_Chimera_hook
+0x57f330 compute_sha1_hash_first_qword func 0.8 agent-phase4 SHA-1_via_0x57f2a0,_copies_the_first_8_digest_bytes_out
+0x57f360 extract_product_id_digits func 0.8 agent-phase4 OEM_/_retail_digit_offset_tables_0x00672a68_/_0x00672a90_over_DigitalProductID+8
+0x57f3f0 shell_build_product_id_string func 0.8 agent-phase4 DigitalProductID_(0xa4,_3,_0)_then_"%05d,%09d,0,%_19.19I64d"_into_0x00722bd8;_winmain_stores_it_in_0x007461a8
+0x4c7610 main_loop func 0.8 agent-phase4 sole_caller_shell_winmain_0x54193f_between_network_session_host_start_info_set_and_engine_shutdown_subsystems;_plays_the_intro_biks,_pumps_messages,_calls_main_loop_frame_pacer;_was_mechanical_game_state_save_core

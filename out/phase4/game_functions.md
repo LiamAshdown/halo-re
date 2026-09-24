@@ -1,0 +1,430 @@
+# game module: 428 functions (address, current Ghidra name, size, agent confidence, summary)
+
+- 0x459300 vector3d_clamp_length size=83 conf=0.5 :: Clamps a 3D vector (passed in ECX) to a maximum length given in param_1, scaling it down if it exceeds that length.
+- 0x459360 FUN_00459360 size=78 conf=0.3 :: Computes a 0..1 falloff fraction of param_1 relative to a maximum range param_2, with a dead zone below half range.
+- 0x4593b0 FUN_004593b0 size=821 conf=0.3 :: Per-player update that finds the best nearby target/track and stores an orientation-derived state into the player's structure; register arg EAX selects the player index.
+- 0x4596f0 FUN_004596f0 size=517 conf=0.3 :: Returns a yaw/pitch pair and their rates of change toward the currently selected observer target for a player (in_AX = player index).
+- 0x459900 FUN_00459900 size=248 conf=0.3 :: Simplified variant that returns the current observer target's id (via *param_1) and a status value for a player (unaff_SI = player index).
+- 0x459a00 FUN_00459a00 size=270 conf=0.35 :: Builds, sorts, and filters a list of nearby candidate targets, returning the highest-priority valid one.
+- 0x459b10 FUN_00459b10 size=419 conf=0.3 :: Scores a candidate target entry by combining distance and angular falloff against a caller-supplied detection cone.
+- 0x459cc0 FUN_00459cc0 size=272 conf=0.3 :: Computes the direction, distance, and angle between a candidate target and a reference position/orientation.
+- 0x459dd0 FUN_00459dd0 size=164 conf=0.35 :: Validity filter applied to a candidate target datum before it can be selected by camera_observer_find_best_target.
+- 0x459e80 FUN_00459e80 size=240 conf=0.3 :: Fetches the local player's camera field-of-view / frustum bound values, aspect-corrected, for on-screen tests.
+- 0x459f70 FUN_00459f70 size=347 conf=0.3 :: Generates a batch of candidate target-observation directions/positions and collects matching objects into the caller's candidate array.
+- 0x45a0e0 FUN_0045a0e0 size=401 conf=0.35 :: Recursively collects nearby enemy objects (excluding a given index) into a fixed-size candidate array for observer/camera target selection.
+- 0x45a280 FUN_0045a280 size=533 conf=0.45 :: Finds the closest point on a line segment (unaff_EBX direction, two endpoint statics) to an input point param_1, storing the result (with a small clamp-based offset) in param_2.
+- 0x45a4a0 FUN_0045a4a0 size=142 conf=0.4 :: qsort comparator ordering candidate target entries by their scored weight fields.
+- 0x45a530 FUN_0045a530 size=141 conf=0.4 :: Debug/cheat routine that spawns either a specifically selected tag or up to 16 iterated tags near the camera.
+- 0x45a5c0 cheat_spawn_warthog size=97 conf=0.85 :: Debug cheat that finds the warthog vehicle tag by name and spawns one near the camera.
+- 0x45a630 cheat_teleport_to_camera size=136 conf=0.9 :: Debug cheat that teleports the selected/controlled unit to the current camera position, or prints an error if the camera is outside the BSP.
+- 0x45a6c0 FUN_0045a6c0 size=90 conf=0.45 :: Debug cheat that forces the currently selected object's shield field to full and sets its invincibility-style flag bits.
+- 0x45a720 FUN_0045a720 size=114 conf=0.45 :: Debug cheat that applies the same invincibility-style flag/field writes as cheat_make_selected_object_invincible to a specific player's unit (register arg in_AX = player index).
+- 0x45a7a0 FUN_0045a7a0 size=86 conf=0.35 :: Finds the first object datum with a valid controlling-unit index, used by the debug cheat helpers to find their target object.
+- 0x45a800 cheat_spawn_objects_near_camera size=441 conf=0.5 :: Spawns up to param_2 objects from a tag-index array at positions offset from the current camera, used by the tag/warthog spawn cheats.
+- 0x45a9c0 particle_systems_initialize size=783 conf=0.4 :: One-time post-map-load initialization that allocates the runtime memory pools and starts the object, sound, script, and save-file subsystems (previous name particle_systems_initialize was too narrow).
+- 0x45acd0 FUN_0045acd0 size=460 conf=0.4 :: Tears down the memory pools and Win32 resources allocated by game_initialize.
+- 0x45aea0 FUN_0045aea0 size=260 conf=0.35 :: Resolves a map cache slot from a path and switches/queues loading of it if it is not already the active cache file.
+- 0x45afb0 FUN_0045afb0 size=152 conf=0.4 :: Waits for any pending cache load to finish, then unloads the current map cache file and clears the cached tag-index bookkeeping.
+- 0x45b050 FUN_0045b050 size=797 conf=0.4 :: Resets game state (objects, scripts, particle/effect pools, network server) to begin a new game on the currently loaded map.
+- 0x45b370 FUN_0045b370 size=347 conf=0.45 :: Shuts down the currently running game (frees scripts, flushes cache, reverts state) as the counterpart to game_start_new_map.
+- 0x45b4cb game_initialize_mod_per_map_upgrade_effects size=22 conf=0.2 :: Small fragment (kept prior name) that writes a byte and calls FUN_00498650; the decompilation looks like an overlap/alignment artifact so its true behavior is uncertain.
+- 0x45b4e4 game_initialize_mod_per_map_upgrade_effect_locations size=1 conf=0.15 :: Single-byte stub (kept prior name) that is most likely padding/alignment between functions, not genuine code.
+- 0x45b4f0 game_effects_update size=148 conf=0.5 :: Per-tick update that advances contrail, weather, and other particle/effect systems by a (possibly slow-motion-scaled) delta time.
+- 0x45b590 FUN_0045b590 size=225 conf=0.3 :: Marks datum entries owned by the local viewport's player(s) with a flag, and sets a matching bit on their controlled object.
+- 0x45b680 FUN_0045b680 size=256 conf=0.3 :: Server-side routine that gathers qualifying object data into a large buffer and sends it as a network update, likely a full-state sync.
+- 0x45b780 FUN_0045b780 size=300 conf=0.4 :: Main per-tick game update that advances scripts, structure-BSP switching, and network client/server catch-up logic.
+- 0x45b8b0 FUN_0045b8b0 size=98 conf=0.35 :: Resets every player's per-round state and notifies the active multiplayer game engine of the reset.
+- 0x45b920 FUN_0045b920 size=112 conf=0.4 :: Looks up a game variant by name and installs it as the active variant, propagating the change to the network layer if needed.
+- 0x45b990 FUN_0045b990 size=73 conf=0.4 :: Installs a game variant struct (passed by pointer) as the active variant, propagating the change over the network if it changed.
+- 0x45b9e0 FUN_0045b9e0 size=108 conf=0.45 :: Checks whether it is currently safe to pause (no nearby dangerous projectiles/items/effects/units), a quieter subset of game_safe_to_save's checks.
+- 0x45ba50 game_safe_to_save size=395 conf=0.9 :: Returns whether it is currently safe to auto/quick-save, checking for nearby AI threats, dangerous projectiles/items/effects, dangerous units, airborne/dead players, and moving vehicles, logging the s
+- 0x45bbe0 FUN_0045bbe0 size=75 conf=0.45 :: Returns true if no player is currently dead, reusing the same per-player death check used inside game_safe_to_save.
+- 0x45bc30 FUN_0045bc30 size=72 conf=0.3 :: Allocates and zero-initializes the pair-relationship table (bitmasks plus an override entry list) used by the following team/pair functions.
+- 0x45bc80 FUN_0045bc80 size=101 conf=0.35 :: Marks each of the 10 possible indices as compatible/related to itself in the pair-relationship bitmask (reflexive default).
+- 0x45bcf0 FUN_0045bcf0 size=91 conf=0.3 :: Ticks down the countdown timers on active pair-relationship override entries, clearing the corresponding bit once an entry's refcount expires.
+- 0x45bd50 FUN_0045bd50 size=91 conf=0.4 :: Predicate testing whether two 0-9 team/relationship indices are hostile, consulting an explicit table outside of network games and a simple index test otherwise (register args in_CX/in_DX).
+- 0x45bdb0 FUN_0045bdb0 size=68 conf=0.3 :: Tests a secondary per-pair flag bit (distinct from the teams_are_enemies bitmask) for a given pair of 0-9 indices (register args in_CX/in_DX).
+- 0x45be00 FUN_0045be00 size=77 conf=0.3 :: Looks up an override entry for a given pair (either index order) and returns its extra status byte.
+- 0x45be50 FUN_0045be50 size=179 conf=0.35 :: Inserts or refreshes a pair-relationship override entry with the given parameters, activating its bit via team_pair_set.
+- 0x45bf10 FUN_0045bf10 size=162 conf=0.35 :: Removes a pair-relationship override entry and clears its corresponding bit, compacting the remaining entry list.
+- 0x45bfc0 FUN_0045bfc0 size=198 conf=0.35 :: Adjusts an override entry's accumulating counter by a selectable amount and triggers team_pair_set once its configured threshold is reached.
+- 0x45c090 FUN_0045c090 size=92 conf=0.3 :: Refreshes an active pair-relationship override's countdown back to its configured reset value.
+- 0x45c0f0 FUN_0045c0f0 size=62 conf=0.3 :: Clears the extra status byte on a matching pair-relationship override entry.
+- 0x45c130 FUN_0045c130 size=400 conf=0.25 :: Updates a pair's cached flag and the two 10x10 relationship bitmasks (set/clear governed by two independent boolean inputs) and notifies a dependent system; exact semantics of the two flags are not fu
+- 0x45c2c0 game_engine_load_from_variant size=112 conf=0.5 :: Installs the game engine matching a variant's type by loading its vtable pointer from the built-in gametype table.
+- 0x45c330 game_engine_unload size=59 conf=0.5 :: Disposes of the currently loaded game engine (via its vtable's dispose entry) and clears its associated state.
+- 0x45c370 FUN_0045c370 size=207 conf=0.45 :: Starts the currently loaded multiplayer game engine, resetting round state and rolling back if the engine's start callback fails.
+- 0x45c440 FUN_0045c440 size=304 conf=0.4 :: Resets a player's per-life state, optionally auto-assigns them a team by round-robin, clears their kill-feed entries, and notifies the active game engine.
+- 0x45c570 FUN_0045c570 size=286 conf=0.2 :: Forwards a single parameter to the active game engine's vtable slot 0x18; most of its original per-object logic was eliminated by the compiler in this build.
+- 0x45c6a0 FUN_0045c6a0 size=73 conf=0.4 :: Returns the number of active player datum entries.
+- 0x45c6f0 FUN_0045c6f0 size=91 conf=0.3 :: Returns the player datum at a given index among active players (register arg in_EAX = index), or -1 if out of range.
+- 0x45c750 FUN_0045c750 size=214 conf=0.45 :: Checks whether all active players are in a state (spawned, on the target structure-BSP) that allows a structure-BSP switch to proceed.
+- 0x45c830 FUN_0045c830 size=426 conf=0.3 :: More thorough variant of the BSP-switch readiness check that also detects disagreement between players about which structure-BSP to switch to.
+- 0x45c9e0 FUN_0045c9e0 size=207 conf=0.3 :: Finds the next eligible (alive, unit-bearing) entry in the current data iteration and reports whether it belongs to team param_1.
+- 0x45cab0 FUN_0045cab0 size=37 conf=0.4 :: Returns the number of ticks remaining before the game's time limit expires, or -1 if there is no time limit.
+- 0x45cae0 FUN_0045cae0 size=217 conf=0.4 :: Periodically broadcasts a 'time remaining' kill-feed style announcement to all players once the game's remaining time crosses configured milestones.
+- 0x45cbc0 FUN_0045cbc0 size=32 conf=0.3 :: Ascending qsort comparator on a single 4-byte field of the scoreboard entry struct.
+- 0x45cbe0 FUN_0045cbe0 size=74 conf=0.3 :: Multi-field ascending qsort comparator used to fully order scoreboard entries when the primary sort key ties.
+- 0x45cc30 FUN_0045cc30 size=87 conf=0.3 :: Builds a packed sort/status key for a player combining a clamped numeric value with elimination and threshold flag bits.
+- 0x45cc90 game_engine_build_sorted_player_list size=303 conf=0.5 :: Builds and rank-sorts a fixed-size list of scoreboard entries from the active data iterator, used as the basis for scoreboard display.
+- 0x45ce90 FUN_0045ce90 size=68 conf=0.35 :: Looks up a default string from the ui\\multiplayer_game_text string list, or returns an empty fallback string if the tag can't be found.
+- 0x45cee0 FUN_0045cee0 size=78 conf=0.35 :: Looks up and copies out a single player's scoreboard entry from the sorted scoreboard list.
+- 0x45cf30 FUN_0045cf30 size=1286 conf=0.45 :: Builds the localized end-of-game result text (e.g. who is leading or tied) by comparing player or team scores through the active game engine's callbacks.
+- 0x45d440 FUN_0045d440 size=84 conf=0.4 :: Computes a player's rank/placement number within the sorted scoreboard list, accounting for tied entries.
+- 0x45d4a0 select_players_to_display size=453 conf=0.85 :: Filters and reorders the sorted scoreboard list down to just the local split-screen players for HUD display.
+- 0x45d670 FUN_0045d670 size=135 conf=0.3 :: Draws a short piece of HUD text anchored to a screen corner using the engine's shared 16-bit text drawing state.
+- 0x45d700 game_engine_post_rasterize_post_game size=3024 conf=0.8 :: Renders the postgame carnage report / scoreboard overlay by formatting per-player or per-team score columns.
+- 0x45e340 FUN_0045e340 size=474 conf=0.4 :: Searches nearby units for the closest one within the player's aim cone and short range, used to pick a HUD nameplate target.
+- 0x45e520 FUN_0045e520 size=343 conf=0.4 :: Tracks a hysteresis-stabilized nameplate target found by hud_find_nearby_teammate_for_nameplate and draws its name and a scaled value onscreen.
+- 0x45e680 game_engine_build_kill_feed_message_text size=2815 conf=0.55 :: Formats the localized text for a specific kill-feed/HUD message type (kill, suicide, betrayal, etc.) into a caller-supplied buffer.
+- 0x45f220 FUN_0045f220 size=251 conf=0.35 :: Drives the fade-in/fade-out opacity of the teammate nameplate HUD element per screen/player.
+- 0x45f320 game_engine_cleanup_dropped_objects size=472 conf=0.5 :: Periodically deletes old corpses and expired dropped items that have exceeded their lifetime (about 30 seconds).
+- 0x45f510 FUN_0045f510 size=77 conf=0.4 :: Notifies the active game variant callback when an unclaimed item object is about to be despawned.
+- 0x45f560 FUN_0045f560 size=374 conf=0.35 :: Updates a per-object friction value each tick and notifies the game variant about pickup-eligible objects.
+- 0x45f6e0 FUN_0045f6e0 size=53 conf=0.3 :: Advances the game's random number generator by a caller-specified number of draws.
+- 0x45f720 FUN_0045f720 size=145 conf=0.4 :: Advances the PRNG and picks a weighted-random permutation/index from a tag reflexive block.
+- 0x45f7c0 FUN_0045f7c0 size=128 conf=0.45 :: Checks whether a netgame equipment placement's allowed game-type list matches the currently active game variant.
+- 0x45f850 FUN_0045f850 size=147 conf=0.35 :: Dispatches a networked game-event notification (event id 0x2f, apparently item pickup) through the engine's event/message system.
+- 0x45f8f0 FUN_0045f8f0 size=248 conf=0.45 :: Spawns (or replays a network message spawning) a single netgame-equipment item at its configured position and orientation.
+- 0x45f9f0 game_engine_update_netgame_equipment size=598 conf=0.55 :: Per-tick update that respawns scenario netgame-equipment items once their configured respawn timer has elapsed.
+- 0x45fc50 hud_render_scoreboard_ingame size=45 conf=0.25 :: Appears to be another copy of the netgame-equipment respawn tick logic, but the size/content mismatch in the extracted data makes this uncertain.
+- 0x45fc80 FUN_0045fc80 size=145 conf=0.4 :: Synchronizes the active game variant's default option block into the local cache and, if hosting, into the network session state.
+- 0x45fd20 FUN_0045fd20 size=102 conf=0.3 :: Clears a pair of per-unit tracking fields (likely recent-damage bookkeeping) each tick when a game option flag is enabled.
+- 0x45fd90 game_engine_begin_end_game_sequence size=86 conf=0.5 :: Kicks off the end-of-game sequence once a win condition is detected, starting the post-game countdown and cue sounds.
+- 0x45fdf0 game_engine_update_end_game_sequence size=308 conf=0.55 :: Advances the post-game sequence timers, printing the dedicated-server-idle message and finalizing the round once its display duration ends.
+- 0x45ff30 game_engine_tick size=706 conf=0.55 :: The main per-tick update for the multiplayer game engine, driving object cleanup, equipment respawns, teleporters, and the end-of-game state machine.
+- 0x460200 game_engine_on_player_death size=1672 conf=0.5 :: Handles a player death event: schedules the victim's respawn timer and builds/broadcasts the appropriate kill-feed message.
+- 0x460890 FUN_00460890 size=56 conf=0.35 :: Builds a HUD/kill-feed message's text, preferring a game-variant-supplied override before falling back to the default builder.
+- 0x4608d0 FUN_004608d0 size=242 conf=0.4 :: Dispatches a networked kill-event notification (event id 0x18) to machines whose recorded machine id matches the local player.
+- 0x4609d0 FUN_004609d0 size=89 conf=0.4 :: Handles an incoming or locally-generated kill-feed network event by resolving the killer and forwarding it to the kill-feed message system.
+- 0x460a30 chimera__kill_feed size=316 conf=0.5 :: Central kill-feed entry point: validates the recipient, formats the message text, and routes it to the multiplayer-message or HUD-message display system.
+- 0x460ba0 FUN_00460ba0 size=101 conf=0.3 :: Broadcasts a kill-feed message to every entry in the current data iteration that belongs to a given group/team id.
+- 0x460c10 FUN_00460c10 size=245 conf=0.35 :: Broadcasts one of several kill-feed message variants to each recipient depending on their team relationship to the source player.
+- 0x460d10 FUN_00460d10 size=159 conf=0.3 :: Broadcasts a single kill-feed message id to every entry in the current data iteration.
+- 0x460db0 FUN_00460db0 size=122 conf=0.3 :: Conditionally broadcasts a kill-feed message id to every entry in the current data iteration.
+- 0x460e40 FUN_00460e40 size=234 conf=0.4 :: Determines whether a dead player has priority to respawn next under a single-life-per-round game rule.
+- 0x460f30 FUN_00460f30 size=59 conf=0.4 :: Checks whether a player has been dead long enough (or accumulated enough of a counter) to be considered eliminated for the round.
+- 0x460f70 game_engine_player_ready_to_respawn size=265 conf=0.5 :: Per-tick check that counts down a dead player's respawn timer, playing countdown cues and staggering respawns across frames.
+- 0x461080 game_engine_find_valid_starting_locations size=249 conf=0.5 :: Searches the scenario's player-starting-location list for entries matching a team/type and optional proximity filter.
+- 0x461180 FUN_00461180 size=40 conf=0.3 :: Thin wrapper around the starting-location search that discards the results, apparently used only to trigger its side effects.
+- 0x4611b0 FUN_004611b0 size=64 conf=0.35 :: Resolves and stores a player's team id, preferring the active game variant's callback over the default derivation.
+- 0x4611f0 game_engine_spawn_player_starting_loadout size=450 conf=0.5 :: Spawns a player's starting weapon/equipment loadout from the scenario's starting-profile table and applies its ammo-reset rules.
+- 0x4613c0 game_engine_apply_player_grenade_counts size=366 conf=0.5 :: Computes and applies a player's starting frag and plasma grenade counts based on scenario defaults and game option overrides.
+- 0x461550 FUN_00461550 size=192 conf=0.35 :: Computes a time-scaling multiplier from the game speed option and the active game variant's callback overrides.
+- 0x461610 game_engine_is_inactive size=23 conf=0.55 :: Reports whether the game engine is currently inactive (no game variant loaded, or not yet started).
+- 0x461630 game_engine_update_teleporter size=1096 conf=0.75 :: Handles teleporting a unit through a level teleporter, finding and validating a destination and reporting failures.
+- 0x461a80 FUN_00461a80 size=69 conf=0.4 :: Invokes the postgame carnage-report rendering only while the game engine is in one of its end-of-game display states.
+- 0x461ad0 FUN_00461ad0 size=388 conf=0.35 :: Computes a damage-scaling factor based on the proximity of teammates or other entities to a given point.
+- 0x461c60 FUN_00461c60 size=300 conf=0.3 :: Computes a scaling bonus that grows with the number of nearby same-team entities within a mid-range distance band.
+- 0x461d90 FUN_00461d90 size=194 conf=0.4 :: Computes the overall damage multiplier for a player by combining proximity, teammate-count, and game-variant scaling factors.
+- 0x461e60 FUN_00461e60 size=186 conf=0.3 :: Searches nearby objects for one belonging to a specific team, returning whether a match was found.
+- 0x461f20 FUN_00461f20 size=220 conf=0.4 :: Draws the teammate nameplate's name and value text at a fixed position on the HUD.
+- 0x462000 FUN_00462000 size=191 conf=0.4 :: Notifies the game variant about a pickup-flag state change and asks it whether the item pickup is permitted.
+- 0x4620c0 FUN_004620c0 size=204 conf=0.4 :: Register-argument helper that tests whether one entry of the 32-slot custom-waypoint table applies to a given object/player, honoring -1 wildcard sentinels for player, team-type and owner filters.
+- 0x462190 FUN_00462190 size=150 conf=0.4 :: For a given player/object filter, walks the custom waypoint table and copies the positions and slot indices of all matching entries into the caller-supplied output arrays.
+- 0x462230 FUN_00462230 size=33 conf=0.4 :: Fetches the stored 3D position of a single custom-waypoint slot into a caller-supplied Point3D-sized buffer.
+- 0x462260 FUN_00462260 size=100 conf=0.45 :: Registers a new custom HUD waypoint marker at a world position (raised slightly above it) with an icon looked up by name and optional player/type filters.
+- 0x4622d0 game_engine_get_variant_by_name size=1968 conf=0.9 :: Looks up a built-in multiplayer game-variant name and either reports whether it exists (param_1 is NULL) or fills the caller buffer with that variant default option values, falling back to the custom/
+- 0x462a80 game_engine_rasterize_message size=11 conf=0.4 :: Stub with no body in this retail build; presumably an on-screen game-engine message rasterizer that was compiled out or disabled.
+- 0x462a90 FUN_00462a90 size=313 conf=0.4 :: For each active custom waypoint that passes the player/team filter, pushes an add-or-update call into the interface HUD nav-point system.
+- 0x462bd0 FUN_00462bd0 size=24 conf=0.25 :: Low-confidence: builds a packed flags/color byte for an object from the game engine option bitfield when not in the DAT_0087aa00-bit2 mode, otherwise passes the input through unchanged in its low byte
+- 0x462bf0 game_engine_get_teams_enabled size=18 conf=0.55 :: Returns whether the active game engine has team play enabled.
+- 0x462c10 FUN_00462c10 size=32 conf=0.3 :: Low-confidence boolean accessor for one bit of the game engine option bitfield, gated on the engine being active and a valid object id.
+- 0x462c30 FUN_00462c30 size=405 conf=0.3 :: Resolves a scenario multiplayer object placement (paired with FUN_00462df0 flag variant) to the actual object/index that should be used for the active game variant, hiding it (-1) when the relevant ve
+- 0x462df0 FUN_00462df0 size=475 conf=0.3 :: Resolves a scenario netgame_flag-style placement index into the role/category appropriate for the currently active multiplayer variant type.
+- 0x4630b0 FUN_004630b0 size=68 conf=0.35 :: Given a player referenced start/placement object, dispatches to the netgame-flag or netgame-equipment remapping routine based on that placement stored type.
+- 0x463100 FUN_00463100 size=75 conf=0.35 :: Returns true automatically for an eliminated player or one who has already reached the score limit in a free-for-all game, otherwise returns whether the player is the current FFA leader.
+- 0x463150 FUN_00463150 size=320 conf=0.35 :: Determines and dispatches which contextual HUD hint (for example leader, score-limit reached, eliminated) should currently be shown to a player.
+- 0x463290 game_engine_get_player_color size=101 conf=0.5 :: Returns a 3-float RGB color for a player: either a resolved custom palette color or one of two fixed default colors.
+- 0x463300 FUN_00463300 size=148 conf=0.3 :: Checks whether any of up to four registered members of a player team currently satisfy a status bit (plausibly alive/active), returning 1 if found.
+- 0x4633a0 FUN_004633a0 size=72 conf=0.3 :: Resets a per-team floating-point gauge/timer field to 0.5 when a particular team status bit is set.
+- 0x4633f0 game_engine_get_multiplayer_text_list size=130 conf=0.55 :: Returns the string-list data for the ui\multiplayer_game_text tag (or a built-in fallback list) used for multiplayer HUD/game text strings.
+- 0x463480 FUN_00463480 size=347 conf=0.35 :: Compares one object score against every other tracked object (via the game engine score callback) to compute whether it is winning, tied, and how many objects tie with it.
+- 0x4635e0 FUN_004635e0 size=56 conf=0.4 :: Returns whether player scores should be tracked/displayed individually rather than by team, based on the team-mode flag and an option bit.
+- 0x463620 FUN_00463620 size=50 conf=0.3 :: Clears a player per-round engine bookkeeping and invokes the active game variant optional reset callback.
+- 0x463660 FUN_00463660 size=195 conf=0.3 :: Determines whether a given object belongs to the currently leading/winning team.
+- 0x463730 FUN_00463730 size=130 conf=0.3 :: Returns whether a given tracked object should be treated as this round winner, deferring to the active variant custom win-check callback when one exists.
+- 0x4637c0 FUN_004637c0 size=76 conf=0.2 :: Low-confidence: appears to search a scenario placement list for a matching short identifier, but the decompiled loop body has no observable effect, suggesting lost side effects (for example an element
+- 0x463810 FUN_00463810 size=156 conf=0.2 :: Low-confidence: repeatedly walks scenario placement-list counts with no clear side effect in the decompilation; may be a validation/assert routine or a decompiler artifact.
+- 0x4638b0 game_engine_free_custom_variant_cache size=111 conf=0.6 :: Releases the dynamically allocated recent/custom game-variant cache and resets its bookkeeping globals to empty.
+- 0x463920 FUN_00463920 size=81 conf=0.4 :: Checks whether the currently loaded map is present/enabled in the multiplayer maps table and, optionally, that the active game variant is a recognized one.
+- 0x463980 game_engine_variant_add_to_history size=397 conf=0.5 :: Adds a named custom game variant (with either supplied or default option data) to the dynamically-grown recent/custom variant cache.
+- 0x463b20 FUN_00463b20 size=108 conf=0.4 :: Ensures the recent/custom game-variant cache has at least one entry, restoring a previously saved default variant into it if it was empty.
+- 0x463b90 game_engine_apply_current_custom_variant size=176 conf=0.5 :: Cycles to and loads the next entry of the custom game-variant cache into the currently active variant state.
+- 0x463c40 game_engine_variant_defaults_classic_slayer size=216 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_slayer" multiplayer game type.
+- 0x463d20 game_engine_variant_defaults_classic_slayer_pro size=216 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_slayer_pro" multiplayer game type.
+- 0x463e00 game_engine_variant_defaults_classic_elimination size=216 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_elimination" multiplayer game type.
+- 0x463ee0 game_engine_variant_defaults_classic_phantoms size=217 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_phantoms" multiplayer game type.
+- 0x463fc0 game_engine_variant_defaults_classic_endurance size=221 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_endurance" multiplayer game type.
+- 0x4640a0 game_engine_variant_defaults_classic_rockets size=216 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_rockets" multiplayer game type.
+- 0x464180 game_engine_variant_defaults_classic_snipers size=220 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_snipers" multiplayer game type.
+- 0x464260 game_engine_variant_defaults_classic_team_slayer size=217 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_team_slayer" multiplayer game type.
+- 0x464340 game_engine_variant_defaults_classic_oddball size=240 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_oddball" multiplayer game type.
+- 0x464430 game_engine_variant_defaults_classic_team_oddball size=224 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_team_oddball" multiplayer game type.
+- 0x464510 game_engine_variant_defaults_classic_reverse_tag size=240 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_reverse_tag" multiplayer game type.
+- 0x464600 game_engine_variant_defaults_classic_accumulation size=241 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_accumulation" multiplayer game type.
+- 0x464700 game_engine_variant_defaults_classic_juggernaut size=243 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_juggernaut" multiplayer game type.
+- 0x464800 game_engine_variant_defaults_classic_stalker size=250 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_stalker" multiplayer game type.
+- 0x464900 game_engine_variant_defaults_classic_king size=203 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_king" multiplayer game type.
+- 0x4649d0 game_engine_variant_defaults_classic_king_pro size=206 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_king_pro" multiplayer game type.
+- 0x464aa0 game_engine_variant_defaults_classic_crazy_king size=202 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_crazy_king" multiplayer game type.
+- 0x464b70 game_engine_variant_defaults_classic_team_king size=206 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_team_king" multiplayer game type.
+- 0x464c40 game_engine_variant_defaults_classic_ctf size=230 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_ctf" multiplayer game type.
+- 0x464d30 game_engine_variant_defaults_classic_ctf_pro size=230 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_ctf_pro" multiplayer game type.
+- 0x464e20 game_engine_variant_defaults_classic_invasion size=230 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_invasion" multiplayer game type.
+- 0x464f10 game_engine_variant_defaults_classic_iron_ctf size=230 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_iron_ctf" multiplayer game type.
+- 0x465000 game_engine_variant_defaults_classic_race size=209 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_race" multiplayer game type.
+- 0x4650e0 game_engine_variant_defaults_classic_rally size=213 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_rally" multiplayer game type.
+- 0x4651c0 game_engine_variant_defaults_classic_team_race size=209 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_team_race" multiplayer game type.
+- 0x4652a0 game_engine_variant_defaults_classic_team_rally size=210 conf=0.75 :: Fills a 0x26-dword game-variant options buffer with the hardcoded default settings for the built-in "classic_team_rally" multiplayer game type.
+- 0x465380 FUN_00465380 size=66 conf=0.25 :: Low-confidence table of hardcoded default constants selected by a small integer index; exact meaning of the returned values is unclear.
+- 0x4653f0 FUN_004653f0 size=474 conf=0.3 :: Renders a world-relative HUD text label (with optional highlighted background and distance-based scaling/fade) via the engine 16-bit text rasterizer.
+- 0x4655d0 FUN_004655d0 size=167 conf=0.3 :: Maps the current multiplayer game-setup wizard internal state into a small integer id used to drive other UI logic.
+- 0x465690 game_engine_rasterize_in_game_score size=3226 conf=0.75 :: Renders the in-game/post-game multiplayer scoreboard (per-player rows with ping, plus the server's IP:port) using the ui\multiplayer_game_text UI tag and chimera__draw_16_bit_text.
+- 0x466340 FUN_00466340 size=77 conf=0.35 :: Given a player identifier in EAX, returns whether that player's team currently has a non-positive score (used as a UI/logic predicate).
+- 0x466390 unit_current_weapon_prevents_camo_depower size=133 conf=0.5 :: Returns whether the player's currently-held weapon has the 'does not depower active camouflage in multiplayer' flag set.
+- 0x466420 FUN_00466420 size=272 conf=0.45 :: Decays a unit's active-camouflage-related timer field each tick, using the current weapon's camo-depower flag to determine how fast it counts down.
+- 0x466530 game_time_format_minutes_seconds size=198 conf=0.55 :: Formats a tick-count time value (register argument) as a "minutes:seconds" wide string.
+- 0x4666c0 ctf_flag_object_clear_carrier size=99 conf=0.5 :: Resets an objective (flag) game object's carrier/drop-time tracking fields, used when the flag is returned or reset.
+- 0x466730 game_variant_sanitize_options size=339 conf=0.5 :: Clamps/sanitizes the numeric and boolean fields of a game-variant options struct (passed in ECX) to valid ranges.
+- 0x466890 FUN_00466890 size=688 conf=0.35 :: Resolves a set of tag dependencies (a 6-entry and a 16-entry TagDependency array) inside a map-globals-like structure, selected by a difficulty/type index.
+- 0x466b60 FUN_00466b60 size=94 conf=0.3 :: Predicate checking whether a given identifier refers to a usable, team-assigned player under current game-engine constraints.
+- 0x466bc0 FUN_00466bc0 size=81 conf=0.4 :: Returns whether the current weapon has the must-be-readied flag while the active game-variant type equals the CTF value (1).
+- 0x466c20 player_profile_cache_initialize size=63 conf=0.5 :: One-time initializer that clears the 16-slot player-profile cache table used elsewhere in this file.
+- 0x466c60 FUN_00466c60 size=65 conf=0.45 :: Adds a player handle to the profile-cache table in the first free slot, unless it is already present.
+- 0x466cb0 FUN_00466cb0 size=73 conf=0.45 :: Processes every active entry in the player-profile cache and then fires an optional game-engine callback.
+- 0x466d00 FUN_00466d00 size=344 conf=0.4 :: Applies a cached player-profile entry's fields onto a newly-created datum, with a King-variant-specific time-field rescale.
+- 0x466e60 FUN_00466e60 size=23 conf=0.3 :: Invokes the current game-engine's optional callback stored at offset 0x94, if one is registered.
+- 0x466e80 FUN_00466e80 size=93 conf=0.45 :: Searches the player-profile cache table for an active entry whose stored handle matches the given value, returning its slot index.
+- 0x466ee0 FUN_00466ee0 size=291 conf=0.4 :: Captures a player's current profile-like fields from the live player record, forwards them for network sync, and optionally refreshes the cache table entry.
+- 0x467010 FUN_00467010 size=175 conf=0.4 :: Packages a player-profile buffer as network message type 0x15 and enqueues it for sending/delivery.
+- 0x4670c0 FUN_004670c0 size=43 conf=0.35 :: First stage of a countdown/notification sequence: sets state 1 with a 7-second timer and triggers an update/sound callback.
+- 0x4670f0 FUN_004670f0 size=135 conf=0.35 :: Second stage of the countdown sequence: sets state 2 with a 5-second timer and clears a per-unit flag for all players.
+- 0x467180 FUN_00467180 size=68 conf=0.3 :: Third stage of the countdown sequence: sets state 3 and configures a follow-on duration from global settings.
+- 0x4671d0 FUN_004671d0 size=95 conf=0.3 :: Sends a small fixed-payload network message tagged with type 0x16.
+- 0x467230 FUN_00467230 size=60 conf=0.4 :: Validates and dispatches an incoming countdown/notification message to one of its three stage handlers.
+- 0x467270 game_engine_variant_defaults_assault size=244 conf=0.7 :: Fills a game-variant options buffer with the hardcoded default settings for the built-in "assault" multiplayer game type.
+- 0x467370 game_engine_variant_defaults_crazy_king size=219 conf=0.75 :: Fills a game-variant options buffer with the hardcoded default settings for the built-in "crazy_king" multiplayer game type.
+- 0x467450 FUN_00467450 size=237 conf=0.35 :: Fills a game-variant options buffer with hardcoded default settings for a built-in variant reached between the 'juggernaut' and 'crazy_king' name checks (name inferred as "stalker" by analogy, not dir
+- 0x467540 game_engine_variant_defaults_juggernaut size=259 conf=0.75 :: Fills a game-variant options buffer with the hardcoded default settings for the built-in "juggernaut" multiplayer game type.
+- 0x467650 game_engine_variant_defaults_king size=219 conf=0.7 :: Fills a game-variant options buffer with the hardcoded default settings for the built-in "king" (King of the Hill) multiplayer game type.
+- 0x467730 game_engine_variant_defaults_oddball size=254 conf=0.75 :: Fills a game-variant options buffer with the hardcoded default settings for the built-in "oddball" multiplayer game type.
+- 0x467830 game_engine_variant_defaults_race size=225 conf=0.7 :: Fills a game-variant options buffer with the hardcoded default settings for the built-in "race" multiplayer game type.
+- 0x467920 game_engine_variant_defaults_slayer size=232 conf=0.75 :: Fills a game-variant options buffer with the hardcoded default settings for the built-in "slayer" multiplayer game type.
+- 0x467a10 game_engine_variant_defaults_team_king size=223 conf=0.75 :: Fills a game-variant options buffer with the hardcoded default settings for the built-in "team_king" multiplayer game type.
+- 0x467af0 game_engine_variant_defaults_team_oddball size=258 conf=0.75 :: Fills a game-variant options buffer with the hardcoded default settings for the built-in "team_oddball" multiplayer game type.
+- 0x467c00 game_engine_variant_defaults_team_race size=226 conf=0.75 :: Fills a game-variant options buffer with the hardcoded default settings for the built-in "team_race" multiplayer game type.
+- 0x467cf0 game_engine_variant_defaults_team_slayer size=234 conf=0.75 :: Fills a game-variant options buffer with the hardcoded default settings for the built-in "team_slayer" multiplayer game type.
+- 0x467de0 FUN_00467de0 size=119 conf=0.4 :: Clears two per-unit flag bytes for every player's current unit, likely as part of a new-round/new-life reset pass.
+- 0x467e60 FUN_00467e60 size=267 conf=0.4 :: In multiplayer, resets a per-entry duration field across a data table and then sweeps all game objects, deleting stray biped/weapon-type garbage.
+- 0x467f70 FUN_00467f70 size=139 conf=0.4 :: Sweeps all live game objects and deletes/garbage-collects any of a specific type (biped or weapon-class, per the +4 type field).
+- 0x468010 FUN_00468010 size=308 conf=0.35 :: Sweeps game objects and deletes weapon/pickup-type objects that are no longer validly parented, except when engine type 1 (CTF) applies special handling.
+- 0x468150 FUN_00468150 size=67 conf=0.4 :: Zeroes a per-player statistics/state block for every player currently registered in the profile cache.
+- 0x4681a0 FUN_004681a0 size=192 conf=0.35 :: Performs the standard object-cleanup sweep when the active variant type equals the Race value (5), otherwise runs a different per-object handler over all objects.
+- 0x468260 FUN_00468260 size=82 conf=0.45 :: Runs the game engine's per-round reset sequence: clears unit flags, garbage-collects stray objects, reloads netgame equipment, and clears cached player stats.
+- 0x4682c0 FUN_004682c0 size=96 conf=0.3 :: Sends a small one-byte-payload network message tagged with type 0x17.
+- 0x468320 FUN_00468320 size=62 conf=0.4 :: Validates an incoming network message and, if valid, triggers the object-cleanup/reset pass and an engine callback.
+- 0x468360 FUN_00468360 size=196 conf=0.45 :: Creates a new objective (flag) game object at a given location with a role/owner determined by the current multiplayer/tag state.
+- 0x468430 FUN_00468430 size=35 conf=0.45 :: Respawns a team's objective (flag) object if that team is configured to have one, recording the new object's handle.
+- 0x468460 FUN_00468460 size=64 conf=0.35 :: Invokes a per-team update/notify routine for both the current team and its opposing team.
+- 0x468840 FUN_00468840 size=101 conf=0.45 :: Resets a team's flag-return credit tracking and, if a flag object exists for that team, clears its carrier state and updates its flag bits.
+- 0x4688b0 FUN_004688b0 size=85 conf=0.35 :: Attaches/updates a flag-carry state on a player's unit, then resets the associated team's flag-return credit.
+- 0x468910 FUN_00468910 size=121 conf=0.4 :: Increments a player's/team's flag-touch counters and fires an associated medal/event notification.
+- 0x468990 FUN_00468990 size=77 conf=0.35 :: Tests whether a given point lies within a given radius of a per-team position (interpreted here as the team's flag location).
+- 0x4689e0 FUN_004689e0 size=51 conf=0.4 :: Throttles a periodic flag-related update/notify call to at most once every four seconds.
+- 0x468b50 FUN_00468b50 size=150 conf=0.3 :: Scans all datum entries' 4-slot handle arrays for a match against a given handle; the decompiled result is always -1, indicating an unmodeled output register.
+- 0x468bf0 ctf_engine_flag_tick size=1415 conf=0.55 :: Per-tick update of the CTF flag object: advances the auto-return countdown, resets flag state and cycles the active team when it expires, and force-returns a flag idle too long.
+- 0x469780 FUN_00469780 size=96 conf=0.4 :: Checks whether a unit is currently a valid holder of its team's objective (flag) object by walking the object/equipment reference chain.
+- 0x4697e0 FUN_004697e0 size=374 conf=0.45 :: Per-tick per-player handling of objective (flag) pickup/carry/drop bookkeeping and associated event notifications.
+- 0x46a130 point3d_array_extract_xz_pairs size=125 conf=0.5 :: Extracts the X/Z components of an array of 3D points into a packed 2D point array, dropping the Y (vertical) component.
+- 0x46a1b0 FUN_0046a1b0 size=126 conf=0.4 :: Picks a pseudo-random entry from a small fixed list that differs from a given value, using an inline LCG random-number generator.
+- 0x46a240 FUN_0046a240 size=709 conf=0.45 :: Builds a 2D convex-hull boundary around a set of valid starting locations and computes its bounding-box center and vertical extent.
+- 0x46a670 FUN_0046a670 size=1001 conf=0.4 :: Generates and submits a fence-like quad mesh (with per-edge normals and UVs) along the starting-location boundary polygon, likely for a visual boundary effect.
+- 0x46aa60 game_engine_koth_player_in_hill_bounds size=157 conf=0.55 :: Given a player index passed in EAX, tests whether the player's object lies within the current King-of-the-Hill zone's 2D polygon and vertical z-bounds.
+- 0x46ab00 FUN_0046ab00 size=424 conf=0.45 :: Per-tick handler for a King-of-the-Hill player: if the player is validly standing in the hill and the game is not already decided, credits hill time to their team, fires countdown/warning sound cues n
+- 0x46acb0 game_engine_koth_update_hill_occupancy_state size=546 conf=0.5 :: Determines each tick whether the hill is empty, held by a single player/team, or contested, updates the hill-control state machine, and plays a notification sound once a control streak reaches five se
+- 0x46b250 FUN_0046b250 size=156 conf=0.35 :: Resets the moving-hill marker position history/queue by seeding all four tracked slots with the current hill location and clearing their associated counters.
+- 0x46b2f0 FUN_0046b2f0 size=1008 conf=0.3 :: Assembles and submits a small render/decal geometry batch (positions, colors, default hill-marker placement) to draw the moving King-of-the-Hill marker.
+- 0x46b7f0 FUN_0046b7f0 size=297 conf=0.4 :: Requests or (when mode!=0) formats and broadcasts a network HUD message reporting per-team hill-occupation time in seconds.
+- 0x46bbd0 FUN_0046bbd0 size=199 conf=0.4 :: Requests/sends a multiplayer-sound status message (event id 0x19) to all machines or a specific one, gated by flags from the sound-target lookup.
+- 0x46bca0 FUN_0046bca0 size=84 conf=0.35 :: Checks whether a pending flag is unset and a valid multiplayer-sound table entry exists for the given index, and if so triggers local sound playback (FUN_00543dd0); otherwise clears/defers via FUN_004
+- 0x46bd00 FUN_0046bd00 size=115 conf=0.45 :: Validates a multiplayer sound index and, once confirmed valid, optionally networks the event and then triggers full-volume local playback.
+- 0x46bd80 game_engine_multiplayer_sound_queue_tick size=84 conf=0.5 :: Per-tick handler for the delayed multiplayer-sound queue: counts down the currently playing entry and, once it expires, advances the queue and plays the next scheduled sound.
+- 0x46bde0 game_engine_get_multiplayer_sound_duration_ticks size=87 conf=0.5 :: Returns, in game ticks, the playback duration of the multiplayer announcer sound identified by the index passed in EAX.
+- 0x46be40 game_engine_queue_multiplayer_sound size=101 conf=0.5 :: Schedules a multiplayer announcer sound to play once any currently-queued sounds finish, or plays it immediately for sound types that do not support queuing.
+- 0x46beb0 FUN_0046beb0 size=296 conf=0.4 :: Finds a valid (or, failing that, a random) type-2 scenario starting location and returns its position, used to place the King-of-the-Hill marker.
+- 0x46bfe0 FUN_0046bfe0 size=149 conf=0.45 :: Relocates the moving King-of-the-Hill marker: detaches the current hill object, picks a new valid random position, and (re)spawns the marker there.
+- 0x46c1a0 FUN_0046c1a0 size=143 conf=0.35 :: In team play, finds a new hill location for the given object index, plays a related sound when few hills have been used, and clears the object's 'needs relocation' flag.
+- 0x46c230 FUN_0046c230 size=231 conf=0.4 :: Alternate per-tick King-of-the-Hill scorer that increments per-player and per-team hill-occupancy counters against a fixed target and triggers the end-of-game sequence once that target is met.
+- 0x46c320 FUN_0046c320 size=185 conf=0.4 :: Removes an index from all slots of the hill-occupant tracking table, then re-adds it under its owning team's slot if the associated object's tag supports it.
+- 0x46c3e0 FUN_0046c3e0 size=484 conf=0.4 :: Dispatches the King-of-the-Hill per-tick scoring for a player across however many hill slots they occupy, applying a configurable score multiplier and periodic sound cues.
+- 0x46c5d0 FUN_0046c5d0 size=382 conf=0.4 :: Checks whether a hill has gone unclaimed for too long and, if so, announces it via the kill feed and relocates it; otherwise records the current tick as the hill's last-active time.
+- 0x46ce10 FUN_0046ce10 size=143 conf=0.4 :: Determines whether a player is currently eligible to score hill time, using different rules for team versus non-team hill configurations.
+- 0x46d060 FUN_0046d060 size=354 conf=0.4 :: Requests or broadcasts the King-of-the-Hill variant's team score/target state over the network, converting tick counts to seconds where needed.
+- 0x46d520 FUN_0046d520 size=167 conf=0.3 :: Finds the nearest (or, if no reference point is given, the first) unused type-4 scenario starting location, excluding indices already claimed.
+- 0x46d800 FUN_0046d800 size=133 conf=0.45 :: Assigns each type-3 scenario starting location (used for CTF-style flag stands) a unique slot id in the range 0-31, resolving any duplicates.
+- 0x46d890 game_engine_ctf_initialize_flags size=528 conf=0.5 :: Initializes the Capture-the-Flag subsystem for a new round: assigns unique flag ids, resets each flag's runtime state, and configures per-team or neutral flag assignment depending on the active CTF su
+- 0x46db70 FUN_0046db70 size=615 conf=0.45 :: Aggregates per-bucket (team/hill/flag) score values each tick and, once any bucket reaches its target, declares a winner, arms the end-of-round countdown, plays the win announcement, and broadcasts a 
+- 0x46dde0 game_engine_ctf_on_flag_captured size=324 conf=0.5 :: Handles a completed flag capture: clears the flag's carried state, updates and checks the capture-time record, runs the score/win check, and announces the capture (and any new record) to all players.
+- 0x46df30 FUN_0046df30 size=175 conf=0.35 :: Determines whether a given flag id is the one currently eligible to be captured for a particular team/slot, accounting for the active CTF sub-mode.
+- 0x46dfe0 game_engine_ctf_pick_random_flag size=160 conf=0.5 :: Randomly selects one of the active flag locations (excluding the given one) for neutral/single-flag CTF play.
+- 0x46e080 FUN_0046e080 size=213 conf=0.45 :: Processes a flag being scored for a team: validates eligibility, updates per-team flag bookkeeping, and completes the capture once all required flags (in multi-flag mode) or the single flag (in neutra
+- 0x46e250 FUN_0046e250 size=186 conf=0.3 :: Checks whether additional scoring/assignment is currently allowed for a given bucket (team/hill/flag slot), blocking it once a configured capacity limit has been reached.
+- 0x46e310 FUN_0046e310 size=227 conf=0.3 :: Computes a per-object HUD highlight/pulse weight based on how recently each object last scored relative to the current leader.
+- 0x46ec10 FUN_0046ec10 size=275 conf=0.45 :: Requests or broadcasts the current Capture-the-Flag state (active flags, per-team assignments, and captured bitmasks) over the network.
+- 0x46efe0 FUN_0046efe0 size=438 conf=0.4 :: Re-initializes/returns all Capture-the-Flag flags mid-round in team play, resetting their state and reassigning per-team flags similarly to the full round-start initializer.
+- 0x46f1a0 FUN_0046f1a0 size=475 conf=0.3 :: Clears a player's pending reservation flag and randomly selects another active player/object outside the player's own team or bucket.
+- 0x46f450 FUN_0046f450 size=239 conf=0.3 :: Animates a pair of HUD icon scale/alpha values, one fading down and one growing up over time, consistent with a hill-control pulse indicator.
+- 0x46fe10 FUN_0046fe10 size=85 conf=0.45 :: Looks up the field-of-view value for a given weapon/zoom-table index and magnification level, defaulting to 1.0 if no zoom data is present.
+- 0x46fe70 FUN_0046fe70 size=136 conf=0.35 :: Resolves and validates a zoom-table index before delegating to the zoom FOV lookup, applying a bitmask/substitution check first.
+- 0x46ff00 game_engine_attribute_player_death size=1483 conf=0.5 :: Determines kill/assist credit for a player's death by scanning the victim's recent-damager history and team relationships before invoking game_engine_on_player_death with the resolved killer.
+- 0x4704d0 FUN_004704d0 size=285 conf=0.4 :: Formats an announcer message and serializes it into the game's film/replay buffer so it is reproduced correctly when a saved film is played back.
+- 0x4705f0 FUN_004705f0 size=49 conf=0.3 :: Updates a per-player customization/allegiance slot value in a fixed 16-entry table, returning whether the value changed.
+- 0x470630 FUN_00470630 size=89 conf=0.3 :: Finds the active player/object matching a given color id and reassigns its bucket/team index.
+- 0x470690 FUN_00470690 size=136 conf=0.3 :: Gathers two paired per-side totals (score-like values via a callback, and matching counts from a status table) used by the lead-change comparison helpers.
+- 0x470720 FUN_00470720 size=109 conf=0.35 :: Determines whether one side is currently leading over the other, using score totals with a count-based tiebreaker.
+- 0x470790 FUN_00470790 size=114 conf=0.3 :: Checks whether the score margin between two sides is close enough (within about 20%) to warrant a close-game notification.
+- 0x470810 FUN_00470810 size=508 conf=0.4 :: Detects a lead change or close-game condition for a given team color, updates the tracked state and HUD indicator, and broadcasts the notification to all clients.
+- 0x470a10 FUN_00470a10 size=112 conf=0.3 :: Refreshes a player's per-color slot table entry in a specific single-player-like game mode, mirroring the setup step used by the lead-change notification pipeline.
+- 0x470a80 game_engine_allocate_tick_record size=86 conf=0.5 :: Allocates and zero-initializes a new per-tick game-state record, updates the running CRC over it, and makes it the current tick record.
+- 0x470ae0 FUN_00470ae0 size=64 conf=0.45 :: Initializes the current tick record's time-scale and accumulator fields and performs game-mode-specific setup.
+- 0x470b30 FUN_00470b30 size=189 conf=0.45 :: Implements a fixed-30Hz-timestep accumulator, converting a frame's elapsed time into a whole number of simulation ticks while carrying the fractional remainder forward.
+- 0x470bf0 game_engine_advance_simulation_ticks size=223 conf=0.5 :: Advances the game simulation by the appropriate number of fixed 30Hz ticks for this frame, running per-tick hooks and updating game effects.
+- 0x470cd0 game_engine_get_current_tick size=9 conf=0.55 :: Returns the current simulation tick count from the active tick record.
+- 0x470ce0 game_engine_get_time_scale size=34 conf=0.5 :: Returns the effective simulation time-scale factor for the current game mode.
+- 0x470d10 angle_delta_wrapped size=47 conf=0.5 :: Computes the shortest signed angular difference between two angles, wrapped to the range (-pi, pi].
+- 0x470d40 FUN_00470d40 size=64 conf=0.35 :: Advances a value pointed to by ECX toward a target by at most a given maximum step per call.
+- 0x470d80 game_engine_compute_look_angles_from_vector size=90 conf=0.5 :: Derives yaw and pitch angles from a 3D direction vector and stores them into the given player's look-state record.
+- 0x470de0 game_engine_reset_player_look_state size=155 conf=0.5 :: Resets a player's look/aim state record to its defaults, including pitch clamp limits, and initializes global default turn-rate constants on first use.
+- 0x470e80 game_engine_init_player_look_state_from_object size=303 conf=0.5 :: Initializes a specific player's look/aim state record, optionally seeding its initial yaw/pitch and constraints from a given object's facing/velocity.
+- 0x470fb0 FUN_00470fb0 size=179 conf=0.4 :: Evaluates a piecewise-linear response curve stored as a float table at a given fractional index, matching the input's sign.
+- 0x471070 FUN_00471070 size=57 conf=0.4 :: Returns the sign of a control-stick axis value outside a small deadzone, or zero within it.
+- 0x4710b0 FUN_004710b0 size=2595 conf=0.3 :: Builds an 8-float unit-control-data structure (aim deltas and packed action-button flags) for a given camera/player index, applying aim-assist smoothing toward a target object.
+- 0x471ae0 FUN_00471ae0 size=1108 conf=0.4 :: Per-tick processing of one local player's action state: reads the current action/control flags, cycles the selected weapon and grenade type, forwards look-angle updates, and queues the resulting actio
+- 0x471f40 FUN_00471f40 size=73 conf=0.3 :: Thin wrapper around the look-vector computation FUN_00473d70 for a given local-player/unit context.
+- 0x471f90 FUN_00471f90 size=131 conf=0.4 :: Returns the maximum look-pitch angle for a unit, using a zoom-weapon-specific value when the unit is holding a scoped weapon, otherwise a fixed default.
+- 0x472020 chimera__spectate_fp_camera_position size=222 conf=0.5 :: Computes the first-person camera object/offset for a local player's controlled unit, preferring the currently held weapon's camera marker over the unit's own.
+- 0x472100 FUN_00472100 size=83 conf=0.45 :: Updates the HUD-tracked current weapon index for whichever local player owns the given unit.
+- 0x472160 FUN_00472160 size=1346 conf=0.4 :: Updates a local player's look yaw/pitch each tick, clamping against any vehicle seat facing constraints and limiting the per-tick turn rate.
+- 0x4726b0 unit_get_local_player_weapon_index size=60 conf=0.5 :: Returns the full weapon datum index (index+salt) tracked for the local player controlling this unit, or -1 if none.
+- 0x4726f0 FUN_004726f0 size=80 conf=0.45 :: Invalidates the cached weapon-index salt for the local player controlling the given unit.
+- 0x472740 FUN_00472740 size=27 conf=0.45 :: Returns the tracked current weapon datum index for a given local player slot.
+- 0x472760 FUN_00472760 size=543 conf=0.4 :: Converts a raw unit-control input structure into digitized action-flag bits accumulated in the global local-player control header.
+- 0x472aa0 update_server_new size=86 conf=0.9 :: Allocates and initializes the server-side network update-queue globals, then initializes the paired client-side queue.
+- 0x472b00 update_queues_dispose size=109 conf=0.55 :: Frees and resets both the server-side and client-side network update-queue allocations.
+- 0x472b70 FUN_00472b70 size=280 conf=0.45 :: Tears down the server update queue's datum array and cascades into disposing the client update queue.
+- 0x472c90 FUN_00472c90 size=40 conf=0.4 :: Creates (or reinitializes) a single entry in the server update-queue datum array.
+- 0x472cc0 FUN_00472cc0 size=480 conf=0.4 :: Pushes a new server-tick history entry for every player into a 32-deep per-player ring buffer used for network delta reconciliation.
+- 0x472ea0 FUN_00472ea0 size=145 conf=0.35 :: Looks up and copies a previously pushed server-queue history entry for a requested tick index.
+- 0x472f40 update_client_new size=93 conf=0.9 :: Allocates and initializes the client-side network update-queue globals and its ring-buffer state.
+- 0x472fa0 update_client_dispose size=240 conf=0.5 :: Tears down the client update queue's datum array.
+- 0x473090 FUN_00473090 size=59 conf=0.4 :: Builds a staged client update entry from raw input data plus extra state, ready to be queued for sending to the server.
+- 0x4730d0 FUN_004730d0 size=416 conf=0.4 :: Applies a queued client update for a given tick to the server's per-player runtime state.
+- 0x473270 FUN_00473270 size=152 conf=0.4 :: Distributes the currently staged client update entry into a per-player output array and advances the update tick counter.
+- 0x473310 FUN_00473310 size=116 conf=0.35 :: Runs the server update-queue push/read cycle for a given number of catch-up ticks.
+- 0x473390 FUN_00473390 size=160 conf=0.35 :: Pushes an update entry into a specific player's server-side history ring buffer if space is available.
+- 0x473430 FUN_00473430 size=118 conf=0.35 :: Server-side helper that scans all players comparing names, likely for a console/RCON player-lookup command.
+- 0x4734b0 FUN_004734b0 size=76 conf=0.35 :: Advances the client update-queue read cursor toward a target tick, discarding any stale intervening entries.
+- 0x473500 update_client_queue_get_slot size=86 conf=0.55 :: Returns a pointer to a slot in the 128-entry client update ring buffer, either allocating the next write slot (client) or looking up a slot by tick (server/single-player).
+- 0x473560 random_get_table_point size=78 conf=0.5 :: Advances the global PRNG and returns a random point from a precomputed vector3d table, used elsewhere for respawn placement jitter.
+- 0x4735b0 players_initialize size=181 conf=0.9 :: Allocates and CRC-registers the players and teams datum arrays and their associated globals blocks.
+- 0x473670 players_dispose size=95 conf=0.55 :: Resets the players and teams datum arrays and clears the local-player mapping table.
+- 0x4736d0 FUN_004736d0 size=88 conf=0.4 :: Checks whether any player belongs to a given team.
+- 0x473730 FUN_00473730 size=73 conf=0.45 :: Finds an available (empty or unassigned) team slot for assigning a new player.
+- 0x473780 FUN_00473780 size=438 conf=0.3 :: Creates a new player datum with a reduced field-initialization set and links it into the local-player map.
+- 0x473940 FUN_00473940 size=412 conf=0.4 :: Creates a new player datum, performing full state initialization for a freshly-created (as opposed to network-replicated) player.
+- 0x473ae0 player_delete size=204 conf=0.5 :: Frees a player's dynamic allocations, unlinks it from the local-player map, and deletes its datum.
+- 0x473bb0 player_remove size=150 conf=0.5 :: Full removal of a player: frees network history buffers, deletes the player datum, and clears its roster slot.
+- 0x473c50 FUN_00473c50 size=278 conf=0.4 :: Accumulates or resets a weapon's recoil/kick offset into a unit's camera state.
+- 0x473d70 FUN_00473d70 size=282 conf=0.35 :: Computes a unit's forward-facing vector from its view angles and additionally adjusts a velocity/gravity-related vector relative to its parent object.
+- 0x473e90 FUN_00473e90 size=517 conf=0.4 :: After a structure-BSP switch, attempts to give every player without a unit a valid unit and attach it to the new BSP's parent object, retrying as needed.
+- 0x4740a0 FUN_004740a0 size=1262 conf=0.4 :: Main per-tick players update used on the server/single-player path: applies queued client input, handles respawning, and processes each player's action flags.
+- 0x474590 FUN_00474590 size=1034 conf=0.4 :: Client-side counterpart of game_engine_players_update: applies the locally staged update and processes respawn/action handling without dequeuing the server queue.
+- 0x4749a0 main_switch_structure_bsp size=902 conf=0.8 :: Per-tick handling of structure-BSP switch triggers: validates the requested BSP index and either logs an error or performs the switch.
+- 0x474d30 local_player_to_player_index size=30 conf=0.55 :: Looks up the player index currently assigned to a given local-player slot.
+- 0x474d50 game_set_local_player size=84 conf=0.55 :: Assigns (or clears) which player index is bound to a given local-player slot, keeping the player's back-reference in sync.
+- 0x474db0 FUN_00474db0 size=86 conf=0.25 :: Iterates all players; the visible decompiled behavior always returns -1, so its true per-call purpose (given 18 call sites) is not fully recoverable from this view.
+- 0x474e10 FUN_00474e10 size=414 conf=0.4 :: Resets a player's per-tick state and local-player control struct after its controlled unit changes, and updates the global all-players-spawned flag.
+- 0x474fc0 local_player_set_controlled_unit size=201 conf=0.5 :: Binds a new unit as the controlled object for a local player, updating both the unit's owner back-reference and the player's unit-index field.
+- 0x475090 FUN_00475090 size=354 conf=0.35 :: Scans all players and returns whether any is in a pending state requiring respawn/seat handling.
+- 0x475210 players_any_without_unit size=82 conf=0.5 :: Returns whether any player currently lacks a controlled unit.
+- 0x475270 FUN_00475270 size=1331 conf=0.3 :: Unused variant that reattaches a player's unit to a new parent object, recomputing its transform and light attachments.
+- 0x4757b0 FUN_004757b0 size=1181 conf=0.4 :: Searches nearby candidate positions, including randomized jitter, for a placement where a player's unit does not collide with the world, used when attaching/respawning a unit.
+- 0x475c60 FUN_00475c60 size=1096 conf=0.35 :: Attaches a player's unit as a child of a target parent object at a given local offset, updating its transform, light attachments, and bounding radius.
+- 0x4760b0 FUN_004760b0 size=408 conf=0.3 :: Synchronizes light-attachment state on a player unit's current and former parent objects after a parenting change and resets the player's local-player struct.
+- 0x476250 FUN_00476250 size=157 conf=0.35 :: Handles the loss of a player's controlled unit, clearing related state and triggering the post-unit-change reset.
+- 0x476760 FUN_00476760 size=231 conf=0.45 :: Server-side per-tick routine that copies a moved unit's position/velocity into its owning player's record and logs completion for local players.
+- 0x476847 player_add_equipment_unit_grenade_count_mod size=108 conf=0.3 :: Appears to be a duplicated tail fragment of game_engine_server_update_player_positions (same logging and field-copy logic), not related to equipment or grenade counts as its previous name implied.
+- 0x476cf0 FUN_00476cf0 size=79 conf=0.4 :: Applies the first position update for a newly spawned local player's unit, choosing a smooth or snap update based on whether the unit is attached to another object.
+- 0x476d40 players_client_catchup_on_server_updates size=1224 conf=0.85 :: Client-side routine that drains a player's buffered server updates, fast-forwarding position/orientation state until it matches the latest server tick.
+- 0x477210 FUN_00477210 size=111 conf=0.4 :: Tests whether a given player's unit currently has a valid parent object (e.g. is boarding or seated in a vehicle).
+- 0x477280 FUN_00477280 size=87 conf=0.3 :: Scans players for one owned by a local player; the decompiled return value is always -1, so its effective behavior here is unclear.
+- 0x4772e0 unit_snap_position_if_far size=99 conf=0.5 :: Detects when a unit has moved farther than a small threshold and, if so, snaps its cached position and marks it dirty for network reconciliation.
+- 0x477350 apply_remote_player_position_update size=318 conf=0.7 :: Reconciles a remote player's object position against a queued network snapshot, logging drift/desync and forcing a resync when the discrepancy is too large.
+- 0x477490 apply_remote_player_vehicle_position_update size=428 conf=0.65 :: Reconciles a remote player's vehicle position/orientation against queued network updates, snapping the vehicle's transform when the client and host disagree.
+- 0x477640 FUN_00477640 size=42 conf=0.45 :: Returns a pointer to the player-starting-location record at the given index, or 0 if the index is out of range.
+- 0x477670 FUN_00477670 size=87 conf=0.35 :: Initializes all slots of an object's position-history/dead-reckoning buffer to the same starting vector.
+- 0x4776d0 FUN_004776d0 size=312 conf=0.45 :: Picks a random-weighted player starting location index for a respawn, biased toward locations with a higher suitability score.
+- 0x477810 FUN_00477810 size=169 conf=0.3 :: Creates a new object attached to an owning unit, selecting its datum role based on the current game engine mode and team state.
+- 0x4778c0 FUN_004778c0 size=265 conf=0.3 :: Validates a player action request and creates/updates a tracking datum for it, queuing the result for processing.
+- 0x4779d0 FUN_004779d0 size=175 conf=0.25 :: Sends a network notification carrying a single hashed object index and an associated value to observers.
+- 0x477a80 FUN_00477a80 size=481 conf=0.45 :: Sends a network message replicating a unit's full weapon loadout (current weapon plus 4 inventory slots) to observers.
+- 0x477c70 FUN_00477c70 size=555 conf=0.4 :: Applies a network-received spawn loadout (owner unit, weapon slots, grenade counts, stat increments) to a newly created player object.
+- 0x477ea0 player_respawn size=1010 conf=0.55 :: Despawns a player's current unit if any and spawns a fresh biped for them at a chosen starting location, initializing its color, grenades, and network ownership.
+- 0x4782a0 FUN_004782a0 size=347 conf=0.3 :: Builds a bitmask of encounter/squad indices that currently have a live object associated with them.
+- 0x478400 FUN_00478400 size=212 conf=0.35 :: Scans nearby objects around a unit and routes each to the appropriate interaction check (vehicle flip/steal, vehicle boarding, or assassination).
+- 0x478500 FUN_00478500 size=212 conf=0.3 :: A second nearby-interaction scan that uses a lighter-weight vehicle-boarding check than the primary variant.
+- 0x478600 FUN_00478600 size=366 conf=0.45 :: Checks whether the player is looking at a nearby vehicle from an angle that offers a flip, steal, or board prompt, and queues the corresponding pending action.
+- 0x478770 player_check_assassination_opportunity size=172 conf=0.5 :: Determines whether the player is positioned correctly to assassinate a nearby target and, if so, queues the assassination action.
+- 0x478820 FUN_00478820 size=114 conf=0.4 :: Returns true when the player is currently busy with another action, so a new interaction prompt (board/swap/assassinate) should not be shown.
+- 0x4788a0 FUN_004788a0 size=926 conf=0.4 :: Evaluates whether the player can board, swap seats in, or pick up equipment from a nearby vehicle/object, and queues or commits the appropriate action.
+- 0x478c40 FUN_00478c40 size=444 conf=0.35 :: A lightweight variant of the vehicle-boarding interaction check used by player_update_nearby_interactions_secondary.
+- 0x478e00 player_set_pending_interaction_action size=262 conf=0.5 :: Records the highest-priority pending interaction (board, swap, assassinate, flip, etc.) a player is currently offered, based on proximity and action priority.
+- 0x478f10 FUN_00478f10 size=221 conf=0.4 :: Validates a queued weapon action request and forwards it to the appropriate apply routine (swap vs. general weapon action).
+- 0x478ff0 FUN_00478ff0 size=223 conf=0.35 :: Sends a network message announcing a completed player weapon-swap action, including the action type and target object.
+- 0x4790d0 FUN_004790d0 size=353 conf=0.4 :: Confirms or cancels a pending weapon-swap action for a player and notifies observers of the result.
+- 0x479240 FUN_00479240 size=351 conf=0.4 :: Applies a weapon-swap or swap-cancel action to a unit based on its pending action type.
+- 0x4793a0 FUN_004793a0 size=837 conf=0.45 :: Applies a player's pending interaction action (weapon pickup, assassinate, or vehicle-board side selection) once it has been validated.
+- 0x479710 FUN_00479710 size=179 conf=0.35 :: Displays a HUD notification (built from a fixed set of color/text globals), used to report an assist credit.
+- 0x4797d0 FUN_004797d0 size=179 conf=0.35 :: Displays a HUD notification reporting a kill, using a different message template than the assist notification.
+- 0x479890 FUN_00479890 size=157 conf=0.3 :: Displays a HUD notification for a special kill type, using a fixed hardcoded message template.
+- 0x479930 FUN_00479930 size=361 conf=0.4 :: Dispatches the consequences of a kill/damage event on a target - crediting assists, kills, or special notifications and playing the matching HUD/sound feedback.
+- 0x479aa0 FUN_00479aa0 size=145 conf=0.4 :: Sends a network notification of a player statistic increment (kills/deaths/etc.) to observers.
+- 0x479b40 FUN_00479b40 size=82 conf=0.4 :: Validates and forwards a request to increment a player statistic counter.
+- 0x479ba0 FUN_00479ba0 size=255 conf=0.45 :: Adds an amount to one of a player's statistic counters (e.g. kills or deaths) and replicates the change when running as a networked game engine.
+- 0x479ca0 FUN_00479ca0 size=99 conf=0.35 :: Updates a player's kill-streak counter and, for the primary streak type, records the method that produced it.
+- 0x479d10 FUN_00479d10 size=121 conf=0.35 :: Advances the player's kill-streak timers by one tick, clearing the streak-active flag when the primary timer expires.
+- 0x479d90 FUN_00479d90 size=67 conf=0.3 :: Marks a unit's primary kill-streak flag active and resets its recorded streak method.
+- 0x479de0 FUN_00479de0 size=58 conf=0.3 :: Marks a unit's secondary kill-streak flag active.
+- 0x479eb0 FUN_00479eb0 size=141 conf=0.45 :: Tracks consecutive kills within a time window for multikill/killing-spree medals, triggering a medal event when the streak threshold is reached.
+- 0x479f40 FUN_00479f40 size=108 conf=0.3 :: Allocates and initializes a 120-entry, 44-byte-record circular event queue.
+- 0x479fb0 FUN_00479fb0 size=108 conf=0.3 :: Peeks the head record of the event queue, decrementing its reference count and removing it only once no references remain.
+- 0x47a020 position_update_queue_create size=99 conf=0.5 :: Allocates and initializes the 30-entry, 20-byte-record circular queue used to buffer a player's incoming network position updates.
+- 0x47a090 network_queue_destroy size=35 conf=0.5 :: Frees the backing buffers of a circular queue created by one of the *_queue_create constructors.
+- 0x47a0c0 FUN_0047a0c0 size=56 conf=0.4 :: Reorders and pushes a position-update record (tick key plus payload) onto a position-update queue.
+- 0x47a100 FUN_0047a100 size=150 conf=0.45 :: Finds and removes the queued position-update record matching a given network tick, discarding any stale entries in front of it.
+- 0x47a1a0 circular_queue_push size=82 conf=0.5 :: Pushes a fixed-size record onto a circular queue if space is available, returning success/failure.
+- 0x47a200 circular_queue_pop size=45 conf=0.5 :: Pops the oldest record from a circular queue into the caller's buffer.
+- 0x47a230 circular_queue_count size=23 conf=0.55 :: Returns the number of records currently queued in a circular queue.
+- 0x47a250 vehicle_update_queue_create size=99 conf=0.5 :: Allocates and initializes the 30-entry, 72-byte-record circular queue used to buffer a player's incoming network vehicle position/orientation updates.
+- 0x47a2c0 FUN_0047a2c0 size=145 conf=0.45 :: Finds and removes the queued vehicle-update record matching a given network tick, discarding stale entries ahead of it.
+- 0x47b140 player_examine_nearby_vehicle size=100 conf=0.7 :: Looks up a nearby vehicle for the player's examine/interact action and toggles its 'being examined' flag.
+- 0x47b940 player_set_action_result size=86 conf=0.6 :: Records the outcome of a player action into the target object's status flags.
+- 0x47bf23 player_handle_action_jmp_table_adjust_size size=44 conf=0.3 :: A small conditional handler stub that forwards a pair of values to another routine and finalizes the current action.
+- 0x47c310 player_camo_screen_effect size=45 conf=0.6 :: Triggers a camouflage-related screen effect when a relevant nearby object is found.
+- 0x47c3d0 player_health_pack_screen_effect size=31 conf=0.4 :: Retrieves an object and finalizes a pending action, presumably related to a health-pack pickup screen effect.
+- 0x53e060 FUN_0053e060 size=115 conf=0.3 :: Initializes and opens the save-game index file/record structure for read access.
+- 0x53e0e0 FUN_0053e0e0 size=266 conf=0.3 :: Reads a fixed-size save-game index record at the given slot, guarded by a mutex.
+- 0x53e1f0 FUN_0053e1f0 size=267 conf=0.3 :: Writes a fixed-size save-game index record at the given slot, guarded by a mutex.
+- 0x53e300 FUN_0053e300 size=276 conf=0.35 :: Determines the next free save-game index slot, provided the index has not reached its maximum record count.
+- 0x53e420 FUN_0053e420 size=122 conf=0.4 :: Returns the number of records currently stored in the save-game index file.
+- 0x53e4a0 FUN_0053e4a0 size=400 conf=0.35 :: Removes a save-game index record and shifts all subsequent records down to keep the index compact.
+- 0x53e630 FUN_0053e630 size=36 conf=0.3 :: Packs a slot number, a small field, and two flag bits into a single save-game handle/id value.
+- 0x551620 FUN_00551620 size=35 conf=0.25 :: Checks whether a storage-device/profile context is in one of its valid/ready states before save-game operations proceed.
+- 0x551650 user_save_path_register size=73 conf=0.5 :: Registers a base directory path under a search-handle id in an 8-entry lookup table, used to recover full paths during save-game directory enumeration.
+- 0x5516a0 user_save_path_lookup size=40 conf=0.5 :: Looks up the base directory path previously registered for a given search-handle id.
+- 0x5516d0 user_save_path_remove size=64 conf=0.5 :: Removes a previously registered search-handle id and clears its stored path.
+- 0x551710 XCreateSaveGame size=653 conf=0.85 :: Creates (or opens) a save-game directory and its checkpoints subfolder, writing a name descriptor file and returning the resulting path.
+- 0x5519a0 XDeleteSaveGame size=528 conf=0.85 :: Deletes a save-game directory's contents, its checkpoints subfolder, and the directory itself.
+- 0x551bc0 savegame_find_first size=356 conf=0.5 :: Begins enumerating save-game subdirectories under a root path, returning a search handle and the first subdirectory's full path.
+- 0x551d30 savegame_find_next size=251 conf=0.55 :: Continues a save-game subdirectory enumeration started by savegame_find_first, returning the next subdirectory's full path.

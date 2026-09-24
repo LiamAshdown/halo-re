@@ -1,0 +1,95 @@
+{
+ "slice": 9,
+ "decisions": [
+  {
+   "addr": "0x512b80",
+   "module": "render",
+   "confidence": 0.85,
+   "evidence": "Skeptic overruled: NOT objects. The 'objects 0.8' seed is a name-prefix artifact - out/modules.seed.json records evidence 'name-prefix:object_render_state_refresh', and even CEA files object_render_state_refresh under render/ (vendor/halocea/src/blam/render/object_render_state_refresh.c), so the seed does not actually support objects. The OpenSauce name is also mis-mapped: CEA's object_render_state_refresh is lighting-cadence math with no D3D and no text, whereas 0x512b80 decompiles to SetVertexDeclaration/SetVertexShader + SetVertexShaderConstant + cull/colorwrite/alphablend/ztest/pointsprite render states + two DrawVerticesUP(&DAT_006b9280 / &DAT_006bc280, stride 0x18) + interface_set_bitmap_text_draw_mode(1,-1,0,0,5,0) + draw_8_bit_text of a title buffer and two sprintf(\"%d\") labels. That is a line-for-line match for cea render/fg_render.c (fg_render(render_graph, render_infos): ortho consts, untextured point-sprite line state, 512-vertex plot strip + 5-vertex border, 'FPS' title plus max/average '%d' labels); unaff_BL is the render_graph flag. Family confirmed by neighbours sharing the fg globals: 0x512d90 shifts a 4-sample history and averages *0.25 over stride-0x32b0 structs = render/fg_add_sample.c, 0x512700 updates the 0x6b9260/0x6bc2xx fg info block, and the caller 0x512e80 is rasterizer_frame_statistics_draw (exact CEA string match) which per CEA 'renders the graph and the net graph'. Run stays contiguous; only the label rationale changes."
+  },
+  {
+   "addr": "0x5132b0",
+   "module": "rasterizer",
+   "confidence": 0.6,
+   "evidence": "run 0x5132b0-0x51454b is rasterizer/dx9 lens-flare + vertex-compression code, not structures. Chimera sigs land INSIDE these funcs: sig__lens_flare_occlusion_fp_begin/end 0x513c28/0x513cd0 inside 0x513ba0 (= rasterizer_lens_flares_submit_occlusion_tests), sig__lens_flares_draw_fp_begin/end 0x513d76/0x514470 inside 0x513cf0 (= rasterizer_lens_flares_draw; OpenSauce also puts render_sky at 0x5144c0, i.e. Ghidra over-merged the tail). 0x5132d0 decompiles to an exact clamp-to-[-1,1] 11/11/10 pack (1023.5/1023.5/511.5) = cea rasterizer/dx9/compress_real_vector3d_to_int32_clamp; 0x5132b0 is its int8 sibling (x*255 round). 0x513540 is switch(function) over camera basis vectors scaled by *(iVar8+0x84) = cea rasterizer/dx9/lens_flare_evaluate_corona_rotation_function (rotation_function / rotation_function_scale). 0x513cf0 walks a 0x28-stride marker array with near/far fade ((d-near)/(far-near)), fpatan rotation, periodic_function_evaluate animation and rasterizer_set_frustum_z_func(0.03125,4096) - lens-flare draw, not BSP vertices. Run is contiguous with the next run 0x514560+ already labeled rasterizer, and slice 10 continues rasterizer."
+  },
+  {
+   "addr": "0x5132d0",
+   "module": "rasterizer",
+   "confidence": 0.7,
+   "evidence": "run 0x5132b0-0x51454b is rasterizer/dx9 lens-flare + vertex-compression code, not structures. Chimera sigs land INSIDE these funcs: sig__lens_flare_occlusion_fp_begin/end 0x513c28/0x513cd0 inside 0x513ba0 (= rasterizer_lens_flares_submit_occlusion_tests), sig__lens_flares_draw_fp_begin/end 0x513d76/0x514470 inside 0x513cf0 (= rasterizer_lens_flares_draw; OpenSauce also puts render_sky at 0x5144c0, i.e. Ghidra over-merged the tail). 0x5132d0 decompiles to an exact clamp-to-[-1,1] 11/11/10 pack (1023.5/1023.5/511.5) = cea rasterizer/dx9/compress_real_vector3d_to_int32_clamp; 0x5132b0 is its int8 sibling (x*255 round). 0x513540 is switch(function) over camera basis vectors scaled by *(iVar8+0x84) = cea rasterizer/dx9/lens_flare_evaluate_corona_rotation_function (rotation_function / rotation_function_scale). 0x513cf0 walks a 0x28-stride marker array with near/far fade ((d-near)/(far-near)), fpatan rotation, periodic_function_evaluate animation and rasterizer_set_frustum_z_func(0.03125,4096) - lens-flare draw, not BSP vertices. Run is contiguous with the next run 0x514560+ already labeled rasterizer, and slice 10 continues rasterizer."
+  },
+  {
+   "addr": "0x513400",
+   "module": "rasterizer",
+   "confidence": 0.6,
+   "evidence": "run 0x5132b0-0x51454b is rasterizer/dx9 lens-flare + vertex-compression code, not structures. Chimera sigs land INSIDE these funcs: sig__lens_flare_occlusion_fp_begin/end 0x513c28/0x513cd0 inside 0x513ba0 (= rasterizer_lens_flares_submit_occlusion_tests), sig__lens_flares_draw_fp_begin/end 0x513d76/0x514470 inside 0x513cf0 (= rasterizer_lens_flares_draw; OpenSauce also puts render_sky at 0x5144c0, i.e. Ghidra over-merged the tail). 0x5132d0 decompiles to an exact clamp-to-[-1,1] 11/11/10 pack (1023.5/1023.5/511.5) = cea rasterizer/dx9/compress_real_vector3d_to_int32_clamp; 0x5132b0 is its int8 sibling (x*255 round). 0x513540 is switch(function) over camera basis vectors scaled by *(iVar8+0x84) = cea rasterizer/dx9/lens_flare_evaluate_corona_rotation_function (rotation_function / rotation_function_scale). 0x513cf0 walks a 0x28-stride marker array with near/far fade ((d-near)/(far-near)), fpatan rotation, periodic_function_evaluate animation and rasterizer_set_frustum_z_func(0.03125,4096) - lens-flare draw, not BSP vertices. Run is contiguous with the next run 0x514560+ already labeled rasterizer, and slice 10 continues rasterizer."
+  },
+  {
+   "addr": "0x513490",
+   "module": "rasterizer",
+   "confidence": 0.6,
+   "evidence": "run 0x5132b0-0x51454b is rasterizer/dx9 lens-flare + vertex-compression code, not structures. Chimera sigs land INSIDE these funcs: sig__lens_flare_occlusion_fp_begin/end 0x513c28/0x513cd0 inside 0x513ba0 (= rasterizer_lens_flares_submit_occlusion_tests), sig__lens_flares_draw_fp_begin/end 0x513d76/0x514470 inside 0x513cf0 (= rasterizer_lens_flares_draw; OpenSauce also puts render_sky at 0x5144c0, i.e. Ghidra over-merged the tail). 0x5132d0 decompiles to an exact clamp-to-[-1,1] 11/11/10 pack (1023.5/1023.5/511.5) = cea rasterizer/dx9/compress_real_vector3d_to_int32_clamp; 0x5132b0 is its int8 sibling (x*255 round). 0x513540 is switch(function) over camera basis vectors scaled by *(iVar8+0x84) = cea rasterizer/dx9/lens_flare_evaluate_corona_rotation_function (rotation_function / rotation_function_scale). 0x513cf0 walks a 0x28-stride marker array with near/far fade ((d-near)/(far-near)), fpatan rotation, periodic_function_evaluate animation and rasterizer_set_frustum_z_func(0.03125,4096) - lens-flare draw, not BSP vertices. Run is contiguous with the next run 0x514560+ already labeled rasterizer, and slice 10 continues rasterizer."
+  },
+  {
+   "addr": "0x5134c0",
+   "module": "rasterizer",
+   "confidence": 0.6,
+   "evidence": "run 0x5132b0-0x51454b is rasterizer/dx9 lens-flare + vertex-compression code, not structures. Chimera sigs land INSIDE these funcs: sig__lens_flare_occlusion_fp_begin/end 0x513c28/0x513cd0 inside 0x513ba0 (= rasterizer_lens_flares_submit_occlusion_tests), sig__lens_flares_draw_fp_begin/end 0x513d76/0x514470 inside 0x513cf0 (= rasterizer_lens_flares_draw; OpenSauce also puts render_sky at 0x5144c0, i.e. Ghidra over-merged the tail). 0x5132d0 decompiles to an exact clamp-to-[-1,1] 11/11/10 pack (1023.5/1023.5/511.5) = cea rasterizer/dx9/compress_real_vector3d_to_int32_clamp; 0x5132b0 is its int8 sibling (x*255 round). 0x513540 is switch(function) over camera basis vectors scaled by *(iVar8+0x84) = cea rasterizer/dx9/lens_flare_evaluate_corona_rotation_function (rotation_function / rotation_function_scale). 0x513cf0 walks a 0x28-stride marker array with near/far fade ((d-near)/(far-near)), fpatan rotation, periodic_function_evaluate animation and rasterizer_set_frustum_z_func(0.03125,4096) - lens-flare draw, not BSP vertices. Run is contiguous with the next run 0x514560+ already labeled rasterizer, and slice 10 continues rasterizer."
+  },
+  {
+   "addr": "0x5134f0",
+   "module": "rasterizer",
+   "confidence": 0.6,
+   "evidence": "run 0x5132b0-0x51454b is rasterizer/dx9 lens-flare + vertex-compression code, not structures. Chimera sigs land INSIDE these funcs: sig__lens_flare_occlusion_fp_begin/end 0x513c28/0x513cd0 inside 0x513ba0 (= rasterizer_lens_flares_submit_occlusion_tests), sig__lens_flares_draw_fp_begin/end 0x513d76/0x514470 inside 0x513cf0 (= rasterizer_lens_flares_draw; OpenSauce also puts render_sky at 0x5144c0, i.e. Ghidra over-merged the tail). 0x5132d0 decompiles to an exact clamp-to-[-1,1] 11/11/10 pack (1023.5/1023.5/511.5) = cea rasterizer/dx9/compress_real_vector3d_to_int32_clamp; 0x5132b0 is its int8 sibling (x*255 round). 0x513540 is switch(function) over camera basis vectors scaled by *(iVar8+0x84) = cea rasterizer/dx9/lens_flare_evaluate_corona_rotation_function (rotation_function / rotation_function_scale). 0x513cf0 walks a 0x28-stride marker array with near/far fade ((d-near)/(far-near)), fpatan rotation, periodic_function_evaluate animation and rasterizer_set_frustum_z_func(0.03125,4096) - lens-flare draw, not BSP vertices. Run is contiguous with the next run 0x514560+ already labeled rasterizer, and slice 10 continues rasterizer."
+  },
+  {
+   "addr": "0x513540",
+   "module": "rasterizer",
+   "confidence": 0.7,
+   "evidence": "run 0x5132b0-0x51454b is rasterizer/dx9 lens-flare + vertex-compression code, not structures. Chimera sigs land INSIDE these funcs: sig__lens_flare_occlusion_fp_begin/end 0x513c28/0x513cd0 inside 0x513ba0 (= rasterizer_lens_flares_submit_occlusion_tests), sig__lens_flares_draw_fp_begin/end 0x513d76/0x514470 inside 0x513cf0 (= rasterizer_lens_flares_draw; OpenSauce also puts render_sky at 0x5144c0, i.e. Ghidra over-merged the tail). 0x5132d0 decompiles to an exact clamp-to-[-1,1] 11/11/10 pack (1023.5/1023.5/511.5) = cea rasterizer/dx9/compress_real_vector3d_to_int32_clamp; 0x5132b0 is its int8 sibling (x*255 round). 0x513540 is switch(function) over camera basis vectors scaled by *(iVar8+0x84) = cea rasterizer/dx9/lens_flare_evaluate_corona_rotation_function (rotation_function / rotation_function_scale). 0x513cf0 walks a 0x28-stride marker array with near/far fade ((d-near)/(far-near)), fpatan rotation, periodic_function_evaluate animation and rasterizer_set_frustum_z_func(0.03125,4096) - lens-flare draw, not BSP vertices. Run is contiguous with the next run 0x514560+ already labeled rasterizer, and slice 10 continues rasterizer."
+  },
+  {
+   "addr": "0x513780",
+   "module": "rasterizer",
+   "confidence": 0.6,
+   "evidence": "run 0x5132b0-0x51454b is rasterizer/dx9 lens-flare + vertex-compression code, not structures. Chimera sigs land INSIDE these funcs: sig__lens_flare_occlusion_fp_begin/end 0x513c28/0x513cd0 inside 0x513ba0 (= rasterizer_lens_flares_submit_occlusion_tests), sig__lens_flares_draw_fp_begin/end 0x513d76/0x514470 inside 0x513cf0 (= rasterizer_lens_flares_draw; OpenSauce also puts render_sky at 0x5144c0, i.e. Ghidra over-merged the tail). 0x5132d0 decompiles to an exact clamp-to-[-1,1] 11/11/10 pack (1023.5/1023.5/511.5) = cea rasterizer/dx9/compress_real_vector3d_to_int32_clamp; 0x5132b0 is its int8 sibling (x*255 round). 0x513540 is switch(function) over camera basis vectors scaled by *(iVar8+0x84) = cea rasterizer/dx9/lens_flare_evaluate_corona_rotation_function (rotation_function / rotation_function_scale). 0x513cf0 walks a 0x28-stride marker array with near/far fade ((d-near)/(far-near)), fpatan rotation, periodic_function_evaluate animation and rasterizer_set_frustum_z_func(0.03125,4096) - lens-flare draw, not BSP vertices. Run is contiguous with the next run 0x514560+ already labeled rasterizer, and slice 10 continues rasterizer."
+  },
+  {
+   "addr": "0x5138a0",
+   "module": "rasterizer",
+   "confidence": 0.6,
+   "evidence": "run 0x5132b0-0x51454b is rasterizer/dx9 lens-flare + vertex-compression code, not structures. Chimera sigs land INSIDE these funcs: sig__lens_flare_occlusion_fp_begin/end 0x513c28/0x513cd0 inside 0x513ba0 (= rasterizer_lens_flares_submit_occlusion_tests), sig__lens_flares_draw_fp_begin/end 0x513d76/0x514470 inside 0x513cf0 (= rasterizer_lens_flares_draw; OpenSauce also puts render_sky at 0x5144c0, i.e. Ghidra over-merged the tail). 0x5132d0 decompiles to an exact clamp-to-[-1,1] 11/11/10 pack (1023.5/1023.5/511.5) = cea rasterizer/dx9/compress_real_vector3d_to_int32_clamp; 0x5132b0 is its int8 sibling (x*255 round). 0x513540 is switch(function) over camera basis vectors scaled by *(iVar8+0x84) = cea rasterizer/dx9/lens_flare_evaluate_corona_rotation_function (rotation_function / rotation_function_scale). 0x513cf0 walks a 0x28-stride marker array with near/far fade ((d-near)/(far-near)), fpatan rotation, periodic_function_evaluate animation and rasterizer_set_frustum_z_func(0.03125,4096) - lens-flare draw, not BSP vertices. Run is contiguous with the next run 0x514560+ already labeled rasterizer, and slice 10 continues rasterizer."
+  },
+  {
+   "addr": "0x513a00",
+   "module": "rasterizer",
+   "confidence": 0.6,
+   "evidence": "run 0x5132b0-0x51454b is rasterizer/dx9 lens-flare + vertex-compression code, not structures. Chimera sigs land INSIDE these funcs: sig__lens_flare_occlusion_fp_begin/end 0x513c28/0x513cd0 inside 0x513ba0 (= rasterizer_lens_flares_submit_occlusion_tests), sig__lens_flares_draw_fp_begin/end 0x513d76/0x514470 inside 0x513cf0 (= rasterizer_lens_flares_draw; OpenSauce also puts render_sky at 0x5144c0, i.e. Ghidra over-merged the tail). 0x5132d0 decompiles to an exact clamp-to-[-1,1] 11/11/10 pack (1023.5/1023.5/511.5) = cea rasterizer/dx9/compress_real_vector3d_to_int32_clamp; 0x5132b0 is its int8 sibling (x*255 round). 0x513540 is switch(function) over camera basis vectors scaled by *(iVar8+0x84) = cea rasterizer/dx9/lens_flare_evaluate_corona_rotation_function (rotation_function / rotation_function_scale). 0x513cf0 walks a 0x28-stride marker array with near/far fade ((d-near)/(far-near)), fpatan rotation, periodic_function_evaluate animation and rasterizer_set_frustum_z_func(0.03125,4096) - lens-flare draw, not BSP vertices. Run is contiguous with the next run 0x514560+ already labeled rasterizer, and slice 10 continues rasterizer."
+  },
+  {
+   "addr": "0x513ba0",
+   "module": "rasterizer",
+   "confidence": 0.7,
+   "evidence": "run 0x5132b0-0x51454b is rasterizer/dx9 lens-flare + vertex-compression code, not structures. Chimera sigs land INSIDE these funcs: sig__lens_flare_occlusion_fp_begin/end 0x513c28/0x513cd0 inside 0x513ba0 (= rasterizer_lens_flares_submit_occlusion_tests), sig__lens_flares_draw_fp_begin/end 0x513d76/0x514470 inside 0x513cf0 (= rasterizer_lens_flares_draw; OpenSauce also puts render_sky at 0x5144c0, i.e. Ghidra over-merged the tail). 0x5132d0 decompiles to an exact clamp-to-[-1,1] 11/11/10 pack (1023.5/1023.5/511.5) = cea rasterizer/dx9/compress_real_vector3d_to_int32_clamp; 0x5132b0 is its int8 sibling (x*255 round). 0x513540 is switch(function) over camera basis vectors scaled by *(iVar8+0x84) = cea rasterizer/dx9/lens_flare_evaluate_corona_rotation_function (rotation_function / rotation_function_scale). 0x513cf0 walks a 0x28-stride marker array with near/far fade ((d-near)/(far-near)), fpatan rotation, periodic_function_evaluate animation and rasterizer_set_frustum_z_func(0.03125,4096) - lens-flare draw, not BSP vertices. Run is contiguous with the next run 0x514560+ already labeled rasterizer, and slice 10 continues rasterizer."
+  },
+  {
+   "addr": "0x513cf0",
+   "module": "rasterizer",
+   "confidence": 0.7,
+   "evidence": "run 0x5132b0-0x51454b is rasterizer/dx9 lens-flare + vertex-compression code, not structures. Chimera sigs land INSIDE these funcs: sig__lens_flare_occlusion_fp_begin/end 0x513c28/0x513cd0 inside 0x513ba0 (= rasterizer_lens_flares_submit_occlusion_tests), sig__lens_flares_draw_fp_begin/end 0x513d76/0x514470 inside 0x513cf0 (= rasterizer_lens_flares_draw; OpenSauce also puts render_sky at 0x5144c0, i.e. Ghidra over-merged the tail). 0x5132d0 decompiles to an exact clamp-to-[-1,1] 11/11/10 pack (1023.5/1023.5/511.5) = cea rasterizer/dx9/compress_real_vector3d_to_int32_clamp; 0x5132b0 is its int8 sibling (x*255 round). 0x513540 is switch(function) over camera basis vectors scaled by *(iVar8+0x84) = cea rasterizer/dx9/lens_flare_evaluate_corona_rotation_function (rotation_function / rotation_function_scale). 0x513cf0 walks a 0x28-stride marker array with near/far fade ((d-near)/(far-near)), fpatan rotation, periodic_function_evaluate animation and rasterizer_set_frustum_z_func(0.03125,4096) - lens-flare draw, not BSP vertices. Run is contiguous with the next run 0x514560+ already labeled rasterizer, and slice 10 continues rasterizer."
+  },
+  {
+   "addr": "0x4fa8d0",
+   "module": "models",
+   "confidence": 0.78,
+   "evidence": "Skeptic right that it leaves the objects.c run, wrong on 'units'. Body matches cea models/scenery_animation_start_private.c line for line: early-out on (object_index==-1 || graph_index==-1); object datum via *(*(DAT_008603b0+0x34)+8+idx*0xc) (object_header_data DATA_ARRAY_ELEMENT->datum); TAG_GET via DAT_0087bc14 + tag_index*0x20 + 0x14; FUN_004d6ab0 = animation_graph_get_animation_by_name; on -1 console_warning(FUN_004c6920) with \"the animation '%s' doesn't exist in the graph '%s'\"; then object.flags &= ~0x80 (clear _object_animates_automatically_bit), *(uint*)(obj+500) |= 1 = SCENERY flags bit 0 at object+0x1F4 (unit_start_user_animation takes an interpolate flag and sets no scenery flag - so it is not the units variant), object.animation.state.index at +0xd0, graph index at +0xcc, frame clamped to animations[idx*0xb4 + 0x22].frame_count-1 at +0xd2, with the frame<0 branch writing 0 first. cea-string-hint models(1)/units(1) with no objects, plus a ~250-byte gap after 0x4fa500 (ends 0x4fa7d5), confirms a boundary: 0x4fa8d0-0x4faa1f is a 2-function scenery-animation mini-run, not objects.c."
+  },
+  {
+   "addr": "0x4fa9b0",
+   "module": "models",
+   "confidence": 0.65,
+   "evidence": "Consequential fix, same mini-run as 0x4fa8d0: reads the identical object datum + tag path and tests the scenery flag bit 0 at object+500, then returns animations[state.index*0xb4+0x22].frame_count - state.frame_index - 2 clamped at 0 - the scenery_animation_* query paired with scenery_animation_start_private at 0x4fa8d0. Pull it out of the 0x4f67e0-0x4fa9b0 objects.c run; the objects.c run should end at 0x4fa7d5 and the widget run still starts at 0x4faa20."
+  }
+ ]
+}

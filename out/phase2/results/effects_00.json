@@ -1,0 +1,484 @@
+{
+  "results": [
+    {
+      "addr": "0x44c800",
+      "name": "effect_random_int_between",
+      "confidence": 0.35,
+      "evidence": "Advances the local LCG state DAT_00719cd4 then scales (param_1 - in_ECX) by the 16-bit fraction and adds in_ECX back, the classic 'random integer in [min,max)' pattern reused throughout this file.",
+      "prototype": "",
+      "summary": "Register-based helper that returns a pseudo-random 16-bit integer between an implicit ECX minimum and param_1 maximum using the effect module's local RNG state."
+    },
+    {
+      "addr": "0x44c840",
+      "name": "effect_property_random_value",
+      "confidence": 0.35,
+      "evidence": "Uses DAT_00719cd4 LCG to blend between param_2 (optionally scaled by param_1 if bit param_4 of the caller's flag word is set) and param_3-param_2 (optionally scaled by param_1 if bit param_4+1 is set); identical logic to the explicit-seed variant at 0x451290 used for particle system property min/max evaluation.",
+      "prototype": "",
+      "summary": "Evaluates a randomized value between a min and max bound, each optionally multiplied by a scale factor selected by per-bit flags, using the module-local RNG."
+    },
+    {
+      "addr": "0x44c8b0",
+      "name": "contrails_initialize",
+      "confidence": 0.9,
+      "evidence": "cea-pdb hint confirmed by code: registers a 'contrail' datum table (0x100 capacity) and a 'contrail point' datum table (0x400 capacity) via FUN_005380d0, matching the two DAT_0087abec/DAT_0087abe8 tables used throughout the surrounding functions.",
+      "prototype": "void __cdecl contrails_initialize(void)",
+      "summary": "Creates the contrail and contrail-point datum tables used by the rest of the contrail effect system, clearing both handles on partial failure."
+    },
+    {
+      "addr": "0x44c910",
+      "name": "contrail_new",
+      "confidence": 0.4,
+      "evidence": "Allocates a new 0x44-byte entry from the contrail table (datum_new) when param_1 != -1, initializes its owner/marker fields, then calls FUN_0044ced0 (marker-cycling helper) and FUN_0044d020 (contrail point generation) to seed its first render point.",
+      "prototype": "",
+      "summary": "Creates a new contrail instance attached to the given owner id and seeds its initial point/marker state."
+    },
+    {
+      "addr": "0x44ca60",
+      "name": "contrail_advance",
+      "confidence": 0.35,
+      "evidence": "Operates on the contrail struct at unaff_EDI*0x44 in the contrail table; if the 'active' bit is set it calls FUN_0044cf80 (compute point count) and FUN_0044d020 (generate points), then if param_1 is nonzero clears the owner/marker field (offset 8) to -1 and always advances the time accumulator at offset 0x28 by param_2.",
+      "prototype": "",
+      "summary": "Advances a single contrail's time accumulator, generating new trail points if due, and optionally detaches the contrail from its owning marker."
+    },
+    {
+      "addr": "0x44cad0",
+      "name": "contrail_delete",
+      "confidence": 0.55,
+      "evidence": "Walks the contrail's four point-list heads at offset 0x34 (0x44-sized struct), deleting each linked contrail-point datum via datum_delete, then deletes the contrail record itself.",
+      "prototype": "void __cdecl contrail_delete(unsigned int contrail_index)",
+      "summary": "Frees all contrail-point datums owned by a contrail and then deletes the contrail record."
+    },
+    {
+      "addr": "0x44cb50",
+      "name": "contrail_update_all",
+      "confidence": 0.5,
+      "evidence": "Iterates every live contrail via FUN_004d0630 (a datum table iterator over DAT_0087abec), advancing each contrail's timers, refreshing its attach-point color scale via object function values, regenerating points with FUN_0044cf80/FUN_0044d020, aging points with FUN_0044d470 and deleting contrails that have run out of points and owner via FUN_0044cad0; renamed from the hint 'chimera__contrail_update' since the code shows a straightforward per-tick driver, not a Chimera-specific routine.",
+      "prototype": "void __cdecl contrail_update_all(float delta_time)",
+      "summary": "Per-frame driver that updates every active contrail: advances timers, regenerates and ages trail points, and deletes contrails that have finished."
+    },
+    {
+      "addr": "0x44cda0",
+      "name": "contrail_update_all_lighting",
+      "confidence": 0.35,
+      "evidence": "Iterates all contrails and, for each of the four per-node point lists, calls FUN_005013a0 (node/world lookup) and stores a lightmap color index from DAT_00746f9c+0xe4 into each point's offset 0x18, the same lightmap-index lookup pattern used by the particle-system constructors.",
+      "prototype": "void __cdecl contrail_update_all_lighting(void)",
+      "summary": "Refreshes the cached lightmap color index for every point of every contrail (callers=0 in this batch, so invoked from outside this region)."
+    },
+    {
+      "addr": "0x44ced0",
+      "name": "contrail_pick_random_marker_index",
+      "confidence": 0.4,
+      "evidence": "Looks up the object definition via the node index stored at in_EAX+4, then a further definition at +0x3c, increments a counter at in_EAX+0x16, and if the current marker index at in_EAX+0x14 falls outside the valid permutation range it re-rolls a new marker index from DAT_00719cd4 within [min,min+range). Only called from contrail_new and contrail_update_all.",
+      "prototype": "",
+      "summary": "Periodically re-randomizes which marker permutation a contrail point tracks once its current index becomes invalid or its refresh counter expires."
+    },
+    {
+      "addr": "0x44cf80",
+      "name": "contrail_compute_point_count",
+      "confidence": 0.4,
+      "evidence": "Uses the contrail's cached spacing threshold at offset 0x20 and scale at offset 0x10; while the accumulated distance/time (param_1) exceeds the threshold it increments a count and rolls the threshold forward by 1/rate, returning the number of new points to spawn plus the leftover fraction.",
+      "prototype": "",
+      "summary": "Computes how many new contrail points are due given elapsed distance/time and the contrail's point-spacing rate."
+    },
+    {
+      "addr": "0x44d020",
+      "name": "contrail_generate_points",
+      "confidence": 0.5,
+      "evidence": "For each of the contrail's per-node slots, allocates new 'contrail point' datums (datum_new) sized for the 'contrail point' table, interpolating color/position between the previous point and the current marker position (FUN_0044c840-derived width, blend factors local_1bc/1b8/1b4), matching contrails_initialize's registered 0x38-byte contrail-point struct.",
+      "prototype": "",
+      "summary": "Subdivides a contrail segment by allocating and interpolating new contrail-point datums between the last recorded point and the marker's current position."
+    },
+    {
+      "addr": "0x44d470",
+      "name": "contrail_update_points",
+      "confidence": 0.45,
+      "evidence": "Walks the four per-node point lists of a contrail, advances each point's inverse-life timer (offset 8) by param_2, re-rolls a new lifetime via the local LCG when it expires (offsets 0xc/0x1c region-flags), calls FUN_0050b530 to submit a segment for rendering, and deletes points whose life has ended via datum_delete, merging duplicate first points.",
+      "prototype": "void __cdecl contrail_update_points(unsigned int contrail_index, float delta_time)",
+      "summary": "Ages every point of a contrail, regenerating expired segment lifetimes, submitting live segments for rendering, and freeing points that have fully faded."
+    },
+    {
+      "addr": "0x44d820",
+      "name": "vector3d_major_axis_index",
+      "confidence": 0.55,
+      "evidence": "Compares ABS(in_EAX[0..2]) pairwise and returns 0, 1 or 2 for the component with the largest magnitude, the standard 'dominant axis' selector reused (via the same DAT_0065c29c/DAT_0065c29e permutation tables) by 0x44e460 and 0x44e730.",
+      "prototype": "",
+      "summary": "Returns the index (0=x,1=y,2=z) of the largest-magnitude component of an implicit 3-float vector, used to pick a projection axis."
+    },
+    {
+      "addr": "0x44d860",
+      "name": "plane_solve_missing_axis",
+      "confidence": 0.35,
+      "evidence": "Looks up an axis permutation from DAT_0065c29c/DAT_0065c29e (the same tables produced by the major-axis selector), copies the two known 2D coordinates into the output vector, and solves the plane equation at unaff_EBX for the third (dominant) axis unless the plane's coefficient is near zero.",
+      "prototype": "",
+      "summary": "Given two known coordinates of a point and a plane equation, back-solves for the third (dominant-axis) coordinate using a precomputed axis-permutation table."
+    },
+    {
+      "addr": "0x44d8e0",
+      "name": "vector3d_scalar_triple_product",
+      "confidence": 0.5,
+      "evidence": "Computes (in_EAX x param_1) . in_EDX exactly, i.e. the scalar triple product of three implicit 3-float vectors, returned as float10.",
+      "prototype": "",
+      "summary": "Returns the scalar triple product of three vectors passed in registers, typically used to test the signed orientation/volume of a tetrahedron."
+    },
+    {
+      "addr": "0x44d950",
+      "name": "line2d_construct_normal_form",
+      "confidence": 0.4,
+      "evidence": "Builds the 2D perpendicular of the segment (in_EAX, in_EDX) into in_ECX, normalizes it, and stores the plane distance term at in_ECX[2]; returns NULL if the segment is degenerate (length < 0.0001).",
+      "prototype": "",
+      "summary": "Constructs the normal-form 2D line equation (nx, ny, d) through two points, returning NULL for a degenerate (near-zero-length) segment."
+    },
+    {
+      "addr": "0x44d9e0",
+      "name": "plane3d_construct_from_normal_and_point",
+      "confidence": 0.4,
+      "evidence": "Copies the implicit vector in_ECX into param_1[0..2] and sets param_1[3] = dot(param_1, in_EDX), the standard Plane3D (normal, d) construction from a normal and a reference point.",
+      "prototype": "",
+      "summary": "Builds a Plane3D structure (normal xyz plus distance term) from an implicit normal vector and reference point."
+    },
+    {
+      "addr": "0x44da20",
+      "name": "plane3d_negate",
+      "confidence": 0.55,
+      "evidence": "Negates all four components (in_ECX[0..3]) of an implicit Plane3D into in_EAX, the standard plane-flip operation.",
+      "prototype": "",
+      "summary": "Negates a Plane3D's normal and distance components in place."
+    },
+    {
+      "addr": "0x44da40",
+      "name": "effect_random_uint16",
+      "confidence": 0.45,
+      "evidence": "Advances DAT_00719cd4 (the module-local LCG shared by the contrail/decal/particle-system code) and returns its upper 16 bits, the raw accessor underlying the inline copies of this pattern seen throughout the file.",
+      "prototype": "unsigned int __cdecl effect_random_uint16(void)",
+      "summary": "Returns the next 16-bit pseudo-random value from the effects module's local LCG state."
+    },
+    {
+      "addr": "0x44da60",
+      "name": "color_real_to_argb_pack",
+      "confidence": 0.6,
+      "evidence": "Computes ROUND(x*255) for param_1 (alpha) and param_2[0..2] (rgb) and packs them into a single 32-bit ARGB value via CONCAT/shifts, the canonical RealArgbColor-to-byte-ARGB conversion.",
+      "prototype": "unsigned int __cdecl color_real_to_argb_pack(float alpha, float *rgb)",
+      "summary": "Quantizes a floating point alpha and RGB triple to bytes and packs them into a single 0xAARRGGBB value."
+    },
+    {
+      "addr": "0x44dad0",
+      "name": "plane3d_fetch_indexed",
+      "confidence": 0.35,
+      "evidence": "Fetches a 4-float (Plane3D-sized) entry from the table at *(param_1+0x10) indexed by in_EDX, negating all four components when in_EDX is negative, into the implicit in_EAX output.",
+      "prototype": "",
+      "summary": "Looks up an indexed 4-float table entry, optionally negated by the sign of the index, useful for signed plane/BSP-leaf plane references."
+    },
+    {
+      "addr": "0x44db30",
+      "name": "surface_compute_projection_uv",
+      "confidence": 0.35,
+      "evidence": "Reads a lightmap/surface record via param_1*0x40 and param_2*0x20 offsets from the structure_bsp-like table at unaff_EDI+0xe4, copies its corner point into in_EDX, and computes a projected 4-float output (param_4) scaled by param_3 and the caller's dimension field at unaff_EDI+0xfc.",
+      "prototype": "",
+      "summary": "Computes a 2D projection rectangle (uv-like offsets) for a surface/lightmap corner, used when placing a decal or contrail segment onto BSP geometry."
+    },
+    {
+      "addr": "0x44dc30",
+      "name": "decal_update_fade",
+      "confidence": 0.5,
+      "evidence": "Computes elapsed lifetime via DAT_006f1d6c 'current time' minus the decal's creation time (offset 0x14), clears the 'active' bit and calls cache_evict_entry when the fade-out time (offset 0x1c) has elapsed, otherwise writes a quantized alpha byte at offset 0x28 during the fade window.",
+      "prototype": "",
+      "summary": "Advances a single decal's fade state, computing its current alpha byte and evicting the decal's cached geometry once it has fully faded."
+    },
+    {
+      "addr": "0x44dd30",
+      "name": "decal_grid_insert",
+      "confidence": 0.45,
+      "evidence": "Links a decal record (unaff_ESI) into the doubly-linked bucket list at DAT_006b0ad8[unaff_DI*0x200+unaff_BX], storing the grid coordinates (unaff_BX, unaff_DI) into the decal record itself.",
+      "prototype": "",
+      "summary": "Inserts a decal into the spatial hash grid bucket for its (x,y) surface-cell coordinates."
+    },
+    {
+      "addr": "0x44dd90",
+      "name": "decal_allocate",
+      "confidence": 0.45,
+      "evidence": "Allocates a decal slot via datum_new_at_index_with_salt into the 'decals' table (DAT_0087abe4), rolls the module-local LCG to decide permanence (~10%% chance of type 1, or type 2 when param_4 is nonzero), enforces a temporary-decal budget (DAT_006b0ad8+0x2804) by evicting old entries through data_iterator_next, and finally calls decal_grid_insert (FUN_0044dd30) with the given grid cell.",
+      "prototype": "unsigned int __cdecl decal_allocate(short grid_x, short grid_y, unsigned int surface_index, char decal_type)",
+      "summary": "Allocates a new decal datum, assigns it a permanence class with budget-based eviction of old temporary decals, and inserts it into the spatial grid at the given cell."
+    },
+    {
+      "addr": "0x44df90",
+      "name": "decals_initialize",
+      "confidence": 0.8,
+      "evidence": "cea-pdb hint confirmed by code: registers the 'decals' datum table (0x800 capacity) via FUN_005380d0, sets the module-enabled flag at offset 0x25, reserves 0x280c bytes of grid/counter storage tracked by a crc32_update call, and calls rasterizer_decals_initialize.",
+      "prototype": "void __cdecl decals_initialize(void)",
+      "summary": "Registers the decal datum table and allocates/registers the decal spatial-grid storage block with the renderer."
+    },
+    {
+      "addr": "0x44e000",
+      "name": "decal_update_object_attachments",
+      "confidence": 0.35,
+      "evidence": "Walks the object-attached decal list head at DAT_006b0ad8+0x2800, re-resolves each decal's current node via FUN_005013a0 and, when the resulting lightmap index changes, unlinks it from its old hash-grid bucket and relinks it into the new (short*0x200+short) bucket.",
+      "prototype": "void __cdecl decal_update_object_attachments(void)",
+      "summary": "Keeps decals stuck to moving/animating objects rehashed into the correct spatial grid bucket as their attachment node changes."
+    },
+    {
+      "addr": "0x44e220",
+      "name": "decal_reset_counters",
+      "confidence": 0.35,
+      "evidence": "Iterates every decal via data_iterator_next and, for each with the temporary bit (1) or (when unaff_BL is set) the object-attached bit (2) set, clears the flag and decrements the corresponding counter at DAT_006b0ad8+0x2804/0x2808.",
+      "prototype": "",
+      "summary": "Clears per-frame/temporary decal flags across the whole decal table and rebalances the associated budget counters."
+    },
+    {
+      "addr": "0x44e2b0",
+      "name": "decal_update_all",
+      "confidence": 0.55,
+      "evidence": "Iterates every decal via data_iterator_next and calls decal_update_fade (FUN_0044dc30) on each; renamed from the hint 'chimera__decal_table' as the code is a simple per-tick fade-update driver over the whole decal table rather than a Chimera-specific routine.",
+      "prototype": "void __cdecl decal_update_all(void)",
+      "summary": "Per-frame driver that updates the fade state of every decal in the decal table."
+    },
+    {
+      "addr": "0x44e310",
+      "name": "decal_evict_temporary",
+      "confidence": 0.4,
+      "evidence": "For a given cell (or all buckets when param_1 == -1) iterates five sub-lists per cell, clearing the object-attached bit and decrementing the DAT_006b0ad8+0x2808 counter, then calling cache_evict_entry for each matching decal.",
+      "prototype": "void __cdecl decal_evict_temporary(short cell_index)",
+      "summary": "Evicts the object-attached decals in a given grid cell (or all cells), clearing their state and freeing their cached render geometry."
+    },
+    {
+      "addr": "0x44e3c0",
+      "name": "decal_delete",
+      "confidence": 0.55,
+      "evidence": "Unlinks the decal record at (in_EDX) from its doubly-linked spatial-grid bucket list (prev/next pointers at offsets 0x30/0x34), including the linked-list-head/no-neighbor cases, then calls datum_delete.",
+      "prototype": "",
+      "summary": "Removes a decal from its spatial hash-grid bucket and frees its datum."
+    },
+    {
+      "addr": "0x44e460",
+      "name": "decal_compute_projection_gradients",
+      "confidence": 0.35,
+      "evidence": "Copies a 13-dword basis/transform (in_EDX) plus an implicit Plane3D (param_1) into the output struct param_2, then re-derives the same major-axis selection used by 0x44d820/0x44d860 (via DAT_0065c29c/9e) to build per-axis texture-space partial derivatives and a reciprocal determinant at the end.",
+      "prototype": "",
+      "summary": "Builds a decal's texture-projection basis (dominant axis, edge gradients and inverse determinant) from its plane and transform, used to rasterize a decal polygon onto BSP surfaces."
+    },
+    {
+      "addr": "0x44e730",
+      "name": "decal_flood_fill_surfaces",
+      "confidence": 0.4,
+      "evidence": "Traverses the BSP surface-edge structure rooted at DAT_00746f98 (offsets +0x40/+0x4c/+0x58 match surface/edge/vertex tables), clipping the growing polygon to each neighbouring surface plane with polygon2d_clip_to_plane and testing spread angle with vector3d_angle_between_4cd5e0/ray_intersects_sphere_test, accumulating output vertices into param_2's vertex buffer (offsets 0x5000/0x5002/0x5800/0x5802).",
+      "prototype": "void __cdecl decal_flood_fill_surfaces(int param_1, int param_2, int param_3, char param_4, float param_5, short param_6, int param_7, unsigned short *param_8, int param_9, unsigned short *param_10)",
+      "summary": "Recursively floods across adjacent BSP surfaces from a starting surface, clipping and accumulating a decal's polygon vertices so it can wrap across multiple surfaces/edges."
+    },
+    {
+      "addr": "0x44ece0",
+      "name": "decal_try_create",
+      "confidence": 0.4,
+      "evidence": "Gates decal creation on DAT_006893f5/DAT_00687004 (decal-enable toggles) and an object-type check, optionally reseeds the local LCG deterministically from the caller's object handle fields, checks a tunable via FUN_00505880(0x100061), and only then calls FUN_0044edc0 (decal_new).",
+      "prototype": "",
+      "summary": "Decides whether a decal should be spawned for the current collision/damage response (checking enable flags and a tunable) and, if so, invokes the decal placement algorithm."
+    },
+    {
+      "addr": "0x44edc0",
+      "name": "decal_new",
+      "confidence": 0.45,
+      "evidence": "Large (6111-byte) routine that projects a decal from a surface normal/placement (param_2/param_3), floods across adjacent surfaces via decal_flood_fill_surfaces (FUN_0044e730), builds per-marker geometry with FUN_0044db30/FUN_0044e460, and finally calls decal_allocate (FUN_0044dd90) to insert the finished decal into the grid at its resolved cell.",
+      "prototype": "void __cdecl decal_new(unsigned int object_index, int decal_placement, float *surface_normal, float radius_scale, char permanent, unsigned int marker_index)",
+      "summary": "Top-level decal placement algorithm: projects a decal onto the BSP starting from a surface normal, flood-fills across neighbouring surfaces to build its polygon, and allocates/inserts the finished decal."
+    },
+    {
+      "addr": "0x4505b0",
+      "name": "effect_random_fraction",
+      "confidence": 0.5,
+      "evidence": "Advances DAT_00719cd4 and returns (rand16) * 1.5259022e-05 (i.e. rand16/65536), producing a float in [0,1) using the module-local LCG shared by the contrail/decal/particle-system code.",
+      "prototype": "",
+      "summary": "Returns the next pseudo-random fraction in [0,1) from the effects module's local RNG state."
+    },
+    {
+      "addr": "0x4505e0",
+      "name": "effect_random_direction_from_table",
+      "confidence": 0.45,
+      "evidence": "Advances DAT_00719cd4, uses it to index a precomputed table of 3-float entries (DAT_006b7af4 base, DAT_006b7af8 count) into the implicit in_EAX output; the same table pair is used directly by FUN_00451450 for particle-system spawn directions.",
+      "prototype": "",
+      "summary": "Picks a pseudo-random 3D vector (e.g. a direction on a sphere/cone) from a precomputed lookup table."
+    },
+    {
+      "addr": "0x450630",
+      "name": "particle_system_try_and_get",
+      "confidence": 0.5,
+      "evidence": "Validates a datum-style index (salt in the high 16 bits) against DAT_0087abdc's element-count/salt table (offsets 0x20/0x22/0x34), returning the matching record pointer or NULL, the standard 'try and get' accessor pattern used elsewhere for other datum tables (e.g. object_try_and_get).",
+      "prototype": "",
+      "summary": "Validates a particle-system index (with salt) against the particle-system datum table and returns its record pointer, or NULL if stale/out of range."
+    },
+    {
+      "addr": "0x450680",
+      "name": "particle_system_check_local_player_flag",
+      "confidence": 0.3,
+      "evidence": "Calls object_try_and_get(1), checks flag bit 4 at object+0x106, then reads a linked index at object+0x41c and range-checks it against DAT_006f1d6c+0xc before returning a packed bool+value; used by the particle-system constructors (0x4507a0/0x450870) to decide whether to set flag bit 0x40 on new particle systems.",
+      "prototype": "unsigned int __cdecl particle_system_check_local_player_flag(void)",
+      "summary": "Looks up a fixed object slot and, if it has a certain attachment flag, validates a linked node index, returning whether a related condition (likely local/first-person player context) holds."
+    },
+    {
+      "addr": "0x4506d0",
+      "name": "particle_system_new_at_marker",
+      "confidence": 0.35,
+      "evidence": "Calls particle_system_new (FUN_00451500), stores an object/definition id (in_EDX) and default transform basis from PTR_DAT_00686b04 when the marker index (in_CX) is -1, then binds markers via particle_system_bind_markers (FUN_00451710) using either the generic or first_person_weapon_get_marker_data callback.",
+      "prototype": "",
+      "summary": "Creates a new particle system attached to an object at an explicit 2D marker/texture coordinate, binding it to matching object markers."
+    },
+    {
+      "addr": "0x4507a0",
+      "name": "particle_system_new_with_scale",
+      "confidence": 0.3,
+      "evidence": "Calls particle_system_new (FUN_00451500) and particle_system_init_placement (FUN_00451600) with param_3/param_4 as the scale-min/scale-max floats, then optionally sets flag bit 0x40 via particle_system_check_local_player_flag when DAT_00687014 is set, and finally binds markers.",
+      "prototype": "unsigned int __cdecl particle_system_new_with_scale(unsigned int object_index, short marker_index, float scale_min, float scale_max)",
+      "summary": "Creates a new particle system on an object with an explicit min/max scale range, binding it to the object's markers."
+    },
+    {
+      "addr": "0x450870",
+      "name": "particle_system_new_with_direction",
+      "confidence": 0.3,
+      "evidence": "Calls particle_system_new and particle_system_init_placement with param_6/param_7 as the direction/position vectors, stores four local floats (param_2..param_5) into the new record, computes a node-table offset from DAT_008603b0 and stashes it via DAT_006b0adc, then binds markers with the LAB_00451850 callback.",
+      "prototype": "",
+      "summary": "Creates a new particle system on an object with an explicit orientation/placement and an associated node-table entry."
+    },
+    {
+      "addr": "0x450980",
+      "name": "particle_system_new_with_color",
+      "confidence": 0.3,
+      "evidence": "Calls particle_system_new and particle_system_init_placement, resolves a lightmap color index via FUN_005013a0/DAT_00746f9c+0xe4 into offset 0x14, and copies a caller-supplied (or PTR_DAT_00696714-default) 3-float color into offsets 0x24/0x28/0x2c before binding markers with the LAB_00451850 callback.",
+      "prototype": "unsigned int __cdecl particle_system_new_with_color(unsigned int param_1, unsigned int param_2, unsigned int *param_3, unsigned short param_4, unsigned int param_5, unsigned int param_6, unsigned int param_7, unsigned int param_8, unsigned int param_9, unsigned int param_10, unsigned int param_11, unsigned int param_12)",
+      "summary": "Creates a new particle system with an explicit (or default) tint color and resolved lightmap index, binding it to the object's markers."
+    },
+    {
+      "addr": "0x450aa0",
+      "name": "particle_system_update_all",
+      "confidence": 0.45,
+      "evidence": "Iterates every live particle system via FUN_004d0630 (datum table iterator over DAT_0087abdc) and calls particle_system_update (FUN_00451a30) with the elapsed time on each.",
+      "prototype": "void __cdecl particle_system_update_all(float delta_time)",
+      "summary": "Per-frame driver that advances every active particle system by the given time delta."
+    },
+    {
+      "addr": "0x450b20",
+      "name": "particle_system_stop",
+      "confidence": 0.35,
+      "evidence": "Looks up a particle-system index (with salt) in DAT_0087abdc, and if its 'has next state' bit (offset 2 bit 1) is set, either calls particle_system_delete (FUN_0044... no, FUN_00450be0) when not looping, or sets/clears the looping bit (0x20) per param_1 and schedules the next state via particle_system_init_state (FUN_00451660), marking bit 4 as pending.",
+      "prototype": "",
+      "summary": "Stops or loops a particle system's current state, deleting it if it cannot continue or scheduling its next randomized state."
+    },
+    {
+      "addr": "0x450be0",
+      "name": "particle_system_delete",
+      "confidence": 0.5,
+      "evidence": "Validates the salted index against DAT_0087abdc, then for each of the definition's node slots (count at object-def+0x28) walks the per-node linked list at offset 0x5c deleting each linked marker/attachment datum via datum_delete, and finally deletes the particle-system record itself.",
+      "prototype": "void __cdecl particle_system_delete(int particle_system_index)",
+      "summary": "Frees all per-node attachment datums owned by a particle system and then deletes the particle-system record."
+    },
+    {
+      "addr": "0x450cb0",
+      "name": "particle_system_reattach_markers_for_object",
+      "confidence": 0.3,
+      "evidence": "Iterates every particle system via FUN_004d0630, and for each whose attached-object field (offset 0x3c) matches param_2, updates its marker index (offset 0x4c) to param_1 and re-resolves its markers via particle_system_bind_markers (FUN_00451710) with the first_person_weapon_get_marker_data callback.",
+      "prototype": "void __cdecl particle_system_reattach_markers_for_object(unsigned short marker_index, int object_index)",
+      "summary": "Re-binds every particle system attached to a given object to a new first-person-weapon marker index."
+    },
+    {
+      "addr": "0x450d50",
+      "name": "particle_system_clear_marker_references",
+      "confidence": 0.3,
+      "evidence": "Iterates every particle system via FUN_004d0630 looking for a matching marker index at offset 0x4c, then for each of its node lists removes any linked attachment datum whose stored index (offset 2) is negative (a marker back-reference), and finally clears its marker index field to -1.",
+      "prototype": "void __cdecl particle_system_clear_marker_references(short marker_index)",
+      "summary": "Invalidates and removes attachment references to a marker index that is being freed, across all particle systems that used it."
+    },
+    {
+      "addr": "0x450fa0",
+      "name": "particle_system_check_object_collisions",
+      "confidence": 0.3,
+      "evidence": "Iterates every particle system via FUN_004d0630; for each with a nonzero radius (offset 4 of its node data) it iterates the global object list (data_iterator_next with the DAT_0087a480 iterator-context XOR pattern) comparing squared distance between the particle attachment point and each object's bounding sphere, returning as soon as a collision is found.",
+      "prototype": "unsigned int __cdecl particle_system_check_object_collisions(void)",
+      "summary": "Scans particle systems and nearby objects for the first bounding-sphere overlap, returning whether any particle system is currently touching an object."
+    },
+    {
+      "addr": "0x451290",
+      "name": "particle_system_property_random_value",
+      "confidence": 0.5,
+      "evidence": "Takes an explicit seed pointer (param_1) and blends param_2/param_3 exactly like effect_property_random_value (0x44c840), but reads its scale multipliers from unaff_EBX+0x44/+0x48 -- the same fields initialized by particle_system_init_placement (FUN_00451600) -- confirming unaff_EBX is a particle-system instance.",
+      "prototype": "",
+      "summary": "Evaluates a randomized property value between a min and max bound, scaled by a particle system's own scale-min/scale-max factors, using an explicit RNG seed."
+    },
+    {
+      "addr": "0x451310",
+      "name": "particle_system_random_velocity_vector",
+      "confidence": 0.4,
+      "evidence": "Computes a random magnitude via particle_system_property_random_value (FUN_00451290) scaled by param_7 (optionally further scaled by unaff_EBX fields per param_8/param_9 bit flags), then if the resulting angle is nonzero rotates param_3 about an axis with vector3d_rotate_about_axis before scaling param_4 by the magnitude.",
+      "prototype": "",
+      "summary": "Computes a random-length velocity/offset vector, optionally rotated by a random angle about a given axis, for a particle system's spawn parameters."
+    },
+    {
+      "addr": "0x451450",
+      "name": "particle_system_random_direction_vector",
+      "confidence": 0.4,
+      "evidence": "Computes a random magnitude via particle_system_property_random_value (FUN_00451290); if nonzero it indexes the same DAT_006b7af4/DAT_006b7af8 direction table used by effect_random_direction_from_table (0x4505e0) and scales it, otherwise falls back to the default direction at PTR_DAT_00696714.",
+      "prototype": "void __cdecl particle_system_random_direction_vector(unsigned int *seed, float *out_direction, unsigned int angle_min, unsigned int angle_max)",
+      "summary": "Picks a random spawn direction vector for a particle system from a precomputed direction table, scaled by a random magnitude, or a default direction if the magnitude is zero."
+    },
+    {
+      "addr": "0x451500",
+      "name": "particle_system_new",
+      "confidence": 0.5,
+      "evidence": "Validates the attaching object index against DAT_0087bc14's object table and its particle-system-allowance count (object+0x34), then allocates a slot with datum_new, falling back to evicting the oldest object-owned particle system (walking FUN_004d0630/datum_delete) when the pool is full, before initializing the new record's object/definition/marker fields and calling particle_system_init_state (FUN_00451660).",
+      "prototype": "unsigned int __cdecl particle_system_new(unsigned int object_index, unsigned int definition_id, char force_create)",
+      "summary": "Allocates a new particle-system datum for an object, evicting an older temporary instance if the pool is exhausted, and initializes its basic fields."
+    },
+    {
+      "addr": "0x451600",
+      "name": "particle_system_init_placement",
+      "confidence": 0.4,
+      "evidence": "Stores param_1/param_2 (used elsewhere as float scale-min/scale-max multipliers at offsets 0x44/0x48) plus an orientation vector (in_ECX, defaulting to PTR_DAT_00686b04) into offsets 0x18-0x20 and a position/velocity vector (in_EDX, defaulting to zero) into offsets 0x30-0x38.",
+      "prototype": "",
+      "summary": "Initializes a new particle system's scale range, orientation and position/velocity fields, with sensible defaults when no vectors are supplied."
+    },
+    {
+      "addr": "0x451660",
+      "name": "particle_system_init_state",
+      "confidence": 0.4,
+      "evidence": "Validates the particle-system index, then if a target node index (unaff_DI) is valid it clears the 'started' bit, records the node index at offset 0x4e, and rolls a random initial scale via random_real_range_seeded from the node's min/max fields, storing it via extraout_EDX+0x54 -- the same field checked/consumed by particle_system_update.",
+      "prototype": "",
+      "summary": "Selects and initializes the marker/state a particle system will play next, including rolling its randomized scale for that state."
+    },
+    {
+      "addr": "0x451710",
+      "name": "particle_system_bind_markers",
+      "confidence": 0.45,
+      "evidence": "For each of the object definition's node slots, calls the supplied callback (param_2, e.g. FUN_004f6080 or first_person_weapon_get_marker_data) to fetch up to 0x10 marker records into a stack buffer, then inserts each one into the particle system's per-node list via particle_system_add_marker_node (FUN_004517d0).",
+      "prototype": "void __cdecl particle_system_bind_markers(int particle_system, void *marker_lookup_callback)",
+      "summary": "Rebuilds a particle system's per-node marker attachment lists by looking up matching object markers through a caller-supplied callback."
+    },
+    {
+      "addr": "0x4517d0",
+      "name": "particle_system_add_marker_node",
+      "confidence": 0.4,
+      "evidence": "Allocates a 0x3c-byte datum from the DAT_0087abe0 table, copies 13 dwords of marker data from in_EAX, encodes a permutation-name sign bit from param_3, and links the new record into the particle system's per-node list head at param_1+0x5c+param_2*4.",
+      "prototype": "",
+      "summary": "Allocates and links a single resolved marker attachment record into a particle system's per-node marker list."
+    },
+    {
+      "addr": "0x451930",
+      "name": "particle_system_compute_spawn_basis",
+      "confidence": 0.3,
+      "evidence": "Copies a type tag from unaff_EBX, then either fetches a fixed point from a table at unaff_EBX+8 indexed by in_AX or resolves it via matrix4x3_inverse_transform_point, before computing a perpendicular basis (vector3d_build_perpendicular/vector3d_normalize_with_length) and storing an additional plane term via FUN_004cb970.",
+      "prototype": "",
+      "summary": "Resolves a spawn point (from a fixed table or a transform) and builds an orthonormal basis around it for particle system placement."
+    },
+    {
+      "addr": "0x451a30",
+      "name": "particle_system_update",
+      "confidence": 0.5,
+      "evidence": "Large per-instance state machine: validates the index, refreshes object collision-sphere data, evaluates the current state's function-driven properties (object_function_get_value), advances the state-duration accumulator (offsets 0x50/0x54/0x58), calls particle_system_spawn_particles (FUN_00451f90) while active, and transitions to the next randomized state via particle_system_init_state (FUN_00451660) or deletes itself via particle_system_delete when finished.",
+      "prototype": "void __cdecl particle_system_update(unsigned int particle_system_index, float delta_time)",
+      "summary": "Advances a single particle system's playback state machine for one frame: evaluating its driving function, spawning particles, and transitioning between or finishing states."
+    },
+    {
+      "addr": "0x451f90",
+      "name": "particle_system_spawn_particles",
+      "confidence": 0.5,
+      "evidence": "Guarded by a global enable toggle (DAT_0069c565), iterates the particle system definition's attachment points, tests each spawn-event type via FUN_0053ed60, computes randomized position/velocity/rotation/scale using particle_system_property_random_value (FUN_00451290) and vector3d helpers, and finally calls FUN_00455740 (the underlying particle-creation primitive) for each spawned particle.",
+      "prototype": "void __cdecl particle_system_spawn_particles(int particle_system)",
+      "summary": "Evaluates a particle system's attachment points each frame and spawns new individual particles with randomized position, velocity, rotation and scale where the spawn condition is met."
+    }
+  ]
+}

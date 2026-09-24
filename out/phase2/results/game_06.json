@@ -1,0 +1,484 @@
+{
+  "results": [
+    {
+      "addr": "0x477350",
+      "name": "apply_remote_player_position_update",
+      "confidence": 0.7,
+      "evidence": "Strings 'Waited [%d], dist [%f].' and 'Can't update pos: [%d] != [%d]' match cea-pdb hint; dequeues a queued network position via FUN_0047a100 and compares against object position at +0x5c/0x60/0x64.",
+      "prototype": "",
+      "summary": "Reconciles a remote player's object position against a queued network snapshot, logging drift/desync and forcing a resync when the discrepancy is too large."
+    },
+    {
+      "addr": "0x477490",
+      "name": "apply_remote_player_vehicle_position_update",
+      "confidence": 0.65,
+      "evidence": "Mirrors apply_remote_player_position_update but string is 'Vehicle waited [%d], dist [%f].' and it copies a full matrix (fields 0x68-0x94) from the dequeued record (FUN_0047a2c0) into the vehicle object via object_try_and_get.",
+      "prototype": "",
+      "summary": "Reconciles a remote player's vehicle position/orientation against queued network updates, snapping the vehicle's transform when the client and host disagree."
+    },
+    {
+      "addr": "0x477640",
+      "name": "player_starting_location_get",
+      "confidence": 0.45,
+      "evidence": "Bounds-checks an index against a count at DAT_00746f8c+0x354 and indexes a stride-0x34 array at DAT_00746f8c+0x358; its only caller (player_respawn) treats the result as an {x,y,z,facing} record.",
+      "prototype": "",
+      "summary": "Returns a pointer to the player-starting-location record at the given index, or 0 if the index is out of range."
+    },
+    {
+      "addr": "0x477670",
+      "name": "object_position_history_reset",
+      "confidence": 0.35,
+      "evidence": "Copies the same 3-float source vector into four consecutive offset groups (0x58, 0x64, 0x70, 0x7c) of the destination, matching the position-history fields read by apply_remote_player_position_update (0x5c/0x60/0x64).",
+      "prototype": "",
+      "summary": "Initializes all slots of an object's position-history/dead-reckoning buffer to the same starting vector."
+    },
+    {
+      "addr": "0x4776d0",
+      "name": "player_starting_location_choose_weighted_random",
+      "confidence": 0.45,
+      "evidence": "Iterates player_starting_location_get over the count at DAT_00746f8c+0x354, scores each with a suitability check (FUN_0045f7c0/FUN_00461e60/FUN_00461d90) multiplied by an LCG random value (DAT_00719cd0), and keeps the best index.",
+      "prototype": "",
+      "summary": "Picks a random-weighted player starting location index for a respawn, biased toward locations with a higher suitability score."
+    },
+    {
+      "addr": "0x477810",
+      "name": "object_create_with_owner_role",
+      "confidence": 0.3,
+      "evidence": "When the owner's object index (unaff_ESI+0xc) is valid, calls FUN_004f53a0 then object_new_with_datum_role_control with a role of 3 or 0 (chosen from DAT_00719720 and a team lookup), and stores the new object's owner fields at +0x2b6/+0x2b8.",
+      "prototype": "",
+      "summary": "Creates a new object attached to an owning unit, selecting its datum role based on the current game engine mode and team state."
+    },
+    {
+      "addr": "0x4778c0",
+      "name": "player_pickup_action_request",
+      "confidence": 0.3,
+      "evidence": "Branches on a client/server role flag (FUN_004ec670 vs FUN_004ec590+datum_get/datum_new_at_index_with_salt), resets a tracking datum's fields, and finally enqueues it (FUN_0045c440) - the same request/queue skeleton shared by the other player-action functions in this batch.",
+      "prototype": "",
+      "summary": "Validates a player action request and creates/updates a tracking datum for it, queuing the result for processing."
+    },
+    {
+      "addr": "0x4779d0",
+      "name": "network_notify_object_event",
+      "confidence": 0.25,
+      "evidence": "Resolves an object index via hash_table_get, packs it with a raw value into a param buffer, and sends it through FUN_004ec940 with message id 7, then broadcasts via FUN_004e1a80/FUN_004e1930 into the buffer at DAT_00871de0 shared by the other network-notify functions in this file.",
+      "prototype": "",
+      "summary": "Sends a network notification carrying a single hashed object index and an associated value to observers."
+    },
+    {
+      "addr": "0x477a80",
+      "name": "network_send_player_weapon_inventory",
+      "confidence": 0.45,
+      "evidence": "Hashes the unit's current-weapon fields (0x2f0/0x2f2) plus its 4-slot weapon array (0x2f8) via hash_table_get, then sends them with message id 8 through FUN_004ec940/FUN_004e1a80/FUN_004e1930.",
+      "prototype": "",
+      "summary": "Sends a network message replicating a unit's full weapon loadout (current weapon plus 4 inventory slots) to observers."
+    },
+    {
+      "addr": "0x477c70",
+      "name": "player_apply_spawn_loadout",
+      "confidence": 0.4,
+      "evidence": "Translates hashed remote unit indices back to local indices (PTR_DAT_00687558/PTR_DAT_00687130 lookup tables), assigns the resulting unit as an object's owner (fields 0xc0/0xb8/0x218), applies grenade counts (game_engine_apply_player_grenade_counts), restores the 4-slot weapon array, and finishes with two player_stat_increment calls.",
+      "prototype": "",
+      "summary": "Applies a network-received spawn loadout (owner unit, weapon slots, grenade counts, stat increments) to a newly created player object."
+    },
+    {
+      "addr": "0x477ea0",
+      "name": "player_respawn",
+      "confidence": 0.55,
+      "evidence": "Indexes the players array (DAT_0087a480+0x34, stride 0x200) by player index, detaches any existing unit (clearing light attachments, freeing the object), then picks a starting location via player_starting_location_choose_weighted_random/player_starting_location_get, spawns a new biped with object_new_with_datum_role_control, and applies grenade counts and colors via game_engine_apply_player_grenade_counts/game_engine_get_player_color.",
+      "prototype": "",
+      "summary": "Despawns a player's current unit if any and spawns a fresh biped for them at a chosen starting location, initializing its color, grenades, and network ownership."
+    },
+    {
+      "addr": "0x4782a0",
+      "name": "encounter_squad_build_active_mask",
+      "confidence": 0.3,
+      "evidence": "Iterates all objects via data_iterator_next, follows each object's parent-unit chain to find an encounter/squad index (offset 0x9c), and OR's that squad's bit-array (from a struct pointed to by DAT_00746f9c, fields 0x134/0x14c) into the caller-supplied 16-dword bitmask.",
+      "prototype": "",
+      "summary": "Builds a bitmask of encounter/squad indices that currently have a live object associated with them."
+    },
+    {
+      "addr": "0x478400",
+      "name": "player_update_nearby_interactions_primary",
+      "confidence": 0.35,
+      "evidence": "Uses object_find_in_sphere around a unit's position/radius, then dispatches found objects by type field 0xb4 to player_check_vehicle_flip_or_steal (1), player_check_vehicle_board_interaction (2/3), or player_check_assassination_opportunity (8).",
+      "prototype": "",
+      "summary": "Scans nearby objects around a unit and routes each to the appropriate interaction check (vehicle flip/steal, vehicle boarding, or assassination)."
+    },
+    {
+      "addr": "0x478500",
+      "name": "player_update_nearby_interactions_secondary",
+      "confidence": 0.3,
+      "evidence": "Nearly identical to player_update_nearby_interactions_primary (same object_find_in_sphere call and type-0xb4 dispatch) except the boarding case (2/3) calls the simplified player_check_vehicle_board_interaction_simple instead.",
+      "prototype": "",
+      "summary": "A second nearby-interaction scan that uses a lighter-weight vehicle-boarding check than the primary variant."
+    },
+    {
+      "addr": "0x478600",
+      "name": "player_check_vehicle_flip_or_steal",
+      "confidence": 0.45,
+      "evidence": "Compares camera pitch against a stored vehicle threshold (offset 0x88); if within range and unflagged (0x4cc bit 0x10) with no attached trigger (0x324==-1) it raises action 0xb via player_set_pending_interaction_action, otherwise, when both objects are nearly stationary, it calls FUN_00566560 to raise actions 8 or 9.",
+      "prototype": "",
+      "summary": "Checks whether the player is looking at a nearby vehicle from an angle that offers a flip, steal, or board prompt, and queues the corresponding pending action."
+    },
+    {
+      "addr": "0x478770",
+      "name": "player_check_assassination_opportunity",
+      "confidence": 0.5,
+      "evidence": "Casts a ray via FUN_00568f80 and tests it with ray_intersects_sphere_test against the target's radius, then validates approach angle/state via FUN_0044c130 and FUN_0044c0c0 before raising action id 10 through player_set_pending_interaction_action.",
+      "prototype": "",
+      "summary": "Determines whether the player is positioned correctly to assassinate a nearby target and, if so, queues the assassination action."
+    },
+    {
+      "addr": "0x478820",
+      "name": "player_action_prompt_is_blocked",
+      "confidence": 0.4,
+      "evidence": "Checks the player's current weapon-swap state (FUN_0056d990/FUN_0056da80), a target unit's flag byte at 0x308, and FUN_00466bc0 to decide whether the interaction prompt should be suppressed.",
+      "prototype": "",
+      "summary": "Returns true when the player is currently busy with another action, so a new interaction prompt (board/swap/assassinate) should not be shown."
+    },
+    {
+      "addr": "0x4788a0",
+      "name": "player_check_vehicle_board_interaction",
+      "confidence": 0.4,
+      "evidence": "Uses FUN_004c2610 against the unit's weapon slots and object_try_and_get(8)/(4) to inspect the target's seat type (offset 0x308); depending on seat compatibility it calls FUN_00479930 (kick occupant), player_set_pending_interaction_action(5), or, after distance/velocity and player_action_prompt_is_blocked checks, action 6/7 (board as driver/passenger) followed by network_send_player_weapon_swap_event.",
+      "prototype": "",
+      "summary": "Evaluates whether the player can board, swap seats in, or pick up equipment from a nearby vehicle/object, and queues or commits the appropriate action."
+    },
+    {
+      "addr": "0x478c40",
+      "name": "player_check_vehicle_board_interaction_simple",
+      "confidence": 0.35,
+      "evidence": "A reduced subset of player_check_vehicle_board_interaction (444 vs 926 bytes) that only handles the direct-board path (seat/weapon-pickup branches removed) before raising action 6/7 via player_set_pending_interaction_action.",
+      "prototype": "",
+      "summary": "A lightweight variant of the vehicle-boarding interaction check used by player_update_nearby_interactions_secondary."
+    },
+    {
+      "addr": "0x478e00",
+      "name": "player_set_pending_interaction_action",
+      "confidence": 0.5,
+      "evidence": "Stores an action type/target/secondary value into the player struct fields at offset 0x28/0x24/0x2a, preferring the closer object when two candidates tie in priority (distance comparison against the player's own object position).",
+      "prototype": "",
+      "summary": "Records the highest-priority pending interaction (board, swap, assassinate, flip, etc.) a player is currently offered, based on proximity and action priority."
+    },
+    {
+      "addr": "0x478f10",
+      "name": "player_weapon_action_request",
+      "confidence": 0.4,
+      "evidence": "Uses the same client/server role-check skeleton (FUN_004ec590/FUN_004ec670/datum_get) as other request functions, then dispatches to player_weapon_action_apply_swap or player_weapon_action_apply depending on a mode flag.",
+      "prototype": "",
+      "summary": "Validates a queued weapon action request and forwards it to the appropriate apply routine (swap vs. general weapon action)."
+    },
+    {
+      "addr": "0x478ff0",
+      "name": "network_send_player_weapon_swap_event",
+      "confidence": 0.35,
+      "evidence": "Hashes up to three unit indices via hash_table_get plus two packed shorts, then sends them with message id 10 through FUN_004ec940/FUN_004e1a80; called by player_weapon_swap_confirm after a successful swap.",
+      "prototype": "",
+      "summary": "Sends a network message announcing a completed player weapon-swap action, including the action type and target object."
+    },
+    {
+      "addr": "0x4790d0",
+      "name": "player_weapon_swap_confirm",
+      "confidence": 0.4,
+      "evidence": "Switches on the player's pending action type (0x28): case 6 attempts the swap via FUN_0056dec0/FUN_0056d400 then finalizes with FUN_004ae400/FUN_004726f0; case 7 cancels via FUN_0056d400 alone; both then notify via network_send_player_weapon_swap_event.",
+      "prototype": "",
+      "summary": "Confirms or cancels a pending weapon-swap action for a player and notifies observers of the result."
+    },
+    {
+      "addr": "0x479240",
+      "name": "player_weapon_action_apply_swap",
+      "confidence": 0.4,
+      "evidence": "Handles player action types 6 and 7 for a unit (current-weapon slot at 0x2f2/0x2f8), updating the weapon-select index and calling FUN_0056dec0/FUN_0056d400/FUN_004ae400/FUN_004726f0 to commit the swap or cancel.",
+      "prototype": "",
+      "summary": "Applies a weapon-swap or swap-cancel action to a unit based on its pending action type."
+    },
+    {
+      "addr": "0x4793a0",
+      "name": "player_weapon_action_apply",
+      "confidence": 0.45,
+      "evidence": "Switches on the player's pending action type (0x28) for values 5, 8, 9, 10, and 0xb, invoking FUN_00566840/FUN_00566970 (weapon pickup), FUN_0044c090 (assassination-related), and object_get_world_matrix-based side selection for the vehicle-board case, ending with a network_send_player_weapon_swap_event-style notify.",
+      "prototype": "",
+      "summary": "Applies a player's pending interaction action (weapon pickup, assassinate, or vehicle-board side selection) once it has been validated."
+    },
+    {
+      "addr": "0x479710",
+      "name": "player_show_assist_notification",
+      "confidence": 0.35,
+      "evidence": "Builds a fixed 13-dword message record from color/value globals (DAT_006889d0-DAT_006889dc, DAT_007102e4-DAT_007102ec) and submits it via FUN_00456980; called from player_process_kill_consequence for the assist-type branch.",
+      "prototype": "",
+      "summary": "Displays a HUD notification (built from a fixed set of color/text globals), used to report an assist credit."
+    },
+    {
+      "addr": "0x4797d0",
+      "name": "player_show_kill_notification",
+      "confidence": 0.35,
+      "evidence": "Same structure as player_show_assist_notification but sourced from a different set of globals (DAT_006889e4-DAT_006889f4, DAT_007102f0/f4/f8); called from player_process_kill_consequence for the kill branch.",
+      "prototype": "",
+      "summary": "Displays a HUD notification reporting a kill, using a different message template than the assist notification."
+    },
+    {
+      "addr": "0x479890",
+      "name": "player_show_special_kill_notification",
+      "confidence": 0.3,
+      "evidence": "Same message-submission pattern as the other two notification helpers but with fully hardcoded field values (type 6, fixed RGBA-like floats) instead of reading globals; called from player_process_kill_consequence for its third branch.",
+      "prototype": "",
+      "summary": "Displays a HUD notification for a special kill type, using a fixed hardcoded message template."
+    },
+    {
+      "addr": "0x479930",
+      "name": "player_process_kill_consequence",
+      "confidence": 0.4,
+      "evidence": "Reads a target's type field (offset 0x308) and branches: type 1 increments an assist counter, type 2 validates via FUN_004edba0 then calls player_show_assist_notification, type 5 validates via FUN_004ed9d0 then calls player_show_special_kill_notification, otherwise it calls player_stat_increment and, for kills, player_show_kill_notification, finishing with a HUD trigger (FUN_004ae350) and sound (FUN_004bbb50).",
+      "prototype": "",
+      "summary": "Dispatches the consequences of a kill/damage event on a target - crediting assists, kills, or special notifications and playing the matching HUD/sound feedback."
+    },
+    {
+      "addr": "0x479aa0",
+      "name": "network_send_player_stat_increment",
+      "confidence": 0.4,
+      "evidence": "Hashes a single object index via hash_table_get, packs it with two shorts (stat type and amount) and sends message id 0xe through FUN_004ec940/FUN_004e1a80; called from player_stat_increment only in game engine mode 2.",
+      "prototype": "",
+      "summary": "Sends a network notification of a player statistic increment (kills/deaths/etc.) to observers."
+    },
+    {
+      "addr": "0x479b40",
+      "name": "player_stat_increment_request",
+      "confidence": 0.4,
+      "evidence": "Uses the same client/server validation skeleton (FUN_004ec590/FUN_004ec670) as other request functions before forwarding to player_stat_increment.",
+      "prototype": "",
+      "summary": "Validates and forwards a request to increment a player statistic counter."
+    },
+    {
+      "addr": "0x479ba0",
+      "name": "player_stat_increment",
+      "confidence": 0.45,
+      "evidence": "Bounds-checks a player index against DAT_0087a480, adds param_2 to a per-type counter at offset 0x68+type*2, calling player_kill_streak_mark_primary/_secondary as side effects, and in engine mode 2 forwards the increment over the network via network_send_player_stat_increment.",
+      "prototype": "",
+      "summary": "Adds an amount to one of a player's statistic counters (e.g. kills or deaths) and replicates the change when running as a networked game engine."
+    },
+    {
+      "addr": "0x479ca0",
+      "name": "player_kill_streak_update",
+      "confidence": 0.35,
+      "evidence": "Updates a counter at offset 0x68+type*2 to the max of its current value and a new value, and when type==0 also sets flag bit 0x10 at offset 0x204 and records the method at offset 0x422.",
+      "prototype": "",
+      "summary": "Updates a player's kill-streak counter and, for the primary streak type, records the method that produced it."
+    },
+    {
+      "addr": "0x479d10",
+      "name": "player_kill_streak_timer_tick",
+      "confidence": 0.35,
+      "evidence": "Decrements the two counters at offset 0x68/0x6a each call and, when the primary one reaches zero, clears flag bit 0x10 at offset 0x204.",
+      "prototype": "",
+      "summary": "Advances the player's kill-streak timers by one tick, clearing the streak-active flag when the primary timer expires."
+    },
+    {
+      "addr": "0x479d90",
+      "name": "player_kill_streak_mark_primary",
+      "confidence": 0.3,
+      "evidence": "When param_1==0, sets flag bit 0x10 at object offset 0x204 and clears the method field at 0x422; called from player_stat_increment.",
+      "prototype": "",
+      "summary": "Marks a unit's primary kill-streak flag active and resets its recorded streak method."
+    },
+    {
+      "addr": "0x479de0",
+      "name": "player_kill_streak_mark_secondary",
+      "confidence": 0.3,
+      "evidence": "When param_1==0, sets flag bit 0x20 at object offset 0x204; companion to player_kill_streak_mark_primary, called from player_stat_increment.",
+      "prototype": "",
+      "summary": "Marks a unit's secondary kill-streak flag active."
+    },
+    {
+      "addr": "0x479eb0",
+      "name": "player_track_multikill",
+      "confidence": 0.45,
+      "evidence": "Increments a per-player multikill counter (offset 0xe0) only while a countdown window (offset 0xe4) is still open, triggers FUN_004e36e0 (spree/medal event) once DAT_006894a4 threshold is reached, and otherwise resets the countdown to -DAT_0069956c or DAT_00699570.",
+      "prototype": "",
+      "summary": "Tracks consecutive kills within a time window for multikill/killing-spree medals, triggering a medal event when the streak threshold is reached."
+    },
+    {
+      "addr": "0x479f40",
+      "name": "event_queue_create",
+      "confidence": 0.3,
+      "evidence": "Allocates a 5280-byte data buffer plus a 480-byte pointer array (120 slots, 44-byte stride) via GlobalAlloc and initializes head/tail indices, matching the circular-queue layout consumed by event_queue_pop_with_refcount.",
+      "prototype": "",
+      "summary": "Allocates and initializes a 120-entry, 44-byte-record circular event queue."
+    },
+    {
+      "addr": "0x479fb0",
+      "name": "event_queue_pop_with_refcount",
+      "confidence": 0.3,
+      "evidence": "Walks the same circular-queue layout as event_queue_create (44-byte/11-dword records), copies the head record into the caller's output, decrements a reference count field, and only advances the queue once it hits zero.",
+      "prototype": "",
+      "summary": "Peeks the head record of the event queue, decrementing its reference count and removing it only once no references remain."
+    },
+    {
+      "addr": "0x47a020",
+      "name": "position_update_queue_create",
+      "confidence": 0.5,
+      "evidence": "Allocates a 600-byte data buffer plus a 30-slot pointer array with a 20-byte element stride, matching the 20-byte {key, dist, x, y, z} records read by position_update_queue_find.",
+      "prototype": "",
+      "summary": "Allocates and initializes the 30-entry, 20-byte-record circular queue used to buffer a player's incoming network position updates."
+    },
+    {
+      "addr": "0x47a090",
+      "name": "network_queue_destroy",
+      "confidence": 0.5,
+      "evidence": "Frees the two GlobalAlloc buffers stored at offsets +8 and +0x14, the same offsets populated by all of the circular-queue constructors in this file (event_queue_create, position_update_queue_create, vehicle_update_queue_create).",
+      "prototype": "",
+      "summary": "Frees the backing buffers of a circular queue created by one of the *_queue_create constructors."
+    },
+    {
+      "addr": "0x47a0c0",
+      "name": "position_update_queue_push",
+      "confidence": 0.4,
+      "evidence": "Packs 5 dword parameters (matching the position-update record layout) into a local buffer and forwards it to circular_queue_push.",
+      "prototype": "",
+      "summary": "Reorders and pushes a position-update record (tick key plus payload) onto a position-update queue."
+    },
+    {
+      "addr": "0x47a100",
+      "name": "position_update_queue_find",
+      "confidence": 0.45,
+      "evidence": "Searches the queue for a record whose key matches param_2 (with 6-bit wraparound arithmetic mod 0x40), discarding older entries via circular_queue_pop until found; used directly by apply_remote_player_position_update.",
+      "prototype": "",
+      "summary": "Finds and removes the queued position-update record matching a given network tick, discarding any stale entries in front of it."
+    },
+    {
+      "addr": "0x47a1a0",
+      "name": "circular_queue_push",
+      "confidence": 0.5,
+      "evidence": "Generic fixed-size circular buffer push: computes free space from head/tail indices (unaff_EBX[3]/[4]) and copies the record into the next slot, advancing the tail index modulo capacity.",
+      "prototype": "",
+      "summary": "Pushes a fixed-size record onto a circular queue if space is available, returning success/failure."
+    },
+    {
+      "addr": "0x47a200",
+      "name": "circular_queue_pop",
+      "confidence": 0.5,
+      "evidence": "Generic circular-buffer pop: copies the record at the head index into the output pointer and advances the head index modulo capacity, or fails when the queue is empty.",
+      "prototype": "",
+      "summary": "Pops the oldest record from a circular queue into the caller's buffer."
+    },
+    {
+      "addr": "0x47a230",
+      "name": "circular_queue_count",
+      "confidence": 0.55,
+      "evidence": "Computes the number of queued items purely from the head/tail indices (unaff_EDX[3]/[4]) and capacity, with no side effects - the standard circular-buffer length calculation used by the enqueue/dequeue helpers in this file.",
+      "prototype": "",
+      "summary": "Returns the number of records currently queued in a circular queue."
+    },
+    {
+      "addr": "0x47a250",
+      "name": "vehicle_update_queue_create",
+      "confidence": 0.5,
+      "evidence": "Allocates a 2160-byte data buffer plus a 30-slot pointer array with a 72-byte element stride, matching the 18-dword records copied by vehicle_update_queue_find.",
+      "prototype": "",
+      "summary": "Allocates and initializes the 30-entry, 72-byte-record circular queue used to buffer a player's incoming network vehicle position/orientation updates."
+    },
+    {
+      "addr": "0x47a2c0",
+      "name": "vehicle_update_queue_find",
+      "confidence": 0.45,
+      "evidence": "Same key-matching/wraparound search as position_update_queue_find, but copies an 18-dword (72-byte) record instead of 3 floats; used directly by apply_remote_player_vehicle_position_update.",
+      "prototype": "",
+      "summary": "Finds and removes the queued vehicle-update record matching a given network tick, discarding stale entries ahead of it."
+    },
+    {
+      "addr": "0x47b140",
+      "name": "player_examine_nearby_vehicle",
+      "confidence": 0.7,
+      "evidence": "Non-FUN_ hint name matches the code: looks up a nearby object via FUN_0048a850 and sets/clears a flag bit at object offset 0x107 depending on the lookup's result byte, then finalizes with FUN_0048a640.",
+      "prototype": "",
+      "summary": "Looks up a nearby vehicle for the player's examine/interact action and toggles its 'being examined' flag."
+    },
+    {
+      "addr": "0x47b940",
+      "name": "player_set_action_result",
+      "confidence": 0.6,
+      "evidence": "Looks up an action-table entry (PTR_DAT_00688b58 indexed by param_1) via FUN_0048a850 and, on success, sets a result flag bit (0x20) on the target object at offset 0x106 before finalizing with FUN_0048a640.",
+      "prototype": "",
+      "summary": "Records the outcome of a player action into the target object's status flags."
+    },
+    {
+      "addr": "0x47bf23",
+      "name": "player_handle_action_jmp_table_adjust_size",
+      "confidence": 0.3,
+      "evidence": "Trivial body gated by a caller-set ZF flag; when clear it forwards two fields from an incoming structure to FUN_0056b520 and finalizes with FUN_0048a640, consistent with a small dispatch-table handler stub rather than a distinctly identifiable action.",
+      "prototype": "",
+      "summary": "A small conditional handler stub that forwards a pair of values to another routine and finalizes the current action."
+    },
+    {
+      "addr": "0x47c310",
+      "name": "player_camo_screen_effect",
+      "confidence": 0.6,
+      "evidence": "Looks up a nearby object via FUN_0048a850 and, if found, triggers a screen effect through FUN_0056bbd0 before finalizing with FUN_0048a640.",
+      "prototype": "",
+      "summary": "Triggers a camouflage-related screen effect when a relevant nearby object is found."
+    },
+    {
+      "addr": "0x47c3d0",
+      "name": "player_health_pack_screen_effect",
+      "confidence": 0.4,
+      "evidence": "Trivial body: calls object_try_and_get() then finalizes with FUN_0048a640(); the name is a pre-existing non-FUN_ hint that the sparse code neither confirms nor contradicts.",
+      "prototype": "",
+      "summary": "Retrieves an object and finalizes a pending action, presumably related to a health-pack pickup screen effect."
+    },
+    {
+      "addr": "0x53e060",
+      "name": "savegame_index_file_open",
+      "confidence": 0.3,
+      "evidence": "Zeroes a 268-byte global record, writes a 4-byte signature ('olif'), and opens/creates the backing store via FUN_005557a0(1), matching the pattern of the surrounding save-game-index record functions.",
+      "prototype": "",
+      "summary": "Initializes and opens the save-game index file/record structure for read access."
+    },
+    {
+      "addr": "0x53e0e0",
+      "name": "savegame_index_record_read",
+      "confidence": 0.3,
+      "evidence": "Guards access with a mutex (DAT_00721440), opens the index in mode 1, checks the file size covers slot param_1*0x206, and reads the fixed 0x206 (518)-byte record via FUN_005558f0/FUN_00555a20.",
+      "prototype": "",
+      "summary": "Reads a fixed-size save-game index record at the given slot, guarded by a mutex."
+    },
+    {
+      "addr": "0x53e1f0",
+      "name": "savegame_index_record_write",
+      "confidence": 0.3,
+      "evidence": "Same mutex-guarded structure as savegame_index_record_read but opens in mode 2 and commits via FUN_00555a90 instead of FUN_00555a20.",
+      "prototype": "",
+      "summary": "Writes a fixed-size save-game index record at the given slot, guarded by a mutex."
+    },
+    {
+      "addr": "0x53e300",
+      "name": "savegame_index_get_next_slot",
+      "confidence": 0.35,
+      "evidence": "Same mutex-guarded open/read pattern, but instead of transferring record data it checks the current size is below the 999-record limit and returns size/0x206 (the next free slot index) via the output parameter.",
+      "prototype": "",
+      "summary": "Determines the next free save-game index slot, provided the index has not reached its maximum record count."
+    },
+    {
+      "addr": "0x53e420",
+      "name": "savegame_index_get_record_count",
+      "confidence": 0.4,
+      "evidence": "Initializes the same global index-file structure as the other savegame_index_* functions, then calls FUN_00555b00 to fetch the file size and returns size/0x206 - the fixed record size used throughout this cluster.",
+      "prototype": "",
+      "summary": "Returns the number of records currently stored in the save-game index file."
+    },
+    {
+      "addr": "0x53e4a0",
+      "name": "savegame_index_delete_record",
+      "confidence": 0.35,
+      "evidence": "Mutex-guarded; after locating the record's byte offset (param_1*0x206), loops reading/writing 0x206-byte chunks from every later offset down by one slot, compacting the index after a deletion.",
+      "prototype": "",
+      "summary": "Removes a save-game index record and shifts all subsequent records down to keep the index compact."
+    },
+    {
+      "addr": "0x53e630",
+      "name": "savegame_pack_slot_id",
+      "confidence": 0.3,
+      "evidence": "Packs register inputs into a single dword: (EAX & 0xfff) << 16 combined with (ECX & 0xf), plus flag bits 0x40000000 and 0x80000000 set from two boolean parameters.",
+      "prototype": "",
+      "summary": "Packs a slot number, a small field, and two flag bits into a single save-game handle/id value."
+    }
+  ]
+}

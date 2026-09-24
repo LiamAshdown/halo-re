@@ -1,0 +1,46 @@
+{
+  "module": "hs",
+  "batch": 2,
+  "results": [
+    {
+      "addr": "0x48b220",
+      "name": "object_list_reference_chain_delete",
+      "confidence": 0.6,
+      "evidence": "Walks a linked chain (next-pointer at record offset+8, stride 0xc) inside the array whose data buffer is *(array_ptr+0x34), calling datum_delete on each node before advancing; only caller is the header-sweeping FUN_0048b340 which uses it right before deleting the corresponding list header, matching the 'list object reference' node array created in object_lists_initialize.",
+      "prototype": "",
+      "summary": "Given a reference-node data array pointer (EAX) and a chain head index (EDX), deletes every node in that singly-linked reference chain via datum_delete."
+    },
+    {
+      "addr": "0x48b250",
+      "name": "object_lists_initialize",
+      "confidence": 0.8,
+      "evidence": "Calls FUN_005380d0 (a data-array constructor) with the literal strings \"object list header\" and a sprintf-built \"list object reference\", storing the results in DAT_0087a464/DAT_0087a468, which every other function in this batch reads as the header/reference-node array pair.",
+      "prototype": "void __cdecl object_lists_initialize(void)",
+      "summary": "Creates the two global data arrays (list headers, and reference-list nodes) backing the engine's object-list system."
+    },
+    {
+      "addr": "0x48b2a0",
+      "name": "object_list_reference_add",
+      "confidence": 0.6,
+      "evidence": "Looks up a header record in DAT_0087a464 by a 16-bit list index, allocates a new node via datum_new in DAT_0087a468, stores param_1 as the node's value field (+4), links it in front of the header's existing head index (+8), and increments the header's count field (+6).",
+      "prototype": "",
+      "summary": "Pushes a new value (param_1) onto the front of the reference list identified by a list index in EAX, allocating a node from the reference-node data array and bumping the list's element count."
+    },
+    {
+      "addr": "0x48b2f0",
+      "name": "object_list_reference_get_first",
+      "confidence": 0.45,
+      "evidence": "Reads the head-node index (offset+8) out of the header record selected by in_ECX in DAT_0087a464, writes it to *in_EDX, and if valid follows it into DAT_0087a468 to return the node's value field (+4) while overwriting *in_EDX with the node's next-pointer (+8) for continued iteration; returns -1 for an invalid/empty list.",
+      "prototype": "",
+      "summary": "Given a list index in ECX and an output iterator pointer in EDX, returns the first value stored in that reference list (or -1 if empty/invalid) and writes the next node index for iteration."
+    },
+    {
+      "addr": "0x48b340",
+      "name": "object_lists_dispose_empty",
+      "confidence": 0.55,
+      "evidence": "Iterates every active entry of the header data array (DAT_0087a464) via FUN_004d0630/manual index stepping; whenever a header's count field (+4, short) is zero it frees the header's reference chain with FUN_0048b220 and deletes the header datum itself.",
+      "prototype": "",
+      "summary": "Sweeps the object-list header array and deletes (chain and header) any list whose element count has dropped to zero."
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+# dialogs module (0x57e1f0..0x57e590) names established by the phase-4 C rewrite and its review
+# in src/dialogs/*.c. No existing function was renamed (the three Ghidra names match functions.txt);
+# the two rows below name things functions.txt does not carry yet.
+# addr name kind confidence source
+0x57e2a0 dialog_static_hyperlink_parent_proc func 0.8 agent-phase4 no_Ghidra_function_yet;_installed_as_parent_WNDPROC_by_0x57e4c0_(push_0x57e2a0_at_0x57e4f8,_cmp_eax,0x57e2a0_at_0x57e4e8);_ret_0x10;_WM_CTLCOLORSTATIC_SetTextColor_by_hover_flag
+0x722bc8 dialog_hyperlink_hovered data 0.8 agent-phase4 int32_written_1/0_by_0x57e350_around_SetCapture/ReleaseCapture;_read_by_0x57e2a0_at_0x57e2ed_to_pick_text_colour_0xe0_or_0xc00000

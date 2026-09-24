@@ -1,0 +1,18 @@
+# devices module (0x44adf0..0x44c220) names established by the phase-4/5 C rewrite in
+# src/devices/*.c; each name is justified in that file's header comment and in
+# out/phase4/devices_types_notes.md. Evidence fields use underscores for spaces, matching
+# symbols/functions.txt.
+# addr name kind confidence source evidence
+0x44adf0 device_control_activate func 0.8 agent-phase4 gates_on_DeviceControl.triggers_when_==_touched_by_player_(tag+0x292_==_0)_before_forwarding_to_device_change_power_state;_was_device_maybe_change_power_state
+0x44b5d0 device_machine_melee_attacked func 0.8 agent-phase4 only_tests_ScenarioMachineFlags_bit_3_opened_by_melee_attack_at_object+0x214_then_slams_the_position_group_to_1.0_via_the_immediate_setter;_was_device_apply_initial_open_flag_which_guessed_a_starts_open_flag
+0x44ba10 device_compute_function_values func 0.8 agent-phase4 walks_Device.device_a_in..device_d_in_(tag+0x198,_the_DeviceIn_enum_0..6)_into_object.function_in_values_(object+0x124);_fills_the_input_side_so_get_change_function_values_was_backwards
+0x44c090 device_control_touched func 0.8 agent-phase4 dispatches_to_device_control_activate_only_for_object.type_==_object_type_device_control_(8),_the_original_testing_type_!=_7_&&_type_==_8;_was_device_control_maybe_update
+0x44c0c0 device_can_change_position func 0.8 agent-phase4 name_kept_from_phase_2_but_its_evidence_text_was_inverted:_the_function_REFUSES_a_change_when_device_group_flags_bits_0_and_1_are_both_set,_it_does_not_require_them
+# Corrections: the four functions below were assigned to devices by the address-run heuristic in
+# modules.json but are recorded-animation playback (see out/phase4/devices_types_notes.md
+# "Misattributed functions"). No src/devices file was written for them. 0x44aa90 in particular
+# overrides the device_groups_update name symbols/functions.txt currently carries.
+0x44a930 recorded_animation_start func 0.7 agent-phase4 indexes_Scenario.recorded_animations_(count_0x36c_pointer_0x370_stride_0x40_==_sizeof(ScenarioRecordedAnimation))_and_copies_version_0x20_unit_control_data_version_0x22_length_of_animation_0x24_and_event_stream_pointer_0x38;_Scenario.device_groups_is_0x288_stride_0x34_which_is_a_different_block
+0x44aa90 recorded_animations_update func 0.7 agent-phase4 per_tick_pass_over_the_0x64_byte_records_in_the_data_array_at_0x006b0a10_validating_each_object_against_1_<<_object_header.type_&_3_(biped_or_vehicle_only)_and_feeding_the_decoded_frame_to_FUN_005639f0_in_units;_no_device_function_touches_0x006b0a10
+0x44acc0 recorded_animation_object_is_playing func 0.7 agent-phase4 searches_the_same_0x006b0a10_data_array_for_a_non_pending_delete_record_matching_an_object_id
+0x44ad20 recorded_animation_find_by_object func 0.7 agent-phase4 same_search_returning_the_record_pointer_in_EAX_and_optionally_writing_-1_through_param_1

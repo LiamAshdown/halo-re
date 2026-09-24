@@ -1,0 +1,484 @@
+{
+  "results": [
+    {
+      "addr": "0x4999f0",
+      "name": "widget_instance_point_in_bounds",
+      "confidence": 0.5,
+      "evidence": "Accumulates the widget's absolute offset by walking the offset-0x30 parent chain (summing offset 0xa/0xc), then compares the tag's bounding rect (offset 0x24/0x28) against globals DAT_00718f84/DAT_00718f88, returning 1 if inside.",
+      "prototype": "",
+      "summary": "Given a widget instance in EAX, tests whether the current UI cursor position falls within that widget's on-screen bounding rectangle, accounting for offsets inherited from every ancestor widget."
+    },
+    {
+      "addr": "0x499aa0",
+      "name": "widget_instance_verify_stack_chain",
+      "confidence": 0.3,
+      "evidence": "Walks a linked list via offset 0x30 (\"next\") checking each node's offset-0x38 (\"owner\") back-pointer matches the previous node; returns true only if the walk reaches a null terminator without a mismatch.",
+      "prototype": "",
+      "summary": "Validates that a widget's offset-0x30 chain is a consistent doubly-linked list by checking each node's back-pointer, used to sanity-check a modal widget stack."
+    },
+    {
+      "addr": "0x499ad0",
+      "name": "widget_instance_find_at_point",
+      "confidence": 0.55,
+      "evidence": "Recursively hit-tests a widget and its children/siblings (offset 0x34/0x2c) against (param_2,param_3) using the same bounds-check idiom as widget_instance_point_in_bounds, returning the deepest matching widget or falling back to the current one for list-type widgets.",
+      "prototype": "",
+      "summary": "Recursively searches a widget instance and its descendants for the topmost widget whose bounding rectangle contains the given screen point, honoring visibility and list-type widget rules."
+    },
+    {
+      "addr": "0x499c20",
+      "name": "widget_instance_get_cumulative_scale",
+      "confidence": 0.6,
+      "evidence": "Multiplies the widget's own offset-0x24 scale field by the same field of every ancestor reached via the offset-0x30 parent chain; the identical accumulation pattern appears (inlined) at the top of widget_instance_render (0x49a8c0).",
+      "prototype": "",
+      "summary": "Returns the effective render scale of a widget instance by multiplying its own scale with that of every ancestor up the parent chain."
+    },
+    {
+      "addr": "0x499c40",
+      "name": "widget_instance_ancestor_chain_is_active",
+      "confidence": 0.3,
+      "evidence": "Walks up the offset-0x30 parent chain testing, at each step, whether the tag's flag byte (offset 0x2c bit0) is set or the widget's type (offset 0xe) is 2/3 (list-type), returning false as soon as a link fails both checks.",
+      "prototype": "",
+      "summary": "Checks whether every widget in this instance's ancestor chain is either flagged interactive or a list-type widget, used to gate list/selection interactions."
+    },
+    {
+      "addr": "0x499cb0",
+      "name": "widget_instance_is_top_of_stack",
+      "confidence": 0.4,
+      "evidence": "Ghidra recovers an explicit bool return type; walks the same offset-0x30/0x38 back-pointer chain as widget_instance_verify_stack_chain to confirm this instance is the last (topmost) entry, treating list-type (0xe==2/3) children specially.",
+      "prototype": "",
+      "summary": "Determines whether the widget instance in EAX is the topmost entry of its offset-0x30 linked chain, i.e. the active widget in a modal stack."
+    },
+    {
+      "addr": "0x499d00",
+      "name": "widget_instance_handle_input_event",
+      "confidence": 0.5,
+      "evidence": "Dispatches a controller/keyboard event record (param_3) against a widget's bound event-definition table (offset 0x54/0x58, entries tested for key codes 0xd/1/axis thresholds 0x7fff/-0x8000), invokes ui_widget_list_item_activate (0x49a430) on a match, and recurses into the focused or full child list via itself.",
+      "prototype": "",
+      "summary": "Processes an input event against a widget instance's bound UI events, triggering matching event actions and propagating the event to the widget's focused or listed child widgets."
+    },
+    {
+      "addr": "0x49a2e0",
+      "name": "widget_instance_dispatch_cursor_event",
+      "confidence": 0.35,
+      "evidence": "Mirrors the child-recursion tail of widget_instance_handle_input_event (calls FUN_00499d00 on children found via offset 0x38/0x34) and performs no drawing at all, so the existing \"render_ui_cursor\" name is not supported by the code.",
+      "prototype": "",
+      "summary": "Forwards an input event to the appropriate child widget (a single matched child, or the full child list until one consumes it) and updates a global list-changed flag afterward; despite its current name this performs event dispatch, not cursor rendering."
+    },
+    {
+      "addr": "0x49a430",
+      "name": "ui_widget_list_item_activate",
+      "confidence": 0.5,
+      "evidence": "Executes the bit-flagged actions of a list-item/event definition record (param_4): runs an hs script (hs_script_find_by_name), hides/toggles or swaps a child widget by tag via chimera__load_ui_widget, focuses another widget (FUN_0049c4c0), closes the current list (FUN_0049c3e0), and plays a sound (FUN_00549af0).",
+      "prototype": "",
+      "summary": "Executes the set of actions encoded in a widget event/list-item definition (script call, tag-based widget swap, focus change, close list, sound) when that item is triggered."
+    },
+    {
+      "addr": "0x49a8c0",
+      "name": "widget_instance_render",
+      "confidence": 0.6,
+      "evidence": "Computes cumulative scale (matching widget_instance_get_cumulative_scale's pattern), walks a per-widget-type overlay-command table (PTR_FUN_00692b18), draws a background quad, dispatches to text/list-head/list-item render helpers by type (offset 0xe == 1/2/3), recurses into every child, then fires the on-frame event (type 0x21) through ui_widget_list_item_activate.",
+      "prototype": "",
+      "summary": "Recursively renders a widget instance and all of its children: applies inherited scale/fade, draws its background and per-type content, and triggers any bound periodic (\"on frame\") event."
+    },
+    {
+      "addr": "0x49aa00",
+      "name": "widget_instance_render_tail",
+      "confidence": 0.3,
+      "evidence": "Control flow is structurally identical to the content-drawing half of widget_instance_render (0x49a8c0): background fade/pulse, dispatch to text/list-head/list-item drawing by type, recursion into children, and the on-frame event check - but reached only through unassigned registers with 0 recorded callers, unlike a name/tag lookup routine.",
+      "prototype": "",
+      "summary": "A register-convention duplicate of widget_instance_render's content-drawing tail (fade, per-type dispatch, child recursion, on-frame event); the existing \"load by name or tag\" name does not match what the code does."
+    },
+    {
+      "addr": "0x49ac30",
+      "name": "ui_button_prompt_index_from_string",
+      "confidence": 0.5,
+      "evidence": "Linear-scans up to 0x28 (40) wide-string button-caption table entries (PTR_u_a_button_00692708, whose first string is \"a-button\") with case-insensitive __wcsnicmp, returning the matching index or 0xffff.",
+      "prototype": "",
+      "summary": "Looks up which button-prompt token (e.g. \"a-button\") a wide string begins with, returning its index into the button caption table or 0xFFFF if no token matches."
+    },
+    {
+      "addr": "0x49ac80",
+      "name": "widget_instance_queue_sound_effect",
+      "confidence": 0.35,
+      "evidence": "Reads a local-player time base (DAT_00746fa0 offset 0x140/0x144), optionally computes a QueryPerformanceCounter-derived millisecond timestamp via __allmul/__alldiv, then forwards it with the widget's sound-tag field to FUN_004ab8d0.",
+      "prototype": "",
+      "summary": "Prepares a timestamp (game time, or a high-resolution timer value when requested) and forwards it with a widget's sound-tag reference to queue a UI sound effect."
+    },
+    {
+      "addr": "0x49ad30",
+      "name": "widget_instance_draw_button_prompt_span",
+      "confidence": 0.45,
+      "evidence": "Resets clip-width globals DAT_006e4770/DAT_006e476e based on the difference between two width values, calls FUN_005562d0 (width measurement), then draws the span via chimera__draw_16_bit_text.",
+      "prototype": "",
+      "summary": "Draws one span of a button-prompt caption via chimera__draw_16_bit_text, adjusting the running horizontal clip offset beforehand."
+    },
+    {
+      "addr": "0x49ada0",
+      "name": "ui_string_has_button_prompt_token",
+      "confidence": 0.5,
+      "evidence": "Scans a wide string for '%' characters via _wcschr and tests each following substring with ui_button_prompt_index_from_string (0x49ac30), returning true on the first recognised token.",
+      "prototype": "",
+      "summary": "Returns true if the given wide string contains at least one recognised \"%buttonname\" prompt-substitution token."
+    },
+    {
+      "addr": "0x49ade0",
+      "name": "ui_widget_draw_formatted_prompt_string",
+      "confidence": 0.5,
+      "evidence": "Copies the input string, repeatedly locates '%' tokens, resolves each with ui_button_prompt_index_from_string, and interleaves plain-text spans (widget_instance_draw_button_prompt_span / chimera__draw_16_bit_text) with the matched controller-button captions, falling back to a fixed \"no controller\" string (DAT_00669cd4) when a token is unrecognised.",
+      "prototype": "",
+      "summary": "Renders a caption string mixing plain text with \"%button\" placeholders, drawing each text span and substituting the matching controller-button icon or label for every recognised token."
+    },
+    {
+      "addr": "0x49b1d0",
+      "name": "widget_instance_render_text_box",
+      "confidence": 0.8,
+      "evidence": "Allocates/copies the widget's display text (heap_reallocate, falling back to the referenced string \"<out of memory>\"), applies per-token list-name substitutions (FUN_00557990/FUN_0049be10), computes a pulsing colour, then draws it via chimera__draw_16_bit_text or the %-token formatter ui_widget_draw_formatted_prompt_string; matches an existing PDB-derived hint for this address.",
+      "prototype": "",
+      "summary": "Prepares and draws a text-box widget's caption: performs text substitutions, computes colour pulsing/fade, and dispatches to plain or button-prompt-substituted text rendering."
+    },
+    {
+      "addr": "0x49b450",
+      "name": "widget_instance_draw_prompt_or_text",
+      "confidence": 0.4,
+      "evidence": "Branches on a flag (in_ZF) between calling the %-token prompt formatter ui_widget_draw_formatted_prompt_string (0x49ade0) and calling chimera__draw_16_bit_text directly on the raw string, with no widget tree traversal - the current \"render_ui_widgets\" name overstates its scope.",
+      "prototype": "",
+      "summary": "Chooses between drawing a raw string directly or running it through the button-prompt substitution formatter, based on a caller-supplied flag."
+    },
+    {
+      "addr": "0x49b560",
+      "name": "widget_instance_render_list_head",
+      "confidence": 0.5,
+      "evidence": "Computes cumulative scale/hit-test (widget_instance_point_in_bounds / widget_instance_cursor_vertical_side), advances a scroll-arrow blink counter (offset 0x42), conditionally renders up/down scroll-arrow indicator widgets via widget_instance_render, then builds and draws the currently selected list entry's caption (list-name substitution, heap_allocate, chimera__draw_16_bit_text) - matching the type==2 dispatch case inside widget_instance_render.",
+      "prototype": "",
+      "summary": "Renders a list_head-type widget: draws its scroll-arrow indicators and then assembles and draws the caption text of the currently selected list entry."
+    },
+    {
+      "addr": "0x49bac0",
+      "name": "widget_instance_render_list_items",
+      "confidence": 0.45,
+      "evidence": "Renders a linked \"focus ring\" child (offset 0x4c) the same way widget_instance_render does, then, if the tag's flag byte (offset 0x150 bit0) is set, iterates up to a stored maximum (offset 0x48) drawing each list child via widget_instance_render with a \"selected\" flag for the entry matching offset 0x40 - the type==3 dispatch case inside widget_instance_render.",
+      "prototype": "",
+      "summary": "Renders every visible entry of a list-type widget's children, marking whichever entry matches the current selection index, and clears the selection-changed counter afterward."
+    },
+    {
+      "addr": "0x49bb60",
+      "name": "widget_instance_focus_topmost_ancestor",
+      "confidence": 0.35,
+      "evidence": "Walks the offset-0x30 parent chain up to the root ancestor, then calls FUN_00499950 (a tag/index lookup) with param_1 and, on a match, calls widget_instance_relink_stack_top (FUN_0049bba0).",
+      "prototype": "",
+      "summary": "Finds the topmost ancestor of the current widget and, if it matches the supplied lookup key, updates the modal widget-stack linkage."
+    },
+    {
+      "addr": "0x49bba0",
+      "name": "widget_instance_relink_stack_top",
+      "confidence": 0.35,
+      "evidence": "Manipulates the offset-0x30/0x38/0x2c/0xc linked-list fields to move a widget to the top of a doubly-linked stack, falling back to the nearest visible or list-type sibling when the direct target is hidden.",
+      "prototype": "",
+      "summary": "Re-links a widget instance into the modal/selection stack, preferring the closest visible or list-type sibling if the direct target widget is hidden."
+    },
+    {
+      "addr": "0x49bd00",
+      "name": "widget_instance_select_list_index",
+      "confidence": 0.4,
+      "evidence": "For a negative index, re-checks the ancestor chain (widget_instance_ancestor_chain_is_active) before relinking the stack (widget_instance_relink_stack_top); for a non-negative index, walks that many siblings via offset 0x2c and records the reached widget as the new selection (offset 0x40).",
+      "prototype": "",
+      "summary": "Moves the widget-stack's current selection to a specific list index (or, for a negative index, re-validates and relinks the existing selection), updating the target's stored selection field."
+    },
+    {
+      "addr": "0x49bdd0",
+      "name": "widget_instance_play_selection_sound",
+      "confidence": 0.3,
+      "evidence": "Guards a call to FUN_00549af0 (used elsewhere for playing tag-referenced sounds) on the caller-supplied index being valid (!= -1).",
+      "prototype": "",
+      "summary": "Plays a sound effect via FUN_00549af0 provided the caller-supplied sound-tag index is valid."
+    },
+    {
+      "addr": "0x49be10",
+      "name": "ui_string_replace_all",
+      "confidence": 0.55,
+      "evidence": "Classic find/replace routine over a wide-character buffer using _wcsstr, heap_reallocate, and _memmove to substitute every occurrence of param_1 with param_2 inside *param_3, returning the number of replacements made.",
+      "prototype": "",
+      "summary": "Replaces every occurrence of one wide substring with another inside a (possibly reallocated) wide-character buffer, returning the number of replacements performed."
+    },
+    {
+      "addr": "0x49c000",
+      "name": "widget_instance_mark_selected_child",
+      "confidence": 0.4,
+      "evidence": "For each list child (offset 0x34/0x2c) clears a per-child \"selected\" flag (offset 0x58), then sets it for the child matching the current selection pointer (offset 0x38) provided that child's type (offset 0x5e) is 2 (list_head).",
+      "prototype": "",
+      "summary": "Clears and re-applies the \"selected\" flag across a list widget's children so that only the currently active list_head child is marked selected."
+    },
+    {
+      "addr": "0x49c040",
+      "name": "widget_instance_update_selected_child_flag",
+      "confidence": 0.4,
+      "evidence": "Near-identical loop to widget_instance_mark_selected_child but sets or clears each list_head child's selected flag purely based on whether it equals the current selection pointer, without a separate reset pass.",
+      "prototype": "",
+      "summary": "Updates each list_head child's \"selected\" flag to match whether it is currently the widget's active selection."
+    },
+    {
+      "addr": "0x49c080",
+      "name": "widget_instance_select_next_child",
+      "confidence": 0.4,
+      "evidence": "Advances the current selection pointer (offset 0x38) forward through the sibling chain (offset 0x2c), skipping entries that are neither flagged nor list-type (0xe==2/3), wrapping back to the first child (offset 0x34) at the end of the list.",
+      "prototype": "",
+      "summary": "Advances a list widget's current selection to the next selectable sibling, wrapping to the first child when the end of the list is reached."
+    },
+    {
+      "addr": "0x49c0f0",
+      "name": "widget_instance_select_previous_child",
+      "confidence": 0.4,
+      "evidence": "Mirrors widget_instance_select_next_child but walks backward through the sibling chain (offset 0x28) instead of forward, again skipping non-selectable entries and wrapping to the last child.",
+      "prototype": "",
+      "summary": "Moves a list widget's current selection to the previous selectable sibling, wrapping to the last child when the start of the list is reached."
+    },
+    {
+      "addr": "0x49c1a0",
+      "name": "ui_check_for_pause_game",
+      "confidence": 0.8,
+      "evidence": "Builds and loads one of the referenced \"pause_game\"/\"pause_game_split_screen\" widget path strings based on player count, split-screen, and multiplayer session gating globals, via a chimera__load_ui_widget call, matching the existing name.",
+      "prototype": "",
+      "summary": "Determines which pause-menu widget (1p/2p/4p multiplayer or solo/split-screen) to load based on the current player count and session state, loads it, and decrements the pending pause-request counter."
+    },
+    {
+      "addr": "0x49c369",
+      "name": "ui_pause_game_default_tail",
+      "confidence": 0.3,
+      "evidence": "Body is identical to the final branch of ui_check_for_pause_game (same DAT_00718fa0 decrement idiom and the same referenced \"...solo_game\\\\pause_game\\\\pause_game\" load), indicating this is a duplicated tail fragment of that function rather than anything related to \"scenario help\".",
+      "prototype": "",
+      "summary": "A compiler-duplicated tail fragment of ui_check_for_pause_game: conditionally loads the default single-player pause-game widget and decrements the pending-pause counter; the existing \"display_scenario_help_fail\" name is unsupported by the code."
+    },
+    {
+      "addr": "0x49c3e0",
+      "name": "widget_instance_close_and_restore_previous",
+      "confidence": 0.45,
+      "evidence": "Pops a saved \"previous widget\" record from a per-controller stack (DAT_00718f98 array), frees the current widget's topmost ancestor via FUN_00497c00, then reloads the saved widget by tag through chimera__load_ui_widget, restoring the saved selection index via widget_instance_select_list_index if the reload itself fails.",
+      "prototype": "",
+      "summary": "Closes the current widget chain and reloads whichever widget was previously saved for this controller slot, re-applying its saved list selection if the reload fails."
+    },
+    {
+      "addr": "0x49c4c0",
+      "name": "widget_instance_load_child_by_tag",
+      "confidence": 0.4,
+      "evidence": "Derives an initial value/index for the target tag from either its own definition flags or the current widget's stored value, locates this widget's topmost ancestor and its own sibling index, then calls chimera__load_ui_widget with those as restore-state parameters.",
+      "prototype": "",
+      "summary": "Loads (or re-focuses) a child widget identified by a tag id, passing along a type-appropriate initial value and this widget's sibling position so the loaded widget can restore prior state."
+    },
+    {
+      "addr": "0x49c5c0",
+      "name": "ui_get_saved_color",
+      "confidence": 0.3,
+      "evidence": "Copies three saved colour-component globals (DAT_006927b8/bc/c0) directly into the caller's output structure; structurally the simpler counterpart of ui_get_pulsing_color (0x49c620).",
+      "prototype": "",
+      "summary": "Copies a previously saved three-component colour value from globals into the caller's output buffer."
+    },
+    {
+      "addr": "0x49c620",
+      "name": "ui_get_pulsing_color",
+      "confidence": 0.35,
+      "evidence": "Writes a base colour from PTR_DAT_006851fc plus the same three saved colour globals as ui_get_saved_color into a 4-component output; used by widget_instance_render_text_box as the source colour for its pulsing/tint effect.",
+      "prototype": "",
+      "summary": "Builds a 4-component colour value (a base colour plus saved RGB) used as the source colour for a widget's pulsing or animated tint effect."
+    },
+    {
+      "addr": "0x49c680",
+      "name": "playlist_profile_initialize",
+      "confidence": 0.45,
+      "evidence": "Calls FUN_0053d120 to check/select a profile index, playlist_profile_create_default_profiles_on_disk when a first-run flag is set, and the profile disk read/select helpers FUN_0053c4e0/FUN_0053d2b0/FUN_0053d4a0.",
+      "prototype": "",
+      "summary": "Initializes the player profile system on startup: creates default profile files on disk if needed, then loads and selects the current profile."
+    },
+    {
+      "addr": "0x49c710",
+      "name": "set_profile_name",
+      "confidence": 0.8,
+      "evidence": "Looks up the referenced \"ui\\\\shell\\\\strings\\\\common_button_captions\" string-list tag and formats the referenced \"%s %s\" pattern combining an optional localized suffix with param_1 into a heap-allocated buffer, matching an existing PDB-derived hint for this address.",
+      "prototype": "",
+      "summary": "Builds a profile display name by formatting a base name together with an optional localized suffix string looked up from the common button captions string list."
+    },
+    {
+      "addr": "0x49c7b0",
+      "name": "ui_network_wait_timeout_check",
+      "confidence": 0.35,
+      "evidence": "Compares the current time (FUN_00449210) against a saved timestamp DAT_006927c4, setting a \"timed out\" flag DAT_00718fcc once more than 9999 ticks have elapsed since it was recorded.",
+      "prototype": "",
+      "summary": "Checks whether the elapsed time since a saved timestamp exceeds a threshold and, if so, raises a timeout flag used to abandon a pending network/UI wait state."
+    },
+    {
+      "addr": "0x49c810",
+      "name": "ui_network_wait_timer_start",
+      "confidence": 0.4,
+      "evidence": "Records the current time (QueryPerformanceCounter converted to milliseconds via __allmul/__alldiv) into DAT_006927c4 if not already set, and raises the \"waiting\" flag DAT_00718fcd; the counterpart of ui_network_wait_timeout_check.",
+      "prototype": "",
+      "summary": "Starts (or confirms already started) the timestamp used by ui_network_wait_timeout_check, and marks a network/UI wait as active."
+    },
+    {
+      "addr": "0x49c870",
+      "name": "ui_draw_trouble_brewing_indicator",
+      "confidence": 0.5,
+      "evidence": "Looks up the referenced \"ui\\\\shell\\\\bitmaps\\\\trouble_brewing\" tag and, while a wait is active (DAT_006927c4 != -1), draws it every frame via FUN_00498b20, calling FUN_00449780 if the bitmap cannot be resolved.",
+      "prototype": "",
+      "summary": "Draws the \"trouble brewing\" network-wait indicator bitmap while a network operation is pending, falling back to a hide/cleanup call if the bitmap tag cannot be resolved."
+    },
+    {
+      "addr": "0x49c8f0",
+      "name": "ui_build_level_select_list",
+      "confidence": 0.55,
+      "evidence": "Builds the referenced \"ui\\\\shell\\\\main_menu\\\\map_list_oneline\" level picker: clears working buffers, reads per-level unlock flags, looks up localized level names from the string-list tag, and populates a growable array (growable_array_add_element) of up to ten (name, level index, is-current) entries, referencing the level tag strings \"levels\\\\a10\\\\a10\"/\"levels\\\\a30\\\\a30\".",
+      "prototype": "",
+      "summary": "Populates the level-selection widget's list with up to ten playable campaign levels (localized name, level index, current-selection flag) based on the player's unlock progress."
+    },
+    {
+      "addr": "0x49cc80",
+      "name": "ui_build_level_select_list_cooperative",
+      "confidence": 0.45,
+      "evidence": "Near-duplicate of ui_build_level_select_list, but combines a second co-op progress buffer (DAT_00714ddc) with the primary one (bitwise OR of per-level flags) before building the same ten-entry level array from the referenced level tag strings.",
+      "prototype": "",
+      "summary": "Builds the same level-selection list as ui_build_level_select_list, but treats a level as unlocked if either player's (single or co-op) progress buffer has unlocked it."
+    },
+    {
+      "addr": "0x49ce00",
+      "name": "ui_apply_selected_level",
+      "confidence": 0.4,
+      "evidence": "Reads the level index highlighted in the widget (offset 0x3c), validates it against the appropriate single- or co-op progress buffer selected by DAT_006894b8 (player count), and on success stores the level's scenario path into DAT_00719779 and sets the pending-start flags.",
+      "prototype": "",
+      "summary": "Validates the level currently selected in the level-list widget against the active player's unlock progress and, if unlocked, records its scenario path as the level to start."
+    },
+    {
+      "addr": "0x49cfd0",
+      "name": "ui_start_new_campaign",
+      "confidence": 0.4,
+      "evidence": "For fewer than two players, unconditionally sets the scenario path to the referenced first level (\"levels\\\\a10\\\\a10\") and marks a new-game start; otherwise validates a chosen index against DAT_006b2ce8 first, calling display_error(0x13,...) and resetting the player count on failure.",
+      "prototype": "",
+      "summary": "Starts a new campaign game from the first level, applying the chosen difficulty/option index if valid, or reporting an error and falling back to single-player mode if not."
+    },
+    {
+      "addr": "0x49d210",
+      "name": "multiplayer_host_session_start",
+      "confidence": 0.5,
+      "evidence": "Creates a hosted network game engine (network_game_server_host_create), applies the active custom game variant (game_engine_apply_current_custom_variant), and opens a network session (network_session_create), tearing down via network_game_server_host_dispose on any failure.",
+      "prototype": "",
+      "summary": "Establishes a hosted multiplayer session by creating the host game engine, applying the active game variant, and opening the network session, cleaning up any partial state if a step fails."
+    },
+    {
+      "addr": "0x49d2e0",
+      "name": "multiplayer_client_join_selected_host",
+      "confidence": 0.45,
+      "evidence": "Reads the server-list entry currently highlighted in the widget, validates it is joinable, calls network_connection_initiate, and on success loads the referenced \"...connected_pregame_screen\" widget via chimera__load_ui_widget.",
+      "prototype": "",
+      "summary": "Initiates a network connection to the server currently selected in the server-list widget and, once connected, transitions the UI to the connected pre-game lobby screen."
+    },
+    {
+      "addr": "0x49d850",
+      "name": "find_index_by_name_stricmp",
+      "confidence": 0.3,
+      "evidence": "Linearly scans a fixed table of C-string pointers (DAT_00712dcc) with __stricmp until a match or the supplied count is exhausted, then calls FUN_0053d5e0; no drawing occurs, so the existing \"render_widget_recursive\" name is unsupported.",
+      "prototype": "",
+      "summary": "Searches a table of name strings for a case-insensitive match and returns the result of a follow-up lookup call; despite its current name it performs a name search, not widget rendering."
+    },
+    {
+      "addr": "0x49dd70",
+      "name": "ui_build_profile_list",
+      "confidence": 0.5,
+      "evidence": "Resets bookkeeping tables (DAT_006b3830 group, mirrored in ui_apply_selected_level), allocates a 400-byte selection array via heap_reallocate, and for each profile slot checks FUN_0053a770 before recording it and pre-selecting whichever profile matches the currently loaded one (DAT_0068e66c); calls the profile helpers FUN_0053c4e0/FUN_0053d2b0/FUN_0053d4a0.",
+      "prototype": "",
+      "summary": "Builds the player-profile selection list: resets scroll bookkeeping, allocates the selection array, and records every valid saved profile, pre-selecting whichever profile is currently loaded."
+    },
+    {
+      "addr": "0x49df70",
+      "name": "ui_free_profile_list",
+      "confidence": 0.45,
+      "evidence": "Frees the heap block referenced at offset 0x44 - the same field populated by ui_build_profile_list - and resets its entry count, then calls FUN_004a7b20 for further widget cleanup.",
+      "prototype": "",
+      "summary": "Releases the player-profile list's allocated array and resets its entry count as part of widget teardown."
+    },
+    {
+      "addr": "0x49dfc0",
+      "name": "ui_apply_selected_profile",
+      "confidence": 0.45,
+      "evidence": "Reads the profile id currently highlighted in the list (offset 0x40/0x44), validates it via FUN_0053a770, and on success looks up and loads the corresponding saved profile with player_profile_find_index_by_id/player_profile_load.",
+      "prototype": "",
+      "summary": "Applies the currently selected entry of the profile list by validating it and loading the associated saved player profile."
+    },
+    {
+      "addr": "0x49e090",
+      "name": "ui_apply_selected_profile_for_player",
+      "confidence": 0.4,
+      "evidence": "Same validate-then-load pattern as ui_apply_selected_profile (FUN_0053a770 then player_profile_load), but first locates the nearest list_head child (offset 0xe==2) and indexes per-player help-text state (DAT_00718fac triple) by a supplied player slot (param_2+2).",
+      "prototype": "",
+      "summary": "Validates and loads the profile selected in a per-player (e.g. split-screen) profile-list widget, recording a help-text prompt for that player slot if no profile has been created yet."
+    },
+    {
+      "addr": "0x4a0050",
+      "name": "ui_populate_controls_options_from_profile",
+      "confidence": 0.45,
+      "evidence": "Reads a loaded profile/options record (DAT_00714e80) and, for each of several list_head child widgets found by walking to type==2 (offset 0xe), writes its current setting (offset 0x40) from the profile's fields (0x80, 0x7c, 0x58 via a jump table, 0x34, 0x78 mapped to fixed sensitivity values), gated by a \"profile changed\" flag DAT_00714e7c.",
+      "prototype": "",
+      "summary": "Populates the controller/options menu's list_head widgets (control scheme, invert, sensitivity, etc.) with the values from the currently loaded player profile."
+    },
+    {
+      "addr": "0x4a0a30",
+      "name": "ui_free_controls_options_list",
+      "confidence": 0.35,
+      "evidence": "Frees the heap block at offset 0x44 the same way as ui_free_profile_list, then calls FUN_004a7b20, but without resetting an entry-count field, suggesting a sibling cleanup routine for the controls-options widget rather than the profile list.",
+      "prototype": "",
+      "summary": "Releases a widget's allocated child array and performs generic teardown, mirroring ui_free_profile_list for the controls/options widget context."
+    },
+    {
+      "addr": "0x4a0b50",
+      "name": "ui_apply_pending_profile_changes",
+      "confidence": 0.4,
+      "evidence": "When a pending-change flag (DAT_00714e7c & 0xf) and a loaded profile (DAT_00714e80) are both set, reloads the current profile via player_profile_load(DAT_00714dd4) and clears the pending flag.",
+      "prototype": "",
+      "summary": "Reloads the current player profile to apply any pending option changes, then clears the pending-changes flag."
+    },
+    {
+      "addr": "0x4a1110",
+      "name": "ui_start_resume_saved_game",
+      "confidence": 0.4,
+      "evidence": "Aborts if the referenced \"savegame\" state flag DAT_00719010 is set, otherwise calls FUN_005388c0 and sets the same start/pending state globals (DAT_00719720, DAT_00719739, DAT_0068e66c) used by ui_apply_selected_level to begin loading a level.",
+      "prototype": "",
+      "summary": "Resumes the in-progress saved campaign game (unless a save operation is already underway), applying the current level/profile state so the game begins loading."
+    },
+    {
+      "addr": "0x4a1670",
+      "name": "network_game_host_reset_stats",
+      "confidence": 0.4,
+      "evidence": "Zeroes a block of fields (offsets 0x9c8-0x9d4) on the hosted-game structure DAT_0071c2d4 and sets a \"dirty\"/reset flag at offset 0x9d5, mirroring the same field reset seen inline in FUN_0049d210 when a host is first created.",
+      "prototype": "",
+      "summary": "Resets the hosted multiplayer game's statistics/state fields to zero on the active host session structure."
+    },
+    {
+      "addr": "0x4a1940",
+      "name": "ui_open_profile_name_entry",
+      "confidence": 0.45,
+      "evidence": "Generates a default player name via FUN_0053ca80 into DAT_006b37f4, records the target player/controller slot from param_2, resets related state, then calls FUN_004a89a0(0x18,8) - a pattern consistent with opening an on-screen text-entry keyboard.",
+      "prototype": "",
+      "summary": "Prepares a default player name and opens the name-entry text input for a specific player/controller slot when creating a new profile."
+    },
+    {
+      "addr": "0x4a19a0",
+      "name": "ui_profile_name_entry_complete",
+      "confidence": 0.45,
+      "evidence": "Validates the entered name is unique via FUN_00539ab0, regenerating a default name and retrying if it collides, then creates/loads the new profile (FUN_00539bc0, player_profile_load) or, on failure, sets an error-help-text index (DAT_00718fac) and closes the entry field - the completion counterpart of ui_open_profile_name_entry.",
+      "prototype": "",
+      "summary": "Finishes new-profile creation after name entry: verifies the chosen name is available, creates and loads the resulting profile, or shows an error and cancels entry if creation fails."
+    },
+    {
+      "addr": "0x4a1c30",
+      "name": "ui_profile_list_refresh_current",
+      "confidence": 0.3,
+      "evidence": "Thin wrapper that simply calls FUN_0053c4e0(0, local_buffer, 0), the same profile-disk helper invoked by ui_build_profile_list and playlist_profile_initialize.",
+      "prototype": "",
+      "summary": "Refreshes the current profile's on-disk record via FUN_0053c4e0, likely to reload it after an external change."
+    },
+    {
+      "addr": "0x4a1ff0",
+      "name": "widget_instance_cursor_vertical_side",
+      "confidence": 0.45,
+      "evidence": "Accumulates the widget's offset-0xa position across the offset-0x30 parent chain, then compares the midpoint of the tag's bounds (offset 0x24/0x28) against the global cursor coordinate DAT_00718f84, returning +1 or -1 depending on which side the cursor falls; used by widget_instance_render_list_head to decide scroll-arrow highlighting.",
+      "prototype": "",
+      "summary": "Determines which side of a widget's bounding-rectangle midpoint the current cursor position falls on, returning +1 or -1 accordingly."
+    }
+  ]
+}

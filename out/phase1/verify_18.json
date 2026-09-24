@@ -1,0 +1,24 @@
+{
+ "slice": 18,
+ "disputes": [
+  {
+   "addr": "0x60ccf0",
+   "current": "lib:other",
+   "proposed": "lib:d3dx",
+   "reason": "This function heads a contiguous zlib-inflate run (0x60ccf0-0x61310f, including 0x60cd56, 0x60cdd4, 0x60d520, 0x612540, 0x612573, 0x612aca, 0x612adb, 0x612e5a, 0x612ed3, 0x612fcd, 0x612ffe, 0x61310f) whose strings are classic zlib inflate errors ('invalid block type', 'invalid stored block lengths', 'too many length or distance symbols', 'invalid bit length repeat', 'invalid literal/length code', 'invalid distance code', 'oversubscribed dynamic bit lengths tree', 'incomplete dynamic bit lengths tree', 'oversubscribed distance tree', 'incomplete distance tree', 'empty distance tree with lengths', 'oversubscribed literal/length tree', 'incomplete literal/length tree'). Slice 16's own assignment already identifies this exact zlib copy as embedded in D3DX9: assign_16.json's entry for 0x5d2f00 (run 0x5d2f00-0x5d3071, module lib:d3dx, confidence 0.9) reads \"zlib inflate, strings 'incorrect header check', 'unknown compression method', 'need dictionary' (zlib inside D3DX9)\" and out/slices/16.md shows that run directly calling FUN_60ccf0 (from 0x5d2f00), FUN_60d520 (from 0x5d2f3f), and FUN_60cd56 / FUN_60d66e (from 0x5d3010ish caller). So the same library, correctly tagged lib:d3dx on the caller side in slice 16, was tagged the generic lib:other on the callee side here — a cross-slice inconsistency that should be corrected to lib:d3dx."
+  },
+  {
+   "addr": "0x606360",
+   "current": "lib:other",
+   "proposed": "lib:d3dx",
+   "reason": "Contiguous run 0x606360-0x60cb90 (immediately following the confirmed D3DX9 HLSL-compiler run that ends at 0x606325/0x60635b) is D3DX9's embedded libjpeg decoder, not generic third-party code. FUN_006078c0 in this run calls FUN_005d2e40, and assign_16.json places 0x5d2e40 inside the run 0x5d1670-0x5d2ee0 explicitly labeled 'libjpeg decoder embedded in D3DX9' (lib:d3dx, confidence 0.8) — a direct call-graph edge from this run into already-confirmed D3DX9/libjpeg code. Internal evidence corroborates this: FUN_006078c0 builds a vtable-style dispatch object (writes LAB_00606a20/LAB_00606cf0/LAB_00606f30 and FUN_00607870 into a struct), matching libjpeg's source/destination-manager function-pointer pattern; FUN_0060ada0 builds ten parallel per-byte lookup tables via the classic (v*0x10101)>>16 channel-replication trick typical of libjpeg/libpng color-conversion or gamma tables; and FUN_00609ee0 performs byte/short pixel packing consistent with libjpeg's merged YCbCr-upsample-and-color-convert routine. This whole run should be lib:d3dx like its shader-compiler neighbor and its zlib-embedded neighbor, not the generic lib:other bucket."
+  },
+  {
+   "addr": "0x60d6a0",
+   "current": "lib:other",
+   "proposed": "lib:d3dx",
+   "reason": "Weaker (contiguity-only) evidence, offered for completeness: the functions from 0x60d6a0 through 0x612400 (0x60d6a0, 0x60d889, 0x60dac0, 0x60dbc0, 0x60e1a0, 0x60e2a0, 0x60e658, 0x60e659, 0x60e69f, 0x610f50, 0x611410, 0x612400) sit directly between the D3DX9-embedded-zlib functions with distinctive inflate strings (0x60cdd4, 0x612573, etc., see the 0x60ccf0 dispute) and have no strings or cross-module callees of their own to contradict that placement. Per the linker-contiguity rule these are most likely more of the same D3DX9-embedded zlib/libpng object file (e.g. inflate_table/updatewindow/CRC-table style helpers) rather than an unrelated 'lib:other' library, and should probably also be lib:d3dx pending a closer look — flagged at lower confidence than the two runs above."
+  }
+ ],
+ "notes": "Assign_18.json's D3DX9 shader-compiler run (0x602bcd-0x606325, lib:d3dx) and the entire lib:gamespy run (0x614540-0x61ae70) and the delay-load-thunk block (0x6133d1-0x614516, lib:crt/lib:vorbis) all check out against their strings/callees and look correctly bounded. The one systemic problem is the ~55-function block from 0x606360 to 0x61310f: the previous agent treated it as a generic 'lib:other' catch-all, but it is actually more D3DX9 static-library code (embedded libjpeg and the embedded zlib used for D3DX9's PNG texture loading), as proven by direct call edges into functions slice 16 already assigned to lib:d3dx for the same reason. No 'unknown' entries exist in this slice, so there was nothing to promote out of unknown."
+}

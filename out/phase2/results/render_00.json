@@ -1,0 +1,484 @@
+{
+  "results": [
+    {
+      "addr": "0x50ba80",
+      "name": "render_view_draw_with_mirror",
+      "confidence": 0.4,
+      "evidence": "Clamps near/far clip DAT_007c330c/DAT_007c3334, calls render_camera_build_frustum(1) twice, builds a reflected camera via FUN_0050c660 (mirror-plane reflect), then calls FUN_0050bfb0 (scene draw) once for the mirror pass and once for the main pass.",
+      "prototype": "",
+      "summary": "Per-viewport render entry: sets up near/far clip planes, optionally builds a mirrored camera across a reflective portal surface, and issues the scene draw pass(es)."
+    },
+    {
+      "addr": "0x50bdc0",
+      "name": "render_view_draw_loading_screen",
+      "confidence": 0.45,
+      "evidence": "Zeroes local frame buffers, copies camera params in/out via render_camera_build_frustum(1), calls rasterizer_begin_frame, then branches on in_EAX to draw the loading-screen UI (chimera__letterbox/do_show_loading_screen/console_draw_overlay) versus FUN_00461a80; sibling of FUN_0050ba80 called for the 'camera not valid' case in FUN_0050bea0.",
+      "prototype": "",
+      "summary": "Per-viewport placeholder render path used when the viewport's camera/unit is not valid, drawing the loading screen/letterbox or console overlay instead of the 3D scene."
+    },
+    {
+      "addr": "0x50bea0",
+      "name": "render_views_draw_all",
+      "confidence": 0.5,
+      "evidence": "Loops param_2 times over a viewport array (stride 0x56 shorts), calling FUN_0050ba80 or FUN_0050bdc0 depending on (char)param_1[1]/param_1[0] validity flags, then ui_draw_trouble_brewing_indicator, chimera__rasterizer_globals and FUN_00518130.",
+      "prototype": "",
+      "summary": "Top-level per-frame render dispatcher that iterates every split-screen viewport and draws either its 3D scene or its loading-screen placeholder."
+    },
+    {
+      "addr": "0x50bfb0",
+      "name": "render_scene_draw",
+      "confidence": 0.6,
+      "evidence": "Copies camera/viewport parameter blocks into DAT_007c3114/DAT_007c3168/etc, then sequentially calls rasterizer_begin_frame, object_lights_update_all, decal_render_active_list, transparent_geometry_group_draw_all(1)/(0), rasterizer_screen_flash_render and rasterizer_frame_statistics_draw - the full opaque+decal+transparent scene draw for one camera.",
+      "prototype": "",
+      "summary": "Main per-camera scene render routine: updates lights, draws opaque geometry, decals, weather/contrails, transparent geometry groups and the screen flash for the current frame."
+    },
+    {
+      "addr": "0x50c590",
+      "name": "render_frame_draw_loading_screen",
+      "confidence": 0.4,
+      "evidence": "Increments frame counter DAT_007c3100, resets device via rasterizer_reset_device_if_needed, copies camera buffers via render_camera_build_frustum(1), calls rasterizer_begin_frame then chimera__do_show_loading_screen and rasterizer_frame_statistics_draw when debug stats flag is set.",
+      "prototype": "",
+      "summary": "Standalone top-level frame path that begins a rasterizer frame and shows the loading screen without any 3D scene content (e.g. no active camera at all)."
+    },
+    {
+      "addr": "0x50c660",
+      "name": "camera_reflect_across_plane",
+      "confidence": 0.45,
+      "evidence": "Copies a 0x15-dword camera block, then either reflects the camera's basis vectors and position across a plane using a Householder-style reflection (dot with normal, subtract 2*dot*normal) or, in the param_1[4]!=0 branch, offsets the camera along its forward axis scaled by vector3d_cross_product_length and param_1[4]/[5] (portal-warp case).",
+      "prototype": "",
+      "summary": "Builds a secondary camera transform by mirroring the input camera across a plane (used to render mirror/portal reflections)."
+    },
+    {
+      "addr": "0x50c9a0",
+      "name": "render_camera_projection_zrange_push_pop_set",
+      "confidence": 0.55,
+      "evidence": "param_1==param_2==-1.0 saves the current projection Z terms to DAT_006b8d84.. ; ==0.0 restores them; otherwise computes classic D3D Z row terms -((n+f)/(f-n)) and (-2nf/(f-n)) from param_1/param_2 (near/far) and writes them into the projection matrix at offsets 0x16c/0x17c.",
+      "prototype": "",
+      "summary": "Saves, restores, or recomputes the projection matrix's near/far depth-range terms, used to temporarily bias the depth range (e.g. to avoid z-fighting for overlays/decals)."
+    },
+    {
+      "addr": "0x50ca90",
+      "name": "render_viewport_compute_projection_offset",
+      "confidence": 0.4,
+      "evidence": "Computes an aspect ratio from viewport rect shorts at in_EAX+0x2c..0x3a and writes 4 derived offset/skew values into in_ECX[0..3], swapping and negating the last two components - consistent with computing an off-axis projection center offset for an asymmetric sub-viewport.",
+      "prototype": "",
+      "summary": "Computes the projection-center offset/skew terms for an (asymmetric) viewport rectangle."
+    },
+    {
+      "addr": "0x50cb70",
+      "name": "render_camera_compute_frustum_bounds",
+      "confidence": 0.5,
+      "evidence": "Uses fptan(fov*0.5) and the viewport rect aspect ratio to scale the l/r/t/b values from in_EDX into in_ECX, returning 1 when the resulting extents are ordered correctly and 0 (with a default [-1,1] box) otherwise; sibling of chimera__render_camera_build_frustum which consumes similar extents.",
+      "prototype": "",
+      "summary": "Computes the asymmetric near-plane frustum extents (left/right/top/bottom) for a camera/viewport, validating the result."
+    },
+    {
+      "addr": "0x50cc40",
+      "name": "render_camera_build_frustum",
+      "confidence": 0.6,
+      "evidence": "The 'chimera__' prefix is a leftover naming hint, not evidence of Chimera-specific behaviour: the body builds a full 6-plane view frustum from a camera transform (in_ECX) and viewport rect (in_EAX) via matrix4x3_inverse/matrix4x3_transform_point/matrix4x3_transform_plane and vector3d_normalize_with_length, storing results into the frustum struct pointed to by unaff_ESI; called from every per-viewport render path in this batch.",
+      "prototype": "",
+      "summary": "Builds the camera's view frustum (basis vectors, inverse matrix, and clip planes) used for culling and projection this frame."
+    },
+    {
+      "addr": "0x50d4c0",
+      "name": "render_frustum_classify_point_side_planes",
+      "confidence": 0.5,
+      "evidence": "Tests a point (in_EDX) against 4 planes stored at in_ECX+0x78/0x88/0x98/0xa8, returning an OR of bit flags (2,8,4) for each plane the point is outside of - a classic Cohen-Sutherland-style frustum outcode test.",
+      "prototype": "",
+      "summary": "Computes a 4-bit clip outcode for a point against the camera's side frustum planes."
+    },
+    {
+      "addr": "0x50d5b0",
+      "name": "render_frustum_test_bounding_box",
+      "confidence": 0.6,
+      "evidence": "Builds the 8 corners of an AABB (unaff_EDI min/max triples), computes an outcode per corner against the frustum planes at in_ECX+0x78..0xb4, ANDs/ORs them, and returns 0 (fully outside), 1 (intersecting, confirmed by pack.py's tail 'return 1;'), or 2 (fully inside) depending on param_1's extra near-plane sub-test.",
+      "prototype": "",
+      "summary": "Classifies an axis-aligned bounding box against the camera frustum as fully outside, intersecting, or fully inside."
+    },
+    {
+      "addr": "0x50d890",
+      "name": "render_frustum_test_sphere",
+      "confidence": 0.5,
+      "evidence": "Tests a sphere/box (in_EDX center, param_1 radius margin) against 9 planes at in_ECX+0x78..0xd4 with <= param_1 comparisons, returning 0/1/2 similar to the sibling FUN_0050d5b0 bounding-box test but with a scalar margin instead of 8 explicit corners.",
+      "prototype": "",
+      "summary": "Classifies a sphere (center + radius) against the camera frustum planes as outside, partially inside, or fully inside."
+    },
+    {
+      "addr": "0x50dac0",
+      "name": "render_portal_compute_screen_area",
+      "confidence": 0.45,
+      "evidence": "Computes clipped-interval overlap between a rectangle's near/far extents (in_ECX[4]/[5]) and screen-space bounds derived from in_EDX+0x144..0x168, returning the resulting overlap area (float10) or 0 when the rect is fully outside - a portal/LOD visibility area metric.",
+      "prototype": "",
+      "summary": "Computes the projected screen-space overlap area of a portal-like rectangle against the current view, used for portal culling/visibility weighting."
+    },
+    {
+      "addr": "0x50ddc0",
+      "name": "render_viewport_compute_clip_extents",
+      "confidence": 0.4,
+      "evidence": "Reads the same struct offsets (0x144/0x158/0x164/0x168) consumed by FUN_0050dac0/FUN_0050de30 and derives 4 floats representing +/-1-normalized left/right/top/bottom extents.",
+      "prototype": "",
+      "summary": "Computes the normalized (-1..1) screen-space clip rectangle bounds for the current viewport/projection."
+    },
+    {
+      "addr": "0x50de30",
+      "name": "render_project_world_point_to_screen",
+      "confidence": 0.5,
+      "evidence": "Transforms a world point (in_EDX) through a projection-like struct at unaff_ESI+0x144.. into normalized [-1,1] coordinates with explicit NaN-aware comparisons, then converts to 640x480-based pixel coordinates offset by unaff_EDI+0x2c/0x2e, returning a success flag; used by the sky/lens-flare code path for occlusion testing.",
+      "prototype": "",
+      "summary": "Projects a world-space point into normalized device coordinates and then screen pixel coordinates, returning whether it lies within the view."
+    },
+    {
+      "addr": "0x50df20",
+      "name": "contrail_render_by_object_type_mask",
+      "confidence": 0.5,
+      "evidence": "Iterates the object table via FUN_004d0630, looks up each object's type tag (stride-0x20 tag lookup through DAT_0087bc14) and tests its type-category bit against param_1, then for each of up to 4 marker slots with refcount>1 calls FUN_0050e090(object, type_tag, marker_index) - matches building contrail geometry per object marker; called from render_scene_draw right before the transparent pass with mask 0xfffffff3.",
+      "prototype": "",
+      "summary": "Iterates live objects whose type matches a bitmask and builds contrail geometry for each of their active contrail attachment points."
+    },
+    {
+      "addr": "0x50e000",
+      "name": "contrail_compute_edge_fade_factor",
+      "confidence": 0.5,
+      "evidence": "Computes the absolute cosine of the angle between the contrail's normal (in_EAX) and the vector from the camera position (DAT_007c3114/18/1c) to the contrail point (in_ECX), optionally applies a gamma curve via FUN_004ccac0 when bit 0x40 of *param_1 is set, and inverts the result when unaff_SI==2 (matching the ContrailRenderType enum).",
+      "prototype": "",
+      "summary": "Computes a view-angle-dependent fade/alpha factor for a contrail segment, used to soften the geometry seen edge-on or head-on."
+    },
+    {
+      "addr": "0x50e090",
+      "name": "contrail_geometry_build_segment",
+      "confidence": 0.6,
+      "evidence": "Switches on *(short*)(param_2+0x18) with cases 0/1/2/4, matching ContrailRenderType's vertical_orientation/horizontal_orientation/media_mapped/viewer_facing values from types/tags.h (case 4 does a vector3d_cross_product with the view vector, matching viewer_facing); locks vertex/index buffers via FUN_0051bd60/FUN_0051be40/FUN_00511e80, writes a quad's 4 corner/color/UV values, and packs alpha via FUN_0050e000 and color_pack_argb_from_real.",
+      "prototype": "",
+      "summary": "Builds the billboard quad geometry (position, UV, color) for one segment of a contrail, orienting it according to the contrail's render type."
+    },
+    {
+      "addr": "0x50e930",
+      "name": "object_shadows_update",
+      "confidence": 0.45,
+      "evidence": "Toggles device render-state flags DAT_0069c74c/DAT_0071d1fa around a call to FUN_0050eac0 (rebuild candidate list), then loops DAT_006b8dc0 times calling FUN_0050eba0 which computes a luminance-based darkening factor (0.299/0.587/0.114 weights) and distance thresholds typical of a fake blob-shadow system.",
+      "prototype": "",
+      "summary": "Per-frame update of the fake object 'blob' shadow system: rebuilds the nearby-object list and applies each shadow to nearby BSP surfaces."
+    },
+    {
+      "addr": "0x50ea00",
+      "name": "render_get_cluster_ambient_light_sample",
+      "confidence": 0.5,
+      "evidence": "Looks up a cached ambient-light sample via FUN_0050f150 and returns a pointer into the per-cluster cache table when found, otherwise falls back to object_sample_ambient_lighting/FUN_004f2430 writing into the global DAT_006b91c8 sample.",
+      "prototype": "",
+      "summary": "Returns a pointer to the (cached or freshly-sampled) ambient lighting values for the current cluster/object."
+    },
+    {
+      "addr": "0x50ea50",
+      "name": "render_object_cluster_matches_camera",
+      "confidence": 0.35,
+      "evidence": "Compares an object's resolved cluster (via a tag-table lookup chain through DAT_0087a478/DAT_0087a480) against unaff_ESI, falling back to a media-cluster check against DAT_006869d0/DAT_006869d2/DAT_00686a04 when the first test fails or FUN_00445ac0 returns 0.",
+      "prototype": "",
+      "summary": "Tests whether a given cluster matches the camera's current cluster or media cluster, used to skip shadow/contrail work outside the camera's area."
+    },
+    {
+      "addr": "0x50eac0",
+      "name": "object_shadows_rebuild_list",
+      "confidence": 0.45,
+      "evidence": "Increments a rebuild counter DAT_008603cc, sets a 'rebuilding' flag at DAT_006b8cbc+1, and calls FUN_00554420 twice (a callback-driven spatial query, taking function-pointer pairs including object_disconnect_from_map) to refill DAT_006b8dc4[0x100] with up to 256 candidate handles, tracking the count in DAT_006b8dc0 and an overflow flag DAT_0071cfbe.",
+      "prototype": "",
+      "summary": "Rebuilds the cached list of up to 256 nearby objects/surfaces that are candidates for the fake shadow system this frame."
+    },
+    {
+      "addr": "0x50eb70",
+      "name": "object_shadows_apply_all",
+      "confidence": 0.4,
+      "evidence": "Iterates DAT_006b8dc0 entries of DAT_006b8dc4, copying each handle into *in_EAX and calling FUN_0050eba0 for it - a simple driver loop over the list built by FUN_0050eac0.",
+      "prototype": "",
+      "summary": "Applies the fake shadow effect for every candidate object/surface in the current shadow candidate list."
+    },
+    {
+      "addr": "0x50eba0",
+      "name": "object_shadow_apply_single",
+      "confidence": 0.4,
+      "evidence": "Branches on unaff_EDI[2] between an object-shadow path (distance/flag checks then a 30.0-unit distance threshold and 1.0-luminance(0.299/0.587/0.114) darkness threshold of 0.19, feeding a smoothstep-like blend into FUN_0050f830) and a surface-shadow path using object flags 0x40000/1 and DAT_007c3310 dot-product tests, both ending in a call to FUN_0050ee20.",
+      "prototype": "",
+      "summary": "Computes the shadow intensity/basis for one object or surface and applies it, skipping objects that are too far, too dark already, or otherwise excluded."
+    },
+    {
+      "addr": "0x50ee20",
+      "name": "object_shadow_apply_to_surfaces",
+      "confidence": 0.4,
+      "evidence": "Recurses over a linked list of BSP surfaces (via puVar2[0x46]) applying a shadow/light blend through FUN_004d6fc0 with tangent-space data taken from puVar2+0x60/0x6e/0x4d, and conditionally calling FUN_004ffca0 and itself again for the linked surface, matching the pattern used by the shadow system's per-surface projection.",
+      "prototype": "",
+      "summary": "Recursively projects a shadow/light basis onto a chain of connected BSP surfaces, blending it in via the decal-style light application routine."
+    },
+    {
+      "addr": "0x50f150",
+      "name": "shadow_cache_get_or_allocate_entry",
+      "confidence": 0.5,
+      "evidence": "Looks for an existing cache slot for param_1 keyed by a back-reference check, otherwise allocates a new one via datum_new, evicting the entry with the largest DAT_007c3104-relative age when the pool is full, then calls FUN_0050f270 to (re)initialize it.",
+      "prototype": "",
+      "summary": "Finds or allocates a per-object cached ambient/shadow sample entry, evicting the oldest entry when the cache is full."
+    },
+    {
+      "addr": "0x50f270",
+      "name": "shadow_cache_entry_update",
+      "confidence": 0.45,
+      "evidence": "Recomputes/refreshes a cache entry's ambient sample (object_sample_ambient_lighting, FUN_004f2430) when its distance/time-since-update exceeds thresholds derived from param_3, otherwise smoothly blends the previous sample toward the new one using FUN_0050f520/FUN_0050f5c0/FUN_0050f690/FUN_0050f690.",
+      "prototype": "",
+      "summary": "Refreshes or smoothly interpolates a cached ambient-light/shadow sample entry based on how stale or far it is."
+    },
+    {
+      "addr": "0x50f520",
+      "name": "vector3_step_towards_clamped",
+      "confidence": 0.4,
+      "evidence": "For 3 float components, clamps (target-current) to +/-param_1 and adds it to current - a generic 'move value toward target by at most param_1' smoothing primitive, called from FUN_0050f270 with small constants (~0.03) to damp ambient-light changes over frames.",
+      "prototype": "",
+      "summary": "Steps a 3-component value toward a target value, clamped to a maximum per-call delta (used to smooth cached lighting samples)."
+    },
+    {
+      "addr": "0x50f5c0",
+      "name": "vector4_step_towards_clamped",
+      "confidence": 0.4,
+      "evidence": "Identical clamped-step pattern to FUN_0050f520 but operating on 4 float components.",
+      "prototype": "",
+      "summary": "Steps a 4-component value toward a target value, clamped to a maximum per-call delta."
+    },
+    {
+      "addr": "0x50f690",
+      "name": "vector3_step_towards_clamped_and_normalize",
+      "confidence": 0.4,
+      "evidence": "Same clamped-step pattern as FUN_0050f520 but calls vector3d_normalize_with_length on the result afterward, consistent with smoothing a direction vector rather than a plain value.",
+      "prototype": "",
+      "summary": "Steps a 3-component direction toward a target, clamped to a maximum delta, then re-normalizes it."
+    },
+    {
+      "addr": "0x50f740",
+      "name": "shadow_compute_falloff_radius",
+      "confidence": 0.45,
+      "evidence": "Reads an object radius (iVar1+0xac), scales it by the detail-level setting DAT_00689450 (1=half, 0=quarter, else full), divides by a distance-derived denominator built from the camera-space forward dot products (_DAT_007c3184/90/9c/a8), and doubles the result - a classic screen-space radius/falloff computation.",
+      "prototype": "",
+      "summary": "Computes a distance- and detail-setting-scaled falloff radius used to size a shadow or ambient light projection."
+    },
+    {
+      "addr": "0x50f830",
+      "name": "shadow_build_projection_basis",
+      "confidence": 0.45,
+      "evidence": "Reads a forward direction from the object's tag data (iVar1+0xa0..0xac), builds a perpendicular basis via vector3d_build_perpendicular/vector3d_normalize_with_length, copies it via FUN_004cb970, and stores a related transform via FUN_00530ff0.",
+      "prototype": "",
+      "summary": "Builds an orthonormal projection basis (tangent frame) for a shadow/light source from its stored forward direction."
+    },
+    {
+      "addr": "0x50f980",
+      "name": "shadow_compute_bounding_box_and_register",
+      "confidence": 0.5,
+      "evidence": "Expands the light/shadow's center (in_ECX+0x28) and radius (in_ECX+0x40) along its 3 basis axes (in_ECX+0x10/0x1c/0x28/0x34/0x38/0x3c) into a padded AABB and passes it to FUN_00552b40 for spatial registration; also one-shot-triggers FUN_0052ccc0 the first time a debug/graphics-mode combination is active this frame.",
+      "prototype": "",
+      "summary": "Computes an axis-aligned bounding box around a shadow/light's basis and radius and registers it for spatial culling."
+    },
+    {
+      "addr": "0x50fcd0",
+      "name": "render_camera_media_cluster_matches",
+      "confidence": 0.35,
+      "evidence": "Checks a local-viewer condition via FUN_00445ac0, then for the in_AX marker/cluster index walks a tag-table chain (DAT_0087a478/DAT_0087a480/DAT_008603b0) to test bit 3 of a per-marker byte flag, matching the 'points pinned to media' style checks used by the contrail code.",
+      "prototype": "",
+      "summary": "Tests whether the camera's current position/cluster matches the media cluster referenced by a marker, used to gate media-pinned contrail/shadow effects."
+    },
+    {
+      "addr": "0x50fd3c",
+      "name": "render_window_call_hook_weather_particle_systems_render",
+      "confidence": 0.3,
+      "evidence": "Existing non-FUN_ name kept from a prior session; the current decompilation is a single 'return;' with no code, so the name cannot be confirmed or refuted from this body alone - likely a stubbed-out/disabled render hook.",
+      "prototype": "void __cdecl render_window_call_hook_weather_particle_systems_render(void)",
+      "summary": "Empty stub (immediate return) that appears to be a disabled hook point for rendering weather/particle systems."
+    },
+    {
+      "addr": "0x50fd90",
+      "name": "contrail_render_all_active",
+      "confidence": 0.5,
+      "evidence": "Iterates all live objects via FUN_004d0630, filters by a per-object contrail-definition bitmask against DAT_007c3350, sorts the filtered point list with FUN_00510410 (introsort), groups consecutive duplicate keys, then for each group iterates its points calling FUN_00511700 to draw a quad and finally FUN_00511620 to flush the contrail instance, deleting stale points via datum_delete.",
+      "prototype": "",
+      "summary": "Per-frame driver for the contrail system: gathers active contrail points across all objects, sorts/groups them, computes fade and builds geometry, and flushes each contrail instance for drawing."
+    },
+    {
+      "addr": "0x510410",
+      "name": "sort_introsort_loop",
+      "confidence": 0.5,
+      "evidence": "Classic introsort driver: switches to FUN_00510830 (insertion sort) for small ranges (<=0x20/8-byte elements), to a heap-based fallback (FUN_00510980/FUN_005107e0) when the recursion-depth budget param_3 is exhausted, otherwise partitions via FUN_00510500 and recurses on the smaller half while looping on the larger - the standard MSVC STL std::sort implementation pattern.",
+      "prototype": "",
+      "summary": "Generic introsort (quicksort/heapsort/insertion-sort hybrid) driver over 8-byte records, used here to sort the contrail point list."
+    },
+    {
+      "addr": "0x510500",
+      "name": "sort_partition_median3",
+      "confidence": 0.45,
+      "evidence": "Selects a pivot at the midpoint, calls FUN_005108f0 (median-of-3/9 pivot selection) on the tail, then performs a Hoare-style partition scanning from both ends and swapping out-of-order 8-byte records, returning the split point pair - the classic std::sort partition helper.",
+      "prototype": "",
+      "summary": "Partitions a range of 8-byte records around a median-of-three pivot as part of the introsort algorithm."
+    },
+    {
+      "addr": "0x5107e0",
+      "name": "sort_heap_extract_to_end",
+      "confidence": 0.4,
+      "evidence": "Walks the range from the back, swapping the front element with each tail element and calling FUN_00510a90 (heap sift-down) after each swap - the pop_heap-driven sort phase of an introsort/heapsort fallback.",
+      "prototype": "",
+      "summary": "Repeatedly pops the heap's maximum element into the tail of the range, part of the heapsort fallback path."
+    },
+    {
+      "addr": "0x510830",
+      "name": "sort_insertion_sort",
+      "confidence": 0.45,
+      "evidence": "For each element beyond the first, compares against param_1 (or, in the else branch, binary/linear-searches backward) and calls FUN_00510ba0 (rotate) to insert it in place - a textbook insertion sort over 8-byte records used for small ranges by FUN_00510410.",
+      "prototype": "",
+      "summary": "Insertion-sorts a small range of 8-byte records in place."
+    },
+    {
+      "addr": "0x5108f0",
+      "name": "sort_median_pivot_select",
+      "confidence": 0.4,
+      "evidence": "Chooses between calling FUN_005109d0 (3-element median helper) once for small ranges or four times for large ranges (>0x28 elements) - the median-of-9 pivot selection used by std::sort's partition routine.",
+      "prototype": "",
+      "summary": "Selects a good pivot for quicksort partitioning by sampling and median-sorting a handful of elements."
+    },
+    {
+      "addr": "0x510980",
+      "name": "sort_make_heap",
+      "confidence": 0.4,
+      "evidence": "Iterates backward through the range calling FUN_00510a90 (sift-down) on each internal node - the classic bottom-up make_heap routine.",
+      "prototype": "",
+      "summary": "Builds a max-heap in place over a range of 8-byte records."
+    },
+    {
+      "addr": "0x5109d0",
+      "name": "sort_median3_swap",
+      "confidence": 0.45,
+      "evidence": "Performs the 3 pairwise compare-and-swaps of in_EAX/in_ECX/in_EDX by key (two shorts + a byte) that sort exactly 3 elements into order - the inner helper used by FUN_005108f0's median selection.",
+      "prototype": "",
+      "summary": "Sorts 3 records into ascending order by comparing their (short,short,byte) key, used for median-of-N pivot selection."
+    },
+    {
+      "addr": "0x510a90",
+      "name": "sort_heap_sift_down",
+      "confidence": 0.45,
+      "evidence": "Classic sift-down/pop_heap_hole loop comparing children at in_EAX*2+1/+2 by key and moving the larger child up, then calls FUN_00510b20 (heap push) to finish placing the saved element - the standard STL __pop_heap/__adjust_heap pattern.",
+      "prototype": "",
+      "summary": "Restores the max-heap property by sifting a hole down to a leaf and reinserting the saved element."
+    },
+    {
+      "addr": "0x510b20",
+      "name": "sort_heap_push",
+      "confidence": 0.4,
+      "evidence": "Walks up the heap from in_EAX comparing against parent nodes at (in_EAX-1)/2 and shifting them down until the correct slot for param_2/param_3 is found - the STL __push_heap pattern, called by FUN_00510a90 to finish a sift-down.",
+      "prototype": "",
+      "summary": "Inserts a saved heap element at the correct position by walking up toward the root, part of the heap sift-down/push operation."
+    },
+    {
+      "addr": "0x510ba0",
+      "name": "sort_rotate_range",
+      "confidence": 0.4,
+      "evidence": "Computes gcd(iVar8,iVar11) of two range lengths and performs the classic juggling/rotate-by-gcd algorithm (std::rotate) over 8-byte records between param_1 and unaff_EBX, used by FUN_00510830's insertion sort to shift an element into place.",
+      "prototype": "",
+      "summary": "Rotates a range of 8-byte records in place (std::rotate-style), used to insert an out-of-order element during insertion sort."
+    },
+    {
+      "addr": "0x510c50",
+      "name": "sky_render_lights_and_lens_flares",
+      "confidence": 0.55,
+      "evidence": "Looks up the current cluster's Sky tag data and iterates a 0x74-byte-stride array matching the SkyLight struct in types/tags.h exactly (lens_flare_marker_name at +0x10..0x30, direction Euler2D at +0x68/+0x6c): when the marker name is empty it converts the stored yaw/pitch (fcos/fsin of offsets 0x6c/0x68) into a direction vector, otherwise it looks up the named marker's world position via FUN_004d7850; it then normalizes the direction, builds a perpendicular basis via vector3d_build_perpendicular, and calls FUN_004f1600 with the resulting position/direction/up vectors.",
+      "prototype": "",
+      "summary": "Iterates the current sky's SkyLight entries, resolves each one's direction (fixed angle or a named marker), and renders its associated lens flare."
+    },
+    {
+      "addr": "0x511190",
+      "name": "render_light_transform_point_and_normal",
+      "confidence": 0.4,
+      "evidence": "When bit 0 of *(byte*)(param_1+0x10) is clear, transforms a point/normal pair through DAT_007c3178 via matrix4x3_transform_point/matrix4x3_transform_normal unless param_2 bit 0 selects a fast copy-through path.",
+      "prototype": "",
+      "summary": "Transforms a light/billboard position and optional normal into the current basis, or copies them through unchanged when already in the right space."
+    },
+    {
+      "addr": "0x5111f0",
+      "name": "render_billboard_build_orientation_basis",
+      "confidence": 0.45,
+      "evidence": "Branches on in_CX (0/1/2) to write an identity 2x3 basis, a single axis normalized from param_2 plus its cross product with param_1, or a full basis via vector3d_cross_product/vector3d_rotate_about_axis - building the orientation matrix later consumed by FUN_00511700 to draw an oriented billboard quad.",
+      "prototype": "",
+      "summary": "Builds a 2- or 3-axis orientation basis for a billboard quad based on a render-type selector."
+    },
+    {
+      "addr": "0x511330",
+      "name": "render_billboard_compute_length_scale",
+      "confidence": 0.35,
+      "evidence": "For param_1==0 with an uninitialized *in_ECX, derives a scale from -(param_2's depth field)/_DAT_007c32ec, otherwise multiplies *in_ECX by the marker-count field at param_3+4 - producing the length/width scale used by FUN_00511700's quad extents.",
+      "prototype": "",
+      "summary": "Computes a length/width scale factor for a billboard segment based on its marker count or projected depth."
+    },
+    {
+      "addr": "0x5113b0",
+      "name": "render_billboard_compute_alignment_fade",
+      "confidence": 0.4,
+      "evidence": "Computes the absolute normalized dot product of in_EAX and in_ECX (an alignment/view-angle cosine) and inverts it when param_1==2, mirroring FUN_0050e000's contrail fade computation but operating on raw vectors already in register.",
+      "prototype": "",
+      "summary": "Computes a view/normal alignment fade factor (0..1) for a billboard segment, inverted for a particular render-type selector."
+    },
+    {
+      "addr": "0x511410",
+      "name": "render_billboard_system_frame_init",
+      "confidence": 0.4,
+      "evidence": "Resets the per-frame occlusion accumulators DAT_007c30c4/DAT_007c30c8 to 0, then transforms the camera-local axis vectors at PTR_DAT_00696720/PTR_DAT_0069671c through the camera's rotation rows (DAT_007c317c../0x3198/0x319c) into world-space basis pairs stored at DAT_007c30d0.. and DAT_007c30dc..",
+      "prototype": "",
+      "summary": "Per-frame initialization for the billboard/lens-flare system: resets occlusion accumulators and computes world-space camera axis vectors."
+    },
+    {
+      "addr": "0x511520",
+      "name": "render_billboard_group_get_or_create_buffer",
+      "confidence": 0.45,
+      "evidence": "Searches an 8-slot table at unaff_EDI+0x24 (stride 0x10) for an entry matching in_EAX (a shader/bitmap handle), and if not found and there is room, allocates a new vertex buffer via FUN_00444550/FUN_0051bdd0/FUN_0051be40, tracking a failure flag DAT_0071cfbf; returns the slot index or -1.",
+      "prototype": "",
+      "summary": "Finds or allocates a vertex-buffer slot for a given shader/material group used to batch billboard quad geometry."
+    },
+    {
+      "addr": "0x511620",
+      "name": "contrail_instance_draw",
+      "confidence": 0.45,
+      "evidence": "Averages the per-point width sample into *(float*)(unaff_ESI+0x14/0x18/0x1c), transforms the result via matrix4x3_transform_point into DAT_007c31ac, and for each of up to 8 recorded material groups either invokes a shader vtable call (**+0x30) or flushes buffered geometry via FUN_0051c830.",
+      "prototype": "",
+      "summary": "Finalizes and submits a contrail instance's accumulated billboard geometry for drawing, grouped by shader/material."
+    },
+    {
+      "addr": "0x511700",
+      "name": "render_billboard_quad_build",
+      "confidence": 0.5,
+      "evidence": "Looks up a shader-group vertex slot via FUN_00511520, builds an oriented basis via FUN_00511190/FUN_005111f0/FUN_00511330 (optionally combined with a rotation angle via fsin/fcos of param_4), packs the color via color_pack_argb_from_real, writes 4 corner vertices with UVs and color into the locked buffer while tracking a running bounding box, and updates an occlusion-area accumulator via FUN_0050dac0.",
+      "prototype": "",
+      "summary": "Builds and writes one oriented, colored billboard quad (used by both the contrail and lens-flare systems) into the appropriate shader-group vertex buffer."
+    },
+    {
+      "addr": "0x511b40",
+      "name": "contrail_draw_segment_blended",
+      "confidence": 0.5,
+      "evidence": "Computes the angle between two vectors via vector3d_angle_between_4cd4f0 and a squared deviation from perpendicular (angle-pi/2)^2*0.4052847 clamped to [0,1] as a blend factor, then draws one quad with orientation literal 1 (matching contrailrendertype_horizontal_orientation) or 3 (contrailrendertype_ground_mapped) scaled by that factor via FUN_00511700, and a second, edge-on quad scaled by the remainder via fpatan/FUN_00628cca.",
+      "prototype": "",
+      "summary": "Draws a contrail segment as a blend of a flat, ground/horizontal-oriented quad and a viewer-edge-on quad, weighted by the view angle, to avoid the quad disappearing when viewed edge-on."
+    },
+    {
+      "addr": "0x511d80",
+      "name": "render_device_is_ready",
+      "confidence": 0.5,
+      "evidence": "Returns 1 only when both DAT_0071d16c (a ready/initialized flag) and DAT_0071d174 (the Direct3D device pointer) are non-zero, otherwise 0 - a simple renderer-initialized guard.",
+      "prototype": "int __cdecl render_device_is_ready(void)",
+      "summary": "Returns whether the renderer/Direct3D device has been initialized and is ready for use."
+    },
+    {
+      "addr": "0x511da0",
+      "name": "rasterizer_device_reinitialize_and_update_checksum",
+      "confidence": 0.4,
+      "evidence": "Advances a running offset DAT_006e2dcc by 0x10, feeds a 4-byte constant into crc32_update(&DAT_006e2dd4, ...), stores the new offset to DAT_0071cfc0, and calls rasterizer_initialize_direct3d().",
+      "prototype": "",
+      "summary": "Updates an internal running checksum/offset and reinitializes the Direct3D rasterizer device."
+    },
+    {
+      "addr": "0x511df0",
+      "name": "render_cinematic_screen_effect_init_and_dispatch",
+      "confidence": 0.45,
+      "evidence": "Lazily initializes default values for DAT_0069c65c/60/64/68 (screen-effect frequency/scale parameters) the first time they are zero, then calls chimera__cinematic_screen_effect(); called from both FUN_0050bea0 and FUN_0050fd90 chains.",
+      "prototype": "",
+      "summary": "Ensures default cinematic screen-effect parameters are set, then dispatches the per-frame cinematic screen effect."
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+ "slice": 20,
+ "disputes": [
+  {
+   "addr": "0x6bd180",
+   "current": "dialogs",
+   "proposed": "shell",
+   "reason": "This is one of 5 .data function-pointer globals (0x6bd180-0x6bd1b8: ks_translateaccelerator, ks_getwindow, kw_release, kw_getcontrolbyid, kc_sendmessage) for the Keystone widget-toolkit DLL. Slice 11 already established, at higher confidence, that Halo's Keystone integration belongs to 'shell': FUN_00542ad0 (assign_11.json, module=shell, confidence=0.58) is the function that LoadLibraryA('keystone.dll')s and GetProcAddress's the exact same interface, with referenced strings 'keystone.dll', 'KeystoneCreate', 'Call_KsTranslateAccelerator', 'Call_KsCreateWindow', 'Call_KsGetWindow', 'Call_KsUpdate' - the 'Call_Ks*' wrapper names correspond one-to-one with the ks_*/kw_*/kc_* pointer names here (ks_translateaccelerator <-> Call_KsTranslateAccelerator, ks_getwindow <-> Call_KsGetWindow). These are almost certainly the actual GetProcAddress-populated function-pointer slots that those shell-module wrapper calls indirect through, so they belong to the same 'shell' subsystem, not a separate 'dialogs' module. No evidence in slice 20 or elsewhere ties Keystone to 'dialogs' specifically."
+  },
+  {
+   "addr": "0x6bd188",
+   "current": "dialogs",
+   "proposed": "shell",
+   "reason": "Same Keystone function-pointer block as 0x6bd180 (ks_getwindow <-> Call_KsGetWindow from the shell-module Keystone loader FUN_00542ad0 in assign_11.json). See reasoning at 0x6bd180."
+  },
+  {
+   "addr": "0x6bd198",
+   "current": "dialogs",
+   "proposed": "shell",
+   "reason": "Same Keystone function-pointer block as 0x6bd180 (kw_release, part of the Keystone window interface loaded by the shell-module function FUN_00542ad0 in assign_11.json). See reasoning at 0x6bd180."
+  },
+  {
+   "addr": "0x6bd19c",
+   "current": "dialogs",
+   "proposed": "shell",
+   "reason": "Same Keystone function-pointer block as 0x6bd180 (kw_getcontrolbyid, part of the Keystone window interface loaded by the shell-module function FUN_00542ad0 in assign_11.json). See reasoning at 0x6bd180."
+  },
+  {
+   "addr": "0x6bd1b8",
+   "current": "dialogs",
+   "proposed": "shell",
+   "reason": "Same Keystone function-pointer block as 0x6bd180 (kc_sendmessage <-> the Call_Ks* control-messaging wrappers loaded by the shell-module function FUN_00542ad0 in assign_11.json). See reasoning at 0x6bd180."
+  }
+ ],
+ "notes": "Slice 20 is almost entirely non-Halo code (MSVC CRT x87/libm and EH internals, linker delay-load thunks for binkw32/WININET/VERSION/WSOCK32, and a pooled block of MSVC EH unwind funclets), and that part of the assignment is sound and well-supported: verified FUN_006357d6 via pack.py as the CRT long-double fmod implementation (confirms the lib:crt libm run), and verified FUN_0057b560 (one of the two callee targets of the pooled EH-funclet block at 0x6392ea-0x63957e) as a generic STL basic_string _Tidy-style destructor helper - genuinely third-party STL/CRT machinery, so bucketing that whole funclet pool as lib:other is correct even though some of its individual callees (FUN_57b560/FUN_57b800) carry a 'shell' label elsewhere from a different slice's low-confidence, contiguity-only assignment; the funclet pool itself is linker-pooled from many source object files and is not meaningfully attributable to any single engine module. The lib:bink vs lib:other split between the two adjacent delay-load thunk runs (0x638e09-0x638e6a Bink-specific vs 0x638ef4-0x639041 generic WININET/VERSION/WSOCK32) is also justified: the module list has a dedicated lib:bink bucket for the former, but no dedicated bucket for the latter's target DLLs, so lib:other is the correct catch-all. The one real issue is the final 5 entries (0x6bd180-0x6bd1b8), which are .data globals for the Keystone widget-toolkit DLL (ks_/kw_/kc_ function pointers) labelled 'dialogs' at only 0.35 confidence; slice 11's higher-confidence assignment of the actual Keystone loader/wrapper code (FUN_00542ad0, keystone.dll LoadLibraryA + Call_Ks* GetProcAddress wrappers) to 'shell' is direct, string-matched precedent that these globals belong to 'shell' instead - see disputes."
+}

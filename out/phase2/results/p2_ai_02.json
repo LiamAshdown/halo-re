@@ -1,0 +1,484 @@
+{
+  "results": [
+    {
+      "addr": "0x41bb30",
+      "name": "actor_dispatch_look_handler_by_posture",
+      "confidence": 0.3,
+      "evidence": "Early-outs unless a posture value (unaff_BX) is 0 or 1, calls actor_get_actor_definition, then dispatches through function-pointer table PTR_LAB_0041be00 indexed by a stack short; called from actor_danger_update (0x41eda0) with 6 args including a position.",
+      "prototype": "",
+      "summary": "Validates a posture/type index (0 or 1), then dispatches through a jump table of handler functions selected by another index, after fetching the actor's definition; actor index and args are passed in registers/stack, unclear beyond that."
+    },
+    {
+      "addr": "0x41be10",
+      "name": "actor_target_get_priority_class",
+      "confidence": 0.5,
+      "evidence": "Classifies a target-data record (stride 0x138 off DAT_008802c0) into 0-3 based on combat state field +0x24 in [2,3], seat state +0x66 in {1,2}, exposure +0x60, and death flag +0x127, with a fallback based on awareness fields +0x6a/+0x6e of the actor record (stride 0x724 off DAT_00880360).",
+      "prototype": "",
+      "summary": "Given an actor index (EAX) and optional target-data index (ECX), returns a small integer priority class (0-3) describing how urgent/visible that target currently is."
+    },
+    {
+      "addr": "0x41bed0",
+      "name": "unit_get_move_speed_for_range",
+      "confidence": 0.5,
+      "evidence": "Pure float math with no side effects: reads move-speed thresholds at unit-type-record+0x1c/0x20/0x28/0x2c and interpolates forward/turn speed outputs into *param_4/*param_5 based on distance param_3.",
+      "prototype": "",
+      "summary": "Computes interpolated forward and turn movement speeds for a unit's move-speed profile at a given target distance, writing the results through param_4 and param_5."
+    },
+    {
+      "addr": "0x41c030",
+      "name": "actor_target_hearing_check",
+      "confidence": 0.5,
+      "evidence": "Computes squared planar distance between two positions, scales a hearing radius by crouch/stealth checks (calls to FUN_0053e810 twice) and posture (param_2), then compares against cluster_sound_distance_lookup's returned radius to decide audibility.",
+      "prototype": "",
+      "summary": "Determines whether a target at a given position is within the actor's effective hearing radius, accounting for stealth/crouch state and ambient sound-cluster noise level."
+    },
+    {
+      "addr": "0x41c2c0",
+      "name": "actor_find_nearest_squad_target",
+      "confidence": 0.4,
+      "evidence": "Iterates either the actor's linked target-object chain (object+0x1fc) or an encounter-squad member array (DAT_0088035c, stride 0x98) computing squared distance to param_1's position via object_get_position, applying a 0.36x bias for the object matching param_2 and 2.25x for flagged members, returning the closest index.",
+      "prototype": "",
+      "summary": "Searches the actor's linked target list or its encounter squad for the object nearest to a given position, with distance biases favoring/penalizing certain candidates, and optionally stamps a 'last seen' timestamp on each visited object."
+    },
+    {
+      "addr": "0x41c4b0",
+      "name": "actor_target_data_refresh",
+      "confidence": 0.4,
+      "evidence": "Revalidates a target-data record's tracked object, reassigning it via actor_find_nearest_squad_target (0x41c2c0) for squad-shared targets, then refetches node transforms via object_get_node_local_transform for barrel/aim markers and root-object bounding data via object_get_root_object_index.",
+      "prototype": "",
+      "summary": "Refreshes a target-data record (actor param_1 / target index param_2) by re-resolving its tracked object when appropriate and recomputing cached aim-node transforms and object bounding info."
+    },
+    {
+      "addr": "0x41c8f0",
+      "name": "actor_target_update_tracking_speed",
+      "confidence": 0.4,
+      "evidence": "Calls object_get_velocity-style helper (FUN_004f6aa0) and buckets the resulting speed magnitude into 0-3 at target-data+0x123 using fixed thresholds (0.0033/0.0167/0.0333), and similarly buckets a closing-speed dot product into target-data+0x124; large body truncated (423 lines not shown; requires tools/pack.py for full view).",
+      "prototype": "",
+      "summary": "Per-target-data tick routine that updates cached target velocity/closing-speed classification buckets and several visibility/awareness flags used by later targeting logic; only partially inspected due to truncation."
+    },
+    {
+      "addr": "0x41d7e0",
+      "name": "actor_target_scan_potential_targets",
+      "confidence": 0.4,
+      "evidence": "Builds a PVS/visibility bitmask for the actor's cluster or its encounter squad's clusters, then iterates the actor's linked target-data list (actor+0x50) checking each target's combat state, distance, and visibility bit before further processing; calls object_get_root_parent_placement and qsort; body largely truncated (341 lines not shown).",
+      "prototype": "",
+      "summary": "Large per-actor tick routine that scans and re-ranks the actor's known potential targets using cluster visibility bitmasks and distance/state checks, allocating/deleting target-data records as needed; only partially inspected due to truncation."
+    },
+    {
+      "addr": "0x41e320",
+      "name": "actor_target_evaluate_squad_link",
+      "confidence": 0.35,
+      "evidence": "Walks a squad member's target-object linked chain via param_2 (object+0xc-stride, offset 0x14 'next'), calling actor_get_firing_positions and object_get_position for each entry and comparing danger-radius overlap against actor_get_firing_positions results, calling FUN_0041ec90 (actor_danger_register_point) when a hazard is found; body truncated (137 lines not shown).",
+      "prototype": "",
+      "summary": "Iterates a squad's shared target/danger linked list registering nearby danger points and evaluating visibility/engagement eligibility against each entry; only partially inspected due to truncation."
+    },
+    {
+      "addr": "0x41ea60",
+      "name": "actor_danger_register_stationary_object",
+      "confidence": 0.5,
+      "evidence": "Checks an object's sign-bit flag at +0x2f0 (grenade/hazard marker) and near-zero velocity (obj[0x1a..0x1c]^2 < 0.0011) to detect a landed hazardous object, then writes the same danger-record layout (offset+0x280 type=3, +0x28c object index, +0x294 radius, +0x298.. position, +0x2a4.. velocity) used by actor_danger_register_point.",
+      "prototype": "",
+      "summary": "Detects a stationary hazardous object (e.g. a landed grenade) near the actor and, if it outranks the currently tracked danger, registers it as the actor's active danger record."
+    },
+    {
+      "addr": "0x41ec90",
+      "name": "actor_danger_register_point",
+      "confidence": 0.55,
+      "evidence": "Compares an incoming danger radius+10 against an existing distance param_2 and the actor's stored danger priority at actor+0x2d4; if it wins, zeroes the danger-record block (actor+0x280, 0x6c bytes), stamps type=1, object index, radius, and fetches position via object_get_position into +0x2a4/0x2a8/0x2ac.",
+      "prototype": "",
+      "summary": "Registers a point-source danger (e.g. an explosion or thrown grenade) as the actor's active danger record if it is closer or takes priority over the currently tracked one."
+    },
+    {
+      "addr": "0x41eda0",
+      "name": "actor_danger_update",
+      "confidence": 0.45,
+      "evidence": "Requires an active danger record (actor+0x280>=1), refetches the tracked object via object_try_and_get, recomputes distance/bounding-box fields at +0x2b0..0x2e4, then branches on record type (sVar7==1 stealth-object case using FUN_0043ea80/FUN_00564390, sVar7==2 registered-object case calling FUN_0041bb30/FUN_0042b270); tail truncated (81 lines not shown).",
+      "prototype": "",
+      "summary": "Per-tick refresh of the actor's currently active danger record: re-resolves the danger object's position, recomputes derived bounding/aim data, and drives follow-up reactions depending on the danger's type."
+    },
+    {
+      "addr": "0x41f410",
+      "name": "actor_target_has_conflicting_neighbor",
+      "confidence": 0.4,
+      "evidence": "Walks the actor's own target-data linked list (actor+0x50 chain, stride 0x138) looking for another entry sharing the same tracked object/group (+0x18/+0x1c) or overlapping in combat state (2..5), within 2.5m planar distance, <1.5 height difference, and >0.5 direction dot product.",
+      "prototype": "",
+      "summary": "Checks whether the given target-data entry (param_1) has another target-data entry in the same actor's list that effectively refers to the same nearby threat, used to avoid duplicate target tracking."
+    },
+    {
+      "addr": "0x41f550",
+      "name": "actor_get_relevant_squad_member_target",
+      "confidence": 0.4,
+      "evidence": "Iterates a fixed 4-entry recent-attacker table at object+0x438 (stride 16 bytes), resolving each recorded attacker's group leader (obj+0x328/+0x324) through FUN_0043ea80 (a target-data acquire/lookup helper), keeping the highest-scoring valid entry in combat state 2..3.",
+      "prototype": "",
+      "summary": "Picks the best (highest-scored, still-combat-relevant) recent-attacker entry from a squad member's fixed attacker-history table and returns its resolved target-data index."
+    },
+    {
+      "addr": "0x41f6b0",
+      "name": "actor_get_squad_recent_attacker_target",
+      "confidence": 0.4,
+      "evidence": "Nearly identical structure to actor_get_relevant_squad_member_target (0x41f550) but iterates the actor's own controlled unit's recent-attacker table (object+0x430) via object_try_and_get and FUN_0043ea80, keeping the entry in combat state 2..3 with the highest score.",
+      "prototype": "",
+      "summary": "Selects the best recent-attacker entry from the actor's controlled unit's own attacker-history table, returning its resolved target-data index."
+    },
+    {
+      "addr": "0x41f7d0",
+      "name": "actor_target_data_acquire",
+      "confidence": 0.45,
+      "evidence": "Resolves or creates a target-data record for an object via FUN_0043eb30/FUN_0043e910/FUN_0043e980, merges tracked-node fields when a target moves between squad-member owners, then calls actor_rate_potential_target to score the new/updated record.",
+      "prototype": "",
+      "summary": "Finds or allocates the actor's target-data record for a given object/unit, migrating tracked-node state when ownership changes, and rescoring it via actor_rate_potential_target."
+    },
+    {
+      "addr": "0x41fa80",
+      "name": "actor_target_mark_engaged",
+      "confidence": 0.45,
+      "evidence": "Sets or clears the engagement timestamp fields at target-data+0x9c/+0xa0 using the global tick counter DAT_006f1d6c based on param_1, then calls unit_update_active_combat_flag and rescoring via actor_rate_potential_target.",
+      "prototype": "",
+      "summary": "Marks or unmarks a target-data record as currently 'engaged' by stamping an engagement timer, then refreshes the associated unit's active-combat flag and target score."
+    },
+    {
+      "addr": "0x41fb00",
+      "name": "actor_set_target_alert_flag_low",
+      "confidence": 0.35,
+      "evidence": "Sets unit-record byte at offset 0xb9 for a valid unit index (in_ECX); if that unit is the actor's currently watched target (actor+0x270), calls actor_update_target_combat_status and actor_update_awareness_level.",
+      "prototype": "",
+      "summary": "Sets a low-tier alert flag (+0xb9) on the given unit, and if it is the actor's current watched target, refreshes the actor's combat-status and awareness state."
+    },
+    {
+      "addr": "0x41fb60",
+      "name": "actor_set_target_alert_flag_medium",
+      "confidence": 0.35,
+      "evidence": "Byte-for-byte identical to actor_set_target_alert_flag_low (0x41fb00) except it writes unit+0xba instead of +0xb9, part of a sequential trio of near-duplicate flag setters (0xb9/0xba/0xbb).",
+      "prototype": "",
+      "summary": "Sets a medium-tier alert flag (+0xba) on the given unit, and if it is the actor's current watched target, refreshes the actor's combat-status and awareness state."
+    },
+    {
+      "addr": "0x41fbc0",
+      "name": "actor_set_target_alert_flag_high",
+      "confidence": 0.3,
+      "evidence": "Largest of the 0xb9/0xba/0xbb trio: for a valid unit sets unit+0xbb and additionally promotes a combat-state-4 unit record (unit+0x24) to state 5; for the sentinel case (in_EDX==-1) instead clears several actor perception fields (+0x3c4,+0x3bc,+0x3bd,+0x72,+0x74) and calls actor_update_awareness_level.",
+      "prototype": "",
+      "summary": "Sets a high-tier alert flag (+0xbb) on a unit and promotes its combat state from 4 to 5, or, when called with no unit, resets the actor's own perception/search timers and refreshes awareness."
+    },
+    {
+      "addr": "0x41fc60",
+      "name": "unit_update_active_combat_flag",
+      "confidence": 0.5,
+      "evidence": "Computes whether a unit is currently 'active' in combat (state field +0x24 in 2..3, exposed +0x60!=0, not dead +0x127==0, and either seen by its actor's watched target, aiming (+0x135/+0x136), or being controlled (+0x10==0xf)), stores the result at unit+0xa4, and clears aim-smoothing fields when it drops to inactive.",
+      "prototype": "",
+      "summary": "Recomputes and stores whether a unit should be treated as 'actively' engaged in combat this tick, clearing cached aim-timer fields and a related actor perception counter when it becomes inactive."
+    },
+    {
+      "addr": "0x420970",
+      "name": "actor_get_ranged_attack_vector",
+      "confidence": 0.35,
+      "evidence": "For a vehicle unit (unit+0x12e set) copies a seat/hardpoint position from obj+0x23c/0x240/0x244 into param_1; otherwise, if the unit already has a firing point (+0x1c != -1) delegates to FUN_004281f0; otherwise loops the actor's perceived-unit list checking that no ally lies within 0.5 dot-product alignment of the intended fire direction (friendly-fire clearance check).",
+      "prototype": "",
+      "summary": "Determines the actor's ranged-attack aim position/vector, either from a vehicle hardpoint, a cached firing point, or by checking that no ally blocks the intended line of fire."
+    },
+    {
+      "addr": "0x420b10",
+      "name": "actor_evaluate_flank_offset",
+      "confidence": 0.35,
+      "evidence": "Pure geometry helper operating on register-passed float vectors: computes a 2D perpendicular basis from in_ECX, projects an enemy-relative offset (unaff_ESI - unaff_EDI) onto it, optionally mirrors the offset into an output vector (unaff_EBX), and classifies the result into a small tier (0/1/2) based on distance-squared thresholds (0.36/1.21) and a z-component range check.",
+      "prototype": "",
+      "summary": "Computes a flanking offset/side position relative to a target direction and classifies it into a coarse tier used to rank candidate flanking allies."
+    },
+    {
+      "addr": "0x420c90",
+      "name": "actor_scale_value_by_ally_exposure",
+      "confidence": 0.45,
+      "evidence": "Walks the actor's perceived-unit list counting allies of the same type (matching actor+4) that are either exposed-but-idle (sVar7, unit+300 'aiming' flag) or already alert/vehicle-aiming (sVar2, via ally-actor+0x308/+0x6c/+0xa8), then scales *param_1 by a factor derived from those counts (clamped to [0.0, 2.0]).",
+      "prototype": "",
+      "summary": "Scales an input value (e.g. a suppression or alert threshold) up or down depending on how many nearby allies are already exposed and engaging or alert, clamped to a 0-2x range."
+    },
+    {
+      "addr": "0x420de0",
+      "name": "ai_group_bucket_find_or_add",
+      "confidence": 0.3,
+      "evidence": "Linear-searches a fixed stride-0x1c array (in_EAX) of up to param_1 live entries (tracked by *unaff_EDI) for a matching key (unaff_EBX); if absent and space remains, appends a freshly-initialized bucket entry (several -1 sentinels and a 0x7f7fffff FLT_MAX field) and returns its index.",
+      "prototype": "",
+      "summary": "Finds the bucket index matching a given key in a small fixed-capacity array, or allocates and initializes a new bucket for it if space remains."
+    },
+    {
+      "addr": "0x420e50",
+      "name": "unit_get_combat_priority",
+      "confidence": 0.45,
+      "evidence": "For a unit in active combat (state +0x24 in 2..3) with the 'active' flag unit+0xa4 set, returns tiered priority values: 4 if fleeing (+0x74), 2 or 3 if vehicle-aiming (+0x12f, based on +0x122<2), or 1 if currently attacking (+0x32>1), else 0.",
+      "prototype": "",
+      "summary": "Returns a small combat-priority tier (0-4) for a unit, used to rank allies when deciding who needs backup or grouping."
+    },
+    {
+      "addr": "0x420ec0",
+      "name": "actor_scan_allies_for_backup_request",
+      "confidence": 0.4,
+      "evidence": "Iterates the actor's perceived-unit list; for allies with an unresolved combat priority whose controlling actor has an active backup request (ally_actor+0x3a8 nonzero, +0x3ac valid) within range, resolves the requester via FUN_0043ea80, buckets it by unit_get_combat_priority into fixed slots via ai_group_bucket_find_or_add, tracking the nearest per bucket; remainder truncated (20 lines not shown).",
+      "prototype": "",
+      "summary": "Scans nearby allies for outstanding backup requests and groups the closest eligible requester per combat-priority bucket for the actor to consider responding to."
+    },
+    {
+      "addr": "0x4213b0",
+      "name": "actor_update_combat_tactics_state",
+      "confidence": 0.3,
+      "evidence": "Per-actor tick routine: conditionally calls actor_set_combat_alert_flag, exponentially smooths an accuracy-like value (actor+0x350 target, +0x354 smoothed) via f2xm1/fscale, broadcasts a state-change event via ai_communication_broadcast when +0x1c9 changes, then loops the perceived-unit list calling actor_get_ranged_attack_vector and actor_evaluate_flank_offset to find and record a flanking ally via actor_scan_allies_for_backup_request; body truncated (130 lines not shown).",
+      "prototype": "",
+      "summary": "Large per-actor combat tick routine that updates alert state, smooths an accuracy value over time, broadcasts squad notifications, and evaluates nearby allies for flanking/charge opportunities; only partially inspected due to truncation."
+    },
+    {
+      "addr": "0x421af0",
+      "name": "actor_queue_search_position",
+      "confidence": 0.45,
+      "evidence": "Only updates when the actor is not deep in combat (actor+0x6a<3) and the new priority (in_DX) is >= the stored priority at actor+0x312; records an optional 3-float position (in_ECX) at +0x318, an optional 3-float direction (unaff_ESI) at +0x330, plus scalar payload fields at +0x33c/0x340/0x344/0x348.",
+      "prototype": "",
+      "summary": "Queues a candidate search position/direction for the actor to investigate later, replacing the current one only if the new request has equal or higher priority and the actor is not already in deep combat."
+    },
+    {
+      "addr": "0x421bc0",
+      "name": "actor_queue_look_position",
+      "confidence": 0.45,
+      "evidence": "Smaller sibling of actor_queue_search_position: updates actor+0x2ee (priority) only if the new priority (in_DX) is strictly greater, storing a single position payload (param_1 and optional in_ECX 3-float vector) at +0x2f4/+0x2fc.",
+      "prototype": "",
+      "summary": "Queues a single look-at position/target for the actor if the given priority beats the currently queued one."
+    },
+    {
+      "addr": "0x421c20",
+      "name": "actor_evaluate_target_visibility",
+      "confidence": 0.4,
+      "evidence": "For units in active combat with sufficient awareness (actor+0x6a>1, +0x544<5), fetches a per-target datum via datum_get and applies a decaying re-notice cooldown (datum+0x5c/+0x58) gated by a 600-tick window, then queues a dialogue/queue event (actor+0x544=4) with a random duration scaled by random_real_range; second half evaluates look-priority via actor_queue_look_position; tail truncated (35 lines not shown).",
+      "prototype": "",
+      "summary": "Evaluates whether the actor should react to becoming visible to/from a given target unit, applying a re-notice cooldown, queuing a reaction dialogue event, and updating the actor's queued look position."
+    },
+    {
+      "addr": "0x422070",
+      "name": "actor_record_perception_event",
+      "confidence": 0.5,
+      "evidence": "Keeps the maximum of a priority value (in_DX) against actor+0x34a, storing the associated data pointer (unaff_ESI) at actor+0x34c; on a tie, merges by taking the larger of the two data values.",
+      "prototype": "",
+      "summary": "Records a perception event's priority and associated data on the actor, keeping only the highest-priority (or larger-valued, on ties) event seen this tick."
+    },
+    {
+      "addr": "0x4220c0",
+      "name": "actor_notify_target_engaged",
+      "confidence": 0.4,
+      "evidence": "When a candidate unit's target (resolved via unit's controlling actor+0x18) is not dead (+0x127==0) and the candidate unit is exposed (+0x60!=0), calls ai_communication_broadcast with code 5-(in_DL!=0).",
+      "prototype": "",
+      "summary": "Notifies a target's controlling actor via a squad broadcast event that the given unit has become an exposed threat/engagement, choosing between two event codes based on in_DL."
+    },
+    {
+      "addr": "0x422130",
+      "name": "actor_start_search_timer",
+      "confidence": 0.4,
+      "evidence": "Stamps actor+0x3a0 with the current tick count (DAT_006f1d6c+0xc), calls actor_target_get_relationship_object, and queues a search position via actor_queue_search_position with a fixed priority (0x3fc00000 = 1.5) and duration (0x5a = 90 ticks).",
+      "prototype": "",
+      "summary": "Starts (or restarts) the actor's search timer and queues a fixed-priority search position around the current target's relationship object."
+    },
+    {
+      "addr": "0x4221b0",
+      "name": "actor_clear_search_queue",
+      "confidence": 0.5,
+      "evidence": "Trivial one-line wrapper that calls actor_queue_search_position(0xffffffff, 0, 0x5a), the sentinel pattern used elsewhere in this file to reset the queued search position.",
+      "prototype": "",
+      "summary": "Clears/resets the actor's queued search position by submitting the sentinel 'no position' request."
+    },
+    {
+      "addr": "0x4221f0",
+      "name": "actor_clear_search_and_reevaluate_look",
+      "confidence": 0.35,
+      "evidence": "Calls actor_clear_search_queue, then if the unit referenced by unit+0x1c has a positive field at controlling-actor+0x74 it calls actor_record_perception_event to notify the actor of a perception update.",
+      "prototype": "",
+      "summary": "Clears the actor's queued search position and, if the associated unit's controlling actor currently has a pending flee/alert value, records a perception event for it."
+    },
+    {
+      "addr": "0x422270",
+      "name": "actor_queue_dialogue_direction_or_point",
+      "confidence": 0.3,
+      "evidence": "Accepts either an explicit direction vector (in_EAX, normalized/negated) or a target-data index (in_ECX); gates on actor combat state (+0x6a) and a pending-event counter cap (+0x544<0xc), then queues an event (type 4 or 1) with a duration derived from random_real_range and a lookup table (DAT_00655654) into fields +0x544..0x558.",
+      "prototype": "",
+      "summary": "Queues a directional or positional combat-reaction dialogue/event for the actor with a randomized duration, choosing event type based on whether a direction vector or a target index was supplied."
+    },
+    {
+      "addr": "0x422550",
+      "name": "actor_queue_dialogue_with_cooldown",
+      "confidence": 0.35,
+      "evidence": "Uses the same datum_get + re-notice-cooldown gating (target datum+0x5c/+0x58, 600-tick window) as actor_evaluate_target_visibility (0x421c20), but on success queues event type 5 (actor+0x544=5) with a random duration from random_real_range and table DAT_0065563c.",
+      "prototype": "",
+      "summary": "Queues a cooldown-gated combat-reaction dialogue event (type 5) for a given target, reusing the same per-target re-notice throttling used elsewhere."
+    },
+    {
+      "addr": "0x422780",
+      "name": "actor_queue_dialogue_position",
+      "confidence": 0.35,
+      "evidence": "Only runs when the actor is not idle (actor+0x6a!=1); forwards a 3-component position (in_EAX[0..2]) into the shared event-queue fields with event type 3 (actor+0x544=3), gated by a pending-event cap (+0x544<2) and awareness field (+1000<7), with duration from random_real_range and table DAT_0065562c.",
+      "prototype": "",
+      "summary": "Queues a position-based combat-reaction dialogue event (type 3) for the actor with a randomized duration, but only while the actor is not idle."
+    },
+    {
+      "addr": "0x422930",
+      "name": "actor_notify_and_queue_dialogue_direction",
+      "confidence": 0.3,
+      "evidence": "Computes a facing/aim direction relative to actor+0x120; if no active danger record matches param_2 it calls actor_queue_look_position and actor_clear_search_queue, otherwise broadcasts event 10 via ai_communication_broadcast; afterward queues a positional dialogue event (type 3) as in actor_queue_dialogue_position.",
+      "prototype": "",
+      "summary": "Reacts to a directional stimulus by either broadcasting a squad notification (if it matches the actor's existing tracked danger) or updating the queued look position, then queues a follow-up positional dialogue event."
+    },
+    {
+      "addr": "0x422c00",
+      "name": "actor_notify_and_queue_dialogue_point",
+      "confidence": 0.3,
+      "evidence": "Mirrors actor_notify_and_queue_dialogue_direction: normalizes param_3 relative to actor+0x120, calls actor_queue_look_position and actor_clear_search_queue, conditionally calls actor_record_perception_event via FUN_0045bd50, then queues a positional dialogue event (type 6) with a randomized duration from table DAT_00655640.",
+      "prototype": "",
+      "summary": "Reacts to a point-source stimulus (e.g. a grenade or explosion location) by updating the actor's look position/search state and queuing a corresponding dialogue event (type 6)."
+    },
+    {
+      "addr": "0x422ec0",
+      "name": "actor_notify_unit_state_change",
+      "confidence": 0.3,
+      "evidence": "Branches on whether the controlled unit (param_1) is alive (+0x60): if so, calls actor_clear_search_and_reevaluate_look and, depending on whether the unit has a vehicle seat (+0x218) or a weapon (+500), calls FUN_00428420 or actor_target_data_acquire (0x41f7d0); if dead, queues a search position via actor_queue_search_position; afterward queues dialogue event type 7 via the shared cooldown/queue pattern.",
+      "prototype": "",
+      "summary": "Handles a change in the controlled unit's alive/vehicle/weapon state, updating the actor's look/search targets accordingly and queuing a corresponding dialogue event (type 7)."
+    },
+    {
+      "addr": "0x423220",
+      "name": "actor_update_search_target_for_unit",
+      "confidence": 0.3,
+      "evidence": "Marks actor+0x8d as processed for unit param_1; when the unit is not exposed (unit+0x60==0), resolves its best 'aim' target via actor_get_relevant_squad_member_target (FUN_0041f550) and, based on a random roll and actor_scale_value_by_ally_exposure, stores it at actor+0x30c with priority actor+0x308.",
+      "prototype": "",
+      "summary": "For a hidden/unexposed unit, picks a relevant recent-attacker target and, with some randomized and ally-exposure-scaled probability, records it as the actor's next investigation/search target."
+    },
+    {
+      "addr": "0x4233d0",
+      "name": "actor_request_backup_for_unit",
+      "confidence": 0.3,
+      "evidence": "When a unit is not exposed and its controlled object recently took damage (object flags bit 0x20, obj+0x39c stale-time check), rolls a probability via actor_scale_value_by_ally_exposure/random_real, and if it beats the roll, records a backup-request target (actor+0x30c, priority actor+0x308=2), resolving via FUN_0043ea80 if the unit is in a turret seat.",
+      "prototype": "",
+      "summary": "Requests backup for a unit that was recently damaged while hidden, with the request probability scaled by nearby ally exposure."
+    },
+    {
+      "addr": "0x4234f0",
+      "name": "actor_notify_grenade_or_threat_direction",
+      "confidence": 0.3,
+      "evidence": "If the actor has a valid cluster/squad leader link (actor+0x18), remaps param_2 (0/1/2) to a squad-event value and calls ai_communication_broadcast with code 0xb when param_1==2, then normalizes a direction vector and conditionally calls actor_queue_look_position before clearing the search queue via actor_queue_search_position(0xffffffff,...).",
+      "prototype": "",
+      "summary": "Notifies the actor's squad of a directional threat (such as an incoming grenade) via a broadcast event, and updates the actor's queued look/search state accordingly."
+    },
+    {
+      "addr": "0x423600",
+      "name": "actor_notify_squad_event_and_search",
+      "confidence": 0.35,
+      "evidence": "If the actor has a cluster leader (actor+0x18 valid), calls ai_communication_broadcast with code 0x17 or 0x16 depending on in_CL; if param_1 is set and no higher-priority search is already queued (actor+0x308<6), records a generic search request (actor+0x308=6, actor+0x30c=0xffffffff).",
+      "prototype": "",
+      "summary": "Broadcasts a squad-level notification event and optionally queues a generic (targetless) search request for the actor."
+    },
+    {
+      "addr": "0x423670",
+      "name": "actor_boost_accuracy_after_alert",
+      "confidence": 0.3,
+      "evidence": "Only runs while actor+0x358 is set and the actor definition's field at offset 0x334 (via the actor-type pointer) is positive; clears the flag, computes a duration via __ftol into actor+0x35a, and if the watched target (actor+0x270) is close (<4.0) boosts the smoothed accuracy value at actor+0x354 to at least 1.8/0x3fe66666.",
+      "prototype": "",
+      "summary": "After certain alert transitions, temporarily boosts the actor's smoothed accuracy value when its watched target is nearby, for a duration derived from the actor's definition data."
+    },
+    {
+      "addr": "0x424090",
+      "name": "actor_evaluate_charge_trigger",
+      "confidence": 0.3,
+      "evidence": "Uses actor_get_actor_definition and FUN_00569c90 to gate on the actor being in a valid melee/charge-eligible state (awareness>=5, distance thresholds from definition fields +0x74/+0xa0/+0x16c), then probabilistically decides via random_seed_global whether to trigger a charge, adjusted by counting nearby allies already charging vs. not (actor+0x362); body truncated (52 lines not shown).",
+      "prototype": "",
+      "summary": "Decides whether the actor should initiate a melee/charge action against its current target based on distance thresholds, awareness level, and a randomized roll weighted by how many nearby allies are already charging; only partially inspected due to truncation."
+    },
+    {
+      "addr": "0x424aa0",
+      "name": "actor_pick_dialogue_variant_a",
+      "confidence": 0.35,
+      "evidence": "Advances the shared RNG stream (random_seed_global) only when in_AX is 1, 2, or 3, then returns a value from __ftol clamped to [0,0xff], matching a 'pick sound/line variant index' pattern.",
+      "prototype": "",
+      "summary": "Picks a randomized dialogue/sound variant index (0-255), re-rolling the RNG only for certain input categories (1, 2, or 3)."
+    },
+    {
+      "addr": "0x424b80",
+      "name": "actor_pick_dialogue_variant_b",
+      "confidence": 0.35,
+      "evidence": "Near-identical to actor_pick_dialogue_variant_a but advances the RNG for in_AX==1 or 1<in_AX<4 (i.e. 2 or 3) treated as a single case, otherwise returning the same clamped __ftol result.",
+      "prototype": "",
+      "summary": "Variant of actor_pick_dialogue_variant_a with slightly different RNG-advance grouping, returning a clamped (0-255) dialogue/sound variant index."
+    },
+    {
+      "addr": "0x425c70",
+      "name": "swarm_component_compute_avoidance_offset",
+      "confidence": 0.35,
+      "evidence": "Walks the swarm entry referenced by actor+0x28 (DAT_0088035c array, stride 0x98) looking for the swarm-component slot matching param_2 (stride 0x40 array off DAT_00880358), then, depending on component state flags at +0x21, either computes a facing-based offset via vector2d_normalize_with_length or calls FUN_004beb30 to derive an avoidance vector written to param_4.",
+      "prototype": "",
+      "summary": "Computes a per-component avoidance or facing offset vector for a swarm creature (e.g. Flood infection form) based on its swarm-component state, writing the result through param_4."
+    },
+    {
+      "addr": "0x426cf0",
+      "name": "actor_initialize_unit_ai_properties",
+      "confidence": 0.45,
+      "evidence": "Copies AI-relevant fields from the unit's type definition (puVar2, via DAT_0087bc14 tag-index table) into the live unit object: shield/stun thresholds via object_initialize_shield_stun_thresholds, notice range at +0x176, up to 4 randomized color variants via color_interpolate, and attaches child objects (grenades/weapons) via object_new_with_datum_role_control and object_placement_data_initialize.",
+      "prototype": "",
+      "summary": "Initializes a newly spawned unit's AI-relevant runtime fields (shield thresholds, notice range, color variation, and attached weapon/grenade child objects) from its tag definition."
+    },
+    {
+      "addr": "0x427280",
+      "name": "actor_spawn_additional_units",
+      "confidence": 0.45,
+      "evidence": "Loops in_DX times, each iteration re-rolling random_seed_global, deriving a spawn angle from object_placement_data_initialize plus fcos/fsin, fetching a base position via object_get_position, creating a new object via object_new, initializing it via FUN_00426cf0 (actor_initialize_unit_ai_properties), and attaching an actor to it via actor_new_and_attach_to_unit.",
+      "prototype": "",
+      "summary": "Spawns a requested number of additional units at randomized angles/positions around a reference unit and attaches a new actor to each successfully created unit."
+    },
+    {
+      "addr": "0x4276e0",
+      "name": "actor_broadcast_value_to_controlled_units",
+      "confidence": 0.35,
+      "evidence": "Writes a caller-supplied value (unaff_SI) into object+0xb8 for either the actor's single controlled unit (actor+0x18) when it has no cluster (actor+6==0), or for every member of its unit cluster linked list (actor+0x24 chain) or encounter squad array (DAT_0088035c) otherwise.",
+      "prototype": "",
+      "summary": "Broadcasts a 16-bit value into a field (offset +0xb8) on every unit controlled by the actor, whether it controls a single unit, a linked unit cluster, or a full encounter squad."
+    },
+    {
+      "addr": "0x4277c0",
+      "name": "actor_set_active_flag",
+      "confidence": 0.45,
+      "evidence": "Compares the requested state (in_AL) against the actor's stored active flag at actor+8; deactivating tears down search state (FUN_00427e00), deletes any swarm (actor_delete_swarm), and calls actor_set_units_active; activating creates a swarm if the actor has a cluster (actor+6!=0) via actor_create_swarm.",
+      "prototype": "",
+      "summary": "Activates or deactivates the actor, creating or tearing down its swarm and clearing search state as appropriate, and propagating the active flag to its controlled unit(s)."
+    },
+    {
+      "addr": "0x4279f0",
+      "name": "actor_link_to_unit_cluster",
+      "confidence": 0.45,
+      "evidence": "Inserts actor (param_1) at the head of unit (param_2)'s cluster linked list (unit+0x1f8 head, actor+0x1fc/+0x200 next/prev links), allocating a swarm-component datum first via datum_new when the actor has a swarm (actor+0x28!=-1), then calls swarm_add_component, actor_remove_from_unit_cluster/actor_unlink_unit for any prior links, and object_mark_pending_delete for orphaned objects.",
+      "prototype": "",
+      "summary": "Links an actor to a unit's cluster (linked list of controlling actors for a single physical unit, e.g. a swarm/Flood combined form), replacing any prior linkage and registering a swarm component if applicable."
+    },
+    {
+      "addr": "0x427e00",
+      "name": "actor_clear_perceived_unit_list",
+      "confidence": 0.45,
+      "evidence": "Loops while the actor's perceived-unit list head (actor+0x50) is non-empty, calling actor_replace_object_reference then FUN_0043ea20 and datum_delete on each entry until the list is empty.",
+      "prototype": "",
+      "summary": "Frees every entry in the actor's perceived-unit (target-data) linked list, deleting each associated datum."
+    },
+    {
+      "addr": "0x428130",
+      "name": "actor_cache_swarm_member_position",
+      "confidence": 0.45,
+      "evidence": "Looks up a unit via DAT_008603b0, tests its health/death field (+0xb4==0), selects its death-position pointer (+0x4d8) or the sentinel -1, calls object_get_position(), and stores the resulting position into a swarm-entry slot (DAT_00880358 array, stride 0x40, +0x10).",
+      "prototype": "",
+      "summary": "Caches a swarm member's current (or, if dead, last-death) position into its swarm-entry slot for later avoidance/formation calculations."
+    },
+    {
+      "addr": "0x428180",
+      "name": "actor_is_ranged_burst_active",
+      "confidence": 0.4,
+      "evidence": "Checks actor+0x6a==3 (a combat sub-state) and actor+0x72 < actor+0x6e (current burst count vs. its limit) before returning a packed boolean, matching the burst-length fields also referenced by actor_should_end_burst (0x4281b0).",
+      "prototype": "",
+      "summary": "Returns true if the actor is currently in the middle of an active ranged-attack burst that has not yet reached its length limit."
+    },
+    {
+      "addr": "0x4281b0",
+      "name": "actor_should_end_burst",
+      "confidence": 0.4,
+      "evidence": "Tests actor+0x6e>6 together with mode field +0x6c==4 and a secondary counter +0xa8>0, sharing the same burst-length field (+0x6e) referenced by actor_is_ranged_burst_active (0x428180).",
+      "prototype": "",
+      "summary": "Determines whether the actor's current attack burst has run long enough (and is in the right sub-mode) that it should be ended."
+    }
+  ]
+}

@@ -1,0 +1,1852 @@
+{
+ "slice": 11,
+ "assignments": [
+  {
+   "addr": "0x53e060",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x53e060-0x53e630: mutex-guarded file open/read/write wrappers whose only callers are the blam.sav/checkpoint code at the end of slice 10; CEA maps XCreateSaveGame / copy_files_for_player_profile to game"
+  },
+  {
+   "addr": "0x53e0e0",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x53e060-0x53e630: mutex-guarded file open/read/write wrappers whose only callers are the blam.sav/checkpoint code at the end of slice 10; CEA maps XCreateSaveGame / copy_files_for_player_profile to game"
+  },
+  {
+   "addr": "0x53e1f0",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x53e060-0x53e630: mutex-guarded file open/read/write wrappers whose only callers are the blam.sav/checkpoint code at the end of slice 10; CEA maps XCreateSaveGame / copy_files_for_player_profile to game"
+  },
+  {
+   "addr": "0x53e300",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x53e060-0x53e630: mutex-guarded file open/read/write wrappers whose only callers are the blam.sav/checkpoint code at the end of slice 10; CEA maps XCreateSaveGame / copy_files_for_player_profile to game"
+  },
+  {
+   "addr": "0x53e420",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x53e060-0x53e630: mutex-guarded file open/read/write wrappers whose only callers are the blam.sav/checkpoint code at the end of slice 10; CEA maps XCreateSaveGame / copy_files_for_player_profile to game"
+  },
+  {
+   "addr": "0x53e4a0",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x53e060-0x53e630: mutex-guarded file open/read/write wrappers whose only callers are the blam.sav/checkpoint code at the end of slice 10; CEA maps XCreateSaveGame / copy_files_for_player_profile to game"
+  },
+  {
+   "addr": "0x53e630",
+   "module": "game",
+   "confidence": 0.55,
+   "evidence": "run 0x53e060-0x53e630: mutex-guarded file open/read/write wrappers whose only callers are the blam.sav/checkpoint code at the end of slice 10; CEA maps XCreateSaveGame / copy_files_for_player_profile to game"
+  },
+  {
+   "addr": "0x53e660",
+   "module": "scenario",
+   "confidence": 0.5,
+   "evidence": "run 0x53e660-0x53f020: scenario_switch_structure_bsp - loads the globals\\globals tag and walks the scenario tag structure_bsps (+0x5a4/+0x5a8) and skies (+0x30/+0x34) blocks"
+  },
+  {
+   "addr": "0x53e680",
+   "module": "scenario",
+   "confidence": 0.5,
+   "evidence": "run 0x53e660-0x53f020: scenario_switch_structure_bsp - loads the globals\\globals tag and walks the scenario tag structure_bsps (+0x5a4/+0x5a8) and skies (+0x30/+0x34) blocks"
+  },
+  {
+   "addr": "0x53e6a0",
+   "module": "scenario",
+   "confidence": 0.6,
+   "evidence": "0x53e6a0: loads the globals tag path and the scenario tag, then calls scenario_switch_structure_bsp"
+  },
+  {
+   "addr": "0x53e780",
+   "module": "scenario",
+   "confidence": 0.5,
+   "evidence": "run 0x53e660-0x53f020: scenario_switch_structure_bsp - loads the globals\\globals tag and walks the scenario tag structure_bsps (+0x5a4/+0x5a8) and skies (+0x30/+0x34) blocks"
+  },
+  {
+   "addr": "0x53e7c0",
+   "module": "scenario",
+   "confidence": 0.5,
+   "evidence": "run 0x53e660-0x53f020: scenario_switch_structure_bsp - loads the globals\\globals tag and walks the scenario tag structure_bsps (+0x5a4/+0x5a8) and skies (+0x30/+0x34) blocks"
+  },
+  {
+   "addr": "0x53e810",
+   "module": "scenario",
+   "confidence": 0.5,
+   "evidence": "run 0x53e660-0x53f020: scenario_switch_structure_bsp - loads the globals\\globals tag and walks the scenario tag structure_bsps (+0x5a4/+0x5a8) and skies (+0x30/+0x34) blocks"
+  },
+  {
+   "addr": "0x53e870",
+   "module": "scenario",
+   "confidence": 0.5,
+   "evidence": "run 0x53e660-0x53f020: scenario_switch_structure_bsp - loads the globals\\globals tag and walks the scenario tag structure_bsps (+0x5a4/+0x5a8) and skies (+0x30/+0x34) blocks"
+  },
+  {
+   "addr": "0x53e8c0",
+   "module": "scenario",
+   "confidence": 0.5,
+   "evidence": "run 0x53e660-0x53f020: scenario_switch_structure_bsp - loads the globals\\globals tag and walks the scenario tag structure_bsps (+0x5a4/+0x5a8) and skies (+0x30/+0x34) blocks"
+  },
+  {
+   "addr": "0x53eb60",
+   "module": "scenario",
+   "confidence": 0.5,
+   "evidence": "run 0x53e660-0x53f020: scenario_switch_structure_bsp - loads the globals\\globals tag and walks the scenario tag structure_bsps (+0x5a4/+0x5a8) and skies (+0x30/+0x34) blocks"
+  },
+  {
+   "addr": "0x53ebb0",
+   "module": "scenario",
+   "confidence": 0.5,
+   "evidence": "run 0x53e660-0x53f020: scenario_switch_structure_bsp - loads the globals\\globals tag and walks the scenario tag structure_bsps (+0x5a4/+0x5a8) and skies (+0x30/+0x34) blocks"
+  },
+  {
+   "addr": "0x53ec30",
+   "module": "scenario",
+   "confidence": 0.5,
+   "evidence": "run 0x53e660-0x53f020: scenario_switch_structure_bsp - loads the globals\\globals tag and walks the scenario tag structure_bsps (+0x5a4/+0x5a8) and skies (+0x30/+0x34) blocks"
+  },
+  {
+   "addr": "0x53ed10",
+   "module": "scenario",
+   "confidence": 0.5,
+   "evidence": "run 0x53e660-0x53f020: scenario_switch_structure_bsp - loads the globals\\globals tag and walks the scenario tag structure_bsps (+0x5a4/+0x5a8) and skies (+0x30/+0x34) blocks"
+  },
+  {
+   "addr": "0x53ed60",
+   "module": "scenario",
+   "confidence": 0.5,
+   "evidence": "run 0x53e660-0x53f020: scenario_switch_structure_bsp - loads the globals\\globals tag and walks the scenario tag structure_bsps (+0x5a4/+0x5a8) and skies (+0x30/+0x34) blocks"
+  },
+  {
+   "addr": "0x53ee00",
+   "module": "scenario",
+   "confidence": 0.5,
+   "evidence": "run 0x53e660-0x53f020: scenario_switch_structure_bsp - loads the globals\\globals tag and walks the scenario tag structure_bsps (+0x5a4/+0x5a8) and skies (+0x30/+0x34) blocks"
+  },
+  {
+   "addr": "0x53eeb0",
+   "module": "scenario",
+   "confidence": 0.65,
+   "evidence": "0x53eeb0: scenario_switch_structure_bsp - swaps the scenario tag structure_bsp entry (+0x5a8) and sets the global bsp pointer"
+  },
+  {
+   "addr": "0x53efc0",
+   "module": "scenario",
+   "confidence": 0.5,
+   "evidence": "run 0x53e660-0x53f020: scenario_switch_structure_bsp - loads the globals\\globals tag and walks the scenario tag structure_bsps (+0x5a4/+0x5a8) and skies (+0x30/+0x34) blocks"
+  },
+  {
+   "addr": "0x53f020",
+   "module": "scenario",
+   "confidence": 0.5,
+   "evidence": "run 0x53e660-0x53f020: scenario_switch_structure_bsp - loads the globals\\globals tag and walks the scenario tag structure_bsps (+0x5a4/+0x5a8) and skies (+0x30/+0x34) blocks"
+  },
+  {
+   "addr": "0x53f150",
+   "module": "structures",
+   "confidence": 0.35,
+   "evidence": "0x53f150: walks structure_bsp clusters (+0x138, 0x68-byte entries) for a point; its only caller is the sound mixer update - reads like a structure_bsp cluster/sound-environment query"
+  },
+  {
+   "addr": "0x53f5c0",
+   "module": "effects",
+   "confidence": 0.7,
+   "evidence": "0x53f5c0: sig__weather_update_sig; CEA weather_particle_system_update = effects"
+  },
+  {
+   "addr": "0x53f860",
+   "module": "effects",
+   "confidence": 0.62,
+   "evidence": "run 0x53f5c0-0x53fc80: sig__weather_update_sig plus an LCG particle spawner over the bsp weather palette (+0x1b4); CEA weather_particle_system_* are all in effects"
+  },
+  {
+   "addr": "0x53f940",
+   "module": "effects",
+   "confidence": 0.62,
+   "evidence": "run 0x53f5c0-0x53fc80: sig__weather_update_sig plus an LCG particle spawner over the bsp weather palette (+0x1b4); CEA weather_particle_system_* are all in effects"
+  },
+  {
+   "addr": "0x53fa70",
+   "module": "effects",
+   "confidence": 0.62,
+   "evidence": "run 0x53f5c0-0x53fc80: sig__weather_update_sig plus an LCG particle spawner over the bsp weather palette (+0x1b4); CEA weather_particle_system_* are all in effects"
+  },
+  {
+   "addr": "0x53fc80",
+   "module": "effects",
+   "confidence": 0.62,
+   "evidence": "run 0x53f5c0-0x53fc80: sig__weather_update_sig plus an LCG particle spawner over the bsp weather palette (+0x1b4); CEA weather_particle_system_* are all in effects"
+  },
+  {
+   "addr": "0x53fd60",
+   "module": "shaders",
+   "confidence": 0.8,
+   "evidence": "0x53fd60: sig__shader_get_vertex_shader_permutation_sig"
+  },
+  {
+   "addr": "0x53fde0",
+   "module": "shaders",
+   "confidence": 0.75,
+   "evidence": "run 0x53fd60-0x540240: sig__shader_get_vertex_shader_permutation_sig, sig__shader_texture_animation_evaluate_sig and the periodic_function_evaluate callers"
+  },
+  {
+   "addr": "0x53fe30",
+   "module": "shaders",
+   "confidence": 0.75,
+   "evidence": "run 0x53fd60-0x540240: sig__shader_get_vertex_shader_permutation_sig, sig__shader_texture_animation_evaluate_sig and the periodic_function_evaluate callers"
+  },
+  {
+   "addr": "0x53fe50",
+   "module": "shaders",
+   "confidence": 0.8,
+   "evidence": "0x53fe50: sig__shader_texture_animation_evaluate_sig calling periodic_function_evaluate"
+  },
+  {
+   "addr": "0x540060",
+   "module": "shaders",
+   "confidence": 0.75,
+   "evidence": "run 0x53fd60-0x540240: sig__shader_get_vertex_shader_permutation_sig, sig__shader_texture_animation_evaluate_sig and the periodic_function_evaluate callers"
+  },
+  {
+   "addr": "0x5400c0",
+   "module": "shaders",
+   "confidence": 0.75,
+   "evidence": "run 0x53fd60-0x540240: sig__shader_get_vertex_shader_permutation_sig, sig__shader_texture_animation_evaluate_sig and the periodic_function_evaluate callers"
+  },
+  {
+   "addr": "0x540240",
+   "module": "shaders",
+   "confidence": 0.75,
+   "evidence": "run 0x53fd60-0x540240: sig__shader_get_vertex_shader_permutation_sig, sig__shader_texture_animation_evaluate_sig and the periodic_function_evaluate callers"
+  },
+  {
+   "addr": "0x5402a0",
+   "module": "shell",
+   "confidence": 0.58,
+   "evidence": "run 0x5402a0-0x542fa0: Win32 platform startup - CPUID vendor strings, d3d9/dsound/dinput8 LoadLibrary, registry + EULA first-run, WndProc, PeekMessage idle pump, clipboard, keystone.dll, Watson crash reporting; CEA shell_initialize / shell_idle / shell_get_clipboard_text / shell_get_command_line are all shell"
+  },
+  {
+   "addr": "0x540da0",
+   "module": "shell",
+   "confidence": 0.58,
+   "evidence": "run 0x5402a0-0x542fa0: Win32 platform startup - CPUID vendor strings, d3d9/dsound/dinput8 LoadLibrary, registry + EULA first-run, WndProc, PeekMessage idle pump, clipboard, keystone.dll, Watson crash reporting; CEA shell_initialize / shell_idle / shell_get_clipboard_text / shell_get_command_line are all shell"
+  },
+  {
+   "addr": "0x540ee0",
+   "module": "shell",
+   "confidence": 0.58,
+   "evidence": "run 0x5402a0-0x542fa0: Win32 platform startup - CPUID vendor strings, d3d9/dsound/dinput8 LoadLibrary, registry + EULA first-run, WndProc, PeekMessage idle pump, clipboard, keystone.dll, Watson crash reporting; CEA shell_initialize / shell_idle / shell_get_clipboard_text / shell_get_command_line are all shell"
+  },
+  {
+   "addr": "0x541010",
+   "module": "shell",
+   "confidence": 0.58,
+   "evidence": "run 0x5402a0-0x542fa0: Win32 platform startup - CPUID vendor strings, d3d9/dsound/dinput8 LoadLibrary, registry + EULA first-run, WndProc, PeekMessage idle pump, clipboard, keystone.dll, Watson crash reporting; CEA shell_initialize / shell_idle / shell_get_clipboard_text / shell_get_command_line are all shell"
+  },
+  {
+   "addr": "0x5411e0",
+   "module": "shell",
+   "confidence": 0.58,
+   "evidence": "run 0x5402a0-0x542fa0: Win32 platform startup - CPUID vendor strings, d3d9/dsound/dinput8 LoadLibrary, registry + EULA first-run, WndProc, PeekMessage idle pump, clipboard, keystone.dll, Watson crash reporting; CEA shell_initialize / shell_idle / shell_get_clipboard_text / shell_get_command_line are all shell"
+  },
+  {
+   "addr": "0x541a20",
+   "module": "shell",
+   "confidence": 0.58,
+   "evidence": "run 0x5402a0-0x542fa0: Win32 platform startup - CPUID vendor strings, d3d9/dsound/dinput8 LoadLibrary, registry + EULA first-run, WndProc, PeekMessage idle pump, clipboard, keystone.dll, Watson crash reporting; CEA shell_initialize / shell_idle / shell_get_clipboard_text / shell_get_command_line are all shell"
+  },
+  {
+   "addr": "0x541ac0",
+   "module": "shell",
+   "confidence": 0.58,
+   "evidence": "run 0x5402a0-0x542fa0: Win32 platform startup - CPUID vendor strings, d3d9/dsound/dinput8 LoadLibrary, registry + EULA first-run, WndProc, PeekMessage idle pump, clipboard, keystone.dll, Watson crash reporting; CEA shell_initialize / shell_idle / shell_get_clipboard_text / shell_get_command_line are all shell"
+  },
+  {
+   "addr": "0x542380",
+   "module": "shell",
+   "confidence": 0.65,
+   "evidence": "0x542380: WndProc (DefWindowProcA/ShowWindow/SetForegroundWindow/GetDesktopWindow) - the 0.8 seed name scenario_trigger_volume_test_point is a misapplied signature"
+  },
+  {
+   "addr": "0x5425f0",
+   "module": "shell",
+   "confidence": 0.58,
+   "evidence": "run 0x5402a0-0x542fa0: Win32 platform startup - CPUID vendor strings, d3d9/dsound/dinput8 LoadLibrary, registry + EULA first-run, WndProc, PeekMessage idle pump, clipboard, keystone.dll, Watson crash reporting; CEA shell_initialize / shell_idle / shell_get_clipboard_text / shell_get_command_line are all shell"
+  },
+  {
+   "addr": "0x542760",
+   "module": "shell",
+   "confidence": 0.58,
+   "evidence": "run 0x5402a0-0x542fa0: Win32 platform startup - CPUID vendor strings, d3d9/dsound/dinput8 LoadLibrary, registry + EULA first-run, WndProc, PeekMessage idle pump, clipboard, keystone.dll, Watson crash reporting; CEA shell_initialize / shell_idle / shell_get_clipboard_text / shell_get_command_line are all shell"
+  },
+  {
+   "addr": "0x5427e0",
+   "module": "shell",
+   "confidence": 0.58,
+   "evidence": "run 0x5402a0-0x542fa0: Win32 platform startup - CPUID vendor strings, d3d9/dsound/dinput8 LoadLibrary, registry + EULA first-run, WndProc, PeekMessage idle pump, clipboard, keystone.dll, Watson crash reporting; CEA shell_initialize / shell_idle / shell_get_clipboard_text / shell_get_command_line are all shell"
+  },
+  {
+   "addr": "0x542840",
+   "module": "shell",
+   "confidence": 0.58,
+   "evidence": "run 0x5402a0-0x542fa0: Win32 platform startup - CPUID vendor strings, d3d9/dsound/dinput8 LoadLibrary, registry + EULA first-run, WndProc, PeekMessage idle pump, clipboard, keystone.dll, Watson crash reporting; CEA shell_initialize / shell_idle / shell_get_clipboard_text / shell_get_command_line are all shell"
+  },
+  {
+   "addr": "0x542a80",
+   "module": "shell",
+   "confidence": 0.58,
+   "evidence": "run 0x5402a0-0x542fa0: Win32 platform startup - CPUID vendor strings, d3d9/dsound/dinput8 LoadLibrary, registry + EULA first-run, WndProc, PeekMessage idle pump, clipboard, keystone.dll, Watson crash reporting; CEA shell_initialize / shell_idle / shell_get_clipboard_text / shell_get_command_line are all shell"
+  },
+  {
+   "addr": "0x542ad0",
+   "module": "shell",
+   "confidence": 0.58,
+   "evidence": "run 0x5402a0-0x542fa0: Win32 platform startup - CPUID vendor strings, d3d9/dsound/dinput8 LoadLibrary, registry + EULA first-run, WndProc, PeekMessage idle pump, clipboard, keystone.dll, Watson crash reporting; CEA shell_initialize / shell_idle / shell_get_clipboard_text / shell_get_command_line are all shell"
+  },
+  {
+   "addr": "0x542cf0",
+   "module": "shell",
+   "confidence": 0.58,
+   "evidence": "run 0x5402a0-0x542fa0: Win32 platform startup - CPUID vendor strings, d3d9/dsound/dinput8 LoadLibrary, registry + EULA first-run, WndProc, PeekMessage idle pump, clipboard, keystone.dll, Watson crash reporting; CEA shell_initialize / shell_idle / shell_get_clipboard_text / shell_get_command_line are all shell"
+  },
+  {
+   "addr": "0x542d70",
+   "module": "shell",
+   "confidence": 0.58,
+   "evidence": "run 0x5402a0-0x542fa0: Win32 platform startup - CPUID vendor strings, d3d9/dsound/dinput8 LoadLibrary, registry + EULA first-run, WndProc, PeekMessage idle pump, clipboard, keystone.dll, Watson crash reporting; CEA shell_initialize / shell_idle / shell_get_clipboard_text / shell_get_command_line are all shell"
+  },
+  {
+   "addr": "0x542f00",
+   "module": "shell",
+   "confidence": 0.58,
+   "evidence": "run 0x5402a0-0x542fa0: Win32 platform startup - CPUID vendor strings, d3d9/dsound/dinput8 LoadLibrary, registry + EULA first-run, WndProc, PeekMessage idle pump, clipboard, keystone.dll, Watson crash reporting; CEA shell_initialize / shell_idle / shell_get_clipboard_text / shell_get_command_line are all shell"
+  },
+  {
+   "addr": "0x542fa0",
+   "module": "shell",
+   "confidence": 0.58,
+   "evidence": "run 0x5402a0-0x542fa0: Win32 platform startup - CPUID vendor strings, d3d9/dsound/dinput8 LoadLibrary, registry + EULA first-run, WndProc, PeekMessage idle pump, clipboard, keystone.dll, Watson crash reporting; CEA shell_initialize / shell_idle / shell_get_clipboard_text / shell_get_command_line are all shell"
+  },
+  {
+   "addr": "0x543a30",
+   "module": "sound",
+   "confidence": 0.85,
+   "evidence": "0x543a30: string 'object looping sounds' -> CEA game_sound_initialize (sound); start of the sound run"
+  },
+  {
+   "addr": "0x543a90",
+   "module": "sound",
+   "confidence": 0.5,
+   "evidence": "0x543a90: sig__revert_sig clears tag-index back-references in the sound globals array (DAT_007461a0+0x34) - inside the sound run"
+  },
+  {
+   "addr": "0x543b30",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x543c20",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x543ce0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x543d80",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x543dd0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x543e10",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x543fc0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x544000",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x544090",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x544120",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x544180",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x544200",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x544250",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x544290",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x544330",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x5445c0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x5448c0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x544980",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x544aa0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x544c10",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x544c70",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x544e00",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x544eb0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x544f70",
+   "module": "sound",
+   "confidence": 0.55,
+   "evidence": "0x544f70: formats vorbisfile error codes for the Halo-side streaming wrapper; the real ov_* code is separately named lib:vorbis"
+  },
+  {
+   "addr": "0x5451d0",
+   "module": "sound",
+   "confidence": 0.6,
+   "evidence": "0x5451d0: ov_read/ov_clear/ov_crosslap stream pump, 'ov_read failed trying to read %d bytes'"
+  },
+  {
+   "addr": "0x545330",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x545390",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x545420",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x545460",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x5454a0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x545590",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x545710",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x545760",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x545860",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x545920",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x545a30",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x545b70",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "0x545b70: builds a WAVEFORMATEX (0xac44=44100, 0x5622=22050) and calls IDirectSound::CreateSoundBuffer through vtable+0xc - the 0.8 seed name shell_get_command_line_argument is a misapplied signature"
+  },
+  {
+   "addr": "0x546760",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x546a60",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x546b40",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x546b80",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x547070",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x5472d0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x5475b0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x547890",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x5478c0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x547a00",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x547ab0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x547c10",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x547c80",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x547f60",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x547ff0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x548050",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x5480f0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x548170",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x548200",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x5482e0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x548520",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x548590",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x548680",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x5487b0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "0x5487b0: sound_class name table ('sound_class_projectile_impact', 'weapon_fire', ...)"
+  },
+  {
+   "addr": "0x5492f0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "0x5492f0: 'sounds' / 'looping sounds' memory pool setup (cea-string-hint sound)"
+  },
+  {
+   "addr": "0x5494a0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x5495f0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x549760",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x549810",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x549960",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x549af0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x549ee0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x549f50",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x549fa0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54adb0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54ae60",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54aec0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54af10",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54af60",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54b050",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54b100",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54b180",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54b970",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54bb20",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54bbd0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54bc50",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54bcd0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54bd60",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54c020",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54c1d0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54c2f0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54c440",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54c5e0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54c6b0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54c750",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54c900",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54cd30",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54cda0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54cdf0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54d020",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54d0d0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54d140",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54d270",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54d9f0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54dc70",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54dd90",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54ddc0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54deb0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54e200",
+   "module": "sound",
+   "confidence": 0.85,
+   "evidence": "0x54e200: 0.8 seed sound_stop_all, inside the sound engine run"
+  },
+  {
+   "addr": "0x54e3c0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54e4d0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54e5d0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54e660",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54e6d0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54e740",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54e830",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54e8c0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54ec40",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54ec60",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54ed50",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54ee70",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54eec0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54ef30",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54f270",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54fa80",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x54fff0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x550370",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x550890",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x550c10",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x550c70",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x551270",
+   "module": "sound",
+   "confidence": 0.72,
+   "evidence": "0x551270: 'SOUND_EFFECT_OBJECT_EAX*' / 'Sound effect mode set to %s' - DirectSound/EAX effect object factory"
+  },
+  {
+   "addr": "0x551420",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x551460",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x551480",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x5514d0",
+   "module": "sound",
+   "confidence": 0.7,
+   "evidence": "run 0x543a30-0x5514d0: the sound engine - 0x543a30 = game_sound_initialize ('object looping sounds', CEA sound), sound-class tables, ogg-vorbis streaming wrapper (ov_open_callbacks/ov_read), DirectSound3D and EAX effect objects, seed sound_stop_all at 0x54e200"
+  },
+  {
+   "addr": "0x551620",
+   "module": "game",
+   "confidence": 0.72,
+   "evidence": "run 0x551620-0x551d30: CEA string match - XCreateSaveGame, XDeleteSaveGame and find_files_start/find_files_next are all in game"
+  },
+  {
+   "addr": "0x551650",
+   "module": "game",
+   "confidence": 0.72,
+   "evidence": "run 0x551620-0x551d30: CEA string match - XCreateSaveGame, XDeleteSaveGame and find_files_start/find_files_next are all in game"
+  },
+  {
+   "addr": "0x5516a0",
+   "module": "game",
+   "confidence": 0.72,
+   "evidence": "run 0x551620-0x551d30: CEA string match - XCreateSaveGame, XDeleteSaveGame and find_files_start/find_files_next are all in game"
+  },
+  {
+   "addr": "0x5516d0",
+   "module": "game",
+   "confidence": 0.72,
+   "evidence": "run 0x551620-0x551d30: CEA string match - XCreateSaveGame, XDeleteSaveGame and find_files_start/find_files_next are all in game"
+  },
+  {
+   "addr": "0x551710",
+   "module": "game",
+   "confidence": 0.8,
+   "evidence": "0x551710: strings 'Name=%s' + 'checkpoints' directory creation -> CEA XCreateSaveGame (game)"
+  },
+  {
+   "addr": "0x5519a0",
+   "module": "game",
+   "confidence": 0.8,
+   "evidence": "0x5519a0: strings '%scheckpoints*.*' / '%scheckpoints' -> CEA XDeleteSaveGame (game)"
+  },
+  {
+   "addr": "0x551bc0",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "0x551bc0: FindFirstFileA with '%s*.*' -> CEA find_files_start (game)"
+  },
+  {
+   "addr": "0x551d30",
+   "module": "game",
+   "confidence": 0.7,
+   "evidence": "0x551d30: FindNextFileA continuation -> CEA find_files_next (game)"
+  },
+  {
+   "addr": "0x551e30",
+   "module": "structures",
+   "confidence": 0.8,
+   "evidence": "0x551e30: strings 'cluster %s' / '%s reference' / '%s cluster' -> CEA cluster_partition_new (structures)"
+  },
+  {
+   "addr": "0x551f00",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x552020",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x5520b0",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x552110",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x552210",
+   "module": "structures",
+   "confidence": 0.65,
+   "evidence": "0x552210: sig__cluster_sound_distance_func_sig; CEA structure_bsp_get_cluster_encoded_sound_distance = structures"
+  },
+  {
+   "addr": "0x552260",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x5522d0",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x552710",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x552780",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x5527f0",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x5528f0",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x552980",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x552a60",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x552b40",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x552c20",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x552cf0",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x552d60",
+   "module": "structures",
+   "confidence": 0.6,
+   "evidence": "0x552d60: sig__bsp_poly_movsx_2_sig - structure bsp polygon walk"
+  },
+  {
+   "addr": "0x552de0",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x5530d0",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x553380",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x553490",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x553560",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x5537c0",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x553920",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x553a70",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x553c40",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x553d80",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x553f10",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x5540c0",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x5541b0",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x554260",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x554420",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x5544f0",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x5545d0",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x554850",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x5549c0",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x554a20",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x554a90",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x554b00",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x554cb0",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x554d10",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x554e30",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x554fa0",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x555190",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x555270",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x555330",
+   "module": "structures",
+   "confidence": 0.55,
+   "evidence": "run 0x551e30-0x555330: 0x551e30 = cluster_partition_new (CEA structures); sig__cluster_sound_distance_func_sig, sig__bsp_poly_movsx_2_sig and structure_visibility-style cluster/leaf/node traversal over the global structure_bsp (DAT_00746f9c)"
+  },
+  {
+   "addr": "0x5554c0",
+   "module": "saved_games",
+   "confidence": 0.6,
+   "evidence": "run 0x5554c0-0x556170: the file_reference layer (struct signature 'olif', CreateFile/ReadFile/WriteFile/SetFilePointer/FindFirstFile with a FormatMessage error wrapper); CEA puts file_open/file_read/file_write/file_reference_* in saved_games"
+  },
+  {
+   "addr": "0x555520",
+   "module": "saved_games",
+   "confidence": 0.6,
+   "evidence": "run 0x5554c0-0x556170: the file_reference layer (struct signature 'olif', CreateFile/ReadFile/WriteFile/SetFilePointer/FindFirstFile with a FormatMessage error wrapper); CEA puts file_open/file_read/file_write/file_reference_* in saved_games"
+  },
+  {
+   "addr": "0x5555b0",
+   "module": "saved_games",
+   "confidence": 0.6,
+   "evidence": "run 0x5554c0-0x556170: the file_reference layer (struct signature 'olif', CreateFile/ReadFile/WriteFile/SetFilePointer/FindFirstFile with a FormatMessage error wrapper); CEA puts file_open/file_read/file_write/file_reference_* in saved_games"
+  },
+  {
+   "addr": "0x555670",
+   "module": "saved_games",
+   "confidence": 0.6,
+   "evidence": "run 0x5554c0-0x556170: the file_reference layer (struct signature 'olif', CreateFile/ReadFile/WriteFile/SetFilePointer/FindFirstFile with a FormatMessage error wrapper); CEA puts file_open/file_read/file_write/file_reference_* in saved_games"
+  },
+  {
+   "addr": "0x555720",
+   "module": "saved_games",
+   "confidence": 0.6,
+   "evidence": "run 0x5554c0-0x556170: the file_reference layer (struct signature 'olif', CreateFile/ReadFile/WriteFile/SetFilePointer/FindFirstFile with a FormatMessage error wrapper); CEA puts file_open/file_read/file_write/file_reference_* in saved_games"
+  },
+  {
+   "addr": "0x5557a0",
+   "module": "saved_games",
+   "confidence": 0.6,
+   "evidence": "run 0x5554c0-0x556170: the file_reference layer (struct signature 'olif', CreateFile/ReadFile/WriteFile/SetFilePointer/FindFirstFile with a FormatMessage error wrapper); CEA puts file_open/file_read/file_write/file_reference_* in saved_games"
+  },
+  {
+   "addr": "0x555890",
+   "module": "saved_games",
+   "confidence": 0.6,
+   "evidence": "run 0x5554c0-0x556170: the file_reference layer (struct signature 'olif', CreateFile/ReadFile/WriteFile/SetFilePointer/FindFirstFile with a FormatMessage error wrapper); CEA puts file_open/file_read/file_write/file_reference_* in saved_games"
+  },
+  {
+   "addr": "0x5558f0",
+   "module": "saved_games",
+   "confidence": 0.6,
+   "evidence": "run 0x5554c0-0x556170: the file_reference layer (struct signature 'olif', CreateFile/ReadFile/WriteFile/SetFilePointer/FindFirstFile with a FormatMessage error wrapper); CEA puts file_open/file_read/file_write/file_reference_* in saved_games"
+  },
+  {
+   "addr": "0x555950",
+   "module": "saved_games",
+   "confidence": 0.6,
+   "evidence": "run 0x5554c0-0x556170: the file_reference layer (struct signature 'olif', CreateFile/ReadFile/WriteFile/SetFilePointer/FindFirstFile with a FormatMessage error wrapper); CEA puts file_open/file_read/file_write/file_reference_* in saved_games"
+  },
+  {
+   "addr": "0x5559b0",
+   "module": "saved_games",
+   "confidence": 0.6,
+   "evidence": "run 0x5554c0-0x556170: the file_reference layer (struct signature 'olif', CreateFile/ReadFile/WriteFile/SetFilePointer/FindFirstFile with a FormatMessage error wrapper); CEA puts file_open/file_read/file_write/file_reference_* in saved_games"
+  },
+  {
+   "addr": "0x555a20",
+   "module": "saved_games",
+   "confidence": 0.6,
+   "evidence": "run 0x5554c0-0x556170: the file_reference layer (struct signature 'olif', CreateFile/ReadFile/WriteFile/SetFilePointer/FindFirstFile with a FormatMessage error wrapper); CEA puts file_open/file_read/file_write/file_reference_* in saved_games"
+  },
+  {
+   "addr": "0x555a90",
+   "module": "saved_games",
+   "confidence": 0.6,
+   "evidence": "run 0x5554c0-0x556170: the file_reference layer (struct signature 'olif', CreateFile/ReadFile/WriteFile/SetFilePointer/FindFirstFile with a FormatMessage error wrapper); CEA puts file_open/file_read/file_write/file_reference_* in saved_games"
+  },
+  {
+   "addr": "0x555b00",
+   "module": "saved_games",
+   "confidence": 0.6,
+   "evidence": "run 0x5554c0-0x556170: the file_reference layer (struct signature 'olif', CreateFile/ReadFile/WriteFile/SetFilePointer/FindFirstFile with a FormatMessage error wrapper); CEA puts file_open/file_read/file_write/file_reference_* in saved_games"
+  },
+  {
+   "addr": "0x555b90",
+   "module": "saved_games",
+   "confidence": 0.6,
+   "evidence": "run 0x5554c0-0x556170: the file_reference layer (struct signature 'olif', CreateFile/ReadFile/WriteFile/SetFilePointer/FindFirstFile with a FormatMessage error wrapper); CEA puts file_open/file_read/file_write/file_reference_* in saved_games"
+  },
+  {
+   "addr": "0x555c10",
+   "module": "saved_games",
+   "confidence": 0.6,
+   "evidence": "run 0x5554c0-0x556170: the file_reference layer (struct signature 'olif', CreateFile/ReadFile/WriteFile/SetFilePointer/FindFirstFile with a FormatMessage error wrapper); CEA puts file_open/file_read/file_write/file_reference_* in saved_games"
+  },
+  {
+   "addr": "0x555d30",
+   "module": "saved_games",
+   "confidence": 0.55,
+   "evidence": "0x555d30: sits inside the file_reference run and only calls the path helpers 0x555ec0/0x555f80 - the 0.8 seed name structure_render_lightmaps is a misapplied signature"
+  },
+  {
+   "addr": "0x555ec0",
+   "module": "saved_games",
+   "confidence": 0.6,
+   "evidence": "run 0x5554c0-0x556170: the file_reference layer (struct signature 'olif', CreateFile/ReadFile/WriteFile/SetFilePointer/FindFirstFile with a FormatMessage error wrapper); CEA puts file_open/file_read/file_write/file_reference_* in saved_games"
+  },
+  {
+   "addr": "0x555f20",
+   "module": "saved_games",
+   "confidence": 0.6,
+   "evidence": "run 0x5554c0-0x556170: the file_reference layer (struct signature 'olif', CreateFile/ReadFile/WriteFile/SetFilePointer/FindFirstFile with a FormatMessage error wrapper); CEA puts file_open/file_read/file_write/file_reference_* in saved_games"
+  },
+  {
+   "addr": "0x555f80",
+   "module": "saved_games",
+   "confidence": 0.6,
+   "evidence": "run 0x5554c0-0x556170: the file_reference layer (struct signature 'olif', CreateFile/ReadFile/WriteFile/SetFilePointer/FindFirstFile with a FormatMessage error wrapper); CEA puts file_open/file_read/file_write/file_reference_* in saved_games"
+  },
+  {
+   "addr": "0x556000",
+   "module": "saved_games",
+   "confidence": 0.6,
+   "evidence": "run 0x5554c0-0x556170: the file_reference layer (struct signature 'olif', CreateFile/ReadFile/WriteFile/SetFilePointer/FindFirstFile with a FormatMessage error wrapper); CEA puts file_open/file_read/file_write/file_reference_* in saved_games"
+  },
+  {
+   "addr": "0x5560d0",
+   "module": "saved_games",
+   "confidence": 0.6,
+   "evidence": "run 0x5554c0-0x556170: the file_reference layer (struct signature 'olif', CreateFile/ReadFile/WriteFile/SetFilePointer/FindFirstFile with a FormatMessage error wrapper); CEA puts file_open/file_read/file_write/file_reference_* in saved_games"
+  },
+  {
+   "addr": "0x556170",
+   "module": "saved_games",
+   "confidence": 0.6,
+   "evidence": "run 0x5554c0-0x556170: the file_reference layer (struct signature 'olif', CreateFile/ReadFile/WriteFile/SetFilePointer/FindFirstFile with a FormatMessage error wrapper); CEA puts file_open/file_read/file_write/file_reference_* in saved_games"
+  },
+  {
+   "addr": "0x5561b0",
+   "module": "text",
+   "confidence": 0.75,
+   "evidence": "0x5561b0: string '<missing string>' -> CEA string_list_get_string / unicode_string_list_get_string (text)"
+  },
+  {
+   "addr": "0x5562d0",
+   "module": "text",
+   "confidence": 0.55,
+   "evidence": "run 0x5561b0-0x557990: 0x5561b0 and 0x556bb0 carry '<missing string>' = CEA string_list_get_string / unicode_string_list_get_string (text); the rest is wide-char formatting/wrapping and vswprintf helpers"
+  },
+  {
+   "addr": "0x5563b0",
+   "module": "text",
+   "confidence": 0.55,
+   "evidence": "run 0x5561b0-0x557990: 0x5561b0 and 0x556bb0 carry '<missing string>' = CEA string_list_get_string / unicode_string_list_get_string (text); the rest is wide-char formatting/wrapping and vswprintf helpers"
+  },
+  {
+   "addr": "0x556400",
+   "module": "text",
+   "confidence": 0.55,
+   "evidence": "run 0x5561b0-0x557990: 0x5561b0 and 0x556bb0 carry '<missing string>' = CEA string_list_get_string / unicode_string_list_get_string (text); the rest is wide-char formatting/wrapping and vswprintf helpers"
+  },
+  {
+   "addr": "0x556780",
+   "module": "text",
+   "confidence": 0.55,
+   "evidence": "run 0x5561b0-0x557990: 0x5561b0 and 0x556bb0 carry '<missing string>' = CEA string_list_get_string / unicode_string_list_get_string (text); the rest is wide-char formatting/wrapping and vswprintf helpers"
+  },
+  {
+   "addr": "0x556b00",
+   "module": "text",
+   "confidence": 0.55,
+   "evidence": "run 0x5561b0-0x557990: 0x5561b0 and 0x556bb0 carry '<missing string>' = CEA string_list_get_string / unicode_string_list_get_string (text); the rest is wide-char formatting/wrapping and vswprintf helpers"
+  },
+  {
+   "addr": "0x556bb0",
+   "module": "text",
+   "confidence": 0.55,
+   "evidence": "run 0x5561b0-0x557990: 0x5561b0 and 0x556bb0 carry '<missing string>' = CEA string_list_get_string / unicode_string_list_get_string (text); the rest is wide-char formatting/wrapping and vswprintf helpers"
+  },
+  {
+   "addr": "0x556f10",
+   "module": "text",
+   "confidence": 0.55,
+   "evidence": "run 0x5561b0-0x557990: 0x5561b0 and 0x556bb0 carry '<missing string>' = CEA string_list_get_string / unicode_string_list_get_string (text); the rest is wide-char formatting/wrapping and vswprintf helpers"
+  },
+  {
+   "addr": "0x557030",
+   "module": "text",
+   "confidence": 0.55,
+   "evidence": "run 0x5561b0-0x557990: 0x5561b0 and 0x556bb0 carry '<missing string>' = CEA string_list_get_string / unicode_string_list_get_string (text); the rest is wide-char formatting/wrapping and vswprintf helpers"
+  },
+  {
+   "addr": "0x5572b0",
+   "module": "text",
+   "confidence": 0.55,
+   "evidence": "run 0x5561b0-0x557990: 0x5561b0 and 0x556bb0 carry '<missing string>' = CEA string_list_get_string / unicode_string_list_get_string (text); the rest is wide-char formatting/wrapping and vswprintf helpers"
+  },
+  {
+   "addr": "0x557530",
+   "module": "text",
+   "confidence": 0.55,
+   "evidence": "run 0x5561b0-0x557990: 0x5561b0 and 0x556bb0 carry '<missing string>' = CEA string_list_get_string / unicode_string_list_get_string (text); the rest is wide-char formatting/wrapping and vswprintf helpers"
+  },
+  {
+   "addr": "0x557650",
+   "module": "text",
+   "confidence": 0.55,
+   "evidence": "run 0x5561b0-0x557990: 0x5561b0 and 0x556bb0 carry '<missing string>' = CEA string_list_get_string / unicode_string_list_get_string (text); the rest is wide-char formatting/wrapping and vswprintf helpers"
+  },
+  {
+   "addr": "0x5576a0",
+   "module": "text",
+   "confidence": 0.55,
+   "evidence": "run 0x5561b0-0x557990: 0x5561b0 and 0x556bb0 carry '<missing string>' = CEA string_list_get_string / unicode_string_list_get_string (text); the rest is wide-char formatting/wrapping and vswprintf helpers"
+  },
+  {
+   "addr": "0x5576d0",
+   "module": "text",
+   "confidence": 0.55,
+   "evidence": "run 0x5561b0-0x557990: 0x5561b0 and 0x556bb0 carry '<missing string>' = CEA string_list_get_string / unicode_string_list_get_string (text); the rest is wide-char formatting/wrapping and vswprintf helpers"
+  },
+  {
+   "addr": "0x557720",
+   "module": "text",
+   "confidence": 0.55,
+   "evidence": "run 0x5561b0-0x557990: 0x5561b0 and 0x556bb0 carry '<missing string>' = CEA string_list_get_string / unicode_string_list_get_string (text); the rest is wide-char formatting/wrapping and vswprintf helpers"
+  },
+  {
+   "addr": "0x557750",
+   "module": "text",
+   "confidence": 0.45,
+   "evidence": "0x557750: 'ibukprlctn' -> CEA double_byte_character (filed under dialogs there, but it sits inside this text/unicode helper run and is called by the file-path code)"
+  },
+  {
+   "addr": "0x557870",
+   "module": "text",
+   "confidence": 0.55,
+   "evidence": "run 0x5561b0-0x557990: 0x5561b0 and 0x556bb0 carry '<missing string>' = CEA string_list_get_string / unicode_string_list_get_string (text); the rest is wide-char formatting/wrapping and vswprintf helpers"
+  },
+  {
+   "addr": "0x5578c0",
+   "module": "text",
+   "confidence": 0.55,
+   "evidence": "run 0x5561b0-0x557990: 0x5561b0 and 0x556bb0 carry '<missing string>' = CEA string_list_get_string / unicode_string_list_get_string (text); the rest is wide-char formatting/wrapping and vswprintf helpers"
+  },
+  {
+   "addr": "0x557910",
+   "module": "text",
+   "confidence": 0.55,
+   "evidence": "run 0x5561b0-0x557990: 0x5561b0 and 0x556bb0 carry '<missing string>' = CEA string_list_get_string / unicode_string_list_get_string (text); the rest is wide-char formatting/wrapping and vswprintf helpers"
+  },
+  {
+   "addr": "0x557930",
+   "module": "text",
+   "confidence": 0.55,
+   "evidence": "run 0x5561b0-0x557990: 0x5561b0 and 0x556bb0 carry '<missing string>' = CEA string_list_get_string / unicode_string_list_get_string (text); the rest is wide-char formatting/wrapping and vswprintf helpers"
+  },
+  {
+   "addr": "0x557950",
+   "module": "text",
+   "confidence": 0.55,
+   "evidence": "run 0x5561b0-0x557990: 0x5561b0 and 0x556bb0 carry '<missing string>' = CEA string_list_get_string / unicode_string_list_get_string (text); the rest is wide-char formatting/wrapping and vswprintf helpers"
+  },
+  {
+   "addr": "0x557990",
+   "module": "text",
+   "confidence": 0.55,
+   "evidence": "run 0x5561b0-0x557990: 0x5561b0 and 0x556bb0 carry '<missing string>' = CEA string_list_get_string / unicode_string_list_get_string (text); the rest is wide-char formatting/wrapping and vswprintf helpers"
+  },
+  {
+   "addr": "0x5579e0",
+   "module": "units",
+   "confidence": 0.4,
+   "evidence": "run 0x5579e0-0x55a390: unit/biped update helpers feeding the slice-12 biped run (seeds biped_new_from_network / biped_build_update_delta = units); 0x5590a0 is re-driven by the network client-prediction code"
+  },
+  {
+   "addr": "0x557a90",
+   "module": "units",
+   "confidence": 0.4,
+   "evidence": "run 0x5579e0-0x55a390: unit/biped update helpers feeding the slice-12 biped run (seeds biped_new_from_network / biped_build_update_delta = units); 0x5590a0 is re-driven by the network client-prediction code"
+  },
+  {
+   "addr": "0x557b80",
+   "module": "units",
+   "confidence": 0.4,
+   "evidence": "run 0x5579e0-0x55a390: unit/biped update helpers feeding the slice-12 biped run (seeds biped_new_from_network / biped_build_update_delta = units); 0x5590a0 is re-driven by the network client-prediction code"
+  },
+  {
+   "addr": "0x558000",
+   "module": "units",
+   "confidence": 0.4,
+   "evidence": "run 0x5579e0-0x55a390: unit/biped update helpers feeding the slice-12 biped run (seeds biped_new_from_network / biped_build_update_delta = units); 0x5590a0 is re-driven by the network client-prediction code"
+  },
+  {
+   "addr": "0x558860",
+   "module": "units",
+   "confidence": 0.4,
+   "evidence": "run 0x5579e0-0x55a390: unit/biped update helpers feeding the slice-12 biped run (seeds biped_new_from_network / biped_build_update_delta = units); 0x5590a0 is re-driven by the network client-prediction code"
+  },
+  {
+   "addr": "0x558a20",
+   "module": "units",
+   "confidence": 0.4,
+   "evidence": "run 0x5579e0-0x55a390: unit/biped update helpers feeding the slice-12 biped run (seeds biped_new_from_network / biped_build_update_delta = units); 0x5590a0 is re-driven by the network client-prediction code"
+  },
+  {
+   "addr": "0x558eb0",
+   "module": "units",
+   "confidence": 0.4,
+   "evidence": "run 0x5579e0-0x55a390: unit/biped update helpers feeding the slice-12 biped run (seeds biped_new_from_network / biped_build_update_delta = units); 0x5590a0 is re-driven by the network client-prediction code"
+  },
+  {
+   "addr": "0x5590a0",
+   "module": "units",
+   "confidence": 0.45,
+   "evidence": "0x5590a0: 3.4KB unit update re-run reached from the network client-prediction code ('Caught up on [%d] updates', 'Client Starting Pos'); dispatches into the slice-12 biped run"
+  },
+  {
+   "addr": "0x559fa0",
+   "module": "units",
+   "confidence": 0.4,
+   "evidence": "run 0x5579e0-0x55a390: unit/biped update helpers feeding the slice-12 biped run (seeds biped_new_from_network / biped_build_update_delta = units); 0x5590a0 is re-driven by the network client-prediction code"
+  },
+  {
+   "addr": "0x55a170",
+   "module": "units",
+   "confidence": 0.4,
+   "evidence": "run 0x5579e0-0x55a390: unit/biped update helpers feeding the slice-12 biped run (seeds biped_new_from_network / biped_build_update_delta = units); 0x5590a0 is re-driven by the network client-prediction code"
+  },
+  {
+   "addr": "0x55a2e0",
+   "module": "units",
+   "confidence": 0.4,
+   "evidence": "run 0x5579e0-0x55a390: unit/biped update helpers feeding the slice-12 biped run (seeds biped_new_from_network / biped_build_update_delta = units); 0x5590a0 is re-driven by the network client-prediction code"
+  },
+  {
+   "addr": "0x55a390",
+   "module": "units",
+   "confidence": 0.4,
+   "evidence": "run 0x5579e0-0x55a390: unit/biped update helpers feeding the slice-12 biped run (seeds biped_new_from_network / biped_build_update_delta = units); 0x5590a0 is re-driven by the network client-prediction code"
+  }
+ ],
+ "boundaries": [
+  {
+   "addr": "0x53e660",
+   "note": "end of the slice-10 save-game / X*SaveGame run (game); start of the scenario bsp-switch code"
+  },
+  {
+   "addr": "0x53f150",
+   "note": "lone bsp-cluster query between the scenario run and the weather run; its only caller is the sound mixer, so it could belong to structures, effects or sound"
+  },
+  {
+   "addr": "0x53f5c0",
+   "note": "start of the weather particle system run (effects)"
+  },
+  {
+   "addr": "0x53fd60",
+   "note": "start of the shaders run (vertex shader permutation / texture animation)"
+  },
+  {
+   "addr": "0x5402a0",
+   "note": "start of the Gearbox PC platform/startup run (shell) - CPUID, D3D9/DSound/DInput loading, WndProc, EULA, Watson; no CEA counterparts"
+  },
+  {
+   "addr": "0x543a30",
+   "note": "game_sound_initialize - start of the large sound engine run"
+  },
+  {
+   "addr": "0x551620",
+   "note": "end of the sound run; start of the Xbox-style save-game / find_files run (game)"
+  },
+  {
+   "addr": "0x551e30",
+   "note": "cluster_partition_new - start of the structures (bsp cluster/visibility) run"
+  },
+  {
+   "addr": "0x5554c0",
+   "note": "start of the file_reference / Win32 file layer (CEA file_* = saved_games)"
+  },
+  {
+   "addr": "0x5561b0",
+   "note": "start of the text/unicode string-list and formatting run"
+  },
+  {
+   "addr": "0x5579e0",
+   "note": "start of the unit/biped run that continues into slice 12, where the units seeds sit"
+  }
+ ],
+ "notes": "Three 0.8 seeds in this slice are misapplied signature names and were overridden: 0x542380 (scenario_trigger_volume_test_point - it is the Win32 WndProc), 0x545b70 (shell_get_command_line_argument - it builds a WAVEFORMATEX and calls IDirectSound::CreateSoundBuffer), 0x555d30 (structure_render_lightmaps - it is inside the file_reference run). Module choices for the file / save-game / text / bsp layers were cross-checked against symbols/candidates_cea.json: file_* -> saved_games, XCreateSaveGame / XDeleteSaveGame / find_files -> game, string_list_get_string -> text, cluster_partition_new and structure_visibility_* -> structures, weather_particle_system_* -> effects, shell_initialize / shell_idle / shell_get_clipboard_text / shell_get_command_line -> shell. Lowest-confidence areas: 0x53f150 (isolated bsp query), 0x5579e0-0x55a390 (units vs objects vs networking delta encoding) and the exact scenario/structures split inside 0x53e660-0x53f020 (0x53ec30/0x53ed10/0x53ed60/0x53ee00 are generic cluster helpers with many callers and may be a separate structures object file)."
+}

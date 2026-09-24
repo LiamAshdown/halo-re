@@ -1,0 +1,484 @@
+{
+  "results": [
+    {
+      "addr": "0x4f6030",
+      "name": "object_type_get_node_group_entry",
+      "confidence": 0.25,
+      "evidence": "Resolves the object's type/model tag definition then bounds-checks a short node index against a count field at +0x140 before returning a pointer into a stride-0x48 array at +0x144.",
+      "summary": "Given an object index and a node index, returns a pointer to that node's entry in the object's model tag definition if the index is in range, else 0.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f6080",
+      "name": "object_get_node_local_transform",
+      "confidence": 0.45,
+      "evidence": "Derives the object's embedded per-node array via *(short*)(object+0x1f2) and copies node rotation/scale (13 dwords) into the caller's output buffer, negating axis components when object flag 0x1000 (mirrored) is set; calls FUN_004d7850 to resolve the requested node/marker.",
+      "summary": "Fills a caller-supplied transform buffer with one of an object's node-local transforms (rotation, position, scale), honoring the object's mirrored-geometry flag.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f6180",
+      "name": "object_recalculate_marker_orientation",
+      "confidence": 0.3,
+      "evidence": "Calls object_get_node_local_transform (FUN_004f6080) twice, then matrix4x3_inverse/matrix4x3_transform_point to derive a relative rotation which is written into the object's world forward/up fields (offsets 0x74-0x88) before invoking the attach routine FUN_004f6440.",
+      "summary": "Recomputes an object's world orientation relative to a marker and then reattaches/updates it via the attach helper.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f62f0",
+      "name": "object_compute_relative_orientation_matrix",
+      "confidence": 0.3,
+      "evidence": "Inverts and multiplies two 4x3 matrices via matrix4x3_inverse/PTR_matrix4x3_multiply_00696664, rebuilds a rotation basis with cross products, stores the result into the current object's orientation fields (0x5c-0x64 preserved, 0x74-0x88 rewritten) and normalizes two axis vectors with vector3d_normalize_with_length.",
+      "summary": "Computes a new orientation for an object relative to another transform and normalizes the resulting basis vectors.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f6440",
+      "name": "object_attach_to_object",
+      "confidence": 0.6,
+      "evidence": "Walks the parent chain (object+0x11c) from param_1 to detect a cycle against param_2, and if none is found stores param_1 into param_2's parent field (+0x11c) and param_3 into its parent-marker field (+0x120), recomputes param_2's world forward/up via matrix4x3_inverse/matrix4x3_transform_point, and calls FUN_004f8310 (bounding-radius recompute) at the end.",
+      "summary": "Attaches object param_2 to parent object param_1 at marker param_3, refusing the operation if it would create an attachment cycle.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f6610",
+      "name": "object_snap_to_parent_marker_and_detach",
+      "confidence": 0.45,
+      "evidence": "Reads the current parent (object+0x11c) and parent-marker (+0x120), multiplies the parent marker's world matrix by the object's local marker matrix to get a final world transform, copies extra fields (0x68-0x94) from the parent, then clears +0x11c to -1 and +0x120 to 0xff.",
+      "summary": "Bakes an attached object's final world transform from its parent marker one last time, then detaches it from that parent.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f67e0",
+      "name": "object_set_frozen_flag",
+      "confidence": 0.25,
+      "evidence": "Toggles bit 0x40 and bit 0x1 of the object table's per-slot flags byte depending on a char parameter (unaff_BL), calling FUN_004f50f0 when clearing while the object was not already inactive.",
+      "summary": "Sets or clears a per-object state flag (byte at table-entry+2), invoking a follow-up routine only when transitioning from active to inactive.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f6850",
+      "name": "object_set_visibility_registration",
+      "confidence": 0.25,
+      "evidence": "Reads the object's model definition (+0x34 field) and, depending on param_1 and the current bit0 flag of the datum, calls FUN_004f9a20(0,1) or FUN_004f9a20(1,0) before toggling bits 1 and 2 of the object table flags byte.",
+      "summary": "Registers or unregisters an object with an external visibility/collision system and updates its per-slot flag bits accordingly.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f6900",
+      "name": "object_get_position",
+      "confidence": 0.6,
+      "evidence": "If the object has no parent (field+0x11c==-1) copies its own stored position fields (0x5c/0x60/0x64) to the output, otherwise calls matrix4x3_transform_point using the parent's node array and the object's parent-marker index (+0x120) to compute a world position.",
+      "summary": "Returns an object's world-space position, resolving through its attachment parent's marker when the object is attached.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f6970",
+      "name": "object_get_orientation",
+      "confidence": 0.6,
+      "evidence": "Mirrors object_get_position's parent-chain logic but returns both the forward (0x74-0x7c) and up (0x80-0x88) vectors, transforming them with matrix4x3_transform_normal through the parent marker when attached.",
+      "summary": "Returns an object's world-space forward and up orientation vectors, accounting for marker attachment.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f6a20",
+      "name": "object_get_world_matrix",
+      "confidence": 0.5,
+      "evidence": "Writes the object's stored position (0x5c/0x60/0x64) into the translation slot of a caller-provided matrix buffer, then multiplies in the parent marker's matrix via PTR_matrix4x3_multiply_00696664 when the object is attached.",
+      "summary": "Builds an object's world transform matrix, composing with its attachment parent's marker transform if attached.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f6aa0",
+      "name": "object_get_root_object_velocities",
+      "confidence": 0.45,
+      "evidence": "Walks the parent chain (object+0x11c) to the ultimate root object, then returns that object's velocity (0x68-0x70) and angular-velocity-like fields (0x8c-0x94) to the two output pointers.",
+      "summary": "Finds the top-most ancestor of an attached-object chain and returns its linear and angular velocity vectors.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f6b10",
+      "name": "object_get_root_object_extra_fields",
+      "confidence": 0.25,
+      "evidence": "Same root-of-attachment-chain walk as object_get_root_object_velocities (FUN_004f6aa0), but copies two dwords from offsets 0x98/0x9c of the root object into the output.",
+      "summary": "Finds the root of an object's attachment chain and copies two unidentified 32-bit fields from it.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f6b70",
+      "name": "object_copy_default_node_transforms",
+      "confidence": 0.35,
+      "evidence": "Resolves the object's model tag chain to read a bit-count field (+0xb8) that sizes a block copy from the object's local node-function pointer (+0x1ee) to its runtime node-function array (+0x1ea), and extends the tracked function-value count (+0xd6/+0x35) when the requested index exceeds it.",
+      "summary": "Copies the model's default per-node function data into the object's runtime node-function buffer and grows the tracked count if needed.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f6c10",
+      "name": "object_offset_node_translation",
+      "confidence": 0.3,
+      "evidence": "If the object has active node-function entries (+0xd6 != 0), adds the caller-supplied Vector3D to the translation stored in the node-function buffer (+0x1ea offset +0x10/0x14/0x18).",
+      "summary": "Adds a translation offset to an object's cached node-function translation value.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f6c60",
+      "name": "object_set_permutation_by_name",
+      "confidence": 0.6,
+      "evidence": "Uses __stricmp to search each model region's permutation-name table for param_1, storing the matching (or default) permutation index into the object's per-region permutation byte array (+0x180+region).",
+      "summary": "Sets an object's active region permutation by matching a permutation name, optionally restricted to one region.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f6d60",
+      "name": "object_compute_marker_to_marker_transform",
+      "confidence": 0.3,
+      "evidence": "Retrieves two node-local transforms via object_get_node_local_transform, walks the model's node array (stride 0x9c, matching the gbxmodel node struct size) via parent-node indices, then inverts/multiplies matrices and calls FUN_004d6440 with the resolved node offsets.",
+      "summary": "Computes a relative transform between two markers by walking their shared node hierarchy.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f6e70",
+      "name": "object_function_get_value",
+      "confidence": 0.55,
+      "evidence": "Returns 1.0 when the function index is -1, otherwise reads object+0x134+index*4 (the same array object_update_functions writes) and reports whether the corresponding bit of object+0x123 is set.",
+      "summary": "Returns a cached \"object function\" output value and its validity flag for the given function index.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f6ec0",
+      "name": "object_try_and_get",
+      "confidence": 0.65,
+      "evidence": "Validates an object id's salt/index against the object data_array header (count/stride fields at +0x20/+0x22) and, only if the object's stored type bit (byte at +3 of its datum entry) is set in the caller's type-mask parameter, returns its data pointer.",
+      "summary": "Resolves an object handle to its data pointer only if the object still exists and matches the requested type mask, otherwise returns null.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f6f20",
+      "name": "object_iterator_next",
+      "confidence": 0.65,
+      "evidence": "Advances an iterator struct (type mask, flags mask, current index, output id) through the object data_array, skipping empty slots and slots whose flags/type bits don't match, mirroring the object_try_and_get validation logic.",
+      "summary": "Advances an object iterator to the next object matching the requested type and flag mask, returning its data pointer.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f6fb0",
+      "name": "object_get_root_object_index",
+      "confidence": 0.55,
+      "evidence": "Repeatedly follows the parent-object field (+0x11c) until reaching -1, returning the final (root) object index.",
+      "summary": "Returns the index of the top-most object in an attachment chain starting from the given object.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f6fe0",
+      "name": "object_find_in_sphere",
+      "confidence": 0.5,
+      "evidence": "Resolves nearby clusters via FUN_00554d10, feeds them to the cluster-object-collection routine FUN_004f7180, and filters candidates using each object's bounding center (0xa0-0xa8) and radius (0xac) against the query sphere.",
+      "summary": "Finds objects of a given type mask whose bounding sphere intersects a query sphere, using cluster data to narrow the search.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f7180",
+      "name": "object_collect_in_clusters",
+      "confidence": 0.5,
+      "evidence": "For each requested BSP leaf/cluster index, walks per-cluster static/dynamic object hash chains (DAT_008603d0/DAT_008603c0) and appends each object once, using a generation stamp (object+0x14 vs DAT_008603cc) to avoid duplicates.",
+      "summary": "Gathers the unique set of objects referenced by a list of BSP clusters into an output array.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f7370",
+      "name": "object_get_player_hud_marker_offset",
+      "confidence": 0.2,
+      "evidence": "Indexes a per-local-player table (DAT_00746f8c+0x208) by a short parameter and looks the result up in a jump/pointer table (PTR_PTR_0069bfdc) before calling FUN_004f9b70.",
+      "summary": "Resolves a local-player-relative marker/offset value and forwards it to another helper function; exact purpose unclear from the visible code.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f73c0",
+      "name": "object_lookup_table_get",
+      "confidence": 0.25,
+      "evidence": "Bounds-checks a short index against 0x200 and returns the corresponding 32-bit entry from a fixed-size table (DAT_006b8cb8), or -1 if out of range.",
+      "summary": "Looks up a value in a fixed 512-entry table by index, returning -1 for an invalid index.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f73e0",
+      "name": "object_clear_references_to_object",
+      "confidence": 0.4,
+      "evidence": "Iterates every object via the object iterator (FUN_004f6f20), clears any object whose field+0xf0 equals param_1, and calls FUN_004f40f0 for each visited object.",
+      "summary": "Scans all objects and clears a stored reference field wherever it points at the given object, notifying another subsystem for each object visited.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f7450",
+      "name": "object_list_membership_set",
+      "confidence": 0.3,
+      "evidence": "When param_1 is 0, unlinks the current object from a global singly-linked list (DAT_006b8cbc+8, via object+0x110) if its flag 0x10000 is set; when nonzero, links it to the front of that list and sets the flag.",
+      "summary": "Adds or removes the current object from a global tracked-object list based on a flag bit.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f74f0",
+      "name": "objects_update_pvs_visibility",
+      "confidence": 0.3,
+      "evidence": "Iterates all objects via the object iterator, and for each unparented object with flag 0x800 set calls FUN_004f5de0 before re-setting the flag, then unconditionally calls FUN_004f43a0 on every object.",
+      "summary": "Sweeps all objects performing a per-object visibility/PVS-related update pass.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f7570",
+      "name": "objects_recompute_cluster_membership",
+      "confidence": 0.4,
+      "evidence": "For each unparented object flagged 0x800, clears the flag, resets its cached cluster/leaf fields (+0x9c and the table's leaf slot) to -1, looks up a new BSP leaf via FUN_005013a0/FUN_00501980, and stores it with FUN_004f5c30.",
+      "summary": "Recomputes which BSP cluster/leaf each flagged object currently occupies.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f76e0",
+      "name": "object_test_in_atmospheric_zone",
+      "confidence": 0.3,
+      "evidence": "Walks a linked list of cluster references (DAT_0087a478 bitmask, FUN_004d0630) comparing the object's bounding radius/center against each cluster's stored direction vector (offset 0x230-0x238) using an atan2/cos cone test.",
+      "summary": "Tests whether an object currently lies within one of the map's atmospheric/weather effect zones.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f7950",
+      "name": "objects_get_usage_statistics",
+      "confidence": 0.45,
+      "evidence": "Scans the entire object data_array counting total and flag-bit0 objects, and separately computes a fill-fraction of a second data_array (DAT_006b8cb4).",
+      "summary": "Computes debug/statistics counters for how many objects exist and how full a related data pool is.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f79d0",
+      "name": "objects_set_ambient_cluster_override",
+      "confidence": 0.3,
+      "evidence": "Given a leaf/BSP index, resolves it to a cluster via FUN_005013a0 and stores {mode=2, cluster} into a global (DAT_006b8cbc+0x90/0x94), or resets mode to 0 when passed -1.",
+      "summary": "Forces a global \"current cluster\" override used by some ambient/HUD system, or clears the override.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f7a50",
+      "name": "objects_get_ambient_cluster",
+      "confidence": 0.3,
+      "evidence": "Reads the mode field set by objects_set_ambient_cluster_override; mode 1 derives the cluster from the root of a tracked object's attachment chain (object_try_and_get + object_get_root_object_index), mode 2 returns the stored override cluster.",
+      "summary": "Returns the \"current\" cluster used for ambient effects, either overridden or derived from a tracked object.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f7ad0",
+      "name": "object_dispatch_event_if_valid",
+      "confidence": 0.25,
+      "evidence": "Calls FUN_004449f0 only when the object/handle parameter is not -1.",
+      "summary": "Forwards to a notification routine only if the given handle is valid.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f7b00",
+      "name": "object_tree_notify_recursive",
+      "confidence": 0.3,
+      "evidence": "Recursively walks an object's child (+0x118) and sibling (+0x114) links, calling FUN_004449f0 for every node whose type field is valid.",
+      "summary": "Recursively visits an object and all of its attached children/siblings, invoking a notification callback on each valid one.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f7b70",
+      "name": "object_reset_to_spawn_point",
+      "confidence": 0.3,
+      "evidence": "Checks a game-option flag via FUN_00505880(0x1000e9) or the object's seat/cluster field (+0x9c==-1), then overwrites the object's stored position from a fetched point and calls the cluster-set (FUN_004f5c30) and bounding-radius-recalc (FUN_004f8310) routines.",
+      "summary": "Optionally repositions an object to a stored/spawn location and refreshes its cluster and bounding radius.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f7c40",
+      "name": "object_apply_velocity_based_offset",
+      "confidence": 0.25,
+      "evidence": "Requires three separate boolean-like fields (0x18,0x44,0x54) to all equal 1, computes the object's velocity magnitude (0x68-0x70) and, above a small threshold, adds a scaled offset to a Point3D via point3d_add_scaled using a tick counter from FUN_006391b4.",
+      "summary": "Nudges a position by a velocity-scaled amount over time, gated on several object state flags.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f7d50",
+      "name": "object_block_data_new",
+      "confidence": 0.4,
+      "evidence": "Allocates a datum id (datum_new / datum_new_at_index_with_salt) then calls block_list_allocate for the requested size, zero-filling the new buffer, and rolling back with datum_delete on allocation failure.",
+      "summary": "Allocates a new sized data block associated with a fresh (or specific) datum id.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f7de0",
+      "name": "object_block_data_delete",
+      "confidence": 0.4,
+      "evidence": "Unlinks the block from a doubly-linked free/used list using the pointer's hidden header fields, then calls datum_delete and clears the owning struct's data pointer and flag byte.",
+      "summary": "Frees a previously allocated data block and its associated datum.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f7e50",
+      "name": "object_block_data_grow",
+      "confidence": 0.4,
+      "evidence": "Calls block_list_reallocate to extend an existing block, updates the size/count fields, and zero-fills the newly appended region.",
+      "summary": "Grows an existing data block by the requested number of elements, zero-initializing the new space.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f7ef0",
+      "name": "object_update",
+      "confidence": 0.6,
+      "evidence": "Calls object_update_vitality_and_regeneration, recalculates bounding radius (FUN_004f8310) and change colors/functions (FUN_004f9110/FUN_004f92f0), then recurses into the object's child (+0x118) and next sibling (+0x114) links.",
+      "summary": "Performs the per-tick update of an object and recursively updates every object attached to it.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f8207",
+      "name": "object_function_evaluate_input",
+      "confidence": 0.55,
+      "evidence": "A switch over an input-type code (1..5, 0x12, 0x13) reads specific object fields (0xe0/0xe4/0xe8/0xec, the same \"function variable\" array used elsewhere), calls random_real for the random case, and computes an atan2/cos steering value for case 0x13; the previous name \"object_types_place_objects_mod_processed_bsps__read\" does not match this behavior.",
+      "summary": "Maps an \"object function input\" selector code to the corresponding scalar value (a fixed variable, a random constant, or a computed heading), matching Blam's generic object-function evaluation.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f82b0",
+      "name": "object_recalculate_bounding_radius_recursive",
+      "confidence": 0.55,
+      "evidence": "Calls FUN_004f8310 (bounding-radius recompute) on the object and then recurses through its child list (+0x118).",
+      "summary": "Recomputes the bounding radius of an object and all of its attached children.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f8310",
+      "name": "object_recalculate_bounding_radius",
+      "confidence": 0.5,
+      "evidence": "Rebuilds the object's node-chain world matrix (matrix4x3_from_quaternion / PTR_matrix4x3_multiply_00696664 chain) including any change-color/region overrides, then calls matrix4x3_transform_point and stores the transformed value into the bounding-radius field (+0xac), scaled by the object's scale field (+0xb0) when set.",
+      "summary": "Recomputes an object's world node transforms and derives its current bounding radius from them.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f84e2",
+      "name": "object_recalculate_bounding_radius_periodic",
+      "confidence": 0.3,
+      "evidence": "Near-duplicate of object_recalculate_bounding_radius's node-chain/radius computation (same final write to +0xac scaled by +0xb0), but explicitly branches on a function-type selector (0=periodic,1=random) before the matrix chain; has zero recorded callers, suggesting it is a compiler-cloned variant reached only via a shared jump target rather than a true separate entry point. Previous name \"objects_initialize_for_new_map_mod_processed_bsps\" does not match.",
+      "summary": "A specialized variant of the bounding-radius recomputation that additionally evaluates a periodic or random per-node function offset.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f8834",
+      "name": "object_recalculate_bounding_radius_scaled",
+      "confidence": 0.3,
+      "evidence": "Same node-chain/radius computation pattern as object_recalculate_bounding_radius (final write to +0xac scaled by +0xb0), but explicitly applies an extra float scale to the local marker transform before composing matrices; also has zero recorded callers. Previous name \"objects_update__object_in_player_pvs_nop1\" does not match.",
+      "summary": "Another specialized variant of the bounding-radius recomputation that applies an extra scale factor to the marker transform.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f8a70",
+      "name": "object_recalculate_bounding_radius_simple",
+      "confidence": 0.3,
+      "evidence": "Builds a simple orientation from the object's stored up/forward vectors (0x80-0x88 and 0x5c-0x64), calls matrix4x3_transform_point once, and writes the result into the radius (+0xac) field scaled by +0xb0, exactly like the other bounding-radius routines; the previous name \"object_reset\" does not match this narrow behavior.",
+      "summary": "Computes an object's bounding radius directly from its current orientation without walking a full node chain.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f8b10",
+      "name": "object_update_node_effects_if_valid",
+      "confidence": 0.25,
+      "evidence": "Only proceeds when both the object's collision (+0x34) and a second (+0x44) tag references on its type are valid, then calls FUN_004f42c0 with the object's node-array pointer.",
+      "summary": "Runs a node-based effect update only when the object's type has both referenced tag definitions present.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f8b70",
+      "name": "object_apply_network_position_update",
+      "confidence": 0.3,
+      "evidence": "A thin wrapper that tail-calls object_set_position_network with the same (register-passed) arguments.",
+      "summary": "Forwards to object_set_position_network; likely a differently-conditioned call site for network position updates.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f8bd0",
+      "name": "object_set_position_network",
+      "confidence": 0.4,
+      "evidence": "Existing name retained; the loop writes candidate positions into a destination array, applies a per-object jitter/error-tolerance table via FUN_0043f6a0 when the position exceeds tabulated thresholds, and clamps three follow-on blend fields into [0,1].",
+      "summary": "Applies a batch of predicted/network positions to objects, snapping to tolerance and clamping derived blend weights.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f8cb0",
+      "name": "object_update_network_position_blend",
+      "confidence": 0.3,
+      "evidence": "Contains the same position/jitter-table/clamp logic as object_set_position_network with a restructured loop; the previous name \"object_placement_data_new\" does not match, since no allocation occurs anywhere in the function.",
+      "summary": "A variant of the network position update loop that clamps the same derived blend weights; appears to duplicate object_set_position_network's logic.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f8d80",
+      "name": "object_permutation_find_matching_group",
+      "confidence": 0.35,
+      "evidence": "Scans a region's permutation table (count/array at +0x40/+0x44, entry stride 0x58) selecting non-deleted entries whose probability-group field matches the requested value (or is below 100 for a wildcard), writing matches into the output array.",
+      "summary": "Collects the indices of a region's permutations that belong to a requested probability group.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f8dc0",
+      "name": "object_permutation_scan_thunk",
+      "confidence": 0.2,
+      "evidence": "The function is only 7 bytes, yet its decompilation shows a full copy of object_permutation_find_matching_group's loop body; this indicates the listed C code actually belongs to a neighboring function and this address is likely a short thunk/alternate entry point rather than a true standalone routine. The previous name \"object_new_with_role\" does not match the visible (unreliable) code.",
+      "summary": "A tiny (7-byte) function whose true behavior cannot be determined from the decompiled listing shown; likely a thunk into a neighboring permutation-scan routine.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f8dd0",
+      "name": "object_regions_initialize_permutations",
+      "confidence": 0.45,
+      "evidence": "For each of a model's regions, uses object_permutation_find_matching_group to gather eligible permutations, falls back to a broader \"always valid\" scan, then randomly selects among candidates using a linear-congruential RNG (DAT_00719cd0) and stores the chosen sub-index into the object's per-region permutation array.",
+      "summary": "Randomly assigns a valid permutation to each region of an object, respecting per-permutation probability groups.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f8ef0",
+      "name": "object_regions_get_active_group",
+      "confidence": 0.3,
+      "evidence": "For each region, looks up the object's currently-selected permutation's group field (+0x24) via the region's permutation table, returning the first nonzero value found.",
+      "summary": "Returns the probability group of the first region whose active permutation has one set.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f8f50",
+      "name": "object_regions_update_permutations",
+      "confidence": 0.35,
+      "evidence": "Re-derives region permutations with object_regions_initialize_permutations when the object's tracked group-version field (+0xbe) is stale or a previous selection failed, using object_regions_get_active_group to compute the new version.",
+      "summary": "Refreshes an object's region permutations when its cached probability-group state is out of date.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f8fe0",
+      "name": "object_remove_from_sibling_list",
+      "confidence": 0.4,
+      "evidence": "Walks a singly-linked list via the next-sibling field (+0x114) until it finds the entry pointing at the target object, then unlinks it.",
+      "summary": "Removes an object from its parent's linked list of sibling/attached objects.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f9030",
+      "name": "object_delete",
+      "confidence": 0.65,
+      "evidence": "Removes the object from tracked lists (FUN_004f7450), invokes a 3-entry destructor/cleanup function-pointer table (PTR_FUN_0069b354), recursively deletes its child (+0x118) and, when requested, next sibling (+0x114), clears its active flag, and finally frees its data block via object_block_data_delete.",
+      "summary": "Fully destroys an object, recursively deleting its children, running per-type cleanup callbacks, and releasing its allocated data.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f9110",
+      "name": "object_update_change_colors",
+      "confidence": 0.5,
+      "evidence": "For each entry in a model's change-color table (count/array at +0x164/+0x168), blends up to five built-in colors or a custom color via FUN_0043f6a0, clamping the resulting RGB components into [0,1] and storing them back into the object.",
+      "summary": "Recomputes an object's blended \"change color\" values for each region from its model's change-color definitions.",
+      "prototype": ""
+    },
+    {
+      "addr": "0x4f92f0",
+      "name": "object_update_functions",
+      "confidence": 0.55,
+      "evidence": "For each of the model's function definitions (count/array at +0x158/+0x15c), evaluates periodic_function_evaluate with time and per-node inputs, clamps/steps the result, and stores it into the object's function-value array (+0x134+i*4) and validity bitmask (+0x123) - the exact array object_function_get_value reads back.",
+      "summary": "Evaluates all of an object's model-defined periodic/scalar functions each tick and caches their outputs for later use by shaders/effects.",
+      "prototype": ""
+    }
+  ]
+}

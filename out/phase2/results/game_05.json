@@ -1,0 +1,484 @@
+{
+  "results": [
+    {
+      "addr": "0x471ae0",
+      "name": "player_control_update_local_player_action",
+      "confidence": 0.4,
+      "evidence": "Indexes the per-local-player struct at DAT_006b145c+0x10+idx*0x40 (same struct used by chimera__spectate_fp_camera_position and the weapon-index helpers below), calls the look-angle updater FUN_00472160 and weapon/grenade cycling helpers (FUN_0056bee0/FUN_0056bdc0/FUN_0056bfc0), and for local players appends the built action into the DAT_006f7ea4 client-update queue (matches update_client_new's queue).",
+      "prototype": "",
+      "summary": "Per-tick processing of one local player's action state: reads the current action/control flags, cycles the selected weapon and grenade type, forwards look-angle updates, and queues the resulting action for network transmission."
+    },
+    {
+      "addr": "0x471f40",
+      "name": "player_recompute_look_vector",
+      "confidence": 0.3,
+      "evidence": "Both branches of the (effectively dead) conditional on in_CX unconditionally call FUN_00473d70, which builds a forward/look vector from pitch and yaw.",
+      "prototype": "",
+      "summary": "Thin wrapper around the look-vector computation FUN_00473d70 for a given local-player/unit context."
+    },
+    {
+      "addr": "0x471f90",
+      "name": "unit_get_camera_pitch_limit",
+      "confidence": 0.4,
+      "evidence": "Default return value 1.2217305 rad (~70 degrees) matches Halo's look-pitch clamp; when the unit's active weapon (via the 0x2f2 index into the 0xbe weapon-object array) is a zoom weapon, the limit is instead computed from a per-object-type field at offset 0x1a0 through FUN_004c2e50.",
+      "prototype": "",
+      "summary": "Returns the maximum look-pitch angle for a unit, using a zoom-weapon-specific value when the unit is holding a scoped weapon, otherwise a fixed default."
+    },
+    {
+      "addr": "0x472020",
+      "name": "unit_get_first_person_camera_position",
+      "confidence": 0.5,
+      "evidence": "Earlier RE hint named this chimera__spectate_fp_camera_position; code fills a 3-field output with an object index/salt and a position derived from a weapon's camera marker (object_try_and_get(2), marker table offset 0x2e8 + weapon-marker-index*0x11c) or, absent a weapon marker, from the unit's own default camera marker at offset 0x1a8.",
+      "prototype": "",
+      "summary": "Computes the first-person camera object/offset for a local player's controlled unit, preferring the currently held weapon's camera marker over the unit's own."
+    },
+    {
+      "addr": "0x472100",
+      "name": "unit_set_local_player_weapon_index",
+      "confidence": 0.45,
+      "evidence": "Looks up the unit's owning-player back-reference at offset 0x218, resolves that player's local-player slot, and writes param_1 into the local-player struct at (slot*0x40+0x30+DAT_006b145c) — the same field read by FUN_00472740/FUN_004726b0 as the tracked weapon index.",
+      "prototype": "",
+      "summary": "Updates the HUD-tracked current weapon index for whichever local player owns the given unit."
+    },
+    {
+      "addr": "0x472160",
+      "name": "player_update_look_angles",
+      "confidence": 0.4,
+      "evidence": "Operates on the same per-local-player struct (idx*0x40+0x10+DAT_006b145c) as FUN_00471ae0, adjusts a stored yaw value using chimera__spectate_fp_camera_position and vector3d_angle_between_4cd4f0 for vehicle/turret facing limits, then clamps and integrates pitch/yaw with per-tick step limits (0.012271847 rad).",
+      "prototype": "",
+      "summary": "Updates a local player's look yaw/pitch each tick, clamping against any vehicle seat facing constraints and limiting the per-tick turn rate."
+    },
+    {
+      "addr": "0x4726b0",
+      "name": "unit_get_local_player_weapon_index",
+      "confidence": 0.5,
+      "evidence": "Resolves the unit's owning player via the 0x218 back-reference then reads the local-player struct field at offset 0x30 (weapon index) combined with the salt at 0x32, mirroring the setter FUN_00472100.",
+      "prototype": "",
+      "summary": "Returns the full weapon datum index (index+salt) tracked for the local player controlling this unit, or -1 if none."
+    },
+    {
+      "addr": "0x4726f0",
+      "name": "unit_invalidate_local_player_weapon_index",
+      "confidence": 0.45,
+      "evidence": "Same owning-player lookup as FUN_004726b0 but writes 0xffff into the local-player struct field at offset 0x34 (the weapon salt paired with the 0x30 index field), forcing a refresh.",
+      "prototype": "",
+      "summary": "Invalidates the cached weapon-index salt for the local player controlling the given unit."
+    },
+    {
+      "addr": "0x472740",
+      "name": "local_player_get_weapon_index",
+      "confidence": 0.45,
+      "evidence": "Directly indexes the per-local-player struct by in_CX (no unit lookup step) and returns the same 0x30/0x34 weapon-index/salt pair read by FUN_004726b0.",
+      "prototype": "",
+      "summary": "Returns the tracked current weapon datum index for a given local player slot."
+    },
+    {
+      "addr": "0x472760",
+      "name": "player_control_digitize_action_flags",
+      "confidence": 0.4,
+      "evidence": "Builds bit flags (0x1,0x2,0x4,0x8,0x10,0x20,0x40,0x80/0x100,0x200/0x400,0x800/0x1000,0x2000/0x4000) into *DAT_006b145c from an input struct (in_EDX) based on button/analog-sign tests; the exact same bit values (0x18,0x20,0x1,0x2,0x4) are consumed later in FUN_00471ae0's local_24 flags.",
+      "prototype": "",
+      "summary": "Converts a raw unit-control input structure into digitized action-flag bits accumulated in the global local-player control header."
+    },
+    {
+      "addr": "0x472aa0",
+      "name": "update_server_new",
+      "confidence": 0.9,
+      "evidence": "cea-pdb hint confirmed by code: zeroes the server-queue globals block, allocates it via data_new(\"update server queues\",0x10), and on success zeroes the remainder and calls update_client_new.",
+      "prototype": "",
+      "summary": "Allocates and initializes the server-side network update-queue globals, then initializes the paired client-side queue."
+    },
+    {
+      "addr": "0x472b00",
+      "name": "update_queues_dispose",
+      "confidence": 0.55,
+      "evidence": "Frees both DAT_006f1d90 (server queue, allocated by update_server_new) and DAT_006f7ed0 (client queue, allocated by update_client_new) via GlobalFree and resets their tracking globals.",
+      "prototype": "",
+      "summary": "Frees and resets both the server-side and client-side network update-queue allocations."
+    },
+    {
+      "addr": "0x472b70",
+      "name": "update_server_dispose",
+      "confidence": 0.45,
+      "evidence": "Marks DAT_006f1d90+0x24, calls data_delete_all twice on the server queue's datum array, iterates remaining entries invoking FUN_00479f40 per entry, then calls the client-side counterpart FUN_00472fa0.",
+      "prototype": "",
+      "summary": "Tears down the server update queue's datum array and cascades into disposing the client update queue."
+    },
+    {
+      "addr": "0x472c90",
+      "name": "update_server_queue_new_entry",
+      "confidence": 0.4,
+      "evidence": "Calls datum_new_at_index_with_salt (creating/reusing a queue slot at a fixed index+salt) followed by the per-entry init helper FUN_00479f40 also used in FUN_00472b70's cleanup loop.",
+      "prototype": "",
+      "summary": "Creates (or reinitializes) a single entry in the server update-queue datum array."
+    },
+    {
+      "addr": "0x472cc0",
+      "name": "update_server_queue_push_tick",
+      "confidence": 0.4,
+      "evidence": "Advances a 32-slot ring-buffer cursor (DAT_006f1d8c masked with 0x1f, slot stride 0xc2 dwords) and, for each player datum returned by data_iterator_next, copies fields between a per-player circular buffer (offsets 0x28-0x40 of the player record) and the new ring slot.",
+      "prototype": "",
+      "summary": "Pushes a new server-tick history entry for every player into a 32-deep per-player ring buffer used for network delta reconciliation."
+    },
+    {
+      "addr": "0x472ea0",
+      "name": "update_server_queue_read_entry",
+      "confidence": 0.35,
+      "evidence": "Given a tick index in in_ECX, bounds-checks it against DAT_006f1d8c and copies a 0xc1-dword slot out of the DAT_006f1d98 ring buffer (same stride 0xc2 used by FUN_00472cc0) into the caller's output buffer.",
+      "prototype": "",
+      "summary": "Looks up and copies a previously pushed server-queue history entry for a requested tick index."
+    },
+    {
+      "addr": "0x472f40",
+      "name": "update_client_new",
+      "confidence": 0.9,
+      "evidence": "cea-pdb hint confirmed by code: zeroes the client-queue globals block and allocates it via data_new(\"update client queues\",0x10), initializing the ring-buffer indices on success.",
+      "prototype": "",
+      "summary": "Allocates and initializes the client-side network update-queue globals and its ring-buffer state."
+    },
+    {
+      "addr": "0x472fa0",
+      "name": "update_client_dispose",
+      "confidence": 0.5,
+      "evidence": "Mirrors FUN_00472b70 but operates on DAT_006f7ed0 (the client queue allocated by update_client_new): marks it for teardown and drains it via data_delete_all/data_iterator_next.",
+      "prototype": "",
+      "summary": "Tears down the client update queue's datum array."
+    },
+    {
+      "addr": "0x473090",
+      "name": "update_client_queue_build_entry",
+      "confidence": 0.4,
+      "evidence": "Copies 8 dwords from in_EAX plus two extra fields (DAT_006f7eac/DAT_006f7ea8) into a local scratch buffer, then writes the merged result into DAT_006f7ea4, the same staging struct consumed by FUN_00473270 and FUN_00471ae0.",
+      "prototype": "",
+      "summary": "Builds a staged client update entry from raw input data plus extra state, ready to be queued for sending to the server."
+    },
+    {
+      "addr": "0x4730d0",
+      "name": "update_server_apply_client_queue_tick",
+      "confidence": 0.4,
+      "evidence": "Calls FUN_00473500 (the client-queue slot accessor) to fetch a tick's queued entry, then iterates player data copying an 0x20-byte struct and a separate 0x10-byte sub-struct out of the queue slot into two output buffers, incrementing DAT_006f7e9c.",
+      "prototype": "",
+      "summary": "Applies a queued client update for a given tick to the server's per-player runtime state."
+    },
+    {
+      "addr": "0x473270",
+      "name": "update_client_queue_apply_entry_to_players",
+      "confidence": 0.4,
+      "evidence": "Copies the current staged entry at DAT_006f7ea4 (built by FUN_00473090) into an output array once per item returned by data_iterator_next, incrementing DAT_006f7e9c.",
+      "prototype": "",
+      "summary": "Distributes the currently staged client update entry into a per-player output array and advances the update tick counter."
+    },
+    {
+      "addr": "0x473310",
+      "name": "update_server_run_ticks",
+      "confidence": 0.35,
+      "evidence": "When unaff_BX (a tick count) is positive, advances a wraparound history cursor (DAT_007102d4 masked to 6 bits), pushes the current staged entry via FUN_00473390, then repeatedly calls the ring-buffer push/read pair FUN_00472cc0/FUN_00472ea0.",
+      "prototype": "",
+      "summary": "Runs the server update-queue push/read cycle for a given number of catch-up ticks."
+    },
+    {
+      "addr": "0x473390",
+      "name": "update_server_queue_push_player_entry",
+      "confidence": 0.35,
+      "evidence": "Maps a player index through DAT_006b1460 to a per-player ring buffer (stride 100 within the DAT_006f1d90 queue block, read/write cursors at offsets 0x28/0x2c/0x30/0x34) and inserts the 8-dword param_1 entry if the buffer has free space.",
+      "prototype": "",
+      "summary": "Pushes an update entry into a specific player's server-side history ring buffer if space is available."
+    },
+    {
+      "addr": "0x473430",
+      "name": "server_find_player_by_name",
+      "confidence": 0.35,
+      "evidence": "Only runs when DAT_00719720==2 (server); fetches a name into local_800 via FUN_00557990 and compares it against each player's name field via _wcscmp while walking data_iterator_next. callers=0, so this may be dead or reached only indirectly.",
+      "prototype": "",
+      "summary": "Server-side helper that scans all players comparing names, likely for a console/RCON player-lookup command."
+    },
+    {
+      "addr": "0x4734b0",
+      "name": "update_client_queue_advance_read_cursor",
+      "confidence": 0.35,
+      "evidence": "Uses FUN_00473500 to fetch/advance queue slots, comparing against a target tick (unaff_EBX) and DAT_006f7ea0, invalidating skipped slots' salt field (offset 4) to -1 as it advances.",
+      "prototype": "",
+      "summary": "Advances the client update-queue read cursor toward a target tick, discarding any stale intervening entries."
+    },
+    {
+      "addr": "0x473500",
+      "name": "update_client_queue_get_slot",
+      "confidence": 0.55,
+      "evidence": "Branches on DAT_00719720: as a client (mode 1) it returns the next write slot in the DAT_006f7ed4 128-entry ring buffer via a round-robin index (DAT_006887b0); as server/single-player it returns a slot only if the requested tick index falls within the current DAT_006f7e9c..+0x80 window.",
+      "prototype": "",
+      "summary": "Returns a pointer to a slot in the 128-entry client update ring buffer, either allocating the next write slot (client) or looking up a slot by tick (server/single-player)."
+    },
+    {
+      "addr": "0x473560",
+      "name": "random_get_table_point",
+      "confidence": 0.5,
+      "evidence": "Uses the classic Blam LCG constants (0x19660d / 0x3c6ef35f) to advance DAT_00719cd0, then indexes a vector3d lookup table (DAT_006b7af4, count DAT_006b7af8) and copies the 3 floats to the output pointer.",
+      "prototype": "",
+      "summary": "Advances the global PRNG and returns a random point from a precomputed vector3d table, used elsewhere for respawn placement jitter."
+    },
+    {
+      "addr": "0x4735b0",
+      "name": "players_initialize",
+      "confidence": 0.9,
+      "evidence": "cea-pdb hint confirmed by code: creates the \"players\" and \"teams\" datum arrays (FUN_005380d0), allocates and CRC-hashes the players_globals (0x98 bytes) and local-player control globals (0x50 bytes) blocks, storing their addresses into DAT_0087a478 and DAT_006b145c.",
+      "prototype": "",
+      "summary": "Allocates and CRC-registers the players and teams datum arrays and their associated globals blocks."
+    },
+    {
+      "addr": "0x473670",
+      "name": "players_dispose",
+      "confidence": 0.55,
+      "evidence": "Zeroes and re-initializes the players_globals struct (DAT_0087a478), calls data_delete_all on both the players (DAT_0087a480) and teams (DAT_0087a47c) datum arrays, and resets the local-player-to-player map (DAT_006b1460, 16 entries) to -1.",
+      "prototype": "",
+      "summary": "Resets the players and teams datum arrays and clears the local-player mapping table."
+    },
+    {
+      "addr": "0x4736d0",
+      "name": "players_team_has_member",
+      "confidence": 0.4,
+      "evidence": "Iterates the players datum array via data_iterator_next comparing each player's team field (offset 2) against an implicit parameter (unaff_ESI).",
+      "prototype": "",
+      "summary": "Checks whether any player belongs to a given team."
+    },
+    {
+      "addr": "0x473730",
+      "name": "teams_find_available_team_index",
+      "confidence": 0.45,
+      "evidence": "Walks a fixed 4-entry team-slot table (DAT_006b2ce8, -1 sentinel) calling FUN_004736d0 (players_team_has_member) to find a slot that is either unused or has no members.",
+      "prototype": "",
+      "summary": "Finds an available (empty or unassigned) team slot for assigning a new player."
+    },
+    {
+      "addr": "0x473780",
+      "name": "player_new_basic",
+      "confidence": 0.3,
+      "evidence": "Allocates a player datum (datum_new / datum_new_at_index) on the DAT_0087a480 players array, sets its name via _wcsncpy and a smaller set of default fields (up to offset ~0x188) than the larger FUN_00473940, then registers it into DAT_006b1460.",
+      "prototype": "",
+      "summary": "Creates a new player datum with a reduced field-initialization set and links it into the local-player map."
+    },
+    {
+      "addr": "0x473940",
+      "name": "player_new",
+      "confidence": 0.4,
+      "evidence": "Allocates a player datum (datum_new / datum_new_at_index_with_salt) on DAT_0087a480, sets name and team, and when param_2 (team) is -1 performs additional full initialization (FUN_00479f40, FUN_0047a020, FUN_0047a250, more field resets up to offset 0x1f8) before registering the index into DAT_006b1460.",
+      "prototype": "",
+      "summary": "Creates a new player datum, performing full state initialization for a freshly-created (as opposed to network-replicated) player."
+    },
+    {
+      "addr": "0x473ae0",
+      "name": "player_delete",
+      "confidence": 0.5,
+      "evidence": "Calls FUN_0045c570 (unrelated cleanup), frees a per-player allocation at offset 0x134 when acting as client (DAT_00719720==1) or calls FUN_004e0b90 when server, removes the player from DAT_006b1460, then calls datum_delete.",
+      "prototype": "",
+      "summary": "Frees a player's dynamic allocations, unlinks it from the local-player map, and deletes its datum."
+    },
+    {
+      "addr": "0x473bb0",
+      "name": "player_remove",
+      "confidence": 0.5,
+      "evidence": "Frees a server-only per-player 100-byte ring buffer allocation (offset 0x3c, matching the stride used in FUN_00473390), calls player_delete (FUN_00473ae0) and FUN_004e9d40, then clears a byte in the DAT_006b0b88 roster array using an index from FUN_00466e80.",
+      "prototype": "",
+      "summary": "Full removal of a player: frees network history buffers, deletes the player datum, and clears its roster slot."
+    },
+    {
+      "addr": "0x473c50",
+      "name": "unit_apply_camera_recoil",
+      "confidence": 0.4,
+      "evidence": "Looks up a per-weapon-type recoil definition (DAT_00746f8c+0x34c indexed by in_AX*0x68) and accumulates its offset fields into the unit's camera-offset fields (offset 0xe0/0xe4/0x31e), optionally resetting them first when param_1 is set.",
+      "prototype": "",
+      "summary": "Accumulates or resets a weapon's recoil/kick offset into a unit's camera state."
+    },
+    {
+      "addr": "0x473d70",
+      "name": "unit_compute_facing_and_gravity_vector",
+      "confidence": 0.35,
+      "evidence": "Computes a forward vector via cos/sin of pitch and yaw (in_ECX[0],[1]) into the output vector, then for units without the appropriate object flag transforms a normalized velocity vector through the object's parent matrix (matrix4x3_transform_normal) via object_try_and_get(2).",
+      "prototype": "",
+      "summary": "Computes a unit's forward-facing vector from its view angles and additionally adjusts a velocity/gravity-related vector relative to its parent object."
+    },
+    {
+      "addr": "0x473e90",
+      "name": "players_ensure_units_after_bsp_switch",
+      "confidence": 0.4,
+      "evidence": "Attempts to find a valid placement (object_iterator_next / FUN_0056c070 / FUN_0042c3e0) then iterates players looking for those with unit_index==-1, attempting to spawn (FUN_00477ea0) and reattach them via FUN_00475c60 to the newly found parent object.",
+      "prototype": "",
+      "summary": "After a structure-BSP switch, attempts to give every player without a unit a valid unit and attach it to the new BSP's parent object, retrying as needed."
+    },
+    {
+      "addr": "0x4740a0",
+      "name": "game_engine_players_update",
+      "confidence": 0.4,
+      "evidence": "Calls FUN_004730d0 (server-side dequeue of queued client updates) unconditionally, then for each player checks game_engine_player_ready_to_respawn, calls FUN_004611b0 and FUN_00477ea0 to spawn, game_engine_apply_player_grenade_counts, and handles per-player weapon/zoom/melee flag bits before calling FUN_00473d70.",
+      "prototype": "",
+      "summary": "Main per-tick players update used on the server/single-player path: applies queued client input, handles respawning, and processes each player's action flags."
+    },
+    {
+      "addr": "0x474590",
+      "name": "game_engine_players_update_client",
+      "confidence": 0.4,
+      "evidence": "Structurally parallel to FUN_004740a0 (same respawn/grenade/action handling calls) but begins with FUN_00473270 (the client-side staged-update broadcaster) instead of FUN_004730d0, matching the client-only update path.",
+      "prototype": "",
+      "summary": "Client-side counterpart of game_engine_players_update: applies the locally staged update and processes respawn/action handling without dequeuing the server queue."
+    },
+    {
+      "addr": "0x4749a0",
+      "name": "main_switch_structure_bsp",
+      "confidence": 0.8,
+      "evidence": "cea-pdb hint confirmed by code: uses the exact referenced strings \"tried to switch to current/invalid structure-bsp %d\" when validating a requested BSP switch index against DAT_00746f8c+0x39c/0x3a0 before calling FUN_004aa2a0.",
+      "prototype": "",
+      "summary": "Per-tick handling of structure-BSP switch triggers: validates the requested BSP index and either logs an error or performs the switch."
+    },
+    {
+      "addr": "0x474d30",
+      "name": "local_player_to_player_index",
+      "confidence": 0.55,
+      "evidence": "Returns *(DAT_0087a478+4+idx*4) — the players_globals local-player-to-player-index map also read directly in FUN_00471ae0.",
+      "prototype": "",
+      "summary": "Looks up the player index currently assigned to a given local-player slot."
+    },
+    {
+      "addr": "0x474d50",
+      "name": "game_set_local_player",
+      "confidence": 0.55,
+      "evidence": "Updates the local_players[] map at DAT_0087a478+4 for slot unaff_SI, clearing the previous player's back-reference (offset 2 of its player record) and setting the new player's back-reference to the local-player slot index.",
+      "prototype": "",
+      "summary": "Assigns (or clears) which player index is bound to a given local-player slot, keeping the player's back-reference in sync."
+    },
+    {
+      "addr": "0x474db0",
+      "name": "players_iterate_all",
+      "confidence": 0.25,
+      "evidence": "Walks the full players datum array via data_iterator_next with no visible per-item logic and always returns 0xffffffff; called from 18 sites, so the decompiled body likely lost side effects from the real per-item test.",
+      "prototype": "",
+      "summary": "Iterates all players; the visible decompiled behavior always returns -1, so its true per-call purpose (given 18 call sites) is not fully recoverable from this view."
+    },
+    {
+      "addr": "0x474e10",
+      "name": "player_reset_after_unit_change",
+      "confidence": 0.4,
+      "evidence": "Clears the player's queued-update fields (offsets 0x34/0x38), resets the associated local-player control struct at DAT_006b145c when the player has one (offset 2 index), and recomputes the players_globals \"all spawned\" flag (offset 0x10) by scanning for any player still missing a unit.",
+      "prototype": "",
+      "summary": "Resets a player's per-tick state and local-player control struct after its controlled unit changes, and updates the global all-players-spawned flag."
+    },
+    {
+      "addr": "0x474fc0",
+      "name": "local_player_set_controlled_unit",
+      "confidence": 0.5,
+      "evidence": "Clears the previous unit's back-reference (offset 0x218) via FUN_00569bf0, sets the new unit's back-reference to the local player's player index, and stores the new unit index into the player record's unit_index field (offset 0x34).",
+      "prototype": "",
+      "summary": "Binds a new unit as the controlled object for a local player, updating both the unit's owner back-reference and the player's unit-index field."
+    },
+    {
+      "addr": "0x475090",
+      "name": "game_engine_players_any_pending_respawn",
+      "confidence": 0.35,
+      "evidence": "Iterates players checking weapon/vehicle-seat related flags (a byte at offset 0x17c bit 0x40, and a counter at offset 0x134) via FUN_0055e8e0, returning 1 as soon as a qualifying player is found.",
+      "prototype": "",
+      "summary": "Scans all players and returns whether any is in a pending state requiring respawn/seat handling."
+    },
+    {
+      "addr": "0x475210",
+      "name": "players_any_without_unit",
+      "confidence": 0.5,
+      "evidence": "Iterates players via data_iterator_next and returns 1 as soon as one is found with unit_index (offset 0x34) equal to -1, else 0.",
+      "prototype": "",
+      "summary": "Returns whether any player currently lacks a controlled unit."
+    },
+    {
+      "addr": "0x475270",
+      "name": "object_attach_player_unit_to_parent",
+      "confidence": 0.3,
+      "evidence": "callers=0 (unused/dead); structurally near-identical to FUN_00475c60 (same reparenting sequence: matrix4x3_multiply, object_for_each_light_attachment, object_recalculate_bounding_radius_recursive) but sources its offset via FUN_004f6080 instead of a caller-supplied pointer.",
+      "prototype": "",
+      "summary": "Unused variant that reattaches a player's unit to a new parent object, recomputing its transform and light attachments."
+    },
+    {
+      "addr": "0x4757b0",
+      "name": "object_find_valid_placement_near",
+      "confidence": 0.4,
+      "evidence": "Iterates up to 9 candidate offsets (and, on failure, 8 further randomized jitter points using the same PRNG constants as FUN_00473560) testing each via FUN_0055a500 (object placement validity test with flag 0x40000000) until a non-colliding position is found.",
+      "prototype": "",
+      "summary": "Searches nearby candidate positions, including randomized jitter, for a placement where a player's unit does not collide with the world, used when attaching/respawning a unit."
+    },
+    {
+      "addr": "0x475c60",
+      "name": "player_unit_attach_to_object",
+      "confidence": 0.35,
+      "evidence": "Given a player index, resolves its unit, calls object_find_valid_placement_near (FUN_004757b0) then reparents the unit via matrix4x3_multiply/object_for_each_light_attachment/object_recalculate_bounding_radius_recursive, storing the new parent index at unit offset 0xcb.",
+      "prototype": "",
+      "summary": "Attaches a player's unit as a child of a target parent object at a given local offset, updating its transform, light attachments, and bounding radius."
+    },
+    {
+      "addr": "0x4760b0",
+      "name": "player_unit_update_parent_light_attachments",
+      "confidence": 0.3,
+      "evidence": "Given a player's unit-index reference, toggles light-attachment sync bits (puVar3[4] bit 1) on both the unit's current and previous parent objects via object_for_each_light_attachment, and clears the unit's local player struct via FUN_00474e10.",
+      "prototype": "",
+      "summary": "Synchronizes light-attachment state on a player unit's current and former parent objects after a parenting change and resets the player's local-player struct."
+    },
+    {
+      "addr": "0x476250",
+      "name": "player_handle_unit_death",
+      "confidence": 0.35,
+      "evidence": "Clears the unit's offset-0xe0 field, optionally records a reason code at the player's offset 0x2c, calls FUN_004eda20/FUN_00568120 (unidentified) and FUN_00474e10 (player_reset_after_unit_change).",
+      "prototype": "",
+      "summary": "Handles the loss of a player's controlled unit, clearing related state and triggering the post-unit-change reset."
+    },
+    {
+      "addr": "0x476760",
+      "name": "game_engine_server_update_player_positions",
+      "confidence": 0.45,
+      "evidence": "Server-only (DAT_00719720==2); for each player whose unit has a dirty-position flag (offset 0x4b8) it copies position/velocity fields (0xf4/0xf8/0xfc/0x100) and, for local players, logs via FUN_004e7f90 with the format string \"[%d]: [%d]:\\t Completed [%d] (...)\" also used verbatim in the following function.",
+      "prototype": "",
+      "summary": "Server-side per-tick routine that copies a moved unit's position/velocity into its owning player's record and logs completion for local players."
+    },
+    {
+      "addr": "0x476847",
+      "name": "game_engine_server_update_player_positions_tail",
+      "confidence": 0.3,
+      "evidence": "callers=0; body is essentially a duplicate of the logging/copy loop inside FUN_00476760 (same format string \"[%d]: [%d]:\\t Completed [%d] (...)\" and same field offsets 0x4b8/0xf4/0xf8/0xfc/0x100), with no equipment/grenade-count logic despite the inherited name from a prior session, so it is renamed to match the observed behavior.",
+      "prototype": "",
+      "summary": "Appears to be a duplicated tail fragment of game_engine_server_update_player_positions (same logging and field-copy logic), not related to equipment or grenade counts as its previous name implied."
+    },
+    {
+      "addr": "0x476cf0",
+      "name": "player_apply_initial_position_update",
+      "confidence": 0.4,
+      "evidence": "Only runs for a client-mode local player whose unit just became valid; checks FUN_00477210 (attachment/vehicle test) to decide between apply_remote_player_position_update and the snap variant FUN_00477490.",
+      "prototype": "",
+      "summary": "Applies the first position update for a newly spawned local player's unit, choosing a smooth or snap update based on whether the unit is attached to another object."
+    },
+    {
+      "addr": "0x476d40",
+      "name": "players_client_catchup_on_server_updates",
+      "confidence": 0.85,
+      "evidence": "Referenced string \"[%d]: Caught up on [%d] updates == [%d] ticks.\\n\" matches the function's purpose exactly; walks each player's per-tick history ring buffer (offsets 0x120/0x128/0x130/0x300) dequeuing entries until caught up to the server, applying apply_remote_player_position_update or FUN_00477490 as needed.",
+      "prototype": "",
+      "summary": "Client-side routine that drains a player's buffered server updates, fast-forwarding position/orientation state until it matches the latest server tick."
+    },
+    {
+      "addr": "0x477210",
+      "name": "unit_is_attached_to_vehicle",
+      "confidence": 0.4,
+      "evidence": "Validates a player index range against DAT_0087a480, resolves the associated unit via object_try_and_get(3), and returns true only when the unit's parent-object field (offset 0x11c) is valid, delegating the final check to FUN_0056cd10.",
+      "prototype": "",
+      "summary": "Tests whether a given player's unit currently has a valid parent object (e.g. is boarding or seated in a vehicle)."
+    },
+    {
+      "addr": "0x477280",
+      "name": "players_find_local_player_owned",
+      "confidence": 0.3,
+      "evidence": "Iterates players checking the local-player back-reference field (offset 2) for a non-(-1) value, but the decompiled code returns 0xffffffff on every path, suggesting lost side effects similar to FUN_00474db0.",
+      "prototype": "",
+      "summary": "Scans players for one owned by a local player; the decompiled return value is always -1, so its effective behavior here is unclear."
+    },
+    {
+      "addr": "0x4772e0",
+      "name": "unit_snap_position_if_far",
+      "confidence": 0.5,
+      "evidence": "Computes the distance between a new position (in_EAX) and the unit's last stored position (in_ECX+0x5c/0x60/0x64); if it exceeds 1.1 units, overwrites the stored position (offset 0x68/0x6c/0x70) and sets a moved/dirty flag bit (0x20) in the unit's flag word (offset 0x10).",
+      "prototype": "",
+      "summary": "Detects when a unit has moved farther than a small threshold and, if so, snaps its cached position and marks it dirty for network reconciliation."
+    }
+  ]
+}

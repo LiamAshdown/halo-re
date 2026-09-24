@@ -1,0 +1,91 @@
+// game_engine_broadcast_kill_feed_or_direct  (Ghidra: FUN_00460d10; renamed per its summary)
+// address 0x460d10, size 159 bytes
+// name confidence: 0.3   rewrite confidence: 0.2
+// evidence: out/phase4/game_functions.md ("Broadcasts a single kill-feed message id to every
+// entry in the current data iteration"); types/memory.h data_iterator; the identical explicit
+// `data_iterator iter` idiom already committed in game_engine_on_player_death.c.
+// register convention: a recipient-or-broadcast-all selector in EAX (in_EAX: -1 means "every
+// player", anything else is a single specific recipient handle); a gate in ESI (unaff_ESI,
+// tested every send exactly like the sibling broadcast helpers); param_1 is this function's own
+// stack parameter.
+//   // blam-cc: EAX -> recipient_or_all, unaff_ESI -> broadcast_enabled, stack -> param_1
+// UNSURE: same unrecoverable trailing chimera__kill_feed arguments (message_type, subject,
+// broadcast) as the sibling broadcast helpers in this address range; modeled as forwarded
+// parameters.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+
+extern data_array *player_data; // 0x0087a480
+
+extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
+extern void chimera__kill_feed(datum_index recipient, int32_t param_1, uint32_t message_type,
+    datum_index subject, char broadcast); // 0x460a30, this batch
+
+// blam-cc: EAX -> recipient_or_all, unaff_ESI -> broadcast_enabled, stack -> param_1
+// When `recipient_or_all` is -1, broadcasts to every in-use player (recipient = that player's
+// own handle each time); otherwise sends once, directly to `recipient_or_all`. Both paths pass
+// `param_1` (or -1 when `param_1` is itself -1) as chimera__kill_feed's own extra argument, and
+// both are gated on `broadcast_enabled`.
+void game_engine_broadcast_kill_feed_or_direct(datum_index recipient_or_all, int32_t broadcast_enabled,
+    int32_t param_1, uint32_t forwarded_message_type, datum_index forwarded_subject,
+    char forwarded_broadcast) // UNSURE: last 2 params
+{
+    int32_t forwarded_param_1 = (param_1 == -1) ? -1 : param_1;
+
+    if (recipient_or_all == (datum_index)0xffffffff) {
+        data_iterator iter;
+        void *element;
+
+        iter.data = player_data;
+        iter.next_index = 0;
+        iter.index = (datum_index)0xffffffff;
+
+        element = data_iterator_next(&iter);
+        while (element != 0) {
+            if (broadcast_enabled != -1) {
+                chimera__kill_feed(iter.index, forwarded_param_1, forwarded_message_type,
+                    forwarded_subject, forwarded_broadcast);
+            }
+            element = data_iterator_next(&iter);
+        }
+    } else if (broadcast_enabled != -1) {
+        chimera__kill_feed(recipient_or_all, param_1, forwarded_message_type, forwarded_subject,
+            forwarded_broadcast);
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x460d10), from tools/pack.py 0x460d10:
+
+void FUN_00460d10(int param_1)
+
+{
+  int in_EAX;
+  int iVar1;
+  int unaff_ESI;
+  int local_8;
+  
+  if (in_EAX == -1) {
+    local_8 = -1;
+    iVar1 = data_iterator_next();
+    while (iVar1 != 0) {
+      iVar1 = param_1;
+      if (param_1 == -1) {
+        iVar1 = local_8;
+      }
+      if (unaff_ESI != -1) {
+        chimera__kill_feed(iVar1);
+      }
+      iVar1 = data_iterator_next();
+    }
+  }
+  else if (unaff_ESI != -1) {
+    chimera__kill_feed(param_1);
+    return;
+  }
+  return;
+}
+#endif

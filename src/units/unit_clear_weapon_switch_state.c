@@ -1,0 +1,56 @@
+// unit_clear_weapon_switch_state  (Ghidra: unit_update, wrongly named)
+// address 0x565a70, size 50 bytes
+// name confidence: 0.2 (out/phase4/units_types_notes.md: "50 bytes that duplicate the tail of
+//   0x5659c0; it clears the weapon-switch flags and the 0x348 timer. Nothing to do with
+//   updating a unit" -- renamed away from the misleading Ghidra name "unit_update", which
+//   belongs to 0x5625b0 per the object_type_definition vtable correction)   rewrite
+//   confidence: 0.2
+// evidence: types/units.h unit_data.zoom_level/.desired_zoom_level (0x320/0x321),
+//   .unknown_348 (0x348). Identical tail to unit_validate_and_clear_weapon_switch (0x5659c0).
+// register convention: unit pointer carried over in an unresolved register (unaff_EBX) and a
+//   precomputed "should notify" flag in the zero flag (in_ZF), i.e. this is reached as a shared
+//   tail rather than called with its own fresh arguments.
+//   // blam-cc: unaff_EBX -> unit (already resolved by the caller), in_ZF -> skip_notify
+// UNSURE: this entry point's real callers, and therefore what unit pointer and flag it actually
+//   receives, are outside this batch; modelled as explicit parameters for compilability.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "objects.h"
+#include "units.h"
+
+extern void sound_start_unspatialized(float amount); // 0x543dd0, UNSURE signature
+extern void unit_invalidate_local_player_zoom_level(void);         // 0x4726f0, UNSURE: no traced args
+
+void unit_clear_weapon_switch_state(unit_data *unit, uint8_t skip_notify) // blam-cc: see file header
+{
+    if (!skip_notify) {
+        sound_start_unspatialized(1.0f);
+    }
+    unit->zoom_level = -1;
+    unit->desired_zoom_level = -1;
+    unit->unknown_348 = 0.0f;
+    unit_invalidate_local_player_zoom_level();
+}
+
+#if 0
+Original Ghidra decompilation (0x565a70):
+
+void unit_update(void)
+
+{
+  int unaff_EBX;
+  bool in_ZF;
+
+  if (!in_ZF) {
+    FUN_00543dd0(0x3f800000);
+  }
+  *(undefined1 *)(unaff_EBX + 800) = 0xff;
+  *(undefined1 *)(unaff_EBX + 0x321) = 0xff;
+  *(undefined4 *)(unaff_EBX + 0x348) = 0;
+  FUN_004726f0();
+  return;
+}
+#endif

@@ -1,0 +1,1840 @@
+{
+ "slice": 18,
+ "assignments": [
+  {
+   "addr": "0x602bcd",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x602eab",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x602ffc",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x60317e",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x603213",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x6033a2",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x603500",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x60367a",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x6039a6",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x603baa",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x6048c5",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x6051e0",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x6052db",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x605304",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x60536c",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x60554a",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x60560d",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x60566e",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x6056d2",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x605736",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x60576b",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x605897",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x605982",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x605a94",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x605b32",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x605c67",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x605e18",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x605e8b",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x606063",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x606157",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x606175",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x60617d",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x60619b",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x6061b9",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x606233",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x60623b",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x606243",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x60624b",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x606253",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x60625b",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x606263",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x60626b",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x60630d",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x606315",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x60631d",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x606325",
+   "module": "lib:d3dx",
+   "confidence": 0.85,
+   "evidence": "run 0x602bcd-0x60635b: D3DX9 HLSL compiler/shader assembler - 'cannot match lerp because lerp factor is not _sat'd', 'clip must be performed from a float3 vector for ps_1_x model', d3d9.dll + Direct3DShaderValidatorCreate9"
+  },
+  {
+   "addr": "0x606360",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x606410",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x606560",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x606640",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x606900",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x6069d0",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x6070c0",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x607870",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x6078c0",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x607a00",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x607cd0",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x607df0",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x607ed0",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x608490",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x6084d0",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x6090d0",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x609540",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x6096c0",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x609750",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x609a30",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x609af0",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x609d80",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x609ee0",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x60a4b0",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x60a530",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x60a5b0",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x60a7a0",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x60ab10",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x60ac30",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x60ada0",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x60be10",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x60be20",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x60bff0",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x60c340",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x60c570",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x60cac0",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x60cb40",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x60cb70",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x60cb90",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x60cc90",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x60cce0",
+   "module": "lib:other",
+   "confidence": 0.55,
+   "evidence": "run 0x606360-0x60cce0: libjpeg objects bundled in static D3DX9 - cinfo->err->msg_code/error_exit pattern, (*cinfo->mem->alloc_small)(cinfo,JPOOL_IMAGE,n), jmemansi tmpfile+strncpy backing store"
+  },
+  {
+   "addr": "0x60ccf0",
+   "module": "lib:other",
+   "confidence": 0.6,
+   "evidence": "run 0x60ccf0-0x60d68a: zlib inflate_blocks - 'invalid block type', 'invalid stored block lengths', 'too many length or distance symbols', calls inflate_trees/codes at 0x6125xx"
+  },
+  {
+   "addr": "0x60cd56",
+   "module": "lib:other",
+   "confidence": 0.6,
+   "evidence": "run 0x60ccf0-0x60d68a: zlib inflate_blocks - 'invalid block type', 'invalid stored block lengths', 'too many length or distance symbols', calls inflate_trees/codes at 0x6125xx"
+  },
+  {
+   "addr": "0x60cdd4",
+   "module": "lib:other",
+   "confidence": 0.6,
+   "evidence": "run 0x60ccf0-0x60d68a: zlib inflate_blocks - 'invalid block type', 'invalid stored block lengths', 'too many length or distance symbols', calls inflate_trees/codes at 0x6125xx"
+  },
+  {
+   "addr": "0x60d520",
+   "module": "lib:other",
+   "confidence": 0.6,
+   "evidence": "run 0x60ccf0-0x60d68a: zlib inflate_blocks - 'invalid block type', 'invalid stored block lengths', 'too many length or distance symbols', calls inflate_trees/codes at 0x6125xx"
+  },
+  {
+   "addr": "0x60d553",
+   "module": "lib:other",
+   "confidence": 0.6,
+   "evidence": "run 0x60ccf0-0x60d68a: zlib inflate_blocks - 'invalid block type', 'invalid stored block lengths', 'too many length or distance symbols', calls inflate_trees/codes at 0x6125xx"
+  },
+  {
+   "addr": "0x60d66e",
+   "module": "lib:other",
+   "confidence": 0.6,
+   "evidence": "run 0x60ccf0-0x60d68a: zlib inflate_blocks - 'invalid block type', 'invalid stored block lengths', 'too many length or distance symbols', calls inflate_trees/codes at 0x6125xx"
+  },
+  {
+   "addr": "0x60d6a0",
+   "module": "lib:other",
+   "confidence": 0.4,
+   "evidence": "run 0x60d6a0-0x60e6ff: 3DNow!/MMX packed-float SIMD math block (pfmul/pfadd/pf2id sincos polynomials, no engine strings) inside the image-codec/library blob"
+  },
+  {
+   "addr": "0x60d889",
+   "module": "lib:other",
+   "confidence": 0.4,
+   "evidence": "run 0x60d6a0-0x60e6ff: 3DNow!/MMX packed-float SIMD math block (pfmul/pfadd/pf2id sincos polynomials, no engine strings) inside the image-codec/library blob"
+  },
+  {
+   "addr": "0x60dac0",
+   "module": "lib:other",
+   "confidence": 0.4,
+   "evidence": "run 0x60d6a0-0x60e6ff: 3DNow!/MMX packed-float SIMD math block (pfmul/pfadd/pf2id sincos polynomials, no engine strings) inside the image-codec/library blob"
+  },
+  {
+   "addr": "0x60dbc0",
+   "module": "lib:other",
+   "confidence": 0.4,
+   "evidence": "run 0x60d6a0-0x60e6ff: 3DNow!/MMX packed-float SIMD math block (pfmul/pfadd/pf2id sincos polynomials, no engine strings) inside the image-codec/library blob"
+  },
+  {
+   "addr": "0x60e1a0",
+   "module": "lib:other",
+   "confidence": 0.4,
+   "evidence": "run 0x60d6a0-0x60e6ff: 3DNow!/MMX packed-float SIMD math block (pfmul/pfadd/pf2id sincos polynomials, no engine strings) inside the image-codec/library blob"
+  },
+  {
+   "addr": "0x60e2a0",
+   "module": "lib:other",
+   "confidence": 0.4,
+   "evidence": "run 0x60d6a0-0x60e6ff: 3DNow!/MMX packed-float SIMD math block (pfmul/pfadd/pf2id sincos polynomials, no engine strings) inside the image-codec/library blob"
+  },
+  {
+   "addr": "0x60e658",
+   "module": "lib:other",
+   "confidence": 0.4,
+   "evidence": "run 0x60d6a0-0x60e6ff: 3DNow!/MMX packed-float SIMD math block (pfmul/pfadd/pf2id sincos polynomials, no engine strings) inside the image-codec/library blob"
+  },
+  {
+   "addr": "0x60e659",
+   "module": "lib:other",
+   "confidence": 0.4,
+   "evidence": "run 0x60d6a0-0x60e6ff: 3DNow!/MMX packed-float SIMD math block (pfmul/pfadd/pf2id sincos polynomials, no engine strings) inside the image-codec/library blob"
+  },
+  {
+   "addr": "0x60e69f",
+   "module": "lib:other",
+   "confidence": 0.4,
+   "evidence": "run 0x60d6a0-0x60e6ff: 3DNow!/MMX packed-float SIMD math block (pfmul/pfadd/pf2id sincos polynomials, no engine strings) inside the image-codec/library blob"
+  },
+  {
+   "addr": "0x610f50",
+   "module": "lib:other",
+   "confidence": 0.45,
+   "evidence": "run 0x610f50-0x61253f: 8x8 integer IDCT-shaped loops + codec helper, sandwiched between libjpeg and zlib objects"
+  },
+  {
+   "addr": "0x611410",
+   "module": "lib:other",
+   "confidence": 0.45,
+   "evidence": "run 0x610f50-0x61253f: 8x8 integer IDCT-shaped loops + codec helper, sandwiched between libjpeg and zlib objects"
+  },
+  {
+   "addr": "0x612400",
+   "module": "lib:other",
+   "confidence": 0.45,
+   "evidence": "run 0x610f50-0x61253f: 8x8 integer IDCT-shaped loops + codec helper, sandwiched between libjpeg and zlib objects"
+  },
+  {
+   "addr": "0x612540",
+   "module": "lib:other",
+   "confidence": 0.7,
+   "evidence": "run 0x612540-0x6133d0: zlib inftrees/infcodes - 'oversubscribed dynamic bit lengths tree', 'incomplete distance tree', 'invalid literal/length code'"
+  },
+  {
+   "addr": "0x612573",
+   "module": "lib:other",
+   "confidence": 0.7,
+   "evidence": "run 0x612540-0x6133d0: zlib inftrees/infcodes - 'oversubscribed dynamic bit lengths tree', 'incomplete distance tree', 'invalid literal/length code'"
+  },
+  {
+   "addr": "0x612aca",
+   "module": "lib:other",
+   "confidence": 0.7,
+   "evidence": "run 0x612540-0x6133d0: zlib inftrees/infcodes - 'oversubscribed dynamic bit lengths tree', 'incomplete distance tree', 'invalid literal/length code'"
+  },
+  {
+   "addr": "0x612adb",
+   "module": "lib:other",
+   "confidence": 0.7,
+   "evidence": "run 0x612540-0x6133d0: zlib inftrees/infcodes - 'oversubscribed dynamic bit lengths tree', 'incomplete distance tree', 'invalid literal/length code'"
+  },
+  {
+   "addr": "0x612e5a",
+   "module": "lib:other",
+   "confidence": 0.7,
+   "evidence": "run 0x612540-0x6133d0: zlib inftrees/infcodes - 'oversubscribed dynamic bit lengths tree', 'incomplete distance tree', 'invalid literal/length code'"
+  },
+  {
+   "addr": "0x612ed3",
+   "module": "lib:other",
+   "confidence": 0.7,
+   "evidence": "run 0x612540-0x6133d0: zlib inftrees/infcodes - 'oversubscribed dynamic bit lengths tree', 'incomplete distance tree', 'invalid literal/length code'"
+  },
+  {
+   "addr": "0x612fcd",
+   "module": "lib:other",
+   "confidence": 0.7,
+   "evidence": "run 0x612540-0x6133d0: zlib inftrees/infcodes - 'oversubscribed dynamic bit lengths tree', 'incomplete distance tree', 'invalid literal/length code'"
+  },
+  {
+   "addr": "0x612ffe",
+   "module": "lib:other",
+   "confidence": 0.7,
+   "evidence": "run 0x612540-0x6133d0: zlib inftrees/infcodes - 'oversubscribed dynamic bit lengths tree', 'incomplete distance tree', 'invalid literal/length code'"
+  },
+  {
+   "addr": "0x61310f",
+   "module": "lib:other",
+   "confidence": 0.7,
+   "evidence": "run 0x612540-0x6133d0: zlib inftrees/infcodes - 'oversubscribed dynamic bit lengths tree', 'incomplete distance tree', 'invalid literal/length code'"
+  },
+  {
+   "addr": "0x6133d1",
+   "module": "lib:crt",
+   "confidence": 0.4,
+   "evidence": "delay-load import thunks (delayimp.lib __delayLoadHelper2) for winmm timeBeginPeriod/timeEndPeriod"
+  },
+  {
+   "addr": "0x6144b0",
+   "module": "lib:crt",
+   "confidence": 0.4,
+   "evidence": "delay-load import thunks (delayimp.lib __delayLoadHelper2) for winmm timeBeginPeriod/timeEndPeriod"
+  },
+  {
+   "addr": "0x6144ba",
+   "module": "lib:crt",
+   "confidence": 0.4,
+   "evidence": "delay-load import thunks (delayimp.lib __delayLoadHelper2) for winmm timeBeginPeriod/timeEndPeriod"
+  },
+  {
+   "addr": "0x6144cb",
+   "module": "lib:crt",
+   "confidence": 0.4,
+   "evidence": "delay-load import thunks (delayimp.lib __delayLoadHelper2) for winmm timeBeginPeriod/timeEndPeriod"
+  },
+  {
+   "addr": "0x6144d5",
+   "module": "lib:vorbis",
+   "confidence": 0.5,
+   "evidence": "delay-load import thunks for ov_read/ov_open_callbacks/ov_clear/ov_crosslap (vorbisfile)"
+  },
+  {
+   "addr": "0x6144df",
+   "module": "lib:vorbis",
+   "confidence": 0.5,
+   "evidence": "delay-load import thunks for ov_read/ov_open_callbacks/ov_clear/ov_crosslap (vorbisfile)"
+  },
+  {
+   "addr": "0x6144f6",
+   "module": "lib:vorbis",
+   "confidence": 0.5,
+   "evidence": "delay-load import thunks for ov_read/ov_open_callbacks/ov_clear/ov_crosslap (vorbisfile)"
+  },
+  {
+   "addr": "0x614506",
+   "module": "lib:vorbis",
+   "confidence": 0.5,
+   "evidence": "delay-load import thunks for ov_read/ov_open_callbacks/ov_clear/ov_crosslap (vorbisfile)"
+  },
+  {
+   "addr": "0x614516",
+   "module": "lib:vorbis",
+   "confidence": 0.5,
+   "evidence": "delay-load import thunks for ov_read/ov_open_callbacks/ov_clear/ov_crosslap (vorbisfile)"
+  },
+  {
+   "addr": "0x614540",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x614540-0x6148ff: GameSpy SDK common/nonport glue - socket accessors, inet_ntoa+'%s:%d' address formatting"
+  },
+  {
+   "addr": "0x6145a0",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x614540-0x6148ff: GameSpy SDK common/nonport glue - socket accessors, inet_ntoa+'%s:%d' address formatting"
+  },
+  {
+   "addr": "0x6146b0",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x614540-0x6148ff: GameSpy SDK common/nonport glue - socket accessors, inet_ntoa+'%s:%d' address formatting"
+  },
+  {
+   "addr": "0x614710",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x614540-0x6148ff: GameSpy SDK common/nonport glue - socket accessors, inet_ntoa+'%s:%d' address formatting"
+  },
+  {
+   "addr": "0x614740",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x614540-0x6148ff: GameSpy SDK common/nonport glue - socket accessors, inet_ntoa+'%s:%d' address formatting"
+  },
+  {
+   "addr": "0x614780",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x614540-0x6148ff: GameSpy SDK common/nonport glue - socket accessors, inet_ntoa+'%s:%d' address formatting"
+  },
+  {
+   "addr": "0x6147a0",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x614540-0x6148ff: GameSpy SDK common/nonport glue - socket accessors, inet_ntoa+'%s:%d' address formatting"
+  },
+  {
+   "addr": "0x6147d0",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x614540-0x6148ff: GameSpy SDK common/nonport glue - socket accessors, inet_ntoa+'%s:%d' address formatting"
+  },
+  {
+   "addr": "0x6147e0",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x614540-0x6148ff: GameSpy SDK common/nonport glue - socket accessors, inet_ntoa+'%s:%d' address formatting"
+  },
+  {
+   "addr": "0x6147f0",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x614540-0x6148ff: GameSpy SDK common/nonport glue - socket accessors, inet_ntoa+'%s:%d' address formatting"
+  },
+  {
+   "addr": "0x614800",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x614540-0x6148ff: GameSpy SDK common/nonport glue - socket accessors, inet_ntoa+'%s:%d' address formatting"
+  },
+  {
+   "addr": "0x614810",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x614540-0x6148ff: GameSpy SDK common/nonport glue - socket accessors, inet_ntoa+'%s:%d' address formatting"
+  },
+  {
+   "addr": "0x614820",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x614540-0x6148ff: GameSpy SDK common/nonport glue - socket accessors, inet_ntoa+'%s:%d' address formatting"
+  },
+  {
+   "addr": "0x614830",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x614540-0x6148ff: GameSpy SDK common/nonport glue - socket accessors, inet_ntoa+'%s:%d' address formatting"
+  },
+  {
+   "addr": "0x614840",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x614540-0x6148ff: GameSpy SDK common/nonport glue - socket accessors, inet_ntoa+'%s:%d' address formatting"
+  },
+  {
+   "addr": "0x614850",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x614540-0x6148ff: GameSpy SDK common/nonport glue - socket accessors, inet_ntoa+'%s:%d' address formatting"
+  },
+  {
+   "addr": "0x614860",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x614540-0x6148ff: GameSpy SDK common/nonport glue - socket accessors, inet_ntoa+'%s:%d' address formatting"
+  },
+  {
+   "addr": "0x614890",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x614540-0x6148ff: GameSpy SDK common/nonport glue - socket accessors, inet_ntoa+'%s:%d' address formatting"
+  },
+  {
+   "addr": "0x6148a0",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x614540-0x6148ff: GameSpy SDK common/nonport glue - socket accessors, inet_ntoa+'%s:%d' address formatting"
+  },
+  {
+   "addr": "0x6148b0",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x614540-0x6148ff: GameSpy SDK common/nonport glue - socket accessors, inet_ntoa+'%s:%d' address formatting"
+  },
+  {
+   "addr": "0x614940",
+   "module": "lib:gamespy",
+   "confidence": 0.85,
+   "evidence": "GameSpy GSISocket hostname resolution (inet_addr/gethostbyname/atol)"
+  },
+  {
+   "addr": "0x614a70",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x614a70-0x615520: GameSpy natneg - 'natneg1.hosthpc.com'/'natneg2.hosthpc.com', NN init/connect/ping packet send+recv state machine"
+  },
+  {
+   "addr": "0x614ab0",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x614a70-0x615520: GameSpy natneg - 'natneg1.hosthpc.com'/'natneg2.hosthpc.com', NN init/connect/ping packet send+recv state machine"
+  },
+  {
+   "addr": "0x614b00",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x614a70-0x615520: GameSpy natneg - 'natneg1.hosthpc.com'/'natneg2.hosthpc.com', NN init/connect/ping packet send+recv state machine"
+  },
+  {
+   "addr": "0x614b60",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x614a70-0x615520: GameSpy natneg - 'natneg1.hosthpc.com'/'natneg2.hosthpc.com', NN init/connect/ping packet send+recv state machine"
+  },
+  {
+   "addr": "0x614bb0",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x614a70-0x615520: GameSpy natneg - 'natneg1.hosthpc.com'/'natneg2.hosthpc.com', NN init/connect/ping packet send+recv state machine"
+  },
+  {
+   "addr": "0x614c10",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x614a70-0x615520: GameSpy natneg - 'natneg1.hosthpc.com'/'natneg2.hosthpc.com', NN init/connect/ping packet send+recv state machine"
+  },
+  {
+   "addr": "0x614c80",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x614a70-0x615520: GameSpy natneg - 'natneg1.hosthpc.com'/'natneg2.hosthpc.com', NN init/connect/ping packet send+recv state machine"
+  },
+  {
+   "addr": "0x614de0",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x614a70-0x615520: GameSpy natneg - 'natneg1.hosthpc.com'/'natneg2.hosthpc.com', NN init/connect/ping packet send+recv state machine"
+  },
+  {
+   "addr": "0x614eb0",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x614a70-0x615520: GameSpy natneg - 'natneg1.hosthpc.com'/'natneg2.hosthpc.com', NN init/connect/ping packet send+recv state machine"
+  },
+  {
+   "addr": "0x614f30",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x614a70-0x615520: GameSpy natneg - 'natneg1.hosthpc.com'/'natneg2.hosthpc.com', NN init/connect/ping packet send+recv state machine"
+  },
+  {
+   "addr": "0x614fc0",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x614a70-0x615520: GameSpy natneg - 'natneg1.hosthpc.com'/'natneg2.hosthpc.com', NN init/connect/ping packet send+recv state machine"
+  },
+  {
+   "addr": "0x614ff0",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x614a70-0x615520: GameSpy natneg - 'natneg1.hosthpc.com'/'natneg2.hosthpc.com', NN init/connect/ping packet send+recv state machine"
+  },
+  {
+   "addr": "0x615090",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x614a70-0x615520: GameSpy natneg - 'natneg1.hosthpc.com'/'natneg2.hosthpc.com', NN init/connect/ping packet send+recv state machine"
+  },
+  {
+   "addr": "0x615140",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x614a70-0x615520: GameSpy natneg - 'natneg1.hosthpc.com'/'natneg2.hosthpc.com', NN init/connect/ping packet send+recv state machine"
+  },
+  {
+   "addr": "0x6151b0",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x614a70-0x615520: GameSpy natneg - 'natneg1.hosthpc.com'/'natneg2.hosthpc.com', NN init/connect/ping packet send+recv state machine"
+  },
+  {
+   "addr": "0x615240",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x614a70-0x615520: GameSpy natneg - 'natneg1.hosthpc.com'/'natneg2.hosthpc.com', NN init/connect/ping packet send+recv state machine"
+  },
+  {
+   "addr": "0x615360",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x614a70-0x615520: GameSpy natneg - 'natneg1.hosthpc.com'/'natneg2.hosthpc.com', NN init/connect/ping packet send+recv state machine"
+  },
+  {
+   "addr": "0x6154f0",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x614a70-0x615520: GameSpy natneg - 'natneg1.hosthpc.com'/'natneg2.hosthpc.com', NN init/connect/ping packet send+recv state machine"
+  },
+  {
+   "addr": "0x615530",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x615530-0x616ea0: GameSpy qr2/master-server keepalive - 's1.master.hosthpc.com', 'gamename', 'statechanged', 'localip%d', 'final\\queryid\\1.1', 'No challenge value was received from the master server.'"
+  },
+  {
+   "addr": "0x615560",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x615530-0x616ea0: GameSpy qr2/master-server keepalive - 's1.master.hosthpc.com', 'gamename', 'statechanged', 'localip%d', 'final\\queryid\\1.1', 'No challenge value was received from the master server.'"
+  },
+  {
+   "addr": "0x615590",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x615530-0x616ea0: GameSpy qr2/master-server keepalive - 's1.master.hosthpc.com', 'gamename', 'statechanged', 'localip%d', 'final\\queryid\\1.1', 'No challenge value was received from the master server.'"
+  },
+  {
+   "addr": "0x615600",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x615530-0x616ea0: GameSpy qr2/master-server keepalive - 's1.master.hosthpc.com', 'gamename', 'statechanged', 'localip%d', 'final\\queryid\\1.1', 'No challenge value was received from the master server.'"
+  },
+  {
+   "addr": "0x6156c0",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x615530-0x616ea0: GameSpy qr2/master-server keepalive - 's1.master.hosthpc.com', 'gamename', 'statechanged', 'localip%d', 'final\\queryid\\1.1', 'No challenge value was received from the master server.'"
+  },
+  {
+   "addr": "0x615810",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x615530-0x616ea0: GameSpy qr2/master-server keepalive - 's1.master.hosthpc.com', 'gamename', 'statechanged', 'localip%d', 'final\\queryid\\1.1', 'No challenge value was received from the master server.'"
+  },
+  {
+   "addr": "0x6158c0",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x615530-0x616ea0: GameSpy qr2/master-server keepalive - 's1.master.hosthpc.com', 'gamename', 'statechanged', 'localip%d', 'final\\queryid\\1.1', 'No challenge value was received from the master server.'"
+  },
+  {
+   "addr": "0x615b80",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x615530-0x616ea0: GameSpy qr2/master-server keepalive - 's1.master.hosthpc.com', 'gamename', 'statechanged', 'localip%d', 'final\\queryid\\1.1', 'No challenge value was received from the master server.'"
+  },
+  {
+   "addr": "0x615bc0",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x615530-0x616ea0: GameSpy qr2/master-server keepalive - 's1.master.hosthpc.com', 'gamename', 'statechanged', 'localip%d', 'final\\queryid\\1.1', 'No challenge value was received from the master server.'"
+  },
+  {
+   "addr": "0x615c60",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x615530-0x616ea0: GameSpy qr2/master-server keepalive - 's1.master.hosthpc.com', 'gamename', 'statechanged', 'localip%d', 'final\\queryid\\1.1', 'No challenge value was received from the master server.'"
+  },
+  {
+   "addr": "0x615f10",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x615530-0x616ea0: GameSpy qr2/master-server keepalive - 's1.master.hosthpc.com', 'gamename', 'statechanged', 'localip%d', 'final\\queryid\\1.1', 'No challenge value was received from the master server.'"
+  },
+  {
+   "addr": "0x615f60",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x615530-0x616ea0: GameSpy qr2/master-server keepalive - 's1.master.hosthpc.com', 'gamename', 'statechanged', 'localip%d', 'final\\queryid\\1.1', 'No challenge value was received from the master server.'"
+  },
+  {
+   "addr": "0x616010",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x615530-0x616ea0: GameSpy qr2/master-server keepalive - 's1.master.hosthpc.com', 'gamename', 'statechanged', 'localip%d', 'final\\queryid\\1.1', 'No challenge value was received from the master server.'"
+  },
+  {
+   "addr": "0x616050",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x615530-0x616ea0: GameSpy qr2/master-server keepalive - 's1.master.hosthpc.com', 'gamename', 'statechanged', 'localip%d', 'final\\queryid\\1.1', 'No challenge value was received from the master server.'"
+  },
+  {
+   "addr": "0x6162d0",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x615530-0x616ea0: GameSpy qr2/master-server keepalive - 's1.master.hosthpc.com', 'gamename', 'statechanged', 'localip%d', 'final\\queryid\\1.1', 'No challenge value was received from the master server.'"
+  },
+  {
+   "addr": "0x616340",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x615530-0x616ea0: GameSpy qr2/master-server keepalive - 's1.master.hosthpc.com', 'gamename', 'statechanged', 'localip%d', 'final\\queryid\\1.1', 'No challenge value was received from the master server.'"
+  },
+  {
+   "addr": "0x6165b0",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x615530-0x616ea0: GameSpy qr2/master-server keepalive - 's1.master.hosthpc.com', 'gamename', 'statechanged', 'localip%d', 'final\\queryid\\1.1', 'No challenge value was received from the master server.'"
+  },
+  {
+   "addr": "0x616640",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x615530-0x616ea0: GameSpy qr2/master-server keepalive - 's1.master.hosthpc.com', 'gamename', 'statechanged', 'localip%d', 'final\\queryid\\1.1', 'No challenge value was received from the master server.'"
+  },
+  {
+   "addr": "0x616680",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x615530-0x616ea0: GameSpy qr2/master-server keepalive - 's1.master.hosthpc.com', 'gamename', 'statechanged', 'localip%d', 'final\\queryid\\1.1', 'No challenge value was received from the master server.'"
+  },
+  {
+   "addr": "0x616b50",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x615530-0x616ea0: GameSpy qr2/master-server keepalive - 's1.master.hosthpc.com', 'gamename', 'statechanged', 'localip%d', 'final\\queryid\\1.1', 'No challenge value was received from the master server.'"
+  },
+  {
+   "addr": "0x616c00",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x615530-0x616ea0: GameSpy qr2/master-server keepalive - 's1.master.hosthpc.com', 'gamename', 'statechanged', 'localip%d', 'final\\queryid\\1.1', 'No challenge value was received from the master server.'"
+  },
+  {
+   "addr": "0x616c40",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x615530-0x616ea0: GameSpy qr2/master-server keepalive - 's1.master.hosthpc.com', 'gamename', 'statechanged', 'localip%d', 'final\\queryid\\1.1', 'No challenge value was received from the master server.'"
+  },
+  {
+   "addr": "0x616cb0",
+   "module": "lib:gamespy",
+   "confidence": 0.95,
+   "evidence": "run 0x615530-0x616ea0: GameSpy qr2/master-server keepalive - 's1.master.hosthpc.com', 'gamename', 'statechanged', 'localip%d', 'final\\queryid\\1.1', 'No challenge value was received from the master server.'"
+  },
+  {
+   "addr": "0x616eb0",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x616f30",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x616f50",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x616f80",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x616fa0",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x616fc0",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x616ff0",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617020",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617030",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617040",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617060",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617070",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x6171a0",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x6171d0",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617240",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617290",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617370",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x6173c0",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x6173f0",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617430",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617490",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x6174d0",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617530",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x6175c0",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x6175d0",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x6175e0",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x6175f0",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617600",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617620",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617630",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617640",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617650",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617670",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617680",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617690",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617710",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617760",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617840",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617a40",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617a80",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617aa0",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617ab0",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617b20",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617b30",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617b50",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617b60",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617b70",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617b80",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617bc0",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617c10",
+   "module": "lib:gamespy",
+   "confidence": 0.8,
+   "evidence": "run 0x616eb0-0x617c6f: GameSpy serverbrowsing/gt2 helpers - server key-value tables, darray/hashtable callees at 0x61e*-0x620*, 'queryid'/'final' keys"
+  },
+  {
+   "addr": "0x617c70",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "'CD Key or challenge too long' + '%s%d%s' - GameSpy CD-key auth client, calls MD5 at 0x61a730"
+  },
+  {
+   "addr": "0x617db0",
+   "module": "lib:gamespy",
+   "confidence": 0.7,
+   "evidence": "run 0x617db0-0x6183af: GameSpy internal buffer/encoding helpers called only by the gt2 layer below"
+  },
+  {
+   "addr": "0x617fb0",
+   "module": "lib:gamespy",
+   "confidence": 0.7,
+   "evidence": "run 0x617db0-0x6183af: GameSpy internal buffer/encoding helpers called only by the gt2 layer below"
+  },
+  {
+   "addr": "0x618040",
+   "module": "lib:gamespy",
+   "confidence": 0.7,
+   "evidence": "run 0x617db0-0x6183af: GameSpy internal buffer/encoding helpers called only by the gt2 layer below"
+  },
+  {
+   "addr": "0x618150",
+   "module": "lib:gamespy",
+   "confidence": 0.7,
+   "evidence": "run 0x617db0-0x6183af: GameSpy internal buffer/encoding helpers called only by the gt2 layer below"
+  },
+  {
+   "addr": "0x6181c0",
+   "module": "lib:gamespy",
+   "confidence": 0.7,
+   "evidence": "run 0x617db0-0x6183af: GameSpy internal buffer/encoding helpers called only by the gt2 layer below"
+  },
+  {
+   "addr": "0x618250",
+   "module": "lib:gamespy",
+   "confidence": 0.7,
+   "evidence": "run 0x617db0-0x6183af: GameSpy internal buffer/encoding helpers called only by the gt2 layer below"
+  },
+  {
+   "addr": "0x6182b0",
+   "module": "lib:gamespy",
+   "confidence": 0.7,
+   "evidence": "run 0x617db0-0x6183af: GameSpy internal buffer/encoding helpers called only by the gt2 layer below"
+  },
+  {
+   "addr": "0x618350",
+   "module": "lib:gamespy",
+   "confidence": 0.7,
+   "evidence": "run 0x617db0-0x6183af: GameSpy internal buffer/encoding helpers called only by the gt2 layer below"
+  },
+  {
+   "addr": "0x6183b0",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x618420",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x618500",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x6185b0",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x618670",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x618740",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x6187c0",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x6187e0",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x618830",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x618870",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x618900",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x618980",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x6189c0",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x618a70",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x618ae0",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x618b50",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x618bb0",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x618c30",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x618d60",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x618e10",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x618ec0",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x618ee0",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x618f10",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x619040",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x6190a0",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x6190f0",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x619200",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x619260",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x6192c0",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x619330",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x6193b0",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x619410",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x619470",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x6194c0",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x619510",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x619580",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x619630",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x6196f0",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x619840",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x6198b0",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x6199b0",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x619b90",
+   "module": "lib:gamespy",
+   "confidence": 0.9,
+   "evidence": "run 0x6183b0-0x619c8f: GameSpy gt2 reliable-UDP connection layer - connection list lookup, GetTickCount timers, sendto/recvfrom, callback dispatch"
+  },
+  {
+   "addr": "0x619c90",
+   "module": "lib:gamespy",
+   "confidence": 0.85,
+   "evidence": "run 0x619c90-0x61a7af: MD5 implementation (2268-byte transform + init/update/final wrappers) used by GameSpy CD-key/challenge auth"
+  },
+  {
+   "addr": "0x619cc0",
+   "module": "lib:gamespy",
+   "confidence": 0.85,
+   "evidence": "run 0x619c90-0x61a7af: MD5 implementation (2268-byte transform + init/update/final wrappers) used by GameSpy CD-key/challenge auth"
+  },
+  {
+   "addr": "0x61a5a0",
+   "module": "lib:gamespy",
+   "confidence": 0.85,
+   "evidence": "run 0x619c90-0x61a7af: MD5 implementation (2268-byte transform + init/update/final wrappers) used by GameSpy CD-key/challenge auth"
+  },
+  {
+   "addr": "0x61a660",
+   "module": "lib:gamespy",
+   "confidence": 0.85,
+   "evidence": "run 0x619c90-0x61a7af: MD5 implementation (2268-byte transform + init/update/final wrappers) used by GameSpy CD-key/challenge auth"
+  },
+  {
+   "addr": "0x61a730",
+   "module": "lib:gamespy",
+   "confidence": 0.85,
+   "evidence": "run 0x619c90-0x61a7af: MD5 implementation (2268-byte transform + init/update/final wrappers) used by GameSpy CD-key/challenge auth"
+  },
+  {
+   "addr": "0x61a7b0",
+   "module": "lib:gamespy",
+   "confidence": 0.85,
+   "evidence": "run 0x61a7b0-end: GameSpy serverbrowsing SB client - sendto + sprintf/atol key-value list parsing, continues into slice 19"
+  },
+  {
+   "addr": "0x61a830",
+   "module": "lib:gamespy",
+   "confidence": 0.85,
+   "evidence": "run 0x61a7b0-end: GameSpy serverbrowsing SB client - sendto + sprintf/atol key-value list parsing, continues into slice 19"
+  },
+  {
+   "addr": "0x61a8e0",
+   "module": "lib:gamespy",
+   "confidence": 0.85,
+   "evidence": "run 0x61a7b0-end: GameSpy serverbrowsing SB client - sendto + sprintf/atol key-value list parsing, continues into slice 19"
+  },
+  {
+   "addr": "0x61aa20",
+   "module": "lib:gamespy",
+   "confidence": 0.85,
+   "evidence": "run 0x61a7b0-end: GameSpy serverbrowsing SB client - sendto + sprintf/atol key-value list parsing, continues into slice 19"
+  },
+  {
+   "addr": "0x61aa50",
+   "module": "lib:gamespy",
+   "confidence": 0.85,
+   "evidence": "run 0x61a7b0-end: GameSpy serverbrowsing SB client - sendto + sprintf/atol key-value list parsing, continues into slice 19"
+  },
+  {
+   "addr": "0x61aab0",
+   "module": "lib:gamespy",
+   "confidence": 0.85,
+   "evidence": "run 0x61a7b0-end: GameSpy serverbrowsing SB client - sendto + sprintf/atol key-value list parsing, continues into slice 19"
+  },
+  {
+   "addr": "0x61abb0",
+   "module": "lib:gamespy",
+   "confidence": 0.85,
+   "evidence": "run 0x61a7b0-end: GameSpy serverbrowsing SB client - sendto + sprintf/atol key-value list parsing, continues into slice 19"
+  },
+  {
+   "addr": "0x61acf0",
+   "module": "lib:gamespy",
+   "confidence": 0.85,
+   "evidence": "run 0x61a7b0-end: GameSpy serverbrowsing SB client - sendto + sprintf/atol key-value list parsing, continues into slice 19"
+  },
+  {
+   "addr": "0x61ae70",
+   "module": "lib:gamespy",
+   "confidence": 0.85,
+   "evidence": "run 0x61a7b0-end: GameSpy serverbrowsing SB client - sendto + sprintf/atol key-value list parsing, continues into slice 19"
+  }
+ ],
+ "boundaries": [
+  {
+   "addr": "0x606360",
+   "note": "end of D3DX9 HLSL shader-compiler objects, start of the bundled image-codec (libjpeg) objects"
+  },
+  {
+   "addr": "0x60ccf0",
+   "note": "libjpeg -> zlib inflate objects"
+  },
+  {
+   "addr": "0x6133d1",
+   "note": "end of static library blob; linker-generated delay-load import thunks begin"
+  },
+  {
+   "addr": "0x614540",
+   "note": "start of the GameSpy SDK blob (runs to the end of the slice and well into slice 19)"
+  },
+  {
+   "addr": "0x614a70",
+   "note": "GameSpy common/nonport -> natneg object"
+  },
+  {
+   "addr": "0x615530",
+   "note": "natneg -> qr2/master-server object"
+  },
+  {
+   "addr": "0x6183b0",
+   "note": "GameSpy misc helpers -> gt2 reliable-UDP transport object"
+  },
+  {
+   "addr": "0x619c90",
+   "note": "gt2 -> md5.c object"
+  }
+ ],
+ "notes": "Slice 18 contains no Blam engine code at all. It is the tail of the statically linked D3DX9 blob (HLSL compiler/shader assembler, then D3DX9's bundled libjpeg/zlib/libpng image codecs and 3DNow! SIMD math), then linker delay-load thunks, then the start of the GameSpy SDK (natneg, qr2/master server, gt2, MD5, serverbrowsing). The libjpeg/zlib/3DNow blocks are labelled lib:other rather than lib:d3dx because they are distinct third-party libraries even though they ship inside d3dx9.lib; if the project prefers attributing the whole static blob to D3DX, 0x606360-0x61310f should be lib:d3dx instead. Address gaps (0x6069d0->0x6070c0, 0x60e6ff->0x610f50) are unanalysed code/data, not module boundaries."
+}

@@ -1,0 +1,484 @@
+{
+  "results": [
+    {
+      "addr": "0x5697a0",
+      "name": "unit_clamp_aim_or_look_vector",
+      "confidence": 0.4,
+      "evidence": "Computes yaw/pitch (fpatan) from direction param_1 against per-object angle-limit fields selected by param_2 (offsets 0x2b6/0x2b8 vs 0x2b7/0x2c8), clamps to min/max, rebuilds the vector via sin/cos and object_get_orientation, and transforms it with matrix4x3_transform_normal.",
+      "prototype": "",
+      "summary": "Tests a world-space direction against the unit's aiming or looking angle limits (selected by a flag), clamps it into range, and transforms the corrected direction back through the unit's orientation."
+    },
+    {
+      "addr": "0x569970",
+      "name": "unit_get_weapon_object_index",
+      "confidence": 0.55,
+      "evidence": "Returns *(int*)(object+0x2f8+in_CX*4), an entry of the 4-slot weapon-object-index array that is iterated 0..3 elsewhere (FUN_0056d360/FUN_0056d990), or -1 if in_CX==-1.",
+      "prototype": "",
+      "summary": "Returns the object index of the weapon stored in the unit's inventory slot given by in_CX, or -1 if no slot is selected."
+    },
+    {
+      "addr": "0x5699a0",
+      "name": "unit_find_next_used_seat_label",
+      "confidence": 0.35,
+      "evidence": "Walks a per-label byte array at object+0x31e cyclically forward or backward (direction from the sign of param_1), returning the next index whose count is greater than 0; the same array is incremented/decremented in FUN_0056d160.",
+      "prototype": "",
+      "summary": "Searches forward or backward through the unit's seat/marker usage-count table to find the next label with a non-zero occupancy count."
+    },
+    {
+      "addr": "0x569a20",
+      "name": "unit_try_ready_weapon",
+      "confidence": 0.35,
+      "evidence": "Reads the current weapon/animation mode byte at object+0x2a3, skips a set of 'busy' mode values (0x17-0x29 range), otherwise calls FUN_00565f90 and on success updates 0x2a3 and fields 0x289/0x28a.",
+      "prototype": "",
+      "summary": "Checks whether the unit's current weapon animation mode allows a state change and, if so, calls FUN_00565f90 and FUN_005704d0 and updates the weapon-mode fields."
+    },
+    {
+      "addr": "0x569b30",
+      "name": "unit_try_reload_weapon",
+      "confidence": 0.3,
+      "evidence": "Near-identical switch over the same weapon-mode byte at 0x2a3 as FUN_00569a20, additionally gated on fields at 0xb4/0x4cc, calling the same FUN_00565f90/FUN_005704d0 pair.",
+      "prototype": "",
+      "summary": "A variant weapon-mode gate similar to unit_try_ready_weapon, additionally checking unit-type and a flag at offset 0x4cc before allowing the state change."
+    },
+    {
+      "addr": "0x569bc0",
+      "name": "unit_get_flag_bit6",
+      "confidence": 0.25,
+      "evidence": "Returns bit 6 of the dword at object+0x204, a flags field also manipulated by many other bits elsewhere in this module (0x1, 0x40, 0x1000000, 0x10000000, 0x20000000, 0x100000).",
+      "prototype": "",
+      "summary": "Returns a single flag bit (bit 6) from the unit's 0x204 flags dword."
+    },
+    {
+      "addr": "0x569bf0",
+      "name": "unit_update_out_of_control_flag",
+      "confidence": 0.3,
+      "evidence": "Sets/clears bits 0 and 6 of the flags dword at object+0x204 based on whether any of three target fields (500, 0x1f8, 0x218) are set and bit 2 of 0x106 is clear, then calls FUN_004bcfc0 for each valid weapon slot and FUN_0056ce30 to refresh occupant tracking.",
+      "prototype": "",
+      "summary": "Recomputes a control/targeting flag on the unit based on whether it has any active target or seat references, then refreshes each carried weapon and the unit's occupant tracking."
+    },
+    {
+      "addr": "0x569c90",
+      "name": "unit_is_weapon_mode_busy",
+      "confidence": 0.4,
+      "evidence": "Returns 1 for a specific subset of weapon-mode byte values at object+0x2a3 (0x17-0x29), matching the 'busy' states skipped by FUN_00569a20/FUN_00569b30.",
+      "prototype": "",
+      "summary": "Returns whether the unit's current weapon/vehicle-transition mode byte is one of the reserved 'busy' state values."
+    },
+    {
+      "addr": "0x569cf0",
+      "name": "unit_scripting_set_emotion_animation",
+      "confidence": 0.9,
+      "evidence": "Logs the string \"couldn't find the emotion animation '%s'\" via FUN_004c6920 when FUN_004d6ab0 (animation lookup) returns -1; otherwise stores the found animation index at object+0x21e. Existing non-FUN_ name matches the code.",
+      "prototype": "",
+      "summary": "Looks up a named emotion animation and stores its index on the unit, logging an error if it isn't found."
+    },
+    {
+      "addr": "0x569d40",
+      "name": "unit_change_seat_by_marker_name",
+      "confidence": 0.35,
+      "evidence": "Takes (unit, new_parent, marker_name); requires both indices valid and marker_name non-empty, then duplicates the detach-at-marker logic from FUN_0056c640 (parent index at +0x47, seat index at +0xbc, matrix4x3_multiply against a seat marker, clearing occupant-tracking fields 0xc9/0xca/0xcb/0xcc).",
+      "prototype": "",
+      "summary": "Detaches a unit from its current parent object and, given a target parent and named seat marker, re-attaches/positions it there, refreshing occupancy tracking and physics state."
+    },
+    {
+      "addr": "0x56a290",
+      "name": "unit_set_camo_or_flashlight_flag",
+      "confidence": 0.3,
+      "evidence": "Toggles bit 0x1000000 of object+0x204 based on param_1, copies a 3-float vector from PTR_DAT_00696714 into object+0x68..0x70, and clears a bit at +0x4cc when the unit type field at +0xb4 is 0.",
+      "prototype": "",
+      "summary": "Sets or clears a per-unit boolean flag, resets a cached 3D vector field from a shared default, and clears an additional state bit for biped-type units."
+    },
+    {
+      "addr": "0x56a310",
+      "name": "unit_find_seats_matching_name_and_flags",
+      "confidence": 0.4,
+      "evidence": "Iterates the unit's model-definition seat/marker list (tag data +0x2e8, 0x11c-byte entries, count at +0x2e4), lower-cases each name and compares it to param_2 via FUN_00625430, filters by a flags bitmask selected by param_3, skips already-occupied seats via FUN_0056cc10, and fills output array param_4 with up to param_5 matches.",
+      "prototype": "uint __cdecl unit_find_seats_matching_name_and_flags(uint unit_index, char *seat_name, undefined2 flag_selector, short *out_indices, short max_indices)",
+      "summary": "Scans the unit's seat/marker definitions for unoccupied entries whose name matches (or is empty) and whose type flags match flag_selector, returning up to max_indices matching seat indices."
+    },
+    {
+      "addr": "0x56a4c0",
+      "name": "unit_eject_occupants_matching_seats",
+      "confidence": 0.35,
+      "evidence": "Obtains a filtered seat-index list from FUN_0056a310 and, for each child object attached to those seats, performs the same marker-based detach sequence used by FUN_0056c640 (matrix4x3_multiply against +0x2e8 markers, clearing 0xc9/0xca/0xcb/0xcc, recalculating bounding radius).",
+      "prototype": "",
+      "summary": "Finds seats on the unit matching a name/flags filter and forcibly detaches whichever child objects currently occupy them, repositioning each at its seat's exit marker."
+    },
+    {
+      "addr": "0x56ab10",
+      "name": "unit_notify_weapon_removed",
+      "confidence": 0.3,
+      "evidence": "Trivial wrapper `if (in_EAX != -1) FUN_00565f90();`, used as a small guard around a call by a valid implicit weapon/object index.",
+      "prototype": "",
+      "summary": "Calls FUN_00565f90 when the implicit weapon/object index is valid, used as a small guard before weapon-related teardown."
+    },
+    {
+      "addr": "0x56ab30",
+      "name": "unit_notify_weapon_removed_alt",
+      "confidence": 0.25,
+      "evidence": "Byte-identical body to FUN_0056ab10 (`if (in_EAX != -1) FUN_00565f90();`), a separate compiled duplicate at a different address.",
+      "prototype": "",
+      "summary": "Duplicate of unit_notify_weapon_removed; calls FUN_00565f90 when the implicit index is valid."
+    },
+    {
+      "addr": "0x56ab50",
+      "name": "unit_eject_occupant_by_marker_name",
+      "confidence": 0.4,
+      "evidence": "Scans all objects via object_iterator_next, matching children whose parent field (+0x11c) equals param_1 and whose seat marker name (from the unit's tag marker list) matches param_2 case-insensitively (FUN_00625430), then performs the marker-based detach/reposition sequence seen elsewhere in this file.",
+      "prototype": "",
+      "summary": "Finds the child object attached to the unit at a seat whose marker name matches param_2 and detaches/repositions it at that marker."
+    },
+    {
+      "addr": "0x56b290",
+      "name": "unit_flag_zone_owner_units",
+      "confidence": 0.3,
+      "evidence": "Walks a linked list rooted from a per-player/zone table (DAT_0087a464/DAT_0087a468) and, for objects at each matching seat marker whose type flags indicate biped/vehicle (bits 0/1) with a valid attached object, sets bit 0x100000 in that attached object's +0x204 flags.",
+      "prototype": "",
+      "summary": "Iterates a player/zone-indexed list of seat markers and marks each seated unit's flags field with bit 0x100000."
+    },
+    {
+      "addr": "0x56b380",
+      "name": "unit_seat_name_has_object_iterator_match",
+      "confidence": 0.35,
+      "evidence": "Finds the seat index whose name matches param_2 via __stricmp, then walks the global object iterator to find a child attached to param_1 at that seat, and compares it against a chain rooted at param_3's zone table entry.",
+      "prototype": "",
+      "summary": "Looks up a named seat on the unit and reports whether the object currently occupying it also appears in the zone/list referenced by param_3."
+    },
+    {
+      "addr": "0x56b520",
+      "name": "unit_seat_name_matches_child_object",
+      "confidence": 0.35,
+      "evidence": "Finds a seat by name (via __stricmp against the marker list) and checks whether the implicit unaff_EBX object's parent+seat fields (+0x11c/+0x2f0) reference that seat, returning 1 on match.",
+      "prototype": "",
+      "summary": "Returns whether a given child object is seated at the named marker on this unit."
+    },
+    {
+      "addr": "0x56b5f0",
+      "name": "unit_try_exit_current_seat",
+      "confidence": 0.4,
+      "evidence": "Uses object_try_and_get(3) (the controlled unit) and, depending on DAT_00719720 (network/dedicated-server flag), either sets weapon-mode byte 0x2a3=0x1b and calls FUN_0042c370/FUN_0056c370 (an animated exit path), or falls through to the same marker-based parent-detach sequence used by FUN_0056c640.",
+      "prototype": "",
+      "summary": "Attempts to make the currently controlled unit exit its seat, choosing between an animated exit sequence and an immediate detach depending on game mode."
+    },
+    {
+      "addr": "0x56bbd0",
+      "name": "unit_create_zone_datum_for_seat_owners",
+      "confidence": 0.35,
+      "evidence": "Allocates a new datum via datum_new, initializes fields, then walks the unit's child-object list (+0x118/+0x114) calling object_list_reference_add for each biped/vehicle child seated at a valid marker.",
+      "prototype": "",
+      "summary": "Allocates a new zone/list datum and populates it with references to every seated occupant of the unit."
+    },
+    {
+      "addr": "0x56bc80",
+      "name": "unit_test_point_in_front_of_player",
+      "confidence": 0.3,
+      "evidence": "Uses object_try_and_get(3) (controlled unit), computes a dot product of (point - unit position) with the unit's forward vector fields (+0x98..0x9a), and on a sign match performs a name comparison via FUN_0056c2f0/PTR_DAT_0069fde4.",
+      "prototype": "",
+      "summary": "Tests whether a given world point lies in front of the controlled unit and matches an additional name-based condition."
+    },
+    {
+      "addr": "0x56bd60",
+      "name": "unit_current_weapon_is_grenade_or_special",
+      "confidence": 0.3,
+      "evidence": "Looks up the object at the unit's current weapon slot (+0x2f2 index into +0x2f8 array) and checks its type byte (+0x261) against values 2 or 3.",
+      "prototype": "",
+      "summary": "Returns whether the unit's currently equipped weapon has type code 2 or 3."
+    },
+    {
+      "addr": "0x56bdc0",
+      "name": "unit_find_next_object_index_after",
+      "confidence": 0.3,
+      "evidence": "Uses object_iterator_next twice, first to skip to the entry equal to unaff_ESI, then to find the next object with no targets set (+500,+0x1f8==-1) and not marked deleted (bit 2 of +0x106); falls back to scanning from the start.",
+      "prototype": "",
+      "summary": "Finds the next object (wrapping around) after a given one that has no active target references and isn't marked for deletion."
+    },
+    {
+      "addr": "0x56bee0",
+      "name": "unit_find_nearest_biped",
+      "confidence": 0.4,
+      "evidence": "Iterates all type-0 objects via object_iterator_next, computing distance via object_get_position to the implicit reference object (unaff_EDI), skipping deleted objects (+0x106 bit 2), and returning the closest index.",
+      "prototype": "",
+      "summary": "Finds the nearest object of type 0 (biped) to a given reference object by scanning all objects and comparing positions."
+    },
+    {
+      "addr": "0x56bfc0",
+      "name": "unit_check_camera_shake_threshold",
+      "confidence": 0.3,
+      "evidence": "Scales the unit's velocity fields (+0x23c..0x244) by 25.0, calls FUN_00568f80 then FUN_00505880 (id 0x22), and if the resulting value exceeds 0.95 increments an accumulator by 0.25 and calls FUN_004f5350.",
+      "prototype": "",
+      "summary": "Samples a value derived from the unit's scaled velocity and, above a 0.95 threshold, bumps an accumulator and triggers FUN_004f5350 (likely a camera or effect trigger)."
+    },
+    {
+      "addr": "0x56c070",
+      "name": "unit_any_dead_or_entering_exists",
+      "confidence": 0.35,
+      "evidence": "Iterates all type-1 (vehicle) objects via object_iterator_next, testing weapon-mode byte +0x2a3 for '!' with an extra condition on +0x28d, or modes 0x18/0x19 with a clear bit of +0x298.",
+      "prototype": "",
+      "summary": "Scans all units for one that is dead (with a specific sub-state) or currently entering/exiting a seat, returning true if any match."
+    },
+    {
+      "addr": "0x56c100",
+      "name": "unit_point_within_view_cone",
+      "confidence": 0.4,
+      "evidence": "Normalizes the direction from the unit to an implicit point (unaff_EDI) via vector3d_normalize_with_length, then compares cos(param_1) against the dot product with the unit's forward vector (+0x260..0x268).",
+      "prototype": "",
+      "summary": "Returns whether a given world point lies within a cone of half-angle param_1 around the unit's forward direction."
+    },
+    {
+      "addr": "0x56c1d0",
+      "name": "unit_flag_zone_seat_owners",
+      "confidence": 0.3,
+      "evidence": "Same zone-list walk pattern as FUN_0056b290 but sets one of two alternate flag bits (0x20000000 or 0x10000000, chosen by param_1) on the seated object's +0x204 field.",
+      "prototype": "",
+      "summary": "Iterates a zone/player-indexed list of seat markers and sets one of two alternate flag bits on each seated unit depending on param_1."
+    },
+    {
+      "addr": "0x56c2f0",
+      "name": "unit_get_current_seat_name",
+      "confidence": 0.4,
+      "evidence": "If the unit has a valid parent (+0x11c) and seat marker index (+0x2f0), returns the marker's name string from the parent's tag marker list; otherwise indexes PTR_DAT_0069fde4 (a string table) by a weapon-mode-derived byte at +0x2a7.",
+      "prototype": "",
+      "summary": "Returns the name of the seat/marker the unit currently occupies, or a default state-name string if it has no parent."
+    },
+    {
+      "addr": "0x56c370",
+      "name": "unit_scripting_send_local_event",
+      "confidence": 0.3,
+      "evidence": "Looks up a hash_table_get() result, packs it with a byte parameter into an array, and calls FUN_004ec940 (script dispatch, id 9) then conditionally FUN_004e1a80 referencing DAT_00871de0.",
+      "prototype": "",
+      "summary": "Dispatches a local scripted event (id 9) built from a hashed lookup value and a byte parameter, and on success forwards it through FUN_004e1a80."
+    },
+    {
+      "addr": "0x56c400",
+      "name": "unit_dispatch_local_or_network_seat_change",
+      "confidence": 0.25,
+      "evidence": "Branches on whether *(int*)*in_EAX is zero, calling either FUN_004ec590 plus a lookup into PTR_DAT_00687130+0x28 leading to FUN_0056c470/FUN_0056c640, or FUN_004ec670 for the non-zero case.",
+      "prototype": "",
+      "summary": "Dispatches to either a local seat-exit handler or a network handler depending on a flag read from the object pointed to by in_EAX."
+    },
+    {
+      "addr": "0x56c440",
+      "name": "unit_scripting_exit_vehicle",
+      "confidence": 0.3,
+      "evidence": "Body is only `if (in_AL=='\\0') FUN_0056c640(); return;` where FUN_0056c640 performs a parent/seat detach (matrix4x3_multiply against a seat marker, clearing occupant-tracking fields); nothing here is camera-related, so the prior name 'unit_get_camera_position' is not supported by the code and has been replaced.",
+      "prototype": "",
+      "summary": "Conditionally detaches the unit from its current parent/seat (via FUN_0056c640) when the flag in_AL is clear; despite its previous name this has no visible connection to camera positioning."
+    },
+    {
+      "addr": "0x56c470",
+      "name": "unit_try_exit_seat_return_status",
+      "confidence": 0.4,
+      "evidence": "Near-duplicate of FUN_0056b5f0's animated-exit branch (object_try_and_get(3), weapon-mode byte set to 0x1b, FUN_0042c370, FUN_0056ab10, FUN_0056c370(0)), but returns a boolean success flag instead of void.",
+      "prototype": "",
+      "summary": "Attempts to start the controlled unit's seat-exit animation sequence, returning whether the exit was actually initiated."
+    },
+    {
+      "addr": "0x56c640",
+      "name": "unit_detach_from_parent",
+      "confidence": 0.45,
+      "evidence": "Full body reviewed via pack.py: reads the unit's parent object (+0x47) and seat marker index (+0xbc), computes the seat marker's world transform via FUN_004f6080 and matrix4x3_multiply, repositions the unit, clears occupant-tracking fields (0xc9/0xca/0xcb/0xcc), resets the seat index to -1 and mode byte (+0x2a7) to 2, then refreshes bounding radius and occupant tracking via FUN_0056ce30/FUN_0056d6a0.",
+      "prototype": "",
+      "summary": "Detaches a unit from the parent object/seat it is currently attached to, repositioning it in world space at the seat's exit marker and clearing all seat-occupancy bookkeeping."
+    },
+    {
+      "addr": "0x56ca40",
+      "name": "unit_step_toward_look_target",
+      "confidence": 0.35,
+      "evidence": "Computes a direction from the unit's current position to an implicit look-at target via object_get_position, normalizes it (vector3d_normalize_with_length), falls back to a stored direction at +0x74..0x7c if zero-length, then blends it into fields +0x68..0x70 at a 0.02 rate and clears targeting flags on +0x204/+0x10.",
+      "prototype": "",
+      "summary": "Smoothly steers the unit's stored aim/look direction toward a target position each tick, updating the corresponding accumulator fields and clearing related state flags."
+    },
+    {
+      "addr": "0x56cc10",
+      "name": "unit_is_object_seated_at",
+      "confidence": 0.4,
+      "evidence": "Scans all objects via object_iterator_next looking for one whose parent (+0x11c) and seat index (+0x2f0) equal the implicit unaff_EDI/unaff_SI pair.",
+      "prototype": "",
+      "summary": "Returns whether any object is currently seated at the given parent/seat-index pair."
+    },
+    {
+      "addr": "0x56cc80",
+      "name": "unit_any_seat_occupied",
+      "confidence": 0.4,
+      "evidence": "Iterates the unit's seat/marker list (tag +0x2e8, count +0x2e4), and for any seat whose flags byte has bit 2 set, calls FUN_0056cc10 to test occupancy.",
+      "prototype": "",
+      "summary": "Returns whether any of the unit's flagged seats currently has an occupant."
+    },
+    {
+      "addr": "0x56cd10",
+      "name": "unit_seat_flag_bit2",
+      "confidence": 0.3,
+      "evidence": "Returns bit 2 (>>2) of the seat definition flags dword for seat index in_CX from the unit's marker list, or 0 if out of range.",
+      "prototype": "",
+      "summary": "Returns a specific flag bit (bit 2) from the definition of the unit's seat at index in_CX."
+    },
+    {
+      "addr": "0x56cd70",
+      "name": "unit_seat_flag_bit3",
+      "confidence": 0.3,
+      "evidence": "Identical structure to FUN_0056cd10 but shifts the flags dword by 3 instead of 2.",
+      "prototype": "",
+      "summary": "Returns flag bit 3 from the unit's seat definition at index in_CX."
+    },
+    {
+      "addr": "0x56cdd0",
+      "name": "unit_seat_flag_bit10",
+      "confidence": 0.3,
+      "evidence": "Identical structure to FUN_0056cd10/FUN_0056cd70 but shifts the flags dword by 10.",
+      "prototype": "",
+      "summary": "Returns flag bit 10 from the unit's seat definition at index in_CX."
+    },
+    {
+      "addr": "0x56ce30",
+      "name": "unit_update_seat_occupant_tracking",
+      "confidence": 0.4,
+      "evidence": "Walks the unit's child-object list (+0x46 first-child, +0x114 next-sibling), and for each valid biped/vehicle child seated at a marker whose flags include bits 4/8, updates the parent's primary/secondary occupant fields (+0xc9/+0xca).",
+      "prototype": "",
+      "summary": "Recomputes which child object occupies the unit's primary and secondary tracked seats (fields 0xc9/0xca) by scanning its list of attached children."
+    },
+    {
+      "addr": "0x56d070",
+      "name": "unit_inventory_get_weapon",
+      "confidence": 0.4,
+      "evidence": "Body is a no-op (`return;`), so the existing non-FUN_ name cannot be confirmed from the code, but nothing contradicts it either.",
+      "prototype": "",
+      "summary": "Empty stub; performs no operation in this build."
+    },
+    {
+      "addr": "0x56d080",
+      "name": "unit_grow_grenade_count",
+      "confidence": 0.3,
+      "evidence": "Looks up a grenade-type index (+0x30a) and a per-type max-count table (DAT_00746fa0+300); if the unit's current count (+0x31e array) is below the max, increments it, sets flag bit 0x4000000 on +0x10, and refreshes UI via FUN_004bbb50/FUN_004f5bd0.",
+      "prototype": "",
+      "summary": "Attempts to give the unit one more grenade of its currently selected type, up to the type's maximum, updating related UI/HUD state."
+    },
+    {
+      "addr": "0x56d160",
+      "name": "unit_adjust_seat_label_count",
+      "confidence": 0.35,
+      "evidence": "Adds param_1 to the byte at object+0x31e+in_DX (per-label usage count), records in_DX as the last-touched label in +0x31c/+0x31d, and returns the new count.",
+      "prototype": "",
+      "summary": "Adjusts the occupancy/usage count for seat label in_DX by param_1 and records it as the most recently touched label."
+    },
+    {
+      "addr": "0x56d1a0",
+      "name": "unit_switch_grenade_type",
+      "confidence": 0.3,
+      "evidence": "If a different secondary-item index is already selected (+0x318) and param_3==1, releases it via FUN_004f5bd0; otherwise selects param_2 as the new one (+0x318), refreshing light attachments and UI (object_for_each_light_attachment, FUN_004bbb50, FUN_004bcfc0).",
+      "prototype": "",
+      "summary": "Switches the unit's currently selected secondary item (e.g. grenade type) to param_2 if none is already selected, releasing the previous selection when requested."
+    },
+    {
+      "addr": "0x56d2c0",
+      "name": "unit_clear_selected_grenade_type",
+      "confidence": 0.3,
+      "evidence": "If +0x318 is set, calls FUN_0056ed00 and then clears it to -1; complements FUN_0056d1a0's selection logic.",
+      "prototype": "",
+      "summary": "Clears the unit's currently selected secondary item field, releasing it first via FUN_0056ed00."
+    },
+    {
+      "addr": "0x56d300",
+      "name": "unit_release_selected_item",
+      "confidence": 0.3,
+      "evidence": "Reads the +0x318 selection field, looks up its object type (offset+4) and dispatches to FUN_004f5aa0 (type 0) or FUN_004f59d0 (type 3), then clears +0x318.",
+      "prototype": "",
+      "summary": "Releases the unit's currently selected secondary item by dispatching to a type-specific release routine, then clears the selection."
+    },
+    {
+      "addr": "0x56d360",
+      "name": "unit_release_all_weapons_except_current",
+      "confidence": 0.35,
+      "evidence": "Iterates the 4-slot weapon array at +0x2f8, and for each valid slot other than the current one (+0x2f2), dispatches to FUN_004f5aa0/FUN_004f59d0 by object type, clears +0x2f4/+0x2f2 references, and removes the slot entry.",
+      "prototype": "",
+      "summary": "Releases every weapon in the unit's inventory except the currently equipped one, clearing the corresponding slot and any next/desired-weapon references to it."
+    },
+    {
+      "addr": "0x56d400",
+      "name": "unit_pick_up_weapon",
+      "confidence": 0.4,
+      "evidence": "Gets the controlled unit(s) via object_try_and_get(3/4), checks a pick-up-request flag on +0x10 (bit 0x800) with no current parent, tests eligibility via FUN_0056da00/FUN_00462000, finds a free inventory slot via FUN_0056d660, stores the picked-up object's index, detaches its light attachments, and optionally makes it the current/desired weapon.",
+      "prototype": "",
+      "summary": "Handles a unit picking up a nearby weapon object into a free inventory slot, updating attachment/physics state and optionally switching to it immediately."
+    },
+    {
+      "addr": "0x56d610",
+      "name": "unit_inventory_contains_weapon_type",
+      "confidence": 0.35,
+      "evidence": "Scans the unit's 4 weapon slots, comparing each weapon object's type tag (first dword) against an implicit type value (unaff_EBX).",
+      "prototype": "",
+      "summary": "Returns whether the unit currently carries a weapon of the given type in any inventory slot."
+    },
+    {
+      "addr": "0x56d660",
+      "name": "unit_find_free_weapon_slot",
+      "confidence": 0.45,
+      "evidence": "Scans the 4-slot weapon array at +0x2f8 for the first entry equal to -1, returning its index or an out-of-range value (4) if none is free.",
+      "prototype": "",
+      "summary": "Returns the index of the first empty weapon inventory slot, or an invalid index if the unit's inventory is full."
+    },
+    {
+      "addr": "0x56d6a0",
+      "name": "unit_update_desired_weapon",
+      "confidence": 0.4,
+      "evidence": "Recomputes the 'next weapon' slot via FUN_0056dba0 starting from the current slot (+0x2f2), stores it at +0x2f4, then calls FUN_0056d6e0 (the weapon-switch routine).",
+      "prototype": "",
+      "summary": "Recomputes which inventory slot should become the unit's next weapon and triggers the weapon-switch routine."
+    },
+    {
+      "addr": "0x56d6e0",
+      "name": "unit_ready_desired_weapon",
+      "confidence": 0.6,
+      "evidence": "Matches the 'unit_ready_desired_weapon' naming hint; holsters the current weapon (index from the +0x2f2 slot) if FUN_004c28f0 permits, then equips the desired weapon (+0xbd-derived index), falling back to the \"unarmed\" string via FUN_0056c2f0/FUN_005651e0 when no weapon is available.",
+      "prototype": "",
+      "summary": "Switches the unit from its current weapon to its desired inventory slot (or to being unarmed if none is available), updating attachment and animation state accordingly."
+    },
+    {
+      "addr": "0x56d990",
+      "name": "unit_count_deployed_weapons",
+      "confidence": 0.35,
+      "evidence": "Iterates the 4-slot weapon array, counting entries whose object's tag flags (+0x308) do not have bit 0x10 set.",
+      "prototype": "",
+      "summary": "Counts how many of the unit's carried weapons are not marked with the 0x10 'undeployed' flag."
+    },
+    {
+      "addr": "0x56da00",
+      "name": "unit_weapon_permitted_in_zone",
+      "confidence": 0.35,
+      "evidence": "Gets the unit's seat-name string via FUN_0056c2f0 and compares it (via FUN_005651e0) against a permitted-weapons string table entry (+0x30c on the object's tag data); on success optionally forwards through a script callback at DAT_006f1d20+0x60.",
+      "prototype": "",
+      "summary": "Checks whether the unit's current seat allows using its equipped weapon, consulting an optional scripted permission callback."
+    },
+    {
+      "addr": "0x56da80",
+      "name": "unit_inventory_has_other_of_same_type",
+      "confidence": 0.3,
+      "evidence": "Scans the unit's 4 weapon slots, clearing a 'true' result bit if any slot's weapon shares the same object type as an implicit reference object (in_EAX).",
+      "prototype": "",
+      "summary": "Returns whether the unit's inventory does NOT already contain another weapon of the same type as a given reference object."
+    },
+    {
+      "addr": "0x56dae0",
+      "name": "unit_current_weapon_best_by_field",
+      "confidence": 0.3,
+      "evidence": "Iterates the 4-slot weapon array comparing each weapon's type (first dword) and a float score field (+0x90) against a reference object, used to determine ordering/priority among same-type weapons.",
+      "prototype": "",
+      "summary": "Compares a reference weapon against every weapon the unit carries of the same type, checking whether it is the current weapon and has the lowest score field."
+    },
+    {
+      "addr": "0x56dba0",
+      "name": "unit_find_next_valid_weapon_slot",
+      "confidence": 0.4,
+      "evidence": "Walks the 4-slot weapon array cyclically from param_1 in the direction given by param_2's sign, using FUN_0056da00 (zone-permission test) to validate each candidate and a flags bit (>>3 & 1) on the object's tag data to force an early return.",
+      "prototype": "",
+      "summary": "Finds the next valid, zone-permitted weapon inventory slot starting from param_1, searching forward or backward depending on param_2."
+    },
+    {
+      "addr": "0x56dcd0",
+      "name": "unit_scripting_send_weapon_event",
+      "confidence": 0.3,
+      "evidence": "Mirrors FUN_0056c370's hash_table_get + FUN_004ec940 (script dispatch, id 0x1b) pattern but also passes a hashed value derived from the unit's currently equipped weapon slot (+0x2f2/+0x2f8), then forwards via FUN_004e1a80.",
+      "prototype": "",
+      "summary": "Dispatches a scripted event (id 0x1b) that includes hashed identifiers for both the unit and its currently equipped weapon."
+    }
+  ]
+}

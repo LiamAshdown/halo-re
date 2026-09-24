@@ -1,0 +1,484 @@
+{
+  "results": [
+    {
+      "addr": "0x548590",
+      "name": "sound_set_master_gain",
+      "confidence": 0.4,
+      "evidence": "DAT_007252ac is the only gain multiplied into every branch of FUN_0054b100's per-class gain lookup; this setter uses the same zero-crossing hysteresis pattern as the confirmed sound_set_music_gain/sound_set_effects_gain siblings.",
+      "prototype": "",
+      "summary": "Sets the global master sound gain (DAT_007252ac) with pop-avoidance hysteresis around silence, flushing cached sounds via FUN_0054adb0/FUN_0054c900 when it changes."
+    },
+    {
+      "addr": "0x548680",
+      "name": "sound_set_music_gain",
+      "confidence": 0.6,
+      "evidence": "Same hysteresis pattern as sound_set_effects_gain, but the 51-entry sound_class table walk compares each class name to the literal string \"music\" (FUN_00625430(name,\"music\")) to flag that one class muted/unmuted.",
+      "prototype": "",
+      "summary": "Sets the music sound-class gain (DAT_007252a8), toggling a per-class mute flag for the \"music\" sound_class when the gain crosses zero."
+    },
+    {
+      "addr": "0x5487b0",
+      "name": "sound_set_effects_gain",
+      "confidence": 0.9,
+      "evidence": "Already non-FUN named; string list (sound_class_weapon_ready, sound_class_footstep, sound_class_vehicle_engine, ...) is the bulk of Halo's sound_class enum, and it sets DAT_007252b0 which FUN_0054b100 uses as the default per-class gain multiplier.",
+      "prototype": "",
+      "summary": "Sets the effects sound gain (DAT_007252b0), refreshing per-sound_class mute flags for every effects-related class name."
+    },
+    {
+      "addr": "0x5492f0",
+      "name": "sound_initialize",
+      "confidence": 0.9,
+      "evidence": "Already non-FUN named; strings \"sounds\"/\"looping sounds\" match the two data_new() allocations, and it seeds the four gain globals (a4/a8/ac/b0) to 1.0 exactly as the gain setters expect.",
+      "prototype": "",
+      "summary": "Allocates the sounds/looping-sounds datum tables, resets the four gain sliders to 1.0, and opens the sound device via its driver vtable."
+    },
+    {
+      "addr": "0x5494a0",
+      "name": "sound_reinitialize",
+      "confidence": 0.4,
+      "evidence": "Stops every currently cached sound via the same FUN_004d0630/FUN_0054b180 loop as sound_stop_all-style cleanup, then calls the driver vtable at +8 (shutdown) then +4(param_1) (reopen), and rebuilds the looping-sound pitch-range slot table exactly like sound_initialize.",
+      "prototype": "",
+      "summary": "Stops all playing sounds and reopens the sound device with a new parameter, re-seeding the looping-sound slot table on success."
+    },
+    {
+      "addr": "0x5495f0",
+      "name": "sound_restore_device",
+      "confidence": 0.3,
+      "evidence": "Guarded by the same DAT_00725200/DAT_00725201/DAT_007252b6 active-flags used elsewhere; fades out cached sounds (FUN_0054af60 gain 0.3), spins on QueryPerformanceCounter for up to 300ms pumping FUN_00549960, then clears DAT_00725202 (the same flag FUN_00549810 sets to 1 on focus loss) and calls the driver vtable at +0x28(0).",
+      "prototype": "",
+      "summary": "Waits (up to 300ms) for the sound device to become available again after a focus/device-lost state, then clears the lost-focus flag and resumes."
+    },
+    {
+      "addr": "0x549760",
+      "name": "sound_dispose",
+      "confidence": 0.55,
+      "evidence": "Releases the device via the driver vtable +8, then GlobalFree()s DAT_007252c0/DAT_00724a50 (the \"sounds\"/\"looping sounds\" tables allocated by sound_initialize via data_new) plus DAT_006ac528/DAT_006ac530, the classic mirror-image teardown of sound_initialize.",
+      "prototype": "",
+      "summary": "Shuts down the sound device and frees all sound/looping-sound/cache-file tables allocated by sound_initialize."
+    },
+    {
+      "addr": "0x549810",
+      "name": "sound_update",
+      "confidence": 0.5,
+      "evidence": "Runs once per call, detects audio-focus loss (DAT_006f1d6c/DAT_006b7020/DAT_006f1d20) toggling DAT_00725202 and the driver vtable +0x28, then every ~32ms (DAT_0072520c delta > 0x20) drives the listener update (FUN_0054b970), looping-sound maintenance (FUN_0054d270/FUN_0054bd60/FUN_0054c020) and the per-instance gain pass (FUN_0054c900).",
+      "prototype": "",
+      "summary": "Per-tick sound system update: handles focus loss/regain and, at a fixed cadence, updates the 3D listener, looping sounds, channel assignment and instance gains."
+    },
+    {
+      "addr": "0x549960",
+      "name": "sound_update_idle",
+      "confidence": 0.3,
+      "evidence": "Mirrors the timed body of sound_update (FUN_0054ae60 clock tick, threshold 0x20, conditional FUN_0054c900) but skips the listener/looping maintenance calls; used as the pump callback inside sound_restore_device's wait loop, guarded by the reentrancy flag DAT_00725203.",
+      "prototype": "",
+      "summary": "Lightweight per-tick sound update (clock + instance gain pass only) used while waiting for the device to resume."
+    },
+    {
+      "addr": "0x549af0",
+      "name": "sound_play_new",
+      "confidence": 0.4,
+      "evidence": "Allocates a new entry in the \"sounds\" datum table via datum_new, copies the caller's sound-reference struct (param_2) and extra scripted-parameter bytes (param_4/5/6) into it, computes a randomized gain via FUN_0054aec0, and recurses into a \"promotion\" sound tag (iVar1+0x7c) when FUN_0054b050's play-budget check returns 1.",
+      "prototype": "",
+      "summary": "Creates a new playing-sound datum entry for a sound tag reference, applying pitch-range selection, randomized gain and a recent-play throttle, recursing through promotion/random-permutation sounds as needed."
+    },
+    {
+      "addr": "0x549ee0",
+      "name": "sound_on_resource_loaded",
+      "confidence": 0.3,
+      "evidence": "Validates a packed (generation<<16|index) pitch-range handle against the same DAT_007252c0 table layout used by FUN_0054adb0/FUN_0054b180, and if the entry's playback-state field is still 0 (not started) triggers the FUN_0054af60 gain-fade scheduler used elsewhere to bring a newly-available sound in.",
+      "prototype": "",
+      "summary": "Validates a pitch-range handle and, if the sound has not started playing yet, schedules its initial gain fade-in."
+    },
+    {
+      "addr": "0x549f50",
+      "name": "sound_looping_sync_buffer_flag",
+      "confidence": 0.3,
+      "evidence": "Looks up a looping-sound datum via FUN_0054e5d0(param_1) (the same by-reference lookup used by FUN_0054d9f0) and writes the current double-buffer flag DAT_00725214 into its offset+0x4c byte, the same field FUN_0054d270 sets during its per-tick pass.",
+      "prototype": "",
+      "summary": "Finds a looping-sound datum by reference and stamps it with the current double-buffer flag, when the sound system is active."
+    },
+    {
+      "addr": "0x549fa0",
+      "name": "sound_looping_set_state",
+      "confidence": 0.5,
+      "evidence": "Ends by writing param_2 into the datum's +0x52 state field and param_3 into +0x4d before returning false; walks the object's predicted-resource chain evicting stale cache entries (cache_evict_entry) exactly like the other looping-sound maintenance functions in this file.",
+      "prototype": "",
+      "summary": "Sets the playback state/immediate flag on a looping-sound datum for an object, evicting cached resources for permutations that are no longer needed."
+    },
+    {
+      "addr": "0x54adb0",
+      "name": "sound_flush_all_sounds",
+      "confidence": 0.4,
+      "evidence": "Iterates every entry of the \"sounds\" datum table via FUN_004d0630/FUN_0054b180 (the confirmed per-instance stop routine) until none remain, then calls data_delete_all and the driver vtable at +0x2c; used by the gain setters whenever a category's gain crosses to/from silence.",
+      "prototype": "",
+      "summary": "Stops every currently playing sound and resets the sound datum table, used when a gain slider transitions across silence or on shutdown."
+    },
+    {
+      "addr": "0x54ae60",
+      "name": "sound_update_clock",
+      "confidence": 0.5,
+      "evidence": "Reads QueryPerformanceCounter, converts it to milliseconds via __allmul/__alldiv against DAT_006ac8f8/DAT_006ac8fc, updates DAT_0072520c (current tick) and derives DAT_00725210 = delta*0.03, a weight consumed by FUN_0054bd60 and FUN_0054d020's crossfade math.",
+      "prototype": "",
+      "summary": "Advances the sound engine's millisecond clock and computes the per-tick blend weight used by crossfade/ducking calculations."
+    },
+    {
+      "addr": "0x54aec0",
+      "name": "sound_compute_random_gain",
+      "confidence": 0.4,
+      "evidence": "Combines a random value derived from DAT_00719cd4 (the same LCG-style RNG state used across this module) with two interpolation pairs (param_1/param_2 and param_3/param_4 lerped by param_5); called from FUN_00549af0 with a sound tag's random-gain-modifier bounds and its near/far attenuation gains.",
+      "prototype": "double __cdecl sound_compute_random_gain(float param_1, float param_2, float param_3, float param_4, float param_5)",
+      "summary": "Computes a randomized playback gain by combining a random-gain-modifier range with a distance-interpolated attenuation gain."
+    },
+    {
+      "addr": "0x54af10",
+      "name": "sound_object_can_play",
+      "confidence": 0.35,
+      "evidence": "Checks that the object's predicted-resource block (offset 0x98/0x9c+0x3c) has loaded permutations and that the per-sound_class mute-flag array (DAT_0069eb08, the same table the gain setters write into) is clear for the object's class before returning true.",
+      "prototype": "",
+      "summary": "Returns whether an object has loaded sound permutations for a sound class that is not currently muted."
+    },
+    {
+      "addr": "0x54af60",
+      "name": "sound_fade_gain",
+      "confidence": 0.45,
+      "evidence": "Writes start-tick/target-tick/target-gain fields onto up to two pitch-range slot entries in the \"sounds\" datum table (via DAT_007252c0's layout), using DAT_0072520c/FUN_006391b4 for the timing window; called throughout the module with fixed gain deltas such as 0.3, 0.5 and 2.0.",
+      "prototype": "",
+      "summary": "Schedules a smooth gain transition on one or two pitch-range playback slots over a short time window."
+    },
+    {
+      "addr": "0x54b050",
+      "name": "sound_check_recent_play_limit",
+      "confidence": 0.4,
+      "evidence": "Tracks a decaying usage accumulator (offset+0x88) against a per-object play-count/interval budget (+0x80,+0x84) using the sound clock (DAT_0072520c); its 0/1/2 result directly drives FUN_00549af0's decision to play normally, recurse into a promotion sound, or refuse.",
+      "prototype": "",
+      "summary": "Rate-limits how often a sound on an object may be (re)triggered, returning whether to play, substitute a promotion sound, or refuse."
+    },
+    {
+      "addr": "0x54b100",
+      "name": "sound_compute_class_gain",
+      "confidence": 0.5,
+      "evidence": "Selects a per-sound_class base value from table DAT_00746140 indexed by in_AX, then multiplies by different combinations of the four gain sliders (DAT_007252a4/a8/ac/b0) depending on the class value, mirroring exactly which slider each of the earlier gain setters writes.",
+      "prototype": "",
+      "summary": "Looks up a sound class's base gain and scales it by the appropriate combination of master/music/effects gain sliders."
+    },
+    {
+      "addr": "0x54b180",
+      "name": "sound_instance_stop",
+      "confidence": 0.55,
+      "evidence": "Releases every cached predicted-resource entry belonging to the instance (repeated cache_evict_entry calls guarded by the DAT_006ac528 refcount table), clears its pitch-range slot, and finishes with datum_delete(), matching the stop semantics used by every caller in this file (sound_stop_all, sound_flush_all_sounds, etc.).",
+      "prototype": "",
+      "summary": "Stops a single playing-sound datum, evicting its cached permutation data and deleting its datum entry."
+    },
+    {
+      "addr": "0x54b970",
+      "name": "sound_update_listener",
+      "confidence": 0.55,
+      "evidence": "Computes the local player/camera transform (matrix4x3_inverse_transform_vector, FUN_004cb970), triggers a scripted enter/exit sound (FUN_00549af0) when a boolean state (FUN_0053ed60) changes, then packs right/up/forward/position vectors and calls the driver vtable at +0xc, the classic DirectSound3D SetListener signature.",
+      "prototype": "",
+      "summary": "Recomputes the 3D audio listener's orientation and position from the local player/camera each update and pushes it to the sound driver."
+    },
+    {
+      "addr": "0x54bb20",
+      "name": "sound_find_distance_bucket",
+      "confidence": 0.35,
+      "evidence": "Dispatches on a predicted-resource type field (0/2/other) to FUN_0054bbd0's squared-distance evaluation and FUN_00544aa0, returning a pitch-range/cluster bucket index or -1; consumed wherever a positional sound needs a spatial zone assigned.",
+      "prototype": "",
+      "summary": "Selects the nearest spatial (cluster/portal) bucket for a sound instance based on distance."
+    },
+    {
+      "addr": "0x54bbd0",
+      "name": "sound_distance_squared_to_cluster",
+      "confidence": 0.4,
+      "evidence": "Reads a cluster/portal position from the parallel arrays DAT_00725244/DAT_00725248/DAT_0072524c indexed by param_1 and returns the squared distance to a target position stored in the in_ECX struct.",
+      "prototype": "",
+      "summary": "Computes the squared distance from a target position to a numbered spatial cluster/portal position."
+    },
+    {
+      "addr": "0x54bc50",
+      "name": "sound_distance_to_cluster",
+      "confidence": 0.4,
+      "evidence": "Identical layout to FUN_0054bbd0 but wraps the sum in SQRT, i.e. the real-distance counterpart used where an actual (not squared) distance is required.",
+      "prototype": "",
+      "summary": "Computes the real distance from a target position to a numbered spatial cluster/portal position."
+    },
+    {
+      "addr": "0x54bcd0",
+      "name": "sound_try_load_pending_resource",
+      "confidence": 0.4,
+      "evidence": "Checks a \"not yet loaded\" flag bit and a non-null loader callback pointer at offset+0x10, invokes it once the object's predicted deadline (offset+0x84) has passed, and clears the callback on failure unless overridden by per-sound_class flags.",
+      "prototype": "",
+      "summary": "Invokes a pending predicted-resource load callback for a pitch-range slot once its scheduled time has arrived, clearing it on failure."
+    },
+    {
+      "addr": "0x54bd60",
+      "name": "sound_update_ducking_gain",
+      "confidence": 0.35,
+      "evidence": "Walks the active-slot table processing pending loads (FUN_0054bcd0) and pitch buckets (FUN_0054bb20), then ramps _DAT_007252a4 toward a target (_DAT_006893d4 when a music-class instance -0x2c/0x2e/0x2f- is present, otherwise 1.0) with a clamped step of DAT_00725210*0.03 or *0.007, matching a classic volume-ducking envelope.",
+      "prototype": "",
+      "summary": "Processes pending pitch-range loads and gradually ducks/restores the shared game-sound gain depending on whether music-class sounds are active."
+    },
+    {
+      "addr": "0x54c020",
+      "name": "sound_assign_channels",
+      "confidence": 0.4,
+      "evidence": "For each active \"sounds\" datum whose predicted start time has arrived, either releases it (FUN_0054b180) when no playback resource was allocated in time, or calls FUN_0054c2f0 to pick/steal a pitch-range channel and installs the instance into it (&DAT_00724a60)[slot]=handle.",
+      "prototype": "",
+      "summary": "Per-tick pass that assigns newly-due sound instances to pitch-range playback channels, stealing or releasing channels as needed."
+    },
+    {
+      "addr": "0x54c1d0",
+      "name": "sound_gather_channel_candidates",
+      "confidence": 0.35,
+      "evidence": "Scans the active pitch-range channel table (DAT_00724a60/DAT_00724a64, count DAT_007252b4), using FUN_00548520 to match against the target sound's tag/permutation class, and builds two output index lists (general matches and exact-tag matches) into the caller's buffer.",
+      "prototype": "",
+      "summary": "Builds a list of active playback channels that match a candidate sound's class/tag, for channel-replacement decisions."
+    },
+    {
+      "addr": "0x54c2f0",
+      "name": "sound_choose_channel",
+      "confidence": 0.35,
+      "evidence": "Uses FUN_0054c1d0's candidate lists, then FUN_0054c5e0 to find one that has played long enough to preempt, falling back to FUN_0054c440's priority-based steal search when no free channel exists.",
+      "prototype": "",
+      "summary": "Chooses (or steals) a pitch-range playback channel for a new sound instance to occupy."
+    },
+    {
+      "addr": "0x54c440",
+      "name": "sound_choose_channel_to_steal",
+      "confidence": 0.35,
+      "evidence": "Iterates all active channels (DAT_007252b4 count) filtering by per-channel category bit flags (DAT_00724a64) matched against the candidate's predicted-resource flags, and uses FUN_0054c6b0's priority/distance comparison to pick the least important one to reuse.",
+      "prototype": "",
+      "summary": "Finds the lowest-priority currently-playing channel eligible to be reused by a new sound instance."
+    },
+    {
+      "addr": "0x54c5e0",
+      "name": "sound_find_replaceable_channel",
+      "confidence": 0.35,
+      "evidence": "Given a candidate index list (param_1,param_2) it looks for one whose elapsed play time already exceeds the class's minimum-replace-interval (DAT_0069eae4 keyed by class) and whose distance is within 1.0 of the new sound's, returning that channel or 0xffff.",
+      "prototype": "",
+      "summary": "Picks a candidate playback channel that has played long enough and is close enough in distance to be safely replaced."
+    },
+    {
+      "addr": "0x54c6b0",
+      "name": "sound_channel_priority_compare",
+      "confidence": 0.35,
+      "evidence": "Compares the per-sound_class priority values (table DAT_0069eaea, indexed like the other 51-entry class tables) of two channels, falling back to a distance comparison via FUN_0054bbd0 when priorities tie.",
+      "prototype": "",
+      "summary": "Compares two playback channels by sound-class priority (and distance as a tiebreaker) to decide which is more important."
+    },
+    {
+      "addr": "0x54c750",
+      "name": "sound_apply_instant_gain",
+      "confidence": 0.4,
+      "evidence": "Computes final gain via FUN_0054b100 and the sound tag's near/far attenuation curve, then either starts playback through the DAT_006e36cc listener callback and FUN_0054cd30 (first play, slot+0x8c==-1) or updates an already-playing one-shot instance through the driver vtable at +0x1c.",
+      "prototype": "",
+      "summary": "Computes and applies the current gain for a non-looping (one-shot) playing sound instance, starting or updating its driver voice."
+    },
+    {
+      "addr": "0x54c900",
+      "name": "sound_update_active_instances",
+      "confidence": 0.5,
+      "evidence": "Iterates every active pitch-range channel (DAT_007252b4 count), recomputes 3D-relative gain/position via the matrix4x3_inverse_transform_* helpers and FUN_0054e3c0's fade curve, dispatches to FUN_0054c750/FUN_0054deb0 depending on looping flag, and frees channels whose fade has reached zero via FUN_0054b180.",
+      "prototype": "",
+      "summary": "Per-tick update of every active playback channel: repositions/attenuates it in 3D, applies gain via the instant or looping gain path, and retires finished channels."
+    },
+    {
+      "addr": "0x54cd30",
+      "name": "sound_channel_release_buffer",
+      "confidence": 0.35,
+      "evidence": "Decrements the refcount byte of the channel's cached detail-sound entry (DAT_006ac528 table, same refcount pattern used in cache_evict_entry call sites), then calls the driver vtable at +0x18 and updates the channel's DAT_00724a70/74/68 bookkeeping fields.",
+      "prototype": "",
+      "summary": "Releases a playback channel's cached detail-sound reference and notifies the sound driver."
+    },
+    {
+      "addr": "0x54cda0",
+      "name": "sound_gain_to_volume_units",
+      "confidence": 0.3,
+      "evidence": "Converts a linear gain via log2() and an FPU-to-int helper (FUN_006391b4) into an integer volume unit, clamped between a caller-supplied minimum (unaff_ESI) and param_2; the same conversion, with a fixed -10000 minimum, reappears as FUN_0054ee70.",
+      "prototype": "",
+      "summary": "Converts a linear gain value into a clamped logarithmic (DirectSound-style) volume unit."
+    },
+    {
+      "addr": "0x54cdf0",
+      "name": "sound_apply_volume_curve",
+      "confidence": 0.35,
+      "evidence": "Treats param_1 == -10000 (DirectSound's DSBVOLUME_MIN silence sentinel, the exact value FUN_0054ee70 returns on failure) as a passthrough, otherwise evaluates FUN_006283c0 and clamps the result between param_2 and param_3.",
+      "prototype": "",
+      "summary": "Evaluates a volume curve for a given attenuation value, passing silence through unchanged and clamping the result to a min/max range."
+    },
+    {
+      "addr": "0x54d020",
+      "name": "sound_channel_release_detail_sound",
+      "confidence": 0.3,
+      "evidence": "Uses the driver vtable at +0x24 (active-voice count) to decide whether to release the channel's detail-sound cache references (DAT_00724a70/74, same refcount pattern as FUN_0054cd30) and accumulates DAT_00725210-weighted time into DAT_00724a68.",
+      "prototype": "",
+      "summary": "Releases a channel's cached detail-sound buffers once the driver's active voice budget requires it, and accumulates its play-time weight."
+    },
+    {
+      "addr": "0x54d0d0",
+      "name": "sound_channel_stop",
+      "confidence": 0.35,
+      "evidence": "Releases the two cached detail-sound refcounts (DAT_00724a74/DAT_00724a70, DAT_006ac528 table) for the given channel index and calls the driver vtable at +0x20, the same slot pattern used to halt a voice.",
+      "prototype": "",
+      "summary": "Releases a channel's cached detail-sound references and stops its driver voice."
+    },
+    {
+      "addr": "0x54d140",
+      "name": "sound_looping_state_new",
+      "confidence": 0.35,
+      "evidence": "Allocates a new entry via datum_new keyed by (object index, param_2), seeded with a per-permutation random value array from FUN_006391b4/DAT_00719cd4; used by sound_looping_set_state as the fallback path when no existing state datum is found.",
+      "prototype": "",
+      "summary": "Allocates a new looping-sound state datum for an object/sound pair, seeding its per-permutation random selection values."
+    },
+    {
+      "addr": "0x54d270",
+      "name": "sound_looping_update",
+      "confidence": 0.4,
+      "evidence": "Iterates every looping-sound state datum (DAT_00724a50 table), and per-permutation whose scheduled time (DAT_0072520c) has arrived triggers a new detail sound via FUN_0054e4d0/FUN_0054dc70/FUN_00549af0, while walking each permutation's predicted-resource chain evicting stale cache entries with cache_evict_entry.",
+      "prototype": "",
+      "summary": "Per-tick maintenance of all looping-sound state datums: triggers due detail sounds and evicts predicted-resource cache entries that are no longer needed."
+    },
+    {
+      "addr": "0x54d9f0",
+      "name": "sound_looping_play_detail_sound",
+      "confidence": 0.45,
+      "evidence": "Allocates a new \"sounds\" datum via datum_new tied to a parent object/looping-channel, computes a randomized gain via random_range_real, selects a pitch bucket via FUN_0054bb20, and installs the &LAB_0054dc10 predicted-resource callback (the routine implemented by FUN_0054dc70) used by the driver to fetch its playback offset.",
+      "prototype": "",
+      "summary": "Creates a new one-shot \"detail sound\" playing instance associated with a looping sound's cluster/permutation."
+    },
+    {
+      "addr": "0x54dc70",
+      "name": "sound_detail_sound_position_callback",
+      "confidence": 0.35,
+      "evidence": "Registered as the predicted-resource callback (LAB_0054dc10) by FUN_0054d9f0; given a packed slot handle it fills the caller's playback-parameter struct with orientation/position vectors sourced either from the default listener vectors (PTR_DAT_00696714/00696718) or from a per-instance transform, offsetting the supplied local position when relative-to-parent (*param_3==1).",
+      "prototype": "",
+      "summary": "Fills in a detail sound's 3D orientation/position parameters, used as a predicted-resource callback by the driver."
+    },
+    {
+      "addr": "0x54dd90",
+      "name": "sound_channel_set_object",
+      "confidence": 0.3,
+      "evidence": "Compares the channel's currently-tracked object id (offset+8) against in_ECX and, if different, writes the new id into the channel's predicted-resource slot at offset+0x98.",
+      "prototype": "",
+      "summary": "Updates a pitch-range channel's tracked object id when it changes."
+    },
+    {
+      "addr": "0x54ddc0",
+      "name": "sound_channel_reassign",
+      "confidence": 0.3,
+      "evidence": "Re-points a channel's predicted-resource slot (offset+0x98) at a new object, refreshes its gain/pitch envelope indices via FUN_005454a0/FUN_00545590, and for non-music classes (not 0x2c/2d/2e/2f) picks a replacement channel via FUN_0054c1d0/FUN_0054c5e0 and stops it with FUN_0054b180.",
+      "prototype": "",
+      "summary": "Reassigns a pitch-range channel's predicted-resource target object, freeing a conflicting channel for non-music sound classes."
+    },
+    {
+      "addr": "0x54deb0",
+      "name": "sound_apply_looping_gain",
+      "confidence": 0.4,
+      "evidence": "Looping-sound counterpart of FUN_0054c750: computes gain via FUN_0054b100/FUN_0054e660, manages the permutation/state machine at slot+2 (0..4), triggers embedded detail sounds via FUN_0054d9f0, and finally drives the DAT_006e36cc listener callback plus the driver vtable at +0x1c to start/update the voice.",
+      "prototype": "",
+      "summary": "Computes and applies the current gain and playback state for a looping playing sound instance, triggering detail sounds and starting/continuing its driver voice."
+    },
+    {
+      "addr": "0x54e200",
+      "name": "sound_stop_all",
+      "confidence": 0.35,
+      "evidence": "Already non-FUN named; the body shares labels/registers with FUN_0054ddc0 and FUN_0054deb0's channel-stop transition code (LAB_0054e2c8, LAB_0054befc-style pattern) and ends by issuing the DAT_006e36cc listener callback and driver vtable +0x1c call used to finalize a stopped voice, but heavy use of unaff_/in_stack_ pseudo-registers (0 recorded callers) suggests this may be a tail-shared code fragment rather than a cleanly independently-entered routine.",
+      "prototype": "",
+      "summary": "Finalizes stopping a playing sound's channel/state and issues the last driver position/voice update, appearing to share code with the looping-gain state-transition logic."
+    },
+    {
+      "addr": "0x54e3c0",
+      "name": "sound_evaluate_gain_fade",
+      "confidence": 0.4,
+      "evidence": "Computes progress between a channel's stored start/end ticks (offset+0xa4/+0xa8) against DAT_0072520c, evaluates FUN_006283c0 for a possible non-linear (attack/release) curve, and lerps between the stored begin/end gain values at offset+0x9c/+0xa0; consumed once per channel by sound_update_active_instances.",
+      "prototype": "",
+      "summary": "Evaluates a playback channel's current gain-fade progress between its scheduled start and end gain values."
+    },
+    {
+      "addr": "0x54e4d0",
+      "name": "sound_compute_random_direction",
+      "confidence": 0.45,
+      "evidence": "Draws two random angles from DAT_00719cd4 within ranges taken from an object struct (in_EDX) and converts them to a unit direction vector via fcos/fsin, falling back to the default forward vector (PTR_DAT_00696714) when the computed magnitude is zero.",
+      "prototype": "",
+      "summary": "Computes a random 3D direction vector within configured yaw/pitch ranges, used to place ambient/detail sounds around a listener."
+    },
+    {
+      "addr": "0x54e5d0",
+      "name": "sound_looping_find_by_reference",
+      "confidence": 0.4,
+      "evidence": "Linearly scans the looping-sound datum table (DAT_00724a50) via FUN_004d0630 comparing each entry's offset+8 reference field to param_1, returning the matching datum handle or -1.",
+      "prototype": "",
+      "summary": "Finds a looping-sound state datum whose stored reference matches the given value."
+    },
+    {
+      "addr": "0x54e660",
+      "name": "sound_clamp_gain_by_ratio",
+      "confidence": 0.3,
+      "evidence": "Given param_1 (current) and a param_2/param_3 ratio, returns whichever of param_2*param_3 or param_2/param_3 keeps the result bounded relative to param_1, otherwise falls back to param_1 unchanged.",
+      "prototype": "double __cdecl sound_clamp_gain_by_ratio(float param_1, float param_2, float param_3)",
+      "summary": "Clamps a gain value against a scaled/divided comparison value, used when applying a looping sound's distance-based gain."
+    },
+    {
+      "addr": "0x54e6d0",
+      "name": "render_debug_sound",
+      "confidence": 0.6,
+      "evidence": "Naming hint (cea-pdb) matches the literal format string \"%s|n%f %f\" used with sprintf, formatting a sound tag's name plus two float fields (offset+0x4c and +0x50) into a debug buffer guarded by the DAT_00724a4d debug-sound flag.",
+      "prototype": "",
+      "summary": "Formats a debug string with a playing sound's tag name and two float parameters when sound debug display is enabled."
+    },
+    {
+      "addr": "0x54e740",
+      "name": "sound_looping_has_audible_permutation",
+      "confidence": 0.35,
+      "evidence": "For an object flagged with DAT_00724a54 and state==1, scans its permutations' gain fields (offset+8 or the per-class default at DAT_0069eaf8) and predicted-resource chain, returning early (silently) only when every permutation is inaudible and no detail sound is pending; used as a guard at the top of sound_looping_set_state.",
+      "prototype": "",
+      "summary": "Checks whether a looping sound's permutations would actually be audible before allowing a state change to proceed."
+    },
+    {
+      "addr": "0x54e830",
+      "name": "sound_decode_dispatch",
+      "confidence": 0.3,
+      "evidence": "Computes a buffer-size/stride value from in_ECX then, when unaff_EBX is set, looks up a codec function pointer in the DAT_0065e640 table by in_ECX and calls it with param_1, storing the pointer in DAT_00724a48; matches a compression-format dispatcher pattern.",
+      "prototype": "",
+      "summary": "Dispatches to a codec-specific decode function selected by a compression-format index."
+    },
+    {
+      "addr": "0x54e8c0",
+      "name": "sound_decode_sample_delta",
+      "confidence": 0.3,
+      "evidence": "Combines selector bits of param_1 with bit-shifted variants of param_3 (>>0,1,2,3) added to a running sample value param_2, clamped to signed 16-bit range, the classic inner step of a differential/ADPCM-style sample decoder.",
+      "prototype": "",
+      "summary": "Computes one clamped 16-bit delta-decoded sample from a selector byte and shifted prediction value, as used by an ADPCM-style codec."
+    },
+    {
+      "addr": "0x54ec40",
+      "name": "sound_eax_release",
+      "confidence": 0.45,
+      "evidence": "Classic __thiscall COM Release pattern: if the interface pointer stored at this+0x18 is non-null it calls its vtable slot 2 (Release) and clears the pointer; paired with the QueryInterface calls in FUN_0054ec60.",
+      "prototype": "void __thiscall sound_eax_release(void *this)",
+      "summary": "Releases a cached EAX-related COM interface pointer if one is currently held."
+    },
+    {
+      "addr": "0x54ec60",
+      "name": "sound_eax_query_interfaces",
+      "confidence": 0.45,
+      "evidence": "Performs a sequence of COM QueryInterface calls (vtable slot 5, 0x14 bytes offset) against GUIDs at DAT_0064e20c/DAT_0064e2d0 on a DirectSoundBuffer-like object (param_1+0x674), setting capability bit flags at this+8 for each interface level obtained, mirroring the property IDs used later by sound_eax_apply_properties.",
+      "prototype": "undefined4 __thiscall sound_eax_query_interfaces(void *this, int param_1)",
+      "summary": "Queries a sound buffer for one or more EAX property-set COM interfaces and records which capability levels are supported."
+    },
+    {
+      "addr": "0x54ed50",
+      "name": "sound_eax_apply_properties",
+      "confidence": 0.4,
+      "evidence": "For each capability bit set by sound_eax_query_interfaces (this+8 bits 4/8/0x10) it calls the cached property-set interface's Set method (vtable slot 4) with property ids 2/3/4 against DAT_0064e2d0, the standard EAX buffer property-set pattern.",
+      "prototype": "void __thiscall sound_eax_apply_properties(void *this, float param_1)",
+      "summary": "Pushes obstruction/occlusion/room-related EAX buffer properties to the previously-acquired property-set interface."
+    },
+    {
+      "addr": "0x54ee70",
+      "name": "sound_gain_to_directsound_volume",
+      "confidence": 0.5,
+      "evidence": "Same log2()+FUN_006391b4 conversion as FUN_0054cda0, but clamped to a fixed lower bound of -0x2711 (-10000), the exact value of DirectSound's DSBVOLUME_MIN, and the sentinel checked by FUN_0054cdf0.",
+      "prototype": "",
+      "summary": "Converts a linear gain value into a DirectSound-style logarithmic volume unit clamped to [-10000, param_2]."
+    }
+  ]
+}

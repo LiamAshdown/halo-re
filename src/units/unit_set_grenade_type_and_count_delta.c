@@ -1,0 +1,47 @@
+// unit_set_grenade_type_and_count_delta  (Ghidra: FUN_0056d160)
+// address 0x56d160, size 61 bytes, name confidence 0.35, rewrite confidence 0.6
+// functions.md's summary ("Adjusts the occupancy/usage count for seat label in_DX by param_1")
+// is superseded by out/phase4/units_types_notes.md's stronger reading: "0x56d160 adds a delta
+// to *(char *)(0x31e + type) and records the type in both 0x31c and 0x31d".
+// evidence: types/units.h unit_data.grenade_counts[2] (0x31e), .desired_grenade_index (0x31d),
+//   .current_grenade_index (0x31c).
+// blam-cc: in_EAX -> unit_index, in_DX -> grenade_type, param_1 -> delta.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "objects.h"
+#include "units.h"
+
+extern data_array *object_data; // 0x008603b0
+
+int32_t unit_set_grenade_type_and_count_delta(uint32_t unit_index, int16_t grenade_type, int8_t delta) // blam-cc: in_EAX, in_DX, param_1
+{
+    object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+
+    unit->grenade_counts[grenade_type] += delta;
+    unit->desired_grenade_index = (int8_t)grenade_type;
+    unit->current_grenade_index = (int8_t)grenade_type;
+    return unit->grenade_counts[grenade_type];
+}
+
+#if 0
+Original Ghidra decompilation (0x56d160):
+
+undefined4 FUN_0056d160(char param_1)
+
+{
+  char *pcVar1;
+  int iVar2;
+  uint in_EAX;
+  short in_DX;
+
+  iVar2 = *(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 + (in_EAX & 0xffff) * 0xc);
+  pcVar1 = (char *)(in_DX + 0x31e + iVar2);
+  *pcVar1 = *pcVar1 + param_1;
+  *(char *)(iVar2 + 0x31d) = (char)in_DX;
+  *(char *)(iVar2 + 0x31c) = (char)in_DX;
+  return CONCAT22((short)((uint)iVar2 >> 0x10),(short)*(char *)(in_DX + 0x31e + iVar2));
+}
+#endif

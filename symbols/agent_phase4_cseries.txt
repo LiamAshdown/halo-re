@@ -1,0 +1,5 @@
+# cseries module (0x4491e0..0x44971e) names established by the phase-4 C rewrite in
+# src/cseries/*.c; each name is justified in that file's header comment and in
+# out/phase4/cseries_types_notes.md. Evidence fields use underscores for spaces.
+# addr name kind confidence source
+0x449210 time_query_performance_counter_ms func 0.8 agent-phase4 objdump_0x449210:_QueryPerformanceCounter_then___allmul(counter,1000)_and___alldiv_by_the_frequency_at_0x006ac8f8;_52_callers_use_only_EAX;_name_already_used_by_src/main_and_src/interface_externs  # was FUN_00449210

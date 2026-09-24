@@ -1,0 +1,55 @@
+# cache module: 53 functions (address, current Ghidra name, size, agent confidence, summary)
+
+- 0x442290 cache_file_load size=401 conf=0.5 :: Top-level map-file loader: reads and validates the current cache slot's header, allocates/zeroes the 0x6000-byte tag buffer, blocks on an async tag-data read request, then runs the post-load client ca
+- 0x442430 cache_file_unload size=121 conf=0.55 :: Tears down the currently loaded map: releases cached rendering resources, closes and clears the active cache-file slot, and resets the global tag-data pointer and loaded flag.
+- 0x4424b0 FUN_004424b0 size=108 conf=0.45 :: Synchronously loads a structure_bsp tag's data block from the map file, installs the buffer as the tag's data pointer, and creates its shader rendering resources.
+- 0x442520 FUN_00442520 size=39 conf=0.4 :: Releases a structure_bsp's cluster rendering resources and clears its tag-data pointer, the counterpart teardown to structure_bsp_load.
+- 0x442550 tag_lookup size=114 conf=0.75 :: Looks up a tag by group (register EDI) and name string, returning its tag id or -1 if not found or no map is loaded.
+- 0x4425d0 tag_iterator_next size=96 conf=0.8 :: Iterator-next helper that scans the global tag array for the next tag matching one of up to three group tags stored in the iterator state.
+- 0x442640 FUN_00442640 size=212 conf=0.35 :: Ensures a requested map is either already loaded, currently downloading, or gets a load/download attempt started, used when joining a multiplayer game.
+- 0x442720 FUN_00442720 size=273 conf=0.45 :: Polls a background map-download's semaphores/state and returns a status code while writing the current download progress fraction (0..1) to the output pointer.
+- 0x442840 data_file_open size=528 conf=0.8 :: Opens and validates the external bitmaps.map and sounds.map data files, reading their headers and raw/reference tables, and allocates the shared 0x6000-byte scratch buffer used by the IO worker thread
+- 0x442a50 data_file_close size=198 conf=0.7 :: Closes the bitmaps.map and sounds.map data files opened by data_file_open and frees all of their associated buffers.
+- 0x442b20 cache_io_request_new size=135 conf=0.55 :: Allocates a free slot in the async cache-IO request queue, populates it with a file read request (offset, size, destination, flags), and signals the IO worker thread.
+- 0x442bb0 cache_file_exists size=186 conf=0.75 :: Checks whether a named map file exists on disk and has a valid cache-file header (correct magic, version, and scenario name length).
+- 0x442c70 FUN_00442c70 size=109 conf=0.4 :: Generic retry wrapper that calls a Win32 API function pointer and retries with a short alertable sleep until it succeeds.
+- 0x442ce0 FUN_00442ce0 size=44 conf=0.4 :: Blocks in an alertable wait loop until a completion flag byte becomes non-zero, servicing pending IO completion routines in the meantime.
+- 0x442d10 chimera__on_map_load_client size=475 conf=0.55 :: Post-load client-side fixup that loads a scenario data block and walks every structure_bsp's clusters to finish setting up their shader (senv/swat/sgla) rendering resources.
+- 0x442f00 FUN_00442f00 size=266 conf=0.4 :: Releases the Direct3D-style resource objects attached to every structure_bsp cluster shader, the disposal counterpart of the load-time shader setup.
+- 0x443020 FUN_00443020 size=384 conf=0.4 :: Called after a structure_bsp's data is loaded to build the rendering resources (vertex data) for every cluster's shader, special-casing environment/water/glass shader groups.
+- 0x4431a0 FUN_004431a0 size=196 conf=0.35 :: Releases a second pair of per-cluster resource objects (offsets 0xc0/0xd4) across all of a tag's clusters, called during structure_bsp/scenario disposal.
+- 0x443270 cache_io_request_find_free_slot size=51 conf=0.5 :: Busy-scans the async cache-IO request queue for a free (unused) request slot.
+- 0x4432b0 cache_io_wait_all_requests size=52 conf=0.5 :: Blocks until every pending entry in the async cache-IO request queue has completed, used before tearing the queue down.
+- 0x4432f0 FUN_004432f0 size=106 conf=0.3 :: When a map download is pending, compares the basename of a given path against the name of the map currently being downloaded.
+- 0x443360 FUN_00443360 size=228 conf=0.45 :: Opens a named shared cache map file into a free/evicted slot if not already loaded, reporting a fatal error via FUN_0057ea70/FUN_00499170 on failure when requested.
+- 0x443410 cache_file_read_request size=83 conf=0.65 :: Opens a cache file by path into a caller-supplied slot and reads its header, using the same async-capable open flags logic as data_file_open.
+- 0x4434a0 FUN_004434a0 size=78 conf=0.4 :: Translates the raw map-download progress status into a simplified done/pending/failed code, invalidating the slot's cached file time when the download restarts.
+- 0x443510 FUN_00443510 size=44 conf=0.35 :: Signals the background map-download thread to stop if it has not already finished.
+- 0x443540 FUN_00443540 size=159 conf=0.4 :: Stops the background map-download thread, stamps the newly-downloaded cache file's timestamp, re-reads its header, and clears the download-in-progress state.
+- 0x4435e0 FUN_004435e0 size=385 conf=0.45 :: Reads and validates a cache-file slot's 0x800-byte header from disk (synchronously or via overlapped IO depending on DAT_00721ef0), zero-filling the slot on failure and reporting an error via FUN_0057
+- 0x443770 cache_file_find_slot_by_name size=51 conf=0.65 :: Searches the fixed 6-entry array of open cache-file slots for one whose stored name matches the given filename.
+- 0x4437b0 cache_file_find_oldest_slot size=275 conf=0.5 :: Chooses the least-recently-used cache-file slot within a given category to evict for loading a new map.
+- 0x4438d0 cache_io_thread_start size=107 conf=0.5 :: Creates the synchronization event and background worker thread that services the async cache-IO request queue, picking a sync or async IO implementation based on OS/system capability.
+- 0x443940 cache_io_thread_proc_async size=188 conf=0.5 :: Background IO thread procedure that services queued cache-file read requests using overlapped ReadFileEx with a retry wrapper.
+- 0x443a10 cache_io_thread_proc_sync size=194 conf=0.5 :: Background IO thread procedure that services queued cache-file read requests using blocking SetFilePointer/ReadFile calls.
+- 0x443b00 cache_io_completion_routine size=41 conf=0.5 :: APC-based completion routine passed to overlapped ReadFileEx calls; runs an optional per-request callback and marks the request's completion flag.
+- 0x443b30 data_file_read_header size=100 conf=0.8 :: Reads and validates the 16-byte header of an opened data file (bitmaps.map/sounds.map) against an expected file-type id.
+- 0x443ba0 data_file_read_data_block size=115 conf=0.55 :: Reads a data file's raw payload block (bitmap/sound data) into a newly allocated buffer sized from the header's start/end offsets.
+- 0x443c20 data_file_read_offset_table size=118 conf=0.5 :: Reads a data file's array of 12-byte offset/size reference entries (one per external bitmap or sound) into a newly allocated table.
+- 0x443ca0 sound_cache_new size=138 conf=0.8 :: Initializes the runtime sound-page memory pool and LRU page cache used to stream sound sample data.
+- 0x443d30 FUN_00443d30 size=38 conf=0.4 :: Releases a single cached sound entry's page-cache reference, if it holds one.
+- 0x443d60 FUN_00443d60 size=158 conf=0.35 :: Decodes a compressed sound sample into a cached destination buffer, resizing the shared scratch buffer as needed.
+- 0x443e10 FUN_00443e10 size=284 conf=0.4 :: Ensures a sound entry's sample data page is resident in the cache, optionally blocking (Sleep(0) loop) until the pending load completes.
+- 0x443f30 sound_cache_dispose size=148 conf=0.5 :: Fully tears down the sound cache: releases every entry's page reference and frees the shared decode scratch buffer.
+- 0x443fd0 FUN_00443fd0 size=134 conf=0.45 :: Releases page-cache references for sound entries that are neither locked nor currently playing, without a full cache teardown.
+- 0x4440e0 FUN_004440e0 size=344 conf=0.4 :: Allocates a cache page for a sound entry's sample data and kicks off an async read to fill it, dumping cache statistics and forcing a crash if no page is available.
+- 0x444240 sound_cache_dump_to_file size=480 conf=0.85 :: Writes a diagnostic dump of the sound cache's page usage statistics and per-entry list to sound_cache_dump.txt.
+- 0x444420 data_file_read size=165 conf=0.35 :: Writes the per-entry cache listing section of a diagnostic dump file and then closes the file and frees the associated scratch buffer; likely the tail of a texture-cache dump routine sharing code with
+- 0x4444d0 texture_cache_new size=125 conf=0.8 :: Initializes the runtime texture-page memory pool and LRU page cache used to stream bitmap data.
+- 0x444550 FUN_00444550 size=424 conf=0.4 :: Fetches (loading and format-converting if needed) the cached Direct3D texture object for a bitmap data block, optionally blocking until ready.
+- 0x444800 FUN_00444800 size=194 conf=0.4 :: Allocates a texture-cache page for a bitmap data block and issues an async read to fill it with pixel data.
+- 0x4448d0 cache_reserve_map_memory size=274 conf=0.6 :: Reserves the fixed virtual-memory region at 0x40000000 that the map/tag heap requires, fatally exiting with a diagnostic message identifying the conflicting module if the reservation fails.
+- 0x4449f0 FUN_004449f0 size=101 conf=0.35 :: Walks a list of mixed bitmap/sound resource references, touching each one to force it into its respective cache.
+- 0x444a60 FUN_00444a60 size=134 conf=0.35 :: Forces every sound permutation referenced by a tag's pitch ranges into the sound cache.
+- 0x444af0 random_range_real size=55 conf=0.7 :: Advances the engine's global LCG random seed and returns a pseudo-random floating point value uniformly between the given minimum and maximum.
+- 0x444b30 FUN_00444b30 size=206 conf=0.3 :: Finds a named permutation on a tag and starts it playing by writing its parameters (object, index, computed duration) into a single global playback state, likely for a looping/ambient sound.

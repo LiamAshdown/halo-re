@@ -1,0 +1,29 @@
+{
+ "slice": 8,
+ "disputes": [
+  {
+   "addr": "0x4f06d0",
+   "current": "networking",
+   "proposed": "objects",
+   "reason": "Decompile shows a 3-point vector blend/interpolation (result = lerp of two vectors toward a base point using param_1/param_2 weights) - no networking logic at all (no bitstream, no message-delta, no socket/packet code). Its only in-slice caller is FUN_004f2550 at 0x4f2550, which is itself part of the high-confidence 'objects' run (object create/placement, 0x4f0730-0x4f6610). It was swept into the tiny 0x4f0530-0x4f06d0 'networking' island purely by address contiguity with the hash-table functions next to it, but functionally/by-caller it belongs with the surrounding objects code."
+  },
+  {
+   "addr": "0x4f0530",
+   "current": "networking",
+   "proposed": "objects",
+   "reason": "This 4-function island (0x4f0530-0x4f06d0, confidence 0.45 - the lowest in the whole slice) sits sandwiched between two much larger, higher-confidence 'objects' runs (damage.c ending at 0x4f03e0, object-create/placement starting at 0x4f0730), which by the MSVC contiguous-linking rule makes it more likely to be part of the same object file as its neighbors rather than an isolated networking TU. The assigner's own justification ('every caller is a network message-delta encode/decode fn') is only true for this insert/delete function (its 3 callers - 0x4e9c20/0x4e9cd0/0x4e9d40 - are indeed in the networking message-delta run); it doesn't hold for the paired lookup function (0x4f05e0, see next dispute) or for 0x4f06d0 (pure object-placement math, previous dispute), which are also in this same 4-function block."
+  },
+  {
+   "addr": "0x4f05e0",
+   "current": "networking",
+   "proposed": "objects",
+   "reason": "This is the hash-table lookup counterpart of FUN_004f0530 (identical bucket/chain-walk structure). It has 35 callers, and cross-slice evidence shows they are NOT confined to networking: callers in slice 02 are 'effects', slice 03/04 are 'game', slice 06 is 'items', slice 12 is 'units', plus 'objects' callers within slice 08 itself (0x4f4ad0/0x4f2550 area) - in addition to the networking callers the original evidence cites. A function called broadly from effects/game/items/units/objects is a shared, low-level utility rather than networking-owned code; combined with its placement between two objects runs, it more plausibly belongs to the object-index/table code in objects.c that networking (and everyone else) merely queries."
+  },
+  {
+   "addr": "0x4f0620",
+   "current": "networking",
+   "proposed": "objects",
+   "reason": "This is the memory-pool grow/allocate helper for the same hash table as 0x4f0530 (allocates a GlobalAlloc'd block and links it into the free list used by FUN_004f0530). Its only caller is 0x4f0530 itself, so it should move with it; see the 0x4f0530 dispute for the run-boundary and caller-diversity justification for reassigning this whole 4-function island to 'objects'."
+  }
+ ]
+}

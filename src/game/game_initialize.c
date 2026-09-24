@@ -1,0 +1,267 @@
+// game_initialize  (Ghidra: particle_systems_initialize; RENAMED per symbols/review_queue.txt --
+// the previous name was too narrow, see below)
+// address 0x45a9c0, size 783 bytes
+// name confidence: 0.4   rewrite confidence: 0.45
+// evidence: symbols/review_queue.txt 0x45a9c0 "sequentially bump-allocates and zeroes memory
+//   pools (crc32_update-tracked) for particles, effects, effect locations, weather particles,
+//   particle systems, contra[ils]..."; out/phase4/game_types_notes.md notes this function is
+//   the counterpart to game_dispose (0x45acd0, this batch), which tears down the same globals.
+//   Every allocation here is one-time post-map-load setup (particle/effect pools, the object
+//   render-state cache, players, sound, AI, scripts, save files), not specific to particle
+//   systems, hence the rename.
+// register convention: no arguments.
+//
+// UNSURE: most pool sizes/globals here belong to other modules (objects, sound, ai, hs,
+// saved_games) and are not named in types/game.h; kept as raw globals with TYPES-GAP markers.
+// __control87 is the MSVC CRT FPU-control-word setter.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+
+extern int32_t game_state_cursor; // 0x006e2dcc
+extern uint8_t *game_state_base;   // 0x006e2dc8
+extern uint32_t game_state_crc;   // 0x006e2dd4
+extern void *cached_object_render_states; // 0x006b0b80, TYPES-GAP
+extern game_variant game_engine_active_variant; // 0x0087ab20, the 0x98-byte staging variant
+    // (0x26 dwords) this function zeroes and then hands to game_engine_load_from_variant in EBX
+extern void *tag_cache_render_states_ptr;     // 0x00746f94, TYPES-GAP
+extern uint8_t *unknown_0087bc0c;             // 0x0087bc0c, TYPES-GAP, single byte zeroed
+extern data_array *object_render_state_cache;       // 0x007c30ec, TYPES-GAP
+extern void *effect_pool_ptr;                 // 0x0072278c, TYPES-GAP
+extern void *effect_something_006b8d78;       // 0x006b8d78, TYPES-GAP
+extern data_array *particle_pool_ptr;               // 0x0087abd0, TYPES-GAP
+extern data_array *effect_object_pool_ptr;          // 0x0087abdc, TYPES-GAP
+extern data_array *effect_location_pool_ptr;        // 0x0087abe0, TYPES-GAP
+extern data_array *weather_particle_pool_ptr;       // 0x0087abcc, TYPES-GAP
+extern void *particle_system_pool_ptr;        // 0x0087abd4, TYPES-GAP
+extern data_array *particle_system_particle_pool_ptr; // 0x0087abd8, TYPES-GAP
+extern void *sound_something_00746140;        // 0x00746140, TYPES-GAP
+extern uint32_t *ai_something_006f1884;       // 0x006f1884, TYPES-GAP
+extern void *recorded_animations_pool_ptr;    // 0x006b0a10, TYPES-GAP
+extern uint32_t *saved_games_something_006f187c; // 0x006f187c, TYPES-GAP (7 dwords)
+
+extern void ai_initialize_for_new_map(void);           // 0x42a7c0, ai module
+extern void contrails_initialize(void);                 // 0x44c8b0
+extern void decals_initialize(void);                     // 0x44df90
+extern void team_pair_table_allocate(void);              // this batch, 0x45bc30
+extern void game_engine_load_from_variant(const game_variant *variant); // 0x45c2c0,
+    // blam-cc: EBX -> variant (matches src/game/game_engine_load_from_variant.c)
+extern void game_engine_allocate_tick_record(void);       // 0x470a80
+extern void players_initialize(void);                     // 0x4735b0
+extern void hs_scripts_reload(void);                       // 0x483250
+extern void hs_runtime_initialize(void);                    // 0x489e70
+extern void object_lists_initialize(void);                   // 0x48b250
+extern void input_state_initialize(void);                     // 0x48b3e0
+extern void FUN_00492250(void);   // UNSURE module
+extern void FUN_00494340(void);   // UNSURE module
+extern void FUN_00495370(void);   // UNSURE module
+extern void widget_memory_pool_initialize(void);              // 0x4979b0
+extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d02d0, memory module
+extern data_array *data_new(int16_t element_size, char *name, int16_t maximum_count); // 0x4d0370,
+    // memory module; blam-cc: element size in EBX, then the stack pair (name, maximum_count)
+extern void objects_initialize(void);                           // 0x4f4ad0
+extern void *game_state_new(int16_t element_size, char *name,
+    int16_t maximum_count); // 0x5380d0; blam-cc: EBX -> element_size, stack -> name,
+    // maximum_count. CORRECTED by review: the first pass dropped the EBX element size
+    // (Ghidra never shows it), which is the same 3-argument form players_initialize.c
+    // uses and which types/game.h's own header note derives. The sizes below come from
+    // objdump -d --start-address=0x45a9c0 --stop-address=0x45b050.
+    // NOTE: src/hs still declares the 2-argument view of this function.
+extern void saved_game_files_initialize(void);                       // 0x53c260
+extern void game_sound_initialize(void);                              // 0x543a30
+extern void FUN_00552260(void); // UNSURE module
+extern void __control87(uint32_t new_word, uint32_t mask); // MSVC CRT
+
+// One-time post-map-load initialization that bump-allocates every particle/effect/render-state
+// pool, sets the FPU control word, allocates the simulation tick record, loads the active game
+// engine, allocates the team-pair table, and starts the object, player, sound, AI, script, input
+// and save-file subsystems.
+void game_initialize(void)
+{
+    uint32_t *cursor;
+    int32_t i;
+    uint32_t size;
+
+    cursor = (uint32_t *)(game_state_cursor + game_state_base);
+    game_state_cursor = game_state_cursor + 0x114;
+    size = 0x114;
+    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    cached_object_render_states = cursor;
+    for (i = 0x45; i != 0; i = i - 1) {
+        *cursor = 0;
+        cursor = cursor + 1;
+    }
+
+    cursor = (uint32_t *)&game_engine_active_variant;
+    for (i = 0x26; i != 0; i = i - 1) {
+        *cursor = 0;
+        cursor = cursor + 1;
+    }
+
+    __control87(0x9001f, 0xfffff);
+    game_engine_allocate_tick_record();
+    game_engine_load_from_variant(&game_engine_active_variant); // objdump 0x45aa24: EBX = 0x0087ab20
+    team_pair_table_allocate();
+    FUN_00494340();
+
+    size = 0x7c;
+    tag_cache_render_states_ptr = (void *)(game_state_cursor + game_state_base);
+    game_state_cursor = game_state_cursor + 0x7c;
+    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+
+    unknown_0087bc0c = (uint8_t *)(game_state_cursor + game_state_base);
+    size = 4;
+    game_state_cursor = game_state_cursor + 4;
+    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    *unknown_0087bc0c = 0;
+
+    object_render_state_cache = (data_array *)game_state_new(0x100, "cached object render states", 0x100);
+    objects_initialize();
+    FUN_00552260();
+
+    size = 4;
+    effect_pool_ptr = (void *)(game_state_cursor + game_state_base);
+    game_state_cursor = game_state_cursor + 4;
+    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+
+    size = 0x4204;
+    effect_something_006b8d78 = (void *)(game_state_cursor + game_state_base);
+    game_state_cursor = game_state_cursor + 0x4204;
+    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+
+    decals_initialize();
+    players_initialize();
+    contrails_initialize();
+
+    particle_pool_ptr = (data_array *)game_state_new(0x70, "particle", 0x400);
+    effect_object_pool_ptr = (data_array *)game_state_new(0xfc, "effect", 0x100);
+    effect_location_pool_ptr = (data_array *)game_state_new(0x3c, "effect location", 0x200);
+    weather_particle_pool_ptr = data_new(0x54, "weather particles", 0x200); // objdump 0x45ab96: EBX = 0x54
+    particle_system_pool_ptr = game_state_new(0x158, "particle systems", 0x40);
+    particle_system_particle_pool_ptr = (data_array *)game_state_new(0x80, "particle system particles", 0x200);
+
+    size = 0x264;
+    sound_something_00746140 = (void *)(game_state_cursor + game_state_base);
+    game_state_cursor = game_state_cursor + 0x264;
+    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    game_sound_initialize();
+
+    size = 0x128;
+    ai_something_006f1884 = (uint32_t *)(game_state_cursor + game_state_base);
+    game_state_cursor = game_state_cursor + 0x128;
+    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    ai_initialize_for_new_map();
+
+    widget_memory_pool_initialize();
+    object_lists_initialize();
+    hs_runtime_initialize();
+    hs_scripts_reload();
+
+    recorded_animations_pool_ptr = game_state_new(0x64, "recorded animations", 0x40);
+
+    size = 0x1c;
+    saved_games_something_006f187c = (uint32_t *)(game_state_cursor + game_state_base);
+    game_state_cursor = game_state_cursor + 0x1c;
+    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    saved_game_files_initialize();
+
+    FUN_00492250();
+    input_state_initialize();
+    FUN_00495370();
+}
+
+#if 0
+Original Ghidra decompilation (0x45a9c0), from tools/pack.py 0x45a9c0:
+
+void particle_systems_initialize(void)
+
+{
+  undefined1 *puVar1;
+  int iVar2;
+  int iVar3;
+  undefined4 *puVar4;
+  undefined4 local_4;
+
+  puVar4 = (undefined4 *)(DAT_006e2dcc + DAT_006e2dc8);
+  DAT_006e2dcc = DAT_006e2dcc + 0x114;
+  local_4 = 0x114;
+  crc32_update(&DAT_006e2dd4,&local_4,4);
+  DAT_006b0b80 = puVar4;
+  for (iVar3 = 0x45; iVar3 != 0; iVar3 = iVar3 + -1) {
+    *puVar4 = 0;
+    puVar4 = puVar4 + 1;
+  }
+  puVar4 = &DAT_0087ab20;
+  for (iVar3 = 0x26; iVar3 != 0; iVar3 = iVar3 + -1) {
+    *puVar4 = 0;
+    puVar4 = puVar4 + 1;
+  }
+  __control87(0x9001f,0xfffff);
+  game_engine_allocate_tick_record();
+  game_engine_load_from_variant();
+  FUN_0045bc30();
+  FUN_00494340();
+  iVar3 = DAT_006e2dcc + DAT_006e2dc8;
+  DAT_006e2dcc = DAT_006e2dcc + 0x7c;
+  local_4 = 0x7c;
+  crc32_update(&DAT_006e2dd4,&local_4,4);
+  puVar1 = (undefined1 *)(DAT_006e2dcc + DAT_006e2dc8);
+  DAT_006e2dcc = DAT_006e2dcc + 4;
+  local_4 = 4;
+  DAT_00746f94 = iVar3;
+  crc32_update(&DAT_006e2dd4,&local_4,4);
+  DAT_0087bc0c = puVar1;
+  *puVar1 = 0;
+  DAT_007c30ec = game_state_new("cached object render states",0x100);
+  objects_initialize();
+  FUN_00552260();
+  iVar3 = DAT_006e2dcc + DAT_006e2dc8;
+  DAT_006e2dcc = DAT_006e2dcc + 4;
+  local_4 = 4;
+  crc32_update(&DAT_006e2dd4,&local_4,4);
+  iVar2 = DAT_006e2dcc + DAT_006e2dc8;
+  DAT_006e2dcc = DAT_006e2dcc + 0x4204;
+  local_4 = 0x4204;
+  DAT_0072278c = iVar3;
+  crc32_update(&DAT_006e2dd4,&local_4,4);
+  DAT_006b8d78 = iVar2;
+  decals_initialize();
+  players_initialize();
+  contrails_initialize();
+  DAT_0087abd0 = game_state_new("particle",0x400);
+  DAT_0087abdc = game_state_new("effect",0x100);
+  DAT_0087abe0 = game_state_new("effect location",0x200);
+  DAT_0087abcc = data_new("weather particles",0x200);
+  DAT_0087abd4 = game_state_new("particle systems",0x40);
+  DAT_0087abd8 = game_state_new("particle system particles",0x200);
+  iVar3 = DAT_006e2dcc + DAT_006e2dc8;
+  DAT_006e2dcc = DAT_006e2dcc + 0x264;
+  local_4 = 0x264;
+  crc32_update(&DAT_006e2dd4,&local_4,4);
+  DAT_00746140 = iVar3;
+  game_sound_initialize();
+  iVar3 = DAT_006e2dcc + DAT_006e2dc8;
+  DAT_006e2dcc = DAT_006e2dcc + 0x128;
+  local_4 = 0x128;
+  crc32_update(&DAT_006e2dd4,&local_4,4);
+  DAT_006f1884 = iVar3;
+  ai_initialize_for_new_map();
+  widget_memory_pool_initialize();
+  object_lists_initialize();
+  hs_runtime_initialize();
+  hs_scripts_reload();
+  DAT_006b0a10 = game_state_new("recorded animations",0x40);
+  iVar3 = DAT_006e2dcc + DAT_006e2dc8;
+  DAT_006e2dcc = DAT_006e2dcc + 0x1c;
+  local_4 = 0x1c;
+  crc32_update(&DAT_006e2dd4,&local_4,4);
+  DAT_006f187c = iVar3;
+  saved_game_files_initialize();
+  FUN_00492250();
+  input_state_initialize();
+  FUN_00495370();
+  return;
+}
+#endif

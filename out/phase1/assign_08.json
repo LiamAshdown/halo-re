@@ -1,0 +1,1836 @@
+{
+ "slice": 8,
+ "assignments": [
+  {
+   "addr": "0x4e0af0",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e0b90",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e0bd0",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e0cf0",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e0d30",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e0ef0",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e11d0",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e1290",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e1450",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e14e0",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e1520",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e15a0",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e1820",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e1880",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e18b0",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e1930",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e19c0",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e1a80",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e1b50",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e1bf0",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e1c60",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e1f40",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e20b0",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e2110",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e21d0",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e2400",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e24d0",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e2530",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e2580",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e25e0",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e2630",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e26a0",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e2700",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e2790",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e2810",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e2870",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e28d0",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e2930",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4e0af0-0x4e2930: continuation of slice-07 network client/server code; callees FUN_4dd*/4de*/4df* + FUN_4ec940 message-delta"
+  },
+  {
+   "addr": "0x4e2990",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e2aa0",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e2b20",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e2c10",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e2c70",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e2d4b",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e2e50",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e2ed0",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e2ff0",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e3100",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e3160",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e3380",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e34e0",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e35c0",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e36e0",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e37d0",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e3820",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e3890",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e3910",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e3990",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e3a80",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e3cd0",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e3d40",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e3db0",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e3ed0",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e3f30",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e3f70",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e4040",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e40a0",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e40f0",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e4150",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e4350",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e4470",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e44e1",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e4600",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e4810",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e49a0",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e4ac0",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e4b50",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e4c00",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e4dc0",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e4e30",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e4ef0",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e4f00",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e50c0",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e5140",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e51c0",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e52c0",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e5320",
+   "module": "networking",
+   "confidence": 0.75,
+   "evidence": "run 0x4e2990-0x4e5320: dedicated-server console commands (sv_map/sv_ban/sv_kick/sv_name/rcon) + banlist file; seeds network_game_server_* at 0x4e2d4b/0x4e44e1"
+  },
+  {
+   "addr": "0x4e5390",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e5490",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e5620",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e5720",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e5870",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e5a30",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e5c40",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e5d60",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e5ea0",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e5f20",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e5f80",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e5fe0",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e60c0",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e6270",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e6510",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e6950",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e69b0",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e6a20",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e6aa0",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e6b10",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e6b50",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e6f20",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e6f60",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e6ff0",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e7730",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e77e0",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e7890",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e7b50",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e7d90",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e7f90",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e7ff0",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e8040",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e81e0",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e82f0",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e84d0",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e86f0",
+   "module": "networking",
+   "confidence": 0.8,
+   "evidence": "run 0x4e5390-0x4e86f0: Client/ServerPlayerUpdateHistory.log, 'Received pos update'/'action_queue overflow' remote player update queues"
+  },
+  {
+   "addr": "0x4e9330",
+   "module": "networking",
+   "confidence": 0.6,
+   "evidence": "run 0x4e9330-0x4eb890: message-delta field encoders/decoders over bitstream helpers FUN_4cf8f0/4cf9a0/4cf950/4cfb80"
+  },
+  {
+   "addr": "0x4e95e0",
+   "module": "networking",
+   "confidence": 0.6,
+   "evidence": "run 0x4e9330-0x4eb890: message-delta field encoders/decoders over bitstream helpers FUN_4cf8f0/4cf9a0/4cf950/4cfb80"
+  },
+  {
+   "addr": "0x4e9c20",
+   "module": "networking",
+   "confidence": 0.6,
+   "evidence": "run 0x4e9330-0x4eb890: message-delta field encoders/decoders over bitstream helpers FUN_4cf8f0/4cf9a0/4cf950/4cfb80"
+  },
+  {
+   "addr": "0x4e9cd0",
+   "module": "networking",
+   "confidence": 0.6,
+   "evidence": "run 0x4e9330-0x4eb890: message-delta field encoders/decoders over bitstream helpers FUN_4cf8f0/4cf9a0/4cf950/4cfb80"
+  },
+  {
+   "addr": "0x4e9d20",
+   "module": "networking",
+   "confidence": 0.6,
+   "evidence": "run 0x4e9330-0x4eb890: message-delta field encoders/decoders over bitstream helpers FUN_4cf8f0/4cf9a0/4cf950/4cfb80"
+  },
+  {
+   "addr": "0x4e9d40",
+   "module": "networking",
+   "confidence": 0.6,
+   "evidence": "run 0x4e9330-0x4eb890: message-delta field encoders/decoders over bitstream helpers FUN_4cf8f0/4cf9a0/4cf950/4cfb80"
+  },
+  {
+   "addr": "0x4e9db0",
+   "module": "networking",
+   "confidence": 0.6,
+   "evidence": "run 0x4e9330-0x4eb890: message-delta field encoders/decoders over bitstream helpers FUN_4cf8f0/4cf9a0/4cf950/4cfb80"
+  },
+  {
+   "addr": "0x4ea040",
+   "module": "networking",
+   "confidence": 0.6,
+   "evidence": "run 0x4e9330-0x4eb890: message-delta field encoders/decoders over bitstream helpers FUN_4cf8f0/4cf9a0/4cf950/4cfb80"
+  },
+  {
+   "addr": "0x4ea480",
+   "module": "networking",
+   "confidence": 0.6,
+   "evidence": "run 0x4e9330-0x4eb890: message-delta field encoders/decoders over bitstream helpers FUN_4cf8f0/4cf9a0/4cf950/4cfb80"
+  },
+  {
+   "addr": "0x4ea7d0",
+   "module": "networking",
+   "confidence": 0.6,
+   "evidence": "run 0x4e9330-0x4eb890: message-delta field encoders/decoders over bitstream helpers FUN_4cf8f0/4cf9a0/4cf950/4cfb80"
+  },
+  {
+   "addr": "0x4eabe0",
+   "module": "networking",
+   "confidence": 0.6,
+   "evidence": "run 0x4e9330-0x4eb890: message-delta field encoders/decoders over bitstream helpers FUN_4cf8f0/4cf9a0/4cf950/4cfb80"
+  },
+  {
+   "addr": "0x4eb370",
+   "module": "networking",
+   "confidence": 0.6,
+   "evidence": "run 0x4e9330-0x4eb890: message-delta field encoders/decoders over bitstream helpers FUN_4cf8f0/4cf9a0/4cf950/4cfb80"
+  },
+  {
+   "addr": "0x4eb4a0",
+   "module": "networking",
+   "confidence": 0.6,
+   "evidence": "run 0x4e9330-0x4eb890: message-delta field encoders/decoders over bitstream helpers FUN_4cf8f0/4cf9a0/4cf950/4cfb80"
+  },
+  {
+   "addr": "0x4eb560",
+   "module": "networking",
+   "confidence": 0.6,
+   "evidence": "run 0x4e9330-0x4eb890: message-delta field encoders/decoders over bitstream helpers FUN_4cf8f0/4cf9a0/4cf950/4cfb80"
+  },
+  {
+   "addr": "0x4eb890",
+   "module": "networking",
+   "confidence": 0.6,
+   "evidence": "run 0x4e9330-0x4eb890: message-delta field encoders/decoders over bitstream helpers FUN_4cf8f0/4cf9a0/4cf950/4cfb80"
+  },
+  {
+   "addr": "0x4ebd50",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ebda0",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ebe00",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ebf50",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ec000",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ec050",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ec0d0",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ec110",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ec1a0",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ec230",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ec2f0",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ec330",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ec390",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ec3d0",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ec450",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ec490",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ec510",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ec590",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ec600",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ec670",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ec700",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ec750",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ec790",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ec840",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ec900",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ec940",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ecb60",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ecc00",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ecd00",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ecde0",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ece70",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ed070",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ed1d0",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ed290",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ed310",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ed350",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ed390",
+   "module": "networking",
+   "confidence": 0.7,
+   "evidence": "run 0x4ebd50-0x4ed390: 'parameters.cfg', 'message metrics'/'Message Summary.txt', message-delta send/receive core FUN_4ec940 (58 callers)"
+  },
+  {
+   "addr": "0x4ed440",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4ed510",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4ed990",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4ed9d0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4eda20",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4edb10",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4edba0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4edc10",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4edc80",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4edd30",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4eddb0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4ee2e0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4ee370",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4ee3c0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4ee4d0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4ee5e0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4ef160",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4ef200",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4ef2a0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4ef820",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4efbf0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4efc80",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4efcf0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4efea0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4efea8",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4eff10",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4efff0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4f0010",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4f0250",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4f02d0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4f03e0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4ed440-0x4f03e0: damage.c - sig__apply_damage_sig at 0x4ee5e0, '~damaged', damage-effect strings, mdp_* damage delta encode"
+  },
+  {
+   "addr": "0x4f0530",
+   "module": "networking",
+   "confidence": 0.45,
+   "evidence": "run 0x4f0530-0x4f06d0: object index-resolution hash table; every caller is a network message-delta encode/decode fn (paired with FUN_4ec940)"
+  },
+  {
+   "addr": "0x4f05e0",
+   "module": "networking",
+   "confidence": 0.45,
+   "evidence": "run 0x4f0530-0x4f06d0: object index-resolution hash table; every caller is a network message-delta encode/decode fn (paired with FUN_4ec940)"
+  },
+  {
+   "addr": "0x4f0620",
+   "module": "networking",
+   "confidence": 0.45,
+   "evidence": "run 0x4f0530-0x4f06d0: object index-resolution hash table; every caller is a network message-delta encode/decode fn (paired with FUN_4ec940)"
+  },
+  {
+   "addr": "0x4f06d0",
+   "module": "networking",
+   "confidence": 0.45,
+   "evidence": "run 0x4f0530-0x4f06d0: object index-resolution hash table; every caller is a network message-delta encode/decode fn (paired with FUN_4ec940)"
+  },
+  {
+   "addr": "0x4f0730",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f0900",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f0a20",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f0aa0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f0af0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f0bd0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f0c10",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f0cf0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f133c",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f1600",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f1700",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f1780",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f1950",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f1b30",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f1c20",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f1e60",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f1ef0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f20b0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f2430",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f2550",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f29c0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f2a00",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f2d50",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f2df0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f2ff0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f3410",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f3680",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f3700",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f37d0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f3890",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f39d0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f3ad0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f3ba0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f3db0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f3e30",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f3ea0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f3ef0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f3f20",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f3f90",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f4000",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f4080",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f40f0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f4160",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f41d0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f4250",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f42c0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f4330",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f43a0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f4410",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f4480",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f44f0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f4560",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f45b0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f4620",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f4680",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f46b0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f4700",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f4760",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f47c0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f4880",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f4ad0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f4bb0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f4cc0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f4db0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f4e90",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f50f0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f5130",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f5160",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f51c0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f52c0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f5350",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f53a0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f5460",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f54b0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f59d0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f5aa0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f5b50",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f5bd0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f5c10",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f5c30",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f5de0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f5f00",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f5f70",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f6000",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f6030",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f6080",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f6180",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f62f0",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f6440",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  },
+  {
+   "addr": "0x4f6610",
+   "module": "objects",
+   "confidence": 0.7,
+   "evidence": "run 0x4f0730-0x4f6610: object create/delete/placement/node-matrix/lights; 'OUT OF OBJECTS: cannot create %s' at 0x4f54b0, seed object_cause_damage 0x4f1ef0"
+  }
+ ],
+ "boundaries": [
+  {
+   "addr": "0x4e2990",
+   "note": "start of the Gearbox dedicated-server console command file (sv_*/rcon, banlist)"
+  },
+  {
+   "addr": "0x4e5390",
+   "note": "start of client/server player-update (delta prediction) file"
+  },
+  {
+   "addr": "0x4e9330",
+   "note": "start of message-delta field encoder/decoder table (gap after 0x4e86f0)"
+  },
+  {
+   "addr": "0x4ebd50",
+   "note": "start of network parameters.cfg / message metrics / message-delta core"
+  },
+  {
+   "addr": "0x4ed440",
+   "note": "networking -> objects: first function touching object header globals DAT_008603b0/DAT_0087bc14; 0x4ed310-0x4ed390 still called from slice-07 networking"
+  },
+  {
+   "addr": "0x4f0530",
+   "note": "4-function island: generic index-resolution hash table used only by network delta encode/decode; could equally be objects"
+  },
+  {
+   "addr": "0x4f0730",
+   "note": "back to objects (object list/lights/placement), continues past end of slice into slice 09"
+  }
+ ],
+ "notes": "Slice 08 is two halves: 0x4e0af0-0x4ed390 is networking (continuing the large network block from slice 07: client/server game manager, dedicated-server console commands, player update history/prediction, message-delta field codecs and metrics), and 0x4ed440-0x4f6610 is objects (damage.c then objects.c/object lights/object placement, continuing into slice 09 where FUN_4f6ec0 object_get has 141 callers). The only interior anomaly is 0x4f0530-0x4f06d0, a hash table whose callers are all network delta codecs though it sits between two object runs."
+}

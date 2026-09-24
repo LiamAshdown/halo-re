@@ -1,0 +1,484 @@
+{
+  "results": [
+    {
+      "addr": "0x4b7f10",
+      "name": "server_browser_column_header_set_state",
+      "confidence": 0.3,
+      "evidence": "walks a widget tree (next=+0x2c, parent=+0x30, child=+0x34, highlighted-child=+0x38, flag=+0x58 word, alpha=+0x24 float) toggling highlight/alpha based on whether this widget is its parent's currently-highlighted child, then propagates an up/down arrow bool (+0x10) to two chained child widgets based on the sign of in_EDX; called 5x in a row from the server-browser header refresher (0x4b7f70) and transitively only from the join-game ticker tick (0x4b80f0)",
+      "prototype": "",
+      "summary": "Updates one server-browser list column header widget's highlight/alpha state and, given a nonzero sort-direction value in EDX, sets the up/down sort-arrow visibility on its child widgets."
+    },
+    {
+      "addr": "0x4b7f70",
+      "name": "server_browser_column_headers_update",
+      "confidence": 0.35,
+      "evidence": "calls FUN_004b7f10 five times (once per header widget) then for three chained header/arrow widgets sets a 1-of-2 arrow flag from globals DAT_006953f9/0071948b/0071948c and bold(1.0)/dim(0.75) alpha depending on whether each is currently the active sort column; only called from the join-game ticker tick (0x4b80f0)",
+      "prototype": "",
+      "summary": "Refreshes the sort-column header widgets of the join-game server browser list, applying sort-arrow icons and highlight alpha for whichever column is the active sort key."
+    },
+    {
+      "addr": "0x4b80f0",
+      "name": "join_game_server_browser_tick",
+      "confidence": 0.5,
+      "evidence": "tag_lookup on \"...multiplayer_type_select\\\\join_game\\\\join_game_ticker_labels\", builds \"%s %d\" / \"%s %d/%d\" strings for player counts and page numbers, calls the column-header updater (FUN_004b7f70), the mutex-guarded server list accessor (FUN_004ba760), the list sorter (FUN_004ba9c0) and query ingest (FUN_004baae0), and iterates a fixed array of 15 (0xf) row widgets",
+      "prototype": "",
+      "summary": "Per-frame update of the multiplayer join-game server browser list: pulls in new query results, sorts them, populates up to 15 visible server rows with ping/player-count text, and refreshes column-header sort highlighting."
+    },
+    {
+      "addr": "0x4b8a00",
+      "name": "ticker_text_buffer_reset",
+      "confidence": 0.3,
+      "evidence": "if the buffer pointer (unaff_EDI[0]) is set, calls FUN_004d20a0 (heap deallocation helper) and adjusts an outer allocator's byte/count totals, then zeroes the object's pointer/length/cursor fields and resets field[5] to the default value 100 (matches the default scroll-delay constant used by the sibling advance function 0x4b8b40)",
+      "prototype": "",
+      "summary": "Frees and clears a dynamic scrolling text-line buffer object used by the server-browser description ticker, resetting it to an empty state with a default 100ms scroll delay."
+    },
+    {
+      "addr": "0x4b8a60",
+      "name": "ticker_text_buffer_append",
+      "confidence": 0.5,
+      "evidence": "on first use allocates a 0x20-wchar buffer via heap_reallocate; otherwise measures the new text with FUN_00625b7a (wcslen) and doubles the capacity via heap_reallocate until it fits, then wcscpy-appends at the current length and NUL-terminates; used repeatedly by FUN_004b8da0 to build multi-line rules/description text",
+      "prototype": "",
+      "summary": "Appends a wide string to a growable text-line buffer object (the 'this' object is passed in EDI), reallocating as needed; used to build the server-browser game-rules description ticker text."
+    },
+    {
+      "addr": "0x4b8b40",
+      "name": "ticker_text_buffer_advance",
+      "confidence": 0.4,
+      "evidence": "reads glyph metrics from a tag/array entry indexed via DAT_0087bc14, extracts the next display substring starting at the buffer's cursor field [2] into puVar2[0xf] via heap_reallocate + _wcsncpy, wraps the cursor back to 0 when it reaches the stored length [3], and computes field[5] as 100 or 100+0x52 depending on whether the current character's high byte is nonzero (wide/CJK glyph)",
+      "prototype": "",
+      "summary": "Advances a scrolling ticker text buffer to its next visible window, extracting the substring to display and computing a per-character scroll delay (slower for double-byte glyphs)."
+    },
+    {
+      "addr": "0x4b8d30",
+      "name": "unicode_string_list_get_string",
+      "confidence": 0.55,
+      "evidence": "indexes a tag instance via tag_lookup()'s id ((id&0xffff)*0x20+0x14+DAT_0087bc14), bounds-checks an index (in_CX) against the block count, walks a 0x14-byte-stride reflexive array to fetch a {length,...,pointer} string entry and NUL-terminates it, matching the classic Blam unicode_string_list tag-block layout; copies the result into the shared scratch buffer DAT_006b5c58",
+      "prototype": "",
+      "summary": "Looks up the Nth localized string from a unicode_string_list tag block (index passed in CX) and returns it in a shared scratch buffer."
+    },
+    {
+      "addr": "0x4b8da0",
+      "name": "multiplayer_game_variant_description_generate",
+      "confidence": 0.5,
+      "evidence": "switches on param_2&7 (game type: slayer/oddball/race/etc, matching the sibling oddball/race tag-path strings referenced), builds a multi-line description via repeated calls to unicode_string_list_get_string (0x4b8d30) and ticker_text_buffer_append (0x4b8a60), formatting per-rule lines like \"(%s - \\\"%s\\\")\", \"%s%s %d\", \"%s%s %d+%d\"",
+      "prototype": "",
+      "summary": "Builds the multi-line localized game-variant rules description text (game type, rules flags, time/score limits) shown for a server-browser or game-setup entry."
+    },
+    {
+      "addr": "0x4ba270",
+      "name": "network_hostname_resolve_callback",
+      "confidence": 0.4,
+      "evidence": "if param_3 is non-null, extracts a port (via FUN_006148a0) and address from it and stores them via FUN_006148b0; otherwise picks between DAT_00660c34 and DAT_00719458 based on DAT_00719454 and calls FUN_004dc790 (address-string connect); this function's address is passed as a callback argument into FUN_00614f30 from the resolver 0x4ba320",
+      "prototype": "",
+      "summary": "Completion callback for the asynchronous hostname-resolve used when joining a server by name: stores the resolved address/port, or falls back to a direct connect-by-string path."
+    },
+    {
+      "addr": "0x4ba320",
+      "name": "network_join_request_resolve_host",
+      "confidence": 0.45,
+      "evidence": "reads a pending connect request (DAT_00719450), retrieves hostname/IP fields via FUN_006175e0/00617640/00617650, compares packed address bytes, formats \"%s:%d\" via sprintf, and either connects directly via FUN_004dc790 or starts an async resolve with FUN_00614f30 passing callbacks FUN_0044ad80 and network_hostname_resolve_callback (0x4ba270), setting the connect state DAT_00718f8c=4",
+      "prototype": "",
+      "summary": "Resolves the host/IP for a pending 'join server' request and either connects immediately or kicks off an asynchronous hostname resolution."
+    },
+    {
+      "addr": "0x4ba760",
+      "name": "server_list_mutex_try_lock",
+      "confidence": 0.5,
+      "evidence": "if the mutex-in-use flag DAT_007196ac is set, calls WaitForSingleObject on the handle at DAT_007196a8 with the caller-supplied timeout, returning NULL on failure/timeout and otherwise a pointer to the shared server-list object DAT_007196bc",
+      "prototype": "void * __cdecl server_list_mutex_try_lock(unsigned int timeout_ms)",
+      "summary": "Attempts to lock the shared server-browser query-result mutex within a timeout, returning a pointer to the shared list object on success."
+    },
+    {
+      "addr": "0x4ba7a0",
+      "name": "server_list_mutex_unlock_and_clear",
+      "confidence": 0.35,
+      "evidence": "zeroes the pointer left in EAX by the caller and then, if DAT_007196ac indicates the mutex is in use, calls ReleaseMutex on the handle at DAT_007196a8; mirrors the lock helper at 0x4ba760",
+      "prototype": "",
+      "summary": "Clears a caller-held server-list pointer and releases the shared server-browser query-result mutex."
+    },
+    {
+      "addr": "0x4ba7c0",
+      "name": "server_list_release_or_reset",
+      "confidence": 0.3,
+      "evidence": "if a list object pointer is supplied via EAX it just clears two of its fields (+4,+0xc) and returns; otherwise it waits (100ms) on the shared mutex, clears the shared counters DAT_007196c0/DAT_007196c8 and releases the mutex, mirroring 0x4ba760/0x4ba7a0",
+      "prototype": "",
+      "summary": "Either resets a caller-supplied server-list entry's fields, or, with no entry supplied, clears the shared server-list result counters under the query-result mutex."
+    },
+    {
+      "addr": "0x4ba820",
+      "name": "server_list_result_count_get",
+      "confidence": 0.5,
+      "evidence": "waits up to 100ms on the shared mutex (DAT_007196a8/DAT_007196ac), reads the shared counter DAT_007196c0, releases the mutex and returns it",
+      "prototype": "unsigned int __cdecl server_list_result_count_get(void)",
+      "summary": "Thread-safely reads the current number of server-browser query results under the shared list mutex."
+    },
+    {
+      "addr": "0x4ba870",
+      "name": "pointer_array_find_index",
+      "confidence": 0.3,
+      "evidence": "given a {pointer,count} array descriptor (in_EDX) and a needle (unaff_EDI), linearly scans the pointer array and returns the matching index or -1",
+      "prototype": "",
+      "summary": "Generic linear search returning the index of a value within a {pointer,count} array, or -1 if not found."
+    },
+    {
+      "addr": "0x4ba8a0",
+      "name": "dynamic_array_add_if_unique",
+      "confidence": 0.35,
+      "evidence": "gated by FUN_004b7080; scans the existing array (unaff_ESI: [0]=ptr,[1]=count,[2]=capacity) for the new value (unaff_EDI) and skips insertion if already present, otherwise grows the GlobalAlloc/GlobalReAlloc-backed array by 0x20-entry increments, appends the value, bumps a generation counter [3], and returns success packed with that counter",
+      "prototype": "",
+      "summary": "Adds a value to a dynamically-grown, GlobalAlloc-backed pointer array only if it is not already present, used to accumulate unique server-browser query results."
+    },
+    {
+      "addr": "0x4ba940",
+      "name": "pointer_array_remove_at_index",
+      "confidence": 0.4,
+      "evidence": "memmove-shifts the elements above in_EDX down by one 4-byte slot and decrements the array's count field [1]",
+      "prototype": "",
+      "summary": "Removes the element at a given index from a dynamic pointer array, shifting later elements down and decrementing the count."
+    },
+    {
+      "addr": "0x4ba970",
+      "name": "server_browser_sort_comparator_select",
+      "confidence": 0.5,
+      "evidence": "switches on the sort-mode global DAT_00719489 (1..4, default) and returns one of five fixed function pointers (FUN_004b6f20/LAB_004b6fb0/FUN_004b6da0/...); its result is fed directly to _qsort as the comparator in FUN_004ba9c0",
+      "prototype": "void * __cdecl server_browser_sort_comparator_select(void)",
+      "summary": "Returns the qsort comparator function pointer matching the server browser's currently selected sort column."
+    },
+    {
+      "addr": "0x4ba9c0",
+      "name": "server_browser_list_sort",
+      "confidence": 0.45,
+      "evidence": "captures the identity of the currently-selected entry, calls server_browser_sort_comparator_select (0x4ba970) and _qsort on the result array (in_EAX), then re-locates the previously-selected entry after sorting and clamps the visible scroll window (DAT_00719478, a 15-item page) around it before calling FUN_004baa60",
+      "prototype": "",
+      "summary": "Sorts the server-browser result array by the active sort column while preserving which entry stays selected, then re-clamps the visible page window."
+    },
+    {
+      "addr": "0x4baa60",
+      "name": "server_browser_total_players_compute",
+      "confidence": 0.5,
+      "evidence": "for every entry in the result array calls FUN_00617c10(entry, \"numplayers\", -1) (a key/value query typical of GameSpy-style server-info responses), clamps each result to 16 and sums into DAT_00719474",
+      "prototype": "",
+      "summary": "Sums the 'numplayers' key/value field across all server-browser query results to compute the total number of players online."
+    },
+    {
+      "addr": "0x4baae0",
+      "name": "server_browser_query_results_ingest",
+      "confidence": 0.5,
+      "evidence": "iterates the query-engine result set (DAT_0071946c) via FUN_00617030/00617020/006175c0, adds valid entries with dynamic_array_add_if_unique (0x4ba8a0), then re-sorts via server_browser_list_sort (0x4ba9c0) and clears the 'query in progress' flag DAT_0071948a",
+      "prototype": "",
+      "summary": "Pulls new results out of the server-browser query engine into the local server list, then re-sorts and marks the query as finished."
+    },
+    {
+      "addr": "0x4d7980",
+      "name": "network_bandwidth_graph_reset",
+      "confidence": 0.4,
+      "evidence": "zeroes the bandwidth-graph global counters (DAT_00719ce4/cec/d9c/da0/da4), sets the display-mode selectors to 1, copies the display timebase from DAT_006894b0, and forces a layout recompute via FUN_004d7e20(1)",
+      "prototype": "int __cdecl network_bandwidth_graph_reset(void)",
+      "summary": "Resets the global network bandwidth-graph debug overlay's counters and mode selectors to their default state."
+    },
+    {
+      "addr": "0x4d79d0",
+      "name": "network_bandwidth_track_bytes_sent",
+      "confidence": 0.4,
+      "evidence": "unconditionally accumulates the byte delta into the 'sent' running total DAT_00719d9c*8, and only when the graph mode selectors indicate 'sent' is the active display (DAT_00719cf0==0) also accumulates into the displayed total DAT_00719db0; lazily captures a start timestamp via FUN_00449210",
+      "prototype": "",
+      "summary": "Accumulates outgoing (sent) byte counts for the network bandwidth debug graph, updating the displayed total only when 'sent' is the active view."
+    },
+    {
+      "addr": "0x4d7a50",
+      "name": "network_bandwidth_track_bytes_received",
+      "confidence": 0.4,
+      "evidence": "mirror image of network_bandwidth_track_bytes_sent (0x4d79d0): accumulates into the 'received' running total DAT_00719da0*8 unconditionally, and into the displayed total DAT_00719db0 only when the mode selector indicates 'received' (DAT_00719cf0==1)",
+      "prototype": "",
+      "summary": "Accumulates incoming (received) byte counts for the network bandwidth debug graph, updating the displayed total only when 'received' is the active view."
+    },
+    {
+      "addr": "0x4d7ad0",
+      "name": "network_bandwidth_graph_recompute_layout",
+      "confidence": 0.4,
+      "evidence": "only runs when the overlay is enabled (DAT_00710305), recomputes graph corner coordinates from the current screen size delta, clears the history buffers, calls network_bandwidth_graph_history_reset (0x4d8080), formats the mode label via snprintf(\"%s %s\", bytes/packets-name, sent/recv-name) using the same PTR_s_bytes_0065d428 / PTR_DAT_0065d430 arrays as network_bandwidth_unit_name_to_index/direction, and finally draws via network_stats_overlay_draw (0x4d8620)",
+      "prototype": "void __cdecl network_bandwidth_graph_recompute_layout(void)",
+      "summary": "Recomputes the on-screen layout and label of the global network bandwidth debug graph whenever the screen size changes, then redraws it."
+    },
+    {
+      "addr": "0x4d7d90",
+      "name": "network_bandwidth_graph_set_units_command",
+      "confidence": 0.45,
+      "evidence": "only proceeds if the overlay is enabled (DAT_00710305), resolves a units token via network_bandwidth_unit_name_to_index (0x4d8a20, matches \"bytes\"/\"packets\") and a direction token via network_bandwidth_direction_name_to_index (0x4d8a50), and if both parse, calls network_bandwidth_graph_instance_init (0x4d7de0) with them",
+      "prototype": "int __cdecl network_bandwidth_graph_set_units_command(void)",
+      "summary": "Parses a units/direction command-line pair (e.g. 'bytes sent') and, if valid, (re)configures the network bandwidth debug graph to display them."
+    },
+    {
+      "addr": "0x4d7de0",
+      "name": "network_bandwidth_graph_instance_init",
+      "confidence": 0.5,
+      "evidence": "sets the graph-instance object's active flag [0]=1, clears [1], caches a timebase from DAT_006894b0, stores the two mode parameters at [3]/[4], zeroes three cached rate fields (+0xbc/0xc0/0xc4), and forces a layout recompute via FUN_004d7e20(1)",
+      "prototype": "",
+      "summary": "Initializes a per-instance network bandwidth-graph object with the given units/direction mode and forces its layout to be recomputed."
+    },
+    {
+      "addr": "0x4d7e20",
+      "name": "network_bandwidth_graph_instance_recompute_layout",
+      "confidence": 0.4,
+      "evidence": "per-instance twin of network_bandwidth_graph_recompute_layout (0x4d7ad0): recomputes corner coordinates from the screen-size delta only when it changed or param_1 forces it, resets history via network_bandwidth_graph_history_reset (0x4d8080), and formats the same \"%s %s\" units/direction label into the instance's buffer",
+      "prototype": "",
+      "summary": "Recomputes the on-screen layout and label text of one network bandwidth-graph instance object when the screen size changes or a refresh is forced."
+    },
+    {
+      "addr": "0x4d8080",
+      "name": "network_bandwidth_graph_history_reset",
+      "confidence": 0.4,
+      "evidence": "fills the 0x140-entry sample ring buffer at +0x5e4 with -1 and per-sample baseline coordinates derived from the graph's screen bounds, clears the 0x140-entry history array at +0xd8, resets the bucket index (+0x23d8=1) and rate fields, and sets the active flag [0]=1",
+      "prototype": "",
+      "summary": "Resets a network bandwidth-graph instance's sample ring buffer and history array to an empty starting state."
+    },
+    {
+      "addr": "0x4d8140",
+      "name": "network_bandwidth_graph_find_peak_sample",
+      "confidence": 0.4,
+      "evidence": "scans the graph's sample array in groups of 5 across its full 0x140-entry length tracking the running maximum value and its index, writing the resulting index out through the caller-supplied pointer (unaff_EBX)",
+      "prototype": "",
+      "summary": "Finds the index of the largest sample in the bandwidth-graph history, used to rescale the graph's vertical axis."
+    },
+    {
+      "addr": "0x4d81c0",
+      "name": "network_bandwidth_graph_update_columns",
+      "confidence": 0.35,
+      "evidence": "shifts the +0xd8 history window down by one and records the new sample (in_EAX) at +0x5d4; when the current time bucket (+0x23d8, refilled from network_bandwidth_graph_find_peak_sample at 0x4d8140 every 0x140 frames) changes, rotates several 8-entry min/max history rows and recomputes the label float; otherwise recomputes interpolated per-column screen-height values across the visible window",
+      "prototype": "",
+      "summary": "Feeds a new sample into a network bandwidth-graph instance and recomputes the interpolated column heights used to draw the scrolling line graph."
+    },
+    {
+      "addr": "0x4d8430",
+      "name": "network_bandwidth_graph_new_sample",
+      "confidence": 0.4,
+      "evidence": "calls network_bandwidth_graph_update_columns (0x4d81c0), averages the five most recent raw sample fields (+0x5d4..+0x5c4) into the displayed rate field +0x23dc, and stamps the current time (QueryPerformanceCounter scaled to ms via __allmul/__alldiv) into +4",
+      "prototype": "",
+      "summary": "Records a new bandwidth sample into a graph instance, updating its smoothed displayed rate and last-update timestamp."
+    },
+    {
+      "addr": "0x4d84d0",
+      "name": "network_bandwidth_graph_tick",
+      "confidence": 0.45,
+      "evidence": "computes elapsed ms since the instance's last update (+4) via QueryPerformanceCounter, and while the elapsed time exceeds the sampling interval (+8) repeatedly calls network_bandwidth_graph_new_sample (0x4d8430), consuming the interval each time",
+      "prototype": "",
+      "summary": "Advances a network bandwidth-graph instance forward by any elapsed sampling intervals since it was last updated."
+    },
+    {
+      "addr": "0x4d8540",
+      "name": "network_bandwidth_rate_compute",
+      "confidence": 0.5,
+      "evidence": "computes elapsed seconds since the last rate update (+0xc4, via QueryPerformanceCounter/__allmul/__alldiv), then divides the accumulated sent/received byte counters (+0xbc/+0xc0, with unsigned-wrap correction) by that interval to produce the smoothed rates stored at +200 and +0xcc -- the same two fields printed as \"%.2f bps sent\"/\"%.2f bps recv\" by network_stats_overlay_draw (0x4d8620)",
+      "prototype": "",
+      "summary": "Computes the smoothed sent/received bits-per-second rates for the network bandwidth debug overlay from accumulated byte counters and elapsed time."
+    },
+    {
+      "addr": "0x4d8620",
+      "name": "network_stats_overlay_draw",
+      "confidence": 0.6,
+      "evidence": "issues a long sequence of calls through a Direct3D-style vtable (DAT_0071d174) to draw the bandwidth-graph lines/quads, then formats and draws text via chimera__draw_8_bit_text using the string \"%s|n%.2f bps sent|n%.2f bps recv\" with the rate fields (+200/+0xcc) computed by network_bandwidth_rate_compute (0x4d8540)",
+      "prototype": "",
+      "summary": "Renders the network bandwidth debug overlay: draws the scrolling line graph via the Direct3D device and overlays the sent/received bits-per-second text."
+    },
+    {
+      "addr": "0x4d8a20",
+      "name": "network_bandwidth_unit_name_to_index",
+      "confidence": 0.55,
+      "evidence": "compares the caller-supplied string (unaff_EDI) case-insensitively against the two-entry array PTR_s_bytes_0065d428, whose referenced strings are literally \"bytes\" and \"packets\", returning the matching index or -1",
+      "prototype": "",
+      "summary": "Converts a 'bytes'/'packets' unit-name string into the corresponding index for the network bandwidth debug graph."
+    },
+    {
+      "addr": "0x4d8a50",
+      "name": "network_bandwidth_direction_name_to_index",
+      "confidence": 0.45,
+      "evidence": "compares the caller-supplied string against the two-entry array PTR_DAT_0065d430, the same array used alongside PTR_s_bytes_0065d428 (\"bytes\"/\"packets\") to format the \"%s %s\" bandwidth-graph label, indicating this second array holds the matching sent/received direction names",
+      "prototype": "",
+      "summary": "Converts a direction-name string (e.g. 'sent'/'recv') into the corresponding index for the network bandwidth debug graph."
+    },
+    {
+      "addr": "0x4d8a80",
+      "name": "network_session_create",
+      "confidence": 0.5,
+      "evidence": "returns the fixed global session object &DAT_00872de0, allocates and zeroes a 0x2c-byte control block into DAT_00873d28, creates a socket-like resource via FUN_004dc9b0(2), and on failure tears everything back down via network_session_destroy (0x4d8b70); otherwise finishes initializing a cluster of DAT_00873c.. state fields and clears a trailing 0xd-dword region before calling FUN_00440670",
+      "prototype": "",
+      "summary": "Creates and initializes the singleton network session object, allocating its control block and underlying socket resource."
+    },
+    {
+      "addr": "0x4d8b70",
+      "name": "network_session_destroy",
+      "confidence": 0.5,
+      "evidence": "tears down the session object referenced in EAX: frees its address-list resource via FUN_004dcae0 when present, clears DAT_0071c2c2 ('session active' flag) and calls FUN_004e6b10/FUN_00440820; only called from network_session_create (0x4d8a80) on failure",
+      "prototype": "",
+      "summary": "Tears down a partially- or fully-created network session object and clears the session-active flag."
+    },
+    {
+      "addr": "0x4d8bb0",
+      "name": "network_connection_type_dispatch",
+      "confidence": 0.4,
+      "evidence": "switches on *(short*)(in_EAX+0xeda), a connection-mode field also read/written by chimera__on_connect (0x4d8ed0), FUN_004d8c10 and FUN_004d9050, dispatching to five distinct per-mode handlers FUN_004daa20/dab80/daef0/daf80/db100",
+      "prototype": "",
+      "summary": "Dispatches per-frame processing to the handler matching the connection's current mode/type field."
+    },
+    {
+      "addr": "0x4d8c10",
+      "name": "network_connect_progress_percent_get",
+      "confidence": 0.45,
+      "evidence": "only computes a value when the connection mode field (+0xeda) equals 1 ('connecting'); returns ((now - start_time)*100)/DAT_006894ac as a percentage into the caller-supplied output pointer, otherwise leaves it 0 and always returns the raw mode field",
+      "prototype": "",
+      "summary": "Computes the connection-attempt progress as a percentage of the configured connect timeout, for display while in the 'connecting' state."
+    },
+    {
+      "addr": "0x4d8c50",
+      "name": "network_connection_endpoint_set",
+      "confidence": 0.45,
+      "evidence": "clears and then copies six dwords (a sockaddr-like family/port/address block) from the caller's buffer into the connection object's +0xab4..+0xac8 fields, marks it active (+0xad6=1), and allocates a fresh 0x264-byte control block via GlobalAlloc into +0xad8, freeing any prior one first",
+      "prototype": "",
+      "summary": "Sets a connection object's remote endpoint address fields and (re)allocates its per-endpoint control block."
+    },
+    {
+      "addr": "0x4d8cf0",
+      "name": "network_connection_initiate",
+      "confidence": 0.5,
+      "evidence": "explicit 3-argument cdecl-style function with no register-implicit inputs; stamps a start timestamp via QueryPerformanceCounter, copies a 9-dword session-info block (param_3) into +0xaee, and if the target machine matches the local machine (FUN_00440570/FUN_00441f60) falls back to connecting to \"127.0.0.1\" when no port was given, finally calling network_connection_endpoint_set (0x4d8c50)",
+      "prototype": "int __cdecl network_connection_initiate(int connection, unsigned int *param_2, unsigned int *param_3)",
+      "summary": "Begins establishing a connection object to a given address/session, substituting the loopback address 127.0.0.1 when the target turns out to be the local machine."
+    },
+    {
+      "addr": "0x4d8ed0",
+      "name": "network_join_connect_begin",
+      "confidence": 0.45,
+      "evidence": "near-duplicate of network_connection_initiate (0x4d8cf0) but always copies its address block from unaff_EBX and, on success, sets the connection mode field (+0xeda=1), calls FUN_00496a80(\"Connecting\") to post the visible status string, and sets connect-timeout state DAT_00718f8c=5; previously named chimera__on_connect, a hint prefix rather than a verified name",
+      "prototype": "",
+      "summary": "Begins connecting to a server after the user accepts a join/invite, posting the 'Connecting' status text and copying the target address into the connection object."
+    },
+    {
+      "addr": "0x4d9050",
+      "name": "network_connection_send_session_info",
+      "confidence": 0.4,
+      "evidence": "switches on the connection mode field (+0xeda); for modes 2-4 copies an 8-dword address/session block (in_EAX) into a stack buffer, obtains a send buffer via FUN_004deaf0, checks queue space with FUN_004ddb60, and pushes it via FUN_004cf8f0 -- the same send-queue push helper used throughout this cluster",
+      "prototype": "",
+      "summary": "Encodes and queues a session-info packet for the connection, when its connection-mode field indicates that one is needed."
+    },
+    {
+      "addr": "0x4d9190",
+      "name": "network_player_table_slot_assign",
+      "confidence": 0.35,
+      "evidence": "scans 16 fixed player-slot records (param_1+0xcd2, stride 0x20) for one matching a 2-byte machine/player id pulled from unaff_EBX, resolves a datum handle for it via FUN_004d98f0, and if a target index (param_2) was supplied, writes it into a 0x200-byte-stride table rooted at DAT_0087a480+0x34",
+      "prototype": "",
+      "summary": "Finds the player slot matching a given machine id and records its assigned table index (e.g. team or score-table slot) for that player."
+    },
+    {
+      "addr": "0x4d9220",
+      "name": "network_send_join_request_packet",
+      "confidence": 0.5,
+      "evidence": "encodes packet type 0x1e via data_packet_group_encode_packet, post-processes it with FUN_00440350, and if space is available (or freed via FUN_004ddb60) pushes it onto the connection's send queue with FUN_004cf8f0, matching the send-path pattern used by network_send_full_game_settings_to_client (0x4d94c0) and network_broadcast_player_joined (0x4d9700)",
+      "prototype": "unsigned int __cdecl network_send_join_request_packet(int connection)",
+      "summary": "Encodes and queues an outgoing join-request packet (packet type 0x1e) on the given connection."
+    },
+    {
+      "addr": "0x4d9340",
+      "name": "network_disconnected_players_notify",
+      "confidence": 0.4,
+      "evidence": "runs once per session (guarded by unaff_EBX+0xee0), walks a chain of formerly-connected machine indices rooted at DAT_0087a478+4, calling display_error(8, index, 1, 0) for each -- the same error-display helper (0x498f20) used elsewhere for connection-loss notifications",
+      "prototype": "",
+      "summary": "Displays a disconnect-notification error message for each machine that dropped from the session."
+    },
+    {
+      "addr": "0x4d93b0",
+      "name": "network_connection_resend_check",
+      "confidence": 0.4,
+      "evidence": "only proceeds if the endpoint is active (+0xad6) and the given address (in_ECX) matches the connection's stored remote address (+0xab4); if the current time exceeds a caller-supplied deadline, bumps a retry counter (+0xad2) and re-fetches/re-queues the buffered data via FUN_004ed310/FUN_004ed350",
+      "prototype": "",
+      "summary": "Checks whether a connection's last outgoing data has gone unacknowledged past its deadline and, if so, resends it and bumps the retry counter."
+    },
+    {
+      "addr": "0x4d9400",
+      "name": "network_connection_keepalive_send",
+      "confidence": 0.45,
+      "evidence": "only runs while the endpoint is active (+0xad6==1) and more than 3000ms have elapsed since the last send (+0xacc); obtains a send buffer via FUN_004deaf0 and, if the send queue isn't blocked, dispatches it with FUN_004dcdb0, then bumps a keepalive counter (+0xad0) and refreshes the timestamp",
+      "prototype": "",
+      "summary": "Periodically sends a keepalive packet on an idle connection once more than three seconds have elapsed since the last send."
+    },
+    {
+      "addr": "0x4d94c0",
+      "name": "network_send_full_game_settings_to_client",
+      "confidence": 0.4,
+      "evidence": "compares a 16-byte session-id against the connection's stored one and, on mismatch, resets state via FUN_004c87a0; otherwise copies the local player's name (8 wchars from unaff_EBX+0x578) and a large ~8KB settings blob (DAT_00712dd8, 0x7ff dwords, likely map/variant data) into a packet buffer built by FUN_00617c70 and queues it via FUN_004cf8f0",
+      "prototype": "",
+      "summary": "Builds and sends a large game-settings/map-data packet (including the player's name) to a newly-joining client whose session id doesn't yet match ours."
+    },
+    {
+      "addr": "0x4d9700",
+      "name": "network_broadcast_player_joined",
+      "confidence": 0.4,
+      "evidence": "validates a player index (0..15) from in_ECX, sets the connection's mode field (+0x76d=2), copies the id into two other session-tracking globals (DAT_0071c2d4+0x3ac, DAT_0071c2d8+0xeb8), then obtains a buffer via FUN_004deaf0 and queues it via FUN_004cf8f0",
+      "prototype": "",
+      "summary": "Records a newly-joined player's index into the active session state and queues a notification packet announcing the join."
+    },
+    {
+      "addr": "0x4d97e0",
+      "name": "network_session_error_disconnect",
+      "confidence": 0.4,
+      "evidence": "lazily initializes an error-code global (DAT_00718fa4) from a caller-supplied base offset, sets the disconnect-pending flag DAT_0071c2de=1, and calls FUN_004aa900, the same disconnect/cleanup routine used by network_connection_retry_or_disconnect (0x4d9ce0)",
+      "prototype": "",
+      "summary": "Records an error code and triggers a network-session disconnect/cleanup."
+    },
+    {
+      "addr": "0x4d9800",
+      "name": "network_receive_game_settings_packet",
+      "confidence": 0.45,
+      "evidence": "receive-side counterpart of network_send_full_game_settings_to_client (0x4d94c0): compares an incoming 16-byte session id against the local one (resetting via FUN_004c87a0 on mismatch), then bulk-copies a ~944-byte (0xec dword) settings block from the incoming packet into the local session struct at unaff_EBX+0xb14, and on first receipt (+0xee2==0) calls FUN_004d9f50 to apply it",
+      "prototype": "",
+      "summary": "Processes an incoming game-settings/map-data packet from the host, storing it locally and applying it the first time it is received."
+    },
+    {
+      "addr": "0x4d98f0",
+      "name": "data_iterator_advance_n",
+      "confidence": 0.3,
+      "evidence": "repeatedly calls data_iterator_next() in a loop bounded by param_1, matching the naming/behavior of the existing data_iterator_next callee; used by several callers (0x4d9190, 0x4d9e30) that then test the resulting handle against 0 and 0xffffffff, so the always-'-1' literal return visible here is very likely a decompiler artifact of the register-passed iteration state",
+      "prototype": "",
+      "summary": "Advances a datum iterator forward a given number of steps, intended to return the datum handle at that position (decompiled return value appears lossy)."
+    },
+    {
+      "addr": "0x4d9960",
+      "name": "network_connection_finalize_join",
+      "confidence": 0.5,
+      "evidence": "single clean explicit parameter; encodes and queues a 0x1a packet via data_packet_group_encode_packet + FUN_004cf8f0, transitions the connection state field param_1[0x76d] to 3, resets several player-index fields, calls FUN_00498650/FUN_00470ae0/FUN_0045b8b0 (UI/timer refresh), and arms a post-join grace-period timer via DAT_0068e680; also emits a debug log line via _fprintf when verbosity > 2",
+      "prototype": "int __cdecl network_connection_finalize_join(unsigned short *connection)",
+      "summary": "Finalizes a connection's transition into the joined/in-game state, sending the final join packet and arming post-join bookkeeping timers."
+    },
+    {
+      "addr": "0x4d9ce0",
+      "name": "network_connection_retry_or_disconnect",
+      "confidence": 0.35,
+      "evidence": "defaults a retry-limit field (+0xedc) to 8 if unset, then returns early if the active-session object DAT_0071c2d4 already has a particular status bit set, otherwise sets the disconnect-pending flag DAT_0071c2de=1 and calls FUN_004aa900 (the same disconnect routine used by network_session_error_disconnect at 0x4d97e0)",
+      "prototype": "",
+      "summary": "Either leaves an already-flagged session alone or triggers a network disconnect/cleanup after defaulting the retry-limit field."
+    },
+    {
+      "addr": "0x4d9d20",
+      "name": "network_process_incoming_update_packet",
+      "confidence": 0.45,
+      "evidence": "two clean explicit parameters; grows a per-connection buffer keyed by a 16-bit sequence field (param_2+0xe) up to param_1+0xcb4, compares the packet's session/machine id fields against the connection's, calls network_disconnected_players_notify (0x4d9340) on certain mismatches, copies up to ~776 bytes of payload into a stack buffer for FUN_004734b0 to consume, and stamps a receive timestamp into param_1+0xed0",
+      "prototype": "int __cdecl network_process_incoming_update_packet(int connection, unsigned int *packet)",
+      "summary": "Processes an incoming sequenced game-state update packet, growing the per-connection reassembly buffer as needed and handing the payload off for application."
+    },
+    {
+      "addr": "0x4d9e30",
+      "name": "network_player_join_finalize",
+      "confidence": 0.55,
+      "evidence": "validates the connection is ready via FUN_004de9f0 and the player slot via FUN_004de4e0, and once the connection has reached state 3 (joined), calls game_set_local_player() when this is the local player's slot and then datum_new_at_index_with_salt() to create the player's datum, finally notifying the active game object via FUN_00472c90 when one exists",
+      "prototype": "",
+      "summary": "Creates the game-object datum for a player once their connection has fully joined, marking it as the local player when applicable."
+    },
+    {
+      "addr": "0x4d9ed0",
+      "name": "network_timer_schedule",
+      "confidence": 0.4,
+      "evidence": "stores an expiry time (now+param_1) and a callback/data value (param_2) into a timer-like structure (unaff_ESI+0xee8/+0xef0), marks it active (+0xee4=1), clears a fired flag (+0xeec) and a result field (+0xef4), then calls FUN_004dd390 to arm it",
+      "prototype": "",
+      "summary": "Schedules a delayed network event/timer to fire after a given number of milliseconds."
+    }
+  ]
+}

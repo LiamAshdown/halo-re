@@ -1,0 +1,11 @@
+{
+  "slice": 19,
+  "decisions": [
+    {
+      "addr": "0x61c260",
+      "module": "lib:gamespy",
+      "confidence": 0.82,
+      "evidence": "Keep lib:gamespy. This is the GameSpy MOTD/Version-Check SDK (gsmotd/ghttp vercheck), not Bungie glue. The query string 'productid=%d&versionuniqueid=%s&distid=%d' is verbatim the GameSpy MOTD server's parameter set (SDK default host motd.gamespy.com/motd/vercheck.asp); Gearbox only retargeted the host to hpcup.bungie.net, which is normal SDK per-title configuration and does not make the code Bungie's. Structurally it is inside the ghttp object: it writes into the ghttp static buffer DAT_006a3070, adds the SDK's own 'Pragma: no-cache\r\n' header, calls the internal (non-public) request helper FUN_0061bd80 rather than a public ghttpGet entry point, and passes callback LAB_0061c0d0 at 0x61c0d0 -- a static callback sitting in the gap between 0x61c060 and 0x61c260, i.e. in this same object file. Neighbours 0x61bd80/0x61bef0/0x61c020/0x61c030/0x61c060 and 0x61c360+ are all lib:gamespy at 0.85; splitting a single function out of that contiguous MSVC run for one hostname string is not warranted. callers=0 in-slice, consistent with the game-side caller living elsewhere."
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+# input module: 80 functions (address, current Ghidra name, size, agent confidence, summary)
+
+- 0x48b3e0 input_state_initialize size=133 conf=0.6 :: One-time input subsystem initializer that clears all binding tables and (re)establishes the QueryPerformanceCounter-based millisecond time base.
+- 0x48b470 input_time_base_resync size=64 conf=0.55 :: Recomputes the millisecond input time base from QueryPerformanceCounter without resetting the rest of the input state.
+- 0x48b4b0 input_update_tick size=109 conf=0.55 :: Per-frame input tick: expires repeat timers, samples three special button states, and dispatches the control-rebinding capture state machine.
+- 0x48b520 effect_new_on_object_marker size=180 conf=0.3 :: Shared tail of the rebind-capture state machine (idle/start/reset/scan) reached with the flag word and deadline already in registers; wrongly named effect_new_on_object_marker by a prior pass.
+- 0x48b5f0 input_bind_capture_reset size=83 conf=0.55 :: Clears the current-frame input accumulator and marks the bind-capture state as freshly reset.
+- 0x48b650 FUN_0048b650 size=89 conf=0.4 :: Switches the keyboard device between normal and capture (rebind) property mode and clears the per-key press/hold state arrays.
+- 0x48b6b0 FUN_0048b6b0 size=145 conf=0.4 :: Loads either per-device joystick axis binding profiles or the default profile into the active axis-binding table.
+- 0x48b750 hs_bind_control size=90 conf=0.5 :: Implements the console/script 'bind' command: parses a device input and an action name and writes the binding, then echoes confirmation.
+- 0x48b7b0 input_apply_control_binding size=285 conf=0.5 :: Writes a parsed device-input descriptor's game-control assignment into the appropriate keyboard/mouse/joystick binding table.
+- 0x48b8d0 hs_unbind_control size=209 conf=0.55 :: Implements the console/script 'unbind' command: parses a device input, clears its binding, and prints an 'unbound ...' confirmation.
+- 0x48b9b0 input_clear_control_binding size=291 conf=0.5 :: Clears (unbinds) a device input's game-control assignment in the matching keyboard/mouse/joystick binding table.
+- 0x48bae0 FUN_0048bae0 size=757 conf=0.4 :: Resolves a raw keyboard/mouse/joystick input event to the game control it is bound to and records that binding as the control's most recently used input.
+- 0x48bde0 FUN_0048bde0 size=100 conf=0.45 :: Returns the input device/type most recently used to activate a given game control, populating the cache via FUN_0048bae0 if not yet known.
+- 0x48be50 FUN_0048be50 size=69 conf=0.45 :: Directly sets or clears the cached 'last used input device' record for a given game control.
+- 0x48bea0 input_print_bound_controls size=2352 conf=0.55 :: Console/debug routine that lists every currently bound keyboard, mouse, and joystick input alongside the game control it triggers.
+- 0x48c7f0 FUN_0048c7f0 size=174 conf=0.45 :: Given a device-input descriptor, dispatches to the correct per-device name/text formatting routine (keyboard key, mouse button/axis, or joystick button/axis/pov).
+- 0x48c8a0 FUN_0048c8a0 size=53 conf=0.45 :: Clamps a floating-point input value to the 0..1 range.
+- 0x48c8e0 FUN_0048c8e0 size=71 conf=0.4 :: Converts a raw sensitivity value into a clamped radians-per-unit turn-rate scale factor.
+- 0x48c930 FUN_0048c930 size=109 conf=0.3 :: Sets a per-joystick clamped 0..1 scale value (likely X-axis sensitivity/deadzone) for the given controller slot.
+- 0x48c9a0 FUN_0048c9a0 size=109 conf=0.3 :: Sets a per-joystick clamped 0..1 scale value (likely Y-axis sensitivity/deadzone) for the given controller slot.
+- 0x48ca10 FUN_0048ca10 size=302 conf=0.4 :: Accumulates a digitally-pressed control's contribution into the corresponding movement/look axis accumulator, clamped to [-1,1].
+- 0x48cb60 FUN_0048cb60 size=306 conf=0.4 :: Evaluates the mouse-sensitivity/acceleration response curve for a given raw movement magnitude, rebuilding the curve table when the sensitivity setting changes.
+- 0x48cca0 FUN_0048cca0 size=1481 conf=0.45 :: The main per-frame routine that reads every bound keyboard, mouse, and joystick input and produces the final movement/look action accumulator values, also tracking idle state and look inversion.
+- 0x48d270 hs_return size=6434 conf=0.3 :: Applies a single device's per-frame input delta (mouse table entry plus buffered joystick axis/button events) into the shared movement/look accumulators; misnamed hs_return by an earlier pass and rena
+- 0x48ec50 FUN_0048ec50 size=2938 conf=0.4 :: Detects double-tap presses of the bound movement keys/buttons within the system double-click interval and posts corresponding input events.
+- 0x48f8c0 input_scan_any_bound_input size=1043 conf=0.55 :: Waits for and detects the next raw input activation (any key, mouse button/axis, joystick button/axis/pov) for use by the control-rebinding capture UI.
+- 0x48fce0 FUN_0048fce0 size=116 conf=0.4 :: Returns true when the input accumulator's axis values and press counters are unchanged from the previous snapshot (used to detect input idle state).
+- 0x48fd60 FUN_0048fd60 size=242 conf=0.4 :: Determines whether look-Y input should be inverted for the player's currently controlled object/seat, based on the unit definition tag flags.
+- 0x48fe60 input_action_name_to_index size=55 conf=0.5 :: Resolves a textual game-control/action name (e.g. from a 'bind' command) to its numeric control id via case-insensitive string table lookup.
+- 0x48fea0 input_parse_device_binding_string size=431 conf=0.55 :: Parses a device-class name string (keyboard/mouse/mouseaxis/joystick/joystickaxis/joystickpov) and its input name into a structured binding descriptor.
+- 0x490050 FUN_00490050 size=57 conf=0.4 :: Low-level setter that writes a control's 'last used binding' record fields directly.
+- 0x490090 test_input_device_defaults_find size=124 conf=0.9 :: Debug/test routine that looks up a device's default control profile tag by device id and prints whether one was found.
+- 0x490110 input_device_default_profile_tag_find size=149 conf=0.5 :: Searches loaded tags for the default control-binding profile matching a given device id and copies its configuration data out.
+- 0x4901b0 input_apply_named_device_default_profile size=200 conf=0.5 :: Finds the tag matching a named input device and, if found, applies and saves its default binding profile onto the active player.
+- 0x490280 FUN_00490280 size=660 conf=0.4 :: Copies control-binding profile data between two profile structs, selecting which device-specific sub-ranges (keyboard/mouse vs joystick) to copy based on a category code.
+- 0x490520 input_directinput_initialize size=90 conf=0.85 :: Creates the DirectInput object and the keyboard, mouse, and joystick device objects, then acquires them; logs and tears down on failure.
+- 0x490580 input_directinput_release_devices size=160 conf=0.8 :: Unacquires and releases all DirectInput device objects (joysticks, mouse, keyboard) and the DirectInput object itself.
+- 0x490620 input_directinput_acquire_devices size=191 conf=0.85 :: Acquires the keyboard, mouse, and all connected joystick DirectInput devices and marks input as active.
+- 0x4906e0 input_directinput_unacquire_devices size=128 conf=0.85 :: Unacquires the keyboard, mouse, and joystick DirectInput devices without releasing them, marking input as inactive.
+- 0x490760 input_directinput_poll_devices size=823 conf=0.5 :: Per-frame poll of the keyboard, mouse, and joystick DirectInput devices, updating the raw press/hold state arrays and handling device-lost reacquire and buffer overflow.
+- 0x490aa0 input_reset_state_and_axis_configs size=164 conf=0.5 :: Resets keyboard, mouse, and joystick runtime input state and reseeds each joystick's axis-binding configuration from the default profile.
+- 0x490b50 FUN_00490b50 size=138 conf=0.35 :: Returns the current pressed/held state for a control id, special-casing a small set of hysteresis-tracked controls before falling back to the raw keyboard hold array.
+- 0x490bf0 FUN_00490bf0 size=161 conf=0.35 :: Schedules a key-repeat expiry timer for a given control, reusing the oldest free slot in the fixed 4-entry timer table.
+- 0x490ca0 FUN_00490ca0 size=108 conf=0.4 :: Expires any key-repeat timers in the fixed timer table whose deadline has passed, freeing their slots.
+- 0x490d10 input_record_windows_key_message size=228 conf=0.55 :: WndProc-driven handler that records a Windows keyboard message (key or character) with its modifier state into the text/bind-capture input buffer.
+- 0x490e00 FUN_00490e00 size=34 conf=0.35 :: Returns whether a given mouse-bound control is currently active, gated on the mouse device being present and not in default-profile mode.
+- 0x490e30 input_get_keyboard_key_name size=109 conf=0.65 :: Fetches the display name string for a given keyboard key index from the keyboard-button-names tag.
+- 0x490ea0 input_keyboard_key_name_to_index size=127 conf=0.6 :: Resolves a keyboard key display name string back to its numeric key index by scanning the keyboard-button-names tag.
+- 0x490f20 input_get_mouse_button_name size=109 conf=0.65 :: Fetches the display name string for a given mouse button index from the mouse-button-names tag.
+- 0x490f90 input_mouse_button_name_to_index size=127 conf=0.6 :: Resolves a mouse button display name string back to its numeric button index.
+- 0x491010 input_get_mouse_axis_name size=163 conf=0.55 :: Builds the display name for a mouse axis by combining the tag-provided axis name with its direction suffix.
+- 0x4910c0 input_mouse_axis_name_to_index size=172 conf=0.55 :: Resolves a mouse axis-plus-direction display name string back to its axis index and direction.
+- 0x491180 input_get_axis_direction_name size=109 conf=0.65 :: Fetches the display name (e.g. '+'/'-') for a given axis direction index from the axis-direction-names tag.
+- 0x4911f0 input_axis_direction_name_to_index size=127 conf=0.6 :: Resolves an axis-direction display name string back to its numeric direction index (0 or 1).
+- 0x491270 chimera__button_text size=108 conf=0.45 :: Builds the display text for a joystick button using the gamepad-names tag.
+- 0x4912e0 FUN_004912e0 size=82 conf=0.3 :: Resolves a system-button ('sbuttonN') style joystick input name string back to its numeric index.
+- 0x491340 chimera__axis_text size=155 conf=0.55 :: Builds the display text for a joystick axis, combining the tag axis name, axis index, and direction suffix.
+- 0x4913e0 FUN_004913e0 size=155 conf=0.4 :: Resolves a joystick axis-plus-direction name string back to its numeric axis index and direction flag.
+- 0x491480 input_joystick_pov_direction_name_to_index size=56 conf=0.55 :: Resolves a POV-hat compass direction name (north, northeast, ...) back to its numeric direction index.
+- 0x4914c0 chimera__pov_text size=194 conf=0.55 :: Builds the display text for a joystick POV-hat input, combining the tag gamepad name, axis index, and compass direction.
+- 0x491590 FUN_00491590 size=127 conf=0.35 :: Searches a table of device name strings for a match, resolves the matched entry to a handle via FUN_00491480, and returns the table index (or 0xffff on failure).
+- 0x491610 FUN_00491610 size=30 conf=0.4 :: Returns the first of three consecutive capability fields (interpreted as axis count) from the input device struct mapped to the given slot index, or 0 if unmapped.
+- 0x491630 FUN_00491630 size=30 conf=0.4 :: Returns the second of three consecutive capability fields (interpreted as button count) from the input device struct mapped to the given slot index, or 0 if unmapped.
+- 0x491650 FUN_00491650 size=30 conf=0.4 :: Returns the third of three consecutive capability fields (interpreted as POV-hat count) from the input device struct mapped to the given slot index, or 0 if unmapped.
+- 0x491670 input_guid_parse_ansi size=104 conf=0.5 :: Converts an ANSI device-id string to UTF-16 and parses it into a CLSID via CLSIDFromString, returning whether the parse succeeded.
+- 0x4916e0 input_device_find_index_by_guid size=100 conf=0.5 :: Finds the index of the registered input device whose GUID matches the one embedded in the given struct, or 0xffffffff if none match.
+- 0x491750 input_device_list_print size=335 conf=0.65 :: Enumerates all registered input devices and logs each one's index, GUID string, and device name.
+- 0x4918a0 input_keyboard_device_create size=286 conf=0.75 :: Creates and configures the DirectInput keyboard device object (data format, cooperative level, buffered-input property), logging and cleaning up on any failure.
+- 0x4919c0 input_mouse_device_create size=188 conf=0.75 :: Creates and configures the DirectInput mouse device object, first determining left/right button swap state from the system settings, logging and cleaning up on any failure.
+- 0x491a80 input_system_initialize size=297 conf=0.6 :: One-time initialization of the input subsystem: clears all action-binding tables and per-device state, and registers for DirectInput device-change notifications.
+- 0x491bc0 FUN_00491bc0 size=134 conf=0.45 :: Converts a raw mouse delta/button sample into the engine's normalized mouse state, inverting the Y axis, scaling the Z axis, and tracking per-button hold duration and change flags.
+- 0x491d30 FUN_00491d30 size=57 conf=0.4 :: Counts how many registered input devices have a GUID matching the one supplied.
+- 0x491f80 input_device_release size=68 conf=0.55 :: Unacquires and releases the DirectInput device object at the given slot index and clears its cached device-info struct.
+- 0x491fd0 input_joystick_state_process size=365 conf=0.5 :: Normalizes a raw joystick/device sample into the engine's input state: computes button hold-duration counters, quantizes POV hat values into 8 directional zones, and passes through raw axis values.
+- 0x492150 input_error_log_once size=66 conf=0.55 :: Formats and (de-duplicated by error code) logs a DirectInput failure message, given an HRESULT-like code and a printf-style description.
+- 0x4921a0 chimera__main_menu_music size=97 conf=0.4 :: Stops any currently playing title music/video state and (re)starts the main menu's looping title music track.
+- 0x492210 FUN_00492210 size=64 conf=0.3 :: Samples the high-resolution performance counter and stores the current time in milliseconds into a global timestamp used by the nearby input-queue routines.
+- 0x492250 FUN_00492250 size=94 conf=0.35 :: Clears and enables the input event queue, seeding its timestamp fields with the current time.
+- 0x4922b0 FUN_004922b0 size=133 conf=0.4 :: Pops the next queued input entry for a given type (or scans all 4 types when none is specified), returning its stored data pair and clearing the slot.
+- 0x492340 FUN_00492340 size=135 conf=0.4 :: Pushes a new timestamped entry into the input event queue for a given type, shifting older entries to make room.

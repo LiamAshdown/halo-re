@@ -1,0 +1,59 @@
+{
+ "slice": 10,
+ "decisions": [
+  {
+   "addr": "0x518d40",
+   "module": "rasterizer",
+   "confidence": 0.8,
+   "evidence": "Seed rejected. symbols/opensauce.txt:847 gives '0x518d40 render_objects_transparent func 1.0 opensauce inside=0x518ce0' - the label is a CE-address mid-function code point inside Ghidra function 0x518ce0 (0x518ce0 size=96 ends exactly at 0x518d40; 0x518d40 is name_source=USER_DEFINED, created by the symbol import, and its decompile contains the same light-packing loop as 0x518ce0 plus a bogus self-recursion). functions.txt itself downgrades it to 0.70 'opensauce-ce-exact-entry'. Code is a D3D9 state setter, not an object-list walker: (**(dev+0xe4))(dev,0x8b,...) = IDirect3DDevice9::SetRenderState (vtbl idx 57) and (**(dev+0x178))(dev,0xf,&stack,0xb) = SetVertexShaderConstantF (vtbl idx 94, 11 float4 regs from reg 15) on the rasterizer device global DAT_0071d174. Real entry 0x518ce0 is called only by 0x526f50, 0x533730 and sig__transparent_geometry_group_draw_sig, always alongside sig__rasterizer_set_model_skinning_sig / sig__rasterizer_set_frustum_z_func / sig__rasterizer_set_up_node_parts_sig - a per-draw rasterizer_set_* light-constant setter. Contiguous run 0x5185d0-0x518f40 of sig__rasterizer_set_* confirms one rasterizer_dx9 CU."
+  },
+  {
+   "addr": "0x518ce0",
+   "module": "rasterizer",
+   "confidence": 0.8,
+   "evidence": "This is the real function entry that OpenSauce's mislocated 'render_objects_transparent' label points into (inside=0x518ce0). Callers are 0x526f50, 0x533730 and sig__transparent_geometry_group_draw_sig (0x533850), each calling it next to sig__rasterizer_set_model_skinning_sig and sig__rasterizer_set_frustum_z_func; body packs light position/color/1-over-r^2 attenuation into vertex-shader constant registers. render_objects_transparent would instead be called from render_window (0x50fd90, cf. opensauce.txt:818 render_window_call_render_objects_transparent_hook) - it is not. Stays with the 0x5185d0-0x518f40 rasterizer_set_* run."
+  },
+  {
+   "addr": "0x518c10",
+   "module": "rasterizer",
+   "confidence": 0.8,
+   "evidence": "Loop-body helper of 0x518ce0/0x518d40: copies entry i of the global light array at DAT_007c1484 (stride 0x38: matrix ptr, position, color, radius) into a 0x30-byte shader-constant slot, computing 1.0/(r*r) and a z-range reciprocal. Pure D3D constant marshalling, immediately after sig__rasterizer_set_model_skinning_sig (0x518b40) and before sig__rasterizer_set_frustum_z_func (0x518f40). Same rasterizer_dx9 compilation unit."
+  },
+  {
+   "addr": "0x53a1c0",
+   "module": "saved_games",
+   "confidence": 0.75,
+   "evidence": "The cea-pdb hints (sv_dedicated_verify_parameters / sv_start_new_server_with_name_and_password_from_profile, 'game') are matched purely on the bare literal \"Halo\" - a string-collision hint, not an identification. Both CEA candidates are server-start functions, whereas this zeroes a 0x2000-byte profile struct and fills defaults; the CEA tree puts the corresponding sources in saved_games (player_profile_new.c, player_profile_read/write.c, playlist_profile_initialize_*.c, playlist_profile_new.c). Placement and call graph agree: its callees 0x539ff0, 0x53a0d0, 0x53a770, 0x53b000, 0x53b7f0, 0x53c4e0 and its callers 0x539ab0, 0x53a610 (\"%s\\%02d.sav\"), 0x53a770, 0x53c260 are all inside the same saved_games profile run. Splitting it out would punch a hole in the middle of a contiguous CU."
+  },
+  {
+   "addr": "0x53a150",
+   "module": "saved_games",
+   "confidence": 0.7,
+   "evidence": "Same \"Halo\"-string-collision cea-pdb hint as 0x53a1c0; no independent evidence for 'game'. Body writes L\"Halo\" to profile+0xd8c and L\"\" to profile+0xeac plus small flags and two 0x8fe/0x8ff string indices - default server-name/password fields of the profile struct (cf. CEA player_profile_setup_default_server_settings). Its four external callers (0x4a2ad0, 0x4a3b30, 0x4a49c0 = interface 0.85; 0x4e40f0 = networking 0.75) do not support 'game' either. Sandwiched between 0x53a0d0 and 0x53a1c0, both callees/members of the saved_games profile run, so it is in that CU by placement; leave the 0x539ab0-0x53dde0 run unsplit."
+  },
+  {
+   "addr": "0x5196b0",
+   "module": "rasterizer",
+   "confidence": 0.7,
+   "evidence": "Not unknown: it is a D3D-device-lifetime resource, created from the rasterizer device globals. It passes DAT_0071d174 (the same IDirect3DDevice9 global used by the rasterizer draw path) and DAT_007461c4 (window handle) into the creator function pointer DAT_00721ea0, then loads wide paths \"content/<n>/editbox.ksml\" and \"content/<n>/log.ksml\" through a COM-like Load/Query/Release pointer table. Callers are exactly the two D3D device lifecycle sites: 0x5169c0 (rasterizer_initialize, \"-adapter\"/\"-useref\"/\"-vidmode\") and 0x515d90 (device create/reset, also assigned rasterizer). Its only callee in-slice, 0x5195f0, is called by nothing else and sits immediately before it inside the 0x518f40-0x5195f0 rasterizer run. opensauce.txt:848 also places rasterizer_d3d_reset_device_hook at 0x51974f, i.e. inside this function's body. Overlay/debug-console UI bound to the device belongs with rasterizer here, not in a hole between two rasterizer blocks."
+  },
+  {
+   "addr": "0x5198a0",
+   "module": "rasterizer",
+   "confidence": 0.7,
+   "evidence": "Teardown counterpart of 0x5196b0: releases the same two interface objects (PTR_PTR_0069c698 / PTR_PTR_0069c69c) via the same DAT_00721eb8/DAT_00721ec8 pointer table and clears DAT_00721ea4. Called from 0x515d90 (device reset) and 0x518450 (the rasterizer teardown that also calls sig__rasterizer_dispose_free_memory_sig, DestroyWindow, ReleaseDC) - pure D3D device-lost/dispose sequencing. Moves with 0x5196b0, stays rasterizer."
+  },
+  {
+   "addr": "0x519980",
+   "module": "rasterizer",
+   "confidence": 0.65,
+   "evidence": "Header/signature validator for 0x5199f0: rejects buffers shorter than 0x22 bytes then memcmps a 0x21-byte tail against a locally built string. Single caller 0x5199f0, immediately adjacent, so same CU by placement; that CU's only consumers are the shader-cache loaders. Keeps the 0x518f40-0x519f70 rasterizer run contiguous."
+  },
+  {
+   "addr": "0x5199f0",
+   "module": "rasterizer",
+   "confidence": 0.7,
+   "evidence": "Raw file loader (CreateFileA/GetFileSize/GlobalAlloc/ReadFile/CloseHandle) whose only two callers are 0x52fa00 (\"shaders\\fx.bin\") and 0x5306e0 (\"shaders\\vsh.bin\"), both rasterizer 0.75 - it is the rasterizer shader-blob loader, not a general I/O utility (the engine's generic file layer is the file_* group around 0x53d080/0x5398e0 in the saved_games block, which this does not touch). Contiguous with 0x519980 and the rasterizer code on both sides; no reason to carve it out as unknown."
+  }
+ ]
+}

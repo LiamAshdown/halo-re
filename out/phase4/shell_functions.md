@@ -1,0 +1,117 @@
+# shell module: 115 functions (address, current Ghidra name, size, agent confidence, summary)
+
+- 0x5402a0 cpu_get_type size=2353 conf=0.55 :: Lazily gathers CPUID data (via FUN_00540da0) then, depending on mode, returns either a CPU-vendor enum or a finer processor-model code derived from vendor + family/model bits, presumably to index a fr
+- 0x540da0 cpu_query_identification size=310 conf=0.7 :: Detects CPUID availability and, if present, fills the module's cached CPU-identification globals (vendor string, feature/family DWORD, extended cache and brand-string leaves) from the CPUID instructio
+- 0x540ee0 engine_initialize_subsystems size=297 conf=0.6 :: Top-level engine bring-up routine: sets timer resolution, resolves the D3D9/DirectSound/DirectInput/Shell entry points, and initializes the data-file, math, and (conditionally) sound subsystems, retur
+- 0x541010 engine_shutdown_subsystems size=177 conf=0.65 :: Tears down the engine subsystems started by engine_initialize_subsystems: unloads the cache file, shuts down the rasterizer, disposes sound, and releases assorted global buffers.
+- 0x5411e0 shell_winmain size=2077 conf=0.7 :: The game's WinMain-equivalent: shows the EULA on first run, parses the command line into engine flags, and drives the rest of process start-up (window class registration, cache reservation, subsystem 
+- 0x541a20 shell_pump_windows_messages size=146 conf=0.75 :: Drains the Win32 message queue each frame, routing messages through the Keystone UI accelerator translator when the UI library is loaded and otherwise through the normal Translate/DispatchMessage path
+- 0x541ac0 clipboard_get_text size=109 conf=0.85 :: Copies the current CF_TEXT clipboard contents into the caller-supplied buffer (param_1, capacity param_2), returning 1 on success or 0 if no text is available.
+- 0x542380 scenario_trigger_volume_test_point size=444 conf=0.65 :: The game's main window procedure: intercepts the Windows-key chord to pause/minimize the game, routes Enter/Escape to the chat box, forwards Keystone UI accelerator translation, and defers everything 
+- 0x5425f0 command_line_parse_to_argv size=352 conf=0.65 :: Tokenizes the raw Halo command line into a GlobalAlloc'd argv-style array of substring pointers, writing the token count out through param_1.
+- 0x542760 command_line_check_flag size=114 conf=0.75 :: Looks up a named '-flag' in the parsed command line and reports whether it is present, optionally returning its following value argument.
+- 0x5427e0 os_platform_identify size=89 conf=0.75 :: Queries GetVersionExA and caches a small platform-family code (Win9x vs WinNT vs other) into DAT_00721ef0 for later feature gating.
+- 0x542840 security_check_write_access size=568 conf=0.55 :: Determines (once, then caches) whether the current thread token has write access under a synthetic ACL, used to detect restricted/limited-user accounts on NT systems; always reports access granted on 
+- 0x542a80 security_check_cleanup size=65 conf=0.55 :: Releases the SID, ACL/security-descriptor buffer, and token handles allocated inside security_check_write_access.
+- 0x542ad0 keystone_library_load size=536 conf=0.85 :: Loads the Keystone UI middleware DLL and resolves all of its Call_Ks*/Call_KW*/Call_KC* entry points into globals, unless networking-only mode (DAT_007196f4) disables the UI.
+- 0x542cf0 keystone_library_unload size=123 conf=0.85 :: Unloads keystone.dll and clears all of its cached UI entry-point function pointers.
+- 0x542d70 game_single_instance_check size=382 conf=0.75 :: Enforces a single running instance of Halo by taking a named mutex; if another copy already holds it, brings that window to the foreground and terminates the current process.
+- 0x542f00 dialog_center_on_screen size=160 conf=0.6 :: WM_INITDIALOG handler snippet that centers the given dialog/window over the desktop.
+- 0x542fa0 exception_filter_crash_reporter size=2581 conf=0.65 :: The game's unhandled-exception filter: builds and shows the 'Halo has crashed' report dialog, collects dxdiag/debug/network logs, and hands off to Dr. Watson (dw15.exe) or faultrep.dll to submit a cra
+- 0x5782b0 FUN_005782b0 size=95 conf=0.4 :: Constructs a custom std::exception-derived error object (used by the hardware-requirements script parser) that carries two embedded string members, initializing the first from the supplied message str
+- 0x578310 hwreq_parse_exception_destruct size=110 conf=0.5 :: Destructor for the base hardware-requirements-parser exception class: frees its two embedded string buffers and calls the std::exception base destructor.
+- 0x578390 FUN_00578390 size=30 conf=0.45 :: Scalar deleting destructor for the base hwreq parser exception class: destructs the object and optionally frees its storage.
+- 0x5783b0 FUN_005783b0 size=11 conf=0.35 :: Destructor for a second exception class sharing the same string-pair layout as hwreq_parse_exception_destruct's class but with a different vtable/RTTI identity (exact distinguishing purpose unclear).
+- 0x5783c0 FUN_005783c0 size=30 conf=0.35 :: Scalar deleting destructor for the 'variant b' hwreq exception class.
+- 0x5783e0 FUN_005783e0 size=11 conf=0.35 :: Destructor for a third sibling exception class in the same hierarchy as hwreq_parse_exception_destruct, distinguished only by vtable/RTTI.
+- 0x5783f0 FUN_005783f0 size=30 conf=0.35 :: Scalar deleting destructor for the 'variant c' hwreq exception class.
+- 0x578410 FUN_00578410 size=411 conf=0.4 :: Looks up param_2 in a linear key/value list of device-override strings and, if absent, inserts a new (param_2,param_3) entry; if present, only rewrites the value's storage without changing the key.
+- 0x5785b0 hwreq_string_pair_destruct size=122 conf=0.5 :: Destructs a heap-embedded pair of strings, releasing any out-of-line buffers each string owns.
+- 0x578630 hwreq_device_override_list_find size=98 conf=0.55 :: Looks up a key in the device-override list and, if found, copies its associated value string into the caller-supplied buffer.
+- 0x5786a0 FUN_005786a0 size=24 conf=0.45 :: Scalar deleting destructor for the hardware-requirements parser object: destructs it via FUN_0057a010 and frees its storage.
+- 0x5788f0 FUN_005788f0 size=222 conf=0.4 :: Looks up param_1 as a key in one of the parser object's symbol maps, returning the associated value field or 0 if not present.
+- 0x5789d0 hwreq_token_skip_line size=43 conf=0.65 :: Tokenizer helper that advances the parser's cursor to the start of the next line, updating the cached line-start pointer and line-number counter.
+- 0x578a00 hwreq_token_skip_whitespace size=20 conf=0.7 :: Tokenizer helper that skips spaces and tabs at the parser's current cursor position.
+- 0x578a20 hwreq_parser_report_error size=161 conf=0.65 :: Records a parser error message together with the current line number and a snippet of the offending line, for later reporting; ignored if an error was already latched on this line.
+- 0x578ad0 hwreq_token_parse_hex_digit size=71 conf=0.7 :: Parses a single hexadecimal digit at the cursor, advancing past it and returning its value, or -1 if the character is not a hex digit.
+- 0x578b20 hwreq_token_parse_number size=308 conf=0.75 :: Parses a decimal or 0x-prefixed hexadecimal integer literal token, reporting a parser error if no valid number is present.
+- 0x578c60 hwreq_token_parse_quoted_string size=139 conf=0.75 :: Parses a double-quoted string literal token into a shared static buffer, reporting parser errors for a missing quote or an overlong string.
+- 0x578cf0 hwreq_parser_parse_flag_assignment size=498 conf=0.65 :: Parses one 'flag = value' assignment line from the requirements script, storing it in the flag table and, for the special OverallGraphicDetail flag, also recording its value for the caller.
+- 0x578ef0 hwreq_token_parse_hex_id size=129 conf=0.6 :: Parses a 4-hex-digit token (e.g. a vendor or device ID) into a 16-bit value, returning -1 on any invalid digit.
+- 0x578f80 hwreq_token_parse_hex_id_byteswap size=31 conf=0.5 :: Parses a 4-hex-digit token and returns it byte-swapped, used when assembling multi-byte fields (such as a driver GUID) from their textual hex representation.
+- 0x578fa0 hwreq_token_match_keyword size=80 conf=0.75 :: Tests whether the parser's cursor is currently positioned at the given keyword, followed by a valid delimiter character, without consuming the token.
+- 0x578ff0 hwreq_d3dcaps_field_resolve size=1712 conf=0.5 :: Matches the current token against the set of recognized D3DCAPS9 (and cpuspeed) field names used by the hardware-requirements script, resolving it to an internal field descriptor for a subsequent comp
+- 0x579690 gamespy_get_client_key_hash size=1261 conf=0.55 :: Parses one comparison-operator term of a requirements-script condition (against a driver GUID, driver version number, or OS name) and evaluates it, reporting a parser error for malformed operators or 
+- 0x579ef0 hwreq_parser_construct size=235 conf=0.6 :: Constructs the hardware-requirements parser object, default-initializing its embedded strings and the two associative maps (e.g. flag table and device-override table) it maintains.
+- 0x579fe0 FUN_00579fe0 size=44 conf=0.4 :: Destructs one of the parser's node-array maps, freeing its storage.
+- 0x57a010 hwreq_parser_destruct size=525 conf=0.65 :: Full destructor for the hardware-requirements parser object: frees its large scratch buffers, destroys both maps (including each device-override entry's string pair), and releases its embedded strings
+- 0x57a220 FUN_0057a220 size=243 conf=0.4 :: Scans forward line by line through the requirements script looking for an 'applytoall' or 'vendor' directive, parsing the matching block when found.
+- 0x57a320 FUN_0057a320 size=192 conf=0.4 :: Scans forward line by line through the requirements script looking for an 'applytoall' directive, parsing the matching block when found.
+- 0x57a3e0 hwreq_parser_parse_propertyset_directive size=665 conf=0.5 :: Parses a 'propertyset = "name"' directive from the requirements script, allocating a property-set record, parsing its nested block, and registering it in the parser's property-set list.
+- 0x57a680 FUN_0057a680 size=951 conf=0.45 :: Parses a 'vendor[=id] { device = "..." ... }'-style block from the requirements script, applying the enclosed directives only when the id matches the detected graphics vendor.
+- 0x57aa40 FUN_0057aa40 size=1032 conf=0.45 :: Parses an 'audiovendor[=id] { device = "..." ... }'-style block from the requirements script, applying the enclosed directives only when the id matches the detected audio-device vendor.
+- 0x57ae50 hwreq_parser_find_requirements_section size=187 conf=0.55 :: Locates the top-level 'Requirements' section in the hardware compatibility script and begins parsing it.
+- 0x57af10 hwreq_parser_parse_block size=1372 conf=0.55 :: The core parser routine for one nested block of the hardware-requirements script: evaluates conditions, processes flag assignments and graphic-detail directives, and handles if/endif/break control flo
+- 0x57b4c0 hwreq_parser_create size=88 conf=0.6 :: Allocates and default-constructs a new hardware-requirements parser object.
+- 0x57b590 FUN_0057b590 size=30 conf=0.4 :: Assigns a raw null-terminated C string into a managed string object.
+- 0x57b5b0 hwreq_device_list_size size=33 conf=0.55 :: Returns the element count of the device-override node list.
+- 0x57b5e0 hwreq_device_list_push_back size=135 conf=0.5 :: Appends one element to the end of the device-override node list, growing the underlying storage first if it is already full.
+- 0x57b670 hwreq_string_pair_construct size=111 conf=0.5 :: Constructs a heap-embedded pair of two strings from the given source strings, for insertion into the device-override list.
+- 0x57b800 hwreq_string_destruct size=34 conf=0.5 :: Destructs a single embedded SSO string, releasing its heap buffer if it was not using small-string storage.
+- 0x57ba50 FUN_0057ba50 size=369 conf=0.35 :: Internal red-black-tree helper for one of the parser's maps that locates param_1's position (or inserts it) relative to the tree root, returning an iterator-like result through unaff_ESI.
+- 0x57bbd0 hwreq_map_key_less_than size=39 conf=0.5 :: Red-black-tree key-ordering predicate: returns true if the given node's key string sorts before the map's current search key.
+- 0x57bc20 FUN_0057bc20 size=101 conf=0.35 :: Constructs a custom exception object (derived from std::exception) that carries an embedded string message, initializing it to empty.
+- 0x57bd80 string_erase size=117 conf=0.6 :: Removes param_2 characters starting at offset param_1 from a std::string-like object (this in ECX), shifting the remainder left and re-terminating.
+- 0x57be00 FUN_0057be00 size=22 conf=0.4 :: Iterates a contiguous array of 0x38-byte pair<string,string>-sized elements between in_EAX and unaff_EDI, destroying each element.
+- 0x57bfec Catch@0057bfec size=31 conf=0.3 :: SEH catch/cleanup handler that destroys a partially-constructed pair<string,string> array, frees its storage, and rethrows the active exception.
+- 0x57c0a8 Catch@0057c0a8 size=33 conf=0.3 :: SEH catch/cleanup handler that destroys constructed pair<string,string> elements and rethrows the active exception.
+- 0x57c1a0 tree_insert_unique size=362 conf=0.55 :: Inserts a new key/value pair into a red-black tree (std::map/set style) keyed by a string, returning the resulting node and whether insertion occurred.
+- 0x57c310 tree_erase_range size=122 conf=0.5 :: Erases a [first,last) range of nodes from a red-black tree, taking a fast path that destroys the whole tree when the range spans it entirely.
+- 0x57c530 tree_lower_bound size=165 conf=0.5 :: Finds the tree node whose key is the lower bound for the key referenced by in_ECX, returning that node (or the head sentinel if none).
+- 0x57c5e0 tree_iterator_increment size=87 conf=0.8 :: Advances a red-black tree iterator (passed via EDX) to the next node in sorted order.
+- 0x57c640 string_pair_construct_empty size=110 conf=0.55 :: Default-constructs both strings of a pair<string,string> element to empty in place at param_1.
+- 0x57c6d0 string_grow_reserve size=115 conf=0.55 :: Grows a std::string-like object's capacity to hold param_1 more characters, allocating a new buffer and copying existing content into it.
+- 0x57c743 Catch@0057c743 size=32 conf=0.3 :: Exception-handling continuation for string capacity growth that allocates the new character buffer.
+- 0x57c76c string_copy_into_new_buffer size=118 conf=0.5 :: Copies a std::string-like object's existing characters into a newly allocated buffer, frees the old buffer if heap-allocated, and updates length/capacity.
+- 0x57c7e2 Catch@0057c7e2 size=48 conf=0.3 :: SEH catch handler that resets a std::string-like object to empty after a failed grow/append and rethrows the active exception.
+- 0x57cb10 tree_rotate_left size=81 conf=0.75 :: Performs a left rotation on a red-black tree node (in_ECX) about its right child, relinking parent/child pointers.
+- 0x57cb70 tree_find_min size=28 conf=0.75 :: Returns the leftmost (minimum-key) node of the subtree rooted at in_EAX.
+- 0x57cb90 tree_rotate_right size=85 conf=0.75 :: Performs a right rotation on a red-black tree node (in_ECX) about its left child, relinking parent/child pointers.
+- 0x57cbf0 tree_head_node_allocate size=55 conf=0.5 :: Allocates and initializes the tree's head/sentinel node, marking it as the nil node.
+- 0x57cc30 tree_node_allocate size=148 conf=0.55 :: Allocates and constructs a new red-black tree node carrying a key/value pair and the given color/nil flag.
+- 0x57ccc4 Catch@0057ccc4 size=21 conf=0.3 :: SEH catch handler that frees a partially-constructed tree node and rethrows the active exception.
+- 0x57cce0 tree_destroy_subtree size=60 conf=0.6 :: Recursively destroys and frees every node in a red-black subtree rooted at param_1.
+- 0x57cd20 tree_find_max size=29 conf=0.7 :: Returns the rightmost (maximum-key) node reachable from the subtree pointed to by in_EAX+8.
+- 0x57cd40 tree_iterator_decrement size=93 conf=0.75 :: Moves a red-black tree iterator (in_EDX) to the previous node in sorted order.
+- 0x57cda0 FUN_0057cda0 size=52 conf=0.4 :: Clears both strings of each pair<string,string> element across a [in_EAX,param_1) range back to empty.
+- 0x57cde0 FUN_0057cde0 size=34 conf=0.4 :: Frees the heap-allocated character buffer (if any) of a std::string-like field and resets it to the empty SSO state.
+- 0x57ce10 string_compare size=111 conf=0.55 :: Compares a substring of a std::string-like object starting at param_1 against an external buffer param_2 of length param_3, returning <0/0/>0.
+- 0x57ce80 FUN_0057ce80 size=98 conf=0.45 :: Default-constructs in_ECX consecutive pair<string,string> elements starting at param_1, with exception-safe cleanup of partially-built elements.
+- 0x57ced1 Catch@0057ced1 size=34 conf=0.3 :: SEH catch handler that destroys the pair<string,string> elements constructed so far by FUN_0057ce80 and rethrows the active exception.
+- 0x57cf50 FUN_0057cf50 size=102 conf=0.45 :: Copy-constructs a range of pair<string,string> elements from param_2 into [in_ECX,param_1), returning the advanced source pointer.
+- 0x57cfe0 config_reset_system_requirements size=153 conf=0.55 :: Resets the block of system-requirement/config globals used by the config.txt parser to their default (mostly zero) state.
+- 0x57d080 FUN_0057d080 size=54 conf=0.4 :: Parses a decimal string and, if within [0x280,0x1000], stores it as the system's memory-related config value, returning success/failure.
+- 0x57d240 config_set_disable_driver_management size=11 conf=0.65 :: Config-key setter callback that sets the 'DisableDriverManagement' flag to true.
+- 0x57d2b0 FUN_0057d2b0 size=36 conf=0.3 :: Config-key setter callback that parses a float string and stores it into DAT_00722b80.
+- 0x57d2e0 FUN_0057d2e0 size=36 conf=0.3 :: Config-key setter callback that parses a float string and stores it into DAT_00722b88.
+- 0x57d310 FUN_0057d310 size=36 conf=0.3 :: Config-key setter callback that parses a float string and stores it into DAT_00722b84.
+- 0x57d340 FUN_0057d340 size=36 conf=0.3 :: Config-key setter callback that parses a float string and stores it into DAT_00722b8c.
+- 0x57d410 shell_parse_config_txt size=969 conf=0.65 :: Loads and parses config.txt, applying recognized system-requirement and shader/driver-management settings and reporting unknown or malformed properties.
+- 0x57d7f0 hex_string_to_uint size=58 conf=0.55 :: Parses a hexadecimal digit string (register argument) into an unsigned integer.
+- 0x57d830 hex_string_to_bytes size=75 conf=0.55 :: Decodes a hexadecimal character string into raw bytes, two hex digits per output byte.
+- 0x57d880 shell_detect_hardware_specs size=2190 conf=0.6 :: Detects the host's memory size, CPU speed, and installed DirectDraw/sound hardware (including vendor/subsystem string matching) for the system-requirements/config subsystem.
+- 0x57e110 shell_load_string_resource size=130 conf=0.55 :: Loads a specific localized string from a Win32 string-table resource by manually walking the resource block, used as a language-aware alternative to LoadStringA.
+- 0x57e1a0 shell_load_localized_string size=75 conf=0.5 :: Loads a localized UI string for resource id param_1, preferring FUN_0057e110's language-aware lookup and falling back to LoadStringA.
+- 0x57e850 chimera__registry_check_2 size=439 conf=0.4 :: Checks a marker file and the registry ExitFlag value to detect whether the previous run(s) crashed, updating the stored 'bad 1'/'bad 2' state.
+- 0x57ea10 shell_registry_set_exit_flag_clean size=95 conf=0.8 :: Marks the Halo registry ExitFlag value as 'clean', recording a normal (non-crashing) run.
+- 0x57ea70 shell_display_fatal_error_dialog size=1300 conf=0.55 :: Builds and displays Halo's fatal-error dialog with a formatted error/exception message, updates crash-tracking registry state, and terminates the process.
+- 0x57efa0 shell_init_localization_strings size=765 conf=0.55 :: Loads strings.dll (fatally erroring out if missing), determines the active language from the registry, and pre-loads a set of localized diagnostic/UI strings with built-in fallbacks.
+- 0x57f2a0 compute_sha1_hash size=140 conf=0.7 :: Computes the SHA-1 hash of param_2 bytes at param_1 using the CryptoAPI, writing the 20-byte digest to param_3.
+- 0x57f330 FUN_0057f330 size=44 conf=0.4 :: Computes a hash via FUN_0057f2a0 and copies an 8-byte fragment of the result out through a register-passed output pointer.
+- 0x57f360 FUN_0057f360 size=136 conf=0.45 :: Extracts the numeric portion of a Windows-style Product ID buffer (selecting an OEM or retail digit-offset table) and returns it as a long.
+- 0x57f3f0 FUN_0057f3f0 size=317 conf=0.45 :: Builds a formatted identifier string derived from the registered Windows Product ID and a CryptoAPI hash, used elsewhere (e.g. crash/support reporting).
+- 0x6bd180 ks_translateaccelerator size=1 conf=0.3 :: Undecompilable stub, kept under its existing hinted name; likely a TranslateAccelerator-style method thunk for a shell window/control class.
+- 0x6bd188 ks_getwindow size=1 conf=0.3 :: Undecompilable stub, kept under its existing hinted name; likely a GetWindow-style method thunk for a shell window/control class.
+- 0x6bd198 kw_release size=1 conf=0.3 :: Undecompilable stub, kept under its existing hinted name; likely a Release method thunk for a shell 'kw' class.
+- 0x6bd19c kw_getcontrolbyid size=1 conf=0.3 :: Undecompilable stub, kept under its existing hinted name; likely a GetControlById method thunk for a shell 'kw' class.
+- 0x6bd1b8 kc_sendmessage size=1 conf=0.3 :: Undecompilable stub, kept under its existing hinted name; likely a SendMessage method thunk for a shell 'kc' class.

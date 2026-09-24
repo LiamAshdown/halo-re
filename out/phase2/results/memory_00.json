@@ -1,0 +1,486 @@
+{
+  "module": "memory",
+  "batch": 0,
+  "results": [
+    {
+      "addr": "0x4cf810",
+      "name": "growable_array_add_element",
+      "confidence": 0.5,
+      "evidence": "GlobalAlloc/GlobalReAlloc's a buffer sized elem_size*(count+1), zeroes only the newly added element, then updates count/data-ptr fields and returns the previous count (new element's index) or 0xffffffff on failure.",
+      "prototype": "",
+      "summary": "Appends one zero-initialized element to a GlobalAlloc-backed growable array (struct: elem_size, count, data ptr in ESI), returning the new element's index or -1 on allocation failure."
+    },
+    {
+      "addr": "0x4cf890",
+      "name": "growable_array_remove_element",
+      "confidence": 0.5,
+      "evidence": "Decrements the count field, memmove()s elements above the removed index down by one slot, then GlobalReAlloc's the storage smaller (or GlobalFree's it if the array becomes empty) - mirrors FUN_004cf810's array layout.",
+      "prototype": "",
+      "summary": "Removes the element at index unaff_EDI from a growable array, compacting the remaining elements and shrinking (or freeing) its GlobalAlloc-backed storage."
+    },
+    {
+      "addr": "0x4cf8f0",
+      "name": "bit_stream_write_bits_long",
+      "confidence": 0.4,
+      "evidence": "Repeatedly calls FUN_004cfa20(0x20) to write up to 32 bits at a time until param_1 bits have been written or a chunk write fails, returning the number of bits actually written - a wide-width wrapper around the primitive bit writer.",
+      "prototype": "",
+      "summary": "Writes param_1 bits to a bit stream by issuing 32-bit-chunk writes through FUN_004cfa20, stopping early and reporting the bit count if the stream runs out of room."
+    },
+    {
+      "addr": "0x4cf950",
+      "name": "bit_stream_read_bits_long",
+      "confidence": 0.4,
+      "evidence": "Repeatedly calls FUN_004cfbf0 to read up to 32 bits at a time into a uint32 destination array (advanced by 4 bytes per chunk) until in_EAX bits have been read or a chunk read comes up short.",
+      "prototype": "",
+      "summary": "Reads in_EAX bits from a bit stream into a uint32 buffer, 32 bits per call to FUN_004cfbf0, returning the number of bits actually read."
+    },
+    {
+      "addr": "0x4cf9a0",
+      "name": "bit_stream_write_bit",
+      "confidence": 0.5,
+      "evidence": "Validates a bit-stream struct (byte cursor +0xc, bit offset +0x10, valid range +8/+0x14), then sets or clears a single bit in the buffer at +4 depending on whether param_1==1, and advances the cursor by one bit.",
+      "prototype": "",
+      "summary": "Writes a single bit into a bounds-checked bit stream (set when param_1==1, cleared otherwise) and advances the stream's one-bit cursor."
+    },
+    {
+      "addr": "0x4cfa20",
+      "name": "bit_stream_write_bits",
+      "confidence": 0.55,
+      "evidence": "Uses the same bit-stream struct as FUN_004cf9a0 plus static per-bit-count mask tables (DAT_0065c2c0/DAT_0065c2c8/DAT_0065c2b4) to merge up to param_1 bits of the value in in_EDX into the buffer, handling partial leading/trailing bytes; called by FUN_004cf8f0 for widths >32.",
+      "prototype": "",
+      "summary": "Writes an arbitrary-width (param_1-bit) value from in_EDX into a bit stream at its current cursor using precomputed bit-mask tables to merge into existing bytes."
+    },
+    {
+      "addr": "0x4cfb80",
+      "name": "bit_stream_read_bit",
+      "confidence": 0.5,
+      "evidence": "Bounds-checks the identical bit-stream struct layout used by the write-bit function and extracts a single bit into *param_1, advancing the cursor by one bit.",
+      "prototype": "",
+      "summary": "Reads a single bit from a bounds-checked bit stream into *param_1 and advances the stream's bit cursor."
+    },
+    {
+      "addr": "0x4cfbf0",
+      "name": "bit_stream_read_bits",
+      "confidence": 0.55,
+      "evidence": "Mirrors FUN_004cfa20's mask tables (DAT_0065c2c8/DAT_0065c2b4/DAT_0065c2c0) to extract param_1 bits from the bit stream into *param_2, handling partial leading/trailing bytes; used by FUN_004cf950 for widths >32.",
+      "prototype": "",
+      "summary": "Reads an arbitrary-width (param_1-bit) value out of a bit stream into *param_2 using the same bit-mask tables as bit_stream_write_bits."
+    },
+    {
+      "addr": "0x4cfd90",
+      "name": "byte_swap_array",
+      "confidence": 0.6,
+      "evidence": "Switches on in_EAX == -8/-4/-2 to byte-swap in_EDX consecutive 8-, 4-, or 2-byte elements in place at in_ECX - a classic size-keyed endian-swap loop (called by the struct-definition encode/decode routines).",
+      "prototype": "",
+      "summary": "In-place byte-swaps an array of in_EDX elements of size 8, 4, or 2 bytes (chosen by the in_EAX size code) at in_ECX, for endian conversion."
+    },
+    {
+      "addr": "0x4cfee0",
+      "name": "struct_definition_byte_swap",
+      "confidence": 0.5,
+      "evidence": "Recursively walks a struct-definition table (field type codes -0x66 = array of structs, -100 = nested struct [recurses into itself], -8/-4/-2 = inline swap sizes matching byte_swap_array's codes, -0x65 terminator, positive = byte count to skip) applying byte swaps per field; invoked on PTR_s_packet_header_00696780 elsewhere in this batch.",
+      "prototype": "",
+      "summary": "Recursively interprets a struct-definition descriptor table to byte-swap (or skip) each field of a structure instance, including nested structs and arrays of structs."
+    },
+    {
+      "addr": "0x4d0170",
+      "name": "circular_buffer_new",
+      "confidence": 0.8,
+      "evidence": "GlobalAlloc's a header+data block, zero-fills 6 header dwords, stamps the magic value 0x63697263 ('circ') at offset 4, stores capacity (in_EAX+1) at offset 0x10, and points offset 0x14 at the data area immediately past the 24-byte header.",
+      "prototype": "",
+      "summary": "Allocates and initializes a new circular/ring buffer object of capacity in_EAX+1, stamped with a 'circ' magic tag."
+    },
+    {
+      "addr": "0x4d01c0",
+      "name": "circular_buffer_write",
+      "confidence": 0.55,
+      "evidence": "Computes free space from head(+8)/tail(+0xc)/capacity(+0x10) fields of the circular_buffer_new layout, copies in_EAX bytes from param_1 into the ring buffer at +0x14 with wraparound, advancing the tail cursor, and returns a success flag.",
+      "prototype": "",
+      "summary": "Writes in_EAX bytes from param_1 into a circular buffer, wrapping at capacity and advancing the tail cursor; fails if there isn't enough free space."
+    },
+    {
+      "addr": "0x4d0240",
+      "name": "circular_buffer_read",
+      "confidence": 0.55,
+      "evidence": "Mirrors circular_buffer_write's field layout (head/tail/capacity/data-ptr), copies param_2 bytes out of the ring buffer into param_1 with wraparound, and only advances the head cursor when param_3 is non-zero.",
+      "prototype": "",
+      "summary": "Reads param_2 bytes from a circular buffer into param_1 with wraparound, advancing the head cursor only when param_3 requests a real read rather than a peek."
+    },
+    {
+      "addr": "0x4d02c0",
+      "name": "handle_set_none",
+      "confidence": 0.3,
+      "evidence": "Two-instruction function that stores the sentinel value 0xFFFFFFFF (Blam's conventional 'NONE' index) into *param_1; no other context is available at this size.",
+      "prototype": "",
+      "summary": "Sets a 32-bit handle/index field to the invalid sentinel value 0xFFFFFFFF."
+    },
+    {
+      "addr": "0x4d02d0",
+      "name": "crc32_update",
+      "confidence": 0.85,
+      "evidence": "Lazily builds a CRC table via FUN_004d0330 on first use (guarded by DAT_00719cd8), then runs the textbook `crc = crc>>8 ^ table[(byte^crc)&0xff]` loop over param_3 bytes of buffer param_2 - the standard CRC-32 update algorithm.",
+      "prototype": "",
+      "summary": "Computes/continues a CRC-32 checksum over param_3 bytes of buffer param_2 in *param_1, building the CRC table on first use."
+    },
+    {
+      "addr": "0x4d0330",
+      "name": "crc32_build_table",
+      "confidence": 0.9,
+      "evidence": "Fills a 256-entry table by repeatedly right-shifting and XOR-ing with the constant 0xedb88320, the standard reversed CRC-32 (zlib/PKZIP) generator polynomial - unmistakable CRC-32 table construction.",
+      "prototype": "",
+      "summary": "Generates the standard 256-entry CRC-32 lookup table (polynomial 0xEDB88320) into the buffer pointed to by in_EDX."
+    },
+    {
+      "addr": "0x4d0370",
+      "name": "data_new",
+      "confidence": 0.7,
+      "evidence": "GlobalAlloc's param_2*unaff_BX+0x38 bytes, zero-fills the 0x38-byte header, strncpy's a name (31 chars) at offset 0, stores maximum_count/element_size as shorts at 0x20/0x22, stamps a 4-byte type tag at 0x28, and sets the data pointer at 0x34 to self+0x38 - exactly the canonical Blam data_array constructor signature data_new(name, maximum_count, size) named as an example in this task's own instructions.",
+      "prototype": "",
+      "summary": "Allocates and initializes a Blam data_array object: header with name, maximum element count and element size, plus a pointer to its packed element storage (register args: name in param_1, count in param_2, element size in BX)."
+    },
+    {
+      "addr": "0x4d03d0",
+      "name": "datum_new_at_index_with_salt",
+      "confidence": 0.5,
+      "evidence": "Splits in_EAX into an index (low 16 bits, bounds-checked against maximum_count at +0x20) and a caller-supplied non-zero salt (high 16 bits); if the slot at element_size*index+data_ptr is empty it stamps the caller's salt directly into it (bypassing the auto-increment in FUN_004d06c0) and returns salt<<16|index, or -1 if occupied/out of range.",
+      "prototype": "",
+      "summary": "Allocates a specific data_array slot using a caller-provided salt/generation value instead of an auto-assigned one, failing if the slot is already in use."
+    },
+    {
+      "addr": "0x4d0430",
+      "name": "datum_new_at_index",
+      "confidence": 0.5,
+      "evidence": "Same data_array slot layout as FUN_004d03d0 (bounds check vs +0x20, slot at element_size*index+data_ptr) but auto-assigns the slot's id via FUN_004d06c0 and updates the valid-count(+0x30)/high-water(+0x2e) bookkeeping fields.",
+      "prototype": "",
+      "summary": "Allocates the data_array slot at index in_AX, auto-assigning it a fresh generation id via the element-initialize helper."
+    },
+    {
+      "addr": "0x4d0480",
+      "name": "datum_new",
+      "confidence": 0.65,
+      "evidence": "Scans forward from the cached free-cursor (+0x2c) through data_array slots for the first empty one (bounded by maximum_count +0x20), zero-fills the found element (size = element_size at +0x22), assigns it a new salt (wrapping counter at +0x32), and updates valid-count/high-water/free-cursor fields.",
+      "prototype": "",
+      "summary": "Allocates the next free slot in a Blam data_array, zero-initializing it and assigning a fresh generation salt, returning salt<<16|index or -1 if the array is full."
+    },
+    {
+      "addr": "0x4d0510",
+      "name": "datum_delete",
+      "confidence": 0.7,
+      "evidence": "Validates the combined salt<<16|index handle against a data_array (index < high-water at +0x2e, salt matches or is wildcard 0), zeroes the slot's id field, rewinds the free-cursor(+0x2c) if applicable, shrinks the high-water mark(+0x2e) while trailing slots are empty, and decrements valid-count(+0x30).",
+      "prototype": "",
+      "summary": "Frees a validated data_array datum handle, recycling its slot and compacting the array's trailing free space."
+    },
+    {
+      "addr": "0x4d0580",
+      "name": "data_delete_all",
+      "confidence": 0.75,
+      "evidence": "Operates on the same data_array struct as FUN_004d0370/FUN_004d0480/FUN_004d0630 (fields at +0x20,+0x22,+0x2c..+0x34): resets the free-cursor/high-water/valid-count fields, reseeds the salt counter from the array's own name bytes with the 0x8000 generation flag set, and zero-fills the entire maximum_count*element_size storage block. The inherited hint 'chimera__console_cls' does not match this code at all (it never touches a console); a batch elsewhere in this file (0x4d3980) is mislabeled with this same name while implementing unrelated bit-packing logic, so this is the address that actually deletes/resets an entire data array.",
+      "prototype": "",
+      "summary": "Resets an entire Blam data_array to empty: clears its bookkeeping fields, reseeds its salt counter, and zero-fills all element storage."
+    },
+    {
+      "addr": "0x4d05d0",
+      "name": "data_iterator_next",
+      "confidence": 0.75,
+      "evidence": "Given a persistent iterator struct (unaff_EDI: [0]=data_array ptr, [1]=current index, [2]=result), scans forward through data_array slots for the next occupied one, writes salt<<16|index into [2] and the next index into [1], returning the element pointer or NULL when exhausted - the classic 'for each active datum' iterator, called 122 times across the module.",
+      "prototype": "",
+      "summary": "Advances a data_array iterator to the next in-use element, returning its address (or NULL at end of array)."
+    },
+    {
+      "addr": "0x4d0630",
+      "name": "datum_next",
+      "confidence": 0.45,
+      "evidence": "Given a raw index in_DX (no persistent iterator object), scans forward through data_array slots (bounded by high-water +0x2e) for the next occupied one and returns salt<<16|index or -1; a lower-level counterpart to data_iterator_next's stateful version.",
+      "prototype": "",
+      "summary": "Finds and returns the handle of the next in-use data_array slot after index in_DX, or -1 if none remain."
+    },
+    {
+      "addr": "0x4d0680",
+      "name": "datum_get",
+      "confidence": 0.65,
+      "evidence": "Validates a combined salt<<16|index handle in in_EDX against maximum_count (+0x20) and the slot's stored salt (matches, or 0 as wildcard), returning the element's address or NULL - the classic handle-to-pointer accessor for a data_array.",
+      "prototype": "",
+      "summary": "Resolves a data_array datum handle to its element pointer if the handle's index and salt are valid, otherwise returns NULL."
+    },
+    {
+      "addr": "0x4d06c0",
+      "name": "datum_element_initialize",
+      "confidence": 0.45,
+      "evidence": "Zero-fills element_size (+0x22) bytes at the element pointer, then stamps the running salt counter (+0x32) into the element's first field and advances/wraps that counter to 0x8000 on overflow - the shared helper used by the datum_new* allocators.",
+      "prototype": "",
+      "summary": "Zero-initializes a newly allocated data_array element and stamps it with the array's next salt/generation value."
+    },
+    {
+      "addr": "0x4d0700",
+      "name": "byte_stream_write_ranged_integer",
+      "confidence": 0.45,
+      "evidence": "Chooses an output width (1, 2, or 4 bytes, the last two written big-endian via inline/borrowed swap logic matching FUN_004cfd90) based on the magnitude threshold in_EAX, writes in_EDX into a growable byte-stream struct (base/cursor/capacity/overflow-flag at unaff_ESI[0..3]), and sets the overflow flag on insufficient room.",
+      "prototype": "",
+      "summary": "Writes a value sized to fit a given maximum (1/2/4 bytes, big-endian) into a byte stream, marking the stream's overflow flag if there isn't room."
+    },
+    {
+      "addr": "0x4d07e0",
+      "name": "byte_stream_write_string",
+      "confidence": 0.55,
+      "evidence": "Measures param_1 up to in_CX characters (or its NUL), strncpy's it plus a terminating NUL into the same byte-stream struct used by FUN_004d0700 (base/cursor/capacity/overflow-flag), advancing the cursor and setting the overflow flag if there isn't room.",
+      "prototype": "",
+      "summary": "Writes a NUL-terminated, length-capped copy of string param_1 into a growable byte stream."
+    },
+    {
+      "addr": "0x4d0850",
+      "name": "byte_stream_read_long",
+      "confidence": 0.5,
+      "evidence": "Reads a raw 4-byte value from the byte-stream struct (fields shared with FUN_004d0700/07e0), byte-swapping it via FUN_004cfd90, advancing the cursor by 4 and setting the overflow flag if fewer than 4 bytes remain.",
+      "prototype": "",
+      "summary": "Reads and endian-swaps a 4-byte value from a byte stream, flagging overflow if the stream is exhausted."
+    },
+    {
+      "addr": "0x4d08a0",
+      "name": "byte_stream_read_ranged_integer",
+      "confidence": 0.45,
+      "evidence": "Counterpart to FUN_004d0700: picks a 1/2/4-byte read width from the magnitude threshold in_EAX, calling byte_stream_read_long for the 4-byte case and reading/endian-swapping 1 or 2 bytes directly from the same stream struct otherwise.",
+      "prototype": "",
+      "summary": "Reads a value sized to fit a given maximum (1/2/4 bytes) out of a byte stream, delegating to byte_stream_read_long for the widest case."
+    },
+    {
+      "addr": "0x4d0930",
+      "name": "byte_stream_read_string",
+      "confidence": 0.55,
+      "evidence": "Scans the byte-stream struct's buffer for a NUL terminator within the remaining capacity, returns the string's start address and advances the cursor past it, or sets the overflow flag if no terminator is found in range.",
+      "prototype": "",
+      "summary": "Reads a NUL-terminated string out of a byte stream, returning its address and advancing the cursor, or flagging overflow if unterminated."
+    },
+    {
+      "addr": "0x4d0980",
+      "name": "struct_definition_table_compute_sizes",
+      "confidence": 0.35,
+      "evidence": "Iterates a table of *(short*)(param_1+4) 8-byte entries at *(param_1+0x10), and for each unprocessed entry (flag byte at +0x10 of the entry's target == 0) calls struct_definition_compute_size (FUN_004d0d50) once and marks it processed - a one-time size-caching pass over a set of registered struct definitions.",
+      "prototype": "",
+      "summary": "Walks a table of struct-definition entries and computes/caches each one's encoded size exactly once."
+    },
+    {
+      "addr": "0x4d09d0",
+      "name": "data_packet_group_decode_packet",
+      "confidence": 0.85,
+      "evidence": "Matches the supplied cea-pdb naming hint via its exact referenced strings (\"got packet which wouldn't decode\", \"got packet with mismatched class\", \"got packet with bad type\", \"got packet with no header\"); code reads a packet type byte, validates it against a registered class/type table, and dispatches to struct-definition/type decoding as needed.",
+      "prototype": "",
+      "summary": "Validates and decodes the header of a packet from a packet group, dispatching to the matching packet type's decoder and reporting one of several specific error strings on failure."
+    },
+    {
+      "addr": "0x4d0ae0",
+      "name": "data_packet_group_encode_packet",
+      "confidence": 0.85,
+      "evidence": "Matches the supplied cea-pdb naming hint via its referenced string (\"couldn't encode packet\"); calls the type-body encoder (FUN_004d0bc0) then appends the packet header (FUN_004d0b60), reporting failure through the shared DAT_006b7f00 error-string global.",
+      "prototype": "",
+      "summary": "Encodes a packet's body and header into a packet group's output buffer, returning success/failure via the shared error-string mechanism."
+    },
+    {
+      "addr": "0x4d0b60",
+      "name": "data_packet_group_append_packet_header",
+      "confidence": 0.75,
+      "evidence": "Matches the supplied cea-pdb naming hint via its referenced string (\"couldn't append header to encoded packet\"); writes a single header byte (packet type) at the current output cursor, then byte-swaps it via struct_definition_byte_swap using PTR_s_packet_header_00696780's field descriptor before advancing the cursor.",
+      "prototype": "",
+      "summary": "Appends a one-byte packet-type header to an encoded packet, byte-swapping it per the packet-header struct definition, or sets the shared error string on overflow."
+    },
+    {
+      "addr": "0x4d0bc0",
+      "name": "data_packet_group_encode_type",
+      "confidence": 0.4,
+      "evidence": "Lazily computes/caches a packet type's encoded size via struct_definition_compute_size (FUN_004d0d50, guarded by a cached-flag byte at +0x10), validates the requested count against the type's registered count (+10), and hands off to struct_definition_encode (FUN_004d0e80) to serialize the body.",
+      "prototype": "",
+      "summary": "Encodes one packet type's payload into a packet group's buffer, caching the type's field-size computation on first use."
+    },
+    {
+      "addr": "0x4d0c70",
+      "name": "data_packet_group_decode_type",
+      "confidence": 0.4,
+      "evidence": "Mirrors data_packet_group_encode_type's structure (same cached-size flag at +0x10, same count field at +10) but calls struct_definition_decode (FUN_004d13c0) to deserialize the packet body instead of encoding it.",
+      "prototype": "",
+      "summary": "Decodes one packet type's payload from a packet group's input buffer, caching the type's field-size computation on first use."
+    },
+    {
+      "addr": "0x4d0d50",
+      "name": "struct_definition_compute_size",
+      "confidence": 0.55,
+      "evidence": "Walks a struct-definition field list (5 shorts per field: type, count, min-version, max-version, computed-offset) using the same type codes (0/1/8=raw size, 2/3/4=count shifted by 1/2/3 for 2/4/8-byte elements, 5/6=+1/+2, 7=nested struct recurses into itself, 9=terminator) that struct_definition_encode/decode use to actually move data, accumulating total byte size and field count without touching any buffer.",
+      "prototype": "",
+      "summary": "Computes the total encoded byte size and field count of a structure from its field-type descriptor list, recursing into nested struct arrays."
+    },
+    {
+      "addr": "0x4d0e80",
+      "name": "struct_definition_encode",
+      "confidence": 0.55,
+      "evidence": "Walks the same field-type descriptor list as struct_definition_compute_size, and for each field whose version range (param_3 vs field's min/max) matches, copies (or, out of range, zero-fills) the field from a source pointer into a growable byte-stream buffer (param_2: base/cursor/capacity/overflow), byte-swapping multi-byte fields via byte_swap_array, writing counted strings via byte_stream_write_string, count-prefixed arrays via byte_stream_write_ranged_integer, and recursing into itself (case 7) for nested struct arrays.",
+      "prototype": "",
+      "summary": "Serializes a structure into a byte stream according to a versioned field-type descriptor list, handling primitive fields, strings, variable-length arrays, and nested sub-structures."
+    },
+    {
+      "addr": "0x4d13c0",
+      "name": "struct_definition_decode",
+      "confidence": 0.55,
+      "evidence": "Mirrors struct_definition_encode's field-type descriptor walk and version-range check, but reads from the byte-stream buffer (param_2) into the destination instead, using byte_stream_read_string/byte_stream_read_ranged_integer for the string/count-prefixed-array cases and recursing into itself for nested struct arrays.",
+      "prototype": "",
+      "summary": "Deserializes a structure from a byte stream according to a versioned field-type descriptor list, the inverse of struct_definition_encode."
+    },
+    {
+      "addr": "0x4d1750",
+      "name": "cache_new",
+      "confidence": 0.55,
+      "evidence": "Initializes an embedded data_array-style sub-object at param_1+0x44 (name/size/magic/data-ptr header matching data_new's layout) and clears it via data_delete_all, then fills the outer container's fields at +0x20/+0x24/+0x28/+0x2c and +0x3c (pointer to that sub-object) - exactly the field layout that cache_allocate_block (FUN_004d1840) and cache_evict_entry (FUN_004d1c20) later read (+0x24 callback, +0x28 capacity, +0x2c alignment shift, +0x3c data_array).",
+      "prototype": "",
+      "summary": "Constructs a cache container object: an owned data_array of cache entries plus capacity/alignment/callback bookkeeping used by the cache allocate/evict/flush routines."
+    },
+    {
+      "addr": "0x4d17f0",
+      "name": "cache_flush",
+      "confidence": 0.5,
+      "evidence": "Repeatedly calls data_iterator_next (FUN_004d05d0) on the cache's data_array and passes each result to cache_evict_entry (FUN_004d1c20) until the iterator is exhausted.",
+      "prototype": "",
+      "summary": "Evicts every entry currently stored in a cache by iterating its data_array and evicting each one."
+    },
+    {
+      "addr": "0x4d1840",
+      "name": "cache_allocate_block",
+      "confidence": 0.4,
+      "evidence": "Uses the cache_new field layout (+0x24 evict-permission callback, +0x28 capacity, +0x2c alignment shift, +0x30 current time/tag, +0x34/+0x38 free-list head/tail, +0x3c data_array), scans existing entries for gaps or evicts least-recently-used ones (via cache_evict_entry) until enough contiguous space of the aligned requested size exists, then allocates a tracking entry with datum_new (FUN_004d0480).",
+      "prototype": "",
+      "summary": "Finds or clears (via LRU eviction) enough space in a fixed-size cache buffer for a param_2-byte allocation and registers a new tracking entry for it."
+    },
+    {
+      "addr": "0x4d1c20",
+      "name": "cache_evict_entry",
+      "confidence": 0.5,
+      "evidence": "Invokes the container's release callback (function pointer at unaff_EDI+0x20) for a given cache entry, unlinks it from the container's prev/next linked list (fields +0xc/+0x10 of the 0x1c-byte entry, base array at container+0x34), and finally frees its data_array slot via datum_delete (FUN_004d0510).",
+      "prototype": "",
+      "summary": "Releases and removes one entry from a cache: invokes its release callback, unlinks it from the cache's entry list, and frees its data_array slot."
+    },
+    {
+      "addr": "0x4d1ca0",
+      "name": "cache_generate_status_bitmap",
+      "confidence": 0.3,
+      "evidence": "Zero-fills a destination buffer sized to the cache's total capacity (+0x28), then iterates every live entry via data_iterator_next and stamps each entry's byte range in that buffer with a status byte combining a per-entry release-permission callback result and age comparisons against the cache's current time (+0x30).",
+      "prototype": "",
+      "summary": "Builds a per-byte status/protection bitmap over a cache's backing memory region, marking which bytes belong to protected vs. evictable vs. stale entries."
+    },
+    {
+      "addr": "0x4d1d60",
+      "name": "block_list_allocate",
+      "confidence": 0.5,
+      "evidence": "Allocates a new block at the arena's current tail (or start), stamping literal ASCII magic values 0x68656164 ('head') and 0x7461696c ('tail') into its header/footer fields, links it into a doubly-linked list via head/tail pointers at in_ECX+0x30/+0x34, decrements remaining free bytes (+0x2c), and writes the user data pointer through unaff_EDI.",
+      "prototype": "",
+      "summary": "Allocates a new sentinel-tagged block ('head'/'tail' magic) from an arena, linking it into the arena's block list and returning its data pointer."
+    },
+    {
+      "addr": "0x4d1de0",
+      "name": "block_list_reallocate",
+      "confidence": 0.5,
+      "evidence": "Extends an existing block in place when enough trailing room exists (updates the arena's free-byte counter and the block's size field directly); otherwise allocates a new block via block_list_allocate, copies the old data across, and relinks it, mirroring a classic realloc-in-an-arena pattern.",
+      "prototype": "",
+      "summary": "Grows a block from an arena in place if possible, or allocates a new block and migrates the data, similar to realloc()."
+    },
+    {
+      "addr": "0x4d1e70",
+      "name": "block_list_unlink",
+      "confidence": 0.5,
+      "evidence": "Adds the freed block's size back into the arena's free-byte counter (in_EDX+0x2c) and relinks the neighboring blocks' prev/next pointers (or the arena's head/tail pointers at +0x30/+0x34 if this was an end block).",
+      "prototype": "",
+      "summary": "Removes a block from an arena's doubly-linked block list and reclaims its space in the arena's free-byte count."
+    },
+    {
+      "addr": "0x4d1eb0",
+      "name": "block_list_compact",
+      "confidence": 0.55,
+      "evidence": "Walks the arena's block list from its head (+0x30), memmove-ing each block down over any preceding gap and fixing up each block's internal back-pointer and the list's prev/next links as it goes - textbook in-place defragmentation.",
+      "prototype": "",
+      "summary": "Defragments an arena's block list in place, sliding blocks down to eliminate gaps left by freed blocks."
+    },
+    {
+      "addr": "0x4d1f10",
+      "name": "heap_allocate",
+      "confidence": 0.5,
+      "evidence": "Calls heap_allocate_raw (FUN_004d2180) to obtain a block, marks its size field's high bit as 'in use', and updates running usage-statistics fields (+0x14 bytes used, +0x18 peak bytes, +0x1c count, +0x20 peak count, +0x24 peak single-allocation size) on the containing heap struct in_ECX.",
+      "prototype": "",
+      "summary": "Public allocation entry point for a bucketed heap: allocates a raw block and updates the heap's usage statistics."
+    },
+    {
+      "addr": "0x4d1f80",
+      "name": "heap_reallocate",
+      "confidence": 0.5,
+      "evidence": "Reads the old block's size from its header (in_EAX-0x10), calls heap_resize_block (FUN_004d2020) to grow/move it, then adjusts the same usage-statistics fields as heap_allocate by the size delta.",
+      "prototype": "",
+      "summary": "Public reallocation entry point for a bucketed heap: resizes/moves a block and updates the heap's usage statistics accordingly."
+    },
+    {
+      "addr": "0x4d2020",
+      "name": "heap_resize_block",
+      "confidence": 0.45,
+      "evidence": "If the existing block (unaff_EBX) already has enough room for the requested in_EAX bytes, returns it unchanged; otherwise obtains a new block from heap_allocate_raw (FUN_004d2180), copies the old data across, and frees the old block via heap_unlink_block (FUN_004d20a0).",
+      "prototype": "",
+      "summary": "Grows a heap block in place when it already has room, or moves it to a newly allocated block and frees the original."
+    },
+    {
+      "addr": "0x4d20a0",
+      "name": "heap_unlink_block",
+      "confidence": 0.4,
+      "evidence": "Reads a bucket index from the block's header (in_EAX+4), relinks the block's doubly-linked-list neighbors (fields +8/+0xc) or the owning heap's head/tail pointers (in_ECX+0x2c/+0x30), clears the bucket's free-list head entry for that block, and updates the heap's cached 'first non-empty bucket' cursor (+0x10).",
+      "prototype": "",
+      "summary": "Removes a block from its size-bucket's free list and the heap's overall block list, updating the heap's free-bucket search cursor."
+    },
+    {
+      "addr": "0x4d20f0",
+      "name": "heap_get_free_bytes",
+      "confidence": 0.45,
+      "evidence": "Computes remaining capacity from the heap's total size field (in_ECX+8) adjusted by the head/tail block pointers at +0x2c/+0x30 when the heap is non-empty, else returns the raw total.",
+      "prototype": "",
+      "summary": "Returns the number of unallocated bytes remaining in a bucketed heap."
+    },
+    {
+      "addr": "0x4d2110",
+      "name": "heap_find_first_used_bucket",
+      "confidence": 0.4,
+      "evidence": "Scans the heap's array of per-size-class free-list head pointers (in_EAX+0x34) up to the bucket count (in_EAX+0xc) for the first non-null entry, returning its index or 0xffffffff.",
+      "prototype": "",
+      "summary": "Finds the index of the first non-empty size-class free-list bucket in a bucketed heap."
+    },
+    {
+      "addr": "0x4d2140",
+      "name": "heap_advance_bucket_cursor",
+      "confidence": 0.35,
+      "evidence": "Starting from the heap's cached bucket cursor (in_ECX+0x10)+1, scans the same free-list bucket array as heap_find_first_used_bucket for the next non-null entry and caches its index back into +0x10, else resets the cursor to invalid.",
+      "prototype": "",
+      "summary": "Advances a bucketed heap's cached 'next non-empty bucket' search cursor to the next populated free-list bucket."
+    },
+    {
+      "addr": "0x4d2180",
+      "name": "heap_allocate_raw",
+      "confidence": 0.4,
+      "evidence": "Core allocator for the bucketed heap: rounds the requested size up, compacts the heap (heap_compact) and recomputes free space (heap_get_free_bytes) if there isn't enough room, otherwise locates a free-list bucket (heap_find_first_used_bucket/find_free_block), carves out a block, stamps its size and bucket-index header fields, and links it into the heap's block list before returning the new block's address.",
+      "prototype": "",
+      "summary": "Allocates a raw block from a bucketed/segregated free-list heap, compacting the heap first if necessary."
+    },
+    {
+      "addr": "0x4d2310",
+      "name": "heap_compact",
+      "confidence": 0.45,
+      "evidence": "Walks the heap's combined block chain from its head (in_ECX+0x2c) and memmove()s each in-use block (sign bit of its size field clear) down to eliminate any preceding gap, fixing up the moved block's back-pointer - the heap's counterpart to block_list_compact.",
+      "prototype": "",
+      "summary": "Defragments a bucketed heap in place by sliding its allocated blocks together to remove gaps left by frees."
+    },
+    {
+      "addr": "0x4d2370",
+      "name": "heap_find_free_block",
+      "confidence": 0.4,
+      "evidence": "Walks a heap's free-block chain (in_ECX+0x2c, linked via each block's [3] field) looking for the first block whose remaining space from unaff_ESI is at least the requested size, returning that block's end address and the preceding block via *param_1 for list-splicing.",
+      "prototype": "",
+      "summary": "Searches a bucketed heap's free-block chain for the first block large enough to satisfy a size request, returning its address and predecessor."
+    },
+    {
+      "addr": "0x4d3980",
+      "name": "deflate_emit_code_length_codes",
+      "confidence": 0.45,
+      "evidence": "Bit-accumulator output into a byte buffer (fields +8 base/+0x14 cursor/+0x16b0 bit buffer) driven by run-length thresholds of exactly 3, 4/10, and 11/138 (0x8a) with two-symbol emission (code+extra bits) per run - these are the exact REP_3_6 / REPZ_3_10 / REPZ_11_138 run-length codes and 138 = max-repeat-length constant from zlib deflate's dynamic Huffman code-length transmission (trees.c send/scan_tree logic); the inherited 'data_delete_all' label does not match this code at all (no deletion occurs) and appears to be a misattributed symbol shared with the genuine data-array-clear function at 0x4d0580 elsewhere in this batch.",
+      "prototype": "",
+      "summary": "Emits a Huffman-coded, run-length-compressed sequence of code-length symbols into a bit-packed output buffer, matching zlib deflate's REP_3_6/REPZ_3_10/REPZ_11_138 code-length transmission scheme."
+    }
+  ]
+}

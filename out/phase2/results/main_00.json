@@ -1,0 +1,412 @@
+{
+  "results": [
+    {
+      "addr": "0x43ed20",
+      "name": "movie_play_bink",
+      "confidence": 0.6,
+      "evidence": "Modal PeekMessage/DispatchMessage loop that checks ESC/SPACE to abort, calls _BinkOpen_8/_BinkDoFrame_4/_BinkCopyToBuffer_28/_BinkNextFrame_4/_BinkClose_4, and calls rasterizer_device_reset when the device is lost (iVar3 == -0x7789f797).",
+      "prototype": "",
+      "summary": "Runs a modal Win32 message loop that opens, decodes and blits a single Bink (.bik) cinematic to the screen each frame until it finishes, ESC/space is pressed, or the display device is lost and reset."
+    },
+    {
+      "addr": "0x4c6390",
+      "name": "console_process_exec_flag",
+      "confidence": 0.65,
+      "evidence": "Calls command_line_check_flag(\"-exec\"); if FUN_004c6420 (which opens/reads init.txt) fails and DAT_0071d1a8 is set, falls back to console_process_command(0). Matches strings '-exec' and 'init.txt'.",
+      "prototype": "void __cdecl console_process_exec_flag(void)",
+      "summary": "Handles the '-exec' startup command-line option by running commands from init.txt, or processing one queued console command if that file is absent."
+    },
+    {
+      "addr": "0x4c6420",
+      "name": "console_exec_file_run",
+      "confidence": 0.6,
+      "evidence": "Opens a file handle via FUN_00624186, reads it line-by-line with _fgets/_strtok and feeds each line to console_process_command(0x2000); sets DAT_007196e8 while running.",
+      "prototype": "int __cdecl console_exec_file_run(void)",
+      "summary": "Opens a script file (used by the '-exec' startup option) and executes each of its lines as a console command."
+    },
+    {
+      "addr": "0x4c64b0",
+      "name": "console_deactivate",
+      "confidence": 0.55,
+      "evidence": "Guarded by console-open flags DAT_006b7020/DAT_006b7021, calls console_close(), clears the console-open bit in DAT_00712542, and zeroes the input/history buffers (DAT_006b168d, DAT_006b1620 arrays).",
+      "prototype": "void __cdecl console_deactivate(void)",
+      "summary": "Closes the developer console if it is open and wipes its input/history text buffers."
+    },
+    {
+      "addr": "0x4c6530",
+      "name": "console_toggle",
+      "confidence": 0.55,
+      "evidence": "If the console is already open (DAT_006b7020) calls FUN_004c64b0 (console_deactivate); otherwise, when allowed (DAT_006b7021 and not DAT_007193a8), calls console_open() and FUN_0048b650().",
+      "prototype": "void __cdecl console_toggle(void)",
+      "summary": "Opens or closes the developer console depending on its current state."
+    },
+    {
+      "addr": "0x4c6570",
+      "name": "console_paste_clipboard_text",
+      "confidence": 0.6,
+      "evidence": "Calls clipboard_get_text into a local 256-byte buffer, then if text was pasted and DAT_006b2f0c points at the console input buffer (&DAT_006b7024) calls FUN_0044c640 (insert-text helper).",
+      "prototype": "char __cdecl console_paste_clipboard_text(void)",
+      "summary": "Pastes the current clipboard text into the focused console/text input field, if any."
+    },
+    {
+      "addr": "0x4c65c0",
+      "name": "console_process_key_events",
+      "confidence": 0.45,
+      "evidence": "While the console is open (DAT_006b7021) and not in menu mode, walks the input-event array DAT_006b7028 and dispatches each event code to FUN_004c6570 (paste), FUN_004c6bc0 (autocomplete), console_process_command, or history-recall logic (DAT_006b79e0/DAT_006b79dc).",
+      "prototype": "char __cdecl console_process_key_events(void)",
+      "summary": "Processes the console's queued key events for the frame: paste, tab-completion, command submission, and command-history recall."
+    },
+    {
+      "addr": "0x4c67c0",
+      "name": "console_print_error_va",
+      "confidence": 0.5,
+      "evidence": "vsprintf's the format/varargs into a local buffer, optionally clears data/console (data_delete_all, console_clear_screen) when a hidden AL-register flag is set, appends to console via FUN_00496a80, and logs to the error file via write_to_error_file when DAT_007196d3 is set.",
+      "prototype": "",
+      "summary": "Formats a printf-style message, prints it to the console (optionally clearing the console/data first, per a hidden flag), and appends it to the error log file when error logging is enabled."
+    },
+    {
+      "addr": "0x4c6860",
+      "name": "console_out_printf",
+      "confidence": 0.6,
+      "evidence": "Same vsprintf + optional data_delete_all/console_clear_screen + write_to_error_file pattern as FUN_004c67c0, but only runs while the console is open (DAT_006b7020) and prints via chimera__console_out instead.",
+      "prototype": "void __cdecl console_out_printf(char clear_first, char *format, ...)",
+      "summary": "Formats a printf-style message and prints it to the open developer console, optionally clearing it first, logging to the error file when enabled."
+    },
+    {
+      "addr": "0x4c6920",
+      "name": "console_print_va",
+      "confidence": 0.55,
+      "evidence": "Same vsprintf + FUN_00496a80 console-append + write_to_error_file pattern as FUN_004c67c0/FUN_004c6860, without the clear-first branch.",
+      "prototype": "void __cdecl console_print_va(char *format, ...)",
+      "summary": "Formats a printf-style message and appends it to the console output, logging to the error file when error logging is enabled."
+    },
+    {
+      "addr": "0x4c69a0",
+      "name": "console_process_and_clear_history_index",
+      "confidence": 0.4,
+      "evidence": "Calls console_process_command(0) then resets DAT_006b2f1c to -1.",
+      "prototype": "void __cdecl console_process_and_clear_history_index(void)",
+      "summary": "Processes the pending console command and resets a related history/selection index to -1."
+    },
+    {
+      "addr": "0x4c69c0",
+      "name": "console_command_flags_compute",
+      "confidence": 0.35,
+      "evidence": "When no UI dialog is active (DAT_006f1d20 == 0), bulk-copies a 0x7ff-dword table from DAT_00712dd8 onto the stack and derives a flags bitmask from it plus the network mode (DAT_00719720) and the caller-supplied param_1; otherwise returns a fixed restricted flag value.",
+      "prototype": "uint __cdecl console_command_flags_compute(uint param_1)",
+      "summary": "Computes a bitmask of which console-command capabilities are currently available, depending on whether a UI dialog is open and the current network mode."
+    },
+    {
+      "addr": "0x4c6a80",
+      "name": "console_process_command",
+      "confidence": 0.8,
+      "evidence": "Skips comment lines (';', '#', '//'), pushes the raw line into a command-history ring buffer (DAT_006b71e4 indexed by DAT_006b79de), validates the command name against the registered list via chimera__autocomplete_gather, and if it matches, runs it with chimera__execute_script; otherwise prints 'Requested function \"%s\" cannot be executed now.'.",
+      "prototype": "",
+      "summary": "Validates and executes a single console command line, recording it in the command history and reporting an error if the command isn't currently available."
+    },
+    {
+      "addr": "0x4c6bc0",
+      "name": "console_autocomplete_command",
+      "confidence": 0.65,
+      "evidence": "Gathers candidate commands via chimera__autocomplete_gather, computes the longest common prefix among the matches (skipping the special 'profile_load' command), lists all candidates separated by '|' via FUN_004c6860, and writes the common prefix back into the console input buffer (DAT_006b70d8).",
+      "prototype": "",
+      "summary": "Implements console tab-completion: lists every command matching the current partial input and extends the input to their common prefix."
+    },
+    {
+      "addr": "0x4c6e80",
+      "name": "game_frame_rate_average_update",
+      "confidence": 0.5,
+      "evidence": "Maintains a rolling window of up to 16 frame-time samples (DAT_00719ab8 array indexed by DAT_00719af8) and returns their average; separately records the current time via QueryPerformanceCounter/__allmul/__alldiv into _DAT_00719ab0.",
+      "prototype": "uint __cdecl game_frame_rate_average_update(void)",
+      "summary": "Updates a rolling average of recent frame times and records the current high-resolution timestamp."
+    },
+    {
+      "addr": "0x4c6f30",
+      "name": "timedemo_benchmark_update",
+      "confidence": 0.6,
+      "evidence": "Driven by a frame counter (DAT_007196d8); at specific thresholds it queues map loads via FUN_004c8740 with strings 'map_name b30'/'map_name c10'/'map_name d20', and at the final threshold writes a full frame-rate histogram plus video/sound option report to 'timedemo.txt'.",
+      "prototype": "void __cdecl timedemo_benchmark_update(void)",
+      "summary": "Drives the built-in -timedemo benchmark: steps through several campaign maps and, once finished, writes frame-rate and hardware/option statistics to timedemo.txt."
+    },
+    {
+      "addr": "0x4c7610",
+      "name": "main_loop",
+      "confidence": 0.6,
+      "evidence": "Runs one-time startup (plays 3 intro Bink movies via FUN_0043ed20, loads the ban list, calls chimera__exec_init and particle_systems_initialize) then enters an infinite do-while that calls shell_pump_windows_messages, network_update, interface_tick, game_engine_advance_simulation_ticks, and dozens of per-frame state-flag handlers each iteration, exiting only via FUN_004c9e90.",
+      "prototype": "void __cdecl main_loop(void)",
+      "summary": "The engine's top-level main loop: performs one-time startup (intro movies, ban list, exec script) then repeatedly pumps Windows messages and updates networking, simulation, and UI every frame until quit is requested."
+    },
+    {
+      "addr": "0x4c7f10",
+      "name": "main_loop_resume_from_checkpoint",
+      "confidence": 0.3,
+      "evidence": "Contains a near-duplicate of main_loop's (0x4c7610) per-frame body -- identical globals and call sequence to network_update/interface_tick/game_engine_advance_simulation_ticks -- entered at an internal label 'sig__checkpoint_sig' with zero callers, indicating it is reached by jump rather than a normal call; unrelated to weapon reload despite the previous name.",
+      "prototype": "",
+      "summary": "A duplicated copy of the engine main loop's per-frame body, entered directly at an internal checkpoint label rather than called normally; not weapon-reload code despite its prior name."
+    },
+    {
+      "addr": "0x4c8340",
+      "name": "network_hostname_resolve_thread_proc",
+      "confidence": 0.6,
+      "evidence": "Thread entry point used by FUN_004c8370's CreateThread call: calls gethostbyname(param_1), stores the result in DAT_00719b6c, sets the completion flag DAT_00719b68, then ExitThread(0).",
+      "prototype": "DWORD __stdcall network_hostname_resolve_thread_proc(char *hostname)",
+      "summary": "Worker-thread entry point that resolves a hostname via gethostbyname() and signals completion to the thread that spawned it."
+    },
+    {
+      "addr": "0x4c8370",
+      "name": "network_hostname_resolve_with_timeout",
+      "confidence": 0.55,
+      "evidence": "Spawns FUN_004c8340 (the gethostbyname worker thread) via CreateThread, waits up to 10000ms with WaitForSingleObject, force-terminates it on timeout, and returns whether the completion flag DAT_00719b68 was set.",
+      "prototype": "",
+      "summary": "Resolves a hostname on a worker thread with a 10-second timeout, terminating the thread if it hasn't finished, and returns whether resolution succeeded."
+    },
+    {
+      "addr": "0x4c83e0",
+      "name": "network_game_client_connect_by_hostname",
+      "confidence": 0.55,
+      "evidence": "Parses an optional ':port' suffix, resolves the remaining host via FUN_004c8370/gethostbyname, converts the address with inet_ntoa, and stages it (with optional port) into DAT_00719a7a for connecting, or falls back to FUN_004c8500(0,0) plus a main-menu check on failure.",
+      "prototype": "int __cdecl network_game_client_connect_by_hostname(char *host_port_string)",
+      "summary": "Worker routine that resolves a 'host[:port]' string and stages the resulting IP address for connecting to a multiplayer server, or reports an error if resolution fails."
+    },
+    {
+      "addr": "0x4c8500",
+      "name": "network_game_client_connect_to_address_async",
+      "confidence": 0.55,
+      "evidence": "Normalizes the address/password with network_address_string_normalize/network_address_parse_port, then spawns a background thread running FUN_004c83e0 to resolve the hostname; called with (0,0) elsewhere to just reset connect state, and falls back to display_error(0x35,...) on failure.",
+      "prototype": "int __cdecl network_game_client_connect_to_address_async(char *address, char *password)",
+      "summary": "Begins connecting to a multiplayer server by address string, kicking off asynchronous hostname resolution on a worker thread, or resets pending-connect state when called with null arguments."
+    },
+    {
+      "addr": "0x4c8660",
+      "name": "network_game_client_connect_to_resolved_address",
+      "confidence": 0.5,
+      "evidence": "Resets connect-state globals, packs the resolved address string (DAT_00719a9a) into a local buffer, and calls network_game_client_connect_to_address_local(local_14); on failure sets an error code and requests the main menu, on success closes widgets and stops the title music via FUN_004c8b40.",
+      "prototype": "void __cdecl network_game_client_connect_to_resolved_address(void)",
+      "summary": "Finalizes a multiplayer connection attempt using a previously resolved address, starting the client connection or falling back to an error/menu state on failure."
+    },
+    {
+      "addr": "0x4c8740",
+      "name": "main_queue_map_change",
+      "confidence": 0.55,
+      "evidence": "Stores its (hidden EAX-register) map-name argument into DAT_00719779, sets the pending-map flag DAT_00719878/DAT_00719778, and additionally sets the load-request flag DAT_00719739 when the current game-mode struct (DAT_006f1d6c) indicates single/co-op and not multiplayer.",
+      "prototype": "",
+      "summary": "Queues a map name for the next level load, and for single/co-op games also flags the engine to begin loading it immediately."
+    },
+    {
+      "addr": "0x4c87a0",
+      "name": "main_queue_map_change_by_name_or_clear",
+      "confidence": 0.5,
+      "evidence": "Stores its (hidden EDI-register) argument into the secondary pending-map buffer DAT_00719879; when the argument is null it clears the cached friendly name (FUN_00442640), otherwise it looks the friendly level name up via map_list_get_friendly_level_name.",
+      "prototype": "",
+      "summary": "Records (or clears) the name of a level to load next and refreshes its cached human-readable display name."
+    },
+    {
+      "addr": "0x4c8800",
+      "name": "player_input_device_assign_slots",
+      "confidence": 0.4,
+      "evidence": "Iterates over DAT_006894b8 players (or a single player when DAT_00719754._2_1_ is set), calling FUN_00473730/FUN_00473780 to get and reassign controller indices, and cross-links the player<->device lookup tables rooted at DAT_0087a478.",
+      "prototype": "void __cdecl player_input_device_assign_slots(void)",
+      "summary": "Reassigns input-device (controller) slots to local players, rebuilding the player-to-device and device-to-player lookup tables."
+    },
+    {
+      "addr": "0x4c8900",
+      "name": "main_queue_ui_widget_change",
+      "confidence": 0.4,
+      "evidence": "Same store-into-buffer/set-flag pattern as FUN_004c8740/FUN_004c87a0: stores its hidden EAX-register argument into DAT_00719979 and sets DAT_00719774, or clears both fields when the argument is null.",
+      "prototype": "",
+      "summary": "Queues (or clears) a pending UI/tag name change to be applied on a later update, mirroring the other queued-change helpers nearby."
+    },
+    {
+      "addr": "0x4c8930",
+      "name": "ui_map_load",
+      "confidence": 0.6,
+      "evidence": "Zeroes a scenario-launch staging structure, fills it with the fixed path 'levels\\\\ui\\\\ui', drives the load pipeline (FUN_0045aea0/FUN_0045b370/FUN_0045afb0), then sets DAT_00718fc9/DAT_0071976b marking the UI background map active; optionally starts music via FUN_004449f0 when param_1 is set.",
+      "prototype": "void __cdecl ui_map_load(char play_title_music)",
+      "summary": "Loads the front-end (levels\\\\ui\\\\ui) map used as the main-menu background, optionally starting the title music afterward."
+    },
+    {
+      "addr": "0x4c8a60",
+      "name": "main_menu_return_and_reset",
+      "confidence": 0.55,
+      "evidence": "Loads the UI map (chimera__load_ui_map/ui_map_load) if not already active, calls chimera__load_main_menu, resets chat/network state (hud_chat_listbox_clear, update_queues_dispose, update_server_new), reinitializes the game-mode struct at DAT_006f1d6c, and calls hs_scenario_scripts_initialize.",
+      "prototype": "void __cdecl main_menu_return_and_reset(void)",
+      "summary": "Tears down the current game session and returns to the main menu, resetting network, chat, and scenario-script state."
+    },
+    {
+      "addr": "0x4c8b40",
+      "name": "main_menu_music_stop",
+      "confidence": 0.55,
+      "evidence": "Looks up the 'sound\\\\music\\\\title1\\\\title1' tag and, if the title-music-playing flag DAT_00718fc6 is set, detaches its looping sound via looping_sound_object_detach; also clears the 'in UI map' state (DAT_00718fc9, DAT_00719754._2_1_, DAT_00712542 bit).",
+      "prototype": "void __cdecl main_menu_music_stop(void)",
+      "summary": "Stops the main-menu title music if it is playing and clears the 'currently showing the UI map' state flags."
+    },
+    {
+      "addr": "0x4c8b90",
+      "name": "campaign_level_index_from_name",
+      "confidence": 0.45,
+      "evidence": "Lower-cases the input string and matches it in turn against nine static comparison strings (DAT_00669a5c down to DAT_00669a38), returning 0-8 on a match or -1 otherwise; used by FUN_004c9bd0 to drive campaign level progression.",
+      "prototype": "int __cdecl campaign_level_index_from_name(char *name)",
+      "summary": "Looks up a map name's position in a fixed nine-entry sequence (the singleplayer campaign order), returning its index or -1 if not found."
+    },
+    {
+      "addr": "0x4c8d40",
+      "name": "credits_load_directly_for_endgame",
+      "confidence": 0.8,
+      "evidence": "Writes the player's profile via player_profile_write_data, tears down the session with FUN_004c8a60 (main_menu_return_and_reset), looks up the 'ui\\\\shell\\\\main_menu\\\\main_menu' tag, and loads the 'ui\\\\shell\\\\main_menu\\\\credits_screen' widget over it, setting DAT_00719230.",
+      "prototype": "void __cdecl credits_load_directly_for_endgame(void)",
+      "summary": "Saves the player's profile, returns to the main menu, and immediately shows the end-game credits screen widget."
+    },
+    {
+      "addr": "0x4c8da0",
+      "name": "viewport_split_rect_compute",
+      "confidence": 0.5,
+      "evidence": "Given a player count and index (passed in registers in_EAX/in_EDX plus an output pointer in in_ECX), computes a row/column grid layout and writes a left/top/right/bottom rectangle -- classic split-screen tiling math; called from the view-setup helpers FUN_004c8f20/FUN_004c9050/FUN_004c9260.",
+      "prototype": "",
+      "summary": "Computes the screen rectangle for one player's viewport within an N-way split-screen grid layout."
+    },
+    {
+      "addr": "0x4c8f20",
+      "name": "render_view_single_player_setup",
+      "confidence": 0.45,
+      "evidence": "Calls sound_update(), computes a fixed field-of-view via fptan/fpatan, zeroes a view-parameter block (DAT_006b7a40..DAT_006b7a80), obtains the full-screen viewport rect via FUN_004c8da0, copies the block into DAT_006b79ec.., and calls FUN_0050c590.",
+      "prototype": "void __cdecl render_view_single_player_setup(void)",
+      "summary": "Sets up the render-view parameters (default FOV, full-screen viewport rectangle, projection block) for a single non-split-screen player view each frame."
+    },
+    {
+      "addr": "0x4c9050",
+      "name": "render_view_setup_from_camera",
+      "confidence": 0.45,
+      "evidence": "When the supplied camera pointer (in_EAX) is null, falls back to default FOV/skybox values as in FUN_004c8f20; otherwise copies fields from the camera struct, computes FOV from it, and blends in an interpolated matrix via matrix4x3_multiply when not first-person and not paused (DAT_006f1d6c+2).",
+      "prototype": "",
+      "summary": "Fills a per-viewport render-view structure (field of view, viewport rectangle, camera transform) either from default values or from a supplied camera/view parameter block."
+    },
+    {
+      "addr": "0x4c9220",
+      "name": "player_local_split_screen_count",
+      "confidence": 0.4,
+      "evidence": "Returns 1 unless a gamepad-configuration range check (2 <= DAT_0087aa10 <= 3) passes and a small field at DAT_0087a478+0xc holding 1 is present, in which case that count is returned instead.",
+      "prototype": "int __cdecl player_local_split_screen_count(void)",
+      "summary": "Returns how many local split-screen player viewports should currently be rendered (normally 1)."
+    },
+    {
+      "addr": "0x4c9260",
+      "name": "render_frame_all_views",
+      "confidence": 0.55,
+      "evidence": "Increments a re-entrancy counter (DAT_00719ccc), updates sound, computes the active split-screen view count with the same range check as FUN_004c9220, calls FUN_004c8da0/FUN_004c9050 for each view's rect/FOV, then dispatches to render_views_draw_all, or to FUN_004ca1a0 (screenshot_render) when movie-capture mode (DAT_007196e0) is active.",
+      "prototype": "",
+      "summary": "Builds the render-view list for all active local viewports each frame and dispatches to the renderer, or to movie/screenshot capture when frame-capture mode is active."
+    },
+    {
+      "addr": "0x4c9530",
+      "name": "movie_capture_frame_export",
+      "confidence": 0.55,
+      "evidence": "When movie-capture mode is active (DAT_00719724) and playback isn't paused (DAT_00719aac < 1), builds a 'movie\\\\frame%06d.tga' path via path_append_component and writes the current frame out with targa_export, incrementing the frame counter DAT_00719730.",
+      "prototype": "void __cdecl movie_capture_frame_export(void)",
+      "summary": "Exports the current rendered frame as a numbered TGA file into the movie\\\\ folder when movie-capture mode is active."
+    },
+    {
+      "addr": "0x4c95f0",
+      "name": "game_scenario_session_begin",
+      "confidence": 0.5,
+      "evidence": "Copies an incoming (in_EAX-register) scenario-launch parameter block into DAT_006b0b80+8, calls scenario_load(), resets per-session timing/save/tick-request flags, re-baselines the frame timer, and calls game_state_load_checkpoint() if DAT_00719778 (checkpoint restore requested) is set.",
+      "prototype": "",
+      "summary": "Begins a new game session for a staged scenario: loads the map, resets per-session state flags, and restores a checkpoint if one was requested."
+    },
+    {
+      "addr": "0x4c9770",
+      "name": "main_level_transition_update",
+      "confidence": 0.5,
+      "evidence": "Builds the cache-file path '%s%s%s.map' for the pending map and checks it exists (FUN_00624236), drives a fade using DAT_00719748/DAT_00719708 timers, and once complete stops the title music (FUN_004c8b40) then, for single/co-op modes, loads the staged scenario per local player via game_scenario_session_begin/FUN_00539cb0.",
+      "prototype": "void __cdecl main_level_transition_update(void)",
+      "summary": "Drives the level-change sequence: verifies the target map file exists, fades out, then unloads the current map and loads the next one for each local player."
+    },
+    {
+      "addr": "0x4c99e0",
+      "name": "game_engine_flush_pending_simulation_ticks",
+      "confidence": 0.55,
+      "evidence": "While DAT_0071976e (a queued-tick count) is nonzero and multiplayer is active, repeatedly calls game_engine_advance_simulation_ticks(0.033333335) at a fixed 30Hz step, then clears the counters DAT_0071976e/DAT_0071976c.",
+      "prototype": "void __cdecl game_engine_flush_pending_simulation_ticks(void)",
+      "summary": "Runs a fixed number of queued simulation ticks back-to-back at a fixed 30Hz timestep, used to fast-forward the simulation (e.g. after loading)."
+    },
+    {
+      "addr": "0x4c9a70",
+      "name": "main_save_map_private",
+      "confidence": 0.8,
+      "evidence": "Matches its existing (kept) name; strings 'gave up trying to save' and 'unsafe save' plus game_safe_to_save() checks and autosave attempt throttling (DAT_00719740 countdown, DAT_0071974c consecutive-fail counter) confirm the behavior.",
+      "prototype": "void __cdecl main_save_map_private(void)",
+      "summary": "Attempts a throttled autosave of the current map, giving up and reporting an error if it can never find a safe moment to save."
+    },
+    {
+      "addr": "0x4c9b60",
+      "name": "hud_message_flag_check_and_display",
+      "confidence": 0.45,
+      "evidence": "Calls FUN_0053eeb0, clears a small flags table (4 entries at DAT_006b3a40+0x82, stride 0x8c), and if a queued HUD message id at DAT_0071941c+0x3da is set, fetches its text via hud_get_message_string and displays it with chimera__hud_message.",
+      "prototype": "void __cdecl hud_message_flag_check_and_display(void)",
+      "summary": "Clears pending HUD notification flags each frame and, if a queued HUD message id is set, fetches and displays that message."
+    },
+    {
+      "addr": "0x4c9bd0",
+      "name": "campaign_level_advance",
+      "confidence": 0.55,
+      "evidence": "Sets the return-to-menu flag, resets DAT_0071974e, computes the next campaign index from the current map name via FUN_004c8b90 (campaign_level_index_from_name)+1, and either rolls credits (credits_load_directly_for_endgame) past the last level, queues the next map (FUN_004c8740) when in range 0..9, or falls back to the main menu.",
+      "prototype": "void __cdecl campaign_level_advance(void)",
+      "summary": "Determines the next single-player campaign level after finishing the current one and either queues it to load, rolls the end credits, or returns to the main menu."
+    },
+    {
+      "addr": "0x4c9c60",
+      "name": "main_request_return_to_menu",
+      "confidence": 0.45,
+      "evidence": "Sets DAT_00719754._3_1_ = 1, the same flag main_loop (0x4c7610) and FUN_004c9dd0 check to trigger FUN_004c8a60 (main_menu_return_and_reset); unrelated to printf despite the previous name.",
+      "prototype": "void __cdecl main_request_return_to_menu(void)",
+      "summary": "Sets the 'return to main menu' request flag that the main loop checks each frame."
+    },
+    {
+      "addr": "0x4c9dc0",
+      "name": "console_process_command_stub",
+      "confidence": 0.4,
+      "evidence": "A trivial 4-byte function body that immediately returns; carries the same name as the real console_process_command (0x4c6a80) in the input data, so it must be distinguished -- likely a no-op stand-in used in place of the real handler in some configuration.",
+      "prototype": "void __cdecl console_process_command_stub(void)",
+      "summary": "An empty no-op stand-in for the console command processor."
+    },
+    {
+      "addr": "0x4c9dd0",
+      "name": "game_start_new_single_player_map",
+      "confidence": 0.5,
+      "evidence": "Short-circuits to FUN_004c8a60 (main_menu_return_and_reset) if a forced-menu or pending menu-return flag is set; otherwise zeroes a scenario-launch staging block, stages the current pending map name (DAT_00719779) into it, sets the game mode (DAT_00719720), and calls FUN_004c95f0 (game_scenario_session_begin) to load it.",
+      "prototype": "void __cdecl game_start_new_single_player_map(void)",
+      "summary": "Starts loading the currently selected map as a new single-player game session, or returns to the main menu if that was requested instead."
+    },
+    {
+      "addr": "0x4c9e90",
+      "name": "main_loop_shutdown_cleanup",
+      "confidence": 0.5,
+      "evidence": "Only reachable from the exit paths of main_loop (0x4c7610) and its duplicate (0x4c7f10); releases the map cache (chimera__free_map_index), frees the ban-list buffer, disposes network host/game-server state depending on DAT_00719720, and closes chat.",
+      "prototype": "void __cdecl main_loop_shutdown_cleanup(void)",
+      "summary": "Performs final teardown when the main loop exits: releases the map cache, network host/server state, and chat, ahead of process shutdown."
+    },
+    {
+      "addr": "0x4c9f30",
+      "name": "game_timer_reset",
+      "confidence": 0.55,
+      "evidence": "Reads QueryPerformanceCounter once and stores it into both the 'current' and 'last update' timer globals (DAT_00719700/04 and DAT_00719710/14), recomputing DAT_00719708 in milliseconds via __allmul/__alldiv.",
+      "prototype": "void __cdecl game_timer_reset(void)",
+      "summary": "Re-baselines the frame-timing globals to the current high-resolution timestamp."
+    },
+    {
+      "addr": "0x4c9f90",
+      "name": "main_loop_frame_pacer",
+      "confidence": 0.55,
+      "evidence": "Busy-waits with Sleep() in a loop comparing QueryPerformanceCounter deltas against a 1/30s target, computes a clamped delta-time (or a fixed 1/15 or 1/30s), and updates the frame-timing globals (DAT_00719700/04/08, _DAT_0071971c) once per call, matching its position as the first call inside main_loop's per-frame body.",
+      "prototype": "void __cdecl main_loop_frame_pacer(void)",
+      "summary": "Paces the main loop to roughly 30 FPS by sleeping until the target frame time has elapsed, then computes and stores this frame's delta time."
+    },
+    {
+      "addr": "0x4ca1a0",
+      "name": "screenshot_render",
+      "confidence": 0.75,
+      "evidence": "Builds a 'screenshots\\\\%dscreenshot%d%d.tga' path, ensures the folder exists via FUN_00449250, renders each split-screen view with render_views_draw_all, and writes it out with targa_export; matches the cea-pdb hint 'screenshot_render' derived from the 'screenshots' string.",
+      "prototype": "",
+      "summary": "Renders each active viewport and saves it as a numbered TGA screenshot file under the screenshots folder."
+    }
+  ]
+}

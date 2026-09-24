@@ -1,0 +1,484 @@
+{
+  "results": [
+    {
+      "addr": "0x5579e0",
+      "name": "vector3d_triad_is_orthogonal",
+      "confidence": 0.35,
+      "prototype": "",
+      "evidence": "Computes three pairwise dot products between vectors held in EBX/ESI/EDI and passes each to FUN_00447680(dot,0) (a threshold-vs-zero test); returns 1 only if all three pass, matching an orthogonality check that gates the basis-rebuild fallback FUN_00558860.",
+      "summary": "Checks whether three vectors held in registers EBX/ESI/EDI are mutually orthogonal (near-zero pairwise dot products), returning 1 if so."
+    },
+    {
+      "addr": "0x557a90",
+      "name": "unit_ground_adjust_update",
+      "confidence": 0.4,
+      "prototype": "",
+      "evidence": "Looks up the unit's model node array through the standard object/tag datum chain, copies up to iVar5+0x68 node-position triples into the global scratch buffer DAT_006e4a08, then calls FUN_00558000 (constraint/ground solve) and FUN_00558a20 (basis recompute), incrementing a per-unit counter puVar2[0x149] capped by the byte at puVar2+0x525.",
+      "summary": "Caches current node positions and drives the ground-adjustment constraint solve and node-basis update for a unit, up to a per-unit iteration cap."
+    },
+    {
+      "addr": "0x557b80",
+      "name": "unit_solve_node_ground_contact",
+      "confidence": 0.4,
+      "prototype": "",
+      "evidence": "For one skeleton node it transforms a candidate contact point through matrix4x3_inverse/matrix4x3_transform_vector, tests it against a plane/point definition selected by a flag bit at iVar14+0x28, and on success sets a bit in the param_4 bitset and writes the lowest point3D found into param_3.",
+      "summary": "Computes and validates a ground/support contact position for a single skeleton node against its collision marker, recording success in a bitset."
+    },
+    {
+      "addr": "0x558000",
+      "name": "unit_ground_adjust_solve_constraints",
+      "confidence": 0.45,
+      "prototype": "",
+      "evidence": "Runs 4 fixed iterations over a node-hierarchy list, calling FUN_00557b80 for per-node ground contact checks and enforcing a per-node rest distance read from a table at (...+0x9c*node+0x44) by pushing the two connected node positions apart or together -- a bone-length distance-constraint relaxation pass.",
+      "summary": "Iteratively solves per-node ground-contact and bone-length distance constraints for a unit's skeleton (leg/foot ground adjustment)."
+    },
+    {
+      "addr": "0x558860",
+      "name": "vector3d_rebuild_basis_from_cross_products",
+      "confidence": 0.4,
+      "prototype": "",
+      "evidence": "Recomputes EBX and EDI as cross products of the other two vectors (re-deriving one, then the other), falling back to the world-axis constants PTR_DAT_00696718/00696720/0069671c whenever vector3d_normalize_with_length reports a degenerate result; called by FUN_00558a20 when the orthogonality check FUN_005579e0 fails.",
+      "summary": "Rebuilds an orthonormal 3-vector basis via successive cross products, substituting world-axis defaults for any degenerate vector."
+    },
+    {
+      "addr": "0x558a20",
+      "name": "unit_recompute_node_orientation_from_ground",
+      "confidence": 0.35,
+      "prototype": "",
+      "evidence": "Iterates the unit's node list (count from iVar14+0x68), compares old vs new marker directions per node, and when the angular delta (via FUN_00628140) is small applies vector3d_rotate_about_axis to reorient each node, calling FUN_005579e0/FUN_00558860 afterward to keep each node's local basis orthonormal.",
+      "summary": "Applies small per-node rotations to align a unit's skeleton nodes to their newly solved ground-adjusted positions, keeping each node's local basis orthonormal."
+    },
+    {
+      "addr": "0x558eb0",
+      "name": "unit_recalculate_parent_attach_point",
+      "confidence": 0.3,
+      "prototype": "",
+      "evidence": "Loads a unit object's current position fields (+0x1c/0x20/0x24) and a target position (+0x5c/0x60/0x64), gates on distance <=5.0 and global DAT_00689471, calling FUN_004f7c40/FUN_004476c0 (range/NaN checks) before averaging, and separately re-evaluates via FUN_004f52c0 when the position drifted more than 2.0 units.",
+      "summary": "Validates and refreshes a unit's cached attachment/anchor position against its current position, guarding against NaN or out-of-range results."
+    },
+    {
+      "addr": "0x5590a0",
+      "name": "unit_update",
+      "confidence": 0.5,
+      "prototype": "",
+      "evidence": "Central per-unit tick function: manages parent/vehicle-seat attach-detach transitions (puVar10[0x47]), invokes ground-adjust (FUN_00558eb0), facing (FUN_0055b7c0), movement (FUN_0055cfd0), reaction/animation helpers (FUN_0055e190/e2d0/e840/e940/eb90/ec20/ecf0), basis update (FUN_00560800), and object-hierarchy maintenance (object_recalculate_bounding_radius_recursive, object_for_each_light_attachment) for a single unit object.",
+      "summary": "Top-level per-frame update for a unit object: handles seat/parent attachment changes and drives movement, facing, animation, and ground-adjustment subsystems."
+    },
+    {
+      "addr": "0x559fa0",
+      "name": "unit_apply_position_impulse",
+      "confidence": 0.35,
+      "prototype": "",
+      "evidence": "Halves an impulse vector (unaff_EDI) unless a no-collision/ragdoll flag (byte at +0x106 bit 2) is set, adds it to the unit's position accumulator (puVar1[0x1a..0x1c]), sets recompute flags (puVar1[0x133] |= 3), and for parentless objects stores a normalized random impulse direction into puVar1[0x1d..0x1f] before calling FUN_00560800 to refresh the orientation basis.",
+      "summary": "Adds a positional impulse to a unit, applying random jitter to its facing basis when the unit has no parent object."
+    },
+    {
+      "addr": "0x55a170",
+      "name": "unit_get_marker_offset_position",
+      "confidence": 0.3,
+      "prototype": "",
+      "evidence": "Branches on a mode selector (unaff_BX 0-3) to call object_get_position, blend a supplied marker offset, or compute a crouch-style interpolation factor from puVar4[0x143] blended between two tag floats at iVar5+0x400/0x404.",
+      "summary": "Computes an offset position for a unit marker/attachment point, selecting between several position-blend modes."
+    },
+    {
+      "addr": "0x55a2e0",
+      "name": "unit_get_height_and_crouch_offset",
+      "confidence": 0.4,
+      "prototype": "",
+      "evidence": "Calls object_get_position, optionally adds a per-tag height offset field at iVar2+0x42c, and computes a standing/crouching interpolation from puVar1[0x143] between tag fields iVar2+0x424 and iVar2+0x428, returning both the blended offset and the raw crouch offset.",
+      "summary": "Computes a unit's current vertical (crouch-interpolated) height offset from its object position and tag-defined crouch parameters."
+    },
+    {
+      "addr": "0x55a390",
+      "name": "unit_get_look_from_marker",
+      "confidence": 0.3,
+      "prototype": "",
+      "evidence": "Uses tag fields iVar1+0x4e4/0x4e6 as node indices to compute either the midpoint between two model nodes (flag bit 0x10 set) or a from->to vector between them, falling back to unit_get_height_and_crouch_offset (FUN_0055a2e0) plus the world-forward constant PTR_DAT_00696720 when the markers are absent.",
+      "summary": "Computes a look/aim origin and direction from two named model markers (typically eye markers), falling back to a height-based default."
+    },
+    {
+      "addr": "0x55a500",
+      "name": "object_find_valid_placement_near",
+      "confidence": 0.4,
+      "prototype": "",
+      "evidence": "Iterates a fixed scatter table of candidate offset directions (DAT_0065e660/4/8) around a base position, ray/BSP-tests each with FUN_00507170/FUN_00506040/FUN_005050b0 and an object-collision test FUN_00401a20 against param_1/param_2, and on the first valid hit writes the new position into the object (puVar1[0x17..0x19]) and calls object_recalculate_bounding_radius_recursive.",
+      "summary": "Searches a scatter pattern of candidate offsets around an object for a collision-free spot and repositions the object there."
+    },
+    {
+      "addr": "0x55aa20",
+      "name": "unit_find_nearby_open_position",
+      "confidence": 0.35,
+      "prototype": "",
+      "evidence": "Starts from object_get_position, offsets it along the world-axis constant PTR_DAT_00696720 plus a caller-supplied scaled direction (unaff_ESI), then validates the candidate spot with FUN_00502060 (a BSP/collision test) before returning it through param_2/unaff_EBX.",
+      "summary": "Tests a candidate position offset from a base point against level collision and returns it if valid."
+    },
+    {
+      "addr": "0x55ab30",
+      "name": "unit_update_cached_look_target",
+      "confidence": 0.3,
+      "prototype": "",
+      "evidence": "Periodically (gated by tick counter puVar1[0x13b] vs DAT_006f1d6c+0xc) refreshes a cached look-at target position (puVar1[0x138..0x13a]), sourcing it from another unit's marker via FUN_005015a0/FUN_0044d860 or a fallback lookup FUN_0055aa20, but returns the raw object_get_position when a no-collision/ragdoll flag is set.",
+      "summary": "Periodically refreshes and returns a cached target look-at position for a unit, falling back to raw object position when incapacitated."
+    },
+    {
+      "addr": "0x55ad00",
+      "name": "unit_reset_ground_adjust_state",
+      "confidence": 0.35,
+      "prototype": "",
+      "evidence": "Guarded by an object tag flag bit at iVar+0x2f4 and unit flags puVar1[4]&0x20 with puVar1[0x133]&0x21==0, it clears the ground-adjust counter (puVar1+0x149) and cap byte (+0x525=0x14) and sets dirty flags puVar1[4]|=0x800000 and puVar1[0x133]|=0x20.",
+      "summary": "Resets a unit's ground-adjustment iteration counter and marks its ground-adjust state dirty when the appropriate tag and unit flags are set."
+    },
+    {
+      "addr": "0x55ad70",
+      "name": "unit_clear_ground_adjust_dirty_flag",
+      "confidence": 0.35,
+      "prototype": "",
+      "evidence": "Clears puVar1[4] bit 0x800000 and puVar1[0x133] bit 0x20 once object tag flag bit 0x200 (at iVar+0x2f4) is set and puVar1[0x133]&0x20 was previously set -- the inverse of the state set by unit_reset_ground_adjust_state (FUN_0055ad00).",
+      "summary": "Clears the ground-adjust dirty flags previously set by unit_reset_ground_adjust_state, once the corresponding tag flag is set."
+    },
+    {
+      "addr": "0x55add0",
+      "name": "unit_reset_placement_basis",
+      "confidence": 0.35,
+      "prototype": "",
+      "evidence": "Zeroes iVar1+0x7c, resets the unit's up-axis triple (iVar1+0x74..0x7c) to the world-axis constant PTR_DAT_00696718 on a degenerate normalize, sets the forward axis (iVar1+0x80..0x88) to PTR_DAT_00696720, sets a placed flag (iVar1+0x4cc|=1), and calls object_find_valid_placement_near (FUN_0055a500), retrying once on failure.",
+      "summary": "Resets a unit's orientation basis to world axes and finds a valid spawn/placement position for it."
+    },
+    {
+      "addr": "0x55aed0",
+      "name": "unit_build_network_update_snapshot",
+      "confidence": 0.35,
+      "prototype": "",
+      "evidence": "Copies a large set of per-unit fields (position/orientation floats at offsets 0x17-0x22, health/shield at 0x62-0x6d, flags/animation state) into a local structure and submits it via FUN_004ec940(0,0x1d,...), the same network-update dispatcher used by the other snapshot builders in this file (FUN_0055b110/FUN_0055b440), resolving parent-object network ids through hash_table_get.",
+      "summary": "Packs a unit's key simulation state (position, orientation, health, animation) into a structure and submits it as a network update record."
+    },
+    {
+      "addr": "0x55b110",
+      "name": "unit_new_from_network_update",
+      "confidence": 0.4,
+      "prototype": "",
+      "evidence": "On a creation-type update (*in_EAX==0) it validates via FUN_004ec590, builds a role-control descriptor (mapping role ids through PTR_DAT_00687130/00687558), spawns the unit with object_new_with_datum_role_control, then initializes its health/shield fields (+0x530/0x534/0x538, +0xe0/0xe4) and misc flags from the network payload; otherwise (an update, not a create) it calls FUN_004ec670.",
+      "summary": "Handles an incoming network unit-creation update by spawning the unit object and initializing its health, shield, and state from the packet."
+    },
+    {
+      "addr": "0x55b440",
+      "name": "unit_send_network_update",
+      "confidence": 0.35,
+      "prototype": "",
+      "evidence": "Retrieves the local player's unit via object_try_and_get(1), timestamps it with QueryPerformanceCounter/__allmul/__alldiv, and dispatches either a full state record (param_4==1, including health/shield fields at +0xe0/0xe4/0x31e/0x52c) or a lighter delta through FUN_004ec940, the shared network-update submission routine used across this file.",
+      "summary": "Builds and submits a periodic network update packet (full or delta) describing the local player's controlled unit."
+    },
+    {
+      "addr": "0x55b5f0",
+      "name": "unit_apply_network_health_update",
+      "confidence": 0.35,
+      "prototype": "",
+      "evidence": "Validates an incoming update against the local unit (object_try_and_get(1)), checking a sequence-number wraparound (byte at iVar1+5 vs iVar7+0x528, allowing up to 0x1d ticks of slack) before applying health/shield fields (iVar7+0x52c/0x530/0x534/0x538/0x540-0x54c) via FUN_004ec600/FUN_004ec590; calls FUN_004ec670 on failure or a stale sequence.",
+      "summary": "Applies a received network health/shield update to the local unit if its sequence number is not stale."
+    },
+    {
+      "addr": "0x55b7c0",
+      "name": "unit_update_facing",
+      "confidence": 0.5,
+      "prototype": "",
+      "evidence": "Computes a desired forward direction (either from stored movement-input vectors at +0x89-0x8b or an acceleration-derived offset), turns the current forward vector (puVar4+0x1d) toward it limited by tag-defined turn-rate fields (iVar5+0x324/0x328/0x32c/0x330), and always finishes by calling FUN_00560800 (unit_update_up_vector) to rebuild the rest of the orientation basis from the new forward vector.",
+      "summary": "Turns a unit's facing direction toward its desired heading at a tag-limited turn rate each tick, then rebuilds its orientation basis."
+    },
+    {
+      "addr": "0x55bea0",
+      "name": "unit_update_movement",
+      "confidence": 0.4,
+      "prototype": "",
+      "evidence": "Reads desired-movement input (param_2[0x9e..0xa0]) and animation-driven movement markers (node index at param_2[0x34], with 1D/2D/3D value types), scales/limits them, calls the low-level solver FUN_0055efd0 (unit_move_and_collide), and finishes with FUN_00560800 (unit_update_up_vector); outputs a walk-cycle/aim animation selector through param_3.",
+      "summary": "Integrates a unit's per-tick movement from control input and animation markers, resolves collisions, and reports the resulting movement-animation state."
+    },
+    {
+      "addr": "0x55cca0",
+      "name": "unit_find_and_update_nearest_target_unit",
+      "confidence": 0.3,
+      "prototype": "",
+      "evidence": "Iterates all objects via data_iterator_next, filtering to units (skipping when the short at +2 is -1), copies a candidate unit's full state (0x154 dwords) into a local buffer, and calls unit_update_movement (FUN_0055bea0) on it, gated by the network-role byte at DAT_006f1d6c+2.",
+      "summary": "Iterates over unit objects to find one and drives its movement update, apparently used for non-locally-controlled (e.g. AI-simulated) units."
+    },
+    {
+      "addr": "0x55cfd0",
+      "name": "unit_update_movement_and_fall_damage",
+      "confidence": 0.4,
+      "prototype": "",
+      "evidence": "Shares the same movement/animation-marker structure as unit_update_movement (FUN_0055bea0) but additionally calls ray_intersects_sphere_test and matrix4x3_transform_plane for BSP/ground collision, FUN_0055e4f0 (unit_apply_fall_damage), and FUN_0055e0a0 (target-lock tracking).",
+      "summary": "Full-featured per-tick unit movement update that additionally resolves BSP collision and applies fall damage."
+    },
+    {
+      "addr": "0x55e0a0",
+      "name": "unit_update_melee_target_lock",
+      "confidence": 0.3,
+      "prototype": "",
+      "evidence": "Tracks how long a unit (in_ECX) has kept targeting the same other unit (in_EAX) in a byte counter at iVar1+0x500, using sentinel 0xf1 for 'locked', and calls FUN_0042bd70/FUN_0044acc0/FUN_004726b0/FUN_00474fc0 (line-of-sight / vocalization helpers) once the target has been held for several ticks.",
+      "summary": "Maintains a per-unit target-lock counter, triggering a reaction once the same target has been tracked for several ticks."
+    },
+    {
+      "addr": "0x55e190",
+      "name": "unit_check_dodge_reaction",
+      "confidence": 0.3,
+      "prototype": "",
+      "evidence": "Gated on several state/flag checks (byte +0x106, tag flags +0x2f4, puVar2[0x81]&0x1000, elapsed ticks since +0x13e), calls object_get_position and unit_find_nearby_open_position (FUN_0055aa20) before conditionally invoking the reaction dispatcher unit_dispatch_reaction_animation (FUN_005614a0).",
+      "summary": "Periodically checks whether a unit should perform an evasive reaction toward a nearby open position, dispatching a reaction animation."
+    },
+    {
+      "addr": "0x55e2d0",
+      "name": "unit_check_flee_reaction",
+      "confidence": 0.3,
+      "prototype": "",
+      "evidence": "Checks the unit's parent/vehicle object tag flag bit 0x40 at +0x17c, an elapsed-time gate (iVar2+0x4f8 vs DAT_006f1d6c+0xc), then evaluates unit_find_nearby_open_position (FUN_0055aa20) results and vector3d_length/normalize checks to choose between three FUN_0042d340 reaction codes (0x26/0x27/0x28).",
+      "summary": "Evaluates whether a unit (typically vehicle-mounted) should flee or evade, dispatching one of several reaction codes."
+    },
+    {
+      "addr": "0x55e4a0",
+      "name": "unit_check_below_kill_boundary",
+      "confidence": 0.35,
+      "prototype": "",
+      "evidence": "Reads the unit's Z position (offset +100) and, when it is below -2000.0 and the unit is not networked (DAT_006f1d20==0) with no parent (short at +0x9c==-1) or another object flag set, calls FUN_004f5bd0 (likely a kill/respawn trigger).",
+      "summary": "Detects when a unit has fallen far below the level (Z < -2000) and triggers a kill/respawn handler."
+    },
+    {
+      "addr": "0x55e4f0",
+      "name": "unit_apply_fall_damage",
+      "confidence": 0.55,
+      "prototype": "",
+      "evidence": "Compares the unit's vertical velocity (puVar4[0x1c]) against tag-defined fall-damage thresholds (iVar6+0x8c/0x90/0x94), and calls damage_data_initialize + object_apply_damage with a lerp'd damage scale when the fall exceeds the safe threshold.",
+      "summary": "Applies scaled fall damage to a unit when its downward velocity exceeds the tag-defined safe threshold."
+    },
+    {
+      "addr": "0x55e6b0",
+      "name": "unit_rotate_basis_pair_about_axis",
+      "confidence": 0.35,
+      "prototype": "",
+      "evidence": "Rotates the unit object's forward/right basis vectors (iVar2+0x74/0x78/0x7c and +0x80/0x84/0x88) about an axis via vector3d_rotate_about_axis, recomputes one from the other via cross product, and falls back to the world-axis constants on a degenerate normalize.",
+      "summary": "Rotates a unit's stored forward and right basis vectors about a common axis, keeping them orthonormal."
+    },
+    {
+      "addr": "0x55e83a",
+      "name": "units_padding_int3_stub",
+      "confidence": 0.2,
+      "prototype": "",
+      "evidence": "The entire function body is a single `swi(3)` (INT3 trap) instruction with size=1 byte; this is code-alignment padding between real functions, not genuine unit logic, despite the inherited symbol name 'biped_new_from_network_unit_grenade_count_mod' which does not match any behavior in the byte.",
+      "summary": "Single-byte INT3 padding between functions; not real unit code despite its pre-existing, apparently mis-attributed symbol name."
+    },
+    {
+      "addr": "0x55e840",
+      "name": "unit_choose_idle_ground_animation",
+      "confidence": 0.3,
+      "prototype": "",
+      "evidence": "Checks the ground-adjust dirty flag and iteration count (puVar1[0x133]&0x20, puVar1[0x149] vs +0x525) to call unit_ground_adjust_update (FUN_00557a90), otherwise falls back to an elapsed-idle-time check (byte +0x501) and a not-yet-playing-animation-0x18 test calling FUN_0055e6b0, writing resulting animation codes 0x18/0x19 through unaff_EDI.",
+      "summary": "Selects between running ground-adjustment or an idle basis-refresh animation state for a unit based on elapsed idle time."
+    },
+    {
+      "addr": "0x55e8e0",
+      "name": "unit_is_long_idle",
+      "confidence": 0.35,
+      "prototype": "",
+      "evidence": "Returns true when the idle-time counter at +0x501 exceeds 3 ticks and the unit is either not flagged no-collision (tag flag +0x2f4 bit 2) or is explicitly in ragdoll/no-collision mode (byte +0x106 bit 2).",
+      "summary": "Returns whether a unit has been idle long enough (and in an eligible collision state) to trigger idle behaviors."
+    },
+    {
+      "addr": "0x55e940",
+      "name": "unit_apply_idle_fidget_impulse",
+      "confidence": 0.3,
+      "prototype": "",
+      "evidence": "Calls unit_is_long_idle (FUN_0055e8e0) and, if the tag allows fidget behavior (flag 0x100 at +0x2f4) and the current animation state isn't already 0x1f/0x29, applies a small random-direction impulse (random_real_range angles, cos/sin) to the unit's acceleration accumulator (puVar1[0x23..0x25]) and rebuilds its basis via unit_rotate_basis_pair_about_axis (FUN_0055e6b0).",
+      "summary": "Nudges an idle unit with a small randomized impulse to produce idle fidget motion, then refreshes its orientation basis."
+    },
+    {
+      "addr": "0x55e9ff",
+      "name": "unit_apply_scaled_impulse",
+      "confidence": 0.3,
+      "prototype": "",
+      "evidence": "Adds a magnitude-scaled direction vector (param_3 * param_4/5/6, randomized via cos/sin when flag 0x4100 is set) to the unit's acceleration accumulator at unaff_ESI+0x8c/0x90/0x94, then calls FUN_0055e6b0 to rebuild its basis; the pre-existing name's 'unit_grenade_count_mod1' suffix does not correspond to anything visible in the code and looks like a mis-attributed label from a prior pass.",
+      "summary": "Applies an externally-supplied (optionally randomized) impulse vector to a unit's acceleration accumulator and refreshes its orientation basis."
+    },
+    {
+      "addr": "0x55eaa0",
+      "name": "unit_check_animation_frame_timeout",
+      "confidence": 0.3,
+      "prototype": "",
+      "evidence": "Compares two per-unit animation timers (in_ECX+0x3dc/0x3e0/0x3e4, scaled by 1/30) against param_1 and, when a timeout window is found, updates a state field at unaff_ESI+0x508/+0x4d0 and calls FUN_006391b4 (likely a tick/frame counter helper).",
+      "summary": "Checks a unit's animation timing fields against a threshold and updates its animation frame-tracking state if it has changed."
+    },
+    {
+      "addr": "0x55eb90",
+      "name": "unit_update_footstep_state",
+      "confidence": 0.3,
+      "prototype": "",
+      "evidence": "Increments a byte counter at iVar1+0x4d0 capped by iVar1+0x4d1, resets the state word at +0x508 to -1 past the cap, and in non-network builds (DAT_006f187c+9==0 && DAT_0071c419==0), once specific conditions are met, fires the shared trigger dispatcher unit_fire_animation_sound_trigger (FUN_00560590) twice.",
+      "summary": "Advances a per-unit frame counter and, once a matching state is reached, fires paired animation/sound trigger events."
+    },
+    {
+      "addr": "0x55ec20",
+      "name": "unit_check_high_speed_trigger",
+      "confidence": 0.3,
+      "prototype": "",
+      "evidence": "When the unit's idle-time byte (+0x502) exceeds 3 and its velocity magnitude (fields +0x68/0x6c/0x70) exceeds roughly 0.033, non-network builds fire the shared trigger dispatcher unit_fire_animation_sound_trigger (FUN_00560590) with event id 2.",
+      "summary": "Fires a paired trigger event when a unit exceeds a small velocity threshold after being still."
+    },
+    {
+      "addr": "0x55ec90",
+      "name": "unit_update_no_target_timeout",
+      "confidence": 0.3,
+      "prototype": "",
+      "evidence": "Increments a byte counter at iVar1+0x504 (capped at 0x7f) while the unit has no active target-lock (short at +0x508 != 1) and no network-authoritative flag (+0x4cc bit 0), calling FUN_0055ecf0 once a tag flag (+0x208 bit 1) is set and the counter exceeds 5.",
+      "summary": "Tracks how long a unit has gone without a target lock and triggers a follow-up handler once a threshold is exceeded."
+    },
+    {
+      "addr": "0x55ecf0",
+      "name": "unit_snap_to_ground_height",
+      "confidence": 0.35,
+      "prototype": "",
+      "evidence": "Computes the unit's minimum standing height from tag data (+0x3b4, scaled down for network puppets), compares it against the projected position along the up axis (puVar1[0x1a..0x1c] dot puVar1[0x20..0x22]), and if the unit has sunk below it, pushes the position up, optionally validating via FUN_00417fa0 before committing and firing the paired trigger event with id 4.",
+      "summary": "Snaps a unit's position up to its tag-defined minimum ground height if it has sunk below it."
+    },
+    {
+      "addr": "0x55eed0",
+      "name": "vector3d_rebuild_basis_from_cross_products_variant",
+      "confidence": 0.35,
+      "prototype": "",
+      "evidence": "Uses the same cross-product Gram-Schmidt technique as vector3d_rebuild_basis_from_cross_products (FUN_00558860) -- rebuilding EBX then EDI via cross products with world-axis fallbacks via PTR_DAT_00696720/00696718 -- but in a slightly different register order and without the initial validity check.",
+      "summary": "Rebuilds an orthonormal 3-vector basis via cross products, the same technique used by vector3d_rebuild_basis_from_cross_products."
+    },
+    {
+      "addr": "0x55efd0",
+      "name": "unit_move_and_collide",
+      "confidence": 0.4,
+      "prototype": "",
+      "evidence": "Allocates a very large (~44KB) local scratch buffer via alloca/__chkstk, reads movement-mode flags from param_1[1] (bits selecting point/plane/sphere-swept movement variants), and performs the vector2d/vector3d normalization and point3d_add_scaled operations typical of a BSP movement/collision-sliding solver; called from both unit-movement update variants (FUN_0055bea0/FUN_0055cfd0).",
+      "summary": "Low-level movement and collision-resolution solver that advances an object's position while sliding along colliding surfaces."
+    },
+    {
+      "addr": "0x560410",
+      "name": "unit_update_vehicle_seat_reaction",
+      "confidence": 0.3,
+      "prototype": "",
+      "evidence": "Switches on the unit's mode byte (+0x2a3) to detect crouch/aim-style states, looks up seat/hinge tag data via the node index at +0xd0, compares tag limit bytes (+0x40/+0x41) against the unit's stored angle (+0xd2) to fire trigger events with id 3, and separately tracks an idle-timeout counter at +0x503.",
+      "summary": "Fires paired trigger events when a unit's seat/turret angle reaches its tag-defined limits, and tracks an idle timeout."
+    },
+    {
+      "addr": "0x560590",
+      "name": "unit_fire_animation_sound_trigger",
+      "confidence": 0.35,
+      "prototype": "",
+      "evidence": "Looks up a trigger's priority (iVar1+0x4e8) and sound tag index (iVar1+0x398), validates via FUN_00453330 and FUN_004f6080, then dispatches the sound/effect via FUN_004533b0 -- the shared 'fire event N, edge M' pattern called throughout this file (e.g. from FUN_00560410, FUN_0055eb90, FUN_0055ec20, FUN_0055ecf0).",
+      "summary": "Fires a numbered unit trigger event (sound/animation cue) if its priority and sound tag validate successfully."
+    },
+    {
+      "addr": "0x560630",
+      "name": "unit_find_nearest_valid_surface_plane",
+      "confidence": 0.3,
+      "prototype": "",
+      "evidence": "Allocates a large local buffer, calls unit_get_height_and_crouch_offset (FUN_0055a2e0) then FUN_00501980 (a BSP surface query returning up to 1026 plane candidates), iterates them to find the minimum-distance plane and stores its normal/offset into the unit's cached ground-plane fields (+0x4d8, +0x514-0x520, +0x80-0x88).",
+      "summary": "Scans nearby BSP surfaces to find and cache the closest supporting ground plane for a unit."
+    },
+    {
+      "addr": "0x560800",
+      "name": "unit_update_up_vector",
+      "confidence": 0.45,
+      "prototype": "",
+      "evidence": "Rotates the unit's stored up vector (offset +0x74..+0x7c) toward a target up direction (+0x80..+0x88, e.g. gravity or ground-plane normal) limited by an angle from FUN_00628140, using vector3d_rotate_about_axis, resetting both to the world-axis constants PTR_DAT_00696718/00696720 as a degenerate fallback.",
+      "summary": "Gradually rotates a unit's up-vector toward its target orientation (e.g., ground normal or gravity) each tick, with a world-axis fallback."
+    },
+    {
+      "addr": "0x560c70",
+      "name": "unit_get_permutation_by_index",
+      "confidence": 0.3,
+      "prototype": "",
+      "evidence": "Clamps an index derived from in_AL against a count at in_EDX+0x2a8 and returns the corresponding 0x30-byte record from the array at in_EDX+0x2ac, a pattern typical of selecting a tag-block permutation/variant record.",
+      "summary": "Returns a pointer to the Nth permutation record from a unit's variant table, clamped to the valid range."
+    },
+    {
+      "addr": "0x560cb0",
+      "name": "unit_get_seat_permutation_by_index",
+      "confidence": 0.3,
+      "prototype": "",
+      "evidence": "Uses the same clamped-index pattern as unit_get_permutation_by_index (FUN_00560c70) but looks up the count/array through a node/seat-indexed tag block (in_AX*0x11c + in_ECX+0x2e8, fields +0xdc/+0xe0), suggesting a per-seat or per-node variant table.",
+      "summary": "Returns a pointer to the Nth permutation record from a specific seat/node's variant table, clamped to the valid range."
+    },
+    {
+      "addr": "0x560d00",
+      "name": "unit_animation_change_priority_check",
+      "confidence": 0.4,
+      "prototype": "",
+      "evidence": "Given a requested animation index and a priority table (DAT_0065e94c/0065e964), walks a next-in-chain array (DAT_0065e7a8) to find a valid current animation node, then decides whether to allow the change (returning 0/1/2/3) based on priority comparisons against the unit's current animation-state fields (+0x388/+0x3b8); this arbitration is consulted by every 'set animation' caller in this file.",
+      "summary": "Arbitrates whether a requested unit animation change is allowed to override the current one, based on priority tables."
+    },
+    {
+      "addr": "0x560f20",
+      "name": "unit_set_animation_state",
+      "confidence": 0.4,
+      "prototype": "",
+      "evidence": "Copies 12 dwords of animation parameters from in_ECX into the unit's current-animation block at +0x388 (or +0x3b8 for mode 1), resets related timers/flags (+0x3f4-0x3fe), and computes a playback-duration field (+0x3fa) from tag sound data via fixed-point division -- the commit step paired with unit_animation_change_priority_check.",
+      "summary": "Commits a new animation/sound state into a unit's active-animation slot and computes its playback duration."
+    },
+    {
+      "addr": "0x561030",
+      "name": "unit_play_default_reaction_sound",
+      "confidence": 0.3,
+      "prototype": "",
+      "evidence": "Builds a fixed animation-slot record (index 6, priority 0x18) using the same layout as unit_set_animation_state, calls unit_animation_change_priority_check(6,...) then unit_set_animation_state(), and finally triggers a scripted sound via FUN_0042f9e0 if not already flagged as played (byte +0x3a2).",
+      "summary": "Plays a fixed default reaction animation and accompanying scripted sound for a unit, once per trigger."
+    },
+    {
+      "addr": "0x561140",
+      "name": "unit_choose_combat_reaction_animation",
+      "confidence": 0.35,
+      "prototype": "",
+      "evidence": "Selects among a set of combat-reaction animation indices (0xe-0x13, 0x16-0x18) based on target state (sVar9), proximity/threat flags, and randomization (random_real), then submits the choice through unit_animation_change_priority_check/unit_set_animation_state, updating cooldown timers (+0x3ea/0x3ec/0x3ee/0x3f8) on success.",
+      "summary": "Chooses and plays a context-appropriate combat reaction animation (e.g., noticing, evading, or reacting to a target) for a unit."
+    },
+    {
+      "addr": "0x5614a0",
+      "name": "unit_dispatch_reaction_animation",
+      "confidence": 0.35,
+      "prototype": "",
+      "evidence": "Performs an indirect call through a jump table at &PTR_LAB_00561604 indexed by param_1, matching the dispatch style expected by callers such as unit_check_dodge_reaction (FUN_0055e190) which pass small integer reaction codes like 0.",
+      "summary": "Dispatches to one of several per-unit reaction-animation handler routines via a jump table indexed by a small reaction code."
+    },
+    {
+      "addr": "0x561620",
+      "name": "unit_update_animation_timers",
+      "confidence": 0.35,
+      "prototype": "",
+      "evidence": "Decrements a battery of per-unit animation/cooldown timers (+0x3ea/0x3ec/0x388/0x3f8/0x3fa/0x3fc/0x3fe/1000) each tick, invoking FUN_0042e970/FUN_0042eee0/FUN_0042e9c0 (likely per-state begin/end notification hooks) and unit_set_animation_state (FUN_00560f20) as timers expire.",
+      "summary": "Advances all of a unit's active animation and cooldown timers each tick and fires the corresponding transition callbacks as they expire."
+    },
+    {
+      "addr": "0x561990",
+      "name": "unit_choose_random_permutation",
+      "confidence": 0.3,
+      "prototype": "",
+      "evidence": "Tries unit_pick_random_permutation_index (FUN_00561a00) with a preferred index from iVar2+0xbe, falling back to index 0 and then -1 (any match), storing the chosen permutation id at iVar2+900.",
+      "summary": "Selects a preferred or fallback random permutation variant for a unit and caches the chosen id."
+    },
+    {
+      "addr": "0x561a00",
+      "name": "unit_pick_random_permutation_index",
+      "confidence": 0.35,
+      "prototype": "",
+      "evidence": "Scans a permutation table (unaff_EBX+0x2b4 count, +0x2b8 records of 0x18 bytes) collecting all entries matching param_1 (or all entries if param_1==-1) into a local list, then uses a simple LCG PRNG (DAT_00719cd0 = DAT_00719cd0*0x19660d+0x3c6ef35f) to pick one at random and returns its id field at offset +0x14.",
+      "summary": "Randomly selects one matching entry from a permutation table using a simple linear-congruential PRNG."
+    },
+    {
+      "addr": "0x561ab0",
+      "name": "unit_for_each_child_in_hierarchy",
+      "confidence": 0.3,
+      "prototype": "",
+      "evidence": "Walks a linked list of unit indices through a hash-table-like structure at DAT_0087a468 (resolving an initial index via DAT_0087a464, then following a next-pointer chain), calling FUN_004ed440 on every entry that is not flagged no-collision (byte +0x106 bit 2).",
+      "summary": "Iterates all units chained under a given parent/group and invokes a per-unit callback on each active one."
+    },
+    {
+      "addr": "0x561b80",
+      "name": "unit_update_speed_scale_from_limits",
+      "confidence": 0.35,
+      "prototype": "",
+      "evidence": "Computes normalized speed fractions of param_1/param_2 against tag-defined maximum turn/move speeds (iVar1+0xd8/0xdc), calling FUN_004eda20/FUN_004edb10 whenever a fraction transitions across zero, then stores the new fractions into iVar1+0xe0/0xe4 (the same 'current speed scale' fields referenced elsewhere in this file as +0xe0/+0xe4).",
+      "summary": "Updates a unit's normalized movement/turn speed-scale fields based on tag-defined maximum speeds, firing threshold-crossing callbacks."
+    }
+  ]
+}

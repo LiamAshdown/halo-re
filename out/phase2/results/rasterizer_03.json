@@ -1,0 +1,388 @@
+{
+  "results": [
+    {
+      "addr": "0x52ce50",
+      "name": "rasterizer_screen_effect_compute_uv_transform",
+      "confidence": 0.5,
+      "evidence": "Builds a fake 'bitm' (0x6269746d = big-endian 'bitm') bitmap header on the stack as a fallback, reads width/height shorts from up to three bitmap pointers taken from param_1 (offsets 8, 0x28, 0x34) and from register width/height (in_EAX/in_ECX), then computes 8 scale/offset float pairs for 4 texture stages -- exactly the per-stage UV transform used by the screen_effect convolution-mask draw at 0x52e2d0 (which calls this function).",
+      "prototype": "",
+      "summary": "Computes per-texture-stage UV scale/bias transforms (accounting for bitmap size vs. render target size) for the screen_effect convolution-mask post-process, using width/height passed in EAX/ECX and a param_1 screen_effect-state struct."
+    },
+    {
+      "addr": "0x52d740",
+      "name": "rasterizer_screen_effect_init_shaders",
+      "confidence": 0.85,
+      "evidence": "Existing name matches: looks up 11 shader techniques by exact name (\"VideoOn\", \"VideoOffNonConvolved\", \"VideoOffConvolvedMask...\", etc.) via FUN_00530120 and stores each handle into DAT_0071d210..0071d238, failing out early if any lookup returns 0; cea-pdb hint confirms.",
+      "prototype": "int __cdecl rasterizer_screen_effect_init_shaders(void)",
+      "summary": "Looks up and caches the effect-technique handles for all variants of the 'video' (old-TV/convolution) screen effect shader, returning success only if every technique was found."
+    },
+    {
+      "addr": "0x52d8a0",
+      "name": "rasterizer_screen_effect_video_technique_select",
+      "confidence": 0.5,
+      "evidence": "Reads every technique handle produced by rasterizer_screen_effect_init_shaders (DAT_0071d210, 0071d21c/20/24/28/2c/30/34/38) among its referenced globals, gates on the same screen_effect state struct (via FUN_00512360) and DAT_00689428/DAT_007c1220 checks used by the mask-render function at 0x52e2d0, and builds per-corner offset floats from a rotation table (DAT_0069d35c/0069d358) feeding DAT_006e1a3c..DAT_006e1a8c (the scratch block also written by 0x52e2d0).",
+      "prototype": "",
+      "summary": "Selects/sets up the 'video' post-process technique (old-TV convolution effect) and its per-sample rotation offsets based on the current screen_effect parameters, choosing among the VideoOn/VideoOff* techniques cached by rasterizer_screen_effect_init_shaders."
+    },
+    {
+      "addr": "0x52e2d0",
+      "name": "rasterizer_screen_effect_mask_render",
+      "confidence": 0.45,
+      "evidence": "Gate condition is identical to 0x52d8a0's (calls FUN_00512360 to get the screen_effect state struct, checks the same struct fields plus DAT_00689428/DAT_007c1220), sets viewport-derived floats into the same DAT_006e1a3c.. block, calls FUN_0052ce50 (rasterizer_screen_effect_compute_uv_transform) per pass, sets many texture-stage/sampler states, and DrawIndexedPrimitive's a quad using vertex declaration DAT_006e1a30 in a loop bounded by the screen_effect struct's pass count; original chimera__ hint name described this as the widescreen-aware variant.",
+      "prototype": "",
+      "summary": "Renders the screen_effect convolution-mask post-process quad for one or more passes, computing an aspect-correct UV transform for the mask bitmap(s) each pass and issuing the textured draw call."
+    },
+    {
+      "addr": "0x52ec40",
+      "name": "rasterizer_screen_flash_init_shaders",
+      "confidence": 0.85,
+      "evidence": "Existing name matches: looks up 6 shader techniques by name (\"FlashLighten\", \"FlashDarken\", \"FlashMax\", \"FlashMin\", \"FlashInvert\", \"FlashTint\") via FUN_00530120 into DAT_0071d23c..0071d250; cea-pdb hint confirms.",
+      "prototype": "int __cdecl rasterizer_screen_flash_init_shaders(void)",
+      "summary": "Looks up and caches the effect-technique handles for all blend modes of the full-screen flash effect, returning success only if every technique was found."
+    },
+    {
+      "addr": "0x52ed00",
+      "name": "rasterizer_screen_flash_render",
+      "confidence": 0.65,
+      "evidence": "Gated on DAT_00689427 and a flash-type index DAT_007c1458; builds two packed RGBA colors from 4 calls to FUN_006391b4 each; when a flash effect object DAT_0069e270 is present, sets render states and switches on DAT_007c1458, selecting the technique via (*DAT_0069e270)[0x3b] using the exact handles produced by rasterizer_screen_flash_init_shaders (DAT_0071d23c FlashLighten in case 1, etc.).",
+      "prototype": "",
+      "summary": "Builds the current/target flash color and sets the active shader technique (Lighten/Darken/Max/Min/Invert/Tint) to render the full-screen flash post-process effect for the active flash type."
+    },
+    {
+      "addr": "0x52f780",
+      "name": "rasterizer_dx9_shaders_init_effect",
+      "confidence": 0.8,
+      "evidence": "Existing name matches: builds \"ps_%d_%d\" strings and iterates shader-model versions searching for a compatible pixel shader technique via vtable+0x34/vtable+0xf4, falls back to \"TDefault_ps\"/\"TDefault_no_ps\"/\"fallback\", and looks up sampler parameters \"Texture0\".. \"Texture3\"; cea-pdb hint confirms via matching strings.",
+      "prototype": "",
+      "summary": "Finds the best-supported pixel-shader technique (by shader-model version) for one compiled effect slot (indexed via EAX) and caches its Texture0..3 sampler-parameter handles."
+    },
+    {
+      "addr": "0x52f980",
+      "name": "rasterizer_dx9_pixel_shader_effect_load",
+      "confidence": 0.55,
+      "evidence": "Clears the effect-slot pointer array (&DAT_0069d410)[EAX*8], calls FUN_00583f26 (an effect-compiler/loader taking the device, param_1/param_2 chunk data, a defines table DAT_007c0460, and an output effect pointer) and on failure sets DAT_00722bbc to the string \"shaders\\\\fx.bin\" and calls the fatal-error reporter FUN_0057ea70.",
+      "prototype": "",
+      "summary": "Loads/compiles one pixel-shader effect chunk (param_1=data, param_2=size) into the effect-slot table for the current shader index (register EAX), reporting a fatal error referencing shaders\\fx.bin on failure."
+    },
+    {
+      "addr": "0x52fa00",
+      "name": "rasterizer_dx9_pixel_shaders_load_all",
+      "confidence": 0.6,
+      "evidence": "Reads the whole shaders\\fx.bin-style blob via FUN_005199f0, then iterates up to 0x7a (122) [size][data] chunks calling FUN_0052f980 (rasterizer_dx9_pixel_shader_effect_load) then rasterizer_dx9_shaders_init_effect for each; on any failure releases all previously loaded effect-slot interfaces via their vtable+8 (Release) and frees the file buffer with GlobalFree.",
+      "prototype": "unsigned int __cdecl rasterizer_dx9_pixel_shaders_load_all(void)",
+      "summary": "Loads and initializes all 122 compiled pixel-shader effect chunks from the fx.bin blob, tearing everything down again if any chunk fails to load or initialize."
+    },
+    {
+      "addr": "0x52fab0",
+      "name": "rasterizer_dx9_shaders_initialize",
+      "confidence": 0.7,
+      "evidence": "Existing name matches: sets locale to 0x409 while compiling, sets shader-model target strings (\"PS_2_0_TARGET\", \"ps_2_a\"/\"ps_2_0\" chosen by DAT_00722b64), compiles the fx.bin defines table via FUN_00583ddc, calls FUN_0052fa00 to load all pixel shaders, and on success GlobalAlloc's per-material constant-handle tables and looks up named constants like \"c_primary_change_color\", \"c_material_color\", etc.; cea-pdb hint confirms via matching strings.",
+      "prototype": "unsigned int __cdecl rasterizer_dx9_shaders_initialize(void)",
+      "summary": "Top-level DX9 pixel-shader subsystem initializer: compiles the shader-model defines, loads all effect chunks, and allocates/looks-up the named shader-constant handle tables used by every material shader type."
+    },
+    {
+      "addr": "0x52ff60",
+      "name": "rasterizer_dx9_pixel_shaders_release",
+      "confidence": 0.6,
+      "evidence": "GlobalFree's every constant-handle table allocated by rasterizer_dx9_shaders_initialize (DAT_0069e2a8.., 0069d828.., 0069d8c8.., 0069e168/188/1a8, 0069d428.., 0069e268, 0069d928..), releases the pixel-shader effect-slot array DAT_0069d410 (vtable+8) and finally releases the fx.bin effect-defines object DAT_0071d254.",
+      "prototype": "void __cdecl rasterizer_dx9_pixel_shaders_release(void)",
+      "summary": "Frees every shader-constant handle table and releases all pixel-shader effect interfaces and the effect-defines object created by rasterizer_dx9_shaders_initialize."
+    },
+    {
+      "addr": "0x530090",
+      "name": "rasterizer_dx9_shaders_release_all",
+      "confidence": 0.55,
+      "evidence": "Calls FUN_00530540 (releases the vertex-declaration table), then iterates the vertex-shader interface array DAT_0069e350..0069e550 releasing each (vtable+8), then calls FUN_0052ff60 (rasterizer_dx9_pixel_shaders_release).",
+      "prototype": "void __cdecl rasterizer_dx9_shaders_release_all(void)",
+      "summary": "Master DX9 shader-subsystem teardown: releases vertex declarations, all vertex-shader interfaces, and all pixel-shader/effect resources."
+    },
+    {
+      "addr": "0x5300d0",
+      "name": "rasterizer_dx9_effects_initialize",
+      "confidence": 0.55,
+      "evidence": "Calls, in sequence and short-circuiting on failure: FUN_00530540 (release vertex decls), FUN_005301b0 (create vertex decls), FUN_00530800 (init vertex shaders), FUN_0052ff60 (clear stale pixel-shader state), rasterizer_dx9_shaders_initialize, rasterizer_screen_effect_init_shaders, rasterizer_screen_flash_init_shaders, FUN_00526930.",
+      "prototype": "char __cdecl rasterizer_dx9_effects_initialize(void)",
+      "summary": "Top-level DX9 shader/effect startup routine that (re)creates vertex declarations and vertex/pixel shaders and initializes the screen_effect and screen-flash technique tables, in order, bailing out on the first failure."
+    },
+    {
+      "addr": "0x530120",
+      "name": "rasterizer_shader_technique_for_name",
+      "confidence": 0.75,
+      "evidence": "Matches the naming hint: formats \"%s_ps_%d_%d\" with a caller-supplied technique base name and the current shader-model version (DAT_007c118c major/minor), searching via vtable+0x34 (FindTechnique) / vtable+0xf4 (ValidateTechnique), degrading the minor then major version until one validates.",
+      "prototype": "",
+      "summary": "Finds and validates the best pixel-shader technique named \"<name>_ps_<major>_<minor>\" supported by the current pixel-shader-model version, degrading the version number until a valid technique is found."
+    },
+    {
+      "addr": "0x5301b0",
+      "name": "rasterizer_dx9_vertex_declarations_create",
+      "confidence": 0.6,
+      "evidence": "Zeroes a 0x3c-dword table (DAT_006e1a90..), then calls vtable+0x158 (CreateVertexDeclaration-style) roughly 19 times for distinct fixed vertex-format tables (DAT_0065e1b8, 0065e1d8, 0065e220, 0065e280, 0065e2a0, 0065e308, 0065e338, 0065e380, 0065e3a0, ...), storing results and stride constants (8 or 0x18/0x218 selected by cache-version DAT_007c118c) into DAT_006e1a90..006e1b7c.",
+      "prototype": "bool __cdecl rasterizer_dx9_vertex_declarations_create(void)",
+      "summary": "Creates the full set of Direct3D vertex declarations (and their per-format stride constants) used by every geometry draw path in the rasterizer, returning false if any creation call fails."
+    },
+    {
+      "addr": "0x530540",
+      "name": "rasterizer_dx9_vertex_declarations_release",
+      "confidence": 0.65,
+      "evidence": "Iterates the same DAT_006e1a90 table in 3-dword strides releasing each non-null vertex-declaration interface (vtable+8) then zeroes all 0x3c dwords of the table -- exact inverse of FUN_005301b0.",
+      "prototype": "void __cdecl rasterizer_dx9_vertex_declarations_release(void)",
+      "summary": "Releases every vertex declaration created by rasterizer_dx9_vertex_declarations_create and clears the table."
+    },
+    {
+      "addr": "0x530570",
+      "name": "rasterizer_dx9_vertex_shader_create",
+      "confidence": 0.5,
+      "evidence": "Reads a per-format flag word from &DAT_006e1a98[in_EAX*3] and combines it with a skinning flag (DAT_0069c680) and a fog-enable bit (param_3) to build shader-compile flags, then calls vtable+0x68 (CreateVertexShader-style) with param_1/param_2 (bytecode ptr/size) and the flags, returning the composed flag word on success or 0 on failure.",
+      "prototype": "",
+      "summary": "Creates one Direct3D vertex shader (register EAX selects the vertex format) from bytecode, combining format, skinning, and fog flags into its creation flags."
+    },
+    {
+      "addr": "0x5305f0",
+      "name": "rasterizer_dx9_vertex_shader_cache_get_or_create",
+      "confidence": 0.45,
+      "evidence": "Searches an existing shader-record table (stride 0x14, base DAT_007bf074, up to DAT_007c0474) for the first free slot at one of four fixed sub-offsets, else appends a new slot via the growing counter DAT_0071d258 (capped at DAT_0071d25c==0x100); calls FUN_00530570 (rasterizer_dx9_vertex_shader_create) and stores the returned shader/flags plus three register-passed values (unaff_EBX/EDI/ESI) into the slot.",
+      "prototype": "",
+      "summary": "Looks up a free or matching entry in the vertex-shader cache table, compiles the vertex shader for it via rasterizer_dx9_vertex_shader_create, and stores the (register-passed) shader parameters; returns the 1-based slot index."
+    },
+    {
+      "addr": "0x530690",
+      "name": "rasterizer_dx9_vertex_shader_cache_recompile_dirty",
+      "confidence": 0.45,
+      "evidence": "Iterates DAT_0071d258 entries of the same 0x14-stride cache table used by FUN_005305f0, and for every entry whose 'in-use' marker (offset -8) is set but whose shader handle (offset 0) is null, recompiles it by calling FUN_00530570 with the entry's stored parameters.",
+      "prototype": "void __cdecl rasterizer_dx9_vertex_shader_cache_recompile_dirty(void)",
+      "summary": "Re-creates the Direct3D vertex shader for any vertex-shader-cache entry that is marked in-use but has lost its compiled shader handle (e.g. after a device reset)."
+    },
+    {
+      "addr": "0x5306e0",
+      "name": "rasterizer_dx9_vertex_shaders_load_all",
+      "confidence": 0.6,
+      "evidence": "Reads the whole shaders\\vsh.bin blob via FUN_005199f0, then walks up to 0x40 (64) [size][data] chunks calling vtable+0x16c (CreateVertexShader-from-bytecode) storing each interface into &DAT_0069e350 pairs; on failure releases all previously created interfaces and frees the buffer.",
+      "prototype": "unsigned int __cdecl rasterizer_dx9_vertex_shaders_load_all(void)",
+      "summary": "Loads and creates all 64 precompiled vertex shaders from the vsh.bin blob, tearing everything down if any of them fails to load."
+    },
+    {
+      "addr": "0x5307b0",
+      "name": "rasterizer_dx9_vertex_shaders_initialize",
+      "confidence": 0.6,
+      "evidence": "Clears the DAT_0069e350 vertex-shader table then calls FUN_005306e0 (rasterizer_dx9_vertex_shaders_load_all); on failure sets DAT_00722bbc to \"shaders\\\\vsh.bin\" and calls the fatal-error reporter FUN_0057ea70.",
+      "prototype": "char __cdecl rasterizer_dx9_vertex_shaders_initialize(void)",
+      "summary": "Resets the vertex-shader table and (re)loads all precompiled vertex shaders, raising a fatal error referencing shaders\\vsh.bin on failure."
+    },
+    {
+      "addr": "0x530800",
+      "name": "rasterizer_dx9_vertex_shaders_reload",
+      "confidence": 0.55,
+      "evidence": "Releases every non-null interface in the DAT_0069e350 vertex-shader table (vtable+8) then calls FUN_005307b0 (rasterizer_dx9_vertex_shaders_initialize) to rebuild it.",
+      "prototype": "void __cdecl rasterizer_dx9_vertex_shaders_reload(void)",
+      "summary": "Releases and re-creates all vertex shaders (used e.g. after a device reset)."
+    },
+    {
+      "addr": "0x530830",
+      "name": "rasterizer_motion_sensor_hud_render",
+      "confidence": 0.35,
+      "evidence": "Gated on the same three globals (DAT_0069c689/006893f2/0068941e) shared with FUN_00530ff0/0x531350/0x531570; sets up a small screen-space quad with texture coordinates near +-1.0078 and a border frame near +-0.992 (letterbox/circular-mask style geometry), then loops DAT_0069e350 times calling DAT_0069d9b0's vtable+0x104/DrawPrimitiveUP(vtable+0x14c, primtype 6) to batch-draw per-contact icons at fixed 128x127-pixel screen coordinates (0x43000000/0x42fe0000), consistent with a small on-screen radar/motion-sensor overlay.",
+      "prototype": "void __cdecl rasterizer_motion_sensor_hud_render(void)",
+      "summary": "Builds the border/background quad for a small fixed-size on-screen HUD panel (consistent with the motion sensor) and batch-draws one textured icon per active entry via an auxiliary sprite-batch interface."
+    },
+    {
+      "addr": "0x530ff0",
+      "name": "rasterizer_motion_sensor_hud_prepare",
+      "confidence": 0.3,
+      "evidence": "Shares the exact same gating condition and opening render-state sequence (SetRenderState 0x16=3, 0xa8=7, 0x1b=0/1, 0xf, 0x18/0x7f) as FUN_00530830, but never calls it, suggesting it is an alternate/companion setup path (uses register-passed param_1/EAX and a 2nd stack pointer param_2) that configures texture-stage state before the panel is drawn.",
+      "prototype": "",
+      "summary": "Sets up render/texture-stage state for the motion-sensor HUD panel (same feature gate and initial render states as rasterizer_motion_sensor_hud_render) given a register-passed state pointer."
+    },
+    {
+      "addr": "0x531350",
+      "name": "rasterizer_motion_sensor_contact_draw",
+      "confidence": 0.35,
+      "evidence": "Gated on the same trio of globals plus an object-type check (*(short*)(in_EAX+0x24)==4); sets texture/sampler state, evaluates a texture animation via chimera__shader_texture_animation_evaluate using U/V scale fields from the object at offsets 0x9c/0xa0, binds the vertex declaration at &DAT_006e1a90[*param_3*3] (the per-format table built by rasterizer_dx9_vertex_declarations_create), and draws with a constant alpha of 1.0.",
+      "prototype": "",
+      "summary": "Draws a single animated icon/blip object (type-4 entry) for the motion-sensor HUD, applying its scrolling texture-animation UVs before issuing the draw call."
+    },
+    {
+      "addr": "0x531570",
+      "name": "rasterizer_motion_sensor_hud_update",
+      "confidence": 0.35,
+      "evidence": "Gated on the same trio of globals plus DAT_0069d9f0 != NULL; lazily calls FUN_00530830 once (guarded by DAT_0071d264) to build the panel, then calls FUN_0052cdd0 and issues a long sequence of SetVertexShaderConstant/DrawPrimitive calls, finally invoking chimera__rasterizer_draw_dynamic_triangles_static_vertices for dynamic geometry -- consistent with a once-built background plus a per-frame contact-list redraw.",
+      "prototype": "",
+      "summary": "Per-frame update/draw entry point for the motion-sensor HUD: builds the panel once on first use, then redraws the current contact list."
+    },
+    {
+      "addr": "0x531ab0",
+      "name": "rasterizer_ui_text_shader_constants_init",
+      "confidence": 0.45,
+      "evidence": "Writes 20 fixed floats (five vec4s) into DAT_006e1d08..006e1d54 including small values like 0.00625 and -1.0025/1.0021 (classic D3D9 half-texel/pixel-alignment style constants); consumed by FUN_00531b80 as a 5-vec4 vertex-shader constant block (vtable+0x178) right before drawing HUD/view-model geometry. Original chimera hint named this 'widescreen_text_scaling'.",
+      "prototype": "void __cdecl rasterizer_ui_text_shader_constants_init(void)",
+      "summary": "Initializes a fixed 5x vec4 vertex-shader constant block (screen-space scale/pixel-alignment values) used when rendering HUD/UI text or the first-person view model."
+    },
+    {
+      "addr": "0x531b80",
+      "name": "rasterizer_first_person_model_render",
+      "confidence": 0.35,
+      "evidence": "Gated on DAT_00689402 (widescreen-related flag) and DAT_007c1220==1; calls rasterizer_ui_text_shader_constants_init and chimera__rasterizer_set_framebuffer_blend_function, then iterates up to 3 sub-parts of a struct at unaff_EDI (offsets 0xc, 0x10.. ) setting world transforms (FUN_00444550) and per-part texture/sampler state, finally issuing SetVertexShaderConstant for two vec2s from unaff_EDI+0x40/0x44.",
+      "prototype": "",
+      "summary": "Renders a multi-part model (up to 3 attachment parts, consistent with the first-person view-model) with widescreen-corrected shader constants and per-part texture/blend state."
+    },
+    {
+      "addr": "0x531e90",
+      "name": "rasterizer_first_person_model_zbuffer_toggle",
+      "confidence": 0.3,
+      "evidence": "Trivial helper: if DAT_006893e6 is set, calls SetRenderState(8, 2) (index 8 matches the render-state used with value 3 for the same feature at 0x531b80's finish), then always calls SetTextureStageState/blend-style vtable+0x134 with DAT_0069c680.",
+      "prototype": "void __cdecl rasterizer_first_person_model_zbuffer_toggle(void)",
+      "summary": "Restores a render state (paired with the equivalent set in rasterizer_first_person_model_render) after first-person model rendering, when the associated feature flag is enabled."
+    },
+    {
+      "addr": "0x531ed0",
+      "name": "rasterizer_shader_effect_permutation_draw",
+      "confidence": 0.35,
+      "evidence": "Takes an explicit param_1 plus a register-passed (EDX) shader/material pointer; calls chimera__shader_get_vertex_shader_permutation, resolves a vertex-shader index via DAT_006d99d8 or a direct pointer, sets texture/technique/vertex-declaration state from tables indexed by the permutation, loops drawing per-part geometry via chimera__transparent_geometry_group_draw, then sets a long block of fixed render states; only ever reads the object's data through the +0x58 field layout (no cache-version branch, unlike the very similar FUN_00532a40).",
+      "prototype": "",
+      "summary": "Renders one shader's transparent geometry group across its vertex-shader permutations and per-part sub-draws, assuming the newer (post-1.0) tag data layout."
+    },
+    {
+      "addr": "0x532a40",
+      "name": "rasterizer_shader_effect_permutation_draw_compat",
+      "confidence": 0.3,
+      "evidence": "Near-identical structure to FUN_00531ed0 (same permutation lookup via DAT_006d99d8, same DrawPrimitive/technique-selection sequence, same trailing state block) but additionally branches on the cache-version flag DAT_007c118c to read the object's part-list from either offset 0x58 (new layout, matching 531ed0) or offset 100/0x64 (older layout).",
+      "prototype": "",
+      "summary": "Version-tolerant counterpart of rasterizer_shader_effect_permutation_draw that also supports the older (pre-1.0) tag data layout for locating the object's geometry parts."
+    },
+    {
+      "addr": "0x533660",
+      "name": "rasterizer_transparent_geometry_group_draw_vertices",
+      "confidence": 0.75,
+      "evidence": "Dispatches to one of several draw-vertex helpers based on the group's fields at offsets 0x44/0x48/0x50/0x54/0x58 -- FUN_0051c5f0, FUN_0051c490, FUN_0051c090, or chimera__rasterizer_draw_dynamic_triangles_static_vertices[2] -- matching exactly the original chimera__ name once the vendor prefix is dropped; the group pointer arrives in ECX (thiscall-style) with a bool flag on the stack.",
+      "prototype": "void __thiscall rasterizer_transparent_geometry_group_draw_vertices(void *geometry_group, char draw_dynamic)",
+      "summary": "Selects and invokes the correct low-level vertex-draw routine (static/dynamic/indexed) for a transparent geometry group, based on which vertex-source fields the group has populated."
+    },
+    {
+      "addr": "0x533730",
+      "name": "rasterizer_geometry_part_draw",
+      "confidence": 0.5,
+      "evidence": "Sets model-skinning state (chimera__rasterizer_set_model_skinning) from packed flag bits, optionally sets up node parts (chimera__rasterizer_set_up_node_parts) and z-bias/frustum override (chimera__rasterizer_set_frustum_z_func), then branches on the cache-version flag DAT_007c118c between an old path (FUN_00528ae0) and a new path that binds a vertex declaration/vertex-shader and calls rasterizer_transparent_geometry_group_draw_vertices.",
+      "prototype": "void __cdecl rasterizer_geometry_part_draw(unsigned int *part)",
+      "summary": "Draws one geometry part (setting skinning, node, and frustum-z-bias state as needed), choosing between the legacy and current transparent-geometry-group draw paths depending on cache format version."
+    },
+    {
+      "addr": "0x533850",
+      "name": "rasterizer_transparent_geometry_group_draw",
+      "confidence": 0.75,
+      "evidence": "Large (5.5KB), heavily-called (6 callers) function that evaluates periodic_function_evaluate for animated shader parameters, sets model skinning/node-part/frustum-z-bias state, calls chimera__shader_texture_animation_evaluate and the two shader-effect-permutation-draw functions above, and recurses into itself and rasterizer_transparent_geometry_group_draw_vertices -- matches the original chimera__ name (vendor prefix dropped) exactly.",
+      "prototype": "",
+      "summary": "Core recursive renderer for a BSP/cluster transparent-geometry group: evaluates animated shader parameters, sets up per-part render state, and draws each part's geometry (recursing into child groups as needed)."
+    },
+    {
+      "addr": "0x534e50",
+      "name": "rasterizer_dynamic_vertex_buffer_initialize",
+      "confidence": 0.45,
+      "evidence": "Creates a 0x10000-byte dynamic vertex buffer (vtable+0x68, usage flags derived from DAT_0069c680/DAT_006e1b58), locks it (vtable+0x2c), zero-fills 0x400 (1024) 8-byte entries, then unlocks (vtable+0x30); stores the buffer interface in DAT_0071d270 and DAT_0069c632 as a lock-recursion/lock-type marker.",
+      "prototype": "bool __cdecl rasterizer_dynamic_vertex_buffer_initialize(void)",
+      "summary": "Creates and zero-initializes a shared 64KB dynamic vertex buffer used elsewhere in the rasterizer for miscellaneous small draws."
+    },
+    {
+      "addr": "0x536b70",
+      "name": "rasterizer_lens_flare_texture_state_apply",
+      "confidence": 0.4,
+      "evidence": "Compares an incoming 3-value texture/material key (from unaff_ESI) against cached values DAT_007bf040/44/48, only re-issuing SetTexture (FUN_005187e0 single-texture or FUN_00518a60 dual-texture-blend) when the key changed, then separately caches an alpha-ref-style 4th value (DAT_007bf04c) and calls FUN_00519200 (a state-setter) when it changes.",
+      "prototype": "",
+      "summary": "State-caching helper that avoids redundant texture/material state changes when drawing a batch of same-material screen-space sprites (used by the lens-flare/decal batching system)."
+    },
+    {
+      "addr": "0x536c10",
+      "name": "rasterizer_lens_flare_batch_flush",
+      "confidence": 0.45,
+      "evidence": "For batch slot in_EAX (index into the DAT_0075efc0 stride-0x6006 table), applies its cached texture/material state via FUN_00536b70 and, if that succeeds, calls DrawPrimitive (vtable+0x14c, primtype 4=triangle list, vertexCount/3 triangles) against the slot's vertex data at DAT_00746fc0 + EAX*0x18018, then resets the slot's vertex count and its 'in use since' marker to 0.",
+      "prototype": "",
+      "summary": "Draws and clears one batched vertex-quad slot of the screen-space sprite (lens-flare/decal) rendering system."
+    },
+    {
+      "addr": "0x536c80",
+      "name": "rasterizer_lens_flare_batch_flush_all",
+      "confidence": 0.5,
+      "evidence": "Iterates all slots of the DAT_0075efc0 table (stride 0x6006, 20 entries up to 0x7d7038) calling rasterizer_lens_flare_batch_flush for every slot with a non-zero vertex count.",
+      "prototype": "void __cdecl rasterizer_lens_flare_batch_flush_all(void)",
+      "summary": "Flushes (draws) every non-empty batch slot of the screen-space sprite rendering system, typically once per frame."
+    },
+    {
+      "addr": "0x536cb0",
+      "name": "rasterizer_lens_flare_batch_slot_acquire",
+      "confidence": 0.4,
+      "evidence": "Scans up to 20 batch-material records (DAT_0075efd4 table, each with a 4-word material key at DAT_00746fb0..bc) for a record whose 4-word key matches the caller's implicit args (unaff_EBX/ESI/EDI/pushed value); on a match within the first 5 slots returns it immediately, otherwise evicts the least-recently-used slot (lowest DAT_00746fa8-derived timestamp) via rasterizer_lens_flare_batch_flush and reassigns it to the new material, stamping a fresh timestamp from the global counter DAT_00746fa8.",
+      "prototype": "",
+      "summary": "Finds (or LRU-evicts and reassigns) a batching slot matching the current material key for the screen-space sprite rendering system, returning its slot index."
+    },
+    {
+      "addr": "0x536d80",
+      "name": "rasterizer_lens_flare_project_to_screen",
+      "confidence": 0.5,
+      "evidence": "Transforms a world position via matrix4x3_transform_point, projects it with the view/projection-like matrix block at DAT_007c13c0..13fc, writes normalized screen X/Y/Z (param_3) and inverse-w (param_4), and writes a screen-space billboard half-size (param_5) derived from the world-space radius param_2; returns 0 when the point is behind the camera (fVar5 <= 0.0) or the size is <=0.",
+      "prototype": "",
+      "summary": "Projects a world-space point and radius into screen-space position plus billboard size, used to place a screen-space sprite (lens flare / decal) quad."
+    },
+    {
+      "addr": "0x536f70",
+      "name": "rasterizer_lens_flare_occlusion_queries_create",
+      "confidence": 0.55,
+      "evidence": "Zero-fills a 1024-entry (0x400) pointer table DAT_006e1dc8, then creates 1024 device query objects one at a time via vtable+0x1d8(device, 9, &out) -- 9 matching D3DQUERYTYPE_OCCLUSION -- storing each into the table; clears the support flag DAT_006e1dc0 if creation fails with the driver's 'not available' error code.",
+      "prototype": "bool __cdecl rasterizer_lens_flare_occlusion_queries_create(void)",
+      "summary": "Creates one Direct3D occlusion query per lens-flare slot (up to 1024), used to fade flares based on their visibility, disabling the feature if the driver does not support occlusion queries."
+    },
+    {
+      "addr": "0x536ff0",
+      "name": "rasterizer_lens_flare_occlusion_sample_add",
+      "confidence": 0.4,
+      "evidence": "Appends an entry (bounded at DAT_0071d154 < 0x180 = 384) into a per-frame array at DAT_0071d14c, storing a slot id, two extra ids (param_1/param_2), and a world-space offset vector (in_EDX minus camera position DAT_007c1228/122c/1230); sets an overflow flag DAT_0071d27c if the array is exhausted.",
+      "prototype": "",
+      "summary": "Registers one occlusion-test sample point (camera-relative offset plus caller-supplied ids) for a lens flare/light source to be tested this frame, up to a fixed capacity of 384."
+    },
+    {
+      "addr": "0x537130",
+      "name": "rasterizer_lens_flare_render_state_reset",
+      "confidence": 0.35,
+      "evidence": "Switches on a mode value in_AX; for mode 5 it sets up a block of render/sampler states for drawing screen-space sprites and resets every batching global used by the flare/decal cluster (DAT_00746fa8/b0/b4/b8/bc LRU state, DAT_007bf040/44/48/4c texture-state cache, and DAT_0069e708 the fixed z/layer constant read by rasterizer_lens_flare_quad_add); mode 6 sets a related alpha-test render-state block.",
+      "prototype": "",
+      "summary": "Selects a rendering technique/mode (values 5 and 6 observed) and, for mode 5, resets all per-frame state used by the screen-space sprite (lens-flare/decal) batching system."
+    },
+    {
+      "addr": "0x537550",
+      "name": "rasterizer_lens_flare_quad_add",
+      "confidence": 0.5,
+      "evidence": "Projects the sprite's position/radius to screen space via rasterizer_lens_flare_project_to_screen, applies an optional rotation (fsin/fcos) and optional per-axis scale (in_EAX pointer), acquires a batch slot via rasterizer_lens_flare_batch_slot_acquire (FUN_00536cb0), and writes a 6-vertex (2-triangle) textured quad into that slot's vertex buffer at DAT_00746fc0, flushing the slot via rasterizer_lens_flare_batch_flush if it reaches capacity (0xc00 vertices).",
+      "prototype": "",
+      "summary": "Builds and appends one screen-space sprite quad (lens flare / decal), with optional rotation and non-uniform scale, into the appropriate material batch, flushing the batch when full."
+    },
+    {
+      "addr": "0x537800",
+      "name": "rasterizer_lens_flare_occlusion_test_draw",
+      "confidence": 0.35,
+      "evidence": "Returns success immediately if DAT_00689424 is clear; otherwise (index unaff_EDI < 0x400) projects the sample point via rasterizer_lens_flare_project_to_screen, clamps the resulting screen rectangle to [-32767,32767] via FUN_00623e40 (float-to-int), and if occlusion-query support is available (DAT_006e1dc0) issues a query-based occlusion test using the query object at DAT_006e1dc8[unaff_EDI].",
+      "prototype": "",
+      "summary": "Issues the occlusion-query test for one lens-flare slot by drawing a tiny probe over its projected screen rectangle, when occlusion queries are supported."
+    },
+    {
+      "addr": "0x537b40",
+      "name": "rasterizer_lens_flare_occlusion_query_get_result",
+      "confidence": 0.55,
+      "evidence": "Returns 1 immediately if DAT_00689424 is clear; otherwise repeatedly calls the query object's vtable+0x1c (GetData) in a loop while the return code equals 1 (D3D's S_FALSE 'still pending' code), classic IDirect3DQuery9::GetData polling, using the query stored at DAT_006e1dc8[unaff_ESI].",
+      "prototype": "",
+      "summary": "Polls the occlusion query for one lens-flare slot until a result is available, returning the query's visible-pixel-count result."
+    },
+    {
+      "addr": "0x537bb0",
+      "name": "rasterizer_object_lights_apply_vertex_shader_constants",
+      "confidence": 0.3,
+      "evidence": "Iterates *(int*)(unaff_EBX+0x54) entries of a stride-0xdc array at *(int*)(unaff_EBX+0x58), and for each entry sets 6 vertex-shader constants (vtable+0x10c) from two small lookup tables (DAT_0069e710/714/718, each indexed by 12-byte-stride short fields at entry+0x2c and +0x2e) -- consistent with per-object light/material color constants used for hardware vertex lighting; the final iteration instead re-issues a fixed 'default' set of 5 constants.",
+      "prototype": "",
+      "summary": "Sets per-vertex-shader-constant light/material color values for each entry of an object's light (or material-stage) list, register-addressed via EBX."
+    },
+    {
+      "addr": "0x537d60",
+      "name": "rasterizer_object_lights_apply_vertex_shader_constants_versioned",
+      "confidence": 0.3,
+      "evidence": "Structurally identical to FUN_00537bb0 (same DAT_0069e710/714/718 lookup tables, same 6-constants-per-entry pattern, same 'last entry gets a fixed default' branch) but additionally branches on the cache-version flag DAT_007c118c to read the count/array from either offset 0x60/100 (older layout) or 0x54/0x58 (current layout) of the object passed in ECX.",
+      "prototype": "",
+      "summary": "Version-tolerant counterpart of rasterizer_object_lights_apply_vertex_shader_constants that supports both the older and current tag/object data layouts for locating the light/material list."
+    }
+  ]
+}

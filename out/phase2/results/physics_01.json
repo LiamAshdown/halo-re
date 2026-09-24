@@ -1,0 +1,164 @@
+{
+  "results": [
+    {
+      "addr": "0x507590",
+      "name": "antenna_test_point_inside_vertex_spheres",
+      "confidence": 0.4,
+      "evidence": "Loops the object's +0x74/+0x78 vertex array (stride 0x80, radius at +0x68, center at +0x38..+0x40) comparing squared distance from a matrix4x3_inverse_transform_point'd point to each sphere, same layout used by the sibling force/collision functions in this file.",
+      "prototype": "",
+      "summary": "Transforms a point into an antenna object's local space and reports whether it lies inside any of the object's per-vertex collision spheres, returning the hit index."
+    },
+    {
+      "addr": "0x507610",
+      "name": "antenna_test_ray_against_vertex_spheres",
+      "confidence": 0.5,
+      "evidence": "Transforms a ray into local space via matrix4x3_inverse_transform_point/vector, iterates the same +0x74/+0x78 vertex-sphere array calling ray_intersects_sphere, keeps the closest hit, then rotates the hit point/normal back to world space with the 3x3 block of param_1.",
+      "prototype": "",
+      "summary": "Casts a ray, transformed into an antenna object's local space, against its per-vertex collision spheres and returns the closest intersection point and normal in world space."
+    },
+    {
+      "addr": "0x507790",
+      "name": "antenna_debug_draw_vertices",
+      "confidence": 0.3,
+      "evidence": "Iterates the same object vertex array, transforms each vertex with matrix4x3_transform_point, and calls FUN_00503360 with an RGBA-like color argument (0xffffffff,0,0xff), matching a debug-draw call pattern.",
+      "prototype": "",
+      "summary": "Iterates an antenna object's vertices, transforming each one and issuing a debug draw call for it."
+    },
+    {
+      "addr": "0x507840",
+      "name": "antenna_object_simulate",
+      "confidence": 0.45,
+      "evidence": "Resolves an object index through the object-type/tag indirection tables to a physics data block, then either runs the multi-vertex path (FUN_00507cc0 force accumulation + FUN_005097e0 integration + FUN_00508a10 collision) or delegates to FUN_00509e80, folding in caller-supplied external force/torque (param_4/param_5).",
+      "prototype": "void __cdecl antenna_object_simulate(unsigned int object_index, int flip_orientation, void *state, float *external_force, float *external_torque)",
+      "summary": "Per-tick physics update for an antenna/flexible-physics object: accumulates and integrates forces across its vertices and resolves collisions with nearby objects."
+    },
+    {
+      "addr": "0x507a40",
+      "name": "physics_object_get_collision_material",
+      "confidence": 0.35,
+      "evidence": "Given an object index and a per-vertex/slot index, walks the same object-type/tag indirection chain used elsewhere in this file to read a material id at +0x238+0x24+idx*0x48, falling back to a global table at DAT_00746f9c+0xa8 when no object is given.",
+      "prototype": "",
+      "summary": "Looks up the collision-material id for a given vertex slot of an object, or a global default table entry when no object index is supplied."
+    },
+    {
+      "addr": "0x507ac0",
+      "name": "antenna_vertex_collide_with_world",
+      "confidence": 0.4,
+      "evidence": "Builds a contact-plane struct from fixed constants, runs a large-stack world/BSP collision test (FUN_00506440), and on a hit updates the vertex's resting plane, material (via FUN_00507a40) and solid-contact flag bits.",
+      "prototype": "",
+      "summary": "Tests one antenna vertex's contact point against world collision and updates its resting plane, material id, and contact flags on a hit."
+    },
+    {
+      "addr": "0x507c00",
+      "name": "antenna_vertex_blend_axis_constraint",
+      "confidence": 0.35,
+      "evidence": "Selects between an identity axis pair, vector3d_cross_product, or vector3d_project_onto_unit_axis based on a small mode selector, scales the two resulting axis vectors by param_2/param_3 and sums them into the caller's output vector; called from the per-vertex force loop with per-vertex mode/scale fields.",
+      "prototype": "",
+      "summary": "Builds and blends two per-vertex constraint-axis vectors, chosen and scaled by a per-vertex mode, into a single combined vector."
+    },
+    {
+      "addr": "0x507cc0",
+      "name": "antenna_object_compute_vertex_forces",
+      "confidence": 0.55,
+      "evidence": "Iterates every vertex of the object's +0x74/+0x78 array, transforms each into world space, tests/collides it against the world (FUN_00507ac0), applies gravity and material-scaled spring/limit forces per axis (FUN_00507c00), and accumulates the results into total force/torque output parameters.",
+      "prototype": "",
+      "summary": "Computes per-vertex gravity, spring, limit and collision-reaction forces for every vertex of an antenna object and sums them into the object's total force and torque."
+    },
+    {
+      "addr": "0x508a10",
+      "name": "antenna_object_resolve_nearby_object_collisions",
+      "confidence": 0.45,
+      "evidence": "Calls object_find_in_sphere to gather objects near this object's bounds, then for each result dispatches to FUN_00508b70 or FUN_005090c0 depending on the found object's type flags.",
+      "prototype": "",
+      "summary": "Finds objects near a physics/antenna object and dispatches per-object collision handling (impact damage or vertex-pair resolution) for each one found."
+    },
+    {
+      "addr": "0x508b70",
+      "name": "antenna_object_apply_collision_impact_damage",
+      "confidence": 0.45,
+      "evidence": "Computes the relative closing motion between two objects, runs an impact/line test (FUN_00507170), and on a qualifying hit calls object_apply_damage using damage-definition fields pulled from the object type and a global collision-damage tag reference.",
+      "prototype": "",
+      "summary": "Checks whether a physics/antenna object is hitting another object hard enough to hurt it and, if so, applies damage via object_apply_damage."
+    },
+    {
+      "addr": "0x5090c0",
+      "name": "antenna_resolve_vertex_pair_collision",
+      "confidence": 0.4,
+      "evidence": "Double loop over both objects' +0x74/+0x78 vertex-sphere arrays computing pairwise distance, and where the spheres overlap applies a repulsion impulse scaled by sqrt(mass_a*mass_b) and a shared physics time constant.",
+      "prototype": "",
+      "summary": "Detects overlapping collision spheres between the vertices of two physics/antenna objects and applies a repulsion impulse to separate them."
+    },
+    {
+      "addr": "0x5096f0",
+      "name": "antenna_vertex_integrate_orientation_basis",
+      "confidence": 0.4,
+      "evidence": "Treats an input vector as an axis-angle rotation (magnitude via vector3d_normalize_with_length as the angle), builds a rotation matrix with matrix4x3_from_axis_angle, applies it to two basis vectors, then re-orthonormalizes the second against the first.",
+      "prototype": "",
+      "summary": "Rotates and re-orthonormalizes a vertex's forward/twist orientation vectors by a small axis-angle rotation each tick."
+    },
+    {
+      "addr": "0x5097e0",
+      "name": "antenna_object_integrate_and_test_rest",
+      "confidence": 0.5,
+      "evidence": "Integrates accumulated force/torque (divided by a mass field) into position/orientation, re-tests the movement against world collision in up to four sub-steps, then tallies per-vertex flag bits to update the object's overall at-rest/asleep flags at +0x10.",
+      "prototype": "",
+      "summary": "Integrates an antenna object's linear and angular momentum for the tick, resolves resulting world collisions in sub-steps, and updates its sleep/at-rest flags."
+    },
+    {
+      "addr": "0x509e80",
+      "name": "antenna_object_simulate_fast_path",
+      "confidence": 0.35,
+      "evidence": "Shares the parameter list of FUN_00507840's alternate branch and the same force/collision/orientation callees (matrix4x3_from_quaternion, vector3d_rotate_about_axis, FUN_00507ac0, FUN_00507c00) as the combination of FUN_00507cc0+FUN_005097e0.",
+      "prototype": "",
+      "summary": "Alternate, single-pass implementation of the antenna physics tick (force computation, integration and collision response combined) used instead of the general multi-vertex path."
+    },
+    {
+      "addr": "0x50b290",
+      "name": "physics_advance_value_in_range",
+      "confidence": 0.3,
+      "evidence": "Adds a delta to a referenced scalar then clamps it (or wraps it around, when a flag is set) to stay within a supplied [low, high] pair of bounds.",
+      "prototype": "",
+      "summary": "Advances a scalar physics state value by a delta and clamps or wraps it to stay within a given range."
+    },
+    {
+      "addr": "0x50b2f0",
+      "name": "physics_step_value_toward_target",
+      "confidence": 0.3,
+      "evidence": "Uses FUN_0050b4d0 to get the sign of (target - current), steps the value via FUN_0050b290 by sign*rate, then re-checks the sign and snaps exactly to the target once the step would cross it.",
+      "prototype": "",
+      "summary": "Moves a physics scalar toward a target value at a fixed rate, snapping exactly to the target once reached."
+    },
+    {
+      "addr": "0x50b370",
+      "name": "physics_clamp_value_to_spring_range",
+      "confidence": 0.3,
+      "evidence": "Clamps a referenced scalar against a two-sided range built from a 4-float definition block, scaled by the magnitude of param_1, taking different branches depending on param_1's sign.",
+      "prototype": "",
+      "summary": "Clamps a scalar spring-related value against direction-dependent upper and lower limits scaled by a rate parameter."
+    },
+    {
+      "addr": "0x50b460",
+      "name": "physics_try_move_value_toward_limit",
+      "confidence": 0.3,
+      "evidence": "Compares a referenced value to param_1 and calls FUN_0050b370 with a signed rate (param_2) to move it, returning whether the target has now been reached.",
+      "prototype": "",
+      "summary": "Attempts to move a clamped scalar value toward a target using physics_clamp_value_to_spring_range, reporting whether the target was reached."
+    },
+    {
+      "addr": "0x50b4d0",
+      "name": "physics_compute_approach_direction",
+      "confidence": 0.35,
+      "evidence": "Returns +1.0/-1.0/0.0 based on the sign of (param_3 - param_1), optionally flipped when param_2 is set and the difference exceeds half of a supplied range, i.e. a wrap-aware shortest-direction helper.",
+      "prototype": "",
+      "summary": "Computes which direction, if any, a value should move in order to approach a target, optionally accounting for wraparound."
+    },
+    {
+      "addr": "0x50b530",
+      "name": "point_physics_simulate_step",
+      "confidence": 0.45,
+      "evidence": "Takes a point-physics style definition with front/back stiffness and flag fields, applies gravity scaled by a fixed tick-rate constant, then repeatedly line-tests movement via FUN_00505880 and attenuates velocity by elasticity/friction fields on each of up to three collisions.",
+      "prototype": "",
+      "summary": "Advances a point-physics object's position for one tick, applying gravity and resolving up to three bounce/friction collisions against the world along the way."
+    }
+  ]
+}

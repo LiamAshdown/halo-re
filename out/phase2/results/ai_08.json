@@ -1,0 +1,316 @@
+{
+  "results": [
+    {
+      "addr": "0x43b3b0",
+      "name": "ai_search_point_penalty",
+      "confidence": 0.3,
+      "evidence": "Computes squared distance from a fetched position (via FUN_0043b2f0) to unaff_EBX+0x28/0x2c/0x30; inside radius unaff_EBX+0x38 it returns a linear falloff (1-dist/radius)*unaff_EBX+0x3c and outputs the distance, otherwise outputs FLT_MAX and returns 0 — a radius/weight proximity cost.",
+      "prototype": "",
+      "summary": "Computes a linear-falloff proximity penalty (and outputs the raw distance) of a position relative to a radius/weight record, used as a cost term inside the AI point search."
+    },
+    {
+      "addr": "0x43b450",
+      "name": "ai_search_heap_sift_up",
+      "confidence": 0.55,
+      "evidence": "Walks parent index (i-1)>>1 through a short index array at edx+0x1432, compares f-cost floats stored at (node_id+2)*0x28 and swaps entries until heap order holds — classic binary-heap sift-up used by the point-search open list.",
+      "prototype": "",
+      "summary": "Sifts a newly pushed open-list entry upward in the AI point search's binary min-heap, ordered by node cost."
+    },
+    {
+      "addr": "0x43b4d0",
+      "name": "ai_search_heap_sift_down",
+      "confidence": 0.55,
+      "evidence": "Standard sift-down: compares children 2i+1/2i+2 costs at (node_id+2)*0x28 in the heap array (ecx+0x1432, count ecx+0x1430) against the root (in_DX) and swaps toward the smaller child.",
+      "prototype": "",
+      "summary": "Sifts the heap root down to restore min-heap order in the AI point search's open list after removing the minimum."
+    },
+    {
+      "addr": "0x43b5a0",
+      "name": "ai_search_open_list_push",
+      "confidence": 0.45,
+      "evidence": "Appends a new node (position, source point id param_3, side flag param_4) to the node array at edi+0x30 (stride 0x28), computes edge length via vector2d_normalize_with_length to fill g/f-cost fields, then inserts its index into the heap array (edi+0x1432) and calls the sift-up helper FUN_0043b450.",
+      "prototype": "",
+      "summary": "Adds a new open-list node to the AI point-search graph (reusing an existing chained node when appropriate) and pushes it onto the cost-ordered min-heap."
+    },
+    {
+      "addr": "0x43b790",
+      "name": "ai_search_init",
+      "confidence": 0.4,
+      "evidence": "Fills a search-context record's header fields from parameters and a start-point lookup via FUN_0043c890, then seeds the open list with the start node by calling FUN_0043b5a0(param_4,param_5,-1,0,0).",
+      "prototype": "",
+      "summary": "Initializes an AI point-search context and pushes its initial open-list node."
+    },
+    {
+      "addr": "0x43b830",
+      "name": "ai_search_evaluate_edge",
+      "confidence": 0.35,
+      "evidence": "Tests three candidate direct/tangent-offset routes between two points via FUN_0043d790 (navmesh portal check) and compares against a bypass candidate from FUN_0043c8f0, keeping the smallest resulting cost/heading in the output record *param_12.",
+      "prototype": "",
+      "summary": "Evaluates the cheapest way (direct or bending around an obstacle) to move between two points for the AI point search, writing the chosen cost and heading."
+    },
+    {
+      "addr": "0x43ba60",
+      "name": "ai_search_expand_neighbors",
+      "confidence": 0.35,
+      "evidence": "Clears/seeds a visited bitset from param_2 and flood-processes a worklist of point indices, using FUN_0043c9a0 to get an offset target and FUN_0043b830 to score two candidate headings per neighbor before pushing viable ones with FUN_0043b5a0.",
+      "prototype": "",
+      "summary": "Breadth-first expands a point's neighbors in the AI navigation point graph, scoring and pushing viable successors onto the open list."
+    },
+    {
+      "addr": "0x43bcb0",
+      "name": "ai_search_pop_and_expand",
+      "confidence": 0.4,
+      "evidence": "Pops the heap minimum via the sift-down helper FUN_0043b4d0, evaluates the popped node's edge cost with FUN_0043b830, and either records a direct connection to the goal via FUN_0043b5a0 or expands the node's neighbors via FUN_0043ba60; returns 1 while the open list still has entries and the goal is unmet.",
+      "prototype": "",
+      "summary": "Performs one iteration of the AI point search: pop the cheapest open node and either connect it to the goal or expand its neighbors."
+    },
+    {
+      "addr": "0x43be20",
+      "name": "ai_search_run",
+      "confidence": 0.4,
+      "evidence": "Calls FUN_0043b790 to initialize the search, then loops FUN_0043bcb0 until it returns false, reporting success via the goal-found index (+0x1e) or falling back to the best partial node (+0x20).",
+      "prototype": "",
+      "summary": "Drives an AI point search to completion, returning whether a full or best-effort path was found."
+    },
+    {
+      "addr": "0x43be90",
+      "name": "ai_pathfind_generate_path",
+      "confidence": 0.3,
+      "evidence": "Iterates a waypoint array (param_3, stride 0x10, count param_2), computing per-segment direction/distance, building a local obstacle point graph via FUN_0043c510/FUN_0043cb60, and running the point search machinery to route between successive waypoints; also updates a 'search in progress' counter on the referenced object (param_1[0x12]+0x1058a). Decompilation truncated after ~90 lines.",
+      "prototype": "",
+      "summary": "Top-level AI pathfinding entry point that builds an obstacle-aware point graph around a list of waypoints and searches it to produce a full route."
+    },
+    {
+      "addr": "0x43c340",
+      "name": "point_distance_within_radius",
+      "confidence": 0.4,
+      "evidence": "Computes 3D squared distance between two point records (in_EAX, in_ECX, fields 0/1/2) and compares against param_1 squared, returning a boolean.",
+      "prototype": "",
+      "summary": "Tests whether two 3D points referenced via register operands are within a given radius of each other."
+    },
+    {
+      "addr": "0x43c380",
+      "name": "ray_circle_intersect",
+      "confidence": 0.4,
+      "evidence": "Projects the vector from in_ECX to in_EDX onto direction in_EAX; if the projection is non-negative and the perpendicular distance is within radius param_1, computes and writes the near intersection distance via unaff_ESI — a ray/circle intersection test.",
+      "prototype": "",
+      "summary": "Ray-versus-circle intersection test used while routing a path around a circular obstacle, returning the entry distance along the ray when it hits."
+    },
+    {
+      "addr": "0x43c400",
+      "name": "circle_tangent_directions",
+      "confidence": 0.35,
+      "evidence": "Clamps param_2/param_1 to [-1,1] as a cosine, derives the matching sine, and rotates a base direction vector (in_ECX) by ± that angle to produce two output directions (unaff_ESI, in_EDX) and a projected offset (*param_3) — computing the pair of tangent directions from an offset point to a circle.",
+      "prototype": "",
+      "summary": "Computes the two tangent directions from an offset to a circle of a given radius by rotating a base direction vector by the tangent angle in each sense."
+    },
+    {
+      "addr": "0x43c4b0",
+      "name": "ai_search_obstacle_list_add",
+      "confidence": 0.35,
+      "evidence": "Appends a record (id param_1, flag param_2, a vector from unaff_ESI, and param_3) into a fixed 128-entry array at in_EDX+8 (count at in_EDX+2), incrementing a separate 'blocked' counter when bit0 of param_2 is set.",
+      "prototype": "",
+      "summary": "Appends a blocker/obstacle record to a capped 128-entry list built while gathering nearby obstacles for the AI point search."
+    },
+    {
+      "addr": "0x43c510",
+      "name": "ai_search_gather_obstacles",
+      "confidence": 0.5,
+      "evidence": "Calls object_find_in_sphere to collect nearby objects, filters them by team/state flags, uses object_get_world_matrix and matrix4x3_transform_point on each object's surface points, tests them with point_distance_within_radius (FUN_0043c340), and records qualifying ones via FUN_0043c4b0 — building an obstacle list for a candidate path position.",
+      "prototype": "",
+      "summary": "Gathers nearby blocking objects (and their vault/cover surface points) around a candidate search position into the obstacle list used by the AI point search."
+    },
+    {
+      "addr": "0x43c890",
+      "name": "ai_search_find_point_covering",
+      "confidence": 0.4,
+      "evidence": "Scans the fixed point array (unaff_ESI, stride 0x14, count at +2), skipping unaff_BX, and returns the first index whose own radius (offset+0x10) plus param_1 reaches the position at in_EDX.",
+      "prototype": "",
+      "summary": "Finds a point in the search's fixed point array whose coverage radius reaches a given position, or -1 if none does."
+    },
+    {
+      "addr": "0x43c8f0",
+      "name": "ai_search_find_nearest_point",
+      "confidence": 0.4,
+      "evidence": "Scans the point array (param_1, stride 0x14, count at +2), skipping param_2 and optionally flagged (bit0) entries when param_7 is set, filters via ray_circle_intersect (FUN_0043c380), and keeps the closest match by running distance, writing the best distance/point id to unaff_EDI.",
+      "prototype": "",
+      "summary": "Finds the closest point in the point array visible along a given direction, optionally excluding flagged points, returning its distance and id."
+    },
+    {
+      "addr": "0x43c9a0",
+      "name": "ai_search_point_tangent_offset",
+      "confidence": 0.35,
+      "evidence": "Computes the normalized direction/distance from a point-array entry (in_ECX+8+in_AX*0x14) to *in_EDX and calls circle_tangent_directions (FUN_0043c400) using the point's own radius (+0.00390625 slack) to derive steer-around offsets.",
+      "prototype": "",
+      "summary": "Computes tangent offset directions for steering around a specific point-array entry, used while scoring candidate path edges."
+    },
+    {
+      "addr": "0x43ca40",
+      "name": "ai_search_flood_fill_reachable",
+      "confidence": 0.35,
+      "evidence": "Clears a bitset sized to the point array's count, seeds it with the start index in_DX, and BFS-expands to any other point whose combined radii cover the distance between them, marking all reached indices in the bitset.",
+      "prototype": "",
+      "summary": "Flood-fills the set of point-graph indices reachable from a starting point through pairwise proximity links."
+    },
+    {
+      "addr": "0x43cb60",
+      "name": "ai_search_assign_point_groups",
+      "confidence": 0.4,
+      "evidence": "For every point still ungrouped (group field at [idx*10+5] == -1), allocates a new group id (unaff_ESI[0]++) and flood-fills its connected set via FUN_0043ca40, tagging every reached index with that group id — computing connected components of the point graph.",
+      "prototype": "",
+      "summary": "Partitions the point graph into connected groups by repeatedly flood-filling from each ungrouped point."
+    },
+    {
+      "addr": "0x43cc00",
+      "name": "ai_navmesh_simplify_path",
+      "confidence": 0.4,
+      "evidence": "Iterates a source path (param_3, stride 0x10, count param_2), extending a clear line-of-sight run as far as possible using FUN_0043de90, then computing the exact shortcut corner via FUN_0043d4b0/FUN_0043d240 and appending compressed waypoints to param_5 (capped at 4 output points) — a string-pulling path simplification pass. Decompilation truncated at the end (3 lines).",
+      "prototype": "",
+      "summary": "Simplifies a raw waypoint path into a small set of shortcut points by greedily extending clear segments and snapping to occluding navmesh corners."
+    },
+    {
+      "addr": "0x43cf60",
+      "name": "ai_navmesh_circle_segment_intersect",
+      "confidence": 0.35,
+      "evidence": "Solves the quadratic for where a circle of radius param_1 centered on in_ECX intersects relative to in_EDX, then selects one of the two tangent solutions based on which side (via a cross-product sign test against param_2) is requested.",
+      "prototype": "",
+      "summary": "Finds the tangent point where a path must bend around a circular navmesh obstacle vertex, on the requested side."
+    },
+    {
+      "addr": "0x43d100",
+      "name": "ai_navmesh_portal_edge_intersect",
+      "confidence": 0.3,
+      "evidence": "Computes where a circle of radius param_1 intersects the line through in_ECX/in_EDX (a portal edge), validating the result is close to the edge midpoint, and otherwise falls back to a normalized offset from unaff_EDI along the edge direction.",
+      "prototype": "",
+      "summary": "Computes where a given-radius circle crosses a portal edge, falling back to a direction-based offset if the edge geometry is degenerate."
+    },
+    {
+      "addr": "0x43d240",
+      "name": "ai_navmesh_choose_shorter_corner",
+      "confidence": 0.35,
+      "evidence": "Computes four turn angles via vector2d_angle_between and selects between two candidate corner points (param_1 vs unaff_EBX) based on which combination sums to a smaller turn, writing the chosen corner into *param_3.",
+      "prototype": "",
+      "summary": "Chooses whichever of two candidate polygon corners produces the shorter combined turn when a path bends around an obstacle."
+    },
+    {
+      "addr": "0x43d4b0",
+      "name": "ai_navmesh_trace_cluster_boundary",
+      "confidence": 0.3,
+      "evidence": "Walks a BSP cluster's edge table (iVar3+0x4c, stride 0x18) from vertex in_EAX, testing each edge's permission bit (with a team-indexed bit-array override) against a proposed move direction (param_1,param_2), returning the boundary vertex/edge where the move first exits the cluster.",
+      "prototype": "",
+      "summary": "Walks a BSP cluster's boundary edges to find where a proposed straight-line move first crosses a blocked or permission boundary."
+    },
+    {
+      "addr": "0x43d790",
+      "name": "ai_navmesh_raycast_cluster_edges",
+      "confidence": 0.3,
+      "evidence": "Repeatedly calls FUN_005017f0 to step across a cluster's edge list from a starting vertex, testing candidate edge distances against param_5 and each edge's passable flag (with a team-indexed bit-array override), returning the nearest blocking edge's distance/normal in param_6.",
+      "prototype": "",
+      "summary": "Traces along a cluster's boundary edges from a starting vertex, returning the nearest edge that would block a proposed move within range."
+    },
+    {
+      "addr": "0x43d910",
+      "name": "ai_navmesh_same_cluster_height",
+      "confidence": 0.3,
+      "evidence": "Fetches height values for two cluster/vertex indices via FUN_0044d860 and returns whether they differ by less than 0.05 units.",
+      "prototype": "",
+      "summary": "Checks whether two navmesh cluster locations sit at nearly the same height, used to reject path steps needing a large vertical jump."
+    },
+    {
+      "addr": "0x43d9b0",
+      "name": "ai_navmesh_find_crossing_portal",
+      "confidence": 0.3,
+      "evidence": "Recursively calls itself (FUN_0043d9b0) while walking a cluster's connected edges from param_4 toward the segment param_3->param_5, checking each edge's orientation and a team-indexed permission bit array (DAT_0069e8d8/DAT_006b8d78), and reports via param_7 the first portal/edge the segment crosses. Decompilation truncated (18 lines).",
+      "prototype": "",
+      "summary": "Recursively traces a straight segment across a BSP cluster's connected edges to find the first portal boundary it crosses."
+    },
+    {
+      "addr": "0x43de90",
+      "name": "ai_navmesh_line_of_sight_clear",
+      "confidence": 0.35,
+      "evidence": "Early-outs for coincident endpoints; otherwise calls FUN_0043d9b0 from each endpoint's cluster to find the nearest crossing boundary, compares the two results, and if a crossing lies within param_5 of one endpoint copies its portal/edge data to param_7 as the blocking result.",
+      "prototype": "",
+      "summary": "Determines whether a straight segment between two points is unobstructed across BSP cluster portals within a margin, reporting the first blocking crossing if any."
+    },
+    {
+      "addr": "0x43e270",
+      "name": "actor_firing_position_acquire",
+      "confidence": 0.4,
+      "evidence": "Walks an actor's (param_1) linked list of firing-position nodes (DAT_00880360 array, stride 0x724, node pool DAT_008802c0 stride 0x138) looking for a reusable node of type param_3 or the best-scoring free candidate; calls datum_new when none qualifies, then re-links it via actor_replace_object_reference/FUN_0043ea20 and reinitializes it via FUN_0043e640.",
+      "prototype": "",
+      "summary": "Finds or allocates a per-actor firing-position node of the requested type, reinitializing it when newly allocated or repurposed."
+    },
+    {
+      "addr": "0x43e640",
+      "name": "actor_firing_position_node_init",
+      "confidence": 0.4,
+      "evidence": "Initializes a (re)acquired node's fields from its referenced object's cluster data (cluster index at +0x12, flags from FUN_0045bd50/FUN_0045bdb0/FUN_0045be00, a cover flag copied from the object record, and a 1000-unit timer when covered), then links the node onto that object's per-cluster list head at DAT_00880360[...]+0x50.",
+      "prototype": "",
+      "summary": "Initializes a firing-position node's fields from its target object (cluster, cover flags, timers) and links it into that object's node list."
+    },
+    {
+      "addr": "0x43e840",
+      "name": "actor_firing_position_node_copy",
+      "confidence": 0.3,
+      "evidence": "Bulk-copies a 0x138-byte node record (0x4e dwords) from puVar8 to puVar6 while preserving header fields, resets several timer/flag fields, recomputes an offset vector from two stored points, and copies a constant vector from PTR_DAT_00696714.",
+      "prototype": "",
+      "summary": "Copies a firing-position node record into another slot and resets its per-instance runtime state."
+    },
+    {
+      "addr": "0x43e910",
+      "name": "actor_firing_position_node_new",
+      "confidence": 0.4,
+      "evidence": "Allocates a node via datum_new, initializes it with FUN_0043e640, then on success links it as the counterpart of param_2 via actor_firing_position_node_copy (FUN_0043e840) and cross-referenced index fields at offset 0xc.",
+      "prototype": "",
+      "summary": "Allocates a new firing-position node and links it as the paired counterpart of an existing node."
+    },
+    {
+      "addr": "0x43e980",
+      "name": "actor_firing_position_node_new_typed",
+      "confidence": 0.4,
+      "evidence": "Same allocate/init/link pattern as FUN_0043e910, additionally copying a bounded type value (in [4,6)) from param_3's node field +0x24 onto the newly created node.",
+      "prototype": "",
+      "summary": "Allocates and links a new firing-position node as the counterpart of an existing one, propagating a bounded type value from a third reference node."
+    },
+    {
+      "addr": "0x43ea20",
+      "name": "actor_firing_position_node_unlink",
+      "confidence": 0.4,
+      "evidence": "Walks the singly-linked node list rooted at DAT_00880360[...]+0x50 for the current object (in_EAX), chaining through each node's +8 next field, and removes the entry matching unaff_EDI.",
+      "prototype": "",
+      "summary": "Removes a firing-position node from its owning object's linked list of nodes."
+    },
+    {
+      "addr": "0x43ea80",
+      "name": "actor_firing_position_find_matching",
+      "confidence": 0.35,
+      "evidence": "Walks an object's (in_ECX) firing-position node list skipping types in [0,2), matching a node whose owner field equals param_1 or whose cluster field (offset+0x1c) equals the target object's cluster (looked up via DAT_008603b0).",
+      "prototype": "",
+      "summary": "Searches an object's firing-position node list for one owned by a given actor or matching a target's cluster, skipping reserved node types."
+    },
+    {
+      "addr": "0x43eb30",
+      "name": "actor_get_or_create_firing_position",
+      "confidence": 0.45,
+      "evidence": "Looks up an existing shared firing-position node between actor param_1 and target in_EAX via a list walk, or (when param_2 is set and the target allows it) creates one with actor_firing_position_acquire (FUN_0043e270); configures it via FUN_0041c4b0/FUN_0041c8f0 and, for wide targets (field +0x30 > 1), resets combat flags via actor_target_reset_combat_flags.",
+      "prototype": "",
+      "summary": "Finds or creates a shared firing-position node between an actor and a target object and initializes its combat-relevant fields."
+    },
+    {
+      "addr": "0x43ecd0",
+      "name": "actor_firing_position_list_head",
+      "confidence": 0.35,
+      "evidence": "Writes the current object's (in_EAX) firing-position list head index (DAT_00880360[...]+0x50) into *param_1 — a one-line accessor.",
+      "prototype": "",
+      "summary": "Returns the head index of the current object's firing-position node linked list."
+    },
+    {
+      "addr": "0x43ecf0",
+      "name": "actor_firing_position_list_iterator_next",
+      "confidence": 0.4,
+      "evidence": "Classic {current,next} iterator step: copies in_EDX[1] into *in_EDX, then if that id is valid fetches the node's own next field (+8) into in_EDX[1] for the following call, returning the current node's record offset.",
+      "prototype": "",
+      "summary": "Advances a {current,next} iterator over the firing-position node linked list, returning the current node's record offset."
+    }
+  ]
+}

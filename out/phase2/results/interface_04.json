@@ -1,0 +1,484 @@
+{
+  "results": [
+    {
+      "addr": "0x4a8790",
+      "name": "registry_get_product_id",
+      "confidence": 0.55,
+      "evidence": "Reads \"Software\\Microsoft\\Microsoft Games\\Halo\" key, queries value \"PID\" via RegOpenKeyExA/RegQueryValueExA, caches into DAT_00719344 guarded by DAT_00719340.",
+      "prototype": "void * __cdecl registry_get_product_id(void)",
+      "summary": "Reads (once) the game's registry \"PID\" value under HKLM\\...\\Halo and returns a pointer to the cached 4-byte value."
+    },
+    {
+      "addr": "0x4a88f0",
+      "name": "virtual_keyboard_initialize",
+      "confidence": 0.9,
+      "evidence": "Already named appropriately; looks up tag_lookup(\"ui\\\\english\") and \"ui\\\\shell\\\\bitmaps\\\\white\" and resets on-screen keyboard glyph/caret globals (DAT_007193a8..cc).",
+      "prototype": "int __cdecl virtual_keyboard_initialize(void)",
+      "summary": "Looks up the UI font/bitmap tags used by the on-screen virtual keyboard and initializes its glyph/caret state globals."
+    },
+    {
+      "addr": "0x4a89a0",
+      "name": "virtual_keyboard_open",
+      "confidence": 0.55,
+      "evidence": "Guarded by DAT_007193a8 (open flag) and DAT_007193ac (font from virtual_keyboard_initialize); sets edit-buffer pointer, clamps max length to 0x40, loads \"ui\\\\large_ui\"/\"ui\\\\small_ui\" title tag based on length.",
+      "prototype": "",
+      "summary": "Opens the on-screen virtual keyboard for a caller-supplied wide-string buffer (passed in ESI) with a maximum length and initial keyset mode, loading the matching prompt UI tag."
+    },
+    {
+      "addr": "0x4a8b10",
+      "name": "virtual_keyboard_text_has_visible_char",
+      "confidence": 0.4,
+      "evidence": "Walks a wide string calling _iswctype(ch,8) (space class); returns 0 only when every character (or the empty string) is whitespace.",
+      "prototype": "",
+      "summary": "Scans a wide string (pointer in EAX) and returns true if it contains at least one non-whitespace character."
+    },
+    {
+      "addr": "0x4a8b50",
+      "name": "virtual_keyboard_name_is_available",
+      "confidence": 0.35,
+      "evidence": "Calls FUN_00557950(0x20) then game_engine_get_variant_by_name(0), returning true only when no matching game variant is found.",
+      "prototype": "int __cdecl virtual_keyboard_name_is_available(void)",
+      "summary": "Checks whether the text currently being edited does not collide with an existing game-variant name."
+    },
+    {
+      "addr": "0x4a8b80",
+      "name": "virtual_keyboard_char_is_allowed",
+      "confidence": 0.45,
+      "evidence": "Dispatches on a field-type value (in_EAX) to _isdigit/_isalnum(+':-.') checks or a custom disallowed-character table (PTR_DAT_00692d78) via FUN_006257e0, for the character in CL.",
+      "prototype": "",
+      "summary": "Returns whether a typed character (CL) is legal for the current virtual-keyboard field type (EAX): digits only, hostname/IP-like charset, or a general blacklist check."
+    },
+    {
+      "addr": "0x4a8be0",
+      "name": "virtual_keyboard_process_input",
+      "confidence": 0.5,
+      "evidence": "Drains an input-event queue (DAT_006b16fa/fc/fe) and dispatches by scan code: 0=confirm via FUN_004a9250, 0x1d=cancel/clear, 0x38/0x66=validate name and commit (display_error on failure), 0x4f/0x50/0x52/0x54=cursor movement, default=insert printable char filtered by virtual_keyboard_char_is_allowed.",
+      "prototype": "void __cdecl virtual_keyboard_process_input(void)",
+      "summary": "Per-frame virtual-keyboard input pump that consumes queued key events and performs text editing, cursor movement, cancel and name-validation/commit actions."
+    },
+    {
+      "addr": "0x4a9250",
+      "name": "virtual_keyboard_close",
+      "confidence": 0.55,
+      "evidence": "Copies the edit buffer (DAT_007193d0) back into the caller's buffer (DAT_007193c0), clears virtual-keyboard state flags, and resets a UI COM-like interface (DAT_006b1800).",
+      "prototype": "int __cdecl virtual_keyboard_close(void)",
+      "summary": "Commits/closes the on-screen virtual keyboard, writing the final text back to the caller-owned buffer and clearing keyboard UI state."
+    },
+    {
+      "addr": "0x4a9300",
+      "name": "virtual_keyboard_draw_text",
+      "confidence": 0.5,
+      "evidence": "Draws the current edit buffer with chimera__draw_16_bit_text and a blinking cursor/highlight driven by FUN_00449210 (tick counter).",
+      "prototype": "unsigned int __cdecl virtual_keyboard_draw_text(void)",
+      "summary": "Renders the virtual keyboard's current text buffer, including a time-based blinking cursor/highlight box."
+    },
+    {
+      "addr": "0x4a9510",
+      "name": "virtual_keyboard_render",
+      "confidence": 0.55,
+      "evidence": "Draws the title tag (DAT_00719414), the prompt string (FUN_005578c0), and the edit text (via virtual_keyboard_draw_text) at fixed 640x480 screen-space anchors.",
+      "prototype": "void __cdecl virtual_keyboard_render(void)",
+      "summary": "Draws the full on-screen virtual keyboard dialog: title, prompt text, and current edit text."
+    },
+    {
+      "addr": "0x4a96f0",
+      "name": "virtual_keyboard_backspace",
+      "confidence": 0.6,
+      "evidence": "memmoves text left over the cursor position by one wide char and null-terminates: deletes the character before the caret.",
+      "prototype": "void __cdecl virtual_keyboard_backspace(void)",
+      "summary": "Deletes the wide character immediately before the caret in the virtual keyboard's edit buffer."
+    },
+    {
+      "addr": "0x4a9750",
+      "name": "hud_zoom_level_is_default",
+      "confidence": 0.3,
+      "evidence": "On a small struct (in_EAX) with three shorts and a float, returns true only when the shorts are default/matching and the float equals 1.0; used to gate the zoom-level iteration loop in FUN_004a9b80.",
+      "prototype": "",
+      "summary": "Tests whether a zoom/meter-state record (pointed to by EAX) is at its default (unscaled) values."
+    },
+    {
+      "addr": "0x4a9780",
+      "name": "hud_state_layout_compute_offsets",
+      "confidence": 0.4,
+      "evidence": "Walks a growing offset accumulator (DAT_006e2dcc) in fixed-size chunks (4, 0x488, 0x5c, 0x7c, 0x30, 0x570 bytes), crc32_update()'ing each chunk size and storing each resulting sub-struct base into HUD-state globals (DAT_00719420, DAT_006b3a40, DAT_0071942c, DAT_00719430, DAT_006b3a44, DAT_00719438) used throughout this batch.",
+      "prototype": "void __cdecl hud_state_layout_compute_offsets(void)",
+      "summary": "Lays out and checksums the sub-regions of the shared HUD runtime-state buffer, recording each sub-struct's base offset into module globals."
+    },
+    {
+      "addr": "0x4a98d0",
+      "name": "hud_state_reset",
+      "confidence": 0.45,
+      "evidence": "Zero-fills the HUD-state sub-buffers computed by hud_state_layout_compute_offsets, sets several fields to -1/0xbf800000 defaults, then calls FUN_004b3660.",
+      "prototype": "void __cdecl hud_state_reset(void)",
+      "summary": "Clears and re-initializes the per-round HUD runtime-state buffers (weapon HUD, waypoint, chat, etc.) to their default values."
+    },
+    {
+      "addr": "0x4a9990",
+      "name": "hud_update",
+      "confidence": 0.4,
+      "evidence": "Calls a fixed sequence of HUD sub-update helpers (FUN_004b1740, FUN_004b0110, FUN_004af320) each frame and conditionally FUN_004afee0(0) for split-screen configurations.",
+      "prototype": "void __cdecl hud_update(void)",
+      "summary": "Per-frame HUD update dispatcher that drives the motion sensor, meters, and messaging sub-systems."
+    },
+    {
+      "addr": "0x4a99f0",
+      "name": "hud_update_player",
+      "confidence": 0.5,
+      "evidence": "Resolves the local viewed player's object (DAT_007c3108), then calls chimera__spectate_hud, hud_render_unit_interface, chimera__motion_sensor_update and hud_messaging_update for that player.",
+      "prototype": "void __cdecl hud_update_player(void)",
+      "summary": "Updates and renders the full player HUD (spectate overlay, unit interface, motion sensor, messages) for the currently displayed local player."
+    },
+    {
+      "addr": "0x4a9b40",
+      "name": "hud_get_weapon_hud_index",
+      "confidence": 0.4,
+      "evidence": "Given an object index (in_EAX), looks up the object's tag data and returns the short at offset 0x13c -- the same \"weapon-hud tag index\" field read throughout this batch (e.g. FUN_004a9b80).",
+      "prototype": "",
+      "summary": "Resolves an object index (EAX) to its weapon's HUD-interface tag index, or -1 if none."
+    },
+    {
+      "addr": "0x4a9b80",
+      "name": "hud_update_weapon_message",
+      "confidence": 0.4,
+      "evidence": "Switches on a weapon-HUD \"message type\" field (*(short*)(iVar9+0x28)) with 10 distinct cases calling FUN_004adfc0/FUN_004ae0b0/FUN_004ae050 (HUD text setters) and unit_get_weapon_object_index/object_try_and_get.",
+      "prototype": "",
+      "summary": "Evaluates the active weapon's HUD \"message\" state machine (pickup prompts, ammo warnings, zoom messages, name text) and pushes the resulting HUD text/index via the ae0b0/ae050 setters."
+    },
+    {
+      "addr": "0x4aa2a0",
+      "name": "hud_weapon_show_ammo_message",
+      "confidence": 0.35,
+      "evidence": "Selects one of two weapon-HUD message indices at offset 0x3d8/0x3da based on in_AL, clears 4 flash-timer slots at DAT_006b3a40+0x82 (stride 0x8c), then if valid resolves and shows the message via hud_get_message_string + chimera__hud_message.",
+      "prototype": "",
+      "summary": "Displays one of two weapon-HUD messages (e.g. reload/no-ammo) selected by a boolean flag in AL, after resetting related flash timers."
+    },
+    {
+      "addr": "0x4aa310",
+      "name": "hud_weapon_show_pickup_message",
+      "confidence": 0.35,
+      "evidence": "Same flash-timer reset pattern as FUN_004aa2a0 but for offsets 0x3dc/0x3de selected by in_DL, and additionally plays a UI sound via FUN_00549af0 using the tag reference at +0x3ec.",
+      "prototype": "",
+      "summary": "Displays a weapon pickup/swap HUD message chosen by DL and plays its associated pickup sound."
+    },
+    {
+      "addr": "0x4aa3f0",
+      "name": "hud_get_message_string",
+      "confidence": 0.5,
+      "evidence": "Validates an index (in_EDX) against a string-list tag referenced from the weapon-HUD tag data (DAT_0071941c+0xa0) and resolves the localized text via FUN_005578c0, else returns the empty-string default PTR_DAT_00692d7c.",
+      "prototype": "",
+      "summary": "Resolves a weapon-HUD message index (EDX) to its localized message string, or an empty string if out of range."
+    },
+    {
+      "addr": "0x4aa440",
+      "name": "hud_draw_waypoint_marker",
+      "confidence": 0.45,
+      "evidence": "Transforms an object's world position with matrix4x3_transform_point, tests screen visibility via FUN_0050de30, computes an edge-fade factor from screen bounds constants (_DAT_007c3240/_DAT_007c3244), and draws via FUN_00494d70.",
+      "prototype": "",
+      "summary": "Projects a tracked object's position into screen space and draws its HUD waypoint icon, fading it near the screen edge."
+    },
+    {
+      "addr": "0x4aa5f0",
+      "name": "hud_draw_object_waypoints",
+      "confidence": 0.45,
+      "evidence": "Iterates all objects via data_iterator_next, collecting those matching the local player's object type with a valid waypoint tag (offset 0x34 != -1), then calls hud_draw_waypoint_marker for each.",
+      "prototype": "void __cdecl hud_draw_object_waypoints(void)",
+      "summary": "Finds all world objects that should show a HUD waypoint marker for the local player and draws each one."
+    },
+    {
+      "addr": "0x4aa6b0",
+      "name": "chat_reset_state",
+      "confidence": 0.4,
+      "evidence": "Copies default listbox position/size (DAT_00692d80..8c) into the chat window state (DAT_006b38e4 etc.), clears open/team flags, then calls hud_chat_listbox_clear (FUN_004ab400).",
+      "prototype": "void __cdecl chat_reset_state(void)",
+      "summary": "Resets the multiplayer chat window's screen position and clears its message listbox, used on UI (re)initialization."
+    },
+    {
+      "addr": "0x4aa700",
+      "name": "chat_open",
+      "confidence": 0.6,
+      "evidence": "Original name carried a chimera__ hint prefix which must be replaced; opens a dialog with \"oPrompt\"/\"oEditbox\" controls, choosing prompt text from \"ui\\\\multiplayer_game_text\" based on chat scope (all/team/vehicle) validated via game_engine_get_teams_enabled/player_index_from_unit_index.",
+      "prototype": "void __cdecl chat_open(int chat_scope)",
+      "summary": "Opens the multiplayer chat input dialog for the requested scope (all, team, or vehicle), populating its prompt text."
+    },
+    {
+      "addr": "0x4aa900",
+      "name": "chat_close",
+      "confidence": 0.5,
+      "evidence": "Mirror of chat_open's cleanup: only runs while DAT_006b3858 (chat-open flag) is set, closes the dialog edit control and clears the same chat-state flags chat_open sets.",
+      "prototype": "",
+      "summary": "Closes the multiplayer chat input dialog and clears the associated chat-open state."
+    },
+    {
+      "addr": "0x4aa9b0",
+      "name": "chat_submit_input",
+      "confidence": 0.5,
+      "evidence": "Reads the \"oEditbox\" control's \"text\" via the dialog interface, copies up to 254 wide chars, forwards the text to chat_send (renamed from chimera__chat_out) with the channel from player_get_local_team_index, then calls chat_close.",
+      "prototype": "void __cdecl chat_submit_input(void)",
+      "summary": "Reads the text typed into the open chat editbox and sends it as a chat message before closing the dialog."
+    },
+    {
+      "addr": "0x4aaa90",
+      "name": "chat_update_hotkeys",
+      "confidence": 0.4,
+      "evidence": "Checks three action-flag globals (DAT_007124a7/a8/a9) to open chat in all/team/squad scope via chat_open, then always calls hud_chat_listbox_update (FUN_004ab300).",
+      "prototype": "char __cdecl chat_update_hotkeys(void)",
+      "summary": "Polls the chat hotkey action flags each frame, opening the chat dialog in the requested scope, and updates the chat message listbox."
+    },
+    {
+      "addr": "0x4aab00",
+      "name": "chat_send",
+      "confidence": 0.55,
+      "evidence": "Original name carried a chimera__ hint prefix which must be replaced; encodes the outgoing chat packet via message_delta_encode_message(0xf,...) and, if the local send-queue has room (or can be flushed via FUN_004ddb60), appends it with FUN_004cf8f0.",
+      "prototype": "void __cdecl chat_send(char channel)",
+      "summary": "Encodes a chat text message and queues it for network transmission on the given channel."
+    },
+    {
+      "addr": "0x4aabd0",
+      "name": "chat_relay_message",
+      "confidence": 0.4,
+      "evidence": "Decodes an incoming chat delta message and, based on its scope field (0=all,1=team,2=vehicle), iterates data_iterator_next to find matching machines/players and forwards it with network_session_send_to_machine.",
+      "prototype": "",
+      "summary": "Server-side relay that re-broadcasts a received chat message only to the machines/players matching its addressed scope (everyone, team, or vehicle)."
+    },
+    {
+      "addr": "0x4aade0",
+      "name": "chat_deliver_to_team",
+      "confidence": 0.4,
+      "evidence": "Encodes a chat message and iterates data_iterator_next filtering players by team (param_1), queuing the message directly into each matching machine's local send buffer via FUN_004cf8f0.",
+      "prototype": "void __cdecl chat_deliver_to_team(int team_index)",
+      "summary": "Queues an encoded chat message for delivery to every connected machine whose player is on the given team (or everyone if team_index is -1)."
+    },
+    {
+      "addr": "0x4aaf70",
+      "name": "chat_dispatch_incoming",
+      "confidence": 0.35,
+      "evidence": "Branches on a server/client flag (in_EAX) to call FUN_004ec590 (server path) or FUN_004ec670 (client path).",
+      "prototype": "",
+      "summary": "Dispatches an incoming chat-related message to the server-side or client-side handler depending on host role."
+    },
+    {
+      "addr": "0x4ab170",
+      "name": "player_index_from_unit_index",
+      "confidence": 0.55,
+      "evidence": "Validates an encoded unit/salt value (in_ECX) against the units datum table bounds, fetches the unit via object_try_and_get(3), and returns the player index stored at unit+0x11c when the unit has a valid weapon (short at +0x2f0 != -1).",
+      "prototype": "",
+      "summary": "Converts a salted unit-object index (ECX) into its owning player index, or -1 if invalid."
+    },
+    {
+      "addr": "0x4ab1e0",
+      "name": "player_get_local_team_index",
+      "confidence": 0.4,
+      "evidence": "Iterates data_iterator_next over the players datum until it finds one with a valid object (short+2 != -1) and returns that player's team byte at offset 0x67; used by chat_submit_input to pick the outgoing chat channel.",
+      "prototype": "int __cdecl player_get_local_team_index(void)",
+      "summary": "Returns the team index of the first active player found, used as the default chat channel."
+    },
+    {
+      "addr": "0x4ab240",
+      "name": "hud_chat_listbox_remove_oldest",
+      "confidence": 0.5,
+      "evidence": "Sends listbox message 0x182 (remove item) to the \"oListbox\" control, then memmoves the parallel timestamp array (DAT_006b3a20) down by one and decrements the message count DAT_00719424.",
+      "prototype": "unsigned int __cdecl hud_chat_listbox_remove_oldest(void)",
+      "summary": "Removes the oldest entry from the on-screen chat message listbox and its timestamp array."
+    },
+    {
+      "addr": "0x4ab300",
+      "name": "hud_chat_listbox_update",
+      "confidence": 0.5,
+      "evidence": "Compares each stored message timestamp (DAT_006b3a20[]) against the current tick (FUN_00449210) and calls hud_chat_listbox_remove_oldest for any that have expired, then shows/hides the listbox based on chat-open state.",
+      "prototype": "void __cdecl hud_chat_listbox_update(void)",
+      "summary": "Expires timed-out chat messages from the HUD chat listbox and toggles its visibility."
+    },
+    {
+      "addr": "0x4ab400",
+      "name": "hud_chat_listbox_clear",
+      "confidence": 0.55,
+      "evidence": "Repeatedly sends listbox message 0x182 to remove all items from \"oListbox\" and zeroes the parallel timestamp array/count (DAT_006b3a20.., DAT_00719424).",
+      "prototype": "void __cdecl hud_chat_listbox_clear(void)",
+      "summary": "Removes every entry from the HUD chat message listbox and resets its timestamp bookkeeping."
+    },
+    {
+      "addr": "0x4ab4b0",
+      "name": "hud_chat_message_add",
+      "confidence": 0.55,
+      "evidence": "Original name carried a chimera__ hint prefix which must be replaced; overflow-trims the listbox with hud_chat_listbox_remove_oldest, appends the new string to \"oListbox\" (message 0x180) and records its expiry tick (QueryPerformanceCounter-based, +8000ms) into DAT_006b3a20[].",
+      "prototype": "void __cdecl hud_chat_message_add(char *text)",
+      "summary": "Appends a new line of text to the on-screen chat/message listbox with an 8-second expiry timestamp."
+    },
+    {
+      "addr": "0x4ab590",
+      "name": "float_round_to_int",
+      "confidence": 0.4,
+      "evidence": "Adjusts Ghidra's ROUND() intrinsic result by comparing the fractional remainder's sign, a common compensation for round-half-to-even vs round-half-away-from-zero.",
+      "prototype": "int __cdecl float_round_to_int(float param_1)",
+      "summary": "Rounds a float to the nearest integer, correcting for round-to-even bias near .5 boundaries."
+    },
+    {
+      "addr": "0x4ab5d0",
+      "name": "color_rgb_float_to_int",
+      "confidence": 0.55,
+      "evidence": "Packs three 0..1 float channels (param_1[0..2] = R,G,B) each scaled by 255 into a 0x00RRGGBB integer.",
+      "prototype": "unsigned int __cdecl color_rgb_float_to_int(float *rgb)",
+      "summary": "Converts a 3-component float RGB color into a packed 0x00RRGGBB integer."
+    },
+    {
+      "addr": "0x4ab630",
+      "name": "bitmap_group_sequence_get_bitmap_offset",
+      "confidence": 0.5,
+      "evidence": "Given a bitmap-group tag index (in_ECX), sequence index (in_AX) and frame (unaff_DI), indexes the sequence table (offset 0x58, stride 0x40) then the per-sequence bitmap array (offset 0x38, stride 0x20) modulo the bitmap count (offset 0x34).",
+      "prototype": "",
+      "summary": "Resolves a specific animation frame of a bitmap-group sequence to its bitmap-data offset, used for animated HUD sprites/digits."
+    },
+    {
+      "addr": "0x4ab690",
+      "name": "hud_anchor_get_screen_position",
+      "confidence": 0.45,
+      "evidence": "Computes a screen-space X/Y from a widget's stored offset (in_EDX) either relative to a screen corner (uVar1<4, using 640x480-derived constants 0x270/0x1d8) or in absolute placement mode, then optionally dispatches through a per-corner jump table (PTR_LAB_004ab8b8).",
+      "prototype": "",
+      "summary": "Converts a HUD element's anchor-relative offset into an absolute 640x480 screen position."
+    },
+    {
+      "addr": "0x4ab8d0",
+      "name": "hud_meter_get_bitmap_frame",
+      "confidence": 0.4,
+      "evidence": "For a bitmap-group tag (param_1) and sequence index (param_2), looks up the current animation frame via bitmap_group_sequence_get_bitmap_offset when animated, else a constant bitmap via FUN_0043f290, returning the bitmap data pointer (*param_3) and a flag (*param_4).",
+      "prototype": "",
+      "summary": "Resolves the bitmap data to draw for a HUD meter/icon, animating through its sequence frames when the tag defines more than one bitmap."
+    },
+    {
+      "addr": "0x4ab980",
+      "name": "hud_meter_get_flash_color",
+      "confidence": 0.4,
+      "evidence": "Computes a fractional blend using fcos()/SQRT() over a period derived from the meter definition (unaff_ESI) and the current game tick (DAT_006f1d6c+0xc), then lerps two stacked ARGB colors via vector3d_lerp.",
+      "prototype": "",
+      "summary": "Computes the current blended/flashing color for a HUD meter element based on elapsed game time."
+    },
+    {
+      "addr": "0x4abbc0",
+      "name": "hud_meter_compute_color",
+      "confidence": 0.4,
+      "evidence": "Given a meter widget (unaff_ESI) and two 0-255 fractions (param_2,param_3, clamped via float_round_to_int), interpolates between the widget's min/max tag colors (offsets 0x34/0x38) using color_rgb_float_to_int, then draws via hud_draw_bitmap_at_anchor.",
+      "prototype": "",
+      "summary": "Computes the interpolated fill color for a HUD meter (e.g. health/shield bar) from its current value fraction and draws it."
+    },
+    {
+      "addr": "0x4ac0b0",
+      "name": "hud_draw_ammo_digit",
+      "confidence": 0.35,
+      "evidence": "Reads the current player globals (DAT_00746fa0), the weapon's ammo-digit bitmap tag (offset 0xbc), computes a digit's screen offset from a \"meter step\" count (param_3+0x44/+0x45) and dispatches per-digit drawing through a jump table (PTR_LAB_004ac6d0).",
+      "prototype": "",
+      "summary": "Draws a single ammo-counter digit for the current weapon at a computed HUD screen offset."
+    },
+    {
+      "addr": "0x4ac6f0",
+      "name": "hud_draw_meter_segments",
+      "confidence": 0.4,
+      "evidence": "Iterates an array of up to N segments (param_3+0x5c, stride 0x1e0) each drawn via hud_draw_bitmap_at_anchor/hud_meter_draw_segment, choosing the meter's color from either its tag default or hud_meter_get_flash_color depending on param_4 flags.",
+      "prototype": "void __cdecl hud_draw_meter_segments(int param_1, short *param_2, int meter_widget, unsigned int flags)",
+      "summary": "Draws each segment/tick of a multi-part HUD meter (e.g. a segmented shield or grenade counter)."
+    },
+    {
+      "addr": "0x4ac950",
+      "name": "hud_draw_flag_icons",
+      "confidence": 0.35,
+      "evidence": "Iterates a fixed-stride (0x88) array of icon records at param_2+0x14, filtering by a bitmask (param_3) matching each icon's flags field, then draws matching icons via hud_draw_bitmap_at_anchor with an optional flashing color from hud_meter_get_flash_color.",
+      "prototype": "void __cdecl hud_draw_flag_icons(int text_element, int icon_array, unsigned int flag_mask, unsigned char use_flash, int color)",
+      "summary": "Draws every HUD icon in an array whose flag bits match the requested mask, optionally using a flashing color."
+    },
+    {
+      "addr": "0x4acad0",
+      "name": "hud_draw_bitmap_at_anchor",
+      "confidence": 0.45,
+      "evidence": "Computes the widget's scale/anchor via hud_anchor_get_screen_position, sets up per-corner scale via hud_bitmap_set_scale_and_draw, and issues the actual quad draw via hud_draw_rotated_quad.",
+      "prototype": "",
+      "summary": "Draws a single HUD bitmap element positioned and scaled at its configured screen anchor."
+    },
+    {
+      "addr": "0x4acbb0",
+      "name": "hud_draw_bitmap_simple",
+      "confidence": 0.4,
+      "evidence": "Thin wrapper forwarding to hud_bitmap_set_scale_and_draw (scale setup) and hud_draw_rotated_quad (quad draw) with default rotation/position.",
+      "prototype": "void __cdecl hud_draw_bitmap_simple(int bitmap_index)",
+      "summary": "Draws a HUD bitmap element at its default (unrotated) position, a simplified entry point to the shared quad-draw routine."
+    },
+    {
+      "addr": "0x4acc50",
+      "name": "hud_bitmap_set_scale_and_draw",
+      "confidence": 0.3,
+      "evidence": "Computes a width/height pair from the current widget (unaff_ESI, in_CL selects 1x1 vs widget-sized) and dispatches through a per-mode jump table (PTR_LAB_004acd34) indexed by param_1.",
+      "prototype": "",
+      "summary": "Selects the draw-mode routine for a HUD bitmap and passes it the element's scaled width/height."
+    },
+    {
+      "addr": "0x4acd50",
+      "name": "hud_draw_rotated_quad",
+      "confidence": 0.45,
+      "evidence": "Builds 4 rotated corner vertices from sin/cos of param_5 and the widget's position (in_EAX)/size (unaff_ESI) arrays, then calls FUN_0051c9a0, the shared low-level quad-draw primitive.",
+      "prototype": "",
+      "summary": "Builds a rotated screen-space quad for a HUD bitmap and submits it to the renderer."
+    },
+    {
+      "addr": "0x4acef0",
+      "name": "hud_weapon_flash_should_show",
+      "confidence": 0.3,
+      "evidence": "Checks the current unit's weapon and, if its zoom/flash flag bit (0x8) is set, calls unit_get_weapon_object_index and FUN_004c29d0(param_1) to fill a flash-state record, returning 1 when applicable.",
+      "prototype": "",
+      "summary": "Determines whether the current weapon should show its HUD \"flash\" state and, if so, fills the caller's flash-state buffer."
+    },
+    {
+      "addr": "0x4acfe0",
+      "name": "hud_meter_draw_segment",
+      "confidence": 0.35,
+      "evidence": "Transforms 4 vertices by sin/cos(param_6) for a segment's quad, evaluates the meter's bound \"animation functions\" array (param_1+0x158, count at +0x154) with input sources including aim angle, zoom state, and weapon count, then writes resulting position/color offsets before calling FUN_0051c9a0 to draw.",
+      "prototype": "",
+      "summary": "Evaluates a HUD meter segment's animated function bindings (position, scale, color) and draws the resulting rotated quad."
+    },
+    {
+      "addr": "0x4ad8e0",
+      "name": "hud_draw_two_part_text",
+      "confidence": 0.35,
+      "evidence": "Computes a gap between two text-position records (in_EAX/in_ECX) and, depending on param_2 and DAT_006f1d20 (co-op flag), draws either via FUN_0049ade0 or directly via chimera__draw_16_bit_text, then aligns the second position to the first.",
+      "prototype": "",
+      "summary": "Draws a HUD text element with special handling to align it against a second reference text position (e.g. label/value pairing)."
+    },
+    {
+      "addr": "0x4ad970",
+      "name": "hud_draw_weapon_ammo_text",
+      "confidence": 0.35,
+      "evidence": "Resolves the weapon's ammo bitmap via hud_meter_get_bitmap_frame, computes an alpha (0x3f400000/0x3f800000 depending on player count) and draws via hud_draw_bitmap_simple, updating the caller's cached frame index afterward.",
+      "prototype": "",
+      "summary": "Draws the current weapon's ammo counter bitmap and updates its cached animation frame."
+    },
+    {
+      "addr": "0x4adb30",
+      "name": "hud_flashlight_set_bitmap_offset",
+      "confidence": 0.3,
+      "evidence": "No callers in this batch; stores into DAT_006b3a40+0x46c a bitmap-group offset looked up from a tag reference at DAT_00746f8c+0x5a0, guarded by DAT_00719420[1] being non-zero.",
+      "prototype": "void __cdecl hud_flashlight_set_bitmap_offset(short param_1)",
+      "summary": "Caches a bitmap-group offset (indexed by param_1) from the flashlight/device HUD tag into the shared HUD-state buffer."
+    },
+    {
+      "addr": "0x4adb80",
+      "name": "hud_flashlight_set_state",
+      "confidence": 0.3,
+      "evidence": "No callers in this batch; validates a device HUD sub-record's flag byte (+0x24==1) and a lookup table entry before storing its pointer/derived offset into DAT_006b3a40+0x470/+0x474 from the current weapon-HUD tag data (DAT_0071941c).",
+      "prototype": "void __cdecl hud_flashlight_set_state(short param_1)",
+      "summary": "Selects and caches a device/flashlight HUD sub-element definition matching the given index into the shared HUD-state buffer."
+    },
+    {
+      "addr": "0x4adbf0",
+      "name": "hud_state_timer_init",
+      "confidence": 0.3,
+      "evidence": "No callers in this batch; initializes a timed value (DAT_006b3a40+0x47c) from screen-offset registers (in_AX,in_CX) and records the current game tick (DAT_006f1d6c+0xc) plus a clamped stage counter (0..4) at +0x484.",
+      "prototype": "",
+      "summary": "Initializes a timed HUD animation value and its associated stage counter and start-time stamp."
+    },
+    {
+      "addr": "0x4adc60",
+      "name": "hud_state_timer_update",
+      "confidence": 0.3,
+      "evidence": "No callers in this batch; adjusts the timed value at DAT_006b3a40+0x47c by the elapsed game-time delta (DAT_006f1d6c+0xc minus the stored start tick), direction chosen by in_DL, complementing hud_state_timer_init.",
+      "prototype": "",
+      "summary": "Advances a timed HUD animation value based on elapsed game time and a direction flag."
+    }
+  ]
+}

@@ -1,0 +1,116 @@
+{
+  "results": [
+    {
+      "addr": "0x54eec0",
+      "name": "sound_gain_to_millibels",
+      "confidence": 0.6,
+      "evidence": "Computes log2(1.0-param_1) then calls FUN_006391b4 (a log-to-fixed converter) and clamps the result to [-10000,0], matching the DirectSound/EAX millibel attenuation range (-10000..0) used by the sibling EAX apply functions in this file.",
+      "prototype": "int __cdecl sound_gain_to_millibels(float gain)",
+      "summary": "Converts a linear gain/occlusion factor into a clamped millibel attenuation value for DirectSound/EAX properties."
+    },
+    {
+      "addr": "0x54ef30",
+      "name": "sound_eax20_effect_shutdown",
+      "confidence": 0.55,
+      "evidence": "Loads a fixed set of EAX 2.0 default parameter values, Sets them via IKsPropertySet::Set (vtable+0x10) using GUIDs DAT_0064e2f0/DAT_0064e300 and property IDs 2-10,13,15 matching the DSPROPERTY_EAX20LISTENER_* enum, then Releases (vtable+8) each cached property-set pointer in the this+0x1c[0..0x32] array and zeroes it.",
+      "prototype": "void __thiscall sound_eax20_effect_shutdown(void *this)",
+      "summary": "Restores default EAX 2.0 listener/buffer reverb parameters and releases all cached IKsPropertySet interfaces held by the sound effects object."
+    },
+    {
+      "addr": "0x54f270",
+      "name": "sound_eax20_effect_initialize",
+      "confidence": 0.6,
+      "evidence": "QueryInterfaces the listener object at param_1+0x674 for IKsPropertySet (DAT_0064e20c), then issues a long sequence of QuerySupport calls (vtable+0x14) against the EAX 2.0 Listener GUID (DAT_0064e2f0, IDs 2-13,0x80000000) and Buffer GUID (DAT_0064e300, IDs 2,3,4,6,7,8,9,0x80000000), building a capability bitmask at this+8 and returning whether full listener+buffer support is present (this+0x10/this+0x14).",
+      "prototype": "int __thiscall sound_eax20_effect_initialize(void *this, int listener)",
+      "summary": "Initializes the EAX 2.0 sound effects object by querying IKsPropertySet support for listener and buffer reverb properties and reports whether both are fully supported."
+    },
+    {
+      "addr": "0x54fa80",
+      "name": "sound_eax20_effect_apply_listener",
+      "confidence": 0.6,
+      "evidence": "Converts several environment struct fields (room, room HF, reflections, reverb, etc. at param_1+8..+0x24) to millibel values via log2+FUN_006391b4 with EAX-specific clamp ranges, then Sets them on the cached EAX 2.0 listener property-set object using GUID DAT_0064e2f0 and property IDs 2-10,13,15, OR'ing IDs with 0x80000000 (deferred) when this+8 bit0 is set.",
+      "prototype": "void __thiscall sound_eax20_effect_apply_listener(void *this, int environment)",
+      "summary": "Applies a reverb environment's parameters to the active EAX 2.0 listener property set, converting several fields to millibels first."
+    },
+    {
+      "addr": "0x54fff0",
+      "name": "sound_eax30_effect_shutdown",
+      "confidence": 0.5,
+      "evidence": "Mirrors FUN_0054ef30's reset-then-release pattern (defaults loaded into a stack array, Set via vtable+0x10, Release via vtable+8, array zeroed) but uses GUIDs DAT_0064e310/DAT_0064e320 and a larger property-ID set (4,5,6,8,9,0xb,0xc,0xe,0xf,0x14,0x16,0x18,0x19) consistent with a later EAX 3.0-era reverb property set.",
+      "prototype": "void __thiscall sound_eax30_effect_shutdown(void *this)",
+      "summary": "Restores default EAX 3.0-style listener/buffer reverb parameters and releases all cached property-set interfaces held by the sound effects object."
+    },
+    {
+      "addr": "0x550370",
+      "name": "sound_eax30_effect_initialize",
+      "confidence": 0.5,
+      "evidence": "Structurally identical to FUN_0054f270 (QueryInterface on listener+0x674 for DAT_0064e20c followed by a long chain of QuerySupport calls building a capability bitmask), but paired with the DAT_0064e310/DAT_0064e320 GUIDs used by the EAX 3.0-style apply/shutdown functions in this file; tail beyond the truncation point was not re-verified.",
+      "prototype": "int __thiscall sound_eax30_effect_initialize(void *this, int listener)",
+      "summary": "Initializes the EAX 3.0-style sound effects object, querying property-set support for listener and buffer reverb properties."
+    },
+    {
+      "addr": "0x550890",
+      "name": "sound_eax30_effect_apply_channel",
+      "confidence": 0.6,
+      "evidence": "Indexes the this+0x1c property-set array by param_1 (channel index), computes obstruction/occlusion millibel values via callees FUN_0054ee70/FUN_0054eec0 from per-channel tables (DAT_00725436/37/478/474/490), then Sets them on that channel's property set via GUID DAT_0064e320 with property IDs 5-0xc and 0x14, immediate or deferred (|0x80000000) based on this+8 bit0.",
+      "prototype": "void __thiscall sound_eax30_effect_apply_channel(void *this, int channel_index)",
+      "summary": "Computes and applies per-channel obstruction/occlusion EAX 3.0 buffer reverb parameters for one sound channel."
+    },
+    {
+      "addr": "0x550c10",
+      "name": "sound_reverb_size_scale",
+      "confidence": 0.35,
+      "evidence": "Small pure function of a single float: returns fixed sentinel outputs for out-of-range or exact boundary inputs (1000.0, 20000.0, 5000.0) and otherwise linearly rescales the input by 5.005005e-05*19000.0 (approximately 1/19980, the width of a [20,20000] Hz range); called from FUN_00550c70 on an environment field, suggesting a frequency/size parameter normalization used before writing an EAX 3.0 reverb property.",
+      "prototype": "",
+      "summary": "Normalizes a frequency-like environment parameter (roughly in the 20-20000 Hz range) into the scale expected by an EAX 3.0 reverb property, with special-cased boundary values."
+    },
+    {
+      "addr": "0x550c70",
+      "name": "sound_eax30_effect_apply_listener",
+      "confidence": 0.55,
+      "evidence": "Near-duplicate of FUN_0054fa80 (same log2+FUN_006391b4 millibel conversions and clamp ranges for the same struct field offsets) but targets GUID DAT_0064e310 and additionally computes a normalized value via sound_reverb_size_scale (FUN_00550c10) from environment+0x34 before Setting the EAX 3.0-style listener properties.",
+      "prototype": "void __thiscall sound_eax30_effect_apply_listener(void *this, int environment)",
+      "summary": "Applies a reverb environment's parameters to the active EAX 3.0-style listener property set, including a size/frequency scale computed via sound_reverb_size_scale."
+    },
+    {
+      "addr": "0x551270",
+      "name": "sound_effects_object_detect_mode",
+      "confidence": 0.7,
+      "evidence": "Attempts to construct effects-object implementations via vtables PTR_FUN_00671d28, PTR_FUN_00671d04 and PTR_FUN_00671d4c in turn (storing mode 2/1/0 respectively into DAT_00721f24[1] on success), then formats one of the strings SOUND_EFFECT_OBJECT_EAX1/EAX2/EAX3/DIRECTX/NONE into \"Sound effect mode set to %s\" via sprintf, matching a backend-detection routine.",
+      "prototype": "int __cdecl sound_effects_object_detect_mode(void)",
+      "summary": "Probes for EAX3, EAX2, then EAX1 sound-effects backend support in order, selects the first available implementation, and formats a Sound effect mode set to %s status string."
+    },
+    {
+      "addr": "0x551420",
+      "name": "sound_effects_object_shutdown",
+      "confidence": 0.6,
+      "evidence": "If DAT_00721f24 (the global effects object pointer) is non-null, calls its vtable+0 method, frees it via _free, clears the pointer, and resets DAT_00746130 to 0.",
+      "prototype": "void __cdecl sound_effects_object_shutdown(void)",
+      "summary": "Releases and frees the current global sound effects object, if one exists."
+    },
+    {
+      "addr": "0x551460",
+      "name": "sound_effects_object_query",
+      "confidence": 0.3,
+      "evidence": "Returns 0 if the global effects object DAT_00721f24 is null, otherwise invokes its vtable+8 method (the same slot FUN_00551480 calls per-channel with an index argument) and returns the result; exact semantics of the vtable+8 method are not determinable from this batch alone.",
+      "prototype": "",
+      "summary": "Returns the result of invoking the active sound effects object's vtable+8 method, or 0 if no effects object is active."
+    },
+    {
+      "addr": "0x551480",
+      "name": "sound_effects_object_apply_all_channels",
+      "confidence": 0.6,
+      "evidence": "Iterates channel indices 0..DAT_00725428, and for each channel whose per-channel struct flag byte (&DAT_00725468)[index*0x678] has bit0 set, calls the global effects object's vtable+8 method with that channel index; this is the driver invoked by FUN_005514d0 after a successful (re)initialization.",
+      "prototype": "int __cdecl sound_effects_object_apply_all_channels(void)",
+      "summary": "Iterates all sound channels and invokes the effects object's per-channel apply method for each channel flagged as EAX-enabled."
+    },
+    {
+      "addr": "0x5514d0",
+      "name": "sound_effects_object_reinitialize",
+      "confidence": 0.6,
+      "evidence": "Gated on DAT_007252e0; when param_1==0 shuts the effects object down via FUN_00551420 and sets DAT_00746130=2. Otherwise, if already initialized to a recognized mode it returns early, else it releases the current object and retries constructing EAX3/EAX2/EAX1 vtables (the same PTR_FUN_00671dXX pointers used in FUN_00551270), passing &DAT_00725430 to each Initialize call, then calls FUN_00551480 on success.",
+      "prototype": "void __cdecl sound_effects_object_reinitialize(int enable)",
+      "summary": "Enables or disables the global EAX sound effects object, (re)initializing it against the current listener by trying EAX3, EAX2, then EAX1 backends in order."
+    }
+  ]
+}
