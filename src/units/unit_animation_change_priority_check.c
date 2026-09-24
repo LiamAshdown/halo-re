@@ -19,6 +19,13 @@
 //   surrounding tick comparison meaningful, but this is a guess.
 // reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
 
+// VERIFIED CONVENTION (objdump 0x560d00, 2026-09-24; the definition below is NOT yet updated):
+//   EAX = unit_index; DL = follow_fallback (the `test dl,dl` in the fallback-chain loop); stack arg 1 =
+//   requested_priority (word), arg 2 = allow_repeat (byte, gates the minimum-repeat-interval check at
+//   0x560e3e), arg 3 = out_unknown_3f0, arg 4 = dialogue_index (in/out), arg 5 = chain_value (in/out).
+//   The draft merges the two flags into one parameter and so reads every stack argument one slot early;
+//   hooked, it crashed on a null chain_value. Listed in harness/known_bad.txt until it and its six C
+//   callers (five different prototypes) are reconciled.
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"

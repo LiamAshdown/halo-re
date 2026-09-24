@@ -28,7 +28,9 @@ void object_light_clear_dirty_flag(uint32_t light_index) // blam-cc: EAX -> ligh
     light *entry = (light *)light_data->data + (light_index & 0xffff);
 
     if ((entry->flags & _light_attached_bit) != 0) {
-        cluster_reference_remove_all(light_index, (datum_index *)(entry + 0x10), &light_cluster_first);
+        cluster_reference_remove_all(light_index, &entry->next_light, &light_cluster_first);
+        // FIXED: `entry + 0x10` stepped 0x10 whole lights; the original's lea edx,[esi+0x10] is this light's
+        // own +0x10 (the head of its cluster-reference chain)
         // 0x4f29e1 lea edx,[esi+0x10] / push edx / push eax / mov ebx,0x860b20 // UNSURE: see file header
         entry->flags &= (uint16_t)~_light_transform_dirty_bit;
     }

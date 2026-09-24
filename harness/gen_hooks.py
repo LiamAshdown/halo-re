@@ -101,7 +101,12 @@ def live_in(addr, size, _depth=0):
             "edx": "edx", "dx": "edx", "dl": "edx", "dh": "edx", "ebx": "ebx", "bx": "ebx", "bl": "ebx", "bh": "ebx",
             "esi": "esi", "si": "esi", "edi": "edi", "di": "edi"}
     written, live = set(), set()
-    popped = set(re.findall(r"\tpop\s+(e?[abcd]x|e?si|e?di)\b", r.stdout))   # push r is a save only if r is popped
+    # push r is a save only if r is popped. The header sizes come from Ghidra and are sometimes short of the real
+    # epilogue (widget_new: 334 bytes, its pops lie beyond), so look for the pops past the stated end too
+    tail = subprocess.run([OBJDUMP, "-d", "-M", "intel", "--no-show-raw-insn", f"--start-address=0x{addr:x}",
+                           f"--stop-address=0x{pop_limit(addr, size):x}", os.path.join(ROOT, "bin", "halo.exe")],
+                          capture_output=True, text=True).stdout
+    popped = set(re.findall(r"\tpop\s+(e?[abcd]x|e?si|e?di)\b", tail))
     regs_in = lambda s: {full[x] for x in re.findall(r"\b(e?[abcd]x|[abcd][lh]|e?si|e?di)\b", s)}
     insns = []
     for l in r.stdout.splitlines():
@@ -113,6 +118,11 @@ def live_in(addr, size, _depth=0):
         here, op, args = insns[k]; k += 1; steps += 1
         if op == "push" and re.fullmatch(r"e?[abcd]x|e?si|e?di", args) and args in popped: continue   # a save
         if op == "pop": written |= regs_in(args); continue
+        # alignment padding: lea r,[r+0x0] / lea r,[r] / mov r,r (MSVC's multi-byte nops before loop heads)
+        a_ = args.replace(" ", "")
+        if (op == "lea" and re.fullmatch(r"(e[a-d]x|e[sd]i),(?:DWORDPTR)?\[\1(?:\+0x0|\+eiz\*1\+0x0)?\]", a_)) or \
+                (op == "mov" and re.fullmatch(r"(e[a-d]x|e[sd]i),\1", a_)):
+            continue
         parts = [a.strip() for a in re.split(r",(?![^\[]*\])", args)] if args else []
         dst, srcs = (parts[0], parts[1:]) if parts else ("", [])
         if op in ("xor", "sub") and len(parts) == 2 and parts[0] == parts[1] and parts[0] in full:
@@ -216,13 +226,36 @@ def scratch_written_on_entry(f):
         if op == "cdq": written.add("edx")
     return written
 
+_ENTRIES = None
+def known_entries():
+    """every address some call instruction targets, plus every rewritten function's start: function boundaries"""
+    global _ENTRIES
+    if _ENTRIES is None:
+        dis = os.path.join(ROOT, "build", "halo_text.dis"); s = set(FUNC_SIZES)
+        if os.path.exists(dis):
+            s |= {int(m.group(1), 16) for m in re.finditer(r"\tcall\s+0x([0-9a-f]+)\s*$", open(dis).read(), re.M)}
+        _ENTRIES = sorted(s)
+    return _ENTRIES
+
+def pop_limit(addr, size):
+    import bisect
+    ents = known_entries(); i = bisect.bisect_right(ents, addr)
+    return max(addr + size, min(ents[i] if i < len(ents) else addr + size + 4096, addr + size + 4096))
+
 def ret_cleanup(addr, size):
-    r = subprocess.run([OBJDUMP, "-d", "-M", "intel", f"--start-address=0x{addr:x}", f"--stop-address=0x{addr + size:x}",
-                        os.path.join(ROOT, "bin", "halo.exe")], capture_output=True, text=True)
-    rets = set()
-    for l in r.stdout.splitlines():
-        m = re.search(r"\tret\s*(0x[0-9a-f]+)?\s*$", l)
-        if m: rets.add(int(m.group(1), 16) if m.group(1) else 0)
+    """the ret / ret N forms of the original. The header sizes come from Ghidra and are sometimes short of the real
+    end, so when none lies inside, keep reading up to the next known function entry (at most 4 KB further)"""
+    import bisect
+    ents = known_entries(); i = bisect.bisect_right(ents, addr)
+    limit = min(ents[i] if i < len(ents) else addr + size + 4096, addr + size + 4096)
+    for stop in (addr + size, max(limit, addr + size)):
+        r = subprocess.run([OBJDUMP, "-d", "-M", "intel", f"--start-address=0x{addr:x}", f"--stop-address=0x{stop:x}",
+                            os.path.join(ROOT, "bin", "halo.exe")], capture_output=True, text=True)
+        rets = set()
+        for l in r.stdout.splitlines():
+            m = re.search(r"\tret\s*(0x[0-9a-f]+)?\s*$", l)
+            if m: rets.add(int(m.group(1), 16) if m.group(1) else 0)
+        if rets: return rets
     return rets
 
 def coff_undefined(obj):
@@ -292,10 +325,10 @@ def main():
     cache = json.load(open(cache_p)) if os.path.exists(cache_p) else {}
     key = lambda f: f"{f['addr']:x}:{f['size']}"
     FUNC_SIZES.update({f["addr"]: f["size"] for f in funcs.values()})
-    todo = [f for f in funcs.values() if key(f) not in cache or not isinstance(cache[key(f)], dict) or cache[key(f)].get("v") != 4]
+    todo = [f for f in funcs.values() if key(f) not in cache or not isinstance(cache[key(f)], dict) or cache[key(f)].get("v") != 7]
     with ThreadPoolExecutor(16) as ex:
         for f, res in zip(todo, ex.map(lambda f: (sorted(ret_cleanup(f["addr"], f["size"])), live_in(f["addr"], f["size"])), todo)):
-            cache[key(f)] = {"rets": res[0], "live_in": res[1], "v": 4}
+            cache[key(f)] = {"rets": res[0], "live_in": res[1], "v": 7}
     json.dump(cache, open(cache_p, "w"))
     for f in funcs.values(): f["rets"] = cache[key(f)]["rets"]; f["live_in"] = cache[key(f)]["live_in"]
     # reachability over the DLL's own C-to-C calls

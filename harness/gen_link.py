@@ -29,6 +29,13 @@ def extern_map():
     for p in glob.glob(os.path.join(ROOT, "src", "*", "*.c")):
         t = open(p, encoding="utf-8", errors="replace").read()
         b = t[:t.rfind("#if 0")] if "#if 0" in t else t
+        # function-pointer variables: "extern void (*name)(args); // 0x00696664" -- data holding a code address.
+        # The general pattern below would read these as a function called "void"
+        for m in re.finditer(r"^[ \t]*extern\s[^;{}(]*\(\s*(?:__\w+\s+)?\*\s*([A-Za-z_]\w*)\s*\)\s*\(", b, re.M):
+            end = b.find(";", m.start()); eol = b.find("\n", end)
+            a = re.search(r"0x0{0,2}([4-9a-f][0-9a-f]{5})\b", b[end:eol if eol > 0 else len(b)], re.I)
+            kind[m.group(1)] = "data"
+            if a: addr[m.group(1)][int(a.group(1), 16)] += 1
         for m in ext.finditer(b):
             end = b.find(";", m.start()); eol = b.find("\n", end)
             tail = b[end:eol if eol > 0 else len(b)]

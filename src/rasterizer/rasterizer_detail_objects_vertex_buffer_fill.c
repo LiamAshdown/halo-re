@@ -49,8 +49,8 @@ void rasterizer_detail_objects_vertex_buffer_fill(rasterizer_detail_object_batch
     scenario = global_scenario;
     buffer = rasterizer_detail_object_vertex_buffer;
     if (((d3d_lock_fn)(*(void ***)buffer)[0x2c / 4])(buffer, 0, 0x78000, (void **)&vertices, 0) >= 0 && vertices != 0) {
-        uint8_t *detail_objects = *(uint32_t *)(global_structure_bsp + 0x24c) != 0
-                                      ? (uint8_t *)*(uint32_t *)(global_structure_bsp + 0x250) : (uint8_t *)0;
+        uint8_t *detail_objects = *(uint32_t *)((uint8_t *)global_structure_bsp + 0x24c) != 0 /* FIXED: was a ScenarioStructureBSP-sized step */
+                                      ? (uint8_t *)*(uint32_t *)((uint8_t *)global_structure_bsp + 0x250) : (uint8_t *)0;
         const uint8_t *instances = (const uint8_t *)*(uint32_t *)(detail_objects + 0x10);
         int32_t vertex_cursor = 0;
         int32_t quads_used = 0;

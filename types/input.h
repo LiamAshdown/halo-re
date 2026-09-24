@@ -515,35 +515,35 @@ typedef struct di_device_object_instance {
 // ---------------------------------------------------------------------------
 // DirectInput8Create, reached through the shell pointer at 0x00746268
 // (input_directinput_initialize 0x490520)
-typedef int32_t (*directinput8create_proc)(void *instance, uint32_t sdk_version,
+typedef int32_t (__stdcall *directinput8create_proc)(void *instance, uint32_t sdk_version,
     input_guid *iid, void **out_interface, void *outer);
 // IDirectInput8A
-typedef int32_t (*idirectinput8_release_proc)(void *self);             // +0x08 (0x490580)
-typedef int32_t (*idirectinput8_createdevice_proc)(void *self, input_guid *guid,
+typedef int32_t (__stdcall *idirectinput8_release_proc)(void *self);             // +0x08 (0x490580)
+typedef int32_t (__stdcall *idirectinput8_createdevice_proc)(void *self, input_guid *guid,
     void **out_device, void *outer);                                   // +0x0c (0x4918a0, 0x4919c0)
-typedef int32_t (*idirectinput8_enumdevices_proc)(void *self, uint32_t device_class,
+typedef int32_t (__stdcall *idirectinput8_enumdevices_proc)(void *self, uint32_t device_class,
     void *callback, void *callback_arg, uint32_t flags);               // +0x10 (0x491a80)
 // IDirectInputDevice8A
-typedef int32_t (*idirectinputdevice8_release_proc)(void *self);       // +0x08 (0x491f80, 0x490580,
+typedef int32_t (__stdcall *idirectinputdevice8_release_proc)(void *self);       // +0x08 (0x491f80, 0x490580,
                                                                        //   0x4918a0, 0x4919c0)
-typedef int32_t (*idirectinputdevice8_getproperty_proc)(void *self, uint32_t property,
+typedef int32_t (__stdcall *idirectinputdevice8_getproperty_proc)(void *self, uint32_t property,
     di_property_dword *data);                                          // +0x14 (0x490620)
-typedef int32_t (*idirectinputdevice8_setproperty_proc)(void *self, uint32_t property,
+typedef int32_t (__stdcall *idirectinputdevice8_setproperty_proc)(void *self, uint32_t property,
     di_property_dword *data);                                          // +0x18 (0x4918a0)
-typedef int32_t (*idirectinputdevice8_acquire_proc)(void *self);       // +0x1c (0x490620, 0x490760)
-typedef int32_t (*idirectinputdevice8_unacquire_proc)(void *self);     // +0x20 (0x4906e0, 0x491f80,
+typedef int32_t (__stdcall *idirectinputdevice8_acquire_proc)(void *self);       // +0x1c (0x490620, 0x490760)
+typedef int32_t (__stdcall *idirectinputdevice8_unacquire_proc)(void *self);     // +0x20 (0x4906e0, 0x491f80,
                                                                        //   0x490580, create failures)
-typedef int32_t (*idirectinputdevice8_getdevicestate_proc)(void *self, uint32_t size,
+typedef int32_t (__stdcall *idirectinputdevice8_getdevicestate_proc)(void *self, uint32_t size,
     void *data);                                                       // +0x24 (0x490760)
 // +0x28 GetDeviceData. input_keyboard_set_capture_mode 0x48b650 flushes the keyboard buffer
 // with (0x14, NULL, &count = -1, 0); interface.h calls the same slot directinput_set_property_fn
-typedef int32_t (*idirectinputdevice8_getdevicedata_proc)(void *self, uint32_t object_size,
+typedef int32_t (__stdcall *idirectinputdevice8_getdevicedata_proc)(void *self, uint32_t object_size,
     di_device_object_data *events, uint32_t *in_out_count, uint32_t flags); // (0x490760)
-typedef int32_t (*idirectinputdevice8_setdataformat_proc)(void *self,
+typedef int32_t (__stdcall *idirectinputdevice8_setdataformat_proc)(void *self,
     di_data_format *format);                                           // +0x2c (0x4918a0, 0x4919c0)
-typedef int32_t (*idirectinputdevice8_setcooplevel_proc)(void *self, void *hwnd,
+typedef int32_t (__stdcall *idirectinputdevice8_setcooplevel_proc)(void *self, void *hwnd,
     uint32_t flags);                                                   // +0x34 (0x4918a0, 0x4919c0)
-typedef int32_t (*idirectinputdevice8_poll_proc)(void *self);          // +0x64 (0x490760)
+typedef int32_t (__stdcall *idirectinputdevice8_poll_proc)(void *self);          // +0x64 (0x490760)
 
 // ---------------------------------------------------------------------------
 // globals this module owns

@@ -517,20 +517,20 @@ typedef struct directsound_channel {
 // GetCurrentPosition, +0x24 GetStatus, +0x2c Lock, +0x30 Play, +0x34 SetCurrentPosition, +0x3c
 // SetVolume, +0x48 Stop, +0x4c Unlock, +0x50 Restore. IDirectSound3DListener: +0x44
 // CommitDeferredSettings. IUnknown: +0 QueryInterface.
-typedef int32_t (*directsound_query_interface_proc)(void *self, uint8_t *iid, void **object);
-typedef int32_t (*directsound_buffer_get_current_position_proc)(void *self, int32_t *play_cursor,
+typedef int32_t (__stdcall *directsound_query_interface_proc)(void *self, uint8_t *iid, void **object);
+typedef int32_t (__stdcall *directsound_buffer_get_current_position_proc)(void *self, int32_t *play_cursor,
     int32_t *write_cursor);
-typedef int32_t (*directsound_buffer_get_status_proc)(void *self, uint32_t *status);
-typedef int32_t (*directsound_buffer_lock_proc)(void *self, int32_t offset, uint32_t bytes, void **ptr1,
+typedef int32_t (__stdcall *directsound_buffer_get_status_proc)(void *self, uint32_t *status);
+typedef int32_t (__stdcall *directsound_buffer_lock_proc)(void *self, int32_t offset, uint32_t bytes, void **ptr1,
     uint32_t *bytes1, void **ptr2, uint32_t *bytes2, uint32_t flags);
-typedef int32_t (*directsound_buffer_play_proc)(void *self, uint32_t reserved, uint32_t priority, uint32_t flags);
-typedef int32_t (*directsound_buffer_set_current_position_proc)(void *self, int32_t position);
-typedef int32_t (*directsound_buffer_set_volume_proc)(void *self, int32_t volume);
-typedef int32_t (*directsound_buffer_stop_proc)(void *self);
-typedef int32_t (*directsound_buffer_unlock_proc)(void *self, void *ptr1, uint32_t bytes1, void *ptr2,
+typedef int32_t (__stdcall *directsound_buffer_play_proc)(void *self, uint32_t reserved, uint32_t priority, uint32_t flags);
+typedef int32_t (__stdcall *directsound_buffer_set_current_position_proc)(void *self, int32_t position);
+typedef int32_t (__stdcall *directsound_buffer_set_volume_proc)(void *self, int32_t volume);
+typedef int32_t (__stdcall *directsound_buffer_stop_proc)(void *self);
+typedef int32_t (__stdcall *directsound_buffer_unlock_proc)(void *self, void *ptr1, uint32_t bytes1, void *ptr2,
     uint32_t bytes2);
-typedef int32_t (*directsound_buffer_restore_proc)(void *self);
-typedef int32_t (*directsound_listener_commit_proc)(void *self);
+typedef int32_t (__stdcall *directsound_buffer_restore_proc)(void *self);
+typedef int32_t (__stdcall *directsound_listener_commit_proc)(void *self);
 
 // WAVEFORMATEX as built by 0x545a30 / 0x546760 (format tag 1, 16 bits)
 typedef struct sound_wave_format {
@@ -562,9 +562,9 @@ typedef struct win32_dsbcaps {
     uint32_t play_cpu_overhead; // 0x10
 } win32_dsbcaps;               // size 0x14
 
-typedef int32_t (*directsound_create_sound_buffer_proc)(void *self, sound_buffer_description *description,
+typedef int32_t (__stdcall *directsound_create_sound_buffer_proc)(void *self, sound_buffer_description *description,
     void **buffer, void *outer);
-typedef int32_t (*directsound_buffer_get_caps_proc)(void *self, win32_dsbcaps *caps);
+typedef int32_t (__stdcall *directsound_buffer_get_caps_proc)(void *self, win32_dsbcaps *caps);
 
 // Xbox ADPCM block decoders (0x0065e640 table, 0x54e920 mono / 0x54ea60 stereo), called by
 // sound_decode_dispatch 0x54e830 with the block layout it computes
