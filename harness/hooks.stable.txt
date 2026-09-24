@@ -1,4 +1,4 @@
-# Hook set proven in-game on 2026-09-24 (603 functions). Copy to harness/build/hooks.txt to use it.
+# Hook set proven in-game on 2026-09-24 (612 functions, behaviour checked). Copy to harness/build/hooks.txt to use it.
 # on >= 20 real samples in harness/difftest_all.py.
 
 math
