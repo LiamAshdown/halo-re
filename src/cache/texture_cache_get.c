@@ -126,7 +126,7 @@ void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_mi
                             GlobalFree(*(void **)bitmap->_pad_2c);
                             *(void **)bitmap->_pad_2c = (void *)0;
                         }
-                        entry->texture = *(void **)bitmap->_pad_28;
+                        entry->texture = *(void **)&bitmap->hardware_texture;
                     }
                     result = &entry->texture;
                     break;
@@ -146,7 +146,7 @@ void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_mi
             result = (void *)0;
         }
     } else {
-        result = *(void **)bitmap->_pad_28;
+        result = *(void **)&bitmap->hardware_texture;
     }
 
     if (wait != 0 && result == (void *)0) {

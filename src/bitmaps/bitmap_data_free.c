@@ -8,7 +8,7 @@
 // passes the element in ESI."); types/bitmaps.h BitmapData::pointer (texture cache datum_index),
 // _pad_28 (hardware texture) and _pad_2c (pixel base) notes; texture cache field reuse already
 // established the same way in src/cache/texture_cache_get.c and
-// src/cache/texture_cache_page_allocate.c (`*(void **)bitmap->_pad_28` / `_pad_2c`).
+// src/cache/texture_cache_page_allocate.c (`*(void **)&bitmap->hardware_texture` / `_pad_2c`).
 // register convention: ESI = BitmapData *bitmap_data.
 //   // blam-cc: ESI -> bitmap_data
 
@@ -36,11 +36,11 @@ void bitmap_data_free(BitmapData *bitmap_data)
         *(void **)bitmap_data->_pad_2c = 0;
     }
 
-    if (*(void **)bitmap_data->_pad_28 != 0) {
-        void *hardware_texture = *(void **)bitmap_data->_pad_28;
+    if (*(void **)&bitmap_data->hardware_texture != 0) {
+        void *hardware_texture = *(void **)&bitmap_data->hardware_texture;
         void **vtable = *(void ***)hardware_texture;
         ((bitmap_hardware_texture_release_proc)vtable[2])(hardware_texture); // call [ecx+0x08]
-        *(void **)bitmap_data->_pad_28 = 0;
+        *(void **)&bitmap_data->hardware_texture = 0;
     }
 
     if (bitmap_data->flags & _bitmap_data_runtime_allocated_bit) {

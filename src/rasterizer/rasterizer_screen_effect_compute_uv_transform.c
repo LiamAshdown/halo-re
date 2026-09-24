@@ -90,7 +90,7 @@ void rasterizer_screen_effect_compute_uv_transform(uint32_t width, uint32_t heig
     frame.bitmap_tag_id.id = 0;
     frame.pointer = 0;
     for (i = 0; i < 4; i++) {
-        frame._pad_28[i] = 0;
+        ((uint8_t *)&frame.hardware_texture)[i] = 0;
         frame._pad_2c[i] = 0;
     }
 

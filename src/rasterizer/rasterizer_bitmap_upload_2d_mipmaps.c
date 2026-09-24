@@ -2,7 +2,7 @@
 // address 0x524100, size 363 bytes
 // name confidence: 0.4   rewrite confidence: 0.35
 // evidence: out/phase2/results/rasterizer_01.json ("Uploads a packed 2D bitmap's mip chain into
-// a locked Direct3D texture, level by level."). `param_1 + 0x28` is bitmap->pointer (the hardware
+// a locked Direct3D texture, level by level."). `param_1 + 0x28` is bitmap->hardware_texture (the hardware
 // texture created by rasterizer_bitmap_create_hardware_texture.c); its vtable+0x4c/+0x50 (index
 // 19/20) are IDirect3DTexture9::LockRect(Level, pLockedRect, pRect, Flags) and UnlockRect(Level),
 // confirmed by their 4-arg and 1-arg call shapes. The per-level copy loop reads either row by row
@@ -21,6 +21,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <string.h>
+// reconciled: the Direct3D texture is BitmapData.hardware_texture (+0x28, retail PC runtime); tags.h's `pointer` (+0x24) is a different field
 
 extern void *rasterizer_device; // 0x0071d174, UNSURE relevance here (read but not used directly)
 
@@ -58,7 +59,7 @@ void rasterizer_bitmap_upload_2d_mipmaps(BitmapData *bitmap)
 
     // UNSURE: bitmap+0x2c has no established field name in types/rasterizer.h.
     if (rasterizer_device == 0 || *(uint32_t *)((uint8_t *)bitmap + 0x2c) == 0 ||
-        bitmap->pointer == 0) {
+        bitmap->hardware_texture == 0) {
         return;
     }
 
@@ -68,9 +69,9 @@ void rasterizer_bitmap_upload_2d_mipmaps(BitmapData *bitmap)
             return;
         }
 
-        vtable = *(void ***)(void *)bitmap->pointer;
+        vtable = *(void ***)(void *)bitmap->hardware_texture;
         lock_rect = (d3d_lock_rect_fn)vtable[0x13]; // +0x4c
-        hresult = lock_rect((void *)bitmap->pointer, (uint32_t)level, &locked, 0, 0);
+        hresult = lock_rect((void *)bitmap->hardware_texture, (uint32_t)level, &locked, 0, 0);
 
         if (hresult < 0 || locked.bits == 0) {
             ok = 0;
@@ -93,9 +94,9 @@ void rasterizer_bitmap_upload_2d_mipmaps(BitmapData *bitmap)
             memcpy((void *)locked.bits, source, level_size);
         }
 
-        vtable = *(void ***)(void *)bitmap->pointer;
+        vtable = *(void ***)(void *)bitmap->hardware_texture;
         unlock_rect = (d3d_unlock_rect_fn)vtable[0x14]; // +0x50
-        hresult = unlock_rect((void *)bitmap->pointer, (uint32_t)level);
+        hresult = unlock_rect((void *)bitmap->hardware_texture, (uint32_t)level);
         if (hresult < 0) {
             ok = 0;
         }

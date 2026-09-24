@@ -5,7 +5,7 @@
 // appropriate Direct3D surface/volume/cube-face...") does not match what the vtable offsets
 // actually resolve to once traced against the standard D3D9 vtable layout -- the three branches
 // call the DEVICE's CreateTexture/CreateVolumeTexture/CreateCubeTexture (not a per-resource
-// Lock), and the created object is stored into bitmap->pointer, so this rewrite follows the
+// Lock), and the created object is stored into bitmap->hardware_texture, so this rewrite follows the
 // vtable evidence over the phase2 summary. This one's three branches match
 // IDirect3DDevice9::CreateTexture (vtable+0x5c, index 23, 8 args), ::CreateVolumeTexture
 // (+0x60, index 24, 9 args) and ::CreateCubeTexture (+0x64/100, index 25, 7 args) exactly by
@@ -13,7 +13,7 @@
 // `DAT_007c10fc` (d3d_caps9.texture_caps: bit 0x2000 volume-texture support, bit 0x800
 // cube-texture support, bit 0x10000 mipmappable cube maps, per the header's own "bitmap lock and
 // upload paths" note). `DAT_0065e040` is a BitmapDataFormat_t -> D3DFORMAT lookup table. The
-// created object is written to `bitmap->pointer` (+0x28), the same tag-data repurposing already
+// created object is written to `bitmap->hardware_texture` (+0x28), the same tag-data repurposing already
 // documented for BitmapData::pointer elsewhere in this codebase.
 // register convention: bitmap in ESI (live-in; no stack parameters).
 // UNSURE: the exact CreateTexture Usage argument (hardcoded 0 for 2D/volume) and the format
@@ -23,6 +23,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+// reconciled: the Direct3D texture is BitmapData.hardware_texture (+0x28, retail PC runtime); tags.h's `pointer` (+0x24) is a different field
 
 extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c0
 
@@ -36,7 +37,7 @@ typedef int32_t (__stdcall *d3d_create_volume_texture_fn)(void *self, uint32_t w
 typedef int32_t (__stdcall *d3d_create_cube_texture_fn)(void *self, uint32_t edge_length, uint32_t levels, uint32_t usage, int32_t format, uint32_t pool, void *out_texture, void *shared_handle);
 
 // Creates the hardware texture/volume texture/cube texture object for `bitmap` (matching its
-// type field) and stores it in bitmap->pointer. Returns 1 on success (including "nothing to do"
+// type field) and stores it in bitmap->hardware_texture. Returns 1 on success (including "nothing to do"
 // cases: no device, no format mapping, or an unsupported capability), 0 on a real failure.
 // blam-cc: ESI = bitmap
 uint8_t rasterizer_bitmap_create_hardware_texture(BitmapData *bitmap)
@@ -50,13 +51,13 @@ uint8_t rasterizer_bitmap_create_hardware_texture(BitmapData *bitmap)
 
     ok = 1;
     if (rasterizer_device == 0) {
-        bitmap->pointer = 0;
+        bitmap->hardware_texture = 0;
         return 1;
     }
 
     format = rasterizer_bitmap_format_to_d3dformat[bitmap->format];
     if (format == -1) {
-        bitmap->pointer = 0;
+        bitmap->hardware_texture = 0;
         return 1;
     }
 
@@ -64,44 +65,44 @@ uint8_t rasterizer_bitmap_create_hardware_texture(BitmapData *bitmap)
         mip_skip = rasterizer_bitmap_compute_mipmap_skip_count(bitmap, &width, &height);
         d3d_create_texture_fn create_texture = (d3d_create_texture_fn)(*(void ***)rasterizer_device)[0x17]; // +0x5c
         hresult = create_texture(rasterizer_device, width, height,
-            (uint32_t)((bitmap->mipmap_count - mip_skip) + 1), 0, format, 1, &bitmap->pointer, 0);
+            (uint32_t)((bitmap->mipmap_count - mip_skip) + 1), 0, format, 1, &bitmap->hardware_texture, 0);
         if (hresult < 0) {
             ok = 0;
         }
     } else if (bitmap->type == 1) {
         if ((rasterizer_caps.texture_caps & 0x2000) == 0) {
-            bitmap->pointer = 0;
+            bitmap->hardware_texture = 0;
         } else {
             levels = ((int8_t)(rasterizer_caps.texture_caps >> 8) < 0) ? bitmap->mipmap_count + 1 : 1;
             d3d_create_volume_texture_fn create_volume_texture =
                 (d3d_create_volume_texture_fn)(*(void ***)rasterizer_device)[0x18]; // +0x60
             hresult = create_volume_texture(rasterizer_device, bitmap->width, bitmap->height,
-                bitmap->depth, (uint32_t)levels, 0, format, 1, &bitmap->pointer, 0);
+                bitmap->depth, (uint32_t)levels, 0, format, 1, &bitmap->hardware_texture, 0);
             if (hresult < 0) {
                 ok = 0;
             }
         }
     } else if (bitmap->type == 2) {
         if ((rasterizer_caps.texture_caps & 0x800) == 0) {
-            bitmap->pointer = 0;
+            bitmap->hardware_texture = 0;
         } else {
             levels = (rasterizer_caps.texture_caps & 0x10000) == 0 ? 1 : bitmap->mipmap_count + 1;
             d3d_create_cube_texture_fn create_cube_texture =
                 (d3d_create_cube_texture_fn)(*(void ***)rasterizer_device)[0x19]; // +0x64
             hresult = create_cube_texture(rasterizer_device, bitmap->width, (uint32_t)levels, 0,
-                format, 1, &bitmap->pointer, 0);
+                format, 1, &bitmap->hardware_texture, 0);
             if (hresult < 0) {
                 ok = 0;
             }
         }
     }
 
-    if (bitmap->pointer == 0) {
-        bitmap->pointer = 0;
+    if (bitmap->hardware_texture == 0) {
+        bitmap->hardware_texture = 0;
         return 0;
     }
     if (ok == 0) {
-        bitmap->pointer = 0;
+        bitmap->hardware_texture = 0;
     }
     return ok;
 }

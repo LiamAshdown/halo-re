@@ -1,4 +1,5 @@
-// Generated from invader tag definitions. Do not edit by hand; edit tools/gen_tag_header.py.
+// Generated from invader tag definitions by tools/gen_tag_header.py, then edited by hand (reconciliation
+// comments and retail PC runtime fields): do NOT regenerate over it; edit this file directly.
 #pragma pack(push, 1)
 typedef unsigned char uint8_t; typedef signed char int8_t; typedef unsigned short uint16_t; typedef short int16_t;
 typedef unsigned int uint32_t; typedef int int32_t;
@@ -941,7 +942,7 @@ typedef struct BitmapData {
     uint32_t pixel_data_size;
     TagID bitmap_tag_id;
     uint32_t pointer;
-    uint8_t _pad_28[4];
+    uint32_t hardware_texture;  // retail PC runtime: IDirect3DBaseTexture9 * (0x524173 locks it, 0x524133 tests it)
     uint8_t _pad_2c[4];
 } BitmapData;  // size 0x30
 typedef struct Bitmap {

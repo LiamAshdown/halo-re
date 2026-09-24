@@ -3,7 +3,7 @@
 // name confidence: 0.35   rewrite confidence: 0.15
 // evidence: out/phase2/results/rasterizer_01.json ("Uploads all six faces of a packed cubemap
 // bitmap for each mip level, an alternate iteration order to
-// rasterizer_bitmap_upload_cubemap_mipmaps."). Same gating fields (bitmap+0x2c, bitmap->pointer)
+// rasterizer_bitmap_upload_cubemap_mipmaps."). Same gating fields (bitmap+0x2c, bitmap->hardware_texture)
 // and the same mipmappable-cube-map capability test (bit 0x10000 of texture_caps) as
 // rasterizer_bitmap_upload_cubemap_mipmaps.c, but with bitmap_data_get_cube_map_pixel_address (a face-address helper, not
 // decoded here) in place of bitmap_data_get_pixel_address, and iterating faces as the outer loop
@@ -20,6 +20,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <string.h>
+// reconciled: the Direct3D texture is BitmapData.hardware_texture (+0x28, retail PC runtime); tags.h's `pointer` (+0x24) is a different field
 
 extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c0
 
@@ -52,7 +53,7 @@ void rasterizer_bitmap_upload_cubemap_mipmaps_by_face(BitmapData *bitmap)
 
     ok = 1;
     if (rasterizer_device == 0 || *(uint32_t *)((uint8_t *)bitmap + 0x2c) == 0 ||
-        bitmap->pointer == 0) {
+        bitmap->hardware_texture == 0) {
         return;
     }
 
@@ -60,9 +61,9 @@ void rasterizer_bitmap_upload_cubemap_mipmaps_by_face(BitmapData *bitmap)
 
     for (face = 0; face < 6 && ok; face++) {
         for (level = 0; level <= max_level && ok; level++) {
-            vtable = *(void ***)(void *)bitmap->pointer;
+            vtable = *(void ***)(void *)bitmap->hardware_texture;
             lock_rect = (d3d_lock_rect_fn)vtable[0x13]; // +0x4c
-            hresult = lock_rect((void *)bitmap->pointer, (uint32_t)face, (uint32_t)level, &locked, 0, 0);
+            hresult = lock_rect((void *)bitmap->hardware_texture, (uint32_t)face, (uint32_t)level, &locked, 0, 0);
             if (hresult < 0 || locked.bits == 0) {
                 ok = 0;
                 break;
@@ -78,9 +79,9 @@ void rasterizer_bitmap_upload_cubemap_mipmaps_by_face(BitmapData *bitmap)
                 dest = dest + locked.pitch;
             }
 
-            vtable = *(void ***)(void *)bitmap->pointer;
+            vtable = *(void ***)(void *)bitmap->hardware_texture;
             unlock_rect = (d3d_unlock_rect_fn)vtable[0x14]; // +0x50
-            hresult = unlock_rect((void *)bitmap->pointer, (uint32_t)face, (uint32_t)level);
+            hresult = unlock_rect((void *)bitmap->hardware_texture, (uint32_t)face, (uint32_t)level);
             if (hresult < 0) {
                 ok = 0;
             }

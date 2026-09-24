@@ -78,7 +78,7 @@ uint8_t bitmap_group_postprocess(datum_index tag_id, uint8_t skip_hardware_textu
 
         entry->pointer = (uint32_t)k_datum_index_none;
         *(void **)entry->_pad_2c = 0;
-        *(void **)entry->_pad_28 = 0;
+        *(void **)&entry->hardware_texture = 0;
 
         if (bitmap->type == bitmaptype_interface_bitmaps) {
             entry->flags |= _bitmap_data_linear_bit;
@@ -101,7 +101,7 @@ uint8_t bitmap_group_postprocess(datum_index tag_id, uint8_t skip_hardware_textu
         for (i = 0; i < bitmap_data_count; i++) {
             BitmapData *entry = bitmap_data_array + i;
             if (bitmap->type != bitmaptype_interface_bitmaps) {
-                if (*(void **)entry->_pad_28 == 0) {
+                if (*(void **)&entry->hardware_texture == 0) {
                     rasterizer_bitmap_create_hardware_texture(entry);
                 }
                 switch (entry->type) {

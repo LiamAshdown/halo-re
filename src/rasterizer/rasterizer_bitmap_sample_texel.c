@@ -23,6 +23,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+// reconciled: the Direct3D texture is BitmapData.hardware_texture (+0x28, retail PC runtime); tags.h's `pointer` (+0x24) is a different field
 
 extern int32_t rasterizer_bitmap_compute_mipmap_skip_count(BitmapData *bitmap, int16_t *out_width, int16_t *out_height);
 extern uint32_t dxt1_decode_block_texel(void *block, uint32_t x, uint32_t y); // 0x43ffe0, UNSURE signature
@@ -53,7 +54,7 @@ int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_
     int32_t result;
     void *block;
 
-    if (bitmap->pointer == 0) {
+    if (bitmap->hardware_texture == 0) {
         return -1;
     }
 
@@ -96,9 +97,9 @@ int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_
         y = (uint32_t)(((iy % height) + height) % height);
     }
 
-    vtable = *(void ***)(void *)bitmap->pointer;
+    vtable = *(void ***)(void *)bitmap->hardware_texture;
     lock_rect = (d3d_lock_rect_fn)vtable[0x13]; // +0x4c
-    hresult = lock_rect((void *)bitmap->pointer, (uint32_t)level, &locked, 0, 0);
+    hresult = lock_rect((void *)bitmap->hardware_texture, (uint32_t)level, &locked, 0, 0);
     if (hresult < 0) {
         return -1;
     }
@@ -151,9 +152,9 @@ int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_
         }
     }
 
-    vtable = *(void ***)(void *)bitmap->pointer;
+    vtable = *(void ***)(void *)bitmap->hardware_texture;
     unlock_rect = (d3d_unlock_rect_fn)vtable[0x14]; // +0x50
-    unlock_rect((void *)bitmap->pointer, unlock_level);
+    unlock_rect((void *)bitmap->hardware_texture, unlock_level);
 
     return result;
 }

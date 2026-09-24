@@ -79,7 +79,7 @@ uint32_t texture_cache_page_allocate(BitmapData *bitmap, uint8_t priority)
     bitmap->pointer = cache_slot;
     *(void **)bitmap->_pad_2c = staging_buffer;
     entry->bitmap = bitmap;
-    entry->texture = *(void **)bitmap->_pad_28;
+    entry->texture = *(void **)&bitmap->hardware_texture;
 
     data_file_index = (bitmap->flags & 0x100) ? (uint8_t)_cache_io_data_file_bitmaps
                                                : (uint8_t)_cache_io_data_file_cache;
