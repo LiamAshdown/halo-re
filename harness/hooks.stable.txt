@@ -1,4 +1,4 @@
-# Stable set: 1384 functions, behaviour-checked in game (2026-09-25)
+# Stable set: 1391 functions, behaviour-checked in game (2026-09-25)
 bit_vector_or
 bounded_ramp_profile_build
 bounded_ramp_profile_evaluate
@@ -1383,3 +1383,10 @@ biped_is_idle_eligible
 unit_clear_ground_adjust_dirty
 unit_scripted_action_animation_exists
 unit_set_throw_aim_direction
+bitmap_group_sequence_get_bitmap_offset
+controls_action_column_is_bindable
+controls_gamepad_list_add
+hud_add_item_message
+hud_display_loading_message
+hud_message_broadcast_to_local_players
+list_node_prepend
