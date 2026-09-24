@@ -15,6 +15,8 @@
 //   engine callback pointers (0x00721ea0/eb4/eb8/edc/ec8) are not documented in
 //   types/rasterizer.h; their signatures are best-effort guesses from this call site only.
 
+// reconciled: the document key is passed by value (the global's contents), not its address; with the address the
+//   edit box document was never found again, so the step that hides it never ran (the 'Prompt' box in game).
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -74,13 +76,13 @@ void rasterizer_editbox_log_dump(void)
     wcscat(log_path, height_text);
     wcscat(log_path, L"log.ksml");
 
-    unknown_00721eb4(chat_gui_root_handle, editbox_path, &unknown_0069c698, 0x10000000, rect_zero, 0, 0, 0, 0, 0, 0);
+    unknown_00721eb4(chat_gui_root_handle, editbox_path, unknown_0069c698, 0x10000000, /* 0x519802: mov eax,[0x69c698]; push eax */ rect_zero, 0, 0, 0, 0, 0, 0);
     document = unknown_00721eb8(chat_gui_root_handle, unknown_0069c698);
     if (document != 0) {
         unknown_00721edc(document, 0);
         unknown_00721ec8(document);
     }
-    unknown_00721eb4(chat_gui_root_handle, log_path, &unknown_0069c69c, 0x10000000, rect_zero, 0, 0, 0, 0, 0, 0);
+    unknown_00721eb4(chat_gui_root_handle, log_path, unknown_0069c69c, 0x10000000, /* 0x51985b: mov eax,[0x69c69c] */ rect_zero, 0, 0, 0, 0, 0, 0);
 }
 
 #if 0

@@ -251,6 +251,7 @@ def main():
         above = b[:d[0].start()].rstrip(chr(10)).split(chr(10)); k_ = len(above)
         while k_ > 0 and above[k_ - 1].lstrip().startswith('//'): k_ -= 1
         own += chr(10) + chr(10).join(above[k_:])
+        own += chr(10) + d[0].group(0)                # the definition line itself (a trailing '// blam-cc:' note)
         regs, has_cc, widths, stack_order = parse_cc(own, [x['name'] for x in params], {x['name']: (re.findall(r'[A-Za-z_]\w*', x['type'].replace('const', '').replace('struct', '')) or [''])[-1] for x in params})
         if len(set(regs.values())) != len(regs): skipped["two parameters mapped to one register"].append(name); continue
         unknown = [n for n in regs if n not in {x["name"] for x in params}]
