@@ -13,6 +13,8 @@
 // second `uint *` distinct from the stack buffer, so both are modeled as separate out-parameters
 // here rather than folded into one.
 
+// reconciled: copies history bytes 4..0x307 (0xc1 dwords) like the original; the draft copied all 0x308 bytes
+//   from offset 0, shifting every field and writing 4 bytes past the caller's stack buffer (a jump to 0 later).
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -47,10 +49,10 @@ void update_server_queue_get_history_entry(int32_t *out_record, int32_t *out_tic
             if (value < update_server_tick && update_server_tick - 0x20 <= value &&
                 ((uint32_t)value & 0x1f) * sizeof(update_record) != (uint32_t)(-0x6f1d94)) {
                 update_record *record = &update_server_history[value & 0x1f];
-                int32_t *src = (int32_t *)record;
+                int32_t *src = (int32_t *)record + 1;   // 0x472f0e: lea esi,[eax+0x4] -- the record's first dword is skipped
                 int32_t i;
 
-                for (i = 0; i < (int32_t)(sizeof(update_record) / 4); i++) {
+                for (i = 0; i < 0xc1; i++) {             // 0x472f11: mov ecx,0xc1 -- 0x304 bytes, the caller's buffer size
                     out_record[i] = src[i];
                 }
             }
