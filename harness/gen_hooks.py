@@ -81,6 +81,65 @@ FUNC_SIZES = {}          # entry address -> size, from the src headers (filled i
 import threading
 _LIVE_MEMO, _TLS = {}, threading.local()   # memo shared (complete results only); in-progress set per thread
 
+_CLOBBER_MEMO = {}
+_SCRATCH = ("eax", "ecx", "edx")
+def clobbers(addr, depth=0):
+    """the scratch registers (EAX/ECX/EDX) the original function at addr may change, on any path: registers it
+    writes anywhere in its body (up to the next known function entry), plus those of its direct callees and of a
+    tail jump into another function. A register pushed before its first write and popped again is preserved.
+    Indirect calls, imports and anything not analysable clobber all three (the old assumption)."""
+    if addr in _CLOBBER_MEMO: return _CLOBBER_MEMO[addr]
+    busy = _TLS.__dict__.setdefault("cbusy", set())
+    if addr in busy or depth > 8 or not (0x401000 <= addr < 0x632000): return set(_SCRATCH)
+    busy.add(addr)
+    try:
+        import bisect
+        ents = known_entries(); i = bisect.bisect_right(ents, addr)
+        end = min(ents[i] if i < len(ents) else addr + 8192, addr + 8192)
+        out = subprocess.run([OBJDUMP, "-d", "-M", "intel", "--no-show-raw-insn", f"--start-address=0x{addr:x}",
+                              f"--stop-address=0x{end:x}", os.path.join(ROOT, "bin", "halo.exe")],
+                             capture_output=True, text=True).stdout
+        full = {"eax": "eax", "ax": "eax", "al": "eax", "ah": "eax", "ecx": "ecx", "cx": "ecx", "cl": "ecx", "ch": "ecx",
+                "edx": "edx", "dx": "edx", "dl": "edx", "dh": "edx"}
+        regs_in = lambda s: {full[x] for x in re.findall(r"\b(e?[acd]x|[acd][lh])\b", s)}
+        wrote, saved, popped, first = set(), set(), set(), True
+        for l in out.splitlines():
+            m = re.match(r"\s*[0-9a-f]+:\s+(\w+)\s*(.*)$", l.rstrip(chr(13)))
+            if not m: continue
+            op, args = m.group(1), m.group(2).split("#")[0].split("<")[0].strip()
+            if op in ("(bad)",) or op.startswith(".") or op in ("in", "out", "hlt", "iret", "les", "lds", "arpl", "into"):
+                return set(_SCRATCH)                          # decoding ran into data: give up
+            parts = [a.strip() for a in re.split(r",(?![^\[]*\])", args)] if args else []
+            dst = parts[0] if parts else ""
+            if op == "push" and dst in _SCRATCH and dst not in wrote: saved.add(dst); continue
+            if op == "pop" and dst in _SCRATCH: popped.add(dst); continue
+            if op == "call":
+                c = re.fullmatch(r"0x([0-9a-f]+)", args)
+                wrote |= clobbers(int(c.group(1), 16), depth + 1) if c else set(_SCRATCH)
+                continue
+            if op == "jmp":
+                c = re.fullmatch(r"0x([0-9a-f]+)", args)
+                if not c:
+                    if "[" in args and "*4" in args: continue      # jump table inside this function
+                    wrote |= set(_SCRATCH); continue               # indirect tail jump
+                tgt = int(c.group(1), 16)
+                if not (addr <= tgt < end): wrote |= clobbers(tgt, depth + 1)   # tail jump into another function
+                continue
+            if op in ("cdq",): wrote.add("edx")
+            if op in ("div", "idiv", "mul", "imul") and len(parts) == 1: wrote |= {"eax", "edx"}
+            if op.startswith("rep") or op in ("loop", "loope", "loopne", "jecxz"): wrote.add("ecx")
+            if op.startswith(("lods", "scas")) or op in ("lahf", "cwde", "cbw", "fnstsw", "fstsw", "rdtsc", "cpuid", "xlat") \
+                    or (op.startswith("rep") and re.search(r"lods|scas", args)): wrote.add("eax")
+            if op in ("rdtsc", "cpuid"): wrote.add("edx")
+            if op == "xchg": wrote |= regs_in(args)
+            if op not in ("push", "cmp", "test") and not op.startswith("j") and dst and "[" not in dst:
+                wrote |= regs_in(dst)
+        res = (wrote - (saved & popped)) & set(_SCRATCH)
+    finally:
+        busy.discard(addr)
+    _CLOBBER_MEMO[addr] = res
+    return res
+
 def live_in_of(addr, depth=0):
     """memoised live_in for a call target; a recursive cycle contributes nothing"""
     if addr in _LIVE_MEMO: return _LIVE_MEMO[addr]
@@ -154,7 +213,9 @@ def live_in(addr, size, _depth=0):
             c = re.fullmatch(r"0x([0-9a-f]+)", args)
             if c and _depth < 6:
                 live |= set(live_in_of(int(c.group(1), 16), _depth + 1)) - written
-            written |= {"eax", "ecx", "edx"}
+            # only what the callee can change: LTCG callees often leave EDX/ECX alone, and a register input that
+            # survives such a call is still an input (update_client_advance_read_cursor's EDX record pointer)
+            written |= clobbers(int(c.group(1), 16)) if c else {"eax", "ecx", "edx"}
         if op == "ret": break
         if op == "jmp":                                       # follow a forward jump inside the function
             j = re.fullmatch(r"0x([0-9a-f]+)", args)
@@ -326,10 +387,10 @@ def main():
     cache = json.load(open(cache_p)) if os.path.exists(cache_p) else {}
     key = lambda f: f"{f['addr']:x}:{f['size']}"
     FUNC_SIZES.update({f["addr"]: f["size"] for f in funcs.values()})
-    todo = [f for f in funcs.values() if key(f) not in cache or not isinstance(cache[key(f)], dict) or cache[key(f)].get("v") != 8]
+    todo = [f for f in funcs.values() if key(f) not in cache or not isinstance(cache[key(f)], dict) or cache[key(f)].get("v") != 9]
     with ThreadPoolExecutor(16) as ex:
         for f, res in zip(todo, ex.map(lambda f: (sorted(ret_cleanup(f["addr"], f["size"])), live_in(f["addr"], f["size"])), todo)):
-            cache[key(f)] = {"rets": res[0], "live_in": res[1], "v": 8}
+            cache[key(f)] = {"rets": res[0], "live_in": res[1], "v": 9}
     json.dump(cache, open(cache_p, "w"))
     for f in funcs.values(): f["rets"] = cache[key(f)]["rets"]; f["live_in"] = cache[key(f)]["live_in"]
     # reachability over the DLL's own C-to-C calls
