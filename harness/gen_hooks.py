@@ -145,6 +145,54 @@ def live_in(addr, size, _depth=0):
             break
     return sorted(live)
 
+def void_functions_with_eax_readers(addrs):
+    """entry addresses (of those given) that have at least one call site reading EAX/AX/AL right after the call"""
+    dis = os.path.join(ROOT, "build", "halo_text.dis")
+    if not os.path.exists(dis): return set()
+    lines = open(dis).read().splitlines(); used = set(); rd = re.compile(r"\b(eax|ax|al|ah)\b")
+    for i, l in enumerate(lines):
+        m = re.search(r"\tcall\s+0x([0-9a-f]+)$", l)
+        if not m or int(m.group(1), 16) not in addrs: continue
+        for j in range(i + 1, min(i + 6, len(lines))):
+            mm = re.match(r"\s*[0-9a-f]+:\s+(\w+)\s*(.*)", lines[j])
+            if not mm: break
+            op, args = mm.group(1), mm.group(2)
+            parts = [x.strip() for x in re.split(r",(?![^\[]*\])", args)] if args else []
+            srcs = parts if op in ("push", "test", "cmp") else parts[1:]
+            if any(rd.search(s) for s in srcs) or (parts and "[" in parts[0] and rd.search(parts[0])):
+                used.add(int(m.group(1), 16)); break
+            if parts and re.fullmatch(r"eax|ax|al", parts[0]): break          # overwritten first
+            if op in ("call", "ret", "jmp") or op.startswith("j"): break
+    return used
+
+def eax_return_register(f):
+    """if every ret of the original is preceded by 'mov eax, R' where R is one of its register arguments and R is
+    never modified in the body, return R (the original returns that input, e.g. its out pointer); else None"""
+    r = subprocess.run([OBJDUMP, "-d", "-M", "intel", "--no-show-raw-insn", f"--start-address=0x{f['addr']:x}",
+                        f"--stop-address=0x{f['addr'] + f['size']:x}", os.path.join(ROOT, "bin", "halo.exe")], capture_output=True, text=True)
+    ins = [(m.group(1), m.group(2).strip()) for m in (re.match(r"\s*[0-9a-f]+:\s+(\w+)\s*(.*)$", l.rstrip(chr(13))) for l in r.stdout.splitlines()) if m]
+    regs = set(f["regs"].values()); chosen = None
+    # EAX never modified: the caller reads back its own EAX (often an out pointer it passed in EAX), which the
+    # adapter preserves -- exact, nothing to add
+    writes_eax = any((re.match(r"(eax|ax|al|ah)\b", a) and o not in ("cmp", "test", "push")) or o in ("call", "fnstsw", "fstsw",
+                     "cdq", "cwde", "cbw", "lahf", "rdtsc", "cpuid") or (o in ("mul", "div", "idiv", "imul") and "," not in a)
+                     or o.startswith(("rep", "lods", "scas")) for o, a in ins)
+    if not writes_eax: return "preserve"
+    for i, (op, args) in enumerate(ins):
+        if op != "ret": continue
+        k = i - 1                                         # back to the last instruction that writes EAX
+        while k >= 0 and k > i - 12 and not (re.match(r"(eax|ax|al|ah)\b", ins[k][1]) and ins[k][0] not in ("cmp", "test", "push")) \
+                and ins[k][0] not in ("call", "ret", "jmp") and not ins[k][0].startswith("j") and ins[k][0] != "fnstsw":
+            k -= 1
+        m = re.fullmatch(r"eax,\s*(e[a-d]x|esi|edi)", ins[k][1]) if k >= 0 and ins[k][0] == "mov" else None
+        if not m or m.group(1) not in regs or (chosen and chosen != m.group(1)): return None
+        chosen = m.group(1)
+    if not chosen: return None
+    for op, args in ins:                                  # the register must hold the input unchanged throughout
+        dst = args.split(",")[0].strip()
+        if dst == chosen and op not in ("push", "pop", "cmp", "test"): return None
+    return chosen
+
 def ret_cleanup(addr, size):
     r = subprocess.run([OBJDUMP, "-d", "-M", "intel", f"--start-address=0x{addr:x}", f"--stop-address=0x{addr + size:x}",
                         os.path.join(ROOT, "bin", "halo.exe")], capture_output=True, text=True)
@@ -245,6 +293,9 @@ def main():
         for l in open(dis):
             m = re.search(r"\t(?:j\w+|call)\s+0x([0-9a-f]+)\s*$", l)
             if m: jump_targets.add(int(m.group(1), 16))
+    eax_returns = {}
+    used_addrs = void_functions_with_eax_readers({f["addr"] for f in funcs.values() if f["ret"] == "void"})
+    void_used = {n for n, f in funcs.items() if f["addr"] in used_addrs}
     for n, f in funcs.items():
         if any(f["addr"] + d in jump_targets for d in range(1, 5)):
             skipped["a jump lands inside the 5 patched entry bytes"].append(n); continue
@@ -252,6 +303,11 @@ def main():
         if mapped != f["live_in"]:
             skipped["register arguments differ from the original's live-in registers"].append(f"{n} (notes {mapped}, binary {f['live_in']})"); continue
         if len(f["rets"]) != 1: skipped[f"original has {len(f['rets'])} distinct ret forms"].append(n); continue
+        if f["ret"] == "void" and n in void_used:
+            r_ = eax_return_register(f)
+            if r_ is None:
+                skipped["void in C, but callers use a value the original leaves in EAX"].append(n); continue
+            eax_returns[n] = r_
         cleanup = f["rets"][0]
         save = ["ebx", "esi", "edi"] + [r for r in ("ecx", "edx", "eax") if not
                 ((r == "eax" and f["ret"] in ("int", "int64", "byte", "word")) or (r == "edx" and f["ret"] == "int64"))]
@@ -275,6 +331,8 @@ def main():
         for pp in reversed(pushes): body += pp
         body += [f"    call _{n}"] + ([f"    add esp, {total}"] if total else [])
         body += [f"    pop {r}" for r in reversed(save)]
+        if eax_returns.get(n, "preserve") != "preserve":   # void in C, but the original hands an input register back in EAX
+            body += [f"    mov eax, {eax_returns[n]}"]
         body += ["    pop ebp", f"    ret {cleanup}" if cleanup else "    ret"]
         stack_bytes = stack_off - 8
         if cleanup and cleanup != stack_bytes: skipped["ret N disagrees with the stack parameters"].append(f"{n} (ret {cleanup}, params {stack_bytes})"); continue
