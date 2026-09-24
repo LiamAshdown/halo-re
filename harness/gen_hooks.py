@@ -241,7 +241,14 @@ def main():
         if "..." in params_s: skipped["variadic"].append(name); continue
         params = [x for x in (param_info(q) for q in split_params(params_s)) if x]
         if any(x["byval"] for x in params): skipped["struct passed by value"].append(name); continue
-        regs, has_cc, widths = parse_cc(t, [x['name'] for x in params], {x['name']: (re.findall(r'[A-Za-z_]\w*', x['type'].replace('const', '').replace('struct', '')) or [''])[-1] for x in params})
+        # only this function's own notes: the header before the first #include/extern, and the comment lines
+        # directly above the definition (a callee's extern carries its own blam-cc, which must not be read)
+        hdr_end = re.search(r'^(#include|extern)', t, re.M); own = t[:hdr_end.start()] if hdr_end else t[:3000]
+        above = b[:d[0].start()].rstrip(chr(10)).split(chr(10)); k_ = len(above)
+        while k_ > 0 and above[k_ - 1].lstrip().startswith('//'): k_ -= 1
+        own += chr(10) + chr(10).join(above[k_:])
+        regs, has_cc, widths = parse_cc(own, [x['name'] for x in params], {x['name']: (re.findall(r'[A-Za-z_]\w*', x['type'].replace('const', '').replace('struct', '')) or [''])[-1] for x in params})
+        if len(set(regs.values())) != len(regs): skipped["two parameters mapped to one register"].append(name); continue
         unknown = [n for n in regs if n not in {x["name"] for x in params}]
         if unknown: skipped["blam-cc names a register argument that is not a parameter"].append(f"{name} ({','.join(unknown)})"); continue
         if any(v is None for v in regs.values()): skipped["high-byte register argument"].append(name); continue

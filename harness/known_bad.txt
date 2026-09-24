@@ -68,3 +68,6 @@ object_apply_body_damage                           # calls __ftol() with no argu
 object_apply_shield_damage                         # calls __ftol() with no argument: the float it converts was not traced (UNSURE in the file)
 unit_apply_damage_effects                          # calls __ftol() with no argument: the float it converts was not traced (UNSURE in the file)
 unit_update                                        # calls __ftol() with no argument: the float it converts was not traced (UNSURE in the file)
+animation_node_get_translation                     # models: rewrite crashed on 1/11 random inputs (original did not)
+physics_shape_pill_sweep_test_point                # physics: 6/200 differ (return value)
+physics_shape_polygon_test_ray                     # physics: rewrite crashed on 1/185 random inputs
