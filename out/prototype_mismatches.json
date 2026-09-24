@@ -12306,15 +12306,6 @@
   ]
  },
  {
-  "caller": "src\\objects\\object_clear_references_to_object.c",
-  "callee": "object_type_definitions_notify_0x3c",
-  "definition": "src\\objects\\object_type_definitions_notify_0x3c.c",
-  "declared": "extern void object_type_definitions_notify_0x3c(uint32_t object_index, uint32_t dying_object_index);",
-  "problems": [
-   "2 parameters declared, 1 defined"
-  ]
- },
- {
   "caller": "src\\objects\\object_collect_local_player_relevant_objects.c",
   "callee": "bsp3d_node_find_leaf",
   "definition": "src\\physics\\bsp3d_node_find_leaf.c",
@@ -12519,6 +12510,15 @@
   "declared": "extern void effect_new_on_object();",
   "problems": [
    "0 parameters declared, 6 defined"
+  ]
+ },
+ {
+  "caller": "src\\objects\\object_destroy_region.c",
+  "callee": "object_type_definitions_notify_region_damage",
+  "definition": "src\\objects\\object_type_definitions_notify_region_damage.c",
+  "declared": "extern void object_type_definitions_notify_region_damage(uint32_t object_index);",
+  "problems": [
+   "1 parameters declared, 3 defined"
   ]
  },
  {
@@ -12742,6 +12742,15 @@
  },
  {
   "caller": "src\\objects\\object_new_with_datum_role_control.c",
+  "callee": "object_type_definitions_notify_0x24",
+  "definition": "src\\objects\\object_type_definitions_notify_0x24.c",
+  "declared": "extern void object_type_definitions_notify_0x24(uint32_t object_index);",
+  "problems": [
+   "1 parameters declared, 2 defined"
+  ]
+ },
+ {
+  "caller": "src\\objects\\object_new_with_datum_role_control.c",
   "callee": "object_set_collision_enabled",
   "definition": "src\\objects\\object_set_collision_enabled.c",
   "declared": "extern void object_set_collision_enabled(uint8_t has_model);",
@@ -12809,7 +12818,7 @@
   "definition": "src\\objects\\object_type_definitions_notify_0x4c.c",
   "declared": "extern void object_type_definitions_notify_0x4c(uint32_t object_index, void *nodes);",
   "problems": [
-   "2 parameters declared, 1 defined"
+   "parameter kinds differ at #2 (p vs i)"
   ]
  },
  {
@@ -14260,15 +14269,6 @@
   "declared": "extern uint8_t cluster_sound_distance_lookup(int16_t source_cluster, int16_t listener_cluster);",
   "problems": [
    "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\sound\\sound_impulse_start.c",
-  "callee": "object_type_definitions_notify_0x58",
-  "definition": "src\\objects\\object_type_definitions_notify_0x58.c",
-  "declared": "extern void object_type_definitions_notify_0x58(uint32_t object_index, datum_index definition_index,\n    datum_index sound_index);",
-  "problems": [
-   "3 parameters declared, 1 defined"
   ]
  },
  {

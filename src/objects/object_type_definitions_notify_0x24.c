@@ -11,6 +11,8 @@
 // UNSURE: the vtable slot 0x24 hook itself takes no arguments in the original, which is why the
 //   object index is only used to select the type's sub-definition chain and not forwarded.
 
+// reconciled: the original passes each callback its arguments (0xnotify_0x24: push ... push ebx; call eax); the draft called it with none,
+//   so every object-type callback read a garbage object index.
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -19,7 +21,7 @@
 extern data_array *object_data; // 0x008603b0
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc
 
-void object_type_definitions_notify_0x24(uint32_t object_index) // blam-cc: EBX -> object_index
+void object_type_definitions_notify_0x24(uint32_t object_index, uint32_t argument) // blam-cc: EBX -> object_index
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     object_type_definition *def = object_type_definitions[obj->type];
@@ -31,7 +33,7 @@ void object_type_definitions_notify_0x24(uint32_t object_index) // blam-cc: EBX 
             break;
         }
         if (sub->notify_created != 0) {
-            ((void (*)(void))sub->notify_created)();
+            ((void (*)(uint32_t, uint32_t))sub->notify_created)(object_index, argument);
         }
     }
 }

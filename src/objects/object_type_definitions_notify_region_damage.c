@@ -10,6 +10,8 @@
 // UNSURE: how the region index reaches the +0x40 hook is not visible in this function; the
 //   broadcast itself takes no arguments.
 
+// reconciled: the original passes each callback its arguments (0xnotify_region_damage: push ... push ebx; call eax); the draft called it with none,
+//   so every object-type callback read a garbage object index.
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -18,7 +20,7 @@
 extern data_array *object_data; // 0x008603b0
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc
 
-void object_type_definitions_notify_region_damage(uint32_t object_index) // blam-cc: EBX -> object_index
+void object_type_definitions_notify_region_damage(uint32_t object_index, uint32_t argument_1, uint32_t argument_2) // blam-cc: EBX -> object_index
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     object_type_definition *def = object_type_definitions[obj->type];
@@ -30,7 +32,7 @@ void object_type_definitions_notify_region_damage(uint32_t object_index) // blam
             break;
         }
         if (sub->notify_region_damage != 0) {
-            ((void (*)(void))sub->notify_region_damage)();
+            ((void (*)(uint32_t, uint32_t, uint32_t))sub->notify_region_damage)(object_index, argument_1, argument_2);
         }
     }
 }

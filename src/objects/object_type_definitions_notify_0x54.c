@@ -6,6 +6,8 @@
 // evidence: same as object_type_definitions_notify_0x24.
 // register convention: object index in EBX (unaff_EBX), not forwarded to the callee.
 
+// reconciled: the original passes each callback its arguments (0xnotify_0x54: push ... push ebx; call eax); the draft called it with none,
+//   so every object-type callback read a garbage object index.
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -26,7 +28,7 @@ void object_type_definitions_notify_0x54(uint32_t object_index) // blam-cc: EBX 
             break;
         }
         if (sub->notify_54 != 0) {
-            ((void (*)(void))sub->notify_54)();
+            ((void (*)(uint32_t))sub->notify_54)(object_index);
         }
     }
 }
