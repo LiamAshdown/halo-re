@@ -7,7 +7,7 @@
 // blam-cc: param_1 -> tag_source_index (UNSURE role), unaff_EBX -> unit_index.
 // UNSURE: `param_1`'s own tag offset +0x30a exceeds this module's Unit struct (0x2f0 bytes);
 // this rewrite keeps it as a raw offset rather than asserting which tag it really indexes
-// (possibly a HUD or globals tag reached through a different base than Unit). players_iterate_and_discard and
+// (possibly a HUD or globals tag reached through a different base than Unit). player_index_from_unit_index and
 // equipment_pickup_play_sound's roles (likely "get local player index" and a HUD notification) are not
 // recovered either.
 
@@ -23,7 +23,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern uint8_t *globals_tag_data;   // 0x00746fa0
 extern data_array *player_data;     // 0x0087a480
 
-extern int32_t players_iterate_and_discard(uint32_t unit_index); // 0x474db0, UNSURE signature
+extern int32_t player_index_from_unit_index(uint32_t unit_index); // 0x474db0, UNSURE signature
 extern void equipment_pickup_play_sound(void);                   // 0x4bbb50, UNSURE signature
 extern void object_delete(uint32_t object_index);  // 0x4f5bd0, UNSURE signature
 
@@ -39,9 +39,9 @@ uint8_t unit_try_give_grenade(uint32_t tag_source_index, uint32_t unit_index) //
     if ((max_count_ptr != (int16_t *)0) && (unit->grenade_counts[grenade_type] < *max_count_ptr)) {
         unit->grenade_counts[grenade_type] += 1;
         unit_obj->flags |= 0x4000000;
-        int32_t local_player = players_iterate_and_discard(unit_index);
+        int32_t local_player = player_index_from_unit_index(unit_index);
         if (local_player != -1) {
-            uint32_t local_player2 = (uint32_t)players_iterate_and_discard(unit_index);
+            uint32_t local_player2 = (uint32_t)player_index_from_unit_index(unit_index);
             if (*(int16_t *)((uint8_t *)player_data->data + (local_player2 & 0xffff) * 0x200 + 2) != -1) {
                 equipment_pickup_play_sound();
             }

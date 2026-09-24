@@ -15,7 +15,7 @@
 // explicitly (`in_EAX` for the object argument is never named; the killer_team argument
 // disappears completely, printed as an unused `param_3`). Confirmed at the disassembly level:
 // EAX holds the dying unit's own object index (saved to ESI immediately, so it survives the
-// players_iterate_and_discard call); the first stack dword is the killer candidate (Ghidra's "param_1", compared
+// player_index_from_unit_index call); the first stack dword is the killer candidate (Ghidra's "param_1", compared
 // against the resolved victim for the suicide count and later reassigned to the chosen
 // recent-damager's responsible_player); the second stack dword passes straight through as
 // game_engine_on_player_death's death_object; the third stack dword (a small int stored in a full
@@ -24,7 +24,7 @@
 // i.e. it is teams_are_enemies(killer_team, victim_team); and the fourth stack byte is the
 // credit-assists/betrayals flag gating almost everything after the recent-damager compaction.
 //   // blam-cc: EAX -> victim_unit, stack -> killer, death_object, killer_team, credit_kills
-// UNSURE: players_iterate_and_discard (0x474db0, not in this batch) is called as `players_iterate_and_discard(victim_unit)` and
+// UNSURE: player_index_from_unit_index (0x474db0, not in this batch) is called as `player_index_from_unit_index(victim_unit)` and
 // its return value is used exactly like a player datum_index (bounds/salt-checked below at
 // iVar13); out/phase4/game_functions.md could not pin its behavior beyond "iterates all
 // players", so it is modeled here as "find the player currently controlling this unit" on
@@ -55,7 +55,7 @@ extern data_array *object_headers;               // 0x008603b0
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern team_pair_globals *team_pair_data;        // 0x006b0b84
 
-extern datum_index players_iterate_and_discard(datum_index unit); // 0x474db0, not in this batch; UNSURE signature, see header
+extern datum_index player_index_from_unit_index(datum_index unit); // 0x474db0, not in this batch; UNSURE signature, see header
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50
 extern void game_engine_on_player_death(datum_index killer, datum_index death_object,
     datum_index victim, char is_suicide); // 0x460200
@@ -96,7 +96,7 @@ void game_engine_attribute_player_death(datum_index victim_unit, datum_index kil
     if (!game_engine_attribute_enabled) {
         return;
     }
-    victim = players_iterate_and_discard(victim_unit);
+    victim = player_index_from_unit_index(victim_unit);
     if (victim == k_datum_index_none) {
         return;
     }

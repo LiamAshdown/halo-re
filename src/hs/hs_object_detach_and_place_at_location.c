@@ -50,7 +50,7 @@ extern void FUN_004f51c0(datum_index object_index, void *param_2, int32_t param_
 extern int16_t object_get_node_local_transform(datum_index location_object, void *marker_or_location, void *out_buffer,
     char param_4);                                              // objects module, 0x4f6080
 extern void object_reset_velocity_and_wake(datum_index object_index);             // objects module, 0x4f5160
-extern uint32_t players_iterate_and_discard(datum_index object_index);         // game module, 0x474db0
+extern uint32_t player_index_from_unit_index(datum_index object_index);         // game module, 0x474db0
 extern void FUN_00475c60(uint32_t unit_or_player, uint32_t param_2, void *param_3);
                                                                  // game module, 0x475c60
 extern void unit_reset_orientation_and_find_position(datum_index object_index);             // objects module, 0x55add0
@@ -290,7 +290,7 @@ void hs_object_detach_and_place_at_location(int16_t location_index, datum_index 
             goto place;
         }
     } else {
-        player_or_unit = players_iterate_and_discard(object_index);
+        player_or_unit = player_index_from_unit_index(object_index);
         if (*(int32_t *)((uint8_t *)control + 0x11c) == -1) {
             delta = facing;
         } else {

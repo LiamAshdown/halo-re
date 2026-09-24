@@ -40,7 +40,7 @@ extern void FUN_004efbf0(float param_1); // UNSURE: one float argument at this c
     // irreconcilable with object_queue_pickup_denied_event.c's own (EAX,ECX,EDI) form
 extern void object_apply_impulse_and_spin(uint32_t object_index, real_vector3d *delta_velocity); // 0x4bef80, this module;
     // blam-cc: EAX object_index, EDX delta_velocity
-extern int32_t players_iterate_and_discard(datum_index object_index); // out of range, 0x474db0
+extern int32_t player_index_from_unit_index(datum_index object_index); // out of range, 0x474db0
 extern void game_engine_attribute_player_death(datum_index responsible_player,
     datum_index responsible_object, int16_t team_index, int32_t param_4); // UNSURE: out of range
 extern void game_engine_on_player_death(uint32_t target_index, int32_t param_2, int32_t param_3); // UNSURE: out of range
@@ -127,7 +127,7 @@ void object_damage_notify_and_impulse(uint32_t target_index, damage_data *dd, ui
                     dd->team_index, 1);
             }
         } else if (current_game_engine == 0 || g_0087aa10 == 0) {
-            int32_t controller = players_iterate_and_discard(target_index);
+            int32_t controller = player_index_from_unit_index(target_index);
             game_engine_on_player_death(target_index, controller, 1);
         }
     }

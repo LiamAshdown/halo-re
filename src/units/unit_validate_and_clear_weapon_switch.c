@@ -8,7 +8,7 @@
 //   Shares its tail with unit_clear_weapon_switch_state (0x565a70).
 // register convention: unit index in EAX.
 //   // blam-cc: param_1 (EAX) -> unit_index
-// UNSURE: players_iterate_and_discard is called twice back to back with the same argument and no evidence of a
+// UNSURE: player_index_from_unit_index is called twice back to back with the same argument and no evidence of a
 //   side effect between the calls; both are reproduced literally rather than deduplicated.
 //   sound_start_unspatialized's argument is the float bit pattern 0x3f800000 (1.0f); its purpose and the
 //   short at player+2 it gates on are unresolved outside this batch.
@@ -24,7 +24,7 @@ extern data_array *object_data;     // 0x008603b0
 extern data_array *player_data;     // 0x0087a480
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern int32_t players_iterate_and_discard(uint32_t unit_index); // 0x474db0, UNSURE: likely resolves the controlling player index
+extern int32_t player_index_from_unit_index(uint32_t unit_index); // 0x474db0, UNSURE: likely resolves the controlling player index
 extern void sound_start_unspatialized(float amount);           // 0x543dd0, UNSURE signature
 extern void unit_invalidate_local_player_zoom_level(void);                   // 0x4726f0, UNSURE: no traced args
 
@@ -33,9 +33,9 @@ void unit_validate_and_clear_weapon_switch(uint32_t unit_index) // blam-cc: para
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
-    int32_t player = players_iterate_and_discard(unit_index);
+    int32_t player = player_index_from_unit_index(unit_index);
     if (player != -1) {
-        uint32_t player2 = (uint32_t)players_iterate_and_discard(unit_index);
+        uint32_t player2 = (uint32_t)player_index_from_unit_index(unit_index);
         int16_t *player_field = (int16_t *)((uint8_t *)player_data->data + (player2 & 0xffff) * 0x200 + 2);
         if (*player_field != -1 && unit->zoom_level != -1) {
             int16_t slot = unit->current_weapon_index;

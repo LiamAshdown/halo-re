@@ -10,14 +10,14 @@
 //   0x22, length_of_animation 0x24, recorded_animation_event_stream.pointer 0x38) via
 //   `objdump -d -M intel --start-address=0x44a930 --stop-address=0x44aa90 bin/halo.exe`, which
 //   also resolved the two callee stack-argument batches Ghidra's decompile left implicit (both
-//   players_iterate_and_discard(unit_index) and recorded_animation_find_by_object(&out_index) are single-arg
+//   player_index_from_unit_index(unit_index) and recorded_animation_find_by_object(&out_index) are single-arg
 //   cdecl calls whose stack cleanup the compiler deferred into one shared `add esp,8`).
 // register convention: unit_index in EAX (in_EAX), scenario recorded_animations index in CX
 //   (in_CX, 16-bit); one plain stack argument, extra_flags (a uint16_t ORed into the record's
 //   flags at the end). Returns a bool in AL (Ghidra's `uint` return keeps only the low byte
 //   meaningful -- the upper 24 bits are leftover register content nothing reads).
 //   // blam-cc: EAX -> unit_index, CX -> scenario_animation_index, stack -> extra_flags
-// UNSURE: players_iterate_and_discard's return value is discarded here (called for a side effect only, before
+// UNSURE: player_index_from_unit_index's return value is discarded here (called for a side effect only, before
 //   the "already playing" / "find existing record" checks); its own module and purpose are not
 //   established (see src/units/unit_apply_fall_damage.c's identical extern).
 // UNSURE: unit_get_flag_bit6 (EAX -> unit_index, returns bool in AL) has no prior extern
@@ -45,7 +45,7 @@ extern recorded_animation *recorded_animation_find_by_object(datum_index unit_in
     datum_index *out_index); // 0x44ad20, this module (same batch); blam-cc: EBX unit_index, stack out_index
 extern uint8_t recorded_animation_object_is_playing(datum_index unit_index); // 0x44acc0, this module (same batch);
     // blam-cc: ESI unit_index (0x44a98e: ESI still holds the unit from 0x44a934)
-extern int32_t players_iterate_and_discard(uint32_t unit_index); // 0x474db0, module not established; see
+extern int32_t player_index_from_unit_index(uint32_t unit_index); // 0x474db0, module not established; see
     // src/units/unit_apply_fall_damage.c's identical extern
 extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_handle, uint8_t attaching); // 0x569bf0, units module
     // blam-cc: stack -> unit_handle, CL -> attaching
@@ -80,7 +80,7 @@ uint8_t recorded_animation_start(datum_index unit_index, int16_t scenario_animat
         return 0;
     }
 
-    players_iterate_and_discard((uint32_t)unit_index);
+    player_index_from_unit_index((uint32_t)unit_index);
     record = recorded_animation_find_by_object(unit_index, &existing_index);
     def = (ScenarioRecordedAnimation *)global_scenario->recorded_animations.pointer + scenario_animation_index;
 

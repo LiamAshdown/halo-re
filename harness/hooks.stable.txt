@@ -1,4 +1,4 @@
-# Stable set: 1,146 functions (every hookable one), behaviour-checked in game: AI fights, paths and dies; no freeze
+# Stable set: 1,147 functions, behaviour-checked in game
 # on >= 20 real samples in harness/difftest_all.py.
 
 math
@@ -937,3 +937,6 @@ squad_pick_random_starting_location
 squad_recent_object_get_or_create
 squad_recent_object_list_clear
 unit_get_move_speed_for_range
+
+
+player_index_from_unit_index

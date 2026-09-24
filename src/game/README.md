@@ -1476,7 +1476,7 @@ All 422 files, in address order. `rewrite conf` is the file's own self-assessmen
 | `0x4749a0` | `main_switch_structure_bsp` | 902 | 0.3 | 10 |
 | `0x474d30` | `local_player_to_player_index` | 30 | 0.8 | 0 |
 | `0x474d50` | `game_set_local_player` | 84 | 0.75 | 0 |
-| `0x474db0` | `players_iterate_and_discard` | 86 | 0.5 | 1 |
+| `0x474db0` | `player_index_from_unit_index` | 86 | 0.5 | 1 |
 | `0x474e10` | `player_reset_after_unit_change` | 414 | 0.45 | 4 |
 | `0x474fc0` | `local_player_set_controlled_unit` | 201 | 0.65 | 0 |
 | `0x475090` | `players_any_pending_seat_or_respawn` | 354 | 0.3 | 3 |

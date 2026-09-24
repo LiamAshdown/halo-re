@@ -28,7 +28,7 @@ extern data_array *player_data;              // 0x0087a480
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances;          // 0x0087bc14
 
-extern datum_index players_iterate_and_discard(datum_index object_index); // 0x474db0, UNSURE name: returns the player owning the object (stack argument)
+extern datum_index player_index_from_unit_index(datum_index object_index); // 0x474db0, UNSURE name: returns the player owning the object (stack argument)
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, blam-cc: ECX object_index
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, blam-cc: CX team_a, DX team_b
 extern datum_index local_player_to_player_index(int16_t local_player_index); // 0x474d30, blam-cc: AX
@@ -50,8 +50,8 @@ uint8_t blip_type_get(int16_t local_player_index, datum_index object_index)
     if (object_index == (datum_index)-1) {
         return _blip_type_unavailable;
     }
-    owner_local_index = players_iterate_and_discard(object_index) == (datum_index)-1
-                            ? -1 : blip_player(players_iterate_and_discard(object_index))->local_player_index;
+    owner_local_index = player_index_from_unit_index(object_index) == (datum_index)-1
+                            ? -1 : blip_player(player_index_from_unit_index(object_index))->local_player_index;
     if (owner_local_index == local_player_index) {
         return _blip_type_friendly;
     }

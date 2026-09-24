@@ -5,7 +5,7 @@
 // evidence: types/objects.h object_header (identifier 0x00, flags 0x02, type 0x03, data 0x08),
 // object.parent_object (0x11c); types/memory.h data_array (maximum_count 0x20, size 0x22,
 // data 0x34).
-// UNSURE: players_iterate_and_discard is not in this module's address range; assumed (from this call and its
+// UNSURE: player_index_from_unit_index is not in this module's address range; assumed (from this call and its
 // use in object_update_vitality_and_regeneration) to resolve a validated biped/vehicle datum to
 // its controlling player index.
 // register convention: datum_index object_index in EAX (in_EAX).
@@ -18,7 +18,7 @@
 
 extern data_array *object_data; // 0x008603b0
 
-extern int32_t players_iterate_and_discard(datum_index object_index); // UNSURE: out of range, 0x474db0
+extern int32_t player_index_from_unit_index(datum_index object_index); // UNSURE: out of range, 0x474db0
 
 int32_t object_get_controlling_player_index(datum_index object_index)
 {
@@ -40,7 +40,7 @@ int32_t object_get_controlling_player_index(datum_index object_index)
                 if ((salt == 0 || header->identifier == salt) &&
                     (1 << (header->type & 0x1f) & _object_mask_unit) != 0 &&
                     header->data != 0) {
-                    return players_iterate_and_discard(object_index);
+                    return player_index_from_unit_index(object_index);
                 }
             }
         }

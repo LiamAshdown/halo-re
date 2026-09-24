@@ -60,7 +60,7 @@ extern void player_effect_mark_damage_direction(damage_data *dd, real_vector3d *
 extern int8_t teams_are_enemies(void); // UNSURE: zero visible args; out of range, 0x45bd50
 extern int32_t game_engine_compute_time_scale(void); // UNSURE: zero visible args; out of range, 0x461550
 extern real weapon_get_zoom_fov(int32_t param_1); // UNSURE: out of range, 0x46fe10
-extern int32_t players_iterate_and_discard(datum_index object_index); // UNSURE: out of range, 0x474db0
+extern int32_t player_index_from_unit_index(datum_index object_index); // UNSURE: out of range, 0x474db0
 extern void FUN_004eda20(void); // UNSURE: zero visible args; this module, address matches
                                 // object_set_health_frozen_flag's original name, but called bare
                                 // here so kept as-is rather than assuming the (object_index) form
@@ -400,7 +400,7 @@ skip_child:
                 }
 
                 if (current_game_engine != 0 && g_006f1cbc != 0) {
-                    int32_t controller = players_iterate_and_discard(target_handle);
+                    int32_t controller = player_index_from_unit_index(target_handle);
                     if (controller != -1 && (uint32_t)controller != dd->responsible_player) {
                         int16_t index = (int16_t)controller;
                         if (-1 < index && index < player_data->maximum_count) {

@@ -44,7 +44,7 @@ extern void *game_time;                   // 0x006f1d6c, +0x0c is the game tick
 
 extern real random_real(void); // 0x4019f0, math module
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern void players_iterate_and_discard(datum_index holder_index); // 0x474db0, outside this module, UNSURE signature
+extern void player_index_from_unit_index(datum_index holder_index); // 0x474db0, outside this module, UNSURE signature
 extern void unit_update_active_camouflage_depower(void); // 0x466420, outside this module, UNSURE signature
 extern uint32_t local_player_index_for_weapon(datum_index item_index); // 0x494010, outside this module, UNSURE signature
 extern void first_person_weapon_process_action(uint32_t handle, int32_t action); // 0x4940f0
@@ -208,7 +208,7 @@ void weapon_fire_trigger(datum_index item_index, int16_t trigger_index)
     }
 
     if ((id->flags & _item_held_by_player_bit) != 0 && network_game_mode != 0) {
-        players_iterate_and_discard(holder_index); // UNSURE signature/return use
+        player_index_from_unit_index(holder_index); // UNSURE signature/return use
         unit_update_active_camouflage_depower();
     }
 

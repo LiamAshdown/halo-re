@@ -5,14 +5,14 @@
 // change and asks it whether the item pickup is permitted"); types/tags.h WeaponFlags bit 3
 // (must_be_readied); types/items.h weapon_data::flags (+0x22c, "weapon_flags" runtime bits,
 // unnamed here); types/game.h game_engine_definition::unknown_40/object_expired (+0x40/+0x44);
-// src/game/game_engine_is_valid_team_player.c's players_iterate_and_discard signature; types/objects.h
+// src/game/game_engine_is_valid_team_player.c's player_index_from_unit_index signature; types/objects.h
 // object::definition_tag (+0x00); types/cache.h tag_instance (stride 0x20, data at +0x14).
 // register convention: a weapon object handle in ECX (forwarded to object_try_and_get, matching
 // its own established "object handle in ECX" convention); param_1/param_2 are this function's
-// own stack parameters (param_1 the same weapon handle reused for players_iterate_and_discard, param_2 a
+// own stack parameters (param_1 the same weapon handle reused for player_index_from_unit_index, param_2 a
 // second object whose definition tag's weapon_flags is tested).
 //   // blam-cc: ECX -> weapon (== param_1), stack -> param_1, other_object
-// UNSURE: weapon_data::flags bit 0x20 has no established name; players_iterate_and_discard and the vtable slots
+// UNSURE: weapon_data::flags bit 0x20 has no established name; player_index_from_unit_index and the vtable slots
 // at +0x40/+0x44 are called with the argument lists Ghidra shows, which may be incomplete.
 
 #include "tags.h"
@@ -28,7 +28,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern datum_index players_iterate_and_discard(datum_index object_or_unit); // 0x474db0, UNSURE signature/behavior
+extern datum_index player_index_from_unit_index(datum_index object_or_unit); // 0x474db0, UNSURE signature/behavior
 
 // blam-cc: ECX -> weapon (== param_1), stack -> param_1, other_object
 uint32_t game_engine_notify_weapon_ready_state_change(uint32_t param_1, uint32_t other_object)
@@ -62,7 +62,7 @@ uint32_t game_engine_notify_weapon_ready_state_change(uint32_t param_1, uint32_t
     *(uint32_t *)((uint8_t *)weapon + 0x22c) |= 0x20;
 
     if (current_game_engine->unknown_40 != 0) {
-        uint32_t identifier_result = players_iterate_and_discard(param_1);
+        uint32_t identifier_result = player_index_from_unit_index(param_1);
         return ((uint32_t (*)(uint32_t, uint32_t))current_game_engine->unknown_40)
             (other_object, identifier_result);
     }

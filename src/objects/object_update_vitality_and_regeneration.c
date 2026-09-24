@@ -10,7 +10,7 @@
 // UNSURE: the crush/out-of-bounds gate tests vitality_flags bits 0x20 and 0x40, which are not
 // in object_vitality_flags (a documented gap in types/objects.h between 0x10 and 0x80); the
 // global chain `*(int*)(DAT_00746fa0+0x18c)+0x1c` walks into the player/local-player globals
-// this module does not own; weapon_get_zoom_fov_resolved/players_iterate_and_discard/hud_unit_meter_apply_predictive_damage are opaque externals; and the
+// this module does not own; weapon_get_zoom_fov_resolved/player_index_from_unit_index/hud_unit_meter_apply_predictive_damage are opaque externals; and the
 // trailing `object+0x538` test is a biped-specific extension field outside the common object
 // struct (gated on object.type == biped), so it is kept as a raw offset.
 // register convention: datum_index object_index on the stack (param_1).
@@ -37,7 +37,7 @@ extern void object_dispatch_effect_notify(void); // this module, 0x4efff0
 extern void object_regions_reset_permutation_lock(uint32_t object_index, int8_t unlock); // 0x4f03e0
 
 extern real weapon_get_zoom_fov_resolved(void); // UNSURE: zero visible args; objects module (0x46fe70, out of range)
-extern int32_t players_iterate_and_discard(datum_index object_index); // UNSURE: out of range, 0x474db0
+extern int32_t player_index_from_unit_index(datum_index object_index); // UNSURE: out of range, 0x474db0
 extern void hud_unit_meter_apply_predictive_damage(float delta); // UNSURE: out of range, 0x4b16e0. Ghidra prints one call
     // as hud_unit_meter_apply_predictive_damage(0x3a422e45); that integer literal IS the IEEE-754 encoding of
     // 0.00074074074f, so both call sites pass a float delta and the value below is exact.
@@ -111,7 +111,7 @@ void object_update_vitality_and_regeneration(uint32_t object_index)
                     } else {
                         float shield = obj->shield_vitality;
 
-                        players_iterate_and_discard(object_index);
+                        player_index_from_unit_index(object_index);
                         if (0.00074074074f <= shield - 1.0f) {
                             obj->shield_vitality = obj->shield_vitality - 0.00074074074f;
                             hud_unit_meter_apply_predictive_damage(0.00074074074f);

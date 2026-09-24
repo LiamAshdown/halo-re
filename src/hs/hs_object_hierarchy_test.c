@@ -9,7 +9,7 @@
 // UNSURE: the two walks are not both over children despite the function summary -- the first
 //   loop (via +0x118/+0x114) walks the child list recursively as described, but the second (via
 //   +0x11c on the ORIGINAL object, not on each visited node) walks the ancestor/parent chain,
-//   testing players_iterate_and_discard on each ancestor. players_iterate_and_discard's own meaning (object -> something that
+//   testing player_index_from_unit_index on each ancestor. player_index_from_unit_index's own meaning (object -> something that
 //   is -1 when absent, used identically in hs_object_detach_and_place_at_location) is not
 //   recovered either; "player association" is a guess from context, not evidence.
 
@@ -17,7 +17,7 @@
 #include "memory.h"
 #include "hs.h"
 
-extern uint32_t players_iterate_and_discard(datum_index object_index); // game module, 0x474db0; UNSURE semantics
+extern uint32_t player_index_from_unit_index(datum_index object_index); // game module, 0x474db0; UNSURE semantics
 
 extern data_array *object_headers; // 0x008603b0, stride 0x0c, object data pointer at +0x08
 
@@ -29,7 +29,7 @@ static hs_object_record *hs_object_record_get(datum_index object_index)
         (object_index & 0xffff) * 0x0c + 8);
 }
 
-// Returns 1 if `object_index` itself has an association via players_iterate_and_discard, or any object in its
+// Returns 1 if `object_index` itself has an association via player_index_from_unit_index, or any object in its
 // child subtree does (recursively), or any object in its ancestor chain does, or its own type is
 // one of bits 2/3/4 (mask 0x1c) with flags_1f4 bit 1 set; otherwise 0.
 char hs_object_hierarchy_test(datum_index object_index)
@@ -40,7 +40,7 @@ char hs_object_hierarchy_test(datum_index object_index)
     datum_index ancestor;
 
     object = hs_object_record_get(object_index);
-    if (players_iterate_and_discard(object_index) != 0xffffffff) {
+    if (player_index_from_unit_index(object_index) != 0xffffffff) {
         return 1;
     }
 
@@ -56,7 +56,7 @@ char hs_object_hierarchy_test(datum_index object_index)
     ancestor = object->parent;
     while (ancestor != k_datum_index_none) {
         node = hs_object_record_get(ancestor);
-        if (players_iterate_and_discard(ancestor) != 0xffffffff) {
+        if (player_index_from_unit_index(ancestor) != 0xffffffff) {
             return 1;
         }
         ancestor = node->parent;

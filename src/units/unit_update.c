@@ -75,7 +75,7 @@ extern uint8_t *globals_tag_data; // 0x00746fa0, the globals tag data; +0x180 ->
 
 extern int32_t __ftol(); // 0x6391b4, MSVC 7.1 CRT float-to-int truncation; the double is on the x87 stack
 extern uint8_t game_engine_is_valid_team_player(uint32_t unit_index);                  // 0x466b60, UNSURE: "is grounded" style predicate
-extern int32_t players_iterate_and_discard(uint32_t unit_index);                 // 0x474db0
+extern int32_t player_index_from_unit_index(uint32_t unit_index);                 // 0x474db0
 extern datum_index unit_get_weapon_object_index(uint32_t unit_index); // 0x569970
   // real signature (unit_get_weapon_object_index.c): datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); Ghidra recovered 1 of 2 args at this call site
 extern void weapon_set_control_flags(uint32_t flags, float value);     // 0x4c2990, UNSURE signature
@@ -353,9 +353,9 @@ uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
                 if (new_zoom == -1) {
                     obj->animation_frame = 0;
                 }
-                uint32_t p1 = players_iterate_and_discard(unit_index);
+                uint32_t p1 = player_index_from_unit_index(unit_index);
                 if (p1 != (uint32_t)-1) {
-                    uint32_t p2 = players_iterate_and_discard(unit_index);
+                    uint32_t p2 = player_index_from_unit_index(unit_index);
                     if (*(int16_t *)((uint8_t *)player_data->data + (p2 & 0xffff) * 0x200 + 2) != -1) {
                         datum_index weapon = unit_get_weapon_object_index(unit_index);
                         if (weapon != (datum_index)-1) {

@@ -13,7 +13,7 @@
 // same slot: "puVar1 = in_AX * 0x40 + 0x10 + DAT_006b145c" then "puVar1[10] = 0xffffffff",
 // i.e. record +0x28 seeded to -1, with +0x2c left 0.0 by the zeroing loop. Both fields are now
 // named in types/game.h local_player_control.
-// UNSURE: game_engine_compute_local_player_look_vector, object_collect_local_player_relevant_objects, camera_observer_target_direction and players_iterate_and_discard are outside this batch's
+// UNSURE: game_engine_compute_local_player_look_vector, object_collect_local_player_relevant_objects, camera_observer_target_direction and player_index_from_unit_index are outside this batch's
 // assigned range and are called here exactly as Ghidra shows them, including the elided/implicit
 // arguments noted inline.
 
@@ -35,7 +35,7 @@ extern int object_collect_local_player_relevant_objects(void *callback, datum_in
     datum_index *out_candidates); // 0x4fa1a0, not in this batch; UNSURE exact signature
 extern char camera_observer_target_direction(datum_index candidate, datum_index reference_unit, void *out1,
     void *out2, float *out_angle); // 0x459cc0, not in this batch
-extern datum_index players_iterate_and_discard(datum_index object_or_unit); // 0x474db0, not in this batch
+extern datum_index player_index_from_unit_index(datum_index object_or_unit); // 0x474db0, not in this batch
 
 // Ghidra could not resolve the callback address used by object_collect_local_player_relevant_objects; kept as an opaque symbol.
 extern void LAB_0045e2e0(void);
@@ -65,7 +65,7 @@ datum_index hud_find_nearby_teammate_for_nameplate(datum_index player_handle)
                 best = (datum_index)0xffffffff;
             }
             if (best != (datum_index)0xffffffff) {
-                return players_iterate_and_discard(best);
+                return player_index_from_unit_index(best);
             }
         }
     }
@@ -88,7 +88,7 @@ datum_index hud_find_nearby_teammate_for_nameplate(datum_index player_handle)
         float angle;
 
         if ((*(float *)((uint8_t *)candidate_obj + 0x37c) < 1.0f ||
-             p->unknown_7c == players_iterate_and_discard(candidates[i])) &&
+             p->unknown_7c == player_index_from_unit_index(candidates[i])) &&
             camera_observer_target_direction(candidates[i], p->unit, &unused1, &unused2, &angle) != 0 &&
             (angle < 0.0f ? -angle : angle) < 0.13083334f &&
             dist2 < 400.0f && dist2 < 900.0f) {
@@ -97,7 +97,7 @@ datum_index hud_find_nearby_teammate_for_nameplate(datum_index player_handle)
     }
 
     if (best != (datum_index)0xffffffff) {
-        return players_iterate_and_discard(best);
+        return player_index_from_unit_index(best);
     }
     return best;
 }

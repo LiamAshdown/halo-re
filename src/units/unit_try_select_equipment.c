@@ -5,7 +5,7 @@
 // evidence: types/units.h unit_data.equipment_object_index (0x318).
 // blam-cc: param_1 -> unit_index, param_2 -> new_equipment_object_index,
 //   param_3 -> release_current.
-// UNSURE: players_iterate_and_discard/equipment_pickup_play_sound/item_set_holder's real roles are not recovered (same pattern
+// UNSURE: player_index_from_unit_index/equipment_pickup_play_sound/item_set_holder's real roles are not recovered (same pattern
 // as unit_try_give_grenade.c and unit_set_or_test_seat_and_weapon_label's neighbors).
 
 #include "tags.h"
@@ -22,7 +22,7 @@ extern data_array *player_data;     // 0x0087a480
 extern void object_delete(uint32_t object_index);                                  // 0x4f5bd0, UNSURE signature
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);         // 0x4f5de0, UNSURE signature
 extern void object_for_each_light_attachment(uint32_t object_index, uint32_t flag); // 0x4f9a20, UNSURE signature  // real signature (object_for_each_light_attachment.c): void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback); Ghidra recovered 2 of 3 args at this call site
-extern int32_t players_iterate_and_discard(uint32_t unit_index);                                   // 0x474db0, UNSURE signature
+extern int32_t player_index_from_unit_index(uint32_t unit_index);                                   // 0x474db0, UNSURE signature
 extern void equipment_pickup_play_sound(void);                                                     // 0x4bbb50, UNSURE signature
 extern void item_set_holder(datum_index object_index);                                 // 0x4bcfc0, UNSURE signature
 
@@ -45,9 +45,9 @@ uint8_t unit_try_select_equipment(uint32_t unit_index, uint32_t new_equipment_ob
         new_obj->flags |= 1;
         ((object_header *)object_data->data)[new_equipment_object_index & 0xffff].flags &= 0xfd;
 
-        int32_t local_player = players_iterate_and_discard(unit_index);
+        int32_t local_player = player_index_from_unit_index(unit_index);
         if (local_player != -1) {
-            uint32_t local_player2 = (uint32_t)players_iterate_and_discard(unit_index);
+            uint32_t local_player2 = (uint32_t)player_index_from_unit_index(unit_index);
             if (*(int16_t *)((uint8_t *)player_data->data + (local_player2 & 0xffff) * 0x200 + 2) != -1) {
                 equipment_pickup_play_sound();
             }

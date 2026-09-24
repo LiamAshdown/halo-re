@@ -117,6 +117,10 @@ def live_in(addr, size, _depth=0):
         dst, srcs = (parts[0], parts[1:]) if parts else ("", [])
         if op in ("xor", "sub") and len(parts) == 2 and parts[0] == parts[1] and parts[0] in full:
             written.add(full[parts[0]]); continue
+        # or r,-1 / and r,0 give a constant whatever r held (MSVC's "r = -1" / "r = 0"): writes, not reads
+        if len(parts) == 2 and parts[0] in full and ((op == "or" and parts[1] in ("0xffffffff", "0xffff", "0xff")) or
+                                                     (op == "and" and parts[1] == "0x0")):
+            written.add(full[parts[0]]); continue
         reads = set()
         for s_ in srcs: reads |= regs_in(s_)
         if "[" in dst: reads |= regs_in(dst)                 # address registers of a memory destination
@@ -288,10 +292,10 @@ def main():
     cache = json.load(open(cache_p)) if os.path.exists(cache_p) else {}
     key = lambda f: f"{f['addr']:x}:{f['size']}"
     FUNC_SIZES.update({f["addr"]: f["size"] for f in funcs.values()})
-    todo = [f for f in funcs.values() if key(f) not in cache or not isinstance(cache[key(f)], dict) or cache[key(f)].get("v") != 3]
+    todo = [f for f in funcs.values() if key(f) not in cache or not isinstance(cache[key(f)], dict) or cache[key(f)].get("v") != 4]
     with ThreadPoolExecutor(16) as ex:
         for f, res in zip(todo, ex.map(lambda f: (sorted(ret_cleanup(f["addr"], f["size"])), live_in(f["addr"], f["size"])), todo)):
-            cache[key(f)] = {"rets": res[0], "live_in": res[1], "v": 3}
+            cache[key(f)] = {"rets": res[0], "live_in": res[1], "v": 4}
     json.dump(cache, open(cache_p, "w"))
     for f in funcs.values(): f["rets"] = cache[key(f)]["rets"]; f["live_in"] = cache[key(f)]["live_in"]
     # reachability over the DLL's own C-to-C calls
