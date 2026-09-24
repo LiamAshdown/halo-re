@@ -87,6 +87,8 @@ static LONG CALLBACK crash_logger(EXCEPTION_POINTERS *x)
     DWORD code = x->ExceptionRecord->ExceptionCode; unsigned long eip = (unsigned long)x->ContextRecord->Eip, s;
     if (code != EXCEPTION_ACCESS_VIOLATION && code != EXCEPTION_ILLEGAL_INSTRUCTION && code != EXCEPTION_PRIV_INSTRUCTION
         && code != EXCEPTION_STACK_OVERFLOW && code != EXCEPTION_INT_DIVIDE_BY_ZERO) return EXCEPTION_CONTINUE_SEARCH;
+    static volatile LONG in_logger;
+    if (InterlockedExchange(&in_logger, 1)) return EXCEPTION_CONTINUE_SEARCH;   /* a fault inside the logger itself */
     if (logged++ < 5) {
         MEMORY_BASIC_INFORMATION mi; char mod[MAX_PATH] = "?";
         if (VirtualQuery((void *)eip, &mi, sizeof mi) && GetModuleFileNameA((HMODULE)mi.AllocationBase, mod, MAX_PATH)) {}
@@ -98,9 +100,12 @@ static LONG CALLBACK crash_logger(EXCEPTION_POINTERS *x)
             x->ContextRecord->Eax, x->ContextRecord->Ebx, x->ContextRecord->Ecx, x->ContextRecord->Edx, x->ContextRecord->Esi,
             x->ContextRecord->Edi, x->ContextRecord->Esp, x->ContextRecord->Ebp,
             x->ExceptionRecord->NumberParameters > 1 ? (unsigned long)x->ExceptionRecord->ExceptionInformation[1] : 0);
-        {   /* return addresses on the stack that point into code: a rough call stack */
+        if (logged == 1) log_counts();   /* which rewritten functions ran before the crash */
+        {   /* return addresses on the stack that point into code: a rough call stack (readable pages only) */
             unsigned long *sp = (unsigned long *)x->ContextRecord->Esp; int k, shown = 0;
-            for (k = 0; k < 256 && shown < 12 && !IsBadReadPtr(sp + k, 4); k++) {
+            MEMORY_BASIC_INFORMATION smi; unsigned long stack_end = 0;
+            if (VirtualQuery(sp, &smi, sizeof smi)) stack_end = (unsigned long)smi.BaseAddress + smi.RegionSize;
+            for (k = 0; k < 1024 && shown < 24 && (unsigned long)(sp + k + 1) <= stack_end; k++) {
                 unsigned long v = sp[k];
                 if ((v >= 0x401000 && v < 0x700000) || (v >= 0x30001000 && v < 0x31000000)) {
                     if (v < 0x700000) harness_log("  stack: %08lx  %s", v, function_at(v, &s));
@@ -109,8 +114,8 @@ static LONG CALLBACK crash_logger(EXCEPTION_POINTERS *x)
                 }
             }
         }
-        if (logged == 1) log_counts();   /* which rewritten functions ran before the crash */
     }
+    in_logger = 0;
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
