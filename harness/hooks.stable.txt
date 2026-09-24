@@ -1,4 +1,4 @@
-# Hook set proven in-game on 2026-09-24 (554 functions). Copy to harness/build/hooks.txt to use it.
+# Hook set proven in-game on 2026-09-24 (591 functions). Copy to harness/build/hooks.txt to use it.
 # on >= 20 real samples in harness/difftest_all.py.
 
 math
@@ -311,3 +311,32 @@ weapon_hud_ammo_state_is_empty
 widget_instance_is_input_eligible
 widget_list_adjust_rect_for_scroll_arrows
 widget_list_get_child_by_index
+
+
+# render (difftest-verified)
+billboard_system_frame_init
+cinematic_screen_effect_get_script_value
+cinematic_screen_effect_set_convolution
+cinematic_screen_effect_set_filter
+contrail_compute_edge_fade_factor
+rasterizer_frame_statistics_graph_init
+rasterizer_frame_statistics_sample
+rasterizer_lens_flare_set_current_key
+render_billboard_build_orientation_basis
+render_billboard_compute_scale
+render_billboard_compute_view_fade
+render_camera_facing_frame_build
+render_camera_mirror
+render_camera_projection_zrange_push_pop_set
+render_device_is_ready
+render_frustum_classify_point_side_planes
+render_frustum_compute_box_overlap_area
+render_frustum_test_bounding_box
+render_frustum_test_sphere
+render_lighting_step_direction_toward
+render_lighting_step_vector3_toward
+render_lighting_step_vector4_toward
+render_sprite_transform_point_and_normal
+sort_median_of_three
+
+cache
