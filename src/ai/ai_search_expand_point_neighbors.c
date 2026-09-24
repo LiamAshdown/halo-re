@@ -18,6 +18,7 @@
 // register convention: DX -> start_point_id (the only Ghidra-recognized register operand;
 //   `context` and `param_2` are the two recognized stack/register formal parameters).
 //   // blam-cc: EDX -> start_point_id, stack -> context, param_2
+// reconciled: R53 0x43d790 declared with its one real signature (void *context EAX, uint8_t ignore_permission, real_point2d *point, int32_t start_index, real_vector2d *direction, float max_distance, path_find_boundary_trace_result *out); the call now passes context[3] in EAX, the int32 surface index at base_position+8 (was a float arg3) and a 3-dword result. ai_search_evaluate_edge_cost is now declared and called with its real 13-parameter signature (EBX = direction) and its 0x10-byte ai_search_edge_result.
 
 #include "tags.h"
 #include "memory.h"
@@ -27,11 +28,18 @@
 
 extern void ai_search_add_node(void *context, real_point2d *position, uint32_t param3, int16_t worklist_index, float extra_cost); // 0x43b5a0, see header UNSURE on the arity mismatch with ai_search_add_node's own file
 extern void ai_search_compute_point_tangents(float param1, void *out_a, float *out_b); // 0x43c9a0
-extern void path_find_trace_cluster_boundary_from_vertex(uint8_t param1, float *point, float param3, float *out_direction, float distance, void *out_result); // 0x43d790
-extern uint8_t ai_search_evaluate_edge_cost(uint32_t cluster_a, uint8_t param2, uint32_t cluster_b, uint32_t param4,
-                                            float *point, float param6, float distance, float base_cost,
-                                            uint8_t skip_direct, uint8_t apply_offset, uint8_t param_11,
-                                            float *out_result); // 0x43b830, see header UNSURE
+extern uint8_t path_find_trace_cluster_boundary_from_vertex(void *context, uint8_t ignore_permission,
+                                                            real_point2d *point, int32_t start_index,
+                                                            real_vector2d *direction, float max_distance,
+                                                            path_find_boundary_trace_result *out);
+    // 0x43d790; EAX -> context (0x43bc1e: mov eax,[ebp+0xc])
+extern uint8_t ai_search_evaluate_edge_cost(void *context, uint8_t ignore_permission,
+                                            ai_search_obstacle_list *obstacle_list, int16_t exclude_index,
+                                            real_point2d *point, int32_t start_surface_index, float distance,
+                                            float base_cost, uint8_t skip_direct, uint8_t apply_offset,
+                                            uint8_t require_unflagged, ai_search_edge_result *out_result,
+                                            real_vector2d *direction);
+    // 0x43b830; EBX -> direction (see src/ai/ai_search_evaluate_edge_cost.c)
 
 // blam-cc: EDX -> start_point_id, stack -> context, param_2
 void ai_search_expand_point_neighbors(float *context, int16_t param_2, int16_t start_point_id)
@@ -79,13 +87,18 @@ void ai_search_expand_point_neighbors(float *context, int16_t param_2, int16_t s
         leg = 0;
         leg_direction = 0; // local_12c, UNSURE (advances by 2 floats per leg)
         do {
-            float edge_result[3]; // local_13c
+            ai_search_edge_result edge_result; // [esp+0x34] (0x43bb5f), 0x10 bytes
             uint8_t reached;
 
-            reached = ai_search_evaluate_edge_cost((uint32_t)context[3], *(uint8_t *)(context + 1), (uint32_t)context[2],
-                                                   obstacle_index, cur_position, cur_position[2], *context,
+            // 0x43bb52..0x43bb8c: EBX = ESI = the leg direction, 12 stack arguments, add esp,0x30
+            reached = ai_search_evaluate_edge_cost((void *)(uintptr_t)*(uint32_t *)&context[3],
+                                                   *(uint8_t *)(context + 1),
+                                                   (ai_search_obstacle_list *)(uintptr_t)*(uint32_t *)&context[2],
+                                                   (int16_t)obstacle_index, (real_point2d *)cur_position,
+                                                   *(int32_t *)&cur_position[2], *context,
                                                    *context + *context + out_b, 0, 0,
-                                                   *((uint8_t *)context + 0x2a), edge_result);
+                                                   *((uint8_t *)context + 0x2a), &edge_result,
+                                                   (real_vector2d *)leg_direction); // UNSURE: ESI = [esp+0x44] array, see leg_direction
             cur_position = base_position;
 
             {
@@ -101,13 +114,20 @@ void ai_search_expand_point_neighbors(float *context, int16_t param_2, int16_t s
                 }
             }
 
-            if (out_b < edge_result[0]) {
+            if (out_b < edge_result.cost) {
                 if (1 /* UNSURE: original compares a companion int16 against obstacle_link here */) {
-                    float mid = (edge_result[0] + out_b) * 0.5f;
-                    uint8_t trace_result[4];
+                    float mid = (edge_result.cost + out_b) * 0.5f;
+                    path_find_boundary_trace_result trace_result; // [esp+0x64] at 0x43bc03
                     float new_x, new_y;
 
-                    path_find_trace_cluster_boundary_from_vertex(*(uint8_t *)(context + 1), base_position, base_position[2], leg_direction, mid, trace_result);
+                    // 0x43bc03..0x43bc23: EAX = context[3], stack (byte context+4, base_position,
+                    // the int32 surface index at base_position+8, leg_direction, mid, &trace_result)
+                    path_find_trace_cluster_boundary_from_vertex((void *)(uintptr_t)(uint32_t)context[3],
+                                                                 *(uint8_t *)(context + 1),
+                                                                 (real_point2d *)base_position,
+                                                                 *(int32_t *)&base_position[2],
+                                                                 (real_vector2d *)leg_direction, mid,
+                                                                 &trace_result);
                     new_x = mid * leg_direction[0] + cur_position[0];
                     new_y = mid * leg_direction[1] + cur_position[1];
                     {

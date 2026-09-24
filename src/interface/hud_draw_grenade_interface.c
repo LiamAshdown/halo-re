@@ -13,6 +13,7 @@
 // time is hud_weapon_state + index * 0x28 + 0x24. Overlay types: bit 0 flashing, bit 1
 // empty, bit 2 default (none of them), bit 3 always.
 // register convention: plain cdecl, two stack arguments.
+// reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
 
 #include "tags.h"
 #include "memory.h"
@@ -70,7 +71,7 @@ void hud_draw_grenade_interface(int16_t local_player_index, datum_index unit_ind
     hud = (GrenadeHUDInterface *)tag_instances[hud_tag & 0xffff].data;
 
     count = *(int8_t *)(unit + 0x31e + grenade);
-    flags = (count <= hud->flash_cutoff ? 1 : 0) | (count == 0 ? 2 : 0) | (local_player_globals->unknown_0c > 1 ? 4 : 0);
+    flags = (count <= hud->flash_cutoff ? 1 : 0) | (count == 0 ? 2 : 0) | (local_player_globals->local_player_count > 1 ? 4 : 0);
     if ((flags & 1) != 0) {
         if (*flash_start_time == -1) {
             *flash_start_time = game_time->game_time;
@@ -103,7 +104,7 @@ void hud_draw_grenade_interface(int16_t local_player_index, datum_index unit_ind
         types = types == 0 ? 4 : (uint16_t)(types & 0xfffb);
         hud_draw_overlays((uint16_t *)hud, (const hud_overlay_list *)&hud->total_grenades_overlay_bitmap,
                           (uint32_t)(int16_t)types | 8, *flash_start_time, flags,
-                          local_player_globals->unknown_0c > 1);
+                          local_player_globals->local_player_count > 1);
     }
 }
 

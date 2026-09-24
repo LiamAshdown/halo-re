@@ -38,6 +38,7 @@
 // UNSURE: FUN_005013a0 (a leaf/visibility probe, ECX = the global at 0x00746f90, EDX = a stack
 //   scratch pointer, EAX = 0) and object_get_root_location are not examined here; FUN_00551f00 is the same
 //   placement helper object_set_cluster_and_parent uses and is left unnamed.
+// reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
 
 #include "tags.h"
 #include "memory.h"
@@ -48,8 +49,8 @@
 extern data_array *light_data; // 0x00860b14
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *structure_bsp_globals; // 0x00746f9c, the render-side BSP globals block
-extern void *global_globals; // 0x00746f90, passed to FUN_005013a0 in ECX
+extern uint8_t *global_structure_bsp; // 0x00746f9c, the render-side BSP globals block
+extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90, passed to FUN_005013a0 in ECX
 extern datum_index *light_cluster_first; // 0x00860b20, the per-cluster light list head table;
     // FUN_00551f00 takes the ADDRESS of this descriptor in EDI (0x4f2c87 mov edi,0x860b20)
 
@@ -141,11 +142,11 @@ void object_light_recompute_transform(uint32_t light_index) // blam-cc: stack ->
 
         if (entry->owner_object == k_datum_index_none ||
             object_try_and_get(entry->owner_object, _object_mask_all) == 0) {
-            leaf_reference.leaf_index = FUN_005013a0(global_globals, &position, 0);
+            leaf_reference.leaf_index = FUN_005013a0(global_collision_bsp, &position, 0);
             if (leaf_reference.leaf_index == -1) {
                 leaf_reference.cluster_index = -1;
             } else {
-                uint8_t *leaves = *(uint8_t **)(structure_bsp_globals + 0xe4);
+                uint8_t *leaves = *(uint8_t **)(global_structure_bsp + 0xe4);
                 leaf_reference.cluster_index =
                     *(int16_t *)(leaves + (leaf_reference.leaf_index & 0x7fffffff) * 0x10 + 8);
             }

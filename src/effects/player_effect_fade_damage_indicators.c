@@ -4,7 +4,7 @@
 // address 0x457220, size 84 bytes
 // name confidence: 0.55   rewrite confidence: 0.55
 // evidence: types/effects.h player_effect.damage_indicator_alpha[4] (+0xe4); src/objects/
-//   glow_update.c and src/effects/decal_update_fade.c establish game_tick_globals (0x006f1d6c)
+//   glow_update.c and src/effects/decal_update_fade.c establish game_time (0x006f1d6c)
 //   with a current tick at +0x0c and a per tick delta at +0x10 (int16).
 // register convention: local player index in the low 16 bits of EAX (in_AX); an output pointer
 //   in EDX that receives the pre-fade snapshot of the four indicator bytes, which lets the
@@ -18,7 +18,7 @@
 #include "effects.h"
 
 extern player_effect_globals *player_effect_globals_pointer; // 0x006f1884
-extern int32_t *game_tick_globals;                            // 0x006f1d6c; +0x0c current game
+extern int32_t *game_time;                            // 0x006f1d6c; +0x0c current game
                                     // tick, +0x10 tick delta (int16), per src/objects/glow_update.c
 
 // Fades one local player's four directional damage indicators upward toward 255 by the current
@@ -27,7 +27,7 @@ void player_effect_fade_damage_indicators(int16_t local_player_index, uint32_t *
 {
     player_effect *self = &player_effect_globals_pointer->players[local_player_index];
     uint8_t *indicators = self->damage_indicator_alpha;
-    int16_t delta = *(int16_t *)((uint8_t *)game_tick_globals + 0x10);
+    int16_t delta = *(int16_t *)((uint8_t *)game_time + 0x10);
     int i;
 
     *out_previous_indicators = *(uint32_t *)indicators;

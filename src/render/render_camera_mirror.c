@@ -22,6 +22,7 @@
 //   formula are reproduced arithmetically exactly; their geometric intent (avoiding a degenerate
 //   reflection when the camera looks edge-on into the mirror, and a shader-driven parallax shift
 //   for portal-style mirrors) is inferred from shape, not confirmed against another source.
+// reconciled: R47 structure_bsp_mirror_result.unknown_10/_14 -> shader_mirror_value_0/_1 (ShaderEnvironment runtime_mirror_value_0/_1 at +0x30c/+0x310)
 
 #include "tags.h"
 #include "memory.h"
@@ -39,7 +40,7 @@ extern real vector3d_cross_product_length(real_vector3d *a, real_vector3d *b); /
                                                                                // EAX -> a, ECX -> b
 
 // Builds a mirrored copy of source_camera across the mirror's plane: for an ordinary mirror
-// (mirror->unknown_10 == 0) this is a full reflection of position, forward and up (with a small
+// (mirror->shader_mirror_value_0 == 0) this is a full reflection of position, forward and up (with a small
 // correction when the camera looks nearly edge-on into the plane, and an extra flip of the
 // reflected up vector to keep the basis right-handed for the rasterizer); for a portal-style
 // mirror it instead shifts the camera along the plane's normal by an amount driven by the mirror
@@ -53,7 +54,7 @@ void render_camera_mirror(render_camera *source_camera, structure_bsp_mirror_res
 
     *out_camera = *source_camera;
 
-    if (mirror->unknown_10 == 0.0f) {
+    if (mirror->shader_mirror_value_0 == 0.0f) {
         real_vector3d reflect_dir = plane_normal;
         float baseline = plane_d;
         float dot_forward;
@@ -107,14 +108,14 @@ void render_camera_mirror(render_camera *source_camera, structure_bsp_mirror_res
         out_camera->up.k = -out_camera->up.k;
     } else {
         // UNSURE: portal shift, driven by the mirror shader's two runtime floats
-        // (mirror->unknown_10/unknown_14, ShaderEnvironment +0x30c/+0x310).
+        // (mirror->shader_mirror_value_0/unknown_14, ShaderEnvironment +0x30c/+0x310).
         float inverse_forward_length =
             1.0f / (float)sqrt((double)(source_camera->forward.k * source_camera->forward.k +
                                          source_camera->forward.j * source_camera->forward.j +
                                          source_camera->forward.i * source_camera->forward.i));
         float sin_angle = vector3d_cross_product_length(&plane_normal, &source_camera->forward) *
                            inverse_forward_length;
-        float shift = sin_angle * mirror->unknown_10;
+        float shift = sin_angle * mirror->shader_mirror_value_0;
 
         if (sin_angle == 0.0f) {
             shift = 0.0f;
@@ -122,7 +123,7 @@ void render_camera_mirror(render_camera *source_camera, structure_bsp_mirror_res
             float dot_normal_forward = plane_normal.i * source_camera->forward.i +
                                         plane_normal.j * source_camera->forward.j +
                                         plane_normal.k * source_camera->forward.k;
-            shift = -((dot_normal_forward * inverse_forward_length * shift * mirror->unknown_14) /
+            shift = -((dot_normal_forward * inverse_forward_length * shift * mirror->shader_mirror_value_1) /
                       ((float)sqrt((double)(1.0f - shift * shift)) * sin_angle));
         }
 

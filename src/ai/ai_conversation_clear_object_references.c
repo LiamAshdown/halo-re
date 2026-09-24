@@ -11,12 +11,14 @@
 // UNSURE: actor+0xa8 (read/cleared here only when force_full_scan and actor.mode == 12,
 // _actor_mode_conversation) falls inside types/ai.h's actor.mode_data union at offset 0x0c;
 // not independently named there.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#include <stdint.h>
 
 extern data_array *ai_conversation_data; // 0x008802d4
 extern Scenario *global_scenario;        // 0x00746f8c
@@ -44,6 +46,7 @@ void ai_conversation_clear_object_references(datum_index object_index, uint8_t f
     iterator.data = ai_conversation_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
     instance = data_iterator_next(&iterator);
     while (instance != 0) {

@@ -13,6 +13,7 @@
 // object_set_position_and_orientation's exact signature is not in this batch; called here with
 // the two literal 0 arguments Ghidra shows plus the object index, matching its apparent role
 // (teleport target, zero rotation).
+// reconciled: R17 0x006ac6d0 was declared as a pointer (uint8_t *camera_state_table) but the binary addresses the array (add reg,0x6ac6d0); now (uint8_t *)&observers[slot].camera from camera.h
 
 #include "tags.h"
 #include "memory.h"
@@ -20,10 +21,11 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#include "camera.h"
 
 extern data_array *player_data; // 0x0087a480
 extern data_array *object_data; // 0x008603b0
-extern uint8_t *camera_state_table; // 0x006ac6d0; TYPES-GAP, stride 0x29c BYTES per local
+extern observer observers[1]; // 0x006ac65c, camera.h; observers[i].camera is the 0x006ac6d0 row (R17), an array, not a pointer
                                     // player (Ghidra prints 0xa7 over a 4-byte element type)
 
 extern uint32_t cheat_get_target_object_index(void); // this batch, 0x45a7a0
@@ -49,7 +51,7 @@ void cheat_teleport_to_camera(void)
     if (player_index != 0xffffffff) {
         local_player_slot = ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player)))->local_player_index;
         if (local_player_slot != -1) {
-            camera_row = camera_state_table + local_player_slot * 0x29c;
+            camera_row = (uint8_t *)&observers[local_player_slot].camera;
             if (*(int16_t *)(camera_row + 0x10) != -1) { // UNSURE offset
                 unit_index = ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player)))->unit;
                 unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;

@@ -13,21 +13,24 @@
 // register convention: none -- both are genuine stack parameters (Ghidra's own
 //   param_1/param_2).
 // UNSURE: DAT_00746f9c's identity and full layout (kept as raw offsets); objects_get_ambient_cluster's role
-//   (a player-index-shaped result gating the final bit_vector_or call); data_iterator_next's
-//   iterator argument is elided by Ghidra here, same as the precedent in
-//   game_engine_player_new_life.c (this module).
+//   (a player-index-shaped result gating the final bit_vector_or call).
+// The iterator Ghidra elided is the inline types/memory.h data_iterator over player_data
+//   (0x4782c1..0x4782e8: data, WORD next_index = 0, index = -1, signature = data ^ 'iter').
+// reconciled: R16 the elided iterator is the inline 0x10-byte data_iterator over player_data (0x4782c1)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#include <stdint.h>
 
-extern void *global_structure_bsp_info; // 0x00746f9c, UNSURE identity, see header note
+extern void *global_structure_bsp; // 0x00746f9c, UNSURE identity, see header note
 extern data_array *object_headers;      // 0x008603b0
 
 extern int16_t objects_get_ambient_cluster(void); // 0x4f7a50, not in this batch; UNSURE exact signature
-extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0; iterator elided by Ghidra
+extern data_array *player_data;         // 0x0087a480
+extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0; blam-cc: EDI -> iterator
 extern void bit_vector_or(uint32_t *out); // 0x4cb760, not in this batch; UNSURE exact signature
     // (a second operand is presumably elided, same shape as every other 1-visible-arg call here)
 
@@ -39,8 +42,9 @@ extern void bit_vector_or(uint32_t *out); // 0x4cb760, not in this batch; UNSURE
 // bitmask via bit_vector_or.
 void game_engine_build_visible_cluster_bitmask(uint32_t *out_bitmask, uint8_t local_players_only)
 {
-    uint8_t *bsp_info = (uint8_t *)global_structure_bsp_info;
+    uint8_t *bsp_info = (uint8_t *)global_structure_bsp;
     int32_t i;
+    data_iterator iterator;
     void *p;
     int16_t player_gate_result;
 
@@ -50,7 +54,11 @@ void game_engine_build_visible_cluster_bitmask(uint32_t *out_bitmask, uint8_t lo
 
     player_gate_result = objects_get_ambient_cluster();
 
-    p = data_iterator_next(0); // UNSURE: iterator elided by Ghidra
+    iterator.data = player_data;
+    iterator.next_index = 0;
+    iterator.index = k_datum_index_none;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+    p = data_iterator_next(&iterator);
     while (p != 0) {
         player *pl = (player *)p;
         if (local_players_only == 0 || pl->local_player_index != -1) {
@@ -82,7 +90,7 @@ void game_engine_build_visible_cluster_bitmask(uint32_t *out_bitmask, uint8_t lo
                 }
             }
         }
-        p = data_iterator_next(0);
+        p = data_iterator_next(&iterator);
     }
 
     if (player_gate_result != -1) {

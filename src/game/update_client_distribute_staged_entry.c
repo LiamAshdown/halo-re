@@ -7,11 +7,13 @@
 // UNSURE: `out` is written as a flat array of 0x20-byte per-player records (one per data_iterator
 // element, over an unnamed array); DAT_006f7ec4/0x006f7ec8 are not attested in any header this
 // module owns.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern uint32_t update_client_staged[8];   // 0x006f7ea4, see update_client_stage_entry.c
 extern uint32_t update_client_unknown_ec8;  // 0x006f7ec8, UNSURE
@@ -36,6 +38,7 @@ uint32_t update_client_distribute_staged_entry(uint8_t *out)
     iter.data = 0; // UNSURE: iteration source not recovered
     iter.next_index = 0;
     iter.index = k_datum_index_none;
+    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
     element = data_iterator_next(&iter);
     while (element != 0) {
         uint32_t *record;

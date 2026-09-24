@@ -2,39 +2,41 @@
 // address 0x544980, size 274 bytes
 // name confidence: 0.5   rewrite confidence: 0.85
 // evidence: out/phase4/sound_functions.md summary "Rebuilds the bitmap of BSP clusters within
-//   sound-audible range of the current listener cluster."; structure_bsp_globals+0x134 is
+//   sound-audible range of the current listener cluster."; global_structure_bsp+0x134 is
 //   clusters.count (types/structures.h "+0x134 clusters.count +0x138 ptr stride 0x68
 //   ScenarioStructureBSPCluster"); player_globals.local_players[0] (types/game.h) gates on a
-//   local player existing; observer_cameras[0] (types/sound.h sound_observer_camera, the table
-//   src/game names camera_state_table, 0x006ac6d0) .cluster_index (+0x10) is the listener cluster.
+//   local player existing; observers[0].camera (camera.h observer_camera at 0x006ac6d0 =
+//   observers + 0x74) .cluster_index (+0x10) is the listener cluster.
 // register convention: plain __cdecl, no parameters.
 // blam-cc: (no arguments)
-// UNSURE: structure_bsp_globals+0x220 (a byte "cluster distance" table indexed by a triangular
+// UNSURE: global_structure_bsp+0x220 (a byte "cluster distance" table indexed by a triangular
 //   formula over two cluster indices) has no established name or type; kept as a raw offset. The
 //   distance byte is masked to its low 7 bits and scaled by 2.015748 before the < 256.0 audible
 //   test; neither constant's derivation is recovered here.
 // Phase-4 review (disassembly appended below): the observer camera table at 0x006ac6d0 is an
 // array (the draft dereferenced it as a pointer), and the triangular cluster-pair index is
 // truncated to 16 bits (movsx edx, ax) before the table read. Otherwise confirmed.
+// reconciled: R17 sound_observer_camera observer_cameras[] (0x006ac6d0) -> camera.h observers[i].camera (same bytes)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "camera.h"
 #include "sound.h"
 
-extern uint8_t *structure_bsp_globals;    // 0x00746f9c
+extern uint8_t *global_structure_bsp;    // 0x00746f9c
 extern uint32_t sound_cluster_audible_bitmap[k_sound_cluster_bitmap_words]; // 0x00746160
 extern player_globals *local_player_globals; // 0x0087a478
-extern sound_observer_camera observer_cameras[]; // 0x006ac6d0 (an array, not a pointer), types/sound.h
+extern observer observers[1]; // 0x006ac65c, camera.h; observers[i].camera is the 0x006ac6d0 row (R17)
 
 // Rebuilds sound_cluster_audible_bitmap: bit `cluster` is set when the BSP's per-cluster distance
 // table places `cluster` within sound-audible range (scaled distance < 256.0) of the listener's
-// current cluster (observer_cameras[0].cluster_index), gated on a local player existing.
+// current cluster (observers[0].camera.cluster_index), gated on a local player existing.
 void sound_build_cluster_range_bitmap(void)
 {
-    int32_t cluster_count = *(int32_t *)(structure_bsp_globals + 0x134);
-    uint8_t *distance_table = *(uint8_t **)(structure_bsp_globals + 0x220); // UNSURE, see file header
+    int32_t cluster_count = *(int32_t *)(global_structure_bsp + 0x134);
+    uint8_t *distance_table = *(uint8_t **)(global_structure_bsp + 0x220); // UNSURE, see file header
     int32_t word_count = (cluster_count + 0x1f) >> 5;
     int32_t i;
 
@@ -43,8 +45,8 @@ void sound_build_cluster_range_bitmap(void)
     }
 
     if (local_player_globals->local_players[0] != (datum_index)k_datum_index_none &&
-        observer_cameras[0].cluster_index != -1 && cluster_count > 0) {
-        int16_t listener_cluster = observer_cameras[0].cluster_index;
+        observers[0].camera.cluster_index != -1 && cluster_count > 0) {
+        int16_t listener_cluster = observers[0].camera.cluster_index;
         int32_t cluster;
 
         for (cluster = 0; cluster < cluster_count; cluster++) {

@@ -268,18 +268,18 @@ typedef char check_dmg_dirt[(__builtin_offsetof(DamageEffect, dirt) == 0x200) ? 
 typedef char check_cr_size[(sizeof(collision_result) == 0x50) ? 1 : -1];
 typedef char check_cr_t2[(__builtin_offsetof(collision_result, t) == 0x14) ? 1 : -1];
 typedef char check_cr_point2[(__builtin_offsetof(collision_result, point) == 0x18) ? 1 : -1];
-typedef char check_cr_normal2[(__builtin_offsetof(collision_result, normal) == 0x24) ? 1 : -1];
-typedef char check_cr_plane_d[(__builtin_offsetof(collision_result, unknown_30) == 0x30) ? 1 : -1];
+typedef char check_cr_normal2[(__builtin_offsetof(collision_result, plane.normal) == 0x24) ? 1 : -1];
+typedef char check_cr_plane_d[(__builtin_offsetof(collision_result, plane.d) == 0x30) ? 1 : -1];
 typedef char check_cr_material2[(__builtin_offsetof(collision_result, material_type) == 0x34) ? 1 : -1];
 typedef char check_cr_object2[(__builtin_offsetof(collision_result, object_index) == 0x38) ? 1 : -1];
-typedef char check_cr_region[(__builtin_offsetof(collision_result, unknown_3c) == 0x3c) ? 1 : -1];
-typedef char check_cr_node[(__builtin_offsetof(collision_result, marker_index) == 0x3e) ? 1 : -1];
-typedef char check_cr_perm[(__builtin_offsetof(collision_result, unknown_40) == 0x40) ? 1 : -1];
+typedef char check_cr_region[(__builtin_offsetof(collision_result, region_index) == 0x3c) ? 1 : -1];
+typedef char check_cr_node[(__builtin_offsetof(collision_result, node_index) == 0x3e) ? 1 : -1];
+typedef char check_cr_perm[(__builtin_offsetof(collision_result, permutation_index) == 0x40) ? 1 : -1];
 typedef char check_cr_surface2[(__builtin_offsetof(collision_result, surface_index) == 0x44) ? 1 : -1];
-typedef char check_cr_planeidx[(__builtin_offsetof(collision_result, unknown_48) == 0x48) ? 1 : -1];
+typedef char check_cr_planeidx[(__builtin_offsetof(collision_result, plane_index) == 0x48) ? 1 : -1];
 typedef char check_cr_flags2[(__builtin_offsetof(collision_result, surface_flags) == 0x4c) ? 1 : -1];
-typedef char check_cr_break2[(__builtin_offsetof(collision_result, unknown_4d) == 0x4d) ? 1 : -1];
-typedef char check_cr_matidx[(__builtin_offsetof(collision_result, unknown_4e) == 0x4e) ? 1 : -1];
+typedef char check_cr_break2[(__builtin_offsetof(collision_result, breakable_surface_index) == 0x4d) ? 1 : -1];
+typedef char check_cr_matidx[(__builtin_offsetof(collision_result, collision_material_index) == 0x4e) ? 1 : -1];
 
 // ---------------------------------------------------------------------------
 // enum values the module dispatches on

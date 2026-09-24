@@ -49,6 +49,7 @@
 //  - The unit type tag fields at unit_type_def+0x398/0x39c/0x3a0/0x3a4 have no entry in
 //    types/tags.h at this granularity (that struct belongs to the units module); left as raw
 //    offsets.
+// reconciled: R06 0x00746f9c is ScenarioStructureBSP *global_structure_bsp (was extern int32_t bsp_generation); ai.h path_find_context/actor_movement_context bsp_generation -> structure_bsp, bsp_index -> collision_bsp
 
 #include "tags.h"
 #include "memory.h"
@@ -60,7 +61,7 @@
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern int32_t bsp_generation;      // 0x00746f9c, the structure BSP pointer, used here as an opaque handle
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (formerly bsp_generation)
 extern const real_vector3d *global_origin3d_pointer; // 0x00696714
 
 extern double acos(double x); // 0x628140, CRT; see UNSURE above
@@ -84,7 +85,7 @@ extern void actor_movement_choose_strafe_axis(real_vector3d *direction_in_out, i
 extern void actor_movement_project_into_frame(const real_vector3d *in, real_vector3d *out); // 0x418c20, not yet rewritten (this module)
 // Traces a straight segment across a BSP cluster's connected edges for the first portal
 // boundary it crosses. UNSURE signature, read off this call site only.
-extern uint8_t path_find_trace_bsp_boundary(int32_t bsp_generation, uint8_t ignores_glass, const real_point3d *from,
+extern uint8_t path_find_trace_bsp_boundary(int32_t structure_bsp, uint8_t ignores_glass, const real_point3d *from,
                             int32_t surface_index, const real_point3d *to, uint32_t sentinel,
                             uint8_t out_result[28]); // 0x43d9b0, not yet rewritten (this module)
 
@@ -247,7 +248,7 @@ void actor_movement_apply_steering(
                     probe_point.z = a->body_position.z;
                     probe_point.x = probe_dir.i * 0.4f + a->body_position.x;
                     probe_point.y = probe_dir.j * 0.4f + a->body_position.y;
-                    hit = path_find_trace_bsp_boundary(bsp_generation, a->ignores_glass, &a->body_position,
+                    hit = path_find_trace_bsp_boundary((uint32_t)global_structure_bsp, a->ignores_glass, &a->body_position,
                                        lead_target_index, &probe_point, 0xffffffffu, probe_result);
                     if (hit != 0 && max_turn_cos <= 0.95f) {
                         max_turn_cos = 0.95f;

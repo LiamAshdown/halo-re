@@ -153,22 +153,32 @@ typedef enum hs_special_function_index {
     _hs_function_inspect = 0x16
 } hs_special_function_index;
 
-// Bit index per built-in multiplayer game type in hs_function_definition::gametype_flags,
-// hs_global_definition::gametype_flags and hs_autocomplete_gametype_mask. Bit 0 is handled
-// separately by hs_gametype_flags_applicable @0x483600, which then tests bits 1..6.
+// Bit index of a console command CONTEXT in hs_function_definition::gametype_flags,
+// hs_global_definition::gametype_flags and hs_autocomplete_gametype_mask (R31). These are NOT
+// multiplayer game types: they are the bits of the context word console_command_context_flags
+// 0x4c69c0 builds, which console_autocomplete_command passes on (0x4c6b38 call 0x4c69c0 ->
+// 0x4c6b4c mov edx,eax -> 0x483cc1 mov WORD ds:0x6b14ac,dx). 0x4c69c0 starts from bit 0; with a
+// multiplayer engine loaded (0x006f1d20 != NULL) it uses 0x2009 (bits 0, 3; bit 5 forbidden),
+// otherwise bit 4, plus bit 5 unless a profile flag byte (bit 2 of the byte 0x124 into the 0x2000
+// block copied from 0x00712dd8) says otherwise; it always ORs bit 6; network_game_mode 1
+// (client) forbids bits 1 and 2 (0x600), mode 2 (host) sets bit 1; then the caller's word is
+// ORed in and every bit n whose bit n+8 is set is cleared. Bit 0 is handled separately by
+// hs_gametype_flags_applicable @0x483600, which then tests bits 1..6 (0x4835b0).
 typedef enum hs_gametype_flags {
-    _hs_gametype_none_bit = 0,
-    _hs_gametype_ctf_bit = 1,
-    _hs_gametype_slayer_bit = 2,
-    _hs_gametype_oddball_bit = 3,
-    _hs_gametype_king_bit = 4,
-    _hs_gametype_race_bit = 5,
-    _hs_gametype_terminator_bit = 6
+    _hs_context_default_bit = 0,               // always seeded by 0x4c69c0
+    _hs_context_host_bit = 1,                  // network_game_mode == 2 (host); forbidden on a client
+    _hs_context_client_forbidden_bit = 2,      // forbidden on a client (0x400); only set by the caller
+    _hs_context_multiplayer_engine_bit = 3,    // current_game_engine != NULL
+    _hs_context_no_multiplayer_engine_bit = 4, // current_game_engine == NULL
+    _hs_context_unknown_20_bit = 5,            // credits / profile-gated (UNSURE); forbidden with a
+                                               //   multiplayer engine loaded
+    _hs_context_always_bit = 6                 // ORed unconditionally (0x4c6a16)
 } hs_gametype_flags;
 
-// hs_autocomplete_gametype_mask (0x006b14ac) packs two of the masks above: the low byte is
-// "must be available in this game type", the high byte is "must not be" -- the two tests in
-// hs_gametype_flag_satisfied @0x4835b0.
+// hs_autocomplete_gametype_mask (0x006b14ac) is the console command context word 0x4c69c0
+// builds (R31): the low byte holds the context bits above that are present, the high byte the
+// ones that are forbidden -- the two tests in hs_gametype_flag_satisfied @0x4835b0 (movzx
+// edi,WORD ds:0x6b14ac) and hs_gametype_flags_applicable @0x483600 (bits 0..6).
 typedef enum hs_autocomplete_gametype_mask_bits {
     k_hs_autocomplete_required_mask = 0x00ff,
     k_hs_autocomplete_forbidden_shift = 8
@@ -237,7 +247,8 @@ typedef struct hs_function_definition {
     char *info;                   // 0x10 documentation sentence, never NULL
     char *param_info;             // 0x14 hand written argument list, NULL for 480 of 522;
                                   //      when NULL the signature is built from parameters[]
-    int16_t gametype_flags;       // 0x18 hs_gametype_flags bitmask, 0 means always available
+    int16_t gametype_flags;       // 0x18 hs_gametype_flags console-context bitmask (R31, not
+                                  //      game types), 0 means always available
     int16_t parameter_count;      // 0x1a
     hs_type_t parameters[1];      // 0x1c parameter_count entries
 } hs_function_definition;         // size 0x1c + 2*parameter_count
@@ -254,7 +265,8 @@ typedef struct hs_global_definition {
     hs_type_t type;               // 0x04 only boolean/real/short/long occur
     int16_t pad_06;               // 0x06 zero in all 0x1eb records
     void *address;                // 0x08 the engine variable, NULL for 389 of the 491
-    uint32_t gametype_flags;      // 0x0c hs_gametype_flags bitmask, 0 on all but six records
+    uint32_t gametype_flags;      // 0x0c hs_gametype_flags console-context bitmask (R31), 0 on
+                                  //      all but six records
                                   //      (0x5f on five, 0x15 on sv_public)
 } hs_global_definition;           // size 0x10
 
@@ -539,25 +551,17 @@ typedef struct hs_player_record {
     datum_index unit;          // 0x34
 } hs_player_record;            // partial: stride is 0x200
 
-// The time globals owned by the game module (hs_game_time_globals *game_time @0x006f1d6c).
+// The time globals owned by the game module (game_time_globals *game_time @0x006f1d6c) are
+// types/game.h game_time_globals (0x20 bytes; game.h parses before hs.h). R32 removed the partial
+// hs_game_time_globals copy that used to live here: its +0x1c "seconds_per_tick" is really
+// game_time_globals.leftover_time, the fractional-tick accumulator (0x470b30: fadd [ecx+0x1c]
+// at 0x470b67, fst [edx+0x1c] at 0x470bca, mov [edx+0x1c],0 at 0x470bdc), and +0x18 is the time
+// scale (speed). Old name -> game.h name: initialized -> initialized, budget_flag_1 -> active,
+// budget_flag_2 -> paused, current_tick -> game_time, tick_delta (int32) -> ticks_this_frame
+// (int16) + unknown_12, seconds_per_tick -> leftover_time.
 // hs_evaluate_sleep, hs_runtime_update, hs_thread_evaluate_step and
-// hs_object_detach_and_place_at_location read only the tick counter.
-// hs_thread_evaluate_step additionally gates its per-tick budget check on the three bytes at
-// +0..+2 (initialized / not paused / not in a "run without limit" mode -- UNSURE which is which).
-// The units module (src/units) reads +0x02 as a "time is running" gate, +0x0c as the tick and
-// +0x1c as the seconds-per-tick scale (0x55a170 multiplies it by 29.999998 to convert a
-// per-second rate into a per-tick step); src/objects/glow_update.c reads +0x10 as a tick delta.
-// Those three are added here so every module names the same global with the same struct.
-typedef struct hs_game_time_globals {
-    uint8_t initialized;       // 0x00 UNSURE
-    uint8_t budget_flag_1;     // 0x01 UNSURE
-    uint8_t budget_flag_2;     // 0x02 UNSURE; 0x55cca0 refuses to run while it is zero
-    uint8_t unknown_03[0x0c - 0x03]; // 0x03
-    int32_t current_tick;      // 0x0c
-    int32_t tick_delta;        // 0x10 UNSURE: glow_update's only use of the record
-    uint8_t unknown_14[0x1c - 0x14]; // 0x14
-    float seconds_per_tick;    // 0x1c 0x55a170 and 0x560d00 scale per-second tag rates with it
-} hs_game_time_globals;        // partial
+// hs_object_detach_and_place_at_location read the tick counter; hs_thread_evaluate_step also
+// gates its per-tick budget check on bytes +0x01 (active) and +0x02 (paused).
 
 // The area-effect request owned by the effects/damage module, built on the stack and handed to
 // damage_apply_area_effect @0x4edd30 by hs_damage_apply_at_location @0x488960 and
@@ -570,7 +574,10 @@ typedef struct hs_damage_request {
     uint32_t attacker;               // 0x0c UNSURE, set to -1 by both callers
     uint16_t unknown_10;             // 0x10 set to 0xffff by both callers
     int32_t sound_impulse;           // 0x14
-    uint16_t sound_index;            // 0x18 from global_matg_multiplayer+0xe4, 0xffff when absent
+    uint16_t sound_index;            // 0x18 ScenarioStructureBSPLeaf.cluster of the leaf found for
+                                     //      the location (global_structure_bsp->leaves.pointer at
+                                     //      +0xe4, stride 0x10, cluster at +0x08; 0x488a0a), 0xffff
+                                     //      when absent. This is damage_data.location_cluster_index.
     Point3D position;                // 0x1c
     Point3D direction;               // 0x28 UNSURE: written with the same value as position
     uint8_t unknown_34[0x40 - 0x34]; // 0x34
@@ -634,7 +641,8 @@ typedef struct file_reference {
 // console autocomplete state (chimera__autocomplete_gather @0x483c90 owns all six)
 // global 0x006b14a0: int16_t hs_autocomplete_maximum_count
 // global 0x006b14a4: char *hs_autocomplete_prefix     points at hs_empty_string when NULL
-// global 0x006b14ac: uint16_t hs_autocomplete_gametype_mask  hs_autocomplete_gametype_mask_bits
+// global 0x006b14ac: uint16_t hs_autocomplete_gametype_mask  console command context word (R31),
+//                      written by 0x483cc1 from 0x4c69c0's result
 // global 0x006b14b0: int16_t hs_autocomplete_count
 // global 0x006b14b4: char **hs_autocomplete_results   hs_autocomplete_maximum_count entries
 
@@ -676,10 +684,15 @@ typedef struct file_reference {
 // global 0x006b8cb8: datum_index *object_names_to_objects  objects, 0x200 entries
 // global 0x006b8cb4: memory_pool *object_memory_pool     types/memory.h
 // global 0x0087a480: data_array *players                 game, stride 0x200, unit at +0x34
-// global 0x006f1d6c: hs_game_time_globals *game_time    game, current tick at +0x0c (slice above)
+// global 0x006f1d6c: game_time_globals *game_time       game (types/game.h), tick at +0x0c
 // global 0x00719cd0: random_seed random_seed_global      types/math.h, hs_evaluate_random
-// global 0x00746f90: void *global_globals                tags, damage request construction
-// global 0x00746f9c: void *global_matg_multiplayer       tags, sound/damage lookup at +0xe4
+// global 0x00746f90: ModelCollisionGeometryBSP *global_collision_bsp   scenario.h: the resident
+//                    bsp's collision BSP (ScenarioStructureBSP +0xb4), written with 0x00746f98 on
+//                    every switch (0x53ef68..0x53ef78, 0x54103c..0x541048); damage request
+//                    construction. Not global_globals: that name is the matg globals at 0x00746fa0
+// global 0x00746f9c: ScenarioStructureBSP *global_structure_bsp   scenario.h, the resident
+//                    structure BSP (formerly global_matg_multiplayer; the matg globals are
+//                    0x00746fa0). The damage requests read its leaf block at +0xe4.
 // global 0x0065512c: char hs_empty_string_storage[1]     the shared "" literal
 
 #pragma pack(pop)

@@ -21,6 +21,7 @@
 // already-written objects-module prototype is not possible, so only the index is passed here,
 // matching that file's own established interface. This is flagged rather than silently
 // dropped.
+// reconciled: R38 object_type_definition +0x0a/+0x0c/+0x0e/+0x10 -> scenario_placement_offset/scenario_palette_offset/scenario_placement_size/network_delta_message_type (int32, -1 = none)
 
 #include "tags.h"
 #include "memory.h"
@@ -66,7 +67,7 @@ void network_server_broadcast_object_type_changes(void)
     obj = object_iterator_next(&iterator);
     while (obj != (object *)0) {
         if (obj->network_role == 0 && object_type_override_call_0x74(iterator.handle) == 1 &&
-            *(int32_t *)((uint8_t *)object_type_definitions[obj->type] + 0x10) != -1) {
+            object_type_definitions[obj->type]->network_delta_message_type != -1) {
             changed = object_datum_consume_pending_flag(iterator.handle);
             if (changed != 0) {
                 object_type_override_call_0x68(iterator.handle);

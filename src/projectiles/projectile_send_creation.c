@@ -16,6 +16,8 @@
 //   outside this batch's address range) that Ghidra decompiled with implicit register
 //   arguments it could not recover; called exactly as the equipment sibling function
 //   establishes.
+// reconciled: R28 object.unknown_0c4 -> datum_index creator_object (same offset 0xc4)
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
 
 #include "tags.h"
 #include "memory.h"
@@ -47,8 +49,8 @@ void projectile_send_creation(uint32_t projectile_index)
     if (projectile_index != 0xffffffff) {
         projectile_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0x0c), projectile_index);
     }
-    if (obj->unknown_0c4 != 0xffffffff) {
-        creating_object_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0x0c), obj->unknown_0c4);
+    if (obj->creator_object != 0xffffffff) {
+        creating_object_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0x0c), obj->creator_object);
         if (creating_object_hash == -1) {
             creating_object_hash = 0;
         }
@@ -65,7 +67,7 @@ void projectile_send_creation(uint32_t projectile_index)
 
     message.definition_tag = obj->definition_tag;
     message.object_hash = projectile_hash;
-    message.name_index = obj->name_index;
+    message.owner_team = obj->owner_team;
     // message.pad_0a left unset, matching Ghidra: the original never writes this byte pair.
     message.owner_hash = owner_hash;
     message.creating_object_hash = creating_object_hash;

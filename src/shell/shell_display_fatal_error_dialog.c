@@ -23,9 +23,9 @@
 // UNSURE: the byte-by-byte " (" / ")" splice around fatal_error_argument is Ghidra's decompile of
 //   an inlined strcat; rewritten here as three explicit strcat calls with identical observable
 //   effect (fatal_error_text = fatal_error_text + " (" + fatal_error_argument + ")").
-// UNSURE: global 0x00722bc0 (named here fatal_error_remember_choice) is not in types/shell.h's
-//   named field list; out/phase4/shell_types_notes.md notes it is shared with three unlisted
-//   "dialogs" module functions (0x57e1f0/0x57e350/0x57e4c0) between this module's own globals.
+// global 0x00722bc0 fatal_error_remember_choice is now in types/shell.h's globals list (R15):
+//   written by the dialog proc 0x57e5a0, read here at 0x57ee7c.
+// reconciled: R15 0x00722bc0 fatal_error_remember_choice added to shell.h as int32_t; extern retyped uint32 -> int32
 
 #include "tags.h"
 #include "memory.h"
@@ -88,7 +88,7 @@ extern void *shell_instance;               // 0x007461c0
 extern uint32_t shell_language_id;         // 0x0069ff20
 extern uint8_t shell_window_proc_bypass;   // 0x00721e8d
 extern int32_t safe_mode;                  // 0x007196f4 (32 bit BOOL)
-extern uint32_t fatal_error_remember_choice; // 0x00722bc0, see UNSURE above
+extern int32_t fatal_error_remember_choice; // 0x00722bc0, types/shell.h (R15)
 
 extern int32_t __stdcall fatal_error_dialog_proc(void *dialog, uint32_t message, uint32_t wparam,
                                                   int32_t lparam); // 0x57e5a0, the DLGPROC for this dialog; a

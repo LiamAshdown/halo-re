@@ -13,12 +13,12 @@
 // markers[i].node_transform.position and .node_transform.forward. See the loop below.
 //
 // NOT PORTED -- the autoaim / magnetism block. In the #if 0 decompilation this is everything
-// from `local_1bdc = (uint *)0x0;` down to the `local_1be4 = FUN_004593b0(...)` assignment. It
+// from `local_1bdc = (uint *)0x0;` down to the `local_1be4 = camera_observer_update(...)` assignment. It
 // resolves the holder's autoaim target by walking the object data_array by hand (local_1c18's
 // index and salt are validated against DAT_008603b0 + 0x20 / +0x22 before the header at +0x34 is
 // indexed), follows the target's own 0xca handle when it has one, reads a unit field at 0x218
 // and one at 0x1f4, consults actor_data (0x00880360, stride 0x724, the int16 at +0x5f2 against
-// 4), and then calls FUN_005658f0 / FUN_0040f7e0 / FUN_004593b0 to produce three outputs this
+// 4), and then calls FUN_005658f0 / actor_compute_grenade_aim_direction / camera_observer_update to produce three outputs this
 // function does use: spread_gain (local_1c14), error_bias (local_1c08) and
 // projectile_type_index (local_1be4). Porting it needs the units and ai headers, and the three
 // callees' argument shapes are not established. All three outputs are therefore initialized to
@@ -28,11 +28,12 @@
 // -- the marker walk, the round count, the per-shot placement loop, the spread and
 // perpendicular-basis maths, the velocity inheritance from the root parent, and the
 // object_new_with_datum_role_control bookkeeping -- is ported.
-// UNSURE: FUN_004c54e0 (this module, the barrel spread offset helper) and FUN_004f7b70 argument
+// UNSURE: FUN_004c54e0 (this module, the barrel spread offset helper) and object_reposition_to_spawn_location argument
 // shapes; the WeaponTrigger offsets 0x1b4, 0x6e and 0x26 read through raw casts below.
 // register convention: item index, trigger index and the new object's role are all
 // Ghidra-recognized parameters.
 // blam-cc: stack -> (item_index, trigger_index, role)
+// reconciled: R28 object.unknown_0c4 -> datum_index creator_object (same offset 0xc4)
 
 #include "tags.h"
 #include "memory.h"
@@ -65,8 +66,8 @@ extern int16_t object_get_node_local_transform(datum_index object_index, char *m
     void *out_transforms, int32_t max_count); // 0x4f6080
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand); // 0x4052c0
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
-extern int32_t FUN_0040f7e0(real_vector3d *v); // 0x40f7e0, outside this module, UNSURE signature
-extern int32_t FUN_004593b0(real_point3d *origin, real_vector3d *forward); // 0x4593b0, outside this module, UNSURE signature
+extern int32_t actor_compute_grenade_aim_direction(real_vector3d *v); // 0x40f7e0, outside this module, UNSURE signature
+extern int32_t camera_observer_update(real_point3d *origin, real_vector3d *forward); // 0x4593b0, outside this module, UNSURE signature
 extern void FUN_005658f0(datum_index target_index, real *out_gain, uint32_t flags1, uint32_t flags2); // 0x5658f0, outside this module, UNSURE signature
 extern real_vector3d *vector3d_randomize_direction(real angle, real_vector3d *out); // 0x4cd1b0, UNSURE argument order at this call site
 extern void *vector3d_build_perpendicular(void); // 0x4cd670, UNSURE: this call site shows no visible arguments
@@ -76,7 +77,7 @@ extern void object_placement_data_initialize(object_placement_data *placement, d
     datum_index role); // 0x4f53a0
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role); // 0x4f54b0
 extern void unit_get_camera_position(datum_index unit_index, real_point3d *out); // 0x568f80
-extern void FUN_004f7b70(datum_index new_object_index, datum_index camera_unit_index); // 0x4f7b70, outside this module, UNSURE signature
+extern void object_reposition_to_spawn_location(datum_index new_object_index, datum_index camera_unit_index); // 0x4f7b70, outside this module, UNSURE signature
 
 // Computes the firing origin/spread for a weapon's trigger and spawns the resulting projectile
 // object(s), one per marker matching the trigger's tag-defined attachment marker. See the file
@@ -184,8 +185,8 @@ void trigger_create_projectiles(datum_index item_index, int16_t trigger_index, u
                 object *parent = object_try_and_get(item_obj->parent_object, _object_mask_unit);
                 if (parent != 0) {
                     attachment_role = item_obj->parent_object;
-                    if (parent->unknown_0c4 != (uint32_t)0xffffffff) { // UNSURE: object 0x328 vs 0x0c4
-                        attachment_role = (datum_index)parent->unknown_0c4;
+                    if (parent->creator_object != (uint32_t)0xffffffff) { // UNSURE: object 0x328 vs 0x0c4
+                        attachment_role = (datum_index)parent->creator_object;
                     }
                 }
             }
@@ -257,7 +258,7 @@ void trigger_create_projectiles(datum_index item_index, int16_t trigger_index, u
                     if (report_projectile_flags & 2) {
                         real_point3d camera_position;
                         unit_get_camera_position(holder_index, &camera_position);
-                        FUN_004f7b70(new_index, holder_index);
+                        object_reposition_to_spawn_location(new_index, holder_index);
                     }
                     {
                         object *new_obj = ((object_header *)object_data->data)[(uint16_t)new_index].data;

@@ -37,6 +37,7 @@
 // The original does not null-check param_3 (out_leaf) before writing through it, on either
 //   path, although it does null-check param_7 (out_normal) and param_8 (out_material_type).
 //   Preserved as decompiled.
+// reconciled: R23 collision_result: normal -> plane.normal, unknown_30 -> plane.d, unknown_04 -> first_leaf/first_cluster, unknown_3c -> region_index, marker_index -> node_index, unknown_40 -> permutation_index (int16), unknown_48 -> plane_index, unknown_4d -> breakable_surface_index, unknown_4e -> collision_material_index
 
 #include "tags.h"
 #include "memory.h"
@@ -201,20 +202,20 @@ uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPh
             }
 
             if (out_normal != (real_vector3d *)0) {
-                *out_normal = hit.normal;
+                *out_normal = hit.plane.normal;
             }
             if (out_material_type != (int16_t *)0) {
                 *out_material_type = hit.material_type;
             }
 
-            dot_nv = hit.normal.j * velocity->j + hit.normal.k * velocity->k + hit.normal.i * velocity->i;
-            normal_j_term = dot_nv * hit.normal.j;
-            normal_k_term = dot_nv * hit.normal.k;
+            dot_nv = hit.plane.normal.j * velocity->j + hit.plane.normal.k * velocity->k + hit.plane.normal.i * velocity->i;
+            normal_j_term = dot_nv * hit.plane.normal.j;
+            normal_k_term = dot_nv * hit.plane.normal.k;
             tangential_j = velocity->j - normal_j_term;
             tangential_k = velocity->k - normal_k_term;
 
-            velocity->i = (1.0f - definition->surface_friction) * (velocity->i - hit.normal.i * dot_nv) -
-                hit.normal.i * dot_nv * definition->elasticity;
+            velocity->i = (1.0f - definition->surface_friction) * (velocity->i - hit.plane.normal.i * dot_nv) -
+                hit.plane.normal.i * dot_nv * definition->elasticity;
             velocity->j = (1.0f - definition->surface_friction) * tangential_j - normal_j_term * definition->elasticity;
             velocity->k = (1.0f - definition->surface_friction) * tangential_k - normal_k_term * definition->elasticity;
 
@@ -222,9 +223,9 @@ uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPh
                 *out_leaf = hit.leaf; // the original does NOT null-check param_3 here
             }
 
-            position->x = hit.normal.i * step_dt + hit.point.x;
-            position->y = hit.normal.j * step_dt + hit.point.y;
-            position->z = hit.normal.k * step_dt + hit.point.z;
+            position->x = hit.plane.normal.i * step_dt + hit.point.x;
+            position->y = hit.plane.normal.j * step_dt + hit.point.y;
+            position->z = hit.plane.normal.k * step_dt + hit.point.z;
 
             dt -= hit.t * dt;
             if (dt == 0.0f) {
@@ -236,7 +237,7 @@ uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPh
     // Loop exhausted after k_physics_collision_iterations bounces. The original returns straight
     // out of the `if (2 < sVar5)` test at the top of the while(true), so it does NOT re-run the
     // post-loop position write -- the last bounce already left *position at
-    // hit.point + hit.normal * step_dt.
+    // hit.point + hit.plane.normal * step_dt.
     return result_flags;
 }
 

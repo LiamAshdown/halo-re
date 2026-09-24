@@ -63,7 +63,7 @@ extern datum_index *collideable_cluster_first;    // 0x008603d0
 extern data_array *collideable_object_references; // 0x008603d4
 extern datum_index *noncollideable_cluster_first;    // 0x008603c0
 extern data_array *noncollideable_object_references; // 0x008603c4
-extern ScenarioStructureBSP *structure_bsp;    // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp;    // 0x00746f9c
 extern object_globals *object_globals_pointer; // 0x006b8cbc
 extern int32_t object_cluster_stamp;           // 0x008603cc
 
@@ -114,12 +114,12 @@ void actor_target_scan_potential_targets(datum_index actor_index) // blam-cc: st
     list_b.seen_count = 0;
     list_b.entry_count = 0;
 
-    row_dwords = (structure_bsp->clusters.count + 0x1f) >> 5;
+    row_dwords = (global_structure_bsp->clusters.count + 0x1f) >> 5;
 
     if (!self->swarm) {
         int16_t cluster_ref = *(int16_t *)&self->unknown_138[0x148 - 0x138]; // UNSURE, see file header
         if (cluster_ref != -1) {
-            pvs_bitmap = (uint32_t *)((uint8_t *)structure_bsp->cluster_data.pointer +
+            pvs_bitmap = (uint32_t *)((uint8_t *)global_structure_bsp->cluster_data.pointer +
                                        row_dwords * cluster_ref * 4);
         }
     } else {
@@ -137,7 +137,7 @@ void actor_target_scan_potential_targets(datum_index actor_index) // blam-cc: st
             if (cluster != -1) {
                 int32_t j;
                 for (j = row_dwords - 1; j >= 0; j--) {
-                    swarm_pvs[j] |= *(uint32_t *)((uint8_t *)structure_bsp->cluster_data.pointer +
+                    swarm_pvs[j] |= *(uint32_t *)((uint8_t *)global_structure_bsp->cluster_data.pointer +
                                                    row_dwords * cluster * 4 + j * 4);
                 }
                 any = 1;
@@ -337,9 +337,9 @@ merged:
     // Push visibility into every object referenced from each cluster this actor's PVS row
     // marks visible: actor_target_evaluate_squad_link (0x41e320) folds each one into whichever
     // of the two candidate lists it belongs in.
-    if (pvs_bitmap != 0 && structure_bsp->clusters.count > 0) {
+    if (pvs_bitmap != 0 && global_structure_bsp->clusters.count > 0) {
         int32_t cluster;
-        for (cluster = 0; cluster < structure_bsp->clusters.count; cluster++) {
+        for (cluster = 0; cluster < global_structure_bsp->clusters.count; cluster++) {
             if (pvs_bitmap[cluster >> 5] & (1u << (cluster & 0x1f))) {
                 // UNSURE, see file header: collideable/noncollideable_cluster_first chains,
                 // exactly as object_get_root_parent_placement.c already names both globals.

@@ -11,6 +11,7 @@
 // register convention: no arguments.
 // UNSURE: unit+0x4b8/0x4bc are a flag and a value this module does not otherwise attest to; kept
 // as raw offsets.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
@@ -18,6 +19,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data;      // 0x0087a480
 extern data_array *object_data;      // 0x008603b0
@@ -45,6 +47,7 @@ void game_engine_server_update_player_positions(void)
     iter.data = player_data;
     iter.next_index = 0;
     iter.index = (datum_index)-1;
+    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     plr = (player *)data_iterator_next(&iter);
     while (plr != (player *)0) {

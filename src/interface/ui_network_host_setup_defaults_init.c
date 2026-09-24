@@ -15,6 +15,7 @@
 // 0x00719204 / 0x00699584 (a game setup choice, its sub index and the value picked from the
 // second table).
 // register convention: cdecl, the one stack parameter (widget).
+// reconciled: R56 0x00712dd8 uint8_t saved_profile_records[3][0x2004] -> saved_games.h saved_player_profile_slot saved_player_profile_slots[k_maximum_local_player_profiles] (one 0x2004-byte slot; a second would overlap 0x00714dde); same bytes copied/read
 
 #include "tags.h"
 #include "memory.h"
@@ -22,13 +23,14 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "saved_games.h"
 #include <string.h>
 
 extern uint8_t save_in_progress_00719010;           // 0x00719010
 extern int32_t quality_selection_00692b04;          // 0x00692b04
 extern int32_t resolution_selection_00719204;       // 0x00719204
 extern int32_t current_profile_index;               // 0x00714dd4
-extern uint8_t saved_profile_records[3][0x2004];    // 0x00712dd8
+extern saved_player_profile_slot saved_player_profile_slots[k_maximum_local_player_profiles]; // 0x00712dd8, saved_games.h
 extern uint16_t network_host_name_00719170[0x40];   // 0x00719170
 extern uint16_t network_host_subname_007191f0[9];   // 0x007191f0
 extern int32_t resolution_row_count_table_0065bfb4[5]; // 0x0065bfb4
@@ -55,7 +57,7 @@ uint8_t ui_network_host_setup_defaults_init(widget_instance *widget)
         resolution_selection_00719204 = 0;
     }
     if (current_profile_index != -1) {
-        memcpy(profile, saved_profile_records[0], sizeof(profile));
+        memcpy(profile, &saved_player_profile_slots[0].profile, sizeof(profile));
     } else {
         player_profile_set_default_server_options(profile);
     }

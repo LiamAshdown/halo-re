@@ -4,7 +4,7 @@
 // evidence: full disassembly (objdump -d -M intel bin/halo.exe, 0x554fa0..0x55518e) rather than
 //   the decompile, which elided both the callee argument lists this function depends on:
 //     - 0x552110 is structure_surface_material_locate (this module). The call site pushes
-//       (structure_bsp, surface_index, out_material_index) and loads EAX with
+//       (global_structure_bsp, surface_index, out_material_index) and loads EAX with
 //       out_lightmap_index -- `mov eax,[esp+0x50]` at 0x555024 -- which matches that function's
 //       own EAX convention exactly. So this function's third stack parameter is the LIGHTMAP
 //       index slot and its fourth is the MATERIAL index slot, not the "outer cell / inner cell"
@@ -34,10 +34,10 @@
 #include "math.h"
 #include "structures.h"
 
-extern ScenarioStructureBSP *structure_bsp; // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 
 // blam-cc: EAX -> out_lightmap_index
-extern void structure_surface_material_locate(ScenarioStructureBSP *structure_bsp, int32_t surface_index,
+extern void structure_surface_material_locate(ScenarioStructureBSP *global_structure_bsp, int32_t surface_index,
     int16_t *out_material_index, int16_t *out_lightmap_index); // 0x552110, this module
 
 // math module, out of this batch. blam-cc: EAX -> v0, EDX -> v1, ECX -> v2, ESI -> point
@@ -58,15 +58,15 @@ uint8_t structure_bsp_leaf_find_material_surface(real_point3d *point, int32_t ac
 {
     int32_t leaf_index = raw_child & 0x7fffffff;
     ScenarioStructureBSPLeaf *leaf =
-        &((ScenarioStructureBSPLeaf *)structure_bsp->leaves.pointer)[leaf_index];
+        &((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf_index];
     ScenarioStructureBSPSurfaceReference *leaf_surfaces =
-        (ScenarioStructureBSPSurfaceReference *)structure_bsp->leaf_surfaces.pointer;
+        (ScenarioStructureBSPSurfaceReference *)global_structure_bsp->leaf_surfaces.pointer;
     ModelCollisionGeometryBSP *collision_bsp =
-        (ModelCollisionGeometryBSP *)structure_bsp->collision_bsp.pointer;
+        (ModelCollisionGeometryBSP *)global_structure_bsp->collision_bsp.pointer;
     ModelCollisionGeometryBSP3DNode *bsp3d_nodes =
         (ModelCollisionGeometryBSP3DNode *)collision_bsp->bsp3d_nodes.pointer;
     ScenarioStructureBSPLightmap *lightmaps =
-        (ScenarioStructureBSPLightmap *)structure_bsp->lightmaps.pointer;
+        (ScenarioStructureBSPLightmap *)global_structure_bsp->lightmaps.pointer;
 
     int32_t first = leaf->surface_references;
     int32_t end = first + leaf->surface_reference_count;
@@ -84,9 +84,9 @@ uint8_t structure_bsp_leaf_find_material_surface(real_point3d *point, int32_t ac
             continue;
         }
         surface_index = leaf_surfaces[i].surface;
-        surface = (ScenarioStructureBSPSurface *)structure_bsp->surfaces.pointer + surface_index;
+        surface = (ScenarioStructureBSPSurface *)global_structure_bsp->surfaces.pointer + surface_index;
 
-        structure_surface_material_locate(structure_bsp, surface_index, out_material_index,
+        structure_surface_material_locate(global_structure_bsp, surface_index, out_material_index,
                                           out_lightmap_index);
         material = &((ScenarioStructureBSPMaterial *)
             lightmaps[*out_lightmap_index].materials.pointer)[*out_material_index];

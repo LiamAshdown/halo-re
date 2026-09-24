@@ -6,7 +6,7 @@
 //   used when attaching/respawning a unit"); types/objects.h object (velocity +0x68, forward
 //   +0x74, up +0x80, parent_object +0x11c); types/units.h unit_data (desired_facing_vector
 //   +0x224, desired_aiming_vector +0x230, desired_looking_vector +0x254, biped_data
-//   last_ground_surface_index +0x4d4 / unknown_4d3); types/game.h player (bsp_cluster +0x3c,
+//   last_ground_object_index +0x4d4 / unknown_4d3); types/game.h player (bsp_cluster +0x3c,
 //   local_player_index +0x02); game_engine_compute_look_angles_from_vector.c (this module) for
 //   the tail-call shape. objdump -d -M intel --start-address=0x4757b0 --stop-address=0x475c60
 //   bin/halo.exe was read for the register conventions of object_get_root_object_index (ECX)
@@ -18,6 +18,7 @@
 // at absolute offset 0x42c, and effect_new_on_object's real signature are not established anywhere else
 // in this codebase (existing files declare several mutually-incompatible signatures for
 // effect_new_on_object); all are transcribed as literally as possible with raw offsets.
+// reconciled: R46 biped_data +0x4d4 last_ground_surface_index -> last_ground_object_index (an object datum); the raw +0x4d4/+0x4d3 copies now go through biped_data
 
 #include "tags.h"
 #include "memory.h"
@@ -32,7 +33,7 @@ extern data_array *object_data;        // 0x008603b0
 extern tag_instance *tag_instances;    // 0x0087bc14
 extern Scenario *global_scenario;      // 0x00746f8c
 extern Globals *global_globals;        // 0x00746fa0
-extern int16_t current_structure_bsp_index; // 0x0069e8d8
+extern int16_t global_structure_bsp_index; // 0x0069e8d8
 extern player_globals *local_player_globals; // 0x0087a478
 extern real_vector3d global_origin3d;  // 0x0065c230
 extern random_seed random_seed_global;    // 0x00719cd0
@@ -140,7 +141,7 @@ uint8_t player_find_placement_position(uint32_t player_index, datum_index target
         uint8_t found_trigger = 0;
 
         for (i = 0; i < count; i = i + 1) {
-            if (volumes[i].source == (uint16_t)current_structure_bsp_index && plr->unit != (datum_index)-1 &&
+            if (volumes[i].source == (uint16_t)global_structure_bsp_index && plr->unit != (datum_index)-1 &&
                 scenario_trigger_volume_contains_point(volumes[i].trigger_volume, plr->unit) != 0) {
                 placed = 0;
                 found_trigger = 1;
@@ -168,9 +169,11 @@ uint8_t player_find_placement_position(uint32_t player_index, datum_index target
                 if (target_header != 0 && (1u << (target_header->type & 0x1f) & _object_mask_biped) != 0 &&
                     target_header->data != 0) {
                     object *biped_obj = target_header->data;
-                    if (*(uint32_t *)((uint8_t *)biped_obj + 0x4d4) != (uint32_t)-1) {
-                        *(uint32_t *)((uint8_t *)unit_obj + 0x4d4) = *(uint32_t *)((uint8_t *)biped_obj + 0x4d4);
-                        *((uint8_t *)unit_obj + 0x4d3) = *((uint8_t *)biped_obj + 0x4d3);
+                    biped_data *source = (biped_data *)((uint8_t *)biped_obj + k_unit_object_size);
+                    biped_data *dest = (biped_data *)((uint8_t *)unit_obj + k_unit_object_size);
+                    if (source->last_ground_object_index != k_datum_index_none) {
+                        dest->last_ground_object_index = source->last_ground_object_index;
+                        dest->unknown_4d3 = source->unknown_4d3;
                     }
                 }
 

@@ -24,8 +24,9 @@
 //   plausibly extends to delta (already in EDI here) and possibly more, but Ghidra recovered
 //   none of it and this rewrite does not invent values for what it cannot recover.
 // UNSURE: unlike collision_test_movement_segment, this function copies the pill query's raw
-//   material_index straight into both result->material_type and result->unknown_4e, with no
+//   material_index straight into both result->material_type and result->collision_material_index, with no
 //   collision_materials lookup. Preserved as decompiled; not investigated further here.
+// reconciled: R23 collision_result: normal -> plane.normal, unknown_30 -> plane.d, unknown_04 -> first_leaf/first_cluster, unknown_3c -> region_index, marker_index -> node_index, unknown_40 -> permutation_index (int16), unknown_48 -> plane_index, unknown_4d -> breakable_surface_index, unknown_4e -> collision_material_index
 
 #include "tags.h"
 #include "memory.h"
@@ -34,8 +35,8 @@
 #include "projectiles.h"
 #include "physics.h"
 
-extern ModelCollisionGeometryBSP *structure_collision_bsp; // 0x00746f98
-extern ScenarioStructureBSP *structure_bsp_tag_data; // 0x00746f9c
+extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp,
     real_point3d *point); // 0x5013a0, this module (lower half)
@@ -63,16 +64,16 @@ uint8_t collision_test_movement_pill(uint32_t flags, real_point3d *origin, real_
     found_surface = collision_bsp_query_pill_init(origin, &pill_result);
     result->t = pill_result.t;
     if (found_surface && (flags & 0x20) != 0) {
-        result->normal.i = pill_result.plane_i;
-        result->normal.j = pill_result.plane_j;
-        result->normal.k = pill_result.plane_k;
-        result->unknown_30 = pill_result.plane_d;
+        result->plane.normal.i = pill_result.plane_i;
+        result->plane.normal.j = pill_result.plane_j;
+        result->plane.normal.k = pill_result.plane_k;
+        result->plane.d = pill_result.plane_d;
         result->surface_flags = 0;
-        result->unknown_4d = 0;
+        result->breakable_surface_index = 0;
         result->type = 2;
         result->material_type = pill_result.material_index;
-        result->unknown_48 = pill_result.surface_index;
-        result->unknown_4e = pill_result.material_index;
+        result->plane_index = pill_result.surface_index;
+        result->collision_material_index = pill_result.material_index;
         hit = 1;
     }
 
@@ -82,11 +83,11 @@ uint8_t collision_test_movement_pill(uint32_t flags, real_point3d *origin, real_
 
         result->leaf.leaf_index = first_leaf;
         result->leaf.cluster_index = (first_leaf == -1) ? -1 :
-            ((ScenarioStructureBSPLeaf *)structure_bsp_tag_data->leaves.pointer)[first_leaf].cluster;
+            ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[first_leaf].cluster;
 
         last_leaf_ref->leaf_index = last_leaf;
         last_leaf_ref->cluster_index = (last_leaf == -1) ? -1 :
-            ((ScenarioStructureBSPLeaf *)structure_bsp_tag_data->leaves.pointer)[last_leaf].cluster;
+            ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[last_leaf].cluster;
     }
 
     if (hit == 0) {
@@ -96,14 +97,14 @@ uint8_t collision_test_movement_pill(uint32_t flags, real_point3d *origin, real_
     result->point.y = result->t * delta->j + origin->y;
     result->point.z = result->t * delta->k + origin->z;
 
-    final_leaf = bsp3d_node_find_leaf(0, structure_collision_bsp, &result->point);
+    final_leaf = bsp3d_node_find_leaf(0, global_structure_collision_bsp, &result->point);
     last_leaf_ref->leaf_index = final_leaf;
     if (final_leaf == -1) {
         last_leaf_ref->cluster_index = -1;
         return hit;
     }
     last_leaf_ref->cluster_index =
-        ((ScenarioStructureBSPLeaf *)structure_bsp_tag_data->leaves.pointer)[final_leaf].cluster;
+        ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[final_leaf].cluster;
     return hit;
 }
 

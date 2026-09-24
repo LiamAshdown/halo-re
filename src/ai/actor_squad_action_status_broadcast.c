@@ -30,7 +30,7 @@
 
 extern data_array *actor_data;    // 0x00880360
 extern Scenario *global_scenario; // 0x00746f8c
-extern uint16_t local_command_list_generation; // 0x0069e8d8, UNSURE: compared against ScenarioCommandList.precomputed_bsp_index
+extern uint16_t global_structure_bsp_index; // 0x0069e8d8, UNSURE: compared against ScenarioCommandList.precomputed_bsp_index
 
 extern void actor_swarm_for_each_component(uint32_t actor_index, char reset_first, actor_swarm_member_callback callback, uint32_t callback_extra, uint16_t *caller_record); // 0x407040, this session
 extern void actor_clear_vocalization(uint32_t actor_index); // 0x414560
@@ -57,7 +57,7 @@ int32_t actor_squad_action_status_broadcast(uint32_t actor_index, int16_t comman
         ScenarioCommandList *list = &lists[command_list_index];
 
         if (a->swarm == 0 || a->swarm_index != (datum_index)k_datum_index_none) {
-            if (list->precomputed_bsp_index == 0xffff || list->precomputed_bsp_index == local_command_list_generation) {
+            if (list->precomputed_bsp_index == 0xffff || list->precomputed_bsp_index == global_structure_bsp_index) {
                 uint8_t allow_initiative = (uint8_t)(list->flags & 1);
                 uint8_t allow_look = (uint8_t)(~(list->flags >> 2)) & 1;
                 uint8_t allow_communication = (uint8_t)(~(list->flags >> 3)) & 1;

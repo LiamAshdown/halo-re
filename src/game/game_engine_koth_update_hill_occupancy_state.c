@@ -15,11 +15,13 @@
 //   per-element field access that a future disassembly pass should re-derive. (2) `local_8`/
 //   `occupant_candidate` is consequently always -1 in this transcription, matching Ghidra's own
 //   rendering, not a corrected per-element occupant id.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_variant game_engine_variant;            // 0x006f1c88 (teams aliased 0x006f1cbc)
@@ -38,6 +40,7 @@ void game_engine_koth_update_hill_occupancy_state(void)
     iter.data = player_data;
     iter.next_index = 0;
     iter.index = (datum_index)0xffffffff;
+    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     if (current_game_engine == 0 || game_engine_variant.teams == 0) {
         int32_t count = 0;

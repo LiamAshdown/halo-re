@@ -10,16 +10,18 @@
 //   `ushort param_1`, a genuine stack parameter).
 // UNSURE: file_reference_seek/_read/_write's real argument lists (elided by Ghidra, same as the
 //   whole family); file_reference_set_length's exact behavior (presumed file truncate).
+// reconciled: R14 0x00721440 void* handle -> network_mutex_record *savegame_index_mutex; now waits on/releases ->handle (the binary loads [0x721440] then [eax])
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
 #include "game.h"
+#include "networking.h"
 
 extern uint8_t *saved_game_root_path; // 0x006e3108, the appended component
 extern file_reference savegame_directory_file_reference; // 0x00721330
-extern void *savegame_directory_mutex_handle; // 0x00721440
+extern network_mutex_record *savegame_index_mutex; // 0x00721440, networking.h record; +0x00 is the HANDLE
 
 extern uint8_t file_reference_open(file_reference *reference, int32_t mode); // 0x5557a0
 extern uint8_t file_reference_close(void); // 0x555890
@@ -47,7 +49,7 @@ extern uint32_t ReleaseMutex(void *handle); // Win32
 uint8_t savegame_index_remove_slot(uint16_t slot)
 {
     uint8_t result = 0;
-    uint32_t wait_result = WaitForSingleObject(savegame_directory_mutex_handle, 5000);
+    uint32_t wait_result = WaitForSingleObject(savegame_index_mutex->handle, 5000);
     uint32_t size[131]; // UNSURE: Ghidra's local_20c[131], only [0] is used (file_reference_get_size_by_path's
                         // out-size parameter); kept at its original size for fidelity
 
@@ -98,7 +100,7 @@ uint8_t savegame_index_remove_slot(uint16_t slot)
         }
     }
 
-    ReleaseMutex(savegame_directory_mutex_handle);
+    ReleaseMutex(savegame_index_mutex->handle);
     return result;
 }
 

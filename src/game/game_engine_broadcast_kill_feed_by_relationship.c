@@ -16,11 +16,13 @@
 // ARE hostile; with an engine loaded, `message_a` is instead the id used when the two players
 // are on the SAME team. Transcribed exactly as Ghidra's goto/fallthrough shows it, not
 // "corrected" to be symmetric.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data;                   // 0x0087a480
 extern game_engine_definition *current_game_engine; // 0x006f1d20
@@ -44,6 +46,7 @@ void game_engine_broadcast_kill_feed_by_relationship(uint32_t source_player, int
     iter.data = player_data;
     iter.next_index = 0;
     iter.index = (datum_index)0xffffffff;
+    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     element = data_iterator_next(&iter);
     while (element != 0) {

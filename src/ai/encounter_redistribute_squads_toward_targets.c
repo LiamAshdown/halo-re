@@ -52,11 +52,13 @@
 //    that situation (see e.g. encounter_squad_spawn_actor.c).
 //  - The `auStackY_11c0[998]` stack array Ghidra shows in the original is never read or
 //    written anywhere in the decompiled body and is omitted here as dead/unused stack space.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original; also the missing index = -1 store (0x43959a)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include <stdint.h>
 
 extern data_array *encounter_data;  // 0x008802c8
 extern data_array *actor_data;      // 0x00880360
@@ -114,6 +116,8 @@ void encounter_redistribute_squads_toward_targets(datum_index encounter_index)
 
         player_iter.data = player_data;
         player_iter.next_index = 0;
+        player_iter.index = (datum_index)k_datum_index_none; // 0x43959a mov [esp+0x48],ebp (-1)
+        player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
         player_record = data_iterator_next(&player_iter);
         if (player_record == 0) {
             return;

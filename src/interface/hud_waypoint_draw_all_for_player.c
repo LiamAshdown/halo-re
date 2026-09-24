@@ -10,6 +10,7 @@
 // times. The team is read before the -1 test, as in the binary (a read of slot 0xffff that is
 // never used when there is no local player).
 // register convention: no parameters; the local player comes from current_local_player_index.
+// reconciled: R16 the local iterator shadow struct (int32 next_index) is now types/memory.h data_iterator; the binary stores next_index as a WORD
 
 #include "tags.h"
 #include "memory.h"
@@ -31,12 +32,7 @@ void hud_waypoint_draw_all_for_player(void)
 {
     datum_index local_player;
     int32_t team;
-    struct {
-        data_array *data;
-        int32_t next_index;
-        datum_index index;
-        uint32_t signature;
-    } iterator;
+    data_iterator iterator;
     datum_index teammates[16];
     int32_t count = 0;
     int32_t i;
@@ -55,9 +51,9 @@ void hud_waypoint_draw_all_for_player(void)
     iterator.data = player_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)-1;
-    iterator.signature = (uint32_t)(uintptr_t)player_data ^ 0x69746572;
-    for (entry = (player *)data_iterator_next((data_iterator *)&iterator); entry != 0;
-         entry = (player *)data_iterator_next((data_iterator *)&iterator)) {
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+    for (entry = (player *)data_iterator_next(&iterator); entry != 0;
+         entry = (player *)data_iterator_next(&iterator)) {
         if (local_player != iterator.index && entry->team == team && entry->unit != (datum_index)-1) {
             teammates[count] = iterator.index;
             count++;

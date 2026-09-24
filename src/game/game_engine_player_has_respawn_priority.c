@@ -8,11 +8,13 @@
 // result of 0x460e40" -- this function), player::deaths (+0xae); types/memory.h data_iterator.
 // register convention: no register-passed arguments; param_1 is this function's own stack
 // parameter (a player index).
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data;         // 0x0087a480
 extern game_variant game_engine_variant; // 0x006f1c88 (unknown_40 aliased as 0x006f1cc8)
@@ -45,6 +47,7 @@ uint8_t game_engine_player_has_respawn_priority(uint32_t player_index)
             iter.data = player_data;
             iter.next_index = 0;
             iter.index = (datum_index)0xffffffff;
+            iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
             element = data_iterator_next(&iter);
             if (element != 0) {

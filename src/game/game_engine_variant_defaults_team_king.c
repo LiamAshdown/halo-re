@@ -6,6 +6,7 @@
 //   copies all 0x26 dwords out to the caller's buffer -- the same pattern as every other
 //   game_engine_variant_defaults_* function in this module.
 // register convention: variant_options is the recognized cdecl stack parameter.
+// reconciled: R37 game_variant.unknown_94 -> uint16 variant_flags (bit 0 built-in, high byte default index)
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -45,7 +46,7 @@ void game_engine_variant_defaults_team_king(game_variant *variant_options)
     defaults.unknown_74 = 1;
     defaults.unknown_78 = 36000;
     defaults.ctf_option_7c = 1;
-    defaults.unknown_94 = 1;
+    defaults.variant_flags = 1;
 
     *variant_options = defaults;
 }

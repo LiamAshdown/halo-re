@@ -29,6 +29,7 @@
 // UNSURE: unit_snap_position_if_far is declared with three arguments here (EAX position, ECX
 // object, stack unit datum). src/units declares a two-argument form; the third argument is a
 // genuine `push ecx` at 0x4e649b and is not optional.
+// reconciled: R35 player.unknown_15c (datum_index) -> int32 last_remote_update_id (stores the byte sequence, zero-extended)
 
 #include "tags.h"
 #include "memory.h"
@@ -187,7 +188,7 @@ void player_update_client_remote_player_position_update_from_network(datum_index
                 }
             }
         }
-        target->unknown_15c = (datum_index)(uint32_t)(uint8_t)control_sequence;
+        target->last_remote_update_id = (int32_t)(uint8_t)control_sequence;
     }
     target->unknown_160 = update_id;
 }

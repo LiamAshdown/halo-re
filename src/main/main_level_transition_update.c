@@ -22,6 +22,8 @@
 // UNSURE: FUN_00624236 (0x624236) is undocumented elsewhere; its address and (path, mode)
 // call shape match the CRT _access family used throughout this codebase (e.g. 0x623a90
 // _strncpy, 0x623693 _sprintf), so it is declared as _access here.
+// reconciled: R33 game_time_globals.unknown_00 -> initialized (uint8 at +0x00, same byte)
+// reconciled: R13 network_scenario_load_request.seed (+0x06) -> difficulty (campaign difficulty, lands at game globals +0x0e)
 
 #include "tags.h"
 #include "memory.h"
@@ -126,7 +128,7 @@ after_fade:
         main_menu_music_stop();
         ui_input_batch_mode = 0;
 
-        if (game_time->unknown_00 != 0 &&
+        if (game_time->initialized != 0 &&
             (game_time->active != 0 || game_time->paused != 0) &&
             main_globals_data.game_connection == 0) {
             network_scenario_load_request request;
@@ -136,7 +138,7 @@ after_fade:
             request.salt = 0xdeadbeef;
             strncpy(request.map_name, main_globals_data.scenario_path, 0xff);
             request.map_name[0xff] = 0;
-            request.seed = main_pending_difficulty;
+            request.difficulty = main_pending_difficulty;
 
             game_stop_current_map();
             cache_file_switch_map_by_path(request.map_name, 1);   // 0x4c998e mov bl,1 ; lea eax,[esp+0x1c]

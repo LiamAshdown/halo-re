@@ -16,6 +16,7 @@
 //   (0x51a474..0x51a485), the stack context's flags/node fields and every device call argument
 //   list; all of these follow the raw code 0x519f70..0x51a657.
 // register convention: __cdecl, group on the stack (ebp+8); the frame is 8 byte aligned.
+// reconciled: R43 rasterizer_model_draw_context unknown_84[2] -> change_colors/function_values (the render_animation pair), unknown_c0/c4/c8 -> bounding_radius/base_map_u_scale/base_map_v_scale (same offsets)
 
 #include "tags.h"
 #include "memory.h"
@@ -208,7 +209,7 @@ void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_ge
     if (amount < 1.0f) {
         rasterizer_model_draw_context context;
 
-        // uninitialised in the original: unknown_04, unknown_0e, unknown_c0
+        // uninitialised in the original: unknown_04, unknown_0e, bounding_radius
         context.flags = group->flags & (_group_sort_first_bit | _group_node_parts_bit);
         context.node_matrices = group->node_matrices;
         context.node_count = group->node_count;
@@ -223,11 +224,11 @@ void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_ge
             }
         }
         if (group->lighting_extra != 0) {
-            context.unknown_84[0] = ((const uint32_t *)group->lighting_extra)[0];
-            context.unknown_84[1] = ((const uint32_t *)group->lighting_extra)[1];
+            context.change_colors = ((const uint32_t *)group->lighting_extra)[0];
+            context.function_values = ((const uint32_t *)group->lighting_extra)[1];
         } else {
-            context.unknown_84[0] = 0;
-            context.unknown_84[1] = 0;
+            context.change_colors = 0;
+            context.function_values = 0;
         }
         {
             uint32_t *words = (uint32_t *)&context.group_parameters;
@@ -238,8 +239,8 @@ void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_ge
             }
         }
         context.center = group->position;
-        context.unknown_c4 = group->unknown_3c;
-        context.unknown_c8 = group->unknown_40;
+        context.base_map_u_scale = group->unknown_3c;
+        context.base_map_v_scale = group->unknown_40;
 
         rasterizer_set_render_state(0xe, 0);                        // D3DRS_ZWRITEENABLE off
         rasterizer_camouflage_fade_active = 1;

@@ -12,7 +12,7 @@
 // k_decal_type_parameters (maximum_edge_angle 0x00, radius_scale 0x08, and a previously
 // "no reader" unknown_04 which this function DOES read as a second, looser angle threshold on
 // its single-surface fallback path -- a correction to that field's doc comment).
-// 0x00746f98 is structure_collision_bsp, a ModelCollisionGeometryBSP: this function's
+// 0x00746f98 is global_structure_collision_bsp, a ModelCollisionGeometryBSP: this function's
 // +0x40 / +0x4c / +0x58 reads with strides 0xc / 0x18 / 0x10 are its surfaces.pointer /
 // edges.pointer / vertices.pointer and the matching tag records, which is how src/physics and
 // src/items already type that global.
@@ -54,7 +54,7 @@
 #include "objects.h"
 #include "effects.h"
 
-extern ModelCollisionGeometryBSP *structure_collision_bsp; // 0x00746f98, same declaration as
+extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98, same declaration as
     // src/physics/collision_test_movement_segment.c
 
 // 0x006b0a18, the two ping-pong clip buffers; 0x60 bytes each, indexed by the low bit of the
@@ -109,9 +109,9 @@ void decal_flood_surfaces(decal_projection *projection, decal_flood_accumulator 
         return;
     }
 
-    surfaces = (ModelCollisionGeometryBSPSurface *)structure_collision_bsp->surfaces.pointer;
-    edges = (ModelCollisionGeometryBSPEdge *)structure_collision_bsp->edges.pointer;
-    bsp_vertices = (ModelCollisionGeometryBSPVertex *)structure_collision_bsp->vertices.pointer;
+    surfaces = (ModelCollisionGeometryBSPSurface *)global_structure_collision_bsp->surfaces.pointer;
+    edges = (ModelCollisionGeometryBSPEdge *)global_structure_collision_bsp->edges.pointer;
+    bsp_vertices = (ModelCollisionGeometryBSPVertex *)global_structure_collision_bsp->vertices.pointer;
     surface = &surfaces[surface_index];
 
     // Both cursors are seeded from the caller only on the first-surface pass; the fallback path
@@ -121,7 +121,7 @@ void decal_flood_surfaces(decal_projection *projection, decal_flood_accumulator 
         fallback_count = (int16_t)*fallback_queue_count;
     }
 
-    plane3d_fetch_indexed(structure_collision_bsp, (int32_t)surface->plane, &surface_normal);
+    plane3d_fetch_indexed(global_structure_collision_bsp, (int32_t)surface->plane, &surface_normal);
     angle = vector3d_angle_between_4cd5e0(&surface_normal, (const real_vector3d *)&projection->plane_i);
 
     axes = &k_projection_axes[projection->major_axis * 2 + projection->normal_positive];

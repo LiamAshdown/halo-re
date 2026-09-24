@@ -41,10 +41,8 @@
 //      object_unlink_cluster_or_notify_parent/object_set_cluster_and_parent calls perform, not
 //      a position change; preserved as-is rather than "corrected" to copy from device_data.
 //   4. 0x44b290 reads the multiplayer/campaign selector as `mov edx,DWORD PTR ds:0x6f1d20`
-//      followed by `test edx,edx` -- a full 32-bit load. Five files in src/items and
-//      src/objects declare the same address as `uint8_t network_predicted_state_flag`; that is
-//      a narrower read of the same global elsewhere, not an error here, so this file keeps
-//      int32_t. Flagged for whoever reconciles the global.
+//      followed by `test edx,edx` -- a full 32-bit load. R04 unified every declaration
+//      on game.h game_engine_definition *current_game_engine (all accesses are DWORD).
 // UNSURE: object+0xb8, read here as a signed int16 team index (0x44b298 `mov ax,WORD PTR
 //   [esi+0xb8]`, then the signed pair `test ax,ax; jl` / `cmp ax,0xa; jge`) and used to index a
 //   per-team bitmask at game_globals+0xa4, is documented in types/objects.h as name_index.
@@ -52,30 +50,34 @@
 //   objects module owner rather than resolving it here; this file keeps the raw offset rather
 //   than object->name_index so the mismatch stays visible. The WIDTH and SIGNEDNESS of the read
 //   are disassembly-confirmed; only which field lives there is open.
-// UNSURE: object+0x4d4, compared against this device's own object index to find elevator
-//   riders, and object+0x106 bit 0x04 (used here through object_vitality_flags'
-//   _object_health_frozen_bit) are both plausible but not proven for this exact use.
-//   object+0x4d4 in particular is unit_data territory (devices_types_notes.md item 6) and not
-//   yet in types/units.h, so it stays a raw offset.
+// object+0x4d4, compared against this device's own object index to find elevator riders, is
+//   types/units.h biped_data.last_ground_object_index: the rider search passes type mask 1
+//   (bipeds only) to object_find_in_sphere, and 0x44b4e4 compares [rider+0x4d4] with the
+//   machine's object index.
+// UNSURE: object+0x106 bit 0x04 (used here through object_vitality_flags'
+//   _object_health_frozen_bit) is plausible but not proven for this exact use.
 // UNSURE: the tag-derived flags word this function tests on a nearby candidate
 //   (tag_instances[candidate_tag].data + sizeof(Object), mask 0x4000) is UnitFlags'
 //   cannot_open_doors_automatically bit 14 per types/tags.h's own bitfield comment, but there
 //   is no named bit constant for it in this codebase yet (DeviceFlags/UnitFlags are documented
 //   as plain bitfield comments, not enums), so the mask is spelled out literally.
+// reconciled: R46 biped_data +0x4d4 last_ground_surface_index -> last_ground_object_index (an object datum); the elevator rider test reads it through biped_data instead of a raw offset
+// reconciled: R04 0x006f1d20 int32_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
+#include "units.h"
 #include "devices.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *device_groups; // 0x0087abf0
-extern void *game_time_globals; // 0x006f1d6c, +0x0c is the game tick; same global as
-    // src/items/item_accelerate.c's own declaration
-extern int32_t network_predicted_state_flag; // 0x006f1d20, tested here as a 32-bit
+extern game_time_globals *game_time; // 0x006f1d6c (types/game.h), +0x0c game_time is the tick
+extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
     // multiplayer/campaign selector (per devices_types_notes.md), a wider read than the
     // uint8_t use at this same address in the items module
 extern void *game_globals; // 0x006b0b84, +0xa4 is the per-team bitmask array this reads
@@ -117,7 +119,7 @@ uint32_t device_machine_update(uint32_t object_index)
     // does_not_operate_automatically set, staggered so only 1 in 4 doors is scanned per tick.
     if ((dev->device.type_flags & (1u << _device_machine_does_not_operate_automatically_bit)) == 0 &&
         tag->machine_type == machinetype_door &&
-        (*(int32_t *)((uint8_t *)game_time_globals + 0x0c) + (int32_t)object_index & 3) == 0) {
+        (game_time->game_time + (int32_t)object_index & 3) == 0) {
         datum_index candidates[k_device_machine_activation_maximum];
         int16_t candidate_count;
         int should_open = 0;
@@ -145,7 +147,7 @@ uint32_t device_machine_update(uint32_t object_index)
                     // exempted by the team test below, passes.
                     int16_t team = *(int16_t *)((uint8_t *)candidate + 0xb8); // UNSURE, see header
                     int exempt;
-                    if (network_predicted_state_flag == 0) {
+                    if (current_game_engine == 0) {
                         if (team < 0 || 9 < team) {
                             exempt = 1;
                         } else {
@@ -210,7 +212,8 @@ uint32_t device_machine_update(uint32_t object_index)
                     int16_t i;
                     for (i = 0; i < rider_count; i++) {
                         object *rider = ((object_header *)object_data->data)[riders[i] & 0xffff].data;
-                        if (*(uint32_t *)((uint8_t *)rider + 0x4d4) == object_index) { // UNSURE, see header
+                        biped_data *rider_biped = (biped_data *)((uint8_t *)rider + k_unit_object_size);
+                        if (rider_biped->last_ground_object_index == object_index) { // 0x44b4e4
                             real_point3d p = rider->position;
                             object_unlink_cluster_or_notify_parent(riders[i]);
                             rider->position.x = p.x + dx;

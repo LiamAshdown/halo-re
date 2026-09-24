@@ -28,9 +28,9 @@
 #include "units.h"
 
 extern data_array *object_data; // 0x008603b0
-extern uint8_t bsp_collision_globals[]; // 0x00746f98, DAT_00746f98, UNSURE shape (collision/BSP module)
+extern uint8_t global_structure_collision_bsp[]; // 0x00746f98, DAT_00746f98, UNSURE shape (collision/BSP module)
 extern int32_t bsp_cluster_index_006b8d78;  // 0x006b8d78, UNSURE
-extern int32_t bsp_leaf_scale_0069e8d8;     // 0x0069e8d8, UNSURE
+extern int32_t global_structure_bsp_index;     // 0x0069e8d8, UNSURE
 
 extern void unit_get_crouch_height_offset(uint32_t object_index, float *pill_height, float *pill_radius_out); // 0x55a2e0, collision pill height + radius
 extern uint8_t collision_bsp_query_sphere_init(int32_t leaf_key, float *out_direction, float radius); // 0x501980, UNSURE signature
@@ -51,7 +51,7 @@ void unit_find_nearest_valid_surface_plane(uint32_t unit_index) // blam-cc: in_E
     int32_t candidates[1026];  // UNSURE: aiStack_100c
     int32_t candidate_count = 0; // UNSURE: never visibly initialized in the decompile, see file header
 
-    if (collision_bsp_query_sphere_init(bsp_leaf_scale_0069e8d8 * 0x20 + 1 + bsp_cluster_index_006b8d78, direction,
+    if (collision_bsp_query_sphere_init(global_structure_bsp_index * 0x20 + 1 + bsp_cluster_index_006b8d78, direction,
                       direction[0] + 0.05f)) {
         float best_index = -1.0f; // local_1050 sentinel "-NAN"
         float best_score = 3.4028235e+38f;
@@ -59,8 +59,8 @@ void unit_find_nearest_valid_surface_plane(uint32_t unit_index) // blam-cc: in_E
         float best_d = 0.0f;             // plane.d
 
         for (int32_t i = 0; i < candidate_count; i++) {
-            int32_t plane_index = *(int32_t *)(*(uint8_t **)(bsp_collision_globals + 0x40) + candidates[i] * 0xc);
-            float *plane = (float *)(*(uint8_t **)(bsp_collision_globals + 0x10) + plane_index * 0x10);
+            int32_t plane_index = *(int32_t *)(*(uint8_t **)(global_structure_collision_bsp + 0x40) + candidates[i] * 0xc);
+            float *plane = (float *)(*(uint8_t **)(global_structure_collision_bsp + 0x10) + plane_index * 0x10);
             real_vector3d normal;
             float d;
             if (plane_index < 0) {

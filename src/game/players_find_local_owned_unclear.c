@@ -7,11 +7,13 @@
 //   possibly because the source had more logic here that this retail build's optimizer proved
 //   irrelevant to the return value) but the function always returns the wildcard.
 // register convention: no arguments; return value in EAX.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480
 
@@ -27,6 +29,7 @@ datum_index players_find_local_owned_unclear(void)
     iter.data = player_data;
     iter.next_index = 0;
     iter.index = (datum_index)-1;
+    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     plr = (player *)data_iterator_next(&iter);
     while (plr != (player *)0) {

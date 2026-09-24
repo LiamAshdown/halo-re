@@ -13,15 +13,17 @@
 // already recovered in ai_notify_actors_of_encounter_state_change.c.
 // blam-cc: (no arguments)
 //
-// UNSURE: use_absolute_team_check's exact meaning (guessed "not multiplayer" from the branch shape) and
-// the 10x10 team-pair bitmap layout at team_relationship_flags+0x94/+0xa4 are not independently
+// 0x006f1d20 is game.h current_game_engine (R04): NULL means no multiplayer engine. UNSURE: the
+// 10x10 team-pair bitmap layout at team_relationship_flags+0x94/+0xa4 are not independently
 // confirmed here; see out/phase4/game_types_notes.md's own "Unresolved: entry 0x08, 0x09,
 // 0x0c, and what distinguishes the two bitmaps" note. actor_target_update_active_flag's argument is UNSURE, as
 // in the other two functions of this shape.
+// reconciled: R04 0x006f1d20 int32_t use_absolute_team_check -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "objects.h"
 #include "ai.h"
 #include <stdint.h>
@@ -31,7 +33,7 @@ extern data_array *encounter_data; // 0x008802c8
 extern data_array *actor_data;     // 0x00880360
 extern data_array *prop_data;      // 0x008802c0
 extern data_array *object_data;    // 0x008603b0
-extern int32_t use_absolute_team_check; // 0x006f1d20, nonzero (not multiplayer) means "different team" is enough
+extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern uint8_t team_relationship_flags; // 0x006b0b84, base of the 0x2d-dword team-relationship block
 
 extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70
@@ -83,7 +85,7 @@ void ai_recompute_all_relationship_flags(void)
             actor_team = a->team;
 
             hostile = 1;
-            if (use_absolute_team_check == 0) {
+            if (current_game_engine == 0) {
                 if (-1 < actor_team && actor_team < 10 && -1 < object_team && object_team < 10) {
                     int32_t pair = (int32_t)object_team + actor_team * 10;
                     uint32_t bit = *(uint32_t *)(&team_relationship_flags + 0xa4 + (pair >> 5) * 4);

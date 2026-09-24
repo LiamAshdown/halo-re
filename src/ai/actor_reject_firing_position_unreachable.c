@@ -7,6 +7,7 @@
 //   falls back on the two direct reachability helpers 0x41aab0 and 0x43a0a0.
 // register convention: actor_index, the query and the candidate are the three
 //   Ghidra-recognized stack parameters; the two helpers take theirs in registers.
+// reconciled: R06 0x00746f9c is ScenarioStructureBSP *global_structure_bsp (was extern int32_t bsp_generation); ai.h path_find_context/actor_movement_context bsp_generation -> structure_bsp, bsp_index -> collision_bsp
 
 #include "tags.h"
 #include "memory.h"
@@ -14,7 +15,7 @@
 #include "ai.h"
 
 extern data_array *actor_data; // 0x00880360
-extern int32_t bsp_generation;      // 0x00746f9c, the structure BSP pointer, used here as an opaque handle
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (formerly bsp_generation)
 
 extern uint8_t actor_movement_flying_needs_steering(void);                              // 0x41aab0, not yet rewritten: step / drop test
 extern uint8_t path_find_test_direct_reachability(int32_t generation, int32_t unused); // 0x43a0a0, not yet rewritten: direct-line reachability
@@ -36,7 +37,7 @@ uint8_t actor_reject_firing_position_unreachable(datum_index actor_index,
         }
         // UNSURE: both helpers are called with no visible arguments. The candidate position
         // and the actor are the only live values, so they are what is being tested.
-        if (actor_movement_flying_needs_steering() != 0 && path_find_test_direct_reachability(bsp_generation, 0) != 0) {
+        if (actor_movement_flying_needs_steering() != 0 && path_find_test_direct_reachability((uint32_t)global_structure_bsp, 0) != 0) {
             candidate->score = candidate->score + 15.0f;
             return candidate->valid;
         }

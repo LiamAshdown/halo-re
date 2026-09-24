@@ -26,7 +26,7 @@
 #include "cache.h"
 #include "effects.h"
 
-extern uint8_t *structure_bsp_globals; // 0x00746f9c
+extern uint8_t *global_structure_bsp; // 0x00746f9c
 extern tag_instance *tag_instances;    // 0x0087bc14
 
 extern int16_t scenario_location_fog_region(int16_t cluster_index); // 0x53ec30, UNSURE signature
@@ -47,12 +47,12 @@ uint8_t ambient_color_marker_visible(bsp_leaf_reference *location, real_point3d 
         int16_t row = scenario_location_fog_region(location->cluster_index); // UNSURE, see file header
 
         if (row != -1) {
-            uint8_t *cluster_row = *(uint8_t **)(structure_bsp_globals + 0x188) + row * 0x28;
+            uint8_t *cluster_row = *(uint8_t **)(global_structure_bsp + 0x188) + row * 0x28;
             int16_t a = *(int16_t *)(cluster_row + 0x24);
             int16_t b = *(int16_t *)(cluster_row + 0x26);
 
             if (a != -1 && b != -1) {
-                uint32_t tag_id = *(uint32_t *)(*(uint8_t **)(structure_bsp_globals + 0x194) +
+                uint32_t tag_id = *(uint32_t *)(*(uint8_t **)(global_structure_bsp + 0x194) +
                     (uint32_t)a * 0x88 + 0x2c);
 
                 if (tag_id != 0xffffffff) {

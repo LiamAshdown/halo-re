@@ -11,8 +11,9 @@
 // register convention: none (void).
 // TYPES-GAP / UNSURE: DAT_0087aa10 (an int32 player-count-shaped value), DAT_006f187c+9 (a byte
 // flag on an unidentified block) and FUN_00449780 (called 1-2 times based on
-// local_player_globals::unknown_0c, zero visible arguments each time) are not documented
+// local_player_globals::local_player_count, zero visible arguments each time) are not documented
 // anywhere; named/typed here only from this function's own control flow.
+// reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
 
 // Phase-4 review against objdump 0x494ca0..0x494d6e: the two FUN_00449780 calls are opaque black
 // split-screen divider fills with literal rects, restored here; 0x006f187c is a pointer and
@@ -40,7 +41,7 @@ extern void FUN_00449780(uint32_t packed_color, Rectangle2D *rect); // 0x449780,
 // If there is no game engine active (or the player count is outside 2..3) and a certain block's
 // flag byte (+9) is clear: closes/reopens the error_modal widget if the current root widget is
 // one (name matched via _strstr), then calls FUN_00449780 once or twice depending on
-// local_player_globals::unknown_0c (once if > 1, twice if > 2) -- presumably showing the modal
+// local_player_globals::local_player_count (once if > 1, twice if > 2) -- presumably showing the modal
 // for each additional local player.
 void ui_error_modal_update(void)
 {

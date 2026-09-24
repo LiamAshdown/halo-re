@@ -25,12 +25,10 @@
 // 0x006f7ecc, store it in 0x006f7ec4 themselves and then pass it here, and
 // update_client_distribute_staged_entry decrements 0x006f7ec4 as it consumes ticks.
 //
-// UNSURE: 0x006ac5b1 and 0x006ac5b2 are two per-local-player flag bytes on a 0xf8 stride, in a
-// table that belongs to whatever module owns 0x006ac5b0 (the camera / director region, next to the
-// 0x006ac6d0 camera-state table camera_observer_get_target_id.c uses). Neither is attested by any
-// header, so they are declared here as two separate byte arrays at the exact addresses the code
-// indexes, and named from what each one gates: the first freezes the whole input record, the
-// second skips the look update only.
+// 0x006ac5b1 and 0x006ac5b2 are camera.h director.suppress_look_update (+0x51) and
+// director.look_input_consumed (+0x52) of directors[] (0x006ac560, stride 0xf8) (R03). They are
+// kept here as two byte arrays at the exact addresses the code indexes (camera.h is not included);
+// the first skips the look update only, the second blanks the whole input record.
 // UNSURE: 0x495a60 takes the local-player index in EDX and returns a bool in AL. Its identity is
 // not established; from its use here it answers "is this local player free to auto-level", i.e.
 // most likely "the player is not aiming with a zoomed or scoped weapon".
@@ -42,6 +40,7 @@
 // record written into update_client_staged is typed here as types/game.h player_action, which is
 // what the eight-dword rep movs actually builds. player_action::pad_1e is deliberately left
 // uninitialized, exactly as the original does.
+// reconciled: R03 0x006ac5b1/0x006ac5b2 identified as camera.h director +0x51/+0x52 (comments only)
 
 #include "tags.h"
 #include "memory.h"
@@ -58,8 +57,8 @@ extern game_time_globals *game_time;                         // 0x006f1d6c
 extern Globals *global_globals;                              // 0x00746fa0
 extern int16_t network_game_mode;                            // 0x00719720 (tested as a word here)
 extern uint8_t *unknown_006f187c;                            // 0x006f187c, UNSURE (see header)
-extern uint8_t local_player_input_frozen[];                  // 0x006ac5b2, stride 0xf8; UNSURE
-extern uint8_t local_player_look_frozen[];                   // 0x006ac5b1, stride 0xf8; UNSURE
+extern uint8_t local_player_input_frozen[];                  // 0x006ac5b2 = directors[i].look_input_consumed, stride 0xf8
+extern uint8_t local_player_look_frozen[];                   // 0x006ac5b1 = directors[i].suppress_look_update, stride 0xf8
 
 extern uint32_t update_client_staged[8];       // 0x006f7ea4, see update_client_stage_entry.c
 extern int32_t update_client_staged_count;     // 0x006f7ecc, zeroed by both callers each frame

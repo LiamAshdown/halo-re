@@ -49,6 +49,7 @@
 //   rather than invented-zero-initialized, per this task's "no invented behaviour" rule. In
 //   practice the tick loop runs at the same call depth every frame, so the same physical stack
 //   words are likely being read back tick over tick; this is retail behaviour, not a rewrite bug.
+// reconciled: R23 collision_result: normal -> plane.normal, unknown_30 -> plane.d, unknown_04 -> first_leaf/first_cluster, unknown_3c -> region_index, marker_index -> node_index, unknown_40 -> permutation_index (int16), unknown_48 -> plane_index, unknown_4d -> breakable_surface_index, unknown_4e -> collision_material_index
 
 #include "tags.h"
 #include "memory.h"
@@ -59,7 +60,7 @@
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern void *game_time_globals_006f1d6c; // 0x006f1d6c, +0x0c is the game tick
+extern void *game_time; // 0x006f1d6c, +0x0c is the game tick
 extern void *local_player_globals; // 0x0087a478
 extern data_array *player_data; // 0x0087a480
 extern real_point3d *global_origin3d_pointer; // 0x00696714, see src/items/item_update.c
@@ -276,7 +277,7 @@ int projectile_update(uint32_t projectile_index)
 
             unit_get_secondary_eye_marker_position();
             {
-                int32_t game_tick = *(int32_t *)((uint8_t *)game_time_globals_006f1d6c + 0x0c);
+                int32_t game_tick = *(int32_t *)((uint8_t *)game_time + 0x0c);
                 int32_t salt_high = (int32_t)projectile_index >> 0x10;
                 real phase_a = periodic_function_evaluate(_periodic_function_wander,
                     (double)((real)(int32_t)((uint16_t)(salt_high * 7 + game_tick)) * 0.011111111));
@@ -446,7 +447,7 @@ int projectile_update(uint32_t projectile_index)
                     new_velocity.j *= ratio;
                     new_velocity.k *= ratio;
                 }
-                if (0.3f < hit.normal.k) {
+                if (0.3f < hit.plane.normal.k) {
                     pd->flags |= _projectile_hit_ground_bit;
                 }
                 pd->ignore_object_index = (datum_index)0xffffffff;

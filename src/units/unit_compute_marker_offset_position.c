@@ -10,18 +10,20 @@
 //   Ghidra-recognized stack parameters.
 //   // blam-cc: ECX -> object_index, EDX -> reference_direction, BX -> mode, ESI -> out_position,
 //   //           stack -> param_1, param_2
+// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
 
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern hs_game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/hs.h)
+extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
 
 // object_get_position (0x4f6900, defined in src/objects/object_get_position.c) writes the
 // object position through the pointer in EAX and leaves that same pointer in EAX on return;
@@ -69,7 +71,7 @@ void unit_compute_marker_offset_position(uint32_t object_index, real_vector3d *r
     } else {
         fraction = biped->crouch_fraction;
         if ((biped->flags & 1) == 0 && fraction > 0.0f && fraction < 1.0f) {
-            float step = game_time->seconds_per_tick * 29.999998f * tag->crouch_camera_velocity;
+            float step = game_time->leftover_time * 29.999998f * tag->crouch_camera_velocity;
             if (unit->base_animation_state == 3) {
                 fraction += step;
             } else {

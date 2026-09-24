@@ -6,7 +6,7 @@
 // ContrailScaleFlags bits 1-4), Object.attachments / ObjectAttachment.marker (established by
 // contrail_new.c); types/objects.h object.parent_object (0x11c, root-object walk), object.velocity
 // (0x68); src/objects/antenna_apply_marker_delta.c establishes the FUN_005013a0(globals, point,
-// index) and structure_bsp_globals+0xe4 leaf/cluster idioms this function also uses.
+// index) and global_structure_bsp+0xe4 leaf/cluster idioms this function also uses.
 // register convention: contrail handle in EAX (in_EAX, not a pointer); point_count and force are
 // the two stack arguments Ghidra already recognises (param_1, param_2).
 //   // blam-cc: EAX -> contrail_handle, stack -> (point_count, force)
@@ -22,6 +22,7 @@
 // second time, against the SAME still-unmodified position the first probe already used a few
 // lines above. That duplicate call is preserved verbatim (same call order) even though its
 // result cannot differ from the first.
+// reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
 
 #include "tags.h"
 #include "memory.h"
@@ -34,8 +35,8 @@ extern data_array *contrail_data;       // 0x0087abec
 extern data_array *contrail_point_data; // 0x0087abe8
 extern data_array *object_data;         // 0x008603b0
 extern tag_instance *tag_instances;     // 0x0087bc14
-extern void *global_globals;            // 0x00746f90, passed to FUN_005013a0 in ECX
-extern uint8_t *structure_bsp_globals;  // 0x00746f9c; +0xe4 is the per-leaf lookup table
+extern ModelCollisionGeometryBSP *global_collision_bsp;            // 0x00746f90, passed to FUN_005013a0 in ECX
+extern uint8_t *global_structure_bsp;  // 0x00746f9c; +0xe4 is the per-leaf lookup table
 extern random_seed effect_random_seed;  // 0x00719cd4
 
 extern datum_index datum_new(data_array *array); // 0x4d0480, memory module; blam-cc: array in EDX
@@ -128,10 +129,10 @@ void contrail_generate_points(datum_index contrail_handle, int16_t point_count, 
                             point->position = marker->node_transform.position;
 
                             {
-                                int32_t leaf = FUN_005013a0(global_globals, &point->position, 0);
+                                int32_t leaf = FUN_005013a0(global_collision_bsp, &point->position, 0);
                                 point->location.leaf_index = leaf;
                                 point->location.cluster_index = (leaf == -1) ? -1 :
-                                    *(int16_t *)(*(uint8_t **)(structure_bsp_globals + 0xe4) +
+                                    *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) +
                                         (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
                             }
 
@@ -154,10 +155,10 @@ void contrail_generate_points(datum_index contrail_handle, int16_t point_count, 
 
                                 point->scale = fraction * point->scale + inverse_fraction * previous->scale;
 
-                                leaf = FUN_005013a0(global_globals, &point->position, 0);
+                                leaf = FUN_005013a0(global_collision_bsp, &point->position, 0);
                                 point->location.leaf_index = leaf;
                                 point->location.cluster_index = (leaf == -1) ? -1 :
-                                    *(int16_t *)(*(uint8_t **)(structure_bsp_globals + 0xe4) +
+                                    *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) +
                                         (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
 
                                 point->position.x = fraction * sampled_position.x + inverse_fraction * previous->position.x;

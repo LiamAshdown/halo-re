@@ -18,6 +18,7 @@
 //   Ghidra decompiled them (raw addresses/values); their true signatures belong to the render
 //   module. UNSURE: 0x0072278c / runtime_decals_suppressed-style globals are not involved here;
 //   do not confuse with structure_decals_update_switch_transitions.
+// reconciled: R76 0x00696714 k_default_fog_plane_vector -> math.h const real_point3d *global_origin3d_pointer (points at the (0,0,0) constant 0x0065c230)
 
 #include "tags.h"
 #include "memory.h"
@@ -26,12 +27,12 @@
 #include "cache.h"
 #include "structures.h"
 
-extern ScenarioStructureBSP *structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 extern tag_instance *tag_instances; // 0x0087bc14, cache.h
 extern breakable_surface_globals *breakable_surfaces; // 0x006b8d78, physics.h
-extern int16_t current_structure_bsp_index;  // 0x0069e8d8: accessed as WORD // 0x0069e8d8, physics.h
+extern int16_t global_structure_bsp_index;  // 0x0069e8d8: accessed as WORD // 0x0069e8d8, physics.h
 extern real_vector3d fog_plane_vector; // 0x006e3ae4, this module
-extern real_vector3d *k_default_fog_plane_vector; // 0x00696714, this module
+extern const real_point3d *global_origin3d_pointer; // 0x00696714, math.h (== 0x0065c230, the zero point)
 
 // Walks every lightmap's materials, and for each material whose surface range still overlaps the
 // unconsumed head of `surface_indices` (a sorted, ascending list of `surface_index_count` global
@@ -49,9 +50,9 @@ void structure_leaf_faces_for_each(int32_t render_context, structure_lightmap_be
     int32_t surface_offset = 0;
     int16_t lightmap_index;
 
-    for (lightmap_index = 0; lightmap_index < structure_bsp->lightmaps.count; lightmap_index = lightmap_index + 1) {
+    for (lightmap_index = 0; lightmap_index < global_structure_bsp->lightmaps.count; lightmap_index = lightmap_index + 1) {
         ScenarioStructureBSPLightmap *lightmap =
-            (ScenarioStructureBSPLightmap *)structure_bsp->lightmaps.pointer + lightmap_index;
+            (ScenarioStructureBSPLightmap *)global_structure_bsp->lightmaps.pointer + lightmap_index;
         ScenarioStructureBSPMaterial *materials =
             (ScenarioStructureBSPMaterial *)lightmap->materials.pointer;
         int32_t material_count = lightmap->materials.count;
@@ -63,9 +64,9 @@ void structure_leaf_faces_for_each(int32_t render_context, structure_lightmap_be
         if (*surface_indices < materials[material_count - 1].surfaces + materials[material_count - 1].surface_count) {
             void *bitmap_data = 0;
 
-            if (structure_bsp->lightmaps_bitmap.tag_id.index != 0xffff) {
+            if (global_structure_bsp->lightmaps_bitmap.tag_id.index != 0xffff) {
                 uint16_t bitmap_index = lightmap->bitmap;
-                Bitmap *bitmap = (Bitmap *)tag_instances[structure_bsp->lightmaps_bitmap.tag_id.index].data;
+                Bitmap *bitmap = (Bitmap *)tag_instances[global_structure_bsp->lightmaps_bitmap.tag_id.index].data;
                 if (bitmap != 0 && bitmap_index < bitmap->bitmap_data.count) {
                     bitmap_data = (uint8_t *)bitmap->bitmap_data.pointer + bitmap_index * 0x30;
                 }
@@ -97,7 +98,7 @@ void structure_leaf_faces_for_each(int32_t render_context, structure_lightmap_be
                         consumed = (int16_t)(scan - surface_indices);
 
                         if (material->breakable_surface == (uint16_t)-1 ||
-                            (breakable_surfaces->active[current_structure_bsp_index][material->breakable_surface >> 5] &
+                            (breakable_surfaces->active[global_structure_bsp_index][material->breakable_surface >> 5] &
                              (1u << (material->breakable_surface & 0x1f))) != 0) {
                             if (shader->shader_type == 1 || (shader->shader_type > 4 && shader->shader_type < 0xc)) {
                                 if (transparent_material_cb != 0) {
@@ -106,7 +107,7 @@ void structure_leaf_faces_for_each(int32_t render_context, structure_lightmap_be
                                     // (coplanar/fog) is clear.
                                     void *coplanar_vector = ((uint16_t)material->flags & 2) != 0
                                         ? (void *)&fog_plane_vector
-                                        : (void *)k_default_fog_plane_vector;
+                                        : (void *)global_origin3d_pointer;
                                     void *lightmap_vertices = ((uint16_t)material->flags & 1) != 0
                                         ? (void *)((uint8_t *)material + 0x9c)
                                         : (void *)0;

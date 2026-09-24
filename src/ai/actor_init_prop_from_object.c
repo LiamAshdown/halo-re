@@ -28,7 +28,7 @@ extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern int32_t game_time_globals; // 0x006f1d6c, UNSURE: a tick/time-globals pointer
+extern int32_t game_time; // 0x006f1d6c, UNSURE: a tick/time-globals pointer
 
 extern uint8_t teams_are_enemies(void); // 0x45bd50, outside this rewrite's range
 extern uint8_t team_pair_flag_test(void); // 0x45bdb0, outside this rewrite's range
@@ -86,7 +86,7 @@ void actor_init_prop_from_object(datum_index object_index, datum_index actor_ind
         } else {
             p->has_parent = 1;
             p->owner_actor_index = *(datum_index *)(object + 0x1f8);
-            p->unknown_28 = *(int32_t *)(game_time_globals + 0xc);
+            p->unknown_28 = *(int32_t *)(game_time + 0xc);
         }
 
         if (p->is_parented != 0) {

@@ -16,18 +16,20 @@
 //   (compare object_apply_body_damage.c and similar files in src/objects); reproduced as a
 //   direct float assignment, not a truncating conversion. `unit_scale_request`'s shape (a float
 //   then a flags dword) is inferred purely from the two dereferences Ghidra shows.
+// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
 
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern hs_game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/hs.h)
+extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
 
 extern void object_set_shield_depleted_flag(void);              // 0x4edb10, UNSURE: no traced args  // real signature (object_set_shield_depleted_flag.c): void object_set_shield_depleted_flag(uint32_t object_index); Ghidra recovered 0 of 1 args at this call site
 extern void object_delete(uint32_t object_index);                // 0x4f5bd0, UNSURE signature
@@ -67,7 +69,7 @@ void unit_apply_scale_change(uint32_t unit_index, unit_scale_request *request) /
             unit->flags = unit->flags | _unit_flag_unknown_200;
             obj->animation_frame = (int16_t)((remaining < 0) ? 0 : remaining);
             obj->flags = obj->flags | _object_unknown_20000_bit;
-            unit->unknown_41c = game_time->current_tick;
+            unit->unknown_41c = game_time->game_time;
             obj->body_vitality = 0.0f;
             obj->shield_vitality = 0.0f;
             object_set_shield_depleted_flag();

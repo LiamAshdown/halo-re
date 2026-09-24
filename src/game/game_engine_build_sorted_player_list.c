@@ -24,18 +24,17 @@
 // raw jump-table bytes at 0x45ce7c (read with `objdump -s`), which decode cleanly with no
 // further warnings. The jump table has exactly 5 entries (0x45cd44, 0x45cd8b, 0x45cdb3,
 // 0x45cdbe, 0x45cdc9), matching `mode` 0..4, and every offset/field access below was read
-// directly off that disassembly. A per-call stack "canary" (xor eax,0x69746572 into a dword
-// that is written but never read back) is dropped, matching how this codebase's other
-// data_iterator_next call sites already drop the same kind of dead filler value.
-// The `next_index` field of the local iterator is written with only a 16-bit store in the
-// disassembly (`mov word ptr [esp+0x1c], bx`) even though types/memory.h declares
-// data_iterator::next_index as a full int32_t; reproduced literally (only the low half is
-// zeroed) rather than assumed to be a typo.
+// directly off that disassembly. The xor eax,0x69746572 dword is data_iterator.signature
+// (+0x0c, types/memory.h); it is written like every other inline iterator constructor.
+// The `next_index` field is written with a 16-bit store (`mov word ptr [esp+0x1c], bx`),
+// which matches types/memory.h: data_iterator::next_index is an int16_t.
+// reconciled: R16 data_iterator is 0x10 bytes: next_index is int16 (plain store now), the 'iter' dword is the +0x0c signature and is stored
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data;                      // 0x0087a480
 extern game_engine_definition *current_game_engine;  // 0x006f1d20
@@ -77,8 +76,9 @@ int32_t game_engine_build_sorted_player_list(uint8_t invert_low_stat,
     negate = (mode == 4) ? (invert_low_stat == 0) : invert_low_stat;
 
     iterator.data = player_data;
-    *(int16_t *)&iterator.next_index = 0; // UNSURE: only the low 16 bits are zeroed; see header
+    iterator.next_index = 0;
     iterator.index = k_datum_index_none;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
     count = 0;
     p = (player *)data_iterator_next(&iterator);

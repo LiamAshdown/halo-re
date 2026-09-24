@@ -8,6 +8,7 @@
 // register convention: variant_options is the recognized cdecl stack parameter.
 // UNSURE: name is inferred by analogy with classic_stalker (0x464800) and the name-
 //   check ordering around it (out/phase4/game_types_notes.md); not directly confirmed.
+// reconciled: R37 game_variant.unknown_94 -> uint16 variant_flags (bit 0 built-in, high byte default index)
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -50,7 +51,7 @@ void game_engine_variant_defaults_stalker(game_variant *variant_options)
     defaults.ctf_option_7e = 0;
     defaults.ctf_option_7f = 1;
     defaults.ctf_value_80 = 0;
-    defaults.unknown_94 = 1;
+    defaults.variant_flags = 1;
 
     *variant_options = defaults;
 }

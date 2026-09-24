@@ -18,6 +18,7 @@
 // map_offsets slot; the float at 0x00719428 grows by 0.05 per effector and is never read here.
 // register convention: EAX scale (float[2]); seven stack arguments.
 //   // blam-cc: scale -> EAX
+// reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
 
 #include <string.h>
 #include "tags.h"
@@ -121,7 +122,7 @@ void hud_draw_multitexture_overlay(const float *scale, const HUDInterfaceMultite
     state.map_scales[0].y = 1.0f;
     state.map_scales[0].x = 1.0f;
     state.meter_parameters = 0;
-    state.single_local_player = local_player_globals->unknown_0c == 1;
+    state.single_local_player = local_player_globals->local_player_count == 1;
     state.maps[0] = bitmap_group_sequence_get_bitmap_data(*(const datum_index *)&overlay->primary.tag_id, 0, 0);
     state.maps[1] = bitmap_group_sequence_get_bitmap_data(*(const datum_index *)&overlay->secondary.tag_id, 0, 0);
     state.maps[2] = bitmap_group_sequence_get_bitmap_data(*(const datum_index *)&overlay->tertiary.tag_id, 0, 0);

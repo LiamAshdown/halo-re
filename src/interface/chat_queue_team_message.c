@@ -11,6 +11,7 @@
 // struct was brought into scope for this rewrite, and the byte at player+100 (0x64) tested here
 // is the same unidentified field used the same way in chat_server_relay_incoming_message.c.
 // register convention: team_index as the recognized parameter (param_1).
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
@@ -18,6 +19,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include <stdint.h>
 
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern data_array *player_data; // 0x0087a480
@@ -58,6 +60,7 @@ void chat_queue_team_message(int32_t team_index)
     iterator.data = player_data; // UNSURE
     iterator.next_index = 0;
     iterator.index = (datum_index)-1;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     entry = (player *)data_iterator_next(&iterator);
 
     while (entry != 0) {

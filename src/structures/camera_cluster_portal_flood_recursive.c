@@ -30,7 +30,7 @@
 #include "math.h"
 #include "structures.h"
 
-extern ScenarioStructureBSP *structure_bsp; // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern int32_t render_cluster_index;        // 0x007c3348
 extern uint32_t *flood_recursion_bits;      // 0x006e3af8
 extern uint32_t cluster_visible_bits[0x10]; // 0x007c3350
@@ -57,7 +57,7 @@ extern uint8_t structure_bsp_points_within_band(real_point3d *points, int16_t po
 void camera_cluster_portal_flood_recursive(int16_t cluster_index, polygon2d *view_polygon)
 {
     ScenarioStructureBSPCluster *cluster =
-        &((ScenarioStructureBSPCluster *)structure_bsp->clusters.pointer)[cluster_index];
+        &((ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer)[cluster_index];
 
     uint32_t bit = 1u << (cluster_index & 0x1f);
     int32_t word = cluster_index >> 5;
@@ -80,14 +80,14 @@ void camera_cluster_portal_flood_recursive(int16_t cluster_index, polygon2d *vie
     ScenarioStructureBSPClusterPortalIndex *portal_refs =
         (ScenarioStructureBSPClusterPortalIndex *)cluster->portals.pointer;
     ScenarioStructureBSPClusterPortal *portals =
-        (ScenarioStructureBSPClusterPortal *)structure_bsp->cluster_portals.pointer;
+        (ScenarioStructureBSPClusterPortal *)global_structure_bsp->cluster_portals.pointer;
 
     for (int32_t i = 0; i < (int32_t)cluster->portals.count; i++) {
         ScenarioStructureBSPClusterPortal *portal = &portals[portal_refs[i].portal];
         uint8_t same_side = (portal->front_cluster == (uint16_t)cluster_index);
         int16_t neighbor = same_side ? (int16_t)portal->back_cluster
                                       : (int16_t)portal->front_cluster;
-        if (neighbor < 0 || neighbor >= structure_bsp->clusters.count) {
+        if (neighbor < 0 || neighbor >= global_structure_bsp->clusters.count) {
             continue;
         }
         uint32_t neighbor_bit = 1u << (neighbor & 0x1f);
@@ -96,8 +96,8 @@ void camera_cluster_portal_flood_recursive(int16_t cluster_index, polygon2d *vie
             continue; // already on the recursion stack
         }
         // The neighbor must also be in the camera cluster's own PVS row.
-        int32_t row_dwords = (structure_bsp->clusters.count + 0x1f) >> 5;
-        uint32_t *pvs_row = (uint32_t *)((uint8_t *)structure_bsp->cluster_data.pointer +
+        int32_t row_dwords = (global_structure_bsp->clusters.count + 0x1f) >> 5;
+        uint32_t *pvs_row = (uint32_t *)((uint8_t *)global_structure_bsp->cluster_data.pointer +
                                           render_cluster_index * row_dwords * 4);
         if ((pvs_row[neighbor_word] & neighbor_bit) == 0) {
             continue;

@@ -15,6 +15,7 @@
 // dest = profile, source = the just-looked-up template buffer, which is the only reading
 // consistent with "validating its associated device identity" and with the template buffer
 // otherwise going unused.
+// reconciled: R20 controls_gamepad_record.device_key[5] -> input_guid product_guid (+0x20c, device_key[0..3]) and int32_t product_instance (+0x21c, device_key[4])
 
 #include "tags.h"
 #include "memory.h"
@@ -43,10 +44,10 @@ uint8_t control_profile_finalize_slot(saved_player_profile *profile, int32_t gam
         return 0;
     }
 
-    guid.words[0] = slot->device_key[0];
-    guid.words[1] = slot->device_key[1];
-    guid.words[2] = slot->device_key[2];
-    guid.words[3] = slot->device_key[3];
+    guid.words[0] = slot->product_guid.words[0];
+    guid.words[1] = slot->product_guid.words[1];
+    guid.words[2] = slot->product_guid.words[2];
+    guid.words[3] = slot->product_guid.words[3];
     if (input_device_default_profile_tag_find(guid, (uint8_t *)&template_profile) != -1) {
         return (uint8_t)control_profile_copy_gamepad_bindings_by_key(slot, profile, &template_profile);
     }

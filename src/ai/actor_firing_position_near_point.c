@@ -12,6 +12,7 @@
 // UNSURE: actor_get_firing_position_group_mask, path_find_run and 0x43a310 / 0x43a0a0 are
 // all invoked with part of their arguments in registers that Ghidra dropped. The argument
 // lists below are what the live values in this frame allow, not what the call sites show.
+// reconciled: R06 0x00746f9c is ScenarioStructureBSP *global_structure_bsp (was extern int32_t bsp_generation); ai.h path_find_context/actor_movement_context bsp_generation -> structure_bsp, bsp_index -> collision_bsp
 
 #include "tags.h"
 #include "memory.h"
@@ -22,7 +23,7 @@
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 extern Scenario *global_scenario;   // 0x00746f8c
-extern int32_t bsp_generation;      // 0x00746f9c, the structure BSP pointer, used here as an opaque handle
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (formerly bsp_generation)
 
 extern uint32_t actor_get_firing_position_group_mask(datum_index actor_index, int16_t kind, int16_t search_override); // 0x412880, this module
 extern uint8_t path_find_test_direct_reachability(int32_t generation, int32_t unused); // 0x43a0a0, not yet rewritten: direct-line reachability
@@ -84,7 +85,7 @@ uint8_t actor_firing_position_near_point(datum_index actor_index, real_point3d *
         for (n = 0; n < 0x4023; n++) {
             clear[n] = 0;
         }
-        context.bsp_generation = bsp_generation;
+        context.structure_bsp = (uint32_t)global_structure_bsp;
         for (n = 0; n < 0x12; n++) {
             ((uint32_t *)&context)[n] = ((uint32_t *)&request)[n];
         }
@@ -110,7 +111,7 @@ uint8_t actor_firing_position_near_point(datum_index actor_index, real_point3d *
                 return 1;
             }
         } else {
-            if (path_find_test_direct_reachability(bsp_generation, 0) != 0) {
+            if (path_find_test_direct_reachability((uint32_t)global_structure_bsp, 0) != 0) {
                 return 1;
             }
         }

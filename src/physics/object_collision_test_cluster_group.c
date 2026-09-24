@@ -27,8 +27,8 @@
 #include "objects.h"
 #include "physics.h"
 
-extern ModelCollisionGeometryBSP *structure_collision_bsp; // 0x00746f98
-extern ScenarioStructureBSP *structure_bsp_tag_data;        // 0x00746f9c
+extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
+extern ScenarioStructureBSP *global_structure_bsp;        // 0x00746f9c
 extern data_array *collideable_object_references;           // 0x008603d4, objects module
 
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp,
@@ -48,14 +48,14 @@ uint8_t object_collision_test_cluster_group(uint32_t flags, real_point3d *positi
                                              uint32_t exclude_object_index)
 {
     if ((flags & 0xe0) != 0) {
-        int32_t leaf_index = bsp3d_node_find_leaf(0, structure_collision_bsp, position);
+        int32_t leaf_index = bsp3d_node_find_leaf(0, global_structure_collision_bsp, position);
 
         if (leaf_index == -1) {
             return 1;
         }
         if ((flags >> 7 & 1) != 0) {
             ScenarioStructureBSPLeaf *leaves =
-                (ScenarioStructureBSPLeaf *)structure_bsp_tag_data->leaves.pointer;
+                (ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer;
             datum_index next_reference;
             datum_index object_index =
                 object_resolve_collideable_reference(&next_reference, leaves[leaf_index].cluster);

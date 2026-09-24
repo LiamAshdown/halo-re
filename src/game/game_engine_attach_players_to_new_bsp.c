@@ -8,9 +8,8 @@
 //   _object_mask_vehicle, parent_object (+0x11c); types/units.h biped_data::flags bit 0
 //   (grounded) and vehicle_data::airborne_ticks. objdump -d -M intel
 //   --start-address=0x473e90 --stop-address=0x4740a0 bin/halo.exe pins every register and the
-//   two dead "canary" stack writes (the same 0x69746572-xor filler
-//   src/game/game_engine_build_sorted_player_list.c already documents dropping, plus an
-//   unrelated 0x86868686 filler dword beside the first object_iterator).
+//   two data ^ 0x69746572 stores (the data_iterator +0x0c signature, types/memory.h, now
+//   stored), plus an unrelated 0x86868686 filler dword beside the first object_iterator).
 // register convention: no arguments; return value in AL.
 //
 // UNSURE: the walk-to-root-ancestor loop's result is discarded (reverted to the previous best
@@ -19,6 +18,7 @@
 // whole state machine is not established beyond what each assignment site shows.
 // UNSURE: unit_any_dying_or_seat_transition and ai_scan_for_recent_combat_activity(1) are out-of-batch predicates (units and ai modules
 // respectively) gating the very first attempt; their real behavior is not recovered here.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
@@ -26,6 +26,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include <stdint.h>
 
 extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *player_data;              // 0x0087a480
@@ -86,6 +87,7 @@ uint8_t game_engine_attach_players_to_new_bsp(void)
     player_iter.data = player_data;
     player_iter.next_index = 0;
     player_iter.index = (datum_index)-1;
+    player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
     best_root = (datum_index)-1;
     success = 0;
 
@@ -132,6 +134,7 @@ uint8_t game_engine_attach_players_to_new_bsp(void)
             player_iter.data = player_data;
             player_iter.next_index = 0;
             player_iter.index = (datum_index)-1;
+            player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
             plr = (player *)data_iterator_next(&player_iter);
             while (plr != (player *)0) {
                 if (plr->unit == (datum_index)-1) {

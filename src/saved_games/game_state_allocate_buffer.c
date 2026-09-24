@@ -8,6 +8,7 @@
 // game_state_write_event, save-thread creation). objdump confirms 0x00670abc = "core".
 // register convention: extra_size in ECX (in_ECX); cpu_size as the recognized stack parameter
 // (param_1); returns map_memory (game_state_base) in EAX.
+// reconciled: R10 profile_directory is char[0x105] (k_profile_directory_storage_size; shell zeroes 0x41 dwords + 1 byte at 0x540ef9)
 
 #include "tags.h"
 #include "memory.h"
@@ -22,7 +23,7 @@ extern uint8_t *game_state_snapshot_source; // 0x006e2dec
 extern uint8_t game_state_write_buffer_allocated; // 0x006e2de8
 extern uint32_t game_state_size; // 0x006e2df0
 extern uint8_t *game_state_write_buffer; // 0x006e2de4
-extern char profile_directory[0x104]; // 0x006ac900
+extern char profile_directory[0x105]; // 0x006ac900
 extern char game_state_persistent_storage_path[0x100]; // 0x006e2dfc
 extern char game_state_core_directory[0x100]; // 0x006e2efc
 extern uint8_t game_state_write_in_progress; // 0x006e3000

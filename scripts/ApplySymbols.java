@@ -19,6 +19,33 @@ import java.util.*;
 public class ApplySymbols extends GhidraScript {
     int created, renamed, labels, data, protos, failed;
 
+    // Header parse order. Each header is parsed by its own CParser against the program's data
+    // type manager, so every type a header uses (by value or through a typedef'd pointer) must
+    // already be in the manager when that header is parsed. Alphabetical order does not give
+    // that: ai.h needs datum_index / data_array (memory.h) and the real_* types (math.h), cache.h
+    // needs BitmapData / SoundPermutation (tags.h), camera.h, hs.h, interface.h, objects.h,
+    // rasterizer.h, render.h, scenario.h, shaders.h, sound.h and structures.h need tags.h types,
+    // cutscene.h needs unit_control_data (units.h), effects.h needs bsp_leaf_reference
+    // (objects.h), and input.h needs player_control_settings / controls_gamepad_record /
+    // ui_input_event / input_guid (interface.h) and control_binding_descriptor (saved_games.h).
+    // Dependency order (checked by concatenating the headers in this order through gcc
+    // -fsyntax-only, 32- and 64-bit, with no errors; no cycles):
+    //   tags memory math objects units ai bitmaps cache camera cseries cutscene devices dialogs
+    //   effects game hs interface items main models networking physics projectiles rasterizer
+    //   render saved_games input scenario shaders shell sound structures text
+    // i.e. tags, memory, math, objects, units first, then the rest alphabetically with input.h
+    // moved right after saved_games.h. The only type defined twice is datum_index (cache.h and
+    // memory.h, identical typedef). Any header not in this list is parsed afterwards, in
+    // alphabetical order.
+    static final String[] HEADER_ORDER = {
+        "tags.h", "memory.h", "math.h", "objects.h", "units.h",
+        "ai.h", "bitmaps.h", "cache.h", "camera.h", "cseries.h", "cutscene.h", "devices.h",
+        "dialogs.h", "effects.h", "game.h", "hs.h", "interface.h", "items.h", "main.h",
+        "models.h", "networking.h", "physics.h", "projectiles.h", "rasterizer.h", "render.h",
+        "saved_games.h", "input.h", "scenario.h", "shaders.h", "shell.h", "sound.h",
+        "structures.h", "text.h",
+    };
+
     @Override
     public void run() throws Exception {
         String[] args = getScriptArgs();
@@ -33,9 +60,19 @@ public class ApplySymbols extends GhidraScript {
     void applyHeaders(Path dir) throws Exception {
         if (!Files.isDirectory(dir)) return;
         DataTypeManager dtm = currentProgram.getDataTypeManager();
+        List<Path> found = new ArrayList<>();
+        try (DirectoryStream<Path> ds = Files.newDirectoryStream(dir, "*.h")) { for (Path p : ds) found.add(p); }
+        Collections.sort(found);
+        // the fixed dependency order first, then whatever else is present, alphabetically
         List<Path> hs = new ArrayList<>();
-        try (DirectoryStream<Path> ds = Files.newDirectoryStream(dir, "*.h")) { for (Path p : ds) hs.add(p); }
-        Collections.sort(hs);
+        for (String name : HEADER_ORDER) {
+            Path p = dir.resolve(name);
+            if (Files.exists(p)) hs.add(p);
+            else println("header in HEADER_ORDER not found: " + name);
+        }
+        for (Path p : found) {
+            if (!Arrays.asList(HEADER_ORDER).contains(p.getFileName().toString())) hs.add(p);
+        }
         for (Path h : hs) {
             try {
                 CParser parser = new CParser(dtm, true, null);

@@ -4,42 +4,42 @@
 // evidence: types/game.h player::unit (0x34); symbols/review_queue.txt 0x45a7a0 "Finds the
 //   first object datum with a valid controlling-unit index, used by the debug cheat helpers to
 //   find their target object."
-// register convention: no visible arguments; data_iterator_next's own iterator (EDI) is elided
-//   here, so this function relies on whatever iterator a caller already set up (or a global
-//   iterator this batch does not otherwise reference).
-//
-// UNSURE, PRESERVED AS-IS: the loop below walks every player datum looking for one with a valid
-// `unit` field, but Ghidra's own decompile shows this function returning the literal constant
-// -1 on EVERY path, including the one right after the loop `break`s on a match -- the found
-// player's handle is never actually returned. This may be a genuine bug/stub in the original
-// debug cheat code (its three callers all guard on the result being -1, so a hard-coded "not
-// found" cheat helper would simply never trigger, which is plausible for tooling nobody
-// finished), or a decompiler failure to track a return value through the iterator. No fix is
-// applied; the always-fails behavior is transcribed exactly.
+// register convention: no arguments. data_iterator_next's iterator (EDI) is the inline
+//   types/memory.h data_iterator over player_data built at 0x45a7a3..0x45a7c5 (data, WORD
+//   next_index = 0, index = -1, signature = data ^ 'iter'); Ghidra lost it because it is a
+//   stack object passed in a register.
+// The found path (0x45a7ec) returns [esp+0x10], the iterator's index, i.e. the handle of the
+//   first player whose unit (+0x34) is not -1; the exhausted path returns -1 (ESI). Ghidra's
+//   "always returns -1" was the lost iterator, not a stub. The name is kept from the review
+//   queue although the result is a player handle.
+// reconciled: R16 the elided iterator is the inline 0x10-byte data_iterator over player_data (0x45a7a3); the found path returns iterator.index (0x45a7ec), not -1
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
-extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module; iterator elided (EDI)
+extern data_array *player_data; // 0x0087a480
+extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module; blam-cc: EDI -> iterator
 
-// UNSURE: iterator source not identified (see header).
 uint32_t cheat_get_target_object_index(void)
 {
+    data_iterator iterator;
     player *p;
 
-    p = (player *)data_iterator_next((data_iterator *)0); // UNSURE: iterator elided
-    while (1) {
-        if (p == (player *)0) {
-            return 0xffffffff;
-        }
+    iterator.data = player_data;
+    iterator.next_index = 0;
+    iterator.index = k_datum_index_none;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+    p = (player *)data_iterator_next(&iterator);
+    while (p != (player *)0) {
         if (p->unit != k_datum_index_none) {
-            break;
+            return iterator.index;
         }
-        p = (player *)data_iterator_next((data_iterator *)0); // UNSURE: iterator elided
+        p = (player *)data_iterator_next(&iterator);
     }
-    return 0xffffffff; // preserved as-is; see header UNSURE note
+    return 0xffffffff;
 }
 
 #if 0

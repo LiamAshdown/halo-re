@@ -15,6 +15,7 @@
 // UNSURE: the byte cleared at [esp+0x13] before the bsp3d_node_find_leaf call (`bl=0`) is not read
 //   afterward in this function and is not modeled as an argument. UNSURE: 0x3a83126f is exactly
 //   0.001f, used as a delta_time to run one immediate micro-update right after creation.
+// reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
 
 #include "tags.h"
 #include "memory.h"
@@ -25,9 +26,9 @@
 
 extern data_array *particle_system_data; // 0x0087abd4
 extern tag_instance *tag_instances;      // 0x0087bc14
-extern void *global_globals;             // 0x00746f90
+extern ModelCollisionGeometryBSP *global_collision_bsp;             // 0x00746f90
 extern random_seed effect_random_seed;    // 0x00719cd4
-extern uint8_t *structure_bsp_globals; // 0x00746f9c; +0xe4 is the per-leaf lookup table
+extern uint8_t *global_structure_bsp; // 0x00746f9c; +0xe4 is the per-leaf lookup table
     // (same name and type as the other eleven files in this module that touch it), see
                                     // src/physics/breakable_surface_damage_in_blast_radius.c
 
@@ -46,11 +47,11 @@ uint8_t particle_system_new_type_states(datum_index handle)
     int32_t leaf_index;
     int32_t i;
 
-    leaf_index = bsp3d_node_find_leaf(global_globals, &system->position, 0);
+    leaf_index = bsp3d_node_find_leaf(global_collision_bsp, &system->position, 0);
     system->location.leaf_index = leaf_index;
     system->location.cluster_index = (leaf_index == -1) ? (int16_t)0xffff :
-        *(int16_t *)(*(uint8_t **)(structure_bsp_globals + 0xe4) +
-                      (leaf_index & 0x7fffffff) * 0x10 + 8); // UNSURE: structure_bsp_globals is
+        *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) +
+                      (leaf_index & 0x7fffffff) * 0x10 + 8); // UNSURE: global_structure_bsp is
                                     // an objects/structures-module global, kept as raw offset
                                     // arithmetic here, matching the object.location_cluster
                                     // resolution idiom used everywhere else in this module

@@ -14,7 +14,7 @@
 #include "math.h"
 #include "structures.h"
 
-extern ScenarioStructureBSP *structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 
 // Copies the vertex/index records (and their global surface index) of every BSP surface whose
 // bit is set in `surface_bits` into `out_faces` / `out_surface_indices`, in ascending surface
@@ -22,8 +22,8 @@ extern ScenarioStructureBSP *structure_bsp; // 0x00746f9c, physics.h/objects.h (
 void structure_leaf_faces_gather_masked(int32_t *out_surface_indices, uint32_t *surface_bits,
     ScenarioStructureBSPSurface *out_faces)
 {
-    int32_t surface_count = structure_bsp->surfaces.count;
-    ScenarioStructureBSPSurface *surfaces = (ScenarioStructureBSPSurface *)structure_bsp->surfaces.pointer;
+    int32_t surface_count = global_structure_bsp->surfaces.count;
+    ScenarioStructureBSPSurface *surfaces = (ScenarioStructureBSPSurface *)global_structure_bsp->surfaces.pointer;
     int32_t surface_index = 0;
     int32_t out_count = 0;
 

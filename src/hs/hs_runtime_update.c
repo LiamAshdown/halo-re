@@ -11,9 +11,12 @@
 // UNSURE: the `current_tick & 0x8000000f` pattern is a signed "tick % 16 == 0" test; preserved
 // as the equivalent direct expression rather than the original's sign-handling bit trick, which
 // is bit-for-bit equivalent for all int32_t inputs.
+// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
 
 #include "tags.h"
 #include "memory.h"
+#include "math.h"
+#include "game.h"
 #include "hs.h"
 
 extern datum_index datum_next(int16_t after_index, data_array *array);
@@ -25,8 +28,8 @@ extern void hs_syntax_node_garbage_collect(void); // 0x483310, below this batch'
 extern uint8_t hs_runtime_active;  // 0x006b15e8
 extern data_array *hs_thread_data; // 0x0087a470
 
-// hs_game_time_globals: defined in types/hs.h (foreign-module slice; was a local TYPES-GAP copy)
-extern hs_game_time_globals *game_time; // 0x006f1d6c
+// game_time_globals: defined in types/game.h (R32 replaced hs.h's partial game_time_globals)
+extern game_time_globals *game_time; // 0x006f1d6c
 
 // Runs one scheduler tick: steps every thread whose wake_tick has arrived (0 <= wake_tick <=
 // current tick), noting whether any command thread (type 2) is live. Always disposes empty
@@ -43,7 +46,7 @@ void hs_runtime_update(void)
         return;
     }
 
-    current_tick = game_time->current_tick;
+    current_tick = game_time->game_time;
     command_thread_pending = 0;
     thread_handle = datum_next(-1, hs_thread_data);
     while (thread_handle != k_datum_index_none) {
@@ -61,7 +64,7 @@ void hs_runtime_update(void)
     }
 
     object_lists_dispose_empty();
-    if (command_thread_pending == 0 && game_time->current_tick % 16 == 0) {
+    if (command_thread_pending == 0 && game_time->game_time % 16 == 0) {
         hs_syntax_node_garbage_collect();
     }
 }

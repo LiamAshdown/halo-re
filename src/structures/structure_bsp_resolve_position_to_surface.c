@@ -26,6 +26,7 @@
 //   // blam-cc: EAX -> start_position, ESI -> position, EDI -> out_lightmap_index, EBX -> param_7
 // UNSURE: the two forwarded opaque values (param_6 / param_7) end up as the last two arguments of
 //   0x4ce8c0 inside structure_bsp_leaf_find_material_surface and are never inspected on this path.
+// reconciled: R23 collision_result: normal -> plane.normal, unknown_30 -> plane.d, unknown_04 -> first_leaf/first_cluster, unknown_3c -> region_index, marker_index -> node_index, unknown_40 -> permutation_index (int16), unknown_48 -> plane_index, unknown_4d -> breakable_surface_index, unknown_4e -> collision_material_index
 
 #include "tags.h"
 #include "memory.h"
@@ -34,7 +35,7 @@
 #include "projectiles.h"
 #include "structures.h"
 
-extern ScenarioStructureBSP *structure_bsp; // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 
 // 0x0067 2db0, the 1/4096 step the walk nudges the position by on each retry.
 extern float k_surface_resolve_step;   // 0x00672db0 == 0.00024414062
@@ -73,9 +74,9 @@ uint8_t structure_bsp_resolve_position_to_surface(real_point3d *start_position,
         *position = result.point;
 
         if (structure_bsp_leaf_find_material_surface(position,
-                (int32_t)(result.unknown_48 & 0x7fffffff), out_lightmap_index, out_material_index,
+                (int32_t)(result.plane_index & 0x7fffffff), out_lightmap_index, out_material_index,
                 out_surface, param_6, param_7, result.leaf.leaf_index)) {
-            lightmaps = (ScenarioStructureBSPLightmap *)structure_bsp->lightmaps.pointer;
+            lightmaps = (ScenarioStructureBSPLightmap *)global_structure_bsp->lightmaps.pointer;
             if (lightmaps[*out_lightmap_index].bitmap != 0xffff) {
                 return 1;
             }

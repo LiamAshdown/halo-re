@@ -14,6 +14,7 @@
 // register convention: object index is a plain stack cdecl parameter, matching the rest of this
 //   directly-indexed (non object_try_and_get) family.
 // blam-cc: stack -> object_index
+// reconciled: R27 object.unknown_00c (datum_index) -> int32_t network_update_tick (game tick stamp, -1 = never)
 
 #include "tags.h"
 #include "memory.h"
@@ -26,12 +27,12 @@ extern void *game_time_globals; // 0x006f1d6c, +0x0c the game tick
 extern int32_t k_projectile_minimum_age_ticks; // 0x006894c8
 
 // The projectile row's "is old enough" hook (object_type_definition +0x74). An object that has
-// never been stamped (object.unknown_00c == -1) always counts as old enough; otherwise it is old
+// never been stamped (object.network_update_tick == -1) always counts as old enough; otherwise it is old
 // enough once the game tick has advanced past the stamped tick plus this type's minimum age.
 uint8_t projectile_is_old_enough(uint32_t object_index) // blam-cc: stack -> object_index
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    int32_t stamp = obj->unknown_00c;
+    int32_t stamp = obj->network_update_tick;
 
     if (stamp == -1) {
         return 1;

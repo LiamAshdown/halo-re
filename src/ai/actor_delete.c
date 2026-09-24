@@ -15,11 +15,13 @@
 //   every other call in this function relies on.
 // register convention: EBX -> actor_index, stack -> flag.
 //   // blam-cc: EBX -> actor_index, stack -> flag
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include <stdint.h>
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
@@ -66,6 +68,7 @@ void actor_delete(datum_index actor_index, uint32_t flag)
     iterator.data = prop_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     p = data_iterator_next(&iterator);
     while (p != 0) {
         if (p->owner_actor_index == actor_index) {

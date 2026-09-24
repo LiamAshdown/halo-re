@@ -26,6 +26,8 @@
 //     the field name; the disassembly is followed here since it is the primary source.
 //   - The final sequence/frame setup's arithmetic for a backwards-animating particle's starting
 //     frame index is preserved exactly as decompiled without a confident semantic reading.
+// reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
+// reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
 
 #include "tags.h"
 #include "memory.h"
@@ -39,10 +41,10 @@
 extern data_array *particle_data;   // 0x0087abd0
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *structure_bsp_globals; // 0x00746f9c; +0xe4 is the per-leaf lookup table
+extern uint8_t *global_structure_bsp; // 0x00746f9c; +0xe4 is the per-leaf lookup table
 extern player_globals *local_player_globals; // 0x0087a478
 extern uint8_t *first_person_weapon_globals; // 0x006b2d98, row stride 0x1ea0
-extern void *global_globals; // 0x00746f90, passed to FUN_005013a0 in ECX
+extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90, passed to FUN_005013a0 in ECX
 extern int32_t render_tick_counter; // 0x007c3100, UNSURE: foreign module (render globals)
 
 extern datum_index datum_new(data_array *array); // 0x4d0480, memory module
@@ -95,11 +97,11 @@ void particle_new(particle_creation_data *creation_data)
                                     // file header
     }
 
-    leaf = FUN_005013a0(global_globals, &position, 0);
+    leaf = FUN_005013a0(global_collision_bsp, &position, 0);
     if (leaf == -1) {
         return;
     }
-    cluster = *(int16_t *)(*(uint8_t **)(structure_bsp_globals + 0xe4) + (uint32_t)leaf * 0x10 + 8);
+    cluster = *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (uint32_t)leaf * 0x10 + 8);
 
     visible = *(uint32_t *)((uint8_t *)local_player_globals + 0x58 + (cluster >> 5) * 4) &
         (1u << (cluster & 0x1f)); // UNSURE, see file header
@@ -137,7 +139,7 @@ void particle_new(particle_creation_data *creation_data)
 
             speed = random_range_real(tag->lifespan[0], tag->lifespan[1]);
             if (speed > 0.7f) {
-                speed = (speed - 0.7f) / (real)local_player_globals->unknown_0c + 0.7f;
+                speed = (speed - 0.7f) / (real)local_player_globals->local_player_count + 0.7f;
             }
             self->lifespan = speed;
 

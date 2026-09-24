@@ -7,6 +7,10 @@
 // sibling file), then, for each used gamepad slot (0..3, safely bounded here unlike its
 // sibling), establishes a fresh device<->slot mapping if both directions are currently free.
 // register convention: profile in EAX.
+// reconciled: R02 0x006b2ce8 input_slot_to_device -> input.h joystick_slot_devices[4]
+// reconciled: R78 0x006b1844 input_gamepad_count(_dword) -> input.h int32_t input_device_count; the WORD readers keep their int16 width through an (int16_t) cast
+// fixed (reconciliation check): the bounds test against input_device_count is a full DWORD
+// compare (mov ecx,ds:0x6b1844; movsx eax,ax; cmp eax,ecx), so it no longer truncates to int16.
 
 #include "tags.h"
 #include "memory.h"
@@ -16,9 +20,9 @@
 #include "interface.h"
 #include "saved_games.h"
 
-extern int16_t input_gamepad_count; // 0x006b1844
+extern int32_t input_device_count; // 0x006b1844, input.h (0..8 connected input devices)
 extern int32_t input_device_to_slot[]; // 0x006b1a98, stride 0x90 dwords (0x240 bytes) per device
-extern int32_t input_slot_to_device[]; // 0x006b2ce8
+extern int32_t joystick_slot_devices[4]; // 0x006b2ce8, input.h
 
 extern int16_t input_device_find_index_by_guid(controls_gamepad_record *gamepad); // 0x4916e0, not in this module
 extern void control_profile_clear_device_slot_mappings(saved_player_profile *profile); // 0x53b5a0, this module
@@ -37,11 +41,11 @@ void control_profile_reestablish_device_slot_mappings(saved_player_profile *prof
     for (slot = 0; slot < k_control_gamepad_count; slot = slot + 1) {
         if (profile->gamepads[slot].name[0] != 0) {
             device_index = input_device_find_index_by_guid(&profile->gamepads[slot]);
-            if (device_index != -1 && device_index < input_gamepad_count &&
+            if (device_index != -1 && device_index < input_device_count /* DWORD compare */ &&
                 input_device_to_slot[device_index * 0x90] == -1 &&
-                input_slot_to_device[slot] == -1) {
+                joystick_slot_devices[slot] == -1) {
                 input_device_to_slot[device_index * 0x90] = slot;
-                input_slot_to_device[slot] = device_index;
+                joystick_slot_devices[slot] = device_index;
             }
         }
     }

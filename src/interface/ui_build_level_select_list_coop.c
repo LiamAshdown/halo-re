@@ -19,6 +19,7 @@
 // whatever value the stack happened to hold at that position (effectively uninitialized reads),
 // consistent with "no invented behaviour" -- modeled as TYPES-GAP scratch fields at the same
 // stack-frame-relative spot inside each profile copy.
+// reconciled: R55 per-level progress byte is profile +0x11e, not +0x11c (+0x11c is the flags word): 0x49cc80 copies to esp+0x18 / esp+0x2014 and reads [esp+ecx+0x136] / [esp+ecx+0x2132]
 
 #include "tags.h"
 #include "memory.h"
@@ -60,8 +61,8 @@ void ui_build_level_select_list_coop(widget_instance *widget, void *param_2, voi
     player_profile_scan_campaign_progress();
 
     for (i = 0; i < 10; i++) {
-        uint8_t flag_a = profile_copy_a[0x11c + i];
-        uint8_t flag_b = profile_copy_b[0x11c + i];
+        uint8_t flag_a = profile_copy_a[0x11e + i];
+        uint8_t flag_b = profile_copy_b[0x11e + i];
 
         level_select_entries[i].path = known_campaign_levels_00692acc[i].path;
         if (flag_a != 0 || flag_b != 0 || i == 0) {

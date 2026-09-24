@@ -18,12 +18,14 @@
 //   WS_POPUP window style, ShowCursor(0) and the -adapter switch, and its clear state is the one
 //   that demands a 32 bit desktop: it is the fullscreen flag, not "windowed" as the header had it.
 // register convention: none, __cdecl with no parameters; returns a bool in AL.
+// reconciled: R80 0x0071cfc4 uint32_t* cinematic_globals -> render.h cinematic_screen_effect_globals *cinematic_screen_effect_state
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
 #include "rasterizer.h"
+#include "render.h"
 
 extern void *rasterizer_device;                          // 0x0071d174
 extern void *rasterizer_direct3d;                        // 0x0071d178
@@ -87,7 +89,7 @@ extern int32_t game_state_cursor;                                   // 0x006e2dc
 extern uint32_t game_state_crc;                                     // 0x006e2dd4, game.h (saved_games)
 extern uint8_t crc32_lookup_table_initialized;           // 0x00719cd8
 extern crc32_table crc32_lookup_table;                   // 0x006b7b00
-extern uint32_t *cinematic_globals;                                 // 0x0071cfc4 UNSURE owner; +0x74 letterbox height
+extern cinematic_screen_effect_globals *cinematic_screen_effect_state; // 0x0071cfc4, render.h (0x78 bytes)
 
 extern uint8_t rasterizer_parse_vidmode_commandline(int32_t *width_out, int32_t *height_out, long *refresh_out); // 0x5168c0, ESI width_out
 extern uint32_t rasterizer_create_game_window(int32_t height, int32_t width);    // 0x515930, EAX height, EBX width
@@ -501,7 +503,7 @@ finish:
         for (n = 0; n < 4; n++) {
             game_state_crc = (game_state_crc >> 8) ^ crc32_lookup_table.entries[(bytes[n] ^ game_state_crc) & 0xff];
         }
-        cinematic_globals = (uint32_t *)block;
+        cinematic_screen_effect_state = (cinematic_screen_effect_globals *)block;
     }
     texture_cache_new();
     if (rasterizer_reset_device_if_needed()) {

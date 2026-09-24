@@ -22,6 +22,7 @@
 // two 0.1885 floats are exactly 0x3e4104fc (0.188495576f, the first rewrite rounded them to
 // 0.1885f, a different float); the explicit keyboard / mouse unbound fill is restored; the
 // early zero store is +0x130 (unknown_130), not button_set. Everything else matched.
+// reconciled: R21 saved_player_profile unknown_12f/131/93c[6]/954/955/960[2] -> look_inverted, look_inverted_driving, forward_rate..mouse_strafe_scale, mouse_look_x/y_sensitivity, gamepad_axis_scale_x/y
 
 #include "tags.h"
 #include "memory.h"
@@ -68,8 +69,8 @@ void player_profile_initialize(saved_player_profile *profile, int32_t local_play
     profile->player_color = -1;
     profile->unknown_130 = 0;
     profile->look_sensitivity = 3;
-    profile->unknown_12f = 0;
-    profile->unknown_131 = 0;
+    profile->look_inverted = 0;
+    profile->look_inverted_driving = 0;
     profile->flags |= ((uint16_t)(uint8_t)local_player_index << 8) | 1;
     profile->unknown_133 = 0;
 
@@ -109,15 +110,15 @@ void player_profile_initialize(saved_player_profile *profile, int32_t local_play
     control_profile_reset_digital_bindings(profile);
     control_profile_reset_analog_bindings(profile);
 
-    profile->unknown_93c[0] = 1.0f;
-    profile->unknown_93c[1] = 1.0f;
-    profile->unknown_93c[2] = 0.188495576f; // 0x3e4104fc
-    profile->unknown_93c[3] = 0.188495576f;
-    profile->unknown_93c[4] = 128.0f;
-    profile->unknown_93c[5] = 128.0f;
-    profile->unknown_954 = 3;
-    profile->unknown_955 = 3;
-    profile->unknown_12f = 0;
+    profile->forward_rate = 1.0f;
+    profile->strafe_rate = 1.0f;
+    profile->look_x_rate = 0.188495576f; // 0x3e4104fc
+    profile->look_y_rate = 0.188495576f;
+    profile->mouse_forward_scale = 128.0f;
+    profile->mouse_strafe_scale = 128.0f;
+    profile->mouse_look_x_sensitivity = 3;
+    profile->mouse_look_y_sensitivity = 3;
+    profile->look_inverted = 0;
 
     player_profile_set_default_video_options(profile, (uint8_t)merge_existing);
 
@@ -148,8 +149,8 @@ void player_profile_initialize(saved_player_profile *profile, int32_t local_play
     profile->server_name[0] = 'H'; profile->server_name[1] = 'a';
     profile->server_name[2] = 'l'; profile->server_name[3] = 'o'; profile->server_name[4] = 0;
     profile->server_password[0] = 0;
-    profile->unknown_960[0] = 0.75f;
-    profile->unknown_960[1] = 0.75f;
+    profile->gamepad_axis_scale_x = 0.75f;
+    profile->gamepad_axis_scale_y = 0.75f;
     profile->unknown_ebe = 0;
     profile->unknown_ebf = 3;
     profile->unknown_fc2[0] = 0;
@@ -167,7 +168,7 @@ void player_profile_initialize(saved_player_profile *profile, int32_t local_play
         profile->button_set = 0;
         profile->joystick_set = 0;
     } else if (local_player_index == 1) {
-        profile->unknown_12f = 1;
+        profile->look_inverted = 1;
         profile->button_set = 0;
         profile->joystick_set = 0;
     }

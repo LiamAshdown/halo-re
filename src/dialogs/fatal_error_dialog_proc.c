@@ -28,6 +28,7 @@
 // UNSURE: button ids 0x3ec (EndDialog result 0) and 3 (EndDialog result 1) both save the
 // checkbox 0x3e9 state to fatal_error_remember_choice first; which button is "Continue" vs
 // "Safe Mode" is not recoverable from this function alone.
+// reconciled: R15 0x00722bc0 / 0x00722c58 are shell.h globals (int32_t fatal_error_remember_choice, char fatal_error_system_specs[0x100])
 
 #include "tags.h"
 #include "memory.h"
@@ -66,10 +67,9 @@ extern uint32_t cpu_speed;                 // 0x00722bac
 extern uint32_t physical_memory;           // 0x00722ba8
 extern uint32_t video_memory;              // 0x00722bb0
 extern void *shell_window;                 // 0x007461c4
-extern uint32_t fatal_error_remember_choice; // 0x00722bc0, see UNSURE in shell_display_fatal_error_dialog.c
-extern char fatal_error_system_specs[]; // 0x00722c58, sprintf'd here, read by SetDlgItemTextA(0x3f1);
-                                        // no documented size (dialogs_types_notes.md only gives its
-                                        // address and the two sprintf formats)
+extern int32_t fatal_error_remember_choice; // 0x00722bc0, types/shell.h (R15)
+extern char fatal_error_system_specs[0x100]; // 0x00722c58, types/shell.h (R15); sprintf'd here, read by SetDlgItemTextA(0x3f1);
+                                        // 0x100 bytes: the next referenced global is 0x00722d58
 
 // The fatal-error dialog's DLGPROC. On WM_INITDIALOG, centers the dialog on the desktop, sets
 // the title and the main message static (0x3ee), disables the checkbox and the two "done"

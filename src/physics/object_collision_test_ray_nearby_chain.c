@@ -37,6 +37,7 @@
 // object_collision_context_test_segment's definition shows.
 // UNSURE: out_result->leaf (0x0c) and ->point (0x18) are never written anywhere in this
 // function's own decompile and are left untouched here too, matching that omission literally.
+// reconciled: R23 collision_result: normal -> plane.normal, unknown_30 -> plane.d, unknown_04 -> first_leaf/first_cluster, unknown_3c -> region_index, marker_index -> node_index, unknown_40 -> permutation_index (int16), unknown_48 -> plane_index, unknown_4d -> breakable_surface_index, unknown_4e -> collision_material_index
 
 #include "tags.h"
 #include "memory.h"
@@ -107,25 +108,25 @@ uint8_t object_collision_test_ray_nearby_chain(uint32_t start_object_index, uint
 
                             out_result->t = node_result.segment.t;
                             out_result->type = 3;
-                            matrix4x3_transform_plane((real_plane3d *)&out_result->normal,
+                            matrix4x3_transform_plane((real_plane3d *)&out_result->plane.normal,
                                                        node_matrix,
                                                        (real_plane3d *)node_result.segment.plane);
                             if (node_result.segment.plane_index < 0) {
-                                plane3d_negate((real_plane3d *)&out_result->normal,
-                                               (real_plane3d *)&out_result->normal);
+                                plane3d_negate((real_plane3d *)&out_result->plane.normal,
+                                               (real_plane3d *)&out_result->plane.normal);
                             }
                             out_result->material_type = model_collision_geometry_resolve_material_type(
                                 node_result.segment.material_index,
                                 (ModelCollisionGeometry *)node_ctx.definition);
-                            out_result->unknown_3c = node_result.region_index;
-                            out_result->marker_index = node_result.node_index;
-                            *(int16_t *)&out_result->unknown_40 = node_result.permutation_index;
-                            out_result->unknown_48 = node_result.segment.plane_index;
+                            out_result->region_index = node_result.region_index;
+                            out_result->node_index = node_result.node_index;
+                            out_result->permutation_index = node_result.permutation_index;
+                            out_result->plane_index = node_result.segment.plane_index;
                             out_result->object_index = object_index;
                             out_result->surface_index = node_result.segment.surface_index;
                             out_result->surface_flags = node_result.segment.surface_flags;
-                            out_result->unknown_4d = node_result.segment.breakable_surface_index;
-                            out_result->unknown_4e = node_result.segment.material_index;
+                            out_result->breakable_surface_index = node_result.segment.breakable_surface_index;
+                            out_result->collision_material_index = node_result.segment.material_index;
                             improved = 1;
                         }
                     }
@@ -139,20 +140,20 @@ uint8_t object_collision_test_ray_nearby_chain(uint32_t start_object_index, uint
                                                                           &phys_ctx) &&
                             ray_result.t < out_result->t) {
                             out_result->t = ray_result.t;
-                            out_result->normal.i = ray_result.plane_i;
-                            out_result->normal.j = ray_result.plane_j;
-                            out_result->normal.k = ray_result.plane_k;
-                            out_result->unknown_30 = ray_result.plane_d;
+                            out_result->plane.normal.i = ray_result.plane_i;
+                            out_result->plane.normal.j = ray_result.plane_j;
+                            out_result->plane.normal.k = ray_result.plane_k;
+                            out_result->plane.d = ray_result.plane_d;
                             out_result->type = 3;
                             out_result->material_type = -1;
                             out_result->object_index = object_index;
-                            out_result->unknown_3c = -1;
-                            out_result->marker_index = -1;
-                            out_result->unknown_48 = 0xffffffff;
+                            out_result->region_index = -1;
+                            out_result->node_index = -1;
+                            out_result->plane_index = 0xffffffff;
                             out_result->surface_index = -1;
                             out_result->surface_flags = 0;
-                            out_result->unknown_4d = 0;
-                            out_result->unknown_4e = -1;
+                            out_result->breakable_surface_index = 0;
+                            out_result->collision_material_index = -1;
                             improved = 1;
                         }
                     }

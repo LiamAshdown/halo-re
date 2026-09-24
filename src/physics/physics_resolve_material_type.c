@@ -24,7 +24,7 @@
 
 extern data_array *object_data;                     // 0x008603b0
 extern tag_instance *tag_instances;                 // 0x0087bc14
-extern ScenarioStructureBSP *structure_bsp_tag_data; // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 
 // Resolves a global MaterialType_t for vertex_slot: when object_index names a real object,
 // indexes that object's ModelCollisionGeometry.materials (via its Object tag's collision_model
@@ -47,7 +47,7 @@ int16_t physics_resolve_material_type(uint32_t object_index, int16_t vertex_slot
     }
 
     return ((ScenarioStructureBSPCollisionMaterial *)
-        structure_bsp_tag_data->collision_materials.pointer)[vertex_slot].material;
+        global_structure_bsp->collision_materials.pointer)[vertex_slot].material;
 }
 
 #if 0

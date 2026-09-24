@@ -12,6 +12,7 @@
 // already print on their own with matching formats; keeping both would print 15 values for a
 // 14-column, one-"%f\t"-per-call log row. Treated as a decompiler call-folding artifact and
 // not reproduced -- each value is written exactly once, in column order.
+// reconciled: R01 0x0087ac06 int16 network_statistics_level -> uint8 debug_log_level (the binary reads a byte)
 
 #include "tags.h"
 #include "memory.h"
@@ -20,7 +21,7 @@
 #include "networking.h"
 #include <stdio.h>
 
-extern int16_t network_statistics_level;          // 0x0087ac06
+extern uint8_t debug_log_level;                   // 0x0087ac06, byte-wide (R01)
 extern uint8_t network_statistics_logging_enabled; // 0x006f14b4
 extern void *network_summary_log_file;             // 0x006a6140, FILE *
 extern network_summary_statistics network_summary_stats; // 0x0087bea0
@@ -42,7 +43,7 @@ void network_stats_summary_log_write(void)
     float bytes_sent_per_packet;
     float bytes_received_per_packet;
 
-    if (2 < network_statistics_level && network_statistics_logging_enabled != 0 &&
+    if (2 < debug_log_level && network_statistics_logging_enabled != 0 &&
         network_summary_log_file != 0) {
         now = FUN_00449210();
         elapsed_ms = (float)(now - network_summary_stats.start_ms);

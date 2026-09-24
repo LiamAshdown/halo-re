@@ -19,6 +19,7 @@
 // UNSURE (structural, TYPES-GAP): as with FUN_00450870, the marker resolver `&LAB_00451850` is a
 // thunk Ghidra did not split into its own function, and the scratch context this function builds
 // (local_1c/local_18/local_14/local_10/local_c/local_8) is reconstructed by layout only.
+// reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
 
 #include "tags.h"
 #include "memory.h"
@@ -28,8 +29,8 @@
 #include "effects.h"
 
 extern data_array *effect_data;         // 0x0087abdc
-extern void *global_globals;            // 0x00746f90, passed to FUN_005013a0 in ECX
-extern uint8_t *structure_bsp_globals;  // 0x00746f9c; +0xe4 is the per-leaf lookup table
+extern ModelCollisionGeometryBSP *global_collision_bsp;            // 0x00746f90, passed to FUN_005013a0 in ECX
+extern uint8_t *global_structure_bsp;  // 0x00746f9c; +0xe4 is the per-leaf lookup table
 extern const real_point3d *global_origin3d_pointer; // 0x00696714 -> 0x0065c230, math module
 extern void *effect_marker_callback_context; // 0x006b0adc
 
@@ -73,10 +74,10 @@ datum_index effect_new_with_color(datum_index definition_index, datum_index crea
         context.node_index = 0xffff; // this wrapper has no object, so no node table
         context.node_table_entry = 0;
 
-        leaf = FUN_005013a0(global_globals, position, 0);
+        leaf = FUN_005013a0(global_collision_bsp, position, 0);
         self->location.leaf_index = leaf;
         self->location.cluster_index = (leaf == -1) ? -1 :
-            *(int16_t *)(*(uint8_t **)(structure_bsp_globals + 0xe4) + (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
+            *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
 
         if (velocity == 0) {
             // types/math.h declares this as const real_point3d *; same three floats.

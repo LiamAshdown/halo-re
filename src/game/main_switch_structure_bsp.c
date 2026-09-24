@@ -23,6 +23,7 @@
 // tick countdown) and 0x006b0b80+2 are all in this module's documented TYPES-GAP tails; kept as
 // raw offsets. player_update_nearby_interactions_primary/player_update_nearby_interactions_secondary's own register convention (EDI -> player_handle) was
 // read directly off their entry instructions since neither is in this batch.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
@@ -31,13 +32,14 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include <stdint.h>
 
 extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *player_data;              // 0x0087a480
 extern data_array *object_data;              // 0x008603b0
 extern int16_t network_game_mode;            // 0x00719720
 extern Scenario *global_scenario;            // 0x00746f8c
-extern int16_t current_structure_bsp_index;  // 0x0069e8d8, UNSURE name
+extern int16_t global_structure_bsp_index;  // 0x0069e8d8, UNSURE name
 extern uint16_t requested_structure_bsp_index; // 0x00719754, UNSURE name (low 16 bits of a
                                                 //   larger record another module owns)
 extern game_engine_definition *current_game_engine; // 0x006f1d20
@@ -91,6 +93,7 @@ void main_switch_structure_bsp(void)
     player_iter.data = player_data;
     player_iter.next_index = 0;
     player_iter.index = (datum_index)-1;
+    player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
 
     plr = (player *)data_iterator_next(&player_iter);
     while (plr != (player *)0) {
@@ -129,6 +132,7 @@ void main_switch_structure_bsp(void)
                         recipient_iter.data = player_data;
                         recipient_iter.next_index = 0;
                         recipient_iter.index = (datum_index)-1;
+                        recipient_iter.signature = (uint32_t)(uintptr_t)recipient_iter.data ^ k_data_iterator_signature;
                         recipient = (player *)data_iterator_next(&recipient_iter);
                         while (recipient != (player *)0) {
                             chimera__kill_feed((datum_index)recipient_iter.index, 0x1f,
@@ -162,7 +166,7 @@ void main_switch_structure_bsp(void)
 
                 for (i = 0; i < count; i = i + 1) {
                     ScenarioBSPSwitchTriggerVolume *entry = &volumes[i];
-                    if (entry->source == (uint16_t)current_structure_bsp_index && plr->unit != (datum_index)-1 &&
+                    if (entry->source == (uint16_t)global_structure_bsp_index && plr->unit != (datum_index)-1 &&
                         scenario_trigger_volume_contains_point(entry->trigger_volume, plr->unit) != 0) {
                         int16_t destination = (int16_t)entry->destination;
 
@@ -184,7 +188,7 @@ void main_switch_structure_bsp(void)
                         local_player_globals->unknown_12 = (int16_t)i; // UNSURE field identity confirmed by offset only
                         if (destination < 0 || destination >= global_scenario->structure_bsps.count) {
                             console_print_va("tried to switch to invalid structure-bsp %d", (int32_t)destination);
-                        } else if (destination == current_structure_bsp_index) {
+                        } else if (destination == global_structure_bsp_index) {
                             console_print_va("tried to switch to current structure-bsp %d", (int32_t)destination);
                         } else {
                             // CORRECTED by review: the original's "goto LAB_00474c59" lands on

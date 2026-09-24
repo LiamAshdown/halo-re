@@ -21,12 +21,14 @@
 // UNSURE: PTR_DAT_0069672c (used as a 3-float direction, by the 0x696714/0x696718/0x69671c/
 // 0x696720 pattern this module already reads as "zero"/"forward"/"right"/"up") would be
 // "down" by that same pattern; not confirmed here.
+// reconciled: R54 0x502060 prototype -> physics signature collision_bsp_query_segment_init(flags EAX = 3, result ECX, bsp, 0, 0, origin, delta, FLT_MAX); both calls now pass the flags and a result buffer
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#include "physics.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -35,9 +37,14 @@ extern const real_vector3d *global_down3d_pointer; // 0x0069672c, UNSURE: see fi
 extern void actor_update_target_lead_position(void); // 0x429570, not this module, UNSURE: no visible args at this call site
 extern uint8_t path_find_test_segment_unobstructed(uint8_t ignores_glass, int32_t param2, real_point3d *point, uint32_t ignore,
                              uint32_t param5, uint8_t param6, void *param7); // 0x43de90, not this module, UNSURE signature
-extern char collision_bsp_query_segment_init(int32_t bsp, int32_t unused_a, int32_t unused_b, real_point3d *from, real_vector3d *delta, int32_t max_fraction); // 0x502060, not this module, UNSURE signature
+extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result,
+                                                ModelCollisionGeometryBSP *bsp,
+                                                int16_t breakable_surface_count,
+                                                uint32_t *breakable_surfaces, real_point3d *origin,
+                                                real_vector3d *delta, float max_fraction);
+    // 0x502060, src/physics/collision_bsp_query_segment_init.c; flags in EAX, result in ECX
 
-extern int32_t bsp_index; // 0x00746f98, UNSURE: a global handle collision_bsp_query_segment_init reads for its first call and reuses for the second
+extern int32_t global_structure_collision_bsp; // 0x00746f98, UNSURE: a global handle collision_bsp_query_segment_init reads for its first call and reuses for the second
 
 // blam-cc: EAX -> actor_index, EDI -> direction, stack -> step_distance, stack -> step_up,
 //   stack -> out_flag, stack -> extra_param
@@ -78,6 +85,7 @@ uint8_t actor_check_step_obstruction(datum_index actor_index, real_vector2d *dir
             real_point3d mid;
             real_vector3d scaled_dir;
             uint8_t clear1;
+            collision_bsp_segment_result probe; // the stack buffer ECX points at
 
             mid.x = (self->aim_origin.x + self->body_position.x) * 0.5f;
             mid.y = (self->aim_origin.y + self->body_position.y) * 0.5f;
@@ -86,7 +94,7 @@ uint8_t actor_check_step_obstruction(datum_index actor_index, real_vector2d *dir
             scaled_dir.j = step_distance * direction->j;
             scaled_dir.k = 0.0f;
 
-            clear1 = collision_bsp_query_segment_init(bsp_index, 0, 0, &mid, &scaled_dir, 0x7f7fffffu);
+            clear1 = collision_bsp_query_segment_init(3, &probe, (ModelCollisionGeometryBSP *)global_structure_collision_bsp, 0, 0, &mid, &scaled_dir, 3.4028235e+38f); // 0x417d71
             if (!clear1) {
                 obstructed = 1;
                 used_point_check = 1;
@@ -102,10 +110,10 @@ uint8_t actor_check_step_obstruction(datum_index actor_index, real_vector2d *dir
                     down_step.j = step_up * global_down3d_pointer->j;
                     down_step.k = step_up * global_down3d_pointer->k;
 
-                    // FIXED: both point-clearance calls take bsp_index. Ghidra caches it in
-                    // uVar3 before the first branch (`uVar3 = bsp_index;`) and hands that same
+                    // FIXED: both point-clearance calls take global_structure_collision_bsp. Ghidra caches it in
+                    // uVar3 before the first branch (`uVar3 = global_structure_collision_bsp;`) and hands that same
                     // uVar3 to the second call; the first rewrite substituted DAT_00746f9c.
-                    clear2 = collision_bsp_query_segment_init(bsp_index, 0, 0, &far_point, &down_step, 0x7f7fffffu);
+                    clear2 = collision_bsp_query_segment_init(3, &probe, (ModelCollisionGeometryBSP *)global_structure_collision_bsp, 0, 0, &far_point, &down_step, 3.4028235e+38f); // 0x417e12
                     if (clear2) {
                         obstructed = 0;
                     }

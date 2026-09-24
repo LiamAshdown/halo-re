@@ -9,10 +9,12 @@
 // src/memory/cache_build_status_bitmap.c: a data_iterator built on this function's own stack
 // over sound_cache_entries.
 // register convention: none; plain __cdecl with no parameters.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+#include <stdint.h>
 
 extern data_array *sound_cache_entries; // 0x006ac528
 extern void *sound_decode_buffer;       // 0x006f17ec
@@ -34,6 +36,7 @@ void sound_cache_dispose(void)
     iterator.data = sound_cache_entries;
     iterator.next_index = 0;
     iterator.index = 0;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     entry = (sound_cache_entry *)data_iterator_next(&iterator);
     while (entry != (sound_cache_entry *)0) {
         sound_permutation_release_page(entry->permutation);

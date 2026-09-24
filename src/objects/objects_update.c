@@ -26,18 +26,20 @@
 //   hard-coded count of 0), so those dead tail loops are omitted here; behavior is identical.
 //   The final byte-by-byte PVS compare is likewise folded into a dword-granularity compare
 //   (byte_count is always word_count*4, so the two give identical equal/not-equal results).
+// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "hs.h"
 #include "objects.h"
 
 extern object_globals *object_globals_pointer; // 0x006b8cbc
 extern data_array *object_data; // 0x008603b0
-extern hs_game_time_globals *game_time; // 0x006f1d6c, UNSURE: foreign module, +0xc is the current tick
+extern game_time_globals *game_time; // 0x006f1d6c, UNSURE: foreign module, +0xc is the current tick
 extern uint8_t *bsp_cluster_pvs_source; // 0x0087a478, UNSURE: foreign module, +0x18 is the pvs bits
-extern uint8_t *structure_bsp_globals; // 0x00746f9c, UNSURE: foreign module, +0x134 is the
+extern uint8_t *global_structure_bsp; // 0x00746f9c, UNSURE: foreign module, +0x134 is the
                                               //   live cluster count
 extern uint8_t *object_update_gate_globals; // 0x006b0b80, UNSURE: foreign module, +0x2 is a
                                             //   single gating byte
@@ -65,7 +67,7 @@ void objects_update(void)
 
     globals->unknown_04 = 0;
 
-    cluster_count = *(int16_t *)(structure_bsp_globals + 0x134);
+    cluster_count = *(int16_t *)(global_structure_bsp + 0x134);
     word_count = (cluster_count + 0x1f) >> 5;
 
     for (i = 0; i < word_count; i++) {

@@ -28,6 +28,7 @@
 // UNSURE: the call to actor_target_get_relationship_object in the type-5 case drops every
 // argument in Ghidra and sets none in the disassembly either -- it is invoked purely for its
 // side effect on the prop, with whatever EAX/ECX/EDX the prop lookup left behind.
+// reconciled: R06 0x00746f9c is ScenarioStructureBSP *global_structure_bsp (was extern int32_t bsp_generation); ai.h path_find_context/actor_movement_context bsp_generation -> structure_bsp, bsp_index -> collision_bsp
 
 #include "tags.h"
 #include "memory.h"
@@ -39,7 +40,7 @@ extern data_array *actor_data;       // 0x00880360
 extern data_array *prop_data;        // 0x008802c0
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern Scenario *global_scenario;    // 0x00746f8c
-extern int32_t bsp_generation;      // 0x00746f9c, the structure BSP pointer, used here as an opaque handle
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (formerly bsp_generation)
 
 extern float FUN_00401020(const real_point3d *a, const real_point3d *b); // 0x401020, not yet rewritten: squared distance, EAX -> a, ECX -> b
 extern real vector3d_distance(const real_point3d *a, const real_point3d *b); // 0x4088b0, EAX -> a, ECX -> b
@@ -202,7 +203,7 @@ uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t record_di
 
     if (self->flying != 0) {
         // EBX = &self->movement_action_complete, the out-parameter this variant writes.
-        result = path_find_validate_and_record_goal(bsp_generation, &self->body_position, 0, &self->unknown_488);
+        result = path_find_validate_and_record_goal((uint32_t)global_structure_bsp, &self->body_position, 0, &self->unknown_488);
     } else if (context != (path_find_context *)0) {
         path_find_set_goal(context, &self->unknown_488, self->unknown_494, self->unknown_498);
         result = path_find_reconstruct_path(context, &self->movement_action_complete);

@@ -1,0 +1,850 @@
+{
+ "groups": [
+  {
+   "label": "units+memory+unknown",
+   "items": [
+    {
+     "addr": "0x5579e0",
+     "module": "units",
+     "name": "FUN_005579e0",
+     "size": 164
+    },
+    {
+     "addr": "0x558860",
+     "module": "units",
+     "name": "FUN_00558860",
+     "size": 446
+    },
+    {
+     "addr": "0x55eed0",
+     "module": "units",
+     "name": "FUN_0055eed0",
+     "size": 242
+    },
+    {
+     "addr": "0x55efd0",
+     "module": "units",
+     "name": "FUN_0055efd0",
+     "size": 5157
+    },
+    {
+     "addr": "0x561ab0",
+     "module": "units",
+     "name": "FUN_00561ab0",
+     "size": 195
+    },
+    {
+     "addr": "0x561cb0",
+     "module": "units",
+     "name": "FUN_00561cb0",
+     "size": 155
+    },
+    {
+     "addr": "0x561d50",
+     "module": "units",
+     "name": "FUN_00561d50",
+     "size": 259
+    },
+    {
+     "addr": "0x561e60",
+     "module": "units",
+     "name": "FUN_00561e60",
+     "size": 275
+    },
+    {
+     "addr": "0x564580",
+     "module": "units",
+     "name": "FUN_00564580",
+     "size": 689
+    },
+    {
+     "addr": "0x564840",
+     "module": "units",
+     "name": "FUN_00564840",
+     "size": 329
+    },
+    {
+     "addr": "0x564990",
+     "module": "units",
+     "name": "FUN_00564990",
+     "size": 334
+    },
+    {
+     "addr": "0x564ae0",
+     "module": "units",
+     "name": "FUN_00564ae0",
+     "size": 1376
+    },
+    {
+     "addr": "0x565040",
+     "module": "units",
+     "name": "unit_scripting_set_current_vitality",
+     "size": 267
+    },
+    {
+     "addr": "0x5658f0",
+     "module": "units",
+     "name": "FUN_005658f0",
+     "size": 208
+    },
+    {
+     "addr": "0x56eb90",
+     "module": "units",
+     "name": "FUN_0056eb90",
+     "size": 52
+    },
+    {
+     "addr": "0x5724d0",
+     "module": "units",
+     "name": "FUN_005724d0",
+     "size": 524
+    },
+    {
+     "addr": "0x572a90",
+     "module": "units",
+     "name": "FUN_00572a90",
+     "size": 205
+    },
+    {
+     "addr": "0x4d3980",
+     "module": "memory",
+     "name": "data_delete_all",
+     "size": 176
+    },
+    {
+     "addr": "0x4d3a30",
+     "module": "memory",
+     "name": "data_next_index",
+     "size": 80
+    },
+    {
+     "addr": "0x401000",
+     "module": "unknown",
+     "name": "vector3d_magnitude_squared",
+     "size": 31
+    },
+    {
+     "addr": "0x401020",
+     "module": "unknown",
+     "name": "vector3d_distance_squared",
+     "size": 39
+    },
+    {
+     "addr": "0x401a20",
+     "module": "unknown",
+     "name": "FUN_00401a20",
+     "size": 60
+    }
+   ],
+   "bytes": 11263
+  },
+  {
+   "label": "input+render+interface+rasterizer+cutscene",
+   "items": [
+    {
+     "addr": "0x48d270",
+     "module": "input",
+     "name": "hs_return",
+     "size": 6434
+    },
+    {
+     "addr": "0x4921a0",
+     "module": "input",
+     "name": "chimera__main_menu_music",
+     "size": 97
+    },
+    {
+     "addr": "0x510410",
+     "module": "render",
+     "name": "sort_introsort_loop",
+     "size": 235
+    },
+    {
+     "addr": "0x510500",
+     "module": "render",
+     "name": "FUN_00510500",
+     "size": 734
+    },
+    {
+     "addr": "0x5107e0",
+     "module": "render",
+     "name": "FUN_005107e0",
+     "size": 80
+    },
+    {
+     "addr": "0x510830",
+     "module": "render",
+     "name": "FUN_00510830",
+     "size": 191
+    },
+    {
+     "addr": "0x5108f0",
+     "module": "render",
+     "name": "FUN_005108f0",
+     "size": 140
+    },
+    {
+     "addr": "0x510980",
+     "module": "render",
+     "name": "FUN_00510980",
+     "size": 70
+    },
+    {
+     "addr": "0x5109d0",
+     "module": "render",
+     "name": "FUN_005109d0",
+     "size": 183
+    },
+    {
+     "addr": "0x510a90",
+     "module": "render",
+     "name": "FUN_00510a90",
+     "size": 133
+    },
+    {
+     "addr": "0x510b20",
+     "module": "render",
+     "name": "FUN_00510b20",
+     "size": 122
+    },
+    {
+     "addr": "0x510ba0",
+     "module": "render",
+     "name": "FUN_00510ba0",
+     "size": 173
+    },
+    {
+     "addr": "0x495190",
+     "module": "interface",
+     "name": "first_person_weapons_update",
+     "size": 96
+    },
+    {
+     "addr": "0x4951f0",
+     "module": "interface",
+     "name": "first_person_weapon_render_update",
+     "size": 111
+    },
+    {
+     "addr": "0x498160",
+     "module": "interface",
+     "name": "multiplayer_map_list_dispose",
+     "size": 459
+    },
+    {
+     "addr": "0x49aa00",
+     "module": "interface",
+     "name": "ui_widget_load_by_name_or_tag",
+     "size": 559
+    },
+    {
+     "addr": "0x49d850",
+     "module": "interface",
+     "name": "render_widget_recursive",
+     "size": 82
+    },
+    {
+     "addr": "0x51ad91",
+     "module": "rasterizer",
+     "name": "caseD_0",
+     "size": 802
+    },
+    {
+     "addr": "0x449780",
+     "module": "cutscene",
+     "name": "FUN_00449780",
+     "size": 473
+    }
+   ],
+   "bytes": 11174
+  },
+  {
+   "label": "physics+projectiles+networking+devices+cache+game",
+   "items": [
+    {
+     "addr": "0x500090",
+     "module": "physics",
+     "name": "FUN_00500090",
+     "size": 4764
+    },
+    {
+     "addr": "0x5066e0",
+     "module": "physics",
+     "name": "point3d_project_onto_line",
+     "size": 121
+    },
+    {
+     "addr": "0x507430",
+     "module": "physics",
+     "name": "FUN_00507430",
+     "size": 123
+    },
+    {
+     "addr": "0x4bdc00",
+     "module": "projectiles",
+     "name": "projectile_update",
+     "size": 1456
+    },
+    {
+     "addr": "0x4beb30",
+     "module": "projectiles",
+     "name": "FUN_004beb30",
+     "size": 744
+    },
+    {
+     "addr": "0x4bee20",
+     "module": "projectiles",
+     "name": "FUN_004bee20",
+     "size": 147
+    },
+    {
+     "addr": "0x4beec0",
+     "module": "projectiles",
+     "name": "FUN_004beec0",
+     "size": 179
+    },
+    {
+     "addr": "0x4bef80",
+     "module": "projectiles",
+     "name": "FUN_004bef80",
+     "size": 316
+    },
+    {
+     "addr": "0x4e44e1",
+     "module": "networking",
+     "name": "client_machine_cleanup__hook_remove_player",
+     "size": 280
+    },
+    {
+     "addr": "0x576f40",
+     "module": "networking",
+     "name": "autopatch_get_proxy_settings",
+     "size": 639
+    },
+    {
+     "addr": "0x577310",
+     "module": "networking",
+     "name": "autopatch_launch_updater",
+     "size": 945
+    },
+    {
+     "addr": "0x44a930",
+     "module": "devices",
+     "name": "recorded_animation_start",
+     "size": 342
+    },
+    {
+     "addr": "0x44aa90",
+     "module": "devices",
+     "name": "recorded_animations_update",
+     "size": 550
+    },
+    {
+     "addr": "0x44acc0",
+     "module": "devices",
+     "name": "recorded_animation_object_is_playing",
+     "size": 91
+    },
+    {
+     "addr": "0x44ad20",
+     "module": "devices",
+     "name": "recorded_animation_find_by_object",
+     "size": 93
+    },
+    {
+     "addr": "0x444af0",
+     "module": "cache",
+     "name": "random_range_real",
+     "size": 55
+    },
+    {
+     "addr": "0x444b30",
+     "module": "cache",
+     "name": "FUN_00444b30",
+     "size": 206
+    },
+    {
+     "addr": "0x45b4cb",
+     "module": "game",
+     "name": "game_initialize_mod_per_map_upgrade_effects",
+     "size": 22
+    },
+    {
+     "addr": "0x45fc50",
+     "module": "game",
+     "name": "hud_render_scoreboard_ingame",
+     "size": 45
+    },
+    {
+     "addr": "0x476847",
+     "module": "game",
+     "name": "player_add_equipment_unit_grenade_count_mod",
+     "size": 108
+    },
+    {
+     "addr": "0x47bf23",
+     "module": "game",
+     "name": "player_handle_action_jmp_table_adjust_size",
+     "size": 44
+    },
+    {
+     "addr": "0x47c3d0",
+     "module": "game",
+     "name": "player_health_pack_screen_effect",
+     "size": 31
+    }
+   ],
+   "bytes": 11301
+  },
+  {
+   "label": "objects+shell+effects+structures+hs+items",
+   "items": [
+    {
+     "addr": "0x4f0530",
+     "module": "objects",
+     "name": "hash_table_set_or_remove",
+     "size": 173
+    },
+    {
+     "addr": "0x4f05e0",
+     "module": "objects",
+     "name": "hash_table_get",
+     "size": 58
+    },
+    {
+     "addr": "0x4f0620",
+     "module": "objects",
+     "name": "hash_table_grow_freelist",
+     "size": 170
+    },
+    {
+     "addr": "0x4f06d0",
+     "module": "objects",
+     "name": "vector3d_barycentric_interpolate",
+     "size": 87
+    },
+    {
+     "addr": "0x4f0730",
+     "module": "objects",
+     "name": "bsp_lightmap_sample_vertex_color",
+     "size": 459
+    },
+    {
+     "addr": "0x4f0900",
+     "module": "objects",
+     "name": "bsp_lightmap_sample_vertex_incident",
+     "size": 284
+    },
+    {
+     "addr": "0x4f1ef0",
+     "module": "objects",
+     "name": "object_cause_damage",
+     "size": 439
+    },
+    {
+     "addr": "0x4f2550",
+     "module": "objects",
+     "name": "object_lighting_sample_point",
+     "size": 1132
+    },
+    {
+     "addr": "0x4f3680",
+     "module": "objects",
+     "name": "FUN_004f3680",
+     "size": 102
+    },
+    {
+     "addr": "0x4f3700",
+     "module": "objects",
+     "name": "FUN_004f3700",
+     "size": 197
+    },
+    {
+     "addr": "0x4f37d0",
+     "module": "objects",
+     "name": "FUN_004f37d0",
+     "size": 162
+    },
+    {
+     "addr": "0x4f3890",
+     "module": "objects",
+     "name": "FUN_004f3890",
+     "size": 260
+    },
+    {
+     "addr": "0x4f39d0",
+     "module": "objects",
+     "name": "FUN_004f39d0",
+     "size": 179
+    },
+    {
+     "addr": "0x4f3ad0",
+     "module": "objects",
+     "name": "FUN_004f3ad0",
+     "size": 197
+    },
+    {
+     "addr": "0x4f3ef0",
+     "module": "objects",
+     "name": "index_resolution_table_translate",
+     "size": 40
+    },
+    {
+     "addr": "0x4fca60",
+     "module": "objects",
+     "name": "FUN_004fca60",
+     "size": 147
+    },
+    {
+     "addr": "0x4fcb00",
+     "module": "objects",
+     "name": "FUN_004fcb00",
+     "size": 168
+    },
+    {
+     "addr": "0x542380",
+     "module": "shell",
+     "name": "scenario_trigger_volume_test_point",
+     "size": 416
+    },
+    {
+     "addr": "0x5782b0",
+     "module": "shell",
+     "name": "FUN_005782b0",
+     "size": 95
+    },
+    {
+     "addr": "0x578310",
+     "module": "shell",
+     "name": "hwreq_parse_exception_destruct",
+     "size": 110
+    },
+    {
+     "addr": "0x578390",
+     "module": "shell",
+     "name": "FUN_00578390",
+     "size": 30
+    },
+    {
+     "addr": "0x5783b0",
+     "module": "shell",
+     "name": "FUN_005783b0",
+     "size": 11
+    },
+    {
+     "addr": "0x5783c0",
+     "module": "shell",
+     "name": "FUN_005783c0",
+     "size": 30
+    },
+    {
+     "addr": "0x5783e0",
+     "module": "shell",
+     "name": "FUN_005783e0",
+     "size": 11
+    },
+    {
+     "addr": "0x5783f0",
+     "module": "shell",
+     "name": "FUN_005783f0",
+     "size": 30
+    },
+    {
+     "addr": "0x579fe0",
+     "module": "shell",
+     "name": "FUN_00579fe0",
+     "size": 44
+    },
+    {
+     "addr": "0x57b590",
+     "module": "shell",
+     "name": "FUN_0057b590",
+     "size": 30
+    },
+    {
+     "addr": "0x57b5b0",
+     "module": "shell",
+     "name": "hwreq_device_list_size",
+     "size": 33
+    },
+    {
+     "addr": "0x57b5e0",
+     "module": "shell",
+     "name": "hwreq_device_list_push_back",
+     "size": 135
+    },
+    {
+     "addr": "0x57b670",
+     "module": "shell",
+     "name": "hwreq_string_pair_construct",
+     "size": 111
+    },
+    {
+     "addr": "0x57b800",
+     "module": "shell",
+     "name": "hwreq_string_destruct",
+     "size": 34
+    },
+    {
+     "addr": "0x57ba50",
+     "module": "shell",
+     "name": "FUN_0057ba50",
+     "size": 369
+    },
+    {
+     "addr": "0x57bbd0",
+     "module": "shell",
+     "name": "hwreq_map_key_less_than",
+     "size": 39
+    },
+    {
+     "addr": "0x57bc20",
+     "module": "shell",
+     "name": "FUN_0057bc20",
+     "size": 101
+    },
+    {
+     "addr": "0x57bd80",
+     "module": "shell",
+     "name": "string_erase",
+     "size": 117
+    },
+    {
+     "addr": "0x57be00",
+     "module": "shell",
+     "name": "FUN_0057be00",
+     "size": 22
+    },
+    {
+     "addr": "0x57c1a0",
+     "module": "shell",
+     "name": "tree_insert_unique",
+     "size": 362
+    },
+    {
+     "addr": "0x57c310",
+     "module": "shell",
+     "name": "tree_erase_range",
+     "size": 122
+    },
+    {
+     "addr": "0x57c530",
+     "module": "shell",
+     "name": "tree_lower_bound",
+     "size": 165
+    },
+    {
+     "addr": "0x57c5e0",
+     "module": "shell",
+     "name": "tree_iterator_increment",
+     "size": 87
+    },
+    {
+     "addr": "0x57c640",
+     "module": "shell",
+     "name": "string_pair_construct_empty",
+     "size": 110
+    },
+    {
+     "addr": "0x57c6d0",
+     "module": "shell",
+     "name": "string_grow_reserve",
+     "size": 115
+    },
+    {
+     "addr": "0x57c76c",
+     "module": "shell",
+     "name": "string_copy_into_new_buffer",
+     "size": 118
+    },
+    {
+     "addr": "0x57cb10",
+     "module": "shell",
+     "name": "tree_rotate_left",
+     "size": 81
+    },
+    {
+     "addr": "0x57cb70",
+     "module": "shell",
+     "name": "tree_find_min",
+     "size": 28
+    },
+    {
+     "addr": "0x57cb90",
+     "module": "shell",
+     "name": "tree_rotate_right",
+     "size": 85
+    },
+    {
+     "addr": "0x57cbf0",
+     "module": "shell",
+     "name": "tree_head_node_allocate",
+     "size": 55
+    },
+    {
+     "addr": "0x57cc30",
+     "module": "shell",
+     "name": "tree_node_allocate",
+     "size": 148
+    },
+    {
+     "addr": "0x57cce0",
+     "module": "shell",
+     "name": "tree_destroy_subtree",
+     "size": 60
+    },
+    {
+     "addr": "0x57cd20",
+     "module": "shell",
+     "name": "tree_find_max",
+     "size": 29
+    },
+    {
+     "addr": "0x57cd40",
+     "module": "shell",
+     "name": "tree_iterator_decrement",
+     "size": 93
+    },
+    {
+     "addr": "0x57cda0",
+     "module": "shell",
+     "name": "FUN_0057cda0",
+     "size": 52
+    },
+    {
+     "addr": "0x57cde0",
+     "module": "shell",
+     "name": "FUN_0057cde0",
+     "size": 34
+    },
+    {
+     "addr": "0x57ce10",
+     "module": "shell",
+     "name": "string_compare",
+     "size": 111
+    },
+    {
+     "addr": "0x57ce80",
+     "module": "shell",
+     "name": "FUN_0057ce80",
+     "size": 98
+    },
+    {
+     "addr": "0x57cf50",
+     "module": "shell",
+     "name": "FUN_0057cf50",
+     "size": 102
+    },
+    {
+     "addr": "0x44d860",
+     "module": "effects",
+     "name": "FUN_0044d860",
+     "size": 113
+    },
+    {
+     "addr": "0x44d8e0",
+     "module": "effects",
+     "name": "vector3d_scalar_triple_product",
+     "size": 107
+    },
+    {
+     "addr": "0x44d950",
+     "module": "effects",
+     "name": "FUN_0044d950",
+     "size": 135
+    },
+    {
+     "addr": "0x44d9e0",
+     "module": "effects",
+     "name": "FUN_0044d9e0",
+     "size": 50
+    },
+    {
+     "addr": "0x44da20",
+     "module": "effects",
+     "name": "plane3d_negate",
+     "size": 31
+    },
+    {
+     "addr": "0x44da60",
+     "module": "effects",
+     "name": "color_real_to_argb_pack",
+     "size": 106
+    },
+    {
+     "addr": "0x44dad0",
+     "module": "effects",
+     "name": "FUN_0044dad0",
+     "size": 86
+    },
+    {
+     "addr": "0x44db30",
+     "module": "effects",
+     "name": "FUN_0044db30",
+     "size": 253
+    },
+    {
+     "addr": "0x453330",
+     "module": "effects",
+     "name": "FUN_00453330",
+     "size": 125
+    },
+    {
+     "addr": "0x4588e0",
+     "module": "effects",
+     "name": "FUN_004588e0",
+     "size": 168
+    },
+    {
+     "addr": "0x458990",
+     "module": "effects",
+     "name": "FUN_00458990",
+     "size": 250
+    },
+    {
+     "addr": "0x458b50",
+     "module": "effects",
+     "name": "FUN_00458b50",
+     "size": 142
+    },
+    {
+     "addr": "0x53f150",
+     "module": "structures",
+     "name": "FUN_0053f150",
+     "size": 1134
+    },
+    {
+     "addr": "0x483d20",
+     "module": "hs",
+     "name": "FUN_00483d20",
+     "size": 245
+    },
+    {
+     "addr": "0x4875c0",
+     "module": "hs",
+     "name": "FUN_004875c0",
+     "size": 102
+    },
+    {
+     "addr": "0x48ab80",
+     "module": "hs",
+     "name": "hs_object_orient",
+     "size": 9
+    },
+    {
+     "addr": "0x4c62d0",
+     "module": "items",
+     "name": "FUN_004c62d0",
+     "size": 32
+    },
+    {
+     "addr": "0x4c62f0",
+     "module": "items",
+     "name": "weapon_prevents_grenade_throwing",
+     "size": 80
+    }
+   ],
+   "bytes": 11245
+  }
+ ]
+}

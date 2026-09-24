@@ -25,6 +25,7 @@
 //   custom_waypoint_register EAX artifact (see evidence). (3) object + 0xc0 (owner_linkage) read
 //   here as a player handle, and object + 0xb8 read as a team index (the objects.h name_index /
 //   team_index conflict PLAN.md flags).
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 // CORRECTED (phase 4 review): types/units.h unit_data starts at object + k_unit_data_offset
 // (0x1f4), so a unit_data * built straight from the object pointer reads every field 0x1f4
@@ -37,6 +38,7 @@
 #include "units.h"
 #include "items.h"
 #include "game.h"
+#include <stdint.h>
 
 extern int16_t network_game_mode;               // 0x00719720
 extern game_variant game_engine_variant;        // 0x006f1c88 (ctf_value_80 aliased 0x006f1d08,
@@ -135,6 +137,7 @@ void ctf_engine_flag_tick(uint32_t flag_handle, object *flag_obj)
                     iter.data = object_headers; // UNSURE: iterates data_array of dropped-flag records
                     iter.next_index = 0;
                     iter.index = (datum_index)0xffffffff;
+                    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
                     element = data_iterator_next(&iter);
                     while (element != 0) {
                         chimera__kill_feed((datum_index)0xffffffff, 0x2d, (uint32_t)0xffffffff, 1, 0); // UNSURE arg shapes

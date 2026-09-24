@@ -24,7 +24,7 @@
 #include "math.h"
 #include "structures.h"
 
-extern ScenarioStructureBSP *structure_bsp; // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern uint32_t surface_visible_bits[k_maximum_visible_surface_bits]; // 0x007d0394, this module
 
 // blam-cc: ECX -> parent_bounds, EDX -> compressed_bounds, ESI -> out
@@ -49,7 +49,7 @@ int16_t structure_bsp_leaf_query(int32_t raw_child, int16_t inherited_classifica
 {
     int32_t leaf_index = raw_child & 0x7fffffff;
     ScenarioStructureBSPLeaf *leaf =
-        &((ScenarioStructureBSPLeaf *)structure_bsp->leaves.pointer)[leaf_index];
+        &((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf_index];
     int32_t written = 0;
 
     real_rectangle3d leaf_box;
@@ -67,7 +67,7 @@ int16_t structure_bsp_leaf_query(int32_t raw_child, int16_t inherited_classifica
     }
 
     ScenarioStructureBSPSurfaceReference *leaf_surfaces =
-        (ScenarioStructureBSPSurfaceReference *)structure_bsp->leaf_surfaces.pointer;
+        (ScenarioStructureBSPSurfaceReference *)global_structure_bsp->leaf_surfaces.pointer;
     int32_t first = leaf->surface_references;
     int32_t end = first + leaf->surface_reference_count;
     for (int32_t i = first; i < end; i++) {

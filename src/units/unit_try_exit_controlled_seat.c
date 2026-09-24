@@ -10,11 +10,14 @@
 // parent_object as the implicit handle) is itself required to have a valid parent_object and
 // vehicle_seat_index before anything proceeds; this rewrite preserves that literally rather than
 // asserting what it means (the parent seemingly must itself be seated in something else).
+// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
+// reconciled: R32 follow-up: local extern player_control_globals (0x0071c2d8) renamed network_client (networking.h name) because game.h is now included and owns the player_control_globals typedef
 
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
@@ -22,9 +25,9 @@
 extern data_array *object_data;      // 0x008603b0
 extern data_array *player_data;      // 0x0087a480
 extern tag_instance *tag_instances;  // 0x0087bc14
-extern hs_game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/hs.h)
+extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
 extern int32_t game_connection_role; // 0x00719720
-extern uint8_t *player_control_globals; // 0x0071c2d8
+extern uint8_t *network_client; // 0x0071c2d8 (networking.h network_client; renamed from network_client, which collides with game.h's typedef)
 extern void *matrix4x3_multiply_thunk; // 0x00696664
 
 extern void actor_notify_weapon_pickup_once(uint32_t object_index);                        // 0x42c370, UNSURE signature
@@ -113,7 +116,7 @@ void unit_try_exit_controlled_seat(uint32_t unit_index) // blam-cc: in_EAX
             unit_try_set_animation_state(vehicle_index, 0x25);
         }
         self_unit->last_parent_object_index = vehicle_index;          // puVar3[0xcb] = uVar4
-        self_unit->last_seat_change_tick = game_time->current_tick;   // puVar3[0xcc]
+        self_unit->last_seat_change_tick = game_time->game_time;   // puVar3[0xcc]
         // the first clear pair is on puVar3 (this unit); the pair further down is on puVar10
         if (self_unit->driver_unit_index == unit_index) self_unit->driver_unit_index = k_datum_index_none;
         if (self_unit->gunner_unit_index == unit_index) self_unit->gunner_unit_index = k_datum_index_none;
@@ -171,8 +174,8 @@ void unit_try_exit_controlled_seat(uint32_t unit_index) // blam-cc: in_EAX
         if ((salt != 0) &&
             (((int16_t)(controlling >> 16) == 0) || (salt == (int16_t)(controlling >> 16))) &&
             (*(int16_t *)((uint8_t *)player_data->data + rec_off + 2) != -1) &&
-            (player_control_globals != 0)) {
-            player_update_history_free_all(*(void **)(player_control_globals + 0xf48));
+            (network_client != 0)) {
+            player_update_history_free_all(*(void **)(network_client + 0xf48));
         }
     }
     return;

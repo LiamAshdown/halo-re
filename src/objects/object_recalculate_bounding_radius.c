@@ -19,7 +19,7 @@
 //   type 0x0b4, parent_object 0x11c, parent_marker_index 0x120, forward 0x074, up 0x080,
 //   position 0x05c, flags 0x10 with _object_mirrored_geometry_bit,
 //   _object_mask_no_node_functions == 0xfe0); types/tags.h Object.animation_graph; global
-//   0x008603b0 object_data, 0x0087bc14 tag_instances, 0x006f1d6c game_time_globals (tick at
+//   0x008603b0 object_data, 0x0087bc14 tag_instances, 0x006f1d6c game_time (tick at
 //   +0xc), 0x00696664 matrix4x3_multiply_procedure.
 // register convention: object index is the sole, genuinely-stack, parameter (Ghidra's own
 //   "object_recalculate_bounding_radius(uint param_1)").
@@ -32,7 +32,7 @@
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *game_time_globals; // 0x006f1d6c, tick count at +0xc
+extern uint8_t *game_time; // 0x006f1d6c, tick count at +0xc
 extern void (*matrix4x3_multiply_procedure)(); // 0x00696664. src/math/math_initialize.c
     // declares it (real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); the three-argument
     // call sites below pass raw byte buffers and node-array slices, so no prototype is asserted
@@ -113,7 +113,7 @@ void object_recalculate_bounding_radius(uint32_t object_index)
                 *(int32_t *)((int32_t)tag_instances[puVar3[0x33] & 0xffff].data + 0x78);
             uint32_t uVar7;
             if (((int8_t)puVar3[4] < 0) && (*(int16_t *)(anim + 0x22) > 0)) {
-                uVar7 = (*(int32_t *)(game_time_globals + 0xc) + object_index) % (uint32_t)*(int16_t *)(anim + 0x22);
+                uVar7 = (*(int32_t *)(game_time + 0xc) + object_index) % (uint32_t)*(int16_t *)(anim + 0x22);
             } else {
                 uVar7 = *(uint16_t *)((uint8_t *)puVar3 + 0xd2);
             }
@@ -146,7 +146,7 @@ void object_recalculate_bounding_radius(uint32_t object_index)
                         } else {
                             pfVar10 = local_c;
                             if (psVar1[2] == 1) {
-                                FUN_004d51a0((*(int32_t *)(game_time_globals + 0xc) + object_index) %
+                                FUN_004d51a0((*(int32_t *)(game_time + 0xc) + object_index) %
                                              (uint32_t)*(int16_t *)(iVar12b + 0x22), fStack_10, local_1c);
                                 pfVar10 = local_c;
                             }

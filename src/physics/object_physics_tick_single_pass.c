@@ -44,6 +44,7 @@
 //   object_physics_compute_mass_point_forces.c's own already-confirmed versions of the identical
 //   formulas (this function's own decompile shows the same float10-heavy, argument-starved shape
 //   for both).
+// reconciled: R23 collision_result: normal -> plane.normal, unknown_30 -> plane.d, unknown_04 -> first_leaf/first_cluster, unknown_3c -> region_index, marker_index -> node_index, unknown_40 -> permutation_index (int16), unknown_48 -> plane_index, unknown_4d -> breakable_surface_index, unknown_4e -> collision_material_index
 
 #include "tags.h"
 #include "memory.h"
@@ -61,7 +62,7 @@ extern double sin(double x);
 extern double cos(double x);
 
 extern data_array *object_data;                              // 0x008603b0
-extern ScenarioStructureBSP *structure_bsp_tag_data;          // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp;          // 0x00746f9c
 extern real_vector3d *global_reference_vector_0069672c;       // 0x0069672c
 extern float k_physics_gravity;                               // 0x0069c52c
 extern tag_instance *tag_instances;                           // 0x0087bc14
@@ -211,7 +212,7 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
 
         mp->leaf_index = bsp3d_node_find_leaf(0, 0, (real_point3d *)&mp->position_x); // UNSURE args
         mp->cluster_index = (mp->leaf_index == -1) ? -1 :
-            ((ScenarioStructureBSPLeaf *)structure_bsp_tag_data->leaves.pointer)[mp->leaf_index].cluster;
+            ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[mp->leaf_index].cluster;
 
         offset.i = mp->position_x - self->position.x;
         offset.j = mp->position_y - self->position.y;
@@ -385,14 +386,14 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
                     float clearance = probe_length * probe_result.t - mp_def->radius;
                     float lean = FUN_00507430(mp->up_k, powered_def->antigrav_normal_k0, powered_def->antigrav_normal_k1);
                     float fade = (clearance <= 0.0f) ? 1.0f : 1.0f - clearance / powered_def->antigrav_height;
-                    float dot_nv = probe_result.normal.i * mp->velocity_i + probe_result.normal.k * mp->velocity_k +
-                        probe_result.normal.j * mp->velocity_j;
+                    float dot_nv = probe_result.plane.normal.i * mp->velocity_i + probe_result.plane.normal.k * mp->velocity_k +
+                        probe_result.plane.normal.j * mp->velocity_j;
                     float push = (fade * fade * k_physics_gravity - dot_nv * powered_def->antigrav_damp_fraction) *
                         powered_state->antigrav * powered_def->antigrav_strength * definition->mass * lean;
 
-                    mp->powered_force_i += probe_result.normal.i * push;
-                    mp->powered_force_j += probe_result.normal.j * push;
-                    mp->powered_force_k += probe_result.normal.k * push;
+                    mp->powered_force_i += probe_result.plane.normal.i * push;
+                    mp->powered_force_j += probe_result.plane.normal.j * push;
+                    mp->powered_force_k += probe_result.plane.normal.k * push;
                 }
             }
         }
@@ -484,7 +485,7 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
 
             location.leaf_index = bsp3d_node_find_leaf(0, 0, &new_position); // UNSURE args
             location.cluster_index = (location.leaf_index == -1) ? -1 :
-                ((ScenarioStructureBSPLeaf *)structure_bsp_tag_data->leaves.pointer)[location.leaf_index].cluster;
+                ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[location.leaf_index].cluster;
 
             object_unlink_cluster_or_notify_parent(object_index);
             self->position = new_position;

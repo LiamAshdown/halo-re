@@ -10,16 +10,17 @@
 //   rasterizer_frame_time block chimera__cinematic_screen_effect already declares in ECX.
 // register convention: ECX = time_source (rasterizer_frame_time*), forwarded unchanged.
 //   // blam-cc: ECX -> time_source
+// reconciled: R11 0x0069c65c..0x0069c668 externs -> rasterizer.h rasterizer_default_z_near/_far + rasterizer_frustum_z_values[2] (float compares/stores kept on the same bits)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 
-extern float rasterizer_letterbox_height;    // 0x0069c65c (matches chimera__cinematic_screen_effect.c)
-extern float unknown_0069c660;                // 0x0069c660 UNSURE: default far clip pair with the above
-extern float unknown_0069c664;                // 0x0069c664 UNSURE: a second near/far clip pair
-extern float unknown_0069c668;                // 0x0069c668 UNSURE
+extern float rasterizer_default_z_near;      // 0x0069c65c, rasterizer.h (R11)
+extern float rasterizer_default_z_far;       // 0x0069c660, rasterizer.h (R11)
+extern uint32_t rasterizer_frustum_z_values[2]; // 0x0069c664, rasterizer.h: the second {near, far}
+                                             //   pair, float bits (0.01171875, 1024.0)
 
 extern void chimera__cinematic_screen_effect(rasterizer_frame_time *time_source); // 0x517470
 
@@ -27,17 +28,17 @@ extern void chimera__cinematic_screen_effect(rasterizer_frame_time *time_source)
 // either is still exactly 0.0), then dispatches the per-frame cinematic screen effect update.
 void render_cinematic_screen_effect_update(rasterizer_frame_time *time_source) // blam-cc: ECX=time_source
 {
-    if (rasterizer_letterbox_height == 0.0f) {
-        rasterizer_letterbox_height = 0.0625f;
+    if (rasterizer_default_z_near == 0.0f) {
+        rasterizer_default_z_near = 0.0625f;
     }
-    if (unknown_0069c660 == 0.0f) {
-        unknown_0069c660 = 1024.0f;
+    if (rasterizer_default_z_far == 0.0f) {
+        rasterizer_default_z_far = 1024.0f;
     }
-    if (unknown_0069c664 == 0.0f) {
-        unknown_0069c664 = 0.01171875f;
+    if (*(float *)&rasterizer_frustum_z_values[0] == 0.0f) {
+        *(float *)&rasterizer_frustum_z_values[0] = 0.01171875f; // 0x3c400000
     }
-    if (unknown_0069c668 == 0.0f) {
-        unknown_0069c668 = 1024.0f;
+    if (*(float *)&rasterizer_frustum_z_values[1] == 0.0f) {
+        *(float *)&rasterizer_frustum_z_values[1] = 1024.0f;     // 0x44800000
     }
     chimera__cinematic_screen_effect(time_source);
 }

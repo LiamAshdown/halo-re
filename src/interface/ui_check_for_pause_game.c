@@ -18,6 +18,7 @@
 // player_control_globals::action_flags_latched (bit 3) has no established name.
 // TYPES-GAP: ui_pause_pending_count_00718fa0 (0x00718fa0) is a per-something pending-pause-request
 // counter distinct from types/interface.h's ui_pause_depth (0x00718fa6); not documented there.
+// reconciled: R33 game_time_globals.unknown_00 -> initialized (uint8 at +0x00, same byte)
 
 #include "tags.h"
 #include "memory.h"
@@ -62,7 +63,7 @@ uint32_t ui_check_for_pause_game(void)
     int16_t co_op_flag = -1;
     char *tag_path;
 
-    if (game_time->unknown_00 == 0 ||
+    if (game_time->initialized == 0 ||
         (game_time->active == 0 && game_time->paused == 0) ||
         cinematic_globals[9] != 0 ||
         network_game_mode == 3 || ui_split_screen != 0 || ui_pause_pending_count_00718fa0 != 0 ||

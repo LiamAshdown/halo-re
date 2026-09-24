@@ -9,18 +9,20 @@
 //   kept as a raw offset.
 // register convention: object index in EDI, no other inputs.
 //   // blam-cc: EDI -> object_index
+// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
 
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern hs_game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/hs.h)
+extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 extern real vector3d_length(real_vector3d *v);                 // 0x401960, UNSURE args (mirrors vector3d_normalize_with_length)
@@ -45,11 +47,11 @@ void unit_evaluate_flee_reaction(uint32_t object_index)
         unit->actor_index != k_datum_index_none && unit->animation_state != 0x1d &&
         (int8_t)unit->unknown_322 > 0x78 && *(uint8_t *)((uint8_t *)parent + 0x4d0) > 0x1e &&
         (biped->unknown_4f8 == -1 ||
-         (int32_t)(biped->unknown_4f8 + 0xf) < game_time->current_tick)) {
+         (int32_t)(biped->unknown_4f8 + 0xf) < game_time->game_time)) {
         real_point3d position;
         real_vector3d direction;
 
-        biped->unknown_4f8 = game_time->current_tick;
+        biped->unknown_4f8 = game_time->game_time;
 
         if (unit_test_placement_candidate(8.0f, &position, &direction, 0) == k_datum_index_none) { // UNSURE: 0x41000000 == 8.0f
             if (vector3d_normalize_with_length(&direction) <= 0.0f) {

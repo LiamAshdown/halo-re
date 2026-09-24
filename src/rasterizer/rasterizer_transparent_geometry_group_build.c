@@ -21,6 +21,7 @@
 // blam-cc: EAX -> link, stack -> (shader, frame, index_buffer, dynamic_index_slot, primitive_count, vertex_buffer, dynamic_vertex_slot, position)
 // Returns the group taken from the primary pool, or NULL (also NULL for secondary and immediate
 //   groups).
+// reconciled: R43 rasterizer_model_draw_context unknown_84[2] -> change_colors/function_values (the render_animation pair), unknown_c0/c4/c8 -> bounding_radius/base_map_u_scale/base_map_v_scale (same offsets)
 
 #include "tags.h"
 #include "memory.h"
@@ -45,7 +46,7 @@ extern uint8_t rasterizer_model_scratch_valid;              // 0x0071d1f4 cleare
 extern void *rasterizer_model_scratch_node_matrices;        // 0x006e18d4 copy of context->node_matrices
 extern int16_t rasterizer_model_scratch_node_count;         // 0x006e19c8
 extern void *rasterizer_model_scratch_lighting;             // 0x006e17e0 copy of context->lighting (0x74)
-extern void *rasterizer_model_scratch_function_source;      // 0x006e18d0 copy of context->unknown_84 (8)
+extern void *rasterizer_model_scratch_function_source;      // 0x006e18d0 copy of context->change_colors (8)
 
 extern transparent_geometry_group *transparent_geometry_group_allocate(void);           // 0x515230
 extern transparent_geometry_group *transparent_geometry_group_allocate_secondary(void); // 0x515260
@@ -149,8 +150,8 @@ fill:
     group->depth = -(rasterizer_window.camera.forward.i * (group->position.x - rasterizer_window.camera.position.x) +
                      rasterizer_window.camera.forward.j * (group->position.y - rasterizer_window.camera.position.y) +
                      rasterizer_window.camera.forward.k * (group->position.z - rasterizer_window.camera.position.z));
-    group->unknown_3c = context->unknown_c4;
-    group->unknown_40 = context->unknown_c8;
+    group->unknown_3c = context->base_map_u_scale;
+    group->unknown_40 = context->base_map_v_scale;
     group->previous_group_index = -1;
     group->next_group_index = -1;
     if (rasterizer_active_model_mode == 1 && *(int16_t *)(shader + 0x24) != 4) {
@@ -165,7 +166,7 @@ fill:
         group->node_matrices = context->node_matrices;
         group->node_count = context->node_count;
         group->lighting = (uint32_t)(uintptr_t)&context->lighting;
-        group->lighting_extra = (uint32_t)(uintptr_t)&context->unknown_84[0];
+        group->lighting_extra = (uint32_t)(uintptr_t)&context->change_colors;
         transparent_geometry_group_last_drawn_key = 0;
         rasterizer_secondary_groups_drawn = 0;
         rasterizer_transparent_geometry_group_draw(group, 0);
@@ -180,7 +181,7 @@ fill:
                                              (uint32_t)(context->node_count * 0x34));
         rasterizer_model_scratch_node_count = context->node_count;
         rasterizer_model_scratch_lighting = chimera__rasterizer_memory_alloc(&context->lighting, 0x74);
-        rasterizer_model_scratch_function_source = chimera__rasterizer_memory_alloc(&context->unknown_84[0], 8);
+        rasterizer_model_scratch_function_source = chimera__rasterizer_memory_alloc(&context->change_colors, 8);
         rasterizer_model_scratch_valid = 1;
     }
     group->node_matrices = (uint32_t)(uintptr_t)rasterizer_model_scratch_node_matrices;

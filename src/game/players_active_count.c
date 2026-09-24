@@ -6,30 +6,36 @@
 //   idiom already established in cheat_get_target_object_index.c (0x45a7a0).
 // register convention: __cdecl, no arguments.
 //
-// UNSURE: pack.py's global-reference scan lists 0x0087a480 (player_data) for this function even
-// though it never appears in the decompiled body; the iterator data_iterator_next reads is
-// presumably seeded to walk the player data_array by a caller-side or register-held setup this
-// decompilation does not show. Transcribed as a plain count of however many elements the
-// (elided) iterator yields.
+// The iterator is the inline types/memory.h data_iterator over player_data (0x45c6a3..0x45c6c6:
+// data, WORD next_index = 0, index = -1, signature = data ^ 'iter'), a stack object passed in
+// EDI that Ghidra's decompile lost; hence the player_data reference pack.py reports.
+// reconciled: R16 the elided iterator is the inline 0x10-byte data_iterator over player_data (0x45c6a3)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
-extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module; iterator elided
+extern data_array *player_data; // 0x0087a480
+extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module; blam-cc: EDI -> iterator
 
-// Counts how many entries the (implicit) player data iterator yields.
+// Counts the live player datums.
 int32_t players_active_count(void)
 {
+    data_iterator iterator;
     player *p;
     int32_t count;
 
     count = 0;
-    p = (player *)data_iterator_next((data_iterator *)0); // UNSURE: iterator elided
+    iterator.data = player_data;
+    iterator.next_index = 0;
+    iterator.index = k_datum_index_none;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+    p = (player *)data_iterator_next(&iterator);
     while (p != (player *)0) {
         count = count + 1;
-        p = (player *)data_iterator_next((data_iterator *)0); // UNSURE: iterator elided
+        p = (player *)data_iterator_next(&iterator);
     }
     return count;
 }

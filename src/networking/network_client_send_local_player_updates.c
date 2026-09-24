@@ -10,16 +10,17 @@
 // handle).
 // register convention: none beyond the stack-recognized machine_id; this function itself takes no
 // parameters visible in the decompile.
-// UNSURE: the on-stack scratch object built from DAT_0087a480 (player_data) and the XOR-with-'iter'
-// magic constant is preserved as dead work (never read again in this function), matching the same
-// pattern in update_server_send_update.c (this batch's sibling); DAT_006894a1's exact meaning
+// The on-stack object built from DAT_0087a480 (player_data) and the XOR-with-'iter' constant is
+// the inline data_iterator constructor (types/memory.h, signature at +0x0c); DAT_006894a1's exact meaning
 // (gates which builder to call) is not otherwise established.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480
 extern uint8_t network_client_vehicle_ack_enabled; // 0x006894a1
@@ -46,6 +47,7 @@ void network_client_send_local_player_updates(void)
     iter.data = player_data;
     iter.next_index = 0;
     iter.index = k_datum_index_none;
+    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
     candidate = (player *)data_iterator_next(&iter);
     while (candidate != 0) {
         if (candidate->local_player_index == -1 && candidate->unit != (datum_index)-1) {

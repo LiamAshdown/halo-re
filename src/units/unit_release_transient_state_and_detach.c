@@ -8,11 +8,13 @@
 //   seat detach instead of inlining the exit-marker/transform sequence.
 // register convention: unit index in param_1, a flag in param_2.
 //   // blam-cc: param_1 -> unit_index, param_2 -> is_light_reset (UNSURE name)
+// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
 
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
@@ -20,7 +22,7 @@
 extern data_array *object_data;     // 0x008603b0
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
-extern hs_game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/hs.h)
+extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
 extern random_seed random_seed_global;   // 0x00719cd0
 
 extern void actor_attempt_grenade_throw(uint32_t actor_index);          // 0x428ab0
@@ -58,7 +60,7 @@ void unit_release_transient_state_and_detach(uint32_t unit_index, uint8_t is_lig
             actor_release_from_cluster_or_delete(unit_index);
             unit->swarm_actor_index = k_datum_index_none;
         }
-        unit->unknown_41c = game_time->current_tick;
+        unit->unknown_41c = game_time->game_time;
     } else {
         random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
         Unit *unit_tag = (Unit *)tag_instances[self_obj->definition_tag & 0xffff].data;

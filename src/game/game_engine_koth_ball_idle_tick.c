@@ -15,6 +15,7 @@
 // UNSURE: weapon_must_be_readied's identity (a validity gate); the relocate call (game_engine_koth_
 //   relocate_object_hill) needs two more forwarded parameters this function's body never
 //   touches, modeled as "no specific flag/position" like its own sibling call sites.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
@@ -22,6 +23,7 @@
 #include "objects.h"
 #include "items.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *object_headers; // 0x008603b0
 extern game_time_globals *game_time; // 0x006f1d6c
@@ -74,6 +76,7 @@ void game_engine_koth_ball_idle_tick(uint32_t object_handle, object *obj)
             iter.data = object_headers; // UNSURE: iterator source not resolved
             iter.next_index = 0;
             iter.index = (datum_index)0xffffffff;
+            iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
             element = data_iterator_next(&iter);
             while (element != 0) {
                 chimera__kill_feed((datum_index)0xffffffff, 0x26, (uint32_t)0xffffffff, 1, 0);

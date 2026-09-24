@@ -6,7 +6,7 @@
 // disassembly (scratchpad/disasm/disasm.py) resolves every implicit register argument:
 // matrix4x3_from_forward_up(up=camera_row+0x2c, forward=camera_row+0x20, out=&listener->scale);
 // matrix4x3_inverse_transform_vector(out=&listener->velocity, v=camera_row+0x14, m=&listener->scale).
-// observer_cameras[0] (types/sound.h sound_observer_camera, an array at 0x006ac6d0) supplies the
+// observers[0].camera (camera.h observer_camera at 0x006ac6d0, R17) supplies the
 // position (+0x00), the {leaf, cluster} location handed to the underwater test (+0x0c), the
 // velocity (+0x14), forward (+0x20) and up (+0x2c). Globals->sounds[0]/[1] (types/tags.h Globals,
 // 0xf8 TagReflexive of GlobalsSound) are the enter/exit-water sounds, started unspatialized
@@ -15,18 +15,21 @@
 // the water sound location is a full 0x40-byte sound_location, not a 12-byte stub.
 // register convention: void, no parameters.
 // UNSURE: scenario_location_get_water_and_weather (0x53ed60, outside this module) is called with (&camera->leaf_index, 0)
-//   on the stack and EBX = &observer_cameras[0]; whether EBX is an input is unknown.
+//   on the stack and EBX = &observers[0].camera; whether EBX is an input is unknown.
+// reconciled: R33 game_time_globals.unknown_00 -> initialized (uint8 at +0x00, same byte)
+// reconciled: R17 sound_observer_camera -> camera.h observer_camera via observers[0].camera (same bytes)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "camera.h"
 #include "sound.h"
 
 extern game_time_globals *game_time;              // 0x006f1d6c
 extern player_globals *local_player_globals;       // 0x0087a478
 extern Globals *global_globals;                     // 0x00746fa0
-extern sound_observer_camera observer_cameras[];    // 0x006ac6d0 (an array, not a pointer), types/sound.h;
+extern observer observers[1];    // 0x006ac65c, camera.h; observers[0].camera is the 0x006ac6d0 row (R17);
                                                      // this function always reads slot 0
 extern sound_listener sound_listeners[1];           // 0x00725218
 extern SoundEnvironment sound_environment;          // 0x0072525c
@@ -34,7 +37,7 @@ extern sound_driver *current_sound_driver;          // 0x00725208, header calls 
                                                      // renamed here, sound_driver is already the type
 
 extern uint8_t scenario_location_get_water_and_weather(void *leaf_location, int32_t unknown_1); // 0x53ed60, outside this module;
-    // EBX also holds &observer_cameras[0] at the call (possibly a third, register argument)
+    // EBX also holds &observers[0].camera at the call (possibly a third, register argument)
 extern datum_index sound_play_new(datum_index definition_index, sound_location *location, datum_index owner_index,
     sound_location_proc location_proc, void *callback_data, int32_t callback_data_size, uint32_t first_person_hint); // 0x549af0
 extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out); // 0x4cb970, math module
@@ -54,14 +57,14 @@ extern const real_point3d *global_origin3d_pointer;  // 0x00696714, zero velocit
 void sound_update_listener(void)
 {
     uint8_t underwater;
-    sound_observer_camera *camera;
+    observer_camera *camera;
     sound_listener *listener;
     sound_listener_parameters params;
     datum_index water_sound_tag;
 
     listener = &sound_listeners[0];
 
-    if (!game_time->unknown_00) {
+    if (!game_time->initialized) {
         return;
     }
     if (!game_time->active && !game_time->paused) {
@@ -74,7 +77,7 @@ void sound_update_listener(void)
     }
     listener->valid = 1;
 
-    camera = &observer_cameras[0];
+    camera = &observers[0].camera;
     underwater = scenario_location_get_water_and_weather(&camera->leaf_index, 0);
     if (listener->underwater != underwater) {
         // Underwater state just changed: play the matg enter/exit water sound if one is assigned.

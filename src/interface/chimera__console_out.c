@@ -4,10 +4,11 @@
 // name confidence: 0.55   rewrite confidence: 0.55
 // evidence: types/interface.h console_message struct comment lists this address as
 // console_printf (the formatted console print); identical body to console_printf_verbose.c (0x496a80) minus that function's
-// console_verbosity > 3 gate, confirming the two share the same formatting/echo/mirror logic.
+// debug_log_level > 3 gate, confirming the two share the same formatting/echo/mirror logic.
 // register convention: format string as the recognized stack parameter, optional ColorARGB* in
 // EAX (in_EAX, NULL means "use the default gray"), plus the varargs that follow format on the
 // stack. // blam-cc: EAX -> color, stack -> format, ...
+// reconciled: R01 comment: 0x0087ac06 console_verbosity -> debug_log_level
 
 #include "tags.h"
 #include "memory.h"

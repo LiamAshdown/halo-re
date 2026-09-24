@@ -30,13 +30,21 @@
 //   built with a Ghidra CONCAT3/1 trick (high 24 bits reused from an unrelated live register,
 //   low byte a genuine boolean); only the boolean (whether the Object tag has a model) is
 //   passed through here. UNSURE: object+0xbe (the upper half of the undocumented
-//   object.unknown_0bc field) and object+0xc4 (object.unknown_0c4) are written with
+//   object.unknown_0bc field) and object+0xc4 (object.creator_object) are written with
 //   placement->permutation_group and placement->role respectively, on raw offsets rather than
 //   named fields since types/objects.h does not split those dwords further.
+// reconciled: R28 object.unknown_0c4 -> datum_index creator_object (same offset 0xc4)
+// reconciled: R30 object.unknown_170 -> datum_index cached_render_state_index (same offset 0x170)
+// reconciled: R27 object.unknown_00c (datum_index) -> int32_t network_update_tick (game tick stamp, -1 = never)
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
+// reconciled: R26 raw object +0x18 store -> network_position_valid
+// reconciled: R28 raw object +0xc4 store -> creator_object
+// reconciled: R04 0x006f1d20 uint8_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 
@@ -49,7 +57,7 @@ extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc
 extern int32_t object_cluster_stamp; // 0x008603cc
-extern uint8_t network_predicted_state_flag; // 0x006f1d20, per types/objects.h's global list
+extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern char *out_of_objects_error_prefix; // 0x0065efec, the printf-style error tag argument
 extern uint8_t object_new_server_broadcast_gate; // 0x0071c2c0, UNSURE: foreign global
 extern int16_t network_game_mode; // 0x00719720 (also used in this batch's
@@ -118,7 +126,7 @@ datum_index object_new_with_datum_role_control(object_placement_data *placement,
 
     definition_tag = placement->definition_tag;
 
-    if (network_predicted_state_flag != 0) {
+    if (current_game_engine != 0) {
         if (definition_tag == k_datum_index_none) {
             return k_datum_index_none;
         }
@@ -151,8 +159,8 @@ datum_index object_new_with_datum_role_control(object_placement_data *placement,
     object_type_definitions_notify_0x24(new_index); // UNSURE: see file header
 
     obj->network_role = role;
-    *((uint8_t *)obj + 0x18) = 0;
-    obj->unknown_00c = k_datum_index_none;
+    obj->network_position_valid = 0;
+    obj->network_update_tick = -1;
 
     obj->position = placement->position;
     obj->forward = placement->forward;
@@ -177,7 +185,7 @@ datum_index object_new_with_datum_role_control(object_placement_data *placement,
     obj->placement_id = k_datum_index_none;
     obj->animation_index = -1;
     obj->animation_graph = TAG_ID_AS_DATUM_INDEX(object_tag->animation_graph.tag_id);
-    obj->unknown_170 = -1;
+    obj->cached_render_state_index = -1;
     obj->parent_object = k_datum_index_none;
     obj->next_object = k_datum_index_none;
     obj->first_child_object = k_datum_index_none;
@@ -196,9 +204,9 @@ datum_index object_new_with_datum_role_control(object_placement_data *placement,
 
     object_set_collision_enabled(TAG_ID_AS_DATUM_INDEX(object_tag->model.tag_id) != k_datum_index_none); // UNSURE: see file header
 
-    obj->name_index = (int16_t)placement->name_index;
+    obj->owner_team = (int16_t)placement->owner_team;
     obj->owner_linkage = placement->owner_linkage;
-    *(uint32_t *)((uint8_t *)obj + 0xc4) = placement->role; // UNSURE: see file header
+    obj->creator_object = placement->role; // 0x4f5705
     *(int16_t *)((uint8_t *)obj + 0xbe) = placement->permutation_group; // UNSURE: see file header
     obj->forced_shader_permutation = (uint16_t)object_tag->forced_shader_permutation_index;
 

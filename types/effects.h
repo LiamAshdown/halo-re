@@ -757,8 +757,10 @@ typedef struct weather_instance {
     datum_index definition_index;   // 0x00 the WeatherParticleSystem tag, -1 when the slot is
                                     //      free
     float elapsed_time;             // 0x04 seconds since activate, accumulated by delta_time
-    float delta_time;               // 0x08 the render delta of the current tick, copied from
-                                    //      0x007c3110
+    float delta_time;               // 0x08 seconds since the previous RENDERED frame, copied from
+                                    //      0x007c3110 render_time_since_frame (render.h) by
+                                    //      weather_instance_update (0x458429); render_frame stores
+                                    //      that frame delta at 0x50bec2. Not a per-tick delta (R45)
     float intensity;                // 0x0c scales the per type target count
     uint32_t unknown_10;            // 0x10 copied from 0x007c3344, handed to FUN_0053ed60 as the
                                     //      sample point and to the render submit as the field
@@ -975,7 +977,9 @@ typedef struct player_effect_globals {
 // global 0x0071d1bc: void *decal_geometry_cache_secondary      second handle, UNSURE of its role
 // global 0x00687004: uint8_t decals_enabled                    decal_spawn_for_response 0x44ece0
 // global 0x006893f5: uint8_t decals_for_all_responses          the other half of that check
-// global 0x0069c632: uint8_t decal_place_unknown               read once by decal_place 0x44edc0
+// 0x0069c632: int16_t rasterizer_vertex_buffer_lock_state (rasterizer.h) -- NOT owned here (R77).
+//   All 17 accesses in .text are WORD stores (mov WORD PTR ds:0x69c632,...); decal_place 0x44edc0
+//   is one of the writers. Formerly listed here as "uint8_t decal_place_unknown".
 //
 // effects
 // global 0x0087abdc: data_array *effect_data                   0xfc effect
@@ -1016,7 +1020,10 @@ typedef struct player_effect_globals {
 // global 0x00719ccc: int32_t player_effect_reentry_count       bumped and dropped around
 //                                                             player_effect_mark_damage_direction
 // global 0x00687218: int16_t screen_flash_pass[8]              type index to rasterizer pass
-// global 0x006b7020: uint8_t player_effect_suppressed          player_effect_build_screen_flash 0x457000
+// 0x006b7020: main.h console_globals.active (the console-open byte) -- NOT owned here (R08).
+//   The console key handler 0x4c65c0 returns mov al,ds:0x6b7020; player_effect_build_screen_flash
+//   0x457000 only reads it (mov al,ds:0x6b7020 at 0x457001) to skip the flash while the console
+//   is open. Formerly listed here as "uint8_t player_effect_suppressed".
 //
 // random number generation
 // global 0x00719cd4: random_seed effect_random_seed            the effects local stream, advanced

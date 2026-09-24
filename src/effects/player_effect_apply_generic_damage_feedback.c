@@ -5,7 +5,7 @@
 //   player_effect_set_screen_flash_for_player (0x456980) and player_effect_set_camera_shake
 //   (0x457d50). out/phase4/effects_types_notes.md's misattribution table places this address in
 //   the player_effect group, not the "contrail" framing functions.md guessed at phase 2.
-// register convention: a player datum_index in EDX (in_EDX); duration as the recognized stack
+// reconciled: 0x006851fc is a pointer to the opaque-white ColorARGB (0x00655138); one name global_white_argb: a player datum_index in EDX (in_EDX); duration as the recognized stack
 //   parameter (param_1).
 //   // blam-cc: in_EDX -> player_index, stack -> duration
 // UNSURE (extensive): both local descriptors are built on the stack and Ghidra tracked only
@@ -28,7 +28,7 @@
 
 extern data_array *player_data;                               // 0x0087a480
 extern player_effect_globals *player_effect_globals_pointer;  // 0x006f1884
-extern ColorARGB default_color_block;                          // 0x006851fc
+extern const ColorARGB *global_white_argb;                          // 0x006851fc
 
 extern void player_effect_set_screen_flash(player_effect *self, player_screen_flash *descriptor,
     float intensity_falloff, float duration_scale); // 0x4578a0, this module
@@ -53,7 +53,7 @@ void player_effect_apply_generic_damage_feedback(datum_index player_index, float
                                     // float at this offset; see file header
         flash_descriptor.type = 2;
         flash_descriptor.duration = duration;
-        flash_descriptor.color = default_color_block;
+        flash_descriptor.color = *global_white_argb;
         flash_descriptor.intensity = 1.0f;
 
         player_effect_set_screen_flash(self, &flash_descriptor, duration, 1.0f);

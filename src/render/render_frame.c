@@ -37,8 +37,8 @@ extern void render_cinematic_screen_effect_update(rasterizer_frame_time *time_so
 
 extern uint8_t rasterizer_reset_device_if_needed(void); // 0x517500, rasterizer module
 extern void ui_draw_trouble_brewing_indicator(void);    // 0x49c870
-extern void chimera__rasterizer_globals(void);          // 0x517b90
-extern void FUN_00518130(void);                         // 0x518130
+extern void rasterizer_end_frame(void);          // 0x517b90
+extern void rasterizer_unbind_stream_and_textures(void);                         // 0x518130
 
 extern void render_player_frame(Point2DInt *screenshot_tile, render_view *view); // 0x50ba80,
     // this module; blam-cc: EAX=screenshot_tile, stack=view
@@ -100,8 +100,8 @@ void render_frame(Point2DInt *screenshot_tile, render_view *views, int16_t count
     }
 
     ui_draw_trouble_brewing_indicator();
-    chimera__rasterizer_globals();
-    FUN_00518130();
+    rasterizer_end_frame();
+    rasterizer_unbind_stream_and_textures();
 }
 
 #if 0

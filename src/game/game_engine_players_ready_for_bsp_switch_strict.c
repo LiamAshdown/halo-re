@@ -16,6 +16,7 @@
 // than simplified, since its actual intent is not confidently understood. The
 // player_data->data + 0x1fffe34 / + 0x1fffeae accesses carry the same caveat as in
 // game_engine_players_ready_for_bsp_switch.c.
+// reconciled: R16 the elided iterators are the inline 0x10-byte data_iterator over player_data (0x45c856, 0x45c8ec); FUN_00460e40 gets iterator.index (0x45c942), not -1
 
 // RESOLVED (phase 4 review): the two "player_data->data + 0x1fffe34 / + 0x1fffeae" accesses are
 // NOT real offsets. objdump of 0x45c7ca..0x45c7e8 shows
@@ -36,18 +37,20 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data;              // 0x0087a480
 extern game_variant game_engine_variant;    // 0x006f1c88 (::lives_per_round at 0x006f1cd8,
                                              //             ::unknown_40 at 0x006f1cc8)
 
-extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module; iterator elided
+extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module; blam-cc: EDI -> iterator
 extern int32_t players_active_count(void);   // 0x45c6a0, this batch
 extern uint8_t FUN_00460e40(uint32_t player_handle); // UNSURE signature; see
                                                      // game_engine_players_ready_for_bsp_switch.c
 
 uint8_t game_engine_players_ready_for_bsp_switch_strict(void)
 {
+    data_iterator iterator; // inline over player_data, 0x45c856..0x45c87a and 0x45c8ec..0x45c91b
     player *p;
     uint8_t result;
     int32_t lives_cached;
@@ -58,7 +61,11 @@ uint8_t game_engine_players_ready_for_bsp_switch_strict(void)
         result = 1;
         // UNSURE: redundant re-call, preserved from the original.
         if (players_active_count() == 1) {
-            p = (player *)data_iterator_next((data_iterator *)0); // UNSURE: iterator elided
+            iterator.data = player_data;
+            iterator.next_index = 0;
+            iterator.index = k_datum_index_none;
+            iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+            p = (player *)data_iterator_next(&iterator);
             lives_cached = game_engine_variant.lives_per_round;
             while (p != (player *)0) {
                 reread_unit = p->unit;
@@ -68,7 +75,7 @@ uint8_t game_engine_players_ready_for_bsp_switch_strict(void)
                 } else {
                     result = 0;
                 }
-                p = (player *)data_iterator_next((data_iterator *)0); // UNSURE: iterator elided
+                p = (player *)data_iterator_next(&iterator);
             }
         }
         return result;
@@ -85,12 +92,16 @@ uint8_t game_engine_players_ready_for_bsp_switch_strict(void)
 
         spawned_reference_team = -1;
         disagreement_found = 0;
-        p = (player *)data_iterator_next((data_iterator *)0); // UNSURE: iterator elided
+        iterator.data = player_data;
+        iterator.next_index = 0;
+        iterator.index = k_datum_index_none;
+        iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+        p = (player *)data_iterator_next(&iterator);
         previous_team = -1;
         if (p != (player *)0) {
             do {
                 if (p->marked_for_deletion == 0 && p->unit == k_datum_index_none &&
-                    (FUN_00460e40(0xffffffff) != 0 ||
+                    (FUN_00460e40(iterator.index) != 0 || // 0x45c942 pushes the iterator's index
                      (0 < game_engine_variant.lives_per_round &&
                       (reread_unit = p->unit,
                        reread_unit == k_datum_index_none) &&
@@ -118,7 +129,7 @@ uint8_t game_engine_players_ready_for_bsp_switch_strict(void)
                     }
                 }
 
-                p = (player *)data_iterator_next((data_iterator *)0); // UNSURE: iterator elided
+                p = (player *)data_iterator_next(&iterator);
                 previous_team = carry_team;
             } while (p != (player *)0);
 

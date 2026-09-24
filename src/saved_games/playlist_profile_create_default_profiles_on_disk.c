@@ -24,6 +24,7 @@
 // Phase 4 review: same inlined path_append_component and L"<missing string>" fixes as
 // saved_game_index_register_default_playlists.c.
 // register convention: __cdecl, no parameters.
+// reconciled: R37 game_variant.unknown_94 -> uint16 variant_flags (bit 0 built-in, high byte default index)
 
 #include <string.h>
 #include "tags.h"
@@ -63,7 +64,7 @@ extern void _wcsncpy(uint16_t *dest, const uint16_t *source, uint32_t count); //
 // NN directory first), gives it a localized display name from the ui\\default_multiplayer_
 // game_setting_names ustr tag's string list (index i, falling back to default_ustr_fallback_
 // string if that index is out of range or empty), stamps the built-in index into the high byte
-// of unknown_94, and crcs and writes the file. Counts successful writes into
+// of variant_flags, and crcs and writes the file. Counts successful writes into
 // default_game_variant_count and marks the save-game index dirty once done. No-ops if the ustr
 // tag isn't found.
 void playlist_profile_create_default_profiles_on_disk(void)
@@ -112,8 +113,8 @@ void playlist_profile_create_default_profiles_on_disk(void)
 
         _wcsncpy(variant_file.variant.name, source_name, 0x17);
         variant_file.variant.name[0x17] = 0;
-        variant_file.variant.unknown_94 =
-            (int16_t)((uint16_t)variant_file.variant.unknown_94 | ((uint16_t)(uint8_t)i << 8));
+        variant_file.variant.variant_flags =
+            (int16_t)((uint16_t)variant_file.variant.variant_flags | ((uint16_t)(uint8_t)i << 8));
 
         variant_file.checksum = 0xffffffff;
         crc32_update(&variant_file.checksum, &variant_file.variant, sizeof(variant_file.variant));

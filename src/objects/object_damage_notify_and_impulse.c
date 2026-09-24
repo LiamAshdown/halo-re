@@ -17,16 +17,18 @@
 // register convention: all parameters on the stack.
 // blam-cc: stack=(target_index, dd, notify_flags, shield_damage, body_damage, param_6,
 //   node_hint, role_is_deletable)
+// reconciled: R04 0x006f1d20 uint8_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t network_predicted_state_flag;          // 0x006f1d20, predicted/network flag
+extern game_engine_definition *current_game_engine;          // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern uint8_t g_0087aa10;          // 0x0087aa10, UNSURE: not owned by this module
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // math module, 0x401990
@@ -118,12 +120,12 @@ void object_damage_notify_and_impulse(uint32_t target_index, damage_data *dd, ui
     }
 
     if (role_is_deletable == 1) {
-        if ((network_predicted_state_flag == 0 || g_0087aa10 == 0) && (dd->flags & 0x80) == 0) {
+        if ((current_game_engine == 0 || g_0087aa10 == 0) && (dd->flags & 0x80) == 0) {
             if ((notify_flags & 1) != 0) {
                 game_engine_attribute_player_death(dd->responsible_player, dd->responsible_object,
                     dd->team_index, 1);
             }
-        } else if (network_predicted_state_flag == 0 || g_0087aa10 == 0) {
+        } else if (current_game_engine == 0 || g_0087aa10 == 0) {
             int32_t controller = players_iterate_and_discard(target_index);
             game_engine_on_player_death(target_index, controller, 1);
         }

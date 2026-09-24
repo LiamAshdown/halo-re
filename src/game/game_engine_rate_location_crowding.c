@@ -14,11 +14,13 @@
 // parameter. Self is NOT excluded from the walk -- the caller only ever asks about a location
 // the player is not standing on yet.
 //   // blam-cc: EAX -> self_index, stack -> point
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480
 extern game_engine_definition *current_game_engine; // 0x006f1d20
@@ -41,6 +43,7 @@ float game_engine_rate_location_crowding(uint32_t self_index, real_point3d *poin
     iter.data = player_data;
     iter.next_index = 0;
     iter.index = (datum_index)0xffffffff;
+    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     element = data_iterator_next(&iter);
     while (element != 0) {

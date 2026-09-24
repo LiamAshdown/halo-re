@@ -11,6 +11,13 @@ typedef char check_unit_animation_overlay[(sizeof(unit_animation_overlay) == 0x0
 typedef char check_unit_data[(sizeof(unit_data) == 0x2d8) ? 1 : -1];
 typedef char check_biped_data[(sizeof(biped_data) == 0x84) ? 1 : -1];
 typedef char check_vehicle_data[(sizeof(vehicle_data) == 0xf4) ? 1 : -1];
+// R24: object_physics_tick 0x507840 reads/zeroes the six dwords at object +0x508..+0x51c as floats
+typedef char check_vehicle_accumulated_force[(__builtin_offsetof(vehicle_data, accumulated_force) == 0x508 - 0x4cc) ? 1 : -1];
+typedef char check_vehicle_accumulated_torque[(__builtin_offsetof(vehicle_data, accumulated_torque) == 0x514 - 0x4cc) ? 1 : -1];
+typedef char check_vehicle_active_marker_mask[(__builtin_offsetof(vehicle_data, active_marker_mask) == 0x520 - 0x4cc) ? 1 : -1];
+// R46: the object index the elevator rider sweep compares (0x44b4e4 cmp [esi+0x4d4],ecx)
+typedef char check_biped_last_ground_object[(__builtin_offsetof(biped_data, last_ground_object_index) == 0x4d4 - 0x4cc) ? 1 : -1];
+typedef char check_biped_ground_normal[(__builtin_offsetof(biped_data, ground_normal) == 0x514 - 0x4cc) ? 1 : -1];
 typedef char check_biped_movement_solver_data[(sizeof(biped_movement_solver_data) == 0xc8) ? 1 : -1];
 // the field offsets the two integrators pin, checked individually so a reordering fails here
 typedef char check_solver_movement_delta[(__builtin_offsetof(biped_movement_solver_data, movement_delta) == 0x3c) ? 1 : -1];

@@ -7,7 +7,7 @@
 // this address.)
 // address 0x44cda0, size 287 bytes
 // name confidence: 0.4   rewrite confidence: 0.5
-// evidence: types/objects.h bsp_leaf_reference, structure_bsp_globals (0x00746f9c, leaf array at
+// evidence: types/objects.h bsp_leaf_reference, global_structure_bsp (0x00746f9c, leaf array at
 // +0xe4, stride 0x10, cluster at +0x08); src/objects/antenna_apply_marker_delta.c establishes
 // FUN_005013a0's (globals, point, index) signature and the leaf-to-cluster lookup idiom used
 // here verbatim.
@@ -15,6 +15,7 @@
 // UNSURE: the "callers=0" in this batch's metadata and this file's own scan-every-contrail shape
 // suggest it runs once per tick outside this address range (a lightmap-rebuild driver), but no
 // caller is available to confirm the calling convention beyond it taking no arguments.
+// reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
 
 #include "tags.h"
 #include "memory.h"
@@ -24,8 +25,8 @@
 
 extern data_array *contrail_data;       // 0x0087abec
 extern data_array *contrail_point_data; // 0x0087abe8
-extern void *global_globals;            // 0x00746f90, passed to FUN_005013a0 in ECX
-extern uint8_t *structure_bsp_globals;  // 0x00746f9c; +0xe4 is the per-leaf lookup table
+extern ModelCollisionGeometryBSP *global_collision_bsp;            // 0x00746f90, passed to FUN_005013a0 in ECX
+extern uint8_t *global_structure_bsp;  // 0x00746f9c; +0xe4 is the per-leaf lookup table
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630,
     // memory module; blam-cc: DX -> after_index, EDI -> array
@@ -49,13 +50,13 @@ void contrail_refresh_lightmap(void)
                 contrail_point *point = &((contrail_point *)contrail_point_data->data)[(uint16_t)point_index];
 
                 if (point->location.cluster_index != -1) {
-                    int32_t leaf = FUN_005013a0(global_globals, &point->position, 0);
+                    int32_t leaf = FUN_005013a0(global_collision_bsp, &point->position, 0);
 
                     point->location.leaf_index = leaf;
                     if (leaf == -1) {
                         point->location.cluster_index = -1;
                     } else {
-                        point->location.cluster_index = *(int16_t *)(*(uint8_t **)(structure_bsp_globals + 0xe4) +
+                        point->location.cluster_index = *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) +
                             (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
                     }
                 }

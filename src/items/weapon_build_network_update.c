@@ -6,7 +6,7 @@
 // evidence: exact structural analog of equipment_build_network_update.c (0x4bc0f0); types/items.h
 //   weapon_data (network_state at 0x2e4, network_baseline_index 0x2e1, network_sequence 0x2e2,
 //   magazines[].rounds_unloaded); types/objects.h object (position 0x05c, velocity 0x068, type
-//   0x0b4), object_type_definition.unknown_10 (network_delta_message_type); object_try_and_get
+//   0x0b4), object_type_definition.network_delta_message_type (network_delta_message_type); object_try_and_get
 //   mask _object_mask_weapon.
 // register convention: matches equipment_build_network_update.c: item_index feeds
 //   object_try_and_get's hidden index slot; the function's own four parameters are already a
@@ -16,6 +16,7 @@
 // "changed_offset"/"items"/"type_offset" roles -- the full-snapshot fields (position, velocity,
 // both magazines' rounds_unloaded, age) are kept byte-for-byte contiguous with the hash for that
 // reason, but the claim is not verified against message_delta_encode_message's own body.
+// reconciled: R38 object_type_definition +0x0a/+0x0c/+0x0e/+0x10 -> scenario_placement_offset/scenario_palette_offset/scenario_placement_size/network_delta_message_type (int32, -1 = none)
 
 #include "tags.h"
 #include "memory.h"
@@ -62,7 +63,7 @@ int32_t weapon_build_network_update(uint32_t item_index, uint32_t unused_arg2,
             uint8_t is_first_update;  // (update_type == 0); UNSURE, see file header
         } header;
         weapon_data *wd = (weapon_data *)((uint8_t *)obj + k_item_extension_offset);
-        int32_t message_type = object_type_definitions[obj->type]->unknown_10; // network_delta_message_type
+        int32_t message_type = object_type_definitions[obj->type]->network_delta_message_type; // network_delta_message_type
         void *header_ptr = &header;
         int32_t is_full_snapshot = (update_type == 1);
         void *items_array[1];

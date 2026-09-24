@@ -11,6 +11,7 @@
 // chimera__hud_message (0x4ae180), whose AX is the player local_player_index (objdump
 // 0x495f81..0x495f8c); player_profile_save_495fb0 passes the saved message or L"" (0x660c34).
 //   // blam-cc: text -> ESI
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
@@ -19,6 +20,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480, "players"
 
@@ -34,6 +36,7 @@ void hud_message_broadcast_to_local_players(const uint16_t *text)
     iterator.data = player_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)0xffffffff;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
     record = (player *)data_iterator_next(&iterator);
     while (record != (player *)0) {

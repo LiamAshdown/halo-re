@@ -15,6 +15,8 @@
 // UNSURE: object_apply_damage's final parameter is a plain flags dword everywhere else in this
 //   module, but here it is a real_vector3d* (or NULL) at the call site; reproduced as a raw
 //   uint32_t cast of the pointer rather than widening the shared prototype.
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
+// reconciled: R25 damage_data.unknown_4c -> material_type (int16 collision material of the damaged surface, 0xffff = none; indexes DamageEffect +0x200)
 
 #include "tags.h"
 #include "memory.h"
@@ -93,13 +95,13 @@ void unit_melee_lunge_damage_tick(uint32_t unit_index)
 
         dd.damage_effect_tag = *(datum_index *)&tag->melee_damage.tag_id;
         dd.flags = 0;
-        dd.team_index = (int16_t)obj->name_index;
+        dd.team_index = (int16_t)obj->owner_team;
         *(int16_t *)&dd.location_cluster_index = -1;
-        dd.responsible_player = obj->name_index; // UNSURE, see unit_cause_melee_damage.c note
+        dd.responsible_player = obj->owner_team; // UNSURE, see unit_cause_melee_damage.c note
         dd.responsible_object = unit_index;
         dd.random_blend = 0.033333335f;
         dd.multiplier = 1.0f;
-        dd.unknown_4c = -1;
+        dd.material_type = -1;
 
         if (hit_valid) {
             dd.epicentre = hit_point;

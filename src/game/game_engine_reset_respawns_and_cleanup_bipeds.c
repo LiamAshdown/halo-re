@@ -22,12 +22,14 @@
 // register convention: no parameters.
 // UNSURE: player_kill_and_release_unit's real name/signature/behavior; why role 0 also calls
 //   object_delete_unparented before object_delete_recursive while role 3 only calls the latter.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#include <stdint.h>
 
 extern int16_t network_game_mode;               // 0x00719720
 extern data_array *player_data;                 // 0x0087a480
@@ -55,6 +57,7 @@ void game_engine_reset_respawns_and_cleanup_bipeds(void)
         player_iter.data = player_data;
         player_iter.next_index = 0;
         player_iter.index = (datum_index)0xffffffff;
+        player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
         unused_checksum = (uint32_t)player_data ^ 0x69746572;
 
         p = (player *)data_iterator_next(&player_iter);

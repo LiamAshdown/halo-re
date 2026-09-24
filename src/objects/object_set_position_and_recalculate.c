@@ -12,6 +12,7 @@
 // UNSURE: bsp3d_node_find_leaf (also seen in objects_update_player_visibility_masks) is called first
 //   with no visible arguments and its result is discarded; preserved for its side effect only,
 //   whatever that is.
+// reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
 
 #include "tags.h"
 #include "memory.h"
@@ -23,7 +24,7 @@ extern data_array *object_data; // 0x008603b0
 extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index); // 0x5013a0, UNSURE: unexamined; result discarded here
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0, this batch
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30, this batch; NULL location probes it
-extern void *global_globals; // 0x00746f90
+extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
 extern void object_recalculate_bounding_radius(uint32_t object_index); // 0x4f8310
 
 void object_set_position_and_recalculate(real_point3d *position, uint32_t object_index)
@@ -31,7 +32,7 @@ void object_set_position_and_recalculate(real_point3d *position, uint32_t object
 {
     object *obj;
 
-    bsp3d_node_find_leaf(global_globals, position, 0); // 0x4f52c3 mov ecx,ds:0x746f90 / mov edx,esi / xor eax,eax
+    bsp3d_node_find_leaf(global_collision_bsp, position, 0); // 0x4f52c3 mov ecx,ds:0x746f90 / mov edx,esi / xor eax,eax
     obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     object_unlink_cluster_or_notify_parent(object_index);
     *(real_point3d *)((uint8_t *)obj + 0x5c) = *position;

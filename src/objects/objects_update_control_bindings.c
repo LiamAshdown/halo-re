@@ -26,16 +26,19 @@
 //   the exact meaning of param_1, of object_type_definition+0x0c/+0x0e, of the write to
 //   object+0x5b0 (far past the documented 0x1f4-byte object header), and of the two "local
 //   player" globals 0x0071c2d4/0x0071c2d8.
+// reconciled: R38 object_type_definition +0x0a/+0x0c/+0x0e/+0x10 -> scenario_placement_offset/scenario_palette_offset/scenario_placement_size/network_delta_message_type (int32, -1 = none)
+// reconciled: R04 0x006f1d20 uint8_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "objects.h"
 
 extern int32_t object_control_local_player_a; // 0x0071c2d4, UNSURE: foreign (player) module global
 extern int32_t object_control_local_player_b; // 0x0071c2d8, UNSURE: foreign (player) module global
 extern int16_t network_game_mode; // 0x00719720, UNSURE: foreign module global
-extern uint8_t network_predicted_state_flag; // 0x006f1d20, per types/objects.h's global list
+extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern uint8_t object_control_binding_unknown_7a0; // 0x008607a0, per types/objects.h's global list
 extern uint8_t object_control_binding_unknown_7a1; // 0x008607a1, per types/objects.h's global list
 extern data_array *object_data; // 0x008603b0
@@ -84,8 +87,8 @@ have_context:
 
     if (network_game_mode == 2) {
         object_type_definition *vehicle_def = object_type_definitions[_object_type_vehicle];
-        int16_t stride = *(int16_t *)((uint8_t *)vehicle_def + 0xe);
-        int32_t *slot = (int32_t *)(vehicle_def->unknown_0a + param_1);
+        int16_t stride = vehicle_def->scenario_placement_size;
+        int32_t *slot = (int32_t *)(vehicle_def->scenario_placement_offset + param_1);
         int16_t i = 0;
         if (*slot > 0) {
             int32_t index = 0;
@@ -99,7 +102,7 @@ have_context:
         }
     }
 
-    if (network_predicted_state_flag != 0) {
+    if (current_game_engine != 0) {
         if (object_control_binding_unknown_7a1 == 0) {
             FUN_004f3890();
         } else {
@@ -115,10 +118,10 @@ after_rebuild:
             if ((network_game_mode != 1 || type_index != 1) &&
                 ((1 << (type_index & 0x1f)) & _object_mask_scenery_and_light_fixture) == 0) {
                 object_type_definition *def = object_type_definitions[type_index];
-                if (def->unknown_0a != -1 && *(int16_t *)((uint8_t *)def + 0xc) != -1) {
-                    int16_t stride = *(int16_t *)((uint8_t *)def + 0xe);
-                    int16_t base_off = *(int16_t *)((uint8_t *)def + 0xc);
-                    int32_t *slot = (int32_t *)(def->unknown_0a + param_1);
+                if (def->scenario_placement_offset != -1 && def->scenario_palette_offset != -1) {
+                    int16_t stride = def->scenario_placement_size;
+                    int16_t base_off = def->scenario_palette_offset;
+                    int32_t *slot = (int32_t *)(def->scenario_placement_offset + param_1);
                     int16_t j = 0;
                     if (*slot > 0) {
                         int32_t index = 0;

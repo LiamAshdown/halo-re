@@ -2131,7 +2131,9 @@ typedef struct ModelRegionPermutation {
     uint16_t permutation_number;
     uint8_t _pad_26[2];
     uint8_t _pad_28[24];
-    uint16_t super_low;
+    uint16_t super_low;  // 0x40 geometry index for lod 0; 0x4d72a0 reads +0x40 + lod*2, so this
+                         //      pairs with GBXModel +0x08 (cutoff index 0), not with the
+                         //      "super low" cutoff at +0x18 despite the name
     uint16_t low;
     uint16_t medium;
     uint16_t high;
@@ -2153,7 +2155,10 @@ typedef struct ModelShaderReference {
 typedef struct GBXModel {
     ModelFlags flags;
     int32_t node_list_checksum;
-    float super_high_detail_cutoff;
+    float super_high_detail_cutoff;  // 0x08 cutoff index 0 (lod 0): 0x4d6fc0 reads +0x08 + lod*4
+                                     //      and walks lod 4..0 until cutoff[lod] <= pixels, so this
+                                     //      is the minimum pixel size at which anything is drawn.
+                                     //      Paired with ModelRegionPermutation +0x40 (super_low).
     float high_detail_cutoff;
     float medium_detail_cutoff;
     float low_detail_cutoff;
@@ -5583,7 +5588,10 @@ typedef struct ShaderEnvironment {
     float perpendicular_brightness;
     float parallel_brightness;
     uint8_t _pad_2fc[16];
-    uint8_t _pad_30c[8];
+    float runtime_mirror_value_0;  // 0x30c runtime value, not authored: the mirror query 0x553560
+                                   //       copies it into structure_bsp_mirror_result +0x10 when the
+                                   //       mirror shader is shadertype_environment (0x55371b)
+    float runtime_mirror_value_1;  // 0x310 likewise into structure_bsp_mirror_result +0x14 (0x553724)
     uint8_t _pad_314[16];
     TagDependency reflection_cube_map;  // bitmap
     uint8_t _pad_334[16];

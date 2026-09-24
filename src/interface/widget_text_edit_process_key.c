@@ -7,19 +7,17 @@
 // fields."
 // register convention: state in EAX (in_EAX), event in the stack parameter Ghidra recognized
 // (param_1). // blam-cc: state=EAX, event=stack param_1
-// UNSURE: for _ui_edit_key_home/_ui_edit_key_end (0x4f/0x50) with no active selection, this
+// UNSURE: for _ui_edit_key_left_arrow/_ui_edit_key_right_arrow (0x4f/0x50) with no active selection, this
 // function performs DBCS-safe backward/forward single-character cursor movement (snap to the
 // nearest earlier character boundary, or advance exactly one character), not "jump to the start/
 // end of the line". With an active selection and no shift, it collapses the selection to its
-// near edge, which is the one behaviour consistent with the enum's Home/End naming. The
-// movement behaviour looks more like Left/Right arrow handling; types/interface.h is not edited
-// here, so the existing _ui_edit_key_home/_ui_edit_key_end names are kept and used as literal
-// key-code constants only.
+// near edge. That is Left/Right arrow handling, which R18 confirmed from the key table.
 // UNSURE: the exact physical registers backing text_get_next_character / text_find_character_
 // boundary / text_clamp_byte_length_to_character_boundary at each call site (see the note in
 // widget_text_edit_clamp_selection.c); the (string, offset-pointer) pairing used below is
 // inferred from each callee's own decompilation and from which call sites visibly reuse a
 // stack slot (Ghidra's `&param_1` idiom) versus visibly address the real state->cursor field.
+// reconciled: R18 key codes 0x4f/0x50 are left/right arrow (DIK table 0x0065bd58: DIK_LEFT -> 0x4f, DIK_RIGHT -> 0x50; home is 0x52, end 0x55): _ui_edit_key_home/_end -> _ui_edit_key_left_arrow/_right_arrow, same values, which matches the one-character movement below
 
 #include "tags.h"
 #include "memory.h"
@@ -55,12 +53,12 @@ void widget_text_edit_process_key(text_edit_state *state, ui_key_event *event)
     widget_text_edit_clamp_selection(state);
 
     if (event->key_code != _ui_edit_key_backspace && event->key_code != _ui_edit_key_delete) {
-        if (event->key_code == _ui_edit_key_home || event->key_code == _ui_edit_key_end) {
+        if (event->key_code == _ui_edit_key_left_arrow || event->key_code == _ui_edit_key_right_arrow) {
             has_selection = ((event->modifiers & 1) == 0) &&
                              widget_text_edit_get_selection(state, &sel_start, &sel_end);
             if (has_selection) {
                 state->selection_anchor = -1;
-                if (event->key_code != _ui_edit_key_home) {
+                if (event->key_code != _ui_edit_key_left_arrow) {
                     state->cursor = sel_end;
                 } else {
                     state->cursor = sel_start;
@@ -72,7 +70,7 @@ void widget_text_edit_process_key(text_edit_state *state, ui_key_event *event)
             if ((event->modifiers & 1) != 0 && state->selection_anchor == -1) {
                 state->selection_anchor = state->cursor;
             }
-            if (event->key_code == _ui_edit_key_home) {
+            if (event->key_code == _ui_edit_key_left_arrow) {
                 if (state->cursor > 0) {
                     text_find_character_boundary(state->text, &state->cursor);
                 }

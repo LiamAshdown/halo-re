@@ -18,6 +18,7 @@
 //   network bytes because the binary clears all four together, exactly like projectile_new
 //   clears object+0x9 alongside its own three network bytes (see out/phase4/projectiles_types_
 //   notes.md, "types/objects.h: object 0x18/0x1c and 0x44/0x48 are the interpolation block").
+// reconciled: R26 object +0x009 raw byte store -> network_state_009 (object.unknown_008 is now split into uint8 unknown_008 / network_state_009 / unknown_00a[2])
 
 #include "tags.h"
 #include "memory.h"
@@ -42,7 +43,7 @@ uint8_t equipment_new(uint32_t object_index) // blam-cc: stack -> object_index
         ed->network_state_valid = 0;
         ed->network_baseline_index = 0;
         ed->network_sequence = 0;
-        *((uint8_t *)obj + 9) = 0; // UNSURE: unnamed byte inside object.unknown_008
+        obj->network_state_009 = 0; // same store as projectile_new 0x4bda48
     }
     return 1;
 }

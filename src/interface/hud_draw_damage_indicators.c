@@ -24,6 +24,7 @@
 // the center of the icon (hud_bitmap_anchor_extents). The four direction cases were checked
 // against the jump table at 0x4b16c8. HUDGlobals (types/tags.h) now exists; the raw offsets
 // are hud_damage_* fields of it.
+// reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
 
 #include "tags.h"
 #include "memory.h"
@@ -92,7 +93,7 @@ void hud_draw_damage_indicators(int16_t local_player_index)
         uint8_t *hud = (uint8_t *)hud_globals_tag_data;
         uint8_t *edge_offsets = hud + 0x310;    // four int16 edge offsets, one per direction
         datum_index icon_bitmap = *(datum_index *)(hud + 0x344);
-        uint16_t sequence_index = (local_player_globals->unknown_0c <= 1)
+        uint16_t sequence_index = (local_player_globals->local_player_count <= 1)
             ? *(uint16_t *)(hud + 0x348)
             : *(uint16_t *)(hud + 0x34a);
         uint32_t icon_color = *(uint32_t *)(hud + 0x34c);

@@ -25,24 +25,28 @@
 //    leaves behind.
 //  - the counter saturates with an unsigned compare against 0xff, so it is a uint8 counter,
 //    not the signed -1 test Ghidra prints.
-// UNSURE: 0x502060 is a collision-BSP query outside this module; the argument list below is
-// what this call site allows, nothing more.
+// reconciled: R54 both 0x502060 calls use the physics rewrite collision_bsp_query_segment_init
+//   (EAX = flags 3, ECX = &collision_bsp_segment_result, stack: collision bsp (context +0x04,
+//   the 0x00746f98 pointer), 0, 0, origin, delta, 1.0f; add esp,0x18 after each). The first call
+//   (0x419144) tests context->position along segment; the second (0x419180) tests from the end
+//   point (EBX) along the scaled elevation vector (ESI), and on a hit *out_distance is the
+//   result's t (the first dword of the shared buffer, [esp+0x2c]). The old FUN_00502060 /
+//   FUN_00502060_query aliases and their argument lists are gone.
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "physics.h"
 
 extern const real_vector3d *global_origin3d_pointer; // 0x00696714
 
-// The same collision-BSP entry point is called twice with different EAX/ECX: first with the
-// "any hit" mode, then with mode 3 and a 0x400-byte result buffer whose leading float is the
-// hit fraction. Declared as two prototypes so each call site keeps its own shape.
-extern char FUN_00502060(int32_t bsp, int32_t unused_a, int32_t unused_b, real_point3d *from, real_vector3d *delta, int32_t max_fraction); // 0x502060, not yet rewritten, EAX/ECX also live
-extern uint8_t FUN_00502060_query(int32_t bsp_index, int32_t unknown_1, int32_t unknown_2,
-                                  const real_point3d *from, const real_vector3d *delta,
-                                  float max_fraction, void *result_buffer,
-                                  float *out_fraction); // 0x502060 with EAX = 3, ECX = result_buffer
+extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result,
+                                                ModelCollisionGeometryBSP *bsp,
+                                                int16_t breakable_surface_count,
+                                                uint32_t *breakable_surfaces, real_point3d *origin,
+                                                real_vector3d *delta, float max_fraction);
+    // 0x502060, src/physics/collision_bsp_query_segment_init.c; flags in EAX, result in ECX
 extern uint8_t ray_intersects_cylinder(float *out_fraction, const real_point2d *center,
                                        float height, float radius,
                                        const real_vector3d *delta); // 0x4ce4e0, EAX/ECX + stack
@@ -55,8 +59,7 @@ void actor_movement_test_obstacle_ray(real_vector3d *out_elevation, const float 
 {
     real_vector3d elevation;
     real_vector3d segment;
-    uint8_t bsp_result[0x400];
-    float bsp_fraction;
+    collision_bsp_segment_result bsp_result; // [esp+0x2c] of the caller frame, shared by both calls
     float hit_fraction;
     float scale;
     int16_t result;
@@ -91,13 +94,16 @@ void actor_movement_test_obstacle_ray(real_vector3d *out_elevation, const float 
     segment.j = out_end_point->y - context->position.y;
     segment.k = out_end_point->z - context->position.z;
 
-    if (FUN_00502060(context->bsp_index, 0, 0, &context->position, &segment, 1.0f) != 0) {
+    if (collision_bsp_query_segment_init(3, &bsp_result,
+                                         (ModelCollisionGeometryBSP *)context->collision_bsp,
+                                         0, 0, &context->position, &segment, 1.0f) != 0) {
         result = 2;
         *out_distance = 0.0f;
-    } else if (FUN_00502060_query(context->bsp_index, 0, 0, &context->position, &segment, 1.0f,
-                                  bsp_result, &bsp_fraction) != 0) {
+    } else if (collision_bsp_query_segment_init(3, &bsp_result,
+                                                (ModelCollisionGeometryBSP *)context->collision_bsp,
+                                                0, 0, out_end_point, out_elevation, 1.0f) != 0) {
         result = 2;
-        *out_distance = bsp_fraction;
+        *out_distance = bsp_result.t;
     }
 
     for (i = 0; i < context->obstacle_count; i++) {

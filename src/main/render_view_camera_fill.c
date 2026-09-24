@@ -23,12 +23,11 @@
 // (player_effect_build_camera_shake_matrix: CX -> local_player_index, stack -> out; matrix4x3_extract_forward_up_position:
 // EAX -> up_out, ECX -> forward_out, stack -> matrix then position_out, mirroring
 // matrix4x3_from_forward_up_position's own EAX/ECX/ESI/stack shape in reverse).
-// UNSURE: 0x0069c65c/0x0069c660 (camera->z_near/z_far source) are named "rasterizer_letterbox_
-// height" by src/rasterizer/chimera__cinematic_screen_effect.c but "the default near / far clip
-// pairs 0x511df0 seeds" by src/render/render_cinematic_screen_effect_update.c and "default clip
-// distances" by this module's own main_types_notes.md; named default_clip_near/_far here to
-// match this function's actual use. 0x00873d30 (gates whether source_camera is refreshed from
+// RESOLVED (R11): 0x0069c65c/0x0069c660 (camera->z_near/z_far source) are the default near/far
+// clip pair, now rasterizer.h rasterizer_default_z_near/_far (formerly "rasterizer_letterbox_height").
+// 0x00873d30 (gates whether source_camera is refreshed from
 // rasterizer_camera) has no established name anywhere; declared as an opaque byte.
+// reconciled: R11 0x0069c65c/0x0069c660 externs default_clip_near/far -> rasterizer.h rasterizer_default_z_near/z_far
 
 #include "tags.h"
 #include "memory.h"
@@ -42,8 +41,8 @@
 
 extern game_time_globals *game_time;         // 0x006f1d6c, foreign (game module)
 extern console_globals console_globals_data; // 0x006b7020, this module's own header type
-extern float default_clip_near;              // 0x0069c65c, foreign (rasterizer module); see UNSURE above
-extern float default_clip_far;               // 0x0069c660, foreign (rasterizer module); see UNSURE above
+extern float rasterizer_default_z_near;              // 0x0069c65c, foreign (rasterizer module); rasterizer.h (R11)
+extern float rasterizer_default_z_far;               // 0x0069c660, foreign (rasterizer module); rasterizer.h (R11)
 extern uint8_t unknown_00873d30;             // TYPES-GAP, UNSURE identity
 
 extern const real_point3d *global_zero_vector3d_pointer; // 0x006966f8 -> (0,0,0), foreign (math module)
@@ -121,9 +120,9 @@ void render_view_camera_fill(observer_camera *observer, render_view *view)
             (float)(2.0 * atan2(tan(0.6981316804885864) * 0.6375f, 1.0)); // 0x00673098, 0x00673090 float
     }
 
-    camera->z_far = default_clip_far;
+    camera->z_far = rasterizer_default_z_far;
     camera->mirrored = 0;
-    camera->z_near = default_clip_near;
+    camera->z_near = rasterizer_default_z_near;
 
     if (unknown_00873d30 == 0) {
         view->source_camera = view->rasterizer_camera;

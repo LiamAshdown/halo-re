@@ -23,7 +23,7 @@
 extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78, see
                                     // breakable_surface_apply_damage.c
 extern int16_t global_structure_bsp_index;      // 0x0069e8d8
-extern ScenarioStructureBSP *structure_bsp_tag_data; // 0x00746f9c, owned by the
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, owned by the
                                     // scenario/structures module (UNSURE name: other modules
                                     // call the same global structure_bsp_globals or
                                     // global_matg_multiplayer; +0xe4 leaves and +0x170
@@ -45,7 +45,7 @@ void breakable_surface_damage_in_blast_radius(damage_data *damage)
         int16_t surface_index = 0;
         int32_t index = 0; // always equal to surface_index at the point it is used below;
                             // Ghidra keeps them as separate int/short SSA values
-        if (0 < structure_bsp_tag_data->breakable_surfaces.count) {
+        if (0 < global_structure_bsp->breakable_surfaces.count) {
             do {
                 // UNSURE: surface_index counts up from 0 and can never be -1, so this disjunct
                 // never fires; kept verbatim because it is present in the decompiled binary.
@@ -54,7 +54,7 @@ void breakable_surface_damage_in_blast_radius(damage_data *damage)
                       (1u << (index & 0x1f))) != 0)) {
                     ScenarioStructureBSPBreakableSurface *surface =
                         &((ScenarioStructureBSPBreakableSurface *)
-                              structure_bsp_tag_data->breakable_surfaces.pointer)[index];
+                              global_structure_bsp->breakable_surfaces.pointer)[index];
                     float combined_radius = outer_radius + surface->radius;
                     float dy = damage->origin.y - surface->centroid.y;
                     float dz = damage->origin.z - surface->centroid.z;
@@ -69,7 +69,7 @@ void breakable_surface_damage_in_blast_radius(damage_data *damage)
                 }
                 surface_index = surface_index + 1;
                 index = (int32_t)surface_index;
-            } while (index < structure_bsp_tag_data->breakable_surfaces.count);
+            } while (index < global_structure_bsp->breakable_surfaces.count);
         }
     }
 }

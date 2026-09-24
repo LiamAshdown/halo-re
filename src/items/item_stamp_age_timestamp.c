@@ -8,11 +8,11 @@
 //   offset VA-0x400000; the garbage row's +0x7c is null. Dispatched by
 //   src/objects/object_type_override_call_0x7c.c, which scans a type's subdefinitions from index
 //   15 down and calls the first non-null +0x7c it finds -- so this is each concrete type's own
-//   final override, not inherited from item/object. types/objects.h object.unknown_00c, whose
+//   final override, not inherited from item/object. types/objects.h object.network_update_tick, whose
 //   meaning as a game-tick stamp is established by out/phase4/projectiles_types_notes.md
 //   ("types/objects.h: object + 0x0c is a game-tick stamp, not a datum handle") and reused here
 //   by src/items/weapon_is_old_enough.c and equipment_is_old_enough.c, both of which test this
-//   same field against a per-type minimum age. global 0x006f1d6c game_time_globals (+0x0c the
+//   same field against a per-type minimum age. global 0x006f1d6c game_time (+0x0c the
 //   game tick).
 // register convention: object index is a plain stack cdecl parameter -- confirmed against
 //   objdump -d -M intel bin/halo.exe (0x4bc460 `mov eax,[esp+0x4]`), which also settles
@@ -24,6 +24,7 @@
 // UNSURE of the name: this is the write side of the age-timestamp read by weapon_is_old_enough /
 //   equipment_is_old_enough, so it (re)starts that clock; nothing in this batch pins the exact
 //   game event that triggers the override_call_7c dispatch (item drop, pickup, or similar).
+// reconciled: R27 object.unknown_00c (datum_index) -> int32_t network_update_tick (game tick stamp, -1 = never)
 
 #include "tags.h"
 #include "memory.h"
@@ -31,16 +32,16 @@
 #include "objects.h"
 
 extern data_array *object_data; // 0x008603b0
-extern void *game_time_globals; // 0x006f1d6c, +0x0c the game tick
+extern void *game_time; // 0x006f1d6c, +0x0c the game tick
 
-// The weapon and equipment rows' override_call_7c hook. Stamps object.unknown_00c with the
+// The weapon and equipment rows' override_call_7c hook. Stamps object.network_update_tick with the
 // current game tick, restarting the age clock that weapon_is_old_enough / equipment_is_old_enough
 // test.
 void item_stamp_age_timestamp(uint32_t object_index) // blam-cc: stack -> object_index
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
 
-    obj->unknown_00c = *(int32_t *)((uint8_t *)game_time_globals + 0xc);
+    obj->network_update_tick = *(int32_t *)((uint8_t *)game_time + 0xc);
 }
 
 #if 0

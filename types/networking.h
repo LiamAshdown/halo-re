@@ -140,7 +140,13 @@ typedef struct network_connection_statistics {
 // global 0x006f14b8: void *network_connection_stats_log_file  FILE *, "gamespy <date>.xls"
 // global 0x006a6140: void *network_summary_log_file           FILE *, "Game Summary <date>.xls"
 // global 0x006f14b4: uint8_t network_statistics_logging_enabled
-// global 0x0087ac06: int16_t network_statistics_level   every log path needs a value above 2
+// global 0x0087ac06: uint8_t debug_log_level  -- ONE declaration shared by interface.h and
+//   networking.h (R01; cseries.h calls it the shell debug level). All 11 .text accesses are
+//   byte-wide: cmp BYTE ...,0x3 (0x440829, 0x440b24, 0x440d20, 0x4e0756), cmp BYTE ...,0x4
+//   (0x489c4d, 0x496a86), mov al (0x440670, 0x440d80, 0x449450, 0x4d9960) and the shell's
+//   mov BYTE PTR ds:0x87ac06,bl (0x540fac). Console output (0x496a80) needs > 3, network
+//   statistics logging needs > 2. Formerly interface.h "int32_t console_verbosity" and
+//   networking.h "int16_t network_statistics_level".
 // global 0x006869bc: uint8_t network_summary_log_needs_open
 // global 0x006869bd: uint8_t network_connection_log_needs_open
 // global 0x006a4038: int32_t network_connection_log_last_row_ms  one row per 100 ms
@@ -338,7 +344,13 @@ typedef struct network_map_cycle_entry {
 typedef struct network_scenario_load_request {
     uint32_t unknown_00;       // 0x00 zeroed only
     int16_t unknown_04;        // 0x04 zeroed only
-    int16_t seed;              // 0x06 set to 1, then overwritten from session->unknown_19e
+    int16_t difficulty;        // 0x06 the campaign difficulty (formerly "seed"): the single
+                               //      player path stores the pending difficulty 0x00696564
+                               //      here (0x4c9973/0x4c9984); 0x4c95f0 copies the request
+                               //      to game globals +0x08, so this lands at game globals
+                               //      +0x0e, which the checkpoint loader compares with
+                               //      0x00696564 (0x5382c7). The network path sets it to 1,
+                               //      then overwrites it from session->unknown_19e.
     uint32_t salt;             // 0x08 defaults to 0xdeadbeef, else session+0x3a4
     char map_name[0x100];      // 0x0c strncpy of 0x7f from session+0x84
 } network_scenario_load_request; // size 0x10c
@@ -683,13 +695,11 @@ typedef struct ban_list_entry {
 // src/networking/map_list_matching_substring.c by the review pass.
 // UNSURE: everything except name and valid; only those two are read.
 // ---------------------------------------------------------------------------
-typedef struct network_map_list_entry {
-    char *name;                // 0x00 NULL when the slot is unused
-    uint8_t unknown_04[4];     // 0x04
-    uint8_t valid;             // 0x08
-    uint8_t pad_09[3];         // 0x09
-} network_map_list_entry;      // size 0x0c
-// global 0x00712dcc: network_map_list_entry *installed_map_table   stride 0x0c
+// The element type is types/interface.h map_list_entry (0x0c: +0x00 path, NULL when the slot
+// is unused, +0x04 map_id, +0x08 cache_file_exists): the old network_map_list_entry here was a
+// second, less complete layout of the same table and has been dropped (interface.h sorts
+// before networking.h, so Ghidra already has the type).
+// (0x00712dcc is interface.h map_list_entry *map_list; this module only scans it)
 
 // ---------------------------------------------------------------------------
 // network_buffer_pair  (0x4e3ed0 network_buffer_pair_pool_clear)
@@ -1319,8 +1329,9 @@ typedef struct ticker_text_buffer {
 // global 0x0069fdfc: the rcon/console connection id 0x4e35c0 and 0x4deda0 use
 // global 0x00722a18: int32_t master_server_state
 // global 0x00722a20: void *master_server_object
-// global 0x006f1d20: the network game engine callback block; +0x90 is the
-//                    ownership-handoff completion callback 0x4dfa10 invokes
+// global 0x006f1d20: game_engine_definition *current_game_engine (game.h, R04; not owned
+//                    here). Non-NULL means a multiplayer engine is loaded; its +0x90 slot is
+//                    the ownership-handoff completion callback 0x4dfa10 invokes
 // global 0x0065fd30: the "wt" fopen mode string both log files are opened with
 // global 0x006ac8f8 / 0x006ac8fc: the QueryPerformanceFrequency pair every
 //                    millisecond timestamp in this module divides by (owned by

@@ -15,6 +15,7 @@
 // hud_unit_meters_update_for_player (0x4b0160) during a cinematic.
 // register convention: EAX player; one stack argument (a byte).
 //   // blam-cc: player -> EAX
+// reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
 
 #include "tags.h"
 #include "memory.h"
@@ -57,7 +58,7 @@ void hud_unit_sounds_update(player *p, uint8_t hud_enabled)
         return;
     }
     unit_tag = (Unit *)tag_instances[*(datum_index *)unit & 0xffff].data;
-    choice = (int16_t)(local_player_globals->unknown_0c > 1);
+    choice = (int16_t)(local_player_globals->local_player_count > 1);
     last = (int32_t)*(uint32_t *)((uint8_t *)unit_tag + 0x2a8) - 1;
     if (choice > last) {
         choice = last;

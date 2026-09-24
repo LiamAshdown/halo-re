@@ -16,6 +16,7 @@
 // note: the value stored in placement->role is the same value the function hands to
 //   object_try_and_get in ECX (0x4f53f3 mov ecx,ebx), so the field at 0x0c is an object HANDLE,
 //   not a small role enum. types/objects.h still calls it `role`; flagged rather than renamed.
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
 
 #include "tags.h"
 #include "memory.h"
@@ -52,11 +53,11 @@ void object_placement_data_initialize(object_placement_data *placement, datum_in
     if (current == 0) {
         placement->role = 0xffffffff;
         placement->owner_linkage = 0xffffffff;
-        placement->name_index = -1;
+        placement->owner_team = -1;
     } else {
         placement->role = role;
         placement->owner_linkage = *(uint32_t *)((uint8_t *)current + 0xc0);
-        placement->name_index = *(int16_t *)((uint8_t *)current + 0xb8);
+        placement->owner_team = *(int16_t *)((uint8_t *)current + 0xb8);
     }
 
     for (i = 0; i < 4; i++) {

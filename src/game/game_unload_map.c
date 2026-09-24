@@ -6,16 +6,18 @@
 //   (DAT_00746f8c/90/94/98/9c/a0) to their [defaults]"; types/game.h global_scenario
 //   (0x00746f8c).
 // register convention: no arguments.
+// reconciled: R07 0x00746f94 tag_cache_render_states_* (TYPES-GAP) -> scenario.h scenario_game_globals *global_scenario_game_globals (0x7c-byte scenario game-state block)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#include "scenario.h"
 
 extern uint8_t download_in_progress;   // 0x006ac470
 extern uint8_t *cache_file_slot_table; // 0x006b0b80, TYPES-GAP
-extern uint16_t *tag_cache_render_states_slot; // 0x00746f94, TYPES-GAP
+extern scenario_game_globals *global_scenario_game_globals; // 0x00746f94, scenario.h
 extern uint32_t unknown_0069e8d4; // TYPES-GAP
 extern uint16_t unknown_0069e8d8; // TYPES-GAP
 extern Scenario *global_scenario; // 0x00746f8c, cache module
@@ -56,7 +58,7 @@ void game_unload_map(void)
     }
     if (*cache_file_slot_table != 0) {
         cache_file_unload();
-        *tag_cache_render_states_slot = 0xffff;
+        global_scenario_game_globals->structure_bsp_index = -1; // WORD +0x00
         unknown_0069e8d4 = 0xffffffff;
         unknown_0069e8d8 = 0xffff;
         global_scenario = (Scenario *)0;

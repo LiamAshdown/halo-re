@@ -19,6 +19,8 @@
 //
 // register convention: EAX -> context (the only recognized operand).
 //   // blam-cc: EAX -> context
+// reconciled: R53 ai_search_evaluate_edge_cost declared with its real signature (13 params, EBX = direction = node+0xc);
+//   the uninitialised locals local_c/local_8/local_4/sStack_2 were the fields of its 0x10-byte result record (edge.*)
 
 #include "tags.h"
 #include "memory.h"
@@ -29,18 +31,19 @@ extern void ai_search_heap_sift_down(void *context, int16_t index); // 0x43b4d0
 extern void ai_search_expand_point_neighbors(void); // 0x43ba60, called here with no visible arguments; see that file
 extern uint8_t path_find_heights_are_close(int32_t param1); // 0x43d910
 extern int32_t ai_search_add_node(real_point2d *position, int32_t point_id, uint32_t param3, int32_t param4, float extra_cost); // 0x43b5a0, see header UNSURE
-extern uint8_t ai_search_evaluate_edge_cost(uint32_t cluster_a, uint8_t param2, uint32_t cluster_b, uint32_t param4,
-                                            float *point, float param6, float distance, float base_cost,
-                                            uint32_t skip_direct, uint8_t apply_offset, uint8_t param_11,
-                                            float *out_result); // 0x43b830, see header UNSURE
+extern uint8_t ai_search_evaluate_edge_cost(void *context, uint8_t ignore_permission,
+                                            ai_search_obstacle_list *obstacle_list, int16_t exclude_index,
+                                            real_point2d *point, int32_t start_surface_index, float distance,
+                                            float base_cost, uint8_t skip_direct, uint8_t apply_offset,
+                                            uint8_t require_unflagged, ai_search_edge_result *out_result,
+                                            real_vector2d *direction);
+    // 0x43b830; EBX -> direction (see src/ai/ai_search_evaluate_edge_cost.c)
 
 // blam-cc: EAX -> context
 uint8_t ai_search_step(uint32_t *context)
 {
-    float local_18, local_14, local_10;
-    int32_t local_c, local_8;
-    uint32_t local_4;
-    int16_t sStack_2;
+    float local_18, local_14;
+    ai_search_edge_result edge; // [esp+0x18]: Ghidra's local_10/local_c/local_8/local_4/sStack_2
 
     if (0 < *(int16_t *)(context + 0x50c)) {
         int16_t heap_count = *(int16_t *)(context + 0x50c) - 1;
@@ -55,26 +58,29 @@ uint8_t ai_search_step(uint32_t *context)
             float *node = (float *)(context + popped * 10 + 0xc);
             uint8_t reached;
 
-            reached = ai_search_evaluate_edge_cost(context[3], *(uint8_t *)(context + 1), context[2], 0xffffffff,
-                                                   node, node[2], *(float *)context, node[5],
-                                                   (*(int16_t *)(node + 9) == -1) ? 1u : 0u, 1,
-                                                   *((uint8_t *)context + 0x2a), &local_10);
+            // 0x43bd0b..0x43bd3e: EBX = node+0xc (direction), 12 stack arguments, add esp,0x30
+            reached = ai_search_evaluate_edge_cost((void *)context[3], *(uint8_t *)(context + 1),
+                                                   (ai_search_obstacle_list *)context[2], -1,
+                                                   (real_point2d *)node, *(int32_t *)&node[2], *(float *)context,
+                                                   node[5], (*(int16_t *)(node + 9) == -1) ? 1 : 0, 1,
+                                                   *((uint8_t *)context + 0x2a), &edge,
+                                                   (real_vector2d *)(node + 3));
             (void)reached;
 
-            if (local_8 == -1) {
-                if ((int16_t)local_4 == -1) {
-                    if ((local_c == (int32_t)context[6]) || (path_find_heights_are_close(local_c) != 0)) {
+            if (edge.edge_index == -1) {
+                if (edge.point_id == -1) {
+                    if ((edge.surface_index == (int32_t)context[6]) || (path_find_heights_are_close(edge.surface_index) != 0)) {
                         int32_t new_node;
-                        local_18 = local_10 * node[3] + *node;
-                        local_14 = local_10 * node[4] + node[1];
+                        local_18 = edge.cost * node[3] + *node;
+                        local_14 = edge.cost * node[4] + node[1];
                         {
                             real_point2d p; p.x = local_18; p.y = local_14;
-                            new_node = ai_search_add_node(&p, local_c, 0xffffffff, 0, (node[8] - node[5]) + local_10);
+                            new_node = ai_search_add_node(&p, edge.surface_index, 0xffffffff, 0, (node[8] - node[5]) + edge.cost);
                         }
                         *(int16_t *)((uint8_t *)context + 0x1e) = (int16_t)new_node;
                     }
                 } else {
-                    if ((sStack_2 == *(int16_t *)(context + 7)) && (node[5] < *(float *)(context + 9))) {
+                    if ((edge.link == *(int16_t *)(context + 7)) && (node[5] < *(float *)(context + 9))) {
                         *(float *)(context + 9) = node[5];
                         *(int16_t *)(context + 8) = popped;
                     }

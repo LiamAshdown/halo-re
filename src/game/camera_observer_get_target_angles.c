@@ -17,6 +17,7 @@
 // used for the facing vector, most likely a previous-frame direction pair used to derive an
 // angular rate. Modelled with the minimum shape needed to preserve the arithmetic; the six
 // floats are read from that table at a guessed offset (TYPES-GAP) rather than invented.
+// reconciled: R17 0x006ac6d0 was declared as a pointer (uint8_t *camera_state_table) but the binary addresses the array (add reg,0x6ac6d0); now (uint8_t *)&observers[slot].camera from camera.h
 
 // CORRECTED (phase 4 review): the camera-state row stride is 0x29c BYTES, not 0xa7. Ghidra
 // prints "&DAT_006ac6d0 + slot * 0xa7" over a 4-byte element type, so 0xa7 is a DWORD count;
@@ -31,11 +32,12 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#include "camera.h"
 
 extern int16_t camera_get_type_for_player(void); // UNSURE module/address
 extern player_globals *local_player_globals;     // 0x0087a478
 extern data_array *player_data;                  // 0x0087a480
-extern uint8_t *camera_state_table;              // 0x006ac6d0, stride 0x29c bytes; TYPES-GAP
+extern observer observers[1]; // 0x006ac65c, camera.h; observers[i].camera is the 0x006ac6d0 row (R17), an array, not a pointer
 
 extern uint32_t unit_noop_569670(void); // 0x569670, units module; returns nothing (matches src/units/unit_noop_569670.c)
 extern uint8_t unit_get_current_weapon_autoaim_cone(datum_index unit_index, int16_t require_zoomed, real *out); // this batch, 0x459e80
@@ -93,7 +95,7 @@ uint32_t camera_observer_get_target_angles(real *out_weight_primary, real *out_w
         return 0xffffffff;
     }
 
-    row = camera_state_table + local_player_slot * 0x29c;
+    row = (uint8_t *)&observers[local_player_slot].camera;
     facing = (local_player_slot == -1) ? (real_vector3d *)0 : (real_vector3d *)(row + 0x20);
     previous = (real *)row; // dwords 0..5: the previous and current camera positions (TYPES-GAP)
     team = ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player)))->team; // UNSURE

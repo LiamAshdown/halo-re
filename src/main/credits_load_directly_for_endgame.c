@@ -5,15 +5,15 @@
 // profile_globals_block (0x00712dd8) reuse src/interface/FUN_0049ce00.c and FUN_0049cc80.c's
 // names; player_profile_write_data's signature reuses src/saved_games/player_profile_write_data.c.
 // The profile flags field (0x00712ef4 = 0x00712dd8 + 0x11c) is
-// saved_player_profile.flags (types/saved_games.h); bit 0x0004 is not in that header's own
-// saved_player_profile_flags enum, but out/phase4/main_types_notes.md's "New for saved_games.h"
-// note identifies it here as "end credits reached; it unlocks console context 0x20"
+// saved_player_profile.flags (types/saved_games.h); bit 0x0004 is
+// _saved_player_profile_end_credits_reached_bit, which unlocks console context 0x20
 // (FUN_004c69c0's console_command_context_flags _console_context_unknown_20). Confirmed against
 // objdump -d -M intel bin/halo.exe at 0x4c8d40..0x4c8d96: the profile flags update is a BYTE
 // `or`, matching bit 0x0004 living in the field's low byte; the tag group for
 // "ui\\shell\\main_menu\\main_menu" is 'DeLa' (mov edi,0x44654c61), the same widget-definition
 // group src/interface/chimera__load_ui_widget.c's own tag_lookup call uses.
 // register convention: cdecl, no parameters.
+// reconciled: R22 saved_player_profile_flags gains _saved_player_profile_end_credits_reached_bit (0x0004); the literal 4 now uses it
 
 // phase 4 review (disassembly 0x4c8d40..0x4c8d9a): 0x00714dd4 is saved_player_profile_slots[0].handle
 // and 0x00719230 is a DWORD store (the phase 3 file wrote one byte).
@@ -47,7 +47,7 @@ void credits_load_directly_for_endgame(void)
 {
     datum_index main_menu_tag;
 
-    saved_player_profile_slots[0].profile.flags = saved_player_profile_slots[0].profile.flags | 4; // end credits reached (byte OR at 0x00712ef4)
+    saved_player_profile_slots[0].profile.flags = saved_player_profile_slots[0].profile.flags | _saved_player_profile_end_credits_reached_bit; // byte OR at 0x00712ef4
     if (saved_player_profile_slots[0].handle != -1) {
         player_profile_write_data(saved_player_profile_slots[0].handle, &saved_player_profile_slots[0].profile);
     }

@@ -287,15 +287,15 @@ typedef struct mouse_state {
 // input_directinput_release_devices 0x490580; +0x230 seeded -1 by input_system_initialize.
 // The first 0x220 bytes are exactly a controls_gamepad_record (interface.h): the player
 // profile keeps four of them, input_device_list_print copies 0x88 dwords out, and
-// input_device_find_index_by_guid 0x4916e0 matches record.device_key (+0x20c product guid,
-// then +0x21c) against it.
+// input_device_find_index_by_guid 0x4916e0 matches record.product_guid (+0x20c) and
+// record.product_instance (+0x21c) against it.
 // ---------------------------------------------------------------------------
 typedef struct input_device {
     controls_gamepad_record record;// 0x000 name: tszInstanceName widened (0x20a byte limit),
                                    //       plus a (N) suffix (format 0x006694fc) when
                                    //       instance_number is nonzero;
-                                   //       device_key[0..3]: guidProduct (DIDEVICEINSTANCE
-                                   //       +0x14); device_key[4]: instance_number, the count of
+                                   //       product_guid: guidProduct (DIDEVICEINSTANCE
+                                   //       +0x14); product_instance: instance_number, the count of
                                    //       already registered devices with the same product
                                    //       (input_device_count_by_guid 0x491d30)
     input_guid instance_guid;      // 0x220 guidInstance (DIDEVICEINSTANCE +0x04)
@@ -477,7 +477,7 @@ typedef struct di_device_caps {
 typedef struct di_device_instance {
     uint32_t size;                 // 0x000
     input_guid instance_guid;      // 0x004 CreateDevice argument, -> input_device +0x220
-    input_guid product_guid;       // 0x014 -> input_device record.device_key[0..3]
+    input_guid product_guid;       // 0x014 -> input_device record.product_guid
     uint32_t device_type;          // 0x024
     char instance_name[0x104];     // 0x028 widened into input_device record.name
     char product_name[0x104];      // 0x12c

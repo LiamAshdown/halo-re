@@ -19,7 +19,7 @@
 // register convention: plain stack argument (mov eax,[esp+8] at 0x562181), returns AL;
 //   blam-cc: stack -> object_index. Returns 1 normally, 0 when
 //   the unit's animation graph tag reference (Unit tag Object.animation_graph, tag+0x44) is -1.
-// UNSURE: object.name_index (types/objects.h +0xb8) is written here from Unit.default_team
+// UNSURE: object.owner_team (types/objects.h +0xb8) is written here from Unit.default_team
 //   (tag+0x180), which only makes sense if this field is actually the object's team index, not
 //   its scenario name index -- matching the pre-existing TYPES-GAP flagged in PLAN.md ("objects.h
 //   offset 0xb8 team index vs name_index conflict") and the CEA source's `owner_team_index` name
@@ -44,10 +44,13 @@
 //   object_index onto ai_globals.vehicle_entry_queue (drained later by whatever processes it)
 //   rather than calling a `ai_create_mounted_weapons_for_unit`-style helper directly, unlike the
 //   CEA prototype read above -- kept exactly as the retail disassembly shows.
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
+// reconciled: R04 0x006f1d20 void * current_game_engine -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "ai.h"
 #include "objects.h"
@@ -56,7 +59,7 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int16_t network_game_mode; // 0x00719720, foreign; 1 = client (matches camera/ai modules' established name for this address)
-extern void *current_game_engine;   // 0x006f1d20, foreign (game); NULL outside multiplayer
+extern game_engine_definition *current_game_engine;   // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern ai_globals *ai_globals_ptr;  // 0x00880354, foreign (ai)
 extern char *s_stand; // 0x0069fdec "stand" (matches unit_update_stance_and_jump.c)
 
@@ -193,9 +196,9 @@ uint8_t unit_new(uint32_t object_index)
     }
 
     // default team, only outside a running game engine and only when not already assigned
-    // UNSURE: written through object.name_index; see the header note above
-    if (current_game_engine == 0 && (obj->name_index == 0 || obj->name_index == -1)) {
-        obj->name_index = tag->default_team;
+    // UNSURE: written through object.owner_team; see the header note above
+    if (current_game_engine == 0 && (obj->owner_team == 0 || obj->owner_team == -1)) {
+        obj->owner_team = tag->default_team;
     }
 
     unit_set_or_test_seat_and_weapon_label(object_index, s_stand, (const char *)0, 1);

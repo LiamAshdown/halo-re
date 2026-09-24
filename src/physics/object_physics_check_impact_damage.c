@@ -50,6 +50,9 @@
 //   decompile, which cannot be its real signature (it plainly needs at least an object index and
 //   a position); preserved as Ghidra shows it, since the true hidden arguments are unrecoverable
 //   here.
+// reconciled: R28 object.unknown_0c4 -> datum_index creator_object (same offset 0xc4)
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
+// reconciled: R25 damage_data.unknown_4c -> material_type (int16 collision material of the damaged surface, 0xffff = none; indexes DamageEffect +0x200)
 
 #include "tags.h"
 #include "memory.h"
@@ -62,8 +65,8 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern Globals *game_globals;       // 0x00746fa0
-extern void *game_time_globals;     // 0x006f1d6c, +0x0c is the game tick (types/game.h
-                                    // game_time_globals; same global src/items and src/devices use)
+extern void *game_time;     // 0x006f1d6c, +0x0c is the game tick (types/game.h
+                                    // game_time; same global src/items and src/devices use)
 extern float k_impact_damage_scale_table[]; // 0x0069c54c, indexed by material type per
                                              // types/physics.h's k_physics_impact_damage_scale
                                              // UNSURE note
@@ -179,7 +182,7 @@ uint8_t object_physics_check_impact_damage(uint32_t *self_object_index, uint32_t
             // last_seat_change_tick (types/units.h): a unit that just dismounted from this very
             // object within the last 90 ticks is never hurt by it.
             if (*self_object_index == *(uint32_t *)((uint8_t *)candidate_obj + 0x32c) &&
-                *(int32_t *)((uint8_t *)game_time_globals + 0x0c) <=
+                *(int32_t *)((uint8_t *)game_time + 0x0c) <=
                     (int32_t)(*(uint32_t *)((uint8_t *)candidate_obj + 0x330) + 0x5a)) {
                 return 1;
             }
@@ -214,16 +217,16 @@ uint8_t object_physics_check_impact_damage(uint32_t *self_object_index, uint32_t
 
             memset(&dd, 0, sizeof(dd));
             dd.flags |= 1;
-            dd.unknown_4c = -1;
+            dd.material_type = -1;
             dd.location_cluster_index = -1;
             dd.multiplier = 1.0f;
             dd.random_blend = 1.0f;
             dd.responsible_player = responsible_obj->owner_linkage;
             dd.responsible_object = responsible;
-            if (responsible_obj->unknown_0c4 != 0xffffffff) {
-                dd.responsible_object = responsible_obj->unknown_0c4;
+            if (responsible_obj->creator_object != 0xffffffff) {
+                dd.responsible_object = responsible_obj->creator_object;
             }
-            dd.team_index = responsible_obj->name_index; // matches local_ac64 = *(short *)
+            dd.team_index = responsible_obj->owner_team; // matches local_ac64 = *(short *)
                                                           // (responsible_obj + 0xb8); see header
             dd.epicentre = candidate_obj->bounding_center;
             dd.origin = *self_center;   // still the ORIGINAL self object, not responsible_obj
@@ -245,7 +248,7 @@ uint8_t object_physics_check_impact_damage(uint32_t *self_object_index, uint32_t
             dd.responsible_player = -1;
             dd.responsible_object = -1;
             dd.location_cluster_index = -1;
-            dd.unknown_4c = -1;
+            dd.material_type = -1;
             dd.multiplier = 1.0f;
             dd.random_blend = k_impact_damage_scale_table[
                 *(int16_t *)((uint8_t *)candidate_tag + 0x298)];

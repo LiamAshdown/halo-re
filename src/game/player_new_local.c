@@ -20,6 +20,7 @@
 //   -1 for "any free slot" via plain datum_new); stack -> machine_index, local_player_index,
 //   identifier_record.
 //   // blam-cc: EAX -> requested_handle
+// reconciled: R35 player.unknown_15c (datum_index) -> int32 last_remote_update_id (-1 = none)
 
 #include "tags.h"
 #include "memory.h"
@@ -98,7 +99,7 @@ datum_index player_new_local(datum_index requested_handle, uint32_t machine_inde
         p->unknown_e8 = -1; // UNSURE: unknown_e8 is int32_t; player_new_network sets it to 0
 
         if (local_player_index == -1) {
-            p->unknown_15c = (datum_index)-1;
+            p->last_remote_update_id = -1;
             p->unknown_160 = (datum_index)-1;
             player_update_queue_create(&p->update_history);
             // The 0xc-dword run types/game.h already documents as "the local constructor

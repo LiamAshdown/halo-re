@@ -12,21 +12,22 @@
 // UNSURE: the map table's element type (name at +0x00, a validity byte at +0x08) is not
 // otherwise attested in this batch, so no struct is declared for it; FUN_00625430 (foreign) is
 // read as a case-insensitive substring test from its two string-shaped arguments.
+// reconciled: R81 0x00712dcc/0x00712dd0 -> interface.h map_list_entry *map_list / int32_t map_list_count (network_map_list_entry dropped: name -> path, valid -> cache_file_exists)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "interface.h"
 #include "networking.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
 
-// network_map_list_entry is types/networking.h (0x0c; folded out of this file by the
-// review pass, it is the element type of the installed_map_table global).
+// The element type is types/interface.h map_list_entry (0x0c), the table interface.h calls map_list.
 
-extern int32_t installed_map_count; // 0x00712dd0
-extern network_map_list_entry *installed_map_table; // 0x00712dcc, stride 0xc
+extern int32_t map_list_count; // 0x00712dd0
+extern map_list_entry *map_list; // 0x00712dcc, stride 0xc
 
 extern int32_t FUN_00625430(char *map_name, char *filter); // foreign, UNSURE: case-insensitive substring test
 extern void chimera__console_out(const char *format, ...); // 0x496b50
@@ -49,17 +50,17 @@ void map_list_matching_substring(uint32_t argument_count, char **arguments) // b
     }
     chimera__console_out("Maps matching substring \"%s\" :", filter);
     i = 0;
-    while (i < installed_map_count) {
+    while (i < map_list_count) {
         char line[256];
         int32_t on_line = 0;
 
         line[0] = 0;
-        while (i < installed_map_count && on_line < 2) {
-            network_map_list_entry *entry = &installed_map_table[i];
-            if (entry->valid != 0 && entry->name != 0 &&
-                (filter[0] == 0 || FUN_00625430(entry->name, filter) != 0)) {
+        while (i < map_list_count && on_line < 2) {
+            map_list_entry *entry = &map_list[i];
+            if (entry->cache_file_exists != 0 && entry->path != 0 &&
+                (filter[0] == 0 || FUN_00625430(entry->path, filter) != 0)) {
                 char formatted[64];
-                sprintf(formatted, "%-36s ", entry->name);
+                sprintf(formatted, "%-36s ", entry->path);
                 strcat(line, formatted);
                 on_line = on_line + 1;
             }

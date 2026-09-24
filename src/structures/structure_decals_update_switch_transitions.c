@@ -26,7 +26,7 @@
 #include "cache.h"
 #include "structures.h"
 
-extern ScenarioStructureBSP *structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 extern uint8_t *runtime_decals_suppressed;  // 0x0072278c, this module; UNSURE, see types/structures.h
 extern Scenario *global_scenario;           // 0x00746f8c, game.h/hs.h (read, not owned)
 extern uint8_t decals_enabled_by_blood_setting; // 0x006893f5, foreign (decal system toggle)
@@ -55,7 +55,7 @@ void structure_decals_update_switch_transitions(uint32_t *switch_group_a, uint32
     int32_t bit_index = 0;
     int16_t slot;
 
-    if (structure_bsp->runtime_decals.count == 0) {
+    if (global_structure_bsp->runtime_decals.count == 0) {
         *runtime_decals_suppressed = 0;
         return;
     }
@@ -67,7 +67,7 @@ void structure_decals_update_switch_transitions(uint32_t *switch_group_a, uint32
     for (slot = 0; ; slot = slot + 1) {
         uint32_t saved_seed = cseries_random_seed;
         ScenarioStructureBSPCluster *cluster =
-            (ScenarioStructureBSPCluster *)((uint8_t *)structure_bsp->clusters.pointer + cluster_offset);
+            (ScenarioStructureBSPCluster *)((uint8_t *)global_structure_bsp->clusters.pointer + cluster_offset);
         int cluster_has_decals = cluster->first_decal_index != (uint16_t)-1 && cluster->decal_count != 0;
         int entering; // calls decal_evict_object_decals when true
         int leaving;  // runs the decal spawn loop when true
@@ -101,7 +101,7 @@ void structure_decals_update_switch_transitions(uint32_t *switch_group_a, uint32
                 int32_t i;
                 for (i = 0; i < cluster->decal_count; i = i + 1) {
                     ScenarioStructureBSPRuntimeDecal *decal =
-                        (ScenarioStructureBSPRuntimeDecal *)structure_bsp->runtime_decals.pointer +
+                        (ScenarioStructureBSPRuntimeDecal *)global_structure_bsp->runtime_decals.pointer +
                         cluster->first_decal_index + i;
                     ScenarioDecalPalette *decal_palette =
                         (ScenarioDecalPalette *)global_scenario->decal_palette.pointer;

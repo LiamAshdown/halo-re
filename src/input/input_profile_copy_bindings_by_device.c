@@ -15,6 +15,7 @@
 // copying it from src; kept exactly as decompiled.
 // register convention: category in EAX (in_EAX), destination profile in EDX (in_EDX), source
 // profile in EBX (unaff_EBX)
+// reconciled: R21 saved_player_profile unknown_12f/131/93c[6]/954/955/960[2] -> look_inverted, look_inverted_driving, forward_rate..mouse_strafe_scale, mouse_look_x/y_sensitivity, gamepad_axis_scale_x/y
 
 #include "tags.h"
 #include "memory.h"
@@ -54,10 +55,10 @@ uint8_t input_profile_copy_bindings_by_device(int32_t category, saved_player_pro
         memcpy(dst->mouse_button_bindings, src->mouse_button_bindings, sizeof(dst->mouse_button_bindings));
         memcpy(dst->mouse_axis_bindings, src->mouse_axis_bindings, sizeof(dst->mouse_axis_bindings));
 
-        dst->unknown_93c[4] = src->unknown_93c[4];
-        dst->unknown_93c[5] = src->unknown_93c[5];
-        dst->unknown_954 = src->unknown_954;
-        dst->unknown_955 = src->unknown_955;
+        dst->mouse_forward_scale = src->mouse_forward_scale;
+        dst->mouse_strafe_scale = src->mouse_strafe_scale;
+        dst->mouse_look_x_sensitivity = src->mouse_look_x_sensitivity;
+        dst->mouse_look_y_sensitivity = src->mouse_look_y_sensitivity;
         dst->master_volume = src->master_volume;
         dst->effects_volume = src->effects_volume;
         dst->music_volume = src->music_volume;
@@ -66,10 +67,10 @@ uint8_t input_profile_copy_bindings_by_device(int32_t category, saved_player_pro
         memcpy(dst->mouse_button_bindings, src->mouse_button_bindings, sizeof(dst->mouse_button_bindings));
         memcpy(dst->mouse_axis_bindings, src->mouse_axis_bindings, sizeof(dst->mouse_axis_bindings));
 
-        dst->unknown_93c[4] = src->unknown_93c[4];
-        dst->unknown_93c[5] = src->unknown_93c[5];
-        dst->unknown_954 = src->unknown_954;
-        dst->unknown_955 = src->unknown_955;
+        dst->mouse_forward_scale = src->mouse_forward_scale;
+        dst->mouse_strafe_scale = src->mouse_strafe_scale;
+        dst->mouse_look_x_sensitivity = src->mouse_look_x_sensitivity;
+        dst->mouse_look_y_sensitivity = src->mouse_look_y_sensitivity;
     } else if (category == 1) {
         dst->gamepad_action_buttons[0][0] = src->gamepad_action_buttons[0][0];
         dst->gamepad_action_buttons[0][1] = src->gamepad_action_buttons[0][1];
@@ -80,21 +81,21 @@ uint8_t input_profile_copy_bindings_by_device(int32_t category, saved_player_pro
         memcpy(dst->gamepad_pov_bindings[0], src->gamepad_pov_bindings[0],
                sizeof(dst->gamepad_pov_bindings[0]));
         dst->gamepads[0] = src->gamepads[0];
-        dst->unknown_960[0] = src->unknown_960[0];
-        dst->unknown_960[1] = src->unknown_960[1];
+        dst->gamepad_axis_scale_x = src->gamepad_axis_scale_x;
+        dst->gamepad_axis_scale_y = src->gamepad_axis_scale_y;
         dst->gamepad_rate_a[0] = src->gamepad_rate_a[0];
         dst->gamepad_rate_b[0] = src->gamepad_rate_b[0];
     } else if (category == -1) {
         return 0;
     }
 
-    dst->unknown_93c[0] = src->unknown_93c[0];
-    dst->unknown_93c[1] = src->unknown_93c[1];
-    dst->unknown_93c[2] = src->unknown_93c[2];
-    dst->unknown_93c[3] = src->unknown_93c[3];
+    dst->forward_rate = src->forward_rate;
+    dst->strafe_rate = src->strafe_rate;
+    dst->look_x_rate = src->look_x_rate;
+    dst->look_y_rate = src->look_y_rate;
     dst->look_sensitivity = src->look_sensitivity;
-    dst->unknown_12f = src->unknown_12f;
-    dst->unknown_131 = src->unknown_131;
+    dst->look_inverted = src->look_inverted;
+    dst->look_inverted_driving = src->look_inverted_driving;
     dst->unknown_132 = src->unknown_132;
     return 1;
 }

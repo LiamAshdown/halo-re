@@ -17,16 +17,18 @@
 //   want_side, ignore_permission, out_result.
 //   // blam-cc: EAX -> start_edge, ECX -> context, stack -> start, distance, want_side,
 //   //   ignore_permission, out_result
+// reconciled: R79 0x006b8d78 ai_path_permission_table -> physics.h breakable_surface_globals *breakable_surface_state (the code took the global's ADDRESS; the binary loads the pointer: mov edx,ds:0x6b8d78) and 0x0069e8d8 local_command_list_generation -> global_structure_bsp_index; the row is active[bsp index] (intact breakable surfaces)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "physics.h"
 
 extern double sqrt(double x); // FSQRT
 extern double fabs(double x); // ABS
-extern uint32_t ai_path_permission_table;    // 0x006b8d78, see path_find_run.c
-extern int16_t local_command_list_generation; // 0x0069e8d8, see path_find_run.c
+extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78, physics.h
+extern int16_t global_structure_bsp_index; // 0x0069e8d8, physics.h (the structure BSP index)
 
 // blam-cc: EAX -> start_edge, ECX -> context, stack -> start, distance, want_side,
 //   ignore_permission, out_result
@@ -36,7 +38,7 @@ uint8_t path_find_trace_cluster_boundary(int32_t start_edge, void *context, real
                                          uint8_t want_side, uint8_t ignore_permission, real_point2d *out_result)
 {
     uint8_t *bsp = *(uint8_t **)((uint8_t *)context + 0xb4);
-    uint8_t *permission_row = (uint8_t *)&ai_path_permission_table + local_command_list_generation * 0x20 + 1;
+    uint8_t *permission_row = (uint8_t *)breakable_surface_state->active[global_structure_bsp_index];
     int32_t prev_edge = -1;
     int32_t closed_edge = -1;
     uint8_t *edge_table = *(uint8_t **)(bsp + 0x4c);

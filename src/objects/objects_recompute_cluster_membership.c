@@ -20,6 +20,7 @@
 //   and the object's bounding_radius) and bsp3d_node_find_leaf's own apparent 64-bit return here
 //   (versus the plain int32_t leaf index it returns at its other, established call site) are
 //   preserved as raw EAX/EDX halves rather than resolved to named fields.
+// reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
 
 #include "tags.h"
 #include "memory.h"
@@ -27,9 +28,9 @@
 #include "objects.h"
 
 extern data_array *object_data; // 0x008603b0
-extern void *global_globals; // 0x00746f90
-extern uint8_t *structure_bsp_globals; // 0x00746f9c
-extern uint32_t unknown_00746f98; // 0x00746f98, UNSURE: foreign module
+extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
+extern uint8_t *global_structure_bsp; // 0x00746f9c
+extern uint32_t global_structure_collision_bsp; // 0x00746f98, UNSURE: foreign module
 
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, this batch
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30
@@ -64,25 +65,25 @@ void objects_recompute_cluster_membership(void)
             obj->location_cluster_index = -1;
             header->cluster_index = -1;
 
-            probe = bsp3d_node_find_leaf(global_globals, &obj->bounding_center, 0);
+            probe = bsp3d_node_find_leaf(global_collision_bsp, &obj->bounding_center, 0);
             // PHASE-4 REVIEW: this lookup previously read
-            // `*(int16_t *)(structure_bsp_globals + 0xe4 + leaf * 0x10 + 8)`, which is two
-            // bugs at once -- structure_bsp_globals+0xe4 holds a POINTER to the
+            // `*(int16_t *)(global_structure_bsp + 0xe4 + leaf * 0x10 + 8)`, which is two
+            // bugs at once -- global_structure_bsp+0xe4 holds a POINTER to the
             // ScenarioStructureBSPLeaf array, and the leaf index is masked with 0x7fffffff
             // before it is scaled. objdump confirms both (`mov ecx,[ebx+0xe4]` /
             // `and eax,0x7fffffff` / `shl eax,4` / `movsx eax,WORD PTR [eax+ecx+0x8]`).
             leaf = (int32_t)probe;
             cluster = (leaf == -1) ? -1 :
-                *(int16_t *)(*(uint8_t **)(structure_bsp_globals + 0xe4) +
+                *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) +
                              (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
 
             if (cluster == -1) {
                 int32_t probed_leaf;
                 int32_t probed_leaf_valid;
                 collision_bsp_query_sphere_init(0, (uint32_t)(probe >> 32), obj->bounding_radius, &probed_leaf, &probed_leaf_valid);
-                leaf = (probed_leaf_valid == 0) ? (int32_t)bsp3d_node_find_leaf(global_globals, &obj->bounding_center, 0) : probed_leaf;
+                leaf = (probed_leaf_valid == 0) ? (int32_t)bsp3d_node_find_leaf(global_collision_bsp, &obj->bounding_center, 0) : probed_leaf;
                 cluster = (leaf == -1) ? -1 :
-                *(int16_t *)(*(uint8_t **)(structure_bsp_globals + 0xe4) +
+                *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) +
                              (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
             }
 

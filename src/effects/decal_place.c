@@ -61,6 +61,7 @@
 //  * Every UNSURE above compounds; this file should be treated as a structural skeleton with the
 //    control flow and the (well-evidenced) final decal-record writes preserved, not as a
 //    trustworthy bit-exact reconstruction of the projection/flood-fill math itself.
+// reconciled: R77 0x0069c632 uint8 decal_place_scratch_flag -> int16 rasterizer_vertex_buffer_lock_state (the store at 0x450581 is a WORD)
 
 #include "tags.h"
 #include "memory.h"
@@ -79,11 +80,11 @@
 extern tag_instance *tag_instances;      // 0x0087bc14
 extern data_array *decal_data;           // 0x0087abe4
 extern random_seed effect_random_seed;   // 0x00719cd4
-extern int32_t *game_tick_globals;       // 0x006f1d6c, +0x0c current tick
+extern int32_t *game_time;       // 0x006f1d6c, +0x0c current tick
 extern const decal_type_parameters k_decal_type_parameters[4]; // 0x006573f8
 extern cache *decal_geometry_cache;       // 0x0071d1c0, UNSURE: the cache_allocate_block target
 extern uint8_t *decal_geometry_vtable_owner; // 0x0071d1bc, UNSURE: `(**(code**)(*this+0x30))()`
-extern uint8_t decal_place_scratch_flag; // 0x0069c632, UNSURE: cleared at the end of every pass
+extern int16_t rasterizer_vertex_buffer_lock_state; // 0x0069c632, rasterizer.h; WORD stores only (R77)
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand,
@@ -303,7 +304,7 @@ void decal_place(datum_index decal_tag_index, uint8_t *placement, real_vector3d 
                         self->position.x = *(float *)(placement + 0x18);
                         self->position.y = *(float *)(placement + 0x1c);
                         self->position.z = *(float *)(placement + 0x20);
-                        self->creation_game_time = game_tick_globals[3]; // +0xc
+                        self->creation_game_time = game_time[3]; // +0xc
                         self->sequence_index = (uint8_t)sequence_index;
                         self->unknown_1b = 0; // UNSURE: media-mapped surface index, see original
                         self->unknown_1a = 0;
@@ -339,7 +340,7 @@ void decal_place(datum_index decal_tag_index, uint8_t *placement, real_vector3d 
             }
         }
 
-        decal_place_scratch_flag = 0;
+        rasterizer_vertex_buffer_lock_state = 0; // mov WORD PTR ds:0x69c632,0 (0x450581)
         // UNSURE: the next iteration's decal_tag_index/two_sided_pass come from
         // `*(uint*)(tag+10)` and `*tag & 1` in the original -- their real fields are not
         // established; modeled here as "no second pass" to keep the loop from running forever

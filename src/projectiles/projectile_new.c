@@ -41,6 +41,8 @@
 //   ScenarioStructureBSPFogPalette[fog].fog.tag_id -> Fog.flags bit 0) has no home in any header
 //   yet; written here as raw offsets against the confirmed struct layouts rather than folded
 //   into types/scenario.h.
+// reconciled: R28 object.unknown_0c4 -> datum_index creator_object (same offset 0xc4)
+// reconciled: R26 object +0x009 raw byte store -> network_state_009 (object.unknown_008 is now split into uint8 unknown_008 / network_state_009 / unknown_00a[2])
 
 #include "tags.h"
 #include "memory.h"
@@ -88,11 +90,11 @@ uint8_t projectile_new(uint32_t object_index) // blam-cc: stack -> object_index
     proj->state = 0;
     proj->material_response_index = -1;
 
-    // ignore_object_index: walk object.unknown_0c4 (the creating object) up its own
+    // ignore_object_index: walk object.creator_object (the creating object) up its own
     // parent_object chain to find the root -- i.e. the firing unit.
     root = (datum_index)k_datum_index_none;
-    if (obj->unknown_0c4 != (uint32_t)k_datum_index_none) {
-        datum_index cursor = (datum_index)obj->unknown_0c4;
+    if (obj->creator_object != (uint32_t)k_datum_index_none) {
+        datum_index cursor = (datum_index)obj->creator_object;
         do {
             root = cursor;
             cursor = ((object_header *)object_data->data)[cursor & 0xffff].data->parent_object;
@@ -171,7 +173,7 @@ uint8_t projectile_new(uint32_t object_index) // blam-cc: stack -> object_index
         proj->network_state_valid = 0;
         proj->network_baseline_index = 0;
         proj->network_sequence = 0;
-        *((uint8_t *)obj + 9) = 0; // UNSURE: unnamed byte inside object.unknown_008
+        obj->network_state_009 = 0; // 0x4bda48 (projectile_new)
     }
 
     return 1;

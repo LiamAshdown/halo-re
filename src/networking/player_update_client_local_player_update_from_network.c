@@ -40,6 +40,7 @@
 // invented, per the task's "no invented behaviour" rule.
 // UNSURE: decode_context's exact shape; see the "message delta protocol" section of
 // out/phase4/networking_types_notes.md for why no struct is declared for it here.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
@@ -92,6 +93,7 @@ void player_update_client_local_player_update_from_network(int32_t *decode_conte
     iter.data = player_data;
     iter.next_index = 0;
     iter.index = k_datum_index_none;
+    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
     candidate = (player *)data_iterator_next(&iter);
     if (candidate == 0) {
         return;

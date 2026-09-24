@@ -10,6 +10,7 @@
 // already-formatted text as the sole vararg; data_delete_all (0x4d0580) takes ESI ->
 // terminal_messages (0x006b2f00), per src/ai/ai_reset_for_new_map.c's register convention.
 // register convention: AL -> clear_first, stack -> format, ... // blam-cc: AL -> clear_first
+// reconciled: R01 comment: 0x0087ac06 console_verbosity -> debug_log_level
 
 #include "tags.h"
 #include "memory.h"
@@ -36,7 +37,7 @@ extern void write_to_error_file(char *message, char with_timestamp); // 0x449450
 // blam-cc: AL -> clear_first
 // Optionally clears the terminal's message history first (when clear_first is set and the
 // terminal has been initialized), then formats a printf-style message and prints it via
-// console_printf_verbose (so it only actually shows once console_verbosity > 3), additionally
+// console_printf_verbose (so it only actually shows once debug_log_level > 3), additionally
 // logging it (with a trailing CRLF) to debug.txt when error-file logging is enabled.
 void console_print_error_va(uint8_t clear_first, const char *format, ...)
 {

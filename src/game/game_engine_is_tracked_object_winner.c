@@ -8,11 +8,13 @@
 // register convention: a team id in EBX (unaff_EBX, matched against every player's own team);
 // no stack parameters.
 //   // blam-cc: unaff_EBX -> team
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data;                     // 0x0087a480
 extern game_engine_definition *current_game_engine; // 0x006f1d20
@@ -29,6 +31,7 @@ uint32_t game_engine_is_tracked_object_winner(int32_t team)
     iter.data = player_data;
     iter.next_index = 0;
     iter.index = (datum_index)0xffffffff;
+    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     for (element = data_iterator_next(&iter); element != 0; element = data_iterator_next(&iter)) {
         player *p = (player *)element;

@@ -10,7 +10,7 @@
 //   global_globals->multiplayer_information.pointer->flag.tag_id (types/tags.h
 //   GlobalsMultiplayerInformation::flag), role = -1; it zeroes and defaults the whole struct, so
 //   this function only overlays position and name_index on top. types/objects.h
-//   object_type_definitions[12] (0x0069bfdc) and object_type_definition::unknown_10 (0x10);
+//   object_type_definitions[12] (0x0069bfdc) and object_type_definition::network_delta_message_type (0x10);
 //   types/tags.h Object tag's own object_type field (offset 0) read out of the flag tag's raw
 //   data, matched against _object_type_weapon (2). object_mark_pending_delete (0x4f50f0,
 //   already committed) matches the trailing header-flags dance exactly (clear
@@ -18,8 +18,10 @@
 //   already set).
 // register convention: position (real_point3d *) in EAX, name_index (uint16_t) on the stack.
 //   // blam-cc: EAX -> position, stack -> name_index
-// UNSURE: the exact significance of object_type_definition::unknown_10 != -1 as a "use role 0
+// UNSURE: the exact significance of object_type_definition::network_delta_message_type != -1 as a "use role 0
 //   instead of 3" gate (host-only) is not recovered beyond this literal transcription.
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
+// reconciled: R38 object_type_definition +0x0a/+0x0c/+0x0e/+0x10 -> scenario_placement_offset/scenario_palette_offset/scenario_placement_size/network_delta_message_type (int32, -1 = none)
 
 #include "tags.h"
 #include "memory.h"
@@ -62,12 +64,12 @@ datum_index game_engine_ctf_create_flag_object(real_point3d *position, uint16_t 
 
     object_placement_data_initialize(&placement, flag_tag, (datum_index)0xffffffff);
     placement.position = *position;
-    placement.name_index = (int16_t)name_index;
+    placement.owner_team = (int16_t)name_index;
 
     role = 3;
     if (network_game_mode == 2) {
         int16_t object_type = *(int16_t *)tag_instances[(uint32_t)placement.definition_tag & 0xffff].data;
-        if (*(int32_t *)((uint8_t *)object_type_definitions[object_type] + 0x10) != -1) {
+        if (object_type_definitions[object_type]->network_delta_message_type != -1) {
             role = 0;
         }
     }

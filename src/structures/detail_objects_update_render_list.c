@@ -25,6 +25,7 @@
 //   iteration is what fixes it for every subsequent call).
 // UNSURE: rasterizer_detail_objects_begin (called with no visible arguments -- possibly a "begin detail object frame"
 //   marker) is not examined.
+// reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
 
 #include "tags.h"
 #include "memory.h"
@@ -33,7 +34,7 @@
 #include "structures.h"
 
 extern player_globals *player_globals_ptr; // 0x0087a478, game.h
-extern ScenarioStructureBSP *structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 extern detail_object_globals *detail_objects; // 0x0072277c, this module
 extern int16_t render_camera_render_window_index; // 0x007c3108, this module (read, not owned)
 extern real_point3d render_camera_position; // 0x007c3114, this module (read, not owned)
@@ -60,13 +61,13 @@ void detail_objects_update_render_list(void)
     detail_object_frame *frame = &detail_objects->frames[0];
     int16_t cell_x, cell_y, cell_z;
 
-    if (player_globals_ptr->unknown_0c != 1 || render_camera_render_window_index == -1) {
+    if (player_globals_ptr->local_player_count != 1 || render_camera_render_window_index == -1) {
         return;
     }
 
-    detail_data = (structure_bsp->detail_objects.count == 0)
+    detail_data = (global_structure_bsp->detail_objects.count == 0)
         ? (ScenarioStructureBSPDetailObjectData *)0
-        : (ScenarioStructureBSPDetailObjectData *)structure_bsp->detail_objects.pointer;
+        : (ScenarioStructureBSPDetailObjectData *)global_structure_bsp->detail_objects.pointer;
 
     cell_x = (int16_t)(int32_t)lrint((double)(render_camera_position.x * 0.125f - 0.5f));
     cell_y = (int16_t)(int32_t)lrint((double)(render_camera_position.y * 0.125f - 0.5f));

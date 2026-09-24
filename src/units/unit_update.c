@@ -37,6 +37,8 @@
 // exact argument counts/types Ghidra shows at each call site, which is not always consistent
 // with how the same function is called elsewhere in this module; each call site is preserved
 // literally rather than reconciled against a single guessed prototype.
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
+// reconciled: R04 0x006f1d20 int32_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 // PHASE-4 REVIEW CORRECTIONS (all five were field-identity errors found by re-deriving every
 // puVar4 access from the Ghidra block; puVar4 is a `uint *`, so puVar4[i] is byte offset i*4
@@ -52,6 +54,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
@@ -64,7 +67,7 @@ extern real_vector3d *global_origin3d_pointer;  // types/math.h spells it real_p
                                                 // same three floats, read here as a vector   // 0x00696714
 extern real_vector3d *global_forward3d_pointer;  // 0x00696718
 extern real_vector3d *global_up3d_and_neighbors_pointer; // 0x006966f8, UNSURE identity
-extern int32_t network_predicted_state_flag;   // 0x006f1d20, UNSURE shape ("DAT_006f1d20 == 0" gate)
+extern game_engine_definition *current_game_engine;   // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern char *unit_base_animation_state_names[6]; // 0x0069fde4 (PTR_s_stand_0069fdec is &names[2])
 extern uint8_t network_toggle_0087abc2;   // 0x0087abc2, DAT_0087abc2
 extern data_array *player_data;                  // 0x0087a480
@@ -215,7 +218,7 @@ uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
                 (obj->vitality_flags & _object_health_frozen_bit) == 0) {
                 object *driver_obj = ((object_header *)object_data->data)[unit->driver_unit_index & 0xffff].data;
                 unit_data *driver = (unit_data *)((uint8_t *)driver_obj + k_unit_data_offset);
-                obj->name_index = driver_obj->name_index; // puVar4+0x2e -> object 0xb8
+                obj->owner_team = driver_obj->owner_team; // puVar4+0x2e -> object 0xb8
                 network_grenade_pending = 1;
                 if (driver->controlling_player != (datum_index)-1 ||
                     (driver->animation_state != 0x1b && driver->animation_state != 0x1a)) {
@@ -229,7 +232,7 @@ uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
                 object *gunner_obj = ((object_header *)object_data->data)[unit->gunner_unit_index & 0xffff].data;
                 unit_data *gunner = (unit_data *)((uint8_t *)gunner_obj + k_unit_data_offset);
                 if (!network_grenade_pending) {
-                    obj->name_index = gunner_obj->name_index;
+                    obj->owner_team = gunner_obj->owner_team;
                 }
                 if (gunner->controlling_player != (datum_index)-1 ||
                     (gunner->animation_state != 0x1b && gunner->animation_state != 0x1a)) {
@@ -257,7 +260,7 @@ uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
                 unit->unknown_37c = (v < 0.0f) ? 0.0f : v;
             } else {
                 float delta;
-                if (network_predicted_state_flag == 0 || unit->unknown_422 == 0 || unit->unknown_422 != 1) {
+                if (current_game_engine == 0 || unit->unknown_422 == 0 || unit->unknown_422 != 1) {
                     delta = 0.008333334f;
                 } else {
                     datum_index weapon = unit_get_weapon_object_index(unit_index);

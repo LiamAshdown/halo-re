@@ -69,11 +69,17 @@ typedef char chk_pp_gact[(OFF(saved_player_profile, gamepad_action_buttons) == 0
 typedef char chk_pp_gaxis[(OFF(saved_player_profile, gamepad_axis_bindings) == 0x33a) ? 1 : -1];
 typedef char chk_pp_gpov[(OFF(saved_player_profile, gamepad_pov_bindings) == 0x53a) ? 1 : -1];
 typedef char chk_pp_93a[(OFF(saved_player_profile, unknown_93a) == 0x93a) ? 1 : -1];
-typedef char chk_pp_93c[(OFF(saved_player_profile, unknown_93c) == 0x93c) ? 1 : -1];
-typedef char chk_pp_954[(OFF(saved_player_profile, unknown_954) == 0x954) ? 1 : -1];
+typedef char chk_pp_look_inv[(OFF(saved_player_profile, look_inverted) == 0x12f) ? 1 : -1];
+typedef char chk_pp_look_inv_drv[(OFF(saved_player_profile, look_inverted_driving) == 0x131) ? 1 : -1];
+typedef char chk_pp_93c[(OFF(saved_player_profile, forward_rate) == 0x93c) ? 1 : -1];
+typedef char chk_pp_mouse_strafe[(OFF(saved_player_profile, mouse_strafe_scale) == 0x950) ? 1 : -1];
+typedef char chk_pp_954[(OFF(saved_player_profile, mouse_look_x_sensitivity) == 0x954) ? 1 : -1];
+typedef char chk_pp_955[(OFF(saved_player_profile, mouse_look_y_sensitivity) == 0x955) ? 1 : -1];
 typedef char chk_pp_rate_a[(OFF(saved_player_profile, gamepad_rate_a) == 0x956) ? 1 : -1];
 typedef char chk_pp_rate_b[(OFF(saved_player_profile, gamepad_rate_b) == 0x95a) ? 1 : -1];
-typedef char chk_pp_960[(OFF(saved_player_profile, unknown_960) == 0x960) ? 1 : -1];
+typedef char chk_pp_960[(OFF(saved_player_profile, gamepad_axis_scale_x) == 0x960) ? 1 : -1];
+typedef char chk_pp_964[(OFF(saved_player_profile, gamepad_axis_scale_y) == 0x964) ? 1 : -1];
+typedef char chk_pp_credits_bit[(_saved_player_profile_end_credits_reached_bit == 0x0004) ? 1 : -1];
 typedef char chk_pp_968[(OFF(saved_player_profile, unknown_968) == 0x968) ? 1 : -1];
 typedef char chk_pp_width[(OFF(saved_player_profile, screen_width) == 0xa68) ? 1 : -1];
 typedef char chk_pp_height[(OFF(saved_player_profile, screen_height) == 0xa6a) ? 1 : -1];
@@ -98,7 +104,7 @@ typedef char chk_pp_fc2[(OFF(saved_player_profile, unknown_fc2) == 0xfc2) ? 1 : 
 typedef char chk_pp_sport[(OFF(saved_player_profile, server_port) == 0x1002) ? 1 : -1];
 typedef char chk_pp_cport[(OFF(saved_player_profile, client_port) == 0x1004) ? 1 : -1];
 typedef char chk_pp_gamepads[(OFF(saved_player_profile, gamepads) == 0x1108) ? 1 : -1];
-typedef char chk_pp_gamepad_key[(0x1108 + OFF(controls_gamepad_record, device_key) == 0x1314) ? 1 : -1];
+typedef char chk_pp_gamepad_key[(0x1108 + OFF(controls_gamepad_record, product_guid) == 0x1314) ? 1 : -1];
 typedef char chk_pp_gamepad_2[(0x1108 + 2 * sizeof(controls_gamepad_record) == 0x1548) ? 1 : -1];
 typedef char chk_pp_tail[(OFF(saved_player_profile, unknown_1988) == 0x1988) ? 1 : -1];
 
@@ -112,7 +118,7 @@ typedef char chk_pp_copy_pads[(OFF(saved_player_profile, unknown_1988) - OFF(sav
 // saved_player_profile_file / game_variant_file
 typedef char chk_ppf_crc[(OFF(saved_player_profile_file, checksum) == 0x1ffc) ? 1 : -1];
 typedef char chk_gvf_crc[(OFF(game_variant_file, checksum) == 0x98) ? 1 : -1];
-typedef char chk_gv_flags[(OFF(game_variant, unknown_94) == 0x94) ? 1 : -1];
+typedef char chk_gv_flags[(OFF(game_variant, variant_flags) == 0x94) ? 1 : -1];
 typedef char chk_gv_name_end[(OFF(game_variant, name) + 23 * 2 == 0x2e) ? 1 : -1];
 typedef char chk_vwr_variant[(OFF(variant_write_request, variant) == 0x04) ? 1 : -1];
 

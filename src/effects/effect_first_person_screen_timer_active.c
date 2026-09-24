@@ -26,7 +26,7 @@
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0,
     // established; blam-cc: ECX -> object_index, stack -> type_mask
-extern int32_t *game_tick_globals; // 0x006f1d6c; +0x0c is the current game tick
+extern int32_t *game_time; // 0x006f1d6c; +0x0c is the current game tick
 
 // UNSURE overall (see file header): whether object index 0 has flag bit 2 of the byte at +0x106
 // set, and if so, whether the linked index at +0x41c (offset by 0x1e ticks) is still within
@@ -45,7 +45,7 @@ uint8_t effect_first_person_screen_timer_active(void)
 
         if (linked != -1) {
             linked = linked + 0x1e;
-            if (linked < game_tick_globals[3]) {
+            if (linked < game_time[3]) {
                 return 1;
             }
         }

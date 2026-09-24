@@ -135,6 +135,10 @@ typedef enum saved_player_profile_flags {
     _saved_player_profile_default_bit = 0x0001, // built by player_profile_initialize
     _saved_player_profile_flag_bit1 = 0x0002,   // 0x53b9b0 only deletes profiles with this set,
                                                 // UNSURE (device-generated profile?)
+    _saved_player_profile_end_credits_reached_bit = 0x0004, // or BYTE [0x712ef4],4 when the
+                                                // end credits load (0x4c8d45 in
+                                                // credits_load_directly_for_endgame, 0x481415);
+                                                // 0x4c69c0 tests it to unlock console context 0x20
     k_saved_player_profile_default_index_shift = 8 // high byte: default profile index
 } saved_player_profile_flags;
 
@@ -303,10 +307,12 @@ typedef struct saved_player_profile {
     uint8_t joystick_set;          // 0x12d 0 by default; UNSURE, name from types/interface.h
     uint8_t look_sensitivity;      // 0x12e 3 by default; interface maps clamp(x - 1, 0, 9)
                                    //       through its 80 / 40 look-rate tables
-    uint8_t unknown_12f;           // 0x12f 0, or 1 for default profile 1; copied to the live
-                                   //       settings +0x858 (invert look?, UNSURE)
+    uint8_t look_inverted;         // 0x12f 0, or 1 for default profile 1; 0x496060 copies it
+                                   //       to the live settings +0x858, which negates look_y
+                                   //       after every input update (0x48ea21..0x48ea46)
     uint8_t unknown_130;           // 0x130 0
-    uint8_t unknown_131;           // 0x131 0; copied to the live settings +0x859
+    uint8_t look_inverted_driving; // 0x131 0; copied to the live settings +0x859 (0x4963a0):
+                                   //       negates look_y while 0x48fd60 reports a driver seat
     uint8_t unknown_132;           // 0x132 never written
     uint8_t unknown_133;           // 0x133 0
     int16_t keyboard_bindings[k_control_keyboard_key_count];
@@ -327,17 +333,27 @@ typedef struct saved_player_profile {
     int16_t gamepad_pov_bindings[k_control_gamepad_count][k_control_gamepad_pov_count][k_control_gamepad_pov_direction_count];
                                    // 0x53a action per pov hat direction
     uint8_t unknown_93a[2];        // 0x93a never written
-    float unknown_93c[6];          // 0x93c defaults 1.0, 1.0, 0.1885, 0.1885, 128.0, 128.0;
-                                   //       copied verbatim to the live settings +0x810
-    uint8_t unknown_954;           // 0x954 3; interface maps it through its 0.1..4.0 table
-    uint8_t unknown_955;           // 0x955 3; same table
+    float forward_rate;            // 0x93c 1.0 by default; 0x496060 copies 0x93c..0x950
+                                   //       verbatim to the live settings +0x810..+0x824:
+                                   //       digital throttle_x step per tick
+    float strafe_rate;             // 0x940 1.0; digital throttle_y step (settings +0x814)
+    float look_x_rate;             // 0x944 0.1885; digital look_x step (settings +0x818)
+    float look_y_rate;             // 0x948 0.1885; digital look_y step (settings +0x81c)
+    float mouse_forward_scale;     // 0x94c 128.0; mouse delta divisor for forward/backward
+                                   //       bindings (settings +0x820)
+    float mouse_strafe_scale;      // 0x950 128.0; mouse delta divisor for left/right bindings
+                                   //       (settings +0x824)
+    uint8_t mouse_look_x_sensitivity; // 0x954 3; slider index: 0x496060 maps min(x, 9) through
+                                   //       its 0.1..4.0 table into the live settings +0x828
+    uint8_t mouse_look_y_sensitivity; // 0x955 3; same table, into settings +0x82c
     uint8_t gamepad_rate_a[k_control_gamepad_count];
                                    // 0x956 3 each; per gamepad, copied with the gamepad block by
                                    //       0x53b700; interface maps it through its 80 table
     uint8_t gamepad_rate_b[k_control_gamepad_count];
                                    // 0x95a 3 each; same, through its 40 table
     uint8_t unknown_95e[2];        // 0x95e never written
-    float unknown_960[2];          // 0x960 0.75 each; copied to the live settings +0x830
+    float gamepad_axis_scale_x;    // 0x960 0.75; copied to the live settings +0x830 (0x496316)
+    float gamepad_axis_scale_y;    // 0x964 0.75; copied to the live settings +0x834
     uint8_t unknown_968[0x100];    // 0x968 never written by this module
     // video (0xa68 .. 0xb78), player_profile_set_default_video_options 0x53b000
     int16_t screen_width;          // 0xa68 800 by default; 640 on the low-end / 0x007196f0 paths;
@@ -395,9 +411,9 @@ typedef struct saved_player_profile {
     // gamepads (0x1108 .. 0x1988)
     controls_gamepad_record gamepads[k_control_gamepad_count];
                                    // 0x1108 stride 0x220, a nonzero first word marks a used slot;
-                                   //       device_key[0..3] is the instance guid 0x53b500 passes
+                                   //       product_guid is the instance guid 0x53b500 passes
                                    //       to input_device_default_profile_tag_find, and
-                                   //       0x53b6b0 matches device_key[4] then [0..3]
+                                   //       0x53b6b0 matches product_instance then product_guid
     uint8_t unknown_1988[0x674];   // 0x1988 never written by this module
 } saved_player_profile;            // size 0x1ffc
 
@@ -407,7 +423,7 @@ typedef struct saved_player_profile_file {
     uint32_t checksum;             // 0x1ffc crc32 (seed -1) of profile
 } saved_player_profile_file;       // size 0x2000
 
-// blam.lst on disk (types/game.h game_variant is the body; its unknown_94 word carries the
+// blam.lst on disk (types/game.h game_variant is the body; its variant_flags word (+0x94) carries the
 // same default bit 0 and default index in the high byte as saved_player_profile::flags,
 // written by saved_game_create_custom_variant and playlist_profile_create_default_profiles_
 // on_disk). Like blam.sav the file is 0x2000 bytes: saved_game_create_slot (0x53c8a0),
@@ -623,7 +639,7 @@ typedef struct control_binding_descriptor {
 // globals this module reads but does not own
 // ---------------------------------------------------------------------------
 // 0x006ac548  void *map_memory                   (cache)      the game-state arena lives here
-// 0x006ac900  char profile_directory[0x104]      (cache)
+// 0x006ac900  char profile_directory[0x105]      (cache)
 // 0x006a81b8  cache_file_current_header.crc32    (cache)      header map_checksum
 // 0x006894b8  int16_t local_player_count          (main/ui)   header local_player_count
 // 0x006b0b80  game globals *, +0x0e difficulty    (game)

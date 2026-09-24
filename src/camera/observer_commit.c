@@ -20,6 +20,7 @@
 //   - observers[i].camera replaces the separate observers_camera alias of 0x006ac6d0
 // Faithful oddity: the cluster store at 0x448bcd is a dword move from a stack slot whose high
 // half is stale, so observer_camera.unknown_12 receives garbage; modelled as a WORD store.
+// reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
 
 #include "tags.h"
 #include "memory.h"
@@ -30,8 +31,8 @@
 #include "camera.h"
 
 extern observer observers[1];               // 0x006ac65c
-extern ModelCollisionGeometryBSP *global_globals; // 0x00746f90, the structure collision BSP (types/structures.h)
-extern ScenarioStructureBSP *structure_bsp;       // 0x00746f9c
+extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90, the structure collision BSP (types/structures.h)
+extern ScenarioStructureBSP *global_structure_bsp;       // 0x00746f9c
 
 extern double sqrt(double x); // FSQRT
 extern double fabs(double x); // FABS
@@ -118,15 +119,15 @@ void observer_commit(int16_t local_player_index)
     camera->position.y = position.y - distance * o->parameters.forward.j;
     camera->position.z = position.z - distance * o->parameters.forward.k;
 
-    leaf_index = (int32_t)bsp3d_node_find_leaf(0, global_globals, (real_point3d *)&camera->position);
+    leaf_index = (int32_t)bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)&camera->position);
     if (leaf_index != -1) {
         int16_t new_cluster =
-            ((ScenarioStructureBSPLeaf *)structure_bsp->leaves.pointer)[leaf_index & 0x7fffffff].cluster;
+            ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf_index & 0x7fffffff].cluster;
 
         if (new_cluster != -1) {
             if (new_cluster != camera->cluster_index) {
                 predicted_resource_list_touch(
-                    &((ScenarioStructureBSPCluster *)structure_bsp->clusters.pointer)[new_cluster]
+                    &((ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer)[new_cluster]
                         .predicted_resources);
             }
             camera->leaf_index = leaf_index;

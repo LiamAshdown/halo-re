@@ -15,6 +15,7 @@
 // its fields); the two ushort fields OR'd with 0xfff at +8/+10 are not otherwise documented.
 // UNSURE: DAT_00719720, DAT_006f1d6c[0..2] are console/chat-adjacent state this module does not
 // otherwise name.
+// reconciled: R33 game_time_globals.unknown_00 -> initialized (uint8 at +0x00, same byte)
 
 // Phase-4 review: 0x006b145c and 0x006f1d6c are pointers (objdump 0x497c26, 0x497cfa); the event
 // functions return a byte handled flag through a byte out parameter.
@@ -90,7 +91,7 @@ void widget_close(widget_instance *widget)
         ui_split_screen == 0) {
         ui_pause_depth = ui_pause_depth - 1;
         if (ui_pause_depth == 0 && game_time->paused != 0) {
-            if (game_time->unknown_00 != 0) {
+            if (game_time->initialized != 0) {
                 game_time->active = 1;
             }
             game_time->paused = 0;

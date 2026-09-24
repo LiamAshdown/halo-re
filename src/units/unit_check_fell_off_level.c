@@ -4,16 +4,18 @@
 // evidence: object.flags/location_cluster_index/position (0x010/0x09c/0x05c, objects.h);
 //   0x006f1d20 is "the network / predicted-state flag every damage and seat path branches on"
 //   (types/units.h globals).
+// reconciled: R04 0x006f1d20 int32_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
 
 extern data_array *object_data;  // 0x008603b0
-extern int32_t network_predicted_state_flag;  // 0x006f1d20, types/units.h
+extern game_engine_definition *current_game_engine;  // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 
 extern void object_delete(uint32_t object_index); // 0x4f5bd0, UNSURE exact signature
 
@@ -23,7 +25,7 @@ void unit_check_fell_off_level(uint32_t object_index)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
 
-    if (network_predicted_state_flag == 0 &&
+    if (current_game_engine == 0 &&
         ((obj->flags & 0x200000) != 0 || obj->location_cluster_index == -1)) {
         if (obj->position.z < -2000.0f) {
             object_delete(object_index);

@@ -15,6 +15,8 @@
 // UNSURE: field names inside hs_damage_request are inferred purely from which offsets are
 // written and by whom (position appears twice, at +0x1c and +0x28); bsp3d_node_find_leaf's own meaning
 // (an index into some table read at global_matg_multiplayer+0xe4, stride 0x10) is not recovered.
+// reconciled: R06 global_matg_multiplayer (0x00746f9c) -> ScenarioStructureBSP *global_structure_bsp; the +0xe4 read is the leaves block POINTER (0x488a0a/0x488ad0: mov ecx,[bsp+0xe4]; and eax,0x7fffffff; cluster = WORD [ptr + leaf*0x10 + 8]), the old code indexed the struct itself
+// reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
 
 #include "tags.h"
 #include "memory.h"
@@ -26,8 +28,8 @@ extern int32_t bsp3d_node_find_leaf(void); // UNSURE: zero visible args; module 
 extern void damage_apply_area_effect(void *request, uint32_t param_2); // effects module, 0x4edd30
 
 extern Scenario *global_scenario;      // 0x00746f8c
-extern void *global_globals;           // 0x00746f90, UNSURE
-extern uint8_t *global_matg_multiplayer; // 0x00746f9c
+extern ModelCollisionGeometryBSP *global_collision_bsp;           // 0x00746f90
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (formerly global_matg_multiplayer)
 
 // hs_damage_request: defined in types/hs.h (foreign-module slice; was a local TYPES-GAP copy)
 
@@ -60,7 +62,7 @@ void hs_damage_apply_at_location(int16_t location_index, uint32_t damage_effect)
         damage_apply_area_effect(&request, 0xffffffff);
         return;
     }
-    request.sound_index = *(uint16_t *)(global_matg_multiplayer + 0xe4 + impulse * 0x10 + 8);
+    request.sound_index = ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[impulse & 0x7fffffff].cluster;
     damage_apply_area_effect(&request, 0xffffffff);
 }
 

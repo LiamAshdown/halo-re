@@ -14,12 +14,14 @@
 // data_iterator_next per iteration).
 // register convention: ESI = team_index_desired (int8_t, implicit).
 //   // blam-cc: ESI -> team_index_desired
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480, stride 0x200 (types/game.h `player`)
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module
@@ -35,6 +37,7 @@ uint32_t sv_players_find_by_team_index_desired(int8_t team_index_desired)
     iterator.data = player_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
     p = (player *)data_iterator_next(&iterator);
     while (p != 0) {

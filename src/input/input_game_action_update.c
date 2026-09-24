@@ -43,6 +43,7 @@
 //     0 unless their hold count is exactly 1, so they only ever report the first frame.
 // UNSURE: the gamepad axis direction local ([esp+0x34]) is never initialized by the binary;
 //   it only matters for the octant-0 guard byte above, and is zeroed here.
+// reconciled: R19 player_control_settings unknown ranges named from the input.h field map (keyboard, mouse_button/mouse_axis, gamepad_button, gamepad_action_button, gamepad_axis, gamepad_pov, forward_rate..mouse_strafe_scale, mouse_look_x/y_sensitivity, gamepad_axis_scale_x/y, gamepad_rate_80/40, look_inverted/_driving); same offsets and widths
 
 #include "tags.h"
 #include "memory.h"
@@ -112,10 +113,10 @@ void input_game_action_update(void)
     player_control_settings *settings = &input_globals.settings[0];
     local_player_input_state *state = &input_globals.states[0];
     uint8_t *buttons = (uint8_t *)state->buttons;  // hold counts compare unsigned (cmp/ja/jbe)
-    const float *digital_rates = (const float *)settings->unknown_810; // +0x810: [0] forward,
+    const float *digital_rates = &settings->forward_rate; // +0x810: [0] forward,
                                                    // [1] strafe, [2] look x, [3] look y,
                                                    // [4] mouse forward scale, [5] mouse strafe scale
-    const float *gamepad_axis_scales = (const float *)settings->unknown_830; // +0x830 x, +0x834 y
+    const float *gamepad_axis_scales = &settings->gamepad_axis_scale_x; // +0x830 x, +0x834 y
     local_player_input_state previous;             // [esp+0x54]
     joystick_state *slot_states[4];                // [esp+0x44]
     mouse_state *mouse;
@@ -268,19 +269,19 @@ void input_game_action_update(void)
             break;
         case _input_action_look_up:
             state->look_is_analog = 0;
-            state->look_y = input_mouse_acceleration_evaluate(settings->sensitivity_01_b, delta < 0 ? -delta : delta);
+            state->look_y = input_mouse_acceleration_evaluate(settings->mouse_look_y_sensitivity, delta < 0 ? -delta : delta);
             break;
         case _input_action_look_down:
             state->look_is_analog = 0;
-            state->look_y = -input_mouse_acceleration_evaluate(settings->sensitivity_01_b, delta < 0 ? -delta : delta);
+            state->look_y = -input_mouse_acceleration_evaluate(settings->mouse_look_y_sensitivity, delta < 0 ? -delta : delta);
             break;
         case _input_action_look_left:
             state->look_is_analog = 0;
-            state->look_x = input_mouse_acceleration_evaluate(settings->sensitivity_01_a, delta < 0 ? -delta : delta);
+            state->look_x = input_mouse_acceleration_evaluate(settings->mouse_look_x_sensitivity, delta < 0 ? -delta : delta);
             break;
         case _input_action_look_right:
             state->look_is_analog = 0;
-            state->look_x = -input_mouse_acceleration_evaluate(settings->sensitivity_01_a, delta < 0 ? -delta : delta);
+            state->look_x = -input_mouse_acceleration_evaluate(settings->mouse_look_x_sensitivity, delta < 0 ? -delta : delta);
             break;
         default:
             if (buttons[action] > frames) {
@@ -393,22 +394,22 @@ void input_game_action_update(void)
                 break;
             case _input_action_look_up:
                 state->look_is_analog = 1;
-                look_pitch_rate_setting[0] = settings->rate_40[slot];
+                look_pitch_rate_setting[0] = settings->gamepad_rate_40[slot];
                 state->look_y = (float)magnitude * 0.000244140625f;
                 break;
             case _input_action_look_down:
                 state->look_is_analog = 1;
-                look_pitch_rate_setting[0] = settings->rate_40[slot];
+                look_pitch_rate_setting[0] = settings->gamepad_rate_40[slot];
                 state->look_y = -((float)magnitude * 0.000244140625f);
                 break;
             case _input_action_look_left:
                 state->look_is_analog = 1;
-                look_yaw_rate_setting[0] = settings->rate_80[slot];
+                look_yaw_rate_setting[0] = settings->gamepad_rate_80[slot];
                 state->look_x = (float)magnitude * 0.000244140625f;
                 break;
             case _input_action_look_right:
                 state->look_is_analog = 1;
-                look_yaw_rate_setting[0] = settings->rate_80[slot];
+                look_yaw_rate_setting[0] = settings->gamepad_rate_80[slot];
                 state->look_x = -((float)magnitude * 0.000244140625f);
                 break;
             default:
@@ -500,8 +501,8 @@ void input_game_action_update(void)
     }
 
     // +0x858 look inverted, +0x859 look inverted while piloting (see input_should_invert_look)
-    if (settings->unknown_858 != 0 ||
-        (settings->unknown_859 != 0 && input_should_invert_look(0))) {
+    if (settings->look_inverted != 0 ||
+        (settings->look_inverted_driving != 0 && input_should_invert_look(0))) {
         state->look_y = -state->look_y;
     }
 }

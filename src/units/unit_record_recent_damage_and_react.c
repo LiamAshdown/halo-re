@@ -5,7 +5,7 @@
 // rewrite confidence: 0.25
 // evidence: types/units.h unit_recent_damage (0x430, four of them, tick/damage/
 //   responsible_unit/responsible_player); types/memory.h data_array (0x0087a480 player_data,
-//   0x008603b0 object_data); types/objects.h object.vitality_flags (0x106), object.name_index
+//   0x008603b0 object_data); types/objects.h object.vitality_flags (0x106), object.owner_team
 //   (0xb8, UNSURE -- see below).
 // register convention: this unit's index in EAX, the rest on the stack.
 //   // blam-cc: in_EAX -> unit_index, param_1 -> damage_amount, param_2 -> response_index,
@@ -14,17 +14,21 @@
 // UNSURE: param_4 and param_6 are typed `float` by Ghidra because the compiler's `-NaN`
 //   (0xffffffff reinterpreted as a float) is how the sentinel "no datum" value is spelled once
 //   it shares a register/stack slot with a genuine float; both are really `datum_index`.
-// UNSURE: `*(short *)(unit_object + 0xb8)` lands exactly on `object.name_index`
+// UNSURE: `*(short *)(unit_object + 0xb8)` lands exactly on `object.owner_team`
 //   (types/objects.h), but is used here as a 0..9 team index into a 10x10 friendly-fire bitmask
 //   at 0x006b0b84+0xa4 -- kept as a raw offset rather than asserting it really is the scenario
 //   name index for a live unit.
 // UNSURE: the tag-side offsets 0x324/0x328 (selected by response_index == 9) and the responsible
 //   object's own +0x218 (controlling_player-shaped) test are not named; see the #if 0 block.
+// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
+// reconciled: R04 0x006f1d20 int32_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
@@ -32,8 +36,8 @@
 extern data_array *object_data;     // 0x008603b0
 extern data_array *player_data;     // 0x0087a480
 extern tag_instance *tag_instances; // 0x0087bc14
-extern hs_game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/hs.h)
-extern int32_t network_predicted_state_flag; // 0x006f1d20
+extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
+extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern uint8_t friendly_fire_matrix[100 / 8 + 1]; // 0x006b0b84 + 0xa4, UNSURE exact shape
 
 extern void ai_communication_broadcast(int32_t kind, float responsible_object, uint32_t a, uint32_t b, uint32_t c, uint32_t d, int32_t e); // 0x42d340, UNSURE signature
@@ -44,7 +48,7 @@ void unit_record_recent_damage_and_react(uint32_t unit_index, float damage_amoun
 {
     object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
-    int32_t current_tick = game_time->current_tick;
+    int32_t current_tick = game_time->game_time;
     uint8_t merged = 0;
 
     unit_recent_damage *slot = unit->recent_damage;
@@ -98,9 +102,9 @@ void unit_record_recent_damage_and_react(uint32_t unit_index, float damage_amoun
         return;
     }
 
-    int16_t self_team = *(int16_t *)((uint8_t *)unit_obj + 0xb8); // UNSURE: object.name_index reused as team
+    int16_t self_team = *(int16_t *)((uint8_t *)unit_obj + 0xb8); // UNSURE: object.owner_team reused as team
     uint8_t hostile;
-    if (network_predicted_state_flag == 0) {
+    if (current_game_engine == 0) {
         if ((self_team < 0) || (9 < self_team) || (team_index < 0) || (9 < team_index)) {
             goto broadcast_check;
         }
@@ -151,7 +155,7 @@ broadcast_check:
         object *target_obj = ((object_header *)object_data->data)[broadcast_datum & 0xffff].data;
 
         if ((target_obj->vitality_flags & _object_health_frozen_bit) == 0) {
-            int32_t tick = game_time->current_tick;
+            int32_t tick = game_time->game_time;
             if ((unit->ai_communication_tick == -1) || (unit->ai_communication_tick + 0x78 < tick)) {
                 unit->ai_communication_count = 0;
             }

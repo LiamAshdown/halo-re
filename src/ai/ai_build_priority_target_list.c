@@ -15,6 +15,7 @@
 //   data_iterator_next() call per outer iteration; preserved literally.
 // register convention: plain __cdecl, one stack argument.
 //   // blam-cc: stack -> out_list
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
@@ -75,6 +76,7 @@ void ai_build_priority_target_list(ai_priority_target_list *out_list)
         iterator.data = encounter_data;
         iterator.next_index = 0;
         iterator.index = (datum_index)k_datum_index_none;
+        iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
         while (ai_globals_ptr->actors_valid != 0) {
             encounter *enc;

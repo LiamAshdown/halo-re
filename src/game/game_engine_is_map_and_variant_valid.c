@@ -12,15 +12,17 @@
 // UNSURE: map_list_find_known_map_index is called here (and at its other call site) with no
 // visible arguments; presumably it consumes strrchr's return value via a register this
 // decompilation does not surface.
+// reconciled: R81 0x00712dcc/0x00712dd0 -> interface.h map_list_entry *map_list / int32_t map_list_count (network_map_list_entry dropped: name -> path, valid -> cache_file_exists)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "interface.h"
 #include <string.h>
 
-extern int32_t multiplayer_map_count;   // 0x00712dd0, UNSURE identity
-extern uint8_t *multiplayer_map_table;  // 0x00712dcc, UNSURE identity, stride 0xc, enabled flag at +8
+extern int32_t map_list_count; // 0x00712dd0, interface.h
+extern map_list_entry *map_list; // 0x00712dcc, interface.h, stride 0xc
 
 extern char *_strrchr(const char *str, int32_t ch); // 0x623bc0
 extern int32_t map_list_find_known_map_index(void); // 0x494ff0
@@ -34,8 +36,8 @@ uint32_t game_engine_is_map_and_variant_valid(const char *map_path, const char *
     _strrchr(map_path, '\\');
     map_index = map_list_find_known_map_index();
 
-    if (map_index != -1 && -1 < map_index && map_index < multiplayer_map_count &&
-        multiplayer_map_table[8 + map_index * 0xc] != 0) {
+    if (map_index != -1 && -1 < map_index && map_index < map_list_count &&
+        map_list[map_index].cache_file_exists != 0) {
         if (variant_name != 0) {
             return (uint32_t)game_engine_get_variant_by_name(variant_name, 0); // UNSURE: name elided by Ghidra
                 // by Ghidra (shown as a literal 0), modeled with variant_name forwarded instead

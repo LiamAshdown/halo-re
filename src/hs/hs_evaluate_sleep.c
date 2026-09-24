@@ -25,8 +25,11 @@
 // VERIFIED: the child walk has no k_datum_index_none guards on child0/child1 -- retail
 // dereferences both unconditionally, which is safe only because the compiler guarantees sleep and
 // sleep_until always have at least one argument.
+// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
 #include "tags.h"
 #include "memory.h"
+#include "math.h"
+#include "game.h"
 #include "hs.h"
 
 extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address);
@@ -36,8 +39,8 @@ extern void hs_thread_return(int32_t value, uint32_t thread_index); // this modu
 extern data_array *hs_thread_data; // 0x0087a470
 extern data_array *hs_syntax_data; // 0x0087a474
 
-// hs_game_time_globals: defined in types/hs.h (foreign-module slice; was a local TYPES-GAP copy)
-extern hs_game_time_globals *game_time; // 0x006f1d6c
+// game_time_globals: defined in types/game.h (R32 replaced hs.h's partial game_time_globals)
+extern game_time_globals *game_time; // 0x006f1d6c
 
 // Evaluate handler shared by 'sleep' and 'sleep_until'. See the UNSURE note above: the overall
 // shape (seed a default 30-tick sleep on the first call, then keep re-arming the thread's
@@ -93,7 +96,7 @@ void hs_evaluate_sleep(uint32_t unused_param_1, uint32_t thread_index, char firs
 
     if (first != 0) {
         *condition = 0;
-        *start_tick = game_time->current_tick;
+        *start_tick = game_time->game_time;
         *stage = 0;
         *ticks = 0x1e;
         *timeout_ticks = -1;
@@ -119,14 +122,14 @@ void hs_evaluate_sleep(uint32_t unused_param_1, uint32_t thread_index, char firs
     }
 
     if (*condition == 0 &&
-        (*timeout_ticks == -1 || game_time->current_tick < *start_tick + *timeout_ticks)) {
+        (*timeout_ticks == -1 || game_time->game_time < *start_tick + *timeout_ticks)) {
         /* re-evaluate the condition into the condition slot on every wake */
         hs_thread_push(condition_node, thread_index, condition);
         ticks_value = *ticks;
         if (ticks_value < 1) {
             ticks_value = 1;
         }
-        wake_tick = ticks_value + game_time->current_tick;
+        wake_tick = ticks_value + game_time->game_time;
         thread_record->wake_tick = wake_tick;
         if (*timeout_ticks == -1) {
             return;

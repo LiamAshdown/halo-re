@@ -20,6 +20,7 @@
 // 16.0; guessed to be a 0..N random-float generator by analogy with random_real elsewhere in
 // this module. UNSURE: which Object-derived tag target_object_index's definition_tag really
 // points at (assumed Unit, since Unit.unit_flags sits at the base Object's end offset 0x17c).
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
@@ -29,6 +30,7 @@
 #include "units.h"
 #include "game.h"
 #include "ai.h"
+#include <stdint.h>
 
 extern game_time_globals *game_time; // 0x006f1d6c
 extern data_array *prop_data;        // 0x008802c0
@@ -66,6 +68,7 @@ int32_t ai_scan_for_recent_combat_activity(uint8_t hard_difficulty)
     iterator.data = prop_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     p = data_iterator_next(&iterator);
 
     while (p != 0) {

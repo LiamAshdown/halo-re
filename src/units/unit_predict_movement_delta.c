@@ -12,24 +12,28 @@
 //   prediction delta. player_data's unit-handle offset (+0x34) matches types/units.h.
 // UNSURE: data_iterator_next's exact argument binding (modeled on the local/xor "iterator"
 //   pattern Ghidra shows) and biped_integrate_movement's third (output flags) parameter.
+// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
+// reconciled: R16 the local iterator (int32 next_index, no signature) is now the 0x10-byte types/memory.h data_iterator, signature stored as at 0x55cce1
 
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include <stdint.h>
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *player_data;     // 0x0087a480, types/units.h
-extern hs_game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/hs.h)
+extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
 extern real_vector3d *global_forward3d_pointer; // 0x00696718
 extern real_point3d *global_origin3d_pointer;   // 0x00696714
 
 extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void * data_iterator_next(data_iterator *iterator); // 0x4d05d0, UNSURE exact signature
+extern void * data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: EDI -> iterator
 extern void biped_integrate_movement(uint32_t object_index, uint8_t *working_copy,
                                       uint8_t *output_flags); // 0x55bea0, this batch
 extern void *memcpy(void *dst, const void *src, uint32_t n);
@@ -43,26 +47,27 @@ extern void *memcpy(void *dst, const void *src, uint32_t n);
 uint32_t unit_predict_movement_delta(real_vector3d *out_position_delta, real_vector3d *out_forward_delta,
                                       real_vector3d *out_up_delta, float time_fraction)
 {
-    if (game_time->budget_flag_2 != 0) {
+    if (game_time->paused != 0) {
         return 0;
     }
 
     {
-        // UNSURE: the iterator's own layout; modeled generically as a data_iterator seeded over
-        // player_data, matching the xor'd "identifier" idiom Ghidra shows.
-        struct { data_array *data; int32_t next_index; datum_index index; } iterator;
+        // The inline data_iterator over player_data (0x55ccc1..0x55cce1: data, WORD next_index
+        // = 0, index = -1, signature = data ^ 'iter').
+        data_iterator iterator;
         void *entry;
 
         iterator.data = player_data;
         iterator.next_index = 0;
         iterator.index = k_datum_index_none;
+        iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-        entry = data_iterator_next((data_iterator *)&iterator);
+        entry = data_iterator_next(&iterator);
         if (entry == 0) {
             return 0;
         }
         while (*(int16_t *)((uint8_t *)entry + 2) == -1) {
-            entry = data_iterator_next((data_iterator *)&iterator);
+            entry = data_iterator_next(&iterator);
             if (entry == 0) {
                 return 0;
             }

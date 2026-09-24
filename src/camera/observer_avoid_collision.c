@@ -23,6 +23,7 @@
 // UNSURE: the call to scenario_location_get_water_and_weather also loads EBX = position (0x448d9f); 0x53ed60 itself does
 // not read EBX, its callees 0x53ec30 / 0x53ed10 were not checked.
 // UNSURE: why the probe point is position pulled back along -forward by radius_scale + distance.
+// reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
 
 #include "tags.h"
 #include "memory.h"
@@ -32,8 +33,8 @@
 #include "structures.h"
 #include "camera.h"
 
-extern ModelCollisionGeometryBSP *global_globals; // 0x00746f90, the structure collision BSP (types/structures.h)
-extern ScenarioStructureBSP *structure_bsp;       // 0x00746f9c
+extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90, the structure collision BSP (types/structures.h)
+extern ScenarioStructureBSP *global_structure_bsp;       // 0x00746f9c
 
 extern double fabs(double x); // FABS
 
@@ -69,11 +70,11 @@ void observer_avoid_collision(real_vector3d *forward, real_point3d *position, re
     collision_result collision;
 
     unobstructed_fraction = 1.0f;
-    location.leaf_index = (int32_t)bsp3d_node_find_leaf(0, global_globals, position);
+    location.leaf_index = (int32_t)bsp3d_node_find_leaf(0, global_collision_bsp, position);
     if (location.leaf_index == -1) {
         location.cluster_index = -1;
     } else {
-        location.cluster_index = (int16_t)((ScenarioStructureBSPLeaf *)structure_bsp->leaves.pointer)
+        location.cluster_index = (int16_t)((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)
             [location.leaf_index & 0x7fffffff].cluster;
     }
     use_alternate_mask = scenario_location_get_water_and_weather(&location, 0);

@@ -42,6 +42,7 @@
 // `network_screen_point` (types/networking.h) is the same packed {x,y} int16 pair used for
 // game_window_top_left/game_window_bottom_right in network_bandwidth_graph_instance_update_
 // layout, but this is a different pair of globals (0x7c1254/0x7c1258) with no confirmed owner.
+// reconciled: R36 0x006e4738..0x006e4744 is ColorARGB text_color, alpha first: externs renamed r/g/b/a -> alpha/red/green/blue by address (same bytes)
 
 #include "tags.h"
 #include "memory.h"
@@ -62,10 +63,10 @@ extern uint8_t renderer_feature_flag_69c680; // 0x0069c680, foreign render modul
 extern network_screen_point network_stats_overlay_text_rect_min; // 0x007c1254, UNSURE owner
 extern network_screen_point network_stats_overlay_text_rect_max; // 0x007c1258, UNSURE owner
 
-extern float renderer_text_color_r; // 0x006e4738
-extern float renderer_text_color_g; // 0x006e473c
-extern float renderer_text_color_b; // 0x006e4740
-extern float renderer_text_color_a; // 0x006e4744
+extern float renderer_text_color_alpha; // 0x006e4738
+extern float renderer_text_color_red; // 0x006e473c
+extern float renderer_text_color_green; // 0x006e4740
+extern float renderer_text_color_blue; // 0x006e4744
 extern uint16_t renderer_text_color_flags; // 0x006e4748
 extern const char *decimal_format_string; // 0x0065fb30, the literal "%d"
 
@@ -171,10 +172,10 @@ void network_stats_overlay_draw(network_bandwidth_graph *graph)
     device_draw_primitive_up(device, 3, 4, (uint8_t *)graph + 0x44, sizeof(network_graph_vertex));
 
     hud_text_draw_configure(1, -1, 0, 0, 5, 0); // see file header UNSURE note
-    renderer_text_color_r = 1.0f;
-    renderer_text_color_g = 1.0f;
-    renderer_text_color_b = 1.0f;
-    renderer_text_color_a = 1.0f;
+    renderer_text_color_alpha = 1.0f;
+    renderer_text_color_red = 1.0f;
+    renderer_text_color_green = 1.0f;
+    renderer_text_color_blue = 1.0f;
     renderer_text_color_flags = 0;
 
     {

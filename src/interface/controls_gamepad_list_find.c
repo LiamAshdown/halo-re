@@ -11,6 +11,7 @@
 // register convention: EDX the list base (controls_assigned_gamepads or controls_available_gamepads); the record
 // to match in the one recovered stack parameter (param_1).
 //   // blam-cc: list -> EDX
+// reconciled: R20 controls_gamepad_record.device_key[5] -> input_guid product_guid (+0x20c, device_key[0..3]) and int32_t product_instance (+0x21c, device_key[4])
 
 #include "tags.h"
 #include "memory.h"
@@ -40,7 +41,7 @@ int32_t controls_gamepad_list_find(const controls_gamepad_record *entry, control
     }
 
     for (i = 0; i < count; i++) {
-        if (memcmp(list[i].device_key, entry->device_key, sizeof(entry->device_key)) == 0) {
+        if (memcmp(&list[i].product_guid, &entry->product_guid, sizeof(input_guid) + sizeof(int32_t)) /* the five-dword key */ == 0) {
             return i;
         }
     }

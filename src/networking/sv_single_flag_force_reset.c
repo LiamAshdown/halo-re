@@ -25,6 +25,7 @@
 // one of the "pass both on the stack" exceptions sv_kick.c's own header notes, not the more
 // common EAX/stack split.
 // blam-cc: stack -> argument_count, arguments
+// reconciled: R04 0x006f1d20 void * network_engine_callback_block -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
@@ -33,7 +34,7 @@
 #include "networking.h"
 
 extern uint8_t network_single_flag_force_reset_value; // 0x0071c306 (UNSURE name)
-extern void *network_engine_callback_block; // 0x006f1d20
+extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 
 extern void console_command_bool_get_set(uint32_t argument_count, uint8_t *value, char **arguments,
     const char *name); // 0x4e2990, this module
@@ -42,7 +43,7 @@ extern void chimera__console_out(const char *format, ...); // 0x496b50
 // blam-cc: stack -> argument_count, arguments
 // Console command: gets or sets the "single flag force reset" boolean via the shared
 // boolean-command helper; if the stored value actually changes while a game is in progress
-// (network_engine_callback_block != 0), warns that the change only takes effect next game.
+// (current_game_engine != 0), warns that the change only takes effect next game.
 void sv_single_flag_force_reset(uint32_t argument_count, char **arguments)
 {
     uint8_t old_value = network_single_flag_force_reset_value;
@@ -50,7 +51,7 @@ void sv_single_flag_force_reset(uint32_t argument_count, char **arguments)
 
     console_command_bool_get_set(argument_count, &new_value, arguments, "sv_single_flag_force_reset");
 
-    if (new_value != old_value && network_engine_callback_block != 0) {
+    if (new_value != old_value && current_game_engine != 0) {
         chimera__console_out("Game in progress...  Changes will apply to the next game.");
     }
     network_single_flag_force_reset_value = new_value;

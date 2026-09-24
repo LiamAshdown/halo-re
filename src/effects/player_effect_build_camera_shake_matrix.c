@@ -34,7 +34,7 @@
 #include "effects.h"
 
 extern player_effect_globals *player_effect_globals_pointer; // 0x006f1884
-extern int32_t *game_tick_globals;                             // 0x006f1d6c
+extern int32_t *game_time;                             // 0x006f1d6c
 extern real_matrix4x3 *k_render_identity_matrix_ptr;           // 0x0069673c, UNSURE identity
                                     // (see src/game's own "render_ptr_9673c" for this address)
 extern random_seed effect_random_seed;                         // 0x00719cd4
@@ -80,7 +80,7 @@ void player_effect_build_camera_shake_matrix(real_matrix4x3 *out, int16_t local_
             }
             t = t * globals->scripted_shake_intensity;
             globals->scripted_shake_ticks =
-                globals->scripted_shake_ticks - *(int16_t *)((uint8_t *)game_tick_globals + 0x10);
+                globals->scripted_shake_ticks - *(int16_t *)((uint8_t *)game_time + 0x10);
         }
 
         if ((globals->scripted_shake_flags & 1) == 0) {
@@ -141,7 +141,7 @@ void player_effect_build_camera_shake_matrix(real_matrix4x3 *out, int16_t local_
             if ((*(uint32_t *)(self + 0xe8) & 2) == 0) {
                 *out = *k_render_identity_matrix_ptr;
                 *(uint16_t *)(self + 0xe2) = *(uint16_t *)(self + 0xe2) -
-                    *(int16_t *)((uint8_t *)game_tick_globals + 0x10);
+                    *(int16_t *)((uint8_t *)game_time + 0x10);
                 goto write_scale_and_check_impulse;
             }
             t = 1.0f;
@@ -172,7 +172,7 @@ void player_effect_build_camera_shake_matrix(real_matrix4x3 *out, int16_t local_
                 out->position.x = t * *(real *)(self + 0xa4) + axis.i * angle * *(real *)(self + 0x88);
                 out->position.y = t * *(real *)(self + 0xa8) + axis.j * angle * *(real *)(self + 0x8c);
                 *(uint16_t *)(self + 0xe0) = *(uint16_t *)(self + 0xe0) -
-                    *(int16_t *)((uint8_t *)game_tick_globals + 0x10);
+                    *(int16_t *)((uint8_t *)game_time + 0x10);
                 out->position.z = t * *(real *)(self + 0xac) + axis.k * angle * *(real *)(self + 0x90); // UNSURE
                 *out = *base;
             }
@@ -208,7 +208,7 @@ write_scale_and_check_impulse:
                 translate_magnitude + *(real *)(self + 0xd4), rotate_magnitude + *(real *)(self + 0xd8));
 
             *(int16_t *)(self + 0xdc) = *(int16_t *)(self + 0xdc) +
-                *(int16_t *)((uint8_t *)game_tick_globals + 0x10);
+                *(int16_t *)((uint8_t *)game_time + 0x10);
             if (*(int16_t *)(self + 0xdc) > 0) {
                 *(int16_t *)(self + 0xdc) = 0;
                 *(real *)(self + 0xcc) = 0.0f;
@@ -221,7 +221,7 @@ write_scale_and_check_impulse:
         player_effect_random_shake_offset(&second,
             *(real *)(self + 0xd4), *(real *)(self + 0xd8));
         *(int16_t *)(self + 0xe2) = *(int16_t *)(self + 0xe2) -
-            *(int16_t *)((uint8_t *)game_tick_globals + 0x10);
+            *(int16_t *)((uint8_t *)game_time + 0x10);
         matrix4x3_multiply_procedure(out, &second, out);
     }
 }

@@ -361,7 +361,7 @@ typedef struct biped_movement_solver_data {
     uint32_t unknown_94;                // 0x94 neither integrator touches it
     uint32_t unknown_98;                // 0x98 neither integrator touches it
     datum_index result_surface_index;   // 0x9c out: -1 when the solve ended airborne; otherwise
-                                        //      stored in biped_data.unknown_4d4 and the 0x4d3
+                                        //      stored in biped_data.last_ground_object_index and the 0x4d3
                                         //      countdown is reloaded with 60
     uint8_t result_flags;               // 0xa0 out: biped_movement_solver_result_flags
     uint8_t unknown_a1[3];              // 0xa1 alignment
@@ -600,7 +600,9 @@ typedef struct unit_data {
 typedef struct biped_data {
     uint32_t flags;                     // 0x4cc bit 0 = grounded (0x55ecf0 sets it, 0x560800
                                         //       and 0x569b30 test it), bit 1 = jumping
-                                        //       (0x559fa0 sets 0 and 1 together), bit 4 =
+                                        //       (0x559fa0 sets 0 and 1 together; the recorded-
+                                        //       animation update also sets it, or BYTE
+                                        //       [edi+0x4cc],0x2 at 0x44ac86), bit 4 =
                                         //       the 0x55bea0 landing latch, bit 5 (0x20) =
                                         //       the ground-adjust dirty bit 0x55ad00 sets
                                         //       and 0x55ad70 clears
@@ -612,12 +614,15 @@ typedef struct biped_data {
                                         //       unit_update_facing and 0x560410 branch on it
     int8_t unknown_4d3;                 // 0x4d3 countdown reloaded with 0x3c (60 ticks) by the
                                         //       movement solvers every tick that
-                                        //       last_ground_surface_index is refreshed
-    datum_index last_ground_surface_index; // 0x4d4 the supporting surface the movement solver
-                                        //       last reported; both integrators (0x55bea0 and
-                                        //       0x55cfd0) store it and reload the 0x4d3
-                                        //       countdown with 60, or clear it to -1 once that
-                                        //       countdown runs out while airborne
+                                        //       last_ground_object_index is refreshed
+    datum_index last_ground_object_index; // 0x4d4 the object the biped last stood on, as the
+                                        //       movement solver reported it; both integrators
+                                        //       (0x55bea0 and 0x55cfd0) store it and reload the
+                                        //       0x4d3 countdown with 60, or clear it to -1 once
+                                        //       that countdown runs out while airborne. It is an
+                                        //       object datum: the elevator rider sweep in
+                                        //       device_machine_update compares it with the
+                                        //       machine's own object index (0x44b4e4)
     datum_index ground_surface_index;   // 0x4d8 the supporting surface 0x560630 found, -1
                                         //       when airborne; 0x560800 refuses to level the
                                         //       up-vector without it
@@ -721,12 +726,13 @@ typedef struct vehicle_data {
                                         //       bound is the mass point count, not a
                                         //       constant, and 0x570b00 only zeroes the first
                                         //       two dwords of it -- see the notes file
-    uint32_t unknown_508;               // 0x508 zeroed by 0x570b00
-    uint32_t unknown_50c;               // 0x50c zeroed by 0x570b00
-    uint32_t unknown_510;               // 0x510 zeroed by 0x570b00
-    uint32_t unknown_514;               // 0x514 zeroed by 0x570b00
-    uint32_t unknown_518;               // 0x518 zeroed by 0x570b00
-    uint32_t unknown_51c;               // 0x51c zeroed by 0x570b00
+    real_vector3d accumulated_force;    // 0x508 object_physics_tick (0x507840) adds the three
+                                        //       floats into its force sum (fadd 0x507942..
+                                        //       0x507963) and zeroes them (0x507993..); the
+                                        //       mass-point overlap solver accumulates into it;
+                                        //       0x570b00 zeroes it
+    real_vector3d accumulated_torque;   // 0x514 the same for the torque sum (fadd 0x507971..
+                                        //       0x50798d, zeroed 0x5079a5..0x5079b5)
     uint32_t active_marker_mask;        // 0x520 one bit per hover / contact marker; 0x575e30
                                         //       averages the positions of the set ones
     uint8_t unknown_524;                // 0x524 cleared by 0x5724d0 after a film snapshot
@@ -836,8 +842,10 @@ typedef void (*unit_reaction_animation_handler)(void);
 //   0x0087a478 the local player globals; count at +0x0c, handles from +0x04
 //   0x0087a464 data_array *object_list_header_data  (types/hs.h; 0x56bbd0 allocates one)
 //   0x00880360 data_array *actor_data               (ai module, stride 0x724)
-//   0x006f1d6c the game time globals, current tick at +0x0c and seconds per tick at +0x1c
-//   0x006f1d20 the network / predicted-state flag every damage and seat path branches on
+//   0x006f1d6c game.h game_time_globals: current tick at +0x0c, +0x1c leftover_time (the
+//              fractional-tick accumulator, R32; units scales it by 29.999998)
+//   0x006f1d20 game_engine_definition *current_game_engine (game.h, R04): non-NULL when a
+//              multiplayer engine is loaded; every damage and seat path branches on it
 //   0x006f1cf0 the vehicle network update period
 //   0x00719720 the game connection role: 1 = client, 2 = server
 //   0x0071c2d8 the player-control globals whose +0xf48 is the prediction history

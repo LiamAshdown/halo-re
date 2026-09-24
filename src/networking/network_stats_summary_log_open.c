@@ -2,7 +2,7 @@
 // address 0x440670, size 417 bytes
 // name confidence: 0.55   rewrite confidence: 0.55
 // evidence: out/phase4/networking_types_notes.md "bandwidth statistics" section names every
-// global here (network_statistics_level, network_statistics_logging_enabled,
+// global here (debug_log_level, network_statistics_logging_enabled,
 // network_summary_log_needs_open, network_summary_log_file, network_summary_stats); the
 // literal strings "\Game Summary " and the tab-separated header pin the rest.
 // register convention: __cdecl, no arguments.
@@ -26,6 +26,7 @@
 // pointer argument in a different context, which this rewrite does not attempt to reconcile.
 // UNSURE: the exact contents of the fopen mode string at 0x0065fd30 (not captured by string
 // extraction; assumed to be a plain text mode such as "w").
+// reconciled: R01 0x0087ac06 int16 network_statistics_level -> uint8 debug_log_level (the binary reads a byte)
 
 #include "tags.h"
 #include "memory.h"
@@ -36,7 +37,7 @@
 #include <stdio.h>
 #include <time.h>
 
-extern int16_t network_statistics_level;         // 0x0087ac06
+extern uint8_t debug_log_level;                  // 0x0087ac06, byte-wide (R01)
 extern uint8_t network_statistics_logging_enabled; // 0x006f14b4
 extern uint8_t network_summary_log_needs_open;    // 0x006869bc
 extern void *network_summary_log_file;            // 0x006a6140, FILE *
@@ -58,7 +59,7 @@ void network_stats_summary_log_open(void)
     struct tm *tm_now;
     char *base_path;
 
-    if (2 < network_statistics_level && network_statistics_logging_enabled != 0) {
+    if (2 < debug_log_level && network_statistics_logging_enabled != 0) {
         if (network_summary_log_needs_open != 0) {
             time(&now);
             tm_now = localtime(&now);

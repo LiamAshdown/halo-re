@@ -16,6 +16,7 @@
 //   player+0x40/+0x44 have no established names (no types/players.h in this repo yet).
 // register convention: EAX -> actor_index, stack -> target_prop_index.
 //   // blam-cc: EAX -> actor_index, stack -> target_prop_index
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
 
 #include "tags.h"
 #include "memory.h"
@@ -76,7 +77,7 @@ void actor_react_to_seen_target(datum_index actor_index, datum_index target_prop
 
             if (unknown_40 != -1 && (int32_t)game_time->game_time < unknown_44 + 0x5a) {
                 object *player_unit = ((object_header *)object_data->data)[unknown_40 & 0xffff].data;
-                if (teams_are_enemies(player_unit->name_index /* UNSURE, see file header */, self->team) != 0) {
+                if (teams_are_enemies(player_unit->owner_team /* UNSURE, see file header */, self->team) != 0) {
                     actor_target_data_acquire(actor_index, tracked, -1, -1);
                 }
             }

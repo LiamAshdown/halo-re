@@ -1,10 +1,11 @@
 // data_iterator_next  (Ghidra: data_iterator_next, already named)
 // address 0x4d05d0, size 85 bytes
 // name confidence: 0.75   rewrite confidence: 0.75
-// evidence: out/phase4/memory_types_notes.md "data_iterator_next @0x4d05d0 uses EDI[0] =
-// data_array*, EDI[1] = resume index (written as an int16 but read as an int32), EDI[2] = the
-// handle of the element returned."; matches types/memory.h data_iterator exactly.
+// evidence: objdump 0x4d05d0..0x4d0624: reads [edi] (data_array*), reads and writes only
+// WORD [edi+4] (resume index), writes [edi+8] (the handle of the element returned); the +0x0c
+// signature is never touched. Matches types/memory.h data_iterator (0x10 bytes).
 // register convention: data_iterator* in EDI (unaff_EDI).
+// reconciled: R16 data_iterator is 0x10 bytes with an int16 next_index (0x4d05d0 uses only WORD [edi+4])
 
 #include "tags.h"
 #include "memory.h"
@@ -22,7 +23,7 @@ void *data_iterator_next(data_iterator *iterator)
     int16_t *found;
     uint32_t handle_index;
 
-    resume = (int16_t)iterator->next_index;
+    resume = iterator->next_index;
     found = 0;
     element_size = iterator->data->size;
     element = (int16_t *)((int32_t)resume * (int32_t)element_size +

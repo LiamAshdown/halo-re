@@ -10,7 +10,7 @@
 //   object.change_colors (+0x1b8) and object_marker (size 0x6c, node_transform.position at the
 //   tail); src/objects/object_get_node_local_transform.c, object_get_root_object_velocities.c
 //   and object_function_get_value.c establish the three callees' real signatures.
-// register convention: definition_index is a Ghidra-recognized stack parameter; object_index is
+// reconciled: 0x006851fc is a pointer to the opaque-white ColorARGB (0x00655138); one name global_white_argb: definition_index is a Ghidra-recognized stack parameter; object_index is
 //   a Ghidra-recognized stack parameter; attachment_index in AX (in_AX).
 //   // blam-cc: stack -> definition_index, stack -> object_index, in_AX -> attachment_index
 // UNSURE: the change_color branch indexes object.change_colors directly by the raw
@@ -30,7 +30,7 @@ extern data_array *particle_system_data; // 0x0087abd4
 extern data_array *object_data;          // 0x008603b0
 extern tag_instance *tag_instances;      // 0x0087bc14
 extern uint8_t particle_systems_enabled; // 0x0069c566
-extern ColorARGB default_color_block;    // 0x006851fc, opaque white per
+extern const ColorARGB *global_white_argb;    // 0x006851fc, opaque white per
                                     //   src/game/game_engine_koth_submit_hill_marker_geometry.c
 extern const ColorRGB *const *default_effect_color_pointer; // 0x00686b04. Ghidra names the
     // label PTR_DAT_00686b04 and every use in this module is `p = PTR_DAT_00686b04; ... *p`, so
@@ -72,7 +72,7 @@ datum_index particle_system_new_on_marker(uint32_t definition_index, uint32_t ob
             system->scale_function_index = (int16_t)(attachment->primary_scale - 1);
 
             if (attachment->change_color == 0) {
-                system->color = default_color_block;
+                system->color = *global_white_argb;
             } else {
                 system->color.red = obj->change_colors[attachment->change_color].red;
                 system->color.green = obj->change_colors[attachment->change_color].green;

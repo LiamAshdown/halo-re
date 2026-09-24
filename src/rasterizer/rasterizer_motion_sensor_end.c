@@ -13,6 +13,7 @@
 //   disassembly (Ghidra lost the stack argument, EBX and every device call argument).
 // register convention: EBX -> position (float[2], 640x480 screen pixels), stack -> sweep.
 // blam-cc: EBX -> position, stack -> sweep
+// reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
 
 #include "tags.h"
 #include "memory.h"
@@ -193,7 +194,7 @@ void rasterizer_motion_sensor_end(const float *position, float sweep)
     constants[3][0] = 0.0f;           constants[3][1] = 0.0f;           constants[3][2] = 0.0f; constants[3][3] = 1.0f;
     constants[4][0] = 1.0f;           constants[4][1] = 1.0f;           constants[4][2] = 0.0f; constants[4][3] = 1.0f;
     ((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 0xd, &constants[0][0], 5);
-    half_size = (local_player_globals->unknown_0c > 1) ? 32.0f : 42.0f;
+    half_size = (local_player_globals->local_player_count > 1) ? 32.0f : 42.0f;
     set_vertex(&vertices[0], position[0] - half_size, position[1] - half_size, 0xffffffff, 0.0f, 0.0f);
     set_vertex(&vertices[1], position[0] + half_size, position[1] - half_size, 0xffffffff, 1.0f, 0.0f);
     set_vertex(&vertices[2], position[0] + half_size, position[1] + half_size, 0xffffffff, 1.0f, 1.0f);

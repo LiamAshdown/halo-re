@@ -2,7 +2,7 @@
 // address 0x4f4880, size 588 bytes
 // name confidence: 0.75 (still FUN_004f4880 in Ghidra; types/objects.h's
 //   _object_mask_scenery_and_light_fixture comment names this function explicitly, and its
-//   object 0x020 field comment attributes player_visibility_mask writes to it)
+//   object 0x020 field comment used to attribute player_visibility_mask writes to it; see R26 below)
 // rewrite confidence: 0.3
 // evidence: types/objects.h object_type_definition (the same per-type slot_config indexing
 //   scheme as objects_update_control_bindings 0x4f3ba0: unknown_0a at 0x0a, plus two more int16
@@ -23,6 +23,9 @@
 //   shown, in the order shown, without guessing that channel. UNSURE: 0x006b8cb0 (the per-player
 //   "already computed" bitmask) is not documented in types/objects.h; it sits immediately before
 //   the documented object_memory_pool/object_name_list globals.
+// reconciled: R38 object_type_definition +0x0a/+0x0c/+0x0e/+0x10 -> scenario_placement_offset/scenario_palette_offset/scenario_placement_size/network_delta_message_type (int32, -1 = none)
+// reconciled: R26/R79 the bit mask at WORD +0x20 lives in the scenario placement entries, not in the object (object 0x020 is network_position.y); 0x0069e8d8 is the structure BSP index (current_local_player_index -> global_structure_bsp_index), so each bit is 'placement lies in BSP n'
+// reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
 
 #include "tags.h"
 #include "memory.h"
@@ -30,7 +33,7 @@
 #include "cache.h"
 #include "objects.h"
 
-extern int16_t current_local_player_index; // 0x0069e8d8
+extern int16_t global_structure_bsp_index; // 0x0069e8d8, types/physics.h (was current_local_player_index)
 extern Scenario *global_scenario;  // 0x00746f8c, the loaded scenario tag's data. Named and
     // typed as in the 25 src/hs files that use it; object_type_definition's +0x0a and +0x0c
     // are byte offsets into that block, which is why it reads as a bare base address here.
@@ -52,7 +55,7 @@ extern uint32_t object_get_or_build_render_permutation(); // 0x4f9b70 = object_g
     // registers it could not source. The empty parameter list is the convention this module
     // already uses for FUN_00450870 -- one declaration per symbol, no invented signature.
 extern void objects_garbage_collection(void); // 0x4f9c60
-extern void *global_globals; // 0x00746f90
+extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
 extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index); // 0x5013a0, UNSURE: unexamined; a leaf/visibility probe
 
 void objects_update_player_visibility_masks(uint8_t prune) // blam-cc: EAX -> prune
@@ -62,7 +65,7 @@ void objects_update_player_visibility_masks(uint8_t prune) // blam-cc: EAX -> pr
     object_type_definition **def_slot;
     int16_t remaining;
 
-    if (current_local_player_index == -1) {
+    if (global_structure_bsp_index == -1) {
         return;
     }
 
@@ -75,13 +78,13 @@ void objects_update_player_visibility_masks(uint8_t prune) // blam-cc: EAX -> pr
     do {
         object_type_definition *def = *def_slot;
         if (((1 << (type_index & 0x1f)) & _object_mask_scenery_and_light_fixture) != 0 &&
-            def->unknown_0a != -1 && *(int16_t *)((uint8_t *)def + 0xc) != -1) {
-            int16_t stride = *(int16_t *)((uint8_t *)def + 0xe);
-            uint8_t *entries_base = scenario_base + *(int16_t *)((uint8_t *)def + 0xc);
-            int32_t player_bit = current_local_player_index;
-            int32_t *slot = (int32_t *)(scenario_base + def->unknown_0a);
+            def->scenario_placement_offset != -1 && def->scenario_palette_offset != -1) {
+            int16_t stride = def->scenario_placement_size;
+            uint8_t *entries_base = scenario_base + def->scenario_palette_offset;
+            int32_t player_bit = global_structure_bsp_index;
+            int32_t *slot = (int32_t *)(scenario_base + def->scenario_placement_offset);
 
-            if ((object_visibility_computed_mask & (1 << (current_local_player_index & 0x1f))) == 0 &&
+            if ((object_visibility_computed_mask & (1 << (global_structure_bsp_index & 0x1f))) == 0 &&
                 *slot > 0) {
                 int32_t i = 0;
                 int16_t counter = 0;
@@ -107,8 +110,8 @@ void objects_update_player_visibility_masks(uint8_t prune) // blam-cc: EAX -> pr
                         matrix4x3_transform_point(&transformed_origin,
                                                   (real_point3d *)(definition_data + 8),
                                                   &instance_basis);
-                        if (bsp3d_node_find_leaf(global_globals, instance_position, 0) == -1 &&
-                            bsp3d_node_find_leaf(global_globals, &transformed_origin, 0) == -1) {
+                        if (bsp3d_node_find_leaf(global_collision_bsp, instance_position, 0) == -1 &&
+                            bsp3d_node_find_leaf(global_collision_bsp, &transformed_origin, 0) == -1) {
                             *(uint16_t *)(entry + 0x20) &= (uint16_t)~(1 << (player_bit & 0x1f));
                         } else {
                             *(uint16_t *)(entry + 0x20) |= (uint16_t)(1 << (player_bit & 0x1f));
@@ -133,7 +136,7 @@ void objects_update_player_visibility_masks(uint8_t prune) // blam-cc: EAX -> pr
                         if ((name_index == -1 || name_index < 0 || name_index > 0x1ff ||
                              object_name_list[name_index] == k_datum_index_none) &&
                             (entry[4] & 1) == 0 &&
-                            (*(uint16_t *)(entry + 0x20) & (1 << (current_local_player_index & 0x1f))) != 0) {
+                            (*(uint16_t *)(entry + 0x20) & (1 << (global_structure_bsp_index & 0x1f))) != 0) {
                             object_get_or_build_render_permutation(reset_base);
                             objects_garbage_collection();
                             reset_base = entries_base;
@@ -149,7 +152,7 @@ void objects_update_player_visibility_masks(uint8_t prune) // blam-cc: EAX -> pr
         remaining = remaining - 1;
     } while (remaining != 0);
 
-    object_visibility_computed_mask |= (uint16_t)(1 << (current_local_player_index & 0x1f));
+    object_visibility_computed_mask |= (uint16_t)(1 << (global_structure_bsp_index & 0x1f));
 }
 
 #if 0

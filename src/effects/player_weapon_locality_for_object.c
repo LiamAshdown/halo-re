@@ -18,6 +18,7 @@
 //   iterator is modeled here the same way every other data_iterator user in this codebase
 //   builds one (data = player_data, next_index = 0, index = k_datum_index_none) rather than
 //   reverse-engineering that one instruction's effect.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
@@ -25,6 +26,7 @@
 #include "objects.h"
 #include "game.h"
 #include "units.h"
+#include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480
 extern data_array *object_data; // 0x008603b0
@@ -42,6 +44,7 @@ int32_t player_weapon_locality_for_object(datum_index weapon_object_index)
     iterator.data = player_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)0xffffffff;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
     record = (player *)data_iterator_next(&iterator);
     while (record != (player *)0) {

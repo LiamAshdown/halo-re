@@ -37,13 +37,20 @@
 // register convention: `subject_player` in EAX (in_EAX, a player identifier to specially select,
 //   or -1), `text_scale` as a stack float parameter (Ghidra's own recognized param_2).
 // UNSURE (pervasive, see above): the exact struct layout each hud_draw_world_relative_text call
-//   builds; DAT_00873d40 (a globals-tag-like color/font source, offsets +0x54/+0x64/+0x74/+0x78/
-//   +0x7c); the network-address formatting block (network_address_to_string/
+//   builds; DAT_00873d40 (a globals-tag-like font source, offsets +0x54/+0x64/+0x70);
+//   the network-address formatting block (network_address_to_string/
 //   network_channel_get_remote_address/inet_ntoa and the DAT_006869b4/DAT_00698208 globals);
 //   FUN_00449780 and unit_find_weapon_index_by_flag (both outside this batch); the exact role of the "iVar7" object
 //   check that decides the '*' row prefix (a weapon-flags test gated on unit_find_weapon_index_by_flag(3));
 //   select_players_to_display's mode/max_count arguments (not recovered here; the output buffer
 //   is sized for all 16 scoreboard slots, so max_count is modeled as 16).
+// reconciled: R36 hud_world_text_params alpha-first (unknown_00 -> alpha, color_r/g/b -> red/green/blue); 0x006e4738 is float text_color.alpha; tag colour copies now read float bits (the binary moves them raw, the old uint32 read converted the value)
+// fixed (reconciliation check): the text colour is not read from 0x873d40+0x78/+0x7c/+0x80. Both
+// draw sites load it from the ColorARGB that 0x006851fc points to (opaque white, 0x00655138):
+// 0x465ff2 mov edx,ds:0x6851fc; [edx+4]/[edx+8]/[edx+0xc] -> 0x6e473c/0x6e4740/0x6e4744
+// (0x466050..0x46607b), and 0x466162 the same into locals stored at 0x4662e9..0x466309. The
+// alpha is text_scale ([esp+0x6f8], 0x466014 / 0x466298). 0x873d40 only supplies the font
+// (+0x64, else +0x54).
 
 #include "tags.h"
 #include "memory.h"
@@ -63,11 +70,12 @@ extern uint8_t *network_session;                    // 0x0071c2d4
 extern uint8_t *network_client;                     // 0x0071c2d8
 extern wchar_t empty_string;                        // 0x00660c34
 extern uint8_t *unknown_00873d40; // UNSURE: a globals-tag-like color/font source
+extern const ColorARGB *global_white_argb; // 0x006851fc -> 0x00655138 = {1,1,1,1} (.data)
 
 extern float hud_text_draw_color_r; // 0x006e473c
 extern float hud_text_draw_color_g; // 0x006e4740
 extern float hud_text_draw_color_b; // 0x006e4744
-extern int32_t hud_text_draw_unknown_4738; // 0x006e4738
+extern float hud_text_draw_color_alpha; // 0x006e4738, text.h text_color.alpha
 extern uint16_t hud_text_draw_color_or_flags; // 0x006e4734, two separate int16 slots in the
 extern int16_t hud_text_draw_column;         // 0x006e4736  binary, never one dword
 extern uint32_t hud_text_draw_unknown_4730;   // 0x006e4730
@@ -127,12 +135,12 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float text_
 
     // CORRECTED (phase 4 review, objdump 0x465739..0x46576d): the first pass dropped this draw
     // call entirely. It renders `result_text` at row 0 (so, with no background box) in a flat
-    // 0.7 grey. UNSURE: params.unknown_00 comes from [esp+0x6e8], i.e. a SECOND stack parameter
+    // 0.7 grey. UNSURE: params.alpha comes from [esp+0x6e8], i.e. a SECOND stack parameter
     // this function has that Ghidra does not surface at all -- modelled as `unknown_param_2`.
-    params.unknown_00 = unknown_param_2;
-    params.color_r = 0.7f;
-    params.color_g = 0.7f;
-    params.color_b = 0.7f;
+    *(int32_t *)&params.alpha = unknown_param_2; // raw dword copy (the binary moves it with mov)
+    params.red = 0.7f;
+    params.green = 0.7f;
+    params.blue = 0.7f;
     hud_draw_world_relative_text(&params, 0, result_text, 0);
 
     visible_count = select_players_to_display(0, 16, visible); // UNSURE: mode/max_count, see header
@@ -266,14 +274,14 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float text_
             }
             (void)line;
 
-            hud_text_draw_color_r = *(uint32_t *)((uint8_t *)unknown_00873d40 + 0x78);
-            hud_text_draw_color_g = *(uint32_t *)((uint8_t *)unknown_00873d40 + 0x7c);
-            hud_text_draw_color_b = *(uint32_t *)((uint8_t *)unknown_00873d40 + 0x80);
+            hud_text_draw_color_r = global_white_argb->red;
+            hud_text_draw_color_g = global_white_argb->green;
+            hud_text_draw_color_b = global_white_argb->blue;
             hud_text_draw_font_tag_id = *(int32_t *)((uint8_t *)unknown_00873d40 + 0x64);
             if (hud_text_draw_font_tag_id == -1) {
                 hud_text_draw_font_tag_id = *(int32_t *)((uint8_t *)unknown_00873d40 + 0x54);
             }
-            hud_text_draw_unknown_4738 = *(uint32_t *)&text_scale;
+            hud_text_draw_color_alpha = text_scale;
             hud_text_draw_color_or_flags = 0xffffu;
             hud_text_draw_column = 0;
             hud_text_draw_unknown_4730 = 0;
@@ -326,13 +334,13 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float text_
             if (hud_text_draw_font_tag_id == -1) {
                 hud_text_draw_font_tag_id = *(int32_t *)((uint8_t *)unknown_00873d40 + 0x54);
             }
-            hud_text_draw_unknown_4738 = *(uint32_t *)&text_scale;
-            hud_text_draw_color_g = *(uint32_t *)((uint8_t *)unknown_00873d40 + 0x7c);
-            hud_text_draw_color_b = *(uint32_t *)((uint8_t *)unknown_00873d40 + 0x80);
+            hud_text_draw_color_alpha = text_scale;
+            hud_text_draw_color_g = global_white_argb->green;
+            hud_text_draw_color_b = global_white_argb->blue;
             hud_text_draw_color_or_flags = 0xffffu;
             hud_text_draw_column = 0;
             hud_text_draw_unknown_4730 = 0;
-            hud_text_draw_color_r = *(uint32_t *)((uint8_t *)unknown_00873d40 + 0x78);
+            hud_text_draw_color_r = global_white_argb->red;
             chimera__draw_16_bit_text(0, 0, row_buffer);
         }
     }

@@ -20,6 +20,7 @@
 // value was live at each site. The `in_EDX == -1` broadcast loop (message category 5, no valid
 // killer) drains the player iterator without touching any of its elements in Ghidra's own
 // rendering; preserved literally as a no-op drain rather than invented.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
@@ -27,6 +28,7 @@
 #include "objects.h"
 #include "game.h"
 #include <wchar.h>
+#include <stdint.h>
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_time_globals *game_time;                // 0x006f1d6c
@@ -135,6 +137,7 @@ void game_engine_on_player_death(datum_index killer, datum_index death_object, d
             iter.data = player_data;
             iter.next_index = 0;
             iter.index = (datum_index)0xffffffff;
+            iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
             element = data_iterator_next(&iter); // UNSURE: drains the iterator with no per-element effect, as Ghidra shows
             while (element != 0) {
                 element = data_iterator_next(&iter);
@@ -173,6 +176,7 @@ void game_engine_on_player_death(datum_index killer, datum_index death_object, d
             iter.data = player_data;
             iter.next_index = 0;
             iter.index = (datum_index)0xffffffff;
+            iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
             element = data_iterator_next(&iter);
             while (element != 0) {
                 element = data_iterator_next(&iter);

@@ -337,23 +337,15 @@ typedef struct sound_listener {
     Vector3D velocity;         // 0x38 subtracted from the 30 Hz source velocity in 0x54c900
 } sound_listener;              // size 0x44
 
-// observer camera rows (0x006ac6d0, one per local player, stride 0x29c). The observer/camera
-// code owns this array and has no type for it yet (src/game/camera_observer_get_target_angles.c
-// reads it raw); this is the part the sound module reads. It is an array in .bss, not a pointer:
-// every access is add reg, 0x6ac6d0 or an absolute [0x6ac6xx] operand.
-// sound_update_listener 0x54b970, sound_build_cluster_range_bitmap 0x544980,
-// sound_compute_obstruction_occlusion 0x544aa0
-typedef struct sound_observer_camera {
-    Point3D position;          // 0x00 listener position
-    int32_t leaf_index;        // 0x0c with cluster_index a {leaf, cluster} location; its address
-                               //      goes to FUN_0053ed60 (underwater test)
-    int16_t cluster_index;     // 0x10 listener cluster, -1 outside the bsp
-    int16_t unknown_12;        // 0x12
-    Vector3D velocity;         // 0x14 world units per tick, rotated into listener space
-    Vector3D forward;          // 0x20
-    Vector3D up;               // 0x2c
-    uint8_t unknown_38[0x264]; // 0x38 not read by this module
-} sound_observer_camera;       // size 0x29c
+// observer camera rows (0x006ac6d0, one per local player, stride 0x29c) -- R17: these are
+// camera.h observers[i].camera (observer array 0x006ac65c, stride 0x29c, observer_camera at
+// +0x74; 0x006ac65c + 0x74 = 0x006ac6d0). camera.h observer_camera has the same layout as the
+// old sound_observer_camera slice over 0x00..0x37 (position 0x00, leaf_index 0x0c,
+// cluster_index 0x10, velocity 0x14, forward 0x20, up 0x2c) and also names +0x38
+// field_of_view, so the private copy was dropped; sound.h parses after camera.h. It is an array
+// in .bss, not a pointer: every access is add reg,0x6ac6d0 or an absolute [0x6ac6xx] operand.
+// Readers here: sound_update_listener 0x54b970, sound_build_cluster_range_bitmap 0x544980,
+// sound_compute_obstruction_occlusion 0x544aa0.
 
 // argument of sound_driver.set_listener (sound_listener_update 0x547070, built by 0x54b970)
 typedef struct sound_listener_parameters {
@@ -710,9 +702,11 @@ typedef struct sound_eax_effect_object {
 // global 0x00671d4c: sound_effect_object_vtable sound_eax1_vtable
 //
 // referenced, owned elsewhere
-// global 0x006ac6d0: sound_observer_camera observer_cameras[]     (stride 0x29c, see the struct)
+// global 0x006ac65c: observer observers[1]    camera.h; the rows this module reads are
+//                      observers[i].camera (0x006ac6d0 = observers + 0x74, stride 0x29c) (R17)
 // 0x0087bc14 tag_instances, 0x008603b0 object headers, 0x006f1d6c game time, 0x0087a478
-// player globals, 0x00746f9c / 0x00746fa0 collision bsp and matg globals, 0x006ac528 /
+// player globals, 0x00746f9c / 0x00746fa0 resident structure bsp (scenario.h
+// global_structure_bsp) and matg globals, 0x006ac528 /
 // 0x006ac530 / 0x006ac554 / 0x006869c4 sound cache (types/cache.h), 0x00719cd4 random seed, 0x006e35c8 error text buffer, 0x00722b58 /
 // 0x00722b5c unknown flags, 0x006ac8f8 performance counter frequency.
 

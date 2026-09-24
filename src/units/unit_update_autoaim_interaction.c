@@ -4,7 +4,7 @@
 // rewrite confidence: 0.3
 // evidence: types/units.h unit_data.flags (0x204, bits 0x2000000 and 0x80 cleared),
 //   .unknown_410 (0x410, "stored by 0x5705a0, read back by 0x570720"); types/objects.h
-//   object.vitality_flags (0x106), object.owner_linkage (0x0c0), .unknown_0c4 (0x0c4),
+//   object.vitality_flags (0x106), object.owner_linkage (0x0c0), .creator_object (0x0c4),
 //   .name_index (0x0b8); the damage_data field mapping follows unit_cause_melee_damage.c.
 // register convention: unit object index in EAX (param_1).
 //   // blam-cc: EAX -> unit_index
@@ -14,6 +14,8 @@
 //   damage table", and the two could not be reconciled in the time available.
 // UNSURE: object_try_and_get's register object-index argument is not visible; guessed as the
 //   same tracked target index read from the globals record.
+// reconciled: R28 object.unknown_0c4 -> datum_index creator_object (same offset 0xc4)
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
 
 #include "tags.h"
 #include "memory.h"
@@ -55,11 +57,11 @@ void unit_update_autoaim_interaction(uint32_t unit_index)
 
             if (target != 0) {
                 dd.responsible_player = target->owner_linkage;
-                dd.responsible_object = target->unknown_0c4;
+                dd.responsible_object = target->creator_object;
                 if (dd.responsible_object == k_datum_index_none) {
                     dd.responsible_object = unit->unknown_410;
                 }
-                dd.team_index = target->name_index;
+                dd.team_index = target->owner_team;
             }
             dd.damage_effect_tag = target_object; // literal reuse of the same value, see header
             object_apply_damage(&dd, unit_index, -1, -1, -1, 0);

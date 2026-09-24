@@ -8,7 +8,7 @@
 // comment; src/effects/particle_system_new_on_marker.c's precedent default_color_block
 // (0x006851fc, ColorARGB); src/game/hud_draw_world_relative_text.c's shared hud_text_draw_*
 // globals.
-// register convention: none (void).
+// reconciled: 0x006851fc is a pointer to the opaque-white ColorARGB (0x00655138); one name global_white_argb: none (void).
 
 #include "tags.h"
 #include "memory.h"
@@ -21,7 +21,7 @@
 
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 extern Globals *global_globals;                    // 0x00746fa0
-extern ColorARGB default_color_block;               // 0x006851fc, opaque white
+extern const ColorARGB *global_white_argb;               // 0x006851fc, opaque white
 
 extern uint16_t hud_text_draw_color_or_flags; // 0x006e4734
 extern int16_t hud_text_draw_column;          // 0x006e4736
@@ -57,10 +57,10 @@ void interface_local_player_state_reset(void)
                              ? (GlobalsInterfaceBitmaps *)0
                              : (GlobalsInterfaceBitmaps *)global_globals->interface_bitmaps.pointer;
     hud_text_draw_font_tag_id = *(int32_t *)&interface_bitmaps->font_terminal.tag_id;
-    hud_text_draw_color_a = default_color_block.alpha;
-    hud_text_draw_color_r = default_color_block.red;
-    hud_text_draw_color_g = default_color_block.green;
-    hud_text_draw_color_b = default_color_block.blue;
+    hud_text_draw_color_a = global_white_argb->alpha;
+    hud_text_draw_color_r = global_white_argb->red;
+    hud_text_draw_color_g = global_white_argb->green;
+    hud_text_draw_color_b = global_white_argb->blue;
     hud_text_draw_color_or_flags = 0xffff;
     hud_text_draw_column = 0;
     hud_text_draw_unknown_4730 = 0;

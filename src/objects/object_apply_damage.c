@@ -25,10 +25,14 @@
 // object index); int16_t param_3 (collision node index); int16_t param_4; int16_t param_5
 // (material index); uint32_t param_6, all on the stack.
 // blam-cc: stack=(dd, target_object_index, node_index, param_4, material_index, param_6)
+// reconciled: R29 raw object +0xb8 int16 read -> target->owner_team
+// reconciled: R25 damage_data.unknown_4c -> material_type (int16 collision material of the damaged surface, 0xffff = none; indexes DamageEffect +0x200)
+// reconciled: R04 0x006f1d20 uint8_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 
@@ -37,7 +41,7 @@ extern data_array *player_data;     // 0x0087a480, players module
 extern tag_instance *tag_instances; // 0x0087bc14
 extern random_seed random_seed_global; // 0x00719cd0, the engine-wide LCG state (same name and
     // type as in src/math/random_real.c and src/hs/hs_evaluate_random.c)
-extern uint8_t network_predicted_state_flag;          // 0x006f1d20, predicted/network flag
+extern game_engine_definition *current_game_engine;          // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern uint32_t *g_006b0b84;        // 0x006b0b84, UNSURE: difficulty/team bitset base
 extern uint8_t g_0087abc5;          // 0x0087abc5, UNSURE
 extern uint8_t g_0087abc7;          // 0x0087abc7, UNSURE
@@ -172,7 +176,7 @@ void object_apply_damage(damage_data *dd, uint32_t param_2, int16_t param_3, int
         }
     }
 
-    if (network_predicted_state_flag == 0) {
+    if (current_game_engine == 0) {
         int16_t team = (int16_t)dd->team_index;
         int8_t skip = 0;
 
@@ -234,7 +238,7 @@ void object_apply_damage(damage_data *dd, uint32_t param_2, int16_t param_3, int
         local_88_bits = *(uint32_t *)&spread;
         dd->multiplier = spread;
 
-        if (network_predicted_state_flag != 0) {
+        if (current_game_engine != 0) {
             uint32_t walker = target0->first_child_object;
             int32_t seated = 0;
 
@@ -395,7 +399,7 @@ skip_child:
                     }
                 }
 
-                if (network_predicted_state_flag != 0 && g_006f1cbc != 0) {
+                if (current_game_engine != 0 && g_006f1cbc != 0) {
                     int32_t controller = players_iterate_and_discard(target_handle);
                     if (controller != -1 && (uint32_t)controller != dd->responsible_player) {
                         int16_t index = (int16_t)controller;
@@ -447,12 +451,12 @@ friendly_fire_resolved:
                 // UNSURE: `local_70[0x2e]` (object word-index 0x2e, byte offset 0xb8) is a raw
                 // field with no name in types/objects.h; team comparison kept literal.
                 if ((int16_t)dd->team_index != -1) {
-                    int16_t sVar12 = *(int16_t *)((uint8_t *)target + 0xb8);
+                    int16_t sVar12 = target->owner_team;
                     int16_t sVar8 = (int16_t)dd->team_index;
                     int8_t different_team;
                     int8_t known = 1;
 
-                    if (network_predicted_state_flag == 0) {
+                    if (current_game_engine == 0) {
                         if (sVar12 < 0 || 9 < sVar12 || sVar8 < 0 || 9 < sVar8) {
                             known = 0;
                             different_team = 1;
@@ -478,7 +482,7 @@ friendly_fire_resolved:
                     }
                 }
                 material_type_cache = material->material_type;
-                dd->unknown_4c = material_type_cache;
+                dd->material_type = material_type_cache;
 
                 if (g_0087abc7 != 0 && dd->responsible_player != (datum_index)0xffffffff) {
                     notify_permitted = 1;
@@ -536,7 +540,7 @@ friendly_fire_resolved:
                             dd->unknown_48 = 0;
                         }
                     } else {
-                        dd->unknown_4c = *(int16_t *)((uint8_t *)geometry + 0xd2); // UNSURE
+                        dd->material_type = *(int16_t *)((uint8_t *)geometry + 0xd2); // UNSURE
                         dd->unknown_48 = *(uint32_t *)((uint8_t *)target + 0xe4); // UNSURE: local_70[0x39]
                     }
                     bVar3 = 1;

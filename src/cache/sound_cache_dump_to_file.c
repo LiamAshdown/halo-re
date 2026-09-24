@@ -14,10 +14,12 @@
 // The observation in cache_types_notes.md about a fourth, self-check "iter" field on the stack
 // data_iterator objects here is not reproduced -- types/memory.h's data_iterator is still 0x0c
 // bytes / 3 fields, and that note is flagged for the memory module, not acted on here.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+#include <stdint.h>
 
 extern int32_t sound_cache_page_count;   // 0x006f17e4
 extern struct cache *sound_cache;        // 0x006ac530
@@ -100,6 +102,7 @@ void sound_cache_dump_to_file(void)
         iterator.data = sound_cache_entries;
         iterator.next_index = 0;
         iterator.index = 0;
+        iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
         entry = (sound_cache_entry *)data_iterator_next(&iterator);
         while (entry != (sound_cache_entry *)0) {
             sound_count++;
@@ -136,6 +139,7 @@ void sound_cache_dump_to_file(void)
         iterator.data = sound_cache_entries;
         iterator.next_index = 0;
         iterator.index = 0;
+        iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
         entry = (sound_cache_entry *)data_iterator_next(&iterator);
         while (entry != (sound_cache_entry *)0) {
             permutation = entry->permutation;

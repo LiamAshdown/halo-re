@@ -15,6 +15,7 @@
 //   the ASCII bytes "iter") that data_iterator_next's own rewritten body never reads back --
 //   kept here for fidelity even though it is provably dead.
 // register convention: no parameters.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
@@ -22,6 +23,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data;    // 0x0087a480
 extern data_array *object_headers; // 0x008603b0
@@ -39,6 +41,7 @@ void game_engine_reset_all_unit_grenade_counts(void)
     iterator.data = player_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)0xffffffff;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     unused_checksum = (uint32_t)player_data ^ 0x69746572;
 
     p = (player *)data_iterator_next(&iterator);

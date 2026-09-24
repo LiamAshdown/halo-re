@@ -32,6 +32,7 @@
 // buffer instead of reusing the 8-byte QPC local, to avoid fabricating an out-of-bounds write.
 // UNSURE: several globals (DAT_006b7f98/9a/9e, DAT_0068e684, DAT_0068e680) are not declared
 // anywhere in types/networking.h; named generically from their read/write shapes only.
+// reconciled: R01 0x0087ac06 int16 network_statistics_level -> uint8 debug_log_level (the binary reads a byte)
 
 // FIXED in the review pass: this file's 2-argument guess at network_channel_stream_flush is
 // resolved. Every message-send call site in the module is the same three operands --
@@ -44,7 +45,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern int16_t network_statistics_level;         // 0x0087ac06
+extern uint8_t debug_log_level;                  // 0x0087ac06, byte-wide (R01)
 extern uint8_t network_statistics_logging_enabled; // 0x006f14b4
 extern void *network_summary_log_file;           // 0x006a6140, FILE *
 extern char network_build_string[];              // 0x00719879
@@ -89,7 +90,7 @@ int32_t network_connection_finalize_join(uint16_t *connection)
     uint32_t capacity;
     int32_t i;
 
-    if (network_statistics_level > 2 && network_statistics_logging_enabled != 0 &&
+    if (debug_log_level > 2 && network_statistics_logging_enabled != 0 &&
         network_summary_log_file != 0) {
         _fprintf(network_summary_log_file, "%s\t", network_build_string);
     }

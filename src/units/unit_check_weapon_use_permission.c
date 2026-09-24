@@ -6,10 +6,12 @@
 // since this call site shows zero visible arguments too); unit_set_or_test_seat_and_weapon_label
 // established signature.
 // blam-cc: unaff_EDI -> unit_index.
+// reconciled: R04 0x006f1d20 int32_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
@@ -17,7 +19,7 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern char *s_no_weapon_label;     // 0x0065512c, shared with unit_pickup_weapon.c
-extern int32_t network_predicted_state_flag; // 0x006f1d20
+extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 
 extern char * unit_get_seat_or_state_name(uint32_t unit_index);                     // 0x56c2f0
 extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_label, char *weapon_label, uint8_t test_only); // 0x5651e0
@@ -35,9 +37,9 @@ uint8_t unit_check_weapon_use_permission(uint32_t unit_index) // blam-cc: unaff_
         return 0;
     }
     uint8_t result = 1;
-    if ((network_predicted_state_flag != 0) && (*(void **)(network_predicted_state_flag + 0x60) != (void *)0)) {
+    if ((current_game_engine != 0) && (*(void **)((uint8_t *)current_game_engine + 0x60) != (void *)0)) {
         // UNSURE-CALL: original calls through a function pointer at
-        // *(code**)(network_predicted_state_flag + 0x60); this rewrite cannot invoke it directly
+        // *(code**)((uint8_t *)current_game_engine + 0x60); this rewrite cannot invoke it directly
         // without a recovered signature, so the permission callback's own result is not folded in.
         result = 1;
     }

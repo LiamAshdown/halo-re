@@ -23,6 +23,7 @@
 // previous copy only when the stack flag byte is already set; that byte is never initialised
 // before the first iteration (modelled as 0 here).
 // register convention: plain cdecl, one stack argument (the screen widget); returns AL.
+// reconciled: R78 0x006b1844 input_gamepad_count(_dword) -> input.h int32_t input_device_count; the WORD readers keep their int16 width through an (int16_t) cast
 
 #include <string.h>
 #include "tags.h"
@@ -39,7 +40,7 @@ extern controls_gamepad_record controls_available_gamepads[8];   // 0x006b42d8
 extern controls_gamepad_record controls_assigned_gamepads[4];     // 0x006b53d8
 extern int32_t controls_assigned_gamepad_count;               // 0x00719448
 extern int32_t controls_available_gamepad_count;             // 0x0071944c
-extern int32_t input_gamepad_count_dword; // 0x006b1844, the int16 count read as a whole dword; UNSURE name
+extern int32_t input_device_count; // 0x006b1844, input.h (0..8 connected input devices)
 extern uint8_t input_gamepads[]; // 0x006b1868, stride 0x240; UNSURE name
 
 extern void controls_gamepad_widget_nodes_collect(widget_instance **out, widget_instance *screen); // 0x4b5560, blam-cc: EAX out, ECX screen
@@ -65,9 +66,9 @@ uint8_t controls_gamepad_lists_load(widget_instance *screen)
     }
 
     controls_gamepad_widget_nodes_collect(nodes, screen);
-    count = (int16_t)input_gamepad_count_dword;
+    count = (int16_t)input_device_count;
     for (i = 0; i < count; i++) {
-        if ((int16_t)i < input_gamepad_count_dword) {
+        if ((int16_t)i < input_device_count) {
             memcpy(&entry, input_gamepads + (int16_t)i * 0x240, sizeof(entry));
             have_entry = 1;
         } else if (!have_entry) {

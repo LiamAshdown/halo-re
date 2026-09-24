@@ -11,13 +11,14 @@
 //   preserves every operation LITERALLY (renamed globals only where types/game.h or an
 //   already-committed module already names them) rather than inventing render-module types or
 //   field names; it should be re-reviewed once the render module gets its own type pass.
-// register convention: an object/tag handle in EAX (in_EAX, read as a float* -- almost
+// reconciled: 0x006851fc is a pointer to the opaque-white ColorARGB (0x00655138); one name global_white_argb: an object/tag handle in EAX (in_EAX, read as a float* -- almost
 //   certainly mistyped by Ghidra); param_1..param_5 are this function's own stack parameters.
 //   // blam-cc: stack -> tag_handle_as_uint, position_override, orientation_override,
 //   //   param_4, param_5; unaff_EAX -> vertex_source
 // UNSURE: essentially everything below the immediate control flow -- see evidence. iStack_fc is
 //   read without ever being assigned in this function (a genuine Ghidra gap, not introduced
 //   here); left as a zero-initialized local to keep the translation well-defined, flagged below.
+// reconciled: R77 0x0069c632 uint8 render_koth_marker_active -> int16 rasterizer_vertex_buffer_lock_state (all stores are WORD)
 
 #include "tags.h"
 #include "memory.h"
@@ -25,7 +26,7 @@
 #include "cache.h"
 #include "game.h"
 
-extern uint8_t render_koth_marker_active;   // 0x0069c632, UNSURE identity
+extern int16_t rasterizer_vertex_buffer_lock_state; // 0x0069c632, rasterizer.h; WORD stores (0x46b306, 0x46b6c2, 0x46b6d2)
 extern void **render_device;                // 0x006e09e8, UNSURE identity (vtable object, +0x30 called)
 extern int16_t render_unknown_d99d8[];      // 0x006d99d8, UNSURE identity
 extern int32_t render_unknown_d98f0[];      // 0x006d98f0, UNSURE identity
@@ -33,7 +34,7 @@ extern uint8_t render_unknown_7bf04c[];     // 0x007bf04c, UNSURE identity
 extern tag_instance *tag_instances;         // 0x0087bc14
 extern void *render_ptr_9673c;              // 0x0069673c, UNSURE identity
 extern real_vector3d default_network_axis;  // 0x00686b04, UNSURE: reused as a generic 3-float default
-extern uint8_t default_color_block[16];     // 0x006851fc, UNSURE identity (16 bytes copied)
+extern const ColorARGB *global_white_argb;     // 0x006851fc, UNSURE identity (16 bytes copied)
 extern real_vector3d default_axis_b;        // 0x00686b0c, UNSURE identity
 extern king_hill_marker_history king_hill_markers; // 0x0087a9a0
 extern uint8_t render_flag_6893ec;          // 0x006893ec, UNSURE identity
@@ -66,7 +67,7 @@ void game_engine_koth_submit_hill_marker_geometry(uint32_t tag_handle_as_uint,
     float fStack_e8;
     int32_t iStack_fc = 0; // UNSURE: never assigned in the original either; see header
 
-    render_koth_marker_active = 9;
+    rasterizer_vertex_buffer_lock_state = 9;
     fVar5 = *(float *)rasterizer_dynamic_index_cache_reserve();
     local_f0 = fVar5;
     iVar6 = rasterizer_dynamic_vertex_cache_reserve();
@@ -157,7 +158,7 @@ void game_engine_koth_submit_hill_marker_geometry(uint32_t tag_handle_as_uint,
                 *(uint16_t *)(record + 0x1a) = 0;
                 *(uint16_t *)(record + 0x50) = 0;
                 for (i = 0; i < 16; i++) {
-                    (record + 0x54)[i] = default_color_block[i];
+                    (record + 0x54)[i] = ((const uint8_t *)global_white_argb)[i];
                 }
                 *(real_vector3d *)(record + 0x64) = default_axis_b;
                 *(uint32_t *)(record + 0x70) = 0;
@@ -211,10 +212,10 @@ void game_engine_koth_submit_hill_marker_geometry(uint32_t tag_handle_as_uint,
             }
         }
 
-        render_koth_marker_active = 0;
+        rasterizer_vertex_buffer_lock_state = 0;
         return;
     }
-    render_koth_marker_active = 0;
+    rasterizer_vertex_buffer_lock_state = 0;
 }
 
 #if 0

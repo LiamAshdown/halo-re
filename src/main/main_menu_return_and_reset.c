@@ -18,6 +18,7 @@
 // followed by an UNGATED 8-dword zero and `unknown_00 = 1`) -- a literal NULL game_time would
 // crash on retail hardware past that point. Preserved exactly as disassembled (confirmed: no
 // second null check appears anywhere in this function's disassembly, 0x4c8adb..0x4c8b1e).
+// reconciled: R33 game_time_globals.unknown_00 -> initialized (uint8 at +0x00, same byte)
 
 #include "tags.h"
 #include "memory.h"
@@ -92,11 +93,11 @@ void main_menu_return_and_reset(void)
     update_server_dispose();
 
     if (game_time != 0) {
-        game_time->unknown_00 = 0;
+        game_time->initialized = 0;
         game_time->active = 0;
     }
     memset(game_time, 0, 0x20); // UNSURE: unconditional even if game_time is NULL, see file header
-    game_time->unknown_00 = 1;
+    game_time->initialized = 1;
 
     game_engine_init_tick_record_for_mode();
     hs_dispose_dynamic_globals();

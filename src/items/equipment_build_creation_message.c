@@ -17,6 +17,8 @@
 //   arguments it could not recover (unaff_ESI, in_EAX); they are called exactly as Ghidra
 //   shows, with only the visibly-passed arguments preserved, per the same convention used for
 //   0x4ee5e0's callees.
+// reconciled: R28 object.unknown_0c4 -> datum_index creator_object (same offset 0xc4)
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
 
 #include "tags.h"
 #include "memory.h"
@@ -55,8 +57,8 @@ void equipment_build_creation_message(uint32_t item_index, uint32_t unused_arg2,
     if (item_index != 0xffffffff) {
         item_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0x0c), item_index);
     }
-    if (obj->unknown_0c4 != 0xffffffff) {
-        parent_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0x0c), obj->unknown_0c4);
+    if (obj->creator_object != 0xffffffff) {
+        parent_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0x0c), obj->creator_object);
         if (parent_hash == -1) {
             parent_hash = 0;
         }
@@ -73,7 +75,7 @@ void equipment_build_creation_message(uint32_t item_index, uint32_t unused_arg2,
 
     message.definition_tag = obj->definition_tag;
     message.object_hash = item_hash;
-    message.name_index = obj->name_index;
+    message.name_index = obj->owner_team;
     // message.pad_0a left unset, matching Ghidra: the original never writes this byte pair.
     message.owner_hash = owner_hash;
     message.parent_hash = parent_hash;

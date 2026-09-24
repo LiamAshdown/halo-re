@@ -10,13 +10,14 @@
 // UNSURE: the two debug vertex-count loops (picked portal, and "count every portal") compute a
 //   value that is discarded, same as structure_leaf_portal_vertex_count_debug (0x5520b0); kept
 //   for parity with that function rather than dropped.
+// reconciled: R76 0x00696714 k_default_fog_plane_vector -> math.h const real_point3d *global_origin3d_pointer (points at the (0,0,0) constant 0x0065c230)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
 
-extern ScenarioStructureBSP *structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 extern int16_t visible_surface_count;   // 0x00850394: every store in the binary is
     // a WORD op (`mov WORD PTR ds:0x850394,0` / `inc WORD PTR`); the two debug readers
     // here load it as a dword only because the callee consumes AX alone    // 0x00850394, this module
@@ -27,7 +28,7 @@ extern int32_t picked_surfaces_geometry; // 0x006e3adc, this module
 extern int32_t picked_leaf_map_leaf;     // 0x0069fa40, this module
 extern int32_t picked_leaf_map_portal;   // 0x0069fa44, this module
 extern uint8_t debug_count_all_leaf_portals; // 0x00724a46, this module
-extern real_vector3d *k_default_fog_plane_vector; // 0x00696714, this module
+extern const real_point3d *global_origin3d_pointer; // 0x00696714, math.h (== 0x0065c230, the zero point)
 extern uint8_t fog_plane_vector_valid;  // 0x006e3ae0: accessed as BYTE   // 0x006e3ae0, this module
 extern real_vector3d fog_plane_vector;   // 0x006e3ae4, this module
 
@@ -41,7 +42,7 @@ extern void structure_leaf_portal_vertex_count_debug(int32_t leaf_index, structu
 // structure_bsp_find_mirror / structure_fog_environment_build filling it in.
 void structure_picked_polygon_refresh(void)
 {
-    structure_bsp_leaf_map *leaf_map = (structure_bsp_leaf_map *)((uint8_t *)structure_bsp + 0x26c);
+    structure_bsp_leaf_map *leaf_map = (structure_bsp_leaf_map *)((uint8_t *)global_structure_bsp + 0x26c);
 
     picked_surfaces_geometry = chimera__bsp_poly_movsx_2(visible_surface_indices, surface_visible_bits,
         (int16_t)visible_surface_count);
@@ -75,7 +76,7 @@ void structure_picked_polygon_refresh(void)
     }
 
     fog_plane_vector_valid = 0;
-    fog_plane_vector = *k_default_fog_plane_vector;
+    fog_plane_vector = *(const real_vector3d *)global_origin3d_pointer;
 }
 
 #if 0

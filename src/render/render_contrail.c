@@ -43,6 +43,7 @@
 //   0x50e000 (which then does not read it). The vertex buffer unlock goes through the rasterizer
 //   tables 0x006d99d8 (slot -> vertex type), 0x006d98f0 (dynamic cache buffer handle, stride
 //   0xc) and 0x007bf04c (+ handle * 0x14), as build_sprites_end 0x511620 does.
+// reconciled: R77 0x0069c632 extern uint16 -> int16 (rasterizer.h type)
 
 #include "tags.h"
 #include "memory.h"
@@ -59,7 +60,7 @@ extern tag_instance *tag_instances;                  // 0x0087bc14
 extern real_point3d *global_zero_vector3d_pointer;                // 0x006966f8 -> {0,0,0}
 extern real_vector3d *global_up3d_pointer;                   // 0x00696720 -> {0,0,1}
 extern render_camera render_camera_global;           // 0x007c3114, this module
-extern uint16_t rasterizer_vertex_buffer_lock_state; // 0x0069c632, rasterizer module
+extern int16_t rasterizer_vertex_buffer_lock_state; // 0x0069c632, rasterizer module
 extern void *rasterizer_dynamic_index_buffer;        // 0x006e09e8 IDirect3DIndexBuffer9*
 extern rasterizer_dynamic_vertex_slot rasterizer_dynamic_vertex_slots[k_rasterizer_dynamic_vertex_slots];
     // 0x006d99d8, rasterizer module

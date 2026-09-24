@@ -10,7 +10,7 @@
 //   certainly one algorithm split at an arbitrary point; each is transliterated close to its
 //   own decompiled shape rather than merged, since merging risks inventing behaviour neither
 //   Ghidra output actually shows.)
-// evidence: global 0x00746f90 global_globals, 0x00746f9c structure_bsp_globals (leaf table at
+// evidence: global 0x00746f90 global_collision_bsp, 0x00746f9c global_structure_bsp (leaf table at
 //   +0xe4, per src/objects/object_set_cluster_and_parent.c), 0x006b8cbc
 //   object_globals_pointer, 0x008603cc object_cluster_stamp, 0x008603d4
 //   collideable_object_references; callees bsp3d_node_find_leaf (leaf/visibility probe, established
@@ -20,16 +20,17 @@
 //   either a global or a callee return). Matches Ghidra's own "FUN_004fa1a0(void)".
 // UNSURE: the {leaf-bit-array, cluster-object-reference} pair this walks resembles
 //   object_globals's cluster PVS bitset (cluster_pvs_current, 16 dwords) but is read through
-//   structure_bsp_globals (+0x134 count, +0x14c array) rather than object_globals_pointer, so
+//   global_structure_bsp (+0x134 count, +0x14c array) rather than object_globals_pointer, so
 //   it is not mapped onto that field here.
+// reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
 
-extern void *global_globals; // 0x00746f90
-extern uint8_t *structure_bsp_globals; // 0x00746f9c
+extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
+extern uint8_t *global_structure_bsp; // 0x00746f9c
 extern object_globals *object_globals_pointer; // 0x006b8cbc
 extern int32_t object_cluster_stamp; // 0x008603cc
 extern data_array *collideable_object_references; // 0x008603d4
@@ -46,8 +47,8 @@ int32_t object_collect_local_player_relevant_objects(void)
     // objdump 0x4fa1a0..0x4fa1ae is `mov ecx,ds:0x746f90 / sub esp,0x18 / push edi / xor eax,eax /
     // xor edi,edi / call 0x5013a0`, so EDX arrives from whatever the caller left behind. Passed
     // as 0 rather than inventing a point.
-    int32_t leaf = bsp3d_node_find_leaf(global_globals, 0, 0);
-    uint8_t *bsp = structure_bsp_globals;
+    int32_t leaf = bsp3d_node_find_leaf(global_collision_bsp, 0, 0);
+    uint8_t *bsp = global_structure_bsp;
 
     if (leaf == -1) {
         return 0;
@@ -55,7 +56,7 @@ int32_t object_collect_local_player_relevant_objects(void)
 
     {
         // PHASE-4 REVIEW: 0x4fa1bc..0x4fa1d1 is `and eax,0x7fffffff / mov ecx,[ebx+0xe4] /
-        // shl eax,4 / mov ax,[eax+ecx+8]` -- structure_bsp_globals+0xe4 is a POINTER to the
+        // shl eax,4 / mov ax,[eax+ecx+8]` -- global_structure_bsp+0xe4 is a POINTER to the
         // ScenarioStructureBSPLeaf array and the leaf index is masked before scaling. The
         // earlier rewrite folded 0xe4 into the byte offset and dropped the mask.
         int16_t cluster = *(int16_t *)(*(uint8_t **)(bsp + 0xe4) +

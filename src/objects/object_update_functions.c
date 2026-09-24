@@ -13,7 +13,7 @@
 //   square_wave_threshold 0x18, step_count 0x1c, bounds_mode 0x26, bounds 0x28/0x2c,
 //   turn_off_with 0x36, scale_by 0x38, inverse_bounds 0x138, inverse_sawtooth 0x13c,
 //   inverse_period 0x144); global 0x008603b0 object_data, 0x0087bc14 tag_instances,
-//   0x006f1d6c game_time_globals (tick at +0xc).
+//   0x006f1d6c game_time (tick at +0xc).
 // register convention: object index in EAX. Consistent with every other single-register
 //   accessor in this module and with this function's own Ghidra signature ("in_EAX" only).
 //   // blam-cc: EAX -> object_index
@@ -29,7 +29,7 @@
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *game_time_globals; // 0x006f1d6c, tick count at +0xc
+extern uint8_t *game_time; // 0x006f1d6c, tick count at +0xc
 
 extern double periodic_function_evaluate(double phase); // UNSURE: address not captured in this batch's pack
 extern void FUN_00623e40(double stepped_value); // UNSURE
@@ -40,7 +40,7 @@ void object_update_functions(uint32_t object_index) // blam-cc: EAX -> object_in
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
-    float phase_base = (float)(int32_t)((object_index & 0xffff) * 0x39 + *(int32_t *)(game_time_globals + 0xc)) * 0.033333335f;
+    float phase_base = (float)(int32_t)((object_index & 0xffff) * 0x39 + *(int32_t *)(game_time + 0xc)) * 0.033333335f;
     int32_t i;
 
     for (i = 0; i < definition->functions.count; i++) {

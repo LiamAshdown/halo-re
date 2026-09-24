@@ -17,22 +17,21 @@
 // UNSURE: none left; every branch (pre-supplied cluster list, resolved-leaf flood-fill, and the
 //   bsp3d recursive fallback used both for a small radius and whenever the faster paths fail to
 //   resolve a leaf/cluster) is confirmed against the disassembly.
+// reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
 
-extern ScenarioStructureBSP *structure_bsp;         // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp;         // 0x00746f9c
 extern float k_cluster_query_radius_threshold;      // 0x0069fa4c
 // 0x00746f90 is a ModelCollisionGeometryBSP pointer, proved twice in this module: it is the ECX
 // argument of bsp3d_node_find_leaf at 0x553e4a / 0x549a6a, and 0x554b9f reads its +0x10 as
-// planes.pointer and indexes it with plane_index * 0x10. Seven files elsewhere in the repo
-// (src/effects, src/objects, src/hs) declare the same address as `void *global_globals`; the name is
-// kept for cross-module agreement and only the type is refined. It is a DIFFERENT global from
-// `global_globals` at 0x00746f98, whose +0x40 surfaces.pointer src/effects and src/items
-// already pin -- do not merge the two.
-extern ModelCollisionGeometryBSP *global_globals; // 0x00746f90
+// planes.pointer and indexes it with plane_index * 0x10. It is global_collision_bsp
+// (types/scenario.h): ScenarioStructureBSP +0xb4, stored together with 0x00746f98 on every bsp
+// switch (0x53ef68..0x53ef78), so 0x00746f98 always holds the same pointer.
+extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
 
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp,
                                       real_point3d *point); // types/physics.h, blam-cc: EAX/ECX/EDX
@@ -62,7 +61,7 @@ int16_t structure_bsp_query_surfaces(real_rectangle3d *query_box, real_point3d *
                                    int16_t *cluster_indices)
 {
     uint32_t visited_bits[k_maximum_visible_surface_bits];
-    int32_t visited_dwords = (structure_bsp->surfaces.count + 0x1f) >> 5;
+    int32_t visited_dwords = (global_structure_bsp->surfaces.count + 0x1f) >> 5;
     for (int32_t i = 0; i < visited_dwords; i++) {
         visited_bits[i] = 0;
     }
@@ -82,12 +81,12 @@ int16_t structure_bsp_query_surfaces(real_rectangle3d *query_box, real_point3d *
                         cluster_count, cluster_indices);
         }
 
-        int32_t leaf = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_globals,
+        int32_t leaf = bsp3d_node_find_leaf(0, global_collision_bsp,
                                              query_point);
         if (leaf != -1) {
             int32_t leaf_index = leaf & 0x7fffffff;
             uint16_t leaf_cluster =
-                ((ScenarioStructureBSPLeaf *)structure_bsp->leaves.pointer)[leaf_index].cluster;
+                ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf_index].cluster;
             if (leaf_cluster != 0xffff) {
                 int16_t flood_clusters[0x200];
                 int32_t flood_count = structure_bsp_cluster_flood_seed(
@@ -100,7 +99,7 @@ int16_t structure_bsp_query_surfaces(real_rectangle3d *query_box, real_point3d *
         // fall through: neither a resolved leaf nor a valid cluster -- use the general descent.
     }
 
-    return bsp3d_node_query_recursive(0, (real_rectangle3d *)&structure_bsp->world_bounds_x,
+    return bsp3d_node_query_recursive(0, (real_rectangle3d *)&global_structure_bsp->world_bounds_x,
                                 visited_bits, out_surfaces, max_count, query_point, radius,
                                 query_box, plane_count, planes, _structure_bsp_overlap_partial);
 }

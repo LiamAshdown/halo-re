@@ -28,6 +28,7 @@
 // pure x87 (`fld [esp+0x10]; fsub [ebp+0x5c]`, three times) and never stores, and both
 // `lea esi,[esp+0x10]` before the 0x4f52c0 call and the closing `rep movs` read the unmodified
 // snapshot. The dx/dy/dz temporaries below reproduce the real behaviour, not Ghidra's.
+// reconciled: R26 object +0x18/+0x1c/+0x44/+0x48 raw writes -> network_position_valid/network_position/network_velocity_valid/network_velocity
 
 #include "tags.h"
 #include "memory.h"
@@ -98,13 +99,11 @@ void weapon_apply_network_update(datum_index item_index, uint32_t *update_record
         }
 
         item_obj->velocity = snapshot.velocity;
-        // UNSURE: these two writes land inside types/objects.h's still-unresolved
-        // unknown_019[7]/player_visibility_mask/unknown_022[0x3a] region (object 0x018..0x05c),
-        // not on any named field; preserved as raw offsets rather than guessed field names.
-        *(real_point3d *)((uint8_t *)item_obj + 0x1c) = snapshot.position;
-        *(real_vector3d *)((uint8_t *)item_obj + 0x48) = snapshot.velocity;
-        item_obj->unknown_018 = 1;
-        *((uint8_t *)item_obj + 0x44) = 1; // UNSURE: also inside the unresolved region
+        // the network interpolation block (object 0x018..0x054, objects.h R26)
+        item_obj->network_position = snapshot.position;
+        item_obj->network_velocity = snapshot.velocity;
+        item_obj->network_position_valid = 1;
+        item_obj->network_velocity_valid = 1;
 
         if (wd->magazines[0].state != 1) {
             wd->magazines[0].rounds_unloaded = snapshot.rounds_unloaded[0];

@@ -23,15 +23,18 @@
 // the original decompile).
 // blam-cc: stack=(target_index, region_index, node_index, param_4_masked, geometry, material,
 //   effect, dd, notify_flags, body_damage_out, param11_out, remaining_damage, role_is_deletable)
+// reconciled: R29 raw object +0xb8 int16 read -> target->owner_team
+// reconciled: R04 0x006f1d20 uint8_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 
 extern data_array *object_data; // 0x008603b0
-extern uint8_t network_predicted_state_flag;      // 0x006f1d20, predicted/network flag
+extern game_engine_definition *current_game_engine;      // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern uint8_t g_0087abc0;      // 0x0087abc0, UNSURE: not owned by this module
 
 extern void effect_new_on_object(); // effects module, 0x4507a0
@@ -77,8 +80,8 @@ void object_apply_body_damage(uint32_t target_index, int32_t region_index, int32
         raw_damage = 0.0f;
     }
 
-    if (network_predicted_state_flag == 0 && effect->damage_category == 1 &&
-        *(int16_t *)((uint8_t *)target + 0xb8) == 1) { // UNSURE: raw object field
+    if (current_game_engine == 0 && effect->damage_category == 1 &&
+        target->owner_team == 1) { // UNSURE: raw object field
         friendly_fire_exempt = 1;
     }
 
@@ -108,20 +111,20 @@ void object_apply_body_damage(uint32_t target_index, int32_t region_index, int32
     if ((target->vitality_flags & _object_hash_flag_bit) == 0) {
         if (0.0f < raw_damage && (material->flags & 1) != 0) {
             if ((effect->damage_flags & 2) == 0) {
-                if ((effect->damage_flags & 0x800) != 0 && network_predicted_state_flag != 0) {
+                if ((effect->damage_flags & 0x800) != 0 && current_game_engine != 0) {
                     normalized_damage = normalized_damage + normalized_damage;
                     if (target->body_vitality < normalized_damage) {
                         *notify_flags = flags | 0x80;
                     }
                 }
-            } else if (network_predicted_state_flag != 0 || target->type != _object_type_biped ||
+            } else if (current_game_engine != 0 || target->type != _object_type_biped ||
                        *(int32_t *)((uint8_t *)target + 0x218) == -1) { // UNSURE: unit extension field
                 if (role_is_deletable == 1) {
                     target->body_vitality = 0.0f;
                 }
                 flags = *notify_flags;
                 *notify_flags = flags | 0x40;
-                if (network_predicted_state_flag != 0) {
+                if (current_game_engine != 0) {
                     *notify_flags = flags | 0xc0;
                 }
             }

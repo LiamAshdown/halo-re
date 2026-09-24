@@ -133,3 +133,12 @@ typedef char check_enc_vitality[(__builtin_offsetof(encounter, average_vitality)
 typedef char check_actor_swarm_pending[(__builtin_offsetof(actor, swarm_pending) == 0x0b) ? 1 : -1];
 typedef char check_prop_cluster[(__builtin_offsetof(prop, cluster_index) == 0x100) ? 1 : -1];
 typedef char check_swarm_component_flags[(__builtin_offsetof(swarm_component, flags) == 0x02) ? 1 : -1];
+// reconciliation R06 / R53
+typedef char check_pfc_structure_bsp[(__builtin_offsetof(path_find_context, structure_bsp) == 0x64) ? 1 : -1];
+typedef char check_amc_structure_bsp[(__builtin_offsetof(actor_movement_context, structure_bsp) == 0x00) ? 1 : -1];
+typedef char check_amc_collision_bsp[(__builtin_offsetof(actor_movement_context, collision_bsp) == 0x04) ? 1 : -1];
+typedef char check_trace_result[(sizeof(path_find_boundary_trace_result) == 0x0c) ? 1 : -1];
+typedef char check_trace_edge[(__builtin_offsetof(path_find_boundary_trace_result, edge_index) == 0x08) ? 1 : -1];
+typedef char check_edge_result[(sizeof(ai_search_edge_result) == 0x10) ? 1 : -1];
+typedef char check_edge_result_surface[(__builtin_offsetof(ai_search_edge_result, surface_index) == 0x04) ? 1 : -1];
+typedef char check_edge_result_link[(__builtin_offsetof(ai_search_edge_result, link) == 0x0e) ? 1 : -1];

@@ -24,11 +24,15 @@
 //   original are written on one early-exit path (parent.type==0) but never read on any reachable
 //   path afterward (the LAB_00559dd2 tail never touches them, and the function always returns 1
 //   regardless), so they are omitted here as dead.
+// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
+// reconciled: R32 follow-up: local extern player_control_globals (0x0071c2d8) renamed network_client (networking.h name) because game.h is now included and owns the player_control_globals typedef
+// reconciled: R26 object.unknown_018 -> network_position_valid (0x018)
 
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
@@ -37,8 +41,8 @@ extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *player_data;     // 0x0087a480, players module, stride 0x200 (types/units.h)
 extern int32_t game_connection_role; // 0x00719720: 1 = client, 2 = server (types/units.h)
-extern hs_game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/hs.h)
-extern uint8_t *player_control_globals; // 0x0071c2d8, +0xf48 is the prediction history (types/units.h)
+extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
+extern uint8_t *network_client; // 0x0071c2d8 (networking.h network_client; renamed from network_client, which collides with game.h's typedef), +0xf48 is the prediction history (types/units.h)
 extern uint8_t DAT_006893cc;         // UNSURE: unresolved global, gates the "falling out of a
                                       // vehicle" reposition below
 extern uint8_t unit_updates_suppressed; // 0x0071c419, types/units.h
@@ -136,7 +140,7 @@ static void detach_and_realign_to_parent_seat(uint32_t object_index, datum_index
     }
 
     unit->last_parent_object_index = parent_object_index;
-    unit->last_seat_change_tick = game_time->current_tick;
+    unit->last_seat_change_tick = game_time->game_time;
     if (unit->driver_unit_index == object_index) unit->driver_unit_index = k_datum_index_none;
     if (unit->gunner_unit_index == object_index) unit->gunner_unit_index = k_datum_index_none;
 
@@ -197,7 +201,7 @@ static void detach_and_realign_to_parent_seat(uint32_t object_index, datum_index
     if (unit_all_seats_unoccupied(object_index) == 1) { // index in EAX
         object *vehicle = object_try_and_get(object_index, 2);
         if (vehicle != 0) {
-            *(int32_t *)((uint8_t *)vehicle + 0x5ac) = game_time->current_tick; // vehicle_data.network_update_tick
+            *(int32_t *)((uint8_t *)vehicle + 0x5ac) = game_time->game_time; // vehicle_data.network_update_tick
         }
     }
 
@@ -225,7 +229,7 @@ uint32_t biped_update(uint32_t object_index)
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
     uint8_t control_flags_byte = 0;
 
-    if (obj->network_role == 1 && obj->unknown_018 == 1 && obj->parent_object == k_datum_index_none) {
+    if (obj->network_role == 1 && obj->network_position_valid == 1 && obj->parent_object == k_datum_index_none) {
         unit_recalculate_position(object_index);
     }
 
@@ -269,8 +273,8 @@ uint32_t biped_update(uint32_t object_index)
                             int16_t salt = (int16_t)(controlling_player >> 0x10);
                             if (sequence != 0 && (salt == 0 || sequence == salt) &&
                                 *(int16_t *)(entry + *(int32_t *)((uint8_t *)player_data + 0x34) + 2) != -1 &&
-                                player_control_globals != 0) {
-                                player_update_history_free_all(*(void **)(player_control_globals + 0xf48));
+                                network_client != 0) {
+                                player_update_history_free_all(*(void **)(network_client + 0xf48));
                             }
                         }
                     }
@@ -339,8 +343,8 @@ uint32_t biped_update(uint32_t object_index)
                     int16_t salt = (int16_t)(controlling_player >> 0x10);
                     if (sequence != 0 && (salt == 0 || sequence == salt) &&
                         *(int16_t *)(entry + *(int32_t *)((uint8_t *)player_data + 0x34) + 2) != -1 &&
-                        player_control_globals != 0) {
-                        player_update_history_free_all(*(void **)(player_control_globals + 0xf48));
+                        network_client != 0) {
+                        player_update_history_free_all(*(void **)(network_client + 0xf48));
                     }
                 }
             }

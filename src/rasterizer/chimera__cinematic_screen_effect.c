@@ -2,8 +2,8 @@
 // Chimera name, hint only)
 // address 0x517470, size 139 bytes
 // name confidence: 0.45  rewrite confidence: 0.45
-// evidence: writes rasterizer_letterbox_height (0x0069c65c, types/rasterizer.h) from the
-//   cinematic globals block's +0x74 letterbox field when positive (same block
+// evidence: writes rasterizer_default_z_near (0x0069c65c, types/rasterizer.h) from the
+//   cinematic screen effect block's +0x74 near_clip_distance field when positive (same block
 //   decal_and_font_system_reset.c resets), copies four dwords into rasterizer_time
 //   (0x007c1200), latches a pixel-shader-version flag, and drives the lens flare visibility
 //   smoothing pass (lens_flare_update_visibility, Ghidra: decal_shadow_value_update) plus two
@@ -11,14 +11,16 @@
 // register convention: source time block in in_ECX. // blam-cc: ECX -> time_source
 // UNSURE: DAT_0071d275/DAT_0071d276/DAT_006ac540/DAT_0071d1c0/DAT_00689421-adjacent toggle
 //   (0x006893f5) are not documented in types/rasterizer.h.
+// reconciled: R11 rasterizer_letterbox_height -> rasterizer_default_z_near; R80 0x0071cfc4 uint32_t* cinematic_globals -> render.h cinematic_screen_effect_globals *cinematic_screen_effect_state (+0x74 near_clip_distance)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "render.h"
 
-extern uint32_t *cinematic_globals;                                 // 0x0071cfc4 UNSURE owner; +0x74 letterbox height
-extern float rasterizer_letterbox_height; // 0x0069c65c
+extern cinematic_screen_effect_globals *cinematic_screen_effect_state; // 0x0071cfc4, render.h (0x78 bytes)
+extern float rasterizer_default_z_near; // 0x0069c65c, rasterizer.h
 extern rasterizer_frame_time rasterizer_time; // 0x007c1200
 extern d3d_caps9 rasterizer_caps; // 0x007c10c0
 extern uint8_t unknown_0071d275; // 0x0071d275 UNSURE
@@ -31,17 +33,17 @@ extern void lens_flare_update_visibility(void); // 0x513780 (this session)
 extern void decals_update_fade(void); // 0x44e2b0
 
 // blam-cc: ECX -> time_source
-// Per-frame update of the cinematic letterbox height, latches the current frame time into
+// Per-frame update of the default near clip distance (cinematic override), latches the current frame time into
 // rasterizer_time, and drives the lens flare visibility smoothing pass plus two external frame
 // counters (the second only when a debug toggle is set).
 void chimera__cinematic_screen_effect(rasterizer_frame_time *time_source)
 {
-    rasterizer_letterbox_height = 0.0078125f * 8.0f; // 0x3d800000
+    rasterizer_default_z_near = 0.0625f; // 0x3d800000
 
-    if (cinematic_globals != (uint32_t *)0) {
-        float letterbox = *(float *)((uint8_t *)cinematic_globals + 0x74);
-        if (letterbox > 0.0f) {
-            rasterizer_letterbox_height = letterbox;
+    if (cinematic_screen_effect_state != (cinematic_screen_effect_globals *)0) {
+        float near_clip = cinematic_screen_effect_state->near_clip_distance; // +0x74
+        if (near_clip > 0.0f) {
+            rasterizer_default_z_near = near_clip;
         }
     }
 

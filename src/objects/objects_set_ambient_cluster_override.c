@@ -17,6 +17,7 @@
 //   0x4f7a01 xor eax,eax / 0x4f7a03 call 0x5013a0). UNSURE: the player-record field at
 //   DAT_00746f8c[player]+0x28 (stride 0x68) fed in as the probe point is not otherwise named in
 //   this module; likely an eye/camera position on a foreign player struct.
+// reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
 
 #include "tags.h"
 #include "memory.h"
@@ -24,9 +25,9 @@
 #include "objects.h"
 
 extern object_globals *object_globals_pointer; // 0x006b8cbc
-extern void *global_globals; // 0x00746f90
+extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
 extern uint8_t *player_globals_table; // 0x00746f8c, UNSURE: see file header, stride 0x68
-extern uint8_t *structure_bsp_globals; // 0x00746f9c
+extern uint8_t *global_structure_bsp; // 0x00746f9c
 
 extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index); // 0x5013a0, this call site: ECX -> globals, EDX -> point, EAX -> index
 
@@ -35,13 +36,13 @@ void objects_set_ambient_cluster_override(int16_t local_player_index) // blam-cc
     if (local_player_index != -1) {
         uint8_t *player_base = *(uint8_t **)(player_globals_table + 0x4f4);
         real_point3d *point = (real_point3d *)(player_base + local_player_index * 0x68 + 0x28);
-        int32_t leaf = bsp3d_node_find_leaf(global_globals, point, 0);
+        int32_t leaf = bsp3d_node_find_leaf(global_collision_bsp, point, 0);
 
         if (leaf != -1) {
             // PHASE-4 REVIEW: 0x4f7a13 `mov edx,[ecx+0xe4]` / `and eax,0x7fffffff` /
             // `shl eax,4` -- the +0xe4 slot is a pointer and the index is masked; the
             // earlier rewrite did neither.
-            int16_t cluster = *(int16_t *)(*(uint8_t **)(structure_bsp_globals + 0xe4) +
+            int16_t cluster = *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) +
                                            (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
             if (cluster != -1) {
                 object_globals_pointer->ambient_cluster_mode = _object_ambient_cluster_override;

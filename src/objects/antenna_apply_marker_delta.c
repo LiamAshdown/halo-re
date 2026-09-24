@@ -28,14 +28,15 @@
 //   identity as node_transform.position / node_transform.forward is inferred from
 //   object_marker's known layout at the matching stack offsets, not from a field name Ghidra
 //   itself attached to them.
+// reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
 
-extern void *global_globals; // 0x00746f90, passed to FUN_005013a0 in ECX
-extern uint8_t *structure_bsp_globals; // 0x00746f9c; +0xe4 is the per-node lookup table
+extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90, passed to FUN_005013a0 in ECX
+extern uint8_t *global_structure_bsp; // 0x00746f9c; +0xe4 is the per-node lookup table
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
                                                 object_marker *marker, uint32_t flags); // 0x4f6080, all four on the stack
 extern int32_t FUN_005013a0(void *globals, real_point3d *point, int32_t index);
@@ -62,13 +63,13 @@ void antenna_apply_marker_delta(real_vector3d *out_forward /*EAX*/, real_point3d
         // Resolved from the disassembly at 0x4fb21b: EDX is `lea edx,[esp+0x78]`, which is
         // marker+0x60 -- the node_transform position this function has just copied out. EAX is
         // zeroed and ECX is the 0x00746f90 globals pointer.
-        int32_t node_index = FUN_005013a0(global_globals, &marker.node_transform.position, 0);
+        int32_t node_index = FUN_005013a0(global_collision_bsp, &marker.node_transform.position, 0);
 
         node_ref->leaf_index = node_index;
         if (node_index == -1) {
             node_ref->cluster_index = -1;
         } else {
-            node_ref->cluster_index = *(int16_t *)(*(uint8_t **)(structure_bsp_globals + 0xe4) +
+            node_ref->cluster_index = *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) +
                                                  (uint32_t)(node_index & 0x7fffffff) * 0x10 + 8);
         }
     }

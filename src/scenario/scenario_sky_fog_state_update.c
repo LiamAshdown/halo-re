@@ -22,6 +22,7 @@
 //   stack scratch (the local_player_index == -1 path always uses a fresh on-stack
 //   scenario_sky_fog_state instead of a slot in global_scenario_game_globals, and nothing
 //   initializes it when the sky lookup fails). Preserved as-is; not a rewrite bug.
+// reconciled: R41 render_fog.unknown_4c (uint32 raw bits) -> float sky_fog_screen_blend; same stores
 
 #include "tags.h"
 #include "memory.h"
@@ -145,12 +146,11 @@ sky_fog_resolved:
     }
 
     if (state->fog_screen_blend < 0.0f) {
-        out->unknown_4c = 0; // 0.0f, written as the raw bit pattern in the original
+        out->sky_fog_screen_blend = 0.0f; // mov DWORD [ecx+0x4c],0
     } else if (1.0f < state->fog_screen_blend) {
-        out->unknown_4c = 0x3f800000; // 1.0f
+        out->sky_fog_screen_blend = 1.0f; // mov DWORD [ecx+0x4c],0x3f800000
     } else {
-        *(float *)&out->unknown_4c = state->fog_screen_blend; // scenario.h: render_fog.unknown_4c ==
-                                                                // sky_fog_screen_blend, clamped [0,1]
+        out->sky_fog_screen_blend = state->fog_screen_blend; // clamped [0,1]
     }
 }
 

@@ -24,6 +24,7 @@
 // up_time and dropped after up_time + fade_time (seconds * 30 ticks).
 // register convention: AX local player index.
 //   // blam-cc: local_player_index -> AX
+// reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
 
 #include <string.h>
 #include "tags.h"
@@ -154,9 +155,9 @@ void hud_messaging_update(int16_t local_player_index)
     }
 
     parameters = hud_messaging_parameters;
-    split_screen = local_player_globals->unknown_0c > 1;
+    split_screen = local_player_globals->local_player_count > 1;
     font = *(datum_index *)&parameters->fullscreen_font.tag_id;
-    if (local_player_globals->unknown_0c > 1 &&
+    if (local_player_globals->local_player_count > 1 &&
         *(datum_index *)&parameters->splitscreen_font.tag_id != (datum_index)-1) {
         font = *(datum_index *)&parameters->splitscreen_font.tag_id;
     }
@@ -172,7 +173,7 @@ void hud_messaging_update(int16_t local_player_index)
     }
 
     record = &hud_messaging->players[current_local_player_index];
-    max_lines = (int16_t)(4 - (local_player_globals->unknown_0c > 1));
+    max_lines = (int16_t)(4 - (local_player_globals->local_player_count > 1));
     objective_shown = hud_messaging->objective_text != 0 && hud_messaging->objective_text_ticks != 0;
     help_shown = hud_flags->help_text_shown != 0 && hud_messaging->help_text != 0;
     action_shown = record->message_shown != 0 && (record->message != 0 || record->action_text[0] != 0);

@@ -24,7 +24,7 @@
 #include "math.h"
 #include "structures.h"
 
-extern ScenarioStructureBSP *structure_bsp; // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern int32_t cluster_flood_stamp;         // 0x006e3f04
 extern uint8_t cluster_flood_in_progress;   // 0x006e3f01
 extern int32_t cluster_flood_stamps[0x200]; // 0x006e3f08
@@ -54,11 +54,11 @@ int16_t cluster_flood_fill_with_predicate(void *param_1, void *param_2, void *pr
         output[written++] = cluster_index;
 
         ScenarioStructureBSPCluster *cluster =
-            &((ScenarioStructureBSPCluster *)structure_bsp->clusters.pointer)[cluster_index];
+            &((ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer)[cluster_index];
         ScenarioStructureBSPClusterPortalIndex *portal_refs =
             (ScenarioStructureBSPClusterPortalIndex *)cluster->portals.pointer;
         ScenarioStructureBSPClusterPortal *portals =
-            (ScenarioStructureBSPClusterPortal *)structure_bsp->cluster_portals.pointer;
+            (ScenarioStructureBSPClusterPortal *)global_structure_bsp->cluster_portals.pointer;
 
         for (int32_t i = 0; i < (int32_t)cluster->portals.count; i++) {
             ScenarioStructureBSPClusterPortal *portal = &portals[portal_refs[i].portal];

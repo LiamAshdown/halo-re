@@ -6,7 +6,7 @@
 //   holds weapon_is_old_enough (0x4c6290, this batch) and projectile_is_old_enough (0x4c1270,
 //   already named in out/phase4/projectiles_types_notes.md, "projectile row +0x74"); byte for
 //   byte identical body apart from the per-type age-threshold global. types/objects.h
-//   object.unknown_00c -- per out/phase4/projectiles_types_notes.md's correction ("types/
+//   object.network_update_tick -- per out/phase4/projectiles_types_notes.md's correction ("types/
 //   objects.h: object + 0x0c is a game-tick stamp, not a datum handle"; projectile_is_old_enough
 //   does the identical `object[0x0c]==-1` / `game_time >= object[0x0c] + threshold` test against
 //   k_projectile_minimum_age_ticks, 0x006894c8, adjacent to this function's own global).
@@ -17,6 +17,7 @@
 // UNSURE: 0x006894cc has no established name; declared here as
 //   k_equipment_minimum_age_ticks by analogy with types/projectiles.h's
 //   k_projectile_minimum_age_ticks (0x006894c8, the adjacent global).
+// reconciled: R27 object.unknown_00c (datum_index) -> int32_t network_update_tick (game tick stamp, -1 = never)
 
 #include "tags.h"
 #include "memory.h"
@@ -29,12 +30,12 @@ extern void *game_time_globals; // 0x006f1d6c, +0x0c the game tick
 extern int32_t k_equipment_minimum_age_ticks; // 0x006894cc, UNSURE name
 
 // The equipment row's "is old enough" hook (object_type_definition +0x74). An object that has
-// never been stamped (object.unknown_00c == -1) always counts as old enough; otherwise it is old
+// never been stamped (object.network_update_tick == -1) always counts as old enough; otherwise it is old
 // enough once the game tick has advanced past the stamped tick plus this type's minimum age.
 uint8_t equipment_is_old_enough(uint32_t object_index) // blam-cc: stack -> object_index
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    int32_t stamp = obj->unknown_00c;
+    int32_t stamp = obj->network_update_tick;
 
     if (stamp == -1) {
         return 1;

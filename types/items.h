@@ -87,11 +87,13 @@
 //                    flags 0x4c), ScenarioEquipment (0x28), ModelAnimations, DamageEffect
 //
 // Not defined here on purpose: 22 of the 101 functions Ghidra placed in this address range
-// operate on projectiles, not items. They are listed in out/phase4/items_types_notes.md
-// together with the projectile_data offsets they establish, so that types/projectiles.h can
-// pick them up; projectile_data is 0xbc bytes at object+0x1f4 (the "projectile" row
-// object_size is 0x2b0) and overlaps item_data, so mixing the two in one struct would be
-// wrong. Three more "functions" (0x4c62d0, 0x4c62f0, 0x4c6340) are one shell/main routine
+// operate on projectiles, not items. Their layout is types/projectiles.h projectile_data
+// (0xbc bytes at object+0x1f4; the "projectile" row object_size is 0x2b0), which overlaps
+// item_data, so mixing the two in one struct would be wrong. R49: the projectile appendix in
+// out/phase4/items_types_notes.md is SUPERSEDED by projectiles.h (established from
+// projectile_new 0x4bd7c0 and 0x4be1b0's absolute offsets): object+0x230 is an int16 state,
+// +0x232 is material_response_index, +0x278 is a genuine field (thrown_grenade), and +0x248/+0x24c are the arming
+// timer. Use projectiles.h, not that appendix. Three more "functions" (0x4c62d0, 0x4c62f0, 0x4c6340) are one shell/main routine
 // that Ghidra split into three; they touch nothing in this header.
 //
 // Note on sizes: like types/memory.h, structs holding datum handles measure to the documented
@@ -695,7 +697,8 @@ typedef struct weapon_network_update_header {
 //   0x00746f98  void *collision_bsp_globals      // +0x40 is the surface table
 //                                                //   item_data.resting_surface_index indexes
 //   0x006f1d6c  void *game_time_globals          // +0x0c is the game tick
-//   0x006f1d20  int32_t game_is_server
+//   0x006f1d20  game_engine_definition *current_game_engine  // game.h (R04); non-NULL = a
+//                                                // multiplayer engine is loaded
 //   0x00719720  int32_t network_game_mode        // 0 local, 1 client, 2 host
 //   0x0071c419  uint8_t weapons_frozen           // weapon_update returns immediately when set
 //   0x0087abc2  uint8_t weapon_bottomless_clip   // shared with the unit grenade code

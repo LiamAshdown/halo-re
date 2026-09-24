@@ -9,12 +9,14 @@
 // types/game.h player.unit).
 // register convention: confirmed by objdump: ESI -> packed_reference.
 //   // blam-cc: ESI -> packed_reference
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "ai.h"
+#include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480, stride 0x200 (no types/players.h yet)
 
@@ -31,6 +33,7 @@ void ai_reference_respawn_all_players(uint32_t packed_reference)
         iterator.data = player_data;
         iterator.next_index = 0;
         iterator.index = (datum_index)k_datum_index_none;
+        iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
         p = data_iterator_next(&iterator);
         while (p != 0) {

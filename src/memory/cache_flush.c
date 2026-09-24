@@ -11,9 +11,11 @@
 // register/stack convention this function itself used cannot be recovered from the decompilation.
 // evidence: out/phase4/memory_types_notes.md, data_iterator_next.c, cache_evict_entry.c.
 // register convention: UNSURE -- reconstructed as cache* in a single argument; see above.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
+#include <stdint.h>
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, below this batch's
     // assigned range
@@ -26,6 +28,7 @@ void cache_flush(cache *self)
     iterator.data = self->entries;
     iterator.next_index = 0;
     iterator.index = 0;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
     while (data_iterator_next(&iterator) != 0) {
         cache_evict_entry(iterator.index, self);

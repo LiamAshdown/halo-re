@@ -28,6 +28,7 @@
 //   that this function's own callees (FUN_00502060, bsp3d_node_find_leaf, scenario_location_from_point) receive --
 //   Ghidra lost every one of those stores, and the prototypes below reconstruct them only from
 //   the struct layouts types/physics.h already proves.
+// reconciled: R23 collision_result: normal -> plane.normal, unknown_30 -> plane.d, unknown_04 -> first_leaf/first_cluster, unknown_3c -> region_index, marker_index -> node_index, unknown_40 -> permutation_index (int16), unknown_48 -> plane_index, unknown_4d -> breakable_surface_index, unknown_4e -> collision_material_index
 
 #include "tags.h"
 #include "memory.h"
@@ -39,8 +40,8 @@
 
 // collision_test_movement_segment_flags now lives in types/physics.h.
 
-extern ModelCollisionGeometryBSP *structure_collision_bsp; // 0x00746f98
-extern ScenarioStructureBSP *structure_bsp_tag_data;                // 0x00746f9c
+extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
+extern ScenarioStructureBSP *global_structure_bsp;                // 0x00746f9c
 
 extern data_array *object_data;                    // 0x008603b0
 extern object_globals *object_globals_pointer;     // 0x006b8cbc
@@ -103,7 +104,7 @@ uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, re
     // 0x0c/0x10, which is the one projectiles.h already names `leaf`. See types/physics.h's
     // "what this module adds to collision_result" table. An earlier rewrite of this file aliased
     // both onto result->leaf, so 0x04/0x08 were never written at all.
-    first_leaf_ref = (bsp_leaf_reference *)&result->unknown_04[0];
+    first_leaf_ref = (bsp_leaf_reference *)&result->first_leaf;
     last_leaf_ref = (bsp_leaf_reference *)&result->leaf;
     result->type = -1;
     first_leaf_ref->leaf_index = -1;
@@ -118,14 +119,14 @@ uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, re
         result->point.x = origin->x + delta->i;
         result->point.y = origin->y + delta->j;
         result->point.z = origin->z + delta->k;
-        leaf_index = bsp3d_node_find_leaf(0, structure_collision_bsp, &result->point);
+        leaf_index = bsp3d_node_find_leaf(0, global_structure_collision_bsp, &result->point);
         last_leaf_ref->leaf_index = leaf_index;
         if (leaf_index == -1) {
             last_leaf_ref->cluster_index = -1;
             return 0;
         }
         last_leaf_ref->cluster_index =
-            ((ScenarioStructureBSPLeaf *)structure_bsp_tag_data->leaves.pointer)[leaf_index].cluster;
+            ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf_index].cluster;
         return 0;
     }
 
@@ -142,36 +143,36 @@ uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, re
         segment_flags = sanitized_flags & 0x1f;
 
         found_surface = collision_bsp_query_segment_init(segment_flags, &seg_result,
-            structure_collision_bsp, k_maximum_breakable_surfaces_per_bsp,
+            global_structure_collision_bsp, k_maximum_breakable_surfaces_per_bsp,
             breakable_surface_state->active[global_structure_bsp_index],
             origin, delta, 3.4028235e+38f /* 0x7f7fffff, FLT_MAX */);
 
         if (found_surface && (flags & _collision_test_flag_structure_bsp) != 0) {
             result->t = seg_result.t;
             result->type = 2;
-            result->normal.i = ((real_plane3d *)seg_result.plane)->normal.i;
-            result->normal.j = ((real_plane3d *)seg_result.plane)->normal.j;
-            result->normal.k = ((real_plane3d *)seg_result.plane)->normal.k;
-            result->unknown_30 = ((real_plane3d *)seg_result.plane)->d;
+            result->plane.normal.i = ((real_plane3d *)seg_result.plane)->normal.i;
+            result->plane.normal.j = ((real_plane3d *)seg_result.plane)->normal.j;
+            result->plane.normal.k = ((real_plane3d *)seg_result.plane)->normal.k;
+            result->plane.d = ((real_plane3d *)seg_result.plane)->d;
             if (seg_result.plane_index < 0) {
-                result->normal.i = -result->normal.i;
-                result->normal.j = -result->normal.j;
-                result->normal.k = -result->normal.k;
-                result->unknown_30 = -result->unknown_30;
+                result->plane.normal.i = -result->plane.normal.i;
+                result->plane.normal.j = -result->plane.normal.j;
+                result->plane.normal.k = -result->plane.normal.k;
+                result->plane.d = -result->plane.d;
             }
             if (seg_result.material_index == -1) {
                 result->material_type = -1;
             } else {
                 result->material_type = ((ScenarioStructureBSPCollisionMaterial *)
-                    structure_bsp_tag_data->collision_materials.pointer)[seg_result.material_index].material;
+                    global_structure_bsp->collision_materials.pointer)[seg_result.material_index].material;
             }
             result->surface_index = seg_result.surface_index;
-            result->unknown_48 = (uint32_t)seg_result.plane_index; // 0x48; physics.h names this
+            result->plane_index = (uint32_t)seg_result.plane_index; // 0x48; physics.h names this
                                                                     // plane_index, sign bit set
                                                                     // on a back-face hit
             result->surface_flags = seg_result.surface_flags;
-            result->unknown_4d = seg_result.breakable_surface_index;
-            result->unknown_4e = seg_result.material_index;
+            result->breakable_surface_index = seg_result.breakable_surface_index;
+            result->collision_material_index = seg_result.material_index;
             hit = 1;
         }
 
@@ -181,11 +182,11 @@ uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, re
 
             first_leaf_ref->leaf_index = first_leaf;
             first_leaf_ref->cluster_index = (first_leaf == -1) ? -1 :
-                ((ScenarioStructureBSPLeaf *)structure_bsp_tag_data->leaves.pointer)[first_leaf].cluster;
+                ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[first_leaf].cluster;
 
             last_leaf_ref->leaf_index = last_leaf;
             last_leaf_ref->cluster_index = (last_leaf == -1) ? -1 :
-                ((ScenarioStructureBSPLeaf *)structure_bsp_tag_data->leaves.pointer)[last_leaf].cluster;
+                ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[last_leaf].cluster;
         }
 
         // Water-surface test: does the destination cluster have a fog plane, and does the
@@ -193,11 +194,11 @@ uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, re
         // palette entry -> loaded tag data +0x74) is foreign to this module; see file header.
         if ((flags & _collision_test_flag_water_surface) != 0 && last_leaf_ref->cluster_index != -1) {
             ScenarioStructureBSPCluster *cluster = &((ScenarioStructureBSPCluster *)
-                structure_bsp_tag_data->clusters.pointer)[last_leaf_ref->cluster_index];
+                global_structure_bsp->clusters.pointer)[last_leaf_ref->cluster_index];
             int16_t fog = (int16_t)cluster->fog;
             if (fog != -1 && fog < 0) {
                 ScenarioStructureBSPFogPlane *fog_plane = &((ScenarioStructureBSPFogPlane *)
-                    structure_bsp_tag_data->fog_planes.pointer)[fog & 0x7fff];
+                    global_structure_bsp->fog_planes.pointer)[fog & 0x7fff];
                 if (fog_plane->material_type != -1) {
                     float ni = fog_plane->plane.vector.i;
                     float nj = fog_plane->plane.vector.j;
@@ -206,9 +207,9 @@ uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, re
                     // tag itself (and its +0x74 field, presumably a world-space altitude) is
                     // foreign to this module, see file header.
                     uint16_t fog_palette_index = ((ScenarioStructureBSPFogRegion *)
-                        structure_bsp_tag_data->fog_regions.pointer)[fog_plane->front_region].fog;
+                        global_structure_bsp->fog_regions.pointer)[fog_plane->front_region].fog;
                     ScenarioStructureBSPFogPalette *palette = &((ScenarioStructureBSPFogPalette *)
-                        structure_bsp_tag_data->fog_palette.pointer)[fog_palette_index];
+                        global_structure_bsp->fog_palette.pointer)[fog_palette_index];
                     uint32_t fog_tag_index = palette->fog.tag_id.index;
                     float world_offset = *(float *)((uint8_t *)tag_instances[fog_tag_index].data + 0x74);
                     float d = fog_plane->plane.w - world_offset;
@@ -219,22 +220,22 @@ uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, re
                         0.0001f <= (float)fabs((double)side_b) &&
                         -(side_a / side_b) < result->t) {
                         result->t = -(side_a / side_b);
-                        result->normal.i = ni;
-                        result->normal.j = nj;
-                        result->normal.k = nk;
+                        result->plane.normal.i = ni;
+                        result->plane.normal.j = nj;
+                        result->plane.normal.k = nk;
                         result->type = 0;
-                        result->unknown_30 = d;
+                        result->plane.d = d;
                         if (0.0f <= side_a) {
                             // param_5[0x1a] is byte offset 0x34 -- material_type, not 0x4e
                             result->material_type = fog_plane->material_type;
                             hit = 1;
                         } else {
                             real_plane3d negated;
-                            plane3d_negate(&negated, (real_plane3d *)&result->normal);
-                            result->normal.i = negated.normal.i;
-                            result->normal.j = negated.normal.j;
-                            result->normal.k = negated.normal.k;
-                            result->unknown_30 = negated.d;
+                            plane3d_negate(&negated, (real_plane3d *)&result->plane.normal);
+                            result->plane.normal.i = negated.normal.i;
+                            result->plane.normal.j = negated.normal.j;
+                            result->plane.normal.k = negated.normal.k;
+                            result->plane.d = negated.d;
                             result->material_type = 0x1c; // param_5[0x1a] == +0x34
                             hit = 1;
                         }
@@ -261,7 +262,7 @@ uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, re
             for (i = 0; i < seg_result.leaf_count; i++) {
                 int32_t leaf = seg_result.leaves[i];
                 int16_t cluster_index = (leaf == -1) ? -1 :
-                    ((ScenarioStructureBSPLeaf *)structure_bsp_tag_data->leaves.pointer)[leaf].cluster;
+                    ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf].cluster;
 
                 // cluster_index == -1 indexes cluster_visit_stamp[-1], which IS
                 // cluster_flood_fill_call_count itself (0x006e3f04 sits immediately before
@@ -306,15 +307,15 @@ uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, re
             int32_t resolved_leaf = last_leaf_ref->leaf_index;
 
             if (resolved_leaf != -1) {
-                int32_t new_leaf = bsp3d_node_find_leaf(0, structure_collision_bsp, point);
+                int32_t new_leaf = bsp3d_node_find_leaf(0, global_structure_collision_bsp, point);
                 if (new_leaf != resolved_leaf) {
-                    point->x += result->normal.i * 0.00024414062f;
-                    point->y += result->normal.j * 0.00024414062f;
-                    point->z += result->normal.k * 0.00024414062f;
+                    point->x += result->plane.normal.i * 0.00024414062f;
+                    point->y += result->plane.normal.j * 0.00024414062f;
+                    point->z += result->plane.normal.k * 0.00024414062f;
                     scenario_location_from_point(last_leaf_ref);
                     if (last_leaf_ref->leaf_index == -1) {
-                        float facing = delta->i * result->normal.i + delta->j * result->normal.j +
-                            delta->k * result->normal.k;
+                        float facing = delta->i * result->plane.normal.i + delta->j * result->plane.normal.j +
+                            delta->k * result->plane.normal.k;
                         float step = (facing == 0.0f) ? 0.03125f :
                             0.00024414062f / (float)fabs((double)facing);
 
@@ -327,10 +328,10 @@ uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, re
                             point->x = t * delta->i + origin->x;
                             point->y = t * delta->j + origin->y;
                             point->z = t * delta->k + origin->z;
-                            resolved_leaf = bsp3d_node_find_leaf(0, structure_collision_bsp, point);
+                            resolved_leaf = bsp3d_node_find_leaf(0, global_structure_collision_bsp, point);
                             last_leaf_ref->leaf_index = resolved_leaf;
                             last_leaf_ref->cluster_index = (resolved_leaf == -1) ? -1 :
-                                ((ScenarioStructureBSPLeaf *)structure_bsp_tag_data->leaves.pointer)[resolved_leaf].cluster;
+                                ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[resolved_leaf].cluster;
                             if (result->t <= 0.0f) {
                                 break;
                             }

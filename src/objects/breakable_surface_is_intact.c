@@ -1,4 +1,4 @@
-// zone_light_table_test_bit
+// breakable_surface_is_intact  (was zone_light_table_test_bit; renamed in reconciliation R79)
 // address 0x4ffda0, size 52 bytes
 // name confidence: 0.75 (types/objects.h names and cites this exact address in its
 //   object_zone_light_table struct comment: "queried by zone_light_table_test_bit")
@@ -10,19 +10,21 @@
 //   arithmetic (`>> 5` then `& 0x1f` to pick a bit within one of the eight dwords of a group)
 //   this is the bit index into the current local player's 256-bit membership set.
 // blam-cc: AX -> bit_index
+// reconciled: R79 0x006b8d78 is types/physics.h breakable_surface_globals and 0x0069e8d8 the structure BSP index: the test is 'is breakable surface bit_index of the current BSP still intact' (current_local_player_index -> global_structure_bsp_index, membership -> active)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "physics.h"
 
-extern object_zone_light_table *object_zone_light_table_pointer; // 0x006b8d78
-extern int16_t current_local_player_index; // 0x0069e8d8
+extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78, types/physics.h breakable_surface_globals
+extern int16_t global_structure_bsp_index; // 0x0069e8d8, types/physics.h
 
-int8_t zone_light_table_test_bit(int16_t bit_index /*AX*/) // blam-cc: AX -> bit_index
+int8_t breakable_surface_is_intact(int16_t bit_index /*AX*/) // blam-cc: AX -> bit_index
 {
     if (bit_index != -1) {
-        uint32_t word = object_zone_light_table_pointer->membership[current_local_player_index][bit_index >> 5];
+        uint32_t word = breakable_surface_state->active[global_structure_bsp_index][bit_index >> 5];
         if ((word & (1 << (bit_index & 0x1f))) == 0) {
             return 0;
         }

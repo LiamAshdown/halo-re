@@ -10,6 +10,7 @@
 //   (+0x08), ScenarioStructureBSPCluster.sky (+0x00), ScenarioSky (a plain `sky` TagDependency,
 //   stride 0x10), Sky.model (+0x00, tag_id at +0x0c).
 // register convention: none (void).
+// reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
 
 #include "tags.h"
 #include "memory.h"
@@ -18,8 +19,8 @@
 #include "game.h"
 #include "structures.h"
 
-extern ScenarioStructureBSP *structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
-extern ModelCollisionGeometryBSP *global_globals; // 0x00746f90, physics.h/objects.h (read, not owned)
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
+extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90, physics.h/objects.h (read, not owned)
 extern Scenario *global_scenario; // 0x00746f8c, game.h/hs.h (read, not owned)
 extern tag_instance *tag_instances; // 0x0087bc14, cache.h
 extern real_point3d render_camera_position; // 0x007c3114, this module (read, not owned)
@@ -38,9 +39,9 @@ extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t 
 // has a sky whose model dependency is actually set.
 void render_camera_update_leaf_and_cluster(void)
 {
-    int32_t leaf = bsp3d_node_find_leaf(global_globals, &render_camera_position, 0);
+    int32_t leaf = bsp3d_node_find_leaf(global_collision_bsp, &render_camera_position, 0);
 
-    if (leaf == -1 && render_leaf_index < structure_bsp->leaves.count) {
+    if (leaf == -1 && render_leaf_index < global_structure_bsp->leaves.count) {
         leaf = render_leaf_index;
     }
     render_leaf_index = leaf;
@@ -49,8 +50,8 @@ void render_camera_update_leaf_and_cluster(void)
     render_cluster_has_sky = 0;
 
     if (render_leaf_index != -1) {
-        ScenarioStructureBSPLeaf *leaves = (ScenarioStructureBSPLeaf *)structure_bsp->leaves.pointer;
-        ScenarioStructureBSPCluster *clusters = (ScenarioStructureBSPCluster *)structure_bsp->clusters.pointer;
+        ScenarioStructureBSPLeaf *leaves = (ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer;
+        ScenarioStructureBSPCluster *clusters = (ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer;
         TagID sky_tag_id;
         int have_sky_tag_id = 0;
 

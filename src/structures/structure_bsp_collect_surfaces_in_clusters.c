@@ -21,7 +21,7 @@
 #include "math.h"
 #include "structures.h"
 
-extern ScenarioStructureBSP *structure_bsp;                            // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp;                            // 0x00746f9c
 extern uint32_t surface_visible_bits[k_maximum_visible_surface_bits];  // 0x007d0394
 
 // blam-cc: ECX -> box_a, EDX -> box_b
@@ -46,7 +46,7 @@ int32_t structure_bsp_collect_surfaces_in_clusters(int32_t *out_surfaces, int16_
             break;
         }
         ScenarioStructureBSPCluster *cluster =
-            &((ScenarioStructureBSPCluster *)structure_bsp->clusters.pointer)[cluster_indices[c]];
+            &((ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer)[cluster_indices[c]];
 
         for (int32_t s = 0; s < (int32_t)cluster->subclusters.count; s++) {
             if (written >= max_count) {

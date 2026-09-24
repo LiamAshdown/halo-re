@@ -17,12 +17,14 @@
 //   reverse-engineered. The loop only ever uses the FIRST live player record and only reaches
 //   the tail call when the player has a valid local_player_index, matching the decompile's
 //   early `return` inside the loop body.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480
 
@@ -47,6 +49,7 @@ void player_effect_mark_damage_direction_dispatch(uint32_t *descriptor)
         iterator.data = player_data;
         iterator.next_index = 0;
         iterator.index = (datum_index)0xffffffff;
+        iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
         record = (player *)data_iterator_next(&iterator);
         while (record != (player *)0) {

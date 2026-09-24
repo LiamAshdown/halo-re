@@ -17,6 +17,7 @@
 //   the same register's value, so the array pointer is modeled as a separate parameter here.
 // UNSURE: globals_tag_data+0x18c+0x48 (a second effect tag from the same "fall damage table"
 //   block referenced by unit_apply_fall_damage.c) is not named in any header.
+// reconciled: R25 damage_data.unknown_4c -> material_type (int16 collision material of the damaged surface, 0xffff = none; indexes DamageEffect +0x200)
 
 #include "tags.h"
 #include "memory.h"
@@ -85,7 +86,7 @@ void unit_update_steering_deviation_effects(uint32_t unit_index, real_vector3d *
                     dd.direction = deviation;
                     dd.random_blend = clamped;
                     dd.multiplier = 1.0f;
-                    dd.unknown_4c = -1;
+                    dd.material_type = -1;
                     dd.damage_effect_tag = impact_effect_tag;
                     object_apply_damage(&dd, unit_index, -1, -1, -1, 0);
                 }

@@ -9,6 +9,7 @@
 //   from 0x4d4 to 0x4f8 and from 0x508 to 0x520" describes this function verbatim).
 // register convention: vehicle object index in EAX (param_1).
 //   // blam-cc: EAX -> object_index
+// reconciled: R24 vehicle_data unknown_508..unknown_51c -> real_vector3d accumulated_force (+0x508) / accumulated_torque (+0x514) (still six zero dword stores)
 
 #include "tags.h"
 #include "memory.h"
@@ -42,12 +43,12 @@ void vehicle_reset_state(uint32_t object_index)
     // only the first two dwords of contact_point_traction[20] (per the notes file)
     *(uint32_t *)&vehicle->contact_point_traction[0] = 0;
     *(uint32_t *)&vehicle->contact_point_traction[4] = 0;
-    vehicle->unknown_508 = 0;
-    vehicle->unknown_50c = 0;
-    vehicle->unknown_510 = 0;
-    vehicle->unknown_514 = 0;
-    vehicle->unknown_518 = 0;
-    vehicle->unknown_51c = 0;
+    vehicle->accumulated_force.i = 0.0f;
+    vehicle->accumulated_force.j = 0.0f;
+    vehicle->accumulated_force.k = 0.0f;
+    vehicle->accumulated_torque.i = 0.0f;
+    vehicle->accumulated_torque.j = 0.0f;
+    vehicle->accumulated_torque.k = 0.0f;
     vehicle->active_marker_mask = 0;
 }
 

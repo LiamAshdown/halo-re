@@ -8,6 +8,7 @@
 // register convention: damage_data *dd in EDX (in_EDX); datum_index damage_effect_tag on the
 // stack (param_1).
 // blam-cc: EDX=dd, stack=damage_effect_tag
+// reconciled: R25 damage_data.unknown_4c -> material_type (int16 collision material of the damaged surface, 0xffff = none; indexes DamageEffect +0x200)
 
 #include "tags.h"
 #include "memory.h"
@@ -24,7 +25,7 @@ void damage_data_initialize(damage_data *dd, datum_index damage_effect_tag)
     }
 
     dd->damage_effect_tag = damage_effect_tag;
-    dd->unknown_4c = (int16_t)0xffff;
+    dd->material_type = (int16_t)0xffff;
     dd->responsible_player = (datum_index)0xffffffff;
     dd->responsible_object = (datum_index)0xffffffff;
     dd->team_index = (int16_t)0xffff;

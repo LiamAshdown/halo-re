@@ -29,8 +29,10 @@
 //   only named by the log format; 0x006894bc (render skip threshold, ms), 0x006894b0 (bandwidth
 //   graph sample interval default) and 0x0069fdfc have no established owner; the idle quit
 //   (main_globals.idle_timeout_ms) is never armed in this build. The data iterator frame is
-//   0x10 bytes: types/memory.h data_iterator stops at +0x0c, the +0x0c signature (data ^ 'iter')
-//   is kept as a separate local, as the game module files do.
+//   0x10 bytes: types/memory.h data_iterator, whose +0x0c signature is data ^ 'iter'.
+// reconciled: R33 game_time_globals.unknown_00 -> initialized (uint8 at +0x00, same byte)
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original; the separate iterator_signature local is folded into it
+// reconciled: R10 profile_directory is char[0x105] (k_profile_directory_storage_size; shell zeroes 0x41 dwords + 1 byte at 0x540ef9)
 
 #include "tags.h"
 #include "memory.h"
@@ -63,7 +65,7 @@ extern data_array *object_data;                             // 0x008603b0, forei
 extern input_abstraction_globals input_globals;             // 0x00710328, foreign (input module)
 extern input_event_queue event_queue;                       // 0x00712cc0, foreign (input module)
 extern char network_banlist_full_path[0x104];               // 0x0071c308, foreign (networking)
-extern char profile_directory[0x104];                       // 0x006ac900, foreign (shell)
+extern char profile_directory[0x105];                       // 0x006ac900, foreign (shell)
 extern growable_array ban_list;                             // 0x006b859c, foreign (networking)
 extern growable_array network_buffer_pair_pool;             // 0x006b85a8, foreign (networking), UNSURE name
 extern int32_t shell_nosound;                               // 0x007196e4, foreign (shell)
@@ -219,7 +221,6 @@ void main_loop(void)
     float delta;                              // edi
     uint8_t add_bob;
     data_iterator iterator;                   // [esp+0x78] (reuses the SYSTEMTIME slot)
-    uint32_t iterator_signature;              // [esp+0x84] data ^ 'iter', never read
     player *local_player;
     player_update_history *update_history;
     object_header *unit_header;
@@ -466,7 +467,7 @@ void main_loop(void)
             QueryPerformanceCounter(&counter);
             main_globals_data.last_activity_time_ms =
                 (int32_t)((counter * 1000) / performance_counter_frequency);
-        } else if (game_time->unknown_00 != 0 && (game_time->active != 0 || game_time->paused != 0) &&
+        } else if (game_time->initialized != 0 && (game_time->active != 0 || game_time->paused != 0) &&
                    game_time->paused == 0 && cinematic_globals[9] != 0) {
             QueryPerformanceCounter(&counter);
             main_globals_data.last_gameplay_time_ms =
@@ -494,7 +495,7 @@ void main_loop(void)
             }
         }
 
-        if (game_time->unknown_00 == 0 || (game_time->active == 0 && game_time->paused == 0)) {
+        if (game_time->initialized == 0 || (game_time->active == 0 && game_time->paused == 0)) {
             // no game is running: pregame view only
             if (game_time_force_single_tick == 0 && shell_application_inactive == 0) {
                 render_pregame_view_initialize();
@@ -540,7 +541,7 @@ void main_loop(void)
                 iterator.data = player_data;
                 iterator.next_index = 0;          // WORD store
                 iterator.index = (datum_index)-1;
-                iterator_signature = (uint32_t)(uintptr_t)player_data ^ 0x69746572;
+                iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
                 while ((local_player = (player *)data_iterator_next(&iterator)) != 0) {
                     if (local_player->local_player_index == -1) {
                         continue;

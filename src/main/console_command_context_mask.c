@@ -14,6 +14,7 @@
 // UNSURE: the 8188-byte on-stack copy of saved_player_profile_slots[0] before reading its
 // flags field is dropped as a non-observable simplification (no aliasing/threading concern is
 // visible in this function); reading the field directly is behaviourally identical.
+// reconciled: R22 saved_player_profile_flags gains _saved_player_profile_end_credits_reached_bit (0x0004); the literal 4 now uses it
 
 #include "tags.h"
 #include "memory.h"
@@ -43,7 +44,7 @@ uint32_t console_command_context_mask(uint32_t context_flags)
 
     if (current_game_engine == 0) {
         mask = _console_context_default_bit;
-        if ((saved_player_profile_slots[0].profile.flags & 0x0004) == 0) { // end-credits reached
+        if ((saved_player_profile_slots[0].profile.flags & _saved_player_profile_end_credits_reached_bit) == 0) {
             mask = _console_context_default_bit | k_console_context_exec_file; // forbid bit 5
         }
         mask = mask | _console_context_no_multiplayer_bit;

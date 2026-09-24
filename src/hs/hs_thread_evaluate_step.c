@@ -29,9 +29,12 @@
 // UNSURE: the `first` byte is spilled as a byte at [esp+0x14] and re-loaded as a DWORD
 // (`mov ecx,[esp+0x14]`, 0x48a48c) before being pushed as the evaluate handler's third argument,
 // so the upper three bytes of that argument are stack garbage. Modeled as a plain char.
+// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
 
 #include "tags.h"
 #include "memory.h"
+#include "math.h"
+#include "game.h"
 #include "hs.h"
 
 extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address);
@@ -47,8 +50,8 @@ extern Scenario *global_scenario;       // 0x00746f8c
 extern int16_t hs_current_thread_index; // 0x006b15ea
 extern uint8_t hs_runtime_active;       // 0x006b15e8
 
-// hs_game_time_globals: defined in types/hs.h (foreign-module slice; was a local TYPES-GAP copy)
-extern hs_game_time_globals *game_time; // 0x006f1d6c
+// game_time_globals: defined in types/game.h (R32 replaced hs.h's partial game_time_globals)
+extern game_time_globals *game_time; // 0x006f1d6c
 
 // Steps `thread_index` through as many syntax nodes as its per-tick time budget allows (see the
 // game_time check below), dispatching each node's function evaluate handler (or, for a
@@ -93,8 +96,8 @@ void hs_thread_evaluate_step(uint32_t thread_index)
     while ((void *)thread->stack != (void *)&thread->stack_data) {
         if (thread->wake_tick < 0 ||
             (game_time->initialized != 0 &&
-             (game_time->budget_flag_1 != 0 || game_time->budget_flag_2 != 0) &&
-             game_time->current_tick < thread->wake_tick) ||
+             (game_time->active != 0 || game_time->paused != 0) &&
+             game_time->game_time < thread->wake_tick) ||
             hs_runtime_active == 0) {
             break;
         }

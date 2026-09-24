@@ -28,7 +28,7 @@
 #include "objects.h"
 
 extern real_vector3d object_ambient_lighting_default; // 0x00686b0c
-extern uint8_t *structure_bsp_globals; // 0x00746f9c, see object_sample_ambient_lightmap_point.c
+extern uint8_t *global_structure_bsp; // 0x00746f9c, see object_sample_ambient_lightmap_point.c
 extern int32_t object_probe_globals; // 0x0065dd94, see object_sample_ambient_lightmap_point.c
 extern int32_t light_frame_counter; // 0x008607c4
 extern int32_t light_render_unknown_7c0; // 0x008607c0
@@ -57,8 +57,8 @@ void object_sample_total_lighting_at_point(real_point3d *probe_point, int32_t *p
     *color = object_ambient_lighting_default;
 
     if (structure_bsp_resolve_position_to_surface(&object_probe_globals, &probe_leaf, probe_b, probe_c) != 0 &&
-        *(int32_t *)(structure_bsp_globals + 0xc) != -1 &&
-        *(int16_t *)(probe_leaf * 0x20 + *(int32_t *)(structure_bsp_globals + 0x108)) != -1) {
+        *(int32_t *)(global_structure_bsp + 0xc) != -1 &&
+        *(int16_t *)(probe_leaf * 0x20 + *(int32_t *)(global_structure_bsp + 0x108)) != -1) {
         void *bitmap = bitmap_group_get_bitmap_data();
         if (texture_cache_get(0, 0, 0) != 0) {
             bsp_lightmap_sample_vertex_color(bitmap, *(int32_t *)probe_b, probe_c, color);

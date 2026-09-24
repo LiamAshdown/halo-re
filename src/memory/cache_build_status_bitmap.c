@@ -13,10 +13,12 @@
 // UNSURE: `in_use_procedure` is called with the literal handle 0xffffffff for every entry (not
 // that entry's own handle) -- preserved exactly as decompiled rather than "fixed" to pass the
 // entry's real handle; it means every entry gets the same locked/not-locked bit.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include <string.h>
+#include <stdint.h>
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, below this batch's
     // assigned range
@@ -31,6 +33,7 @@ void cache_build_status_bitmap(cache *self, uint8_t *bitmap)
     iterator.data = self->entries;
     iterator.next_index = 0;
     iterator.index = 0;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     entry = (cache_entry *)data_iterator_next(&iterator);
     while (entry != 0) {
         uint8_t status = _cache_block_allocated_bit;

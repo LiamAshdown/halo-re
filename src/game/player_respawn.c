@@ -36,6 +36,7 @@
 //   set_controlled_unit's arguments there (presumably local_player_index and -1, i.e. "clear");
 //   game_get_player_starting_location / observer_new's exact signatures beyond what their one call site
 //   here requires.
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
 
 #include "tags.h"
 #include "memory.h"
@@ -194,7 +195,7 @@ void player_respawn(uint32_t player_index)
                     object *unit_obj = object_try_and_get(new_unit, 3);
                     if (unit_obj != 0) {
                         unit_obj->owner_linkage = player_index;
-                        unit_obj->name_index = (int16_t)p->team;
+                        unit_obj->owner_team = (int16_t)p->team;
                         ((unit_data *)unit_obj)->controlling_player = (datum_index)player_index;
                         p->unit = new_unit;
                         unit_refresh_targeting_flag_and_weapons(new_unit);

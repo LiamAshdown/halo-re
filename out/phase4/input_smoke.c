@@ -57,7 +57,7 @@ CHECK(ms_neutral_end, 0x006b1828 + sizeof(mouse_state) == 0x006b1844);
 CHECK(dm_buttons, OFF(di_mouse_state2, buttons) == 0x0c);
 
 // input_device (0x006b1868 base; +0x20c key at 0x006b1a74, slot at 0x006b1a98, counts)
-CHECK(dev_key, 0x006b1868 + OFF(input_device, record) + OFF(controls_gamepad_record, device_key) == 0x006b1a74);
+CHECK(dev_key, 0x006b1868 + OFF(input_device, record) + OFF(controls_gamepad_record, product_guid) == 0x006b1a74);
 CHECK(dev_instance, OFF(input_device, instance_guid) == 0x220);
 CHECK(dev_slot, 0x006b1868 + OFF(input_device, slot) == 0x006b1a98);
 CHECK(dev_axes, 0x006b1868 + OFF(input_device, axis_count) == 0x006b1a9c);
@@ -115,8 +115,8 @@ CHECK(g_end, 0x00710328 + sizeof(input_abstraction_globals) == 0x00712918);
 // settings tables of controller 0 (the absolute addresses the decompile uses)
 CHECK(s_stride, sizeof(player_control_settings) == 0x85c);
 CHECK(s_keyboard, 0x00710328 + 0x008 == 0x00710330);
-CHECK(s_scale_x, 0x00710328 + OFF(player_control_settings, unknown_830) == 0x00710b58);
-CHECK(s_invert, 0x00710328 + OFF(player_control_settings, unknown_858) == 0x00710b80);
+CHECK(s_scale_x, 0x00710328 + OFF(player_control_settings, gamepad_axis_scale_x) == 0x00710b58);
+CHECK(s_invert, 0x00710328 + OFF(player_control_settings, look_inverted) == 0x00710b80);
 // the scan result words (0x007127c6 device index, 0x007127ca input index)
 CHECK(scan_device, G(scan_result) + OFF(control_binding_descriptor, device_index) == 0x007127c6);
 CHECK(scan_index, G(scan_result) + OFF(control_binding_descriptor, input_index) == 0x007127ca);

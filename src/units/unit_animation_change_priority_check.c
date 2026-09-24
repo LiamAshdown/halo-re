@@ -17,11 +17,13 @@
 //   it is modelled here as converting the repeat-interval seconds value into ticks via the
 //   game clock's seconds-per-tick global, which is the only quantity in scope that makes the
 //   surrounding tick comparison meaningful, but this is a guess.
+// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
 
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
@@ -31,7 +33,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern int16_t dialogue_fallback_chain[];      // 0x0065e7a8, UNSURE element count
 extern int16_t dialogue_priority_table[];      // 0x0065e94c, UNSURE element count
 extern float dialogue_min_repeat_interval[];   // 0x0065e964, UNSURE element count
-extern hs_game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/hs.h)
+extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
 extern int32_t __ftol(); // 0x6391b4, MSVC 7.1 CRT float-to-int truncation; the double is on the x87 stack
 
 int32_t unit_animation_change_priority_check(uint32_t unit_index, int16_t requested_priority,
@@ -79,7 +81,7 @@ int32_t unit_animation_change_priority_check(uint32_t unit_index, int16_t reques
                         if (dialogue_min_repeat_interval[requested_priority] != 3.4028235e+38f) {
                             int32_t min_repeat_ticks =
                                 __ftol((double)(dialogue_min_repeat_interval[requested_priority] /
-                                                 game_time->seconds_per_tick)); // UNSURE
+                                                 game_time->leftover_time)); // UNSURE
                             ok = (int32_t)unit->speech_tail_ticks + (int32_t)unit->speech_duration_ticks <
                                  min_repeat_ticks;
                             if (!ok) {

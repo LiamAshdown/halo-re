@@ -28,6 +28,7 @@
 //   of the contiguous {torque, force} accumulator this function builds); whether that callee
 //   really expects one combined 6-float pointer or something else is confirmed only by that
 //   function's own rewrite.
+// reconciled: R24 vehicle_data unknown_508..unknown_51c -> real_vector3d accumulated_force (+0x508) / accumulated_torque (+0x514); read through vehicle_data instead of raw offsets
 
 #include "tags.h"
 #include "memory.h"
@@ -74,12 +75,11 @@ void object_physics_tick(uint32_t object_index, powered_mass_point_state *powere
     if (definition->radius <= 0.0f) {
         object_physics_context context;
         object_physics_tick_accumulator accum;
-        // types/units.h's vehicle_data still declares only uint32_t unknown_508/unknown_514
-        // placeholders; types/physics.h's own cross-module note resolves them as
-        // real_vector3d accumulated_force/accumulated_torque, not yet folded back into
-        // units.h, so this rewrite accesses them by raw offset instead of through that struct.
-        real_vector3d *accumulated_force = (real_vector3d *)((uint8_t *)obj + 0x508);
-        real_vector3d *accumulated_torque = (real_vector3d *)((uint8_t *)obj + 0x514);
+        // types/units.h vehicle_data.accumulated_force / accumulated_torque (object +0x508 /
+        // +0x514): fadd at 0x507942..0x50798d, zeroed at 0x507993..0x5079b5.
+        vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
+        real_vector3d *accumulated_force = &vehicle->accumulated_force;
+        real_vector3d *accumulated_torque = &vehicle->accumulated_torque;
 
         object_physics_context_build(object_index, &context);
 

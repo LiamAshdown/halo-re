@@ -7,30 +7,75 @@
 // register convention: __cdecl; the recognized stack parameter is forwarded verbatim to the
 //   vtable slot without ever being read here.
 //
-// UNSURE: Ghidra reports eleven "Removing unreachable block" warnings and shows an empty
-// while-loop body -- MSVC's optimizer proved out whatever this function used to do per object
-// and left only the iterator-draining loop and the final vtable call as observable behavior.
-// That is transcribed exactly: the loop still runs (for data_iterator_next's own side effects
-// on the implicit iterator it advances) but its body does nothing.
+// Ghidra reported eleven "Removing unreachable block" warnings and an empty loop body because it
+// lost the stack data_iterator (passed in EDI). The loop body is recovered from objdump
+// 0x45c570..0x45c68e: the inline data_iterator over player_data (0x45c577..0x45c5a4), then for
+// every player: validate iterator.index against player_data (0x45c5c0..0x45c605, the same
+// range/occupied/salt test chimera__kill_feed does), skip non-local players (WORD +0x02 == -1,
+// 0x45c607), build message type 0x1c about `param` into a 0x400-wchar buffer through the
+// variant's build_message_text (+0x6c, 0x45c60e) or game_engine_build_kill_feed_message_text
+// (0x45e680, EAX = player, EBX = buffer), terminate it (0x45c650) and hand it to
+// chimera__multiplayer_message (0x4ab4b0). This is chimera__kill_feed's local-player path with
+// message type 0x1c inlined. Afterwards the +0x18 player_changed_object slot gets `param`.
+// UNSURE: the build_message_text override signature (as in chimera__kill_feed.c).
+// reconciled: R16 the elided iterator is the inline 0x10-byte data_iterator over player_data (0x45c577); with it the loop body Ghidra dropped is recovered from the disassembly
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
+#include <wchar.h>
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 
-extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module; iterator elided
+extern data_array *player_data; // 0x0087a480
 
-// Drains the (elided) data iterator -- a no-op left over from optimized-away per-object work --
-// then forwards `param` to the active game engine's player_changed_object vtable slot.
+extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module; blam-cc: EDI -> iterator
+extern uint8_t game_engine_build_kill_feed_message_text(wchar_t *out, uint32_t message_type,
+    datum_index subject, size_t buffer_size); // 0x45e680, blam-cc: EAX -> recipient, EBX -> out
+extern void chimera__multiplayer_message(wchar_t *text); // 0x4ab4b0
+
+// Posts the "player changed object" (type 0x1c) message about `param` to every local player's
+// chat line, then forwards `param` to the active game engine's player_changed_object slot.
 void game_engine_player_changed_object(uint32_t param)
 {
+    data_iterator iterator;
     player *p;
 
-    p = (player *)data_iterator_next((data_iterator *)0); // UNSURE: iterator elided
+    iterator.data = player_data;
+    iterator.next_index = 0;
+    iterator.index = k_datum_index_none;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+    p = (player *)data_iterator_next(&iterator);
     while (p != (player *)0) {
-        p = (player *)data_iterator_next((data_iterator *)0); // UNSURE: iterator elided
+        datum_index recipient = iterator.index;
+        int16_t index = (int16_t)recipient;
+
+        if (recipient != k_datum_index_none && index >= 0 && index < player_data->maximum_count) {
+            player *r = (player *)((uint8_t *)player_data->data + player_data->size * index);
+            int16_t salt = (int16_t)((uint32_t)recipient >> 16);
+
+            if (r->identifier != 0 && (salt == 0 || r->identifier == salt) &&
+                r->local_player_index != -1) {
+                wchar_t message[0x400];
+                char built = 0;
+
+                if (current_game_engine->build_message_text != 0) {
+                    built = ((char (*)(datum_index, uint32_t, uint32_t, wchar_t *, size_t))
+                        current_game_engine->build_message_text)
+                        (recipient, 0x1c, param, message, 0x400); // UNSURE: override signature
+                }
+                if (built == 0) {
+                    built = game_engine_build_kill_feed_message_text(message, 0x1c, param, 0x400);
+                }
+                if (built != 0) {
+                    message[0x3ff] = 0;
+                    chimera__multiplayer_message(message);
+                }
+            }
+        }
+        p = (player *)data_iterator_next(&iterator);
     }
 
     if (current_game_engine->player_changed_object != (void *)0) {

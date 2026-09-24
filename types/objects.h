@@ -139,21 +139,27 @@ typedef enum object_flags {
                                                  //   and projectile_update's gravity pick branch
                                                  //   on it, and the water overpenetrate response
                                                  //   in projectile_response (0x4bf390) toggles it
-    _object_at_rest_bit = 0x00000020,            // the at-rest column of the memory dump
+    _object_at_rest_bit = 0x00000020,            // at rest / physics suspended: the at-rest
+                                                 //   column of the memory dump; both attach
+                                                 //   paths set it and 0x4bef80 (impulse and
+                                                 //   spin) clears it (0x4bf0af)
     _object_needs_cluster_update_bit = 0x00000800,
     _object_mirrored_geometry_bit = 0x00001000,  // object_get_node_local_transform negates the
                                                  // marker axis when it is set
+    _object_unknown_2000_bit = 0x00002000,       // set by projectile_new (0x4bd7f2)
     _object_in_tracked_list_bit = 0x00010000,    // object_list_membership_set; the garbage
                                                  // column of the memory dump
     _object_unknown_20000_bit = 0x00020000,
-    _object_definition_flag0_bit = 0x00040000,   // copied from Object tag flags bit 0 at create
+    _object_definition_flag0_bit = 0x00040000,   // copied from Object tag flags bit 0 at create;
+                                                 //   projectile_new sets 0xc0000 (0x4bda1c)
     _object_connected_to_map_bit = 0x00080000,   // the post-setup gate in the constructor
     _object_do_not_delete_bit = 0x00100000,      // object_mark_pending_delete refuses when set
     _object_outside_map_bit = 0x00200000,        // the outside column of the memory dump
     _object_has_collision_model_bit = 0x02000000,// set when the Object tag collision_model
                                                  // TagID is valid
     _object_changed_bit = 0x04000000,            // object_datum_consume_pending_flag tests and
-                                                 // clears it
+                                                 // clears it; also set after a successful attach
+                                                 // broadcast (0x4c28d5); also OR-ed in at 0x4c3a10, 0x4ed981
     _object_took_network_update_bit = 0x08000000 // "has taken a network update": the gate and the
                                                  //   set in projectile_apply_network_update
                                                  //   (0x4c1070) and its weapon sibling
@@ -234,11 +240,28 @@ typedef enum object_ambient_cluster_mode {
 // ---------------------------------------------------------------------------
 typedef struct object_type_definition {
     char *name;                            // 0x00 object_dump_write prints it
-    int32_t category;                      // 0x04 0 = delete immediately, 3 = delete recursively
+    uint32_t group_tag;                    // 0x04 tag_group (cache.h) fourcc of the definition
+                                           //      tag: 'bipd' 'vehi' 'weap' 'eqip' 'garb' 'proj'
+                                           //      'scen' 'mach' 'ctrl' 'lifi' 'plac' 'ssce',
+                                           //      read out of the 12 rows via 0x0069bfdc. (The
+                                           //      old "0 = delete immediately, 3 = recursively"
+                                           //      reading was the network role, not this field.)
     int16_t object_size;                   // 0x08 runtime block size passed to object_block_data_new
-    int16_t unknown_0a;                    // 0x0a
-    uint32_t unknown_0c;                   // 0x0c
-    uint32_t unknown_10;                   // 0x10
+    int16_t scenario_placement_offset;     // 0x0a byte offset of this type's placement tag_block
+                                           //      inside the Scenario tag data; -1 for garb, proj,
+                                           //      plac. 0x4f4880 does cmp WORD [eax+0xa],-1 and
+                                           //      adds it to the scenario pointer 0x00746f8c
+    int16_t scenario_palette_offset;       // 0x0c byte offset of the matching palette tag_block
+                                           //      (entries 0x30 bytes, tag id at +0x0c); -1 when
+                                           //      there is none
+    int16_t scenario_placement_size;       // 0x0e stride of one placement entry (0x4f4880
+                                           //      movsx [eax+0xe]): bipd 0x78, vehi 0x78, weap
+                                           //      0x5c, eqip 0x28, scen 0x48, mach 0x40, ctrl
+                                           //      0x40, lifi 0x58, ssce 0x28, else -1
+    int32_t network_delta_message_type;    // 0x10 -1 = the type sends no delta updates (garb,
+                                           //      scen, mach, ctrl, lifi, plac, ssce); proj 1,
+                                           //      eqip 2, weap 3, bipd 4, vehi 5. The multiplayer
+                                           //      spawn paths choose network role 0 vs 3 on != -1
     void *initialize;                      // 0x14 object_type_definition_chain_build
     void *dispose;                         // 0x18 objects_dispose
     void *reset;                           // 0x1c objects_reset
@@ -309,18 +332,39 @@ typedef struct object {
     datum_index definition_tag;     // 0x000 the Object tag; every tag-data lookup starts here
     int32_t network_role;           // 0x004 the role/control value object_new was called with;
                                     //       object_delete dispatches on 0 versus 3
-    uint32_t unknown_008;           // 0x008
-    datum_index unknown_00c;        // 0x00c -1 at create
+    uint8_t unknown_008;            // 0x008
+    uint8_t network_state_009;      // 0x009 network state: projectile_new (0x4bda48),
+                                    //       weapon_new and equipment_new zero it together with
+                                    //       their three per-type network bytes when the game is
+                                    //       a network client or server (0x00719720 == 1 or 2)
+    uint8_t unknown_00a[2];         // 0x00a
+    int32_t network_update_tick;    // 0x00c game tick stamp, -1 = never (-1 at create).
+                                    //       projectile_is_old_enough 0x4c1270: -1 counts as
+                                    //       old, else game_time >= stamp + [0x006894c8]
     uint32_t flags;                 // 0x010 object_flags
     int32_t cluster_stamp;          // 0x014 compared against 0x008603cc so that
                                     //       object_collect_in_clusters reports each object
                                     //       once per gather
-    uint8_t unknown_018;            // 0x018 zeroed at create
-    uint8_t unknown_019[7];         // 0x019
-    uint16_t player_visibility_mask;// 0x020 objects_update_player_visibility_masks sets or
-                                    //       clears the bit of the current local player.
-                                    //       UNSURE: only that one function touches it.
-    uint8_t unknown_022[0x3a];      // 0x022 no function in this module reads any of it
+    // 0x018..0x05b: the network interpolation block. projectile_apply_network_update
+    // (0x4c1070) stores, for one accepted update: BYTE [ebp+0x18] = 1, the position at
+    // [ebp+0x1c] (3 dwords), BYTE [ebp+0x44] = 1 and the velocity at [ebp+0x48] (3 dwords);
+    // the weapon and equipment siblings do the same. The old player_visibility_mask at 0x020
+    // was a misreading: 0x4f4880 sets and clears bit (structure BSP index) of WORD +0x20 of
+    // the SCENARIO placement entries it walks (placements.address + i * stride), never of an
+    // object, so no object field carries that mask.
+    uint8_t network_position_valid; // 0x018 zeroed at create, 1 once an update is accepted
+    uint8_t unknown_019[3];         // 0x019
+    real_point3d network_position;  // 0x01c
+    uint8_t unknown_028[0x1c];      // 0x028
+    uint8_t network_velocity_valid; // 0x044
+    uint8_t unknown_045[3];         // 0x045
+    real_vector3d network_velocity; // 0x048
+    uint8_t network_timestamp_valid;// 0x054 object_nudge_position_by_velocity (0x4f7c40)
+                                    //       requires 0x18, 0x44 and this byte all == 1
+    uint8_t unknown_055[3];         // 0x055
+    uint32_t network_timestamp;     // 0x058 millisecond stamp; 0x4f7c40 subtracts it from
+                                    //       time_query_performance_counter_ms (0x449210) and
+                                    //       extrapolates network_position along velocity
     real_point3d position;          // 0x05c object_get_position, object_get_world_matrix
     real_vector3d velocity;         // 0x068 object_get_root_object_velocities, first output
     real_vector3d forward;          // 0x074 object_get_orientation, first output
@@ -335,13 +379,20 @@ typedef struct object {
     float scale;                    // 0x0b0 multiplies the radius when non-zero
     int16_t type;                   // 0x0b4 object_type, copied from Object tag offset 0
     int16_t unknown_0b6;            // 0x0b6
-    int16_t name_index;             // 0x0b8 scenario object name, -1 when unnamed. Copied from
-                                    //       object_placement_data.name_index and read back by
-                                    //       object_placement_data_initialize.
+    int16_t owner_team;             // 0x0b8 the owning team (formerly name_index). Copied from
+                                    //       object_placement_data.owner_team; 0x42b8f4/0x42b8fb
+                                    //       load it from two objects into CX/DX for
+                                    //       teams_are_enemies 0x45bd50; 0x44b298 bounds it to
+                                    //       0..9; object_placement_data_initialize (0x4f5411)
+                                    //       copies the creating object's team (inheritance)
     int16_t render_cache_slot;      // 0x0ba -1 at create; object_reserve_render_cache_slot
     uint32_t unknown_0bc;           // 0x0bc
     uint32_t owner_linkage;         // 0x0c0 seeded from the creating object at the same offset
-    uint32_t unknown_0c4;           // 0x0c4 from object_placement_data 0x0c
+    datum_index creator_object;     // 0x0c4 the creating object (formerly unknown_0c4), from
+                                    //       object_placement_data 0x0c (0x4f5705);
+                                    //       projectile_send_creation resolves it through the
+                                    //       object network hash table and projectile_new walks
+                                    //       it up parent_object to find the firing unit
     uint32_t unknown_0c8;           // 0x0c8
     datum_index animation_graph;    // 0x0cc from Object tag animation_graph TagID
     int16_t animation_index;        // 0x0d0 -1 at create; object_start_animation
@@ -380,7 +431,9 @@ typedef struct object {
     datum_index attachment_handles[8]; // 0x14c the light, looping sound, effect, contrail or
                                     //       particle system instance for each attachment
     datum_index first_widget;       // 0x16c -1 at create; head of the widget list
-    int32_t unknown_170;            // 0x170 -1 at create
+    datum_index cached_render_state_index; // 0x170 -1 at create; element of the 0x100-byte
+                                    //       table at *0x007c30ec (0x50f150 loads it at 0x50f171
+                                    //       and stores it back at 0x50f23d)
     uint16_t destroyed_region_flags;// 0x174 one bit per region; object_destroy_region refuses
                                     //       a region whose bit is already set
     uint16_t forced_shader_permutation; // 0x176 copied from Object tag offset 0x13e
@@ -411,10 +464,13 @@ typedef struct object_placement_data {
     uint32_t flags;                 // 0x04 bit 0 sets the object mirrored-geometry flag,
                                     //      bit 1 gates the connect-to-map step
     uint32_t owner_linkage;         // 0x08 goes to object 0xc0, taken from the current object
-    uint32_t role;                  // 0x0c goes to object 0xc4
+    uint32_t role;                  // 0x0c goes to object 0xc4 (object.creator_object);
+                                    //      object_placement_data_initialize sets it to the
+                                    //      source object handle (0x4f5405)
     uint32_t unknown_10;            // 0x10
-    int16_t name_index;             // 0x14 goes to object 0xb8, 0xffff when there is no
-                                    //      current object
+    int16_t owner_team;             // 0x14 goes to object 0xb8 (object.owner_team); 0xffff
+                                    //      when there is no current object, else the current
+                                    //      object's team (0x4f5411). Formerly name_index.
     int16_t permutation_group;      // 0x16 goes to object 0xbe
     real_point3d position;          // 0x18 goes to object position, then offset along up
     float height_above_origin;      // 0x24 position += height_above_origin * up
@@ -450,7 +506,10 @@ typedef struct damage_data {
     float multiplier;               // 0x44 1.0; divided by the child count when a vehicle
                                     //      spreads damage across its seated bipeds
     uint32_t unknown_48;            // 0x48
-    int16_t unknown_4c;             // 0x4c 0xffff
+    int16_t material_type;          // 0x4c 0xffff; the collision material of the damaged
+                                    //      surface. 0x4ffde0 hands it to 0x53e7c0 (the matg
+                                    //      materials block, stride 0x374) and scales by
+                                    //      DamageEffect +0x200 + material_type * 4
     int16_t unknown_4e;             // 0x4e
     uint32_t unknown_50;            // 0x50
 } damage_data;                      // size 0x54
@@ -578,10 +637,13 @@ typedef struct bsp_leaf_reference {
 typedef struct object_marker {
     int16_t node_index;             // 0x00 zeroed on the identity fallback path
     int16_t unknown_02;             // 0x02
-    real_matrix4x3 transform;       // 0x04 identity on the fallback path; the axis components
-                                    //      at 0x24, 0x28 and 0x2c are negated when the object
-                                    //      carries the mirrored-geometry flag
-    real_matrix4x3 node_transform;  // 0x38 13 dwords copied from the object node array
+    real_matrix4x3 transform;       // 0x04 models path: the node-relative marker matrix.
+                                    //      Objects fallback only: identity
+    real_matrix4x3 node_transform;  // 0x38 models path: the world marker matrix. Objects
+                                    //      fallback only: 13 dwords copied from the object
+                                    //      node array. In mirrored mode node_transform.left
+                                    //      (+0x48, +0x4c, +0x50) is negated: fchs at
+                                    //      0x4d7937..0x4d794c (0x4d7850) and 0x4f6152..0x4f6162
 } object_marker;                    // size 0x6c
 
 // ---------------------------------------------------------------------------
@@ -850,19 +912,14 @@ typedef struct glow {
                                     // created outside this module, so the stride is not
                                     // proven here.
 
-// ---------------------------------------------------------------------------
-// object_zone_light_table  (0x006b8d78, built by zone_light_table_initialize and queried by
-// zone_light_table_test_bit)
-// Sixteen groups of eight dwords, then sixteen blocks of 256 unity floats. The bit test
-// indexes the first region with (value >> 5) + local_player * 8, so each group is a 256-bit
-// set belonging to one viewer.
-// ---------------------------------------------------------------------------
-typedef struct object_zone_light_table {
-    uint8_t valid;                  // 0x0000 raised by the initializer
-    uint32_t membership[16][8];     // 0x0001 filled with -1, unaligned on purpose
-    uint8_t unknown_0201[3];        // 0x0201
-    float weights[16][256];         // 0x0204 filled with 1.0
-} object_zone_light_table;          // size 0x4204
+// (object_zone_light_table, formerly declared here for 0x006b8d78, was dropped: the block is
+// types/physics.h breakable_surface_globals, same 0x4204 layout. The first index is the
+// structure BSP index 0x0069e8d8, not a local player (0x43d79a: movsx WORD ds:0x69e8d8, then
+// shl 5 + 1 into ds:0x6b8d78); the bits are the intact breakable surfaces and the floats their
+// health (0x4ffde0 decrements them and fires the break effect 0x500090). The pointer is set
+// once at 0x45ab31. The two functions at 0x4ffd40 / 0x4ffda0 that were named
+// breakable_surfaces_reset (0x4ffd40, was zone_light_table_initialize) / breakable_surface_is_intact (0x4ffda0) are the breakable-surface reset and
+// the "is surface intact" test.)
 
 #pragma pack(pop)
 
@@ -915,7 +972,7 @@ typedef struct object_zone_light_table {
 // global 0x006b8cc0: object_marker object_marker_scratch    // object_attachment_get_blended_marker result
 // global 0x006b8d70: void *light_volume_instances           // widget type 3 datum table
 // global 0x006b8d74: void *lightning_instances              // widget type 4 datum table
-// global 0x006b8d78: object_zone_light_table *object_zone_light_table_pointer
+// (0x006b8d78 is types/physics.h breakable_surface_globals *breakable_surface_globals; physics owns it)
 // global 0x0071cfb8: uint8_t *lights_enabled                // one byte of game state
 // global 0x0069bfdc: object_type_definition *object_type_definitions   // 12 read-only pointers
 // global 0x0069c010: widget_type_definition widget_type_definitions    // 5 read-only rows
@@ -929,7 +986,11 @@ typedef struct object_zone_light_table {
 //   0x0087a478 the BSP cluster PVS source copied into object_globals.cluster_pvs_current
 //   0x0087a464 and 0x0087a468 the hash chain object_hash_set_flag_bit3 walks
 //   0x006f1d6c the game time globals, where +0x0c is the current tick
-//   0x006f1d20 the network/predicted-state flag every damage and creation path branches on
-//   0x00746f8c, 0x00746f9c, 0x00746fa0 the player and local-player globals
-//   0x0069e8d8 the current local player index
+//   0x006f1d20 game_engine_definition *current_game_engine (game.h, R04): non-NULL when a
+//              multiplayer engine is loaded; every damage and creation path branches on it
+//   0x00746f8c Scenario *global_scenario (the placement blocks object_type_definition +0x0a/+0x0c
+//              index); 0x00746f9c ScenarioStructureBSP *global_structure_bsp (scenario.h, the
+//              resident structure BSP); 0x00746fa0 the matg game globals
+//   0x0069e8d8 int16_t global_structure_bsp_index (the structure BSP index, types/physics.h)
+//   0x006b8d78 breakable_surface_globals *breakable_surface_globals (types/physics.h)
 //   0x00696714, 0x00696718, 0x00696720, 0x006966f8, 0x00686b04 the shared constant vectors

@@ -36,7 +36,7 @@
 //   - the large quad guard: area > 0.5 (0x672abc) bumps build_sprite_large_quad_count and, when
 //     the count before the bump was above 10, takes the quad back out again (the vertices stay
 //     written but the counters are decremented).
-// register convention: EBX = data, AX = sequence_index, CX = sprite_index, 8 stack arguments.
+// reconciled: 0x006851fc is a pointer to the opaque-white ColorARGB (0x00655138); one name global_white_argb: EBX = data, AX = sequence_index, CX = sprite_index, 8 stack arguments.
 //   // blam-cc: EBX=data, AX=sequence_index, CX=sprite_index, stack=(mode, origin, direction,
 //   //          rotation, scale, color, fade, flags)
 // UNSURE: nothing structural. The alpha channel is (uint8_t)__ftol(...): only AL of the result
@@ -50,7 +50,7 @@
 #include "render.h"
 
 extern tag_instance *tag_instances;                  // 0x0087bc14, cache module
-extern ColorARGB *global_real_argb_white_pointer;            // 0x006851fc, points at {1,1,1,1} 0x00655138
+extern const ColorARGB *global_white_argb;            // 0x006851fc, points at {1,1,1,1} 0x00655138
 extern real_rectangle3d *global_null_rectangle3d_pointer;    // 0x00696748, points at the empty rectangle
                                                      // {+FLT_MAX,-FLT_MAX,...} at 0x0065c284
 extern render_frustum render_frustum_global;         // 0x007c3168, this module
@@ -115,7 +115,7 @@ void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprit
 
     bitmap_group = (Bitmap *)tag_instances[(uint16_t)data->bitmap_group_index].data;
     if (color == 0) {
-        color = global_real_argb_white_pointer;
+        color = (ColorARGB *)global_white_argb;
     }
 
     if (data->sprite_count >= data->maximum_sprite_count) {

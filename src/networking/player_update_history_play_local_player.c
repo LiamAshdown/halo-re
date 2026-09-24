@@ -12,12 +12,14 @@
 // origin could not be cross-checked. UNSURE: the node used for the replay's starting position is
 // the one immediately AFTER the matched update_id, exactly as the decompile computes it (the
 // search loop advances piVar2 to ->next before testing the id), not the matched node itself.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480
 extern network_client_globals *network_client; // 0x0071c2d8
@@ -44,6 +46,7 @@ void player_update_history_play_local_player(int32_t target_update_id)
     iter.data = player_data;
     iter.next_index = 0;
     iter.index = k_datum_index_none;
+    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
     candidate = (player *)data_iterator_next(&iter);
     while (candidate != 0 && candidate->local_player_index == -1) {
         candidate = (player *)data_iterator_next(&iter);

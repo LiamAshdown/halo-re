@@ -21,6 +21,7 @@
 // "goto LAB_004e7d5a" fallback path (invalid update id, unresolved unit, or non-'\x01' has_parent
 // check) tail-calls FUN_004e7890 with a whole extra player_action's worth of stack arguments this
 // batch could not fully recover; only player_index, control and network_key are forwarded.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
@@ -28,6 +29,7 @@
 #include "game.h"
 #include "objects.h"
 #include "networking.h"
+#include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480
 extern game_time_globals *game_time; // 0x006f1d6c, +0x0c is the current game tick
@@ -115,6 +117,7 @@ void build_remote_player_transform_update(uint32_t player_index, player_action *
                 iter.data = player_data;
                 iter.next_index = 0;
                 iter.index = k_datum_index_none;
+                iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
                 candidate = (player *)data_iterator_next(&iter);
                 while (candidate != 0) {
                     if (player_index != 0xffffffff && candidate->local_player_index == -1) {

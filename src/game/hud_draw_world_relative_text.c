@@ -36,6 +36,7 @@
 // UNSURE: this function's own name and every field of the 0x006e472c..0x006e4756 draw-state
 //   block beyond the two already named elsewhere are unresolved. The background-box geometry
 //   constants are kept as the literal int16 pairs the disassembly stores.
+// reconciled: R36 hud_world_text_params is ColorARGB-shaped: unknown_00 -> float alpha, color_r/g/b -> red/green/blue; 0x006e4738 extern is float alpha
 
 #include "tags.h"
 #include "memory.h"
@@ -50,7 +51,7 @@ extern uint16_t hud_text_draw_color_or_flags; // 0x006e4734, two separate int16 
 extern int16_t hud_text_draw_column;         // 0x006e4736  binary, never one dword
 extern uint32_t hud_text_draw_unknown_4730;   // 0x006e4730, always zeroed here
 extern int32_t hud_text_draw_font_tag_id;     // 0x006e472c, the resolved font_terminal tag id
-extern int32_t hud_text_draw_unknown_4738;    // 0x006e4738, copied from params->unknown_0
+extern float hud_text_draw_color_alpha;       // 0x006e4738, text.h text_color.alpha, copied from params->alpha
 extern float hud_text_draw_color_r;           // 0x006e473c
 extern float hud_text_draw_color_g;           // 0x006e4740
 extern float hud_text_draw_color_b;           // 0x006e4744
@@ -84,9 +85,9 @@ int32_t hud_draw_world_relative_text(hud_world_text_params *params, int16_t row,
     hud_text_bounds bounds;
     int32_t result;
 
-    r = params->color_r;
-    g = params->color_g;
-    b = params->color_b;
+    r = params->red;
+    g = params->green;
+    b = params->blue;
 
     interface_bitmaps = (global_globals->interface_bitmaps.count == 0)
                              ? (GlobalsInterfaceBitmaps *)0
@@ -130,7 +131,7 @@ int32_t hud_draw_world_relative_text(hud_world_text_params *params, int16_t row,
         hud_text_draw_column = 0;
         hud_text_draw_unknown_4730 = 0;
         hud_text_draw_font_tag_id = font_terminal_id;
-        hud_text_draw_unknown_4738 = params->unknown_00;
+        hud_text_draw_color_alpha = params->alpha;
         // blam-cc: EAX = 0, ECX = &bounds
         result = chimera__draw_16_bit_text(0, 0, text);
     }

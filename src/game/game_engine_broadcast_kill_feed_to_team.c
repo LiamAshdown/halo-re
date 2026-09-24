@@ -15,11 +15,13 @@
 // function's body -- they must be genuine pass-through registers/stack slots from this
 // function's own, unrecovered caller. Modeled as three additional forwarded parameters so the
 // call still compiles against chimera__kill_feed's real signature; their names are guesses.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480
 
@@ -39,6 +41,7 @@ void game_engine_broadcast_kill_feed_to_team(int32_t broadcast_enabled, int32_t 
     iter.data = player_data;
     iter.next_index = 0;
     iter.index = (datum_index)0xffffffff;
+    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     element = data_iterator_next(&iter);
     while (element != 0) {

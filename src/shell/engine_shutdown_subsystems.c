@@ -9,6 +9,7 @@
 // sound, per shell.h's notes and the conflicting claims across types/hs.h, types/rasterizer.h,
 // types/structures.h and types/physics.h for the same addresses), so they are declared here only
 // as untyped externs named after their address, not the contested cross-module names.
+// reconciled: R06 external_00746f9c -> ScenarioStructureBSP *global_structure_bsp (scenario.h); R07 0x00746f94 comment: scenario_game_globals *, not sound
 
 #include "tags.h"
 #include "memory.h"
@@ -18,9 +19,9 @@
 
 extern uint32_t external_0069e8d4;   // hs.h: datum_index global_scenario_index, -1 = none
 extern uint16_t external_0069e8d8;   // physics.h/items.h: int16_t structure bsp index
-extern uint16_t *external_00746f94;  // structures.h: interpolated default sound environment copy
+extern uint16_t *external_00746f94;  // scenario_game_globals * (0x7c-byte scenario game-state block; only +0x30..+0x7b is sound state)
 extern uint32_t external_00746f8c;   // hs.h: Scenario *global_scenario
-extern uint32_t external_00746f9c;   // hs.h: void *global_matg_multiplayer (rasterizer.h: structure_bsp)
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (the resident structure BSP)
 extern uint32_t external_00746f98;   // items.h: void *collision_bsp_globals
 extern uint32_t external_00746f90;   // hs.h: void *global_globals (structures.h disagrees)
 extern uint32_t external_00746fa0;   // rasterizer.h: void *global_globals (Globals tag data)
@@ -50,7 +51,7 @@ void engine_shutdown_subsystems(void)
     external_0069e8d8 = 0xffff;
     *external_00746f94 = 0xffff;
     external_00746f8c = 0;
-    external_00746f9c = 0;
+    global_structure_bsp = 0;
     external_00746f98 = 0;
     external_00746f90 = 0;
     external_00746fa0 = 0;

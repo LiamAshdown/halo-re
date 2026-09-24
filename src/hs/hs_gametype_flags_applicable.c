@@ -3,13 +3,14 @@
 // hs_gametype_flags_applicable @0x483600, which then tests bits 1..6.")
 // address 0x483600, size 140 bytes
 // name confidence: 0.75   rewrite confidence: 0.7
-// evidence: bit 0 (_hs_gametype_none_bit) of hs_autocomplete_gametype_mask is checked directly
+// evidence: bit 0 (_hs_context_default_bit) of hs_autocomplete_gametype_mask is checked directly
 // (required in the low byte, forbidden in the high byte, same shape as
 // hs_gametype_flag_satisfied), then bits 1..6 (ctf, slayer, oddball, king, terminator, race) are
 // each checked via hs_gametype_flag_satisfied; the function/global is applicable only if every
 // one passes.
 // register convention: the tested capability byte is unrecognized by Ghidra (unaff_BL); by the
 // blam-cc convention this is the low byte of the fourth register slot, EBX.
+// reconciled: R31 hs_gametype_flags bits are console command contexts (default/host/client-forbidden/mp engine/no mp engine/unknown_20/always), not game types; comments only
 
 #include "tags.h"
 #include "memory.h"
@@ -20,8 +21,8 @@ extern char hs_gametype_flag_satisfied(uint8_t bit_index, uint8_t flags); // 0x0
 extern uint16_t hs_autocomplete_gametype_mask; // 0x006b14ac
 
 // blam-cc: capability byte in BL (EBX)
-// Returns 1 if every one of Halo's built-in multiplayer gametype capability bits (0 through
-// _hs_gametype_terminator_bit) required or forbidden by hs_autocomplete_gametype_mask is
+// Returns 1 if every one of the console command context bits (0 through
+// _hs_context_always_bit) required or forbidden by hs_autocomplete_gametype_mask is
 // satisfied by `flags`, 0 otherwise.
 uint8_t hs_gametype_flags_applicable(uint8_t flags)
 {

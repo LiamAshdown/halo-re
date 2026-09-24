@@ -281,8 +281,9 @@ typedef struct device_light_fixture_data {
 //                                           the six declarations in src/hs at this address
 // 0x006f1d6c  game time globals             +0x0c is the tick counter that staggers the
 //                                           automatic-activation scan
-// 0x006f1d20  int32_t                       nonzero selects the multiplayer team test in the
-//                                           one-sided door check. device_machine_update reads
+// 0x006f1d20  game_engine_definition *current_game_engine (game.h, R04); non-NULL (a
+//                                           multiplayer engine is loaded) selects the multiplayer
+//                                           team test in the one-sided door check. device_machine_update reads
 //                                           all 32 bits (0x44b290 `mov edx,DWORD PTR
 //                                           ds:0x6f1d20; test edx,edx`); src/items and
 //                                           src/objects declare the same address as a uint8_t,

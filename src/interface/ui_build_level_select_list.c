@@ -15,7 +15,7 @@
 // on-stack copy of the profile record at profile_globals_block (0x00712dd8), and `acStack_1eea`
 // is simply the part of that single memcpy Ghidra failed to fold into the declared array size.
 // Modeled here as one `uint8_t profile_copy[0x2000]` buffer with `acStack_1eea[i]` recovered as
-// `profile_copy[0x11c + i]` (0x11c == sizeof the originally-declared local_2008). The per-level
+// `profile_copy[0x11e + i]` (0x11c == sizeof the originally-declared local_2008). The per-level
 // path table at 0x00692acc, the per-level path/flag record arrays at 0x00719018/0x0071901c, and
 // the packed byte trio at 0x0071916a are all new to this module (not in types/interface.h) and
 // are declared as local TYPES-GAP records rather than added to the header, since this function is
@@ -23,6 +23,7 @@
 // game_state_read_checkpoint_summary and player_profile_scan_campaign_progress are foreign (profile/saved-games module) with unresolved
 // signatures; modeled as a bool-returning getter and a void refresh call respectively, matching
 // how their results are (or are not) used here.
+// reconciled: R55 per-level progress byte is profile +0x11e, not +0x11c (+0x11c is the flags word): 0x49c8f0 copies the profile to esp+0x20 and reads [esp+edi+0x13e] (0x49ca5e)
 
 #include "tags.h"
 #include "memory.h"
@@ -36,7 +37,7 @@
 // TYPES-GAP: one entry of the campaign level path table at 0x00692acc (stride 8, second dword
 // always read as part of the (&table)[i*2] indexing but never itself examined here).
 // TYPES-GAP: one entry of the per-level flag table at 0x0071901c (stride 8).
-extern int32_t known_level_count_006894b8;                        // 0x006894b8, TYPES-GAP
+extern int16_t local_player_count;                        // 0x006894b8, TYPES-GAP
 extern char level_select_current_path_00719068[0x106];            // 0x00719068, TYPES-GAP
 extern level_select_entry level_select_entries[10];  // 0x00719018
 extern int32_t current_profile_index;                              // 0x00714dd4
@@ -80,7 +81,7 @@ uint32_t ui_build_level_select_list(widget_instance *widget, void *param_2, void
     uint8_t profile_copy[0x2000]; // see file header: covers Ghidra's local_2008 + acStack_1eea
     int32_t i;
 
-    if (known_level_count_006894b8 > 1) {
+    if (local_player_count > 1) {
         memset(level_select_current_path_00719068, 0, sizeof(level_select_current_path_00719068));
         ui_build_level_select_list_coop(widget, param_2, param_3);
         return 1;
@@ -130,8 +131,8 @@ uint32_t ui_build_level_select_list(widget_instance *widget, void *param_2, void
 
         level_select_entries[i].path = known_campaign_levels_00692acc[i].path;
 
-        if (profile_copy[0x11c + i] != 0 || i == known_solo_level_index_00712f00 + 1 || i == 0) {
-            uint32_t flags = (uint32_t)(uint8_t)profile_copy[0x11c + i];
+        if (profile_copy[0x11e + i] != 0 || i == known_solo_level_index_00712f00 + 1 || i == 0) {
+            uint32_t flags = (uint32_t)(uint8_t)profile_copy[0x11e + i];
 
             level_select_entries[i].flag_bit1 = (uint8_t)((flags >> 1) & 1);
             level_select_entries[i].valid = 1;

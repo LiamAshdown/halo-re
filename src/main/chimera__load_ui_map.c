@@ -28,6 +28,7 @@
 // UNSURE: 0x006f1d38 (a gating byte) and the two blocks it and this function unconditionally
 // zero (0x006b0b88, 0xc0 dwords; 0x0087ab20, 0x26 dwords) have no established name or type
 // anywhere in the codebase; declared here as opaque byte blocks with TYPES-GAP-style names.
+// reconciled: R13 network_scenario_load_request.seed (+0x06) -> difficulty (campaign difficulty, lands at game globals +0x0e)
 
 #include "tags.h"
 #include "memory.h"
@@ -74,7 +75,7 @@ void chimera__load_ui_map(char play_title_music)
     cache_file_switch_map_by_path("levels\\ui\\ui", 1);
 
     memset(&request, 0, sizeof(request));
-    request.seed = 1;
+    request.difficulty = 1;
     request.salt = 0xdeadbeef;
     strncpy(request.map_name, "levels\\ui\\ui", 0xff);
     request.map_name[0xff] = 0;

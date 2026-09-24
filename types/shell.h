@@ -790,6 +790,14 @@ typedef int32_t (__stdcall *d3d9_get_device_caps_fn)(void *self, uint32_t adapte
 // global 0x006f03ec: int32_t fatal_error_is_fatal               third argument of the fatal error dialog
 // global 0x006f03f0: char fatal_error_title[0x80]               "Halo - Error" fallback
 // global 0x006f0470: char fatal_error_help_file[0x200]          "readme.rtf" fallback
+// global 0x00722bc0: int32_t fatal_error_remember_choice        (R15) the fatal error dialog's
+//                      checkbox: dialog proc 0x57e5a0 stores (IsDlgButtonChecked(0x3e9) != 0) at
+//                      0x57e773 / 0x57e7a3; shell_display_fatal_error_dialog reads it (0x57ee7c).
+//                      Formerly attributed to dialogs.h by mistake
+// global 0x00722c58: char fatal_error_system_specs[0x100]      (R15) the "%dMHz, %dMB, ..." system
+//                      specs text of control 0x3f1: sprintf'd by 0x57e5a0 (0x57e6e1, 0x57e70a),
+//                      cleared (0x57e719), handed to SetDlgItemTextA (0x57e720). 0x100 bytes, up
+//                      to the next global 0x00722d58
 // global 0x006f0670: char exception_gathering_text[0x100]       string 0x78, "Gathering Exception Data..."
 // global 0x006f0770: char exception_title[0x100]                string 0x77, "Exception!"
 // global 0x006f0870: char eula_file_name[0x20]                  string 0x84, "eula.rtf"; passed to EBUEula

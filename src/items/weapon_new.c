@@ -17,6 +17,7 @@
 // register convention: object index is a plain stack cdecl parameter, matching the rest of this
 //   directly-indexed (non object_try_and_get) family.
 // blam-cc: stack -> object_index
+// reconciled: R26 object +0x009 raw byte store -> network_state_009 (object.unknown_008 is now split into uint8 unknown_008 / network_state_009 / unknown_00a[2])
 
 #include "tags.h"
 #include "memory.h"
@@ -69,7 +70,7 @@ uint8_t weapon_new(uint32_t object_index) // blam-cc: stack -> object_index
         wd->network_state_valid = 0;
         wd->network_baseline_index = 0;
         wd->network_sequence = 0;
-        *((uint8_t *)obj + 9) = 0; // UNSURE: unnamed byte inside object.unknown_008
+        obj->network_state_009 = 0; // same store as projectile_new 0x4bda48
     }
 
     return 1;

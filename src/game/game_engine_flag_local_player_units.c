@@ -8,6 +8,7 @@
 //   (_object_stunned_bit) -- kept as a raw byte write since the semantic fit for "belongs to the
 //   current game_time tick" is not otherwise confirmed.
 // register convention: no arguments.
+// reconciled: R16 the elided iterator is the inline 0x10-byte data_iterator over player_data (0x45b5a8); player_remove gets iterator.index and the walk restarts after it (0x45b63a)
 
 #include "tags.h"
 #include "memory.h"
@@ -15,6 +16,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#include <stdint.h>
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_time_globals *game_time;                // 0x006f1d6c
@@ -22,32 +24,43 @@ extern data_array *player_data;                      // 0x0087a480
 extern data_array *object_data;                       // 0x008603b0
 extern int16_t network_game_mode;                      // 0x00719720
 
-extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module; iterator elided
-extern void player_remove(datum_index player_index); // 0x473bb0, UNSURE arg
+extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module; blam-cc: EDI -> iterator
+extern void player_remove(datum_index player_index); // 0x473bb0, blam-cc: EAX -> player_index (0x45b631)
 
 // Marks datum entries owned by the local viewport's player(s) with a flag, and sets a matching
-// bit on their controlled object, when a multiplayer game engine is loaded.
+// bit on their controlled object, when a multiplayer game engine is loaded. The walk is an
+// inline data_iterator over player_data (0x45b5a8..0x45b5ce); after player_remove it rebuilds
+// the iterator and starts over (0x45b63a..0x45b657), since the removal changed player_data.
 void game_engine_flag_local_player_units(void)
 {
     int32_t current_tick;
+    data_iterator iterator;
     player *p;
     object *unit_obj;
 
     if (current_game_engine != (game_engine_definition *)0) {
         current_tick = game_time->game_time;
-        p = (player *)data_iterator_next((data_iterator *)0); // UNSURE: iterator elided
+        iterator.data = player_data;
+        iterator.next_index = 0;
+        iterator.index = k_datum_index_none;
+        iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+        p = (player *)data_iterator_next(&iterator);
         while (p != (player *)0) {
             if (p->unknown_d0 != k_datum_index_none && p->marked_for_deletion == 0 &&
                 (network_game_mode == 1 || current_tick == (int32_t)p->unknown_d0)) {
                 p->marked_for_deletion = 1;
                 if (p->unit == k_datum_index_none) {
-                    player_remove(0xffffffff); // UNSURE: original passes no player handle either (see #if 0)
+                    player_remove(iterator.index);
+                    iterator.data = player_data;
+                    iterator.next_index = 0;
+                    iterator.index = k_datum_index_none;
+                    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
                 } else {
                     unit_obj = ((object_header *)object_data->data)[p->unit & 0xffff].data;
                     *((uint8_t *)unit_obj + 0x107) |= 0x20;
                 }
             }
-            p = (player *)data_iterator_next((data_iterator *)0); // UNSURE: iterator elided
+            p = (player *)data_iterator_next(&iterator);
         }
     }
 }

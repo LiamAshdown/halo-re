@@ -15,6 +15,7 @@
 // confidently-named data flow.
 // register convention: incoming message pointer in EAX (in_EAX, unresolved register read).
 //   // blam-cc: message -> EAX
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
@@ -24,6 +25,7 @@
 #include "interface.h"
 #include "objects.h"
 #include "units.h"
+#include <stdint.h>
 
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern data_array *player_data; // 0x0087a480
@@ -86,6 +88,7 @@ void chat_server_relay_incoming_message(int32_t **message)
                     iterator.data = player_data; // UNSURE
                     iterator.next_index = 0;
                     iterator.index = (datum_index)-1;
+                    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
                     entry = (player *)data_iterator_next(&iterator);
                     while (entry != 0) {
                         if (entry->team == target->team && *((int8_t *)entry + 0x64) != -1) { // UNSURE offset, see header
@@ -102,6 +105,7 @@ void chat_server_relay_incoming_message(int32_t **message)
                     iterator.data = player_data; // UNSURE
                     iterator.next_index = 0;
                     iterator.index = (datum_index)-1;
+                    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
                     entry = (player *)data_iterator_next(&iterator);
                     while (entry != 0) {
                         object *unit_obj = (object *)object_try_and_get(3);

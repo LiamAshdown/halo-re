@@ -34,6 +34,7 @@
 //    is used, since nothing overwrites `a`).
 //  - `local_60bc`'s *second* life (after the actor pointer is no longer needed, inside the
 //    LAB_00419e38 branch) is modeled as a fresh float local, `sample_z`.
+// reconciled: R06 0x00746f9c is ScenarioStructureBSP *global_structure_bsp (was extern int32_t bsp_generation); ai.h path_find_context/actor_movement_context bsp_generation -> structure_bsp, global_structure_collision_bsp -> collision_bsp
 
 #include "tags.h"
 #include "memory.h"
@@ -44,8 +45,8 @@
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
-extern int32_t bsp_generation;      // 0x00746f9c, the structure BSP pointer, used here as an opaque handle
-extern int32_t bsp_index;      // 0x00746f98
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (formerly bsp_generation)
+extern int32_t global_structure_collision_bsp;      // 0x00746f98
 extern const real_vector3d *global_origin3d_pointer; // 0x00696714
 
 extern double sqrt(double x);
@@ -120,8 +121,8 @@ void actor_movement_choose_avoidance_direction(uint32_t param_1, float *param_2,
     }
     unit_object = ((object_header *)object_data->data)[unit_index & 0xffff].data;
 
-    ctx.bsp_generation = bsp_generation;
-    ctx.bsp_index = bsp_index;
+    ctx.structure_bsp = (uint32_t)global_structure_bsp;
+    ctx.collision_bsp = global_structure_collision_bsp;
     object_get_position(&ctx.position, unit_index);
     ctx.forward = unit_object->forward;
     ctx.up = unit_object->up;

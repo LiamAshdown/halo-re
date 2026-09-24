@@ -734,5 +734,5 @@ fragments) that were deliberately not translated.
 | `0x4ffc60` | `widget_list_has_flag` | 64 | 0.8 | 0.7 |  |
 | `0x4ffca0` | `widget_list_notify` | 106 | 0.8 | 0.55 |  |
 | `0x4ffd10` | `widgets_update_all` | 39 | 0.85 | 0.8 |  |
-| `0x4ffd40` | `zone_light_table_initialize` | 90 | 0.75 | 0.85 |  |
-| `0x4ffda0` | `zone_light_table_test_bit` | 52 | 0.75 | 0.6 |  |
+| `0x4ffd40` | `breakable_surfaces_reset` | 90 | 0.75 | 0.85 |  |
+| `0x4ffda0` | `breakable_surface_is_intact` | 52 | 0.75 | 0.6 |  |

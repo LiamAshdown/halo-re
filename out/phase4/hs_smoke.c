@@ -26,7 +26,7 @@ int main(void){
              + sizeof(hs_random_state) + sizeof(hs_boolean_state)
              + sizeof(hs_arithmetic_state) + sizeof(hs_typed_arguments_state)
              + sizeof(data_array) + sizeof(ScenarioScriptNode) + sizeof(Scenario)
-             + (int)_hs_script_stub + (int)_hs_function_sleep + (int)_hs_gametype_ctf_bit
+             + (int)_hs_script_stub + (int)_hs_function_sleep + (int)_hs_context_host_bit
              + (int)k_hs_function_count + (int)k_hs_maximum_source_files
              + (int)k_hs_global_builtin_bit + (int)k_hs_autocomplete_required_mask);
 }

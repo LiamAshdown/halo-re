@@ -22,7 +22,7 @@
 // parameters and left the source-encounter reference in EDX unresolved.
 //   // blam-cc: EDX -> source_reference (also assumed to feed EAX for the squad iterator
 //   calls), stack -> target_encounter_index, notify, is_platoon_merge (param_2/param_3 roles
-//   guessed from their use in ai_communication_broadcast and the DAT_0069e8d8 compare)
+//   guessed from their use in ai_communication_broadcast and the global_structure_bsp_index compare)
 
 #include "tags.h"
 #include "memory.h"
@@ -35,7 +35,7 @@ extern Scenario *global_scenario;   // 0x00746f8c
 extern tag_instance *tag_instances; // 0x0087bc14
 extern ai_globals *ai_global_data;  // 0x00880354
 extern data_array *actor_data;      // 0x00880360
-extern int16_t DAT_0069e8d8;        // 0x0069e8d8, UNSURE: a designer-slot/leader sentinel value
+extern int16_t global_structure_bsp_index;        // 0x0069e8d8, UNSURE: a designer-slot/leader sentinel value
 
 extern void ai_reference_squad_iterator_new(uint32_t packed_reference, ai_reference_squad_iterator *out_iterator); // 0x4324f0, this batch
 extern encounter_squad_state *ai_reference_squad_iterator_next(ai_reference_squad_iterator *iterator); // 0x4325b0, this batch
@@ -195,7 +195,7 @@ void ai_squads_merge(uint32_t source_reference, uint32_t target_encounter_index,
                     if (!merging_into_self) {
                         ScenarioEncounter *target_definition =
                             &((ScenarioEncounter *)global_scenario->encounters.pointer)[target_encounter_index];
-                        if (*(int16_t *)((uint8_t *)target_definition + 0x7e) == DAT_0069e8d8) {
+                        if (*(int16_t *)((uint8_t *)target_definition + 0x7e) == global_structure_bsp_index) {
                             ai_actor_unlink_from_unassigned_list(current);
                             encounter_add_actor(a->squad_index, current, target_encounter_index, 1);
                         }

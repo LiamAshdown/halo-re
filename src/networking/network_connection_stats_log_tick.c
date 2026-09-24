@@ -14,6 +14,7 @@
 //  2. the manual find-end-of-string / dword-copy loops are ordinary strcpy/strcat.
 // UNSURE: same foreign-function notes as network_stats_summary_log_open.c apply to
 // join_game_server_browser_tick, FUN_00449210 and the fopen mode string at 0x0065fd30.
+// reconciled: R01 0x0087ac06 int16 network_statistics_level -> uint8 debug_log_level (the binary reads a byte)
 
 #include "tags.h"
 #include "memory.h"
@@ -24,7 +25,7 @@
 #include <stdio.h>
 #include <time.h>
 
-extern int16_t network_statistics_level;          // 0x0087ac06
+extern uint8_t debug_log_level;                   // 0x0087ac06, byte-wide (R01)
 extern uint8_t network_statistics_logging_enabled; // 0x006f14b4
 extern uint8_t network_connection_log_needs_open;  // 0x006869bd
 extern void *network_connection_stats_log_file;    // 0x006f14b8, FILE *
@@ -53,7 +54,7 @@ void network_connection_stats_log_tick(void)
     network_game_session *session;
     uint8_t control_char;
 
-    if (2 < network_statistics_level && network_statistics_logging_enabled == 1) {
+    if (2 < debug_log_level && network_statistics_logging_enabled == 1) {
         now = FUN_00449210();
         if (network_connection_log_needs_open == 1) {
             network_connection_log_needs_open = 0;

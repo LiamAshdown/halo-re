@@ -17,15 +17,17 @@
 // register convention: stack -> the seven Ghidra-recognized formal parameters.
 //   // blam-cc: stack -> context, ignore_permission, point_a, start_edge, point_b,
 //   //   exclude_vertex, out_result
+// reconciled: R79 0x006b8d78 ai_path_permission_table -> physics.h breakable_surface_globals *breakable_surface_state (the code took the global's ADDRESS; the binary loads the pointer: mov edx,ds:0x6b8d78) and 0x0069e8d8 local_command_list_generation -> global_structure_bsp_index; the row is active[bsp index] (intact breakable surfaces)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "physics.h"
 
 extern double sqrt(double x); // FSQRT
-extern uint32_t ai_path_permission_table;    // 0x006b8d78, see path_find_run.c
-extern int16_t local_command_list_generation; // 0x0069e8d8, see path_find_run.c
+extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78, physics.h
+extern int16_t global_structure_bsp_index; // 0x0069e8d8, physics.h (the structure BSP index)
 extern real_point3d *ai_bsp_trace_seed_centroid; // 0x006966f8, UNSURE: an initial centroid accumulator seed
 extern void FUN_0044d860(real_point3d *out_position); // 0x44d860, outside this rewrite's range
 extern void physics_shape_forward_call_helper(uint32_t kind, real_point3d *out_position); // 0x501470, outside this rewrite's range
@@ -40,7 +42,7 @@ uint8_t path_find_trace_bsp_boundary(void *context, uint8_t ignore_permission, r
 {
     uint8_t *bsp = *(uint8_t **)((uint8_t *)context + 0xb4);
     uint8_t *permission_flags = (uint8_t *)context + 0x1e8;
-    uint8_t *permission_row = (uint8_t *)&ai_path_permission_table + local_command_list_generation * 0x20 + 1;
+    uint8_t *permission_row = (uint8_t *)breakable_surface_state->active[global_structure_bsp_index];
     float dx = point_b->x - point_a->x;
     float dy = point_b->y - point_a->y;
     uint8_t recursed = 0;

@@ -21,6 +21,7 @@
 // register convention: stack -> the six Ghidra-recognized formal parameters.
 //   // blam-cc: stack -> context, waypoint_count, waypoints, out_count, out_waypoints,
 //   //   out_success
+// reconciled: R06 path_find_context.bsp_generation -> structure_bsp (0x00746f9c, the resident ScenarioStructureBSP pointer)
 
 #include "tags.h"
 #include "memory.h"
@@ -121,7 +122,7 @@ void path_find_simplify_waypoints(path_find_context *context, int16_t waypoint_c
                 if (start_vertex == -1) {
                     start_vertex = -1;
                 } else {
-                    path_find_trace_bsp_boundary((uint32_t)context->bsp_generation, ignores_glass, &bend_point, start_vertex,
+                    path_find_trace_bsp_boundary((uint32_t)context->structure_bsp, ignores_glass, &bend_point, start_vertex,
                                 &origin, 0xffffffff, &bend_scratch);
                     if (bend_scratch.result != -1) {
                         start_vertex = bend_scratch.result;

@@ -22,6 +22,7 @@
 //   types/objects.h explicitly notes 0x09e is never read by anything in this module. UNSURE:
 //   FUN_00551f00 and scenario_location_from_point (foreign, outside this module's address range) are called with
 //   their literal argument lists, not renamed.
+// reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
 
 #include "tags.h"
 #include "memory.h"
@@ -30,8 +31,8 @@
 
 extern data_array *object_data; // 0x008603b0
 extern uint8_t *bsp_cluster_pvs_source; // 0x0087a478, see objects_update.c
-extern void *global_globals; // 0x00746f90
-extern uint8_t *structure_bsp_globals; // 0x00746f9c, UNSURE: foreign module, +0xe4 base;
+extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
+extern uint8_t *global_structure_bsp; // 0x00746f9c, UNSURE: foreign module, +0xe4 base;
                                            //   this is the same DAT_00746f9c base object_update
                                            //   reads at +0x134, here read at +0xe4
 
@@ -58,15 +59,15 @@ void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *lo
         bsp_leaf_reference local_location;
 
         if (location == 0) {
-            int32_t leaf = bsp3d_node_find_leaf(global_globals, &obj->bounding_center, 0);
+            int32_t leaf = bsp3d_node_find_leaf(global_collision_bsp, &obj->bounding_center, 0);
             if (leaf == -1) {
                 local_location.cluster_index = -1;
             } else {
-                // PHASE-4 REVIEW: structure_bsp_globals+0xe4 holds a POINTER to the
+                // PHASE-4 REVIEW: global_structure_bsp+0xe4 holds a POINTER to the
                 // ScenarioStructureBSPLeaf array and the leaf index is masked with 0x7fffffff
                 // before scaling -- 0x4f5cc7 `mov ecx,[edx+0xe4]` / `and eax,0x7fffffff` /
                 // `shl eax,4`. Both steps were missing from the earlier rewrite.
-                local_location.cluster_index = *(int16_t *)(*(uint8_t **)(structure_bsp_globals + 0xe4) +
+                local_location.cluster_index = *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) +
                                                             (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
             }
             local_location.leaf_index = leaf;

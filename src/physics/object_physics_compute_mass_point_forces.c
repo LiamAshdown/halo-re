@@ -26,6 +26,7 @@
 //   matrix4x3_multiply is invoked indirectly through the function-pointer global
 //   PTR_matrix4x3_multiply_00696664 rather than called directly; this rewrite calls it directly,
 //   which is observationally identical unless something else in the game retargets that pointer.
+// reconciled: R23 collision_result: normal -> plane.normal, unknown_30 -> plane.d, unknown_04 -> first_leaf/first_cluster, unknown_3c -> region_index, marker_index -> node_index, unknown_40 -> permutation_index (int16), unknown_48 -> plane_index, unknown_4d -> breakable_surface_index, unknown_4e -> collision_material_index
 
 #include "tags.h"
 #include "memory.h"
@@ -39,8 +40,8 @@
 extern double fabs(double x); // ABS is a single x87 FABS instruction
 
 extern data_array *object_data;                     // 0x008603b0
-extern ModelCollisionGeometryBSP *structure_collision_bsp; // 0x00746f98
-extern ScenarioStructureBSP *structure_bsp_tag_data; // 0x00746f9c
+extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern Globals *game_globals;                        // 0x00746fa0
 extern real_vector3d *global_reference_vector_0069672c; // 0x0069672c
 extern float k_physics_gravity;                      // 0x0069c52c
@@ -143,9 +144,9 @@ void object_physics_compute_mass_point_forces(object_physics_context *context,
             mp->up_k = mp_def->up.i * combined[2] + mp_def->up.j * combined[5] + mp_def->up.k * combined[8];
         }
 
-        mp->leaf_index = bsp3d_node_find_leaf(0, structure_collision_bsp, (real_point3d *)&mp->position_x);
+        mp->leaf_index = bsp3d_node_find_leaf(0, global_structure_collision_bsp, (real_point3d *)&mp->position_x);
         mp->cluster_index = (mp->leaf_index == -1) ? -1 :
-            ((ScenarioStructureBSPLeaf *)structure_bsp_tag_data->leaves.pointer)[mp->leaf_index].cluster;
+            ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[mp->leaf_index].cluster;
 
         offset.i = mp->position_x - obj->position.x;
         offset.j = mp->position_y - obj->position.y;
@@ -378,14 +379,14 @@ void object_physics_compute_mass_point_forces(object_physics_context *context,
                     float lean = FUN_00507430(mp->up_k, powered_def->antigrav_normal_k0,
                         powered_def->antigrav_normal_k1);
                     float fade = (clearance <= 0.0f) ? 1.0f : 1.0f - clearance / powered_def->antigrav_height;
-                    float dot_nv = result.normal.i * mp->velocity_i + result.normal.k * mp->velocity_k +
-                        result.normal.j * mp->velocity_j;
+                    float dot_nv = result.plane.normal.i * mp->velocity_i + result.plane.normal.k * mp->velocity_k +
+                        result.plane.normal.j * mp->velocity_j;
                     float push = (fade * fade * k_physics_gravity - dot_nv * powered_def->antigrav_damp_fraction) *
                         powered_state->antigrav * powered_def->antigrav_strength * definition->mass * lean;
 
-                    mp->powered_force_i += result.normal.i * push;
-                    mp->powered_force_j += result.normal.j * push;
-                    mp->powered_force_k += result.normal.k * push;
+                    mp->powered_force_i += result.plane.normal.i * push;
+                    mp->powered_force_j += result.plane.normal.j * push;
+                    mp->powered_force_k += result.plane.normal.k * push;
                     mp->flags |= _mass_point_antigrav_bit;
                 }
             }

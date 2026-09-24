@@ -7,6 +7,7 @@
 // next_decal 0x34, cluster_index 0x04, layer 0x06); the relink half of this function is
 // byte-for-byte decal_link 0x44dd30's own body, so it is expressed here as a call to it.
 // register convention: __cdecl, no arguments.
+// reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
 
 #include "tags.h"
 #include "memory.h"
@@ -17,8 +18,8 @@
 
 extern data_array *decal_data;         // 0x0087abe4
 extern decal_grid *decal_grid_block;   // 0x006b0ad8
-extern void *global_globals;           // 0x00746f90, passed to FUN_005013a0 in ECX
-extern uint8_t *structure_bsp_globals; // 0x00746f9c; +0xe4 is the per-leaf lookup table
+extern ModelCollisionGeometryBSP *global_collision_bsp;           // 0x00746f90, passed to FUN_005013a0 in ECX
+extern uint8_t *global_structure_bsp; // 0x00746f9c; +0xe4 is the per-leaf lookup table
 
 extern int32_t FUN_005013a0(void *globals, real_point3d *point, int32_t index);
     // 0x5013a0; blam-cc: ECX -> globals, EDX -> point, EAX -> index
@@ -36,10 +37,10 @@ void decal_rehash_object_decals(void)
         while (decal_index != k_datum_index_none) {
             decal *self = &((decal *)decal_data->data)[(uint16_t)decal_index];
             datum_index next = self->next_decal;
-            int32_t leaf = FUN_005013a0(global_globals, &self->position, 0);
+            int32_t leaf = FUN_005013a0(global_collision_bsp, &self->position, 0);
 
             if (leaf != -1) {
-                int16_t cluster = *(int16_t *)(*(uint8_t **)(structure_bsp_globals + 0xe4) +
+                int16_t cluster = *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) +
                     (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
 
                 if (cluster != -1) {

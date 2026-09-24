@@ -15,9 +15,10 @@
 // UNSURE, broadly: object+0x17c bit 0x10 (a "no avoidance" flag) and Actor+0x280 (an
 // override avoidance-radius float) are read as raw offsets; the two globals
 // PTR_DAT_00696720/PTR_DAT_0069672c (a fixed vector and axis triple) and DAT_00746f98 (the
-// collision BSP index, already named bsp_index in types/ai.h's globals list) are declared as
+// collision BSP index, already named global_structure_collision_bsp in types/ai.h's globals list) are declared as
 // externs matching their use here. FUN_00502060 (a raycast) and vector2d_normalize_with_
 // length's in/out aliasing are reproduced as literally as C allows.
+// reconciled: R54 0x502060 alias FUN_00502060 -> physics collision_bsp_query_segment_init (EAX flags 1, ECX result); out_extra/out_point now come from the result's surface_index (+0x08) and t (+0x00) instead of unset locals
 
 #include "tags.h"
 #include "memory.h"
@@ -25,16 +26,22 @@
 #include "ai.h"
 #include "cache.h"
 #include "objects.h"
+#include "physics.h"
 
 extern data_array *actor_data;  // 0x00880360
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern int32_t bsp_index; // 0x00746f98
+extern int32_t global_structure_collision_bsp; // 0x00746f98
 extern const real_vector3d *global_up3d_pointer; // 0x00696720
 extern const real_vector3d *global_down3d_pointer; // 0x0069672c, UNSURE: a third axis vector, likely "down" by symmetry with global_up3d_pointer
 
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0
-extern char FUN_00502060(int32_t bsp, int32_t unused_a, int32_t unused_b, real_point3d *from, real_vector3d *delta, int32_t max_fraction); // 0x502060, not yet rewritten
+extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result,
+                                                ModelCollisionGeometryBSP *bsp,
+                                                int16_t breakable_surface_count,
+                                                uint32_t *breakable_surfaces, real_point3d *origin,
+                                                real_vector3d *delta, float max_fraction);
+    // 0x502060, src/physics/collision_bsp_query_segment_init.c; flags in EAX, result in ECX
 
 extern double sqrt(double x); // FSQRT
 
@@ -180,13 +187,17 @@ skip_avoidance:
         delta.j = global_down3d_pointer->j * 4.0f;
         delta.k = global_down3d_pointer->k * 4.0f;
 
-        if (FUN_00502060(bsp_index, 0, 0, &from, &delta, 0x7f7fffff) == 0) {
+        collision_bsp_segment_result ground; // ECX = [esp+0x6c] at 0x409a18
+
+        // 0x4099bf..0x409a21: EAX = 1, stack (0x00746f98, 0, 0, &from, &delta, FLT_MAX)
+        if (collision_bsp_query_segment_init(1, &ground, (ModelCollisionGeometryBSP *)global_structure_collision_bsp, 0, 0,
+                                             &from, &delta, 3.4028235e+38f) == 0) {
             return 0;
         }
-        *out_extra = local_410;
-        out_point[0] = delta.i * local_418 + from.x;
-        out_point[1] = delta.j * local_418 + from.y;
-        out_point[2] = delta.k * local_418 + from.z;
+        *out_extra = (uint32_t)ground.surface_index;   // 0x409a35: result +0x08
+        out_point[0] = delta.i * ground.t + from.x;    // 0x409a39: result +0x00
+        out_point[1] = delta.j * ground.t + from.y;
+        out_point[2] = delta.k * ground.t + from.z;
         return 1;
     }
 }

@@ -22,7 +22,7 @@
 
 extern data_array *encounter_data;   // 0x008802c8
 extern Scenario *global_scenario;    // 0x00746f8c
-extern int16_t current_bsp_index;    // 0x0069e8d8
+extern int16_t global_structure_bsp_index;    // 0x0069e8d8
 extern ai_globals *ai_global_data;   // 0x00880354
 extern data_array *actor_data;       // 0x00880360
 extern game_time_globals *game_time; // 0x006f1d6c
@@ -47,7 +47,7 @@ uint8_t encounter_activate(datum_index encounter_index)
         [encounter_index & 0xffff];
 
     if ((int16_t)definition->precomputed_bsp_index != -1 &&
-        (int16_t)definition->precomputed_bsp_index != current_bsp_index) {
+        (int16_t)definition->precomputed_bsp_index != global_structure_bsp_index) {
         return enc->units_active;
     }
 

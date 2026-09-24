@@ -36,6 +36,7 @@
 //   (0x4c10ef `lea esi,[ebp+0x27c]`, 0x4c112f `mov edx,esi`) and EAX = update_record.
 // UNSURE: vector3d_distance's two point arguments are register-only; ECX = &object.position
 //   (0x4c11da `lea ecx,[ebp+0x5c]`), EAX = the decoded position (`lea eax,[esp+0x10]`).
+// reconciled: R26 object +0x18/+0x1c/+0x44/+0x48 raw writes -> network_position_valid/network_position/network_velocity_valid/network_velocity
 
 #include "tags.h"
 #include "memory.h"
@@ -99,13 +100,11 @@ void projectile_apply_network_update(datum_index projectile_index, uint32_t *upd
             }
 
             obj->velocity = decoded.velocity;
-            // UNSURE: these two writes land inside types/objects.h's still-unresolved
-            // unknown_019[7]/player_visibility_mask/unknown_022[0x3a] region (object 0x018..0x05c),
-            // not on any named field; preserved as raw offsets rather than guessed field names.
-            *(real_point3d *)((uint8_t *)obj + 0x1c) = decoded.position;
-            *(real_vector3d *)((uint8_t *)obj + 0x48) = decoded.velocity;
-            obj->unknown_018 = 1;
-            *((uint8_t *)obj + 0x44) = 1; // UNSURE: also inside the unresolved region
+            // the network interpolation block (object 0x018..0x054, objects.h R26)
+            obj->network_position = decoded.position;
+            obj->network_velocity = decoded.velocity;
+            obj->network_position_valid = 1;
+            obj->network_velocity_valid = 1;
 
             if ((*(int32_t *)update_record[0] != 1 ||
                  projectile_network_update_position_tolerance < vector3d_distance(&obj->position, &decoded.position)) &&

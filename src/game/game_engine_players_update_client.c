@@ -22,6 +22,8 @@
 // path; on every other path they keep whatever value they held out of the PREVIOUS player's
 // iteration (or, on the very first player, uninitialized stack). That is transcribed as-is
 // (persisting across loop iterations, seeded to 0 here rather than left truly uninitialized).
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
+// reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
 
 #include "tags.h"
 #include "memory.h"
@@ -31,6 +33,7 @@
 #include "units.h"
 #include "game.h"
 #include <string.h>
+#include <stdint.h>
 
 // player_update_record is types/game.h's (0x2c: field0, references_remaining,
 // reference_count, player_action action).
@@ -93,6 +96,7 @@ void game_engine_players_update_client(void)
     player_iter.data = player_data;
     player_iter.next_index = 0;
     player_iter.index = (datum_index)-1;
+    player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
     counter = 0;
     carried_weapon_index = 0;
     carried_grenade_or_zoom = 0;
@@ -197,7 +201,7 @@ void game_engine_players_update_client(void)
 
     game_engine_build_visible_cluster_bitmask((uint8_t *)local_player_globals + 0x58, 1);
     game_engine_build_visible_cluster_bitmask((uint8_t *)local_player_globals + 0x18, 0);
-    local_player_globals->unknown_0c = (int16_t)(local_player_globals->local_players[0] != (datum_index)-1);
+    local_player_globals->local_player_count = (int16_t)(local_player_globals->local_players[0] != (datum_index)-1);
 }
 
 #if 0

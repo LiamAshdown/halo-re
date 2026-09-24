@@ -27,7 +27,7 @@
 
 extern real_vector3d object_ambient_lightmap_default; // 0x00686b08
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *structure_bsp_globals; // 0x00746f9c, see objects_update.c and
+extern uint8_t *global_structure_bsp; // 0x00746f9c, see objects_update.c and
                                            //   object_set_cluster_and_parent.c; UNSURE: the
                                            //   +0xc and +0x108 sub-offsets used here are not
                                            //   established by either of those two functions
@@ -56,12 +56,12 @@ void object_sample_ambient_lightmap_point(uint32_t param_1, real_vector3d *color
         // UNSURE: the whole BSP material/lightmap resolution chain below is foreign-module and
         // preserved only as raw offsets; see file header.
         int16_t *material_ref = (int16_t *)(probe_leaf * 0x20 +
-            *(int32_t *)(structure_bsp_globals + 0x108));
+            *(int32_t *)(global_structure_bsp + 0x108));
         uint8_t *material = (uint8_t *)tag_instances[
             *(uint32_t *)((int16_t)probe_index * 0x100 + 0xc + *(int32_t *)(material_ref + 6)) & 0xffff].data;
 
         if (*(int16_t *)(material + 0x24) == 3 &&
-            *(int32_t *)(structure_bsp_globals + 0xc) != -1 &&
+            *(int32_t *)(global_structure_bsp + 0xc) != -1 &&
             *(int32_t *)(material + 0x94) != -1 && *material_ref != -1) {
             void *primary_bitmap = bitmap_group_get_bitmap_data();
             void *secondary_bitmap = bitmap_group_get_bitmap_data();

@@ -25,6 +25,7 @@
 //   its own stack slot).
 // register convention: EAX = screenshot_tile (Point2DInt*, may be 0), one stack argument (view).
 //   // blam-cc: EAX=screenshot_tile, stack=view
+// reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
 
 #include "tags.h"
 #include "memory.h"
@@ -169,14 +170,14 @@ void render_player_frame(Point2DInt *screenshot_tile, render_view *view) // blam
 
     // UNSURE: this gate always evaluates true in this retail build. types/game.h notes that
     // player_globals only ever has one local player slot here, which makes the final re-check of
-    // unknown_0c against 1 unreachable (it can only fail once local_player_count is already known
+    // local_player_count against 1 unreachable (it can only fail once local_player_count is already known
     // to equal 1). Reproduced exactly rather than simplified away, in case a splitscreen build
     // gave the second comparison a different operand.
     attempt_mirror = 1;
     if (!(current_game_engine != 0 && game_engine_state_value >= _game_engine_state_ended &&
           game_engine_state_value <= _game_engine_state_post_game)) {
         if (cinematic_globals[9] == 0) {
-            int16_t local_player_count = local_player_globals->unknown_0c;
+            int16_t local_player_count = local_player_globals->local_player_count;
             if (local_player_count == 1 && local_player_count != 1) {
                 attempt_mirror = 0; // never reachable; see the UNSURE note above
             }

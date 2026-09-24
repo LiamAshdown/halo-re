@@ -4,7 +4,7 @@
 // evidence: out/phase4/input_functions.md summary "Enumerates all registered input devices and
 // logs each one's index, GUID string, and device name."; confirmed unreachable in this build (0
 // callers per out/phase4/input_batch/491750.md). types/interface.h controls_gamepad_record
-// (name[0x106], device_key[5]) is exactly the 0x88-dword block copied out of each input_device.
+// (name[0x106], product_guid.words[5]) is exactly the 0x88-dword block copied out of each input_device.
 // UNSURE: the decompiled `else if (local_3d5 != '\0') goto LAB_004917aa;` branch is guarded by
 // `iVar5 < DAT_006b1844`, which is identical to the enclosing loop's own `sVar1 <
 // DAT_006b1844` condition (iVar5 is always sVar1), so that branch is unreachable; omitted here
@@ -15,6 +15,7 @@
 // offset 0x20c -- exactly where device_key[0..3] (the product GUID) starts. Reproduced as
 // printing device_key[0..3] as a GUID, not instance_guid; not independently confirmed.
 // register convention: no parameters, no return value.
+// reconciled: R20 controls_gamepad_record.device_key[5] -> input_guid product_guid (+0x20c, device_key[0..3]) and int32_t product_instance (+0x21c, device_key[4])
 
 #include "tags.h"
 #include "memory.h"
@@ -51,7 +52,7 @@ void input_device_list_print(void)
     for (index = 0; index < input_device_count; index++) {
         record = input_devices[index].record;
 
-        hr = StringFromGUID2((const input_guid *)record.device_key, guid_wide, 0x27);
+        hr = StringFromGUID2(&record.product_guid, guid_wide, 0x27);
         if (hr < 0) {
             continue;
         }

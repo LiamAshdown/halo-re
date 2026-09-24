@@ -32,6 +32,7 @@
 // UNSURE: if `player_or_all` is passed as k_datum_index_none (0xffffffff), `self` below is
 // computed from index 0xffff, which is out of player_data's 16-slot range. No caller exists in
 // this build to say whether that path is actually reachable.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original; the separate write-only iter_signature local is folded into it
 
 // CORRECTED (phase 4 review): the Blam random-index idiom is
 //   movsx ecx,<count> ; shr eax,0x10 ; imul eax,ecx ; shr eax,0x10 ; movsx <idx>,ax
@@ -65,14 +66,11 @@ void game_engine_player_select_random_target(datum_index player_or_all)
     datum_index winner = k_datum_index_none;
     data_iterator iter;
     void *element;
-    int32_t iter_signature; // UNSURE: write-only "iter" scratch value (0x69746572 == 'iter' read
-                             // big-endian, matching data_array's 'd@t@'/'weee' style signatures);
-                             // computed and stored twice below but never read back by anything.
 
-    iter_signature = (int32_t)(intptr_t)player_data ^ 0x69746572;
     iter.data = player_data;
     iter.next_index = 0;
     iter.index = k_datum_index_none;
+    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
     element = data_iterator_next(&iter);
     while (element != 0) {
         datum_index candidate = iter.index;
@@ -93,10 +91,10 @@ void game_engine_player_select_random_target(datum_index player_or_all)
         pick = (int16_t)(((random_seed_global >> 16) *
                           (uint32_t)(int32_t)(int16_t)match_count) >> 16);
 
-        iter_signature = (int32_t)(intptr_t)player_data ^ 0x69746572;
         iter.data = player_data;
         iter.next_index = 0;
         iter.index = k_datum_index_none;
+        iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
         element = data_iterator_next(&iter);
         while (element != 0) {
             datum_index candidate = iter.index;
@@ -129,17 +127,16 @@ void game_engine_player_select_random_target(datum_index player_or_all)
         data_iterator broadcast_iter;
         void *broadcast_element;
 
-        iter_signature = (int32_t)(intptr_t)player_data ^ 0x69746572;
         broadcast_iter.data = player_data;
         broadcast_iter.next_index = 0;
         broadcast_iter.index = k_datum_index_none;
+        broadcast_iter.signature = (uint32_t)(uintptr_t)broadcast_iter.data ^ k_data_iterator_signature;
         broadcast_element = data_iterator_next(&broadcast_iter);
         while (broadcast_element != 0) {
             chimera__kill_feed(broadcast_iter.index, (int32_t)broadcast_iter.index, 0x20, winner, 1);
             broadcast_element = data_iterator_next(&broadcast_iter);
         }
     }
-    (void)iter_signature;
 }
 
 #if 0

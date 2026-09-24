@@ -29,6 +29,7 @@
 // gate on gathering the ally / enemy aim hazards; Actor.more_flags bit 4 is
 // pathfinding_ignores_danger, which is what suppresses the avoid sphere; and the two
 // danger-sphere radii are Actor.old_position_avoid_dist and Actor.friend_avoid_dist.
+// reconciled: R06 0x00746f9c is ScenarioStructureBSP *global_structure_bsp (was extern int32_t bsp_generation); ai.h path_find_context/actor_movement_context bsp_generation -> structure_bsp, bsp_index -> collision_bsp
 
 #include "tags.h"
 #include "memory.h"
@@ -41,7 +42,7 @@ extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern Scenario *global_scenario;   // 0x00746f8c
-extern int32_t bsp_generation;      // 0x00746f9c, the structure BSP pointer, used here as an opaque handle
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (formerly bsp_generation)
 extern uint32_t random_seed_global; // 0x00719cd0
 extern const real_vector3d *global_origin3d_pointer; // 0x00696714
 
@@ -449,7 +450,7 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
                 for (n = 0; n < 0x4023; n++) {
                     clear[n] = 0;
                 }
-                target_context.bsp_generation = bsp_generation;
+                target_context.structure_bsp = (uint32_t)global_structure_bsp;
                 for (n = 0; n < 0x12; n++) {
                     ((uint32_t *)&target_context)[n] = ((uint32_t *)&request)[n];
                 }
@@ -472,7 +473,7 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
                 delta.j = p->y - query->target_position.y;
                 delta.k = p->z - query->target_position.z;
                 if (delta.j * delta.j + delta.k * delta.k + delta.i * delta.i < 400.0f &&
-                    path_find_test_direct_reachability(bsp_generation, 0) != 0) {
+                    path_find_test_direct_reachability((uint32_t)global_structure_bsp, 0) != 0) {
                     c->distance_from_target = vector3d_normalize_with_length(&delta);
                     if (query->want_direction_from_target != 0) {
                         c->direction_from_target = delta;
@@ -510,7 +511,7 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
         for (n = 0; n < 0x4023; n++) {
             clear[n] = 0;
         }
-        path_context->bsp_generation = bsp_generation;
+        path_context->structure_bsp = (uint32_t)global_structure_bsp;
         for (n = 0; n < 0x12; n++) {
             ((uint32_t *)path_context)[n] = ((uint32_t *)&request)[n];
         }

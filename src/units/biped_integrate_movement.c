@@ -41,10 +41,13 @@
 //   not (that function belongs to the physics module and was not processed).
 // UNSURE: actor_check_vehicle_mode_timeout (an actor-side predicate) and weapon_get_zoom_fov (the difficulty-scaled
 //   globals lookup already used under that name in src/objects) are foreign-module calls.
+// reconciled: R46 biped_data +0x4d4 last_ground_surface_index -> last_ground_object_index (an object datum)
+// reconciled: R04 0x006f1d20 int32_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
@@ -56,7 +59,7 @@ extern real_point3d *global_origin3d_pointer; // 0x00696714
 extern uint8_t *globals_tag_data;   // 0x00746fa0, +0x174 is the player_information block
 extern uint8_t *some_globals_006f187c; // 0x006f187c, UNSURE: +9 gates the old-physics override
 extern uint8_t *object_update_gate_globals; // 0x006b0b80, +2 is the double-speed switch
-extern int32_t network_predicted_state_flag;  // 0x006f1d20, types/units.h
+extern game_engine_definition *current_game_engine;  // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 
 extern double cos(double x);  // x87 FCOS
 extern double sin(double x);  // x87 FSIN
@@ -280,7 +283,7 @@ void biped_integrate_movement(uint32_t object_index, object *obj, int8_t *state)
                 player_info->run_sideways = 2.0f;
                 player_info->run_acceleration = 0.32f;
             }
-            if (network_predicted_state_flag != 0) {
+            if (current_game_engine != 0) {
                 player_info_copy = *player_info;
                 player_info = &player_info_copy;
                 player_info->walking_speed = player_info->speed_multiplier * player_info->walking_speed +
@@ -426,13 +429,13 @@ step_crouch:
     // The last supporting surface is remembered for 60 ticks after leaving the ground.
     if (solve.result_surface_index == k_datum_index_none) {
         if (biped->unknown_4d3 < 1) {
-            biped->last_ground_surface_index = k_datum_index_none;
+            biped->last_ground_object_index = k_datum_index_none;
         } else {
             biped->unknown_4d3 = biped->unknown_4d3 - 1;
         }
     } else {
         biped->unknown_4d3 = 0x3c;
-        biped->last_ground_surface_index = solve.result_surface_index;
+        biped->last_ground_object_index = solve.result_surface_index;
     }
 
     if ((unit->flags & _unit_flag_unknown_1000000) != 0) {

@@ -20,6 +20,7 @@
 // UNSURE: every heap_reallocate() call site elides its EAX (old payload) argument the same way
 // heap_reallocate.c's own header describes; reconstructed here as the text-row's previous
 // display-buffer pointer (text_row[0xf]), matching realloc semantics, not independently confirmed.
+// reconciled: R36 0x006e4738..0x006e4744 is ColorARGB text_color, alpha first: externs renamed r/g/b/a -> alpha/red/green/blue by address (same bytes)
 
 #include "tags.h"
 #include "memory.h"
@@ -38,10 +39,10 @@ extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); 
 extern void *text_measure_font_state;      // 0x006e472c
 extern uint16_t text_measure_cursor_low;   // 0x006e4734 low word
 extern uint16_t text_measure_cursor_high;  // 0x006e4736 high word
-extern float renderer_text_color_r;  // 0x006e4738
-extern float renderer_text_color_g;  // 0x006e473c
-extern float renderer_text_color_b;  // 0x006e4740
-extern float renderer_text_color_a;  // 0x006e4744
+extern float renderer_text_color_alpha;  // 0x006e4738
+extern float renderer_text_color_red;  // 0x006e473c
+extern float renderer_text_color_green;  // 0x006e4740
+extern float renderer_text_color_blue;  // 0x006e4744
 extern int32_t text_measure_scratch_30;    // 0x006e4730
 
 extern int32_t text_measure_string_fit_width(int32_t *max_width_inout); // 0x557530
@@ -66,13 +67,13 @@ void ticker_text_buffer_advance(uint8_t *widget, ticker_text_buffer *self)
     text_measure_font_state = *(void **)(font_record + 0x108);
     max_width[0] = (int32_t)*(int16_t *)(font_record + 0x2a) - (int32_t)*(int16_t *)(font_record + 0x26);
     max_width[1] = 0;
-    renderer_text_color_r = 0.0f;
+    renderer_text_color_alpha = 0.0f;
     max_width[2] = 0;
     max_width[3] = 0;
     max_width[4] = 0;
-    renderer_text_color_g = 0.0f;
-    renderer_text_color_b = 0.0f;
-    renderer_text_color_a = 0.0f;
+    renderer_text_color_red = 0.0f;
+    renderer_text_color_green = 0.0f;
+    renderer_text_color_blue = 0.0f;
     text_measure_cursor_low = 0xffff;
     text_measure_cursor_high = 0;
     text_measure_scratch_30 = 0;

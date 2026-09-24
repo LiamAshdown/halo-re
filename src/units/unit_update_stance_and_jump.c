@@ -39,17 +39,19 @@
 //   `transition_class * 0x2c + weapon_class_index` further down. That reuse is modelled here as
 //   two separate locals (`turn_angle`, read-only, and `transition_class`, write-only) instead of
 //   reinterpreting one float parameter's bytes, which is behaviourally identical and far clearer.
+// reconciled: R04 0x006f1d20 int32_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern int32_t network_predicted_state_flag; // 0x006f1d20, tested != 0 elsewhere in this module
+extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern int32_t game_connection_role;         // 0x00719720, 1 = client, 2 = server
 extern char *s_stand; // 0x0069fdec "stand"
 extern double fabs(double x); // ABS() is a single x87 FABS instruction
@@ -132,7 +134,7 @@ after_early_flags:
         facing_quadrant = 3;
     }
 
-    if ((network_predicted_state_flag != 0) && (weapon_class_index == 2) && is_dead_or_stunned && force_ready) {
+    if ((current_game_engine != 0) && (weapon_class_index == 2) && is_dead_or_stunned && force_ready) {
         facing_quadrant = 1;
     }
     if (require_still && !should_stand && !force_ready) {

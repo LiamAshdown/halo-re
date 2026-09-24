@@ -19,12 +19,14 @@
 // (types/game.h); kept as raw offsets. Likewise player+0x13c/+0x148/+0x14c: only three of the
 // eight update_history.current[] slots are cleared here, exactly as the disassembly shows,
 // not all eight.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include <string.h>
+#include <stdint.h>
 
 extern data_array *player_data;                             // 0x0087a480
 extern player_control_globals *player_control_globals_ptr;  // 0x006b145c
@@ -77,6 +79,7 @@ void player_reset_after_unit_change(uint32_t player_index)
     iter.data = player_data;
     iter.next_index = 0;
     iter.index = (datum_index)-1;
+    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
     scan = (player *)data_iterator_next(&iter);
     while (scan != (player *)0) {
         if (scan->unit != (datum_index)-1) {

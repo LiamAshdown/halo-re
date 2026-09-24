@@ -16,6 +16,7 @@
 //   6 or 8 depending on data's screen-space flag), FUN_0051be40(EAX = slot index, unchanged from
 //   the previous call's result).
 //   // blam-cc: EDI -> data, EAX -> bitmap
+// reconciled: R77 0x0069c632 extern uint16 -> int16 (rasterizer.h type)
 
 #include "tags.h"
 #include "memory.h"
@@ -24,7 +25,7 @@
 #include "render.h"
 #include <stdint.h> // uintptr_t
 
-extern uint16_t rasterizer_vertex_buffer_lock_state; // 0x0069c632 (matches
+extern int16_t rasterizer_vertex_buffer_lock_state; // 0x0069c632 (matches
                                                      // src/rasterizer/rasterizer_decal_vertex_cache_lock.c)
 extern uint8_t build_sprite_group_warning; // 0x0071cfbf
 

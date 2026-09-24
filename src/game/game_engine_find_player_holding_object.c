@@ -12,6 +12,7 @@
 //   (0x2f8, k_maximum_weapons_per_unit).
 // register convention: target object handle in EBX (unaff_EBX).
 //   // blam-cc: EBX -> target_object
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 // CORRECTED (phase 4 review): types/units.h unit_data starts at object + k_unit_data_offset
 // (0x1f4), so a unit_data * built straight from the object pointer reads every field 0x1f4
@@ -22,6 +23,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data;    // 0x0087a480
 extern data_array *object_headers; // 0x008603b0
@@ -40,6 +42,7 @@ datum_index game_engine_find_player_holding_object(datum_index target_object)
     iter.data = player_data;
     iter.next_index = 0;
     iter.index = (datum_index)0xffffffff;
+    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     p = (player *)data_iterator_next(&iter);
     while (p != (player *)0) {

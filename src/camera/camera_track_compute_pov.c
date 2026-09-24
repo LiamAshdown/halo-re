@@ -14,6 +14,7 @@
 // register convention: matches director_pov_proc exactly -- (director_camera_data *data,
 //   camera_input *input, observer_command *command), cdecl, all three on the stack. This
 //   function only reads `data` (as `&data->dead`); it never touches the pov-switch (mode) field.
+// reconciled: R04 0x006f1d20 void * current_game_engine -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
@@ -24,7 +25,7 @@
 
 extern data_array *player_data;                    // 0x0087a480, stride 0x200 (no types/players.h yet)
 extern game_time_globals *game_time;               // 0x006f1d6c
-extern void *current_game_engine;                  // 0x006f1d20, game_engine_definition *; non-NULL means multiplayer
+extern game_engine_definition *current_game_engine;                  // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern const real_point3d *global_origin3d_pointer; // 0x00696714
 
 // cos/sin are single x87 FCOS/FSIN instructions in the original code; declared locally instead
@@ -115,7 +116,7 @@ void camera_track_compute_pov(director_camera_data *data, camera_input *input, o
             dead->target_unit = new_unit;
         }
 
-        dead->retarget_time = (current_game_engine != (void *)0) ? 15.0f : 3.0f;
+        dead->retarget_time = (current_game_engine != (game_engine_definition *)0) ? 15.0f : 3.0f;
     }
 }
 

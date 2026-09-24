@@ -27,6 +27,7 @@
 //                 handed &header_read_ok directly (`lea esi,[esp+0x13]` at 0x443681, the same
 //                 slot 0x44368a reads back).
 // The real prototypes of those two functions belong to whichever file rewrites them.
+// reconciled: R10 profile_directory is char[0x105] (k_profile_directory_storage_size; shell zeroes 0x41 dwords + 1 byte at 0x540ef9)
 
 // phase-4 review pass: body re-checked instruction by instruction against `objdump -d -M
 // intel` of this address range; every field offset, branch and argument below now matches
@@ -35,7 +36,7 @@
 #include "cache.h"
 
 extern cache_file_slot cache_file_slots[k_cache_file_slot_count]; // 0x006a9428
-extern char profile_directory[0x104];                              // 0x006ac900
+extern char profile_directory[0x105];                              // 0x006ac900
 extern int32_t os_platform;                                        // 0x00721ef0
 extern char *shell_fatal_error_argument;                           // 0x00722bbc
 

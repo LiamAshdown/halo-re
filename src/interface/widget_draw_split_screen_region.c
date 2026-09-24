@@ -21,15 +21,16 @@
 // not be trusted; the 0x48-byte table below and the final indexing arithmetic were instead read
 // directly from disassembly (0x498330..0x498499). That disassembly shows the table is read back
 // as a 4-byte value (`mov ecx,[esp+edx*4+8]`, pushed straight into widget_instance_
-// render's 3rd argument, which is the packed offset_xy), at byte offset `4*(controller + 4*local_player_globals->unknown_0c)`
+// render's 3rd argument, which is the packed offset_xy), at byte offset `4*(controller + 4*local_player_globals->local_player_count)`
 // from the table's own base -- which, for controller==0 (always true here, see the clamp note
-// above) and unknown_0c==0, is offset 0, a slot this function never explicitly initializes (it
+// above) and local_player_count==0, is offset 0, a slot this function never explicitly initializes (it
 // only ever writes offsets 0xc and up). Reproduced literally, uninitialized slot included, rather
 // than "corrected" into a plausible-looking rect table; this path is unreachable in the
 // non-split-screen retail configuration this whole codebase targets (types/interface.h:
 // "ui_root_widget[1]"), so it was not runtime-verified.
 // UNSURE: widget_instance_render's signature (0x49a8c0) is inferred purely from this call site
 // and cross-checked when that function was itself rewritten in this session.
+// reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
 
 #include "tags.h"
 #include "memory.h"
@@ -89,7 +90,7 @@ void widget_draw_split_screen_region(Rectangle2D *viewport, int16_t controller_i
             (widget->unknown_15 != 1 &&
              ((widget->controller_index == -1 && i == 0) || widget->controller_index == clamped_controller))) {
             Rectangle2D dest;
-            int32_t byte_offset = 4 * (clamped_controller + 4 * local_player_globals->unknown_0c);
+            int32_t byte_offset = 4 * (clamped_controller + 4 * local_player_globals->local_player_count);
             int32_t offset_xy = *(int32_t *)(table + byte_offset); // packed {x, y} words, pushed as argument 3 (objdump 0x49848d)
 
             dest.top = 0;

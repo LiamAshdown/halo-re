@@ -7,6 +7,7 @@
 // FUN_004a4cf0.c (bound 8, i.e. 9 options), followed by hiding option 0 when not split-screen and
 // option 2 when no network adapters are present. types/interface.h names 0x00718fc9 ui_split_screen.
 // register convention: cdecl, the one recognized stack parameter (widget).
+// reconciled: R78 0x006b1844 input_gamepad_count(_dword) -> input.h int32_t input_device_count; the WORD readers keep their int16 width through an (int16_t) cast
 
 #include "tags.h"
 #include "memory.h"
@@ -16,7 +17,7 @@
 #include "interface.h"
 
 extern uint8_t ui_split_screen;                 // 0x00718fc9
-extern int16_t input_gamepad_count;  // 0x006b1844, connected gamepad count (see controls_gamepad_lists_load.c); UNSURE name
+extern int32_t input_device_count; // 0x006b1844, input.h (0..8 connected input devices)
 
 void ui_tab_group_sync_9wide(widget_instance *widget)
 {
@@ -59,7 +60,7 @@ sync_visibility:
                 cursor->scale = 1.0f;
             }
         } else if (position == 2) {
-            if (input_gamepad_count != 0) {
+            if ((int16_t)input_device_count != 0) {
                 cursor->hidden = 0;
                 cursor->scale = 1.0f;
             } else {

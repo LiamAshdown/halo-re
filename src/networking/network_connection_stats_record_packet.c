@@ -19,6 +19,7 @@
 // the key zero-extended from 16 bits.
 // UNSURE: `0x1c` added to the payload length is assumed to be a fixed per-packet header/
 // overhead byte count (e.g. IP+UDP+protocol headers), not independently confirmed.
+// reconciled: R01 0x0087ac06 int16 network_statistics_level -> uint8 debug_log_level (the binary reads a byte)
 
 #include "tags.h"
 #include "memory.h"
@@ -27,7 +28,7 @@
 #include "networking.h"
 #include <stdint.h>
 
-extern int16_t network_statistics_level; // 0x0087ac06
+extern uint8_t debug_log_level;          // 0x0087ac06, byte-wide (R01)
 extern uint8_t network_statistics_logging_enabled; // 0x006f14b4
 extern network_connection_statistics network_connection_stats[k_network_connection_stats_count]; // 0x0087bec0
 extern network_summary_statistics network_summary_stats; // 0x0087bea0
@@ -49,7 +50,7 @@ void network_connection_stats_record_packet(void *gamespy_connection, int32_t pa
     int32_t *stats_index_field;
     int32_t index;
 
-    if (2 < network_statistics_level) {
+    if (2 < debug_log_level) {
         total_bytes = payload_length + 0x1c;
         if (is_sent == 0) {
             network_bandwidth_graph_accumulate_received(1);

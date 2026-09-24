@@ -5,7 +5,7 @@
 //   clusters may be occluded, a raycast-derived obstruction factor for a sound source relative to
 //   the listener."; writes sound_location.obstruction/occlusion (0x38/0x3c, types/sound.h:
 //   0.6 / 0.45 / 0.0); reads sound_location.position/cluster_index (0x0c/0x34) and the observer
-//   camera row of the listener (types/sound.h sound_observer_camera: position 0x00, cluster
+//   camera row of the listener (camera.h observer_camera, R17: position 0x00, cluster
 //   0x10). The raycast is collision_test_movement_segment (0x505880, physics module) with flags
 //   0xc0e1 and no excluded object; the cluster-to-cluster sound distance byte comes from
 //   cluster_sound_distance_lookup (0x552210: EAX / ECX clusters, EDI structure bsp, returns AL).
@@ -13,19 +13,21 @@
 //   0x006ac6d0 (the draft dereferenced it as a pointer), and the raycast writes a
 //   collision_result into a caller buffer (the draft passed NULL).
 // register convention: EBX -> location, AX -> listener_index, stack -> reference_distance.
-// UNSURE: structure_bsp_globals+0x14c (a cluster x cluster "may be occluded" bitmap, rows of
+// UNSURE: global_structure_bsp+0x14c (a cluster x cluster "may be occluded" bitmap, rows of
 //   (cluster_count + 31) / 32 words, indexed [listener cluster][source cluster]) and +0x134
 //   (cluster count) have no established names; kept as raw offsets.
+// reconciled: R17 sound_observer_camera -> camera.h observer_camera via observers[i].camera (same bytes)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
 #include "projectiles.h"
+#include "camera.h"
 #include "sound.h"
 
-extern uint8_t *structure_bsp_globals;                   // 0x00746f9c
-extern sound_observer_camera observer_cameras[];         // 0x006ac6d0 (an array, not a pointer), types/sound.h
+extern uint8_t *global_structure_bsp;                   // 0x00746f9c
+extern observer observers[1];                            // 0x006ac65c, camera.h; observers[i].camera is the 0x006ac6d0 row (R17)
 
 extern uint8_t cluster_sound_distance_lookup(int16_t source_cluster, int16_t listener_cluster); // 0x552210, blam-cc: EAX, ECX, EDI bsp
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
@@ -38,12 +40,12 @@ extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *ori
 // reference)) clamped to [0, 1].
 void sound_compute_obstruction_occlusion(sound_location *location, int16_t listener_index, float reference_distance)
 {
-    sound_observer_camera *listener = (sound_observer_camera *)0;
+    observer_camera *listener = (observer_camera *)0;
     int16_t listener_cluster;
     float distance;
 
     if (listener_index != -1) {
-        listener = &observer_cameras[listener_index];
+        listener = &observers[listener_index].camera;
     }
 
     location->obstruction = 0.6f;
@@ -63,8 +65,8 @@ void sound_compute_obstruction_occlusion(sound_location *location, int16_t liste
     }
 
     {
-        int32_t cluster_count = *(int32_t *)(structure_bsp_globals + 0x134);
-        uint32_t *occlusion_bitmap = *(uint32_t **)(structure_bsp_globals + 0x14c);
+        int32_t cluster_count = *(int32_t *)(global_structure_bsp + 0x134);
+        uint32_t *occlusion_bitmap = *(uint32_t **)(global_structure_bsp + 0x14c);
         int32_t word_index = ((cluster_count + 0x1f) >> 5) * listener_cluster + (location->cluster_index >> 5);
 
         if ((occlusion_bitmap[word_index] & (1u << (location->cluster_index & 0x1f))) != 0) {

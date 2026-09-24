@@ -24,6 +24,8 @@
 // UNSURE: essentially the entire grid-scan section (the row/col bookkeeping, the perp/up basis,
 //   and collision_test_movement_segment's scratch layout) is reproduced as literally as Ghidra's own in_stack_
 //   names allow rather than restructured, since the true entry conditions are not recoverable.
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
+// reconciled: R25 damage_data.unknown_4c -> material_type (int16 collision material of the damaged surface, 0xffff = none; indexes DamageEffect +0x200)
 
 #include "tags.h"
 #include "memory.h"
@@ -128,9 +130,9 @@ void unit_can_see_point(uint32_t unit_index, real_vector3d *target_direction,
 
             dd.damage_effect_tag = damage_effect_tag;
             dd.flags = 1;
-            dd.responsible_player = obj->name_index; // UNSURE, matches unit_cause_melee_damage.c
+            dd.responsible_player = obj->owner_team; // UNSURE, matches unit_cause_melee_damage.c
             dd.responsible_object = unit_index;
-            dd.team_index = (int16_t)obj->name_index;
+            dd.team_index = (int16_t)obj->owner_team;
             dd.location_leaf_index = obj->location_leaf_index;
             *(int32_t *)&dd.location_cluster_index = *(int32_t *)&obj->location_cluster_index;
             dd.epicentre = *(real_point3d *)target_direction;
@@ -138,7 +140,7 @@ void unit_can_see_point(uint32_t unit_index, real_vector3d *target_direction,
             dd.direction = *target_direction;
             dd.random_blend = 1.0f;
             dd.multiplier = 1.0f;
-            dd.unknown_4c = (int16_t)best_object_distance;
+            dd.material_type = (int16_t)best_object_distance;
 
             if (best_object == 0xffffffff) {
                 if ((int16_t)best_decal != -1) {
@@ -181,7 +183,7 @@ void unit_can_see_point(uint32_t unit_index, real_vector3d *target_direction,
                 dd2.direction.k = -target_direction->k;
                 dd2.random_blend = 1.0f;
                 dd2.multiplier = 1.0f;
-                dd2.unknown_4c = -1;
+                dd2.material_type = -1;
                 object_apply_damage(&dd2, unit_index, -1, -1, -1, 0);
             }
         }

@@ -3,12 +3,13 @@
 // name confidence: 0.4   rewrite confidence: 0.5
 // evidence: out/phase4/interface_functions.md "Formats a string with vsnprintf and appends it
 // to the console message list, but only when a verbosity [threshold is met]"; types/interface.h
-// "global 0x0087ac06: int32_t console_verbosity  0x496a80 prints only above 3" and
+// "global 0x0087ac06: uint8_t debug_log_level" (0x496a86 cmp BYTE ...,0x4: prints only above 3) and
 // console_message's documented default color (1.0, 0.7, 0.7, 0.7); chimera__console_out_copy.c's
 // precedent for console_echo_prefix (0x00669140) and _strstr (FUN_00625430).
 // register convention: format string as the recognized stack parameter, optional ColorARGB* in
 // EAX (in_EAX, NULL means "use the default gray"), plus the varargs that follow format on the
 // stack. // blam-cc: EAX -> color, stack -> format, ...
+// reconciled: R01 0x0087ac06 int32 console_verbosity -> uint8 debug_log_level (the binary reads a byte)
 
 #include "tags.h"
 #include "memory.h"
@@ -18,7 +19,7 @@
 #include "interface.h"
 #include <stdarg.h>
 
-extern int32_t console_verbosity;         // 0x0087ac06
+extern uint8_t debug_log_level;           // 0x0087ac06, byte-wide (R01)
 extern uint8_t terminal_initialized;       // 0x006b2efc
 extern data_array *terminal_messages;      // 0x006b2f00, "terminal output"
 extern char console_echo_prefix[];         // 0x00669140, matched by chimera__console_out
@@ -40,7 +41,7 @@ void console_printf_verbose(ColorARGB *color, char *format, ...)
     datum_index message_handle;
     console_message *message;
 
-    if (console_verbosity <= 3 || terminal_initialized == 0) {
+    if (debug_log_level <= 3 || terminal_initialized == 0) {
         return;
     }
 

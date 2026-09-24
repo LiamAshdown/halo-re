@@ -11,6 +11,7 @@
 //   // blam-cc: EBX -> new_team, ESI -> target_team_index_desired
 // UNSURE: "color" in the auto-generated summary is inferred only from context; the field actually
 // matched is player::team_index_desired.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original; the separate write-only iter_signature local is folded into it
 
 #include "tags.h"
 #include "memory.h"
@@ -29,13 +30,11 @@ void player_set_team_by_color(uint8_t new_team, int8_t target_team_index_desired
 {
     data_iterator player_iter;
     void *player_element;
-    int32_t iter_signature; // UNSURE: write-only "iter" scratch value, see
-                             // game_engine_player_select_random_target.c; never read back.
 
-    iter_signature = (int32_t)(intptr_t)player_data ^ 0x69746572;
     player_iter.data = player_data;
     player_iter.next_index = 0;
     player_iter.index = k_datum_index_none;
+    player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
     player_element = data_iterator_next(&player_iter);
     while (player_element != 0) {
         player *p = (player *)player_element;
@@ -47,7 +46,6 @@ void player_set_team_by_color(uint8_t new_team, int8_t target_team_index_desired
         }
         player_element = data_iterator_next(&player_iter);
     }
-    (void)iter_signature;
 }
 
 #if 0

@@ -14,6 +14,7 @@
 //
 // UNSURE: actor_delete's stack argument (0 here) and actor_release_from_cluster_or_delete's role are not otherwise
 // established in this repo.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
@@ -21,6 +22,7 @@
 #include "objects.h"
 #include "units.h"
 #include "ai.h"
+#include <stdint.h>
 
 extern ai_globals *ai_globals_ptr; // 0x00880354
 extern data_array *object_data;    // 0x008603b0
@@ -67,6 +69,7 @@ void ai_clear_object_references(datum_index object_index)
     iterator.data = prop_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     p = data_iterator_next(&iterator);
     while (p != 0) {
         if (p->object_index == object_index) {

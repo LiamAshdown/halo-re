@@ -12,6 +12,7 @@
 // this function is the one place that does touch it; left as-is since types/game.h cannot be
 // edited here.
 // register convention: no parameters, no return value.
+// reconciled: R33 game_time_globals.unknown_00 -> initialized (uint8 at +0x00, same byte)
 
 #include "tags.h"
 #include "memory.h"
@@ -28,7 +29,7 @@ void game_state_after_load_restore_time(void)
 {
     game_state_revert_time = game_time->game_time;
     game_time->paused = 0;
-    if (game_time->unknown_00 != 0) {
+    if (game_time->initialized != 0) {
         game_time->active = 1;
     }
 }

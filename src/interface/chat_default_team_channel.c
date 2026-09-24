@@ -8,6 +8,7 @@
 // cold at `data_iterator_next()`); player_data is used here as the scanned array since the two
 // fields read (local_player_index, team_index_desired) both match the player struct exactly.
 // register convention: no parameters.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
@@ -15,6 +16,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480, UNSURE: iterated array, see header note
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
@@ -29,6 +31,7 @@ int32_t chat_default_team_channel(void)
     iterator.data = player_data; // UNSURE: guessed iterated array, see header note
     iterator.next_index = 0;
     iterator.index = (datum_index)-1;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
     entry = (player *)data_iterator_next(&iterator);
     while (entry != 0) {

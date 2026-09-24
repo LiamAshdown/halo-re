@@ -16,6 +16,7 @@
 // motion_sensor_range of the player camera in x and y (the object z is replaced by the camera
 // z). The walk stops once every local player is full.
 // register convention: none.
+// reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
 
 #include "tags.h"
 #include "memory.h"
@@ -72,7 +73,7 @@ void chimera__motion_sensor_update(void)
         int16_t previous = (int16_t)((frame_index + 9) % 10);
         int16_t local_player_index = local_player_globals->local_players[0] != (datum_index)-1 ? 0 : -1;
 
-        for (player_count = local_player_globals->unknown_0c; player_count > 0; player_count--) {
+        for (player_count = local_player_globals->local_player_count; player_count > 0; player_count--) {
             motion_sensor->players[local_player_index].history[frame_index] =
                 motion_sensor->players[local_player_index].history[previous];
             local_player_index = motion_sensor_next_local_player(local_player_index);
@@ -90,7 +91,7 @@ void chimera__motion_sensor_update(void)
         } walk;
         uint8_t all_full = 0;
         int16_t local_player_index = local_player_globals->local_players[0] != (datum_index)-1 ? 0 : -1;
-        int16_t count = local_player_globals->unknown_0c;
+        int16_t count = local_player_globals->local_player_count;
         int16_t k;
 
         blip_counts[0] = 0;

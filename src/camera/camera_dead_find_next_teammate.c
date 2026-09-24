@@ -16,11 +16,13 @@
 //   (camera_track_compute_pov 0x445380: `mov bl, al` right after the
 //   camera_dead_player_has_teammate call, then `call 0x4452c0`).
 //   // blam-cc: BL -> require_same_team, stack -> (reference_player, current_target)
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480, stride 0x200 (no types/players.h yet)
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module
@@ -49,6 +51,7 @@ datum_index camera_dead_find_next_teammate(datum_index reference_player, datum_i
     iterator.data = player_data;
     iterator.next_index = 0;
     iterator.index = k_datum_index_none;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     best = k_datum_index_none;
 
     p = (player *)data_iterator_next(&iterator);

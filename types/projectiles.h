@@ -380,7 +380,9 @@ typedef enum collision_result_type {
     _collision_result_type_water_surface = 0, // the overpenetrate response toggles object flag
                                               //   0x10 (in water), recomputes the projectile
                                               //   deceleration for the new medium and nudges the
-                                              //   position 0.001 back along the normal
+                                              //   position 0.001 back along the normal. Also
+                                              //   produced by 0x505880's fog-plane test and read
+                                              //   by point_physics 0x50b530
     _collision_result_type_unknown_1 = 1,     // never produced by anything this module calls
     _collision_result_type_structure = 2,     // a structure BSP surface; surface_flags bit 0x08
                                               //   routes breakable-surface damage to 0x004ffde0
@@ -391,9 +393,14 @@ typedef enum collision_result_type {
 typedef struct collision_result {
     int16_t type;                   // 0x00 collision_result_type
     int16_t unknown_02;             // 0x02
-    uint8_t unknown_04[8];          // 0x04
-    bsp_leaf_reference leaf;        // 0x0c the pair projectile_response forwards to
-                                    //      object_set_cluster_and_parent and to the
+    int32_t first_leaf;             // 0x04 leaf of the segment start point (0x5058c2 DWORD,
+                                    //      0x5060e4..); with first_cluster it is laid out like a
+                                    //      bsp_leaf_reference
+    int16_t first_cluster;          // 0x08 cluster of that leaf (0x5058c5 WORD)
+    int16_t unknown_0a;             // 0x0a
+    bsp_leaf_reference leaf;        // 0x0c the endpoint leaf/cluster pair (0x5058c9 DWORD +0x0c,
+                                    //      0x5058cb WORD +0x10); projectile_response forwards it
+                                    //      to object_set_cluster_and_parent and to the
                                     //      breakable-surface damage call
     float t;                        // 0x14 fraction of the swept segment consumed before the
                                     //      hit; projectile_update turns it into the 1 - t
@@ -401,26 +408,33 @@ typedef struct collision_result {
     real_point3d point;             // 0x18 contact point. projectile_response returns it as the
                                     //      new position of the projectile, and hands it to the impact
                                     //      noise call as the sound origin
-    real_vector3d normal;           // 0x24 surface normal. Used for the reflection, for the
-                                    //      "normal" entry of the effect coordinate system, and
-                                    //      normal.k > 0.3 is the ground test
-    float unknown_30;               // 0x30 never read by this module
+    real_plane3d plane;             // 0x24 the surface plane: plane.normal is the surface normal
+                                    //      (used for the reflection, for the "normal" entry of
+                                    //      the effect coordinate system, and normal.k > 0.3 is
+                                    //      the ground test) and plane.d (+0x30) its distance
     int16_t material_type;          // 0x34 global material type index; this is what seeds
                                     //      projectile_data.material_response_index
     int16_t unknown_36;             // 0x36
     datum_index object_index;       // 0x38 the object hit, -1 for a structure surface
-    int16_t unknown_3c;             // 0x3c passed to object_apply_damage as its fourth argument
-    int16_t marker_index;           // 0x3e the node/marker hit: object_attach_to_object uses it
-                                    //      as the attachment marker, object_apply_damage as its
-                                    //      third argument, and the attach message carries it
-    uint32_t unknown_40;            // 0x40 never read by this module
+    int16_t region_index;           // 0x3c collision region hit (WORD stores 0x5056f2, 0x5057d3);
+                                    //      object_apply_damage's fourth argument
+    int16_t node_index;             // 0x3e the collision node hit (formerly marker_index):
+                                    //      object_attach_to_object uses it as the attachment
+                                    //      marker, object_apply_damage as its third argument, and
+                                    //      the attach message carries it
+    int16_t permutation_index;      // 0x40 (WORD store 0x5056fa)
+    int16_t unknown_42;             // 0x42 padding
     int32_t surface_index;          // 0x44 forwarded to the breakable-surface damage routine
                                     //      0x004ffde0. UNSURE of the name
-    uint32_t unknown_48;            // 0x48 never read by this module
+    int32_t plane_index;            // 0x48 the BSP plane hit; the sign bit set means a back-face
+                                    //      hit (DWORD stores 0x505701, 0x5057f4, 0x505a02)
     uint8_t surface_flags;          // 0x4c bit 0x08 = the surface can be damaged/broken
-    uint8_t unknown_4d;             // 0x4d packed into the low half of the breakable-surface
-                                    //      damage argument
-    int16_t unknown_4e;             // 0x4e passed to object_apply_damage as its fifth argument
+    uint8_t breakable_surface_index;// 0x4d (BYTE stores 0x505707, 0x505a0c, 0x5060b9); packed
+                                    //      into the low half of the breakable-surface damage
+                                    //      argument
+    int16_t collision_material_index; // 0x4e index into ScenarioStructureBSP.collision_materials
+                                    //      (WORD stores 0x50570a, 0x505a0f); object_apply_damage's
+                                    //      fifth argument
 } collision_result;                 // size 0x50
 
 // ---------------------------------------------------------------------------
@@ -439,7 +453,7 @@ typedef struct collision_result {
 typedef struct projectile_creation_message {
     datum_index definition_tag;     // 0x00 object.definition_tag
     int32_t object_hash;            // 0x04 network id of the projectile itself
-    int16_t name_index;             // 0x08 object.name_index
+    int16_t owner_team;             // 0x08 object.owner_team (object 0xb8, formerly name_index)
     uint8_t pad_0a[2];              // 0x0a
     int32_t owner_hash;             // 0x0c network id of object.owner_linkage (object 0xc0)
     int32_t creating_object_hash;   // 0x10 network id of object 0xc4, the firing object
@@ -519,7 +533,8 @@ typedef struct projectile_network_update_header {
 //   0x006b7af4  real_point3d *sphere_point_table     // owned by types/math.h
 //   0x006b7af8  int16_t sphere_point_table_count
 //   0x006f1d6c  void *game_time_globals              // +0x0c is the game tick
-//   0x006f1d20  int32_t game_is_server
+//   0x006f1d20  game_engine_definition *current_game_engine  // game.h (R04); non-NULL = a
+//                                                    // multiplayer engine is loaded
 //   0x00719720  int16_t network_game_mode            // 0 local, 1 client, 2 host
 //   0x006894c8  int32_t k_projectile_minimum_age_ticks // projectile_is_old_enough (0x4c1270)
 //                                                    //   compares object 0x0c + this against

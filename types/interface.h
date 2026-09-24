@@ -26,11 +26,17 @@ typedef struct ui_key_event {
 
 // Key codes 0x44c290 handles explicitly. Any other code carrying a printable
 // character byte is treated as an insertion.
+// The values are the engine key codes of the DIK-to-key table at 0x0065bd58 (int16 per DIK
+// code): DIK_BACK 0x0e -> 0x1d, DIK_LEFT 0xcb -> 0x4f, DIK_RIGHT 0xcd -> 0x50, DIK_HOME 0xc7 ->
+// 0x52, DIK_DELETE 0xd3 -> 0x54, DIK_END 0xcf -> 0x55. 0x44c290 special-cases 0x1d, 0x4f, 0x50
+// and 0x54 only; home and end are listed for reference.
 typedef enum ui_edit_key_code {
     _ui_edit_key_backspace = 0x1d,
-    _ui_edit_key_home = 0x4f,
-    _ui_edit_key_end = 0x50,
-    _ui_edit_key_delete = 0x54
+    _ui_edit_key_left_arrow = 0x4f,
+    _ui_edit_key_right_arrow = 0x50,
+    _ui_edit_key_home = 0x52,
+    _ui_edit_key_delete = 0x54,
+    _ui_edit_key_end = 0x55
 } ui_edit_key_code;
 
 // ---------------------------------------------------------------------------
@@ -277,16 +283,28 @@ typedef struct ui_list_item {
 // controls_gamepad_toggle_assignment @0x4b5b20, controls_build_device_label_table @0x4b4890)
 // One gamepad (input device) record. The profile keeps four at +0x1108 (the assigned
 // gamepads, labelled as controls devices 2..5 by controls_build_device_label_table); the
-// connected devices are the 0x240 stride table at 0x006b1868 (count int16 0x006b1844), of
+// connected devices are the 0x240 stride table at 0x006b1868 (count int32 0x006b1844), of
 // which the first 0x220 bytes are copied. Phase 4 review: formerly server_browser_entry, but
 // no caller is on a server screen; the 0x14 byte key at 0x20c was only assumed to be an
-// s_network_address and is probably the device instance GUID plus one dword (UNSURE).
+// s_network_address. It is the DirectInput product GUID plus the instance number among
+// devices of the same product: input_device_find_index_by_guid 0x4916e0 pre-checks +0x21c and
+// then compares 16 bytes at +0x20c (repz cmpsd, ecx 4), and input_device_list_print 0x491750
+// hands +0x20c to StringFromGUID2.
 // The size is exact: the add routine copies 0x88 dwords and the remove routine compacts
 // with a 0x220 byte stride; the find routine compares the key as five dwords.
 // ---------------------------------------------------------------------------
+
+// input_guid  (controls_apply_preset @0x4b4c50 passes the default profile GUID at
+// 0x0065b8e0 by value to input_device_default_profile_tag_find @0x490110). Declared ahead of
+// controls_gamepad_record, which embeds it.
+typedef struct input_guid {
+    uint32_t words[4];     // 0x00
+} input_guid;              // size 0x10
+
 typedef struct controls_gamepad_record {
     uint16_t name[0x106];      // 0x000 wide device name, the first 0x3f characters are shown
-    uint32_t device_key[5];    // 0x20c match key, UNSURE: GUID plus one dword
+    input_guid product_guid;   // 0x20c DirectInput guidProduct
+    int32_t product_instance;  // 0x21c index among the connected devices with the same product
 } controls_gamepad_record;     // size 0x220
 
 // ---------------------------------------------------------------------------
@@ -302,13 +320,7 @@ typedef struct controls_device_label {
 } controls_device_label;       // size 0x210
 
 
-// ---------------------------------------------------------------------------
-// input_guid  (controls_apply_preset @0x4b4c50 passes the default profile GUID at
-// 0x0065b8e0 by value to input_device_default_profile_tag_find @0x490110)
-// ---------------------------------------------------------------------------
-typedef struct input_guid {
-    uint32_t words[4];     // 0x00
-} input_guid;              // size 0x10
+// (input_guid is declared above controls_gamepad_record.)
 
 // ---------------------------------------------------------------------------
 // first_person_weapon_interface  (interface_globals_allocate @0x494340 reserves it,
@@ -731,21 +743,34 @@ typedef enum progress_screen_state {
 typedef struct player_control_settings {
     float look_rate_80;                // 0x000 table 80 at clamp(profile+0x12e minus 1, 0, 9)
     float look_rate_40;                // 0x004 table 40 at the same index
-    uint8_t unknown_008[0xda];         // 0x008 profile+0x134 verbatim
-    uint32_t unknown_0e2[7];           // 0x0e2 profile+0x20e verbatim
-    uint8_t unknown_0fe[0x100];        // 0x0fe profile+0x22a verbatim
-    uint32_t unknown_1fe[4];           // 0x1fe profile+0x32a verbatim
-    uint8_t unknown_20e[0x200];        // 0x20e profile+0x33a verbatim
-    uint8_t unknown_40e[0x400];        // 0x40e profile+0x53a verbatim
+    // The binding tables hold input_action values or 0x7fff (types/input.h field map;
+    // readers 0x48b7b0, 0x48b9b0, 0x48bae0 and 0x48bea0).
+    int16_t keyboard[0x6d];            // 0x008 profile+0x134 verbatim, by key index
+    int16_t mouse_button[8];           // 0x0e2 profile+0x20e verbatim (0x0e2..0x0fd is one
+    int16_t mouse_axis[3][2];          // 0x0f2   7-dword copy); [axis][0] positive delta,
+                                       //         [axis][1] negative delta
+    int16_t gamepad_button[4][0x20];   // 0x0fe profile+0x22a verbatim
+    int16_t gamepad_action_button[4][2]; // 0x1fe profile+0x32a verbatim; the BUTTON index for
+                                       //       accept ([0]) and back ([1]), -1 when unbound
+    int16_t gamepad_axis[4][0x20][2];  // 0x20e profile+0x33a verbatim, [0]/[1] direction 1/2
+    int16_t gamepad_pov[4][0x10][8];   // 0x40e profile+0x53a verbatim, one per octant
     uint8_t pad_80e[2];                // 0x80e always zero
-    uint32_t unknown_810[6];           // 0x810 profile+0x93c verbatim
-    float sensitivity_01_a;            // 0x828 table 01 at min(profile+0x954, 9)
-    float sensitivity_01_b;            // 0x82c table 01 at min(profile+0x955, 9)
-    uint32_t unknown_830[2];           // 0x830 profile+0x960 verbatim
-    float rate_80[4];                  // 0x838 table 80 at min(profile+0x956 + i, 9)
-    float rate_40[4];                  // 0x848 table 40 at min(profile+0x95a + i, 9)
-    uint8_t unknown_858;               // 0x858 profile+0x12f
-    uint8_t unknown_859;               // 0x859 profile+0x131
+    float forward_rate;                // 0x810 profile+0x93c verbatim (6 floats): digital
+    float strafe_rate;                 // 0x814   throttle_x/throttle_y/look_x/look_y steps
+    float look_x_rate;                 // 0x818   per tick, then the mouse delta divisors for
+    float look_y_rate;                 // 0x81c   forward/backward and left/right bindings
+    float mouse_forward_scale;         // 0x820
+    float mouse_strafe_scale;          // 0x824
+    float mouse_look_x_sensitivity;    // 0x828 table 01 at min(profile+0x954, 9); argument of
+                                       //       the acceleration curve (0x48cb60)
+    float mouse_look_y_sensitivity;    // 0x82c table 01 at min(profile+0x955, 9)
+    float gamepad_axis_scale_x;        // 0x830 profile+0x960 verbatim, 0..1 (0x48c930)
+    float gamepad_axis_scale_y;        // 0x834 profile+0x964 verbatim, 0..1 (0x48c9a0)
+    float gamepad_rate_80[4];          // 0x838 table 80 at min(profile+0x956 + i, 9), per pad
+    float gamepad_rate_40[4];          // 0x848 table 40 at min(profile+0x95a + i, 9)
+    uint8_t look_inverted;             // 0x858 profile+0x12f; nonzero negates look_y
+                                       //       (0x48ea21..0x48ea46)
+    uint8_t look_inverted_driving;     // 0x859 profile+0x131; negates look_y in a driver seat
     uint8_t pad_85a[2];                // 0x85a always zero
 } player_control_settings;     // size 0x85c
 
@@ -793,21 +818,27 @@ typedef struct weapon_screen_effect_parameters {
 
 // ---------------------------------------------------------------------------
 // first_person_light_parameters  (first_person_weapon_update_lighting @0x4924b0)
-// The 0x20 byte stack block handed by pointer to the render routine at 0x4d6fc0 for
-// both first person models. Armed while the unit has flag 0x10 at +0x204 or a positive
-// float at +0x37c; otherwise only armed and zero are written.
+// The stack block handed by pointer to the render routine at 0x4d6fc0 for both first person
+// models. It is the first 0x20 bytes of types/render.h render_model_effect (0x28), and the
+// fields follow that layout. Written with type 1 while the unit has flag 0x10 at +0x204 or a
+// positive float at +0x37c; otherwise only type (0) and modifier_shader (0) are written.
+// The callee copies a full 0x28 bytes (0x4d6fc0: mov ecx,0xa; rep movsd at 0x4d715f/0x4d7167;
+// the same copy is at 0x50ee88), but the first-person caller (call 0x4d6fc0 at 0x49266a and
+// 0x4926d5) only fills esp+0x20..0x3f, so render_model_effect.change_colors (+0x20) and
+// function_values (+0x24) come from whatever the caller's next 8 stack bytes hold.
+// render_model_effect cannot be embedded here: interface.h is parsed before render.h.
 // ---------------------------------------------------------------------------
 typedef struct first_person_light_parameters {
-    uint16_t armed;            // 0x00 1 when the unit light is on
-    uint16_t pad_02;           // 0x02 never written
-    float unknown_37c;         // 0x04 unit +0x37c
-    float unknown_380;         // 0x08 unit +0x380
-    uint32_t unit_handle;      // 0x0c the controlled unit datum
-    float camera_x;            // 0x10 copied from 0x007c3114
-    float camera_y;            // 0x14 0x007c3118
-    float camera_z;            // 0x18 0x007c311c
-    uint32_t zero;             // 0x1c always 0
-} first_person_light_parameters; // size 0x20
+    int16_t type;              // 0x00 render_model_effect_type: 1 when the unit light is on, else 0
+    int16_t unknown_02;        // 0x02 never written
+    float unit_37c;            // 0x04 unit +0x37c
+    float unit_380;            // 0x08 unit +0x380
+    datum_index object_index;  // 0x0c the controlled unit datum
+    float centroid[3];         // 0x10 real_point3d in render_model_effect: the camera position,
+                               //      copied from 0x007c3114..0x007c311c (float[3] here so the
+                               //      header does not need types/math.h in every includer)
+    uint32_t modifier_shader;  // 0x1c always 0
+} first_person_light_parameters; // size 0x20 (the callee reads 0x28, see above)
 
 // ---------------------------------------------------------------------------
 // ui_input_event  (built by 0x4922b0 into the interface_tick 16 byte stack scratch,
@@ -1228,7 +1259,13 @@ typedef struct win32_point {
 // global 0x006b2ef8: int32_t console_last_cursor_column
 // global 0x0068e670: uint8_t console_show_messages
 // global 0x00669140: char console_echo_prefix[]          matched by chimera__console_out
-// global 0x0087ac06: int32_t console_verbosity           0x496a80 prints only above 3
+// global 0x0087ac06: uint8_t debug_log_level  -- ONE declaration shared by interface.h and
+//   networking.h (R01; cseries.h calls it the shell debug level). All 11 .text accesses are
+//   byte-wide: cmp BYTE ...,0x3 (0x440829, 0x440b24, 0x440d20, 0x4e0756), cmp BYTE ...,0x4
+//   (0x489c4d, 0x496a86), mov al (0x440670, 0x440d80, 0x449450, 0x4d9960) and the shell's
+//   mov BYTE PTR ds:0x87ac06,bl (0x540fac). Console output (0x496a80) needs > 3, network
+//   statistics logging needs > 2. Formerly interface.h "int32_t console_verbosity" and
+//   networking.h "int16_t network_statistics_level".
 
 // loading and saving progress screen
 // global 0x0068e680: uint32_t progress_screen_fade_end_time  milliseconds (0x449210 clock), -1 when none
@@ -1252,7 +1289,9 @@ typedef struct win32_point {
 // global 0x006b53d8: controls_gamepad_record controls_assigned_gamepads[4]
 // global 0x00719448: int32_t controls_assigned_gamepad_count
 // global 0x0071944c: int32_t controls_available_gamepad_count
-// global 0x006b1844: int16_t input_gamepad_count (connected devices, stride 0x240 at 0x006b1868)
+// (0x006b1844 is input.h int32_t input_device_count: 17 DWORD accesses including the store
+//  mov ds:0x6b1844,eax; the 4 WORD readers only need the low half. Connected devices, stride
+//  0x240 at 0x006b1868.)
 
 // video mode table
 // global 0x006b6690: video_resolution video_resolutions[0x20]

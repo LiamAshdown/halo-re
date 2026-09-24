@@ -7,8 +7,9 @@
 //   effect_location_marker.next_marker (+0x04) / marker_index (+0x02); types/game.h
 //   player_globals (local_player_globals, 0x0087a478).
 // register convention: none -- all three arguments are Ghidra-recognized stack parameters.
-// UNSURE: the exact meaning of evaluation mode 1 vs 3, and of player_globals.unknown_0c ("is the
+// UNSURE: the exact meaning of evaluation mode 1 vs 3, and of player_globals.local_player_count ("is the
 //   local player in first person view"?); kept verbatim from the decompiled comparisons.
+// reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
 
 #include "tags.h"
 #include "memory.h"
@@ -39,7 +40,7 @@ effect_location_marker *effect_marker_next(effect *self, datum_index *marker, in
 
     if (mode == 1 ||
         (mode == 3 && self->first_person_weapon_index != -1 &&
-         local_player_globals->unknown_0c == 1)) {
+         local_player_globals->local_player_count == 1)) {
         if (entry->marker_index == 0xffff || (entry->marker_index & 0x8000) == 0) {
             return effect_marker_next(self, marker, mode);
         }

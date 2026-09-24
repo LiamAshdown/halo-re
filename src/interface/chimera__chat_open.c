@@ -11,6 +11,7 @@
 // DAT_006b7020 (a second "chat busy" gate alongside DAT_006b3858) is not documented.
 // register convention: __cdecl, chat_scope as the recognized parameter (0 = all, 1 = team,
 // 2 = vehicle).
+// reconciled: R08 0x006b7020 chat_busy -> main.h console_globals_data.active (the console-open byte; byte read unchanged)
 
 #include "tags.h"
 #include "memory.h"
@@ -19,10 +20,11 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "main.h"
 #include <wchar.h>
 
 extern uint8_t chat_dialog_open;      // 0x006b3858, UNSURE name
-extern uint8_t chat_busy;             // 0x006b7020, UNSURE name
+extern console_globals console_globals_data;             // 0x006b7020, main.h; +0x00 active = console open (R08)
 extern int32_t chat_scope_active;     // 0x006b385c, -1 when no chat dialog is open
 extern wchar_t empty_string;          // 0x00660c34
 
@@ -54,7 +56,7 @@ void chimera__chat_open(int32_t chat_scope)
     void *gui_object;
     void *child;
 
-    if (chat_dialog_open != 0 || chat_busy != 0 || chat_gui_find_object == 0) {
+    if (chat_dialog_open != 0 || console_globals_data.active != 0 || chat_gui_find_object == 0) {
         return;
     }
 

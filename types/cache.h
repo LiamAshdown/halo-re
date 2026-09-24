@@ -403,15 +403,20 @@ typedef struct map_download_state {
 // Globals this module reads but does not own:
 // global 0x006869c4: int32_t sound_cache_size_megabytes  8 in the image; sizes both the sound
 //                    cache pages and the VirtualAlloc behind them
-// global 0x006ac900: char profile_directory[0x104]       written by the shell startup code at
-//                    0x00544000-ish; formatted with "%s\\cache%03d.map"
+// global 0x006ac900: char profile_directory[0x105]       k_profile_directory_storage_size
+//                    (types/cseries.h): the shell zeroes 0x41 dwords + 1 byte (0x540ef9..
+//                    0x540f05), then profile_path_initialize (0x449390, called at 0x540f06)
+//                    fills it; formatted with "%s\\cache%03d.map"
 // global 0x006f16d8: char map_path_prefix[]              formatted with "%s%s%s.map"
 // global 0x006f17f6: uint8_t debug_texture_cache_prints  console toggle, only read here
 // global 0x00721ef0: int32_t os_platform                 os_platform_identify @0x5427e0; < 3
 //                    selects synchronous IO and the non-overlapped CreateFile flags
 // global 0x0071d174: void *d3d_device                   rasterizer; guards every Release call
-// global 0x007c117c: int32_t rasterizer_vertex_processing
-// global 0x007c118c: uint32_t rasterizer_device_version  compared against 0xffff0101
+// 0x007c117c is not a global of its own: it is rasterizer_caps.max_streams (D3DCAPS9.MaxStreams,
+//                    +0xbc of the d3d_caps9 at 0x007c10c0, types/rasterizer.h); the bsp vertex
+//                    buffer loader compares it signed against 2 (0x4430b5 cmp ..,1 / jg)
+// 0x007c118c likewise is rasterizer_caps.pixel_shader_version (D3DCAPS9 +0xcc), compared
+//                    unsigned against 0xffff0101 (ps_1_1; 0x44308f cmp / jae)
 // global 0x0065de00: int16_t rasterizer_vertex_sizes[]   38 00 20 00 14 00 08 00 44 00 ...
 // global 0x0072520c: int32_t last_frame_milliseconds     main loop watchdog
 // global 0x00722bbc: char *fatal_error_argument          shell_display_fatal_error_dialog

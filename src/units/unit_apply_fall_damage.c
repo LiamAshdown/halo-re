@@ -13,10 +13,13 @@
 //   not identified against any documented struct (units.h only names the +0x18c/+0x190 slots as
 //   "grenade tables", which does not obviously match this usage) -- kept as raw offsets.
 //   FUN_00474db0's role (looked up when a "delete on out-of-bounds" flag is set) is UNSURE.
+// reconciled: R25 damage_data.unknown_4c -> material_type (int16 collision material of the damaged surface, 0xffff = none; indexes DamageEffect +0x200)
+// reconciled: R04 0x006f1d20 int32_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
@@ -26,7 +29,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern uint8_t *globals_tag_data;   // 0x00746fa0
 extern uint8_t unit_updates_suppressed; // 0x0071c419
 extern uint8_t DAT_0087abc1;        // UNSURE global (cheat/debug toggle)
-extern int32_t network_predicted_state_flag;  // 0x006f1d20, types/units.h
+extern game_engine_definition *current_game_engine;  // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 
 extern void damage_data_initialize(damage_data *dd, datum_index damage_effect_tag); // 0x4ed990
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t param_3,
@@ -62,7 +65,7 @@ void unit_apply_fall_damage(uint32_t object_index, float fall_speed)
                     damage_data_initialize(&dd, *(datum_index *)(fall_table + 0x38));
                     object_apply_damage(&dd, object_index, -1, -1, -1, 0);
                 }
-                if (network_predicted_state_flag == 0 && (obj->flags & 0x200000) != 0) {
+                if (current_game_engine == 0 && (obj->flags & 0x200000) != 0) {
                     if (FUN_00474db0(object_index) == -1) {
                         object_delete(object_index);
                     }
@@ -79,7 +82,7 @@ void unit_apply_fall_damage(uint32_t object_index, float fall_speed)
             dd.responsible_object = k_datum_index_none;
             dd.team_index = -1;
             dd.location_cluster_index = -1;
-            dd.unknown_4c = -1;
+            dd.material_type = -1;
             dd.multiplier = 1.0f;
             dd.random_blend = (blend < 0.0f) ? 0.0f : (blend > 1.0f ? 1.0f : blend);
 

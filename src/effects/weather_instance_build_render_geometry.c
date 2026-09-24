@@ -16,7 +16,7 @@
 // centre against the BSP portal chain for the current leaf, and for each particle whose motion
 // direction crosses a visible, unobstructed cell it submits a billboard quad faded by distance.
 // None of the scratch geometry (`local_390`/`local_258`/`local_208`, the 3x3-ish rotation build,
-// the per-cell frustum test, the portal walk at `structure_bsp_globals+0x1c4`, or the render
+// the per-cell frustum test, the portal walk at `global_structure_bsp+0x1c4`, or the render
 // descriptor fields on `type` past +0x150) is established anywhere else in this batch, so this
 // rewrite keeps the decompile's own local names and raw offsets throughout rather than inventing
 // field names or struct types for any of it. Faithfulness here is bounded by what a literal,
@@ -35,7 +35,7 @@
 extern weather_instance weather_instances[1]; // 0x006b0ae4
 extern data_array *weather_particle_data;     // 0x0087abcc
 extern tag_instance *tag_instances;           // 0x0087bc14
-extern uint8_t *structure_bsp_globals;        // 0x00746f9c
+extern uint8_t *global_structure_bsp;        // 0x00746f9c
 extern float camera_position_x, camera_position_y, camera_position_z; // 0x007c3114/18/1c
 extern const real *k_camera_axis_table;       // 0x00696720
 extern const uint32_t k_particle_render_constant[3]; // 0x006966f8

@@ -9,7 +9,8 @@
 // evidence: types/objects.h object (unknown_018 0x018, unknown_022[0x3a] 0x022, velocity
 //   0x068); global 0x008603b0 object_data; callee point3d_add_scaled (0x401930, established
 //   math helper).
-// register convention: object index in EAX. Confirmed against objdump -d -M intel bin/halo.exe:
+// reconciled: R26 raw object +0x18/+0x44/+0x54/+0x58/+0x1c reads -> network_*_valid, network_timestamp, network_position; the time call is now - network_timestamp and the output point is the stack argument (0x4f7d2e mov eax,[esp+0x30])
+// register convention: object index in EAX, out point on the stack. Confirmed against objdump -d -M intel bin/halo.exe:
 //   0x4f7c4c and eax,0xffff at entry, no stack access before that.
 //   // blam-cc: EAX -> object_index
 // UNSURE: time_query_performance_counter_ms (foreign, called with obj+0x58 in EDI) and FUN_006391b4 (foreign,
@@ -23,8 +24,8 @@
 
 extern data_array *object_data; // 0x008603b0
 
-extern void time_query_performance_counter_ms(uint8_t *field_0x58); // 0x449210, foreign module, UNSURE
-extern int32_t __ftol(); // 0x006391b4, MSVC 7.1 CRT x87 float-to-int truncation
+extern int32_t time_query_performance_counter_ms(void); // 0x449210, current time in milliseconds
+extern int32_t __ftol(); // 0x006391b4 (folded into the unsigned widen below), MSVC 7.1 CRT x87 float-to-int truncation
     // (verified by disassembling 0x006391b4: fld st(0) / fst [esp+0x18] / fistp qword /
     // fild qword ... , the classic _ftol2 body). The value arrives on the x87 stack, so
     // some call sites show a visible float argument and others show none; the empty
@@ -33,30 +34,25 @@ extern int32_t __ftol(); // 0x006391b4, MSVC 7.1 CRT x87 float-to-int truncation
 extern double sqrt(double x); // x87 FSQRT, as in src/objects/antenna_update_physics.c
 extern void point3d_add_scaled(real_point3d *out, real_vector3d *direction, real_point3d *base, float scale); // 0x401930, established elsewhere as EAX -> out, ECX -> direction, stack -> (base, scale)
 
-uint8_t object_nudge_position_by_velocity(uint32_t object_index) // blam-cc: EAX -> object_index
+uint8_t object_nudge_position_by_velocity(uint32_t object_index, real_point3d *out) // blam-cc: EAX -> object_index
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    uint8_t *raw = (uint8_t *)obj;
 
-    if ((raw[0x18] == 1) && (raw[0x44] == 1) && (raw[0x54] == 1)) {
-        uint32_t ticks;
-        float speed;
+    if (obj->network_position_valid == 1 && obj->network_velocity_valid == 1 &&
+        obj->network_timestamp_valid == 1) {
+        // 0x4f7c7c..0x4f7c98: now - stamp, widened through x87 (fild plus the 2^32 fixup at
+        // 0x00672bc0 for a negative result, i.e. an unsigned widen) and truncated back by __ftol.
+        uint32_t elapsed_ms = (uint32_t)time_query_performance_counter_ms() - obj->network_timestamp;
 
-        time_query_performance_counter_ms(raw + 0x58);
-        ticks = __ftol();
-
-        speed = (float)sqrt(obj->velocity.i * obj->velocity.i + obj->velocity.j * obj->velocity.j +
-                             obj->velocity.k * obj->velocity.k);
-        if ((ticks != 0) && (speed > 0.05f)) {
-            // UNSURE: base/out is a snapshot at raw+0x1c (an undocumented, non-position field
-            // per types/objects.h's unresolved 0x022..0x05b range), not obj->position itself;
-            // preserved exactly rather than guessed into a named field. out and direction were
-            // not fully hand-traced (see file header); out==base and direction==velocity are
-            // this rewrite's best-effort guess at the two register arguments.
-            real_point3d point = *(real_point3d *)(raw + 0x1c);
-            float ticks_f = (float)ticks; // Ghidra's manual unsigned-to-float widen is implicit here
-            point3d_add_scaled(&point, &obj->velocity, &point, ticks_f * 0.001f * 30.0f * speed);
-            return 1;
+        if (elapsed_ms != 0) {
+            real_vector3d velocity = obj->velocity; // copied to the stack at 0x4f7ca8
+            float speed = (float)sqrt(velocity.i * velocity.i + velocity.j * velocity.j +
+                                      velocity.k * velocity.k);
+            if (speed > 0.05f) {
+                real_point3d base = obj->network_position; // 0x4f7cea: esi + 0x1c
+                point3d_add_scaled(out, &velocity, &base, (float)elapsed_ms * 0.001f * 30.0f * speed);
+                return 1;
+            }
         }
     }
     return 0;

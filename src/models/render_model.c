@@ -18,6 +18,7 @@
 //   center, bounding radius, effect, object index, forced shader permutation and flags as the
 //   recognized stack parameters, in that order.
 //   // blam-cc: EAX -> model_tag_id, ECX -> node_matrices, stack -> the rest
+// reconciled: R43 rasterizer_model_draw_context unknown_84[2] -> change_colors/function_values (the render_animation pair), unknown_c0/c4/c8 -> bounding_radius/base_map_u_scale/base_map_v_scale (same offsets)
 
 #include "tags.h"
 #include "math.h"
@@ -135,17 +136,16 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
     context.unknown_04 = (uint32_t)object_index;
     context.lighting = *lighting;
     context.center = *bounding_center;
-    *(float *)&context.unknown_c0 = bounding_radius; // unknown_c0 is declared uint32_t in
-        // types/rasterizer.h; this reproduces the raw dword copy exactly
+    context.bounding_radius = bounding_radius;
     context.group_parameters = *(rasterizer_geometry_group_parameters *)effect;
     // context +0x84 / +0x88 (0x4d716c / 0x4d717e): the change color and function value
-    // pointers, which types/rasterizer.h still calls unknown_84[2]
-    context.unknown_84[0] = (uint32_t)(uintptr_t)change_colors;
-    context.unknown_84[1] = (uint32_t)(uintptr_t)function_out_values;
+    // pointers (rasterizer.h change_colors / function_values, R43)
+    context.change_colors = (uint32_t)(uintptr_t)change_colors;
+    context.function_values = (uint32_t)(uintptr_t)function_out_values;
     context.node_matrices = (uint32_t)(uintptr_t)node_matrix_array;
-    context.unknown_c4 = model->base_map_u_scale;
+    context.base_map_u_scale = model->base_map_u_scale;
     context.node_count = (int16_t)model->nodes.count;
-    context.unknown_c8 = model->base_map_v_scale;
+    context.base_map_v_scale = model->base_map_v_scale;
 
     context.flags = 0;
     if ((model->flags & 4) != 0) { // ignore_skinning

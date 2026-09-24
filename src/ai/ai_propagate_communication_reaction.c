@@ -19,10 +19,12 @@
 // actors_valid, matching the same pattern already reproduced faithfully elsewhere in this
 // batch. Treat this file as a starting point for a follow-up disassembly pass, not a
 // finished rewrite.
+// reconciled: R04 0x006f1d20 int32_t use_absolute_team_check -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "objects.h"
 #include "ai.h"
 #include <stdint.h>
@@ -31,7 +33,7 @@ extern data_array *object_data;    // 0x008603b0
 extern data_array *encounter_data; // 0x008802c8
 extern data_array *prop_data;      // 0x008802c0
 extern ai_globals *ai_globals_ptr; // 0x00880354
-extern int32_t use_absolute_team_check; // 0x006f1d20, nonzero (not multiplayer) means "different team" is enough
+extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern uint8_t team_relationship_flags; // 0x006b0b84, base of the 0x2d-dword team-relationship block
 extern char ai_marker_name_a[]; // 0x0066bfa0, the AI marker name string
 
@@ -102,7 +104,7 @@ void ai_propagate_communication_reaction(datum_index object_index, ai_communicat
     while (a != 0) {
         if (a->unit_index != object_index) {
             other_team = a->team;
-            if (use_absolute_team_check == 0) {
+            if (current_game_engine == 0) {
                 if (other_team < 0 || 9 < other_team || object_team < 0 || 9 < object_team) {
                     goto next_actor;
                 }

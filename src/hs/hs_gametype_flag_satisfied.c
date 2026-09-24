@@ -5,10 +5,12 @@
 // name confidence: 0.75   rewrite confidence: 0.7
 // evidence: tests bit `bit_index` and bit `bit_index+8` of hs_autocomplete_gametype_mask (the
 // low byte is "required", the high byte is "forbidden", per hs_autocomplete_gametype_mask_bits
-// in types/hs.h) against the caller's per-gametype capability byte.
+// in types/hs.h) against the caller's console-command-context capability byte (R31: the bits
+// are command contexts built by 0x4c69c0, not multiplayer game types).
 // register convention: the tested capability byte is unrecognized by Ghidra (in_AL); by the
 // blam-cc convention this is the low byte of the first register slot, EAX. bit_index is
 // Ghidra-recognized directly.
+// reconciled: R31 context bits are console command contexts, not game types (comments only)
 
 #include "tags.h"
 #include "memory.h"
@@ -17,7 +19,7 @@
 extern uint16_t hs_autocomplete_gametype_mask; // 0x006b14ac
 
 // blam-cc: capability byte in AL (EAX), bit_index the recognized parameter
-// Tests whether gametype capability bit `bit_index` (of `flags`) is satisfied by
+// Tests whether console-context bit `bit_index` (of `flags`) is satisfied by
 // hs_autocomplete_gametype_mask: passes if the bit is not required or is present, and if the
 // bit is not forbidden or is absent.
 char hs_gametype_flag_satisfied(uint8_t bit_index, uint8_t flags)

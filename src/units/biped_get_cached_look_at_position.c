@@ -6,18 +6,20 @@
 //   cache was last refreshed"), unknown_4f0 ("the previous value of unknown_4dc"), unknown_4fc
 //   ("the target 0x55e0a0 is tracking") -- all already attributed to this function by name in
 //   the header, so used directly rather than re-derived.
+// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
 
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern hs_game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/hs.h)
+extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
 
 extern char FUN_005014a0(datum_index target, int32_t param_2, int32_t param_3); // UNSURE module
 extern void FUN_00501470(int32_t param_1, real_point3d *point);                 // UNSURE module
@@ -48,9 +50,9 @@ datum_index biped_get_cached_look_at_position(uint32_t object_index, real_point3
 
     if ((tag->biped_flags & 4) == 0 || (obj->vitality_flags & 4) != 0) {
         if (biped->unknown_4dc == k_datum_index_none &&
-            (int32_t)biped->unknown_4ec < game_time->current_tick) {
+            (int32_t)biped->unknown_4ec < game_time->game_time) {
             real_point3d point = biped->unknown_4e0;
-            biped->unknown_4ec = game_time->current_tick;
+            biped->unknown_4ec = game_time->game_time;
 
             if (biped->unknown_4f0 == k_datum_index_none) {
                 datum_index target = biped->unknown_4fc;

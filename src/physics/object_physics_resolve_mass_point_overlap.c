@@ -12,9 +12,8 @@
 //   this function reads through both contexts) and its own note "0x005090c0 skips the multiply
 //   while [scale] still is [1.0]"; types/tags.h Physics.radius (+0x00, "0x005097e0 picks
 //   [FUN_00509e80] when Physics.radius > 0.0" -- the same field gates whether this function
-//   accumulates into the *other* object here); types/units.h vehicle_data.unknown_508/50c/510
-//   and unknown_514/518/51c, folded back by physics_types_notes.md section 6 as
-//   accumulated_force/accumulated_torque; types/objects.h object_flags._object_at_rest_bit
+//   accumulates into the *other* object here); types/units.h vehicle_data.accumulated_force
+//   (+0x508) and accumulated_torque (+0x514); types/objects.h object_flags._object_at_rest_bit
 //   (0x20, cleared here on both objects) and object.network_role (+0x04).
 // register convention: in_EDX -> self (object_physics_context *, the object object_physics_tick
 //   is currently processing). param_1 is Ghidra's own recognized stack parameter (other,
@@ -27,6 +26,7 @@
 // UNSURE: the field at object_physics_context.definition + 0x00 (Physics.radius) gates whether
 //   *other* receives the accumulated force/torque at all; *self* has no such gate. The asymmetry
 //   is preserved exactly as Ghidra shows it, not "fixed" to be symmetric.
+// reconciled: R24 vehicle_data unknown_508..unknown_51c -> real_vector3d accumulated_force (+0x508) / accumulated_torque (+0x514); the float casts over the uint32 placeholders are gone
 
 #include "tags.h"
 #include "memory.h"
@@ -173,15 +173,12 @@ uint8_t object_physics_resolve_mass_point_overlap(object_physics_context *self, 
 
         if (self_object->network_role != 1 || unit_any_flagged_seat_occupied() == 1) {
             vehicle_data *self_vehicle = (vehicle_data *)((uint8_t *)self_object + k_unit_object_size);
-            float *accumulated_force = (float *)&self_vehicle->unknown_508;  // UNSURE: uint32_t
-            float *accumulated_torque = (float *)&self_vehicle->unknown_514; // in types/units.h,
-                                                                               // actually float
-            accumulated_force[0] += self_force.i;
-            accumulated_force[1] += self_force.j;
-            accumulated_force[2] += self_force.k;
-            accumulated_torque[0] += self_torque.i;
-            accumulated_torque[1] += self_torque.j;
-            accumulated_torque[2] += self_torque.k;
+            self_vehicle->accumulated_force.i += self_force.i;
+            self_vehicle->accumulated_force.j += self_force.j;
+            self_vehicle->accumulated_force.k += self_force.k;
+            self_vehicle->accumulated_torque.i += self_torque.i;
+            self_vehicle->accumulated_torque.j += self_torque.j;
+            self_vehicle->accumulated_torque.k += self_torque.k;
             self_object->flags &= ~_object_at_rest_bit;
             self_vehicle->unknown_524 = 1; // UNSURE: raw offset, see file header
         }
@@ -189,14 +186,12 @@ uint8_t object_physics_resolve_mass_point_overlap(object_physics_context *self, 
         if (other_definition->radius <= 0.0f &&
             (other_object->network_role != 1 || unit_any_flagged_seat_occupied() == 1)) {
             vehicle_data *other_vehicle = (vehicle_data *)((uint8_t *)other_object + k_unit_object_size);
-            float *accumulated_force = (float *)&other_vehicle->unknown_508;
-            float *accumulated_torque = (float *)&other_vehicle->unknown_514;
-            accumulated_force[0] += other_force.i;
-            accumulated_force[1] += other_force.j;
-            accumulated_force[2] += other_force.k;
-            accumulated_torque[0] += other_torque.i;
-            accumulated_torque[1] += other_torque.j;
-            accumulated_torque[2] += other_torque.k;
+            other_vehicle->accumulated_force.i += other_force.i;
+            other_vehicle->accumulated_force.j += other_force.j;
+            other_vehicle->accumulated_force.k += other_force.k;
+            other_vehicle->accumulated_torque.i += other_torque.i;
+            other_vehicle->accumulated_torque.j += other_torque.j;
+            other_vehicle->accumulated_torque.k += other_torque.k;
             other_object->flags &= ~_object_at_rest_bit;
             other_vehicle->unknown_524 = 1;
         }

@@ -38,6 +38,7 @@
 //    times 30 ticks/second, but this is a guess.
 //  - actor+0x504/0x50a (unknown_504/unknown_50a) and several `object+0x9e/0x106/0x2f4`-style
 //    reads are used as raw offsets; they are not decoded further here.
+// reconciled: R16 the local player iterator is the 0x10-byte data_iterator (its int32 next_index shadow was a WORD store in the binary)
 
 #include "tags.h"
 #include "memory.h"
@@ -315,24 +316,19 @@ char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32
                 }
             }
             {
-                // The original builds this iterator inline: {data, next_index = 0,
-                // index = none, signature = data ^ 0x69746572}, the same four dwords
-                // actor_iterator_new.c writes. data_iterator_next only reads the first three.
-                struct {
-                    data_array *data;
-                    int32_t next_index;
-                    datum_index index;
-                    uint32_t signature;
-                } player_iterator;
+                // The original builds this iterator inline: {data, WORD next_index = 0,
+                // index = none, signature = data ^ 0x69746572}, the types/memory.h
+                // data_iterator. data_iterator_next never reads the signature.
+                data_iterator player_iterator;
                 void *record;
                 float best_score = 3.4028235e+38f;
 
                 player_iterator.data = player_data;
                 player_iterator.next_index = 0;
                 player_iterator.index = (datum_index)k_datum_index_none;
-                player_iterator.signature = (uint32_t)(uintptr_t)player_data ^ 0x69746572;
+                player_iterator.signature = (uint32_t)(uintptr_t)player_iterator.data ^ k_data_iterator_signature;
 
-                record = data_iterator_next((data_iterator *)&player_iterator);
+                record = data_iterator_next(&player_iterator);
                 while (record != 0) {
                     // UNSURE offset: player record + 0x34, the player's controlled unit
                     // object index (the only field this loop reads).
@@ -347,7 +343,7 @@ char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32
                             best_score = score;
                         }
                     }
-                    record = data_iterator_next((data_iterator *)&player_iterator);
+                    record = data_iterator_next(&player_iterator);
                 }
             }
         } else if (entry->atom_type == 0x19 && (int16_t)entry->object_name >= 0 &&

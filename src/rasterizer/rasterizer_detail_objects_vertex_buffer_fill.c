@@ -12,7 +12,7 @@
 //   Spot-check fix (phase 4 review): the earlier rewrite (rasterizer_decal_static_vertex_buffer_
 //   fill) modelled two register inputs Ghidra could not trace; both are ordinary: the scenario is
 //   global_scenario (0x51b70f) and the list is the stack argument (0x51b75f), and the source
-//   instances come from structure_bsp +0x24c/+0x250.
+//   instances come from global_structure_bsp +0x24c/+0x250.
 // register convention: __cdecl, list pointer on the stack.
 
 #include "tags.h"
@@ -23,7 +23,7 @@
 
 extern void *rasterizer_detail_object_vertex_buffer;                // 0x0071d1c8
 extern Scenario *global_scenario;                                   // 0x00746f8c
-extern ScenarioStructureBSP *structure_bsp;                         // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp;                         // 0x00746f9c
 extern tag_instance *tag_instances;                                 // 0x0087bc14
 extern uint8_t console_debug_toggle_689404;                         // 0x00689404 detail objects enable
 
@@ -49,8 +49,8 @@ void rasterizer_detail_objects_vertex_buffer_fill(rasterizer_detail_object_batch
     scenario = global_scenario;
     buffer = rasterizer_detail_object_vertex_buffer;
     if (((d3d_lock_fn)(*(void ***)buffer)[0x2c / 4])(buffer, 0, 0x78000, (void **)&vertices, 0) >= 0 && vertices != 0) {
-        uint8_t *detail_objects = *(uint32_t *)(structure_bsp + 0x24c) != 0
-                                      ? (uint8_t *)*(uint32_t *)(structure_bsp + 0x250) : (uint8_t *)0;
+        uint8_t *detail_objects = *(uint32_t *)(global_structure_bsp + 0x24c) != 0
+                                      ? (uint8_t *)*(uint32_t *)(global_structure_bsp + 0x250) : (uint8_t *)0;
         const uint8_t *instances = (const uint8_t *)*(uint32_t *)(detail_objects + 0x10);
         int32_t vertex_cursor = 0;
         int32_t quads_used = 0;

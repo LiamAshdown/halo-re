@@ -38,6 +38,10 @@
 //   site's comment. That also settles which local is parallel and which perpendicular:
 //   ProjectileMaterialResponse.parallel_friction is at 0xa0-record offset 0x98 and scales the
 //   ECX output, perpendicular_friction at 0x9c scales the EDI output.
+// reconciled: R28 object.unknown_0c4 -> datum_index creator_object (same offset 0xc4)
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
+// reconciled: R23 collision_result: normal -> plane.normal, unknown_30 -> plane.d, unknown_04 -> first_leaf/first_cluster, unknown_3c -> region_index, marker_index -> node_index, unknown_40 -> permutation_index (int16), unknown_48 -> plane_index, unknown_4d -> breakable_surface_index, unknown_4e -> collision_material_index
+// reconciled: R25 damage_data.unknown_4c -> material_type (int16 collision material of the damaged surface, 0xffff = none; indexes DamageEffect +0x200)
 
 #include "tags.h"
 #include "memory.h"
@@ -147,10 +151,10 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
         // 0x4bf4d6-ish `mov WORD [esp+..],0xffff` twice: both of these start at -1, and
         // unknown_4c is read back after the call, so zeroing alone is NOT equivalent.
         dd.location_cluster_index = -1;
-        dd.unknown_4c = -1;
+        dd.material_type = -1;
         dd.responsible_player = obj->owner_linkage;
-        dd.responsible_object = (datum_index)obj->unknown_0c4;
-        dd.team_index = (int16_t)obj->name_index;
+        dd.responsible_object = (datum_index)obj->creator_object;
+        dd.team_index = (int16_t)obj->owner_team;
         dd.epicentre = hit->point;
         dd.origin = hit->point;
         dd.direction = *velocity;
@@ -159,13 +163,13 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
         dd.damage_effect_tag = *(datum_index *)&tag->impact_damage.tag_id;
 
         vector3d_normalize_with_length(&dd.direction);
-        object_apply_damage(&dd, hit->object_index, hit->marker_index, hit->unknown_3c, hit->unknown_4e, (uint32_t)&hit->normal);
+        object_apply_damage(&dd, hit->object_index, hit->node_index, hit->region_index, hit->collision_material_index, (uint32_t)&hit->plane.normal);
 
         // dd.unknown_4c is an in/out slot: object_apply_damage may write back a resolved
         // material index there (the "value out of damage_data after object damage adjusted it"
         // types/projectiles.h documents for material_response_index).
-        if (dd.unknown_4c != -1) {
-            new_material_index = dd.unknown_4c;
+        if (dd.material_type != -1) {
+            new_material_index = dd.material_type;
         }
         // 0x4bf5b6 `mov edx,[esp+0x90]` reads damage_data + 0x48, not + 0x44 (multiplier).
         fade_out = *(real *)&dd.unknown_48;
@@ -189,8 +193,8 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
         // multiplies the draw by +vn and `fadd st,st(1)` adds the -vn, i.e. a uniform draw over
         // [-velocity_noise, 0). An earlier rewrite of this file negated the multiplicand too.
         alignment_score = ((response->velocity_noise * (real)(seed_step >> 0x10) * 1.5259022e-05f +
-            -response->velocity_noise) - hit->normal.k * velocity->k) - hit->normal.j * velocity->j -
-            hit->normal.i * velocity->i;
+            -response->velocity_noise) - hit->plane.normal.k * velocity->k) - hit->plane.normal.j * velocity->j -
+            hit->plane.normal.i * velocity->i;
         angle_score = (real)((random_seed_global >> 0x10) * 1.5259022e-05 * (double)(angular_noise - -angular_noise) +
             -angular_noise) + (vector3d_angle_between_4cd4f0() - 1.5707964f);
     }
@@ -232,7 +236,7 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
         breakable_surface_damage.responsible_object = (datum_index)0xffffffff;
         breakable_surface_damage.team_index = -1;
         breakable_surface_damage.location_cluster_index = -1;
-        breakable_surface_damage.unknown_4c = -1;
+        breakable_surface_damage.material_type = -1;
         breakable_surface_damage.epicentre = hit->point;
         breakable_surface_damage.origin = hit->point;
         breakable_surface_damage.direction = *velocity;
@@ -242,7 +246,7 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
 
         // 0x4bf883..0x4bf8b8: the surface's own material index, and the row it selects (with the
         // same out-of-range fallback as above), are stored into the buffer's two trailing slots.
-        breakable_surface_damage.unknown_4c = hit->material_type;
+        breakable_surface_damage.material_type = hit->material_type;
         if (hit->material_type < 0 ||
             tag->projectile_material_response.count <= (uint32_t)hit->material_type) {
             surface_response = &projectile_default_material_response;
@@ -258,7 +262,7 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
             *(uint32_t *)((uint8_t *)&hit->leaf + 4);
 
         breakable_surface_apply_damage(&breakable_surface_damage,
-            (*(uint32_t *)&hit->leaf & 0xffff0000u) | (uint32_t)hit->unknown_4d,
+            (*(uint32_t *)&hit->leaf & 0xffff0000u) | (uint32_t)hit->breakable_surface_index,
             hit->surface_index);
     }
 
@@ -268,9 +272,9 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
         if (hit->type == _collision_result_type_water_surface) {
             obj->flags ^= _object_in_water_bit;
             projectile_compute_deceleration(projectile_index);
-            out_position->x -= hit->normal.i * 0.001f;
-            out_position->y -= hit->normal.j * 0.001f;
-            out_position->z -= hit->normal.k * 0.001f;
+            out_position->x -= hit->plane.normal.i * 0.001f;
+            out_position->y -= hit->plane.normal.j * 0.001f;
+            out_position->z -= hit->plane.normal.k * 0.001f;
         } else if (hit->type != _collision_result_type_object) {
             if (tag->timer[1] == 0.0f) {
                 response_type = projectileresponse_detonate;
@@ -288,11 +292,11 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
         }
     } else if (response_type == projectileresponse_reflect) {
         // Resolved by disassembly (0x4bfabb..0x4bfacc): ECX = &parallel_component
-        // ([esp+0xf8], the one scaled by parallel_friction at tag 0x98), EDX = &hit->normal
+        // ([esp+0xf8], the one scaled by parallel_friction at tag 0x98), EDX = &hit->plane.normal
         // (`lea edx,[ebp+0x24]`), ESI = velocity, EDI = &perpendicular_component ([esp+0x104],
         // the one scaled by perpendicular_friction at tag 0x9c).
         real_vector3d parallel_component, perpendicular_component;
-        vector3d_project_onto_axis(&parallel_component, &hit->normal, velocity,
+        vector3d_project_onto_axis(&parallel_component, &hit->plane.normal, velocity,
                                    &perpendicular_component);
         velocity->i = (1.0f - response->perpendicular_friction) * perpendicular_component.i -
             (1.0f - response->parallel_friction) * parallel_component.i;
@@ -332,7 +336,7 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
         }
         if (speed_sq < 0.0001f) {
             pd->flags |= _projectile_at_rest_bit;
-            if (0.3f < hit->normal.k) {
+            if (0.3f < hit->plane.normal.k) {
                 obj->flags |= _object_at_rest_bit;
                 if (tag->timer[1] == 0.0f) {
                     projectile_request_state(projectile_index, _projectile_state_detonating);
@@ -368,15 +372,15 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
 
     {
         real_vector3d reflected;
-        real dot2 = 2.0f * (unit_velocity.i * hit->normal.i + unit_velocity.j * hit->normal.j + unit_velocity.k * hit->normal.k);
-        reflected.i = unit_velocity.i - dot2 * hit->normal.i;
-        reflected.j = unit_velocity.j - dot2 * hit->normal.j;
-        reflected.k = unit_velocity.k - dot2 * hit->normal.k;
+        real dot2 = 2.0f * (unit_velocity.i * hit->plane.normal.i + unit_velocity.j * hit->plane.normal.j + unit_velocity.k * hit->plane.normal.k);
+        reflected.i = unit_velocity.i - dot2 * hit->plane.normal.i;
+        reflected.j = unit_velocity.j - dot2 * hit->plane.normal.j;
+        reflected.k = unit_velocity.k - dot2 * hit->plane.normal.k;
 
         real_vector3d coordinate_system[5]; // {normal, incident, negative incident, reflection, "gravity"/down}
         real_point3d positions[5];
         int32_t i;
-        coordinate_system[0] = hit->normal;
+        coordinate_system[0] = hit->plane.normal;
         coordinate_system[1].i = -unit_velocity.i;
         coordinate_system[1].j = -unit_velocity.j;
         coordinate_system[1].k = -unit_velocity.k;
@@ -389,7 +393,7 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
 
         if (0.008333334f < alignment_score) {
             if (hit->type == _collision_result_type_object) {
-                effect_new_on_object_with_node_table(hit->marker_index, 5, projectile_effect_coordinate_system_names, positions, coordinate_system, effect_scale, fade_out, 0, 0);
+                effect_new_on_object_with_node_table(hit->node_index, 5, projectile_effect_coordinate_system_names, positions, coordinate_system, effect_scale, fade_out, 0, 0);
             } else {
                 effect_new_with_color(response_effect_tag, projectile_index, 0, 5, projectile_effect_coordinate_system_names, positions, coordinate_system, effect_scale, fade_out, 0, 0, 1);
             }
@@ -397,7 +401,7 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
         if ((pd->flags & _projectile_at_rest_bit) == 0 &&
             ((pd->flags & _projectile_hit_ground_bit) != 0 || response_type == projectileresponse_attach)) {
             if (hit->type == _collision_result_type_object) {
-                effect_new_on_object_with_node_table(hit->marker_index, 5, projectile_effect_coordinate_system_names, positions, coordinate_system, effect_scale, fade_out, 0, 0);
+                effect_new_on_object_with_node_table(hit->node_index, 5, projectile_effect_coordinate_system_names, positions, coordinate_system, effect_scale, fade_out, 0, 0);
             } else {
                 effect_new_with_color(*(uint32_t *)&tag->detonation_started.tag_id, projectile_index, 0, 5, projectile_effect_coordinate_system_names, positions, coordinate_system, effect_scale, fade_out, 0, 0, 1);
             }
@@ -460,7 +464,7 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
     obj->position = *out_position;
     object_set_cluster_and_parent(projectile_index, &hit->leaf);
     if (hit->type == _collision_result_type_object) {
-        object_attach_to_object(hit->object_index, projectile_index, hit->marker_index);
+        object_attach_to_object(hit->object_index, projectile_index, hit->node_index);
     }
 
     if ((tag->projectile_flags & _projectile_definition_detonation_max_time_if_attached_bit) != 0) {
@@ -485,7 +489,7 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
     if (((object_header *)object_data->data)[hit->object_index & 0xffff].data->network_role != 0) {
         return;
     }
-    projectile_send_attach(projectile_index, hit->object_index, hit->marker_index);
+    projectile_send_attach(projectile_index, hit->object_index, hit->node_index);
     obj->flags |= _object_changed_bit; // 0x4000000, "has broadcast an attach"
 }
 

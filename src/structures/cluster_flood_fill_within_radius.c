@@ -17,13 +17,13 @@
 #include "math.h"
 #include "structures.h"
 
-extern ScenarioStructureBSP *structure_bsp; // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern int32_t cluster_flood_stamp;         // 0x006e3f04
 extern int32_t cluster_flood_stamps[0x200]; // 0x006e3f08
 
 // this batch (0x554b00): tests whether a sphere (point, tolerance) intersects a specific portal.
-// blam-cc: EAX -> structure_bsp, ECX -> point, DX -> portal_index, stack -> tolerance
-extern uint8_t structure_bsp_portal_sphere_test(ScenarioStructureBSP *structure_bsp,
+// blam-cc: EAX -> global_structure_bsp, ECX -> point, DX -> portal_index, stack -> tolerance
+extern uint8_t structure_bsp_portal_sphere_test(ScenarioStructureBSP *global_structure_bsp,
     real_point3d *point, int16_t portal_index, float tolerance); // 0x554b00, this module
 
 int32_t cluster_flood_fill_within_radius(int16_t cluster_index, real_point3d *point,
@@ -31,7 +31,7 @@ int32_t cluster_flood_fill_within_radius(int16_t cluster_index, real_point3d *po
                                           int16_t *output)
 {
     ScenarioStructureBSPCluster *cluster =
-        &((ScenarioStructureBSPCluster *)structure_bsp->clusters.pointer)[cluster_index];
+        &((ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer)[cluster_index];
 
     if (remaining_budget > 0) {
         *output++ = cluster_index;
@@ -45,7 +45,7 @@ int32_t cluster_flood_fill_within_radius(int16_t cluster_index, real_point3d *po
     ScenarioStructureBSPClusterPortalIndex *portal_refs =
         (ScenarioStructureBSPClusterPortalIndex *)cluster->portals.pointer;
     ScenarioStructureBSPClusterPortal *portals =
-        (ScenarioStructureBSPClusterPortal *)structure_bsp->cluster_portals.pointer;
+        (ScenarioStructureBSPClusterPortal *)global_structure_bsp->cluster_portals.pointer;
 
     for (int32_t i = 0; i < (int32_t)cluster->portals.count; i++) {
         ScenarioStructureBSPClusterPortal *portal = &portals[portal_refs[i].portal];
@@ -55,7 +55,7 @@ int32_t cluster_flood_fill_within_radius(int16_t cluster_index, real_point3d *po
         if (cluster_flood_stamps[neighbor] == cluster_flood_stamp) {
             continue;
         }
-        if (!structure_bsp_portal_sphere_test(structure_bsp, point, portal_refs[i].portal,
+        if (!structure_bsp_portal_sphere_test(global_structure_bsp, point, portal_refs[i].portal,
                                              tolerance)) {
             continue;
         }

@@ -13,6 +13,7 @@
 // UNSURE: same 0x1fffe34/0x1fffeae caveat as the sibling functions above; and, like them, this
 // is a low-confidence function (0.3) whose overall purpose is inferred only from
 // out/phase4/game_functions.md, not independently re-derived here.
+// reconciled: R16 the elided iterator is the inline 0x10-byte data_iterator over player_data (0x45c9f5); FUN_00460e40 gets iterator.index (0x45ca3f), not -1
 
 // RESOLVED (phase 4 review): the two "player_data->data + 0x1fffe34 / + 0x1fffeae" accesses are
 // NOT real offsets. objdump of 0x45c7ca..0x45c7e8 shows
@@ -33,22 +34,24 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data;              // 0x0087a480
 extern game_variant game_engine_variant;    // 0x006f1c88 (::lives_per_round at 0x006f1cd8)
 
-extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module; iterator elided
+extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module; blam-cc: EDI -> iterator
 extern int32_t players_active_count(void);   // 0x45c6a0, this batch
 extern uint8_t FUN_00460e40(uint32_t player_handle); // UNSURE signature; see
                                                      // game_engine_players_ready_for_bsp_switch.c
 
-// If fewer than two players are active, returns true unconditionally. Otherwise advances the
-// (implicit) data iterator past every "eligible" player (marked for deletion, or dead but
+// If fewer than two players are active, returns true unconditionally. Otherwise walks
+// player_data with an inline data_iterator (0x45c9f5..0x45ca19) past every "eligible" player (marked for deletion, or dead but
 // exempted by the odd-man-out test or the limited-lives check) and reports whether the first
 // non-eligible player found belongs to `team`. Returns false if the iterator is exhausted
 // before such a player is found.
 uint8_t game_engine_find_first_eligible_player_on_team(int32_t team)
 {
+    data_iterator iterator;
     player *p;
     datum_index reread_unit;   // re-read of p->unit after the 0x460e40 call
     int16_t reread_deaths;    // re-read of p->deaths, same reason
@@ -58,7 +61,11 @@ uint8_t game_engine_find_first_eligible_player_on_team(int32_t team)
         return 1;
     }
 
-    p = (player *)data_iterator_next((data_iterator *)0); // UNSURE: iterator elided
+    iterator.data = player_data;
+    iterator.next_index = 0;
+    iterator.index = k_datum_index_none;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+    p = (player *)data_iterator_next(&iterator);
     if (p == (player *)0) {
         return 0;
     }
@@ -67,7 +74,7 @@ uint8_t game_engine_find_first_eligible_player_on_team(int32_t team)
         if (p->marked_for_deletion != 0) {
             skip = 1;
         } else if (p->unit == k_datum_index_none) {
-            skip = (FUN_00460e40(0xffffffff) != 0) ||
+            skip = (FUN_00460e40(iterator.index) != 0) || // 0x45ca3f pushes the iterator's index
                    (0 < game_engine_variant.lives_per_round &&
                     (reread_unit = p->unit,
                      reread_unit == k_datum_index_none) &&
@@ -81,7 +88,7 @@ uint8_t game_engine_find_first_eligible_player_on_team(int32_t team)
             break;
         }
 
-        p = (player *)data_iterator_next((data_iterator *)0); // UNSURE: iterator elided
+        p = (player *)data_iterator_next(&iterator);
         if (p == (player *)0) {
             return 0;
         }

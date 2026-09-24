@@ -39,11 +39,14 @@
 //    unresolved 0.0.
 //  - path_find_gather_adjacent_edges and path_find_score_avoidance_penalty are called here with fewer arguments
 //    than elsewhere (context not shown); called explicitly with this function's own context.
+// reconciled: R06 path_find_context.bsp_generation -> structure_bsp (0x00746f9c, the resident ScenarioStructureBSP pointer)
+// reconciled: R79 0x006b8d78 ai_path_permission_table -> physics.h breakable_surface_globals *breakable_surface_state (the code took the global's ADDRESS; the binary loads the pointer: mov edx,ds:0x6b8d78) and 0x0069e8d8 local_command_list_generation -> global_structure_bsp_index; the row is active[bsp index] (intact breakable surfaces)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "physics.h"
 
 extern void path_find_heap_sift_up(path_find_context *context, int16_t index);   // 0x43af70
 extern void path_find_heap_sift_down(path_find_context *context, int16_t index); // 0x43b010
@@ -59,8 +62,8 @@ extern float path_find_score_avoidance_penalty(path_find_context *context, float
 
 extern int32_t __ftol(double x); // FISTP-based float-to-int truncation
 extern double sqrt(double x); // FSQRT
-extern uint8_t ai_path_permission_table;    // 0x006b8d78, UNSURE: unestablished permission bitmap; used as a raw byte-address base, not an array
-extern int16_t local_command_list_generation; // 0x0069e8d8, already established in actor_squad_action_status_broadcast.c
+extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78, physics.h
+extern int16_t global_structure_bsp_index; // 0x0069e8d8, physics.h (the structure BSP index)
 
 // blam-cc: EAX -> context
 // Runs the A*-style search to completion: repeatedly pops the cheapest open node, expands
@@ -155,13 +158,12 @@ uint8_t path_find_run(path_find_context *context)
                 if ((*(uint8_t *)((uint8_t *)context + 4) != 0) || (0 <= (int8_t)edge->flag)) {
                     crosses_edge = 1;
                 } else {
-                    int32_t table_entry = *(int32_t *)(*(int32_t *)(context->bsp_generation + 0xb4) + 0x40) + edge->edge_id * 0xc;
+                    int32_t table_entry = *(int32_t *)(*(int32_t *)(context->structure_bsp + 0xb4) + 0x40) + edge->edge_id * 0xc;
                     if ((*(uint8_t *)(table_entry + 8) & 8) == 0) {
                         crosses_edge = 1;
                     } else {
                         uint8_t permission_index = *(uint8_t *)(table_entry + 9);
-                        uint32_t row = (uint32_t)(permission_index >> 5) + (uint32_t)local_command_list_generation * 8;
-                        uint32_t bits = *(uint32_t *)((uint8_t *)&ai_path_permission_table + 1 + row * 4);
+                        uint32_t bits = breakable_surface_state->active[global_structure_bsp_index][permission_index >> 5];
                         uint8_t denied = 1 - (uint8_t)((bits & (1u << (permission_index & 0x1f))) != 0);
                         if (denied == 0) {
                             crosses_edge = 1;

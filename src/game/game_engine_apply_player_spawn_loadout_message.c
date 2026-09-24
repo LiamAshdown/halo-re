@@ -26,6 +26,7 @@
 //   and_get's object argument here (the newly resolved unit index, `new_unit_object_index`);
 //   the weapon-slot loop's exact effect when a slot IS valid (Ghidra shows the unit_pickup_weapon call
 //   but never an explicit store into weapons[i] in that branch -- transcribed literally).
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
 
 #include "tags.h"
 #include "memory.h"
@@ -103,7 +104,7 @@ void game_engine_apply_player_spawn_loadout_message(void **envelope, uint32_t pl
                         p->team = message.team;
                         p->team_index = (int8_t)message.team;
                         unit_obj->owner_linkage = (uint32_t)owner_handle;
-                        unit_obj->name_index = (int16_t)p->team;
+                        unit_obj->owner_team = (int16_t)p->team;
                         ((unit_data *)unit_obj)->controlling_player = owner_handle;
                         unit_refresh_targeting_flag_and_weapons(new_unit);
 

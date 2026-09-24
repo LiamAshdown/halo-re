@@ -18,7 +18,7 @@
 #include "math.h"
 #include "structures.h"
 
-extern ScenarioStructureBSP *structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 
 // TYPES-GAP: the 32-byte comparator routine at 0x552c00 (immediately before this batch's first
 // function), not examined by this pass.
@@ -32,7 +32,7 @@ void structure_leaf_faces_gather_list(int16_t face_count, ScenarioStructureBSPSu
     int32_t *face_indices)
     // blam-cc: EAX -> out_faces, ECX -> face_indices
 {
-    ScenarioStructureBSPSurface *surfaces = (ScenarioStructureBSPSurface *)structure_bsp->surfaces.pointer;
+    ScenarioStructureBSPSurface *surfaces = (ScenarioStructureBSPSurface *)global_structure_bsp->surfaces.pointer;
     int32_t i;
 
     qsort_dword_array(face_indices, face_count, qsort_dword_array_leaf_index_compare);

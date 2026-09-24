@@ -11,16 +11,18 @@
 //   function's own decompilation, so it is presumably an implicit register argument this
 //   function's own (unrecovered) caller sets up -- modeled here as a bare call with no
 //   parameter, exactly as Ghidra shows it.
+// reconciled: R14 0x00721440 void* handle -> network_mutex_record *savegame_index_mutex; now waits on/releases ->handle (the binary loads [0x721440] then [eax])
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
 #include "game.h"
+#include "networking.h"
 
 extern uint8_t *saved_game_root_path; // 0x006e3108, the appended component
 extern file_reference savegame_directory_file_reference; // 0x00721330
-extern void *savegame_directory_mutex_handle; // 0x00721440, UNSURE: *DAT_00721440 is the HANDLE
+extern network_mutex_record *savegame_index_mutex; // 0x00721440, networking.h record; +0x00 is the HANDLE
 
 extern uint8_t file_reference_open(file_reference *reference, int32_t mode); // 0x5557a0
 extern uint8_t file_reference_close(void); // 0x555890
@@ -47,7 +49,7 @@ extern uint32_t ReleaseMutex(void *handle); // Win32
 uint8_t savegame_index_read_slot(uint16_t slot)
 {
     uint8_t result = 0;
-    uint32_t wait_result = WaitForSingleObject(savegame_directory_mutex_handle, 5000);
+    uint32_t wait_result = WaitForSingleObject(savegame_index_mutex->handle, 5000);
 
     if (wait_result != 0 && wait_result != 0x80) {
         return 0;
@@ -86,7 +88,7 @@ uint8_t savegame_index_read_slot(uint16_t slot)
         }
     }
 
-    ReleaseMutex(savegame_directory_mutex_handle);
+    ReleaseMutex(savegame_index_mutex->handle);
     return result;
 }
 

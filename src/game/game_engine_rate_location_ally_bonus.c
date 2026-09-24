@@ -16,11 +16,13 @@
 // qualifying nearby ally with no visible arguments (matching Ghidra's own rendering) and its
 // return value summed into the bonus accumulator. `(fVar2 < 6.0) != (fVar2 == 6.0)` is
 // transcribed as the logically equivalent `distance <= 6.0f`.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480
 
@@ -40,6 +42,7 @@ float game_engine_rate_location_ally_bonus(uint32_t self_index, real_point3d *po
     iter.data = player_data;
     iter.next_index = 0;
     iter.index = (datum_index)0xffffffff;
+    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     element = data_iterator_next(&iter);
     if (element != 0) {

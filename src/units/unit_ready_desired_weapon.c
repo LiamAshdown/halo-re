@@ -16,11 +16,13 @@
 // unit_set_or_test_seat_and_weapon_label receives as its seat label, not the weapon-switch
 // bookkeeping this function performs directly.
 // UNSURE: weapon_put_away, weapon_get_label and weapon_ready's real roles are not recovered.
+// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
 
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
@@ -28,7 +30,7 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern hs_game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/hs.h)
+extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
 extern char *s_unarmed;             // "unarmed"
 
 extern void item_set_holder(datum_index object_index);                                // 0x4bcfc0, UNSURE signature
@@ -106,7 +108,7 @@ void unit_ready_desired_weapon(uint32_t unit_index)
             int16_t new_current = unit->desired_weapon_index;
             unit->current_weapon_index = new_current;
             if (new_current != -1) {
-                unit->weapon_ready_ticks[new_current] = game_time->current_tick;
+                unit->weapon_ready_ticks[new_current] = game_time->game_time;
             }
             weapon_ready();
             unit_validate_and_clear_weapon_switch(unit_index);

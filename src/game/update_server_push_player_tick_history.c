@@ -11,11 +11,13 @@
 // are attested in any header this module owns. Kept this way rather than guessed at further
 // given the time available for this batch; a follow-up pass with the real disassembly is needed
 // before this file can be trusted.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern int32_t update_server_tick;              // 0x006f1d8c
 extern uint32_t update_server_history_raw[32 * (0x308 / 4)]; // 0x006f1d94, raw dword view of
@@ -47,6 +49,7 @@ void update_server_push_player_tick_history(void)
     iter.data = 0; // UNSURE: iteration source not recovered (likely update_server_queues)
     iter.next_index = 0;
     iter.index = k_datum_index_none;
+    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
     element = data_iterator_next(&iter);
 
     while (element != 0) {

@@ -19,10 +19,12 @@
 // (object_lights_update_all_continued.c) for the "not always visible" case and returning,
 // exactly as decompiled — the two files together are one logical loop.
 // register convention: none (no parameters).
+// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "hs.h"
 #include "cache.h"
 #include "objects.h"
@@ -30,7 +32,7 @@
 extern data_array *light_data;         // 0x00860b14
 extern tag_instance *tag_instances;    // 0x0087bc14
 extern data_array *object_data;        // 0x008603b0
-extern hs_game_time_globals *game_time;            // 0x006f1d6c, game time globals; +0x0c is the current tick
+extern game_time_globals *game_time;            // 0x006f1d6c, game time globals; +0x0c is the current tick
 extern int16_t light_transient_count_or_queue; // 0x00860b10, UNSURE: written as a short via a
     // "_DAT_00860b10" overlap warning from Ghidra; kept generic
 extern int32_t light_frame_counter;    // 0x008607c4
@@ -85,7 +87,7 @@ extern void object_lights_update_all_continued(light *current_light, Light *curr
 void object_lights_update_all(void)
 {
     uint8_t *lights_base = (uint8_t *)light_data->data;
-    int32_t current_tick = game_time->current_tick;
+    int32_t current_tick = game_time->game_time;
     datum_index handle;
 
     light_transient_count_or_queue = 0;

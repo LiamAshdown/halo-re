@@ -10,6 +10,7 @@
 // UNSURE: object_get_position() is called with zero visible arguments; `object_index` is
 // threaded through here on the assumption it is the position source (matching the function's own
 // gate check), which is not directly observable in the decompile.
+// reconciled: R06 global_matg_multiplayer (0x00746f9c) -> ScenarioStructureBSP *global_structure_bsp; the +0xe4 read is the leaves block POINTER (0x488a0a/0x488ad0: mov ecx,[bsp+0xe4]; and eax,0x7fffffff; cluster = WORD [ptr + leaf*0x10 + 8]), the old code indexed the struct itself
 
 #include "tags.h"
 #include "memory.h"
@@ -22,7 +23,7 @@ extern void object_get_position(datum_index object_index, real_point3d *out_posi
 extern int32_t bsp3d_node_find_leaf(void); // UNSURE: zero visible args; module unknown, 0x5013a0
 extern void object_apply_damage(void *request); // objects module, 0x4ee5e0
 
-extern uint8_t *global_matg_multiplayer; // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (formerly global_matg_multiplayer)
 
 // hs_damage_request: defined in types/hs.h (foreign-module slice; was a local TYPES-GAP copy)
 
@@ -50,7 +51,7 @@ void hs_damage_apply_with_sound(datum_index object_index, uint32_t damage_effect
         if (impulse == -1) {
             request.sound_index = 0xffff;
         } else {
-            request.sound_index = *(uint16_t *)(global_matg_multiplayer + 0xe4 + impulse * 0x10 + 8);
+            request.sound_index = ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[impulse & 0x7fffffff].cluster;
         }
         object_apply_damage(&request);
     }

@@ -5,6 +5,7 @@
 // register convention: disassembly (objdump -d -M intel) reads `arguments` from [esp+0xc] after
 // two prologue pushes (ebx, esi) -- same shape as sv_friendly_fire.c and sv_ban_penalty.c.
 //   // blam-cc: EAX -> argument_count, stack -> arguments
+// reconciled: R04 0x006f1d20 void * network_engine_callback_block -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
@@ -14,7 +15,7 @@
 #include <stdlib.h>
 
 extern int32_t sv_timelimit_minutes; // 0x00699608
-extern void *network_engine_callback_block; // 0x006f1d20
+extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 
 extern int32_t __stricmp(const char *a, const char *b); // CRT, case-insensitive strcmp
 extern void chimera__console_out(const char *format, ...); // 0x496b50
@@ -59,7 +60,7 @@ void sv_timelimit(uint32_t argument_count, int32_t *arguments) // blam-cc: EAX -
         chimera__console_out("sv_timelimit: 0 = infinite");
     }
 done:
-    if (changed && network_engine_callback_block != 0) {
+    if (changed && current_game_engine != 0) {
         chimera__console_out("   Game in progress...  Changes will apply to the next game.");
     }
 }

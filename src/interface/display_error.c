@@ -14,6 +14,7 @@
 // as a POINTER whose value is itself dereferenced and indexed; kept as `uint8_t *`.
 // TYPES-GAP: DAT_006f187c (a "not ready to show dialogs yet" flag block, byte at +9 tested here)
 // and DAT_00719739 are not documented anywhere in types/interface.h.
+// reconciled: R33 game_time_globals.unknown_00 -> initialized (uint8 at +0x00, same byte)
 
 #include "tags.h"
 #include "memory.h"
@@ -165,7 +166,7 @@ void display_error(int16_t error_string_index, int32_t player_index, uint8_t mod
             if (is_error == 1 && network_game_mode != 2) {
                 ui_pause_depth = ui_pause_depth + 1;
                 if (game_time->paused == 0) {
-                    if (game_time->unknown_00 != 0) {
+                    if (game_time->initialized != 0) {
                         game_time->active = 0;
                     }
                     game_time->paused = 1;

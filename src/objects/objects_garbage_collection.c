@@ -16,7 +16,7 @@
 //   types/memory.h memory_pool (base 0x24, size 0x28, free_bytes 0x2c, last_block 0x34,
 //   memory_pool_block.size 0x04), data_array (maximum_count 0x20, last_index 0x2e,
 //   actual_count 0x30); global 0x008603b0 object_data, 0x006b8cb4 object_memory_pool,
-//   0x006b8cbc object_globals_pointer, 0x006f1d6c game_time_globals (tick at +0xc); callees
+//   0x006b8cbc object_globals_pointer, 0x006f1d6c game_time (tick at +0xc); callees
 //   block_list_compact (memory module), object_test_in_atmosphere_zone (0x4f76e0, this batch),
 //   object_list_membership_set (0x4f7450, this batch), object_delete_4f9030 (0x4f9030, this
 //   batch), console_print_error_va and sprintf (established elsewhere in this codebase).
@@ -36,7 +36,7 @@
 extern data_array *object_data; // 0x008603b0
 extern memory_pool *object_memory_pool; // 0x006b8cb4
 extern object_globals *object_globals_pointer; // 0x006b8cbc
-extern uint8_t *game_time_globals; // 0x006f1d6c, tick at +0xc
+extern uint8_t *game_time; // 0x006f1d6c, tick at +0xc
 extern void *ai_gc_callback_table; // 0x0065ddd0, UNSURE: see file header
 extern void *console_error_category_objects; // 0x0065efec, UNSURE: a console category tag
 
@@ -128,7 +128,7 @@ report:
         char last_removed;
 
         if ((object_globals_pointer->unknown_8c == -1) ||
-            (*(int32_t *)(game_time_globals + 0xc) > object_globals_pointer->unknown_8c + 0x96)) {
+            (*(int32_t *)(game_time + 0xc) > object_globals_pointer->unknown_8c + 0x96)) {
             stale_warning = 1;
         } else {
             stale_warning = 0;
@@ -232,7 +232,7 @@ report:
         goto mark_and_return;
 
     mark_and_return:
-        object_globals_pointer->unknown_8c = *(int32_t *)(game_time_globals + 0xc);
+        object_globals_pointer->unknown_8c = *(int32_t *)(game_time + 0xc);
         object_globals_pointer->unknown_02[0] = 0;
         return;
     }

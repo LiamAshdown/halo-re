@@ -2,9 +2,10 @@
 // address 0x491d30, size 57 bytes
 // name confidence: 0.6   rewrite confidence: 0.75
 // evidence: out/phase4/input_types_notes.md names this "input_device_count_by_guid 0x491d30";
-// 0x006b1a74 is input_devices[0].record.device_key[0] (0x006b1868 + 0x20c), walked with a 0x90
+// 0x006b1a74 is input_devices[0].record.product_guid.words[0] (0x006b1868 + 0x20c), walked with a 0x90
 // dword (0x240 byte) stride, matching input_device's size.
 // register convention: guid pointer as the recognized parameter (param_1)
+// reconciled: R20 controls_gamepad_record.device_key[5] -> input_guid product_guid (+0x20c, device_key[0..3]) and int32_t product_instance (+0x21c, device_key[4])
 
 #include "tags.h"
 #include "memory.h"
@@ -31,7 +32,7 @@ int32_t input_device_count_by_guid(const uint32_t *guid)
     for (i = 0; i < input_device_count; i++) {
         match = 1;
         for (k = 0; k < 4; k++) {
-            if (guid[k] != input_devices[i].record.device_key[k]) {
+            if (guid[k] != input_devices[i].record.product_guid.words[k]) {
                 match = 0;
                 break;
             }

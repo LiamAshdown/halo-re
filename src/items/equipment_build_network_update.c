@@ -21,6 +21,7 @@
 //   a wider header blob through the same pointer rather than Ghidra simply losing dead code;
 //   they are kept byte-for-byte contiguous with the hash below for that reason, but the claim
 //   is not verified against message_delta_encode_message's own body.
+// reconciled: R38 object_type_definition +0x0a/+0x0c/+0x0e/+0x10 -> scenario_placement_offset/scenario_palette_offset/scenario_placement_size/network_delta_message_type (int32, -1 = none)
 
 #include "tags.h"
 #include "memory.h"
@@ -67,7 +68,7 @@ int32_t equipment_build_network_update(uint32_t item_index, uint32_t unused_arg2
             uint8_t is_first_update;  // local_26 = (update_type == 0); UNSURE, see file header
         } header;
         equipment_network_state *net = (equipment_network_state *)((uint8_t *)obj + 0x248);
-        int32_t message_type = object_type_definitions[obj->type]->unknown_10; // network_delta_message_type
+        int32_t message_type = object_type_definitions[obj->type]->network_delta_message_type; // network_delta_message_type
         void *header_ptr = &header;
         int32_t is_full_snapshot = (update_type == 1);
         void *items_array[1];

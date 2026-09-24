@@ -32,10 +32,13 @@
 //   in types/objects.h from unrelated evidence; its use as the top-level "should this item even
 //   update" gate here does not obviously match that name, and is preserved literally rather than
 //   guessed at.
+// reconciled: R04 0x006f1d20 uint8_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
+// reconciled: R04 follow-up: game.h is now included, so the local extern void *game_time_globals (0x006f1d6c) became game.h game_time_globals *game_time
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "items.h"
@@ -52,11 +55,11 @@ extern real_vector3d *global_reference_vector_0069672c; // 0x0069672c, UNSURE na
     // by a per-tick gravity-ish constant when a resting surface goes away underneath the item
 extern real gravity_per_tick_0069c52c; // 0x0069c52c, UNSURE name: 0.0035651792, subtracted from
     // vertical velocity once per tick while the Item tag does not have unaffected_by_gravity
-extern uint8_t network_predicted_state_flag; // 0x006f1d20
+extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern int16_t network_game_mode; // 0x00719720, UNSURE name: 0 local/authoritative
-extern int16_t structure_bsp_index; // 0x0069e8d8
-extern uint8_t bsp_collision_globals[]; // 0x00746f98, see item_accelerate.c
-extern void *game_time_globals; // 0x006f1d6c, +0x0c is the game tick
+extern int16_t global_structure_bsp_index; // 0x0069e8d8
+extern uint8_t global_structure_collision_bsp[]; // 0x00746f98, see item_accelerate.c
+extern game_time_globals *game_time; // 0x006f1d6c, game.h; +0x0c game_time is the tick
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern void object_list_membership_set(uint32_t object_index, char add); // 0x4f7450, objects module
@@ -85,10 +88,10 @@ extern char FUN_00401a20(uint32_t collision_mask, uint32_t ignore_object_index, 
     // 0x401a20, UNSURE, opaque collision/physics-module routine (the world sweep); see
     // src/units/unit_find_placement_position.c. The first argument is the literal collision
     // mask 0x1ff3e9 -- objdump shows `push 0x1ff3e9` at 0x4bc714, the same literal
-    // object_collision_test_cluster_group is called with twice below -- NOT the bsp_collision_globals pointer.
+    // object_collision_test_cluster_group is called with twice below -- NOT the global_structure_collision_bsp pointer.
 extern char FUN_00453330(void); // 0x453330, opaque, out of range
 extern void material_effects_play_at_marker(uint32_t a1, uint32_t a2, void *a3, void *a4); // 0x453490, opaque, out of range
-extern char zone_light_table_test_bit(void); // 0x4ffda0, opaque, out of range
+extern char breakable_surface_is_intact(void); // 0x4ffda0, AX -> surface index (R79)
 extern char object_collision_test_cluster_group(uint32_t mask, uint32_t item_index); // 0x505490, opaque, out of range
 extern double fabs(double x); // ABS is a single x87 FABS instruction
 extern double sqrt(double x); // a single x87 FSQRT instruction
@@ -240,14 +243,14 @@ int item_update(uint32_t item_index)
                     velocity.j = 0.0f;
                     vertical = 0.0f;
 
-                    if (network_predicted_state_flag == 0 && obj->owner_linkage == (uint32_t)0xffffffff) {
+                    if (current_game_engine == 0 && obj->owner_linkage == (uint32_t)0xffffffff) {
                         object_list_membership_set(item_index, 1);
                     }
                     obj->flags |= _object_at_rest_bit;
                     if (hit_type == 2) {
                         item->flags |= _item_at_rest_on_structure_bit;
                         item->resting_surface_index = hit_surface_index;
-                        item->resting_bsp_index = structure_bsp_index;
+                        item->resting_bsp_index = global_structure_bsp_index;
                     } else {
                         item->flags |= _item_at_rest_on_object_bit;
                         item->resting_object_index = hit_object_index;
@@ -281,7 +284,7 @@ int item_update(uint32_t item_index)
 
             if ((flags & _item_at_rest_on_structure_bit) == 0 ||
                 item->resting_surface_index == -1 ||
-                item->resting_bsp_index != structure_bsp_index) {
+                item->resting_bsp_index != global_structure_bsp_index) {
                 if ((flags & _item_at_rest_on_object_bit) != 0) {
                     if (object_try_and_get(item->resting_object_index, 0xffffffff) == 0) {
                         real_vector3d fall = {
@@ -299,9 +302,9 @@ int item_update(uint32_t item_index)
                             &item->rotation_axis, &world_contact);
                     }
                 }
-            } else if ((*(uint8_t *)(bsp_collision_globals + 0x40 +
+            } else if ((*(uint8_t *)(global_structure_collision_bsp + 0x40 +
                         (uint32_t)(uint16_t)item->resting_surface_index * 0x0c + 8) & 8) != 0 &&
-                       zone_light_table_test_bit() == 0) {
+                       breakable_surface_is_intact() == 0) {
                 real_vector3d fall = {
                     gravity_per_tick_0069c52c * global_reference_vector_0069672c->i,
                     gravity_per_tick_0069c52c * global_reference_vector_0069672c->j,
@@ -356,7 +359,7 @@ int item_update(uint32_t item_index)
     }
 
     if ((item->flags & _item_in_inventory_bit) != 0) {
-        item->held_game_time = *(int32_t *)((uint8_t *)game_time_globals + 0x0c);
+        item->held_game_time = game_time->game_time; // +0x0c
     }
 
     // The original is `return CONCAT31((int3)(uVar7 >> 8), 1)`: only AL is meaningful, and

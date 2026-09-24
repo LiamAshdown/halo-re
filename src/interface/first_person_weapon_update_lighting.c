@@ -17,6 +17,7 @@
 // Fixed from objdump this pass: the node permute and render calls take the weapon tag +0x468
 // reference (first person model) for the weapon case and first_person_interface +0x0c (the
 // hands model) for the device case; the earlier rewrite passed weapon tag +0x478 to both.
+// reconciled: R44 first_person_light_parameters is the first 0x20 bytes of render.h render_model_effect: armed -> type, unknown_37c/380 -> unit_37c/380, unit_handle -> object_index, camera_x/y/z -> centroid[3], zero -> modifier_shader; 0x4d6fc0 reads 0x28 bytes, so change_colors/function_values come from the next 8 stack bytes
 
 #include "tags.h"
 #include "memory.h"
@@ -105,19 +106,19 @@ void first_person_weapon_update_lighting(void)
 
     first_person_interface = (GlobalsFirstPersonInterface *)global_globals->first_person_interface.pointer;
     light_sample = object_get_cached_render_lighting(0x7f7fffff);
-    light_params.zero = 0;
+    light_params.modifier_shader = 0;
 
     if ((*(uint8_t *)((char *)unit_obj + 0x204) & 0x10) != 0 ||
         *(float *)((char *)unit_obj + 0x37c) > 0.0f) {
-        light_params.unknown_37c = *(float *)((char *)unit_obj + 0x37c);
-        light_params.unknown_380 = *(float *)((char *)unit_obj + 0x380);
-        light_params.armed = 1;
-        light_params.camera_x = camera_position_x;
-        light_params.camera_y = camera_position_y;
-        light_params.camera_z = camera_position_z;
-        light_params.unit_handle = unit_handle;
+        light_params.unit_37c = *(float *)((char *)unit_obj + 0x37c);
+        light_params.unit_380 = *(float *)((char *)unit_obj + 0x380);
+        light_params.type = 1;
+        light_params.centroid[0] = camera_position_x;
+        light_params.centroid[1] = camera_position_y;
+        light_params.centroid[2] = camera_position_z;
+        light_params.object_index = unit_handle;
     } else {
-        light_params.armed = 0;
+        light_params.type = 0;
     }
 
     if (fp->weapon_hud_valid != 0 && *(int32_t *)(weapon_tag_data + 0x468) != -1) {

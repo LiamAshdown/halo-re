@@ -4,9 +4,10 @@
 // evidence: phase-4 summary "Polls the chat hotkey action flags each frame, opening the chat
 // dialog in the requested scope, and updates the chat message listbox"; reuses chimera__chat_open
 // and hud_chat_listbox_update.
-// UNSURE: the three hotkey flag bytes (0x007124a7/a8/a9) and the "chat busy" gate 0x006b7020
-// are not documented anywhere in this pass.
+// UNSURE: the three hotkey flag bytes (0x007124a7/a8/a9) are not documented anywhere in this
+// pass. The gate at 0x006b7020 is main.h console_globals.active (console open; R08).
 // register convention: no parameters.
+// reconciled: R08 0x006b7020 chat_busy -> main.h console_globals_data.active (the console-open byte; byte read unchanged)
 
 #include "tags.h"
 #include "memory.h"
@@ -14,8 +15,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "main.h"
 
-extern uint8_t chat_busy;          // 0x006b7020, UNSURE name (see chimera__chat_open.c)
+extern console_globals console_globals_data;          // 0x006b7020, main.h; +0x00 active = console open (R08)
 extern uint8_t chat_dialog_open;   // 0x006b3858
 extern uint8_t chat_hotkey_all;    // 0x007124a7, UNSURE name
 extern uint8_t chat_hotkey_team;   // 0x007124a8, UNSURE name
@@ -28,7 +30,7 @@ extern void hud_chat_listbox_update(void); // 0x4ab300, the caller reloads AL fr
 // order), then always refreshes the chat message listbox.
 uint8_t chat_poll_hotkeys(void)
 {
-    if (chat_busy == 0) {
+    if (console_globals_data.active == 0) {
         if (chat_hotkey_all == 1) {
             chimera__chat_open(0);
             hud_chat_listbox_update();

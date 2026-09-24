@@ -17,6 +17,7 @@
 // UNSURE: the exact identity of the 0x00718f9x/0x006953e8/0x007125xx globals (widget/chat reset,
 //   outside this module); player + 0xc6's real field name (also UNSURE in
 //   game_engine_ctf_player_flag_tick.c, this batch).
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
@@ -24,6 +25,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data;   // 0x0087a480
 extern game_variant game_engine_variant; // 0x006f1c88 (ctf_value_80/score_limit aliased
@@ -73,6 +75,7 @@ void game_engine_check_bucket_scores_and_end_round(void)
         iter.data = player_data;
         iter.next_index = 0;
         iter.index = (datum_index)0xffffffff;
+        iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
         p = (player *)data_iterator_next(&iter);
         while (p != (player *)0) {

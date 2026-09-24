@@ -13,11 +13,12 @@
 //   them to the post-clock values instead).
 // register convention: plain __cdecl, no parameters.
 // blam-cc: (no arguments)
-// 0x006f1d20 is the game module's current_game_engine (NULL in campaign); 0x006b7020 (a byte
-//   that together with it gates pausing) has no established name. time_query_performance_counter_ms (outside this
+// 0x006f1d20 is the game module's current_game_engine (NULL in campaign); 0x006b7020 is main.h
+//   console_globals.active (console open), which together with it gates pausing (R08). time_query_performance_counter_ms (outside this
 //   module) returns the QueryPerformanceCounter millisecond clock. Phase-4 review: checked
 //   against the disassembly; the three per-tick passes are sound_update_looping_states,
 //   sound_update_range_and_ducking and sound_assign_channels, in that order.
+// reconciled: R08 0x006b7020 unknown_6b7020 -> main.h console_globals_data.active (byte read unchanged)
 
 #include "tags.h"
 #include "memory.h"
@@ -25,10 +26,12 @@
 #include "cache.h"
 #include "game.h"
 #include "sound.h"
+#include "interface.h"
+#include "main.h"
 
 extern uint8_t sound_disabled;       // 0x007252b6
 extern game_time_globals *game_time; // 0x006f1d6c
-extern uint8_t unknown_6b7020;       // 0x006b7020, UNSURE, see file header
+extern console_globals console_globals_data; // 0x006b7020, main.h; +0x00 active = console open (R08)
 extern game_engine_definition *current_game_engine; // 0x006f1d20, game module (multiplayer engine, NULL in campaign)
 extern uint8_t sound_paused;         // 0x00725202
 extern sound_driver *current_sound_driver; // 0x00725208
@@ -60,7 +63,7 @@ void sound_update(void)
         return;
     }
 
-    if (game_time->paused == 0 && (unknown_6b7020 == 0 || current_game_engine != 0)) {
+    if (game_time->paused == 0 && (console_globals_data.active == 0 || current_game_engine != 0)) {
         if (sound_paused != 0) {
             sound_paused = 0;
             if (current_sound_driver != 0) {

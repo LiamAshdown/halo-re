@@ -19,6 +19,8 @@
 // kept as raw offsets. DAT_006b0b80 (the scenario_load staging buffer) has no established name
 // or type anywhere in this batch.
 // register convention: fully recovered cdecl (session is the only parameter).
+// reconciled: R33 game_time_globals.unknown_00 -> initialized (uint8 at +0x00, same byte)
+// reconciled: R13 network_scenario_load_request.seed (+0x06) -> difficulty (campaign difficulty, lands at game globals +0x0e)
 
 #include "tags.h"
 #include "memory.h"
@@ -54,10 +56,10 @@ char network_game_scenario_load_request(network_game_session *session)
     network_game_session *shared_session;
 
     memset(&request, 0, sizeof(request));
-    request.seed = 1;
+    request.difficulty = 1;
     request.salt = 0xdeadbeef;
     strncpy(request.map_name, session->server_name, 0x7f);
-    request.seed = session->unknown_19e;
+    request.difficulty = session->unknown_19e;
 
     if (network_game_mode > 0) {
         if (network_game_mode < 3) {
@@ -76,8 +78,8 @@ char network_game_scenario_load_request(network_game_session *session)
         }
     }
     FUN_0045aea0();
-    if (game_time->unknown_00 != 0 && (game_time->active != 0 || game_time->paused != 0)) {
-        // UNSURE: game_time->unknown_00 is documented as "never read or written" elsewhere in
+    if (game_time->initialized != 0 && (game_time->active != 0 || game_time->paused != 0)) {
+        // UNSURE: game_time->initialized is documented as "never read or written" elsewhere in
         // types/game.h, so this condition is effectively always false in practice; preserved
         // verbatim rather than simplified away.
         FUN_0045b370();

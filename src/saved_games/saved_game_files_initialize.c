@@ -12,6 +12,7 @@
 // after) -- kept as a raw pointer-cursor zero rather than forced into any one struct's sizeof,
 // since it deliberately spans three separate globals.
 // register convention: __cdecl, no parameters.
+// reconciled: R10 profile_directory is char[0x105] (k_profile_directory_storage_size; shell zeroes 0x41 dwords + 1 byte at 0x540ef9)
 
 #include <string.h>
 #include "tags.h"
@@ -22,7 +23,7 @@
 #include "interface.h"
 #include "saved_games.h"
 
-extern char profile_directory[0x104]; // 0x006ac900 (cache module)
+extern char profile_directory[0x105]; // 0x006ac900 (cache module)
 extern file_reference_record savegame_index_file; // 0x00721330
 extern char saved_game_root_directory[0x100]; // 0x00721449
 extern char hdmu_map_path[0x100]; // 0x006e3108

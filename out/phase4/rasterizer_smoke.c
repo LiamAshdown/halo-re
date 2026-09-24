@@ -150,7 +150,8 @@ CHECK(g_fp, OFF(transparent_geometry_group, first_person) == 0xa5);
 CHECK(c_nodes, OFF(rasterizer_model_draw_context, node_matrices) == 0x08);
 CHECK(c_node_count, OFF(rasterizer_model_draw_context, node_count) == 0x0c);
 CHECK(c_lighting, OFF(rasterizer_model_draw_context, lighting) == 0x10);
-CHECK(c_extra, OFF(rasterizer_model_draw_context, unknown_84) == 0x84);
+CHECK(c_extra, OFF(rasterizer_model_draw_context, change_colors) == 0x84);
+CHECK(c_function_values, OFF(rasterizer_model_draw_context, function_values) == 0x88); /* R43 */
 CHECK(c_params, OFF(rasterizer_model_draw_context, group_parameters) == 0x8c);
 CHECK(c_float90, OFF(rasterizer_model_draw_context, group_parameters.blend_factor) == 0x90);
 CHECK(c_sort, OFF(rasterizer_model_draw_context, group_parameters.sort_key) == 0x98);
@@ -158,7 +159,15 @@ CHECK(c_position, OFF(rasterizer_model_draw_context, group_parameters.position) 
 CHECK(c_shader, OFF(rasterizer_model_draw_context, group_parameters.shader) == 0xa8);
 CHECK(c_functions, OFF(rasterizer_model_draw_context, group_parameters.function_values) == 0xb0);
 CHECK(c_center, OFF(rasterizer_model_draw_context, center) == 0xb4);
-CHECK(c_c4, OFF(rasterizer_model_draw_context, unknown_c4) == 0xc4);
+CHECK(c_radius, OFF(rasterizer_model_draw_context, bounding_radius) == 0xc0); /* R43 */
+CHECK(c_c4, OFF(rasterizer_model_draw_context, base_map_u_scale) == 0xc4);
+CHECK(c_c8, OFF(rasterizer_model_draw_context, base_map_v_scale) == 0xc8);
+CHECK(c_size, sizeof(rasterizer_model_draw_context) == 0xcc);
+CHECK(link_linked_part, OFF(transparent_geometry_group_link, linked_part_index) == 0x0a); /* R43 */
+CHECK(rl_reflection_tint, OFF(render_lighting, reflection_tint) == 0x4c); /* R42 */
+CHECK(rl_shadow_vector, OFF(render_lighting, shadow_vector) == 0x5c);
+CHECK(rl_shadow_color, OFF(render_lighting, shadow_color) == 0x68);
+CHECK(fog_screen_blend, OFF(render_fog, sky_fog_screen_blend) == 0x4c); /* R41 */
 
 // render lighting
 CHECK(rl_count, OFF(render_lighting, distant_light_count) == 0x0c);
@@ -240,7 +249,12 @@ CHECK(t_font_char, OFF(FontCharacter, hardware_character_index) == 0x0c);
 CHECK(dynamic_screen_vertex, sizeof(rasterizer_dynamic_screen_vertex) == 0x18);
 CHECK(screen_vertex, sizeof(rasterizer_screen_vertex) == 0x1c);
 CHECK(group_link, sizeof(transparent_geometry_group_link) == 0x0c);
+/* R52: d3dx_macro is two char pointers, so its 0x08 size only holds with 32-bit pointers. */
+#if defined(__i386__) || defined(_M_IX86)
 CHECK(d3dx_macro_size, sizeof(d3dx_macro) == 0x08);
+#else
+CHECK(d3dx_macro_size, sizeof(d3dx_macro) == 2 * sizeof(void *));
+#endif
 CHECK(vertex_element9, sizeof(d3d_vertex_element9) == 0x08);
 CHECK(surface_desc_width, OFF(d3d_surface_desc, width) == 0x18);
 CHECK(viewport_size, sizeof(d3d_viewport) == 0x18);

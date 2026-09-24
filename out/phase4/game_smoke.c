@@ -67,6 +67,17 @@ typedef char chk_e_score[(__builtin_offsetof(game_engine_definition, get_score) 
 
 typedef char chk_g_tick[(__builtin_offsetof(game_time_globals, game_time) == 0x0c) ? 1 : -1];
 typedef char chk_g_speed[(__builtin_offsetof(game_time_globals, speed) == 0x18) ? 1 : -1];
+/* reconciliation R32-R37 */
+typedef char chk_g_init[(__builtin_offsetof(game_time_globals, initialized) == 0x00) ? 1 : -1];
+typedef char chk_g_leftover[(__builtin_offsetof(game_time_globals, leftover_time) == 0x1c) ? 1 : -1];
+typedef char chk_pg_lpc[(__builtin_offsetof(player_globals, local_player_count) == 0x0c) ? 1 : -1];
+typedef char chk_pg_size[(sizeof(player_globals) == 0x98) ? 1 : -1];
+typedef char chk_p_lru[(__builtin_offsetof(player, last_remote_update_id) == 0x15c + 2*PW) ? 1 : -1]; /* 2 pointers in update_history */
+typedef char chk_v_vflags[(__builtin_offsetof(game_variant, variant_flags) == 0x94) ? 1 : -1];
+typedef char chk_v_size[(sizeof(game_variant) == 0x98) ? 1 : -1];
+typedef char chk_hwtp_alpha[(__builtin_offsetof(hud_world_text_params, alpha) == 0x00) ? 1 : -1];
+typedef char chk_hwtp_blue[(__builtin_offsetof(hud_world_text_params, blue) == 0x0c) ? 1 : -1];
+typedef char chk_hwtp_size[(sizeof(hud_world_text_params) == 0x10) ? 1 : -1];
 
 typedef char chk_pc_local[(__builtin_offsetof(player_control_globals, local_players) == 0x10) ? 1 : -1];
 typedef char chk_lpc_pitchmin[(__builtin_offsetof(local_player_control, pitch_minimum) == 0x38) ? 1 : -1];

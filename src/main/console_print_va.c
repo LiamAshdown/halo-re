@@ -13,6 +13,7 @@
 // register convention: __cdecl, printf-style varargs.
 // UNSURE: 0x00685218's pointee (0x00655168, floats {0.0, 1.0, 0.0, 0.0}) has no established name;
 // declared here as a generic default-color pointer.
+// reconciled: R01 comment: 0x0087ac06 console_verbosity -> debug_log_level
 
 #include "tags.h"
 #include "memory.h"
@@ -31,7 +32,7 @@ extern void console_printf_verbose(ColorARGB *color, char *format, ...); // 0x49
 extern void write_to_error_file(char *message, char with_timestamp); // 0x449450
 
 // Formats a printf-style message and appends it to the console's message list via
-// console_printf_verbose (so it only actually shows once console_verbosity > 3), additionally
+// console_printf_verbose (so it only actually shows once debug_log_level > 3), additionally
 // logging it (with a trailing CRLF) to debug.txt when error-file logging is enabled.
 void console_print_va(const char *format, ...)
 {

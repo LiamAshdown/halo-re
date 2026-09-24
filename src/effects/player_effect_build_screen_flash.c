@@ -7,24 +7,27 @@
 // evidence: types/effects.h player_effect_globals (scripted_flash_color +0xec,
 //   scripted_flash_start_tick +0xf8, scripted_flash_ticks +0xfc, scripted_flash_fade_in +0xfe)
 //   and player_effect.flash (player_screen_flash, +0x18: type +0x00, color +0x28 => +0x40
-//   absolute, intensity +0x24 => +0x3c absolute); global 0x006b7020 player_effect_suppressed and
+//   absolute, intensity +0x24 => +0x3c absolute); global 0x006b7020 console_globals.active (main.h, R08) and
 //   0x00687218 screen_flash_pass[8] (types/effects.h globals list); src/effects/decal_update_fade.c
-//   for game_tick_globals[3].
+//   for game_time[3].
 // register convention: an output descriptor pointer in EBX (unaff_EBX, at least 6 dwords: type,
 //   pad, alpha, then 4 dwords of color); a local player index in CX (in_CX).
 //   // blam-cc: unaff_EBX -> out, in_CX -> local_player_index
 // UNSURE: this function's own game_time_globals-shaped tick-length read (iVar1+0x10) is kept as
 //   a raw offset since no established name covers it here.
+// reconciled: R08 0x006b7020 player_effect_suppressed -> main.h console_globals_data.active (byte read, unchanged)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#include "interface.h"
+#include "main.h"
 
-extern uint8_t player_effect_suppressed;                      // 0x006b7020
+extern console_globals console_globals_data;                  // 0x006b7020, main.h; +0x00 active = console open
 extern player_effect_globals *player_effect_globals_pointer;  // 0x006f1884
-extern int32_t *game_tick_globals;                             // 0x006f1d6c
+extern int32_t *game_time;                             // 0x006f1d6c
 extern int16_t screen_flash_pass[8];                           // 0x00687218
 
 extern real transition_function_evaluate(int16_t type, real phase); // 0x4ccac0, math module;
@@ -36,13 +39,13 @@ void player_effect_build_screen_flash(uint32_t *out, int16_t local_player_index)
 {
     player_effect_globals *globals = player_effect_globals_pointer;
 
-    if (player_effect_suppressed != 0) {
+    if (console_globals_data.active != 0) { // console open
         return;
     }
 
     if (globals->scripted_flash_ticks != -1 &&
         (globals->scripted_flash_fade_in != 0 ||
-         game_tick_globals[3] - globals->scripted_flash_start_tick <= globals->scripted_flash_ticks)) {
+         game_time[3] - globals->scripted_flash_start_tick <= globals->scripted_flash_ticks)) {
         float fraction;
         ColorRGB color = globals->scripted_flash_color;
 
@@ -53,7 +56,7 @@ void player_effect_build_screen_flash(uint32_t *out, int16_t local_player_index)
         if (globals->scripted_flash_ticks < 1) {
             fraction = 1.0f;
         } else {
-            float t = (float)(game_tick_globals[3] - globals->scripted_flash_start_tick) /
+            float t = (float)(game_time[3] - globals->scripted_flash_start_tick) /
                       (float)globals->scripted_flash_ticks;
             t = (t < 0.0f) ? 0.0f : (1.0f < t ? 1.0f : t);
             fraction = transition_function_evaluate(0, t);

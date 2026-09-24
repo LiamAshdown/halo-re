@@ -8,6 +8,7 @@
 //   same lookup observer_commit does, without the predicted resource touch).
 // register convention: none; cdecl, no arguments.
 // No Ghidra decompilation exists for this address; the #if 0 block carries the objdump.
+// reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
 
 #include "tags.h"
 #include "memory.h"
@@ -17,8 +18,8 @@
 #include "camera.h"
 
 extern player_globals *local_player_globals;      // 0x0087a478
-extern ModelCollisionGeometryBSP *global_globals; // 0x00746f90, the structure collision BSP (types/structures.h)
-extern ScenarioStructureBSP *structure_bsp;       // 0x00746f9c
+extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90, the structure collision BSP (types/structures.h)
+extern ScenarioStructureBSP *global_structure_bsp;       // 0x00746f9c
 extern observer observers[1];                     // 0x006ac65c
 
 // blam-cc: EAX -> node_index, ECX -> bsp, EDX -> point
@@ -32,14 +33,14 @@ void observer_update_location(void)
     if (local_player_globals->local_players[0] == k_datum_index_none) {
         return;
     }
-    leaf_index = (int32_t)bsp3d_node_find_leaf(0, global_globals,
+    leaf_index = (int32_t)bsp3d_node_find_leaf(0, global_collision_bsp,
         (real_point3d *)&observers[0].camera.position);
     observers[0].camera.leaf_index = leaf_index;
     if (leaf_index == -1) {
         observers[0].camera.cluster_index = -1;
     } else {
         observers[0].camera.cluster_index = (int16_t)((ScenarioStructureBSPLeaf *)
-            structure_bsp->leaves.pointer)[leaf_index & 0x7fffffff].cluster;
+            global_structure_bsp->leaves.pointer)[leaf_index & 0x7fffffff].cluster;
     }
 }
 

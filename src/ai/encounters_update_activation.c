@@ -32,7 +32,7 @@
 #include "game.h"
 #include "ai.h"
 
-extern ScenarioStructureBSP *structure_bsp;      // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp;      // 0x00746f9c
 extern ai_globals *ai_global_data;               // 0x00880354
 extern player_globals *local_player_globals;     // 0x0087a478
 extern data_array *actor_data;                   // 0x00880360
@@ -41,7 +41,7 @@ extern data_array *swarm_data;                   // 0x0088035c
 extern game_time_globals *game_time;             // 0x006f1d6c
 extern data_array *encounter_data;               // 0x008802c8
 extern Scenario *global_scenario;                // 0x00746f8c
-extern int16_t current_bsp_index;                // 0x0069e8d8
+extern int16_t global_structure_bsp_index;                // 0x0069e8d8
 
 extern void actor_set_units_active(datum_index actor_index); // 0x427860, not yet rewritten
 extern void actor_clear_perceived_props(datum_index actor_index);    // 0x427e00, not yet rewritten
@@ -198,13 +198,13 @@ void encounters_update_activation(void)
         wants_active = (uint8_t)(0 < enc->unknown_3e || enc->unknown_0c != 0);
 
         if ((int16_t)definition->precomputed_bsp_index == -1 ||
-            (int16_t)definition->precomputed_bsp_index == current_bsp_index) {
+            (int16_t)definition->precomputed_bsp_index == global_structure_bsp_index) {
 
             encounter_gather_occupied_clusters(iterator.index, encounter_clusters, 1,
                                                visible_clusters);
 
             overlaps = 0;
-            dword_count = (uint32_t)(((*(int16_t *)((uint8_t *)structure_bsp + 0x134)) + 0x1f) >> 5);
+            dword_count = (uint32_t)(((*(int16_t *)((uint8_t *)global_structure_bsp + 0x134)) + 0x1f) >> 5);
             i = (int16_t)dword_count - 1;
             if (0 <= i) {
                 uint32_t n = dword_count & 0xffff;

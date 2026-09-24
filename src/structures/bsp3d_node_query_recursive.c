@@ -41,7 +41,7 @@
 #include "physics.h"
 #include "structures.h"
 
-extern ScenarioStructureBSP *structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 
 // blam-cc: ECX -> parent_bounds, EDX -> compressed_bounds, ESI -> out
 extern void bsp3d_node_bounds_decompress(real_rectangle3d *parent_bounds,
@@ -73,9 +73,9 @@ int16_t bsp3d_node_query_recursive(int32_t node_index, real_rectangle3d *parent_
     int16_t inherited_classification)
 {
     ModelCollisionGeometryBSP *collision_bsp =
-        (ModelCollisionGeometryBSP *)structure_bsp->collision_bsp.pointer;   // tag +0xb4
+        (ModelCollisionGeometryBSP *)global_structure_bsp->collision_bsp.pointer;   // tag +0xb4
     ScenarioStructureBSPNode *compressed_bounds =
-        (ScenarioStructureBSPNode *)structure_bsp->nodes.pointer + node_index; // tag +0xc0, stride 6
+        (ScenarioStructureBSPNode *)global_structure_bsp->nodes.pointer + node_index; // tag +0xc0, stride 6
     real_rectangle3d node_bounds;
     int16_t classification = inherited_classification;
     int32_t written = 0;

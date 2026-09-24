@@ -8,18 +8,20 @@
 // UNSURE: DAT_00746fa0+0x18c (the globals tag's grenade table, per types/units.h) and its own
 //   +0x94 radius-like field; unit_test_placement_candidate's exact role here (a line-of-sight or
 //   clearance probe toward a nearby open position, per functions.md's summary).
+// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
 
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern hs_game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/hs.h)
+extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
 extern uint8_t *globals_tag_data;   // 0x00746fa0, +0x174 player info, +0x18c/0x190 grenade tables (types/units.h)
 extern float unit_evade_scale;      // 0x0069c52c, UNSURE
 
@@ -48,13 +50,13 @@ void biped_check_evade_reaction(uint32_t object_index)
         (unit->flags & 0x1000) == 0 && unit->actor_index != k_datum_index_none &&
         unit->animation_state != 0x1d && (int8_t)biped->unknown_501 > 0x1e &&
         (biped->unknown_4f8 == -1 ||
-         (int32_t)(biped->unknown_4f8 + 0xf) < game_time->current_tick)) {
+         (int32_t)(biped->unknown_4f8 + 0xf) < game_time->game_time)) {
         void *table = *(void **)(globals_tag_data + 0x18c);
         real_point3d position;
         real_vector3d direction = {0};
         uint32_t found;
 
-        biped->unknown_4f8 = game_time->current_tick;
+        biped->unknown_4f8 = game_time->game_time;
         found = unit_test_placement_candidate(6.0f, &position, &direction, 0); // UNSURE: 0x40c00000 == 6.0f
 
         if (found == k_datum_index_none) {

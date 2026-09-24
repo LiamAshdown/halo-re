@@ -8,6 +8,7 @@
 //   axis actions one for one.
 // register convention: EAX -> settings, ECX -> state, DX -> action.
 //   // blam-cc: EAX -> settings, ECX -> state, DX -> action
+// reconciled: R19 player_control_settings unknown ranges named from the input.h field map (keyboard, mouse_button/mouse_axis, gamepad_button, gamepad_action_button, gamepad_axis, gamepad_pov, forward_rate..mouse_strafe_scale, mouse_look_x/y_sensitivity, gamepad_axis_scale_x/y, gamepad_rate_80/40, look_inverted/_driving); same offsets and widths
 
 #include "tags.h"
 #include "memory.h"
@@ -24,7 +25,7 @@
 // *settings, clamped to [-1, 1]. Does nothing for any other action id.
 void input_accumulate_axis_value(player_control_settings *settings, local_player_input_state *state, int16_t action)
 {
-    const float *rates = (const float *)settings->unknown_810; // [0] forward, [1] strafe, [2] look_x, [3] look_y
+    const float *rates = &settings->forward_rate; // [0] forward, [1] strafe, [2] look_x, [3] look_y
     float value;
     float *axis;
 

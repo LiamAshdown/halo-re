@@ -6,12 +6,14 @@
 // evidence: types/memory.h data_iterator.index (the handle of the element last returned); this
 // module's own decal_update_fade 0x44dc30 takes a decal handle, not a pointer.
 // register convention: __cdecl, no arguments.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#include <stdint.h>
 
 extern data_array *decal_data; // 0x0087abe4
 
@@ -27,6 +29,7 @@ void decals_update_fade(void)
         iterator.data = decal_data;
         iterator.next_index = 0;
         iterator.index = 0;
+        iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
         while (data_iterator_next(&iterator) != 0) {
             decal_update_fade(iterator.index);

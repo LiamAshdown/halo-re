@@ -28,10 +28,12 @@
 // UNSURE: object_get_root_object_velocities (a zero-argument float helper, presumably a random distance/scalar) and
 //   the object_delete_unparented / object_delete register arguments are guessed as the dropped
 //   object index, matching every other call in this function.
+// reconciled: R04 0x006f1d20 int32_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
@@ -40,7 +42,7 @@ extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern real_point3d *global_origin3d_pointer; // 0x00696714
 extern random_seed random_seed_global;    // 0x00719cd0
-extern int32_t network_predicted_state_flag;  // 0x006f1d20, types/units.h
+extern game_engine_definition *current_game_engine;  // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table,
@@ -138,7 +140,7 @@ void unit_drop_object_from_hand(uint32_t unit_index, uint32_t dropped_object_ind
         unit_get_camera_position(unit_index, &discard); // UNSURE: result unused by the original
     }
 
-    if (object_reposition_to_spawn_location(dropped_object_index, (real_point3d *)0xffffffff) == 0 && network_predicted_state_flag == 0) {
+    if (object_reposition_to_spawn_location(dropped_object_index, (real_point3d *)0xffffffff) == 0 && current_game_engine == 0) {
         object_delete(dropped_object_index);
     }
 

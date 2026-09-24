@@ -24,7 +24,7 @@ extern uint8_t weather_enabled;               // 0x00687350
 extern int16_t current_local_player_index;     // 0x007c3108, UNSURE: foreign module (render globals)
 extern uint32_t render_weather_sample_point;  // 0x007c3344, UNSURE: foreign module
 extern int16_t render_weather_sample_unknown; // 0x007c3348, UNSURE: foreign module
-extern uint8_t *structure_bsp_globals;        // 0x00746f9c; +0x1b8 is the per-cluster weather
+extern uint8_t *global_structure_bsp;        // 0x00746f9c; +0x1b8 is the per-cluster weather
                                     // row table this function reads, UNSURE (foreign/BSP module)
 extern weather_instance weather_instances[1]; // 0x006b0ae4
 
@@ -52,7 +52,7 @@ void weather_update_local_player(void)
         instance->cluster_index = cluster_index;
 
         if (cluster_index != -1) {
-            new_definition_index = *(int32_t *)(*(uint8_t **)(structure_bsp_globals + 0x1b8) +
+            new_definition_index = *(int32_t *)(*(uint8_t **)(global_structure_bsp + 0x1b8) +
                 (uint32_t)cluster_index * 0xf0 + 0x2c); // UNSURE, see file header
         }
 

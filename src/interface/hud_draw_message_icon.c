@@ -12,6 +12,7 @@
 // update.
 // register convention: ESI information block; two stack arguments.
 //   // blam-cc: information -> ESI
+// reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
 
 #include "tags.h"
 #include "memory.h"
@@ -59,7 +60,7 @@ void hud_draw_message_icon(const hud_messaging_information *information, Rectang
     uv = (const float *)uv_offset;
 
     scale = 0.75f;
-    if (local_player_globals->unknown_0c <= 1) {
+    if (local_player_globals->local_player_count <= 1) {
         scale = 1.0f;
     }
     x = (int16_t)__ftol((double)((float)information->offset.x * scale + (float)cursor->left));

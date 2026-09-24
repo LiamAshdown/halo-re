@@ -13,6 +13,7 @@
 // in place over the tail of network_banlist_full_path's existing contents (a byte-for-byte walk
 // that only makes sense as a very literal transcription of `strcpy`); this rewrite uses strcpy
 // directly, which is observably identical for a NUL-terminated source.
+// reconciled: R10 profile_directory is char[0x105] (k_profile_directory_storage_size; shell zeroes 0x41 dwords + 1 byte at 0x540ef9); the misdeclared `char *install_directory_path` at the same address is the profile_directory array (0x4e3e90 pushes 0x6ac900 itself)
 
 #include "tags.h"
 #include "memory.h"
@@ -24,7 +25,7 @@
 #include <stdio.h>
 
 extern char network_banlist_full_path[0x104]; // 0x0071c308
-extern char *install_directory_path; // 0x006ac900, UNSURE name
+extern char profile_directory[0x105]; // 0x006ac900 (types/cache.h); pushed as an address (0x4e3e90)
 
 extern void network_banlist_load(void); // this module, 0x4e3160 (excluded from this batch)
 extern void chimera__console_out(const char *format, ...); // 0x496b50
@@ -56,7 +57,7 @@ void sv_banlist_file(uint32_t argument_count, int32_t *arguments) // blam-cc: EA
                 }
             }
             strcpy(network_banlist_full_path, suffix);
-            sprintf(network_banlist_full_path, "%s\\banned%s.txt", install_directory_path, suffix);
+            sprintf(network_banlist_full_path, "%s\\banned%s.txt", profile_directory, suffix);
             network_banlist_load();
             goto report;
         }

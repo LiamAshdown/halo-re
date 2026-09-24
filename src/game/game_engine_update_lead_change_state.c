@@ -28,6 +28,7 @@
 // standard-cdecl callee-saved and was last set to `leading_or_side` several calls earlier, so it
 // is very unlikely to actually be the intended argument there); flagged rather than "corrected"
 // since round_reset's own register attribution was made from a different call site.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original; the separate write-only iter_signature local is folded into it
 
 #include "tags.h"
 #include "memory.h"
@@ -113,13 +114,11 @@ void game_engine_update_lead_change_state(void **envelope, uint8_t *message)
         {
             data_iterator player_iter;
             void *player_element;
-            int32_t iter_signature; // UNSURE: write-only "iter" scratch, see
-                                     // game_engine_player_select_random_target.c
 
-            iter_signature = (int32_t)(intptr_t)player_data ^ 0x69746572;
             player_iter.data = player_data;
             player_iter.next_index = 0;
             player_iter.index = k_datum_index_none;
+            player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
             player_element = data_iterator_next(&player_iter);
             while (player_element != 0) {
                 if (((player *)player_element)->team_index_desired == (int8_t)color) {
@@ -130,7 +129,6 @@ void game_engine_update_lead_change_state(void **envelope, uint8_t *message)
                 }
                 player_element = data_iterator_next(&player_iter);
             }
-            (void)iter_signature;
         }
 
         {

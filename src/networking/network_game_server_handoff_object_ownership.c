@@ -25,6 +25,7 @@
 // network_object_release_ownership_claim.c.
 // UNSURE: FUN_004779d0, FUN_00466e80, FUN_00466ee0, FUN_00477a80, build_player_full_resync_update
 // signatures are inferred solely from their arguments at this call site.
+// reconciled: R04 0x006f1d20 void * network_game_engine_callback_block -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
@@ -35,7 +36,7 @@
 
 extern data_array *player_data; // 0x0087a480, stride 0x200 (game module)
 extern data_array *object_data; // 0x008603b0 (objects module)
-extern void *network_game_engine_callback_block; // 0x006f1d20; +0x90 holds the completion callback
+extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 
 extern void network_game_broadcast_team_object_updates(int32_t *object_count, uint32_t param_1, int32_t *bytes_sent); // 0x4df950, this batch
 extern char network_player_entry_is_valid(network_player_entry *entry);
@@ -55,7 +56,7 @@ typedef void (*network_join_complete_callback)(int32_t unused, int32_t machine_i
 // key does not already belong to `machine`, locates the network_machine record that does own
 // it and, when that machine's channel is established and its player is a live, non-frozen
 // unit, transfers network ownership of that unit to `machine`. Invokes the completion
-// callback at network_game_engine_callback_block+0x90 once all 16 slots are processed.
+// callback at current_game_engine+0x90 once all 16 slots are processed.
 void network_game_server_handoff_object_ownership(int32_t *object_count_passthrough,
                                                     network_server_globals *server,
                                                     network_machine *machine)
@@ -146,9 +147,9 @@ void network_game_server_handoff_object_ownership(int32_t *object_count_passthro
         entry = entry + 1;
         remaining = remaining - 1;
         if (remaining == 0) {
-            if (network_game_engine_callback_block != 0 &&
-                *(void **)((uint8_t *)network_game_engine_callback_block + 0x90) != 0) {
-                ((network_join_complete_callback)(*(void **)((uint8_t *)network_game_engine_callback_block + 0x90)))(0, machine_id);
+            if (current_game_engine != 0 &&
+                *(void **)((uint8_t *)current_game_engine + 0x90) != 0) {
+                ((network_join_complete_callback)(*(void **)((uint8_t *)current_game_engine + 0x90)))(0, machine_id);
             }
             return;
         }

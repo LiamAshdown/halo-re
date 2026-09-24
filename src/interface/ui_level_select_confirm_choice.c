@@ -16,6 +16,7 @@
 // level-select functions, a plain int16 selection snapshot rather than any named widget_instance
 // field. DAT_00719754's high byte, DAT_00719778, DAT_00719779[] and DAT_00719878 are new globals
 // not covered by types/interface.h.
+// reconciled: R55 per-level progress byte is profile +0x11e, not +0x11c (+0x11c is the flags word): 0x49ce00 copies to esp+0x20 and reads [esp+reg+0x13e] (0x49ce8f, 0x49cef3)
 
 #include "tags.h"
 #include "memory.h"
@@ -27,7 +28,7 @@
 
 extern int32_t ui_list_current;                        // 0x00692c04
 extern growable_array ui_lists[3];                      // 0x006b3830
-extern int32_t known_level_count_006894b8;              // 0x006894b8, TYPES-GAP
+extern int16_t local_player_count;              // 0x006894b8, TYPES-GAP
 extern uint8_t profile_globals_block[0x60a4];           // 0x00712dd8
 extern int32_t current_profile_index;                   // 0x00714dd4
 extern int32_t cached_profile_slot;                      // 0x0068e66c
@@ -60,14 +61,14 @@ uint8_t ui_level_select_confirm_choice(widget_instance *widget)
         level_id = ((ui_list_item *)list->data)[list_index].id;
     }
 
-    if (known_level_count_006894b8 == 1) {
+    if (local_player_count == 1) {
         uint8_t profile_copy[0x2000];
 
         memcpy(profile_copy, profile_globals_block,
                sizeof(profile_copy) < sizeof(profile_globals_block) ? sizeof(profile_copy)
                                                                      : sizeof(profile_globals_block));
         player_profile_scan_campaign_progress();
-        if (profile_copy[0x11c + level_id] != 0 || level_id == 0) {
+        if (profile_copy[0x11e + level_id] != 0 || level_id == 0) {
             unlocked = 1;
         }
         if (cached_profile_slot != current_profile_index) {
@@ -87,7 +88,7 @@ uint8_t ui_level_select_confirm_choice(widget_instance *widget)
             network_wait_flag_00719739 = 0;
             return unlocked;
         }
-    } else if (known_level_count_006894b8 == 2) {
+    } else if (local_player_count == 2) {
         int16_t player;
 
         for (player = 0; player < 2; player++) {
@@ -97,7 +98,7 @@ uint8_t ui_level_select_confirm_choice(widget_instance *widget)
             memcpy(profile_copy, player_profile,
                    sizeof(profile_copy) < 0x2004 ? sizeof(profile_copy) : 0x2004);
             player_profile_scan_campaign_progress();
-            if (profile_copy[0x11c + level_id] != 0 || level_id == 0) {
+            if (profile_copy[0x11e + level_id] != 0 || level_id == 0) {
                 unlocked = 1;
                 selected_level_start_flags_00719754_byte3 = 0;
                 _strncpy(selected_level_path_00719779, known_campaign_levels_00692acc[level_id].path, 0xff);

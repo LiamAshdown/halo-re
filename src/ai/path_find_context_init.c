@@ -3,17 +3,18 @@
 // name confidence: 0.5   rewrite confidence: 0.7
 // evidence: types/ai.h path_find_context (0x1008c bytes = 0x4023 dwords, confirmed by this
 //   function's own zero loop); path_find_request (0x48 bytes = 0x12 dwords, confirmed by the
-//   copy loop here); bsp_generation global and path_find_context.bsp_generation (+0x64 =
+//   copy loop here); (uint32_t)global_structure_bsp global and path_find_context.structure_bsp (+0x64 =
 //   dword index 0x19) and unknown_48 (+0x48 = dword index 0x12), both already named.
 // register convention: EDX -> context; stack -> request, second_param.
 //   // blam-cc: EDX -> context, stack -> request, second_param
+// reconciled: R06 0x00746f9c is ScenarioStructureBSP *global_structure_bsp (was extern int32_t bsp_generation); ai.h path_find_context/actor_movement_context bsp_generation -> structure_bsp, bsp_index -> collision_bsp
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
 
-extern int32_t bsp_generation; // 0x00746f9c, the structure BSP pointer, used here as an opaque handle
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (formerly bsp_generation)
 
 // blam-cc: EDX -> context, stack -> request, second_param
 void path_find_context_init(path_find_context *context, const path_find_request *request, uint32_t second_param)
@@ -29,7 +30,7 @@ void path_find_context_init(path_find_context *context, const path_find_request 
         clear = clear + 1;
     }
 
-    context->bsp_generation = bsp_generation;
+    context->structure_bsp = (uint32_t)global_structure_bsp;
 
     src = (const uint32_t *)request;
     dst = (uint32_t *)context;

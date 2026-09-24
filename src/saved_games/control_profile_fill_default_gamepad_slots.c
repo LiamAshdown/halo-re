@@ -8,7 +8,7 @@
 // 0x53a1c0 include 0053b7f0:FUN_0053b7f0). The connected-device table at 0x006b1868 (stride
 // 0x240, count at 0x006b1844) and its control_profile_find_or_create_gamepad_slot (0x53b470) consumer are the same ones
 // src/interface/controls_gamepad_lists_load.c already documents; that file's `input_gamepads` /
-// `input_gamepad_count_dword` externs and its have-entry-flag idiom (for the same
+// `input_device_count` externs and its have-entry-flag idiom (for the same
 // uninitialised-stack-byte pattern seen here) are reused verbatim.
 // Phase 4 review: matched objdump 0x53b7f0..0x53b9a3, including the uninitialised have-entry byte
 // ([esp+0x17]) shared by both passes.
@@ -17,6 +17,8 @@
 // UNSURE: local_2231 / local_2008's first dword are genuinely uninitialised stack in the
 // binary; both are modeled as starting 0, matching the convention already used in
 // src/interface/controls_gamepad_lists_load.c for the identical pattern.
+// reconciled: R78 0x006b1844 input_gamepad_count(_dword) -> input.h int32_t input_device_count; the WORD readers keep their int16 width through an (int16_t) cast
+// reconciled: R20 controls_gamepad_record.device_key[5] -> input_guid product_guid (+0x20c, device_key[0..3]) and int32_t product_instance (+0x21c, device_key[4])
 
 #include <string.h>
 #include "tags.h"
@@ -27,7 +29,7 @@
 #include "interface.h"
 #include "saved_games.h"
 
-extern int32_t input_gamepad_count_dword; // 0x006b1844, input_gamepad_count (int16) read as a whole dword here, as the binary does (0x53b8a2)
+extern int32_t input_device_count; // 0x006b1844, input.h (0..8 connected input devices)
 extern uint8_t input_gamepads[]; // 0x006b1868, stride 0x240; UNSURE name
 
 extern int32_t input_device_default_profile_tag_find(input_guid guid, uint8_t *out_profile); // 0x490110
@@ -55,7 +57,7 @@ void control_profile_fill_default_gamepad_slots(saved_player_profile *profile)
                                  // buffer that is never read back (see the address evidence above)
 
     used_count = 0;
-    if (0 < (int16_t)input_gamepad_count_dword) {
+    if (0 < (int16_t)input_device_count) {
         if (profile != 0) {
             used_count = (profile->gamepads[0].name[0] != 0);
             if (profile->gamepads[1].name[0] != 0) {
@@ -68,7 +70,7 @@ void control_profile_fill_default_gamepad_slots(saved_player_profile *profile)
                 used_count = used_count + 1;
             }
         }
-        device_count = (int32_t)(int16_t)input_gamepad_count_dword;
+        device_count = (int32_t)(int16_t)input_device_count;
 
         // pass 1: only devices with a matching device_defaults tag
         i = 0;
@@ -78,11 +80,11 @@ void control_profile_fill_default_gamepad_slots(saved_player_profile *profile)
                 if (3 < (int32_t)used_count) {
                     break;
                 }
-                if ((int16_t)i < input_gamepad_count_dword) {
+                if ((int16_t)i < input_device_count) {
                     memcpy(&entry, input_gamepads + (int16_t)i * 0x240, sizeof(entry));
                     have_entry = 1;
 pass1_try_add:
-                    memcpy(&key, entry.device_key, sizeof(key));
+                    key = entry.product_guid;
                     tag_index = input_device_default_profile_tag_find(key, tag_scratch);
                     if (tag_index != -1) {
                         added = control_profile_find_or_create_gamepad_slot(&entry, profile);
@@ -105,7 +107,7 @@ pass1_try_add:
                 if (3 < (int32_t)used_count) {
                     return;
                 }
-                if ((int16_t)i < input_gamepad_count_dword) {
+                if ((int16_t)i < input_device_count) {
                     memcpy(&entry, input_gamepads + (int16_t)i * 0x240, sizeof(entry));
                     have_entry = 1;
 pass2_try_add:

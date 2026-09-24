@@ -24,6 +24,7 @@
 //  - prop+0xf0/0xf4/0xf8/0xec (a target's aim-offset-adjacent floats) and prop+0x110
 //    (relationship_object_index, already named) are read as a point; the exact split
 //    between prop.unknown_ec/unknown_f8 noted elsewhere applies here too.
+// reconciled: R06 0x00746f9c is ScenarioStructureBSP *global_structure_bsp (was extern int32_t bsp_generation); ai.h path_find_context/actor_movement_context bsp_generation -> structure_bsp, bsp_index -> collision_bsp
 
 #include "tags.h"
 #include "memory.h"
@@ -35,7 +36,7 @@
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern int32_t bsp_generation; // 0x00746f9c, the structure BSP pointer, used here as an opaque handle
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (formerly bsp_generation)
 
 extern uint32_t actor_get_firing_position_group_mask(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_get_firing_position_group_mask at 0x412880
                  // disagree on the argument list; Ghidra drops the register arguments
@@ -121,7 +122,7 @@ void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order)
             *(float *)(goal_request + 0x24 /* uStack_207f8 */) = *(float *)((uint8_t *)p + 0xec);
 
             memset(&context, 0, sizeof(context));
-            *(int32_t *)((uint8_t *)&context + 0x64) = bsp_generation;
+            context.structure_bsp = (uint32_t)global_structure_bsp;
             goal_request[8] = 0;
             goal_request[0x10] = 1;
             memcpy(&context, goal_request, sizeof(goal_request));

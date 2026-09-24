@@ -8,7 +8,7 @@
 //   camera_shaking_random_rotation +0x48, camera_shaking_wobble_period +0x5c,
 //   camera_shaking_wobble_weight +0x60); types/effects.h player_effect (low_frequency_vibrate
 //   +0xcc, high_frequency_vibrate +0xd0, shake_translation +0xd4, shake_rotation +0xd8,
-//   vibrate_ticks +0xdc); src/effects/decal_update_fade.c establishes game_tick_globals[3] as
+//   vibrate_ticks +0xdc); src/effects/decal_update_fade.c establishes game_time[3] as
 //   the current game tick; src/math/periodic_function_evaluate.c establishes that function's
 //   (type, time) signature.
 // register convention: ContinuousDamageEffect tag reference in EAX (in_EAX); local player index
@@ -26,7 +26,7 @@
 
 extern tag_instance *tag_instances;                          // 0x0087bc14
 extern player_effect_globals *player_effect_globals_pointer; // 0x006f1884
-extern int32_t *game_tick_globals;                            // 0x006f1d6c
+extern int32_t *game_time;                            // 0x006f1d6c
 
 extern real periodic_function_evaluate(periodic_function_t type, double time); // 0x4cc9b0
 
@@ -45,7 +45,7 @@ void player_effect_apply_continuous_damage(uint32_t tag_reference, int16_t local
         fraction = (fraction < 0.0f) ? 0.0f : (1.0f < fraction ? 1.0f : fraction);
 
         wobble = (float)periodic_function_evaluate(_periodic_function_cosine,
-            (double)((float)game_tick_globals[3] / effect->camera_shaking_wobble_period));
+            (double)((float)game_time[3] / effect->camera_shaking_wobble_period));
         weighted = ((1.0f - effect->camera_shaking_wobble_weight) +
                     wobble * effect->camera_shaking_wobble_weight) * fraction;
 

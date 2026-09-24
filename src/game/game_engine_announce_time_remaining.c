@@ -11,11 +11,13 @@
 // UNSURE: the gate on game_engine_players_ready_for_bsp_switch_strict() returning false
 // (early "return 1") is transcribed exactly, but why a time-remaining announcement would be
 // gated on structure-BSP switch readiness is not understood.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern int16_t network_game_mode;                   // 0x00719720
@@ -78,6 +80,7 @@ announce:
     iterator.data = player_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)0xffffffff;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     unused_checksum = (uint32_t)player_data ^ 0x69746572;
 
     p = (player *)data_iterator_next(&iterator);

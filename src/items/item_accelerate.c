@@ -28,18 +28,20 @@
 // approximate (FUN_0044dad0's exact signature, and the exact register/stack split at the
 // object_set_position_and_relink call site -- this codebase already flags that same function's
 // calling convention as uncertain at several other call sites).
+// reconciled: R04 0x006f1d20 uint8_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "items.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t network_predicted_state_flag; // 0x006f1d20, predicted/network flag
-extern uint8_t bsp_collision_globals[]; // 0x00746f98, UNSURE shape (collision/BSP module);
+extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
+extern uint8_t global_structure_collision_bsp[]; // 0x00746f98, UNSURE shape (collision/BSP module);
     // +0x40 is the per-surface table (stride 0x0c, first dword is a plane index into +0x10's
     // plane array, stride 0x10) per src/units/unit_find_nearest_valid_surface_plane.c
 extern random_seed random_seed_global; // 0x00719cd0
@@ -76,7 +78,7 @@ void item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_de
         return;
     }
 
-    if (apply_detonation_timer != 0 && network_predicted_state_flag == 0) {
+    if (apply_detonation_timer != 0 && current_game_engine == 0) {
         Item *tag = (Item *)tag_instances[obj->definition_tag & 0xffff].data;
         if ((tag->item_flags & 0x02) != 0) { // destroyed_by_explosions, see types/tags.h ItemFlags
             item_detonation_timer_start(item_index);
@@ -90,13 +92,13 @@ void item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_de
         if (object_get_node_local_transform(item_index, "ground point", &marker, 1) != 0) {
             // UNSURE: FUN_0044dad0's exact signature; see file header
             real_plane3d plane;
-            int32_t surface_plane_ref = *(int32_t *)(bsp_collision_globals + 0x40
+            int32_t surface_plane_ref = *(int32_t *)(global_structure_collision_bsp + 0x40
                 + (uint32_t)(uint16_t)item->resting_surface_index * 0x0c);
             real_point3d marker_position = marker.node_transform.position;
             real correction;
             real_point3d corrected_position;
 
-            FUN_0044dad0(&plane, surface_plane_ref, bsp_collision_globals);
+            FUN_0044dad0(&plane, surface_plane_ref, global_structure_collision_bsp);
             correction = 0.05f - ((plane.normal.i * marker_position.x +
                 plane.normal.j * marker_position.y + plane.normal.k * marker_position.z) - plane.d);
             corrected_position.x = plane.normal.i * correction + marker_position.x;

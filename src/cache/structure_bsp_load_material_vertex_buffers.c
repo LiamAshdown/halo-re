@@ -19,20 +19,24 @@
 // this function and its disposal counterpart use them (a field-group pointer, a format code, a
 // vertex count, a source data pointer, an extra source pointer, and a byte size); the function
 // itself belongs to the rasterizer module, not cache, and was not decoded here.
+// reconciled: R09 0x007c117c is rasterizer_caps.max_streams (D3DCAPS9 +0xbc), not a rasterizer_vertex_processing global; 0x007c118c likewise is rasterizer_caps.pixel_shader_version (+0xcc)
 
 // phase-4 review pass: body re-checked instruction by instruction against `objdump -d -M
 // intel` of this address range; every field offset, branch and argument below now matches
 // the machine code rather than only Ghidra's pseudo-C.
 #include "tags.h"
+#include "memory.h"
+#include "math.h"
 #include "cache.h"
+#include "rasterizer.h"
 
 extern int8_t rasterizer_vertex_buffer_create(void *fields, int32_t format, int32_t vertex_count,
     void *rendered_data, void *lightmap_data, int32_t size); // UNSURE, see file header;
     // rasterizer module, 0x524980. Returns a success flag (see model_load_vertex_buffers.c,
     // where the same function's result is checked), unused by this caller.
 
-extern int32_t rasterizer_vertex_processing;     // 0x007c117c
-extern uint32_t rasterizer_device_version;        // 0x007c118c
+extern d3d_caps9 rasterizer_caps;                 // 0x007c10c0; max_streams is 0x007c117c,
+                                                  // pixel_shader_version is 0x007c118c
 
 // blam-cc: compiled_header in EAX
 // Called after a structure_bsp's data block has been loaded. Walks every lightmap's materials and
@@ -66,11 +70,11 @@ void structure_bsp_load_material_vertex_buffers(ScenarioStructureBSPCompiledHead
             lightmap_vertex_data = (void *)(material->uncompressed_vertices.pointer +
                 material->rendered_vertices_count * 0x38);
 
-            if (rasterizer_device_version < 0xffff0101 &&
+            if (rasterizer_caps.pixel_shader_version < 0xffff0101 &&
                 (material->shader.tag_fourcc == _tag_group_shader_environment ||
                  material->shader.tag_fourcc == _tag_group_shader_transparent_water ||
                  material->shader.tag_fourcc == _tag_group_shader_transparent_glass)) {
-                if (rasterizer_vertex_processing < 2 && material->lightmap_vertices_count != 0) {
+                if ((int32_t)rasterizer_caps.max_streams < 2 && material->lightmap_vertices_count != 0) { // 0x4430b5 signed
                     rasterizer_vertex_buffer_create(&material->rendered_vertices_type, 0x13,
                         material->rendered_vertices_count,
                         (void *)material->uncompressed_vertices.pointer, lightmap_vertex_data,

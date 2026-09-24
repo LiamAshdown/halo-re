@@ -6,6 +6,7 @@
 // offsets ([0] product guid low dword, [4] instance number); Ghidra's own __cdecl signature
 // confirms one pointer argument.
 // register convention: __cdecl, one stack argument (the record to match).
+// reconciled: R20 controls_gamepad_record.device_key[5] -> input_guid product_guid (+0x20c, device_key[0..3]) and int32_t product_instance (+0x21c, device_key[4])
 
 #include "tags.h"
 #include "memory.h"
@@ -28,10 +29,10 @@ uint32_t input_device_find_index_by_guid(controls_gamepad_record *record)
     uint8_t match;
 
     for (i = 0; i < input_device_count; i++) {
-        if (record->device_key[4] == input_devices[i].record.device_key[4]) {
+        if (record->product_instance == input_devices[i].record.product_instance) {
             match = 1;
             for (k = 0; k < 4; k++) {
-                if (record->device_key[k] != input_devices[i].record.device_key[k]) {
+                if (record->product_guid.words[k] != input_devices[i].record.product_guid.words[k]) {
                     match = 0;
                     break;
                 }

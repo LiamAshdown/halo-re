@@ -6,11 +6,14 @@
 //   shares its ejection block with unit_apply_damage_effects.c (0x5674a0) and its "not a
 //   vehicle" melee/lunge-style branch likewise (same UNSURE-CALL gaps apply here).
 // blam-cc: param_1 -> unit_index, param_2 -> seat_marker_name (may be NULL/empty, meaning "any").
+// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
+// reconciled: R32 follow-up: local extern player_control_globals (0x0071c2d8) renamed network_client (networking.h name) because game.h is now included and owns the player_control_globals typedef
 
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
@@ -19,9 +22,9 @@
 extern data_array *object_data;      // 0x008603b0
 extern data_array *player_data;      // 0x0087a480
 extern tag_instance *tag_instances;  // 0x0087bc14
-extern hs_game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/hs.h)
+extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
 extern int32_t game_connection_role; // 0x00719720
-extern uint8_t *player_control_globals; // 0x0071c2d8
+extern uint8_t *network_client; // 0x0071c2d8 (networking.h network_client; renamed from network_client, which collides with game.h's typedef)
 extern void *matrix4x3_multiply_thunk; // 0x00696664
 
 extern int32_t _tolower(int32_t c); // 0x624687
@@ -107,7 +110,7 @@ int16_t unit_detach_child_at_named_seat(uint32_t unit_index, char *seat_marker_n
                                 unit_try_set_animation_state(old_parent, 0x25);
                             }
                             child_unit->last_parent_object_index = old_parent;           // puVar15[0xcb] = uVar4
-                            child_unit->last_seat_change_tick = game_time->current_tick; // puVar15[0xcc]
+                            child_unit->last_seat_change_tick = game_time->game_time; // puVar15[0xcc]
                             // the first clear pair is on puVar15 (the child); the pair below is on puVar5
                             if (child_unit->driver_unit_index == child_index) child_unit->driver_unit_index = k_datum_index_none;
                             if (child_unit->gunner_unit_index == child_index) child_unit->gunner_unit_index = k_datum_index_none;
@@ -156,8 +159,8 @@ refresh_history:
                                 if ((salt != 0) &&
                                     (((int16_t)(controlling >> 16) == 0) || (salt == (int16_t)(controlling >> 16))) &&
                                     (*(int16_t *)((uint8_t *)player_data->data + rec_off + 2) != -1) &&
-                                    (player_control_globals != 0)) {
-                                    player_update_history_free_all(*(void **)(player_control_globals + 0xf48));
+                                    (network_client != 0)) {
+                                    player_update_history_free_all(*(void **)(network_client + 0xf48));
                                 }
                             }
                         }

@@ -13,6 +13,8 @@
 // UNSURE: matches equipment_build_creation_message.c's precedent -- hash_table_get and
 // network_index_cache_find_or_allocate_slot are opaque externals decompiled with implicit register arguments Ghidra could
 // not recover; called exactly as shown, with only the visibly-passed arguments preserved.
+// reconciled: R28 object.unknown_0c4 -> datum_index creator_object (same offset 0xc4)
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
 
 #include "tags.h"
 #include "memory.h"
@@ -58,8 +60,8 @@ void weapon_build_creation_message(datum_index item_index, uint32_t unused_param
     if (item_index != (datum_index)0xffffffff) {
         object_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0x0c), item_index);
     }
-    if (item_obj->unknown_0c4 != (uint32_t)0xffffffff) {
-        parent_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0x0c), item_obj->unknown_0c4);
+    if (item_obj->creator_object != (uint32_t)0xffffffff) {
+        parent_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0x0c), item_obj->creator_object);
         if (parent_hash == -1) parent_hash = 0;
     }
     if (item_obj->owner_linkage != (uint32_t)0xffffffff) {
@@ -72,7 +74,7 @@ void weapon_build_creation_message(datum_index item_index, uint32_t unused_param
 
     message.definition_tag = item_obj->definition_tag;
     message.object_hash = object_hash;
-    message.name_index = item_obj->name_index;
+    message.name_index = item_obj->owner_team;
     message.owner_hash = owner_hash;
     message.parent_hash = parent_hash;
     message.object_flags = object_flags;

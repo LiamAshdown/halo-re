@@ -22,11 +22,13 @@
 // transcribed as-is rather than guessing at the missing iterator plumbing. The top-of-function
 // field reset does not itself guard `player_handle != 0xffffffff`, even though the later
 // kill-feed loop treats -1 as a sentinel; not fixed here.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data;                     // 0x0087a480
 extern game_engine_definition *current_game_engine;  // 0x006f1d20
@@ -93,6 +95,7 @@ void game_engine_player_new_life(uint32_t player_handle)
         iter.data = player_data;
         iter.next_index = 0;
         iter.index = (datum_index)0xffffffff;
+        iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
         p = (player *)data_iterator_next(&iter);
         while (p != (player *)0) {

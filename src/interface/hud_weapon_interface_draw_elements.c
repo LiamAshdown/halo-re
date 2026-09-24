@@ -25,6 +25,7 @@
 // to 1.0f in the tag; element byte +0x02 bit 0 hides an element (types/tags.h calls it
 // padding); the meter fraction argument is the flash start time converted to float.
 // register convention: plain cdecl, seven stack arguments.
+// reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
 
 #include <string.h>
 #include "tags.h"
@@ -98,7 +99,7 @@ void hud_weapon_interface_draw_elements(datum_index hud_tag, int16_t local_playe
     uint16_t overlay_types[8];
     int16_t numbers[8];
     float values[8];
-    uint16_t split = local_player_globals->unknown_0c > 1 ? 4 : 0;
+    uint16_t split = local_player_globals->local_player_count > 1 ? 4 : 0;
     uint32_t view_mask;
     int16_t i;
 
@@ -217,7 +218,7 @@ void hud_weapon_interface_draw_elements(datum_index hud_tag, int16_t local_playe
     }
 
     view_mask = (*(int16_t *)((uint8_t *)global_scenario + 0x3c) != 2 ? 1 : 0) |
-                (local_player_globals->unknown_0c == 1 ? 2 : 0) | (local_player_globals->unknown_0c > 1 ? 4 : 0);
+                (local_player_globals->local_player_count == 1 ? 2 : 0) | (local_player_globals->local_player_count > 1 ? 4 : 0);
 
     for (i = 0; (int32_t)i < (int32_t)hud->static_elements.count; i++) {
         WeaponHUDInterfaceStaticElement *element = (WeaponHUDInterfaceStaticElement *)hud->static_elements.pointer + i;
@@ -294,7 +295,7 @@ void hud_weapon_interface_draw_elements(datum_index hud_tag, int16_t local_playe
         }
         hud_draw_overlays((uint16_t *)&hud->anchor, (const hud_overlay_list *)&element->overlay_bitmap,
                           (uint32_t)(int16_t)overlay_types[state], flash_start_times[state], state_flags[state],
-                          local_player_globals->unknown_0c > 1);
+                          local_player_globals->local_player_count > 1);
     }
 }
 

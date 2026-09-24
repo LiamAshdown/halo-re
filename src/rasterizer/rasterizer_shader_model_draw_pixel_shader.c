@@ -20,6 +20,7 @@
 // blam-cc: stack -> (shader, frame, index_buffer, dynamic_index_slot, primitive_count, vertex_buffer, dynamic_vertex_slot)
 // UNSURE: 0x0071d1fb (selects vertex shader 25), 0x0071cfc0 (four floats that override c13/c14
 //   when any is positive) and 0x007c047c (the fog alpha scale) have no known owner or name.
+// reconciled: R43 rasterizer_model_draw_context unknown_84[2] -> change_colors/function_values (the render_animation pair), unknown_c0/c4/c8 -> bounding_radius/base_map_u_scale/base_map_v_scale (same offsets)
 
 #include "tags.h"
 #include "memory.h"
@@ -231,7 +232,7 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
         animated.green = delta.green * value + model->animation_color_lower_bound.green;
         animated.blue = delta.blue * value + model->animation_color_lower_bound.blue;
         if (model->color_source > 0 && model->color_source < 5) {
-            const ColorRGB *colors = (const ColorRGB *)(uintptr_t)context->unknown_84[0];
+            const ColorRGB *colors = (const ColorRGB *)(uintptr_t)context->change_colors;
             const ColorRGB *source = &colors[model->color_source - 1];
 
             animated.red *= source->red;
@@ -259,7 +260,7 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
     }
     context = rasterizer_active_model_context;
     if (model->change_color_source > 0 && model->change_color_source < 5) {
-        change = ((const ColorRGB *)(uintptr_t)context->unknown_84[0])[model->change_color_source - 1];
+        change = ((const ColorRGB *)(uintptr_t)context->change_colors)[model->change_color_source - 1];
     } else {
         change = *global_white_color;
     }
@@ -392,8 +393,8 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
     detail_constants[2][1] = 1.0f;
     detail_constants[2][2] = 0.0f;
     detail_constants[2][3] = 0.0f;
-    shader_texture_animation_evaluate(&context->unknown_84[0], shader + 0xfc, detail_constants[1], detail_constants[2],
-                                      context->unknown_c4 * model->map_u_scale, context->unknown_c8 * model->map_v_scale,
+    shader_texture_animation_evaluate(&context->change_colors, shader + 0xfc, detail_constants[1], detail_constants[2],
+                                      context->base_map_u_scale * model->map_u_scale, context->base_map_v_scale * model->map_v_scale,
                                       0.0f, 0.0f, 0.0f, (float)rasterizer_time.time);
     detail_constants[2][2] = model->translucency;
     if (((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 10, &detail_constants[0][0], 3) < 0) {
@@ -447,9 +448,9 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
         detail_constants[2][1] = 1.0f;
         detail_constants[2][2] = 0.0f;
         detail_constants[2][3] = 0.0f;
-        shader_texture_animation_evaluate(&context->unknown_84[0], shader + 0xfc, detail_constants[1], detail_constants[2],
-                                          context->unknown_c4 * model->map_u_scale,
-                                          context->unknown_c8 * model->map_v_scale, 0.0f, 0.0f, 0.0f,
+        shader_texture_animation_evaluate(&context->change_colors, shader + 0xfc, detail_constants[1], detail_constants[2],
+                                          context->base_map_u_scale * model->map_u_scale,
+                                          context->base_map_v_scale * model->map_v_scale, 0.0f, 0.0f, 0.0f,
                                           (float)rasterizer_time.time);
         detail_constants[2][2] = model->translucency;
         ((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 10, &detail_constants[0][0], 3);

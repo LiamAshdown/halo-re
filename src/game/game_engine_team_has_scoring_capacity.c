@@ -15,11 +15,13 @@
 // UNSURE: when ctf_value_80 != 0, Ghidra shows `return CONCAT31(garbage, 1)` -- narrowed here
 //   to a plain `return 1` (matching the object_disconnect_from_map.c precedent for this exact
 //   decompiler artifact).
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data;          // 0x0087a480
 extern game_variant game_engine_variant; // 0x006f1c88 (ctf_value_80/lives_per_round/score_limit
@@ -43,6 +45,7 @@ uint8_t game_engine_team_has_scoring_capacity(int32_t team)
     iter.data = player_data;
     iter.next_index = 0;
     iter.index = (datum_index)0xffffffff;
+    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     p = (player *)data_iterator_next(&iter);
     while (p != (player *)0) {

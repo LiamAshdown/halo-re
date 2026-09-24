@@ -24,10 +24,12 @@
 //   // blam-cc: EAX -> actor_index
 // UNSURE: essentially every raw offset comment in this file marks a field this rewrite did
 // not independently re-derive; see individual comments below. Preserved exactly as decompiled.
+// reconciled: R04 0x006f1d20 uint8_t use_absolute_team_check -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "ai.h"
 #include "cache.h"
 #include "objects.h"
@@ -48,7 +50,7 @@ extern const real_point3d *swarm_aggregate_seed;      // 0x006966f8, UNSURE name
                                       //   aggregate position below
 extern const real_vector3d *global_up3d_pointer;      // 0x00696720, UNSURE name
 extern char ai_marker_name_b[];       // 0x00672034, UNSURE name/size
-extern uint8_t use_absolute_team_check; // 0x006f1d20, UNSURE name
+extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern uint8_t team_relationship_flags; // 0x006b0b84, base of the 0x2d-dword team-relationship block
 
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0
@@ -168,7 +170,7 @@ void actor_refresh_combat_context(datum_index actor_index)
                 if (candidate->type == 0) {
                     int16_t candidate_team = *(int16_t *)((uint8_t *)candidate + 0xb8); // UNSURE offset
                     int mismatch;
-                    if (use_absolute_team_check == 0) {
+                    if (current_game_engine == 0) {
                         if (self->team >= 0 && self->team < 10 && candidate_team >= 0 && candidate_team < 10) {
                             int index = candidate_team + self->team * 10;
                             // The bitmap starts 0xa4 bytes into the block at 0x006b0b84; the

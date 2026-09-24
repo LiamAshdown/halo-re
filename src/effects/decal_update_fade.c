@@ -18,7 +18,7 @@
 extern data_array *decal_data;      // 0x0087abe4
 extern decal_grid *decal_grid_block; // 0x006b0ad8
 extern cache *decal_geometry_cache; // 0x0071d1c0
-extern int32_t *game_tick_globals;  // 0x006f1d6c; +0x0c is the current game tick
+extern int32_t *game_time;  // 0x006f1d6c; +0x0c is the current game tick
 
 extern void cache_evict_entry(datum_index handle, cache *self); // 0x4d1c20,
     // blam-cc: EBX -> handle, EDI -> self
@@ -29,7 +29,7 @@ extern void cache_evict_entry(datum_index handle, cache *self); // 0x4d1c20,
 void decal_update_fade(datum_index decal_index)
 {
     decal *self = &((decal *)decal_data->data)[(uint16_t)decal_index];
-    real age = (real)(game_tick_globals[3] - self->creation_game_time) * 0.033333335f;
+    real age = (real)(game_time[3] - self->creation_game_time) * 0.033333335f;
 
     self->alpha = 0xff;
 

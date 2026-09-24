@@ -646,7 +646,8 @@ typedef struct unit_camera_properties {
 //             +0x4f4 cutscene_camera_points.pointer
 // 0x00746fa0  Globals *global_globals (cache)     +0x108 camera block pointer; its +0x0c is the
 //             default_unit_camera_track tag handle
-// 0x00746f90 / 0x00746f9c  structure bsp (cache)  leaf lookup 0x5013a0, cluster table +0xe4
+// 0x00746f90 / 0x00746f9c  global_collision_bsp / global_structure_bsp (scenario)  leaf lookup
+//             0x5013a0 on the collision BSP, cluster table at structure bsp +0xe4
 // 0x0087a478  player_globals (game)   +0x04 local_players[0]
 // 0x0087a480  data_array *player_data (game)   stride 0x200; +0x20 team, +0x34 unit,
 //             +0x38 previous_unit (dead camera target), +0xae deaths
@@ -667,7 +668,7 @@ typedef struct unit_camera_properties {
 // 0x00712542  input mode_flags (input)
 // 0x00696714 global_origin3d_pointer, 0x006966f8 global_zero_vector3d_pointer (both point at
 //             0x0065c230 {0,0,0}), 0x00696718 forward, 0x00696720 up (math)
-// 0x00746f90  ModelCollisionGeometryBSP *global_globals (structures)   bsp3d_node_find_leaf root
+// 0x00746f90  ModelCollisionGeometryBSP *global_collision_bsp (scenario)   bsp3d_node_find_leaf root
 // 0x0069e7c0 / 0x0069e7e0  game_state_after_load_procs[5] / [12] (saved_games): observer_initialize
 //             0x447870 and director_game_state_loaded 0x445560
 // 0x0069e900  a procedure table slot (0x0069e8dc..) holding observer_update_location 0x447a60

@@ -41,7 +41,7 @@ CHECK_SIZE_P(sound_eax_effect_object, 0xe8);
 CHECK_OFFSET(sound_location, scale, 0x04);
 CHECK_OFFSET(sound_location, position, 0x0c);
 CHECK_OFFSET(sound_location, forward, 0x18);
-CHECK_OFFSET(sound_location, up, 0x24);
+CHECK_OFFSET(sound_location, velocity, 0x24); /* R51: sound.h renamed +0x24 up -> velocity */
 CHECK_OFFSET(sound_location, leaf_index, 0x30);
 CHECK_OFFSET(sound_location, cluster_index, 0x34);
 CHECK_OFFSET(sound_location, obstruction, 0x38);

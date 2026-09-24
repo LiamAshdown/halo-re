@@ -19,6 +19,8 @@
 //   src/objects/damage_apply_area_effect.c's object_find_in_sphere signature.
 // register convention: EDX -> point. Returns a bool in AL only.
 //   // blam-cc: EDX -> point
+// reconciled: R06 global_matg_multiplayer (0x00746f9c) -> ScenarioStructureBSP *global_structure_bsp; the 0x00746f90 extern that was misnamed global_structure_bsp becomes global_collision_bsp (R05 name) to free the name
+// reconciled: R05 global_collision_bsp takes its agreed type ModelCollisionGeometryBSP * (was uint8_t *) and is passed to bsp3d_node_find_leaf with the incoming point, as the registers show
 
 #include "tags.h"
 #include "memory.h"
@@ -27,14 +29,14 @@
 #include "objects.h"
 #include "game.h"
 
-extern uint8_t *global_structure_bsp;    // 0x00746f90
-extern uint8_t *global_matg_multiplayer; // 0x00746f9c
+extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90 (R05; ScenarioStructureBSP +0xb4)
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (formerly global_matg_multiplayer)
 extern data_array *object_headers;       // 0x008603b0
 
-extern int32_t bsp3d_node_find_leaf(void); // 0x5013a0, not in this module. UNSURE signature: takes
-    // EAX (0 here) and ECX (global_structure_bsp) register arguments and does float math
-    // (objdump 0x5013a0); returns a BSP leaf index in EAX, or -1. Every other call site in the
-    // codebase also reads only EAX.
+extern int32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp,
+    real_point3d *point); // 0x5013a0, not in this module; blam-cc: EAX -> node_index, ECX -> bsp,
+    // EDX -> point (as src/camera/observer_update_location.c declares it); returns a BSP leaf
+    // index in EAX, or -1. Here EDX is still this function's own incoming point (0x461e63).
 extern int16_t object_find_in_sphere(uint32_t search_mask, uint32_t type_mask, void *location,
     real_point3d *center, float radius, datum_index *out_objects, int16_t max_output); // 0x4f6fe0
 
@@ -51,12 +53,11 @@ uint8_t game_engine_location_blocked_by_vehicle(real_point3d *point)
     int16_t count;
     int16_t i;
 
-    location.leaf_index = bsp3d_node_find_leaf();
+    location.leaf_index = bsp3d_node_find_leaf(0, global_collision_bsp, point);
     if (location.leaf_index == -1) {
         location.cluster_index = -1;
     } else {
-        location.cluster_index = *(int16_t *)(*(uint8_t **)(global_matg_multiplayer + 0xe4)
-            + (location.leaf_index & 0x7fffffff) * 0x10 + 8);
+        location.cluster_index = (int16_t)((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[location.leaf_index & 0x7fffffff].cluster;
     }
 
     count = object_find_in_sphere(0, 0x11f, &location, point, 0.1f, candidates, 0x10);

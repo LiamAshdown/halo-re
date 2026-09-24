@@ -37,6 +37,7 @@
 // products before normalizing both, so a slightly stale replicated basis still yields an
 // orthonormal one. vector3d_cross_product's operand order is the one
 // src/items/equipment_create_from_creation_message.c established (out = stack x ecx).
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
 
 #include "tags.h"
 #include "memory.h"
@@ -108,7 +109,7 @@ void weapon_create_from_creation_message(void *incoming_record)
     placement.definition_tag = decoded.definition_tag;
     placement.owner_linkage = owner_material;
     placement.role = role_material;
-    placement.name_index = decoded.name_index;
+    placement.owner_team = decoded.name_index;
     placement.position = decoded.position;
     placement.forward = forward;
     placement.up = up;

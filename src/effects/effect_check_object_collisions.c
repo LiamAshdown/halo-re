@@ -29,6 +29,7 @@
 //   registers (dead code from converting an fcom/fnstsw sequence) -- omitted here since they are
 //   never consumed, only the boolean the comparisons feed (radius != 0.0, and the final overlap
 //   test) is preserved.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
@@ -37,6 +38,7 @@
 #include "cache.h"
 #include "effects.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *effect_data;              // 0x0087abdc
 extern data_array *effect_location_data;     // 0x0087abe0
@@ -82,6 +84,7 @@ uint32_t effect_check_object_collisions(void)
             player_iterator.data = player_data;
             player_iterator.next_index = 0;
             player_iterator.index = k_datum_index_none;
+            player_iterator.signature = (uint32_t)(uintptr_t)player_iterator.data ^ k_data_iterator_signature;
 
             for (p = (player *)data_iterator_next(&player_iterator); p != (player *)0;
                  p = (player *)data_iterator_next(&player_iterator)) {

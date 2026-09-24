@@ -62,6 +62,7 @@
 //   hex with local comments describing what this function's own tallies (ground/water contact
 //   counts) drive them from. TYPES-GAP: consider folding these into object_flags once another
 //   module corroborates them.
+// reconciled: R23 collision_result: normal -> plane.normal, unknown_30 -> plane.d, unknown_04 -> first_leaf/first_cluster, unknown_3c -> region_index, marker_index -> node_index, unknown_40 -> permutation_index (int16), unknown_48 -> plane_index, unknown_4d -> breakable_surface_index, unknown_4e -> collision_material_index
 
 #include "tags.h"
 #include "memory.h"
@@ -221,8 +222,8 @@ void object_physics_integrate_and_test_at_rest(object_physics_context *context, 
             }
 
             {
-                real dot_delta = best_result.normal.i * best_delta.i + best_result.normal.j * best_delta.j +
-                    best_result.normal.k * best_delta.k;
+                real dot_delta = best_result.plane.normal.i * best_delta.i + best_result.plane.normal.j * best_delta.j +
+                    best_result.plane.normal.k * best_delta.k;
                 real friction_t = (dot_delta == 0.0f) ? 0.03125f : (0.0078125f / (real)fabs((double)dot_delta));
                 real remaining_t = best_result.t - friction_t;
                 real dot_velocity;
@@ -231,13 +232,13 @@ void object_physics_integrate_and_test_at_rest(object_physics_context *context, 
                     remaining_t = 0.0f;
                 }
 
-                dot_velocity = best_result.normal.i * new_velocity.i + best_result.normal.j * new_velocity.j +
-                    best_result.normal.k * new_velocity.k;
+                dot_velocity = best_result.plane.normal.i * new_velocity.i + best_result.plane.normal.j * new_velocity.j +
+                    best_result.plane.normal.k * new_velocity.k;
                 if (dot_velocity < 0.0f) {
                     real bounce = (remaining_t - 1.0f) * dot_velocity;
-                    new_velocity.i += best_result.normal.i * bounce;
-                    new_velocity.j += best_result.normal.j * bounce;
-                    new_velocity.k += best_result.normal.k * bounce;
+                    new_velocity.i += best_result.plane.normal.i * bounce;
+                    new_velocity.j += best_result.plane.normal.j * bounce;
+                    new_velocity.k += best_result.plane.normal.k * bounce;
                     self->velocity = new_velocity;
                     new_position.i = new_velocity.i + self->position.x;
                     new_position.j = new_velocity.j + self->position.y;

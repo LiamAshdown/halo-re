@@ -11,6 +11,10 @@
 // profile->gamepads at the gamepad stride (0x220 bytes) -- reproduced exactly; if more than 4
 // devices are connected this walks past the 4-entry gamepads array into the profile's own
 // trailing bytes, matching the original binary's own behaviour (not "fixed" here).
+// reconciled: R02 0x006b2ce8 input_slot_to_device -> input.h joystick_slot_devices[4]
+// reconciled: R78 0x006b1844 input_gamepad_count(_dword) -> input.h int32_t input_device_count; the WORD readers keep their int16 width through an (int16_t) cast
+// fixed (reconciliation check): the bounds test against input_device_count is a full DWORD
+// compare (mov ecx,ds:0x6b1844; movsx eax,ax; cmp eax,ecx), so it no longer truncates to int16.
 
 #include "tags.h"
 #include "memory.h"
@@ -20,9 +24,9 @@
 #include "interface.h"
 #include "saved_games.h"
 
-extern int16_t input_gamepad_count; // 0x006b1844
+extern int32_t input_device_count; // 0x006b1844, input.h (0..8 connected input devices)
 extern int32_t input_device_to_slot[]; // 0x006b1a98, stride 0x90 dwords (0x240 bytes) per device
-extern int32_t input_slot_to_device[]; // 0x006b2ce8
+extern int32_t joystick_slot_devices[4]; // 0x006b2ce8, input.h
 
 extern int16_t input_device_find_index_by_guid(controls_gamepad_record *gamepad); // 0x4916e0, not in this module
 
@@ -37,15 +41,15 @@ void control_profile_clear_device_slot_mappings(saved_player_profile *profile)
     if (profile == 0) {
         return;
     }
-    count = input_gamepad_count;
+    count = (int16_t)input_device_count;
     entry = (uint8_t *)profile + 0x1108;
     while (0 < count) {
         device_index = input_device_find_index_by_guid((controls_gamepad_record *)entry);
-        if (device_index != -1 && device_index < input_gamepad_count) {
+        if (device_index != -1 && device_index < input_device_count /* DWORD compare */) {
             slot = input_device_to_slot[device_index * 0x90];
             if (slot != -1) {
                 input_device_to_slot[device_index * 0x90] = -1;
-                input_slot_to_device[slot] = -1;
+                joystick_slot_devices[slot] = -1;
             }
         }
         entry = entry + 0x220;

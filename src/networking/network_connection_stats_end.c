@@ -10,6 +10,7 @@
 // connection key (DI) straight through untouched. Declared here as ordinary parameters so
 // that pass-through is explicit; see network_connection_stats_lookup_or_add.c for the same
 // register convention on the callee side.
+// reconciled: R01 0x0087ac06 int16 network_statistics_level -> uint8 debug_log_level (the binary reads a byte)
 
 #include "tags.h"
 #include "memory.h"
@@ -17,7 +18,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern int16_t network_statistics_level; // 0x0087ac06
+extern uint8_t debug_log_level;          // 0x0087ac06, byte-wide (R01)
 extern network_connection_statistics network_connection_stats[k_network_connection_stats_count]; // 0x0087bec0
 
 extern int32_t network_connection_stats_lookup_or_add(int32_t connection_id, uint16_t connection_key); // 0x440a80, this module
@@ -32,7 +33,7 @@ void network_connection_stats_end(int32_t connection_id, uint16_t connection_key
 
     // Short-circuit order matters: lookup_or_add (which can grow the stats table) only runs
     // once statistics logging is actually enabled, exactly as in the original.
-    if (2 < network_statistics_level &&
+    if (2 < debug_log_level &&
         (index = network_connection_stats_lookup_or_add(connection_id, connection_key), index != -1) &&
         network_connection_stats[index].active != 0) {
         now = FUN_00449210();

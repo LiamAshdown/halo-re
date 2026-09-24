@@ -8,14 +8,16 @@
 //   object_marker (node_index at +0x00); the cea-pdb "left hand" string match confirms the name.
 // blam-cc: param_1 -> unit_index.
 // UNSURE: the network-prediction gate at the top (controlling_player/DAT_0087abc2/
-// network_predicted_state_flag/DAT_0087aa00/DAT_006f1cc0) is reproduced literally without
+// current_game_engine/DAT_0087aa00/DAT_006f1cc0) is reproduced literally without
 // naming every bit; object_new_with_datum_role_control's, object_placement_data_initialize's
 // and object_attach_to_object's exact field layouts are only partially recovered (local_f8,
 // local_70 and the angular-velocity locals are kept as raw byte buffers).
+// reconciled: R04 0x006f1d20 int32_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
@@ -23,7 +25,7 @@
 extern data_array *object_data;      // 0x008603b0
 extern uint8_t *globals_tag_data;    // 0x00746fa0
 extern uint8_t network_toggle_0087abc2; // 0x0087abc2
-extern int32_t network_predicted_state_flag; // 0x006f1d20
+extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern uint32_t game_mode_flags_0087aa00;    // 0x0087aa00
 extern uint32_t game_flags_006f1cc0;         // 0x006f1cc0
 extern int32_t game_connection_role;         // 0x00719720
@@ -44,7 +46,7 @@ void unit_throw_grenade_move_to_hand(uint32_t unit_index)
 
     if (((unit->controlling_player == k_datum_index_none) ||
          ((network_toggle_0087abc2 == 0) &&
-          ((network_predicted_state_flag == 0) || ((game_mode_flags_0087aa00 & 4) != 0) ||
+          ((current_game_engine == 0) || ((game_mode_flags_0087aa00 & 4) != 0) ||
            ((game_flags_006f1cc0 >> 2 & 1) == 0)))) &&
         (unit->actor_index == k_datum_index_none) &&
         ((unit_obj->network_role == 3) || (unit_obj->network_role == 0))) {

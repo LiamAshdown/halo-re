@@ -2,7 +2,7 @@
 // address 0x53b6b0, size 62 bytes
 // name confidence: 0.55   rewrite confidence: 0.85
 // evidence: out/phase4/saved_games_types_notes.md "0x53b6b0 (+0x21c then +0x20c..+0x218)":
-// walks profile->gamepads[0..3], matching device_key[4] (the extra dword at controls_gamepad_record
+// walks profile->gamepads[0..3], matching product_instance (the extra dword at controls_gamepad_record
 // +0x21c) and then the 16-byte device_key[0..3] (+0x20c..+0x21c) against a caller-supplied key
 // record. Confirmed against objdump 0x53b6b0..0x53b6f0: `add edx,0x1314` is exactly
 // offsetof(saved_player_profile, gamepads) + offsetof(controls_gamepad_record, device_key)
@@ -10,6 +10,7 @@
 // stride `add edx,0x220` is sizeof(controls_gamepad_record).
 // register convention: profile in EDX, key record in EBX (confirmed by objdump: no stack args,
 // EAX/ECX are locals, EDX and EBX are live-in / never assigned before first use).
+// reconciled: R20 controls_gamepad_record.device_key[5] -> input_guid product_guid (+0x20c, device_key[0..3]) and int32_t product_instance (+0x21c, device_key[4])
 
 #include "tags.h"
 #include "memory.h"
@@ -30,11 +31,11 @@ int32_t control_profile_gamepad_slot_find(saved_player_profile *profile, control
 
     for (i = 0; i < k_control_gamepad_count; i++) {
         slot = &profile->gamepads[i];
-        if (slot->device_key[4] == key->device_key[4] &&
-            slot->device_key[0] == key->device_key[0] &&
-            slot->device_key[1] == key->device_key[1] &&
-            slot->device_key[2] == key->device_key[2] &&
-            slot->device_key[3] == key->device_key[3]) {
+        if (slot->product_instance == key->product_instance &&
+            slot->product_guid.words[0] == key->product_guid.words[0] &&
+            slot->product_guid.words[1] == key->product_guid.words[1] &&
+            slot->product_guid.words[2] == key->product_guid.words[2] &&
+            slot->product_guid.words[3] == key->product_guid.words[3]) {
             return i;
         }
     }

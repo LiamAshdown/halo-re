@@ -196,13 +196,14 @@ typedef struct structure_bsp_visible_cluster {
 // structure_bsp_mirror_result  (the out-block 0x00553560 fills through its third argument)
 // The plane is copied straight out of ScenarioStructureBSPMirror (+0x00..+0x0f) and the two
 // floats come from the mirror shader when it is a shadertype_environment: ShaderEnvironment
-// +0x30c and +0x310, which types/tags.h still has as _pad_30c. They are zeroed for any other
+// +0x30c and +0x310 (types/tags.h runtime_mirror_value_0/_1). They are zeroed for any other
 // shader type.
 // ---------------------------------------------------------------------------
 typedef struct structure_bsp_mirror_result {
     real_plane3d plane;            // 0x00 ScenarioStructureBSPMirror.plane
-    float unknown_10;              // 0x10 ShaderEnvironment +0x30c, 0 for other shader types
-    float unknown_14;              // 0x14 ShaderEnvironment +0x310
+    float shader_mirror_value_0;   // 0x10 ShaderEnvironment.runtime_mirror_value_0 (+0x30c), 0 for
+                                   //      other shader types
+    float shader_mirror_value_1;   // 0x14 ShaderEnvironment.runtime_mirror_value_1 (+0x310)
     int16_t cluster_index;         // 0x18 the cluster the mirror was found in
     int16_t unknown_1a;            // 0x1a alignment; never written
 } structure_bsp_mirror_result;     // size 0x1c
@@ -341,7 +342,8 @@ typedef struct detail_object_cell_key {
 // the fog plane vector the transparent-surface path hands to the renderer
 // global 0x006e3ae0: uint8_t fog_plane_vector_valid       0x005527f0 clears it, 0x00555330 sets it
 //                    (BYTE accesses throughout)
-// global 0x006e3ae4: real_vector3d fog_plane_vector       reset from *0x00696714, then rebuilt as
+// global 0x006e3ae4: real_vector3d fog_plane_vector       reset from *global_origin3d_pointer
+//                    (0x00696714, math.h: the zero vector), then rebuilt as
 //                    the fog density times the fog plane normal. 0x00552de0 passes it instead of
 //                    the default to the transparent callback when coplanar/fog
 //                    flag bit 1 of the material is set
@@ -369,18 +371,20 @@ typedef struct detail_object_cell_key {
 // global 0x0069fa4c: float k_cluster_query_radius_threshold  0x00553d80 takes the cheap
 //                    cluster-flood path for radii at or above it and the recursive bsp3d descent
 //                    below it
-// global 0x00696714: real_vector3d *k_default_fog_plane_vector
+// (0x00696714 is types/math.h const real_point3d *global_origin3d_pointer, == 0x0065c230 which
+//  holds (0,0,0); fog_plane_vector above is reset from it. It is not a structures global.)
 // global 0x00696744: real_bounds *k_default_screen_bounds   the four floats every new visible
 //                    screen bounds of a cluster start at, before polygon2d_bounds_expand grows them
 //
 // Globals this module reads but does not own, named by the module that does:
-//   0x00746f90  ModelCollisionGeometryBSP *global_globals   the collision BSP of the structure.
-//               The name is the one seven files in src/effects / src/objects / src/hs already use for
-//               this address (as void *); the type is refined here because 0x00553e4a passes it
-//               to bsp3d_node_find_leaf in ECX and 0x00554b9f reads its +0x10 as planes.pointer.
-//               NOT the same global as structure_collision_bsp at 0x00746f98 (types/effects.h,
-//               types/items.h), which is indexed through its +0x40 surfaces.pointer.
-//   0x00746f9c  void *structure_bsp                the resident ScenarioStructureBSP tag data;
+//   0x00746f90  ModelCollisionGeometryBSP *global_collision_bsp   the collision BSP of the
+//               structure (scenario.h): 0x53ef6d / 0x541042 load ScenarioStructureBSP +0xb4 and
+//               store it here and at 0x00746f98 together. 0x00553e4a passes it to
+//               bsp3d_node_find_leaf in ECX and 0x00554b9f reads its +0x10 as planes.pointer.
+//               0x00746f98 (structure_collision_bsp in types/effects.h / types/items.h, indexed
+//               through its +0x40 surfaces.pointer) always holds the same pointer.
+//               (Formerly misnamed global_globals, which is the matg globals at 0x00746fa0.)
+//   0x00746f9c  ScenarioStructureBSP *global_structure_bsp (scenario.h) the resident tag data;
 //               every walk in this file starts here (types/physics.h, types/objects.h)
 //   0x0087bc14  tag_instance *tag_instances        stride 0x20, tag data at +0x14 (types/cache.h)
 //   0x0087a478  player_globals *player_globals     local player count at +0x0c (types/game.h)
@@ -398,8 +402,12 @@ typedef struct detail_object_cell_key {
 //               camera position, +0x20 its forward vector, +0x54 the portal tolerance and +0x68
 //               the projection context 0x00554850 transforms portal vertices with
 //   0x006e09e8 / 0x0071d174 / 0x007c118c  the rasterizer device and its version
-//   0x0065e508  k_default_sound_environment, and 0x00746f94 the interpolated copy: both belong
-//               to the sound module with 0x0053f150, see out/phase4/structures_types_notes.md
+//   0x0065e508  k_default_sound_environment (sound module, 0x0053f150)
+//   0x00746f94  scenario_game_globals *global_scenario_game_globals (types/scenario.h): the
+//               0x7c-byte scenario game-state block, stored at 0x45aa78 and read by the scenario
+//               code (0x53e925, 0x53ef2b, 0x53ef54, 0x53efc6, 0x53f008, 0x53f2d2, 0x541017).
+//               Only its +0x30..+0x7b tail is the interpolated sound environment state that
+//               0x0053f150 keeps; the block itself is not a sound global.
 //   0x0065e64c  the near clip plane polygon3d_clip_to_plane is given
 //   0x006893f5 / 0x00687004  the enable toggles of the decal system
 //   0x0069c67c  a render flag 0x005528f0 forces on while it draws

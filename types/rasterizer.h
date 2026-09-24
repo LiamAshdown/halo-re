@@ -566,7 +566,10 @@ typedef struct render_fog {
     float planar_maximum_distance;  // 0x40
     float planar_maximum_depth;     // 0x44
     uint32_t unknown_48;            // 0x48 no reader in this module
-    uint32_t unknown_4c;            // 0x4c no reader in this module
+    float sky_fog_screen_blend;     // 0x4c (R41) scenario_sky_fog_state_update 0x53e8c0 stores
+                                    //      the sky fog screen blend (source +0x28) clamped to
+                                    //      [0,1]: 0 at 0x53eb20, 1.0 at 0x53eb3f, the value at
+                                    //      0x53eb51. No reader in this module
 } render_fog;                       // size 0x50
 
 // ---------------------------------------------------------------------------
@@ -669,7 +672,9 @@ typedef struct rasterizer_projected_light_constants {
 // by FUN_00518ce0 / render_objects_transparent 0x518d40, which read ambient_color, the
 // distant light count and pairs, and the point light count, and by the fact that
 // rasterizer_model_draw_context places it at +0x10 with the next field at +0x84. The trailing
-// names follow the OpenSauce layout (hint only).
+// three fields are pinned too (R42): render_objects_lighting_update 0x50f270 steps all three
+// (0x50f5c0 for the tint), 0x50eba0 takes the luminance of shadow_color, and 0x50f830 builds the
+// shadow basis from shadow_vector (lea ebx,[eax+0x5c] at 0x50f876).
 // ---------------------------------------------------------------------------
 typedef struct render_distant_light {
     ColorRGB color;                 // 0x00
@@ -684,9 +689,9 @@ typedef struct render_lighting {
     int16_t point_light_count;      // 0x40 (used) only the first two are uploaded (0x518ce0)
     int16_t unknown_42;             // 0x42
     int32_t point_light_indices[2]; // 0x44 rasterizer_light index, passed in EAX to 0x518c10
-    ColorARGB reflection_tint;      // 0x4c hint only
-    real_vector3d shadow_vector;    // 0x5c hint only
-    ColorRGB shadow_color;          // 0x68 hint only
+    ColorARGB reflection_tint;      // 0x4c stepped by 0x50f270 (0x50f5c0)
+    real_vector3d shadow_vector;    // 0x5c 0x50f830 builds the shadow basis from it
+    ColorRGB shadow_color;          // 0x68 0x50eba0 takes its luminance
 } render_lighting;                  // size 0x74
 
 // ---------------------------------------------------------------------------
@@ -746,13 +751,21 @@ typedef struct rasterizer_model_draw_context {
     int16_t node_count;             // 0x0c
     int16_t unknown_0e;             // 0x0e
     render_lighting lighting;       // 0x10 group.lighting points here
-    uint32_t unknown_84[2];         // 0x84 group +0x74 points here; two dwords copied by
-                                    //      FUN_00519f70
+    uint32_t change_colors;         // 0x84 ColorRGB (*)[4]: render.h render_animation.change_colors
+                                    //      (render_model 0x4d6fc0 arg3 -> [ebp-0x58], 0x4d716c;
+                                    //      0x006b7f60 when NULL). R43
+    uint32_t function_values;       // 0x88 float (*)[4]: render_animation.function_values (arg4
+                                    //      -> [ebp-0x54], 0x4d717e; 0x006b7f08 when NULL). The
+                                    //      pair +0x84/+0x88 IS a render_animation (render.h sorts
+                                    //      after this header, so both stay uint32 here); group
+                                    //      +0x74 points at it and FUN_00519f70 copies both dwords;
+                                    //      0x53fe50 reads function_values through context+0x84
+                                    //      +4 (0x528eaa)
     rasterizer_geometry_group_parameters group_parameters; // 0x8c
     real_point3d center;            // 0xb4 fog distance point in FUN_00526f50
-    uint32_t unknown_c0;            // 0xc0
-    float unknown_c4;               // 0xc4 copied into group +0x3c
-    float unknown_c8;               // 0xc8 copied into group +0x40
+    float bounding_radius;          // 0xc0 render_model arg7 ([ebp+0x20] -> [ebp-0x1c], 0x4d7156)
+    float base_map_u_scale;         // 0xc4 model tag +0x30 (0x4d7188); copied into group +0x3c
+    float base_map_v_scale;         // 0xc8 model tag +0x34 (0x4d719b); copied into group +0x40
 } rasterizer_model_draw_context;    // partial: at least 0xcc
 
 // ---------------------------------------------------------------------------
@@ -807,7 +820,10 @@ typedef struct transparent_geometry_group {
     uint32_t node_part_indices;     // 0x68 uint8_t* 0x0071d19c when node_parts_bit is set
     int32_t node_part_count;        // 0x6c 0x0071d1a0
     uint32_t lighting;              // 0x70 render_lighting*
-    uint32_t lighting_extra;        // 0x74 uint32_t* the two dwords at model draw context +0x84
+    uint32_t lighting_extra;        // 0x74 render_animation* (render.h): the {change_colors,
+                                    //      function_values} pair at model draw context +0x84
+                                    //      (R43); 0x53fe50 reads function_values at +4 through it
+                                    //      (0x53242a, 0x534347)
     float depth;                    // 0x78 -(camera.forward . (position - camera.position));
                                     //      the primary sort key, +0.25 for some shaders
     real_point3d position;          // 0x7c
@@ -832,7 +848,11 @@ typedef struct transparent_geometry_group_link {
     uint32_t previous_group_index;  // 0x00 int16_t* &group->previous_group_index
     uint32_t next_group_index;      // 0x04 int16_t* &group->next_group_index
     int16_t group_index;            // 0x08 transparent_geometry_group_index_from_pointer, -1 none
-    int16_t unknown_0a;             // 0x0a not written
+    int16_t linked_part_index;      // 0x0a (R43) not written by 0x52b180; render_model_draw_parts
+                                    //      0x4d72a0 stores the part's signed linked part index byte
+                                    //      (part +0x07, else +0x06 tested) there (0x4d7497). In
+                                    //      0x4d72a0's own 0x10-byte local records +0x0c is the part
+                                    //      index (0x4d7492)
 } transparent_geometry_group_link;  // size 0x0c
 
 // ---------------------------------------------------------------------------
@@ -992,6 +1012,12 @@ typedef struct font_glyph_cache {
 // global 0x007c04a0: d3d_present_parameters rasterizer_present_parameters
 // global 0x0071d16c: uint8_t rasterizer_fullscreen              set when neither -window (0x0071d1a8)
 //                                                             nor 0x0071d1ac is set (0x5169c0)
+//                                                             NOT a "device initialised" flag (R82
+//                                                             rejected): the only writers,
+//                                                             0x516a0f / 0x516a17, run from the
+//                                                             command-line options before any
+//                                                             device exists, and 0x511d80 returns
+//                                                             this flag && device (0x0071d174).
 // global 0x0071d16e: uint8_t rasterizer_pending_clear          0x5180d0
 // global 0x0071d16f: uint8_t rasterizer_in_scene               set after BeginScene (0x517500), cleared
 //                                                             after EndScene (rasterizer_end_frame 0x517b90)
@@ -1014,8 +1040,23 @@ typedef struct font_glyph_cache {
 // global 0x0069c632: int16_t rasterizer_vertex_buffer_lock_state  2, 4, 5
 // global 0x0069c634: Rectangle2D-like int16 pair game_window_top_left (see types/networking.h)
 // global 0x0069c638: int16 pair game_window_bottom_right
-// global 0x0069c65c: float rasterizer_letterbox_height         0x3d800000 default
-// global 0x0069c664: uint32_t rasterizer_frustum_z_values[2]    handed to set_frustum_z_func
+// 0x0069c65c..0x0069c668: two {near, far} clip-distance pairs (R11). .data holds
+//   00 00 80 3d 00 00 80 44 00 00 40 3c 00 00 80 44 = (0.0625, 1024) and (0.01171875, 1024);
+//   render_cinematic_screen_effect_update 0x511df0 re-seeds any that are 0.0 (0x511e05..0x511e62).
+// global 0x0069c65c: float rasterizer_default_z_near           0.0625; the default near clip
+//                                                             distance. 0x4c9260 copies the
+//                                                             first pair into camera z_near /
+//                                                             z_far; chimera__cinematic_screen_
+//                                                             effect 0x517470 overwrites it with
+//                                                             the cinematic near clip (render.h
+//                                                             cinematic_screen_effect_globals
+//                                                             +0x74) when that is positive.
+//                                                             CORRECTED (R11): formerly
+//                                                             "rasterizer_letterbox_height".
+// global 0x0069c660: float rasterizer_default_z_far            1024.0
+// global 0x0069c664: uint32_t rasterizer_frustum_z_values[2]    the second pair, (0.01171875,
+//                                                             1024.0) as raw float bits, handed
+//                                                             to set_frustum_z_func
 // global 0x0069c66c: void *rasterizer_capture_surfaces[4]       0x0069c66c..0x0069c678
 // global 0x0069c67e: int16_t rasterizer_maximum_skinning_nodes  0x3f
 // global 0x0069c694: int32_t rasterizer_frame_index             glyph cache stamp
@@ -1153,9 +1194,17 @@ typedef struct font_glyph_cache {
 // global 0x00746f9c: void *structure_bsp                       ScenarioStructureBSP tag data
 // global 0x00746fa0: void *global_globals                      Globals tag data
 // global 0x0087bc14: tag_instance *tag_instances               types/cache.h
-// global 0x007c310a: uint8_t render_window_index               render module
-// global 0x0071cfc4: uint32_t *cinematic_globals               UNSURE owner; +0x74 letterbox (0x78 byte
-//                                                             game state block carved by 0x5169c0)
+// global 0x007c310a: int16_t render_window_index               render module (render.h). R12:
+//                                                             written as a WORD (0x50bf20) and
+//                                                             read as one (0x50c017); the byte
+//                                                             readers 0x4f13fd, 0x4f16ce and
+//                                                             0x513b4e only need the low byte
+// global 0x0071cfc4: cinematic_screen_effect_globals *cinematic_screen_effect_globals
+//                                                             render.h (0x78 bytes; R80). 0x51578b
+//                                                             clears 0x1e dwords of it; +0x74 is
+//                                                             near_clip_distance, which 0x517470
+//                                                             copies into 0x0069c65c. Allocated in
+//                                                             the game-state block by 0x5169c0.
 // global 0x006893e4..0x00689464: uint8_t debug toggles          console globals
 // global 0x00721ef0: int32_t os_platform                       types/cache.h
 // ---------------------------------------------------------------------------

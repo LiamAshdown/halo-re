@@ -9,6 +9,8 @@
 //   types/units.h). message_delta_encode_message's signature and calling style follow the
 //   sibling file src/units/unit_broadcast_state_change_event.c (same module, 0x566c00), written
 //   in this module's earlier session.
+// reconciled: R28 object.unknown_0c4 -> datum_index creator_object (same offset 0xc4)
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
 
 #include "tags.h"
 #include "memory.h"
@@ -42,8 +44,8 @@ void unit_build_network_update(uint32_t object_index)
     if (object_index != k_datum_index_none) {
         resolved_tag = hash_table_get(object_index);
     }
-    if (obj->unknown_0c4 != (uint32_t)k_datum_index_none) {
-        resolved_graph = hash_table_get(obj->unknown_0c4);
+    if (obj->creator_object != (uint32_t)k_datum_index_none) {
+        resolved_graph = hash_table_get(obj->creator_object);
         if (resolved_graph == -1) resolved_graph = 0;
     }
     if (obj->owner_linkage != (uint32_t)k_datum_index_none) {
@@ -76,7 +78,7 @@ void unit_build_network_update(uint32_t object_index)
         } fields;
 
         fields.definition_tag = obj->definition_tag;
-        fields.name_index = obj->name_index;
+        fields.name_index = obj->owner_team;
         fields.forward = obj->forward;
         fields.up = obj->up;
         fields.position = obj->position;

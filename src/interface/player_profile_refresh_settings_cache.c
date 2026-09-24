@@ -13,6 +13,7 @@
 // one trailing halfword) and the two zero bytes at 0x80e.
 // UNSURE: the fields are named only by the table they are remapped through; which control each
 // one drives is not attested in this function.
+// reconciled: R19 player_control_settings unknown ranges named from the input.h field map (keyboard, mouse_button/mouse_axis, gamepad_button, gamepad_action_button, gamepad_axis, gamepad_pov, forward_rate..mouse_strafe_scale, mouse_look_x/y_sensitivity, gamepad_axis_scale_x/y, gamepad_rate_80/40, look_inverted/_driving); same offsets and widths
 
 #include "tags.h"
 #include "memory.h"
@@ -65,26 +66,26 @@ void player_profile_refresh_settings_cache(int16_t player_index)
     settings.look_rate_80 = k_table_80[slider];
     settings.look_rate_40 = k_table_40[slider];
 
-    memcpy(settings.unknown_008, profile + 0x134, sizeof(settings.unknown_008)); // 0x36 dwords + 1 halfword
-    memcpy(settings.unknown_0e2, profile + 0x20e, sizeof(settings.unknown_0e2));
-    memcpy(settings.unknown_0fe, profile + 0x22a, sizeof(settings.unknown_0fe));
-    memcpy(settings.unknown_1fe, profile + 0x32a, sizeof(settings.unknown_1fe));
-    memcpy(settings.unknown_20e, profile + 0x33a, sizeof(settings.unknown_20e));
-    memcpy(settings.unknown_40e, profile + 0x53a, sizeof(settings.unknown_40e));
-    memcpy(settings.unknown_810, profile + 0x93c, sizeof(settings.unknown_810));
+    memcpy(settings.keyboard, profile + 0x134, sizeof(settings.keyboard)); // 0x36 dwords + 1 halfword
+    memcpy(settings.mouse_button, profile + 0x20e, sizeof(settings.mouse_button) + sizeof(settings.mouse_axis)); // one 7-dword copy
+    memcpy(settings.gamepad_button, profile + 0x22a, sizeof(settings.gamepad_button));
+    memcpy(settings.gamepad_action_button, profile + 0x32a, sizeof(settings.gamepad_action_button));
+    memcpy(settings.gamepad_axis, profile + 0x33a, sizeof(settings.gamepad_axis));
+    memcpy(settings.gamepad_pov, profile + 0x53a, sizeof(settings.gamepad_pov));
+    memcpy(&settings.forward_rate, profile + 0x93c, 6 * sizeof(float)); // forward_rate .. mouse_strafe_scale
 
-    settings.sensitivity_01_a = k_table_01[slider_index(profile[0x954])];
-    settings.sensitivity_01_b = k_table_01[slider_index(profile[0x955])];
+    settings.mouse_look_x_sensitivity = k_table_01[slider_index(profile[0x954])];
+    settings.mouse_look_y_sensitivity = k_table_01[slider_index(profile[0x955])];
 
-    memcpy(settings.unknown_830, profile + 0x960, sizeof(settings.unknown_830));
+    memcpy(&settings.gamepad_axis_scale_x, profile + 0x960, 2 * sizeof(float)); // x, y
 
     for (i = 0; i < 4; i++) {
-        settings.rate_80[i] = k_table_80[slider_index(profile[0x956 + i])];
-        settings.rate_40[i] = k_table_40[slider_index(profile[0x95a + i])];
+        settings.gamepad_rate_80[i] = k_table_80[slider_index(profile[0x956 + i])];
+        settings.gamepad_rate_40[i] = k_table_40[slider_index(profile[0x95a + i])];
     }
 
-    settings.unknown_858 = profile[0x12f];
-    settings.unknown_859 = profile[0x131];
+    settings.look_inverted = profile[0x12f];
+    settings.look_inverted_driving = profile[0x131];
 
     dest_slot = profile_slot_id[player_index];
     if (profile_slot_id[player_index] == -1) {

@@ -16,11 +16,14 @@
 //   mirrors one there.
 // UNSURE: several raw offsets on the parent/vehicle object (`0x17`,`0x18`,`0x19`,`0xbc`) are not
 //   named by this module's header.
+// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
+// reconciled: R32 follow-up: local extern player_control_globals (0x0071c2d8) renamed network_client (networking.h name) because game.h is now included and owns the player_control_globals typedef
 
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
@@ -30,9 +33,9 @@ extern data_array *object_data;      // 0x008603b0
 extern data_array *actor_data;       // 0x00880360
 extern data_array *player_data;      // 0x0087a480
 extern tag_instance *tag_instances;  // 0x0087bc14
-extern hs_game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/hs.h)
+extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
 extern int32_t game_connection_role; // 0x00719720
-extern uint8_t *player_control_globals; // 0x0071c2d8
+extern uint8_t *network_client; // 0x0071c2d8 (networking.h network_client; renamed from network_client, which collides with game.h's typedef)
 extern random_seed random_seed_global;    // 0x00719cd0
 extern void *matrix4x3_multiply_thunk; // 0x00696664
 
@@ -89,7 +92,7 @@ void unit_release_transient_state(uint32_t unit_index, uint8_t is_light_reset) /
             actor_release_from_cluster_or_delete(unit_index);
             unit->swarm_actor_index = k_datum_index_none;
         }
-        unit->unknown_41c = game_time->current_tick;
+        unit->unknown_41c = game_time->game_time;
     } else {
         random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
         Unit *unit_tag = (Unit *)tag_instances[self_obj->definition_tag & 0xffff].data;
@@ -159,7 +162,7 @@ seat_reenter:
                 unit_try_set_animation_state(self_obj->parent_object, 0x25);
             }
             unit->last_parent_object_index = vehicle_index;           // puVar2[0xcb] = local_c
-            unit->last_seat_change_tick = game_time->current_tick;    // puVar2[0xcc]
+            unit->last_seat_change_tick = game_time->game_time;    // puVar2[0xcc]
             // the first clear pair is on puVar2 (this unit); the pair further down is on puVar11
             if (unit->driver_unit_index == unit_index) {
                 unit->driver_unit_index = k_datum_index_none;
@@ -225,8 +228,8 @@ seat_reenter:
             if ((salt != 0) &&
                 (((int16_t)(controlling >> 16) == 0) || (salt == (int16_t)(controlling >> 16))) &&
                 (*(int16_t *)((uint8_t *)player_data->data + rec_off + 2) != -1) &&
-                (player_control_globals != 0)) {
-                player_update_history_free_all(*(void **)(player_control_globals + 0xf48));
+                (network_client != 0)) {
+                player_update_history_free_all(*(void **)(network_client + 0xf48));
             }
         }
     }

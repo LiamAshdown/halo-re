@@ -6,42 +6,45 @@
 //   game-engine vtable at offset 0x20 (reset_round, types/game.h)".
 // register convention: no arguments.
 //
-// UNSURE: transcribed exactly as decompiled, including calling game_engine_player_new_life with
-// the literal constant player index 0xffffffff on every iteration (never the iterated player's
-// own index) -- game_engine_player_new_life (0x45c440, this batch) itself also calls
-// data_iterator_next() with no visible iterator, so it is plausible both functions share one
-// global iterator and this outer loop's real purpose is to drive that shared iterator forward a
-// matching number of times rather than to reset each player individually; not resolved further.
+// The iterator is the inline types/memory.h data_iterator over player_data (0x45b8b3..0x45b8d4:
+// data, WORD next_index = 0, index = -1, signature = data ^ 'iter'), which Ghidra lost because it
+// is a stack object passed in EDI. Each iteration pushes [esp+0xc], the iterator's index, to
+// game_engine_player_new_life (0x45b8e1); Ghidra's constant -1 was the index's initial value.
+// reset_round is called with no arguments (0x45b90c `call eax`, nothing pushed); the
+// (player_data, 0, -1, cookie) Ghidra showed were the iterator's own stack slots.
+// reconciled: R16 the elided iterator is the inline 0x10-byte data_iterator over player_data (0x45b8b3); new_life gets iterator.index, reset_round takes no arguments
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 
-extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module; iterator elided
+extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module; blam-cc: EDI -> iterator
 extern void game_engine_player_new_life(uint32_t player_index); // this batch, 0x45c440
 
 // Iterates the player datum pool calling game_engine_player_new_life once per entry, then notifies
 // the active multiplayer game engine's reset_round callback.
 void game_engine_reset_all_players(void)
 {
-    uint32_t cookie;
+    data_iterator iterator;
     void *entry;
 
-    cookie = (uint32_t)(uint8_t *)player_data ^ 0x69746572; // "iter" -- UNSURE purpose, see #if 0
-
-    entry = data_iterator_next((data_iterator *)0); // UNSURE: iterator elided
+    iterator.data = player_data;
+    iterator.next_index = 0;
+    iterator.index = k_datum_index_none;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+    entry = data_iterator_next(&iterator);
     while (entry != (void *)0) {
-        game_engine_player_new_life(0xffffffff); // UNSURE: see header
-        entry = data_iterator_next((data_iterator *)0); // UNSURE: iterator elided
+        game_engine_player_new_life(iterator.index);
+        entry = data_iterator_next(&iterator);
     }
 
     if (current_game_engine != (game_engine_definition *)0 && current_game_engine->reset_round != (void *)0) {
-        ((void (*)(data_array *, uint16_t, uint32_t, uint32_t))current_game_engine->reset_round)(
-            player_data, 0, 0xffffffff, cookie);
+        ((void (*)(void))current_game_engine->reset_round)();
     }
 }
 

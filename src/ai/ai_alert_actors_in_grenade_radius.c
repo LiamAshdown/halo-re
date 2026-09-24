@@ -18,6 +18,7 @@
 // register convention: EAX -> source_unit_index (already resolved as a genuine parameter by
 //   Ghidra).
 //   // blam-cc: stack -> source_unit_index
+// reconciled: R27 object.unknown_00c (datum_index) -> int32_t network_update_tick (game tick stamp, -1 = never)
 
 #include "tags.h"
 #include "memory.h"
@@ -36,7 +37,7 @@ extern data_array *encounter_data; // 0x008802c8
 // 0x00746f9c holds a POINTER to the structure BSP tag data; Ghidra's `DAT_00746f9c + 0x134`
 // is ScenarioStructureBSP.clusters.count and `+ 0x220` is .sound_pas_data.pointer (the
 // potentially-audible-set table, which is what this sound-propagation test walks).
-extern ScenarioStructureBSP *structure_bsp; // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 
 extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70
 extern void object_get_position(real_point3d *out_position, datum_index object_index); // 0x4f6900
@@ -53,7 +54,7 @@ extern void actor_squad_react_to_grenade(datum_index actor_index, datum_index ta
 void ai_alert_actors_in_grenade_radius(datum_index source_unit_index)
 {
     object *source_object = ((object_header *)object_data->data)[source_unit_index & 0xffff].data;
-    datum_index owner_actor = source_object->unknown_00c; // UNSURE: swarm_actor_index-style field, offset 0x1f8 in original
+    datum_index owner_actor = (datum_index)source_object->network_update_tick; // UNSURE: swarm_actor_index-style field, offset 0x1f8 in original
     real_point3d source_position;
     uint32_t cluster_bits[16];
     int16_t source_cluster;
@@ -73,9 +74,9 @@ void ai_alert_actors_in_grenade_radius(datum_index source_unit_index)
     memset(cluster_bits, 0, sizeof(cluster_bits));
 
     source_cluster = source_object->location_cluster_index;
-    if (source_cluster != -1 && (int32_t)structure_bsp->clusters.count > 0) {
+    if (source_cluster != -1 && (int32_t)global_structure_bsp->clusters.count > 0) {
         int32_t i;
-        for (i = 0; i < (int32_t)structure_bsp->clusters.count; i++) {
+        for (i = 0; i < (int32_t)global_structure_bsp->clusters.count; i++) {
             uint8_t pvs_byte;
             if (source_cluster == (int16_t)i) {
                 pvs_byte = 0;
@@ -86,8 +87,8 @@ void ai_alert_actors_in_grenade_radius(datum_index source_unit_index)
                     lo = (int16_t)i;
                 }
                 // UNSURE: triangular PVS table index, preserved from the original arithmetic.
-                pvs_byte = ((uint8_t *)(uintptr_t)structure_bsp->sound_pas_data.pointer)[
-                    (int16_t)(((int32_t)structure_bsp->clusters.count - 1) * lo - (int16_t)(((lo + 1) * (int32_t)lo) / 2)) - 1 + hi];
+                pvs_byte = ((uint8_t *)(uintptr_t)global_structure_bsp->sound_pas_data.pointer)[
+                    (int16_t)(((int32_t)global_structure_bsp->clusters.count - 1) * lo - (int16_t)(((lo + 1) * (int32_t)lo) / 2)) - 1 + hi];
             }
             if ((int8_t)pvs_byte >= 0 && (float)(pvs_byte & 0x7f) * 2.015748f < 40.0f) {
                 cluster_bits[i >> 5] |= 1u << (i & 0x1f);

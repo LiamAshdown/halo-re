@@ -20,6 +20,7 @@
 // is transcribed from the original; none of them is named anywhere in the image.
 // UNSURE: the chain walk on object+0x11c (parent_object) that resolves both cluster indices
 // climbs to the LAST object whose parent is -1, i.e. the root; reproduced literally.
+// reconciled: R16 the local 0x10-byte iterator shadow struct is now types/memory.h data_iterator (same layout)
 
 #include "tags.h"
 #include "memory.h"
@@ -31,7 +32,7 @@
 
 extern data_array *player_data;    // 0x0087a480, stride 0x200 (no types/players.h yet)
 extern data_array *object_data;    // 0x008603b0
-extern ScenarioStructureBSP *structure_bsp; // 0x00746f9c, the current structure BSP tag data
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, the current structure BSP tag data
 extern char ai_marker_name_a[];    // 0x0066bfa0
 
 extern double sqrt(double x); // FSQRT, Ghidra SQRT() pseudo-function
@@ -62,17 +63,9 @@ float ai_communication_rate_player_proximity(uint8_t require_line_of_sight,
     real_point3d self_position;
     real_point3d player_position;
     real_vector3d to_self;
-    data_iterator iterator_storage;
-    // The original builds the iterator inline: [data, int16 next_index, index, signature].
-    // Only the first 0x10 bytes are touched, and next_index is written as a WORD, leaving
-    // its high half whatever the stack held. Reproduced with an explicit 0x10-byte block.
-    struct {
-        data_array *data;      // 0x00
-        int16_t next_index;    // 0x04 written as a word; high half left alone
-        int16_t pad_06;
-        datum_index index;     // 0x08
-        uint32_t signature;    // 0x0c data XOR 'iter'
-    } iterator;
+    // The original builds the iterator inline: [data, int16 next_index, index, signature],
+    // the types/memory.h data_iterator (next_index is written as a WORD, pad_06 untouched).
+    data_iterator iterator;
     void *player;
     datum_index best_object_index;
     float best_score;
@@ -86,8 +79,6 @@ float ai_communication_rate_player_proximity(uint8_t require_line_of_sight,
     object *player_object;
     uint8_t trace_scratch[96];
 
-    (void)iterator_storage;
-
     best_object_index = (datum_index)k_datum_index_none;
     best_score = 0.0f;
     best_distance = 3.4028235e+38f;
@@ -99,9 +90,9 @@ float ai_communication_rate_player_proximity(uint8_t require_line_of_sight,
     iterator.data = player_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
-    iterator.signature = (uint32_t)(uintptr_t)player_data ^ 0x69746572;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-    player = data_iterator_next((data_iterator *)&iterator);
+    player = data_iterator_next(&iterator);
     if (player != 0) {
         do {
             // player+0x34 is the player's controlled unit object index.
@@ -148,8 +139,8 @@ float ai_communication_rate_player_proximity(uint8_t require_line_of_sight,
                         // .cluster_data.pointer (+0x14c, the row-major cluster visibility
                         // bitmap); the row stride is ceil(count/32) dwords. Same access as
                         // src/ai/actor_target_scan_potential_targets.c.
-                        bitmap_row_dwords = (int32_t)(structure_bsp->clusters.count + 0x1f) >> 5;
-                        if ((((uint32_t *)(uintptr_t)structure_bsp->cluster_data.pointer)
+                        bitmap_row_dwords = (int32_t)(global_structure_bsp->clusters.count + 0x1f) >> 5;
+                        if ((((uint32_t *)(uintptr_t)global_structure_bsp->cluster_data.pointer)
                                  [bitmap_row_dwords * (int32_t)self_cluster +
                                   ((int32_t)player_cluster >> 5)] &
                              (1u << ((uint8_t)player_cluster & 0x1f))) == 0) {
@@ -196,7 +187,7 @@ float ai_communication_rate_player_proximity(uint8_t require_line_of_sight,
                 }
             }
 advance:
-            player = data_iterator_next((data_iterator *)&iterator);
+            player = data_iterator_next(&iterator);
         } while (player != 0);
         if (saw_any_player) {
             goto done;

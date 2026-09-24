@@ -5,7 +5,7 @@
 // address 0x50f150, size 279 bytes
 // name confidence: 0.5   rewrite confidence: 0.8
 // evidence: types/render.h cached_object_render_state's own doc: "The eviction in 0x50f150 picks
-//   the entry with the oldest last_update_window"; object.unknown_170 documented there as "the
+//   the entry with the oldest last_update_window"; object.cached_render_state_index documented there as "the
 //   datum index of the cached_object_render_state of the object (0x50f150 reads and writes it)".
 //   Disassembly (objdump -d -M intel, 0x50f150..0x50f17a) confirms both arguments are plain stack
 //   parameters (object_index at the caller's first stack slot, forwarded level_of_detail_pixels
@@ -14,6 +14,7 @@
 //   last_update_window, not render_frame_index minus it.
 // register convention: stack = (object_index, level_of_detail_pixels).
 //   // blam-cc: stack=(object_index, level_of_detail_pixels)
+// reconciled: R30 object.unknown_170 -> datum_index cached_render_state_index (same offset 0x170)
 
 #include "tags.h"
 #include "memory.h"
@@ -43,7 +44,7 @@ datum_index object_get_cached_render_state(datum_index object_index,
 {
     object_header *header = &((object_header *)object_data->data)[(uint16_t)object_index];
     object *obj = header->data;
-    datum_index cache_index = (datum_index)obj->unknown_170;
+    datum_index cache_index = obj->cached_render_state_index;
 
     if (cache_index != k_datum_index_none &&
         ((cached_object_render_state *)cached_object_render_states->data)[(uint16_t)cache_index].object_index ==
@@ -77,7 +78,7 @@ datum_index object_get_cached_render_state(datum_index object_index,
     }
 
     object_render_state_refresh(cache_index, object_index, level_of_detail_pixels, 1);
-    obj->unknown_170 = (int32_t)cache_index;
+    obj->cached_render_state_index = cache_index;
     return cache_index;
 }
 

@@ -27,6 +27,7 @@
 //   // blam-cc: stack params in order (camera_ref, camera, out)
 // UNSURE: param_1's exact type/owner (render module "camera" struct); it is only ever forwarded,
 //   never read here, so an opaque void* is exact and sufficient.
+// reconciled: R47 ShaderEnvironment._pad_30c[8] -> runtime_mirror_value_0/_1 (floats at +0x30c/+0x310); structure_bsp_mirror_result.unknown_10/_14 -> shader_mirror_value_0/_1
 
 #include "tags.h"
 #include "memory.h"
@@ -34,7 +35,7 @@
 #include "math.h"
 #include "structures.h"
 
-extern ScenarioStructureBSP *structure_bsp;   // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp;   // 0x00746f9c
 extern int32_t render_cluster_index;          // 0x007c3348
 extern tag_instance *tag_instances;           // 0x0087bc14, stride 0x20, tag data at +0x14
 
@@ -104,7 +105,7 @@ uint8_t structure_bsp_mirror_query(void *camera_ref, void *camera,
     clip_points[2].x = screen_bounds[1]; clip_points[2].y = screen_bounds[3];
     clip_points[3].x = screen_bounds[0]; clip_points[3].y = screen_bounds[3];
 
-    int32_t cluster_count = structure_bsp->clusters.count;
+    int32_t cluster_count = global_structure_bsp->clusters.count;
     if (cluster_count <= 0) {
         return found;
     }
@@ -112,7 +113,7 @@ uint8_t structure_bsp_mirror_query(void *camera_ref, void *camera,
     // The camera's own PVS row: cluster_data.pointer + row_dwords * render_cluster_index * 4,
     // row_dwords = (cluster_count + 0x1f) >> 5. Verified by disassembly (extraout_DX above).
     int32_t row_dwords = (cluster_count + 0x1f) >> 5;
-    uint32_t *pvs_row = (uint32_t *)((uint8_t *)structure_bsp->cluster_data.pointer +
+    uint32_t *pvs_row = (uint32_t *)((uint8_t *)global_structure_bsp->cluster_data.pointer +
                                       row_dwords * render_cluster_index * 4);
 
     for (int16_t cluster_index = 0; cluster_index < cluster_count; pvs_row++) {
@@ -125,7 +126,7 @@ uint8_t structure_bsp_mirror_query(void *camera_ref, void *camera,
                 continue;
             }
             ScenarioStructureBSPCluster *cluster =
-                &((ScenarioStructureBSPCluster *)structure_bsp->clusters.pointer)[cluster_index];
+                &((ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer)[cluster_index];
             for (int32_t m = 0; m < (int32_t)cluster->mirrors.count; m++) {
                 ScenarioStructureBSPMirror *mirror =
                     &((ScenarioStructureBSPMirror *)cluster->mirrors.pointer)[m];
@@ -149,11 +150,11 @@ uint8_t structure_bsp_mirror_query(void *camera_ref, void *camera,
                 }
                 ShaderEnvironment *shader_env = mirror_shader_environment(mirror);
                 if (shader_env->base.shader_type == shadertype_environment) {
-                    out->unknown_10 = *(float *)&shader_env->_pad_30c[0];
-                    out->unknown_14 = *(float *)&shader_env->_pad_30c[4];
+                    out->shader_mirror_value_0 = shader_env->runtime_mirror_value_0; // 0x55371b
+                    out->shader_mirror_value_1 = shader_env->runtime_mirror_value_1; // 0x553724
                 } else {
-                    out->unknown_10 = 0.0f;
-                    out->unknown_14 = 0.0f;
+                    out->shader_mirror_value_0 = 0.0f;
+                    out->shader_mirror_value_1 = 0.0f;
                 }
                 out->plane.normal.i = mirror->plane.vector.i;
                 out->plane.normal.j = mirror->plane.vector.j;

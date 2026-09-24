@@ -16,6 +16,7 @@
 // biped_is_idle_eligible, an unparented vehicle or one seated in a bit-0x40 vehicle checks its own or its
 // parent's airborne_ticks against 2) is inferred only from the field types, not independently
 // confirmed.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
@@ -24,6 +25,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480
 extern data_array *object_data; // 0x008603b0
@@ -48,6 +50,7 @@ uint8_t players_any_pending_seat_or_respawn(void)
     iter.data = player_data;
     iter.next_index = 0;
     iter.index = (datum_index)-1;
+    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     plr = (player *)data_iterator_next(&iter);
     while (plr != (player *)0) {

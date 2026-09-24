@@ -9,9 +9,10 @@
 //   bin/halo.exe -- Ghidra's own decompile drops the "mov ebx,<size>" ahead of every
 //   game_state_new call, the same way it drops it ahead of data_new. The disassembly also
 //   confirms the three field writes into player_globals (local_players[0], unknown_00,
-//   unknown_0c) and that player_control_globals gets no field writes here (its fields are
+//   local_player_count) and that player_control_globals gets no field writes here (its fields are
 //   filled in by the functions that read them, e.g. game_engine_reset_player_look_state).
 // register convention: no arguments.
+// reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
 
 #include "tags.h"
 #include "memory.h"
@@ -38,7 +39,7 @@ extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d0
 // player_globals (0x98 bytes) and player_control_globals (0x50 bytes) out of the game-state
 // arena, CRC-registering each allocation's size. Only player_globals gets explicit field
 // writes here: local_players[0] and unknown_00 are seeded to the datum-index wildcard and
-// unknown_0c is cleared.
+// local_player_count is cleared.
 void players_initialize(void)
 {
     uint32_t size;
@@ -52,7 +53,7 @@ void players_initialize(void)
     crc32_update(&game_state_crc, (uint8_t *)&size, 4);
     local_player_globals->local_players[0] = (datum_index)-1;
     local_player_globals->unknown_00 = (datum_index)-1;
-    local_player_globals->unknown_0c = 0;
+    local_player_globals->local_player_count = 0;
 
     player_control_globals_ptr = (player_control_globals *)(game_state_cursor + game_state_base);
     game_state_cursor = game_state_cursor + k_player_control_globals_size;

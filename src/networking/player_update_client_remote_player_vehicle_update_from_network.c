@@ -33,6 +33,7 @@
 // UNSURE: FUN_00570cb0 (0x570cb0, foreign) takes the position in EAX and an object datum_index
 // in ECX and walks the object header table at 0x008603b0; it is the position setter of the pair
 // but its exact contract was not chased past its prologue.
+// reconciled: R35 player.unknown_15c (datum_index) -> int32 last_remote_update_id (stores the byte sequence, zero-extended)
 
 #include "tags.h"
 #include "memory.h"
@@ -211,7 +212,7 @@ void player_update_client_remote_player_vehicle_update_from_network(datum_index 
                 }
             }
         }
-        target->unknown_15c = (datum_index)(uint32_t)(uint8_t)control_sequence;
+        target->last_remote_update_id = (int32_t)(uint8_t)control_sequence;
     }
     target->unknown_18c = update_id;
 }

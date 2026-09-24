@@ -10,28 +10,29 @@
 //   (0x4736d0, this batch), which this function's every call site actually tests.
 // register convention: no arguments; return value in EAX.
 //
-// UNSURE: types/game.h calls the global at 0x006b2ce8 "team_slot_table" and describes this
-// function as scanning it "for a free team". The disassembly shows it is compared against
+// UNSURE (superseded by R02, see below): types/game.h used to call the global at 0x006b2ce8
+// "team_slot_table" and describe this function as scanning it "for a free team". The disassembly shows it is compared against
 // players' local_player_index (offset 0x02), never against player::team (offset 0x20), and the
 // scan only ever covers 4 slots while k_maximum_local_players is 1 in this build -- this reads
 // like Xbox-era up-to-4-controller local-player bookkeeping that survived into the PC port
-// unused. Declared here as local_player_slot_hint_table rather than renaming the header's
-// global (types/*.h is not edited by this rewrite).
+// unused. R02: the global is input.h's joystick_slot_devices[4] (slot -> input device, -1 none);
+// a slot is "hinted" when a joystick is mapped to it.
 // The dead tail the original compiles to (the fast-scan result is always in 0..3, so the
 // "if (result != -1)" it re-tests can never take the slow path it guards) is folded away below;
 // see the #if 0 block for exactly how Ghidra expressed it.
+// reconciled: R02 0x006b2ce8 local_player_slot_hint_table -> input.h joystick_slot_devices[4]
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 
-extern int32_t local_player_slot_hint_table[4]; // 0x006b2ce8, UNSURE name (see header comment)
+extern int32_t joystick_slot_devices[4]; // 0x006b2ce8, input.h (slot -> device index, -1 none)
 
 extern uint8_t players_any_with_local_player_index(int16_t local_player_index); // this batch,
     // 0x4736d0, blam-cc: ESI -> local_player_index
 
-// Picks a free local-player slot index (0..3). Prefers a slot whose hint-table entry is not -1
+// Picks a free local-player slot index (0..3). Prefers a slot that has a joystick mapped
 // and that no live player currently occupies; if none of the four hinted slots is free, falls
 // back to the first slot with no live player at all; returns -1 if every slot is taken.
 int32_t local_player_find_free_slot_index(void)
@@ -39,7 +40,7 @@ int32_t local_player_find_free_slot_index(void)
     int32_t i;
 
     for (i = 0; i < 4; i = i + 1) {
-        if (local_player_slot_hint_table[i] != -1 &&
+        if (joystick_slot_devices[i] != -1 &&
             players_any_with_local_player_index((int16_t)i) == 0) {
             return i;
         }

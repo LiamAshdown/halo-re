@@ -11,6 +11,7 @@
 // in this module and is not declared as a type; accessed here via raw offsets. FUN_0045c6f0
 // (identifies the sender), FUN_00557950 and the two FUN_006155xx/FUN_006166xx GameSpy-shaped
 // reply helpers are foreign.
+// reconciled: R04 0x006f1d20 void * network_game_engine_callback_block -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
@@ -19,7 +20,7 @@
 #include "networking.h"
 
 extern uint8_t *network_session_machine_table; // 0x0087a480, UNSURE layout, see file header
-extern void *network_game_engine_callback_block; // 0x006f1d20, +0xa0 is the ownership-handoff callback (per types/networking.h)
+extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern char *network_session_generic_error_string; // 0x0065512c, UNSURE
 
 extern int32_t FUN_0045c6f0(void); // foreign, identifies the sender (index in low word, salt in high word)
@@ -59,10 +60,10 @@ void network_session_host_dispatch_message(int32_t message_type, int32_t param_2
                     FUN_00616640(reply_target, *(int32_t *)(entry + 0x40));
                     return;
                 }
-                if (network_game_engine_callback_block != 0 &&
-                    *(void **)((uint8_t *)network_game_engine_callback_block + 0xa0) != 0) {
+                if (current_game_engine != 0 &&
+                    *(void **)((uint8_t *)current_game_engine + 0xa0) != 0) {
                     typedef char (*handoff_fn)(int32_t, int32_t, void *);
-                    handoff_fn handoff = *(handoff_fn *)((uint8_t *)network_game_engine_callback_block + 0xa0);
+                    handoff_fn handoff = *(handoff_fn *)((uint8_t *)current_game_engine + 0xa0);
                     if (handoff(message_type, param_2, reply_target) != 0) {
                         return;
                     }

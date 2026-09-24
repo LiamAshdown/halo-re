@@ -7,38 +7,41 @@
 // register convention: index in EAX (in_EAX).
 //   // blam-cc: EAX -> index
 //
-// UNSURE, PRESERVED AS-IS: exactly like cheat_get_target_object_index.c (0x45a7a0), Ghidra's own
-// decompilation has a single `return 0xffffffff;` shared by both the "iterator exhausted" path
-// and the "found the requested index" (`break`) path -- the player pointer the loop actually
-// walks to is never returned on any path. This is transcribed literally rather than "fixed" to
-// return the found player, matching the precedent set for the sibling function.
+// The iterator is the inline types/memory.h data_iterator over player_data (0x45c6f7..0x45c718:
+// data, WORD next_index = 0, index = -1, signature = data ^ 'iter'); Ghidra lost it because it
+// lives on the stack and is passed in EDI. Found path 0x45c740 returns [esp+0x14] = the
+// iterator's index (the player handle); the exhausted path 0x45c737 returns -1 (EBX).
+// reconciled: R16 the elided iterator is the inline 0x10-byte data_iterator over player_data (0x45c6f7); the found path returns iterator.index (0x45c740), not -1
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
-extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module; iterator elided
+extern data_array *player_data; // 0x0087a480
+extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module; blam-cc: EDI -> iterator
 
-// UNSURE: always returns -1; see header note. `index` is consumed by counting down while the
-// (implicit) player iterator still has entries.
+// Returns the handle of the index-th live player datum, or -1 when there are fewer.
 uint32_t players_get_active_by_index(int32_t index)
     // blam-cc: EAX -> index
 {
+    data_iterator iterator;
     player *p;
 
-    p = (player *)data_iterator_next((data_iterator *)0); // UNSURE: iterator elided
-    while (1) {
-        if (p == (player *)0) {
-            return 0xffffffff;
-        }
+    iterator.data = player_data;
+    iterator.next_index = 0;
+    iterator.index = k_datum_index_none;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+    p = (player *)data_iterator_next(&iterator);
+    while (p != (player *)0) {
         if (index == 0) {
-            break;
+            return iterator.index;
         }
         index = index - 1;
-        p = (player *)data_iterator_next((data_iterator *)0); // UNSURE: iterator elided
+        p = (player *)data_iterator_next(&iterator);
     }
-    return 0xffffffff; // preserved as-is; see header UNSURE note
+    return 0xffffffff;
 }
 
 #if 0

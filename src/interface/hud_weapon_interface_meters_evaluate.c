@@ -123,7 +123,7 @@ void hud_weapon_interface_meters_evaluate(datum_index hud_interface_tag_id, int1
         uint32_t bit;
         int32_t result_accum = 0; // [esp+0x18]
         uint8_t *edx = tag_data;  // loop-invariant unless a case below reassigns it
-        extern int32_t *game_tick_globals; // 0x006f1d6c; +0xc current game tick (see src/objects/glow_update.c)
+        extern int32_t *game_time; // 0x006f1d6c; +0xc current game tick (see src/objects/glow_update.c)
 
         for (case_index = 0; case_index < 0x13; case_index++) {
             int32_t value; // the eventual `ax`/`eax` the case computes
@@ -320,7 +320,7 @@ void hud_weapon_interface_meters_evaluate(datum_index hud_interface_tag_id, int1
             } else if (!active) {
                 out_array[case_index] = -1;
             } else if (out_array[case_index] == -1) {
-                out_array[case_index] = *(game_tick_globals + 3); // +0xc, current game tick
+                out_array[case_index] = *(game_time + 3); // +0xc, current game tick
             }
             // else: already active from a previous frame -- leave the stored tick alone
         }

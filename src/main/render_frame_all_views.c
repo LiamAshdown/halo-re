@@ -22,6 +22,8 @@
 // input_globals.system_key_states[2] (print) and input_globals.states[0].buttons[0x12] (phase 4
 // review; they were TYPES-GAP bytes). EBX (render_frame's screenshot_tile) is
 // confirmed 0 (NULL) at this call site (`xor ebx,ebx` at 0x4c9509, immediately before the call).
+// reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
+// reconciled: R11 0x0069c65c/0x0069c660 externs default_clip_near/far -> rasterizer.h rasterizer_default_z_near/z_far
 
 #include "tags.h"
 #include "memory.h"
@@ -56,8 +58,8 @@ extern input_abstraction_globals input_globals;     // 0x00710328, foreign (inpu
 extern const real_point3d *global_zero_vector3d_pointer; // 0x006966f8 -> (0,0,0), foreign (math module)
 extern const real_vector3d *global_forward3d_pointer;    // 0x00696718 -> (1,0,0), foreign (math module)
 extern const real_vector3d *global_up3d_pointer;         // 0x00696720 -> (0,0,1), foreign (math module)
-extern float default_clip_near;                          // 0x0069c65c, foreign (rasterizer module)
-extern float default_clip_far;                           // 0x0069c660, foreign (rasterizer module)
+extern float rasterizer_default_z_near;                          // 0x0069c65c, foreign (rasterizer module)
+extern float rasterizer_default_z_far;                           // 0x0069c660, foreign (rasterizer module)
 extern uint8_t unknown_00873d30;                          // TYPES-GAP, UNSURE identity
 
 extern double tan(double x);
@@ -95,7 +97,7 @@ void render_frame_all_views(float time_since_tick, float time_since_frame)
                           ? 1
                           : 0;
 
-    local_player_count_field = local_player_globals->unknown_0c;
+    local_player_count_field = local_player_globals->local_player_count;
     view_count = 1; // every branch of the original clamp converges on 1 here (k_maximum_local_players)
 
     if (widget_memory_pool_valid != 0 && ui_root_widget[0] != 0) {
@@ -153,9 +155,9 @@ void render_frame_all_views(float time_since_tick, float time_since_frame)
     view->rasterizer_camera.up.i = global_up3d_pointer->i;
     view->rasterizer_camera.up.j = global_up3d_pointer->j;
     view->rasterizer_camera.up.k = global_up3d_pointer->k;
-    view->rasterizer_camera.z_near = default_clip_near;
+    view->rasterizer_camera.z_near = rasterizer_default_z_near;
     view->rasterizer_camera.mirrored = 0;
-    view->rasterizer_camera.z_far = default_clip_far;
+    view->rasterizer_camera.z_far = rasterizer_default_z_far;
     view->rasterizer_camera.vertical_field_of_view =
         (float)(2.0 * atan2(tan(0.6981316804885864) * 0.6375f, 1.0)); // 0x00673098 (40 deg), 0x00673090 float, 0x00672af8
     if (unknown_00873d30 == 0) {

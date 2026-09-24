@@ -13,11 +13,13 @@
 // cmp [ecx+edx*1+0x34],-1" against the player handle in EDI. It is not a 32 MB offset.
 // Several float comparisons below use Ghidra's `(a < b) == (a == b)` idiom for an FPU flag test
 // that reduces to `a > b`; see game_engine_update_end_game_sequence.c for the derivation.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern int16_t network_game_mode;   // 0x00719720
@@ -72,6 +74,7 @@ void game_engine_tick(void)
         player_iter.data = player_data;
         player_iter.next_index = 0;
         player_iter.index = (datum_index)0xffffffff;
+        player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
         player_element = data_iterator_next(&player_iter);
 
         while (player_element != 0) {

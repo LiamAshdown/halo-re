@@ -12,11 +12,13 @@
 // handle at every call, which would make it a no-op; the data_iterator's own `index` field
 // (the handle of the instance the loop is currently looking at) is the only value that makes
 // the surrounding loop meaningful, so it is used here instead.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include <stdint.h>
 
 extern data_array *ai_conversation_data; // 0x008802d4
 
@@ -32,6 +34,7 @@ void ai_conversation_stop_all(int16_t conversation_definition_index)
     iterator.data = ai_conversation_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
     instance = data_iterator_next(&iterator);
     while (instance != 0) {

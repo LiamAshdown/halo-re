@@ -22,15 +22,18 @@
 // as the DamageEffect base pointer under the same -0x1c4 re-basing used throughout this batch.
 // blam-cc: stack=(target_index, geometry, material, effect, notify_flags, shield_damage_out,
 //   remaining_damage_inout, role_is_deletable, attributable_to_live_player, impulse_result)
+// reconciled: R29 raw object +0xb8 int16 read -> target->owner_team
+// reconciled: R04 0x006f1d20 uint8_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 
 extern data_array *object_data; // 0x008603b0
-extern uint8_t network_predicted_state_flag;      // 0x006f1d20, predicted/network flag
+extern game_engine_definition *current_game_engine;      // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 
 extern real weapon_get_zoom_fov(int32_t param_1); // UNSURE: out of range, 0x46fe10
 extern real weapon_get_zoom_fov_resolved(void); // UNSURE: zero visible args; out of range, 0x46fe70
@@ -74,7 +77,7 @@ void object_apply_shield_damage(uint32_t target_index, ModelCollisionGeometry *g
         float inv_max_shield_vitality;
         uint8_t friendly_shield_immune;
 
-        if (!(network_predicted_state_flag == 0 && effect->damage_category == 1 && *(int16_t *)((uint8_t *)target + 0xb8) == 1)) {
+        if (!(current_game_engine == 0 && effect->damage_category == 1 && target->owner_team == 1)) {
             max_shield_vitality = weapon_get_zoom_fov_resolved() * max_shield_vitality;
         }
         inv_max_shield_vitality = (max_shield_vitality <= 0.0f) ? 0.0f : (1.0f / max_shield_vitality);

@@ -36,6 +36,7 @@
 // UNSURE: equipment_data.last_update_valid / last_update_state (0x26c..0x294) are NOT written
 // here, unlike weapon_apply_network_update's 0x310/0x314 pair; the equipment update applier
 // (0x4bc250) is one of Ghidra's misses, so nothing in the export writes them.
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
 
 #include "tags.h"
 #include "memory.h"
@@ -107,7 +108,7 @@ void equipment_create_from_creation_message(void *incoming_record)
     placement.definition_tag = decoded.definition_tag;
     placement.owner_linkage = owner_material;
     placement.role = role_material;
-    placement.name_index = decoded.name_index;
+    placement.owner_team = decoded.name_index;
     placement.position = decoded.position;
     placement.forward = forward;
     placement.up = up;

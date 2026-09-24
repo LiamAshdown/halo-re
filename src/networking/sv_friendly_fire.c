@@ -8,8 +8,9 @@
 // this batch's "get/set console variable" commands (see sv_ban_penalty.c).
 //   // blam-cc: EAX -> argument_count, stack -> arguments
 // UNSURE: the "Game in progress... Changes will apply to the next game." follow-up message's
-// exact condition (`bVar1 && network_engine_callback_block != 0`, this batch does not resolve
+// exact condition (`bVar1 && current_game_engine != 0`, this batch does not resolve
 // what that block's non-NULL-ness signals beyond "a game is active").
+// reconciled: R04 0x006f1d20 void * network_engine_callback_block -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
@@ -18,7 +19,7 @@
 #include "networking.h"
 
 extern int32_t sv_friendly_fire_mode; // 0x0071c40c
-extern void *network_engine_callback_block; // 0x006f1d20 (types/networking.h: "the network game
+extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
     // engine callback block")
 
 extern int32_t __stricmp(const char *a, const char *b); // CRT, case-insensitive strcmp
@@ -67,7 +68,7 @@ void sv_friendly_fire(uint32_t argument_count, int32_t *arguments) // blam-cc: E
     case 0: label = "0 = default"; break;
     }
     chimera__console_out("sv_friendly_fire: %s", label);
-    if (changed && network_engine_callback_block != 0) {
+    if (changed && current_game_engine != 0) {
         chimera__console_out("   Game in progress...  Changes will apply to the next game.");
     }
 }

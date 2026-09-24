@@ -37,10 +37,13 @@
 // UNSURE: the seven vehicle-type dispatch targets (FUN_00572b60.. object_physics_tick) and the small
 //   foreign helpers physics_scalar_move_toward_target/physics_scalar_step_to_target_clamped/unit_any_flagged_seat_occupied are declared with exactly the
 //   argument counts visible at their call sites here.
+// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
+// reconciled: R25 damage_data.unknown_4c -> material_type (int16 collision material of the damaged surface, 0xffff = none; indexes DamageEffect +0x200)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "hs.h"
@@ -50,9 +53,9 @@ extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern int32_t game_connection_role; // 0x00719720
 extern int32_t DAT_006f1cf0;         // the vehicle network update period (types/units.h)
-extern hs_game_time_globals *game_time; // 0x006f1d6c
+extern game_time_globals *game_time; // 0x006f1d6c
 extern uint8_t unit_updates_suppressed; // 0x0071c419
-extern uint8_t *game_globals_00746f9c;  // 0x00746f9c, UNSURE
+extern uint8_t *global_structure_bsp;  // 0x00746f9c, UNSURE
 extern uint8_t *globals_tag_data;       // 0x00746fa0
 
 extern double atan2(double y, double x); // fpatan
@@ -111,13 +114,13 @@ uint32_t vehicle_update(uint32_t object_index)
     real_vector3d v; // up x forward (component-wise); reused by the flipping-turn branch below
 
     if (game_connection_role == 2 && vehicle->network_update_tick != -1 && DAT_006f1cf0 != 0 &&
-        (int32_t)(vehicle->network_update_tick + DAT_006f1cf0) <= game_time->current_tick) {
+        (int32_t)(vehicle->network_update_tick + DAT_006f1cf0) <= game_time->game_time) {
         real vect_dist = vector3d_distance(&obj->position, (real_point3d *)&unit->unknown_34c); // UNSURE args
         if (vect_dist > 1.5f && unit_get_recently_updated_flag(object_index) == 1 &&
             unit_has_child_of_type5(object_index) == 0) {
             unit_set_facing_from_index_table(object_index);
         }
-        vehicle->network_update_tick = game_time->current_tick;
+        vehicle->network_update_tick = game_time->game_time;
     }
 
     if (obj->parent_object == k_datum_index_none) {
@@ -300,8 +303,8 @@ uint32_t vehicle_update(uint32_t object_index)
         }
 
         if ((obj->flags & 0x1000000) == 0 && (1 << (tag->vehicle_type & 0x1f) & 0x28) != 0) {
-            float lo = *(float *)(game_globals_00746f9c + 0x10);
-            float hi = *(float *)(game_globals_00746f9c + 0x14);
+            float lo = *(float *)(global_structure_bsp + 0x10);
+            float hi = *(float *)(global_structure_bsp + 0x14);
 
             if (lo != 0.0f && unit->unknown_338 < lo) {
                 vehicle->turning_velocity = ((lo - unit->unknown_338) * 0.015625f -
@@ -337,7 +340,7 @@ skip_recoil_label:
                 dd.responsible_object = k_datum_index_none;
                 dd.random_blend = 1.0f;
                 dd.multiplier = 1.0f;
-                dd.unknown_4c = -1;
+                dd.material_type = -1;
                 object_apply_damage(&dd, child, -1, -1, -1, 0);
 
                 child = child_obj->next_object;

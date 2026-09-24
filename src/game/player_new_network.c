@@ -22,6 +22,7 @@
 // register convention: EAX -> requested_index (datum_new_at_index's exact index request, or -1
 //   for "any free slot"); stack -> machine_index, local_player_index, identifier_record.
 //   // blam-cc: EAX -> requested_index
+// reconciled: R35 player.unknown_15c -> last_remote_update_id (comment only)
 
 #include "tags.h"
 #include "memory.h"
@@ -109,7 +110,7 @@ datum_index player_new_network(datum_index requested_index, uint32_t machine_ind
         p->update_history.queue.records = (void **)(intptr_t)-1;
         p->update_history.queue.write_index = -1;
         // Zeroes the rest of update_history (read_index, storage, has_current/pad, current[8])
-        // plus unknown_15c right after it -- 12 dwords, exactly matching Ghidra's own loop.
+        // plus last_remote_update_id (+0x15c, R35) right after it -- 12 dwords, exactly matching Ghidra's own loop.
         memset((uint8_t *)p + 0x130, 0, 0x30);
 
         p->unknown_160 = 0;

@@ -16,6 +16,7 @@
 // the decompiler folded into the wrong base pointer. FUN_00460e40 is called with the literal
 // constant -1 every time (not the current player's handle); reproduced as observed rather than
 // assumed to be a typo for the loop variable.
+// reconciled: R16 the elided iterator is the inline 0x10-byte data_iterator over player_data (0x45c769); FUN_00460e40 gets iterator.index (0x45c7b0), not -1
 
 // RESOLVED (phase 4 review): the two "player_data->data + 0x1fffe34 / + 0x1fffeae" accesses are
 // NOT real offsets. objdump of 0x45c7ca..0x45c7e8 shows
@@ -36,11 +37,12 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data;              // 0x0087a480
 extern game_variant game_engine_variant;    // 0x006f1c88 (::lives_per_round at 0x006f1cd8)
 
-extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module; iterator elided
+extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module; blam-cc: EDI -> iterator
 extern int32_t players_active_count(void);   // 0x45c6a0, this batch
 extern uint8_t FUN_00460e40(uint32_t player_handle); // UNSURE signature; types/game.h cites this
                                                      // address for the player::odd_man_out test
@@ -53,6 +55,7 @@ extern uint8_t FUN_00460e40(uint32_t player_handle); // UNSURE signature; types/
 // while still passing returns false (not ready).
 uint8_t game_engine_players_ready_for_bsp_switch(void)
 {
+    data_iterator iterator; // inline over player_data, 0x45c769..0x45c78e
     player *p;
     int32_t reference_team;
     datum_index reread_unit;   // re-read of p->unit after the 0x460e40 call
@@ -67,7 +70,11 @@ uint8_t game_engine_players_ready_for_bsp_switch(void)
 
     result = 0;
     reference_team = -1;
-    p = (player *)data_iterator_next((data_iterator *)0); // UNSURE: iterator elided
+    iterator.data = player_data;
+    iterator.next_index = 0;
+    iterator.index = k_datum_index_none;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+    p = (player *)data_iterator_next(&iterator);
     if (p != (player *)0) {
         while (1) {
             uint8_t keep_going;
@@ -75,7 +82,7 @@ uint8_t game_engine_players_ready_for_bsp_switch(void)
             if (p->marked_for_deletion != 0) {
                 keep_going = 1;
             } else if (p->unit == k_datum_index_none) {
-                odd_man_out_result = FUN_00460e40(0xffffffff);
+                odd_man_out_result = FUN_00460e40(iterator.index); // 0x45c7b0 pushes the iterator's index
                 if (odd_man_out_result != 0) {
                     keep_going = 1;
                 } else if (0 < game_engine_variant.lives_per_round &&
@@ -103,7 +110,7 @@ uint8_t game_engine_players_ready_for_bsp_switch(void)
                 break;
             }
 
-            p = (player *)data_iterator_next((data_iterator *)0); // UNSURE: iterator elided
+            p = (player *)data_iterator_next(&iterator);
             if (p == (player *)0) {
                 return 0;
             }

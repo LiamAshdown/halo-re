@@ -22,6 +22,7 @@
 // UNSURE: the original overlaps the QueryPerformanceCounter LARGE_INTEGER with field_pointers'
 //   third slot (it writes local_24.s.LowPart with a pointer after the timestamp is already
 //   computed). That reuse is a compiler artifact and is not reproduced.
+// reconciled: R38 object_type_definition +0x0a/+0x0c/+0x0e/+0x10 -> scenario_placement_offset/scenario_palette_offset/scenario_placement_size/network_delta_message_type (int32, -1 = none)
 
 #include "tags.h"
 #include "memory.h"
@@ -106,7 +107,7 @@ int32_t unit_submit_periodic_network_update(int32_t hash_key, uint32_t param_2, 
                                           (int32_t)performance_frequency,
                                           (int32_t)(performance_frequency >> 32));
 
-        definition_index = (int32_t)object_type_definitions[obj->type]->unknown_10;
+        definition_index = (int32_t)object_type_definitions[obj->type]->network_delta_message_type;
         obj->unknown_122 = 0;
 
         if (param_4 == 1) {

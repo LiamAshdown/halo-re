@@ -9,18 +9,20 @@
 //   flagged in the type header as owned elsewhere (cinematic code) and left untyped here; the
 //   letterbox height field at +0x74 of the first block is called out explicitly.
 // register convention: none -- no parameters.
+// reconciled: R80 0x0071cfc4 uint32_t* cinematic_globals -> render.h cinematic_screen_effect_globals *cinematic_screen_effect_state (same dword stores)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "render.h"
 
 extern Globals *global_globals; // 0x00746fa0
 extern GlobalsRasterizerData *rasterizer_globals_data;              // 0x0071d164
 extern lens_flare_object_visibility lens_flare_object_visibility_table[k_lens_flare_object_visibility_slots]; // 0x006bc510
 extern uint8_t lens_flare_marker_visibility[0x10008]; // 0x006be810
 extern int32_t lens_flare_instance_count; // 0x0071d134
-extern uint32_t *cinematic_globals;                                 // 0x0071cfc4 UNSURE owner; +0x74 letterbox height
+extern cinematic_screen_effect_globals *cinematic_screen_effect_state; // 0x0071cfc4, render.h (0x78 bytes, +0x74 near_clip_distance)
 extern float *unknown_0071cfc0; // 0x0071cfc0
 
 extern void font_glyph_cache_clear_all(void); // 0x514cb0
@@ -48,14 +50,14 @@ void decal_and_font_system_reset(void)
     lens_flare_instance_count = 0;
     font_glyph_cache_clear_all();
 
-    if (cinematic_globals != (uint32_t *)0) {
+    if (cinematic_screen_effect_state != (cinematic_screen_effect_globals *)0) {
         for (i = 0; i < 0x1e; i++) {
-            cinematic_globals[i] = 0;
+            ((uint32_t *)cinematic_screen_effect_state)[i] = 0;
         }
-        cinematic_globals[0x19] = 0x3f800000; // 1.0f
-        cinematic_globals[0x1a] = 0x3f800000;
-        cinematic_globals[0x1b] = 0x3f800000;
-        cinematic_globals[0x1c] = 0x3f800000;
+        ((uint32_t *)cinematic_screen_effect_state)[0x19] = 0x3f800000; // 1.0f
+        ((uint32_t *)cinematic_screen_effect_state)[0x1a] = 0x3f800000;
+        ((uint32_t *)cinematic_screen_effect_state)[0x1b] = 0x3f800000;
+        ((uint32_t *)cinematic_screen_effect_state)[0x1c] = 0x3f800000;
     }
     if (unknown_0071cfc0 != (uint32_t *)0) {
         unknown_0071cfc0[0] = 0;
@@ -63,8 +65,8 @@ void decal_and_font_system_reset(void)
         unknown_0071cfc0[2] = 0;
         unknown_0071cfc0[3] = 0;
     }
-    if (cinematic_globals != (uint32_t *)0) {
-        cinematic_globals[0x1d] = 0; // letterbox height (+0x74)
+    if (cinematic_screen_effect_state != (cinematic_screen_effect_globals *)0) {
+        ((uint32_t *)cinematic_screen_effect_state)[0x1d] = 0; // near_clip_distance (+0x74)
     }
 }
 

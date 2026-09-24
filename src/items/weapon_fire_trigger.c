@@ -23,6 +23,7 @@
 // function's (item_index, tag_id, slot, sub_index) signature established elsewhere in this
 // module; local_74/local_7c are passed through positionally with a literal 0 sub_index, but
 // this mapping is not verified.
+// reconciled: R25 damage_data.unknown_4c -> material_type (int16 collision material of the damaged surface, 0xffff = none; indexes DamageEffect +0x200)
 
 #include "tags.h"
 #include "memory.h"
@@ -39,7 +40,7 @@ extern random_seed random_seed_global;            // 0x00719cd0
 extern int16_t network_game_mode;                 // 0x00719720
 extern uint8_t weapon_bottomless_clip;             // 0x0087abc2
 extern uint8_t weapon_client_side_projectiles;     // 0x006894c0
-extern void *game_time_globals;                   // 0x006f1d6c, +0x0c is the game tick
+extern void *game_time;                   // 0x006f1d6c, +0x0c is the game tick
 
 extern real random_real(void); // 0x4019f0, math module
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
@@ -211,7 +212,7 @@ void weapon_fire_trigger(datum_index item_index, int16_t trigger_index)
         unit_update_active_camouflage_depower();
     }
 
-    wd->last_fire_game_time = *(int32_t *)((uint8_t *)game_time_globals + 0x0c);
+    wd->last_fire_game_time = *(int32_t *)((uint8_t *)game_time + 0x0c);
 
     {
         int8_t action = is_misfire ? (int8_t)((trigger_index != 0) + 2) : (int8_t)(trigger_index != 0);
@@ -293,7 +294,7 @@ void weapon_fire_trigger(datum_index item_index, int16_t trigger_index)
         dd.responsible_player = (datum_index)0xffffffff;
         dd.responsible_object = (datum_index)0xffffffff;
         dd.team_index = -1;
-        dd.unknown_4c = -1;
+        dd.material_type = -1;
         dd.unknown_1a = -1; // UNSURE: matches local_44 (0xffff) at damage_data+0x18 (location_cluster_index)
         dd.location_cluster_index = -1;
         dd.direction.i = -*(real *)(holder_bytes + 0x23c);

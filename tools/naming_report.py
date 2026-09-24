@@ -30,11 +30,11 @@ name_collisions = {n: sorted(v) for n, v in defs_by_name.items() if len(v) > 1}
 canonical = {a: v[0][0] for a, v in defs_by_addr.items()}
 
 # extern prototypes with a code address comment
-EXTERN = re.compile(r"^\s*extern\s+[^;(]*?\b([A-Za-z_][A-Za-z0-9_]*)\s*\([^;]*\)\s*;[^\n]*?0x0{0,2}([45][0-9a-f]{5})\b", re.M | re.I)
+EXTERN = re.compile(r"^\s*extern\s+[^;(]*?\b([A-Za-z_][A-Za-z0-9_]*)\s*\((?!\s*\*)[^;]*\)\s*;[^\n]*?0x0{0,2}([45][0-9a-f]{5})\b", re.M | re.I)
 stale = []
 for p in files:
     text = open(p, encoding="utf-8", errors="replace").read()
-    body = text.split("#if 0")[0]
+    body = text[:text.rfind("#if 0")] if "#if 0" in text else text
     for m in EXTERN.finditer(body):
         name, a = m.group(1), m.group(2).lower()
         want = canonical.get(a)

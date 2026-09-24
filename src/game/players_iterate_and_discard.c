@@ -13,11 +13,13 @@
 // this function's real historical purpose is not recoverable here; it may be dead code left over
 // from a removed feature, or the visible behavior may be incomplete due to whole-program
 // optimization proving some other branch unreachable in this particular retail build.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480
 
@@ -33,6 +35,7 @@ datum_index players_iterate_and_discard(void)
     iter.data = player_data;
     iter.next_index = 0;
     iter.index = (datum_index)-1;
+    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     element = data_iterator_next(&iter);
     while (element != (void *)0) {

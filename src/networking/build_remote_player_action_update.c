@@ -17,6 +17,7 @@
 // available, not a disassembly-confirmed value. The player-slot cache record's type (iVar5, at
 // player_data->data + player_index*0x200) is left as a raw byte pointer with every offset
 // preserved exactly as Ghidra shows.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
@@ -24,6 +25,7 @@
 #include "game.h"
 #include "objects.h"
 #include "networking.h"
+#include <stdint.h>
 
 extern double sin(double x); // FSIN
 extern double cos(double x); // FCOS
@@ -146,6 +148,7 @@ encode:
                 iter.data = player_data;
                 iter.next_index = 0;
                 iter.index = k_datum_index_none;
+                iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
                 candidate = (player *)data_iterator_next(&iter);
                 while (candidate != 0) {
                     // UNSURE: the original also tests a reused float sentinel against

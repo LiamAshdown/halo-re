@@ -12,11 +12,13 @@
 // UNSURE: same unrecoverable trailing chimera__kill_feed arguments (message_type, subject,
 // broadcast) as the sibling broadcast helpers in this address range; modeled as forwarded
 // parameters.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480
 
@@ -42,6 +44,7 @@ void game_engine_broadcast_kill_feed_or_direct(datum_index recipient_or_all, int
         iter.data = player_data;
         iter.next_index = 0;
         iter.index = (datum_index)0xffffffff;
+        iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
         element = data_iterator_next(&iter);
         while (element != 0) {

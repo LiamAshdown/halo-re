@@ -36,11 +36,15 @@
 //   +0x20, +0x24) are not named by this module's header; they are kept as literal byte offsets
 //   with an inline note of what the surrounding logic implies about them, rather than guessed
 //   field names.
+// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
+// reconciled: R32 follow-up: local extern player_control_globals (0x0071c2d8) renamed network_client (networking.h name) because game.h is now included and owns the player_control_globals typedef
+// reconciled: R04 0x006f1d20 int32_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
@@ -50,10 +54,10 @@ extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern data_array *player_data;      // 0x0087a480
 extern int32_t game_connection_role; // 0x00719720, 1 = client, 2 = server
-extern hs_game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/hs.h)
+extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
 extern void *matrix4x3_multiply_thunk; // 0x00696664
-extern uint8_t *player_control_globals; // 0x0071c2d8
-extern int32_t network_predicted_state_flag; // 0x006f1d20
+extern uint8_t *network_client; // 0x0071c2d8 (networking.h network_client; renamed from network_client, which collides with game.h's typedef)
+extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern uint8_t is_dedicated_server_flag; // 0x00724a44
 
 extern real random_real_range(real min, real max);                      // 0x401050
@@ -198,7 +202,7 @@ seat_loop_reenter:
                         unit_try_set_animation_state(unit_index, 0x1b);
                     }
                     self_unit->last_parent_object_index = grandparent;          // puVar16[0xcb] = local_10
-                    self_unit->last_seat_change_tick = game_time->current_tick;  // puVar16[0xcc]
+                    self_unit->last_seat_change_tick = game_time->game_time;  // puVar16[0xcc]
                     // UNSURE: Ghidra shows this first clear pair on puVar16 (this unit) and the
                     // second pair further down on local_14 (the vehicle). Testing a unit's own
                     // driver/gunner handle against its own index reads oddly, but it is what the
@@ -274,7 +278,7 @@ seat_loop_check_deferred:
                     if ((sanity != 0) &&
                         (((int16_t)(controlling >> 16) == 0) || (sanity == (int16_t)(controlling >> 16))) &&
                         (*(int16_t *)(rec_off + *(int32_t *)((uint8_t *)player_data + 0x34) + 2) != -1) &&
-                        (player_control_globals != 0)) {
+                        (network_client != 0)) {
                         player_update_history_free_all();
                     }
                 }
@@ -365,9 +369,9 @@ after_eject:
 after_stance:
     if (apply_effects == 1) {
         if ((damage->responsible_player != k_datum_index_none) && (unit->controlling_player != k_datum_index_none) &&
-            (network_predicted_state_flag != 0)) {
+            (current_game_engine != 0)) {
             // UNSURE-CALL: calls through a function pointer at
-            // *(code**)(network_predicted_state_flag + 100) with damage->responsible_player.
+            // *(code**)((uint8_t *)current_game_engine + 100) with damage->responsible_player.
         }
         if ((damage->responsible_player != k_datum_index_none) || (damage->responsible_object != k_datum_index_none)) {
             unit_record_recent_damage_and_react(damage, unit_index);
@@ -392,7 +396,7 @@ after_stance:
         }
     }
     if ((unit->controlling_player != k_datum_index_none) && (0.0f < *(float *)(response_block + 0x20)) &&
-        ((network_predicted_state_flag != 0) || (is_dedicated_server_flag != 0))) {
+        ((current_game_engine != 0) || (is_dedicated_server_flag != 0))) {
         float a = damage->random_blend * *(float *)(response_block + 0x20);
         float b = *(float *)(response_block + 0x24) * damage->random_blend;
         float clamped_a = a < 0.0f ? 0.0f : a;

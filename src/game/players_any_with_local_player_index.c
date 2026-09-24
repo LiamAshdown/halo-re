@@ -10,11 +10,13 @@
 //   local_player_find_free_slot_index at 0x473730, loads it straight into ESI with no visible
 //   mov ahead of the call, so Ghidra shows it as unaff_ESI).
 //   // blam-cc: ESI -> local_player_index
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480
 
@@ -31,6 +33,7 @@ uint8_t players_any_with_local_player_index(int16_t local_player_index)
     iter.data = player_data;
     iter.next_index = 0;
     iter.index = (datum_index)0xffffffff;
+    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     p = (player *)data_iterator_next(&iter);
     while (p != (player *)0) {

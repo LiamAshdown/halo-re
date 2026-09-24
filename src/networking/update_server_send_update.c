@@ -21,6 +21,7 @@
 // the whole networking module, 0x440350..0x5781c0, and belong to the game/update-queue
 // subsystem per types/networking.h's note that update_record/player_update_queue are owned by
 // types/game.h); called here with whatever arguments Ghidra shows, which is often none.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
@@ -28,6 +29,7 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+#include <stdint.h>
 
 extern double sin(double x); // FSIN
 extern double cos(double x); // FCOS
@@ -103,6 +105,7 @@ char update_server_send_update(uint32_t *param_1, char param_2)
             checksum = update_checksum_seed;
             (void)checksum;
             iterator.data = 0; iterator.next_index = 0; iterator.index = 0; // UNSURE: elided iterator source
+            iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
             it = data_iterator_next(&iterator);
             while (it != 0) {
                 // UNSURE: the *(short*)(it+2)==-1 / *(int*)(it+0x34)!=-1 checks and everything

@@ -7,6 +7,7 @@
 // mirrors src/main/chimera__load_ui_map.c / game_scenario_session_begin.c / main_level_
 // transition_update.c's identical construction.
 // register convention: cdecl, no parameters.
+// reconciled: R13 network_scenario_load_request.seed (+0x06) -> difficulty (campaign difficulty, lands at game globals +0x0e)
 
 // phase 4 review (disassembly 0x4c9dd0..0x4c9e8a): 0x45aea0 is cache_file_switch_map_by_path with
 // EAX = &request.map_name and BL = 1 (the phase 3 file called it without arguments).
@@ -52,7 +53,7 @@ void game_start_new_single_player_map(void)
     request.salt = 0xdeadbeef;
     strncpy(request.map_name, main_globals_data.scenario_path, 0xff);
     request.map_name[0xff] = 0;
-    request.seed = main_pending_difficulty;
+    request.difficulty = main_pending_difficulty;
 
     cache_file_switch_map_by_path(request.map_name, 1);   // 0x4c9e64 mov bl,1 ; lea eax,[esp+0x14]
     game_stop_current_map();

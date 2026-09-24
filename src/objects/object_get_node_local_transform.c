@@ -19,6 +19,7 @@
 //   for this specific rewrite. The arithmetic below is traced directly from this function's own
 //   decompilation. UNSURE: the bitmask `(obj->flags >> 0xc) & 0xffffff01` passed to
 //   model_markers_get_by_name is preserved as literal arithmetic, not decoded further.
+// reconciled: R40 objects.h object_marker comment now agrees with this file: mirrored mode negates node_transform.left (+0x48/+0x4c/+0x50; fchs at 0x4f6152..0x4f6162), no code change
 
 #include "tags.h"
 #include "memory.h"

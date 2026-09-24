@@ -27,12 +27,14 @@
 // initialization convention already established in
 // src/game/game_engine_send_team_allegiance_message.c, since player_data is the only global
 // this function references.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: iterator in EDI
@@ -45,6 +47,7 @@ int32_t player_data_iterator_advance(int16_t step_count)
     iter.data = player_data;
     iter.next_index = 0;
     iter.index = k_datum_index_none;
+    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     element = data_iterator_next(&iter);
     if (element == 0) {

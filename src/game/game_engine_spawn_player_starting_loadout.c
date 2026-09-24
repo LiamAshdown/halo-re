@@ -15,8 +15,9 @@
 // register convention: no register-passed arguments Ghidra recovers; all three are this
 // function's own stack parameters (param_1 is read nowhere in the body).
 // UNSURE: object_placement_data_initialize's own placement-buffer argument (EAX/register) and
-// object_type_definition::unknown_10's real meaning are unrecoverable here, exactly as already
+// object_type_definition::network_delta_message_type's real meaning are unrecoverable here, exactly as already
 // flagged in the sibling netgame-equipment spawner (game_engine_update_netgame_equipment.c).
+// reconciled: R38 object_type_definition +0x0a/+0x0c/+0x0e/+0x10 -> scenario_placement_offset/scenario_palette_offset/scenario_placement_size/network_delta_message_type (int32, -1 = none)
 
 #include "tags.h"
 #include "memory.h"
@@ -95,7 +96,7 @@ void game_engine_spawn_player_starting_loadout(uint32_t starting_equipment_index
                 if (network_game_mode == 2) {
                     tag_instance *tag_inst = &tag_instances[picked_tag & 0xffff];
                     Object *object_tag = (Object *)tag_inst->data;
-                    if (object_type_definitions[object_tag->object_type]->unknown_10 != (uint32_t)-1) {
+                    if (object_type_definitions[object_tag->object_type]->network_delta_message_type != -1) {
                         role = 0;
                     }
                 }

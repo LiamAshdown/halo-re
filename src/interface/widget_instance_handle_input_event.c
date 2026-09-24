@@ -20,6 +20,7 @@
 // the four focused_child-moving helpers types/interface.h's widget_history_node note mentions
 // ("0x49c000/0x49c040/0x49c080/0x49c0f0 move it around the sibling ring") but does not name;
 // declared void(void), called with no visible arguments by Ghidra at every site.
+// reconciled: R02 0x006b2ce8 team_slot_table -> input.h joystick_slot_devices[4]
 
 #include "tags.h"
 #include "memory.h"
@@ -35,7 +36,7 @@ extern widget_instance *ui_root_widget[1]; // 0x00718f94
 extern uint16_t split_screen_quit_prompt_string; // 0x00719754, per interface_handle_quit_request.c
 extern uint8_t split_screen_quit_prompt_unknown_71973c; // 0x0071973c, byte stores only
 extern uint8_t split_screen_quit_prompt_armed; // 0x00719757
-extern int32_t team_slot_table[4]; // 0x006b2ce8, types/game.h; read as DWORDs here (objdump 0x499d5d, 0x499d83)
+extern int32_t joystick_slot_devices[4]; // 0x006b2ce8, input.h (slot -> device, -1 none); DWORD reads 0x499d5d, 0x499d83
 
 extern void widget_close(widget_instance *widget); // 0x497c00
 extern uint8_t widget_list_select_next(widget_instance *widget); // 0x4986b0, UNSURE: called here with 3 args by Ghidra (widget, event, &out); own file's signature takes just widget -- extern arity disagreement, not resolved
@@ -83,7 +84,7 @@ void widget_instance_handle_input_event(widget_instance *widget, UIWidgetDefinit
 
             // objdump 0x499d7b..0x499d92: close as soon as any slot is not -1; all -1 skips
             for (i = 0; i <= 3; i++) {
-                if (team_slot_table[i] != -1) {
+                if (joystick_slot_devices[i] != -1) {
                     break;
                 }
             }
@@ -96,7 +97,7 @@ void widget_instance_handle_input_event(widget_instance *widget, UIWidgetDefinit
             }
             widget_close(ancestor);
             handled = 1;
-        } else if (team_slot_table[controller] != -1) {
+        } else if (joystick_slot_devices[controller] != -1) {
             ancestor = widget;
             while (ancestor->parent != (widget_instance *)0) {
                 ancestor = ancestor->parent;

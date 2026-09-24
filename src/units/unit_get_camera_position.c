@@ -18,18 +18,20 @@
 //   The first (the "has a gunner, not seated, not the simple biped-alive case" early exit) has
 //   no comparably strong candidate and is left as a NULL placeholder -- flagged so this path is
 //   not trusted until re-checked against the disassembly.
+// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
 
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern hs_game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/hs.h)
+extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
 
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
@@ -48,7 +50,7 @@ void unit_get_camera_position(uint32_t unit_index, real_point3d *out) // blam-cc
             biped_data *biped = (biped_data *)((uint8_t *)unit_obj + k_unit_object_size);
             float height = biped->crouch_fraction;
             if (((biped->flags & 1) == 0) && (0.0f < height) && (height < 1.0f)) {
-                float rate = game_time->seconds_per_tick * 29.999998f * biped_tag->crouch_camera_velocity;
+                float rate = game_time->leftover_time * 29.999998f * biped_tag->crouch_camera_velocity;
                 if (unit->base_animation_state == _unit_base_animation_state_crouch) {
                     height = height + rate;
                 } else {

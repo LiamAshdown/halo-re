@@ -23,6 +23,7 @@
 //   was not observed calling anything through an unresolved register operand of its own,
 //   only forwarding its parameters into callees that themselves have register gaps).
 //   // blam-cc: stack -> waypoints, waypoint_count, edges, out_cursor, out_buffer, out_flag
+// reconciled: R06 0x00746f9c is ScenarioStructureBSP *global_structure_bsp (was extern int32_t bsp_generation); ai.h path_find_context/actor_movement_context bsp_generation -> structure_bsp, bsp_index -> collision_bsp
 
 #include "tags.h"
 #include "memory.h"
@@ -30,8 +31,8 @@
 #include "ai.h"
 #include <stdint.h>
 
-extern int32_t bsp_generation; // 0x00746f9c
-extern uint8_t *ai_navigate_cluster_table; // 0x00746f98, UNSURE: a per-cluster table this function reads bsp-cluster edge data from at +0x40/+0x10
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (formerly bsp_generation)
+extern uint8_t *global_structure_collision_bsp; // 0x00746f98, UNSURE: a per-cluster table this function reads bsp-cluster edge data from at +0x40/+0x10
 
 extern void ai_search_gather_obstacles(void *out_list, float *point, float radius, float *direction,
                                        uint32_t self_object_a, uint32_t self_object_b); // 0x43c510
@@ -55,7 +56,7 @@ uint8_t ai_navigate_around_obstacles(float *waypoints, int16_t waypoint_count, u
     float scratch_path[512 * 4]; // local_273c, one {surface_z, x, y, slope} record per collected point
     uint8_t obstacle_list[1284 * 2]; // local_1f3c
     uint8_t search_context[5424]; // local_1534
-    uint8_t *cluster_base = ai_navigate_cluster_table;
+    uint8_t *cluster_base = global_structure_collision_bsp;
     float step_radius;
     int32_t segment;
     int16_t last_segment;

@@ -28,6 +28,7 @@
 // color; without a sprite sequence the overlay sequence index is used as the bitmap index.
 // register convention: EAX hud interface tag id, ECX player record; one stack argument.
 //   // blam-cc: hud_tag -> EAX, player -> ECX
+// reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
 
 #include <string.h>
 #include "tags.h"
@@ -76,7 +77,7 @@ void hud_weapon_crosshairs_draw(datum_index hud_tag, const player *p, const weap
     }
     crosshair_state = (int32_t *)((uint8_t *)hud_weapon_state + p->local_player_index * 0x50 + 0x28);
     view_mask = (*(int16_t *)((uint8_t *)global_scenario + 0x3c) != 2 ? 1 : 0) |
-                (local_player_globals->unknown_0c == 1 ? 2 : 0) | (local_player_globals->unknown_0c > 1 ? 4 : 0);
+                (local_player_globals->local_player_count == 1 ? 2 : 0) | (local_player_globals->local_player_count > 1 ? 4 : 0);
     if (p->unit == (datum_index)-1) {
         return;
     }
@@ -98,7 +99,7 @@ void hud_weapon_crosshairs_draw(datum_index hud_tag, const player *p, const weap
     for (chain_index = 0; chain_index < chain_count; chain_index++) {
         WeaponHUDInterface *hud = chain[chain_index];
         uint16_t anchor[0x12];
-        uint8_t split_screen = local_player_globals->unknown_0c > 1;
+        uint8_t split_screen = local_player_globals->local_player_count > 1;
         int16_t crosshair_index;
 
         memset(anchor, 0, sizeof(anchor));
@@ -137,7 +138,7 @@ void hud_weapon_crosshairs_draw(datum_index hud_tag, const player *p, const weap
                     continue;
                 }
                 scale = 1.0f;
-                if (local_player_globals->unknown_0c > 1 && (*(uint8_t *)&overlay->scaling_flags & 2) == 0) {
+                if (local_player_globals->local_player_count > 1 && (*(uint8_t *)&overlay->scaling_flags & 2) == 0) {
                     scale = 0.5f;
                 }
                 sequence = 0;

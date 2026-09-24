@@ -22,7 +22,7 @@
 #include "math.h"
 #include "structures.h"
 
-extern ScenarioStructureBSP *structure_bsp; // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 
 extern real_point3d render_camera_position;  // 0x007c3114, render camera block (read, not owned)
 extern uint8_t render_camera_projection;     // 0x007c3168, the transform context, +0x10 is the matrix
@@ -37,12 +37,12 @@ extern uint8_t structure_bsp_portal_project(real_plane3d *plane, void *camera_re
 uint8_t structure_bsp_portal_test_and_project(char same_side, int16_t portal_index, polygon2d *out)
 {
     ScenarioStructureBSPClusterPortal *portal =
-        &((ScenarioStructureBSPClusterPortal *)structure_bsp->cluster_portals.pointer)[portal_index];
-    // The disassembly resolves the planes through structure_bsp->collision_bsp (tag +0xb4), not
+        &((ScenarioStructureBSPClusterPortal *)global_structure_bsp->cluster_portals.pointer)[portal_index];
+    // The disassembly resolves the planes through global_structure_bsp->collision_bsp (tag +0xb4), not
     // through the 0x00746f90 global that structure_bsp_query_surfaces / structure_bsp_portal_sphere_test
     // use; both are ModelCollisionGeometryBSP pointers for the same resident BSP.
     ModelCollisionGeometryBSP *collision_bsp =
-        (ModelCollisionGeometryBSP *)structure_bsp->collision_bsp.pointer;
+        (ModelCollisionGeometryBSP *)global_structure_bsp->collision_bsp.pointer;
     ModelCollisionGeometryBSPPlane *plane =
         &((ModelCollisionGeometryBSPPlane *)collision_bsp->planes.pointer)[portal->plane_index];
     return structure_bsp_portal_project((real_plane3d *)&plane->plane, &render_camera_position,

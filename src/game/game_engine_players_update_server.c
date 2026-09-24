@@ -5,7 +5,7 @@
 //   server/single-player path: applies queued client input, handles respawning, and processes
 //   each player's action flags"); types/game.h player_action (0x20 bytes, this batch's
 //   update_client_queue_apply_tick.c's "out_a"), player (deaths +0xae, respawn_timer +0x2c,
-//   unit +0x34), player_globals (unknown_16 +0x16, unknown_0c +0x0c); types/units.h unit_data
+//   unit +0x34), player_globals (unknown_16 +0x16, local_player_count +0x0c); types/units.h unit_data
 //   (flags +0x204 bit 6, equipment_object_index +0x318, current_weapon_index +0x2f2,
 //   weapons[] +0x2f8, desired_facing_vector +0x224, desired_aiming_vector +0x230,
 //   desired_looking_vector +0x254), unit_control_data, unit_control_flags (action 0x40,
@@ -37,6 +37,8 @@
 // struct base was not independently re-verified byte-for-byte, only through its own internal
 // consistency (animation_state/aiming_speed/control_flags packed into one dword, throttle/
 // facing_vector/aiming_vector/looking_vector following in order).
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
+// reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
 
 #include "tags.h"
 #include "memory.h"
@@ -46,6 +48,7 @@
 #include "units.h"
 #include "game.h"
 #include <string.h>
+#include <stdint.h>
 
 // client_update_carry is types/game.h's (0x10; every field still UNSURE, see that header).
 
@@ -94,7 +97,7 @@ extern void game_engine_build_visible_cluster_bitmask(void *out_bitmask, uint32_
 // player that does have a unit whose object flags bit 6 is set -- processes its action/exchange-
 // weapon/trigger input for this tick and hands a unit_control_data built from its player_action
 // record (or, for an idle non-local, non-AI unit, a default-facing one) to unit_apply_control_block. Finally
-// rebuilds the two encounter/squad-presence bitmasks and player_globals::unknown_0c.
+// rebuilds the two encounter/squad-presence bitmasks and player_globals::local_player_count.
 void game_engine_players_update_server(void)
 {
     player_action actions[16];
@@ -118,6 +121,7 @@ void game_engine_players_update_server(void)
     player_iter.data = player_data;
     player_iter.next_index = 0;
     player_iter.index = (datum_index)-1;
+    player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
     counter = 0;
 
     plr = (player *)data_iterator_next(&player_iter);
@@ -248,7 +252,7 @@ void game_engine_players_update_server(void)
 
     game_engine_build_visible_cluster_bitmask((uint8_t *)local_player_globals + 0x58, 1);
     game_engine_build_visible_cluster_bitmask((uint8_t *)local_player_globals + 0x18, 0);
-    local_player_globals->unknown_0c = (int16_t)(local_player_globals->local_players[0] != (datum_index)-1);
+    local_player_globals->local_player_count = (int16_t)(local_player_globals->local_players[0] != (datum_index)-1);
 }
 
 #if 0

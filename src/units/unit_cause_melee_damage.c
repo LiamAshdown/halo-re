@@ -17,7 +17,7 @@
 //   object index as stack parameters (param_3..param_7).
 //   // blam-cc: EAX -> unit_index, second register -> suppress_effect,
 //   //           stack -> (target_object_index, damage_node, damage_param5, damage_param6, damage_param7)
-// UNSURE: damage_data.team_index (0x10) is filled from object.name_index (0x0b8), which reads
+// UNSURE: damage_data.team_index (0x10) is filled from object.owner_team (0x0b8), which reads
 //   oddly for a "team" field but is reproduced literally; this may be an artifact of the
 //   compiler reusing damage_data.team_index's storage for something else, or the field
 //   identification for one of the two is wrong.
@@ -25,6 +25,8 @@
 //   marker world position" follow the same stack-overlay reasoning used in
 //   unit_update_look_delta_controls.c; the object_marker local buffer here is 96 bytes, exactly
 //   covering through node_transform's position field.
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
+// reconciled: R25 damage_data.unknown_4c -> material_type (int16 collision material of the damaged surface, 0xffff = none; indexes DamageEffect +0x200)
 
 #include "tags.h"
 #include "memory.h"
@@ -105,14 +107,14 @@ void unit_cause_melee_damage(uint32_t unit_index, uint8_t suppress_effect, uint3
         dd.damage_effect_tag = damage_effect;
         dd.responsible_player = unit->controlling_player;
         dd.responsible_object = unit_index;
-        dd.team_index = obj->name_index; // UNSURE, see header
+        dd.team_index = obj->owner_team; // UNSURE, see header
         dd.location_leaf_index = obj->location_leaf_index;
         *(int32_t *)&dd.location_cluster_index = *(int32_t *)&obj->location_cluster_index;
         dd.epicentre = target_pos;
         dd.origin = origin_pos;
         dd.random_blend = 1.0f;
         dd.multiplier = 1.0f;
-        dd.unknown_4c = -1;
+        dd.material_type = -1;
 
         if (target_object_index == 0xffffffff) {
             damage_apply_area_effect(&dd, 0xffffffff);
@@ -120,8 +122,8 @@ void unit_cause_melee_damage(uint32_t unit_index, uint8_t suppress_effect, uint3
             object_apply_damage(&dd, target_object_index, damage_param4, damage_param5, damage_param6, damage_param7);
         }
 
-        if (suppress_effect == 0 && dd.unknown_4c != -1) {
-            unit_trigger_material_hit_effect(dd.unknown_4c, k_datum_index_none);
+        if (suppress_effect == 0 && dd.material_type != -1) {
+            unit_trigger_material_hit_effect(dd.material_type, k_datum_index_none);
         }
 
         unit->melee_state = 0;

@@ -19,6 +19,7 @@
 //   same this-pointer it was given (its only caller, camera_debug_compute_pov case 3, chains
 //   the return value straight into camera_track_compute_pov).
 //   // blam-cc: EAX -> this, DX -> local_player_index, stack -> unit
+// reconciled: R04 0x006f1d20 void * current_game_engine -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
@@ -30,7 +31,7 @@ extern observer observers[1];                // 0x006ac65c
 extern random_seed local_random_seed;        // 0x00719cd4, UNSURE: distinct from math's random_seed_global (0x00719cd0)
 extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *player_data;              // 0x0087a480, stride 0x200 (no types/players.h yet)
-extern void *current_game_engine; // 0x006f1d20, game_engine_definition *; only null-tested here (non-NULL means multiplayer)
+extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 
 // blam-cc: EAX -> this, DX -> local_player_index, stack -> unit
 // Seeds a new dead (orbiting) camera target: starts the focus point at the current published
@@ -63,7 +64,7 @@ dead_camera_data *dead_camera_new(dead_camera_data *this, int16_t local_player_i
     if (unit != k_datum_index_none) {
         this->retarget_time = 3.4028235e38f; // FLT_MAX: an explicit target never auto-retargets
     } else {
-        this->retarget_time = (current_game_engine != (void *)0) ? 15.0f : 3.0f;
+        this->retarget_time = (current_game_engine != (game_engine_definition *)0) ? 15.0f : 3.0f;
     }
 
     if (local_player_index == -1 || local_player_index > 0) {

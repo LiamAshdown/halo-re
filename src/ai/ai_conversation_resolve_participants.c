@@ -30,6 +30,7 @@
 //  - object+0x204 bit 8 is cleared whenever the unit's variant index (object+0xbe) changes;
 //    the same +0x204 flag word is already used this way in
 //    src/ai/actor_apply_unit_definition_properties.c.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
@@ -219,6 +220,7 @@ clear_wait:
     iterator.data = player_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     best_player_distance = 3.4028235e+38f;
     player = data_iterator_next(&iterator);
     while (player != 0) {
@@ -258,6 +260,7 @@ check_looking:
     iterator.data = player_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     found_looking = 0;
     player = data_iterator_next(&iterator);
     while (player != 0) {

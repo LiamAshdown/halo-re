@@ -26,7 +26,9 @@ typedef enum memory_signatures {
     k_memory_pool_signature = 0x706f6f6c,  // 'pool' at memory_pool+0x00
     k_memory_pool_block_head_signature = 0x68656164, // 'head'
     k_memory_pool_block_tail_signature = 0x7461696c, // 'tail'
-    k_byte_swap_definition_signature = 0x62797377    // 'bysw'
+    k_byte_swap_definition_signature = 0x62797377,   // 'bysw'
+    k_data_iterator_signature = 0x69746572 // 'iter', XORed with the data_array pointer into
+                                           // data_iterator.signature
 } memory_signatures;
 
 // ---------------------------------------------------------------------------
@@ -119,11 +121,18 @@ typedef struct data_array {
     void *data;                // 0x34 maximum_count*size bytes
 } data_array;                  // size 0x38, data_new allocates 0x38 + maximum_count*size
 
+// data_iterator: never built by a constructor function; every caller builds it inline on the
+// stack as four stores (e.g. 0x430a23..0x430a44, 0x444417..0x444437, 0x45c6a3..0x45c6c6):
+//   [+0x00] = data, WORD [+0x04] = 0, [+0x08] = -1, [+0x0c] = data ^ 'iter'
+// data_iterator_next (0x4d05d0) reads [+0x00], reads and writes only WORD [+0x04], and writes
+// [+0x08]; it never checks +0x0c (144 `xor reg,0x69746572` sites build the signature).
 typedef struct data_iterator {
     data_array *data;          // 0x00
-    int32_t next_index;        // 0x04 index data_iterator_next resumes from
+    int16_t next_index;        // 0x04 index data_iterator_next resumes from (word access only)
+    uint8_t pad_06[2];         // 0x06 never written by the inline constructors
     datum_index index;         // 0x08 handle of the element last returned
-} data_iterator;               // size 0x0c
+    uint32_t signature;        // 0x0c (uint32_t)data ^ k_data_iterator_signature
+} data_iterator;               // size 0x10
 
 // ---------------------------------------------------------------------------
 // struct_definition  (struct_definition_compute_size / _encode / _decode)

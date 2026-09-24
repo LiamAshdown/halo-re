@@ -10,17 +10,18 @@
 // review fixes (phase 4 gate): the result is a byte (0x4452ab mov al,bl / 0x4452b5 mov al,1;
 //   the only caller 0x4454eb uses AL alone), and the team is compared as the full int32 at
 //   player +0x20 (0x445262 / 0x445296), not truncated to int16. The binary also stores the
-//   iterator self-check word data ^ 0x69746572 at iterator +0x0c (0x44527e); types/memory.h
-//   models data_iterator as 0x0c bytes and data_iterator_next never reads the word, so it is
-//   left out here.
+//   iterator self-check word data ^ 0x69746572 at iterator +0x0c (0x44527e), which is
+//   types/memory.h data_iterator.signature; data_iterator_next never reads it.
 // register convention: single cdecl stack parameter (confirmed with objdump: loaded from
 //   [esp+0x1c] right after the prologue, and the function returns with a bare `ret`).
 //   // blam-cc: stack -> reference_player
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480, stride 0x200 (no types/players.h yet)
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module
@@ -39,6 +40,7 @@ uint8_t camera_dead_player_has_teammate(datum_index reference_player)
     iterator.data = player_data;
     iterator.next_index = 0;
     iterator.index = k_datum_index_none;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
     p = (player *)data_iterator_next(&iterator);
     while (p != (player *)0) {

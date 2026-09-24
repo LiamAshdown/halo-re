@@ -17,12 +17,14 @@
 // UNSURE: on the "99 consecutive already-empty slots" bailout, the function returns
 // k_datum_index_none without freeing or unlinking the decal record it already allocated via
 // datum_new_at_index_with_salt -- preserved exactly (a leak in the original), not "fixed".
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#include <stdint.h>
 
 extern data_array *decal_data;       // 0x0087abe4
 extern decal_grid *decal_grid_block; // 0x006b0ad8
@@ -62,6 +64,7 @@ datum_index decal_new(int16_t cluster_index, int16_t layer, datum_index insert_b
                     iterator.data = decal_data;
                     iterator.next_index = 0;
                     iterator.index = 0;
+                    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
                     while (decal_grid_block->temporary_count > k_temporary_decal_eviction_target) {
                         decal *candidate = (decal *)data_iterator_next(&iterator);

@@ -9,16 +9,19 @@
 //   next_index quirk -- see src/memory/data_iterator_next.c); out/phase4/hs_types_notes.md
 //   object parent offset (0x11c); hs_object_hierarchy_test (0x487c10, this module).
 // register convention: none (void).
-// UNSURE: `local_4`, xor'd with a constant and reassigned mid-function, is an MSVC /GS stack
-//   canary, not program state, and is omitted entirely. Phase 2's iterator (passed to the
+// `local_4`, player_data ^ 0x69746572, is the data_iterator +0x0c signature (types/memory.h,
+//   R16), not a /GS canary; it is stored with the iterator.
+// UNSURE: Phase 2's iterator (passed to the
 //   not-yet-recovered object_iterator_next) is NOT the same data_iterator shape -- its first word
 //   is initialized to -1 rather than a pointer -- so it is modeled here as a guessed
 //   {type_filter; next_index; index} triple, flagged TYPES-GAP. unit_detach_from_seat, object_delete_unparented and
 //   object_delete_recursive's exact semantics are not recovered either.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include <stdint.h>
 
 extern void *data_iterator_next(data_iterator *iterator);        // memory module, 0x4d05d0
 extern char hs_object_hierarchy_test(datum_index object_index);  // this module, 0x487c10
@@ -63,6 +66,7 @@ void hs_object_runtime_cleanup(void)
     player_iter.data = players;
     player_iter.next_index = 0;
     player_iter.index = (datum_index)0xffffffff;
+    player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
     player_element = data_iterator_next(&player_iter);
     while (player_element != 0) {
         unit = *(datum_index *)((uint8_t *)player_element + 0x34);

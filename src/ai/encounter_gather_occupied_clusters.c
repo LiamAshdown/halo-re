@@ -4,7 +4,7 @@
 // evidence: phase-4 summary ("computes (and optionally records per-actor) the set of BSP
 //   zones/clusters that a squad's living actors currently occupy, expanded through
 //   door/portal adjacency tables"). The bitmap it fills is one bit per structure BSP cluster
-//   (the count comes from structure_bsp + 0x134), the same bitmap encounters_update_activation
+//   (the count comes from global_structure_bsp + 0x134), the same bitmap encounters_update_activation
 //   @0x437e20 intersects against the per-player visible-cluster mask at
 //   local_player_globals + 0x18. Each member's cluster comes from object + 0x9c after
 //   following object + 0x11c to the root of the parent chain.
@@ -36,7 +36,7 @@
 
 extern data_array *encounter_data;                    // 0x008802c8
 extern Scenario *global_scenario;                     // 0x00746f8c
-extern ScenarioStructureBSP *structure_bsp;           // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp;           // 0x00746f9c
 extern data_array *actor_data;                        // 0x00880360
 extern data_array *object_data;                       // 0x008603b0
 extern data_array *prop_data;                         // 0x008802c0
@@ -85,7 +85,7 @@ void encounter_gather_occupied_clusters(datum_index encounter_index, uint32_t *o
     fill = out_clusters;
     // ScenarioStructureBSP.clusters.count lives at +0x134; types/tags.h has no offset
     // comments for that struct, so it is read raw here.
-    for (dword_count = (uint32_t)(((*(int32_t *)((uint8_t *)structure_bsp + 0x134)) + 0x1f) >> 5);
+    for (dword_count = (uint32_t)(((*(int32_t *)((uint8_t *)global_structure_bsp + 0x134)) + 0x1f) >> 5);
          dword_count != 0; dword_count = dword_count - 1) {
         *fill = 0;
         fill = fill + 1;

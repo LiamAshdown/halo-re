@@ -10,15 +10,17 @@
 // opaque externals, and the final mask argument reads an apparently-unwritten 1024-byte stack
 // buffer.
 // register convention: none (no parameters).
+// reconciled: R04 0x006f1d20 uint8_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 
 extern uint8_t *lights_enabled;         // 0x0071cfb8
-extern uint8_t network_predicted_state_flag;              // 0x006f1d20, predicted/network flag
+extern game_engine_definition *current_game_engine;              // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern uint8_t g_0087aa00;              // 0x0087aa00, UNSURE: not owned by this module
 extern int32_t g_0068944c;              // 0x0068944c, UNSURE: not owned by this module
 extern int32_t light_active_list_count; // 0x008607c8
@@ -38,7 +40,7 @@ void lights_apply_spot_falloff_specular(void)
     rasterizer_shader_environment_technique_ps2_set_states();
 
     if (*lights_enabled != 0 &&
-        (network_predicted_state_flag == 0 || ((g_0087aa00 & 1) == 0 && 1 < g_0068944c))) {
+        (current_game_engine == 0 || ((g_0087aa00 & 1) == 0 && 1 < g_0068944c))) {
         int16_t i;
 
         for (i = 0; i < light_active_list_count; i++) {

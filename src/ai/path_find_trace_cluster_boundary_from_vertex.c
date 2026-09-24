@@ -1,84 +1,113 @@
 // path_find_trace_cluster_boundary_from_vertex  (Ghidra: path_find_trace_cluster_boundary_from_vertex, renamed)
 // address 0x43d790, size 383 bytes
-// name confidence: 0.3   rewrite confidence: 0.1
-// evidence: phase-4 summary "traces along a cluster's boundary edges from a starting vertex,
-// returning the nearest edge that would block a proposed move within range." Reuses the same
-// bsp-pointer-at-+0xb4 / request-block-at-+0x1e8 / permission-bitmap shape as
-// path_find_trace_cluster_boundary.c and path_find_run.c. Calls collision_bsp_surface_clip_line_2d (outside this
-// rewrite's range), whose six float outputs (Ghidra's `local_18/14/10/c/8/4`) this function
-// reads with no visible arguments beyond the four shown -- an unrecovered hidden-output
-// callee, like several others in this cluster.
+// name confidence: 0.3   rewrite confidence: 0.6
+// evidence: re-derived from the disassembly (0x43d790..0x43d90e). The function walks a 2D ray
+//   across the projected surfaces of the context's collision BSP: it clips the ray against the
+//   current surface with collision_bsp_surface_clip_line_2d (0x5017f0, physics), then crosses
+//   into the neighbouring surface on the enter side or the exit side while that surface is
+//   passable, and reports where the walk stopped.
+// reconciled: R53 one real signature: uint8_t f(void *context /*EAX*/, uint8_t ignore_permission,
+//   real_point2d *point, int32_t start_index, real_vector2d *direction, float max_distance,
+//   path_find_boundary_trace_result *out), cdecl, 6 stack arguments, returns AL. The old
+//   parameter roles were wrong: arg2 is an int32 surface index (EBP, replaced by each surface
+//   crossed into: mov ebp,eax; push eax; jmp 0x43d7ce), arg4 is max_distance (the float every
+//   comparison uses), arg1/arg3 go straight through to 0x5017f0, and the out block's second
+//   and third slots are indices, not floats. out[0] = distance, out[1] = the surface the walk
+//   ended in, out[2] = the edge hit (-1 and out[0] = max_distance on a miss).
+// reconciled: R79 0x006b8d78 is physics.h breakable_surface_globals (ai_path_permission_table ->
+//   breakable_surface_state) and 0x0069e8d8 the structure BSP index (local_command_list_generation
+//   -> global_structure_bsp_index): the permission row is active[bsp index] (shl 5, +1, 0x43d7bb).
 //
-// register convention: EAX -> context; stack -> ignore_permission, cluster_ref,
-//   max_distance, param4, distance, out_result.
-//   // blam-cc: EAX -> context, stack -> ignore_permission, cluster_ref, max_distance,
-//   //   param4, distance, out_result
-//
-// UNSURE: this is one of the least confident rewrites in this batch; see the header above
-// for the unrecovered callee. `out_scratch` groups collision_bsp_surface_clip_line_2d's six float outputs as
-// Ghidra's own local numbering; their real field meanings are not established.
+// register convention: EAX -> context; stack -> ignore_permission, point, start_index,
+//   direction, max_distance, out.
+//   // blam-cc: EAX -> context, stack -> ignore_permission, point, start_index, direction,
+//   //   max_distance, out
+// Layout the function reads: context +0xb4 is the ModelCollisionGeometryBSP *, context +0x1e8
+//   a per-surface permission byte array (0 = never passable; sign bit set = passable only while
+//   the surface's breakable surface bit is set in the current BSP's row).
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "physics.h"
 
-extern uint32_t ai_path_permission_table;    // 0x006b8d78, see path_find_run.c
-extern int16_t local_command_list_generation; // 0x0069e8d8, see path_find_run.c
-extern void collision_bsp_surface_clip_line_2d(int32_t bsp, float distance, uint32_t cluster_ref, uint32_t param4); // 0x5017f0, outside this rewrite's range; hidden outputs, see header
+extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78, physics.h
+extern int16_t global_structure_bsp_index;                 // 0x0069e8d8, physics.h
+extern uint32_t collision_bsp_surface_clip_line_2d(collision_bsp_boundary_clip *clip,
+                                                   ModelCollisionGeometryBSP *bsp,
+                                                   int32_t surface_index, real_point2d *origin,
+                                                   real_vector2d *direction);
+    // 0x5017f0, src/physics/collision_bsp_surface_clip_line_2d.c; ECX -> clip
 
-// blam-cc: EAX -> context, stack -> ignore_permission, cluster_ref, max_distance, param4,
-//   distance, out_result
-uint8_t path_find_trace_cluster_boundary_from_vertex(void *context, uint8_t ignore_permission, uint32_t cluster_ref,
-                                                      float max_distance, uint32_t param4, float distance,
-                                                      float *out_result)
+// The shared passability test (0x43d7ea..0x43d82d for the enter side, 0x43d845..0x43d888 for
+// the exit side). The permission byte is read before the -1 test, exactly as the binary does.
+static uint8_t path_find_surface_passable(const uint8_t *surface_permissions, uint8_t ignore_permission,
+                                          const ModelCollisionGeometryBSP *bsp,
+                                          const uint32_t *intact_row, int32_t surface_index)
 {
-    int32_t bsp = *(int32_t *)((uint8_t *)context + 0xb4);
-    uint8_t *permission_flags = (uint8_t *)((uint8_t *)context + 0x1e8);
-    uint8_t *permission_row = (uint8_t *)&ai_path_permission_table + local_command_list_generation * 0x20 + 1;
-    float out_18, out_14, out_10, out_c, out_8, out_4; // collision_bsp_surface_clip_line_2d's hidden outputs, see header
+    uint8_t permission = surface_permissions[surface_index];
+    uint32_t breakable;
+
+    if (permission == 0) {
+        return 0;
+    }
+    if (ignore_permission != 0 || (int8_t)permission >= 0) {
+        return 1;
+    }
+    breakable = (uint8_t)((const ModelCollisionGeometryBSPSurface *)bsp->surfaces.pointer)[surface_index].breakable_surface;
+    return (intact_row[breakable >> 5] & (1u << (breakable & 0x1f))) != 0;
+}
+
+// blam-cc: EAX -> context, stack -> ignore_permission, point, start_index, direction,
+//   max_distance, out
+uint8_t path_find_trace_cluster_boundary_from_vertex(void *context, uint8_t ignore_permission,
+                                                     real_point2d *point, int32_t start_index,
+                                                     real_vector2d *direction, float max_distance,
+                                                     path_find_boundary_trace_result *out)
+{
+    ModelCollisionGeometryBSP *bsp = *(ModelCollisionGeometryBSP **)((uint8_t *)context + 0xb4);
+    uint8_t *surface_permissions = *(uint8_t **)((uint8_t *)context + 0x1e8);
+    uint32_t *intact_row = breakable_surface_state->active[global_structure_bsp_index];
+    int32_t surface_index = start_index;   // EBP
+    collision_bsp_boundary_clip clip;      // [esp+0x14], ECX of the 0x5017f0 call
 
     for (;;) {
-        float advanced_distance = distance;
-        collision_bsp_surface_clip_line_2d(bsp, advanced_distance, cluster_ref, param4);
+        collision_bsp_surface_clip_line_2d(&clip, bsp, surface_index, point, direction);
 
-        if ((max_distance < out_18) && (permission_flags[(int32_t)out_10] != 0) &&
-            ((ignore_permission != 0) ||
-             ((-1 < (int8_t)permission_flags[(int32_t)out_10]) ||
-              ((*(uint32_t *)(permission_row + (*(uint8_t *)(*(int32_t *)(bsp + 0x40) +
-                                                              (int32_t)out_10 * 0xc + 9) >> 5) * 4) &
-                (1u << (*(uint8_t *)(*(int32_t *)(bsp + 0x40) + (int32_t)out_10 * 0xc + 9) & 0x1f))) != 0)))) {
-            distance = out_10;
-            if (out_10 != -1.0f) {
-                continue;
-            }
+        if (max_distance < clip.enter.t &&
+            path_find_surface_passable(surface_permissions, ignore_permission, bsp, intact_row,
+                                       clip.enter.surface_index) &&
+            clip.enter.surface_index != -1) {
+            surface_index = clip.enter.surface_index;
+            continue;
         }
-
-        if ((max_distance <= out_c) || (permission_flags[(int32_t)out_4] == 0) ||
-            ((ignore_permission == 0) &&
-             ((int8_t)permission_flags[(int32_t)out_4] < 0) &&
-             ((*(uint32_t *)(permission_row + (*(uint8_t *)(*(int32_t *)(bsp + 0x40) +
-                                                             (int32_t)out_4 * 0xc + 9) >> 5) * 4) &
-               (1u << (*(uint8_t *)(*(int32_t *)(bsp + 0x40) + (int32_t)out_4 * 0xc + 9) & 0x1f))) == 0)) ||
-            ((distance = out_4), out_4 == -1.0f)) {
-            if (max_distance < out_18) {
-                out_result[1] = advanced_distance;
-                out_result[2] = out_14;
-                out_result[0] = out_18;
-                return 1;
-            }
-            if (max_distance <= out_c) {
-                out_result[1] = advanced_distance;
-                out_result[0] = max_distance;
-                out_result[2] = -1.0f;
-                return 0;
-            }
-            out_result[1] = advanced_distance;
-            out_result[0] = out_c;
-            out_result[2] = out_8;
-            return 1;
+        if (clip.exit.t < max_distance &&
+            path_find_surface_passable(surface_permissions, ignore_permission, bsp, intact_row,
+                                       clip.exit.surface_index) &&
+            clip.exit.surface_index != -1) {
+            surface_index = clip.exit.surface_index;
+            continue;
         }
+        break;
     }
+
+    if (max_distance < clip.enter.t) {         // 0x43d8a3
+        out->distance = clip.enter.t;
+        out->surface_index = surface_index;
+        out->edge_index = clip.enter.edge_index;
+        return 1;
+    }
+    if (clip.exit.t < max_distance) {          // 0x43d8cc
+        out->distance = clip.exit.t;
+        out->surface_index = surface_index;
+        out->edge_index = clip.exit.edge_index;
+        return 1;
+    }
+    out->distance = max_distance;              // 0x43d8f5
+    out->surface_index = surface_index;
+    out->edge_index = -1;
+    return 0;
 }
 
 #if 0

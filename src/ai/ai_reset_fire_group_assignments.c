@@ -14,7 +14,7 @@
 //   .component_count (0x02), .unit_index[16] (0x18); ai_globals.actors_valid (0x01),
 //   .unknown_08 (0x08); types/objects.h object.parent_object (0x11c),
 //   object.location_cluster_index (0x9c); team_relationship_flags (0x006b0b84, established by
-//   src/ai/actor_refresh_combat_context.c and others); use_absolute_team_check (0x006f1d20,
+//   src/ai/actor_refresh_combat_context.c and others); current_game_engine (0x006f1d20,
 //   src/ai/ai_recompute_all_relationship_flags.c); local_player_globals (0x0087a478,
 //   src/ai/encounters_update_activation.c, +0x18 raw per that file's own precedent).
 // register convention: this function takes no arguments (Ghidra shows no recognized parameters
@@ -51,10 +51,12 @@
 //    src/ai/actor_movement_actions_cancel.c, written in this same session for the true
 //    0x417a30). The separate, real call near the end of this function is also to 0x428650, and
 //    is declared here as actor_movement_action_cancel rather than reusing that file's (collided) symbol name.
+// reconciled: R04 0x006f1d20 int32_t use_absolute_team_check -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "objects.h"
 #include "ai.h"
 
@@ -68,7 +70,7 @@ extern data_array *swarm_data;          // 0x0088035c
 extern data_array *object_data;         // 0x008603b0
 extern ai_globals *ai_globals_ptr;      // 0x00880354
 extern uint8_t team_relationship_flags; // 0x006b0b84, base of the 0x2d-dword team-relationship block
-extern int32_t use_absolute_team_check; // 0x006f1d20
+extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern void *local_player_globals;      // 0x0087a478
 extern actor_mode_definition actor_mode_definitions[16]; // 0x00655254
 
@@ -147,7 +149,7 @@ void ai_reset_fire_group_assignments(void)
                         char any_prop_matches;
                         datum_index prop_index;
 
-                        if (use_absolute_team_check == 0) {
+                        if (current_game_engine == 0) {
                             if (team < 0 || team >= 10) {
                                 actor_index = next_in_encounter;
                                 continue;

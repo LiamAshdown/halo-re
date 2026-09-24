@@ -15,6 +15,7 @@
 // register convention: EBX(masked) -> actor_index (stack), stack -> flee_source_object, point.
 //   Ghidra already resolved these three as ordinary stack parameters.
 //   // blam-cc: stack -> actor_index, flee_source_object, point
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
 
 #include "tags.h"
 #include "memory.h"
@@ -69,7 +70,7 @@ void actor_react_to_flee_point(datum_index actor_index, int32_t flee_source_obje
 
     if (flee_source_object != -1) {
         object *source = ((object_header *)object_data->data)[flee_source_object & 0xffff].data;
-        if (teams_are_enemies(source->name_index /* UNSURE, see file header */, self->team) != 0) {
+        if (teams_are_enemies(source->owner_team /* UNSURE, see file header */, self->team) != 0) {
             actor_record_perception_event(actor_index, 2, 0x384);
         }
     }

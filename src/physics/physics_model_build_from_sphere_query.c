@@ -25,8 +25,8 @@
 #include "objects.h"
 #include "physics.h"
 
-extern ModelCollisionGeometryBSP *structure_collision_bsp; // 0x00746f98
-extern ScenarioStructureBSP *structure_bsp_tag_data;        // 0x00746f9c
+extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
+extern ScenarioStructureBSP *global_structure_bsp;        // 0x00746f9c
 extern breakable_surface_globals *breakable_surface_state;  // 0x006b8d78
 extern int16_t global_structure_bsp_index;                  // 0x0069e8d8
 
@@ -71,7 +71,7 @@ uint8_t physics_model_build_from_sphere_query(uint32_t flags, real_point3d *cent
     model->shape_count = 0;
 
     if ((flags & 0x20) != 0 || (flags & 0xc0) != 0) {
-        found_surface = (uint8_t)collision_bsp_query_sphere_init(structure_collision_bsp,
+        found_surface = (uint8_t)collision_bsp_query_sphere_init(global_structure_collision_bsp,
             k_maximum_breakable_surfaces_per_bsp, &sphere_result,
             breakable_surface_state->active[global_structure_bsp_index], center,
             radius + 0.0625f);
@@ -79,7 +79,7 @@ uint8_t physics_model_build_from_sphere_query(uint32_t flags, real_point3d *cent
         if (found_surface && (flags & 0x20) != 0) {
             // the original passes DAT_00746f98 as the first STACK argument, which is what pins
             // physics_shape_build_proxies_from_query's param_1 down as its bsp
-            physics_shape_build_proxies_from_query(&sphere_result, structure_collision_bsp,
+            physics_shape_build_proxies_from_query(&sphere_result, global_structure_collision_bsp,
                 x_offset, y_offset, -1, model, (real_matrix4x3 *)0, -1);
         }
 
@@ -98,7 +98,7 @@ uint8_t physics_model_build_from_sphere_query(uint32_t flags, real_point3d *cent
 
             for (i = 0; i < sphere_result.leaf_count; i++) {
                 int16_t cluster_index = ((ScenarioStructureBSPLeaf *)
-                    structure_bsp_tag_data->leaves.pointer)[sphere_result.leaves[i]].cluster;
+                    global_structure_bsp->leaves.pointer)[sphere_result.leaves[i]].cluster;
 
                 if (cluster_visit_stamp[cluster_index] != cluster_flood_fill_call_count) {
                     datum_index ref;

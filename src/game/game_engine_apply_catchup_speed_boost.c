@@ -8,11 +8,13 @@
 //   current per-player leader (the highest player + 0xc6, the same UNSURE field used elsewhere
 //   in this batch) they are, halved into thirds for the CTF ctf_option_7c==2 sub-mode.
 // register convention: no parameters.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern data_array *player_data;          // 0x0087a480
 extern game_variant game_engine_variant; // 0x006f1c88 (ctf_option_7c aliased 0x006f1d04)
@@ -32,6 +34,7 @@ void game_engine_apply_catchup_speed_boost(void)
     iter.data = player_data;
     iter.next_index = 0;
     iter.index = (datum_index)0xffffffff;
+    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     p = (player *)data_iterator_next(&iter);
     while (p != (player *)0) {
@@ -45,6 +48,7 @@ void game_engine_apply_catchup_speed_boost(void)
     iter.data = player_data;
     iter.next_index = 0;
     iter.index = (datum_index)0xffffffff;
+    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     p = (player *)data_iterator_next(&iter);
     while (p != (player *)0) {

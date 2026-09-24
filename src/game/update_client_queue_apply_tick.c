@@ -11,11 +11,13 @@
 // tick value via EAX that this function itself never receives as a named parameter in Ghidra's
 // rendering (no `in_EAX` is shown), so it is modeled as a 0 here pending a proper disassembly
 // pass; this is the least-verified file in the batch and should be revisited.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include <stdint.h>
 
 extern int32_t update_client_base_tick; // 0x006f7e9c
 extern int32_t update_client_unknown_ea0; // 0x006f7ea0
@@ -48,6 +50,7 @@ uint32_t update_client_queue_apply_tick(player_action *out_actions,
         player_iter.data = 0; // UNSURE: iterator source array not recovered (likely player_data)
         player_iter.next_index = 0;
         player_iter.index = k_datum_index_none;
+        player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
         player_element = data_iterator_next(&player_iter);
         while (player_element != 0) {
             index = index + 1;
@@ -72,6 +75,7 @@ uint32_t update_client_queue_apply_tick(player_action *out_actions,
         player_iter.data = 0;
         player_iter.next_index = 0;
         player_iter.index = k_datum_index_none;
+        player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
         player_element = data_iterator_next(&player_iter);
         while (player_element != 0) {
             uint8_t *dst = (uint8_t *)player_element;

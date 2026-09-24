@@ -17,15 +17,17 @@
 // (param_3); real_point3d *position in EDX-sourced param_4 (stack per Ghidra); uint32_t param_5
 // on the stack; real_vector3d *direction in EBX (unaff_EBX).
 // blam-cc: stack=(light_tag, marker_index, marker_sub_index, position, param_5), EBX=direction
+// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "hs.h"
 #include "objects.h"
 
 extern data_array *light_data;      // 0x00860b14
-extern hs_game_time_globals *game_time;         // 0x006f1d6c, game time globals; +0x0c is the current tick
+extern game_time_globals *game_time;         // 0x006f1d6c, game time globals; +0x0c is the current tick
 extern int32_t light_frame_counter; // 0x008607c4
 
 extern datum_index datum_new(data_array *array); // UNSURE: returns {handle, data_array*} as a
@@ -42,7 +44,7 @@ datum_index light_new_positioned(datum_index light_tag, int32_t marker_index, in
         uint8_t *raw = (uint8_t *)entry;
 
         entry->flags = 0;
-        entry->marker_link = game_time->current_tick; // +0x0c, the current tick
+        entry->marker_link = game_time->game_time; // +0x0c, the current tick
         entry->definition_tag = light_tag;
         *(int32_t *)(raw + 0x2c) = marker_index; // UNSURE: overlaps light.owner_object
         entry->unknown_78 = param_5;

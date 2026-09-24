@@ -36,6 +36,7 @@
 //   rest" -- confirmed against the objdump FPU compare/branch pair (fcomp/fnstsw/test ah,0x41),
 //   not copied from the weapon/projectile siblings, which gate on a different bit
 //   (_object_needs_cluster_update_bit) instead of _object_at_rest_bit.
+// reconciled: R26 object +0x18/+0x1c/+0x44/+0x48 raw writes -> network_position_valid/network_position/network_velocity_valid/network_velocity
 
 #include "tags.h"
 #include "memory.h"
@@ -102,13 +103,11 @@ void equipment_apply_network_update(datum_index item_index, uint32_t *update_rec
 
             obj->velocity = decoded.velocity;
             obj->angular_velocity = decoded.angular_velocity; // 0x4bc35d..0x4bc370
-            // UNSURE: these two writes land inside types/objects.h's still-unresolved
-            // unknown_019[7]/player_visibility_mask/unknown_022[0x3a] region (object 0x018..0x05c),
-            // the interpolation position/velocity pair the projectiles pass identified.
-            *(real_point3d *)((uint8_t *)obj + 0x1c) = decoded.position;
-            *(real_vector3d *)((uint8_t *)obj + 0x48) = decoded.velocity;
-            obj->unknown_018 = 1;
-            *((uint8_t *)obj + 0x44) = 1;
+            // the network interpolation block (object 0x018..0x054, objects.h R26)
+            obj->network_position = decoded.position;
+            obj->network_velocity = decoded.velocity;
+            obj->network_position_valid = 1;
+            obj->network_velocity_valid = 1;
 
             dx = decoded.position.x - obj->position.x;
             dy = decoded.position.y - obj->position.y;

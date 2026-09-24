@@ -16,7 +16,7 @@
 #include "math.h"
 #include "structures.h"
 
-extern ScenarioStructureBSP *structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 extern uint8_t picked_surfaces_valid;    // 0x006e3ad8, this module
 extern int32_t picked_surfaces_geometry; // 0x006e3adc, this module
 extern int16_t visible_surface_count;   // 0x00850394: every store in the binary is
@@ -49,7 +49,7 @@ void structure_picked_polygon_draw(void)
     }
 
     saved_render_flag = render_force_flag;
-    if (structure_bsp->lightmaps_bitmap.tag_id.index == 0xffff && saved_render_flag == 0) {
+    if (global_structure_bsp->lightmaps_bitmap.tag_id.index == 0xffff && saved_render_flag == 0) {
         render_force_flag = 1;
     }
 

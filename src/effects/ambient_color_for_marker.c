@@ -25,7 +25,7 @@
 
 extern int16_t weather_particle_system_count;                // 0x00746b84
 extern weather_particle_system_state weather_wind_states[8]; // 0x00746b88
-extern uint8_t *structure_bsp_globals;                        // 0x00746f9c; +0x1b8 weather palette
+extern uint8_t *global_structure_bsp;                        // 0x00746f9c; +0x1b8 weather palette
 extern tag_instance *tag_instances;                           // 0x0087bc14
 extern const real_point3d *global_origin3d_pointer;          // 0x00696714 -> 0x0065c230
 
@@ -41,7 +41,7 @@ void ambient_color_for_marker(int16_t weather_row, real_point3d *position, uint8
     if (weather_row >= 0 && weather_row < weather_particle_system_count &&
         *((uint8_t *)&weather_wind_states[0] + weather_row * 0x20) != 0) {
         ScenarioStructureBSPWeatherPalette *palette_row =
-            (ScenarioStructureBSPWeatherPalette *)(*(uint8_t **)(structure_bsp_globals + 0x1b8)) +
+            (ScenarioStructureBSPWeatherPalette *)(*(uint8_t **)(global_structure_bsp + 0x1b8)) +
             weather_row;
         Wind *wind_tag = (Wind *)tag_instances[palette_row->wind.tag_id.index].data;
         weather_particle_system_state *wind = &weather_wind_states[weather_row];

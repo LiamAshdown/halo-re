@@ -128,3 +128,5 @@
 0x4f4000 object_type_definitions_query_0x34 func 0.80 agent-phase4 return_narrowed_to_uint8_t:_CONCAT31(garbage,AL)_in_the_decompile
 0x4ed9d0 object_restore_full_body_vitality func 0.80 agent-phase4 return_narrowed_to_uint8_t:_CONCAT31(garbage,AL)_in_the_decompile
 0x4edba0 object_shield_recharge_start func 0.80 agent-phase4 return_narrowed_to_uint8_t:_CONCAT31(garbage,AL)_in_the_decompile
+0x4ffd40 breakable_surfaces_reset func 0.70 agent-phase4:reconcile_R79_src/objects/breakable_surfaces_reset.c
+0x4ffda0 breakable_surface_is_intact func 0.65 agent-phase4:reconcile_R79_src/objects/breakable_surface_is_intact.c

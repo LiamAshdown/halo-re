@@ -1,127 +1,129 @@
 // ai_search_evaluate_edge_cost  (Ghidra: ai_search_evaluate_edge_cost, renamed)
 // address 0x43b830, size 560 bytes
-// name confidence: 0.3   rewrite confidence: 0.1
-// evidence: phase-4 summary "evaluates the cheapest way (direct or bending around an
-// obstacle) to move between two points for the AI point search, writing the chosen cost and
-// heading." Calls ai_search_find_nearest_visible_point (ai_search_find_nearest_visible_point, this rewrite) and
-// path_find_trace_cluster_boundary_from_vertex (this rewrite's own path_find_trace_cluster_boundary_from_vertex).
+// name confidence: 0.3   rewrite confidence: 0.6
+// evidence: re-derived from the disassembly (0x43b830..0x43ba5f). Evaluates the cheapest way
+//   to leave `point` for the AI point search: a direct boundary trace along `direction`, two
+//   traces from points offset sideways by +/- distance along the perpendicular, and the nearest
+//   visible search point (ai_search_find_nearest_visible_point), keeping the lowest cost.
+// reconciled: R53 path_find_trace_cluster_boundary_from_vertex (0x43d790) has one signature and
+//   all seven calls here push 6 stack arguments with EAX = context and clean with add esp,0x18
+//   (0x30 for the paired calls): the _3/_6 aliases are gone. The parameter roles follow from
+//   those calls: arg0 is the boundary-trace context (EAX of every 0x43d790 call), arg1 the
+//   ignore_permission byte, arg2/arg3 the obstacle list and excluded point handed to 0x43c8f0,
+//   arg5 the start surface index, arg6 the sideways distance, arg10 require_unflagged, and EBX
+//   the direction (read at 0x43b8b1 as [ebx]/[ebx+4], pushed as the trace direction). The
+//   result record's +0x04/+0x08 are the trace's surface_index/edge_index (ints), not headings.
 //
-// This is one of the least confident rewrites in this batch. path_find_trace_cluster_boundary_from_vertex is called six
-// times in the original with three visibly different argument counts (3, then 6, then 3,
-// then 6, then 3, then 3 again) even though it can only be one real function -- Ghidra's
-// register/stack-slot reuse tracking has broken down for this function far more than
-// anywhere else in this cluster, and the three-argument call sites cannot simply be
-// "reusing" the direction/distance/out-result operands the six-argument call sites set up,
-// because the first three-argument call happens *before* any of those locals exist. This
-// could not be resolved without a disassembly of this function, which was not available
-// here. What follows preserves every visible operation and operand exactly as Ghidra shows
-// it, using a separate, reduced-arity local declaration of path_find_trace_cluster_boundary_from_vertex per distinct call
-// shape (matching this module's established convention for a callee whose visible arity
-// differs by call site, taken to its logical extreme here). The `param_12[2] == -NAN` /
-// `local_18._2_2_` constructs are Ghidra sub-register artifacts on what is really one
-// `float` and one `int32_t` pair of scratch slots; reproduced with plain float/int32_t
-// locals and a same-bit-pattern NaN sentinel check (`!= !=` would not reliably match a raw
-// NaN bit pattern in portable C, so the sentinel is compared through a union instead).
-//
-// register convention: EBX -> a caller-owned {x, y} pair (the segment's own direction,
-//   read but never seen assigned in this function -- inherited from the caller); the rest
-//   are the twelve Ghidra-recognized stack parameters.
-//   // blam-cc: EBX -> unaff_direction (inherited, not a formal parameter), stack -> the
-//   //   twelve parameters below
+// register convention: EBX -> direction; stack -> the twelve parameters below.
+//   // blam-cc: EBX -> direction, stack -> context, ignore_permission, obstacle_list,
+//   //   exclude_index, point, start_surface_index, distance, base_cost, skip_direct,
+//   //   apply_offset, require_unflagged, out_result
+// Observed as-is: the second sideways trace (0x43b93b..0x43b973) places its probe point at
+//   point - distance * perpendicular but still walks the surfaces along +perpendicular, the
+//   same direction as the first; that is what the binary does, so it is kept.
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
 
-extern uint8_t ai_search_find_nearest_visible_point(uint32_t param_3, uint32_t param_4, real_point2d *point); // 0x43c8f0
-// 0x43d790 is path_find_trace_cluster_boundary_from_vertex (src/ai/path_find_trace_cluster_boundary_from_vertex.c).
-// Ghidra shows it called from here with three operands at some sites and six at others, so it is
-// declared twice under suffixed aliases rather than picking one arity. UNSURE which is real.
-extern uint8_t path_find_trace_cluster_boundary_from_vertex_3(uint32_t cluster, real_point2d *point, uint32_t param6); // 0x43d790
-extern uint8_t path_find_trace_cluster_boundary_from_vertex_6(uint32_t cluster, real_point2d *point, uint32_t param6,
-                              real_vector2d *direction, float distance, float *out_result); // 0x43d790
+extern uint8_t ai_search_find_nearest_visible_point(ai_search_obstacle_list *list, int16_t exclude_index,
+                                                    uint32_t param_3, uint32_t param_4, float radius,
+                                                    float max_distance, uint8_t require_unflagged,
+                                                    ai_search_nearest_point_result *out_result);
+    // 0x43c8f0; EDI -> out_result, see its own file for the stack roles
+extern uint8_t path_find_trace_cluster_boundary_from_vertex(void *context, uint8_t ignore_permission,
+                                                            real_point2d *point, int32_t start_index,
+                                                            real_vector2d *direction, float max_distance,
+                                                            path_find_boundary_trace_result *out);
+    // 0x43d790; EAX -> context
 
-// blam-cc: EBX -> unaff_direction (inherited), stack -> cluster_a, cluster_b, param_3,
-//   param_4, point, param6, distance, base_cost, skip_direct, apply_offset, param_11,
-//   out_result
-uint8_t ai_search_evaluate_edge_cost(uint32_t cluster_a, uint32_t cluster_b, uint32_t param_3, uint32_t param_4,
-                                     real_point2d *point, uint32_t param6, float distance, float base_cost,
-                                     char skip_direct, char apply_offset, uint32_t param_11,
-                                     ai_search_edge_result *out_result)
+// blam-cc: EBX -> direction, stack -> context .. out_result
+uint8_t ai_search_evaluate_edge_cost(void *context, uint8_t ignore_permission,
+                                     ai_search_obstacle_list *obstacle_list, int16_t exclude_index,
+                                     real_point2d *point, int32_t start_surface_index, float distance,
+                                     float base_cost, uint8_t skip_direct, uint8_t apply_offset,
+                                     uint8_t require_unflagged, ai_search_edge_result *out_result,
+                                     real_vector2d *direction)
 {
-    real_vector2d *unaff_direction; // UNSURE: inherited from the caller, see header
-    float local_1c; // direction.i, reused as a scratch x/i component throughout
-    int32_t local_18;
-    float local_14;
-    float local_10;
-    float local_c; // path_find_trace_cluster_boundary_from_vertex's own out-distance
-    float local_8; // UNSURE: never assigned anywhere in the original; read at the end regardless
-    float local_4; // path_find_trace_cluster_boundary_from_vertex's own out-point-id-as-float companion
-
-    unaff_direction = 0; // UNSURE: cannot be recovered without this function's caller; see header
+    path_find_boundary_trace_result trace;  // [esp+0x1c] at the first call (orig - 0xc)
+    real_vector2d perpendicular;            // orig - 0x1c
+    real_point2d probe;                     // orig - 0x14
+    ai_search_nearest_point_result nearest; // orig - 0x1c again (EDI of the 0x43c8f0 call)
+    uint8_t reached;
 
     out_result->cost = base_cost;
-    out_result->heading_x = -1.0f; // -NAN sentinel, see header
-    out_result->heading_y = -1.0f; // -NAN sentinel, see header
+    out_result->surface_index = -1;
+    out_result->edge_index = -1;
     out_result->point_id = -1;
-    *(int16_t *)&out_result->unknown_0e = -1;
-
+    out_result->link = -1;
     if (apply_offset != 0) {
         out_result->cost = base_cost - distance;
     }
 
     if (skip_direct == 0) {
-        if ((path_find_trace_cluster_boundary_from_vertex_3(cluster_b, point, param6) != 0) && (local_c < out_result->cost)) {
-            out_result->cost = local_c;
-            out_result->heading_y = local_4;
+        // 0x43b873: the direct trace along `direction`
+        if (path_find_trace_cluster_boundary_from_vertex(context, ignore_permission, point, start_surface_index,
+                                                         direction, out_result->cost, &trace) != 0 &&
+            trace.distance < out_result->cost) {
+            out_result->cost = trace.distance;
+            out_result->edge_index = trace.edge_index;
         }
 
-        local_18 = *(int32_t *)&unaff_direction->i;
-        local_1c = -unaff_direction->j;
-        local_14 = local_1c * distance + point->x;
-        local_10 = *(float *)&local_18 * distance + point->y;
-        path_find_trace_cluster_boundary_from_vertex_6(cluster_b, point, param6, (real_vector2d *)&local_1c, distance, &local_c);
-        {
-            real_point2d p; p.x = local_14; p.y = local_10;
-            if ((path_find_trace_cluster_boundary_from_vertex_3(cluster_b, &p, (uint32_t)local_8) != 0) && (local_c < out_result->cost)) {
-                out_result->cost = local_c;
-                out_result->heading_y = local_4;
-            }
+        // 0x43b8b1: perpendicular = {-direction.j, direction.i}
+        perpendicular.i = -direction->j;
+        perpendicular.j = direction->i;
+
+        // 0x43b8c4..0x43b938: find the surface under point + distance * perpendicular, then trace
+        // from there along `direction`
+        probe.x = perpendicular.i * distance + point->x;
+        probe.y = perpendicular.j * distance + point->y;
+        path_find_trace_cluster_boundary_from_vertex(context, ignore_permission, point, start_surface_index,
+                                                     &perpendicular, distance, &trace);
+        if (path_find_trace_cluster_boundary_from_vertex(context, ignore_permission, &probe, trace.surface_index,
+                                                         direction, out_result->cost, &trace) != 0 &&
+            trace.distance < out_result->cost) {
+            out_result->cost = trace.distance;
+            out_result->edge_index = trace.edge_index;
         }
 
-        local_14 = local_1c * -distance + point->x;
-        local_10 = -distance * *(float *)&local_18 + point->y;
-        path_find_trace_cluster_boundary_from_vertex_6(cluster_b, point, param6, (real_vector2d *)&local_1c, distance, &local_c);
-        {
-            real_point2d p; p.x = local_14; p.y = local_10;
-            if ((path_find_trace_cluster_boundary_from_vertex_3(cluster_b, &p, (uint32_t)local_8) != 0) && (local_c < out_result->cost)) {
-                out_result->cost = local_c;
-                out_result->heading_y = local_4;
-            }
+        // 0x43b93b..0x43b9b3: the same from point - distance * perpendicular
+        probe.x = perpendicular.i * -distance + point->x;
+        probe.y = -distance * perpendicular.j + point->y;
+        path_find_trace_cluster_boundary_from_vertex(context, ignore_permission, point, start_surface_index,
+                                                     &perpendicular, distance, &trace);
+        if (path_find_trace_cluster_boundary_from_vertex(context, ignore_permission, &probe, trace.surface_index,
+                                                         direction, out_result->cost, &trace) != 0 &&
+            trace.distance < out_result->cost) {
+            out_result->cost = trace.distance;
+            out_result->edge_index = trace.edge_index;
         }
     }
 
-    if ((ai_search_find_nearest_visible_point(param_3, param_4, point) != 0) && (local_1c < out_result->cost)) {
-        out_result->cost = local_1c;
-        out_result->heading_y = -1.0f; // -NAN sentinel
-        *(int16_t *)&out_result->point_id = (int16_t)local_18;
-        *(int16_t *)&out_result->unknown_0e = (int16_t)((uint32_t)local_18 >> 16);
+    // 0x43b9b6: the nearest visible search point
+    if (ai_search_find_nearest_visible_point(obstacle_list, exclude_index, (uint32_t)point, (uint32_t)direction,
+                                             distance, out_result->cost, require_unflagged, &nearest) != 0 &&
+        nearest.distance < out_result->cost) {
+        out_result->cost = nearest.distance;
+        out_result->edge_index = -1;
+        out_result->point_id = nearest.point_id;
+        out_result->link = nearest.link;
     }
 
-    {
-        uint8_t reached;
-        if ((out_result->heading_y == -1.0f) && (out_result->point_id == -1)) {
-            reached = 0;
-            out_result->cost = base_cost;
-        } else {
-            reached = 1;
-        }
-
-        path_find_trace_cluster_boundary_from_vertex_3(cluster_b, point, param6);
-        out_result->heading_x = local_8;
-        return reached;
+    // 0x43ba12: nothing found -> the base cost and a 0 result (the byte is stored back into the
+    // apply_offset argument slot and returned from there)
+    if (out_result->edge_index == -1 && out_result->point_id == -1) {
+        reached = 0;
+        out_result->cost = base_cost;
+    } else {
+        reached = 1;
     }
+
+    // 0x43ba2f: one last trace along `direction` for the final cost, only to learn the surface
+    path_find_trace_cluster_boundary_from_vertex(context, ignore_permission, point, start_surface_index,
+                                                 direction, out_result->cost, &trace);
+    out_result->surface_index = trace.surface_index;
+    return reached;
 }
 
 #if 0

@@ -15,17 +15,19 @@
 // struct (gated on object.type == biped), so it is kept as a raw offset.
 // register convention: datum_index object_index on the stack (param_1).
 // blam-cc: stack=object_index
+// reconciled: R04 0x006f1d20 uint8_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern void *g_00746fa0;            // 0x00746fa0, UNSURE: player/local-player globals, not owned here
-extern uint8_t network_predicted_state_flag;          // 0x006f1d20, "the network/predicted-state flag every damage
+extern game_engine_definition *current_game_engine;          // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
                                     // and creation path branches on" (objects.h globals note)
 
 extern void damage_data_initialize(damage_data *dd, datum_index damage_effect_tag); // 0x4ed990
@@ -84,7 +86,7 @@ void object_update_vitality_and_regeneration(uint32_t object_index)
 
             if (obj->maximum_shield_vitality > 0.0f && (vitality & _object_health_frozen_bit) == 0) {
                 if ((vitality & _object_shield_recharging_bit) == 0) {
-                    if (obj->shield_vitality <= 1.0f || network_predicted_state_flag == 0) {
+                    if (obj->shield_vitality <= 1.0f || current_game_engine == 0) {
                         if (obj->shield_vitality < 1.0f) {
                             if (obj->shield_stun_ticks == 0) {
                                 real rate = geometry->shield_recharge_rate;

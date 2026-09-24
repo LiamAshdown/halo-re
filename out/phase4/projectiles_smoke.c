@@ -50,13 +50,21 @@ typedef char check_cr_type[(__builtin_offsetof(collision_result, type) == 0x00) 
 typedef char check_cr_leaf[(__builtin_offsetof(collision_result, leaf) == 0x0c) ? 1 : -1];
 typedef char check_cr_t[(__builtin_offsetof(collision_result, t) == 0x14) ? 1 : -1];
 typedef char check_cr_point[(__builtin_offsetof(collision_result, point) == 0x18) ? 1 : -1];
-typedef char check_cr_normal[(__builtin_offsetof(collision_result, normal) == 0x24) ? 1 : -1];
+typedef char check_cr_first_leaf[(__builtin_offsetof(collision_result, first_leaf) == 0x04) ? 1 : -1];
+typedef char check_cr_first_cluster[(__builtin_offsetof(collision_result, first_cluster) == 0x08) ? 1 : -1];
+typedef char check_cr_plane[(__builtin_offsetof(collision_result, plane) == 0x24) ? 1 : -1];
+typedef char check_cr_plane_d[(__builtin_offsetof(collision_result, plane.d) == 0x30) ? 1 : -1];
 typedef char check_cr_material[(__builtin_offsetof(collision_result, material_type) == 0x34) ? 1 : -1];
 typedef char check_cr_object[(__builtin_offsetof(collision_result, object_index) == 0x38) ? 1 : -1];
-typedef char check_cr_marker[(__builtin_offsetof(collision_result, marker_index) == 0x3e) ? 1 : -1];
+typedef char check_cr_region[(__builtin_offsetof(collision_result, region_index) == 0x3c) ? 1 : -1];
+typedef char check_cr_node[(__builtin_offsetof(collision_result, node_index) == 0x3e) ? 1 : -1];
+typedef char check_cr_permutation[(__builtin_offsetof(collision_result, permutation_index) == 0x40) ? 1 : -1];
+typedef char check_cr_plane_index[(__builtin_offsetof(collision_result, plane_index) == 0x48) ? 1 : -1];
 typedef char check_cr_surface[(__builtin_offsetof(collision_result, surface_index) == 0x44) ? 1 : -1];
 typedef char check_cr_flags[(__builtin_offsetof(collision_result, surface_flags) == 0x4c) ? 1 : -1];
-typedef char check_cr_4e[(__builtin_offsetof(collision_result, unknown_4e) == 0x4e) ? 1 : -1];
+typedef char check_cr_breakable[(__builtin_offsetof(collision_result, breakable_surface_index) == 0x4d) ? 1 : -1];
+typedef char check_cr_material_index[(__builtin_offsetof(collision_result, collision_material_index) == 0x4e) ? 1 : -1];
+typedef char check_creation_team[(__builtin_offsetof(projectile_creation_message, owner_team) == 0x08) ? 1 : -1];
 
 // message record offsets
 typedef char check_cm_position[(__builtin_offsetof(projectile_creation_message, position) == 0x14) ? 1 : -1];

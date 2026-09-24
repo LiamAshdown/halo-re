@@ -25,7 +25,7 @@
 //   - both build_sprite calls pass the already transformed origin, a NULL direction and
 //     build_sprite flag bit 0 (already transformed).
 //   - 0x628cca is the MSVC CRT _CIfmod (fmod(st1, st0)); 0x6391b4 is __ftol (truncation).
-// register convention: EAX = data, nine stack arguments.
+// reconciled: 0x006851fc is a pointer to the opaque-white ColorARGB (0x00655138); one name global_white_argb: EAX = data, nine stack arguments.
 //   // blam-cc: EAX=data, stack=(flags, first_sequence_index, sprite_index, origin, axis,
 //   //          rotation, scale, color, fade)
 // UNSURE: the sequence reflexive of the Bitmap tag is dereferenced without a bounds check for
@@ -40,7 +40,7 @@
 #include "render.h"
 
 extern tag_instance *tag_instances;       // 0x0087bc14, cache module
-extern ColorARGB *global_real_argb_white_pointer; // 0x006851fc, points at {1,1,1,1} 0x00655138
+extern const ColorARGB *global_white_argb; // 0x006851fc, points at {1,1,1,1} 0x00655138
 
 extern void render_sprite_transform_point_and_normal(real_point3d *position, real_vector3d *normal,
     real_vector3d *out_normal, build_sprite_data *data, uint8_t flags, real_point3d *out_position);
@@ -71,7 +71,7 @@ void build_sprite_rotational(build_sprite_data *data, uint32_t flags, int16_t fi
     real t;
 
     if (color == 0) {
-        color = global_real_argb_white_pointer;
+        color = (ColorARGB *)global_white_argb;
     }
 
     render_sprite_transform_point_and_normal(origin, axis, &transformed_axis, data,

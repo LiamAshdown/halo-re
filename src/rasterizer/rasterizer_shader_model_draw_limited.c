@@ -18,6 +18,7 @@
 // register convention: all seven arguments on the stack; rasterizer_shader_environment_draw_dispatch
 //   0x52b050 pushes its own EBX (the dynamic vertex slot) as the seventh.
 // blam-cc: stack -> (shader, frame, index_buffer, dynamic_index_slot, primitive_count, vertex_buffer, dynamic_vertex_slot)
+// reconciled: R43 rasterizer_model_draw_context unknown_84[2] -> change_colors/function_values (the render_animation pair), unknown_c0/c4/c8 -> bounding_radius/base_map_u_scale/base_map_v_scale (same offsets)
 
 #include "tags.h"
 #include "memory.h"
@@ -129,7 +130,7 @@ void rasterizer_shader_model_draw_limited(uint8_t *shader, int16_t frame, raster
         int16_t source = *(int16_t *)(shader + 0x4c);           // change_color_source
 
         if (source > 0 && source < 5) {
-            const ColorRGB *colors = (const ColorRGB *)(uintptr_t)context->unknown_84[0];
+            const ColorRGB *colors = (const ColorRGB *)(uintptr_t)context->change_colors;
 
             color = colors[source - 1];
         } else {
@@ -141,9 +142,9 @@ void rasterizer_shader_model_draw_limited(uint8_t *shader, int16_t frame, raster
             texture_matrix[i][j] = (i == j) ? 1.0f : 0.0f;
         }
     }
-    shader_texture_animation_evaluate(&context->unknown_84[0], shader + 0xfc, texture_matrix[0], texture_matrix[1],
-                                      context->unknown_c4 * *(float *)(shader + 0x9c),
-                                      context->unknown_c8 * *(float *)(shader + 0xa0), 0.0f, 0.0f, 0.0f,
+    shader_texture_animation_evaluate(&context->change_colors, shader + 0xfc, texture_matrix[0], texture_matrix[1],
+                                      context->base_map_u_scale * *(float *)(shader + 0x9c),
+                                      context->base_map_v_scale * *(float *)(shader + 0xa0), 0.0f, 0.0f, 0.0f,
                                       (float)rasterizer_time.time);
     if (shader[0x28] & 2) {
         set_render_state(0x16, 1);    // two sided: CULLMODE NONE after all

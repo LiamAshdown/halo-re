@@ -24,6 +24,7 @@
 // UNSURE: given the corrected behavior, "dispose" is very likely the wrong name for this
 // function, but it is not a Ghidra-generated FUN_ name, so it is kept as-is per the task's
 // naming rule; see the header note on update_server_dispose.c for the matching sibling.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original; the separate write-only iter_signature local is folded into it
 
 #include "tags.h"
 #include "memory.h"
@@ -44,17 +45,15 @@ void update_client_dispose(void)
 {
     data_iterator player_iter;
     void *player_element;
-    int32_t iter_signature; // UNSURE: write-only "iter" scratch value, see
-                             // game_engine_player_select_random_target.c; never read back.
 
     update_client_queues->valid = 1;
     data_delete_all(update_client_queues);
     data_delete_all(update_client_queues);
 
-    iter_signature = (int32_t)(intptr_t)player_data ^ 0x69746572;
     player_iter.data = player_data;
     player_iter.next_index = 0;
     player_iter.index = k_datum_index_none;
+    player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
     player_element = data_iterator_next(&player_iter);
     while (player_element != 0) {
         datum_index player_handle = player_iter.index;
@@ -84,7 +83,6 @@ void update_client_dispose(void)
         }
         player_element = data_iterator_next(&player_iter);
     }
-    (void)iter_signature;
 }
 
 #if 0

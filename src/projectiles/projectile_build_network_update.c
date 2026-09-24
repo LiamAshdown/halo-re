@@ -9,7 +9,7 @@
 //   the magazine/age fields weapon_data carries and projectile_data does not; types/projectiles.h
 //   projectile_data.network_state (0x27c), .network_baseline_index (0x27a), .network_sequence
 //   (0x27b); types/objects.h object.position (0x05c), .velocity (0x068), .type (0x0b4),
-//   object_type_definition.unknown_10 (network_delta_message_type, matches
+//   object_type_definition.network_delta_message_type (network_delta_message_type, matches
 //   k_projectile_network_delta_index); object_try_and_get mask _object_mask_projectile.
 // register convention: matches weapon_build_network_update.c: the projectile index feeds
 //   object_try_and_get's hidden index slot; the function's own four parameters are already a
@@ -17,6 +17,7 @@
 //   call-site compatibility only.
 // UNSURE: same caveat as weapon_build_network_update.c about message_delta_encode_message's
 //   "changed_offset"/"items"/"type_offset" roles.
+// reconciled: R38 object_type_definition +0x0a/+0x0c/+0x0e/+0x10 -> scenario_placement_offset/scenario_palette_offset/scenario_placement_size/network_delta_message_type (int32, -1 = none)
 
 #include "tags.h"
 #include "memory.h"
@@ -55,7 +56,7 @@ int32_t projectile_build_network_update(uint32_t projectile_index, uint32_t unus
             uint8_t is_first_update;  // (update_type == 0); UNSURE, see file header
         } header;
         projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
-        int32_t message_type = object_type_definitions[obj->type]->unknown_10; // network_delta_message_type
+        int32_t message_type = object_type_definitions[obj->type]->network_delta_message_type; // network_delta_message_type
         void *header_ptr = &header;
         int32_t is_full_snapshot = (update_type == 1);
         void *items_array[1];

@@ -14,12 +14,14 @@
 // entries `local_440` can index); this rewrite uses local stack arrays instead and adds a
 // `count < 16` bound to avoid overflowing them, which is a defensive deviation from the literal
 // decompile rather than an observed limit.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include <stdint.h>
 
 
 extern network_server_globals *network_server; // 0x0071c2d4
@@ -47,6 +49,7 @@ void network_map_cycle_list_broadcast(void)
     iterator.data = 0;
     iterator.next_index = 0;
     iterator.index = 0;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     item = data_iterator_next(&iterator); // UNSURE: iterator source elided, see header
     if (item != 0) {
         do {

@@ -19,18 +19,19 @@
 // asked to accept via explicit (if arbitrary) initialization to 0/0xffffffff matching Ghidra's
 // own sentinel conventions elsewhere in this cluster, not a confirmed value.
 // UNSURE: the data_iterator (`local_44`/`local_4c`/`local_48` in Ghidra) is reconstructed as a
-// real `data_iterator` bound to `player_data`, matching the identical "iter_signature ^
-// 0x69746572, never read back" idiom already established in
-// src/game/game_engine_send_team_allegiance_message.c.
+// real `data_iterator` bound to `player_data`; the "data ^ 0x69746572" dword is its +0x0c
+// signature (types/memory.h).
 // UNSURE: `network_server+0x9c0` falls inside types/networking.h's still-unresolved
 // network_server_globals::unknown_9bc[0x3c] block; accessed via a raw offset rather than a new
 // named field.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include <stdint.h>
 
 extern uint8_t FUN_004ec590(void *decode_context, void *destination);
     // blam-cc: EAX -> decode_context, ECX -> destination; 0x4ec590, message-delta stateless
@@ -85,6 +86,7 @@ void network_player_ping_field_update_and_report(void *decode_context) // blam-c
         iter.data = player_data;
         iter.next_index = 0;
         iter.index = k_datum_index_none;
+        iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
         element = data_iterator_next(&iter);
         if (element != 0) {
             team_index = -1;

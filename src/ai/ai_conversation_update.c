@@ -15,6 +15,7 @@
 // ai_conversation_stop_all.c. The per-participant leader/reference resolution in the middle
 // of the loop (actor.conversation_participant selection against the line's two indices and
 // its flag bits) is reproduced structurally but not independently verified.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
@@ -23,6 +24,7 @@
 #include "objects.h"
 #include "game.h"
 #include "ai.h"
+#include <stdint.h>
 
 extern game_time_globals *game_time; // 0x006f1d6c
 extern data_array *ai_conversation_data; // 0x008802d4
@@ -58,6 +60,7 @@ void ai_conversation_update(void)
     iterator.data = ai_conversation_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
     instance = data_iterator_next(&iterator);
     while (instance != 0) {

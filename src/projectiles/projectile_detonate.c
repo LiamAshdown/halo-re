@@ -12,7 +12,7 @@
 //   projectile_flags._projectile_super_detonation_counted_bit (0x40),
 //   projectile_default_material_response (0x00695e20 fallback record); types/objects.h
 //   object.parent_object (0x11c), .first_child_object (0x118), .next_object (0x114),
-//   .unknown_0c4 (0xc4, the creating object), .type (0x0b4); types/units.h
+//   .creator_object (0xc4, the creating object), .type (0x0b4); types/units.h
 //   unit_data.controlling_player (0x218), guarded by object.type == _object_type_biped;
 //   types/objects.h damage_data (0x54 bytes, the `rep stos` of 0x15 dwords this function
 //   builds); the "gravity" string plus the CEA hint via out/phase4/projectiles_types_notes.md.
@@ -41,17 +41,22 @@
 // UNSURE: object_get_orientation(0) partway through the object_apply_damage setup discards its
 // result entirely as far as this pack shows -- reproduced as a call whose result is unused.
 // UNSURE: `local_74` (team_index) is set to 0xffff and then immediately overwritten with
-// obj->name_index before object_apply_damage is called; reproduced literally even though a
+// obj->owner_team before object_apply_damage is called; reproduced literally even though a
 // "team index" being fed from a scenario name index looks unintentional.
 // UNSURE: object_reposition_to_spawn_location is called here with zero visible arguments, unlike its other call site in
 // src/items/trigger_create_projectiles.c (two datum_index arguments); declared separately here
 // rather than reusing that signature.
 // TYPES-GAP: object flag bit tests below use raw hex (no named object_flags bits exist yet for
 // this path).
+// reconciled: R28 object.unknown_0c4 -> datum_index creator_object (same offset 0xc4)
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
+// reconciled: R25 damage_data.unknown_4c -> material_type (int16 collision material of the damaged surface, 0xffff = none; indexes DamageEffect +0x200)
+// reconciled: R04 0x006f1d20 int32_t game_is_server -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "game.h"
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
@@ -60,7 +65,7 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern char k_empty_string[1];      // 0x0065512c
-extern int32_t game_is_server;      // 0x006f1d20
+extern game_engine_definition *current_game_engine;      // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern ProjectileMaterialResponse projectile_default_material_response; // 0x00695e20
 extern real_vector3d *global_down3d_pointer; // 0x0069672c, PTR_DAT_0069672c
 
@@ -139,7 +144,7 @@ void projectile_detonate(uint32_t object_index, char first_collision, real remai
 
         if (parent->type == _object_type_biped &&
             (((unit_data *)((uint8_t *)parent + k_unit_data_offset))->controlling_player == (datum_index)k_datum_index_none ||
-             game_is_server != 0) &&
+             current_game_engine != 0) &&
             sibling_count > k_projectile_super_combine_detonate_threshold) {
 
             cursor = first_child;
@@ -191,7 +196,7 @@ void projectile_detonate(uint32_t object_index, char first_collision, real remai
         position_block[1] = position_block[0]; // duplicate point into the second slot
         direction_block[1] = *global_down3d_pointer;
 
-        effect_new_with_color(effect_tag_id, obj->unknown_0c4, 0, 2, effect_names, position_block,
+        effect_new_with_color(effect_tag_id, obj->creator_object, 0, 2, effect_names, position_block,
                      direction_block, 0, 0, 0, 0, 1);
     }
 
@@ -209,7 +214,7 @@ void projectile_detonate(uint32_t object_index, char first_collision, real remai
         dd.responsible_object = (datum_index)k_datum_index_none;
         dd.team_index = -1;
         dd.location_cluster_index = -1;
-        dd.unknown_4c = -1; // Ghidra's `local_38 = 0xffff`, damage_data + 0x4c
+        dd.material_type = -1; // Ghidra's `local_38 = 0xffff`, damage_data + 0x4c
         dd.random_blend = 1.0f;
         dd.multiplier = 1.0f;
         dd.damage_effect_tag = *(datum_index *)&tag->attached_detonation_damage.tag_id;
@@ -217,9 +222,9 @@ void projectile_detonate(uint32_t object_index, char first_collision, real remai
         object_get_orientation(0, object_index, 0); // UNSURE: result discarded, see file header
         object_get_position(&dd.epicentre, object_index); // UNSURE elided destination
         dd.origin = dd.epicentre;
-        dd.responsible_object = obj->unknown_0c4;   // creating object (0xc4); overwrites the -1 above
+        dd.responsible_object = obj->creator_object;   // creating object (0xc4); overwrites the -1 above
         dd.responsible_player = obj->owner_linkage; // owner_linkage (0xc0); overwrites the -1 above
-        dd.team_index = (int16_t)obj->name_index; // UNSURE, see file header -- overwrites the -1 above
+        dd.team_index = (int16_t)obj->owner_team; // UNSURE, see file header -- overwrites the -1 above
 
         object_apply_damage(&dd, obj->parent_object, -1, -1, -1, 0);
     }
@@ -236,7 +241,7 @@ void projectile_detonate(uint32_t object_index, char first_collision, real remai
             } else {
                 response = (ProjectileMaterialResponse *)tag->projectile_material_response.pointer + index;
             }
-            effect_new_with_color(*(uint32_t *)&response->detonation_effect.tag_id, obj->unknown_0c4, 0, 2,
+            effect_new_with_color(*(uint32_t *)&response->detonation_effect.tag_id, obj->creator_object, 0, 2,
                          effect_names, position_block, direction_block, 0, 0, 0, 0, 1);
         }
     }

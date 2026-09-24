@@ -14,7 +14,8 @@
 //   // blam-cc: EAX -> object_index, EBX -> forwarded_flag_object_index, EDI ->
 //   //   forwarded_position
 // UNSURE: object + 0x22c here is equipment_data's own unresolved first dword (bit 0x40 cleared);
-//   object + 0xb8 read as "team" rather than object.name_index (see evidence above).
+//   object + 0xb8 read as "team" rather than object.owner_team (see evidence above).
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
 
 #include "tags.h"
 #include "memory.h"

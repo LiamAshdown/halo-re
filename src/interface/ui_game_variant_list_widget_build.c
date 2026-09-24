@@ -8,6 +8,7 @@
 // UNSURE: set_profile_name writes through an inherited EBX this pack could not resolve; call
 // preserved exactly as compiled.
 // register convention: widget as the recognized parameter (param_1).
+// reconciled: R56 0x00712dd8 uint8_t saved_profile_records[3][0x2004] -> saved_games.h saved_player_profile_slot saved_player_profile_slots[k_maximum_local_player_profiles] (one 0x2004-byte slot; a second would overlap 0x00714dde); same bytes copied/read
 
 #include "tags.h"
 #include "memory.h"
@@ -15,9 +16,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "saved_games.h"
 #include <string.h>
 
-extern uint8_t saved_profile_records[3][0x2004]; // 0x00712dd8
+extern saved_player_profile_slot saved_player_profile_slots[k_maximum_local_player_profiles]; // 0x00712dd8, saved_games.h
 extern int32_t ui_list_current;      // 0x00692c04
 extern growable_array ui_lists[3];   // 0x006b3830, element size 0x10 (ui_list_item)
 extern void ui_list_widget_rebuild_rows(widget_instance *widget, void *format_item); // 0x4a7db0
@@ -35,7 +37,7 @@ void ui_game_variant_list_widget_build(widget_instance *widget)
 
     ui_list_widget_rebuild_rows(widget, (void *)ui_list_default_item_format);
 
-    memcpy(profile_record, saved_profile_records[0], sizeof(profile_record));
+    memcpy(profile_record, &saved_player_profile_slots[0].profile, sizeof(profile_record));
     set_profile_name(widget->extended_description->first_child, (const uint16_t *)(profile_record + 2));
 
     combo_index = *(int16_t *)((uint8_t *)widget + 0x3c); // UNSURE offset, see ui_list_widget_rebuild_rows.c

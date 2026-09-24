@@ -13,11 +13,11 @@
 // register convention: in_EAX -> structure_bsp, in_ECX -> point (real_point3d *),
 //   in_DX -> portal_index. Stack: param_1 -> tolerance.
 //   // blam-cc: EAX -> structure_bsp, ECX -> point, DX -> portal_index, stack -> tolerance
-// UNSURE: the second read of the plane's normal goes through the global collision-bsp pointer at
-//   0x00746f90 rather than structure_bsp->collision_bsp.pointer (used for the first read, a few
-//   lines earlier in the same function) -- both should name the same resident data; reproduced
-//   exactly as disassembled rather than unified, since preserving the original's two separate
-//   reads costs nothing and a real behavioral difference (if any) would be lost by unifying them.
+// The second read of the plane's normal goes through global_collision_bsp (0x00746f90) rather
+//   than structure_bsp->collision_bsp.pointer (used for the first read). The bsp switch stores
+//   ScenarioStructureBSP +0xb4 into 0x00746f90 (0x53ef78), so both name the same data; the two
+//   separate reads are kept as disassembled.
+// reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
 
 #include "tags.h"
 #include "memory.h"
@@ -26,13 +26,10 @@
 
 // 0x00746f90 is a ModelCollisionGeometryBSP pointer, proved twice in this module: it is the ECX
 // argument of bsp3d_node_find_leaf at 0x553e4a / 0x549a6a, and 0x554b9f reads its +0x10 as
-// planes.pointer and indexes it with plane_index * 0x10. Seven files elsewhere in the repo
-// (src/effects, src/objects, src/hs) declare the same address as `void *global_globals`; the name is
-// kept for cross-module agreement and only the type is refined. It is a DIFFERENT global from
-// `global_globals` at 0x00746f98, whose +0x40 surfaces.pointer src/effects and src/items
-// already pin -- do not merge the two.
-extern ModelCollisionGeometryBSP *global_globals; // 0x00746f90, see the UNSURE note in
-                                                            // structure_bsp_query_surfaces.c
+// planes.pointer and indexes it with plane_index * 0x10. It is global_collision_bsp
+// (types/scenario.h): ScenarioStructureBSP +0xb4, stored together with 0x00746f98 on every bsp
+// switch (0x53ef68..0x53ef78), so 0x00746f98 always holds the same pointer.
+extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90 (types/scenario.h)
 extern int16_t vector3d_major_axis_index(real_vector3d *v); // 0x44d820, math module
 extern const projection_axis_pair k_projection_axes[6];     // 0x0065c29c, math module
 extern uint8_t polygon2d_point_inside_tolerance(real_point2d *vertices, int16_t count,
@@ -64,9 +61,9 @@ uint8_t structure_bsp_portal_sphere_test(ScenarioStructureBSP *structure_bsp, re
         return 0;
     }
 
-    // UNSURE: this second normal read goes through the global 0x00746f90 pointer rather than
-    // structure_bsp->collision_bsp.pointer used above -- see the file header.
-    Vector3D *normal_raw = &((ModelCollisionGeometryBSPPlane *)global_globals->planes
+    // This second normal read goes through global_collision_bsp rather than
+    // structure_bsp->collision_bsp.pointer used above (same pointer) -- see the file header.
+    Vector3D *normal_raw = &((ModelCollisionGeometryBSPPlane *)global_collision_bsp->planes
                                   .pointer)[portal->plane_index]
                                  .plane.vector;
     real_vector3d *normal = (real_vector3d *)normal_raw;

@@ -19,6 +19,7 @@
 // parameters; the widget/tag_index/parent registers it must also set are not shown by that
 // file's own (independently reviewed) decompile either. Extern arity/register disagreement, not
 // resolved here.
+// reconciled: R33 game_time_globals.unknown_00 -> initialized (uint8 at +0x00, same byte)
 
 // Phase-4 review: the default focus loop calls 0x49bba0 with this widget in EAX and each eligible
 // child in ECX, for every eligible child (objdump 0x4998b7..0x499905); 0x00719720 is
@@ -122,7 +123,7 @@ void widget_initialize_from_tag(widget_instance *widget, datum_index tag_index, 
     if (widget->pauses_game_time == 1 && network_game_mode != 2 && ui_split_screen == 0) {
         ui_pause_depth = ui_pause_depth + 1;
         if (game_time->paused == 0) {
-            if (game_time->unknown_00 != 0) {
+            if (game_time->initialized != 0) {
                 game_time->active = 0;
             }
             game_time->paused = 1;

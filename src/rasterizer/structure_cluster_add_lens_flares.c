@@ -15,6 +15,7 @@
 //   Spot-check fix (phase 4 review): the earlier file left all five per marker calls without
 //   arguments; rewritten from the raw code 0x513a00..0x513b97.
 // register convention: CX = cluster index.
+// reconciled: R12 0x007c310a render_window_index extern uint8 -> int16 (render.h); this reader keeps only the low byte
 
 #include "tags.h"
 #include "memory.h"
@@ -25,9 +26,9 @@
 extern uint8_t unknown_006893ff;                                    // 0x006893ff UNSURE: lens flares enable toggle
 extern int16_t unknown_00719aac;                                    // 0x00719aac UNSURE: at most 1 allowed
 extern int16_t unknown_00696568;                                    // 0x00696568 UNSURE: at most 1 when the above is 1
-extern ScenarioStructureBSP *structure_bsp;                         // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp;                         // 0x00746f9c
 extern tag_instance *tag_instances;                                 // 0x0087bc14
-extern uint8_t render_window_index;                                 // 0x007c310a render module
+extern int16_t render_window_index;                                 // 0x007c310a render module (int16, render.h)
 
 // blam-cc: ECX -> out, EDX -> dir
 extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir); // 0x4cd670
@@ -49,7 +50,7 @@ void structure_cluster_add_lens_flares(int16_t cluster_index)
         return;
     }
 
-    bsp = structure_bsp;
+    bsp = global_structure_bsp;
     cluster = (const uint8_t *)*(uint32_t *)((uint8_t *)bsp + 0x138) + cluster_index * 0x68;
     for (marker_ordinal = 0; marker_ordinal < *(const uint16_t *)(cluster + 0x42); marker_ordinal++) {
         uint32_t marker_index = *(const uint16_t *)(cluster + 0x40) + marker_ordinal;
@@ -77,7 +78,7 @@ void structure_cluster_add_lens_flares(int16_t cluster_index)
         candidate.object_index = -1;
         candidate.visibility_high = (int16_t)((int32_t)marker_index >> 16);
         candidate.visibility_low = (int16_t)marker_index;
-        candidate.window_flags = render_window_index;
+        candidate.window_flags = (uint8_t)render_window_index; // low byte only (mov cl,BYTE PTR ds:0x7c310a at 0x513b4e)
         candidate.intensity = 0;
         lens_flare_add_instance(&candidate);                    // sample_count left unset, as in the original
     }

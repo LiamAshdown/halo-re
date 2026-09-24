@@ -5,16 +5,17 @@
 // ("d3d9.dll"/"Direct3DCreate9", "dsound.dll"/"DirectSoundCreate8", "dinput8.dll"/
 // "DirectInput8Create", "shfolder.dll"/"SHGetFolderPathA") and the four cached FARPROC globals
 // shell.h documents at 0x00746264/68/6c/70/74; the 0x41-dword-plus-one-byte zero fill at
-// 0x006ac900 matches profile_directory[0x104] in types/cache.h (shell.h notes the memset runs
-// one byte past that array).
+// 0x006ac900 (0x540ef9..0x540f05) is the whole profile_directory[0x105] of types/cache.h
+// (k_profile_directory_storage_size, types/cseries.h).
 // register convention: __cdecl, no arguments.
 // UNSURE: data_file_open, directory_create_recursive, profile_path_initialize,
 // input_directinput_initialize, math_initialize, game_state_startup, sound_initialize and
 // render_initialize belong to other modules; their prototypes below are inferred only from this call
 // site's argument/return usage, not verified against their own definitions. DAT_0087ac00/01/04/05
-// and DAT_0087ac08 are likewise owned by another module (interface/networking, both of which
-// claim 0x0087ac06 differently as console_verbosity vs network_statistics_level); typed here
-// only from the byte/dword width Ghidra shows for this write.
+// and DAT_0087ac08 are likewise owned by another module; typed here only from the byte/dword
+// width Ghidra shows for this write. 0x0087ac06 is debug_log_level (uint8, R01).
+// reconciled: R10 profile_directory is char[0x105] (k_profile_directory_storage_size; shell zeroes 0x41 dwords + 1 byte at 0x540ef9)
+// reconciled: R01 0x0087ac06 console_verbosity_low -> debug_log_level (uint8)
 
 #include "tags.h"
 #include "memory.h"
@@ -23,7 +24,7 @@
 #include "shell.h"
 
 extern large_integer performance_frequency;   // 0x006ac8f8 QueryPerformanceFrequency result
-extern char profile_directory[0x104];         // 0x006ac900 (types/cache.h); memset clears 0x105
+extern char profile_directory[0x105];         // 0x006ac900 (types/cache.h); memset clears 0x105
                                                // bytes here, one past the declared array
 extern void *d3d9_module;                     // 0x00746264
 extern void *dsound_module;                   // 0x0074625c
@@ -36,13 +37,13 @@ extern void *sh_get_folder_path;              // 0x0074626c FARPROC
 extern int32_t nosound;                       // 0x007196e4 -nosound (32 bit BOOL)
 extern uint8_t network_statistics_flag;       // 0x007252b6 DAT_007252b6, copy of nosound
 
-// UNSURE: dual-claimed by interface.h (console_verbosity, int32_t) and networking.h
-// (network_statistics_level, int16_t); this function only clears them.
+// 0x0087ac06 is interface.h / networking.h debug_log_level (uint8, R01); this function only
+// clears these.
 extern uint8_t console_debug_flag_0;          // 0x0087ac00
 extern uint8_t console_debug_flag_1;          // 0x0087ac01
 extern uint8_t console_debug_flag_4;          // 0x0087ac04
 extern uint8_t console_debug_flag_5;          // 0x0087ac05
-extern uint8_t console_verbosity_low;         // 0x0087ac06
+extern uint8_t debug_log_level;               // 0x0087ac06 (R01; mov BYTE PTR ds:0x87ac06,bl at 0x540fac)
 extern uint16_t console_debug_word_8;         // 0x0087ac08 (16 bit store, mov word [0x87ac08],bx at 0x540fcc)
 
 extern void *LoadLibraryA(const char *file_name);
@@ -70,10 +71,9 @@ uint8_t engine_initialize_subsystems(void)
     timeBeginPeriod(1);
     QueryPerformanceFrequency(&performance_frequency);
 
-    for (i = 0; i < 0x104; i++) {
+    for (i = 0; i < 0x105; i++) { // rep stosd x 0x41 + stosb
         profile_directory[i] = 0;
     }
-    profile_directory[0x104] = 0; // one byte past the array, matching the original memset
 
     profile_path_initialize();
 
@@ -98,7 +98,7 @@ uint8_t engine_initialize_subsystems(void)
 
     directory_create_recursive(profile_directory);
 
-    console_verbosity_low = 0;
+    debug_log_level = 0;
     console_debug_flag_1 = 1;
     console_debug_flag_4 = 1;
     console_debug_flag_5 = 0;

@@ -21,6 +21,7 @@
 // player pointer that was in ESI earlier has been overwritten by `mov esi,[esi+0x12c]`), which
 // does not look like a meaningful argument; players_find_local_owned_unclear is declared here as taking no
 // parameters this rewrite models.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
@@ -28,6 +29,7 @@
 #include "game.h"
 #include <string.h>
 #include <wchar.h>
+#include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480
 
@@ -60,6 +62,7 @@ void player_update_queue_flush_by_name(char *name) // blam-cc: EAX -> name
     iter.data = player_data;
     iter.next_index = 0;
     iter.index = k_datum_index_none;
+    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
     candidate = (player *)data_iterator_next(&iter);
     while (candidate != 0) {
         if (wcscmp((wchar_t *)candidate->name, (wchar_t *)filter_name) == 0) {

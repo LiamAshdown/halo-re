@@ -14,6 +14,7 @@
 //   could not attach it to a numbered parameter), stack -> surface_index (a breakable-surface
 //   index within the current BSP, passed on unchanged to physics_point_spawn_contact_effect).
 //   // blam-cc: EBX -> damage, stack -> surface_index
+// reconciled: R25 damage_data.unknown_4c -> material_type (int16 collision material of the damaged surface, 0xffff = none; indexes DamageEffect +0x200)
 
 #include "tags.h"
 #include "memory.h"
@@ -47,14 +48,14 @@ void breakable_surface_apply_damage(damage_data *damage, int32_t surface_index)
 
     index = (int16_t)surface_index;
     if ((breakable_surface_state->initialized != 0) && (index != -1) &&
-        (damage->damage_effect_tag != k_datum_index_none) && (damage->unknown_4c != -1)) {
+        (damage->damage_effect_tag != k_datum_index_none) && (damage->material_type != -1)) {
         extension = &breakable_surface_state->health[global_structure_bsp_index][index];
         if (0.0f < *extension) {
             // UNSURE: Ghidra's decompile of this call shows globals_material_get() with no visible
             // argument. damage->unknown_4c (the material type) was just loaded for the test
             // above and nothing in between clobbers it, so it is almost certainly what is still
             // live in the register globals_material_get reads its argument from.
-            material = globals_material_get(damage->unknown_4c);
+            material = globals_material_get(damage->material_type);
             if ((material != 0) && (0.0f < material->maximum_vitality)) {
                 DamageEffect *effect =
                     (DamageEffect *)tag_instances[(uint16_t)damage->damage_effect_tag].data;
@@ -67,7 +68,7 @@ void breakable_surface_apply_damage(damage_data *damage, int32_t surface_index)
                                            damage->random_blend +
                                        effect->damage_lower_bound;
                 float new_extension = *extension -
-                    (blended_amount * material_damage_modifiers[damage->unknown_4c]) /
+                    (blended_amount * material_damage_modifiers[damage->material_type]) /
                         material->maximum_vitality;
                 *extension = new_extension;
                 // Equivalent to (new_extension <= 0.0f): Ghidra's

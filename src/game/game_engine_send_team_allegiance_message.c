@@ -14,6 +14,7 @@
 // own guess, "formats an announcer message... into the game's film/replay buffer", does not match
 // what the disassembly actually does: it sends network event 0x1a carrying the first local
 // player's team_index_desired byte, or 0xff if there is no local player).
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original; the separate write-only iter_signature local is folded into it
 
 #include "tags.h"
 #include "memory.h"
@@ -47,8 +48,6 @@ void game_engine_send_team_allegiance_message(char broadcast)
     data_iterator player_iter;
     void *player_element;
     uint8_t team_index_desired = 0xff;
-    int32_t iter_signature; // UNSURE: write-only "iter" scratch value, see
-                             // game_engine_player_select_random_target.c; never read back.
     uint8_t local_team_byte;      // Ghidra's local_1c: the field message_delta_encode_message reads
     uint8_t local_broadcast_byte; // Ghidra's local_1b, immediately after it in memory
     uint8_t *fields_ptr;          // Ghidra's local_18 = &local_team_byte
@@ -59,10 +58,10 @@ void game_engine_send_team_allegiance_message(char broadcast)
         return;
     }
 
-    iter_signature = (int32_t)(intptr_t)player_data ^ 0x69746572;
     player_iter.data = player_data;
     player_iter.next_index = 0;
     player_iter.index = k_datum_index_none;
+    player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
     player_element = data_iterator_next(&player_iter);
     while (player_element != 0) {
         if (((player *)player_element)->local_player_index != -1) {
@@ -71,7 +70,6 @@ void game_engine_send_team_allegiance_message(char broadcast)
         }
         player_element = data_iterator_next(&player_iter);
     }
-    (void)iter_signature;
 
     local_broadcast_byte = (uint8_t)broadcast;
     fields_ptr = &local_team_byte;

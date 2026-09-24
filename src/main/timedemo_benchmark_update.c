@@ -22,10 +22,11 @@
 //   they feed: 0x007252b8 feeds "Sound Variety" (types/sound.h sound_permutation_limit),
 //   0x00746128 "Sound Quality", 0x00746121 "Hardware Acceleration", 0x006893fa "Specular",
 //   0x006893f2 "Shadows", 0x006893f5 "Decals", 0x0068944c "Particles", 0x0068944e "Texture
-//   Quality", 0x007c11f8 "Refresh rate". 0x006ac5b2 (local_player_input_frozen[0]),
+//   Quality", 0x007c11f8 "Refresh rate". 0x006ac5b2 (directors[0].look_input_consumed, R03),
 //   player_globals +0x11 and 0x0087ac05 are forced to 1 every call; their meaning is not
 //   established. user_profile_signin_state_is_valid 0x551620 gates "Environmental Sound= EAX";
 //   its name comes from the game module and is doubtful in this context.
+// reconciled: R03 0x006ac5b2 identified as camera.h director.look_input_consumed (comment only)
 
 #include "tags.h"
 #include "memory.h"
@@ -42,7 +43,7 @@ extern int32_t game_time_force_single_tick;         // 0x007196d8, -timedemo fra
 extern int32_t timedemo_last_frame_index;           // 0x007196dc
 extern int32_t rasterizer_present_counter_low;      // 0x0069c648, foreign (rasterizer)
 extern int32_t rasterizer_present_counter_high;     // 0x0069c64c
-extern uint8_t local_player_input_frozen[];         // 0x006ac5b2, foreign, UNSURE
+extern uint8_t local_player_input_frozen[];         // 0x006ac5b2 = camera.h directors[0].look_input_consumed
 extern player_globals *local_player_globals;        // 0x0087a478, foreign (game)
 extern uint8_t console_debug_flag_5;                // 0x0087ac05, foreign, UNSURE
 extern char timedemo_pixel_shader_version[0x14];    // 0x006b7a94

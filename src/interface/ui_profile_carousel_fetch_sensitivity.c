@@ -9,6 +9,7 @@
 // 0x11a bytes into the record, close to but not exactly player_control_settings::unknown_008 at
 // profile+0x134; not confirmed independently) is kept as a raw offset with no field name.
 // register convention: widget as the recognized parameter (param_1).
+// reconciled: R56 0x00712dd8 uint8_t saved_profile_records[3][0x2004] -> saved_games.h saved_player_profile_slot saved_player_profile_slots[k_maximum_local_player_profiles] (one 0x2004-byte slot; a second would overlap 0x00714dde); same bytes copied/read
 
 #include "tags.h"
 #include "memory.h"
@@ -16,9 +17,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "saved_games.h"
 #include <string.h>
 
-extern uint8_t saved_profile_records[3][0x2004]; // 0x00712dd8
+extern saved_player_profile_slot saved_player_profile_slots[k_maximum_local_player_profiles]; // 0x00712dd8, saved_games.h
 
 // Reads a raw int16 value out of the carousel-slot profile record and clamps it into 0..0x11
 // before storing it in the widget's live-value field (background_bitmap_frame, offset 0x58).
@@ -27,7 +29,7 @@ void ui_profile_carousel_fetch_sensitivity(widget_instance *widget)
     uint8_t profile_record[0x1ffc]; // one dword short of the full 0x2004 byte record, as Ghidra shows
     int16_t raw_value; // UNSURE: exact profile-record field, see header note
 
-    memcpy(profile_record, saved_profile_records[widget->controller_index], sizeof(profile_record));
+    memcpy(profile_record, &saved_player_profile_slots[widget->controller_index].profile, sizeof(profile_record));
     raw_value = *(int16_t *)(profile_record + 0x11a); // UNSURE offset
 
     if (raw_value < 0) {

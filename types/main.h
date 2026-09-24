@@ -172,8 +172,8 @@ typedef struct console_globals {
     uint8_t active;                   // 0x000 the console is open; console_toggle stores the
                                       //       console_open result. Also read by the camera view
                                       //       setup 0x4c9050, sound_update, chat and the screen
-                                      //       flash code (types/effects.h calls it
-                                      //       player_effect_suppressed)
+                                      //       flash code (types/effects.h formerly called it
+                                      //       player_effect_suppressed; R08)
     uint8_t enabled;                  // 0x001 -console was on the command line
     uint8_t unknown_002[2];           // 0x002 never referenced
     terminal_console terminal;        // 0x004 types/interface.h, 0x1be bytes, handed to

@@ -25,8 +25,9 @@
 //   ScenarioPlayerStartingProfile) in ESI (unaff_ESI); the datum role value ("param_2" to
 //   object_placement_data_initialize) is this function's own single stack parameter.
 //   // blam-cc: ESI -> weapon_dependency, stack -> role
-// UNSURE: object_type_definition::unknown_10's real meaning (why a non-multiplayer-dedicated
+// UNSURE: object_type_definition::network_delta_message_type's real meaning (why a non-multiplayer-dedicated
 //   weapon type with that field set forces datum role 0 instead of 3).
+// reconciled: R38 object_type_definition +0x0a/+0x0c/+0x0e/+0x10 -> scenario_placement_offset/scenario_palette_offset/scenario_placement_size/network_delta_message_type (int32, -1 = none)
 
 #include "tags.h"
 #include "memory.h"
@@ -67,7 +68,7 @@ datum_index player_spawn_starting_profile_weapon(TagDependency *weapon_dependenc
                 tag_instance *inst = &tag_instances[weapon_dependency->tag_id.index];
                 Object *tag_data = (Object *)inst->data;
                 object_type_definition *def = object_type_definitions[tag_data->object_type];
-                if (def->unknown_10 != 0xffffffff) {
+                if (def->network_delta_message_type != -1) {
                     datum_role = 0;
                 }
             }

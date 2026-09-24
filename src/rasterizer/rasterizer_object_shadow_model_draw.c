@@ -16,6 +16,7 @@
 //   through rasterizer_dynamic_geometry_chain_draw 0x51c5f0.
 // register convention: EAX -> shader, stack -> (frame, index_buffer, vertex_buffer).
 // blam-cc: EAX -> shader, stack -> (frame, index_buffer, vertex_buffer)
+// reconciled: R43 rasterizer_model_draw_context unknown_84[2] -> change_colors/function_values (the render_animation pair), unknown_c0/c4/c8 -> bounding_radius/base_map_u_scale/base_map_v_scale (same offsets)
 
 #include "tags.h"
 #include "memory.h"
@@ -84,9 +85,9 @@ void rasterizer_object_shadow_model_draw(const ShaderModel *shader, int16_t fram
     constants[0][3] = 1.0f;
     constants[1][0] = 1.0f; constants[1][1] = 0.0f; constants[1][2] = 0.0f; constants[1][3] = 0.0f;
     constants[2][0] = 0.0f; constants[2][1] = 1.0f; constants[2][2] = 0.0f; constants[2][3] = 0.0f;
-    shader_texture_animation_evaluate(&context->unknown_84[0], &shader->u_animation_source, constants[1], constants[2],
-                                      context->unknown_c4 * shader->map_u_scale,
-                                      context->unknown_c8 * shader->map_v_scale, 0.0f, 0.0f, 0.0f,
+    shader_texture_animation_evaluate(&context->change_colors, &shader->u_animation_source, constants[1], constants[2],
+                                      context->base_map_u_scale * shader->map_u_scale,
+                                      context->base_map_v_scale * shader->map_v_scale, 0.0f, 0.0f, 0.0f,
                                       (float)rasterizer_time.time);
     ((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 0xa, &constants[0][0], 3);
     ((d3d_call1_fn)device_vtable()[0x15c / 4])(rasterizer_device, rasterizer_vertex_declarations[vertex_buffer->type].declaration);

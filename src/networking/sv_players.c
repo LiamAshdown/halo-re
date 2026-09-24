@@ -22,7 +22,8 @@
 // medal-streak mechanism; either the column reuses that same field for team-kill tracking, or
 // game.h's name does not universally apply. Preserved literally either way.
 // UNSURE: the per-row name lookup goes through a raw function-pointer call at
-// network_engine_callback_block+0x54, whose signature is not independently established.
+// current_game_engine+0x54, whose signature is not independently established.
+// reconciled: R04 0x006f1d20 void * network_engine_callback_block -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
@@ -35,7 +36,7 @@
 extern int16_t network_game_mode; // 0x00719720, 2 == host
 extern network_server_globals *network_server; // 0x0071c2d4
 extern data_array *player_data; // 0x0087a480
-extern void *network_engine_callback_block; // 0x006f1d20; +0x54 is a (datum_index, wchar_t *)
+extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
     // "resolve player display name" callback (UNSURE)
 extern wchar_t network_players_no_name_placeholder[]; // 0x0065512c (UNSURE: assumed empty/dash)
 extern char *network_team_color_names[]; // 0x0066db78/0x0066db80/0x0066db88, the three column
@@ -85,7 +86,7 @@ void sv_players(void)
             name_buf[0] = 0;
             if (found != 0xffffffff) {
                 void (*resolve_name)(uint32_t, uint16_t *) =
-                    *(void (**)(uint32_t, uint16_t *))((uint8_t *)network_engine_callback_block + 0x54);
+                    *(void (**)(uint32_t, uint16_t *))((uint8_t *)current_game_engine + 0x54);
                 resolve_name(found, name_buf);
             }
 

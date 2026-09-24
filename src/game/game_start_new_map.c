@@ -12,12 +12,14 @@
 // object/effect/particle/sound pools this module reads but does not own; each is written
 // through raw TYPES-GAP externs at the same "+0x24 = 1 (mark valid), then data_delete_all"
 // pattern the header comments on data_array::valid describe.
+// reconciled: R07 0x00746f94 tag_cache_render_states_* (TYPES-GAP) -> scenario.h scenario_game_globals *global_scenario_game_globals (0x7c-byte scenario game-state block)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#include "scenario.h"
 
 extern uint8_t *cache_file_slot_table; // 0x006b0b80, TYPES-GAP (dword+0x10 seeds the RNG)
 extern random_seed random_seed_global; // 0x00719cd0
@@ -27,7 +29,7 @@ extern uint32_t player_profile_cache_block[0xc0];    // 0x006b0b88, TYPES-GAP
 extern game_variant game_engine_active_variant;             // 0x0087ab20 (NOT 0x006f1c88, which is the live copy)
 extern game_time_globals *game_time;                 // 0x006f1d6c
 extern uint32_t *unknown_00746280_block;             // TYPES-GAP, 0x343 dwords + a trailing byte
-extern uint16_t *tag_cache_render_states_slot;       // 0x00746f94, TYPES-GAP
+extern scenario_game_globals *global_scenario_game_globals; // 0x00746f94, scenario.h
 extern uint32_t unknown_0065e508_block[0x12];        // TYPES-GAP, copied into the block above
 extern data_array *object_render_state_cache;              // 0x007c30ec, TYPES-GAP (data_array*)
 extern uint32_t *unknown_0072277c_block;              // TYPES-GAP, 0x290c dwords + trailing byte
@@ -80,7 +82,7 @@ extern void objects_update_control_bindings(Scenario *scenario); // 0x4f3ba0. On
     // argument -- objdump shows 0x4f3ba0 reading [esp+0x24] twice and taking no register input,
     // so src/objects/objects_update_control_bindings.c's "blam-cc: EAX -> param_1" is wrong.          // 0x4f3ba0, UNSURE arg
 extern void objects_reset(void);                                           // 0x4f4bb0
-extern void FUN_004ffd40(void);                                              // UNSURE module
+extern void breakable_surfaces_reset(void); // 0x4ffd40, objects (breakable_surface_globals reset, R79)
 extern void FUN_00515740(void);                                               // UNSURE module
 extern void game_state_build_header(void);                                     // 0x538000
 extern void FUN_0053fa70(void);                                                  // UNSURE module
@@ -136,7 +138,7 @@ void game_start_new_map(void)
     *(uint8_t *)unknown_00746280_block = 1;
     FUN_0053fa70();
 
-    tag_cache_bytes = (uint8_t *)tag_cache_render_states_slot;
+    tag_cache_bytes = (uint8_t *)global_scenario_game_globals;
     cursor = (uint32_t *)tag_cache_bytes;
     for (i = 1; i <= 0xb; i = i + 1) {
         cursor[i] = 0; // dword 0 is deliberately left untouched, matching the original's loop
@@ -159,7 +161,7 @@ void game_start_new_map(void)
     }
     *((uint8_t *)unknown_0072277c_block + 0x520e) = 0;
     *(uint32_t *)unknown_0072278c = 0;
-    FUN_004ffd40();
+    breakable_surfaces_reset();
 
     dst = (uint32_t *)custom_waypoints_or_similar_006b0ad8;
     for (i = 0xa00; i != 0; i = i - 1) {

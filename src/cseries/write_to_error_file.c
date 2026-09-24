@@ -16,6 +16,7 @@
 // into 0x4e40a0, and "a+b" (0x660144) is pushed once and stays on the stack across that call
 // (FUN_004e40a0 does not touch it, since its own argument travels in ESI, not on the stack)
 // until FUN_00624186's single `add esp,8` pops both the resolved path and the mode string.
+// reconciled: R01 comment: 0x0087ac06 names merged to debug_log_level
 
 #include "tags.h"
 #include "cseries.h"
@@ -23,11 +24,8 @@
 
 // Globals this module reads but does not own (see types/cseries.h "Globals this module reads
 // but does not own"): the shell zeroes both at startup.
-extern uint8_t debug_log_level;  // 0x0087ac06, UNSURE: two other headers claim this address under
-                                  // different names/types (interface.h console_verbosity as
-                                  // int32_t, networking.h network_statistics_level as int16_t);
-                                  // every access in the image is byte-wide, so uint8_t is right
-                                  // and the two names should eventually be merged into one.
+extern uint8_t debug_log_level;  // 0x0087ac06; every access in the image is byte-wide. R01
+                                  // merged interface.h / networking.h onto this name and type.
 extern uint8_t error_file_enabled; // 0x0087ac01, set to 1 by the shell startup; write_to_error_file
                                     // is its only reader in the image
 

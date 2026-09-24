@@ -10,12 +10,14 @@
 // original decompile (compare the confirmed-incomplete cases in game_engine_player_select_
 // random_target.c and the two update_*dispose.c files in this batch) rather than genuinely a
 // no-op scan. Transcribed literally; callers=0 in this build.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include <wchar.h>
+#include <stdint.h>
 
 extern int16_t network_game_mode; // 0x00719720
 extern data_array *player_data;    // 0x0087a480
@@ -36,6 +38,7 @@ void game_engine_find_player_by_name(void)
         iter.data = player_data;
         iter.next_index = 0;
         iter.index = k_datum_index_none;
+        iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
         element = data_iterator_next(&iter);
         while (element != 0) {
             wcscmp((wchar_t *)((uint8_t *)element + 4), name);

@@ -10,10 +10,11 @@
 // register convention: cdecl, both recognized stack parameters (param_1 unused, param_2 an
 // options/difficulty record this function reads a single int16 out of at offset +2).
 // UNSURE: param_2's real type was not resolved (no caller in this session; the function itself is
-// unreachable). The validation loop's exact intent (walking DAT_006b2ce8[], a TYPES-GAP array,
+// unreachable). The validation loop's exact intent (walking joystick_slot_devices[] at 0x006b2ce8,
 // while an entry is -1 or matches the requested index) is preserved with `goto` rather than
 // restructured, since the two-label control flow (a shared error path reached from two different
 // points) is not confidently reducible to a structured form without risking a behaviour change.
+// reconciled: R02 0x006b2ce8 int16 campaign_option_table -> int32 joystick_slot_devices[4] (0x49cff3 is a DWORD cmp)
 
 #include "tags.h"
 #include "memory.h"
@@ -22,8 +23,8 @@
 #include "networking.h"
 #include "interface.h"
 
-extern int32_t known_level_count_006894b8;                 // 0x006894b8, TYPES-GAP
-extern int16_t campaign_option_table_006b2ce8[];            // 0x006b2ce8, TYPES-GAP
+extern int16_t local_player_count;                 // 0x006894b8, TYPES-GAP
+extern int32_t joystick_slot_devices[4];                   // 0x006b2ce8, input.h (DWORD cmp at 0x49cff3)
 extern char known_campaign_level_one_path_00692acc[];        // 0x00692acc ("levels\\a10\\a10")
 extern char selected_level_path_00719779[0x100];             // 0x00719779, TYPES-GAP
 extern uint8_t campaign_start_pending_00696564;               // 0x00696564, TYPES-GAP
@@ -53,9 +54,9 @@ uint32_t ui_start_campaign_from_level_one(void *param_1, int16_t *param_2)
 
     (void)param_1;
 
-    if (known_level_count_006894b8 >= 2) {
+    if (local_player_count >= 2) {
         i = 0;
-        while (campaign_option_table_006b2ce8[i] == -1 || i == requested_index) {
+        while (joystick_slot_devices[i] == -1 || i == requested_index) {
             i = i + 1;
             if (i > 0) {
                 goto report_error;
@@ -91,7 +92,7 @@ uint32_t ui_start_campaign_from_level_one(void *param_1, int16_t *param_2)
     return 1;
 
 report_error:
-    known_level_count_006894b8 = 1;
+    local_player_count = 1;
     display_error(0x13, -1, 1, 0);
     return 0;
 }

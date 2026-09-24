@@ -27,6 +27,8 @@
 //   evidence the record is actually that sparse.
 // UNSURE: breakable_surface_apply_damage (a "closest decal" trigger, called with two register-passed values) and
 //   device_machine_melee_attacked (called with no visible arguments at all) are out of this module's range.
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
+// reconciled: R25 damage_data.unknown_4c -> material_type (int16 collision material of the damaged surface, 0xffff = none; indexes DamageEffect +0x200)
 
 #include "tags.h"
 #include "memory.h"
@@ -164,10 +166,10 @@ void unit_melee_attack_scan(uint32_t unit_index)
 
             dd.damage_effect_tag = damage_effect_tag;
             dd.flags = 1;
-            dd.responsible_player = obj->name_index; // UNSURE: matches unit_cause_melee_damage's
+            dd.responsible_player = obj->owner_team; // UNSURE: matches unit_cause_melee_damage's
                                                       //   odd team_index/name_index pairing
             dd.responsible_object = unit_index;
-            dd.team_index = (int16_t)obj->name_index;
+            dd.team_index = (int16_t)obj->owner_team;
             dd.location_leaf_index = obj->location_leaf_index;
             *(int32_t *)&dd.location_cluster_index = *(int32_t *)&obj->location_cluster_index;
             dd.epicentre = origin;                 // the melee marker's world position
@@ -175,7 +177,7 @@ void unit_melee_attack_scan(uint32_t unit_index)
             dd.direction = aim;
             dd.random_blend = 1.0f;
             dd.multiplier = 1.0f;
-            dd.unknown_4c = (int16_t)best_object_distance;
+            dd.material_type = (int16_t)best_object_distance;
 
             if (best_object == 0xffffffff) {
                 if ((int16_t)best_decal != -1) {
@@ -219,7 +221,7 @@ void unit_melee_attack_scan(uint32_t unit_index)
                 dd2.direction.k = -aim.k;
                 dd2.random_blend = 1.0f;
                 dd2.multiplier = 1.0f;
-                dd2.unknown_4c = -1;
+                dd2.material_type = -1;
                 object_apply_damage(&dd2, unit_index, -1, -1, -1, 0);
             }
         }

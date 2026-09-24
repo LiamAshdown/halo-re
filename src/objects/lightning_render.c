@@ -22,6 +22,7 @@
 // register convention: Ghidra shows a clean (param_1, param_2, param_3, param_4); param_3 is
 //   never read. No implicit register inputs.
 // blam-cc: stack -> object_index, lightning_handle, unused, function_context
+// reconciled: R77 0x0069c632 uint8 game_render_mode -> int16 rasterizer_vertex_buffer_lock_state (all stores are WORD)
 
 #include "tags.h"
 #include "memory.h"
@@ -35,8 +36,7 @@ extern uint32_t widget_random_seed;  // 0x00719cd4
 extern real_vector3d *shared_constant_vector_696704; // 0x00696704, UNSURE: fallback axis
 extern real_vector3d *shared_constant_vector_686b04;  // 0x00686b04, UNSURE: default colour scale
 extern float camera_forward_x, camera_forward_y, camera_forward_z; // 0x007c3120/0x007c3124/0x007c3128
-extern uint8_t game_render_mode; // 0x0069c632, UNSURE: a render-pass/debug-mode byte other
-    // functions in this module also set (flag_render.c, light_volume_render.c's siblings)
+extern int16_t rasterizer_vertex_buffer_lock_state; // 0x0069c632, rasterizer.h; WORD stores (R77)
 
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
                                                 object_marker *marker, uint32_t flags); // 0x4f6080
@@ -189,7 +189,7 @@ void lightning_render(uint32_t object_index, datum_index lightning_handle, uint3
                     }
                     node_count = node_count + (1 << (marker_tag[0x24] & 0x1f));
                 } else {
-                    game_render_mode = 0xc;
+                    rasterizer_vertex_buffer_lock_state = 0xc;
                     if (node_count > 2) {
                         int32_t n = node_count + 1;
                         int32_t frame = FUN_0051bdd0();
@@ -271,7 +271,7 @@ void lightning_render(uint32_t object_index, datum_index lightning_handle, uint3
                         }
                         first_marker = 1;
                     }
-                    game_render_mode = 0;
+                    rasterizer_vertex_buffer_lock_state = 0;
                 }
             }
         }

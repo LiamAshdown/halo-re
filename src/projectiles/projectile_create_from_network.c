@@ -23,6 +23,7 @@
 // resolved the equivalent stores from disassembly) rather than confirmed independently.
 // UNSURE: the forward/up basis is re-orthogonalized rather than used as decoded -- two cross
 // products, then both vectors normalized -- exactly as in the equipment sibling.
+// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
 
 #include "tags.h"
 #include "memory.h"
@@ -102,7 +103,7 @@ void projectile_create_from_network(void *incoming_record)
         zero[i] = 0;
     }
     placement.definition_tag = decoded.definition_tag; // UNSURE, see file header
-    placement.name_index = decoded.name_index;          // UNSURE, see file header
+    placement.owner_team = decoded.owner_team;          // UNSURE, see file header
     placement.position = decoded.position;              // UNSURE, see file header
     placement.forward = forward;
     placement.up = up;

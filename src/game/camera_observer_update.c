@@ -13,9 +13,9 @@
 //   // blam-cc: in_EAX -> player_index, stack -> observer_position, fallback_facing
 //
 // UNSURE, LOW CONFIDENCE: the back half of this function (from the object lookup through
-// FUN_00505880 and vector3d_rotate_toward) computes some kind of camera bob/sway/roll blended
+// collision_test_movement_segment and vector3d_rotate_toward) computes some kind of camera bob/sway/roll blended
 // between the target direction and a segment-closest-point fallback, but FUN_00445b20,
-// first_person_camera_deterministic, FUN_00447290 and the 5-argument FUN_00505880 call are all
+// first_person_camera_deterministic, FUN_00447290 and the 5-argument collision_test_movement_segment call are all
 // outside this batch and several of their arguments are elided by Ghidra with no attributable
 // source in this function's own visible code. That section is transcribed as literally as
 // possible with placeholder locals and is NOT verified to compile against real prototypes for
@@ -44,7 +44,7 @@ extern uint8_t unit_get_current_weapon_autoaim_cone(datum_index unit_index, int1
 extern int16_t FUN_00445b20(real *out); // UNSURE signature
 extern void first_person_camera_deterministic(real_vector3d *out_facing); // UNSURE signature
 extern void FUN_00447290(void); // UNSURE signature
-extern uint8_t FUN_00505880(uint32_t mask, real_point3d *origin, real_vector3d *delta,
+extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta,
     uint32_t exclude_object, void *scratch); // 0x505880, canonical form (src/objects)
 extern void vector3d_normalize(real_vector3d *v); // math module
 extern double sin(double x); // x87 FSIN
@@ -104,7 +104,7 @@ uint32_t camera_observer_update(datum_index player_index, real_point3d *observer
             real bob_distance;
             uint32_t los_result;
 
-            (void)FUN_00505880(0x1000e9, observer_position, &camera_facing, p->unit, &los_result); // UNSURE args
+            (void)collision_test_movement_segment(0x1000e9, observer_position, &camera_facing, p->unit, &los_result); // UNSURE args
             camera_position = *observer_position; // UNSURE: should be a distinct camera-state position
             bob_distance = 0.0f;
             (void)bob_distance;

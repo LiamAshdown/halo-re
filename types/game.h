@@ -43,11 +43,9 @@
 //   types/units.h    unit_data (controlling_player at object+0x218, desired_weapon_index at
 //                    0x2f4, desired_grenade_index at 0x31d, desired_zoom_level at 0x321),
 //                    unit_control_data
-//   types/hs.h       hs_game_time_globals -- the PARTIAL view of the same 0x20 bytes that
-//                    game_time_globals below describes in full. hs.h calls +0x1c
-//                    "seconds_per_tick"; game_engine_advance_ticks (0x470b30) uses it as the
-//                    fractional-tick accumulator and +0x18 as the time scale, so the hs.h
-//                    name is almost certainly wrong (see out/phase4/game_types_notes.md).
+//   types/hs.h       (R32) no longer has its own hs_game_time_globals slice; hs, objects
+//                    and units use game_time_globals below. +0x1c is the fractional-tick
+//                    accumulator (game_engine_advance_ticks 0x470b30), not seconds_per_tick.
 //   types/tags.h     Scenario, ScenarioNetgameFlags, ScenarioNetgameEquipment,
 //                    ScenarioPlayerStartingLocation, ScenarioPlayerStartingProfile, Globals,
 //                    GlobalsMultiplayerInformation, GlobalsSound, GlobalsPlayerInformation
@@ -104,10 +102,15 @@ typedef enum game_constants {
 // game_time_globals  (pointer at 0x006f1d6c, 0x20 bytes)
 // Allocated whole by game_engine_allocate_tick_record (0x470a80), which asks the game-state
 // arena for exactly 0x20 bytes and zeroes all eight dwords. Only the offsets below are ever
-// touched anywhere in the image; 0x00 and 0x04..0x0b are dead in this build.
+// touched anywhere in the image; 0x04..0x0b are dead in this build.
+// types/hs.h used to carry a partial copy of this record (hs_game_time_globals) that called
+// +0x1c "seconds_per_tick"; R32 removed it, and every module now uses this struct.
 // ---------------------------------------------------------------------------
 typedef struct game_time_globals {
-    uint8_t unknown_00;        // 0x00 never read or written
+    uint8_t initialized;       // 0x00 main's game-time reset 0x4c8a60 clears it (0x4c8aee),
+                               //      zeroes all 8 dwords, then sets it to 1 (0x4c8b0e); read
+                               //      by main_queue_map_change (0x4c876b), 0x4c9770 and others
+                               //      (0x48a420, 0x4c7c70, 0x4de780, 0x54b975) (R33)
     uint8_t active;            // 0x01 0x470ae0 sets it; advance_simulation_ticks refuses to
                                //      run any tick while it is zero
     uint8_t paused;            // 0x02 units / hs read it as a "time is running" gate, and both
@@ -121,7 +124,12 @@ typedef struct game_time_globals {
     int16_t unknown_12;        // 0x12
     int32_t elapsed_ticks;     // 0x14 second, never-reset counter bumped beside game_time
     float speed;               // 0x18 time scale; forced to 1.0 in any networked game
-    float leftover_time;       // 0x1c fractional-tick accumulator carried between frames
+                               //      (0x470b4b fld [ecx+0x18]; game_engine_get_time_scale)
+    float leftover_time;       // 0x1c fractional-tick accumulator carried between frames, in
+                               //      seconds: 0x470b30 adds it to the frame dt (0x470b67),
+                               //      stores the remainder (0x470bca) or 0 (0x470bdc). The
+                               //      units code multiplies it by 29.999998 (0x55a1f7) to get
+                               //      the fraction of a tick elapsed. NOT seconds_per_tick.
 } game_time_globals;           // size 0x20
 
 // ---------------------------------------------------------------------------
@@ -139,7 +147,11 @@ typedef struct game_time_globals {
 // which only the UI and the network layer fill in.
 // ---------------------------------------------------------------------------
 typedef struct game_variant {
-    uint16_t name[24];         // 0x00 UTF-16 display name; all of it zero in the built-ins
+    uint16_t name[24];         // 0x00 UTF-16 display name; all of it zero in the built-ins.
+                               //      At most 23 wide characters plus the terminator at +0x2e:
+                               //      saved_game_create_custom_variant wcsncpy's 0x17 chars and
+                               //      stores 0 at +0x2e (0x53bbe0..0x53bbfe); the default-profile
+                               //      writer does the same (0x53bd65, 0x53bda5) (R37)
     int32_t game_engine_index; // 0x30 sanitize clamps to 1..5, see game_engine_index
     uint8_t teams;             // 0x34 sanitize normalizes to 0/1; game_engine_get_teams_enabled
     uint8_t pad_35[3];         // 0x35
@@ -176,7 +188,12 @@ typedef struct game_variant {
     int32_t unknown_88;        // 0x88
     int32_t unknown_8c;        // 0x8c
     int32_t unknown_90;        // 0x90
-    int16_t unknown_94;        // 0x94 every built-in writes 1
+    uint16_t variant_flags;    // 0x94 (R37) flags word, same encoding as saved_games.h
+                               //      saved_player_profile::flags: bit 0 = built-in/default
+                               //      (every built-in writes 1; saved_game_create_custom_variant
+                               //      clears it, and BYTE [v+0x94],0xfe at 0x53bbc9), high byte =
+                               //      default index (playlist_profile_create_default_profiles_
+                               //      on_disk ORs index<<8 in, 0x53bd8c..0x53bdad)
     int16_t unknown_96;        // 0x96
 } game_variant;                // size 0x98
 
@@ -498,7 +515,10 @@ typedef struct player {
     int32_t unknown_118;               // 0x118
     int32_t unknown_11c;               // 0x11c
     player_update_queue update_history;       // 0x120 120 records of 0x2c
-    datum_index unknown_15c;           // 0x15c local constructor writes -1
+    int32_t last_remote_update_id;     // 0x15c (R35) last remote update sequence (byte
+                                       //      value), -1 = none; the local constructor writes -1.
+                                       //      is_remote_player_update_in_order 0x4e6a20: mov ecx,
+                                       //      [eax+0x15c]; cmp ecx,-1; sub edi,ecx; cmp edi,4
     datum_index unknown_160;           // 0x160 local constructor writes -1
     int32_t unknown_164;               // 0x164
     int32_t unknown_168;               // 0x168
@@ -540,7 +560,9 @@ typedef struct player_globals {
     datum_index local_players[1];      // 0x04 local_player_to_player_index / game_set_local_player
     datum_index local_player_units[1]; // 0x08 the unit each local player drives; indexed by
                                        //      player::local_player_index
-    int16_t unknown_0c;                // 0x0c
+    int16_t local_player_count;        // 0x0c number of active local players (R34): cmp WORD
+                                       //      [esi+0xc],1 (0x4531cc) / ,2 (0x45333a), movsx
+                                       //      (0x451edc); HUD / render split-screen tests use > 1
     int16_t respawn_stagger;           // 0x0e bumped and decremented while respawns are
                                        //      spread across frames
     uint8_t no_player_has_a_unit;      // 0x10 0x474e10 sets 1 then clears it if any player
@@ -1019,17 +1041,19 @@ typedef struct hud_text_bounds {
     int16_t right;                 // 0x06
 } hud_text_bounds;                 // size 0x08
 
-// The caller-built block hud_draw_world_relative_text (0x4653f0) reads through EAX: one opaque
-// dword copied straight into the 0x006e4738 draw-state slot, then the three text colour
-// channels. The three channels are already IEEE-754 floats in memory -- 0x4653f0 only ever
-// moves them with plain `mov`/`fld`, never `cvtsi2ss`/`fild`, which is what rules out Ghidra
-// "(float)in_EAX[1]" integer-cast reading.
+// The caller-built block hud_draw_world_relative_text (0x4653f0) reads through EAX. It has the
+// tags.h ColorARGB layout, alpha first (R36): 0x4653f0 copies +0x00 into 0x006e4738 (0x465592)
+// and +0x04/+0x08/+0x0c, possibly brightened, into 0x006e473c/40/44 -- i.e. text.h's
+// ColorARGB text_color (alpha, red, green, blue), whose callers store 1.0 in alpha. All four are
+// IEEE-754 floats in memory -- 0x4653f0 only ever moves them with plain `mov`/`fld`, never
+// `cvtsi2ss`/`fild`, which is what rules out Ghidra's "(float)in_EAX[1]" integer-cast reading.
+// Kept as its own struct (same field order and names as ColorARGB) so callers keep the name.
 typedef struct hud_world_text_params {
-    int32_t unknown_00;            // 0x00 copied verbatim into the 0x006e4738 draw-state slot
-    real color_r;                  // 0x04
-    real color_g;                  // 0x08
-    real color_b;                  // 0x0c
-} hud_world_text_params;           // size 0x10
+    real alpha;                    // 0x00 -> text_color.alpha (0x006e4738)
+    real red;                      // 0x04 -> text_color.red   (0x006e473c)
+    real green;                    // 0x08 -> text_color.green (0x006e4740)
+    real blue;                     // 0x0c -> text_color.blue  (0x006e4744)
+} hud_world_text_params;           // size 0x10 == sizeof(ColorARGB)
 
 // ---------------------------------------------------------------------------
 // The debug spawn cheats shared record is types/tags.h TagDependency, not a type of its own.
@@ -1100,7 +1124,8 @@ typedef struct koth_fence_corner {
 // global 0x006f1d80: uint8_t player_look_rate_boost         UNSURE; 0 or 1, +1 is the tier
 // global 0x006b1460: datum_index machine_to_player[16]    cleared to -1 by players_dispose;
 //                      0x473940 and 0x473390 index it with a machine index
-// global 0x006b2ce8: int32_t team_slot_table[4]           scanned by 0x473730 for a free team
+// 0x006b2ce8: int32_t joystick_slot_devices[4] -- NOT owned here; see the read-but-not-owned list
+//   at the end of this file (input.h owns it: slot -> input device index, -1 = none).
 
 // simulation clock (game_engine_allocate_tick_record @0x470a80)
 // global 0x006f1d6c: game_time_globals *game_time         0x20 of game state
@@ -1189,7 +1214,8 @@ typedef struct koth_fence_corner {
 
 // save games
 // global 0x00721330: file_reference savegame_index_file     rebuilt in place, 0x10c bytes
-// global 0x00721440: void **savegame_index_mutex            WaitForSingleObject, 5 s timeout
+// global 0x00721440: network_mutex_record *savegame_index_mutex   (networking.h; same 4 bytes)
+//                      WaitForSingleObject(savegame_index_mutex->handle, 5000) (R14)
 // global 0x00721f28: char *user_save_path_default
 // global 0x00721f30: char user_save_paths[8][0x105]
 // global 0x00722758: uint32_t user_save_path_handles[8]
@@ -1216,9 +1242,21 @@ typedef struct koth_fence_corner {
 //                                                     that 0x4710b0 multiplies by the unit
 //                                                     stun meter.
 // 0x00712498  local_player_input_state[]   (input)    stride 0x28 per local player
-// 0x006ac5b0  uint8_t[]                    (camera)   stride 0xf8 per local player; byte +1
-//                                                     suppresses the look update and byte +2
-//                                                     blanks the whole control input
+// 0x006b2ce8  int32_t joystick_slot_devices[4] (input) slot -> input-device index, -1 = none.
+//                                                     CORRECTED (R02): formerly listed here as
+//                                                     "team_slot_table". Input seeds it to -1
+//                                                     (0x481974) and stores devices (0x4818fc);
+//                                                     0x473743 in local_player_find_free_slot_index
+//                                                     is the only game-side reader.
+// 0x006ac5b0  director+0x50                (camera)   i.e. camera.h directors[] (array at
+//                                                     0x006ac560, stride 0xf8 per local
+//                                                     player) field block +0x50. Byte +1
+//                                                     (0x006ac5b1) = director.suppress_look_update
+//                                                     (skips the look update); byte +2
+//                                                     (0x006ac5b2) = director.look_input_consumed
+//                                                     (blanks the whole control input). Writers
+//                                                     0x445f90 / 0x446870, readers 0x471ae0 /
+//                                                     0x4c6f30. (R03)
 // 0x00719720  int16_t network_game_mode    (network)  0 local, 1 client, 2 host, 3 replay.
 //                                                     CORRECTED: every one of the ~180 accesses
 //                                                     in the image is a 16-bit one (97 of them

@@ -14,11 +14,14 @@
 // UNSURE: most pool sizes/globals here belong to other modules (objects, sound, ai, hs,
 // saved_games) and are not named in types/game.h; kept as raw globals with TYPES-GAP markers.
 // __control87 is the MSVC CRT FPU-control-word setter.
+// reconciled: R07 0x00746f94 tag_cache_render_states_* (TYPES-GAP) -> scenario.h scenario_game_globals *global_scenario_game_globals (0x7c-byte scenario game-state block); R79 0x006b8d78 effect_something_006b8d78 -> physics.h breakable_surface_globals *breakable_surface_state
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "physics.h"
+#include "scenario.h"
 
 extern int32_t game_state_cursor; // 0x006e2dcc
 extern uint8_t *game_state_base;   // 0x006e2dc8
@@ -26,11 +29,11 @@ extern uint32_t game_state_crc;   // 0x006e2dd4
 extern void *cached_object_render_states; // 0x006b0b80, TYPES-GAP
 extern game_variant game_engine_active_variant; // 0x0087ab20, the 0x98-byte staging variant
     // (0x26 dwords) this function zeroes and then hands to game_engine_load_from_variant in EBX
-extern void *tag_cache_render_states_ptr;     // 0x00746f94, TYPES-GAP
+extern scenario_game_globals *global_scenario_game_globals; // 0x00746f94, scenario.h
 extern uint8_t *unknown_0087bc0c;             // 0x0087bc0c, TYPES-GAP, single byte zeroed
 extern data_array *object_render_state_cache;       // 0x007c30ec, TYPES-GAP
 extern void *effect_pool_ptr;                 // 0x0072278c, TYPES-GAP
-extern void *effect_something_006b8d78;       // 0x006b8d78, TYPES-GAP
+extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78, physics.h
 extern data_array *particle_pool_ptr;               // 0x0087abd0, TYPES-GAP
 extern data_array *effect_object_pool_ptr;          // 0x0087abdc, TYPES-GAP
 extern data_array *effect_location_pool_ptr;        // 0x0087abe0, TYPES-GAP
@@ -107,7 +110,7 @@ void game_initialize(void)
     FUN_00494340();
 
     size = 0x7c;
-    tag_cache_render_states_ptr = (void *)(game_state_cursor + game_state_base);
+    global_scenario_game_globals = (scenario_game_globals *)(game_state_cursor + game_state_base);
     game_state_cursor = game_state_cursor + 0x7c;
     crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 
@@ -127,7 +130,7 @@ void game_initialize(void)
     crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 
     size = 0x4204;
-    effect_something_006b8d78 = (void *)(game_state_cursor + game_state_base);
+    breakable_surface_state = (breakable_surface_globals *)(game_state_cursor + game_state_base);
     game_state_cursor = game_state_cursor + 0x4204;
     crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 

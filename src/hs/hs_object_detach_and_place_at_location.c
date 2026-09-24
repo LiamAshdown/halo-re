@@ -28,11 +28,13 @@
 // best inference available from surrounding code, not a verified fact. Control flow, arithmetic
 // and every write this function performs are preserved exactly as decompiled; only naming and
 // call-argument reconstruction carry the reduced confidence above.
+// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
 
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
 #include "math.h"
+#include "game.h"
 #include "hs.h"
 
 extern double fcos(double x); // 0x0062xxxx CRT (float10 in the original; narrowed to float on store)
@@ -79,8 +81,8 @@ extern Scenario *global_scenario;    // 0x00746f8c
 extern data_array *players;          // 0x0087a480, stride 0x200
 extern uint8_t network_game_active;  // 0x00719720, DAT_00719720: nonzero in a network game
 
-// hs_game_time_globals: defined in types/hs.h (foreign-module slice; was a local TYPES-GAP copy)
-extern hs_game_time_globals *game_time; // 0x006f1d6c
+// game_time_globals: defined in types/game.h (R32 replaced hs.h's partial game_time_globals)
+extern game_time_globals *game_time; // 0x006f1d6c
 extern void *unknown_0071c2d8;       // 0x0071c2d8, UNSURE: some per-game(?) record; +0xf48 passed
                                       // to player_update_history_free_all when nonzero
 
@@ -162,7 +164,7 @@ void hs_object_detach_and_place_at_location(int16_t location_index, datum_index 
                     }
 
                     object[0xcb] = parent_handle;
-                    object[0xcc] = game_time->current_tick; // UNSURE: field name guessed from
+                    object[0xcc] = game_time->game_time; // UNSURE: field name guessed from
                                                               // types/tags.h game_time_globals
                     if (object[0xc9] == object_index) {
                         object[0xc9] = 0xffffffff;
@@ -224,7 +226,7 @@ void hs_object_detach_and_place_at_location(int16_t location_index, datum_index 
                     if (unit_all_seats_unoccupied() == 1) {
                         control = object_try_and_get(2);
                         if (control != 0) {
-                            *(uint32_t *)((uint8_t *)control + 0x5ac) = game_time->current_tick;
+                            *(uint32_t *)((uint8_t *)control + 0x5ac) = game_time->game_time;
                         }
                     }
                     if (network_game_active == 1) {

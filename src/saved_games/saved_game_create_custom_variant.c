@@ -17,6 +17,7 @@
 // copied into (local_2008, i.e. &file.variant), matching game_variant::name at offset 0 and the
 // terminator write (local_1fda) immediately after it at name[23].
 // register convention: __cdecl, plain stack arguments (param_1 [unused], name).
+// reconciled: R37 game_variant.unknown_94 -> uint16 variant_flags (bit 0 built-in, high byte default index)
 
 #include <string.h>
 #include "tags.h"
@@ -40,7 +41,7 @@ extern void _wcsncpy(uint16_t *dest, const uint16_t *source, uint32_t count); //
 
 // blam-cc: __cdecl, plain stack arguments (param_1 [unused], name)
 // Creates a new game-variant slot named name, opens its file, fills it with the classic-slayer
-// default options (unknown_94's built-in bit cleared, since this is a user-created variant),
+// default options (variant_flags's built-in bit cleared, since this is a user-created variant),
 // sanitizes it, stamps name over its name field, crcs and writes it, and rolls back (deletes the
 // slot) if the seek or write fails. Returns the new slot's packed handle, or 0xffffffff on any
 // failure.
@@ -66,7 +67,7 @@ uint32_t saved_game_create_custom_variant(uint32_t param_1, uint16_t *name)
         memset(&file, 0, sizeof(file));
         defaults_ptr = game_engine_variant_defaults_classic_slayer((game_variant *)&file.variant);
         memcpy(&file.variant, defaults_ptr, sizeof(file.variant));
-        file.variant.unknown_94 = (int16_t)((uint16_t)file.variant.unknown_94 & 0xfffe);
+        file.variant.variant_flags = (int16_t)((uint16_t)file.variant.variant_flags & 0xfffe);
         game_variant_sanitize_options(&file.variant);
         _wcsncpy(file.variant.name, name, 0x17);
         file.variant.name[0x17] = 0;

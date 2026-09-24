@@ -28,6 +28,7 @@
 // with fistp while the health alphas truncate (0x4ab590); an unknown game engine index draws
 // the icon with a stale position and scale.
 // register convention: plain cdecl (EBP frame), one stack argument.
+// reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
 
 #include <string.h>
 #include "tags.h"
@@ -147,7 +148,7 @@ void hud_render_unit_interface(player *p)
     objects[0] = p->unit;
     {
         int32_t last = (int32_t)*(uint32_t *)((uint8_t *)unit_tag + 0x2a8) - 1; // new_hud_interfaces count
-        int32_t choice = (int16_t)(local_player_globals->unknown_0c > 1);
+        int32_t choice = (int16_t)(local_player_globals->local_player_count > 1);
         if (choice > last) {
             choice = last;
         }
@@ -177,7 +178,7 @@ void hud_render_unit_interface(player *p)
         if (parent != (datum_index)-1 && *(int16_t *)(unit_object + 0x2f0) != -1) { // unit vehicle_seat_index
             uint8_t *parent_object = (uint8_t *)((object_header *)object_data->data)[parent & 0xffff].data;
             Unit *parent_tag = (Unit *)tag_instances[*(datum_index *)parent_object & 0xffff].data;
-            uint8_t split = local_player_globals->unknown_0c > 1;
+            uint8_t split = local_player_globals->local_player_count > 1;
             TagID parent_hud = unit_get_hud_interface_tag_id(parent_tag, split);
             uint8_t *seats = *(uint8_t **)((uint8_t *)parent_tag + 0x2e8);
 
@@ -215,7 +216,7 @@ void hud_render_unit_interface(player *p)
         meter_values[0] = *(float *)(unit_object + 0x344);
     }
 
-    split_screen = local_player_globals->unknown_0c > 1;
+    split_screen = local_player_globals->local_player_count > 1;
     index = count;
     do {
         UnitHUDInterface *hud;
@@ -237,7 +238,7 @@ void hud_render_unit_interface(player *p)
         // hud background
         if (*(datum_index *)&hud->hud_background_interface_bitmap.tag_id != (datum_index)-1) {
             flags = (uint32_t)((*(uint8_t *)(object + 0x106) >> 1) & 2);
-            if (local_player_globals->unknown_0c > 1) {
+            if (local_player_globals->local_player_count > 1) {
                 flags |= 4;
             }
             hud_draw_static_element(local_player_index, (uint16_t *)hud,
@@ -253,7 +254,7 @@ void hud_render_unit_interface(player *p)
             if ((*(uint8_t *)(object + 0x106) & 4) != 0) {
                 flags |= 2;
             }
-            if (local_player_globals->unknown_0c > 1) {
+            if (local_player_globals->local_player_count > 1) {
                 flags |= 4;
             }
             if (index == 0) {
@@ -321,7 +322,7 @@ void hud_render_unit_interface(player *p)
             if ((object_flags & 4) != 0) {
                 flags |= 2;
             }
-            if (local_player_globals->unknown_0c > 1) {
+            if (local_player_globals->local_player_count > 1) {
                 flags |= 4;
             }
             if (index == 0) {
@@ -370,7 +371,7 @@ void hud_render_unit_interface(player *p)
             Point2DInt center;
 
             anchor[0] = 2; // bottom left; the rest of the record is not written
-            flags = local_player_globals->unknown_0c > 1 ? 4 : 0;
+            flags = local_player_globals->local_player_count > 1 ? 4 : 0;
             if ((hud_unit_meters->flags & 0x20) != 0) {
                 flags |= 1;
             }
@@ -391,11 +392,11 @@ void hud_render_unit_interface(player *p)
                                         (const hud_static_element_placement *)&hud->motion_sensor_foreground_anchor_offset,
                                         flags, -1);
             }
-            hud_anchor_offset_to_screen_position(anchor, local_player_globals->unknown_0c > 1, 0.0f,
+            hud_anchor_offset_to_screen_position(anchor, local_player_globals->local_player_count > 1, 0.0f,
                                                  &hud->motion_sensor_center_anchor_offset.x, &center.x, 0);
             if (local_player_index != -1) {
                 motion_sensor_update_for_player(local_player_index);
-                motion_sensor_render(local_player_globals->unknown_0c > 1, &center.x, local_player_index);
+                motion_sensor_render(local_player_globals->local_player_count > 1, &center.x, local_player_index);
             }
         }
 
@@ -404,7 +405,7 @@ void hud_render_unit_interface(player *p)
             uint32_t overlay_types = (current_game_engine != 0 && game_engine_variant.teams != 0) ? 1 : 0;
             int16_t overlay_index;
 
-            flags = local_player_globals->unknown_0c > 1 ? 4 : 0;
+            flags = local_player_globals->local_player_count > 1 ? 4 : 0;
             for (overlay_index = 0; (int32_t)overlay_index < (int32_t)hud->overlays.count; overlay_index++) {
                 UnitHUDInterfaceAuxiliaryOverlay *overlay =
                     (UnitHUDInterfaceAuxiliaryOverlay *)hud->overlays.pointer + overlay_index;
@@ -438,7 +439,7 @@ void hud_render_unit_interface(player *p)
                     datum_index meter = *(datum_index *)&panel->meter_meter_bitmap.tag_id;
                     int32_t period;
 
-                    flags = local_player_globals->unknown_0c > 1 ? 4 : 0;
+                    flags = local_player_globals->local_player_count > 1 ? 4 : 0;
                     if (meter_values[type] <= panel->meter_minimum_fraction_cutoff) {
                         flags |= 1;
                     }
@@ -465,7 +466,7 @@ void hud_render_unit_interface(player *p)
                             continue;
                         }
                     }
-                    flags = local_player_globals->unknown_0c > 1 ? 4 : 0;
+                    flags = local_player_globals->local_player_count > 1 ? 4 : 0;
                     *timer = (int16_t)(*timer + game_time->ticks_this_frame);
                     if (*(datum_index *)&panel->background_interface_bitmap.tag_id != (datum_index)-1) {
                         hud_draw_static_element(local_player_index, (uint16_t *)hud,

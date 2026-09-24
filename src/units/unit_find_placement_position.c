@@ -27,7 +27,7 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *game_globals_00746f9c; // UNSURE global, 0x00746f9c
+extern uint8_t *global_structure_bsp; // UNSURE global, 0x00746f9c
 extern real_vector3d *global_up3d_pointer; // 0x00696720
 extern real_vector3d unit_placement_candidate_offsets[]; // 0x0065e660/64/68 interleaved as 3 floats per candidate; UNSURE bound
 
@@ -135,7 +135,7 @@ have_reference:
 
                     {
                         int32_t marker = FUN_005013a0();
-                        if (marker != -1 && *(int16_t *)(marker * 0x10 + 8 + *(int32_t *)(game_globals_00746f9c + 0xe4)) != -1) {
+                        if (marker != -1 && *(int16_t *)(marker * 0x10 + 8 + *(int32_t *)(global_structure_bsp + 0xe4)) != -1) {
                             if (FUN_00507170(collision_context, radius + radius, pill_height,
                                               radius, reference_index, &candidate)) {
                                 if (!FUN_00506040(collision_context, &candidate, radius)) {

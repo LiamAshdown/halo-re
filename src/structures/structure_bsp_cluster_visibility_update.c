@@ -21,7 +21,7 @@
 #include "math.h"
 #include "structures.h"
 
-extern ScenarioStructureBSP *structure_bsp;   // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp;   // 0x00746f9c
 extern int32_t render_cluster_index;          // 0x007c3348
 extern uint32_t cluster_visible_bits[0x10];   // 0x007c3350
 extern structure_bsp_visible_cluster visible_clusters[k_maximum_visible_clusters]; // 0x007c3390
@@ -46,7 +46,7 @@ extern void structure_bsp_expand_visible_clusters_by_plane(ScenarioStructureBSP 
 
 void structure_bsp_cluster_visibility_update(void)
 {
-    ScenarioStructureBSP *tag = structure_bsp;
+    ScenarioStructureBSP *tag = global_structure_bsp;
     // When the camera is outside the BSP entirely, mark every cluster visible (-1 fills every
     // bit) so nothing gets culled; otherwise start with nothing visible and let the flood below
     // fill it in.

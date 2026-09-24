@@ -11,6 +11,7 @@
 // the-decompile artifact rather than genuine uninitialized name data, and zeroed via memset here
 // for consistency and to avoid reading uninitialized stack memory.
 // register convention: __cdecl, one pointer argument (the output game_variant*).
+// reconciled: R37 game_variant.unknown_94 -> uint16 variant_flags (bit 0 built-in, high byte default index)
 
 #include "tags.h"
 #include "memory.h"
@@ -34,7 +35,7 @@ void game_engine_variant_defaults_classic_team_oddball(game_variant *out)
     out->unknown_64 = 1;
     out->unknown_6c = 1;
     out->unknown_90 = 1;
-    out->unknown_94 = 1;
+    out->variant_flags = 1;
 }
 
 #if 0

@@ -9,12 +9,14 @@
 // --stop-address=0x431679 bin/halo.exe).
 // register convention: plain __cdecl, matching Ghidra's own recognized signature.
 // blam-cc: stack -> conversation_definition_index, allow_eviction
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "ai.h"
+#include <stdint.h>
 
 extern data_array *ai_conversation_data; // 0x008802d4
 extern game_time_globals *game_time;     // 0x006f1d6c
@@ -50,6 +52,7 @@ datum_index ai_conversation_new(int16_t conversation_definition_index, uint8_t a
             iterator.data = ai_conversation_data;
             iterator.next_index = 0;
             iterator.index = (datum_index)k_datum_index_none;
+            iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
             candidate = data_iterator_next(&iterator);
             while (candidate != 0) {
                 if (candidate->priority < best_priority || candidate->start_tick < best_tick) {

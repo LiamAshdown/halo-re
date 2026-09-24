@@ -16,6 +16,7 @@
 //   steering_wheel_controls.c, wrapping the frame counter -- a guess, not evidence. See also
 //   weather_instance_adjust_count.c's own header for the target-count multiplication this
 //   function's call site does not visibly perform.
+// reconciled: R45 weather_instance.delta_time is the render frame delta; 0x007c3110 extern renamed render_time_since_frame (render.h name)
 
 #include "tags.h"
 #include "memory.h"
@@ -27,7 +28,7 @@
 extern weather_instance weather_instances[1]; // 0x006b0ae4
 extern data_array *weather_particle_data;     // 0x0087abcc
 extern tag_instance *tag_instances;           // 0x0087bc14
-extern float render_delta_time;               // 0x007c3110
+extern float render_time_since_frame;          // 0x007c3110, render.h: seconds since the previous rendered frame
 extern float camera_position_z;               // 0x007c311c
 
 extern void weather_instance_adjust_count(int16_t instance_index, int16_t type_index,
@@ -47,7 +48,7 @@ void weather_instance_update(int16_t instance_index)
         (WeatherParticleSystem *)tag_instances[(uint16_t)instance->definition_index].data;
     int32_t i;
 
-    instance->delta_time = render_delta_time;
+    instance->delta_time = render_time_since_frame;
     instance->elapsed_time = instance->delta_time + instance->elapsed_time;
 
     for (i = 0; i < (int32_t)tag->particle_types.count; i++) {

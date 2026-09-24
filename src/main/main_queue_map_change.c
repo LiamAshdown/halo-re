@@ -18,6 +18,7 @@
 // out/phase4/main_types_notes.md's own correction (backed by the objdump field-width survey)
 // says it is read here; kept as unknown_00 (the header name), not renamed, per this project's
 // per-file-independent extern convention.
+// reconciled: R33 game_time_globals.unknown_00 -> initialized (uint8 at +0x00, same byte)
 
 #include "tags.h"
 #include "memory.h"
@@ -41,7 +42,7 @@ void main_queue_map_change(char *map_name)
     strncpy(main_globals_data.scenario_path, map_name, 0xff);
     main_globals_data.scenario_path[0xff] = 0;
     main_globals_data.restore_checkpoint_on_load = 1;
-    if (game_time->unknown_00 != 0 &&
+    if (game_time->initialized != 0 &&
         (game_time->active != 0 || game_time->paused != 0) &&
         main_globals_data.game_connection == 0) {
         main_globals_data.level_transition = 1;

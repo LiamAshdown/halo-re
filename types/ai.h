@@ -1054,7 +1054,9 @@ typedef struct path_find_context {
     real_point3d goal_position;       // 0x50
     uint32_t goal_vertex_id;          // 0x5c
     float goal_cost;                  // 0x60
-    int32_t bsp_generation;           // 0x64 path_find_context_init copies the global at 0x00746f9c
+    uint32_t structure_bsp;           // 0x64 path_find_context_init copies the global at 0x00746f9c,
+                                      //      ScenarioStructureBSP *global_structure_bsp (scenario.h);
+                                      //      kept as a 4-byte pointer field
     int16_t best_node;                // 0x68
     uint8_t unknown_6a[2];            // 0x6a
     float best_cost;                  // 0x6c
@@ -1143,13 +1145,31 @@ typedef struct actor_movement_obstacle {
     float radius;                     // 0x14 the largest marker-projected radius of the objects collision spheres
 } actor_movement_obstacle; // size 0x18
 
+// The 3-dword out block of path_find_trace_cluster_boundary_from_vertex @0x43d790, whose one
+// real signature is
+//   uint8_t path_find_trace_cluster_boundary_from_vertex(void *context /*EAX*/,
+//       uint8_t ignore_permission, real_point2d *point, int32_t start_index,
+//       real_vector2d *direction, float max_distance, path_find_boundary_trace_result *out);
+// cdecl with 6 stack arguments (every caller cleans with add esp,0x18), returns AL.
+// (types/ headers carry no prototypes, so it is recorded here as a comment.) The field roles
+// come from 0x43d8b2..0x43d908: out[1] is always the surface the walk ended in (EBP), out[2]
+// the enter/exit edge_index of the collision_bsp_boundary_clip (physics.h).
+typedef struct path_find_boundary_trace_result {
+    float distance;                   // 0x00 the clip t that stopped the walk, max_distance on a miss
+    int32_t surface_index;            // 0x04 the surface reached (start_index or one crossed into)
+    int32_t edge_index;               // 0x08 the edge hit, -1 on a miss
+} path_find_boundary_trace_result;    // size 0x0c
+
 // The stack frame actor_movement_choose_avoidance_direction @0x4193d0 builds and hands to
 // actor_movement_collect_obstacle_candidates and actor_movement_test_obstacle_ray. The
 // obstacle array runs from 0x40 to 0x603f, which divides exactly into 0x400 entries of
 // 0x18, and the two trailing floats are the last two locals of that frame.
 typedef struct actor_movement_context {
-    int32_t bsp_generation;           // 0x00 the global at 0x00746f9c
-    int32_t bsp_index;                // 0x04 the global at 0x00746f98
+    uint32_t structure_bsp;           // 0x00 the global at 0x00746f9c, ScenarioStructureBSP *
+                                      //      global_structure_bsp (4-byte pointer field)
+    uint32_t collision_bsp;           // 0x04 the global at 0x00746f98, ModelCollisionGeometryBSP *
+                                      //      global_structure_collision_bsp (ScenarioStructureBSP
+                                      //      +0xb4); handed to collision_bsp_query_segment_init
     datum_index unit_index;           // 0x08 actor.active_unit_index, or actor.unit_index
     real_point3d position;            // 0x0c object_get_position of that unit
     real_vector3d forward;            // 0x18 object+0x74
@@ -1798,13 +1818,16 @@ typedef struct ai_search_nearest_point_result {
     int16_t link;       // 0x06
 } ai_search_nearest_point_result;
 
+// ai_search_evaluate_edge_cost @0x43b830 fills it (0x43b841..0x43b850 seed it, 0x43ba57 writes
+// +0x04 last). The two dwords were read as float "headings"; the disassembly moves only
+// path_find_boundary_trace_result indices into them.
 typedef struct ai_search_edge_result {
     float cost;             // 0x00
-    float heading_x;        // 0x04
-    float heading_y;        // 0x08
-    int16_t point_id;       // 0x0c
-    uint8_t unknown_0e[2];  // 0x0e (only ever written as a raw 2-byte copy of the upper half of unknown_18; see header)
-} ai_search_edge_result; // size 0x10, only verified up to 0xf
+    int32_t surface_index;  // 0x04 path_find_boundary_trace_result.surface_index of the final trace
+    int32_t edge_index;     // 0x08 the boundary edge that set the cost, -1 when none did
+    int16_t point_id;       // 0x0c ai_search_nearest_point_result.point_id, -1 when none
+    int16_t link;           // 0x0e ai_search_nearest_point_result.link (0x43b9f8 WORD copy)
+} ai_search_edge_result;    // size 0x10
 
 typedef struct ai_platoon_condition {
     int16_t code;           // 0x00 1..9 select the case below; anything else is always false
@@ -1881,7 +1904,9 @@ typedef struct ai_conversation_speech_request {
 //   0x008603b0 data_array *object_data                (types/objects.h)
 //   0x0087bc14 tag_instance *tag_instances            (types/cache.h)
 //   0x00746f8c global_scenario                        the scenario tag data
-//   0x00746f98 / 0x00746f9c the collision BSP index and generation counter
+//   0x00746f98 ModelCollisionGeometryBSP *global_structure_collision_bsp (the structure BSP
+//              +0xb4) and 0x00746f9c ScenarioStructureBSP *global_structure_bsp (the resident
+//              structure BSP tag data), both scenario.h; neither is an index or a counter
 //   0x006f1d6c the game time globals, current tick at +0x0c
 //   0x006e2dc8 / 0x006e2dcc / 0x006e2dd4 the game-state bump allocator and its crc
 //   0x00719cd0 random_seed_global                     (types/math.h)

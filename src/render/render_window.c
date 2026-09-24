@@ -71,7 +71,7 @@ extern int16_t visible_surface_count;                 // 0x00850394, structures 
 extern int32_t visible_surface_indices[0x4000];       // 0x00850398, structures module
 extern uint8_t picked_surfaces_valid;                 // 0x006e3ad8, structures module
 extern int32_t picked_surfaces_geometry;              // 0x006e3adc, structures module
-extern ScenarioStructureBSP *structure_bsp;           // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp;           // 0x00746f9c
 extern int16_t renderer_unknown_69c67c;               // 0x0069c67c UNSURE (read as a word)
 extern uint32_t rasterizer_active_environment_effect; // 0x0071d1d0 rasterizer_effect_slot*
 extern int32_t transparent_geometry_group_last_drawn_key; // 0x006e1d58, rasterizer module
@@ -275,7 +275,7 @@ void render_window(int16_t local_player_index, render_camera *source_camera,
     if (picked_surfaces_valid) {
         saved_69c67c = renderer_unknown_69c67c;
         // the BSP has no lightmaps bitmap (lightmaps_bitmap.tag_id, +0x0c, is -1)
-        if (*(int32_t *)&structure_bsp->lightmaps_bitmap.tag_id == -1 && saved_69c67c == 0) {
+        if (*(int32_t *)&global_structure_bsp->lightmaps_bitmap.tag_id == -1 && saved_69c67c == 0) {
             renderer_unknown_69c67c = 1;
         }
         rasterizer_dynamic_light_technique_ps2_set_states();

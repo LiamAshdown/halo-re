@@ -7,6 +7,7 @@
 // kind (this function EAX).
 // register convention: EAX kind; two stack arguments.
 //   // blam-cc: kind -> EAX
+// reconciled: R16 the local iterator shadow struct (int32 next_index) is now types/memory.h data_iterator; the binary stores next_index as a WORD
 
 #include <string.h>
 #include "tags.h"
@@ -26,20 +27,15 @@ extern void hud_waypoint_deactivate_for_player(datum_index player_index, datum_i
 // blam-cc: kind -> EAX
 void hud_waypoint_deactivate_for_team(int16_t kind, int16_t team, datum_index target)
 {
-    struct {
-        data_array *data;
-        int32_t next_index;
-        datum_index index;
-        uint32_t signature;
-    } iterator;
+    data_iterator iterator;
     player *p;
 
     iterator.data = player_data;
     iterator.next_index = 0; // the binary writes only the low word
     iterator.index = (datum_index)-1;
-    iterator.signature = (uint32_t)(uintptr_t)player_data ^ 0x69746572;
-    for (p = (player *)data_iterator_next((data_iterator *)&iterator); p != 0;
-         p = (player *)data_iterator_next((data_iterator *)&iterator)) {
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+    for (p = (player *)data_iterator_next(&iterator); p != 0;
+         p = (player *)data_iterator_next(&iterator)) {
         if (p->local_player_index != -1 && (int32_t)team == p->team) {
             hud_waypoint_deactivate_for_player(iterator.index, target, kind);
         }
