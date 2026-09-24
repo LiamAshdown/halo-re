@@ -296,7 +296,17 @@ def main():
     eax_returns = {}
     used_addrs = void_functions_with_eax_readers({f["addr"] for f in funcs.values() if f["ret"] == "void"})
     void_used = {n for n, f in funcs.items() if f["addr"] in used_addrs}
+    image = open(os.path.join(ROOT, "bin", "halo.exe"), "rb").read()
+    def looks_like_entry(f):
+        # the 5-byte patch must fit inside the function, and the entry must really start one: MSVC aligns functions
+        # to 16 bytes or leaves padding (int3 / nop) or a ret before them. 0x569450 "unit_animation_set_state" was the
+        # 1-byte ret closing the previous function, and the patch overwrote the jump table after it.
+        if f["size"] < 5: return False
+        prev = image[f["addr"] - 0x400000 - 1]
+        return f["addr"] % 16 == 0 or prev in (0xcc, 0x90, 0xc3) or image[f["addr"] - 0x400000 - 3] == 0xc2
     for n, f in funcs.items():
+        if not looks_like_entry(f):
+            skipped["not a real function entry (under 5 bytes, or starts mid-code)"].append(n); continue
         if any(f["addr"] + d in jump_targets for d in range(1, 5)):
             skipped["a jump lands inside the 5 patched entry bytes"].append(n); continue
         mapped = sorted(set(f["regs"].values()))
