@@ -13,7 +13,7 @@
 // completely different (EAX/ECX/EDI) parameter set — the two are irreconcilable from this
 // module alone, so this call site keeps its own literal one-float form. DAT_0087aa10,
 // game_engine_attribute_player_death, game_engine_on_player_death, unit_apply_impulse, unit_apply_impulse_to_seat,
-// unit_any_flagged_seat_occupied, FUN_004bef80 and unit_apply_damage_effects are all outside this module's range.
+// unit_any_flagged_seat_occupied, object_apply_impulse_and_spin and unit_apply_damage_effects are all outside this module's range.
 // register convention: all parameters on the stack.
 // blam-cc: stack=(target_index, dd, notify_flags, shield_damage, body_damage, param_6,
 //   node_hint, role_is_deletable)
@@ -38,7 +38,8 @@ extern void unit_apply_impulse_to_seat(void); // UNSURE: zero visible args; out 
 extern int8_t unit_any_flagged_seat_occupied(void); // UNSURE: zero visible args; out of range, 0x56cc80
 extern void FUN_004efbf0(float param_1); // UNSURE: one float argument at this call site only,
     // irreconcilable with object_queue_pickup_denied_event.c's own (EAX,ECX,EDI) form
-extern void FUN_004bef80(void); // UNSURE: zero visible args; out of range, 0x4bef80
+extern void object_apply_impulse_and_spin(uint32_t object_index, real_vector3d *delta_velocity); // 0x4bef80, this module;
+    // blam-cc: EAX object_index, EDX delta_velocity
 extern int32_t players_iterate_and_discard(datum_index object_index); // out of range, 0x474db0
 extern void game_engine_attribute_player_death(datum_index responsible_player,
     datum_index responsible_object, int16_t team_index, int32_t param_4); // UNSURE: out of range
@@ -111,7 +112,7 @@ void object_damage_notify_and_impulse(uint32_t target_index, damage_data *dd, ui
                 break;
             }
             case _object_type_projectile:
-                FUN_004bef80();
+                object_apply_impulse_and_spin(target_index, &impulse); // 0x4efdcf: EAX = EDI (target), EDX = &impulse
                 break;
             default:
                 break;

@@ -44,12 +44,12 @@ void rasterizer_dx9_pixel_shaders_release(void)
     for (i = 0; i < k_rasterizer_pixel_shader_effects; i++) {
         void *effect = (void *)rasterizer_effects[i].effect;
         if (effect != 0) {
-            ((void (*)(void *))(*(void ***)effect)[2])(effect); // Release()
+            ((void (__stdcall *)(void *))(*(void ***)effect)[2])(effect); // Release()
             rasterizer_effects[i].effect = 0;
         }
     }
     if (rasterizer_effect_pool != 0) {
-        ((void (*)(void *))(*(void ***)rasterizer_effect_pool)[2])(rasterizer_effect_pool); // Release()
+        ((void (__stdcall *)(void *))(*(void ***)rasterizer_effect_pool)[2])(rasterizer_effect_pool); // Release()
         rasterizer_effect_pool = 0;
     }
 }

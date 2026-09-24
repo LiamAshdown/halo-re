@@ -25,10 +25,10 @@ extern uint32_t unknown_006e1b58; // 0x006e1b58 rasterizer_vertex_declarations[1
 extern void *rasterizer_misc_vertex_buffer; // 0x0071d270
 extern int16_t rasterizer_vertex_buffer_lock_state; // 0x0069c632
 
-typedef int32_t (*d3d_create_vertex_buffer_fn)(void *device, uint32_t length, uint32_t usage, uint32_t fvf,
+typedef int32_t (__stdcall *d3d_create_vertex_buffer_fn)(void *device, uint32_t length, uint32_t usage, uint32_t fvf,
                                                uint32_t pool, void **out_buffer, void *shared_handle);
-typedef int32_t (*d3d_lock_fn)(void *self, uint32_t offset, uint32_t size, void **out_data, uint32_t flags);
-typedef int32_t (*d3d_call0_fn)(void *self);
+typedef int32_t (__stdcall *d3d_lock_fn)(void *self, uint32_t offset, uint32_t size, void **out_data, uint32_t flags);
+typedef int32_t (__stdcall *d3d_call0_fn)(void *self);
 
 // Creates and zero-initializes a shared 64KB dynamic vertex buffer used elsewhere in the
 // rasterizer for miscellaneous small draws.

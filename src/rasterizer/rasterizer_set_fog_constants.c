@@ -25,10 +25,10 @@ extern uint8_t rasterizer_fog_enabled;                              // 0x0069c6a
 extern const ColorRGB *global_white_color;                          // 0x00686b04 -> 0x0065513c (1, 1, 1)
 extern uint32_t color_rgb_float_to_int(const ColorRGB *color); // 0x4ab5d0
 // blam-cc: normal in ECX, point in EDX, plane on the stack
-extern void FUN_0044d9e0(real_plane3d *plane, const real_vector3d *normal, const real_point3d *point); // 0x44d9e0
+extern void plane3d_from_point_and_normal(real_plane3d *plane, const real_vector3d *normal, const real_point3d *point); // 0x44d9e0
 
-typedef int32_t (*d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
-typedef int32_t (*d3d_set_vertex_shader_constant_f_fn)(void *device, uint32_t start_register, const float *data, uint32_t vector4f_count);
+typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
+typedef int32_t (__stdcall *d3d_set_vertex_shader_constant_f_fn)(void *device, uint32_t start_register, const float *data, uint32_t vector4f_count);
 
 static void rasterizer_set_render_state(uint32_t state, uint32_t value)
 {
@@ -96,7 +96,7 @@ void rasterizer_set_fog_constants(const render_fog *fog)
     } else if (window_fog->planar_mode == 2) {
         // plane through the camera, pushed out to the far plane
         window_fog->planar_maximum_depth = 1.0f;
-        FUN_0044d9e0(&window_fog->plane, camera_forward, camera_position);
+        plane3d_from_point_and_normal(&window_fog->plane, camera_forward, camera_position);
         window_fog->plane.d = window_fog->plane.d + rasterizer_window.camera.z_far;
     }
 

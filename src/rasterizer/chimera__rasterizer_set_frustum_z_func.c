@@ -44,8 +44,8 @@ extern float g_007c13e0, g_007c13e4, g_007c13f0; // UNSURE, past render_frustum'
 // blam-cc: ECX -> frustum, stack -> (z_near, z_far)
 extern void render_camera_projection_zrange_push_pop_set(render_frustum *frustum, uint32_t z_near, uint32_t z_far); // 0x50c9a0
 
-typedef int32_t (*d3d_set_clip_plane_fn)(void *device, uint32_t index, const void *plane);
-typedef int32_t (*d3d_set_vertex_shader_constant_fn)(void *device, uint32_t reg, const void *data, uint32_t count);
+typedef int32_t (__stdcall *d3d_set_clip_plane_fn)(void *device, uint32_t index, const void *plane);
+typedef int32_t (__stdcall *d3d_set_vertex_shader_constant_fn)(void *device, uint32_t reg, const void *data, uint32_t count);
 
 // blam-cc: stack -> (z_near, z_far) as raw float bits; both are forwarded to 0x50c9a0 with
 //   ECX = &rasterizer_window.frustum (0x007c127c) (phase 4 review: the second argument is a value,

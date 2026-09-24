@@ -30,8 +30,8 @@ extern uint32_t bitmap_data_calculate_mip_level_byte_size(BitmapData *bitmap, in
 extern uint32_t bitmap_data_calculate_mip_row_byte_size(BitmapData *bitmap, int32_t mip_level); // 0x43fce0, UNSURE signature
 extern int32_t rasterizer_bitmap_compute_mipmap_skip_count(BitmapData *bitmap, int16_t *out_width, int16_t *out_height); // 0x523f10
 
-typedef int32_t (*d3d_lock_rect_fn)(void *self, uint32_t level, void *out_rect, const void *rect, uint32_t flags);
-typedef int32_t (*d3d_unlock_rect_fn)(void *self, uint32_t level);
+typedef int32_t (__stdcall *d3d_lock_rect_fn)(void *self, uint32_t level, void *out_rect, const void *rect, uint32_t flags);
+typedef int32_t (__stdcall *d3d_unlock_rect_fn)(void *self, uint32_t level);
 
 // D3DLOCKED_RECT
 

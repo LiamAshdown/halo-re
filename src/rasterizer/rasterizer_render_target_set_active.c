@@ -27,10 +27,10 @@ extern rasterizer_render_target rasterizer_render_targets[k_rasterizer_render_ta
 extern int16_t rasterizer_active_render_target;         // 0x0069d350
 extern rasterizer_window_parameters rasterizer_window;  // 0x007c1220
 
-typedef int32_t (*d3d_set_render_target_fn)(void *device, uint32_t index, void *surface);
-typedef int32_t (*d3d_get_desc_fn)(void *surface, d3d_surface_desc *out_desc);
-typedef int32_t (*d3d_set_viewport_fn)(void *device, const d3d_viewport *viewport);
-typedef int32_t (*d3d_clear_fn)(void *device, uint32_t count, const void *rects, uint32_t flags,
+typedef int32_t (__stdcall *d3d_set_render_target_fn)(void *device, uint32_t index, void *surface);
+typedef int32_t (__stdcall *d3d_get_desc_fn)(void *surface, d3d_surface_desc *out_desc);
+typedef int32_t (__stdcall *d3d_set_viewport_fn)(void *device, const d3d_viewport *viewport);
+typedef int32_t (__stdcall *d3d_clear_fn)(void *device, uint32_t count, const void *rects, uint32_t flags,
                                   uint32_t color, float z, uint32_t stencil);
 
 // blam-cc: EAX -> target_index, stack -> (clear_color, clear)

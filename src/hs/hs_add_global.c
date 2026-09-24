@@ -3,7 +3,7 @@
 // name confidence: 0.9   rewrite confidence: 0.85
 // evidence: CEA-PDB string match. Requires exactly four children under the call node:
 // identifier ("global"), a type keyword, a name, and an initial-value expression -- matching
-// FUN_004875c0(0x31, hs_type_names, <type keyword text>) validating against the same table
+// string_table_index_of(0x31, hs_type_names, <type keyword text>) validating against the same table
 // hs_type_names uses, and the "less than 32 characters" / "already a variable" checks reading
 // the *third* child's text as the name (not the fourth, which is the value expression parsed
 // last). The "<type>" in the error message is documentation notation for a type keyword token
@@ -37,7 +37,7 @@
 // hs_add_script @0x485d50 is the contrast case and confirms the polarity of hs_parse's result:
 // there, `test al,al / jne` takes the SUCCESS branch, which finishes the script record and
 // returns CONCAT31(...,1) == true; only its failure path falls into a `xor al,al`.
-// UNSURE: the type keyword's search text passed to FUN_004875c0 is not itself visible in
+// UNSURE: the type keyword's search text passed to string_table_index_of is not itself visible in
 // Ghidra's decompile of this function (zero-argument call, register-passed); modeled as the
 // type-keyword token's own text (hs_compiled_source + type_node->source_offset), which is what
 // a direct hs_type_names lookup requires.
@@ -47,7 +47,7 @@
 #include "hs.h"
 #include <string.h>
 
-extern int16_t FUN_004875c0(int16_t count, char **table, char *search_text); // 0x004875c0, library-ish (cseries/text), not this module; blam-cc: search_text in EAX
+extern int16_t string_table_index_of(const char *search, int16_t count, const char **table); // 0x004875c0, library-ish (cseries/text), not this module; blam-cc: search_text in EAX
 extern hs_global_reference hs_find_global_by_name(char *name); // 0x00483480, this batch
 extern char hs_parse(datum_index node_index, hs_type_t expected_type); // 0x00486420, this batch
 
@@ -96,8 +96,8 @@ char hs_add_global(datum_index node_index)
                 if (value_index != k_datum_index_none) {
                     value_node = (hs_syntax_node *)((uint8_t *)nodes->data + (value_index & 0xffff) * nodes->size);
                     if (value_node->next_node == k_datum_index_none) {
-                        type_ordinal = FUN_004875c0(k_hs_type_count, hs_type_names,
-                                                     hs_compiled_source + type_node->source_offset);
+                        type_ordinal = string_table_index_of(hs_compiled_source + type_node->source_offset,
+                                                     k_hs_type_count, (const char **)hs_type_names);
                         if ((type_ordinal < 4) || (0x30 < type_ordinal)) {
                             hs_compile_error = "this is not a valid type.";
                             hs_compile_error_offset = type_node->source_offset;

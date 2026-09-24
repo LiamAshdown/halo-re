@@ -27,7 +27,7 @@ extern d3d_caps9 rasterizer_caps; // 0x007c10c0
 // three dwords per ShaderColorFunctionType: D3DTOP op, arg1, arg2
 extern uint32_t rasterizer_chicago_color_function_stage_states[][3]; // 0x0069e710
 
-typedef int32_t (*d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
+typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
 static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t value)
 {

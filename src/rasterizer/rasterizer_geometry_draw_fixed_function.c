@@ -34,7 +34,7 @@ extern void rasterizer_dynamic_geometry_draw_dispatch(rasterizer_index_buffer *i
 // blam-cc: ESI -> vertex_buffer
 extern uint32_t rasterizer_dynamic_vertex_process_and_get_handle(rasterizer_vertex_buffer *vertex_buffer); // 0x51c790
 
-typedef int32_t (*d3d_call1_fn)(void *self, uint32_t a);
+typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
 void rasterizer_geometry_draw_fixed_function(uint32_t flags, int32_t dynamic_vertex_slot,
                                              rasterizer_vertex_buffer *vertex_buffer,

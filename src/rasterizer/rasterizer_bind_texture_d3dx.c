@@ -20,7 +20,7 @@
 // blam-cc: EAX -> bitmap
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing); // 0x00444550
 
-typedef int32_t (*d3dx_set_texture_fn)(void *effect, uint32_t handle, void *texture);
+typedef int32_t (__stdcall *d3dx_set_texture_fn)(void *effect, uint32_t handle, void *texture);
 
 // blam-cc: ESI -> bitmap, EDI -> effect_slot, stack -> stage
 uint8_t rasterizer_bind_texture_d3dx(int16_t stage, BitmapData *bitmap, rasterizer_effect_slot *effect_slot)

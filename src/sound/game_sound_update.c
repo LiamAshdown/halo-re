@@ -14,7 +14,7 @@
 // UNSURE: FUN_0053f150 (outside this module, address < 0x543a30) is called with three output
 //   pointers whose exact fields are inferred structurally (a {new_background_sound_tag,
 //   leaf_number} pair, a SoundEnvironment* out-pointer, and a byte this function never reads) --
-//   modeled here as sound_resolve_listener_cluster with a best-effort signature (argument order
+//   modeled here as sound_environment_update with a best-effort signature (argument order
 //   confirmed by the disassembly: cluster pair, environment pointer, valid byte).
 // Phase-4 review (disassembly appended below): object_try_and_get takes the object in ECX
 //   (type mask -1), 0x4f6b10 is object_get_root_location(EAX out, ECX object), and
@@ -45,7 +45,7 @@ extern void game_looping_sound_update(datum_index looping_sound_index, int32_t *
 extern datum_index sound_looping_start_ambient(datum_index object_index, datum_index definition_index, float scale); // 0x544250, blam-cc: EAX, EDX, stack
 extern void sound_build_cluster_range_bitmap(void); // 0x544980
 
-extern void sound_resolve_listener_cluster(int32_t *background_tag_and_leaf, SoundEnvironment **environment,
+extern void sound_environment_update(int32_t *background_tag_and_leaf, SoundEnvironment **environment,
     uint8_t *valid); // 0x53f150, UNSURE signature (outside this module), see file header
 extern void object_get_root_location(int32_t *out, uint32_t object_index); // 0x4f6b10, blam-cc: EAX -> out, ECX -> object_index
 
@@ -82,7 +82,7 @@ void game_sound_update(void)
         datum_index background_index;
         datum_index index;
 
-        sound_resolve_listener_cluster(cluster_info, &environment, &valid);
+        sound_environment_update(cluster_info, &environment, &valid);
         sound_environment = *environment;
 
         sound_build_cluster_range_bitmap();

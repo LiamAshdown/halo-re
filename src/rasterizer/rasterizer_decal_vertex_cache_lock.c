@@ -25,7 +25,7 @@ extern int16_t rasterizer_vertex_buffer_lock_state;                 // 0x0069c63
 
 extern int32_t __cdecl _ftol(double value);                         // 0x6391b4, CRT __ftol (value on the FPU stack)
 
-typedef int32_t (*d3d_lock_fn)(void *self, uint32_t offset, uint32_t size, void **data, uint32_t flags);
+typedef int32_t (__stdcall *d3d_lock_fn)(void *self, uint32_t offset, uint32_t size, void **data, uint32_t flags);
 
 // blam-cc: EAX -> decal_index, stack -> byte_count
 void *rasterizer_decal_vertex_cache_lock(uint32_t decal_index, int32_t byte_count)

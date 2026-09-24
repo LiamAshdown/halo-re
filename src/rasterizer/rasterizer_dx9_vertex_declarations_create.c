@@ -39,7 +39,7 @@ extern const d3d_vertex_element9 vertex_elements_screen_transformed_lit[];     /
 extern const d3d_vertex_element9 vertex_elements_screen_transformed_lit_specular[]; // 0x0065e3a0 (declaration 18)
 extern const d3d_vertex_element9 vertex_elements_environment_single_stream_ff[]; // 0x0065e358 (declaration 19, conditional)
 
-typedef int32_t (*d3d_create_vertex_declaration_fn)(void *device, const void *elements, void **out_declaration);
+typedef int32_t (__stdcall *d3d_create_vertex_declaration_fn)(void *device, const void *elements, void **out_declaration);
 extern int32_t D3DXFVFFromDeclarator(const d3d_vertex_element9 *elements, uint32_t *out_fvf); // 0x583dca D3DX
 
 // Creates the full set of Direct3D vertex declarations (and their per-format stride/usage

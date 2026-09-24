@@ -4,13 +4,13 @@
 // evidence: CEA-PDB string match; requires (script <type-keyword> [<return-type-keyword>]
 // <name> <body...>), where the return-type keyword is only present for static/stub scripts
 // (matched against hs_script_type_names then, for static/stub, hs_type_names via
-// FUN_004875c0); enforces the name is a pre-declared script (hs_script_find_by_name, i.e.
+// string_table_index_of); enforces the name is a pre-declared script (hs_script_find_by_name, i.e.
 // scripts are pre-registered from the scenario tag and this only fills in their body) and only
 // allows a static script to override an existing stub of the same return type (or silently
 // accepts a stub redefinition of an already-static script of the same type).
 // register convention: node_index is unrecognized by Ghidra (in_EAX); by the blam-cc
 // convention this is the first register slot, EAX.
-// UNSURE: the two FUN_004875c0 search-text arguments (script-type keyword, return-type
+// UNSURE: the two string_table_index_of search-text arguments (script-type keyword, return-type
 // keyword) are not visible in Ghidra's decompile of this function (zero-argument calls,
 // register-passed); modeled as each keyword token's own source text, matching hs_add_global's
 // identical situation.
@@ -32,7 +32,7 @@
 #include "hs.h"
 #include <string.h>
 
-extern int16_t FUN_004875c0(int16_t count, char **table, char *search_text); // 0x004875c0, library-ish (cseries/text), not this module
+extern int16_t string_table_index_of(const char *search, int16_t count, const char **table); // blam-cc: EAX search, stack (count, table) // 0x004875c0, library-ish (cseries/text), not this module
 extern int16_t hs_script_find_by_name(char *name); // 0x004833a0, this batch
 extern char hs_parse(datum_index node_index, hs_type_t expected_type); // 0x00486420, this batch
 extern datum_index datum_new(data_array *array); // memory module, 0x004d0480
@@ -81,8 +81,8 @@ char hs_add_script(datum_index node_index)
         return 0;
     }
     type_node = (hs_syntax_node *)((uint8_t *)nodes->data + (type_index & 0xffff) * nodes->size);
-    script_type = FUN_004875c0(k_hs_script_type_count, hs_script_type_names,
-                                hs_compiled_source + type_node->source_offset);
+    script_type = string_table_index_of(hs_compiled_source + type_node->source_offset,
+                                k_hs_script_type_count, (const char **)hs_script_type_names);
     if (script_type == -1) {
         hs_compile_error = "script type must be \"startup\", \"dormant\", \"continuous\", or \"static\".";
         hs_compile_error_offset = type_node->source_offset;
@@ -97,8 +97,8 @@ char hs_add_script(datum_index node_index)
             return 0;
         }
         return_type_node = (hs_syntax_node *)((uint8_t *)nodes->data + (return_type_index & 0xffff) * nodes->size);
-        return_type = FUN_004875c0(k_hs_type_count, hs_type_names,
-                                    hs_compiled_source + return_type_node->source_offset);
+        return_type = string_table_index_of(hs_compiled_source + return_type_node->source_offset,
+                                    k_hs_type_count, (const char **)hs_type_names);
         name_index = return_type_node->next_node;
         if ((return_type < 4) || (0x30 < return_type)) {
             hs_compile_error = "this is not a valid return type.";

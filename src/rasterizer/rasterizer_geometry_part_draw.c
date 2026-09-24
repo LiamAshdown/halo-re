@@ -40,7 +40,7 @@ extern void rasterizer_geometry_draw_fixed_function(uint32_t flags, int32_t dyna
                                                     rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot,
                                                     int32_t primitive_count); // 0x528ae0
 
-typedef int32_t (*d3d_call1_fn)(void *self, uint32_t a);
+typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
 void rasterizer_geometry_part_draw(transparent_geometry_group *group)
 {

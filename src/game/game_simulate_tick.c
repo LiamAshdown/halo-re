@@ -43,7 +43,7 @@ extern void team_pair_overrides_tick(void);                  // 0x45bcf0, this m
 extern void game_engine_tick(void);                          // 0x45ff30, this module
 extern void hs_runtime_update(void);                         // 0x48a1a0, hs module
 extern void FUN_0042a900(void);                    // UNSURE module
-extern void device_groups_update(void);            // 0x44aa90, UNSURE module
+extern void recorded_animations_update(void);            // 0x44aa90, UNSURE module
 extern void effects_update_all(float seconds_per_tick);  // 0x450aa0, UNSURE module/role
 extern void FUN_00456730(void);                    // UNSURE module
 extern void game_engine_players_update_server(void);                    // 0x4740a0, UNSURE module (host/offline path)
@@ -101,7 +101,7 @@ after_role_update:
 
     game_engine_tick();
     hs_runtime_update();
-    device_groups_update();
+    recorded_animations_update();
     objects_update();
     main_switch_structure_bsp();
     FUN_004a9990();

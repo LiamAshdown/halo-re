@@ -17,9 +17,9 @@
 // nothing and the projectile has a meaningful collision_radius, it re-tries with two rays offset
 // by +-collision_radius along a direction perpendicular to the sweep and to global up (falling
 // back to global left if the sweep is parallel to up).
-// UNSURE: collision_test_movement_segment and FUN_00401a20 are the collision module's swept-test entry points
+// UNSURE: collision_test_movement_segment and collision_test_movement_segment_between_points are the collision module's swept-test entry points
 // (0x00505880 established in src/units/vehicle_create_hover_thruster_effects.c;
-// FUN_00401a20's 3-argument opaque form established in src/items/item_update.c and
+// collision_test_movement_segment_between_points's 3-argument opaque form established in src/items/item_update.c and
 // src/units/unit_find_placement_position.c). RESOLVED this pass by disassembly, replacing the
 // earlier "not wired into an argument" note:
 //   - 0x00401a20 is "sweep between two POINTS": it computes delta = *ECX - *EAX into a local and
@@ -51,7 +51,7 @@ extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operan
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
 extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta,
                              uint32_t exclude_object, void *scratch); // 0x505880
-extern uint8_t FUN_00401a20(real_point3d *target, real_point3d *origin, uint32_t collision_mask,
+extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t collision_mask,
                             uint32_t ignore_object_index, void *out_record); // 0x401a20
     // blam-cc: ECX -> target, EAX -> origin, stack -> (collision_mask, ignore_object_index,
     // out_record). Computes delta = *target - *origin and tail-calls collision_test_movement_segment.
@@ -104,7 +104,7 @@ uint8_t projectile_collision_test(uint32_t object_index, real_point3d *target, v
         minus_origin.x = perpendicular.i * radius + obj->position.x;
         minus_origin.y = perpendicular.j * radius + obj->position.y;
         minus_origin.z = perpendicular.k * radius + obj->position.z;
-        // the second offset ray is passed as two POINTS, not as origin+delta; FUN_00401a20
+        // the second offset ray is passed as two POINTS, not as origin+delta; collision_test_movement_segment_between_points
         // subtracts them itself (see file header)
         minus_target.x = perpendicular.i * radius + target->x;
         minus_target.y = perpendicular.j * radius + target->y;
@@ -113,7 +113,7 @@ uint8_t projectile_collision_test(uint32_t object_index, real_point3d *target, v
         hit = collision_test_movement_segment(k_projectile_collision_mask_radius, &plus_origin, &plus_delta,
                             (uint32_t)proj->ignore_object_index, out_record);
         if (hit == 0) {
-            hit = FUN_00401a20(&minus_target, &minus_origin, k_projectile_collision_mask_radius,
+            hit = collision_test_movement_segment_between_points(&minus_origin, &minus_target, k_projectile_collision_mask_radius, // 0x4c0647: ECX = &minus_target, EAX = &minus_origin
                                    (uint32_t)proj->ignore_object_index, out_record);
             if (hit == 0) {
                 return 0;

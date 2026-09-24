@@ -39,8 +39,8 @@ extern void *rasterizer_device; // 0x0071d174
 // blam-cc: EAX -> vertex_type, stack -> (length, fvf, not_dynamic)
 extern void *rasterizer_dx9_create_vertex_buffer(int32_t vertex_type, uint32_t length, uint32_t fvf, uint8_t not_dynamic); // 0x530570
 
-typedef int32_t (*d3d_lock_fn)(void *self, uint32_t offset, uint32_t size, void **out_data, uint32_t flags);
-typedef int32_t (*d3d_unlock_fn)(void *self);
+typedef int32_t (__stdcall *d3d_lock_fn)(void *self, uint32_t offset, uint32_t size, void **out_data, uint32_t flags);
+typedef int32_t (__stdcall *d3d_unlock_fn)(void *self);
 
 // blam-cc: param_1..param_6 as declared
 // TYPES-GAP: params 1/2/3/4/5 are read via raw offsets below because their true meaning

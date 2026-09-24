@@ -16,7 +16,7 @@
 extern void *rasterizer_device; // 0x0071d174
 extern rasterizer_render_target rasterizer_render_targets[k_rasterizer_render_targets]; // 0x0069d358
 
-typedef int32_t (*d3d_set_texture_fn)(void *device, uint32_t stage, void *texture);
+typedef int32_t (__stdcall *d3d_set_texture_fn)(void *device, uint32_t stage, void *texture);
 
 // blam-cc: AX -> target_index, DX -> stage
 // Binds a previously rendered off-screen render target as a texture on the given sampler stage.

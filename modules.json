@@ -13253,14 +13253,14 @@
 "source": "assign:07"
 },
 "4d3980": {
-"module": "memory",
-"confidence": 0.8,
-"evidence": "name-prefix:data_delete_all"
+"module": "lib:other",
+"confidence": 0.9,
+"evidence": "inside the zlib deflate run 0x4d23d0-0x4d4780; zlib trees.c send_tree, not engine code (src/memory/README.md known gap 1). Was name-prefix:data_delete_all, an opensauce-ce label collision; retagged by orphan pass 4"
 },
 "4d3a30": {
-"module": "memory",
-"confidence": 0.8,
-"evidence": "name-prefix:data_next_index"
+"module": "lib:other",
+"confidence": 0.9,
+"evidence": "inside the zlib deflate run 0x4d23d0-0x4d4780; zlib trees.c compress_block, not engine code (src/memory/README.md known gap 1). Was name-prefix:data_next_index, an opensauce-ce label collision; retagged by orphan pass 4"
 },
 "4d3a80": {
 "module": "lib:other",

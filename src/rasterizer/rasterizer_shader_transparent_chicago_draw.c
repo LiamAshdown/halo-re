@@ -60,10 +60,10 @@ extern uint8_t rasterizer_shader_transparent_chicago_set_texture_stages(const Sh
 // blam-cc: ECX -> group, stack -> flag
 extern void rasterizer_transparent_geometry_group_draw_vertices(transparent_geometry_group *group, uint8_t flag); // 0x533660
 
-typedef int32_t (*d3d_call1_fn)(void *self, uint32_t a);
-typedef int32_t (*d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
-typedef int32_t (*d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
-typedef int32_t (*d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
+typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
+typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
+typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
+typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
 
 static void **device_vtable(void) { return *(void ***)rasterizer_device; }
 static void set_render_state(uint32_t state, uint32_t value)

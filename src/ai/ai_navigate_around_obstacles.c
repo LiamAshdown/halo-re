@@ -5,7 +5,7 @@
 // obstacle-aware point graph around a list of waypoints and searches it to produce a full
 // route." Calls ai_search_gather_obstacles (0x43c510, already named, this rewrite),
 // ai_search_context_init/ai_search_step/ai_search_run (0x43b790/0x43bcb0/0x43be20, this
-// rewrite), ai_search_partition_into_groups (this rewrite) and FUN_0044d860 (outside this rewrite's range).
+// rewrite), ai_search_partition_into_groups (this rewrite) and decal_plane_solve_third_axis (outside this rewrite's range).
 //
 // This is the module's top-level point-search driver and, like ai_search_evaluate_edge_cost
 // and ai_search_expand_point_neighbors, one of its least confidently rewritten functions.
@@ -37,7 +37,9 @@ extern uint8_t *global_structure_collision_bsp; // 0x00746f98, UNSURE: a per-clu
 extern void ai_search_gather_obstacles(void *out_list, float *point, float radius, float *direction,
                                        uint32_t self_object_a, uint32_t self_object_b); // 0x43c510
 extern void ai_search_partition_into_groups(float step_radius); // 0x43cb60
-extern void FUN_0044d860(real_point3d *point); // 0x44d860, outside this rewrite's range
+extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign, int32_t dominant_axis,
+    const real_plane3d *plane, const real_point2d *known);
+    // 0x44d860, src/math; blam-cc: stack out, AL component_sign, SI dominant_axis, EBX plane, EDI known
 extern void ai_search_context_init(void *context, uint8_t param2, float step_radius, float *point,
                                    float z, float distance, uint32_t flags, uint8_t param8); // 0x43b790, see header UNSURE
 extern uint8_t ai_search_step(void *context); // 0x43bcb0
@@ -176,8 +178,17 @@ uint8_t ai_navigate_around_obstacles(float *waypoints, int16_t waypoint_count, u
             int16_t cur;
 
             if (ctx[0x28] == 0) {
-                cached_z = *(float *)(ctx + *(int16_t *)(ctx + 0x1e) * 0x28 + 0x38);
-                FUN_0044d860((real_point3d *)&scratch_path[0]);
+                uint8_t *node = ctx + *(int16_t *)(ctx + 0x1e) * 0x28;
+                int32_t surface = *(int32_t *)(node + 0x38); // a collision surface index, copied as bits
+                const real_plane3d *planes = (const real_plane3d *)(uintptr_t)*(uint32_t *)(cluster_base + 0x10);
+                const uint32_t *surfaces = (const uint32_t *)(uintptr_t)*(uint32_t *)(cluster_base + 0x40);
+
+                cached_z = *(float *)(node + 0x38);
+                // 0x43c1b3..0x43c1ed: lift the node's 2D point (EDI = node + 0x30) onto its surface's
+                // plane (EBX = &planes[surfaces[surface].plane & 0x7fffffff], 0xc-byte surfaces),
+                // solving z (AL = 1, SI = 2), into scratch_path[0..2]
+                decal_plane_solve_third_axis((real_point3d *)&scratch_path[0], 1, 2,
+                    &planes[surfaces[surface * 3] & 0x7fffffff], (const real_point2d *)(node + 0x30));
             } else {
                 scratch_path[0] = edge[1];
                 scratch_path[1] = edge[2];

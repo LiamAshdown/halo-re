@@ -59,7 +59,7 @@ int __thiscall sound_eax30_effect_initialize(sound_eax_effect_object *this_objec
         this_object->channel_property_sets[i] = 0;
     }
 
-    if (((int32_t (*)(void *, const uint8_t *, void **))(*(void ***)listener->buffer_3d)[0])(listener->buffer_3d,
+    if (((int32_t (__stdcall *)(void *, const uint8_t *, void **))(*(void ***)listener->buffer_3d)[0])(listener->buffer_3d,
             sound_eax_property_set_guid, &this_object->base.property_set) >= 0) {
         property_set = this_object->base.property_set;
         query = (sound_query_support_fn)(*(void ***)property_set)[5];

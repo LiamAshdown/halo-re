@@ -1,6 +1,9 @@
 // game_engine_update_netgame_equipment  (Ghidra: game_engine_update_netgame_equipment, already
 // named)
-// address 0x45f9f0, size 598 bytes
+// address 0x45f9f0, size 653 bytes (0x45f9f0..0x45fc7c; Ghidra's metadata said 598 and catalogued the
+//   loop-increment tail as the bogus function 0x45fc50 "hud_render_scoreboard_ingame" -- the
+//   `index < netgame_equipment.count` test that closes the per-entry loop below; re-checked against
+//   objdump 0x45fbd0..0x45fc7d by orphan pass 4)
 // name confidence: 0.55   rewrite confidence: 0.25
 // evidence: out/phase4/game_functions.md ("Per-tick update that respawns scenario
 // netgame-equipment items once their configured respawn timer has elapsed"); types/tags.h

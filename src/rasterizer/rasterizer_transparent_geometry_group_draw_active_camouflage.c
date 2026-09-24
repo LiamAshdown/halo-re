@@ -59,14 +59,14 @@ extern void rasterizer_shader_environment_draw_dispatch(int32_t dynamic_vertex_s
 extern void rasterizer_model_draw_restore_states(void);                                     // 0x52b530
 extern void render_lighting_disable_workaround(void);                                     // 0x511ef0, render module
 
-typedef int32_t (*d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
-typedef int32_t (*d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
-typedef int32_t (*d3d_set_pointer_fn)(void *self, void *object);
-typedef int32_t (*d3d_set_texture_fn)(void *self, uint32_t stage, void *texture);
-typedef int32_t (*d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
-typedef int32_t (*d3dx_effect_begin_fn)(void *self, uint32_t *passes, uint32_t flags);
-typedef int32_t (*d3dx_effect_pass_fn)(void *self, uint32_t pass);
-typedef int32_t (*d3dx_effect_end_fn)(void *self);
+typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
+typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
+typedef int32_t (__stdcall *d3d_set_pointer_fn)(void *self, void *object);
+typedef int32_t (__stdcall *d3d_set_texture_fn)(void *self, uint32_t stage, void *texture);
+typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
+typedef int32_t (__stdcall *d3dx_effect_begin_fn)(void *self, uint32_t *passes, uint32_t flags);
+typedef int32_t (__stdcall *d3dx_effect_pass_fn)(void *self, uint32_t pass);
+typedef int32_t (__stdcall *d3dx_effect_end_fn)(void *self);
 
 static void **device_vtable(void)
 {

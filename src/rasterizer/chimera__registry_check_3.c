@@ -36,7 +36,7 @@ extern void *rasterizer_device;                       // 0x0071d174
 extern d3d_gamma_ramp rasterizer_desktop_gamma_ramp;  // 0x006e0b18
 extern HWND rasterizer_window_handle;                 // 0x007461c8
 
-typedef int32_t (*d3d_set_gamma_ramp_fn)(void *self, uint32_t swap_chain, uint32_t flags, const void *ramp);
+typedef int32_t (__stdcall *d3d_set_gamma_ramp_fn)(void *self, uint32_t swap_chain, uint32_t flags, const void *ramp);
 
 #define k_HKEY_CURRENT_USER ((HKEY)0x80000001)
 

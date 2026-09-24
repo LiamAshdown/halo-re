@@ -1,5 +1,8 @@
 // game_stop_current_map  (Ghidra: FUN_0045b370; renamed per symbols/review_queue.txt)
-// address 0x45b370, size 347 bytes
+// address 0x45b370, size 369 bytes (0x45b370..0x45b4e0; Ghidra's metadata said 347 and catalogued the
+//   last 22 bytes as the bogus function 0x45b4cb "game_initialize_mod_per_map_upgrade_effects" --
+//   the game_time reset, widget_close_all and the slot-table clear at the end of the body below;
+//   re-checked against objdump by orphan pass 4)
 // name confidence: 0.45   rewrite confidence: 0.35
 // evidence: symbols/review_queue.txt 0x45b370 "mirrors game_start_new_map's globals but clears
 //   their 'active' flags to 0 instead of setting them, and calls hs_scripts_free, cache_flush,

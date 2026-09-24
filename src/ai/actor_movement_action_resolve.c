@@ -42,7 +42,7 @@ extern tag_instance *tag_instances;  // 0x0087bc14
 extern Scenario *global_scenario;    // 0x00746f8c
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (formerly bsp_generation)
 
-extern float FUN_00401020(const real_point3d *a, const real_point3d *b); // 0x401020, not yet rewritten: squared distance, EAX -> a, ECX -> b
+extern float vector3d_distance_squared(const real_point3d *a, const real_point3d *b); // 0x401020, not yet rewritten: squared distance, EAX -> a, ECX -> b
 extern real vector3d_distance(const real_point3d *a, const real_point3d *b); // 0x4088b0, EAX -> a, ECX -> b
 extern uint8_t actor_movement_check_arrival(datum_index actor_index);   // 0x416700, this module, EAX -> actor_index
 extern void actor_movement_action_complete(datum_index actor_index);    // 0x41a430, this module, EAX -> actor_index
@@ -193,7 +193,7 @@ uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t record_di
         if (have_previous == 0) {
             return result;
         }
-        if (FUN_00401020(&self->unknown_488, &previous_destination) <= 0.010000001f) {
+        if (vector3d_distance_squared(&self->unknown_488, &previous_destination) <= 0.010000001f) {
             return result;
         }
     }

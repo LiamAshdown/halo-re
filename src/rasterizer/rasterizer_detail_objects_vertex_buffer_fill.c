@@ -33,8 +33,8 @@ extern void rasterizer_detail_objects_expand_quad_vertices(int32_t quad_count, u
                                                            const DetailObjectCollection *collection,
                                                            const rasterizer_detail_object_draw *draw); // 0x51b150
 
-typedef int32_t (*d3d_lock_fn)(void *self, uint32_t offset, uint32_t size, void **data, uint32_t flags);
-typedef int32_t (*d3d_unlock_fn)(void *self);
+typedef int32_t (__stdcall *d3d_lock_fn)(void *self, uint32_t offset, uint32_t size, void **data, uint32_t flags);
+typedef int32_t (__stdcall *d3d_unlock_fn)(void *self);
 
 void rasterizer_detail_objects_vertex_buffer_fill(rasterizer_detail_object_batches *list)
 {

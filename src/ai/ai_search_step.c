@@ -26,10 +26,12 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include <stdint.h> // uintptr_t
 
 extern void ai_search_heap_sift_down(void *context, int16_t index); // 0x43b4d0
 extern void ai_search_expand_point_neighbors(void); // 0x43ba60, called here with no visible arguments; see that file
-extern uint8_t path_find_heights_are_close(int32_t param1); // 0x43d910
+extern uint8_t path_find_heights_are_close(ScenarioStructureBSP *structure_bsp, real_point2d *point, int32_t surface_a,
+    int32_t surface_b); // 0x43d910; blam-cc: EAX structure_bsp, EDX point, ECX surface_a, stack surface_b
 extern int32_t ai_search_add_node(real_point2d *position, int32_t point_id, uint32_t param3, int32_t param4, float extra_cost); // 0x43b5a0, see header UNSURE
 extern uint8_t ai_search_evaluate_edge_cost(void *context, uint8_t ignore_permission,
                                             ai_search_obstacle_list *obstacle_list, int16_t exclude_index,
@@ -69,7 +71,10 @@ uint8_t ai_search_step(uint32_t *context)
 
             if (edge.edge_index == -1) {
                 if (edge.point_id == -1) {
-                    if ((edge.surface_index == (int32_t)context[6]) || (path_find_heights_are_close(edge.surface_index) != 0)) {
+                    if ((edge.surface_index == (int32_t)context[6]) || 
+                        // 0x43bd5d..0x43bd6f: EAX = context[3], EDX = &context[4], ECX = context[6]
+                        (path_find_heights_are_close((ScenarioStructureBSP *)(uintptr_t)context[3],
+                             (real_point2d *)(context + 4), (int32_t)context[6], edge.surface_index) != 0)) {
                         int32_t new_node;
                         local_18 = edge.cost * node[3] + *node;
                         local_14 = edge.cost * node[4] + node[1];

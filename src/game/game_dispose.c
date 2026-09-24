@@ -112,7 +112,7 @@ void game_dispose(void)
     unknown_0087abe4 = (data_array *)0;
 
     if (unknown_0071d174 != 0 && unknown_0071d1bc != (void **)0) {
-        ((void (*)(void **))(*(void ***)(*unknown_0071d1bc + 8)))(unknown_0071d1bc); // TYPES-GAP vtable call
+        ((void (__stdcall *)(void **))(*(void ***)((uint8_t *)*unknown_0071d1bc + 8)))(unknown_0071d1bc); // TYPES-GAP vtable call
         unknown_0071d1bc = (void **)0;
     }
     tag_cache_render_states = 0;

@@ -36,10 +36,10 @@ extern int16_t *chimera__rasterizer_set_texture(uint32_t bitmap_tag_id, int16_t 
 // blam-cc: ECX -> group
 extern void rasterizer_transparent_geometry_group_draw_vertices(transparent_geometry_group *group, uint8_t flag); // 0x00533660
 
-typedef int32_t (*d3d_call1_fn)(void *self, uint32_t a);
-typedef int32_t (*d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
-typedef int32_t (*d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
-typedef int32_t (*d3d_call4v_fn)(void *self, uint32_t start_register, const void *data, uint32_t count);
+typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
+typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
+typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
+typedef int32_t (__stdcall *d3d_call4v_fn)(void *self, uint32_t start_register, const void *data, uint32_t count);
 
 void rasterizer_glass_tint_draw(transparent_geometry_group *group)
 {

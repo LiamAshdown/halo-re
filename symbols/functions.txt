@@ -1845,7 +1845,7 @@
 0x4c29d0 weapon_build_hud_ammo_state func 0.45 agent-phase4:items_rewrite_src/items/weapon_build_hud_ammo_state.c
 0x4c2ad0 weapon_is_reloading func 0.45 agent-phase4:items_rewrite_src/items/weapon_is_reloading.c
 0x4c2b20 weapon_set_ready_timer func 0.40 agent-phase4:items_rewrite_src/items/weapon_set_ready_timer.c
-0x4c2b40 weapon_trigger_projectile_collision_test func 0.30 agent-phase4:items_rewrite_src/items/weapon_trigger_projectile_collision_test.c
+0x4c2b40 weapon_trigger_get_aiming_vector func 0.60 agent-phase4:items_rewrite_src/items/weapon_trigger_get_aiming_vector.c
 0x4c2be0 weapon_trigger_projectile_time_fraction func 0.30 agent-phase4:items_rewrite_src/items/weapon_trigger_projectile_time_fraction.c
 0x4c2c70 weapon_is_out_of_ammo func 0.40 agent-phase4:items_rewrite_src/items/weapon_is_out_of_ammo.c
 0x4c2cf0 weapon_get_next_zoom_level func 0.40 agent-phase4:items_rewrite_src/items/weapon_get_next_zoom_level.c
@@ -2716,7 +2716,7 @@
 0x501340 bsp2d_node_find_leaf func 0.35 agent-phase4 src/physics/bsp2d_node_find_leaf.c_header_comment
 0x5013a0 bsp3d_node_find_leaf func 0.45 agent-phase4 src/physics/bsp3d_node_find_leaf.c_header_comment
 0x501400 collision_bsp_surface_get_vertices func 0.45 agent-phase4 src/physics/collision_bsp_surface_get_vertices.c_header_comment
-0x501470 physics_shape_forward_call_helper func 0.15 agent-phase4 src/physics/physics_shape_forward_call_helper.c_header_comment
+0x501470 collision_bsp_surface_solve_third_axis func 0.7 agent-phase4 src/physics/collision_bsp_surface_solve_third_axis.c_header_comment
 0x5014a0 collision_bsp_surface_test_point_side_2d func 0.30 agent-phase4 src/physics/collision_bsp_surface_test_point_side_2d.c_header_comment
 0x5015a0 collision_bsp_surface_closest_edge_point_2d func 0.35 agent-phase4 src/physics/collision_bsp_surface_closest_edge_point_2d.c_header_comment
 0x5017f0 collision_bsp_surface_clip_line_2d func 0.30 agent-phase4 src/physics/collision_bsp_surface_clip_line_2d.c_header_comment

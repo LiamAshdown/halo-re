@@ -26,10 +26,10 @@ extern void *rasterizer_device;                                        // 0x0071
 extern uint8_t rasterizer_software_vertex_processing;                  // 0x0069c680
 extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count]; // 0x006e1a90
 
-typedef int32_t (*d3d_create_buffer_fn)(void *self, uint32_t length, uint32_t usage, uint32_t format,
+typedef int32_t (__stdcall *d3d_create_buffer_fn)(void *self, uint32_t length, uint32_t usage, uint32_t format,
                                         uint32_t pool, void **buffer, void *shared);
-typedef int32_t (*d3d_lock_fn)(void *self, uint32_t offset, uint32_t size, void **data, uint32_t flags);
-typedef int32_t (*d3d_unlock_fn)(void *self);
+typedef int32_t (__stdcall *d3d_lock_fn)(void *self, uint32_t offset, uint32_t size, void **data, uint32_t flags);
+typedef int32_t (__stdcall *d3d_unlock_fn)(void *self);
 
 uint8_t rasterizer_index_buffer_create(int32_t count, int16_t type, rasterizer_index_buffer *out, const void *source)
 {

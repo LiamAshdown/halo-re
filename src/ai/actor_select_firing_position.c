@@ -14,8 +14,9 @@
 // UNSURE: param_3 is never read by the body. It is passed straight through to
 // actor_get_firing_position_group_mask in SI, which is the only way the three calls can
 // differ in anything but the search override, so it is taken to be the mask kind.
-// UNSURE: FUN_00401020 is a bare call returning a float in ST0; the only value it can be
-// producing is the squared distance from this candidate to the threat.
+// vector3d_distance_squared (0x401020) takes EAX / ECX: at 0x413ff7..0x414001 EAX = the held
+// firing position (the pointer also stored in out_candidate->position) and ECX = query + 0x604,
+// query->target_position.
 
 #include "tags.h"
 #include "memory.h"
@@ -26,7 +27,7 @@ extern data_array *actor_data;    // 0x00880360
 extern Scenario *global_scenario; // 0x00746f8c
 extern const real_vector3d *global_origin3d_pointer; // 0x00696714
 
-extern float FUN_00401020(void); // 0x401020, not yet rewritten: a squared-distance helper
+extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, src/math; blam-cc: EAX a, ECX b
 extern uint8_t actor_firing_position_evaluate(actor_firing_position_candidate *candidate, actor_firing_position_query *query, datum_index actor_index); // 0x412820, this module
 extern uint32_t actor_get_firing_position_group_mask(datum_index actor_index, int16_t kind, int16_t search_override); // 0x412880, this module
 extern uint32_t actor_find_best_firing_position(datum_index actor_index, actor_firing_position_query *query, actor_firing_position_candidate *out_candidate, uint32_t *out_previous_owner, path_find_context *path_context, uint8_t *out_path_ok); // 0x412ba0, this module
@@ -107,7 +108,8 @@ int16_t actor_select_firing_position(datum_index actor_index,
         if (query->have_target == 0) {
             out_candidate->distance_squared_to_target = 0.0f;
         } else {
-            out_candidate->distance_squared_to_target = FUN_00401020();
+            out_candidate->distance_squared_to_target = vector3d_distance_squared(
+                (real_point3d *)&firing_positions[held], &query->target_position);
         }
 
         if (actor_firing_position_evaluate(out_candidate, query, actor_index) == 0) {

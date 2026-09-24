@@ -21,6 +21,8 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#include "objects.h"
+#include "projectiles.h" // Projectile
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -29,10 +31,11 @@ extern float world_gravity_scale;   // 0x0069c52c
 
 extern double sqrt(double x); // FSQRT, Ghidra SQRT() pseudo-function
 
-extern uint8_t FUN_004beec0(void *projectile_definition, real_point3d *point, int32_t a,
-                            int32_t b, float *speed_in, uint8_t mode, real_vector3d *out_direction,
-                            float *out_speed, float *out_arc, int32_t c,
-                            uint8_t *out_flat);       // 0x4beec0, not yet rewritten: ballistics solver
+extern uint8_t projectile_get_aiming_vector(real_point3d *target, real *speed_in, Projectile *tag,
+    real_point3d *origin, void *unused_param_3, real *max_time, real *max_speed_override,
+    uint8_t use_high_arc, real_vector3d *out_direction, real *out_speed,
+    real *out_time_or_fraction, real *out_range_or_length, uint8_t *out_used_straight_line);
+    // 0x4beec0, src/ai; blam-cc: ECX target, EAX speed_in, the rest on the stack
 extern uint8_t actor_grenade_parabolic_path_clear(float arc, float gravity, uint32_t context, uint32_t in_vehicle);  // SIGNATURE-CONFLICT: this call site disagrees with the form the rest of
   // src/ai uses for this address; kept local. See src/ai/README.md.
 // src/ai/actor_attempt_grenade_throw.c passes a real_point3d * as the second argument.     // 0x42b5d0, not yet rewritten
@@ -68,8 +71,13 @@ uint32_t actor_solve_grenade_lob(datum_index actor_index, real_point3d *point)
         }
     }
 
-    if (FUN_004beec0(projectile_definition, point, 0, 0, &self->grenade_unknown_6c8,
-                     self->unknown_6a1[0], &direction, &speed, &arc, 0, &flat) == 0) {
+    // 0x4107e9..0x410823 (orphan pass 4 review; the earlier call dropped the register target and
+    // shifted every stack slot): ECX = &grenade_impact_point, EAX = 0 (no speed override),
+    // origin = point, max_time = 0, max_speed_override = &grenade_unknown_6c8, use_high_arc =
+    // unknown_6a1[0], out_time = &arc, out_range = 0, out_used_straight_line = &flat.
+    if (projectile_get_aiming_vector(&self->grenade_impact_point, 0, (Projectile *)projectile_definition,
+                     point, 0, 0, &self->grenade_unknown_6c8, self->unknown_6a1[0], &direction,
+                     &speed, &arc, 0, &flat) == 0) {
         return 0;
     }
 

@@ -151,7 +151,7 @@ extern void render_window_structure_material_0x5120c0(void *shader_data, int16_t
     int32_t render_context, int32_t first_surface, int32_t surface_count);
 extern void function_empty_0x44ad80(void);             // 0x44ad80: a bare ret
 
-typedef int32_t (*d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
+typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
 static void set_render_state(uint32_t state, uint32_t value)
 {

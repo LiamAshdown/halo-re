@@ -37,11 +37,11 @@ extern uint32_t lens_flare_vertex_specular; // 0x0069e708
 
 extern void rasterizer_set_shader_stage_config(int16_t mode); // 0x519200
 
-typedef int32_t (*d3d_call1_fn)(void *self, uint32_t a);
-typedef int32_t (*d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
-typedef int32_t (*d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
-typedef int32_t (*d3dx_effect_begin_fn)(void *effect, uint32_t *pass_count, uint32_t flags);
-typedef int32_t (*d3dx_effect_pass_fn)(void *effect, uint32_t pass);
+typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
+typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
+typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
+typedef int32_t (__stdcall *d3dx_effect_begin_fn)(void *effect, uint32_t *pass_count, uint32_t flags);
+typedef int32_t (__stdcall *d3dx_effect_pass_fn)(void *effect, uint32_t pass);
 
 static void **device_vtable(void) { return *(void ***)rasterizer_device; }
 static void set_render_state(uint32_t state, uint32_t value)

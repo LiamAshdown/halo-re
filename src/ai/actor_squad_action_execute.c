@@ -27,7 +27,7 @@
 //  - check_object_index is compared against actor.unit_index throughout to decide "is this
 //    entry being evaluated for the actor's own controlled unit or some other object" --
 //    plausible but not proven.
-//  - Several out-of-range callees (FUN_00401020, actor_begin_vocalization, actor_get_body_axis_vector's forwarded
+//  - Several out-of-range callees (vector3d_distance_squared, actor_begin_vocalization, actor_get_body_axis_vector's forwarded
 //    float, actor_find_prop_for_object/_ecd0/_ecf0, recorded_animation_find_by_name/_44a930, unit_animation_change_priority_check/_60f20,
 //    unit_set_grenade_type_and_count_delta, unit_get_forward_vector_or_marker_normal) return or consume values through the x87 FPU stack or
 //    hidden output pointers that Ghidra could not show as explicit arguments; declared here
@@ -61,7 +61,7 @@ extern data_array *player_data;     // 0x0087a480
 extern tag_instance *tag_instances; // 0x0087bc14
 extern Scenario *global_scenario;   // 0x00746f8c
 
-extern float FUN_00401020(void);                                // 0x401020, not yet rewritten: a distance/score helper returning a float
+extern real vector3d_distance_squared(real_point3d *a, real_point3d *b);      // 0x401020, src/math; blam-cc: EAX a, ECX b
 extern real random_real_range(real min, real max);           // 0x401050
 extern real vector2d_normalize_with_length(real_vector2d *v);  // 0x4018e0
 extern real vector3d_normalize_with_length(real_vector3d *v);  // 0x401990
@@ -84,21 +84,23 @@ extern void ai_communication_target_result_reset(void);                         
 extern datum_index actor_find_prop_for_object(datum_index object_index);                                        // 0x43ea80, not yet rewritten
 extern void actor_prop_iterator_init(datum_index actor_index, actor_prop_iterator *out_iterator); // 0x43ecd0, rewritten as src/ai/actor_prop_iterator_init.c; blam-cc: EAX -> actor_index, stack -> iterator
 extern prop *actor_prop_iterator_next(actor_prop_iterator *iterator);                      // 0x43ecf0, rewritten as src/ai/actor_prop_iterator_next.c; blam-cc: EDX -> iterator
-extern int32_t recorded_animation_find_by_name(void);                                              // 0x449f80, not yet rewritten
-extern int32_t FUN_0044a930(int32_t x);                                         // 0x44a930, not yet rewritten
+extern int16_t recorded_animation_find_by_name(const char *name, Scenario *scenario);                // 0x449f80, src/cutscene; blam-cc: EBX name, ESI scenario
+extern uint8_t recorded_animation_start(datum_index unit_index, int16_t scenario_animation_index, uint16_t extra_flags);
+    // 0x44a930, src/cutscene; blam-cc: EAX unit_index, CX scenario_animation_index, stack extra_flags
 extern char hs_call_script_by_name(void);                                       // 0x48a2d0
 extern void * data_iterator_next(data_iterator *iterator);                              // 0x4d05d0
 extern void object_reset_velocity_and_wake(uint32_t object_index);              // 0x4f5160
 extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward,
                                                 real_vector3d *up, real_point3d *position); // 0x4f51c0,
                                                 // blam-cc: stack -> object_index, forward, up; EDI -> position
-extern void object_get_position(void);                                          // 0x4f6900, writes through a register-inherited pointer
+extern void object_get_position(real_point3d *out, uint32_t object_index);      // 0x4f6900, src/objects; blam-cc: EAX out, ECX object_index
 extern void *object_try_and_get(int32_t kind);                                  // 0x4f6ec0
 extern int32_t object_iterator_next(void *iterator);                            // 0x4f6f20
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
 extern int16_t unit_animation_change_priority_check(int32_t a, int32_t b, int32_t c, void *d, void *e); // 0x560d00, not yet rewritten
 extern void unit_commit_speech(void);                                                 // 0x560f20, not yet rewritten
-extern void unit_get_primary_eye_marker_position(void);                                                 // 0x568f50, not yet rewritten
+extern void unit_get_primary_eye_marker_position(uint32_t object_index, real_point3d *out);             // 0x568f50, src/units;
+    // at 0x4058c1..0x4058cd the object index is in ECX (`push ecx` at 0x568f5f) and out in ESI
 extern void unit_get_forward_vector_or_marker_normal(void);                                                 // 0x569720, not yet rewritten
 extern void unit_set_grenade_type_and_count_delta(int32_t a);                                            // 0x56d160, not yet rewritten
 extern char unit_start_user_animation(uint32_t unit_or_object_index, uint32_t animation_selector); // 0x5702a0
@@ -185,11 +187,10 @@ char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32
             *(real_point3d *)(state + 0x18) = a->body_position;
             out_point = (real_point3d *)(state + 0x18);
         } else {
-            // UNSURE: Ghidra shows `pfVar9 = (float *)object_get_position();`, i.e. a bare
-            // call whose return value it treats as the point pointer. The out-pointer is a
-            // register argument; a local is used here so the read below is well defined.
-            object_get_position();
-            out_point = &other_position;
+            // 0x405a95..0x405aa6: EAX = state + 0x18, ECX = check_object_index (orphan pass 4
+            // review: the position lands in state + 0x18, like the unit branch above)
+            object_get_position((real_point3d *)(state + 0x18), check_object_index);
+            out_point = (real_point3d *)(state + 0x18);
         }
         {
             int16_t heading = (int16_t)entry->point_1;
@@ -335,9 +336,12 @@ char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32
                     datum_index unit_index = *(datum_index *)((uint8_t *)record + 0x34);
                     if (unit_index != (datum_index)k_datum_index_none) {
                         float score;
+                        real_point3d eye;
 
-                        unit_get_primary_eye_marker_position();
-                        score = FUN_00401020();
+                        // 0x4058c1..0x4058da: ECX = the unit, ESI = &eye; then EAX = actor + 0x120
+                        // (aim_origin), ECX = &eye
+                        unit_get_primary_eye_marker_position((uint32_t)unit_index, &eye);
+                        score = vector3d_distance_squared(&a->aim_origin, &eye);
                         if (score < best_score) {
                             chosen_object = (int32_t)unit_index;
                             best_score = score;
@@ -379,7 +383,8 @@ char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32
                     chosen_position = *(real_point3d *)&((ScenarioCommandPoint *)list->points.pointer)[chosen_point].position;
                     *(real_point3d *)(point_record + 4) = chosen_position;
                 } else {
-                    unit_get_primary_eye_marker_position();
+                    // 0x4059fc..0x405a02: ECX = chosen_object, ESI = point_record + 4
+                    unit_get_primary_eye_marker_position((uint32_t)chosen_object, (real_point3d *)(point_record + 4));
                 }
             } else {
                 *(int16_t *)point_record = 1;
@@ -451,9 +456,12 @@ char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32
             while (node != 0) {
                 float prior_best = it.best;
                 float distance;
+                real_point3d position;
 
-                object_get_position();
-                distance = FUN_00401020();
+                // 0x4060e0..0x4060f1: EAX = &position, ECX = the iterated object; then EAX (still
+                // &position) and ECX = actor + 0x12c (body_position)
+                object_get_position(&position, (uint32_t)node);
+                distance = vector3d_distance_squared(&position, &a->body_position);
                 if (entry->parameter1 == 0.0f || distance < entry->parameter1 * entry->parameter1) {
                     samples[sample_count * 2] = distance;
                     samples[sample_count * 2 + 1] = prior_best;
@@ -591,9 +599,15 @@ char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32
     case 0x13:
         return 1;
     case 0xe:
-        if ((int16_t)entry->recording >= 0 && (int16_t)entry->recording < *(int32_t *)((uint8_t *)global_scenario + 0x45c) &&
-            recorded_animation_find_by_name() != -1) {
-            return (char)FUN_0044a930(0);
+        if ((int16_t)entry->recording >= 0 && (int16_t)entry->recording < *(int32_t *)((uint8_t *)global_scenario + 0x45c)) {
+            // 0x406328..0x406367: EBX = the 0x28-byte record (name first) at scenario + 0x460,
+            // ESI = scenario; then EAX = check_object_index, CX = the animation, stack 0
+            const char *name = (const char *)(uintptr_t)(*(uint32_t *)((uint8_t *)global_scenario + 0x460) +
+                (int16_t)entry->recording * 0x28);
+            int16_t animation_index = recorded_animation_find_by_name(name, global_scenario);
+            if (animation_index != -1) {
+                return (char)recorded_animation_start((datum_index)check_object_index, animation_index, 0);
+            }
         }
         break;
     case 0xf:

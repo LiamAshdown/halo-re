@@ -10,12 +10,12 @@
 // identification of FUN_00625430 as _strstr.
 // register convention: none (void).
 // TYPES-GAP / UNSURE: DAT_0087aa10 (an int32 player-count-shaped value), DAT_006f187c+9 (a byte
-// flag on an unidentified block) and FUN_00449780 (called 1-2 times based on
+// flag on an unidentified block) and ui_draw_filled_rectangle (called 1-2 times based on
 // local_player_globals::local_player_count, zero visible arguments each time) are not documented
 // anywhere; named/typed here only from this function's own control flow.
 // reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
 
-// Phase-4 review against objdump 0x494ca0..0x494d6e: the two FUN_00449780 calls are opaque black
+// Phase-4 review against objdump 0x494ca0..0x494d6e: the two ui_draw_filled_rectangle calls are opaque black
 // split-screen divider fills with literal rects, restored here; 0x006f187c is a pointer and
 // 0x0087aa10 is game_engine_state_value.
 
@@ -35,12 +35,12 @@ extern widget_instance *ui_root_widget[1]; // 0x00718f94
 extern player_globals *local_player_globals; // 0x0087a478
 
 extern char *_strstr(char *haystack, const char *needle);
-extern void FUN_00449780(uint32_t packed_color, Rectangle2D *rect); // 0x449780, solid rectangle fill
+extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect); // 0x449780, solid rectangle fill
     // blam-cc: EAX -> packed_color, ECX -> rect (objdump call sites 0x494d28, 0x4973f9, 0x498617)
 
 // If there is no game engine active (or the player count is outside 2..3) and a certain block's
 // flag byte (+9) is clear: closes/reopens the error_modal widget if the current root widget is
-// one (name matched via _strstr), then calls FUN_00449780 once or twice depending on
+// one (name matched via _strstr), then calls ui_draw_filled_rectangle once or twice depending on
 // local_player_globals::local_player_count (once if > 1, twice if > 2) -- presumably showing the modal
 // for each additional local player.
 void ui_error_modal_update(void)
@@ -61,13 +61,13 @@ void ui_error_modal_update(void)
             bar.left = 0;
             bar.bottom = 0xf1;
             bar.right = 0x280;
-            FUN_00449780(0xff000000, &bar); // horizontal bar across the middle
+            ui_draw_filled_rectangle(0xff000000, &bar); // horizontal bar across the middle
             if (player_count_field > 2) {
                 bar.top = (player_count_field == 3) ? 0xf0 : 0;
                 bar.left = 0x13f;
                 bar.bottom = 0x1e0;
                 bar.right = 0x141;
-                FUN_00449780(0xff000000, &bar); // vertical bar, lower half only for three players
+                ui_draw_filled_rectangle(0xff000000, &bar); // vertical bar, lower half only for three players
             }
         }
     }

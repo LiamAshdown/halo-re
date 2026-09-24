@@ -1,5 +1,7 @@
 // map_list_matching_substring  (Ghidra: map_list_matching_substring, already named)
-// address 0x4e4470, size 113 bytes
+// address 0x4e4470, size 393 bytes (0x4e4470..0x4e45f8, single `ret`; Ghidra's metadata said 113 and
+//   catalogued the rest as the bogus function 0x4e44e1 "client_machine_cleanup__hook_remove_player",
+//   which is the middle of the tolower loop below -- re-checked against objdump by orphan pass 4)
 // name confidence: 0.55   rewrite confidence: 0.45
 // evidence: out/phase4/networking_functions.md ("lists installed map names whose lowercased
 // name contains an optional substring argument, two per output line"); the literal

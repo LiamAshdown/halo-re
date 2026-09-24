@@ -41,9 +41,9 @@ extern const real *k_camera_axis_table;       // 0x00696720
 extern const uint32_t k_particle_render_constant[3]; // 0x006966f8
 
 extern void weather_instance_update(int16_t instance_index); // 0x458420, this module
-extern void FUN_004588e0(real reference); // 0x4588e0, math module (skipped in this pass)
-extern void FUN_00458990(real reference); // 0x458990, render module (skipped in this pass)
-extern uint8_t *FUN_00458b50(real radius); // 0x458b50, structures module (skipped in this pass);
+extern void vector3d_positive_modulo(real reference); // 0x4588e0, math module (skipped in this pass)
+extern void render_camera_facing_frame_build(real reference); // 0x458990, render module (skipped in this pass)
+extern uint8_t *structure_weather_polyhedra_find_within_radius(real radius); // 0x458b50, structures module (skipped in this pass);
                                     // UNSURE signature -- writes up to 8 region indices somewhere
                                     // and returns their count via the low 16 bits, per that
                                     // function's own pack
@@ -69,10 +69,10 @@ void weather_instance_build_render_geometry(int16_t instance_index)
         weather_instance_type *slot = &instance->types[type_index];
 
         if (slot->particle_count != 0) {
-            uint8_t *regions = FUN_00458b50(slot->field_extent); // UNSURE, see file header
+            uint8_t *regions = structure_weather_polyhedra_find_within_radius(slot->field_extent); // UNSURE, see file header
             (void)regions;
-            FUN_00458990(slot->field_extent); // UNSURE, see file header
-            FUN_004588e0(slot->field_extent); // UNSURE, see file header
+            render_camera_facing_frame_build(slot->field_extent); // UNSURE, see file header
+            vector3d_positive_modulo(slot->field_extent); // UNSURE, see file header
 
             // UNSURE (see file header): the remainder of this type's iteration builds a
             // camera-aligned grid of cells sized by `field_extent`, frustum-culls them, and for
@@ -81,7 +81,7 @@ void weather_instance_build_render_geometry(int16_t instance_index)
             // not reproduce that geometry construction; it preserves only the update/skip calls
             // every iteration makes and the final unconditional build_sprites_end() this branch always
             // reaches, so per-tick side effects on shared state (weather_instance_update,
-            // FUN_00458990, FUN_004588e0) still run once per particle type, in order, exactly as
+            // render_camera_facing_frame_build, vector3d_positive_modulo) still run once per particle type, in order, exactly as
             // the original does, even though no quads are actually submitted here.
             build_sprites_end();
         }

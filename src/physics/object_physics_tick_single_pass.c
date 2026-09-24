@@ -80,7 +80,7 @@ extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, re
 extern void object_physics_mass_point_resolve_ground_contact(uint32_t exclude_object_index,
     mass_point_state *mass_point, PhysicsMassPoint *definition); // 0x507ac0, this module
 extern float scenario_location_water_surface_distance(void); // 0x53ee00, scenario module: water depth; UNSURE args
-extern float FUN_00507430(float value, float ref_k0, float ref_k1); // 0x507430, misattributed
+extern float real_inverse_lerp_clamped(float value, float ref_k0, float ref_k1); // 0x507430, misattributed
     // math helper, not rewritten in this batch
 extern void object_physics_blend_friction_axes(int16_t friction_type, float parallel_scale,
     float perpendicular_scale, float *friction); // 0x507c00, this module
@@ -253,7 +253,7 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
             mp->ground_friction_force[2] = friction_magnitude * mp->tangential_velocity_k;
 
             if (powered_def != 0 && (powered_def->flags & 0x01) != 0 && powered_state->ground_friction != 0.0f) {
-                float lean = FUN_00507430(mp->resting_plane_k, definition->ground_normal_k0, definition->ground_normal_k1);
+                float lean = real_inverse_lerp_clamped(mp->resting_plane_k, definition->ground_normal_k0, definition->ground_normal_k1);
                 float alignment = mp->resting_plane_i * mp->up_i + mp->up_j * mp->resting_plane_j +
                     mp->up_k * mp->resting_plane_k;
                 float scale, d, push_i, push_j, push_k;
@@ -384,7 +384,7 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
                 if (collision_test_movement_segment(0xc0a0, (real_point3d *)&mp->position_x, &delta,
                         object_index, &probe_result)) {
                     float clearance = probe_length * probe_result.t - mp_def->radius;
-                    float lean = FUN_00507430(mp->up_k, powered_def->antigrav_normal_k0, powered_def->antigrav_normal_k1);
+                    float lean = real_inverse_lerp_clamped(mp->up_k, powered_def->antigrav_normal_k0, powered_def->antigrav_normal_k1);
                     float fade = (clearance <= 0.0f) ? 1.0f : 1.0f - clearance / powered_def->antigrav_height;
                     float dot_nv = probe_result.plane.normal.i * mp->velocity_i + probe_result.plane.normal.k * mp->velocity_k +
                         probe_result.plane.normal.j * mp->velocity_j;

@@ -31,8 +31,8 @@ extern uint32_t dxt5_decode_alpha_texel(void *block, uint32_t x, uint32_t y); //
 extern int8_t rasterizer_bitmap_format_bits_per_pixel[];            // 0x006571f4 indexed by BitmapDataFormat
 extern int32_t ROUND(float x); // MSVC round-to-nearest helper
 
-typedef int32_t (*d3d_lock_rect_fn)(void *self, uint32_t level, void *out_rect, const void *rect, uint32_t flags);
-typedef int32_t (*d3d_unlock_rect_fn)(void *self, uint32_t level);
+typedef int32_t (__stdcall *d3d_lock_rect_fn)(void *self, uint32_t level, void *out_rect, const void *rect, uint32_t flags);
+typedef int32_t (__stdcall *d3d_unlock_rect_fn)(void *self, uint32_t level);
 
 // blam-cc: ECX = bitmap, EDX = uv, stack = mip_bias; EBX = locked pitch (live-in), EBP = locked
 // bits (live-in), ESI = level for Unlock (live-in) -- see UNSURE note

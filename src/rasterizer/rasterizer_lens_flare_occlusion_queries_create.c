@@ -16,7 +16,7 @@ extern void *rasterizer_device; // 0x0071d174
 extern uint8_t lens_flare_occlusion_queries_supported; // 0x006e1dc0
 extern void *lens_flare_occlusion_queries[k_lens_flare_occlusion_queries]; // 0x006e1dc8
 
-typedef int32_t (*d3d_create_query_fn)(void *device, uint32_t type, void **out_query);
+typedef int32_t (__stdcall *d3d_create_query_fn)(void *device, uint32_t type, void **out_query);
 
 // Creates one Direct3D occlusion query per lens-flare slot (up to 1024), used to fade flares based
 // on their visibility, disabling the feature if the driver does not support occlusion queries.

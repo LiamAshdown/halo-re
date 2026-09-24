@@ -48,7 +48,7 @@ extern int32_t object_get_node_local_transform(datum_index object_index, char *m
                                                // EDX -> marker, stack -> param_4 (matches src/objects)
 extern void object_get_position(real_point3d *out_position, datum_index object_index); // 0x4f6900
 extern datum_index object_get_root_object_index(void); // 0x4f6fb0, UNSURE signature, no traced args
-extern float vector3d_magnitude_squared(void); // 0x401000, UNSURE signature, no traced args
+extern real vector3d_magnitude_squared(real_vector3d *v); // 0x401000, src/math; blam-cc: EAX v
 extern uint8_t scenario_location_get_water_and_weather(void *context, int32_t param); // 0x53ed60, UNSURE signature
 extern char unit_get_tag_flag_bit7(void); // 0x571c70, UNSURE signature, no traced args
 extern datum_index object_find_nearest_squad_member(datum_index actor_index, void *reference, datum_index exclude_index, char stamp_group); // 0x41c2c0, this batch
@@ -96,7 +96,7 @@ void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index,
         }
         {
             if (((unit_obj->vitality_flags & 4) == 0 || *(int16_t *)((uint8_t *)unit_obj + 0x420) != 0) ||
-                (target->unknown_30 != 0 || 0.010000001f <= vector3d_magnitude_squared())) {
+                (target->unknown_30 != 0 || 0.010000001f <= vector3d_magnitude_squared(&unit_obj->velocity))) { // 0x41c561: EAX = object + 0x68
                 is_eligible = 0;
             } else {
                 is_eligible = 1;

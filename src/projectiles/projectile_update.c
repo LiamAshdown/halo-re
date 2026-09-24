@@ -1,6 +1,6 @@
 // projectile_update  (Ghidra: FUN_004bdc00; renamed per
 // out/phase4/projectiles_types_notes.md "Renames this pass establishes". Ghidra separately
-// promoted the address 0x4be1b0 to a bogus second "function" it named
+// promoted 0x4be1b0 to a bogus second "function" it named
 // resolution_list_add_resolution; that address is NOT rewritten as its own file -- it is the
 // mid-body loop of THIS function (same LAB_004be5ad / LAB_004be5c1 labels appear in both
 // decompilations, 0x4be1b0 has zero callers, and it decompiles with unaff_EBX/unaff_ESI/
@@ -9,7 +9,8 @@
 // including everything Ghidra separately re-printed at 0x4be1b0; that second printout was used
 // only to cross-check field offsets (it prints them as absolute object-relative numbers where
 // this function prints `puVar3[0x8b]`-style dword indices).
-// address 0x4bdc00, real size 0xd30 bytes (0x4bdc00..0x4beb30; the "size=1456" the batch metadata
+// address 0x4bdc00, size 3873 bytes (0xf21, 0x4bdc00..0x4beb20, final `ret` at 0x4beb20; orphan pass 4
+// corrected the earlier "0xd30" typo so tools/coverage_audit.py reads this header; the "size=1456" the batch metadata
 // reports is the truncated boundary Ghidra used before it mis-split 0x4be1b0 off; confirmed by
 // disassembling straight through to the padding int3s at 0x4beb21).
 // name confidence: 0.85   rewrite confidence: 0.7 (raised by the phase-4 verification pass, which re-derived
@@ -99,7 +100,7 @@ extern real periodic_function_evaluate(periodic_function_t type, double time); /
 extern double fcos(double x); // CRT
 extern double fsin(double x); // CRT
 extern double sqrt(double x); // a single x87 FSQRT instruction
-extern real FUN_00401000(real_vector3d *v); // 0x401000, opaque helper confirmed by disassembly to
+extern real vector3d_magnitude_squared(real_vector3d *v); // 0x401000, opaque helper confirmed by disassembly to
     // return dot(v, v) (squared length), EAX -> v
 extern real sound_definition_maximum_distance(TagID sound_tag_id); // 0x545460, UNSURE signature (audible-radius
     // lookup for a sound tag?), opaque, out of range. blam-cc: EAX -> sound_tag_id
@@ -501,8 +502,8 @@ int projectile_update(uint32_t projectile_index)
                         vector3d_project_onto_axis(&projected, (real_vector3d *)&moved_i,
                                                    &to_listener, &projected_perp);
                         along = projected.i * moved_i + projected.j * moved_j + projected.k * moved_k;
-                        if (0.0f <= along && along < FUN_00401000((real_vector3d *)&moved_i) &&
-                            FUN_00401000((real_vector3d *)&moved_i) < radius * radius) { // UNSURE:
+                        if (0.0f <= along && along < vector3d_magnitude_squared((real_vector3d *)&moved_i) &&
+                            vector3d_magnitude_squared((real_vector3d *)&moved_i) < radius * radius) { // UNSURE:
                             // both comparisons reuse the moved_* vector per the disassembly
                             real_vector3d incident, up_or_scratch;
                             struct { real_point3d position; real_vector3d normal; real_point3d reference; datum_index leaf; int16_t cluster; } bundle;

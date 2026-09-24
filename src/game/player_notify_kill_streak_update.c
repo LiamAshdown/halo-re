@@ -17,10 +17,12 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "objects.h" // hash_table
 
 extern uint8_t shared_hud_text_draw_state; // 0x00871de0
 
-extern int32_t hash_table_get(void); // 0x4f05e0, not in this batch
+extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
+extern uint8_t *machine_table; // 0x00687558, its hash_table sits at +0x0c
 extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,
     uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,
     uint8_t unknown_6); // 0x4ec940
@@ -38,7 +40,7 @@ void player_notify_kill_streak_update(int32_t slot, int16_t amount, uint32_t pla
 
     fields.hash_result = 0;
     if (player_handle != 0xffffffff) {
-        fields.hash_result = hash_table_get(); // UNSURE: args elided by Ghidra
+        fields.hash_result = hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)player_handle); // 0x479aa5..0x479ab4
         if (fields.hash_result == -1) {
             fields.hash_result = 0;
         }

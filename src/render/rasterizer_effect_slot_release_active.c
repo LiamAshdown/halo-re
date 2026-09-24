@@ -21,8 +21,8 @@ extern void *rasterizer_device;              // 0x0071d174
 
 extern void rasterizer_lens_flare_batch_flush_all(void); // 0x536c80
 
-typedef int32_t (*d3d_release_fn)(void *self);
-typedef int32_t (*d3d_clear_state_slot_fn)(void *device, uint32_t value);
+typedef int32_t (__stdcall *d3d_release_fn)(void *self);
+typedef int32_t (__stdcall *d3d_clear_state_slot_fn)(void *device, uint32_t value);
 
 // Flushes pending lens flare batches, releases and clears the active rasterizer effect slot's
 // COM object pointer, and clears a device state slot (vtable+0x164).

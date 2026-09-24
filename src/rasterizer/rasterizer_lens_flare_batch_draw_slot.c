@@ -18,7 +18,7 @@ extern void *rasterizer_device; // 0x0071d174
 
 extern uint8_t rasterizer_lens_flare_batch_apply_material(lens_flare_batch_key *key); // 0x536b70
 
-typedef int32_t (*d3d_draw_primitive_up_fn)(void *self, uint32_t primitive_type, uint32_t primitive_count,
+typedef int32_t (__stdcall *d3d_draw_primitive_up_fn)(void *self, uint32_t primitive_type, uint32_t primitive_count,
                                             const void *data, uint32_t stride);
 
 // Draws and clears one batched vertex-quad slot of the screen-space sprite (lens-flare/decal)

@@ -18,8 +18,8 @@ extern void *rasterizer_device;     // 0x0071d174
 extern uint8_t rasterizer_in_scene;                                 // 0x0071d16f set after BeginScene, cleared after EndScene
 extern uint8_t rasterizer_pending_clear; // 0x0071d16e
 
-typedef int32_t (*d3d_call0_fn)(void *device);
-typedef int32_t (*d3d_call4_fn)(void *device, uint32_t a, uint32_t b, uint32_t c, uint32_t d);
+typedef int32_t (__stdcall *d3d_call0_fn)(void *device);
+typedef int32_t (__stdcall *d3d_call4_fn)(void *device, uint32_t a, uint32_t b, uint32_t c, uint32_t d);
 
 // While windowed and the device exists: performs a deferred present/update (+0xa8) if flagged,
 // and a deferred clear (+0x44, all zero args) if flagged, clearing each flag afterward.

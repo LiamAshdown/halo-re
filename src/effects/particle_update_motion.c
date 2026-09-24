@@ -44,7 +44,7 @@ extern real particle_current_radius(datum_index particle_handle); // 0x4566f0, t
 extern void particle_impact(datum_index particle_handle); // 0x456550, this module
 extern void particle_impact_response_dispatch(tag_group fourcc, real intensity); // 0x4565a0,
                                     // this module
-extern uint8_t local_player_within_10_units(real_point3d *position); // 0x453330, players module
+extern uint8_t any_local_player_within_10_units(real_point3d *position); // 0x453330, players module
                                     // (skipped in this pass, see summary); blam-cc: EDX -> position
 extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type,
     int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param,
@@ -105,7 +105,7 @@ uint8_t particle_update_motion(datum_index particle_handle, real delta_time)
                     particle_impact_response_dispatch(fourcc, speed);
                 }
                 if (*(uint32_t *)&tag->sir_marty_exchanged_his_children_for_thine.tag_id != 0u &&
-                    local_player_within_10_units(&self->position) != 0) {
+                    any_local_player_within_10_units(&self->position) != 0) {
                     real_vector3d zero_offset = {0.0f, 0.0f, 0.0f};
 
                     material_effects_play_at_marker(

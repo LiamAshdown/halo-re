@@ -46,13 +46,14 @@ extern object_type_definition *object_type_definitions[k_maximum_object_types]; 
 
 // Foreign-module (input/game) control-binding helpers; skipped in this batch per
 // out/phase4/objects_types_notes.md's "Not objects-module code" section.
-extern void FUN_004f3700(void);            // 0x4f3700, rebuilds the packed control word
-extern void FUN_004f37d0(int32_t index);   // 0x4f37d0, UNSURE: the index is not visibly passed
+extern void control_binding_table_initialize(void);            // 0x4f3700, rebuilds the packed control word
+extern void control_binding_table_register_single(int32_t target, int32_t selector, int32_t raw_id, uint32_t raw_value);
+    // 0x4f37d0, src/input; blam-cc: EDX target, EAX selector, EDI raw_id, EBX raw_value
                                             //   as an argument in the original call; recorded
                                             //   here only so the call site documents its context.
-extern void FUN_004f3890(void);            // 0x4f3890
-extern void FUN_004f39d0(void);            // 0x4f39d0
-extern char FUN_004f3ad0(int32_t index);   // 0x4f3ad0
+extern void control_binding_table_update_a(void);            // 0x4f3890
+extern void control_binding_table_update_b(void);            // 0x4f39d0
+extern uint8_t control_binding_table_query(int32_t target, int32_t raw_id); // 0x4f3ad0, src/input; blam-cc: EDX target, stack raw_id
 
 extern uint32_t object_get_or_build_render_permutation(); // 0x4f9b70 = object_get_or_build_render_permutation in this
     // module, whose definition is (int16_t *pair, uint8_t *table_owner) with the pair in EDI.
@@ -83,7 +84,7 @@ have_context:
         }
     }
 
-    FUN_004f3700();
+    control_binding_table_initialize();
 
     if (network_game_mode == 2) {
         object_type_definition *vehicle_def = object_type_definitions[_object_type_vehicle];
@@ -93,8 +94,16 @@ have_context:
         if (*slot > 0) {
             int32_t index = 0;
             do {
-                if (*(int16_t *)(index * stride + slot[1]) != -1) {
-                    FUN_004f37d0(index);
+                // 0x4f3c20..0x4f3c56: EDX = the vehicle palette entry's tag id (0x30-byte entries,
+                // tag reference id at +0xc), EAX = placement byte +0x58, EDI = the placement
+                // index, BX = placement word +0x5a
+                uint8_t *placement = (uint8_t *)(index * stride + slot[1]);
+                int16_t palette_index = *(int16_t *)placement;
+                if (palette_index != -1) {
+                    int32_t *palette = (int32_t *)(vehicle_def->scenario_palette_offset + param_1);
+                    int32_t tag_id = *(int32_t *)((uint8_t *)palette[1] + palette_index * 0x30 + 0xc);
+                    control_binding_table_register_single(tag_id, *(uint8_t *)(placement + 0x58), index,
+                        *(uint16_t *)(placement + 0x5a));
                 }
                 i = i + 1;
                 index = i;
@@ -104,9 +113,9 @@ have_context:
 
     if (current_game_engine != 0) {
         if (object_control_binding_unknown_7a1 == 0) {
-            FUN_004f3890();
+            control_binding_table_update_a();
         } else {
-            FUN_004f39d0();
+            control_binding_table_update_b();
         }
     }
     object_control_binding_unknown_7a0 = 1;
@@ -131,7 +140,11 @@ after_rebuild:
                             if (type_index == 1) {
                                 enter_block = 0;
                                 if (!already_active) {
-                                    enter_block = (FUN_004f3ad0(index) != 0);
+                                    // 0x4f3d20..0x4f3d31: EDX = the palette entry's tag id, stack = index
+                                    int32_t *palette = (int32_t *)(base_off + param_1);
+                                    int16_t palette_index = *(int16_t *)(index * stride + entry);
+                                    int32_t tag_id = *(int32_t *)((uint8_t *)palette[1] + palette_index * 0x30 + 0xc);
+                                    enter_block = (control_binding_table_query(tag_id, index) != 0);
                                 }
                             }
                             if (enter_block) {

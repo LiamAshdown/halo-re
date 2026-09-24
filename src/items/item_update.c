@@ -21,7 +21,7 @@
 //   opaque in src/units/unit_find_placement_position.c: "an unresolved collision/physics-module
 //   ... preserved as opaque calls with the exact arguments Ghidra shows"), to
 //   object_recompute_basis_from_marker_delta and vector3d_rotate_about_axis in the rotation-tail
-//   block, and to FUN_00453330/material_effects_play_at_marker/object_collision_test_cluster_group/sound_start_at_location/FUN_00ffda0 (sound/effect
+//   block, and to any_local_player_within_10_units/material_effects_play_at_marker/object_collision_test_cluster_group/sound_start_at_location/FUN_00ffda0 (sound/effect
 //   and material-lookup helpers entirely outside this module's address range). Rather than
 //   reconstructing a plausible-but-unverified register binding for each, this rewrite keeps
 //   Ghidra's own local-variable shapes (raw offset structs with a comment, not invented field
@@ -42,6 +42,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "items.h"
+#include "projectiles.h" // collision_result
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -84,12 +85,13 @@ extern void object_recompute_basis_from_marker_delta(void *marker, void *output_
 extern void object_get_node_marker_address(uint32_t param_1); // 0x4f6000, UNSURE signature
 extern void matrix4x3_inverse_transform_point(void); // 0x4cbf80, UNSURE signature, 0 args visible
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *in, real_matrix4x3 *m); // 0x4cbde0
-extern char FUN_00401a20(uint32_t collision_mask, uint32_t ignore_object_index, void *out_record);
+extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t flags,
+    uint32_t exclude_object_index, collision_result *result); // 0x401a20, src/physics; blam-cc: EAX origin, ECX target, stack rest
     // 0x401a20, UNSURE, opaque collision/physics-module routine (the world sweep); see
     // src/units/unit_find_placement_position.c. The first argument is the literal collision
     // mask 0x1ff3e9 -- objdump shows `push 0x1ff3e9` at 0x4bc714, the same literal
     // object_collision_test_cluster_group is called with twice below -- NOT the global_structure_collision_bsp pointer.
-extern char FUN_00453330(void); // 0x453330, opaque, out of range
+extern uint8_t any_local_player_within_10_units(const real_point3d *query_point); // 0x453330, src/game; blam-cc: EDX query_point
 extern void material_effects_play_at_marker(uint32_t a1, uint32_t a2, void *a3, void *a4); // 0x453490, opaque, out of range
 extern char breakable_surface_is_intact(void); // 0x4ffda0, AX -> surface index (R79)
 extern char object_collision_test_cluster_group(uint32_t mask, uint32_t item_index); // 0x505490, opaque, out of range
@@ -138,7 +140,9 @@ int item_update(uint32_t item_index)
             predicted.y = obj->position.y + velocity.j;
             predicted.z = obj->position.z + vertical;
 
-            if (FUN_00401a20(0x1ff3e9, item->ignore_object_index, hit_record) != 0) {
+            // 0x4bc700..0x4bc72f: EAX = &obj->position, ECX = &predicted
+            if (collision_test_movement_segment_between_points(&obj->position, &predicted, 0x1ff3e9,
+                    item->ignore_object_index, (collision_result *)hit_record) != 0) {
                 // Offsets into the sweep result record, all read out of the disassembly (the
                 // record base is `lea ecx,[esp+0x30]` at 0x4bc706, and every [esp+N] below is
                 // that base + N - 0x30 once the intervening pushes are accounted for):
@@ -178,7 +182,7 @@ int item_update(uint32_t item_index)
                     speed_factor = 0.0f;
                 }
 
-                if (*(int32_t *)&tag->material_effects.tag_id != -1 && FUN_00453330() != 0) {
+                if (*(int32_t *)&tag->material_effects.tag_id != -1 && any_local_player_within_10_units(hit_point) != 0) { // 0x4bc7d8: EDX = record + 0x18
                     material_effects_play_at_marker(8, material_effect_arg, hit_location, &speed_factor);
                 }
                 if (*(int32_t *)&tag->collision_sound.tag_id != -1) {

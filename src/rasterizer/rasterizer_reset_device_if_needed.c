@@ -25,7 +25,7 @@ extern uint8_t rasterizer_in_scene;                                 // 0x0071d16
 
 extern uint32_t rasterizer_device_reset(uint32_t *extra_params); // 0x515d90 (this session)
 
-typedef int32_t (*d3d_call0_fn)(void *device);
+typedef int32_t (__stdcall *d3d_call0_fn)(void *device);
 
 // Resets pre-ps_1_1 debug toggles, resets the D3D device if it was flagged lost, and reports
 // whether the device is usable afterward (also flagging a deferred update when it is).

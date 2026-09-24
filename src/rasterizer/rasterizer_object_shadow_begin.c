@@ -45,12 +45,12 @@ extern uint8_t rasterizer_object_shadow_window_restored;    // 0x0069e550
 // blam-cc: AX -> mode
 extern void rasterizer_set_shader_stage_config(int16_t mode); // 0x519200
 
-typedef int32_t (*d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
-typedef int32_t (*d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
-typedef int32_t (*d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
-typedef int32_t (*d3d_get_desc_fn)(void *surface, d3d_surface_desc *desc);
-typedef int32_t (*d3d_set_viewport_fn)(void *self, const d3d_viewport *viewport);
-typedef int32_t (*d3d_clear_fn)(void *self, uint32_t count, const void *rects, uint32_t flags, uint32_t color, float z,
+typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
+typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
+typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
+typedef int32_t (__stdcall *d3d_get_desc_fn)(void *surface, d3d_surface_desc *desc);
+typedef int32_t (__stdcall *d3d_set_viewport_fn)(void *self, const d3d_viewport *viewport);
+typedef int32_t (__stdcall *d3d_clear_fn)(void *self, uint32_t count, const void *rects, uint32_t flags, uint32_t color, float z,
                                 uint32_t stencil);
 
 static void **device_vtable(void) { return *(void ***)rasterizer_device; }

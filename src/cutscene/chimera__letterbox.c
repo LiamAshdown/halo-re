@@ -51,7 +51,7 @@ extern uint32_t text_shadow_color_argb;                 // 0x0071d144, the text 
 // A generic filled screen rectangle; shared with several interface/rasterizer callers outside
 // this module. Misattributed to cutscene by the address-run heuristic (library-style helper with
 // no types of its own -- see out/phase4/cutscene_types_notes.md); not rewritten here.
-extern void FUN_00449780(uint32_t packed_color, Rectangle2D *rect); // 0x449780, solid rectangle fill
+extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect); // 0x449780, solid rectangle fill
 
 // blam-cc: EAX -> out, ECX -> packed color (src/bitmaps/color_argb_int_to_real.c, this batch)
 extern void color_argb_int_to_real(ColorARGB *out, uint32_t packed); // 0x43f5a0
@@ -114,13 +114,13 @@ void chimera__letterbox(void)
                 bar.right = (int16_t)ROUND((float)k_cinematic_letterbox_screen_width);
                 bar.top = (int16_t)ROUND((float)letterbox_screen_bounds.top);
                 bar.bottom = (int16_t)ROUND((float)letterbox_screen_bounds.top + bar_height);
-                FUN_00449780((uint32_t)k_cinematic_letterbox_color, &bar);
+                ui_draw_filled_rectangle((uint32_t)k_cinematic_letterbox_color, &bar);
 
                 bar.left = (int16_t)ROUND((float)letterbox_screen_bounds.left);
                 bar.right = (int16_t)ROUND((float)k_cinematic_letterbox_screen_width);
                 bar.top = (int16_t)ROUND((float)k_cinematic_letterbox_screen_height - bar_height);
                 bar.bottom = (int16_t)k_cinematic_letterbox_bottom_edge;
-                FUN_00449780((uint32_t)k_cinematic_letterbox_color, &bar);
+                ui_draw_filled_rectangle((uint32_t)k_cinematic_letterbox_color, &bar);
             }
         }
     }

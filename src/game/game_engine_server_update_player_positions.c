@@ -1,5 +1,8 @@
 // game_engine_server_update_player_positions  (Ghidra: FUN_00476760; named per this rewrite)
-// address 0x476760, size 231 bytes
+// address 0x476760, size 339 bytes (0x476760..0x4768b2; Ghidra's metadata said 231 and catalogued the
+//   log-argument tail as the bogus function 0x476847 "player_add_equipment_unit_grenade_count_mod",
+//   which is the `fstp QWORD PTR [esp+0x28]` of velocity.i for the history log below; argument order
+//   re-checked against objdump 0x476831..0x47688c by orphan pass 4)
 // name confidence: 0.45   rewrite confidence: 0.4
 // evidence: out/phase4/game_functions.md ("Server-side per-tick routine that copies a moved
 //   unit's position/velocity into its owning player's record and logs completion for local

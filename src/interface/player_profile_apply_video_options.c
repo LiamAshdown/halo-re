@@ -109,7 +109,7 @@ int32_t player_profile_apply_video_options(uint8_t *settings)
     if (rasterizer_needs_reset == 0 && rasterizer_display_mode_differs() != 0) {
         rasterizer_build_present_parameters(present_parameters);
         rasterizer_device_reset(present_parameters);
-        (*(void (**)(void **, int32_t, uint32_t *))(*rasterizer_device + 0x20))(
+        (*(void (**)(void **, int32_t, uint32_t *))((uint8_t *)*rasterizer_device + 0x20))(
             rasterizer_device, 0, &present_parameters_flags);
         rasterizer_resize_game_window();
         rasterizer_needs_reset = 0;

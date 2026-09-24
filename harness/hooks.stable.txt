@@ -1,0 +1,17 @@
+# Hook set proven in-game on 2026-09-24 (303 functions, 13.1 million calls in one session, no glitches).
+# Copy to harness/build/hooks.txt to use it. cache is excluded: one of its hooked functions corrupts map state
+# and the next structure BSP switch crashes (not yet isolated).
+math
+memory
+bitmaps
+camera
+cseries
+cutscene
+devices
+dialogs
+items
+main
+projectiles
+scenario
+shaders
+units

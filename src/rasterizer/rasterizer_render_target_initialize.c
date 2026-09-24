@@ -29,15 +29,15 @@ extern void *rasterizer_render_target_vertex_buffer;        // 0x0071d20c
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
 extern uint32_t __stdcall D3DXGetFVFVertexSize(uint32_t fvf); // 0x583b17 (d3dx9 static library)
 
-typedef int32_t (*d3d_get_render_target_fn)(void *self, uint32_t index, uint32_t *surface);
-typedef int32_t (*d3d_get_desc_fn)(void *surface, d3d_surface_desc *desc);
-typedef int32_t (*d3d_create_texture_fn)(void *self, uint32_t width, uint32_t height, uint32_t levels, uint32_t usage,
+typedef int32_t (__stdcall *d3d_get_render_target_fn)(void *self, uint32_t index, uint32_t *surface);
+typedef int32_t (__stdcall *d3d_get_desc_fn)(void *surface, d3d_surface_desc *desc);
+typedef int32_t (__stdcall *d3d_create_texture_fn)(void *self, uint32_t width, uint32_t height, uint32_t levels, uint32_t usage,
                                          uint32_t format, uint32_t pool, uint32_t *texture, void *shared);
-typedef int32_t (*d3d_get_surface_level_fn)(void *texture, uint32_t level, uint32_t *surface);
-typedef int32_t (*d3d_create_buffer_fn)(void *self, uint32_t length, uint32_t usage, uint32_t format_or_fvf,
+typedef int32_t (__stdcall *d3d_get_surface_level_fn)(void *texture, uint32_t level, uint32_t *surface);
+typedef int32_t (__stdcall *d3d_create_buffer_fn)(void *self, uint32_t length, uint32_t usage, uint32_t format_or_fvf,
                                         uint32_t pool, void **buffer, void *shared);
-typedef int32_t (*d3d_lock_fn)(void *self, uint32_t offset, uint32_t size, void **data, uint32_t flags);
-typedef int32_t (*d3d_unlock_fn)(void *self);
+typedef int32_t (__stdcall *d3d_lock_fn)(void *self, uint32_t offset, uint32_t size, void **data, uint32_t flags);
+typedef int32_t (__stdcall *d3d_unlock_fn)(void *self);
 
 uint8_t rasterizer_render_target_initialize(void)
 {

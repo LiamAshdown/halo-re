@@ -30,8 +30,8 @@ extern data_array *actor_data;  // 0x00880360
 extern data_array *object_data; // 0x008603b0
 extern Scenario *global_scenario; // 0x00746f8c
 
-extern float vector3d_magnitude_squared(void);                        // 0x401000, not yet rewritten
-extern float FUN_00401020(void);                         // 0x401020, not yet rewritten
+extern real vector3d_magnitude_squared(real_vector3d *v);              // 0x401000, src/math; blam-cc: EAX v
+extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, src/math; blam-cc: EAX a, ECX b
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 extern uint32_t actor_commit_grenade_toss(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_commit_grenade_toss at 0x411180
@@ -41,7 +41,7 @@ extern void actor_movement_action_stop(datum_index actor_index); // 0x417570, th
                                                                  // blam-cc: EDX -> actor_index
 extern char actor_movement_action_in_progress(void);      // 0x41a980, not yet rewritten
 extern float actor_compute_accuracy_scale(void);                          // 0x429620, not yet rewritten
-extern char FUN_0044acc0(void);                           // 0x44acc0, not yet rewritten
+extern uint8_t recorded_animation_object_is_playing(datum_index unit_index);      // 0x44acc0, src/cutscene; blam-cc: ESI unit_index
 extern void object_get_position(void);                    // 0x4f6900, writes through a register-inherited pointer
 extern char unit_is_in_busy_animation_state(void);                           // 0x569c90, not yet rewritten
 extern char unit_get_biped_specific_value(void);                           // 0x570ad0, not yet rewritten (result in extraout_AL)
@@ -80,7 +80,7 @@ uint8_t actor_squad_action_is_complete(uint8_t *aim_state, uint32_t actor_index,
                     delta.j = *(float *)(aim_state + 0xc) - ((actor *)actor_base)->body_position.y;
                     delta.k = *(float *)(aim_state + 0x10) - ((actor *)actor_base)->body_position.z;
                     {
-                        float distance_sq = vector3d_magnitude_squared();
+                        float distance_sq = vector3d_magnitude_squared(&delta); // 0x406793: EAX = &delta
                         if (distance_sq < range * range) {
                             complete = 1;
                         } else if (distance_sq < (range + 0.5f) * (range + 0.5f)) {
@@ -175,7 +175,10 @@ uint8_t actor_squad_action_is_complete(uint8_t *aim_state, uint32_t actor_index,
 
         case 7:
             if (check_object_index == a->unit_index && aim_state != 0) {
-                if (a->unknown_60c != 2 || FUN_00401020() >= 0.25f) {
+                // 0x4069d1..0x4069da: EAX = actor + 0x610 (a point here, see types/ai.h unknown_610),
+                // ECX = aim_state + 0x38
+                if (a->unknown_60c != 2 ||
+                    vector3d_distance_squared((real_point3d *)((uint8_t *)a + 0x610), (real_point3d *)(aim_state + 0x38)) >= 0.25f) {
                     int16_t ticks = (int16_t)(entry->parameter1 * 30.0f); // UNSURE: __ftol with no visible operand, see actor_squad_action_execute.c case 0
                     if (ticks < 0x3d) {
                         ticks = 0x3c;
@@ -232,7 +235,7 @@ uint8_t actor_squad_action_is_complete(uint8_t *aim_state, uint32_t actor_index,
             return *((uint8_t *)obj + 0x2a3) != 0x1c;
         }
         case 0xe:
-            return FUN_0044acc0() == 0;
+            return recorded_animation_object_is_playing((datum_index)check_object_index) == 0; // 0x406b3f: ESI = ECX = check_object_index
         case 0xf:
             if (aim_state != 0 && aim_state[0x30] != 0) {
                 return 0;

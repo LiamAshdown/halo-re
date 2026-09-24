@@ -44,16 +44,16 @@ extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_sh
 extern uint8_t rasterizer_software_vertex_processing;                 // 0x0069c680
 extern int32_t unknown_00722b7c; // 0x00722b7c flag selecting the additive + BLENDFACTOR fallback for the Max and Min flash blends
 
-typedef int32_t (*d3d_call1_fn)(void *self, uint32_t a);
-typedef int32_t (*d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
+typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
+typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 typedef int32_t (*d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
-typedef int32_t (*d3d_setconst_fn)(void *self, uint32_t reg, const float *data, uint32_t count);
-typedef int32_t (*d3d_draw_primitive_up_fn)(void *self, uint32_t primitive_type, uint32_t primitive_count,
+typedef int32_t (__stdcall *d3d_setconst_fn)(void *self, uint32_t reg, const float *data, uint32_t count);
+typedef int32_t (__stdcall *d3d_draw_primitive_up_fn)(void *self, uint32_t primitive_type, uint32_t primitive_count,
                                             const void *data, uint32_t stride);
-typedef int32_t (*d3dx_effect_settechnique_fn)(void *effect, void *technique);
-typedef int32_t (*d3dx_effect_begin_fn)(void *effect, uint32_t *pass_count, uint32_t flags);
-typedef int32_t (*d3dx_effect_pass_fn)(void *effect, uint32_t pass);
-typedef int32_t (*d3dx_effect_end_fn)(void *effect);
+typedef int32_t (__stdcall *d3dx_effect_settechnique_fn)(void *effect, void *technique);
+typedef int32_t (__stdcall *d3dx_effect_begin_fn)(void *effect, uint32_t *pass_count, uint32_t flags);
+typedef int32_t (__stdcall *d3dx_effect_pass_fn)(void *effect, uint32_t pass);
+typedef int32_t (__stdcall *d3dx_effect_end_fn)(void *effect);
 
 static void **device_vtable(void)
 {

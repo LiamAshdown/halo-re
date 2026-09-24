@@ -19,13 +19,19 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#include "objects.h"
+#include "projectiles.h" // Projectile
+#include <stdint.h>
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint8_t *item_globals;       // 0x00746fa0, the grenade type table pointer sits at +300
 extern float world_gravity_scale;   // 0x0069c52c
 
-extern uint8_t FUN_004beec0(void *projectile_definition, void *a, int32_t b, int32_t c,
-                            int32_t d, int32_t e); // 0x4beec0, not yet rewritten: ballistics solver
+extern uint8_t projectile_get_aiming_vector(real_point3d *target, real *speed_in, Projectile *tag,
+    real_point3d *origin, void *unused_param_3, real *max_time, real *max_speed_override,
+    uint8_t use_high_arc, real_vector3d *out_direction, real *out_speed,
+    real *out_time_or_fraction, real *out_range_or_length, uint8_t *out_used_straight_line);
+    // 0x4beec0, src/ai; blam-cc: ECX target, EAX speed_in, the rest on the stack
 
 // blam-cc: AX -> grenade_type, ESI -> direction; the rest on the stack
 // Resolves the grenade type to its projectile tag, solves the throw and reports the launch
@@ -41,6 +47,7 @@ uint8_t actor_get_grenade_launch_velocity(int16_t grenade_type, real_vector3d *d
     uint32_t projectile_tag;
     void *projectile_definition;
     float scale;
+    uint8_t used_straight_line; // [esp+0xf]
 
     entry = *(uint8_t **)(item_globals + 300) + (int32_t)grenade_type * 0x44;
     if (entry == (uint8_t *)0) {
@@ -55,7 +62,15 @@ uint8_t actor_get_grenade_launch_velocity(int16_t grenade_type, real_vector3d *d
     if (projectile_definition == (void *)0) {
         return 0;
     }
-    if (FUN_004beec0(projectile_definition, param_1, 0, param_4, 0, 0) == 0) {
+    // 0x4109ca..0x4109f1 (orphan pass 4 review; the earlier call passed 6 of 13 arguments):
+    // ECX = point (stack arg 2), EAX = &range (stack arg 1, a float whose address is taken as
+    // the speed override), origin = param_1 (arg 0), max_time = param_4 (arg 3), out_direction
+    // = direction (ESI), out_speed = speed (arg 4, EBP), out_time = param_6 (arg 5), and a local
+    // byte for "used the straight-line solver". Stack args 2, 4, 5 and 9 are zero.
+    used_straight_line = 0;
+    if (projectile_get_aiming_vector(point, &range, (Projectile *)projectile_definition,
+            (real_point3d *)param_1, 0, (real *)(uintptr_t)param_4, 0, 0, direction, speed,
+            (real *)param_6, 0, &used_straight_line) == 0) {
         return 0;
     }
 
@@ -66,8 +81,13 @@ uint8_t actor_get_grenade_launch_velocity(int16_t grenade_type, real_vector3d *d
         out_velocity->k = scale * direction->k;
     }
     if (out_gravity != (float *)0) {
-        *out_gravity = -(world_gravity_scale *
-                         *(float *)((uint8_t *)projectile_definition + 0x1cc));
+        // 0x410a1e..0x410a49: zero for a straight-line solution (the constant at 0x00672ac0)
+        if (used_straight_line) {
+            *out_gravity = 0.0f;
+        } else {
+            *out_gravity = -(world_gravity_scale *
+                             *(float *)((uint8_t *)projectile_definition + 0x1cc));
+        }
     }
     return 1;
 }

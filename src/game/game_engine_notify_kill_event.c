@@ -19,12 +19,14 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "objects.h" // hash_table
 
 extern data_array *player_data;      // 0x0087a480
 extern uint8_t *network_session;     // 0x0071c2d4
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 
-extern int32_t hash_table_get(void); // 0x4f05e0, not in this batch; UNSURE exact signature
+extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
+extern uint8_t *machine_table; // 0x00687558, its hash_table sits at +0x0c
 extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,
     uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,
     uint8_t unknown_6); // 0x4ec940; blam-cc: EAX -> destination buffer,
@@ -56,7 +58,7 @@ void game_engine_notify_kill_event(uint32_t player_index, int32_t hash_key, int3
 
     fields[0] = 0;
     if (hash_key != -1) {
-        fields[0] = hash_table_get(); // UNSURE: args elided by Ghidra (ESI = table + 0x0c, ECX = key)
+        fields[0] = hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)hash_key); // 0x4608d8..0x4608e8
         if (fields[0] == -1) {
             fields[0] = 0;
         }

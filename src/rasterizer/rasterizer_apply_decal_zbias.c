@@ -17,7 +17,7 @@ extern d3d_caps9 rasterizer_caps;  // 0x007c10c0
 extern uint32_t unknown_00722b80;  // 0x00722b80 UNSURE: depth-bias value
 extern uint32_t unknown_00722b88;  // 0x00722b88 UNSURE: slope-scale-depth-bias value
 
-typedef int32_t (*d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
+typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
 
 // Applies the decal-pass depth-bias render states (0xc3, 0xaf) from this bias table when the
 // corresponding decal-bias flags (raster_caps bits) are set.

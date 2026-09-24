@@ -20,7 +20,7 @@ extern uint32_t rasterizer_blend_src_table[16];  // 0x0065dfbc UNSURE: element c
 extern uint32_t rasterizer_blend_dest_table[16]; // 0x0065dfe0 UNSURE: element count
 extern uint32_t rasterizer_blend_op_table[16];   // 0x0065e004 UNSURE: element count
 
-typedef int32_t (*d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
+typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
 
 // blam-cc: CX -> mode
 // Configures the framebuffer alpha-blend function (SrcBlend/DestBlend/BlendOp) for the requested

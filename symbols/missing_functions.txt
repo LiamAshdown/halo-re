@@ -96,3 +96,6 @@
 0x57d2a0 shell
 0x57e2a0 dialogs
 0x57e5a0 dialogs
+0x47bef0 game
+0x47c3a0 game
+0x49d7c0 interface

@@ -42,12 +42,12 @@ extern int8_t rasterizer_bitmap_format_bits_per_pixel[];            // 0x006571f
 // blam-cc: bitmap in EDI, mip level in EAX, x and y on the stack
 extern uint16_t *bitmap_data_get_row_address(BitmapData *bitmap, int32_t mip_level, int32_t x, int32_t y); // 0x43f8e0
 
-typedef int32_t (*d3d_get_back_buffer_fn)(void *self, uint32_t swap_chain, uint32_t index, uint32_t type, void **out_surface);
-typedef int32_t (*d3d_get_desc_fn)(void *surface, d3d_surface_desc *desc);
-typedef int32_t (*d3d_lock_rect_fn)(void *surface, d3d_locked_rect *locked, const void *rect, uint32_t flags);
-typedef int32_t (*d3d_unlock_rect_fn)(void *surface);
-typedef uint32_t (*com_release_fn)(void *self);
-typedef int32_t (*d3d_present_fn)(void *self, const void *source_rect, const void *dest_rect, void *window,
+typedef int32_t (__stdcall *d3d_get_back_buffer_fn)(void *self, uint32_t swap_chain, uint32_t index, uint32_t type, void **out_surface);
+typedef int32_t (__stdcall *d3d_get_desc_fn)(void *surface, d3d_surface_desc *desc);
+typedef int32_t (__stdcall *d3d_lock_rect_fn)(void *surface, d3d_locked_rect *locked, const void *rect, uint32_t flags);
+typedef int32_t (__stdcall *d3d_unlock_rect_fn)(void *surface);
+typedef uint32_t (__stdcall *com_release_fn)(void *self);
+typedef int32_t (__stdcall *d3d_present_fn)(void *self, const void *source_rect, const void *dest_rect, void *window,
                                   const void *dirty_region);
 
 static void **vtable_of(void *object) { return *(void ***)object; }

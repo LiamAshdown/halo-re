@@ -23,7 +23,7 @@
 #include "structures.h"
 
 extern int16_t geometry_buffer_warning;  // 0x0069fa48: accessed as WORD in the binary // 0x0069fa48, this module
-extern void **rasterizer_device; // 0x006e09e8, physics.h/objects.h (read, not owned)
+extern void **rasterizer_device_006e09e8; // 0x006e09e8, physics.h/objects.h (read, not owned)
 
 extern int32_t rasterizer_dynamic_index_cache_reserve(int16_t vertex_count); // 0x51bd60, foreign render module; UNSURE
     // blam-cc: EDX -> vertex_count
@@ -57,8 +57,8 @@ int32_t chimera__bsp_poly_movsx_2(int32_t *visible_surface_indices, uint32_t *su
                     (ScenarioStructureBSPSurface *)vertex_buffer, visible_surface_indices);
             }
 
-            vtable = *(void (***)(void *))rasterizer_device;
-            vtable[0xc](rasterizer_device); // slot +0x30, submit
+            vtable = *(void (***)(void *))rasterizer_device_006e09e8;
+            vtable[0xc](rasterizer_device_006e09e8); // slot +0x30, submit
             return geometry_handle;
         }
         if (geometry_buffer_warning != 0) {

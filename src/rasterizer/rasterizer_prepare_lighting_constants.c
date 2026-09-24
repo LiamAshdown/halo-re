@@ -37,8 +37,8 @@ extern ColorRGB unknown_0071d190;               // 0x0071d190 fixed function amb
 extern void rasterizer_light_set_point_constants(int32_t light_index, int16_t slot,
                                                  rasterizer_point_light_constants *dest_base); // 0x518c10
 
-typedef int32_t (*d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
-typedef int32_t (*d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
+typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
+typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
 
 typedef struct lighting_constant_block {
     rasterizer_point_light_constants point_lights[2]; // c15..c20

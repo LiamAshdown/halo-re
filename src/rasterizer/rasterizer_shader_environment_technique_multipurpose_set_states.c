@@ -27,8 +27,8 @@ extern void *rasterizer_device;             // 0x0071d174
 extern rasterizer_effect_slot *rasterizer_active_environment_effect; // 0x0071d1d0, also cleared by the render module (0x50c351)
 extern rasterizer_effect_slot rasterizer_effects[k_rasterizer_pixel_shader_effects]; // 0x0069d410; effect 36 is 0x0069d890
 
-typedef int32_t (*d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
-typedef int32_t (*d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
+typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
+typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
 void rasterizer_shader_environment_technique_multipurpose_set_states(void)
 {

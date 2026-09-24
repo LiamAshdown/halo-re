@@ -15,9 +15,9 @@
 
 extern void *rasterizer_device; // 0x0071d174
 
-typedef int32_t (*d3d_set_texture_fn)(void *device, int32_t stage, void *texture);
-typedef int32_t (*d3d_set_stream_source_fn)(void *device, uint32_t stream, void *buffer, uint32_t offset, uint32_t stride);
-typedef int32_t (*d3d_call1_fn)(void *device, uint32_t a);
+typedef int32_t (__stdcall *d3d_set_texture_fn)(void *device, int32_t stage, void *texture);
+typedef int32_t (__stdcall *d3d_set_stream_source_fn)(void *device, uint32_t stream, void *buffer, uint32_t offset, uint32_t stride);
+typedef int32_t (__stdcall *d3d_call1_fn)(void *device, uint32_t a);
 
 // Unbinds texture stages 0 and 1, clears the current stream source, and clears the current
 // vertex declaration/FVF.

@@ -34,7 +34,7 @@ extern uint8_t rasterizer_fullscreen;                               // 0x0071d16
 extern void *rasterizer_device;              // 0x0071d174
 extern HWND rasterizer_window_handle;        // 0x007461c8
 
-typedef int32_t (*d3d_set_gamma_ramp_fn)(void *self, uint32_t swap_chain, uint32_t flags, const void *ramp);
+typedef int32_t (__stdcall *d3d_set_gamma_ramp_fn)(void *self, uint32_t swap_chain, uint32_t flags, const void *ramp);
 
 void chimera__gamma(void)
 {

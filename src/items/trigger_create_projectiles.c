@@ -18,7 +18,7 @@
 // index and salt are validated against DAT_008603b0 + 0x20 / +0x22 before the header at +0x34 is
 // indexed), follows the target's own 0xca handle when it has one, reads a unit field at 0x218
 // and one at 0x1f4, consults actor_data (0x00880360, stride 0x724, the int16 at +0x5f2 against
-// 4), and then calls FUN_005658f0 / actor_compute_grenade_aim_direction / camera_observer_update to produce three outputs this
+// 4), and then calls unit_project_onto_aiming_axis / actor_compute_grenade_aim_direction / camera_observer_update to produce three outputs this
 // function does use: spread_gain (local_1c14), error_bias (local_1c08) and
 // projectile_type_index (local_1be4). Porting it needs the units and ai headers, and the three
 // callees' argument shapes are not established. All three outputs are therefore initialized to
@@ -68,7 +68,7 @@ extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operan
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 extern int32_t actor_compute_grenade_aim_direction(real_vector3d *v); // 0x40f7e0, outside this module, UNSURE signature
 extern int32_t camera_observer_update(real_point3d *origin, real_vector3d *forward); // 0x4593b0, outside this module, UNSURE signature
-extern void FUN_005658f0(datum_index target_index, real *out_gain, uint32_t flags1, uint32_t flags2); // 0x5658f0, outside this module, UNSURE signature
+extern void unit_project_onto_aiming_axis(datum_index target_index, real *out_gain, uint32_t flags1, uint32_t flags2); // 0x5658f0, outside this module, UNSURE signature
 extern real_vector3d *vector3d_randomize_direction(real angle, real_vector3d *out); // 0x4cd1b0, UNSURE argument order at this call site
 extern void *vector3d_build_perpendicular(void); // 0x4cd670, UNSURE: this call site shows no visible arguments
 extern void weapon_trigger_barrel_spread_offset(real_vector3d *v, real_vector3d *axis, uint16_t barrel_index,

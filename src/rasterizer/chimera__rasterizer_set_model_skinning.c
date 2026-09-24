@@ -18,7 +18,7 @@ extern int16_t rasterizer_maximum_skinning_nodes; // 0x0069c67e (usually 0x3f)
 extern rasterizer_skinning_matrix rasterizer_skinning_palette[63]; // 0x007c04e0
 extern void *rasterizer_device; // 0x0071d174
 
-typedef int32_t (*d3d_set_vertex_shader_constant_fn)(void *device, uint32_t reg, const void *data, uint32_t count);
+typedef int32_t (__stdcall *d3d_set_vertex_shader_constant_fn)(void *device, uint32_t reg, const void *data, uint32_t count);
 
 
 // blam-cc: unaff_EDI -> rasterizer_node_matrices, stack -> upload

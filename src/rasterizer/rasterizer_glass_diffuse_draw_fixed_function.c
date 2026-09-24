@@ -37,9 +37,9 @@ extern void rasterizer_glass_diffuse_draw(transparent_geometry_group *group); //
 // blam-cc: ECX -> group
 extern void rasterizer_transparent_geometry_group_draw_vertices(transparent_geometry_group *group, uint8_t flag); // 0x00533660
 
-typedef int32_t (*d3d_call1_fn)(void *self, uint32_t a);
-typedef int32_t (*d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
-typedef int32_t (*d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
+typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
+typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
+typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
 void rasterizer_glass_diffuse_draw_fixed_function(transparent_geometry_group *group)
 {
@@ -104,12 +104,12 @@ fallback:
     set_render_state(rasterizer_device, 0xf, 1);
 
     vtable = *(void ***)(void *)rasterizer_effects[109].effect;
-    ((int32_t (*)(void *, uint32_t *, uint32_t))vtable[0x40])((void *)rasterizer_effects[109].effect, &pass_count, 3); // +0x100, Begin
+    ((int32_t (__stdcall *)(void *, uint32_t *, uint32_t))vtable[0x40])((void *)rasterizer_effects[109].effect, &pass_count, 3); // +0x100, Begin
     for (pass = 0; pass < pass_count; pass++) {
-        ((int32_t (*)(void *, uint32_t))vtable[0x41])((void *)rasterizer_effects[109].effect, pass); // +0x104, BeginPass
+        ((int32_t (__stdcall *)(void *, uint32_t))vtable[0x41])((void *)rasterizer_effects[109].effect, pass); // +0x104, BeginPass
         rasterizer_transparent_geometry_group_draw_vertices(group, group->lightmap_bitmap != 0); // ECX group, one stack flag (0x523e9a)
     }
-    ((int32_t (*)(void *))vtable[0x42])((void *)rasterizer_effects[109].effect); // +0x108, End
+    ((int32_t (__stdcall *)(void *))vtable[0x42])((void *)rasterizer_effects[109].effect); // +0x108, End
 }
 
 #if 0

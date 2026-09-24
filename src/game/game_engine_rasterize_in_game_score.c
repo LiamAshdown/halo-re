@@ -40,7 +40,7 @@
 //   builds; DAT_00873d40 (a globals-tag-like font source, offsets +0x54/+0x64/+0x70);
 //   the network-address formatting block (network_address_to_string/
 //   network_channel_get_remote_address/inet_ntoa and the DAT_006869b4/DAT_00698208 globals);
-//   FUN_00449780 and unit_find_weapon_index_by_flag (both outside this batch); the exact role of the "iVar7" object
+//   ui_draw_filled_rectangle and unit_find_weapon_index_by_flag (both outside this batch); the exact role of the "iVar7" object
 //   check that decides the '*' row prefix (a weapon-flags test gated on unit_find_weapon_index_by_flag(3));
 //   select_players_to_display's mode/max_count arguments (not recovered here; the output buffer
 //   is sized for all 16 scoreboard slots, so max_count is modeled as 16).
@@ -99,7 +99,7 @@ extern int32_t chimera__draw_16_bit_text(int32_t unknown_0, int32_t unknown_1, w
     // 0x514ab0; blam-cc: EAX -> unknown (0 here), ECX -> bounds (hud_text_bounds *),
     // stack -> (unknown_0, unknown_1, text)
 
-extern void FUN_00449780(void); // 0x449780, not in this batch; UNSURE exact meaning
+extern void ui_draw_filled_rectangle(void); // 0x449780, not in this batch; UNSURE exact meaning
 extern uint8_t unit_find_weapon_index_by_flag(int32_t unknown_0); // 0x570520, not in this batch; UNSURE exact meaning
 extern char *network_address_to_string(void); // 0x440570, not in this batch; UNSURE exact args
 extern int16_t network_channel_get_remote_address(void); // 0x441ce0, not in this batch; UNSURE exact args
@@ -146,14 +146,14 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float text_
     visible_count = select_players_to_display(0, 16, visible); // UNSURE: mode/max_count, see header
 
     // A translucent background color, packed and (per the disassembly this rewrite could not
-    // fully resolve) apparently discarded; FUN_00449780 is then called with no visible arguments.
+    // fully resolve) apparently discarded; ui_draw_filled_rectangle is then called with no visible arguments.
     {
         real_vector3d bg_color;
         bg_color.i = 0.125f;
         bg_color.j = 0.125f;
         bg_color.k = 0.125f; // UNSURE: local_6b8/local_6bc's exact role beyond this color triple
         (void)color_real_to_argb_pack(text_scale * 0.69f, &bg_color);
-        FUN_00449780(); // UNSURE: exact purpose
+        ui_draw_filled_rectangle(); // UNSURE: exact purpose
     }
 
     // Header row: five tag-driven column labels (indices 67..71, see header), the active game

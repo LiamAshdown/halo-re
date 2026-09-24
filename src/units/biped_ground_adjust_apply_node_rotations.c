@@ -14,7 +14,7 @@
 //   resolve the calling convention enough to show them as arguments. This rewrite preserves the
 //   exact sequence of float assignments and calls and assigns each call the operand its
 //   immediately-preceding assignment most plausibly feeds, but the true per-call argument
-//   binding cannot be recovered from this decompilation alone. FUN_005579e0 and FUN_00558860
+//   binding cannot be recovered from this decompilation alone. real_matrix4x3_rotation_is_orthonormal and real_matrix4x3_rotation_rebuild_orthonormal
 //   are the two math-module helpers this units batch explicitly excludes (orthonormality check
 //   and orthonormal-basis rebuild, out/phase4/units_types_notes.md); FUN_00628140 is an
 //   unresolved math-module call that returns a small angle.
@@ -36,9 +36,12 @@ extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operan
 // decompilation is a Rodrigues formula over in_EAX / in_ECX / param_1 / param_2, and
 // src/math/vector3d_rotate_toward.c reads it the same way. Ghidra binds only the two stack
 // arguments at the call sites below, so the declaration is left unprototyped.
-extern void vector3d_rotate_about_axis(); // 0x4cd820  // real signature (vector3d_rotate_about_axis.c): void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); Ghidra recovered 0 of 4 args at this call site
-extern char FUN_005579e0(void);   // 0x5579e0, math module (out of this batch): are three vectors orthonormal
-extern void FUN_00558860(void);   // 0x558860, math module (out of this batch): rebuild orthonormal basis
+extern void vector3d_rotate_about_axis(); // 0x4cd820
+  // real signature (vector3d_rotate_about_axis.c): void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); Ghidra recovered 0 of 4 args at this call site
+extern uint8_t real_matrix4x3_rotation_is_orthonormal(real_vector3d *forward, real_vector3d *left, real_vector3d *up);
+    // 0x5579e0, src/math; blam-cc: ESI forward, EDI left, EBX up
+extern void real_matrix4x3_rotation_rebuild_orthonormal(real_vector3d *forward, real_vector3d *left, real_vector3d *up);
+    // 0x558860, src/math; blam-cc: ESI forward, EBX left, EDI up
 extern float FUN_00628140(void); // 0x628140, UNSURE signature/module (returns an angle)
 extern double fsin(double x);     // x87 FSIN
 
@@ -46,7 +49,7 @@ extern double fsin(double x);     // x87 FSIN
 // pre-solve direction from that node to its parent (saved_positions) against the post-solve
 // direction (nodes' current positions) and, if they diverge by more than a small angle, rotates
 // the parent's local basis to bring them back into agreement -- keeping the parent's basis
-// orthonormal via FUN_005579e0 / FUN_00558860 when the rotation pushes it out of true.
+// orthonormal via real_matrix4x3_rotation_is_orthonormal / real_matrix4x3_rotation_rebuild_orthonormal when the rotation pushes it out of true.
 void biped_ground_adjust_apply_node_rotations(uint32_t object_index, real_matrix4x3 *nodes,
                                                real_point3d *saved_positions)
 {
@@ -80,8 +83,12 @@ void biped_ground_adjust_apply_node_rotations(uint32_t object_index, real_matrix
                     if ((angle >= 9.999999747378752e-05 || angle <= -9.999999747378752e-05) &&
                         (angle < 0.7853981852531433 && angle > -0.7853981852531433)) {
                         float angle_sin;
-                        if (!FUN_005579e0()) {
-                            FUN_00558860();
+                        // 0x558be8..0x558c1e and 0x558cb5..0x558ce9: both checks are on the parent's
+                        // basis (nodes[*(int16 *)ebp], ebp = &graph_nodes[i].parent_node_index)
+                        if (!real_matrix4x3_rotation_is_orthonormal(&nodes[parent_index].forward,
+                                &nodes[parent_index].left, &nodes[parent_index].up)) {
+                            real_matrix4x3_rotation_rebuild_orthonormal(&nodes[parent_index].forward,
+                                &nodes[parent_index].left, &nodes[parent_index].up);
                         }
                         angle_sin = (float)fsin(angle);
                         vector3d_rotate_about_axis(angle_sin, alignment);
@@ -90,8 +97,10 @@ void biped_ground_adjust_apply_node_rotations(uint32_t object_index, real_matrix
                         vector3d_normalize_with_length(&current_direction);
                         vector3d_cross_product(&rotation_axis, &nodes[parent_index].up, 0);
                         vector3d_normalize_with_length(&rotation_axis);
-                        if (!FUN_005579e0()) {
-                            FUN_00558860();
+                        if (!real_matrix4x3_rotation_is_orthonormal(&nodes[parent_index].forward,
+                                &nodes[parent_index].left, &nodes[parent_index].up)) {
+                            real_matrix4x3_rotation_rebuild_orthonormal(&nodes[parent_index].forward,
+                                &nodes[parent_index].left, &nodes[parent_index].up);
                         }
                     }
                 }

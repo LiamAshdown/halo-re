@@ -6,7 +6,7 @@
 // maximum radius." No static callers are recorded by Ghidra (out/functions.json: callers=0).
 // types/ai.h swarm.unit_index[16]/component_index[16] (0x18/0x58), swarm_component.
 // unknown_14 (0x14, "swarm_add_component sets -1"); actor.swarm_index (0x28), actor.facing
-// (0x174). Calls vector2d_normalize_with_length (0x4018e0, math module) and FUN_004beb30
+// (0x174). Calls vector2d_normalize_with_length (0x4018e0, math module) and projectile_solve_ballistic_arc
 // (0x4beb30, outside this rewrite's range, UNSURE signature -- a curve/steering evaluator
 // judging by its nine arguments, all of which Ghidra did resolve).
 // UNSURE: swarm_component+0x02 (a flags word), +0x21 (a flag byte within the unnamed
@@ -34,7 +34,7 @@ extern const real_vector2d *global_forward2d_pointer; // 0x006966e8, UNSURE name
 
 extern double sqrt(double x); // FSQRT
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0
-extern uint8_t FUN_004beb30(float duration, float target, float *curve, int32_t a, int32_t b,
+extern uint8_t projectile_solve_ballistic_arc(float duration, float target, float *curve, int32_t a, int32_t b,
                             int32_t c, int32_t d, float *in_value, float *out_value); // 0x4beb30, UNSURE signature
 
 // blam-cc: stack -> actor_index, unit_index, radius, out_offset
@@ -42,7 +42,7 @@ extern uint8_t FUN_004beb30(float duration, float target, float *curve, int32_t 
 // "target" reference (unknown_14) with certain flag bits set, mirrors that target's forward
 // direction (falling back to the global forward vector when degenerate) scaled by its own
 // stored 2D direction/scale into `out_offset`, and clears one of those flag bits. Otherwise
-// runs a steering curve (FUN_004beb30) against the actor's own facing direction (falling back
+// runs a steering curve (projectile_solve_ballistic_arc) against the actor's own facing direction (falling back
 // the same way) to produce a spacing offset, clamped to `radius`.
 void actor_compute_swarm_avoidance_offset(datum_index actor_index, datum_index unit_index, float radius, float *out_offset)
 {
@@ -97,7 +97,7 @@ void actor_compute_swarm_avoidance_offset(datum_index actor_index, datum_index u
                     if (clamp_radius <= 0.12f) {
                         clamp_radius = 0.12f;
                     }
-                    if (FUN_004beb30(clamp_radius, 1.0f, curve, 0, 0, 0, 0, &radius, &curve_out) != 0) {
+                    if (projectile_solve_ballistic_arc(clamp_radius, 1.0f, curve, 0, 0, 0, 0, &radius, &curve_out) != 0) {
                         real_vector2d dir;
                         float z;
 

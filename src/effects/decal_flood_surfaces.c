@@ -24,7 +24,7 @@
 // register arguments of polygon2d_clip_to_plane's siblings are taken from
 // src/math/polygon2d_clip_to_planes.c, which establishes both call conventions used here.
 //
-// UNSURE: plane3d_fetch_indexed 0x44dad0 (the indexed BSP plane fetch, a structures/math
+// UNSURE: structure_bsp_plane_fetch_signed 0x44dad0 (the indexed BSP plane fetch, a structures/math
 // function that is in this address range but belongs to another module and has no file yet) is
 // called with every register argument elided. The index passed below is the surface's own
 // `plane` field, which is the only plane index in scope and is what an indexed plane fetch
@@ -61,12 +61,11 @@ extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98,
 // edge ordinal. Ghidra sees the individual floats as DAT_006b0a18/1c/20/24.
 extern real_point2d decal_clip_buffers[2][12];
 
-extern void plane3d_fetch_indexed(ModelCollisionGeometryBSP *bsp, int32_t plane_index,
-    real_vector3d *out_normal); // 0x44dad0, structures/math module, no file yet -- UNSURE
-    // signature and registers, see file header
-extern void decal_plane_solve_third_axis(decal_flood_vertex_record *point,
-    const decal_projection *projection); // 0x44d860, math module, no file yet -- UNSURE
-    // signature and registers, see file header
+extern void structure_bsp_plane_fetch_signed(real_plane3d *out, void *planes_owner, int32_t signed_index);
+    // 0x44dad0, src/structures; blam-cc: EAX out, stack planes_owner, EDX signed_index
+extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign, int32_t dominant_axis,
+    const real_plane3d *plane, const real_point2d *known);
+    // 0x44d860, src/math; blam-cc: stack out, AL component_sign, SI dominant_axis, EBX plane, EDI known
 extern real vector3d_angle_between_4cd5e0(const real_vector3d *a, const real_vector3d *b); // 0x4cd5e0,
     // math module; blam-cc: EAX -> a, ECX -> b
 extern real_plane2d *plane2d_from_points(real_plane2d *out_plane, const real_point2d *a,
@@ -100,7 +99,7 @@ void decal_flood_surfaces(decal_projection *projection, decal_flood_accumulator 
     ModelCollisionGeometryBSPVertex *bsp_vertices;
     ModelCollisionGeometryBSPSurface *surface;
     const projection_axis_pair *axes;
-    real_vector3d surface_normal;   // Ghidra local_10 / local_c / local_8
+    real_plane3d surface_plane;     // esp+0x60: the surface's (possibly flipped) plane; Ghidra local_10 / local_c / local_8
     real angle;                     // Ghidra local_58, read as a float
     int16_t queued_count = 0;       // Ghidra local_5c, the surface_queue cursor
     int16_t fallback_count = 0;     // Ghidra local_4c, the fallback_queue cursor
@@ -121,8 +120,9 @@ void decal_flood_surfaces(decal_projection *projection, decal_flood_accumulator 
         fallback_count = (int16_t)*fallback_queue_count;
     }
 
-    plane3d_fetch_indexed(global_structure_collision_bsp, (int32_t)surface->plane, &surface_normal);
-    angle = vector3d_angle_between_4cd5e0(&surface_normal, (const real_vector3d *)&projection->plane_i);
+    // 0x44e780..0x44e787: EAX = &surface_plane, EDX = surface->plane, stack = the collision BSP
+    structure_bsp_plane_fetch_signed(&surface_plane, global_structure_collision_bsp, (int32_t)surface->plane);
+    angle = vector3d_angle_between_4cd5e0(&surface_plane.normal, (const real_vector3d *)&projection->plane_i);
 
     axes = &k_projection_axes[projection->major_axis * 2 + projection->normal_positive];
 
@@ -231,15 +231,19 @@ void decal_flood_surfaces(decal_projection *projection, decal_flood_accumulator 
                 out_vertex->v = -((du * projection->dv_edge0 - dv * projection->du_edge0) *
                     projection->inverse_determinant);
 
-                decal_plane_solve_third_axis(out_vertex, projection);
+                // 0x44ec16..0x44ec24: out = the vertex record (position first), AL =
+                // projection->normal_positive, SI = projection->major_axis, EBX = &surface_plane,
+                // EDI = the clipped 2D point
+                decal_plane_solve_third_axis((real_point3d *)out_vertex, projection->normal_positive,
+                    projection->major_axis, &surface_plane, clipped);
 
                 // Vertices the clipper did not create (bit clear) sit exactly on a BSP surface,
                 // so they are lifted 1/256 of a world unit along the surface normal to keep the
                 // decal from z-fighting the surface it lies on.
                 if ((edge_bitmask & (1u << (i & 0x1f))) == 0) {
-                    out_vertex->position.x += surface_normal.i * 0.00390625f;
-                    out_vertex->position.y += surface_normal.j * 0.00390625f;
-                    out_vertex->position.z += surface_normal.k * 0.00390625f;
+                    out_vertex->position.x += surface_plane.normal.i * 0.00390625f;
+                    out_vertex->position.y += surface_plane.normal.j * 0.00390625f;
+                    out_vertex->position.z += surface_plane.normal.k * 0.00390625f;
                 }
 
                 accumulator->vertex_count = accumulator->vertex_count + 1;

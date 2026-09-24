@@ -40,7 +40,7 @@ extern int16_t network_widget_reset_f; // 0x006b2f68, UNSURE name/owner
 extern int32_t network_widget_reset_g; // 0x0068e688, UNSURE name/owner
 extern int32_t network_widget_reset_h; // 0x00687b18, UNSURE name/owner
 extern int16_t network_game_mode; // 0x00719720
-extern uint8_t network_channel_service_backoff_bypass; // 0x0071c2dc
+extern uint8_t network_channel_service_backoff_bypass_0071c2dc; // 0x0071c2dc
 extern int32_t sv_maxplayers_value; // 0x00699584
 
 extern void network_channels_open(void); // this module (earlier batch), 0x441300
@@ -113,7 +113,7 @@ uint8_t network_game_start_new_server_with_name_and_password(uint32_t param_1, u
         FUN_0045fc80();
         network_game_mode = 2;
         FUN_004df640();
-        network_channel_service_backoff_bypass = 1;
+        network_channel_service_backoff_bypass_0071c2dc = 1;
     } else {
     fail_or_dispose:
         if (ok == 0) {

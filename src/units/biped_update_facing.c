@@ -22,9 +22,8 @@
 //   here -- Ghidra binds only the stack operand. They are reconstructed from the surrounding
 //   arithmetic (the "project the desired facing into the plane perpendicular to up" idiom) and
 //   are the least certain part of this file.
-// UNSURE: FUN_00564ae0 is the bounded angular servo in the math module (skipped there); its
-//   target-direction operand is register-passed and is not visible in this decompile. It is
-//   almost certainly the projected desired direction computed just above the call.
+// vector3d_rotate_toward_bounded's register operands (orphan pass 4 review, 0x55bad1..0x55baee):
+//   ECX = &target (local_1c, the projected desired direction) and ESI = 0 (no transform).
 
 #include "tags.h"
 #include "memory.h"
@@ -55,9 +54,12 @@ extern void vector3d_cross_product(); // 0x4052c0
 // decompilation is a Rodrigues formula over in_EAX / in_ECX / param_1 / param_2, and
 // src/math/vector3d_rotate_toward.c reads it the same way. Ghidra binds only the two stack
 // arguments at the call sites below, so the declaration is left unprototyped.
-extern void vector3d_rotate_about_axis(); // 0x4cd820  // real signature (vector3d_rotate_about_axis.c): void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); Ghidra recovered 0 of 4 args at this call site
-extern void FUN_00564ae0(real_vector3d *current, real_vector3d *velocity, float *bounds,
-                          float max_velocity, float max_acceleration); // 0x564ae0, math module (skipped)
+extern void vector3d_rotate_about_axis(); // 0x4cd820
+  // real signature (vector3d_rotate_about_axis.c): void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); Ghidra recovered 0 of 4 args at this call site
+extern void vector3d_rotate_toward_bounded(real_vector3d *current, real_vector3d *velocity, float *bounds,
+                          float max_velocity, float max_acceleration, real_vector3d *target,
+                          real_matrix4x3 *transform); // 0x564ae0, src/math; blam-cc: stack (current, velocity,
+                          // bounds, max_velocity, max_acceleration), ECX target, ESI transform
 extern void unit_update_up_vector(Biped *biped_tag, object *obj); // 0x560800
 
 // Turns a biped's body toward its desired facing once per tick.
@@ -284,10 +286,8 @@ void biped_update_facing(uint32_t object_index, int8_t *out_animation_state) // 
 
         servo_acceleration = tag->angular_acceleration_maximum * 0.0011111111f; // per tick^2, 1/900
         if (servo_acceleration != 0.0f) {
-            // UNSURE: the target direction is register-passed and invisible here; it is the
-            // "target" vector computed above.
-            FUN_00564ae0(&obj->forward, &obj->angular_velocity, bounds,
-                         tag->angular_velocity_maximum * 0.033333335f, servo_acceleration);
+            vector3d_rotate_toward_bounded(&obj->forward, &obj->angular_velocity, bounds,
+                         tag->angular_velocity_maximum * 0.033333335f, servo_acceleration, &target, 0);
         } else {
             obj->forward = target;
         }

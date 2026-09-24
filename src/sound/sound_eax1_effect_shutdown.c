@@ -18,7 +18,7 @@ void sound_eax1_effect_shutdown(sound_effect_object *this_object)
     void *property_set = this_object->property_set;
 
     if (property_set != 0) {
-        ((uint32_t (*)(void *))(*(void ***)property_set)[2])(property_set); // IUnknown::Release
+        ((uint32_t (__stdcall *)(void *))(*(void ***)property_set)[2])(property_set); // IUnknown::Release
         this_object->property_set = 0;
     }
 }

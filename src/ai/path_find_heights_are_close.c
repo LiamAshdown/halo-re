@@ -1,36 +1,51 @@
 // path_find_heights_are_close  (Ghidra: path_find_heights_are_close, renamed)
 // address 0x43d910, size 160 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.45   rewrite confidence: 0.75 (orphan pass 4 review: re-derived from objdump
+//   0x43d910..0x43d9af while reconciling the two calls into decal_plane_solve_third_axis 0x44d860;
+//   the draft had lost the EAX / EDX inputs and the point both planes are evaluated at)
 // evidence: phase-4 summary "checks whether two navmesh cluster locations sit at nearly the
-// same height, used to reject path steps needing a large vertical jump." Calls FUN_0044d860
-// (outside this rewrite's range) twice to resolve each vertex's position; the CONCAT/NAN
-// wrapping on the return value is this module's familiar "clean 0/1 in the low byte, garbage
-// above" pattern, reproduced here as a plain uint8_t return.
-// register convention: ECX -> vertex_a, stack -> vertex_b.
-//   // blam-cc: ECX -> vertex_a, stack -> vertex_b
-//
-// UNSURE: FUN_0044d860 is called here with only its output pointer visible; the vertex id it
-// resolves a position for is presumably forwarded via a register this decompilation does not
-// show (vertex_a for the first call, vertex_b for the second, by position in the source).
+//   same height, used to reject path steps needing a large vertical jump". objdump: EAX is the
+//   ScenarioStructureBSP (its +0xb4 is the collision_bsp pointer, a ModelCollisionGeometryBSP:
+//   planes pointer +0x10, 0x10 stride; surfaces pointer +0x40, 0xc stride, plane index at +0 with
+//   bit 31 the flip bit, masked off here), EDX the 2D point, ECX and the stack dword two surface
+//   indices. For each surface the point is lifted onto the surface's plane with
+//   decal_plane_solve_third_axis (AL = 1, SI = 2 -- solve z --, EBX = &plane, EDI = point); the
+//   surfaces are "close" when the two heights differ by less than 0.05 (double at 0x00672b28,
+//   `fabs; fcomp; test ah,5; jp`: a NaN difference is not close).
+// register convention: EAX -> structure_bsp, EDX -> point, ECX -> surface_a, stack -> surface_b.
+//   // blam-cc: EAX -> structure_bsp, EDX -> point, ECX -> surface_a, stack -> surface_b
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include <stdint.h> // uintptr_t: tag block pointers are 32-bit fields
 
 extern double fabs(double x); // ABS
-extern void FUN_0044d860(real_point3d *out_position); // 0x44d860, outside this rewrite's range; see header UNSURE
+extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign, int32_t dominant_axis,
+    const real_plane3d *plane, const real_point2d *known);
+    // 0x44d860, src/math; blam-cc: stack out, AL component_sign, SI dominant_axis, EBX plane, EDI known
 
-// blam-cc: ECX -> vertex_a, stack -> vertex_b
-uint8_t path_find_heights_are_close(int32_t vertex_a, int32_t vertex_b)
+// Whether `point` lies at nearly the same height on the planes of surface_a and surface_b of the
+// structure BSP's collision geometry.
+uint8_t path_find_heights_are_close(ScenarioStructureBSP *structure_bsp, real_point2d *point, int32_t surface_a,
+    int32_t surface_b)
 {
-    if ((vertex_a != -1) && (vertex_b != -1)) {
-        real_point3d position_a, position_b;
-        FUN_0044d860(&position_a);
-        FUN_0044d860(&position_b);
-        return fabs(position_a.z - position_b.z) < 0.05;
+    ModelCollisionGeometryBSP *collision_bsp;
+    ModelCollisionGeometryBSPSurface *surfaces;
+    real_plane3d *planes;
+    real_point3d position_a, position_b;
+
+    if (surface_a == -1 || surface_b == -1) {
+        return 0;
     }
-    return 0;
+    collision_bsp = (ModelCollisionGeometryBSP *)(uintptr_t)*(uint32_t *)((uint8_t *)structure_bsp + 0xb4);
+    surfaces = (ModelCollisionGeometryBSPSurface *)(uintptr_t)collision_bsp->surfaces.pointer;
+    planes = (real_plane3d *)(uintptr_t)collision_bsp->planes.pointer;
+
+    decal_plane_solve_third_axis(&position_a, 1, 2, &planes[surfaces[surface_a].plane & 0x7fffffff], point);
+    decal_plane_solve_third_axis(&position_b, 1, 2, &planes[surfaces[surface_b].plane & 0x7fffffff], point);
+    return (uint8_t)(fabs((double)(position_a.z - position_b.z)) < 0.05000000074505806);
 }
 
 #if 0

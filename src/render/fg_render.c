@@ -73,12 +73,12 @@ extern void chimera__draw_8_bit_text(Rectangle2D *clip_rect_override, int32_t *d
     // uint32_t position_or_color1/2; 0x512e80 passes a Point2DInt out cursor and -4 there.
 extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 _sprintf
 
-typedef int32_t (*d3d_call1_fn)(void *self, uint32_t a);
-typedef int32_t (*d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
-typedef int32_t (*d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
-typedef int32_t (*d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data,
+typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
+typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
+typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
+typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data,
                                          uint32_t count);
-typedef int32_t (*d3d_draw_primitive_up_fn)(void *self, uint32_t primitive_type,
+typedef int32_t (__stdcall *d3d_draw_primitive_up_fn)(void *self, uint32_t primitive_type,
                                             uint32_t primitive_count, const void *data,
                                             uint32_t stride);
 

@@ -23,7 +23,7 @@
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern data_array *looping_sound_data; // 0x007461a0, UNSURE: see file header
+extern data_array *looping_sound_data_007461a0; // 0x007461a0, UNSURE: see file header
 extern data_array *unknown_data_0087abd4; // 0x0087abd4, UNSURE: see file header
 
 extern void light_delete(datum_index light_handle); // 0x4f0bd0, ESI -> light_handle
@@ -50,7 +50,7 @@ void object_delete_attachments(uint32_t object_index) // blam-cc: EBX -> object_
                     light_delete(handle);
                     break;
                 case _object_attachment_type_looping_sound:
-                    datum_delete(looping_sound_data, handle);
+                    datum_delete(looping_sound_data_007461a0, handle);
                     break;
                 case _object_attachment_type_effect:
                     effect_delete(handle);

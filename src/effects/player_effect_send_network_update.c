@@ -28,7 +28,8 @@
 extern data_array *player_data; // 0x0087a480
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 
-extern int32_t hash_table_get(void); // 0x4f05e0, not in this batch; UNSURE exact signature
+extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
+extern uint8_t *object_pooled_node_globals; // 0x00687130, the object network-id hash_table sits at +0x0c
 extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,
     uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,
     uint8_t unknown_6); // 0x4ec940
@@ -63,7 +64,7 @@ void player_effect_send_network_update(datum_index player_handle, uint32_t *desc
         fields[0] = descriptor[0];
         fields[1] = 0;
         if (descriptor[3] != 0xffffffff) {
-            fields[1] = (uint32_t)hash_table_get();
+            fields[1] = (uint32_t)hash_table_get((hash_table *)(object_pooled_node_globals + 0xc), (int32_t)descriptor[3]); // 0x456c29..0x456c43
             if (fields[1] == 0xffffffff) {
                 fields[1] = 0;
             }

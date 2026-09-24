@@ -26,7 +26,7 @@ void __cdecl chimera__rasterizer_dispose_free_memory(void)
 {
     if (rasterizer_misc_vertex_buffer != (void *)0) {
         void **vtable = *(void ***)rasterizer_misc_vertex_buffer;
-        ((void (*)(void *))vtable[2])(rasterizer_misc_vertex_buffer); // Release
+        ((void (__stdcall *)(void *))vtable[2])(rasterizer_misc_vertex_buffer); // Release
         rasterizer_misc_vertex_buffer = (void *)0;
     }
     if (transparent_geometry_groups != (transparent_geometry_group *)0) {

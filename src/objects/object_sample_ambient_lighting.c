@@ -33,11 +33,13 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "rasterizer.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern char object_lighting_sample_point(uint8_t flags, real_point3d *point, float *out); // 0x4f2550
+extern uint8_t object_lighting_sample_point(uint8_t flags, real_point3d *point, render_lighting *lighting); // 0x4f2550, cdecl;
+    // `sample` below is that 0x74-byte render_lighting (types/rasterizer.h) walked as 29 floats
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
 
 // True for the float slots the accumulate/average passes touch. Index 3 is the int16 status
@@ -61,7 +63,7 @@ void object_sample_ambient_lighting(uint32_t object_index, float *sample) // bla
         flags |= 4;
     }
 
-    center_ok = object_lighting_sample_point(flags, &obj->bounding_center, sample);
+    center_ok = object_lighting_sample_point(flags, &obj->bounding_center, (render_lighting *)sample);
 
     if ((obj->flags & 0x4000) == 0) { // UNSURE: see file header
         float probe[29];
@@ -86,7 +88,7 @@ void object_sample_ambient_lighting(uint32_t object_index, float *sample) // bla
             corner.y = ((offset_index & 2) == 0 ? -0.70710677f : 0.70710677f) * obj->bounding_radius +
                        obj->bounding_center.y;
 
-            ok = object_lighting_sample_point(flags, &corner, probe);
+            ok = object_lighting_sample_point(flags, &corner, (render_lighting *)probe);
             if (ok != 0) {
                 successes = successes + 1;
                 for (i = 0; i < 29; i++) {

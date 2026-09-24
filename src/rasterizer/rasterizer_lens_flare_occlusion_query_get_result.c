@@ -18,7 +18,7 @@
 extern uint8_t console_debug_toggle_689424; // 0x00689424
 extern void *lens_flare_occlusion_queries[k_lens_flare_occlusion_queries]; // 0x006e1dc8
 
-typedef int32_t (*d3d_query_get_data_fn)(void *query, void *data, uint32_t size, uint32_t flags);
+typedef int32_t (__stdcall *d3d_query_get_data_fn)(void *query, void *data, uint32_t size, uint32_t flags);
 
 // Polls the occlusion query for one lens-flare slot until a result is available, returning the
 // query's visible-pixel-count result. UNSURE/note: the original overwrites its own "query

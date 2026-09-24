@@ -1,5 +1,5 @@
 // rasterizer_decals_draw_cluster  (Ghidra: FUN_0051aa50, unnamed)
-// address 0x51aa50, size 826 bytes (the body really runs to 0x51b0b2 and owns the jump table at
+// address 0x51aa50, size 1636 bytes (0x51aa50..0x51b0b3; Ghidra said 826 bytes, the body really runs to 0x51b0b2 and owns the jump table at
 // 0x51b0b4; Ghidra split two of its switch cases off as the fake functions 0x51acd0 and 0x51ad91)
 // name confidence: 0.55   rewrite confidence: 0.75
 // evidence: walks the singly linked decal list of one (decal layer, cluster) bucket: the head is
@@ -46,11 +46,11 @@ extern int16_t *chimera__rasterizer_set_texture(uint32_t bitmap_tag_id, int16_t 
                                                 int16_t default_index, int16_t frame); // 0x518960
 extern int32_t __cdecl _ftol(double value);                         // 0x6391b4, CRT __ftol (value on the FPU stack)
 
-typedef int32_t (*d3d_call1_fn)(void *self, uint32_t a);
-typedef int32_t (*d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
-typedef int32_t (*d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
-typedef int32_t (*d3d_set_pointer_fn)(void *self, void *object);
-typedef int32_t (*d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
+typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
+typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
+typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
+typedef int32_t (__stdcall *d3d_set_pointer_fn)(void *self, void *object);
+typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
 
 static void **device_vtable(void)
 {

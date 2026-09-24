@@ -18,8 +18,8 @@ extern uint8_t console_debug_toggle_6893e4;                         // 0x006893e
 extern uint8_t console_debug_toggle_6893fa; // 0x006893fa
 extern void *rasterizer_device;             // 0x0071d174
 
-typedef int32_t (*d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
-typedef int32_t (*d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
+typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
+typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
 void rasterizer_shader_decal_pass_set_states(void)
 {

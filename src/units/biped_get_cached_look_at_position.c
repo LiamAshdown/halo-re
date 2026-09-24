@@ -1,6 +1,6 @@
 // biped_get_cached_look_at_position  (Ghidra: biped_get_cached_look_at_position, renamed)
 // address 0x55ab30, size 464 bytes
-// name confidence: 0.35   rewrite confidence: 0.4
+// name confidence: 0.35   rewrite confidence: 0.7
 // evidence: types/units.h biped_data fields unknown_4dc ("the cached look-at result"),
 //   unknown_4e0 ("the cached look-at point 0x55ab30 refreshes"), unknown_4ec ("game tick that
 //   cache was last refreshed"), unknown_4f0 ("the previous value of unknown_4dc"), unknown_4fc
@@ -21,69 +21,92 @@ extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
 
-extern char FUN_005014a0(datum_index target, int32_t param_2, int32_t param_3); // UNSURE module
-extern void FUN_00501470(int32_t param_1, real_point3d *point);                 // UNSURE module
-extern void FUN_005015a0(datum_index target, int32_t param_2, int32_t param_3, real_point3d *point,
-                          void *scratch8);                                      // UNSURE module
-extern void FUN_0044d860(real_point3d *point);                                  // UNSURE module
-// object_get_position (0x4f6900, defined in src/objects/object_get_position.c) writes the
-// object position through the pointer in EAX and leaves that same pointer in EAX on return;
-// the object index is in ECX. Ghidra binds a different subset of the two operands at each call
-// site in this module, so the declaration is left unprototyped.
-extern real_point3d *object_get_position();
-extern uint32_t unit_test_placement_candidate(float distance, real_point3d *out_position,
-                                               real_vector3d *direction, void **out_hit_object); // 0x55aa20, this batch
+extern uint8_t collision_bsp_surface_test_point_side_2d(ModelCollisionGeometryBSP *bsp,
+    real_point2d *point, int32_t surface_index, int16_t axis, uint8_t sign);
+    // 0x5014a0, src/physics; blam-cc: EAX bsp, EDI point, stack (surface_index, axis, sign)
+extern uint32_t collision_bsp_surface_closest_edge_point_2d(ModelCollisionGeometryBSP *bsp,
+    int32_t surface_index, uint16_t axis, uint8_t sign, real_point2d *point, real_point2d *out_point);
+    // 0x5015a0, src/physics; blam-cc: EAX bsp, stack (surface_index, axis, sign, point, out_point)
+extern real_point3d *collision_bsp_surface_solve_third_axis(ModelCollisionGeometryBSP *collision_bsp,
+    int32_t surface_index, uint8_t component_sign, real_point3d *out, int32_t dominant_axis,
+    const real_point2d *known); // 0x501470, src/physics
+extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign,
+    int32_t dominant_axis, const real_plane3d *plane, const real_point2d *known);
+    // 0x44d860, src/math; blam-cc: stack out, AL component_sign, SI dominant_axis, EBX plane, EDI known
+extern real_point3d *object_get_position(uint32_t object_index, real_point3d *out); // 0x4f6900; blam-cc: ECX object_index, EAX out
+extern char unit_test_placement_candidate(float distance, real_point3d *out_position,
+    real_vector3d *direction, void **out_hit_object); // 0x55aa20, this module
+extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
+extern real_vector3d *global_down3d_pointer;           // 0x0069672c
 
-// Periodically refreshes and returns the biped's cached target look-at position
-// (biped_data.unknown_4dc/unknown_4e0). While unattached (or the Biped tag's bit 0x4 is set)
-// and the cache is empty and due for a refresh, it re-resolves either the previously tracked
-// reference or the current tracked target through the (unresolved) marker-lookup helpers, and
-// falls back to unit_test_placement_candidate if neither yields a result. When attached without
-// that tag bit, the cache is invalidated and the caller's output pointer is redirected straight
-// at the object's own position.
+// Periodically refreshes and returns the biped's cached look-at surface (biped_data.unknown_4dc)
+// and writes the cached point (unknown_4e0) through out_position.
+// objdump 0x55ab30..0x55acff (orphan pass 4 review rewrite; the earlier version swapped which
+// fields feed which branch and passed a 1-argument form of the 0x501470 / 0x44d860 helpers):
+//   * a biped whose tag has flag 0x4 while object byte 0x106 bit 0x4 is clear drops the cache:
+//     unknown_4dc = -1, object_get_position(object_index, out_position) (ECX, EAX), and the
+//     shared tail then overwrites *out_position with unknown_4e0.
+//   * otherwise, once per tick while unknown_4dc is -1 (game_time > unknown_4ec, signed):
+//       - standing on a surface (ground_surface_index != -1): the closest point on that surface's
+//         boundary to unknown_4e0, projected along axis 2 (z) with sign 1, is lifted back onto
+//         the surface plane (plane index & 0x7fffffff), and unknown_4dc = ground_surface_index;
+//       - else when unknown_4f0 (the last result) is valid and unknown_4e0 still projects inside
+//         that surface, unknown_4e0 is lifted onto it and unknown_4dc = unknown_4f0;
+//       - if that left unknown_4dc == -1, unit_test_placement_candidate(2.0, &point) with ESI =
+//         global_down3d_pointer, EBX = 0 and ECX = object_index;
+//       - a valid result stores point into unknown_4e0 and unknown_4f0.
 datum_index biped_get_cached_look_at_position(uint32_t object_index, real_point3d *out_position)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     Biped *tag = (Biped *)tag_instances[obj->definition_tag & 0xffff].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
-    real_point3d *write_target = out_position;
 
-    if ((tag->biped_flags & 4) == 0 || (obj->vitality_flags & 4) != 0) {
-        if (biped->unknown_4dc == k_datum_index_none &&
-            (int32_t)biped->unknown_4ec < game_time->game_time) {
-            real_point3d point = biped->unknown_4e0;
-            biped->unknown_4ec = game_time->game_time;
+    if ((tag->biped_flags & 4) != 0 && (*((uint8_t *)obj + 0x106) & 4) == 0) {
+        biped->unknown_4dc = k_datum_index_none;
+        object_get_position(object_index, out_position);
+    } else if (biped->unknown_4dc == k_datum_index_none && game_time->game_time > (int32_t)biped->unknown_4ec) {
+        ModelCollisionGeometryBSP *bsp = global_structure_collision_bsp;
+        int32_t surface = (int32_t)biped->ground_surface_index;
+        real_point3d point = biped->unknown_4e0;
+        real_point2d closest; // [esp+0x10], the 2D result handed to the solver in EDI
 
-            if (biped->unknown_4f0 == k_datum_index_none) {
-                datum_index target = biped->unknown_4fc;
-                if (target != k_datum_index_none && FUN_005014a0(target, 2, 1)) {
-                    biped->unknown_4dc = target;
-                    FUN_00501470(1, &point);
-                    biped->unknown_4dc = target;
-                }
-            } else {
-                uint8_t scratch[8];
-                FUN_005015a0(biped->unknown_4f0, 2, 1, &point, scratch);
-                FUN_0044d860(&point);
-                biped->unknown_4dc = biped->unknown_4f0;
-            }
+        biped->unknown_4ec = game_time->game_time;
+        if (surface != -1) {
+            ModelCollisionGeometryBSPSurface *surfaces =
+                (ModelCollisionGeometryBSPSurface *)bsp->surfaces.pointer;
+            const real_plane3d *plane = (const real_plane3d *)((uint8_t *)bsp->planes.pointer +
+                (surfaces[surface].plane & 0x7fffffff) * 0x10);
 
-            if (biped->unknown_4dc == k_datum_index_none) {
-                biped->unknown_4dc = unit_test_placement_candidate(2.0f, &point, 0, 0); // UNSURE: 0x40000000 == 2.0f
-            }
-            if (biped->unknown_4dc != k_datum_index_none) {
-                biped->unknown_4e0 = point;
-                biped->unknown_4f0 = biped->unknown_4dc;
+            collision_bsp_surface_closest_edge_point_2d(bsp, surface, 2, 1,
+                (real_point2d *)&biped->unknown_4e0, &closest);
+            decal_plane_solve_third_axis(&point, 1, 2, plane, &closest);
+            biped->unknown_4dc = biped->ground_surface_index;
+        } else {
+            int32_t previous = (int32_t)biped->unknown_4f0;
+            if (previous != -1 &&
+                collision_bsp_surface_test_point_side_2d(bsp, (real_point2d *)&biped->unknown_4e0,
+                    previous, 2, 1)) {
+                biped->unknown_4dc = (datum_index)previous;
+                collision_bsp_surface_solve_third_axis(bsp, previous, 1, &point, 2,
+                    (const real_point2d *)&biped->unknown_4e0);
+                biped->unknown_4dc = (datum_index)previous;
             }
         }
-    } else {
-        biped->unknown_4dc = k_datum_index_none;
-        write_target = object_get_position(); // UNSURE: redirects the write below at the object's
-                                               // own position instead of out_position; preserved
-                                               // as-is even though it looks like a quirk.
+
+        if (biped->unknown_4dc == k_datum_index_none) {
+            // UNSURE: 0x55ac85..0x55ac9b also pass ECX = object_index, ESI = global_down3d_pointer
+            // and EBX = 0 (no hit object); unit_test_placement_candidate's own rewrite does not
+            // model ECX, and it returns a char where this caller stores the full EAX as a datum.
+            biped->unknown_4dc = (datum_index)(int32_t)unit_test_placement_candidate(2.0f, &point,
+                global_down3d_pointer, 0);
+        }
+        if (biped->unknown_4dc != k_datum_index_none) {
+            biped->unknown_4e0 = point;
+            biped->unknown_4f0 = biped->unknown_4dc;
+        }
     }
 
-    *write_target = biped->unknown_4e0;
+    *out_position = biped->unknown_4e0;
     return biped->unknown_4dc;
 }
 

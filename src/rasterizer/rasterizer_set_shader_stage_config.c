@@ -18,7 +18,7 @@ extern uint8_t unknown_006893ef; // 0x006893ef UNSURE: debug toggle
 extern int16_t rasterizer_shader_stage_config; // 0x0069c6ac
 extern void *rasterizer_device; // 0x0071d174
 
-typedef int32_t (*d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
+typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
 
 // blam-cc: AX -> mode
 // Applies a cached, mode-dependent bundle of texture stage render states, doing nothing if

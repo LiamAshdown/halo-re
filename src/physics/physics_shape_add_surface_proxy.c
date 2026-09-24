@@ -4,7 +4,7 @@
 // name confidence: 0.3   rewrite confidence: 0.2
 // evidence: out/phase2/results/physics_00.json: "Fetches a surface's vertex loop via
 //   FUN_00501400, transforms each vertex with matrix4x3_transform_point, applies an
-//   angular+linear velocity correction (13-float unaff_ESI matrix) via FUN_0044dad0, then
+//   angular+linear velocity correction (13-float unaff_ESI matrix) via structure_bsp_plane_fetch_signed, then
 //   forwards to FUN_005038a0." out/phase4/physics_types_notes.md: "0x503c50 passes the surface
 //   index in the same second slot but forces it to -1 when an object index is present" --
 //   matches the `object_index != -1 ? -1 : surface_index` swap here.
@@ -16,7 +16,7 @@
 //   //           stack -> surface_index, margin, thickness, object_index, model
 // UNSURE, significantly: three call sites here show zero or partial visible arguments
 // (collision_bsp_surface_get_vertices needs bsp via EDI, reconstructed from this function's own
-// EAX; the plane fetch FUN_0044dad0 needs an output pointer, bsp and a plane index, all
+// EAX; the plane fetch structure_bsp_plane_fetch_signed needs an output pointer, bsp and a plane index, all
 // register-passed and dropped; matrix4x3_transform_point's per-vertex loop shows no arguments
 // at all). This rewrite reconstructs the plane fetch and per-vertex transform as the only
 // semantically sensible calls given the surrounding code (fetch surface->plane, negating it per
@@ -31,8 +31,9 @@
 extern int16_t collision_bsp_surface_get_vertices(ModelCollisionGeometryBSP *bsp,
                                                     int32_t surface_index,
                                                     real_point3d *out_vertices); // 0x501400, this batch
-extern void FUN_0044dad0(ModelCollisionGeometryBSP *bsp, uint32_t plane_index,
-                          real_plane3d *out_plane); // 0x44dad0, not physics; copies
+extern void structure_bsp_plane_fetch_signed(real_plane3d *out, void *planes_owner, int32_t signed_index);
+                          // 0x44dad0, src/structures; blam-cc: EAX out, EDX signed_index, stack
+                          // planes_owner (0x503c74..0x503c7f); copies
                                                      // bsp->planes[plane_index & 0x7fffffff],
                                                      // negated if the sign bit is set
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0
@@ -60,7 +61,7 @@ void physics_shape_add_surface_proxy(ModelCollisionGeometryBSP *bsp, float *movi
     real_plane3d plane;
     int16_t vertex_count = collision_bsp_surface_get_vertices(bsp, surface_index, vertices);
 
-    FUN_0044dad0(bsp, surface->plane, &plane);
+    structure_bsp_plane_fetch_signed(&plane, bsp, (int32_t)surface->plane);
 
     if (moving_frame != 0) {
         int16_t i;

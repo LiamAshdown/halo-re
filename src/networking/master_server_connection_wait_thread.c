@@ -24,7 +24,7 @@
 extern uint32_t master_server_request_flags; // 0x0071969c
 extern network_thread_record *server_list_thread; // 0x007196ac, see UNSURE
 extern network_mutex_record *server_list_mutex;    // 0x007196a8
-extern int32_t master_server_connection_last_tick_ms; // 0x0072520c, see UNSURE
+extern int32_t master_server_connection_last_tick_ms_0072520c; // 0x0072520c, see UNSURE
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, owned by the timing/system module
 
 extern void FUN_00549960(void); // foreign, outside this session's range
@@ -52,7 +52,7 @@ void master_server_connection_wait_thread(void)
         }
         QueryPerformanceCounter(&counter);
         now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
-        if (0x84 < (uint32_t)(now_ms - master_server_connection_last_tick_ms)) {
+        if (0x84 < (uint32_t)(now_ms - master_server_connection_last_tick_ms_0072520c)) {
             FUN_00549960();
         }
         master_server_request_flags = master_server_request_flags | 2;

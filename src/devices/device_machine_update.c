@@ -45,7 +45,7 @@
 //      on game.h game_engine_definition *current_game_engine (all accesses are DWORD).
 // UNSURE: object+0xb8, read here as a signed int16 team index (0x44b298 `mov ax,WORD PTR
 //   [esi+0xb8]`, then the signed pair `test ax,ax; jl` / `cmp ax,0xa; jge`) and used to index a
-//   per-team bitmask at game_globals+0xa4, is documented in types/objects.h as name_index.
+//   per-team bitmask at game_globals_006b0b84+0xa4, is documented in types/objects.h as name_index.
 //   out/phase4/devices_types_notes.md item 5 flags the same conflict and assigns it to the
 //   objects module owner rather than resolving it here; this file keeps the raw offset rather
 //   than object->name_index so the mismatch stays visible. The WIDTH and SIGNEDNESS of the read
@@ -80,7 +80,7 @@ extern game_time_globals *game_time; // 0x006f1d6c (types/game.h), +0x0c game_ti
 extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
     // multiplayer/campaign selector (per devices_types_notes.md), a wider read than the
     // uint8_t use at this same address in the items module
-extern void *game_globals; // 0x006b0b84, +0xa4 is the per-team bitmask array this reads
+extern void *game_globals_006b0b84; // 0x006b0b84, +0xa4 is the per-team bitmask array this reads
 
 extern uint8_t device_group_set_value(uint16_t group_index, float value); // 0x44bd70, this batch
     // blam-cc: ESI -> group_index, stack -> value; returns 0/1 in AL (both call sites here
@@ -151,7 +151,7 @@ uint32_t device_machine_update(uint32_t object_index)
                         if (team < 0 || 9 < team) {
                             exempt = 1;
                         } else {
-                            exempt = (*(uint32_t *)((uint8_t *)game_globals + 0xa4 +
+                            exempt = (*(uint32_t *)((uint8_t *)game_globals_006b0b84 + 0xa4 +
                                 ((team + 10) >> 5) * 4) & (1u << ((team + 10) & 0x1f))) == 0;
                         }
                     } else {

@@ -15,17 +15,26 @@
 //   // blam-cc: ECX -> primary_key, EDI -> edi_key, stack -> mode, interaction_type_and_seat, secondary_key
 // UNSURE: the exact split of `interaction_type_and_seat` into its two 16-bit halves (modeled as
 //   Ghidra's own `param_2._0_2_`/`(undefined2)param_3`, i.e. the low 16 bits of two separate
-//   stack dwords) and hash_table_get's real argument list (elided, same as its every other call
-//   site in this module); EDI's real identity beyond "a second hashed key".
+//   stack dwords); EDI's real identity beyond "a second hashed key". hash_table_get's arguments
+//   are resolved (orphan pass 4 review): primary_key goes through the 0x00687558 table, edi_key and
+//   the last key through the 0x00687130 object network-id table.
+// UNSURE (found by the orphan pass 4 review, not fixed here): all three callers push FOUR stack
+//   dwords (e.g. 0x478bc9..0x478bd1: -1, -1, 7, 1) and the body reads [entry+0xc] for the low word
+//   stored at fields+0x0a but [entry+0x10] (EBP, loaded at 0x478ff5) as the last hashed key, so
+//   `secondary_key` below is really two parameters; the callers' own externs disagree with this
+//   signature as well.
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "objects.h" // hash_table
 
 extern uint8_t shared_hud_text_draw_state; // 0x00871de0
 
-extern int32_t hash_table_get(void); // 0x4f05e0
+extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
+extern uint8_t *object_pooled_node_globals; // 0x00687130, the object network-id hash_table sits at +0x0c
+extern uint8_t *machine_table; // 0x00687558, its hash_table sits at +0x0c
 extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,
     uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,
     uint8_t unknown_6); // 0x4ec940
@@ -52,7 +61,7 @@ void game_engine_notify_player_interaction(uint32_t primary_key, uint32_t edi_ke
 
     fields.primary_hash = 0;
     if (primary_key != 0xffffffff) {
-        fields.primary_hash = hash_table_get();
+        fields.primary_hash = hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)primary_key); // 0x478ffb..0x47900a
         if (fields.primary_hash == -1) {
             fields.primary_hash = 0;
         }
@@ -60,7 +69,7 @@ void game_engine_notify_player_interaction(uint32_t primary_key, uint32_t edi_ke
     fields.mode = mode;
     fields.edi_hash = 0;
     if (edi_key != 0xffffffff) {
-        fields.edi_hash = hash_table_get();
+        fields.edi_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0xc), (int32_t)edi_key); // 0x47902a..0x479034
         if (fields.edi_hash == -1) {
             fields.edi_hash = 0;
         }
@@ -69,7 +78,7 @@ void game_engine_notify_player_interaction(uint32_t primary_key, uint32_t edi_ke
     fields.low_secondary_key = (int16_t)secondary_key;
     fields.secondary_hash = 0;
     if (secondary_key != -1) {
-        fields.secondary_hash = hash_table_get();
+        fields.secondary_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0xc), (int32_t)secondary_key); // 0x479050..0x479064, UNSURE: EBP is the 4th stack dword, see note
         if (fields.secondary_hash == -1) {
             fields.secondary_hash = 0;
         }

@@ -281,12 +281,12 @@ void lens_flare_render_all(void)
     if (rasterizer_effect_pool_scratch != 0 && *(void **)rasterizer_effect_pool_scratch != 0) {
         void *obj = *(void **)rasterizer_effect_pool_scratch;
         void **vtable = *(void ***)obj;
-        ((void (*)(void *))vtable[0x108 / 4])(obj); // ID3DXEffect::End
+        ((void (__stdcall *)(void *))vtable[0x108 / 4])(obj); // ID3DXEffect::End
     }
     rasterizer_effect_pool_scratch = 0;
     {
         void **device_vtable = *(void ***)rasterizer_device;
-        ((void (*)(void *, int32_t))device_vtable[0x164 / 4])(rasterizer_device, 0); // SetFVF(0)
+        ((void (__stdcall *)(void *, int32_t))device_vtable[0x164 / 4])(rasterizer_device, 0); // SetFVF(0)
     }
 
     {

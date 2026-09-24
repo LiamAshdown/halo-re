@@ -70,7 +70,7 @@ void __thiscall sound_eax30_effect_shutdown(sound_eax_effect_object *this_object
                     &default_bits, 4);
             }
         }
-        ((uint32_t (*)(void *))(*(void ***)property_set)[2])(property_set); // Release
+        ((uint32_t (__stdcall *)(void *))(*(void ***)property_set)[2])(property_set); // Release
         this_object->base.property_set = 0;
     }
 
@@ -86,7 +86,7 @@ void __thiscall sound_eax30_effect_shutdown(sound_eax_effect_object *this_object
                         &default_bits, 4);
                 }
             }
-            ((uint32_t (*)(void *))(*(void ***)property_set)[2])(property_set); // Release
+            ((uint32_t (__stdcall *)(void *))(*(void ***)property_set)[2])(property_set); // Release
         }
         this_object->channel_property_sets[i] = 0;
     }

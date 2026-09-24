@@ -131,14 +131,14 @@ extern int32_t __stdcall GetWindowRect(void *hwnd, win32_rect *rect);
 extern int32_t __stdcall ShowCursor(int32_t show);
 extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
 
-typedef uint32_t (*d3d_get_adapter_count_fn)(void *self);
-typedef int32_t (*d3d_get_adapter_display_mode_fn)(void *self, uint32_t adapter, d3d_display_mode *mode);
-typedef int32_t (*d3d_check_device_format_fn)(void *self, uint32_t adapter, uint32_t device_type, uint32_t adapter_format,
+typedef uint32_t (__stdcall *d3d_get_adapter_count_fn)(void *self);
+typedef int32_t (__stdcall *d3d_get_adapter_display_mode_fn)(void *self, uint32_t adapter, d3d_display_mode *mode);
+typedef int32_t (__stdcall *d3d_check_device_format_fn)(void *self, uint32_t adapter, uint32_t device_type, uint32_t adapter_format,
                                               uint32_t usage, uint32_t resource_type, uint32_t check_format);
-typedef int32_t (*d3d_get_device_caps_fn)(void *self, uint32_t adapter, uint32_t device_type, d3d_caps9 *caps);
-typedef int32_t (*d3d_create_device_fn)(void *self, uint32_t adapter, uint32_t device_type, void *focus_window,
+typedef int32_t (__stdcall *d3d_get_device_caps_fn)(void *self, uint32_t adapter, uint32_t device_type, d3d_caps9 *caps);
+typedef int32_t (__stdcall *d3d_create_device_fn)(void *self, uint32_t adapter, uint32_t device_type, void *focus_window,
                                         uint32_t behavior_flags, d3d_present_parameters *parameters, void **device);
-typedef int32_t (*d3d_set_viewport_fn)(void *self, const d3d_viewport *viewport);
+typedef int32_t (__stdcall *d3d_set_viewport_fn)(void *self, const d3d_viewport *viewport);
 typedef int32_t (__cdecl *nvcpl_get_data_int_fn)(int32_t data_type, int32_t *value);
 
 // One pass over the command line: nonzero when `name` is present as its own argument.

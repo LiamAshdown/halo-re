@@ -23,7 +23,7 @@ void rasterizer_dx9_vertex_declarations_release(void)
     for (i = 0; i < k_rasterizer_vertex_type_count; i++) {
         void *declaration = (void *)rasterizer_vertex_declarations[i].declaration;
         if (declaration != 0) {
-            ((void (*)(void *))(*(void ***)declaration)[2])(declaration); // Release()
+            ((void (__stdcall *)(void *))(*(void ***)declaration)[2])(declaration); // Release()
         }
     }
     memset(rasterizer_vertex_declarations, 0, sizeof(rasterizer_vertex_declarations));

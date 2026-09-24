@@ -44,8 +44,8 @@ extern int32_t rasterizer_fixed_function_light_count;  // 0x007c3084
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x004052c0
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, blam-cc: ECX -> v
 
-typedef int32_t (*d3d_set_light_fn)(void *device, uint32_t index, const float *light);
-typedef int32_t (*d3d_light_enable_fn)(void *device, uint32_t index, int32_t enable);
+typedef int32_t (__stdcall *d3d_set_light_fn)(void *device, uint32_t index, const float *light);
+typedef int32_t (__stdcall *d3d_light_enable_fn)(void *device, uint32_t index, int32_t enable);
 
 // D3DLIGHTTYPE
 #define D3DLIGHT_POINT 1

@@ -4,8 +4,8 @@
 // evidence: phase-4 summary "recursively traces a straight segment across a BSP cluster's
 // connected edges to find the first portal boundary it crosses." Reuses the same
 // bsp-pointer-at-+0xb4 / request-block-at-+0x1e8 / permission-bitmap shape as the other
-// path_find_trace_* functions in this batch. Calls itself recursively, FUN_0044d860 and
-// physics_shape_forward_call_helper (both outside this rewrite's range).
+// path_find_trace_* functions in this batch. Calls itself recursively, decal_plane_solve_third_axis and
+// collision_bsp_surface_solve_third_axis (both outside this rewrite's range).
 //
 // Kept close to the Ghidra decompilation and at very low confidence, for the same reasons as
 // path_find_trace_cluster_boundary.c and path_find_trace_cluster_boundary_from_vertex.c: the
@@ -19,18 +19,37 @@
 //   //   exclude_vertex, out_result
 // reconciled: R79 0x006b8d78 ai_path_permission_table -> physics.h breakable_surface_globals *breakable_surface_state (the code took the global's ADDRESS; the binary loads the pointer: mov edx,ds:0x6b8d78) and 0x0069e8d8 local_command_list_generation -> global_structure_bsp_index; the row is active[bsp index] (intact breakable surfaces)
 
+// NOTE (orphan pass 4 review, not fixed here): the recursive call at 0x43dc60..0x43dc7e passes a
+//   local 0x1c-byte result (esp+0x68) as out_result, not the caller's; the draft passes
+//   out_result through. The three decal_plane_solve_third_axis calls were resolved (see the body).
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
 #include "physics.h"
+#include <stdint.h> // uintptr_t
 
 extern double sqrt(double x); // FSQRT
 extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78, physics.h
 extern int16_t global_structure_bsp_index; // 0x0069e8d8, physics.h (the structure BSP index)
 extern real_point3d *ai_bsp_trace_seed_centroid; // 0x006966f8, UNSURE: an initial centroid accumulator seed
-extern void FUN_0044d860(real_point3d *out_position); // 0x44d860, outside this rewrite's range
-extern void physics_shape_forward_call_helper(uint32_t kind, real_point3d *out_position); // 0x501470, outside this rewrite's range
+extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign, int32_t dominant_axis,
+    const real_plane3d *plane, const real_point2d *known);
+    // 0x44d860, src/math; blam-cc: stack out, AL component_sign, SI dominant_axis, EBX plane, EDI known
+
+// The plane of collision surface `surface` (0xc-byte surfaces at bsp + 0x40, plane index at +0 with
+// the flip bit 31 masked off; 0x10-byte planes at bsp + 0x10), as every decal_plane_solve_third_axis
+// call below loads it into EBX.
+static const real_plane3d *path_find_surface_plane(uint8_t *bsp, int32_t surface)
+{
+    uint32_t plane = *(uint32_t *)(*(int32_t *)(bsp + 0x40) + surface * 0xc) & 0x7fffffff;
+    return (const real_plane3d *)(uintptr_t)(*(int32_t *)(bsp + 0x10) + plane * 0x10);
+}
+extern real_point3d *collision_bsp_surface_solve_third_axis(ModelCollisionGeometryBSP *collision_bsp,
+    int32_t surface_index, uint8_t component_sign, real_point3d *out, int32_t dominant_axis,
+    const real_point2d *known); // 0x501470, src/physics; blam-cc: ECX bsp, EAX surface, ESI axis,
+    // EDI known, stack (component_sign, out)
 
 // blam-cc: stack -> context, ignore_permission, point_a, start_edge, point_b, exclude_vertex,
 //   out_result
@@ -92,13 +111,24 @@ uint8_t path_find_trace_bsp_boundary(void *context, uint8_t ignore_permission, r
 
                 if (crossable == 0) {
                 emit_crossing:
-                    FUN_0044d860(&out_result->position);
-                    out_result->edge_a = cluster;
-                    out_result->edge_b = edge;
-                    out_result->found = 1;
-                    out_result->fraction = (((vb[1] - point_a->y) * ex - ey * (va[0] - point_a->x)) -
-                                            (float)sqrt(ex * ex + ey * ey) * 0.0078125f) /
-                                           (dy * ex - ey * dx);
+                    {
+                        // 0x43dca8..0x43dd3c: the fraction is computed first; the crossing point
+                        // point_a + (dx, dy) * fraction (EDI = esp+0x58) is lifted onto the plane of
+                        // the current surface (EBX), solving z
+                        float fraction = (((vb[1] - point_a->y) * ex - ey * (va[0] - point_a->x)) -
+                                          (float)sqrt(ex * ex + ey * ey) * 0.0078125f) /
+                                         (dy * ex - ey * dx);
+                        real_point2d crossing;
+
+                        crossing.x = dx * fraction + point_a->x;
+                        crossing.y = dy * fraction + point_a->y;
+                        decal_plane_solve_third_axis(&out_result->position, 1, 2,
+                            path_find_surface_plane(bsp, cluster), &crossing);
+                        out_result->edge_a = cluster;
+                        out_result->edge_b = edge;
+                        out_result->found = 1;
+                        out_result->fraction = fraction;
+                    }
                     return 1;
                 }
 
@@ -111,14 +141,19 @@ uint8_t path_find_trace_bsp_boundary(void *context, uint8_t ignore_permission, r
 
         if (crossed == 0) {
             if ((cluster != exclude_vertex) && (!any_edge) && (exclude_vertex != -1)) {
-                physics_shape_forward_call_helper(1, &out_result->position);
+                // 0x43dde5..0x43de02: ECX = bsp, EAX = start_edge (arg 3), ESI = 2, EDI = point_a
+                // (loaded at 0x43d9e6); the earlier rewrite dropped all four
+                collision_bsp_surface_solve_third_axis((ModelCollisionGeometryBSP *)bsp, start_edge, 1,
+                    &out_result->position, 2, (const real_point2d *)point_a);
                 out_result->edge_a = -1;
                 out_result->edge_b = -1;
                 out_result->found = 1;
                 out_result->fraction = 0.0f;
                 return 1;
             }
-            FUN_0044d860(&out_result->position);
+            // 0x43de25..0x43de54: point_b (EDI = EBP, loaded at 0x43da9b) on the current surface
+            decal_plane_solve_third_axis(&out_result->position, 1, 2, path_find_surface_plane(bsp, cluster),
+                (const real_point2d *)point_b);
             out_result->edge_a = cluster;
             out_result->edge_b = -1;
             out_result->found = 0;
@@ -131,7 +166,10 @@ uint8_t path_find_trace_bsp_boundary(void *context, uint8_t ignore_permission, r
 
         if ((recursed) || (permission_flags[cluster] == 0) ||
             (path_find_trace_bsp_boundary(context, ignore_permission, &centroid, cluster, point_a, -1, out_result) != 0)) {
-            FUN_0044d860(&out_result->position);
+            // 0x43dd6d..0x43dda1: point_a (EDI, loaded at 0x43d9e6) on the plane of start_edge
+            // (stack parameter 4)
+            decal_plane_solve_third_axis(&out_result->position, 1, 2, path_find_surface_plane(bsp, start_edge),
+                (const real_point2d *)point_a);
             out_result->edge_a = -1;
             out_result->edge_b = -1;
             out_result->found = 1;

@@ -33,8 +33,8 @@ extern void *bitmap_data_get_pixel_address(BitmapData *bitmap, int32_t mip_level
 extern int16_t bitmap_data_calculate_mip_depth(BitmapData *bitmap, int32_t mip_level); // 0x43fbe0, UNSURE signature
 extern uint32_t bitmap_data_calculate_mip_level_pixel_count(BitmapData *bitmap, int32_t mip_level); // 0x43fc10, UNSURE signature
 
-typedef int32_t (*d3d_lock_rect_fn)(void *self, uint32_t face, uint32_t level, void *out_rect, const void *rect, uint32_t flags);
-typedef int32_t (*d3d_unlock_rect_fn)(void *self, uint32_t face, uint32_t level);
+typedef int32_t (__stdcall *d3d_lock_rect_fn)(void *self, uint32_t face, uint32_t level, void *out_rect, const void *rect, uint32_t flags);
+typedef int32_t (__stdcall *d3d_unlock_rect_fn)(void *self, uint32_t face, uint32_t level);
 
 
 // blam-cc: EBX = bitmap

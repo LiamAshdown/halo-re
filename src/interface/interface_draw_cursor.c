@@ -23,7 +23,7 @@ extern int32_t bitmap_group_sequence_get_bitmap_data(datum_index bitmap, int16_t
                                                      int16_t frame); // 0x43f290; blam-cc: EAX -> bitmap, EDI -> frame, stack -> sequence
 extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data,
                                  int16_t *clip_rect, uint32_t vertex_color); // 0x498b20; blam-cc: EAX, ECX
-extern void FUN_00449780(uint32_t packed_color, Rectangle2D *rect); // 0x449780, solid rectangle fill
+extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect); // 0x449780, solid rectangle fill
     // blam-cc: EAX -> packed_color, ECX -> rect (objdump call sites 0x494d28, 0x4973f9, 0x498617)
 
 // Draws the mouse cursor bitmap (a 32x32 quad) over the interface at ui_cursor_x/y; if the
@@ -49,7 +49,7 @@ void interface_draw_cursor(void)
     }
     rect.bottom = (int16_t)(ui_cursor_y + 0x10);
     rect.right = (int16_t)(ui_cursor_x + 0x10);
-    FUN_00449780(0x80ff0000, &rect);
+    ui_draw_filled_rectangle(0x80ff0000, &rect);
 }
 
 #if 0

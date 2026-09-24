@@ -27,7 +27,7 @@ extern void *rasterizer_device;                                   // 0x0071d174
 extern uint8_t *rasterizer_node_part_indices;                     // 0x0071d19c
 extern int32_t rasterizer_node_part_count;                        // 0x0071d1a0
 
-typedef int32_t (*d3d_set_vertex_shader_constant_fn)(void *device, uint32_t reg, const void *data, uint32_t count);
+typedef int32_t (__stdcall *d3d_set_vertex_shader_constant_fn)(void *device, uint32_t reg, const void *data, uint32_t count);
 
 // blam-cc: EAX -> node_part_count, ESI -> node_part_indices
 // Uploads a model's per-node-part skeleton transforms (gathered from the skinning palette by

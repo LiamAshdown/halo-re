@@ -24,6 +24,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "projectiles.h" // collision_result
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -43,7 +44,9 @@ extern int8_t object_collision_context_build(void);                             
 extern char FUN_005050b0(void *a, real_point3d *b, real_vector3d *c, float d, void *scratch);  // UNSURE
 extern char FUN_00506040(void *a, real_point3d *position, float radius);      // UNSURE
 extern char FUN_00507170(void *a, float b, float c, float d, uint32_t object_index, real_point3d *out); // UNSURE
-extern char FUN_00401a20(void *a, uint32_t object_index, void *out);          // UNSURE
+extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target,
+    uint32_t flags, uint32_t exclude_object_index, collision_result *result); // 0x401a20, src/physics;
+    // blam-cc: EAX origin, ECX target, stack (flags, exclude_object_index, result)
 extern void FUN_0053e780(void);                                               // UNSURE module
 
 // Searches a small scatter pattern of candidate positions around an object for a spot free of
@@ -70,7 +73,9 @@ uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientati
     if (anchor_object != k_datum_index_none && orientation_object == k_datum_index_none) {
         goto have_reference;
     }
-    if (anchor_object == k_datum_index_none) {
+    // 0x55a50f..0x55a564: the centre is captured whenever orientation_object is valid (the
+    // earlier rewrite captured it only when anchor_object was none)
+    {
         object *orientation_obj = ((object_header *)object_data->data)[orientation_object & 0xffff].data;
         // UNSURE: preserved literally -- captures orientation_object's 0xa0/0xa4/0xa8 floats
         memcpy(creation_snapshot, (uint8_t *)orientation_obj + 0xa0, sizeof(creation_snapshot));
@@ -143,17 +148,27 @@ have_reference:
                                     if (orientation_object != k_datum_index_none) {
                                         uint8_t plane_scratch[16];
                                         uint8_t collision_scratch[1064];
-                                        void *out_a[14] = {0}, *out_b[14] = {0};
+                                        collision_result sweep; // [esp+0x80]
                                         ok = !FUN_005050b0(collision_context, &candidate,
                                                             (real_vector3d *)creation_snapshot, pill_height,
                                                             collision_scratch);
                                         if (ok) {
-                                            uint32_t hit_a = 0, hit_b = 0;
-                                            char r1 = FUN_00401a20(collision_context, reference_index, out_a);
-                                            ok = (r1 == 0) || (hit_a == orientation_object);
+                                            // 0x55a8d4..0x55a936 (orphan pass 4 review, was two opaque FUN_00401a20
+                                            // calls): sweep candidate -> orientation_object's captured centre
+                                            // excluding the reference, then back excluding orientation_object;
+                                            // each hit must be the other object. The origin is EAX, the target ECX.
+                                            // UNSURE: the asm excludes the stack slot [esp+0x54c], which holds
+                                            // orientation_object when anchor_object was none (0x55a572), while
+                                            // this C clears reference_index to none in that case.
+                                            char r1 = (char)collision_test_movement_segment_between_points(&candidate,
+                                                (real_point3d *)creation_snapshot, (uint32_t)collision_context,
+                                                reference_index, &sweep);
+                                            ok = (r1 == 0) || ((uint32_t)sweep.object_index == orientation_object);
                                             if (ok) {
-                                                char r2 = FUN_00401a20(collision_context, orientation_object, out_b);
-                                                ok = (r2 == 0) || (hit_b == reference_index);
+                                                char r2 = (char)collision_test_movement_segment_between_points(
+                                                    (real_point3d *)creation_snapshot, &candidate,
+                                                    (uint32_t)collision_context, orientation_object, &sweep);
+                                                ok = (r2 == 0) || ((uint32_t)sweep.object_index == reference_index);
                                             }
                                         }
                                     }

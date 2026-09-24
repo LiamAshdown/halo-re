@@ -16,7 +16,7 @@
 //    lead-position record) are used as raw/named-where-possible offsets; 0x164/0x168 are
 //    already named in types/ai.h (as opaque unknown_164/unknown_168) but their true shape as
 //    a lead-position record is not confirmed here.
-//  - actor_firing_position_near_point, actor_compute_accuracy_scale (returns a float via ST0), FUN_00401020 (returns a float via
+//  - actor_firing_position_near_point, actor_compute_accuracy_scale (returns a float via ST0), vector3d_distance_squared (returns a float via
 //    ST0), actor_has_unshielded_threat_weapon, actor_target_mark_engaged and actor_update_target_lead_position are all outside
 //    this session's range; declared with the signature each call site implies.
 //  - Several float NaN/ordering comparisons in the original (the `CONCAT22(...NAN...)`
@@ -40,7 +40,7 @@ extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern Scenario *global_scenario;   // 0x00746f8c
 
-extern float FUN_00401020(void);                       // 0x401020, not yet rewritten
+extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, src/math; blam-cc: EAX a, ECX b
 extern real random_real_range(real min, real max);  // 0x401050
 extern void * actor_get_actor_definition(datum_index actor_index); // 0x40fa70, this session (later)
 extern uint8_t actor_firing_position_near_point(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_firing_position_near_point at 0x412960
@@ -113,8 +113,12 @@ uint8_t actor_update_movement_destination(uint32_t actor_index)
                 uint8_t close_enough = 0;
 
                 if (a->encounter_index != (datum_index)k_datum_index_none && a->firing_position_index != -1) {
+                    ScenarioEncounter *encounters = (ScenarioEncounter *)global_scenario->encounters.pointer;
+                    ScenarioFiringPosition *held = &((ScenarioFiringPosition *)
+                        encounters[a->encounter_index & 0xffff].firing_positions.pointer)[a->firing_position_index];
                     float lead_speed = actor_compute_accuracy_scale();
-                    float distance_sq = FUN_00401020();
+                    // 0x40324f..0x403281: EAX = the held firing position, ECX = &body_position
+                    float distance_sq = vector3d_distance_squared((real_point3d *)held, &a->body_position);
                     if (lead_speed * lead_speed < distance_sq) {
                         close_enough = 1;
                     }
@@ -159,14 +163,15 @@ check_distance_gate:
                 float lead_speed;
                 float distance_sq;
 
-                (void)fp;
                 lead_speed = actor_compute_accuracy_scale();
-                distance_sq = FUN_00401020();
+                // 0x4034c3..0x4034d1: EAX = fp, ECX = &body_position
+                distance_sq = vector3d_distance_squared((real_point3d *)fp, &a->body_position);
                 if (lead_speed * lead_speed < distance_sq) {
                     float vitality_distance_sq;
 
                     distance_sq = a->vitality_wait_time;
-                    vitality_distance_sq = FUN_00401020();
+                    // 0x4034f1..0x4034fb: EAX = prop + 0xbc (last_known_position), ECX = fp
+                    vitality_distance_sq = vector3d_distance_squared(&p->last_known_position, (real_point3d *)fp);
                     if (vitality_distance_sq < distance_sq * distance_sq) {
                         want = 0;
                     }

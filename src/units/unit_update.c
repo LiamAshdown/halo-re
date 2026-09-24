@@ -19,7 +19,7 @@
 //   vector3d_rotate_toward_with_acceleration, vector3d_cross_product, vector3d_angle_between.
 // register convention: unit index in EAX.
 //   // blam-cc: param_1 (EAX) -> unit_index
-// UNSURE: puVar4+0xae..0xb1 and +0xb2..0xb5 (the third argument of the two FUN_00564ae0 calls,
+// UNSURE: puVar4+0xae..0xb1 and +0xb2..0xb5 (the third argument of the two vector3d_rotate_toward_bounded calls,
 //   an angular-acceleration carry-over the math helper writes back) land on the same four
 //   floats types/units.h calls aiming_bounds/looking_bounds (0x2b8/0x2c8), which
 //   unit_update_aiming_overlay_angles (0x563b50) also writes every tick with a completely
@@ -83,21 +83,22 @@ extern void weapon_set_ready_timer(void);                                    // 
 extern void vector3d_angle_between_4cd4f0(void);                   // 0x4cd4f0, UNSURE: no traced args
   // real signature (vector3d_angle_between_4cd4f0.c): real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b); Ghidra recovered 0 of 2 args at this call site
 extern void vector3d_rotate_toward_with_acceleration(real_vector3d *current, float turn_accel, float turn_rate);
-extern void object_get_orientation(void *out);                     // 0x4f6970, UNSURE: implicit unit_index
-  // real signature (object_get_orientation.c): void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up); Ghidra recovered 1 of 3 args at this call site
+extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up);
+    // 0x4f6970, src/objects; blam-cc: EAX out_forward, ECX object_index, stack out_up
 // vector3d_cross_product (0x4052c0) computes  *out = stack_operand x ecx_operand,  with out
 // in EAX, ecx_operand in ECX and stack_operand pushed -- read out of the callee own
 // decompilation (in_EAX / in_ECX / param_1) and matching
-// src/objects/object_set_position_and_orientation.c. Ghidra binds only the stack operand at
-// the call sites below, so the declaration is left unprototyped.
-extern void vector3d_cross_product(); // 0x4052c0
+// src/objects/object_set_position_and_orientation.c.
+extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand); // 0x4052c0
 extern void sound_start_unspatialized(float amount);                            // 0x543dd0
 extern void unit_clear_ground_adjust_dirty(uint32_t object_index);                                    // 0x55ad70, UNSURE: no traced args
 extern void unit_dispatch_reaction_animation(int16_t reaction_code); // 0x5614a0
 extern void unit_update_animation_timers(uint32_t unit_index);      // 0x561620
 extern uint8_t unit_is_look_target_valid(uint32_t unit_index);      // 0x562570
-extern void FUN_00564ae0(real_vector3d *current, real_vector3d *velocity, float *bounds,
-                          float max_velocity, float max_acceleration); // 0x564ae0, math module (skipped).
+extern void vector3d_rotate_toward_bounded(real_vector3d *current, real_vector3d *velocity, float *bounds,
+                          float max_velocity, float max_acceleration, real_vector3d *target,
+                          real_matrix4x3 *transform); // 0x564ae0, src/math; blam-cc: stack (current, velocity,
+                          // bounds, max_velocity, max_acceleration), ECX target, ESI transform.
 // The third argument is the four-float (-yaw, +yaw, -pitch, +pitch) box: unit_data.aiming_bounds
 // and .looking_bounds here, a stack copy of (-PI, PI, -PI/2, PI/2) in biped_update_facing.c.
 extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_label,
@@ -397,10 +398,15 @@ uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
         } else if (!unit->aiming_bounds_valid) {
             vector3d_rotate_toward_with_acceleration(aiming, turn_accel, turn_rate);
         } else {
-            void *orientation = 0; // UNSURE: object_get_orientation's real output slot
-            object_get_orientation(orientation);
-            vector3d_cross_product(orientation);
-            FUN_00564ae0(aiming, aiming_velocity, &unit->aiming_bounds[0], turn_accel, turn_rate);
+            // 0x562e9f..0x562f13: the bounds are in the unit's own frame, built into a local
+            // matrix (scale 1, orientation, left = up x forward, position = global origin)
+            real_matrix4x3 frame;
+            frame.scale = 1.0f;
+            object_get_orientation(&frame.forward, unit_index, &frame.up);
+            vector3d_cross_product(&frame.left, &frame.forward, &frame.up);
+            frame.position = *(real_point3d *)global_origin3d_pointer;
+            vector3d_rotate_toward_bounded(aiming, aiming_velocity, &unit->aiming_bounds[0], turn_accel, turn_rate,
+                                           &unit->desired_aiming_vector, &frame);
         }
 
         if (*(float *)((uint8_t *)obj_tag + 0x264) != 0.0f) {
@@ -417,11 +423,14 @@ uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
         } else if (!unit->looking_bounds_valid) {
             vector3d_rotate_toward_with_acceleration(&unit->looking_vector, look_accel, look_rate);
         } else {
-            void *orientation = 0; // UNSURE, see above
-            object_get_orientation(orientation);
-            vector3d_cross_product(orientation);
-            FUN_00564ae0(&unit->looking_vector, &unit->looking_velocity, &unit->looking_bounds[0],
-                         look_accel, look_rate);
+            // 0x563063..0x5630c2: the same local frame as the aiming branch
+            real_matrix4x3 frame;
+            frame.scale = 1.0f;
+            object_get_orientation(&frame.forward, unit_index, &frame.up);
+            vector3d_cross_product(&frame.left, &frame.forward, &frame.up);
+            frame.position = *(real_point3d *)global_origin3d_pointer;
+            vector3d_rotate_toward_bounded(&unit->looking_vector, &unit->looking_velocity, &unit->looking_bounds[0],
+                         look_accel, look_rate, &unit->desired_looking_vector, &frame);
         }
 
         if (!unit_updates_suppressed) {

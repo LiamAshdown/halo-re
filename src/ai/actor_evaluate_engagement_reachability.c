@@ -4,12 +4,12 @@
 // evidence: phase-4 summary ("determines whether and how an actor can reach or engage a
 // target, combining a pathfinding/LOS query with distance and speed checks, returning a
 // graded result code from clear (0) to unreachable (4)"). Ghidra's own decompile drops
-// every register argument to collision_test_movement_segment and FUN_00401a20 and calls the latter four times
+// every register argument to collision_test_movement_segment and collision_test_movement_segment_between_points and calls the latter four times
 // with what looks like the same three arguments -- it is not. Partially re-derived from the
 // real disassembly (objdump -d -M intel --start-address=0x42b270 --stop-address=0x42b5c3
 // bin/halo.exe): the entry gate, the collision-mask computation and the two callee's real
 // register mapping are confirmed byte-for-byte; the exact interpolated points fed to the
-// four FUN_00401a20 calls in the middle section are reconstructed from the surrounding FPU
+// four collision_test_movement_segment_between_points calls in the middle section are reconstructed from the surrounding FPU
 // arithmetic but not independently cross-checked against a second source, so the point
 // names there (near_point / far_point) describe the arithmetic, not a confirmed meaning.
 // register convention: EAX -> self_index, ECX -> target_index, ESI -> target_position
@@ -23,7 +23,7 @@
 // UNSURE: the collision_mask base 0xc2a7 (widened to 0xc2b3 when allow_wide_mask, and with
 // bit 0x200 cleared when flying) is reproduced verbatim; no bit of it is named.
 // UNSURE: mask/exclude_object_index are ebp/ebx respectively at every call site (confirmed
-// for the one fully-traced collision_test_movement_segment call and consistent at every FUN_00401a20 call
+// for the one fully-traced collision_test_movement_segment call and consistent at every collision_test_movement_segment_between_points call
 // site's push order), but the two interpolation fractions (0x672b8c, 0x672bac) and which of
 // self_position/target_position plays "target" vs "origin" in the second (0x672bac) block
 // versus the first could not be fully disambiguated from the interleaved integer/FPU
@@ -45,8 +45,11 @@ extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vecto
 extern void point3d_add_scaled(void); // 0x401930, called here with no visible arguments -- UNSURE
 extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta,
                              uint32_t exclude_object, void *scratch); // 0x505880
-extern uint8_t FUN_00401a20(real_point3d *target, real_point3d *origin, uint32_t collision_mask,
-                             uint32_t ignore_object_index, void *out_record); // 0x401a20
+extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t collision_mask,
+                             uint32_t ignore_object_index, void *out_record); // 0x401a20, src/physics;
+    // blam-cc: EAX origin, ECX target. Every call here loads EAX = &candidate_point and ECX = ESI
+    // (target_position) or EDI (self_position), e.g. 0x42b3e0..0x42b3ed (orphan pass 4 review:
+    // the argument order below was swapped to match)
 
 // blam-cc: EAX -> self_index, ECX -> target_index, ESI -> target_position, EDI ->
 // self_position, stack -> movement_mode, allow_wide_mask, exclude_object_index, flying
@@ -103,15 +106,15 @@ int32_t actor_evaluate_engagement_reachability(datum_index self_index, datum_ind
             candidate_point.y = direction.j * DAT_00672b8c + self_position->y;
             candidate_point.z = direction.k * DAT_00672b8c + self_position->z;
 
-            hit = FUN_00401a20(target_position, &candidate_point, collision_mask, exclude_object_index, &scratch);
+            hit = collision_test_movement_segment_between_points(&candidate_point, target_position, collision_mask, exclude_object_index, &scratch);
             if (!direct_clear && hit == 0) {
                 return 1;
             }
-            hit = FUN_00401a20(target_position, &candidate_point, collision_mask, exclude_object_index, &scratch);
+            hit = collision_test_movement_segment_between_points(&candidate_point, target_position, collision_mask, exclude_object_index, &scratch);
             if (hit != 0) {
                 return 1;
             }
-            hit = FUN_00401a20(target_position, &candidate_point, collision_mask, exclude_object_index, &scratch);
+            hit = collision_test_movement_segment_between_points(&candidate_point, target_position, collision_mask, exclude_object_index, &scratch);
         } else {
             if (!direct_clear) {
                 goto low_speed_grading;
@@ -121,15 +124,15 @@ int32_t actor_evaluate_engagement_reachability(datum_index self_index, datum_ind
             candidate_point.y = direction.j * DAT_00672bac + self_position->y;
             candidate_point.z = direction.k * DAT_00672bac + self_position->z;
 
-            hit = FUN_00401a20(self_position, &candidate_point, collision_mask, exclude_object_index, &scratch);
+            hit = collision_test_movement_segment_between_points(&candidate_point, self_position, collision_mask, exclude_object_index, &scratch);
             if (hit != 0) {
                 return 1;
             }
-            hit = FUN_00401a20(self_position, &candidate_point, collision_mask, exclude_object_index, &scratch);
+            hit = collision_test_movement_segment_between_points(&candidate_point, self_position, collision_mask, exclude_object_index, &scratch);
             if (hit != 0) {
                 return 1;
             }
-            hit = FUN_00401a20(self_position, &candidate_point, collision_mask, exclude_object_index, &scratch);
+            hit = collision_test_movement_segment_between_points(&candidate_point, self_position, collision_mask, exclude_object_index, &scratch);
         }
         if (hit != 0) {
             return 1;

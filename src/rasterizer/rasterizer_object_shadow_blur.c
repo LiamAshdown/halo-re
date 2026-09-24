@@ -37,17 +37,17 @@ extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_sh
 extern rasterizer_dynamic_screen_vertex rasterizer_object_shadow_blur_quad[4];   // 0x006e1b80
 extern rasterizer_screen_vertex rasterizer_object_shadow_border_lines[8];        // 0x006e1be0
 
-typedef int32_t (*d3d_call1_fn)(void *self, uint32_t a);
-typedef int32_t (*d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
-typedef int32_t (*d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
-typedef int32_t (*d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
-typedef int32_t (*d3d_draw_primitive_up_fn)(void *self, uint32_t type, uint32_t count, const void *data, uint32_t stride);
-typedef int32_t (*d3d_get_desc_fn)(void *surface, d3d_surface_desc *desc);
-typedef int32_t (*d3d_set_viewport_fn)(void *self, const d3d_viewport *viewport);
-typedef int32_t (*d3dx_effect_set_texture_fn)(void *effect, uint32_t handle, uint32_t texture);
-typedef int32_t (*d3dx_effect_begin_fn)(void *effect, uint32_t *passes, uint32_t flags);
-typedef int32_t (*d3dx_effect_pass_fn)(void *effect, uint32_t pass);
-typedef int32_t (*d3dx_effect_end_fn)(void *effect);
+typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
+typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
+typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
+typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
+typedef int32_t (__stdcall *d3d_draw_primitive_up_fn)(void *self, uint32_t type, uint32_t count, const void *data, uint32_t stride);
+typedef int32_t (__stdcall *d3d_get_desc_fn)(void *surface, d3d_surface_desc *desc);
+typedef int32_t (__stdcall *d3d_set_viewport_fn)(void *self, const d3d_viewport *viewport);
+typedef int32_t (__stdcall *d3dx_effect_set_texture_fn)(void *effect, uint32_t handle, uint32_t texture);
+typedef int32_t (__stdcall *d3dx_effect_begin_fn)(void *effect, uint32_t *passes, uint32_t flags);
+typedef int32_t (__stdcall *d3dx_effect_pass_fn)(void *effect, uint32_t pass);
+typedef int32_t (__stdcall *d3dx_effect_end_fn)(void *effect);
 
 static void **device_vtable(void) { return *(void ***)rasterizer_device; }
 static void set_render_state(uint32_t state, uint32_t value)

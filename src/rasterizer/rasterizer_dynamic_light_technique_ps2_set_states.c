@@ -21,8 +21,8 @@ extern uint8_t console_debug_toggle_6893f7; // 0x006893f7
 extern int16_t renderer_unknown_69c67c;                             // 0x0069c67c UNSURE (read as a word)
 extern void *rasterizer_device;             // 0x0071d174
 
-typedef int32_t (*d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
-typedef int32_t (*d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
+typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
+typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
 void rasterizer_dynamic_light_technique_ps2_set_states(void)
 {

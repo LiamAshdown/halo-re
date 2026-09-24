@@ -41,13 +41,13 @@ extern void rasterizer_transparent_geometry_group_draw_vertices(transparent_geom
 // blam-cc: ST1 -> base, ST0 -> exponent (CRT _CIpow)
 extern double pow(double base, double exponent); // 0x6283c0
 
-typedef int32_t (*d3d_call1_fn)(void *self, uint32_t a);
-typedef int32_t (*d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
-typedef int32_t (*d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
-typedef int32_t (*d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
-typedef int32_t (*d3dx_effect_begin_fn)(void *effect, uint32_t *passes, uint32_t flags);
-typedef int32_t (*d3dx_effect_pass_fn)(void *effect, uint32_t pass);
-typedef int32_t (*d3dx_effect_end_fn)(void *effect);
+typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
+typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
+typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
+typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
+typedef int32_t (__stdcall *d3dx_effect_begin_fn)(void *effect, uint32_t *passes, uint32_t flags);
+typedef int32_t (__stdcall *d3dx_effect_pass_fn)(void *effect, uint32_t pass);
+typedef int32_t (__stdcall *d3dx_effect_end_fn)(void *effect);
 
 static void **device_vtable(void) { return *(void ***)rasterizer_device; }
 static void set_render_state(uint32_t state, uint32_t value)

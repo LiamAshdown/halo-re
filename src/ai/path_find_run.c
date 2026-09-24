@@ -46,12 +46,14 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include <stdint.h> // uintptr_t
 #include "physics.h"
 
 extern void path_find_heap_sift_up(path_find_context *context, int16_t index);   // 0x43af70
 extern void path_find_heap_sift_down(path_find_context *context, int16_t index); // 0x43b010
 extern uint8_t path_find_push_start_node(path_find_context *context);            // 0x43a760
-extern float path_find_vertex_distance(real_point3d *point_a, real_point3d *point_b); // 0x43b130
+extern float path_find_vertex_distance(ScenarioStructureBSP *structure_bsp, int32_t surface, real_point3d *point_a,
+    real_point3d *out_point); // 0x43b130; blam-cc: EAX structure_bsp, ECX surface, stack point_a, out_point
 
 // TYPES-GAP: duplicated from path_find_gather_adjacent_edges.c (each rewritten file is
 // compiled independently, so the shared shape is repeated here rather than shared through a
@@ -302,7 +304,10 @@ uint8_t path_find_run(path_find_context *context)
                                                 float refined_estimate = dist_to_goal;
                                                 real_point3d refined_position = node->position;
                                                 if (dist_to_goal < 4.0f) {
-                                                    refined_estimate = path_find_vertex_distance(&context->goal_position, &refined_position);
+                                                    // 0x43aea1..0x43aeb2: EAX = context->structure_bsp, ECX = edge->edge_id
+                                                    refined_estimate = path_find_vertex_distance(
+                                                        (ScenarioStructureBSP *)(uintptr_t)context->structure_bsp, edge->edge_id,
+                                                        &context->goal_position, &refined_position);
                                                 }
                                                 if (refined_estimate < context->best_cost) {
                                                     context->best_cost = refined_estimate;

@@ -41,22 +41,22 @@ extern int32_t (*unknown_00721ebc)(void *engine);                   // 0x00721eb
 extern int32_t rasterizer_ui_render_failed;                         // 0x0071d168 UNSURE name
 
 // blam-cc: EAX packed_color, ECX rect
-extern void FUN_00449780(uint32_t packed_color, Rectangle2D *rect); // 0x449780, solid rectangle fill
+extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect); // 0x449780, solid rectangle fill
 extern uint32_t __stdcall D3DXGetFVFVertexSize(uint32_t fvf); // 0x00583b17
 
-typedef int32_t (*d3d_call1_fn)(void *self, uint32_t a);
-typedef int32_t (*d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
-typedef int32_t (*d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
-typedef int32_t (*d3d_set_render_target_fn)(void *self, uint32_t index, void *surface);
-typedef int32_t (*d3d_get_desc_fn)(void *self, void *desc);
-typedef int32_t (*d3d_set_viewport_fn)(void *self, const void *viewport);
-typedef int32_t (*d3d_set_texture_fn)(void *self, uint32_t stage, void *texture);
-typedef int32_t (*d3d_lock_fn)(void *self, uint32_t offset, uint32_t size, void **data, uint32_t flags);
-typedef int32_t (*d3d_set_stream_source_fn)(void *self, uint32_t stream, void *buffer, uint32_t offset, uint32_t stride);
-typedef int32_t (*d3d_set_indices_fn)(void *self, void *index_buffer);
-typedef int32_t (*d3d_draw_indexed_primitive_fn)(void *self, uint32_t type, int32_t base_vertex, uint32_t min_index,
+typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
+typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
+typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
+typedef int32_t (__stdcall *d3d_set_render_target_fn)(void *self, uint32_t index, void *surface);
+typedef int32_t (__stdcall *d3d_get_desc_fn)(void *self, void *desc);
+typedef int32_t (__stdcall *d3d_set_viewport_fn)(void *self, const void *viewport);
+typedef int32_t (__stdcall *d3d_set_texture_fn)(void *self, uint32_t stage, void *texture);
+typedef int32_t (__stdcall *d3d_lock_fn)(void *self, uint32_t offset, uint32_t size, void **data, uint32_t flags);
+typedef int32_t (__stdcall *d3d_set_stream_source_fn)(void *self, uint32_t stream, void *buffer, uint32_t offset, uint32_t stride);
+typedef int32_t (__stdcall *d3d_set_indices_fn)(void *self, void *index_buffer);
+typedef int32_t (__stdcall *d3d_draw_indexed_primitive_fn)(void *self, uint32_t type, int32_t base_vertex, uint32_t min_index,
                                                  uint32_t vertex_count, uint32_t start_index, uint32_t primitive_count);
-typedef int32_t (*d3d_call0_fn)(void *self);
+typedef int32_t (__stdcall *d3d_call0_fn)(void *self);
 
 
 
@@ -186,7 +186,7 @@ void rasterizer_end_frame(void)
         chat_bar.left = 0;
         chat_bar.bottom = 0x1e0;
         chat_bar.right = 0x280;
-        FUN_00449780(0xb0202020, &chat_bar);
+        ui_draw_filled_rectangle(0xb0202020, &chat_bar);
     }
 
     if (((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing) < 0) {

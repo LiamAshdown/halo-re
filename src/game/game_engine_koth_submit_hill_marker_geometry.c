@@ -121,13 +121,13 @@ void game_engine_koth_submit_hill_marker_geometry(uint32_t tag_handle_as_uint,
         *(uint16_t *)(dest_block + 8) = 3;
         *(uint16_t *)(dest_block + 10) = 0;
 
-        ((void (*)(void **))(*(void ***)((uint8_t *)*render_device + 0x30)))(render_device); // TYPES-GAP vtable call
+        ((void (__stdcall *)(void **))(*(void ***)((uint8_t *)*render_device + 0x30)))(render_device); // TYPES-GAP vtable call
 
         {
             int16_t sub_index = render_unknown_d99d8[iStack_fc * 8]; // *0x10 bytes / 2 == *8 int16 units
             if (render_unknown_d98f0[sub_index * 3] != 0) {
                 void **sub = (void **)(render_unknown_7bf04c + render_unknown_d98f0[sub_index * 3] * 10);
-                ((void (*)(void **))(*(void ***)((uint8_t *)*sub + 0x30)))(sub); // TYPES-GAP vtable call
+                ((void (__stdcall *)(void **))(*(void ***)((uint8_t *)*sub + 0x30)))(sub); // TYPES-GAP vtable call
             }
         }
 
@@ -189,7 +189,7 @@ void game_engine_koth_submit_hill_marker_geometry(uint32_t tag_handle_as_uint,
                 render_flag_69c74c = 1;
                 render_flag_71d1fa = 0;
                 if (render_version_7c118c < 0xffff0101) {
-                    ((void (*)(void **, int32_t, int32_t))(*(void ***)((uint8_t *)*render_context_71d174 + 0xe4)))(
+                    ((void (__stdcall *)(void **, int32_t, int32_t))(*(void ***)((uint8_t *)*render_context_71d174 + 0xe4)))(
                         render_context_71d174, 0x89, 1); // TYPES-GAP vtable call
                 }
             }
@@ -207,7 +207,7 @@ void game_engine_koth_submit_hill_marker_geometry(uint32_t tag_handle_as_uint,
             rasterizer_model_draw_restore_states();
 
             if (render_flag_6893ec != 0 && render_version_7c118c < 0xffff0101) {
-                ((void (*)(void **, int32_t, int32_t))(*(void ***)((uint8_t *)*render_context_71d174 + 0xe4)))(
+                ((void (__stdcall *)(void **, int32_t, int32_t))(*(void ***)((uint8_t *)*render_context_71d174 + 0xe4)))(
                     render_context_71d174, 0x89, 0); // TYPES-GAP vtable call
             }
         }

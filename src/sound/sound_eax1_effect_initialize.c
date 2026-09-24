@@ -36,7 +36,7 @@ int32_t sound_eax1_effect_initialize(sound_effect_object *this_object, directsou
     }
 
     vtable = *(void ***)channel->buffer_3d;
-    if (((int32_t (*)(void *, const uint8_t *, void **))vtable[0])(channel->buffer_3d, sound_eax_property_set_guid,
+    if (((int32_t (__stdcall *)(void *, const uint8_t *, void **))vtable[0])(channel->buffer_3d, sound_eax_property_set_guid,
             &this_object->property_set) < 0) { // QueryInterface
         this_object->property_set = 0;
     } else {

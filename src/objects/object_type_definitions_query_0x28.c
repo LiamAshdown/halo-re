@@ -1,13 +1,18 @@
 // object_type_definitions_query_0x28
-// address 0x4f3ea0, size 80 bytes
+// address 0x4f3ea0, size 120 bytes (0x4f3ea0..0x4f3f17; Ghidra's metadata said 80 and catalogued the loop
+//   tail as the bogus function 0x4f3ef0 "index_resolution_table_translate", which is the `test al,al`
+//   after each hook call below; re-checked against objdump by orphan pass 4)
 // name confidence: 0.6 (still FUN_004f3ea0 in Ghidra; named from types/objects.h's
 //   object_type_definition.query_create field comment, "0x28 AND style,
 //   object_type_definitions_query_0x28")
 // rewrite confidence: 0.8
 // evidence: types/objects.h object_header, object, object_type_definition; global 0x008603b0
 //   object_data; global 0x0069bfdc object_type_definitions[12].
-// register convention: object index in EAX (param_1), also forwarded as the sole argument to
-//   every sub-definition's +0x28 hook.
+// register convention: object index as the one stack argument (0x4f3eab `mov ebp,[esp+0xc]` after two
+//   pushes; the caller 0x4f57cb does `push ebx; call 0x4f3ea0`), also forwarded as the sole stack
+//   argument to every sub-definition's +0x28 hook, whose result is tested as a byte (`test al,al`).
+//   Orphan pass 4 corrected the earlier "EAX" reading.
+//   // blam-cc: stack -> object_index
 
 // RETURN TYPE (phase-4 review pass): Ghidra returns this as CONCAT31(garbage, AL) / bool,
 //   i.e. only the low byte is defined -- the top three bytes are whatever happened to be in
@@ -22,7 +27,7 @@
 extern data_array *object_data; // 0x008603b0
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc
 
-uint8_t object_type_definitions_query_0x28(uint32_t object_index) // blam-cc: EAX -> object_index
+uint8_t object_type_definitions_query_0x28(uint32_t object_index) // blam-cc: stack -> object_index
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     object_type_definition *def = object_type_definitions[obj->type];
@@ -34,7 +39,7 @@ uint8_t object_type_definitions_query_0x28(uint32_t object_index) // blam-cc: EA
             break;
         }
         if (sub->query_create != 0) {
-            int result = ((int (*)(uint32_t))sub->query_create)(object_index);
+            uint8_t result = ((uint8_t (*)(uint32_t))sub->query_create)(object_index); // test al,al
             if (result == 0) {
                 return 0;
             }

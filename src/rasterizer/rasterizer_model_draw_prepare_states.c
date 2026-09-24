@@ -51,8 +51,8 @@ extern void chimera__rasterizer_set_frustum_z_func(uint32_t z_near, uint32_t z_f
 extern void chimera__rasterizer_set_model_skinning(uint8_t upload, rasterizer_node_matrices *nodes); // 0x518b40
 extern void rasterizer_prepare_lighting_constants(render_lighting *lighting); // 0x518ce0
 
-typedef int32_t (*d3d_set_sampler_state_fn)(void *device, uint32_t sampler, uint32_t type, uint32_t value);
-typedef int32_t (*d3d_set_transform_fn)(void *device, uint32_t state, const void *matrix);
+typedef int32_t (__stdcall *d3d_set_sampler_state_fn)(void *device, uint32_t sampler, uint32_t type, uint32_t value);
+typedef int32_t (__stdcall *d3d_set_transform_fn)(void *device, uint32_t state, const void *matrix);
 
 static void set_sampler_state(uint32_t sampler, uint32_t type, uint32_t value)
 {

@@ -41,9 +41,9 @@ extern uint8_t rasterizer_bind_texture_d3d9(int16_t stage, BitmapData *bitmap); 
 extern void rasterizer_set_shader_stage_config(int16_t mode);       // 0x519200
 extern void rasterizer_apply_decal_zbias(void); // 0x5194e0 (this session)
 
-typedef int32_t (*d3d_set_sampler_state_fn)(void *device, uint32_t sampler, uint32_t type, uint32_t value);
-typedef int32_t (*d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
-typedef int32_t (*d3d_set_stream_source_fn)(void *device, uint32_t stream, void *buffer, uint32_t offset, uint32_t stride);
+typedef int32_t (__stdcall *d3d_set_sampler_state_fn)(void *device, uint32_t sampler, uint32_t type, uint32_t value);
+typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
+typedef int32_t (__stdcall *d3d_set_stream_source_fn)(void *device, uint32_t stream, void *buffer, uint32_t offset, uint32_t stride);
 
 // blam-cc: unaff_DI -> stage
 void rasterizer_decal_pass_begin(int16_t stage)

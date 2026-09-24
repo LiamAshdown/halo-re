@@ -23,7 +23,7 @@ extern int16_t rasterizer_decal_layer;                              // 0x006d98d
 // blam-cc: AX -> mode
 extern void rasterizer_set_shader_stage_config(int16_t mode);       // 0x519200
 
-typedef int32_t (*d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
+typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
 
 // Cleans up render state after a decal pass: clears the clip-plane enable state and, where
 // active, the depth-bias states, then restores the shader stage configuration if the pass

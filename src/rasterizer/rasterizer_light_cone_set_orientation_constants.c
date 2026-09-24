@@ -45,7 +45,7 @@ extern int16_t *rasterizer_resolve_and_cache_submap_b(uint32_t bitmap_tag_id, in
                                                       int16_t default_index, int16_t frame,
                                                       rasterizer_effect_slot *effect_slot); // 0x518860
 
-typedef int32_t (*d3d_call4v_fn)(void *self, uint32_t start_register, const void *data, uint32_t count);
+typedef int32_t (__stdcall *d3d_call4v_fn)(void *self, uint32_t start_register, const void *data, uint32_t count);
 
 // blam-cc: EAX = light_index
 void rasterizer_light_cone_set_orientation_constants(int32_t light_index)

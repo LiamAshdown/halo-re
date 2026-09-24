@@ -43,7 +43,7 @@ int32_t rasterizer_dx9_pixel_shader_effect_load(int32_t effect_index, const void
         shell_display_fatal_error_dialog(0x69, 0x7e, 1);
     }
     if (error_buffer != 0) {
-        ((void (*)(void *))(*(void ***)error_buffer)[2])(error_buffer); // Release()
+        ((void (__stdcall *)(void *))(*(void ***)error_buffer)[2])(error_buffer); // Release()
     }
     return hr >= 0;
 }

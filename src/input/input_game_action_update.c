@@ -1,5 +1,5 @@
 // input_game_action_update  (Ghidra: FUN_0048cca0; renamed per its behavior)
-// address 0x48cca0, size 1481 bytes as Ghidra split it; the real body runs on through the
+// address 0x48cca0, size 8112 bytes (0x48cca0..0x48ec4f; 1481 bytes as Ghidra split it); the real body runs on through the
 //   region Ghidra mis-split off as "hs_return" at 0x48d270 (0x48d270 is the `test ah,0x5` of
 //   the mouse-button forward case, mid-instruction-stream) and ends with the `ret` at
 //   0x48ea4f; the jump tables follow at 0x48eb9c..0x48ec4b, so 0x48cca0..0x48ec4f is one

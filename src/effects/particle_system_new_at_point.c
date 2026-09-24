@@ -6,16 +6,16 @@
 //   (+0x0c), position (+0x20), velocity (+0x2c), color (+0x38), scale (+0x14), ambient_color
 //   (+0x48) and flags (+0x04, _particle_system_emitting_bit) all match this function's writes
 //   offset for offset; global 0x0069c566 particle_systems_enabled is already named in
-//   types/effects.h's globals list; src/objects/object_sample_ambient_lightmap_point.c
-//   establishes that callee's real (EAX unused, ECX color, EDX incident, EBX prefer_alternate)
-//   convention, matched against the positional call here.
+//   types/effects.h's globals list; object_sample_ambient_lightmap_point (0x4f1e60) is plain cdecl
+//   (point, lightmap_color, base_map_color, wait_for_textures): 0x4536a8..0x4536ba pushes 0,
+//   &scratch, system + 0x48 and ECX = the system's own position copy (orphan pass 4).
 // register convention: definition_index and scale are Ghidra-recognized stack parameters;
 //   position pointer is also a recognized stack parameter; velocity pointer in ECX (in_ECX);
 //   color pointer in EAX (in_EAX).
 //   // blam-cc: stack -> definition_index, stack -> position, in_ECX -> velocity, in_EAX -> color,
 //   //   stack -> scale
-// UNSURE: the incident-direction output of object_sample_ambient_lightmap_point (local_c, 12
-//   bytes) is never read afterward here, kept as an ignored scratch buffer.
+// The base-map color output of object_sample_ambient_lightmap_point (local_c, 12 bytes) is
+//   never read afterward here, kept as an ignored scratch buffer.
 
 #include "tags.h"
 #include "memory.h"
@@ -29,8 +29,8 @@ extern uint8_t particle_systems_enabled; // 0x0069c566
 
 extern datum_index datum_new(data_array *array); // 0x4d0480
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510
-extern void object_sample_ambient_lightmap_point(uint32_t param_1, real_vector3d *color,
-    void *incident, uint8_t prefer_alternate); // 0x4f1e60, objects module
+extern void object_sample_ambient_lightmap_point(real_point3d *point, real_vector3d *lightmap_color,
+    real_vector3d *base_map_color, uint8_t wait_for_textures); // 0x4f1e60, objects module, cdecl
 extern uint8_t particle_system_new_type_states(datum_index handle); // 0x4538b0, this module
 
 datum_index particle_system_new_at_point(uint32_t definition_index, real_point3d *position,
@@ -44,7 +44,7 @@ datum_index particle_system_new_at_point(uint32_t definition_index, real_point3d
         if (handle != (datum_index)0xffffffff) {
             particle_system *system =
                 &((particle_system *)particle_system_data->data)[handle & 0xffff];
-            uint8_t incident_scratch[12];
+            real_vector3d incident_scratch;
 
             system->definition_index = definition_index;
             system->object_index = (datum_index)0xffffffff;
@@ -54,8 +54,8 @@ datum_index particle_system_new_at_point(uint32_t definition_index, real_point3d
             system->scale = scale;
             system->flags |= _particle_system_emitting_bit;
 
-            object_sample_ambient_lightmap_point((uint32_t)(uintptr_t)position,
-                (real_vector3d *)&system->ambient_color, incident_scratch, 0);
+            object_sample_ambient_lightmap_point(&system->position,
+                (real_vector3d *)&system->ambient_color, &incident_scratch, 0);
 
             if (!particle_system_new_type_states(handle)) {
                 datum_delete(particle_system_data, handle);

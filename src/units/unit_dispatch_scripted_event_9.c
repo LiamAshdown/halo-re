@@ -16,7 +16,7 @@ extern uint8_t *network_message_table; // 0x00687130, UNSURE
 extern uint8_t event9_target;        // 0x00871de0, UNSURE
 extern int32_t network_role_0071c2d4; // 0x0071c2d4, UNSURE
 
-extern int32_t hash_table_get(int32_t key); // 0x4f05e0, UNSURE signature
+extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
 extern int32_t message_delta_encode_message(int32_t a, int32_t event_id, int32_t b, void *payload, int32_t c, int32_t d, uint8_t e); // 0x4ec940, UNSURE signature
 extern void network_session_broadcast_to_flagged(int32_t a, void *b, int32_t c, int32_t d, int32_t e, int32_t f, int32_t g); // 0x4e1a80, UNSURE signature
 
@@ -24,7 +24,7 @@ void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key) // bla
 {
     int32_t looked_up = 0;
     if (hash_key != -1) {
-        looked_up = hash_table_get(hash_key);
+        looked_up = hash_table_get((hash_table *)(network_message_table + 0xc), hash_key);
         if (looked_up == -1) {
             looked_up = 0;
         }

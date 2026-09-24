@@ -38,11 +38,11 @@ extern void chimera__rasterizer_draw_dynamic_triangles_static_vertices2(int32_t 
                                                                         int32_t dynamic_index_slot, int32_t first_primitive,
                                                                         rasterizer_vertex_buffer *second_stream); // 0x51c310
 
-typedef int32_t (*d3d_set_pointer_fn)(void *self, void *object);
-typedef int32_t (*d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
-typedef int32_t (*d3dx_effect_begin_fn)(void *effect, uint32_t *passes, uint32_t flags);
-typedef int32_t (*d3dx_effect_pass_fn)(void *effect, uint32_t pass);
-typedef int32_t (*d3dx_effect_end_fn)(void *effect);
+typedef int32_t (__stdcall *d3d_set_pointer_fn)(void *self, void *object);
+typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
+typedef int32_t (__stdcall *d3dx_effect_begin_fn)(void *effect, uint32_t *passes, uint32_t flags);
+typedef int32_t (__stdcall *d3dx_effect_pass_fn)(void *effect, uint32_t pass);
+typedef int32_t (__stdcall *d3dx_effect_end_fn)(void *effect);
 
 static void **device_vtable(void)
 {

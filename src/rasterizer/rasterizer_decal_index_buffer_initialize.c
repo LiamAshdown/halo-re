@@ -25,7 +25,7 @@ extern rasterizer_dynamic_vertex_cache rasterizer_dynamic_vertex_caches[k_raster
 
 extern int32_t rasterizer_vertex_buffer_slot_allocate(void); // 0x5305f0, UNSURE: arguments not resolved here
 
-typedef int32_t (*d3d_create_index_buffer_fn)(void *device, uint32_t length, uint32_t usage, uint32_t format,
+typedef int32_t (__stdcall *d3d_create_index_buffer_fn)(void *device, uint32_t length, uint32_t usage, uint32_t format,
                                                 uint32_t pool, void **out_buffer, uint32_t shared_handle);
 
 // Creates the shared decal dynamic index buffer and allocates a per vertex type geometry

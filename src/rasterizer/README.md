@@ -759,7 +759,7 @@ needs a function defined in Ghidra before it can be rewritten:
   `jmp` inside `rasterizer_prepare_lighting_constants` 0x518ce0. The two halves are one
   function and one file.
 
-**Files still below 0.5 rewrite confidence (24):** `lens_flare_unpack_direction` 0x513490 (0.4), `lens_flare_unpack_up` 0x5134c0 (0.4), `lens_flare_update_visibility` 0x513780 (0.45), `lens_flare_update_samples` 0x513ba0 (0.4), `lens_flare_render_all` 0x513cf0 (0.25), `bitmap_compute_mipmap_count` 0x5145a0 (0.4), `chimera__draw_8_bit_text` 0x5148b0 (0.2), `chimera__draw_16_bit_text` 0x514ab0 (0.2), `rasterizer_render_loading_screen` 0x5157e0 (0.3), `rasterizer_display_mode_differs` 0x515d10 (0.4), `rasterizer_device_reset` 0x515d90 (0.3), `rasterizer_select_hardware_codepaths` 0x516810 (0.35), `chimera__cinematic_screen_effect` 0x517470 (0.45), `chimera__rasterizer_set_frustum_z_func` 0x518f40 (0.35), `rasterizer_editbox_log_dump` 0x5196b0 (0.35), `rasterizer_ksml_ui_shutdown` 0x5198a0 (0.35), `rasterizer_resource_file_verify_signature` 0x519980 (0.3), `rasterizer_glass_diffuse_draw` 0x523690 (0.45), `rasterizer_glass_diffuse_draw_fixed_function` 0x523d10 (0.2), `rasterizer_bitmap_upload_2d_mipmaps` 0x524100 (0.35), `rasterizer_bitmap_upload_cubemap_mipmaps` 0x524270 (0.2), `rasterizer_bitmap_upload_cubemap_mipmaps_by_face` 0x5243c0 (0.15), `rasterizer_bitmap_sample_texel` 0x524590 (0.25), `rasterizer_vertex_buffer_create` 0x524980 (0.15).
+**Files still below 0.5 rewrite confidence (24):** `lens_flare_update_visibility` 0x513780 (0.45), `lens_flare_update_samples` 0x513ba0 (0.4), `lens_flare_render_all` 0x513cf0 (0.25), `bitmap_compute_mipmap_count` 0x5145a0 (0.4), `chimera__draw_8_bit_text` 0x5148b0 (0.2), `chimera__draw_16_bit_text` 0x514ab0 (0.2), `rasterizer_render_loading_screen` 0x5157e0 (0.3), `rasterizer_display_mode_differs` 0x515d10 (0.4), `rasterizer_device_reset` 0x515d90 (0.3), `rasterizer_select_hardware_codepaths` 0x516810 (0.35), `chimera__cinematic_screen_effect` 0x517470 (0.45), `chimera__rasterizer_set_frustum_z_func` 0x518f40 (0.35), `rasterizer_editbox_log_dump` 0x5196b0 (0.35), `rasterizer_ksml_ui_shutdown` 0x5198a0 (0.35), `rasterizer_resource_file_verify_signature` 0x519980 (0.3), `rasterizer_glass_diffuse_draw` 0x523690 (0.45), `rasterizer_glass_diffuse_draw_fixed_function` 0x523d10 (0.2), `rasterizer_bitmap_upload_2d_mipmaps` 0x524100 (0.35), `rasterizer_bitmap_upload_cubemap_mipmaps` 0x524270 (0.2), `rasterizer_bitmap_upload_cubemap_mipmaps_by_face` 0x5243c0 (0.15), `rasterizer_bitmap_sample_texel` 0x524590 (0.25), `rasterizer_vertex_buffer_create` 0x524980 (0.15).
 - These are transliterations of the Ghidra output. Their register arguments and call sites are
   consistent with their definitions, but their bodies were not checked instruction by
   instruction.
@@ -884,8 +884,8 @@ The table lists all 224 functions by address.
 | 0x5132b0 | color_channel_real_to_byte | 27 | 0.5 | 0.85 | 0 |  |
 | 0x5132d0 | vector3d_pack_normal_11_11_10 | 291 | 0.6 | 0.55 | 1 |  |
 | 0x513400 | vector3d_unpack_normal_11_11_10 | 132 | 0.5 | 0.7 | 0 |  |
-| 0x513490 | lens_flare_unpack_direction | 34 | 0.3 | 0.4 | 2 |  |
-| 0x5134c0 | lens_flare_unpack_up | 33 | 0.3 | 0.4 | 2 |  |
+| 0x513490 | bsp_compressed_rendered_vertex_unpack_normal (was lens_flare_unpack_direction; orphan pass 4 review) | 34 | 0.7 | 0.9 | 0 |  |
+| 0x5134c0 | bsp_compressed_lightmap_vertex_unpack_normal (was lens_flare_unpack_up; orphan pass 4 review) | 33 | 0.7 | 0.9 | 0 |  |
 | 0x5134f0 | lens_flare_get_visibility_byte | 73 | 0.5 | 0.6 | 0 |  |
 | 0x513540 | lens_flare_compute_rotation | 556 | 0.5 | 0.9 | 0 | yes |
 | 0x513780 | lens_flare_update_visibility | 277 | 0.5 | 0.45 | 5 |  |

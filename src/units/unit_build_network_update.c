@@ -21,7 +21,9 @@
 
 extern data_array *object_data; // 0x008603b0
 
-extern int32_t hash_table_get(int32_t key);                                    // 0x4f05e0, UNSURE signature
+extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
+extern uint8_t *object_pooled_node_globals; // 0x00687130, the object network-id hash_table sits at +0x0c
+extern uint8_t *machine_table; // 0x00687558, its hash_table sits at +0x0c
 extern int32_t message_delta_encode_message(uint32_t a, uint32_t size, uint32_t b, void *fields,
                                              uint32_t c, uint32_t d, uint8_t e); // 0x4ec940, UNSURE signature
 extern int32_t FUN_004e9c20(uint32_t object_index); // UNSURE module: a fallback resolved index
@@ -42,14 +44,14 @@ void unit_build_network_update(uint32_t object_index)
     int32_t resolved_tag = 0;
 
     if (object_index != k_datum_index_none) {
-        resolved_tag = hash_table_get(object_index);
+        resolved_tag = hash_table_get((hash_table *)(object_pooled_node_globals + 0xc), object_index);
     }
     if (obj->creator_object != (uint32_t)k_datum_index_none) {
-        resolved_graph = hash_table_get(obj->creator_object);
+        resolved_graph = hash_table_get((hash_table *)(object_pooled_node_globals + 0xc), obj->creator_object);
         if (resolved_graph == -1) resolved_graph = 0;
     }
     if (obj->owner_linkage != (uint32_t)k_datum_index_none) {
-        resolved_owner = hash_table_get(obj->owner_linkage);
+        resolved_owner = hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), obj->owner_linkage); // 0x55af3d: the 0x00687558 table
         if (resolved_owner == -1) resolved_owner = 0;
     }
     if (resolved_tag == -1) {

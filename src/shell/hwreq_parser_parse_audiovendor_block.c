@@ -17,7 +17,7 @@
 //   parse_quoted_string / hwreq_token_skip_line take this in EAX; hwreq_token_skip_whitespace
 //   takes this in EDX; hwreq_parser_report_error takes this in ESI (live-in); msvc_string_
 //   assign_n (FUN_0057bc90) is ECX = destination, source/length on the stack (confirmed here:
-//   "lea ecx,[esi+0x94]" before the call); msvc_string_assign_cstr (FUN_0057b590) takes the
+//   "lea ecx,[esi+0x94]" before the call); hwreq_string_assign_cstr (FUN_0057b590) takes the
 //   source in EDX and the destination on the stack (confirmed here: "lea edx,[esi+0x78]; push
 //   edx; mov edx,eax").
 // blam-cc: this in EAX (only parameter).
@@ -35,7 +35,7 @@ extern char *hwreq_token_parse_quoted_string(hwreq_parser *this); // 0x578c60, b
 extern void hwreq_token_skip_whitespace(hwreq_parser *this); // 0x578a00, blam-cc: this in EDX; below this module's rewrite range
 extern void hwreq_token_skip_line(hwreq_parser *this); // 0x5789d0, blam-cc: this in EAX; below this module's rewrite range
 extern void msvc_string_assign_n(msvc_std_string *dest, const char *source, uint32_t length); // 0x57bc90, blam-cc: dest in ECX, source/length on the stack; library code, not in the function list
-extern void msvc_string_assign_cstr(msvc_std_string *dest, const char *source); // 0x57b590, blam-cc: source in EDX, dest on the stack; library code, not in the function list
+extern msvc_std_string *hwreq_string_assign_cstr(msvc_std_string *dest, const char *source); // 0x57b590, blam-cc: source in EDX, dest on the stack; library code, not in the function list
 extern uint8_t hwreq_parser_parse_block(hwreq_parser *this, hwreq_property_set *target); // 0x57af10
 
 // Scans forward from the parser's cursor for an "audiovendor[=id] = \"name\" { ... }" directive
@@ -191,7 +191,7 @@ uint8_t hwreq_parser_parse_audiovendor_block(hwreq_parser *this)
                             this->cursor = this->cursor + 1;
                             name = hwreq_token_parse_quoted_string(this);
                             if (name != 0) {
-                                msvc_string_assign_cstr(&this->sound_device_name, name);
+                                hwreq_string_assign_cstr(&this->sound_device_name, name);
                                 hwreq_token_skip_line(this);
                                 ok = hwreq_parser_parse_block(this, (hwreq_property_set *)this->flags);
                                 return ok != 0;

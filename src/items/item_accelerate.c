@@ -19,13 +19,13 @@
 //   (`item_accelerate(float *param_1, char param_2)`).
 //   // blam-cc: EAX -> item_index, stack -> delta, apply_detonation_timer
 // resolved from disassembly (objdump -d -M intel bin/halo.exe, 0x4bd080..0x4bd440), because
-// Ghidra's decompile elides every argument to FUN_0044dad0, object_get_node_local_transform,
+// Ghidra's decompile elides every argument to structure_bsp_plane_fetch_signed, object_get_node_local_transform,
 // object_set_position_and_relink and the two vector3d_* calls used to snap a woken item back
 // onto its resting surface. Tracing ESP through that block (the "ground point" marker is
-// refetched, its node_transform.position dotted against a plane FUN_0044dad0 fills in from
+// refetched, its node_transform.position dotted against a plane structure_bsp_plane_fetch_signed fills in from
 // item_data.resting_surface_index, then nudged 0.05 units off the plane along its normal) gives
 // a coherent penetration-correction pass; see the UNSURE notes below for the pieces that stay
-// approximate (FUN_0044dad0's exact signature, and the exact register/stack split at the
+// approximate (structure_bsp_plane_fetch_signed's exact signature, and the exact register/stack split at the
 // object_set_position_and_relink call site -- this codebase already flags that same function's
 // calling convention as uncertain at several other call sites).
 // reconciled: R04 0x006f1d20 uint8_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
@@ -41,7 +41,7 @@
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
-extern uint8_t global_structure_collision_bsp[]; // 0x00746f98, UNSURE shape (collision/BSP module);
+extern uint8_t *global_structure_collision_bsp; // 0x00746f98 (a pointer: 0x4bd155 loads it, then +0x40 surfaces), UNSURE shape (collision/BSP module);
     // +0x40 is the per-surface table (stride 0x0c, first dword is a plane index into +0x10's
     // plane array, stride 0x10) per src/units/unit_find_nearest_valid_surface_plane.c
 extern random_seed random_seed_global; // 0x00719cd0
@@ -53,7 +53,8 @@ extern void object_list_membership_set(uint32_t object_index, char add); // 0x4f
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
     object_marker *marker, uint32_t flags); // 0x4f6080
 extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index); // 0x4f5350, UNSURE convention at this call site, see file header
-extern void FUN_0044dad0(real_plane3d *out, int32_t plane_index, uint8_t *bsp_globals); // 0x44dad0
+extern void structure_bsp_plane_fetch_signed(real_plane3d *out, void *planes_owner, int32_t signed_index); // 0x44dad0, src/structures;
+    // blam-cc: EAX out, EDX signed_index, stack planes_owner
     // UNSURE signature (EAX -> out, EDX -> plane_index, stack -> bsp_globals, per disassembly);
     // almost certainly a plane-table lookup, see file header
 extern real random_real_range(real min, real max); // 0x401050, math module
@@ -90,15 +91,16 @@ void item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_de
     } else if (0.0001f <= delta->i * delta->i + delta->j * delta->j + delta->k * delta->k) {
         object_marker marker;
         if (object_get_node_local_transform(item_index, "ground point", &marker, 1) != 0) {
-            // UNSURE: FUN_0044dad0's exact signature; see file header
+            // UNSURE: structure_bsp_plane_fetch_signed's exact signature; see file header
             real_plane3d plane;
-            int32_t surface_plane_ref = *(int32_t *)(global_structure_collision_bsp + 0x40
-                + (uint32_t)(uint16_t)item->resting_surface_index * 0x0c);
+            // 0x4bd155..0x4bd16f: surfaces pointer at bsp+0x40, 0xc stride, the index sign-extended
+            int32_t surface_plane_ref = *(int32_t *)(*(uint8_t **)(global_structure_collision_bsp + 0x40)
+                + (int32_t)(int16_t)item->resting_surface_index * 0x0c);
             real_point3d marker_position = marker.node_transform.position;
             real correction;
             real_point3d corrected_position;
 
-            FUN_0044dad0(&plane, surface_plane_ref, global_structure_collision_bsp);
+            structure_bsp_plane_fetch_signed(&plane, global_structure_collision_bsp, surface_plane_ref);
             correction = 0.05f - ((plane.normal.i * marker_position.x +
                 plane.normal.j * marker_position.y + plane.normal.k * marker_position.z) - plane.d);
             corrected_position.x = plane.normal.i * correction + marker_position.x;

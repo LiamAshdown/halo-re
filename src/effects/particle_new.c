@@ -57,8 +57,8 @@ extern int effect_random_int_between(int16_t minimum, int16_t maximum); // 0x44c
     // blam-cc: ECX -> minimum, stack -> maximum
 extern real particle_current_radius(datum_index particle_handle); // 0x4566f0, this module
 extern uint8_t particle_next_sequence(datum_index particle_handle); // 0x455e60, this module
-extern void object_sample_ambient_lightmap_point(uint32_t param_1, real_vector3d *color,
-    void *incident, uint8_t prefer_alternate); // 0x4f1e60, objects module
+extern void object_sample_ambient_lightmap_point(real_point3d *point, real_vector3d *lightmap_color,
+    real_vector3d *base_map_color, uint8_t wait_for_textures); // 0x4f1e60, objects module, cdecl
 
 // Creates a new individual particle from a particle_creation_data block: resolves its spawn
 // position (explicit world position, an object marker, or a first person weapon marker), rolls
@@ -178,8 +178,7 @@ void particle_new(particle_creation_data *creation_data)
                                     // tint_from_diffuse_texture
                 real_vector3d ambient, incident;
 
-                object_sample_ambient_lightmap_point((uint32_t)(uintptr_t)&position, &ambient,
-                                                      &incident, 0);
+                object_sample_ambient_lightmap_point(&position, &ambient, &incident, 0);
                 if ((tag->flags & 0x200) == 0) {
                     self->color.red = self->color.red * ambient.i;
                     self->color.green = self->color.green * ambient.j;

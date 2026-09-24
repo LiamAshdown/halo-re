@@ -39,16 +39,16 @@ extern void rasterizer_set_shader_stage_config(int16_t mode);       // 0x519200,
 // blam-cc: AX target_index, clear color and clear flag on the stack
 extern void rasterizer_render_target_set_active(int16_t target_index, uint32_t clear_color, uint8_t clear_target); // 0x52ccc0
 
-typedef int32_t (*d3d_call1_fn)(void *self, uint32_t a);
-typedef int32_t (*d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
-typedef int32_t (*d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
-typedef int32_t (*d3d_set_render_target_fn)(void *self, uint32_t index, void *surface);
-typedef int32_t (*d3d_get_desc_fn)(void *self, d3d_surface_desc *desc);
-typedef int32_t (*d3d_set_viewport_fn)(void *self, const d3d_viewport *viewport);
-typedef int32_t (*d3d_set_pointer_fn)(void *self, void *object);
-typedef int32_t (*d3d_set_texture_fn)(void *self, uint32_t stage, void *texture);
-typedef int32_t (*d3d_set_vertex_shader_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
-typedef int32_t (*d3d_draw_primitive_up_fn)(void *self, uint32_t type, uint32_t primitive_count, const void *data, uint32_t stride);
+typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
+typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
+typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
+typedef int32_t (__stdcall *d3d_set_render_target_fn)(void *self, uint32_t index, void *surface);
+typedef int32_t (__stdcall *d3d_get_desc_fn)(void *self, d3d_surface_desc *desc);
+typedef int32_t (__stdcall *d3d_set_viewport_fn)(void *self, const d3d_viewport *viewport);
+typedef int32_t (__stdcall *d3d_set_pointer_fn)(void *self, void *object);
+typedef int32_t (__stdcall *d3d_set_texture_fn)(void *self, uint32_t stage, void *texture);
+typedef int32_t (__stdcall *d3d_set_vertex_shader_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
+typedef int32_t (__stdcall *d3d_draw_primitive_up_fn)(void *self, uint32_t type, uint32_t primitive_count, const void *data, uint32_t stride);
 
 static void **device_vtable(void)
 {

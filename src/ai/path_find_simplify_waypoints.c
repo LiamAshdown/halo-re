@@ -7,7 +7,7 @@
 // per the module header). phase-4 summary "simplifies a raw waypoint path into a small set
 // of shortcut points by greedily extending clear segments and snapping to occluding navmesh
 // corners." Calls ai_search_find_circle_tangent_point/0x43d100/0x43d240/0x43d4b0/0x43d9b0/0x43de90 (all this
-// rewrite) and FUN_0044d860 (outside this rewrite's range).
+// rewrite) and decal_plane_solve_third_axis (outside this rewrite's range).
 //
 // This is one of the least confident rewrites in this batch: it is a greedy path-shortcut
 // search whose helper calls (path_find_trace_cluster_boundary, ai_search_choose_shorter_corner, path_find_trace_bsp_boundary, path_find_test_segment_unobstructed) each
@@ -27,6 +27,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include <stdint.h> // uintptr_t
 
 extern uint8_t path_find_test_segment_unobstructed(uint8_t ignores_glass, int32_t start_vertex, real_point3d *point, uint32_t param4,
                             float margin, uint32_t param6, void *out_result); // 0x43de90
@@ -37,7 +38,9 @@ extern void ai_search_find_circle_tangent_point(float param1, uint32_t param2); 
 extern void ai_search_find_circle_portal_crossing(float param1); // 0x43d100
 extern uint8_t path_find_trace_bsp_boundary(uint32_t bsp_generation, uint8_t ignores_glass, void *from, int32_t from_vertex,
                             void *to, uint32_t param6, void *out_result); // 0x43d9b0
-extern void FUN_0044d860(real_point3d *point); // 0x44d860, outside this rewrite's range
+extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign, int32_t dominant_axis,
+    const real_plane3d *plane, const real_point2d *known);
+    // 0x44d860, src/math; blam-cc: stack out, AL component_sign, SI dominant_axis, EBX plane, EDI known
 
 // blam-cc: stack -> context, waypoint_count, waypoints, out_count, out_waypoints, out_success
 void path_find_simplify_waypoints(path_find_context *context, int16_t waypoint_count, int32_t *waypoints,
@@ -131,8 +134,16 @@ void path_find_simplify_waypoints(path_find_context *context, int16_t waypoint_c
 
                 {
                     int32_t *out_entry = out_waypoints + out_index * 4;
+                    uint8_t *collision_bsp = (uint8_t *)(uintptr_t)*(uint32_t *)((uint8_t *)(uintptr_t)context->structure_bsp + 0xb4);
+                    const real_plane3d *planes = (const real_plane3d *)(uintptr_t)*(uint32_t *)(collision_bsp + 0x10);
+                    const uint32_t *surfaces = (const uint32_t *)(uintptr_t)*(uint32_t *)(collision_bsp + 0x40);
+
                     out_index = out_index + 1;
-                    FUN_0044d860(&origin);
+                    // 0x43ce58..0x43cea3: lift `origin` (EDI) onto the plane of surface start_vertex
+                    // (ESI, 0xc-byte surfaces of the structure BSP's collision BSP at +0xb4), solving z,
+                    // into out_entry[1..3]
+                    decal_plane_solve_third_axis((real_point3d *)(out_entry + 1), 1, 2,
+                        &planes[surfaces[start_vertex * 3] & 0x7fffffff], (const real_point2d *)&origin);
                     out_entry[0] = start_vertex;
                 }
 

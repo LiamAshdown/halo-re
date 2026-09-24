@@ -8,7 +8,7 @@
 //   elapsed_time +0x04, intensity +0x0c), weather_particle (frame +0x2c, rotation +0x30,
 //   rotation_rate +0x48, next_particle +0x50); types/tags.h WeatherParticleSystemParticleType
 //   fade_in_start_height/_end_height (+0x34/+0x38) and fade_out_start_height/_end_height
-//   (+0x3c/+0x40); src/objects/light_volume_render.c names 0x007c311c camera_position_z.
+//   (+0x3c/+0x40); src/objects/light_volume_render.c names 0x007c311c camera_position_z_007c311c.
 // register convention: weather instance index as the recognized stack parameter (param_1).
 //   // blam-cc: stack -> instance_index
 // UNSURE: FUN_00628cca's real signature disagrees across the codebase (void vs (value,
@@ -29,7 +29,7 @@ extern weather_instance weather_instances[1]; // 0x006b0ae4
 extern data_array *weather_particle_data;     // 0x0087abcc
 extern tag_instance *tag_instances;           // 0x0087bc14
 extern float render_time_since_frame;          // 0x007c3110, render.h: seconds since the previous rendered frame
-extern float camera_position_z;               // 0x007c311c
+extern float camera_position_z_007c311c;               // 0x007c311c
 
 extern void weather_instance_adjust_count(int16_t instance_index, int16_t type_index,
     real target_value); // 0x457fc0, this module
@@ -58,11 +58,11 @@ void weather_instance_update(int16_t instance_index)
         real fade_in, fade_out;
         datum_index particle_index;
 
-        fade_in = (camera_position_z - type->fade_in_start_height) /
+        fade_in = (camera_position_z_007c311c - type->fade_in_start_height) /
                   (type->fade_in_end_height - type->fade_in_start_height);
         fade_in = (fade_in < 0.0f) ? 0.0f : (fade_in > 1.0f ? 1.0f : fade_in);
 
-        fade_out = (camera_position_z - type->fade_out_start_height) /
+        fade_out = (camera_position_z_007c311c - type->fade_out_start_height) /
                    (type->fade_out_end_height - type->fade_out_start_height);
         fade_out = (fade_out < 0.0f) ? 0.0f : (fade_out > 1.0f ? 1.0f : fade_out);
 

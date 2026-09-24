@@ -24,7 +24,7 @@ extern void *rasterizer_device;                           // 0x0071d174
 extern void rasterizer_set_shader_stage_config(int16_t mode); // 0x519200
 extern void chimera__rasterizer_set_frustum_z_func(uint32_t z_near, uint32_t z_far); // 0x518f40
 
-typedef int32_t (*d3d_set_transform_fn)(void *device, uint32_t state, const void *matrix);
+typedef int32_t (__stdcall *d3d_set_transform_fn)(void *device, uint32_t state, const void *matrix);
 
 // Performs end-of-pass cleanup for the shader_environment renderer, restoring shared render state
 // and clearing the active-object pointer.

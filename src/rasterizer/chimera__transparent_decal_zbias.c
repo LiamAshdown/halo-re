@@ -17,7 +17,7 @@ extern d3d_caps9 rasterizer_caps;  // 0x007c10c0
 extern uint32_t unknown_00722b84;  // 0x00722b84 UNSURE: alternate depth-bias value
 extern uint32_t unknown_00722b8c;  // 0x00722b8c UNSURE: alternate slope-scale-depth-bias value
 
-typedef int32_t (*d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
+typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
 
 // Applies decal-pass depth-bias render states (0xc3/0xaf) from an alternate bias table, for the
 // transparent-geometry-group draw path.

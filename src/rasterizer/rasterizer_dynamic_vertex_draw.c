@@ -37,10 +37,10 @@ extern uint16_t *rasterizer_dynamic_index_slot_lock(int32_t dynamic_index_slot);
 extern void rasterizer_dynamic_index_cache_draw(int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count,
                                                 int32_t dynamic_vertex_slot); // 0x51c090
 
-typedef int32_t (*d3d_call0_fn)(void *self);
-typedef int32_t (*d3d_call1_fn)(void *self, uint32_t a);
-typedef int32_t (*d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
-typedef int32_t (*d3d_set_stream_source_fn)(void *self, uint32_t stream, void *buffer, uint32_t offset, uint32_t stride);
+typedef int32_t (__stdcall *d3d_call0_fn)(void *self);
+typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
+typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
+typedef int32_t (__stdcall *d3d_set_stream_source_fn)(void *self, uint32_t stream, void *buffer, uint32_t offset, uint32_t stride);
 
 static void **device_vtable(void)
 {

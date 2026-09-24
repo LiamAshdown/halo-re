@@ -21,7 +21,7 @@
 extern data_array *actor_data;       // 0x00880360
 extern game_time_globals *game_time; // 0x006f1d6c
 
-extern float FUN_00401020(void); // 0x401020, not yet rewritten
+extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, src/math; blam-cc: EAX a, ECX b
 extern uint8_t actor_is_within_alert_range(uint8_t always_in_range, float radius_a, float radius_b, uint8_t vitality_only, uint8_t use_radius_b, uint32_t actor_index, uint32_t object_index); // 0x408f30, this session
 extern int32_t actor_evaluate_search_node(uint32_t actor_index, uint32_t from_object, uint32_t node_table, float *out_position, float *out_direction, uint32_t *out_extra, float *out_score, uint8_t *out_close, uint8_t *out_facing, uint8_t *out_flag); // 0x4091d0, this session
 extern int32_t actor_avoid_obstacle_and_project(uint32_t actor_index, real_point3d *candidate, char *out_avoided_flag, uint32_t object_index, float *out_point, uint32_t *out_extra); // 0x4095c0, this session
@@ -56,7 +56,8 @@ int32_t actor_investigate_disturbance_update(uint32_t actor_index)
         if (actor_is_within_alert_range(m[0xa2 - 0x9c] == 0, *(float *)(m + (0xbc - 0x9c)), *(float *)(m + (0xc0 - 0x9c)), 0, 1, actor_index, target) != 0) {
             if (*(int32_t *)(m + (0xac - 0x9c)) + 0x96 <= game_time->game_time) {
                 *(int32_t *)(m + (0xac - 0x9c)) = game_time->game_time;
-                if (FUN_00401020() >= 25.0f) {
+                // 0x408c7a..0x408c8a: EAX = actor + 0x12c, ECX = actor + 0xb0 (the remembered position)
+                if (vector3d_distance_squared(&a->body_position, (real_point3d *)(m + (0xb0 - 0x9c))) >= 25.0f) {
                     *(int16_t *)(m + (0xaa - 0x9c)) = 0;
                     *(float *)(m + (0xb0 - 0x9c)) = a->body_position.x;
                     *(float *)(m + (0xb4 - 0x9c)) = a->body_position.y;
@@ -67,7 +68,7 @@ int32_t actor_investigate_disturbance_update(uint32_t actor_index)
             }
 
             if (*(int16_t *)(m + (0xaa - 0x9c)) < 8) {
-                float search_position[3];  // local_20: the node's own position, not otherwise used by this function
+                float search_position[3];  // local_20 (esp+0x20): the node's own position, compared with body_position below
                 float search_direction[3]; // local_2c/local_28/local_24: written to mode_data+0xd8/0xdc/0xe0 below
                 real_point3d search_extra; // local_14: reused below as the obstacle-avoidance candidate point
                 uint8_t close_flag = 0, facing_flag = 0, done_flag = 0;
@@ -115,7 +116,9 @@ int32_t actor_investigate_disturbance_update(uint32_t actor_index)
                         m[0xa4 - 0x9c] = 1;
                     }
 
-                    *(uint8_t *)(m + (200 - 0x9c)) = FUN_00401020() < 1.0f;
+                    // 0x408e12..0x408e1c: EAX = &search_position (esp+0x20), ECX = actor + 0x12c
+                    *(uint8_t *)(m + (200 - 0x9c)) =
+                        vector3d_distance_squared((real_point3d *)search_position, &a->body_position) < 1.0f;
                     *(float *)(m + (0xd8 - 0x9c)) = search_direction[0];
                     *(float *)(m + (0xdc - 0x9c)) = search_direction[1];
                     *(float *)(m + (0xe0 - 0x9c)) = search_direction[2];

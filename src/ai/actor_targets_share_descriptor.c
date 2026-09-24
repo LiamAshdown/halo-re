@@ -9,8 +9,9 @@
 // blam-cc: EAX -> actor_a, ECX -> actor_b
 // UNSURE: datum_get() is called twice with zero visible arguments; guessed here as reading
 // a datum_index at mode_data+0x0c (actor+0xa8) of each actor, by analogy with the kind/extra
-// pair immediately before it. FUN_00401020 (a random roll, compared against 0.49) is
-// likewise called with no visible argument.
+// pair immediately before it. (The objdump shows EDX = actor + 0x270 at both calls and ESI =
+// prop_data; not re-derived here.) 0x401020 is vector3d_distance_squared on the two props'
+// last_known_position (EAX / ECX, 0x40e429..0x40e434): they share when within 0.7 units.
 
 #include "tags.h"
 #include "memory.h"
@@ -20,7 +21,7 @@
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0, UNSURE guess at which array datum_get checks here
 extern void * datum_get(datum_index handle, data_array *array); // 0x4d0680
-extern real FUN_00401020(void); // UNSURE: a random-roll helper, no visible args
+extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, src/math; blam-cc: EAX a, ECX b
 
 // blam-cc: EAX -> actor_a, ECX -> actor_b
 uint8_t actor_targets_share_descriptor(datum_index actor_a, datum_index actor_b)
@@ -41,9 +42,12 @@ uint8_t actor_targets_share_descriptor(datum_index actor_a, datum_index actor_b)
     if (desc_a[0] == 0 && desc_b[0] == 0) {
         datum_index datum_a = *(datum_index *)((uint8_t *)desc_a + 4); // UNSURE, see header
         datum_index datum_b = *(datum_index *)((uint8_t *)desc_b + 4); // UNSURE, see header
-        if (datum_get(datum_a, prop_data) == (void *)0) return 0;
-        if (datum_get(datum_b, prop_data) == (void *)0) return 0;
-        if (0.48999998f <= FUN_00401020()) return 0;
+        prop *prop_a = (prop *)datum_get(datum_a, prop_data);
+        prop *prop_b = (prop *)datum_get(datum_b, prop_data);
+        if (prop_a == (prop *)0 || prop_b == (prop *)0) return 0;
+        // 0x40e429..0x40e434: EAX = second prop + 0xbc, ECX = first prop + 0xbc (orphan pass 4:
+        // 0x401020 is vector3d_distance_squared, not a random roll)
+        if (0.48999998f <= vector3d_distance_squared(&prop_b->last_known_position, &prop_a->last_known_position)) return 0;
     } else if (desc_a[0] == 1 && desc_b[0] == 1) {
         return desc_a[1] == desc_b[1];
     } else if (desc_a[0] != 2 || desc_b[0] != 2) {

@@ -31,9 +31,9 @@ extern int32_t rasterizer_bitmap_format_to_d3dformat[]; // 0x0065e040, UNSURE el
 
 extern int32_t rasterizer_bitmap_compute_mipmap_skip_count(BitmapData *bitmap, int16_t *out_width, int16_t *out_height);
 
-typedef int32_t (*d3d_create_texture_fn)(void *self, uint32_t width, uint32_t height, uint32_t levels, uint32_t usage, int32_t format, uint32_t pool, void *out_texture, void *shared_handle);
-typedef int32_t (*d3d_create_volume_texture_fn)(void *self, uint32_t width, uint32_t height, uint32_t depth, uint32_t levels, uint32_t usage, int32_t format, uint32_t pool, void *out_texture, void *shared_handle);
-typedef int32_t (*d3d_create_cube_texture_fn)(void *self, uint32_t edge_length, uint32_t levels, uint32_t usage, int32_t format, uint32_t pool, void *out_texture, void *shared_handle);
+typedef int32_t (__stdcall *d3d_create_texture_fn)(void *self, uint32_t width, uint32_t height, uint32_t levels, uint32_t usage, int32_t format, uint32_t pool, void *out_texture, void *shared_handle);
+typedef int32_t (__stdcall *d3d_create_volume_texture_fn)(void *self, uint32_t width, uint32_t height, uint32_t depth, uint32_t levels, uint32_t usage, int32_t format, uint32_t pool, void *out_texture, void *shared_handle);
+typedef int32_t (__stdcall *d3d_create_cube_texture_fn)(void *self, uint32_t edge_length, uint32_t levels, uint32_t usage, int32_t format, uint32_t pool, void *out_texture, void *shared_handle);
 
 // Creates the hardware texture/volume texture/cube texture object for `bitmap` (matching its
 // type field) and stores it in bitmap->pointer. Returns 1 on success (including "nothing to do"

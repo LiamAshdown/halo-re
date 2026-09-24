@@ -1,5 +1,5 @@
 {
- "covered": 3876,
+ "covered": 3992,
  "duplicates": {},
  "explained": {
   "0x443410": "src/cache/cache_file_open_by_name.c",
@@ -9,32 +9,51 @@
   "0x4462a0": "inside src/camera/camera_input_axes_update.c",
   "0x44ad80": "trivial stub (1 bytes)",
   "0x44d820": "src/structures/structure_bsp_portal_sphere_test.c",
+  "0x45b4cb": "inside src/game/game_stop_current_map.c",
   "0x45b4e4": "trivial stub (1 bytes)",
+  "0x45fc50": "inside src/game/game_engine_update_netgame_equipment.c",
+  "0x476847": "inside src/game/game_engine_server_update_player_positions.c",
+  "0x47bf23": "inside src/game/hs_vehicle_test_seat_evaluate.c",
+  "0x47c3d0": "inside src/game/hs_vehicle_gunner_evaluate.c",
   "0x483f40": "inside src/hs/hs_rebuild_source.c",
   "0x48b520": "src/input/input_update_tick.c",
+  "0x48d270": "inside src/input/input_game_action_update.c",
+  "0x495190": "inside src/interface/map_list_add_entry.c",
+  "0x4951f0": "inside src/interface/map_list_add_entry.c",
   "0x4974f0": "src/interface/chimera__do_show_loading_screen.c",
+  "0x498160": "inside src/interface/interface_tick.c",
   "0x49a2e0": "src/interface/widget_instance_handle_input_event.c",
+  "0x49aa00": "inside src/interface/widget_instance_render.c",
   "0x49b450": "inside src/interface/widget_instance_render_text_box.c",
   "0x49c369": "inside src/interface/ui_check_for_pause_game.c",
+  "0x49d850": "inside src/interface/ui_map_select_confirm_choice.c",
   "0x4add40": "src/interface/hud_timer_draw.c",
   "0x4b2f8a": "src/interface/hud_weapon_crosshairs_draw.c",
-  "0x4c6340": "src/items/weapon_get_first_person_animation_time.c",
+  "0x4be1b0": "inside src/projectiles/projectile_update.c",
+  "0x4c62f0": "inside src/main/console_initialize.c",
+  "0x4c6340": "inside src/main/console_initialize.c",
   "0x4c7f10": "inside src/main/main_loop.c",
   "0x4c9c60": "inside src/main/campaign_level_advance.c",
   "0x4c9dc0": "inside src/interface/network_autojoin_from_command_line.c",
   "0x4e2d4b": "inside src/networking/sv_players.c",
+  "0x4e44e1": "inside src/networking/map_list_matching_substring.c",
+  "0x4f1ef0": "inside src/objects/object_sample_ambient_lightmap_point.c",
+  "0x4f3ef0": "inside src/objects/object_type_definitions_query_0x28.c",
   "0x4f8dc0": "trivial stub (7 bytes)",
   "0x4f9990": "inside src/objects/object_delete_attachments.c",
   "0x50fd3c": "inside src/render/render_local_player_gunner_seat_visible.c",
   "0x512b80": "inside src/render/fg_render.c",
   "0x518d40": "inside src/rasterizer/rasterizer_prepare_lighting_constants.c",
   "0x51acd0": "inside src/rasterizer/rasterizer_decals_draw_cluster.c",
+  "0x51ad91": "inside src/rasterizer/rasterizer_decals_draw_cluster.c",
   "0x52b340": "inside src/rasterizer/rasterizer_transparent_geometry_group_build.c",
-  "0x542141": "src/shell/shell_window_procedure.c",
+  "0x542141": "inside src/shell/shell_window_procedure.c",
+  "0x542380": "inside src/shell/shell_window_procedure.c",
   "0x545b70": "src/sound/sound_directsound_probe_channel_pools.c",
   "0x54e200": "src/sound/sound_update_looping_gain.c",
   "0x555d30": "inside src/saved_games/file_enumerate_find_next.c",
   "0x55e83a": "trivial stub (1 bytes)",
+  "0x565040": "inside src/math/vector3d_rotate_toward_bounded.c",
   "0x578aaf": "inside src/shell/hwreq_parser_report_error.c",
   "0x57a74c": "inside src/shell/hwreq_parser_parse_vendor_block.c",
   "0x57a801": "inside src/shell/hwreq_parser_parse_vendor_block.c",
@@ -42,10 +61,11 @@
   "0x57aa19": "inside src/shell/hwreq_parser_parse_vendor_block.c",
   "0x57bfec": "C++ EH catch funclet (part of its parent function)",
   "0x57c0a8": "C++ EH catch funclet (part of its parent function)",
-  "0x57c743": "C++ EH catch funclet (part of its parent function)",
+  "0x57c743": "inside src/shell/string_grow_reserve.c",
+  "0x57c76c": "inside src/shell/string_grow_reserve.c",
   "0x57c7e2": "C++ EH catch funclet (part of its parent function)",
   "0x57ccc4": "C++ EH catch funclet (part of its parent function)",
-  "0x57ced1": "C++ EH catch funclet (part of its parent function)",
+  "0x57ced1": "inside src/shell/uninit_fill_n_string_pair.c",
   "0x6b4c00": "not code: import/data address",
   "0x6bd180": "not code: import/data address",
   "0x6bd188": "not code: import/data address",
@@ -55,826 +75,16 @@
  },
  "missing": [
   {
-   "addr": "0x401000",
-   "module": "unknown",
-   "name": "vector3d_magnitude_squared",
-   "size": 31
-  },
-  {
-   "addr": "0x401020",
-   "module": "unknown",
-   "name": "vector3d_distance_squared",
-   "size": 39
-  },
-  {
-   "addr": "0x401a20",
-   "module": "unknown",
-   "name": "FUN_00401a20",
-   "size": 60
-  },
-  {
-   "addr": "0x444af0",
-   "module": "cache",
-   "name": "random_range_real",
-   "size": 55
-  },
-  {
-   "addr": "0x444b30",
-   "module": "cache",
-   "name": "FUN_00444b30",
-   "size": 206
-  },
-  {
-   "addr": "0x449780",
-   "module": "cutscene",
-   "name": "FUN_00449780",
-   "size": 473
-  },
-  {
-   "addr": "0x44a930",
-   "module": "devices",
-   "name": "recorded_animation_start",
-   "size": 342
-  },
-  {
-   "addr": "0x44aa90",
-   "module": "devices",
-   "name": "recorded_animations_update",
-   "size": 550
-  },
-  {
-   "addr": "0x44acc0",
-   "module": "devices",
-   "name": "recorded_animation_object_is_playing",
-   "size": 91
-  },
-  {
-   "addr": "0x44ad20",
-   "module": "devices",
-   "name": "recorded_animation_find_by_object",
-   "size": 93
-  },
-  {
-   "addr": "0x44d860",
-   "module": "effects",
-   "name": "FUN_0044d860",
-   "size": 113
-  },
-  {
-   "addr": "0x44d8e0",
-   "module": "effects",
-   "name": "vector3d_scalar_triple_product",
-   "size": 107
-  },
-  {
-   "addr": "0x44d950",
-   "module": "effects",
-   "name": "FUN_0044d950",
-   "size": 135
-  },
-  {
-   "addr": "0x44d9e0",
-   "module": "effects",
-   "name": "FUN_0044d9e0",
-   "size": 50
-  },
-  {
-   "addr": "0x44da20",
-   "module": "effects",
-   "name": "plane3d_negate",
-   "size": 31
-  },
-  {
-   "addr": "0x44da60",
-   "module": "effects",
-   "name": "color_real_to_argb_pack",
-   "size": 106
-  },
-  {
-   "addr": "0x44dad0",
-   "module": "effects",
-   "name": "FUN_0044dad0",
-   "size": 86
-  },
-  {
-   "addr": "0x44db30",
-   "module": "effects",
-   "name": "FUN_0044db30",
-   "size": 253
-  },
-  {
-   "addr": "0x453330",
-   "module": "effects",
-   "name": "FUN_00453330",
-   "size": 125
-  },
-  {
-   "addr": "0x4588e0",
-   "module": "effects",
-   "name": "FUN_004588e0",
-   "size": 168
-  },
-  {
-   "addr": "0x458990",
-   "module": "effects",
-   "name": "FUN_00458990",
-   "size": 250
-  },
-  {
-   "addr": "0x458b50",
-   "module": "effects",
-   "name": "FUN_00458b50",
-   "size": 142
-  },
-  {
-   "addr": "0x45b4cb",
-   "module": "game",
-   "name": "game_initialize_mod_per_map_upgrade_effects",
-   "size": 22
-  },
-  {
-   "addr": "0x45fc50",
-   "module": "game",
-   "name": "hud_render_scoreboard_ingame",
-   "size": 45
-  },
-  {
-   "addr": "0x476847",
-   "module": "game",
-   "name": "player_add_equipment_unit_grenade_count_mod",
-   "size": 108
-  },
-  {
-   "addr": "0x47bf23",
-   "module": "game",
-   "name": "player_handle_action_jmp_table_adjust_size",
-   "size": 44
-  },
-  {
-   "addr": "0x47c3d0",
-   "module": "game",
-   "name": "player_health_pack_screen_effect",
-   "size": 31
-  },
-  {
-   "addr": "0x483d20",
-   "module": "hs",
-   "name": "FUN_00483d20",
-   "size": 245
-  },
-  {
-   "addr": "0x4875c0",
-   "module": "hs",
-   "name": "FUN_004875c0",
-   "size": 102
-  },
-  {
-   "addr": "0x48ab80",
-   "module": "hs",
-   "name": "hs_object_orient",
-   "size": 9
-  },
-  {
-   "addr": "0x48d270",
-   "module": "input",
-   "name": "hs_return",
-   "size": 6434
-  },
-  {
-   "addr": "0x4921a0",
-   "module": "input",
-   "name": "chimera__main_menu_music",
-   "size": 97
-  },
-  {
-   "addr": "0x495190",
-   "module": "interface",
-   "name": "first_person_weapons_update",
-   "size": 96
-  },
-  {
-   "addr": "0x4951f0",
-   "module": "interface",
-   "name": "first_person_weapon_render_update",
-   "size": 111
-  },
-  {
-   "addr": "0x498160",
-   "module": "interface",
-   "name": "multiplayer_map_list_dispose",
-   "size": 459
-  },
-  {
-   "addr": "0x49aa00",
-   "module": "interface",
-   "name": "ui_widget_load_by_name_or_tag",
-   "size": 559
-  },
-  {
-   "addr": "0x49d850",
-   "module": "interface",
-   "name": "render_widget_recursive",
-   "size": 82
-  },
-  {
-   "addr": "0x4bdc00",
-   "module": "projectiles",
-   "name": "projectile_update",
-   "size": 1456
-  },
-  {
-   "addr": "0x4beb30",
-   "module": "projectiles",
-   "name": "FUN_004beb30",
-   "size": 744
-  },
-  {
-   "addr": "0x4bee20",
-   "module": "projectiles",
-   "name": "FUN_004bee20",
-   "size": 147
-  },
-  {
-   "addr": "0x4beec0",
-   "module": "projectiles",
-   "name": "FUN_004beec0",
-   "size": 179
-  },
-  {
-   "addr": "0x4bef80",
-   "module": "projectiles",
-   "name": "FUN_004bef80",
-   "size": 316
-  },
-  {
-   "addr": "0x4c62d0",
-   "module": "items",
-   "name": "FUN_004c62d0",
-   "size": 32
-  },
-  {
-   "addr": "0x4c62f0",
-   "module": "items",
-   "name": "weapon_prevents_grenade_throwing",
-   "size": 80
-  },
-  {
-   "addr": "0x4d3980",
-   "module": "memory",
-   "name": "data_delete_all",
-   "size": 176
-  },
-  {
-   "addr": "0x4d3a30",
-   "module": "memory",
-   "name": "data_next_index",
-   "size": 80
-  },
-  {
-   "addr": "0x4e44e1",
-   "module": "networking",
-   "name": "client_machine_cleanup__hook_remove_player",
-   "size": 280
-  },
-  {
-   "addr": "0x4f0530",
-   "module": "objects",
-   "name": "hash_table_set_or_remove",
-   "size": 173
-  },
-  {
-   "addr": "0x4f05e0",
-   "module": "objects",
-   "name": "hash_table_get",
-   "size": 58
-  },
-  {
-   "addr": "0x4f0620",
-   "module": "objects",
-   "name": "hash_table_grow_freelist",
-   "size": 170
-  },
-  {
-   "addr": "0x4f06d0",
-   "module": "objects",
-   "name": "vector3d_barycentric_interpolate",
-   "size": 87
-  },
-  {
-   "addr": "0x4f0730",
-   "module": "objects",
-   "name": "bsp_lightmap_sample_vertex_color",
-   "size": 459
-  },
-  {
-   "addr": "0x4f0900",
-   "module": "objects",
-   "name": "bsp_lightmap_sample_vertex_incident",
-   "size": 284
-  },
-  {
-   "addr": "0x4f1ef0",
-   "module": "objects",
-   "name": "object_cause_damage",
-   "size": 439
-  },
-  {
-   "addr": "0x4f2550",
-   "module": "objects",
-   "name": "object_lighting_sample_point",
-   "size": 1132
-  },
-  {
-   "addr": "0x4f3680",
-   "module": "objects",
-   "name": "FUN_004f3680",
-   "size": 102
-  },
-  {
-   "addr": "0x4f3700",
-   "module": "objects",
-   "name": "FUN_004f3700",
-   "size": 197
-  },
-  {
-   "addr": "0x4f37d0",
-   "module": "objects",
-   "name": "FUN_004f37d0",
-   "size": 162
-  },
-  {
-   "addr": "0x4f3890",
-   "module": "objects",
-   "name": "FUN_004f3890",
-   "size": 260
-  },
-  {
-   "addr": "0x4f39d0",
-   "module": "objects",
-   "name": "FUN_004f39d0",
-   "size": 179
-  },
-  {
-   "addr": "0x4f3ad0",
-   "module": "objects",
-   "name": "FUN_004f3ad0",
-   "size": 197
-  },
-  {
-   "addr": "0x4f3ef0",
-   "module": "objects",
-   "name": "index_resolution_table_translate",
-   "size": 40
-  },
-  {
-   "addr": "0x4fca60",
-   "module": "objects",
-   "name": "FUN_004fca60",
-   "size": 147
-  },
-  {
-   "addr": "0x4fcb00",
-   "module": "objects",
-   "name": "FUN_004fcb00",
-   "size": 168
-  },
-  {
    "addr": "0x500090",
    "module": "physics",
    "name": "FUN_00500090",
    "size": 4764
   },
   {
-   "addr": "0x5066e0",
-   "module": "physics",
-   "name": "point3d_project_onto_line",
-   "size": 121
-  },
-  {
-   "addr": "0x507430",
-   "module": "physics",
-   "name": "FUN_00507430",
-   "size": 123
-  },
-  {
-   "addr": "0x510410",
-   "module": "render",
-   "name": "sort_introsort_loop",
-   "size": 235
-  },
-  {
-   "addr": "0x510500",
-   "module": "render",
-   "name": "FUN_00510500",
-   "size": 734
-  },
-  {
-   "addr": "0x5107e0",
-   "module": "render",
-   "name": "FUN_005107e0",
-   "size": 80
-  },
-  {
-   "addr": "0x510830",
-   "module": "render",
-   "name": "FUN_00510830",
-   "size": 191
-  },
-  {
-   "addr": "0x5108f0",
-   "module": "render",
-   "name": "FUN_005108f0",
-   "size": 140
-  },
-  {
-   "addr": "0x510980",
-   "module": "render",
-   "name": "FUN_00510980",
-   "size": 70
-  },
-  {
-   "addr": "0x5109d0",
-   "module": "render",
-   "name": "FUN_005109d0",
-   "size": 183
-  },
-  {
-   "addr": "0x510a90",
-   "module": "render",
-   "name": "FUN_00510a90",
-   "size": 133
-  },
-  {
-   "addr": "0x510b20",
-   "module": "render",
-   "name": "FUN_00510b20",
-   "size": 122
-  },
-  {
-   "addr": "0x510ba0",
-   "module": "render",
-   "name": "FUN_00510ba0",
-   "size": 173
-  },
-  {
-   "addr": "0x51ad91",
-   "module": "rasterizer",
-   "name": "caseD_0",
-   "size": 802
-  },
-  {
-   "addr": "0x53f150",
-   "module": "structures",
-   "name": "FUN_0053f150",
-   "size": 1134
-  },
-  {
-   "addr": "0x542380",
-   "module": "shell",
-   "name": "scenario_trigger_volume_test_point",
-   "size": 416
-  },
-  {
-   "addr": "0x5579e0",
-   "module": "units",
-   "name": "FUN_005579e0",
-   "size": 164
-  },
-  {
-   "addr": "0x558860",
-   "module": "units",
-   "name": "FUN_00558860",
-   "size": 446
-  },
-  {
-   "addr": "0x55eed0",
-   "module": "units",
-   "name": "FUN_0055eed0",
-   "size": 242
-  },
-  {
    "addr": "0x55efd0",
    "module": "units",
    "name": "FUN_0055efd0",
    "size": 5157
-  },
-  {
-   "addr": "0x561ab0",
-   "module": "units",
-   "name": "FUN_00561ab0",
-   "size": 195
-  },
-  {
-   "addr": "0x561cb0",
-   "module": "units",
-   "name": "FUN_00561cb0",
-   "size": 155
-  },
-  {
-   "addr": "0x561d50",
-   "module": "units",
-   "name": "FUN_00561d50",
-   "size": 259
-  },
-  {
-   "addr": "0x561e60",
-   "module": "units",
-   "name": "FUN_00561e60",
-   "size": 275
-  },
-  {
-   "addr": "0x564580",
-   "module": "units",
-   "name": "FUN_00564580",
-   "size": 689
-  },
-  {
-   "addr": "0x564840",
-   "module": "units",
-   "name": "FUN_00564840",
-   "size": 329
-  },
-  {
-   "addr": "0x564990",
-   "module": "units",
-   "name": "FUN_00564990",
-   "size": 334
-  },
-  {
-   "addr": "0x564ae0",
-   "module": "units",
-   "name": "FUN_00564ae0",
-   "size": 1376
-  },
-  {
-   "addr": "0x565040",
-   "module": "units",
-   "name": "unit_scripting_set_current_vitality",
-   "size": 267
-  },
-  {
-   "addr": "0x5658f0",
-   "module": "units",
-   "name": "FUN_005658f0",
-   "size": 208
-  },
-  {
-   "addr": "0x56eb90",
-   "module": "units",
-   "name": "FUN_0056eb90",
-   "size": 52
-  },
-  {
-   "addr": "0x5724d0",
-   "module": "units",
-   "name": "FUN_005724d0",
-   "size": 524
-  },
-  {
-   "addr": "0x572a90",
-   "module": "units",
-   "name": "FUN_00572a90",
-   "size": 205
-  },
-  {
-   "addr": "0x576f40",
-   "module": "networking",
-   "name": "autopatch_get_proxy_settings",
-   "size": 639
-  },
-  {
-   "addr": "0x577310",
-   "module": "networking",
-   "name": "autopatch_launch_updater",
-   "size": 945
-  },
-  {
-   "addr": "0x5782b0",
-   "module": "shell",
-   "name": "FUN_005782b0",
-   "size": 95
-  },
-  {
-   "addr": "0x578310",
-   "module": "shell",
-   "name": "hwreq_parse_exception_destruct",
-   "size": 110
-  },
-  {
-   "addr": "0x578390",
-   "module": "shell",
-   "name": "FUN_00578390",
-   "size": 30
-  },
-  {
-   "addr": "0x5783b0",
-   "module": "shell",
-   "name": "FUN_005783b0",
-   "size": 11
-  },
-  {
-   "addr": "0x5783c0",
-   "module": "shell",
-   "name": "FUN_005783c0",
-   "size": 30
-  },
-  {
-   "addr": "0x5783e0",
-   "module": "shell",
-   "name": "FUN_005783e0",
-   "size": 11
-  },
-  {
-   "addr": "0x5783f0",
-   "module": "shell",
-   "name": "FUN_005783f0",
-   "size": 30
-  },
-  {
-   "addr": "0x579fe0",
-   "module": "shell",
-   "name": "FUN_00579fe0",
-   "size": 44
-  },
-  {
-   "addr": "0x57b590",
-   "module": "shell",
-   "name": "FUN_0057b590",
-   "size": 30
-  },
-  {
-   "addr": "0x57b5b0",
-   "module": "shell",
-   "name": "hwreq_device_list_size",
-   "size": 33
-  },
-  {
-   "addr": "0x57b5e0",
-   "module": "shell",
-   "name": "hwreq_device_list_push_back",
-   "size": 135
-  },
-  {
-   "addr": "0x57b670",
-   "module": "shell",
-   "name": "hwreq_string_pair_construct",
-   "size": 111
-  },
-  {
-   "addr": "0x57b800",
-   "module": "shell",
-   "name": "hwreq_string_destruct",
-   "size": 34
-  },
-  {
-   "addr": "0x57ba50",
-   "module": "shell",
-   "name": "FUN_0057ba50",
-   "size": 369
-  },
-  {
-   "addr": "0x57bbd0",
-   "module": "shell",
-   "name": "hwreq_map_key_less_than",
-   "size": 39
-  },
-  {
-   "addr": "0x57bc20",
-   "module": "shell",
-   "name": "FUN_0057bc20",
-   "size": 101
-  },
-  {
-   "addr": "0x57bd80",
-   "module": "shell",
-   "name": "string_erase",
-   "size": 117
-  },
-  {
-   "addr": "0x57be00",
-   "module": "shell",
-   "name": "FUN_0057be00",
-   "size": 22
-  },
-  {
-   "addr": "0x57c1a0",
-   "module": "shell",
-   "name": "tree_insert_unique",
-   "size": 362
-  },
-  {
-   "addr": "0x57c310",
-   "module": "shell",
-   "name": "tree_erase_range",
-   "size": 122
-  },
-  {
-   "addr": "0x57c530",
-   "module": "shell",
-   "name": "tree_lower_bound",
-   "size": 165
-  },
-  {
-   "addr": "0x57c5e0",
-   "module": "shell",
-   "name": "tree_iterator_increment",
-   "size": 87
-  },
-  {
-   "addr": "0x57c640",
-   "module": "shell",
-   "name": "string_pair_construct_empty",
-   "size": 110
-  },
-  {
-   "addr": "0x57c6d0",
-   "module": "shell",
-   "name": "string_grow_reserve",
-   "size": 115
-  },
-  {
-   "addr": "0x57c76c",
-   "module": "shell",
-   "name": "string_copy_into_new_buffer",
-   "size": 118
-  },
-  {
-   "addr": "0x57cb10",
-   "module": "shell",
-   "name": "tree_rotate_left",
-   "size": 81
-  },
-  {
-   "addr": "0x57cb70",
-   "module": "shell",
-   "name": "tree_find_min",
-   "size": 28
-  },
-  {
-   "addr": "0x57cb90",
-   "module": "shell",
-   "name": "tree_rotate_right",
-   "size": 85
-  },
-  {
-   "addr": "0x57cbf0",
-   "module": "shell",
-   "name": "tree_head_node_allocate",
-   "size": 55
-  },
-  {
-   "addr": "0x57cc30",
-   "module": "shell",
-   "name": "tree_node_allocate",
-   "size": 148
-  },
-  {
-   "addr": "0x57cce0",
-   "module": "shell",
-   "name": "tree_destroy_subtree",
-   "size": 60
-  },
-  {
-   "addr": "0x57cd20",
-   "module": "shell",
-   "name": "tree_find_max",
-   "size": 29
-  },
-  {
-   "addr": "0x57cd40",
-   "module": "shell",
-   "name": "tree_iterator_decrement",
-   "size": 93
-  },
-  {
-   "addr": "0x57cda0",
-   "module": "shell",
-   "name": "FUN_0057cda0",
-   "size": 52
-  },
-  {
-   "addr": "0x57cde0",
-   "module": "shell",
-   "name": "FUN_0057cde0",
-   "size": 34
-  },
-  {
-   "addr": "0x57ce10",
-   "module": "shell",
-   "name": "string_compare",
-   "size": 111
-  },
-  {
-   "addr": "0x57ce80",
-   "module": "shell",
-   "name": "FUN_0057ce80",
-   "size": 98
-  },
-  {
-   "addr": "0x57cf50",
-   "module": "shell",
-   "name": "FUN_0057cf50",
-   "size": 102
   }
  ],
  "not_engine": {
@@ -919,5 +129,276 @@
   ]
  },
  "library_rewritten": {},
- "module_mismatch": []
+ "module_mismatch": [
+  {
+   "addr": "0x444af0",
+   "modules.json": "cache",
+   "file": "src/math/random_range_real.c"
+  },
+  {
+   "addr": "0x444b30",
+   "modules.json": "cache",
+   "file": "src/camera/camera_script_set_animation.c"
+  },
+  {
+   "addr": "0x449780",
+   "modules.json": "cutscene",
+   "file": "src/interface/ui_draw_filled_rectangle.c"
+  },
+  {
+   "addr": "0x44a930",
+   "modules.json": "devices",
+   "file": "src/cutscene/recorded_animation_start.c"
+  },
+  {
+   "addr": "0x44aa90",
+   "modules.json": "devices",
+   "file": "src/cutscene/recorded_animations_update.c"
+  },
+  {
+   "addr": "0x44acc0",
+   "modules.json": "devices",
+   "file": "src/cutscene/recorded_animation_object_is_playing.c"
+  },
+  {
+   "addr": "0x44ad20",
+   "modules.json": "devices",
+   "file": "src/cutscene/recorded_animation_find_by_object.c"
+  },
+  {
+   "addr": "0x44d860",
+   "modules.json": "effects",
+   "file": "src/math/decal_plane_solve_third_axis.c"
+  },
+  {
+   "addr": "0x44d8e0",
+   "modules.json": "effects",
+   "file": "src/math/vector3d_scalar_triple_product.c"
+  },
+  {
+   "addr": "0x44d950",
+   "modules.json": "effects",
+   "file": "src/math/plane2d_from_points.c"
+  },
+  {
+   "addr": "0x44d9e0",
+   "modules.json": "effects",
+   "file": "src/math/plane3d_from_point_and_normal.c"
+  },
+  {
+   "addr": "0x44da20",
+   "modules.json": "effects",
+   "file": "src/math/plane3d_negate.c"
+  },
+  {
+   "addr": "0x44da60",
+   "modules.json": "effects",
+   "file": "src/math/color_real_to_argb_pack.c"
+  },
+  {
+   "addr": "0x44dad0",
+   "modules.json": "effects",
+   "file": "src/structures/structure_bsp_plane_fetch_signed.c"
+  },
+  {
+   "addr": "0x44db30",
+   "modules.json": "effects",
+   "file": "src/structures/structure_lightmap_uv_rect_build.c"
+  },
+  {
+   "addr": "0x453330",
+   "modules.json": "effects",
+   "file": "src/game/any_local_player_within_10_units.c"
+  },
+  {
+   "addr": "0x4588e0",
+   "modules.json": "effects",
+   "file": "src/math/vector3d_positive_modulo.c"
+  },
+  {
+   "addr": "0x458990",
+   "modules.json": "effects",
+   "file": "src/render/render_camera_facing_frame_build.c"
+  },
+  {
+   "addr": "0x458b50",
+   "modules.json": "effects",
+   "file": "src/structures/structure_weather_polyhedra_find_within_radius.c"
+  },
+  {
+   "addr": "0x483d20",
+   "modules.json": "hs",
+   "file": "src/saved_games/file_reference_compare_full_path.c"
+  },
+  {
+   "addr": "0x4875c0",
+   "modules.json": "hs",
+   "file": "src/text/string_table_index_of.c"
+  },
+  {
+   "addr": "0x4921a0",
+   "modules.json": "input",
+   "file": "src/interface/chimera__main_menu_music.c"
+  },
+  {
+   "addr": "0x4beb30",
+   "modules.json": "projectiles",
+   "file": "src/ai/projectile_solve_ballistic_arc.c"
+  },
+  {
+   "addr": "0x4bee20",
+   "modules.json": "projectiles",
+   "file": "src/ai/projectile_solve_straight_line.c"
+  },
+  {
+   "addr": "0x4beec0",
+   "modules.json": "projectiles",
+   "file": "src/ai/projectile_get_aiming_vector.c"
+  },
+  {
+   "addr": "0x4bef80",
+   "modules.json": "projectiles",
+   "file": "src/objects/object_apply_impulse_and_spin.c"
+  },
+  {
+   "addr": "0x4c62d0",
+   "modules.json": "items",
+   "file": "src/main/console_initialize.c"
+  },
+  {
+   "addr": "0x4f06d0",
+   "modules.json": "objects",
+   "file": "src/math/vector3d_barycentric_interpolate.c"
+  },
+  {
+   "addr": "0x4f0730",
+   "modules.json": "objects",
+   "file": "src/structures/bsp_lightmap_sample_vertex_color.c"
+  },
+  {
+   "addr": "0x4f0900",
+   "modules.json": "objects",
+   "file": "src/structures/bsp_material_sample_base_map_color.c"
+  },
+  {
+   "addr": "0x4f2550",
+   "modules.json": "objects",
+   "file": "src/structures/object_lighting_sample_point.c"
+  },
+  {
+   "addr": "0x4f3680",
+   "modules.json": "objects",
+   "file": "src/input/control_word_extract_field.c"
+  },
+  {
+   "addr": "0x4f3700",
+   "modules.json": "objects",
+   "file": "src/input/control_binding_table_initialize.c"
+  },
+  {
+   "addr": "0x4f37d0",
+   "modules.json": "objects",
+   "file": "src/input/control_binding_table_register_single.c"
+  },
+  {
+   "addr": "0x4f3890",
+   "modules.json": "objects",
+   "file": "src/input/control_binding_table_update_a.c"
+  },
+  {
+   "addr": "0x4f39d0",
+   "modules.json": "objects",
+   "file": "src/input/control_binding_table_update_b.c"
+  },
+  {
+   "addr": "0x4f3ad0",
+   "modules.json": "objects",
+   "file": "src/input/control_binding_table_query.c"
+  },
+  {
+   "addr": "0x4fca60",
+   "modules.json": "objects",
+   "file": "src/math/cubic_interpolate_divided_difference.c"
+  },
+  {
+   "addr": "0x4fcb00",
+   "modules.json": "objects",
+   "file": "src/math/vector3d_cubic_interpolate.c"
+  },
+  {
+   "addr": "0x5066e0",
+   "modules.json": "physics",
+   "file": "src/math/point3d_project_onto_line.c"
+  },
+  {
+   "addr": "0x507430",
+   "modules.json": "physics",
+   "file": "src/math/real_inverse_lerp_clamped.c"
+  },
+  {
+   "addr": "0x53f150",
+   "modules.json": "structures",
+   "file": "src/sound/sound_environment_update.c"
+  },
+  {
+   "addr": "0x5579e0",
+   "modules.json": "units",
+   "file": "src/math/real_matrix4x3_rotation_is_orthonormal.c"
+  },
+  {
+   "addr": "0x558860",
+   "modules.json": "units",
+   "file": "src/math/real_matrix4x3_rotation_rebuild_orthonormal.c"
+  },
+  {
+   "addr": "0x55eed0",
+   "modules.json": "units",
+   "file": "src/math/real_matrix4x3_rotation_from_forward.c"
+  },
+  {
+   "addr": "0x561ab0",
+   "modules.json": "units",
+   "file": "src/ai/ai_object_list_initialize_shield_stun_thresholds.c"
+  },
+  {
+   "addr": "0x561cb0",
+   "modules.json": "units",
+   "file": "src/ai/ai_object_list_update_vitality_fractions.c"
+  },
+  {
+   "addr": "0x561d50",
+   "modules.json": "units",
+   "file": "src/ai/ai_object_list_set_unit_flag_800000.c"
+  },
+  {
+   "addr": "0x561e60",
+   "modules.json": "units",
+   "file": "src/ai/ai_object_list_start_user_animation_until_failure.c"
+  },
+  {
+   "addr": "0x564580",
+   "modules.json": "units",
+   "file": "src/math/bounded_ramp_profile_build.c"
+  },
+  {
+   "addr": "0x564840",
+   "modules.json": "units",
+   "file": "src/math/bounded_ramp_profile_synchronize.c"
+  },
+  {
+   "addr": "0x564990",
+   "modules.json": "units",
+   "file": "src/math/bounded_ramp_profile_evaluate.c"
+  },
+  {
+   "addr": "0x564ae0",
+   "modules.json": "units",
+   "file": "src/math/vector3d_rotate_toward_bounded.c"
+  },
+  {
+   "addr": "0x572a90",
+   "modules.json": "units",
+   "file": "src/math/vector3d_delta_toward_gravity_biased_clamp_length.c"
+  }
+ ]
 }

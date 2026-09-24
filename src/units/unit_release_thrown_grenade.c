@@ -23,7 +23,7 @@
 //   used elsewhere in this module (e.g. 0x558860).
 // UNSURE: globals_tag_data+0x174 (the "player information" block per types/units.h) is indexed
 //   at +0x68/+0x6c/+0x70 for the forward/right/up throw-origin offsets; not named in the header.
-// UNSURE: actor_compute_grenade_throw_vector (the AI-controlled branch's direction helper) and FUN_004bef80 (the
+// UNSURE: actor_compute_grenade_throw_vector (the AI-controlled branch's direction helper) and object_apply_impulse_and_spin (the
 //   final impulse applier) are out of this module's range and kept with the argument counts
 //   Ghidra shows at their call sites, which is not enough to assert a full prototype.
 // UNSURE: the object_reposition_to_spawn_location call site passes two stack-looking values (projectile_index,
@@ -57,7 +57,7 @@ extern void unit_get_camera_position(uint32_t unit_index, real_point3d *out); //
 extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index); // 0x4f5350
 extern void actor_compute_grenade_throw_vector(real_point3d *target, real_vector3d *out); // 0x410a60, UNSURE signature
 extern real random_real_range(real min, real max); // 0x401050
-extern void FUN_004bef80(uint32_t object_index, real_vector3d *impulse); // 0x4bef80, UNSURE signature
+extern void object_apply_impulse_and_spin(uint32_t object_index, real_vector3d *impulse); // 0x4bef80, UNSURE signature
 extern uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d *target_position); // 0x4f7b70, UNSURE args, see header
 extern void object_delete(uint32_t object_index);            // 0x4f5bd0, UNSURE exact signature
 extern uint8_t object_is_delete_pending(uint32_t object_index); // 0x4f5c10
@@ -149,7 +149,7 @@ void unit_release_thrown_grenade(uint32_t object_index, uint8_t apply_throw_frac
     velocity.i -= proj->velocity.i;
     velocity.j -= proj->velocity.j;
     velocity.k -= proj->velocity.k;
-    FUN_004bef80(projectile_index, &velocity);
+    object_apply_impulse_and_spin(projectile_index, &velocity);
 
     unit->throwing_grenade_projectile = k_datum_index_none;
     unit->throwing_grenade_state = 3;

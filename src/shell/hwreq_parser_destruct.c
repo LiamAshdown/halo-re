@@ -30,10 +30,10 @@ extern hwreq_parser_vtable hwreq_parser_vtable_instance; // 0x006721e8
 
 extern void hwreq_property_set_flags_destruct(hwreq_property_set *set); // 0x57b990, blam-cc: set in EBX; library code (map neighbour), not in the function list
 extern void hwreq_string_pair_destruct(hwreq_string_pair *pair); // 0x5785b0
-extern void tree_erase_range(msvc_std_map *tree, hwreq_map_node **out_iterator, hwreq_map_node *first,
-                              hwreq_map_node *last); // 0x57c310, blam-cc: tree in ESI (objdump: reads
+extern hwreq_map_node **tree_erase_range(hwreq_map_node **out_iterator, hwreq_map_node *first,
+                              hwreq_map_node *last, msvc_std_map *tree); // 0x57c310, src/shell; blam-cc: tree in ESI (objdump: reads
                               // [esi+4] with no this-load at entry, live from the caller); out_iterator,
-                              // first, last on the stack, in that order. Library code (map neighbour of
+                              // first, last on the stack, in that order. Parameter order follows src/shell/tree_erase_range.c. Library code (map neighbour of
                               // the skip-listed tree_* helpers), not in the function list.
                               // UNSURE: out_iterator's exact purpose; unused by every caller in this file.
 extern void tree_iterator_increment(hwreq_map_node **iterator); // 0x57c5e0, blam-cc: iterator address in EDX, updated in place
@@ -83,13 +83,13 @@ void hwreq_parser_destruct(hwreq_parser *this)
     }
 
     head = (hwreq_map_node *)this->graphic_detail_sets.head;
-    tree_erase_range(&this->graphic_detail_sets, &node, (hwreq_map_node *)head->left, head);
+    tree_erase_range(&node, (hwreq_map_node *)head->left, head, &this->graphic_detail_sets);
     free((void *)this->graphic_detail_sets.head);
     this->graphic_detail_sets.head = 0;
     this->graphic_detail_sets.size = 0;
 
     head = (hwreq_map_node *)this->property_sets.head;
-    tree_erase_range(&this->property_sets, &node, (hwreq_map_node *)head->left, head);
+    tree_erase_range(&node, (hwreq_map_node *)head->left, head, &this->property_sets);
     free((void *)this->property_sets.head);
     this->property_sets.head = 0;
     this->property_sets.size = 0;

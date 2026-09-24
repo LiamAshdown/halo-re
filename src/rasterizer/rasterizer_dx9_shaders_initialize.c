@@ -33,7 +33,7 @@ extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_
 extern uint8_t rasterizer_dx9_pixel_shaders_load_all(void); // 0x52fa00
 extern int32_t D3DXCreateEffectPool(void **out_pool); // 0x583ddc
 
-typedef int32_t (*d3dx_get_by_name_fn)(void *effect, void *parent, const char *name);
+typedef int32_t (__stdcall *d3dx_get_by_name_fn)(void *effect, void *parent, const char *name);
 
 static uint32_t get_param(void *effect, const char *name)
 {

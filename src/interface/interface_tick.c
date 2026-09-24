@@ -1,5 +1,6 @@
 // interface_tick  (Ghidra: interface_tick, already named)
-// address 0x497e80, size 736 bytes stated by out/phase4/interface_functions.md, but its real
+// address 0x497e80, size 1198 bytes (0x497e80..0x49832d; 736 bytes stated by
+// out/phase4/interface_functions.md, but its real
 // extent runs through 0x49832d: the address range 0x498160..0x49832d, separately catalogued as
 // "multiplayer_map_list_dispose" (callers=0), shares this function's own stack frame byte for
 // byte -- its first instructions (0x498160 `mov ebx,ecx; call 0x49bd00`) are the exact

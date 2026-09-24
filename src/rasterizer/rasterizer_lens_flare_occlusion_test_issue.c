@@ -31,9 +31,9 @@ extern void *rasterizer_device;                                            // 0x
 extern uint8_t rasterizer_lens_flare_project_to_screen(const real_point3d *position, float radius, float *out_screen, float *out_inverse_w, float *out_billboard_size); // 0x00536d80
 extern double floor(double x); // 0x623e40 CRT
 
-typedef int32_t (*d3d_draw_primitive_up_fn)(void *self, uint32_t primitive_type, uint32_t primitive_count,
+typedef int32_t (__stdcall *d3d_draw_primitive_up_fn)(void *self, uint32_t primitive_type, uint32_t primitive_count,
                                             const void *data, uint32_t stride);
-typedef int32_t (*d3d_query_issue_fn)(void *query, uint32_t flags);
+typedef int32_t (__stdcall *d3d_query_issue_fn)(void *query, uint32_t flags);
 
 static int16_t floor_clamped(float value)
 {

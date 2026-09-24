@@ -21,7 +21,7 @@
 extern uint8_t *network_message_table; // 0x00687130, PTR_DAT_00687130, UNSURE shape
 extern uint8_t event9_target[];          // 0x00871de0, UNSURE shape
 
-extern int32_t hash_table_get(int32_t key);                                            // 0x4f05e0, UNSURE signature
+extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
 extern int32_t message_delta_encode_message(uint32_t a, uint32_t size, uint32_t b, void *fields,
                                              uint32_t c, uint32_t d, uint8_t e);         // 0x4ec940, UNSURE signature
 extern void network_session_broadcast_to_flagged(uint32_t a, void *table, uint32_t b, uint32_t c, uint32_t d, uint32_t e); // 0x4e1a80, UNSURE signature
@@ -30,7 +30,7 @@ void unit_broadcast_state_change_event(int32_t index) // blam-cc: param_1 -> ind
 {
     int32_t resolved = 0;
     if (index != -1) {
-        resolved = hash_table_get(index); // UNSURE: argument guessed, see file header
+        resolved = hash_table_get((hash_table *)(network_message_table + 0xc), index); // 0x566c09..0x566c18
         if (resolved == -1) {
             resolved = 0;
         }

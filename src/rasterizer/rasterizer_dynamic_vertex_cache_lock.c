@@ -21,7 +21,7 @@
 #include "math.h"
 #include "rasterizer.h"
 
-typedef int32_t (*d3d_vertex_buffer_lock_fn)(void *self, uint32_t offset, uint32_t size,
+typedef int32_t (__stdcall *d3d_vertex_buffer_lock_fn)(void *self, uint32_t offset, uint32_t size,
                                               void **out_data, uint32_t flags);
 
 extern rasterizer_dynamic_vertex_slot rasterizer_dynamic_vertex_slots[k_rasterizer_dynamic_vertex_slots]; // 0x006d99d8

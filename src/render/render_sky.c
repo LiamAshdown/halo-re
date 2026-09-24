@@ -100,7 +100,7 @@ extern double fabs(double x);           // x87 FABS
 extern double sin(double x);            // x87 FSIN
 extern double cos(double x);            // x87 FCOS
 
-typedef int32_t (*d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
+typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
 
 static datum_index tag_id_of(TagID id)
 {

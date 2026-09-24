@@ -26,10 +26,10 @@ extern d3d_caps9 rasterizer_caps;                                    // 0x007c10
 extern int32_t renderer_unknown_722b60; // 0x00722b60 nonzero forces the "fallback" technique name
 extern int32_t rasterizer_config_shader_version; // 0x00722b64 config pixel shader version; 0x270d also forces "fallback"
 
-typedef int32_t (*d3dx_get_by_name_fn)(void *effect, void *parent, const char *name);
-typedef int32_t (*d3dx_validate_technique_fn)(void *effect, void *technique);
-typedef int32_t (*d3dx_find_next_valid_technique_fn)(void *effect, void *technique, void *out_technique);
-typedef int32_t (*d3dx_set_technique_fn)(void *effect, void *technique);
+typedef int32_t (__stdcall *d3dx_get_by_name_fn)(void *effect, void *parent, const char *name);
+typedef int32_t (__stdcall *d3dx_validate_technique_fn)(void *effect, void *technique);
+typedef int32_t (__stdcall *d3dx_find_next_valid_technique_fn)(void *effect, void *technique, void *out_technique);
+typedef int32_t (__stdcall *d3dx_set_technique_fn)(void *effect, void *technique);
 
 // Finds and validates the best pixel-shader technique named "ps_<major>_<minor>" supported by the
 // current pixel-shader-model version (degrading the minor, then major, version number until one

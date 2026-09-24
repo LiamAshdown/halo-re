@@ -10,7 +10,7 @@
 // the bitmap tag cannot be resolved." types/interface.h names 0x006927c4 as
 // ui_network_wait_start_time; 0x006927c8 is the cached bitmap tag for this indicator (TYPES-GAP).
 // register convention: none (void).
-// UNSURE: bitmap_group_sequence_get_bitmap_data's EAX/EDI (bitmap/frame) and FUN_00449780's two
+// UNSURE: bitmap_group_sequence_get_bitmap_data's EAX/EDI (bitmap/frame) and ui_draw_filled_rectangle's two
 // arguments are all read here from unresolved registers Ghidra shows no visible source for;
 // modeled as the cached bitmap tag, frame 0, and (0, NULL) respectively.
 
@@ -27,12 +27,12 @@ extern datum_index trouble_brewing_bitmap_tag;  // 0x006927c8, TYPES-GAP
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550; blam-cc: group in EDI
 extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence); // 0x43f290, blam-cc: EAX tag, DI frame
-extern void FUN_00449780(uint32_t packed_color, Rectangle2D *rect); // 0x449780, solid rectangle fill, blam-cc: EAX packed_color, ECX rect
+extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect); // 0x449780, solid rectangle fill, blam-cc: EAX packed_color, ECX rect
 extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data,
                                 int16_t *clip_rect, uint32_t vertex_color); // 0x498b20, blam-cc: EAX source_rect, ECX dest_rect
 
 // While a network wait is pending, resolves and draws the "trouble brewing" indicator bitmap;
-// if the tag or its bitmap data cannot be resolved, falls back to FUN_00449780 instead.
+// if the tag or its bitmap data cannot be resolved, falls back to ui_draw_filled_rectangle instead.
 void ui_draw_trouble_brewing_indicator(void)
 {
     if (ui_network_wait_start_time != -1) {
@@ -52,7 +52,7 @@ void ui_draw_trouble_brewing_indicator(void)
                 return;
             }
         }
-        FUN_00449780(0x80ff0000, &rect); // half transparent red box in the same rect
+        ui_draw_filled_rectangle(0x80ff0000, &rect); // half transparent red box in the same rect
     }
 }
 

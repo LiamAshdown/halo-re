@@ -20,7 +20,7 @@
 #include "ai.h"
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX -> v
-extern void FUN_0055eed0(const real_vector3d *axis, real_vector3d *out_axis2,
+extern void real_matrix4x3_rotation_from_forward(const real_vector3d *axis, real_vector3d *out_axis2,
                          real_vector3d *out_axis3); // 0x55eed0, ECX -> axis, EBX -> out_axis2, EDI -> out_axis3
 
 // blam-cc: AL -> use_3d, ECX -> frame_axis, stack -> v, out
@@ -31,7 +31,7 @@ void actor_movement_project_into_frame(uint8_t use_3d, const real_vector3d *fram
     real_vector3d axis3;
 
     if (use_3d != 0) {
-        FUN_0055eed0(frame_axis, &axis2, &axis3);
+        real_matrix4x3_rotation_from_forward(frame_axis, &axis2, &axis3);
         out->i = frame_axis->i * v->i + frame_axis->j * v->j + frame_axis->k * v->k;
         out->j = axis2.i * v->i + axis2.j * v->j + axis2.k * v->k;
         out->k = axis3.i * v->i + axis3.j * v->j + axis3.k * v->k;

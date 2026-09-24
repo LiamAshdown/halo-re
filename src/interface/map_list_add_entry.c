@@ -1,5 +1,9 @@
 // map_list_add_entry  (Ghidra: chimera__load_multiplayer_maps, renamed per types/interface.h)
-// address 0x4950c0, size 208 bytes
+// address 0x4950c0, size 415 bytes (0x4950c0..0x49525e; Ghidra stopped at 208 bytes and printed the
+//   tail as the bogus "functions" 0x495190 first_person_weapons_update and 0x4951f0
+//   first_person_weapon_render_update -- both are part of this function, covered below; orphan
+//   pass 4 re-checked the tail against objdump 0x495160..0x49525f and fixed the file name passed
+//   to cache_file_exists, which is strrchr(path, '\\') + 1, or the whole path when there is none)
 // name confidence: 0.55   rewrite confidence: 0.4
 // evidence: types/interface.h map_list_entry struct comment lists this address as
 // map_list_add_entry, and documents the growth-by-0x13 GlobalReAlloc sizing this function
@@ -85,7 +89,9 @@ void map_list_add_entry(char *path, int32_t map_id)
         *cursor = (char)tolower((uint8_t)*cursor);
     }
 
+    // 0x495220..0x49522f: the name after the last backslash, or the whole path when there is none
     filename = _strrchr(entry->path, '\\');
+    filename = (filename != (char *)0) ? filename + 1 : entry->path;
     entry->cache_file_exists = cache_file_exists(filename, &header);
     map_list_count = map_list_count + 1;
 }

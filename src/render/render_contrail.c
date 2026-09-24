@@ -93,7 +93,7 @@ extern void rasterizer_transparent_object_append(uint32_t lightmap_bitmap, int32
     // 0x51c830, rasterizer module; blam-cc: stack params as declared; EDX = world_position,
     // EDI = shader
 
-typedef int32_t (*d3d_unlock_fn)(void *self);
+typedef int32_t (__stdcall *d3d_unlock_fn)(void *self);
 
 static void point_state_width_and_color(ContrailPointState *state, contrail_point *point,
                                         float *width, ColorARGB *color)

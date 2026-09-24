@@ -20,9 +20,9 @@ extern uint8_t rasterizer_underwater_material[0x44]; // 0x0069c6b8, D3DMATERIAL9
 extern uint8_t rasterizer_fog_enabled;                              // 0x0069c6a8 latched by rasterizer_set_fog_constants
 extern uint32_t renderer_unknown_69c684;    // 0x0069c684, UNSURE meaning
 
-typedef int32_t (*d3d_call1p_fn)(void *self, const void *a);
-typedef int32_t (*d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
-typedef int32_t (*d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
+typedef int32_t (__stdcall *d3d_call1p_fn)(void *self, const void *a);
+typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
+typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
 void rasterizer_underwater_tint_set_states(void)
 {

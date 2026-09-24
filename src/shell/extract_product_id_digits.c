@@ -15,7 +15,7 @@
 #include "shell.h"
 
 extern int32_t isdigit(int32_t c); // 0x62532f CRT
-extern int32_t atol(const char *string); // 0x62589e CRT
+extern int32_t atol_0062589e(const char *string); // 0x62589e CRT
 
 static const int32_t k_oem_digit_offsets[10] = {12, 13, 14, 15, 18, 19, 20, 21, 22, 0};
 static const int32_t k_retail_digit_offsets[10] = {6, 7, 8, 10, 11, 12, 13, 14, 15, 0};
@@ -24,7 +24,7 @@ static const int32_t k_retail_digit_offsets[10] = {6, 7, 8, 10, 11, 12, 13, 14, 
 // product_id[6..8], then copies the digit at each table offset into a scratch buffer, stopping
 // at the table's 0 terminator. If a table offset lands on a non-digit character first, the
 // product id is malformed and this returns -1; otherwise returns the collected digits as a
-// decimal number (atol of the concatenated digit string).
+// decimal number (atol_0062589e of the concatenated digit string).
 int32_t extract_product_id_digits(const char *product_id)
 {
     const int32_t *offsets;
@@ -53,7 +53,7 @@ int32_t extract_product_id_digits(const char *product_id)
         return -1;
     }
     digits[i] = 0;
-    return atol(digits);
+    return atol_0062589e(digits);
 }
 
 #if 0

@@ -25,7 +25,7 @@ void rasterizer_dx9_shaders_release_all(void)
     for (i = 0; i < k_rasterizer_vertex_shaders; i++) {
         void *shader = (void *)rasterizer_vertex_shaders[i].shader;
         if (shader != 0) {
-            ((void (*)(void *))(*(void ***)shader)[2])(shader); // Release()
+            ((void (__stdcall *)(void *))(*(void ***)shader)[2])(shader); // Release()
             rasterizer_vertex_shaders[i].shader = 0;
         }
     }

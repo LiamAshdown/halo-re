@@ -46,7 +46,7 @@ extern uint8_t compute_sha1_hash_first_qword(const uint8_t *data, uint32_t lengt
                                                                                                         // ESI
 
 extern char product_id_string[k_product_id_string_length]; // 0x00722bd8
-extern char empty_string;                                   // 0x0065512c, the shared "" constant other code returns
+extern char empty_string_0065512c;                                   // 0x0065512c, the shared "" constant other code returns
 extern uint32_t crypt_provider;                              // 0x00722bcc
 
 // Reads the Windows DigitalProductID registry value, validates its header (size 0xa4, version
@@ -67,30 +67,30 @@ char *shell_build_product_id_string(void)
 
     if (RegOpenKeyExA((void *)0x80000002 /* HKEY_LOCAL_MACHINE */, "Software\\Microsoft\\Microsoft Games\\Halo", 0,
                       0x20019, &key) != 0) {
-        return &empty_string;
+        return &empty_string_0065512c;
     }
     if (RegQueryValueExA(key, "DigitalProductID", 0, 0, (uint8_t *)&data, &data_size) != 0) {
         RegCloseKey(key);
-        return &empty_string;
+        return &empty_string_0065512c;
     }
     RegCloseKey(key);
 
     if (data.size != k_digital_product_id_size || data.major_version != k_digital_product_id_major_version ||
         data.minor_version != 0) {
-        return &empty_string;
+        return &empty_string_0065512c;
     }
 
     product_id_digits = extract_product_id_digits(data.product_id);
 
     if (CryptAcquireContextA(&crypt_provider, 0, 0, 1 /* PROV_RSA_FULL */, 0xf0000000 /* CRYPT_VERIFYCONTEXT */) ==
         0) {
-        return &empty_string;
+        return &empty_string_0065512c;
     }
     if (compute_sha1_hash(data.hashed_key, k_digital_product_id_hashed_bytes, digest) == 0) {
-        return &empty_string;
+        return &empty_string_0065512c;
     }
     if (compute_sha1_hash_first_qword(digest, sizeof(digest), (uint32_t *)&hash_prefix) == 0) {
-        return &empty_string;
+        return &empty_string_0065512c;
     }
 
     sprintf(product_id_string, "%05d,%09d,0,% 19.19I64d", data.unknown_20, product_id_digits, hash_prefix);

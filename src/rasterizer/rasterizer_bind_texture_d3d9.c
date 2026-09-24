@@ -20,7 +20,7 @@ extern void *rasterizer_device;                                     // 0x0071d17
 // blam-cc: EAX -> bitmap
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing); // 0x00444550
 
-typedef int32_t (*d3d_set_texture_fn)(void *device, uint32_t stage, void *texture);
+typedef int32_t (__stdcall *d3d_set_texture_fn)(void *device, uint32_t stage, void *texture);
 
 // blam-cc: ESI -> bitmap, stack -> stage
 uint8_t rasterizer_bind_texture_d3d9(int16_t stage, BitmapData *bitmap)

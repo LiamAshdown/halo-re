@@ -22,7 +22,7 @@ extern void *GlobalFree(void *mem); // Win32
 extern uint32_t rasterizer_load_file_and_verify(void **out_buffer, uint32_t *out_size, const char *path); // 0x5199f0
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
 
-typedef int32_t (*d3d_create_vertex_shader_fn)(void *device, const void *function, void *out_shader);
+typedef int32_t (__stdcall *d3d_create_vertex_shader_fn)(void *device, const void *function, void *out_shader);
 
 // Loads shaders\vsh.bin, then walks it as a run of [int32 chunk_size][chunk_size bytes] records,
 // creating one vertex shader per rasterizer_vertex_shaders[] slot whose `enabled` field is
@@ -74,7 +74,7 @@ uint32_t rasterizer_dx9_vertex_shaders_load_all(void)
         for (i = 0; i < k_rasterizer_vertex_shaders; i++) {
             void *shader = (void *)rasterizer_vertex_shaders[i].shader;
             if (shader != 0) {
-                ((void (*)(void *))(*(void ***)shader)[2])(shader); // Release()
+                ((void (__stdcall *)(void *))(*(void ***)shader)[2])(shader); // Release()
                 rasterizer_vertex_shaders[i].shader = 0;
             }
         }

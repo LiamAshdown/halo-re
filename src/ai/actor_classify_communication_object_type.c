@@ -32,7 +32,7 @@ int32_t actor_classify_communication_object_type(datum_index actor_index)
     int32_t result;
 
     a = &((actor *)actor_data->data)[actor_index & 0xffff];
-    flags = *(uint16_t *)(actor_type_procs[a->type] + 4);
+    flags = *(uint16_t *)((uint8_t *)actor_type_procs[a->type] + 4);
 
     result = -1;
     if ((flags & 2) != 0) {

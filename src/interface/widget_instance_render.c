@@ -1,5 +1,8 @@
 // widget_instance_render  (Ghidra: widget_instance_render, already named)
-// address 0x49a8c0, size 320 bytes
+// address 0x49a8c0, size 879 bytes (0x49a8c0..0x49ac2e, single `ret`; Ghidra's metadata said 320. The
+//   range 0x49aa00.. that was catalogued as the bogus function "ui_widget_load_by_name_or_tag" is
+//   the middle of this body -- the background quad, type dispatch, child recursion and
+//   post-render events below -- re-checked against objdump by orphan pass 4)
 // name confidence: 0.6   rewrite confidence: 0.45
 // evidence: matches the given name; called from widget_draw_split_screen_region and
 // widget_draw_fullscreen_region with (widget, dest_rect, clip_rect_or_NULL, flag1, flag2), and

@@ -22,7 +22,7 @@ extern void *rasterizer_device; // 0x0071d174
 extern uint8_t rasterizer_software_vertex_processing; // 0x0069c680
 extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count]; // 0x006e1a90
 
-typedef int32_t (*d3d_create_vertex_buffer_fn)(void *device, uint32_t length, uint32_t usage, uint32_t fvf,
+typedef int32_t (__stdcall *d3d_create_vertex_buffer_fn)(void *device, uint32_t length, uint32_t usage, uint32_t fvf,
                                                uint32_t pool, void **out_buffer, void *shared_handle);
 
 // Creates one Direct3D vertex buffer (register EAX selects the vertex format, whose declaration

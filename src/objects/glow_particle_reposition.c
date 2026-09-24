@@ -6,7 +6,7 @@
 //   group: it locates which marker-chain segment a particle's `t` falls in, then builds a
 //   Catmull-Rom-style four-point control set -- with three different branches for a 2-marker
 //   chain, a 3-marker chain, and the general N-marker case -- and evaluates a cubic through it
-//   via FUN_004fcb00 (out-of-module, generic math helper; see file header of the antenna_update
+//   via vector3d_cubic_interpolate (out-of-module, generic math helper; see file header of the antenna_update
 //   file group's cubic-interpolate note in objects_types_notes.md) before rotating the offset
 //   about the chain tangent by a phase angle and adding it to the particle position. Kept as a
 //   literal, offset-based transliteration; only the anchors independently confirmed elsewhere
@@ -29,7 +29,7 @@
 #include "cache.h"
 #include "objects.h"
 
-extern void FUN_004fcb00(real_point3d *out, real_point3d *control_points /*4 elements*/,
+extern void vector3d_cubic_interpolate(real_point3d *out, real_point3d *control_points /*4 elements*/,
                           float t0, float t1, float t2, float t3, float t); // 0x4fcb00, out of
     // module scope by design (see out/phase4/objects_types_notes.md's "not objects-module code"
     // section); per-axis cubic interpolation applied to a 3D vector through four control points
@@ -225,9 +225,9 @@ evaluate:
     // The first call writes straight into the particle's position (particle+0x2c..0x38, which
     // is exactly &out0 aliased onto *(real_point3d *)(particle+0x2c) in the original); the other
     // two produce the "up" and cross-product vectors the billboard offset below rotates.
-    FUN_004fcb00((real_point3d *)(particle + 0x2c), c0, t0, t1, t2, t3, *(float *)(particle + 0x28));
-    FUN_004fcb00(&out1, c1, t0, t1, t2, t3, *(float *)(particle + 0x28));
-    FUN_004fcb00(&out2, c2, t0, t1, t2, t3, *(float *)(particle + 0x28));
+    vector3d_cubic_interpolate((real_point3d *)(particle + 0x2c), c0, t0, t1, t2, t3, *(float *)(particle + 0x28));
+    vector3d_cubic_interpolate(&out1, c1, t0, t1, t2, t3, *(float *)(particle + 0x28));
+    vector3d_cubic_interpolate(&out2, c2, t0, t1, t2, t3, *(float *)(particle + 0x28));
 
     {
         double angle = (double)phase_rate * (double)(*(float *)(particle + 0x28)) +

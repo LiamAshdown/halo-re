@@ -35,10 +35,10 @@ extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocat
 extern void chimera__rasterizer_set_framebuffer_blend_function(int16_t mode); // 0x5185d0
 extern void chimera__widescreen_text_scaling(void); // 0x531ab0
 
-typedef int32_t (*d3d_call1_fn)(void *self, uint32_t a);
-typedef int32_t (*d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
-typedef int32_t (*d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
-typedef int32_t (*d3d_setconst_fn)(void *self, uint32_t reg, const float *data, uint32_t count);
+typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
+typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
+typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
+typedef int32_t (__stdcall *d3d_setconst_fn)(void *self, uint32_t reg, const float *data, uint32_t count);
 
 static void **device_vtable(void) { return *(void ***)rasterizer_device; }
 static void set_render_state(uint32_t state, uint32_t value)

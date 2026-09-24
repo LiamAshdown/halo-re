@@ -45,7 +45,7 @@ extern void rasterizer_transparent_object_append(uint32_t lightmap_bitmap, int32
     // 0x51c830, rasterizer module; blam-cc: stack params as declared; EDX = world_position,
     // EDI = shader
 
-typedef int32_t (*d3d_unlock_fn)(void *self);
+typedef int32_t (__stdcall *d3d_unlock_fn)(void *self);
 
 // Averages data's accumulated view-space sprite origins back into its centroid (now in world
 // space), then unlocks and queues each of data's groups (screen space builds are not queued),

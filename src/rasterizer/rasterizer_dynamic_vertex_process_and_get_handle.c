@@ -32,9 +32,9 @@ extern uint8_t rasterizer_software_vertex_processing;                           
 extern int16_t rasterizer_vertex_sizes[k_rasterizer_vertex_type_count];             // 0x0065de00
 extern rasterizer_vertex_buffer_slot rasterizer_vertex_buffer_slots[k_rasterizer_vertex_buffer_slots]; // 0x007bf060
 
-typedef int32_t (*d3d_call1_fn)(void *self, uint32_t a);
-typedef int32_t (*d3d_call4_fn)(void *self, uint32_t a, void *b, uint32_t c, uint32_t d);
-typedef int32_t (*d3d_call6_fn)(void *self, uint32_t a, uint32_t b, uint32_t c, void *d, uint32_t e, uint32_t f);
+typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
+typedef int32_t (__stdcall *d3d_call4_fn)(void *self, uint32_t a, void *b, uint32_t c, uint32_t d);
+typedef int32_t (__stdcall *d3d_call6_fn)(void *self, uint32_t a, uint32_t b, uint32_t c, void *d, uint32_t e, uint32_t f);
 
 // blam-cc: ESI = vertex_buffer (live-in)
 uint32_t rasterizer_dynamic_vertex_process_and_get_handle(rasterizer_vertex_buffer *vertex_buffer)

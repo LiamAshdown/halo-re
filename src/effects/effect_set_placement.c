@@ -16,7 +16,7 @@
 #include "objects.h"
 #include "effects.h"
 
-extern const ColorRGB *const *default_effect_color_pointer; // 0x00686b04, UNSURE, see
+extern const ColorRGB *default_effect_color_pointer;  // 0x00686b04, UNSURE, see
     // effect_new_at_texture_coordinate.c
 
 // Sets an effect's per-instance placement inputs: the A/B scale values, its tint colour
@@ -30,7 +30,7 @@ void effect_set_placement(effect *self, const ColorRGB *color, const effect_tint
     self->b_scale = b_scale;
 
     if (color == 0) {
-        color = *default_effect_color_pointer;
+        color = default_effect_color_pointer; // the global at 0x686b04 holds the ColorRGB * itself (0x451615: mov ecx,[0x686b04])
     }
     self->color = *color;
 

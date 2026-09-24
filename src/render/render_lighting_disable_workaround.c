@@ -17,7 +17,7 @@ extern uint8_t console_debug_toggle_6893ec; // 0x006893ec (matches src/rasterize
 extern uint32_t rasterizer_device_version;  // 0x007c118c (matches src/render/render_player_frame.c)
 extern void *rasterizer_device;             // 0x0071d174
 
-typedef int32_t (*d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
+typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
 
 // Disables fixed-function D3D lighting (D3DRS_LIGHTING = 0x89) when the debug toggle is set and
 // the device is older than version 0xffff0101.

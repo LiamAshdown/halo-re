@@ -37,13 +37,13 @@ extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocat
 // blam-cc: ESI -> bitmap, stack -> stage
 extern uint8_t rasterizer_bind_texture_d3d9(int16_t stage, BitmapData *bitmap); // 0x518680
 
-typedef int32_t (*d3d_call1_fn)(void *self, uint32_t a);
-typedef int32_t (*d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
-typedef int32_t (*d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
-typedef int32_t (*d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
-typedef int32_t (*d3d_get_desc_fn)(void *surface, d3d_surface_desc *desc);
-typedef int32_t (*d3d_set_viewport_fn)(void *self, const d3d_viewport *viewport);
-typedef int32_t (*d3d_clear_fn)(void *self, uint32_t count, const void *rects, uint32_t flags, uint32_t color,
+typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
+typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
+typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
+typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
+typedef int32_t (__stdcall *d3d_get_desc_fn)(void *surface, d3d_surface_desc *desc);
+typedef int32_t (__stdcall *d3d_set_viewport_fn)(void *self, const d3d_viewport *viewport);
+typedef int32_t (__stdcall *d3d_clear_fn)(void *self, uint32_t count, const void *rects, uint32_t flags, uint32_t color,
                                 float z, uint32_t stencil);
 
 static void **device_vtable(void) { return *(void ***)rasterizer_device; }

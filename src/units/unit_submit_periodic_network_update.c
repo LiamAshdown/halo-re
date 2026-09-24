@@ -39,7 +39,8 @@ extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, QueryPerformance
                                       // owned by the timing/system module (same spelling as
                                       // src/cache and src/math use)
 
-extern int32_t hash_table_get(int32_t key);                                    // 0x4f05e0, UNSURE signature
+extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
+extern uint8_t *object_pooled_node_globals; // 0x00687130, the object network-id hash_table sits at +0x0c
 extern int32_t message_delta_encode_message(int32_t is_delta, int32_t definition_index,
                                              void *changed, void *fields, void *types,
                                              int32_t count, char flag);         // 0x4ec940
@@ -90,7 +91,7 @@ int32_t unit_submit_periodic_network_update(int32_t hash_key, uint32_t param_2, 
         int32_t result;
 
         if (hash_key != -1) {
-            resolved_key = hash_table_get(hash_key);
+            resolved_key = hash_table_get((hash_table *)(object_pooled_node_globals + 0xc), hash_key);
             if (resolved_key == -1) {
                 resolved_key = 0;
             }

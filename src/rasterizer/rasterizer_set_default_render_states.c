@@ -21,8 +21,8 @@
 extern void *rasterizer_device; // 0x0071d174
 extern d3d_caps9 rasterizer_caps; // 0x007c10c0
 
-typedef int32_t (*d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
-typedef int32_t (*d3d_set_texture_stage_state_fn)(void *device, uint32_t stage, uint32_t type, uint32_t value);
+typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
+typedef int32_t (__stdcall *d3d_set_texture_stage_state_fn)(void *device, uint32_t stage, uint32_t type, uint32_t value);
 
 static void set_render_state(uint32_t state, uint32_t value)
 {

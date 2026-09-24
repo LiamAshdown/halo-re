@@ -20,8 +20,8 @@ extern void *rasterizer_device;                // 0x0071d174
 extern uint8_t rasterizer_default_material[0x44]; // 0x0069c708 D3DMATERIAL9
 extern int32_t rasterizer_fixed_function_light_count; // 0x007c3084
 
-typedef int32_t (*d3d_set_material_fn)(void *device, const void *material);
-typedef int32_t (*d3d_light_enable_fn)(void *device, uint32_t index, int32_t enable);
+typedef int32_t (__stdcall *d3d_set_material_fn)(void *device, const void *material);
+typedef int32_t (__stdcall *d3d_light_enable_fn)(void *device, uint32_t index, int32_t enable);
 
 // Resets the default material and disables every fixed-function Direct3D light, for the
 // pre-pixel-shader lighting fallback used when the device has no ps_1_1 support.

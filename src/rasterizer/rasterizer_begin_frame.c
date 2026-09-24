@@ -42,7 +42,7 @@ extern void rasterizer_render_target_set_active(int16_t target_index, uint32_t c
 // blam-cc: stack -> (z_near, z_far) as raw float bits
 extern void chimera__rasterizer_set_frustum_z_func(uint32_t z_near, uint32_t z_far); // 0x518f40
 
-typedef int32_t (*d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
+typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
 
 // Latches the current frame's window/camera/frustum/fog parameters into rasterizer_window and
 // resets every per-frame subsystem (dynamic geometry slots, transparent groups, lights).

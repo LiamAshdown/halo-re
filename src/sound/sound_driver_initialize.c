@@ -65,11 +65,11 @@ extern uint8_t sound_channel_create(int16_t channel_index, uint16_t type_flags);
 extern void sound_driver_dispose(void);       // 0x546a60
 extern void sound_listener_update(sound_listener_parameters *parameters); // 0x547070
 
-typedef int32_t (*direct_sound_create8_proc)(void *device_guid, void **direct_sound, void *outer);
-typedef int32_t (*directsound_set_cooperative_level_proc)(void *self, void *window, uint32_t level);
-typedef int32_t (*directsound_get_caps_proc)(void *self, void *caps);
-typedef int32_t (*directsound_buffer_set_format_proc)(void *self, sound_wave_format *format);
-typedef int32_t (*directsound_listener_set_factor_proc)(void *self, float value, uint32_t apply);
+typedef int32_t (__stdcall *direct_sound_create8_proc)(void *device_guid, void **direct_sound, void *outer);
+typedef int32_t (__stdcall *directsound_set_cooperative_level_proc)(void *self, void *window, uint32_t level);
+typedef int32_t (__stdcall *directsound_get_caps_proc)(void *self, void *caps);
+typedef int32_t (__stdcall *directsound_buffer_set_format_proc)(void *self, sound_wave_format *format);
+typedef int32_t (__stdcall *directsound_listener_set_factor_proc)(void *self, float value, uint32_t apply);
 
 #define VTABLE_SLOT(object, offset) ((*(void ***)(object))[(offset) / 4])
 

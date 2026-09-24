@@ -13,7 +13,7 @@
 //   must_stop_to_fire, plus the standing / crouching gun offsets at Actor+0x34 and +0x40.
 // register convention: actor_index is the one Ghidra-recognized stack parameter.
 //
-// UNSURE (0.3): this function is heavily register-aliased in the export. weapon_trigger_projectile_collision_test,
+// UNSURE (0.3): this function is heavily register-aliased in the export. weapon_trigger_get_aiming_vector,
 // weapon_trigger_projectile_time_fraction, actor_grenade_trajectory_blocked, unit_add_marker_relative_offset, unit_get_camera_position, weapon_get_zoom_fov_resolved and
 // unit_set_grenade_type_and_count_delta are all called with some or all of their arguments invisible; local_18 /
 // local_14 / local_10 are read on one path before any visible assignment; and local_30 is
@@ -39,8 +39,8 @@ extern real random_real(void);                                // 0x4019f0
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0
 extern void point3d_add_scaled(real_point3d *point, float scale); // 0x401930
 extern real vector3d_distance(const real_point3d *a, const real_point3d *b); // 0x4088b0
-extern float vector3d_magnitude_squared(void);                               // 0x401000, not yet rewritten
-extern float FUN_00401020(void);                               // 0x401020, not yet rewritten
+extern real vector3d_magnitude_squared(real_vector3d *v);                     // 0x401000, src/math; blam-cc: EAX v
+extern real vector3d_distance_squared(real_point3d *a, real_point3d *b);      // 0x401020, src/math; blam-cc: EAX a, ECX b
 
 extern uint8_t actor_grenade_behavior_kind_allowed(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_grenade_behavior_kind_allowed at 0x40f670
                  // disagree on the argument list; Ghidra drops the register arguments
@@ -71,8 +71,10 @@ extern void ai_communication_broadcast(int32_t event_code, datum_index unit_inde
 // site in the binary cleans up 0x1c bytes, so the shorter forms Ghidra recovers at some
 // sites are artefacts, not a reduced-arity overload.
 extern float weapon_get_zoom_fov_resolved(void);                               // 0x46fe70: difficulty scale
-extern uint8_t weapon_trigger_projectile_collision_test(void *from, void *to, uint8_t flag, void *out_direction,
-                            int32_t unused, void *out_extra, char *out_blocked); // 0x4c2b40
+extern uint8_t weapon_trigger_get_aiming_vector(datum_index weapon_index, int16_t trigger_index,
+    real_point3d *origin, real_point3d *target, uint8_t use_high_arc, real_vector3d *out_direction,
+    real *out_time, real *out_range, uint8_t *out_used_straight_line);
+    // 0x4c2b40, src/items; blam-cc: EAX weapon_index, CX trigger_index, 7 stack args
 extern float weapon_trigger_projectile_time_fraction(uint32_t handle);                    // 0x4c2be0, not yet rewritten
 extern void unit_get_camera_position(void);                    // 0x568f80
 extern void unit_add_marker_relative_offset(datum_index unit_index, uint32_t mode, void *point, void *direction,
@@ -146,7 +148,9 @@ void actor_update_firing_state(datum_index actor_index)
         }
         if (kind != self->unknown_60c ||
             (kind == 1 && self->target_unit_index != (datum_index)self->unknown_610) ||
-            (kind == 2 && FUN_00401020() > 0.25f)) {
+            // 0x40e949..0x40e955: EAX = actor + 0x610, ECX = actor + 0x460 (both points here)
+            (kind == 2 && vector3d_distance_squared((real_point3d *)((uint8_t *)self + 0x610),
+                              (real_point3d *)((uint8_t *)self + 0x460)) > 0.25f)) {
             self->unknown_61c = 0;
         }
         self->unknown_60c = kind;
@@ -255,10 +259,13 @@ void actor_update_firing_state(datum_index actor_index)
             *(uint8_t *)((uint8_t *)self + 0x623) =
                 (uint8_t)(self->unknown_455[0] != 0 && aim_variant->bombardment_range > 0.0f);
 
-            if (weapon_trigger_projectile_collision_test(&self->aim_origin, &self->wander_unknown_62c,
+            // 0x40ed7b..0x40eda7: EAX = [esp+0x1c] (actor_get_threat_weapon_object_index's
+            // result), CX = 0 (the first trigger)
+            if (weapon_trigger_get_aiming_vector(weapon_object, 0, (real_point3d *)&self->aim_origin,
+                             (real_point3d *)&self->wander_unknown_62c,
                              *(uint8_t *)((uint8_t *)self + 0x622),
-                             (uint8_t *)self + 0x63c, 0, (uint8_t *)self + 0x648,
-                             (char *)&blocked) == 0) {
+                             (real_vector3d *)((uint8_t *)self + 0x63c), 0, (real *)((uint8_t *)self + 0x648),
+                             (uint8_t *)&blocked) == 0) {
                 self->unknown_60c = 0;
             }
         }
@@ -414,7 +421,7 @@ after_switch:
                     aim_variant->custom_stand_gun_offset.k * aim_variant->custom_stand_gun_offset.k <=
                         0.0001f) {
                     offset = (real_point3d *)&actor_definition->standing_gun_offset;
-                    if (vector3d_magnitude_squared() <= 0.0001f) {
+                    if (vector3d_magnitude_squared((real_vector3d *)offset) <= 0.0001f) { // 0x40f327..0x40f330: EAX = offset
                         offset = (real_point3d *)0;
                     }
                 }
@@ -425,7 +432,7 @@ after_switch:
                     aim_variant->custom_crouch_gun_offset.k * aim_variant->custom_crouch_gun_offset.k <=
                         0.0001f) {
                     offset = (real_point3d *)&actor_definition->crouching_gun_offset;
-                    if (vector3d_magnitude_squared() <= 0.0001f) {
+                    if (vector3d_magnitude_squared((real_vector3d *)offset) <= 0.0001f) { // 0x40f327..0x40f330: EAX = offset
                         offset = (real_point3d *)0;
                     }
                 }
@@ -450,8 +457,11 @@ after_switch:
         }
 
         // ---------------------------------------------------- is the shot on target
-        weapon_trigger_projectile_collision_test(&aim_from, fire_point, *(uint8_t *)((uint8_t *)self + 0x622),
-                     (uint8_t *)self + 0x68c, 0, (void *)0, (char *)&blocked);
+        // 0x40f3db..0x40f40b: EAX = the same weapon, CX = (unknown_603 != 0), the secondary trigger
+        weapon_trigger_get_aiming_vector(weapon_object, (int16_t)(self->unknown_603 != 0),
+                     (real_point3d *)&aim_from, (real_point3d *)fire_point,
+                     *(uint8_t *)((uint8_t *)self + 0x622),
+                     (real_vector3d *)((uint8_t *)self + 0x68c), 0, (real *)0, (uint8_t *)&blocked);
         *(uint8_t *)((uint8_t *)self + 0x688) = (uint8_t)(blocked == 0);
         to_target.i = fire_point[0] - aim_from.x;
         to_target.j = fire_point[1] - aim_from.y;

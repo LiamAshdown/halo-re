@@ -9,9 +9,9 @@
 // register convention: plain __cdecl, all four arguments on the stack.
 // blam-cc: stack -> event_type, position, event_id, window_ticks
 //
-// UNSURE: FUN_00401020's return range (compared against the literal 1.0, so plausibly a
-// 0..1 random draw making the id match itself probabilistic, or a wider range making this
-// close to unconditional -- not established). UNSURE: ai_broadcast_communication_event's second argument is
+// 0x401020 is vector3d_distance_squared (src/math, EAX / ECX): an event matches a record with the
+// same id within 1 world unit of its averaged position (orphan pass 4 review).
+// UNSURE: ai_broadcast_communication_event's second argument is
 // Ghidra's CONCAT22 of the record pointer's own upper half with the event_id's lower half,
 // a pointer/short punning artifact; reproduced here as the clean event_id.
 
@@ -23,7 +23,7 @@
 extern ai_globals *ai_globals_ptr; // 0x00880354
 
 extern int32_t game_engine_get_current_tick(void); // 0x470cd0
-extern real FUN_00401020(void); // 0x401020, not yet rewritten; UNSURE: likely a random-float generator
+extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, src/math; blam-cc: EAX a, ECX b
 extern void ai_broadcast_communication_event(int32_t event_type, int32_t event_id, int32_t count); // 0x429fc0, not yet rewritten
 
 // blam-cc: stack -> event_type, position, event_id, window_ticks
@@ -57,7 +57,9 @@ void ai_accumulate_repeated_event(int32_t event_type, real_point3d *position, in
     for (cursor = ai_globals_ptr->unknown_130; cursor != ai_globals_ptr->unknown_132;
          cursor = (cursor + 1) & 0x1f) {
         uint8_t matches_id = 0;
-        if (records[cursor].event_id == event_id && FUN_00401020() < 1.0f) {
+        // 0x42c6c1..0x42c6d7: EAX = position (stack parameter 2), ECX = &records[cursor].position
+        if (records[cursor].event_id == event_id &&
+            vector3d_distance_squared(position, &records[cursor].position) < 1.0f) {
             matches_id = 1;
         }
         if (current_tick - 0x78 < records[cursor].last_tick) {

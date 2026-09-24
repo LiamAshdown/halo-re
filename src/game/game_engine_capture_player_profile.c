@@ -28,12 +28,14 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "objects.h" // hash_table
 
 extern player_profile player_profile_cache[16]; // 0x006b0b88
 extern data_array *player_data;                 // 0x0087a480
 extern game_variant game_engine_variant;        // 0x006f1c88
 
-extern int32_t hash_table_get(void); // 0x4f05e0, not in this batch; UNSURE exact signature
+extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
+extern uint8_t *machine_table; // 0x00687558, its hash_table sits at +0x0c
 extern void game_engine_send_player_profile_update(void *has_payload, void *profile_tail,
                                                      int32_t target); // 0x467010, this batch
 
@@ -53,7 +55,7 @@ void game_engine_capture_player_profile(int32_t slot, int32_t commit)
 
     lookup_result = 0;
     if (player_handle != (datum_index)0xffffffff) {
-        lookup_result = hash_table_get(); // UNSURE: args elided by Ghidra
+        lookup_result = hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)player_handle); // 0x466ef4..0x466f1c
         if (lookup_result == -1) {
             lookup_result = 0;
         }

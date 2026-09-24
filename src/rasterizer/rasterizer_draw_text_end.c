@@ -16,8 +16,8 @@ extern uint8_t console_debug_toggle_6893e6;   // 0x006893e6
 extern void *rasterizer_device;               // 0x0071d174
 extern uint8_t rasterizer_software_vertex_processing; // 0x0069c680
 
-typedef int32_t (*d3d_call1_fn)(void *self, uint32_t a);
-typedef int32_t (*d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
+typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
+typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
 void rasterizer_draw_text_end(void)
 {

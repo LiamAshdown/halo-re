@@ -38,7 +38,7 @@ extern rasterizer_effect_slot rasterizer_effects[k_rasterizer_pixel_shader_effec
 extern real vector3d_distance(const real_point3d *a, const real_point3d *b); // 0x4088b0
 extern double fabs(double x);                                        // inline x87 fabs
 
-typedef int32_t (*d3dx_set_technique_fn)(void *effect, int32_t technique);
+typedef int32_t (__stdcall *d3dx_set_technique_fn)(void *effect, int32_t technique);
 
 rasterizer_effect_slot *rasterizer_shader_model_select_technique(const ShaderModel *shader)
 {

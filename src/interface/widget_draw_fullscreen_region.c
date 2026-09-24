@@ -9,7 +9,7 @@
 // When the virtual keyboard is open, renders it (plus the cursor) instead.
 // register convention: controller index in AX (in_AX), unresolved register read.
 // blam-cc: AX -> controller_index
-// UNSURE: FUN_00449780 (0x449780) is called with no visible arguments; modeled as taking the
+// UNSURE: ui_draw_filled_rectangle (0x449780) is called with no visible arguments; modeled as taking the
 // computed fade color/alpha (local_10, EAX by this module's usual convention) and the fullscreen
 // rect built just before it, neither confirmed independently.
 // TYPES-GAP: DAT_00879f50 is not documented anywhere in types/interface.h.
@@ -32,7 +32,7 @@ extern void widget_instance_render(widget_instance *widget, Rectangle2D *dest, i
                                    uint32_t flag1, int32_t flag2); // 0x49a8c0, as defined in widget_instance_render.c
 extern void interface_draw_cursor(void); // 0x497380
 extern void virtual_keyboard_render(void); // 0x4a9510
-extern void FUN_00449780(uint32_t packed_color, Rectangle2D *rect); // 0x449780, solid rectangle fill
+extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect); // 0x449780, solid rectangle fill
     // blam-cc: EAX -> packed_color, ECX -> rect (objdump call sites 0x494d28, 0x4973f9, 0x498617)
 
 // Draws all currently active full-screen UI widgets (root widget slot 0, matching
@@ -86,7 +86,7 @@ void widget_draw_fullscreen_region(int16_t controller_index)
             ui_unknown_718fa8 = 1.0f;
         }
         fade_color = (int32_t)(ui_unknown_718fa8 * 255.0f + 0.5f); // ROUND()
-        FUN_00449780((uint32_t)fade_color, &rect);
+        ui_draw_filled_rectangle((uint32_t)fade_color, &rect);
     }
 }
 

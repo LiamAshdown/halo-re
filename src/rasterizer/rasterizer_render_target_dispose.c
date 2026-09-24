@@ -18,7 +18,7 @@ extern int16_t rasterizer_active_render_target;    // 0x0069d350
 extern void *rasterizer_render_target_index_buffer;  // 0x0071d208
 extern void *rasterizer_render_target_vertex_buffer; // 0x0071d20c
 
-typedef int32_t (*d3d_release_fn)(void *self);
+typedef int32_t (__stdcall *d3d_release_fn)(void *self);
 
 static void release_com(uint32_t *slot)
 {

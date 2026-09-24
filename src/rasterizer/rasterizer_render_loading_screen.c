@@ -24,14 +24,14 @@
 extern void *rasterizer_device; // 0x0071d174
 extern void *shell_module_handle;                                   // 0x00722bb8 HINSTANCE
 
-typedef int32_t (*d3d_create_offscreen_surface_fn)(void *device, uint32_t width, uint32_t height,
+typedef int32_t (__stdcall *d3d_create_offscreen_surface_fn)(void *device, uint32_t width, uint32_t height,
                                                      uint32_t format, uint32_t pool, void **out_surface,
                                                      uint32_t shared_handle);
-typedef int32_t (*d3d_device_call2_fn)(void *device, uint32_t a, void *b);
-typedef int32_t (*d3d_device_call5_fn)(void *device, uint32_t a, uint32_t b, void *c, uint32_t d, uint32_t e);
-typedef int32_t (*d3d_device_call6_fn)(void *device, uint32_t a, uint32_t b, uint32_t c, uint32_t d,
+typedef int32_t (__stdcall *d3d_device_call2_fn)(void *device, uint32_t a, void *b);
+typedef int32_t (__stdcall *d3d_device_call5_fn)(void *device, uint32_t a, uint32_t b, void *c, uint32_t d, uint32_t e);
+typedef int32_t (__stdcall *d3d_device_call6_fn)(void *device, uint32_t a, uint32_t b, uint32_t c, uint32_t d,
                                         uint32_t color, uint32_t e);
-typedef int32_t (*d3d_release_fn)(void *object);
+typedef int32_t (__stdcall *d3d_release_fn)(void *object);
 
 extern int32_t FUN_0057f80c(void *surface, uint32_t a, uint32_t b, uint32_t resource_id, uint32_t c,
                              uint32_t d, uint32_t e, uint32_t f, uint32_t g); // 0x57f80c, UNSURE signature

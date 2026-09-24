@@ -18,7 +18,7 @@
 //   this in ESI (live-in) with the message on the stack. The two library string helpers:
 //   FUN_0057bc90 (declared here as msvc_string_assign_n) is a thiscall, ECX = destination
 //   string, source pointer and length on the stack; FUN_0057b590 (declared here as
-//   msvc_string_assign_cstr) takes the source C string in EDX and the destination string on the
+//   hwreq_string_assign_cstr) takes the source C string in EDX and the destination string on the
 //   stack (confirmed by disassembling 0x57b590 itself: it strlens EDX and tailcalls
 //   msvc_string_assign_n with the dest read back off its own stack argument).
 // blam-cc: this in EAX (only parameter).
@@ -36,7 +36,7 @@ extern char *hwreq_token_parse_quoted_string(hwreq_parser *this); // 0x578c60, b
 extern void hwreq_token_skip_whitespace(hwreq_parser *this); // 0x578a00, blam-cc: this in EDX; below this module's rewrite range
 extern void hwreq_token_skip_line(hwreq_parser *this); // 0x5789d0, blam-cc: this in EAX; below this module's rewrite range
 extern void msvc_string_assign_n(msvc_std_string *dest, const char *source, uint32_t length); // 0x57bc90, blam-cc: dest in ECX, source/length on the stack; library code, not in the function list
-extern void msvc_string_assign_cstr(msvc_std_string *dest, const char *source); // 0x57b590, blam-cc: source in EDX, dest on the stack; library code, not in the function list
+extern msvc_std_string *hwreq_string_assign_cstr(msvc_std_string *dest, const char *source); // 0x57b590, blam-cc: source in EDX, dest on the stack; library code, not in the function list
 extern uint8_t hwreq_parser_parse_block(hwreq_parser *this, hwreq_property_set *target); // 0x57af10
 
 // Scans forward from the parser's cursor for a "vendor[=id] = \"name\" { ... }" directive whose
@@ -187,7 +187,7 @@ uint8_t hwreq_parser_parse_vendor_block(hwreq_parser *this)
                             this->cursor = this->cursor + 1;
                             name = hwreq_token_parse_quoted_string(this);
                             if (name != 0) {
-                                msvc_string_assign_cstr(&this->graphics_device_name, name);
+                                hwreq_string_assign_cstr(&this->graphics_device_name, name);
                                 hwreq_token_skip_line(this);
                                 ok = hwreq_parser_parse_block(this, (hwreq_property_set *)this->flags);
                                 return ok != 0;

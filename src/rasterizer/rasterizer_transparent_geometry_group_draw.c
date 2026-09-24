@@ -106,13 +106,13 @@ extern int16_t *rasterizer_resolve_and_cache_submap_b(uint32_t bitmap_tag_id, in
 // blam-cc: AX -> type, stack -> time
 extern real periodic_function_evaluate(periodic_function_t type, double time); // 0x4cc9b0
 
-typedef int32_t (*d3d_call1_fn)(void *self, uint32_t a);
-typedef int32_t (*d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
-typedef int32_t (*d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
-typedef int32_t (*d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
-typedef int32_t (*d3dx_effect_begin_fn)(void *effect, uint32_t *passes, uint32_t flags);
-typedef int32_t (*d3dx_effect_pass_fn)(void *effect, uint32_t pass);
-typedef int32_t (*d3dx_effect_end_fn)(void *effect);
+typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
+typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
+typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
+typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
+typedef int32_t (__stdcall *d3dx_effect_begin_fn)(void *effect, uint32_t *passes, uint32_t flags);
+typedef int32_t (__stdcall *d3dx_effect_pass_fn)(void *effect, uint32_t pass);
+typedef int32_t (__stdcall *d3dx_effect_end_fn)(void *effect);
 typedef void (*transparent_geometry_callback)(int32_t argument, int32_t count);
 typedef void (*transparent_geometry_draw_procedure)(transparent_geometry_group *group);
 typedef void (*transparent_geometry_draw_procedure2)(transparent_geometry_group *group, int16_t kind);

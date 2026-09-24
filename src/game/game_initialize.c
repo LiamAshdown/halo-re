@@ -26,7 +26,7 @@
 extern int32_t game_state_cursor; // 0x006e2dcc
 extern uint8_t *game_state_base;   // 0x006e2dc8
 extern uint32_t game_state_crc;   // 0x006e2dd4
-extern void *cached_object_render_states; // 0x006b0b80, TYPES-GAP
+extern void *cached_object_render_states_006b0b80; // 0x006b0b80, TYPES-GAP
 extern game_variant game_engine_active_variant; // 0x0087ab20, the 0x98-byte staging variant
     // (0x26 dwords) this function zeroes and then hands to game_engine_load_from_variant in EBX
 extern scenario_game_globals *global_scenario_game_globals; // 0x00746f94, scenario.h
@@ -91,7 +91,7 @@ void game_initialize(void)
     game_state_cursor = game_state_cursor + 0x114;
     size = 0x114;
     crc32_update(&game_state_crc, (uint8_t *)&size, 4);
-    cached_object_render_states = cursor;
+    cached_object_render_states_006b0b80 = cursor;
     for (i = 0x45; i != 0; i = i - 1) {
         *cursor = 0;
         cursor = cursor + 1;

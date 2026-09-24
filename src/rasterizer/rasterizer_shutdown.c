@@ -65,7 +65,7 @@ void __cdecl rasterizer_shutdown(void)
 
     if (rasterizer_device != (void *)0 && rasterizer_detail_object_vertex_buffer != (void *)0) {
         vtable = *(void ***)rasterizer_detail_object_vertex_buffer;
-        ((void (*)(void *))vtable[2])(rasterizer_detail_object_vertex_buffer); // Release
+        ((void (__stdcall *)(void *))vtable[2])(rasterizer_detail_object_vertex_buffer); // Release
         rasterizer_detail_object_vertex_buffer = (void *)0;
     }
 
@@ -75,7 +75,7 @@ void __cdecl rasterizer_shutdown(void)
     for (i = 0; i < 0x400; i++) {
         if (lens_flare_occlusion_queries[i] != (void *)0) {
             vtable = *(void ***)lens_flare_occlusion_queries[i];
-            ((void (*)(void *))vtable[2])(lens_flare_occlusion_queries[i]); // Release
+            ((void (__stdcall *)(void *))vtable[2])(lens_flare_occlusion_queries[i]); // Release
             lens_flare_occlusion_queries[i] = (void *)0;
         }
     }
@@ -97,20 +97,20 @@ void __cdecl rasterizer_shutdown(void)
     for (i = 0; i < 4; i++) {
         if (rasterizer_capture_surfaces[i] != (void *)0) {
             vtable = *(void ***)rasterizer_capture_surfaces[i];
-            ((void (*)(void *))vtable[2])(rasterizer_capture_surfaces[i]); // Release
+            ((void (__stdcall *)(void *))vtable[2])(rasterizer_capture_surfaces[i]); // Release
             rasterizer_capture_surfaces[i] = (void *)0;
         }
     }
 
     if (rasterizer_device != (void *)0) {
         vtable = *(void ***)rasterizer_device;
-        ((void (*)(void *))vtable[2])(rasterizer_device); // Release
+        ((void (__stdcall *)(void *))vtable[2])(rasterizer_device); // Release
     }
     rasterizer_device = (void *)0;
 
     if (rasterizer_direct3d != (void *)0) {
         vtable = *(void ***)rasterizer_direct3d;
-        ((void (*)(void *))vtable[2])(rasterizer_direct3d); // Release
+        ((void (__stdcall *)(void *))vtable[2])(rasterizer_direct3d); // Release
     }
     rasterizer_direct3d = (void *)0;
 }

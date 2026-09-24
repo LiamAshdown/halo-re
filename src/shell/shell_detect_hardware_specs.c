@@ -105,14 +105,14 @@ static void shell_read_time_stamp_counter(large_integer *result)
     result->parts.low_part = low;
     result->parts.high_part = (int32_t)high;
 #else
-    uint32_t low, high;
+    uint32_t tsc_low, tsc_high;
     __asm {
         rdtsc
-        mov low, eax
-        mov high, edx
+        mov tsc_low, eax
+        mov tsc_high, edx
     }
-    result->parts.low_part = low;
-    result->parts.high_part = (int32_t)high;
+    result->parts.low_part = tsc_low;
+    result->parts.high_part = (int32_t)tsc_high;
 #endif
 }
 

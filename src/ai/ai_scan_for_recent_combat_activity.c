@@ -16,9 +16,9 @@
 // from the extra scratch bytes this call site's stack frame happens to also reserve.
 // blam-cc: stack -> hard_difficulty
 //
-// UNSURE: FUN_00401020 is called with no traced argument and compared against the literal
-// 16.0; guessed to be a 0..N random-float generator by analogy with random_real elsewhere in
-// this module. UNSURE: which Object-derived tag target_object_index's definition_tag really
+// 0x401020 is vector3d_distance_squared (src/math, EAX / ECX): the prop and its pair
+// (prop.pair_index) must be within 4 world units (orphan pass 4 review, 0x42c5b0..0x42c5d5).
+// UNSURE: which Object-derived tag target_object_index's definition_tag really
 // points at (assumed Unit, since Unit.unit_flags sits at the base Object's end offset 0x17c).
 // reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
@@ -39,7 +39,7 @@ extern tag_instance *tag_instances;  // 0x0087bc14
 extern data_array *actor_data;       // 0x00880360
 
 extern void * data_iterator_next(data_iterator *iterator); // 0x4d05d0
-extern real FUN_00401020(void); // 0x401020, not yet rewritten; UNSURE: likely a random-float generator
+extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, src/math; blam-cc: EAX a, ECX b
 
 // blam-cc: stack -> hard_difficulty
 // Walks every recognized-object prop looking for one that indicates recent nearby combat:
@@ -118,7 +118,10 @@ int32_t ai_scan_for_recent_combat_activity(uint8_t hard_difficulty)
                                 return 1;
                             }
                             if (kind == 4 && p->distance < 12.0f) {
-                                if (FUN_00401020() < 16.0f) {
+                                // 0x42c5b0..0x42c5d5: EAX = &p->last_known_position, ECX = the paired
+                                // prop's (p->pair_index) last_known_position
+                                prop *pair = &((prop *)prop_data->data)[p->pair_index & 0xffff];
+                                if (vector3d_distance_squared(&p->last_known_position, &pair->last_known_position) < 16.0f) {
                                     return 1;
                                 }
                             }

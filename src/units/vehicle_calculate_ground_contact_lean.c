@@ -14,7 +14,7 @@
 //   types/tags.h Vehicle.maximum_forward_speed/maximum_reverse_speed (0x2f8/0x2fc),
 //   .speed_acceleration/.speed_deceleration (0x300/0x304), .maximum_left_turn (0x308),
 //   .turn_rate (0x314), .fixed_gun_pitch (0x364, used as a fixed rotation angle here); callee
-//   FUN_00572a90 (this batch, out of scope, a math helper) and object_physics_tick (established
+//   vector3d_delta_toward_gravity_biased_clamp_length (this batch, out of scope, a math helper) and object_physics_tick (established
 //   5-argument shape elsewhere in this batch, though here it is called with an extra pointer
 //   pair that does not fit that shape -- see UNSURE).
 // register convention: unit object index in EAX (param_1); an output record pointer in ECX
@@ -39,7 +39,7 @@ extern real_matrix4x3 *g_00696738;          // 0x00696738, UNSURE identity (a co
 extern void object_physics_tick(uint32_t unit_index, void *out_record, void *out_transform,
                           void *param_4, void *param_5); // 0x507840, UNSURE signature, differs
                           // from the 5-uint32 shape used elsewhere in this batch
-extern void FUN_00572a90(float a, float b); // 0x572a90, this batch (out of scope, math helper)
+extern void vector3d_delta_toward_gravity_biased_clamp_length(float a, float b); // 0x572a90, this batch (out of scope, math helper)
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 extern void vector3d_rotate_pair_in_plane(float sin_angle, float cos_angle); // 0x4cd790, UNSURE  // real signature (vector3d_rotate_pair_in_plane.c): void vector3d_rotate_pair_in_plane(real_vector3d *a, real_vector3d *b, real sin_angle, real cos_angle); Ghidra recovered 2 of 4 args at this call site
 extern void vector3d_rotate_about_axis_perpendicular(float sin_angle, float cos_angle); // 0x4cd700, UNSURE  // real signature (vector3d_rotate_about_axis_perpendicular.c): void vector3d_rotate_about_axis_perpendicular(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); Ghidra recovered 2 of 4 args at this call site
@@ -81,11 +81,11 @@ void vehicle_calculate_ground_contact_lean(uint32_t unit_index, void *out_record
         speed_fraction = (vehicle->forward_velocity <= 0.0f)
             ? -(vehicle->forward_velocity / tag->maximum_reverse_speed)
             : (vehicle->forward_velocity / tag->maximum_forward_speed);
-        FUN_00572a90(speed_fraction * tag->speed_acceleration, speed_fraction * tag->speed_deceleration);
+        vector3d_delta_toward_gravity_biased_clamp_length(speed_fraction * tag->speed_acceleration, speed_fraction * tag->speed_deceleration);
 
         {
             float physics8 = *(float *)(physics_tag + 8);
-            local_54.i = scaled_forward.i /* UNSURE: reuses local_60/5c/58 from FUN_00572a90's
+            local_54.i = scaled_forward.i /* UNSURE: reuses local_60/5c/58 from vector3d_delta_toward_gravity_biased_clamp_length's
                                               output, not modeled here */ * physics8 * unit->unknown_338;
             local_54.j = scaled_forward.j * physics8 * unit->unknown_338;
             local_54.k = scaled_forward.k * physics8 * unit->unknown_338;

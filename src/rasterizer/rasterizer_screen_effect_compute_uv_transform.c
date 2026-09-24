@@ -36,7 +36,7 @@ extern uint8_t rasterizer_linear_render_targets;    // 0x00722b2c UNSURE name: r
 
 extern float effect_random_fraction(void); // 0x4505b0
 
-typedef int32_t (*d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
+typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
 
 // 1 / size of a bitmap, or 1 for a linear (texel addressed) bitmap.
 static void texel_size(const BitmapData *bitmap, float *u, float *v)

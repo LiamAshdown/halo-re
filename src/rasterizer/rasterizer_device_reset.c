@@ -49,11 +49,11 @@ extern int32_t rasterizer_lens_flare_occlusion_queries_create(void); // 0x536f70
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
 extern void Sleep(uint32_t ms); // Win32
 
-typedef void (*d3d_call0_fn)(void *device);
-typedef void (*d3d_call1_fn)(void *device, uint32_t a);
-typedef int32_t (*d3d_reset_fn)(void *device, void *present_params);
-typedef int32_t (*d3d_call2_fn)(void *device, void *a);
-typedef int32_t (*d3d_release_fn)(void *object);
+typedef void (__stdcall *d3d_call0_fn)(void *device);
+typedef void (__stdcall *d3d_call1_fn)(void *device, uint32_t a);
+typedef int32_t (__stdcall *d3d_reset_fn)(void *device, void *present_params);
+typedef int32_t (__stdcall *d3d_call2_fn)(void *device, void *a);
+typedef int32_t (__stdcall *d3d_release_fn)(void *object);
 
 // blam-cc: unaff_EBX -> extra_params
 // Tears down every cached D3D resource, resets the device, and (on success) rebuilds default

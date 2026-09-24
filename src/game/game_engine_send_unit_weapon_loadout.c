@@ -34,7 +34,8 @@ extern data_array *player_data;         // 0x0087a480
 extern uint8_t *object_pooled_node_globals; // 0x00687130, not owned by this module
 extern uint8_t shared_hud_text_draw_state; // 0x00871de0
 
-extern int32_t hash_table_get(void); // 0x4f05e0, not in this batch; UNSURE exact signature
+extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
+extern uint8_t *machine_table; // 0x00687558, its hash_table sits at +0x0c
 extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,
     uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,
     uint8_t unknown_6); // 0x4ec940
@@ -100,7 +101,7 @@ void game_engine_send_unit_weapon_loadout(uint32_t unit_index, datum_index playe
 
     fields.player_hash = 0;
     if (player_handle != (datum_index)0xffffffff) {
-        fields.player_hash = hash_table_get(); // UNSURE: args elided by Ghidra
+        fields.player_hash = hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)player_handle); // 0x477aa4..0x477ab4
         if (fields.player_hash == -1) {
             fields.player_hash = 0;
         }
@@ -108,7 +109,7 @@ void game_engine_send_unit_weapon_loadout(uint32_t unit_index, datum_index playe
 
     fields.unit_hash = 0;
     if (unit_index != 0xffffffff) {
-        fields.unit_hash = hash_table_get(); // UNSURE: args elided by Ghidra
+        fields.unit_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0xc), (int32_t)unit_index); // 0x477ac9..0x477ad6 (ECX = EBX)
         if (fields.unit_hash == -1) {
             fields.unit_hash = 0;
         }
@@ -118,7 +119,7 @@ void game_engine_send_unit_weapon_loadout(uint32_t unit_index, datum_index playe
 
     fields.parent_hash = 0;
     if (obj->parent_object != (datum_index)0xffffffff) {
-        fields.parent_hash = hash_table_get(); // UNSURE: args elided by Ghidra
+        fields.parent_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0xc), (int32_t)obj->parent_object); // 0x477aee..0x477b04
         if (fields.parent_hash == -1) {
             fields.parent_hash = 0;
         }

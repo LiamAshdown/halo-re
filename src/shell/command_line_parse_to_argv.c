@@ -17,7 +17,7 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-extern char empty_string; // 0x0065512c, the shared MSVC empty std::string/char literal
+extern char empty_string_0065512c; // 0x0065512c, the shared MSVC empty std::string/char literal
 extern int32_t _isspace(int32_t c);
 extern void *GlobalAlloc(uint32_t flags, uint32_t size);
 
@@ -90,7 +90,7 @@ char **command_line_parse_to_argv(char *command_line, int32_t *out_count)
 
     *out_count = token_count + 1;
     argv = (char **)GlobalAlloc(0, (uint32_t)(token_count + 1) * 4);
-    argv[0] = &empty_string;
+    argv[0] = &empty_string_0065512c;
 
     // Pass 3: record each token's start pointer, then trim its trailing whitespace in place.
     i = 0;

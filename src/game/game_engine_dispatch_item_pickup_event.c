@@ -15,8 +15,12 @@
 // argument reconstructions, flagged individually below.
 
 #include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "objects.h" // hash_table
 
-extern int32_t hash_table_get(void); // 0x4f05e0, not in this batch; UNSURE exact signature
+extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
+extern uint8_t *object_pooled_node_globals; // 0x00687130, the object network-id hash_table sits at +0x0c
 extern int32_t network_index_cache_find_or_allocate_slot(int32_t machine_id); // 0x4e9c20, not in this batch; UNSURE signature
 extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,
     uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,
@@ -44,7 +48,7 @@ void game_engine_dispatch_item_pickup_event(int32_t machine_id, int32_t param_1,
 
     fields.slot = 0;
     if (machine_id != -1) {
-        fields.slot = hash_table_get(); // UNSURE: args elided by Ghidra (ESI = table + 0x0c, ECX = key)
+        fields.slot = hash_table_get((hash_table *)(object_pooled_node_globals + 0xc), (int32_t)machine_id); // 0x45f855..0x45f864
     }
     if (fields.slot == -1) {
         fields.slot = network_index_cache_find_or_allocate_slot(machine_id);

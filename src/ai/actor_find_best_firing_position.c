@@ -76,7 +76,7 @@ extern void unit_get_aiming_vector(real_vector3d *out);                         
 
 // The firing-position comparator, 0x004127b0. Ghidra never created a function there, so it
 // has no rewrite; the sort is by descending actor_firing_position_candidate.score.
-extern void actor_firing_position_compare; // 0x004127b0
+extern int actor_firing_position_compare(const void *a, const void *b); // 0x004127b0, qsort comparator
 
 // blam-cc: stack -> actor_index, query, out_candidate, out_previous_owner, path_context, out_path_ok
 // Gathers, scores and picks the actor best firing position. Returns the index of the winning
@@ -612,7 +612,7 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
         }
         qsort_candidate_base = candidates;
         qsort_candidate_count = candidate_count;
-        qsort_dword_array(&actor_firing_position_compare);
+        qsort_dword_array((void *)actor_firing_position_compare);
 
         query->baseline_accept = actor_firing_position_probe_reject_rules(query);
 

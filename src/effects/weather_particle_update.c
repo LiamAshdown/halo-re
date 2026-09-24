@@ -44,7 +44,7 @@ extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg,
     PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4,
     real_point3d *position, real_vector3d *wind, real_vector3d *out_normal,
     int16_t *out_material_type, real radius, real dt); // 0x50b530, physics module
-extern void FUN_004588e0(real reference); // 0x4588e0, math module (skipped in this pass, see
+extern void vector3d_positive_modulo(real reference); // 0x4588e0, math module (skipped in this pass, see
                                     // summary); UNSURE signature
 
 // Per-tick update for one weather particle: randomly re-targets its acceleration vector's
@@ -118,7 +118,7 @@ void weather_particle_update(datum_index weather_particle_handle, int16_t type_i
         p->position.z = direction->z * 0.001f + p->position.z;
     }
 
-    FUN_004588e0(instance->types[type_index].field_extent);
+    vector3d_positive_modulo(instance->types[type_index].field_extent);
 }
 
 #if 0

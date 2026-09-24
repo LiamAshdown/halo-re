@@ -62,7 +62,7 @@ uint8_t rasterizer_dx9_pixel_shaders_load_all(void)
         for (i = 0; i < k_rasterizer_pixel_shader_effects; i++) {
             void *effect = (void *)rasterizer_effects[i].effect;
             if (effect != 0) {
-                ((void (*)(void *))(*(void ***)effect)[2])(effect); // Release()
+                ((void (__stdcall *)(void *))(*(void ***)effect)[2])(effect); // Release()
                 rasterizer_effects[i].effect = 0;
             }
         }

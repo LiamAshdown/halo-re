@@ -29,7 +29,7 @@ extern uint8_t *rasterizer_decal_vertex_cache_handle;               // 0x0071d1c
 
 extern void crc32_update(uint32_t *crc, const void *data, uint32_t length); // 0x4d02d0
 
-typedef int32_t (*d3d_create_vertex_buffer_fn)(void *device, uint32_t length, uint32_t usage, uint32_t fvf,
+typedef int32_t (__stdcall *d3d_create_vertex_buffer_fn)(void *device, uint32_t length, uint32_t usage, uint32_t fvf,
                                                  uint32_t pool, void **out_buffer, void *shared_handle);
 
 extern void LAB_0051a660(void); // decal vertex cache load callback, UNSURE signature

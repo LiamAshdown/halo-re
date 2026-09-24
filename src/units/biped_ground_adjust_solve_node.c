@@ -15,7 +15,7 @@
 //   //           own_position, success_bits
 // UNSURE: reference_position's exact meaning (its caller is outside this batch); every
 //   ABS(x - 1.0) < 0.0001 test is a "these two directions already agree" cosine check and is
-//   preserved as-is rather than renamed to a helper. FUN_0044d9e0, physics_point_refresh_leaf,
+//   preserved as-is rather than renamed to a helper. plane3d_from_point_and_normal, physics_point_refresh_leaf,
 //   matrix4x3_inverse/_transform_vector, vector3d_rotate_about_axis and FUN_00628140 belong to
 //   other not-yet-rewritten modules (math/physics); declared here with the signatures their
 //   call sites imply.
@@ -32,7 +32,8 @@ extern tag_instance *tag_instances; // 0x0087bc14
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, in place, returns length, vector in ECX (verified: src/objects/object_set_position_and_orientation.c)
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand); // 0x4052c0, out=stack_operand x ecx_operand (verified: src/objects/object_set_position_and_orientation.c)
-extern void FUN_0044d9e0(float *out4); // 0x44d9e0, UNSURE signature/module
+extern void plane3d_from_point_and_normal(real_plane3d *out, const real_vector3d *normal, const real_point3d *point);
+    // 0x44d9e0, src/math; blam-cc: stack out, ECX normal, EDX point
 extern void matrix4x3_inverse(real_matrix4x3 *out, real_matrix4x3 *in); // 0x4cb7a0, UNSURE signature
 // matrix4x3_transform_vector (0x4cbe50) transforms the vector in one register by the matrix in
 // another and writes the result through the third; Ghidra binds a different subset at each call
@@ -128,17 +129,23 @@ char biped_ground_adjust_solve_node(uint32_t object_index, real_point3d *referen
                     real_vector3d hinge_delta;
                     float hinge_scale;
                     real_vector3d hinge_point;
-                    float unresolved4[4];
+                    real_plane3d hinge_plane;
 
                     hinge_delta.i = *(float *)((uint8_t *)parent_transform + 0x1c);
                     hinge_delta.j = *(float *)((uint8_t *)parent_transform + 0x20);
                     hinge_delta.k = *(float *)((uint8_t *)parent_transform + 0x24);
-                    FUN_0044d9e0(unresolved4);
-                    hinge_scale = -((unresolved4[1] * self_to_parent.k + unresolved4[0] * self_to_parent.i +
-                                     unresolved4[2] * self_to_parent.j) - unresolved4[3]);
-                    hinge_point.j = hinge_delta.j * hinge_scale + self_to_parent.j;
-                    hinge_point.i = hinge_delta.i * hinge_scale + self_to_parent.i;
-                    hinge_point.k = hinge_delta.k * hinge_scale + self_to_parent.k;
+                    // 0x557d82..0x557daa: out = local plane, ECX = &hinge_delta (the parent's up,
+                    // parent_transform + 0x1c), EDX = &parent_transform->position ([esp+0x30])
+                    plane3d_from_point_and_normal(&hinge_plane, &hinge_delta, &parent_transform->position);
+                    // 0x557daf..0x557e0b: reference_position (EBX) projected onto that plane along
+                    // hinge_delta. The earlier rewrite used self_to_parent with its components
+                    // crossed; the asm reads [ebx], [ebx+4], [ebx+8] in step with the normal.
+                    hinge_scale = -((hinge_plane.normal.j * reference_position->y +
+                                     hinge_plane.normal.i * reference_position->x +
+                                     hinge_plane.normal.k * reference_position->z) - hinge_plane.d);
+                    hinge_point.i = hinge_delta.i * hinge_scale + reference_position->x;
+                    hinge_point.j = hinge_delta.j * hinge_scale + reference_position->y;
+                    hinge_point.k = hinge_delta.k * hinge_scale + reference_position->z;
                     self_to_ref.i = hinge_point.i - parent_transform->position.x;
                     self_to_ref.j = hinge_point.j - parent_transform->position.y;
                     self_to_ref.k = hinge_point.k - parent_transform->position.z;
