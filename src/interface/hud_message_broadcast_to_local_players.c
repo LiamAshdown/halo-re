@@ -10,7 +10,10 @@
 // s2 part 2 review: the text comes in ESI and is pushed as the stack argument of
 // chimera__hud_message (0x4ae180), whose AX is the player local_player_index (objdump
 // 0x495f81..0x495f8c); player_profile_save_495fb0 passes the saved message or L"" (0x660c34).
-//   // blam-cc: text -> ESI
+//   // blam-cc: ESI -> text
+// FIXED (register inputs, objdump): notes were written "text -> ESI" (name before register),
+// which the checker only recognizes as "REG -> name"; so ESI (read at 0x495f8b) looked
+// unclaimed. Body already used text correctly; reworded only.
 // reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"

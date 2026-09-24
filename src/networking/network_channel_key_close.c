@@ -4,9 +4,19 @@
 // evidence: out/phase4/networking_functions.md: "Releases the channel previously obtained for
 // the given (player,machine) key via player_new_local, recording the returned index at in_EAX+0x1f
 // if valid." Mirrors network_channel_key_open.c.
-// UNSURE: `unaff_EBX` (player_new_local's implicit result) is preserved as an out-parameter written
-// by that call, since Ghidra shows no explicit return capture.
-// register convention: entry in EAX (in_EAX). blam-cc: EAX -> entry
+// register convention: EAX -> entry, EBX -> requested_handle.
+// blam-cc: EAX -> entry, EBX -> requested_handle
+// FIXED (register inputs, objdump): EBX (read at 0x4de8dd, "mov eax,ebx" right before the call)
+// is not an implicit result of player_new_local -- it is player_new_local's own EAX/
+// requested_handle register argument (confirmed against src/game/player_new_local.c's recovered
+// signature: EAX -> requested_handle, stack -> machine_index, local_player_index,
+// identifier_record). EBX is callee-saved in cdecl, so it is unchanged by the call, and the
+// `cmp ebx,0xffffffff` afterward re-examines this function's own EBX input, not player_new_local's
+// (unused) EAX return value. The previous header's guess that EBX was written by the call was
+// wrong. Also corrected while fixing this: `esi` (entry) is pushed directly as
+// player_new_local's identifier_record argument (0x4de8d6, `push esi`), not a local &index
+// out-param -- the previous rewrite invented a 3-argument player_new_local call with an
+// out-parameter that objdump does not support.
 
 #include "tags.h"
 #include "memory.h"
@@ -15,23 +25,22 @@
 #include "networking.h"
 
 extern int32_t network_channel_key_resolve_target(network_player_entry *entry); // 0x4ddcc0, this batch
-extern void player_new_local(int32_t machine_index, int16_t machine_player_index, int32_t *out_index); // 0x473940, outside this batch, elided out-param
+extern datum_index player_new_local(datum_index requested_handle, uint32_t machine_index,
+    int16_t local_player_index, uint16_t *identifier_record); // 0x473940, src/game/player_new_local.c
 
-// blam-cc: EAX -> entry
-int32_t network_channel_key_close(network_player_entry *entry)
+// blam-cc: EAX -> entry, EBX -> requested_handle
+int32_t network_channel_key_close(network_player_entry *entry, datum_index requested_handle)
 {
     int16_t key;
-    int32_t index;
 
     if (network_channel_key_resolve_target(entry) == 0) {
         key = -1;
     } else {
         key = entry->machine_player_index;
     }
-    index = -1;
-    player_new_local(entry->machine_index, key, &index); // UNSURE: out-param elided, see header
-    if (index != -1) {
-        entry->slot_index = (int8_t)index;
+    player_new_local(requested_handle, entry->machine_index, key, (uint16_t *)entry); // return value unused, matches objdump
+    if (requested_handle != (datum_index)-1) {
+        entry->slot_index = (int8_t)requested_handle;
         return 1;
     }
     return 0;

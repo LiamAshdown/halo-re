@@ -8,7 +8,11 @@
 //   prop.unknown_9c/unknown_a0/engaged/desirability in types/ai.h.
 // register convention: EAX -> target_prop_index; param_1 (char) is Ghidra's recognized stack
 //   parameter, the mark/clear flag.
-//   // blam-cc: EAX -> target_prop_index, stack -> mark_engaged
+//   // blam-cc: EAX -> target_prop_index, EBX -> actor_index, stack -> mark_engaged
+// FIXED (register inputs, objdump): EBX carries actor_index (read at 0x41fadb, `mov eax,ebx`,
+//   passed on as EAX to actor_target_update_active_flag and then pushed as the first stack arg
+//   to actor_rate_potential_target at 0x41fae2..0x41fae3); the UNSURE note already suspected
+//   this but the rewrite still called both helpers with no arguments.
 
 #include "tags.h"
 #include "memory.h"
@@ -19,16 +23,13 @@
 extern data_array *prop_data;      // 0x008802c0
 extern game_time_globals *game_time; // 0x006f1d6c
 
-// UNSURE signature: the real functions take (actor_index, target_prop_index) -- see their own
-// rewrites -- but Ghidra recovers no arguments at this call site (both registers are
-// presumably still live from this function's own, only partially recovered, entry state).
-extern uint8_t actor_target_update_active_flag(void); // 0x41fc60, UNSURE signature
-extern float actor_rate_potential_target(void);        // 0x41fd50, UNSURE signature
+extern uint8_t actor_target_update_active_flag(datum_index actor_index, datum_index target_prop_index); // 0x41fc60, blam-cc: EAX -> actor_index, EDI -> target_prop_index
+extern float actor_rate_potential_target(datum_index actor_index, datum_index target_prop_index);        // 0x41fd50
 
-// blam-cc: EAX -> target_prop_index, stack -> mark_engaged
+// blam-cc: EAX -> target_prop_index, EBX -> actor_index, stack -> mark_engaged
 // Marks (or clears) the given prop (target-data record) as actively engaged and refreshes its
 // derived combat timing fields.
-void actor_target_mark_engaged(datum_index target_prop_index, uint8_t mark_engaged)
+void actor_target_mark_engaged(datum_index target_prop_index, datum_index actor_index, uint8_t mark_engaged)
 {
     prop *target;
 
@@ -44,8 +45,8 @@ void actor_target_mark_engaged(datum_index target_prop_index, uint8_t mark_engag
         target->unknown_a0 = game_time->game_time;
     }
 
-    target->engaged = actor_target_update_active_flag();
-    target->desirability = actor_rate_potential_target();
+    target->engaged = actor_target_update_active_flag(actor_index, target_prop_index);
+    target->desirability = actor_rate_potential_target(actor_index, target_prop_index);
 }
 
 #if 0

@@ -271,15 +271,6 @@
   ]
  },
  {
-  "caller": "src\\ai\\actor_check_pain_reaction.c",
-  "callee": "actor_build_order_grenade_or_melee",
-  "definition": "src\\ai\\actor_build_order_grenade_or_melee.c",
-  "declared": "extern int32_t actor_build_order_grenade_or_melee();",
-  "problems": [
-   "0 parameters declared, 7 defined"
-  ]
- },
- {
   "caller": "src\\ai\\actor_check_step_obstruction.c",
   "callee": "actor_update_target_lead_position",
   "definition": "src\\ai\\actor_update_target_lead_position.c",
@@ -614,6 +605,15 @@
  },
  {
   "caller": "src\\ai\\actor_find_best_firing_position.c",
+  "callee": "actor_firing_position_probe_reject_rules",
+  "definition": "src\\ai\\actor_firing_position_probe_reject_rules.c",
+  "declared": "extern uint8_t actor_firing_position_probe_reject_rules(actor_firing_position_query *query);",
+  "problems": [
+   "1 parameters declared, 2 defined"
+  ]
+ },
+ {
+  "caller": "src\\ai\\actor_find_best_firing_position.c",
   "callee": "actor_build_path_find_request",
   "definition": "src\\ai\\actor_build_path_find_request.c",
   "declared": "extern void actor_build_path_find_request(void);",
@@ -820,6 +820,15 @@
   ]
  },
  {
+  "caller": "src\\ai\\actor_gate_jump_traversal.c",
+  "callee": "actor_check_pain_reaction",
+  "definition": "src\\ai\\actor_check_pain_reaction.c",
+  "declared": "extern uint8_t actor_check_pain_reaction(datum_index actor_index);",
+  "problems": [
+   "1 parameters declared, 4 defined"
+  ]
+ },
+ {
   "caller": "src\\ai\\actor_gather_nearby_grenade_targets.c",
   "callee": "actor_find_prop_for_object",
   "definition": "src\\ai\\actor_find_prop_for_object.c",
@@ -907,15 +916,6 @@
   "declared": "extern uint8_t actor_firing_position_near_point();",
   "problems": [
    "0 parameters declared, 4 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_get_threat_weapon_definition.c",
-  "callee": "actor_get_threat_weapon_object_index",
-  "definition": "src\\ai\\actor_get_threat_weapon_object_index.c",
-  "declared": "extern datum_index actor_get_threat_weapon_object_index(void);",
-  "problems": [
-   "0 parameters declared, 1 defined"
   ]
  },
  {
@@ -1024,6 +1024,15 @@
   "declared": "extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index);",
   "problems": [
    "1 parameters declared, 2 defined"
+  ]
+ },
+ {
+  "caller": "src\\ai\\actor_look_get_wait_ticks.c",
+  "callee": "actor_get_threat_weapon_definition",
+  "definition": "src\\ai\\actor_get_threat_weapon_definition.c",
+  "declared": "extern void *actor_get_threat_weapon_definition(void);",
+  "problems": [
+   "0 parameters declared, 1 defined"
   ]
  },
  {
@@ -1432,15 +1441,6 @@
   ]
  },
  {
-  "caller": "src\\ai\\actor_rate_potential_target.c",
-  "callee": "actor_get_threat_weapon_definition",
-  "definition": "src\\ai\\actor_get_threat_weapon_definition.c",
-  "declared": "extern uint8_t *actor_get_threat_weapon_definition(datum_index actor_index);",
-  "problems": [
-   "1 parameters declared, 0 defined"
-  ]
- },
- {
   "caller": "src\\ai\\actor_react_to_registered_danger.c",
   "callee": "ai_communication_broadcast",
   "definition": "src\\ai\\ai_communication_broadcast.c",
@@ -1536,7 +1536,7 @@
   "definition": "src\\ai\\ai_pursuit_note_object.c",
   "declared": "extern void ai_pursuit_note_object(datum_index encounter_index);",
   "problems": [
-   "1 parameters declared, 5 defined"
+   "1 parameters declared, 4 defined"
   ]
  },
  {
@@ -1757,6 +1757,15 @@
   ]
  },
  {
+  "caller": "src\\ai\\actor_score_firing_positions_by_range.c",
+  "callee": "actor_get_threat_weapon_definition",
+  "definition": "src\\ai\\actor_get_threat_weapon_definition.c",
+  "declared": "extern void *actor_get_threat_weapon_definition(void);",
+  "problems": [
+   "0 parameters declared, 1 defined"
+  ]
+ },
+ {
   "caller": "src\\ai\\actor_score_firing_positions_by_threat.c",
   "callee": "segment3d_distance_squared_to_segment",
   "definition": "src\\math\\segment3d_distance_squared_to_segment.c",
@@ -1835,15 +1844,6 @@
   "declared": "extern uint8_t actor_grenade_parabolic_path_clear(float arc, float gravity, uint32_t context, uint32_t in_vehicle);",
   "problems": [
    "4 parameters declared, 7 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_spawn_additional_units.c",
-  "callee": "object_new",
-  "definition": "src\\objects\\object_new.c",
-  "declared": "extern datum_index object_new(object_placement_data *placement);",
-  "problems": [
-   "1 parameters declared, 0 defined"
   ]
  },
  {
@@ -2306,24 +2306,6 @@
   ]
  },
  {
-  "caller": "src\\ai\\actor_target_mark_engaged.c",
-  "callee": "actor_target_update_active_flag",
-  "definition": "src\\ai\\actor_target_update_active_flag.c",
-  "declared": "extern uint8_t actor_target_update_active_flag(void);",
-  "problems": [
-   "0 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_target_mark_engaged.c",
-  "callee": "actor_rate_potential_target",
-  "definition": "src\\ai\\actor_rate_potential_target.c",
-  "declared": "extern float actor_rate_potential_target(void);",
-  "problems": [
-   "0 parameters declared, 2 defined"
-  ]
- },
- {
   "caller": "src\\ai\\actor_target_relationship_think.c",
   "callee": "actor_target_update_active_flag",
   "definition": "src\\ai\\actor_target_update_active_flag.c",
@@ -2447,6 +2429,15 @@
   "declared": "extern void actor_unlink_prop(void);",
   "problems": [
    "0 parameters declared, 2 defined"
+  ]
+ },
+ {
+  "caller": "src\\ai\\actor_target_update_tracking_speed.c",
+  "callee": "actor_target_mark_engaged",
+  "definition": "src\\ai\\actor_target_mark_engaged.c",
+  "declared": "extern void actor_target_mark_engaged(datum_index target_prop_index, uint8_t mark_engaged);",
+  "problems": [
+   "2 parameters declared, 3 defined"
   ]
  },
  {
@@ -2732,6 +2723,15 @@
  },
  {
   "caller": "src\\ai\\actor_update_grenade_and_morale_reactions.c",
+  "callee": "actor_check_pain_reaction",
+  "definition": "src\\ai\\actor_check_pain_reaction.c",
+  "declared": "extern uint8_t actor_check_pain_reaction(datum_index actor_index);",
+  "problems": [
+   "1 parameters declared, 4 defined"
+  ]
+ },
+ {
+  "caller": "src\\ai\\actor_update_grenade_and_morale_reactions.c",
   "callee": "actor_evaluate_grenade_target_position",
   "definition": "src\\ai\\actor_evaluate_grenade_target_position.c",
   "declared": "extern uint8_t actor_evaluate_grenade_target_position();",
@@ -2934,7 +2934,7 @@
   "definition": "src\\ai\\ai_pursuit_note_object.c",
   "declared": "extern uint8_t ai_pursuit_note_object(datum_index encounter_index);",
   "problems": [
-   "1 parameters declared, 5 defined"
+   "1 parameters declared, 4 defined"
   ]
  },
  {
@@ -2988,7 +2988,7 @@
   "definition": "src\\ai\\actor_target_mark_engaged.c",
   "declared": "extern uint8_t actor_target_mark_engaged(uint8_t want_new_destination);",
   "problems": [
-   "1 parameters declared, 2 defined"
+   "1 parameters declared, 3 defined"
   ]
  },
  {
@@ -3474,7 +3474,7 @@
   "definition": "src\\ai\\ai_search_run.c",
   "declared": "extern uint8_t ai_search_run(uint8_t param2, void *obstacle_list, float step_radius, float *point,\n                             float distance, float *direction);",
   "problems": [
-   "6 parameters declared, 1 defined"
+   "6 parameters declared, 10 defined"
   ]
  },
  {
@@ -3883,15 +3883,6 @@
   ]
  },
  {
-  "caller": "src\\ai\\ai_search_compute_point_tangents.c",
-  "callee": "vector2d_tangent_edge_directions",
-  "definition": "src\\math\\vector2d_tangent_edge_directions.c",
-  "declared": "extern void vector2d_tangent_edge_directions(float combined_radius, float total_radius, void *out_b, float distance,\n                         float dir_x, float dir_y);",
-  "problems": [
-   "parameter kinds differ at #1 (f vs p), #2 (f vs p), #6 (f vs p)"
-  ]
- },
- {
   "caller": "src\\ai\\ai_search_expand_point_neighbors.c",
   "callee": "ai_search_add_node",
   "definition": "src\\ai\\ai_search_add_node.c",
@@ -3906,7 +3897,7 @@
   "definition": "src\\ai\\ai_search_compute_point_tangents.c",
   "declared": "extern void ai_search_compute_point_tangents(float param1, void *out_a, float *out_b);",
   "problems": [
-   "3 parameters declared, 6 defined"
+   "3 parameters declared, 7 defined"
   ]
  },
  {
@@ -3925,15 +3916,6 @@
   "declared": "extern uint8_t point3d_within_radius(float value);",
   "problems": [
    "1 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\ai_search_run.c",
-  "callee": "ai_search_context_init",
-  "definition": "src\\ai\\ai_search_context_init.c",
-  "declared": "extern void ai_search_context_init(void);",
-  "problems": [
-   "0 parameters declared, 11 defined"
   ]
  },
  {
@@ -4643,6 +4625,15 @@
  },
  {
   "caller": "src\\effects\\effect_event_apply.c",
+  "callee": "object_new",
+  "definition": "src\\objects\\object_new.c",
+  "declared": "extern void object_new(void);",
+  "problems": [
+   "0 parameters declared, 1 defined"
+  ]
+ },
+ {
+  "caller": "src\\effects\\effect_event_apply.c",
   "callee": "sound_start_at_object_marker",
   "definition": "src\\sound\\sound_start_at_object_marker.c",
   "declared": "extern void sound_start_at_object_marker(datum_index sound_tag, uint32_t marker_index, real scale,\n    uint8_t is_valid_unit);",
@@ -4688,11 +4679,29 @@
  },
  {
   "caller": "src\\effects\\effect_new_on_object.c",
+  "callee": "effect_first_person_screen_timer_active",
+  "definition": "src\\effects\\effect_first_person_screen_timer_active.c",
+  "declared": "extern uint8_t effect_first_person_screen_timer_active(void);",
+  "problems": [
+   "0 parameters declared, 1 defined"
+  ]
+ },
+ {
+  "caller": "src\\effects\\effect_new_on_object.c",
   "callee": "effect_rebuild_markers",
   "definition": "src\\effects\\effect_rebuild_markers.c",
   "declared": "extern void effect_rebuild_markers(effect *self,\n    int32_t (*resolve_marker)(uint32_t, const char *, object_marker *, uint32_t));",
   "problems": [
    "parameter kinds differ at #2 (p vs i)"
+  ]
+ },
+ {
+  "caller": "src\\effects\\effect_new_on_object_with_node_table.c",
+  "callee": "effect_first_person_screen_timer_active",
+  "definition": "src\\effects\\effect_first_person_screen_timer_active.c",
+  "declared": "extern uint8_t effect_first_person_screen_timer_active(void);",
+  "problems": [
+   "0 parameters declared, 1 defined"
   ]
  },
  {
@@ -5159,6 +5168,15 @@
  },
  {
   "caller": "src\\game\\ctf_engine_flag_tick.c",
+  "callee": "custom_waypoint_register",
+  "definition": "src\\game\\custom_waypoint_register.c",
+  "declared": "extern void custom_waypoint_register(datum_index owner, int16_t slot, real_point3d *position,\n    float height_offset, datum_index player_filter, int16_t team_filter);",
+  "problems": [
+   "6 parameters declared, 7 defined"
+  ]
+ },
+ {
+  "caller": "src\\game\\ctf_engine_flag_tick.c",
   "callee": "hud_waypoint_arrow_find",
   "definition": "src\\interface\\hud_waypoint_arrow_find.c",
   "declared": "extern int16_t hud_waypoint_arrow_find(void);",
@@ -5171,15 +5189,6 @@
   "callee": "game_engine_ctf_unit_is_flag_holder",
   "definition": "src\\game\\game_engine_ctf_unit_is_flag_holder.c",
   "declared": "extern uint8_t game_engine_ctf_unit_is_flag_holder(void);",
-  "problems": [
-   "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\game\\custom_waypoint_register.c",
-  "callee": "hud_waypoint_arrow_find",
-  "definition": "src\\interface\\hud_waypoint_arrow_find.c",
-  "declared": "extern int16_t hud_waypoint_arrow_find(void);",
   "problems": [
    "0 parameters declared, 1 defined"
   ]
@@ -5213,11 +5222,20 @@
  },
  {
   "caller": "src\\game\\game_engine_apply_player_join_message.c",
+  "callee": "network_channel_key_close",
+  "definition": "src\\networking\\network_channel_key_close.c",
+  "declared": "extern uint8_t network_channel_key_close(void *identifier_record);",
+  "problems": [
+   "1 parameters declared, 2 defined"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_apply_player_join_message.c",
   "callee": "network_index_cache_insert_if_free",
   "definition": "src\\networking\\network_index_cache_insert_if_free.c",
   "declared": "extern void network_index_cache_insert_if_free(uint32_t hash_value, datum_index player_handle,\n    void *table);",
   "problems": [
-   "3 parameters declared, 4 defined"
+   "parameter kinds differ at #1 (i vs p), #3 (p vs i)"
   ]
  },
  {
@@ -5245,6 +5263,15 @@
   "declared": "extern void unit_enter_vehicle_seat(datum_index vehicle_index, int32_t seat);",
   "problems": [
    "2 parameters declared, 3 defined"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_begin_end_game_sequence.c",
+  "callee": "game_engine_send_end_game_notification",
+  "definition": "src\\game\\game_engine_send_end_game_notification.c",
+  "declared": "extern void game_engine_send_end_game_notification(void);",
+  "problems": [
+   "0 parameters declared, 1 defined"
   ]
  },
  {
@@ -5394,6 +5421,24 @@
   ]
  },
  {
+  "caller": "src\\game\\game_engine_ctf_player_flag_tick.c",
+  "callee": "game_engine_ctf_notify_flag_carried_throttled",
+  "definition": "src\\game\\game_engine_ctf_notify_flag_carried_throttled.c",
+  "declared": "extern void game_engine_ctf_notify_flag_carried_throttled(void);",
+  "problems": [
+   "0 parameters declared, 1 defined"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_ctf_return_all_flags.c",
+  "callee": "custom_waypoint_register",
+  "definition": "src\\game\\custom_waypoint_register.c",
+  "declared": "extern void custom_waypoint_register(datum_index owner, int16_t slot, real_point3d *position,\n    float height_offset, datum_index player_filter, int16_t team_filter);",
+  "problems": [
+   "6 parameters declared, 7 defined"
+  ]
+ },
+ {
   "caller": "src\\game\\game_engine_dispatch_item_pickup_event.c",
   "callee": "network_index_cache_find_or_allocate_slot",
   "definition": "src\\networking\\network_index_cache_find_or_allocate_slot.c",
@@ -5494,6 +5539,15 @@
  },
  {
   "caller": "src\\game\\game_engine_koth_ball_idle_tick.c",
+  "callee": "custom_waypoint_register",
+  "definition": "src\\game\\custom_waypoint_register.c",
+  "declared": "extern void custom_waypoint_register(datum_index owner, int16_t slot, real_point3d *position,\n    float height_offset, datum_index player_filter, int16_t team_filter);",
+  "problems": [
+   "6 parameters declared, 7 defined"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_koth_ball_idle_tick.c",
   "callee": "weapon_must_be_readied",
   "definition": "src\\items\\weapon_must_be_readied.c",
   "declared": "extern uint8_t weapon_must_be_readied(void);",
@@ -5580,15 +5634,6 @@
   "declared": "extern uint8_t polygon2d_point_inside_margin(int16_t vertex_count, Point2D *point, int32_t margin);",
   "problems": [
    "3 parameters declared, 4 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_koth_relocate_hill_marker.c",
-  "callee": "object_new",
-  "definition": "src\\objects\\object_new.c",
-  "declared": "extern datum_index object_new(object_placement_data *placement);",
-  "problems": [
-   "1 parameters declared, 0 defined"
   ]
  },
  {
@@ -5744,7 +5789,7 @@
   "definition": "src\\game\\game_engine_broadcast_kill_feed_or_direct.c",
   "declared": "extern void game_engine_broadcast_kill_feed_or_direct(void);",
   "problems": [
-   "0 parameters declared, 6 defined"
+   "0 parameters declared, 5 defined"
   ]
  },
  {
@@ -5753,7 +5798,7 @@
   "definition": "src\\game\\game_engine_broadcast_kill_feed_gated.c",
   "declared": "extern void game_engine_broadcast_kill_feed_gated(datum_index killer, datum_index victim);",
   "problems": [
-   "2 parameters declared, 6 defined"
+   "2 parameters declared, 5 defined"
   ]
  },
  {
@@ -6143,7 +6188,7 @@
   "definition": "src\\networking\\network_index_cache_insert_if_free.c",
   "declared": "extern void network_index_cache_insert_if_free(uint32_t unknown);",
   "problems": [
-   "1 parameters declared, 4 defined"
+   "1 parameters declared, 3 defined"
   ]
  },
  {
@@ -6202,6 +6247,15 @@
  },
  {
   "caller": "src\\game\\game_engine_tick.c",
+  "callee": "game_engine_send_end_game_notification",
+  "definition": "src\\game\\game_engine_send_end_game_notification.c",
+  "declared": "extern void game_engine_send_end_game_notification(void);",
+  "problems": [
+   "0 parameters declared, 1 defined"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_tick.c",
   "callee": "network_server_advance_connect_state",
   "definition": "src\\networking\\network_server_advance_connect_state.c",
   "declared": "extern void network_server_advance_connect_state(void);",
@@ -6238,6 +6292,15 @@
  },
  {
   "caller": "src\\game\\game_engine_update_end_game_sequence.c",
+  "callee": "game_engine_send_end_game_notification",
+  "definition": "src\\game\\game_engine_send_end_game_notification.c",
+  "declared": "extern void game_engine_send_end_game_notification(void);",
+  "problems": [
+   "0 parameters declared, 1 defined"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_update_end_game_sequence.c",
   "callee": "input_get_key_state",
   "definition": "src\\input\\input_get_key_state.c",
   "declared": "extern char input_get_key_state(void);",
@@ -6252,6 +6315,15 @@
   "declared": "extern void chimera__console_out(const char *text);",
   "problems": [
    "1 parameters declared, 3 defined"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_update_lead_change_state.c",
+  "callee": "game_engine_player_round_reset",
+  "definition": "src\\game\\game_engine_player_round_reset.c",
+  "declared": "extern void game_engine_player_round_reset(void);",
+  "problems": [
+   "0 parameters declared, 2 defined"
   ]
  },
  {
@@ -6332,7 +6404,7 @@
   "definition": "src\\units\\unit_get_crouch_height_offset.c",
   "declared": "extern float unit_get_crouch_height_offset(float *out);",
   "problems": [
-   "1 parameters declared, 3 defined",
+   "1 parameters declared, 4 defined",
    "return f vs v"
   ]
  },
@@ -6649,7 +6721,7 @@
   "definition": "src\\units\\unit_check_weapon_use_permission.c",
   "declared": "extern uint8_t unit_check_weapon_use_permission(void);",
   "problems": [
-   "0 parameters declared, 1 defined"
+   "0 parameters declared, 2 defined"
   ]
  },
  {
@@ -6667,7 +6739,7 @@
   "definition": "src\\units\\unit_check_weapon_use_permission.c",
   "declared": "extern uint8_t unit_check_weapon_use_permission(void);",
   "problems": [
-   "0 parameters declared, 1 defined"
+   "0 parameters declared, 2 defined"
   ]
  },
  {
@@ -8069,7 +8141,7 @@
   "definition": "src\\saved_games\\game_state_read_checkpoint_summary.c",
   "declared": "extern uint8_t game_state_read_checkpoint_summary(void);",
   "problems": [
-   "0 parameters declared, 2 defined"
+   "0 parameters declared, 3 defined"
   ]
  },
  {
@@ -8451,7 +8523,7 @@
   "definition": "src\\networking\\network_index_cache_insert_if_free.c",
   "declared": "extern void network_index_cache_insert_if_free(int32_t object_hash);",
   "problems": [
-   "1 parameters declared, 4 defined"
+   "1 parameters declared, 3 defined"
   ]
  },
  {
@@ -8723,7 +8795,7 @@
   "definition": "src\\networking\\network_index_cache_insert_if_free.c",
   "declared": "extern void network_index_cache_insert_if_free(int32_t object_hash);",
   "problems": [
-   "1 parameters declared, 4 defined"
+   "1 parameters declared, 3 defined"
   ]
  },
  {
@@ -9403,15 +9475,6 @@
   ]
  },
  {
-  "caller": "src\\networking\\network_channel_key_close.c",
-  "callee": "player_new_local",
-  "definition": "src\\game\\player_new_local.c",
-  "declared": "extern void player_new_local(int32_t machine_index, int16_t machine_player_index, int32_t *out_index);",
-  "problems": [
-   "3 parameters declared, 4 defined"
-  ]
- },
- {
   "caller": "src\\networking\\network_channel_key_open.c",
   "callee": "player_new_network",
   "definition": "src\\game\\player_new_network.c",
@@ -9955,6 +10018,15 @@
  },
  {
   "caller": "src\\networking\\network_game_client_decode_player_join_chunk.c",
+  "callee": "network_player_join_finalize",
+  "definition": "src\\networking\\network_player_join_finalize.c",
+  "declared": "extern char network_player_join_finalize(network_client_globals *client);",
+  "problems": [
+   "1 parameters declared, 2 defined"
+  ]
+ },
+ {
+  "caller": "src\\networking\\network_game_client_decode_player_join_chunk.c",
   "callee": "network_disconnect_notify_dropped_machines",
   "definition": "src\\networking\\network_disconnect_notify_dropped_machines.c",
   "declared": "extern void network_disconnect_notify_dropped_machines(void);",
@@ -10189,15 +10261,6 @@
   ]
  },
  {
-  "caller": "src\\networking\\network_game_message_handle_build_version.c",
-  "callee": "network_machine_check_build_version",
-  "definition": "src\\networking\\network_machine_check_build_version.c",
-  "declared": "extern void network_machine_check_build_version(void);",
-  "problems": [
-   "0 parameters declared, 2 defined"
-  ]
- },
- {
   "caller": "src\\networking\\network_game_message_handle_handshake_forward.c",
   "callee": "data_packet_group_decode_packet",
   "definition": "src\\memory\\data_packet_group_decode_packet.c",
@@ -10419,7 +10482,7 @@
   "definition": "src\\networking\\network_game_message_handle_build_version.c",
   "declared": "extern uint32_t network_game_message_handle_build_version(void);",
   "problems": [
-   "0 parameters declared, 2 defined"
+   "0 parameters declared, 3 defined"
   ]
  },
  {
@@ -10509,7 +10572,7 @@
   "definition": "src\\networking\\network_player_join_finalize.c",
   "declared": "extern char network_player_join_finalize(void);",
   "problems": [
-   "0 parameters declared, 1 defined"
+   "0 parameters declared, 2 defined"
   ]
  },
  {
@@ -10631,15 +10694,6 @@
  },
  {
   "caller": "src\\networking\\network_game_server_handle_join_password.c",
-  "callee": "network_join_request_reset_state",
-  "definition": "src\\networking\\network_join_request_reset_state.c",
-  "declared": "extern char network_join_request_reset_state(void *scratch);",
-  "problems": [
-   "1 parameters declared, 0 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\network_game_server_handle_join_password.c",
   "callee": "network_debug_fill_canary_buffer",
   "definition": "src\\networking\\network_debug_fill_canary_buffer.c",
   "declared": "extern uint32_t *network_debug_fill_canary_buffer(void *scratch);",
@@ -10680,7 +10734,7 @@
   "definition": "src\\game\\game_engine_notify_object_value_event.c",
   "declared": "extern int32_t game_engine_notify_object_value_event(int32_t team);",
   "problems": [
-   "1 parameters declared, 3 defined"
+   "1 parameters declared, 4 defined"
   ]
  },
  {
@@ -10797,7 +10851,7 @@
   "definition": "src\\networking\\network_object_record_last_sender.c",
   "declared": "extern void network_object_record_last_sender(uint32_t round);",
   "problems": [
-   "1 parameters declared, 2 defined"
+   "1 parameters declared, 3 defined"
   ]
  },
  {
@@ -10984,21 +11038,12 @@
   ]
  },
  {
-  "caller": "src\\networking\\network_object_record_last_sender.c",
-  "callee": "player_data_iterator_advance",
-  "definition": "src\\networking\\player_data_iterator_advance.c",
-  "declared": "extern uint32_t player_data_iterator_advance(void);",
-  "problems": [
-   "0 parameters declared, 1 defined"
-  ]
- },
- {
   "caller": "src\\networking\\network_object_release_ownership_claim.c",
   "callee": "game_engine_notify_object_value_event",
   "definition": "src\\game\\game_engine_notify_object_value_event.c",
   "declared": "extern int32_t game_engine_notify_object_value_event(int32_t team);",
   "problems": [
-   "1 parameters declared, 3 defined"
+   "1 parameters declared, 4 defined"
   ]
  },
  {
@@ -11017,25 +11062,6 @@
   "declared": "extern void game_engine_capture_player_profile(int32_t value);",
   "problems": [
    "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\network_player_join_finalize.c",
-  "callee": "network_player_entry_validate",
-  "definition": "src\\networking\\network_player_entry_validate.c",
-  "declared": "extern char network_player_entry_validate(void);",
-  "problems": [
-   "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\network_player_join_finalize.c",
-  "callee": "network_player_entry_add",
-  "definition": "src\\networking\\network_player_entry_add.c",
-  "declared": "extern network_player_entry *network_player_entry_add(network_game_session *session);",
-  "problems": [
-   "1 parameters declared, 2 defined",
-   "return p vs i"
   ]
  },
  {
@@ -12207,6 +12233,15 @@
   ]
  },
  {
+  "caller": "src\\objects\\object_apply_shield_damage.c",
+  "callee": "object_dispatch_effect_notify",
+  "definition": "src\\objects\\object_dispatch_effect_notify.c",
+  "declared": "extern void object_dispatch_effect_notify(void);",
+  "problems": [
+   "0 parameters declared, 2 defined"
+  ]
+ },
+ {
   "caller": "src\\objects\\object_block_data_grow.c",
   "callee": "block_list_reallocate",
   "definition": "src\\memory\\block_list_reallocate.c",
@@ -12447,6 +12482,15 @@
   "declared": "extern void euler_angles_to_basis_vectors(void);",
   "problems": [
    "0 parameters declared, 3 defined"
+  ]
+ },
+ {
+  "caller": "src\\objects\\object_get_or_build_render_permutation.c",
+  "callee": "object_new",
+  "definition": "src\\objects\\object_new.c",
+  "declared": "extern int32_t object_new(void);",
+  "problems": [
+   "0 parameters declared, 1 defined"
   ]
  },
  {
@@ -12953,6 +12997,15 @@
  },
  {
   "caller": "src\\objects\\object_update_vitality_and_regeneration.c",
+  "callee": "object_dispatch_effect_notify",
+  "definition": "src\\objects\\object_dispatch_effect_notify.c",
+  "declared": "extern void object_dispatch_effect_notify(void);",
+  "problems": [
+   "0 parameters declared, 2 defined"
+  ]
+ },
+ {
+  "caller": "src\\objects\\object_update_vitality_and_regeneration.c",
   "callee": "weapon_get_zoom_fov_resolved",
   "definition": "src\\game\\weapon_get_zoom_fov_resolved.c",
   "declared": "extern real weapon_get_zoom_fov_resolved(void);",
@@ -12985,7 +13038,7 @@
   "definition": "src\\units\\unit_get_crouch_height_offset.c",
   "declared": "extern void unit_get_crouch_height_offset(float *out);",
   "problems": [
-   "1 parameters declared, 3 defined"
+   "1 parameters declared, 4 defined"
   ]
  },
  {
@@ -13057,7 +13110,7 @@
   "definition": "src\\units\\unit_get_crouch_height_offset.c",
   "declared": "extern void unit_get_crouch_height_offset(float *out);",
   "problems": [
-   "1 parameters declared, 3 defined"
+   "1 parameters declared, 4 defined"
   ]
  },
  {
@@ -13265,15 +13318,6 @@
   "declared": "extern int32_t message_delta_decode_compound_field_staged(void);",
   "problems": [
    "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\projectiles\\projectile_create_from_network.c",
-  "callee": "network_index_cache_insert_if_free",
-  "definition": "src\\networking\\network_index_cache_insert_if_free.c",
-  "declared": "extern void network_index_cache_insert_if_free(void *pooled_node_globals, datum_index object_index,\n                         int32_t object_hash);",
-  "problems": [
-   "3 parameters declared, 4 defined"
   ]
  },
  {
@@ -13536,7 +13580,7 @@
   "definition": "src\\render\\render_rasterizer_dispatch_537800.c",
   "declared": "extern int32_t render_rasterizer_dispatch_537800(float radius);",
   "problems": [
-   "1 parameters declared, 0 defined"
+   "1 parameters declared, 2 defined"
   ]
  },
  {
@@ -13798,16 +13842,7 @@
   "definition": "src\\objects\\widget_list_notify.c",
   "declared": "extern void widget_list_notify(uint32_t object_index, render_lighting *lighting,\n                               render_animation *animation);",
   "problems": [
-   "3 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\render\\render_player_frame.c",
-  "callee": "render_camera_update_leaf_and_cluster",
-  "definition": "src\\structures\\render_camera_update_leaf_and_cluster.c",
-  "declared": "extern void render_camera_update_leaf_and_cluster(real_point3d *point);",
-  "problems": [
-   "1 parameters declared, 0 defined"
+   "parameter kinds differ at #2 (p vs i)"
   ]
  },
  {
@@ -13823,9 +13858,9 @@
   "caller": "src\\render\\render_rasterizer_dispatch_537800.c",
   "callee": "rasterizer_lens_flare_occlusion_test_issue",
   "definition": "src\\rasterizer\\rasterizer_lens_flare_occlusion_test_issue.c",
-  "declared": "extern void rasterizer_lens_flare_occlusion_test_issue(void);",
+  "declared": "extern void rasterizer_lens_flare_occlusion_test_issue(uint32_t arg_ecx, uint32_t arg_edi);",
   "problems": [
-   "0 parameters declared, 3 defined"
+   "2 parameters declared, 3 defined"
   ]
  },
  {
@@ -14119,6 +14154,15 @@
   ]
  },
  {
+  "caller": "src\\shell\\security_check_write_access.c",
+  "callee": "security_check_cleanup",
+  "definition": "src\\shell\\security_check_cleanup.c",
+  "declared": "extern void security_check_cleanup(void *descriptor, void *acl, void *sid, void *thread_token,\n                                    void *impersonation_token);",
+  "problems": [
+   "5 parameters declared, 6 defined"
+  ]
+ },
+ {
   "caller": "src\\shell\\shell_display_fatal_error_dialog.c",
   "callee": "dialog_box_show_localized",
   "definition": "src\\dialogs\\dialog_box_show_localized.c",
@@ -14134,6 +14178,15 @@
   "declared": "extern void memory_global_free(void *block);",
   "problems": [
    "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\shell\\tree_erase_range.c",
+  "callee": "tree_destroy_subtree",
+  "definition": "src\\shell\\tree_destroy_subtree.c",
+  "declared": "extern void tree_destroy_subtree(hwreq_map_node *node);",
+  "problems": [
+   "1 parameters declared, 2 defined"
   ]
  },
  {
@@ -14243,6 +14296,15 @@
   "problems": [
    "0 parameters declared, 2 defined",
    "return p vs v"
+  ]
+ },
+ {
+  "caller": "src\\units\\biped_check_evade_reaction.c",
+  "callee": "unit_dispatch_reaction_animation",
+  "definition": "src\\units\\unit_dispatch_reaction_animation.c",
+  "declared": "extern void unit_dispatch_reaction_animation(int16_t reaction_code);",
+  "problems": [
+   "1 parameters declared, 2 defined"
   ]
  },
  {
@@ -14356,6 +14418,15 @@
  },
  {
   "caller": "src\\units\\biped_integrate_movement.c",
+  "callee": "unit_get_crouch_height_offset",
+  "definition": "src\\units\\unit_get_crouch_height_offset.c",
+  "declared": "extern void unit_get_crouch_height_offset(uint32_t object_index, float *pill_height,\n                                          float *pill_radius);",
+  "problems": [
+   "3 parameters declared, 4 defined"
+  ]
+ },
+ {
+  "caller": "src\\units\\biped_integrate_movement.c",
   "callee": "biped_update_animation_frame_trigger",
   "definition": "src\\units\\biped_update_animation_frame_trigger.c",
   "declared": "extern void biped_update_animation_frame_trigger(float impact_speed);",
@@ -14433,6 +14504,15 @@
   "declared": "extern int8_t object_collision_context_test_segment(real_plane3d *out_plane, int32_t mask, real_point3d *origin,\n                            real_vector3d *delta, void *out_record);",
   "problems": [
    "5 parameters declared, 4 defined"
+  ]
+ },
+ {
+  "caller": "src\\units\\biped_integrate_movement_with_collision.c",
+  "callee": "unit_get_crouch_height_offset",
+  "definition": "src\\units\\unit_get_crouch_height_offset.c",
+  "declared": "extern void unit_get_crouch_height_offset(uint32_t object_index, float *pill_height,\n                                          float *pill_radius);",
+  "problems": [
+   "3 parameters declared, 4 defined"
   ]
  },
  {
@@ -14829,7 +14909,7 @@
   "definition": "src\\units\\unit_set_throw_aim_direction.c",
   "declared": "extern void unit_set_throw_aim_direction(uint32_t unit_index);",
   "problems": [
-   "1 parameters declared, 3 defined"
+   "1 parameters declared, 2 defined"
   ]
  },
  {
@@ -14902,15 +14982,6 @@
   "declared": "extern void ai_refresh_unit_stimulus_and_alert(void);",
   "problems": [
    "0 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_clear_weapon_switch_state.c",
-  "callee": "sound_start_unspatialized",
-  "definition": "src\\sound\\sound_start_unspatialized.c",
-  "declared": "extern void sound_start_unspatialized(float amount);",
-  "problems": [
-   "1 parameters declared, 2 defined"
   ]
  },
  {
@@ -15380,11 +15451,29 @@
  },
  {
   "caller": "src\\units\\unit_find_nearest_valid_surface_plane.c",
+  "callee": "unit_get_crouch_height_offset",
+  "definition": "src\\units\\unit_get_crouch_height_offset.c",
+  "declared": "extern void unit_get_crouch_height_offset(uint32_t object_index, float *pill_height, float *pill_radius_out);",
+  "problems": [
+   "3 parameters declared, 4 defined"
+  ]
+ },
+ {
+  "caller": "src\\units\\unit_find_nearest_valid_surface_plane.c",
   "callee": "collision_bsp_query_sphere_init",
   "definition": "src\\physics\\collision_bsp_query_sphere_init.c",
   "declared": "extern uint8_t collision_bsp_query_sphere_init(int32_t leaf_key, float *out_direction, float radius);",
   "problems": [
    "3 parameters declared, 6 defined"
+  ]
+ },
+ {
+  "caller": "src\\units\\unit_find_next_zone_permitted_weapon_slot.c",
+  "callee": "unit_check_weapon_use_permission",
+  "definition": "src\\units\\unit_check_weapon_use_permission.c",
+  "declared": "extern uint8_t unit_check_weapon_use_permission(uint32_t unit_index);",
+  "problems": [
+   "1 parameters declared, 2 defined"
   ]
  },
  {
@@ -15394,6 +15483,15 @@
   "declared": "extern void object_set_position_and_relink(void *position_and_flags);",
   "problems": [
    "1 parameters declared, 2 defined"
+  ]
+ },
+ {
+  "caller": "src\\units\\unit_find_placement_position.c",
+  "callee": "unit_get_crouch_height_offset",
+  "definition": "src\\units\\unit_get_crouch_height_offset.c",
+  "declared": "extern void unit_get_crouch_height_offset(uint32_t object_index, float *pill_height,\n                                           float *pill_radius);",
+  "problems": [
+   "3 parameters declared, 4 defined"
   ]
  },
  {
@@ -15424,22 +15522,21 @@
   ]
  },
  {
-  "caller": "src\\units\\unit_get_crouch_height_offset.c",
-  "callee": "object_get_position",
-  "definition": "src\\objects\\object_get_position.c",
-  "declared": "extern real_point3d *object_get_position();",
-  "problems": [
-   "0 parameters declared, 2 defined",
-   "return p vs v"
-  ]
- },
- {
   "caller": "src\\units\\unit_get_forward_vector_or_marker_normal.c",
   "callee": "matrix4x3_transform_normal",
   "definition": "src\\math\\matrix4x3_transform_normal.c",
   "declared": "extern void matrix4x3_transform_normal(real_matrix4x3 *node_matrix);",
   "problems": [
    "1 parameters declared, 3 defined"
+  ]
+ },
+ {
+  "caller": "src\\units\\unit_get_look_origin_and_direction.c",
+  "callee": "unit_get_crouch_height_offset",
+  "definition": "src\\units\\unit_get_crouch_height_offset.c",
+  "declared": "extern void unit_get_crouch_height_offset(uint32_t object_index, float *pill_height,\n                                           float *pill_radius);",
+  "problems": [
+   "3 parameters declared, 4 defined"
   ]
  },
  {
@@ -15529,7 +15626,7 @@
   "definition": "src\\networking\\network_index_cache_insert_if_free.c",
   "declared": "extern void network_index_cache_insert_if_free(uint32_t param_1);",
   "problems": [
-   "1 parameters declared, 4 defined"
+   "1 parameters declared, 3 defined"
   ]
  },
  {
@@ -15539,6 +15636,15 @@
   "declared": "extern void object_for_each_light_attachment(uint32_t object_index, uint32_t flag);",
   "problems": [
    "2 parameters declared, 3 defined"
+  ]
+ },
+ {
+  "caller": "src\\units\\unit_pickup_weapon.c",
+  "callee": "unit_check_weapon_use_permission",
+  "definition": "src\\units\\unit_check_weapon_use_permission.c",
+  "declared": "extern uint8_t unit_check_weapon_use_permission(uint32_t unit_index);",
+  "problems": [
+   "1 parameters declared, 2 defined"
   ]
  },
  {
@@ -15714,6 +15820,15 @@
   ]
  },
  {
+  "caller": "src\\units\\unit_region_damage_reaction.c",
+  "callee": "unit_dispatch_reaction_animation",
+  "definition": "src\\units\\unit_dispatch_reaction_animation.c",
+  "declared": "extern void unit_dispatch_reaction_animation(int16_t reaction_code);",
+  "problems": [
+   "1 parameters declared, 2 defined"
+  ]
+ },
+ {
   "caller": "src\\units\\unit_release_thrown_grenade.c",
   "callee": "actor_compute_grenade_throw_vector",
   "definition": "src\\ai\\actor_compute_grenade_throw_vector.c",
@@ -15820,24 +15935,6 @@
   "declared": "extern float transition_function_evaluate(int32_t param_1);",
   "problems": [
    "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_reset_light_effect.c",
-  "callee": "animation_state_advance",
-  "definition": "src\\models\\animation_state_advance.c",
-  "declared": "extern uint16_t animation_state_advance(uint32_t flag);",
-  "problems": [
-   "1 parameters declared, 4 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_reset_light_effect.c",
-  "callee": "sound_start_at_object_marker",
-  "definition": "src\\sound\\sound_start_at_object_marker.c",
-  "declared": "extern datum_index sound_start_at_object_marker(datum_index effect_index, void *position, float intensity,\n                                 uint32_t flag);",
-  "problems": [
-   "4 parameters declared, 7 defined"
   ]
  },
  {
@@ -15964,7 +16061,7 @@
   "definition": "src\\networking\\network_index_cache_insert_if_free.c",
   "declared": "extern void network_index_cache_insert_if_free(uint32_t param_1);",
   "problems": [
-   "1 parameters declared, 4 defined"
+   "1 parameters declared, 3 defined"
   ]
  },
  {
@@ -16155,7 +16252,7 @@
   "definition": "src\\units\\unit_set_throw_aim_direction.c",
   "declared": "extern void unit_set_throw_aim_direction(uint32_t unit_index);",
   "problems": [
-   "1 parameters declared, 3 defined"
+   "1 parameters declared, 2 defined"
   ]
  },
  {
@@ -16164,7 +16261,7 @@
   "definition": "src\\units\\unit_set_throw_aim_direction.c",
   "declared": "extern void unit_set_throw_aim_direction(uint32_t unit_index);",
   "problems": [
-   "1 parameters declared, 3 defined"
+   "1 parameters declared, 2 defined"
   ]
  },
  {
@@ -16236,7 +16333,7 @@
   "definition": "src\\units\\unit_set_throw_aim_direction.c",
   "declared": "extern void unit_set_throw_aim_direction(uint32_t unit_index);",
   "problems": [
-   "1 parameters declared, 3 defined"
+   "1 parameters declared, 2 defined"
   ]
  },
  {
@@ -16332,6 +16429,15 @@
  },
  {
   "caller": "src\\units\\unit_update.c",
+  "callee": "unit_dispatch_reaction_animation",
+  "definition": "src\\units\\unit_dispatch_reaction_animation.c",
+  "declared": "extern void unit_dispatch_reaction_animation(int16_t reaction_code);",
+  "problems": [
+   "1 parameters declared, 2 defined"
+  ]
+ },
+ {
+  "caller": "src\\units\\unit_update.c",
   "callee": "unit_find_next_grenade_type_with_count",
   "definition": "src\\units\\unit_find_next_grenade_type_with_count.c",
   "declared": "extern int16_t unit_find_next_grenade_type_with_count(uint32_t start_index);",
@@ -16363,7 +16469,7 @@
   "definition": "src\\units\\unit_check_weapon_use_permission.c",
   "declared": "extern uint8_t unit_check_weapon_use_permission(void);",
   "problems": [
-   "0 parameters declared, 1 defined"
+   "0 parameters declared, 2 defined"
   ]
  },
  {
@@ -16565,6 +16671,15 @@
   ]
  },
  {
+  "caller": "src\\units\\unit_update_animation_state_machine.c",
+  "callee": "unit_reset_light_effect",
+  "definition": "src\\units\\unit_reset_light_effect.c",
+  "declared": "extern uint16_t unit_reset_light_effect(datum_index effect_index);",
+  "problems": [
+   "1 parameters declared, 3 defined"
+  ]
+ },
+ {
   "caller": "src\\units\\unit_update_animation_timers.c",
   "callee": "ai_communication_gate_line_played",
   "definition": "src\\ai\\ai_communication_gate_line_played.c",
@@ -16669,7 +16784,7 @@
   "definition": "src\\units\\unit_set_throw_aim_direction.c",
   "declared": "extern void unit_set_throw_aim_direction(uint32_t unit_index);",
   "problems": [
-   "1 parameters declared, 3 defined"
+   "1 parameters declared, 2 defined"
   ]
  },
  {

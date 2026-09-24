@@ -125,7 +125,7 @@ def live_in(addr, size, _depth=0):
             continue
         parts = [a.strip() for a in re.split(r",(?![^\[]*\])", args)] if args else []
         dst, srcs = (parts[0], parts[1:]) if parts else ("", [])
-        if op in ("xor", "sub") and len(parts) == 2 and parts[0] == parts[1] and parts[0] in full:
+        if op in ("xor", "sub", "sbb") and len(parts) == 2 and parts[0] == parts[1] and parts[0] in full:
             written.add(full[parts[0]]); continue
         # or r,-1 / and r,0 give a constant whatever r held (MSVC's "r = -1" / "r = 0"): writes, not reads
         if len(parts) == 2 and parts[0] in full and ((op == "or" and parts[1] in ("0xffffffff", "0xffff", "0xff")) or
@@ -147,6 +147,7 @@ def live_in(addr, size, _depth=0):
         live |= reads - written
         if "[" not in dst and dst and op != "push": written |= regs_in(dst)
         if op == "cdq": written.add("edx")
+        if op in ("div", "idiv", "mul", "imul") and len(parts) == 1: written |= {"eax", "edx"}   # EDX:EAX result
         if op == "call":
             # the callee's own register inputs are read here, unless this function wrote them first
             # (LTCG passes values straight through: heap_allocate hands its caller's EAX to heap_allocate_raw)
@@ -325,10 +326,10 @@ def main():
     cache = json.load(open(cache_p)) if os.path.exists(cache_p) else {}
     key = lambda f: f"{f['addr']:x}:{f['size']}"
     FUNC_SIZES.update({f["addr"]: f["size"] for f in funcs.values()})
-    todo = [f for f in funcs.values() if key(f) not in cache or not isinstance(cache[key(f)], dict) or cache[key(f)].get("v") != 7]
+    todo = [f for f in funcs.values() if key(f) not in cache or not isinstance(cache[key(f)], dict) or cache[key(f)].get("v") != 8]
     with ThreadPoolExecutor(16) as ex:
         for f, res in zip(todo, ex.map(lambda f: (sorted(ret_cleanup(f["addr"], f["size"])), live_in(f["addr"], f["size"])), todo)):
-            cache[key(f)] = {"rets": res[0], "live_in": res[1], "v": 7}
+            cache[key(f)] = {"rets": res[0], "live_in": res[1], "v": 8}
     json.dump(cache, open(cache_p, "w"))
     for f in funcs.values(): f["rets"] = cache[key(f)]["rets"]; f["live_in"] = cache[key(f)]["live_in"]
     # reachability over the DLL's own C-to-C calls

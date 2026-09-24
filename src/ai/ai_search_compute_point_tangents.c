@@ -8,8 +8,14 @@
 // rewriting, "computes the two tangent directions from an offset to a circle...").
 // register convention: ECX -> list, AX -> point_index, EDX -> position; stack -> radius,
 //   out_a, out_b.
-//   // blam-cc: ECX -> list, EAX(low16) -> point_index, EDX -> position, stack -> radius,
-//   //   out_a, out_b
+//   // blam-cc: ECX -> list, EAX(low16) -> point_index, EDX -> position, ESI -> edge_neg,
+//   //   stack -> radius, out_a, out_b
+// FIXED (register inputs, objdump): ESI carries edge_neg, the second output pointer that this
+//   function forwards unchanged to vector2d_tangent_edge_directions (its own blam-cc: ECX ->
+//   direction, EDX -> edge_pos, ESI -> edge_neg). The old extern for that callee also had the
+//   wrong parameter count/order/types (a leftover guess); fixed to match
+//   src/math/vector2d_tangent_edge_directions.c's real signature, and out_a (EDX at the call,
+//   previously unused) is now threaded through as edge_pos.
 
 #include "tags.h"
 #include "memory.h"
@@ -18,14 +24,16 @@
 
 extern double sqrt(double x); // FSQRT
 extern double fabs(double x); // ABS
-extern void vector2d_tangent_edge_directions(float combined_radius, float total_radius, void *out_b, float distance,
-                         float dir_x, float dir_y); // 0x43c400, math helper, not rewritten here
+extern void vector2d_tangent_edge_directions(const real_vector2d *direction, real_vector2d *edge_pos,
+                         real_vector2d *edge_neg, real distance, real extent, real *adjacent_out); // 0x43c400, math helper, not rewritten here; blam-cc: ECX -> direction, EDX -> edge_pos, ESI -> edge_neg
 
-// blam-cc: ECX -> list, EAX(low16) -> point_index, EDX -> position, stack -> radius, out_a, out_b
+// blam-cc: ECX -> list, EAX(low16) -> point_index, EDX -> position, ESI -> edge_neg,
+//   stack -> radius, out_a, out_b
 void ai_search_compute_point_tangents(ai_search_obstacle_list *list, int16_t point_index, real_point2d *position,
-                                      float radius, void *out_a, void *out_b)
+                                      real_vector2d *edge_neg, float radius, real_vector2d *out_a, real *out_b)
 {
     ai_search_obstacle *point = &list->obstacles[point_index];
+    real_vector2d direction;
     float dx = point->position.x - position->x;
     float dy = point->position.y - position->y;
     float distance = (float)sqrt(dx * dx + dy * dy);
@@ -36,9 +44,10 @@ void ai_search_compute_point_tangents(ai_search_obstacle_list *list, int16_t poi
         dx = dx * (1.0f / distance);
         dy = dy * (1.0f / distance);
     }
+    direction.i = dx;
+    direction.j = dy;
 
-    vector2d_tangent_edge_directions(distance, radius + point->radius + 0.00390625f, out_b, distance, dx, dy);
-    (void)out_a;
+    vector2d_tangent_edge_directions(&direction, out_a, edge_neg, distance, radius + point->radius + 0.00390625f, out_b);
 }
 
 #if 0

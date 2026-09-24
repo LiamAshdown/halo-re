@@ -6,7 +6,10 @@
 //   translation add.
 // register convention: output vector in EAX (in_EAX), input vector in EDX (in_EDX); matrix as
 //   the recognized stack parameter (param_1).
-//   // blam-cc: EAX -> out, EDX -> vector, stack -> m
+//   // blam-cc: EAX -> out, EDX -> v, stack -> m
+// FIXED (register inputs, objdump): EDX carries v (read at 0x4cbe50, fld [edx]); the notes said
+// "EDX -> vector" but the parameter is named v, so the checker's alias match failed and treated
+// EDX as unmapped even though the code already used it correctly.
 
 #include "tags.h"
 #include "math.h"

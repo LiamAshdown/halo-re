@@ -9,10 +9,14 @@
 // i.e. `*in_EAX` is the block's payload address, not the block address itself (this matches how
 // block_list_reallocate.c calls it, passing the address of its own saved `old_payload` local);
 // memory_pool* in EDX (in_EDX).
+// FIXED (register inputs, objdump): EAX/EDX (read at 0x4d1e70/0x4d1e79) were already C
+//   parameters (payload_ptr/arena) but had no machine-checked "blam-cc" line at all; added.
+//   // blam-cc: EAX -> payload_ptr, EDX -> arena
 
 #include "tags.h"
 #include "memory.h"
 
+// blam-cc: EAX -> payload_ptr, EDX -> arena
 void block_list_unlink(void **payload_ptr, memory_pool *arena)
 {
     memory_pool_block *block = (memory_pool_block *)((uint8_t *)*payload_ptr - 0x18);

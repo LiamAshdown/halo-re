@@ -10,7 +10,18 @@
 //   melee_state per other files' evidence, called here as a "reset" with (1,0)).
 // register convention: UNRESOLVED (unaff_EBX must come from the caller this block was split
 //   from).
-//   // blam-cc: UNSURE -- see header
+//   // blam-cc: EBX -> obj, EDI -> unit_index
+// FIXED (register inputs, objdump): EBX carries obj (read at 0x570170, mov ebp,[ebx+0x10],
+// which is exactly the object->flags this rewrite already models -- it was previously faked as
+// a literal null pointer instead of a real parameter, a live null-dereference bug). EDI carries
+// unit_index (read at 0x570158, the call to object_set_position_and_relink, whose own file
+// documents EDI -> object_index there; the same EDI is pushed again at 0x570169 as
+// object_attach_to_object's child_index stack argument). Both are genuine live-in registers of
+// this shared tail block; the several other values this function reads from large, unexplained
+// [esp+N] offsets (cross_out/cross_ecx_operand/cross_stack_operand/reposition_target,
+// object_attach_to_object's parent_index/marker_word) are locals of the larger function this
+// block was split from, not stack parameters of a real callable function, and are left exactly
+// as the prior rewrite modeled them -- see the UNSURE notes below and in the header.
 // UNSURE: reproduced as literally as possible; the object.flags |= 0x20 and
 //   unit_data.flags |= 0x8000 writes and the unit_try_ready_weapon(1, 0) call are the only parts with
 //   unambiguous meaning regardless of which object unaff_EBX names.
@@ -29,14 +40,11 @@ extern void object_attach_to_object(uint32_t parent_index, uint32_t child_index,
 extern void unit_try_ready_weapon(int32_t a, int32_t b); // 0x569a20  // real signature (unit_try_ready_weapon.c): uint8_t unit_try_ready_weapon(uint32_t unit_index, uint8_t is_melee, int32_t fire_trigger_event); Ghidra recovered 2 of 3 args at this call site
 
 // Detaches the unit from its current parent/attachment object.
-// UNSURE: see file header -- this function's real base pointer (unaff_EBX) is not recoverable
-// from the decompile alone.
-void unit_detach_from_parent(uint32_t unit_index, real_vector3d *cross_out,
+// blam-cc: EBX -> obj, EDI -> unit_index
+void unit_detach_from_parent(object *obj, uint32_t unit_index, real_vector3d *cross_out,
                               real_vector3d *cross_ecx_operand, real_vector3d *cross_stack_operand,
                               real_point3d *reposition_target)
 {
-    object *obj = 0; // UNSURE: stands in for unaff_EBX; see file header
-
     vector3d_cross_product(cross_out, cross_ecx_operand, cross_stack_operand);
     object_set_position_and_relink(reposition_target, unit_index);
     object_attach_to_object(unit_index, unit_index, 0); // UNSURE: real arguments not recoverable

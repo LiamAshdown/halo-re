@@ -9,9 +9,12 @@
 // register convention: template record (3 dwords: definition, controller_index, selection) in
 // ESI (unaff_ESI, a pointer), list head address in EDI (unaff_EDI), both unresolved register
 // reads recovered only by field-shape (matches widget_history_node exactly).
-// blam-cc: ESI -> template, EDI -> head
+// blam-cc: ESI -> template_record, EDI -> head
 // UNSURE: heap_allocate's call here shows no visible arguments; modeled as allocating exactly
 // sizeof(widget_history_node), matching this file's own struct.
+// FIXED (register inputs, objdump): ESI (read at 0x499444) was already a C parameter
+//   (template_record), but the "blam-cc" note said "ESI -> template" (missing the "_record"
+//   suffix), so the checker's name matching missed it; corrected the wording.
 
 #include "tags.h"
 #include "memory.h"
@@ -23,7 +26,7 @@
 extern heap *widget_memory_pool; // 0x006926c4
 extern void *heap_allocate(uint32_t size, heap *self); // 0x4d1f10
 
-// blam-cc: ESI -> template, EDI -> head
+// blam-cc: ESI -> template_record, EDI -> head
 // Allocates a widget_history_node from the widget heap, copies definition/list_definition/
 // selection/controller_index from `template`, and pushes it onto the singly-linked list at `*head`.
 void list_node_prepend(widget_history_node *template_record, widget_history_node **head)

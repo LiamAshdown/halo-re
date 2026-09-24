@@ -5,11 +5,12 @@
 // that slot is not already occupied and no existing hash mapping exists."); see
 // network_index_cache_find_or_allocate_slot.c (this batch, 0x4e9c20) for the shared
 // network_index_cache layout (slots array at +0x28), now declared in types/networking.h.
-// register convention: EAX -> container, stack -> slot.
-//   // blam-cc: EAX -> container, stack -> slot
-// UNSURE: extraout_ECX (the value written into the slot on success) is whatever hash_table_get
-// left in ECX as a side effect in the real ABI; Ghidra could not resolve it to a named value, and
-// neither could this rewrite. It is modeled as a second parameter the caller must supply.
+// register convention: EAX -> container, ECX -> key, stack -> slot.
+//   // blam-cc: EAX -> container, ECX -> key, stack -> slot
+// FIXED (register inputs, objdump): ECX carries key (read at 0x4e9ced, live across the call to
+// hash_table_get, which never writes ecx -- confirmed against its own disassembly). Ghidra's
+// extraout_ECX was this same incoming key, not a second value; the old "key_value" stack
+// parameter was a phantom -- the function only ever reads one stack slot (slot).
 
 #include "tags.h"
 #include "memory.h"
@@ -22,11 +23,10 @@
 extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, memory module
 extern void hash_table_set_or_remove(hash_table *table, int32_t key, int32_t value); // 0x4f0530
 
-// If container's cache slot is unoccupied (-1) and slot's key is not already present in the hash
-// table, binds slot to key_value (an out-of-band value, see UNSURE) and returns true.
-uint8_t network_index_cache_insert_if_free(uint8_t *container, int32_t slot, int32_t key,
-    int32_t key_value)
-    // blam-cc: EAX -> container, stack -> slot
+// If container's cache slot is unoccupied (-1) and key is not already present in the hash
+// table, binds slot to key and returns true.
+uint8_t network_index_cache_insert_if_free(uint8_t *container, int32_t slot, int32_t key)
+    // blam-cc: EAX -> container, ECX -> key, stack -> slot
 {
     network_index_cache *cache;
     hash_table *table;
@@ -40,7 +40,7 @@ uint8_t network_index_cache_insert_if_free(uint8_t *container, int32_t slot, int
         return 0;
     }
     if (hash_table_get(table, key) == -1) {
-        *slot_ptr = key_value;
+        *slot_ptr = key;
         hash_table_set_or_remove(table, key, slot);
         return 1;
     }

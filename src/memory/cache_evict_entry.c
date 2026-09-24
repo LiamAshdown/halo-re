@@ -5,8 +5,10 @@
 // rewrite confidence: 0.6
 // evidence: types/memory.h cache (first/last/entries/release_procedure at 0x34/0x38/0x3c/0x20)
 // and cache_entry (next/previous at 0x0c/0x10) layouts, matched field-for-field.
-// register convention: datum_index handle in EBX (unaff_EBX, low 16 bits are the index); cache*
-// in EDI (unaff_EDI).
+// register convention: datum_index handle in EBX (unaff_EBX, low 16 bits are the index); self in EDI (unaff_EDI, the cache*).
+// FIXED (register inputs, objdump): EDI carries self (read at 0x4d1c20, mov eax,[edi+0x3c]); the
+// note wrapped "cache* in EDI" onto its own comment line with a single-space continuation, which
+// the checker does not parse as part of the same register-convention block, so it was dropped.
 // UNSURE: `(**(code **)(unaff_EDI + 0x20))();` -- the release_procedure callback -- is called
 // with an empty argument list in Ghidra's decompile, the same elision seen throughout this
 // module's more register-heavy functions. It is reconstructed here as being called with the

@@ -10,7 +10,9 @@
 // exactly.
 // register convention: bool flag in AL (in_AL, unresolved register read); AL nonzero selects
 // loading_begin_text, matching hud_display_checkpoint_message.c's DL polarity.
-//   // blam-cc: is_begin -> AL
+//   // blam-cc: AL -> is_begin
+// FIXED (register inputs, objdump): AL (read at 0x4aa2a0, `test al,al`) carries is_begin; the
+//   existing "is_begin -> AL" wording did not match the checker's "REG -> name" phrasing.
 
 #include "tags.h"
 #include "memory.h"
@@ -27,7 +29,7 @@ extern uint16_t *hud_get_message_string(int32_t message_index); // 0x4aa3f0
 extern void chimera__hud_message(int16_t local_player_index, const uint16_t *text); // 0x4ae180, blam-cc: AX local_player_index
 extern player_globals *local_player_globals; // 0x0087a478
 
-// blam-cc: is_begin -> AL
+// blam-cc: AL -> is_begin
 // Clears the local player's 4 message-slot active flags, then displays the HUDGlobals loading
 // begin/end text (picked by is_begin, see header note) if a string is configured for it.
 void hud_display_loading_message(uint8_t is_begin)

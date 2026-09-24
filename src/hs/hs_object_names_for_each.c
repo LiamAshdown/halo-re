@@ -5,26 +5,34 @@
 // rewrite confidence: 0.7
 // evidence: types/tags.h Scenario::object_names (TagReflexive, ScenarioObjectName size 0x24),
 //   matching out/phase4/hs_types_notes.md's documented 0x204/0x208 offsets exactly.
-// register convention: none (void); callback pointer is the recognized stack parameter (param_1).
+// register convention: EBX -> predicate_arg; callback pointer is the recognized stack parameter
+//   (param_1).
+//   // blam-cc: EBX -> predicate_arg, stack -> callback
+// FIXED (register inputs, objdump): EBX carries predicate_arg (pushed at 0x487f1c as the second
+// of two arguments to FUN_00625430, `push ebx; push eax; call 0x625430`); it was missing
+// entirely, and FUN_00625430 was modeled with only one argument (entry). EBX is never set
+// within this function's own body, so it is forwarded unchanged from the caller for every
+// iteration.
 
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 
-extern int32_t FUN_00625430(ScenarioObjectName *entry); // UNSURE: predicate, module unknown, 0x625430
+extern int32_t FUN_00625430(ScenarioObjectName *entry, uint32_t predicate_arg); // UNSURE: predicate, module unknown, 0x625430
 
 extern Scenario *global_scenario; // 0x00746f8c
 
+// blam-cc: EBX -> predicate_arg, stack -> callback
 // Invokes `callback(index)` for every entry of Scenario::object_names that satisfies the
 // FUN_00625430 predicate, in ascending index order.
-void hs_object_names_for_each(void (*callback)(int32_t index))
+void hs_object_names_for_each(void (*callback)(int32_t index), uint32_t predicate_arg)
 {
     ScenarioObjectName *object_names;
     int32_t index;
 
     object_names = (ScenarioObjectName *)global_scenario->object_names.pointer;
     for (index = 0; index < (int32_t)global_scenario->object_names.count; index++) {
-        if (FUN_00625430(&object_names[index]) != 0) {
+        if (FUN_00625430(&object_names[index], predicate_arg) != 0) {
             callback(index);
         }
     }

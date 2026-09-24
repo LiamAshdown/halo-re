@@ -8,7 +8,13 @@
 // evidence: types/shell.h hwreq_map_node (left 0x00, right 0x08, is_nil 0x2d).
 // register convention: the node to destroy arrives however the caller set it up (Ghidra
 //   recognizes it as a genuine stack parameter here, unlike most of this batch).
-// blam-cc: tree_destroy_subtree(hwreq_map_node *node)
+// blam-cc: ECX -> map_self, stack -> node
+// FIXED (register inputs, objdump): ECX carries a second, unchanged-across-recursion pointer
+//   (read at 0x57ccec, `mov ebx,ecx`, then reloaded into ECX for the recursive self-call at
+//   0x57ccf6/0x57ccf8). The 0x57c32d call site loads it via `mov ecx,esi; call 0x57cce0` where
+//   esi is the tree/map container -- this is __thiscall's ECX = `this` (the owning hwreq_map),
+//   not dereferenced inside this function but threaded through to every recursive call. Exact
+//   type unknown; kept as an opaque pointer.
 // UNSURE: hwreq_map_node_key_destruct (0x57cde0, this pass) is declared as taking the node
 //   directly even though Ghidra's own decompile shows the call with zero visible arguments;
 //   this matches every other "opaque zero-arg call" resolved elsewhere in this pass by trusting
@@ -23,11 +29,12 @@
 extern void hwreq_map_node_key_destruct(hwreq_map_node *node); // 0x57cde0, same pass
 extern void _free(void *ptr); // 0x6277e8
 
-void tree_destroy_subtree(hwreq_map_node *node)
+// blam-cc: ECX -> map_self, stack -> node
+void tree_destroy_subtree(void *map_self, hwreq_map_node *node)
 {
     while (node->is_nil == 0) {
         hwreq_map_node *left = (hwreq_map_node *)node->left;
-        tree_destroy_subtree((hwreq_map_node *)node->right);
+        tree_destroy_subtree(map_self, (hwreq_map_node *)node->right);
         hwreq_map_node_key_destruct(node);
         _free(node);
         node = left;

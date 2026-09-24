@@ -7,6 +7,10 @@
 //   rows are 0x4112b0, 0x411bf0, 0x411ee0, 0x411b60, 0x411980 and 0x411840.
 // register convention: the query is in EDI and the candidate array in a second register
 //   Ghidra dropped; actor_index and the candidate count are the visible stack arguments.
+// FIXED (register inputs, objdump): EBX carries candidates (read at 0x41271a, `push ebx`, the
+//   last argument pushed for the per-rule proc call, i.e. the 4th/rightmost C parameter); the
+//   body already used the `candidates` parameter correctly, only the "blam-cc" note was
+//   missing it.
 
 #include "tags.h"
 #include "memory.h"
@@ -15,7 +19,7 @@
 
 extern actor_firing_position_rule actor_firing_position_score_rules[7]; // 0x006555c0
 
-// blam-cc: EDI -> query, a second register -> candidates; stack -> actor_index, count
+// blam-cc: EDI -> query, EBX -> candidates, stack -> actor_index, count
 // Runs the scoring half of the firing position pipeline: every rule that applies to this
 // goal kind gets to add its penalty to every candidate score.
 void actor_firing_position_run_score_rules(datum_index actor_index, uint16_t count,

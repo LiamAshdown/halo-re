@@ -5,7 +5,10 @@
 // (register, unaff_ESI in Ghidra's output -- no `mov esi,X` in the prologue, so it is a genuine
 // incoming argument) feeds `mov cx,[esi+6]` / `lea eax,[esi+8]` into path_build_full, and
 // SetFileAttributesA / DeleteFileA / RemoveDirectoryA all take the built full path.
-// register convention: reference record in ESI.
+// register convention: ESI -> ref.
+// FIXED (register inputs, objdump): notes wording ("reference record in ESI") didn't match the
+// checker's alias for file_reference_record*, so ESI (read at 0x555691) looked unclaimed. Body
+// already used ref correctly; reworded the blam-cc line to the standard "REG -> name" form.
 
 #include "tags.h"
 #include "memory.h"
@@ -22,7 +25,7 @@ extern int32_t RemoveDirectoryA(const char *path); // Win32
 extern int32_t SetFileAttributesA(const char *path, uint32_t attributes); // Win32
 extern int32_t DeleteFileA(const char *path); // Win32
 
-// blam-cc: reference record in ESI
+// blam-cc: ESI -> ref
 // Deletes the directory or file described by ref (built to its full path). Returns 1 on
 // success, 0 on failure (after reporting the Win32 error).
 uint8_t file_reference_delete(file_reference_record *ref)

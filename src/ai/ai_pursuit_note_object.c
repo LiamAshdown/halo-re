@@ -8,8 +8,13 @@
 // present, and stamps last_tick from the current game tick either way. Matches the phase-4
 // summary.
 // register convention: Ghidra resolved none of its parameters; the object index is in EDX.
-//   // blam-cc: EDX -> object_index, stack -> encounter_index, type, min_last_tick,
-//   create_if_missing (the last four forwarded unchanged to squad_recent_object_get_or_create)
+//   // blam-cc: EAX -> min_last_tick, ECX -> type, EDX -> object_index, stack -> encounter_index
+// FIXED (register inputs, objdump): EAX carries min_last_tick (pushed at 0x436b14, before being
+// reloaded from the true stack slot) and ECX carries type (pushed at 0x436b19), both forwarded
+// straight through to squad_recent_object_get_or_create. The old notes guessed these were stack
+// arguments and invented a "create_if_missing" stack parameter; the binary only reads one stack
+// slot (encounter_index) and always passes a hardcoded 1 (push 0x1 at 0x436b12) for
+// create_if_missing, so that parameter is dropped here and hardcoded in the call below.
 
 #include "tags.h"
 #include "memory.h"
@@ -23,12 +28,12 @@ extern game_time_globals *game_time;     // 0x006f1d6c
 extern datum_index squad_recent_object_get_or_create(datum_index encounter_index, int16_t type,
     int32_t min_last_tick, char create_if_missing); // 0x436c60, this batch
 
-// blam-cc: EDX -> object_index, stack -> encounter_index, type, min_last_tick, create_if_missing
+// blam-cc: EAX -> min_last_tick, ECX -> type, EDX -> object_index, stack -> encounter_index
 uint8_t ai_pursuit_note_object(datum_index object_index, datum_index encounter_index, int16_t type,
-                                int32_t min_last_tick, char create_if_missing)
+                                int32_t min_last_tick)
 {
     uint8_t added = 0;
-    datum_index handle = squad_recent_object_get_or_create(encounter_index, type, min_last_tick, create_if_missing);
+    datum_index handle = squad_recent_object_get_or_create(encounter_index, type, min_last_tick, 1);
 
     if (handle != (datum_index)k_datum_index_none) {
         ai_pursuit *pursuit = &((ai_pursuit *)ai_pursuit_data->data)[handle & 0xffff];

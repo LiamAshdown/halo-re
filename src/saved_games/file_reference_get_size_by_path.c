@@ -6,6 +6,10 @@
 // 0x555b00..0x555b45: ESI (no assignment in the prologue) feeds path_build_full exactly like
 // file_reference_delete/_open, and the one stack argument ([ebp+8]) is the out-size pointer.
 // register convention: reference record in ESI; out-size pointer as the one stack argument.
+//   // blam-cc: ESI -> ref, stack -> out_size
+// FIXED (register inputs, objdump): ESI (the reference record, already a C parameter) was read
+//   at 0x555b21 but missing from the machine-checked "blam-cc" annotation; reworded so the
+//   checker recognizes it.
 
 #include "tags.h"
 #include "memory.h"
@@ -21,7 +25,7 @@ extern void saved_games_report_last_error(void); // 0x556170, this module
 extern int32_t GetFileAttributesExA(const char *path, int32_t info_level_id,
     win32_file_attribute_data *out_data); // Win32
 
-// blam-cc: reference record in ESI; out-size pointer as the one stack argument
+// blam-cc: ESI -> ref, stack -> out_size
 // Retrieves ref's full-path file size (low dword only) without opening it. Returns 1 on
 // success (storing the size through out_size), 0 on failure (after reporting the Win32 error).
 uint8_t file_reference_get_size_by_path(file_reference_record *ref, uint32_t *out_size)

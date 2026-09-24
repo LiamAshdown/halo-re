@@ -8,7 +8,9 @@
 //   screen_bounds_x/y, back to back), EDI -> a polygon2d (count then real_point2d[] points).
 // evidence: types/structures.h structure_bsp_visible_cluster.screen_bounds_x/y and polygon2d.
 // register convention: unaff_EDX -> bounds (real_bounds[2]: x then y), unaff_EDI -> polygon.
-//   // blam-cc: EDX -> bounds, EDI -> polygon
+//   // blam-cc: EDX -> bounds_xy, EDI -> polygon
+// FIXED (register inputs, objdump): EDX carries bounds_xy (read at 0x554aa0, fld [edx]); the
+// note called the parameter "bounds" but it is named bounds_xy, so it did not parse.
 // UNSURE: none.
 
 #include "tags.h"
@@ -16,7 +18,7 @@
 #include "memory.h"
 #include "structures.h"
 
-// blam-cc: EDX -> bounds, EDI -> polygon
+// blam-cc: EDX -> bounds_xy, EDI -> polygon
 void polygon2d_bounds_expand(real_bounds *bounds_xy, polygon2d *polygon)
 {
     for (int16_t i = 0; i < polygon->point_count; i++) {

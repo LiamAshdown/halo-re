@@ -4,7 +4,10 @@
 // evidence: phase-4 summary "Scans a wide string (pointer in EAX) and returns true if it
 // contains at least one non-whitespace character"; iswctype mask 0x8 is MSVC's _SPACE class.
 // register convention: string pointer in EAX (in_EAX, unresolved register read).
-//   // blam-cc: text -> EAX
+//   // blam-cc: EAX -> text
+// FIXED (register inputs, objdump): EAX carries text (read at 0x4a8b12, mov esi,eax); the old
+// note wrote "text -> EAX" (name first, "->" separator) which the checker's parser does not
+// recognize -- only "EAX -> text" or "text in EAX" forms are.
 
 #include "tags.h"
 #include "memory.h"
@@ -16,7 +19,7 @@
 #define WCTYPE_SPACE 0x0008
 extern int32_t _iswctype(uint16_t ch, int32_t mask);
 
-// blam-cc: text -> EAX
+// blam-cc: EAX -> text
 // Returns true as soon as a non-whitespace wide character is found, or false if the string is
 // all whitespace (or empty).
 uint8_t ui_wide_string_has_non_whitespace(const uint16_t *text)

@@ -5,6 +5,10 @@
 // evidence: vtable slot 1 of hwreq_parser_vtable; the standard MSVC "destroy, then free(this)"
 // scalar deleting destructor shape, calling hwreq_parser_destruct (0x57a010, this module).
 // register convention: thiscall, this in ECX (in_ECX in Ghidra).
+//   // blam-cc: ECX -> this_parser
+// FIXED (register inputs, objdump): ECX carries this_parser (read at 0x5786a1, mov esi,ecx); the
+// prose note already said "this in ECX" but never named the actual parameter (this_parser), and
+// had no machine-readable "// blam-cc:" line, so the checker saw no register mapping at all.
 
 #include "tags.h"
 #include "memory.h"

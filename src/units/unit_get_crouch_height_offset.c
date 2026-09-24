@@ -17,6 +17,9 @@
 //   module still carry it.
 //   types/units.h biped_data.crouch_fraction (0x50c); object_get_position (0x4f6900), used here
 //   already named in the module.
+// FIXED (register inputs, objdump): EAX carries the object_get_position output buffer (call at
+//   0x55a314, then dereferenced at 0x55a328); the rewrite let object_get_position return a
+//   pointer instead of taking it as a caller-supplied parameter.
 
 #include "tags.h"
 #include "memory.h"
@@ -30,9 +33,9 @@ extern tag_instance *tag_instances; // 0x0087bc14
 
 // object_get_position (0x4f6900, defined in src/objects/object_get_position.c) writes the
 // object position through the pointer in EAX and leaves that same pointer in EAX on return;
-// the object index is in ECX. Ghidra binds a different subset of the two operands at each call
-// site in this module, so the declaration is left unprototyped.
-extern real_point3d *object_get_position();
+// the object index is in ECX. The EAX output buffer is itself a caller-supplied parameter of
+// this function (see FIXED note below).
+extern void object_get_position(real_point3d *out_position, uint32_t object_index); // 0x4f6900, EAX->out, ECX->object_index
 
 // Produces the biped's collision pill for this tick and lifts its origin onto the pill's
 // centre: the object's own position gains one collision_radius unless biped_flags bit 3
@@ -41,17 +44,18 @@ extern real_point3d *object_get_position();
 // hemispherical caps (twice the radius). A spherical biped (bit 4) that is neither
 // player-controlled nor carrying object flag 0x400000 gets a zero-height pill, i.e. a plain
 // sphere. The radius is echoed through the register-carried second output either way.
-// blam-cc: ECX -> object_index, EBX -> pill_radius_out
-void unit_get_crouch_height_offset(uint32_t object_index, float *pill_height, float *pill_radius_out)
+// blam-cc: EAX -> object_position, ECX -> object_index, EBX -> pill_radius_out
+void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height, float *pill_radius_out)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     Biped *tag = (Biped *)tag_instances[obj->definition_tag & 0xffff].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    real_point3d *position = object_get_position(object_index);
+
+    object_get_position(object_position, object_index);
 
     if ((tag->biped_flags & 8) == 0) {
-        position->z += tag->collision_radius;
+        object_position->z += tag->collision_radius;
     }
 
     if ((tag->biped_flags & 0x10) == 0 &&

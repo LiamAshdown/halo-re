@@ -6,10 +6,15 @@
 // rewrite confidence: 0.6 (pure arithmetic, confirmed against the decompilation)
 // evidence: src/math/README.md, "0x44d8e0 is vector3d_scalar_triple_product", "generic;
 //   all three operands in registers". out/phase4/effects_types_notes.md agrees.
-// register convention: EAX = const real_vector3d *b, ECX = const real_vector3d *a
-//   (the incoming param_1 in Ghidra's rendering), EDX = const real_vector3d *c.
-// blam-cc: vector3d_scalar_triple_product(const real_vector3d *a /*ECX*/, const real_vector3d *b /*EAX*/,
-//   const real_vector3d *c /*EDX*/)
+// register convention: EAX = const real_vector3d *b, EDX = const real_vector3d *c; a is the one
+//   Ghidra-recognized stack parameter (param_1) -- objdump shows it loaded from [esp+0x1c] into
+//   ECX right at entry (a local cache of the stack slot, not an incoming ECX register value).
+//   // blam-cc: EAX -> b, EDX -> c, stack -> a
+// FIXED (register inputs, objdump): EAX carries b (read at 0x44d8e7, fld [eax+0x8]) and EDX
+// carries c (read at 0x44d933, fmul [edx+0x8]); the old note wrote them in an inline-comment
+// form ("real_vector3d *b /*EAX*/") the checker's parser does not recognize, and additionally
+// misclassified a as an ECX register when it is really the sole stack argument, merely cached
+// into ECX by the prologue.
 // UNSURE: Ghidra's float10 return is the x87 calling convention for a float result;
 //   rewritten as float, matching the convention used throughout this codebase (e.g.
 //   src/ai/actor_compute_target_priority_weight.c).

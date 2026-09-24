@@ -5,11 +5,14 @@
 // current scroll offset to stay within the valid range for the current server count");
 // server_list_result_count_get is this module's own rewrite; DAT_00719478 is the scroll-offset
 // global server_list_reset.c already zeroes.
-// register convention: optional results-snapshot pointer in EAX (in_EAX): NULL uses the live
+// register convention: EAX -> results, an optional results-snapshot pointer: NULL uses the live
 // shared server_list via server_list_result_count_get, non-NULL reads a result_count field at
 // +0x04 directly (the same offset as server_list_globals.result_count).
 // UNSURE: the branchless `(count - 15) & mask` clamp is folded into an equivalent `max(0, count
 // - 15)` ternary; the two are numerically identical for every value of count.
+// FIXED (register inputs, objdump): blam-cc wording ("results-snapshot pointer in EAX")
+// didn't parse as a register mapping; reworded to "EAX -> results" (read at 0x4b7360,
+// test eax,eax). Behaviour unchanged, results was already the intended parameter.
 
 #include "tags.h"
 #include "memory.h"
@@ -21,7 +24,7 @@ extern int32_t server_list_scroll_offset; // 0x00719478
 
 extern int32_t server_list_result_count_get(void); // 0x4ba820, this module
 
-// blam-cc: optional results-snapshot pointer in EAX (in_EAX)
+// blam-cc: EAX -> results
 void server_list_scroll_clamp(server_list_globals *results)
 {
     int32_t count;

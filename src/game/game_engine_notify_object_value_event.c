@@ -10,9 +10,18 @@
 //   means broadcast" convention.
 // register convention: a hash-table key in ECX (in_ECX) and a target machine index in EDI
 //   (unaff_EDI); `subject` is this function's own recognized stack parameter.
-//   // blam-cc: ECX -> hash_key, EDI -> machine_index, stack -> subject
+//   // blam-cc: EAX -> value_byte, ECX -> hash_key, EDI -> machine_index, stack -> subject
 // UNSURE: hash_table_get's real argument list (elided by Ghidra, same as every other call site
 //   of it in this module); message type 7's real meaning.
+// FIXED (register inputs, objdump): EAX/AL carries an extra byte value (read at 0x4779d3,
+//   `mov BYTE PTR [esp+0x4],al`, before EAX is zeroed for the hash lookup). Address arithmetic
+//   through the call at 0x4779d3..0x477a2f shows the encoder's fields pointer ends up pointing
+//   exactly at this byte's stack slot (0x477a0d `lea edx,[esp+0x1c]` computes that same address
+//   and 0x477a11 stores it as the fields block address), so it is the first field of the
+//   message_delta_encode_message field block, ahead of hash_result/subject. Callers load it from
+//   varying per-call byte sources ([esi+0x1f] at 0x4dfb66, BL at 0x4dfc66), confirming it is a
+//   real, caller-supplied input rather than a spilled constant. UNSURE: its exact semantic
+//   meaning (named `value_byte` pending a better name).
 
 #include "tags.h"
 #include "memory.h"
@@ -32,16 +41,17 @@ extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unkno
 extern void network_session_send_to_machine(uint32_t unknown_0, void *unknown_1, int32_t length,
     uint32_t unknown_3, uint32_t unknown_4, uint32_t unknown_5, uint32_t unknown_6); // 0x4e1930
 
-// blam-cc: ECX -> hash_key, EDI -> machine_index, stack -> subject
-// Encodes and sends a networked event 7 carrying a hash-table lookup of `hash_key` (0 if
-// hash_key is -1 or the lookup misses) and `subject`, to `machine_index`, or broadcasts it via
-// network_session_broadcast_to_flagged when machine_index is -1.
-void game_engine_notify_object_value_event(int32_t hash_key, int32_t machine_index, void *subject)
+// blam-cc: EAX -> value_byte, ECX -> hash_key, EDI -> machine_index, stack -> subject
+// Encodes and sends a networked event 7 carrying `value_byte`, a hash-table lookup of
+// `hash_key` (0 if hash_key is -1 or the lookup misses) and `subject`, to `machine_index`, or
+// broadcasts it via network_session_broadcast_to_flagged when machine_index is -1.
+void game_engine_notify_object_value_event(uint8_t value_byte, int32_t hash_key, int32_t machine_index, void *subject)
 {
-    struct { int32_t hash_result; void *subject; } fields;
+    struct { uint8_t value_byte; int32_t hash_result; void *subject; } fields;
     void *fields_ptr;
     int32_t encoded_bits;
 
+    fields.value_byte = value_byte;
     fields.hash_result = 0;
     if (hash_key != -1) {
         fields.hash_result = hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)hash_key); // 0x4779d9..0x4779e8

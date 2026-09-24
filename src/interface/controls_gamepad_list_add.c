@@ -10,7 +10,10 @@
 // reached its capacity (4 or 8), returning success."; types/interface.h controls_gamepad_record.
 // register convention: EAX the list base; the record to copy in the one recovered stack
 // parameter (param_1).
-//   // blam-cc: list -> EAX
+//   // blam-cc: EAX -> list
+// FIXED (register inputs, objdump): EAX carries list (read at 0x4b5801, mov esi,eax); the old
+// note wrote "list -> EAX" (name first, "->" separator) which the checker's parser does not
+// recognize -- only "EAX -> list" or "list in EAX" forms are.
 
 #include "tags.h"
 #include "memory.h"
@@ -25,7 +28,7 @@ extern controls_gamepad_record controls_assigned_gamepads[4];   // 0x006b53d8
 extern int32_t controls_assigned_gamepad_count;             // 0x00719448
 extern int32_t controls_available_gamepad_count;           // 0x0071944c
 
-// blam-cc: list -> EAX
+// blam-cc: EAX -> list
 uint8_t controls_gamepad_list_add(const controls_gamepad_record *entry, controls_gamepad_record *list)
 {
     int32_t capacity;

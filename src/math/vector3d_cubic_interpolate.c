@@ -17,10 +17,10 @@
 //   arguments -- confirmed by objdump's `mov edx,[esi]` / `mov eax,[edi]` / `mov ecx,[ebx]`
 //   dereferences feeding each cubic_interpolate_divided_difference call, repeated at +0x4 and
 //   +0x8 for the j/k components.
-// blam-cc: vector3d_cubic_interpolate(real_vector3d *out /*stack*/, real_vector3d *p0 /*stack*/,
-//   real_vector3d *p1 /*EBX*/, real_vector3d *p2 /*EDI*/, real_vector3d *p3 /*ESI*/,
-//   float t0 /*stack*/, float t1 /*stack*/, float t2 /*stack*/, float t3 /*stack*/,
-//   float t /*stack*/)
+// blam-cc: EBX -> p1, EDI -> p2, ESI -> p3, stack -> out, p0, t0, t1, t2, t3, t
+// FIXED (register inputs, objdump): EBX/EDI/ESI already had C parameters (p1/p2/p3) but no
+//   machine-checked "blam-cc" line existed in the parser's "REG -> name" format (the old note
+//   was a prose function signature); reworded so the checker recognizes them.
 
 #include "tags.h"
 #include "math.h"
@@ -28,6 +28,7 @@
 extern float cubic_interpolate_divided_difference(float y0, float y1, float y2, float y3,
     float x0, float x1, float x2, float x3, float x); // 0x4fca60, same file
 
+// blam-cc: EBX -> p1, EDI -> p2, ESI -> p3, stack -> out, p0, t0, t1, t2, t3, t
 void vector3d_cubic_interpolate(real_vector3d *out, real_vector3d *p0, real_vector3d *p1,
                                  real_vector3d *p2, real_vector3d *p3,
                                  float t0, float t1, float t2, float t3, float t)

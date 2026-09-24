@@ -11,6 +11,11 @@
 // (color_index). `in_ECX + 8` lands on network_server_globals::session (offset 0x008).
 // register convention: EAX = entry (network_player_entry *), ECX = server
 // (network_server_globals *), EDX = machine (network_machine *).
+//   // blam-cc: EAX -> entry, ECX -> server, EDX -> machine
+// FIXED (register inputs, objdump): EDX carries machine (read at 0x4df850,
+// cmp WORD PTR [edx+0xc],cx); the prose note above already named it correctly but had no
+// machine-readable "// blam-cc:" line and its own continuation wrapped without the file's usual
+// two-space "//" indent, so the checker's parser cut the note off before reaching EDX.
 // UNSURE: `in_EDX` is inferred to be the joining machine's network_machine record purely
 // from `*(short *)(in_EDX + 0xc)` matching machine_id's offset; no caller in this batch
 // shows the argument being loaded, so the pointer's exact source is not re-derived here.

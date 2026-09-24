@@ -5,7 +5,10 @@
 // evidence: types/math.h real_plane3d (normal 0x00, d 0x0c). out/phase4/effects_types_notes.md
 //   "0x44da20 plane3d_negate | math | generic".
 // register convention: EAX = real_plane3d *out, ECX = const real_plane3d *in.
-// blam-cc: plane3d_negate(real_plane3d *out /*EAX*/, const real_plane3d *in /*ECX*/)
+//   // blam-cc: EAX -> out, ECX -> in
+// FIXED (register inputs, objdump): EAX carries out (written at 0x44da24, fstp [eax]) and ECX
+// carries in (read at 0x44da20, fld [ecx]); the old note wrote them in an inline-comment form
+// ("real_plane3d *out /*EAX*/") the checker's parser does not recognize as a register mapping.
 
 #include "tags.h"
 #include "math.h"

@@ -7,6 +7,10 @@
 // naming hint.
 // register convention: out-handle pointer in unaff_EDI (this function takes no recognized
 // stack/EAX/ECX/EDX arguments), mapped to EDI per the register order.
+//   // blam-cc: EDI -> out_handle
+// FIXED (register inputs, objdump): EDI carries out_handle (read at 0x440552, mov [edi],esi);
+// the note used "out-handle" (hyphen) where the parameter is named out_handle (underscore), so
+// the checker's alias match failed even though the code already used it correctly.
 
 #include "tags.h"
 #include "memory.h"
@@ -20,7 +24,7 @@ extern network_mutex_record *network_mutex_slot_allocate(void); // 0x440420, thi
 extern int32_t snprintf(char *buffer, uint32_t count, const char *format, ...);
 extern void *CreateMutexA(void *security_attributes, int32_t initial_owner, const char *name);
 
-// blam-cc: out-handle pointer in EDI (unaff_EDI)
+// blam-cc: EDI -> out_handle
 int32_t mutex_create(network_mutex_record **out_handle)
 {
     network_mutex_record *slot;

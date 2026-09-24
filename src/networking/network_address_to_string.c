@@ -5,7 +5,10 @@
 // is the entire evidence base for that struct: it reads addr[8] (halfword) as `size` and, for
 // the IPv4 case, prints bytes +3,+2,+1,+0 of the address as %hd.%hd.%hd.%hd (high byte
 // first) and addr[9] as the port.
-// register convention: address pointer in EAX (in_EAX), no stack arguments.
+// register convention: EAX -> addr, no stack arguments.
+// FIXED (register inputs, objdump): notes wording ("address pointer in EAX") didn't match the
+// checker's alias for s_network_address*, so EAX (read at 0x440577) looked unclaimed. Body
+// already used addr correctly; reworded the blam-cc line to the standard "REG -> name" form.
 
 #include "tags.h"
 #include "memory.h"
@@ -17,7 +20,7 @@ extern char network_address_string[0x100]; // 0x006a3f38, shared format buffer
 
 extern int32_t snprintf(char *buffer, uint32_t count, const char *format, ...);
 
-// blam-cc: address pointer in EAX (in_EAX)
+// blam-cc: EAX -> addr
 // Formats addr as "a.b.c.d:port" for an IPv4 address (size == 4) or eight hex groups for an
 // IPv6-shaped address (size == 0x10), into the shared static buffer, and returns it. If
 // neither size matches, the buffer is left as the empty string that was just written to it.

@@ -6,6 +6,10 @@
 // actor_get_threat_weapon_object_index, 0x4282c0) to its owning tag data block.
 // register convention: actor_index implicit through actor_get_threat_weapon_object_index
 // (no parameters visible in this function's own decompiled C).
+//   // blam-cc: EAX -> actor_index
+// FIXED (register inputs, objdump): EAX carries actor_index (read at 0x40f973, the call to
+// actor_get_threat_weapon_object_index -- confirmed EAX -> actor_index there, and this function
+// never writes eax first, so it is a genuine pass-through parameter, not a hidden/UNSURE value).
 
 #include "tags.h"
 #include "memory.h"
@@ -16,13 +20,14 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern datum_index actor_get_threat_weapon_object_index(void); // 0x4282c0, UNSURE: no visible args
+extern datum_index actor_get_threat_weapon_object_index(int32_t actor_index); // 0x4282c0, EAX -> actor_index
 
-void *actor_get_threat_weapon_definition(void)
+// blam-cc: EAX -> actor_index
+void *actor_get_threat_weapon_definition(int32_t actor_index)
 {
     datum_index weapon_object;
 
-    weapon_object = actor_get_threat_weapon_object_index();
+    weapon_object = actor_get_threat_weapon_object_index(actor_index);
     if (weapon_object != (datum_index)k_datum_index_none) {
         object_header *hdr = (object_header *)object_data->data + (weapon_object & 0xffff);
         object *obj = hdr->data;

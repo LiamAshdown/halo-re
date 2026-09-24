@@ -22,7 +22,10 @@
 //   argument), stack argument = const msvc_std_string *message. Returns `this` in EAX (the
 //   compiler's standard constructor-return convention), consistent with objdump's
 //   `mov eax,esi` before the epilogue.
-// blam-cc: hwreq_parse_exception_construct(hwreq_parse_exception *this /*ECX*/, const msvc_std_string *message /*stack*/)
+// blam-cc: ECX -> this, stack -> message
+// FIXED (register inputs, objdump): notes were written as a full call signature instead of a
+// parseable "REG -> name" mapping, so ECX (read at 0x5782c5, "push ecx") looked unclaimed. Body
+// already used this correctly; reworded only.
 // UNSURE: FUN_00627dc1 (the SEH frame prolog, `_EH_prolog3` in the CRT) and FUN_0057b830
 //   (`std::string::assign(const string&, size_t, size_t)`, module=lib:crt per pack.py -- not
 //   assigned to this pass) are declared as opaque externs rather than rewritten; both are

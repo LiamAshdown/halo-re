@@ -9,9 +9,11 @@
 //   environment property, vs EAX 2.0's 0xb). The property set is read from `this+0x1c`
 //   (sound_eax_effect_object.channel_property_sets[0]).
 // register convention: __thiscall (ECX -> this), stack -> environment.
-// blam-cc: ECX -> this, stack -> environment
+// blam-cc: ECX -> this_object, stack -> environment
 // Phase-4 review: checked instruction by instruction against the disassembly appended in the
 // #if 0 block; no semantic difference found. The CommitDeferredSettings call is unconditional.
+// FIXED (register inputs, objdump): ECX carries this_object (read at 0x551195, mov eax,[ecx+0x1c]);
+// the notes said "ECX -> this" but the parameter is named this_object, so it did not parse.
 
 #include "tags.h"
 #include "memory.h"
@@ -20,7 +22,7 @@
 extern const uint8_t sound_eax30_listener_property_guid[16]; // 0x0064e310
 extern void *directsound_listener; // 0x00746114, IDirectSound3DListener *
 
-// blam-cc: ECX -> this, stack -> environment
+// blam-cc: ECX -> this_object, stack -> environment
 // Sets the EAX 3.0 listener's environment (id 2) property, then unconditionally commits deferred
 // 3D listener settings.
 void __thiscall sound_eax30_effect_set_environment_index(sound_eax_effect_object *this_object, int32_t environment)

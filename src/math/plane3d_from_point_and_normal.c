@@ -8,12 +8,15 @@
 // register convention: out on the stack (the incoming param_1, loaded into EAX at entry; orphan
 //   pass 4 review, objdump 0x44d9e0 `mov eax,[esp+0x4]`), ECX = const real_vector3d *normal,
 //   EDX = const real_point3d *point.
-// blam-cc: plane3d_from_point_and_normal(real_plane3d *out /*stack*/, const real_vector3d *normal /*ECX*/,
-//   const real_point3d *point /*EDX*/)
+// blam-cc: ECX -> normal, EDX -> point, stack -> out
+// FIXED (register inputs, objdump): ECX/EDX (read at 0x44d9e6/0x44d9fb) were already C
+//   parameters (normal/point) but the old "blam-cc" note was a prose function signature that
+//   the checker's "REG -> name" parser could not read; reworded.
 
 #include "tags.h"
 #include "math.h"
 
+// blam-cc: ECX -> normal, EDX -> point, stack -> out
 void plane3d_from_point_and_normal(real_plane3d *out, const real_vector3d *normal, const real_point3d *point)
 {
     out->normal.i = normal->i;

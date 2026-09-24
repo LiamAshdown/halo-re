@@ -10,7 +10,10 @@
 // types/tags.h, so the offset is kept raw.
 // register convention: bitmap tag in ECX (in_ECX), sequence_index in AX (in_AX), frame_index in
 // DI (unaff_DI), all unresolved register reads.
-//   // blam-cc: bitmap_tag -> ECX, sequence_index -> AX, frame_index -> DI
+//   // blam-cc: ECX -> bitmap_tag, AX -> sequence_index, DI -> frame_index
+// FIXED (register inputs, objdump): DI (read at 0x4ab641, `cmp di,0xffff`) carries frame_index;
+//   it was already a C parameter but the "blam-cc" note phrased it as "name -> REG" instead of
+//   "REG -> name", so the checker's parser missed it.
 
 #include "tags.h"
 #include "memory.h"
@@ -22,7 +25,7 @@
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
-// blam-cc: bitmap_tag -> ECX, sequence_index -> AX, frame_index -> DI
+// blam-cc: ECX -> bitmap_tag, AX -> sequence_index, DI -> frame_index
 // Resolves animation frame frame_index of bitmap_tag's sequence_index'th BitmapGroupSequence to
 // a byte offset 8 bytes into the matching BitmapGroupSprite element, or 0 if any handle is
 // invalid or the sequence has no sprites.

@@ -4,6 +4,9 @@
 // name confidence: 0.6   rewrite confidence: 0.6
 // evidence: mirrors unit_reset_ground_adjust_state (0x55ad00) exactly, clearing the same
 //   object.flags 0x800000 / biped_data.flags 0x20 pair it sets.
+// FIXED (register inputs, objdump): EAX (read at 0x55ad79, `and eax,0xffff`) was already a C
+//   parameter (object_index) but had no machine-checked "blam-cc" line at all; added.
+//   // blam-cc: EAX -> object_index
 
 #include "tags.h"
 #include "memory.h"
@@ -17,6 +20,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 
 // Once the Biped tag's "requires ground adjust" flag (biped_flags bit 0x200, UNSURE) is clear
 // and the ground-adjust dirty bit is still set, clears it along with its object.flags mirror.
+// blam-cc: EAX -> object_index
 void unit_clear_ground_adjust_dirty(uint32_t object_index)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;

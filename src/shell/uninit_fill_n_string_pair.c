@@ -13,8 +13,12 @@
 //   hwreq_device_list_push_back.c's call site): ECX = count, stack argument 1 = dest (mutated
 //   as the loop cursor, advancing by sizeof(hwreq_string_pair)), stack argument 2 = value (the
 //   source pair each new element is copy-constructed from).
-// blam-cc: uninit_fill_n_string_pair(hwreq_string_pair *dest /*stack*/, uint32_t count /*ECX*/,
-//   const hwreq_string_pair *value /*stack*/)
+// blam-cc: ECX -> count, stack -> dest, value
+// FIXED (register inputs, objdump): the "register convention" line above puts its own colon
+// after a parenthetical aside, which the checker requires immediately after that keyword, and
+// the blam-cc line below it used a call-style signature annotation; neither parsed as a
+// register mapping, so ECX -> count (read at 0x57cea6, mov edi,ecx) was dropped. Rewritten in
+// the plain "REG -> name" form.
 // UNSURE: the SEH frame (the `push 0xffffffff` / `fs:0` dance) is preserved implicitly by
 //   omission -- this rewrite does not model unwind state, matching every other MSVC-runtime
 //   function in this batch. hwreq_device_list_push_back.c's call site pushes a 3rd stack dword

@@ -6,26 +6,43 @@
 // best-effort path was found." Calls ai_search_context_init @0x43b790 and ai_search_step
 // @0x43bcb0 (both this rewrite), forwarding this function's own `context` explicitly since
 // Ghidra shows both calls with no visible arguments (pure register forwarding via ESI).
-// register convention: ESI -> context (the only `unaff_` register Ghidra's decompile
-//   shows).
-//   // blam-cc: ESI -> context
+// register convention: ESI -> context, EDX -> unknown_18, ECX -> unknown_29, EAX -> unknown_2a,
+//   stack -> unknown_04, obstacles, unknown_00, position, z, origin.
+//   // blam-cc: ESI -> context, EDX -> unknown_18, ECX -> unknown_29, EAX -> unknown_2a,
+//   //   stack -> unknown_04, obstacles, unknown_00, position, z, origin
 //
-// UNSURE: ai_search_context_init's own real signature takes many more parameters than are
-// visible at this call site; called here with none, matching this module's established
-// convention for that situation.
+// FIXED (register inputs, objdump): EAX/ECX/EDX (read at 0x43be20/25/2a, each saved by a push
+// before being clobbered) are not scratch -- objdump 0x43be20..0x43be4b shows this function
+// marshalling its own EAX/ECX/EDX plus six of its own stack words into the 11-argument call to
+// ai_search_context_init (whose real signature is already recovered in
+// src/ai/ai_search_context_init.c: ECX -> unknown_0c, EAX -> obstacles, EDX -> origin, stack ->
+// context, unknown_04, unknown_00, position, z, unknown_18, unknown_29, unknown_2a). Matching
+// push order against that signature: this function's own EAX/ECX/EDX map to unknown_2a/
+// unknown_29/unknown_18; its own stack words (by increasing offset) map to unknown_04,
+// obstacles, unknown_00, position, z, origin. The callee's ECX argument (unknown_0c) is fed
+// directly from the global at 0x746f9c (global_structure_bsp, reconciled R06 elsewhere in this
+// module), not from one of this function's own parameters.
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
 
-extern void ai_search_context_init(void); // 0x43b790, see header UNSURE on the arity mismatch
+extern void ai_search_context_init(ai_search_context *context, uint8_t unknown_04, uint32_t unknown_00,
+    ai_search_obstacle_list *obstacles, real_point2d *origin, uint32_t unknown_0c,
+    real_point2d *position, float z, uint32_t unknown_18,
+    uint8_t unknown_29, uint8_t unknown_2a); // 0x43b790, see src/ai/ai_search_context_init.c
 extern uint8_t ai_search_step(ai_search_context *context); // 0x43bcb0
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, R06
 
-// blam-cc: ESI -> context
-uint8_t ai_search_run(ai_search_context *context)
+// blam-cc: ESI -> context, EDX -> unknown_18, ECX -> unknown_29, EAX -> unknown_2a,
+//   stack -> unknown_04, obstacles, unknown_00, position, z, origin
+uint8_t ai_search_run(ai_search_context *context, uint8_t unknown_04, ai_search_obstacle_list *obstacles,
+    uint32_t unknown_00, real_point2d *position, float z, real_point2d *origin,
+    uint32_t unknown_18, uint8_t unknown_29, uint8_t unknown_2a)
 {
-    ai_search_context_init();
+    ai_search_context_init(context, unknown_04, unknown_00, obstacles, origin,
+        (uint32_t)global_structure_bsp, position, z, unknown_18, unknown_29, unknown_2a);
 
     while (ai_search_step(context) != 0) {
         // pop/expand until the open list empties or the goal is reached

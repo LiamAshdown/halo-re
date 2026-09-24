@@ -8,11 +8,13 @@
 // register convention: owner handle in EAX (in_EAX); slot index in CX (in_CX); the source
 // position in EBX (unaff_EBX, a real_point3d*); height offset, player filter and team filter are
 // this function's own stack parameters.
-//   // blam-cc: EAX -> owner, CX -> slot, unaff_EBX -> position, stack -> height_offset,
-//   //          player_filter, team_filter
-// UNSURE: hud_waypoint_arrow_find's own inputs (presumably an icon name string) are entirely register-
-// passed and not visible anywhere in this decompilation; called here with no arguments, matching
-// Ghidra's own rendering.
+//   // blam-cc: EAX -> owner, CX -> slot, EBX -> position, EDI -> icon_name, stack ->
+//   //          height_offset, player_filter, team_filter
+// FIXED (register inputs, objdump): EDI carries icon_name (never set inside this function; the
+//   call at 0x46226d to hud_waypoint_arrow_find needs it -- that function's own established
+//   convention is `const char *name` in EDI, per src/interface/hud_waypoint_arrow_find.c). The
+//   old UNSURE note already suspected an icon-name string here; threaded through instead of
+//   calling with no arguments.
 
 #include "tags.h"
 #include "memory.h"
@@ -21,17 +23,17 @@
 
 extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints]; // 0x006f1888
 
-extern int16_t hud_waypoint_arrow_find(void); // 0x4af070, not in this batch; UNSURE: icon lookup by name
+extern int16_t hud_waypoint_arrow_find(const char *name); // 0x4af070, not in this batch; blam-cc: EDI -> name
 
-// blam-cc: EAX -> owner, CX -> slot, unaff_EBX -> position, stack -> height_offset,
-//          player_filter, team_filter
+// blam-cc: EAX -> owner, CX -> slot, EBX -> position, EDI -> icon_name, stack ->
+//          height_offset, player_filter, team_filter
 void custom_waypoint_register(datum_index owner, int16_t slot, real_point3d *position,
-    float height_offset, datum_index player_filter, int16_t team_filter)
+    const char *icon_name, float height_offset, datum_index player_filter, int16_t team_filter)
 {
     custom_waypoint *w = &custom_waypoints[slot];
 
     w->owner = owner;
-    w->icon = hud_waypoint_arrow_find();
+    w->icon = hud_waypoint_arrow_find(icon_name);
     w->active = 1;
     w->position.x = position->x;
     w->position.y = position->y;

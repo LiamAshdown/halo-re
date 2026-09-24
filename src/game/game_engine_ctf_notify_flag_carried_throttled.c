@@ -5,6 +5,15 @@
 //   to at most once every four seconds"); types/game.h game_time_globals::game_time (0x0c);
 //   0x78 ticks == 4.0 s at k_game_ticks_per_second (30).
 // register convention: no parameters.
+//   // blam-cc: EDI -> target_player
+// FIXED (register inputs, objdump): EDI carries target_player (read at 0x4689f8, the call to
+// game_engine_queue_multiplayer_sound, which its own file documents as reading EDI for the
+// target player at the true machine ABI level, even though its own C rewrite deliberately
+// dropped that register to keep its ~20 existing single-parameter callers compiling). This
+// function's EDI is never written before that call, so it is a genuine pass-through input; it is
+// added as a parameter here so the register is accounted for, but left unused in the body since
+// game_engine_queue_multiplayer_sound.c is outside this batch and its C signature has no way to
+// receive it.
 
 #include "tags.h"
 #include "memory.h"
@@ -17,8 +26,10 @@ extern int32_t ctf_notify_throttle_tick;     // 0x006b0eb4
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index); // 0x46be40
 
 // Queues the "flag carried" announcer sound at most once every 4 seconds (120 ticks).
-void game_engine_ctf_notify_flag_carried_throttled(void)
+// blam-cc: EDI -> target_player
+void game_engine_ctf_notify_flag_carried_throttled(int32_t target_player)
 {
+    (void)target_player; // see FIXED note above: genuine input, not forwardable here
     if (ctf_notify_throttle_tick < game_time->game_time) {
         game_engine_queue_multiplayer_sound(1);
         ctf_notify_throttle_tick = game_time->game_time + 0x78;

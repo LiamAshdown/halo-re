@@ -9,8 +9,11 @@
 //   sound_eax_listener_property_guid (0x0064e2d0, EAX 1.0 listener property set) is reused from
 //   sound_eax1_effect_apply_listener.c (this module); property id 1 is EAX 1.0's ENVIRONMENT
 //   property (DSPROPERTY_EAX_ENVIRONMENT).
-// register convention: __thiscall (ECX -> this), stack -> environment.
-// blam-cc: ECX -> this, stack -> environment
+// register convention: __thiscall (ECX -> this_object), stack -> environment.
+// blam-cc: ECX -> this_object, stack -> environment
+// FIXED (register inputs, objdump): notes said "ECX -> this" but the parameter is named
+// this_object, so the checker's alias match failed and ECX (read at 0x54ee05) looked unclaimed.
+// Body already used this_object correctly; reworded only.
 // Phase-4 review: checked instruction by instruction against the disassembly appended in the
 // #if 0 block. The CommitDeferredSettings call is conditional on Set() succeeding (`test eax,eax;
 // jl` before it), which Ghidra's own decompile did not show; the decompile's `return 1` is also
@@ -23,7 +26,7 @@
 extern const uint8_t sound_eax_listener_property_guid[16]; // 0x0064e2d0, EAX 1.0 listener property set
 extern void *directsound_listener; // 0x00746114, IDirectSound3DListener *
 
-// blam-cc: ECX -> this, stack -> environment
+// blam-cc: ECX -> this_object, stack -> environment
 // Sets the EAX 1.0 listener's ENVIRONMENT (id 1) property, then commits deferred 3D listener
 // settings.
 void __thiscall sound_eax1_effect_set_environment_index(sound_effect_object *this_object, int32_t environment)

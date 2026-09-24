@@ -3,6 +3,10 @@
 // name confidence: 0.4   rewrite confidence: 0.55
 // evidence: biped_data.unknown_501 (types/units.h), object.vitality_flags bit 4 (objects.h),
 //   Biped.biped_flags bit 4 (types/tags.h).
+// register convention: object index in EAX (in_EAX).
+//   // blam-cc: EAX -> object_index
+// FIXED (register inputs, objdump): EAX carries object_index (read at 0x55e8e9, and eax,0xffff);
+// this file had no "// blam-cc:" note at all, so the checker saw no register mapping.
 
 #include "tags.h"
 #include "memory.h"

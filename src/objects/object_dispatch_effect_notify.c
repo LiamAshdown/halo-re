@@ -6,8 +6,16 @@
 // change notifier, so that inherited description is not trusted here either)
 // rewrite confidence: 0.3
 // evidence: none beyond the single forwarded call.
-// register convention: none visible; whatever registers effect_new_on_object itself needs pass through
-// unmodeled, exactly as decompiled.
+// register convention: EAX -> forwarded_eax, ECX -> forwarded_ecx (both pass straight through to
+// effect_new_on_object; see below).
+//   // blam-cc: EAX -> forwarded_eax, ECX -> forwarded_ecx
+// FIXED (register inputs, objdump): objdump 0x4efff0..0x4f0003 shows this function is not a
+// bare forward -- it pushes five literal stack args (0, 0, 0, 0, -1) then EAX (`push eax` at
+// 0x4efffa) before the call, and ECX is read live-in at the call itself (0x4efffb), i.e. this
+// function's own EAX/ECX are genuine inputs forwarded to effect_new_on_object, not scratch.
+// They were previously undeclared entirely. effect_new_on_object's own real prototype is still
+// not recovered (see the extern's own note), so forwarded_eax/forwarded_ecx are passed through
+// positionally without claiming to know which formal parameters they land on.
 
 #include "tags.h"
 #include "memory.h"
@@ -20,9 +28,9 @@ extern void effect_new_on_object(); // effects module, 0x4507a0
     // and ECX that the decompiler never models. Declared with an empty parameter list so
     // every site in the module agrees on ONE declaration without fabricating arguments.
 
-void object_dispatch_effect_notify(void)
+void object_dispatch_effect_notify(uint32_t forwarded_eax, uint32_t forwarded_ecx)
 {
-    effect_new_on_object();
+    effect_new_on_object(forwarded_ecx, 0, 0, 0, 0, -1, forwarded_eax);
 }
 
 #if 0

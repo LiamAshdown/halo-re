@@ -8,8 +8,11 @@
 // secondary binding is still at its default (unmodified) value."; reuses
 // controls_row_device_mask_table from controls_binding_row_widget_update.c (bit 0 = primary
 // default, bit 1 = secondary default).
-// register convention: ECX which slot (0 primary, 1 secondary), EDX action index.
-//   // blam-cc: slot -> ECX, action_index -> EDX
+// register convention: ECX -> slot (0 primary, 1 secondary), EDX -> action_index.
+//   // blam-cc: ECX -> slot, EDX -> action_index
+// FIXED (register inputs, objdump): ECX carries slot (read at 0x4b4df0, test ecx,ecx); the
+// notes wrote "slot -> ECX" (name before register, with an arrow the checker only recognizes
+// register-first), so it did not parse.
 
 #include "tags.h"
 #include "memory.h"
@@ -20,7 +23,7 @@
 
 extern uint8_t controls_row_device_mask_table[]; // 0x00692ffc, stride 0x18
 
-// blam-cc: slot -> ECX, action_index -> EDX
+// blam-cc: ECX -> slot, EDX -> action_index
 uint8_t controls_action_column_is_bindable(int32_t slot, int32_t action_index)
 {
     if (slot == 0) {

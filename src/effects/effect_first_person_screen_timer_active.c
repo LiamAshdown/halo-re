@@ -7,8 +7,12 @@
 // evidence: src/objects/device_frontfacing.c and similar establish object_try_and_get(index,
 // type_mask); the type mask literal `1` here is unexplained (types/objects.h's object type mask
 // enum is not visible in this pack).
-// register convention: no visible register or stack inputs at all -- object_try_and_get is
-// called with a hardcoded object index of 0 and type mask 1.
+// register convention: ECX -> object_index, forwarded straight through to object_try_and_get
+// (established convention: ECX -> object_index); type mask 1 is a hardcoded literal.
+// FIXED (register inputs, objdump): ECX (read at 0x450685, the call to object_try_and_get
+// itself, whose own recovered convention is ECX -> object_index) was hardcoded as a guessed
+// literal 0 instead of being taken as a parameter and forwarded. Added object_index (ECX) and
+// use it in place of the guess.
 // UNSURE (structural, TYPES-GAP): object+0x106 and object+0x41c are read here but are not part
 // of the common object header types/objects.h documents (0x1f4 bytes); they belong to whatever
 // per-type extension starts at +0x1f4 for this object's type (most likely units, given the
@@ -28,13 +32,13 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
     // established; blam-cc: ECX -> object_index, stack -> type_mask
 extern int32_t *game_time; // 0x006f1d6c; +0x0c is the current game tick
 
-// UNSURE overall (see file header): whether object index 0 has flag bit 2 of the byte at +0x106
+// UNSURE overall (see file header): whether object_index has flag bit 2 of the byte at +0x106
 // set, and if so, whether the linked index at +0x41c (offset by 0x1e ticks) is still within
 // k_game_tick globals's current tick.
-uint8_t effect_first_person_screen_timer_active(void)
+// blam-cc: ECX -> object_index
+uint8_t effect_first_person_screen_timer_active(datum_index object_index)
 {
-    object *self = object_try_and_get(0, 1); // UNSURE: object_index is fully elided by Ghidra
-        // (the function takes no parameters at all); 0 is a guess, not evidence
+    object *self = object_try_and_get(object_index, 1);
 
     if (self == 0 || (*((uint8_t *)self + 0x106) & 4) == 0) {
         return 0;

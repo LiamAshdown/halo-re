@@ -3,7 +3,9 @@
 // name confidence: 0.8   rewrite confidence: 0.85
 // evidence: already named by Ghidra/CEA. Register convention from out/phase4/
 // saved_games_types_notes.md: "file_reference_read / _write EDX reference, ECX buffer, ESI size".
-// register convention: reference record in EDX, buffer in ECX, size in ESI.
+// register convention: reference record (ref) in EDX, buffer in ECX, size in ESI.
+// FIXED (register inputs, objdump): EDX carries ref (read at 0x555a2f, mov eax,[edx+0x108]);
+// the note named it "reference record" instead of "ref", so it did not parse.
 
 #include "tags.h"
 #include "memory.h"
@@ -18,7 +20,7 @@ extern int32_t ReadFile(void *file, void *buffer, uint32_t size, uint32_t *bytes
     void *overlapped); // Win32
 extern void SetLastError(uint32_t error_code); // Win32
 
-// blam-cc: reference record in EDX, buffer in ECX, size in ESI
+// blam-cc: ref in EDX, buffer in ECX, size in ESI
 // Reads exactly size bytes from ref's open handle into buffer. Fails (ERROR_HANDLE_EOF, 0x26)
 // if fewer bytes were read than requested. Returns 1 on success, 0 on failure (after reporting
 // the Win32 error).

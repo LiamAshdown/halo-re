@@ -9,7 +9,13 @@
 // returns [difficulty] (ESI) and scenario name (EDI)". The hand-rolled offset-delta copy loop
 // is rewritten as strcpy, following the precedent in src/interface/console_update_display.c.
 // register convention: out_difficulty in ESI, out_scenario_name in EDI (both confirmed by the
-// module's register-convention notes); no recognized stack parameters.
+// module's register-convention notes); EAX = corrupt_flag, forwarded unchanged to
+// saved_game_validate_crc.
+//   // blam-cc: EAX -> corrupt_flag, ESI -> out_difficulty, EDI -> out_scenario_name
+// FIXED (register inputs, objdump): EAX carries corrupt_flag (pushed at 0x538327, the first
+// argument pushed for the call to saved_game_validate_crc, i.e. its last stack parameter). The
+// old rewrite hardcoded that argument to 0/NULL like the sibling game_state_load_checkpoint,
+// but this function's own EAX is live-in and passed straight through instead.
 
 #include "tags.h"
 #include "memory.h"
@@ -23,16 +29,17 @@ extern uint8_t saved_game_validate_crc(int32_t total_size, int32_t header_size, 
     uint32_t *expected_crc, uint8_t *corrupt_flag); // 0x539570
 extern char *strcpy(char *dest, const char *source);
 
-// blam-cc: out_difficulty in ESI, out_scenario_name in EDI
+// blam-cc: EAX -> corrupt_flag, ESI -> out_difficulty, EDI -> out_scenario_name
 // Reads and crc-validates the persistent checkpoint (savegame.bin) header without applying it,
 // and returns its difficulty and scenario name for display. On failure, returns a default
 // difficulty of 1 and an empty name.
-uint8_t game_state_read_checkpoint_summary(int16_t *out_difficulty, char *out_scenario_name)
+uint8_t game_state_read_checkpoint_summary(uint8_t *corrupt_flag, int16_t *out_difficulty,
+    char *out_scenario_name)
 {
     game_state_header header;
 
     if (saved_game_validate_crc(k_game_state_size, k_game_state_header_size, (uint8_t *)&header,
-            &header.file_checksum, 0) != 0) {
+            &header.file_checksum, corrupt_flag) != 0) {
         *out_difficulty = header.difficulty;
         strcpy(out_scenario_name, header.scenario_name);
         return 1;

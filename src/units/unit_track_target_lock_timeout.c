@@ -4,6 +4,10 @@
 // evidence: biped_data.flags bit 0 "grounded" and unknown_508 (types/units.h),
 //   biped_data.unknown_504 ("ticks without a target lock (0x55ec90)" -- already attributed to
 //   this function by name), unit_data.control_flags bit 2 (_unit_control_flag_jump).
+// register convention: object index in EDX (in_EDX).
+//   // blam-cc: EDX -> object_index
+// FIXED (register inputs, objdump): EDX carries object_index (read at 0x55ec99, mov eax,edx);
+// this file had no "// blam-cc:" note at all, so the checker saw no register mapping.
 
 #include "tags.h"
 #include "memory.h"

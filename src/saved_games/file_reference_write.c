@@ -4,6 +4,10 @@
 // evidence: already named by Ghidra/CEA. Register convention from out/phase4/
 // saved_games_types_notes.md: "file_reference_read / _write EDX reference, ECX buffer, ESI size".
 // register convention: reference record in EDX, buffer in ECX, size in ESI.
+//   // blam-cc: EDX -> ref, ECX -> buffer, ESI -> size
+// FIXED (register inputs, objdump): EDX (the reference record, already a C parameter) was
+//   read at 0x555a9e but missing from the machine-checked "blam-cc" annotation; reworded so
+//   the checker recognizes it.
 
 #include "tags.h"
 #include "memory.h"
@@ -17,7 +21,7 @@ extern void saved_games_report_last_error(void); // 0x556170, this module
 extern int32_t WriteFile(void *file, const void *buffer, uint32_t size, uint32_t *bytes_transferred,
     void *overlapped); // Win32
 
-// blam-cc: reference record in EDX, buffer in ECX, size in ESI
+// blam-cc: EDX -> ref, ECX -> buffer, ESI -> size
 // Writes exactly size bytes from buffer to ref's open handle. Returns 1 on success, 0 on
 // failure (after reporting the Win32 error).
 uint8_t file_reference_write(file_reference_record *ref, const void *buffer, uint32_t size)

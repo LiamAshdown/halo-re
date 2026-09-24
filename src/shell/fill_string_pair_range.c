@@ -13,8 +13,10 @@
 // register convention (confirmed via objdump): EAX = first, stack argument = last, EBX = value
 //   (const hwreq_string_pair *, a genuine live-in register parameter, constant through the
 //   whole loop).
-// blam-cc: fill_string_pair_range(hwreq_string_pair *first /*EAX*/, hwreq_string_pair *last /*stack*/,
-//   const hwreq_string_pair *value /*EBX*/)
+// blam-cc: EAX -> first, EBX -> value, stack -> last
+// FIXED (register inputs, objdump): EAX/EBX (read at 0x57cda6/0x57cdad) were already C
+//   parameters (first/value) but the old "blam-cc" note was a prose function signature that the
+//   checker's "REG -> name" parser could not read; reworded.
 // UNSURE: FUN_0057b830 (string::assign) is an opaque lib:crt extern, not rewritten here.
 
 #include "tags.h"
@@ -26,6 +28,7 @@
 extern msvc_std_string *string_assign_substr(msvc_std_string *this, const msvc_std_string *right,
     uint32_t pos, uint32_t count); // 0x57b830, module=lib:crt, not this pass
 
+// blam-cc: EAX -> first, EBX -> value, stack -> last
 void fill_string_pair_range(hwreq_string_pair *first, hwreq_string_pair *last, const hwreq_string_pair *value)
 {
     while (first != last) {

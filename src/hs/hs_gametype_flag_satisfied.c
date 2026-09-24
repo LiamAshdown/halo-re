@@ -10,6 +10,10 @@
 // register convention: the tested capability byte is unrecognized by Ghidra (in_AL); by the
 // blam-cc convention this is the low byte of the first register slot, EAX. bit_index is
 // Ghidra-recognized directly.
+//   // blam-cc: AL -> flags, stack -> bit_index
+// FIXED (register inputs, objdump): AL carries flags (read at 0x4835c8, mov bl,al); the prose
+// note already identified it but "capability byte in AL (EAX), bit_index the recognized
+// parameter" has no machine-readable register mapping, so the checker saw no register at all.
 // reconciled: R31 context bits are console command contexts, not game types (comments only)
 
 #include "tags.h"
@@ -18,7 +22,7 @@
 
 extern uint16_t hs_autocomplete_gametype_mask; // 0x006b14ac
 
-// blam-cc: capability byte in AL (EAX), bit_index the recognized parameter
+// blam-cc: AL -> flags, stack -> bit_index
 // Tests whether console-context bit `bit_index` (of `flags`) is satisfied by
 // hs_autocomplete_gametype_mask: passes if the bit is not required or is present, and if the
 // bit is not forbidden or is absent.

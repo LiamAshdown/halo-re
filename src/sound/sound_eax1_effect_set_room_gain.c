@@ -12,7 +12,9 @@
 //   (sound_channel_set_parameters.c, this module) already computes the millibel value before
 //   calling through the driver.
 // register convention: __thiscall (ECX -> this), stack -> gain.
-// blam-cc: ECX -> this, stack -> gain
+// blam-cc: ECX -> this_object, stack -> gain
+// FIXED (register inputs, objdump): ECX carries this_object (read at 0x54ee45, mov eax,[ecx+0x18]);
+// the notes said "ECX -> this" but the parameter is named this_object, so it did not parse.
 // Phase-4 review: checked instruction by instruction against the disassembly appended in the
 // #if 0 block. As with sound_eax1_effect_set_environment_index.c (0x54edf0, this batch), the
 // CommitDeferredSettings call is conditional on Set() succeeding, which Ghidra's own decompile
@@ -25,7 +27,7 @@
 extern const uint8_t sound_eax_listener_property_guid[16]; // 0x0064e2d0, EAX 1.0 listener property set
 extern void *directsound_listener; // 0x00746114, IDirectSound3DListener *
 
-// blam-cc: ECX -> this, stack -> gain
+// blam-cc: ECX -> this_object, stack -> gain
 // Sets the EAX 1.0 listener's VOLUME (id 2) property to `gain` unchanged, then commits deferred
 // 3D listener settings if the Set succeeded.
 void __thiscall sound_eax1_effect_set_room_gain(sound_effect_object *this_object, float gain)

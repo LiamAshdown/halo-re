@@ -8,7 +8,14 @@
 // and `extraout_EDX` (the tick value the second get_slot call leaves behind) are register
 // artifacts Ghidra could not bind to real parameters, and this function's own signature is
 // modeled loosely around them.
+// FIXED (register inputs, objdump): EBX carries target_tick (read at 0x4734b0, `mov eax,ebx`
+//   right before the first update_client_queue_get_slot call); the rewrite already had a
+//   target_tick C parameter but never annotated it and passed a literal 0 to that first call
+//   instead. The second get_slot call inside the loop uses a different, still-unresolved
+//   register (Ghidra's extraout_EDX) and is left as-is.
+//   // blam-cc: EBX -> target_tick, EDX -> record
 
+#include <string.h>
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -18,28 +25,31 @@ extern int32_t update_client_unknown_ea0; // 0x006f7ea0
 
 extern update_record *update_client_queue_get_slot(int32_t tick); // this batch, 0x473500
 
-// UNSURE: see header.
-void update_client_advance_read_cursor(int32_t target_tick)
+// REWRITTEN (objdump 0x4734b0..0x4734fb, 2026-09-24): EBX is the tick and EDX a pointer to the 0x304-byte
+//   update record, which is copied into the queue slot after its tick word (`mov esi,edx; rep movs`, 0xc1
+//   dwords). When the tick runs ahead of the cursor at 0x6f7ea0, every skipped tick's slot is fetched and the
+//   first word of THIS slot's record is set to 0xffff (the original writes [ebp], this slot, each time), and
+//   the cursor becomes the tick. The draft copied nothing, never stored the cursor, and passed 0 as the tick in
+//   the loop; hooked, the local player's actions never reached the queue (in game: could not move or shoot).
+//   update_client_queue_get_slot (0x473500) preserves EDX, which is why EDX survives the first call.
+// blam-cc: EBX -> target_tick, EDX -> record
+void update_client_advance_read_cursor(int32_t target_tick, const uint32_t *record)
 {
-    update_record *slot = update_client_queue_get_slot(0); // UNSURE: real tick argument not recovered
-    int32_t cursor = update_client_unknown_ea0;
+    update_record *slot = update_client_queue_get_slot(target_tick);
+    int32_t tick;
 
-    if (slot != 0) {
-        slot->tick = target_tick;
-
-        if (update_client_unknown_ea0 < target_tick) {
-            int32_t previous = update_client_unknown_ea0;
-
-            while (previous + 1 < target_tick) {
-                update_client_queue_get_slot(0); // UNSURE: real tick argument not recovered
-                slot->player_count = 0xffff;
-                previous = target_tick; // UNSURE: mirrors Ghidra's `extraout_EDX` re-read, which
-                                          // this transcription cannot reproduce exactly
-            }
-            cursor = target_tick;
-        }
+    if (slot == 0) {
+        return;
     }
-    update_client_unknown_ea0 = cursor;
+    slot->tick = target_tick;
+    memcpy((uint8_t *)slot + 4, record, 0xc1 * 4);
+    if (target_tick > update_client_unknown_ea0) {
+        for (tick = update_client_unknown_ea0 + 1; tick < target_tick; tick++) {
+            update_client_queue_get_slot(tick);
+            *(uint16_t *)((uint8_t *)slot + 4) = 0xffff;
+        }
+        update_client_unknown_ea0 = target_tick;
+    }
 }
 
 #if 0

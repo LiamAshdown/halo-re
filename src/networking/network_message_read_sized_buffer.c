@@ -9,7 +9,11 @@
 // UNSURE: the exact bit bookkeeping (why the second read's expected size is
 // `(uVar1>>4)*8-0x10`) is preserved literally rather than re-derived; `stream` (bit_stream_read_
 // bits_chunked's third argument) is entirely elided here and could not be reconstructed.
-// register convention: EDI -> buffer (elided). blam-cc: EDI -> buffer, stack -> capacity
+// register convention: EDI -> buffer, EBX -> stream. blam-cc: EDI -> buffer, EBX -> stream, stack -> capacity
+// FIXED (register inputs, objdump): EBX (read at 0x4de420, "push ebx" as the very first
+// instruction, before eax/ecx are even set up) is the stream pointer -- it is pushed as the
+// third stack argument to both bit_stream_read_bits_chunked calls. `stream` was already a
+// parameter of this rewrite but was wrongly modelled as a stack argument instead of EBX.
 
 #include "tags.h"
 #include "memory.h"
@@ -19,7 +23,7 @@
 
 extern int32_t bit_stream_read_bits_chunked(int32_t total_bit_count, uint32_t *buffer, bit_stream *stream); // 0x4cf950, memory module
 
-// blam-cc: EDI -> buffer
+// blam-cc: EDI -> buffer, EBX -> stream
 uint16_t *network_message_read_sized_buffer(uint16_t *buffer, int32_t capacity, bit_stream *stream)
 {
     int32_t consumed;

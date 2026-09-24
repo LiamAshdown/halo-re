@@ -6,8 +6,18 @@
 // invokes the active game variant optional reset callback"); types/game.h
 // game_engine_definition::player_round_reset (+0x98, "0x463620" -- this function); src/game/
 // game_engine_reset_respawns_and_cleanup_bipeds.c's player_kill_and_release_unit signature.
-// register convention: a player handle in EBX (unaff_EBX, forwarded to player_kill_and_release_unit unchanged).
-//   // blam-cc: unaff_EBX -> player_handle
+// register convention: a player handle, in EAX at entry (immediately copied into the
+// callee-saved EBX -- see FIXED note below -- and forwarded to player_kill_and_release_unit and
+// to the player_round_reset callback unchanged); a second, callback-only argument is this
+// function's own (previously unmodeled) stack parameter.
+//   // blam-cc: EAX -> player_handle, stack -> callback_argument
+// FIXED (register inputs, objdump): EAX carries player_handle (read at 0x463621, mov ebx,eax,
+// right after the prologue's `push ebx`). The old note attributed the handle to EBX itself, but
+// EBX is only a callee-saved scratch copy of EAX made here and restored at 0x463650/0x463651;
+// EAX is the true live-in. Disassembly also shows the player_round_reset callback is invoked
+// with two arguments (0x463645-0x46364b: `push ecx` (this function's own first stack slot,
+// callback_argument) then `push ebx` (player_handle), `call eax`), not zero as the old
+// `(void (*)(void))` cast modeled -- corrected here since it was found while tracing player_handle.
 
 #include "tags.h"
 #include "memory.h"
@@ -19,14 +29,15 @@ extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern void player_kill_and_release_unit(int32_t respawn_time); // 0x476250, not in this batch;
     // blam-cc: EBX -> player_handle, stack -> respawn_time
 
-// blam-cc: unaff_EBX -> player_handle (not modeled as a C parameter; see
-// game_engine_reset_respawns_and_cleanup_bipeds.c for the same convention)
-void game_engine_player_round_reset(void)
+// blam-cc: EAX -> player_handle, stack -> callback_argument
+void game_engine_player_round_reset(int32_t player_handle, int32_t callback_argument)
 {
     if (current_game_engine != 0) {
-        player_kill_and_release_unit(0); // UNSURE: relies on EBX already holding the player handle
+        player_kill_and_release_unit(0); // relies on EBX already holding player_handle, see below
         if (current_game_engine->player_round_reset != 0) {
-            ((void (*)(void))current_game_engine->player_round_reset)();
+            // UNSURE: callback_argument's real meaning; forwarded exactly as objdump shows it.
+            ((void (*)(int32_t, int32_t))current_game_engine->player_round_reset)(
+                player_handle, callback_argument);
         }
     }
 }

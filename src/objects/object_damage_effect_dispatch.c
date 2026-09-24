@@ -7,6 +7,17 @@
 // evidence: none beyond the single forwarded call.
 // register convention: none visible; whatever registers effect_new_on_object_with_node_table needs pass through
 // unmodeled, exactly as decompiled.
+//   // blam-cc: EAX -> push_value, EDI -> node_object
+// FIXED (register inputs, objdump): EAX carries push_value (read at 0x4f0274, `push eax`, one of
+// effect_new_on_object_with_node_table's stack arguments) and EDI carries node_object (read at
+// 0x4f0275, `mov edx,edi` immediately followed by `mov eax,edi` -- the same incoming value is
+// forwarded into both EAX and EDX for the call). Both are genuine live-in registers of this
+// function, but they are left unused below: this file's own extern already documents that
+// effect_new_on_object_with_node_table's true convention (which stack/register args it takes,
+// and in what order) is unresolved across its ~20 call sites in this module, and is deliberately
+// declared with an empty parameter list so every site agrees on one declaration rather than each
+// guessing a different signature; adding real arguments to just this one call would contradict
+// that documented, deliberate simplification.
 
 #include "tags.h"
 #include "memory.h"
@@ -19,8 +30,10 @@ extern void effect_new_on_object_with_node_table(); // effects module, 0x450870
     // and ECX that the decompiler never models. Declared with an empty parameter list so
     // every site in the module agrees on ONE declaration without fabricating arguments.
 
-void object_damage_effect_dispatch(void)
+// blam-cc: EAX -> push_value, EDI -> node_object
+void object_damage_effect_dispatch(int32_t push_value, int32_t node_object)
 {
+    (void)push_value; (void)node_object; // see FIXED note above: genuine inputs, not forwardable here
     effect_new_on_object_with_node_table();
 }
 

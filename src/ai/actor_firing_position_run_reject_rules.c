@@ -4,9 +4,13 @@
 // evidence: walks the { int16 kinds, void *proc } table at 0x006555f8, the rejection twin
 //   of the scoring table at 0x006555c0. Read straight out of bin/halo.exe; its five rows
 //   are 0x412290, 0x412620, 0x412570, 0x4124c0 and 0x412350.
-// register convention: the query is in EDI and the candidate in a second register Ghidra
-//   dropped; actor_index is the visible stack argument. Ghidra types this as void but the
-//   two callers both consume the byte left in AL, which is the last rule result.
+// register convention: the query is in EDI and the candidate in EBX; actor_index is the visible
+//   stack argument. Ghidra types this as void but the two callers both consume the byte left in
+//   AL, which is the last rule result.
+// FIXED (register inputs, objdump): EBX carries candidate (pushed at 0x41275c as the deepest of
+// the three arguments to each rule proc, alongside EDI/query and the stack actor_index reloaded
+// into EAX just before); the note called it "a second register" without naming it, so it did
+// not parse.
 
 #include "tags.h"
 #include "memory.h"
@@ -15,7 +19,7 @@
 
 extern actor_firing_position_rule actor_firing_position_reject_rules[6]; // 0x006555f8
 
-// blam-cc: EDI -> query, a second register -> candidate; stack -> actor_index
+// blam-cc: EDI -> query, EBX -> candidate; stack -> actor_index
 // Runs the rejection half of the pipeline over one candidate and stops at the first rule
 // that returns zero. Returns whether the candidate survived; a table with no applicable
 // rows leaves the initial 1.

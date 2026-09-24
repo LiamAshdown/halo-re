@@ -17,8 +17,10 @@
 //   (base) in ESI; each component is ((v2-v0)*[esp+4] + (v1-v0)*[esp+8]) + v0. The orphan pass 4
 //   review corrected the weights, which the first draft had swapped (it multiplied v1 by the
 //   first stack float). No struct pointer is returned; EAX is a genuine output-pointer parameter.
-// blam-cc: vector3d_barycentric_interpolate(real_vector3d *out /*EAX*/, real_vector3d *v1 /*ECX*/,
-//   real_vector3d *v2 /*EDX*/, real_vector3d *v0 /*ESI*/, float w2 /*stack*/, float w1 /*stack*/)
+// blam-cc: EAX -> out, ECX -> v1, EDX -> v2, ESI -> v0, stack -> w2, w1
+// FIXED (register inputs, objdump): notes were written as a full call signature instead of a
+// parseable "REG -> name" mapping, so none of EAX/ECX/EDX/ESI (read at 0x4f06d0..0x4f06e6)
+// looked claimed. Body already used all four correctly; reworded only.
 
 #include "tags.h"
 #include "math.h"

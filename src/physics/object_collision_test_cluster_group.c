@@ -16,10 +16,13 @@
 //   duty as both the bit-5..7 gate tested here AND the type_mask forwarded to
 //   object_collision_test_nearby_chain unchanged. param_2 is Ghidra-recognized but never read
 //   anywhere in this function's own body -- UNSURE whether it is genuinely unused or whether
-//   Ghidra simply lost every read of it. position and exclude_object_index are UNSURE hidden
-//   register parameters, reconstructed only because object_collision_test_nearby_chain and
-//   bsp3d_node_find_leaf both need them and neither is visible at any call site here.
-//   // blam-cc: stack -> flags, UNSURE hidden registers -> position, exclude_object_index
+//   Ghidra simply lost every read of it.
+//   // blam-cc: EDI -> position, stack -> flags, exclude_object_index
+// FIXED (register inputs, objdump): EDI carries position (read at 0x5054aa, mov edx,edi, then
+// forwarded to bsp3d_node_find_leaf and pushed for object_collision_test_nearby_chain). The old
+// notes guessed it was an untraceable hidden register; it is a plain EDI live-in. The other
+// former "hidden register", exclude_object_index, really is a stack argument -- the second one
+// ([esp+0x10] at entry, loaded into ebp) -- so it moves to stack -> alongside flags.
 
 #include "tags.h"
 #include "memory.h"
@@ -43,7 +46,7 @@ extern uint8_t object_collision_test_nearby_chain(uint32_t start_object_index, u
 // every object referenced by that cluster via object_collision_test_nearby_chain. Returns 1
 // immediately if position falls outside the BSP entirely (nothing to test against) or if any
 // referenced object reports a hit.
-// blam-cc: stack -> flags, UNSURE hidden registers -> position, exclude_object_index
+// blam-cc: EDI -> position, stack -> flags, exclude_object_index
 uint8_t object_collision_test_cluster_group(uint32_t flags, real_point3d *position,
                                              uint32_t exclude_object_index)
 {

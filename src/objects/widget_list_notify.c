@@ -7,7 +7,17 @@
 //   widget_type_definition (render 0x24); global 0x008603b0 object_data, 0x00860398 widget_data.
 // register convention: Ghidra shows a single unresolved `unaff_EDI`; by the object_data lookup
 //   shape shared with widget_new.c / widget_delete_all.c, EDI is the object index.
-// blam-cc: EDI -> object_index
+// blam-cc: EDI -> object_index, EBX -> render_context; stack -> render_arg
+// FIXED (register inputs, objdump): EBX was missing entirely, and so was a stack argument
+// (loaded into a local at 0x4ffcc1, `mov ebp,[esp+0x8]`) that Ghidra's own recognized signature
+// dropped along with it. Both, plus ECX (= entry->instance) and EDI, are pushed at 0x4ffcfc..
+// 0x4ffcff and passed straight through to the per-widget-type render hook -- the previous
+// rewrite called that hook with zero arguments, which is not what the binary does. The lone
+// caller (0x50f0f4, not in this batch) passes EDI = an object index local, a single stack dword
+// (a field read out of another caller-owned record) for what is EBP/render_arg here, and EBX =
+// the address of a caller-owned stack record (`lea ebx,[esp+0x1c]`) for render_context; neither
+// value's own further meaning is resolvable without that caller's or the five per-type render
+// hooks' (0x4fb980 etc., not in this batch) own address ranges, so both are kept opaque.
 
 #include "tags.h"
 #include "memory.h"
@@ -18,7 +28,15 @@ extern data_array *object_data; // 0x008603b0
 extern data_array *widget_data; // 0x00860398
 extern widget_type_definition widget_type_definitions[k_maximum_widget_types]; // 0x0069c010
 
-void widget_list_notify(uint32_t object_index /*EDI*/) // blam-cc: EDI -> object_index
+// UNSURE: exact per-widget-type signature; these are just the 4 values widget_list_notify itself
+// forwards unchanged (object_index, the widget's own instance handle, then its own EBP/EBX
+// inputs), not independently confirmed against any of the five render hooks.
+typedef void (*widget_render_proc)(uint32_t object_index, datum_index instance,
+    uint32_t render_arg, void *render_context);
+
+// blam-cc: EDI -> object_index, EBX -> render_context; stack -> render_arg
+void widget_list_notify(uint32_t object_index /*EDI*/, uint32_t render_arg /*stack*/,
+                        void *render_context /*EBX*/)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     datum_index handle = obj->first_widget;
@@ -26,7 +44,8 @@ void widget_list_notify(uint32_t object_index /*EDI*/) // blam-cc: EDI -> object
     while (handle != (datum_index)0xffffffff) {
         widget *entry = &((widget *)widget_data->data)[handle & 0xffff];
         if (widget_type_definitions[entry->type].render != 0) {
-            ((void (*)(void))widget_type_definitions[entry->type].render)();
+            ((widget_render_proc)widget_type_definitions[entry->type].render)(
+                object_index, entry->instance, render_arg, render_context);
         }
         handle = entry->next_widget;
     }

@@ -7,10 +7,13 @@
 //   function never showed, see UNSURE)
 // evidence: types/shell.h msvc_std_string. string_compare.c (0x57ce10, this pass) is the sole
 //   callee, and its own header documents the same discrepancy from the opposite side.
-// register convention (confirmed via objdump, overriding Ghidra's incomplete decompile): EAX =
-//   const msvc_std_string *other (the key being looked up), ECX = const msvc_std_string *this
-//   (the current tree node's key). Computes `*this < *other`.
-// blam-cc: hwreq_map_key_less_than(const msvc_std_string *this /*ECX*/, const msvc_std_string *other /*EAX*/)
+// register convention (confirmed via objdump, overriding Ghidra's incomplete decompile):
+//   EAX -> other (the key being looked up), ECX -> this (the current tree node's key).
+//   Computes `*this < *other`.
+// blam-cc: EAX -> other, ECX -> this
+// FIXED (register inputs, objdump): notes were written as a full call signature instead of a
+// parseable "REG -> name" mapping, so neither EAX (read at 0x57bbd0) nor ECX (read at 0x57bbe3)
+// looked claimed. Body already used both correctly; reworded only.
 // UNSURE: Ghidra's own decompilation of this function only shows the EAX-based operand
 //   (building the pushed arguments to string_compare) and omits the final `mov eax,[ecx+0x14]`
 //   that supplies string_compare's 2nd argument (n1) and implicitly its `this` (ECX). This

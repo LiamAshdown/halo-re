@@ -12,6 +12,9 @@
 // evidence: out/phase4/memory_types_notes.md, data_iterator_next.c, cache_evict_entry.c.
 // register convention: UNSURE -- reconstructed as cache* in a single argument; see above.
 // reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
+// FIXED (register inputs, objdump): ESI carries self (read at 0x4d17f3, `mov eax,[esi+0x3c]` =
+//   self->entries); `self` was already a C parameter but had no machine-checked "blam-cc" line.
+//   // blam-cc: ESI -> self
 
 #include "tags.h"
 #include "memory.h"
@@ -21,6 +24,7 @@ extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, below thi
     // assigned range
 extern void cache_evict_entry(datum_index handle, cache *self); // this batch, cache_evict_entry.c
 
+// blam-cc: ESI -> self
 void cache_flush(cache *self)
 {
     data_iterator iterator;

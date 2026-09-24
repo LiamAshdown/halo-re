@@ -5,8 +5,12 @@
 // evidence: unit_get_seat_or_state_name.c (0x56c2f0, single-argument EAX form, confirmed here
 // since this call site shows zero visible arguments too); unit_set_or_test_seat_and_weapon_label
 // established signature.
-// blam-cc: unaff_EDI -> unit_index.
+// blam-cc: ESI -> unit_index, EDI -> weapon_index.
 // reconciled: R04 0x006f1d20 int32_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
+// FIXED (register inputs, objdump): ESI (read at 0x56da00, "mov eax,esi" feeding the two callee
+// calls) is the unit index; the register the rewrite called "unit_index" was actually EDI, an
+// equipped-weapon object index (indexes object_data to reach a Weapon tag's label at +0x30c) and
+// is renamed weapon_index. ESI was missing entirely.
 
 #include "tags.h"
 #include "memory.h"
@@ -24,13 +28,13 @@ extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-N
 extern char * unit_get_seat_or_state_name(uint32_t unit_index);                     // 0x56c2f0
 extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_label, char *weapon_label, uint8_t test_only); // 0x5651e0
 
-uint8_t unit_check_weapon_use_permission(uint32_t unit_index) // blam-cc: unaff_EDI
+uint8_t unit_check_weapon_use_permission(uint32_t unit_index, uint32_t weapon_index) // blam-cc: ESI -> unit_index, EDI -> weapon_index
 {
     char *seat_name = unit_get_seat_or_state_name(unit_index);
     char *weapon_label = s_no_weapon_label;
-    if (unit_index != 0xffffffff) {
-        object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-        weapon_label = (char *)(tag_instances[unit_obj->definition_tag & 0xffff].data) + 0x30c;
+    if (weapon_index != 0xffffffff) {
+        object *weapon_obj = ((object_header *)object_data->data)[weapon_index & 0xffff].data;
+        weapon_label = (char *)(tag_instances[weapon_obj->definition_tag & 0xffff].data) + 0x30c;
     }
 
     if (unit_set_or_test_seat_and_weapon_label(unit_index, seat_name, weapon_label, 0) == 0) {

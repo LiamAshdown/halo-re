@@ -14,10 +14,11 @@
 // evidence: `*(undefined2 *)(unaff_EBX + 0xc)` matches data_packet_group::maximum_encoded_size
 // (types/memory.h, +0x0c) exactly, which is the only concrete struct-offset evidence in this
 // function.
-// register convention: data_packet_group* in EBX (unaff_EBX, read but never locally assigned);
-// stack: source struct instance pointer (param_1, forwarded to encode_packet_body), out "wrote a
-// version byte" flag pointer (param_2, forwarded), packet type / header byte value (param_3,
-// forwarded to append_packet_header).
+// register convention: data_packet_group* in EBX (unaff_EBX, read but never locally assigned); buffer in EAX (mov edi,eax at entry, then mov ecx,edi just before the call to append_packet_header, whose own first argument is the buffer pointer);
+//   stack: source struct instance pointer (param_1, forwarded to encode_packet_body), out "wrote a
+//   version byte" flag pointer (param_2, forwarded), packet type / header byte value (param_3,
+//   forwarded to append_packet_header).
+// FIXED (register inputs, objdump): EAX carries buffer (read at 0x4d0aec, mov edi,eax); it was missing.
 
 #include "tags.h"
 #include "memory.h"

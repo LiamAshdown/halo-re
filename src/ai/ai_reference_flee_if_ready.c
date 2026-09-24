@@ -8,7 +8,11 @@
 // explicit second argument this call site does not visibly pass; guessed as 0 here.
 // register convention: Ghidra fully resolved neither the packed reference (assumed EAX,
 // per every sibling in this cluster) nor actor_squad_action_status_broadcast's second argument.
-//   // blam-cc: EAX -> packed_reference
+//   // blam-cc: EAX -> packed_reference, EBX -> readiness_param
+// FIXED (register inputs, objdump): EBX carries actor_squad_action_status_broadcast's second
+//   argument (read at 0x434db5, `push ebx`, pushed ahead of `push edi; call 0x407140`, i.e. the
+//   2nd/rightmost parameter in cdecl order); the sibling ai_unit_flee_if_ready.c names this same
+//   callee argument `readiness_param`. It was guessed as a literal 0 here; now threaded through.
 
 #include "tags.h"
 #include "memory.h"
@@ -20,7 +24,8 @@ extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iter
 extern char actor_squad_action_status_broadcast(datum_index actor_index, uint32_t param_2); // outside this rewrite's range, UNSURE signature
 extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0, this module
 
-void ai_reference_flee_if_ready(uint32_t packed_reference)
+// blam-cc: EAX -> packed_reference, EBX -> readiness_param
+void ai_reference_flee_if_ready(uint32_t packed_reference, uint32_t readiness_param)
 {
     ai_reference_actor_iterator iterator;
     actor *a;
@@ -28,7 +33,7 @@ void ai_reference_flee_if_ready(uint32_t packed_reference)
     ai_reference_actor_iterator_new(packed_reference, &iterator);
     a = ai_reference_actor_iterator_next(&iterator);
     while (a != 0) {
-        if (actor_squad_action_status_broadcast(iterator.actor_index, 0) != 0) { // UNSURE: second argument guessed, see file header
+        if (actor_squad_action_status_broadcast(iterator.actor_index, readiness_param) != 0) {
             uint8_t mode_data[0x84];
             actor_set_mode(iterator.actor_index, _actor_mode_flee, mode_data);
         }

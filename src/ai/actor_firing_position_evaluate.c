@@ -6,8 +6,13 @@
 //   score_before_rejects and then runs the rejection table, storing its verdict back into
 //   valid. actor_select_firing_position @0x413e50 calls it for the single fallback
 //   candidate it builds by hand.
-// register convention: the candidate is in EAX and the query in ECX; both callees take
-//   their arguments in registers as well.
+// register convention: the candidate is in EAX, the query in ECX, and actor_index in ESI; both
+//   callees take their arguments in registers as well.
+// FIXED (register inputs, objdump): ESI carries actor_index (pushed at 0x41282a, alongside the
+// count=1 stack argument to actor_firing_position_run_score_rules at 0x412838; reused unchanged
+// at 0x412853 `mov eax,esi` for actor_report_firing_position_request and at 0x41285d
+// `push esi` for actor_firing_position_run_reject_rules); it was previously modeled as an
+// ordinary trailing (stack) parameter instead of a register.
 
 #include "tags.h"
 #include "memory.h"
@@ -18,7 +23,7 @@ extern void actor_firing_position_run_score_rules(datum_index actor_index, uint1
 extern uint8_t actor_firing_position_run_reject_rules(datum_index actor_index, actor_firing_position_query *query, actor_firing_position_candidate *candidate); // 0x412730
 extern void actor_report_firing_position_request(datum_index actor_index, actor_firing_position_query *query, actor_firing_position_candidate *candidate); // 0x4120f0
 
-// blam-cc: EAX -> candidate, ECX -> query
+// blam-cc: EAX -> candidate, ECX -> query, ESI -> actor_index
 // Scores and vets a single candidate end to end. Returns whether it survived.
 uint8_t actor_firing_position_evaluate(actor_firing_position_candidate *candidate,
                                        actor_firing_position_query *query,

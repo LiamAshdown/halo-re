@@ -8,10 +8,14 @@
 //   100, ModelAnimationsAnimationGraphWeapon stride 0xbc with an [count,pointer] pair at +0x98)
 //   match src/units/unit_set_or_test_seat_and_weapon_label.c's documented graph layout closely
 //   enough to reuse the same offsets, but no header struct names them, so they stay raw.
-// blam-cc: in_EAX -> unit_index, unaff (command) forwarded to unit_is_seat_control_available and
-//   unit_map_action_command_to_animation_state -- not visible as a parameter in this
-//   decompilation, but required by both callees, so it is modelled as an explicit parameter.
+// blam-cc: EAX -> unit_index, ECX -> command. command is forwarded to
+//   unit_is_seat_control_available and unit_map_action_command_to_animation_state -- not visible
+//   as a parameter in this decompilation, but required by both callees, so it is modelled as an
+//   explicit parameter.
 // UNSURE: the exact meaning of the "count"/"array" pair at weapon+0x98/0x9c.
+// FIXED (register inputs, objdump): ECX (read at 0x56947d, "mov edi,ecx") carries command; the
+// note described it in prose ("unaff (command) forwarded") instead of a parseable "ECX ->
+// command" mapping, so it looked unclaimed. Body already used command correctly.
 
 #include "tags.h"
 #include "memory.h"
@@ -26,7 +30,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern uint8_t unit_is_seat_control_available(uint32_t unit_index, int16_t command); // 0x5693a0
 extern int32_t unit_map_action_command_to_animation_state(int16_t command, int16_t *out_priority); // 0x5692b0
 
-uint8_t unit_scripted_action_animation_exists(uint32_t unit_index, int16_t command) // blam-cc: in_EAX, command forwarded
+uint8_t unit_scripted_action_animation_exists(uint32_t unit_index, int16_t command) // blam-cc: EAX -> unit_index, ECX -> command
 {
     object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
 

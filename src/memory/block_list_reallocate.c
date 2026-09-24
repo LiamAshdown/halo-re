@@ -8,6 +8,11 @@
 // register convention: new requested payload size in EDX (in_EDX); pointer to the caller's "data"
 // pointer variable in EBX (unaff_EBX, matching block_list_allocate's `owner` parameter exactly --
 // this function passes it straight through); memory_pool* on the stack (param_1).
+//   // blam-cc: EBX -> owner_cell, EDX -> new_size, stack -> arena
+// FIXED (register inputs, objdump): EBX carries owner_cell (read at 0x4d1de7, mov esi,[ebx]) and
+// EDX carries new_size (read at 0x4d1de9, lea eax,[edx+0x18]); the prose note above named both
+// correctly but had no machine-readable "// blam-cc:" line, so the checker saw no register
+// mapping at all.
 // UNSURE: the "must move" path reads the copy source via what Ghidra shows as a second
 // dereference of `*unaff_EBX`, but by that point block_list_allocate has already overwritten
 // *owner with the *new* payload address (its own documented side effect), so a literal re-read

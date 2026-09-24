@@ -11,7 +11,11 @@
 //   slot 0 (per the module header's own vtable-slot note); sound_eax_property_set_guid
 //   (0x0064e20c, IID_IKsPropertySet) is reused from sound_eax1_effect_initialize.c (this module).
 // register convention: __thiscall (ECX -> this), stack -> channel_index.
-// blam-cc: ECX -> this, stack -> channel_index
+// blam-cc: ECX -> this_object, stack -> channel_index
+// FIXED (register inputs, objdump): ECX carries this_object (read at 0x54f6ed,
+// lea esi,[ecx+edx*4+0x1c]); the note said "ECX -> this" but the parameter is named
+// this_object, so the checker's alias match failed even though the code already used it
+// correctly.
 // Phase-4 review: checked instruction by instruction against the disassembly appended in the
 // #if 0 block; no semantic difference found.
 
@@ -22,7 +26,7 @@
 extern const uint8_t sound_eax_property_set_guid[16]; // 0x0064e20c, IID_IKsPropertySet
 extern directsound_channel directsound_channels[k_maximum_sound_channels]; // 0x00725430
 
-// blam-cc: ECX -> this, stack -> channel_index
+// blam-cc: ECX -> this_object, stack -> channel_index
 // Queries the channel's 3D buffer for IKsPropertySet and caches it in this_object's per-channel
 // property-set slot. Reports success only if the query succeeded and returned a non-null
 // interface pointer.

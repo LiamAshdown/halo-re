@@ -10,6 +10,12 @@
 //   network_session_broadcast_to_flagged / network_message_scratch (0x00871de0) trio as the sibling network-notify
 //   functions in this batch.
 // register convention: no parameters.
+// FIXED (register inputs, objdump): EAX carries a small integer value (read at 0x4671e0, `mov
+//   DWORD PTR [esp+0x14],eax`) that becomes the message's only field, previously faked as a
+//   literal 0. Call sites pass small constants (EAX=3 at 0x45ff17, EAX=2 at 0x4601bf, EAX=1 at
+//   0x4691f0), consistent with an end-of-game reason code; named `reason` pending a better
+//   name (UNSURE of its exact meaning).
+//   // blam-cc: EAX -> reason
 
 #include "tags.h"
 #include "memory.h"
@@ -26,16 +32,17 @@ extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message
 extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3,
     uint32_t unknown_4, uint32_t unknown_5); // 0x4e1a80, not in this batch (matches other callers)
 
-// Encodes and broadcasts a fixed, empty-payload network message of type 0x16 (an end-of-game
-// notification, per this function's callers).
-void game_engine_send_end_game_notification(void)
+// Encodes and broadcasts a network message of type 0x16 (an end-of-game notification, per this
+// function's callers) carrying `reason`.
+// blam-cc: EAX -> reason
+void game_engine_send_end_game_notification(uint32_t reason)
 {
-    uint32_t empty_payload;
+    uint32_t payload;
     void *payload_ptr;
     int32_t encoded_size;
 
-    empty_payload = 0;
-    payload_ptr = &empty_payload;
+    payload = reason;
+    payload_ptr = &payload;
 
     encoded_size = message_delta_encode_message(0, 0x16, 0, &payload_ptr, 0, 1, 0);
     if (encoded_size > 0) {

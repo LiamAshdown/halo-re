@@ -7,24 +7,37 @@
 // actor_set_mode are both called with zero visible arguments, so the actor_index this
 // function operates on is presumably a register the caller already set (as with the other
 // zero-argument helpers in this module).
-// UNSURE: actor_index register and actor_set_mode's mode/mode_data arguments are not
-// visible in the decompiled C at all; needs the disassembly review pass.
+//   // blam-cc: ECX -> order_code, EDX -> use_alt_base, ESI -> actor_index, stack ->
+//   resolved_target
+// FIXED (register inputs, objdump): resolved disassembly-verified per-argument roles for both
+// calls (0x40de20..0x40de54). actor_build_order_grenade_or_melee (0x403630) is called with
+// EAX = this function's own stack parameter reloaded (resolved_target), DL = this function's
+// live-in EDX unchanged (use_alt_base), and 5 stack args in its documented order: ESI
+// (actor_index), ECX (order_code), 0 (byte_a), 0 (byte_b), and a pointer into this function's
+// own 0x84-byte local buffer (order). actor_set_mode is then called with that same ESI
+// (actor_index), mode=4 (push 0x4 at 0x40de4c, not 0 as the old placeholder had it), and the
+// same local buffer pointer as mode_data (not NULL). ECX, EDX and ESI were previously modeled
+// as a single unmapped stack parameter that the old body passed, wrongly, as if it were
+// actor_index to a zero-argument callee.
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
 
-extern int32_t actor_build_order_grenade_or_melee(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_build_order_grenade_or_melee at 0x403630
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
+extern int32_t actor_build_order_grenade_or_melee(uint32_t resolved_target, uint8_t use_alt_base,
+    uint32_t actor_index, uint16_t order_code, uint8_t byte_a, uint8_t byte_b, uint16_t *order); // 0x403630, this module
 extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0, this module
 
-// UNSURE: actor_index register not determined from the decompilation
-uint8_t actor_check_pain_reaction(datum_index actor_index)
+// blam-cc: ECX -> order_code, EDX -> use_alt_base, ESI -> actor_index, stack -> resolved_target
+uint8_t actor_check_pain_reaction(uint32_t resolved_target, uint8_t use_alt_base,
+    uint16_t order_code, datum_index actor_index)
 {
-    if (actor_build_order_grenade_or_melee(actor_index) != 0) {
-        actor_set_mode(actor_index, 0, (void *)0); // UNSURE: mode/mode_data not visible
+    uint16_t order_buffer[66]; // matches the 0x84-byte local reservation at 0x40de20
+
+    if (actor_build_order_grenade_or_melee(resolved_target, use_alt_base, actor_index, order_code,
+            0, 0, order_buffer) != 0) {
+        actor_set_mode(actor_index, 4, order_buffer);
         return 1;
     }
     return 0;

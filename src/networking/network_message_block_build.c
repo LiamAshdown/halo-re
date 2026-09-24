@@ -10,7 +10,10 @@
 // treated here as an implicit EAX return despite Ghidra's void prototype (same situation as
 // src/memory/circular_buffer_new.c).
 // register convention: existing buffer pointer or NULL in EAX, source data pointer in ECX,
-// 2-bit flag value in DL (low byte of EDX), byte length on the stack (param_1).
+// flags (2 bits used) in DL (low byte of EDX), byte length on the stack (param_1).
+// FIXED (register inputs, objdump): EDX/DL (read at 0x44035c, "mov bl,dl") carries flags; the
+// blam-cc wording ("flag bits in DL") didn't match the flags parameter name, so it wasn't
+// recognized as claimed. Reworded only; flags was already wired up correctly.
 // UNSURE: the header encoding `((flags & 3) | (length + 2) * 4) << 2` is preserved verbatim;
 // its consumer (some other module's bit-packed record format) is not recovered here.
 // UNSURE: when buffer is already non-NULL its capacity is never checked against length, so a
@@ -24,7 +27,7 @@
 
 extern void *GlobalAlloc(uint32_t flags, uint32_t bytes);
 
-// blam-cc: existing buffer (or NULL) in EAX, source pointer in ECX, flag bits in DL, byte
+// blam-cc: existing buffer (or NULL) in EAX, source pointer in ECX, flags in DL, byte
 // length in param_1 (stack)
 uint16_t *network_message_block_build(uint16_t *buffer, uint32_t *source, uint8_t flags, uint32_t length)
 {

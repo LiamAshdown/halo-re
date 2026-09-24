@@ -11,6 +11,13 @@
 //   stride 0x10), Sky.model (+0x00, tag_id at +0x0c).
 // register convention: none (void).
 // reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
+// FIXED (register inputs, objdump): EDX carries the camera position pointer (read at 0x55349f,
+//   the `call 0x5013a0` to bsp3d_node_find_leaf -- ECX and EAX are set locally in this function,
+//   0x553497/0x55349d, but EDX never is). render_camera_position (0x7c3114) is not referenced
+//   anywhere in this function's disassembly; the sole caller (0x50ba9d) passes the address of a
+//   local point it just computed (edi = ebp+4), so the old `&render_camera_position` argument
+//   was fabricated. blam-cc: EDX -> camera_position
+//   // blam-cc: EDX -> camera_position
 
 #include "tags.h"
 #include "memory.h"
@@ -23,7 +30,6 @@ extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/obje
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90, physics.h/objects.h (read, not owned)
 extern Scenario *global_scenario; // 0x00746f8c, game.h/hs.h (read, not owned)
 extern tag_instance *tag_instances; // 0x0087bc14, cache.h
-extern real_point3d render_camera_position; // 0x007c3114, this module (read, not owned)
 
 extern int32_t render_leaf_index;      // 0x007c3344, this module
 extern int32_t render_cluster_index;   // 0x007c3348, this module
@@ -37,9 +43,10 @@ extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t 
 // Resolves the render camera's current BSP leaf and cluster (falling back to the last-known leaf
 // when the point probe fails but that leaf is still in range), then caches whether that cluster
 // has a sky whose model dependency is actually set.
-void render_camera_update_leaf_and_cluster(void)
+// blam-cc: EDX -> camera_position
+void render_camera_update_leaf_and_cluster(real_point3d *camera_position)
 {
-    int32_t leaf = bsp3d_node_find_leaf(global_collision_bsp, &render_camera_position, 0);
+    int32_t leaf = bsp3d_node_find_leaf(global_collision_bsp, camera_position, 0);
 
     if (leaf == -1 && render_leaf_index < global_structure_bsp->leaves.count) {
         leaf = render_leaf_index;

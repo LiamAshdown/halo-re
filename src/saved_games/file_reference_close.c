@@ -3,7 +3,9 @@
 // name confidence: 0.8   rewrite confidence: 0.85
 // evidence: already named by Ghidra/CEA. Register convention from
 // out/phase4/saved_games_types_notes.md: "_open / _close / _delete ESI reference".
-// register convention: reference record in ESI.
+// register convention: reference record (ref) in ESI.
+// FIXED (register inputs, objdump): ESI carries ref (read at 0x555890, mov eax,[esi+0x108]);
+// the note named the param "reference record" instead of "ref", so it did not parse.
 
 #include "tags.h"
 #include "memory.h"
@@ -16,7 +18,7 @@
 extern void saved_games_report_last_error(void); // 0x556170, this module
 extern int32_t CloseHandle(void *object); // Win32
 
-// blam-cc: reference record in ESI
+// blam-cc: ref in ESI
 // Closes ref's open handle and clears it. Returns 1 on success, 0 on failure (after reporting
 // the Win32 error, leaving the stale handle in place).
 uint8_t file_reference_close(file_reference_record *ref)

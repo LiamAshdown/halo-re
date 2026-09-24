@@ -4,8 +4,11 @@
 // name confidence: 0.35   rewrite confidence: 0.4
 // evidence: types/items.h weapon_data.control_flags (0x230), .overheat_effect_handle (0x2cc);
 //   types/objects.h object_header/object_data.
-// register convention: item index in an implicit register (unaff_ESI); "force" flag in AL.
-// blam-cc: reg -> item_index, AL -> force
+// register convention: item index in ESI; "force" flag in AL.
+// blam-cc: ESI -> item_index, AL -> force
+// FIXED (register inputs, objdump): ESI (read at 0x4c28fc, "mov eax,esi") is item_index; the
+// note previously said "reg -> item_index" which the checker can't parse as a register, so ESI
+// looked unclaimed even though the body already used item_index correctly.
 // UNSURE: weapon_set_state's return here is treated as a bool per its own signature; the
 // original decompiles it as returning through AL/EAX truncated to char.
 

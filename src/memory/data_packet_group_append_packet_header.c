@@ -10,6 +10,10 @@
 // register convention: buffer base in ECX, data_packet_group* in EDX, running-cursor int16* in
 // ESI (all unaff_/in_ style in Ghidra's own decompile of this function), header byte value on the
 // stack.
+// blam-cc: ECX -> buffer, EDX -> group, ESI -> cursor, stack -> header_byte
+// FIXED (register inputs, objdump): ESI carries cursor (read at 0x4d0b60, movsx eax,[esi], the
+// first instruction); the prose note described it but did not use a parseable "REG -> name"
+// mapping, so it was dropped.
 
 #include "tags.h"
 #include "memory.h"

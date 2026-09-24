@@ -5,6 +5,11 @@
 //   0x006f1d20 is "the network / predicted-state flag every damage and seat path branches on"
 //   (types/units.h globals).
 // reconciled: R04 0x006f1d20 int32_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
+// register convention: ECX -> object_index.
+// blam-cc: ECX -> object_index
+// FIXED (register inputs, objdump): this file had no blam-cc note at all, so ECX (read at
+// 0x55e4a9, "mov eax,ecx") looked unclaimed even though the body already used object_index
+// correctly. Added the missing note.
 
 #include "tags.h"
 #include "memory.h"

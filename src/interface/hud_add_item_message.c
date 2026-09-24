@@ -6,8 +6,11 @@
 // active, adds count, stamps source, kind, game time, active and the next sequence number, and
 // clears prompt_changed. Callers: hud_post_item_message (0x4ae350) and
 // hud_receive_item_message (0x4ae200).
-// register convention: EAX local player index, ECX source, BL kind; one stack argument.
-//   // blam-cc: local_player_index -> EAX, source -> ECX, source_kind -> BL
+// register convention: EAX local player index, ECX source, BL source_kind; one stack argument.
+//   // blam-cc: EAX -> local_player_index, ECX -> source, BL -> source_kind
+// FIXED (register inputs, objdump): BL/EBX carries source_kind (pushed at 0x4ae41c as the
+// second stack argument to hud_message_find_slot, and read again after the call at 0x4ae451,
+// mov [eax+0x8a],bl); the note named it "kind" instead of "source_kind" so it did not parse.
 
 #include "tags.h"
 #include "memory.h"
@@ -23,7 +26,7 @@ extern game_time_globals *game_time;          // 0x006f1d6c
 extern hud_message_slot *hud_message_find_slot(int32_t source, hud_player_messaging_state *record,
                                                uint8_t source_kind); // 0x4ae480, blam-cc: ESI source
 
-// blam-cc: local_player_index -> EAX, source -> ECX, source_kind -> BL
+// blam-cc: EAX -> local_player_index, ECX -> source, BL -> source_kind
 void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind, int16_t count)
 {
     hud_player_messaging_state *record;

@@ -8,13 +8,13 @@
 // unknown_3ac (0x3ac), i.e. server + 0x3b4. The write target
 // `(index & 0xffff) * 0x200 + 0xd0 + player_data->data` matches types/game.h's player
 // (stride 0x200) field unknown_d0 at offset 0xd0.
-// register convention: ESI = sender (int32_t datum/object handle), stack = server
-// (network_server_globals *).
-// blam-cc: ESI -> sender, stack -> server
-// UNSURE: FUN_004d98f0's real argument is not visible at this call site (it is called with
-// no operands here, unlike its other two call sites in this batch which pass an explicit
-// byte); transcribed as a no-argument call per Ghidra, matching that function's own
-// low-confidence (0.3) summary.
+// register convention: ESI = sender (int32_t datum/object handle), EAX = step_count (forwarded
+// to player_data_iterator_advance), stack = server (network_server_globals *).
+// blam-cc: EAX -> step_count, ESI -> sender, stack -> server
+// FIXED (register inputs, objdump): EAX carries step_count (pushed at 0x4df901, right before
+// `call 0x4d98f0`); it is the argument player_data_iterator_advance.c's own header flagged as
+// "not visible at this call site" -- it is visible, just passed in through EAX rather than
+// constructed locally, and this function never writes eax before that push.
 
 #include "tags.h"
 #include "memory.h"
@@ -23,17 +23,17 @@
 #include "networking.h"
 
 extern data_array *player_data; // 0x0087a480, stride 0x200 (game module)
-extern uint32_t player_data_iterator_advance(void); // 0x4d98f0, other module;
-    // UNSURE: real parameter is register-passed and not visible at this call site
+extern uint32_t player_data_iterator_advance(int16_t step_count); // 0x4d98f0, stack -> step_count
 
 // When the session flag at server->session.unknown_3ac is set, records `sender` as the last
 // object to update the resolved player's record (player->unknown_d0), provided the resolve
 // succeeded, the resolved index is non-zero, and sender is a valid handle.
-uint32_t network_object_record_last_sender(int32_t sender, network_server_globals *server)
+uint32_t network_object_record_last_sender(int32_t sender, int16_t step_count,
+    network_server_globals *server)
 {
     uint32_t resolved;
 
-    resolved = player_data_iterator_advance();
+    resolved = player_data_iterator_advance(step_count);
     if (resolved == 0xffffffff) {
         return 0;
     }

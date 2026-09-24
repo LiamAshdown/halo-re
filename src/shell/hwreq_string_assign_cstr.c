@@ -8,7 +8,10 @@
 // evidence: types/shell.h msvc_std_string.
 // register convention: EDX = const char *s (in_EDX). Callee FUN_0057bc90 is
 //   `string::assign(const char*, size_t)`, module=lib:crt per pack.py, not this pass.
-// blam-cc: hwreq_string_assign_cstr(msvc_std_string *dest /*stack, popped by ret 4*/, const char *s /*EDX*/)
+// blam-cc: EDX -> s, stack -> dest (popped by ret 4)
+// FIXED (register inputs, objdump): the note wrote the register mapping as a call-style
+// signature annotation ("dest /*stack*/, s /*EDX*/"), which the checker does not parse as a
+// register mapping, so EDX -> s was dropped; rewritten in the plain "REG -> name" form.
 // Orphan pass 4 review (objdump 0x57b590..0x57b5ab): the destination is NOT implicit. It is the
 //   single stack argument (`mov ecx,[esp+0x8]` after one push, then `ret 0x4`), loaded into ECX
 //   as the `this` of the thiscall string::assign(const char *, size_t) at 0x57bc90, which gets

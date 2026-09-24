@@ -10,9 +10,15 @@
 // register convention: unit pointer carried over in an unresolved register (unaff_EBX) and a
 //   precomputed "should notify" flag in the zero flag (in_ZF), i.e. this is reached as a shared
 //   tail rather than called with its own fresh arguments.
-//   // blam-cc: unaff_EBX -> unit (already resolved by the caller), in_ZF -> skip_notify
+//   // blam-cc: EBX -> unit (already resolved by the caller), in_ZF -> skip_notify, EDX -> sound_definition_index
 // UNSURE: this entry point's real callers, and therefore what unit pointer and flag it actually
 //   receives, are outside this batch; modelled as explicit parameters for compilability.
+// FIXED (register inputs, objdump): EDX (read at 0x565a77, the call to sound_start_unspatialized)
+// is a genuine pass-through input -- sound_start_unspatialized.c's own recovered convention is
+// EDX -> definition_index, and this function never writes EDX before forwarding to it, so it
+// must be supplied by this function's own caller too. Added as sound_definition_index and
+// forwarded; the extern's signature (previously a placeholder `float amount`) is corrected to
+// match sound_start_unspatialized.c's real one.
 
 #include "tags.h"
 #include "memory.h"
@@ -21,13 +27,13 @@
 #include "objects.h"
 #include "units.h"
 
-extern void sound_start_unspatialized(float amount); // 0x543dd0, UNSURE signature
+extern datum_index sound_start_unspatialized(datum_index definition_index, float scale); // 0x543dd0, src/sound/sound_start_unspatialized.c
 extern void unit_invalidate_local_player_zoom_level(void);         // 0x4726f0, UNSURE: no traced args
 
-void unit_clear_weapon_switch_state(unit_data *unit, uint8_t skip_notify) // blam-cc: see file header
+void unit_clear_weapon_switch_state(unit_data *unit, uint8_t skip_notify, datum_index sound_definition_index) // blam-cc: see file header
 {
     if (!skip_notify) {
-        sound_start_unspatialized(1.0f);
+        sound_start_unspatialized(sound_definition_index, 1.0f);
     }
     unit->zoom_level = -1;
     unit->desired_zoom_level = -1;

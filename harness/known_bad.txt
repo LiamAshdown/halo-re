@@ -103,3 +103,6 @@ control_profile_copy_gamepad_bindings_by_key  # difftest: return 0xffffff00 vs 0
 control_profile_find_or_create_gamepad_slot  # difftest: rewrite crashed, original did not (unlocked by the 2026-09-24 live-in/size fixes)
 structure_bsp_collect_visible_objects  # difftest: return 0x0bad0000 vs 0 (width?) (unlocked by the 2026-09-24 live-in/size fixes)
 unit_animation_change_priority_check  # in game: null chain_value; DL flag + 5 stack args, draft has 1 flag + 4 (see file header)
+sound_adpcm_decode_sample  # difftest: returns 0 where the original returns 0x7fff (unlocked by the sbb r,r checker fix)
+data_packet_group_append_packet_header  # difftest: 3/200 packets differ in header bits
+actor_check_pain_reaction  # in game: crash via actor_build_order_grenade_or_melee (regfix batch 3 reconstructed its calls)

@@ -9,9 +9,12 @@
 // marker.node_transform.up, and the origin subtracts forward * 0.5 (the .rdata constant at
 // 0x00672abc, per types/devices.h) from marker.node_transform.position.
 // register convention: out_origin is the one Ghidra-recognized stack parameter (param_1);
-// unit_index (EDI), out_extents (EBX) and out_direction (ESI) are all unrecognized register
-// arguments Ghidra shows as unaff_*. // blam-cc: unit_index=EDI, out_extents=EBX,
-// out_direction=ESI, out_origin=stack
+//   unit_index (EDI), out_extents (EBX) and out_direction (ESI) are all unrecognized register
+//   arguments Ghidra shows as unaff_*.
+//   // blam-cc: EDI -> unit_index, EBX -> out_extents, ESI -> out_direction, stack -> out_origin
+// FIXED (register inputs, objdump): ESI carries out_direction (read at 0x492c1f, mov [esi],eax);
+// it was already named in the prose above but the note's line-wrap broke the checker's parser
+// (continuation lines need the file's usual two-space "//" indent), so ESI was silently dropped.
 
 #include "tags.h"
 #include "memory.h"

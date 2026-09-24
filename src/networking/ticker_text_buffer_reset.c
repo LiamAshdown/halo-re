@@ -13,6 +13,9 @@
 // ticker_text_buffer now lives in types/networking.h; its layout was pinned jointly from this
 // function, ticker_text_buffer_append (0x4b8a60) and ticker_text_buffer_advance (0x4b8b40),
 // and folded into the header during the review pass.
+// FIXED (register inputs, objdump): EDI (read at 0x4b8a00) was already a C parameter (self)
+//   but the "blam-cc" note said "this-pointer as EDI", which the checker's "REG -> name"
+//   parser could not read; reworded.
 
 #include "tags.h"
 #include "memory.h"
@@ -25,7 +28,7 @@ extern heap widget_memory_pool; // 0x006926c4, "widget_memory_pool" (built by 0x
 
 extern void heap_unlink_block(heap_block *block, heap *self); // 0x4d20a0
 
-// blam-cc: this-pointer as EDI
+// blam-cc: EDI -> self
 // Frees the buffer's current heap allocation (if any), updating widget_memory_pool's usage
 // totals, then resets every field to an empty buffer with the default 100 ms scroll delay.
 void ticker_text_buffer_reset(ticker_text_buffer *self)

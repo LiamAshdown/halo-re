@@ -6,12 +6,18 @@
 // `data_iterator iter` idiom already committed in game_engine_on_player_death.c.
 // register convention: a recipient-or-broadcast-all selector in EAX (in_EAX: -1 means "every
 // player", anything else is a single specific recipient handle); a gate in ESI (unaff_ESI,
-// tested every send exactly like the sibling broadcast helpers); param_1 is this function's own
-// stack parameter.
-//   // blam-cc: EAX -> recipient_or_all, unaff_ESI -> broadcast_enabled, stack -> param_1
-// UNSURE: same unrecoverable trailing chimera__kill_feed arguments (message_type, subject,
-// broadcast) as the sibling broadcast helpers in this address range; modeled as forwarded
-// parameters.
+// tested every send exactly like the sibling broadcast helpers); param_1 and subject are this
+// function's own stack parameters; broadcast is EBX.
+//   // blam-cc: EAX -> recipient_or_all, ESI -> broadcast_enabled, EBX -> broadcast, stack ->
+//   param_1, subject
+// FIXED (register inputs, objdump): EBX carries broadcast (read at 0x460d2d and again at
+// 0x460d81/0x460d90, always pushed as chimera__kill_feed's last stack argument). Working out
+// EBX also exposed two other mistakes in the old "UNSURE" forwarded arguments: what was modeled
+// as a separate "forwarded_message_type" stack parameter is really the same ESI register as
+// broadcast_enabled (pushed unchanged at every call site, right after the gate test), and what
+// was modeled as a third guessed stack parameter ("forwarded_subject") is actually this
+// function's own genuine second stack argument (loaded once into EBP at 0x460d14 and forwarded
+// unchanged); both are corrected here rather than left as separate phantom parameters.
 // reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
@@ -26,14 +32,14 @@ extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
 extern void chimera__kill_feed(datum_index recipient, int32_t param_1, uint32_t message_type,
     datum_index subject, char broadcast); // 0x460a30, this batch
 
-// blam-cc: EAX -> recipient_or_all, unaff_ESI -> broadcast_enabled, stack -> param_1
+// blam-cc: EAX -> recipient_or_all, ESI -> broadcast_enabled, EBX -> broadcast, stack -> param_1,
+//   subject
 // When `recipient_or_all` is -1, broadcasts to every in-use player (recipient = that player's
 // own handle each time); otherwise sends once, directly to `recipient_or_all`. Both paths pass
 // `param_1` (or -1 when `param_1` is itself -1) as chimera__kill_feed's own extra argument, and
-// both are gated on `broadcast_enabled`.
+// both are gated on `broadcast_enabled`, which doubles as chimera__kill_feed's message_type.
 void game_engine_broadcast_kill_feed_or_direct(datum_index recipient_or_all, int32_t broadcast_enabled,
-    int32_t param_1, uint32_t forwarded_message_type, datum_index forwarded_subject,
-    char forwarded_broadcast) // UNSURE: last 2 params
+    char broadcast, int32_t param_1, datum_index subject)
 {
     int32_t forwarded_param_1 = (param_1 == -1) ? -1 : param_1;
 
@@ -49,14 +55,13 @@ void game_engine_broadcast_kill_feed_or_direct(datum_index recipient_or_all, int
         element = data_iterator_next(&iter);
         while (element != 0) {
             if (broadcast_enabled != -1) {
-                chimera__kill_feed(iter.index, forwarded_param_1, forwarded_message_type,
-                    forwarded_subject, forwarded_broadcast);
+                chimera__kill_feed(iter.index, forwarded_param_1, broadcast_enabled, subject,
+                    broadcast);
             }
             element = data_iterator_next(&iter);
         }
     } else if (broadcast_enabled != -1) {
-        chimera__kill_feed(recipient_or_all, param_1, forwarded_message_type, forwarded_subject,
-            forwarded_broadcast);
+        chimera__kill_feed(recipient_or_all, param_1, broadcast_enabled, subject, broadcast);
     }
 }
 

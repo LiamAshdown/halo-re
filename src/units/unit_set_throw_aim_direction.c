@@ -9,6 +9,8 @@
 //   // blam-cc: EAX -> object_index, ECX -> direction_xy
 // UNSURE: the ECX operand's exact shape (only two dwords are read, at +0 and +4) is guessed as
 //   {float x, float y} rather than a full vector.
+// FIXED (register inputs, objdump): ECX carries a pointer to the {x, y} direction pair (read at
+//   0x5704ee/0x5704f1); the rewrite took two float parameters instead of the pointer.
 
 #include "tags.h"
 #include "memory.h"
@@ -22,13 +24,14 @@ extern real_vector3d *global_up3d_pointer;  // 0x00696720
 // Records the unit's grenade-throw aim direction (object.forward.x/y from the caller-supplied
 // direction, z zeroed) and a reference up-vector (the world-up constant), unless the unit is
 // currently seated in something.
-void unit_set_throw_aim_direction(uint32_t object_index, float direction_x, float direction_y)
+// blam-cc: EAX -> object_index, ECX -> direction_xy
+void unit_set_throw_aim_direction(uint32_t object_index, real_vector2d *direction_xy)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
 
     if (obj->parent_object == k_datum_index_none) {
-        obj->forward.i = direction_x;
-        obj->forward.j = direction_y;
+        obj->forward.i = direction_xy->i;
+        obj->forward.j = direction_xy->j;
         obj->forward.k = 0.0f;
         obj->up = *global_up3d_pointer;
     }

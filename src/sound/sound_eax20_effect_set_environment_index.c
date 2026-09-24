@@ -10,8 +10,11 @@
 //   siblings (0x54edf0/0x54ee30, this batch) use instead; property id 0xb is EAX 2.0's
 //   environment property, on the listener GUID; reuses sound_eax20_listener_property_guid
 //   (0x0064e2f0, this module).
-// register convention: __thiscall (ECX -> this), stack -> environment.
-// blam-cc: ECX -> this, stack -> environment
+// register convention: __thiscall (ECX -> this_object), stack -> environment.
+// blam-cc: ECX -> this_object, stack -> environment
+// FIXED (register inputs, objdump): notes said "ECX -> this" but the parameter is named
+// this_object, so the checker's alias match failed and ECX (read at 0x54ff45) looked unclaimed.
+// Body already used this_object correctly; reworded only.
 // Phase-4 review: checked instruction by instruction against the disassembly appended in the
 // #if 0 block; no semantic difference found. Unlike sound_eax1_effect_set_environment_index.c
 // (0x54edf0, this batch), the CommitDeferredSettings call here is unconditional (no success
@@ -24,7 +27,7 @@
 extern const uint8_t sound_eax20_listener_property_guid[16]; // 0x0064e2f0
 extern void *directsound_listener; // 0x00746114, IDirectSound3DListener *
 
-// blam-cc: ECX -> this, stack -> environment
+// blam-cc: ECX -> this_object, stack -> environment
 // Sets the EAX 2.0 listener's environment (id 0xb) property, then unconditionally commits
 // deferred 3D listener settings.
 void __thiscall sound_eax20_effect_set_environment_index(sound_eax_effect_object *this_object, int32_t environment)

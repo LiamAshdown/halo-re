@@ -9,11 +9,16 @@
 // sense read together with security_check_write_access's frame. Rewritten here as five explicit
 // pointer parameters (the natural, semantics-preserving translation), in EBX, ESI, EDI, then the
 // two stack-frame reads, and the caller updated to pass its five locals explicitly.
-// blam-cc: descriptor in EBX, null-sentinel comparand in ESI (always NULL here), acl in EDI,
-// sid and the two token handles read from the caller's frame -> now ordinary parameters
+// blam-cc: EBX -> descriptor, ESI -> sentinel, EDI -> acl; stack -> sid, thread_token, impersonation_token
 // UNSURE: the original's "unaff_ESI" comparand could in principle be nonzero at the call site;
-// nothing in security_check_write_access ever sets ESI to anything but 0 on this path, so this
-// rewrite compares each handle against NULL directly.
+// nothing in security_check_write_access ever sets ESI to anything but 0 on this path, but it is
+// now modeled as a genuine parameter (sentinel) rather than a hardcoded NULL.
+// FIXED (register inputs, objdump): ESI carries sentinel (read at 0x542a80, cmp ebx,esi, the
+// first instruction); it was missing, and the body compared every handle against a literal 0
+// instead of this parameter. Note: this function's only caller (security_check_write_access, not
+// in this batch) still calls it with its old 5-argument signature; that file needs updating to
+// pass its own ESI/sentinel value (always 0 on its path per the UNSURE note above) but is out of
+// scope for this pass.
 
 #include "tags.h"
 #include "memory.h"
@@ -26,23 +31,24 @@ extern void *CloseHandle(void *handle);
 extern void *FreeSid(void *sid);
 
 // Releases the SID, ACL/security-descriptor buffer, and token handles allocated inside
-// security_check_write_access.
+// security_check_write_access, each compared against `sentinel` (always NULL on the known path)
+// rather than a hardcoded 0.
 void security_check_cleanup(void *descriptor, void *acl, void *sid, void *thread_token,
-                             void *impersonation_token)
+                             void *impersonation_token, void *sentinel)
 {
-    if (descriptor != 0) {
+    if (descriptor != sentinel) {
         LocalFree(descriptor);
     }
-    if (acl != 0) {
+    if (acl != sentinel) {
         LocalFree(acl);
     }
-    if (sid != 0) {
+    if (sid != sentinel) {
         FreeSid(sid);
     }
-    if (thread_token != 0) {
+    if (thread_token != sentinel) {
         CloseHandle(thread_token);
     }
-    if (impersonation_token != 0) {
+    if (impersonation_token != sentinel) {
         CloseHandle(impersonation_token);
     }
 }

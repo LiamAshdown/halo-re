@@ -4,9 +4,12 @@
 //   mirror image of tree_find_min.c)
 // rewrite confidence: 0.6 (trivial, standard library code)
 // evidence: types/shell.h hwreq_map_node (right 0x08, is_nil 0x2d).
-// register convention: EAX = the starting node itself (in_EAX; unlike tree_find_min.c, this
+// register convention: EAX -> node, the starting node itself (unlike tree_find_min.c, this
 //   function is NOT handed a pointer-to-pointer -- it dereferences `in_EAX + 8` directly).
-// blam-cc: tree_find_max(hwreq_map_node *node /*EAX*/)
+// blam-cc: EAX -> node
+// FIXED (register inputs, objdump): notes were written as a full call signature
+// ("tree_find_max(hwreq_map_node *node /*EAX*/)") instead of a parseable "EAX -> node" mapping,
+// so EAX (read at 0x57cd20) looked unclaimed. Body already used node correctly; reworded only.
 
 #include "tags.h"
 #include "memory.h"

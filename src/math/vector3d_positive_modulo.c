@@ -9,9 +9,12 @@
 // evidence: src/math/README.md, "Misattributed functions" #5: "0x628cca is `_CIfmod` (`x` in
 //   `ST(1)`, `y` in `ST(0)`)". objdump confirms `fld [esi+N]` (x) then `fld [esp+8]` (period,
 //   the incoming stack argument) immediately before each call, matching that operand order.
-// register convention: ESI = const real_vector3d *v, EDI = real_vector3d *out, stack argument
-//   = float period.
-// blam-cc: vector3d_positive_modulo(const real_vector3d *v /*ESI*/, real_vector3d *out /*EDI*/, float period /*stack*/)
+// register convention: ESI -> v, EDI -> out, stack -> period.
+// blam-cc: ESI -> v, EDI -> out, stack -> period
+// FIXED (register inputs, objdump): the notes described ESI/EDI in prose
+// ("ESI = const real_vector3d *v ...") that the checker could not parse as a register mapping,
+// so both v (ESI, read at 0x4588e1, fld [esi]) and out (EDI, read/written at 0x45890e,
+// fstp [edi]) showed up as missing; rewritten in the plain "REG -> name" form.
 
 #include "tags.h"
 #include "math.h"
