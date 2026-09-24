@@ -24,7 +24,7 @@ uint32_t sound_channel_claim_if_finished(int16_t channel_index)
 {
     directsound_channel *channel = &directsound_channels[channel_index];
     void **vtable = *(void ***)channel->buffer;
-    int32_t (*get_status)(void *, uint32_t *) = (int32_t (*)(void *, uint32_t *))vtable[0x24 / 4];
+    int32_t (__stdcall *get_status)(void *, uint32_t *) = (int32_t (__stdcall *)(void *, uint32_t *))vtable[0x24 / 4];
     uint32_t status;
     int32_t hr = get_status(channel->buffer, &status);
 

@@ -23,8 +23,8 @@ uint32_t sound_channel_refresh_cursor(int16_t channel_index)
 {
     void *buffer = directsound_channels[channel_index].buffer;
     void **vtable = *(void ***)buffer;
-    int32_t (*get_current_position)(void *, uint32_t *, uint32_t *) =
-        (int32_t (*)(void *, uint32_t *, uint32_t *))vtable[0x10 / 4];
+    int32_t (__stdcall *get_current_position)(void *, uint32_t *, uint32_t *) =
+        (int32_t (__stdcall *)(void *, uint32_t *, uint32_t *))vtable[0x10 / 4];
     uint32_t play_cursor;
     uint32_t write_cursor;
 

@@ -43,7 +43,7 @@ void sound_channel_reset(int16_t channel_index)
         sound_channel_stream_update(channel_index, 0); // pushes a 0 the callee never reads
     } else {
         void **vtable = *(void ***)channel->buffer;
-        int32_t (*stop)(void *) = (int32_t (*)(void *))vtable[0x48 / 4];
+        int32_t (__stdcall *stop)(void *) = (int32_t (__stdcall *)(void *))vtable[0x48 / 4];
         stop(channel->buffer);
         channel->streaming_bytes = -1;
         channel->streaming = 0;

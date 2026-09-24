@@ -84,8 +84,8 @@ static void sound_directsound_probe_pool(int32_t *out_count, int32_t requested, 
 
     for (i = 0; i < requested; i++) {
         void **directsound_vtable = *(void ***)directsound;
-        int32_t (*create_sound_buffer)(void *, sound_buffer_description *, com_object **, void *) =
-            (int32_t (*)(void *, sound_buffer_description *, com_object **, void *))directsound_vtable[3];
+        int32_t (__stdcall *create_sound_buffer)(void *, sound_buffer_description *, com_object **, void *) =
+            (int32_t (__stdcall *)(void *, sound_buffer_description *, com_object **, void *))directsound_vtable[3];
         int32_t hr = create_sound_buffer(directsound, &desc, &buffers[i], (void *)0);
 
         if (hr != 0) {
@@ -93,8 +93,8 @@ static void sound_directsound_probe_pool(int32_t *out_count, int32_t requested, 
         }
 
         if (query_3d) {
-            int32_t (*query_interface)(com_object *, uint8_t *, com_object **) =
-                (int32_t (*)(com_object *, uint8_t *, com_object **))buffers[i]->vtable[0];
+            int32_t (__stdcall *query_interface)(com_object *, uint8_t *, com_object **) =
+                (int32_t (__stdcall *)(com_object *, uint8_t *, com_object **))buffers[i]->vtable[0];
             hr = query_interface(buffers[i], iid_directsound_3d_buffer, &buffers_3d[i]);
             if (hr != 0) {
                 break;
@@ -159,12 +159,12 @@ void sound_directsound_probe_channel_pools(int32_t *mono3d_count, uint32_t mono3
 
     for (i = 0; i < k_probe_pool_capacity; i++) {
         if (buffers_3d[i] != (com_object *)0) {
-            void (*release)(com_object *) = (void (*)(com_object *))buffers_3d[i]->vtable[2];
+            void (__stdcall *release)(com_object *) = (void (__stdcall *)(com_object *))buffers_3d[i]->vtable[2];
             release(buffers_3d[i]);
             buffers_3d[i] = (com_object *)0;
         }
         if (buffers[i] != (com_object *)0) {
-            void (*release)(com_object *) = (void (*)(com_object *))buffers[i]->vtable[2];
+            void (__stdcall *release)(com_object *) = (void (__stdcall *)(com_object *))buffers[i]->vtable[2];
             release(buffers[i]);
             buffers[i] = (com_object *)0;
         }

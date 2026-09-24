@@ -33,6 +33,20 @@ for p in glob.glob(os.path.join(ROOT, "src", "*", "*.c")):
         if re.search(VT, m.group(3)): stats["casts"] += 1; return m.group(1) + "(__stdcall *)" + m.group(2) + m.group(3)
         return m.group(0)
     nb = re.sub(r"(\(\s*\(\s*[\w\s\*]+?)\(\s*\*\s*\)(\s*\([^()]*(?:\([^()]*\)[^()]*)*\)\s*\)\s*)([^;]{0,120})", fix_cast, nb)
+    # function-pointer variables loaded from a vtable: "RET (*name)(ARGS) = (RET (*)(ARGS))vtable[..];" or a later
+    # "name = (RET (*)(ARGS))vtable[..];" -- both the variable's declared type and the cast become __stdcall
+    fp_vars = set()
+    for m in re.finditer(r"\b(\w+)\s*=\s*\(\s*[\w\s\*]+?\(\s*\*\s*\)\s*\([^;]*?\)\s*\)\s*([^;]{0,120});", nb):
+        if re.search(VT, m.group(2)): fp_vars.add(m.group(1))
+    for m in re.finditer(r"\(\s*\*\s*(\w+)\s*\)\s*\([^;=]*?\)\s*=\s*\(\s*[\w\s\*]+?\(\s*\*\s*\)\s*\([^;]*?\)\s*\)\s*([^;]{0,120});", nb):
+        if re.search(VT, m.group(2)): fp_vars.add(m.group(1))
+    for name in fp_vars:
+        nb, k = re.subn(r"(\b[\w][\w\s\*]*?)\(\s*\*\s*" + re.escape(name) + r"\s*\)(\s*\()", r"\1(__stdcall *" + name + r")\2", nb)
+        stats["typedefs"] += k
+        def fix_assign(m):
+            stats["casts"] += 1
+            return m.group(0).replace("(*)", "(__stdcall *)", 1)
+        nb = re.sub(r"\b" + re.escape(name) + r"\s*=\s*\(\s*[\w\s\*]+?\(\s*\*\s*\)", fix_assign, nb)
     nb = nb.replace("(__stdcall *)", "(__stdcall *)").replace("__stdcall __stdcall", "__stdcall")
     if nb != b:
         stats["files"] += 1

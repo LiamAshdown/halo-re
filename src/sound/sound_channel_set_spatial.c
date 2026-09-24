@@ -46,13 +46,13 @@ void sound_channel_set_spatial(int16_t channel_index, uint8_t spatialized, sound
 {
     directsound_channel *channel = &directsound_channels[channel_index];
     void **vtable = *(void ***)channel->buffer_3d;
-    int32_t (*set_mode)(void *, uint32_t, uint32_t) = (int32_t (*)(void *, uint32_t, uint32_t))vtable[0x48 / 4];
-    int32_t (*set_position)(void *, float, float, float, uint32_t) =
-        (int32_t (*)(void *, float, float, float, uint32_t))vtable[0x4c / 4];
-    int32_t (*set_cone_orientation)(void *, float, float, float, uint32_t) =
-        (int32_t (*)(void *, float, float, float, uint32_t))vtable[0x38 / 4];
-    int32_t (*set_velocity)(void *, float, float, float, uint32_t) =
-        (int32_t (*)(void *, float, float, float, uint32_t))vtable[0x50 / 4];
+    int32_t (__stdcall *set_mode)(void *, uint32_t, uint32_t) = (int32_t (__stdcall *)(void *, uint32_t, uint32_t))vtable[0x48 / 4];
+    int32_t (__stdcall *set_position)(void *, float, float, float, uint32_t) =
+        (int32_t (__stdcall *)(void *, float, float, float, uint32_t))vtable[0x4c / 4];
+    int32_t (__stdcall *set_cone_orientation)(void *, float, float, float, uint32_t) =
+        (int32_t (__stdcall *)(void *, float, float, float, uint32_t))vtable[0x38 / 4];
+    int32_t (__stdcall *set_velocity)(void *, float, float, float, uint32_t) =
+        (int32_t (__stdcall *)(void *, float, float, float, uint32_t))vtable[0x50 / 4];
     uint8_t mode_changed = 0;
     uint8_t dialog_class = (sound_class >= 0x2c && sound_class <= 0x2f);
 

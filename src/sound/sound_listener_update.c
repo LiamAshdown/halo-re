@@ -41,8 +41,8 @@ void sound_listener_update(sound_listener_parameters *parameters)
         sound_listener_update_fabsf(parameters->position.y - directsound_listener_cached.position.y) >= 0.05f ||
         sound_listener_update_fabsf(parameters->position.z - directsound_listener_cached.position.z) >= 0.05f ||
         directsound_initialized == 0) {
-        int32_t (*set_position)(void *, float, float, float, uint32_t) =
-            (int32_t (*)(void *, float, float, float, uint32_t))vtable[0x38 / 4];
+        int32_t (__stdcall *set_position)(void *, float, float, float, uint32_t) =
+            (int32_t (__stdcall *)(void *, float, float, float, uint32_t))vtable[0x38 / 4];
         set_position(directsound_listener, parameters->position.x, parameters->position.y,
             parameters->position.z, 0);
         directsound_listener_cached.position = parameters->position;
@@ -60,8 +60,8 @@ void sound_listener_update(sound_listener_parameters *parameters)
         }
 
         if (changed) {
-            int32_t (*set_orientation)(void *, float, float, float, float, float, float, uint32_t) =
-                (int32_t (*)(void *, float, float, float, float, float, float, uint32_t))vtable[0x34 / 4];
+            int32_t (__stdcall *set_orientation)(void *, float, float, float, float, float, float, uint32_t) =
+                (int32_t (__stdcall *)(void *, float, float, float, float, float, float, uint32_t))vtable[0x34 / 4];
             set_orientation(directsound_listener, orientation[0], orientation[1], orientation[2],
                 orientation[3], orientation[4], orientation[5], 0);
             for (i = 0; i < 6; i++) {
@@ -74,8 +74,8 @@ void sound_listener_update(sound_listener_parameters *parameters)
         sound_listener_update_fabsf(parameters->velocity.j - directsound_listener_cached.velocity.j) >= 0.01f ||
         sound_listener_update_fabsf(parameters->velocity.k - directsound_listener_cached.velocity.k) >= 0.01f ||
         directsound_initialized == 0) {
-        int32_t (*set_velocity)(void *, float, float, float, uint32_t) =
-            (int32_t (*)(void *, float, float, float, uint32_t))vtable[0x40 / 4];
+        int32_t (__stdcall *set_velocity)(void *, float, float, float, uint32_t) =
+            (int32_t (__stdcall *)(void *, float, float, float, uint32_t))vtable[0x40 / 4];
         set_velocity(directsound_listener, parameters->velocity.i, parameters->velocity.j,
             parameters->velocity.k, 0);
         directsound_listener_cached.velocity = parameters->velocity;

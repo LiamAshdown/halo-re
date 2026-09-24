@@ -65,7 +65,7 @@ void sound_channel_set_parameters(int16_t channel_index, sound_channel_parameter
 
         {
             void **vtable = *(void ***)channel->buffer;
-            int32_t (*set_volume)(void *, int32_t) = (int32_t (*)(void *, int32_t))vtable[0x3c / 4];
+            int32_t (__stdcall *set_volume)(void *, int32_t) = (int32_t (__stdcall *)(void *, int32_t))vtable[0x3c / 4];
             channel->volume = volume;
             set_volume(channel->buffer, volume);
         }
@@ -89,7 +89,7 @@ void sound_channel_set_parameters(int16_t channel_index, sound_channel_parameter
 
             if (directsound_hardware_mode != 3) {
                 void **vtable = *(void ***)channel->buffer;
-                int32_t (*set_frequency)(void *, int32_t) = (int32_t (*)(void *, int32_t))vtable[0x44 / 4];
+                int32_t (__stdcall *set_frequency)(void *, int32_t) = (int32_t (__stdcall *)(void *, int32_t))vtable[0x44 / 4];
                 set_frequency(channel->buffer, frequency);
             }
             channel->pitch = parameters->pitch;
@@ -102,8 +102,8 @@ void sound_channel_set_parameters(int16_t channel_index, sound_channel_parameter
 
             if (sound_linear_gain_to_attenuation_fabs(parameters->maximum_distance - channel->maximum_distance) >= 0.05f ||
                 directsound_initialized == 0) {
-                int32_t (*set_max_distance)(void *, float, uint32_t) =
-                    (int32_t (*)(void *, float, uint32_t))vtable_3d[0x40 / 4];
+                int32_t (__stdcall *set_max_distance)(void *, float, uint32_t) =
+                    (int32_t (__stdcall *)(void *, float, uint32_t))vtable_3d[0x40 / 4];
                 set_max_distance(channel->buffer_3d, parameters->maximum_distance, 1);
                 channel->maximum_distance = parameters->maximum_distance;
                 directsound_deferred_dirty = 1;
@@ -111,8 +111,8 @@ void sound_channel_set_parameters(int16_t channel_index, sound_channel_parameter
 
             if (sound_linear_gain_to_attenuation_fabs(parameters->minimum_distance - channel->minimum_distance) >= 0.05f ||
                 directsound_initialized == 0) {
-                int32_t (*set_min_distance)(void *, float, uint32_t) =
-                    (int32_t (*)(void *, float, uint32_t))vtable_3d[0x44 / 4];
+                int32_t (__stdcall *set_min_distance)(void *, float, uint32_t) =
+                    (int32_t (__stdcall *)(void *, float, uint32_t))vtable_3d[0x44 / 4];
                 set_min_distance(channel->buffer_3d, parameters->minimum_distance, 1);
                 channel->minimum_distance = parameters->minimum_distance;
                 directsound_deferred_dirty = 1;
@@ -121,8 +121,8 @@ void sound_channel_set_parameters(int16_t channel_index, sound_channel_parameter
             if (sound_linear_gain_to_attenuation_fabs(parameters->inner_cone_angle - channel->inner_cone_angle) >= 0.034906585f ||
                 sound_linear_gain_to_attenuation_fabs(parameters->outer_cone_angle - channel->outer_cone_angle) >= 0.034906585f ||
                 directsound_initialized == 0) {
-                int32_t (*set_cone_angles)(void *, uint32_t, uint32_t, uint32_t) =
-                    (int32_t (*)(void *, uint32_t, uint32_t, uint32_t))vtable_3d[0x34 / 4];
+                int32_t (__stdcall *set_cone_angles)(void *, uint32_t, uint32_t, uint32_t) =
+                    (int32_t (__stdcall *)(void *, uint32_t, uint32_t, uint32_t))vtable_3d[0x34 / 4];
                 uint32_t outer_degrees = (uint32_t)(int32_t)(parameters->outer_cone_angle * 57.29578f);
                 uint32_t inner_degrees = (uint32_t)(int32_t)(parameters->inner_cone_angle * 57.29578f);
                 set_cone_angles(channel->buffer_3d, inner_degrees, outer_degrees, 1); // DS3D_DEFERRED
@@ -134,8 +134,8 @@ void sound_channel_set_parameters(int16_t channel_index, sound_channel_parameter
             if (sound_linear_gain_to_attenuation_fabs(parameters->outer_cone_gain - channel->cone_outside_gain) >= 0.001f ||
                 directsound_initialized == 0) {
                 // IDirectSound3DBuffer::SetConeOutsideVolume (3D buffer vtable +0x3c), deferred
-                int32_t (*set_cone_outside_volume)(void *, int32_t, uint32_t) =
-                    (int32_t (*)(void *, int32_t, uint32_t))vtable_3d[0x3c / 4];
+                int32_t (__stdcall *set_cone_outside_volume)(void *, int32_t, uint32_t) =
+                    (int32_t (__stdcall *)(void *, int32_t, uint32_t))vtable_3d[0x3c / 4];
                 int32_t volume = sound_linear_gain_to_attenuation(parameters->outer_cone_gain, 0);
                 set_cone_outside_volume(channel->buffer_3d, volume, 1);
                 channel->cone_outside_gain = parameters->outer_cone_gain;

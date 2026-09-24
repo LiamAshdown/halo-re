@@ -45,13 +45,13 @@ void sound_driver_dispose(void)
 
         if (buffer_3d != 0) {
             void **vtable = *(void ***)buffer_3d;
-            void (*release)(void *) = (void (*)(void *))vtable[2];
+            void (__stdcall *release)(void *) = (void (__stdcall *)(void *))vtable[2];
             release(buffer_3d);
         }
         if (buffer != 0) {
             void **vtable = *(void ***)buffer;
-            void (*stop)(void *) = (void (*)(void *))vtable[0x48 / 4];
-            void (*release)(void *) = (void (*)(void *))vtable[2];
+            void (__stdcall *stop)(void *) = (void (__stdcall *)(void *))vtable[0x48 / 4];
+            void (__stdcall *release)(void *) = (void (__stdcall *)(void *))vtable[2];
             stop(buffer);
             release(buffer);
         }
@@ -60,7 +60,7 @@ void sound_driver_dispose(void)
 
     if (global_sound_effect_object != 0) {
         void **vtable = *(void ***)global_sound_effect_object;
-        void (*shutdown)(void *) = (void (*)(void *))vtable[0];
+        void (__stdcall *shutdown)(void *) = (void (__stdcall *)(void *))vtable[0];
         shutdown(global_sound_effect_object);
         free(global_sound_effect_object);
         global_sound_effect_object = 0;
@@ -69,23 +69,23 @@ void sound_driver_dispose(void)
 
     if (directsound_listener != 0) {
         void **vtable = *(void ***)directsound_listener;
-        void (*release)(void *) = (void (*)(void *))vtable[2];
+        void (__stdcall *release)(void *) = (void (__stdcall *)(void *))vtable[2];
         release(directsound_listener);
         directsound_listener = 0;
     }
 
     if (directsound_primary_buffer != 0) {
         void **vtable = *(void ***)directsound_primary_buffer;
-        void (*release)(void *) = (void (*)(void *))vtable[2];
+        void (__stdcall *release)(void *) = (void (__stdcall *)(void *))vtable[2];
         release(directsound_primary_buffer);
         directsound_primary_buffer = 0;
     }
 
     if (directsound != 0) {
         void **vtable = *(void ***)directsound;
-        int32_t (*set_cooperative_level)(void *, void *, uint32_t) =
-            (int32_t (*)(void *, void *, uint32_t))vtable[0x18 / 4];
-        void (*release)(void *) = (void (*)(void *))vtable[2];
+        int32_t (__stdcall *set_cooperative_level)(void *, void *, uint32_t) =
+            (int32_t (__stdcall *)(void *, void *, uint32_t))vtable[0x18 / 4];
+        void (__stdcall *release)(void *) = (void (__stdcall *)(void *))vtable[2];
         void *active_window = GetActiveWindow();
 
         set_cooperative_level(directsound, active_window, 1);

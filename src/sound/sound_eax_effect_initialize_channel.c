@@ -31,8 +31,8 @@ int32_t __thiscall sound_eax_effect_initialize_channel(sound_eax_effect_object *
     directsound_channel *channel = &directsound_channels[channel_index];
     void **property_set_out = &this_object->channel_property_sets[channel_index];
     void **vtable = *(void ***)channel->buffer_3d;
-    int32_t (*query_interface)(void *, const uint8_t *, void **) =
-        (int32_t (*)(void *, const uint8_t *, void **))vtable[0];
+    int32_t (__stdcall *query_interface)(void *, const uint8_t *, void **) =
+        (int32_t (__stdcall *)(void *, const uint8_t *, void **))vtable[0];
     int32_t result = query_interface(channel->buffer_3d, sound_eax_property_set_guid, property_set_out);
 
     return (result >= 0 && *property_set_out != 0) ? 1 : 0;

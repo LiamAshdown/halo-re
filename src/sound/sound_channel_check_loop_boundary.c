@@ -29,8 +29,8 @@ directsound_channel_state sound_channel_check_loop_boundary(int16_t channel_inde
 
     if (channel->state != 0 && channel->source_end_cursor != -1) {
         void **vtable = *(void ***)channel->buffer;
-        int32_t (*get_current_position)(void *, int32_t *, int32_t *) =
-            (int32_t (*)(void *, int32_t *, int32_t *))vtable[0x10 / 4];
+        int32_t (__stdcall *get_current_position)(void *, int32_t *, int32_t *) =
+            (int32_t (__stdcall *)(void *, int32_t *, int32_t *))vtable[0x10 / 4];
         int32_t play_cursor;
         int32_t write_cursor_unused;
         int32_t end = channel->source_end_cursor;
