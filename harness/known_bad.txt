@@ -89,3 +89,5 @@ object_type_override_call_0x7c                     # calls a function pointer wi
 widget_list_notify                                 # calls a function pointer with no arguments; the original pushes arguments before its indirect call(s)
 render_window                                      # calls a function pointer with no arguments; the original pushes arguments before its indirect call(s)
 projectile_solve_straight_line                     # ai: out_direction differs on random inputs (after the stack-order fix made it testable)
+path_find_trace_bsp_boundary  # in game: endless loop in the pathfinder (rewrite confidence 0.1; recursive call passes the caller's result)
+path_find_trace_cluster_boundary  # rewrite confidence 0.1, same Ghidra-shaped walk as path_find_trace_bsp_boundary

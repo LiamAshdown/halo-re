@@ -10,12 +10,18 @@
 // unassigned actor list", which is exactly what this stores at +0x14 when encounter_index
 // is none.
 // register convention: confirmed by objdump: EAX -> encounter_index, ECX -> iterator + 0xc.
-//   // blam-cc: EAX -> encounter_index, ECX -> iterator (offset by this rewrite, not the caller)
+//   // blam-cc: EAX -> encounter_index, ECX -> cursor
 //
 // UNSURE: the field this writes at iterator+0xc (called unknown_0c here, since
 // ai_reference_actor_iterator only names actor_index at +0x10) is never read back by
 // ai_reference_actor_iterator_next (0x4326d0, this batch); its purpose is not established.
 
+// FIXED (verified against the retail bytes and its callers): ECX is a 12-byte actor cursor
+//   {encounter_index, actor_index, next_actor}, not the iterator base. Five original callers pass a
+//   bare 12-byte local (`lea ecx,[esp+0x24]; call 0x4369f0`), and ai_reference_actor_iterator_new
+//   passes iterator+0xc. The draft added the +0xc itself, so every original caller had 12 bytes
+//   written past its cursor, over its saved registers and return address (in game: a crash inside
+//   path_find_run with EBP and EIP overwritten).
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -25,28 +31,25 @@
 extern data_array *encounter_data; // 0x008802c8
 extern ai_globals *ai_global_data; // 0x00880354
 
-// blam-cc: EAX -> encounter_index, ECX -> iterator
-// Initializes the cursor half of an ai_reference_actor_iterator: clears actor_index, and
-// seeds the "next" pointer at the encounter's first member (or, when encounter_index is
-// none, the head of the global unassigned-actor list) if the AI globals are valid.
-void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, ai_reference_actor_iterator *iterator)
+// blam-cc: EAX -> encounter_index, ECX -> cursor
+// cursor[0] = encounter index (-1 for the unassigned actors), cursor[1] = the actor last returned
+// (reset to none), cursor[2] = the next actor to visit: the encounter's first actor, or the head of
+// the unassigned actor list.
+void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, datum_index *cursor)
 {
-    uint32_t *unknown_0c = (uint32_t *)(iterator->unknown_00 + 0x0c); // iterator+0xc, see UNSURE above
-
     if (ai_global_data->actors_valid == 0) {
         return;
     }
 
-    *unknown_0c = (uint32_t)encounter_index;
-    iterator->actor_index = (datum_index)k_datum_index_none;
+    cursor[0] = (datum_index)encounter_index;
+    cursor[1] = (datum_index)k_datum_index_none;
 
     if (encounter_index == -1) {
-        *(datum_index *)iterator->unknown_14 = ai_global_data->unknown_08;
+        cursor[2] = ai_global_data->unknown_08;
         return;
     }
 
-    *(datum_index *)iterator->unknown_14 =
-        ((encounter *)encounter_data->data)[(uint32_t)encounter_index & 0xffff].first_actor;
+    cursor[2] = ((encounter *)encounter_data->data)[(uint32_t)encounter_index & 0xffff].first_actor;
 }
 
 #if 0

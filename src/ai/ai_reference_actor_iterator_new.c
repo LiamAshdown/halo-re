@@ -24,7 +24,7 @@
 extern Scenario *global_scenario; // 0x00746f8c
 extern ai_globals *ai_global_data; // 0x00880354
 
-extern void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, ai_reference_actor_iterator *iterator); // 0x4369f0, this batch
+extern void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, datum_index *cursor); // 0x4369f0, this batch
 
 // blam-cc: ECX -> out_iterator, stack -> packed_reference
 // Initializes out_iterator to walk every actor named by a packed ai reference: every actor
@@ -64,7 +64,8 @@ void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_act
         }
     }
 
-    ai_reference_actor_iterator_init_cursor(encounter_index, out_iterator);
+    ai_reference_actor_iterator_init_cursor(encounter_index, (datum_index *)((uint8_t *)out_iterator + 0xc));
+        // the original: add ecx,0xc; jmp 0x4369f0 (the cursor is the iterator's last 12 bytes)
 }
 
 #if 0

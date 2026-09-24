@@ -138,6 +138,50 @@ static void log_counts(void)
     free(idx);
 }
 
+/* Freeze watchdog: every second, sample the game's main thread (the one that loaded this DLL) -- its EIP, the
+   code addresses on its stack, and the hooked functions called most since the last sample -- and rewrite
+   halo_watchdog.log with the last 12 samples. After a hang, that file shows the loop the thread is stuck in. */
+static HANDLE main_thread;
+static unsigned long *last_counts;
+#define WD_SAMPLES 12
+static char wd_ring[WD_SAMPLES][1024];
+static int wd_next;
+static int code_address(DWORD a) { return (a >= 0x401000 && a < 0x632000) || (a >= (DWORD)(size_t)self && a < (DWORD)(size_t)self + 0x400000); }
+static DWORD WINAPI watchdog(LPVOID unused)
+{
+    (void)unused;
+    last_counts = (unsigned long *)calloc(hook_count, sizeof *last_counts);
+    for (;;) {
+        CONTEXT c; char *s; int len, i, found = 0; unsigned k, top[3] = {0, 0, 0}; unsigned long d[3] = {0, 0, 0};
+        MEMORY_BASIC_INFORMATION mbi; char path[MAX_PATH]; FILE *f; SYSTEMTIME t;
+        Sleep(1000);
+        if (!installed) continue;
+        c.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
+        if (SuspendThread(main_thread) == (DWORD)-1) continue;
+        if (!GetThreadContext(main_thread, &c)) { ResumeThread(main_thread); continue; }
+        s = wd_ring[wd_next]; GetLocalTime(&t);
+        len = sprintf_s(s, 1024, "%02d:%02d:%02d eip=%08lx esp=%08lx ebp=%08lx stack:", t.wHour, t.wMinute, t.wSecond, c.Eip, c.Esp, c.Ebp);
+        if (VirtualQuery((void *)(size_t)c.Esp, &mbi, sizeof mbi) && mbi.State == MEM_COMMIT) {
+            DWORD *sp = (DWORD *)(size_t)c.Esp, *end = (DWORD *)((char *)mbi.BaseAddress + mbi.RegionSize);
+            for (; sp < end && found < 16 && sp < (DWORD *)(size_t)c.Esp + 4096; sp++)
+                if (code_address(*sp)) { len += sprintf_s(s + len, 1024 - len, " %08lx", *sp); found++; }
+        }
+        ResumeThread(main_thread);
+        for (k = 0; k < hook_count; k++) {
+            unsigned long now = *hook_table[k].calls, dd = now - last_counts[k]; last_counts[k] = now;
+            for (i = 0; i < 3; i++) if (dd > d[i]) { int j; for (j = 2; j > i; j--) { d[j] = d[j - 1]; top[j] = top[j - 1]; } d[i] = dd; top[i] = k; break; }
+        }
+        len += sprintf_s(s + len, 1024 - len, " | busiest:");
+        for (i = 0; i < 3 && d[i]; i++) len += sprintf_s(s + len, 1024 - len, " %s=%lu", hook_table[top[i]].name, d[i]);
+        wd_next = (wd_next + 1) % WD_SAMPLES;
+        sprintf_s(path, MAX_PATH, "%shalo_watchdog.log", base_dir);
+        if (fopen_s(&f, path, "w") == 0 && f) {
+            for (i = 0; i < WD_SAMPLES; i++) { const char *r = wd_ring[(wd_next + i) % WD_SAMPLES]; if (r[0]) fprintf(f, "%s\n", r); }
+            fclose(f);
+        }
+    }
+}
+
 BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 {
     (void)reserved;
@@ -150,6 +194,8 @@ BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
         harness_log("live globals: game_time=%p structure_bsp_index=%d", game_time, (int)global_structure_bsp_index);
         AddVectoredExceptionHandler(1, crash_logger);
         install_hooks();
+        DuplicateHandle(GetCurrentProcess(), GetCurrentThread(), GetCurrentProcess(), &main_thread, 0, FALSE, DUPLICATE_SAME_ACCESS);
+        CreateThread(NULL, 0, watchdog, NULL, 0, NULL);
     } else if (reason == DLL_PROCESS_DETACH) {
         harness_log("detach: game_time=%p structure_bsp_index=%d", game_time, (int)global_structure_bsp_index);
         log_counts();
