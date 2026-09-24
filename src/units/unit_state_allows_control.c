@@ -8,6 +8,8 @@
 //   // blam-cc: in_ECX -> unit (offset folded into the field access)
 // UNSURE: the ECX-is-unit_data identity is inferred, not confirmed against raw assembly.
 
+// reconciled: every caller passes ECX = object+0x298 (unit_data+0xa4, e.g. 0x5657a4 lea ecx,[esi+0x298]) and the
+//   function reads the signed byte at +0xb (= unit_data.animation_state, +0xaf); the draft read +0xaf from ECX.
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -15,9 +17,9 @@
 #include "objects.h"
 #include "units.h"
 
-uint8_t unit_state_allows_control(unit_data *unit) // blam-cc: in_ECX -> unit
+uint8_t unit_state_allows_control(const uint8_t *animation_block) // blam-cc: ECX -> animation_block
 {
-    switch (unit->animation_state) {
+    switch ((int8_t)animation_block[0xb]) {       // 0x565ca0: movsx ecx,BYTE PTR [ecx+0xb]
     case 1: case 2: case 3:
     case 0x17: case 0x1a: case 0x1b: case 0x1c: case 0x1d: case 0x1e: case 0x1f:
     case 0x21: case 0x22: case 0x23: case 0x27: case 0x29:

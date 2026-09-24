@@ -63,7 +63,7 @@ extern void object_delete_teardown(uint32_t object_index);                      
 extern object * object_try_and_get(datum_index object_index, uint32_t type_mask);         // 0x4f6ec0
 extern void object_copy_default_node_transforms(uint32_t unit_index);                                           // 0x4f6b70, EAX=unit_index implicit  // real signature (object_copy_default_node_transforms.c): void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count); Ghidra recovered 1 of 2 args at this call site
 extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_label, char *weapon_label, uint8_t test_only); // 0x5651e0
-extern uint8_t unit_animation_state_is_compatible(unit_data *unit, int16_t requested_state);                       // 0x565be0, UNSURE registers
+extern uint8_t unit_animation_state_is_compatible(const uint8_t *animation_block, int16_t requested_state);                       // 0x565be0, UNSURE registers
 extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state);      // 0x565f90
 extern int32_t unit_pick_random_spawned_actor_count(uint32_t unit_index);                                        // 0x568540, EDI=unit_index implicit
 extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); // 0x569970
@@ -165,7 +165,7 @@ after_early_flags:
         transition_class = 1;
         // UNSURE: the original decompilation shows this call with no visible arguments; ECX and
         // DX are presumed to carry the unit's tag data and its current animation_state.
-        uint32_t compatible = unit_animation_state_is_compatible((unit_data *)unit_tag, unit->animation_state);
+        uint32_t compatible = unit_animation_state_is_compatible((const uint8_t *)unit + 0xa4, unit->animation_state) /* 0x567128: lea ecx,[esi+0x298] */;
         if (compatible != 0) goto class_assigned;
         should_stand = 0;
     } else {

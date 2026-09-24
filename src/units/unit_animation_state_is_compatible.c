@@ -13,6 +13,8 @@
 // UNSURE: the ECX-is-unit_data identity is inferred from the +0xb arithmetic lining up with
 //   animation_state, not confirmed against the raw call-site assembly.
 
+// reconciled: every caller passes ECX = object+0x298 (unit_data+0xa4, e.g. 0x5657a4 lea ecx,[esi+0x298]) and the
+//   function reads the signed byte at +0xb (= unit_data.animation_state, +0xaf); the draft read +0xaf from ECX.
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -20,9 +22,9 @@
 #include "objects.h"
 #include "units.h"
 
-uint8_t unit_animation_state_is_compatible(unit_data *unit, int16_t requested_state) // blam-cc: see file header
+uint8_t unit_animation_state_is_compatible(const uint8_t *animation_block, int16_t requested_state) // blam-cc: ECX -> animation_block, DX -> requested_state
 {
-    switch (unit->animation_state) {
+    switch ((int8_t)animation_block[0xb]) {       // 0x565be0: movsx ecx,BYTE PTR [ecx+0xb]
     case 2:
     case 3:
     case 0x25:

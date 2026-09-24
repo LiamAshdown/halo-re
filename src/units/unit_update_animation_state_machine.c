@@ -40,20 +40,26 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern void *unit_base_animation_state_names[6]; // 0x0069fde4, PTR_DAT_0069fde4
 
 extern void model_animation_get_frame_delta(void *model_data);                          // 0x4d4a00, UNSURE
-extern void *object_get_world_matrix(void);                                             // 0x4f6a20, UNSURE  // real signature (object_get_world_matrix.c): real_matrix4x3 * object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out); Ghidra recovered 0 of 2 args at this call site
+extern void *object_get_world_matrix(void);                                             // 0x4f6a20, UNSURE
+  // real signature (object_get_world_matrix.c): real_matrix4x3 * object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out); Ghidra recovered 0 of 2 args at this call site
 // matrix4x3_transform_vector (0x4cbe50) transforms the vector in one register by the matrix in
 // another and writes the result through the third; Ghidra binds a different subset at each call
 // site in this module, so the declaration is left unprototyped.
 extern void matrix4x3_transform_vector();
-extern void object_delete_teardown(void);                                                // 0x4edc80, UNSURE: no traced args  // real signature (object_delete_teardown.c): void object_delete_teardown(uint32_t object_index); Ghidra recovered 0 of 1 args at this call site
-extern void object_set_collision_enabled(uint32_t not_invisible);                                        // 0x4f6850, UNSURE  // real signature (object_set_collision_enabled.c): void object_set_collision_enabled(uint32_t object_index, uint8_t enable); Ghidra recovered 1 of 2 args at this call site
-extern void object_copy_default_node_transforms(void);                                                          // 0x4f6b70  // real signature (object_copy_default_node_transforms.c): void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count); Ghidra recovered 0 of 2 args at this call site
+extern void object_delete_teardown(void);                                                // 0x4edc80, UNSURE: no traced args
+  // real signature (object_delete_teardown.c): void object_delete_teardown(uint32_t object_index); Ghidra recovered 0 of 1 args at this call site
+extern void object_set_collision_enabled(uint32_t not_invisible);                                        // 0x4f6850, UNSURE
+  // real signature (object_set_collision_enabled.c): void object_set_collision_enabled(uint32_t object_index, uint8_t enable); Ghidra recovered 1 of 2 args at this call site
+extern void object_copy_default_node_transforms(void);                                                          // 0x4f6b70
+  // real signature (object_copy_default_node_transforms.c): void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count); Ghidra recovered 0 of 2 args at this call site
 extern void unit_reset_ground_adjust_state(uint32_t object_index);                                                          // 0x55ad00, UNSURE: no traced args
-extern uint8_t unit_animation_state_is_compatible(unit_data *unit, int16_t requested_state); // 0x565be0
-extern uint8_t unit_state_allows_control(unit_data *unit);                               // 0x565ca0
+extern uint8_t unit_animation_state_is_compatible(const uint8_t *animation_block, int16_t requested_state); // 0x565be0, ECX = unit+0xa4
+extern uint8_t unit_state_allows_control(const uint8_t *animation_block);             // 0x565ca0, ECX = unit+0xa4
 extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state);      // 0x565f90
-extern void unit_pick_random_spawned_actor_count(void);                                                          // 0x568540, UNSURE: no traced args  // real signature (unit_pick_random_spawned_actor_count.c): int32_t unit_pick_random_spawned_actor_count(uint32_t unit_index); Ghidra recovered 0 of 1 args at this call site
-extern void unit_notify_weapon_removed_dup(void);                                                          // 0x56ab30, UNSURE: no traced args  // real signature (unit_notify_weapon_removed_dup.c): void unit_notify_weapon_removed_dup(int32_t object_index, int16_t new_state); Ghidra recovered 0 of 2 args at this call site
+extern void unit_pick_random_spawned_actor_count(void);                                                          // 0x568540, UNSURE: no traced args
+  // real signature (unit_pick_random_spawned_actor_count.c): int32_t unit_pick_random_spawned_actor_count(uint32_t unit_index); Ghidra recovered 0 of 1 args at this call site
+extern void unit_notify_weapon_removed_dup(void);                                                          // 0x56ab30, UNSURE: no traced args
+  // real signature (unit_notify_weapon_removed_dup.c): void unit_notify_weapon_removed_dup(int32_t object_index, int16_t new_state); Ghidra recovered 0 of 2 args at this call site
 extern char * unit_get_current_weapon_label(uint32_t unit_index);                                // 0x56dfd0, UNSURE signature
 extern void unit_release_thrown_grenade(uint32_t object_index, uint8_t apply_throw_fraction);             // 0x56e440
 extern uint16_t unit_reset_light_effect(datum_index effect_index);                                        // 0x56ec10, UNSURE
@@ -95,7 +101,7 @@ uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *
         if (unit->unknown_28b != 0) {
             category = 5;
         }
-        if (unit->base_animation_state != category && unit_animation_state_is_compatible(unit, category)) {
+        if (unit->base_animation_state != category && unit_animation_state_is_compatible((const uint8_t *)unit + 0xa4, category)) {
             char *weapon_label = unit_get_current_weapon_label(1);
             unit_set_or_test_seat_and_weapon_label(unit_index, (char *)unit_base_animation_state_names[category],
                                                     weapon_label, 0);
@@ -185,7 +191,7 @@ uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *
             default:
                 break;
             }
-            if (!unit_state_allows_control(unit)) {
+            if (!unit_state_allows_control((const uint8_t *)unit + 0xa4)) {
                 skip_animation_request = 1;
             }
         }
@@ -206,7 +212,7 @@ uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *
     }
 
     if (skip_animation_request || (requested_state != unit->animation_state &&
-                                    unit_animation_state_is_compatible(unit, requested_state))) {
+                                    unit_animation_state_is_compatible((const uint8_t *)unit + 0xa4, requested_state))) {
         unit_try_set_animation_state(unit_index, requested_state);
     }
     return need_retry;
