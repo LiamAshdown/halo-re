@@ -58,6 +58,10 @@ for p in files:
         if er != dr and not (er in "iv" and dr in "iv"): problems.append(f"return {er} vs {dr}")
         if problems:
             mism.append({"caller": os.path.relpath(p, ROOT), "callee": n, "definition": dfile, "declared": m.group(0).strip()[:200], "problems": problems})
-json.dump(mism, open(os.path.join(ROOT, "out", "prototype_mismatches.json"), "w"), indent=1)
+out_p = os.path.join(ROOT, "out", "prototype_mismatches.json")
+if mods and os.path.exists(out_p):   # a subset run replaces only those modules' entries (harness/gen_hooks.py reads the file)
+    keep = [m for m in json.load(open(out_p)) if m["caller"].replace("\\", "/").split("/")[1] not in mods]
+    mism = keep + mism
+json.dump(mism, open(out_p, "w"), indent=1)
 by = collections.Counter(m["caller"].split(os.sep)[1] for m in mism)
 print("extern declarations that disagree with the definition:", len(mism), "in", len({m['caller'] for m in mism}), "files;", dict(by.most_common()))
