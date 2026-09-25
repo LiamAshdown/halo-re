@@ -12075,15 +12075,6 @@
   ]
  },
  {
-  "caller": "src\\objects\\object_get_node_local_transform.c",
-  "callee": "model_markers_get_by_name",
-  "definition": "src\\models\\model_markers_get_by_name.c",
-  "declared": "extern int32_t model_markers_get_by_name(uint8_t *permutation_table, uint32_t reserved,\n                                          void *node_array, uint32_t flags_arg, object_marker *out,\n            ",
-  "problems": [
-   "6 parameters declared, 8 defined"
-  ]
- },
- {
   "caller": "src\\objects\\object_get_or_build_render_permutation.c",
   "callee": "euler_angles_to_basis_vectors",
   "definition": "src\\math\\euler_angles_to_basis_vectors.c",

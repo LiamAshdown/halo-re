@@ -60,13 +60,24 @@ void unit_get_camera_position(uint32_t unit_index, real_point3d *out) // blam-cc
             out->z = height * biped_tag->crouching_camera_height + (1.0f - height) * biped_tag->standing_camera_height + out->z;
             return;
         }
-        if (unit->gunner_unit_index != k_datum_index_none) {
-            object_get_node_local_transform(unit_index, (char *)0, &marker, 0); // UNSURE: marker name unrecovered
-            *out = marker.transform.position;
-            return;
+        if (unit->gunner_unit_index == k_datum_index_none) {
+            // 0x569073: no gunner -- the unit's own "head" marker
+            object_get_node_local_transform(unit_index, (char *)"head", &marker, 1);
+        } else {
+            // 0x569083: this unit's own seat block, indexed by the GUNNER's seat index -- that seat's marker
+            object *gunner = ((object_header *)object_data->data)[unit->gunner_unit_index & 0xffff].data;
+            Unit *unit_tag = (Unit *)tag_instances[unit_obj->definition_tag & 0xffff].data;
+            UnitSeat *seat = (UnitSeat *)unit_tag->seats.pointer +
+                ((unit_data *)((uint8_t *)gunner + k_unit_data_offset))->vehicle_seat_index;
+            object_get_node_local_transform(unit_index, seat->marker_name.string, &marker, 1);
         }
+        *out = marker.transform.position;
+        return;
     } else {
+        // 0x5690d7: seated in a parent -- start from the parent's position
         object *parent = ((object_header *)object_data->data)[unit_obj->parent_object & 0xffff].data;
+        Unit *parent_tag;
+        UnitSeat *seat;
         *out = parent->position;
         if ((_object_mask_unit & (1 << (parent->type & 0x1f))) == 0) {
             return;
@@ -74,21 +85,16 @@ void unit_get_camera_position(uint32_t unit_index, real_point3d *out) // blam-cc
         if (unit->vehicle_seat_index == -1) {
             return;
         }
-        if (parent->type == _object_type_vehicle) {
-            Unit *parent_tag = (Unit *)tag_instances[parent->definition_tag & 0xffff].data;
-            UnitSeat *seat = (UnitSeat *)parent_tag->seats.pointer + unit->vehicle_seat_index;
-            if (seat->camera_marker_name.string[0] == '\0') {
-                return;
-            }
-            object_get_node_local_transform(unit_index, seat->camera_marker_name.string, &marker, 0);
-            *out = marker.transform.position;
-            return;
+        parent_tag = (Unit *)tag_instances[parent->definition_tag & 0xffff].data;
+        seat = (UnitSeat *)parent_tag->seats.pointer + unit->vehicle_seat_index;
+        if (parent->type == _object_type_vehicle && seat->camera_marker_name.string[0] == '\0') {
+            return;   // only a vehicle parent checks for an empty name; a biped parent is queried regardless
         }
+        // 0x569147: the PARENT's marker named by the seat's camera_marker_name
+        object_get_node_local_transform(unit_obj->parent_object, seat->camera_marker_name.string, &marker, 1);
+        *out = marker.transform.position;
+        return;
     }
-
-    object_get_node_local_transform(unit_index, (char *)0, &marker, 0); // UNSURE: marker name unrecovered
-    *out = marker.transform.position;
-    return;
 }
 
 #if 0

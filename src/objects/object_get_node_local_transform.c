@@ -8,8 +8,8 @@
 //   node_transform real_matrix4x3 0x38); object (region_permutations 0x180, flags 0x10 with
 //   _object_mirrored_geometry_bit, nodes.offset 0x1f2); types/math.h real_matrix4x3
 //   (scale/forward/left/up/position); callee model_markers_get_by_name 0x4d7850.
-// register convention: object index in EAX (param_1), marker name in ECX (param_2), destination
-//   object_marker* in EDX (param_3), stack argument param_4 forwarded unchanged to
+// register convention (corrected, see FIXED below): all four arguments on the stack -- object index,
+//   marker name, destination object_marker*, and param_4, forwarded unchanged to
 //   model_markers_get_by_name.
 // UNSURE: when re-deriving the identity-fallback field offsets by hand from the decompiled
 //   pointer arithmetic (param_3 is a short* here, so "param_3+N" is a byte offset of 2*N), the
@@ -24,22 +24,31 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "cache.h"
 #include "objects.h"
 
 extern data_array *object_data; // 0x008603b0
 
-extern int32_t model_markers_get_by_name(uint8_t *permutation_table, uint32_t reserved,
-                                          void *node_array, uint32_t flags_arg, object_marker *out,
-                                          uint32_t name_arg); // 0x4d7850
+extern tag_instance *tag_instances; // 0x0087bc14
+extern int16_t model_markers_get_by_name(datum_index model_tag_id, const char *name, uint8_t *region_permutations,
+                                         int16_t *node_remap, real_matrix4x3 *node_matrices, uint8_t mirrored,
+                                         object_marker *out, int16_t maximum); // 0x4d7850; ECX model_tag_id, EAX name
 
+// FIXED (objdump 0x4f6080): all four arguments are on the stack in declaration order ([esp+4] object index,
+//   [esp+0x10] from entry the flag); the notes named EAX/ECX/EDX, which the original never reads.
 int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
                                          uint32_t param_4)
-    // blam-cc: EAX -> object_index, ECX -> marker_name, EDX -> marker, stack -> param_4
+    // blam-cc: stack -> object_index, marker_name, marker, param_4
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     void *node_array = (uint8_t *)obj + obj->nodes.offset;
-    int32_t result = model_markers_get_by_name(obj->region_permutations, 0, node_array,
-        (obj->flags >> 0xc) & 0xffffff01, marker, param_4); // UNSURE: see file header
+    // 0x4f60b2..0x4f60e4: ECX = the object definition's model tag (+0x34), EAX = the marker name; on the stack
+    // the region permutations (+0x180), no node remap, the node matrices, the mirrored bit (flags bit 12),
+    // the output marker and param_4 as the maximum
+    int32_t result = model_markers_get_by_name(
+        *(datum_index *)((uint8_t *)tag_instances[obj->definition_tag & 0xffff].data + 0x34), marker_name,
+        (uint8_t *)obj + 0x180, (int16_t *)0, (real_matrix4x3 *)node_array, (uint8_t)((obj->flags >> 0xc) & 1),
+        marker, (int16_t)param_4);
 
     if ((int16_t)result == 0) {
         marker->node_index = 0;
