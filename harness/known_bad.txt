@@ -106,3 +106,8 @@ unit_animation_change_priority_check  # in game: null chain_value; DL flag + 5 s
 sound_adpcm_decode_sample  # difftest: returns 0 where the original returns 0x7fff (unlocked by the sbb r,r checker fix)
 data_packet_group_append_packet_header  # difftest: 3/200 packets differ in header bits
 actor_check_pain_reaction  # in game: crash via actor_build_order_grenade_or_melee (regfix batch 3 reconstructed its calls)
+server_browser_custom_options_unpack  # difftest: tester process died
+player_customization_slot_set  # difftest: return 0 vs 1 on 7/200
+physics_shape_pill_test_ray  # difftest: return 0x..00 vs 0 (byte return?)
+network_server_validate_join_request  # difftest: returns 4 where the original returns 5
+decal_plane_solve_third_axis  # difftest: rewrite crashed on 91/163 inputs (register notes fixed in regfix batch 5)

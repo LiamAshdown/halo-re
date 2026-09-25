@@ -13,6 +13,9 @@
 // heap_reallocate.c and data_packet_group_encode_packet.c). Reconstructed as EDI, matching
 // heap_allocate_raw's own established register for the same parameter, on the assumption it is
 // passed through unchanged; this could not be independently confirmed.
+// blam-cc: EAX -> new_size, EBX -> old_block, stack -> self
+// FIXED (register inputs, objdump): this file had no blam-cc note at all; objdump confirms `self`
+// is genuinely a stack argument (`mov edi,[esp+0x8]` at 0x4d202b/0x4d2049), not EDI-passed.
 
 #include "tags.h"
 #include "memory.h"

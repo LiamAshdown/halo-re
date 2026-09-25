@@ -88,6 +88,7 @@ def clobbers(addr, depth=0):
     writes anywhere in its body (up to the next known function entry), plus those of its direct callees and of a
     tail jump into another function. A register pushed before its first write and popped again is preserved.
     Indirect calls, imports and anything not analysable clobber all three (the old assumption)."""
+    if addr in _KNOWN_CLOBBER: return set(_KNOWN_CLOBBER[addr])
     if addr in _CLOBBER_MEMO: return _CLOBBER_MEMO[addr]
     busy = _TLS.__dict__.setdefault("cbusy", set())
     if addr in busy or depth > 8 or not (0x401000 <= addr < 0x632000): return set(_SCRATCH)
@@ -140,8 +141,14 @@ def clobbers(addr, depth=0):
     _CLOBBER_MEMO[addr] = res
     return res
 
+# runtime routines whose register use the generic scan misreads: 0x628240 is the CRT stack probe (_chkstk): size in
+# EAX, it saves ECX with push and restores it with mov ecx,[eax] (not pop), and leaves only EAX changed
+_KNOWN_LIVE = {0x628240: ["eax"]}
+_KNOWN_CLOBBER = {0x628240: {"eax"}}
+
 def live_in_of(addr, depth=0):
     """memoised live_in for a call target; a recursive cycle contributes nothing"""
+    if addr in _KNOWN_LIVE: return _KNOWN_LIVE[addr]
     if addr in _LIVE_MEMO: return _LIVE_MEMO[addr]
     busy = _TLS.__dict__.setdefault("busy", set())
     if addr in busy or not (0x401000 <= addr < 0x632000): return []
@@ -150,7 +157,101 @@ def live_in_of(addr, depth=0):
     busy.discard(addr); _LIVE_MEMO[addr] = r
     return r
 
+_FULL = {"eax": "eax", "ax": "eax", "al": "eax", "ah": "eax", "ecx": "ecx", "cx": "ecx", "cl": "ecx", "ch": "ecx",
+        "edx": "edx", "dx": "edx", "dl": "edx", "dh": "edx", "ebx": "ebx", "bx": "ebx", "bl": "ebx", "bh": "ebx",
+        "esi": "esi", "si": "esi", "edi": "edi", "di": "edi"}
+_regs_in = lambda s: {_FULL[x] for x in re.findall(r"\b(e?[abcd]x|[abcd][lh]|e?si|e?di)\b", s)}
+
+def _insns_of(addr, end):
+    out = subprocess.run([OBJDUMP, "-d", "-M", "intel", "--no-show-raw-insn", f"--start-address=0x{addr:x}",
+                          f"--stop-address=0x{end:x}", os.path.join(ROOT, "bin", "halo.exe")], capture_output=True, text=True).stdout
+    res = []
+    for l in out.splitlines():
+        m = re.match(r"\s*([0-9a-f]+):\s+(\w+)\s*(.*)$", l.rstrip(chr(13)))
+        if m: res.append((int(m.group(1), 16), m.group(2), m.group(3).split("#")[0].split("<")[0].strip()))
+    return res
+
+def _rw(op, args, popped, depth):
+    """(reads, writes) of one instruction, same idioms as gen_hooks.live_in"""
+    parts = [a.strip() for a in re.split(r",(?![^\[]*\])", args)] if args else []
+    dst, srcs = (parts[0], parts[1:]) if parts else ("", [])
+    a_ = args.replace(" ", "")
+    if op == "push" and re.fullmatch(r"e?[abcd]x|e?si|e?di", args) and args in popped: return set(), set()
+    if op == "pop": return set(), _regs_in(args)
+    if (op == "lea" and re.fullmatch(r"(e[a-d]x|e[sd]i),(?:DWORDPTR)?\[\1(?:\+0x0|\+eiz\*1\+0x0)?\]", a_)) or \
+       (op == "mov" and re.fullmatch(r"(e[a-d]x|e[sd]i),\1", a_)): return set(), set()
+    if op in ("xor", "sub", "sbb") and len(parts) == 2 and parts[0] == parts[1] and parts[0] in _FULL: return set(), {_FULL[parts[0]]}
+    if len(parts) == 2 and parts[0] in _FULL and ((op == "or" and parts[1] in ("0xffffffff", "0xffff", "0xff")) or (op == "and" and parts[1] == "0x0")):
+        return set(), {_FULL[parts[0]]}
+    reads, writes = set(), set()
+    for s_ in srcs: reads |= _regs_in(s_)
+    if "[" in dst: reads |= _regs_in(dst)
+    elif op == "push": reads |= _regs_in(dst)
+    elif not (op in ("mov", "movzx", "movsx", "lea", "fnstsw", "fstsw", "lahf", "rdtsc", "cpuid") or op.startswith("set")):
+        reads |= _regs_in(dst)
+    rep = op.startswith("rep"); sop = (args.split() or [""])[0] if rep else op
+    if "xmm" not in args:
+        sop = re.sub(r"[bwd]$", "", sop) if sop not in ("movs", "stos", "lods", "scas", "cmps") else sop
+        reads |= {"movs": {"esi", "edi"}, "cmps": {"esi", "edi"}, "stos": {"edi", "eax"}, "scas": {"edi", "eax"},
+                  "lods": {"esi"}}.get(sop, set()) | ({"ecx"} if rep else set())
+    if op == "cdq": reads |= {"eax"}; writes.add("edx")
+    if op in ("div", "idiv", "mul", "imul") and len(parts) == 1: reads |= {"eax"}; writes |= {"eax", "edx"}
+    if "[" not in dst and dst and op != "push": writes |= _regs_in(dst)
+    if op == "call":
+        c = re.fullmatch(r"0x([0-9a-f]+)", args)
+        if c and depth < 6: reads |= set(live_in_of(int(c.group(1), 16), depth + 1))
+        writes |= clobbers(int(c.group(1), 16)) if c else {"eax", "ecx", "edx"}
+    return reads, writes
+
 def live_in(addr, size, _depth=0):
+    """registers the original reads before writing them on SOME path from its entry: backward liveness over the
+    function's control-flow graph (all branch directions, loops to a fixpoint; forward and backward jumps inside
+    the function, tail jumps adding the target's inputs, calls reading the callee's inputs and writing only the
+    scratch registers the callee changes). push r is a save when r is popped somewhere. The earlier version
+    followed the fall-through path only and missed inputs read on other branches."""
+    depth = _depth
+    end = pop_limit(addr, size)
+    ins = _insns_of(addr, end)
+    if not ins: return []
+    popped = {a for _, op, a in ins if op == "pop"}
+    idx = {a: k for k, (a, _, _) in enumerate(ins)}
+    succ, use, dfn = [], [], []
+    for k, (a, op, args) in enumerate(ins):
+        s = []
+        if op in ("ret",): pass
+        elif op == "jmp":
+            j = re.fullmatch(r"0x([0-9a-f]+)", args)
+            if j and int(j.group(1), 16) in idx: s.append(idx[int(j.group(1), 16)])
+            elif j:                                       # tail jump into another function: its inputs are ours
+                pass
+        else:
+            if k + 1 < len(ins): s.append(k + 1)
+            if op.startswith("j") or op.startswith("loop"):
+                j = re.fullmatch(r"0x([0-9a-f]+)", args)
+                if j and int(j.group(1), 16) in idx: s.append(idx[int(j.group(1), 16)])
+        r_, w_ = _rw(op, args, popped, depth)
+        if op == "jmp":
+            j = re.fullmatch(r"0x([0-9a-f]+)", args)
+            if j and int(j.group(1), 16) not in idx and depth < 6: r_ = r_ | set(live_in_of(int(j.group(1), 16), depth + 1))
+        succ.append(s); use.append(r_); dfn.append(w_)
+    # reachability from the entry (the range may include the next function's padding / other code)
+    reach, stack = set(), [0]
+    while stack:
+        k = stack.pop()
+        if k in reach: continue
+        reach.add(k); stack += succ[k]
+    lin = [set() for _ in ins]
+    changed = True
+    while changed:
+        changed = False
+        for k in sorted(reach, reverse=True):
+            out = set().union(*(lin[s] for s in succ[k])) if succ[k] else set()
+            new = use[k] | (out - dfn[k])
+            if new != lin[k]: lin[k] = new; changed = True
+    return sorted(lin[0])
+
+
+def live_in_fallthrough(addr, size, _depth=0):
     """registers the original reads before writing them along its fall-through path (through conditional branches
     and calls, which clobber eax/ecx/edx, up to the first ret or jmp): its register arguments. push of a register is a save, not a use; xor r,r / sub r,r are writes."""
     r = subprocess.run([OBJDUMP, "-d", "-M", "intel", "--no-show-raw-insn", f"--start-address=0x{addr:x}",
@@ -387,10 +488,10 @@ def main():
     cache = json.load(open(cache_p)) if os.path.exists(cache_p) else {}
     key = lambda f: f"{f['addr']:x}:{f['size']}"
     FUNC_SIZES.update({f["addr"]: f["size"] for f in funcs.values()})
-    todo = [f for f in funcs.values() if key(f) not in cache or not isinstance(cache[key(f)], dict) or cache[key(f)].get("v") != 9]
+    todo = [f for f in funcs.values() if key(f) not in cache or not isinstance(cache[key(f)], dict) or cache[key(f)].get("v") != 11]
     with ThreadPoolExecutor(16) as ex:
         for f, res in zip(todo, ex.map(lambda f: (sorted(ret_cleanup(f["addr"], f["size"])), live_in(f["addr"], f["size"])), todo)):
-            cache[key(f)] = {"rets": res[0], "live_in": res[1], "v": 9}
+            cache[key(f)] = {"rets": res[0], "live_in": res[1], "v": 11}
     json.dump(cache, open(cache_p, "w"))
     for f in funcs.values(): f["rets"] = cache[key(f)]["rets"]; f["live_in"] = cache[key(f)]["live_in"]
     # reachability over the DLL's own C-to-C calls

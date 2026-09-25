@@ -12,7 +12,9 @@
 // register convention (confirmed via objdump, uninit_fill_n_string_pair.c's call site): ECX =
 //   const hwreq_string_pair *source, stack argument = hwreq_string_pair *dest. Returns `dest`
 //   in EAX (standard constructor-return convention).
-// blam-cc: string_pair_construct_empty(hwreq_string_pair *dest /*stack*/, const hwreq_string_pair *source /*ECX*/)
+// blam-cc: ECX -> source, stack -> dest
+// FIXED (register inputs, objdump): note phrasing only -- rewritten from the call-style
+// "f(x /*ECX*/)" comment the checker cannot parse into "ECX -> source, stack -> dest".
 // UNSURE: FUN_0057b830 (string::assign) is an opaque lib:crt extern, not rewritten here.
 
 #include "tags.h"

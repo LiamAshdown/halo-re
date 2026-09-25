@@ -11,7 +11,7 @@
 // register convention: EDI the list base (unaff_EDI -- never assigned in this function, so
 // it must be a register argument its caller sets up, exactly like controls_gamepad_list_find's own EDX
 // argument); the record to match in the one recovered stack parameter (param_1).
-//   // blam-cc: list -> EDI
+//   // blam-cc: EDI -> list
 
 #include "tags.h"
 #include "memory.h"
@@ -28,7 +28,9 @@ extern int32_t controls_available_gamepad_count;           // 0x0071944c
 
 extern int32_t controls_gamepad_list_find(const controls_gamepad_record *entry, controls_gamepad_record *list); // 0x4b5760, this module
 
-// blam-cc: list -> EDI
+// blam-cc: EDI -> list
+// FIXED (register inputs, objdump): note phrasing only -- rewritten from the reversed
+// "name -> REG" form the checker cannot parse.
 uint8_t controls_gamepad_list_remove(const controls_gamepad_record *entry, controls_gamepad_record *list)
 {
     int32_t index = controls_gamepad_list_find(entry, list);

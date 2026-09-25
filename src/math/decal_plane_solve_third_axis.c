@@ -16,8 +16,9 @@
 //   (0, 1 or 2), EBX = const real_plane3d *plane, EDI = const real_point2d *known (the two
 //   surviving-axis values), output real_point3d *out in the param passed and returned unchanged
 //   (the function both writes through it and returns it in EAX per its own `return param_1`).
-// blam-cc: decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign /*EAX*/,
-//   int32_t dominant_axis /*ESI*/, const real_plane3d *plane /*EBX*/, const real_point2d *known /*EDI*/)
+// blam-cc: EAX -> component_sign, ESI -> dominant_axis, EBX -> plane, EDI -> known, stack -> out
+// FIXED (register inputs, objdump): note phrasing only -- rewritten from the call-style
+// "f(x /*EAX*/)" comment the checker cannot parse into "EAX -> component_sign, ...".
 // UNSURE: register roles for component_sign/dominant_axis/plane/known are inherited from
 //   src/effects/README.md's note that every caller elides them; not independently confirmed by
 //   this pass against a specific call site.

@@ -8,7 +8,15 @@
 // `result_count` fields are exactly the `data`/`count` fields the 0x4ba870/0x4ba8a0/0x4ba940
 // helpers index, which is the evidence that server_list *is* the array
 // dynamic_pointer_array_add_unique / server_browser_result_array_sort operate on.
-// register convention: __cdecl, no parameters.
+// register convention: EAX -> list (server_list_globals*), forwarded unchanged (via ESI) to
+// server_list_reset's entry arg, dynamic_pointer_array_add_unique's array arg and
+// server_browser_result_array_sort's array arg -- all three calls read the same live register
+// (objdump 0x4baae1 `mov esi,eax`; 0x4bab02/0x4bab36 `mov eax,esi` before the reset/sort calls;
+// dynamic_pointer_array_add_unique's own ESI -> array convention matches the untouched esi at
+// its call site). The already-committed `&server_list` argument is this same value.
+// FIXED (register inputs, objdump): EAX is read live at entry (saved to ESI before any other
+// instruction) and was previously replaced by the global address &server_list at each call site;
+// added as a genuine `list` parameter and forwarded instead.
 // note: this file's evidence is what extended types/networking.h's server_list_globals from
 // two fields to four (capacity at +0x08, pending_count at +0x0c); it is one global, and the
 // per-file TYPES-GAP typedef that used to sit here was folded into the header.
@@ -34,7 +42,7 @@ extern uint8_t server_browser_query_pending;  // 0x0071948a, cleared once ingest
 
 extern server_list_globals server_list; // 0x007196bc, see file header
 
-extern void server_list_reset(void); // 0x4b65f0, outside this batch
+extern void server_list_reset(uint8_t *entry); // 0x4b65f0, outside this batch; blam-cc: EAX -> entry
 extern int32_t dynamic_pointer_array_add_unique(void *value, server_list_globals *array); // 0x4ba8a0, this batch
 extern void server_browser_result_array_sort(server_list_globals *array); // 0x4ba9c0, this batch
 
@@ -42,26 +50,27 @@ extern int32_t FUN_00617020(void *query_engine, int32_t index); // 0x617020, Gam
 extern int32_t FUN_00617030(void *engine); // foreign, GameSpy library: result count                // 0x617030, GameSpy: result count
 extern int32_t FUN_006175c0(int32_t record);                    // 0x6175c0, GameSpy: record validity check
 
-void server_browser_query_results_ingest(void)
+// blam-cc: EAX -> list
+void server_browser_query_results_ingest(server_list_globals *list)
 {
     if (server_browser_initialized != 0 && master_server_query_engine != 0) {
         int32_t result_count = FUN_00617030(master_server_query_engine);
         int32_t i = 0;
 
-        server_list_reset();
+        server_list_reset((uint8_t *)list);
 
         if (0 < result_count) {
             do {
                 int32_t record = FUN_00617020(master_server_query_engine, i);
 
                 if (FUN_006175c0(record) != 0) {
-                    dynamic_pointer_array_add_unique((void *)(intptr_t)record, &server_list);
+                    dynamic_pointer_array_add_unique((void *)(intptr_t)record, list);
                 }
                 i = i + 1;
             } while (i < result_count);
         }
 
-        server_browser_result_array_sort(&server_list);
+        server_browser_result_array_sort(list);
         server_browser_query_pending = 0;
     }
 }

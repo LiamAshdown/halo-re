@@ -12,8 +12,9 @@
 // register convention (confirmed via objdump at the hwreq_map_key_less_than.c call site): ECX
 //   = this (const msvc_std_string *), EAX = n1 (the clamp length, typically this->size), stack
 //   arguments in order: pos, s (const char *), n2.
-// blam-cc: string_compare(const msvc_std_string *this /*ECX*/, uint32_t n1 /*EAX*/,
-//   uint32_t pos /*stack*/, const char *s /*stack*/, uint32_t n2 /*stack*/)
+// blam-cc: ECX -> this, EAX -> n1, stack -> pos, s, n2
+// FIXED (register inputs, objdump): note phrasing only -- rewritten from the call-style
+// "f(x /*ECX*/)" comment the checker cannot parse into "ECX -> this, EAX -> n1, stack -> ...".
 // UNSURE: FUN_00638e74 (`_Xlen`/`_Xran`, the length_error-throwing helper) is an opaque extern,
 //   not rewritten here -- it is not in this pass's address list.
 

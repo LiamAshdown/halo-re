@@ -10,8 +10,9 @@
 // register convention (confirmed via objdump): ECX = source_begin, stack argument 1 =
 //   source_end, stack argument 2 = dest (mutated as the loop cursor). Returns the final dest
 //   cursor (one past the last constructed element) in EAX.
-// blam-cc: uninit_copy_string_pair(hwreq_string_pair *source_begin /*ECX*/,
-//   hwreq_string_pair *source_end /*stack*/, hwreq_string_pair *dest /*stack*/)
+// blam-cc: ECX -> source_begin, stack -> source_end, dest
+// FIXED (register inputs, objdump): note phrasing only -- rewritten from the call-style
+// "f(x /*ECX*/)" comment the checker cannot parse into "ECX -> source_begin, stack -> ...".
 
 #include "tags.h"
 #include "memory.h"

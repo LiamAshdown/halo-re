@@ -5122,10 +5122,37 @@
   ]
  },
  {
+  "caller": "src\\game\\camera_observer_get_target_angles.c",
+  "callee": "unit_noop_569670",
+  "definition": "src\\units\\unit_noop_569670.c",
+  "declared": "extern uint32_t unit_noop_569670(void);",
+  "problems": [
+   "0 parameters declared, 1 defined"
+  ]
+ },
+ {
   "caller": "src\\game\\camera_observer_get_target_id.c",
   "callee": "camera_get_type_for_player",
   "definition": "src\\camera\\camera_get_type_for_player.c",
   "declared": "extern int16_t camera_get_type_for_player(void);",
+  "problems": [
+   "0 parameters declared, 1 defined"
+  ]
+ },
+ {
+  "caller": "src\\game\\camera_observer_get_target_id.c",
+  "callee": "unit_noop_569670",
+  "definition": "src\\units\\unit_noop_569670.c",
+  "declared": "extern uint32_t unit_noop_569670(void);",
+  "problems": [
+   "0 parameters declared, 1 defined"
+  ]
+ },
+ {
+  "caller": "src\\game\\camera_observer_update.c",
+  "callee": "unit_noop_569670",
+  "definition": "src\\units\\unit_noop_569670.c",
+  "declared": "extern uint32_t unit_noop_569670(void);",
   "problems": [
    "0 parameters declared, 1 defined"
   ]
@@ -5164,6 +5191,15 @@
   "declared": "extern void unit_ready_desired_weapon(uint32_t unit_index, uint32_t flag);",
   "problems": [
    "2 parameters declared, 1 defined"
+  ]
+ },
+ {
+  "caller": "src\\game\\ctf_engine_flag_tick.c",
+  "callee": "game_engine_broadcast_kill_feed_to_team",
+  "definition": "src\\game\\game_engine_broadcast_kill_feed_to_team.c",
+  "declared": "extern void game_engine_broadcast_kill_feed_to_team(int32_t broadcast_enabled, int32_t team,\n    uint32_t forwarded_message_type, datum_index forwarded_subject, char forwarded_broadcast);",
+  "problems": [
+   "5 parameters declared, 6 defined"
   ]
  },
  {
@@ -5421,6 +5457,15 @@
   ]
  },
  {
+  "caller": "src\\game\\game_engine_ctf_notify_both_teams.c",
+  "callee": "game_engine_broadcast_kill_feed_to_team",
+  "definition": "src\\game\\game_engine_broadcast_kill_feed_to_team.c",
+  "declared": "extern void game_engine_broadcast_kill_feed_to_team(int32_t broadcast_enabled, int32_t team,\n    uint32_t forwarded_message_type, datum_index forwarded_subject, char forwarded_broadcast);",
+  "problems": [
+   "5 parameters declared, 6 defined"
+  ]
+ },
+ {
   "caller": "src\\game\\game_engine_ctf_player_flag_tick.c",
   "callee": "game_engine_ctf_notify_flag_carried_throttled",
   "definition": "src\\game\\game_engine_ctf_notify_flag_carried_throttled.c",
@@ -5463,15 +5508,6 @@
   "declared": "extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3,\n    uint32_t unknown_4, uint32_t unknown_5);",
   "problems": [
    "6 parameters declared, 7 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_find_player_by_name.c",
-  "callee": "string_convert_ascii_to_unicode",
-  "definition": "src\\text\\string_convert_ascii_to_unicode.c",
-  "declared": "extern void string_convert_ascii_to_unicode(wchar_t *out);",
-  "problems": [
-   "1 parameters declared, 3 defined"
   ]
  },
  {
@@ -7189,7 +7225,7 @@
   "definition": "src\\game\\update_client_advance_read_cursor.c",
   "declared": "extern void update_client_advance_read_cursor(void);",
   "problems": [
-   "0 parameters declared, 1 defined"
+   "0 parameters declared, 2 defined"
   ]
  },
  {
@@ -9304,6 +9340,15 @@
  },
  {
   "caller": "src\\networking\\join_game_server_browser_tick.c",
+  "callee": "server_list_reset",
+  "definition": "src\\networking\\server_list_reset.c",
+  "declared": "extern void server_list_reset(void);",
+  "problems": [
+   "0 parameters declared, 1 defined"
+  ]
+ },
+ {
+  "caller": "src\\networking\\join_game_server_browser_tick.c",
   "callee": "widget_play_sound_effect",
   "definition": "src\\interface\\widget_play_sound_effect.c",
   "declared": "extern void widget_play_sound_effect(void);",
@@ -9316,6 +9361,15 @@
   "callee": "server_browser_result_array_sort",
   "definition": "src\\networking\\server_browser_result_array_sort.c",
   "declared": "extern void server_browser_result_array_sort(void);",
+  "problems": [
+   "0 parameters declared, 1 defined"
+  ]
+ },
+ {
+  "caller": "src\\networking\\join_game_server_browser_tick.c",
+  "callee": "server_browser_query_results_ingest",
+  "definition": "src\\networking\\server_browser_query_results_ingest.c",
+  "declared": "extern void server_browser_query_results_ingest(void);",
   "problems": [
    "0 parameters declared, 1 defined"
   ]
@@ -9373,6 +9427,15 @@
   "declared": "extern void chimera__console_out(const char *format, ...);",
   "problems": [
    "2 parameters declared, 3 defined"
+  ]
+ },
+ {
+  "caller": "src\\networking\\master_server_process_pending_requests.c",
+  "callee": "server_list_reset",
+  "definition": "src\\networking\\server_list_reset.c",
+  "declared": "extern void server_list_reset(void);",
+  "problems": [
+   "0 parameters declared, 1 defined"
   ]
  },
  {
@@ -9445,24 +9508,6 @@
   "declared": "extern void chimera__console_out(const char *format, ...);",
   "problems": [
    "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\network_channel_dispatch_bitstream_unit.c",
-  "callee": "network_game_process_incoming_message",
-  "definition": "src\\networking\\network_game_process_incoming_message.c",
-  "declared": "extern uint32_t network_game_process_incoming_message(network_server_globals *server);",
-  "problems": [
-   "1 parameters declared, 4 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\network_channel_dispatch_bitstream_unit.c",
-  "callee": "network_client_drain_queued_updates",
-  "definition": "src\\networking\\network_client_drain_queued_updates.c",
-  "declared": "extern uint32_t network_client_drain_queued_updates(network_server_globals *server);",
-  "problems": [
-   "1 parameters declared, 3 defined"
   ]
  },
  {
@@ -10558,6 +10603,15 @@
   ]
  },
  {
+  "caller": "src\\networking\\network_game_process_incoming_messages.c",
+  "callee": "network_incoming_item_dispatch",
+  "definition": "src\\networking\\network_incoming_item_dispatch.c",
+  "declared": "extern char network_incoming_item_dispatch(network_client_globals *client, uint32_t item_flag);",
+  "problems": [
+   "2 parameters declared, 3 defined"
+  ]
+ },
+ {
   "caller": "src\\networking\\network_game_record_message_send.c",
   "callee": "data_packet_group_encode_packet",
   "definition": "src\\memory\\data_packet_group_encode_packet.c",
@@ -10878,7 +10932,7 @@
   "definition": "src\\game\\update_client_advance_read_cursor.c",
   "declared": "extern void update_client_advance_read_cursor(void *payload);",
   "problems": [
-   "parameter kinds differ at #1 (p vs i)"
+   "1 parameters declared, 2 defined"
   ]
  },
  {
@@ -10939,19 +10993,9 @@
   "caller": "src\\networking\\network_incoming_item_dispatch.c",
   "callee": "network_message_read_sized_buffer",
   "definition": "src\\networking\\network_message_read_sized_buffer.c",
-  "declared": "extern int32_t network_message_read_sized_buffer(int32_t unknown);",
+  "declared": "extern uint16_t *network_message_read_sized_buffer(int32_t unknown);",
   "problems": [
-   "1 parameters declared, 3 defined",
-   "return i vs p"
-  ]
- },
- {
-  "caller": "src\\networking\\network_incoming_item_dispatch.c",
-  "callee": "network_game_message_decode_dispatch",
-  "definition": "src\\networking\\network_game_message_decode_dispatch.c",
-  "declared": "extern char network_game_message_decode_dispatch(network_client_globals *client);",
-  "problems": [
-   "1 parameters declared, 2 defined"
+   "1 parameters declared, 3 defined"
   ]
  },
  {
@@ -11514,6 +11558,15 @@
   "declared": "extern int32_t tag_lookup(const char *path);",
   "problems": [
    "1 parameters declared, 2 defined"
+  ]
+ },
+ {
+  "caller": "src\\networking\\server_browser_open.c",
+  "callee": "server_list_reset",
+  "definition": "src\\networking\\server_list_reset.c",
+  "declared": "extern void server_list_reset(void);",
+  "problems": [
+   "0 parameters declared, 1 defined"
   ]
  },
  {
@@ -13255,6 +13308,15 @@
   "declared": "extern double vector3d_scalar_triple_product(real_vector3d *b, real_vector3d *c,\n                                              real_vector3d *a);",
   "problems": [
    "return d vs f"
+  ]
+ },
+ {
+  "caller": "src\\physics\\physics_shape_build_proxies_from_query.c",
+  "callee": "physics_shape_add_vertex_proxy",
+  "definition": "src\\physics\\physics_shape_add_vertex_proxy.c",
+  "declared": "extern void physics_shape_add_vertex_proxy(real_matrix4x3 *matrix, physics_model *model,\n                                            real_point3d *vertex, int16_t material_type,\n                      ",
+  "problems": [
+   "10 parameters declared, 7 defined"
   ]
  },
  {
@@ -17014,15 +17076,6 @@
   ]
  },
  {
-  "caller": "src\\units\\vehicle_calculate_mounted_controls_dispatch.c",
-  "callee": "vehicle_calculate_ground_contact_lean_alt",
-  "definition": "src\\units\\vehicle_calculate_ground_contact_lean_alt.c",
-  "declared": "extern void vehicle_calculate_ground_contact_lean_alt(uint32_t unit_index, void *out_transform);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
   "caller": "src\\units\\vehicle_calculate_steering_wheel_controls.c",
   "callee": "object_physics_tick",
   "definition": "src\\physics\\object_physics_tick.c",
@@ -17173,6 +17226,15 @@
   "declared": "extern void physics_scalar_step_to_target_clamped(float value, float scale);",
   "problems": [
    "2 parameters declared, 4 defined"
+  ]
+ },
+ {
+  "caller": "src\\units\\vehicle_update.c",
+  "callee": "vehicle_calculate_mounted_controls_dispatch",
+  "definition": "src\\units\\vehicle_calculate_mounted_controls_dispatch.c",
+  "declared": "extern void vehicle_calculate_mounted_controls_dispatch(uint32_t unit_index);",
+  "problems": [
+   "1 parameters declared, 3 defined"
   ]
  },
  {

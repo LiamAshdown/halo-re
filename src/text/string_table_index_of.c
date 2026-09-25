@@ -10,7 +10,9 @@
 //   plain string-comparison helpers (text_char_is_double_byte.c and friends).
 // register convention: EAX = const char *search, stack arguments = int16_t count,
 //   const char **table.
-// blam-cc: string_table_index_of(const char *search /*EAX*/, int16_t count /*stack*/, const char **table /*stack*/)
+// blam-cc: EAX -> search, stack -> count, table
+// FIXED (register inputs, objdump): note phrasing only -- rewritten from the call-style
+// "f(x /*EAX*/)" comment the checker cannot parse into "EAX -> search, stack -> ...".
 
 #include "tags.h"
 #include "math.h"

@@ -13,7 +13,11 @@
 //   conventional (matrix, world_point, out_local_point) shape, with matrix = &context->scale
 //   (matching object_physics_context_build's own matrix4x3_transform_point usage) and
 //   world_point coming from wherever this function's own (also hidden) point parameter lives.
-//   // blam-cc: EDI -> context, UNSURE for the rest; see above
+//   Confirmed by objdump 0x50759b (`mov esi,eax` right before the call, matching that callee's
+//   own ESI -> point convention): world_point arrives in EAX.
+//   // blam-cc: EAX -> world_point, EDI -> context, stack -> out_index
+// FIXED (register inputs, objdump): EAX is a genuine live-in (forwarded as world_point) that the
+// notes did not map.
 // UNSURE (major): the loop's early-return path encodes its result as CONCAT31(garbage, 1) in
 //   Ghidra's decompile -- a classic decompiler artifact for a function that returns a bool in AL
 //   with uninitialized upper register bytes, not a meaningful packed value. This rewrite returns

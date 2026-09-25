@@ -11,6 +11,10 @@
 // random_target.c and the two update_*dispose.c files in this batch) rather than genuinely a
 // no-op scan. Transcribed literally; callers=0 in this build.
 // reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
+// FIXED (register inputs, objdump): EBX is a genuine live-in (string_convert_ascii_to_unicode's
+// own EAX/EBX/EDI convention shows EBX -> source, never set locally here before the 0x47344a
+// call); the extern's stale single-argument prototype was also corrected to match the callee's
+// real 3-parameter signature. No callers exist yet in this build, so this is safe to change.
 
 #include "tags.h"
 #include "memory.h"
@@ -22,18 +26,19 @@
 extern int16_t network_game_mode; // 0x00719720
 extern data_array *player_data;    // 0x0087a480
 
-extern void string_convert_ascii_to_unicode(wchar_t *out); // 0x557990, not in this batch; blam-cc: EDI -> out (UNSURE)
+extern void string_convert_ascii_to_unicode(uint16_t *dst, char *source, uint32_t capacity_bytes); // 0x557990, blam-cc: EAX -> dst, EBX -> source, EDI -> capacity_bytes
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: iterator in EDI
 
+// blam-cc: EBX -> source_name
 // UNSURE: see header -- the comparison result is computed but never used anywhere Ghidra shows.
-void game_engine_find_player_by_name(void)
+void game_engine_find_player_by_name(char *source_name)
 {
     if (network_game_mode == 2) {
         wchar_t name[1024];
         data_iterator iter;
         void *element;
 
-        string_convert_ascii_to_unicode(name);
+        string_convert_ascii_to_unicode((uint16_t *)name, source_name, 0x800);
 
         iter.data = player_data;
         iter.next_index = 0;

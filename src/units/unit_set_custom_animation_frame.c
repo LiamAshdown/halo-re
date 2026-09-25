@@ -4,12 +4,21 @@
 // rewrite confidence: 0.35
 // evidence: types/objects.h object.animation_graph (0x0cc), object.animation_index (0x0d0),
 //   object.animation_frame (0x0d2); callee unit_start_user_animation (0x5702a0, this batch).
-// register convention: unit object index in ECX (in_ECX); the two stack parameters are
-//   forwarded to unit_start_user_animation as its graph-tag-id and object-index arguments,
-//   which is the best available reading given both functions' register-only inputs.
-//   // blam-cc: ECX -> unit_index, stack -> (graph_tag_id, frame)
-// UNSURE: unit_start_user_animation's real third argument (warn_if_missing) is not visible at
-//   this call site; passed as 0 (false).
+// register convention: unit object index in ECX (in_ECX). Re-examined against objdump
+//   0x570220..0x570237 while chasing the EAX/EDI live-in flags below: the first stack slot
+//   (loaded into EAX at 0x570229, previously modeled as `graph_tag_id`) is read but never used
+//   again before or after the unit_start_user_animation call -- dead in this function's own
+//   body -- while unit_start_user_animation's real graph_tag_id argument is EDI (never set
+//   locally here, forwarded unchanged; matches its own ground-truth prologue, cmp edi,-1 at
+//   0x5702b7 and the animation_graph_find_animation_by_name call using EDI, which contradicts
+//   that file's own stale "EAX -> object_index" note -- object_index and warn_if_missing are
+//   really its two stack arguments, in that order). EAX (this function's own live-in, pushed at
+//   0x570228 before being overwritten) is unit_start_user_animation's warn_if_missing.
+//   The dead first stack slot is kept as an unused parameter to preserve the real stack layout
+//   for any future hook trampoline (frame is genuinely the second stack slot, not the first).
+//   // blam-cc: ECX -> unit_index, EAX -> warn_if_missing, EDI -> graph_tag_id, stack -> unused_legacy_param, frame
+// FIXED (register inputs, objdump): EAX and EDI are genuine live-ins the notes did not map,
+// forwarded to unit_start_user_animation instead of the hardcoded 0 and the dead stack value.
 
 #include "tags.h"
 #include "memory.h"
@@ -27,12 +36,15 @@ extern uint8_t unit_start_user_animation(uint32_t object_index, datum_index grap
 // Sets the current playback frame of the unit's active custom animation, if valid (i.e. if
 // unit_start_user_animation reports the animation is already active/continuing, and the frame
 // falls within the graph's animation length).
-uint8_t unit_set_custom_animation_frame(uint32_t unit_index, datum_index graph_tag_id, int16_t frame)
+uint8_t unit_set_custom_animation_frame(uint32_t unit_index, uint8_t warn_if_missing,
+    datum_index graph_tag_id, int32_t unused_legacy_param, int16_t frame)
 {
     object *obj;
     uint8_t *graph_tag;
 
-    if (unit_start_user_animation(unit_index, graph_tag_id, 0) == 0) {
+    (void)unused_legacy_param; // UNSURE: real stack slot, read into EAX in the binary but never used again
+
+    if (unit_start_user_animation(unit_index, graph_tag_id, warn_if_missing) == 0) {
         return 0;
     }
 

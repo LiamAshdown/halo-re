@@ -20,7 +20,9 @@
 //   control_word_secondary 0x006f1cec, anything else selects control_word_primary 0x006f1ce8),
 //   ESI = field_index (0..5, default/out-of-range falls through to returning 0). Return in EAX;
 //   Ghidra's ECX is dead output only relevant to the caller it never reaches.
-// blam-cc: control_word_extract_field(uint32_t which_word /*EAX*/, uint32_t field_index /*ESI*/)
+// blam-cc: EAX -> which_word, ESI -> field_index
+// FIXED (register inputs, objdump): note phrasing only -- rewritten from the call-style
+// "f(x /*EAX*/)" comment the checker cannot parse into "EAX -> which_word, ESI -> field_index".
 
 #include "tags.h"
 #include "memory.h"

@@ -9,13 +9,15 @@
 // register convention: a "still allowed to broadcast" gate in ESI (unaff_ESI, tested every
 // iteration exactly like the sibling broadcast helpers in this same address range);
 // param_1 is this function's own stack parameter (the team id to match).
-//   // blam-cc: unaff_ESI -> broadcast_enabled, stack -> team
+//   // blam-cc: unaff_ESI -> broadcast_enabled, unaff_EBX -> ebx_broadcast, stack -> team
 // UNSURE: chimera__kill_feed needs four more values (this function's own stack param_1 fixed at
 // -1, plus message_type, subject and a broadcast flag) that Ghidra shows nowhere in this
 // function's body -- they must be genuine pass-through registers/stack slots from this
 // function's own, unrecovered caller. Modeled as three additional forwarded parameters so the
 // call still compiles against chimera__kill_feed's real signature; their names are guesses.
 // reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
+// FIXED (register inputs, objdump): EBX is a genuine live-in (pushed as chimera__kill_feed's
+// broadcast argument at 0x460be5) that the notes did not map; added as `ebx_broadcast`.
 
 #include "tags.h"
 #include "memory.h"
@@ -29,11 +31,12 @@ extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
 extern void chimera__kill_feed(datum_index recipient, int32_t param_1, uint32_t message_type,
     datum_index subject, char broadcast); // 0x460a30, this batch
 
-// blam-cc: unaff_ESI -> broadcast_enabled, stack -> team
+// blam-cc: unaff_ESI -> broadcast_enabled, unaff_EBX -> ebx_broadcast, stack -> team
 // Walks every in-use player and, for each one on `team`, broadcasts a kill-feed message to it
 // (recipient = that player's own handle) while `broadcast_enabled` holds.
 void game_engine_broadcast_kill_feed_to_team(int32_t broadcast_enabled, int32_t team,
-    uint32_t forwarded_message_type, datum_index forwarded_subject, char forwarded_broadcast) // UNSURE: last 3 params
+    uint32_t forwarded_message_type, datum_index forwarded_subject, char forwarded_broadcast,
+    int32_t ebx_broadcast) // UNSURE: forwarded_message_type/forwarded_subject/forwarded_broadcast
 {
     data_iterator iter;
     void *element;
@@ -48,7 +51,7 @@ void game_engine_broadcast_kill_feed_to_team(int32_t broadcast_enabled, int32_t 
         player *p = (player *)element;
         if (p->team == team && broadcast_enabled != -1) {
             chimera__kill_feed(iter.index, 0xffffffff, forwarded_message_type, forwarded_subject,
-                forwarded_broadcast);
+                (char)ebx_broadcast);
         }
         element = data_iterator_next(&iter);
     }

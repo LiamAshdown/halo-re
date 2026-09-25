@@ -5,6 +5,9 @@
 // esi,eax` at entry copies the reference record, matching file_reference_create's identical
 // prologue shape.
 // register convention: reference record in EAX.
+// blam-cc: EAX -> ref
+// FIXED (register inputs, objdump): this file had no parseable blam-cc note (prose only); added
+// "EAX -> ref" (read live at entry, 0x55572e `mov esi,eax`).
 
 #include "tags.h"
 #include "memory.h"
@@ -20,7 +23,7 @@ extern void saved_games_report_last_error(void); // 0x556170, this module
 extern uint32_t GetFileAttributesA(const char *path); // Win32
 extern uint32_t GetLastError(void); // Win32
 
-// blam-cc: reference record in EAX
+// blam-cc: EAX -> ref
 // Returns 1 if ref's full path currently exists on disk, 0 otherwise. Reports the Win32 error
 // unless it is ERROR_FILE_NOT_FOUND (2) or ERROR_PATH_NOT_FOUND (3).
 uint8_t file_reference_exists(file_reference_record *ref)

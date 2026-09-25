@@ -6,7 +6,16 @@
 // 0x006953f4 reset to -1 here matches master_server_process_pending_requests.c's
 // server_browser_selected_index (also compared against -1 there); server_list_result_reset
 // (0x4ba7c0) and ticker_text_buffer_append (0x4b8a60) are this module's own rewrites.
-// register convention: __cdecl, no arguments.
+// register convention: EAX -> entry, forwarded unmodified to server_list_result_reset (its own
+// EAX -> entry). Different call sites (objdump: 0x4b5e2d, 0x4b7862, 0x4b83ed, 0x4bab02) load
+// distinct values (a global address, 0, ebp, esi) into EAX right before calling this function, so
+// it is a genuine forwarded argument, not always NULL.
+// FIXED (register inputs, objdump): EAX is read live at the `call 0x4ba7c0` (server_list_result_
+// reset) with no local setup; added as a forwarded `entry` parameter instead of the hardcoded 0.
+// UNSURE: this function's own known callers in this codebase (server_browser_open.c,
+// master_server_process_pending_requests.c, join_game_server_browser_tick.c) are outside this
+// batch and still call it with zero arguments; they need a follow-up pass to forward their own
+// EAX-equivalent value once this signature change propagates.
 // UNSURE: 0x00719478, 0x0071947c, 0x00719480, 0x00719481 and 0x00719484 have no documented
 // names (networking_types_notes.md explicitly lists the server-browser sort/scroll/selection
 // globals as unresolved separate scalars); declared here only by address.
@@ -38,8 +47,8 @@ extern ticker_text_buffer server_browser_player_ticker;  // 0x006b5e58
 extern ticker_text_buffer server_browser_variant_ticker; // 0x006b5e74
 extern void ticker_text_buffer_append(wchar_t *text, int32_t reset_column, ticker_text_buffer *self); // 0x4b8a60, this module
 
-// blam-cc: __cdecl, no arguments
-void server_list_reset(void)
+// blam-cc: EAX -> entry
+void server_list_reset(uint8_t *entry)
 {
     DAT_00719478 = 0;
     server_browser_selected_index = -1;
@@ -48,7 +57,7 @@ void server_list_reset(void)
     server_browser_skip_reselect = 0;
     DAT_00719484 = 0;
     server_browser_total_players = 0;
-    server_list_result_reset(0);
+    server_list_result_reset(entry);
     ticker_text_buffer_append(0, 2, &server_browser_player_ticker);
     ticker_text_buffer_append(0, 1, &server_browser_variant_ticker);
     ticker_text_buffer_append(DAT_00719498, 0, &server_browser_player_ticker);

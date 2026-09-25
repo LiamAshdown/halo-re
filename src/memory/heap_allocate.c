@@ -10,6 +10,9 @@
 // call but is never referenced directly in this function's own body; reconstructed as EAX,
 // matching heap_allocate_raw's own established parameter register -- UNSURE, not independently
 // confirmed (same chain-elision pattern as heap_resize_block.c).
+// blam-cc: EAX -> size, ECX -> self
+// FIXED (register inputs, objdump): this file had no parseable blam-cc note at all; EAX is read
+// live (call 0x4d2180 at 0x4d1f16 with no EAX setup) and forwarded as heap_allocate_raw's size.
 
 #include "tags.h"
 #include "memory.h"

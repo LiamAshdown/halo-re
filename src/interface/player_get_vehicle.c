@@ -8,7 +8,9 @@
 // (+0x11c) when the unit sits in a seat (unit +0x2f0 not -1): the vehicle the player rides.
 // Any failed step returns -1. The first rewrite called object_try_and_get without the object.
 // register convention: ECX player datum; returns EAX.
-//   // blam-cc: player_index -> ECX
+//   // blam-cc: ECX -> player_index
+// FIXED (register inputs, objdump): note phrasing only -- the reversed "player_index -> ECX"
+// form the checker cannot parse, rewritten as "ECX -> player_index".
 
 #include "tags.h"
 #include "memory.h"
@@ -24,7 +26,7 @@ extern data_array *player_data; // 0x0087a480, stride 0x200
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, blam-cc: ECX object_index
 
-// blam-cc: player_index -> ECX
+// blam-cc: ECX -> player_index
 datum_index player_get_vehicle(datum_index player_index)
 {
     int16_t index = (int16_t)player_index;

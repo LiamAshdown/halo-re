@@ -4,8 +4,8 @@
 // evidence: objdump 0x4b35f0..0x4b365d. The type is blip_type_get(local player, the object in
 // ECX, moved to EBX); the first rewrite passed an extra unused argument as the object. The
 // subtype is the Unit tag short at +0x298 of a live unit when it is 0..2, else 0.
-// register convention: EAX local player index, ECX object, ESI blip.
-//   // blam-cc: local_player_index -> EAX, object -> ECX, blip -> ESI
+// register convention: EAX local player index, ECX object index, ESI blip.
+//   // blam-cc: EAX -> local_player_index, ECX -> object_index, ESI -> blip
 
 #include "tags.h"
 #include "memory.h"
@@ -22,7 +22,9 @@ extern tag_instance *tag_instances;  // 0x0087bc14
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, blam-cc: ECX object_index
 extern uint8_t blip_type_get(int16_t local_player_index, datum_index object_index); // 0x4b3450, blam-cc: EBX object_index
 
-// blam-cc: local_player_index -> EAX, object -> ECX, blip -> ESI
+// blam-cc: EAX -> local_player_index, ECX -> object_index, ESI -> blip
+// FIXED (register inputs, objdump): note phrasing only -- rewritten from the reversed
+// "name -> REG" form (and "object" for the object_index parameter) the checker cannot parse.
 void motion_sensor_blip_fill(int16_t local_player_index, datum_index object_index, motion_sensor_blip *blip)
 {
     blip->type = blip_type_get(local_player_index, object_index);

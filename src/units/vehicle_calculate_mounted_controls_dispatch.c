@@ -8,12 +8,19 @@
 //   Physics tag) matches the sibling dispatch functions in this batch; callees
 //   vehicle_calculate_ground_contact_lean (0x573f60), vehicle_calculate_ground_contact_lean_alt
 //   (0x574460), vehicle_create_hover_thruster_midpoint_effects (0x574bc0), all this batch.
-// register convention: unit object index in ESI (unaff_ESI); no other visible arguments, so the
-//   output transform buffer these callees need must also be register-resident and is not
-//   recoverable here.
-//   // blam-cc: ESI -> unit_index
+// register convention: unit object index in ESI (unaff_ESI); out_record in EDX and out_transform
+//   in ECX are also genuine live-ins, pushed as this function's own stack arguments 2 and 3 to
+//   both vehicle_calculate_ground_contact_lean(_alt) call sites (objdump 0x573f21/0x573f28,
+//   `push ecx` / `push edx`, both read with no local setup).
+//   // blam-cc: ESI -> unit_index, ECX -> out_transform, EDX -> out_record
 // UNSURE: the exact meaning of "the first float of the Physics tag's data" (its sign selects
 //   between the two ground-contact lean variants) is not named in any header.
+// FIXED (register inputs, objdump): ECX and EDX are genuine live-ins the notes did not map;
+// added as `out_transform`/`out_record` and forwarded instead of the hardcoded 0/0. Also: the
+// callees' own files document them as EAX/ECX/EDX register-passed, but vehicle_calculate_ground_
+// contact_lean_alt's own prologue at 0x574469 (`mov edx,[ebp+0x8]`) reads its first parameter
+// from the stack, matching this call site's 3 stack pushes -- both are actually cdecl stack
+// arguments in this parameter order, at least for this caller.
 
 #include "tags.h"
 #include "memory.h"
@@ -27,24 +34,23 @@ extern tag_instance *tag_instances; // 0x0087bc14
 
 extern void vehicle_calculate_ground_contact_lean(uint32_t unit_index, void *out_record,
                                                    void *out_transform); // 0x573f60, this batch
-extern void vehicle_calculate_ground_contact_lean_alt(uint32_t unit_index, void *out_transform); // 0x574460, this batch  // real signature (vehicle_calculate_ground_contact_lean_alt.c): void vehicle_calculate_ground_contact_lean_alt(uint32_t unit_index, void *out_record, void *out_transform); Ghidra recovered 2 of 3 args at this call site
+extern void vehicle_calculate_ground_contact_lean_alt(uint32_t unit_index, void *out_record,
+                                                       void *out_transform); // 0x574460, this batch
 extern void vehicle_create_hover_thruster_midpoint_effects(uint32_t unit_index); // 0x574bc0, this batch
 
 // Selects between two ground-contact lean calculations for a mounted/turret-style vehicle unit
 // based on the sign of its Physics tag's first field, and always triggers the hover-thruster
 // midpoint effect afterward.
-// UNSURE: the output transform buffer both lean functions need is register-resident and not
-// modeled here; see file header.
-void vehicle_calculate_mounted_controls_dispatch(uint32_t unit_index)
+void vehicle_calculate_mounted_controls_dispatch(uint32_t unit_index, void *out_transform, void *out_record)
 {
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
     uint8_t *physics_tag = tag_instances[*(uint32_t *)((uint8_t *)tag + 0x8c) & 0xffff].data;
 
     if (*(float *)physics_tag > 0.0f) {
-        vehicle_calculate_ground_contact_lean_alt(unit_index, 0);
+        vehicle_calculate_ground_contact_lean_alt(unit_index, out_record, out_transform);
     } else {
-        vehicle_calculate_ground_contact_lean(unit_index, 0, 0);
+        vehicle_calculate_ground_contact_lean(unit_index, out_record, out_transform);
     }
     vehicle_create_hover_thruster_midpoint_effects(unit_index);
 }

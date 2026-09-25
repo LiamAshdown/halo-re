@@ -5,6 +5,9 @@
 // evidence: biped_data.ground_adjust_iteration/_limit (0x524/0x525) and its flags bit 0x20 "the
 //   ground-adjust dirty bit 0x55ad00 sets and 0x55ad70 clears" (types/units.h); object.flags bit
 //   0x800000 mirrors it. Biped tag offset 0x2f4 bit 9 (mask 0x200) is UNSURE, not yet named.
+// blam-cc: EAX -> object_index
+// FIXED (register inputs, objdump): this file had no blam-cc note at all; EAX carries
+// object_index (read at 0x55ad09 `and eax,0xffff`).
 
 #include "tags.h"
 #include "memory.h"

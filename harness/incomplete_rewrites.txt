@@ -303,3 +303,4 @@ vehicle_calculate_hover_turn_controls              # units: rewrite says 'placeh
 unit_dispatch_reaction_animation  # ESI unit_index added but unused: the real body is a larger inlined switch (regfix batch 3)
 game_engine_ctf_notify_flag_carried_throttled  # EDI target_player added but not forwarded; callee's C signature drops it
 object_damage_effect_dispatch  # EAX/EDI added but not forwarded; callee declared argument-less
+network_channel_dispatch_bitstream_unit  # regfix batch 5: network_client_drain_queued_updates' EBX machine input still passed as 0 (UNSURE)

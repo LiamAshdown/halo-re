@@ -5,7 +5,7 @@
 // player local index: kind bits to 0xf, target and arrow to -1. The first rewrite always used
 // record 0 (equal on retail, one local player).
 // register convention: EAX player, EDI target, SI kind.
-//   // blam-cc: player_index -> EAX, target -> EDI, kind -> SI
+//   // blam-cc: EAX -> player_index, EDI -> target, SI -> kind
 
 #include "tags.h"
 #include "memory.h"
@@ -18,7 +18,9 @@
 extern data_array *player_data;            // 0x0087a480
 extern hud_waypoint_state *hud_waypoints;  // 0x006b3a44
 
-// blam-cc: player_index -> EAX, target -> EDI, kind -> SI
+// blam-cc: EAX -> player_index, EDI -> target, SI -> kind
+// FIXED (register inputs, objdump): note phrasing only -- rewritten from the reversed
+// "name -> REG" form the checker cannot parse.
 void hud_waypoint_deactivate_for_player(datum_index player_index, datum_index target, int16_t kind)
 {
     hud_waypoint *waypoints;

@@ -8,6 +8,8 @@
 // +0x14='tail', and returns block+0x18 as the payload" paragraph.
 // register convention: memory_pool* in ECX (in_ECX), requested payload size in EDX (in_EDX),
 // pointer to the caller's own "data" pointer variable in EDI (unaff_EDI, written on success).
+// blam-cc: ECX -> arena, EDX -> requested_size, EDI -> owner
+// FIXED (register inputs, objdump): this file had no parseable blam-cc note (prose only); added.
 
 #include "tags.h"
 #include "memory.h"

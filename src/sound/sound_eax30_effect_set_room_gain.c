@@ -11,7 +11,7 @@
 //   gain property, vs EAX 2.0's 9). The property set is read from `this+0x1c`
 //   (sound_eax_effect_object.channel_property_sets[0]).
 // register convention: __thiscall (ECX -> this), stack -> gain.
-// blam-cc: ECX -> this, stack -> gain
+// blam-cc: ECX -> this_object, stack -> gain
 // Phase-4 review: checked instruction by instruction against the disassembly appended in the
 // #if 0 block; no semantic difference found. The CommitDeferredSettings call is unconditional.
 
@@ -22,7 +22,9 @@
 extern const uint8_t sound_eax30_listener_property_guid[16]; // 0x0064e310
 extern void *directsound_listener; // 0x00746114, IDirectSound3DListener *
 
-// blam-cc: ECX -> this, stack -> gain
+// blam-cc: ECX -> this_object, stack -> gain
+// FIXED (register inputs, objdump): note phrasing only -- the note said "this" but the parameter
+// is named `this_object`, so the checker's alias matching found no mapping at all.
 // Converts `gain` to a millibel-ish value with a linear (not log10) mapping -- gain*12000-10000,
 // clamped to int32 by truncation, k_sound_minimum_volume for gain == 0.0 -- sets the EAX 3.0
 // listener's room gain (id 0xe) property, then unconditionally commits deferred 3D listener

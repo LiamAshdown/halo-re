@@ -2,6 +2,9 @@
 // address 0x55ec20, size 109 bytes
 // name confidence: 0.3   rewrite confidence: 0.5
 // evidence: biped_data.unknown_502 (types/units.h), object.velocity (0x068, objects.h).
+// blam-cc: EAX -> object_index
+// FIXED (register inputs, objdump): this file had no blam-cc note at all; EAX carries
+// object_index (read at 0x55ec2a `mov ebx,eax`, then masked for the object lookup).
 
 #include "tags.h"
 #include "memory.h"
