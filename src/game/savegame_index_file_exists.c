@@ -21,6 +21,8 @@
 //   file_reference); the implicit path string is DAT_006e3108, built once by
 //   saved_game_files_initialize, outside this module.
 
+// FIXED (objdump): path_append_component takes (destination = the file reference's path buffer at +8, in ESI;
+//   component, in EBX); the draft passed them swapped, and read the component array as a pointer.
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -29,11 +31,11 @@
 
 extern file_reference savegame_directory_file_reference; // 0x00721330
 
-extern uint8_t *saved_game_root_path; // 0x006e3108, the path component appended below
+extern char saved_game_root_path[]; // 0x006e3108 (an array: the original passes its address), the path component appended below
 extern uint8_t file_reference_open(file_reference *reference, int32_t mode); // 0x5557a0;
     // blam-cc: ESI -> reference, stack -> mode
 extern uint32_t file_reference_get_size(file_reference *reference); // 0x555950; blam-cc: EAX -> reference
-extern void path_append_component(uint8_t *component, file_reference *reference); // 0x555ec0;
+extern void path_append_component(char *destination, const char *component); // 0x555ec0;
     // blam-cc: EBX -> component, ESI -> reference
 extern void path_remove_last_component(uint8_t *path); // 0x555f80; blam-cc: EBX -> path
     // (called with file_reference + 8, i.e. the path field itself)
@@ -56,7 +58,7 @@ uint8_t savegame_index_file_exists(void)
     if ((*flags_byte & 1) != 0) {
         path_remove_last_component((uint8_t *)&savegame_directory_file_reference + 8);
     }
-    path_append_component(saved_game_root_path, &savegame_directory_file_reference);
+    path_append_component((char *)&savegame_directory_file_reference + 8, saved_game_root_path);
     *flags_byte = *flags_byte | 1;
 
     if (file_reference_open(&savegame_directory_file_reference, 1) != 0) {

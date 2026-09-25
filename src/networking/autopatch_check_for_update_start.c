@@ -9,6 +9,8 @@
 // UNSURE: the exact path this file_reference resolves to (an implicit global path component,
 // like saved_game_root_path is for the savegame family, not independently identified here).
 
+// FIXED (objdump): path_append_component takes (destination = the file reference's path buffer at +8, in ESI;
+//   component, in EBX); the draft passed them swapped, and read the component array as a pointer.
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -22,7 +24,7 @@ extern uint8_t *autopatch_update_cfg_directory; // UNSURE: implicit path compone
 extern int32_t security_check_write_access(void); // 0x542840, this module
 extern char file_reference_exists(file_reference *reference); // 0x555720
 extern uint8_t file_reference_delete(void); // 0x555670, UNSURE args elided
-extern void path_append_component(uint8_t *component, file_reference *reference); // 0x555ec0
+extern void path_append_component(char *destination, const char *component); // 0x555ec0
 extern void path_remove_last_component(uint8_t *path); // 0x555f80
 extern void *CreateThread(void *security_attributes, uint32_t stack_size, void *start_address,
                            void *parameter, uint32_t creation_flags, uint32_t *thread_id);
@@ -51,7 +53,7 @@ int32_t autopatch_check_for_update_start(void)
             if ((*flags & 1) != 0) {
                 path_remove_last_component((uint8_t *)&reference + 8);
             }
-            path_append_component(autopatch_update_cfg_directory, &reference);
+            path_append_component((char *)&reference + 8, "currentupdate.cfg"); // 0x67219c
             *flags = *flags | 1;
             if (file_reference_exists(&reference) != 0) {
                 file_reference_delete();

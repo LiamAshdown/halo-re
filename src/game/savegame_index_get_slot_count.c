@@ -11,16 +11,18 @@
 //   performed but never followed by an explicit file_reference_open, unlike the rest of the
 //   family -- file_reference_get_size_by_path apparently opens (or stats) the path itself.
 
+// FIXED (objdump): path_append_component takes (destination = the file reference's path buffer at +8, in ESI;
+//   component, in EBX); the draft passed them swapped, and read the component array as a pointer.
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
 #include "game.h"
 
-extern uint8_t *saved_game_root_path; // 0x006e3108, the appended component
+extern char saved_game_root_path[]; // 0x006e3108 (an array: the original passes its address), the appended component
 extern file_reference savegame_directory_file_reference; // 0x00721330
 
-extern void path_append_component(uint8_t *component, file_reference *reference); // 0x555ec0
+extern void path_append_component(char *destination, const char *component); // 0x555ec0
 extern void path_remove_last_component(uint8_t *path); // 0x555f80
 extern uint8_t file_reference_get_size_by_path(uint32_t *out_size); // 0x555b00, not in this batch
 // CORRECTED by review: the four path/file_reference helpers above were declared argument-less
@@ -50,7 +52,7 @@ uint32_t savegame_index_get_slot_count(void)
     if ((*flags_byte & 1) != 0) {
         path_remove_last_component((uint8_t *)&savegame_directory_file_reference + 8);
     }
-    path_append_component(saved_game_root_path, &savegame_directory_file_reference);
+    path_append_component((char *)&savegame_directory_file_reference + 8, saved_game_root_path);
     *flags_byte = *flags_byte | 1;
 
     if (file_reference_get_size_by_path(&size) != 0) {
