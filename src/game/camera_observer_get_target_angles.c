@@ -46,7 +46,7 @@ extern char camera_observer_find_best_target(real_point3d *observer_position,
     observer_target_candidate *out); // this batch, 0x459a00; observer_position travels in EBX
 extern double atan2(double y, double x); // x87 FPATAN
 extern double sqrt(double x);            // x87 FSQRT
-extern real FUN_004f6aa0(real_vector3d *previous_offset, real_vector3d *offset); // UNSURE signature (TYPES-GAP)
+extern real object_get_root_object_velocities(real_vector3d *previous_offset, real_vector3d *offset); // UNSURE signature (TYPES-GAP)
 
 // Resolves the best observer target for `local_player_slot`, returning its two weights and the
 // yaw/pitch (and their rates of change) from the observer toward it.
@@ -113,7 +113,7 @@ uint32_t camera_observer_get_target_angles(real *out_weight_primary, real *out_w
 
     // UNSURE: rate-of-change formula transcribed from the decompile, operand sourcing per header.
     {
-        real denom = FUN_004f6aa0((real_vector3d *)previous, &candidate.offset);
+        real denom = object_get_root_object_velocities((real_vector3d *)previous, &candidate.offset);
         real denom_sqrt = (real)sqrt((double)denom);
         out_yaw_pitch_rate[0] = ((previous[3] - previous[0]) * candidate.offset.i -
                                   (previous[4] - previous[1]) * candidate.offset.j) / denom;

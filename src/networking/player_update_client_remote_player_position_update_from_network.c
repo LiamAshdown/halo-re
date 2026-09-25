@@ -44,7 +44,7 @@ extern game_time_globals *game_time; // 0x006f1d6c, +0x0c is the current game ti
 extern uint8_t is_remote_player_update_in_order(player *target_player, uint8_t control_sequence,
     int32_t update_id); // blam-cc: EAX -> target_player, DL -> control_sequence,
                         // ESI -> update_id; this module, 0x4e6a20
-extern int32_t FUN_004e6aa0(player *target_player, int32_t update_id);
+extern int32_t player_update_queue_offset_from_head(player *target_player, int32_t update_id);
     // blam-cc: EDI -> target_player, EDX -> update_id; this module, 0x4e6aa0.
     // Returns -1 when the action queue is empty, else (update_id - oldest_queued_id) mod 0x40.
 extern uint8_t position_update_queue_push(circular_queue *queue, real x, real y, real z,
@@ -98,7 +98,7 @@ void player_update_client_remote_player_position_update_from_network(datum_index
             on_update_id = (int32_t)oldest->field0;
         }
 
-        distance = FUN_004e6aa0(target, update_id);
+        distance = player_update_queue_offset_from_head(target, update_id);
         if (distance >= 0 && distance < 0x20) {
             int32_t position_count;
             int32_t action_count;

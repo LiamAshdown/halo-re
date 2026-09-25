@@ -29,15 +29,15 @@
 
 extern double sqrt(double x);
 
-extern int32_t FUN_0051bd60(void);   // out of module scope, unexamined
-extern int32_t FUN_0051bdd0(void);   // out of module scope, unexamined
-extern void *FUN_0051be40(void);     // out of module scope, unexamined
-extern void *FUN_00511e80(void);     // out of module scope, unexamined
-extern void FUN_00526f50(uint32_t flag_arg); // out of module scope, unexamined
-extern void FUN_0052b050(int32_t a, int32_t b, int32_t c, int32_t d, int32_t e, int32_t f); // out of module scope
-extern void FUN_0052b180(int32_t a, int32_t b, int32_t c, int32_t d, int32_t e, int32_t f,
+extern int32_t rasterizer_dynamic_index_cache_reserve(void);   // out of module scope, unexamined
+extern int32_t rasterizer_dynamic_vertex_cache_reserve(void);   // out of module scope, unexamined
+extern void *rasterizer_dynamic_vertex_cache_lock(void);     // out of module scope, unexamined
+extern void *rasterizer_dynamic_index_slot_lock(void);     // out of module scope, unexamined
+extern void rasterizer_model_draw_prepare_states(uint32_t flag_arg); // out of module scope, unexamined
+extern void rasterizer_shader_environment_draw_dispatch(int32_t a, int32_t b, int32_t c, int32_t d, int32_t e, int32_t f); // out of module scope
+extern void rasterizer_transparent_geometry_group_build(int32_t a, int32_t b, int32_t c, int32_t d, int32_t e, int32_t f,
                           int32_t g, void *h); // out of module scope
-extern void FUN_0052b530(void);      // out of module scope, unexamined
+extern void rasterizer_model_draw_restore_states(void);      // out of module scope, unexamined
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern data_array *object_data;      // 0x008603b0
 
@@ -57,12 +57,12 @@ void flag_render(uint32_t *entry /*param_1, flag* */, uint32_t *submission_block
     float inv_width_minus1 = 1.0f / (float)(width - 1);
     float inv_height_minus1 = 1.0f / (float)(height - 1);
 
-    model_context = FUN_0051bd60();
-    if (model_context == -1 || FUN_0051bdd0() == -1) {
+    model_context = rasterizer_dynamic_index_cache_reserve();
+    if (model_context == -1 || rasterizer_dynamic_vertex_cache_reserve() == -1) {
         return;
     }
-    normal_buffer = FUN_0051be40();
-    index_buffer = FUN_00511e80();
+    normal_buffer = rasterizer_dynamic_vertex_cache_lock();
+    index_buffer = rasterizer_dynamic_index_slot_lock();
 
     // Per-vertex normal computation (cross of the two grid-adjacent edge vectors, normalized).
     for (col = 0; col < width; col++) {
@@ -191,11 +191,11 @@ void flag_render(uint32_t *entry /*param_1, flag* */, uint32_t *submission_block
         float cz = (v2[2] + v0[2] + v1[2] + *(float *)(second_geometry + 0x24)) * 0.25f;
 
         (void)fallback_tag;
-        FUN_00526f50(0);
-        FUN_0052b050(0, 0, 0, row - 1, index_count, 0); // UNSURE: shader-kind branch (cases 1
+        rasterizer_model_draw_prepare_states(0);
+        rasterizer_shader_environment_draw_dispatch(0, 0, 0, row - 1, index_count, 0); // UNSURE: shader-kind branch (cases 1
             // and 5..11 call FUN_0052b180 with an extra `&(cx,cy,cz)` argument instead) collapsed
             // to the common path here; see the #if 0 block for the real branch.
-        FUN_0052b530();
+        rasterizer_model_draw_restore_states();
     }
 }
 

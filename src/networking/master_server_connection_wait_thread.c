@@ -27,7 +27,7 @@ extern network_mutex_record *server_list_mutex;    // 0x007196a8
 extern int32_t master_server_connection_last_tick_ms_0072520c; // 0x0072520c, see UNSURE
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, owned by the timing/system module
 
-extern void FUN_00549960(void); // foreign, outside this session's range
+extern void sound_idle_update(void); // foreign, outside this session's range
 extern int32_t GetExitCodeThread(void *thread, uint32_t *exit_code);
 extern void Sleep(uint32_t milliseconds);
 extern int32_t QueryPerformanceCounter(large_integer *counter);
@@ -53,7 +53,7 @@ void master_server_connection_wait_thread(void)
         QueryPerformanceCounter(&counter);
         now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
         if (0x84 < (uint32_t)(now_ms - master_server_connection_last_tick_ms_0072520c)) {
-            FUN_00549960();
+            sound_idle_update();
         }
         master_server_request_flags = master_server_request_flags | 2;
         Sleep(0x14);

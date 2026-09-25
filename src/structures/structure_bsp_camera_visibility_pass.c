@@ -26,7 +26,7 @@ extern structure_bsp_visible_cluster visible_clusters[k_maximum_visible_clusters
 
 // render module, out of this batch; see structure_bsp_mirror_query.c.
 // blam-cc: EAX -> out (float[4]), ECX -> camera
-extern void FUN_0050ddc0(float *out, void *camera);
+extern void render_frustum_compute_screen_clip_bounds(float *out, void *camera);
 
 extern void camera_cluster_portal_flood_recursive(int16_t cluster_index,
     polygon2d *view_polygon); // 0x5545d0, this module // this batch
@@ -44,7 +44,7 @@ void structure_bsp_camera_visibility_pass(void)
     }
 
     float screen_bounds[4];
-    FUN_0050ddc0(screen_bounds, (void *)0x7c3168);
+    render_frustum_compute_screen_clip_bounds(screen_bounds, (void *)0x7c3168);
     // Build the same permuted 4-point clip polygon 0x553560 and 0x554850's caller build: a
     // {count=4, points[4]} polygon2d-shaped buffer, laid out as {left/top, right/top, right/top,
     // left/top, right/bottom, right/bottom, left/bottom, left/bottom} pairs of (x, y) -- matching

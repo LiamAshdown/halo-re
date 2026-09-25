@@ -44,7 +44,7 @@ extern game_variant game_engine_variant;    // 0x006f1c88 (::lives_per_round at 
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module; blam-cc: EDI -> iterator
 extern int32_t players_active_count(void);   // 0x45c6a0, this batch
-extern uint8_t FUN_00460e40(uint32_t player_handle); // UNSURE signature; types/game.h cites this
+extern uint8_t game_engine_player_has_respawn_priority(uint32_t player_handle); // UNSURE signature; types/game.h cites this
                                                      // address for the player::odd_man_out test
 
 // Returns true immediately if fewer than two players are active. Otherwise scans players: a
@@ -82,7 +82,7 @@ uint8_t game_engine_players_ready_for_bsp_switch(void)
             if (p->marked_for_deletion != 0) {
                 keep_going = 1;
             } else if (p->unit == k_datum_index_none) {
-                odd_man_out_result = FUN_00460e40(iterator.index); // 0x45c7b0 pushes the iterator's index
+                odd_man_out_result = game_engine_player_has_respawn_priority(iterator.index); // 0x45c7b0 pushes the iterator's index
                 if (odd_man_out_result != 0) {
                     keep_going = 1;
                 } else if (0 < game_engine_variant.lives_per_round &&

@@ -40,7 +40,7 @@
 extern int32_t message_delta_read_changed_subfields(message_delta_decode_state *state,
     void *field_bindings, const void *previous, void *destination);
     // blam-cc: EDI -> state, stack -> field_bindings, previous, destination; 0x4ed1d0
-extern uint8_t FUN_004ec590(void *decode_context, void *destination);
+extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
     // blam-cc: EAX -> decode_context, ECX -> destination; 0x4ec590, message-delta stateless
     // (baseline) decode. It forwards to message_delta_read_changed_subfields with a NULL
     // previous-state pointer and the caller destination (0x4ec591..0x4ec59a).
@@ -73,7 +73,7 @@ void network_game_client_apply_received_update(network_machine *machine, uint32_
         *((uint8_t *)msg + 0x1d) = 1;
     } else {
         // blam-cc: EAX -> message, ECX -> staged
-        FUN_004ec590(message, staged);
+        message_delta_decode_compound_field(message, staged);
     }
 
     memcpy(machine->connect_state, staged, 0x34);

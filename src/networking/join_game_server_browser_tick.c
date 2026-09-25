@@ -71,7 +71,7 @@ extern wchar_t DAT_00660c34[];                  // see UNSURE, argument to serve
 
 extern int32_t network_join_request_resolve_host(void); // foreign, outside this session's range, see UNSURE
 extern void widget_close_all(void); // 0x498650, outside this session's range
-extern int32_t FUN_00490b50(void); // foreign, outside this session's range, see UNSURE
+extern int32_t input_get_key_state(void); // foreign, outside this session's range, see UNSURE
 extern void server_list_scroll_page_up(uint8_t jump_to_top); // 0x4b7b20, this module
 extern void server_list_scroll_page_down(uint8_t jump_to_bottom); // 0x4b7bb0, this module
 extern void server_list_reset(void); // 0x4b65f0, this module
@@ -183,22 +183,22 @@ int32_t join_game_server_browser_tick(network_ui_widget *param_1)
             scroll_target = DAT_006b180c;
         }
     }
-    clicked = FUN_00490b50();
+    clicked = input_get_key_state();
     if (clicked == 1) {
         server_list_scroll_page_up(0);
         widget_play_sound_effect();
     }
-    clicked = FUN_00490b50();
+    clicked = input_get_key_state();
     if (clicked == 1) {
         server_list_scroll_page_up(0);
         widget_play_sound_effect();
     }
-    clicked = FUN_00490b50();
+    clicked = input_get_key_state();
     if (clicked == 1) {
         server_list_scroll_page_down(0);
         widget_play_sound_effect();
     }
-    clicked = FUN_00490b50();
+    clicked = input_get_key_state();
     if (clicked == 1) {
         server_list_scroll_page_down(0);
         widget_play_sound_effect();

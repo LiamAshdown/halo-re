@@ -38,7 +38,7 @@ extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0
 // 0x569720, not yet rewritten (a different module): fetches the reference vector for a unit
 // other than the actor's own, by pointer (see UNSURE above).
-extern void FUN_00569720(uint32_t actor_index, uint32_t unit_index, real_vector3d *out);
+extern void unit_get_forward_vector_or_marker_normal(uint32_t actor_index, uint32_t unit_index, real_vector3d *out);
 
 void actor_get_body_axis_vector(uint32_t actor_index, uint32_t unit_index, actor_axis_request *request)
 {
@@ -50,7 +50,7 @@ void actor_get_body_axis_vector(uint32_t actor_index, uint32_t unit_index, actor
         reference.j = a->facing.j;
         reference.k = a->facing.k;
     } else {
-        FUN_00569720(actor_index, unit_index, &reference);
+        unit_get_forward_vector_or_marker_normal(actor_index, unit_index, &reference);
     }
 
     switch (request->axis) {

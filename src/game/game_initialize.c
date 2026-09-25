@@ -57,9 +57,9 @@ extern void hs_scripts_reload(void);                       // 0x483250
 extern void hs_runtime_initialize(void);                    // 0x489e70
 extern void object_lists_initialize(void);                   // 0x48b250
 extern void input_state_initialize(void);                     // 0x48b3e0
-extern void FUN_00492250(void);   // UNSURE module
-extern void FUN_00494340(void);   // UNSURE module
-extern void FUN_00495370(void);   // UNSURE module
+extern void input_queue_initialize(void);   // UNSURE module
+extern void interface_globals_allocate(void);   // UNSURE module
+extern void player_profile_subsystem_initialize(void);   // UNSURE module
 extern void widget_memory_pool_initialize(void);              // 0x4979b0
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d02d0, memory module
 extern data_array *data_new(int16_t element_size, char *name, int16_t maximum_count); // 0x4d0370,
@@ -74,7 +74,7 @@ extern void *game_state_new(int16_t element_size, char *name,
     // NOTE: src/hs still declares the 2-argument view of this function.
 extern void saved_game_files_initialize(void);                       // 0x53c260
 extern void game_sound_initialize(void);                              // 0x543a30
-extern void FUN_00552260(void); // UNSURE module
+extern void detail_objects_globals_allocate(void); // UNSURE module
 extern void __control87(uint32_t new_word, uint32_t mask); // MSVC CRT
 
 // One-time post-map-load initialization that bump-allocates every particle/effect/render-state
@@ -107,7 +107,7 @@ void game_initialize(void)
     game_engine_allocate_tick_record();
     game_engine_load_from_variant(&game_engine_active_variant); // objdump 0x45aa24: EBX = 0x0087ab20
     team_pair_table_allocate();
-    FUN_00494340();
+    interface_globals_allocate();
 
     size = 0x7c;
     global_scenario_game_globals = (scenario_game_globals *)(game_state_cursor + game_state_base);
@@ -122,7 +122,7 @@ void game_initialize(void)
 
     object_render_state_cache = (data_array *)game_state_new(0x100, "cached object render states", 0x100);
     objects_initialize();
-    FUN_00552260();
+    detail_objects_globals_allocate();
 
     size = 4;
     effect_pool_ptr = (void *)(game_state_cursor + game_state_base);
@@ -170,9 +170,9 @@ void game_initialize(void)
     crc32_update(&game_state_crc, (uint8_t *)&size, 4);
     saved_game_files_initialize();
 
-    FUN_00492250();
+    input_queue_initialize();
     input_state_initialize();
-    FUN_00495370();
+    player_profile_subsystem_initialize();
 }
 
 #if 0

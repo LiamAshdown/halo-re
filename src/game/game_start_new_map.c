@@ -65,9 +65,9 @@ extern Scenario *global_scenario; // 0x00746f8c
 extern uint8_t *unknown_006b8cbc; // TYPES-GAP
 
 extern void ai_reset_for_new_map(void);                 // 0x42a840
-extern void FUN_00435d50(void);                          // UNSURE module
+extern void encounters_spawn_initial(void);                          // UNSURE module
 extern void camera_initialize(void);                       // 0x445580
-extern void FUN_00447740(void);                              // UNSURE module
+extern void observer_new(void);                              // UNSURE module
 extern void team_pair_table_init_defaults(void);               // this batch, 0x45bc80
 extern void game_engine_load_from_variant(const game_variant *variant); // 0x45c2c0,
     // blam-cc: EBX -> variant (matches src/game/game_engine_load_from_variant.c)                // this batch, 0x45c2c0
@@ -76,16 +76,16 @@ extern void game_engine_reset_player_look_state(void);              // 0x470de0
 extern uint8_t update_server_new(void);                             // 0x472aa0
 extern void players_dispose(void);                                   // 0x473670
 extern void hs_scripts_reload(void);                                  // 0x483250
-extern void FUN_00494390(void);                                        // UNSURE module
+extern void interface_local_player_state_reset(void);                                        // UNSURE module
 extern void data_delete_all(data_array *array); // blam-cc: ESI -> array (src/memory/data_delete_all.c)                                // 0x4d0580, memory module, UNSURE arg
 extern void objects_update_control_bindings(Scenario *scenario); // 0x4f3ba0. One plain stack
     // argument -- objdump shows 0x4f3ba0 reading [esp+0x24] twice and taking no register input,
     // so src/objects/objects_update_control_bindings.c's "blam-cc: EAX -> param_1" is wrong.          // 0x4f3ba0, UNSURE arg
 extern void objects_reset(void);                                           // 0x4f4bb0
 extern void breakable_surfaces_reset(void); // 0x4ffd40, objects (breakable_surface_globals reset, R79)
-extern void FUN_00515740(void);                                               // UNSURE module
+extern void decal_and_font_system_reset(void);                                               // UNSURE module
 extern void game_state_build_header(void);                                     // 0x538000
-extern void FUN_0053fa70(void);                                                  // UNSURE module
+extern void ambient_color_randomize(void);                                                  // UNSURE module
 extern void __control87(uint32_t new_word, uint32_t mask); // MSVC CRT
 
 // Resets game state (objects, scripts, particle/effect pools, network server) to begin a new
@@ -115,7 +115,7 @@ void game_start_new_map(void)
 
     game_engine_load_from_variant(&game_engine_active_variant); // objdump 0x45b09a: EBX = 0x0087ab20
     __control87(0x9001f, 0xfffff);
-    FUN_00515740();
+    decal_and_font_system_reset();
     game_state_build_header();
 
     {
@@ -126,7 +126,7 @@ void game_start_new_map(void)
     }
     ((uint8_t *)game_time)[0] = 1;
 
-    FUN_00494390();
+    interface_local_player_state_reset();
     team_pair_table_init_defaults();
     players_dispose();
 
@@ -136,7 +136,7 @@ void game_start_new_map(void)
         cursor = cursor + 1;
     }
     *(uint8_t *)unknown_00746280_block = 1;
-    FUN_0053fa70();
+    ambient_color_randomize();
 
     tag_cache_bytes = (uint8_t *)global_scenario_game_globals;
     cursor = (uint32_t *)tag_cache_bytes;
@@ -175,7 +175,7 @@ void game_start_new_map(void)
     data_delete_all(unknown_0087abe4);
 
     camera_initialize();
-    FUN_00447740();
+    observer_new();
 
     unknown_0087abec->valid = 1;
     data_delete_all(unknown_0087abec);
@@ -257,7 +257,7 @@ void game_start_new_map(void)
     *unknown_006b8cbc = 1;
     objects_update_control_bindings(global_scenario);
     *unknown_006b8cbc = 0;
-    FUN_00435d50();
+    encounters_spawn_initial();
 }
 
 #if 0

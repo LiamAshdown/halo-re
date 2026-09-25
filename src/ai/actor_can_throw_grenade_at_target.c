@@ -30,7 +30,7 @@ extern data_array *encounter_data;     // 0x008802c8
 extern tag_instance *tag_instances;    // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c
 
-extern float FUN_0046fe70(float param_1); // UNSURE: no visible argument at the call site
+extern float weapon_get_zoom_fov_resolved(float param_1); // UNSURE: no visible argument at the call site
 
 extern uint8_t actor_find_grenade_landing_spot(datum_index actor_index, real_point3d *out_point, datum_index *out_target_handle, int32_t *out_relationship); // 0x410c90, this module
 extern uint8_t actor_score_blast_area_clear(datum_index actor_index, float blast_radius, float safety_radius, real_point3d *point, int16_t *out_count); // this module
@@ -63,7 +63,7 @@ uint8_t actor_can_throw_grenade_at_target(datum_index actor_index)
         int32_t squad_deadline = enc->unknown_5c;
 
         random_wait = *(float *)((uint8_t *)variant + 0x1a8);
-        random_wait = FUN_0046fe70(random_wait);
+        random_wait = weapon_get_zoom_fov_resolved(random_wait);
         if (squad_deadline != -1) {
             random_wait_ticks = (int16_t)random_wait; // __ftol truncation
             if (now < random_wait_ticks + squad_deadline) {

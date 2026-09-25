@@ -18,7 +18,7 @@ extern int32_t network_session_host_state;  // 0x00722a18
 extern uint8_t network_session_host_closing; // 0x00722a1c, UNSURE
 extern int32_t network_session_host_last_tick; // 0x00722a24, UNSURE
 
-extern int32_t FUN_00449210(void); // foreign/other module, UNSURE: a tick counter read
+extern int32_t time_query_performance_counter_ms(void); // foreign/other module, UNSURE: a tick counter read
 extern void FUN_00616c00(void *object); // foreign, UNSURE
 extern void FUN_00616cb0(void *object); // foreign, UNSURE
 
@@ -28,7 +28,7 @@ void network_session_host_update(void)
 {
     if (network_session_host_object != 0) {
         if (network_session_host_state != 0) {
-            int32_t now = FUN_00449210();
+            int32_t now = time_query_performance_counter_ms();
             if (network_session_host_state == 2 || (uint32_t)(now - network_session_host_last_tick) > 999) {
                 network_session_host_closing = (network_session_host_state == 2);
                 FUN_00616c00(network_session_host_object);

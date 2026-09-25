@@ -42,7 +42,7 @@ extern tag_instance *tag_instances;           // 0x0087bc14, stride 0x20, tag da
 // render module, below this batch's assigned range. Computes the camera's screen-space clip
 // rectangle (left, right, top, bottom) from a projection/camera struct into a 4-float buffer.
 // blam-cc: EAX -> out (float[4]), ECX -> camera
-extern void FUN_0050ddc0(float *out, void *camera);
+extern void render_frustum_compute_screen_clip_bounds(float *out, void *camera);
 
 // math module, canonical form (src/math/polygon2d_clip_to_planes.c). blam-cc: ECX -> vertex_count,
 // EDX -> vertices. Disassembly at 0x5536ba..0x5536e1 gives the full argument list: the SUBJECT is
@@ -99,7 +99,7 @@ uint8_t structure_bsp_mirror_query(void *camera_ref, void *camera,
     // FUN_0050ddc0 fills screen_bounds = {left, right, top, bottom} from the camera; the caller
     // then builds a 4-point clip rectangle out of it in the permuted order the decompile shows
     // (left/top, right/top, right/bottom, left/bottom -- i.e. the box corners in winding order).
-    FUN_0050ddc0(screen_bounds, camera);
+    render_frustum_compute_screen_clip_bounds(screen_bounds, camera);
     clip_points[0].x = screen_bounds[0]; clip_points[0].y = screen_bounds[2];
     clip_points[1].x = screen_bounds[1]; clip_points[1].y = screen_bounds[2];
     clip_points[2].x = screen_bounds[1]; clip_points[2].y = screen_bounds[3];

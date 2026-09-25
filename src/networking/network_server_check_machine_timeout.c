@@ -57,7 +57,7 @@ extern char network_df0e0_broadcast(network_server_globals *server, network_play
     // 0x4df0e0, other module (UNSURE name); both arguments are pushed, EAX also holds server
 extern void network_player_table_remove(network_player_entry *entry);
     // blam-cc: EAX -> entry; 0x4de640, other module
-extern void FUN_004dd090(network_channel *channel); // other module (UNSURE)
+extern void network_channel_remove_child(network_channel *channel); // other module (UNSURE)
 extern void FUN_0061b350(int32_t id, int32_t value); // GameSpy library (UNSURE)
 extern void FUN_0061b3f0(int32_t id); // GameSpy library (UNSURE)
 extern void message_delta_parameters_protocol_send_update(void); // 0x4ebf50
@@ -129,7 +129,7 @@ not_timed_out:
             for (i = 0; i < 16; i = i + 1) {
                 if (&server->machines[i] == machine) {
                     if (machine->channel != 0) {
-                        FUN_004dd090(machine->channel);
+                        network_channel_remove_child(machine->channel);
                     }
                     machine->channel = 0;
                     machine->unknown_04 = 0;

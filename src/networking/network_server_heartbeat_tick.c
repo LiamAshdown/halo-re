@@ -30,7 +30,7 @@
 extern int32_t QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern network_client_globals *network_client; // 0x0071c2d8
-extern int32_t FUN_00449210(void); // other module; returns a tick value here (UNSURE)
+extern int32_t time_query_performance_counter_ms(void); // other module; returns a tick value here (UNSURE)
 extern void *network_prepare_challenge_packet(void); // 0x4deaf0, this module
 extern void network_timer_advance(network_timer_pair *timer); // 0x4deb50, this module
 extern void network_machine_timer_start(network_machine *machine, int32_t duration_ms); // 0x4df090, other module
@@ -119,7 +119,7 @@ uint8_t network_server_heartbeat_tick(network_server_globals *server)
     } else if (*(int32_t *)(base + 0x9c4) != 0) {
         int32_t now2;
 
-        now2 = FUN_00449210();
+        now2 = time_query_performance_counter_ms();
         if ((uint32_t)(now2 - *(int32_t *)(base + 0x9c4)) > 59999) {
             int32_t i;
             char has_client;

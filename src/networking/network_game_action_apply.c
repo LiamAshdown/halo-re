@@ -29,30 +29,30 @@ extern int16_t network_game_mode; // 0x00719720
 extern uint8_t network_action_apply_active; // 0x0071c2c0, UNSURE name
 
 // UNSURE: all zero-argument, per the file header note above.
-extern void FUN_00456ad0(void);
-extern void FUN_0045f8f0(void);
-extern void FUN_004609d0(void);
-extern void FUN_00466d00(void);
-extern void FUN_00466e60(void);
-extern void FUN_00467230(void);
-extern void FUN_00468320(void);
-extern void FUN_0046bca0(void);
-extern void FUN_00470a10(void);
-extern void FUN_004778c0(void);
-extern void FUN_00477c70(void);
-extern void FUN_00478f10(void);
-extern void FUN_00479b40(void);
-extern void FUN_004aaf70(void);
-extern void FUN_004ae200(void);
-extern void FUN_004bbe20(void);
-extern void FUN_004bdb40(void);
-extern void FUN_004bf1c0(void);
-extern void FUN_004c0ca0(void);
+extern void player_effect_mark_damage_direction_dispatch(void);
+extern void game_engine_spawn_or_replay_netgame_equipment(void);
+extern void game_engine_handle_kill_feed_network_event(void);
+extern void game_engine_apply_player_profile_entry(void);
+extern void game_engine_invoke_profile_post_update_callback(void);
+extern void game_engine_dispatch_end_game_notification(void);
+extern void game_engine_apply_partial_round_reset_message(void);
+extern void game_engine_handle_sound_status_event(void);
+extern void game_engine_client_apply_team_assignment(void);
+extern void game_engine_apply_player_join_message(void);
+extern void game_engine_apply_player_spawn_loadout_message(void);
+extern void game_engine_apply_player_interaction_message(void);
+extern void game_engine_apply_kill_streak_message(void);
+extern void chat_dispatch_incoming(void);
+extern void hud_receive_item_message(void);
+extern void equipment_create_from_creation_message(void);
+extern void projectile_detonation_message_apply(void);
+extern void projectile_attach_apply(void);
+extern void projectile_create_from_network(void);
 extern void item_add_ammunition(void);
-extern void FUN_004c3530(void);
-extern void FUN_004c3870(void);
-extern void FUN_004c4ac0(void);
-extern void FUN_004c5c10(void);
+extern void weapon_predict_ammo(void);
+extern void weapon_apply_ammo_correction(void);
+extern void weapon_apply_ammo_correction_and_resync(void);
+extern void weapon_create_from_creation_message(void);
 extern void network_player_ping_field_update_and_report(void *decode_context);
     // blam-cc: EAX -> decode_context; this module, 0x4dbaa0
 extern void network_channel_key_send_state(void);
@@ -60,22 +60,22 @@ extern void network_client_handle_server_text_message(void);
 extern void player_update_client_local_player_update_from_network(void);
 extern void player_update_client_local_player_vehicle_update_from_network(void);
 extern void player_update_client_remote_player_action_update_from_network(void);
-extern void FUN_004e5720(void);
+extern void player_update_remote_player_action_update_apply(void);
 extern void player_update_client_remote_player_total_biped_update_from_network(void);
 extern void player_update_client_remote_player_total_vehicle_update_from_network(void);
 extern void player_update_client_remote_player_position_delta_from_network(void);
 extern void player_update_client_remote_player_vehicle_position_delta_from_network(void);
 extern void message_delta_parameters_protocol_receive_update(void);
-extern void FUN_004ec390(void);
+extern void message_delta_definitions_invoke_field_bindings(void);
 extern void object_apply_shield_charge_and_notify(void);
 extern void object_apply_linked_impulse(void);
 extern void object_type_override_call_0x70_release_node(void);
 extern void object_delete_by_pooled_node_id(void);
-extern void FUN_0055b110(void);
-extern void FUN_00566c90(void);
-extern void FUN_0056c400(void);
-extern void FUN_0056ddb0(void);
-extern void FUN_00572110(void);
+extern void unit_network_create_update_apply(void);
+extern void unit_apply_network_control_update(void);
+extern void unit_dispatch_seat_exit_message(void);
+extern void unit_scripting_set_or_drop_weapon(void);
+extern void unit_spawn_with_starting_weapons(void);
 
 // blam-cc: EAX -> action_entry
 void network_game_action_apply(int32_t **action_entry)
@@ -96,19 +96,19 @@ void network_game_action_apply(int32_t **action_entry)
         case 0xb:
         case_b:
             network_action_apply_active = 1;
-            FUN_00456ad0();
+            player_effect_mark_damage_direction_dispatch();
             network_action_apply_active = 0;
             return;
         case 0xf:
         case_f:
             network_action_apply_active = 1;
-            FUN_004aaf70();
+            chat_dispatch_incoming();
             network_action_apply_active = 0;
             return;
         case 0x1a:
         case_1a:
             network_action_apply_active = 1;
-            FUN_00470a10();
+            game_engine_client_apply_team_assignment();
             network_action_apply_active = 0;
             return;
         case 0x21:
@@ -121,7 +121,7 @@ void network_game_action_apply(int32_t **action_entry)
         case_22:
             network_action_apply_active = 1;
             message_delta_parameters_protocol_receive_update();
-            FUN_004ec390();
+            message_delta_definitions_invoke_field_bindings();
             network_action_apply_active = 0;
             return;
         case 0x35:
@@ -156,35 +156,35 @@ void network_game_action_apply(int32_t **action_entry)
     case 6:
     case_6:
         network_action_apply_active = 1;
-        FUN_004ae200();
+        hud_receive_item_message();
         network_action_apply_active = 0;
         return;
     case 7:
-        FUN_004778c0();
+        game_engine_apply_player_join_message();
         network_action_apply_active = 0;
         return;
     case 8:
-        FUN_00477c70();
+        game_engine_apply_player_spawn_loadout_message();
         network_action_apply_active = 0;
         return;
     case 9:
-        FUN_0056c400();
+        unit_dispatch_seat_exit_message();
         network_action_apply_active = 0;
         return;
     case 10:
-        FUN_00478f10();
+        game_engine_apply_player_interaction_message();
         network_action_apply_active = 0;
         return;
     case 0xb:
         goto case_b;
     case 0xc:
-        FUN_00566c90();
+        unit_apply_network_control_update();
         network_action_apply_active = 0;
         return;
     default:
         goto host_default;
     case 0xe:
-        FUN_00479b40();
+        game_engine_apply_kill_streak_message();
         network_action_apply_active = 0;
         return;
     case 0xf:
@@ -194,53 +194,53 @@ void network_game_action_apply(int32_t **action_entry)
     case 0x12:
     case 0x13:
     case 0x14:
-        FUN_00466e60();
+        game_engine_invoke_profile_post_update_callback();
         network_action_apply_active = 0;
         return;
     case 0x15:
-        FUN_00466d00();
+        game_engine_apply_player_profile_entry();
         network_action_apply_active = 0;
         return;
     case 0x16:
-        FUN_00467230();
+        game_engine_dispatch_end_game_notification();
         network_action_apply_active = 0;
         return;
     case 0x17:
-        FUN_00468320();
+        game_engine_apply_partial_round_reset_message();
         network_action_apply_active = 0;
         return;
     case 0x18:
-        FUN_004609d0();
+        game_engine_handle_kill_feed_network_event();
         network_action_apply_active = 0;
         return;
     case 0x19:
-        FUN_0046bca0();
+        game_engine_handle_sound_status_event();
         network_action_apply_active = 0;
         return;
     case 0x1a:
         goto case_1a;
     case 0x1b:
-        FUN_0056ddb0();
+        unit_scripting_set_or_drop_weapon();
         network_action_apply_active = 0;
         return;
     case 0x1c:
-        FUN_00572110();
+        unit_spawn_with_starting_weapons();
         network_action_apply_active = 0;
         return;
     case 0x1d:
-        FUN_0055b110();
+        unit_network_create_update_apply();
         network_action_apply_active = 0;
         return;
     case 0x1e:
-        FUN_004c0ca0();
+        projectile_create_from_network();
         network_action_apply_active = 0;
         return;
     case 0x1f:
-        FUN_004bbe20();
+        equipment_create_from_creation_message();
         network_action_apply_active = 0;
         return;
     case 0x20:
-        FUN_004c5c10();
+        weapon_create_from_creation_message();
         network_action_apply_active = 0;
         return;
     case 0x21:
@@ -260,7 +260,7 @@ void network_game_action_apply(int32_t **action_entry)
         network_action_apply_active = 0;
         return;
     case 0x26:
-        FUN_004e5720();
+        player_update_remote_player_action_update_apply();
         network_action_apply_active = 0;
         return;
     case 0x27:
@@ -280,7 +280,7 @@ void network_game_action_apply(int32_t **action_entry)
         network_action_apply_active = 0;
         return;
     case 0x2b:
-        FUN_004c3530();
+        weapon_predict_ammo();
         network_action_apply_active = 0;
         return;
     case 0x2c:
@@ -288,19 +288,19 @@ void network_game_action_apply(int32_t **action_entry)
         network_action_apply_active = 0;
         return;
     case 0x2d:
-        FUN_004c3870();
+        weapon_apply_ammo_correction();
         network_action_apply_active = 0;
         return;
     case 0x2e:
-        FUN_004c4ac0();
+        weapon_apply_ammo_correction_and_resync();
         network_action_apply_active = 0;
         return;
     case 0x2f:
-        FUN_0045f8f0();
+        game_engine_spawn_or_replay_netgame_equipment();
         network_action_apply_active = 0;
         return;
     case 0x30:
-        FUN_004bdb40();
+        projectile_detonation_message_apply();
         network_action_apply_active = 0;
         return;
     case 0x31:
@@ -312,7 +312,7 @@ void network_game_action_apply(int32_t **action_entry)
         network_action_apply_active = 0;
         return;
     case 0x33:
-        FUN_004bf1c0();
+        projectile_attach_apply();
         network_action_apply_active = 0;
         return;
     case 0x35:

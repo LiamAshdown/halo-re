@@ -36,8 +36,8 @@ extern uint8_t cache_file_open_by_name(char *name, uint8_t report_fatal_error); 
 extern uint8_t cache_file_download_matches(char *path);   // 0x4432f0, UNSURE args
 extern void cache_file_download_stop(void);   // 0x443510
 extern void cache_file_download_finish(void); // 0x443540
-extern void FUN_004c8900(void); // UNSURE module
-extern void FUN_0053d080(void); // UNSURE module
+extern void main_queue_cache_file_open(void); // UNSURE module
+extern void saved_game_get_directory_by_handle(void); // UNSURE module
 extern void saved_game_last_profile_clear(void); // 0x53d220
 extern void shell_display_fatal_error_dialog(uint32_t a, uint32_t b, uint32_t c); // 0x57ea70
 
@@ -65,7 +65,7 @@ void cache_file_switch_map_by_path(char *path, uint8_t apply_state)
             if (cache_file_download_matches(path) == 0) { // UNSURE args
                 if (apply_state == 0) {
                     cache_file_download_stop();
-                    FUN_004c8900();
+                    main_queue_cache_file_open();
                 } else {
                     cache_file_download_finish();
                 }
@@ -91,7 +91,7 @@ void cache_file_switch_map_by_path(char *path, uint8_t apply_state)
         if (unknown_006894b8 == 1) {
             if (saved_game_profile_previous != saved_game_profile_index) {
                 if (saved_game_profile_index != -1) {
-                    FUN_0053d080();
+                    saved_game_get_directory_by_handle();
                 }
                 saved_game_profile_previous = saved_game_profile_index;
             }

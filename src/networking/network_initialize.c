@@ -31,7 +31,7 @@ extern uint32_t network_resolved_local_address; // 0x006869b4, UNSURE
 extern int32_t network_initialized_at_ms;  // 0x006f14c0, UNSURE
 
 extern int network_local_hostent_get(void **out_hostent); // 0x441540, this module
-extern int32_t FUN_00449210(void); // foreign module, millisecond tick reader
+extern int32_t time_query_performance_counter_ms(void); // foreign module, millisecond tick reader
 extern int32_t WSAStartup(uint16_t version_requested, void *wsa_data);
 extern void *CreateThread(void *security_attributes, uint32_t stack_size, void *start_address,
                            void *parameter, uint32_t creation_flags, uint32_t *thread_id);
@@ -69,7 +69,7 @@ int16_t network_initialize(void)
             }
         }
         CreateThread(0, 0x10400, join_game_server_browser_tick, 0, 0, &thread_id);
-        network_initialized_at_ms = FUN_00449210();
+        network_initialized_at_ms = time_query_performance_counter_ms();
         network_winsock_initialized = 1;
         result = (int16_t)wsa_result;
     }

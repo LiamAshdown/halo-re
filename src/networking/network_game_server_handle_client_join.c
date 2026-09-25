@@ -49,8 +49,8 @@ extern char network_player_join_finalize(void); // 0x4d9e30, other module (UNSUR
 extern char network_channel_key_open(void); // 0x4de870, other module (UNSURE args)
 extern uint32_t player_data_iterator_advance(uint8_t slot_index); // 0x4d98f0, other module (UNSURE)
 extern void datum_new_at_index_with_salt(void); // 0x4d03d0, memory module (UNSURE args here)
-extern void FUN_00479f40(void); // other module (UNSURE)
-extern void FUN_0045c440(uint32_t player_datum); // other module (UNSURE)
+extern void player_update_queue_create(void); // other module (UNSURE)
+extern void game_engine_player_new_life(uint32_t player_datum); // other module (UNSURE)
 extern int32_t game_engine_player_profile_cache_find(void); // 0x466e80, other module (UNSURE)
 extern void network_game_server_handoff_object_ownership(int32_t *object_count_passthrough,
     network_server_globals *server, network_machine *machine); // 0x4dfa10, this batch
@@ -152,14 +152,14 @@ void network_game_server_handle_client_join(int32_t *object_count_passthrough,
                                     player_data_iterator_advance((uint8_t)entry->unknown_1e);
                                     datum_new_at_index_with_salt();
                                     datum_new_at_index_with_salt();
-                                    FUN_00479f40();
+                                    player_update_queue_create();
                                 }
                             }
                         }
                         if (ok != 0) {
                             machine->unknown_50 = 1;
                             player_datum = player_data_iterator_advance((uint8_t)entry->unknown_1e);
-                            FUN_0045c440(player_datum);
+                            game_engine_player_new_life(player_datum);
                             if (game_engine_player_profile_cache_find() != -1) {
                                 handled = 1;
                             } else {

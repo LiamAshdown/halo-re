@@ -22,7 +22,7 @@
 #include "hs.h"
 
 extern void *object_try_and_get(int32_t type_mask); // objects module, 0x4f6ec0
-extern int16_t FUN_004f6080(datum_index object_index, void *marker_index, void *out_buffer,
+extern int16_t object_get_node_local_transform(datum_index object_index, void *marker_index, void *out_buffer,
     char param_4); // UNSURE: this call site's args are register-implicit; the signature is
     // the one hs_effect_spawn_on_marker.c and hs_object_detach_and_place_at_location.c prove;
     // objects
@@ -48,7 +48,7 @@ uint32_t hs_object_angle_predicate_helper(datum_index object_index, void *param_
         /* UNSURE: all four arguments are register-implicit here (Ghidra shows a bare call).
            The signature is the one hs_effect_spawn_on_marker.c and
            hs_object_detach_and_place_at_location.c prove; the values are not recovered. */
-        FUN_004f6080(object_index, control, 0, 0);
+        object_get_node_local_transform(object_index, control, 0, 0);
     }
     return unit_point_within_look_cone(angle_degrees * 0.017453292f);
 }

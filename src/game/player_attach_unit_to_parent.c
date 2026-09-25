@@ -59,7 +59,7 @@ extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, memo
     // below: Ghidra elides both register arguments there.
 extern void player_update_history_free_all(void *queue); // 0x4e6f20
 extern void unit_dispatch_scripted_event_9(uint8_t flag); // 0x56c370, units module, not in this batch
-extern uint8_t FUN_004757b0(uint32_t player_index, uint32_t target_object, void *local_offset); // this batch
+extern uint8_t player_find_placement_position(uint32_t player_index, uint32_t target_object, void *local_offset); // this batch
 
 // UNSURE, best-effort (see header): attaches player_index's unit as a child of target_object's
 // current parent chain unless already there or this machine is a network client, recomputing
@@ -220,7 +220,7 @@ uint8_t player_attach_unit_to_parent(uint32_t player_index, uint32_t target_obje
         }
     }
 
-    result = FUN_004757b0(player_index, target_object, local_offset);
+    result = player_find_placement_position(player_index, target_object, local_offset);
     return result;
 }
 

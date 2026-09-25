@@ -34,7 +34,7 @@ extern uint8_t no_subcluster_path_taken;      // 0x006e3af0
 
 // render module, below this batch's assigned range; see structure_bsp_mirror_query.c.
 // blam-cc: EAX -> out (float[4]), ECX -> camera
-extern void FUN_0050ddc0(float *out, void *camera);
+extern void render_frustum_compute_screen_clip_bounds(float *out, void *camera);
 
 extern void structure_bsp_camera_visibility_pass(void); // 0x5544f0, this module: portal flood
     // from the camera cluster, then a clipped frustum per visible cluster
@@ -83,7 +83,7 @@ void structure_bsp_cluster_visibility_update(void)
                 int16_t visible_index = visible_cluster_count++;
                 cluster_visible_index[cluster_index] = visible_index;
                 visible_clusters[visible_index].cluster_index = cluster_index;
-                FUN_0050ddc0((float *)&visible_clusters[visible_index].screen_bounds_x,
+                render_frustum_compute_screen_clip_bounds((float *)&visible_clusters[visible_index].screen_bounds_x,
                              (void *)0x7c3168);
             }
         }

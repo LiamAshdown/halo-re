@@ -26,7 +26,7 @@ extern uint16_t network_server_name[64]; // 0x00699588, "Halo" by default (UNSUR
 extern uint8_t network_server_name_is_default; // 0x00699606 (UNSURE name)
 extern network_server_globals *network_server; // 0x0071c2d4
 
-extern wchar_t *FUN_00557990(void); // foreign, presumed to return &scratch (UNSURE, see header)
+extern wchar_t *string_convert_ascii_to_unicode(void); // foreign, presumed to return &scratch (UNSURE, see header)
 extern uint8_t network_name_string_is_valid_for_mode(char *name, void *dest, int32_t mode); // 0x4e4350, this module
 extern void network_password_field_set(void); // 0x4df070, this module, called here with no
     // visible arguments (UNSURE, see header)
@@ -50,7 +50,7 @@ void sv_name(uint32_t argument_count, char **arguments)
         int32_t length = (int32_t)strlen(name);
 
         if (length != 0 && (uint32_t)length < 0x40) {
-            wchar_t *result = FUN_00557990();
+            wchar_t *result = string_convert_ascii_to_unicode();
             if (result == scratch) {
                 if (network_name_string_is_valid_for_mode(name, scratch, 3) != 0) {
                     network_server_globals *server = network_server;

@@ -30,7 +30,7 @@
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, objects module
 extern void **network_object_type_table; // 0x0069bfdc, per-object-type record pointer array (UNSURE)
 extern uint8_t network_object_update_scratch[0x7ff8]; // 0x00871de0
-extern int32_t FUN_004f44f0(uint8_t *out_buffer, int32_t out_buffer_size); // other module; UNSURE
+extern int32_t object_type_override_get_0x64(uint8_t *out_buffer, int32_t out_buffer_size); // other module; UNSURE
 extern uint32_t network_session_send_to_machine(int32_t machine_id, uint8_t *data, int32_t bits,
     int32_t reliable, int32_t unknown_a, int32_t unknown_b, int32_t priority); // 0x4e1930, this batch;
     // UNSURE: parameter names/count guessed from this call site alone, see that file when written
@@ -54,7 +54,7 @@ void network_game_broadcast_team_object_updates(int32_t *object_count, uint32_t 
     while (obj != 0) {
         if (obj->network_role == 0 &&
             *(int32_t *)((uint8_t *)network_object_type_table[obj->type] + 0x10) != -1) {
-            encoded_bits = FUN_004f44f0(network_object_update_scratch, 0x7ff8);
+            encoded_bits = object_type_override_get_0x64(network_object_update_scratch, 0x7ff8);
             if (encoded_bits > 0) {
                 *bytes_sent = *bytes_sent + encoded_bits;
                 *object_count = *object_count + 1;

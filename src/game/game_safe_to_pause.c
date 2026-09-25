@@ -15,10 +15,10 @@
 
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, objects module
 
-extern uint8_t FUN_004bcf50(void); // UNSURE module: "dangerous_items_near_player"
-extern uint8_t FUN_00450fa0(void); // UNSURE module: "dangerous_effects_near_player"
-extern uint8_t FUN_0056c070(void); // UNSURE module: "any_unit_is_dangerous"
-extern uint8_t FUN_0042c3e0(uint32_t param_1); // UNSURE module: "ai_enemies_can_see_player"
+extern uint8_t item_any_detonating(void); // UNSURE module: "dangerous_items_near_player"
+extern uint8_t effect_check_object_collisions(void); // UNSURE module: "dangerous_effects_near_player"
+extern uint8_t unit_any_dying_or_seat_transition(void); // UNSURE module: "any_unit_is_dangerous"
+extern uint8_t ai_scan_for_recent_combat_activity(uint32_t param_1); // UNSURE module: "ai_enemies_can_see_player"
 
 // Returns whether it is currently safe to pause: no nearby dangerous projectiles, items,
 // effects or units. A quieter subset of game_safe_to_save's checks (no AI-visibility check, no
@@ -33,7 +33,7 @@ uint32_t game_safe_to_pause(void)
     iterator.handle = k_datum_index_none;
 
     if (object_iterator_next(&iterator) == (object *)0) {
-        if (FUN_004bcf50() == 0 && FUN_00450fa0() == 0 && FUN_0056c070() == 0 && FUN_0042c3e0(0) == 0) {
+        if (item_any_detonating() == 0 && effect_check_object_collisions() == 0 && unit_any_dying_or_seat_transition() == 0 && ai_scan_for_recent_combat_activity(0) == 0) {
             return 1;
         }
     }

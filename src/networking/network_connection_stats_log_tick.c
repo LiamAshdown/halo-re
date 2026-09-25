@@ -38,7 +38,7 @@ extern network_client_globals *network_client; // 0x0071c2d8
 extern network_server_globals *network_server; // 0x0071c2d4
 extern char network_summary_log_mode_string[]; // 0x0065fd30, shared by both stats logs
 
-extern int32_t FUN_00449210(void); // foreign module, millisecond tick reader
+extern int32_t time_query_performance_counter_ms(void); // foreign module, millisecond tick reader
 extern char *join_game_server_browser_tick(void);   // foreign module (> 0x4b80f0), log base directory path
 extern char directory_create_recursive(char *path); // 0x449250, foreign module
 
@@ -55,7 +55,7 @@ void network_connection_stats_log_tick(void)
     uint8_t control_char;
 
     if (2 < debug_log_level && network_statistics_logging_enabled == 1) {
-        now = FUN_00449210();
+        now = time_query_performance_counter_ms();
         if (network_connection_log_needs_open == 1) {
             network_connection_log_needs_open = 0;
             network_connection_log_last_row_ms = now;

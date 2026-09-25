@@ -35,8 +35,8 @@ extern char message_delta_decode_begin(void);   // 0x4ec490, message-delta famil
 extern char message_delta_decode_array_field(void);   // 0x4ec510, message-delta family, outside this batch
 extern void network_game_client_apply_received_update(network_machine *machine, uint32_t param_1,
     void **message); // 0x4e0280, prior batch
-extern void FUN_004aabd0(void *param_2);   // foreign (UNSURE)
-extern void FUN_00470810(void *param_2);   // foreign (UNSURE)
+extern void chat_server_relay_incoming_message(void *param_2);   // foreign (UNSURE)
+extern void game_engine_update_lead_change_state(void *param_2);   // foreign (UNSURE)
 extern void network_server_handle_rcon_request(void); // 0x4e4f00, other module, already named
 
 // blam-cc: EBX -> machine, stack -> param_1, param_2
@@ -68,10 +68,10 @@ void network_client_drain_queued_updates(network_machine *machine, network_serve
             network_game_client_apply_received_update(machine, (uint32_t)(uintptr_t)param_1, (void **)&message_ptr);
             break;
         case 0x0f:
-            FUN_004aabd0(param_2);
+            chat_server_relay_incoming_message(param_2);
             break;
         case 0x1a:
-            FUN_00470810(param_2);
+            game_engine_update_lead_change_state(param_2);
             break;
         case 0x34:
             (void)param_1; // network_game_message_handle_ping_timestamp's own `message` argument

@@ -42,7 +42,7 @@ extern real random_real_range(real min, real max); // 0x401050
 // or -1 if none is currently resolved.
 extern datum_index actor_find_prop_for_object(datum_index object_index);
 // 0x568f50, not yet rewritten (a different module), called with no visible arguments here.
-extern void FUN_00568f50(void);
+extern void unit_get_primary_eye_marker_position(void);
 // 0x4d0680, a generic engine helper, called with no visible arguments here (see UNSURE).
 extern int32_t datum_get(void);
 
@@ -60,7 +60,7 @@ void actor_schedule_grenade_throw(uint32_t actor_index)
 
         if (speaker == -1) {
             status = 3;
-            FUN_00568f50();
+            unit_get_primary_eye_marker_position();
         } else {
             status = 1;
             speaker_handle = speaker;

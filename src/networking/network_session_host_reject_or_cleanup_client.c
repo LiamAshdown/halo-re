@@ -26,7 +26,7 @@ extern void *autopatch_download_mutex_or_similar; // 0x0069fdfc, UNSURE: exact t
 extern void FUN_0061b110(void *handle); // foreign, UNSURE
 extern void FUN_0061aa50(void *handle);  // foreign, UNSURE
 extern char ban_list_check_and_reject_player(void); // 0x4e3820, this module (elided args)
-extern void FUN_004e0af0(network_server_globals *server); // this module range, UNSURE args
+extern void network_server_notify_or_resend_challenge(network_server_globals *server); // this module range, UNSURE args
 extern void FUN_0061b350(void *handle); // foreign, UNSURE
 extern void FUN_0061b3f0(void *handle); // foreign, UNSURE
 
@@ -54,7 +54,7 @@ int32_t network_session_host_reject_or_cleanup_client(int32_t channel)
         }
         entry = entry + 0x60;
     }
-    FUN_004e0af0(network_server);
+    network_server_notify_or_resend_challenge(network_server);
     if (channel != -1) {
         FUN_0061b350(autopatch_download_mutex_or_similar);
         return 0;

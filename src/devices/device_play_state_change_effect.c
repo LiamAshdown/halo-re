@@ -42,11 +42,11 @@ extern void *sound_creation_origin;  // 0x006966f8, a constant pointer to .rdata
 
 // 0x4507a0, out of range (effect-creation routine).
 //   // blam-cc: EAX = object_index, ECX = tag_id, the rest on the stack
-extern void FUN_004507a0(uint32_t object_index, datum_index unknown_m1, float position,
+extern void effect_new_on_object(uint32_t object_index, datum_index unknown_m1, float position,
     float power, uint32_t unknown_0, uint32_t unknown_0b);
 // 0x543ce0, out of range (sound-playback routine).
 //   // blam-cc: EAX = effect_creation_origin, ECX = sound_creation_origin, the rest on the stack
-extern void FUN_00543ce0(TagID tag_id, datum_index unknown_m1, float gain, uint32_t unknown_0);
+extern void sound_start_at_object_marker(TagID tag_id, datum_index unknown_m1, float gain, uint32_t unknown_0);
 
 void device_play_state_change_effect(uint32_t object_index, TagID tag_id)
 {
@@ -58,9 +58,9 @@ void device_play_state_change_effect(uint32_t object_index, TagID tag_id)
 
         if (group_tag == k_device_state_change_tag_effect) {
             device_data *dev = (device_data *)((uint8_t *)obj + sizeof(object));
-            FUN_004507a0(object_index, (datum_index)0xffffffff, dev->position, dev->power, 0, 0);
+            effect_new_on_object(object_index, (datum_index)0xffffffff, dev->position, dev->power, 0, 0);
         } else if (group_tag == k_device_state_change_tag_sound) {
-            FUN_00543ce0(tag_id, (datum_index)0xffffffff, 1.0f, 0);
+            sound_start_at_object_marker(tag_id, (datum_index)0xffffffff, 1.0f, 0);
         }
     }
 }

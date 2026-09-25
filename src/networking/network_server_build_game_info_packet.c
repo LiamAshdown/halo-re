@@ -35,14 +35,14 @@
 #include "networking.h"
 #include <string.h>
 
-extern char *FUN_00575fa0(void); // other module (UNSURE): source string for the machine's short name
+extern char *autopatch_temp_name_generate(void); // other module (UNSURE): source string for the machine's short name
 extern uint8_t network_game_info_packet_flag; // 0x006894a2 (UNSURE name)
 extern char data_packet_group_encode_packet(void *header, uint32_t *size_in_out, int32_t group, int32_t message_type); // 0x4d0ae0, this module family
 extern uint16_t *network_message_block_build(uint32_t size); // 0x440350, this module (UNSURE: packs the
     // just-encoded message into a newly allocated buffer; see this module's very first
     // function for the closest available context)
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this module
-extern void FUN_004cf8f0(int32_t bit_count); // other module (UNSURE)
+extern void bit_stream_write_bits_chunked(int32_t bit_count); // other module (UNSURE)
 
 // Stamps `machine`'s short name and a snapshot of the server's name/game-data block, encodes
 // them as a type-4 "game info" message, and queues the encoded bits onto machine->channel's
@@ -65,7 +65,7 @@ char network_server_build_game_info_packet(network_server_globals *server, netwo
     char *source_name;
     char encoded;
 
-    source_name = FUN_00575fa0();
+    source_name = autopatch_temp_name_generate();
     strncpy((char *)machine + 0x52, source_name, 7); // UNSURE: network_machine+0x52 short_name[8]
     *((char *)machine + 0x59) = 0;
 
@@ -104,9 +104,9 @@ char network_server_build_game_info_packet(network_server_globals *server, netwo
                         }
                     }
                     channel->send_budget = channel->send_budget + bit_len + 1;
-                    FUN_004cf8f0(1);
+                    bit_stream_write_bits_chunked(1);
                     channel->outgoing.empty = 0;
-                    FUN_004cf8f0(bit_len);
+                    bit_stream_write_bits_chunked(bit_len);
                     channel->outgoing.empty = 0;
                 }
                 return result;

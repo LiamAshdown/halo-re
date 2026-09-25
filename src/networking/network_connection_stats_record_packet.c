@@ -39,7 +39,7 @@ extern void *FUN_00614840(void *gamespy_connection); // foreign, GameSpy library
 extern uint32_t FUN_006175f0(int32_t object); // 0x6175f0: returns the uint32 at object+0x00 // foreign, GameSpy library; see UNSURE
 extern uint16_t FUN_006147d0(int32_t object); // 0x6147d0: returns the uint16 at object+0x04 in AX // foreign, GameSpy library; see UNSURE
 extern int32_t network_connection_stats_lookup_or_add(int32_t connection_id, uint16_t connection_key); // 0x440a80, this module
-extern int32_t FUN_00449210(void); // foreign module, millisecond tick reader
+extern int32_t time_query_performance_counter_ms(void); // foreign module, millisecond tick reader
 
 // blam-cc: GameSpy connection handle in EAX (in_EAX), payload byte length in ECX (in_ECX),
 // is_sent/is_reliable/is_resend as ordinary stack parameters (param_1/2/3)
@@ -66,7 +66,7 @@ void network_connection_stats_record_packet(void *gamespy_connection, int32_t pa
                     FUN_006147d0((int32_t)(uintptr_t)gamespy_connection));
                 *stats_index_field = index;
                 network_connection_stats[index].active = 1;
-                network_connection_stats[*stats_index_field].active_since_ms = FUN_00449210();
+                network_connection_stats[*stats_index_field].active_since_ms = time_query_performance_counter_ms();
             }
             index = *stats_index_field;
             if (is_sent == 1) {

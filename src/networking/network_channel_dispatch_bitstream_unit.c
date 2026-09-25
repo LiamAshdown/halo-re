@@ -24,7 +24,7 @@
 #include "networking.h"
 #include <stdint.h>
 
-extern uint16_t *FUN_004de420(int32_t timeout_ms); // other module (UNSURE); returns a record pointer, not char
+extern uint16_t *network_message_read_sized_buffer(int32_t timeout_ms); // other module (UNSURE); returns a record pointer, not char
 extern uint32_t network_game_process_incoming_message(int32_t length, network_machine *machine,
     uint16_t *record, network_server_globals *server); // 0x4e1c60, this batch; blam-cc: EAX -> length, ECX -> machine, EDX -> record, stack -> server
 extern uint32_t network_client_drain_queued_updates(network_machine *machine,
@@ -42,7 +42,7 @@ uint32_t network_channel_dispatch_bitstream_unit(network_machine *machine, uint3
             machine);
     }
     if (unit == 0) {
-        uint16_t *record = FUN_004de420(0xfff);
+        uint16_t *record = network_message_read_sized_buffer(0xfff);
         if (record != 0) {
             int32_t length = (int32_t)(uint16_t)(*record >> 4);
             return network_game_process_incoming_message(length, machine, record,

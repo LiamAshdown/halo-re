@@ -14,8 +14,8 @@
 extern data_array *object_data;     // 0x008603b0
 extern uint8_t DAT_0087abc3;        // UNSURE global (cheat/debug toggle)
 
-extern void FUN_0042bd70(void);                              // UNSURE module
-extern char FUN_0044acc0(void);                               // UNSURE module
+extern void actor_squad_react_to_grenade_for_vehicle_occupants(void);                              // UNSURE module
+extern char recorded_animation_object_is_playing(void);                               // UNSURE module
 extern int16_t unit_get_local_player_weapon_index(void);      // 0x4726b0
 extern void local_player_set_controlled_unit(void);           // 0x474fc0, UNSURE args
 
@@ -41,8 +41,8 @@ void biped_update_target_lock_timer(datum_index target, uint32_t object_index)
         object *target_obj = ((object_header *)object_data->data)[target & 0xffff].data;
         unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
-        FUN_0042bd70();
-        if (unit->controlling_player != k_datum_index_none || FUN_0044acc0()) {
+        actor_squad_react_to_grenade_for_vehicle_occupants();
+        if (unit->controlling_player != k_datum_index_none || recorded_animation_object_is_playing()) {
             if (biped->unknown_4fc != target) {
                 biped->unknown_4fc = target;
                 biped->unknown_500 = 0;

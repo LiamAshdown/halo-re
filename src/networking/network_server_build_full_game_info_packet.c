@@ -25,7 +25,7 @@
 extern char data_packet_group_encode_packet(void *header, uint32_t *size_in_out, int32_t group, int32_t message_type); // 0x4d0ae0
 extern uint16_t *network_message_block_build(uint32_t size); // 0x440350, this module (UNSURE)
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60
-extern void FUN_004cf8f0(int32_t bit_count); // other module (UNSURE)
+extern void bit_stream_write_bits_chunked(int32_t bit_count); // other module (UNSURE)
 
 // Encodes a type-7 "full game info" message into a 0x600-byte scratch record, then -- unless
 // machine's channel already reports connected -- queues it onto that channel's outgoing
@@ -74,9 +74,9 @@ char network_server_build_full_game_info_packet(network_machine *machine)
                 }
             }
             channel->send_budget = channel->send_budget + total_bits;
-            FUN_004cf8f0(1);
+            bit_stream_write_bits_chunked(1);
             channel->outgoing.empty = 0;
-            FUN_004cf8f0(bit_len);
+            bit_stream_write_bits_chunked(bit_len);
             channel->outgoing.empty = 0;
             ok = network_channel_stream_flush(&channel->outgoing, channel, 1);
         } else {

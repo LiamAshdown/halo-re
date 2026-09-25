@@ -40,7 +40,7 @@
 extern data_array *player_data; // 0x0087a480
 extern void *remote_player_index_remap_table; // 0x00687558, see player_update_client_remote_player_action_update_from_network.c
 
-extern uint8_t FUN_004ec590(void *decode_context, void *destination);
+extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
     // blam-cc: EAX -> decode_context, ECX -> destination; 0x4ec590, message-delta stateless
     // (baseline) decode. It forwards to message_delta_read_changed_subfields with a NULL
     // previous-state pointer and the caller destination (0x4ec591..0x4ec59a).
@@ -76,7 +76,7 @@ void player_update_remote_player_action_update_apply(int32_t **decode_context)
     if (state->incremental == 0) {
         memset(&decoded, 0, sizeof(decoded));
         is_baseline = 1;
-        if (FUN_004ec590(decode_context, &decoded) != 1) {
+        if (message_delta_decode_compound_field(decode_context, &decoded) != 1) {
             return;
         }
     } else {

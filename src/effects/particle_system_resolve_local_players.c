@@ -35,7 +35,7 @@ extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d06
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, memory module
 extern void particle_system_delete(datum_index particle_system_handle); // 0x453f60, this module
 extern void object_get_root_location(void); // 0x4f6b10, module unresolved (objects?); UNSURE, dead code
-extern int32_t FUN_005013a0(void *globals, real_point3d *point, int32_t index);
+extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index);
     // 0x5013a0; blam-cc: ECX -> globals, EDX -> point, EAX -> index
 
 // Dead code (0 callers): would re-resolve every particle system's BSP location (and, for a
@@ -53,7 +53,7 @@ void particle_system_resolve_local_players(void)
         uint8_t deleted = 0;
 
         if (system->object_index == k_datum_index_none) {
-            int32_t leaf = FUN_005013a0(global_collision_bsp, &system->position, 0);
+            int32_t leaf = bsp3d_node_find_leaf(global_collision_bsp, &system->position, 0);
 
             system->location.leaf_index = leaf;
             system->location.cluster_index = (leaf == -1) ? -1 :
@@ -76,7 +76,7 @@ void particle_system_resolve_local_players(void)
                 while (*link != k_datum_index_none) {
                     particle_system_particle *p =
                         &((particle_system_particle *)particle_system_particle_data->data)[(uint16_t)*link];
-                    int32_t leaf = FUN_005013a0(global_collision_bsp, (real_point3d *)&p->position, 0);
+                    int32_t leaf = bsp3d_node_find_leaf(global_collision_bsp, (real_point3d *)&p->position, 0);
 
                     p->location.leaf_index = leaf;
                     p->location.cluster_index = (leaf == -1) ? -1 :

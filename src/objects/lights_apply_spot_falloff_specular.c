@@ -29,7 +29,7 @@ extern data_array *light_data;          // 0x00860b14
 extern tag_instance *tag_instances;     // 0x0087bc14
 
 extern void rasterizer_shader_environment_technique_ps2_set_states(void); // UNSURE: zero visible args; out of range, 0x5212d0
-extern int16_t FUN_004f1700(void); // UNSURE: zero visible args at this call site
+extern int16_t light_collect_object_references(void); // UNSURE: zero visible args at this call site
 extern void structure_debug_draw_surfaces_in_box(int32_t queue_slot, real_point3d *position, float radius,
     int16_t marker_count, uint32_t mask); // UNSURE: out of range, 0x552980
 
@@ -60,7 +60,7 @@ void lights_apply_spot_falloff_specular(void)
                         real_point3d position;
 
                         if (!is_cone) {
-                            marker_count = FUN_004f1700(); // UNSURE: zero visible args here
+                            marker_count = light_collect_object_references(); // UNSURE: zero visible args here
                         }
 
                         if (((uint32_t)tag->flags & 2) == 0) {

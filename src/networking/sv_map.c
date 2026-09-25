@@ -25,7 +25,7 @@ extern int32_t game_variant_history_current; // 0x00687b18
 extern game_variant game_variant_saved_default; // 0x00714de0
 extern uint8_t game_variant_saved_default_valid; // 0x00714e78
 
-extern char FUN_00463920(void); // foreign, validates the requested map/variant pair (UNSURE)
+extern char game_engine_is_map_and_variant_valid(void); // foreign, validates the requested map/variant pair (UNSURE)
 extern void game_engine_free_custom_variant_cache(void); // 0x4638b0
 extern uint32_t game_engine_variant_add_to_history(char *name, game_variant *options, char *path); // 0x463980
 extern void widget_close_all(void); // 0x498650, other module
@@ -42,7 +42,7 @@ extern void chimera__console_out(const char *format, ...); // 0x496b50
 // server with it (when not yet in a game).
 void sv_map(uint32_t argument_count, uint16_t **arguments)
 {
-    if (argument_count == 0 || arguments == 0 || FUN_00463920() == 0) {
+    if (argument_count == 0 || arguments == 0 || game_engine_is_map_and_variant_valid() == 0) {
         chimera__console_out("sv_map specified invalid map or game variant");
         return;
     }

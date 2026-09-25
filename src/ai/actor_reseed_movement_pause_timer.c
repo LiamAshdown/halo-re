@@ -21,7 +21,7 @@ extern uint32_t random_seed_global; // 0x00719cd0
 
 extern void * actor_get_actor_definition(datum_index actor_index); // 0x40fa70, this module
 extern void actor_select_stance_offset_pair(datum_index actor_index, uint8_t *base, uint8_t **out_a, uint8_t **out_b); // 0x4106b0, this module
-extern float FUN_0046fe70(float param_1); // UNSURE: no visible argument at the call site
+extern float weapon_get_zoom_fov_resolved(float param_1); // UNSURE: no visible argument at the call site
 
 // FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
 // blam-cc: stack -> actor_index
@@ -42,7 +42,7 @@ void actor_reseed_movement_pause_timer(datum_index actor_index)
     stance_value = offset_a != (uint8_t *)0 ? *(float *)offset_a : 0.0f;
 
     random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-    randomized = FUN_0046fe70(stance_value);
+    randomized = weapon_get_zoom_fov_resolved(stance_value);
 
     self->unknown_5f4 = (int16_t)randomized; // __ftol truncation
 }

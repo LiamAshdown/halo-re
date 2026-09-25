@@ -31,7 +31,7 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern real FUN_004c2d70(void); // UNSURE: viewport aspect ratio getter, not in this batch
+extern real weapon_get_zoom_magnification(void); // UNSURE: viewport aspect ratio getter, not in this batch
 
 // Fills `out[0..3]` with the current weapon's autoaim/magnetism angle and range bounds
 // (aspect-corrected, forming an observer_target_cone), plus `out[4]` = the larger of the
@@ -67,7 +67,7 @@ uint8_t unit_get_current_weapon_autoaim_cone(datum_index unit_index, int16_t req
         return 0;
     }
 
-    aspect = FUN_004c2d70();
+    aspect = weapon_get_zoom_magnification();
     inv_aspect = 1.0f / aspect;
     out[0] = inv_aspect * weapon->autoaim_angle;
     out[1] = aspect * weapon->autoaim_range;

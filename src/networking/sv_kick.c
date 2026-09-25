@@ -27,9 +27,9 @@ extern int16_t network_game_mode; // 0x00719720 (types/game.h), 2 == host
 extern network_server_globals *network_server; // 0x0071c2d4
 
 extern network_player_entry *sv_find_client_by_name_or_index(char *name_or_index); // this batch, 0x4e3f70
-extern network_machine *FUN_004e0810(network_server_globals *server, int16_t machine_id);
+extern network_machine *network_machine_find_by_id(network_server_globals *server, int16_t machine_id);
     // blam-cc: ESI -> server, EDI -> machine_id; foreign (< this batch), 0x4e0810
-extern uint8_t FUN_004e0af0(int16_t reason, network_machine *machine, network_server_globals *server);
+extern uint8_t network_server_notify_or_resend_challenge(int16_t reason, network_machine *machine, network_server_globals *server);
     // blam-cc: ECX -> reason, EDI -> machine, stack -> server; foreign (< this batch), 0x4e0af0
 extern void chimera__console_out(const char *format, ...); // 0x496b50
 
@@ -47,12 +47,12 @@ void sv_kick(char *name_or_index) // blam-cc: EAX -> name_or_index
     }
     player = sv_find_client_by_name_or_index(name_or_index);
     if (player != 0) {
-        machine = FUN_004e0810(network_server, player->machine_index);
+        machine = network_machine_find_by_id(network_server, player->machine_index);
         if (machine != 0 && machine->channel != 0 && machine->channel->connected != 0) {
             chimera__console_out("sv_kick:  Can't kick a local client!");
             return;
         }
-        FUN_004e0af0(7, machine, network_server);
+        network_server_notify_or_resend_challenge(7, machine, network_server);
     }
 }
 

@@ -27,7 +27,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern int32_t FUN_00449210(void); // outside this batch, tick/ms counter
+extern int32_t time_query_performance_counter_ms(void); // outside this batch, tick/ms counter
 extern char network_channel_service(network_channel *channel, int32_t timeout_ms, network_channel **out_new_child); // 0x4dd110
 extern int32_t network_channel_remove_child(network_channel *parent, network_channel *child); // 0x4dd090, this batch
 extern char network_server_count_machines_and_resolve_address(network_server_globals *host, network_channel *new_child); // 0x4e0d30, outside this batch
@@ -64,7 +64,7 @@ char network_host_update_tick(network_server_globals *host)
             }
             service_result = 0;
             if (proceed != 0) {
-                now_ms = FUN_00449210();
+                now_ms = time_query_performance_counter_ms();
                 if ((uint32_t)(*(int32_t *)&host->unknown_9bc[4] + 3000) < now_ms) {
                     network_map_cycle_list_broadcast();
                     *(uint32_t *)&host->unknown_9bc[4] = now_ms;

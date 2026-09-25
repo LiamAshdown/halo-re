@@ -43,7 +43,7 @@ extern void Sleep(uint32_t milliseconds); // 0x0063a29c IAT
 extern void sound_cache_decode_permutation(SoundPermutation *permutation); // this module, sound_cache_decode_permutation.c
 extern void sound_cache_page_allocate(SoundPermutation *permutation, uint8_t priority); // blam-cc:
     // permutation in EAX; this module, sound_cache_page_allocate.c
-extern uint32_t FUN_00549960(void); // outside this module; frame-watchdog pump, UNSURE
+extern uint32_t sound_idle_update(void); // outside this module; frame-watchdog pump, UNSURE
 
 // blam-cc: wait_until_loaded in EBX, permutation in EDI; allocate_if_missing and lock are the
 // two ordinary __cdecl stack parameters (read as bytes at [esp+0x14] and [esp+0x1c])
@@ -106,7 +106,7 @@ uint8_t sound_cache_touch(uint8_t allocate_if_missing, uint8_t lock, uint8_t wai
         elapsed_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
         stall_ms = (uint32_t)(elapsed_ms - frame_watchdog_time);
         if (0x84 < stall_ms) {
-            FUN_00549960();
+            sound_idle_update();
         }
 
         if (wait_until_loaded == 0) {

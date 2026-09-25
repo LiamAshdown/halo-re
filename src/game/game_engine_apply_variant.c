@@ -16,7 +16,7 @@
 extern game_variant game_engine_active_variant; // 0x0087ab20 (NOT 0x006f1c88, which is the live copy)
 extern uint8_t *network_session;             // 0x0071c2d4
 
-extern void FUN_004e1bf0(void *session); // UNSURE module, propagates a variant change over the network
+extern void network_game_broadcast_player_set_changed(void *session); // UNSURE module, propagates a variant change over the network
 
 // Installs a game variant struct as the active variant, propagating the change over the network
 // if it is hosting and the engine type actually changed. A NULL variant zeroes the active one.
@@ -28,7 +28,7 @@ void game_engine_apply_variant(const game_variant *variant)
         if (network_session != (void *)0 &&
             *(int32_t *)((uint8_t *)network_session + 0x13c) != variant->game_engine_index) {
             *(game_variant *)((uint8_t *)network_session + 0x10c) = *variant;
-            FUN_004e1bf0(network_session);
+            network_game_broadcast_player_set_changed(network_session);
         }
     } else {
         uint8_t *dst = (uint8_t *)&game_engine_active_variant;

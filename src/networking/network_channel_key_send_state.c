@@ -19,15 +19,15 @@
 
 extern int16_t network_game_mode; // 0x00719720
 
-extern void FUN_004ec670(void *decode_context);
+extern void message_delta_decode_compound_field_staged(void *decode_context);
     // blam-cc: EAX -> decode_context; 0x4ec670, the message-delta skip/drop path
-extern uint8_t FUN_004ec590(void *decode_context, void *destination);
+extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
     // blam-cc: EAX -> decode_context, ECX -> destination; 0x4ec590, message-delta stateless
     // (baseline) decode. It forwards to message_delta_read_changed_subfields with a NULL
     // previous-state pointer and the caller destination (0x4ec591..0x4ec59a).
-extern uint8_t FUN_004ec590(void *decode_context, void *destination);
+extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
     // blam-cc: EAX -> decode_context, ECX -> destination; 0x4ec590
-extern void FUN_004ec670(void *decode_context);
+extern void message_delta_decode_compound_field_staged(void *decode_context);
     // blam-cc: EAX -> decode_context; 0x4ec670
 extern char network_game_settings_packet_receive(void *scratch); // 0x4d9800, outside this batch, elided args
 
@@ -37,12 +37,12 @@ int32_t network_channel_key_send_state(network_client_globals *client, int32_t *
     uint8_t scratch[0x3ba];
 
     if (network_game_mode == 2 || (client->state != 2 && client->state != 3)) {
-        FUN_004ec670(entry); // blam-cc: EAX -> entry (0x4de9c5 `mov eax,edx`)
+        message_delta_decode_compound_field_staged(entry); // blam-cc: EAX -> entry (0x4de9c5 `mov eax,edx`)
         return 0;
     }
     if (**entry == 0) {
         memset(scratch, 0, sizeof(scratch));
-        if (FUN_004ec590(entry, scratch) != 0) { // blam-cc: EAX -> entry, ECX -> scratch
+        if (message_delta_decode_compound_field(entry, scratch) != 0) { // blam-cc: EAX -> entry, ECX -> scratch
             if (network_game_settings_packet_receive(scratch) != 0) {
                 return 1;
             }

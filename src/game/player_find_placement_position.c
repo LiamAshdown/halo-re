@@ -41,7 +41,7 @@ extern int16_t random_point_table_count; // 0x006b7af8 (read with movsx from a w
 extern real_point3d random_point_table[]; // 0x006b7af4 (a fixed array, not a pointer variable)
 
 extern datum_index object_get_root_object_index(datum_index object_index); // 0x4f6fb0, blam-cc: ECX -> object_index
-extern uint8_t FUN_0055a500(real_point3d *position, datum_index unit_handle, datum_index exclude_object,
+extern uint8_t unit_find_placement_position(real_point3d *position, datum_index unit_handle, datum_index exclude_object,
                              int32_t p3, uint32_t flags, int32_t p5, int32_t p6, int32_t p7);
     // 0x55a500, units module, not in this batch; blam-cc: EDX -> position, stack -> the rest; UNSURE
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, in place, vector in ECX
@@ -76,7 +76,7 @@ uint8_t player_find_placement_position(uint32_t player_index, datum_index target
     placed = 0;
 
     if (target_object == (uint32_t)-1 || object_get_root_object_index(target_object) == target_object) {
-        placed = FUN_0055a500(0, unit_handle, target_object, 0, 0x40000000, 0, 0, 1); // UNSURE: position arg
+        placed = unit_find_placement_position(0, unit_handle, target_object, 0, 0x40000000, 0, 0, 1); // UNSURE: position arg
         final_target = (int32_t)target_object;
     } else {
         datum_index root = object_get_root_object_index(target_object);
@@ -109,7 +109,7 @@ uint8_t player_find_placement_position(uint32_t player_index, datum_index target
 
         for (attempt = 0; attempt < 9 && placed == 0; attempt = attempt + 1) {
             matrix4x3_transform_point(&probe, (real_point3d *)&basis, &basis);
-            placed = FUN_0055a500(&probe, unit_handle, target_object, 0, 0x40000000, 0, 0, 1);
+            placed = unit_find_placement_position(&probe, unit_handle, target_object, 0, 0x40000000, 0, 0, 1);
             if (placed == 0) {
                 int16_t retry;
                 for (retry = 0; retry < 8 && placed == 0; retry = retry + 1) {
@@ -122,7 +122,7 @@ uint8_t player_find_placement_position(uint32_t player_index, datum_index target
                     probe.x = rand_vec->i * scale + basis.up.i; // UNSURE exact field mapping
                     probe.y = rand_vec->j * scale + basis.up.j;
                     probe.z = rand_vec->k * scale + basis.up.k;
-                    placed = FUN_0055a500(&probe, unit_handle, target_object, 0, 0x40000000, 0, 0, 1);
+                    placed = unit_find_placement_position(&probe, unit_handle, target_object, 0, 0x40000000, 0, 0, 1);
                 }
             }
         }

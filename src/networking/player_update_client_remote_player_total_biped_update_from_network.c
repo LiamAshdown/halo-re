@@ -40,11 +40,11 @@
 extern data_array *player_data; // 0x0087a480
 extern void *remote_player_index_remap_table; // 0x00687558, table pointer at +0x28
 
-extern uint8_t FUN_004ec590(void *decode_context, void *destination);
+extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
     // blam-cc: EAX -> decode_context, ECX -> destination; 0x4ec590, message-delta stateless
     // (baseline) decode. It forwards to message_delta_read_changed_subfields with a NULL
     // previous-state pointer and the caller destination (0x4ec591..0x4ec59a).
-extern void FUN_004ec670(void *decode_context);
+extern void message_delta_decode_compound_field_staged(void *decode_context);
     // blam-cc: EAX -> decode_context; 0x4ec670, the message-delta skip/drop path
 extern int32_t message_delta_read_changed_subfields(message_delta_decode_state *state,
     void *field_bindings, const void *previous, void *destination);
@@ -100,7 +100,7 @@ void player_update_client_remote_player_total_biped_update_from_network(int32_t 
     }
     // Only a genuinely remote player is accepted: local_player_index must still be -1.
     if (candidate == 0 || candidate->local_player_index != -1) {
-        FUN_004ec670(decode_context);
+        message_delta_decode_compound_field_staged(decode_context);
         return;
     }
 
@@ -109,7 +109,7 @@ void player_update_client_remote_player_total_biped_update_from_network(int32_t 
         uint8_t decoded_ok;
 
         memset(&decoded, 0, sizeof(decoded));
-        decoded_ok = FUN_004ec590(decode_context, &decoded);
+        decoded_ok = message_delta_decode_compound_field(decode_context, &decoded);
         if (decoded_ok == 1) {
             *(real *)&candidate->unknown_164 = decoded.position.x;
             *(real *)&candidate->unknown_168 = decoded.position.y;

@@ -34,7 +34,7 @@ extern game_engine_definition *current_game_engine;  // 0x006f1d20, game.h; non-
 extern void damage_data_initialize(damage_data *dd, datum_index damage_effect_tag); // 0x4ed990
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t param_3,
                                  int16_t param_4, int16_t param_5, uint32_t param_6); // 0x4ee5e0
-extern int32_t FUN_00474db0(uint32_t unit_index); // UNSURE module
+extern int32_t player_index_from_unit_index(uint32_t unit_index); // UNSURE module
 extern void object_delete(uint32_t object_index);   // 0x4f5bd0, UNSURE exact signature
 
 // Applies scaled fall damage to a unit when its downward velocity (param_2, positive) exceeds
@@ -66,7 +66,7 @@ void unit_apply_fall_damage(uint32_t object_index, float fall_speed)
                     object_apply_damage(&dd, object_index, -1, -1, -1, 0);
                 }
                 if (current_game_engine == 0 && (obj->flags & 0x200000) != 0) {
-                    if (FUN_00474db0(object_index) == -1) {
+                    if (player_index_from_unit_index(object_index) == -1) {
                         object_delete(object_index);
                     }
                 }

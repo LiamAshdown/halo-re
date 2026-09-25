@@ -25,7 +25,7 @@ extern ai_globals *ai_globals_ptr;  // 0x00880354
 extern game_time_globals *game_time; // 0x006f1d6c
 
 extern real random_real(void);                       // 0x4019f0
-extern float FUN_0046fe70(float param_1);             // UNSURE: no visible argument at the call site
+extern float weapon_get_zoom_fov_resolved(float param_1);             // UNSURE: no visible argument at the call site
 extern uint8_t actor_can_throw_grenade_at_target(datum_index actor_index); // 0x40d9c0, this module
 extern uint8_t actor_check_grenade_facing_and_commit(datum_index actor_index, uint8_t force_commit); // 0x40db00, this module
 
@@ -57,7 +57,7 @@ uint8_t actor_consider_grenade_throw(datum_index actor_index)
 
     {
         float check_time = variant->grenade_check_time;
-        float scaled = FUN_0046fe70(check_time);
+        float scaled = weapon_get_zoom_fov_resolved(check_time);
         float roll;
 
         self->unknown_6a4 = now;

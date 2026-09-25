@@ -44,7 +44,7 @@ extern real effect_random_scaled_range(uint32_t flags, real scale, real base_min
     uint8_t bit_index); // 0x44c840, this module; blam-cc: EDX -> flags, stack -> the rest
 extern int32_t object_get_node_local_transform(uint32_t object_index, const char *marker_name,
     object_marker *marker, uint32_t flags); // 0x4f6080, established
-extern int32_t FUN_005013a0(void *globals, real_point3d *point, int32_t index);
+extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index);
     // 0x5013a0; blam-cc: ECX -> globals, EDX -> point, EAX -> index
 extern real_vector3d *vector3d_randomize_direction(real_point3d *direction, real_vector3d *out,
     random_seed *seed, real lo, real hi); // 0x4cd1b0, math module;
@@ -129,7 +129,7 @@ void contrail_generate_points(datum_index contrail_handle, int16_t point_count, 
                             point->position = marker->node_transform.position;
 
                             {
-                                int32_t leaf = FUN_005013a0(global_collision_bsp, &point->position, 0);
+                                int32_t leaf = bsp3d_node_find_leaf(global_collision_bsp, &point->position, 0);
                                 point->location.leaf_index = leaf;
                                 point->location.cluster_index = (leaf == -1) ? -1 :
                                     *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) +
@@ -155,7 +155,7 @@ void contrail_generate_points(datum_index contrail_handle, int16_t point_count, 
 
                                 point->scale = fraction * point->scale + inverse_fraction * previous->scale;
 
-                                leaf = FUN_005013a0(global_collision_bsp, &point->position, 0);
+                                leaf = bsp3d_node_find_leaf(global_collision_bsp, &point->position, 0);
                                 point->location.leaf_index = leaf;
                                 point->location.cluster_index = (leaf == -1) ? -1 :
                                     *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) +

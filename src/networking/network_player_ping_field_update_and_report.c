@@ -33,7 +33,7 @@
 #include "networking.h"
 #include <stdint.h>
 
-extern uint8_t FUN_004ec590(void *decode_context, void *destination);
+extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
     // blam-cc: EAX -> decode_context, ECX -> destination; 0x4ec590, message-delta stateless
     // (baseline) decode. It forwards to message_delta_read_changed_subfields with a NULL
     // previous-state pointer and the caller destination (0x4ec591..0x4ec59a).
@@ -71,7 +71,7 @@ void network_player_ping_field_update_and_report(void *decode_context) // blam-c
     int32_t encoded_bits;
     uint8_t message_buffer[64];
 
-    ok = FUN_004ec590(decode_context, decode_scratch);
+    ok = message_delta_decode_compound_field(decode_context, decode_scratch);
     player_index = decode_scratch[0];
     new_value = 0;          // UNSURE: not re-derived from the scratch; see file header
     if (ok == 1) {

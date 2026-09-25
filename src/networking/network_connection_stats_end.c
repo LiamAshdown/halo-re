@@ -22,7 +22,7 @@ extern uint8_t debug_log_level;          // 0x0087ac06, byte-wide (R01)
 extern network_connection_statistics network_connection_stats[k_network_connection_stats_count]; // 0x0087bec0
 
 extern int32_t network_connection_stats_lookup_or_add(int32_t connection_id, uint16_t connection_key); // 0x440a80, this module
-extern int32_t FUN_00449210(void); // foreign module, millisecond tick reader
+extern int32_t time_query_performance_counter_ms(void); // foreign module, millisecond tick reader
 
 // blam-cc: connection id in EBX, connection key in DI -- both forwarded unchanged to
 // network_connection_stats_lookup_or_add
@@ -36,7 +36,7 @@ void network_connection_stats_end(int32_t connection_id, uint16_t connection_key
     if (2 < debug_log_level &&
         (index = network_connection_stats_lookup_or_add(connection_id, connection_key), index != -1) &&
         network_connection_stats[index].active != 0) {
-        now = FUN_00449210();
+        now = time_query_performance_counter_ms();
         network_connection_stats[index].connected_duration_ms +=
             now - network_connection_stats[index].active_since_ms;
         network_connection_stats[index].active_since_ms = 0;

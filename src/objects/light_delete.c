@@ -19,7 +19,7 @@
 
 extern data_array *light_data; // 0x00860b14
 extern datum_index *light_cluster_first; // 0x00860b20, the per-cluster list descriptor
-extern void FUN_00552020(uint32_t handle, datum_index *link, void *cluster_list);
+extern void cluster_reference_remove_all(uint32_t handle, datum_index *link, void *cluster_list);
     // 0x552020; handle and link on the stack, the list descriptor in EBX. Unlinks one entry
     // from its cluster list.
 extern void datum_delete(data_array *array, datum_index handle); // memory module, 0x4d0510
@@ -28,7 +28,7 @@ void light_delete(datum_index light_handle) // blam-cc: ESI -> light_handle
 {
     light *entry = (light *)((uint8_t *)light_data->data + (light_handle & 0xffff) * 0x7c);
 
-    FUN_00552020(light_handle, &entry->next_light, &light_cluster_first);
+    cluster_reference_remove_all(light_handle, &entry->next_light, &light_cluster_first);
     datum_delete(light_data, light_handle);
 }
 

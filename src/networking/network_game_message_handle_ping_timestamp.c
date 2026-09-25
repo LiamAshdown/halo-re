@@ -27,14 +27,14 @@
 #include "game.h"
 #include "networking.h"
 
-extern void FUN_004ec670(void *decode_context);
+extern void message_delta_decode_compound_field_staged(void *decode_context);
     // blam-cc: EAX -> decode_context; 0x4ec670, the message-delta skip/drop path
-extern uint8_t FUN_004ec590(void *decode_context, void *destination);
+extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
     // blam-cc: EAX -> decode_context, ECX -> destination; 0x4ec590, message-delta stateless
     // (baseline) decode. It forwards to message_delta_read_changed_subfields with a NULL
     // previous-state pointer and the caller destination (0x4ec591..0x4ec59a).
 extern void *datum_get(void);        // 0x4d0680, called here with no visible arguments (UNSURE)
-extern int32_t FUN_00449210(void);   // foreign, presumed a tick-count getter (UNSURE)
+extern int32_t time_query_performance_counter_ms(void);   // foreign, presumed a tick-count getter (UNSURE)
 
 // blam-cc: EAX -> message, stack -> param_1
 // If the queued message's first dword is non-zero, skips it via FUN_004ec670. Otherwise, if
@@ -46,14 +46,14 @@ uint32_t network_game_message_handle_ping_timestamp(int32_t **message, network_s
     uint8_t decode_scratch[5]; // [esp+0x3], the one-byte-aligned tail of the 4-byte frame
 
     if (**message != 0) {
-        FUN_004ec670(message); // blam-cc: EAX -> message (unchanged since entry)
+        message_delta_decode_compound_field_staged(message); // blam-cc: EAX -> message (unchanged since entry)
         return 1;
     }
-    if (FUN_004ec590(message, decode_scratch) == 1) { // blam-cc: EAX -> message, ECX -> scratch
+    if (message_delta_decode_compound_field(message, decode_scratch) == 1) { // blam-cc: EAX -> message, ECX -> scratch
         player = (uint8_t *)datum_get();
         if (player != 0) {
             int32_t stored_time = *(int32_t *)((uint8_t *)param_1 + 0x9c0);
-            int32_t now = FUN_00449210();
+            int32_t now = time_query_performance_counter_ms();
             *(int32_t *)(player + 0xdc) = now - stored_time;
         }
     }

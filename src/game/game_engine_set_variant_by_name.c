@@ -26,7 +26,7 @@ extern uint8_t *network_session;             // 0x0071c2d4
 extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out);
     // 0x4622d0, this module; blam-cc: ECX -> name, stack -> out. A NULL `out` only tests
     // whether the name is recognized.
-extern void FUN_004e1bf0(void *session); // UNSURE module, propagates a variant change over the network
+extern void network_game_broadcast_player_set_changed(void *session); // UNSURE module, propagates a variant change over the network
 
 // Looks up a game variant by name and installs it as the active variant, propagating the change
 // to the network layer if it is hosting and the engine type actually changed.
@@ -40,7 +40,7 @@ void game_engine_set_variant_by_name(const char *name)
         if (network_session != (void *)0 &&
             *(int32_t *)((uint8_t *)network_session + 0x13c) != looked_up.game_engine_index) {
             *(game_variant *)((uint8_t *)network_session + 0x10c) = looked_up;
-            FUN_004e1bf0(network_session);
+            network_game_broadcast_player_set_changed(network_session);
         }
     } else {
         uint8_t *dst = (uint8_t *)&game_engine_active_variant;

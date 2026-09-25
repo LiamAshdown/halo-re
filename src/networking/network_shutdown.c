@@ -31,7 +31,7 @@ extern network_connection_statistics network_connection_stats[k_network_connecti
 extern void FUN_00614860(int32_t socket); // foreign GameSpy transport call, closes a socket
 extern void FUN_006148b0(uint32_t address, uint16_t port, void *out_address); // 0x6148b0: fills a
     // 0x16-byte address record (stride confirmed by the imul esi,esi,0x16 at 0x6148c8) // foreign
-extern int32_t FUN_00449210(void); // foreign module, millisecond tick reader
+extern int32_t time_query_performance_counter_ms(void); // foreign module, millisecond tick reader
 
 int32_t network_shutdown(void)
 {
@@ -63,7 +63,7 @@ int32_t network_shutdown(void)
         fprintf((FILE *)network_connection_stats_log_file, "\n\n");
         total_sent = 0;
         total_received = 0;
-        now = FUN_00449210();
+        now = time_query_performance_counter_ms();
         total_elapsed_sec = (uint32_t)(now - network_initialized_at_ms) / 1000;
         for (i = 0; i < network_connection_stats_count; i++) {
             total_sent = total_sent + network_connection_stats[i].bytes_sent;

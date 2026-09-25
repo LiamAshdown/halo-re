@@ -35,11 +35,11 @@
 extern data_array *player_data; // 0x0087a480
 extern void *remote_player_index_remap_table; // 0x00687558, UNSURE: name and shape both guessed
 
-extern uint8_t FUN_004ec590(void *decode_context, void *destination);
+extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
     // blam-cc: EAX -> decode_context, ECX -> destination; 0x4ec590, message-delta stateless
     // (baseline) decode. It forwards to message_delta_read_changed_subfields with a NULL
     // previous-state pointer and the caller destination (0x4ec591..0x4ec59a).
-extern void FUN_004ec670(void *decode_context);
+extern void message_delta_decode_compound_field_staged(void *decode_context);
     // blam-cc: EAX -> decode_context; 0x4ec670, the message-delta skip/drop path
 extern int32_t message_delta_read_changed_subfields(message_delta_decode_state *state,
     void *field_bindings, const void *previous, void *destination);
@@ -94,12 +94,12 @@ void player_update_client_remote_player_action_update_from_network(int32_t **dec
             handle_remote_player_action_update(&staged, header, 0);
             return;
         }
-        if (FUN_004ec590(decode_context, &staged) == 1) {
+        if (message_delta_decode_compound_field(decode_context, &staged) == 1) {
             handle_remote_player_action_update(&staged, header, 1);
         }
         return;
     }
-    FUN_004ec670(decode_context);
+    message_delta_decode_compound_field_staged(decode_context);
 }
 
 #if 0

@@ -42,8 +42,8 @@ extern uint8_t game_engine_dedicated_idle;              // 0x0087aa18
 extern float game_engine_dedicated_idle_timer;          // 0x0087aa1c
 
 extern void game_engine_unload(void);              // 0x45c330, this batch
-extern void FUN_00463810(void);                    // UNSURE module
-extern void FUN_00466890(void);                    // UNSURE module
+extern void game_engine_validate_scenario_placements_noop(void);                    // UNSURE module
+extern void game_engine_touch_multiplayer_predicted_resources(void);                    // UNSURE module
 extern int32_t map_list_find_known_map_index(void); // 0x494ff0
 
 // Resets the multiplayer sound queue, custom waypoints, auto-team counter and CTF reset timer,
@@ -62,7 +62,7 @@ void game_engine_initialize_for_new_game(void)
         if (map_index < 0x13) {
             game_engine_map_table_value = *(int32_t *)(map_per_map_table + map_index * 0x30);
         }
-        FUN_00463810();
+        game_engine_validate_scenario_placements_noop();
 
         dst = (uint32_t *)multiplayer_sound_queue;
         for (i = 0x14; i != 0; i = i - 1) {
@@ -91,7 +91,7 @@ void game_engine_initialize_for_new_game(void)
                 game_engine_unload();
             }
         }
-        FUN_00466890();
+        game_engine_touch_multiplayer_predicted_resources();
         game_engine_dedicated_idle = 0;
         game_engine_dedicated_idle_timer = 0.0f;
         ((uint8_t *)&game_engine_map_table_value)[1] = 0;

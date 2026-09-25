@@ -15,8 +15,8 @@ extern game_time_globals *game_time;   // 0x006f1d6c
 extern real chimera_contrail_scale;    // 0x007c1208, TYPES-GAP
 
 extern void contrail_update(real delta_time);      // 0x44cb50
-extern void FUN_00454000(real delta_time);                    // UNSURE module
-extern void FUN_00455b60(real tick_delta_time);                 // UNSURE module
+extern void particle_systems_update(real delta_time);                    // UNSURE module
+extern void particles_update(real tick_delta_time);                 // UNSURE module
 extern void widgets_update_all(real tick_delta_time);             // 0x4ffd10
 extern void weather_update(void);                                  // 0x53f5c0
 extern void numeric_countdown_timer_update(void);                                 // 0x540240
@@ -36,10 +36,10 @@ void game_effects_update(real delta_time)
     delta_time = scale * delta_time;
 
     if (ticks_this_frame != 0) {
-        FUN_00455b60(tick_delta_time);
+        particles_update(tick_delta_time);
     }
     contrail_update(delta_time);
-    FUN_00454000(delta_time);
+    particle_systems_update(delta_time);
     if (ticks_this_frame != 0) {
         widgets_update_all(tick_delta_time);
     }

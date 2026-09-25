@@ -38,13 +38,13 @@
 extern data_array *player_data; // 0x0087a480
 extern void *remote_player_index_remap_table; // 0x00687558, table pointer at +0x28
 
-extern uint8_t FUN_004ec590(void *decode_context, void *destination);
+extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
     // blam-cc: EAX -> decode_context, ECX -> destination; 0x4ec590, message-delta stateless
     // (baseline) decode. It forwards to message_delta_read_changed_subfields with a NULL
     // previous-state pointer and the caller destination (0x4ec591..0x4ec59a).
-extern uint8_t FUN_004ec600(void *decode_context, void *destination, int32_t force_changed);
+extern uint8_t message_delta_decode_compound_field_forced(void *decode_context, void *destination, int32_t force_changed);
     // blam-cc: EAX -> decode_context, ECX -> destination, stack -> force_changed; 0x4ec600
-extern void FUN_004ec670(void *decode_context);
+extern void message_delta_decode_compound_field_staged(void *decode_context);
     // blam-cc: EAX -> decode_context; 0x4ec670, the message-delta skip/drop path
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a,
     const real_vector3d *b); // 0x4052c0; blam-cc: EAX -> out, ECX -> a, stack -> b;
@@ -92,7 +92,7 @@ void player_update_client_remote_player_vehicle_position_delta_from_network(int3
         }
     }
     if (candidate == 0) {
-        FUN_004ec670(decode_context);
+        message_delta_decode_compound_field_staged(decode_context);
         return;
     }
 
@@ -100,7 +100,7 @@ void player_update_client_remote_player_vehicle_position_delta_from_network(int3
     if (state->incremental == 0) {
         real_vector3d temp;
 
-        if (FUN_004ec590(decode_context, &decoded) != 1) {
+        if (message_delta_decode_compound_field(decode_context, &decoded) != 1) {
             return;
         }
         vector3d_cross_product(&temp, &decoded.up, &decoded.forward);
@@ -110,7 +110,7 @@ void player_update_client_remote_player_vehicle_position_delta_from_network(int3
         memcpy(&candidate->unknown_190, &decoded, sizeof(decoded));
     } else {
         memcpy(&decoded, &candidate->unknown_190, sizeof(decoded));
-        if (FUN_004ec600(decode_context, &decoded, 0) != 1) {
+        if (message_delta_decode_compound_field_forced(decode_context, &decoded, 0) != 1) {
             return;
         }
     }

@@ -68,10 +68,10 @@ extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir)
     // 0x4cd670; out in ECX, dir in EDX (verified against the body, which reads only in_ECX
     // and in_EDX)
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
-extern int32_t FUN_005013a0(void *globals, real_point3d *point, int32_t index);
+extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index);
     // 0x5013a0; globals in ECX, point in EDX, index in EAX
 extern void object_get_root_location(uint32_t object_index); // 0x4f6b10, object index in ECX; UNSURE: unexamined
-extern void FUN_00551f00(uint32_t light_or_object_handle, datum_index *placement_slot, real_point3d *position,
+extern void cluster_reference_add_within_radius(uint32_t light_or_object_handle, datum_index *placement_slot, real_point3d *position,
                           float radius, void *leaf_and_cluster, void *cluster_list);
     // 0x551f00; first four on the stack, leaf_and_cluster in EAX, placement_globals in EDI
 
@@ -142,7 +142,7 @@ void object_light_recompute_transform(uint32_t light_index) // blam-cc: stack ->
 
         if (entry->owner_object == k_datum_index_none ||
             object_try_and_get(entry->owner_object, _object_mask_all) == 0) {
-            leaf_reference.leaf_index = FUN_005013a0(global_collision_bsp, &position, 0);
+            leaf_reference.leaf_index = bsp3d_node_find_leaf(global_collision_bsp, &position, 0);
             if (leaf_reference.leaf_index == -1) {
                 leaf_reference.cluster_index = -1;
             } else {
@@ -154,7 +154,7 @@ void object_light_recompute_transform(uint32_t light_index) // blam-cc: stack ->
             object_get_root_location(entry->owner_object); // UNSURE: see file header
         }
 
-        FUN_00551f00(light_index, &entry->next_light, &position, radius, &leaf_reference,
+        cluster_reference_add_within_radius(light_index, &entry->next_light, &position, radius, &leaf_reference,
                      &light_cluster_first);
         entry->flags |= _light_transform_dirty_bit;
     }

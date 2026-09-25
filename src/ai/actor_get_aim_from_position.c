@@ -23,7 +23,7 @@
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern void FUN_005697a0(void); // UNSURE: no visible args
+extern void unit_clamp_direction_to_aim_or_look_bounds(void); // UNSURE: no visible args
 
 // blam-cc: EAX -> actor_index, ECX -> out_position
 void actor_get_aim_from_position(datum_index actor_index, uint32_t out_position[3])
@@ -53,7 +53,7 @@ void actor_get_aim_from_position(datum_index actor_index, uint32_t out_position[
     out_position[0] = *(uint32_t *)((uint8_t *)unit_obj + 0x23c);
     out_position[1] = *(uint32_t *)((uint8_t *)unit_obj + 0x240);
     out_position[2] = *(uint32_t *)((uint8_t *)unit_obj + 0x244);
-    FUN_005697a0();
+    unit_clamp_direction_to_aim_or_look_bounds();
 }
 
 #if 0

@@ -21,8 +21,8 @@
 extern network_server_globals *network_server; // 0x0071c2d4
 
 extern uint8_t string_is_numeric(char *string); // this batch, 0x4e3f30
-extern void FUN_00557990(uint16_t *dest, char *source); // foreign (< this batch), ANSI->UTF-16, UNSURE
-extern uint8_t FUN_004de9f0(network_player_entry *entry); // foreign (< this batch), validates one player row
+extern void string_convert_ascii_to_unicode(uint16_t *dest, char *source); // foreign (< this batch), ANSI->UTF-16, UNSURE
+extern uint8_t network_player_entry_validate(network_player_entry *entry); // foreign (< this batch), validates one player row
 extern int32_t _wcscmp(const uint16_t *a, const uint16_t *b); // CRT
 extern int32_t atol(const char *string); // CRT
 
@@ -37,10 +37,10 @@ network_player_entry *sv_find_client_by_name_or_index(char *name_or_index) // bl
     if (string_is_numeric(name_or_index) == 0) {
         uint16_t wide_name[13];
 
-        FUN_00557990(wide_name, name_or_index);
+        string_convert_ascii_to_unicode(wide_name, name_or_index);
         for (i = 0; i < 0x10; i = i + 1) {
             network_player_entry *entry = &session->players[i];
-            if (FUN_004de9f0(entry) != 0 && _wcscmp(wide_name, (uint16_t *)entry->name) == 0) {
+            if (network_player_entry_validate(entry) != 0 && _wcscmp(wide_name, (uint16_t *)entry->name) == 0) {
                 return entry;
             }
         }
@@ -52,7 +52,7 @@ network_player_entry *sv_find_client_by_name_or_index(char *name_or_index) // bl
         }
         for (i = 0; i < 0x10; i = i + 1) {
             network_player_entry *entry = &session->players[i];
-            if (FUN_004de9f0(entry) != 0 && entry->slot_index == index) {
+            if (network_player_entry_validate(entry) != 0 && entry->slot_index == index) {
                 return entry;
             }
         }

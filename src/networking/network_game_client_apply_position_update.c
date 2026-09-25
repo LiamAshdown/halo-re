@@ -29,7 +29,7 @@
 extern datum_index machine_to_player[16]; // 0x006b1460
 extern data_array *player_data; // 0x0087a480, stride 0x200 (game module)
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, memory module
-extern void FUN_00473390(uint32_t *delta, void *object); // other module (UNSURE)
+extern void update_server_queue_push_history(uint32_t *delta, void *object); // other module (UNSURE)
 
 // Applies one position/orientation delta record from `packet` onto `object`, but only if the
 // packet's tick is not older than the last one recorded in `state`, its delta-item count is 0
@@ -72,7 +72,7 @@ void network_game_client_apply_position_update(uint8_t *state, uint32_t *packet,
         return;
     }
 
-    FUN_00473390(delta, object);
+    update_server_queue_push_history(delta, object);
     *(uint32_t *)(state + 4) = *packet & 0x7fffffff;
     for (i = 0; i < 8; i = i + 1) {
         delta[8 + i] = delta[i];

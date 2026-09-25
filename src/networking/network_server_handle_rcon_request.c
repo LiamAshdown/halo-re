@@ -30,13 +30,13 @@ typedef struct rcon_request_decode {
 
 extern char sv_rcon_password_value[9]; // 0x0071c410, see sv_rcon_password.c
 
-extern uint8_t FUN_004ec590(void *decode_context, void *destination);
+extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
     // blam-cc: EAX -> decode_context, ECX -> destination; 0x4ec590, message-delta stateless
     // (baseline) decode. It forwards to message_delta_read_changed_subfields with a NULL
     // previous-state pointer and the caller destination (0x4ec591..0x4ec59a).
-extern void FUN_004ec670(void *decode_context);
+extern void message_delta_decode_compound_field_staged(void *decode_context);
     // blam-cc: EAX -> decode_context; 0x4ec670, the message-delta skip/drop path
-extern uint8_t FUN_004c69a0(char *command); // foreign, UNSURE shape; executes a console command string
+extern uint8_t console_process_rcon_command(char *command); // foreign, UNSURE shape; executes a console command string
 extern void chimera__rcon_out(char *text, int32_t machine_id); // this batch, 0x4e50c0
 extern void chimera__console_out(const char *format, ...); // 0x496b50
 
@@ -50,12 +50,12 @@ void network_server_handle_rcon_request(network_player_entry *client, void *mess
     rcon_request_decode decode;
 
     if (*(int32_t *)*(int32_t *)message != 0) {
-        FUN_004ec670(message);
+        message_delta_decode_compound_field_staged(message);
         chimera__console_out("Ignoring meaningless rcon_request message from client #%d", machine_id);
         return;
     }
     memset(&decode, 0, sizeof(decode));
-    if (FUN_004ec590(message, &decode) == 0) {
+    if (message_delta_decode_compound_field(message, &decode) == 0) {
         chimera__console_out("Could not decode rcon message from client #%d", machine_id);
         return;
     }
@@ -74,7 +74,7 @@ void network_server_handle_rcon_request(network_player_entry *client, void *mess
         chimera__console_out("Ignoring rcon request from client #%d (empty command)", machine_id);
         return;
     }
-    if (FUN_004c69a0(decode.command) != 0) {
+    if (console_process_rcon_command(decode.command) != 0) {
         chimera__rcon_out("rcon command finished", machine_id);
         chimera__console_out("Successfully executed rcon command from client #%d.", machine_id + 1);
         return;

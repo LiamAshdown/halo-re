@@ -42,21 +42,21 @@ extern void game_engine_flag_local_player_units(void);      // 0x45b590, this mo
 extern void team_pair_overrides_tick(void);                  // 0x45bcf0, this module
 extern void game_engine_tick(void);                          // 0x45ff30, this module
 extern void hs_runtime_update(void);                         // 0x48a1a0, hs module
-extern void FUN_0042a900(void);                    // UNSURE module
+extern void ai_tick_dispatcher(void);                    // UNSURE module
 extern void recorded_animations_update(void);            // 0x44aa90, UNSURE module
 extern void effects_update_all(float seconds_per_tick);  // 0x450aa0, UNSURE module/role
-extern void FUN_00456730(void);                    // UNSURE module
+extern void player_effect_clear_dead_players(void);                    // UNSURE module
 extern void game_engine_players_update_server(void);                    // 0x4740a0, UNSURE module (host/offline path)
 extern void game_engine_players_update_client(void);                    // 0x474590, UNSURE module (client path)
 extern void main_switch_structure_bsp(void);       // 0x4749a0, UNSURE module
-extern void FUN_00476760(void);                    // UNSURE module
+extern void game_engine_server_update_player_positions(void);                    // UNSURE module
 extern void FUN_004768c0(void);                    // UNSURE module
 extern void players_client_catchup_on_server_updates(void); // 0x476d40, UNSURE module
-extern void FUN_004923d0(void);                    // UNSURE module (hs-related, guarded by
+extern void first_person_weapon_interface_tick(void);                    // UNSURE module (hs-related, guarded by
                                                    //   hs_thread_recursion_depth)
-extern void FUN_004a9990(void);                    // UNSURE module
+extern void hud_update_dispatch(void);                    // UNSURE module
 extern void network_client_send_local_player_updates(void); // 0x4e77e0, UNSURE module
-extern void FUN_004e8040(void *queue);             // UNSURE module (flushes a message queue)
+extern void network_event_feed_flush(void *queue);             // UNSURE module (flushes a message queue)
 extern void objects_update(void);                  // 0x4f4e90, objects module
 extern void network_server_broadcast_object_type_changes(void); // 0x45b680, this module
 
@@ -76,7 +76,7 @@ void game_simulate_tick(uint32_t predict_pass)
     ai_update_stagger->highest = 0;
     ai_update_stagger->claimed = 0;
 
-    FUN_0042a900();
+    ai_tick_dispatcher();
 
     if (network_game_mode != 0) {
         if (network_game_mode == 1) {
@@ -96,7 +96,7 @@ after_role_update:
     }
 
     hs_thread_recursion_depth = hs_thread_recursion_depth + 1;
-    FUN_004923d0();
+    first_person_weapon_interface_tick();
     hs_thread_recursion_depth = hs_thread_recursion_depth - 1;
 
     game_engine_tick();
@@ -104,21 +104,21 @@ after_role_update:
     recorded_animations_update();
     objects_update();
     main_switch_structure_bsp();
-    FUN_004a9990();
-    FUN_00456730();
+    hud_update_dispatch();
+    player_effect_clear_dead_players();
 
     if (network_game_mode == 2) {
         if (predict_pass == 0) {
             FUN_004768c0();
         }
-        FUN_00476760();
+        game_engine_server_update_player_positions();
         network_client_send_local_player_updates();
         network_server_broadcast_object_type_changes();
         if (0 < unknown_00699f44) {
-            FUN_004e8040(unknown_00699f40);
+            network_event_feed_flush(unknown_00699f40);
         }
         if (0 < unknown_0071cc24) {
-            FUN_004e8040(unknown_0071cc20);
+            network_event_feed_flush(unknown_0071cc20);
         }
     }
     if (network_game_mode == 1) {

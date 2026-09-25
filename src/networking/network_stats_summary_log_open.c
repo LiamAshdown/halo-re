@@ -44,7 +44,7 @@ extern void *network_summary_log_file;            // 0x006a6140, FILE *
 extern network_summary_statistics network_summary_stats; // 0x0087bea0
 extern char network_summary_log_mode_string[];    // 0x0065fd30, UNSURE: exact text unresolved
 
-extern int32_t FUN_00449210(void);        // foreign module, millisecond tick reader; see UNSURE
+extern int32_t time_query_performance_counter_ms(void);        // foreign module, millisecond tick reader; see UNSURE
 extern char *join_game_server_browser_tick(void);          // foreign module (> 0x4b80f0), log base directory path
 extern char directory_create_recursive(char *path); // 0x449250, foreign module
 // time(), localtime(), strftime() and fopen() come from <time.h>/<stdio.h> above; the retail
@@ -87,7 +87,7 @@ void network_stats_summary_log_open(void)
         network_summary_stats.packets_received = 0;
         network_summary_stats.player_count_total = 0;
         network_summary_stats.player_count_samples = 0;
-        network_summary_stats.start_ms = FUN_00449210();
+        network_summary_stats.start_ms = time_query_performance_counter_ms();
     }
 }
 

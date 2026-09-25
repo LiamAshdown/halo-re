@@ -22,7 +22,7 @@ extern const real_vector3d *global_up3d_pointer; // 0x00696720, UNSURE identity
 extern uint32_t random_seed_global; // 0x00719cd0, types/math.h
 extern double fcos(double x); // FCOS
 extern double fsin(double x); // FSIN
-extern uint8_t FUN_00505880(uint32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch); // UNSURE signature
+extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch); // UNSURE signature
 
 // blam-cc: ESI -> inout_point, stack -> radius
 void actor_choose_random_point_near(real_point3d *inout_point, float radius)
@@ -54,7 +54,7 @@ void actor_choose_random_point_near(real_point3d *inout_point, float radius)
     delta.j = base.y - inout_point->y;
     delta.k = base.z - inout_point->z;
 
-    if (FUN_00505880(0x23, &base, &delta, (uint32_t)-1, line_result) != 0) {
+    if (collision_test_movement_segment(0x23, &base, &delta, (uint32_t)-1, line_result) != 0) {
         base = *inout_point;
     }
 
@@ -62,7 +62,7 @@ void actor_choose_random_point_near(real_point3d *inout_point, float radius)
     delta.j = chosen.y - base.y;
     delta.k = chosen.z - base.z;
 
-    if (FUN_00505880(0x23, &base, &delta, (uint32_t)-1, line_result) != 0) {
+    if (collision_test_movement_segment(0x23, &base, &delta, (uint32_t)-1, line_result) != 0) {
         clear_fraction = *(float *)&line_result[0] * radius - 0.1f;
         if (clear_fraction < 0.0f) {
             clear_fraction = 0.0f;

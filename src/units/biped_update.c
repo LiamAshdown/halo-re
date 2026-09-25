@@ -73,7 +73,8 @@ extern void biped_apply_idle_fidget(uint32_t object_index, uint8_t *state_out); 
 extern void biped_advance_frame_counter_trigger(uint32_t object_index, char *state_out); // 0x55eb90, this batch: animation frame trigger
 extern void biped_trigger_on_velocity_threshold(uint32_t object_index); // 0x55ec20, this batch: velocity-threshold trigger
 extern uint32_t unit_snap_to_min_ground_height(uint32_t object_index); // 0x55ecf0, this batch: snap to min ground height
-extern void biped_update_facing(uint8_t *control_flags_byte); // 0x55b7c0  // real signature (biped_update_facing.c): void biped_update_facing(uint32_t object_index, int8_t *out_animation_state); Ghidra recovered 1 of 2 args at this call site
+extern void biped_update_facing(uint8_t *control_flags_byte); // 0x55b7c0
+  // real signature (biped_update_facing.c): void biped_update_facing(uint32_t object_index, int8_t *out_animation_state); Ghidra recovered 1 of 2 args at this call site
 extern void unit_update_footstep_and_idle_triggers(uint32_t unit_index); // 0x560410, next batch: seat/turret angle-limit trigger
 extern void unit_update_up_vector(Biped *biped_tag, object *obj); // 0x560800, next batch: level up-vector toward target
 extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, next batch: seat-transition dispatcher; returns a status this
@@ -82,21 +83,26 @@ extern int16_t unit_update_animation_state_machine_status(uint32_t object_index)
 extern uint8_t unit_state_is_scripted_animation(unit_data *unit); // 0x565c60, next batch: uninterruptible/special-move state test
 extern void unit_start_seat_overlay_animation_a(uint32_t unit_index, int16_t command); // 0x565e00, next batch: seat-control overlay starter
 extern uint8_t unit_all_seats_unoccupied(uint32_t unit_index); // 0x566910, next batch: seat-occupancy test
-extern void unit_notify_weapon_removed(void); // 0x56ab10, next batch: weapon-removal guard  // real signature (unit_notify_weapon_removed.c): void unit_notify_weapon_removed(int32_t object_index, int16_t new_state); Ghidra recovered 0 of 2 args at this call site
-extern void unit_dispatch_scripted_event_9(int32_t param_1); // 0x56c370, next batch: scripted event dispatch  // real signature (unit_dispatch_scripted_event_9.c): void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key); Ghidra recovered 1 of 2 args at this call site
-extern void unit_recompute_seat_occupants(void); // 0x56ce30, next batch: recompute tracked-seat occupants  // real signature (unit_recompute_seat_occupants.c): void unit_recompute_seat_occupants(uint32_t unit_index); Ghidra recovered 0 of 1 args at this call site
-extern void unit_pick_and_ready_next_weapon(void); // 0x56d6a0, next batch: recompute next weapon / trigger switch  // real signature (unit_pick_and_ready_next_weapon.c): void unit_pick_and_ready_next_weapon(uint32_t unit_index); Ghidra recovered 0 of 1 args at this call site
+extern void unit_notify_weapon_removed(void); // 0x56ab10, next batch: weapon-removal guard
+  // real signature (unit_notify_weapon_removed.c): void unit_notify_weapon_removed(int32_t object_index, int16_t new_state); Ghidra recovered 0 of 2 args at this call site
+extern void unit_dispatch_scripted_event_9(int32_t param_1); // 0x56c370, next batch: scripted event dispatch
+  // real signature (unit_dispatch_scripted_event_9.c): void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key); Ghidra recovered 1 of 2 args at this call site
+extern void unit_recompute_seat_occupants(void); // 0x56ce30, next batch: recompute tracked-seat occupants
+  // real signature (unit_recompute_seat_occupants.c): void unit_recompute_seat_occupants(uint32_t unit_index); Ghidra recovered 0 of 1 args at this call site
+extern void unit_pick_and_ready_next_weapon(void); // 0x56d6a0, next batch: recompute next weapon / trigger switch
+  // real signature (unit_pick_and_ready_next_weapon.c): void unit_pick_and_ready_next_weapon(uint32_t unit_index); Ghidra recovered 0 of 1 args at this call site
 extern void unit_set_custom_animation(uint32_t object_index, datum_index graph, int16_t animation_index); // 0x56ebd0
 extern void unit_melee_attack_scan(uint32_t unit_index); // 0x56f550
-extern datum_index unit_get_weapon_object_index(uint32_t unit_index); // 0x569970, unit_index in a register  // real signature (unit_get_weapon_object_index.c): datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); Ghidra recovered 1 of 2 args at this call site
-extern void FUN_004f6610(uint32_t object_index); // UNSURE module, object_index visible
-extern uint32_t FUN_0042c370(void); // UNSURE module, implicit args only
-extern uint32_t FUN_00492730(void); // UNSURE module, implicit args only
-extern char FUN_004c2ee0(void);     // UNSURE module, implicit args only
-extern void FUN_004c4b50(datum_index weapon_index); // UNSURE module
-extern int16_t FUN_004c2f80(int32_t which, int32_t unused); // UNSURE module: a bounded random-ish roll
+extern datum_index unit_get_weapon_object_index(uint32_t unit_index); // 0x569970, unit_index in a register
+  // real signature (unit_get_weapon_object_index.c): datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); Ghidra recovered 1 of 2 args at this call site
+extern void object_snap_to_parent_marker_and_detach(uint32_t object_index); // UNSURE module, object_index visible
+extern uint32_t actor_notify_weapon_pickup_once(void); // UNSURE module, implicit args only
+extern uint32_t weapon_action_notify_for_unit(void); // UNSURE module, implicit args only
+extern char weapon_prevents_melee_attack(void);     // UNSURE module, implicit args only
+extern void weapon_reset_triggers(datum_index weapon_index); // UNSURE module
+extern int16_t weapon_get_first_person_animation_time(int32_t which, int32_t unused); // UNSURE module: a bounded random-ish roll
 extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90, next batch (signature per sibling agent's src/units/unit_update_animation_state_machine.c)
-extern int16_t FUN_004d6280(uint32_t flag); // UNSURE module
+extern int16_t animation_choose_random_permutation(uint32_t flag); // UNSURE module
 
 // Shared by both places biped_update repositions this unit relative to a parent's seat marker
 // (entering a vehicle seat, and the "unit fell below its parent" recheck later in the same
@@ -145,7 +151,7 @@ static void detach_and_realign_to_parent_seat(uint32_t object_index, datum_index
     if (unit->gunner_unit_index == object_index) unit->gunner_unit_index = k_datum_index_none;
 
     // UNSURE: FUN_004f6610, no visible arguments in Ghidra beyond object_index
-    FUN_004f6610(object_index);
+    object_snap_to_parent_marker_and_detach(object_index);
 
     object_set_position_and_orientation(object_index, 0, 0, &new_position);
 
@@ -303,7 +309,7 @@ uint32_t biped_update(uint32_t object_index)
                     }
                 }
                 {
-                    uint32_t custom_animation_index = FUN_004d6280(1);
+                    uint32_t custom_animation_index = animation_choose_random_permutation(1);
                     unit_set_custom_animation(object_index, object_tag->animation_graph.tag_id.index,
                                                custom_animation_index);
                 }
@@ -318,7 +324,7 @@ uint32_t biped_update(uint32_t object_index)
                     }
                 }
                 unit->animation_state = 0x1b;
-                FUN_0042c370();
+                actor_notify_weapon_pickup_once();
                 if (parent->network_role == 0) {
                     unit_dispatch_scripted_event_9(0);
                 }
@@ -405,15 +411,15 @@ uint32_t biped_update(uint32_t object_index)
     if (biped->unknown_505 == 0) {
         if (unit->controlling_player != k_datum_index_none && (int8_t)unit->control_flags < 0) {
             datum_index weapon = unit_get_weapon_object_index(object_index); // register-carried
-            char allowed = FUN_004c2ee0();
+            char allowed = weapon_prevents_melee_attack();
             if (allowed == 0 && unit->zoom_level == -1) {
                 unit_start_seat_overlay_animation_a(object_index, 7);
-                FUN_004c4b50(weapon);
-                FUN_00492730();
+                weapon_reset_triggers(weapon);
+                weapon_action_notify_for_unit();
                 {
-                    int8_t duration = (int8_t)FUN_004c2f80(0, -1); // UNSURE module
+                    int8_t duration = (int8_t)weapon_get_first_person_animation_time(0, -1); // UNSURE module
                     biped->unknown_505 = duration - (duration >> 2); // ~75% of duration; see file header
-                    biped->unknown_506 = biped->unknown_505 - (int8_t)FUN_004c2f80(1, -1);
+                    biped->unknown_506 = biped->unknown_505 - (int8_t)weapon_get_first_person_animation_time(1, -1);
                 }
                 goto melee_countdown_tail;
             }

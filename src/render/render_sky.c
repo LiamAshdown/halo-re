@@ -73,7 +73,7 @@ extern void model_nodes_get_default_transforms(GBXModel *model, void *nodes);
 extern void model_vertices_get_interpolated_frame(ModelAnimationsAnimation *animation, float frame,
                                                   void *nodes);
     // 0x4d53f0, models; blam-cc: EDI -> animation, stack -> (frame, nodes)
-extern void FUN_004d7690(real_point3d *position, real_vector3d *forward, GBXModel *model,
+extern void model_nodes_build_matrices(real_point3d *position, real_vector3d *forward, GBXModel *model,
                          real_matrix4x3 *matrices, void *nodes, real_vector3d *up);
     // 0x4d7690, models; blam-cc: EAX -> position, ECX -> forward, stack -> (model, matrices,
     // nodes, up); ECX is handed on to matrix4x3_from_forward_up
@@ -162,7 +162,7 @@ void render_sky(void)
         }
     }
 
-    FUN_004d7690(global_zero_vector3d_pointer, global_forward3d_pointer, model, matrices, nodes, global_up3d_pointer);
+    model_nodes_build_matrices(global_zero_vector3d_pointer, global_forward3d_pointer, model, matrices, nodes, global_up3d_pointer);
 
     for (i = 0; (int32_t)i < (int32_t)sky->shader_functions.count; i++) {
         function_values[i] = 1.0f;

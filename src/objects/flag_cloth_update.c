@@ -43,7 +43,7 @@ extern void flag_pole_get_marker_positions(flag *entry, bsp_leaf_reference *node
                                             real_point3d *marker_positions, uint8_t *row_table,
                                             int16_t *row_start_scratch, int16_t *column_marker_index,
                                             Flag *tag); // this module, 0x4fc020 (EDI -> tag)
-extern int8_t FUN_0053ed60(int32_t *a, void *b); // out of module scope, unexamined
+extern int8_t scenario_location_get_water_and_weather(int32_t *a, void *b); // out of module scope, unexamined
 extern uint32_t point_physics_tick(real_vector3d *velocity /*ESI*/, uint32_t mode,
                                       void *physics_tag_data, bsp_leaf_reference *node_ref,
                                       uint32_t flags, real_point3d *position,
@@ -65,7 +65,7 @@ void flag_cloth_update(flag *entry, Flag *tag, float dt) // blam-cc: stack -> en
 
     flag_pole_get_marker_positions(entry, &node_ref, marker_positions, row_table,
                                     row_start_scratch, column_marker_index, tag);
-    moving = FUN_0053ed60((int32_t *)&physics_a, (void *)&physics_b);
+    moving = scenario_location_get_water_and_weather((int32_t *)&physics_a, (void *)&physics_b);
 
     if (entry->invalid == 0) {
         // The three grid neighbours this solver samples (delta-column, delta-row), read out of

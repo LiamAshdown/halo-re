@@ -39,7 +39,7 @@ extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90, passed to
 extern uint8_t *global_structure_bsp; // 0x00746f9c; +0xe4 is the per-node lookup table
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
                                                 object_marker *marker, uint32_t flags); // 0x4f6080, all four on the stack
-extern int32_t FUN_005013a0(void *globals, real_point3d *point, int32_t index);
+extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index);
     // 0x5013a0; globals in ECX, point in EDX, index in EAX (established by
     // object_light_recompute_transform.c's identical call site)
 extern int32_t __ftol(); // 0x006391b4, MSVC 7.1 CRT x87 float-to-int truncation
@@ -63,7 +63,7 @@ void antenna_apply_marker_delta(real_vector3d *out_forward /*EAX*/, real_point3d
         // Resolved from the disassembly at 0x4fb21b: EDX is `lea edx,[esp+0x78]`, which is
         // marker+0x60 -- the node_transform position this function has just copied out. EAX is
         // zeroed and ECX is the 0x00746f90 globals pointer.
-        int32_t node_index = FUN_005013a0(global_collision_bsp, &marker.node_transform.position, 0);
+        int32_t node_index = bsp3d_node_find_leaf(global_collision_bsp, &marker.node_transform.position, 0);
 
         node_ref->leaf_index = node_index;
         if (node_index == -1) {

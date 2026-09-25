@@ -32,7 +32,7 @@ extern data_array *light_data;          // 0x00860b14
 extern tag_instance *tag_instances;     // 0x0087bc14
 
 extern void rasterizer_light_cone_set_texture_stage_states(void); // UNSURE: zero visible args; out of range, 0x51d6a0
-extern int16_t FUN_004f1700(void); // UNSURE: zero visible args at this call site — see
+extern int16_t light_collect_object_references(void); // UNSURE: zero visible args at this call site — see
     // light_collect_object_references.c's own (ECX,SI,EDI) form, irreconcilable from here
 extern void structure_debug_draw_surfaces_in_box_alt(int32_t queue_slot, real_point3d *position, float radius,
     int16_t marker_count, uint32_t mask); // UNSURE: out of range, 0x552a60
@@ -62,7 +62,7 @@ void lights_apply_spot_falloff(void)
                     real_point3d position;
 
                     if (!is_cone) {
-                        marker_count = FUN_004f1700(); // UNSURE: zero visible args here
+                        marker_count = light_collect_object_references(); // UNSURE: zero visible args here
                     }
 
                     if (1.5707964f <= tag->cutoff_angle) {

@@ -26,7 +26,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern void FUN_00472cc0(void); // other module (UNSURE)
+extern void update_server_push_player_tick_history(void); // other module (UNSURE)
 extern int32_t QueryPerformanceCounter(large_integer *counter);
 extern void game_engine_tick(void); // other module, already named
 extern char network_game_session_finalize_and_add_player(network_player_entry *entry,
@@ -47,7 +47,7 @@ void network_game_server_per_frame_tick(network_player_entry *entry, int16_t upd
             remaining = (uint32_t)update_count;
             do {
                 server->unknown_9b8 = server->unknown_9b8 + 1;
-                FUN_00472cc0();
+                update_server_push_player_tick_history();
                 QueryPerformanceCounter(&counter);
                 remaining = remaining - 1;
             } while (remaining != 0);

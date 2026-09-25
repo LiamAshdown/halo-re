@@ -19,8 +19,8 @@ extern void *tag_lookup(const char *tag_path); // foreign, UNSURE shape
 extern int32_t text_get_character_metrics(uint8_t ch); // foreign, UNSURE shape: this call site
     // passes only the character in Ghidra's own decompile; a font handle almost certainly also
     // flows through an unresolved register
-extern uint8_t FUN_004a8b80(uint8_t ch, void *param_2); // foreign, UNSURE shape
-extern uint8_t FUN_004a8b10(void); // foreign, UNSURE shape
+extern uint8_t virtual_keyboard_character_is_legal(uint8_t ch, void *param_2); // foreign, UNSURE shape
+extern uint8_t ui_wide_string_has_non_whitespace(void); // foreign, UNSURE shape
 
 // Checks that every character of `name` is renderable in the small UI font and, for mode 3
 // (UNSURE: player-name entry), that the name is non-empty and does not begin with a space or
@@ -41,7 +41,7 @@ uint8_t network_name_string_is_valid_for_mode(char *name, void *param_2, int32_t
     }
     for (i = 0; i < len; i = i + 1) {
         uint8_t ch = (uint8_t)name[i];
-        if (ch < ' ' || ch == 0xff || text_get_character_metrics(ch) == 0 || FUN_004a8b80(ch, param_2) == 0) {
+        if (ch < ' ' || ch == 0xff || text_get_character_metrics(ch) == 0 || virtual_keyboard_character_is_legal(ch, param_2) == 0) {
             ok = 0;
             break;
         }
@@ -60,7 +60,7 @@ uint8_t network_name_string_is_valid_for_mode(char *name, void *param_2, int32_t
     if (mode != 1) {
         return ok;
     }
-    return ok != 0 && FUN_004a8b10() != 0;
+    return ok != 0 && ui_wide_string_has_non_whitespace() != 0;
 }
 
 #if 0

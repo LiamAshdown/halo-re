@@ -46,7 +46,7 @@ extern uint8_t actor_movement_set_destination_near_target(datum_index target_pro
                                                           // blam-cc: EAX -> target_prop_index, stack -> the other two
 extern void actor_movement_actions_cancel(datum_index actor_index); // 0x417a30
 // 0x5642c0, a different module, not rewritten here: fills the two out-floats used below.
-extern uint8_t FUN_005642c0(float *out_a, float *out_b);
+extern uint8_t unit_get_weapon_marker_indices(float *out_a, float *out_b);
 
 // Evaluates whether the actor should switch to a new combat sub-mode (grenade, search,
 // guard, engage) for consideration_mode, and if so fills in out. Returns whether the caller
@@ -118,7 +118,7 @@ uint8_t actor_consider_combat_mode(uint32_t actor_index, int16_t consideration_m
                                                 // visibly initialize these two shorts; Ghidra
                                                 // shows them read uninitialized on some paths,
                                                 // kept zero-initialized here defensively.
-            uint8_t ok = FUN_005642c0(&local_8, &local_14);
+            uint8_t ok = unit_get_weapon_marker_indices(&local_8, &local_14);
 
             result = committed_engage;
             if (ok) {

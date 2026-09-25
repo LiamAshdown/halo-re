@@ -35,13 +35,13 @@ extern network_client_globals *network_client; // 0x0071c2d8
 extern game_time_globals *game_time; // 0x006f1d6c
 extern uint8_t *scenario_load_staging;  // 0x006b0b80, UNSURE identity/type
 
-extern void FUN_0045aea0(void); // outside this batch
-extern void FUN_0045afb0(void); // outside this batch
-extern void FUN_0045b050(void); // outside this batch
-extern void FUN_0045b370(void); // outside this batch
-extern void FUN_0045b8b0(void); // outside this batch
-extern void FUN_0045b990(void); // outside this batch
-extern void FUN_00470ae0(void); // outside this batch
+extern void cache_file_switch_map_by_path(void); // outside this batch
+extern void game_unload_map(void); // outside this batch
+extern void game_start_new_map(void); // outside this batch
+extern void game_stop_current_map(void); // outside this batch
+extern void game_engine_reset_all_players(void); // outside this batch
+extern void game_engine_apply_variant(void); // outside this batch
+extern void game_engine_init_tick_record_for_mode(void); // outside this batch
 extern void main_menu_music_stop(void); // outside this batch
 extern int32_t network_channel_key_open(network_player_entry *entry); // 0x4de870, this batch
 extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, this batch
@@ -77,19 +77,19 @@ char network_game_scenario_load_request(network_game_session *session)
             request.salt = *(uint32_t *)((uint8_t *)session + 0x3a4); // UNSURE
         }
     }
-    FUN_0045aea0();
+    cache_file_switch_map_by_path();
     if (game_time->initialized != 0 && (game_time->active != 0 || game_time->paused != 0)) {
         // UNSURE: game_time->initialized is documented as "never read or written" elsewhere in
         // types/game.h, so this condition is effectively always false in practice; preserved
         // verbatim rather than simplified away.
-        FUN_0045b370();
-        FUN_0045afb0();
+        game_stop_current_map();
+        game_unload_map();
     }
     main_menu_music_stop();
     if (*(int32_t *)((uint8_t *)session + 0x134) != 0) {
-        FUN_0045b990();
+        game_engine_apply_variant();
     }
-    FUN_0045aea0();
+    cache_file_switch_map_by_path();
     memcpy(scenario_load_staging + 8, &request, sizeof(request));
     loaded = scenario_load(scenario_load_staging);
     if (loaded == 0) {
@@ -100,7 +100,7 @@ char network_game_scenario_load_request(network_game_session *session)
         *scenario_load_staging = 1;
     }
     session->unknown_3ac = 1;
-    FUN_0045b050();
+    game_start_new_map();
     if (network_game_mode == 2) {
         for (i = 0; i < 0x10; i++) {
             if (network_player_entry_validate(&session->players[i]) == 0) {
@@ -112,8 +112,8 @@ char network_game_scenario_load_request(network_game_session *session)
             }
         }
         if (((*(uint8_t *)((uint8_t *)network_server + 6) >> 2) & 1) != 0) {
-            FUN_00470ae0();
-            FUN_0045b8b0();
+            game_engine_init_tick_record_for_mode();
+            game_engine_reset_all_players();
         }
     }
     return session->unknown_3ac;

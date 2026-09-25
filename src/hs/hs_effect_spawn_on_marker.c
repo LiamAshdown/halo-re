@@ -19,7 +19,7 @@
 
 extern int16_t object_get_node_local_transform(datum_index object_index, void *marker_index, void *out_buffer,
     char param_4);                                              // objects module, 0x4f6080
-extern void FUN_00450870(uint32_t effect, int32_t param_2, void *param_3, void *position,
+extern void effect_new_on_object_with_node_table(uint32_t effect, int32_t param_2, void *param_3, void *position,
     void *orientation, float param_6, float param_7, int32_t param_8, int32_t param_9);
                                                                   // effects module, 0x450870
 
@@ -34,7 +34,7 @@ void hs_effect_spawn_on_marker(datum_index object_index, datum_index marker_inde
     if (object_index != k_datum_index_none && marker_index != k_datum_index_none) {
         resolved = object_get_node_local_transform(object_index, (void *)(uint32_t)marker_index, orientation, 1);
         if (resolved != 0) {
-            FUN_00450870(effect, 1, &effect, position, orientation, 1.0f, 1.0f, 0, 0);
+            effect_new_on_object_with_node_table(effect, 1, &effect, position, orientation, 1.0f, 1.0f, 0, 0);
         }
     }
 }

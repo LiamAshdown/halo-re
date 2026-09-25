@@ -21,7 +21,7 @@ extern uint8_t *globals_tag_data;   // 0x00746fa0, +0x174 player info (types/uni
 extern uint8_t DAT_0087abc4;        // UNSURE global (cheat/debug toggle)
 extern uint8_t unit_updates_suppressed; // 0x0071c419
 
-extern uint32_t FUN_00417fa0(uint32_t object_index, float min_height); // UNSURE module
+extern uint32_t actor_get_requested_velocity(uint32_t object_index, float min_height); // UNSURE module
 extern void unit_fire_animation_sound_trigger(uint32_t unit_index, uint32_t trigger_kind, int16_t contact_point_index);           // 0x560590, next batch
 
 // Snaps a unit's velocity up to its tag-defined minimum ground height (Biped.jump_velocity,
@@ -66,7 +66,7 @@ uint32_t unit_snap_to_min_ground_height(uint32_t object_index)
             actor_ref = unit->actor_index;
         }
         if (actor_ref != k_datum_index_none) {
-            uint32_t result = FUN_00417fa0(object_index, min_height);
+            uint32_t result = actor_get_requested_velocity(object_index, min_height);
             if ((uint8_t)result == 0) {
                 return result;
             }

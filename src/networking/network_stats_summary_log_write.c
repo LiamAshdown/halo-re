@@ -26,7 +26,7 @@ extern uint8_t network_statistics_logging_enabled; // 0x006f14b4
 extern void *network_summary_log_file;             // 0x006a6140, FILE *
 extern network_summary_statistics network_summary_stats; // 0x0087bea0
 
-extern int32_t FUN_00449210(void); // foreign module, millisecond tick reader; see sibling file
+extern int32_t time_query_performance_counter_ms(void); // foreign module, millisecond tick reader; see sibling file
 
 void network_stats_summary_log_write(void)
 {
@@ -45,7 +45,7 @@ void network_stats_summary_log_write(void)
 
     if (2 < debug_log_level && network_statistics_logging_enabled != 0 &&
         network_summary_log_file != 0) {
-        now = FUN_00449210();
+        now = time_query_performance_counter_ms();
         elapsed_ms = (float)(now - network_summary_stats.start_ms);
         if (now - network_summary_stats.start_ms < 0) {
             elapsed_ms = elapsed_ms + 4.2949673e+09f; // 32-bit tick wraparound

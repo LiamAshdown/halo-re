@@ -43,9 +43,9 @@ extern void message_delta_protocol_initialize(void); // 0x4ec2f0, outside this b
 extern void network_stats_summary_log_open(void); // 0x440670, this module
 extern datum_index datum_get(data_array *array, datum_index index); // 0x4d0680, memory module
 extern void game_engine_apply_current_custom_variant(void); // outside this batch
-extern void FUN_0045fc80(void); // outside this batch
+extern void game_engine_sync_variant_defaults(void); // outside this batch
 extern void widget_close(int32_t widget); // outside this batch
-extern void FUN_004994b0(void); // outside this batch
+extern void widget_pool_list_free_all(void); // outside this batch
 extern char network_game_server_load_scenario(void); // 0x4e0720, outside this batch, elided args
 extern void network_host_full_state_broadcast(network_server_globals *host); // 0x4df510, this
     // batch; UNSURE: Ghidra types it void but the caller reads its result as if it returned a
@@ -113,7 +113,7 @@ uint32_t network_game_client_game_settings_updated(network_server_globals *host)
     host->unknown_004 = 0;
 
     game_engine_apply_current_custom_variant();
-    FUN_0045fc80();
+    game_engine_sync_variant_defaults();
     if (!is_host) {
         unknown_00718f8c = 2;
     }
@@ -130,7 +130,7 @@ uint32_t network_game_client_game_settings_updated(network_server_globals *host)
         widget_close(unknown_00718f94);
     }
     if (unknown_00718f98 != 0) {
-        FUN_004994b0();
+        widget_pool_list_free_all();
     }
     unknown_00718fa6 = 0;
     if (unknown_006953e8 != -1) {

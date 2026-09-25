@@ -63,7 +63,7 @@ extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, memo
     // below: Ghidra elides both register arguments there.
 extern void player_update_history_free_all(void *queue); // 0x4e6f20
 extern void unit_dispatch_scripted_event_9(uint8_t flag); // 0x56c370, units module, not in this batch
-extern uint8_t FUN_004757b0(uint32_t player_index, uint32_t target_object, void *local_offset);
+extern uint8_t player_find_placement_position(uint32_t player_index, uint32_t target_object, void *local_offset);
     // this batch, 0x4757b0
 
 // UNSURE, dead code: see header. Best-effort transcription of a "reattach unit to new parent"
@@ -228,7 +228,7 @@ void game_engine_reattach_player_unit_unused(uint32_t player_index, uint32_t tar
         }
 
         if (target_obj->parent_object == (datum_index)-1) {
-            FUN_004757b0(player_index, target_object, local_offset);
+            player_find_placement_position(player_index, target_object, local_offset);
         }
         local_player_globals->unknown_16 = 0;
     }

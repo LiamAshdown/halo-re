@@ -24,7 +24,7 @@
 extern char message_delta_metrics_filename_suffix[]; // 0x0069b24c, UNSURE: e.g. a map/scenario name
 
 extern int32_t snprintf(char *dest, uint32_t count, const char *format, ...);
-extern void FUN_00496a80(const char *format, ...); // logging helper, other module
+extern void console_printf_verbose(const char *format, ...); // logging helper, other module
 
 // blam-cc: ESI -> suffix (UNSURE name)
 // Builds the output path for a network-message-metrics dump ("message metrics\<suffix> <name>")
@@ -42,7 +42,7 @@ void message_delta_metrics_dump(char *suffix)
         (void)len; // UNSURE: computed but never used, matching the original
     }
     snprintf(path, 0x104, "%s\\%s %s", "message metrics", message_delta_metrics_filename_suffix, suffix);
-    FUN_00496a80("Wrote network message metrics to %s", path);
+    console_printf_verbose("Wrote network message metrics to %s", path);
 }
 
 #if 0

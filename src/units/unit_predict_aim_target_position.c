@@ -27,7 +27,7 @@ extern real_vector3d *global_up3d_pointer;  // 0x00696720
 extern float g_0069672c[3];             // 0x0069672c, UNSURE: a constant direction/gravity vector
 
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900
-extern char FUN_00502060(void *context, uint32_t param_2, uint32_t param_3, real_point3d *start,
+extern char collision_bsp_query_segment_init(void *context, uint32_t param_2, uint32_t param_3, real_point3d *start,
                           real_vector3d *delta, uint32_t max_distance_bits); // UNSURE signature
 
 // Attempts to compute a projected/predicted aim position in front of the unit for certain
@@ -56,7 +56,7 @@ int32_t unit_predict_aim_target_position(uint32_t unit_index, real_point3d *out_
         delta.j = g_0069672c[1] * 2.0f;
         delta.k = g_0069672c[2] * 2.0f;
 
-        hit = FUN_00502060(DAT_00746f98, 0, 0, &base_position, &delta, 0x7f7fffff);
+        hit = collision_bsp_query_segment_init(DAT_00746f98, 0, 0, &base_position, &delta, 0x7f7fffff);
         if (hit != 0) {
             out_position->x = delta.i * hit_fraction + base_position.x;
             out_position->y = delta.j * hit_fraction + base_position.y;

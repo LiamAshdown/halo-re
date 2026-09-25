@@ -48,7 +48,7 @@ extern network_server_globals *network_server;   // 0x0071c2d4
 extern int32_t update_server_last_log_ms;        // 0x006b7f90, UNSURE identity
 extern int32_t update_server_last_tick_ms;       // 0x0071c2e0, UNSURE identity
 
-extern int32_t FUN_00449210(void); // outside this batch, tick/ms counter
+extern int32_t time_query_performance_counter_ms(void); // outside this batch, tick/ms counter
 extern void update_server_new(void); // 0x472aa0, outside this batch
 extern void update_queues_dispose(void); // 0x472b00, outside this batch
 extern void update_server_dispose(void); // 0x472b70, outside this batch
@@ -96,7 +96,7 @@ char update_server_send_update(uint32_t *param_1, char param_2)
         return result;
     }
     if (network_client->state == 3) {
-        now_ms = FUN_00449210();
+        now_ms = time_query_performance_counter_ms();
         reliable_seq = network_client->unknown_ecc & 0x7fffffff;
         player_id = update_server_globals->maximum_count; // UNSURE: +0xc read as a word, see header
         memcpy(control, local_player_control_data, sizeof(control));
@@ -136,7 +136,7 @@ char update_server_send_update(uint32_t *param_1, char param_2)
             encoded = message_delta_encode_single_value(message_delta_definition_table, record, control,
                 (uint8_t *)&history_byte, 0x7ff8, 0xd, 0); // UNSURE: argument shapes, see header
             if (update_server_pending_flush == 1) {
-                FUN_00449210();
+                time_query_performance_counter_ms();
             }
             channel = network_client->channel;
             update_server_pending_flush = 0;
@@ -181,7 +181,7 @@ char update_server_send_update(uint32_t *param_1, char param_2)
         }
     after_send:
         if (update_server_pending_flush == 0) {
-            update_server_last_log_ms = FUN_00449210();
+            update_server_last_log_ms = time_query_performance_counter_ms();
             update_server_pending_flush = 1;
         }
         update_server_last_tick_ms = now_ms;

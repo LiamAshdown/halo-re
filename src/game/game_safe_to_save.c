@@ -16,13 +16,13 @@ extern uint8_t debug_print_safety_checks; // 0x00719aa9, TYPES-GAP
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, objects module
 extern void console_print_va(const char *format, ...); // 0x4c6920
 
-extern uint8_t FUN_0042c3e0(uint32_t param_1);   // UNSURE module: "ai_enemies_can_see_player"
-extern uint8_t FUN_004bcf50(void);               // UNSURE module: "dangerous_items_near_player"
-extern uint8_t FUN_00450fa0(void);               // UNSURE module: "dangerous_effects_near_player"
-extern uint8_t FUN_0056c070(void);               // UNSURE module: "any_unit_is_dangerous"
-extern uint8_t FUN_00475090(void);               // UNSURE module: "any_player_is_in_the_air"
+extern uint8_t ai_scan_for_recent_combat_activity(uint32_t param_1);   // UNSURE module: "ai_enemies_can_see_player"
+extern uint8_t item_any_detonating(void);               // UNSURE module: "dangerous_items_near_player"
+extern uint8_t effect_check_object_collisions(void);               // UNSURE module: "dangerous_effects_near_player"
+extern uint8_t unit_any_dying_or_seat_transition(void);               // UNSURE module: "any_unit_is_dangerous"
+extern uint8_t players_any_pending_seat_or_respawn(void);               // UNSURE module: "any_player_is_in_the_air"
 extern uint8_t players_any_without_unit(void);    // 0x475210: "any_player_is_dead"
-extern uint8_t FUN_00575c50(void);                 // UNSURE module: "vehicle_moving_near_any_player"
+extern uint8_t unit_is_area_clear_of_fast_objects(void);                 // UNSURE module: "vehicle_moving_near_any_player"
 
 // Returns whether it is currently safe to auto/quick-save, checking for nearby AI threats,
 // dangerous projectiles/items/effects, dangerous units, airborne/dead players, and moving
@@ -31,7 +31,7 @@ uint8_t game_safe_to_save(void)
 {
     object_iterator iterator;
 
-    if (FUN_0042c3e0(0) != 0) {
+    if (ai_scan_for_recent_combat_activity(0) != 0) {
         if (debug_print_safety_checks != 0) {
             console_print_va("not safe to save: ai_enemies_can_see_player");
         }
@@ -49,25 +49,25 @@ uint8_t game_safe_to_save(void)
         }
         return 0;
     }
-    if (FUN_004bcf50() != 0) {
+    if (item_any_detonating() != 0) {
         if (debug_print_safety_checks != 0) {
             console_print_va("not safe to save: dangerous_items_near_player");
         }
         return 0;
     }
-    if (FUN_00450fa0() != 0) {
+    if (effect_check_object_collisions() != 0) {
         if (debug_print_safety_checks != 0) {
             console_print_va("not safe to save: dangerous_effects_near_player");
         }
         return 0;
     }
-    if (FUN_0056c070() != 0) {
+    if (unit_any_dying_or_seat_transition() != 0) {
         if (debug_print_safety_checks != 0) {
             console_print_va("not safe to save: any_unit_is_dangerous");
         }
         return 0;
     }
-    if (FUN_00475090() != 0) {
+    if (players_any_pending_seat_or_respawn() != 0) {
         if (debug_print_safety_checks != 0) {
             console_print_va("not safe to save: any_player_is_in_the_air");
         }
@@ -79,7 +79,7 @@ uint8_t game_safe_to_save(void)
         }
         return 0;
     }
-    if (FUN_00575c50() != 0) {
+    if (unit_is_area_clear_of_fast_objects() != 0) {
         if (debug_print_safety_checks != 0) {
             console_print_va("not safe to save: vehicle_moving_near_any_player");
         }

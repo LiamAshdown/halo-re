@@ -22,11 +22,11 @@
 
 extern char *network_log_path_format; // 0x0065efec, the shared "%s" format string (see network_log_path_resolve.c)
 
-extern uint8_t FUN_004ec590(void *decode_context, void *destination);
+extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
     // blam-cc: EAX -> decode_context, ECX -> destination; 0x4ec590, message-delta stateless
     // (baseline) decode. It forwards to message_delta_read_changed_subfields with a NULL
     // previous-state pointer and the caller destination (0x4ec591..0x4ec59a).
-extern void FUN_004ec670(void *decode_context);
+extern void message_delta_decode_compound_field_staged(void *decode_context);
     // blam-cc: EAX -> decode_context; 0x4ec670, the message-delta skip/drop path
 extern void chimera__console_out(const char *format, ...); // 0x496b50
 
@@ -38,14 +38,14 @@ void network_client_handle_server_text_message(void *message) // blam-cc: EDX ->
 
     if (*(int32_t *)*(int32_t *)message == 0) {
         memset(decode_buf, 0, sizeof(decode_buf));
-        if (FUN_004ec590(message, decode_buf) != 0) {
+        if (message_delta_decode_compound_field(message, decode_buf) != 0) {
             int32_t text_len = strlen((char *)decode_buf);
             if (text_len != 0) {
                 chimera__console_out(network_log_path_format, decode_buf, text_len);
             }
         }
     } else {
-        FUN_004ec670(message);
+        message_delta_decode_compound_field_staged(message);
     }
 }
 

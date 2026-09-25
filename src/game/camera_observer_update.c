@@ -41,9 +41,9 @@ extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vecto
 
 // UNSURE: TYPES-GAP externs for the camera bob/sway section; see header.
 extern uint8_t unit_get_current_weapon_autoaim_cone(datum_index unit_index, int16_t require_zoomed, real *out); // this batch, 0x459e80
-extern int16_t FUN_00445b20(real *out); // UNSURE signature
+extern int16_t camera_get_seat_camera_state(real *out); // UNSURE signature
 extern void first_person_camera_deterministic(real_vector3d *out_facing); // UNSURE signature
-extern void FUN_00447290(void); // UNSURE signature
+extern void first_person_camera_apply_weapon_offset(void); // UNSURE signature
 extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta,
     uint32_t exclude_object, void *scratch); // 0x505880, canonical form (src/objects)
 extern void vector3d_normalize(real_vector3d *v); // math module
@@ -77,11 +77,11 @@ uint32_t camera_observer_update(datum_index player_index, real_point3d *observer
         real_vector3d camera_facing;
         int16_t camera_kind;
 
-        camera_kind = FUN_00445b20((real *)&camera_facing); // UNSURE
+        camera_kind = camera_get_seat_camera_state((real *)&camera_facing); // UNSURE
         if (camera_kind == 0) {
             first_person_camera_deterministic(&camera_facing); // UNSURE
         } else {
-            FUN_00447290(); // UNSURE
+            first_person_camera_apply_weapon_offset(); // UNSURE
         }
 
         direction = *fallback_facing;

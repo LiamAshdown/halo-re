@@ -92,7 +92,7 @@ extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operan
 extern void color_interpolate(void *out_color, uint32_t color_pair, float t); // 0x43f6a0
 extern void *texture_cache_get(uint32_t unknown_0); // 0x444550, UNSURE signature
 extern int16_t vector3d_major_axis_index(real_vector3d *v); // 0x44d820, math module (misattributed)
-extern void FUN_0044db30(uint32_t sequence_index, uint32_t unknown_1, real radius, void *out_rect);
+extern void structure_lightmap_uv_rect_build(uint32_t sequence_index, uint32_t unknown_1, real radius, void *out_rect);
     // 0x44db30, bitmaps/structures module (misattributed); UNSURE signature, everything guessed
 extern datum_index decal_new(int16_t cluster_index, int16_t layer, datum_index insert_before,
     uint8_t object_attached); // 0x44dd90, this module
@@ -276,7 +276,7 @@ void decal_place(datum_index decal_tag_index, uint8_t *placement, real_vector3d 
                 // types/effects.h's own evidence trail confirms independently of this function's
                 // geometry math.
                 (void)color_interpolate;
-                (void)FUN_0044db30;
+                (void)structure_lightmap_uv_rect_build;
                 (void)vector3d_angle_between_4cd5e0;
                 (void)matrix4x3_from_axis_angle;
                 (void)FUN_00623e40;

@@ -33,14 +33,14 @@ extern int32_t g_007c1480;             // 0x007c1480, UNSURE: render queue live 
 extern int32_t DAT_007c3108;           // UNSURE: not owned by this module
 extern int16_t light_transient_count;             // 0x00860b0c, light_transient_count
 
-extern void FUN_0043f7d0(void *out_color, float t);
+extern void color_interpolate_argb_with_tint(void *out_color, float t);
 extern void color_interpolate(void *out_color, uint32_t color_pair, float t);
 extern void first_person_weapon_center_flashlight(void *param_1);
-extern int8_t FUN_00492c30(int32_t marker, void *out_transform);
+extern int8_t unit_get_first_person_marker_transform(int32_t marker, void *out_transform);
 extern real transition_function_evaluate(transition_function_t type, real phase); // math
     // module, 0x4ccac0. The transition type travels in CX and is not visible at this call
     // site; the one value Ghidra shows pushed is the phase. UNSURE: type passed as 0.
-extern int16_t FUN_00494010(uint32_t object_index);
+extern int16_t local_player_index_for_weapon(uint32_t object_index);
 extern uint32_t first_person_weapon_get_marker_data(datum_index weapon_index, const char *marker_name, object_marker *out, uint32_t name_arg);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
     object_marker *marker, uint32_t flags); // 0x4f6080, this module -- same declaration as
@@ -68,7 +68,7 @@ void object_lights_update_all_continued(light *current_light, Light *current_tag
 
                 if (owner_type_hint != 0 && owner_type_hint->type == 2 &&
                     owner_type_hint->parent_object != (datum_index)0xffffffff &&
-                    FUN_00494010(current_light->owner_object) == DAT_007c3108) {
+                    local_player_index_for_weapon(current_light->owner_object) == DAT_007c3108) {
                     count = first_person_weapon_get_marker_data(current_light->owner_object, 0, 0, 8);
                 } else {
                     count = 0;
@@ -132,7 +132,7 @@ void object_lights_update_all_continued(light *current_light, Light *current_tag
                 blend = (current_light->marker_index_secondary == -1) ? 1.0f :
                     ((object *)object_data->data)->function_out_values[0]; // UNSURE: placeholder,
                     // see object_lights_update_all.c's note on the same computation
-                FUN_0043f7d0(entry + 0x38, blend);
+                color_interpolate_argb_with_tint(entry + 0x38, blend);
             } else {
                 real fade = transition_function_evaluate(0, (float)(current_tick - current_light->marker_link) /
                     *(float *)(tag + 0xf4));
@@ -192,7 +192,7 @@ void object_lights_update_all_continued(light *current_light, Light *current_tag
             if ((*tag & 0x10) == 0) {
                 if (owner_type_hint != 0 && owner_type_hint->type == 2 &&
                     owner_type_hint->parent_object != (datum_index)0xffffffff) {
-                    int8_t ok = FUN_00492c30(0, entry + 0x30); // UNSURE: marker/transform args
+                    int8_t ok = unit_get_first_person_marker_transform(0, entry + 0x30); // UNSURE: marker/transform args
                     if (ok != 0) {
                         flashlight_applied = 1;
                     }

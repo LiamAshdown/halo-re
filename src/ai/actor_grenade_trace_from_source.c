@@ -25,9 +25,9 @@
 extern data_array *actor_data; // 0x00880360
 
 // 0x569190, not yet rewritten (a different module): refreshes some per-actor cached point.
-extern void FUN_00569190(datum_index unit_index, uint32_t mode, void *point, void *direction, void *offset);
+extern void unit_add_marker_relative_offset(datum_index unit_index, uint32_t mode, void *point, void *direction, void *offset);
 // 0x505880, not yet rewritten (a different module): a generic trace/raycast request.
-extern uint8_t FUN_00505880(uint32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
+extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
 
 // If the actor's queued movement has not completed, and its last movement action has not
 // completed either, does nothing (no trace to issue). Otherwise resolves a source point --
@@ -45,7 +45,7 @@ int32_t actor_grenade_trace_from_source(uint32_t actor_index, real_point3d *targ
         if (a->movement_action_complete == 0) {
             return 0;
         }
-        FUN_00569190(a->unit_index, 1, (uint8_t *)a + 0x4ac, 0, 0);
+        unit_add_marker_relative_offset(a->unit_index, 1, (uint8_t *)a + 0x4ac, 0, 0);
     } else {
         source.x = a->aim_origin.x;
         source.y = a->aim_origin.y;
@@ -55,7 +55,7 @@ int32_t actor_grenade_trace_from_source(uint32_t actor_index, real_point3d *targ
     delta.i = target_point->x - source.x;
     delta.j = target_point->y - source.y;
     delta.k = target_point->z - source.z;
-    FUN_00505880(0x33, &source, &delta, 0xffffffff, trace_result);
+    collision_test_movement_segment(0x33, &source, &delta, 0xffffffff, trace_result);
     return 1;
 }
 

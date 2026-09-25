@@ -31,7 +31,7 @@ extern float camera_forward_x, camera_forward_y, camera_forward_z;    // 0x007c3
 
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
                                                 object_marker *marker, uint32_t flags); // 0x4f6080
-extern void FUN_00536ff0(uint32_t object_index, uint32_t light_volume_handle); // out of module scope, unexamined
+extern void rasterizer_lens_flare_occlusion_sample_add(uint32_t object_index, uint32_t light_volume_handle); // out of module scope, unexamined
 
 void light_volume_render(uint32_t object_index, datum_index light_volume_handle, uint32_t unused,
                           uint8_t *function_context)
@@ -76,7 +76,7 @@ void light_volume_render(uint32_t object_index, datum_index light_volume_handle,
                 camera_forward_x * (marker.node_transform.position.x - camera_position_x) +
                 camera_forward_z * (marker.node_transform.position.z - camera_position_z) <
                 *(float *)(tag + 0x38)) {
-                FUN_00536ff0(object_index, light_volume_handle);
+                rasterizer_lens_flare_occlusion_sample_add(object_index, light_volume_handle);
             }
         }
     }

@@ -23,7 +23,7 @@
 // texture_cache_page_allocate at 0x00444574) pushes the whole dword -- that callee reads only
 // the low byte as well.
 //
-// UNSURE: FUN_00523fa0, FUN_00524100, FUN_00524270, FUN_005243c0, FUN_00549960 and FUN_00515c30
+// UNSURE: FUN_00523fa0, FUN_00524100, FUN_00524270, FUN_005243c0 and FUN_00549960 (FUN_00515c30 is rasterizer_get_capture_surface)
 // are all outside this batch's assigned range and are declared here only as opaque externs
 // (their calling conventions, where recoverable from this function's own call sites, are noted
 // on each prototype). The function's return value is genuinely asymmetric in the original: the
@@ -54,16 +54,17 @@ extern void console_print_va(const char *format, ...);       // 0x4c6920
 
 extern uint32_t texture_cache_page_allocate(BitmapData *bitmap, uint8_t priority); // this module, texture_cache_page_allocate.c
 
-extern uint32_t FUN_00549960(void); // outside this module; frame-watchdog pump, UNSURE
-extern void FUN_00523fa0(void);     // outside this module; no visible arguments, UNSURE
+extern uint32_t sound_idle_update(void); // outside this module; frame-watchdog pump, UNSURE
+extern void rasterizer_bitmap_create_hardware_texture(void);     // outside this module; no visible arguments, UNSURE
 
 // blam-cc: bitmap in EAX; outside this module, UNSURE
-extern void FUN_00524100(BitmapData *bitmap); // 2D texture conversion, stack-passed
-extern void FUN_005243c0(BitmapData *bitmap); // cube map conversion, stack-passed
+extern void rasterizer_bitmap_upload_2d_mipmaps(BitmapData *bitmap); // 2D texture conversion, stack-passed
+extern void rasterizer_bitmap_upload_cubemap_mipmaps_by_face(BitmapData *bitmap); // cube map conversion, stack-passed
 // blam-cc: bitmap in EBX; outside this module, UNSURE
-extern void FUN_00524270(BitmapData *bitmap); // 3D texture conversion, register-passed
+extern void rasterizer_bitmap_upload_cubemap_mipmaps(BitmapData *bitmap); // 3D texture conversion, register-passed
 // blam-cc: bitmap in EAX; outside this module, UNSURE
-extern void *FUN_00515c30(BitmapData *bitmap); // "no texture available" fallback
+extern void *rasterizer_get_capture_surface(uint8_t *object, void *fallback); // 0x515c30; EAX -> object, ECX -> fallback:
+    // the default texture for the bitmap's type (+0xa): 2D/3D, cube map, or type 3
 
 // blam-cc: bitmap in EAX, wait as the first recognized stack parameter, allocate_if_missing as
 // the second
@@ -113,14 +114,14 @@ void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_mi
                 if (entry->loaded != 0) {
                     if (entry->converted == 0) {
                         entry->converted = 1;
-                        FUN_00523fa0();
+                        rasterizer_bitmap_create_hardware_texture();
                         bitmap_type = bitmap->type;
                         if (bitmap_type == 0) {
-                            FUN_00524100(bitmap);
+                            rasterizer_bitmap_upload_2d_mipmaps(bitmap);
                         } else if (bitmap_type == 1) {
-                            FUN_00524270(bitmap);
+                            rasterizer_bitmap_upload_cubemap_mipmaps(bitmap);
                         } else if (bitmap_type == 2) {
-                            FUN_005243c0(bitmap);
+                            rasterizer_bitmap_upload_cubemap_mipmaps_by_face(bitmap);
                         }
                         if (*(void **)bitmap->_pad_2c != (void *)0) {
                             GlobalFree(*(void **)bitmap->_pad_2c);
@@ -135,7 +136,7 @@ void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_mi
                 QueryPerformanceCounter(&counter);
                 elapsed_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
                 if (0x84 < (uint32_t)(elapsed_ms - frame_watchdog_time)) {
-                    FUN_00549960();
+                    sound_idle_update();
                 }
                 if (wait == 0) {
                     return (void *)0;
@@ -150,7 +151,9 @@ void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_mi
     }
 
     if (wait != 0 && result == (void *)0) {
-        result = FUN_00515c30(bitmap);
+        // 0x4446e9: the per-type default texture. ECX is left over from earlier code at that call and is only
+        // returned for a type above 3, which no valid bitmap has, so the fallback is 0
+        result = rasterizer_get_capture_surface((uint8_t *)bitmap, (void *)0);
         return result;
     }
     return result;

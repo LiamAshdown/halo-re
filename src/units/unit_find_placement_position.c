@@ -39,15 +39,15 @@ extern void *memcpy(void *dst, const void *src, uint32_t n);
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
 extern void unit_get_crouch_height_offset(uint32_t object_index, float *pill_height,
                                            float *pill_radius); // 0x55a2e0
-extern int32_t FUN_005013a0(void);                                            // UNSURE module
+extern int32_t bsp3d_node_find_leaf(void);                                            // UNSURE module
 extern int8_t object_collision_context_build(void);                                             // 0x504e10, collision module
-extern char FUN_005050b0(void *a, real_point3d *b, real_vector3d *c, float d, void *scratch);  // UNSURE
-extern char FUN_00506040(void *a, real_point3d *position, float radius);      // UNSURE
-extern char FUN_00507170(void *a, float b, float c, float d, uint32_t object_index, real_point3d *out); // UNSURE
+extern char object_collision_context_test_pill(void *a, real_point3d *b, real_vector3d *c, float d, void *scratch);  // UNSURE
+extern char collision_test_movement_pill(void *a, real_point3d *position, float radius);      // UNSURE
+extern char physics_point_find_clear_position(void *a, float b, float c, float d, uint32_t object_index, real_point3d *out); // UNSURE
 extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target,
     uint32_t flags, uint32_t exclude_object_index, collision_result *result); // 0x401a20, src/physics;
     // blam-cc: EAX origin, ECX target, stack (flags, exclude_object_index, result)
-extern void FUN_0053e780(void);                                               // UNSURE module
+extern void scenario_location_from_point(void);                                               // UNSURE module
 
 // Searches a small scatter pattern of candidate positions around an object for a spot free of
 // collision, repositioning the object (or writing the result through out_position) at the first
@@ -139,17 +139,17 @@ have_reference:
                     }
 
                     {
-                        int32_t marker = FUN_005013a0();
+                        int32_t marker = bsp3d_node_find_leaf();
                         if (marker != -1 && *(int16_t *)(marker * 0x10 + 8 + *(int32_t *)(global_structure_bsp + 0xe4)) != -1) {
-                            if (FUN_00507170(collision_context, radius + radius, pill_height,
+                            if (physics_point_find_clear_position(collision_context, radius + radius, pill_height,
                                               radius, reference_index, &candidate)) {
-                                if (!FUN_00506040(collision_context, &candidate, radius)) {
+                                if (!collision_test_movement_pill(collision_context, &candidate, radius)) {
                                     char ok = 1;
                                     if (orientation_object != k_datum_index_none) {
                                         uint8_t plane_scratch[16];
                                         uint8_t collision_scratch[1064];
                                         collision_result sweep; // [esp+0x80]
-                                        ok = !FUN_005050b0(collision_context, &candidate,
+                                        ok = !object_collision_context_test_pill(collision_context, &candidate,
                                                             (real_vector3d *)creation_snapshot, pill_height,
                                                             collision_scratch);
                                         if (ok) {
@@ -174,7 +174,7 @@ have_reference:
                                     }
                                     if (ok) {
                                         Biped *tag = (Biped *)tag_instances[reference->definition_tag & 0xffff].data;
-                                        FUN_0053e780();
+                                        scenario_location_from_point();
                                         if ((tag->biped_flags & 8) == 0) {
                                             candidate.z -= tag->collision_radius;
                                         }

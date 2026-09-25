@@ -44,8 +44,8 @@ extern void effect_new_on_object(); // effects module, 0x4507a0
     // every site in the module agrees on ONE declaration without fabricating arguments. // UNSURE: effects module, 0x4507a0
 extern real weapon_get_zoom_fov(int32_t param_1); // UNSURE: out of range, 0x46fe10
 extern real weapon_get_zoom_fov_resolved(void); // UNSURE: zero visible args; out of range, 0x46fe70
-extern void FUN_004eda20(void); // UNSURE: zero visible args; this module (object_set_health_frozen_flag)
-extern void FUN_004edc80(void); // UNSURE: zero visible args; this module (object_delete_teardown)
+extern void object_set_health_frozen_flag(void); // UNSURE: zero visible args; this module (object_set_health_frozen_flag)
+extern void object_delete_teardown(void); // UNSURE: zero visible args; this module (object_delete_teardown)
 extern void damage_effect_new_at_location(datum_index effect_tag, int16_t node_index,
     real_vector3d *normal, real_vector3d *incident, real_point3d *impact_position,
     uint32_t object_index); // this module, 0x4f0010. Only the first two arguments are visible
@@ -215,11 +215,11 @@ after_vitality:
                         object_destroy_region(target_index, i);
                     }
                 }
-                FUN_004eda20();
+                object_set_health_frozen_flag();
                 *notify_flags |= 1;
             }
         } else {
-            FUN_004edc80();
+            object_delete_teardown();
             *notify_flags |= 5;
         }
 

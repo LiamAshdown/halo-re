@@ -47,7 +47,7 @@ extern network_server_globals *network_server;      // 0x0071c2d4
 extern void chimera__console_out(const char *format, ...); // 0x496b50
 extern uint8_t network_banlist_add_ban(int32_t identity_lookup_key, int32_t duration_override_seconds,
     network_player_entry *target_player); // this module, 0x4e35c0
-extern uint8_t FUN_004e0af0(int16_t reason, network_machine *machine, network_server_globals *server);
+extern uint8_t network_server_notify_or_resend_challenge(int16_t reason, network_machine *machine, network_server_globals *server);
     // blam-cc: ECX -> reason, EDI -> machine, stack -> server; foreign (< this batch), 0x4e0af0,
     // see sv_ban.c / sv_kick.c
 
@@ -97,7 +97,7 @@ uint8_t network_session_autoban_player(datum_index player_handle) // blam-cc: EC
     if (!network_banlist_add_ban(machine->unknown_5c, 0, (network_player_entry *)target_player->name)) {
         return 0;
     }
-    if (!FUN_004e0af0(6, machine, network_server)) {
+    if (!network_server_notify_or_resend_challenge(6, machine, network_server)) {
         return 0;
     }
     return 1;

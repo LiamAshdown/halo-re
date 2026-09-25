@@ -33,7 +33,7 @@ extern uint8_t *game_time; // 0x006f1d6c, tick count at +0xc
 
 extern double periodic_function_evaluate(double phase); // UNSURE: address not captured in this batch's pack
 extern void FUN_00623e40(double stepped_value); // UNSURE
-extern double FUN_004ccac0(void); // UNSURE
+extern double transition_function_evaluate(void); // UNSURE
 extern float FUN_00628cca(void); // 0x628cca, this batch (object_set_position_network.c)
 
 void object_update_functions(uint32_t object_index) // blam-cc: EAX -> object_index
@@ -82,7 +82,7 @@ void object_update_functions(uint32_t object_index) // blam-cc: EAX -> object_in
             FUN_00628cca();
         }
 
-        result = (float)FUN_004ccac0();
+        result = (float)transition_function_evaluate();
         if (fn->scale_by > 0.0f) {
             result = result * fn->scale_by;
         }

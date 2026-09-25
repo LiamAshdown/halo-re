@@ -27,7 +27,7 @@ extern real_vector3d *global_up3d_pointer; // 0x00696720
 // the object index is in ECX. Ghidra binds a different subset of the two operands at each call
 // site in this module, so the declaration is left unprototyped.
 extern real_point3d *object_get_position();
-extern char FUN_00502060(void *context, uint32_t param_2, uint32_t param_3, real_point3d *start,
+extern char collision_bsp_query_segment_init(void *context, uint32_t param_2, uint32_t param_3, real_point3d *start,
                           real_vector3d *delta, uint32_t max_distance_bits); // UNSURE signature
 
 // Casts a short ray from 0.4 units above the unit's position along direction*distance, and if
@@ -50,7 +50,7 @@ char unit_test_placement_candidate(float distance, real_point3d *out_position, r
     delta.j = distance * direction->j;
     delta.k = distance * direction->k;
 
-    hit = FUN_00502060(DAT_00746f98, 0, 0, &base_position, &delta, 0x7f7fffff);
+    hit = collision_bsp_query_segment_init(DAT_00746f98, 0, 0, &base_position, &delta, 0x7f7fffff);
     if (!hit) {
         return 0;
     }

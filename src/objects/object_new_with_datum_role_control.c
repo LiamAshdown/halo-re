@@ -101,7 +101,7 @@ extern void effect_new_on_object(); // effects module, 0x4507a0, UNSURE: unexami
     // files in this module that reach 0x4507a0 declare it with an empty parameter list because
     // their own call sites show none. Unified on the empty list -- it asserts no prototype and so
     // does not contradict either set of call sites.
-extern void FUN_004e1a80(uint32_t a1, void *a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6);
+extern void network_session_broadcast_to_flagged(uint32_t a1, void *a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6);
     // 0x4e1a80, UNSURE: unexamined
 extern void console_print_error_va(const char *format, ...); // 0x4c67c0, same declaration as
     // src/hs/hs_compile_source.c and src/hs/hs_sound_get_gain_reference.c
@@ -276,7 +276,7 @@ datum_index object_new_with_datum_role_control(object_placement_data *placement,
             override_count = object_type_override_get_0x64(new_index, object_network_message_scratch,
                                                            sizeof object_network_message_scratch);
             if (override_count > 0) {
-                FUN_004e1a80(1, object_network_message_scratch, 1, 0, 0, 3);
+                network_session_broadcast_to_flagged(1, object_network_message_scratch, 1, 0, 0, 3);
             }
         }
     } else if (!active) {

@@ -33,13 +33,13 @@
 extern data_array *player_data; // 0x0087a480
 extern void *remote_player_index_remap_table; // 0x00687558, see player_update_client_remote_player_action_update_from_network.c
 
-extern uint8_t FUN_004ec590(void *decode_context, void *destination);
+extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
     // blam-cc: EAX -> decode_context, ECX -> destination; 0x4ec590, message-delta stateless
     // (baseline) decode. It forwards to message_delta_read_changed_subfields with a NULL
     // previous-state pointer and the caller destination (0x4ec591..0x4ec59a).
-extern uint8_t FUN_004ec600(void *decode_context, void *destination, int32_t force_changed);
+extern uint8_t message_delta_decode_compound_field_forced(void *decode_context, void *destination, int32_t force_changed);
     // blam-cc: EAX -> decode_context, ECX -> destination, stack -> force_changed; 0x4ec600
-extern void FUN_004ec670(void *decode_context);
+extern void message_delta_decode_compound_field_staged(void *decode_context);
     // blam-cc: EAX -> decode_context; 0x4ec670, the message-delta skip/drop path
 extern void player_update_client_remote_player_position_update_from_network(
     datum_index player_index, int32_t update_id, int32_t control_sequence,
@@ -78,13 +78,13 @@ void player_update_client_remote_player_position_delta_from_network(int32_t **de
         }
     }
     if (candidate == 0) {
-        FUN_004ec670(decode_context);
+        message_delta_decode_compound_field_staged(decode_context);
         return;
     }
 
     state = (message_delta_decode_state *)decode_context[0];
     if (state->incremental == 0) {
-        if (FUN_004ec590(decode_context, &position) != 1) {
+        if (message_delta_decode_compound_field(decode_context, &position) != 1) {
             return;
         }
         *(real *)&candidate->unknown_164 = position.x;
@@ -94,7 +94,7 @@ void player_update_client_remote_player_position_delta_from_network(int32_t **de
         position.x = *(real *)&candidate->unknown_164;
         position.y = *(real *)&candidate->unknown_168;
         position.z = *(real *)&candidate->unknown_16c;
-        if (FUN_004ec600(decode_context, &position, 0) != 1) {
+        if (message_delta_decode_compound_field_forced(decode_context, &position, 0) != 1) {
             return;
         }
     }

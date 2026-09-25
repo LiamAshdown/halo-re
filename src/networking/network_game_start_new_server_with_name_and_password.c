@@ -48,10 +48,10 @@ extern void network_game_server_host_dispose(network_server_globals *server); //
 extern void network_client_globals_dispose(void); // this module (earlier batch), 0x4dde70
 extern uint8_t network_game_server_host_create(void); // this module (earlier batch), 0x4ddd40
 extern network_client_globals *network_session_create(void); // this module (earlier batch), 0x4d8a80
-extern uint8_t FUN_00463b20(void); // foreign, UNSURE shape
+extern uint8_t game_engine_ensure_variant_history_has_entry(void); // foreign, UNSURE shape
 extern void game_engine_apply_current_custom_variant(void); // foreign
-extern void FUN_0045fc80(void); // foreign
-extern void FUN_004df640(void); // this module (earlier batch)
+extern void game_engine_sync_variant_defaults(void); // foreign
+extern void network_host_round_reset(void); // this module (earlier batch)
 extern void widget_close_all(void); // foreign
 
 // Tears down any existing hosted session, opens the network channels, creates the server host
@@ -97,7 +97,7 @@ uint8_t network_game_start_new_server_with_name_and_password(uint32_t param_1, u
         network_widget_reset_e = 0;
         network_widget_reset_f = 0;
         network_widget_reset_g = -1;
-        ok = FUN_00463b20();
+        ok = game_engine_ensure_variant_history_has_entry();
         if (ok == 0) {
         fail:
             if (network_server != 0) {
@@ -110,9 +110,9 @@ uint8_t network_game_start_new_server_with_name_and_password(uint32_t param_1, u
         }
         network_widget_reset_h = -1;
         game_engine_apply_current_custom_variant();
-        FUN_0045fc80();
+        game_engine_sync_variant_defaults();
         network_game_mode = 2;
-        FUN_004df640();
+        network_host_round_reset();
         network_channel_service_backoff_bypass_0071c2dc = 1;
     } else {
     fail_or_dispose:

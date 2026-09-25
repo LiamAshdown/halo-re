@@ -47,11 +47,11 @@ extern game_time_globals *game_time; // 0x006f1d6c, +0x0c is the current game ti
 extern void *vehicle_seat_lookup_table;      // 0x00687130, UNSURE: name and shape both guessed
 extern network_client_globals *network_client; // 0x0071c2d8
 
-extern uint8_t FUN_004ec590(void *decode_context, void *destination);
+extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
     // blam-cc: EAX -> decode_context, ECX -> destination; 0x4ec590, message-delta stateless
     // (baseline) decode. It forwards to message_delta_read_changed_subfields with a NULL
     // previous-state pointer and the caller destination (0x4ec591..0x4ec59a).
-extern void FUN_004ec670(void *decode_context);
+extern void message_delta_decode_compound_field_staged(void *decode_context);
     // blam-cc: EAX -> decode_context; 0x4ec670, the message-delta skip/drop path
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *a, real_vector3d *b);
     // blam-cc: EAX -> out, ECX -> a, stack -> b; foreign (< this batch), 0x4052c0
@@ -84,10 +84,10 @@ void player_update_client_local_player_vehicle_update_from_network(int32_t *deco
     record_ctx = (int32_t *)(uintptr_t)decode_context[0];
     mode = record_ctx[0];
     if (mode != 0) {
-        FUN_004ec670(decode_context);
+        message_delta_decode_compound_field_staged(decode_context);
         return;
     }
-    if (FUN_004ec590(decode_context, &ack) != 1) {
+    if (message_delta_decode_compound_field(decode_context, &ack) != 1) {
         return;
     }
     if (ack.vehicle.parent_or_tag != 0) {

@@ -45,7 +45,7 @@ extern game_variant game_engine_variant;    // 0x006f1c88 (::lives_per_round at 
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module; blam-cc: EDI -> iterator
 extern int32_t players_active_count(void);   // 0x45c6a0, this batch
-extern uint8_t FUN_00460e40(uint32_t player_handle); // UNSURE signature; see
+extern uint8_t game_engine_player_has_respawn_priority(uint32_t player_handle); // UNSURE signature; see
                                                      // game_engine_players_ready_for_bsp_switch.c
 
 uint8_t game_engine_players_ready_for_bsp_switch_strict(void)
@@ -101,7 +101,7 @@ uint8_t game_engine_players_ready_for_bsp_switch_strict(void)
         if (p != (player *)0) {
             do {
                 if (p->marked_for_deletion == 0 && p->unit == k_datum_index_none &&
-                    (FUN_00460e40(iterator.index) != 0 || // 0x45c942 pushes the iterator's index
+                    (game_engine_player_has_respawn_priority(iterator.index) != 0 || // 0x45c942 pushes the iterator's index
                      (0 < game_engine_variant.lives_per_round &&
                       (reread_unit = p->unit,
                        reread_unit == k_datum_index_none) &&

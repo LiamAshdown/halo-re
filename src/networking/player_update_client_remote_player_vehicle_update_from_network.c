@@ -53,13 +53,13 @@ extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990; blam-
 extern uint8_t is_remote_player_update_in_order(player *target_player, uint8_t control_sequence,
     int32_t update_id); // blam-cc: EAX -> target_player, DL -> control_sequence,
                         // ESI -> update_id; this module, 0x4e6a20
-extern int32_t FUN_004e6aa0(player *target_player, int32_t update_id);
+extern int32_t player_update_queue_offset_from_head(player *target_player, int32_t update_id);
     // blam-cc: EDI -> target_player, EDX -> update_id; this module, 0x4e6aa0
 extern uint8_t circular_queue_push(circular_queue *queue, void *source);
     // blam-cc: EBX -> queue, stack -> source; 0x47a1a0
 extern int32_t circular_queue_count(circular_queue *queue); // blam-cc: EDX -> queue; 0x47a230
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern void FUN_00570cb0(const real_point3d *position, datum_index object_index);
+extern void unit_propagate_position_delta_to_children(const real_point3d *position, datum_index object_index);
     // blam-cc: EAX -> position, ECX -> object_index; foreign, 0x570cb0
 extern void player_update_history_log_printf_filtered(player *target_player, int32_t category,
     const char *format, ...); // this module, 0x4e5f20
@@ -125,7 +125,7 @@ void player_update_client_remote_player_vehicle_update_from_network(datum_index 
             on_update_id = (int32_t)oldest->field0;
         }
 
-        distance = FUN_004e6aa0(target, update_id);
+        distance = player_update_queue_offset_from_head(target, update_id);
         if (distance >= 0 && distance < 0x20) {
             vehicle_update_record record;
             int32_t vehicle_count;
@@ -202,7 +202,7 @@ void player_update_client_remote_player_vehicle_update_from_network(datum_index 
                         object *vehicle_object = object_try_and_get(vehicle.parent_or_tag, 3);
 
                         if (vehicle_object != 0) {
-                            FUN_00570cb0(&vehicle.position, vehicle.parent_or_tag);
+                            unit_propagate_position_delta_to_children(&vehicle.position, vehicle.parent_or_tag);
                             vehicle_object->velocity = vehicle.velocity;
                             vehicle_object->angular_velocity = vehicle.angular_velocity;
                             vehicle_object->forward = vehicle.forward;

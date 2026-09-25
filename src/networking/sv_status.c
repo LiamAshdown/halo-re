@@ -26,7 +26,7 @@ extern network_server_globals *network_server; // 0x0071c2d4
 extern char network_build_string[]; // 0x00719879 (UNSURE: reused here as a map name, see header)
 extern game_engine_state game_engine_state_value; // 0x0087aa10
 
-extern int32_t FUN_0045c6a0(int32_t maximum_players); // foreign (UNSURE)
+extern int32_t players_active_count(int32_t maximum_players); // foreign (UNSURE)
 extern void chimera__console_out(const char *format, ...); // 0x496b50
 
 // Console command: prints the current map and player count, and whether the game is ending, or
@@ -35,7 +35,7 @@ void sv_status(void)
 {
     if (network_game_mode == 2) {
         if (network_server != 0) {
-            int32_t player_count_info = FUN_0045c6a0((int32_t)network_server->session.maximum_players);
+            int32_t player_count_info = players_active_count((int32_t)network_server->session.maximum_players);
             chimera__console_out("Dedicated server is running on map %s (%d / %d players)",
                                   network_build_string, player_count_info);
             if (game_engine_state_value == _game_engine_state_not_started) {

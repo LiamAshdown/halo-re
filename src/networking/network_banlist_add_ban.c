@@ -32,7 +32,7 @@ extern int32_t rcon_connection_id; // 0x0069fdfc, "the rcon/console connection i
 extern int32_t sv_ban_penalty_seconds[4]; // 0x00699574
 
 extern char *FUN_0061aa50(int32_t connection_id, int32_t identity_lookup_key); // foreign (< this module), CD-key hash lookup
-extern void FUN_00557950(char *dest, network_player_entry *player, int32_t dest_size);
+extern void string_convert_unicode_to_ascii(char *dest, network_player_entry *player, int32_t dest_size);
     // foreign (this module, later batch), blam-cc: ESI -> dest, EDI -> player, stack -> dest_size
 extern void network_banlist_load(void);  // this module, 0x4e3160 (excluded from this batch)
 extern ban_list_entry *ban_list_get_or_add_entry(char *name, char *cd_key_hash); // this batch, 0x4e3890
@@ -60,7 +60,7 @@ uint8_t network_banlist_add_ban(int32_t identity_lookup_key, int32_t duration_ov
     if (cd_key_hash == 0 || *cd_key_hash == 0) {
         return 1;
     }
-    FUN_00557950(player_name, target_player, 0x18);
+    string_convert_unicode_to_ascii(player_name, target_player, 0x18);
     player_name[0xc] = 0;
     network_banlist_load();
     entry = ban_list_get_or_add_entry(player_name, cd_key_hash);

@@ -36,7 +36,7 @@ extern void item_accelerate(real_vector3d *impulse, int32_t param_2); // 0x4bd08
 extern void unit_apply_impulse(void); // UNSURE: zero visible args; out of range, 0x559fa0
 extern void unit_apply_impulse_to_seat(void); // UNSURE: zero visible args; out of range, 0x571cb0
 extern int8_t unit_any_flagged_seat_occupied(void); // UNSURE: zero visible args; out of range, 0x56cc80
-extern void FUN_004efbf0(float param_1); // UNSURE: one float argument at this call site only,
+extern void object_queue_pickup_denied_event(float param_1); // UNSURE: one float argument at this call site only,
     // irreconcilable with object_queue_pickup_denied_event.c's own (EAX,ECX,EDI) form
 extern void object_apply_impulse_and_spin(uint32_t object_index, real_vector3d *delta_velocity); // 0x4bef80, this module;
     // blam-cc: EAX object_index, EDX delta_velocity
@@ -99,7 +99,7 @@ void object_damage_notify_and_impulse(uint32_t target_index, damage_data *dd, ui
                     ((*(uint32_t *)((uint8_t *)target + 0x1f4) & 8) == 0); // UNSURE: unit extension
 
                 if (target->network_role == 0 && significant) {
-                    FUN_004efbf0(scale);
+                    object_queue_pickup_denied_event(scale);
                 }
                 if (target->network_role == 0 || target->network_role == 3 || !significant) {
                     if (dd->random_blend <= 0.5f || (effect->damage_flags & 0x20) == 0) {

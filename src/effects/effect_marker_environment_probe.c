@@ -33,7 +33,7 @@ extern const real_vector3d *global_down3d_pointer;  // 0x0069672c, the constant 
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin,
     real_vector3d *delta, uint32_t exclude_object_index, collision_result *result); // 0x505880
 
-extern uint8_t FUN_0053ed60(void *leaf_out, uint32_t mode); // UNSURE signature; resolves a point
+extern uint8_t scenario_location_get_water_and_weather(void *leaf_out, uint32_t mode); // UNSURE signature; resolves a point
     // to a cluster/sky state, see the weather_instance notes in
     // out/phase4/effects_types_notes.md (unresolved offsets, weather_instance 0x10/0x14); called
     // here with the collision result's leaf field as the (probably in/out) point/leaf argument
@@ -62,7 +62,7 @@ void effect_marker_environment_probe(uint32_t definition_index, int16_t location
 
         hit = collision_test_movement_segment(0xc2a0, &origin, &delta, 0xffffffff, &result);
         if (hit) {
-            uint8_t in_sky = FUN_0053ed60(&result.leaf, 0);
+            uint8_t in_sky = scenario_location_get_water_and_weather(&result.leaf, 0);
             // UNSURE: 0x1c (28) when in_sky, otherwise a value read from this function's own
             // frame that the raw disassembly (`mov eax,[esp+0x54]`) could not be tied to a named
             // field; kept as the sky case's literal and a placeholder of 0 for the other case.

@@ -34,7 +34,7 @@ extern void player_kill_streak_begin(int32_t slot, uint32_t player_handle); // t
     // blam-cc: EAX -> player_handle, stack -> slot
 extern void player_kill_streak_continue(int32_t slot, uint32_t player_handle); // this batch, 0x479de0;
     // blam-cc: EAX -> player_handle, stack -> slot
-extern void FUN_00479aa0(int32_t slot, int16_t amount, uint32_t player_handle); // this batch,
+extern void player_notify_kill_streak_update(int32_t slot, int16_t amount, uint32_t player_handle); // this batch,
     // 0x479aa0; blam-cc: ECX -> player_handle, stack -> slot, amount
 
 // blam-cc: EBX -> player_handle, stack -> slot, amount
@@ -92,7 +92,7 @@ uint8_t player_add_kill_streak(int32_t slot, int16_t amount, uint32_t player_han
     if (network_game_mode == 2) {
         object *owner_unit = (object *)((object_header *)object_headers->data)[p->unit & 0xffff].data;
         if (owner_unit->network_role == 0) {
-            FUN_00479aa0(slot, amount, player_handle);
+            player_notify_kill_streak_update(slot, amount, player_handle);
         }
     }
     return 1;

@@ -52,15 +52,15 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern uint32_t *unknown_00746280_block; // TYPES-GAP
 extern uint8_t *cache_file_slot_table; // 0x006b0b80
 
-extern void FUN_0044e220(void);              // UNSURE module
-extern void FUN_004535b0(void);              // UNSURE module
+extern void decal_clear_flags(void);              // UNSURE module
+extern void particle_systems_delete_all(void);              // UNSURE module
 extern void update_queues_dispose(void);      // 0x472b00
 extern void hs_scripts_free(void);             // 0x4832b0
 extern void cache_flush(cache *self); // 0x4d17f0, blam-cc: ESI -> self (src/memory/cache_flush.c)                  // 0x4d17f0, memory module
 extern void objects_flush_dirty_state(void);     // 0x4f4cc0
 extern void font_glyph_cache_clear_all(void);     // 0x514cb0
 extern void game_sound_revert_scripting_sounds(void);                 // 0x543a90
-extern void FUN_005495f0(void);                     // UNSURE module
+extern void sound_fade_out_and_stop_all(void);                     // UNSURE module
 extern void widget_close_all(void);                  // 0x498650
 
 // Shuts down the currently running game (frees scripts, flushes caches, reverts modded state)
@@ -84,13 +84,13 @@ void game_stop_current_map(void)
     unknown_0088035c->valid = 0;
     unknown_00880358->valid = 0;
     unknown_00880354[1] = 0;
-    FUN_004535b0();
+    particle_systems_delete_all();
 
     if (weather_particle_pool_ptr->valid != 0) {
         weather_particle_pool_ptr->valid = 0;
     }
     if (unknown_0071d1c0 != 0) {
-        FUN_0044e220();
+        decal_clear_flags();
         cache_flush((cache *)unknown_0071d1c0); // objdump 0x45b3ef: ESI = DAT_0071d1c0
     }
     unknown_0087abe4->valid = 0;
@@ -118,7 +118,7 @@ void game_stop_current_map(void)
         network_predicted_globals->valid = 0;
     }
 
-    FUN_005495f0();
+    sound_fade_out_and_stop_all();
     update_queues_dispose();
 
     if (current_game_engine != (game_engine_definition *)0 && current_game_engine->dispose_from_old_game != (void *)0) {

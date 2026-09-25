@@ -54,11 +54,11 @@ extern game_time_globals *game_time; // 0x006f1d6c, +0x0c is the current game ti
     // tick counter here (see disassembly note below); close to game.h's server update ring at
     // 0x006f1d94, but the two addresses are not resolved as the same object by this batch.
 
-extern uint8_t FUN_004ec590(void *decode_context, void *destination);
+extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
     // blam-cc: EAX -> decode_context, ECX -> destination; 0x4ec590, message-delta stateless
     // (baseline) decode. It forwards to message_delta_read_changed_subfields with a NULL
     // previous-state pointer and the caller destination (0x4ec591..0x4ec59a).
-extern void FUN_004ec670(void *decode_context);
+extern void message_delta_decode_compound_field_staged(void *decode_context);
     // blam-cc: EAX -> decode_context; 0x4ec670, the message-delta skip/drop path
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: iterator in EDI
 extern uint8_t is_local_player_update_in_order(int32_t current_update_id, int32_t new_update_id);
@@ -84,10 +84,10 @@ void player_update_client_local_player_update_from_network(int32_t *decode_conte
     record_ctx = (int32_t *)(uintptr_t)decode_context[0];
     mode = record_ctx[0];
     if (mode != 0) {
-        FUN_004ec670(decode_context);
+        message_delta_decode_compound_field_staged(decode_context);
         return;
     }
-    if (FUN_004ec590(decode_context, &ack) != 1) {
+    if (message_delta_decode_compound_field(decode_context, &ack) != 1) {
         return;
     }
     iter.data = player_data;

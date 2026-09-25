@@ -41,7 +41,7 @@ extern int32_t game_engine_player_profile_cache_find(datum_index player_handle);
 
 extern uint8_t message_delta_decode_compound_field(void *event, void *out_values); // 0x4ec590, blam-cc:
     // EAX -> event, ECX -> out_values; UNSURE identity (a network message-delta decode)
-extern uint8_t FUN_004ec600(void *event, uint32_t *cache_tail, uint32_t *scratch, int32_t zero);
+extern uint8_t message_delta_decode_compound_field_forced(void *event, uint32_t *cache_tail, uint32_t *scratch, int32_t zero);
     // 0x4ec600, blam-cc: EAX, EDX, ECX, stack -> zero; UNSURE
 extern void message_delta_decode_compound_field_staged(void *event); // 0x4ec670, blam-cc: EAX -> event; UNSURE identity
 
@@ -83,7 +83,7 @@ void game_engine_apply_player_profile_entry(void *event)
         for (i = 0; i < 10; i = i + 1) {
             scratch[i] = tail[i];
         }
-        committed = FUN_004ec600(event, tail, scratch + 1, 0);
+        committed = message_delta_decode_compound_field_forced(event, tail, scratch + 1, 0);
         for (i = 0; i < 10; i = i + 1) {
             tail[i] = scratch[i + 1];
         }

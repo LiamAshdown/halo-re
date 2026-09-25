@@ -45,13 +45,13 @@ extern void *datum_get(datum_index handle, data_array *array); // memory module,
 
 extern void *object_try_and_get(int32_t type_mask);           // objects module, 0x4f6ec0
 extern void object_snap_to_parent_marker_and_detach(datum_index object_index);            // objects module, 0x4f6610
-extern void FUN_004f51c0(datum_index object_index, void *param_2, int32_t param_3);
+extern void object_set_position_and_orientation(datum_index object_index, void *param_2, int32_t param_3);
                                                                  // objects module, 0x4f51c0
 extern int16_t object_get_node_local_transform(datum_index location_object, void *marker_or_location, void *out_buffer,
     char param_4);                                              // objects module, 0x4f6080
 extern void object_reset_velocity_and_wake(datum_index object_index);             // objects module, 0x4f5160
 extern uint32_t player_index_from_unit_index(datum_index object_index);         // game module, 0x474db0
-extern void FUN_00475c60(uint32_t unit_or_player, uint32_t param_2, void *param_3);
+extern void player_attach_unit_to_parent(uint32_t unit_or_player, uint32_t param_2, void *param_3);
                                                                  // game module, 0x475c60
 extern void unit_reset_orientation_and_find_position(datum_index object_index);             // objects module, 0x55add0
 extern void object_recalculate_bounding_radius_recursive(datum_index object_index);
@@ -178,7 +178,7 @@ void hs_object_detach_and_place_at_location(int16_t location_index, datum_index 
                     combined_delta.j = delta.j + *(float *)&object[0x18];
                     combined_delta.k = (delta.k + *(float *)&object[0x19]) - parent_position.z;
 
-                    FUN_004f51c0(object_index, (void *)0, 0);
+                    object_set_position_and_orientation(object_index, (void *)0, 0);
 
                     parent_record = *(uint32_t **)((uint8_t *)object_headers->data +
                         child_data_offset + 8); // NOTE: reuses child_data_offset, matching the
@@ -320,7 +320,7 @@ void hs_object_detach_and_place_at_location(int16_t location_index, datum_index 
         }
         unit_data = (player_or_unit & 0xffff) * 0x200 + (uint32_t)players->data;
         if (detach_from_parent != 0) {
-            FUN_00475c60(player_or_unit, 0xffffffff,
+            player_attach_unit_to_parent(player_or_unit, 0xffffffff,
                 (uint8_t *)location + 0x24);
         }
         if (reorient != 0) {
@@ -332,19 +332,19 @@ void hs_object_detach_and_place_at_location(int16_t location_index, datum_index 
                 place_out = &facing;
                 goto place;
             }
-            FUN_004f51c0(object_index, (void *)0, 0);
+            object_set_position_and_orientation(object_index, (void *)0, 0);
             return;
         }
         if (reorient != 0 && unit_data == 0) {
             place_out = &facing;
             goto place;
         }
-        FUN_004f51c0(object_index, (void *)0, 0);
+        object_set_position_and_orientation(object_index, (void *)0, 0);
         return;
     }
     place_out = (real_vector3d *)0;
 place:
-    FUN_004f51c0(object_index, place_out, 0);
+    object_set_position_and_orientation(object_index, place_out, 0);
 }
 
 #if 0

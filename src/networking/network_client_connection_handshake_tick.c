@@ -38,8 +38,8 @@ extern void network_timer_decrement_floored(network_timer_pair *timer, int32_t d
 extern void network_timer_start(network_timer_pair *timer, int32_t duration_ms); // 0x4debf0
 extern char network_game_all_machines_have_player(network_server_globals *server); // 0x4e04f0, this batch
 extern char network_game_any_team_empty(network_server_globals *server); // 0x4e0480, this batch
-extern void FUN_00449210(void); // other module (UNSURE)
-extern char FUN_004ddd20(void); // other module (UNSURE)
+extern void time_query_performance_counter_ms(void); // other module (UNSURE)
+extern char network_channel_short_disconnect_timeout(void); // other module (UNSURE)
 extern int32_t network_server_count_connected_machines(network_server_globals *server); // 0x4e1880, this batch
 
 void network_client_connection_handshake_tick(int16_t state, network_server_globals *owner)
@@ -95,7 +95,7 @@ void network_client_connection_handshake_tick(int16_t state, network_server_glob
         char ready;
         int16_t connected_count;
 
-        FUN_00449210();
+        time_query_performance_counter_ms();
         if (state == 3) {
             network_timer_start(timer, 0);
             *(uint8_t *)(base + 0x9d4) = 1;
@@ -104,7 +104,7 @@ void network_client_connection_handshake_tick(int16_t state, network_server_glob
         }
         if (network_client_short_disconnect_timeout == 0 ||
             (connected_count = network_server_count_connected_machines(owner), connected_count > 0)) {
-            ready = FUN_004ddd20();
+            ready = network_channel_short_disconnect_timeout();
             *(uint8_t *)(base + 0x9d4) = 1;
             network_timer_start(timer, ready != 0 ? 10999 : 30999);
             *(int32_t *)(base + 0x9d0) = 0;

@@ -31,8 +31,8 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern int32_t FUN_00453330(void);                              // UNSURE: leaf helper, no evidence of args recovered
-extern void FUN_004533b0(datum_index sound_tag, uint32_t flag);  // UNSURE: args guessed from call site
+extern int32_t any_local_player_within_10_units(void);                              // UNSURE: leaf helper, no evidence of args recovered
+extern void effect_marker_environment_probe(datum_index sound_tag, uint32_t flag);  // UNSURE: args guessed from call site
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
                                                 object_marker *marker, uint32_t flags); // 0x4f6080, cdecl, all four on the stack
 
@@ -46,11 +46,11 @@ void unit_fire_animation_sound_trigger(uint32_t unit_index, uint32_t trigger_kin
     datum_index footsteps_tag = *(datum_index *)&biped_tag->footsteps.tag_id;
 
     if (contact_point_index < (int32_t)biped_tag->contact_point.count && footsteps_tag != (datum_index)-1) {
-        if (FUN_00453330() != 0) {
+        if (any_local_player_within_10_units() != 0) {
             object_marker marker; // UNSURE: scratch output, never read back by this function
             int16_t ok = (int16_t)object_get_node_local_transform(unit_index, 0, &marker, 1); // UNSURE: args
             if (ok != 0) {
-                FUN_004533b0(footsteps_tag, 0);
+                effect_marker_environment_probe(footsteps_tag, 0);
             }
         }
     }

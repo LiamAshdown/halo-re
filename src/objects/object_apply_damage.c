@@ -61,7 +61,7 @@ extern int8_t teams_are_enemies(void); // UNSURE: zero visible args; out of rang
 extern int32_t game_engine_compute_time_scale(void); // UNSURE: zero visible args; out of range, 0x461550
 extern real weapon_get_zoom_fov(int32_t param_1); // UNSURE: out of range, 0x46fe10
 extern int32_t player_index_from_unit_index(datum_index object_index); // UNSURE: out of range, 0x474db0
-extern void FUN_004eda20(void); // UNSURE: zero visible args; this module, address matches
+extern void object_set_health_frozen_flag(void); // UNSURE: zero visible args; this module, address matches
                                 // object_set_health_frozen_flag's original name, but called bare
                                 // here so kept as-is rather than assuming the (object_index) form
 extern int32_t object_get_controlling_player_index(datum_index object_index); // this module, 0x4ee2e0
@@ -496,7 +496,7 @@ friendly_fire_resolved:
                     (target->vitality_flags & _object_health_frozen_bit) == 0 &&
                     (friendly_fire_blocked == 0 || apply_notify_gate)) {
                     *(uint32_t *)((uint8_t *)target + 0xe0) = 0; // local_70[0x38]: a 4-byte write
-                    FUN_004eda20();
+                    object_set_health_frozen_flag();
                     local_78 = local_78 | 0x41;
                 }
 

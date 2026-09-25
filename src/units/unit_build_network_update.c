@@ -26,7 +26,7 @@ extern uint8_t *object_pooled_node_globals; // 0x00687130, the object network-id
 extern uint8_t *machine_table; // 0x00687558, its hash_table sits at +0x0c
 extern int32_t message_delta_encode_message(uint32_t a, uint32_t size, uint32_t b, void *fields,
                                              uint32_t c, uint32_t d, uint8_t e); // 0x4ec940, UNSURE signature
-extern int32_t FUN_004e9c20(uint32_t object_index); // UNSURE module: a fallback resolved index
+extern int32_t network_index_cache_find_or_allocate_slot(uint32_t object_index); // UNSURE module: a fallback resolved index
 extern void *memcpy(void *dst, const void *src, uint32_t n);
 
 // Packs a unit's key simulation state (tag, name, resolved owner/animation-graph handles,
@@ -55,7 +55,7 @@ void unit_build_network_update(uint32_t object_index)
         if (resolved_owner == -1) resolved_owner = 0;
     }
     if (resolved_tag == -1) {
-        resolved_tag = FUN_004e9c20(object_index); // UNSURE
+        resolved_tag = network_index_cache_find_or_allocate_slot(object_index); // UNSURE
     }
 
     {

@@ -39,7 +39,7 @@ extern uint8_t *global_structure_bsp; // 0x00746f9c, UNSURE: foreign module, +0x
 extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index); // 0x5013a0, UNSURE: unexamined; a leaf/visibility probe
 extern void scenario_location_from_point(void); // 0x53e780, UNSURE: unexamined
 extern datum_index *noncollideable_cluster_first; // 0x008603c0, the per-cluster list descriptor
-extern void FUN_00551f00(uint32_t light_or_object_handle, datum_index *placement_slot, real_point3d *position,
+extern void cluster_reference_add_within_radius(uint32_t light_or_object_handle, datum_index *placement_slot, real_point3d *position,
                           float radius, void *leaf_and_cluster, void *cluster_list);
     // 0x551f00; the first four are stack arguments, the leaf/cluster pair arrives in EAX and the
     // cluster-list descriptor in EDI. Resolved at 0x4f5d50: mov edi,0x8603c0 /
@@ -90,7 +90,7 @@ void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *lo
 
         header->flags &= (uint8_t)~_object_header_unknown_80_bit;
 
-        FUN_00551f00(object_index, &obj->placement_id, &obj->bounding_center, obj->bounding_radius,
+        cluster_reference_add_within_radius(object_index, &obj->placement_id, &obj->bounding_center, obj->bounding_radius,
                      &obj->location_leaf_index, &noncollideable_cluster_first);
 
         if ((header->flags & _object_header_in_pvs_pass_bit) != 0) {

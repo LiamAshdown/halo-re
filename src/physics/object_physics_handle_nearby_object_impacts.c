@@ -30,7 +30,7 @@ extern data_array *object_data; // 0x008603b0
 
 extern uint16_t object_find_in_sphere(uint32_t search_mask, uint32_t type_mask, void *location,
     real_point3d *center, float radius, datum_index *out_objects, int16_t max_output); // 0x4f6fe0
-extern uint8_t FUN_00504e10(uint32_t object_index, object_collision_context *out_context);
+extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context);
     // 0x504e10, this module (lower half); called with zero visible arguments here, object_index
     // assumed still live from this function's own parameter
 extern uint8_t object_physics_context_build(uint32_t object_index,
@@ -56,7 +56,7 @@ void object_physics_handle_nearby_object_impacts(uint32_t object_index)
     uint16_t count;
     uint16_t i;
 
-    has_collision_context = FUN_00504e10(object_index, &self_collision_context);
+    has_collision_context = object_collision_context_build(object_index, &self_collision_context);
     has_physics_context = object_physics_context_build(object_index, &self_physics_context);
 
     if (!has_physics_context) {

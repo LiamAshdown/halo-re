@@ -25,7 +25,7 @@ extern uint16_t network_server_password[9]; // 0x0071c2f4 (UNSURE name; distinct
 extern uint8_t network_server_password_is_default; // 0x0071c304 (UNSURE name)
 extern network_server_globals *network_server; // 0x0071c2d4
 
-extern wchar_t *FUN_00557990(void); // foreign, presumed to return &scratch (UNSURE, see header)
+extern wchar_t *string_convert_ascii_to_unicode(void); // foreign, presumed to return &scratch (UNSURE, see header)
 extern uint8_t network_name_string_is_valid_for_mode(char *name, void *dest, int32_t mode); // 0x4e4350, this module
 extern void network_server_password_set(const wchar_t *source, network_server_globals *server); // 0x4e0910, this module
 extern void chimera__console_out(const char *format, ...); // 0x496b50
@@ -48,7 +48,7 @@ void sv_password(uint32_t argument_count, char **arguments)
         int32_t length = (int32_t)strlen(text);
 
         if ((uint32_t)length < 9) {
-            wchar_t *result = FUN_00557990();
+            wchar_t *result = string_convert_ascii_to_unicode();
             if (result == scratch) {
                 uint8_t ok = 1;
                 if (text[0] != '\0') {

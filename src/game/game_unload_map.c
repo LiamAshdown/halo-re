@@ -28,7 +28,7 @@ extern Globals *global_globals;   // 0x00746fa0
 
 extern int16_t cache_file_download_status_get(float *progress_out, int32_t unaff_ecx); // 0x4434a0,
     // blam-cc: EAX -> progress_out, ECX -> unaff_ecx (src/cache/cache_file_download_status_get.c) // 0x4434a0
-extern void FUN_004c8f20(void);              // UNSURE module
+extern void render_pregame_view_initialize(void);              // UNSURE module
 extern void movie_capture_frame_export(void); // 0x4c9530
 extern void widget_close_all(void);           // 0x498650
 extern void interface_handle_quit_request(void); // 0x499170
@@ -47,7 +47,7 @@ void game_unload_map(void)
             // objdump 0x45afd0..0x45afd8: EAX = cache_file_slot_table + 4, the float the
             // download poll writes its progress into; ECX is never set at this call site.
             status = cache_file_download_status_get((float *)(cache_file_slot_table + 4), 0);
-            FUN_004c8f20();
+            render_pregame_view_initialize();
             movie_capture_frame_export();
         } while (status == 0);
         widget_close_all();

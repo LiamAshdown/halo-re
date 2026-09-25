@@ -31,7 +31,6 @@ network_session_player_table_index_apply           # networking: differ 200/200:
 antenna_tip_jitter                                 # objects: differ 200/200: pointer arg #1 +0x0: 15.1551 (0x41727b3e) vs -19.3286 (0xc19aa0ec)
 flag_cloth_stamp_region_split_flags                # objects: differ 3/164: rewrite crashed (original did not)
 object_color_clamp_to_intensity                    # objects: differ 115/200: pointer arg #0 +0x0: -0.88881 (0xbf638905) vs 2.22416 (0x400e5896)
-object_recompute_basis_from_marker_delta           # objects: differ 200/200: rewrite crashed (original did not)
 object_physics_mass_point_update_orientation       # physics: differ 200/200: pointer arg #1 +0x0: -0.644033 (0xbf24df60) vs -0.103278 (0xbdd38349)
 physics_shape_pill_test_point                      # physics: differ 200/200: return 0x20220000 vs 0x00000000
 physics_shape_vertex_to_sphere                     # physics: differ 5/87: pointer arg #1 +0x2b8: 1.4013e-45 (0x00000001) vs -0.0427999 (0xbd2f4f00)
@@ -40,15 +39,11 @@ chimera__transparent_decal_zbias                   # rasterizer: differ 200/200:
 color_channel_real_to_byte                         # rasterizer: differ 200/200: return 0x0badf082 vs 0xfffffd83
 font_glyph_cache_clear_all                         # rasterizer: differ 200/200: return 0x0badf000 vs 0x00000000
 rasterizer_apply_decal_zbias                       # rasterizer: differ 200/200: rewrite crashed (original did not)
-rasterizer_bitmap_create_hardware_texture          # rasterizer: differ 200/200: pointer arg #0 +0x24: -1.2404 (0xbf9ec56e) vs 0 (0x00000000)
 rasterizer_clear_decal_zbias                       # rasterizer: differ 200/200: rewrite crashed (original did not)
 rasterizer_set_shader_stage_config                 # rasterizer: differ 58/58: rewrite crashed (original did not)
 rasterizer_shader_technique_for_name               # rasterizer: died tester process died
 rasterizer_shader_transparent_chicago_extended_set_texture_stages # rasterizer: died tester process died
 build_sprites_end                                  # render: differ 1/105: pointer arg #0 +0x14: -nan(ind) (0xffc00000) vs 0 (0x00000000)
-chimera__render_camera_build_frustum               # render: differ 1/200: pointer arg #2 +0x128: nan (0x7fc00000) vs 0.3728 (0x3ebedfa0)
-rasterizer_lens_flare_set_vertex_specular          # render: differ 110/200: global 0x0069e708: 0xf5f5f5f5 vs 0x00000000
-sort_push_heap                                     # render: differ 22/100: pointer arg #0 +0x18: 4.2039e-45 (0x00000003) vs -0.688 (0xbf3020c4)
 control_profile_set_binding                        # saved_games: differ 200/200: return 0x00000000 vs 0x00000001
 config_set_force_shader                            # shell: died tester process died
 config_set_maximum_resolution                      # shell: died tester process died

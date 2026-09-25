@@ -48,12 +48,12 @@ extern void vector3d_cross_product(); // math module, 0x4052c0.
     // already uses for FUN_00450870 -- one declaration per symbol, no invented signature.
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
 extern void vector3d_normalize(real_vector3d *v); // 0x4cd320, vector in ECX
-extern int32_t FUN_00444550(uint32_t a, uint32_t b); // out of module scope, unexamined; begins a
+extern int32_t texture_cache_get(uint32_t a, uint32_t b); // out of module scope, unexamined; begins a
     // geometry batch and returns an opaque handle
-extern int32_t FUN_0051bdd0(void);  // out of module scope, unexamined
-extern void *FUN_0051be40(void);    // out of module scope, unexamined
+extern int32_t rasterizer_dynamic_vertex_cache_reserve(void);  // out of module scope, unexamined
+extern void *rasterizer_dynamic_vertex_cache_lock(void);    // out of module scope, unexamined
 extern uint32_t color_pack_argb_from_real(float *argb); // 0x497900, UNSURE: signature guessed
-extern void FUN_0051c830(uint32_t a, int32_t b, int32_t c, int32_t d, uint32_t e); // out of
+extern void rasterizer_transparent_object_append(uint32_t a, int32_t b, int32_t c, int32_t d, uint32_t e); // out of
     // module scope, unexamined; submits the built geometry
 
 // UNSURE: placeholder for the per-call widget_random_seed draw this function makes when
@@ -108,7 +108,7 @@ void lightning_render(uint32_t object_index, datum_index lightning_handle, uint3
     {
         uint32_t shader_something = *(uint32_t *)(
             (uint8_t *)tag_instances[*(uint32_t *)(tag + 0x40) & 0xffff].data + 100);
-        int32_t device = FUN_00444550(0, 1);
+        int32_t device = texture_cache_get(0, 1);
 
         // Per-shard (top-level marker chain) loop.
         int16_t shard;
@@ -192,9 +192,9 @@ void lightning_render(uint32_t object_index, datum_index lightning_handle, uint3
                     rasterizer_vertex_buffer_lock_state = 0xc;
                     if (node_count > 2) {
                         int32_t n = node_count + 1;
-                        int32_t frame = FUN_0051bdd0();
+                        int32_t frame = rasterizer_dynamic_vertex_cache_reserve();
                         if (frame != -1) {
-                            float *out = (float *)FUN_0051be40();
+                            float *out = (float *)rasterizer_dynamic_vertex_cache_lock();
                             float t_bias = glow_random_unit_for_lightning();
                             float alpha_scale = 1.0f, color_scale_extra = 1.0f;
                             real_vector3d *color_scale = shared_constant_vector_686b04;
@@ -267,7 +267,7 @@ void lightning_render(uint32_t object_index, datum_index lightning_handle, uint3
                             // UNSURE: a D3D-style vtable dispatch (matching the same shape used
                             // in flag_render.c) is elided here; only the final submit call is
                             // reproduced.
-                            FUN_0051c830(shader_something, n * -2, frame, n * 2 - 2, 0);
+                            rasterizer_transparent_object_append(shader_something, n * -2, frame, n * 2 - 2, 0);
                         }
                         first_marker = 1;
                     }

@@ -30,7 +30,7 @@ extern uint8_t *global_structure_bsp;  // 0x00746f9c; +0xe4 is the per-leaf look
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630,
     // memory module; blam-cc: DX -> after_index, EDI -> array
-extern int32_t FUN_005013a0(void *globals, real_point3d *point, int32_t index);
+extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index);
     // 0x5013a0; blam-cc: ECX -> globals, EDX -> point, EAX -> index
 
 // For every point of every live contrail that already has a valid cluster, re-probes its
@@ -50,7 +50,7 @@ void contrail_refresh_lightmap(void)
                 contrail_point *point = &((contrail_point *)contrail_point_data->data)[(uint16_t)point_index];
 
                 if (point->location.cluster_index != -1) {
-                    int32_t leaf = FUN_005013a0(global_collision_bsp, &point->position, 0);
+                    int32_t leaf = bsp3d_node_find_leaf(global_collision_bsp, &point->position, 0);
 
                     point->location.leaf_index = leaf;
                     if (leaf == -1) {

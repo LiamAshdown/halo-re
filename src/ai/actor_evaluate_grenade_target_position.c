@@ -28,9 +28,9 @@ extern data_array *prop_data;       // 0x008802c0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, vector in ECX
 
-extern uint8_t FUN_00569c90(datum_index actor_index); // UNSURE: no visible arg at this call site
+extern uint8_t unit_is_in_busy_animation_state(datum_index actor_index); // UNSURE: no visible arg at this call site
 extern uint8_t actor_probe_step_direction(datum_index actor_index); // UNSURE: no visible arg
-extern uint8_t FUN_00569470(datum_index actor_index); // UNSURE: no visible arg
+extern uint8_t unit_scripted_action_animation_exists(datum_index actor_index); // UNSURE: no visible arg
 extern uint8_t actor_queue_secondary_action(int32_t request_kind, real_vector2d *direction);
 
 // blam-cc: EBX -> actor_index
@@ -51,7 +51,7 @@ uint8_t actor_evaluate_grenade_target_position(datum_index actor_index)
 
     if (self->active_unit_index != (datum_index)k_datum_index_none) return 0;
     if (self->secondary_action != -1) return 0;
-    if (self->unit_index != (datum_index)k_datum_index_none && FUN_00569c90(self->unit_index) != 0) return 0;
+    if (self->unit_index != (datum_index)k_datum_index_none && unit_is_in_busy_animation_state(self->unit_index) != 0) return 0;
     if (self->unknown_504 != 0) return 0;
     if (self->target_unit_index == (datum_index)k_datum_index_none) return 0;
 
@@ -83,7 +83,7 @@ build_direction:
     dir.i = target_prop->unknown_e0.x;
     dir.j = target_prop->unknown_e0.y;
     vector2d_normalize_with_length(&dir);
-    if (actor_probe_step_direction(actor_index) != 0 && FUN_00569470(actor_index) != 0) {
+    if (actor_probe_step_direction(actor_index) != 0 && unit_scripted_action_animation_exists(actor_index) != 0) {
         result = actor_queue_secondary_action(6, &dir);
     }
     return result;

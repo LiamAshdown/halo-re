@@ -18,7 +18,7 @@
 #include "math.h"
 #include "ai.h"
 
-extern void FUN_0055a2e0(float *out_offset, float *out_time, datum_index object_index);
+extern void unit_get_crouch_height_offset(float *out_offset, float *out_time, datum_index object_index);
     // 0x0055a2e0, not yet rewritten (units module). blam-cc: out_offset on the stack,
     // out_time in EBX, object_index in ECX. Computes a unit's crouch-interpolated vertical
     // offset (out_offset) from its object position; out_time's exact meaning is not
@@ -34,7 +34,7 @@ void actor_grenade_avoidance_entry_init(ai_grenade_avoidance_entry *entry,
     float offset;
     float deadline;
 
-    FUN_0055a2e0(&offset, &deadline, object_index);
+    unit_get_crouch_height_offset(&offset, &deadline, object_index);
     entry->already_clear = (offset == 0.0f);
     entry->unknown_10 = 0;
     entry->unknown_14 = 0;

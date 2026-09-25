@@ -31,7 +31,7 @@
 extern tag_instance *tag_instances; // 0x0087bc14
 
 // 0x549af0, sound module; see src/items/equipment_pickup_play_sound.c for the parameter block
-extern uint32_t FUN_00549af0(uint32_t sound_tag_id, void *parameters, uint32_t owner_index,
+extern uint32_t sound_play_new(uint32_t sound_tag_id, void *parameters, uint32_t owner_index,
                              int32_t extra_size, void *extra, uint32_t extra_count,
                              uint32_t allow_deferred);
 
@@ -49,7 +49,7 @@ void equipment_definition_play_pickup_sound(uint32_t equipment_tag_id) // blam-c
         *(int16_t *)(parameters + 0x00) = 0;
         *(float *)(parameters + 0x04) = 1.0f;
         *(float *)(parameters + 0x08) = 1.0f;
-        FUN_00549af0((uint32_t)pickup_sound_tag_id, parameters, 0xffffffff, 0, 0, 0, 0);
+        sound_play_new((uint32_t)pickup_sound_tag_id, parameters, 0xffffffff, 0, 0, 0, 0);
     }
 }
 

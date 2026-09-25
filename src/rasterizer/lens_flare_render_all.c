@@ -256,12 +256,12 @@ void lens_flare_render_all(void)
                 // UNSURE: FUN_005120f0 (visibility test?) and FUN_00512120 (occlusion query
                 // begin?) are outside this session's range and are called here with no visible
                 // arguments; FUN_005120f0 returning nonzero breaks the reflection loop.
-                extern uint8_t FUN_005120f0(void);
-                extern void FUN_00512120(void);
-                if (FUN_005120f0() != 0) {
+                extern uint8_t rasterizer_lens_flare_set_current_key(void);
+                extern void rasterizer_lens_flare_set_vertex_specular(void);
+                if (rasterizer_lens_flare_set_current_key() != 0) {
                     break;
                 }
-                FUN_00512120();
+                rasterizer_lens_flare_set_vertex_specular();
 
                 {
                     real_point3d vertex_position;

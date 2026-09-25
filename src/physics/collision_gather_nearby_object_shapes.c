@@ -44,7 +44,7 @@ extern void unit_get_crouch_height_offset(float *out); // 0x55a2e0, foreign modu
 // FUN_00502730 for the same pattern of registers still live from an outer caller).
 extern void physics_shape_vertex_to_sphere(float center_x, float center_y, uint32_t object_index,
     uint32_t surface_index, int32_t margin, uint32_t flags); // 0x503360, this module (higher half)
-extern uint8_t FUN_00504e10(uint32_t object_index, object_collision_context *out_context);
+extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context);
     // 0x504e10, this module (lower half); UNSURE exact register convention, called with zero
     // visible arguments in the original -- object_index is assumed still live from this loop
 extern uint8_t object_collision_context_gather_sphere_shapes(void *context,
@@ -107,7 +107,7 @@ void collision_gather_nearby_object_shapes(uint32_t flags, uint32_t start_object
                     // every other type (or vehicles without that flag) uses the node path.
                     if (obj->type != _object_type_vehicle || (flags & 0x400000) == 0) {
                         object_collision_context node_ctx;
-                        if (FUN_00504e10(object_index, &node_ctx)) {
+                        if (object_collision_context_build(object_index, &node_ctx)) {
                             uint8_t node_context[76];
                             object_collision_context_gather_sphere_shapes(node_context, origin, radius, x_offset,
                                                          y_offset, model);

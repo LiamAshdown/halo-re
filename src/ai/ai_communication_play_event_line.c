@@ -72,7 +72,7 @@ extern datum_index ai_communication_select_speaker_by_team(int16_t match_mode, d
 extern void actor_issue_order_or_vocalize(datum_index prop_index, datum_index actor_index,
                                            datum_index vehicle_object_index, int16_t line,
                                            int16_t variant); // 0x4302e0
-extern int16_t FUN_00560d00(int32_t line_class, int32_t kind, void *out_record, void *inout_a,
+extern int16_t unit_animation_change_priority_check(int32_t line_class, int32_t kind, void *out_record, void *inout_a,
                             void *inout_b);  // SIGNATURE-CONFLICT: this call site disagrees with the form the rest of
   // src/ai uses for this address; kept local. See src/ai/README.md.
 // src/ai/actor_squad_action_execute.c declares the third argument as an int32_t. // 0x560d00, not yet rewritten; blam-cc also EAX -> object_index, DL -> flag
@@ -193,7 +193,7 @@ play:
                     lookup_line = (uint32_t)(uint16_t)row->line_id;
                     lookup_handle = (uint32_t)k_datum_index_none;
                     lookup_delay = (int32_t)(row->delay_seconds * ticks_per_second);
-                    status = FUN_00560d00((int32_t)line_class, 1, lookup_record, &lookup_line,
+                    status = unit_animation_change_priority_check((int32_t)line_class, 1, lookup_record, &lookup_line,
                                           &lookup_handle);
                     if (0 < status) {
                         // The 0x28-byte playback request. Offsets are from the stores at

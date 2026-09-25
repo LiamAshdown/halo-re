@@ -20,9 +20,9 @@ extern network_server_globals *network_server; // 0x0071c2d4
 
 extern network_player_entry *sv_find_client_by_name_or_index(char *name_or_index); // this batch, 0x4e3f70
 extern int32_t parse_time_duration_string(char *string, char default_unit, uint8_t *unit_table); // this batch, 0x4e51c0
-extern network_machine *FUN_004e0810(network_server_globals *server, int16_t machine_id);
+extern network_machine *network_machine_find_by_id(network_server_globals *server, int16_t machine_id);
     // blam-cc: ESI -> server, EDI -> machine_id; foreign (< this batch), 0x4e0810
-extern uint8_t FUN_004e0af0(int16_t reason, network_machine *machine, network_server_globals *server);
+extern uint8_t network_server_notify_or_resend_challenge(int16_t reason, network_machine *machine, network_server_globals *server);
     // blam-cc: ECX -> reason, EDI -> machine, stack -> server; foreign (< this batch), 0x4e0af0
 extern uint8_t network_banlist_add_ban(int32_t identity_lookup_key, int32_t duration_override_seconds,
     network_player_entry *target_player); // this batch, 0x4e35c0
@@ -51,13 +51,13 @@ void sv_ban(uint32_t argument_count, int32_t *arguments) // blam-cc: EAX -> argu
         }
         player = sv_find_client_by_name_or_index((char *)arguments[0]);
         if (player != 0) {
-            machine = FUN_004e0810(network_server, player->machine_index);
+            machine = network_machine_find_by_id(network_server, player->machine_index);
             if (machine != 0 && machine->channel != 0 && machine->channel->connected != 0) {
                 chimera__console_out("sv_ban:  Can't ban a local client!");
                 return;
             }
             network_banlist_add_ban(machine->unknown_5c, duration, player);
-            FUN_004e0af0(6, machine, network_server);
+            network_server_notify_or_resend_challenge(6, machine, network_server);
         }
         return;
     }

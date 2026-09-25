@@ -24,7 +24,7 @@ extern uint8_t playlist_default_profiles_missing; // 0x0069e8d0
 extern void string_format_wide_va_bounded(uint16_t *dest, const char *format, ...); // foreign, UNSURE shape, 0x557910
 extern void playlist_profile_create_default_profiles_on_disk(void); // foreign, 0x53bc70
 extern void saved_game_enumerate_by_type(int32_t type, int32_t *out_ids, int32_t flag); // foreign, UNSURE shape, 0x53c4e0
-extern uint8_t FUN_0053bee0(int32_t saved_game_id, uint16_t *out_name); // foreign, UNSURE shape
+extern uint8_t saved_game_get_variant(int32_t saved_game_id, uint16_t *out_name); // foreign, UNSURE shape
 extern void game_engine_apply_current_custom_variant(void); // foreign, 0x463b90
 extern void chimera__console_out(const char *format, ...); // 0x496b50
 
@@ -64,7 +64,7 @@ void game_variant_list_matching_substring(uint32_t argument_count, char **argume
                 game_engine_apply_current_custom_variant();
             } else {
                 uint16_t variant_name[64];
-                if (FUN_0053bee0(saved_game_ids[i], variant_name) != 0) {
+                if (saved_game_get_variant(saved_game_ids[i], variant_name) != 0) {
                     uint16_t lowered[64];
                     wcsncpy(lowered, variant_name, 0x3f);
                     lowered[0x3f] = 0;

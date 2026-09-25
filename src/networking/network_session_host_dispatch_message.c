@@ -23,8 +23,8 @@ extern uint8_t *network_session_machine_table; // 0x0087a480, UNSURE layout, see
 extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern char *network_session_generic_error_string; // 0x0065512c, UNSURE
 
-extern int32_t FUN_0045c6f0(void); // foreign, identifies the sender (index in low word, salt in high word)
-extern char *FUN_00557950(int32_t id); // foreign, UNSURE
+extern int32_t players_get_active_by_index(void); // foreign, identifies the sender (index in low word, salt in high word)
+extern char *string_convert_unicode_to_ascii(int32_t id); // foreign, UNSURE
 extern void FUN_00615590(void *reply_target, void *text); // foreign, UNSURE
 extern void FUN_00616640(void *reply_target, int32_t value); // foreign, UNSURE
 
@@ -34,7 +34,7 @@ extern void FUN_00616640(void *reply_target, int32_t value); // foreign, UNSURE
 // generic error string if the sender could not be validated.
 void network_session_host_dispatch_message(int32_t message_type, int32_t param_2, void *reply_target)
 {
-    int32_t sender = FUN_0045c6f0();
+    int32_t sender = players_get_active_by_index();
 
     if (sender != -1) {
         int16_t index = (int16_t)sender;
@@ -52,7 +52,7 @@ void network_session_host_dispatch_message(int32_t message_type, int32_t param_2
                     for (i = 0; i < 64; i++) {
                         text[i] = 0;
                     }
-                    FUN_00615590(reply_target, FUN_00557950(0x40));
+                    FUN_00615590(reply_target, string_convert_unicode_to_ascii(0x40));
                     (void)text;
                     return;
                 }

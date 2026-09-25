@@ -54,7 +54,7 @@ extern void vector3d_cross_product(); // math module, 0x4052c0.
 extern void model_nodes_get_default_transforms(void *out_nodes); // 0x4d7610, UNSURE
 extern void animation_get_frame_orientations(uint32_t selector, void *out_nodes); // 0x4d4a80, UNSURE
 extern void model_vertices_get_interpolated_frame(float t, void *out_nodes); // UNSURE: address not captured in this batch's pack
-extern void FUN_004d51a0(uint32_t selector, float t, void *out_nodes); // UNSURE
+extern void animation_overlay_frame_orientations_weighted(uint32_t selector, float t, void *out_nodes); // UNSURE
 extern void object_type_definitions_notify_two_args_0x48(uint32_t object_index, void *nodes); // 0x4f4250, outside this batch
 extern void *matrix4x3_from_quaternion(void); // 0x4cbad0, UNSURE: return/extraout shape guessed, see file header
 extern void model_nodes_blend_transforms(void *values, int16_t unknown_0d4, int16_t node_function_count); // UNSURE
@@ -146,7 +146,7 @@ void object_recalculate_bounding_radius(uint32_t object_index)
                         } else {
                             pfVar10 = local_c;
                             if (psVar1[2] == 1) {
-                                FUN_004d51a0((*(int32_t *)(game_time + 0xc) + object_index) %
+                                animation_overlay_frame_orientations_weighted((*(int32_t *)(game_time + 0xc) + object_index) %
                                              (uint32_t)*(int16_t *)(iVar12b + 0x22), fStack_10, local_1c);
                                 pfVar10 = local_c;
                             }
