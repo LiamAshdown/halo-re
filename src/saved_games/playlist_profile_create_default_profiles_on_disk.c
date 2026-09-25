@@ -94,6 +94,10 @@ void playlist_profile_create_default_profiles_on_disk(void)
         // using variant_scratch's own address, so that copy is preserved literally.
         defaults_result = default_game_variant_procs[i](&variant_scratch);
         memcpy(&variant_file.variant, defaults_result, sizeof(variant_file.variant));
+        // DEVIATION (deliberate): the original leaves variant_file.padding_09c as stack garbage and writes it to
+        // disk; nothing reads it (the checksum covers only the variant), so it is zeroed here to keep the
+        // files deterministic instead of copying whatever this frame's stack held into them.
+        memset(variant_file.padding_09c, 0, sizeof(variant_file.padding_09c));
 
         __snprintf(path, 0xff, "%s\\%02d", default_playlists_directory, i);
         directory_ensure_empty(path);
