@@ -1,4 +1,4 @@
-# Stable set: 1416 functions (every hookable one), behaviour-checked in game (2026-09-25)
+# Stable set: 1435 functions (every hookable one), behaviour-checked in game (2026-09-25)
 bit_vector_or
 bounded_ramp_profile_build
 bounded_ramp_profile_evaluate
@@ -805,7 +805,6 @@ animation_state_advance
 autopatch_download_get_result
 master_server_list_refresh_request
 message_delta_array_field_decode
-message_delta_array_field_encode
 message_delta_decode_array_field
 message_delta_decode_compound_field
 message_delta_decode_compound_field_forced
@@ -813,10 +812,8 @@ message_delta_decode_compound_field_staged
 message_delta_decode_field_changed_flags
 message_delta_decode_vector3d_indexed
 message_delta_dword_array_decode
-message_delta_encode_field
 message_delta_field_bindings_lazy_init
 message_delta_field_layout_compute_size
-message_delta_float_array_encode
 message_delta_read_changed_subfields
 network_bandwidth_graph_accumulate_received
 network_bandwidth_graph_accumulate_sent
@@ -1415,3 +1412,25 @@ unit_is_seat_control_available
 unit_map_action_command_to_animation_state
 unit_noop_569670
 unit_reset_ground_adjust_state
+actor_clear_target_state
+actor_run_mode_transition_loop
+ai_reference_expand_to_platoon_range
+ai_reference_squad_iterator_new
+control_binding_table_register_single
+controls_gamepad_list_find
+hud_meter_resolve_bitmap_frame
+hud_weapon_interface_meters_evaluate
+widget_list_scroll_window
+equipment_network_baseline_take
+item_stamp_age_timestamp
+weapon_network_baseline_take
+quaternion_rotate_vector
+network_channel_list_remove
+object_get_node_marker_address
+object_reset_velocity_and_wake
+object_sum_attached_light_luminance
+object_type_definitions_query_0x34
+object_type_definitions_query_0x44
+projectile_network_baseline_take
+projectile_update_function_values
+vehicle_reset_state
