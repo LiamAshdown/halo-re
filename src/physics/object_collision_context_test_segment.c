@@ -21,7 +21,7 @@
 //   (they are loaded once at entry and forwarded untouched into matrix4x3_transform_point /
 //   matrix4x3_transform_vector), so their presence and stack position are reconstructed from
 //   0x005050b0's fully-recognized twin rather than read directly here.
-//   // blam-cc: stack -> context, origin, delta, out_result
+//   // blam-cc: stack -> context, flags, origin, delta, out_result
 // UNSURE: the flags (EAX) and result (ECX) register arguments collision_bsp_query_segment_init
 // takes are invisible at this call site too; result is confidently &out_result->segment (the
 // pre-seeded FLT_MAX flows through exactly that field), but flags is guessed as 0.
@@ -49,8 +49,11 @@ extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_se
 // collision_bsp_query_segment_init. Keeps scanning every node (never stops early), narrowing
 // out_result->segment.t on each hit so later nodes are only tested against whatever is left of
 // the segment; returns whether any node was hit at all.
-// blam-cc: stack -> context, origin, delta, out_result
-uint8_t object_collision_context_test_segment(object_collision_context *context,
+// FIXED (objdump 0x504f60, in game): FIVE stack arguments -- the second ([ebp+0xc]) is the query flags, handed to
+//   collision_bsp_query_segment_init in EAX (callers pass 3 or their own type mask; they clean 0x14 bytes). The
+//   draft had four, so origin/delta/out_result were read one slot early and the flags were a constant 0.
+// blam-cc: stack -> context, flags, origin, delta, out_result
+uint8_t object_collision_context_test_segment(object_collision_context *context, uint32_t flags,
                                                real_point3d *origin, real_vector3d *delta,
                                                object_node_collision_result *out_result)
 {
@@ -86,7 +89,7 @@ uint8_t object_collision_context_test_segment(object_collision_context *context,
                     matrix4x3_transform_point(&local_origin, origin, &inverse_matrix);
                     matrix4x3_transform_vector(&local_delta, delta, &inverse_matrix);
 
-                    if (collision_bsp_query_segment_init(0, &out_result->segment, bsp, 0, 0,
+                    if (collision_bsp_query_segment_init(flags, &out_result->segment, bsp, 0, 0,
                                                           &local_origin, &local_delta,
                                                           out_result->segment.t)) {
                         out_result->node_index = (int16_t)node_index;

@@ -54,9 +54,8 @@ extern void plane3d_negate(real_plane3d *out, real_plane3d *in); // 0x44da20, ef
 
 extern uint8_t object_collision_context_build(uint32_t object_index,
     object_collision_context *out_context); // 0x504e10, this module
-extern uint8_t object_collision_context_test_segment(object_collision_context *context,
-    real_point3d *origin, real_vector3d *delta,
-    object_node_collision_result *out_result); // 0x504f60, this batch
+extern uint8_t object_collision_context_test_segment(object_collision_context *context, uint32_t flags,
+    real_point3d *origin, real_vector3d *delta, object_node_collision_result *out_result); // 0x504f60 // 0x504f60, this batch
 extern int16_t model_collision_geometry_resolve_material_type(int16_t material_index,
     ModelCollisionGeometry *definition); // 0x505330, this batch
 extern uint8_t object_physics_context_build(uint32_t object_index,
@@ -100,7 +99,7 @@ uint8_t object_collision_test_ray_nearby_chain(uint32_t start_object_index, uint
                     if (object_collision_context_build(object_index, &node_ctx)) {
                         object_node_collision_result node_result;
 
-                        if (object_collision_context_test_segment(&node_ctx, origin, delta,
+                        if (object_collision_context_test_segment(&node_ctx, type_mask, origin, delta, /* 0x505745: its own type mask */
                                                                     &node_result) &&
                             node_result.segment.t < out_result->t) {
                             real_matrix4x3 *node_matrix =

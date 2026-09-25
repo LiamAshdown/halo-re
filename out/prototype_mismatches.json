@@ -15202,15 +15202,6 @@
  },
  {
   "caller": "src\\units\\biped_integrate_movement_with_collision.c",
-  "callee": "object_collision_context_test_segment",
-  "definition": "src\\physics\\object_collision_context_test_segment.c",
-  "declared": "extern int8_t object_collision_context_test_segment(real_plane3d *out_plane, int32_t mask, real_point3d *origin,\n                            real_vector3d *delta, void *out_record);",
-  "problems": [
-   "5 parameters declared, 4 defined"
-  ]
- },
- {
-  "caller": "src\\units\\biped_integrate_movement_with_collision.c",
   "callee": "unit_get_crouch_height_offset",
   "definition": "src\\units\\unit_get_crouch_height_offset.c",
   "declared": "extern void unit_get_crouch_height_offset(uint32_t object_index, float *pill_height,\n                                          float *pill_radius);",
@@ -16185,7 +16176,7 @@
   "definition": "src\\physics\\object_collision_context_test_segment.c",
   "declared": "extern int8_t object_collision_context_test_segment(void *out_plane, int32_t mask);",
   "problems": [
-   "2 parameters declared, 4 defined"
+   "2 parameters declared, 5 defined"
   ]
  },
  {
@@ -16411,15 +16402,6 @@
   "declared": "extern int8_t object_collision_context_build(void);",
   "problems": [
    "0 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_melee_lunge_damage_tick.c",
-  "callee": "object_collision_context_test_segment",
-  "definition": "src\\physics\\object_collision_context_test_segment.c",
-  "declared": "extern int8_t object_collision_context_test_segment(real_plane3d *out_plane, int32_t mask, real_point3d *origin,\n                            real_vector3d *delta, void *out_record);",
-  "problems": [
-   "5 parameters declared, 4 defined"
   ]
  },
  {
