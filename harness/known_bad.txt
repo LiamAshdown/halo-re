@@ -112,3 +112,5 @@ physics_shape_pill_test_ray  # difftest: return 0x..00 vs 0 (byte return?)
 network_server_validate_join_request  # difftest: returns 4 where the original returns 5
 decal_plane_solve_third_axis  # difftest: rewrite crashed on 91/163 inputs (register notes fixed in regfix batch 5)
 bit_stream_write_bit  # difftest: the original leaves EAX as it was; the rewrite returns 0 (callers may read EAX)
+hs_compile_expression  # difftest: rewrite crashed on every input, original did not
+structure_bsp_portal_project  # difftest: 44/165 outputs differ
