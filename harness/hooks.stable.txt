@@ -1733,3 +1733,7 @@ rasterizer_validate_and_rebind_texture
 texture_cache_get
 rasterizer_ui_quad_draw
 rasterizer_draw_text_begin
+ui_draw_filled_rectangle
+ui_draw_rotated_screen_quad
+ui_draw_screen_quad
+ui_draw_trouble_brewing_indicator
