@@ -26,7 +26,7 @@ extern data_array *player_data;    // 0x0087a480
 extern data_array *object_headers; // 0x008603b0
 
 extern void unit_get_camera_position(datum_index unit_index, real_point3d *out); // 0x568f80
-extern uint8_t ray_intersects_sphere_test(real_point3d *origin, real_point3d *center,
+extern uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *origin,
     real_vector3d *direction, real radius); // 0x4ce6c0
 extern uint8_t device_frontfacing(uint32_t device_index, real_vector3d *forward); // 0x44c130
 extern uint8_t device_can_change_position(uint32_t candidate_object); // 0x44c0c0, not in this batch

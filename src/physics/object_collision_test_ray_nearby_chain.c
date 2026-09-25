@@ -67,7 +67,7 @@ extern uint8_t object_physics_context_build(uint32_t object_index,
 extern uint8_t object_physics_test_ray_against_mass_points(real_point3d *world_origin,
     real_vector3d *world_direction, object_physics_ray_result *out_result,
     object_physics_context *context); // 0x507610, this module
-extern uint8_t ray_intersects_sphere_test(real_point3d *origin, real_point3d *center,
+extern uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *origin,
     real_vector3d *direction, real radius); // 0x4ce6c0, math module
 
 // Walks the object chain starting at start_object_index exactly like
@@ -95,7 +95,9 @@ uint8_t object_collision_test_ray_nearby_chain(uint32_t start_object_index, uint
             uint8_t type = (uint8_t)obj->type;
 
             if ((type_mask & (1u << ((type + 8) & 0x1f))) != 0 &&
-                ray_intersects_sphere_test(origin, &obj->bounding_center, delta,
+                // 0x50562f: EAX = the bounding centre, ECX = origin, EDX = delta, push radius. The definition's
+                // first parameter is EAX (named 'origin' there, but every caller passes the sphere centre in it)
+                ray_intersects_sphere_test(&obj->bounding_center, origin, delta,
                                             obj->bounding_radius)) {
                 if (((1 << (type & 0x1f)) & 2) == 0 || (type_mask & 0x400000) == 0) {
                     object_collision_context node_ctx;

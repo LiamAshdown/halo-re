@@ -24,7 +24,7 @@
 
 extern const projection_axis_pair k_projection_axes[6]; // 0x0065c29c, types/math.h (const to
                                                         // match src/math/*.c own declaration)
-extern uint8_t ray_intersects_sphere_test(real_point3d *origin, real_point3d *center,
+extern uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *origin,
                                            real_vector3d *direction, real radius); // 0x4ce6c0
 
 // blam-cc: EAX -> query, stack -> surface_index
@@ -97,7 +97,7 @@ void collision_bsp_query_sphere_collect_geometry(collision_bsp_sphere_query *que
             edge_direction.j = vertex_floats[edge->end_vertex * 4 + 1] - edge_origin.y;
             edge_direction.k = vertex_floats[edge->end_vertex * 4 + 2] - edge_origin.z;
 
-            if (ray_intersects_sphere_test(&edge_origin, center, &edge_direction,
+            if (ray_intersects_sphere_test(center, &edge_origin, &edge_direction,
                                             query->radius)) {
                 int32_t i;
                 int found = 0;

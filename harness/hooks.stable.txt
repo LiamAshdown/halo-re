@@ -1,4 +1,4 @@
-# Stable set: 1631 functions (every hookable one), behaviour-checked in game (2026-09-26)
+# Test 100: stable + 18 (collision ray chain, physics context, sound occlusion)
 bit_vector_or
 bounded_ramp_profile_build
 bounded_ramp_profile_evaluate
@@ -1630,3 +1630,23 @@ effect_check_object_collisions
 glow_chain_build
 glow_particle_datum_new
 glow_particle_new
+
+
+camera_observer_target_is_valid
+object_collision_test_cluster_group
+ai_communication_rate_player_proximity
+hud_waypoint_visibility
+collision_test_movement_segment
+object_collision_test_ray_nearby_chain
+object_physics_context_build
+sound_compute_obstruction_occlusion
+collision_test_movement_segment_between_points
+actor_find_grenade_landing_spot
+actor_choose_random_point_near
+projectile_collision_test
+object_collision_test_nearby_chain
+hud_waypoints_update_for_player
+sound_location_check_audibility
+object_physics_test_ray_against_mass_points
+observer_collision_test_ray
+hud_waypoints_update

@@ -74,7 +74,7 @@ extern real_plane2d *plane2d_from_points(real_plane2d *out_plane, const real_poi
 extern int16_t polygon2d_clip_to_plane(real_point2d *out, int16_t count, real_point2d *in,
     real_plane2d *plane, int16_t maximum_count, uint32_t *edge_bitmask, uint8_t *clipped_flag,
     real epsilon); // 0x4caff0, math module; out in EDX
-extern uint8_t ray_intersects_sphere_test(real_point3d *origin, real_point3d *center,
+extern uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *origin,
     real_vector3d *direction, real radius); // 0x4ce6c0, math module;
     // blam-cc: EAX -> origin, ECX -> center, EDX -> direction, stack -> radius
 
@@ -178,8 +178,8 @@ void decal_flood_surfaces(decal_projection *projection, decal_flood_accumulator 
                     along_edge.j = other->y - point->y;
                     along_edge.k = other->z - point->z;
 
-                    if (ray_intersects_sphere_test((real_point3d *)point,
-                            &projection->placement.position, &along_edge,
+                    if (ray_intersects_sphere_test(&projection->placement.position,
+                            (real_point3d *)point, &along_edge,
                             radius * k_decal_type_parameters[decal_type].radius_scale) != 0) {
                         // left_surface (0x10) / right_surface (0x14) picked by the same slot.
                         int32_t neighbour = (int32_t)(&edge->left_surface)[far_slot];
@@ -269,8 +269,8 @@ void decal_flood_surfaces(decal_projection *projection, decal_flood_accumulator 
                 along_edge.j = other->y - point->y;
                 along_edge.k = other->z - point->z;
 
-                if (ray_intersects_sphere_test((real_point3d *)point,
-                        &projection->placement.position, &along_edge,
+                if (ray_intersects_sphere_test(&projection->placement.position,
+                        (real_point3d *)point, &along_edge,
                         radius * k_decal_type_parameters[decal_type].radius_scale) != 0) {
                     int32_t neighbour =
                         (int32_t)(&edge->left_surface)[(uint32_t)!surface_is_right];

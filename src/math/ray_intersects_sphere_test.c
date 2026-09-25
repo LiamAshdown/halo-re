@@ -33,24 +33,26 @@
 
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 
-uint8_t ray_intersects_sphere_test(real_point3d *origin, real_point3d *center, real_vector3d *direction, real radius)
+// FIXED (call sites 0x50562f, 0x4ce6c0 callers): EAX (first parameter) is the SPHERE CENTRE and ECX the ray/segment
+// origin at every original call site; the parameters were named the other way round (the body was already right).
+uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *origin, real_vector3d *direction, real radius)
 {
-    real to_center_i;
-    real to_center_j;
-    real to_center_k;
+    real from_center_i;
+    real from_center_j;
+    real from_center_k;
     real c;
 
-    to_center_i = center->x - origin->x;
-    to_center_j = center->y - origin->y;
-    to_center_k = center->z - origin->z;
-    c = (to_center_i * to_center_i + to_center_j * to_center_j + to_center_k * to_center_k) - radius * radius;
+    from_center_i = origin->x - center->x;
+    from_center_j = origin->y - center->y;
+    from_center_k = origin->z - center->z;
+    c = (from_center_i * from_center_i + from_center_j * from_center_j + from_center_k * from_center_k) - radius * radius;
 
     if (c < 0.0f) {
         return 1;
     }
 
     {
-        real b = direction->i * to_center_i + direction->j * to_center_j + direction->k * to_center_k;
+        real b = direction->i * from_center_i + direction->j * from_center_j + direction->k * from_center_k;
         if (b < 0.0f) {
             real a = direction->i * direction->i + direction->j * direction->j + direction->k * direction->k;
             real discriminant = b * b - a * c;

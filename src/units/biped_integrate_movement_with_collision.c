@@ -70,7 +70,7 @@ extern void vector3d_rotate_about_axis(); // 0x4cd820  // real signature (vector
 
 extern real weapon_get_zoom_fov(int32_t index);   // 0x46fe10, difficulty-scaled globals lookup
 extern int8_t actor_check_vehicle_mode_timeout(void);          // 0x428270, UNSURE: actor-side predicate, no traced args
-extern int8_t ray_intersects_sphere_test(float radius);               // 0x4ce6c0, UNSURE: register args  // real signature (ray_intersects_sphere_test.c): uint8_t ray_intersects_sphere_test(real_point3d *origin, real_point3d *center, real_vector3d *direction, real radius); Ghidra recovered 1 of 4 args at this call site
+extern int8_t ray_intersects_sphere_test(float radius);               // 0x4ce6c0, UNSURE: register args  // real signature (ray_intersects_sphere_test.c): uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *origin, real_vector3d *direction, real radius); Ghidra recovered 1 of 4 args at this call site
 extern void matrix4x3_transform_plane(void);                          // 0x4cbf10, UNSURE: register args  // real signature (matrix4x3_transform_plane.c): void matrix4x3_transform_plane(real_plane3d *out, real_matrix4x3 *m, real_plane3d *plane); Ghidra recovered 0 of 3 args at this call site
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30, src/objects
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0, EAX -> object_index (src/objects)

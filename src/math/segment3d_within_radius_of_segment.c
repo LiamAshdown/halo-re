@@ -32,7 +32,7 @@
 
 extern double fabs(double x); // ABS is a single x87 FABS instruction
 extern real vector3d_scalar_triple_product(const real_vector3d *a, const real_vector3d *b, const real_vector3d *c); // 0x44d8e0, outside this module
-extern uint8_t ray_intersects_sphere_test(real_point3d *origin, real_point3d *center, real_vector3d *direction, real radius); // 0x4ce6c0
+extern uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *origin, real_vector3d *direction, real radius); // 0x4ce6c0
 
 int segment3d_within_radius_of_segment(real_point3d *a_start, real_point3d *b_start, real_vector3d *a_direction, real_vector3d *b_direction, real radius)
 {
@@ -99,7 +99,7 @@ int segment3d_within_radius_of_segment(real_point3d *a_start, real_point3d *b_st
                 point_on_a.x = snapped_s * a_direction->i + a_start->x;
                 point_on_a.y = snapped_s * a_direction->j + a_start->y;
                 point_on_a.z = snapped_s * a_direction->k + a_start->z;
-                if (ray_intersects_sphere_test(b_start, &point_on_a, b_direction, radius)) {
+                if (ray_intersects_sphere_test(&point_on_a, b_start, b_direction, radius)) {
                     return 1;
                 }
             }
@@ -109,7 +109,7 @@ int segment3d_within_radius_of_segment(real_point3d *a_start, real_point3d *b_st
                 point_on_b.x = snapped_t * b_direction->i + b_start->x;
                 point_on_b.y = snapped_t * b_direction->j + b_start->y;
                 point_on_b.z = snapped_t * b_direction->k + b_start->z;
-                if (ray_intersects_sphere_test(a_start, &point_on_b, a_direction, radius)) {
+                if (ray_intersects_sphere_test(&point_on_b, a_start, a_direction, radius)) {
                     return 1;
                 }
             }
