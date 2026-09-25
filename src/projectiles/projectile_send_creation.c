@@ -37,7 +37,7 @@ extern int32_t network_index_cache_find_or_allocate_slot(uint32_t key); // 0x4e9
 extern int message_delta_encode_message(int flag, int message_type, int changed_offset,
     void **items, int type_offset, int count, char force_changed); // 0x4ec940
 
-void projectile_send_creation(uint32_t projectile_index)
+int32_t projectile_send_creation(uint32_t projectile_index)
 {
     object *obj = ((object_header *)object_data->data)[projectile_index & 0xffff].data;
     int32_t projectile_hash = 0;
@@ -82,7 +82,7 @@ void projectile_send_creation(uint32_t projectile_index)
     }
 
     message_ptr = &message;
-    message_delta_encode_message(0, k_message_projectile_creation, 0, &message_ptr, 0, 1, 0);
+    return message_delta_encode_message(0, k_message_projectile_creation, 0, &message_ptr, 0, 1, 0);  // the original returns this call's result (EAX) unchanged
 }
 
 #if 0

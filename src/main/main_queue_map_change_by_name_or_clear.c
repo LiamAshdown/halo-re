@@ -46,7 +46,7 @@ extern uint8_t cache_file_request_map(char *name, uint8_t quit_on_fail); // 0x44
 // `test edi,edi` at 0x4c87b4) -- a literal NULL name would fault inside strncpy on retail
 // hardware. Preserved exactly as disassembled; presumably no real call site at 0x45fc81/
 // 0x47f55d exercises the NULL path with strncpy still faulting in practice.
-void main_queue_map_change_by_name_or_clear(char *name)
+uint8_t main_queue_map_change_by_name_or_clear(char *name)
 {
     strncpy(main_globals_data.multiplayer_map_name, name, 0xff);
     main_globals_data.multiplayer_map_name[0xff] = 0;
@@ -55,7 +55,7 @@ void main_queue_map_change_by_name_or_clear(char *name)
     } else {
         map_list_get_friendly_level_name((wchar_t *)progress_screen_subtext, name, 0x40);
     }
-    cache_file_request_map(main_globals_data.multiplayer_map_name, 0);
+    return cache_file_request_map(main_globals_data.multiplayer_map_name, 0);  // the original returns this call's result (EAX) unchanged
 }
 
 #if 0

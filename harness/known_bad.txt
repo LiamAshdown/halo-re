@@ -114,3 +114,7 @@ decal_plane_solve_third_axis  # difftest: rewrite crashed on 91/163 inputs (regi
 bit_stream_write_bit  # difftest: the original leaves EAX as it was; the rewrite returns 0 (callers may read EAX)
 hs_compile_expression  # difftest: rewrite crashed on every input, original did not
 structure_bsp_portal_project  # difftest: 44/165 outputs differ
+controls_build_device_label_table  # difftest: returns 0 where the original returns a pointer
+scenario_find_encounter_index_by_name  # difftest: rewrite crashed on every input, original did not
+encounter_definition_find_squad_index_by_name  # difftest: rewrite crashed, original did not
+encounter_definition_find_platoon_index_by_name  # difftest: rewrite crashed, original did not

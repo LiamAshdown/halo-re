@@ -61,7 +61,7 @@ extern uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_ind
 // Fires one round of a weapon trigger: consumes ammo (or misfires), resolves the firing effect
 // and heat/age gain, spawns projectiles (or defers to the host), applies a self-damage/knockback
 // impulse to the holder while overheated, and updates the trigger's effect state.
-void weapon_fire_trigger(datum_index item_index, int16_t trigger_index)
+uint32_t weapon_fire_trigger(datum_index item_index, int16_t trigger_index)
 {
     object *item_obj;
     weapon_data *wd;
@@ -332,7 +332,7 @@ tail:
     }
 
     trigger->flags = trigger->flags & ~(uint32_t)_weapon_trigger_not_pulled_bit;
-    weapon_play_trigger_tag_effect(item_index, selected_damage_tag, (int32_t)misfire_chance, 0); // UNSURE, see file header
+    return weapon_play_trigger_tag_effect(item_index, selected_damage_tag, (int32_t)misfire_chance, 0); // UNSURE, see file header  // the original returns this call's result (EAX) unchanged
 }
 
 #if 0

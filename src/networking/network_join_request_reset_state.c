@@ -28,13 +28,13 @@ extern void network_channel_remote_address_or_default(network_channel *channel, 
 extern int32_t network_session_host_reject_or_cleanup_client(int32_t channel); // 0x575ff0, this module; blam-cc: ESI -> channel
 
 // blam-cc: EAX -> machine
-void network_join_request_reset_state(network_machine *machine)
+int32_t network_join_request_reset_state(network_machine *machine)
 {
     network_resolved_address address;
 
     network_channel_remote_address_or_default(machine ? machine->channel : 0, &address);
     // 0x4e0adf..0x4e0ae2: unconditional, not guarded by the machine-null check above.
-    network_session_host_reject_or_cleanup_client(machine->unknown_5c);
+    return network_session_host_reject_or_cleanup_client(machine->unknown_5c);  // the original returns this call's result (EAX) unchanged
 }
 
 #if 0

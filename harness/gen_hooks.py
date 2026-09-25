@@ -498,6 +498,15 @@ def coff_undefined(obj):
 def main():
     resolve = open(os.path.join(GEN, "resolve.asm")).read()
     stubs = set(re.findall(r"^PUBLIC (\S+)\n\S+:\n    push 0", resolve, re.M))       # calls into original code
+    # standard C library functions in the game's own statically linked CRT (0x623000..0x63a000) are plain cdecl:
+    # calling them through a push/ret stub is as safe as calling any import (special helpers such as __ftol,
+    # _chkstk and _allmul are not named here and stay unsafe)
+    crt_ok = re.compile(r"_*(str(n?i?cmp|n?cpy|n?cat|len|chr|rchr|str|tok|spn|cspn|pbrk|dup|lwr|upr)|stri?cmp|strn?icmp|"
+                        r"wcs(n?cpy|n?cat|len|n?cmp|chr|rchr|str|icmp|nicmp)|mem(cpy|move|set|cmp|chr)|"
+                        r"v?s?n?w?printf|v?sw?scanf|sscanf|ato[ifl]|strto[dlu]l?|wto[il]|tolower|toupper|isalpha|isdigit|isspace|"
+                        r"isalnum|isupper|islower|isnan|finite|qsort|bsearch|malloc|calloc|realloc|free|abs|labs|rand|srand|"
+                        r"time|clock|getenv|fopen|fclose|fread|fwrite|fseek|ftell|fflush|fgets|fputs|fprintf|remove|rename)")
+    stubs = {s for s in stubs if not crt_ok.fullmatch(s)}
     up = os.path.join(OUT, "unresolved.txt")                                          # still unresolved: would call 0
     if os.path.exists(up): stubs |= {l.split("\t")[0] for l in open(up) if l.strip()}
     kb = os.path.join(H, "known_bad.txt")                                             # shown wrong by harness/difftest

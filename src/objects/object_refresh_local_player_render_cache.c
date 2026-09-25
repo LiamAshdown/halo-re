@@ -28,7 +28,7 @@ extern object_type_definition *object_type_definitions[k_maximum_object_types]; 
 
 extern int32_t object_get_or_build_render_permutation(int16_t *pair, uint8_t *table_owner); // 0x4f9b70, this batch
 
-void object_refresh_local_player_render_cache(int16_t selector) // blam-cc: CX -> selector
+int32_t object_refresh_local_player_render_cache(int16_t selector) // blam-cc: CX -> selector
 {
     uint8_t *table = *(uint8_t **)((uint8_t *)local_player_render_globals + 0x208);
     int16_t definition_index = *(int16_t *)(table + selector * 0x24 + 0x20);
@@ -36,7 +36,7 @@ void object_refresh_local_player_render_cache(int16_t selector) // blam-cc: CX -
 
     // UNSURE: the original leaves the {tag_index, name_index} pair pointer FUN_004f9b70 reads
     // through EDI entirely to caller context this fragment does not show; not resolved here.
-    object_get_or_build_render_permutation((int16_t *)0, (uint8_t *)local_player_render_globals + field_0c);
+    return object_get_or_build_render_permutation((int16_t *)0, (uint8_t *)local_player_render_globals + field_0c);  // the original returns this call's result (EAX) unchanged
 }
 
 #if 0
