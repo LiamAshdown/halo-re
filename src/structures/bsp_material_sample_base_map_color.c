@@ -27,9 +27,6 @@
 //   0x524590 and the same color_rgb_int_to_real(out, packed) tail as
 //   bsp_lightmap_sample_vertex_color.c -- see that file's header for the discrepancy with
 //   src/rasterizer/rasterizer_bitmap_sample_texel.c's declared register convention.
-// blam-cc: bsp_material_sample_base_map_color(BitmapData *bitmap /*stack*/, float weight_1 /*stack*/,
-//   float weight_2 /*stack*/, ColorRGB *out /*stack*/, ScenarioStructureBSPMaterial *material /*EAX*/,
-//   uint16_t *triangle_vertex_indices /*ECX*/)
 // UNSURE: what this is actually used for -- reading the base render UV rather than the lightmap
 //   UV and sampling a bitmap with mip bias 0.3 (0x3e99999a) at that point -- is not established;
 //   name and purpose are inherited, not independently confirmed by this pass.
@@ -43,6 +40,7 @@
 extern int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_bias); // 0x524590, UNSURE cdecl signature, see bsp_lightmap_sample_vertex_color.c
 extern void color_rgb_int_to_real(ColorRGB *out, uint32_t packed); // 0x43f630, EAX out, ECX packed (src/bitmaps)
 
+// blam-cc: EAX -> material, ECX -> triangle_vertex_indices, stack -> bitmap, weight_1, weight_2, out
 void bsp_material_sample_base_map_color(BitmapData *bitmap, float weight_1, float weight_2, ColorRGB *out,
                                           ScenarioStructureBSPMaterial *material, uint16_t *triangle_vertex_indices)
 {

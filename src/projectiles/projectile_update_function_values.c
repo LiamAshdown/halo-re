@@ -10,10 +10,6 @@
 //   object.function_in_values (0x124); types/projectiles.h projectile_data.distance_travelled
 //   (0x250), .detonation_timer (0x240), .flags (0x22c) and Projectile.maximum_range (tag 0x1c8);
 //   _projectile_tracer_bit (0x02).
-// register convention: item/object index in EAX (cdecl-recovered by Ghidra as a plain uint
-//   parameter, but every other function in this batch treats the same slot as EAX -- kept
-//   consistent with the rest of the module).
-// blam-cc: EAX -> object_index
 // Leaves a function_in_values[] slot at its previous value when the corresponding
 // ProjectileFunctionIn is projectilefunctionin_none, rather than zeroing it.
 
@@ -27,6 +23,8 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
+// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: stack -> object_index
 void projectile_update_function_values(uint32_t object_index)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;

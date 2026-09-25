@@ -10,11 +10,6 @@
 //   src/items/weapon_notify_ammo_pickup.c; the network_index_cache_remove(globals, object_index) signature
 //   follows src/objects/object_delete_by_pooled_node_id.c, and 0x006870d8 (this function's own
 //   "globals referenced" list) matches that call's globals argument exactly.
-// register convention: Ghidra recovered a single formal parameter despite the top-level
-//   signature reading "undefined FUN_004bda60(void)"; every sibling in this module that takes
-//   the projectile/object index alone (projectile_request_state, item_compute_rotation, ...)
-//   takes it in EAX, so this is treated the same way.
-// blam-cc: EAX -> projectile_index
 
 #include "tags.h"
 #include "memory.h"
@@ -39,6 +34,8 @@ extern void network_index_cache_remove(void *globals, uint32_t object_index); //
 // position, forces the object into network_role 3 (the "waiting to be deleted by the network"
 // role the receiver 0x4bdb40 also uses), and, unless the object is already pending delete,
 // notifies the pooled-node globals of the role change.
+// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: stack -> projectile_index
 void projectile_send_detonation(datum_index projectile_index)
 {
     object *obj = ((object_header *)object_data->data)[projectile_index & 0xffff].data;

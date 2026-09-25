@@ -8,7 +8,6 @@
 // (0x13->2, 0x14->0x15) and the `puVar2[0x8b] & 1` recheck (0x8b*4 == 0x22c).
 // register convention: local_player_index and force_pose_snapshot are the two
 // Ghidra-recognized parameters (param_1, param_2); new_state arrives in AX (in_AX), unrecognized
-// by Ghidra. // blam-cc: local_player_index=param_1(stack), force_pose_snapshot=param_2(stack),
 // new_state=AX
 // UNSURE / TYPES-GAP: this function's tag-block navigation (weapon tag +0x478 -> hud_interface
 // tag +0x48/+0x4c/+0x10/+0x14, the same chain as hud_play_pickup_notification.c) and the weapon
@@ -46,6 +45,7 @@ extern void sound_impulse_fade_out(void); // 0x549ee0, foreign; UNSURE args (cal
 // item_type_to_animation_stage and the weapon's hud_interface tag message table, applying the
 // new state (and snapshotting the previous pose first, when force_pose_snapshot is set and no
 // blend is already pending) only if that lookup succeeds.
+// blam-cc: AX -> new_state, stack -> local_player_index, force_pose_snapshot
 void first_person_weapon_set_state(int16_t local_player_index, uint8_t force_pose_snapshot, int16_t new_state)
 {
     first_person_weapon_interface *fp;

@@ -17,8 +17,6 @@
 //   (clamped to 0/1) in EAX (in_EAX, preserved across the search in ESI), raw device/control id
 //   in EDI (unaff_EDI), raw value in EBX (unaff_EBX, whose low 16 bits are stored and whose
 //   bits 8-11 gate the "already bound" test -- see UNSURE).
-// blam-cc: control_binding_table_register_single(int32_t target /*EDX*/, int32_t selector /*EAX*/,
-//   int32_t raw_id /*EDI*/, uint32_t raw_value /*EBX*/)
 // Device-type bit test: the jump table at 0x4f3874 (indexed by control_binding_device_type - 1)
 //   holds 0x4f380e (shr 9), 0x4f380a (bh, i.e. bit 8), 0x4f381c (shr 0xb), 0x4f3815 (shr 0xa), so
 //   types 1..4 test bits 9, 8, 11, 10 -- exactly Ghidra's case labels. (Orphan pass 4 review: the
@@ -42,6 +40,7 @@ extern int32_t g_control_binding_count[6 * 2 * (0x50 / 4)]; // base 0x008603e0, 
 extern int32_t g_control_binding_id[];   // base 0x008603f0, stride 8 bytes, UNSURE size
 extern int16_t g_control_binding_value[]; // base 0x008603f6, stride 8 bytes, UNSURE size
 
+// blam-cc: EDX -> target, EAX -> selector, EDI -> raw_id, EBX -> raw_value
 void control_binding_table_register_single(int32_t target, int32_t selector, int32_t raw_id, uint32_t raw_value)
 {
     uint8_t *cursor = g_control_binding_region_ec;                    // base 0x008603ec

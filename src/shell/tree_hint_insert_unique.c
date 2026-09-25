@@ -16,8 +16,6 @@
 //   `&value->key` since key is value's first member), ESI = result_holder
 //   (hwreq_map_node ** -- both this function's own effective return slot, `mov eax,esi` before
 //   every `ret`, and the argument threaded through to tree_splice_insert / tree_insert_unique).
-// blam-cc: tree_hint_insert_unique(msvc_std_map *tree /*EAX*/, hwreq_map_node **result_holder /*ESI*/,
-//   hwreq_map_node *hint /*stack*/, const hwreq_map_value_type *value /*EBX*/)
 // UNSURE: tree_splice_insert (0x57c390) is opaque, not in this pass's address list; every call
 //   site here discards its EAX return, implying it writes the new node into `*result_holder`
 //   directly. tree_insert_unique.c and its own callers instead read tree_splice_insert's EAX
@@ -43,6 +41,7 @@ extern int32_t string_compare(const msvc_std_string *this, uint32_t n1, uint32_t
     const char *s, uint32_t n2); // 0x57ce10, same pass
 extern void tree_insert_unique(msvc_std_map *tree, void *result, const hwreq_map_value_type *value); // 0x57c1a0, same pass
 
+// blam-cc: EAX -> tree, ESI -> result_holder, EBX -> value, stack -> hint
 hwreq_map_node *tree_hint_insert_unique(msvc_std_map *tree, hwreq_map_node **result_holder,
                                          hwreq_map_node *hint, const hwreq_map_value_type *value)
 {

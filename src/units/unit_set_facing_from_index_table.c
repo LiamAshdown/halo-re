@@ -9,8 +9,6 @@
 //   object.flags (0x010, bit 0x20 = extension_of_parent), object.position (0x05c); callees
 //   object_reset_velocity_and_wake, object_set_position_and_orientation (established
 //   4-argument form in src/units/biped_update.c).
-// register convention: unit object index in EAX (param_1).
-//   // blam-cc: EAX -> object_index
 // UNSURE: the two branches computing the facing angle from global_scenario (either a
 //   0x94-stride array at scenario+0x37c, or a table whose stride/base come from a second
 //   type-definition-like pointer table at 0x0069bfe0) are scenario/HS-module structures not
@@ -40,6 +38,8 @@ extern double sin(double x); // fsin
 // face a direction taken from an indexed table (selected by the vehicle's cinematic_facing_index
 // and the current game-mode selector), and adjusts its extension_of_parent flag and height
 // depending on whether its tag defines a physics reference.
+// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: stack -> object_index
 void unit_set_facing_from_index_table(uint32_t object_index)
 {
     object *obj;

@@ -2500,8 +2500,7 @@
   "definition": "src\\game\\weapon_get_zoom_fov_resolved.c",
   "declared": "extern float weapon_get_zoom_fov_resolved(void);",
   "problems": [
-   "0 parameters declared, 2 defined",
-   "return f vs v"
+   "0 parameters declared, 2 defined"
   ]
  },
  {
@@ -2654,8 +2653,7 @@
   "definition": "src\\game\\weapon_get_zoom_fov_resolved.c",
   "declared": "extern float weapon_get_zoom_fov_resolved(void);",
   "problems": [
-   "0 parameters declared, 2 defined",
-   "return f vs v"
+   "0 parameters declared, 2 defined"
   ]
  },
  {
@@ -12180,8 +12178,7 @@
   "definition": "src\\game\\weapon_get_zoom_fov_resolved.c",
   "declared": "extern real weapon_get_zoom_fov_resolved(void);",
   "problems": [
-   "0 parameters declared, 2 defined",
-   "return f vs v"
+   "0 parameters declared, 2 defined"
   ]
  },
  {
@@ -12281,8 +12278,7 @@
   "definition": "src\\game\\weapon_get_zoom_fov_resolved.c",
   "declared": "extern real weapon_get_zoom_fov_resolved(void);",
   "problems": [
-   "0 parameters declared, 2 defined",
-   "return f vs v"
+   "0 parameters declared, 2 defined"
   ]
  },
  {
@@ -13063,8 +13059,7 @@
   "definition": "src\\game\\weapon_get_zoom_fov_resolved.c",
   "declared": "extern real weapon_get_zoom_fov_resolved(void);",
   "problems": [
-   "0 parameters declared, 2 defined",
-   "return f vs v"
+   "0 parameters declared, 2 defined"
   ]
  },
  {

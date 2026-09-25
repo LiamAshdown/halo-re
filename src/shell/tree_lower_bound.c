@@ -9,7 +9,6 @@
 //   same substitution)
 // evidence: types/shell.h hwreq_map_node, msvc_std_map (head 0x04).
 // register convention: EAX = tree (msvc_std_map *), ECX = const msvc_std_string *search_key.
-// blam-cc: tree_lower_bound(msvc_std_map *tree /*EAX*/, const msvc_std_string *search_key /*ECX*/)
 
 #include "tags.h"
 #include "memory.h"
@@ -20,6 +19,7 @@
 extern int32_t string_compare(const msvc_std_string *this, uint32_t n1, uint32_t pos,
     const char *s, uint32_t n2); // 0x57ce10, same pass
 
+// blam-cc: EAX -> tree, ECX -> search_key
 hwreq_map_node *tree_lower_bound(msvc_std_map *tree, const msvc_std_string *search_key)
 {
     hwreq_map_node *head = (hwreq_map_node *)tree->head;

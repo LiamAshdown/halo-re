@@ -8,10 +8,8 @@
 // object.first_child_object (0x118), object.next_object (0x114); types/tags.h Object.attachments
 // (TagReflexive count at 0x140). The per-light accumulated colour at light+0x14/0x18/0x1c is the
 // same unnamed ColorRGB block object_lights_update_all.c writes into.
-// register convention: uint32_t object_index, passed in a float-typed register per Ghidra's own
 // signature (a common decompiler ambiguity for values that arrive in a register also used for
 // floats); treated here as the plain integer index it clearly is from its use.
-// blam-cc: EAX=object_index (typed float by Ghidra, used as uint)
 
 #include "tags.h"
 #include "memory.h"
@@ -23,6 +21,8 @@ extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *light_data;  // 0x00860b14
 
+// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: stack -> object_index
 real object_sum_attached_light_luminance(uint32_t object_index)
 {
     object_header *headers = (object_header *)object_data->data;

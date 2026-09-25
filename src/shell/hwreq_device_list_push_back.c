@@ -14,7 +14,6 @@
 //   = const hwreq_string_pair *value. The call to uninit_fill_n_string_pair (0x57ce80, this
 //   pass) passes count=1, dest=this->last, value=value -- matching that function's own
 //   confirmed register convention.
-// blam-cc: hwreq_device_list_push_back(msvc_std_vector *this /*EAX*/, const hwreq_string_pair *value /*stack*/)
 // UNSURE: FUN_0057b920 (the reallocate-and-insert growth path) is an opaque extern, not
 //   rewritten -- it is not in this pass's address list.
 
@@ -27,6 +26,7 @@
 extern void uninit_fill_n_string_pair(hwreq_string_pair *dest, uint32_t count, const hwreq_string_pair *value); // 0x57ce80, same pass
 extern void device_list_grow_and_insert(msvc_std_vector *this, void *insert_pos, const hwreq_string_pair *value); // 0x57b920, UNSURE: signature guessed, not this pass
 
+// blam-cc: EAX -> this, stack -> value
 void hwreq_device_list_push_back(msvc_std_vector *this, const hwreq_string_pair *value)
 {
     if (this->first != 0 &&

@@ -6,7 +6,6 @@
 // +0x10c as the write cursor." This is add's mirror image: it finds `entry` in `list->entries`
 // by pointer identity, removes its socket_key from the dedup array (shifting later entries
 // down), then swap-removes the entries slot by moving the last live entry into the freed one.
-// register convention: entry pointer in EAX (decompiled as an explicit param_1), list pointer
 // in ECX (in_ECX), matching network_channel_list_add.c's convention for the same struct.
 // UNSURE: none beyond the shared network_channel_list layout notes above.
 
@@ -16,9 +15,10 @@
 #include "game.h"
 #include "networking.h"
 
-// blam-cc: entry pointer in EAX (param_1), list pointer in ECX (in_ECX)
 // Returns 0 on success, -19 (0xffffffed) if the list is empty (last_index < 0) or `entry` is
 // not present in list->entries.
+// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: ECX -> list, stack -> entry
 int32_t network_channel_list_remove(network_receive_queue *entry, network_channel_list *list)
 {
     int32_t found_index;

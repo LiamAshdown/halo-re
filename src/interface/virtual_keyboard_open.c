@@ -14,7 +14,6 @@
 // COM-style calls; the interface method and the two buffers were not identified.
 // register convention: maximum_length and field_kind as the two recognized parameters
 // (Ghidra's own param_1/param_2), destination buffer in ESI (unaff_ESI, unresolved register).
-//   // blam-cc: maximum_length/field_kind -> recognized parameters, destination -> ESI
 
 #include "tags.h"
 #include "memory.h"
@@ -39,11 +38,11 @@ extern uint8_t directinput_unknown_buffer_1[0x6d]; // 0x006b1620 (0x1b dwords + 
 extern uint8_t directinput_unknown_buffer_2[0x6d]; // 0x006b168d (0x1b dwords + 1 byte cleared)
 
 
-// blam-cc: maximum_length/field_kind -> recognized parameters, destination -> ESI
 // Opens the on-screen virtual keyboard for a caller-supplied wide-string buffer, clamping
 // maximum_length to 0x40 bytes, choosing the large or small UI prompt tag by length, and
 // resetting the DirectInput keyboard device's buffered input if one is active. Returns 0
 // without doing anything if the keyboard is already open or its strings tag failed to load.
+// blam-cc: ESI -> destination, stack -> maximum_length, field_kind
 uint8_t virtual_keyboard_open(uint16_t *destination, uint16_t maximum_length, int16_t field_kind)
 {
     if (virtual_keyboard.active != 0 || virtual_keyboard.strings_tag_data == 0) {

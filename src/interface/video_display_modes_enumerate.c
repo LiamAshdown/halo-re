@@ -20,7 +20,6 @@
 //   - 720x576, 720x480, 848x480 and 848x576 are dropped.
 // Survivors go to video_resolution_add (EAX height; width, refresh rate on the stack).
 // register convention: EBX the D3DFORMAT; no stack arguments.
-//   // blam-cc: format -> EBX
 
 #include "tags.h"
 #include "memory.h"
@@ -61,7 +60,7 @@ static uint8_t video_mode_memory_limit_applies(void)
     return 0;
 }
 
-// blam-cc: format -> EBX
+// blam-cc: EBX -> format
 void video_display_modes_enumerate(uint32_t format)
 {
     win32_rect desktop;

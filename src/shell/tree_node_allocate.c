@@ -17,8 +17,6 @@
 // register convention: stack arguments (Ghidra recognizes all 4): left (param_1), parent
 //   (param_2), right (param_3), color (param_4, a byte); ECX = const map value_type *source
 //   (key + value to copy into the new node).
-// blam-cc: tree_node_allocate(uint32_t left /*stack*/, uint32_t parent /*stack*/, uint32_t right /*stack*/,
-//   uint8_t color /*stack*/, const hwreq_map_value_type *source /*ECX*/)
 // UNSURE: FUN_0057b830 (string::assign) is an opaque lib:crt extern, not rewritten here.
 
 #include "tags.h"
@@ -36,6 +34,7 @@ extern void *operator_new(uint32_t size); // 0x6277da
 extern msvc_std_string *string_assign_substr(msvc_std_string *this, const msvc_std_string *right,
     uint32_t pos, uint32_t count); // 0x57b830, module=lib:crt, not this pass
 
+// blam-cc: ECX -> source, stack -> left, parent, right, color
 hwreq_map_node *tree_node_allocate(uint32_t left, uint32_t parent, uint32_t right, uint8_t color,
                                     const hwreq_map_value_type *source)
 {

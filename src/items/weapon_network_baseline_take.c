@@ -10,9 +10,6 @@
 //   rounds_unloaded[2] 0x24, age 0x28), weapon_magazine_state.rounds_unloaded (0x06);
 //   types/objects.h object.position (0x05c), object.velocity (0x068). Callee object_try_and_get
 //   (0x4f6ec0), mask _object_mask_weapon (0x004).
-// register convention: object index in EAX, matching every other object_try_and_get(4) caller in
-//   this module (weapon_add_ammunition.c etc).
-// blam-cc: EAX -> item_index
 
 #include "tags.h"
 #include "memory.h"
@@ -25,7 +22,9 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 // Takes a fresh network baseline for a weapon: bumps network_baseline_index, snapshots the
 // object's current position and velocity, both magazines' rounds_unloaded and the weapon's age
 // into weapon_data.network_state, marks the state valid and resets the sequence counter to 0.
-void weapon_network_baseline_take(uint32_t item_index) // blam-cc: EAX -> item_index
+// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: stack -> item_index
+void weapon_network_baseline_take(uint32_t item_index)
 {
     object *obj = object_try_and_get(item_index, _object_mask_weapon);
 

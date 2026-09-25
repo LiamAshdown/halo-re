@@ -13,7 +13,6 @@
 // caller's hud_globals+0x2cc default when there is no weapon); stack: local_player_index,
 // weapon_or_vehicle_index, and a pointer to a 32-byte scratch record the caller either
 // zeroed or filled via FUN_004c29d0.
-//   // blam-cc: hud_interface_tag_id -> EAX, local_player_index/weapon_or_vehicle_index/state -> stack
 // Phase-4 review of s2 part 2 (checked case by case against the jump table 0x4b1dc8): case 0
 // (aim) is the weapon test plus local_player_control::nameplate_weight == 1.0, not a state byte;
 // case 1 keeps zoom + 2 as its value (out[1] = zoom level + 1); case 6 is inactive only when
@@ -53,7 +52,7 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 extern int32_t local_player_get_zoom_level(int16_t local_player_index); // 0x472740, src/game; blam-cc: CX local_player_index
 
-// blam-cc: hud_interface_tag_id -> EAX, local_player_index/weapon_or_vehicle_index/state -> stack
+// blam-cc: EAX -> hud_interface_tag_id, stack -> local_player_index, weapon_or_vehicle_index, state_ptr
 void hud_weapon_interface_meters_evaluate(datum_index hud_interface_tag_id, int16_t local_player_index,
                                           int32_t weapon_or_vehicle_index, void *state_ptr)
 {

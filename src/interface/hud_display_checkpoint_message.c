@@ -11,7 +11,6 @@
 // UNSURE: sound_play_new (0x549af0, out of this module's range) is declared with a best-guess
 // 7-argument sound-play signature based only on the literals passed at this call site.
 // register convention: bool flag in DL (in_DL, unresolved register read).
-//   // blam-cc: is_begin -> DL
 
 #include "tags.h"
 #include "memory.h"
@@ -32,11 +31,11 @@ extern uint16_t *text_string_list_get_string(datum_index tag_id, int16_t index);
 extern int32_t sound_play_new(datum_index sound_tag, void *parameters, int32_t unknown_0, int32_t unknown_1,
                             int32_t unknown_2, int32_t unknown_3, int32_t unknown_4); // 0x549af0, starts a 2D impulse sound
 
-// blam-cc: is_begin -> DL
 // Clears the local player's 4 message-slot active flags, plays the HUDGlobals checkpoint sound
 // when is_begin is set and one is configured, then displays the checkpoint begin/end text (only
 // when is_begin is set and this build's one local player slot is in use) if a string is
 // configured for it.
+// blam-cc: DL -> is_begin
 void hud_display_checkpoint_message(uint8_t is_begin)
 {
     HUDGlobals *hud_globals = (HUDGlobals *)hud_globals_tag_data;

@@ -10,8 +10,6 @@
 //   guessed differently per call site. datum_delete's handle is assumed to be the prop this
 //   iteration is removing (the loop's only live prop index), matching its established
 //   EAX/EDX convention with prop_data supplied explicitly.
-// register convention: EAX -> actor_index; no other register operands are read.
-//   // blam-cc: EAX -> actor_index
 
 #include "tags.h"
 #include "memory.h"
@@ -25,10 +23,11 @@ extern void actor_replace_object_reference(datum_index actor_index, uint32_t new
 extern void actor_unlink_prop(void); // 0x43ea20, not yet rewritten; UNSURE signature (phase2: actor_firing_position_node_unlink)
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, blam-cc: EAX -> array, EDX -> handle
 
-// blam-cc: EAX -> actor_index
 // Empties and frees every entry in the actor's perceived-unit (prop) list: for as long as
 // the actor still has a first_prop, asks actor_replace_object_reference to scrub references
 // to it, unlinks it, and deletes its datum.
+// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: stack -> actor_index
 void actor_clear_perceived_props(datum_index actor_index)
 {
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];

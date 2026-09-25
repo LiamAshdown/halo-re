@@ -11,8 +11,6 @@
 //   0x19 dwords spans from inside unknown_2e8[5] through the whole look-at/search/perception
 //   scratch region up to actor.unknown_350; addressed here as a raw pointer since it crosses
 //   several individually-named fields.
-// register convention: EAX -> actor_index (Ghidra's own "param_1").
-//   // blam-cc: EAX -> actor_index
 
 #include "tags.h"
 #include "memory.h"
@@ -26,11 +24,12 @@ extern actor_mode_definition actor_mode_definitions[16]; // 0x00655254
 
 extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0
 
-// blam-cc: EAX -> actor_index
 // Drives an actor's mode-transition state machine: each pass clears mode_changed, invokes
 // the per-type "unknown_14" callback, clears the whole look-at/search/perception scratch
 // region, and, unless both the per-mode "keep transitioning" predicate and mode_changed are
 // clear, loops again (up to 10 times); forces mode 0 if it never settles within that budget.
+// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: stack -> actor_index
 void actor_run_mode_transition_loop(datum_index actor_index)
 {
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];

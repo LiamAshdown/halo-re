@@ -3,7 +3,6 @@
 // name confidence: 0.4   rewrite confidence: 0.15
 // evidence: phase-4 summary "reseeds the actor's short movement-pause timer with a new
 // randomized value"; writes the result to actor+0x5f4.
-// register convention: actor_index in EAX (Ghidra recognized it as param_1).
 // UNSURE: this function's entire dataflow between actor_get_actor_definition(),
 // actor_select_stance_offset_pair() and FUN_0046fe70() is invisible in the decompiled C -- all three are
 // called with zero visible arguments/results feeding each other, which normally means a
@@ -24,7 +23,8 @@ extern void * actor_get_actor_definition(datum_index actor_index); // 0x40fa70, 
 extern void actor_select_stance_offset_pair(datum_index actor_index, uint8_t *base, uint8_t **out_a, uint8_t **out_b); // 0x4106b0, this module
 extern float FUN_0046fe70(float param_1); // UNSURE: no visible argument at the call site
 
-// blam-cc: EAX -> actor_index
+// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: stack -> actor_index
 void actor_reseed_movement_pause_timer(datum_index actor_index)
 {
     actor *self;

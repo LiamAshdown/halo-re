@@ -7,8 +7,6 @@
 // evidence: types/units.h vehicle_data (every zeroed field from 0x4cc to 0x520 matches the
 //   struct exactly, and the note "0x570b00 zeroes 0x4cc, 0x4ce, 0x4d0..0x4d3, then every dword
 //   from 0x4d4 to 0x4f8 and from 0x508 to 0x520" describes this function verbatim).
-// register convention: vehicle object index in EAX (param_1).
-//   // blam-cc: EAX -> object_index
 // reconciled: R24 vehicle_data unknown_508..unknown_51c -> real_vector3d accumulated_force (+0x508) / accumulated_torque (+0x514) (still six zero dword stores)
 
 #include "tags.h"
@@ -21,6 +19,8 @@ extern data_array *object_data; // 0x008603b0
 
 // Clears the live part of a vehicle's vehicle_data extension (0x4cc..0x520) to zero, e.g. on
 // possession change or respawn.
+// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: stack -> object_index
 void vehicle_reset_state(uint32_t object_index)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;

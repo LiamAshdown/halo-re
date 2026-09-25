@@ -10,7 +10,6 @@
 // (0x00873d60..0x00879d60, see ui_profile_carousel_slot_cache_populate.c), which is why both
 // tables share the address 0x00879d60 as one's end bound and the other's start.
 // register convention: candidate id array in EBX; the count on the stack.
-//   // blam-cc: candidate_ids -> EBX
 
 #include "tags.h"
 #include "memory.h"
@@ -22,10 +21,10 @@
 extern variant_carousel_slot variant_carousel_slots[3]; // 0x00879d60
 extern uint8_t saved_game_get_variant(int32_t variant_id, void *out_slot_body); // 0x53bee0, UNSURE signature, not in this module's range
 
-// blam-cc: candidate_ids -> EBX
 // Marks which of the 3 game-variant carousel slots already hold one of the candidate ids, then
 // assigns each still-unmatched candidate into the first free slot once saved_game_get_variant fills in
 // and confirms the variant data.
+// blam-cc: EBX -> candidate_ids, stack -> count
 void ui_variant_carousel_slot_cache_populate(int32_t *candidate_ids, int32_t count)
 {
     uint8_t slot_filled[3] = {0, 0, 0};

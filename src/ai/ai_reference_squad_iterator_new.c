@@ -10,10 +10,8 @@
 // is wrong about the level: ai_reference_squad_iterator_next returns an
 // encounter_squad_state pointer (encounter.first_squad + cursor, stride 0x20), not a
 // starting location.
-// register convention: matches the sibling functions in this cluster (0x432420, 0x432650):
 // the packed reference is an ordinary parameter (EAX), the output pointer is inherited, ECX
 // here.
-//   // blam-cc: EAX -> packed_reference, ECX -> out_iterator
 
 #include "tags.h"
 #include "memory.h"
@@ -26,12 +24,13 @@
 extern Scenario *global_scenario; // 0x00746f8c
 extern ai_globals *ai_global_data; // 0x00880354
 
-// blam-cc: EAX -> packed_reference, ECX -> out_iterator
 // Initializes out_iterator to walk every ScenarioSquad a packed ai reference names: one
 // squad for a squad reference, every squad of the named platoon (filtered by
 // ai_reference_squad_iterator_next) for a platoon reference, or every squad in the
 // encounter for a plain encounter reference. out_iterator->encounter_index is left as -1 if
 // the reference, the scenario or the AI globals are not valid.
+// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: ECX -> out_iterator, stack -> packed_reference
 void ai_reference_squad_iterator_new(uint32_t packed_reference, ai_reference_squad_iterator *out_iterator)
 {
     uint32_t encounter_index = packed_reference & 0xffff;

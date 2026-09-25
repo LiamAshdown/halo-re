@@ -12,9 +12,6 @@
 //   equipment_network_state (position 0x00, velocity 0x0c, angular_velocity 0x18);
 //   types/objects.h object.position (0x05c), object.velocity (0x068), object.angular_velocity
 //   (0x08c). Callee object_try_and_get (0x4f6ec0), mask _object_mask_equipment (0x008).
-// register convention: object index in EAX, matching every other object_try_and_get(8) caller in
-//   this module (equipment_build_network_update.c etc).
-// blam-cc: EAX -> item_index
 
 #include "tags.h"
 #include "memory.h"
@@ -27,7 +24,9 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 // Takes a fresh network baseline for an equipment item: bumps network_baseline_index, snapshots
 // the object's current position, velocity and angular_velocity into equipment_data.network_state,
 // marks the state valid and resets the sequence counter to 0.
-void equipment_network_baseline_take(uint32_t item_index) // blam-cc: EAX -> item_index
+// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: stack -> item_index
+void equipment_network_baseline_take(uint32_t item_index)
 {
     object *obj = object_try_and_get(item_index, _object_mask_equipment);
 

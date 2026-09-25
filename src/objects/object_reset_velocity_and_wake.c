@@ -20,7 +20,9 @@ extern data_array *object_data; // 0x008603b0
 extern real_vector3d object_reset_velocity_constant; // 0x00696714
 extern void object_type_definitions_notify_0x50(uint32_t object_index); // 0x4f4330, this batch
 
-void object_reset_velocity_and_wake(uint32_t object_index) // blam-cc: EAX -> object_index
+// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: stack -> object_index
+void object_reset_velocity_and_wake(uint32_t object_index)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
 

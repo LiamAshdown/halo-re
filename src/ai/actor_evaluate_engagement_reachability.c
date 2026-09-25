@@ -15,7 +15,6 @@
 // register convention: EAX -> self_index, ECX -> target_index, ESI -> target_position
 // (unaff_ESI), EDI -> self_position (unaff_EDI); stack -> movement_mode, allow_wide_mask,
 // exclude_object_index, flying.
-// blam-cc: EAX -> self_index, ECX -> target_index, ESI -> target_position, EDI ->
 // self_position, stack -> movement_mode, allow_wide_mask, exclude_object_index, flying
 //
 // UNSURE: scenario_cluster_visibility_test's role (a relationship/compatibility gate between self_index and
@@ -47,11 +46,9 @@ extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *orig
                              uint32_t exclude_object, void *scratch); // 0x505880
 extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t collision_mask,
                              uint32_t ignore_object_index, void *out_record); // 0x401a20, src/physics;
-    // blam-cc: EAX origin, ECX target. Every call here loads EAX = &candidate_point and ECX = ESI
     // (target_position) or EDI (self_position), e.g. 0x42b3e0..0x42b3ed (orphan pass 4 review:
     // the argument order below was swapped to match)
 
-// blam-cc: EAX -> self_index, ECX -> target_index, ESI -> target_position, EDI ->
 // self_position, stack -> movement_mode, allow_wide_mask, exclude_object_index, flying
 // Grades how reachable target_position is from self_position: 4 (unreachable) if a
 // relationship gate fails outright; otherwise runs a direct collision sweep and, if
@@ -59,6 +56,7 @@ extern uint8_t collision_test_movement_segment_between_points(real_point3d *orig
 // target (mode 1) or back toward self (mode 2). Returns 1 if any sweep hits something, 0 if
 // the direct sweep was clear and no further sweep was needed, or a distance/closing-speed
 // grade (2, 3 or 4) when the direct sweep was blocked but movement_mode was 0.
+// blam-cc: EAX -> self_index, ECX -> target_index, ESI -> target_position, EDI -> self_position, stack -> movement_mode, allow_wide_mask, exclude_object_index, flying
 int32_t actor_evaluate_engagement_reachability(datum_index self_index, datum_index target_index,
                                                 real_point3d *target_position, real_point3d *self_position,
                                                 int16_t movement_mode, uint8_t allow_wide_mask,

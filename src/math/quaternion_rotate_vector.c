@@ -4,15 +4,12 @@
 // evidence: math_functions.md: "Rotates the 3D vector at in_ECX by the quaternion param_1,
 //   writing the rotated vector to in_EDX." Optimized quaternion-vector rotation:
 //   v' = a*v + b*q_v + c*(q_v x v), a = 2*w^2-1, b = 2*dot(q_v,v), c = 2*w.
-// register convention: Ghidra resolved the quaternion as the recognized parameter (param_1),
-//   which -- given ECX and EDX are both already claimed by unaff_/in_ vector registers -- is
-//   taken here as EAX per the project's EAX,ECX,EDX,... ordering; vector-in pointer in ECX
-//   (in_ECX), output pointer in EDX (in_EDX).
-//   // blam-cc: EAX -> q, ECX -> v, EDX -> out
 
 #include "tags.h"
 #include "math.h"
 
+// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: ECX -> v, EDX -> out, stack -> q
 void quaternion_rotate_vector(real_quaternion *q, real_vector3d *v, real_vector3d *out)
 {
     real a; // 2*w^2 - 1

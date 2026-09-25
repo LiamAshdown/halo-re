@@ -7,7 +7,6 @@
 // selection_index, item_count all match).
 // register convention: output int32_t[3] in EAX (in_EAX), widget in ECX (in_ECX), both
 // unresolved register reads.
-//   // blam-cc: out -> EAX, widget -> ECX
 
 #include "tags.h"
 #include "memory.h"
@@ -16,11 +15,11 @@
 #include "networking.h"
 #include "interface.h"
 
-// blam-cc: out -> EAX, widget -> ECX
 // Computes the previous/current/next item indices for a 3-wide scrolling list widget, wrapping
 // around item_count, writing -1 for any slot that ends up out of range. Which neighbor of
 // selection_index is treated as "current" depends on whether the widget's focused_child is
 // still its first row or has scrolled to the second row.
+// blam-cc: EAX -> out, ECX -> widget
 void widget_list_scroll_window(int32_t out[3], widget_instance *widget)
 {
     int32_t item_count = (uint16_t)widget->item_count;

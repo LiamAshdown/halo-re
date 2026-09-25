@@ -14,7 +14,6 @@
 // not NULL, else NULL. The frame passed on is the masked one only on the sprite path.
 // register convention: EAX frame; stack bitmap_tag, sequence_index, out_data, out_offset (the
 // C parameter order below follows the callers; frame_index is the EAX argument).
-//   // blam-cc: frame_index -> EAX
 
 #include "tags.h"
 #include "memory.h"
@@ -30,7 +29,7 @@ extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag,
 extern int32_t bitmap_group_sequence_get_bitmap_offset(datum_index bitmap_tag, int16_t sequence_index,
                                                          int16_t frame_index); // 0x4ab630, blam-cc: ECX bitmap_tag, AX sequence_index, DI frame_index
 
-// blam-cc: frame_index -> EAX
+// blam-cc: EAX -> frame_index, stack -> bitmap_tag, sequence_index, out_data, out_offset
 void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
                                     void **out_data, int32_t *out_offset)
 {

@@ -8,7 +8,6 @@
 // actor_check_grenade_facing_and_commit (0x40db00, this module).
 // Ghidra's float comparison idiom `(a < b) == (a == b)` is simplified to the equivalent
 // `a > b` throughout (true only when a is neither less than nor equal to b).
-// register convention: actor_index in EAX (Ghidra recognized it as param_1).
 // UNSURE: FUN_0046fe70 is called with no visible argument in the decompiled C; treated as
 // taking one float argument passed through the FPU stack (ST0), which Ghidra's decompiler
 // does not surface as a formal parameter -- same call as in actor_can_throw_grenade_at_target.
@@ -30,6 +29,8 @@ extern float FUN_0046fe70(float param_1);             // UNSURE: no visible argu
 extern uint8_t actor_can_throw_grenade_at_target(datum_index actor_index); // 0x40d9c0, this module
 extern uint8_t actor_check_grenade_facing_and_commit(datum_index actor_index, uint8_t force_commit); // 0x40db00, this module
 
+// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: stack -> actor_index
 uint8_t actor_consider_grenade_throw(datum_index actor_index)
 {
     actor *self;

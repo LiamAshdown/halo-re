@@ -10,10 +10,8 @@
 // 0..count-1, which is why the output is a {start, end} pair rather than one index -- this
 // is the platoon-level counterpart of ai_reference_squad_iterator_new/_next (0x4324f0/
 // 0x4325b0, this batch), which does the same expansion one level down (squads).
-// register convention: matches every sibling function in this cluster (0x4324f0, 0x432650):
 // Ghidra resolves the packed reference as an ordinary parameter (EAX) and leaves the output
 // pointer as an inherited register, EDX here.
-//   // blam-cc: EAX -> packed_reference, EDX -> out_range
 //
 // UNSURE: out_range->platoon_start/platoon_end at ai_globals validity gate: also checks
 // ai_globals.actors_valid (0x00880354+1) and Scenario.encounters.count, exactly like
@@ -30,12 +28,13 @@
 extern Scenario *global_scenario; // 0x00746f8c
 extern ai_globals *ai_global_data; // 0x00880354
 
-// blam-cc: EAX -> packed_reference, EDX -> out_range
 // Expands a packed ai reference (see ai_reference_parse) to the range of platoon indices it
 // names within its encounter: the single platoon a platoon reference names, the owning
 // platoon of a squad reference, or every platoon in the encounter for a plain encounter
 // reference. out_range->encounter_index is set to -1 (and the rest left as found) if the
 // reference, the scenario or the AI globals are not valid.
+// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: EDX -> out_range, stack -> packed_reference
 void ai_reference_expand_to_platoon_range(uint32_t packed_reference, ai_reference_platoon_range *out_range)
 {
     uint32_t encounter_index = packed_reference & 0xffff;

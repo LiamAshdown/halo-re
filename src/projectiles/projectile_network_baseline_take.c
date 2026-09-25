@@ -12,9 +12,6 @@
 //   projectile_network_state (position 0x00, velocity 0x0c); types/objects.h object.position
 //   (0x05c), object.velocity (0x068). Callee object_try_and_get (0x4f6ec0), mask
 //   _object_mask_projectile (0x020).
-// register convention: object index in EAX, matching every other object_try_and_get(0x20)
-//   caller in this module (projectile_build_network_update.c etc).
-// blam-cc: EAX -> object_index
 
 #include "tags.h"
 #include "memory.h"
@@ -27,7 +24,9 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 // Takes a fresh network baseline for a projectile: bumps network_baseline_index, snapshots the
 // object's current position and velocity into projectile_data.network_state, marks the state
 // valid and resets the sequence counter to 0.
-void projectile_network_baseline_take(uint32_t object_index) // blam-cc: EAX -> object_index
+// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: stack -> object_index
+void projectile_network_baseline_take(uint32_t object_index)
 {
     object *obj = object_try_and_get(object_index, _object_mask_projectile);
 

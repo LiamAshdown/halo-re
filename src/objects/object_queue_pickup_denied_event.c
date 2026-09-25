@@ -11,9 +11,7 @@
 // unaff_EBX case in object_apply_shield_damage.c. `in_ECX` (the hash_table_get key) is likewise
 // implicit. Both are modeled as explicit parameters here since this function's own definition is
 // being written, but every caller of it in this codebase is outside this module's range.
-// register convention: void *param_1 in EAX (in_EAX, the outgoing message target/context);
 // int32_t key in ECX (in_ECX); uint32_t *source in EDI (unaff_EDI, a 3-dword record).
-// blam-cc: EAX=param_1, ECX=key, EDI=source
 
 #include "tags.h"
 #include "memory.h"
@@ -29,6 +27,8 @@ extern int32_t message_delta_encode_message(uint32_t a1, uint32_t a2, uint32_t a
     uint32_t a5, uint32_t a6, uint8_t a7); // network module, 0x4ec940
 extern void network_session_broadcast_to_flagged(uint32_t a1, void *a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6); // UNSURE: network module, 0x4e1a80
 
+// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: ECX -> key, EDI -> source, stack -> param_1
 void object_queue_pickup_denied_event(void *param_1, int32_t key, uint32_t *source)
 {
     // UNSURE: this 5-dword block (`local_14` through `local_4` in the decompile) is laid out

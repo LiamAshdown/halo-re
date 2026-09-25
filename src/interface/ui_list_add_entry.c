@@ -10,7 +10,6 @@
 // on how its result feeds the GlobalAlloc size (len*2+2 bytes).
 // register convention: name/id/data/size as the four recognized parameters; group index in EAX
 // (in_EAX) and is_default in CL (in_CL, the low byte of ECX), both unresolved register reads.
-//   // blam-cc: name/id/data/size -> recognized parameters, group_index -> EAX, is_default -> CL
 
 #include "tags.h"
 #include "memory.h"
@@ -26,10 +25,10 @@ extern void *GlobalAlloc(uint32_t flags, uint32_t bytes);
 extern int32_t FUN_00625b7a(const uint16_t *s); // 0x625b7a, UNSURE: appears to be wcslen
 extern uint32_t growable_array_add_element(growable_array *array); // 0x4cf810, established in src/memory/
 
-// blam-cc: name/id/data/size -> recognized parameters, group_index -> EAX, is_default -> CL
 // Appends one entry to a UI selection list group: a GlobalAlloc'd copy of name, the given id,
 // and an optional GlobalAlloc'd copy of a data blob. Setting is_default also raises the shared
 // ui_list_has_default flag.
+// blam-cc: EAX -> group_index, CL -> is_default, stack -> name, id, data_blob, data_size
 void ui_list_add_entry(int32_t group_index, const uint16_t *name, int32_t id, const void *data_blob,
                         uint32_t data_size, uint8_t is_default)
 {

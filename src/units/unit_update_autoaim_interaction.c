@@ -6,8 +6,6 @@
 //   .unknown_410 (0x410, "stored by 0x5705a0, read back by 0x570720"); types/objects.h
 //   object.vitality_flags (0x106), object.owner_linkage (0x0c0), .creator_object (0x0c4),
 //   .name_index (0x0b8); the damage_data field mapping follows unit_cause_melee_damage.c.
-// register convention: unit object index in EAX (param_1).
-//   // blam-cc: EAX -> unit_index
 // UNSURE: globals_tag_data+0x18c is treated here as a pointer to a small record whose +0x78 is
 //   a globally tracked target object index and whose base address doubles as the damage effect
 //   tag -- this is a different reading of the same offset from unit_apply_fall_damage.c's "fall
@@ -33,6 +31,8 @@ extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t 
 
 // Clears the disoriented and idle-turn-seeded flags for the unit each tick and, if a global
 // interaction target device is set, applies a damage/interaction tick to it.
+// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: stack -> unit_index
 void unit_update_autoaim_interaction(uint32_t unit_index)
 {
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;

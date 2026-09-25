@@ -14,13 +14,6 @@
 //   by src/items/weapon_is_old_enough.c and equipment_is_old_enough.c, both of which test this
 //   same field against a per-type minimum age. global 0x006f1d6c game_time (+0x0c the
 //   game tick).
-// register convention: object index is a plain stack cdecl parameter -- confirmed against
-//   objdump -d -M intel bin/halo.exe (0x4bc460 `mov eax,[esp+0x4]`), which also settles
-//   src/objects/object_type_override_call_0x7c.c's own header comment ("register convention:
-//   object index in ESI"): the dispatcher's caller does push ESI onto the stack right before the
-//   call (`push esi` / `call edi` at 0x4f47ad), so the callee reads it as an ordinary stack
-//   argument, not through the register.
-// blam-cc: stack -> object_index
 // UNSURE of the name: this is the write side of the age-timestamp read by weapon_is_old_enough /
 //   equipment_is_old_enough, so it (re)starts that clock; nothing in this batch pins the exact
 //   game event that triggers the override_call_7c dispatch (item drop, pickup, or similar).
@@ -37,6 +30,8 @@ extern void *game_time; // 0x006f1d6c, +0x0c the game tick
 // The weapon and equipment rows' override_call_7c hook. Stamps object.network_update_tick with the
 // current game tick, restarting the age clock that weapon_is_old_enough / equipment_is_old_enough
 // test.
+// FIXED (register inputs, objdump): the original never reads ESI as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: stack -> object_index
 void item_stamp_age_timestamp(uint32_t object_index) // blam-cc: stack -> object_index
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;

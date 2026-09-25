@@ -12,10 +12,6 @@
 //   weapon's animation-graph "weapon block" record (gated on unit_data.current_weapon_index being
 //   valid), each iterating a table of IK-chain records and clearing unit_data.animation_state_
 //   flags bit 0 once the weapon set runs.
-// register convention: two plain stack arguments (object_index at [esp+4], node_base at
-//   [esp+8]; 0x5643f1 / 0x5644a8), node_base passed straight through as the last stack argument
-//   of every object_solve_two_bone_ik_to_marker call (ECX = object_index there).
-//   blam-cc: stack -> (object_index, node_base).
 // Cleanup-pass review (objdump 0x5643f0..0x564570): FUN_00565d60 / FUN_00565d00 both receive
 //   ECX = &unit_data.animation_state_flags (object+0x298, 0x564480 / 0x5644e8), which the draft
 //   dropped; passed now.
@@ -46,16 +42,15 @@ extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern uint8_t FUN_00565d60(void *animation_state); // 0x565d60, this module, outside this pass;
-    // blam-cc: ECX -> &unit_data.animation_state_flags
 extern uint8_t FUN_00565d00(void *animation_state); // 0x565d00, this module, outside this pass;
-    // blam-cc: ECX -> &unit_data.animation_state_flags
 extern void object_solve_two_bone_ik_to_marker(uint32_t object_index, char *marker_a_name,
     uint32_t param_2, char *param_3, uint8_t *node_base); // 0x4f6d60,
-    // blam-cc: ECX -> object_index, stack -> (marker_a_name, param_2, param_3, node_base)
 
 // object_type_definition "unit" row, +0x4c column. Solves the unit's own IK chains (from its
 // animation-graph "unit block" record) and, when it is holding a weapon, that weapon's IK chains
 // (from the graph's "weapon block" record), then clears the "weapon IK dirty" flag.
+// FIXED (register inputs, objdump): the original never reads ECX as an input (it overwrites or only saves it); those parameters arrive on the stack (2 stack argument(s) read).
+// blam-cc: stack -> object_index, node_base
 void unit_update_ik_detail_nodes(uint32_t object_index, void *node_base)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;

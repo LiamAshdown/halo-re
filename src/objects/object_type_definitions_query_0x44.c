@@ -5,8 +5,6 @@
 //   object_children_recurse_prune")
 // rewrite confidence: 0.8
 // evidence: same as object_type_definitions_query_0x34, mirrored at a different vtable slot.
-// register convention: object index in EAX (param_1), forwarded to every sub-definition's
-//   +0x44 hook.
 
 #include "tags.h"
 #include "memory.h"
@@ -18,7 +16,9 @@ extern object_type_definition *object_type_definitions[k_maximum_object_types]; 
 
 // The original returns CONCAT31(garbage, uVar5): only AL carries the result, so the return
 // type is a byte here rather than int.
-uint8_t object_type_definitions_query_0x44(uint32_t object_index) // blam-cc: EAX -> object_index
+// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: stack -> object_index
+uint8_t object_type_definitions_query_0x44(uint32_t object_index)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     object_type_definition *def = object_type_definitions[obj->type];

@@ -18,9 +18,7 @@
 //                                       ; arrives in ESI, is never touched by this function's
 //                                       ; body (ESI is repurposed for `record` instead), and is
 //                                       ; recovered from the saved-register stack slot.
-// register convention: EAX = record (const uint32_t[8] *), ESI = server (implicit passthrough,
 // recovered from the prologue's own register-save slot, not read directly in the C body).
-//   // blam-cc: EAX -> record, ESI -> server
 // UNSURE: the broadcast's remaining fixed arguments (0, 1, 0, 1, 3) are transcribed literally
 // from both Ghidra's decompile and the disassembly above; their individual meanings are not
 // independently re-derived here (see network_session_broadcast_to_all.c's own UNSURE notes for
@@ -37,12 +35,12 @@ extern int32_t data_packet_group_encode_packet(uint8_t *buffer, int32_t *capacit
 extern uint16_t *network_message_block_build(uint16_t *dest, uint32_t *buffer, uint8_t flags, uint32_t length); // 0x440350, this module
 extern char network_session_broadcast_to_all(network_server_globals *server, int32_t param_1,
     void *data, int32_t param_3, int32_t param_4, char force, int32_t param_6);
-    // blam-cc: ECX -> server, stack -> param_1, data, param_3, param_4, force, param_6;
     // this module, 0x4e19c0
 
-// blam-cc: EAX -> record, ESI -> server
 // Copies an 8-dword game-state record into a scratch buffer, encodes it as message type 0x17,
 // and broadcasts the encoded block to every established machine in the session.
+// FIXED (register inputs, objdump): the original never reads ESI as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: EAX -> record, stack -> server
 uint32_t network_game_broadcast_state_snapshot(const uint32_t *record, network_server_globals *server)
 {
     uint32_t buffer[8];

@@ -7,7 +7,6 @@
 // and offset; otherwise the last free slot (kind 0xf) is filled; with no free slot nothing
 // happens. Called by hud_waypoint_activate_for_team (0x4af1b0).
 // register convention: EAX player, EBX target, DX kind; two stack arguments.
-//   // blam-cc: player_index -> EAX, target -> EBX, kind -> DX
 
 #include "tags.h"
 #include "memory.h"
@@ -20,9 +19,9 @@
 extern data_array *player_data;            // 0x0087a480
 extern hud_waypoint_state *hud_waypoints;  // 0x006b3a44
 
-// blam-cc: player_index -> EAX, target -> EBX, kind -> DX
 // Shows waypoint arrow arrow_index over target (a flag, object or custom waypoint by kind) for
 // the local player of player_index.
+// blam-cc: EAX -> player_index, EBX -> target, DX -> kind, stack -> arrow_index, vertical_offset
 void hud_waypoint_activate_for_player(datum_index player_index, datum_index target, int16_t kind,
                                       int16_t arrow_index, float vertical_offset)
 {

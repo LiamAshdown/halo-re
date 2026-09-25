@@ -8,8 +8,6 @@
 // evidence: none beyond the raw decompilation; 0x00687130 and 0x006870d0 are not object-module
 //   globals documented in types/objects.h, so this is likely a thin caller-supplied wrapper
 //   around some other subsystem's node table.
-// register convention: some caller-owned record pointer in EAX (in_EAX); event argument in ECX
-//   (param_1), forwarded to object_type_override_call_0x70.
 // UNSURE: the exact struct at in_EAX and the table at 0x00687130 are unidentified; every offset
 //   below is kept as a raw byte offset rather than a named field. UNSURE: object_type_override_
 //   call_0x70 (0x4f4620) takes no parameters in this batch's rewrite (it works off the "current
@@ -25,8 +23,9 @@ extern uint8_t *object_pooled_node_globals; // 0x00687130, UNSURE: layout unknow
 extern void object_type_override_call_0x70(uint32_t object_index, uint32_t edi_argument,
     uint32_t stack_argument); // this module, 0x4f4620; UNSURE: none of the three are visible here // 0x4f4620
 
+// FIXED (register inputs, objdump): the original never reads ECX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: EAX -> record, stack -> param_1
 void object_type_override_call_0x70_release_node(int32_t *record, uint32_t param_1)
-    // blam-cc: EAX -> record, ECX -> param_1
 {
     int32_t **slot = (int32_t **)((uint8_t *)record + 0x44);
     int32_t node = **slot;

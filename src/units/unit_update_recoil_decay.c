@@ -8,8 +8,6 @@
 //   "reloaded with 0xf while the controls move; unit_update_recoil_decay counts it down and
 //   fires on the 0 edge"); callee object_set_position_and_orientation (established 4-argument
 //   form in src/units/biped_update.c).
-// register convention: unit object index in EAX (param_1).
-//   // blam-cc: EAX -> object_index
 // UNSURE: the two matrix4x3_transform_vector calls have no visible arguments; read as rotating
 //   the object's own forward and up vectors by the axis-angle matrix built from the normalized
 //   angular velocity and its length (treated directly as a rotation angle in radians).
@@ -36,6 +34,8 @@ extern double cos(double x);
 // angular velocity, rotates the object's forward/up vectors by the resulting angular-velocity
 // axis-angle, snaps both velocities to zero once the countdown expires, and reapplies the
 // resulting orientation and offset position.
+// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: stack -> object_index
 void unit_update_recoil_decay(uint32_t object_index)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;

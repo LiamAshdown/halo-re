@@ -33,9 +33,6 @@
 // register convention (confirmed via objdump): ECX = ScenarioStructureBSPMaterial *material,
 //   EDX = uint16_t *triangle_vertex_indices (3 local vertex indices), stack args in order:
 //   BitmapData *bitmap, float weight_1, float weight_2, ColorRGB *out.
-// blam-cc: bsp_lightmap_sample_vertex_color(BitmapData *bitmap /*stack*/, float weight_1 /*stack*/,
-//   float weight_2 /*stack*/, ColorRGB *out /*stack*/, ScenarioStructureBSPMaterial *material /*ECX*/,
-//   uint16_t *triangle_vertex_indices /*EDX*/)
 // UNSURE: the call to rasterizer_bitmap_sample_texel here pushes bitmap, &uv and the mip-bias
 //   constant as three ordinary cdecl stack arguments (confirmed by objdump: the callee at
 //   0x524590 reads its first parameter from [esp+4] into EBP, not from ECX), which disagrees
@@ -64,6 +61,7 @@
 extern int32_t rasterizer_bitmap_sample_texel_cdecl(BitmapData *bitmap, float *uv, float mip_bias);
 extern void color_rgb_int_to_real(ColorRGB *out, uint32_t packed); // 0x43f630, EAX out, ECX packed (src/bitmaps)
 
+// blam-cc: ECX -> material, EDX -> triangle_vertex_indices, stack -> bitmap, weight_1, weight_2, out
 void bsp_lightmap_sample_vertex_color(BitmapData *bitmap, float weight_1, float weight_2, ColorRGB *out,
                                        ScenarioStructureBSPMaterial *material, uint16_t *triangle_vertex_indices)
 {

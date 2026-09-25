@@ -12,8 +12,6 @@
 //   (param_1, recognized by Ghidra), preserve_count (a 2nd stack argument at [ebp+0xc] that
 //   Ghidra's own decompile of this function never recognized -- read only after the
 //   operator_new call, past where Ghidra stopped tracking it as a parameter).
-// blam-cc: string_grow_reserve(msvc_std_string *this /*ECX*/, uint32_t new_capacity /*stack*/,
-//   uint32_t preserve_count /*stack*/)
 // UNSURE: Ghidra split this function's tail into a second, separately-named "function",
 //   string_copy_into_new_buffer 0x57c76c -- but objdump shows the only path into 0x57c76c is a
 //   fall-through `jmp` from this function's own body (0x57c741) or a "load a fixed address into
@@ -35,6 +33,7 @@
 extern void *operator_new(uint32_t size); // 0x6277da
 extern void _free(void *ptr); // 0x6277e8
 
+// blam-cc: ECX -> this, stack -> new_capacity, preserve_count
 void string_grow_reserve(msvc_std_string *this, uint32_t new_capacity, uint32_t preserve_count)
 {
     uint32_t capacity = new_capacity | 0xf;

@@ -4,8 +4,6 @@
 // rewrite confidence: 0.5
 // evidence: types/units.h unit_data.weapons[4] (0x2f8), .current_weapon_index (0x2f2),
 //   .desired_weapon_index (0x2f4); callee unit_drop_object_from_hand (0x56ed00, this batch).
-// register convention: unit object index in EAX (param_1).
-//   // blam-cc: EAX -> unit_index
 // UNSURE: weapon_is_out_of_ammo()'s register argument is not visible; guessed as the dropped weapon's
 //   object index (the only value in scope at that point besides the unit).
 
@@ -25,6 +23,8 @@ extern void unit_drop_object_from_hand(uint32_t unit_index, uint32_t dropped_obj
 // Drops every weapon currently carried in the unit's inventory except the one currently in
 // hand, clearing each inventory slot as it is dropped and redirecting the desired-weapon index
 // to the current weapon if it pointed at a dropped slot.
+// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: stack -> unit_index
 void unit_drop_inventory_weapons(uint32_t unit_index)
 {
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;

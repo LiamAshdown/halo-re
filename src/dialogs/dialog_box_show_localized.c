@@ -17,8 +17,6 @@
 //   the caller pops them (add esp,8 at 0x57ee2f). Only call site: 0x57ee2a in
 //   shell_display_fatal_error_dialog, with ESI = strings_module (0x00722bb8), EBX = 0x57e5a0
 //   (the fatal error dialog proc), template id 0x66, parent = the window.
-// blam-cc: dialog_proc in EBX, module in ESI; template_name and parent_window are the two
-//   stack arguments, in their original order.
 
 #include "tags.h"
 #include "dialogs.h"
@@ -41,6 +39,7 @@ extern uint32_t shell_language_id; // 0x0069ff20, shell-owned; see types/dialogs
 // language first, then in English (0x409) if that differs, and finally falls back to a plain
 // DialogBoxParamA lookup of `template_name` by the module's default language. Returns the
 // DialogBox result (an INT_PTR) of whichever attempt actually ran the dialog.
+// blam-cc: EBX -> dialog_proc, ESI -> module, stack -> template_name, parent_window
 int32_t dialog_box_show_localized(dialog_window_proc_fn dialog_proc, void *module, const char *template_name,
                                    void *parent_window)
 {

@@ -20,7 +20,6 @@
 //   like game_engine_apply_player_join_message.c); a player handle for datum_get and
 //   player_add_kill_streak is elided by Ghidra at every use here (UNSURE which register carries
 //   it -- modeled as a second explicit parameter for clarity).
-//   // blam-cc: EAX -> envelope, ECX (UNSURE) -> player_handle
 // UNSURE: player_handle's real register/provenance (never shown by Ghidra in this function, only
 //   inferred from datum_get's and player_add_kill_streak's own established shapes); object_try_
 //   and_get's object argument here (the newly resolved unit index, `new_unit_object_index`);
@@ -52,16 +51,15 @@ extern void unit_apply_starting_profile(int16_t starting_profile_index, datum_in
     uint8_t reset_stats); // 0x473c50, already rewritten
 extern void game_engine_apply_player_grenade_counts(uint32_t player_index); // 0x4613c0
 extern void unit_pickup_weapon(datum_index unit_handle, uint8_t is_primary); // 0x56d400, units module;
-    // blam-cc: ECX -> unit_handle, stack -> is_primary, per unit_apply_starting_profile.c
 extern void unit_enter_vehicle_seat(datum_index vehicle_index, int32_t seat); // 0x566970, UNSURE exact signature
 extern uint8_t player_add_kill_streak(int32_t slot, int16_t amount, uint32_t player_handle); // this batch, 0x479ba0
 
-// blam-cc: EAX -> envelope, ECX (UNSURE) -> player_handle
 // Decodes an incoming spawn-loadout message and, once the target player and unit are both
 // resolved, applies it: stamps the unit's owner/team fields, resets its look state (or, for a
 // non-local player, its state timers), applies a starting profile in single player, applies
 // grenade counts, wires up the four weapon inventory slots and desired weapon, optionally seats
 // the unit in a vehicle, and applies any queued kill-streak deltas.
+// blam-cc: EAX -> envelope, stack -> player_handle
 void game_engine_apply_player_spawn_loadout_message(void **envelope, uint32_t player_handle)
 {
     struct {

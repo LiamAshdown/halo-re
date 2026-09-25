@@ -10,7 +10,6 @@
 // controls_assigned_gamepads[4] and their counts.
 // register convention: EDX the list base (controls_assigned_gamepads or controls_available_gamepads); the record
 // to match in the one recovered stack parameter (param_1).
-//   // blam-cc: list -> EDX
 // reconciled: R20 controls_gamepad_record.device_key[5] -> input_guid product_guid (+0x20c, device_key[0..3]) and int32_t product_instance (+0x21c, device_key[4])
 
 #include "tags.h"
@@ -26,7 +25,7 @@ extern controls_gamepad_record controls_assigned_gamepads[4];   // 0x006b53d8
 extern int32_t controls_assigned_gamepad_count;             // 0x00719448
 extern int32_t controls_available_gamepad_count;           // 0x0071944c
 
-// blam-cc: list -> EDX
+// blam-cc: EDX -> list, stack -> entry
 int32_t controls_gamepad_list_find(const controls_gamepad_record *entry, controls_gamepad_record *list)
 {
     int32_t count;

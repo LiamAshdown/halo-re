@@ -31,10 +31,10 @@ extern int32_t message_delta_encode_all_fields(uint8_t *ctx, int32_t changed_off
 extern char message_delta_encode_message_header(uint8_t *ctx); // 0x4ecd00, this module
 extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value, bit_stream *stream); // UNSURE: args
 
-// blam-cc: stack -> flag, message_type, changed_offset, items, type_offset, count, force_changed;
 // EDX -> extra_edx (in_EDX, unresolved); EAX -> extra_eax (unresolved, cached into the context)
 // Central message-delta encoder: builds the header and per-item field data for a given network
 // message type over an array of items. Returns the total encoded bit count on success, or 0.
+// blam-cc: EAX -> extra_eax, EDX -> extra_edx, stack -> flag, message_type, changed_offset, items, type_offset, count, force_changed
 int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
                                       int32_t changed_offset, void **items, int32_t type_offset, int32_t count,
                                       char force_changed)

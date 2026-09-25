@@ -8,8 +8,6 @@
 //   (see actor_movement_action_cancel and actor_replace_object_reference for the others);
 //   Ghidra could not recover its jump table, so it is modeled here as a plain no-argument
 //   call.
-// register convention: EAX -> actor_index (param_1, resolved as a genuine parameter).
-//   // blam-cc: EAX -> actor_index
 
 #include "tags.h"
 #include "memory.h"
@@ -21,11 +19,12 @@ extern data_array *swarm_data;           // 0x0088035c
 extern data_array *swarm_component_data; // 0x00880358
 extern actor_mode_definition actor_mode_definitions[16]; // 0x00655254
 
-// blam-cc: EAX -> actor_index
 // Clears a cached target field and various movement/search scratch fields, and, if the
 // actor is in mode 3 or 4 (per its queued/active movement action types), the corresponding
 // action's parameter; also clears every swarm component's death marker, then invokes the
 // per-type callback table.
+// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: stack -> actor_index
 void actor_clear_target_state(datum_index actor_index)
 {
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];

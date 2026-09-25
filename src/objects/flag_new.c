@@ -11,11 +11,6 @@
 //   out/phase4/objects_types_notes.md names the two callees flag_cloth_init_shape_constraints
 //   (0x4fb770) directly and cites this function's own `(index & 0xffff) * 0x16bc` datum
 //   arithmetic.
-// register convention: single parameter (the Flag tag datum_index), shown by Ghidra as a plain
-//   param_1 with no in_REG marker; kept as a stack/EAX-ambiguous single argument like the other
-//   *_new constructors in this file group (see light_new_attached.c's identical shape, which
-//   resolved the same pattern to EAX).
-// blam-cc: EAX -> flag_tag (by analogy with light_new_attached.c's identical constructor shape)
 // Flag.blue_flag_shader is a TagDependency whose .tag_id field lands at absolute offset 0x50
 // (confirmed against out/phase4/objects_types_notes.md: "blue shader TagID 0x50"), so the
 // original `*(int *)(iVar2 + 0x50) != -1` is a whole-TagID compare, the usual "is this
@@ -39,7 +34,9 @@ extern datum_index datum_new(data_array *array); // UNSURE: returns {handle, dat
 extern void flag_cloth_mark_border_cells(flag *entry); // this module, 0x4fb6d0
 extern void flag_cloth_init_shape_constraints(flag *entry); // this module, 0x4fb770
 
-datum_index flag_new(datum_index flag_tag) // blam-cc: EAX -> flag_tag (UNSURE, see file header)
+// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: stack -> flag_tag
+datum_index flag_new(datum_index flag_tag)
 {
     datum_index handle = (datum_index)0xffffffff;
 

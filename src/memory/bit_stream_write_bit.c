@@ -4,7 +4,6 @@
 // evidence: out/phase4/memory_types_notes.md "bit_stream (0x18)"; field offsets +4 data,
 // +8 first_bit, +0xc byte_cursor, +0x10 bit_cursor, +0x14 last_bit match types/memory.h
 // bit_stream exactly, cross-checked against bit_stream_write_bits/read_bit/read_bits.
-// register convention: bit value in EAX (param_1, Ghidra-recognized), stream pointer in EDX
 // (in_EDX, unresolved register read) -- exposed as EDX before EAX's stack-shaped param_1 would
 // be wrong, but param_1 here is Ghidra's own recognized parameter, not an in_/unaff_ read, so it
 // keeps its declared position; only in_EDX gets a register comment.
@@ -13,11 +12,12 @@
 #include "tags.h"
 #include "memory.h"
 
-// blam-cc: bit value as the recognized parameter, stream in EDX
 // Writes a single bit (0 or 1) into a bounds-checked bit stream and advances its one-bit cursor.
 // Returns nonzero (with garbage high bits, only the low byte is meaningful to callers) on
 // success, or leftover/undefined low byte on a stream-bounds failure -- callers only ever test
 // the low byte, so the return type is kept as int for fidelity with the Ghidra signature.
+// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// blam-cc: EDX -> stream, stack -> bit_value
 uint32_t bit_stream_write_bit(int32_t bit_value, bit_stream *stream)
 {
     int32_t byte_cursor;
