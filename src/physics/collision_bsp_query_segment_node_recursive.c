@@ -95,8 +95,12 @@ uint8_t collision_bsp_query_segment_node_recursive(collision_bsp_segment_query *
             ModelCollisionGeometryBSPLeaf *leaf =
                 &((ModelCollisionGeometryBSPLeaf *)bsp->leaves.pointer)[node_index & 0x7fffffffu];
             leaf_index = (int32_t)(node_index & 0x7fffffffu);
-            leaf_type = ((leaf->flags & 1) != 0) ? _collision_bsp_leaf_type_double_sided
-                                                  : _collision_bsp_leaf_type_normal;
+            // FIXED (0x5022d7: test [leaf],1; setne al; inc al): flag bit 0 set gives type 2, clear gives 1. The
+            // draft had the mapping inverted (in game: wall hits resolved through the wrong branch, so the surface
+            // and material were wrong and no impact effect played). NOTE: by the value the original assigns, the
+            // names _double_sided (1) and _normal (2) in types/physics.h look swapped; kept numerically faithful.
+            leaf_type = ((leaf->flags & 1) != 0) ? _collision_bsp_leaf_type_normal
+                                                  : _collision_bsp_leaf_type_double_sided;
         }
 
         candidate_leaf = leaf_index;
