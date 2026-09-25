@@ -29,7 +29,8 @@
 extern uint8_t *global_structure_bsp;                   // 0x00746f9c
 extern observer observers[1];                            // 0x006ac65c, camera.h; observers[i].camera is the 0x006ac6d0 row (R17)
 
-extern uint8_t cluster_sound_distance_lookup(int16_t source_cluster, int16_t listener_cluster); // 0x552210, blam-cc: EAX, ECX, EDI bsp
+extern uint8_t cluster_sound_distance_lookup(int16_t cluster_a, int16_t cluster_b,
+                                             ScenarioStructureBSP *structure_bsp); // 0x552210; EAX, ECX, EDI bsp
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
     uint32_t exclude_object_index, collision_result *result); // 0x505880, physics module
 
@@ -59,7 +60,8 @@ void sound_compute_obstruction_occlusion(sound_location *location, int16_t liste
         return;
     }
 
-    distance = (float)(cluster_sound_distance_lookup(location->cluster_index, listener_cluster) & 0x7f) * 2.015748f;
+    distance = (float)(cluster_sound_distance_lookup(location->cluster_index, listener_cluster,
+                                              (ScenarioStructureBSP *)global_structure_bsp /* 0x544bf2: EDI = [0x746f9c] */) & 0x7f) * 2.015748f;
     if (!(distance < 256.0f)) {
         return;
     }

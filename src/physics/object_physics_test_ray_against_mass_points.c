@@ -18,8 +18,7 @@
 //   direction) is never visible anywhere in this function's body -- not as a named parameter,
 //   not as an unaff_* register -- so this rewrite adds it as two more hidden-register
 //   parameters per the EAX/ECX/EDX/EBX/ESI/EDI ordering, before param_1's own stack slot.
-//   // blam-cc: ECX -> world_origin, EDX -> world_direction, EBX -> out_result,
-//   //          stack -> context
+//   // blam-cc: EAX -> world_origin, EBX -> out_result, stack -> context, world_direction
 // UNSURE (major): which registers actually carry world_origin/world_direction; nothing in this
 //   function's own decompile confirms it, only the fact that ray_intersects_sphere plainly needs
 //   them and nothing else in this function could supply them.
@@ -33,24 +32,22 @@
 #include "math.h"
 #include "physics.h"
 
-// blam-cc: UNSURE which registers carry the point/out arguments; see file header
 extern void matrix4x3_inverse_transform_point(real_matrix4x3 *m, real_point3d *out,
     real_point3d *point); // 0x4cbf80, math module (src/math/matrix4x3_inverse_transform_point.c)
     // blam-cc: ECX -> m, EDX -> out, ESI -> point
-extern void matrix4x3_inverse_transform_vector(void *matrix, real_vector3d *world_vector,
-    real_vector3d *out_local_vector); // 0x4cc010, math module
-    // blam-cc: stack -> matrix, UNSURE which registers carry world_vector/out_local_vector
-extern uint8_t ray_intersects_sphere(real_point3d *sphere_center, float radius,
-    real_point3d *ray_origin, real_vector3d *ray_direction, real_vector3d *out_normal,
-    float *out_t); // 0x4ce3a0, math module
-    // blam-cc: stack -> sphere_center, radius; EAX -> ray_origin, EDX -> ray_direction,
-    //          ECX -> out_normal, EDI -> out_t
+extern void matrix4x3_inverse_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); // 0x4cc010; EAX out, EDX v, stack m
+extern uint8_t ray_intersects_sphere(real_point3d *origin, real_vector3d *normal_out, real_vector3d *direction,
+    real *t_out, real_point3d *center, real radius); // 0x4ce3a0; EAX origin, ECX normal, EDX direction, EDI t, stack (center, radius)
 
 // Transforms the world-space ray (world_origin, world_direction) into context's object-local
 // space and tests it against every mass point's collision sphere, keeping the closest hit.
 // Writes the winning fraction, world-space contact normal and plane d into *out_result (t is
 // seeded to FLT_MAX so a caller can tell "no hit" from result->t remaining unchanged) and
 // returns whether anything was hit.
+// FIXED (objdump 0x507610): EAX = world origin, EBX = out_result, stack = (context, world_direction); the calls to
+//   matrix4x3_inverse_transform_vector and ray_intersects_sphere now follow those functions' definitions (the
+//   draft passed them in a different order).
+// blam-cc: EAX -> world_origin, EBX -> out_result, stack -> context, world_direction
 uint8_t object_physics_test_ray_against_mass_points(real_point3d *world_origin,
     real_vector3d *world_direction, object_physics_ray_result *out_result,
     object_physics_context *context)
@@ -65,7 +62,7 @@ uint8_t object_physics_test_ray_against_mass_points(real_point3d *world_origin,
     out_result->t = 3.4028235e+38f; // FLT_MAX
 
     matrix4x3_inverse_transform_point((real_matrix4x3 *)&context->scale, &local_origin, world_origin);
-    matrix4x3_inverse_transform_vector(&context->scale, world_direction, &local_direction);
+    matrix4x3_inverse_transform_vector(&local_direction, world_direction, (real_matrix4x3 *)&context->scale); // 0x507625: EAX out, EDX v, push m
 
     for (i = 0; i < count; i++) {
         PhysicsMassPoint *mass_point =
@@ -73,8 +70,8 @@ uint8_t object_physics_test_ray_against_mass_points(real_point3d *world_origin,
         real_vector3d normal;
         float t;
 
-        if (ray_intersects_sphere((real_point3d *)&mass_point->position, mass_point->radius, &local_origin,
-                &local_direction, &normal, &t) && t < out_result->t) {
+        if (ray_intersects_sphere(&local_origin, &normal, &local_direction, &t,
+                (real_point3d *)&mass_point->position, mass_point->radius) && t < out_result->t) {
             out_result->t = t;
             out_result->plane_i = normal.i;
             out_result->plane_j = normal.j;

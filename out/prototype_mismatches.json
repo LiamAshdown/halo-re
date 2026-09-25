@@ -13781,24 +13781,6 @@
   ]
  },
  {
-  "caller": "src\\physics\\collision_test_movement_segment.c",
-  "callee": "scenario_location_from_point",
-  "definition": "src\\scenario\\scenario_location_from_point.c",
-  "declared": "extern void scenario_location_from_point(void *out_leaf_reference);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\physics\\collision_test_movement_segment.c",
-  "callee": "object_collision_test_ray_nearby_chain",
-  "definition": "src\\physics\\object_collision_test_ray_nearby_chain.c",
-  "declared": "extern uint8_t object_collision_test_ray_nearby_chain(uint32_t object_index, uint32_t flags, uint32_t sanitized_flags,\n    real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index,\n  ",
-  "problems": [
-   "parameter kinds differ at #3 (i vs p), #5 (p vs f)"
-  ]
- },
- {
   "caller": "src\\physics\\object_physics_add_mass_point_shapes.c",
   "callee": "physics_shape_vertex_to_sphere",
   "definition": "src\\physics\\physics_shape_vertex_to_sphere.c",
@@ -13871,33 +13853,6 @@
   ]
  },
  {
-  "caller": "src\\physics\\object_physics_context_build.c",
-  "callee": "object_get_position",
-  "definition": "src\\objects\\object_get_position.c",
-  "declared": "extern void object_get_position(uint32_t object_index, real_point3d *out_position);",
-  "problems": [
-   "parameter kinds differ at #1 (i vs p), #2 (p vs i)"
-  ]
- },
- {
-  "caller": "src\\physics\\object_physics_context_build.c",
-  "callee": "object_get_orientation",
-  "definition": "src\\objects\\object_get_orientation.c",
-  "declared": "extern void object_get_orientation(uint32_t object_index, real_vector3d *out_up);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\physics\\object_physics_context_build.c",
-  "callee": "vector3d_cross_product",
-  "definition": "src\\math\\vector3d_cross_product.c",
-  "declared": "extern void vector3d_cross_product(real_vector3d *out);",
-  "problems": [
-   "1 parameters declared, 3 defined"
-  ]
- },
- {
   "caller": "src\\physics\\object_physics_handle_nearby_object_impacts.c",
   "callee": "object_physics_resolve_mass_point_overlap",
   "definition": "src\\physics\\object_physics_resolve_mass_point_overlap.c",
@@ -13913,15 +13868,6 @@
   "declared": "extern uint8_t unit_any_flagged_seat_occupied(void);",
   "problems": [
    "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\physics\\object_physics_test_ray_against_mass_points.c",
-  "callee": "ray_intersects_sphere",
-  "definition": "src\\math\\ray_intersects_sphere.c",
-  "declared": "extern uint8_t ray_intersects_sphere(real_point3d *sphere_center, float radius,\n    real_point3d *ray_origin, real_vector3d *ray_direction, real_vector3d *out_normal,\n    float *out_t);",
-  "problems": [
-   "parameter kinds differ at #2 (f vs p), #6 (p vs f)"
   ]
  },
  {
@@ -14908,15 +14854,6 @@
   "declared": "extern void *game_state_new(int16_t element_size, char *name, int16_t maximum_count);",
   "problems": [
    "parameter kinds differ at #1 (i vs p), #2 (p vs i)"
-  ]
- },
- {
-  "caller": "src\\sound\\sound_compute_obstruction_occlusion.c",
-  "callee": "cluster_sound_distance_lookup",
-  "definition": "src\\structures\\cluster_sound_distance_lookup.c",
-  "declared": "extern uint8_t cluster_sound_distance_lookup(int16_t source_cluster, int16_t listener_cluster);",
-  "problems": [
-   "2 parameters declared, 3 defined"
   ]
  },
  {

@@ -34,11 +34,9 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern void object_get_position(uint32_t object_index, real_point3d *out_position); // 0x4f6900
-extern void object_get_orientation(uint32_t object_index, real_vector3d *out_up); // 0x4f6970,
-    // UNSURE: out_forward is not visible here either; presumably a second hidden out-argument
-extern void vector3d_cross_product(real_vector3d *out); // 0x4052c0, math module; the two
-    // operands arrive in registers, only the output pointer is on the stack (symbols/functions.txt)
+extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900; EAX out, ECX object
+extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up); // 0x4f6970
+extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0; EAX out, ECX a, stack b
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point,
     real_matrix4x3 *m); // 0x4cbde0, math module (src/math/matrix4x3_transform_point.c)
     // blam-cc: only m is on the stack; out and point arrive in registers Ghidra loses at every
@@ -55,7 +53,6 @@ uint8_t object_physics_context_build(uint32_t object_index, object_physics_conte
     void *object_tag_data = tag_instances[obj->definition_tag & 0xffff].data;
     int32_t physics_tag_id = *(int32_t *)((uint8_t *)object_tag_data + 0x8c);
     void *physics_definition;
-    float cm_x, cm_y, cm_z;
 
     if (physics_tag_id == -1) {
         return 0;
@@ -66,33 +63,23 @@ uint8_t object_physics_context_build(uint32_t object_index, object_physics_conte
     out_context->definition = physics_definition;
     out_context->scale = 1.0f;
 
-    object_get_position(object_index, (real_point3d *)&out_context->position_x);
-    object_get_orientation(object_index, (real_vector3d *)&out_context->up_i);
-    // UNSURE: Ghidra literal argument here is in_EAX + 9 (&out_context->up_i), the same
-    // pointer object_get_orientation was just handed; symbols/functions.txt says the single stack
-    // argument of vector3d_cross_product is its OUTPUT, and the only output that makes the matrix
-    // well-formed is the left column, so left_i is used.
-    // UNSURE: Ghidra literal argument here is in_EAX + 9 (&out_context->up_i), the same
-    // pointer object_get_orientation was just handed; symbols/functions.txt says the single stack
-    // argument of vector3d_cross_product is its OUTPUT, and the only output that makes the matrix
-    // well-formed is the left column, so left_i is used.
-    vector3d_cross_product((real_vector3d *)&out_context->left_i);
-
-    cm_x = *(float *)((uint8_t *)physics_definition + 0x0c);
-    cm_y = *(float *)((uint8_t *)physics_definition + 0x10);
-    cm_z = *(float *)((uint8_t *)physics_definition + 0x14);
+    // REWRITTEN (objdump 0x5074b0..0x507572, 2026-09-26): position, then forward/up, then left = forward x up,
+    //   then the translation = M * (-centre of mass), computed into a temporary and copied (the matrix being applied
+    //   contains the translation itself). The draft swapped object_get_position's arguments, dropped the forward
+    //   output of object_get_orientation and both inputs of the cross product, and transformed in place.
+    object_get_position((real_point3d *)&out_context->position_x, object_index);
+    object_get_orientation((real_vector3d *)&out_context->forward_i, object_index, (real_vector3d *)&out_context->up_i);
+    vector3d_cross_product((real_vector3d *)&out_context->left_i, (const real_vector3d *)&out_context->forward_i,
+                           (const real_vector3d *)&out_context->up_i);
     {
-        // Ghidra shows only the matrix argument and places the three negation stores AFTER the
-        // call, into the matrix own translation slot -- that is the compiler staging
-        // -center_of_mass there as scratch. The net effect, which every consumer relies on, is
-        // translation = M * (-center_of_mass), i.e. a model-space-to-world matrix whose origin is
-        // the centre of mass. See out/phase4/physics_types_notes.md section 7.
-        real_point3d negated_center_of_mass;
-        negated_center_of_mass.x = -cm_x;
-        negated_center_of_mass.y = -cm_y;
-        negated_center_of_mass.z = -cm_z;
-        matrix4x3_transform_point((real_point3d *)&out_context->position_x,
-            &negated_center_of_mass, (real_matrix4x3 *)&out_context->scale);
+        real_point3d point;
+        point.x = -*(float *)((uint8_t *)physics_definition + 0x0c);
+        point.y = -*(float *)((uint8_t *)physics_definition + 0x10);
+        point.z = -*(float *)((uint8_t *)physics_definition + 0x14);
+        matrix4x3_transform_point(&point, &point, (real_matrix4x3 *)&out_context->scale);
+        out_context->position_x = point.x;
+        out_context->position_y = point.y;
+        out_context->position_z = point.z;
     }
 
     return 1;

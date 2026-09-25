@@ -66,7 +66,7 @@ extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryB
     real_point3d *point); // 0x5013a0, this module (lower half)
 // blam-cc: ESI -> out_leaf_reference (writes leaf_index and cluster_index); point comes from
 // whatever bsp3d_node_find_leaf was last called with
-extern void scenario_location_from_point(void *out_leaf_reference); // 0x53e780, scenario module
+extern void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point); // 0x53e780; ESI out, EDX point
 extern void plane3d_negate(real_plane3d *out, real_plane3d *in); // 0x44da20, effects module
 // blam-cc: EAX -> object_index (the object whose chain is being walked)
 extern uint8_t object_collision_test_ray_nearby_chain(uint32_t object_index, uint32_t flags, uint32_t sanitized_flags,
@@ -312,7 +312,7 @@ uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, re
                     point->x += result->plane.normal.i * 0.00024414062f;
                     point->y += result->plane.normal.j * 0.00024414062f;
                     point->z += result->plane.normal.k * 0.00024414062f;
-                    scenario_location_from_point(last_leaf_ref);
+                    scenario_location_from_point((bsp_leaf_reference *)last_leaf_ref, point); // 0x505e97: ESI = leaf ref, EDX = point
                     if (last_leaf_ref->leaf_index == -1) {
                         float facing = delta->i * result->plane.normal.i + delta->j * result->plane.normal.j +
                             delta->k * result->plane.normal.k;
