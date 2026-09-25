@@ -20,7 +20,8 @@
 extern data_array *object_data; // 0x008603b0
 
 extern datum_index *noncollideable_cluster_first; // 0x008603c0
-extern void cluster_reference_remove_all(uint32_t handle, datum_index *link, void *cluster_list); // 0x552020, UNSURE: argument inferred
+extern datum_index *collideable_cluster_first;    // 0x008603d0
+extern void cluster_reference_remove_all(uint32_t handle, datum_index *link, void *cluster_list); // 0x552020, EBX list, stack (handle, link)
 extern void object_remove_from_sibling_list(datum_index *slot, uint32_t target_object_index); // 0x4f8fe0, EDX slot, EDI target
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
     // 0x4f6ec0; object handle in ECX, type mask on the stack. Verified against the body at
@@ -33,9 +34,10 @@ void object_unlink_cluster_or_notify_parent(uint32_t object_index) // blam-cc: E
     object *obj = header->data;
 
     if (obj->parent_object == k_datum_index_none) {
+        // 0x4f5e2e: EBX = 0x8603d0 (collideable group) when object flag 0x2000000 is set, else 0x8603c0
         cluster_reference_remove_all(object_index, (datum_index *)((uint8_t *)obj + 0x10c),
-                     &noncollideable_cluster_first);
-        // 0x4f5e3c mov eax,0x8603c0 / add ebx,0x10c / push ebx / push edi // UNSURE: see file header
+                     (obj->flags & 0x2000000) != 0 ? (void *)&collideable_cluster_first
+                                                   : (void *)&noncollideable_cluster_first);
         if ((header->flags & _object_header_in_pvs_pass_bit) != 0) {
             header = (object_header *)object_data->data + (object_index & 0xffff);
             if ((header->flags & _object_header_active_bit) != 0) {
