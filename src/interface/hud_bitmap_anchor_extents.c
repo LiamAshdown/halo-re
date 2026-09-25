@@ -10,7 +10,7 @@
 // Callers: hud_draw_bitmap_element (0x4acad0), hud_draw_bitmap_at (0x4acbb0) and
 // hud_draw_static_element (0x4ac6f0).
 // register convention: CL pixel_uvs, ESI bitmap, EDX uv rect, EAX out; anchor on the stack.
-//   // blam-cc: pixel_uvs -> CL, bitmap -> ESI, uv -> EDX, out_extents -> EAX, anchor -> stack
+//   // blam-cc: CL -> pixel_uvs, ESI -> bitmap, EDX -> uv, EAX -> out_extents, stack -> anchor
 
 #include "tags.h"
 #include "memory.h"
@@ -23,7 +23,7 @@
 #include "items.h"
 #include "interface.h"
 
-// blam-cc: pixel_uvs -> CL, bitmap -> ESI, uv -> EDX, out_extents -> EAX, anchor -> stack
+// blam-cc: CL -> pixel_uvs, ESI -> bitmap, EDX -> uv, EAX -> out_extents, stack -> anchor
 // Size of one HUD bitmap quad in screen pixels, laid out around its anchor point. uv is the
 // {u0, u1, v0, v1} source rectangle: already in pixels for an interface bitmap (pixel_uvs), or
 // normalized, in which case the span is multiplied by the bitmap width and height.

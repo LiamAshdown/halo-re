@@ -162,6 +162,32 @@ _FULL = {"eax": "eax", "ax": "eax", "al": "eax", "ah": "eax", "ecx": "ecx", "cx"
         "esi": "esi", "si": "esi", "edi": "edi", "di": "edi"}
 _regs_in = lambda s: {_FULL[x] for x in re.findall(r"\b(e?[abcd]x|[abcd][lh]|e?si|e?di)\b", s)}
 
+_PE = None
+def _read_dword(va):
+    """a dword of halo.exe at virtual address va (None outside the image)"""
+    global _PE
+    if _PE is None:
+        d = open(os.path.join(ROOT, "bin", "halo.exe"), "rb").read()
+        pe = struct.unpack_from("<I", d, 0x3c)[0]; n = struct.unpack_from("<H", d, pe + 6)[0]
+        so = pe + 24 + struct.unpack_from("<H", d, pe + 20)[0]
+        _PE = (d, [struct.unpack_from("<8sIIII", d, so + i * 40) for i in range(n)])
+    d, secs = _PE
+    for name, vs, va_, rs, ro in secs:
+        if va_ <= va - 0x400000 < va_ + max(vs, rs) and va - 0x400000 - va_ + 4 <= rs:
+            return struct.unpack_from("<I", d, ro + va - 0x400000 - va_)[0]
+    return None
+
+def _jump_table_targets(args, lo, hi):
+    """case addresses of `jmp DWORD PTR [reg*4+0xTABLE]`: consecutive table entries that point into [lo, hi)"""
+    m = re.search(r"\[\s*e\w\w\*4\+0x([0-9a-f]+)\s*\]", args)
+    if not m: return []
+    table, out = int(m.group(1), 16), []
+    for i in range(256):
+        v = _read_dword(table + 4 * i)
+        if v is None or not (lo <= v < hi): break
+        out.append(v)
+    return out
+
 def _insns_of(addr, end):
     out = subprocess.run([OBJDUMP, "-d", "-M", "intel", "--no-show-raw-insn", f"--start-address=0x{addr:x}",
                           f"--stop-address=0x{end:x}", os.path.join(ROOT, "bin", "halo.exe")], capture_output=True, text=True).stdout
@@ -213,6 +239,12 @@ def live_in(addr, size, _depth=0):
     end = pop_limit(addr, size)
     ins = _insns_of(addr, end)
     if not ins: return []
+    # switch jump tables: their cases may lie past the guessed end (hud_bitmap_anchor_extents' five cases are the
+    # only code that writes through its EAX output pointer); extend the range to cover every case
+    cases = [c for _, op, a in ins if op == "jmp" and "*4+" in a for c in _jump_table_targets(a, addr, addr + size + 8192)]
+    if cases and max(cases) >= end:
+        end = max(cases) + 0x200
+        ins = _insns_of(addr, end)
     popped = {a for _, op, a in ins if op == "pop"}
     idx = {a: k for k, (a, _, _) in enumerate(ins)}
     succ, use, dfn = [], [], []
@@ -224,6 +256,8 @@ def live_in(addr, size, _depth=0):
             if j and int(j.group(1), 16) in idx: s.append(idx[int(j.group(1), 16)])
             elif j:                                       # tail jump into another function: its inputs are ours
                 pass
+            else:                                         # a switch: every case is a successor
+                s += [idx[c] for c in _jump_table_targets(args, addr, end) if c in idx]
         else:
             if k + 1 < len(ins): s.append(k + 1)
             if op.startswith("j") or op.startswith("loop"):
@@ -343,6 +377,31 @@ def void_functions_with_eax_readers(addrs):
             if parts and re.fullmatch(r"eax|ax|al", parts[0]): break          # overwritten first
             if op in ("call", "ret", "jmp") or op.startswith("j"): break
     return used
+
+def functions_with_fpu_result_readers(addrs):
+    """entry addresses (of those given) whose call sites mostly consume st(0) right after the call, before loading
+    anything new onto the x87 stack: the original returns a float there. A caller may also keep its OWN values on
+    the x87 stack across a call and use them afterwards (0x56eea0 does around object_get_root_object_velocities),
+    so one such site is not enough"""
+    dis = os.path.join(ROOT, "build", "halo_text.dis")
+    if not os.path.exists(dis): return set()
+    lines = open(dis).read().splitlines(); sites = collections.Counter(); hits = collections.Counter()
+    consume = re.compile(r"^(fstp?|fist?p?|fisttp|f(add|sub|subr|mul|div|divr)p?|fu?comp{0,2}|fucomi?p?|fcomi?p?|fxch|fchs|fabs|fsqrt|"
+                         r"fsin|fcos|fptan|fpatan|fscale|frndint|ftst|fxam)$")
+    for i, l in enumerate(lines):
+        m = re.search(r"\tcall\s+0x([0-9a-f]+)$", l)
+        if not m or int(m.group(1), 16) not in addrs: continue
+        sites[int(m.group(1), 16)] += 1
+        for j in range(i + 1, min(i + 8, len(lines))):
+            mm = re.match(r"\s*[0-9a-f]+:\s+(\w+)\s*(.*)", lines[j])
+            if not mm: break
+            op = mm.group(1)
+            if op.startswith("fld") or op in ("fild", "fldz", "fld1", "fldpi", "fldl2e", "fldln2", "fnstsw", "fstsw", "fwait", "fnclex"):
+                if op not in ("fnstsw", "fstsw", "fwait", "fnclex"): break
+                continue
+            if consume.match(op): hits[int(m.group(1), 16)] += 1; break
+            if op in ("call", "ret", "jmp") or op.startswith("j"): break
+    return {a for a, k in hits.items() if 2 * k >= sites[a]}
 
 def eax_return_register(f):
     """if every ret of the original is preceded by 'mov eax, R' where R is one of its register arguments and R is
@@ -488,10 +547,10 @@ def main():
     cache = json.load(open(cache_p)) if os.path.exists(cache_p) else {}
     key = lambda f: f"{f['addr']:x}:{f['size']}"
     FUNC_SIZES.update({f["addr"]: f["size"] for f in funcs.values()})
-    todo = [f for f in funcs.values() if key(f) not in cache or not isinstance(cache[key(f)], dict) or cache[key(f)].get("v") != 11]
+    todo = [f for f in funcs.values() if key(f) not in cache or not isinstance(cache[key(f)], dict) or cache[key(f)].get("v") != 12]
     with ThreadPoolExecutor(16) as ex:
         for f, res in zip(todo, ex.map(lambda f: (sorted(ret_cleanup(f["addr"], f["size"])), live_in(f["addr"], f["size"])), todo)):
-            cache[key(f)] = {"rets": res[0], "live_in": res[1], "v": 11}
+            cache[key(f)] = {"rets": res[0], "live_in": res[1], "v": 12}
     json.dump(cache, open(cache_p, "w"))
     for f in funcs.values(): f["rets"] = cache[key(f)]["rets"]; f["live_in"] = cache[key(f)]["live_in"]
     # reachability over the DLL's own C-to-C calls
@@ -526,6 +585,8 @@ def main():
     eax_returns = {}; passthru = []
     used_addrs = void_functions_with_eax_readers({f["addr"] for f in funcs.values() if f["ret"] == "void"})
     void_used = {n for n, f in funcs.items() if f["addr"] in used_addrs}
+    fpu_used = functions_with_fpu_result_readers({f["addr"] for f in funcs.values() if f["ret"] != "float"})
+    fpu_readers = {n for n, f in funcs.items() if f["addr"] in fpu_used}
     image = open(os.path.join(ROOT, "bin", "halo.exe"), "rb").read()
     def looks_like_entry(f):
         # the 5-byte patch must fit inside the function, and the entry must really start one: MSVC aligns functions
@@ -543,6 +604,9 @@ def main():
         if mapped != f["live_in"]:
             skipped["register arguments differ from the original's live-in registers"].append(f"{n} (notes {mapped}, binary {f['live_in']})"); continue
         if len(f["rets"]) != 1: skipped[f"original has {len(f['rets'])} distinct ret forms"].append(n); continue
+        if n in fpu_readers:
+            # weapon_get_zoom_fov_resolved returned void while its callers fmul'd the float it leaves in st(0)
+            skipped["not a float in C, but callers use a float the original leaves on the x87 stack"].append(n); continue
         if f["ret"] == "void" and n in void_used:
             r_ = eax_return_register(f)
             if r_ is None:

@@ -22,6 +22,12 @@
 // do with a weapon zoom substitution is not recoverable from this function alone; it is
 // transcribed literally rather than renamed to something more specific.
 
+// FIXED (objdump + in game): the original returns the callee's float on the x87 stack; every caller
+//   consumes it (fmul / fstp st(0) right after the call at 0x40da4a, 0x40dcf8, 0x40eae8, 0x40ebbf). The
+//   draft returned void, so callers scaled AI values by FPU junk (in game: NPCs teleporting).
+//   NAMING NOTE: the table at Globals+0x11c holds four floats per row, one per difficulty level, and
+//   0x6b0b80+0xe is the current difficulty; this is a difficulty-scaled AI parameter lookup (ECX = the
+//   parameter row, AX = a team whose enemy bit swaps the row via 0x657470), not a weapon zoom.
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -41,13 +47,12 @@ extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification)
 // as an enemy of team 1, first substitutes zoom_table_index through
 // weapon_zoom_index_substitutions (falling back to the multiplayer-style call if the substitute is
 // -1); either way, the magnification used is *(int16 *)(local_zoom_state + 0xe).
-void weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index)
+real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index)
 {
     int16_t magnification = *(int16_t *)((uint8_t *)local_zoom_state + 0xe);
 
     if (current_game_engine != 0) {
-        weapon_get_zoom_fov(zoom_table_index, 1);
-        return;
+        return weapon_get_zoom_fov(zoom_table_index, 1);
     }
 
     if (substitution_check_index >= 0 && substitution_check_index < 10) {
@@ -59,13 +64,12 @@ void weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution
             int16_t substitute = weapon_zoom_index_substitutions[(uint16_t)zoom_table_index];
 
             if (substitute == -1) {
-                weapon_get_zoom_fov(zoom_table_index, 1);
-                return;
+                return weapon_get_zoom_fov(zoom_table_index, 1);
             }
             zoom_table_index = substitute;
         }
     }
-    weapon_get_zoom_fov(zoom_table_index, magnification);
+    return weapon_get_zoom_fov(zoom_table_index, magnification);
 }
 
 #if 0
