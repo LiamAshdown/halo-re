@@ -874,15 +874,6 @@
   ]
  },
  {
-  "caller": "src\\ai\\actor_get_aim_from_position.c",
-  "callee": "unit_clamp_direction_to_aim_or_look_bounds",
-  "definition": "src\\units\\unit_clamp_direction_to_aim_or_look_bounds.c",
-  "declared": "extern void unit_clamp_direction_to_aim_or_look_bounds(void);",
-  "problems": [
-   "0 parameters declared, 4 defined"
-  ]
- },
- {
   "caller": "src\\ai\\actor_get_body_axis_vector.c",
   "callee": "unit_get_forward_vector_or_marker_normal",
   "definition": "src\\units\\unit_get_forward_vector_or_marker_normal.c",
@@ -17335,15 +17326,6 @@
   "declared": "extern void unit_dispatch_reaction_animation(int16_t reaction_code);",
   "problems": [
    "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_update.c",
-  "callee": "unit_clamp_direction_to_aim_or_look_bounds",
-  "definition": "src\\units\\unit_clamp_direction_to_aim_or_look_bounds.c",
-  "declared": "extern uint8_t unit_clamp_direction_to_aim_or_look_bounds(uint32_t unit_index, real_vector3d *world_direction,\n                                                          uint32_t which_bounds);",
-  "problems": [
-   "3 parameters declared, 4 defined"
   ]
  },
  {

@@ -34,11 +34,12 @@ extern double sqrt(double x); // a single x87 FSQRT instruction in the original 
 extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up); // 0x4f6970
 extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m); // 0x4cbec0
 
+// FIXED (objdump 0x5697a0): the original reads exactly two stack arguments ([ebp+8] the direction,
+//   [ebp+0xc] the flag) and writes the clamped direction back through the first (EAX = ECX = [ebp+8] at the
+//   final matrix4x3_transform_normal call). The draft's third `out` parameter read the caller's stack junk.
+// blam-cc: EDI -> unit_index, stack -> world_direction, use_aiming_bounds
 uint8_t unit_clamp_direction_to_aim_or_look_bounds(uint32_t unit_index, real_vector3d *world_direction,
-                                                   uint8_t use_aiming_bounds, real_vector3d *out)
-    // blam-cc: unaff_EDI -> unit_index, param_1 -> world_direction, param_2 -> use_aiming_bounds,
-    //   out is the transform's own EAX output (matrix4x3_transform_normal's target) -- modelled
-    //   as an explicit out-parameter since the original writes through it via the final call.
+                                                   uint8_t use_aiming_bounds)
 {
     object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
@@ -106,7 +107,7 @@ pitch_check:
     float sin_yaw = (float)fsin((double)yaw);
     float sin_pitch = (float)fsin((double)pitch);
     real_vector3d local_dir = { cos_yaw * cos_pitch, sin_yaw * cos_pitch, sin_pitch };
-    matrix4x3_transform_normal(out, &local_dir, &m);
+    matrix4x3_transform_normal(world_direction, &local_dir, &m); // in place
     return clamped;
 }
 

@@ -77,7 +77,8 @@ def parse_cc(text, param_names, type_words=None):
     stack_order = [alias[w] for w in re.split(r"[,/]\s*", so.group(1).strip()) if w.strip() in alias] if so else []
     return regs, True, widths, stack_order
 
-FUNC_SIZES = {}          # entry address -> size, from the src headers (filled in main)
+FUNC_SIZES = {}
+STACK_ARGS = {}          # entry address -> stack argument dwords its callers pass (from add esp,N after the call)          # entry address -> size, from the src headers (filled in main)
 import threading
 _LIVE_MEMO, _TLS = {}, threading.local()   # memo shared (complete results only); in-progress set per thread
 
@@ -464,6 +465,32 @@ def pop_limit(addr, size):
     ents = known_entries(); i = bisect.bisect_right(ents, addr)
     return max(addr + size, min(ents[i] if i < len(ents) else addr + size + 4096, addr + size + 4096))
 
+def stack_arg_count(addr, size):
+    """number of 4-byte stack arguments the original reads, or None when it cannot be tracked"""
+    ins = _insns_of(addr, pop_limit(addr, size))
+    delta, ebp_delta, top = 0, None, 0     # delta = bytes pushed since entry (return address at [esp+delta])
+    for a, op, args in ins:
+        a_ = args.replace(" ", "")
+        for m in re.finditer(r"\[esp\+0x([0-9a-f]+)\]", a_):
+            off = int(m.group(1), 16) - delta
+            if off >= 4: top = max(top, (off - 4) // 4 + 1)
+        if ebp_delta is not None:
+            for m in re.finditer(r"\[ebp\+0x([0-9a-f]+)\]", a_):
+                off = int(m.group(1), 16) - ebp_delta
+                if off >= 4: top = max(top, (off - 4) // 4 + 1)
+        if op == "push": delta += 4
+        elif op == "pop": delta -= 4
+        elif op == "pushf": delta += 4
+        elif op == "popf": delta -= 4
+        elif op == "sub" and a_.startswith("esp,0x"): delta += int(a_[6:], 16)
+        elif op == "add" and a_.startswith("esp,0x"): delta -= int(a_[6:], 16)
+        elif op == "mov" and a_ == "ebp,esp": ebp_delta = delta
+        elif op in ("ret", "jmp") or op.startswith("j") or op == "call" and not re.fullmatch(r"0x[0-9a-f]+", args):
+            if op in ("ret", "jmp"): break
+        if op == "call" and a_ == "0x628240": return None          # _chkstk: frame size in EAX, not trackable here
+        if delta < 0: return None
+    return top
+
 def ret_cleanup(addr, size):
     """the ret / ret N forms of the original. The header sizes come from Ghidra and are sometimes short of the real
     end, so when none lies inside, keep reading up to the next known function entry (at most 4 KB further)"""
@@ -562,6 +589,20 @@ def main():
             cache[key(f)] = {"rets": res[0], "live_in": res[1], "v": 12}
     json.dump(cache, open(cache_p, "w"))
     for f in funcs.values(): f["rets"] = cache[key(f)]["rets"]; f["live_in"] = cache[key(f)]["live_in"]
+    # stack arguments the callers actually pass: the `add esp,N` that follows a call to a caller-cleans function
+    # (most common value over all call sites that have one)
+    dis_p = os.path.join(ROOT, "build", "halo_text.dis")
+    if os.path.exists(dis_p):
+        dl = open(dis_p).read().splitlines(); passed = collections.defaultdict(collections.Counter)
+        want = {f["addr"] for f in funcs.values()}
+        for i, l in enumerate(dl):
+            m = re.search(r"	call\s+0x([0-9a-f]+)$", l)
+            if not m or int(m.group(1), 16) not in want: continue
+            for j in range(i + 1, min(i + 4, len(dl))):
+                mm = re.search(r"	add\s+esp,0x([0-9a-f]+)$", dl[j])
+                if mm: passed[int(m.group(1), 16)][int(mm.group(1), 16) // 4] += 1; break
+                if re.search(r"	(call|ret|jmp|j[a-z]+)", dl[j]): break
+        for a, c in passed.items(): STACK_ARGS[a] = c.most_common(1)[0][0]
     # reachability over the DLL's own C-to-C calls
     defined = {"_" + n for n in funcs}
     refs = {n: set(coff_undefined(f["obj"])) if os.path.exists(f["obj"]) else set() for n, f in funcs.items()}
@@ -670,6 +711,13 @@ def main():
         body += ["    pop ebp", f"    ret {cleanup}" if cleanup else "    ret"]
         stack_bytes = sum(x["size"] for x in stack_params)
         if cleanup and cleanup != stack_bytes: skipped["ret N disagrees with the stack parameters"].append(f"{n} (ret {cleanup}, params {stack_bytes})"); continue
+        # a caller-cleans function cannot show its argument count through ret N; the callers' own `add esp,N` does.
+        # More C stack parameters than the callers pass means the rewrite reads junk from the caller's frame
+        # (unit_clamp_direction_to_aim_or_look_bounds had a phantom third `out` and wrote through it)
+        if not cleanup and stack_bytes:
+            have = STACK_ARGS.get(f["addr"])
+            if have is not None and stack_bytes // 4 > have:
+                skipped["C has more stack parameters than the original reads"].append(f"{n} (C {stack_bytes // 4}, binary {have})"); continue
         asm += body
         table.append((n, f))
     asm += ["END", ""]
