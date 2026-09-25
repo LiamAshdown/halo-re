@@ -38,7 +38,7 @@ extern data_array *object_data; // 0x008603b0
 extern uint8_t *bsp_cluster_pvs_source; // 0x0087a478, same declaration as objects_update.c and
     // object_set_cluster_and_parent.c: the PVS dwords start at +0x18, not at the base
 extern data_array *unknown_data_0087a480; // 0x0087a480, UNSURE: see file header
-extern char *zone_marker_name_0066bfa0; // 0x0066bfa0, UNSURE: a fixed marker-name string
+extern char zone_marker_name_0066bfa0[]; // FIXED: an array ("head"); its address is the name -- // 0x0066bfa0, UNSURE: a fixed marker-name string
 
 extern int16_t object_get_root_parent_placement(uint32_t object_index,
     object_placement_cursor *out_cursor); // 0x4f5f70, blam-cc: EAX -> object_index, ESI -> out_cursor
