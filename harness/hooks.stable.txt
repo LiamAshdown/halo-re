@@ -1,4 +1,4 @@
-# Stable set: 1517 functions (every hookable one), behaviour-checked in game (2026-09-25)
+# Stable set: 1535 functions, behaviour-checked in game (2026-09-25)
 bit_vector_or
 bounded_ramp_profile_build
 bounded_ramp_profile_evaluate
@@ -1516,3 +1516,21 @@ unit_is_child_seated_at_named_marker
 unit_named_seat_occupant_in_zone
 unit_seat_index_is_valid
 unit_set_or_test_seat_and_weapon_label
+camera_third_person_compute_pov
+main_menu_play_title_music
+first_person_camera_apply_weapon_offset
+unit_get_camera_position
+unit_project_onto_aiming_axis
+looping_sound_new
+chimera__motion_sensor_update
+sound_looping_start_ambient
+first_person_camera_command_for_unit
+chimera__spectate_fp_camera_position
+object_get_node_local_transform
+orbiting_camera_update
+first_person_camera_deterministic
+player_check_assassination_opportunity
+first_person_camera_for_unit_and_vector
+unit_update_look_delta_controls
+device_frontfacing
+unit_point_within_look_cone
