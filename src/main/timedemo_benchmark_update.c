@@ -75,7 +75,7 @@ extern void main_queue_map_change(char *map_name);                  // this modu
     // blam-cc: EAX -> map_name
 extern char hs_compile_and_evaluate(const char *command);           // 0x484400, foreign (hs)
 extern uint32_t user_profile_signin_state_is_valid(void);           // 0x551620, foreign (game), UNSURE name
-extern void *FUN_00624186(const char *path, const char *mode);      // 0x624186, CRT fopen wrapper
+// fopen: <stdio.h>, resolved to the game CRT at 0x624186      // 0x624186, CRT fopen wrapper
 extern uint32_t __stdcall GetModuleFileNameA(void *module, char *path, uint32_t size); // import 0x63a110
 extern int32_t __stdcall GetDateFormatA(uint32_t locale, uint32_t flags, const void *time,
     const char *format, char *out, int32_t size);                   // import 0x63a104
@@ -196,7 +196,7 @@ void timedemo_benchmark_update(void)
         break;
     case _timedemo_step_report:
         main_globals_data.quit = 1;
-        file = (FILE *)FUN_00624186("timedemo.txt", "a");
+        file = (FILE *)fopen("timedemo.txt", "a");
         GetModuleFileNameA(0, module_path, 0x104);
         fseek(file, 0, SEEK_END);
         GetDateFormatA(0x400 /* LOCALE_USER_DEFAULT */, 0, 0, 0, date, 0x20);

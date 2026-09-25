@@ -32,7 +32,7 @@ extern uint8_t player_update_log_flags;                 // 0x00710310, bit1 = wr
 extern char *player_update_history_log_path;            // 0x006997f8, "ClientPlayerUpdateHistory.log"
 extern char player_update_log_file_mode_string[];        // 0x0066b87c, "a"
 
-extern void *FUN_00624186(const char *path, char *mode); // 0x624186, fopen-shaped CRT wrapper
+// fopen: <stdio.h>, resolved to the game CRT at 0x624186 // 0x624186, fopen-shaped CRT wrapper
 
 // Formats `format` (with the trailing varargs) into a scratch buffer if category_flags is fully
 // covered by the selected category mask, then appends it to ClientPlayerUpdateHistory.log when
@@ -55,7 +55,7 @@ void player_update_history_log_write(uint32_t category_flags, int32_t use_filter
     if ((player_update_log_flags & 2) == 0) {
         return;
     }
-    file = (FILE *)FUN_00624186(player_update_history_log_path, player_update_log_file_mode_string);
+    file = (FILE *)fopen(player_update_history_log_path, player_update_log_file_mode_string);
     if (file == 0) {
         return;
     }

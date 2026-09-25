@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include <string.h>
 
-extern void *FUN_00624186(const char *path, char *mode); // 0x00624186, lib:crt (_fsopen wrapper), not this module
+// fopen: <stdio.h>, resolved to the game CRT at 0x624186 // 0x00624186, lib:crt (_fsopen wrapper), not this module
 extern void hs_format_function_signature(int16_t function_index, char *out); // 0x00484300, this batch
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
@@ -27,7 +27,7 @@ void hs_doc(void)
     int16_t i;
     char buffer[2048];
 
-    file = FUN_00624186("hs_doc.txt", "w");
+    file = fopen("hs_doc.txt", "w");
     for (i = 0; i < k_hs_function_count; i = i + 1) {
         hs_format_function_signature(i, buffer);
         fprintf(file, "%s\r\n", buffer);

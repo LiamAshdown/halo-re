@@ -26,7 +26,7 @@ extern char network_ban_file_mode_string[]; // 0x0065fd30, UNSURE: exact text un
 
 extern char *network_log_path_resolve(char *requested_path); // this batch, 0x4e40a0
 extern char network_banlist_full_path[]; // 0x0071c308, built by sv_banlist_file
-extern void *FUN_00624186(const char *path, char *mode); // 0x624186, fopen-shaped CRT wrapper
+// fopen: <stdio.h>, resolved to the game CRT at 0x624186 // 0x624186, fopen-shaped CRT wrapper
 
 // Writes the whole in-memory ban list back out to banned<suffix>.txt as CSV: name, cd key hash,
 // ban count, then either "--" for an indefinite ban or a "YYYY-MM-DD HH:MM:SS" expiry date.
@@ -42,7 +42,7 @@ void network_banlist_save(void)
     char date_buf[31];
     time_t expiry;
 
-    file = (FILE *)FUN_00624186(network_log_path_resolve(network_banlist_full_path),
+    file = (FILE *)fopen(network_log_path_resolve(network_banlist_full_path),
                                  network_ban_file_mode_string);
     if (file != 0) {
         fprintf(file, "# Name, CD key hash, ban count, ban end date\r\n");

@@ -28,7 +28,7 @@ extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 extern data_array *object_headers;                          // 0x008603b0
 extern tag_instance *tag_instances;                          // 0x0087bc14
 
-extern real weapon_clamp_zoom_fov(datum_index weapon, real default_pitch); // 0x4c2e50, not in this batch; UNSURE signature
+extern real weapon_clamp_zoom_fov(datum_index item_index, int16_t zoom_level, real base_fov); // 0x4c2e50, DX zoom, stack (item, fov)
 
 // blam-cc: AX -> local_player_index
 // Returns the maximum look-pitch angle for the unit local_player_index is driving: the weapon
@@ -48,7 +48,8 @@ real game_engine_get_max_look_pitch(int16_t local_player_index)
         uint8_t *tag_data = (uint8_t *)tag_instances[(uint16_t)o->definition_tag].data;
 
         if (u->current_weapon_index != -1 && u->weapons[u->current_weapon_index] != k_datum_index_none) {
-            result = weapon_clamp_zoom_fov(u->weapons[u->current_weapon_index], *(real *)(tag_data + 0x1a0));
+            result = weapon_clamp_zoom_fov(u->weapons[u->current_weapon_index], look->desired_zoom_level, // 0x471ffc: DX = look+0x24
+                                           *(real *)(tag_data + 0x1a0));
         } else {
             result = *(real *)(tag_data + 0x1a0);
         }

@@ -17,7 +17,7 @@ extern uint8_t network_player_update_log_enabled; // 0x00710320
 extern char *network_player_update_history_log_path; // 0x0069a2c8, "ServerPlayerUpdateHistory.log"
 extern char network_player_update_log_file_mode_string[]; // 0x0066b87c, "a"
 
-extern void *FUN_00624186(const char *path, char *mode); // 0x624186, fopen-shaped CRT wrapper
+// fopen: <stdio.h>, resolved to the game CRT at 0x624186 // 0x624186, fopen-shaped CRT wrapper
 
 // Formats format (with its trailing varargs) into a scratch buffer, then appends it to
 // ServerPlayerUpdateHistory.log when server player-update-history logging is enabled.
@@ -31,7 +31,7 @@ void network_player_update_history_log_write(const char *format, ...)
     vsprintf(buffer, format, args);
     va_end(args);
     if (network_player_update_log_enabled == 1) {
-        file = (FILE *)FUN_00624186(network_player_update_history_log_path,
+        file = (FILE *)fopen(network_player_update_history_log_path,
             network_player_update_log_file_mode_string);
         if (file != 0) {
             fprintf(file, buffer);

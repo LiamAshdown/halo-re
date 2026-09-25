@@ -20,7 +20,7 @@ extern char message_delta_config_write_mode_string[];           // 0x0066e674, f
 
 extern void message_delta_definitions_teardown_field_bindings(void); // 0x4ec750, this module
 extern void message_delta_parameters_protocol_free_registered(void); // 0x4ebd50, this module
-extern void *FUN_00624186(const char *path, char *mode); // 0x624186, fopen-shaped CRT wrapper
+extern void *fopen(const char *path, char *mode); // 0x624186, fopen-shaped CRT wrapper
 extern int32_t fprintf(void *stream, const char *format, ...);
 extern void fclose(void *stream);
 
@@ -37,7 +37,7 @@ void message_delta_parameters_protocol_dump_to_config_file(void)
         message_delta_unknown_table_0069a304[i][0] = 0;
     }
     if (message_delta_parameters_enabled == 1) {
-        file = FUN_00624186("parameters.cfg", message_delta_config_write_mode_string);
+        file = fopen("parameters.cfg", message_delta_config_write_mode_string);
         if (file != 0) {
             fprintf(file, message_delta_config_text_buffer);
             fclose(file);

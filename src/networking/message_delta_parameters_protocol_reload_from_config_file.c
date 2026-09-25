@@ -18,7 +18,7 @@ extern uint8_t message_delta_parameters_enabled; // 0x0071cfa8
 extern char message_delta_config_mode_string[];  // 0x0066e660, fopen mode, UNSURE exact text
 extern char message_delta_config_text_buffer[];  // 0x00860b40, shared parameters.cfg text
 
-extern void *FUN_00624186(const char *path, char *mode); // 0x624186, fopen-shaped CRT wrapper
+extern void *fopen(const char *path, char *mode); // 0x624186, fopen-shaped CRT wrapper
 extern int32_t fseek(void *stream, int32_t offset, int32_t origin);
 extern int32_t ftell(void *stream);
 extern int32_t fread(void *buffer, int32_t size, int32_t count, void *stream);
@@ -32,7 +32,7 @@ void message_delta_parameters_protocol_reload_from_config_file(void)
     int32_t length;
 
     if (message_delta_parameters_enabled == 1) {
-        file = FUN_00624186("parameters.cfg", message_delta_config_mode_string);
+        file = fopen("parameters.cfg", message_delta_config_mode_string);
         if (file != 0) {
             fseek(file, 0, 2);
             length = ftell(file);

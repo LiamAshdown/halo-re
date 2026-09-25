@@ -23,7 +23,7 @@ extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern datum_index unit_get_weapon_object_index(void); // 0x569970, UNSURE signature
+extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); // 0x569970, EAX unit, CX slot
 
 // blam-cc: EAX -> actor_index
 // Returns the weapon object index of the actor's currently perceived hostile unit's selected
@@ -50,7 +50,9 @@ datum_index actor_get_threat_weapon_object_index(datum_index actor_index)
     if (self->unit_index != (datum_index)k_datum_index_none) {
         Actor *actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
         if ((*(uint8_t *)actor_tag & 0x40) == 0) {
-            return unit_get_weapon_object_index();
+            // 0x42834a: EAX = unit_index, CX = that unit's current weapon slot (+0x2f2); tail jmp
+            object *own_unit = ((object_header *)object_data->data)[self->unit_index & 0xffff].data;
+            return unit_get_weapon_object_index(self->unit_index, *(int16_t *)((uint8_t *)own_unit + 0x2f2));
         }
     }
     return result;

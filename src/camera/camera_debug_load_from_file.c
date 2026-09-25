@@ -23,7 +23,7 @@
 
 extern director directors[1]; // 0x006ac560
 
-extern void *FUN_00624186(const char *path, const char *mode);   // 0x624186, CRT fopen wrapper
+extern void *fopen(const char *path, const char *mode);   // 0x624186, CRT fopen wrapper
 extern int32_t fscanf(void *file, const char *format, ...);       // 0x624435, CRT
 extern int32_t fclose(void *file);                                // 0x6241e5, CRT
 // blam-cc: EAX -> out, ECX -> direction, EDX -> position
@@ -47,7 +47,7 @@ void camera_debug_load_from_file(void)
     Vector3D computed_up;
     Vector3D forward;
     Point3D position;
-    void *file = FUN_00624186("camera.txt", "r");
+    void *file = fopen("camera.txt", "r");
 
     if (file == 0) {
         return;

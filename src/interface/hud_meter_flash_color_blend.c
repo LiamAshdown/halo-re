@@ -29,7 +29,7 @@ extern double fmod(double x, double y); // 0x628cca, _CIfmod
 
 extern game_time_globals *game_time; // 0x006f1d6c
 
-extern ColorARGB *color_argb_int_to_real(ColorARGBInt packed, ColorARGB *out); // 0x43f5a0, blam-cc: ECX packed, EAX out
+extern void color_argb_int_to_real(ColorARGB *out, uint32_t packed); // 0x43f5a0, blam-cc: EAX out, ECX packed
 extern uint32_t color_pack_argb_from_real(ColorARGB *color); // 0x497900
 extern void vector3d_lerp(real_vector3d *out, real_vector3d *a, real_vector3d *b, real t); // 0x4cd8c0, blam-cc: EAX out, ECX a, EDX b
 
@@ -52,13 +52,14 @@ uint32_t hud_meter_flash_color_blend(const hud_flash_parameters *flash, int32_t 
     float flash_time;
 
     if (flash->flash_period == 0.0f || flash->flash_length == 0.0f) {
-        return color_pack_argb_from_real(color_argb_int_to_real(flash->default_color, &default_color));
+        color_argb_int_to_real(&default_color, *(uint32_t *)&flash->default_color);
+        return color_pack_argb_from_real(&default_color); // 0x4abbb1: the callee leaves EAX = out
     }
 
     cycle_time = (float)fmod((float)(game_time->game_time - start_time) * (1.0f / 30.0f),
                              flash->flash_period);
-    color_argb_int_to_real(flash->default_color, &default_color);
-    color_argb_int_to_real(flash->flashing_color, &flashing_color);
+    color_argb_int_to_real(&default_color, *(uint32_t *)&flash->default_color);
+    color_argb_int_to_real(&flashing_color, *(uint32_t *)&flash->flashing_color);
 
     if ((float)flash->number_of_flashes * (flash->flash_delay + flash->flash_length) <= cycle_time) {
         return color_pack_argb_from_real(&default_color);

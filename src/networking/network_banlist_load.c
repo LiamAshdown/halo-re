@@ -62,7 +62,7 @@ extern char network_ban_file_read_mode_string[];      // 0x0066d81c, "rt"
 extern char network_ban_indefinite_marker[];          // 0x0066b038, "--"
 
 extern char *network_log_path_resolve(char *requested_path); // this module, 0x4e40a0
-extern void *FUN_00624186(const char *path, char *mode);     // 0x624186, fopen-shaped CRT wrapper
+// fopen: <stdio.h>, resolved to the game CRT at 0x624186     // 0x624186, fopen-shaped CRT wrapper
 extern char *FUN_006257e0(char *s, int ch);                  // 0x6257e0, foreign, strchr-shaped
 extern void string_trim_whitespace(char **string_ptr);       // this module, 0x4e4040, blam-cc: EDI -> string_ptr
 extern ban_list_entry *ban_list_get_or_add_entry(char *name, char *cd_key_hash); // this module, 0x4e3890
@@ -87,7 +87,7 @@ void network_banlist_load(void)
     long ban_count;
     ban_list_entry *entry;
 
-    file = (FILE *)FUN_00624186(network_log_path_resolve(network_banlist_full_path),
+    file = (FILE *)fopen(network_log_path_resolve(network_banlist_full_path),
                                  network_ban_file_read_mode_string);
     if (file == 0) {
         return;

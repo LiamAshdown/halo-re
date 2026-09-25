@@ -45,7 +45,7 @@ extern void widget_instance_relink_focus(widget_instance *widget, widget_instanc
 extern void widget_instance_close_and_restore_previous(widget_instance *widget); // 0x49c3e0; blam-cc: EAX -> widget (objdump 0x49a6fb)
 extern widget_instance *widget_reopen_as_root_with_history(widget_instance *widget, datum_index open_tag); // 0x49c4c0, per src/interface/widget_close.c
 extern void sound_play_new(datum_index sound_tag, void *position, int32_t unknown1, int32_t unknown2,
-                          int32_t unknown3, int32_t unknown4, int32_t unknown5); // 0x549af0, UNSURE signature
+                          void *callback_data, int32_t unknown4, int32_t unknown5); // 0x549af0, UNSURE signature
 
 // Executes the set of actions encoded in a widget event/list-item definition (scenario script
 // call, run_function callback, close/open/replace/go-back widget actions, focus change, sound)

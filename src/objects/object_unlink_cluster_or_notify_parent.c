@@ -21,7 +21,7 @@ extern data_array *object_data; // 0x008603b0
 
 extern datum_index *noncollideable_cluster_first; // 0x008603c0
 extern void cluster_reference_remove_all(uint32_t handle, datum_index *link, void *cluster_list); // 0x552020, UNSURE: argument inferred
-extern void object_remove_from_sibling_list(uint32_t object_index); // 0x4f8fe0, UNSURE: argument inferred
+extern void object_remove_from_sibling_list(datum_index *slot, uint32_t target_object_index); // 0x4f8fe0, EDX slot, EDI target
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
     // 0x4f6ec0; object handle in ECX, type mask on the stack. Verified against the body at
     // 0x4f6ec0 (cmp ecx,-1 / test cx,cx / and param_1 & 1 << header->type) and against the
@@ -43,9 +43,10 @@ void object_unlink_cluster_or_notify_parent(uint32_t object_index) // blam-cc: E
             }
         }
     } else {
-        if (object_try_and_get(obj->parent_object, _object_mask_all) != 0) {
-            // 0x4f5e01 mov ecx,[ebx+0x11c] -- the parent handle just tested above
-            object_remove_from_sibling_list(object_index); // UNSURE: see file header
+        object *parent = object_try_and_get(obj->parent_object, _object_mask_all);
+        if (parent != 0) {
+            // 0x4f5e1e: EDX = parent + 0x118 (its first-child slot), EDI = this object (0x4f5de5 mov edi,eax)
+            object_remove_from_sibling_list((datum_index *)((uint8_t *)parent + 0x118), object_index);
         }
     }
 

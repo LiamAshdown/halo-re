@@ -95,7 +95,9 @@ def stdcall_sizes():
 def game_crt():
     fj = os.path.join(ROOT, "out", "functions.json")
     if not os.path.exists(fj): return {}
-    return {x["name"].lstrip("_"): int(x["addr"], 16) for x in json.load(open(fj)) if x.get("lib") or x.get("fid")}
+    crt = {x["name"].lstrip("_"): int(x["addr"], 16) for x in json.load(open(fj)) if x.get("lib") or x.get("fid")}
+    crt.setdefault("fopen", 0x624186)   # not FID-matched: push 0x40 (_SH_DENYNO); call __fsopen(path, mode, shflag)
+    return crt
 
 FORCE = "--force" in __import__("sys").argv   # link even with unresolved names (they point at 0 until fixed)
 

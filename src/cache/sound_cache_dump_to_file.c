@@ -37,7 +37,7 @@ extern uint32_t fwrite(const void *buffer, uint32_t size, uint32_t count, void *
 extern void fclose(void *file); // _fclose
 
 // UNSURE: see file header note above.
-extern void *FUN_00624186(const char *path, char *mode); // 0x624186, fopen-shaped wrapper
+extern void *fopen(const char *path, char *mode); // 0x624186, fopen-shaped wrapper
 
 // Writes a diagnostic dump of the sound cache's page usage statistics and per-entry list to
 // sound_cache_dump.txt: total sounds resident, MB used/free, and allocated/used-this-frame/
@@ -73,7 +73,7 @@ void sound_cache_dump_to_file(void)
     sound_count = 0;
 
     bitmap = (uint8_t *)GlobalAlloc(0, sound_cache_page_count);
-    file = FUN_00624186("sound_cache_dump.txt", file_open_mode_w);
+    file = fopen("sound_cache_dump.txt", file_open_mode_w);
 
     for (scan = line, bit = 0x100; bit != 0; bit--) {
         scan[0] = 0; scan[1] = 0; scan[2] = 0; scan[3] = 0;

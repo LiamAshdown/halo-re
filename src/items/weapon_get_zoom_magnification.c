@@ -21,7 +21,7 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern real FUN_006283c0(real a, real b, real c); // 0x6283c0, see UNSURE note above
+extern double pow(double x, double y); // the original calls _CIpow (0x6283c0): st(1) ** st(0) on the x87 stack
 
 // Interpolates a weapon's zoom magnification for one zoom level across its tag-defined range.
 real weapon_get_zoom_magnification(datum_index item_index, int16_t zoom_level)
@@ -45,7 +45,8 @@ real weapon_get_zoom_magnification(datum_index item_index, int16_t zoom_level)
         range0 = (weapon_tag->zoom_magnification_range[0] <= 0.0f) ? 1.0f : weapon_tag->zoom_magnification_range[0];
         range1 = (weapon_tag->zoom_magnification_range[1] <= 0.0f) ? 1.0f : weapon_tag->zoom_magnification_range[1];
 
-        return FUN_006283c0(range0, range1, fraction) * range0;
+        // 0x4c2e34: fld range1 / fdiv range0 / fld fraction / call _CIpow / fmul range0
+        return (real)(pow((double)range1 / range0, fraction) * range0);
     }
     return 1.0f;
 }
