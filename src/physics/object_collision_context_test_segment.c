@@ -70,7 +70,10 @@ uint8_t object_collision_context_test_segment(object_collision_context *context,
         if (node->region != 0xffff) {
             uint8_t permutation_byte = context->region_permutations[node->region];
 
-            if (permutation_byte != 0xff && (int32_t)node->bsps.count > 0) {
+            // FIXED (0x504fc7): the original zero-extends the byte and compares it with 0xffff, which never matches,
+            // so a permutation byte of 0xff is NOT a skip -- it is clamped to the last BSP below. The draft skipped
+            // those regions (in game: bullets passed through parts of NPCs, no blood or hit effects).
+            if ((int32_t)node->bsps.count > 0) {
                 int32_t permutation = permutation_byte;
                 ModelCollisionGeometryBSP *bsps = (ModelCollisionGeometryBSP *)node->bsps.pointer;
                 ModelCollisionGeometryBSP *bsp;
