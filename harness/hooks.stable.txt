@@ -1,4 +1,4 @@
-# Stable set: 1610 functions (every hookable one), behaviour-checked in game (2026-09-25)
+# Stable set: 1624 functions, behaviour-checked in game (2026-09-26)
 bit_vector_or
 bounded_ramp_profile_build
 bounded_ramp_profile_evaluate
@@ -1609,3 +1609,17 @@ rasterizer_bitmap_upload_cubemap_mipmaps
 rasterizer_bitmap_upload_cubemap_mipmaps_by_face
 sound_instance_apply_pending_definition_switch
 sound_permutation_pick_random
+actor_target_get_priority_class
+ai_conversation_clear_object_references
+ai_conversation_clear_participant
+ai_conversation_new
+ai_conversation_stop
+ai_insert_scored_candidate_pair
+game_safe_to_pause
+game_safe_to_save
+byte_stream_read_long
+byte_stream_read_ranged_integer
+byte_swap_array
+struct_definition_decode
+struct_definition_encode
+cluster_sound_distance_lookup
