@@ -5,7 +5,7 @@
 // to the console message list, but only when a verbosity [threshold is met]"; types/interface.h
 // "global 0x0087ac06: uint8_t debug_log_level" (0x496a86 cmp BYTE ...,0x4: prints only above 3) and
 // console_message's documented default color (1.0, 0.7, 0.7, 0.7); chimera__console_out_copy.c's
-// precedent for console_echo_prefix (0x00669140) and _strstr (FUN_00625430).
+// precedent for console_echo_prefix (0x00669140) and _strstr (strstr).
 // register convention: format string as the recognized stack parameter, optional ColorARGB* in
 // EAX (in_EAX, NULL means "use the default gray"), plus the varargs that follow format on the
 // stack. // blam-cc: EAX -> color, stack -> format, ...

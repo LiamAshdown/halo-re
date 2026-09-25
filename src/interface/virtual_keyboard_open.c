@@ -31,7 +31,7 @@ extern uint8_t unknown_00712ccc[0x100];           // 0x00712ccc, UNSURE: not par
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc: EDI group
 extern int32_t time_query_performance_counter_ms(void);                // 0x449210, UNSURE: appears to be a millisecond clock (see interface.h progress_screen_fade_end_time note)
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90, blam-cc: AX effect_id
-extern int32_t FUN_00625b7a(const uint16_t *s);   // 0x625b7a, UNSURE: appears to be wcslen
+extern int32_t wcslen(const uint16_t *s);   // 0x625b7a, UNSURE: appears to be wcslen
 
 extern void **directinput_keyboard_device; // 0x006b1800, UNSURE: DirectInput device COM pointer
 extern uint8_t directinput_unknown_buffer_1[0x6d]; // 0x006b1620 (0x1b dwords + 1 byte cleared)
@@ -55,7 +55,7 @@ uint8_t virtual_keyboard_open(uint16_t *destination, uint16_t maximum_length, in
     virtual_keyboard.unknown_0a = 0;
     virtual_keyboard.active = 1;
     virtual_keyboard.destination = destination;
-    virtual_keyboard.destination_end = destination + FUN_00625b7a(destination);
+    virtual_keyboard.destination_end = destination + wcslen(destination);
     virtual_keyboard.maximum_length = (maximum_length > 0x3f) ? 0x40 : (int16_t)maximum_length;
     virtual_keyboard.selection_start = -1;
     virtual_keyboard.open_time = time_query_performance_counter_ms();

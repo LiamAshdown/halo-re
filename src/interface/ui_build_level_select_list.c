@@ -65,7 +65,7 @@ extern void ui_build_level_select_list_coop(widget_instance *widget, void *param
 extern int32_t growable_array_add_element(growable_array *array); // 0x4cf810
 extern uint8_t game_state_read_checkpoint_summary(void); // 0x538320, foreign (profile module), UNSURE
 extern void player_profile_scan_campaign_progress(void);    // 0x539e00, foreign (profile module), UNSURE
-extern uint32_t FUN_00625b7a(const uint16_t *s); // 0x625b7a, wide strlen
+extern uint32_t wcslen(const uint16_t *s); // 0x625b7a, wide strlen
 extern void _wcscpy(uint16_t *dest, const uint16_t *src);
 extern int32_t __stricmp(const char *a, const char *b);
 extern void *GlobalAlloc(uint32_t flags, uint32_t size);
@@ -159,7 +159,7 @@ uint32_t ui_build_level_select_list(widget_instance *widget, void *param_2, void
         element_index = growable_array_add_element(&ui_lists[1]); // DAT_006b3838-backed array
         if (element_index != -1) {
             ui_list_item *item = (ui_list_item *)ui_lists[1].data + element_index;
-            uint32_t name_length = FUN_00625b7a(entry_name);
+            uint32_t name_length = wcslen(entry_name);
 
             item->data = (void *)0;
             item->name = (uint16_t *)GlobalAlloc(0, name_length * 2 + 2);

@@ -39,7 +39,7 @@ extern uint16_t ui_invalid_replacement_text[]; // 0x0066a8a0, L"<invalid>"
 extern uint16_t ui_out_of_memory_text[];       // 0x00669ca8, L"<out of memory>"
 
 extern uint16_t *text_string_list_get_string(datum_index string_list_tag, int16_t index); // 0x5578c0; blam-cc: ECX -> tag, DX -> index
-extern uint32_t FUN_00625b7a(const uint16_t *s); // 0x625b7a, wide strlen
+extern uint32_t wcslen(const uint16_t *s); // 0x625b7a, wide strlen
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, src/memory; blam-cc: EAX -> old, ESI -> self
 extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dest, int32_t dest_bytes, const char *source); // 0x557990, 8-bit to wide copy
     // blam-cc: EAX -> dest, EDI -> dest_bytes, EBX -> source; returns dest
@@ -76,7 +76,7 @@ void widget_instance_render_text_box(widget_instance *widget, UIWidgetDefinition
             index = *(int16_t *)(t + 0x12e);
         }
         src = text_string_list_get_string(*(datum_index *)&tag->text_label_unicode_strings_list.tag_id, index);
-        byte_len = FUN_00625b7a(src) * 2;
+        byte_len = wcslen(src) * 2;
         buf = (uint16_t *)heap_reallocate(widget->text, byte_len + 2, widget_memory_pool);
         widget->text = buf;
         if (buf == (uint16_t *)0) {

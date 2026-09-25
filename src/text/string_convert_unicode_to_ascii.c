@@ -5,11 +5,11 @@
 // name confidence: 0.6   rewrite confidence: 0.85
 // evidence: out/phase2/results/text_00.json: "Converts a wide-character string into a
 //   fixed-capacity narrow (single-byte) buffer, replacing any non-ASCII wide characters
-//   with spaces." FUN_00625b7a (0x625b7a) is a plain cdecl wide-character strlen
+//   with spaces." wcslen (0x625b7a) is a plain cdecl wide-character strlen
 //   (objdump: walks 16-bit units to the NUL, returns the count excluding it).
 // register convention (objdump 0x557950..0x557990): the single "push edi" at entry both
 //   saves nothing (there is no matching pop -- "add esp,4" right after the call cleans it
-//   up instead) and supplies FUN_00625b7a's own stack argument, i.e. FUN_00625b7a(edi).
+//   up instead) and supplies wcslen's own stack argument, i.e. wcslen(edi).
 //   EDI = source, ESI = dest (both caller-set registers, unaff_EDI/unaff_ESI, never
 //   loaded from the stack in this function). capacity is the sole stack argument.
 
@@ -17,7 +17,7 @@
 #include "memory.h"
 #include "text.h"
 
-extern uint32_t FUN_00625b7a(const uint16_t *s); // 0x625b7a, wide strlen (wcslen), not this module
+extern uint32_t wcslen(const uint16_t *s); // 0x625b7a, wide strlen (wcslen), not this module
 
 // blam-cc: ESI=dest, EDI=source, stack=capacity
 // Copies source (UTF-16) into dest (narrow, single-byte) truncating each non-ASCII wide
@@ -29,7 +29,7 @@ uint8_t *string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_
     uint32_t length;
     uint32_t i;
 
-    length = FUN_00625b7a(source);
+    length = wcslen(source);
     if (length > (uint32_t)(capacity - 1)) {
         return (void *)0;
     }

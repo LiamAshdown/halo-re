@@ -7,7 +7,7 @@
 // (naming this general area, not necessarily this exact address); reuses current_game_engine
 // (0x006f1d20, per src/game/game_start_new_map.c), widget_memory_pool_valid and ui_root_widget[0]
 // (both per types/interface.h's globals list), and string_replace_all_in_place.c's precedent
-// identification of FUN_00625430 as _strstr.
+// identification of strstr as _strstr.
 // register convention: none (void).
 // TYPES-GAP / UNSURE: DAT_0087aa10 (an int32 player-count-shaped value), DAT_006f187c+9 (a byte
 // flag on an unidentified block) and ui_draw_filled_rectangle (called 1-2 times based on

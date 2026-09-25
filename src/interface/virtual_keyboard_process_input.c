@@ -48,7 +48,7 @@ extern uint8_t ui_wide_string_has_non_whitespace(const uint16_t *text); // 0x4a8
 extern uint8_t ui_variant_name_is_available(const uint16_t *name); // 0x4a8b50, blam-cc: EDI
 extern uint8_t virtual_keyboard_character_is_legal(int32_t validation_mode, uint8_t character); // 0x4a8b80, blam-cc: EAX mode, CL character
 extern uint32_t time_query_performance_counter_ms(void);              // 0x449210, millisecond clock
-extern int32_t FUN_00625b7a(const uint16_t *s);  // 0x625b7a, wcslen
+extern int32_t wcslen(const uint16_t *s);  // 0x625b7a, wcslen
 extern uint8_t saved_game_name_is_available(const uint16_t *name); // 0x53d1e0, blam-cc: EAX; profile module name test
 extern uint8_t saved_item_name_matches(const uint16_t *text); // 0x495e70
 extern uint16_t fortune_easter_egg_text[];         // 0x0066a8b4, L".fortune"
@@ -66,7 +66,7 @@ static void vk_clear_text(void)
 // Trims trailing whitespace. Returns 0 when nothing but whitespace was left.
 static uint8_t vk_trim_trailing_whitespace(void)
 {
-    int32_t i = FUN_00625b7a(virtual_keyboard.destination) - 1;
+    int32_t i = wcslen(virtual_keyboard.destination) - 1;
     while (i >= 0) {
         if (_iswctype(virtual_keyboard.destination[i], WCTYPE_SPACE) == 0) {
             return 1;
@@ -138,7 +138,7 @@ void virtual_keyboard_process_input(void)
                 if (virtual_keyboard.destination[0] != 0) {
                     goto commit_ok;
                 }
-                FUN_00625b7a(virtual_keyboard.text);
+                wcslen(virtual_keyboard.text);
                 wcscpy((wchar_t *)virtual_keyboard.destination, (const wchar_t *)virtual_keyboard.text);
                 virtual_keyboard_close();
                 goto finish;
@@ -190,7 +190,7 @@ finish:
 
         case 0x55: // end
             virtual_keyboard.destination_end =
-                virtual_keyboard.destination + FUN_00625b7a(virtual_keyboard.destination);
+                virtual_keyboard.destination + wcslen(virtual_keyboard.destination);
             break;
 
         case 0x54: // delete
@@ -239,7 +239,7 @@ finish:
                 virtual_keyboard.opened = 0;
             }
             if ((int32_t)(uint16_t)virtual_keyboard.maximum_length -
-                    (FUN_00625b7a(virtual_keyboard.destination) * 2 + 2) < 2) {
+                    (wcslen(virtual_keyboard.destination) * 2 + 2) < 2) {
                 goto rejected;
             }
             memmove(virtual_keyboard.destination_end + 1, virtual_keyboard.destination_end,
@@ -261,10 +261,10 @@ finish:
                 virtual_keyboard.field_kind = (int16_t)(pick + 0xb);
             }
             if (virtual_keyboard.text[0] != 0) {
-                FUN_00625b7a(virtual_keyboard.text);
+                wcslen(virtual_keyboard.text);
                 wcscpy((wchar_t *)virtual_keyboard.destination, (const wchar_t *)virtual_keyboard.text);
                 virtual_keyboard.destination_end =
-                    virtual_keyboard.destination + FUN_00625b7a(virtual_keyboard.destination);
+                    virtual_keyboard.destination + wcslen(virtual_keyboard.destination);
             } else {
                 vk_clear_text();
             }

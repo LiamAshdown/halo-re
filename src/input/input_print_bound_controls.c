@@ -5,7 +5,7 @@
 //   input_apply_control_binding.c / input_refresh_last_used_binding.c. console_printf_verbose
 //   (0x496a80, already rewritten in src/interface/) takes a ColorARGB* color in EAX (NULL here,
 //   confirmed by `xor eax,eax` immediately before every call site in this function) and the
-//   format plus varargs on the stack; FUN_00625b7a is wcslen (see
+//   format plus varargs on the stack; wcslen is wcslen (see
 //   src/input/input_keyboard_key_name_to_index.c). The repeated "look up a controls_* UnicodeStringList
 //   tag, take one entry, force-null-terminate its last even byte" block and the repeated
 //   "narrow a wide buffer to ASCII, substituting a space for any non-ASCII code unit" block are

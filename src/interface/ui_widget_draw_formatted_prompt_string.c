@@ -47,7 +47,7 @@ extern uint16_t *ui_button_caption[0x28];  // 0x00692708
 
 extern void _wcscpy(uint16_t *dest, const uint16_t *src); // 0x625bba
 extern uint16_t *_wcschr(uint16_t *s, uint16_t c);        // 0x625b58
-extern uint32_t FUN_00625b7a(const uint16_t *s);          // 0x625b7a, wide strlen
+extern uint32_t wcslen(const uint16_t *s);          // 0x625b7a, wide strlen
 extern int32_t __ftol(double x);                          // 0x6391b4
 extern void text_measure_string_extents(Rectangle2D *origin, Rectangle2D *cursor, Rectangle2D *out_bounds,
                          const uint16_t *text); // 0x5562d0, measure a span
@@ -112,7 +112,7 @@ void ui_widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t use_tex
         if (token == -1) {
             draw_span_inline(bounds, &cursor_rect, prompt_percent_text);
         } else {
-            cursor = next + FUN_00625b7a(ui_button_caption[token]);
+            cursor = next + wcslen(ui_button_caption[token]);
             if (token > 0x11) {
                 if (token > 0x1f) {
                     goto next_span;

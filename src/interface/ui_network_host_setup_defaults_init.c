@@ -39,7 +39,7 @@ extern int32_t resolution_selected_value_00699584;  // 0x00699584
 extern uint8_t network_capability_flag_006894a2;    // 0x006894a2
 
 extern void player_profile_set_default_server_options(uint8_t *out_profile);     // 0x53a150, blam-cc: ESI out_profile; builds the default profile
-extern uint32_t FUN_00625b7a(const uint16_t *s);    // wcslen
+extern uint32_t wcslen(const uint16_t *s);    // wcslen
 extern void _wcscpy(uint16_t *dest, const uint16_t *src);
 
 uint8_t ui_network_host_setup_defaults_init(widget_instance *widget)
@@ -62,9 +62,9 @@ uint8_t ui_network_host_setup_defaults_init(widget_instance *widget)
         player_profile_set_default_server_options(profile);
     }
 
-    FUN_00625b7a((const uint16_t *)(profile + 0xd8c));
+    wcslen((const uint16_t *)(profile + 0xd8c));
     _wcscpy(network_host_name_00719170, (const uint16_t *)(profile + 0xd8c));
-    FUN_00625b7a((const uint16_t *)(profile + 0xeac));
+    wcslen((const uint16_t *)(profile + 0xeac));
     _wcscpy(network_host_subname_007191f0, (const uint16_t *)(profile + 0xeac));
 
     choice = (profile[0xfc0] > 4) ? 4 : profile[0xfc0];

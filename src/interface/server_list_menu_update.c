@@ -10,10 +10,10 @@
 // LAN-discovery table (+4, stride 0x130) and the favorites/history table (+0x1c, stride 0x4c*4)
 // is preserved as a raw offset rather than cross-referenced against types/networking.h's
 // server_browser_entry (0x220 bytes, since renamed controls_gamepad_record: it is a gamepad record) or network_client_globals, since neither obviously lines up
-// with these strides in the time available. The eleven-deep chained `FUN_00625430(name, "map")`
+// with these strides in the time available. The eleven-deep chained `strstr(name, "map")`
 // if/else ladder (a strcmp-shaped call, given its two string arguments) is preserved as written
 // rather than turned into a lookup table, to avoid asserting an ordering not directly evidenced.
-// Phase-4 review against objdump 0x4a5040..0x4a56fc: FUN_00625430 is strstr (the binary tests
+// Phase-4 review against objdump 0x4a5040..0x4a56fc: strstr is strstr (the binary tests
 // the result for non-zero, so a substring match picks the map index; the rewrite had every test
 // inverted); the tenth widget of the details pane is r9->next_sibling (r10), not
 // r3->next_sibling; the discovery age test is signed (jg 0x1770), the fade test unsigned; the
@@ -43,7 +43,7 @@ extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); 
 extern void _wcsncpy(uint16_t *dest, const uint16_t *src, uint32_t count);
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
 extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...); // 0x557910
-extern char *FUN_00625430(const char *haystack, const char *needle); // 0x625430, strstr: non-NULL on a match
+extern char *strstr(const char *haystack, const char *needle); // 0x625430, strstr: non-NULL on a match
 
 void server_list_menu_update(widget_instance *widget)
 {
@@ -198,19 +198,19 @@ void server_list_menu_update(widget_instance *widget)
             default: r1->background_bitmap_frame = 5; break;
             }
 
-            if (FUN_00625430(map_name, "beavercreek") != 0) map_index = 0;
-            else if (FUN_00625430(map_name, "sidewinder") != 0) map_index = 1;
-            else if (FUN_00625430(map_name, "damnation") != 0) map_index = 2;
-            else if (FUN_00625430(map_name, "ratrace") != 0) map_index = 3;
-            else if (FUN_00625430(map_name, "prisoner") != 0) map_index = 4;
-            else if (FUN_00625430(map_name, "hangemhigh") != 0) map_index = 5;
-            else if (FUN_00625430(map_name, "chillout") != 0) map_index = 6;
-            else if (FUN_00625430(map_name, "carousel") != 0) map_index = 7;
-            else if (FUN_00625430(map_name, "boardingaction") != 0) map_index = 8;
-            else if (FUN_00625430(map_name, "bloodgulch") != 0) map_index = 9;
-            else if (FUN_00625430(map_name, "wizard") != 0) map_index = 10;
-            else if (FUN_00625430(map_name, "putput") != 0) map_index = 11;
-            else if (FUN_00625430(map_name, "longest") != 0) map_index = 0xc;
+            if (strstr(map_name, "beavercreek") != 0) map_index = 0;
+            else if (strstr(map_name, "sidewinder") != 0) map_index = 1;
+            else if (strstr(map_name, "damnation") != 0) map_index = 2;
+            else if (strstr(map_name, "ratrace") != 0) map_index = 3;
+            else if (strstr(map_name, "prisoner") != 0) map_index = 4;
+            else if (strstr(map_name, "hangemhigh") != 0) map_index = 5;
+            else if (strstr(map_name, "chillout") != 0) map_index = 6;
+            else if (strstr(map_name, "carousel") != 0) map_index = 7;
+            else if (strstr(map_name, "boardingaction") != 0) map_index = 8;
+            else if (strstr(map_name, "bloodgulch") != 0) map_index = 9;
+            else if (strstr(map_name, "wizard") != 0) map_index = 10;
+            else if (strstr(map_name, "putput") != 0) map_index = 11;
+            else if (strstr(map_name, "longest") != 0) map_index = 0xc;
             else map_index = 0x13;
             r2->background_bitmap_frame = map_index;
 

@@ -3,15 +3,15 @@
 // name confidence: 0.5   rewrite confidence: 0.45
 // evidence: out/phase4/networking_functions.md summary; message_delta_parameters_protocol_register
 // calls this with only ("%d"|"%f", value) yet it clearly needs the parameter's name to look up in
-// the config text -- FUN_00625430(&DAT_00860b40) is called with a single visible argument, so the
+// the config text -- strstr(&DAT_00860b40) is called with a single visible argument, so the
 // needle is a register value (name) still live from the caller, matching the register-pinning
-// pattern used throughout this subsystem; other modules already treat FUN_00625430(haystack,
+// pattern used throughout this subsystem; other modules already treat strstr(haystack,
 // needle) as a substring search (src/networking/map_list_matching_substring.c).
 // register convention: parameter name pinned in EAX (in_EAX, unresolved register read) by the
 // caller, message_delta_parameters_protocol_register; format and out_value are the __cdecl stack
 // parameters.
 // blam-cc: EAX -> name, stack -> format, out_value
-// UNSURE: FUN_00625430's exact semantics (declared here as a substring search) and what
+// UNSURE: strstr's exact semantics (declared here as a substring search) and what
 // 0x0066e0788 [0x00660788] is a delimiter set for.
 
 #include "tags.h"
@@ -23,7 +23,7 @@
 extern char message_delta_config_text_buffer[]; // 0x00860b40
 extern char message_delta_config_value_delimiters[]; // 0x00660788, UNSURE
 
-extern char *FUN_00625430(const char *haystack, const char *needle); // 0x625430, UNSURE: substring search
+extern char *strstr(const char *haystack, const char *needle); // 0x625430, UNSURE: substring search
 extern int32_t sscanf(const char *buffer, const char *format, ...);
 
 // blam-cc: EAX -> name, stack -> format, out_value
@@ -36,9 +36,9 @@ int32_t message_delta_parameters_protocol_parse_value_from_config(char *name, ch
     char *value_start;
     int32_t scanned;
 
-    found = FUN_00625430(message_delta_config_text_buffer, name);
+    found = strstr(message_delta_config_text_buffer, name);
     if (found != 0) {
-        value_start = FUN_00625430(found, message_delta_config_value_delimiters);
+        value_start = strstr(found, message_delta_config_value_delimiters);
         scanned = sscanf(value_start + 1, format, out_value);
         if (0 < scanned) {
             return 1;

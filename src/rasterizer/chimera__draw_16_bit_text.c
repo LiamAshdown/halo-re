@@ -5,7 +5,7 @@
 // evidence: wide-character sibling of chimera__draw_8_bit_text @0x5148b0 (see that file for the
 //   shared UNSURE caveats: the &LAB_00514ce0 glyph callback body is not in this pack, and the
 //   007c3140..007c314c globals are undocumented). Differs by validating the string with
-//   FUN_00625b7a (likely a wide string length/bounds check, return unused) and by clamping its
+//   wcslen (likely a wide string length/bounds check, return unused) and by clamping its
 //   caller-supplied clip rect to fixed maxima (0x1e0, 0x280) instead of the safe-area bounds.
 // register convention: optional clip rect in in_EAX, optional dest rect override in in_ECX,
 //   position/color and text on the stack. // blam-cc: EAX -> clip_rect(opt),
@@ -30,7 +30,7 @@ extern int16_t unknown_007c314c[2]; // 0x007c314c UNSURE
 // blam-cc: EDI -> state
 extern void rasterizer_draw_text_begin(ui_quad_render_state *state); // 0x531b80
 extern void rasterizer_draw_text_end(void); // 0x531e90
-extern void FUN_00625b7a(const int16_t *text); // 0x625b7a, UNSURE: return unused, likely a wide string check
+extern void wcslen(const int16_t *text); // 0x625b7a, UNSURE: return unused, likely a wide string check
 extern void text_wrap_and_draw_wide(void *glyph_callback, void *dest_rect, uint32_t position_or_color1,
                           void *clip_rect, uint32_t position_or_color2, const int16_t *text); // 0x556780
 extern void LAB_00514ce0_glyph_callback(void); // UNSURE: internal label, body not in this pack
@@ -59,7 +59,7 @@ void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_re
         return;
     }
 
-    FUN_00625b7a(text); // UNSURE: return unused
+    wcslen(text); // UNSURE: return unused
 
     if (dest_rect_override == (int32_t *)0) {
         int16_t neg_origin_x = (int16_t)(-unknown_007c3140[0]);

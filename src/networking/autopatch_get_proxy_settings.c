@@ -15,7 +15,7 @@
 //   Strings: 0x672118 "winhttp.dll", 0x672100 "WinHttpGetProxyForUrl", 0x6720f4 "WinHttpOpen",
 //   0x6720e0 "WinHttpCloseHandle", 0x6720d0 L"HaloPC", 0x6720a4 L"http://www.bungie.net",
 //   0x6720a0 " ;", 0x672098 "http=", 0x672090 "http://". InternetQueryOptionA is reached through
-//   the wininet delay-load slot at 0x0069ffd0; 0x26 is INTERNET_OPTION_PROXY. FUN_00625430 is the
+//   the wininet delay-load slot at 0x0069ffd0; 0x26 is INTERNET_OPTION_PROXY. strstr is the
 //   CRT strstr (src/input/input_joystick_axis_name_to_index.c names it so).
 //   Sole caller: autopatch_proxy_initialize (0x5771c0), which hands the returned string to the
 //   HTTP client setup.

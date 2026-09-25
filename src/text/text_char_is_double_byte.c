@@ -6,7 +6,7 @@
 //   Big5, Korean UHC/cp949, Korean Johab -- the language names are inferred from the
 //   ranges, the binary only has the numbers 1..5). "ibukprlctn" (0x00671fa0) is the set
 //   of letters that make a '|'-prefixed pair a two-byte markup escape rather than a
-//   literal character. FUN_006257e0 is the CRT strchr, kept unnamed per the existing
+//   literal character. strchr is the CRT strchr, kept unnamed per the existing
 //   house convention for that address (see src/interface/virtual_keyboard_character_is_legal.c).
 // register convention: EAX = string (pointer to the two bytes to classify), confirmed by
 //   objdump 0x557750 "mov bl,[eax]" / "mov al,[eax+1]" at entry; return value in AL.
@@ -19,7 +19,7 @@
 extern int16_t text_encoding_state;      // 0x006e4800
 extern char text_markup_codes[11]; // 0x00671fa0, "ibukprlctn"
 
-extern char *FUN_006257e0(char *s, int ch); // 0x6257e0, CRT strchr, not this module
+extern char *strchr(char *s, int ch); // 0x6257e0, CRT strchr, not this module
 
 // blam-cc: EAX=string, no other arguments
 // Classifies the byte pair at string[0..1]: true (1) when the two bytes must be consumed
@@ -41,7 +41,7 @@ uint8_t text_char_is_double_byte(uint8_t *string)
     trail = string[1];
     result = 0;
 
-    if (lead == 0x7c && trail != 0 && FUN_006257e0(text_markup_codes, trail) != (char *)0) {
+    if (lead == 0x7c && trail != 0 && strchr(text_markup_codes, trail) != (char *)0) {
         goto mark_double_byte;
     }
 

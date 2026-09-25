@@ -36,7 +36,7 @@ uint8_t unit_point_within_look_cone(float cone_angle, uint32_t unit_index, real_
     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
 
     object_marker marker;
-    object_get_node_local_transform(unit_index, s_primary_eye_marker, &marker, 0);
+    object_get_node_local_transform(unit_index, s_primary_eye_marker, &marker, 1) /* FIXED: the original pushes 1, the maximum marker count */;
 
     float px = world_point->x, py = world_point->y, pz = world_point->z;
     real_vector3d unused_normalize_target = { 0.0f, 0.0f, 0.0f }; // UNSURE: see file header

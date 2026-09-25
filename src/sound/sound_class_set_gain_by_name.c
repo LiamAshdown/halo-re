@@ -3,9 +3,9 @@
 // name confidence: 0.5   rewrite confidence: 0.85
 // evidence: out/phase4/sound_functions.md summary "Sets the gain and countdown timer for a sound
 //   class identified by name, e.g. the projectile impact/detonation classes."; sound_class_names
-//   (types/sound.h, 0x0069f3a8) walked 51 entries (k_maximum_sound_classes); FUN_00625430 is the
+//   (types/sound.h, 0x0069f3a8) walked 51 entries (k_maximum_sound_classes); strstr is the
 //   CRT strstr, per src/interface/console_printf_verbose.c's own header note ("_strstr
-//   (FUN_00625430)") and src/game/cheat_spawn_warthog.c's haystack/needle usage -- called here as
+//   (strstr)") and src/game/cheat_spawn_warthog.c's haystack/needle usage -- called here as
 //   strstr(class_name, name), so this matches every class whose name *contains* `name` as a
 //   substring, not only an exact match. Writes sound_class_gain.target_gain/fade_ticks
 //   (0x00/0x08, types/sound.h), clamping gain to [0, 1] and ticks to >= 0.

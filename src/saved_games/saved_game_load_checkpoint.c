@@ -7,7 +7,7 @@
 // lists every checkpoint (autosaves included, newest first) via game_checkpoint_enumerate_files
 // with the print callback (game_checkpoint_print_list_entry, 0x539110) and returns without
 // loading anything; any other name is passed to saved_game_load_checkpoint_by_name as-is if it
-// already contains "checkpoints\\" (FUN_00625430, substring search, matching
+// already contains "checkpoints\\" (strstr, substring search, matching
 // game_checkpoint_enumerate_files' own use of it), otherwise formatted as
 // "checkpoints\\<name>" first (format 0x66a4dc, confirmed by objdump). EDI throughout is the
 // bare (unprefixed) name, which saved_game_load_checkpoint_by_name receives as its own hidden
@@ -29,7 +29,7 @@ extern int32_t game_checkpoint_enumerate_files(uint8_t include_autosaves, uint8_
     checkpoint_enumerate_proc callback, void *user_data); // 0x538e70
 extern uint8_t game_checkpoint_print_list_entry(int32_t index, const char *name, int32_t level_index,
     int32_t difficulty, int32_t game_time_ticks, const win32_systemtime *time, void *user_data); // 0x539110
-extern char *FUN_00625430(const char *haystack, const char *needle); // 0x625430, CRT strstr-shaped, not this module
+extern char *strstr(const char *haystack, const char *needle); // 0x625430, CRT strstr-shaped, not this module
 extern int32_t _sprintf(char *dest, const char *format, ...); // 0x623693
 extern uint8_t saved_game_load_checkpoint_by_name(char *source_name, char *name); // 0x5391a0
 
@@ -51,7 +51,7 @@ uint8_t saved_game_load_checkpoint(char *name)
         return 1;
     }
 
-    if (FUN_00625430(name, "checkpoints\\") != 0) {
+    if (strstr(name, "checkpoints\\") != 0) {
         return saved_game_load_checkpoint_by_name(name, name);
     }
     _sprintf(full_name, "checkpoints\\%s", name);

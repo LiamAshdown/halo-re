@@ -13,7 +13,7 @@
 //   // blam-cc: EAX -> path (optional), stack -> name, options
 // UNSURE: game_engine_is_map_and_variant_valid is called here with zero visible arguments; its
 // real (map_path, variant_name) inputs could not be recovered from this decompilation and are
-// passed as NULL. FUN_00625b7a and string_convert_unicode_to_ascii (the "no path given" branch's length/format
+// passed as NULL. wcslen and string_convert_unicode_to_ascii (the "no path given" branch's length/format
 // helpers) are outside this batch's evidence and are modeled minimally.
 
 #include "tags.h"

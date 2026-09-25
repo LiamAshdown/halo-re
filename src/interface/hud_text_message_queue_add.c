@@ -8,7 +8,7 @@
 // register convention: text in EAX (in_EAX), start_time in EBX (unaff_EBX), tag/index as the one
 // recognized stack parameter. // blam-cc: EAX -> text, EBX -> start_time, stack -> tag
 // UNSURE: DAT_00660c34 is a shared "blank" wide-string constant referenced by several already-
-// rewritten files' FUN_00625b7a (wide strlen) calls; reused here with the same name.
+// rewritten files' wcslen (wide strlen) calls; reused here with the same name.
 
 #include "tags.h"
 #include "memory.h"
@@ -20,7 +20,7 @@
 extern growable_array hud_text_message_queue; // 0x006b37e8
 extern uint16_t empty_wide_string_00660c34[];  // 0x00660c34
 
-extern uint32_t FUN_00625b7a(const uint16_t *s); // 0x625b7a, wide strlen
+extern uint32_t wcslen(const uint16_t *s); // 0x625b7a, wide strlen
 extern int32_t growable_array_add_element(growable_array *array); // 0x4cf810
 extern int32_t __wtol(const uint16_t *s);
 
@@ -35,7 +35,7 @@ int32_t hud_text_message_queue_add(uint16_t *text, int32_t start_time, int32_t t
     uint16_t *body;
     int32_t index;
 
-    if (FUN_00625b7a(text) == 0) {
+    if (wcslen(text) == 0) {
         return 0;
     }
 

@@ -9,7 +9,7 @@
 // sv_tk_grace.c, sv_tk_cooldown.c) loading a console-argument pointer into EAX immediately before
 // the call.
 //   // blam-cc: EAX -> string, stack -> default_unit, stack -> unit_table
-// UNSURE: FUN_006257e0's exact identity (foreign, < this module's start); its shape (a table
+// UNSURE: strchr's exact identity (foreign, < this module's start); its shape (a table
 // pointer plus a character, returning nonzero on membership) is consistent with a "does this
 // char appear in this string" test such as strchr, so this rewrite treats it as one.
 
@@ -19,10 +19,10 @@
 #include <stdlib.h>
 
 extern uint8_t default_time_unit_table[]; // 0x00699568, used when unit_table is NULL
-extern int32_t FUN_006257e0(uint8_t *table, int32_t ch); // foreign (< this module), UNSURE: strchr-shaped
+extern int32_t strchr(uint8_t *table, int32_t ch); // foreign (< this module), UNSURE: strchr-shaped
 
 // Parses a leading unsigned integer from `string`, then an optional one-character unit suffix
-// (falling back to default_unit if the suffix is not one FUN_006257e0 recognizes in unit_table,
+// (falling back to default_unit if the suffix is not one strchr recognizes in unit_table,
 // or NULL selects the built-in table). Returns the value in seconds for d/h/m/s, or -1 if the
 // string has no leading digits or its resolved unit is not one of those four.
 int32_t parse_time_duration_string(char *string, char default_unit, uint8_t *unit_table)
@@ -56,7 +56,7 @@ int32_t parse_time_duration_string(char *string, char default_unit, uint8_t *uni
         if (*p != 0) {
             int32_t lowered = tolower((uint8_t)*p);
             unit_from_table = (char)lowered;
-            if (FUN_006257e0(unit_table, lowered) == 0) {
+            if (strchr(unit_table, lowered) == 0) {
                 unit_from_table = resolved_unit;
             }
         }

@@ -2,7 +2,7 @@
 // address 0x4912e0, size 82 bytes
 // name confidence: 0.5   rewrite confidence: 0.75
 // evidence: out/phase4/input_types_notes.md: "0x4912e0 parses 'buttonN' (prefix 0x0065b8f0)."
-// FUN_00625430 is _strstr (see src/interface/console_printf_verbose.c's precedent); objdump of
+// strstr is _strstr (see src/interface/console_printf_verbose.c's precedent); objdump of
 // 0x4912e0..0x491331 confirms the name string arrives in EAX (`push eax` as strstr's first
 // arg), the needle is joystick_button_prefix "button" (0x0065b8f0), and the trailing digits are
 // matched against decimal_suffixes[0x20][3] ("0".."31", stride 3, ending at 0x0065b9e8).

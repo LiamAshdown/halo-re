@@ -2,7 +2,7 @@
 // address 0x490ea0, size 127 bytes
 // name confidence: 0.6   rewrite confidence: 0.7
 // evidence: out/phase4/input_functions.md summary "Resolves a keyboard key display name string
-// back to its numeric key index by scanning the keyboard-button-names tag."; FUN_00625b7a is
+// back to its numeric key index by scanning the keyboard-button-names tag."; wcslen is
 // wcslen (see src/game/game_engine_variant_add_to_history.c); the inline wide->narrow loop
 // keeps a character only when its high byte is zero (plain ASCII), else substitutes a space,
 // then compares case-insensitively with stricmp.

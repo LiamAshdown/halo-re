@@ -7,7 +7,7 @@
 //   label TagString at +4, flags dword at +0).
 // blam-cc: param_1 -> unit_index, param_2 -> name_filter (may be NULL/empty), param_3 ->
 //   flag_selector, param_4 -> out_indices, param_5 -> max_indices.
-// UNSURE: FUN_00625430's exact semantics (a case-sensitive/wildcard string match against the
+// UNSURE: strstr's exact semantics (a case-sensitive/wildcard string match against the
 //   already-lowercased label) and the exact meaning of each flag_selector case's bit test are
 //   not recovered beyond the raw bit arithmetic.
 
@@ -22,7 +22,7 @@ extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern int32_t _tolower(int32_t c); // 0x624687
-extern int32_t FUN_00625430(uint8_t *lowered_label, char *name_filter); // 0x625430, UNSURE signature
+extern int32_t strstr(uint8_t *lowered_label, char *name_filter); // 0x625430, UNSURE signature
 extern uint8_t unit_is_seat_occupied(int32_t parent_index, int16_t seat_index); // 0x56cc10, UNSURE signature
 
 int16_t unit_find_seats_matching_name_and_flags(uint32_t unit_index, char *name_filter, uint16_t flag_selector,
@@ -57,7 +57,7 @@ int16_t unit_find_seats_matching_name_and_flags(uint32_t unit_index, char *name_
             i++;
         } while (src[i - 1] != '\0');
 
-        if ((!name_is_empty) && (FUN_00625430((uint8_t *)lowered, name_filter) == 0)) {
+        if ((!name_is_empty) && (strstr((uint8_t *)lowered, name_filter) == 0)) {
             continue;
         }
 

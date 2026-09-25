@@ -8,7 +8,7 @@
 // sort_newest_first, callback, user_data) are Ghidra-recognized and match
 // checkpoint_enumerate_proc plus the checkpoint_sort_newest_first global. The hand-rolled
 // path/name-building and extension-stripping loops are rewritten as sprintf/strrchr/strcpy.
-// FUN_00625430 is called here as FUN_00625430("checkpoints\\<name>", "autosave") and compared
+// strstr is called here as strstr("checkpoints\\<name>", "autosave") and compared
 // only to zero/non-zero: a whole-string compare (src/game/cheat_spawn_warthog.c's precedent
 // calls it "CRT strcmp-shaped") could never be zero given the "checkpoints\\" prefix, which
 // would make the autosave filter a no-op, so here it must be a substring search; treated as
@@ -38,8 +38,8 @@ extern void *FindFirstFileA(const char *path, win32_find_dataa *find_data); // W
 extern uint32_t FindNextFileA(void *find_handle, win32_find_dataa *find_data); // Win32
 extern int32_t FindClose(void *find_handle); // Win32
 extern int32_t _sprintf(char *dest, const char *format, ...); // 0x623693
-extern char *FUN_006257e0(const char *str, int32_t ch); // 0x6257e0, CRT strrchr-shaped, not this module
-extern char *FUN_00625430(const char *haystack, const char *needle); // 0x625430, CRT strstr-shaped, not this module
+extern char *strchr(const char *str, int32_t ch); // 0x6257e0, CRT strrchr-shaped, not this module
+extern char *strstr(const char *haystack, const char *needle); // 0x625430, CRT strstr-shaped, not this module
 extern int16_t game_checkpoint_read_stats_file(int32_t *out_difficulty, char *name,
     int32_t *out_game_time, win32_systemtime *out_time); // 0x538c60
 extern void _qsort(void *base, uint32_t count, uint32_t element_size,
@@ -76,14 +76,14 @@ int32_t game_checkpoint_enumerate_files(uint8_t include_autosaves, uint8_t sort_
         entry = entries;
         do {
             _sprintf(name, "%s%s", "checkpoints\\", find_data.cFileName);
-            extension = FUN_006257e0(name, '.');
+            extension = strchr(name, '.');
             if (extension != 0) {
                 *extension = 0;
             }
 
             level = game_checkpoint_read_stats_file(&difficulty, name, &game_time_ticks, &time);
             if (level != -1) {
-                if (FUN_00625430(name, "autosave") == 0 || include_autosaves != 0) {
+                if (strstr(name, "autosave") == 0 || include_autosaves != 0) {
                     entry->level_index = level;
                     entry->game_time = game_time_ticks;
                     entry->difficulty = difficulty;
@@ -92,11 +92,11 @@ int32_t game_checkpoint_enumerate_files(uint8_t include_autosaves, uint8_t sort_
                     entry->last_write_time[1] = find_data.ftLastWriteTime[1];
                     entry->kind = _checkpoint_kind_checkpoint;
 
-                    basename = FUN_006257e0(name, '\\') + 1;
+                    basename = strchr(name, '\\') + 1;
                     _sprintf(entry->name, "%s", basename);
-                    if (FUN_00625430(basename, "autosave") == basename && basename[8] == 0) {
+                    if (strstr(basename, "autosave") == basename && basename[8] == 0) {
                         entry->kind = _checkpoint_kind_autosave;
-                    } else if (FUN_00625430(basename, "autosave1") == basename && basename[9] == 0) {
+                    } else if (strstr(basename, "autosave1") == basename && basename[9] == 0) {
                         entry->kind = _checkpoint_kind_autosave1;
                     }
 

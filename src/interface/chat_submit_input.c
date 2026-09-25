@@ -23,7 +23,7 @@ extern chat_gui_get_property_string_fn chat_gui_get_property_string; // 0x00721e
 extern chat_gui_release_fn chat_gui_release;          // 0x00721ec8
 
 extern int32_t chat_default_team_channel(void); // 0x4ab1e0
-extern int32_t FUN_00625b7a(const uint16_t *s); // 0x625b7a, UNSURE: appears to be wcslen
+extern int32_t wcslen(const uint16_t *s); // 0x625b7a, UNSURE: appears to be wcslen
 extern void chimera__chat_out(uint8_t team_index); // 0x4aab00
 extern void chat_close(void); // 0x4aa900
 
@@ -50,7 +50,7 @@ void chat_submit_input(void)
 
                 if (text != 0 && *text != 0) {
                     wchar_t buffer[256];
-                    uint32_t length = FUN_00625b7a((const uint16_t *)text);
+                    uint32_t length = wcslen((const uint16_t *)text);
                     size_t count = (length < 0xff) ? length : 0xfe;
                     wcsncpy(buffer, text, count);
                     buffer[count] = 0;

@@ -24,8 +24,8 @@
 #include "networking.h"
 #include "interface.h"
 
-extern uint8_t *virtual_keyboard_blacklist_charset; // 0x00692d78, UNSURE: passed to FUN_006257e0
-extern int32_t FUN_006257e0(uint8_t *charset, uint8_t ch); // 0x6257e0, UNSURE signature, membership test
+extern uint8_t *virtual_keyboard_blacklist_charset; // 0x00692d78, UNSURE: passed to strchr
+extern int32_t strchr(uint8_t *charset, uint8_t ch); // 0x6257e0, UNSURE signature, membership test
 extern int32_t _isdigit(uint32_t ch);
 extern int32_t _isalnum(uint32_t ch);
 
@@ -39,7 +39,7 @@ uint8_t virtual_keyboard_character_is_legal(int32_t validation_mode, uint8_t cha
     if (validation_mode != 3) {
         if (validation_mode != 4) {
             if (validation_mode != 5) {
-                int32_t blocked = FUN_006257e0(virtual_keyboard_blacklist_charset, character);
+                int32_t blocked = strchr(virtual_keyboard_blacklist_charset, character);
                 return (uint8_t)(1 - (blocked != 0));
             }
             return (uint8_t)_isdigit(character); // the caller tests AL of the CRT result

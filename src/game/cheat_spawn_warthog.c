@@ -8,7 +8,7 @@
 //   record layout) a tag handle at +0xc.
 // register convention: no arguments.
 //
-// UNSURE: FUN_00625430 is a CRT/compiler string-compare helper (strcmp-shaped, given the two
+// UNSURE: strstr is a CRT/compiler string-compare helper (strcmp-shaped, given the two
 // arguments and zero-means-no-match usage) but is not in this batch; modelled as such.
 
 #include "tags.h"
@@ -19,7 +19,7 @@
 
 extern Globals *global_globals; // 0x00746fa0
 
-extern int32_t FUN_00625430(const char *a, const char *b); // 0x625430, UNSURE: CRT strcmp-shaped
+extern int32_t strstr(const char *a, const char *b); // 0x625430, UNSURE: CRT strcmp-shaped
 extern void cheat_spawn_objects_near_camera(TagDependency *tag_array, int16_t count); // 0x45a800
 
 // Finds the "warthog" vehicle tag by name in the loaded tag-index table and spawns one near the
@@ -41,7 +41,7 @@ void cheat_spawn_warthog(void)
         vehicles = (GlobalsVehicle *)info->vehicles.pointer;
         i = 0;
         if (0 < count) {
-            while (FUN_00625430((const char *)vehicles[i].vehicle.path_pointer, "warthog") == 0) {
+            while (strstr((const char *)vehicles[i].vehicle.path_pointer, "warthog") == 0) {
                 i = i + 1;
                 if (count <= i) {
                     return;

@@ -12,7 +12,7 @@
 // register convention: destination buffer as the recognized parameter (param_1 in Ghidra's own
 // phase 4 review (disassembly 0x4c8b90..0x4c8d3c: a10 -> 0 .. d40 -> 9 from the 0x00669a38 table read backwards; no drift.
 // signature, i.e. an ordinary cdecl stack/register parameter -- Ghidra fully recognized it).
-// UNSURE: FUN_00625430 is declared strcmp-shaped (returns 0 on inequality) by unrelated callers
+// UNSURE: strstr is declared strcmp-shaped (returns 0 on inequality) by unrelated callers
 // in other modules (src/game/cheat_spawn_warthog.c), but main.h's own analysis of THIS function
 // specifically identifies it as strstr (substring search, non-NULL on a match); that reading is
 // used here since it is the only one under which "if (result != 0) return <index>" makes sense

@@ -11,7 +11,7 @@
 // *pbVar1; }`) reads as re-testing the buffer's first byte every iteration; disassembly
 // (0x499240..0x499254) shows the real loop peeks at `*(p+1)` before advancing p, i.e. an
 // ordinary in-place lowercase of the whole NUL-terminated string -- written as the latter.
-// TYPES-GAP: FUN_00625430 (0x625430) is not otherwise named in this session; modeled as a
+// TYPES-GAP: strstr (0x625430) is not otherwise named in this session; modeled as a
 // case-sensitive substring search (haystack, needle) returning nonzero on a match, matching how
 // its result is used here (the input is already lowercased, so it functions as case-insensitive
 // substring matching against the lowercase needles).
@@ -41,7 +41,7 @@ extern char *player_help_name_d40; // 0x00669a38
 
 extern char *_strncpy(char *dest, const char *source, uint32_t count);
 extern int32_t _tolower(int32_t c);
-extern int32_t FUN_00625430(char *haystack, char *needle); // 0x625430, TYPES-GAP, UNSURE signature
+extern int32_t strstr(char *haystack, char *needle); // 0x625430, TYPES-GAP, UNSURE signature
 extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
     widget_instance *parent, uint16_t controller_index, datum_index history_definition,
     datum_index history_list_definition, int16_t history_selection); // 0x497a70, 7 stack args (objdump)
@@ -65,25 +65,25 @@ void player_help_screen_select_by_name(int16_t value)
         *p = (char)_tolower((uint8_t)*p);
     }
 
-    if (FUN_00625430(name, player_help_name_a10) != 0) {
+    if (strstr(name, player_help_name_a10) != 0) {
         tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_a10";
-    } else if (FUN_00625430(name, player_help_name_a30) != 0) {
+    } else if (strstr(name, player_help_name_a30) != 0) {
         tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_a30";
-    } else if (FUN_00625430(name, player_help_name_a50) != 0) {
+    } else if (strstr(name, player_help_name_a50) != 0) {
         tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_a50";
-    } else if (FUN_00625430(name, player_help_name_b30) != 0) {
+    } else if (strstr(name, player_help_name_b30) != 0) {
         tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_b30";
-    } else if (FUN_00625430(name, player_help_name_b40) != 0) {
+    } else if (strstr(name, player_help_name_b40) != 0) {
         tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_b40";
-    } else if (FUN_00625430(name, player_help_name_c10) != 0) {
+    } else if (strstr(name, player_help_name_c10) != 0) {
         tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_c10";
-    } else if (FUN_00625430(name, player_help_name_c20) != 0) {
+    } else if (strstr(name, player_help_name_c20) != 0) {
         tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_c20";
-    } else if (FUN_00625430(name, player_help_name_c40) != 0) {
+    } else if (strstr(name, player_help_name_c40) != 0) {
         tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_c40";
-    } else if (FUN_00625430(name, player_help_name_d20) != 0) {
+    } else if (strstr(name, player_help_name_d20) != 0) {
         tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_d20";
-    } else if (FUN_00625430(name, player_help_name_d40) != 0) {
+    } else if (strstr(name, player_help_name_d40) != 0) {
         tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_d40";
     } else {
         return;

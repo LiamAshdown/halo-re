@@ -4,7 +4,7 @@
 // name confidence: 0.45 (from types/interface.h)   rewrite confidence: 0.55
 // evidence: types/interface.h ui_list_item (name, data, id, is_default all match) and ui_lists;
 // growable_array_add_element already established in src/memory/.
-// UNSURE: FUN_00625b7a (0x625b7a, out of this module's range) is called twice with the same
+// UNSURE: wcslen (0x625b7a, out of this module's range) is called twice with the same
 // argument purely to recompute a length already known from the first call; both calls are
 // preserved as decompiled rather than collapsed into one. Declared here as a wcslen-alike based
 // on how its result feeds the GlobalAlloc size (len*2+2 bytes).
@@ -22,7 +22,7 @@
 extern uint8_t ui_list_has_default;  // 0x007192f8
 extern growable_array ui_lists[3];   // 0x006b3830, element size 0x10 (ui_list_item)
 extern void *GlobalAlloc(uint32_t flags, uint32_t bytes);
-extern int32_t FUN_00625b7a(const uint16_t *s); // 0x625b7a, UNSURE: appears to be wcslen
+extern int32_t wcslen(const uint16_t *s); // 0x625b7a, UNSURE: appears to be wcslen
 extern uint32_t growable_array_add_element(growable_array *array); // 0x4cf810, established in src/memory/
 
 // Appends one entry to a UI selection list group: a GlobalAlloc'd copy of name, the given id,
@@ -40,7 +40,7 @@ void ui_list_add_entry(int32_t group_index, const uint16_t *name, int32_t id, co
         return;
     }
 
-    length = FUN_00625b7a(name);
+    length = wcslen(name);
     entry = (ui_list_item *)ui_lists[group_index].data + index;
     entry->data = 0;
     entry->name = GlobalAlloc(0, length * 2 + 2);
@@ -49,7 +49,7 @@ void ui_list_add_entry(int32_t group_index, const uint16_t *name, int32_t id, co
     if (is_default != 0) {
         ui_list_has_default = 1;
     }
-    FUN_00625b7a(name);
+    wcslen(name);
     wcscpy((wchar_t *)entry->name, (const wchar_t *)name);
 
     if (data_blob != 0 && data_size != 0) {

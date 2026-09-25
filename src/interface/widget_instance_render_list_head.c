@@ -49,7 +49,7 @@ extern int32_t bitmap_group_sequence_get_bitmap_data(datum_index bitmap, int16_t
 extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data,
                                  int16_t *clip_rect, uint32_t vertex_color); // 0x498b20, UNSURE call mapping, per widget_instance_render.c
 extern uint16_t *text_string_list_get_string(datum_index string_list_tag, int16_t index); // 0x5578c0; blam-cc: ECX -> tag, DX -> index
-extern uint32_t FUN_00625b7a(uint16_t *s); // 0x625b7a, wide strlen
+extern uint32_t wcslen(uint16_t *s); // 0x625b7a, wide strlen
 extern void *heap_allocate(uint32_t size, heap *self); // 0x4d1f10
 extern void heap_unlink_block(heap_block *block, heap *self); // 0x4d20a0
 extern const uint16_t *ui_search_replace_function_call(int16_t function, widget_instance *widget); // 0x4a8730, blam-cc: AX function, ECX widget
@@ -159,7 +159,7 @@ void widget_instance_render_list_head(widget_instance *widget, UIWidgetDefinitio
         uint16_t *src =
             text_string_list_get_string(*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id,
                                         widget->selection_index); // objdump 0x49b811
-        uint32_t byte_len = FUN_00625b7a(src) * 2;
+        uint32_t byte_len = wcslen(src) * 2;
         uint16_t *buf = (uint16_t *)heap_allocate(byte_len + 2, widget_memory_pool);
         int32_t i;
 

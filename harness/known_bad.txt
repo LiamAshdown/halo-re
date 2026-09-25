@@ -118,3 +118,7 @@ controls_build_device_label_table  # difftest: returns 0 where the original retu
 scenario_find_encounter_index_by_name  # difftest: rewrite crashed on every input, original did not
 encounter_definition_find_squad_index_by_name  # difftest: rewrite crashed, original did not
 encounter_definition_find_platoon_index_by_name  # difftest: rewrite crashed, original did not
+text_get_next_character  # difftest: 86/200 returns differ (unlocked by naming strchr)
+console_open  # difftest: return 0x101 vs 1 on 17/200
+console_process_queued_input  # difftest: the original leaves EAX, the rewrite returns 0
+text_find_character_boundary  # difftest: 10/200 returns differ

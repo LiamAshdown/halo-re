@@ -8,7 +8,7 @@
 // immediately followed by a type word) matches saved_game_index_entry's path/type fields exactly
 // (offset 0x200), so the local Ghidra types local_208/local_8 are read as that struct.
 // Phase 4 review (objdump 0x53d0c0..0x53d0d7): type 0 loads EDI = 0x670c68 "blam.sav" and
-// type 1 loads EDI = 0x670c54 "blam.lst" before the shared strncpy / FUN_00625430 call, so the
+// type 1 loads EDI = 0x670c54 "blam.lst" before the shared strncpy / strstr call, so the
 // needle is picked by entry.type exactly as modeled (Ghidra had merged the two branches).
 // register convention: saved-game handle in EAX; out_directory buffer in ESI. No stack
 // arguments.
@@ -23,7 +23,7 @@
 
 extern uint8_t savegame_index_read_slot(int32_t slot_index, saved_game_index_entry *out_entry); // 0x53e0e0, FUN_0053e0e0 (src/game)
 extern void _strncpy(char *dest, const char *source, uint32_t count); // CRT
-extern char *FUN_00625430(char *haystack, const char *needle); // 0x625430, outside this batch (CRT-like substring search)
+extern char *strstr(char *haystack, const char *needle); // 0x625430, outside this batch (CRT-like substring search)
 
 // blam-cc: saved-game handle in EAX; out_directory in ESI
 // Resolves handle to its index-file slot and, if found and its type is a player profile or game
@@ -57,7 +57,7 @@ uint8_t saved_game_get_directory_by_handle(int32_t handle, char *out_directory)
     _strncpy(out_directory, entry.path, 0xff);
     out_directory[0xff] = '\0';
     needle = (entry.type == _saved_game_type_player_profile) ? "blam.sav" : "blam.lst";
-    name_start = FUN_00625430(out_directory, needle);
+    name_start = strstr(out_directory, needle);
     if (name_start != 0) {
         *name_start = '\0';
         return 1;

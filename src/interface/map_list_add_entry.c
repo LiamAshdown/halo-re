@@ -12,7 +12,7 @@
 // needed."; src/cache/cache_file_exists.c's confirmed (name in EAX, header_out in ESI) contract.
 // register convention: map path in EAX (in_EAX), map id as the recognized stack parameter.
 // blam-cc: EAX -> path, stack -> map_id
-// UNSURE: the substring search for ".map" (FUN_00625430 against DAT_00669928) infers the needle
+// UNSURE: the substring search for ".map" (strstr against DAT_00669928) infers the needle
 // from types/interface.h's "extension stripped" note; the literal bytes at 0x00669928 were not
 // independently read.
 // UNSURE: cache_file_exists needs a cache_file_header* in ESI that this call site never

@@ -16,7 +16,7 @@
 
 extern uint16_t *ui_button_caption[0x28]; // 0x00692708, first entry is the a-button token
 
-extern uint32_t FUN_00625b7a(uint16_t *s); // 0x625b7a, UNSURE: wide string length
+extern uint32_t wcslen(uint16_t *s); // 0x625b7a, UNSURE: wide string length
 extern int32_t __wcsnicmp(uint16_t *a, uint16_t *b, uint32_t count);
 
 // blam-cc: EBX -> text
@@ -27,7 +27,7 @@ int16_t ui_button_prompt_index_from_string(uint16_t *text)
     uint16_t index = 0;
 
     do {
-        uint32_t token_length = FUN_00625b7a(ui_button_caption[index]);
+        uint32_t token_length = wcslen(ui_button_caption[index]);
 
         if (__wcsnicmp(text, ui_button_caption[index], token_length) == 0) {
             break;

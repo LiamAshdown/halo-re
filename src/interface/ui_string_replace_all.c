@@ -12,8 +12,8 @@
 // buffer base has already been advanced past the counted occurrences by the preceding scan, so it
 // cannot be the real "old" argument. Modeled as `*buffer` (the caller's original, unmoved
 // pointer), which is the only value that is actually correct to realloc.
-// TYPES-GAP: FUN_00625b7a (0x625b7a) is used across many modules as wide strlen with no agreed
-// name yet; kept as FUN_00625b7a per that cross-module precedent.
+// TYPES-GAP: wcslen (0x625b7a) is used across many modules as wide strlen with no agreed
+// name yet; kept as wcslen per that cross-module precedent.
 
 #include "tags.h"
 #include "memory.h"
@@ -26,7 +26,7 @@
 extern heap *widget_memory_pool; // 0x006926c4
 
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80
-extern uint32_t FUN_00625b7a(const uint16_t *s); // 0x625b7a, wide strlen
+extern uint32_t wcslen(const uint16_t *s); // 0x625b7a, wide strlen
 extern wchar_t *_wcsstr(const wchar_t *string, const wchar_t *needle); // CRT
 extern void *_memmove(void *dest, const void *source, uint32_t size);
 
@@ -46,9 +46,9 @@ int32_t ui_string_replace_all(wchar_t *search, uint16_t *replacement, wchar_t **
         return 0;
     }
 
-    search_length = (int32_t)FUN_00625b7a((const uint16_t *)search);
-    replacement_length = FUN_00625b7a(replacement);
-    total_length = (int32_t)FUN_00625b7a((const uint16_t *)original) + 1;
+    search_length = (int32_t)wcslen((const uint16_t *)search);
+    replacement_length = wcslen(replacement);
+    total_length = (int32_t)wcslen((const uint16_t *)original) + 1;
 
     if (search_length < (int32_t)replacement_length) {
         // Replacement grows the string: count occurrences first, then reallocate and copy.

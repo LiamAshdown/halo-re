@@ -5,7 +5,7 @@
 // game-option fields, used when starting a server without an existing profile." Same field
 // offsets/values as player_profile_initialize's own network defaults
 // (out/phase4/saved_games_types_notes.md: "0xd8c..0x1108, FUN_0053a150 writes the same
-// defaults"). FUN_00625b7a ("wide strlen" per src/interface/FUN_004a4a30.c's precedent) is
+// defaults"). wcslen ("wide strlen" per src/interface/FUN_004a4a30.c's precedent) is
 // called on each literal before the copy but its result is unused, so it is reproduced as a
 // dead call rather than omitted.
 // register convention: profile in ESI.
@@ -20,15 +20,15 @@
 
 extern uint16_t empty_string[]; // 0x00660c34, L"" (src/game and src/networking use the same name)
 
-extern uint32_t FUN_00625b7a(const uint16_t *s); // 0x625b7a, wide strlen, not this module
+extern uint32_t wcslen(const uint16_t *s); // 0x625b7a, wide strlen, not this module
 extern void _wcscpy(uint16_t *dest, const uint16_t *src);
 
 // blam-cc: profile in ESI
 void player_profile_set_default_server_options(saved_player_profile *profile)
 {
-    FUN_00625b7a(L"Halo");
+    wcslen(L"Halo");
     _wcscpy(profile->server_name, L"Halo");
-    FUN_00625b7a(empty_string);
+    wcslen(empty_string);
     _wcscpy(profile->server_password, L"");
     profile->unknown_ebe = 0;
     profile->unknown_ebf = 3;

@@ -7,7 +7,7 @@
 //   real_matrix4x3.position (0x28, so marker.transform.position is at object_marker+0x2c).
 // register convention: object index in EAX (implicit, forwarded to the callee), destination
 //   real_point3d* in ESI.
-//   // blam-cc: in_EAX -> object_index (forwarded), unaff_ESI -> out
+//   // blam-cc: ECX -> object_index, ESI -> out
 // UNSURE: the marker-name argument (ECX) is never dereferenced as a string in this function's
 //   own decompilation, only cross-referenced as the raw data address 0x0066bfa0; that same
 //   address is the marker name argument at dozens of AI look/aim call sites elsewhere in the
@@ -24,10 +24,10 @@ extern char s_primary_eye_marker[]; // 0x0066bfa0, UNSURE exact text
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
                                                 uint32_t param_4); // 0x4f6080
 
-void unit_get_primary_eye_marker_position(uint32_t object_index, real_point3d *out) // blam-cc: in_EAX -> object_index, unaff_ESI -> out
+void unit_get_primary_eye_marker_position(uint32_t object_index, real_point3d *out) // blam-cc: ECX -> object_index, ESI -> out
 {
     object_marker marker;
-    object_get_node_local_transform(object_index, s_primary_eye_marker, &marker, 0);
+    object_get_node_local_transform(object_index, s_primary_eye_marker, &marker, 1) /* FIXED: the original pushes 1, the maximum marker count */;
     *out = marker.transform.position;
     return;
 }
