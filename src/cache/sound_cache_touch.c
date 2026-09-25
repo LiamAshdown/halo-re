@@ -9,9 +9,8 @@
 // 0x30 on cache and age 0x14 on cache_entry, types/memory.h) all match. The frame watchdog at
 // DAT_0072520c and the priority-raise expression `*(index*0x30 + 0x1c + cache_io_requests) = 1`
 // are exactly what cache_types_notes.md quotes for sound_cache_touch.
-// register convention: allocate_if_missing in EAX (param_1, Ghidra-recognized), lock in ECX
-// (param_2, Ghidra-recognized), wait_until_loaded in EBX (unaff_BL), permutation pointer in EDI
-// (unaff_EDI).
+// register convention (corrected, objdump 0x443e10): allocate_if_missing and lock are the two stack
+// arguments; wait_until_loaded in EBX (BL), permutation pointer in EDI.
 //
 // UNSURE: the exact register slots for allocate_if_missing/lock/wait_until_loaded/permutation
 // are inferred from the EAX,ECX,EDX,EBX,ESI,EDI ordering convention, not individually confirmed
@@ -45,8 +44,8 @@ extern void sound_cache_page_allocate(SoundPermutation *permutation, uint8_t pri
     // permutation in EAX; this module, sound_cache_page_allocate.c
 extern uint32_t sound_idle_update(void); // outside this module; frame-watchdog pump, UNSURE
 
-// blam-cc: wait_until_loaded in EBX, permutation in EDI; allocate_if_missing and lock are the
-// two ordinary __cdecl stack parameters (read as bytes at [esp+0x14] and [esp+0x1c])
+// blam-cc: EBX -> wait_until_loaded, EDI -> permutation, stack -> allocate_if_missing, lock
+// (the flags are read as bytes at [esp+0x14] and [esp+0x1c] inside the frame)
 // Ensures a sound permutation's sample page is resident in the sound cache. If the permutation
 // has no page (samples_pointer == -1) and allocate_if_missing is set, attempts to allocate one;
 // gives up immediately if that still leaves no page. Otherwise raises the pending read's IO

@@ -19,7 +19,8 @@
 extern random_seed effect_random_seed; // 0x00719cd4
 
 // Returns a pseudo-random integer in [minimum, maximum).
-int effect_random_int_between(int16_t minimum, int16_t maximum)
+// the result is 16-bit: the original's upper 16 bits are whatever the caller left in ECX (minimum's register)
+int16_t effect_random_int_between(int16_t minimum, int16_t maximum)
 {
     effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
     return (int)(((int)maximum - (int)minimum) * (int)(effect_random_seed >> k_random_value_shift) >> 16) +

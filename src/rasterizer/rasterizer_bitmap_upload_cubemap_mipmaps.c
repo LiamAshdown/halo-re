@@ -34,64 +34,60 @@ extern void *bitmap_data_get_pixel_address(BitmapData *bitmap, int32_t mip_level
 extern int16_t bitmap_data_calculate_mip_depth(BitmapData *bitmap, int32_t mip_level); // 0x43fbe0, UNSURE signature
 extern uint32_t bitmap_data_calculate_mip_level_pixel_count(BitmapData *bitmap, int32_t mip_level); // 0x43fc10, UNSURE signature
 
-typedef int32_t (__stdcall *d3d_lock_rect_fn)(void *self, uint32_t face, uint32_t level, void *out_rect, const void *rect, uint32_t flags);
-typedef int32_t (__stdcall *d3d_unlock_rect_fn)(void *self, uint32_t face, uint32_t level);
+// IDirect3DVolumeTexture9::LockBox (+0x4c) and UnlockBox (+0x50)
+typedef struct d3d_locked_box {
+    int32_t row_pitch;    // 0x00
+    int32_t slice_pitch;  // 0x04
+    void *bits;           // 0x08
+} d3d_locked_box;
+typedef int32_t (__stdcall *d3d_lock_box_fn)(void *self, uint32_t level, d3d_locked_box *out_box, const void *box, uint32_t flags);
+typedef int32_t (__stdcall *d3d_unlock_box_fn)(void *self, uint32_t level);
 
-
-// blam-cc: EBX = bitmap
+// REWRITTEN (objdump 0x524270..0x5243b7, 2026-09-25): this uploads a VOLUME (3D) texture, one depth slice at a
+//   time. The draft called LockBox/UnlockBox with an extra argument (these are __stdcall: the stack drifted),
+//   copied a whole level per slice instead of level/depth, and stepped the destination by the row pitch
+//   instead of the slice pitch.
+// blam-cc: EBX -> bitmap
 void rasterizer_bitmap_upload_cubemap_mipmaps(BitmapData *bitmap)
 {
-    uint8_t ok;
+    uint8_t ok = 1;
     int16_t max_level;
     int16_t level;
-    int16_t face;
-    int16_t face_count;
-    void **vtable;
-    d3d_lock_rect_fn lock_rect;
-    d3d_unlock_rect_fn unlock_rect;
-    d3d_locked_rect locked;
-    int32_t hresult;
+    int16_t depth, slice;
+    d3d_locked_box locked;
     uint8_t *source;
     uint8_t *dest;
-    uint32_t pixel_count;
-    uint32_t face_bytes;
+    int32_t level_bytes, slice_bytes;
+    void **vtable;
 
-    ok = 1;
-    if (rasterizer_device == 0 || *(uint32_t *)((uint8_t *)bitmap + 0x2c) == 0 ||
-        bitmap->hardware_texture == 0) {
+    if (rasterizer_device == 0 || *(uint32_t *)((uint8_t *)bitmap + 0x2c) == 0 || bitmap->hardware_texture == 0) {
         return;
     }
-
+    // D3DPTEXTURECAPS_MIPVOLUMEMAP (TextureCaps bit 15): upload every mip level, else only the first
     max_level = ((int8_t)(rasterizer_caps.texture_caps >> 8) < 0) ? bitmap->mipmap_count : 0;
 
-    for (level = 0; ok; level++) {
-        if (max_level < level) {
-            return;
-        }
-
+    for (level = 0; ok && level <= max_level; level++) {
         vtable = *(void ***)(void *)bitmap->hardware_texture;
-        lock_rect = (d3d_lock_rect_fn)vtable[0x13]; // +0x4c, UNSURE: 5-arg LockRect shape guessed for cube faces
-        hresult = lock_rect((void *)bitmap->hardware_texture, 0, (uint32_t)level, &locked, 0, 0);
-        if (hresult < 0 || locked.bits == 0) {
-            ok = 0;
-            break;
+        if (((d3d_lock_box_fn)vtable[0x4c / 4])((void *)bitmap->hardware_texture, (uint32_t)level, &locked, 0, 0) < 0 ||
+            locked.bits == 0) {
+            ok = 0;   // 0x52439b: a failed lock is not unlocked
+            continue;
         }
-
         source = (uint8_t *)bitmap_data_get_pixel_address(bitmap, level);
-        face_count = bitmap_data_calculate_mip_depth(bitmap, level);
+        depth = bitmap_data_calculate_mip_depth(bitmap, level);
         dest = (uint8_t *)locked.bits;
-        for (face = 0; face < face_count; face++) {
-            pixel_count = bitmap_data_calculate_mip_level_pixel_count(bitmap, level);
-            face_bytes = (pixel_count * rasterizer_bitmap_format_bits_per_pixel[bitmap->format]) / 8; // UNSURE: rounding correction dropped
-            memcpy(dest, source, face_bytes);
-            source = source + face_bytes;
-            dest = dest + locked.pitch; // UNSURE: original advances by a separate iStack_8 stride
+        for (slice = 0; slice < depth; slice++) {
+            // 0x524334: the level's bytes (pixels * bits per pixel / 8, rounded toward zero), split evenly by depth
+            level_bytes = (int32_t)bitmap_data_calculate_mip_level_pixel_count(bitmap, level) *
+                          rasterizer_bitmap_format_bits_per_pixel[bitmap->format];
+            level_bytes = level_bytes / 8;
+            slice_bytes = level_bytes / depth;
+            memcpy(dest, source, slice_bytes);
+            source += slice_bytes;
+            dest += locked.slice_pitch;
         }
-
         vtable = *(void ***)(void *)bitmap->hardware_texture;
-        unlock_rect = (d3d_unlock_rect_fn)vtable[0x14]; // +0x50
-        hresult = unlock_rect((void *)bitmap->hardware_texture, 0, (uint32_t)level);
-        if (hresult < 0) {
+        if (((d3d_unlock_box_fn)vtable[0x50 / 4])((void *)bitmap->hardware_texture, (uint32_t)level) < 0) {
             ok = 0;
         }
     }

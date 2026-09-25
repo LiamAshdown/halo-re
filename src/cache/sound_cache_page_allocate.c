@@ -47,7 +47,9 @@ extern int16_t cache_io_request_new(cache_io_completion *completion, // blam-cc:
 // The 15-byte thunk documented in out/phase4/cache_types_notes.md's cache_io_completion
 // section; not rewritten here (Ghidra never gave it a function boundary). Recovers the
 // sound_cache_entry from the completion record and tail-calls sound_cache_decode_permutation.
-extern void cache_io_sound_decode_thunk(cache_io_completion *record); // 0x443e00
+// the original 15-byte completion thunk; only its address is handed to the I/O system (never called from here), so
+// it is referenced as that address rather than as an external function (which would route through a stub)
+#define cache_io_sound_decode_thunk ((void (*)(cache_io_completion *))0x00443e00)
 
 // blam-cc: permutation in EAX (in_EAX), priority as the recognized stack parameter
 // Allocates a cache page for a sound permutation's sample data and kicks off an async read to

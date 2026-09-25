@@ -9,7 +9,6 @@ path_find_hash_lookup_vertex                       # ai: hang no result within 2
 projectile_get_aiming_vector                       # ai: differ 168/200: pointer arg #7 +0x0: -0.810578 (0xbf4f820b) vs -4.0688 (0xc082339c)
 projectile_solve_ballistic_arc                     # ai: differ 104/200: pointer arg #3 +0x0: -nan(ind) (0xffc00000) vs -0.0105899 (0xbc2d813c)
 contrail_next_sequence                             # effects: differ 1/1: rewrite crashed (original did not)
-effect_random_int_between                          # effects: differ 150/200: return 0xa5a50004 vs 0x00000004
 player_effect_set_screen_flash                     # effects: differ 65/200: pointer arg #0 +0x3c: 0 (0x00000000) vs 0.6884 (0x3f303af8)
 game_engine_koth_reset_hill_marker_history         # game: differ 200/200: global 0x0087a9a0: 0x3f800000 vs 0x0065513c
 game_engine_rasterize_message                      # game: died tester process died

@@ -31,7 +31,9 @@ extern void *GlobalFree(void *memory);                     // 0x0063a0bc IAT
 // UNSURE: see file header note above. The second argument is a plain dereference of
 // permutation->samples's first field (structurally TagDataOffset::size), not the struct's
 // address -- Ghidra shows `*(undefined4 *)(in_EAX + 0x40)`, a value read, not a pointer.
-extern int32_t sound_decode_dispatch(void *decode_context, uint32_t samples_size); // 0x54e830
+extern tag_instance *tag_instances; // 0x0087bc14
+extern int32_t sound_decode_dispatch(int16_t channel_count, void *destination, void *source,
+                                     int32_t source_size); // 0x54e830; ECX channels, EBX destination, stack (source, size)
 
 // blam-cc: SoundPermutation pointer in EAX (in_EAX)
 // If the permutation's format is 1 (xbox_adpcm is the one format the cache_io_completion
@@ -59,8 +61,19 @@ void sound_cache_decode_permutation(SoundPermutation *permutation)
             sound_decode_buffer = GlobalAlloc(0, buffer_size);
         }
 
-        decode_context = *(void **)permutation->_pad_30;
-        if (sound_decode_dispatch(decode_context, *(uint32_t *)&permutation->samples) == 0) {
+        // 0x443d6e..0x443dca: ECX = channel count (1, or 2 when the owning sound tag's +0x6c is 1), EBX = the
+        // scratch buffer, stack = the cached compressed samples (+0x30) and their size (samples.size, +0x40).
+        // FIXED: the draft passed only the two stack values.
+        {
+            uint8_t *sound_tag = (uint8_t *)tag_instances[*(datum_index *)((uint8_t *)permutation + 0x3c) & 0xffff].data;
+            int16_t channel_count = (int16_t)(1 + (*(int16_t *)(sound_tag + 0x6c) == 1));
+            decode_context = *(void **)permutation->_pad_30;
+            if (sound_decode_dispatch(channel_count, sound_decode_buffer, decode_context,
+                                      *(int32_t *)((uint8_t *)permutation + 0x40)) != 0) {
+                return;
+            }
+        }
+        {
             source = (uint8_t *)sound_decode_buffer;
             destination = *(uint8_t **)permutation->_pad_30;
 

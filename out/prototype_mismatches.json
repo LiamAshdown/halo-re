@@ -4341,30 +4341,12 @@
   ]
  },
  {
-  "caller": "src\\cache\\sound_cache_decode_permutation.c",
-  "callee": "sound_decode_dispatch",
-  "definition": "src\\sound\\sound_decode_dispatch.c",
-  "declared": "extern int32_t sound_decode_dispatch(void *decode_context, uint32_t samples_size);",
-  "problems": [
-   "2 parameters declared, 4 defined"
-  ]
- },
- {
   "caller": "src\\cache\\structure_bsp_load_material_vertex_buffers.c",
   "callee": "rasterizer_vertex_buffer_create",
   "definition": "src\\rasterizer\\rasterizer_vertex_buffer_create.c",
   "declared": "extern int8_t rasterizer_vertex_buffer_create(void *fields, int32_t format, int32_t vertex_count,\n    void *rendered_data, void *lightmap_data, int32_t size);",
   "problems": [
    "parameter kinds differ at #5 (p vs i)"
-  ]
- },
- {
-  "caller": "src\\cache\\texture_cache_get.c",
-  "callee": "rasterizer_bitmap_create_hardware_texture",
-  "definition": "src\\rasterizer\\rasterizer_bitmap_create_hardware_texture.c",
-  "declared": "extern void rasterizer_bitmap_create_hardware_texture(void);",
-  "problems": [
-   "0 parameters declared, 1 defined"
   ]
  },
  {
@@ -14259,15 +14241,6 @@
   ]
  },
  {
-  "caller": "src\\rasterizer\\bitmap_compute_mipmap_count.c",
-  "callee": "uint32_log2_floor",
-  "definition": "src\\math\\uint32_log2_floor.c",
-  "declared": "extern uint32_t uint32_log2_floor(void);",
-  "problems": [
-   "0 parameters declared, 1 defined"
-  ]
- },
- {
   "caller": "src\\rasterizer\\chimera__draw_16_bit_text.c",
   "callee": "text_wrap_and_draw_wide",
   "definition": "src\\text\\text_wrap_and_draw_wide.c",
@@ -14365,15 +14338,6 @@
   "declared": "extern uint32_t dxt5_decode_alpha_texel(void *block, uint32_t x, uint32_t y);",
   "problems": [
    "3 parameters declared, 4 defined"
-  ]
- },
- {
-  "caller": "src\\rasterizer\\rasterizer_bitmap_upload_cubemap_mipmaps_by_face.c",
-  "callee": "bitmap_data_get_cube_map_pixel_address",
-  "definition": "src\\bitmaps\\bitmap_data_get_cube_map_pixel_address.c",
-  "declared": "extern void *bitmap_data_get_cube_map_pixel_address(BitmapData *bitmap, int32_t face, int32_t mip_level);",
-  "problems": [
-   "3 parameters declared, 5 defined"
   ]
  },
  {

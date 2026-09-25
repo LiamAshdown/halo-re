@@ -7,7 +7,7 @@
 //   different (4-block-rounded) size reduction consistent with a compressed format.
 // register convention: BitmapData pointer in unaff_EBX (unresolved register read).
 //   // blam-cc: unaff_EBX -> bitmap
-// UNSURE: both calls to uint32_log2_floor are shown by Ghidra with no visible arguments; this
+// FIXED (objdump 0x5145a0): both tail calls to uint32_log2_floor pass ECX = the largest dimension; was: this
 //   is a straight, line by line translation of the original arithmetic (renamed to struct field
 //   accesses where the offset is one of BitmapData's) rather than a re-derivation of intended
 //   behaviour, since several of the intermediate values (sVar5/sVar7/uVar3 reuse) are hard to
@@ -18,7 +18,7 @@
 #include "math.h"
 #include "rasterizer.h"
 
-extern uint32_t uint32_log2_floor(void); // 0x4cb740, UNSURE: arguments not resolved at either call site
+extern int32_t uint32_log2_floor(uint32_t value); // 0x4cb740; ECX -> value
 
 // blam-cc: unaff_EBX -> bitmap
 // Computes the number of mipmap levels to generate for a bitmap, honouring its requested
@@ -59,9 +59,9 @@ uint32_t bitmap_compute_mipmap_count(BitmapData *bitmap)
         if (levels < (int16_t)bitmap->mipmap_count) {
             int16_t hd = (height <= depth) ? depth : height;
             if (hd < width) {
-                return uint32_log2_floor(); // UNSURE
+                return (uint32_t)uint32_log2_floor((uint32_t)max_dim); // 0x514631: ECX = the largest dimension
             }
-            return uint32_log2_floor(); // UNSURE
+            return (uint32_t)uint32_log2_floor((uint32_t)max_dim); // 0x51463b
         }
     } else {
         int16_t depth = (int16_t)bitmap->depth;
@@ -96,9 +96,9 @@ uint32_t bitmap_compute_mipmap_count(BitmapData *bitmap)
                 wb = depth;
             }
             if (wb < height_blocks) {
-                return uint32_log2_floor(); // UNSURE
+                return (uint32_t)uint32_log2_floor((uint32_t)max2); // 0x5146a0: ECX = the largest block dimension
             }
-            return uint32_log2_floor(); // UNSURE
+            return (uint32_t)uint32_log2_floor((uint32_t)max2); // 0x5146a9
         }
     }
     return result;

@@ -55,7 +55,7 @@ extern void console_print_va(const char *format, ...);       // 0x4c6920
 extern uint32_t texture_cache_page_allocate(BitmapData *bitmap, uint8_t priority); // this module, texture_cache_page_allocate.c
 
 extern uint32_t sound_idle_update(void); // outside this module; frame-watchdog pump, UNSURE
-extern void rasterizer_bitmap_create_hardware_texture(void);     // outside this module; no visible arguments, UNSURE
+extern uint8_t rasterizer_bitmap_create_hardware_texture(BitmapData *bitmap); // 0x523fa0; ESI -> bitmap
 
 // blam-cc: bitmap in EAX; outside this module, UNSURE
 extern void rasterizer_bitmap_upload_2d_mipmaps(BitmapData *bitmap); // 2D texture conversion, stack-passed
@@ -114,7 +114,7 @@ void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_mi
                 if (entry->loaded != 0) {
                     if (entry->converted == 0) {
                         entry->converted = 1;
-                        rasterizer_bitmap_create_hardware_texture();
+                        rasterizer_bitmap_create_hardware_texture(bitmap); // 0x444622: ESI = bitmap
                         bitmap_type = bitmap->type;
                         if (bitmap_type == 0) {
                             rasterizer_bitmap_upload_2d_mipmaps(bitmap);
