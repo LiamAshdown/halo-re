@@ -28,7 +28,7 @@ extern char *hs_compile_error;                      // 0x006b14d4
 extern int32_t hs_compile_error_offset;             // 0x006b14d8
 extern char hs_compile_error_buffer[k_hs_error_buffer_size]; // 0x006b14dc
 extern char *hs_type_names[k_hs_type_count];        // 0x00688a78
-extern hs_enum_definition hs_enum_definitions[5];   // 0x0065b634, indexed by (type - 0x20),
+extern hs_enum_definition hs_enum_definitions[5];   // 0x0065b638 (FIXED: was 0x0065b634, 4 bytes into the previous entry; the original indexes 0x65b538 + type*8), indexed by (type - 0x20),
                                                      // see out/phase4/hs_types_notes.md
 
 // Parses an enum-typed primitive token: looks the token's text up (case-insensitively) in the
