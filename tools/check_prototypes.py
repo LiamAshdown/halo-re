@@ -6,7 +6,7 @@ Writes out/prototype_mismatches.json; prints a summary.   Usage: python tools/ch
 import os, re, glob, json, sys, collections
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEF = re.compile(r"^(?!extern|static|typedef|#|//|\s)([A-Za-z_][\w \t\*]*?)\b([A-Za-z_]\w*)\s*\(([^;{]*?)\)\s*(?://[^\n]*)?\s*\{", re.M)
+DEF = re.compile(r"^(?!extern|static|typedef|#|//|\s)([A-Za-z_][\w \t\*]*?)\b([A-Za-z_]\w*)\s*\(([^;{]*?)\)(?:\s*//[^\n]*)*\s*\{", re.M)   # any number of // comment lines between ) and {
 EXT = re.compile(r"^[ \t]*extern\s+([^;(]*?)\b([A-Za-z_]\w*)\s*\(([^;]*?)\)\s*;", re.M)
 
 def split_params(s):

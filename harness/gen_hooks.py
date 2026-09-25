@@ -19,7 +19,7 @@ OBJDUMP = r"C:\msys64\ucrt64\bin\objdump.exe"
 REG32 = {"EAX": "eax", "ECX": "ecx", "EDX": "edx", "EBX": "ebx", "ESI": "esi", "EDI": "edi",
          "AX": "eax", "AL": "eax", "AH": None, "CX": "ecx", "CL": "ecx", "DX": "edx", "DL": "edx",
          "BX": "ebx", "BL": "ebx", "SI": "esi", "DI": "edi"}
-DEF = re.compile(r"^(?!extern|static|typedef|#|//|\s)([A-Za-z_][\w \t\*]*?)\b([A-Za-z_]\w*)\s*\(([^;{]*?)\)\s*(?://[^\n]*)?\s*\{", re.M)
+DEF = re.compile(r"^(?!extern|static|typedef|#|//|\s)([A-Za-z_][\w \t\*]*?)\b([A-Za-z_]\w*)\s*\(([^;{]*?)\)(?:\s*//[^\n]*)*\s*\{", re.M)   # any number of // comment lines between ) and {
 HDR = re.compile(r"address\s+0x0*([0-9a-f]{6}),\s*size\s+(\d+)", re.I)
 
 def split_params(s):

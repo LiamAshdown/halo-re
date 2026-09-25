@@ -874,6 +874,15 @@
   ]
  },
  {
+  "caller": "src\\ai\\actor_get_aim_from_position.c",
+  "callee": "unit_clamp_direction_to_aim_or_look_bounds",
+  "definition": "src\\units\\unit_clamp_direction_to_aim_or_look_bounds.c",
+  "declared": "extern void unit_clamp_direction_to_aim_or_look_bounds(void);",
+  "problems": [
+   "0 parameters declared, 4 defined"
+  ]
+ },
+ {
   "caller": "src\\ai\\actor_get_body_axis_vector.c",
   "callee": "unit_get_forward_vector_or_marker_normal",
   "definition": "src\\units\\unit_get_forward_vector_or_marker_normal.c",
@@ -3014,6 +3023,15 @@
   "declared": "extern int16_t actor_target_hearing_check(uint32_t *block, uint32_t param);",
   "problems": [
    "2 parameters declared, 6 defined"
+  ]
+ },
+ {
+  "caller": "src\\ai\\ai_category_matches_wildcard.c",
+  "callee": "team_pair_override_add",
+  "definition": "src\\game\\team_pair_override_add.c",
+  "declared": "extern void team_pair_override_add(uint32_t matched);",
+  "problems": [
+   "1 parameters declared, 7 defined"
   ]
  },
  {
@@ -6568,6 +6586,15 @@
   "declared": "extern int object_collect_local_player_relevant_objects(void *callback, datum_index *player_handle, int32_t max_count,\n    datum_index *out_candidates);",
   "problems": [
    "4 parameters declared, 0 defined"
+  ]
+ },
+ {
+  "caller": "src\\game\\hud_find_nearby_teammate_for_nameplate.c",
+  "callee": "camera_observer_target_direction",
+  "definition": "src\\game\\camera_observer_target_direction.c",
+  "declared": "extern char camera_observer_target_direction(datum_index candidate, datum_index reference_unit, void *out1,\n    void *out2, float *out_angle);",
+  "problems": [
+   "5 parameters declared, 8 defined"
   ]
  },
  {
@@ -12836,6 +12863,24 @@
  },
  {
   "caller": "src\\objects\\object_apply_damage.c",
+  "callee": "player_effect_send_network_update",
+  "definition": "src\\effects\\player_effect_send_network_update.c",
+  "declared": "extern void player_effect_send_network_update(damage_data *dd, float random_blend, float damage_amount);",
+  "problems": [
+   "3 parameters declared, 5 defined"
+  ]
+ },
+ {
+  "caller": "src\\objects\\object_apply_damage.c",
+  "callee": "player_effect_mark_damage_direction",
+  "definition": "src\\effects\\player_effect_mark_damage_direction.c",
+  "declared": "extern void player_effect_mark_damage_direction(damage_data *dd, real_vector3d *direction, float random_blend, float damage_amount);",
+  "problems": [
+   "4 parameters declared, 5 defined"
+  ]
+ },
+ {
+  "caller": "src\\objects\\object_apply_damage.c",
   "callee": "teams_are_enemies",
   "definition": "src\\game\\teams_are_enemies.c",
   "declared": "extern int8_t teams_are_enemies(void);",
@@ -16596,6 +16641,15 @@
  },
  {
   "caller": "src\\units\\unit_ready_desired_weapon.c",
+  "callee": "object_reorient_relative_to_marker",
+  "definition": "src\\objects\\object_reorient_relative_to_marker.c",
+  "declared": "extern void object_reorient_relative_to_marker(uint32_t unit_index, uint8_t *marker);",
+  "problems": [
+   "2 parameters declared, 4 defined"
+  ]
+ },
+ {
+  "caller": "src\\units\\unit_ready_desired_weapon.c",
   "callee": "object_for_each_light_attachment",
   "definition": "src\\objects\\object_for_each_light_attachment.c",
   "declared": "extern void object_for_each_light_attachment(uint32_t object_index, uint32_t flag);",
@@ -17281,6 +17335,15 @@
   "declared": "extern void unit_dispatch_reaction_animation(int16_t reaction_code);",
   "problems": [
    "1 parameters declared, 2 defined"
+  ]
+ },
+ {
+  "caller": "src\\units\\unit_update.c",
+  "callee": "unit_clamp_direction_to_aim_or_look_bounds",
+  "definition": "src\\units\\unit_clamp_direction_to_aim_or_look_bounds.c",
+  "declared": "extern uint8_t unit_clamp_direction_to_aim_or_look_bounds(uint32_t unit_index, real_vector3d *world_direction,\n                                                          uint32_t which_bounds);",
+  "problems": [
+   "3 parameters declared, 4 defined"
   ]
  },
  {
