@@ -1,4 +1,4 @@
-# Stable set: 1556 functions (every hookable one), behaviour-checked in game (2026-09-25)
+# Stable set: 1578 functions (every hookable one), behaviour-checked in game (2026-09-25)
 bit_vector_or
 bounded_ramp_profile_build
 bounded_ramp_profile_evaluate
@@ -1555,3 +1555,25 @@ text_wrap_and_draw_narrow
 unit_find_seats_matching_name_and_flags
 unit_get_primary_eye_marker_position
 unit_get_secondary_eye_marker_position
+savegame_index_file_exists
+widget_text_edit_process_key
+movie_capture_frame_export
+autopatch_launch_updater
+directory_ensure_empty
+file_enumerate_find_next
+file_reference_compare_full_path
+file_reference_init
+path_remove_last_component
+path_split_components
+playlist_profile_create_default_profiles_on_disk
+saved_game_index_open_for_write
+saved_game_index_register_default_playlists
+saved_game_index_register_default_profiles
+saved_game_last_mp_map_clear
+saved_game_last_mp_map_read
+saved_game_last_mp_variant_clear
+saved_game_last_mp_variant_read
+saved_game_last_profile_clear
+saved_game_last_profile_read
+text_find_character_boundary
+text_get_next_character
