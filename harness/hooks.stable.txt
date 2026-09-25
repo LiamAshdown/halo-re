@@ -1,4 +1,4 @@
-# Stable set: 1598 functions (every hookable one), behaviour-checked in game (2026-09-25)
+# Stable set: 1610 functions (every hookable one), behaviour-checked in game (2026-09-25)
 bit_vector_or
 bounded_ramp_profile_build
 bounded_ramp_profile_evaluate
@@ -1597,3 +1597,15 @@ sort_introsort_loop
 sort_make_heap
 sort_push_heap
 unit_clamp_direction_to_aim_or_look_bounds
+bitmap_group_postprocess
+sound_cache_decode_permutation
+texture_cache_page_allocate
+effect_random_int_between
+cache_allocate_block
+bitmap_compute_mipmap_count
+bitmap_compute_texture_data_size
+font_glyph_cache_allocate_and_upload
+rasterizer_bitmap_upload_cubemap_mipmaps
+rasterizer_bitmap_upload_cubemap_mipmaps_by_face
+sound_instance_apply_pending_definition_switch
+sound_permutation_pick_random
