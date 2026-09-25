@@ -1731,3 +1731,5 @@ rasterizer_resolve_and_cache_submap_b
 rasterizer_resolve_and_cache_submap_c
 rasterizer_validate_and_rebind_texture
 texture_cache_get
+rasterizer_ui_quad_draw
+rasterizer_draw_text_begin

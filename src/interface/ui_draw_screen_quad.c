@@ -92,7 +92,7 @@ void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitma
             }
             v = clip_rect[0]; // clip left
             if (dest_rect[0] < v) {
-                corners[6] = (float)(int32_t)v; // NOTE: matches Ghidra -- overwrites the same slot
+                // 0x498c69: only slots 3 and 1 ([esp+0x30], [esp+0x28]); slot 6 keeps the other clamp
                 corners[3] = (float)(int32_t)v;
                 corners[1] = corners[3];
             }
@@ -109,7 +109,7 @@ void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitma
 
         scale_v = (float)(int32_t)*(int16_t *)(bitmap_data + 6); // bitmap height
         if (scale_v < 1.0f) scale_v = 1.0f;
-        scale_v = (float)(int32_t)(int16_t)((int16_t)source_rect[1] - (int16_t)source_rect[0]) / scale_v;
+        scale_v = (float)(int32_t)(int16_t)(source_rect[2] - source_rect[0]) / scale_v; // 0x498ba3: src[2] - src[0]
         if (scale_v > 1.0f) scale_v = 1.0f;
 
         // Four vertices of 6 floats (0x18 bytes) each: {row, col, 0, w, u, v}, written at
