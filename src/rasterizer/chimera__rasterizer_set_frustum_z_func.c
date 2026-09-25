@@ -1,7 +1,7 @@
 // chimera__rasterizer_set_frustum_z_func  (Ghidra: chimera__rasterizer_set_frustum_z_func,
 // already named -- Chimera name, hint only)
 // address 0x518f40, size 704 bytes
-// name confidence: 0.55  rewrite confidence: 0.35
+// name confidence: 0.55  rewrite confidence: 0.9 (rewritten 2026-09-25 from the disassembly)
 // evidence: matches out/phase4/rasterizer_functions.md's summary ("Transforms the current view
 //   frustum's clip planes into the object's local space and uploads them, together with
 //   fog-plane parameters, as shader/clip-plane constants"); the globals it touches
@@ -44,104 +44,70 @@ extern float g_007c13e0, g_007c13e4, g_007c13f0; // UNSURE, past render_frustum'
 // blam-cc: ECX -> frustum, stack -> (z_near, z_far)
 extern void render_camera_projection_zrange_push_pop_set(render_frustum *frustum, float z_near, float z_far); // 0x50c9a0
 
-typedef int32_t (__stdcall *d3d_set_clip_plane_fn)(void *device, uint32_t index, const void *plane);
+typedef int32_t (__stdcall *d3d_set_transform_fn)(void *device, uint32_t state, const float *matrix);
 typedef int32_t (__stdcall *d3d_set_vertex_shader_constant_fn)(void *device, uint32_t reg, const void *data, uint32_t count);
 
-// blam-cc: stack -> (z_near, z_far) as raw float bits; both are forwarded to 0x50c9a0 with
-//   ECX = &rasterizer_window.frustum (0x007c127c) (phase 4 review: the second argument is a value,
-//   not a pointer; 0x518f40 pushes [esp+8] and [esp+4]).
-// See the file header: transliterated as literally as possible rather than field-renamed.
+// REWRITTEN (objdump 0x518f40..0x5191ff, 2026-09-25). The Ghidra-shaped draft passed a code address (0x5190f3)
+//   where the original builds an identity matrix, uploaded 0 vertex shader constants instead of 6, and turned
+//   the raw z bits into floats by value; hooked, the world was not drawn at all.
+// Reads (all inside rasterizer_window, 0x7c1220): view = 4x3 at 0x7c1290 (rows of three floats), projection =
+//   4x4 at 0x7c13c0, camera position 0x7c1228 / forward 0x7c1234, and the two rows at 0x7c12c4 / 0x7c12d0.
+#define RW(address) (*(const float *)((const uint8_t *)&rasterizer_window + ((address) - 0x7c1220)))
+
+// blam-cc: stack -> z_near, z_far (raw float bits, forwarded unchanged)
 void chimera__rasterizer_set_frustum_z_func(uint32_t z_near, uint32_t z_far)
 {
-    float local_54[13];
-    float row0[4], row1[4], row2[4], row3[4];
+    const float *view = &RW(0x7c1290);        // view[row * 3 + column], 4 rows
+    const float *projection = &RW(0x7c13c0);  // projection[row * 4 + column]
+    float constants[6][4];                    // vertex shader c0..c5
+    float rows_1b[2][4];                      // vertex shader c27..c28
     void **vtable;
+    int32_t i, j;
 
-    render_camera_projection_zrange_push_pop_set(&rasterizer_window.frustum, z_near, z_far);
+    render_camera_projection_zrange_push_pop_set(&rasterizer_window.frustum, *(float *)&z_near, *(float *)&z_far);
 
-    {
-        // 4-row, 3-column accumulate: out[row] = sum_col( world_to_view_col[row][col] *
-        // basis_row[col] ) + trailing offset. Preserved exactly from the original pointer walk
-        // (&g_007c13d0 stepping by 1 float per outer iteration, 8 floats per "+pfVar2+8" trail;
-        // &g_007c1294 stepping by 3 floats per inner iteration, reading [-1],[0],[1]).
-        float *pfVar2 = &g_007c13d0;
-        int iVar4 = 4;
-        float *pfVar6 = local_54;
-        float *rows[4] = {row0, row1, row2, row3};
-        int r = 0;
-
-        do {
-            int iVar5 = 4;
-            float *pfVar1 = &g_007c1294;
-            float *pfVar3 = pfVar6 - 3; // UNSURE: aliases into local_54 exactly as original
-            int c = 0;
-            (void)pfVar3;
-            do {
-                iVar5 = iVar5 - 1;
-                rows[r][c] = pfVar2[0] * pfVar1[0] + pfVar1[1] * pfVar2[4] + pfVar1[-1] * pfVar2[-4];
-                pfVar1 = pfVar1 + 3;
-                c++;
-            } while (iVar5 != 0);
-            {
-                float *pfVar1b = pfVar2 + 8;
-                pfVar2 = pfVar2 + 1;
-                iVar4 = iVar4 - 1;
-                rows[r][0] = *pfVar1b + rows[r][0]; // UNSURE: matches "*pfVar6 = *pfVar1 + *pfVar6" (index 0 of this row)
-                pfVar6 = pfVar6 + 4;
-                r++;
-            }
-        } while (iVar4 != 0);
+    // c0..c3: row i, column j = sum over k of view[j][k] * projection[k][i], plus projection[3][i] in column 3
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 4; j++) {
+            constants[i][j] = view[j * 3 + 0] * projection[0 * 4 + i] + view[j * 3 + 2] * projection[2 * 4 + i] +
+                              projection[1 * 4 + i] * view[j * 3 + 1];
+        }
+        constants[i][3] = projection[3 * 4 + i] + constants[i][3];
     }
 
     if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
-        float clip_plane_a[4];
-        float clip_plane_b[4];
-
-        clip_plane_a[1] = g_007c1298;
-        clip_plane_a[0] = g_007c1294;
-        (void)g_007c12a4; // local_88, UNSURE destination (see original: local_88 unused after assignment)
-        clip_plane_b[3] = g_007c1290;
-        (void)g_007c12a0; // local_8c, UNSURE
-        (void)g_007c12b0; // local_78, UNSURE
-        clip_plane_a[2] = g_007c129c;
-        (void)g_007c12ac; // local_7c, UNSURE
-        (void)g_007c12bc; // local_68, UNSURE
-        (void)g_007c12a8; // local_80, UNSURE
-        (void)g_007c12b8; // local_6c, UNSURE
-        clip_plane_a[3] = 0.0f;
-        (void)0; // local_84
-        (void)0; // local_74
-        (void)g_007c12b4; // local_70, UNSURE
-        (void)0x3f800000; // local_64 == 1.0f
-        clip_plane_b[1] = 0.0f;
-        clip_plane_b[0] = 0.0f;
-        clip_plane_b[2] = 0x3f800000; // 1.0f, as a plane's D or Z component
-
+        // no pixel shaders: fixed-function transforms. World = identity, view = the 4x3 view matrix widened to
+        // 4x4, projection as stored
+        float identity[16] = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+                              0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+        float view4[16];
+        for (j = 0; j < 4; j++) {
+            view4[j * 4 + 0] = view[j * 3 + 0];
+            view4[j * 4 + 1] = view[j * 3 + 1];
+            view4[j * 4 + 2] = view[j * 3 + 2];
+            view4[j * 4 + 3] = j == 3 ? 1.0f : 0.0f;
+        }
         vtable = *(void ***)rasterizer_device;
-        ((d3d_set_clip_plane_fn)vtable[0xb0 / 4])(rasterizer_device, 0, (void *)0x5190f3); // UNSURE: literal, not a real pointer -- see file header
+        ((d3d_set_transform_fn)vtable[0xb0 / 4])(rasterizer_device, 0x100, identity);  // D3DTS_WORLD
         vtable = *(void ***)rasterizer_device;
-        ((d3d_set_clip_plane_fn)vtable[0xb0 / 4])(rasterizer_device, 2, clip_plane_b);
+        ((d3d_set_transform_fn)vtable[0xb0 / 4])(rasterizer_device, 2, view4);         // D3DTS_VIEW
         vtable = *(void ***)rasterizer_device;
-        ((d3d_set_clip_plane_fn)vtable[0xb0 / 4])(rasterizer_device, 3, g_007c13c0);
+        ((d3d_set_transform_fn)vtable[0xb0 / 4])(rasterizer_device, 3, projection);    // D3DTS_PROJECTION
     }
 
-    {
-        float user_clip[8];
-        user_clip[2] = g_007c1230;
-        user_clip[0] = g_007c1228;
-        user_clip[6] = g_007c123c;
-        user_clip[3] = g_007c122c;
-        user_clip[4] = g_007c1234;
-        user_clip[5] = 2.0f; // 0x40000000
-        user_clip[7] = g_007c1238;
-        user_clip[1] = 0.5f; // 0x3f000000, wait: uStack_4 maps to user_clip[7]'s neighbor -- see UNSURE below
+    // c4 = camera position, 2.0; c5 = camera forward, 0.5
+    constants[4][0] = RW(0x7c1228); constants[4][1] = RW(0x7c122c); constants[4][2] = RW(0x7c1230); constants[4][3] = 2.0f;
+    constants[5][0] = RW(0x7c1234); constants[5][1] = RW(0x7c1238); constants[5][2] = RW(0x7c123c); constants[5][3] = 0.5f;
+    vtable = *(void ***)rasterizer_device;
+    ((d3d_set_vertex_shader_constant_fn)vtable[0x178 / 4])(rasterizer_device, 0, constants, 6);
 
-        vtable = *(void ***)rasterizer_device;
-        ((d3d_set_vertex_shader_constant_fn)vtable[0x178 / 4])(rasterizer_device, 0, local_54, 0); // UNSURE: real reg/count not shown
-        vtable = *(void ***)rasterizer_device;
-        ((d3d_set_vertex_shader_constant_fn)vtable[0x178 / 4])(rasterizer_device, 0x1b, &g_007c12c4, 2);
-    }
+    // c27 = (0x7c12c4.., 1.0), c28 = (0x7c12d0.., 3.0)
+    rows_1b[0][0] = RW(0x7c12c4); rows_1b[0][1] = RW(0x7c12c8); rows_1b[0][2] = RW(0x7c12cc); rows_1b[0][3] = 1.0f;
+    rows_1b[1][0] = RW(0x7c12d0); rows_1b[1][1] = RW(0x7c12d4); rows_1b[1][2] = RW(0x7c12d8); rows_1b[1][3] = 3.0f;
+    vtable = *(void ***)rasterizer_device;
+    ((d3d_set_vertex_shader_constant_fn)vtable[0x178 / 4])(rasterizer_device, 0x1b, rows_1b, 2);
 }
+#undef RW
 
 #if 0
 Original Ghidra decompilation (0x518f40):
