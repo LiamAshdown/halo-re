@@ -14,7 +14,7 @@
 #include "memory.h"
 #include "hs.h"
 
-extern void string_to_lowercase(char *text); // 0x004491e0
+extern char * string_to_lowercase(char *string); // 0x004491e0
 
 extern data_array *hs_syntax_data;         // 0x0087a474
 extern char *hs_compiled_source;           // 0x006b14c0

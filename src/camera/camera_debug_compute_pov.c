@@ -42,8 +42,7 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern dead_camera_data *dead_camera_new(dead_camera_data *this, int16_t local_player_index, datum_index unit); // this module
 extern void camera_track_compute_pov(director_camera_data *data, camera_input *input, observer_command *command); // this module
 extern void first_person_camera_command_for_unit(datum_index unit, observer_command *command); // 0x446d30, this module
-extern void animation_get_root_node_matrix(real_matrix4x3 *out_transform, int16_t frame_index, void *animation_element,
-                          uint32_t unused_flag); // 0x4d49b0, model animation module, not yet rewritten;
+extern void animation_get_root_node_matrix(real_matrix4x3 *out, int16_t frame, ModelAnimationsAnimation *animation, GBXModel *model); // 0x4d49b0, model animation module, not yet rewritten;
                                                  // UNSURE signature (register roles read off this call
                                                  // site only: EAX -> out_transform, ECX -> frame_index,
                                                  // EDI -> animation_element, stack -> unused_flag == 0)

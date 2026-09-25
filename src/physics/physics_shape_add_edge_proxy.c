@@ -29,8 +29,7 @@
 #include "math.h"
 #include "physics.h"
 
-extern double vector3d_scalar_triple_product(real_vector3d *b, real_vector3d *c,
-                                              real_vector3d *a); // 0x44d8e0, not physics;
+extern float vector3d_scalar_triple_product(const real_vector3d *a, const real_vector3d *b, const real_vector3d *c); // 0x44d8e0, not physics;
                                                                   // returns cross(b,a) . c
 extern void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); // 0x4cbe50
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0

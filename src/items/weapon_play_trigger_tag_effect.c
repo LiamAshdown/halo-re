@@ -23,8 +23,7 @@ extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern uint32_t effect_new_on_object(datum_index object_index, int32_t tag_id, int32_t slot, int32_t sub_index,
-    int32_t a5, int32_t a6); // 0x4507a0, outside this module, UNSURE signature
+extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale); // 0x4507a0, outside this module, UNSURE signature
 extern void *effect_try_and_get(int32_t index); // 0x450630
 extern void sound_start_at_object_marker(void); // 0x543ce0, outside this module, UNSURE signature
 

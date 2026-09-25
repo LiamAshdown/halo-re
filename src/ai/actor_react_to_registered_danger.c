@@ -29,10 +29,7 @@ extern void actor_queue_search_position(datum_index actor_index, real_point3d *p
                                         real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
                                         uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
                                         uint8_t unknown_348); // 0x421af0
-extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,
-                                       datum_index object_a, int32_t param_d,
-                                       datum_index object_b, datum_index object_c,
-                                       uint32_t param_g); // 0x42d340
+extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340
 
 // Variant table paired with the sighted/recognized/directional dialogue families.
 extern int16_t actor_dialogue_variant_table_d[]; // 0x00655634

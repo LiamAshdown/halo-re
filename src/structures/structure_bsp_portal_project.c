@@ -39,10 +39,7 @@
 // math module. blam-cc: EAX -> out, EDX -> point, stack -> m
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point,
                                        real_matrix4x3 *m); // 0x4cbde0
-extern int16_t polygon3d_clip_to_plane(uint32_t vertex_count, real_point3d *vertices,
-                                        real_plane3d *plane, int32_t max_points,
-                                        real_point3d *out, int32_t unused, uint32_t magic,
-                                        int32_t unused2); // 0x4cb380
+extern int16_t polygon3d_clip_to_plane(int16_t count, real_point3d *in, real_plane3d *plane, int16_t max_count, real_point3d *out, uint8_t *clipped_flag, real epsilon, char keep_coplanar); // 0x4cb380
 extern real_plane3d near_clip_plane;     // 0x0065e64c
 extern double k_plane_side_epsilon;      // 0x00672c00, a QWORD in .rdata: the double 0.1
 extern float k_projection_numerator;     // 0x00672ba8 == -1.0

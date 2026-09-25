@@ -53,10 +53,7 @@ extern int16_t actor_evaluate_flank_offset(const real_vector3d *cover_direction,
 extern void actor_scan_allies_for_backup_request(datum_index actor_index); // 0x420ec0, this module
 extern void actor_set_combat_alert_flag(void);                   // 0x421a40, this module
 extern uint8_t actor_evaluate_custom_charge_trigger(datum_index actor_index);            // 0x424090, not yet rewritten
-extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,
-                                       datum_index object_a, int32_t param_d,
-                                       datum_index object_b, datum_index object_c,
-                                       uint32_t param_g);
+extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 // 0x42d340, not yet rewritten (this module). Always seven stack arguments: every call
 // site in the binary cleans up 0x1c bytes, so the shorter forms Ghidra recovers at some
 // sites are artefacts, not a reduced-arity overload.

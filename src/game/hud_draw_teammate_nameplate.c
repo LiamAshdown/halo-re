@@ -23,7 +23,7 @@
 extern data_array *player_data; // 0x0087a480
 
 extern datum_index hud_find_nearby_teammate_for_nameplate(datum_index player_handle); // 0x45e340, this batch
-extern void hud_draw_teammate_nameplate_text(wchar_t *name, float scale); // 0x461f20, not in this batch
+extern void hud_draw_teammate_nameplate_text(wchar_t *text, int32_t value); // 0x461f20, not in this batch
 extern float FUN_006283c0(void); // 0x6283c0, not in this batch; UNSURE exact meaning
 
 // blam-cc: EAX -> player

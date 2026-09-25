@@ -41,8 +41,7 @@ extern real transition_function_evaluate(transition_function_t type, real phase)
     // module, 0x4ccac0. The transition type travels in CX and is not visible at this call
     // site; the one value Ghidra shows pushed is the phase. UNSURE: type passed as 0.
 extern int16_t FUN_00494010(uint32_t object_index);
-extern int16_t first_person_weapon_get_marker_data(uint32_t object_index, int32_t marker,
-    void *out_buffer, int32_t max_count);
+extern uint32_t first_person_weapon_get_marker_data(datum_index weapon_index, const char *marker_name, object_marker *out, uint32_t name_arg);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
     object_marker *marker, uint32_t flags); // 0x4f6080, this module -- same declaration as
     // src/objects/object_get_node_local_transform.c's own definition (it was declared here

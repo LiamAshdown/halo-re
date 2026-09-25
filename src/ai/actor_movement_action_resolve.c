@@ -58,8 +58,7 @@ extern uint8_t path_find_validate_and_record_goal(int32_t generation, const real
 extern uint8_t path_find_reconstruct_path(path_find_context *context, uint8_t *out_reachable); // 0x43a4d0, not yet rewritten, EBX -> context
 extern void path_find_context_init(path_find_context *context, const path_find_request *request,
                                    int32_t flags);                      // 0x43a700, EDX -> context
-extern void path_find_set_goal(path_find_context *context, const real_point3d *destination,
-                         uint32_t surface_index, uint32_t radius);      // 0x43a730, not yet rewritten, EAX -> context, ECX -> destination
+extern void path_find_set_goal(path_find_context *context, const real_point3d *position, uint32_t goal_vertex_id, float goal_cost);      // 0x43a730, not yet rewritten, EAX -> context, ECX -> destination
 extern uint8_t path_find_run(path_find_context *context);               // 0x43a8b0, not yet rewritten
 
 // blam-cc: stack -> actor_index, record_distance, context

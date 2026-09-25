@@ -50,7 +50,7 @@ extern void render_frame(Point2DInt *screenshot_tile, render_view *views, int16_
 extern void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap); // 0x518180, foreign (rasterizer module)
 extern void directory_create_recursive(char *path); // 0x449250, foreign
 extern void path_remove_last_component(uint8_t *path); // 0x555f80, foreign (game module)
-extern uint8_t targa_export(BitmapData *bitmap, file_reference_record *destination); // 0x43fe60, foreign
+extern char * targa_export(BitmapData *bitmap, file_reference_record *destination); // 0x43fe60, foreign
     // blam-cc: EAX -> bitmap, EBX -> destination (0x4ca432 mov eax,esi ; lea ebx,[esp+0x18])
 extern uint32_t bitmap_data_calculate_pixel_data_size(BitmapData *bitmap); // 0x43fb70, foreign
 extern void bitmap_data_free(BitmapData *bitmap); // 0x43f880, foreign; blam-cc: ESI -> bitmap (it tests esi

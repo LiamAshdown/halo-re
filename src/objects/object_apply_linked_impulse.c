@@ -19,7 +19,7 @@
 extern uint8_t *object_pooled_node_globals; // 0x00687130, UNSURE: not owned by this module
 
 extern int8_t message_delta_decode_compound_field(void *globals, void *out_value); // UNSURE: out of range, 0x4ec590
-extern void message_delta_decode_compound_field_staged(uint32_t value); // UNSURE: zero visible args; out of range, 0x4ec670
+extern uint8_t message_delta_decode_compound_field_staged(void **context); // UNSURE: zero visible args; out of range, 0x4ec670
 extern void item_accelerate(real_vector3d *impulse, int32_t param_2); // 0x4bd080
 
 void object_apply_linked_impulse(void **param_1)

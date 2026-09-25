@@ -44,8 +44,7 @@ extern int32_t player_index_from_unit_index(datum_index object_index); // out of
 extern void game_engine_attribute_player_death(datum_index responsible_player,
     datum_index responsible_object, int16_t team_index, int32_t param_4); // UNSURE: out of range
 extern void game_engine_on_player_death(uint32_t target_index, int32_t param_2, int32_t param_3); // UNSURE: out of range
-extern void unit_apply_damage_effects(uint32_t param_1, damage_data *dd, uint32_t param_3, float param_4,
-    float param_5, uint32_t param_7, uint32_t param_8); // UNSURE: out of range, 0x5674a0
+extern void unit_apply_damage_effects(datum_index unit_index, damage_data *damage, uint8_t flags, float body_damage_amount, float shield_damage_amount, void *forward_object, uint8_t apply_effects); // UNSURE: out of range, 0x5674a0
 
 void object_damage_notify_and_impulse(uint32_t target_index, damage_data *dd, uint32_t notify_flags,
     float param_4, float param_5, uint32_t param_6, int32_t node_hint, uint32_t role_is_deletable)

@@ -53,8 +53,7 @@ extern void encounter_add_actor(int16_t squad_index, datum_index actor_index,
 extern void encounters_recompute_dirty(void); // 0x435f00, this batch
 extern void actor_reset_squad_link_for_type_change(int16_t squad_index); // 0x4290f0, outside this rewrite's range, UNSURE signature
 extern void ai_recompute_all_relationship_flags(void); // 0x42bbb0, outside this rewrite's range, UNSURE signature
-extern void ai_communication_broadcast(uint32_t event, int32_t object_index, uint32_t a, uint32_t b, uint32_t c,
-                                        uint32_t d, uint32_t e); // 0x42d340, already established elsewhere
+extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340, already established elsewhere
 
 // blam-cc: EDX -> source_reference, stack -> target_encounter_index, notify, is_platoon_merge
 void ai_squads_merge(uint32_t source_reference, uint32_t target_encounter_index, char notify, char is_platoon_merge)

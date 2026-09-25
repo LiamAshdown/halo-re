@@ -23,7 +23,7 @@ extern data_array *object_data; // 0x008603b0
 extern uint8_t *object_pooled_node_globals; // 0x00687130, see object_type_override_call_0x70_release_node.c
 extern void *object_pooled_node_globals_006870d8; // 0x006870d8, UNSURE: network_index_cache_remove's EAX operand
 
-extern void message_delta_decode_compound_field_staged(uint32_t value); // 0x4ec670, UNSURE: unexamined
+extern uint8_t message_delta_decode_compound_field_staged(void **context); // 0x4ec670, UNSURE: unexamined
 extern int8_t message_delta_decode_compound_field(void *globals, void *out_value); // 0x4ec590, UNSURE: unexamined; validates engine-state preconditions
 extern void network_index_cache_remove(void *globals, uint32_t object_index); // 0x4e9d40.
     // Resolved from `objdump -d -M intel bin/halo.exe`: both call sites in this module set

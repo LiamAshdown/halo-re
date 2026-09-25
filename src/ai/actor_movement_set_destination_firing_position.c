@@ -21,7 +21,7 @@
 extern data_array *actor_data; // 0x00880360
 
 extern void actor_set_units_active(datum_index actor_index); // 0x427860, EAX -> actor_index
-extern uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t param_2, int32_t param_3); // 0x41a460, this module
+extern uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t record_distance, path_find_context *context); // 0x41a460, this module
 
 // blam-cc: EDI -> actor_index, stack -> formation_slot
 uint8_t actor_movement_set_destination_firing_position(datum_index actor_index, int16_t formation_slot)

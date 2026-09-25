@@ -40,7 +40,7 @@ extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types
 extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern uint8_t friendly_fire_matrix[100 / 8 + 1]; // 0x006b0b84 + 0xa4, UNSURE exact shape
 
-extern void ai_communication_broadcast(int32_t kind, float responsible_object, uint32_t a, uint32_t b, uint32_t c, uint32_t d, int32_t e); // 0x42d340, UNSURE signature
+extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340, UNSURE signature
 
 void unit_record_recent_damage_and_react(uint32_t unit_index, float damage_amount, int16_t response_index,
                                          uint8_t allow_broadcast, uint32_t responsible_player,

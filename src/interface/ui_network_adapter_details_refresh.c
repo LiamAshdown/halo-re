@@ -26,7 +26,7 @@ extern growable_array ui_lists[3]; // 0x006b3830
 extern uint8_t profile_globals_block[0x60a4]; // 0x00712dd8
 
 extern uint8_t FUN_004a8310_callback_stub(void); // 0x4a8310, UNSURE: referenced only as a callback pointer here
-extern void ui_list_widget_rebuild_rows(widget_instance *widget, void *callback); // 0x4a7db0
+extern void ui_list_widget_rebuild_rows(widget_instance *widget, ui_list_item_format_function format_item); // 0x4a7db0
 extern void set_profile_name(widget_instance *widget, const uint16_t *name_source); // 0x49c710
 extern heap *widget_memory_pool; // 0x006926c4
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self

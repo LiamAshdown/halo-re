@@ -19,10 +19,7 @@
 extern data_array *actor_data;       // 0x00880360
 extern game_time_globals *game_time; // 0x006f1d6c
 
-extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,
-                                       datum_index object_a, int32_t param_d,
-                                       datum_index object_b, datum_index object_c,
-                                       uint32_t param_g);
+extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 // 0x42d340, not yet rewritten (this module). Always seven stack arguments: every call
 // site in the binary cleans up 0x1c bytes, so the shorter forms Ghidra recovers at some
 // sites are artefacts, not a reduced-arity overload.

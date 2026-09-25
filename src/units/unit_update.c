@@ -135,8 +135,8 @@ extern void unit_melee_lunge_damage_tick(uint32_t unit_index);                  
 extern void unit_update_autoaim_interaction(uint32_t unit_index);                        // 0x570720
 extern void unit_update_random_turn_angle(void);                                       // 0x570840, UNSURE: no traced args
   // real signature (unit_update_random_turn_angle.c): void unit_update_random_turn_angle(uint32_t object_index, real_vector3d *out_axis); Ghidra recovered 0 of 2 args at this call site
-extern void actor_react_to_threat_event(uint32_t unit_index, uint32_t a, int16_t b, uint32_t c, uint32_t d, uint32_t e); // 0x42be40, UNSURE signature
-extern void effect_new_on_object(uint32_t unit_index, uint32_t a, uint32_t b, uint32_t c, uint32_t d, uint32_t e); // 0x4507a0, UNSURE signature
+extern void actor_react_to_threat_event(datum_index self_object_index, datum_index other_object_index, int32_t event_kind, real magnitude, uint32_t extra_param, uint8_t suppress_vehicle_relay); // 0x42be40, UNSURE signature
+extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale); // 0x4507a0, UNSURE signature
 
 uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
 {

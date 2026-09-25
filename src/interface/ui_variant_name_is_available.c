@@ -17,7 +17,7 @@
 #include "networking.h"
 #include "interface.h"
 
-extern void string_convert_unicode_to_ascii(char *out_name, const uint16_t *wide_name, uint32_t max_length); // 0x557950, blam-cc: ESI out, EDI wide source
+extern uint8_t * string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity); // 0x557950, blam-cc: ESI out, EDI wide source
 extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out); // 0x4622d0, blam-cc: ECX name
 
 // blam-cc: name -> EDI

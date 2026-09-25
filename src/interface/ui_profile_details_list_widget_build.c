@@ -22,7 +22,7 @@
 #include <string.h>
 
 extern saved_player_profile_slot saved_player_profile_slots[k_maximum_local_player_profiles]; // 0x00712dd8, saved_games.h
-extern void ui_list_widget_rebuild_rows(widget_instance *widget, void *format_item); // 0x4a7db0
+extern void ui_list_widget_rebuild_rows(widget_instance *widget, ui_list_item_format_function format_item); // 0x4a7db0
 extern uint8_t ui_list_default_item_format(void *item_buffer, int32_t item_index, void *list_items); // 0x4a8310, UNSURE: not analyzed separately
 extern void set_profile_name(widget_instance *widget, const uint16_t *name_source); // 0x49c710, blam-cc: EBX widget
 extern void ui_level_carousel_row_refresh(widget_instance *widget, int32_t slot_index); // 0x4a4e20, blam-cc: ECX widget, EAX index

@@ -45,10 +45,7 @@ extern void actor_queue_search_position(datum_index actor_index, real_point3d *p
                                         uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
                                         uint8_t unknown_348); // 0x421af0
 extern void * datum_get(datum_index handle, data_array *array); // 0x4d0680
-extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,
-                                       datum_index object_a, int32_t param_d,
-                                       datum_index object_b, datum_index object_c,
-                                       uint32_t param_g); // 0x42d340
+extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340
 
 // Variant table paired with actor_dialogue_variant_table_b @0x00655638; indexed the same way
 // (unknown_6e >= 4).

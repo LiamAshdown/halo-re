@@ -32,7 +32,7 @@ extern network_channel *network_channel_new(uint32_t flags); // 0x4dc9b0, this b
 extern void network_game_session_reset(network_game_session *session); // 0x4de470, this batch
 extern void network_game_server_host_dispose(network_server_globals *host); // 0x4deda0, this batch
 extern char network_game_session_reset_defaults(void); // 0x4e1820, outside this batch, elided args
-extern void network_session_host_start(int32_t param); // 0x577850, outside this batch
+extern void * network_session_host_start(int32_t param_1); // 0x577850, outside this batch
 extern void message_delta_protocol_initialize(void); // 0x4ec2f0, outside this batch
 extern void network_stats_summary_log_open(void); // 0x440670, this module
 

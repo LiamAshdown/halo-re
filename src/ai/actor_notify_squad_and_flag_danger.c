@@ -15,10 +15,7 @@
 
 extern data_array *actor_data; // 0x00880360
 
-extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,
-                                       datum_index object_a, int32_t param_d,
-                                       datum_index object_b, datum_index object_c,
-                                       uint32_t param_g); // 0x42d340
+extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340
 
 // blam-cc: EAX -> actor_index, ECX -> alternate_event, stack -> raise_danger_flag
 // If the actor controls a unit, broadcasts a "retreat/regroup" squad event (0x17, or 0x16

@@ -812,15 +812,6 @@
  },
  {
   "caller": "src\\ai\\actor_gate_jump_traversal.c",
-  "callee": "ai_communication_broadcast",
-  "definition": "src\\ai\\ai_communication_broadcast.c",
-  "declared": "extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,\n                                       datum_index object_a, int32_t param_d,\n                                       ",
-  "problems": [
-   "parameter kinds differ at #7 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_gate_jump_traversal.c",
   "callee": "actor_check_pain_reaction",
   "definition": "src\\ai\\actor_check_pain_reaction.c",
   "declared": "extern uint8_t actor_check_pain_reaction(datum_index actor_index);",
@@ -1054,33 +1045,6 @@
   ]
  },
  {
-  "caller": "src\\ai\\actor_movement_action_resolve.c",
-  "callee": "path_find_set_goal",
-  "definition": "src\\ai\\path_find_set_goal.c",
-  "declared": "extern void path_find_set_goal(path_find_context *context, const real_point3d *destination,\n                         uint32_t surface_index, uint32_t radius);",
-  "problems": [
-   "parameter kinds differ at #4 (i vs f)"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_movement_action_stop.c",
-  "callee": "actor_movement_action_resolve",
-  "definition": "src\\ai\\actor_movement_action_resolve.c",
-  "declared": "extern uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t param_2, int32_t param_3);",
-  "problems": [
-   "parameter kinds differ at #3 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_movement_advance_waypoint.c",
-  "callee": "actor_movement_action_resolve",
-  "definition": "src\\ai\\actor_movement_action_resolve.c",
-  "declared": "extern uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t param_2, int32_t param_3);",
-  "problems": [
-   "parameter kinds differ at #3 (i vs p)"
-  ]
- },
- {
   "caller": "src\\ai\\actor_movement_apply_steering.c",
   "callee": "actor_update_target_lead_position",
   "definition": "src\\ai\\actor_update_target_lead_position.c",
@@ -1180,30 +1144,12 @@
   ]
  },
  {
-  "caller": "src\\ai\\actor_movement_set_destination_firing_position.c",
-  "callee": "actor_movement_action_resolve",
-  "definition": "src\\ai\\actor_movement_action_resolve.c",
-  "declared": "extern uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t param_2, int32_t param_3);",
-  "problems": [
-   "parameter kinds differ at #3 (i vs p)"
-  ]
- },
- {
   "caller": "src\\ai\\actor_movement_set_destination_move_position.c",
   "callee": "actor_set_units_active",
   "definition": "src\\ai\\actor_set_units_active.c",
   "declared": "extern void actor_set_units_active(datum_index actor_index);",
   "problems": [
    "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_movement_set_destination_move_position.c",
-  "callee": "actor_movement_action_resolve",
-  "definition": "src\\ai\\actor_movement_action_resolve.c",
-  "declared": "extern uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t param_2, int32_t param_3);",
-  "problems": [
-   "parameter kinds differ at #3 (i vs p)"
   ]
  },
  {
@@ -1216,30 +1162,12 @@
   ]
  },
  {
-  "caller": "src\\ai\\actor_movement_set_destination_near_target.c",
-  "callee": "actor_movement_action_resolve",
-  "definition": "src\\ai\\actor_movement_action_resolve.c",
-  "declared": "extern uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t param_2, int32_t param_3);",
-  "problems": [
-   "parameter kinds differ at #3 (i vs p)"
-  ]
- },
- {
   "caller": "src\\ai\\actor_movement_set_destination_point.c",
   "callee": "actor_set_units_active",
   "definition": "src\\ai\\actor_set_units_active.c",
   "declared": "extern void actor_set_units_active(datum_index actor_index);",
   "problems": [
    "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_movement_set_destination_point.c",
-  "callee": "actor_movement_action_resolve",
-  "definition": "src\\ai\\actor_movement_action_resolve.c",
-  "declared": "extern uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t param_2, int32_t param_3);",
-  "problems": [
-   "parameter kinds differ at #3 (i vs p)"
   ]
  },
  {
@@ -1303,42 +1231,6 @@
   "declared": "extern void ai_actor_link_to_unassigned_list(void);",
   "problems": [
    "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_notify_squad_and_flag_danger.c",
-  "callee": "ai_communication_broadcast",
-  "definition": "src\\ai\\ai_communication_broadcast.c",
-  "declared": "extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,\n                                       datum_index object_a, int32_t param_d,\n                                       ",
-  "problems": [
-   "parameter kinds differ at #7 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_notify_squad_of_threat_direction.c",
-  "callee": "ai_communication_broadcast",
-  "definition": "src\\ai\\ai_communication_broadcast.c",
-  "declared": "extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,\n                                       datum_index object_a, int32_t param_d,\n                                       ",
-  "problems": [
-   "parameter kinds differ at #7 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_notify_target_engaged.c",
-  "callee": "ai_communication_broadcast",
-  "definition": "src\\ai\\ai_communication_broadcast.c",
-  "declared": "extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,\n                                       datum_index object_a, int32_t param_d,\n                                       ",
-  "problems": [
-   "parameter kinds differ at #7 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_notify_weapon_pickup_once.c",
-  "callee": "ai_communication_broadcast",
-  "definition": "src\\ai\\ai_communication_broadcast.c",
-  "declared": "extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,\n                                       datum_index object_a, int32_t param_d,\n                                       ",
-  "problems": [
-   "parameter kinds differ at #7 (i vs p)"
   ]
  },
  {
@@ -1432,39 +1324,12 @@
   ]
  },
  {
-  "caller": "src\\ai\\actor_queue_sighted_target_dialogue.c",
-  "callee": "ai_communication_broadcast",
-  "definition": "src\\ai\\ai_communication_broadcast.c",
-  "declared": "extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,\n                                       datum_index object_a, int32_t param_d,\n                                       ",
-  "problems": [
-   "parameter kinds differ at #7 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_react_to_registered_danger.c",
-  "callee": "ai_communication_broadcast",
-  "definition": "src\\ai\\ai_communication_broadcast.c",
-  "declared": "extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,\n                                       datum_index object_a, int32_t param_d,\n                                       ",
-  "problems": [
-   "parameter kinds differ at #7 (i vs p)"
-  ]
- },
- {
   "caller": "src\\ai\\actor_react_to_seen_target.c",
   "callee": "actor_target_data_acquire",
   "definition": "src\\ai\\actor_target_data_acquire.c",
   "declared": "extern void actor_target_data_acquire(datum_index actor_index, struct object *object, int32_t param_c, int32_t param_d);",
   "problems": [
    "parameter kinds differ at #2 (p vs i)"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_react_to_threat_event.c",
-  "callee": "actor_mark_prop_seen_with_delta",
-  "definition": "src\\ai\\actor_mark_prop_seen_with_delta.c",
-  "declared": "extern void actor_mark_prop_seen_with_delta(datum_index squad_or_actor_index, real magnitude, uint32_t extra_param);",
-  "problems": [
-   "parameter kinds differ at #2 (f vs i), #3 (i vs f)"
   ]
  },
  {
@@ -1478,29 +1343,11 @@
  },
  {
   "caller": "src\\ai\\actor_react_to_threat_event.c",
-  "callee": "ai_communication_broadcast",
-  "definition": "src\\ai\\ai_communication_broadcast.c",
-  "declared": "extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,\n                                       datum_index object_a, int32_t param_d,\n                                       ",
-  "problems": [
-   "parameter kinds differ at #7 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_react_to_threat_event.c",
   "callee": "team_pair_override_refresh",
   "definition": "src\\game\\team_pair_override_refresh.c",
   "declared": "extern void team_pair_override_refresh(void);",
   "problems": [
    "0 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_reassign_vehicle_seat.c",
-  "callee": "ai_communication_broadcast",
-  "definition": "src\\ai\\ai_communication_broadcast.c",
-  "declared": "extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,\n                                       datum_index object_a, int32_t param_d,\n                                       ",
-  "problems": [
-   "parameter kinds differ at #7 (i vs p)"
   ]
  },
  {
@@ -1573,15 +1420,6 @@
   "declared": "extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index);",
   "problems": [
    "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_report_command_status.c",
-  "callee": "ai_communication_broadcast",
-  "definition": "src\\ai\\ai_communication_broadcast.c",
-  "declared": "extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,\n                                       datum_index object_a, int32_t param_d,\n                                       ",
-  "problems": [
-   "parameter kinds differ at #7 (i vs p)"
   ]
  },
  {
@@ -2487,15 +2325,6 @@
  },
  {
   "caller": "src\\ai\\actor_update_aim_wander.c",
-  "callee": "ai_communication_broadcast",
-  "definition": "src\\ai\\ai_communication_broadcast.c",
-  "declared": "extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,\n                                       datum_index object_a, int32_t param_d,\n                                       ",
-  "problems": [
-   "parameter kinds differ at #7 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_update_aim_wander.c",
   "callee": "weapon_get_zoom_fov_resolved",
   "definition": "src\\game\\weapon_get_zoom_fov_resolved.c",
   "declared": "extern float weapon_get_zoom_fov_resolved(void);",
@@ -2537,15 +2366,6 @@
   "declared": "extern void actor_set_combat_alert_flag(void);",
   "problems": [
    "0 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_update_crouch_state.c",
-  "callee": "ai_communication_broadcast",
-  "definition": "src\\ai\\ai_communication_broadcast.c",
-  "declared": "extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,\n                                       datum_index object_a, int32_t param_d,\n                                       ",
-  "problems": [
-   "parameter kinds differ at #7 (i vs p)"
   ]
  },
  {
@@ -2636,15 +2456,6 @@
   "declared": "extern int16_t actor_evaluate_engagement_reachability(uint32_t kind, uint32_t enabled, uint32_t object_index,\n                            uint32_t in_vehicle);",
   "problems": [
    "4 parameters declared, 8 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_update_firing_state.c",
-  "callee": "ai_communication_broadcast",
-  "definition": "src\\ai\\ai_communication_broadcast.c",
-  "declared": "extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,\n                                       datum_index object_a, int32_t param_d,\n                                       ",
-  "problems": [
-   "parameter kinds differ at #7 (i vs p)"
   ]
  },
  {
@@ -2744,15 +2555,6 @@
   "declared": "extern uint32_t actor_get_target_prop_object_index(uint32_t a, uint32_t b, uint32_t c, uint32_t d);",
   "problems": [
    "4 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_update_grenade_and_morale_reactions.c",
-  "callee": "ai_communication_broadcast",
-  "definition": "src\\ai\\ai_communication_broadcast.c",
-  "declared": "extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,\n                                       datum_index object_a, int32_t param_d,\n                                       ",
-  "problems": [
-   "parameter kinds differ at #7 (i vs p)"
   ]
  },
  {
@@ -2915,15 +2717,6 @@
   "declared": "extern uint32_t actor_get_target_prop_object_index(uint32_t a, uint32_t b, uint32_t c, uint32_t d);",
   "problems": [
    "4 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_update_melee_combat_action.c",
-  "callee": "ai_communication_broadcast",
-  "definition": "src\\ai\\ai_communication_broadcast.c",
-  "declared": "extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,\n                                       datum_index object_a, int32_t param_d,\n                                       ",
-  "problems": [
-   "parameter kinds differ at #7 (i vs p)"
   ]
  },
  {
@@ -3953,15 +3746,6 @@
   ]
  },
  {
-  "caller": "src\\ai\\ai_squads_merge.c",
-  "callee": "ai_communication_broadcast",
-  "definition": "src\\ai\\ai_communication_broadcast.c",
-  "declared": "extern void ai_communication_broadcast(uint32_t event, int32_t object_index, uint32_t a, uint32_t b, uint32_t c,\n                                        uint32_t d, uint32_t e);",
-  "problems": [
-   "parameter kinds differ at #7 (i vs p)"
-  ]
- },
- {
   "caller": "src\\ai\\ai_unit_create_actor.c",
   "callee": "actor_new",
   "definition": "src\\ai\\actor_new.c",
@@ -4313,15 +4097,6 @@
   ]
  },
  {
-  "caller": "src\\ai\\path_find_compute_heuristic.c",
-  "callee": "vector3d_normalize_with_length",
-  "definition": "src\\math\\vector3d_normalize_with_length.c",
-  "declared": "extern void vector3d_normalize_with_length(real_vector3d *v);",
-  "problems": [
-   "return v vs f"
-  ]
- },
- {
   "caller": "src\\ai\\path_find_find_unobstructed_ancestor.c",
   "callee": "path_find_trace_bsp_boundary",
   "definition": "src\\ai\\path_find_trace_bsp_boundary.c",
@@ -4459,15 +4234,6 @@
  },
  {
   "caller": "src\\cache\\model_load_vertex_buffers.c",
-  "callee": "rasterizer_vertex_buffer_create",
-  "definition": "src\\rasterizer\\rasterizer_vertex_buffer_create.c",
-  "declared": "extern int8_t rasterizer_vertex_buffer_create(void *fields, int32_t format, int32_t vertex_count,\n    void *rendered_data, void *lightmap_data, int32_t size);",
-  "problems": [
-   "parameter kinds differ at #5 (p vs i)"
-  ]
- },
- {
-  "caller": "src\\cache\\model_load_vertex_buffers.c",
   "callee": "rasterizer_index_buffer_create",
   "definition": "src\\rasterizer\\rasterizer_index_buffer_create.c",
   "declared": "extern void rasterizer_index_buffer_create(void *fields, void *data);",
@@ -4491,15 +4257,6 @@
   "declared": "extern int8_t rasterizer_vertex_buffer_create(void *fields, int32_t format, int32_t vertex_count,\n    void *rendered_data, void *lightmap_data, int32_t size);",
   "problems": [
    "parameter kinds differ at #5 (p vs i)"
-  ]
- },
- {
-  "caller": "src\\camera\\camera_debug_compute_pov.c",
-  "callee": "animation_get_root_node_matrix",
-  "definition": "src\\models\\animation_get_root_node_matrix.c",
-  "declared": "extern void animation_get_root_node_matrix(real_matrix4x3 *out_transform, int16_t frame_index, void *animation_element,\n                          uint32_t unused_flag);",
-  "problems": [
-   "parameter kinds differ at #4 (i vs p)"
   ]
  },
  {
@@ -6489,15 +6246,6 @@
   ]
  },
  {
-  "caller": "src\\game\\hud_draw_teammate_nameplate.c",
-  "callee": "hud_draw_teammate_nameplate_text",
-  "definition": "src\\game\\hud_draw_teammate_nameplate_text.c",
-  "declared": "extern void hud_draw_teammate_nameplate_text(wchar_t *name, float scale);",
-  "problems": [
-   "parameter kinds differ at #2 (f vs i)"
-  ]
- },
- {
   "caller": "src\\game\\hud_draw_teammate_nameplate_text.c",
   "callee": "chimera__draw_16_bit_text",
   "definition": "src\\rasterizer\\chimera__draw_16_bit_text.c",
@@ -7517,15 +7265,6 @@
   ]
  },
  {
-  "caller": "src\\hs\\hs_tokenize_primitive.c",
-  "callee": "string_to_lowercase",
-  "definition": "src\\cseries\\string_to_lowercase.c",
-  "declared": "extern void string_to_lowercase(char *text);",
-  "problems": [
-   "return v vs p"
-  ]
- },
- {
   "caller": "src\\hs\\object_lists_initialize.c",
   "callee": "game_state_new",
   "definition": "src\\saved_games\\game_state_new.c",
@@ -8123,15 +7862,6 @@
   ]
  },
  {
-  "caller": "src\\interface\\player_profile_select_list_widget_build.c",
-  "callee": "ui_list_widget_rebuild_rows",
-  "definition": "src\\interface\\ui_list_widget_rebuild_rows.c",
-  "declared": "extern void ui_list_widget_rebuild_rows(widget_instance *widget, void *format_item);",
-  "problems": [
-   "parameter kinds differ at #2 (p vs i)"
-  ]
- },
- {
   "caller": "src\\interface\\player_profile_subsystem_initialize.c",
   "callee": "saved_game_enumerate_by_type",
   "definition": "src\\saved_games\\saved_game_enumerate_by_type.c",
@@ -8216,57 +7946,12 @@
   ]
  },
  {
-  "caller": "src\\interface\\ui_game_variant_flag_list_widget_build.c",
-  "callee": "ui_list_widget_rebuild_rows",
-  "definition": "src\\interface\\ui_list_widget_rebuild_rows.c",
-  "declared": "extern void ui_list_widget_rebuild_rows(widget_instance *widget, void *format_item);",
-  "problems": [
-   "parameter kinds differ at #2 (p vs i)"
-  ]
- },
- {
-  "caller": "src\\interface\\ui_game_variant_list_widget_build.c",
-  "callee": "ui_list_widget_rebuild_rows",
-  "definition": "src\\interface\\ui_list_widget_rebuild_rows.c",
-  "declared": "extern void ui_list_widget_rebuild_rows(widget_instance *widget, void *format_item);",
-  "problems": [
-   "parameter kinds differ at #2 (p vs i)"
-  ]
- },
- {
   "caller": "src\\interface\\ui_level_select_confirm_choice.c",
   "callee": "player_profile_scan_campaign_progress",
   "definition": "src\\saved_games\\player_profile_scan_campaign_progress.c",
   "declared": "extern void player_profile_scan_campaign_progress(void);",
   "problems": [
    "0 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\interface\\ui_network_adapter_details_refresh.c",
-  "callee": "ui_list_widget_rebuild_rows",
-  "definition": "src\\interface\\ui_list_widget_rebuild_rows.c",
-  "declared": "extern void ui_list_widget_rebuild_rows(widget_instance *widget, void *callback);",
-  "problems": [
-   "parameter kinds differ at #2 (p vs i)"
-  ]
- },
- {
-  "caller": "src\\interface\\ui_network_adapter_list_widget_build.c",
-  "callee": "ui_list_widget_rebuild_rows",
-  "definition": "src\\interface\\ui_list_widget_rebuild_rows.c",
-  "declared": "extern void ui_list_widget_rebuild_rows(widget_instance *widget, void *format_item);",
-  "problems": [
-   "parameter kinds differ at #2 (p vs i)"
-  ]
- },
- {
-  "caller": "src\\interface\\ui_network_client_connect_and_save.c",
-  "callee": "string_convert_unicode_to_ascii",
-  "definition": "src\\text\\string_convert_unicode_to_ascii.c",
-  "declared": "extern void string_convert_unicode_to_ascii(char *out_name, const uint16_t *wide_name, uint32_t max_length);",
-  "problems": [
-   "return v vs p"
   ]
  },
  {
@@ -8334,15 +8019,6 @@
   ]
  },
  {
-  "caller": "src\\interface\\ui_profile_details_list_widget_build.c",
-  "callee": "ui_list_widget_rebuild_rows",
-  "definition": "src\\interface\\ui_list_widget_rebuild_rows.c",
-  "declared": "extern void ui_list_widget_rebuild_rows(widget_instance *widget, void *format_item);",
-  "problems": [
-   "parameter kinds differ at #2 (p vs i)"
-  ]
- },
- {
   "caller": "src\\interface\\ui_profile_require_existing.c",
   "callee": "saved_game_enumerate_by_type",
   "definition": "src\\saved_games\\saved_game_enumerate_by_type.c",
@@ -8370,30 +8046,12 @@
   ]
  },
  {
-  "caller": "src\\interface\\ui_selection_list_mirror_value_build.c",
-  "callee": "ui_list_widget_rebuild_rows",
-  "definition": "src\\interface\\ui_list_widget_rebuild_rows.c",
-  "declared": "extern void ui_list_widget_rebuild_rows(widget_instance *widget, void *format_item);",
-  "problems": [
-   "parameter kinds differ at #2 (p vs i)"
-  ]
- },
- {
   "caller": "src\\interface\\ui_server_list_connect_selected.c",
   "callee": "network_debug_fill_canary_buffer",
   "definition": "src\\networking\\network_debug_fill_canary_buffer.c",
   "declared": "extern void network_debug_fill_canary_buffer(void);",
   "problems": [
    "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\interface\\ui_variant_name_is_available.c",
-  "callee": "string_convert_unicode_to_ascii",
-  "definition": "src\\text\\string_convert_unicode_to_ascii.c",
-  "declared": "extern void string_convert_unicode_to_ascii(char *out_name, const uint16_t *wide_name, uint32_t max_length);",
-  "problems": [
-   "return v vs p"
   ]
  },
  {
@@ -8567,15 +8225,6 @@
   "declared": "extern void effect_new_on_object();",
   "problems": [
    "0 parameters declared, 6 defined"
-  ]
- },
- {
-  "caller": "src\\items\\item_update.c",
-  "callee": "effect_new_on_object",
-  "definition": "src\\effects\\effect_new_on_object.c",
-  "declared": "extern void effect_new_on_object(uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6);",
-  "problems": [
-   "parameter kinds differ at #5 (i vs f), #6 (i vs f)"
   ]
  },
  {
@@ -8933,15 +8582,6 @@
  },
  {
   "caller": "src\\items\\weapon_play_trigger_tag_effect.c",
-  "callee": "effect_new_on_object",
-  "definition": "src\\effects\\effect_new_on_object.c",
-  "declared": "extern uint32_t effect_new_on_object(datum_index object_index, int32_t tag_id, int32_t slot, int32_t sub_index,\n    int32_t a5, int32_t a6);",
-  "problems": [
-   "parameter kinds differ at #5 (i vs f), #6 (i vs f)"
-  ]
- },
- {
-  "caller": "src\\items\\weapon_play_trigger_tag_effect.c",
   "callee": "sound_start_at_object_marker",
   "definition": "src\\sound\\sound_start_at_object_marker.c",
   "declared": "extern void sound_start_at_object_marker(void);",
@@ -9130,30 +8770,12 @@
   ]
  },
  {
-  "caller": "src\\main\\movie_capture_frame_export.c",
-  "callee": "targa_export",
-  "definition": "src\\bitmaps\\targa_export.c",
-  "declared": "extern uint8_t targa_export(BitmapData *bitmap, file_reference_record *destination);",
-  "problems": [
-   "return i vs p"
-  ]
- },
- {
   "caller": "src\\main\\render_view_camera_fill.c",
   "callee": "player_effect_build_camera_shake_matrix",
   "definition": "src\\effects\\player_effect_build_camera_shake_matrix.c",
   "declared": "extern void player_effect_build_camera_shake_matrix(int16_t local_player_index, void *out_shake_matrix);",
   "problems": [
    "parameter kinds differ at #1 (i vs p), #2 (p vs i)"
-  ]
- },
- {
-  "caller": "src\\main\\screenshot_render.c",
-  "callee": "targa_export",
-  "definition": "src\\bitmaps\\targa_export.c",
-  "declared": "extern uint8_t targa_export(BitmapData *bitmap, file_reference_record *destination);",
-  "problems": [
-   "return i vs p"
   ]
  },
  {
@@ -9289,15 +8911,6 @@
   "declared": "extern uint8_t network_session_send_to_machine(int32_t machine_index, void *key, int32_t size,\n    int32_t reliable, int32_t d, int32_t e, int32_t message_kind);",
   "problems": [
    "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\console_command_bool_get_set.c",
-  "callee": "string_to_lowercase",
-  "definition": "src\\cseries\\string_to_lowercase.c",
-  "declared": "extern void string_to_lowercase(char *text);",
-  "problems": [
-   "return v vs p"
   ]
  },
  {
@@ -10826,15 +10439,6 @@
   ]
  },
  {
-  "caller": "src\\networking\\network_game_server_host_new.c",
-  "callee": "network_session_host_start",
-  "definition": "src\\networking\\network_session_host_start.c",
-  "declared": "extern void network_session_host_start(int32_t param);",
-  "problems": [
-   "return v vs p"
-  ]
- },
- {
   "caller": "src\\networking\\network_game_server_per_frame_tick.c",
   "callee": "network_game_broadcast_state_snapshot",
   "definition": "src\\networking\\network_game_broadcast_state_snapshot.c",
@@ -12229,38 +11833,11 @@
  },
  {
   "caller": "src\\objects\\object_apply_linked_impulse.c",
-  "callee": "message_delta_decode_compound_field_staged",
-  "definition": "src\\networking\\message_delta_decode_compound_field_staged.c",
-  "declared": "extern void message_delta_decode_compound_field_staged(uint32_t value);",
-  "problems": [
-   "parameter kinds differ at #1 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\objects\\object_apply_linked_impulse.c",
   "callee": "item_accelerate",
   "definition": "src\\items\\item_accelerate.c",
   "declared": "extern void item_accelerate(real_vector3d *impulse, int32_t param_2);",
   "problems": [
    "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_apply_shield_charge_and_notify.c",
-  "callee": "message_delta_decode_compound_field_staged",
-  "definition": "src\\networking\\message_delta_decode_compound_field_staged.c",
-  "declared": "extern void message_delta_decode_compound_field_staged(uint32_t value);",
-  "problems": [
-   "parameter kinds differ at #1 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\objects\\object_apply_shield_charge_and_notify.c",
-  "callee": "unit_update_stance_and_jump",
-  "definition": "src\\units\\unit_update_stance_and_jump.c",
-  "declared": "extern void unit_update_stance_and_jump(int32_t param_1, int32_t param_2, int32_t param_3, int32_t param_4,\n    int32_t param_5, int32_t param_6, int32_t param_7, int32_t param_8, int32_t param_9,\n   ",
-  "problems": [
-   "parameter kinds differ at #7 (i vs f)"
   ]
  },
  {
@@ -12444,30 +12021,12 @@
   ]
  },
  {
-  "caller": "src\\objects\\object_damage_notify_and_impulse.c",
-  "callee": "unit_apply_damage_effects",
-  "definition": "src\\units\\unit_apply_damage_effects.c",
-  "declared": "extern void unit_apply_damage_effects(uint32_t param_1, damage_data *dd, uint32_t param_3, float param_4,\n    float param_5, uint32_t param_7, uint32_t param_8);",
-  "problems": [
-   "parameter kinds differ at #6 (i vs p)"
-  ]
- },
- {
   "caller": "src\\objects\\object_delete_attachments.c",
   "callee": "contrail_advance",
   "definition": "src\\effects\\contrail_advance.c",
   "declared": "extern void contrail_advance(int32_t a, int32_t b);",
   "problems": [
    "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_delete_by_pooled_node_id.c",
-  "callee": "message_delta_decode_compound_field_staged",
-  "definition": "src\\networking\\message_delta_decode_compound_field_staged.c",
-  "declared": "extern void message_delta_decode_compound_field_staged(uint32_t value);",
-  "problems": [
-   "parameter kinds differ at #1 (i vs p)"
   ]
  },
  {
@@ -12660,15 +12219,6 @@
   "declared": "extern void first_person_weapon_center_flashlight(void *param_1);",
   "problems": [
    "1 parameters declared, 4 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_lights_update_all_continued.c",
-  "callee": "first_person_weapon_get_marker_data",
-  "definition": "src\\interface\\first_person_weapon_get_marker_data.c",
-  "declared": "extern int16_t first_person_weapon_get_marker_data(uint32_t object_index, int32_t marker,\n    void *out_buffer, int32_t max_count);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p)"
   ]
  },
  {
@@ -13007,15 +12557,6 @@
   ]
  },
  {
-  "caller": "src\\objects\\object_type_override_call_0x70.c",
-  "callee": "message_delta_decode_compound_field_staged",
-  "definition": "src\\networking\\message_delta_decode_compound_field_staged.c",
-  "declared": "extern void message_delta_decode_compound_field_staged(uint32_t value);",
-  "problems": [
-   "parameter kinds differ at #1 (i vs p)"
-  ]
- },
- {
   "caller": "src\\objects\\object_unlink_cluster_or_notify_parent.c",
   "callee": "object_remove_from_sibling_list",
   "definition": "src\\objects\\object_remove_from_sibling_list.c",
@@ -13294,15 +12835,6 @@
   "declared": "extern uint8_t object_collision_test_cluster_group(uint32_t flags, uint32_t exclude_object_index);",
   "problems": [
    "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\physics\\physics_shape_add_edge_proxy.c",
-  "callee": "vector3d_scalar_triple_product",
-  "definition": "src\\math\\vector3d_scalar_triple_product.c",
-  "declared": "extern double vector3d_scalar_triple_product(real_vector3d *b, real_vector3d *c,\n                                              real_vector3d *a);",
-  "problems": [
-   "return d vs f"
   ]
  },
  {
@@ -13601,15 +13133,6 @@
   "declared": "extern void text_wrap_and_draw_narrow(void *glyph_callback, void *dest_rect, uint32_t position_or_color1,\n                          void *clip_rect, uint32_t position_or_color2, const char *text);",
   "problems": [
    "parameter kinds differ at #1 (p vs i), #3 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\rasterizer\\chimera__rasterizer_set_frustum_z_func.c",
-  "callee": "render_camera_projection_zrange_push_pop_set",
-  "definition": "src\\render\\render_camera_projection_zrange_push_pop_set.c",
-  "declared": "extern void render_camera_projection_zrange_push_pop_set(render_frustum *frustum, uint32_t z_near, uint32_t z_far);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs f), #3 (i vs f)"
   ]
  },
  {
@@ -14307,15 +13830,6 @@
   "declared": "extern void chimera__render_camera_build_frustum(void *camera, void *scratch, int32_t unused);",
   "problems": [
    "3 parameters declared, 4 defined"
-  ]
- },
- {
-  "caller": "src\\structures\\structure_bsp_portal_project.c",
-  "callee": "polygon3d_clip_to_plane",
-  "definition": "src\\math\\polygon3d_clip_to_plane.c",
-  "declared": "extern int16_t polygon3d_clip_to_plane(uint32_t vertex_count, real_point3d *vertices,\n                                        real_plane3d *plane, int32_t max_points,\n                                 ",
-  "problems": [
-   "parameter kinds differ at #6 (i vs p), #7 (i vs f)"
   ]
  },
  {
@@ -15859,15 +15373,6 @@
   ]
  },
  {
-  "caller": "src\\units\\unit_record_recent_damage_and_react.c",
-  "callee": "ai_communication_broadcast",
-  "definition": "src\\ai\\ai_communication_broadcast.c",
-  "declared": "extern void ai_communication_broadcast(int32_t kind, float responsible_object, uint32_t a, uint32_t b, uint32_t c, uint32_t d, int32_t e);",
-  "problems": [
-   "parameter kinds differ at #2 (f vs i), #7 (i vs p)"
-  ]
- },
- {
   "caller": "src\\units\\unit_refresh_targeting_flag_and_weapons.c",
   "callee": "item_set_holder",
   "definition": "src\\items\\item_set_holder.c",
@@ -16563,24 +16068,6 @@
   "declared": "extern void unit_update_random_turn_angle(void);",
   "problems": [
    "0 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_update.c",
-  "callee": "actor_react_to_threat_event",
-  "definition": "src\\ai\\actor_react_to_threat_event.c",
-  "declared": "extern void actor_react_to_threat_event(uint32_t unit_index, uint32_t a, int16_t b, uint32_t c, uint32_t d, uint32_t e);",
-  "problems": [
-   "parameter kinds differ at #4 (i vs f)"
-  ]
- },
- {
-  "caller": "src\\units\\unit_update.c",
-  "callee": "effect_new_on_object",
-  "definition": "src\\effects\\effect_new_on_object.c",
-  "declared": "extern void effect_new_on_object(uint32_t unit_index, uint32_t a, uint32_t b, uint32_t c, uint32_t d, uint32_t e);",
-  "problems": [
-   "parameter kinds differ at #5 (i vs f), #6 (i vs f)"
   ]
  },
  {

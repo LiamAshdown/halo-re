@@ -27,7 +27,7 @@ extern int32_t current_profile_index;                   // 0x00714dd4
 extern int32_t selected_saved_item;                     // 0x00714e7c
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
 
-extern void string_convert_unicode_to_ascii(char *out_name, const uint16_t *wide_name, uint32_t max_length); // 0x557950, blam-cc: ESI out, EDI wide source
+extern uint8_t * string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity); // 0x557950, blam-cc: ESI out, EDI wide source
 extern uint8_t network_game_client_connect_to_address_async(char *name, char *address); // 0x4c8500
 extern void saved_item_select(int32_t profile_index); // 0x495be0, blam-cc: EBX profile_index
 extern uint32_t FUN_00625b7a(const uint16_t *s); // wide strlen

@@ -72,7 +72,7 @@ extern void item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t a
 extern void item_compute_rotation(uint32_t object_index); // 0x4bd500, this batch, EAX -> object_index
 extern void item_align_to_normal_and_point(real_point3d *out_position, uint32_t item_index,
     real_vector3d *normal, real_point3d *point); // 0x4bd5d0, this batch
-extern void effect_new_on_object(uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6); // 0x4507a0, opaque, see src/objects/object_dispatch_effect_notify.c
+extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale); // 0x4507a0, opaque, see src/objects/object_dispatch_effect_notify.c
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand); // 0x4052c0
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle,

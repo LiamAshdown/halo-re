@@ -17,10 +17,7 @@
 extern data_array *prop_data;  // 0x008802c0
 extern data_array *actor_data; // 0x00880360
 
-extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,
-                                       datum_index object_a, int32_t param_d,
-                                       datum_index object_b, datum_index object_c,
-                                       uint32_t param_g);
+extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 // 0x42d340, not yet rewritten (this module).
 
 // blam-cc: EAX -> target_prop_index, ECX -> actor_index, EDX -> alternate_event

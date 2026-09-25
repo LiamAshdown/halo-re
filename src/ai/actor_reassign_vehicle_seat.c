@@ -33,10 +33,7 @@
 extern data_array *object_data; // 0x008603b0
 extern void *object_try_and_get(datum_index object_index, int32_t kind); // 0x4f6ec0, blam-cc: ECX -> object_index, stack -> kind
 extern int8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, teams_are_enemies; blam-cc: CX -> team_a, DX -> team_b
-extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,
-                                       datum_index object_a, int32_t param_d,
-                                       datum_index object_b, datum_index object_c,
-                                       uint32_t param_g); // 0x42d340
+extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340
 extern void ai_conversation_clear_object_references(datum_index object_index, uint8_t force_full_scan); // 0x430d30
 extern int32_t encounters_note_hostile_object(datum_index self_object_index, datum_index seat_occupant, datum_index vehicle_object_index); // 0x435f90, UNSURE: real tail-call register set
 

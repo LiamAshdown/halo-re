@@ -24,16 +24,14 @@
 extern uint8_t *object_pooled_node_globals; // 0x00687130, UNSURE: not owned by this module
 
 extern int8_t message_delta_decode_compound_field(void *globals, void *out_value); // UNSURE: out of range, 0x4ec590
-extern void message_delta_decode_compound_field_staged(uint32_t value); // UNSURE: zero visible args; out of range, 0x4ec670
+extern uint8_t message_delta_decode_compound_field_staged(void **context); // UNSURE: zero visible args; out of range, 0x4ec670
 extern void object_set_shield_depleted_flag(uint32_t object_index); // this module, 0x4edb10
 extern void object_throttled_multiplayer_sound_event(void); // this module, 0x4ee370 // this module, 0x4ee370 (object_throttled_multiplayer_sound_event)
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
     // 0x4f6ec0; object handle in ECX, type mask on the stack. Verified against the body at
     // 0x4f6ec0 (cmp ecx,-1 / test cx,cx / and param_1 & 1 << header->type) and against the
     // call site in this file.
-extern void unit_update_stance_and_jump(int32_t param_1, int32_t param_2, int32_t param_3, int32_t param_4,
-    int32_t param_5, int32_t param_6, int32_t param_7, int32_t param_8, int32_t param_9,
-    int32_t param_10); // UNSURE: out of range, 0x566de0
+extern void unit_update_stance_and_jump(uint32_t unit_index, uint8_t force_ready, uint8_t allow_death_reaction, uint8_t suppress_shield_check, uint8_t ignore_disoriented, uint8_t force_reaction, float turn_angle, int16_t weapon_class_index, int32_t fire_trigger_event, uint8_t require_still); // UNSURE: out of range, 0x566de0
 
 void object_apply_shield_charge_and_notify(void **param_1)
 {

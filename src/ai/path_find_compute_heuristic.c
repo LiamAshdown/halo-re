@@ -32,7 +32,7 @@ extern real_point3d *ai_default_forward_vector; // 0x00696714, a pointer to a co
 extern double sqrt(double x); // FSQRT
 extern int16_t path_find_hash_lookup_vertex(path_find_context *context); // 0x43b2b0, see header UNSURE
 extern void path_find_closest_point_on_segment(void); // 0x43b2f0, math helper, not rewritten here; called exactly as Ghidra shows (no visible arguments), writing through unaff-style output locals
-extern void vector3d_normalize_with_length(real_vector3d *v); // 0x401990, see header UNSURE on its own argument
+extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, see header UNSURE on its own argument
 
 // blam-cc: EDI -> context, stack -> point, out_distance, out_secondary, out_direction
 uint8_t path_find_compute_heuristic(path_find_context *context, real_point3d *point, float *out_distance,

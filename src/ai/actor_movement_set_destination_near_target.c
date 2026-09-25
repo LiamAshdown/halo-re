@@ -21,7 +21,7 @@ extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
 
 extern void actor_set_units_active(datum_index actor_index); // 0x427860, EAX -> actor_index
-extern uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t param_2, int32_t param_3); // 0x41a460, this module
+extern uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t record_distance, path_find_context *context); // 0x41a460, this module
 
 // blam-cc: EAX -> target_prop_index, stack -> actor_index, stack -> radius
 uint8_t actor_movement_set_destination_near_target(datum_index target_prop_index, datum_index actor_index, float radius)

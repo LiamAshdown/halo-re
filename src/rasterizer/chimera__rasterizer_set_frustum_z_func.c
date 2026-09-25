@@ -42,7 +42,7 @@ extern float g_007c13d0, g_007c13d4; // more world_to_view / frustum_bounds fiel
 extern float g_007c13e0, g_007c13e4, g_007c13f0; // UNSURE, past render_frustum's documented tail
 
 // blam-cc: ECX -> frustum, stack -> (z_near, z_far)
-extern void render_camera_projection_zrange_push_pop_set(render_frustum *frustum, uint32_t z_near, uint32_t z_far); // 0x50c9a0
+extern void render_camera_projection_zrange_push_pop_set(render_frustum *frustum, float z_near, float z_far); // 0x50c9a0
 
 typedef int32_t (__stdcall *d3d_set_clip_plane_fn)(void *device, uint32_t index, const void *plane);
 typedef int32_t (__stdcall *d3d_set_vertex_shader_constant_fn)(void *device, uint32_t reg, const void *data, uint32_t count);

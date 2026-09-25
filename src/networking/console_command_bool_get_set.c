@@ -29,7 +29,7 @@
 #include "networking.h"
 #include <string.h>
 
-extern void string_to_lowercase(char *text); // 0x4491e0, other module
+extern char * string_to_lowercase(char *string); // 0x4491e0, other module
 extern void string_trim_whitespace(char **string_ptr); // 0x4e4040, this module
 extern void chimera__console_out(const char *format, ...); // 0x496b50
 

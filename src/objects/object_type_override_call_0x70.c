@@ -25,7 +25,7 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
     // 0x4f6ec0 (cmp ecx,-1 / test cx,cx / and param_1 & 1 << header->type) and against the
     // call site in this file.
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc
-extern void message_delta_decode_compound_field_staged(uint32_t value); // 0x4ec670, value in EAX; tail-called when there is no current object
+extern uint8_t message_delta_decode_compound_field_staged(void **context); // 0x4ec670, value in EAX; tail-called when there is no current object
 
 void object_type_override_call_0x70(uint32_t object_index, uint32_t edi_argument,
                                     uint32_t stack_argument)

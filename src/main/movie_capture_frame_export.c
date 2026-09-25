@@ -38,7 +38,7 @@ extern void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitm
 extern void path_append_component(char *destination, const char *component); // 0x555ec0, foreign (saved_games)
     // blam-cc: ESI -> destination, EBX -> component
 extern void path_remove_last_component(uint8_t *path); // 0x555f80, foreign (game module)
-extern uint8_t targa_export(BitmapData *bitmap, file_reference_record *destination); // 0x43fe60, foreign
+extern char * targa_export(BitmapData *bitmap, file_reference_record *destination); // 0x43fe60, foreign
     // blam-cc: EAX -> bitmap, EBX -> destination (0x4c95cb mov eax,[0x719724] ; lea ebx,[esp+0x10])
 
 // Captures the current frame into movie_frame_bitmap and, once per call while capturing is

@@ -19,12 +19,9 @@
 extern data_array *object_data; // 0x008603b0
 
 extern void *object_try_and_get(datum_index object_index, int32_t kind); // 0x4f6ec0
-extern void actor_mark_prop_seen_with_delta(datum_index squad_or_actor_index, real magnitude, uint32_t extra_param); // 0x428840, not yet rewritten
+extern void actor_mark_prop_seen_with_delta(datum_index squad_index, uint32_t key, float delta); // 0x428840, not yet rewritten
 extern int8_t teams_are_enemies(void); // 0x45bd50, teams_are_enemies; UNSURE args (see other call sites in this batch)
-extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,
-                                       datum_index object_a, int32_t param_d,
-                                       datum_index object_b, datum_index object_c,
-                                       uint32_t param_g); // 0x42d340
+extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340
 extern void team_pair_override_refresh(void); // 0x45c090, not yet rewritten (game module), UNSURE args
 
 // blam-cc: stack -> self_object_index, other_object_index, event_kind, magnitude,
