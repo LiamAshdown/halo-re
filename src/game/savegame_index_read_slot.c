@@ -6,7 +6,7 @@
 //   preamble with the sibling savegame_index_file_exists.c (this batch).
 // register convention: a slot index in the low 16 bits of the incoming value (Ghidra's own
 //   `ushort param_1`, a genuine stack parameter).
-// UNSURE: file_reference_seek/_read's real argument lists (elided by Ghidra, same as the
+// (seek/read/close arguments pinned from objdump, see FIXED below)
 //   whole family); the destination buffer for file_reference_read is never visible in this
 //   function's own decompilation, so it is presumably an implicit register argument this
 //   function's own (unrecovered) caller sets up -- modeled here as a bare call with no
@@ -27,10 +27,10 @@ extern file_reference savegame_directory_file_reference; // 0x00721330
 extern network_mutex_record *savegame_index_mutex; // 0x00721440, networking.h record; +0x00 is the HANDLE
 
 extern uint8_t file_reference_open(file_reference *reference, int32_t mode); // 0x5557a0
-extern uint8_t file_reference_close(void); // 0x555890
-extern uint8_t file_reference_seek(void); // 0x5558f0, UNSURE args elided
+extern uint8_t file_reference_close(file_reference *ref); // 0x555890, ESI ref
+extern uint8_t file_reference_seek(int32_t offset, file_reference *ref); // 0x5558f0, EAX offset, ECX ref
 extern uint32_t file_reference_get_size(file_reference *reference); // 0x555950
-extern uint8_t file_reference_read(void); // 0x555a20, UNSURE args elided
+extern uint8_t file_reference_read(file_reference *ref, void *buffer, uint32_t size); // 0x555a20, EDX ref, ECX buffer, ESI size
 extern void path_append_component(char *destination, const char *component); // 0x555ec0
 extern void path_remove_last_component(uint8_t *path); // 0x555f80
 extern uint32_t WaitForSingleObject(void *handle, uint32_t timeout_ms); // Win32
@@ -48,7 +48,9 @@ extern uint32_t ReleaseMutex(void *handle); // Win32
 // opens it for reading, and -- if it is large enough to contain `slot` -- seeks to that slot's
 // record and reads it. Returns 1 on full success, 0 otherwise; always releases the mutex before
 // returning (unless the initial wait itself failed/timed out).
-uint8_t savegame_index_read_slot(uint16_t slot)
+// FIXED (objdump 0x53e16e..0x53e1c2): two stack parameters, the slot and the 0x206-byte destination record
+// ([esp+0x14], passed to file_reference_read in ECX); both callers push (slot, &entry).
+uint8_t savegame_index_read_slot(uint16_t slot, void *out_entry)
 {
     uint8_t result = 0;
     uint32_t wait_result = WaitForSingleObject(savegame_index_mutex->handle, 5000);
@@ -78,14 +80,14 @@ uint8_t savegame_index_read_slot(uint16_t slot)
     if (file_reference_open(&savegame_directory_file_reference, 1) != 0) {
         uint32_t size = file_reference_get_size(&savegame_directory_file_reference);
         if ((uint32_t)slot * 0x206 + 0x206 <= size) {
-            if (file_reference_seek() != 0) {
+            if (file_reference_seek((int32_t)slot * 0x206, (file_reference *)&savegame_directory_file_reference) != 0) {
                 result = 1;
-                if (file_reference_read() == 0) {
+                if (file_reference_read((file_reference *)&savegame_directory_file_reference, out_entry, 0x206) == 0) {
                     result = 0;
                 }
             }
         }
-        if (file_reference_close() == 0) {
+        if (file_reference_close((file_reference *)&savegame_directory_file_reference) == 0) {
             result = 0;
         }
     }

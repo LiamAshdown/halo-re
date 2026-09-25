@@ -25,7 +25,7 @@
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern datum_index actor_get_threat_weapon_object_index(void); // 0x4282c0, UNSURE: no visible args
+extern datum_index actor_get_threat_weapon_object_index(datum_index actor_index); // 0x4282c0, EAX actor
 
 // blam-cc: EAX -> actor_index
 void *actor_get_actor_definition(datum_index actor_index)
@@ -37,7 +37,7 @@ void *actor_get_actor_definition(datum_index actor_index)
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
     default_definition = tag_instances[self->actor_variant_tag & 0xffff].data; // see UNSURE above
 
-    weapon_object = actor_get_threat_weapon_object_index();
+    weapon_object = actor_get_threat_weapon_object_index(actor_index); // 0x40faa0: EAX still = the actor index
     if (weapon_object != (datum_index)k_datum_index_none) {
         object_header *hdr = (object_header *)object_data->data + (weapon_object & 0xffff);
         object *obj = hdr->data;

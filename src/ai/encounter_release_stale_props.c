@@ -27,9 +27,9 @@ extern ai_globals *ai_global_data; // 0x00880354
 extern data_array *prop_data;      // 0x008802c0
 extern data_array *actor_data;     // 0x00880360
 
-extern void actor_replace_object_reference(datum_index actor_index); // 0x428470, not yet rewritten
+extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference); // 0x428470, ESI new, EDI old, stack actor
 extern void squad_recent_object_list_clear(datum_index encounter_index); // 0x436c10
-extern void actor_unlink_prop(datum_index prop_index);               // 0x43ea20
+extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove); // 0x43ea20, EAX actor, EDI prop
 extern void datum_delete(data_array *array, datum_index handle);     // 0x4d0510
 
 // blam-cc: EAX -> encounter_index
@@ -73,8 +73,8 @@ void encounter_release_stale_props(datum_index encounter_index)
             if (3 < p->kind && p->kind < 6 && p->is_unit != 0 &&
                 prop_index != a->target_unit_index) {
                 props[p->pair_index & 0xffff].pair_index = (datum_index)k_datum_index_none;
-                actor_replace_object_reference(current);
-                actor_unlink_prop(prop_index);
+                actor_replace_object_reference(current, k_datum_index_none, prop_index); // 0x4383a2: ESI = -1, EDI = the prop
+                actor_unlink_prop(current, prop_index); // 0x4383af: EAX = the actor (the slot pushed above), EDI = prop
                 datum_delete(prop_data, prop_index);
             }
         }

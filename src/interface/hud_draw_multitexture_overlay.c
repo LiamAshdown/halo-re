@@ -45,7 +45,7 @@ extern player_control_globals *player_control_globals_ptr;   // 0x006b145c
 extern float hud_multitexture_effector_counter;              // 0x00719428, += 0.05 per effector, never read here
 
 extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence); // 0x43f290, blam-cc: EAX tag, DI frame
-extern void color_interpolate(const ColorRGB *a, const ColorRGB *b, ColorRGB *out, uint32_t flags, float t); // 0x43f6a0, blam-cc: ECX a, EAX b
+extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t); // 0x43f6a0, EAX color1, ECX color0
 extern uint8_t hud_player_weapon_ammo_state(const player *p, weapon_hud_ammo_state *out); // 0x4acef0, blam-cc: EAX player
 extern void rasterizer_ui_quad_draw(ui_quad_render_state *state, hud_quad_vertex *vertices); // 0x51c9a0, rasterizer quad submitter, blam-cc: EAX state
 
@@ -222,7 +222,8 @@ void hud_draw_multitexture_overlay(const float *scale, const HUDInterfaceMultite
                 t = 1.0f;
             }
             output = (1.0f - t) * effector->out_bounds[0] + t * effector->out_bounds[1];
-            color_interpolate(&effector->tint_color_lower_bound, &effector->tint_color_upper_bound, &tint, 0, t);
+            // 0x4ad638: EAX = upper bound (+0xa4) = color1, ECX = lower bound (+0x98) = color0
+            color_interpolate(&effector->tint_color_upper_bound, &effector->tint_color_lower_bound, &tint, 0, t);
         } else {
             output = effector->out_bounds[0];
             tint = effector->tint_color_lower_bound;

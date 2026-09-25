@@ -21,7 +21,7 @@
 extern video_resolution video_resolutions[0x20]; // 0x006b6690
 extern int32_t video_resolution_count;           // 0x007196cc
 
-extern uint16_t *string_format_wide_va(uint16_t *dest, const uint16_t *format, ...); // 0x557930, blam-cc: EDX dest
+extern void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...); // 0x557930, blam-cc: EDX dest
 
 // blam-cc: height -> EAX
 void video_resolution_add(int32_t height, int32_t width, int32_t refresh_rate)

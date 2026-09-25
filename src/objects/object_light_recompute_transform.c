@@ -70,7 +70,7 @@ extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir)
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0: EAX node, ECX bsp, EDX point
     // 0x5013a0; globals in ECX, point in EDX, index in EAX
-extern void object_get_root_location(uint32_t object_index); // 0x4f6b10, object index in ECX; UNSURE: unexamined
+extern void object_get_root_location(int32_t *out, uint32_t object_index); // 0x4f6b10, EAX out (leaf, cluster), ECX object
 extern void cluster_reference_add_within_radius(uint32_t light_or_object_handle, datum_index *placement_slot, real_point3d *position,
                           float radius, void *leaf_and_cluster, void *cluster_list);
     // 0x551f00; first four on the stack, leaf_and_cluster in EAX, placement_globals in EDI
@@ -151,7 +151,8 @@ void object_light_recompute_transform(uint32_t light_index) // blam-cc: stack ->
                     *(int16_t *)(leaves + (leaf_reference.leaf_index & 0x7fffffff) * 0x10 + 8);
             }
         } else {
-            object_get_root_location(entry->owner_object); // UNSURE: see file header
+            // 0x4f2c21: EAX = &leaf_reference ([esp+0x1c]), ECX = owner -- the root parent's BSP location
+            object_get_root_location((int32_t *)&leaf_reference, entry->owner_object);
         }
 
         cluster_reference_add_within_radius(light_index, &entry->next_light, &position, radius, &leaf_reference,

@@ -17,8 +17,7 @@
 //   reference values, which Ghidra shows only as unaff_ESI/unaff_EDI here. This file uses
 //   the full three-parameter signature; the other callers were not corrected (out of this
 //   rewrite's range or already-completed).
-// register convention: EAX -> actor_index, ESI -> new_reference, EDI -> old_reference.
-//   // blam-cc: EAX -> actor_index, ESI -> new_reference, EDI -> old_reference
+// ESI -> new_reference, EDI -> old_reference; actor_index is the one STACK argument.
 
 #include "tags.h"
 #include "memory.h"
@@ -30,7 +29,9 @@ extern data_array *swarm_data;           // 0x0088035c
 extern data_array *swarm_component_data; // 0x00880358
 extern actor_mode_definition actor_mode_definitions[16]; // 0x00655254
 
-// blam-cc: EAX -> actor_index, ESI -> new_reference, EDI -> old_reference
+// FIXED (objdump 0x428479): actor_index is read from [esp+8] after push ebx -- a stack argument (EAX is
+// overwritten with actor_data first); callers push it (0x4383a5 push ecx).
+// blam-cc: ESI -> new_reference, EDI -> old_reference, stack -> actor_index
 // Scans an actor's numerous cached object-index fields (and its swarm members') for a stale
 // object reference (old_reference) and replaces it with new_reference, clearing dependent
 // state (a combat-status/kind byte alongside it) when the replacement is
