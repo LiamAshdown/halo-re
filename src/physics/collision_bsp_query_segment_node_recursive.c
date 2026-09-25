@@ -62,8 +62,12 @@ uint8_t collision_bsp_query_segment_node_recursive(collision_bsp_segment_query *
             // the segment straddles this plane within [t_min, t_max]: recurse into the near
             // side up to the crossing, then (if nothing closer was found) the far side from it
             float t_cross = -(side_at_origin / dot_delta_normal);
+            // FIXED (0x502226..0x502239: bl = dot > 0; sete cl; child [node + 4 + cl*4]): the near side is the FRONT
+            // child when dot <= 0 and the BACK child otherwise -- the opposite of the far child below. The draft had
+            // it inverted, so for dot > 0 it searched the front child twice and never the back one (in game: bullets
+            // passed through walls and NPCs).
             uint32_t near_child =
-                (dot_delta_normal <= 0.0f) ? node->back_child : node->front_child;
+                (dot_delta_normal <= 0.0f) ? node->front_child : node->back_child;
 
             hit = collision_bsp_query_segment_node_recursive(query, near_child, t_min, t_cross);
             if (hit) {

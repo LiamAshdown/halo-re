@@ -27,7 +27,7 @@
 //   this rewrite supplies what each callee's own established signature (this batch, or the
 //   object_physics module) requires directly, rather than trying to match Ghidra's confused
 //   visible-argument count.
-//   // blam-cc: stack -> start_object_index, type_mask, origin, delta, radius_scale,
+//   // blam-cc: stack -> start_object_index, type_mask, test_flags, origin, delta,
 //   //          exclude_object_index, out_result
 // UNSURE (major): radius_scale (param_5) is visibly forwarded into the mass-point branch's ray
 // test call but never appears anywhere in the node-vs-bsp branch's call to
@@ -39,6 +39,10 @@
 // function's own decompile and are left untouched here too, matching that omission literally.
 // reconciled: R23 collision_result: normal -> plane.normal, unknown_30 -> plane.d, unknown_04 -> first_leaf/first_cluster, unknown_3c -> region_index, marker_index -> node_index, unknown_40 -> permutation_index (int16), unknown_48 -> plane_index, unknown_4d -> breakable_surface_index, unknown_4e -> collision_material_index
 
+// FIXED (objdump 0x5055b0, depth traced to the 0x505745 call): the third stack argument is the collision test
+//   flags (only forwarded to object_collision_context_test_segment), the fourth the origin and the fifth the delta;
+//   the draft read origin/delta one slot early and called the fifth 'radius_scale' (collision_test_movement_segment
+//   already declared the flags argument).
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -75,10 +79,10 @@ extern uint8_t ray_intersects_sphere_test(real_point3d *origin, real_point3d *ce
 // on a back-face hit) before being written into *out_result. Recurses into first_child_object
 // for every object visited, and into next_object for the walk itself; returns whether the chain
 // (including any recursion) improved *out_result at all.
-// blam-cc: stack -> start_object_index, type_mask, origin, delta, radius_scale,
+// blam-cc: stack -> start_object_index, type_mask, test_flags, origin, delta,
 //          exclude_object_index, out_result
 uint8_t object_collision_test_ray_nearby_chain(uint32_t start_object_index, uint32_t type_mask,
-    real_point3d *origin, real_vector3d *delta, float radius_scale, uint32_t exclude_object_index,
+    uint32_t test_flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index,
     collision_result *out_result)
 {
     uint32_t object_index = start_object_index;
@@ -99,7 +103,7 @@ uint8_t object_collision_test_ray_nearby_chain(uint32_t start_object_index, uint
                     if (object_collision_context_build(object_index, &node_ctx)) {
                         object_node_collision_result node_result;
 
-                        if (object_collision_context_test_segment(&node_ctx, type_mask, origin, delta, /* 0x505745: its own type mask */
+                        if (object_collision_context_test_segment(&node_ctx, test_flags, origin, delta, /* 0x505745: argument 3 */
                                                                     &node_result) &&
                             node_result.segment.t < out_result->t) {
                             real_matrix4x3 *node_matrix =
@@ -160,7 +164,7 @@ uint8_t object_collision_test_ray_nearby_chain(uint32_t start_object_index, uint
 
                 if (obj->first_child_object != k_datum_index_none) {
                     if (object_collision_test_ray_nearby_chain(obj->first_child_object, type_mask,
-                            origin, delta, radius_scale, exclude_object_index, out_result)) {
+                            test_flags, origin, delta, exclude_object_index, out_result)) {
                         improved = 1;
                     }
                 }
