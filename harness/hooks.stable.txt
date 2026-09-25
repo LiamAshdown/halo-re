@@ -1,4 +1,4 @@
-# Stable set: 1578 functions (every hookable one), behaviour-checked in game (2026-09-25)
+# Stable set: 1598 functions (every hookable one), behaviour-checked in game (2026-09-25)
 bit_vector_or
 bounded_ramp_profile_build
 bounded_ramp_profile_evaluate
@@ -840,7 +840,6 @@ player_update_history_add
 player_update_history_destroy
 player_update_history_find_and_prune
 player_update_history_free_all
-player_update_history_play_for_update_index
 registry_get_dist_id
 registry_get_halo_version
 server_browser_column_header_update
@@ -1577,3 +1576,24 @@ saved_game_last_profile_clear
 saved_game_last_profile_read
 text_find_character_boundary
 text_get_next_character
+actor_compute_grenade_aim_direction
+actor_get_aim_from_position
+game_engine_find_first_eligible_player_on_team
+game_engine_is_object_winning
+game_engine_is_tracked_object_winner
+game_engine_players_ready_for_bsp_switch
+item_align_to_normal_and_point
+is_remote_player_update_in_order
+object_lights_gather_nearest
+object_recompute_basis_from_marker_delta
+object_solve_two_bone_ik_to_marker
+rasterizer_bitmap_create_hardware_texture
+text_font_system_initialize
+chimera__render_camera_build_frustum
+rasterizer_lens_flare_set_vertex_specular
+sort_adjust_heap
+sort_heap_sort
+sort_introsort_loop
+sort_make_heap
+sort_push_heap
+unit_clamp_direction_to_aim_or_look_bounds
