@@ -23,7 +23,9 @@ extern int32_t uint32_log2_floor(uint32_t value); // 0x4cb740; ECX -> value
 // blam-cc: unaff_EBX -> bitmap
 // Computes the number of mipmap levels to generate for a bitmap, honouring its requested
 // mipmap_count when the bitmap's dimensions can naturally support at least that many levels.
-uint32_t bitmap_compute_mipmap_count(BitmapData *bitmap)
+// the result is a 16-bit level count: on the mipmap_count path the original loads only AX, leaving the upper
+// half of EAX from earlier code; its caller reads AX
+int16_t bitmap_compute_mipmap_count(BitmapData *bitmap)
 {
     uint16_t flags = bitmap->flags;
     uint32_t result = 0;

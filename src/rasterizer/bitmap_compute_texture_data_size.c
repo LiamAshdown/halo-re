@@ -54,13 +54,14 @@ int32_t bitmap_compute_texture_data_size(BitmapData *bitmap)
                 int16_t height_at_level;
                 int32_t height_bytes;
 
-                width_at_level = (bitmap->width >> shift) < 2 ? 1 : (int16_t)(bitmap->width >> shift);
+                // the original shifts the dimensions as signed 16-bit values (sar dx,cl / sar ax,cl)
+                width_at_level = ((int16_t)bitmap->width >> shift) < 2 ? 1 : (int16_t)((int16_t)bitmap->width >> shift);
                 if ((bitmap->flags & 2) != 0) {
                     width_at_level = width_at_level + ((uint8_t)(-(int8_t)width_at_level) & 3);
                 }
                 height_bytes = (int32_t)width_at_level * (int32_t)bits_per_pixel;
 
-                height_at_level = (bitmap->height >> shift) < 2 ? 1 : (int16_t)(bitmap->height >> shift);
+                height_at_level = ((int16_t)bitmap->height >> shift) < 2 ? 1 : (int16_t)((int16_t)bitmap->height >> shift);
                 if ((bitmap->flags & 2) != 0) {
                     height_at_level = height_at_level + ((uint8_t)(-(int8_t)height_at_level) & 3);
                 }
