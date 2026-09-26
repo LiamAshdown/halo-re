@@ -41,8 +41,9 @@ extern data_array *object_list_reference_data; // 0x0087a468
 extern uint8_t unit_start_user_animation(uint32_t unit_index, datum_index graph_tag, const char *animation_name,
     uint8_t interpolate); // 0x5702a0
 
-void ai_object_list_start_user_animation_until_failure(datum_index object_list_header_handle,
+uint8_t ai_object_list_start_user_animation_until_failure(datum_index object_list_header_handle,
     datum_index graph_tag_id, const char *animation_name, uint8_t interpolate)
+    // returns AL = still_succeeding (1 for an empty list; custom_animation_list reads it at 0x47bb8d)
 {
     datum_index node_index = (datum_index)k_datum_index_none;
     datum_index object_index = (datum_index)k_datum_index_none;
@@ -94,6 +95,7 @@ void ai_object_list_start_user_animation_until_failure(datum_index object_list_h
             node_index = node->next;
         }
     }
+    return still_succeeding;
 }
 
 #if 0

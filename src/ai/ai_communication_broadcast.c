@@ -828,61 +828,65 @@ void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datu
 
         // ---- Phase F: assemble the queue descriptor and dispatch (verified against
         // objdump -d 0x42e520..0x42e930; see file header for the three corrected call sites).
-        if (chosen->already_played != 0)
+        // FIXED (0x42e60c..0x42e70c): the 0x20-byte body (at [esp+0xa4]) is built before the already-played test
+        // and used by both branches: that path hands &body to ai_propagate_communication_reaction and &body + 8 to
+        // ai_communication_play_event_line (the draft passed NULL to both). The [ebx+0x08] tier switch before it only
+        // reaches 0x42f9e0 when DL is clear, and DL is always 1 there, so it never calls it.
+        // 0x10-byte header + 0x20-byte body, contiguous on the stack in the original
+        // (Ghidra's local_3ec/local_3e8/.../local_3dc and local_438/.../local_41c).
+        struct
         {
-            ai_propagate_communication_reaction(chosen->participant_object_index, (void *)0);
-            ai_communication_play_event_line(chosen->participant_object_index, chosen->direction_class, 1,
-                         chosen->object_result, (void *)0);
+            int16_t tier;
+            int16_t direction_class;
+            uint32_t order_fallback;
+            int16_t look_marker;
+            int16_t result_index;
+            int16_t marker_length; // constant 0x18
+            int16_t pad_0e;
+            uint32_t other_object_index;      // local_438
+            uint32_t event_and_entry;         // local_434: low16=event_code, hi16=entry_index
+            uint32_t seat_flag_pad;            // local_430: byte0-1=seat_or_difficulty, byte2=1
+            uint32_t look_node_pair;           // local_42c: {look_node_a, look_node_b}
+            uint32_t order_target_raw;         // local_428
+            uint32_t object_c_masked;          // local_424
+            uint32_t extra_data_0;             // local_420
+            uint32_t extra_data_1;             // local_41c
+        } queue_descriptor;
+
+        queue_descriptor.tier = chosen->tier;
+        queue_descriptor.direction_class = chosen->direction_class;
+        queue_descriptor.order_fallback = chosen->order_fallback;
+        queue_descriptor.look_marker = chosen->look_marker;
+        queue_descriptor.result_index = chosen->result_index;
+        queue_descriptor.marker_length = 0x18;
+        queue_descriptor.pad_0e = 0;
+        queue_descriptor.other_object_index = chosen->other_object_index;
+        queue_descriptor.event_and_entry = ((uint32_t)chosen->entry_index << 16) | (uint16_t)event_code;
+        queue_descriptor.seat_flag_pad = ((uint32_t)1 << 16) | (uint16_t)seat_or_difficulty;
+        queue_descriptor.look_node_pair = ((uint32_t)(uint16_t)chosen->look_node_b << 16) |
+                                           (uint16_t)chosen->look_node_a;
+        queue_descriptor.order_target_raw = chosen->order_target;
+        queue_descriptor.object_c_masked = ((object_c == 0xffff) ? 0u : (uint32_t)-1) &
+                                            (uint32_t)object_c;
+        if (extra_data == (uint32_t *)0)
+        {
+            queue_descriptor.extra_data_0 = 0;
+            queue_descriptor.extra_data_1 = 0;
         }
         else
         {
-            // 0x10-byte header + 0x20-byte body, contiguous on the stack in the original
-            // (Ghidra's local_3ec/local_3e8/.../local_3dc and local_438/.../local_41c).
-            struct
-            {
-                int16_t tier;
-                int16_t direction_class;
-                uint32_t order_fallback;
-                int16_t look_marker;
-                int16_t result_index;
-                int16_t marker_length; // constant 0x18
-                int16_t pad_0e;
-                uint32_t other_object_index;      // local_438
-                uint32_t event_and_entry;         // local_434: low16=event_code, hi16=entry_index
-                uint32_t seat_flag_pad;            // local_430: byte0-1=seat_or_difficulty, byte2=1
-                uint32_t look_node_pair;           // local_42c: {look_node_a, look_node_b}
-                uint32_t order_target_raw;         // local_428
-                uint32_t object_c_masked;          // local_424
-                uint32_t extra_data_0;             // local_420
-                uint32_t extra_data_1;             // local_41c
-            } queue_descriptor;
+            queue_descriptor.extra_data_0 = extra_data[0];
+            queue_descriptor.extra_data_1 = extra_data[1];
+        }
 
-            queue_descriptor.tier = chosen->tier;
-            queue_descriptor.direction_class = chosen->direction_class;
-            queue_descriptor.order_fallback = chosen->order_fallback;
-            queue_descriptor.look_marker = chosen->look_marker;
-            queue_descriptor.result_index = chosen->result_index;
-            queue_descriptor.marker_length = 0x18;
-            queue_descriptor.pad_0e = 0;
-            queue_descriptor.other_object_index = chosen->other_object_index;
-            queue_descriptor.event_and_entry = ((uint32_t)chosen->entry_index << 16) | (uint16_t)event_code;
-            queue_descriptor.seat_flag_pad = ((uint32_t)1 << 16) | (uint16_t)seat_or_difficulty;
-            queue_descriptor.look_node_pair = ((uint32_t)(uint16_t)chosen->look_node_b << 16) |
-                                               (uint16_t)chosen->look_node_a;
-            queue_descriptor.order_target_raw = chosen->order_target;
-            queue_descriptor.object_c_masked = ((object_c == 0xffff) ? 0u : (uint32_t)-1) &
-                                                (uint32_t)object_c;
-            if (extra_data == (uint32_t *)0)
-            {
-                queue_descriptor.extra_data_0 = 0;
-                queue_descriptor.extra_data_1 = 0;
-            }
-            else
-            {
-                queue_descriptor.extra_data_0 = extra_data[0];
-                queue_descriptor.extra_data_1 = extra_data[1];
-            }
-
+        if (chosen->already_played != 0)
+        {
+            ai_propagate_communication_reaction(chosen->participant_object_index, &queue_descriptor.other_object_index);
+            ai_communication_play_event_line(chosen->participant_object_index, chosen->direction_class, 1,
+                         chosen->object_result, (uint8_t *)&queue_descriptor.other_object_index + 8);
+        }
+        else
+        {
             unit_commit_speech(chosen->participant_object_index, &queue_descriptor);
 
             if (chosen->raw_field_0a != -1)

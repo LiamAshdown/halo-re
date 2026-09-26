@@ -13,12 +13,12 @@
 
 extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
 
-void unit_notify_weapon_removed_dup(int32_t object_index, int16_t new_state) // blam-cc: in_EAX, UNSURE 2nd arg
+// FIXED (objdump 0x56ab30..0x56ab40): the state is the constant 0x26 (the seat close), not an argument.
+void unit_notify_weapon_removed_dup(int32_t object_index) // blam-cc: EAX -> object_index
 {
     if (object_index != -1) {
-        unit_try_set_animation_state((uint32_t)object_index, new_state);
+        unit_try_set_animation_state((uint32_t)object_index, 0x26);
     }
-    return;
 }
 
 #if 0

@@ -75,13 +75,15 @@ extern uint8_t *globals_tag_data; // 0x00746fa0, the globals tag data; +0x180 ->
 extern int32_t __ftol(); // 0x6391b4, MSVC 7.1 CRT float-to-int truncation; the double is on the x87 stack
 extern uint8_t game_engine_is_valid_team_player(uint32_t unit_index);                  // 0x466b60, UNSURE: "is grounded" style predicate
 extern int32_t player_index_from_unit_index(uint32_t unit_index);                 // 0x474db0
-extern datum_index unit_get_weapon_object_index(uint32_t unit_index); // 0x569970
+extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); // 0x569970, EAX, CX
   // real signature (unit_get_weapon_object_index.c): datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); Ghidra recovered 1 of 2 args at this call site
-extern void weapon_set_control_flags(uint32_t flags, float value);     // 0x4c2990, UNSURE signature
-extern void weapon_set_ready_timer(void);                                    // 0x4c2b20, UNSURE: no traced args
-extern void vector3d_angle_between_4cd4f0(void);                   // 0x4cd4f0, UNSURE: no traced args
+extern void weapon_set_control_flags(datum_index item_index, uint16_t control_flags, real primary_trigger); // 0x4c2990, EAX, stack
+extern void weapon_set_ready_timer(datum_index item_index, real value); // 0x4c2b20, EAX, stack
+extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b); // 0x4cd4f0, blam-cc: ECX, EDX
   // real signature (vector3d_angle_between_4cd4f0.c): real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b); Ghidra recovered 0 of 2 args at this call site
-extern void vector3d_rotate_toward_with_acceleration(real_vector3d *current, float turn_accel, float turn_rate);
+extern void vector3d_rotate_toward_with_acceleration(real_vector3d *direction, real_vector3d *target_direction,
+    real_vector3d *angular_velocity, real maximum_velocity, real acceleration);
+    // 0x4cf530, blam-cc: ESI, EDI, stack (0x562f1d..0x562f38 / 0x5630cc..0x5630e7)
 extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up);
 // vector3d_cross_product (0x4052c0) computes  *out = stack_operand x ecx_operand,  with out
 // in EAX, ecx_operand in ECX and stack_operand pushed -- read out of the callee own
@@ -90,7 +92,7 @@ extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_i
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand); // 0x4052c0
 extern void sound_start_unspatialized(float amount);                            // 0x543dd0
 extern void unit_clear_ground_adjust_dirty(uint32_t object_index);                                    // 0x55ad70, UNSURE: no traced args
-extern void unit_dispatch_reaction_animation(int16_t reaction_code); // 0x5614a0
+extern void unit_dispatch_reaction_animation(int32_t unit_index, int16_t reaction_code); // 0x5614a0, ESI unit, stack code
 extern void unit_update_animation_timers(uint32_t unit_index);      // 0x561620
 extern uint8_t unit_is_look_target_valid(uint32_t unit_index);      // 0x562570
 extern void vector3d_rotate_toward_bounded(real_vector3d *current, real_vector3d *velocity, float *bounds,
@@ -112,26 +114,26 @@ extern uint8_t unit_clamp_direction_to_aim_or_look_bounds(uint32_t unit_index, r
                                                           uint32_t which_bounds); // 0x5697a0
 // UNSURE-CALL: Ghidra recovered 2 of the 3 arguments at every call site below (the unit index
 // is register-passed); it is supplied here from the surrounding context.
-extern int16_t unit_find_next_grenade_type_with_count(uint32_t start_index);                   // 0x5699a0, UNSURE signature
+extern int32_t unit_find_next_grenade_type_with_count(uint32_t unit_index, int32_t start_index, int16_t direction); // 0x5699a0, EAX, CX, stack
   // real signature (unit_find_next_grenade_type_with_count.c): int32_t unit_find_next_grenade_type_with_count(uint32_t unit_index, int32_t start_index, int16_t direction); Ghidra recovered 1 of 3 args at this call site
-extern uint8_t unit_refresh_targeting_flag_and_weapons(uint32_t unit_index);                    // 0x569bf0, UNSURE: return unused here
+extern void unit_refresh_targeting_flag_and_weapons(uint32_t unit_index, uint8_t initial_targeting_flag); // 0x569bf0, stack, CL
   // real signature (unit_refresh_targeting_flag_and_weapons.c): void unit_refresh_targeting_flag_and_weapons(uint32_t unit_index, uint8_t initial_targeting_flag); Ghidra recovered 1 of 2 args at this call site
 extern void unit_ready_desired_weapon(uint32_t unit_index, uint32_t flag); // 0x56d6e0
   // real signature (unit_ready_desired_weapon.c): void unit_ready_desired_weapon(uint32_t unit_index); Ghidra recovered 2 of 1 args at this call site
-extern uint8_t unit_check_weapon_use_permission(void);                                   // 0x56da00, UNSURE: no traced args
+extern uint8_t unit_check_weapon_use_permission(uint32_t unit_index, uint32_t weapon_index); // 0x56da00, ESI, EDI
   // real signature (unit_check_weapon_use_permission.c): uint8_t unit_check_weapon_use_permission(uint32_t unit_index); Ghidra recovered 0 of 1 args at this call site
 extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force); // 0x56dec0
-extern void unit_begin_throw_grenade(uint32_t flag);                 // 0x56e080, UNSURE: no unit_index shown
+extern uint8_t unit_begin_throw_grenade(uint32_t unit_index, int32_t force_trigger); // 0x56e080, EDI, stack
   // real signature (unit_begin_throw_grenade.c): uint8_t unit_begin_throw_grenade(uint32_t unit_index, int32_t force_trigger); Ghidra recovered 1 of 2 args at this call site
 extern void unit_throw_grenade_move_to_hand(uint32_t unit_index);     // 0x56e280
 extern void unit_release_thrown_grenade(uint32_t object_index, uint8_t apply_throw_fraction); // 0x56e440
-extern void unit_update_look_delta_controls(void);                                       // 0x56e820, UNSURE: no traced args
+extern void unit_update_look_delta_controls(uint32_t object_index); // 0x56e820, EAX
   // real signature (unit_update_look_delta_controls.c): void unit_update_look_delta_controls(uint32_t object_index); Ghidra recovered 0 of 1 args at this call site
-extern void unit_calculate_luminosity(void);                          // 0x56ec60, UNSURE: no traced args
+extern void unit_calculate_luminosity(uint32_t object_index); // 0x56ec60, EDI
   // real signature (unit_calculate_luminosity.c): void unit_calculate_luminosity(uint32_t object_index); Ghidra recovered 0 of 1 args at this call site
 extern void unit_melee_lunge_damage_tick(uint32_t unit_index);                        // 0x56fc80
 extern void unit_update_autoaim_interaction(uint32_t unit_index);                        // 0x570720
-extern void unit_update_random_turn_angle(void);                                       // 0x570840, UNSURE: no traced args
+extern void unit_update_random_turn_angle(uint32_t object_index, real_vector3d *out_axis); // 0x570840, EAX, EDI
   // real signature (unit_update_random_turn_angle.c): void unit_update_random_turn_angle(uint32_t object_index, real_vector3d *out_axis); Ghidra recovered 0 of 2 args at this call site
 extern void actor_react_to_threat_event(datum_index self_object_index, datum_index other_object_index, int32_t event_kind, real magnitude, uint32_t extra_param, uint8_t suppress_vehicle_relay); // 0x42be40, UNSURE signature
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
@@ -184,7 +186,7 @@ uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
         }
         // (unattended set: this whole reset is skipped, matching the original)
     } else {
-        unit_update_random_turn_angle();
+        unit_update_random_turn_angle(unit_index, &unit->desired_facing_vector); // 0x562661: EAX unit, EDI = object +0x224
         unit->desired_aiming_vector = unit->desired_facing_vector;
         unit->desired_looking_vector = unit->desired_facing_vector;
         unit->throttle.i = global_forward3d_pointer->i;
@@ -267,7 +269,7 @@ uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
                 if (current_game_engine == 0 || unit->unknown_422 == 0 || unit->unknown_422 != 1) {
                     delta = 0.008333334f;
                 } else {
-                    datum_index weapon = unit_get_weapon_object_index(unit_index);
+                    datum_index weapon = unit_get_weapon_object_index(unit_index, unit->current_weapon_index); // CX = +0x2f2
                     if (weapon == (datum_index)-1) {
                         delta = 0.008333334f;
                     } else {
@@ -308,14 +310,14 @@ uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
                 } else {
                     uint32_t flags = unit->animation_state_flags;
                     obj->vitality_flags = obj->vitality_flags & ~4u;
-                    unit_refresh_targeting_flag_and_weapons(unit_index);
+                    unit_refresh_targeting_flag_and_weapons(unit_index, 1); // 0x562b41: CL = 1
                     unit_set_or_test_seat_and_weapon_label(unit_index, unit_base_animation_state_names[2], 0, 1); // "stand"
                     unit_try_set_animation_state(unit_index, (~(flags >> 3) & 1) | 0x22);
                     unit->animation_state_flags = (uint16_t)(unit->animation_state_flags & ~4u);
                     if (obj->type == 0) {
                         unit_clear_ground_adjust_dirty(unit_index); // index in a register
                     }
-                    unit_dispatch_reaction_animation(5);
+                    unit_dispatch_reaction_animation((int32_t)unit_index, 5); // 0x562b8f: ESI unit
                 }
             }
         }
@@ -326,8 +328,9 @@ uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
             if ((obj->vitality_flags & 0x400) == 0) {
                 if (unit->desired_weapon_index != unit->current_weapon_index &&
                     !unit_state_is_scripted_animation(unit) &&
-                    unit_get_weapon_object_index(unit_index) != (datum_index)-1 &&
-                    unit_check_weapon_use_permission() != 0) {
+                    unit_get_weapon_object_index(unit_index, unit->desired_weapon_index) != (datum_index)-1 &&
+                    unit_check_weapon_use_permission(unit_index,
+                        unit_get_weapon_object_index(unit_index, unit->desired_weapon_index)) != 0) { // 0x562c18..0x562c31
                     unit_ready_desired_weapon(unit_index, 1);
                 }
             } else {
@@ -335,7 +338,7 @@ uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
             }
             if (unit->desired_grenade_index != unit->current_grenade_index &&
                 !unit_state_is_scripted_animation(unit)) {
-                int16_t g = unit_find_next_grenade_type_with_count(0);
+                int16_t g = (int16_t)unit_find_next_grenade_type_with_count(unit_index, unit->current_grenade_index, 0); // 0x562c64: CX = +0x31d, stack 0
                 if (g != -1) {
                     unit->current_grenade_index = (int8_t)g;
                 }
@@ -360,7 +363,7 @@ uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
                 if (p1 != (uint32_t)-1) {
                     uint32_t p2 = player_index_from_unit_index(unit_index);
                     if (*(int16_t *)((uint8_t *)player_data->data + (p2 & 0xffff) * 0x200 + 2) != -1) {
-                        datum_index weapon = unit_get_weapon_object_index(unit_index);
+                        datum_index weapon = unit_get_weapon_object_index(unit_index, unit->current_weapon_index); // CX = +0x2f2
                         if (weapon != (datum_index)-1) {
                             object *weapon_obj = ((object_header *)object_data->data)[weapon & 0xffff].data;
                             void *weapon_tag = tag_instances[weapon_obj->definition_tag & 0xffff].data;
@@ -388,6 +391,7 @@ uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
         float aim_rate = (unit->aiming_speed == 1) ? *(float *)((uint8_t *)obj_tag + 0x26c) : 1.0f;
 
         real_vector3d *aiming = &unit->aiming_vector;
+        real_vector3d previous_aiming = unit->aiming_vector; // 0x562df6..0x562e20 ([ebp-0x24])
         real_vector3d *aiming_velocity = &unit->aiming_velocity;
         float turn_accel = aim_rate * *(float *)((uint8_t *)obj_tag + 0x264) * 0.033333335f;
         float turn_rate = aim_rate * *(float *)((uint8_t *)obj_tag + 0x268) * 0.0011111111f;
@@ -399,7 +403,10 @@ uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
             }
             unit->aiming_velocity = *global_origin3d_pointer;
         } else if (!unit->aiming_bounds_valid) {
-            vector3d_rotate_toward_with_acceleration(aiming, turn_accel, turn_rate);
+            // FIXED (0x562f1d): ESI aiming, EDI desired aiming, stack (&aiming velocity, [ebp-0x18] from tag +0x264,
+            // [ebp-0x14] from tag +0x268); the draft passed three arguments to this five-argument function.
+            vector3d_rotate_toward_with_acceleration(aiming, &unit->desired_aiming_vector, aiming_velocity, turn_accel,
+                turn_rate);
         } else {
             // 0x562e9f..0x562f13: the bounds are in the unit's own frame, built into a local
             // matrix (scale 1, orientation, left = up x forward, position = global origin)
@@ -412,10 +419,23 @@ uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
                                            &unit->desired_aiming_vector, &frame);
         }
 
-        if (*(float *)((uint8_t *)obj_tag + 0x264) != 0.0f) {
-            vector3d_angle_between_4cd4f0();
+        {
+            // FIXED (0x562f46..0x562fa0): the angle the aim moved this tick (vector3d_angle_between, ECX the aim
+            // before, EDX after) over the tag's +0x264 times 1/30, clamped to [0, 1] (NaN kept), times 255 and
+            // truncated (__ftol) into +0x323; 0 when +0x264 is 0.
+            float aim_change = 0.0f;
+            float per_tick = *(float *)((uint8_t *)obj_tag + 0x264);
+
+            if (per_tick != 0.0f) {
+                aim_change = vector3d_angle_between_4cd4f0(&previous_aiming, aiming) / (per_tick * 0.033333335f);
+                if (aim_change < 0.0f) {
+                    aim_change = 0.0f;
+                } else if (aim_change > 1.0f) {
+                    aim_change = 1.0f;
+                }
+            }
+            unit->unknown_323 = (int8_t)(int32_t)(aim_change * 255.0f);
         }
-        unit->unknown_323 = (int8_t)__ftol();
 
         float look_accel = aim_rate * *(float *)((uint8_t *)obj_tag + 0x270) * 0.033333335f;
         float look_rate = aim_rate * *(float *)((uint8_t *)obj_tag + 0x274) * 0.0011111111f;
@@ -424,7 +444,10 @@ uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
             unit_clamp_direction_to_aim_or_look_bounds(unit_index, &unit->looking_vector, 0);
             unit->looking_velocity = *global_origin3d_pointer;
         } else if (!unit->looking_bounds_valid) {
-            vector3d_rotate_toward_with_acceleration(&unit->looking_vector, look_accel, look_rate);
+            // FIXED (0x5630cc): ESI looking, EDI desired looking, stack (&looking velocity, [ebp-0x14] from tag
+            // +0x270, [ebp-0x18] from tag +0x274).
+            vector3d_rotate_toward_with_acceleration(&unit->looking_vector, &unit->desired_looking_vector,
+                &unit->looking_velocity, look_accel, look_rate);
         } else {
             // 0x563063..0x5630c2: the same local frame as the aiming branch
             real_matrix4x3 frame;
@@ -441,7 +464,7 @@ uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
             switch (unit->throwing_grenade_state) {
             case _unit_throwing_grenade_state_none:
                 if ((grenade_action & 1) != 0) {
-                    unit_begin_throw_grenade(0);
+                    unit_begin_throw_grenade(unit_index, 0); // 0x56311a: EDI unit
                 }
                 break;
             case _unit_throwing_grenade_state_begin:
@@ -481,8 +504,9 @@ uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
                     item_flags |= 4;
                 }
                 if ((((Unit *)obj_tag)->unit_flags & 0x800000) != 0) {
-                    unit_get_weapon_object_index(*(uint32_t *)&unit->unknown_340); // UNSURE: literal raw arg, see file header
-                    weapon_set_ready_timer();
+                    // 0x563214..0x56323a: the current weapon (EAX unit, CX +0x2f2) gets the ready timer +0x340
+                    weapon_set_ready_timer(unit_get_weapon_object_index(unit_index, unit->current_weapon_index),
+                        *(real *)&unit->unknown_340);
                 }
                 if ((unit->control_flags & 0x400) != 0) {
                     item_flags |= 8;
@@ -502,13 +526,15 @@ uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
             } else {
                 item_flags = 0x20;
             }
-            weapon_set_control_flags(item_flags, trigger);
+            // 0x5632a3..0x5632c2: EAX = the weapon in the current slot (+0x2f8[+0x2f2]) or -1.
+            weapon_set_control_flags(unit->current_weapon_index == -1 ? k_datum_index_none :
+                unit->weapons[unit->current_weapon_index], (uint16_t)item_flags, trigger);
         }
     }
 
     if ((((Unit *)obj_tag)->unit_flags & 0x800) == 0) { // not simple_creature
         if ((unit->animation_state_flags & _unit_animation_flag_aiming_enabled) != 0) {
-            unit_update_look_delta_controls();
+            unit_update_look_delta_controls(unit_index);
             unit->animation_controls_smoothed[0] = unit->animation_controls_smoothed[0] * 0.7f + unit->animation_controls[0] * 0.3f;
             unit->animation_controls_smoothed[1] = unit->animation_controls_smoothed[1] * 0.7f + unit->animation_controls[1] * 0.3f;
             unit->animation_controls_smoothed[2] = unit->animation_controls_smoothed[2] * 0.7f + unit->animation_controls[2] * 0.3f;
@@ -562,7 +588,7 @@ uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
         if (!unit_updates_suppressed) {
             unit_update_animation_timers(unit_index);
             if (!unit_updates_suppressed && (won_stagger_slot || unit->controlling_player != (datum_index)-1)) {
-                unit_calculate_luminosity();
+                unit_calculate_luminosity(unit_index);
             }
         }
     }

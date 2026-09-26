@@ -25,7 +25,7 @@
 
 extern data_array *object_data; // 0x008603b0
 
-extern void unit_dispatch_reaction_animation(int16_t reaction_code); // 0x5614a0,
+extern void unit_dispatch_reaction_animation(int32_t unit_index, int16_t reaction_code); // 0x5614a0, ESI unit, stack code,
     // blam-cc: ESI -> unit index (object_index here, 0x56f1ca), stack -> reaction_code. UNSURE: the
     // definition (src/units/unit_dispatch_reaction_animation.c, rewrite confidence 0.15) does not
     // model the ESI argument yet, so the prototype is kept as that file declares it.
@@ -38,7 +38,7 @@ void unit_region_damage_reaction(uint32_t object_index, uint32_t param_2, uint32
     (void)param_2;
 
     if ((obj->vitality_flags & 4) == 0) {
-        unit_dispatch_reaction_animation((int16_t)(((flags & 0x200) != 0) + 3));
+        unit_dispatch_reaction_animation((int32_t)object_index, (int16_t)(((flags & 0x200) != 0) + 3));
     }
 }
 

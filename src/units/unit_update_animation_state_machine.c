@@ -1,29 +1,31 @@
 // unit_update_animation_state_machine  (Ghidra: unit_update_animation_state_machine)
 // address 0x565420, size 1133 bytes
-// name confidence: 0.45 (phase2 candidate)   rewrite confidence: 0.25
-// evidence: types/units.h unit_data.seat_command (0x2a6), .unknown_20f (0x20f), .control_flags
-//   (0x208, _unit_control_flag_force_alert), .unknown_28b (0x28b), .base_animation_state
-//   (0x2a7), .overlays[3] (0x2aa/0x2ae/0x2b2), .animation_state (0x2a3), .unknown_2a4 (0x2a4),
-//   .unknown_2a5 (0x2a5), .driver_unit_index (0x324), .vehicle_seat_index (0x2f0);
-//   types/objects.h object.parent_object (0x11c), .vitality_flags (0x106,
-//   _object_health_frozen_bit), .flags (0x10, _object_at_rest_bit), .type (0xb4), .animation_index
-//   (0xd0), .animation_frame (0xd2), .velocity (0x68), .definition_tag (0x000), Object.model
-//   (TagDependency at 0x28, tag_id at 0x34); types/tags.h Unit.unit_flags (tag+0x17c,
-//   "destroyed_after_dying" bit 0x2), Unit.seats (TagReflexive at 0x2e4/0x2e8, UnitSeat stride
-//   0x11c, UnitSeatFlags bit 0 "invisible"), Biped.biped_flags (tag+0x2f4, "has_no_dying_airborne"
-//   bit 0x400); types/units.h biped_data.flags (0x4cc, bit 0 grounded).
-// UNSURE: the identity and lifetime of the ECX record is not traced back to any caller in this
-//   batch (all 14 callers sit outside the address range assigned here); it is modelled as a
-//   2-byte {requested_state, extra_flag} pair passed by pointer.
-// UNSURE: the root-motion block (animation_state == 0x1b) calls model_animation_get_frame_delta,
-//   object_get_world_matrix and matrix4x3_transform_vector with argument counts Ghidra could not
-//   recover (the frame-delta output and the world-matrix pointer are passed through hidden
-//   stack/register slots this decompilation does not show). The three locals that receive the
-//   transformed delta and get added into object->velocity are preserved structurally but
-//   default to zero here rather than inventing a plausible-looking call signature.
-// UNSURE: unit_reset_ground_adjust_state, unit_pick_random_spawned_actor_count, unit_notify_weapon_removed_dup, object_set_collision_enabled and unit_reset_light_effect are leaf
-//   helpers outside this module's address range; their signatures are guessed from call-site
-//   argument counts only.
+// name confidence: 0.45 (phase2 candidate)   rewrite confidence: 0.85
+// REWRITTEN (objdump 0x565420..0x56588c, jump tables 0x565890/0x5658ac+0x5658b8/0x5658c4+0x5658dc; the draft passed no
+//   or wrong arguments to most callees and crashed in the animation advance). ECX = the 2-byte request {requested
+//   state, flag}, [esp+4] = the unit. Returns a word that is 1 only when a finished animation in state 0x27 asks for
+//   state 0x28.
+//   A. Unparented, living units pick a base animation state from the seat command (+0x2a6: 0 -> 0, 1/2 -> 1,
+//      3 -> 2 + flag, 4 -> 2, 5 -> 4, 6 -> 5, else -1), overridden by the scripted seat byte (+0x20f unless -1),
+//      control flag 0x200 (-> 1) and a nonzero +0x28b (-> 5). When it differs from the current base state (+0x2a7)
+//      and unit_animation_state_is_compatible(ECX = +0x298, DX = requested) allows it:
+//      unit_set_or_test_seat_and_weapon_label(EAX unit, stack: unit_base_animation_state_names[state],
+//      unit_get_current_weapon_label(EAX unit, stack 1), 1) -- the 1 pushed for the first call stays on the stack.
+//   B. The third overlay (+0x2b2) advances in the unit tag's graph (+0x44) via the animation advance at 0x56ec10
+//      (ECX slot, EAX graph, stack unit); 2 (finished) clears it.
+//   C. The base animation (+0xd0, graph +0xcc) advances: 1 (event frame) in states 0x1e/0x1f/0x29 causes melee
+//      damage (stack: unit, 0, -1, -1, -1, -1, 0) and in 0x21 releases the grenade (stack: unit, 0); 2 (finished)
+//      handles 0x19 (dying: delete a "destroyed after dying" unit (tag +0x17c bit 1) that is at rest, or is a biped
+//      that is airborne or whose biped tag has flag 0x400; otherwise reset a biped's ground adjust, set +0x298 bit 2
+//      and step the frame back), 0x1a (seat entered: collision on unless the seat is invisible, and a driver closes
+//      the vehicle), 0x1b (root motion: the frame delta through the world matrix added to the velocity, after a
+//      detach from the seat), 0x25/0x26 (step the frame back) and 0x27 (return 1, request 0x28); after any finish a
+//      state that unit_state_allows_control refuses forces the request through.
+//   D. Overlay +0x2aa finishing copies the default node transforms (EAX unit, DX 6) and clears +0x2a4 and the slot.
+//   E. Overlay +0x2ae finishing (2 or 4) outside states 3..4 clears +0x2a5 and the slot.
+//   F. A forced request, or a request differing from the state (+0x2a3) that is compatible, goes to
+//      unit_try_set_animation_state(stack: unit, request).
+// blam-cc: ECX -> request, stack -> unit_index
 
 #include "tags.h"
 #include "memory.h"
@@ -34,89 +36,86 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern void *unit_base_animation_state_names[6]; // 0x0069fde4, PTR_DAT_0069fde4
+extern char *unit_base_animation_state_names[6]; // 0x0069fde4
 
-extern void model_animation_get_frame_delta(void *model_data);                          // 0x4d4a00, UNSURE
-extern void *object_get_world_matrix(void);                                             // 0x4f6a20, UNSURE
-  // real signature (object_get_world_matrix.c): real_matrix4x3 * object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out); Ghidra recovered 0 of 2 args at this call site
-// matrix4x3_transform_vector (0x4cbe50) transforms the vector in one register by the matrix in
-// another and writes the result through the third; Ghidra binds a different subset at each call
-// site in this module, so the declaration is left unprototyped.
-extern void matrix4x3_transform_vector();
-extern void object_delete_teardown(void);                                                // 0x4edc80, UNSURE: no traced args
-  // real signature (object_delete_teardown.c): void object_delete_teardown(uint32_t object_index); Ghidra recovered 0 of 1 args at this call site
-extern void object_set_collision_enabled(uint32_t not_invisible);                                        // 0x4f6850, UNSURE
-  // real signature (object_set_collision_enabled.c): void object_set_collision_enabled(uint32_t object_index, uint8_t enable); Ghidra recovered 1 of 2 args at this call site
-extern void object_copy_default_node_transforms(void);                                                          // 0x4f6b70
-  // real signature (object_copy_default_node_transforms.c): void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count); Ghidra recovered 0 of 2 args at this call site
-extern void unit_reset_ground_adjust_state(uint32_t object_index);                                                          // 0x55ad00, UNSURE: no traced args
-extern uint8_t unit_animation_state_is_compatible(const uint8_t *animation_block, int16_t requested_state); // 0x565be0, ECX = unit+0xa4
-extern uint8_t unit_state_allows_control(const uint8_t *animation_block);             // 0x565ca0, ECX = unit+0xa4
-extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state);      // 0x565f90
-extern void unit_pick_random_spawned_actor_count(void);                                                          // 0x568540, UNSURE: no traced args
-  // real signature (unit_pick_random_spawned_actor_count.c): int32_t unit_pick_random_spawned_actor_count(uint32_t unit_index); Ghidra recovered 0 of 1 args at this call site
-extern void unit_notify_weapon_removed_dup(void);                                                          // 0x56ab30, UNSURE: no traced args
-  // real signature (unit_notify_weapon_removed_dup.c): void unit_notify_weapon_removed_dup(int32_t object_index, int16_t new_state); Ghidra recovered 0 of 2 args at this call site
-extern char * unit_get_current_weapon_label(uint32_t unit_index);                                // 0x56dfd0, UNSURE signature
-extern void unit_release_thrown_grenade(uint32_t object_index, uint8_t apply_throw_fraction);             // 0x56e440
-extern uint16_t unit_reset_light_effect(datum_index effect_index);                                        // 0x56ec10, UNSURE
-extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_label,
-                                                     char *weapon_label, uint8_t test_only); // 0x5651e0,
-// unit_index in EAX; this matches the definition in unit_set_or_test_seat_and_weapon_label.c.
-// The phase-4 review pass corrected the arity (Ghidra binds only the stack arguments at these
-// call sites) and the return type (the callee returns a byte, tested in AL).
-extern void unit_cause_melee_damage(uint32_t unit_index, uint32_t a2, uint32_t a3, uint32_t a4,
-                                     uint32_t a5, uint32_t a6, uint32_t a7);               // UNSURE signature
+extern uint8_t unit_animation_state_is_compatible(const uint8_t *animation_block, int16_t requested_state); // 0x565be0, ECX, DX
+extern uint8_t unit_state_allows_control(const uint8_t *animation_block); // 0x565ca0, ECX
+extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
+extern char *unit_get_current_weapon_label(uint32_t unit_index); // 0x56dfd0, EAX (the stack 1 is not read)
+extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_label, char *weapon_label,
+    uint8_t test_only); // 0x5651e0, EAX, stack
+extern uint16_t unit_reset_light_effect(void *state, uint32_t animation_graph_tag_index, datum_index object_index);
+    // 0x56ec10 (the animation slot advance), ECX, EAX, stack
+extern void unit_release_thrown_grenade(uint32_t object_index, uint8_t apply_throw_fraction); // 0x56e440
+extern void unit_cause_melee_damage(uint32_t unit_index, uint8_t suppress_effect, uint32_t target_object_index,
+    int16_t damage_param4, int16_t damage_param5, int16_t damage_param6, uint32_t damage_param7); // 0x56f2d0
+extern void object_delete_teardown(uint32_t object_index); // 0x4edc80, EAX
+extern int32_t unit_pick_random_spawned_actor_count(uint32_t unit_index); // 0x568540, EDI
+extern void unit_reset_ground_adjust_state(uint32_t object_index); // 0x55ad00, EAX
+extern void model_animation_get_frame_delta(int16_t frame, void *animation, real_vector3d *out, void *model);
+    // 0x4d4a00, ECX, EDX, EBX, stack
+extern real_matrix4x3 *object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out); // 0x4f6a20, EAX, EDI
+extern void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); // 0x4cbe50, EAX, EDX, stack
+extern void unit_detach_from_seat(uint32_t unit_index, uint8_t suppress_trigger, uint8_t require_client_flag,
+    uint8_t fire_trigger_event); // 0x56c640
+extern void object_set_collision_enabled(uint32_t object_index, uint8_t enable); // 0x4f6850, EAX, stack
+extern void unit_notify_weapon_removed_dup(int32_t object_index); // 0x56ab30, EAX
+extern void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count); // 0x4f6b70, EAX, DX
 
-// FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads EAX; unit_index arrive(s) on the stack (1 stack argument(s)).
-// blam-cc: ECX -> request, stack -> unit_index
-uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request) // blam-cc: see file header
+static uint8_t *state_machine_object(uint32_t object_index)
 {
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    Object *obj_tag = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    return *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
+}
 
-    int16_t requested_state = request[0]; // UNSURE: see file header
-    uint8_t need_retry = 0;
-    int32_t skip_animation_request = 0;
+uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request)
+{
+    uint8_t *unit = state_machine_object(unit_index);
+    uint8_t *unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
+    int16_t requested = request[0];
+    uint16_t result = 0;
+    uint8_t force = 0;
+    uint16_t advance;
 
-    if (obj->parent_object == (datum_index)-1 && (obj->vitality_flags & _object_health_frozen_bit) == 0) {
-        int16_t category = -1;
-        switch (unit->seat_command) {
-        case 0: category = 0; break;
-        case 1: case 2: category = 1; break;
-        case 3: category = (request[1] != 0) + 2; break;
-        case 4: category = 2; break;
-        case 5: category = 4; break;
-        case 6: category = 5; break;
+    if (*(datum_index *)(unit + 0x11c) == k_datum_index_none && (unit[0x106] & 4) == 0) {
+        int16_t base_state = -1;
+
+        switch ((int8_t)unit[0x2a6]) {
+        case 0: base_state = 0; break;
+        case 1: case 2: base_state = 1; break;
+        case 3: base_state = (int16_t)(2 + (request[1] != 0)); break;
+        case 4: base_state = 2; break;
+        case 5: base_state = 4; break;
+        case 6: base_state = 5; break;
         default: break;
         }
-        if (unit->unknown_20f != -1) {
-            category = unit->unknown_20f;
+        if (unit[0x20f] != 0xff) {
+            base_state = (int8_t)unit[0x20f];
         }
-        if ((unit->control_flags & _unit_control_flag_force_alert) != 0) {
-            category = 1;
+        if (*(uint32_t *)(unit + 0x208) & 0x200) {
+            base_state = 1;
         }
-        if (unit->unknown_28b != 0) {
-            category = 5;
+        if (unit[0x28b] != 0) {
+            base_state = 5;
         }
-        if (unit->base_animation_state != category && unit_animation_state_is_compatible((const uint8_t *)unit + 0xa4, category)) {
-            char *weapon_label = unit_get_current_weapon_label(1);
-            unit_set_or_test_seat_and_weapon_label(unit_index, (char *)unit_base_animation_state_names[category],
-                                                    weapon_label, 0);
+        if ((int8_t)unit[0x2a7] != base_state && unit_animation_state_is_compatible(unit + 0x298, requested)) {
+            char *weapon_label = unit_get_current_weapon_label(unit_index);
+
+            unit_set_or_test_seat_and_weapon_label(unit_index, unit_base_animation_state_names[base_state],
+                weapon_label, 1);
         }
     }
 
-    if (unit->overlays[2].animation_index != -1 && unit_reset_light_effect(unit_index) == 2) {
-        unit->overlays[2].animation_index = -1;
+    if (*(int16_t *)(unit + 0x2b2) != -1 &&
+        unit_reset_light_effect(unit + 0x2b2, *(uint32_t *)(unit_tag + 0x44), unit_index) == 2) {
+        *(int16_t *)(unit + 0x2b2) = -1;
     }
 
-    if (obj->animation_index != -1) {
-        int32_t completion = unit_reset_light_effect(unit_index);
-        if (completion == 1) {
-            switch (unit->animation_state) {
+    if (*(int16_t *)(unit + 0xd0) != -1) {
+        advance = unit_reset_light_effect(unit + 0xd0, *(uint32_t *)(unit + 0xcc), unit_index);
+        if (advance == 1) {
+            switch ((int8_t)unit[0x2a3]) {
             case 0x1e: case 0x1f: case 0x29:
-                unit_cause_melee_damage(unit_index, 0, (uint32_t)-1, (uint32_t)-1, (uint32_t)-1, (uint32_t)-1, 0);
+                unit_cause_melee_damage(unit_index, 0, 0xffffffff, -1, -1, -1, 0);
                 break;
             case 0x21:
                 unit_release_thrown_grenade(unit_index, 0);
@@ -124,97 +123,103 @@ uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *
             default:
                 break;
             }
-        } else if (completion == 2) {
-            switch (unit->animation_state) {
+        } else if (advance == 2) {
+            switch ((int8_t)unit[0x2a3]) {
             case 0x19: {
-                // Three ways to reach the "ready" path (LAB_0056567e/LAB_0056568f in the
-                // original); every other combination falls through to the teardown call.
-                uint8_t ready;
-                if ((*((uint8_t *)obj_tag + 0x17c) & 2) == 0) {
-                    ready = 1; // Unit.unit_flags bit 0x2 (destroyed_after_dying) clear
-                } else if ((obj->flags & _object_at_rest_bit) == 0) {
-                    if (obj->type != 0) {
-                        ready = 1; // not a biped: skip the grounded check entirely
-                    } else {
-                        biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
-                        Biped *biped_tag = (Biped *)obj_tag;
-                        ready = (biped->flags & 1) != 0 && (biped_tag->biped_flags & 0x400) == 0;
-                    }
-                } else {
-                    ready = 0; // at rest: always tears down
-                }
+                uint8_t delete_now = 0;
 
-                if (ready) {
-                    if (obj->type == 0) {
-                        unit_reset_ground_adjust_state(unit_index); // index in a register
+                if (unit_tag[0x17c] & 2) {
+                    if (unit[0x10] & 0x20) {
+                        delete_now = 1;
+                    } else if (*(int16_t *)(unit + 0xb4) == 0) {
+                        uint8_t *biped = state_machine_object(unit_index);
+                        uint8_t *biped_tag = (uint8_t *)tag_instances[*(datum_index *)biped & 0xffff].data;
+
+                        if (!(biped[0x4cc] & 1) || (*(uint32_t *)(biped_tag + 0x2f4) & 0x400)) {
+                            delete_now = 1;
+                        }
                     }
-                    unit->animation_state_flags = (uint16_t)(unit->animation_state_flags | 4);
-                    obj->animation_frame = obj->animation_frame - 1; // shares switchD_005655fe_caseD_25
-                } else {
-                    object_delete_teardown();
-                    unit_pick_random_spawned_actor_count();
                 }
+                if (delete_now) {
+                    object_delete_teardown(unit_index);
+                    unit_pick_random_spawned_actor_count(unit_index);
+                    break;
+                }
+                if (*(int16_t *)(unit + 0xb4) == 0) {
+                    unit_reset_ground_adjust_state(unit_index);
+                }
+                unit[0x298] |= 4;
+                *(int16_t *)(unit + 0xd2) -= 1;
                 break;
             }
             case 0x1a: {
-                object *parent = ((object_header *)object_data->data)[obj->parent_object & 0xffff].data;
-                Object *parent_tag = (Object *)tag_instances[parent->definition_tag & 0xffff].data;
-                unit_data *parent_unit = (unit_data *)((uint8_t *)parent + k_unit_data_offset);
-                UnitSeat *seat = (UnitSeat *)((uint8_t *)((Unit *)parent_tag)->seats.pointer +
-                                               unit->vehicle_seat_index * 0x11c);
-                object_set_collision_enabled((~*(uint8_t *)seat) & 1);
-                if (parent_unit->driver_unit_index == unit_index) {
-                    unit_notify_weapon_removed_dup();
+                datum_index parent_index = *(datum_index *)(unit + 0x11c);
+                uint8_t *parent = state_machine_object(parent_index);
+                uint8_t *parent_tag = (uint8_t *)tag_instances[*(datum_index *)parent & 0xffff].data;
+                uint8_t seat_flags = *(*(uint8_t **)(parent_tag + 0x2e8) + *(int16_t *)(unit + 0x2f0) * 0x11c);
+
+                object_set_collision_enabled(unit_index, (uint8_t)(~seat_flags & 1));
+                if (*(datum_index *)(parent + 0x324) == unit_index) {
+                    unit_notify_weapon_removed_dup((int32_t)*(datum_index *)(unit + 0x11c));
                 }
                 break;
             }
             case 0x1b: {
-                // UNSURE: root-motion delta, see file header
-                real_vector3d frame_delta = {0};
-                model_animation_get_frame_delta(tag_instances[obj_tag->model.tag_id.index].data);
-                void *world_matrix = object_get_world_matrix();
-                matrix4x3_transform_vector(world_matrix);
-                obj->velocity.i = obj->velocity.i + frame_delta.i;
-                obj->velocity.j = obj->velocity.j + frame_delta.j;
-                obj->velocity.k = obj->velocity.k + frame_delta.k;
+                uint8_t *animations =
+                    *(uint8_t **)((uint8_t *)tag_instances[*(datum_index *)(unit + 0xcc) & 0xffff].data + 0x78);
+                void *model = tag_instances[*(datum_index *)(unit_tag + 0x34) & 0xffff].data;
+                real_vector3d delta;
+                real_matrix4x3 world;
+                real_matrix4x3 *matrix;
+
+                model_animation_get_frame_delta(*(int16_t *)(unit + 0xd2),
+                    animations + *(int16_t *)(unit + 0xd0) * 0xb4, &delta, model);
+                matrix = object_get_world_matrix(unit_index, &world);
+                matrix4x3_transform_vector(&delta, &delta, matrix);
+                unit_detach_from_seat(unit_index, 1, 1, 1);
+                *(float *)(unit + 0x68) = delta.i + *(float *)(unit + 0x68);
+                *(float *)(unit + 0x6c) = delta.j + *(float *)(unit + 0x6c);
+                *(float *)(unit + 0x70) = delta.k + *(float *)(unit + 0x70);
                 break;
             }
-            case 0x25:
-            case 0x26:
-                obj->animation_frame = obj->animation_frame - 1;
+            case 0x25: case 0x26:
+                *(int16_t *)(unit + 0xd2) -= 1;
                 break;
             case 0x27:
-                requested_state = 0x28;
-                need_retry = 1;
+                result = 1;
+                requested = 0x28;
                 break;
             default:
                 break;
             }
-            if (!unit_state_allows_control((const uint8_t *)unit + 0xa4)) {
-                skip_animation_request = 1;
+            if (!unit_state_allows_control(unit + 0x298)) {
+                force = 1;
             }
         }
     }
 
-    if (unit->overlays[0].animation_index != -1 && unit_reset_light_effect(unit_index) == 2) {
-        object_copy_default_node_transforms();
-        unit->unknown_2a4 = 0;
-        unit->overlays[0].animation_index = -1;
+    if (*(int16_t *)(unit + 0x2aa) != -1 &&
+        unit_reset_light_effect(unit + 0x2aa, *(uint32_t *)(unit_tag + 0x44), unit_index) == 2) {
+        uint8_t *reloaded;
+
+        object_copy_default_node_transforms(unit_index, 6);
+        reloaded = state_machine_object(unit_index);
+        reloaded[0x2a4] = 0;
+        *(int16_t *)(reloaded + 0x2aa) = -1;
     }
-    if (unit->overlays[1].animation_index != -1) {
-        int32_t completion = unit_reset_light_effect(unit_index);
-        if ((completion == 2 || completion == 4) &&
-            (unit->animation_state < 3 || 4 < unit->animation_state)) {
-            unit->unknown_2a5 = 0;
-            unit->overlays[1].animation_index = -1;
+
+    if (*(int16_t *)(unit + 0x2ae) != -1) {
+        advance = unit_reset_light_effect(unit + 0x2ae, *(uint32_t *)(unit_tag + 0x44), unit_index);
+        if ((advance == 2 || advance == 4) && ((int8_t)unit[0x2a3] < 3 || (int8_t)unit[0x2a3] > 4)) {
+            unit[0x2a5] = 0;
+            *(int16_t *)(unit + 0x2ae) = -1;
         }
     }
 
-    if (skip_animation_request || (requested_state != unit->animation_state &&
-                                    unit_animation_state_is_compatible((const uint8_t *)unit + 0xa4, requested_state))) {
-        unit_try_set_animation_state(unit_index, requested_state);
+    if (force || (requested != (int8_t)unit[0x2a3] && unit_animation_state_is_compatible(unit + 0x298, requested))) {
+        unit_try_set_animation_state(unit_index, requested);
     }
-    return need_retry;
+    return result;
 }
 
 #if 0

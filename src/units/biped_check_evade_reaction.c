@@ -32,7 +32,7 @@ extern float unit_evade_scale;      // 0x0069c52c, UNSURE
 extern real_point3d *object_get_position();
 extern uint32_t unit_test_placement_candidate(float distance, real_point3d *out_position,
                                                real_vector3d *direction, void **out_hit_object); // 0x55aa20, this batch
-extern void unit_dispatch_reaction_animation(int16_t reaction_code); // 0x5614a0, next batch: reaction dispatcher
+extern void unit_dispatch_reaction_animation(int32_t unit_index, int16_t reaction_code); // 0x5614a0, ESI unit, stack code, next batch: reaction dispatcher
 
 // Rate-limited (every 15 ticks) evasion check: if the unit is unattached, not a special weapon
 // type (Biped tag flags 0x84 clear), unattended (flags bit 0x1000 clear), has an actor and isn't
@@ -60,7 +60,7 @@ void biped_check_evade_reaction(uint32_t object_index)
         found = unit_test_placement_candidate(6.0f, &position, &direction, 0); // UNSURE: 0x40c00000 == 6.0f
 
         if (found == k_datum_index_none) {
-            unit_dispatch_reaction_animation(0);
+            unit_dispatch_reaction_animation((int32_t)object_index, 0);
         } else {
             object_get_position(&position);
             {
@@ -68,7 +68,7 @@ void biped_check_evade_reaction(uint32_t object_index)
                 float dz = (position.z - 0.0f) * unit_evade_scale; // UNSURE: local_10/local_4 pairing, see file header
                 if (obj->velocity.k <= 0.0f &&
                     radius * radius <= obj->velocity.k * obj->velocity.k + dz + dz) {
-                    unit_dispatch_reaction_animation(0);
+                    unit_dispatch_reaction_animation((int32_t)object_index, 0);
                 }
             }
         }

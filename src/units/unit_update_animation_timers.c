@@ -26,7 +26,7 @@
 extern data_array *object_data; // 0x008603b0
 
 extern void ai_communication_gate_line_played(void);  // 0x42e970, UNSURE: no traced args
-extern void ai_propagate_communication_reaction(void);  // 0x42e9c0, UNSURE: no traced args
+extern void ai_propagate_communication_reaction(datum_index object_index, void *order); // 0x42e9c0, stack (cdecl)
 extern void ai_communication_play_event_line(void);  // 0x42eee0, UNSURE: no traced args
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
                                                 object_marker *marker, uint32_t flags); // 0x4f6080, UNSURE args
@@ -96,7 +96,9 @@ void unit_update_animation_timers(uint32_t unit_index) // blam-cc: in_EAX -> uni
     }
 
     if (unit->speech_lipsync_ticks == 0 && unit->speech_lipsync_stopped == 0) {
-        ai_propagate_communication_reaction();
+        // FIXED (0x56186f..0x561877): pushes (ESI = the unit, &unit object +0x398, inside the playing speech line
+        // at +0x388); the draft passed nothing.
+        ai_propagate_communication_reaction(unit_index, (uint8_t *)obj + 0x398);
         unit->speech_lipsync_stopped = 1;
     }
 

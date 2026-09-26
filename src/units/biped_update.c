@@ -73,13 +73,12 @@ extern void biped_apply_idle_fidget(uint32_t object_index, uint8_t *state_out); 
 extern void biped_advance_frame_counter_trigger(uint32_t object_index, char *state_out); // 0x55eb90, this batch: animation frame trigger
 extern void biped_trigger_on_velocity_threshold(uint32_t object_index); // 0x55ec20, this batch: velocity-threshold trigger
 extern uint32_t unit_snap_to_min_ground_height(uint32_t object_index); // 0x55ecf0, this batch: snap to min ground height
-extern void biped_update_facing(uint8_t *control_flags_byte); // 0x55b7c0
+extern void biped_update_facing(uint32_t object_index, int8_t *out_animation_state); // 0x55b7c0, EAX, stack
   // real signature (biped_update_facing.c): void biped_update_facing(uint32_t object_index, int8_t *out_animation_state); Ghidra recovered 1 of 2 args at this call site
 extern void unit_update_footstep_and_idle_triggers(uint32_t unit_index); // 0x560410, next batch: seat/turret angle-limit trigger
 extern void unit_update_up_vector(Biped *biped_tag, object *obj); // 0x560800, next batch: level up-vector toward target
 extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, next batch: seat-transition dispatcher; returns a status this
                                                   // rewrite discards where Ghidra shows a used result (see body)
-extern int16_t unit_update_animation_state_machine_status(uint32_t object_index); // same address; the LAB_00559dd2 tail reads its return value
 extern uint8_t unit_state_is_scripted_animation(unit_data *unit); // 0x565c60, next batch: uninterruptible/special-move state test
 extern void unit_start_seat_overlay_animation_a(uint32_t unit_index, int16_t command); // 0x565e00, next batch: seat-control overlay starter
 extern uint8_t unit_all_seats_unoccupied(uint32_t unit_index); // 0x566910, next batch: seat-occupancy test
@@ -87,20 +86,21 @@ extern void unit_notify_weapon_removed(void); // 0x56ab10, next batch: weapon-re
   // real signature (unit_notify_weapon_removed.c): void unit_notify_weapon_removed(int32_t object_index, int16_t new_state); Ghidra recovered 0 of 2 args at this call site
 extern void unit_dispatch_scripted_event_9(int32_t param_1); // 0x56c370, next batch: scripted event dispatch
   // real signature (unit_dispatch_scripted_event_9.c): void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key); Ghidra recovered 1 of 2 args at this call site
-extern void unit_recompute_seat_occupants(void); // 0x56ce30, next batch: recompute tracked-seat occupants
+extern void unit_recompute_seat_occupants(uint32_t unit_index); // 0x56ce30, EAX
   // real signature (unit_recompute_seat_occupants.c): void unit_recompute_seat_occupants(uint32_t unit_index); Ghidra recovered 0 of 1 args at this call site
-extern void unit_pick_and_ready_next_weapon(void); // 0x56d6a0, next batch: recompute next weapon / trigger switch
+extern void unit_pick_and_ready_next_weapon(uint32_t unit_index); // 0x56d6a0, ESI
   // real signature (unit_pick_and_ready_next_weapon.c): void unit_pick_and_ready_next_weapon(uint32_t unit_index); Ghidra recovered 0 of 1 args at this call site
 extern void unit_set_custom_animation(uint32_t object_index, datum_index graph, int16_t animation_index); // 0x56ebd0
 extern void unit_melee_attack_scan(uint32_t unit_index); // 0x56f550
-extern datum_index unit_get_weapon_object_index(uint32_t unit_index); // 0x569970, unit_index in a register
+extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); // 0x569970, EAX, CX
   // real signature (unit_get_weapon_object_index.c): datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); Ghidra recovered 1 of 2 args at this call site
 extern void object_snap_to_parent_marker_and_detach(uint32_t object_index); // UNSURE module, object_index visible
 extern uint32_t actor_notify_weapon_pickup_once(void); // UNSURE module, implicit args only
-extern uint32_t weapon_action_notify_for_unit(void); // UNSURE module, implicit args only
-extern char weapon_prevents_melee_attack(void);     // UNSURE module, implicit args only
+extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code); // 0x492730, EAX, stack
+extern uint32_t weapon_prevents_melee_attack(datum_index item_index); // 0x4c2ee0, ECX
 extern void weapon_reset_triggers(datum_index weapon_index); // UNSURE module
-extern int16_t weapon_get_first_person_animation_time(int32_t which, int32_t unused); // UNSURE module: a bounded random-ish roll
+extern int16_t weapon_get_first_person_animation_time(datum_index item_index, int16_t animation_index,
+    int16_t category, int16_t mode); // 0x4c2f80, EAX, CX, stack
 extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90, next batch (signature per sibling agent's src/units/unit_update_animation_state_machine.c)
 extern int16_t animation_choose_random_permutation(uint32_t flag); // UNSURE module
 
@@ -183,11 +183,16 @@ static void detach_and_realign_to_parent_seat(uint32_t object_index, datum_index
     if (parent_unit->driver_unit_index == object_index) parent_unit->driver_unit_index = k_datum_index_none;
     if (parent_unit->gunner_unit_index == object_index) parent_unit->gunner_unit_index = k_datum_index_none;
 
-    unit_recompute_seat_occupants();
-    unit_pick_and_ready_next_weapon();
-    // ECX carries the requested-state pointer; Ghidra bound only the EAX index here, and the
-    // request pointer is not visible at this call site.
-    unit_update_animation_state_machine(object_index, 0);
+    // FIXED (0x559422..0x55943d / 0x559969..0x559987): the parent's seat occupants are recomputed (EAX = the
+    // parent), this unit readies its next weapon (ESI), and the state machine runs with ECX = a local request
+    // {0x14, 0} (the draft passed no arguments and a NULL request).
+    {
+        int8_t exit_request[2] = { 0x14, 0 };
+
+        unit_recompute_seat_occupants(parent_object_index);
+        unit_pick_and_ready_next_weapon(object_index);
+        unit_update_animation_state_machine(object_index, exit_request);
+    }
 
     {
         // UNSURE: offset 0x1ea within the unit relative to *(short*)(puVar10+0x1ea)+puVar10+0x10,
@@ -233,7 +238,7 @@ uint32_t biped_update(uint32_t object_index)
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
-    uint8_t control_flags_byte = 0;
+    int8_t request[2] = { 0, 0 }; // [ebp-0x4] state, [ebp-0x3] action flag (0x55910a/0x55910e)
 
     if (obj->network_role == 1 && obj->network_position_valid == 1 && obj->parent_object == k_datum_index_none) {
         unit_recalculate_position(object_index);
@@ -383,43 +388,49 @@ uint32_t biped_update(uint32_t object_index)
     biped->unknown_501 = (biped->flags & 1) ? ((biped->unknown_501 < 0x7f) ? biped->unknown_501 + 1 : biped->unknown_501) : 0;
     biped->unknown_502 = (biped->flags & 2) ? ((biped->unknown_502 < 0x7f) ? biped->unknown_502 + 1 : biped->unknown_502) : 0;
 
-    control_flags_byte = 0;
+    // FIXED (0x559c29..0x559cb0): the 2-byte request is {0, control flags bit 0}; biped_update_facing gets the
+    // unit (EAX) and the request; every sibling below gets the request (the draft passed a lone byte).
+    request[1] = (int8_t)(*(uint8_t *)&unit->control_flags & 1);
+    request[0] = 0;
     if ((obj->vitality_flags & 4) == 0) {
-        biped_update_facing(&control_flags_byte);
+        biped_update_facing(object_index, request);
     }
-    biped_integrate_movement_with_collision(object_index, &control_flags_byte);
+    biped_integrate_movement_with_collision(object_index, request);
 
     if ((obj->vitality_flags & 4) == 0) {
         if ((biped->flags & 1) == 0) {
             if (biped->unknown_508 == -1) {
                 if ((biped->flags & 2) != 0) biped_trigger_on_velocity_threshold(object_index);
             } else {
-                biped_advance_frame_counter_trigger(object_index, &control_flags_byte);
+                biped_advance_frame_counter_trigger(object_index, (char *)request);
             }
         } else {
-            biped_apply_idle_fidget(object_index, &control_flags_byte); // index in a register
+            biped_apply_idle_fidget(object_index, (uint8_t *)request); // EDI unit, stack request
         }
     } else {
         // Ghidra: FUN_0055e840() with no bound arguments; both parameters are register-carried.
         // UNSURE: the state_out pointer is taken to be the same byte its sibling calls above
         // write through.
-        biped_update_idle_basis(object_index, &control_flags_byte);
+        biped_update_idle_basis(object_index, (uint8_t *)request); // ESI unit, EDI request
     }
 
     if (unit_updates_suppressed != 0) goto tail;
 
     if (biped->unknown_505 == 0) {
         if (unit->controlling_player != k_datum_index_none && (int8_t)unit->control_flags < 0) {
-            datum_index weapon = unit_get_weapon_object_index(object_index); // register-carried
-            char allowed = weapon_prevents_melee_attack();
+            // FIXED (0x559ceb..0x559d8a): the weapon in the unit's current slot (+0x2f2), and every callee's
+            // real arguments.
+            datum_index weapon = unit_get_weapon_object_index(object_index, unit->current_weapon_index);
+            uint32_t allowed = weapon_prevents_melee_attack(weapon);
             if (allowed == 0 && unit->zoom_level == -1) {
                 unit_start_seat_overlay_animation_a(object_index, 7);
                 weapon_reset_triggers(weapon);
-                weapon_action_notify_for_unit();
+                weapon_action_notify_for_unit(object_index, 4);
                 {
-                    int8_t duration = (int8_t)weapon_get_first_person_animation_time(0, -1); // UNSURE module
-                    biped->unknown_505 = duration - (duration >> 2); // ~75% of duration; see file header
-                    biped->unknown_506 = biped->unknown_505 - (int8_t)weapon_get_first_person_animation_time(1, -1);
+                    int8_t duration = (int8_t)weapon_get_first_person_animation_time(weapon, 0xd, 0, -1);
+                    biped->unknown_505 = (int8_t)(duration - (duration >> 2)); // ~75% of duration
+                    biped->unknown_506 = (int8_t)(biped->unknown_505 -
+                        (int8_t)weapon_get_first_person_animation_time(weapon, 0xd, 1, -1));
                 }
                 goto melee_countdown_tail;
             }
@@ -440,7 +451,9 @@ uint32_t biped_update(uint32_t object_index)
     }
 
 tail:
-    if (unit_update_animation_state_machine_status(object_index) == 1) {
+    // FIXED (0x559dd2..0x559de5): the state machine runs with ECX = the request (the draft called a
+    // nonexistent twin and never ran it here).
+    if (unit_update_animation_state_machine(object_index, request) == 1) {
         unit_snap_to_min_ground_height(object_index);
     }
     if ((obj->vitality_flags & 4) != 0 && (obj->flags & 0x20) != 0) {
