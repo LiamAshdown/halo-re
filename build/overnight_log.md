@@ -802,3 +802,11 @@ Remaining step-1 code gap:
   unlisted; integrators pass unit->actor_index (ECX) to actor_check_vehicle_mode_timeout. 16 newly hookable, incl.
   biped_movement_solve and the whole sweep/slide/sphere-query chain (build/step1_session_new.txt). Integrators still
   blocked: they declare biped_update_animation_frame_trigger differently. hooks.txt == stable.
+
+# Standalone generator
+- stage 1 (tools/gen_standalone.py -> build/standalone/): data blob (.rdata 240 KB + .data 172 KB of 2.1 MB) for
+  0x63a000..0x890df0; 315 import slots (46 delay-load) from 15 DLLs; 1405 code pointers in data: 735 -> C rewrites,
+  670 -> library code that the standalone replaces (D3DX vtables 567, CRT init tables, GameSpy, zlib/png/hwreq, EH
+  funclets): dead data there. Entry chain: CRT 0x627f06 -> shell_winmain 0x5411e0 (rewritten, 0.7; never hookable).
+  Next: stage 2 = loader.c (reserve + copy image, fill IATs, write the 735 C pointers) + a trial standalone link that
+  lists every unresolved symbol (the 237 stubs into original code, library calls).
