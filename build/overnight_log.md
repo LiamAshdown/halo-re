@@ -788,3 +788,9 @@ Remaining step-1 code gap:
   cos_max_slope (NaN too) or by the unknown_5c/unknown_60 distance test; airborne writes k_default_resting_plane.
   Quirk kept as documented: the snap-surface test reads the CURRENT BEST's surface (contacts[-1] slot with no best).
   Compiles. Next: section 4 (0x560088..0x5603f5).
+- [firing 7] Item 3, section 4/4 (0x560088..0x560400): contacted-object ranking (vehicles first, largest relative
+  velocity -> solve+0x98), device-machine ground object (-> +0x9c, salt-checked lookup, type 7 via the int8 sign
+  of 1<<type), results (swept position/velocity, +0xc8 = |swept - requested velocity|, z minus height_change) and the
+  crouch stand-up probe (sphere query + up ray -> result bit 4). True size 5169 (Ghidra 5157: the take block at
+  0x5603ef lies past it). Whole draft compiles. Next: move into src/units, switch both integrators from FUN_0055efd0,
+  rename flags bit 0 to airborne, regcheck, build.

@@ -1,13 +1,13 @@
 // DRAFT (not in src/ until complete: a partial definition would replace the linked original).
 // biped_movement_solve  (Ghidra: FUN_0055efd0)
-// address 0x55efd0, size 5157 bytes
+// address 0x55efd0, size 5169 bytes (Ghidra reports 5157; the loop's take block at 0x5603ef..0x560400 lies past it)
 // Written section by section from objdump -d 0x55efd0..0x5603f5 (python scratchpad/annot.py).
 // Frame: Ghidra local_X lives at esp0 + (0xafb0 - X), esp0 = esp after the four register pushes.
 // Section status:
 //   [x] 1. target velocity (0x55efd0..0x55f6d6)
 //   [x] 2. capsule sweep + ground-edge snapping (0x55f6d6..0x55fce4)
 //   [x] 3. ground contact choice (0x55fce4..0x560088)
-//   [ ] 4. ground object / result tail (0x560088..0x5603f5)
+//   [x] 4. contacted objects / results / stand-up probe (0x560088..0x560400)
 //
 // NOTE: biped_movement_solver_flags bit 0 is used as "airborne" here (2D air control with
 // airborne_acceleration, gravity applied), and the tail sets result bit 0 when no ground plane
@@ -16,6 +16,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "cache.h"
 #include "objects.h"
 #include "units.h"
 #include "physics.h"
@@ -28,6 +29,11 @@ extern double fabs(double x);
 extern data_array *object_data;                      // 0x008603b0
 extern float k_default_resting_plane[4];             // 0x0069c53c
 extern real vector3d_length(real_vector3d *v);       // 0x401960, blam-cc: EAX v
+extern tag_instance *tag_instances;                  // 0x0087bc14
+extern uint8_t physics_model_build_from_sphere_query(uint32_t flags, real_point3d *center, float radius,
+    float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model); // 0x506440
+extern uint32_t physics_shape_test_ray(physics_model *model, real_point3d *origin, real_vector3d *delta,
+    physics_model_contact *out_contact); // 0x504bb0
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 
 extern void real_matrix4x3_rotation_from_forward(real_vector3d *forward, real_vector3d *left,
@@ -68,6 +74,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
     real_point3d swept_position;                       // [esp+0x74] local_af3c
     real_vector3d swept_velocity;                      // [esp+0x94] local_af1c
     physics_model_contact contacts[16];                // [esp+0xbc] local_aef4
+    physics_model probe_model;                         // [esp+0x3a8] local_ac08
 
     *result_flags = 0;
 
@@ -482,5 +489,108 @@ void biped_movement_solve(biped_movement_solver_data *solve)
         }
     }
 
-    // ---- section 4 (0x560088..): TODO
+    // ---- section 4: contacted objects, results, stand-up probe (0x560088..0x560400)
+    {
+        uint32_t best_object = 0xffffffff;                  // ESI
+        int16_t best_type = 0;                              // BX (only read once best_object is set)
+        float best_relative_speed_squared = 0.0f;           // [esp+0x4c]
+        int16_t i;
+
+        // the contacted object moving fastest relative to us, vehicles first
+        for (i = 0; i < contact_count; i++) {
+            uint32_t object_index = contacts[i].object_index;
+            object *obj;
+            float dx, dy, dz, relative_speed_squared;
+            uint8_t take;
+
+            if (object_index == 0xffffffff) {
+                continue;
+            }
+            obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+            dx = obj->velocity.i - swept_velocity.i;
+            dy = obj->velocity.j - swept_velocity.j;
+            dz = obj->velocity.k - swept_velocity.k;
+            relative_speed_squared = dx * dx + dy * dy + dz * dz;
+            if (best_object == 0xffffffff) {
+                take = 1;
+            } else if (best_type != _object_type_vehicle) {
+                take = obj->type == _object_type_vehicle || relative_speed_squared > best_relative_speed_squared;
+            } else {
+                take = obj->type == _object_type_vehicle && relative_speed_squared > best_relative_speed_squared;
+            }
+            if (take) {
+                best_type = obj->type;
+                best_relative_speed_squared = relative_speed_squared;
+                best_object = object_index;
+            }
+        }
+        solve->unknown_98 = best_object;
+        solve->result_surface_index = 0xffffffff;
+
+        // a contacted device machine that carries whatever stands on it (0x560170)
+        for (i = 0; i < contact_count; i++) {
+            uint32_t object_index = contacts[i].object_index;
+            object_header *header = 0;
+            int16_t index = (int16_t)object_index;
+            int16_t salt = (int16_t)(object_index >> 16);
+
+            if (object_index == 0xffffffff) {
+                continue;
+            }
+            if (index >= 0 && index < object_data->maximum_count) {
+                object_header *candidate = (object_header *)((uint8_t *)object_data->data + object_data->size * index);
+                if (candidate->identifier != 0 && (salt == 0 || candidate->identifier == salt)) {
+                    header = candidate;
+                }
+            }
+            if (header != 0 && (int8_t)(1 << (header->type & 0x1f)) < 0 && header->data != 0) { // device_machine
+                uint8_t *tag = (uint8_t *)tag_instances[header->data->definition_tag & 0xffff].data;
+                if ((tag[0x292] & 4) != 0 && *(int16_t *)(tag + 0x2ea) != -1) { // UNSURE field names
+                    solve->result_surface_index = object_index;
+                }
+            }
+        }
+
+        solve->result_position = swept_position;
+        solve->result_velocity = swept_velocity;
+        {
+            float dx = swept_velocity.i - e.i;
+            float dy = swept_velocity.j - e.j;
+            float dz = swept_velocity.k - e.k;
+            solve->result_blocked_distance = (float)sqrt((double)(dx * dx + dy * dy + dz * dz));
+        }
+        solve->result_velocity.k = solve->result_velocity.k - solve->height_change;
+
+        // stand-up probe: a crouching biped that wants to stand checks for head room (0x5602b1)
+        if ((flags & 4) != 0 && (flags & 8) != 0) {
+            object *obj = ((object_header *)object_data->data)[solve->object_index & 0xffff].data;
+            unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+
+            if (unit->controlling_player != 0xffffffff) {
+                Biped *tag = (Biped *)tag_instances[obj->definition_tag & 0xffff].data;
+                if ((tag->biped_flags & 0x18) == 0) {
+                    float half_height = tag->standing_collision_height * 0.5f;
+                    uint32_t query_flags = (flags & 0x80) != 0 ? 0xc0a0 : 0x20c3a0;
+                    real_point3d center;
+
+                    center.x = solve->result_position.x;
+                    center.y = solve->result_position.y;
+                    center.z = solve->result_position.z + half_height;
+                    if (physics_model_build_from_sphere_query(query_flags, &center, half_height, 0.0f,
+                                                              tag->collision_radius, solve->object_index, &probe_model)) {
+                        float reach = tag->standing_collision_height - (tag->collision_radius + tag->collision_radius);
+                        real_vector3d up_ray;
+                        physics_model_contact probe_contact;
+
+                        up_ray.i = reach * global_up3d_pointer->i;
+                        up_ray.j = reach * global_up3d_pointer->j;
+                        up_ray.k = reach * global_up3d_pointer->k;
+                        if (physics_shape_test_ray(&probe_model, &solve->result_position, &up_ray, &probe_contact)) {
+                            solve->result_flags |= 0x04;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
