@@ -34,7 +34,9 @@ extern void * actor_get_actor_definition(datum_index actor_index); // 0x40fa70
 
 // UNSURE: see file header -- the (AL bool, ST0 float) dual return is modelled by
 // types/ai.h bool_float_return, shared with actor_target_hearing_check.c.
-extern bool_float_return actor_has_unshielded_threat_weapon(datum_index actor_index); // 0x428370, UNSURE signature
+// FIXED: 0x428370 returns only AL (it never touches the FPU); a struct return made MSVC pass a hidden result
+// pointer in the actor_index slot. The float the old model read is the 0.0 loaded at 0x41fde0, i.e. `extra`.
+extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index); // 0x428370, EAX actor
 extern uint8_t *actor_get_threat_weapon_definition(datum_index actor_index); // 0x40f970, UNSURE signature: return type
                                                         // is a tag data pointer of unresolved type
 
@@ -54,7 +56,6 @@ float actor_rate_potential_target(datum_index actor_index, datum_index target_pr
     int8_t bonus_d; // cVar6
     float extra;    // fVar10
     float threshold;
-    bool_float_return r;
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
     target = (prop *)((uint8_t *)prop_data->data + (target_prop_index & 0xffff) * sizeof(prop));
@@ -76,9 +77,7 @@ float actor_rate_potential_target(datum_index actor_index, datum_index target_pr
     bonus_c = 0;
 
     if (self->swarm == 0 && target->unknown_9c < 1) {
-        r = actor_has_unshielded_threat_weapon(actor_index);
-        bonus_a = r.truthy;
-        extra = r.value;
+        bonus_a = (int8_t)actor_has_unshielded_threat_weapon(actor_index);
 
         if (bonus_a == 0) {
             // FIXED: the two ranges were swapped. Ghidra reads ActorVariant+0x170 when
