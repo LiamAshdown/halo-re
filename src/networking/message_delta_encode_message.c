@@ -29,82 +29,85 @@ extern uint8_t message_delta_item_count_bits[];                 // 0x0065d51f
 extern uint8_t message_delta_encode_prepare_item(uint8_t *ctx); // 0x4ecb60, EAX ctx
 extern uint8_t message_delta_encode_all_fields(uint8_t *ctx, int32_t static_base, int32_t item, int32_t type_base); // 0x4ecc00, EAX ctx
 extern uint8_t message_delta_encode_message_header(uint8_t *ctx); // 0x4ecd00, ESI ctx
-extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value, bit_stream *stream); // UNSURE: args
+extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values
 
-// EDX -> extra_edx (in_EDX, unresolved); EAX -> extra_eax (unresolved, cached into the context)
-// Central message-delta encoder: builds the header and per-item field data for a given network
-// message type over an array of items. Returns the total encoded bit count on success, or 0.
+// REWRITTEN from objdump 0x4ec940..0x4ecb57 (EAX = output buffer, EDX = its size in bits; stack as declared).
+// The context (0x94 bytes, zeroed) holds: +0 "started" byte, +4 message type, +8 flag, +0xc buffer, +0x10 size,
+// +0x14 total item bits, +0x18 remaining budget, +0x1c an inline bit_stream {0, buffer, 0, 0, 0, header_bits - 1},
+// +0x34 header bits, +0x38 item count, +0x3c running bit offset, then per-item blocks the helpers fill (+0x40 static
+// bits, +0x44 field bits, +0x48.. and +0x64.. reset after every item). Each item passes (baseline, item, type) --
+// baseline/type from the parallel arrays when given -- to message_delta_encode_all_fields; items that changed (or all,
+// when force_changed) are counted. A multi-item message then writes (item count - 1) in the definition's count width.
+// Returns header bits + item bits, or 0 when nothing was encoded.
 // blam-cc: EAX -> extra_eax, EDX -> extra_edx, stack -> flag, message_type, changed_offset, items, type_offset, count, force_changed
 int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
                                       int32_t changed_offset, void **items, int32_t type_offset, int32_t count,
                                       char force_changed)
 {
-    uint8_t ctx[0x94];
+    uint32_t ctx_storage[0x98 / 4];
+    uint8_t *ctx = (uint8_t *)ctx_storage;
     #define CTXD(off) (*(int32_t *)(ctx + (off)))
+    message_delta_definition *definition;
     int32_t header_bits;
-    int32_t total_bits;
-    int32_t remaining_budget;
-    int32_t item_count;
     int32_t i;
 
-    for (i = 0; i < 0x94; i++) {
-        ctx[i] = 0;
+    for (i = 0; i < 0x98 / 4; i++) {
+        ctx_storage[i] = 0;
     }
-
     header_bits = message_delta_definitions[message_type]->header_bits; // +0xc
-    remaining_budget = extra_edx - header_bits;
     CTXD(4) = message_type;
     CTXD(8) = flag;
     CTXD(0xc) = extra_eax;
     CTXD(0x10) = extra_edx;
-    CTXD(0x18) = remaining_budget;
-    CTXD(0x20) = extra_eax;
-    CTXD(0x30) = header_bits - 1;
+    CTXD(0x18) = extra_edx - header_bits;
+    CTXD(0x20) = extra_eax;              // the inline stream's data
+    CTXD(0x30) = header_bits - 1;        // ...its last bit
     CTXD(0x34) = header_bits;
     CTXD(0x3c) = header_bits;
-    total_bits = 0;
-    item_count = 0;
-
     ctx[0] = 1;
     message_delta_encode_message_header(ctx);
 
     if (0 < count) {
-        void **item_ptr = items;
+        void **cursor = items;
         int32_t remaining = count;
         do {
-            int32_t item_changed_offset = (changed_offset == 0) ? 0
-                                          : *(int32_t *)((uint8_t *)item_ptr + (changed_offset - (int32_t)items));
-            void *item = *item_ptr;
-            int32_t item_type_offset = (flag == 0) ? 0
-                                       : *(int32_t *)((uint8_t *)item_ptr + (type_offset - (int32_t)items));
+            int32_t baseline = (changed_offset == 0) ? 0
+                : *(int32_t *)((uint8_t *)cursor + (changed_offset - (int32_t)items));
+            void *item = *cursor;
+            int32_t type = (flag == 0) ? 0
+                : *(int32_t *)((uint8_t *)cursor + (type_offset - (int32_t)items));
 
             message_delta_encode_prepare_item(ctx);
-            message_delta_encode_all_fields(ctx, item_changed_offset, (int32_t)item, item_type_offset); // 0x4eca3b..0x4eca42
-
-            if (0 < CTXD(0x50) || force_changed != 0) {
-                int32_t bits = CTXD(0x50) + CTXD(0x54);
-                total_bits = total_bits + bits;
-                remaining_budget = remaining_budget - bits;
+            message_delta_encode_all_fields(ctx, baseline, (int32_t)item, type);
+            if (0 < CTXD(0x44) || force_changed != 0) {
+                int32_t bits = CTXD(0x44) + CTXD(0x40);
+                CTXD(0x14) = CTXD(0x14) + bits;
+                CTXD(0x18) = CTXD(0x18) - bits;
                 CTXD(0x3c) = CTXD(0x3c) + bits;
-                item_count = item_count + 1;
+                CTXD(0x38) = CTXD(0x38) + 1;
             }
-
-            item_ptr = item_ptr + 1;
+            if (CTXD(8) == 1) {
+                CTXD(0x48) = -1;
+                CTXD(0x4c) = 0; CTXD(0x50) = 0; CTXD(0x54) = 0; CTXD(0x58) = 0; CTXD(0x5c) = 0; CTXD(0x60) = 0;
+            }
+            CTXD(0x64) = -1;
+            CTXD(0x68) = 0; CTXD(0x6c) = 0; CTXD(0x70) = 0; CTXD(0x74) = 0; CTXD(0x78) = 0; CTXD(0x7c) = 0;
+            cursor = cursor + 1;
             remaining = remaining - 1;
         } while (remaining != 0);
     }
 
-    {
-        message_delta_definition *definition = message_delta_definitions[CTXD(4)];
-        int32_t maximum_items = definition->maximum_items; // +0x14
-        if (0 < total_bits) {
-            if (1 < maximum_items) {
-                bit_stream_write_bits_chunked(message_delta_item_count_bits[maximum_items], 0, 0); // UNSURE: value/stream
-            }
-            return definition->header_bits + total_bits; // +0xc
-        }
+    definition = message_delta_definitions[CTXD(4)];
+    if (CTXD(0x14) <= 0) {
         return 0;
     }
+    if (1 < definition->maximum_items) { // +0x14
+        int32_t count_bits = message_delta_item_count_bits[definition->maximum_items];
+        uint32_t value = (uint32_t)(CTXD(0x38) - 1);
+        bit_stream_write_bits_chunked((bit_stream *)(ctx + 0x1c), &value, count_bits);
+        CTXD(0x88) = count_bits;
+    }
+    return definition->header_bits + CTXD(0x14);
     #undef CTXD
 }
 

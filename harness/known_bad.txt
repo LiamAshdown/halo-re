@@ -99,13 +99,6 @@ controls_build_device_label_table  # difftest: returns 0 where the original retu
 scenario_find_encounter_index_by_name  # difftest: rewrite crashed on every input, original did not
 encounter_definition_find_squad_index_by_name  # difftest: rewrite crashed, original did not
 encounter_definition_find_platoon_index_by_name  # difftest: rewrite crashed, original did not
-game_engine_notify_player_interaction              # overnight difftest: rewrite crashed 200/200 (original did not); the message_delta_encode_message rewrite may diverge -- review
-game_engine_send_end_game_notification             # overnight difftest: rewrite crashed 200/200 (original did not) -- review with the encoder
-game_engine_send_round_reset_message               # overnight difftest: rewrite crashed 200/200 (original did not) -- review with the encoder
-player_notify_kill_streak_update                   # overnight difftest: rewrite crashed 200/200 (original did not) -- review with the encoder
 autopatch_download_pool_initialize                 # overnight difftest: tester process died -- review
 tree_head_node_allocate                            # overnight difftest: tester process died -- review
 data_packet_group_decode_packet                    # overnight: rewritten from 0x4d09d0 (EAX remaining, 6 stack); difftest 4/118 rewrite-only crashes on random input -- review; its 27 callers also need per-file fixes (EAX = &remaining length)
-unit_broadcast_state_change_event                  # overnight difftest: rewrite crashed 200/200 -- same encoder+broadcast pattern as the senders above; review with message_delta_encode_message
-unit_dispatch_scripted_event_9                     # overnight difftest: rewrite crashed 200/200 -- same pattern; item record fixed from 0x56c39c, review with the encoder
-message_delta_encode_message                       # overnight review: its C calls four helpers with wrong conventions (prepare_item/all_fields EAX ctx, header ESI, write_bits_chunked EAX/ECX), passes ctx+0xc and no item pointer to all_fields, reads the bit counts from ctx+0x50/0x54 instead of +0x44/+0x40, keeps totals in locals, and writes the item count to a NULL stream (0x4ec940..0x4ecb57). Held back until rewritten.
