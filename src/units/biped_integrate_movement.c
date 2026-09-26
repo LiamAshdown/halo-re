@@ -83,7 +83,8 @@ extern real weapon_get_zoom_fov(int32_t index);   // 0x46fe10, difficulty-scaled
 extern uint8_t actor_check_vehicle_mode_timeout(datum_index actor_index); // 0x428270, blam-cc: ECX -> actor_index (object+0x1f4 at both call sites)
 extern void unit_get_crouch_height_offset(uint32_t object_index, float *pill_height,
                                           float *pill_radius);        // 0x55a2e0
-extern void biped_update_animation_frame_trigger(float impact_speed);  // 0x55eaa0, UNSURE args  // real signature (biped_update_animation_frame_trigger.c): void biped_update_animation_frame_trigger(float threshold, uint8_t *timing_table, object *object_base); Ghidra recovered 1 of 3 args at this call site
+extern void biped_update_animation_frame_trigger(float threshold, uint8_t *timing_table, object *object_base);
+    // 0x55eaa0, blam-cc: ECX -> timing_table (the Biped tag: EDI, reloaded from the tag slot), ESI -> object_base, stack -> threshold
 extern void biped_movement_solve(biped_movement_solver_data *solve);   // 0x55efd0
 extern void unit_update_up_vector(Biped *biped_tag, object *obj);      // 0x560800
 
@@ -478,7 +479,7 @@ step_crouch:
     biped->unknown_520 = solve.ground_plane;
 
     if (0.0f < solve.result_impact_speed) {
-        biped_update_animation_frame_trigger(solve.result_impact_speed);
+        biped_update_animation_frame_trigger(solve.result_impact_speed, (uint8_t *)tag, obj);
     }
 
     if ((solve.flags & _biped_movement_solver_flying) == 0 && (biped->flags & 1) == 0) {

@@ -810,3 +810,7 @@ Remaining step-1 code gap:
   funclets): dead data there. Entry chain: CRT 0x627f06 -> shell_winmain 0x5411e0 (rewritten, 0.7; never hookable).
   Next: stage 2 = loader.c (reserve + copy image, fill IATs, write the 735 C pointers) + a trial standalone link that
   lists every unresolved symbol (the 237 stubs into original code, library calls).
+- [firing 9] Item 3 cont.: both integrators now call biped_update_animation_frame_trigger (0x55eaa0) with the binary's
+  arguments: stack impact speed, ECX = the Biped tag (EDI, reloaded from the tag slot stored at 0x55bf06 / 0x55d064),
+  ESI = the object. Next integrator blockers: biped_integrate_movement declares unit_get_crouch_height_offset
+  differently; _with_collision declares biped_update_target_lock_timer differently.

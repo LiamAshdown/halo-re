@@ -83,7 +83,8 @@ extern void unit_get_crouch_height_offset(uint32_t object_index, float *pill_hei
                                           float *pill_radius);        // 0x55a2e0
 extern void biped_update_target_lock_timer(void);                     // 0x55e0a0, UNSURE: register args  // real signature (biped_update_target_lock_timer.c): void biped_update_target_lock_timer(datum_index target, uint32_t object_index); Ghidra recovered 0 of 2 args at this call site
 extern void unit_apply_fall_damage(uint32_t object_index, float fall_speed); // 0x55e4f0
-extern void biped_update_animation_frame_trigger(float impact_speed); // 0x55eaa0, UNSURE args  // real signature (biped_update_animation_frame_trigger.c): void biped_update_animation_frame_trigger(float threshold, uint8_t *timing_table, object *object_base); Ghidra recovered 1 of 3 args at this call site
+extern void biped_update_animation_frame_trigger(float threshold, uint8_t *timing_table, object *object_base);
+    // 0x55eaa0, blam-cc: ECX -> timing_table (the Biped tag: EDI, reloaded from the tag slot), ESI -> object_base, stack -> threshold
 extern void unit_track_target_lock_timeout(uint32_t object_index);    // 0x55ec90, UNSURE: register arg
 extern void biped_movement_solve(biped_movement_solver_data *solve);   // 0x55efd0
 extern void unit_update_up_vector(Biped *biped_tag, object *obj);     // 0x560800
@@ -502,7 +503,7 @@ step_crouch:
     biped->unknown_520 = solve.ground_plane;
 
     if (0.0f < solve.result_impact_speed) {
-        biped_update_animation_frame_trigger(solve.result_impact_speed);
+        biped_update_animation_frame_trigger(solve.result_impact_speed, (uint8_t *)tag, obj);
     }
     if ((result_flags & _biped_movement_result_landed) == 0) {
         unit_track_target_lock_timeout(object_index);
