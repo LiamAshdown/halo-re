@@ -867,3 +867,7 @@ Remaining step-1 code gap:
   ..._ring_buffer_average(ECX ring); record_and_append's ring is its STACK argument (0x4ed328), not ESI. Also
   network_game_client_update passes the ring to the average (0x4db0ca). Unlisted from incomplete. Now blocked by
   message_delta_sample_ring_buffer_append (incomplete: 'simplified') -- next.
+- [firing 18] message_delta_sample_ring_buffer_append (0x4ed390) fixed: the fill branch resets write_cursor to 0
+  (0x4ed3be -> 0x4ed3f4; the old difftest +0x8 difference) and the average sums SIGN-extended samples (cdq/adc).
+  Off known_bad. Newly hookable: ring_buffer_append, record_and_append, retransmit_if_overdue, pong_reply.
+  beacon_reply still waits on network_game_search_results_add_or_update (incomplete).

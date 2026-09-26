@@ -1,6 +1,6 @@
 // message_delta_sample_ring_buffer_append  (Ghidra: FUN_004ed390; named per this rewrite)
 // address 0x4ed390, size 169 bytes
-// name confidence: 0.35   rewrite confidence: 0.55
+// name confidence: 0.35   rewrite confidence: 0.95 (step 1: checked against objdump -d 0x4ed390..0x4ed438)
 // evidence: out/phase2/networking/07.md decompilation: appends a 5-dword (20-byte) record,
 // growing the buffer up to 30 (0x1e) entries and then wrapping a separate write cursor; after
 // every append it recomputes and caches the average of entry field index 4 (offset 0x10, the
@@ -25,7 +25,7 @@ void message_delta_sample_ring_buffer_append(message_delta_sample_ring_buffer *r
 {
     int32_t slot;
     int32_t count;
-    uint64_t sum;
+    int64_t sum;
     int32_t i;
 
     if (ring->count < 0x1e) {
@@ -36,6 +36,7 @@ void message_delta_sample_ring_buffer_append(message_delta_sample_ring_buffer *r
         ring->entries[slot][3] = entry[3];
         ring->entries[slot][4] = entry[4];
         ring->count = ring->count + 1;
+        ring->write_cursor = 0; // FIXED: 0x4ed3be jumps to 0x4ed3f4, resetting the cursor while filling
     } else {
         slot = ring->write_cursor;
         ring->entries[slot][0] = entry[0];
@@ -53,11 +54,11 @@ void message_delta_sample_ring_buffer_append(message_delta_sample_ring_buffer *r
     sum = 0;
     if (0 < count) {
         for (i = 0; i < count; i++) {
-            sum = sum + (uint32_t)ring->entries[i][4];
+            sum = sum + (int64_t)ring->entries[i][4]; // FIXED: cdq / adc sign-extends each sample
         }
     }
     if (count != 0) {
-        ring->cached_average = (int32_t)((int64_t)sum / count);
+        ring->cached_average = (int32_t)(sum / (int64_t)count); // __alldiv, signed
     } else {
         ring->cached_average = 0;
     }

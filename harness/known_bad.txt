@@ -18,7 +18,6 @@ input_joystick_state_process                       # input: died tester process 
 hud_state_allocate                                 # interface: differ 200/200: global 0x006e2dd4: 0xd046e3f0 vs 0xd9da9772
 format_time_and_date_strings                       # networking: differ 19/100: pointer arg #0 +0x0: 0.50075 (0x3f00312d) vs 0.500003 (0x3f00002d)
 message_delta_decode_begin                         # networking: differ 168/168: return 0xc2c01a00 vs 0x00000000
-message_delta_sample_ring_buffer_append            # networking: differ 1/1: pointer arg #0 +0x8: 0 (0x00000000) vs -2.382 (0xc01872b0)
 network_address_string_is_valid                    # networking: died tester process died
 network_address_string_normalize                   # networking: died tester process died
 antenna_tip_jitter                                 # objects: differ 200/200: pointer arg #1 +0x0: 15.1551 (0x41727b3e) vs -19.3286 (0xc19aa0ec)
