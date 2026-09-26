@@ -19,6 +19,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "physics.h"
 
 extern data_array *object_data;         // 0x008603b0
 extern tag_instance *tag_instances;     // 0x0087bc14
@@ -27,8 +28,9 @@ extern real_vector3d *global_up3d_pointer;  // 0x00696720
 extern float g_0069672c[3];             // 0x0069672c, UNSURE: a constant direction/gravity vector
 
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900
-extern char collision_bsp_query_segment_init(void *context, uint32_t param_2, uint32_t param_3, real_point3d *start,
-                          real_vector3d *delta, uint32_t max_distance_bits); // UNSURE signature
+extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result,
+    ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, uint32_t *breakable_surfaces, real_point3d *origin,
+    real_vector3d *delta, float max_fraction); // 0x502060, EAX flags, ECX result
 
 // Attempts to compute a projected/predicted aim position in front of the unit for certain
 // vehicle sub-types (0, 1, 4, 6), validating line-of-clearance via a collision test. Writes the
@@ -43,6 +45,7 @@ int32_t unit_predict_aim_target_position(uint32_t unit_index, real_point3d *out_
     char hit;
     float hit_fraction = 0.0f;
     int32_t hit_result = 0;
+    collision_bsp_segment_result segment_result; // [esp+0x20], 0x418 bytes (the 0x430 frame)
 
     object_get_position(&base_position, unit_index);
 
@@ -56,7 +59,14 @@ int32_t unit_predict_aim_target_position(uint32_t unit_index, real_point3d *out_
         delta.j = g_0069672c[1] * 2.0f;
         delta.k = g_0069672c[2] * 2.0f;
 
-        hit = collision_bsp_query_segment_init(DAT_00746f98, 0, 0, &base_position, &delta, 0x7f7fffff);
+        // 0x571e50..0x571ec1: EAX = 1, ECX = &result, push bsp [0x746f98], 0, 0, &base, &delta, FLT_MAX (0x7f7fffff)
+        {
+            uint32_t flt_max_bits = 0x7f7fffff;
+            hit = collision_bsp_query_segment_init(1, &segment_result, (ModelCollisionGeometryBSP *)DAT_00746f98, 0,
+                (uint32_t *)0, &base_position, &delta, *(float *)&flt_max_bits);
+        }
+        hit_fraction = segment_result.t;                              // [esp+0x20] = result +0x00
+        hit_result = *(int32_t *)((uint8_t *)&segment_result + 0x8);  // [esp+0x28] = result +0x08, returned in EBP
         if (hit != 0) {
             out_position->x = delta.i * hit_fraction + base_position.x;
             out_position->y = delta.j * hit_fraction + base_position.y;
