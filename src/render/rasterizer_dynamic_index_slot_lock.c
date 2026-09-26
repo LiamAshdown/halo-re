@@ -18,7 +18,7 @@
 extern void *rasterizer_dynamic_index_buffer;                        // 0x006e09e8 IDirect3DIndexBuffer9
 extern rasterizer_dynamic_index_slot rasterizer_dynamic_index_slots[]; // 0x006dd9e0
 
-typedef int32_t (*d3d_lock_fn)(void *self, uint32_t offset, uint32_t size, void **data, uint32_t flags);
+typedef int32_t (__stdcall *d3d_lock_fn)(void *self, uint32_t offset, uint32_t size, void **data, uint32_t flags); // COM: __stdcall (no add esp after 0x511eba)
 
 // Locks the index range described by rasterizer_dynamic_index_slots[slot_index] (offsets scaled
 // by 6, matching the buffer's index format) and returns the locked pointer, or 0 for slot index
