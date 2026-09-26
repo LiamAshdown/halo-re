@@ -54,7 +54,6 @@ chimera__letterbox                                 # cutscene: rewrite says 'pla
 device_control_touched                             # devices: rewrite says 'simplified'
 dialog_static_hyperlink_install                    # dialogs: rewrite says 'not rewritten'
 decal_place                                        # effects: rewrite says 'omitted'
-effect_first_person_screen_timer_active            # effects: rewrite says 'simplified'
 effect_marker_environment_probe                    # effects: rewrite says 'placeholder'
 effect_rebuild_markers                             # effects: rewrite says 'not reproduced'
 effect_spawn_particles                             # effects: rewrite says 'elided here'
