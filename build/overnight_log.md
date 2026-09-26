@@ -879,3 +879,7 @@ Remaining step-1 code gap:
   and_discard_join_message (state 2, class 2), join_finalize_ack (state 2, class 2, then
   network_client_timer_default_or_disconnect(EAX client)) -- all hookable. 19 callers left; next in this family:
   join_accepted, join_finalize_message, settings_or_ack, ingame_notification, settings_request (larger bodies).
+- [firing 21] decode-packet callers: join_accepted (state 1, class 2 -> network_session_player_join_notify(EAX client,
+  ECX &decoded); sender deref'd once) and join_finalize_message (another sender -> 1; else finalize_join's result)
+  rewritten; both now blocked deeper (bit_stream_write_bits_chunked declared differently in join_notify;
+  network_game_scenario_load_request under finalize_join). 17 decode callers left.
