@@ -42,7 +42,8 @@ extern uint8_t profile_load_complete;         // 0x00718e78, UNSURE
 extern void player_profile_refresh_settings_cache(int16_t player_index); // 0x496060, BX
 extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id); // 0x495970
 
-extern void saved_game_enumerate_by_type(int32_t type, int32_t *out_slots, int32_t unknown);
+extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
+    uint16_t *capacity_and_count); // 0x53c4e0, stack (type, out, builtin_only), EBX &count
     // 0x53c4e0; blam-cc: EBX -> capacity-then-count int32 (see game_engine_get_variant_by_name.c)
 extern void player_profile_initialize(void *profile_globals, int32_t unknown_0, int32_t unknown_1); // 0x53a1c0
 extern uint8_t player_profile_get(int32_t slot, void *out_profile); // 0x53a770; blam-cc: ECX -> out_profile
@@ -75,7 +76,7 @@ void player_profile_subsystem_initialize(void)
 
     enumerated_count = 1;
     enumerated_slot = -1;
-    saved_game_enumerate_by_type(0, &enumerated_slot, 0); // EBX = &enumerated_count
+    saved_game_enumerate_by_type(0, &enumerated_slot, 0, (uint16_t *)&enumerated_count); // EBX = &enumerated_count
     saved_game_index_dirty = 1;
 
     if (last_profile_name[0] == '\0' && saved_game_last_profile_read(last_profile_name) != 0) {

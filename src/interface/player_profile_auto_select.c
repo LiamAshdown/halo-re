@@ -21,7 +21,8 @@
 #include "networking.h"
 #include "interface.h"
 
-extern void saved_game_enumerate_by_type(int32_t type, int32_t *out_slots, int32_t unknown);
+extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
+    uint16_t *capacity_and_count); // 0x53c4e0, stack (type, out, builtin_only), EBX &count
     // 0x53c4e0; blam-cc: EBX -> capacity-then-count int32
 extern uint8_t player_profile_get(int32_t slot, void *out_profile); // 0x53a770; blam-cc: ECX -> out_profile
 extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id); // 0x495970
@@ -37,7 +38,7 @@ void player_profile_auto_select(void)
 
     count = 1;
     slot = -1;
-    saved_game_enumerate_by_type(0, &slot, 0); // EBX = &count
+    saved_game_enumerate_by_type(0, &slot, 0, (uint16_t *)&count); // 0x49531f: EBX = &count
     if ((int16_t)count > 0 && slot != -1) {
         if (player_profile_get(slot, profile_data) == 0) {
             return;
@@ -47,7 +48,7 @@ void player_profile_auto_select(void)
     }
 
     count = 1;
-    saved_game_enumerate_by_type(0, &slot, 1); // EBX = &count
+    saved_game_enumerate_by_type(0, &slot, 1, (uint16_t *)&count); // EBX = &count
     if ((int16_t)count <= 0 || slot == -1) {
         return;
     }

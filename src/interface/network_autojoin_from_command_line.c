@@ -32,8 +32,8 @@ extern char empty_string_0065512c[];                  // 0x0065512c
 
 extern uint8_t command_line_check_flag(const char *flag, const char **out_value); // 0x542760, blam-cc: EDI out_value (zeroed, then the argument after the flag)
 extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dest, int32_t dest_bytes, const char *source); // 0x557990, blam-cc: EAX dest, EDI dest_bytes, EBX source; 8-bit to wide copy
-extern void saved_game_enumerate_by_type(int32_t type, int32_t *out_slots, int32_t unknown,
-                                         int16_t *in_out_count); // 0x53c4e0, blam-cc: EBX in_out_count (capacity in, found out)
+extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
+    uint16_t *capacity_and_count); // 0x53c4e0, stack (type, out, builtin_only), EBX &count
 extern uint8_t player_profile_get(int32_t slot, void *out_profile); // 0x53a770; blam-cc: ECX -> out_profile
 extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id); // 0x495970, blam-cc: AX player_index, EDX source_profile
 extern int32_t _wcscmp(const uint16_t *a, const uint16_t *b); // 0x627d17, CRT

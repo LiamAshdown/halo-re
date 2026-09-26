@@ -49,8 +49,9 @@ extern int32_t ReleaseMutex(void *handle); // Win32
 // caller's capacity is reached. builtin_only selects whether non-builtin entries are skipped.
 // *capacity_and_count is always overwritten with the number of handles actually written (0 if
 // either mutex wait fails).
-void saved_game_enumerate_by_type(uint16_t *capacity_and_count, uint16_t type,
-    int32_t *out_handles, uint8_t builtin_only)
+// (parameters ordered as the callers declare them; EBX is bound by name)
+void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
+    uint16_t *capacity_and_count)
 {
     uint32_t wait_result;
     int32_t entry_count;
