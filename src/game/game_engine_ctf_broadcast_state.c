@@ -23,9 +23,9 @@ extern int32_t ctf_neutral_flag_id;     // 0x006b1314
 extern uint8_t shared_hud_text_draw_state; // 0x00871de0
 extern uint8_t *network_session; // 0x0071c2d4
 
-extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,
-    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,
-    uint8_t unknown_6); // 0x4ec940
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3,
     uint32_t unknown_4, uint32_t unknown_5); // 0x4e1a80
 extern void network_session_send_to_machine(uint32_t unknown_0, void *unknown_1, int32_t length,
@@ -37,13 +37,13 @@ void game_engine_ctf_broadcast_state(void *request_fields, int32_t machine_index
 
     if (request_fields == (void *)0) {
         void *field = &ctf_globals_network;
-        encoded_bits = message_delta_encode_message(0, 0x14, 0, &field, 0, 1, 0);
+        encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x14, 0, &field, 0, 1, 0);
     } else {
         void *fields0 = &ctf_globals_live;
         void *fields1 = &ctf_globals_network;
         int32_t i;
 
-        encoded_bits = message_delta_encode_message(1, 0x14, 0, (void **)&fields0, (uint32_t)&fields1, 1, 0);
+        encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 1, 0x14, 0, (void **)&fields0, (uint32_t)&fields1, 1, 0);
 
         *(int32_t *)((uint8_t *)&ctf_globals_network + 0x84) = ctf_neutral_flag_id;
         for (i = 0; i < 16; i++) {

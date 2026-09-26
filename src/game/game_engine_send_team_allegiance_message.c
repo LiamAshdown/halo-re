@@ -30,9 +30,9 @@ extern uint8_t network_session_ptr_0071c2d8[];                // 0x0071c2d8, UNS
 extern uint8_t network_message_scratch[0x7ff8];      // 0x00871de0
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: iterator in EDI
-extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,
-    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,
-    uint8_t unknown_6); // 0x4ec940; blam-cc: EAX -> network_message_scratch, EDX -> 0x7ff8, then
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
     // the seven stack arguments (see game_engine_notify_kill_event.c)
 extern char network_channel_stream_flush(uint8_t *session, int32_t unknown); // 0x4ddb60, not in this batch
 extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value,
@@ -78,7 +78,7 @@ void game_engine_send_team_allegiance_message(char broadcast)
     (void)local_broadcast_byte;
     (void)fields_pad;
 
-    encoded_bits = message_delta_encode_message(0, 0x1a, 0, (void **)&fields_ptr, 0, 1, 0);
+    encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x1a, 0, (void **)&fields_ptr, 0, 1, 0);
     if (encoded_bits > 0) {
         uint8_t *session = *(uint8_t **)(network_session_ptr_0071c2d8 + 0xadc);
 

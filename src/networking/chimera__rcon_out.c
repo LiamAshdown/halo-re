@@ -23,8 +23,9 @@
 
 extern void *rcon_out_channel_key; // 0x00871de0, UNSURE: passed to network_session_send_to_machine as the target key
 
-extern int32_t message_delta_encode_message(int32_t a, int32_t message_type, int32_t b,
-    void *fields, int32_t c, int32_t d, char e); // this module (later batch), 0x4ec940, UNSURE shape
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern uint8_t network_session_send_to_machine(int32_t machine_index, void *key, int32_t size,
     int32_t reliable, int32_t d, int32_t e, int32_t message_kind); // this module (earlier batch), 0x4e1930, UNSURE shape
 
@@ -39,7 +40,7 @@ void chimera__rcon_out(char *text, int32_t unused_machine_id) // blam-cc: EAX ->
     buf[0x50] = 0;
     fields[0] = buf;
     fields[1] = 0;
-    encoded_bits = message_delta_encode_message(0, 0x37, 0, fields, 0, 1, 0);
+    encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x37, 0, fields, 0, 1, 0);
     if (0 < encoded_bits) {
         network_session_send_to_machine(1, rcon_out_channel_key, encoded_bits, 1, 0, 0, 9);
     }

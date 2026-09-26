@@ -12,6 +12,7 @@
 // (sound_tag, position, then five UNSURE trailing arguments), passing NULL for position and -1
 // for the first trailing argument to match that file's other no-position call sites.
 
+#include <string.h>
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -19,14 +20,22 @@
 #include "networking.h"
 #include "interface.h"
 
-extern void sound_play_new(datum_index sound_tag, void *position, int32_t unknown1, int32_t unknown2,
-                          int32_t unknown3, int32_t unknown4, int32_t unknown5); // 0x549af0, UNSURE signature
+#include "sound.h"
+extern datum_index sound_play_new(datum_index definition_index, sound_location *location, datum_index owner_index,
+    void *location_proc, void *callback_data, int32_t callback_data_size, uint32_t first_person_hint); // 0x549af0
 
 // blam-cc: EAX -> sound_tag
 void widget_play_sound_effect_tag(datum_index sound_tag)
 {
     if (sound_tag != (datum_index)-1) {
-        sound_play_new(sound_tag, (void *)0, -1, 0, 0, 0, 0);
+        // 0x49bde2: a local sound_location with type 0 (unspatialized), scale 1.0, gain 1.0; the original leaves
+        // the rest of the record uninitialized (never read for type 0), zeroed here
+        sound_location location;
+        memset(&location, 0, sizeof(location));
+        location.type = 0;
+        location.scale = 1.0f;
+        location.gain = 1.0f;
+        sound_play_new(sound_tag, &location, -1, 0, 0, 0, 0);
     }
 }
 

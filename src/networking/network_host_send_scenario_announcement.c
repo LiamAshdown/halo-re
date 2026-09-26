@@ -20,8 +20,9 @@ extern void *message_delta_definition_table; // 0x00871de0, UNSURE identity, see
 extern network_server_globals *network_server; // 0x0071c2d4
 
 extern void message_delta_parameters_protocol_send_update(void); // 0x4ebf50, outside this batch
-extern int32_t message_delta_encode_message(int32_t a, int32_t type, int32_t b, void **payload,
-    int32_t c, int32_t d, char e); // 0x4ec940, outside this batch
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern char network_session_broadcast_to_all(network_server_globals *server, int32_t param_1,
     void *data, int32_t param_3, int32_t param_4, char force, int32_t param_6);
     // blam-cc: ECX -> server, stack -> param_1, data, param_3, param_4, force, param_6;
@@ -42,7 +43,7 @@ int32_t network_host_send_scenario_announcement(network_server_globals *host)
     if (host->unknown_9f9 == 0) {
         message_delta_parameters_protocol_send_update();
         payload = (uint8_t *)host + 8;
-        encode_result = message_delta_encode_message(0, 0x21, 0, &payload, 0, 1, 0);
+        encode_result = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x21, 0, &payload, 0, 1, 0);
         if (encode_result > 0) {
             network_session_broadcast_to_all(network_server, 1, &message_delta_definition_table, 1, 0, 1, 3);
         }

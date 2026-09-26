@@ -28,9 +28,9 @@ extern int32_t network_ack_resend_interval_ms; // 0x00689484
 extern game_time_globals *game_time; // 0x006f1d6c, +0x0c is the current game tick
 
 extern uint32_t GetTickCount(void);
-extern int32_t message_delta_encode_message(int32_t flag, int32_t message_type,
-    int32_t changed_offset, void **items, int32_t type_offset, int32_t count,
-    char force_changed); // 0x4ec940, this module
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern void network_player_update_history_log_write(const char *format, ...); // this module, 0x4e7f90
 
 // If plr's queued position-ack sequence number is valid (0..63) and either no ack has been sent
@@ -60,7 +60,7 @@ int32_t build_local_player_position_update(uint8_t *out_changed, player *plr)
             *(int32_t *)(plr_bytes + 0xf0) + network_ack_resend_interval_ms <=
                 game_time->game_time) {
             ack_ptr = &ack;
-            encoded_size = message_delta_encode_message(0, 0x23, 0, &ack_ptr, 0, 1, '\0');
+            encoded_size = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x23, 0, &ack_ptr, 0, 1, '\0');
             *out_changed = 0;
             next_id = (*(uint32_t *)(plr_bytes + 0xe8) + 1) & 0x8000001f;
             if ((int32_t)next_id < 0) {

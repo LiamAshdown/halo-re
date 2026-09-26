@@ -56,9 +56,9 @@ extern uint8_t game_engine_team_close_game_check(int32_t side, int32_t filter_va
 extern uint8_t game_engine_team_is_leading(int32_t filter_value); // this batch, 0x470720
 extern uint8_t player_customization_slot_set(uint8_t *base, uint8_t new_value, int8_t key); // this batch, 0x4705f0
 extern void player_set_team_by_color(uint8_t new_team, int8_t target_team_index_desired); // this batch, 0x470630
-extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,
-    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,
-    uint8_t unknown_6); // 0x4ec940
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2,
     uint32_t unknown_3, uint32_t unknown_4, uint32_t unknown_5); // 0x4e1a80, not in this module
 
@@ -135,7 +135,7 @@ void game_engine_update_lead_change_state(void **envelope, uint8_t *message)
             uint8_t local_team_byte = color;
             uint8_t *fields_ptr = &local_team_byte;
 
-            message_delta_encode_message(0, 0x1a, 0, (void **)&fields_ptr, 0, 1, 0);
+            message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x1a, 0, (void **)&fields_ptr, 0, 1, 0);
         }
         network_session_broadcast_to_flagged(1, network_message_scratch, 1, 0, 1, 3);
     }

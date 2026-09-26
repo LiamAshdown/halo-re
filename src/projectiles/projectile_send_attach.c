@@ -25,8 +25,9 @@ extern uint8_t *object_pooled_node_globals; // 0x00687130
 extern uint8_t object_network_message_scratch[0x7ff8]; // 0x00871de0
 
 extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, memory module
-extern int message_delta_encode_message(int flag, int message_type, int changed_offset,
-    void **items, int type_offset, int count, char force_changed); // 0x4ec940
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern void network_session_broadcast_to_flagged(uint32_t a1, void *a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6); // 0x4e1a80, opaque, out of range
 
 // Broadcasts a projectile-attach network event: the projectile's own hash, the hash of the
@@ -54,7 +55,7 @@ void projectile_send_attach(datum_index projectile_index, datum_index parent_obj
     message.parent_marker_index = marker_index;
 
     items[0] = &message;
-    message_delta_encode_message(0, k_message_projectile_attach, 0, items, 0, 1, 0);
+    message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, k_message_projectile_attach, 0, items, 0, 1, 0);
     network_session_broadcast_to_flagged(1, object_network_message_scratch, 1, 0, 0, 3);
 }
 

@@ -30,9 +30,9 @@ extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 
 extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
 extern uint8_t *object_pooled_node_globals; // 0x00687130, the object network-id hash_table sits at +0x0c
-extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,
-    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,
-    uint8_t unknown_6); // 0x4ec940
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern void network_session_send_to_machine(uint32_t unknown_0, void *unknown_1, int32_t length,
     uint32_t unknown_3, uint32_t unknown_4, uint32_t unknown_5, uint32_t unknown_6); // 0x4e1930
 
@@ -76,7 +76,7 @@ void player_effect_send_network_update(datum_index player_handle, uint32_t *desc
         fields[6] = param_2;
         fields[7] = param_3;
 
-        encoded_bits = message_delta_encode_message(0, 0xb, 0, &fields_ptr, 0, 1, 0);
+        encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0xb, 0, &fields_ptr, 0, 1, 0);
         if (encoded_bits > 0 && (int8_t)record->unknown_64 != -1) {
             network_session_send_to_machine(1, network_message_scratch, encoded_bits, 1, 0, 1, 3);
         }

@@ -20,9 +20,9 @@
 extern data_array *player_data; // 0x0087a480
 extern void *remote_player_index_remap_table; // 0x00687558
 
-extern int32_t message_delta_encode_message(int32_t flag, int32_t message_type,
-    int32_t changed_offset, void **items, int32_t type_offset, int32_t count,
-    char force_changed); // 0x4ec940, this module
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern void network_session_broadcast_to_flagged(int32_t machine_id, uint8_t *data, char bits_low_byte, int32_t reliable,
     int32_t unknown_a, int32_t unknown_b); // 0x4e1a80, this module, not in this batch;
     // UNSURE: signature inferred from this call site only
@@ -115,7 +115,7 @@ void network_event_feed_flush(int32_t *queue)
 
     force_changed = (char)*queue != 1;
     type_offset_arg = force_changed ? survivors_extra : 0;
-    message_delta_encode_message((uint32_t)force_changed, 0x26, (int32_t)survivors_key,
+    message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, (uint32_t)force_changed, 0x26, (int32_t)survivors_key,
         survivors_payload, (int32_t)type_offset_arg, survivor_count, force_changed);
     network_session_broadcast_to_flagged(1, 0, (char)*queue, 0, 0, 2);
     queue[1] = 0;

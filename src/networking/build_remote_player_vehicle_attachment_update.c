@@ -30,9 +30,9 @@ extern void *remote_player_index_remap_table; // 0x00687558, see build_remote_pl
 extern game_time_globals *game_time; // 0x006f1d6c, +0x0c is the current game tick
 
 extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, memory module
-extern int32_t message_delta_encode_message(int32_t flag, int32_t message_type,
-    int32_t changed_offset, void **items, int32_t type_offset, int32_t count,
-    char force_changed); // 0x4ec940, this module
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 
 // Builds a message-0x2a (remote-player secondary/attached-vehicle transform) update for cache
 // from control. Like build_remote_player_vehicle_update, stages a direction vector from control's
@@ -117,7 +117,7 @@ void build_remote_player_vehicle_attachment_update(uint8_t *cache, uint8_t updat
         *(uint8_t *)(cache + 300) = (uint8_t)next_id;
         previous_ptr = &network_hash;
         items_ptr = staged;
-        message_delta_encode_message(0, 0x2a, (int32_t)&previous_ptr, &items_ptr, 0, 1, '\0');
+        message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x2a, (int32_t)&previous_ptr, &items_ptr, 0, 1, '\0');
         for (i = 0; i < 16; i = i + 1) {
             *(uint32_t *)(cache + 0x188 + i * 4) = vehicle_state[i];
         }
@@ -132,7 +132,7 @@ void build_remote_player_vehicle_attachment_update(uint8_t *cache, uint8_t updat
     }
     items_ptr = staged;
     previous_ptr = previous_state;
-    message_delta_encode_message(1, 0x2a, (int32_t)&previous_ptr, &items_ptr,
+    message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 1, 0x2a, (int32_t)&previous_ptr, &items_ptr,
         (int32_t)vehicle_state, 1, '\x01');
     *(int32_t *)(cache + 0x120) = game_time->game_time;
     *(int32_t *)(cache + 0x17c) = game_time->game_time;

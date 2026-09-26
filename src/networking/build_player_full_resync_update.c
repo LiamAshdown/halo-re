@@ -27,9 +27,9 @@ extern void *remote_player_index_remap_table; // 0x00687558
 extern uint8_t network_object_update_scratch[0x7ff8]; // 0x00871de0
 
 extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, memory module
-extern int32_t message_delta_encode_message(int32_t flag, int32_t message_type,
-    int32_t changed_offset, void **items, int32_t type_offset, int32_t count,
-    char force_changed); // 0x4ec940, this module
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern uint8_t network_session_send_to_machine(int32_t machine_id, void *data, int32_t bits,
     int32_t reliable, int32_t unknown_a, int32_t unknown_b, int32_t priority); // 0x4e1930
 
@@ -66,7 +66,7 @@ void build_player_full_resync_update(uint32_t player_index)
     }
     items_ptr = staged12;
     previous_ptr = &network_hash;
-    encoded_size = message_delta_encode_message(0, 0x25, (int32_t)&previous_ptr,
+    encoded_size = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x25, (int32_t)&previous_ptr,
         &items_ptr, 0, 1, '\0');
     network_session_send_to_machine(1, network_object_update_scratch, encoded_size, 1, 0, 0, 1);
 
@@ -84,7 +84,7 @@ void build_player_full_resync_update(uint32_t player_index)
     body[2] = *(int32_t *)(cache + 0x178);
     items_ptr = body;
     previous_ptr = &network_hash;
-    encoded_size = message_delta_encode_message(0, 0x27, (int32_t)&previous_ptr,
+    encoded_size = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x27, (int32_t)&previous_ptr,
         &items_ptr, 0, 1, '\0');
     network_session_send_to_machine(1, network_object_update_scratch, encoded_size, 1, 0, 0, 1);
 
@@ -102,7 +102,7 @@ void build_player_full_resync_update(uint32_t player_index)
     }
     items_ptr = staged16;
     previous_ptr = &network_hash;
-    encoded_size = message_delta_encode_message(0, 0x28, (int32_t)&previous_ptr,
+    encoded_size = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x28, (int32_t)&previous_ptr,
         &items_ptr, 0, 1, '\0');
     network_session_send_to_machine(1, network_object_update_scratch, encoded_size, 1, 0, 0, 1);
 }

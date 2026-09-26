@@ -31,8 +31,9 @@
 extern uint8_t network_object_update_scratch[0x7ff8]; // 0x00871de0
 
 extern void message_delta_parameters_protocol_send_update(void); // 0x4ebf50
-extern int32_t message_delta_encode_message(int32_t a, int32_t message_type, int32_t b,
-    void *record, int32_t c, int32_t d, char e); // 0x4ec940
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern char network_session_broadcast_to_all(network_server_globals *server, int32_t param_1,
     void *data, int32_t param_3, int32_t param_4, char force, int32_t param_6);
     // blam-cc: ECX -> server, stack -> param_1, data, param_3, param_4, force, param_6;
@@ -49,7 +50,7 @@ uint32_t network_game_broadcast_player_set_changed(network_server_globals *serve
 
     message_delta_parameters_protocol_send_update();
     record = param_1 + 8;
-    encoded_bits = message_delta_encode_message(0, 0x21, 0, &record, 0, 1, 0);
+    encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x21, 0, &record, 0, 1, 0);
     if (0 < encoded_bits) {
         network_session_broadcast_to_all(server, 1, network_object_update_scratch, 1, 0, 1, 3);
     }

@@ -21,9 +21,9 @@ extern uint8_t message_delta_parameters_protocol_broadcast_target[]; // 0x00871d
 
 extern void message_delta_parameters_protocol_format_registered_values(void); // 0x4ec050, this module
 extern void message_delta_parameters_protocol_pack_values(void);              // 0x4ec1a0, this module
-extern int32_t message_delta_encode_message(int32_t flag, int32_t message_type, int32_t changed_offset,
-                                             void **items, int32_t type_offset, int32_t count,
-                                             char force_changed); // 0x4ec940, this module
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern char network_session_broadcast_to_all(int32_t a1, void *a2, int32_t a3, int32_t a4, int32_t a5, int32_t a6); // 0x4e19c0, other batch (UNSURE args)
 
 // Builds and broadcasts a message-delta message (type 0x22) carrying the current dynamic
@@ -49,7 +49,7 @@ void message_delta_parameters_protocol_send_update(void)
             local_104[0] = (uint8_t)next_sequence;
             local_10c = local_104;
             local_108 = 0;
-            encoded_bits = message_delta_encode_message(0, 0x22, 0, (void **)&local_10c, 0, 1, '\0');
+            encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x22, 0, (void **)&local_10c, 0, 1, '\0');
             if (0 < encoded_bits) {
                 if (network_session_broadcast_to_all(1, message_delta_parameters_protocol_broadcast_target, 1, 0, 1, 3) != '\0') {
                     message_delta_parameters_protocol_sequence = next_sequence;

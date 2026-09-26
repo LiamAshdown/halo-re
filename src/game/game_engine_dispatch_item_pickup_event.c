@@ -22,9 +22,9 @@
 extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
 extern uint8_t *object_pooled_node_globals; // 0x00687130, the object network-id hash_table sits at +0x0c
 extern int32_t network_index_cache_find_or_allocate_slot(int32_t machine_id); // 0x4e9c20, not in this batch; UNSURE signature
-extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,
-    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,
-    uint8_t unknown_6); // 0x4ec940; blam-cc: EAX -> destination buffer, EDX -> destination
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
     // size, then the seven stack arguments. Returns the encoded bit length in EAX.
 extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3,
     uint32_t unknown_4, uint32_t unknown_5); // 0x4e1a80, not in this batch
@@ -58,7 +58,7 @@ void game_engine_dispatch_item_pickup_event(int32_t machine_id, int32_t param_1,
     fields.param_2_low = (int16_t)param_2;
     fields_ptr = &fields;
 
-    message_delta_encode_message(0, 0x2f, 0, &fields_ptr, 0, 1, '\0');
+    message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x2f, 0, &fields_ptr, 0, 1, '\0');
     network_session_broadcast_to_flagged(1, &shared_hud_text_draw_state, 1, 0, 0, 3);
 }
 

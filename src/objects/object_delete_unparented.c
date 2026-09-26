@@ -24,8 +24,9 @@ extern uint8_t object_network_message_scratch[0x7ff8]; // 0x00871de0, see object
 extern uint8_t *object_pooled_node_globals; // 0x00687130
 extern void *object_pooled_node_globals_006870d8; // 0x006870d8, UNSURE: network_index_cache_remove's EAX operand
 extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, memory module; UNSURE: key inferred
-extern int32_t message_delta_encode_message(uint32_t a1, uint32_t a2, uint32_t a3, void *scratch,
-                                             uint32_t a5, uint32_t a6, uint8_t a7); // 0x4ec940
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940
 extern void network_index_cache_remove(void *globals, uint32_t object_index); // 0x4e9d40.
     // Resolved from `objdump -d -M intel bin/halo.exe`: both call sites in this module set
     // EAX to the literal 0x006870d8 and ESI to the object index immediately before the call
@@ -53,7 +54,9 @@ void object_delete_unparented(uint32_t object_index) // blam-cc: EDI -> object_i
 
     scratch_pointer = &looked_up;
     scratch_tail = 0;
-    encoded_length = message_delta_encode_message(0, 0, 0, &scratch_pointer, 0, 1, 0);
+    // 0x4f5ae0: EAX = the network message scratch buffer, EDX = its size; stack (0, 0, 0, &items, 0, 1, 0)
+    encoded_length = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0, 0,
+                                                  (void **)&scratch_pointer, 0, 1, 0);
     (void)scratch_tail;
 
     header = (object_header *)object_data->data + (object_index & 0xffff);

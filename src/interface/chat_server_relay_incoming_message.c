@@ -33,9 +33,9 @@ extern data_array *player_data; // 0x0087a480
 extern void message_delta_decode_compound_field_staged(void); // 0x4ec670, UNSURE signature, not in this module's range (client path)
 extern uint8_t message_delta_decode_compound_field(void); // 0x4ec590, UNSURE signature, not in this module's range
 extern int32_t network_object_owner_team_index_desired(void); // 0x4e0cf0, UNSURE signature, not in this module's range
-extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type, uint32_t unknown_2,
-                                             void **fields, uint32_t unknown_4, uint32_t unknown_5,
-                                             uint8_t unknown_6); // 0x4ec940
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern void network_session_send_to_machine(uint32_t unknown_0, void *unknown_1, int32_t length,
                                              uint32_t unknown_3, uint32_t unknown_4, uint32_t unknown_5,
                                              uint32_t unknown_6); // 0x4e1930
@@ -74,7 +74,7 @@ void chat_server_relay_incoming_message(int32_t **message)
             int32_t encoded_bits;
             scope = 0;
             (void)local_204;
-            encoded_bits = message_delta_encode_message(0, 0xf, 0, &fields, 0, 1, 0);
+            encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0xf, 0, &fields, 0, 1, 0);
 
             if (scope == 0) {
                 network_session_broadcast_to_flagged(1, network_message_scratch, 1, 0, 1, 3);

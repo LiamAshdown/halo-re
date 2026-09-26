@@ -27,9 +27,9 @@ extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 
 extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
 extern uint8_t *machine_table; // 0x00687558, its hash_table sits at +0x0c
-extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,
-    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,
-    uint8_t unknown_6); // 0x4ec940; blam-cc: EAX -> destination buffer,
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
     // EDX -> destination size, then the seven stack arguments. Returns the encoded bit
     // length in EAX. `fields` is a pointer TO a pointer to the field block -- see below.
 extern void network_session_send_to_machine(uint32_t unknown_0, void *unknown_1,
@@ -67,7 +67,7 @@ void game_engine_notify_kill_event(uint32_t player_index, int32_t hash_key, int3
     fields[2] = (int32_t)subject;
     fields_ptr = fields;
 
-    encoded_size = message_delta_encode_message(0, 0x18, 0, &fields_ptr, 0, 1, '\0');
+    encoded_size = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x18, 0, &fields_ptr, 0, 1, '\0');
     if (0 < encoded_size) {
         player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
         uint8_t player_machine_field = *(uint8_t *)&p->unknown_64; // UNSURE: field identity, see types/game.h player::unknown_64

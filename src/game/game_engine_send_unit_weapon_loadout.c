@@ -36,9 +36,9 @@ extern uint8_t shared_hud_text_draw_state; // 0x00871de0
 
 extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
 extern uint8_t *machine_table; // 0x00687558, its hash_table sits at +0x0c
-extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,
-    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,
-    uint8_t unknown_6); // 0x4ec940
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3,
     uint32_t unknown_4, uint32_t unknown_5); // 0x4e1a80
 extern void network_session_send_to_machine(uint32_t unknown_0, void *unknown_1, int32_t length,
@@ -143,7 +143,7 @@ void game_engine_send_unit_weapon_loadout(uint32_t unit_index, datum_index playe
     }
 
     fields_ptr = &fields;
-    encoded_bits = message_delta_encode_message(0, 8, 0, &fields_ptr, 0, 1, 0);
+    encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 8, 0, &fields_ptr, 0, 1, 0);
     if (0 < encoded_bits) {
         if (machine_index == -1) {
             network_session_broadcast_to_flagged(1, &shared_hud_text_draw_state, 1, 0, 0, 3);

@@ -26,9 +26,9 @@ extern int32_t king_bucket_credit_ticks[16];       // 0x006b0ec0, this batch (so
 extern int32_t king_hill_broadcast_overrun_value;  // 0x0087a984, UNSURE identity, see header
 extern uint8_t *network_session; // 0x0071c2d4
 
-extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,
-    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,
-    uint8_t unknown_6); // 0x4ec940
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3,
     uint32_t unknown_4, uint32_t unknown_5); // 0x4e1a80; UNSURE: only 2 of its established 6
     // parameters are visible at this call site -- the rest are forwarded pass-through from this
@@ -49,7 +49,7 @@ void game_engine_koth_broadcast_hill_times(int32_t mode, int32_t machine_index)
         void *field = &king_team_hill_seconds_network[0];
         void *no_extra = (void *)0;
         (void)no_extra;
-        encoded_bits = message_delta_encode_message(0, 0x13, 0, &field, 0, 1, 0);
+        encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x13, 0, &field, 0, 1, 0);
     } else {
         int32_t seconds[107];
         int32_t i;
@@ -68,7 +68,7 @@ void game_engine_koth_broadcast_hill_times(int32_t mode, int32_t machine_index)
             int32_t zero_extra = 0;
             (void)count_field;
             (void)zero_extra;
-            encoded_bits = message_delta_encode_message(1, 0x13, 0, (void **)&seconds_field, (uint32_t)&king_team_hill_seconds_network[0], 1, 0);
+            encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 1, 0x13, 0, (void **)&seconds_field, (uint32_t)&king_team_hill_seconds_network[0], 1, 0);
         }
 
         for (i = 0; i < 16; i++) {

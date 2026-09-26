@@ -43,9 +43,9 @@ extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: 
 extern network_machine *network_machine_find_by_id(network_server_globals *server,
     int32_t machine_id); // this module, 0x4e0810; UNSURE: arguments not visible at this call site
 extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, memory module
-extern int32_t message_delta_encode_message(int32_t flag, int32_t message_type,
-    int32_t changed_offset, void **items, int32_t type_offset, int32_t count,
-    char force_changed); // 0x4ec940, this module
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern void network_event_feed_queue_append(uint8_t *queue, uint32_t *key,
     uint32_t *payload); // this module, 0x4e7ff0
 extern uint8_t network_session_send_to_machine(int32_t machine_id, void *data, int32_t bits,
@@ -136,12 +136,12 @@ encode:
                 items_ptr = (void *)(cache + 0x130);
                 previous_ptr = &network_hash;
                 previous_offset = 0;
-                encoded_size = message_delta_encode_message(skip_delta, 0x25,
+                encoded_size = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, skip_delta, 0x25,
                     (int32_t)&previous_ptr, &items_ptr, previous_offset, 1, skip_delta);
             } else {
                 items_ptr = staged;
                 previous_ptr = &network_hash;
-                encoded_size = message_delta_encode_message(skip_delta, 0x25,
+                encoded_size = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, skip_delta, 0x25,
                     (int32_t)&items_ptr, &previous_ptr, 0, 1, skip_delta);
             }
             if (0 < encoded_size) {

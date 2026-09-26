@@ -61,8 +61,9 @@ extern void network_channel_remove_child(network_channel *channel); // other mod
 extern void FUN_0061b350(int32_t id, int32_t value); // GameSpy library (UNSURE)
 extern void FUN_0061b3f0(int32_t id); // GameSpy library (UNSURE)
 extern void message_delta_parameters_protocol_send_update(void); // 0x4ebf50
-extern int32_t message_delta_encode_message(int32_t a, int32_t message_type, int32_t b,
-    void *record, int32_t c, int32_t d, char e); // 0x4ec940 (UNSURE args beyond this call site).
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
     // The call at 0x4e1187 also sets EAX = network_object_update_scratch and EDX = 0x7ff8, two
     // register arguments this declaration does not model.
 extern char network_session_broadcast_to_all(network_server_globals *server, int32_t param_1,
@@ -156,7 +157,7 @@ not_timed_out:
                         int32_t encoded;
 
                         session_ptr = &server->session;
-                        encoded = message_delta_encode_message(0, 0x21, 0, &session_ptr, 0, 1, 0);
+                        encoded = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x21, 0, &session_ptr, 0, 1, 0);
                         if (encoded > 0) {
                             network_session_broadcast_to_all(network_server, 1, network_object_update_scratch,
                                 1, 0, 1, 3);

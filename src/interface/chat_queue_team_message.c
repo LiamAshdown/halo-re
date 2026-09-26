@@ -27,9 +27,9 @@ extern network_server_globals *network_server; // 0x0071c2d4, UNSURE: base for t
 
 extern const uint16_t chat_local_prompt_string[]; // 0x006607a0, UNSURE: format string passed to string_format_wide_va
 extern void string_format_wide_va(const uint16_t *format, ...); // 0x557930, UNSURE signature
-extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type, uint32_t unknown_2,
-                                             void **fields, uint32_t unknown_4, uint32_t unknown_5,
-                                             uint8_t unknown_6); // 0x4ec940
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
 extern uint8_t network_channel_stream_flush(uint8_t *session, int32_t unknown); // 0x4ddb60
 extern void bit_stream_write_bits_chunked(uint32_t value_or_count); // 0x4cf8f0, UNSURE: elided second argument
@@ -52,7 +52,7 @@ void chat_queue_team_message(int32_t team_index)
 
     string_format_wide_va(chat_local_prompt_string); // UNSURE: real varargs not recoverable
 
-    encoded_bits = message_delta_encode_message(0, 0xf, 0, &fields, 0, 1, 0);
+    encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0xf, 0, &fields, 0, 1, 0);
     if (encoded_bits <= 0) {
         return;
     }

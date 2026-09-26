@@ -24,9 +24,9 @@
 
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 
-extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,
-    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,
-    uint8_t unknown_6); // 0x4ec940; blam-cc: EAX -> destination buffer,
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
     // EDX -> destination size, then the seven stack arguments. Returns the encoded bit
     // length in EAX. `fields` is a pointer TO a pointer to the field block.
 extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3,
@@ -44,7 +44,7 @@ void game_engine_send_end_game_notification(uint32_t reason)
     payload = reason;
     payload_ptr = &payload;
 
-    encoded_size = message_delta_encode_message(0, 0x16, 0, &payload_ptr, 0, 1, 0);
+    encoded_size = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x16, 0, &payload_ptr, 0, 1, 0);
     if (encoded_size > 0) {
         network_session_broadcast_to_flagged(1, network_message_scratch, 1, 0, 0, 3);
     }

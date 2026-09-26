@@ -25,8 +25,9 @@
 
 extern network_client_globals *network_client; // 0x0071c2d8
 
-extern int32_t message_delta_encode_message(int32_t a, int32_t message_type, int32_t b,
-    void *fields, int32_t c, int32_t d, char e); // this module (later batch), 0x4ec940, UNSURE shape
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern uint8_t network_channel_stream_flush(network_channel *channel, int32_t mode); // this module (earlier batch), 0x4ddb60
 extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value,
     bit_stream *stream); // 0x4cf8f0, memory module (src/memory/bit_stream_write_bits_chunked.c);
@@ -47,7 +48,7 @@ void network_game_server_send_message_to_all_machines(char *first_string, int32_
     strcpy(second_buf, second_string);
     fields[0] = second_buf;
     fields[1] = 0;
-    encoded_bits = message_delta_encode_message(0, 0x36, 0, fields, 0, 1, 0);
+    encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x36, 0, fields, 0, 1, 0);
     if (0 < encoded_bits) {
         network_channel *channel = network_client->channel;
         int32_t free_bits = channel->outgoing.stream.last_bit -
