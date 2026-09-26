@@ -23,7 +23,7 @@
 
 extern char *user_save_path_default; // 0x00721f28
 extern char *user_save_path_lookup(uint32_t user_id); // this batch, 0x5516a0
-extern void string_convert_ascii_to_unicode(void); // 0x557990, not in this batch; UNSURE args elided
+extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dst, uint32_t capacity_bytes, const char *source); // 0x557990, EAX dst, EDI capacity, EBX source
 extern uint32_t FindNextFileA(void *find_handle, win32_find_dataa *out_data); // Win32
 
 // blam-cc: EAX -> find_data, ECX -> handle
@@ -52,7 +52,8 @@ uint32_t savegame_find_next(win32_find_dataa *find_data, uint32_t handle)
                         i = i + 1;
                     } while (find_data->cFileName[i - 1] != '\0');
                 }
-                string_convert_ascii_to_unicode();
+                // 0x551daa..0x551db5: as in savegame_find_first -- the name into the wide buffer at find_data + 0x244
+                string_convert_ascii_to_unicode((uint16_t *)((uint8_t *)find_data + 0x244), 0x80, find_data->cFileName);
 
                 {
                     int32_t i = 0;
