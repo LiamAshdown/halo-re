@@ -54,6 +54,11 @@ extern void rasterizer_prepare_lighting_constants(render_lighting *lighting); //
 typedef int32_t (__stdcall *d3d_set_sampler_state_fn)(void *device, uint32_t sampler, uint32_t type, uint32_t value);
 typedef int32_t (__stdcall *d3d_set_transform_fn)(void *device, uint32_t state, const void *matrix);
 
+// FIXED (objdump 0x5273c7..0x5274e4): every clamp is fcom 0 / test ah,5 / jp then fcom 1 / test ah,0x41 / jne, which
+// only replaces a value strictly below 0 or strictly above 1 -- a NaN (e.g. 0 * inf when the planar fog depth is 0)
+// passes through to 0x007c047c unchanged. `0.0f <= x ? .. : 0` turned it into 0.
+#define CLAMP01_X87(x) do { if ((x) < 0.0f) (x) = 0.0f; else if ((x) > 1.0f) (x) = 1.0f; } while (0)
+
 static void set_sampler_state(uint32_t sampler, uint32_t type, uint32_t value)
 {
     void **vtable = *(void ***)rasterizer_device;
@@ -114,12 +119,14 @@ void rasterizer_model_draw_prepare_states(rasterizer_model_draw_context *context
             rasterizer_active_model_mode = 1;
         }
 
+        // FIXED (objdump 0x5271ee..0x5271f9): fcomp 0 / test ah,5 / jp clears the flag when the camera side is >= 0
+        // OR unordered; only a strictly negative distance sets it
         if (rasterizer_window.fog.planar_mode == 0 || (context->flags & 4) != 0 ||
             ((context->flags & 0x40) != 0 &&
-             0.0f <= (rasterizer_window.camera.position.x * rasterizer_window.fog.plane.normal.i +
-                      rasterizer_window.camera.position.y * rasterizer_window.fog.plane.normal.j +
-                      rasterizer_window.camera.position.z * rasterizer_window.fog.plane.normal.k) -
-                         rasterizer_window.fog.plane.d)) {
+             !((rasterizer_window.camera.position.x * rasterizer_window.fog.plane.normal.i +
+                rasterizer_window.camera.position.y * rasterizer_window.fog.plane.normal.j +
+                rasterizer_window.camera.position.z * rasterizer_window.fog.plane.normal.k) -
+                   rasterizer_window.fog.plane.d < 0.0f))) {
             unknown_0071d1fb = 0;
         } else {
             unknown_0071d1fb = 1;
@@ -167,11 +174,7 @@ void rasterizer_model_draw_prepare_states(rasterizer_model_draw_context *context
                                           -(rasterizer_window.fog.plane.normal.k * inv_depth) * context->center.z +
                                           -(rasterizer_window.fog.plane.normal.j * inv_depth) * context->center.y +
                                           -(inv_depth * rasterizer_window.fog.plane.normal.i) * context->center.x);
-            if (0.0f <= density_from_depth) {
-                if (1.0f < density_from_depth) density_from_depth = 1.0f;
-            } else {
-                density_from_depth = 0.0f;
-            }
+            CLAMP01_X87(density_from_depth);
 
             density_from_distance = 1.0f -
                 (rasterizer_window.camera.forward.j * inv_distance * context->center.y +
@@ -180,11 +183,7 @@ void rasterizer_model_draw_prepare_states(rasterizer_model_draw_context *context
                  (rasterizer_window.camera.position.x * rasterizer_window.camera.forward.i +
                   rasterizer_window.camera.position.y * rasterizer_window.camera.forward.j +
                   rasterizer_window.camera.position.z * rasterizer_window.camera.forward.k) * inv_distance);
-            if (0.0f <= density_from_distance) {
-                if (1.0f < density_from_distance) density_from_distance = 1.0f;
-            } else {
-                density_from_distance = 0.0f;
-            }
+            CLAMP01_X87(density_from_distance);
 
             blend = density_from_depth + density_from_distance;
             if (1.0f < blend) blend = 1.0f;
@@ -194,18 +193,10 @@ void rasterizer_model_draw_prepare_states(rasterizer_model_draw_context *context
                                  rasterizer_window.camera.position.y * rasterizer_window.fog.plane.normal.j +
                                  rasterizer_window.camera.position.z * rasterizer_window.fog.plane.normal.k) -
                                 rasterizer_window.fog.plane.d) * inv_depth);
-            if (0.0f <= plane_distance) {
-                if (1.0f < plane_distance) plane_distance = 1.0f;
-            } else {
-                plane_distance = 0.0f;
-            }
+            CLAMP01_X87(plane_distance);
 
-            if (0.0f <= rasterizer_window.fog.planar_maximum_density) {
-                density_limit = rasterizer_window.fog.planar_maximum_density;
-                if (1.0f < density_limit) density_limit = 1.0f;
-            } else {
-                density_limit = 0.0f;
-            }
+            density_limit = rasterizer_window.fog.planar_maximum_density;
+            CLAMP01_X87(density_limit);
 
             unknown_007c047c = 1.0f - density_limit *
                 (plane_distance * ((1.0f - density_from_distance) * (1.0f - density_from_distance) - blend) + blend);
