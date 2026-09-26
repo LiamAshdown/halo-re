@@ -40,7 +40,7 @@ extern int32_t object_get_node_local_transform(uint32_t object_index, char *mark
 extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);                          // 0x4f6610, UNSURE signature
 extern object * object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
-extern void object_for_each_light_attachment(uint32_t object_index, uint32_t flag); // 0x4f9a20, UNSURE signature  // real signature (object_for_each_light_attachment.c): void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback); Ghidra recovered 2 of 3 args at this call site
+extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback); // 0x4f9a20, EAX object, stack (register_in_table, invoke_callback)
 extern void unit_reset_orientation_and_find_position(uint32_t object_index);                          // 0x55add0, UNSURE signature
 extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_label, char *weapon_label, uint8_t test_only); // 0x5651e0
 extern void unit_update_animation_state_machine(uint32_t unit_index);                         // 0x565420, UNSURE signature  // real signature (unit_update_animation_state_machine.c): uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); Ghidra recovered 1 of 2 args at this call site
@@ -100,7 +100,7 @@ void unit_detach_and_enter_named_seat(uint32_t unit_index, uint32_t target_paren
             Object *self_def = (Object *)tag_instances[self_obj->definition_tag & 0xffff].data;
             if (*(uint32_t *)&self_def->model.tag_id != 0xffffffff) {
                 if ((self_obj->flags & 1) != 0) {
-                    object_for_each_light_attachment(unit_index, 1);
+                    object_for_each_light_attachment(unit_index, 0, 1);
                 }
                 if (*(uint32_t *)&self_def->model.tag_id != 0xffffffff) {
                     self_obj->flags &= ~1u;                          // object + 0x10, bit 0

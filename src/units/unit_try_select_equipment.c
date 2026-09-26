@@ -21,7 +21,7 @@ extern data_array *player_data;     // 0x0087a480
 
 extern void object_delete(uint32_t object_index);                                  // 0x4f5bd0, UNSURE signature
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);         // 0x4f5de0, UNSURE signature
-extern void object_for_each_light_attachment(uint32_t object_index, uint32_t flag); // 0x4f9a20, UNSURE signature  // real signature (object_for_each_light_attachment.c): void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback); Ghidra recovered 2 of 3 args at this call site
+extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback); // 0x4f9a20, EAX object, stack (register_in_table, invoke_callback)
 extern int32_t player_index_from_unit_index(uint32_t unit_index);                                   // 0x474db0, UNSURE signature
 extern void equipment_pickup_play_sound(void);                                                     // 0x4bbb50, UNSURE signature
 extern void item_set_holder(uint32_t item_index, datum_index holder_index); // 0x4bcfc0, ECX item, EDX holder
@@ -40,7 +40,7 @@ uint8_t unit_try_select_equipment(uint32_t unit_index, uint32_t new_equipment_ob
         object *new_obj = ((object_header *)object_data->data)[new_equipment_object_index & 0xffff].data;
         Object *new_def = (Object *)tag_instances[new_obj->definition_tag & 0xffff].data;
         if ((*(uint32_t *)&new_def->model.tag_id != 0xffffffff) && ((new_obj->flags & 1) == 0)) {
-            object_for_each_light_attachment(new_equipment_object_index, 0);
+            object_for_each_light_attachment(new_equipment_object_index, 1, 0);
         }
         new_obj->flags |= 1;
         ((object_header *)object_data->data)[new_equipment_object_index & 0xffff].flags &= 0xfd;
