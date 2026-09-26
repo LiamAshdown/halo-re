@@ -566,7 +566,7 @@ def ret_cleanup_tail(addr, size, depth=0):
     for _, op, args in _insns_of(addr, addr + size):
         if op == "jmp" and re.fullmatch(r"0x[0-9a-f]+", args):
             t = int(args, 16)
-            if not (addr <= t < addr + size) and t in ents:
+            if not (addr <= t < addr + size) and (t in ents or t in FUNC_SIZES):   # a target only ever jumped to is no call target
                 out |= ret_cleanup_tail(t, FUNC_SIZES.get(t) or 16, depth + 1)
     return out
 
@@ -678,10 +678,10 @@ def main():
     key = lambda f: f"{f['addr']:x}:{f['size']}"
     FUNC_SIZES.update({f["addr"]: f["size"] for f in funcs.values()})
     todo = [f for f in funcs.values() if key(f) not in cache or not isinstance(cache[key(f)], dict) or cache[key(f)].get("v") != 12
-            or (not cache[key(f)]["rets"] and not cache[key(f)].get("tail"))]
+            or (not cache[key(f)]["rets"] and cache[key(f)].get("tail") != 2)]
     with ThreadPoolExecutor(16) as ex:
         for f, res in zip(todo, ex.map(lambda f: (sorted(ret_cleanup_tail(f["addr"], f["size"])), live_in(f["addr"], f["size"])), todo)):
-            cache[key(f)] = {"rets": res[0], "live_in": res[1], "v": 12, "tail": 1}
+            cache[key(f)] = {"rets": res[0], "live_in": res[1], "v": 12, "tail": 2}
     json.dump(cache, open(cache_p, "w"))
     for f in funcs.values(): f["rets"] = cache[key(f)]["rets"]; f["live_in"] = cache[key(f)]["live_in"]
     # stack arguments the callers actually pass: the `add esp,N` that follows a call to a caller-cleans function
