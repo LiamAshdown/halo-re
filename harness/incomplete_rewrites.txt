@@ -43,7 +43,6 @@ path_find_score_avoidance_penalty                  # ai: rewrite says 'not rewri
 path_find_test_segment_unobstructed                # ai: rewrite says 'placeholder'
 cache_file_download_poll                           # cache: rewrite says 'simplified'
 cache_file_open_by_name                            # cache: rewrite says 'Not rewritten'
-cache_file_slot_read_header                        # cache: rewrite says 'not rewritten'
 cache_io_thread_proc_async                         # cache: rewrite says 'not rewritten'
 sound_cache_new                                    # cache: rewrite says 'not rewritten'
 observer_evaluate_spline_acceleration              # camera: rewrite says 'omitted'
