@@ -45,6 +45,7 @@
 #include "game.h"
 #include "cache.h"
 #include "objects.h"
+#include "effects.h"
 
 // TagID {index;id} is bit-identical in memory to a datum_index (low 16 bits index, high 16
 // bits salt/identifier), so a TagID is reinterpreted in place wherever the object header wants
@@ -94,7 +95,9 @@ extern void object_update_change_colors(uint32_t object_index); // 0x4f9110, EAX
     // masking EAX with 0xffff into the object_data stride. The index is now passed.
 extern void widget_new(void); // 0x4ffa80, UNSURE: called with no visible args here
 extern void object_create_attachments(uint32_t object_index); // 0x4f9750
-extern void effect_new_on_object(); // effects module, 0x4507a0, UNSURE: unexamined.
+extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
+    datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
+    const ColorRGB *color, const effect_tint_source *tint_source); // 0x4507a0, EAX creator, ECX definition
     // PHASE-4 REVIEW: declared with the six arguments this call site passes, while the other five
     // files in this module that reach 0x4507a0 declare it with an empty parameter list because
     // their own call sites show none. Unified on the empty list -- it asserts no prototype and so
@@ -296,7 +299,9 @@ out_of_objects:
     }
 
     if (TAG_ID_AS_DATUM_INDEX(object_tag->creation_effect.tag_id) != k_datum_index_none) {
-        effect_new_on_object(new_index, 0xffffffff, 0, 0, 0, 0);
+        // 0x4f591d..0x4f592a: EAX = the new object (ebx), ECX = [definition+0xac], push ebx, -1, 0, 0, 0, 0
+        effect_new_on_object(new_index, TAG_ID_AS_DATUM_INDEX(object_tag->creation_effect.tag_id), new_index, -1,
+            0.0f, 0.0f, (const ColorRGB *)0, (const effect_tint_source *)0);
         return new_index;
     }
     return new_index;

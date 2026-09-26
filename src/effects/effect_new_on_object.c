@@ -11,7 +11,9 @@
 // recognised stack parameters (param_1, param_2), alongside the a_scale/b_scale pair forwarded
 // to effect_set_placement (param_3, param_4).
 //   // blam-cc: EAX -> creator_object_index, ECX -> definition_index,
-//   //   stack -> (object_index, first_person_weapon_override, a_scale, b_scale)
+//   //   stack -> (object_index, first_person_weapon_override, a_scale, b_scale, color, tint_source)
+// FIXED (objdump 0x4507a0..0x450868): SIX stack arguments (every caller cleans 0x18); args 5/6 are
+//   effect_set_placement's ECX color / EDX tint_source; the two helpers take object_index in ESI / ECX.
 // UNSURE: whether `object_index` (param_1, stored into effect+0x3c) is really always identical
 // to the `creator_object_index` handed to effect_new (in_EAX) could not be confirmed from this
 // decompile alone; both are preserved as distinct parameters per types/effects.h's own
@@ -31,8 +33,8 @@ extern datum_index effect_new(datum_index definition_index, datum_index creator_
     uint8_t force_create); // 0x451500, this module
 extern void effect_set_placement(effect *self, const ColorRGB *color,
     const effect_tint_source *tint_source, real a_scale, real b_scale); // 0x451600, this module
-extern int16_t local_player_index_for_object(void); // 0x4926f0, outside this batch; resolves first_person_weapon_index
-extern uint8_t effect_first_person_screen_timer_active(void); // 0x450680, this module
+extern int32_t local_player_index_for_object(datum_index object_index); // 0x4926f0, ESI object_index
+extern uint8_t effect_first_person_screen_timer_active(datum_index object_index); // 0x450680, ECX object_index
 extern void effect_rebuild_markers(effect *self,
     int32_t (*resolve_marker)(uint32_t, const char *, object_marker *, uint32_t)); // 0x451710, this module
 extern int32_t object_get_node_local_transform(uint32_t object_index, const char *marker_name,
@@ -45,7 +47,8 @@ extern void effect_update(datum_index effect_handle, real delta_time); // 0x451a
 // when first_person_effects_enabled and the local player's screen timer is active, and binding
 // it to every matching object (and, if applicable, first-person weapon) marker.
 datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
-    datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale)
+    datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
+    const ColorRGB *color, const effect_tint_source *tint_source)
 {
     datum_index handle = effect_new(definition_index, creator_object_index, 1);
 
@@ -53,11 +56,11 @@ datum_index effect_new_on_object(datum_index creator_object_index, datum_index d
         effect *self = &((effect *)effect_data->data)[(uint16_t)handle];
         int i;
 
-        effect_set_placement(self, 0, 0, a_scale, b_scale);
+        effect_set_placement(self, color, tint_source, a_scale, b_scale); // 0x4507c6..0x4507eb: ECX arg5, EDX arg6
         self->object_index = object_index;
-        self->first_person_weapon_index = local_player_index_for_object();
+        self->first_person_weapon_index = (int16_t)local_player_index_for_object(object_index); // ESI = object_index
 
-        if (first_person_effects_enabled != 0 && effect_first_person_screen_timer_active()) {
+        if (first_person_effects_enabled != 0 && effect_first_person_screen_timer_active(object_index)) {
             self->flags = self->flags | _effect_first_person_bit;
         }
 
