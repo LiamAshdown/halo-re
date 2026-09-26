@@ -31,8 +31,10 @@ extern int16_t render_frustum_test_sphere(void *frustum, real_point3d *center, f
 typedef uint32_t (*structure_bsp_object_iterate_begin_fn)(uint32_t *cursor, int16_t cluster_index);
 typedef uint32_t (*structure_bsp_object_iterate_next_fn)(uint32_t *cursor);
 typedef uint8_t (*structure_bsp_object_predicate_fn)(uint32_t handle);
-typedef void (*structure_bsp_object_get_bounds_fn)(uint32_t handle, float *radius_out,
-                                                     real_point3d **center_out);
+// FIXED (objdump 0x554474..0x55447f): the bounds callback is (handle, &center, &radius) and writes the 12-byte centre
+// into the caller's frame (0x554498 then hands &center to the frustum test in EDX); it was declared with the two
+// outputs swapped and the centre as a pointer, so the callback wrote 12 bytes over a 4-byte local
+typedef void (*structure_bsp_object_get_bounds_fn)(uint32_t handle, real_point3d *center_out, float *radius_out);
 typedef void (*structure_bsp_object_accept_fn)(uint32_t handle);
 
 // blam-cc: cdecl, 7 stack params
@@ -52,11 +54,11 @@ int16_t structure_bsp_collect_visible_objects(
         while (handle != 0xffffffff) {
             if (predicate(handle)) {
                 float radius;
-                real_point3d *center;
-                get_bounds(handle, &radius, &center);
+                real_point3d center;
+                get_bounds(handle, &center, &radius);
                 if (written < max_count &&
                     (render_cluster_index == -1 ||
-                     render_frustum_test_sphere(&visible_clusters[i].unknown_014, center,
+                     render_frustum_test_sphere(&visible_clusters[i].unknown_014, &center,
                                                  radius) != 0)) {
                     out_handles[written] = (int32_t)handle;
                     written++;
