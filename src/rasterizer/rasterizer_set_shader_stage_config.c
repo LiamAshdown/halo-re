@@ -25,8 +25,6 @@ typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t stat
 // `mode` already matches the cached configuration.
 void rasterizer_set_shader_stage_config(int16_t mode)
 {
-    void **vtable;
-    d3d_set_render_state_fn set_render_state;
     uint32_t value_3a;
     uint32_t final_state;
     uint32_t final_value;
@@ -38,8 +36,9 @@ void rasterizer_set_shader_stage_config(int16_t mode)
         return;
     }
 
-    vtable = *(void ***)rasterizer_device;
-    set_render_state = (d3d_set_render_state_fn)vtable[0xe4 / 4];
+    // FIXED (objdump 0x519237..0x5194b1): the device and its vtable are loaded per call inside the cases, so an
+    // out-of-range mode (the default path, 0x519221 ja 0x5194b7) never touches the device
+    #define set_render_state(device, state, value)         ((d3d_set_render_state_fn)(*(void ***)rasterizer_device)[0xe4 / 4])(rasterizer_device, (state), (value))
 
     switch (mode) {
     case 0:
@@ -104,6 +103,7 @@ apply_final:
     set_render_state(rasterizer_device, final_state, final_value);
 done:
     rasterizer_shader_stage_config = mode;
+    #undef set_render_state
 }
 
 #if 0

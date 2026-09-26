@@ -36,7 +36,6 @@ color_channel_real_to_byte                         # rasterizer: differ 200/200:
 font_glyph_cache_clear_all                         # rasterizer: differ 200/200: return 0x0badf000 vs 0x00000000
 rasterizer_apply_decal_zbias                       # rasterizer: differ 200/200: rewrite crashed (original did not)
 rasterizer_clear_decal_zbias                       # rasterizer: differ 200/200: rewrite crashed (original did not)
-rasterizer_set_shader_stage_config                 # rasterizer: differ 58/58: rewrite crashed (original did not)
 rasterizer_shader_technique_for_name               # rasterizer: died tester process died
 rasterizer_shader_transparent_chicago_extended_set_texture_stages # rasterizer: died tester process died
 build_sprites_end                                  # render: differ 1/105: pointer arg #0 +0x14: -nan(ind) (0xffc00000) vs 0 (0x00000000)
