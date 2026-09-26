@@ -65,9 +65,9 @@ extern uint8_t object_network_message_scratch[0x7ff8]; // 0x00871de0, the 0x7ff8
     // broadcast scratch buffer; the size is the literal pushed at 0x4f58d9
 
 extern uint32_t game_engine_remap_placement_by_type(uint32_t handle); // 0x4630b0, EAX handle; returns it, or the remapped tag
-extern datum_index object_block_data_new(data_array *array, int16_t element_size); // 0x4f7d50
+extern datum_index object_block_data_new(int32_t specific_index, data_array *array, int16_t size); // 0x4f7d50, EAX specific_index
 extern uint8_t object_block_data_grow(uint32_t object_index, int16_t field_offset, int16_t extra_size); // 0x4f7e50, EAX object
-extern void object_type_definitions_notify_0x24(uint32_t object_index); // 0x4f3e30, this batch
+extern void object_type_definitions_notify_0x24(uint32_t object_index, uint32_t argument); // EBX object_index // 0x4f3e30, this batch
 extern uint8_t object_type_definitions_query_0x28(uint32_t object_index); // 0x4f3ea0, this batch
 extern void object_type_definitions_notify_0x30(uint32_t object_index); // 0x4f3f90, this batch
 extern void object_type_definitions_notify_0x38(uint32_t object_index); // 0x4f4080, this batch
@@ -75,7 +75,7 @@ extern int object_type_override_get_0x64(uint32_t object_index, void *buffer, in
 extern void object_type_override_call_0x68(uint32_t object_index); // 0x4f4560, this batch; handle in ESI
 extern void object_delete(uint32_t object_index); // 0x4f5bd0, this batch
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30, this batch; NULL location probes it
-extern void object_set_collision_enabled(uint8_t has_model); // 0x4f6850, UNSURE: unexamined in this batch.
+extern void object_set_collision_enabled(uint32_t object_index, uint8_t enable); // EAX object_index // 0x4f6850, UNSURE: unexamined in this batch.
     // The original builds the argument with CONCAT31, so only the low byte is meaningful.
 extern void object_block_data_free(data_array *array, datum_index object_index); // 0x4f7de0, UNSURE: unexamined in this batch
 extern void object_recalculate_bounding_radius(uint32_t object_index); // 0x4f8310
@@ -145,7 +145,7 @@ datum_index object_new_with_datum_role_control(object_placement_data *placement,
     tag_inst = &tag_instances[definition_tag & 0xffff];
     object_tag = (Object *)tag_inst->data;
 
-    new_index = object_block_data_new(object_data,
+    new_index = object_block_data_new(-1, object_data, // 0x4f5529: EAX = -1 (any slot), push object_data, size
         object_type_definitions[object_tag->object_type]->object_size);
     if (new_index == k_datum_index_none) {
         goto out_of_objects;
@@ -159,7 +159,7 @@ datum_index object_new_with_datum_role_control(object_placement_data *placement,
     active = 1;
     obj->type = object_tag->object_type;
 
-    object_type_definitions_notify_0x24(new_index); // UNSURE: see file header
+    object_type_definitions_notify_0x24(new_index, (uint32_t)placement); // 0x4f5571: EBX = new object, push ebp = placement
 
     obj->network_role = role;
     obj->network_position_valid = 0;
@@ -205,7 +205,8 @@ datum_index object_new_with_datum_role_control(object_placement_data *placement,
         obj->flags |= _object_has_collision_model_bit;
     }
 
-    object_set_collision_enabled(TAG_ID_AS_DATUM_INDEX(object_tag->model.tag_id) != k_datum_index_none); // UNSURE: see file header
+    object_set_collision_enabled(new_index, // 0x4f56e0..0x4f56e9: EAX = new object, push (model != -1)
+        (uint8_t)(TAG_ID_AS_DATUM_INDEX(object_tag->model.tag_id) != k_datum_index_none));
 
     obj->owner_team = (int16_t)placement->owner_team;
     obj->owner_linkage = placement->owner_linkage;
