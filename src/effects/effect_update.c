@@ -1,58 +1,27 @@
-// effect_update  (Ghidra: particle_system_update; RENAMED per out/phase4/effects_types_notes.md's
-// misattribution table: "0x451a30 particle_system_update -> effect_update -- reads the particle
-// count at +0x38 with stride 0xe8" against effect_data, the 0xfc-byte effe table, not pctl)
+// effect_update  (Ghidra: particle_system_update; renamed: it reads effect_data, the 0xfc-byte effe table)
 // address 0x451a30, size 1358 bytes
-// name confidence: 0.5   rewrite confidence: 0.4 (several register-passed callee arguments are
-//   elided by Ghidra at their call sites; each is reconstructed from context and flagged below)
-// evidence: types/effects.h effect (flags, location 0x10, color 0x18, velocity 0x24, object_index
-//   0x3c, first_person_weapon_index 0x4c, event_index 0x4e, event_time 0x50, event_duration 0x54,
-//   previous_event_fraction 0x58, particle_counts[32] 0xdc) and effect_flags; types/tags.h Effect
-//   (flags, loop_start_event, loop_stop_event, events TagReflexive at 0x34) and EffectEvent
-//   (skip_fraction, duration_bounds, particles TagReflexive at 0x38) and EffectParticle.count[2]
-//   (0x6c/0x6e); types/objects.h object (flags bit _object_needs_cluster_update_bit,
-//   location_leaf_index 0x98, location_cluster_index 0x9c, velocity 0x68, attachment_handles[8]
-//   0x14c) and object_header; types/cache.h tag_instance; this module's effect_stop 0x450b20,
-//   effect_start_event 0x451660, effect_delete 0x450be0, effect_property_random_value 0x451290,
-//   effect_spawn_particles 0x451f90 and object_change_color_evaluate 0x4529d0; src/objects/
-//   object_try_and_get.c, object_get_root_object_index.c and object_function_get_value.c for the
-//   three foreign callees.
-// register convention: __cdecl, both arguments Ghidra's own recognized stack parameters (the
-//   effect handle, delta_time). Several *callees* have register-passed arguments Ghidra could
-//   not attribute at these particular call sites (unlike the calls that show
-//   "particle_system_delete_450be0(particle_system_index)" plainly, which is why those are kept
-//   verbatim); each such case is called out individually below.
-//   // blam-cc: stack -> (effect_handle, delta_time)
-// UNSURE (grouped): (1) object_get_root_object_index's argument is not shown; reconstructed as
-//   self->object_index, the only object index in scope. (2) object_function_get_value's two
-//   calls show no arguments at all (same "invisible register arguments" pattern already
-//   documented in src/objects/glow_update.c); modeled the same way, as a bare call. (3)
-//   effect_stop's effect-handle argument (EAX) is not shown at its call site; reconstructed as
-//   this function's own effect_handle parameter. (4) the FUN_00451660 (effect_start_event) call
-//   in the "event just started" branch shows no arguments; reconstructed as
-//   (effect_handle, tag->loop_start_event), since that is the only event index available in that
-//   branch (the effect had just finished and its function turned back on). (5) the
-//   particle_system_property_random_value (effect_property_random_value) call inside the
-//   particle-count roll shows only its three stack arguments (seed, base_min, base_max); its four
-//   register arguments (bit_index, self, a_bitset, b_bitset) are assumed to be all zero (no A/B
-//   scale applied), the degenerate case that reduces the call to a plain random-range roll --
-//   this cannot be confirmed from the decompile alone. (6) the `if (6 < bVar5) { <redo> }`
-//   sequence truncates the *same* FPU value a second time with nothing visibly pushed in
-//   between; almost certainly Ghidra lost a clamp (most likely against a literal 6.0) that this
-//   rewrite cannot recover exactly, so the second __ftol() call is preserved verbatim rather than
-//   inventing the clamp expression. (7) the final FUN_00451660 (effect_start_event) call passes
-//   the freshly resolved next_event_index; its effect_handle argument (EAX) is not shown and is
-//   reconstructed as this function's own effect_handle parameter, same as (3). (8) player_globals
-//   offsets 0x18 and 0x58 are two 128-bit-wide (16 dword) visibility bitmasks this module is the
-//   first to read; types/game.h's player_globals leaves 0x17..0x98 as an untyped tail
-//   (unknown_17), so they are reached here by raw byte offset with a comment rather than adding
-//   named fields to a header this module does not own.
-// UNSURE: after the object.attachment_handles detach-and-delete path (tag EffectFlags bit 0,
-//   "deleted_when_attachment_deactivates"), the decompile falls through to
-//   `object_function_get_value(); if (self->change_color_index != -1) {...}` on the very same,
-//   just-deleted effect record instead of returning -- kept exactly as decompiled (no `return`
-//   added) since effect_delete only unlinks/frees the datum slot rather than zeroing it, so
-//   reading the just-deleted record's own fields is harmless but almost certainly not intended by
-//   the original source; flagged rather than "fixed".
+// name confidence: 0.5   rewrite confidence: 0.85
+// evidence: types/effects.h effect (flags 0x02, definition 0x04, the two function selectors 0x08/0x0a, change
+//   color 0x0c, location 0x10/0x14, color 0x18, velocity 0x24, object 0x3c, a/b scale 0x44/0x48, event index
+//   0x4e, event time 0x50, duration 0x54, previous fraction 0x58, particle counts 0xdc); Effect tag flags
+//   (byte 0: bit 0 delete when disabled, bit 2 the global random stream), loop start / end event words
+//   (+0x04 / +0x06), events (+0x34 count, 0x44 each at +0x38: skip fraction +0x04, duration bounds
+//   +0x10/+0x14, particles +0x38 count, 0xe8 each at +0x3c: count bounds +0x6c/+0x6e, scale bitsets
+//   +0xe0/+0xe4).
+// REWRITTEN (from objdump 0x451a30..0x451f8c). With an attached object: a vanished object deletes the effect;
+//   the root object's location (+0x98/+0x9c) and velocity (+0x68) are copied when it has flag bit 11, else the
+//   cluster is -1. For an effect driven by its A function (flags bit 1): object_function_get_value(EAX object,
+//   CX selector A, EDX &a_scale) false stops the effect (or, with tag flag bit 0, detaches it from the
+//   object's attachment handles and deletes it); true restarts a stopped (bit 3) effect at event 0, or deletes
+//   it when bit 5 is set. B scale and the change color are refreshed every tick. An effect in a cluster no local
+//   player sees is suspended (bit 4) or deleted when not function-driven. Then, while time remains (at most 8
+//   events per tick): the current event's time advances; a running event (bit 0) spawns particles and, when it
+//   finishes, the next event is chosen (the loop start event after the loop end event for a function-driven
+//   effect, else the next one; each skipped by a random roll under its skip fraction) or the effect stops
+//   (bit 3, function-driven) or is deleted; a pending event starts: a random duration, per-particle counts
+//   from effect_property_random_value (counts above 6 are spread over the local players), and the change
+//   color. The draft passed nothing to object_function_get_value (a crash on the first campaign effect).
+// blam-cc: stack -> effect_index, dt (cdecl)
 
 #include "tags.h"
 #include "memory.h"
@@ -69,261 +38,189 @@ extern player_globals *local_player_globals;       // 0x0087a478
 extern random_seed random_seed_global;             // 0x00719cd0
 extern random_seed effect_random_seed;             // 0x00719cd4
 
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern uint32_t object_get_root_object_index(uint32_t object_index);            // 0x4f6fb0
-extern uint8_t object_function_get_value(void); // 0x4f6e70, UNSURE: args not visible here, same
-    // as src/objects/glow_update.c's declaration of the same function
-extern int32_t __ftol(void); // 0x6391b4, MSVC runtime float-to-int truncation, argument on the
-    // x87 stack, UNSURE (see src/game/player_apply_pickup_effect.c for the established pattern)
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, blam-cc: ECX, stack
+extern uint32_t object_get_root_object_index(uint32_t object_index);            // 0x4f6fb0, blam-cc: ECX
+extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector, float *out_value);
+    // 0x4f6e70, blam-cc: EAX -> object_index, CX -> selector, EDX -> out_value
 
-extern void effect_delete(datum_index effect_handle);                          // 0x450be0, this module
-extern void effect_stop(datum_index effect_handle, uint8_t stop_immediately);  // 0x450b20, this module
-extern void effect_start_event(datum_index effect_handle, int16_t event_index); // 0x451660, this module
+extern void effect_delete(datum_index effect_handle);                          // 0x450be0
+extern void effect_stop(datum_index effect_handle, uint8_t stop_immediately);  // 0x450b20, blam-cc: EAX, stack
+extern void effect_start_event(datum_index effect_handle, int16_t event_index); // 0x451660, blam-cc: EAX, EDI
 extern real effect_property_random_value(uint8_t bit_index, effect *self, uint32_t a_bitset,
-    uint32_t b_bitset, random_seed *seed, real base_min, real base_max);       // 0x451290, this module
-extern void effect_spawn_particles(effect *self);           // 0x451f90, this module
-extern void object_change_color_evaluate(effect *self);     // 0x4529d0, this module
+    uint32_t b_bitset, random_seed *seed, real base_min, real base_max);
+    // 0x451290, blam-cc: DL -> bit_index, EBX -> self, ESI -> a_bitset, EDI -> b_bitset, stack -> the rest
+extern void effect_spawn_particles(effect *self);           // 0x451f90
+extern void object_change_color_evaluate(effect *self);     // 0x4529d0
 
-// Rolls the next pseudo-random fraction in [0, 1) from whichever seed the Effect tag's
-// must_be_deterministic_pc flag (EffectFlags bit 2) selects. The raw code is
-// `seed = &random_seed_global; if ((tag->flags & 4) == 0) seed = &effect_random_seed;`, i.e. the
-// tag flag SET selects the shared engine stream and clear selects this module's own stream --
-// which is also what types/effects.h's note on effect_random_seed says. An earlier draft of this
-// helper had the test inverted (the identical inline copy in the event-start path below did
-// not), so the two disagreed.
-static real effect_update_roll_fraction(Effect *tag)
+// One roll of the effect's random stream (tag flag bit 2 selects the global one), 0..1.
+static real effect_update_roll_fraction(uint8_t *tag)
 {
-    random_seed *seed = &random_seed_global;
-    if ((tag->flags & 4) == 0) {
-        seed = &effect_random_seed;
-    }
+    random_seed *seed = (tag[0] & 4) ? &random_seed_global : &effect_random_seed;
+
     *seed = *seed * k_random_multiplier + k_random_increment;
-    return (real)(*seed >> k_random_value_shift) * 1.5259022e-05f;
+    return (real)(*seed >> k_random_value_shift) * 1.5259022e-05f; // 0x672b84
 }
 
-// Advances one effect for one tick: resolves its attached object's cluster/velocity and the
-// object-function-driven emitting state, updates visibility, then walks its event timeline
-// (starting the next event, rolling per-event particle counts and spawning particles) up to
-// k_effect_events_per_update times to absorb the leftover delta_time.
-void effect_update(datum_index effect_handle, real delta_time)
+void effect_update(datum_index effect_index, real dt)
 {
-    effect *self = &((effect *)effect_data->data)[(uint16_t)effect_handle];
-    Effect *tag = (Effect *)tag_instances[(uint16_t)self->definition_index].data;
-    int16_t event_count_cursor;
-    uint16_t flags;
+    effect *self = (effect *)((uint8_t *)effect_data->data + (effect_index & 0xffff) * 0xfc);
+    uint8_t *tag = (uint8_t *)tag_instances[self->definition_index & 0xffff].data;
+    uint8_t *events = *(uint8_t **)(tag + 0x38);
+    int32_t event_count = *(int32_t *)(tag + 0x34);
+    datum_index object_index = self->object_index;
+    int16_t steps;
 
-    if (self->object_index != k_datum_index_none) {
-        object *attached = object_try_and_get(self->object_index, _object_mask_all);
-        if (attached == (object *)0) {
-            effect_delete(effect_handle);
+    if (object_index != k_datum_index_none) {
+        uint8_t *obj = (uint8_t *)object_try_and_get(object_index, 0xffffffff);
+        uint8_t *root;
+
+        if (obj == 0) {
+            effect_delete(effect_index);
             return;
         }
-
-        uint32_t root_index = object_get_root_object_index(self->object_index); // UNSURE, see file header
-        object *root = ((object_header *)object_data->data)[(uint16_t)root_index].data;
-
-        if ((root->flags & _object_needs_cluster_update_bit) == 0) {
-            self->location.cluster_index = -1;
+        root = *(uint8_t **)((uint8_t *)object_data->data +
+            (object_get_root_object_index(object_index) & 0xffff) * 0xc + 8);
+        if (*(uint32_t *)(root + 0x10) & 0x800) {
+            *(uint32_t *)((uint8_t *)self + 0x10) = *(uint32_t *)(root + 0x98);
+            *(uint32_t *)((uint8_t *)self + 0x14) = *(uint32_t *)(root + 0x9c);
+            self->velocity = *(real_vector3d *)(root + 0x68);
         } else {
-            self->location.leaf_index = root->location_leaf_index;
-            self->location.cluster_index = root->location_cluster_index;
-            self->velocity = root->velocity;
+            *(int16_t *)((uint8_t *)self + 0x14) = -1;
         }
-
-        if ((self->flags & _effect_looping_bit) != 0) {
-            uint8_t function_is_zero = object_function_get_value(); // UNSURE, see file header
-
-            if (function_is_zero == 0) {
-                if ((tag->flags & 1) != 0) { // EffectFlags bit 0: deleted_when_attachment_deactivates
-                    // Object tag attachments.count: TagReflexive at Object tag +0x140.
-                    int32_t tag_attachment_count =
-                        *(int32_t *)((uint8_t *)tag_instances[(uint16_t)attached->definition_tag].data + 0x140);
-                    int16_t slot = 0;
-
-                    if (0 < tag_attachment_count) {
-                        int32_t index = 0;
-                        while (attached->attachment_handles[index] != effect_handle) {
-                            slot++;
-                            index = slot;
-                            if (tag_attachment_count <= index) {
-                                effect_delete(effect_handle);
-                                return;
-                            }
-                        }
-                        attached->attachment_handles[slot] = k_datum_index_none;
-                    }
-                    // Ghidra's `goto LAB_00451b68`, which is the unconditional delete -- NOT
-                    // LAB_00451c41, the visibility check the two labels sit next to. An earlier
-                    // draft of this file aimed this goto at the wrong one of the two.
-                    goto delete_effect;
-                }
-                if ((self->flags & (_effect_stopping_bit | _effect_finished_bit)) == 0) {
-                    effect_stop(effect_handle, 0); // UNSURE, see file header
-                }
-            } else {
-                flags = self->flags;
-                if ((flags & _effect_finished_bit) != 0) {
-                    if ((flags & _effect_stop_immediately_bit) == 0) {
-                        self->flags = flags & (uint16_t)~_effect_finished_bit;
-                        effect_start_event(effect_handle, tag->loop_start_event); // UNSURE, see file header
+        if (self->flags & 2) {
+            if (object_function_get_value(object_index, self->unknown_08, &self->a_scale)) {
+                if (self->flags & 8) {
+                    if (self->flags & 0x20) {
+                        effect_delete(effect_index);
                     } else {
-                        effect_delete(effect_handle);
-                        // UNSURE: falls through to read the just-deleted record below, see file header
+                        self->flags = (uint16_t)(self->flags & 0xfff7);
+                        effect_start_event(effect_index, 0);
                     }
                 }
-            }
+            } else if (tag[0] & 1) {
+                uint8_t *obj_tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+                int16_t i;
 
-            object_function_get_value(); // UNSURE, see file header; return value unused
+                for (i = 0; i < *(int32_t *)(obj_tag + 0x140); i++) {
+                    if (*(datum_index *)(obj + 0x14c + i * 4) == effect_index) {
+                        *(datum_index *)(obj + 0x14c + i * 4) = k_datum_index_none;
+                        break;
+                    }
+                }
+                effect_delete(effect_index);
+                return;
+            } else if ((self->flags & 0xc) == 0) {
+                effect_stop(effect_index, 0);
+            }
+            object_function_get_value(self->object_index, self->unknown_0a, &self->b_scale);
             if (self->change_color_index != -1) {
-                ColorRGB *change_colors = (ColorRGB *)((uint8_t *)attached + 0x1b8);
-                self->color.red = change_colors[self->change_color_index].red;
-                self->color.green = change_colors[self->change_color_index].green;
-                self->color.blue = change_colors[self->change_color_index].blue;
+                self->color = *(ColorRGB *)(obj + 0x1b8 + self->change_color_index * 0xc);
             }
         }
     }
 
-    if (self->location.cluster_index == -1) {
-check_visibility_flags:   // Ghidra LAB_00451c41
-        flags = self->flags;
-        if ((flags & _effect_hidden_bit) != 0) {
-            goto continue_events;
-        }
-        if ((flags & _effect_looping_bit) == 0) {
-delete_effect:            // Ghidra LAB_00451b68
-            effect_delete(effect_handle);
-            return;
-        }
-        flags = flags | _effect_hidden_bit;
-    } else {
-        int32_t word_index = self->location.cluster_index >> 5;
-        uint32_t visible_mask;
+    // suspended while no local player sees the effect's cluster
+    {
+        int16_t cluster = *(int16_t *)((uint8_t *)self + 0x14);
+        uint8_t visible = 0;
 
-        if ((tag->flags & 4) == 0) { // must_be_deterministic_pc clear
-            visible_mask = *(uint32_t *)((uint8_t *)local_player_globals + 0x58 + word_index * 4);
-                // UNSURE: unnamed player_globals field, see file header
-        } else {
-            visible_mask = *(uint32_t *)((uint8_t *)local_player_globals + 0x18 + word_index * 4);
-                // UNSURE: unnamed player_globals field, see file header
-        }
+        if (cluster != -1) {
+            uint32_t *bits = (uint32_t *)((uint8_t *)local_player_globals + ((tag[0] & 4) ? 0x18 : 0x58));
 
-        if ((visible_mask & (1u << (self->location.cluster_index & 0x1f))) == 0) {
-            goto check_visibility_flags;
+            visible = (bits[cluster >> 5] & (1u << (cluster & 0x1f))) != 0;
         }
-        flags = self->flags;
-        if ((flags & _effect_hidden_bit) == 0) {
-            goto continue_events;
+        if (visible) {
+            if (self->flags & 0x10) {
+                self->flags = (uint16_t)(self->flags & 0xffef);
+            }
+        } else if ((self->flags & 0x10) == 0) {
+            if ((self->flags & 2) == 0) {
+                effect_delete(effect_index);
+                return;
+            }
+            self->flags = (uint16_t)(self->flags | 0x10);
         }
-        flags = flags & (uint16_t)~_effect_hidden_bit;
     }
-    self->flags = flags;
 
-continue_events:
-    event_count_cursor = 0;
-    if (delta_time < 0.0f) {
+    if (dt < 0.0f || dt != dt) {
         return;
     }
+    for (steps = 0; ; steps++) {
+        uint16_t flags = self->flags;
+        uint8_t finished;
+        real remaining;
 
-    for (;;) {
-        real tick_delta = delta_time;
-        uint16_t current_flags = self->flags;
-        int32_t next_event_index;
-
-        if ((current_flags & _effect_finished_bit) != 0) {
+        if ((flags & 8) || steps >= 8) {
             return;
         }
-        if (event_count_cursor > 7) { // k_effect_events_per_update
-            return;
+        remaining = self->event_duration - self->event_time;
+        if (remaining <= dt) {
+            dt = dt - remaining;
+            finished = 1;
+            self->event_time = self->event_duration;
+        } else {
+            finished = 0;
+            self->event_time = self->event_time + dt;
+            dt = -1.0f;
         }
-
-        {
-            real time_left_in_event = self->event_duration - self->event_time;
-            uint8_t event_finished_this_pass = !(time_left_in_event > delta_time);
-
-            if (!event_finished_this_pass) {
-                delta_time = -1.0f;
-                self->event_time = tick_delta + self->event_time;
-            } else {
-                delta_time = delta_time - time_left_in_event;
-                self->event_time = self->event_duration;
+        if (flags & 1) {
+            if ((flags & 0x10) == 0) {
+                effect_spawn_particles(self);
             }
+            if (finished) {
+                int16_t next;
 
-            if ((current_flags & _effect_event_started_bit) == 0) {
-                if (event_finished_this_pass) {
-                    EffectEvent *event = &((EffectEvent *)tag->events.pointer)[self->event_index];
-
-                    self->flags = current_flags | _effect_event_started_bit;
-                    self->event_time = 0.0f;
-                    self->previous_event_fraction = -1.0f;
-
-                    {
-                        random_seed *seed = &random_seed_global;
-                        if ((tag->flags & 4) == 0) {
-                            seed = &effect_random_seed;
-                        }
-                        *seed = *seed * k_random_multiplier + k_random_increment;
-                        self->event_duration = (event->duration_bounds[1] - event->duration_bounds[0]) *
-                            (real)(*seed >> k_random_value_shift) * 1.5259022e-05f + event->duration_bounds[0];
-                    }
-
-                    if (0 < (int32_t)event->particles.count) {
-                        EffectParticle *particle_types = (EffectParticle *)event->particles.pointer;
-                        int32_t i;
-
-                        for (i = 0; i < (int32_t)event->particles.count; i++) {
-                            real count_value = effect_property_random_value(0, self, 0, 0,
-                                &effect_random_seed, (real)particle_types[i].count[0],
-                                (real)particle_types[i].count[1]); // UNSURE, see file header
-                            uint8_t count_byte = (uint8_t)__ftol();
-                            (void)count_value;
-                            self->particle_counts[i] = count_byte;
-                            if (count_byte > 6) {
-                                count_byte = (uint8_t)__ftol(); // UNSURE, see file header
-                                self->particle_counts[i] = count_byte;
-                            }
-                        }
-                    }
-
-                    if ((self->flags & _effect_hidden_bit) == 0) {
-                        object_change_color_evaluate(self);
-                    }
+                if ((self->flags & 2) && self->event_index == *(int16_t *)(tag + 6) &&
+                    *(int16_t *)(tag + 4) != -1) {
+                    next = *(int16_t *)(tag + 4);
+                } else {
+                    next = (int16_t)(self->event_index + 1);
                 }
-            } else {
-                if ((current_flags & _effect_hidden_bit) == 0) {
-                    effect_spawn_particles(self);
+                while (next < event_count &&
+                    effect_update_roll_fraction((uint8_t *)tag_instances[self->definition_index & 0xffff].data) <
+                        *(float *)(events + next * 0x44 + 4)) {
+                    next++;
                 }
-
-                if (event_finished_this_pass) {
-                    next_event_index = self->event_index + 1;
-                    if ((self->flags & _effect_looping_bit) != 0 &&
-                        self->event_index == (int16_t)tag->loop_stop_event &&
-                        tag->loop_start_event != (uint16_t)0xffff) {
-                        next_event_index = tag->loop_start_event;
+                if (next >= event_count) {
+                    if (self->flags & 2) {
+                        self->flags = (uint16_t)(self->flags | 8);
+                        return;
                     }
+                    effect_delete(effect_index);
+                    return;
+                }
+                effect_start_event(effect_index, next);
+            }
+        } else if (finished) {
+            uint8_t *event = events + self->event_index * 0x44;
+            int32_t particle;
 
-                    while (next_event_index < (int32_t)tag->events.count) {
-                        EffectEvent *candidate = &((EffectEvent *)tag->events.pointer)[next_event_index];
-                        real fraction = effect_update_roll_fraction(tag);
-                        if (candidate->skip_fraction <= fraction) {
-                            break;
-                        }
-                        next_event_index++;
-                    }
+            self->flags = (uint16_t)(flags | 1);
+            self->event_time = 0.0f;
+            self->previous_event_fraction = -1.0f;
+            {
+                real fraction = effect_update_roll_fraction((uint8_t *)tag_instances[self->definition_index & 0xffff].data);
 
-                    if ((int32_t)tag->events.count <= next_event_index) {
-                        if ((self->flags & _effect_looping_bit) != 0) {
-                            self->flags = self->flags | _effect_finished_bit;
-                            return;
-                        }
-                        goto delete_effect;
-                    }
-                    effect_start_event(effect_handle, (int16_t)next_event_index); // UNSURE, see file header
+                self->event_duration = (*(float *)(event + 0x14) - *(float *)(event + 0x10)) * fraction +
+                    *(float *)(event + 0x10);
+            }
+            for (particle = 0; particle < *(int32_t *)(event + 0x38); particle = (int16_t)(particle + 1)) {
+                uint8_t *part = *(uint8_t **)(event + 0x3c) + particle * 0xe8;
+                uint8_t count = (uint8_t)(int32_t)effect_property_random_value(5, self, *(uint32_t *)(part + 0xe0),
+                    *(uint32_t *)(part + 0xe4), &effect_random_seed, (real)*(int16_t *)(part + 0x6c),
+                    (real)*(int16_t *)(part + 0x6e));
+
+                self->particle_counts[particle] = count;
+                if (count > 6) {
+                    self->particle_counts[particle] = (uint8_t)(int32_t)(((real)count - 6.0f) /
+                        (real)*(int16_t *)((uint8_t *)local_player_globals + 0xc) + 6.0f);
                 }
             }
+            if ((self->flags & 0x10) == 0) {
+                object_change_color_evaluate(self);
+            }
         }
-
-        event_count_cursor++;
-        if (delta_time < 0.0f) {
+        if (!(dt >= 0.0f)) {
             return;
         }
     }

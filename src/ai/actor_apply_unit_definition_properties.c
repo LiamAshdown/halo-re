@@ -36,7 +36,8 @@ extern int32_t map_difficulty_or_kind; // 0x00719720, UNSURE name (compared agai
 extern void **object_type_role_table; // 0x0069bfdc
 
 extern void object_initialize_shield_stun_thresholds(datum_index object_index); // 0x4ed440, UNSURE signature
-extern void color_interpolate(void *out, int32_t mode, float t); // 0x43f6a0, UNSURE signature
+extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
+    // 0x43f6a0, blam-cc: EAX -> color1, ECX -> color0, stack -> dest, flags, t
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role); // 0x4f53a0
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role); // 0x4f54b0
 extern void object_delete(datum_index object_index); // 0x4f5bd0, UNSURE signature
@@ -71,7 +72,14 @@ void actor_apply_unit_definition_properties(datum_index actor_variant_tag, datum
         for (i = 0; i < (int32_t)variant[0x8b] && i < 4; i++) {
             uint8_t *slot = (uint8_t *)unit_object + 0x188 + i * 0xc; // UNSURE offset/stride
             random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-            color_interpolate(slot, 1, (float)(int32_t)(random_seed_global >> 0x10) * 1.5259022e-05f);
+            // 0x426df1..0x426e0b: EAX = the variant change color's +0xc color, ECX = its +0 color (entries of 0x20 at
+            // variant +0x230), stack: the unit's working color, 1, the random fraction
+            {
+                uint8_t *change_color = *(uint8_t **)((uint8_t *)variant + 0x230) + i * 0x20;
+
+                color_interpolate((ColorRGB *)(change_color + 0xc), (ColorRGB *)change_color, (ColorRGB *)slot, 1,
+                    (float)(int32_t)(random_seed_global >> 0x10) * 1.5259022e-05f);
+            }
             *(uint32_t *)(slot + 0x30) = *(uint32_t *)slot;
             *(uint32_t *)(slot + 0x34) = *(uint32_t *)(slot + 4);
             *(uint32_t *)(slot + 0x38) = *(uint32_t *)(slot + 8);

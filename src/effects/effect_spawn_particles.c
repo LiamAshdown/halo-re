@@ -103,7 +103,8 @@ extern real_point3d *sphere_point_table;    // 0x006b7af4, 1026 unit vectors
 extern int16_t sphere_point_table_count;    // 0x006b7af8
 extern const real_point3d *global_origin3d_pointer; // 0x00696714
 
-extern void color_interpolate(void *out_color, uint32_t color_pair, float t); // 0x43f6a0
+extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
+    // 0x43f6a0, blam-cc: EAX -> color1, ECX -> color0, stack -> dest, flags, t
 extern real effect_distribution_function_evaluate(EffectDistributionFunction_t type,
     real fraction); // 0x453290, this module
 extern effect_location_marker *effect_marker_next(effect *self, datum_index *marker,
@@ -433,8 +434,11 @@ void effect_spawn_particles(effect *self)
                                             // `flags`; both the colour-pair selector (>>3 & 3)
                                             // and the tint-apply bit (& 4) come out of it.
                                             scale_bits = (uint32_t)particle_type->flags;
-                                            color_interpolate(&creation_data.color.red,
-                                                (scale_bits >> 3) & 3, fraction);
+                                            // 0x4528a2..0x4528bd: EAX = the upper tint bound's rgb (+0xc4),
+                                            // ECX = the lower one's (+0xb4)
+                                            color_interpolate((ColorRGB *)((uint8_t *)particle_type + 0xc4),
+                                                (ColorRGB *)((uint8_t *)particle_type + 0xb4),
+                                                (ColorRGB *)&creation_data.color.red, (scale_bits >> 3) & 3, fraction);
                                             creation_data.color.alpha =
                                                 fraction * particle_type->tint_upper_bound.alpha +
                                                 (1.0f - fraction) * particle_type->tint_lower_bound.alpha;

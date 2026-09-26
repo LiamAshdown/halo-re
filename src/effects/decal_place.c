@@ -89,7 +89,9 @@ extern int16_t rasterizer_vertex_buffer_lock_state; // 0x0069c632, rasterizer.h;
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand,
     real_vector3d *stack_operand); // 0x4052c0
-extern void color_interpolate(void *out_color, uint32_t color_pair, float t); // 0x43f6a0
+extern long lrint(double x); // x87 fistp under the default control word (round-half-to-even)
+extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
+    // 0x43f6a0, blam-cc: EAX -> color1, ECX -> color0, stack -> dest, flags, t
 extern void *texture_cache_get(uint32_t unknown_0); // 0x444550, UNSURE signature
 extern int16_t vector3d_major_axis_index(real_vector3d *v); // 0x44d820, math module (misattributed)
 extern void structure_lightmap_uv_rect_build(uint32_t sequence_index, uint32_t unknown_1, real radius, void *out_rect);
@@ -322,17 +324,25 @@ void decal_place(datum_index decal_tag_index, uint8_t *placement, real_vector3d 
                         self->definition_index = decal_tag_index;
 
                         {
-                            real red, green, blue, alpha;
+                            // 0x4502cb..0x4503dc: alpha = lerp(tag +0x2c, tag +0x30) by a random fraction, the
+                            // colour color_interpolate(EAX = tag +0x40, ECX = tag +0x34, dest, (flags byte >> 1) & 3,
+                            // another random fraction), packed A8R8G8B8 with fistp rounding
+                            ColorRGB color;
+                            real alpha;
+                            real fraction;
+
                             effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-                            red = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f;
-                            (void)red;
-                            color_interpolate(&red, (tag->flags >> 1) & 3, 0.0f); // UNSURE:
-                                // fraction argument elided, see file header
-                            green = 0.0f; blue = 0.0f; alpha = 1.0f; // UNSURE placeholders
-                            self->color = ((uint32_t)(uint8_t)(red * 255.0f)) |
-                                ((uint32_t)(uint8_t)(green * 255.0f) << 8) |
-                                ((uint32_t)(uint8_t)(blue * 255.0f) << 16) |
-                                ((uint32_t)(uint8_t)(alpha * 255.0f) << 24);
+                            alpha = (*(float *)((uint8_t *)tag + 0x30) - *(float *)((uint8_t *)tag + 0x2c)) *
+                                ((real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f) +
+                                *(float *)((uint8_t *)tag + 0x2c);
+                            effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
+                            fraction = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f;
+                            color_interpolate((ColorRGB *)((uint8_t *)tag + 0x40), (ColorRGB *)((uint8_t *)tag + 0x34),
+                                &color, (*(uint8_t *)tag >> 1) & 3, fraction);
+                            self->color = ((uint32_t)lrint(color.blue * 255.0f) & 0xff) |
+                                (((uint32_t)lrint(color.green * 255.0f) & 0xff) << 8) |
+                                (((uint32_t)lrint(color.red * 255.0f) & 0xff) << 16) |
+                                ((uint32_t)lrint(alpha * 255.0f) << 24);
                         }
                         self->alpha = 0xff;
                     }

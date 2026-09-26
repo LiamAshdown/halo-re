@@ -25,7 +25,7 @@
 #include "effects.h"
 
 extern data_array *effect_data; // 0x0087abdc
-extern const ColorRGB *const *default_effect_color_pointer; // 0x00686b04, UNSURE, see file header
+extern const ColorRGB *default_effect_color_pointer; // 0x00686b04, UNSURE, see file header
 
 extern datum_index effect_new(datum_index definition_index, datum_index creator_object_index,
     uint8_t force_create); // 0x451500, this module
@@ -58,7 +58,7 @@ datum_index effect_new_at_texture_coordinate(datum_index definition_index, datum
         self->tint_source.unknown_08 = 0;
 
         if (change_color_index == -1) {
-            self->color = **default_effect_color_pointer;
+            self->color = *default_effect_color_pointer; // one load: the global holds the pointer (mov eax,ds:0x686b04; mov ecx,[eax])
         }
         self->flags = self->flags | _effect_looping_bit;
 

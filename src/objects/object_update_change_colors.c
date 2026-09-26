@@ -23,7 +23,8 @@
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern void color_interpolate(void *out_color, uint32_t color_pair, float t); // 0x43f6a0
+extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
+    // 0x43f6a0, blam-cc: EAX -> color1, ECX -> color0, stack -> dest, flags, t
 
 void object_update_change_colors(uint32_t object_index) // blam-cc: EAX -> object_index
 {
@@ -41,7 +42,10 @@ void object_update_change_colors(uint32_t object_index) // blam-cc: EAX -> objec
 
             if (tag_color->scale_by != 0) {
                 float t = *(float *)((uint8_t *)obj + 0x120 + tag_color->scale_by * 4);
-                color_interpolate(out, tag_color->flags, t);
+                // 0x4f9193..0x4f91b1: EAX = the tag entry's +0x14 color, ECX = its +0x8 color, stack: the object's
+                // change color, the entry's +0x4 flags, t
+                color_interpolate((ColorRGB *)((uint8_t *)tag_color + 0x14), (ColorRGB *)((uint8_t *)tag_color + 8), out,
+                    *(uint32_t *)((uint8_t *)tag_color + 4), t);
             }
             if (tag_color->darken_by != 0) {
                 float scale = *(float *)((uint8_t *)obj + 0x120 + tag_color->darken_by * 4);

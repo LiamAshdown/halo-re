@@ -19,6 +19,14 @@
 //   Object flags bits 0x100 and 0x400 (set on a successful light/looping-sound attachment) are
 //   not in types/objects.h's object_flags enum; preserved as raw hex.
 
+// REWRITTEN (from objdump 0x4f9750..0x4f98eb). Per attachment (Object +0x140 count, 0x48 each at +0x144; tag
+//   dependency fourcc +0, tag id +0xc, marker name +0x10, words +0x30/+0x32/+0x34 each passed minus one):
+//   light: light_new_attached(tag, object, i, +0x30 - 1, +0x34 - 1), object flag 0x100 on success;
+//   looping sound: looping_sound_new(EAX object, EDI tag, ECX marker, stack +0x30 - 1), object flag 0x400;
+//   effect: effect_new_at_texture_coordinate(EAX tag, EDX object, CX +0x34 - 1, stack +0x30 - 1, +0x32 - 1);
+//   contrail: contrail_new(AX i, ECX object, stack tag); particle system: particle_system_new_on_marker(stack
+//   tag, object, AX i). The type byte (-1 for none) goes to object +0x144 + i and the handle to +0x14c + 4i.
+//   The draft passed guessed arguments to all but the light (looping sounds read a garbage marker: the crash).
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -28,64 +36,66 @@
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern datum_index light_new_attached(datum_index light_tag, datum_index owner_object,
-    int16_t marker_index, int16_t marker_index_secondary, int16_t change_color_index); // 0x4f0af0
-extern datum_index looping_sound_new(int16_t primary_scale_minus_1); // 0x543c20, foreign module, UNSURE
-extern datum_index effect_new_at_texture_coordinate(int32_t primary_scale_minus_1, int16_t secondary_scale_minus_1); // 0x4506d0, foreign module, UNSURE
-extern datum_index contrail_new(datum_index tag); // 0x44c910, foreign module, UNSURE
-extern datum_index particle_system_new_on_marker(datum_index tag, uint32_t object_index); // 0x4536f0, foreign module, UNSURE
+extern datum_index light_new_attached(datum_index light_tag, datum_index owner_object, int16_t marker_index,
+    int16_t marker_index_secondary, int16_t change_color_index); // 0x4f0af0, all on the stack
+extern datum_index looping_sound_new(datum_index object_index, datum_index definition_index, char *marker_name,
+    int16_t function_index); // 0x543c20, blam-cc: EAX, EDI, ECX, stack
+extern datum_index effect_new_at_texture_coordinate(datum_index definition_index, datum_index object_index,
+    int16_t change_color_index, int16_t u, int16_t v); // 0x4506d0, blam-cc: EAX, EDX, CX, stack (u, v)
+extern datum_index contrail_new(int16_t attachment_index, datum_index object_index, datum_index definition_index);
+    // 0x44c910, blam-cc: AX, ECX, stack
+extern datum_index particle_system_new_on_marker(uint32_t definition_index, uint32_t object_index,
+    int16_t attachment_index); // 0x4536f0, blam-cc: stack, stack, AX
 
 void object_create_attachments(uint32_t object_index)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    uint8_t *definition = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
     int16_t i;
 
-    for (i = 0; i < (int16_t)definition->attachments.count; i++) {
-        ObjectAttachment *attach = (ObjectAttachment *)definition->attachments.pointer + i;
-        datum_index tag = attach->type.tag_id.index == 0xffff ? k_datum_index_none :
-            *(datum_index *)&attach->type.tag_id;
-        int8_t type = _object_attachment_type_none;
+    for (i = 0; i < *(int32_t *)(definition + 0x140); i++) {
+        uint8_t *attachment = *(uint8_t **)(definition + 0x144) + i * 0x48;
+        datum_index tag = *(datum_index *)(attachment + 0xc);
+        int16_t first_scale = (int16_t)(*(int16_t *)(attachment + 0x30) - 1);
+        int16_t second_scale = (int16_t)(*(uint16_t *)(attachment + 0x32) - 1);
+        int16_t change_color = (int16_t)(*(uint16_t *)(attachment + 0x34) - 1);
+        int8_t type = -1;
         datum_index handle = k_datum_index_none;
 
         if (tag != k_datum_index_none) {
-            switch (attach->type.tag_fourcc) {
-                case 0x6c696768: type = _object_attachment_type_light; break;
-                case 0x6c736e64: type = _object_attachment_type_looping_sound; break;
-                case 0x65666665: type = _object_attachment_type_effect; break;
-                case 0x636f6e74: type = _object_attachment_type_contrail; break;
-                case 0x7063746c: type = _object_attachment_type_particle_system; break;
+            switch (*(uint32_t *)attachment) {
+            case 0x6c696768: type = 0; break; // 'ligh'
+            case 0x6c736e64: type = 1; break; // 'lsnd'
+            case 0x65666665: type = 2; break; // 'effe'
+            case 0x636f6e74: type = 3; break; // 'cont'
+            case 0x7063746c: type = 4; break; // 'pctl'
             }
         }
-
         switch (type) {
-            case _object_attachment_type_light:
-                handle = light_new_attached(tag, object_index, i, attach->primary_scale - 1, attach->secondary_scale - 1);
-                if (handle != k_datum_index_none) {
-                    obj->flags |= 0x100; // UNSURE: undocumented bit, see file header
-                }
-                break;
-            case _object_attachment_type_looping_sound:
-                handle = looping_sound_new(attach->primary_scale - 1);
-                if (handle != k_datum_index_none) {
-                    obj->flags |= 0x400; // UNSURE: undocumented bit, see file header
-                }
-                break;
-            case _object_attachment_type_effect:
-                handle = effect_new_at_texture_coordinate(attach->primary_scale - 1, attach->secondary_scale - 1);
-                break;
-            case _object_attachment_type_contrail:
-                handle = contrail_new(tag);
-                break;
-            case _object_attachment_type_particle_system:
-                handle = particle_system_new_on_marker(tag, object_index);
-                break;
-            default:
-                break;
+        case 0:
+            handle = light_new_attached(tag, object_index, i, first_scale, change_color);
+            if (handle != k_datum_index_none) {
+                *(uint32_t *)(obj + 0x10) |= 0x100;
+            }
+            break;
+        case 1:
+            handle = looping_sound_new(object_index, tag, (char *)(attachment + 0x10), first_scale);
+            if (handle != k_datum_index_none) {
+                *(uint32_t *)(obj + 0x10) |= 0x400;
+            }
+            break;
+        case 2:
+            handle = effect_new_at_texture_coordinate(tag, object_index, change_color, first_scale, second_scale);
+            break;
+        case 3:
+            handle = contrail_new(i, object_index, tag);
+            break;
+        case 4:
+            handle = particle_system_new_on_marker(tag, object_index, i);
+            break;
         }
-
-        obj->attachment_types[i] = type;
-        obj->attachment_handles[i] = handle;
+        obj[0x144 + i] = (uint8_t)type;
+        *(datum_index *)(obj + 0x14c + i * 4) = handle;
     }
 }
 

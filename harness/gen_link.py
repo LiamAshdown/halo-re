@@ -31,7 +31,8 @@ def extern_map():
         b = t[:t.rfind("#if 0")] if "#if 0" in t else t
         # function-pointer variables: "extern void (*name)(args); // 0x00696664" -- data holding a code address.
         # The general pattern below would read these as a function called "void"
-        for m in re.finditer(r"^[ \t]*extern\s[^;{}(]*\(\s*(?:__\w+\s+)?\*\s*([A-Za-z_]\w*)\s*\)\s*\(", b, re.M):
+        # (arrays of them too: "extern void (*table[2])(args); // 0x0065743c")
+        for m in re.finditer(r"^[ \t]*extern\s[^;{}(]*\(\s*(?:__\w+\s+)?\*\s*([A-Za-z_]\w*)\s*(?:\[[^\]]*\]\s*)*\)\s*\(", b, re.M):
             end = b.find(";", m.start()); eol = b.find("\n", end)
             a = re.search(r"0x0{0,2}([4-9a-f][0-9a-f]{5})\b", b[end:eol if eol > 0 else len(b)], re.I)
             kind[m.group(1)] = "data"

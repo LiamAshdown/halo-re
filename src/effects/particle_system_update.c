@@ -43,8 +43,7 @@ extern data_array *particle_system_particle_data; // 0x0087abd8
 extern data_array *object_data;                   // 0x008603b0
 extern tag_instance *tag_instances;               // 0x0087bc14
 extern random_seed effect_random_seed;             // 0x00719cd4
-extern void (*particle_system_update_physics_table[2])(particle_system *self, float delta_time);
-                                    // 0x0065743c, .rdata
+extern void (*particle_system_update_physics_table[2])(particle_system *self, float delta_time); // 0x0065743c, .rdata
 extern void (*particle_update_physics_table[1])(particle_system *self, int32_t type_index,
     float delta_time, particle_system_particle *particle); // 0x00657450, .rdata; UNSURE signature
 
