@@ -49,7 +49,7 @@ extern data_array *effect_object_pool_ptr; // 0x0087abdc
 extern data_array *effect_location_pool_ptr; // 0x0087abe0
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_time_globals *game_time; // 0x006f1d6c
-extern uint32_t *unknown_00746280_block; // TYPES-GAP
+extern uint32_t unknown_00746280_block[0x343]; // 0x00746280, a block (mov edi,0x746280; rep stos), not a pointer
 extern uint8_t *cache_file_slot_table; // 0x006b0b80
 
 extern void decal_clear_flags(void);              // UNSURE module

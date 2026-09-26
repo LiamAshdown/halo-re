@@ -27,10 +27,14 @@
 // the machine code rather than only Ghidra's pseudo-C.
 #include "tags.h"
 #include "cache.h"
+#include "memory.h"
+#include "math.h"
+#include "rasterizer.h"
 
 extern uint8_t rasterizer_vertex_buffer_create(int16_t *param_1, int16_t vertex_type, int32_t count, uint32_t *source_data, int32_t param_5, uint32_t size); // UNSURE, see structure_bsp_load_material_vertex_
     // buffers.c; rasterizer module, 0x524980
-extern void rasterizer_index_buffer_create(void *fields, void *data); // UNSURE; rasterizer
+extern uint8_t rasterizer_index_buffer_create(int32_t count, int16_t type, rasterizer_index_buffer *out,
+    const void *source); // 0x525030, blam-cc: EAX -> count, DX -> type, stack -> out, source
     // module, 0x525030
 extern int16_t cache_io_request_new(cache_io_completion *completion, // blam-cc: ESI
     int32_t offset, uint32_t size, void *destination, uint8_t priority,
@@ -120,7 +124,10 @@ void model_load_vertex_buffers(cache_file_tag_header *header)
                 }
 
                 if (success != 0) {
-                    rasterizer_index_buffer_create(&part->base.triangle_buffer_type,
+                    // 0x442e8a..0x442e9c: EAX the count (+0x48), DX the type (+0x44), stack (the buffer record at
+                    // +0x44, the index data)
+                    rasterizer_index_buffer *indices = (rasterizer_index_buffer *)&part->base.triangle_buffer_type;
+                    rasterizer_index_buffer_create(indices->count, indices->type, indices,
                         (uint8_t *)index_base + part->base.triangle_offset_2);
                 }
             }

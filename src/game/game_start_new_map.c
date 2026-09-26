@@ -20,6 +20,7 @@
 #include "cache.h"
 #include "game.h"
 #include "scenario.h"
+#include "camera.h"
 
 extern uint8_t *cache_file_slot_table; // 0x006b0b80, TYPES-GAP (dword+0x10 seeds the RNG)
 extern random_seed random_seed_global; // 0x00719cd0
@@ -28,7 +29,7 @@ extern uint8_t player_profile_cache_initialized;     // 0x006f1d38
 extern uint32_t player_profile_cache_block[0xc0];    // 0x006b0b88, TYPES-GAP
 extern game_variant game_engine_active_variant;             // 0x0087ab20 (NOT 0x006f1c88, which is the live copy)
 extern game_time_globals *game_time;                 // 0x006f1d6c
-extern uint32_t *unknown_00746280_block;             // TYPES-GAP, 0x343 dwords + a trailing byte
+extern uint32_t unknown_00746280_block[0x343];         // 0x00746280, a block of 0x343 dwords (not a pointer)
 extern scenario_game_globals *global_scenario_game_globals; // 0x00746f94, scenario.h
 extern uint32_t unknown_0065e508_block[0x12];        // TYPES-GAP, copied into the block above
 extern data_array *object_render_state_cache;              // 0x007c30ec, TYPES-GAP (data_array*)
@@ -67,7 +68,8 @@ extern uint8_t *unknown_006b8cbc; // TYPES-GAP
 extern void ai_reset_for_new_map(void);                 // 0x42a840
 extern void encounters_spawn_initial(void);                          // UNSURE module
 extern void camera_initialize(void);                       // 0x445580
-extern void observer_new(void);                              // UNSURE module
+extern void observer_new(observer *this);                    // 0x447740, blam-cc: EDX -> this
+extern observer observers[];                                 // 0x006ac65c, one per local player (0x29c each)
 extern void team_pair_table_init_defaults(void);               // this batch, 0x45bc80
 extern void game_engine_load_from_variant(const game_variant *variant); // 0x45c2c0,
     // blam-cc: EBX -> variant (matches src/game/game_engine_load_from_variant.c)                // this batch, 0x45c2c0
@@ -96,7 +98,7 @@ void game_start_new_map(void)
     uint8_t *tag_cache_bytes;
     uint32_t *cursor;
     uint32_t *dst;
-    uint16_t *record;
+    uint8_t *record;
 
     random_seed_global = *(random_seed *)(cache_file_slot_table + 0x10);
 
@@ -175,7 +177,7 @@ void game_start_new_map(void)
     data_delete_all(unknown_0087abe4);
 
     camera_initialize();
-    observer_new();
+    observer_new(&observers[0]); // 0x45b1a2: mov edx,0x6ac65c
 
     unknown_0087abec->valid = 1;
     data_delete_all(unknown_0087abec);
@@ -199,13 +201,14 @@ void game_start_new_map(void)
         data_delete_all(unknown_00724a50);
     }
 
-    record = (uint16_t *)((uint8_t *)sound_something_00746140 + 8);
+    // 0x45b233..0x45b252: 0x33 records of 12 bytes: two 1.0 floats then a zero word (byte offsets -8, -4, 0)
+    record = (uint8_t *)sound_something_00746140 + 8;
     i = 0x33;
     do {
         *(uint32_t *)(record - 4) = 0x3f800000;
         *(uint32_t *)(record - 8) = 0x3f800000;
-        *record = 0;
-        record = record + 12;
+        *(uint16_t *)record = 0;
+        record = record + 0xc;
         i = i - 1;
     } while (i != 0);
 

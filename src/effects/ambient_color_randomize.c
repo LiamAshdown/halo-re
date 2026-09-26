@@ -3,13 +3,19 @@
 //   ambient color probe grid and smoothly interpolates the transition between old and new
 //   values")
 // address 0x53fa70, size 518 bytes
-// name confidence: 0.6   rewrite confidence: 0.3 (see UNSURE)
+// name confidence: 0.6   rewrite confidence: 0.85
 // evidence: types/effects.h ambient_noise_grid (3 bands x 8 rows x 8 columns at 0x00746284, band
 //   stride 0x300, row stride 0x60; "rolls the column 0 entry of each of the 8 rows in each of
 //   the 3 bands out of sphere_point_table and then fills columns 1 to 7 with
 //   vector3d_catmull_rom_interpolate"); src/math/vector3d_randomize_direction.c establishes
 //   sphere_point_table / sphere_point_table_count.
 // register convention: __cdecl, no arguments.
+// REWRITTEN (first-boot track, objdump 0x53fa70..0x53fc75): the random rolls go row by row (bands
+//   inner), and the interpolation's four control points are the column 0 entries of rows i-1..i+2 of
+//   the same band (time0 = i - 1, dt = 1.0, time = i + column * 0.125 from 0x00672cbc), passed in
+//   EBX/ESI/EDI plus the stack as vector3d_catmull_rom_interpolate takes them; the old version passed
+//   two pointers and three floats and crashed the standalone boot. The UNSURE notes below are
+//   historical.
 // UNSURE: `vector3d_catmull_rom_interpolate`'s exact argument roles are reconstructed from its
 //   name and the surrounding arithmetic (four control points and a 0..1-ish fraction), not from
 //   an established prototype elsewhere in the codebase; the fourth control point address
@@ -28,36 +34,42 @@ extern real_point3d *sphere_point_table; // 0x006b7af4, 1026 unit vectors
 extern int16_t sphere_point_table_count; // 0x006b7af8, 1026
 extern random_seed random_seed_global;   // 0x00719cd0, math module
 
-extern void vector3d_catmull_rom_interpolate(void *out, void *p0, real t0, real t1, real t); // 0x447080,
-                                    // UNSURE signature, see file header
+extern void vector3d_catmull_rom_interpolate(real_vector3d *source1, real_vector3d *source3, real_vector3d *source2,
+    real_vector3d *out, real_vector3d *source0, float time0, float dt, float time); // 0x447080,
+    // blam-cc: EBX -> source1, ESI -> source3, EDI -> source2, stack -> out, source0, time0, dt, time
 
-// Re-randomizes column 0 of every row of every band in the ambient noise grid by rolling a fresh
-// sphere_point_table direction, then rebuilds columns 1..7 of every row as a Catmull-Rom
-// interpolation toward the next row's column 0, giving each row a smooth transition sequence.
+// Rolls a fresh sphere_point_table direction into column 0 of every row of every band (row by row, the three
+// bands of a row in turn), then fills columns 1..7 of each row with the Catmull-Rom curve through the column 0
+// points of rows i-1, i, i+1 and i+2 (wrapping at 8), sampled at i + column / 8.
 void ambient_color_randomize(void)
 {
-    int band, row, column;
+    int32_t row, band, column;
 
-    for (band = 0; band < k_ambient_noise_bands; band++) {
-        for (row = 0; row < k_ambient_noise_rows; row++) {
+    for (row = 0; row < k_ambient_noise_rows; row++) {
+        for (band = 0; band < k_ambient_noise_bands; band++) {
+            int16_t index;
+
             random_seed_global = random_seed_global * k_random_multiplier + k_random_increment;
-            {
-                int16_t index = (int16_t)(((random_seed_global >> k_random_value_shift) *
-                    (uint32_t)(int32_t)sphere_point_table_count) >> 16);
-                ambient_noise.entries[band][row][0] = *(real_vector3d *)&sphere_point_table[index];
-            }
+            index = (int16_t)(((random_seed_global >> 16) * (uint32_t)(int32_t)sphere_point_table_count) >> 16);
+            ambient_noise.entries[band][row][0] = *(real_vector3d *)&sphere_point_table[index];
         }
     }
 
-    for (row = 0; row < 8; row++) {
-        for (column = 1; column < 8; column++) {
-            uint8_t phase = (uint8_t)(row - 1);
+    for (row = 0; row < k_ambient_noise_rows; row++) {
+        int32_t previous = (row - 1) & 7;
+        int32_t next = (row + 1) & 7;
+        int32_t after_next = (row + 2) & 7;
 
-            for (band = 0; band < 3; band++) {
-                vector3d_catmull_rom_interpolate(&ambient_noise.entries[band][row][column],
-                    (uint8_t *)&ambient_noise + ((phase & 7) + band * 8) * 0x18, // UNSURE, see
-                                    // file header
-                    (real)(row - 1), 1.0f, (real)(column - 1) * 0.125f + (real)(row - 1));
+        for (column = 1; column < k_ambient_noise_columns; column++) {
+            float time = (float)column * 0.125f + (float)row;
+
+            for (band = 0; band < k_ambient_noise_bands; band++) {
+                vector3d_catmull_rom_interpolate(&ambient_noise.entries[band][row][0],
+                                                 &ambient_noise.entries[band][after_next][0],
+                                                 &ambient_noise.entries[band][next][0],
+                                                 &ambient_noise.entries[band][row][column],
+                                                 &ambient_noise.entries[band][previous][0],
+                                                 (float)(row - 1), 1.0f, time);
             }
         }
     }
