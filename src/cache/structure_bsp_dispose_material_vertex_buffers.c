@@ -32,7 +32,7 @@ void structure_bsp_dispose_material_vertex_buffers(
     ScenarioStructureBSPLightmap *lightmap;
     ScenarioStructureBSPMaterial *material;
     void **object;
-    void (**vtable)(void *);
+    void (__stdcall **vtable)(void *); // IUnknown::Release is __stdcall: no add esp after 0x443206 / 0x443228
     int32_t lightmap_index;
     int32_t material_index;
 
@@ -50,7 +50,7 @@ void structure_bsp_dispose_material_vertex_buffers(
             if (d3d_device != 0 && (void *)material != (void *)-0xc4) {
                 object = (void **)material->lightmap_vertices_index_pointer;
                 if (object != 0) {
-                    vtable = *(void (***)(void *))object; // object's vtable pointer
+                    vtable = *(void (__stdcall ***)(void *))object; // object's vtable pointer
                     vtable[2](object);                     // slot +8 == vtable[2], Release()
                     material->lightmap_vertices_index_pointer = 0;
                 }
@@ -58,7 +58,7 @@ void structure_bsp_dispose_material_vertex_buffers(
             if (d3d_device != 0 && (void *)material != (void *)-0xb0) {
                 object = (void **)material->rendered_vertices_index_pointer;
                 if (object != 0) {
-                    vtable = *(void (***)(void *))object;
+                    vtable = *(void (__stdcall ***)(void *))object;
                     vtable[2](object);
                     material->rendered_vertices_index_pointer = 0;
                 }

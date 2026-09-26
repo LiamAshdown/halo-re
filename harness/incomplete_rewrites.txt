@@ -46,7 +46,6 @@ cache_file_open_by_name                            # cache: rewrite says 'Not re
 cache_file_slot_read_header                        # cache: rewrite says 'not rewritten'
 cache_io_thread_proc_async                         # cache: rewrite says 'not rewritten'
 sound_cache_new                                    # cache: rewrite says 'not rewritten'
-structure_bsp_dispose_material_vertex_buffers      # cache: rewrite says 'simplified'
 observer_evaluate_spline_acceleration              # camera: rewrite says 'omitted'
 observer_evaluate_spline_velocity                  # camera: rewrite says 'omitted'
 chimera__letterbox                                 # cutscene: rewrite says 'placeholder'
