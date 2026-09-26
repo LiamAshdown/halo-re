@@ -59,8 +59,9 @@ extern int32_t game_engine_get_multiplayer_sound_duration_ticks(int32_t sound_in
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
-extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3,
-    uint32_t unknown_4, uint32_t unknown_5); // 0x4e1a80
+extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data,
+    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, ECX server
 
 void game_engine_check_bucket_scores_and_end_round(void)
 {
@@ -164,7 +165,7 @@ void game_engine_check_bucket_scores_and_end_round(void)
                 uint8_t *payload_ptr = &payload;
                 int32_t encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x16, 0, (void **)&payload_ptr, 0, 1, 0);
                 if (encoded_bits > 0) {
-                    network_session_broadcast_to_flagged(1, &shared_hud_text_draw_state, 1, 0, 0, 3);
+                    network_session_broadcast_to_flagged(network_server_pointer, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
                 }
             }
         }

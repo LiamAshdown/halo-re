@@ -22,7 +22,7 @@
 
 #include "sound.h"
 extern datum_index sound_play_new(datum_index definition_index, sound_location *location, datum_index owner_index,
-    void *location_proc, void *callback_data, int32_t callback_data_size, uint32_t first_person_hint); // 0x549af0
+    sound_location_proc location_proc, void *callback_data, int32_t callback_data_size, uint32_t first_person_hint); // 0x549af0
 
 // blam-cc: EAX -> sound_tag
 void widget_play_sound_effect_tag(datum_index sound_tag)

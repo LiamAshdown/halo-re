@@ -40,8 +40,9 @@ extern int object_type_override_call_0x6c(uint32_t object_index);     // 0x4f45b
 extern void object_type_override_call_0x68(uint32_t object_index);    // 0x4f4560, objects module
 extern void object_type_override_call_0x7c(uint32_t object_index);    // 0x4f4760, objects module
 extern uint8_t object_datum_consume_pending_flag(uint32_t object_index); // 0x4f46b0, objects module
-extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3, uint32_t unknown_4,
-    uint32_t unknown_5); // 0x4e1a80, UNSURE full signature
+extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data,
+    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, ECX server
 
 // While hosting (network_game_mode == 2) and network_session+0x04 == 1, walks every object
 // that this machine controls (network_role == 0) whose type opts in
@@ -74,7 +75,7 @@ void network_server_broadcast_object_type_changes(void)
             }
             encode_result = object_type_override_call_0x6c(iterator.handle);
             if (0 < encode_result) {
-                network_session_broadcast_to_flagged(1, object_network_message_scratch, changed == 0, 0, 0, 3);
+                network_session_broadcast_to_flagged(network_server_pointer, 1, object_network_message_scratch, changed == 0, 0, 0, 3);
             }
             object_type_override_call_0x7c(iterator.handle);
         }

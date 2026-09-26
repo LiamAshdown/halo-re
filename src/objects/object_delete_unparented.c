@@ -33,7 +33,9 @@ extern void network_index_cache_remove(void *globals, uint32_t object_index); //
     // (0x4f5b16 `mov esi,edi / mov eax,0x6870d8` and 0x4f5b96 `mov eax,0x6870d8` with ESI
     // already holding the index). Ghidra shows neither, so it used to be declared with the
     // object index alone.
-extern void network_session_broadcast_to_flagged(uint32_t a1, void *a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6);
+extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data,
+    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, ECX server
     // 0x4e1a80, UNSURE: unexamined
 
 void object_delete_unparented(uint32_t object_index) // blam-cc: EDI -> object_index
@@ -65,7 +67,7 @@ void object_delete_unparented(uint32_t object_index) // blam-cc: EDI -> object_i
     }
 
     if (encoded_length > 0) {
-        network_session_broadcast_to_flagged(1, object_network_message_scratch, 1, 0, 0, 3);
+        network_session_broadcast_to_flagged(network_server_pointer, 1, object_network_message_scratch, 1, 0, 0, 3);
     }
 }
 

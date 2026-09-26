@@ -27,7 +27,9 @@ extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, mem
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
-extern void network_session_broadcast_to_flagged(uint32_t a1, void *a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6); // 0x4e1a80, opaque, out of range
+extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data,
+    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, ECX server
 extern void network_index_cache_remove(void *globals, uint32_t object_index); // 0x4e9d40, opaque, out of range
 
 // Broadcasts a projectile-detonation network event (thrown-grenade projectiles only; see
@@ -51,7 +53,7 @@ void projectile_send_detonation(datum_index projectile_index)
 
     items[0] = &message;
     message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, k_message_projectile_detonation, 0, items, 0, 1, 0);
-    network_session_broadcast_to_flagged(1, object_network_message_scratch, 1, 0, 0, 3);
+    network_session_broadcast_to_flagged(network_server_pointer, 1, object_network_message_scratch, 1, 0, 0, 3);
 
     obj->network_role = 3;
     if ((((object_header *)object_data->data)[projectile_index & 0xffff].flags & _object_header_delete_pending_bit) == 0) {

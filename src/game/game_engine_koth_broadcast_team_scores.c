@@ -34,8 +34,9 @@ extern int32_t king_alt_scores_network_tail[16];   // 0x0087a744, UNSURE identit
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
-extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3,
-    uint32_t unknown_4, uint32_t unknown_5); // 0x4e1a80
+extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data,
+    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, ECX server
 extern void network_session_send_to_machine(uint32_t unknown_0, void *unknown_1, int32_t length,
     uint32_t unknown_3, uint32_t unknown_4, uint32_t unknown_5, uint32_t unknown_6); // 0x4e1930
 
@@ -84,7 +85,7 @@ void game_engine_koth_broadcast_team_scores(int32_t mode, int32_t machine_index)
 
     if (encoded_bits > 0) {
         if (machine_index == -1) {
-            network_session_broadcast_to_flagged(1, &shared_hud_text_draw_state, 0, 0, 0, 0);
+            network_session_broadcast_to_flagged(network_server_pointer, 1, &shared_hud_text_draw_state, 0, 0, 0, 0);
         } else {
             network_session_send_to_machine(1, &shared_hud_text_draw_state, encoded_bits, 1, 0, 0, 3);
         }

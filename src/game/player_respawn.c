@@ -88,8 +88,9 @@ extern void game_engine_apply_player_grenade_counts(uint32_t player_index); // 0
 extern void object_type_override_call_0x68(uint32_t object_index); // 0x4f4560, established
     // (src/game/game_engine_update_netgame_equipment.c)
 extern int32_t unit_build_network_update(datum_index object_index, void *buffer, uint32_t buffer_size); // 0x55aed0, not in this batch
-extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3,
-    uint32_t unknown_4, uint32_t unknown_5); // 0x4e1a80
+extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data,
+    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, ECX server
 extern void game_engine_send_unit_weapon_loadout(uint32_t unit_index, datum_index player_handle,
     int32_t value, int32_t machine_index); // this batch, 0x477a80
 extern void observer_new(uint32_t player_index); // 0x447740, not in this batch; UNSURE exact signature
@@ -222,7 +223,7 @@ void player_respawn(uint32_t player_index)
                             {
                                 int32_t encoded_bits = unit_build_network_update(new_unit, &shared_hud_text_draw_state, 0x7ff8);
                                 if (0 < encoded_bits) {
-                                    network_session_broadcast_to_flagged(1, &shared_hud_text_draw_state, 1, 0, 0, 3);
+                                    network_session_broadcast_to_flagged(network_server_pointer, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
                                 }
                             }
                             p->kill_streak[0] = 0;
