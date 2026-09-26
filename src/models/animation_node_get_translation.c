@@ -48,7 +48,7 @@ void animation_node_get_translation(ModelAnimationsAnimation *animation, real fr
     }
 
     {
-        int32_t first_index = (int32_t)(keyframe_header >> k_animation_keyframe_index_shift);
+        int32_t first_index = (int16_t)(keyframe_header >> k_animation_keyframe_index_shift); // movsx ecx,dx at 0x4d6d4f: low 16 bits, signed
         uint16_t *times = (uint16_t *)(header_base + header->translation_keyframe_times) + first_index;
         real_point3d *keyframes = (real_point3d *)(header_base + header->translation_keyframes) + first_index;
         int16_t rounded_frame = (int16_t)floor((double)frame);

@@ -16,7 +16,6 @@ game_engine_variant_defaults_classic_team_oddball  # game: differ 200/200: point
 hs_null_with_params_evaluate                       # hs: differ 200/200: return 0x20229100 vs 0x00009100
 input_joystick_state_process                       # input: died tester process died
 hud_state_allocate                                 # interface: differ 200/200: global 0x006e2dd4: 0xd046e3f0 vs 0xd9da9772
-animation_node_get_rotation                        # models: hang no result within 20 s (a random input may loop forever in one version)
 format_time_and_date_strings                       # networking: differ 19/100: pointer arg #0 +0x0: 0.50075 (0x3f00312d) vs 0.500003 (0x3f00002d)
 message_delta_decode_begin                         # networking: differ 168/168: return 0xc2c01a00 vs 0x00000000
 message_delta_sample_ring_buffer_append            # networking: differ 1/1: pointer arg #0 +0x8: 0 (0x00000000) vs -2.382 (0xc01872b0)
@@ -50,7 +49,6 @@ object_apply_body_damage                           # calls __ftol() with no argu
 object_apply_shield_damage                         # calls __ftol() with no argument: the float it converts was not traced (UNSURE in the file)
 unit_apply_damage_effects                          # calls __ftol() with no argument: the float it converts was not traced (UNSURE in the file)
 unit_update                                        # calls __ftol() with no argument: the float it converts was not traced (UNSURE in the file)
-animation_node_get_translation                     # models: rewrite crashed on 1/11 random inputs (original did not)
 physics_shape_pill_sweep_test_point                # physics: 6/200 differ (return value)
 physics_shape_polygon_test_ray                     # physics: rewrite crashed on 1/185 random inputs
 actor_movement_action_cancel                       # calls a function pointer with no arguments; the original pushes arguments before its indirect call(s)
@@ -75,7 +73,6 @@ path_find_trace_bsp_boundary  # in game: endless loop in the pathfinder (rewrite
 path_find_trace_cluster_boundary  # rewrite confidence 0.1, same Ghidra-shaped walk as path_find_trace_bsp_boundary
 cache_file_exists  # difftest: tester process died (unlocked by the 2026-09-24 live-in/size fixes)
 hs_object_orient  # difftest: return differs (0xfffffffe vs 0xfffffffd) (unlocked by the 2026-09-24 live-in/size fixes)
-animation_keyframe_time_search  # difftest: hang on random input (unlocked by the 2026-09-24 live-in/size fixes)
 model_nodes_build_matrices  # difftest: rewrite crashed, original did not (unlocked by the 2026-09-24 live-in/size fixes)
 object_dump_write  # difftest: tester process died (unlocked by the 2026-09-24 live-in/size fixes)
 object_permutation_find_matching_group  # difftest: rewrite crashed, original did not (unlocked by the 2026-09-24 live-in/size fixes)

@@ -70,7 +70,7 @@ void animation_node_get_rotation(ModelAnimationsAnimation *animation, real frame
         return;
     }
 
-    first_index = (int32_t)(keyframe_header >> k_animation_keyframe_index_shift);
+    first_index = (int16_t)(keyframe_header >> k_animation_keyframe_index_shift); // movsx ecx,dx at 0x4d6bbd: low 16 bits, signed
 
     {
         uint16_t *times = (uint16_t *)(header_base + header->rotation_keyframe_times) + first_index;

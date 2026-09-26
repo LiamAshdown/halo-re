@@ -33,21 +33,22 @@ void animation_node_get_scale(ModelAnimationsAnimation *animation, int16_t scale
     animation_compressed_header *header;
     uint32_t keyframe_header;
     int16_t count;
-    real default_value;
+    real *default_value; // read only where the original reads it (0x4d6ebd, 0x4d6f10, 0x4d6f3d): never on the
+                         // keyframe-search path, where it may point at unmapped memory
 
     header_base = (uint8_t *)animation->frame_data.pointer + animation->offset_to_compressed_data;
     header = (animation_compressed_header *)header_base;
     keyframe_header = ((uint32_t *)(header_base + header->scale_keyframe_headers))[scale_index];
-    default_value = ((real *)(header_base + header->scale_defaults))[scale_index];
+    default_value = &((real *)(header_base + header->scale_defaults))[scale_index];
     count = (int16_t)(keyframe_header & k_animation_keyframe_count_mask);
 
     if (count == 0) {
-        *out = default_value;
+        *out = *default_value;
         return;
     }
 
     {
-        int32_t first_index = (int32_t)(keyframe_header >> k_animation_keyframe_index_shift);
+        int32_t first_index = (int16_t)(keyframe_header >> k_animation_keyframe_index_shift); // movsx ecx,dx at 0x4d6ed1: low 16 bits, signed
         uint16_t *times = (uint16_t *)(header_base + header->scale_keyframe_times) + first_index;
         real *keyframes = (real *)(header_base + header->scale_keyframes) + first_index;
         int16_t rounded_frame = (int16_t)floor((double)frame);
@@ -58,14 +59,14 @@ void animation_node_get_scale(ModelAnimationsAnimation *animation, int16_t scale
         // (unlike the signed compares inside 0x4d6b10)
         if ((int32_t)rounded_frame < (int32_t)times[0]) {
             time_a = 0;
-            value_a = default_value;
+            value_a = *default_value;
             time_b = (int16_t)times[0];
             value_b = keyframes[0];
         } else if ((int32_t)rounded_frame == (int32_t)times[count - 1]) {
             time_a = (int16_t)times[count - 1];
             value_a = keyframes[count - 1];
             time_b = (int16_t)(time_a + 1);
-            value_b = default_value;
+            value_b = *default_value;
         } else {
             int16_t index = animation_keyframe_time_search(times, count, rounded_frame);
             time_a = (int16_t)times[index];
