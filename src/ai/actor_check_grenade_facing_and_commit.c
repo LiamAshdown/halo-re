@@ -10,9 +10,7 @@
 // All of Ghidra's float "NaN-flag" comparisons here have been simplified to plain
 // comparisons (fVar < 0 || fVar == 0  ->  fVar <= 0, etc.), which is semantically identical
 // for non-NaN floats and is how the rest of this codebase's math rewrites read them.
-// register convention: actor_index in EAX, param_2 (force-commit flag) in a second
 // register (Ghidra recognized a formal char param_2, so it is left as a plain parameter).
-// blam-cc: EAX -> actor_index, ECX/stack -> force_commit (register not resolved by Ghidra)
 // UNSURE: FUN_00569c90 is called with no visible argument; treated as taking actor_index.
 // UNSURE: the dot product at the end multiplies the normalized impact-point delta by
 // actor.position.x/.y (0x174/0x178), which is the actor's world position, not an obviously
@@ -37,7 +35,8 @@ extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, vecto
 extern uint8_t unit_is_in_busy_animation_state(datum_index actor_index); // UNSURE: no visible arg at the call site
 extern uint8_t actor_can_throw_grenade_at_target(datum_index actor_index); // 0x40d9c0, this module
 
-// blam-cc: EAX -> actor_index, force_commit is Ghidra's recognized param_2
+// FIXED (register inputs, objdump: each stack slot's first use checked against the parameter): the original never reads EAX; actor_index arrive(s) on the stack (2 stack argument(s)).
+// blam-cc: stack -> actor_index, force_commit
 uint8_t actor_check_grenade_facing_and_commit(datum_index actor_index, uint8_t force_commit)
 {
     actor *self;

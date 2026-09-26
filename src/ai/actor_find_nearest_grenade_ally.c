@@ -6,7 +6,6 @@
 // for eligible props, then falls back to walking the unassigned-actor list (chained through
 // the same next_in_encounter field) if not enough were found, and always writes the
 // closest candidate's actor handle to actor.unknown_1d0.
-// register convention: actor_index in EAX (param_1), a widen-search flag in a second
 // register that Ghidra did recognize as char param_2.
 // UNSURE: actor_validate_grenade_ally_candidate (actor_validate_grenade_ally_candidate), actor_find_prop_for_object and
 // actor_find_or_create_shared_prop are all called with fewer visible arguments than their declared signatures
@@ -31,6 +30,8 @@ extern datum_index ai_reference_actor_iterator_init_cursor(void); // UNSURE: "he
 extern datum_index actor_find_prop_for_object(datum_index object_index); // UNSURE signature
 extern datum_index actor_find_or_create_shared_prop(datum_index actor_index, uint32_t flag_a, uint32_t flag_b); // UNSURE signature
 
+// FIXED (register inputs, objdump: each stack slot's first use checked against the parameter): the original never reads EAX; actor_index arrive(s) on the stack (2 stack argument(s)).
+// blam-cc: stack -> actor_index, widen_search
 int32_t actor_find_nearest_grenade_ally(datum_index actor_index, uint8_t widen_search)
 {
     actor *self;

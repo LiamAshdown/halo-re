@@ -10,8 +10,6 @@
 //   TagReflexive at 0x30) -- same lookup chain as unit_try_set_animation_state, one level
 //   deeper for the command values that resolve through the weapon-type table instead of the
 //   weapon table.
-// register convention: unit index in EAX, overlay command in the stack param.
-//   // blam-cc: param_1 (EAX) -> unit_index, param_2 -> command
 
 #include "tags.h"
 #include "memory.h"
@@ -26,6 +24,8 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern void object_copy_default_node_transforms(void);              // 0x4f6b70  // real signature (object_copy_default_node_transforms.c): void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count); Ghidra recovered 0 of 2 args at this call site
 extern int16_t animation_choose_random_permutation(uint32_t flag);  // 0x4d6280
 
+// FIXED (register inputs, objdump: each stack slot's first use checked against the parameter): the original never reads EAX; unit_index arrive(s) on the stack (2 stack argument(s)).
+// blam-cc: stack -> unit_index, command
 void unit_start_seat_overlay_animation_a(uint32_t unit_index, int16_t command) // blam-cc: see file header
 {
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;

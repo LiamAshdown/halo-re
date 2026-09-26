@@ -68,7 +68,7 @@ extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char 
 extern void unit_cause_melee_damage(uint32_t unit_index, uint32_t a2, uint32_t a3, uint32_t a4,
                                      uint32_t a5, uint32_t a6, uint32_t a7);               // UNSURE signature
 
-// FIXED (register inputs, objdump + difftest): the original never reads EAX; unit_index arrive(s) on the stack (1 stack argument(s)).
+// FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads EAX; unit_index arrive(s) on the stack (1 stack argument(s)).
 // blam-cc: ECX -> request, stack -> unit_index
 uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request) // blam-cc: see file header
 {

@@ -11,9 +11,6 @@
 //   contact_deterioration +0x88), PointPhysics (mass_scale, air_friction); types/physics.h
 //   point_physics_result_flags; src/physics/point_physics_tick.c establishes point_physics_tick
 //   0x50b530's full 11 argument signature (velocity via ESI, the rest on the stack).
-// register convention: particle handle in ECX (param_1, per Ghidra's own recognition); elapsed
-//   time as the recognized stack parameter (param_2).
-//   // blam-cc: ECX -> particle_handle (Ghidra shows it as param_1), stack -> delta_time
 // UNSURE (heavily): this function's world space branch calls point_physics_tick 0x50b530 with
 //   velocity passed via ESI (a register argument Ghidra drops entirely at this call site) and
 //   with `dt` missing from the visible argument list too (reconstructed here as `delta_time`,
@@ -45,7 +42,6 @@ extern void particle_impact(datum_index particle_handle); // 0x456550, this modu
 extern void particle_impact_response_dispatch(tag_group fourcc, real intensity); // 0x4565a0,
                                     // this module
 extern uint8_t any_local_player_within_10_units(real_point3d *position); // 0x453330, players module
-                                    // (skipped in this pass, see summary); blam-cc: EDX -> position
 extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type,
     int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param,
     real_point3d *position, real_vector3d *offset); // 0x453490, this module
@@ -61,6 +57,8 @@ extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg,
 // firing its collision/material effect and death-on-contact flags, and both paths settle the
 // particle to rest once its velocity drops below a small threshold (or, for a world space
 // particle, once it lands on a roughly upward-facing surface).
+// FIXED (register inputs, objdump: each stack slot's first use checked against the parameter): the original never reads ECX; particle_handle arrive(s) on the stack (2 stack argument(s)).
+// blam-cc: stack -> particle_handle, delta_time
 uint8_t particle_update_motion(datum_index particle_handle, real delta_time)
 {
     particle *self = &((particle *)particle_data->data)[(uint16_t)particle_handle];

@@ -5,8 +5,6 @@
 // rewrite confidence: 0.8
 // evidence: types/objects.h object_header, object, object_type_definition; global 0x008603b0
 //   object_data; global 0x0069bfdc object_type_definitions[12].
-// register convention: object index in EAX (param_1), second event argument in EDX (param_2);
-//   both are forwarded unchanged to every sub-definition's +0x2c hook.
 
 #include "tags.h"
 #include "memory.h"
@@ -16,8 +14,9 @@
 extern data_array *object_data; // 0x008603b0
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc
 
+// FIXED (register inputs, objdump: each stack slot's first use checked against the parameter): the original never reads EAX, EDX; object_index, event_argument arrive(s) on the stack (2 stack argument(s)).
+// blam-cc: stack -> object_index, event_argument
 void object_type_definitions_notify_two_args_0x2c(uint32_t object_index, uint32_t event_argument)
-    // blam-cc: EAX -> object_index, EDX -> event_argument
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     object_type_definition *def = object_type_definitions[obj->type];

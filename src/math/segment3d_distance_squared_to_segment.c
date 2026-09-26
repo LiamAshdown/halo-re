@@ -28,7 +28,7 @@ extern double fabs(double x); // ABS is a single x87 FABS instruction
 extern real vector3d_scalar_triple_product(const real_vector3d *a, const real_vector3d *b, const real_vector3d *c); // 0x44d8e0, a . (b x c); outside this module
 extern real point3d_distance_squared_to_segment(real_point3d *segment_start, real_vector3d *segment_direction, real_point3d *point); // 0x4cde30
 
-// FIXED (register inputs, objdump + difftest): the original never reads EAX; b_start arrive(s) on the stack (1 stack argument(s)).
+// FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads EAX; b_start arrive(s) on the stack (1 stack argument(s)).
 // blam-cc: EBX -> a_start, ESI -> a_direction, EDI -> b_direction, stack -> b_start
 real segment3d_distance_squared_to_segment(real_point3d *b_start, real_point3d *a_start, real_vector3d *a_direction, real_vector3d *b_direction)
 {

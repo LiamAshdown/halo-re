@@ -7,8 +7,6 @@
 //   player_data (0x0087a480); game_engine_is_inactive, game_engine_broadcast_kill_feed_by_
 //   relationship (0x460c10) and game_engine_ctf_notify_flag_carried_throttled /
 //   game_engine_ctf_reset_team_return_credit (this batch) already established.
-// register convention: flag object handle in EAX; player index on the stack (param_2).
-//   // blam-cc: EAX -> flag_handle, stack -> player_index
 // UNSURE: player + 0xc6 and player + 0xc4 are read/incremented here as raw counters that do not
 //   line up with any named field in types/game.h's player struct (the nearest named neighbours
 //   are objective_time at 0xc4 and unknown_c8 at 0xc8); kept as raw offsets. extraout_EDX (the
@@ -38,7 +36,6 @@ extern void game_engine_ctf_reset_team_return_credit(uint32_t object_index,
 extern void game_engine_ctf_notify_flag_carried_throttled(void); // 0x4689e0, this batch
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index); // 0x46be40
 
-// blam-cc: EAX -> flag_handle, stack -> player_index
 // While `player_index` is valid and hosting: if the player is standing back on their own flag's
 // pad (team matches), either finishes returning the flag (ctf_option_7e clear, resetting the
 // return credit and, if it had been active and the game is no longer active, crediting the
@@ -46,6 +43,8 @@ extern void game_engine_queue_multiplayer_sound(int32_t sound_index); // 0x46be4
 // being returned. Otherwise (a different team's pad), starts the return-credit countdown for
 // the flag's own team when nothing else claims it and it is not currently a normal engine round.
 // Returns true unless the check was skipped because player_index/network mode did not apply.
+// FIXED (register inputs, objdump: each stack slot's first use checked against the parameter): the original never reads EAX; flag_handle arrive(s) on the stack (2 stack argument(s)).
+// blam-cc: stack -> flag_handle, player_index
 uint8_t game_engine_ctf_player_flag_tick(uint32_t flag_handle, uint32_t player_index)
 {
     object *flag_obj = ((object_header *)object_headers->data)[flag_handle & 0xffff].data;

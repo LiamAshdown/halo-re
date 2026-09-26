@@ -8,9 +8,6 @@
 //   actor_swarm_for_each_component. phase-4 summary "records a squad member's updated
 //   status bits and broadcasts the change to the rest of the squad" (again this session's
 //   swarm/squad terminology mismatch: the broadcast is via swarm_for_each_component).
-// register convention: actor index in EAX, command list index in the recognized stack
-//   param, and a caller-owned 3-short output record in ESI (unaff_ESI).
-//   // blam-cc: EAX -> actor_index, stack -> command_list_index, ESI -> record
 // UNSURE: the byte-shuffling around a temporary the original calls uStack_4 is, after
 // working through the CONCAT operations by hand, equivalent to the plain bitfield reads
 // below (both branches of the `if (allow_look == 0)` produce the same value for the
@@ -36,6 +33,8 @@ extern void actor_swarm_for_each_component(uint32_t actor_index, char reset_firs
 extern void actor_clear_vocalization(uint32_t actor_index); // 0x414560
 extern void actor_lab_00406dd0_callback(uint32_t actor_index, datum_index unit_index, uint16_t extra, void *component_record, int32_t unused, uint32_t callback_extra); // internal label, see UNSURE
 
+// FIXED (register inputs, objdump: each stack slot's first use checked against the parameter): the original never reads EAX; actor_index arrive(s) on the stack (2 stack argument(s)).
+// blam-cc: ESI -> record, stack -> actor_index, command_list_index
 int32_t actor_squad_action_status_broadcast(uint32_t actor_index, int16_t command_list_index, int16_t *record)
 {
     actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];

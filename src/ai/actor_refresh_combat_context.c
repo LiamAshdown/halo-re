@@ -71,7 +71,7 @@ extern void actor_fill_unit_position_context(datum_index unit_index, void *out_c
 // the same location cluster, a pending-danger object scan, an aim-origin default from the
 // unit's own tag data, and finally the facing/aim/eye-position vectors used everywhere else
 // in this module.
-// FIXED (register inputs, objdump + difftest): the original never reads EAX; actor_index arrive(s) on the stack (1 stack argument(s)).
+// FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads EAX; actor_index arrive(s) on the stack (1 stack argument(s)).
 // blam-cc: stack -> actor_index
 void actor_refresh_combat_context(datum_index actor_index)
 {

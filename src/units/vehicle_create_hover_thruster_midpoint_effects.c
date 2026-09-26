@@ -35,7 +35,7 @@ extern void effect_new_with_color(uint32_t effect, uint32_t param_2, void *param
 
 // Spawns hover-thruster ground-effect visuals positioned at the midpoint between each "hover
 // thrusters" marker and the surface below it, scaled by vehicle speed (unit_data.unknown_338).
-// FIXED (register inputs, objdump + difftest): the original never reads EAX; unit_index arrive(s) on the stack (1 stack argument(s)).
+// FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads EAX; unit_index arrive(s) on the stack (1 stack argument(s)).
 // blam-cc: stack -> unit_index
 void vehicle_create_hover_thruster_midpoint_effects(uint32_t unit_index)
 {

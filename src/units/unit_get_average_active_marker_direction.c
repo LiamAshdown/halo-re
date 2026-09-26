@@ -9,9 +9,6 @@
 // evidence: types/units.h vehicle_data.active_marker_mask (0x520, "0x575e30 treats it as a
 //   marker bitmask"); math.h global_up3d_and_neighbors_pointer (0x006966f8); callees
 //   matrix4x3_transform_point, object_get_position, vector3d_normalize_with_length.
-// register convention: unit object index in EAX (param_1); an output direction pointer in the
-//   stack parameter (param_2).
-//   // blam-cc: EAX -> unit_index, stack -> out_direction
 // UNSURE: object_physics_context_build's real signature/output and the marker-position field offset (+0x38
 //   within an 0x80-byte physics contact record, by analogy with unit_update_marker_traction_effects.c's
 //   own 0x80-stride record) are not confirmed.
@@ -34,6 +31,8 @@ extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, in pl
 // Computes and returns the normalized direction from the unit toward the averaged position of
 // its currently active markers (vehicle_data.active_marker_mask), or fails if no markers are
 // active or object_physics_context_build fails.
+// FIXED (register inputs, objdump: each stack slot's first use checked against the parameter): the original never reads EAX; unit_index arrive(s) on the stack (2 stack argument(s)).
+// blam-cc: stack -> unit_index, out_direction
 uint8_t unit_get_average_active_marker_direction(uint32_t unit_index, real_vector3d *out_direction)
 {
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;

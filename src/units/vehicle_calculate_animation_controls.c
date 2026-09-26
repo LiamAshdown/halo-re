@@ -45,7 +45,7 @@ static float clamp01(float v)
 // a table of physics-derived control values (speed, turn rate, vertical motion, etc., each
 // normalized to 0..1) and writes the results into the object's function-output array
 // (object+0x124), used to drive the unit's procedural animation blending.
-// FIXED (register inputs, objdump + difftest): the original never reads EAX; unit_index arrive(s) on the stack (1 stack argument(s)).
+// FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads EAX; unit_index arrive(s) on the stack (1 stack argument(s)).
 // blam-cc: stack -> unit_index
 void vehicle_calculate_animation_controls(uint32_t unit_index)
 {

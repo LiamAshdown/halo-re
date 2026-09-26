@@ -36,7 +36,7 @@ extern void actor_dispatch_type_vtable_0x10(datum_index actor_index); // 0x42667
 // glass-ignorance once against Actor.glass_ignorance_chance, seeds the three position caches
 // from the shared zero vector, and finally runs the per-type vtable-0x10 init callback.
 // Returns the new actor's datum index, or k_datum_index_none on failure.
-// FIXED (register inputs, objdump + difftest): the original never reads EAX; actor_variant_tag arrive(s) on the stack (1 stack argument(s)).
+// FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads EAX; actor_variant_tag arrive(s) on the stack (1 stack argument(s)).
 // blam-cc: stack -> actor_variant_tag
 datum_index actor_new(datum_index actor_variant_tag)
 {

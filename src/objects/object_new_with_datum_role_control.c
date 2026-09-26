@@ -11,8 +11,6 @@
 //   the param_1[n] indices used here field-for-field); types/tags.h Object (object_type, flags,
 //   model/animation_graph/collision_model/creation_effect TagDependency.tag_id,
 //   forced_shader_permutation_index) and GBXModel.nodes.count; types/cache.h tag_instance.
-// register convention: creation-parameter block (object_placement_data*) in EAX (param_1),
-//   role/control value in ECX (param_2).
 // UNSURE: the call `FUN_004f3e30(param_1)` passes the placement_data pointer, but the
 //   established rewrite of 0x4f3e30 (object_type_definitions_notify_0x24, elsewhere in this
 //   batch) only ever reads an object index out of a register Ghidra could not see as a
@@ -108,8 +106,9 @@ extern void console_print_error_va(const char *format, ...); // 0x4c67c0, same d
 extern char *strrchr(const char *str, int ch); // 0x623bc0 _strrchr
 extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 _sprintf
 
+// FIXED (register inputs, objdump: each stack slot's first use checked against the parameter): the original never reads EAX, ECX; placement, role arrive(s) on the stack (2 stack argument(s)).
+// blam-cc: stack -> placement, role
 datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role)
-    // blam-cc: EAX -> placement, ECX -> role
 {
     datum_index definition_tag;
     datum_index new_index;

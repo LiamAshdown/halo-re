@@ -47,7 +47,7 @@ extern void actor_squad_react_to_grenade(datum_index actor_index, datum_index ta
 // Given a grenade/threat's originating object, marks nearby pathfinding-visible clusters
 // within a ~40-unit radius and triggers a squad reaction for every actor whose cached BSP
 // cluster sits inside that set.
-// FIXED (register inputs, objdump + difftest): the original never reads EAX; source_unit_index arrive(s) on the stack (1 stack argument(s)).
+// FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads EAX; source_unit_index arrive(s) on the stack (1 stack argument(s)).
 // blam-cc: stack -> source_unit_index
 void ai_alert_actors_in_grenade_radius(datum_index source_unit_index)
 {

@@ -29,7 +29,7 @@ extern uint8_t actor_movement_set_destination_point(real_point3d *destination, d
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX object, stack mask
 extern char unit_enter_vehicle_seat(uint32_t unit_object_index, int16_t seat); // 0x566970
 
-// FIXED (register inputs, objdump + difftest): the original never reads EAX; actor_index arrive(s) on the stack (1 stack argument(s)).
+// FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads EAX; actor_index arrive(s) on the stack (1 stack argument(s)).
 // blam-cc: stack -> actor_index
 int32_t actor_investigate_disturbance_update(uint32_t actor_index)
 {

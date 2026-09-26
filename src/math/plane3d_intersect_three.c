@@ -24,7 +24,7 @@
 extern double fabs(double x); // ABS is a single x87 FABS instruction
 extern real vector3d_scalar_triple_product(const real_vector3d *a, const real_vector3d *b, const real_vector3d *c); // 0x44d8e0, outside this module
 
-// FIXED (register inputs, objdump + difftest): the original never reads EAX; p1 arrive(s) on the stack (1 stack argument(s)).
+// FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads EAX; p1 arrive(s) on the stack (1 stack argument(s)).
 // blam-cc: EBX -> p2, EDI -> p3, ESI -> out, stack -> p1
 uint8_t plane3d_intersect_three(real_plane3d *p1, real_plane3d *p2, real_plane3d *p3, real_point3d *out)
 {

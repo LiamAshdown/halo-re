@@ -41,7 +41,7 @@ extern void effect_new_with_color(uint32_t effect, uint32_t param_2, void *param
 // Spawns hover/jet-thruster exhaust visual effects at each "hover thrusters" and "jet
 // thrusters" marker of a vehicle, raycasting downward from each and, on a hit, spawning a
 // reflected damage-effect scaled by the unit's ground_lean/ground_contact_fraction fields.
-// FIXED (register inputs, objdump + difftest): the original never reads EAX; unit_index arrive(s) on the stack (1 stack argument(s)).
+// FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads EAX; unit_index arrive(s) on the stack (1 stack argument(s)).
 // blam-cc: stack -> unit_index
 void vehicle_create_hover_thruster_effects(uint32_t unit_index)
 {

@@ -10,8 +10,6 @@
 //   TagReflexive at 0x40), ModelAnimationsAnimationGraphWeapon (0xbc, animations TagReflexive
 //   at 0x98), ModelAnimationsAnimationWeaponClassAnimation (a bare uint16 animation index);
 //   unit_animation_state_from_seat_type (0x565da0), unit_release_thrown_grenade (0x56e440).
-// register convention: unit index in EAX, requested state in DX.
-//   // blam-cc: param_1 (EAX) -> unit_index, param_2 (DX) -> new_state
 // UNSURE: the big switch maps new_state to a raw animation index either through the weapon's
 //   own animation table (the default path) or, for the values that `goto LAB_00566193` in the
 //   original, through the unit-seat's own animation table -- both tables are
@@ -44,6 +42,8 @@ extern void object_copy_default_node_transforms(void);               // 0x4f6b70
 extern void unit_release_thrown_grenade(uint32_t object_index, uint8_t apply_throw_fraction); // 0x56e440
 extern int32_t unit_animation_state_from_seat_type(int16_t animation_state); // 0x565da0
 
+// FIXED (register inputs, objdump: each stack slot's first use checked against the parameter): the original never reads EAX; unit_index arrive(s) on the stack (2 stack argument(s)).
+// blam-cc: stack -> unit_index, new_state
 uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state) // blam-cc: see file header
 {
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;

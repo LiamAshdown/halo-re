@@ -78,7 +78,7 @@ extern void effect_event_apply(effect *self, EffectPart *part, effect_location_m
 // object-origin sentinel, or rotated through the attached node/first-person-weapon transform
 // otherwise, or a hard-coded down/forward pair when the part is flagged
 // face_down_regardless_of_location_decals), then dispatching through effect_event_apply.
-// FIXED (register inputs, objdump + difftest): the original never reads EAX; self arrive(s) on the stack (1 stack argument(s)).
+// FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads EAX; self arrive(s) on the stack (1 stack argument(s)).
 // blam-cc: stack -> self
 void object_change_color_evaluate(effect *self)
 {

@@ -38,7 +38,7 @@ extern datum_index sound_start_at_object_marker(datum_index effect_index, void *
 // here as the effect tag) once the aggregate change exceeds 0.3.
 // UNSURE: see file header -- the node-array traversal and per-node transform are not fully
 // resolved.
-// FIXED (register inputs, objdump + difftest): the original never reads EAX; object_index arrive(s) on the stack (1 stack argument(s)).
+// FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads EAX; object_index arrive(s) on the stack (1 stack argument(s)).
 // blam-cc: stack -> object_index
 uint32_t unit_update_marker_traction_effects(uint32_t object_index)
 {

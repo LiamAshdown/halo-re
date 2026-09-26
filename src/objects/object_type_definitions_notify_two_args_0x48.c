@@ -4,8 +4,6 @@
 //   object_type_definition.notify_two_args_48 field comment)
 // rewrite confidence: 0.8
 // evidence: same as object_type_definitions_notify_two_args_0x2c, mirrored at a different slot.
-// register convention: object index in EAX (param_1), second event argument in EDX (param_2);
-//   both forwarded unchanged to every sub-definition's +0x48 hook.
 
 #include "tags.h"
 #include "memory.h"
@@ -15,8 +13,9 @@
 extern data_array *object_data; // 0x008603b0
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc
 
+// FIXED (register inputs, objdump: each stack slot's first use checked against the parameter): the original never reads EAX, EDX; object_index, event_argument arrive(s) on the stack (2 stack argument(s)).
+// blam-cc: stack -> object_index, event_argument
 void object_type_definitions_notify_two_args_0x48(uint32_t object_index, uint32_t event_argument)
-    // blam-cc: EAX -> object_index, EDX -> event_argument
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     object_type_definition *def = object_type_definitions[obj->type];

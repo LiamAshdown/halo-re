@@ -47,7 +47,7 @@ static int object_ambient_sample_slot_is_averaged(int index)
     return index != 3 && (index < 0x10 || index > 0x12);
 }
 
-// FIXED (register inputs, objdump + difftest): the original never reads ECX; sample arrive(s) on the stack (1 stack argument(s)).
+// FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads ECX; sample arrive(s) on the stack (1 stack argument(s)).
 // blam-cc: EAX -> object_index, stack -> sample
 void object_sample_ambient_lighting(uint32_t object_index, float *sample) // blam-cc: EAX -> object_index, ECX -> sample
 {

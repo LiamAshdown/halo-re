@@ -10,9 +10,6 @@
 //   UNSURE: object+0xbe (compared against 99) has no established field name; objects.h only
 //   names +0xbc as an opaque unknown_0bc dword, so +0xbe would be its upper 16 bits. Kept as
 //   a raw offset. ai_encounter_stamp_team_from_unit's real signature is unknown (outside this rewrite's range).
-// register convention: Ghidra already resolved both parameters as ordinary parameters.
-//   // blam-cc: EAX -> actor_index, ECX -> unit_index (matching the sibling function's
-//   register roles; not independently re-verified with objdump for this file).
 
 #include "tags.h"
 #include "memory.h"
@@ -34,12 +31,13 @@ extern void ai_encounter_stamp_team_from_unit(void); // 0x436710, UNSURE signatu
 extern void object_mark_pending_delete(datum_index object_index); // 0x4f50f0, UNSURE signature
 extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index); // 0x569bf0, UNSURE signature
 
-// blam-cc: EAX -> actor_index, ECX -> unit_index
 // Binds an actor to a unit object as its controller, cleaning up any prior bindings (the
 // unit's existing cluster or direct controller, and this actor's own existing unit) first,
 // then copies the owning encounter's team onto both, and if the unit's own placement id
 // (offset 0xbe, see UNSURE) is 100 or greater, counts this actor toward its encounter's live
 // count. Does nothing if the unit is already directly controlled by this actor.
+// FIXED (register inputs, objdump: each stack slot's first use checked against the parameter): the original never reads EAX, ECX; actor_index, unit_index arrive(s) on the stack (2 stack argument(s)).
+// blam-cc: stack -> actor_index, unit_index
 void actor_attach_to_unit(datum_index actor_index, datum_index unit_index)
 {
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];

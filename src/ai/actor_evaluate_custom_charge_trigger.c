@@ -43,7 +43,7 @@ extern void actor_prop_iterator_init(datum_index actor_index, actor_prop_iterato
                                     // iterator's SECOND dword (.next) from actor.first_prop,
                                     // which is the field the loop below reads.
 
-// FIXED (register inputs, objdump + difftest): the original never reads EAX; actor_index arrive(s) on the stack (1 stack argument(s)).
+// FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads EAX; actor_index arrive(s) on the stack (1 stack argument(s)).
 // blam-cc: stack -> actor_index
 uint8_t actor_evaluate_custom_charge_trigger(datum_index actor_index)
 {

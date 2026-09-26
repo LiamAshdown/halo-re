@@ -8,8 +8,6 @@
 // evidence: types/objects.h object_cluster_reference (identifier 0x00, object_index 0x04,
 //   next_reference 0x08); globals 0x008603d0 collideable_cluster_first and 0x008603d4
 //   collideable_object_references.
-// register convention: output next-reference cursor pointer in EAX (param_1), cluster index in
-//   ECX (param_2).
 
 #include "tags.h"
 #include "memory.h"
@@ -19,8 +17,9 @@
 extern datum_index *collideable_cluster_first; // 0x008603d0
 extern data_array *collideable_object_references; // 0x008603d4
 
+// FIXED (register inputs, objdump: each stack slot's first use checked against the parameter): the original never reads EAX, ECX; next_reference, cluster_index arrive(s) on the stack (2 stack argument(s)).
+// blam-cc: stack -> next_reference, cluster_index
 datum_index object_resolve_collideable_reference(datum_index *next_reference, int16_t cluster_index)
-    // blam-cc: EAX -> next_reference, ECX -> cluster_index
 {
     datum_index head = collideable_cluster_first[cluster_index];
     object_cluster_reference *ref;
