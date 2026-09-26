@@ -593,7 +593,10 @@ def main():
     if os.path.exists(xs):
         for l in open(xs):
             f = l.split("#")[0].split()
-            if len(f) == 2: fsize.setdefault(int(f[0], 16), int(f[1], 16))
+            if len(f) == 2:
+                fsize.setdefault(int(f[0], 16), int(f[1], 16)); FUNC_SIZES.setdefault(int(f[0], 16), int(f[1], 16))
+        global _ENTRIES                                   # the labels are function boundaries too: without them a
+        _ENTRIES = None; _CS_MEMO.clear()                 # label's scan (pop_limit) runs on into its neighbours
     cleared = set()
     for s in sorted(stubs):
         a = stub_addr.get(s)
@@ -605,6 +608,8 @@ def main():
                 cleared.add(s)
         except Exception:
             pass
+    sa = os.path.join(H, "stub_address_only.txt")       # address-taken only: standard convention (see the file)
+    if os.path.exists(sa): cleared |= {l.strip() for l in open(sa) if l.strip() and not l.startswith("#")} & stubs
     su = os.path.join(H, "stub_unsafe.txt")
     if os.path.exists(su): cleared -= {l.strip() for l in open(su) if l.strip() and not l.startswith("#")}
     stubs -= cleared
