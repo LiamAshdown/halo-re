@@ -56,6 +56,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+extern int _fclose(void *file);                                           // game CRT
+extern char *_fgets(char *s, int n, void *file);                          // game CRT
+extern void *_fopen(const char *path, const char *mode);                 // 0x624186 (game CRT)
 
 extern char network_banlist_full_path[0x104];        // 0x0071c308, see sv_banlist_file.c
 extern char network_ban_file_read_mode_string[];      // 0x0066d81c, "rt"
@@ -87,12 +90,12 @@ void network_banlist_load(void)
     long ban_count;
     ban_list_entry *entry;
 
-    file = (FILE *)fopen(network_log_path_resolve(network_banlist_full_path),
+    file = (FILE *)_fopen(network_log_path_resolve(network_banlist_full_path),
                                  network_ban_file_read_mode_string);
     if (file == 0) {
         return;
     }
-    while (fgets(line, 0x200, file) != 0) {
+    while (_fgets(line, 0x200, file) != 0) {
         if (line[0] == '#') {
             continue;
         }
@@ -147,7 +150,7 @@ void network_banlist_load(void)
         entry->expiry_time = 0;
         entry->indefinite = 1;
     }
-    fclose(file);
+    _fclose(file);
 }
 
 #if 0

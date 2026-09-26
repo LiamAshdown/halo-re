@@ -26,7 +26,7 @@
 extern data_array *prop_data;   // 0x008802c0
 extern data_array *object_data; // 0x008603b0
 
-extern datum_index actor_find_prop_for_object(datum_index object_index); // 0x43ea80, UNSURE signature
+extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, ECX actor, stack object
 
 // blam-cc: EAX -> member_prop_index, stack -> unused_param, require_is_unit
 // Selects the most relevant recent-attacker prop from a specific squad member's short-term
@@ -95,7 +95,7 @@ datum_index actor_get_relevant_squad_member_target(uint32_t unused_param, datum_
             }
 
             if (resolved_object != k_datum_index_none) {
-                resolved_prop = actor_find_prop_for_object(resolved_object);
+                resolved_prop = actor_find_prop_for_object(resolved_object, (datum_index)unused_param); // 0x41f62c: ECX = stack arg 1 (the asking actor)
                 if (resolved_prop != k_datum_index_none) {
                     candidate = (prop *)((uint8_t *)prop_data->data + (resolved_prop & 0xffff) * sizeof(prop));
                     if ((1 < candidate->kind && candidate->kind < 4) &&

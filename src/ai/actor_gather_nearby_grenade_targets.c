@@ -22,7 +22,7 @@ extern data_array *prop_data;      // 0x008802c0
 extern data_array *object_data;    // 0x008603b0
 extern ai_globals *ai_globals_ptr; // 0x00880354
 
-extern datum_index actor_find_prop_for_object(datum_index object_index); // 0x0043ea80, not yet rewritten
+extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, ECX actor, stack object
 extern void actor_grenade_avoidance_entry_init(ai_grenade_avoidance_entry *entry,
                                                 datum_index object_index,
                                                 datum_index prop_index); // 0x0042af50
@@ -61,7 +61,7 @@ int16_t actor_gather_nearby_grenade_targets(datum_index source_actor_index, int1
             if (cursor != source_actor_index && count < maximum_count &&
                 other->unit_index != (datum_index)k_datum_index_none &&
                 other->active_unit_index == (datum_index)k_datum_index_none) {
-                prop_index_out = actor_find_prop_for_object(other->unit_index);
+                prop_index_out = actor_find_prop_for_object(other->unit_index, source_actor_index); // 0x42b04b: ECX = the source actor
                 actor_grenade_avoidance_entry_init(&out_entries[count], other->unit_index, prop_index_out);
                 count = count + 1;
             }

@@ -22,6 +22,9 @@
 #include "main.h"
 #include <stdio.h>
 #include <string.h>
+extern int _fclose(void *file);                                           // game CRT
+extern char *_fgets(char *s, int n, void *file);                          // game CRT
+extern void *_fopen(const char *path, const char *mode);                 // 0x624186 (game CRT)
 
 // fopen: <stdio.h>, resolved to the game CRT at 0x624186 // 0x624186, fopen-shaped CRT wrapper
 extern char console_process_command(char *command_line, uint32_t context_flags); // this module, 0x4c6a80, blam-cc: EDI -> command_line, stack -> context_flags
@@ -35,15 +38,15 @@ uint8_t console_exec_file_run(const char *file_name) // blam-cc: EAX -> file_nam
     FILE *file;
     char line[k_console_exec_line_length];
 
-    file = (FILE *)fopen(file_name, "r");
+    file = (FILE *)_fopen(file_name, "r");
     if (file == 0) {
         return 0;
     }
-    while (fgets(line, k_console_exec_line_length - 1, file) != 0) {
+    while (_fgets(line, k_console_exec_line_length - 1, file) != 0) {
         strtok(line, "\r\n\t");
         console_process_command(line, k_console_context_exec_file); // EDI -> line
     }
-    fclose(file);
+    _fclose(file);
     return 1;
 }
 

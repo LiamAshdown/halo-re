@@ -25,7 +25,7 @@ extern data_array *prop_data; // 0x008802c0
 // Real signature (src/units/unit_predict_aim_target_position.c): takes a unit index in ESI and
 // an out_position pointer in EBX; Ghidra recovers neither operand at this call site.
 extern int32_t unit_predict_aim_target_position(void); // 0x571de0, UNSURE signature
-extern void *object_try_and_get(int32_t kind);          // 0x4f6ec0
+extern void *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX object, stack mask
 extern datum_index biped_get_cached_look_at_position(uint32_t object_index, real_point3d *out_position); // 0x55ab30
 
 // blam-cc: EAX -> target_prop_index
@@ -50,7 +50,7 @@ void actor_target_get_relationship_object(datum_index target_prop_index)
             return;
         }
         resolved = target->object_index;
-        if (object_try_and_get(1) != (void *)0) {
+        if (object_try_and_get(resolved, 1) != (void *)0) { // 0x41f3e4: ECX = target->object_index
             resolved = biped_get_cached_look_at_position(resolved, (real_point3d *)((uint8_t *)target + 0xf0));
             *cache = (int32_t)resolved;
         }

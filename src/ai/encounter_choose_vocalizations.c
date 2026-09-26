@@ -48,7 +48,7 @@ extern uint8_t ai_insert_scored_candidate_pair(ai_scored_candidate *list, datum_
     float score, datum_index payload, datum_index key);            // 0x4383f0
 extern int16_t ai_pick_weighted_candidate(ai_scored_candidate *table,
     ai_scored_candidate *out_entry);                               // 0x438480, blam-cc: EBX -> table
-extern datum_index actor_find_prop_for_object(datum_index object_index); // 0x43ea80
+extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, ECX actor, stack object
 
 // blam-cc: stack -> encounter_index
 // Picks up to two "somebody should say something about this" candidates out of the
@@ -315,7 +315,7 @@ void encounter_choose_vocalizations(datum_index encounter_index)
                         continue;
                     }
                     // note: the chosen actor's unit, not this member's, exactly as compiled
-                    found = actor_find_prop_for_object(chosen->unit_index);
+                    found = actor_find_prop_for_object(chosen->unit_index, current); // 0x438c8e: ECX = this member (EBX)
                     if (found == (datum_index)k_datum_index_none) {
                         continue;
                     }

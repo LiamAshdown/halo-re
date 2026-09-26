@@ -26,9 +26,9 @@ extern char unknown_0065fd30[]; // 0x0065fd30, fopen mode "wt"
 
 extern uint8_t saved_game_get_directory_by_handle(int32_t handle, char *out_directory); // 0x53d080, blam-cc: handle in EAX, out buffer in ESI; bool in AL
 extern int16_t campaign_level_find_index_for_path(char *scenario_name); // 0x4c8b90, not in this module; one stack argument (add esp,4 at 0x538bdb)
-extern void *fopen(const char *path, char *mode); // 0x624186, fopen-shaped wrapper
+extern void *_fopen(const char *path, char *mode); // 0x624186, fopen-shaped wrapper
 extern int32_t _fprintf(void *stream, const char *format, ...);
-extern void fclose(void *file); // _fclose
+extern void _fclose(void *file); // _fclose
 extern uint32_t GetLocalTime(win32_systemtime *time); // Win32
 extern uint32_t strlen(const char *str);
 extern char *strcpy(char *dest, const char *source);
@@ -49,14 +49,14 @@ void game_checkpoint_write_stats_file(char *scenario_name, int32_t difficulty)
     strcpy(path, directory);
     strcpy(path + strlen(path), "savegame.sav");
 
-    file = fopen(path, unknown_0065fd30);
+    file = _fopen(path, unknown_0065fd30);
     if (file != 0) {
         GetLocalTime(&now);
         level = campaign_level_find_index_for_path(scenario_name);
         _fprintf(file, "%d,%d,%d\n", (int32_t)level, difficulty, game_time->game_time);
         _fprintf(file, "%hu,%hu,%hu\n", now.month, now.day, now.year);
         _fprintf(file, "%hu,%hu,%hu\n", now.hour, now.minute, now.second);
-        fclose(file);
+        _fclose(file);
     }
 }
 

@@ -15,24 +15,24 @@
 
 extern observer observers[1]; // 0x006ac65c
 
-extern void *fopen(const char *path, const char *mode);   // 0x624186, CRT fopen wrapper
-extern int32_t fprintf(void *file, const char *format, ...);      // 0x623de2, CRT
-extern int32_t fclose(void *file);                                // 0x6241e5, CRT
+extern void *_fopen(const char *path, const char *mode);   // 0x624186, CRT fopen wrapper
+extern int32_t _fprintf(void *file, const char *format, ...);      // 0x623de2, CRT
+extern int32_t _fclose(void *file);                                // 0x6241e5, CRT
 
 // Writes the local player's final camera (position, forward, up, field of view) to camera.txt.
 void camera_debug_save_to_file(void)
 {
-    void *file = fopen("camera.txt", "w");
+    void *file = _fopen("camera.txt", "w");
     observer_camera *camera = &observers[0].camera;
 
     if (file != 0) {
-        fprintf(file, "%f %f %f\n", (double)camera->position.x, (double)camera->position.y,
+        _fprintf(file, "%f %f %f\n", (double)camera->position.x, (double)camera->position.y,
             (double)camera->position.z);
-        fprintf(file, "%f %f %f\n", (double)camera->forward.i, (double)camera->forward.j,
+        _fprintf(file, "%f %f %f\n", (double)camera->forward.i, (double)camera->forward.j,
             (double)camera->forward.k);
-        fprintf(file, "%f %f %f\n", (double)camera->up.i, (double)camera->up.j, (double)camera->up.k);
-        fprintf(file, "%f\n", (double)camera->field_of_view);
-        fclose(file);
+        _fprintf(file, "%f %f %f\n", (double)camera->up.i, (double)camera->up.j, (double)camera->up.k);
+        _fprintf(file, "%f\n", (double)camera->field_of_view);
+        _fclose(file);
     }
 }
 

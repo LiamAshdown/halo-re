@@ -20,9 +20,9 @@ extern char message_delta_config_write_mode_string[];           // 0x0066e674, f
 
 extern void message_delta_definitions_teardown_field_bindings(void); // 0x4ec750, this module
 extern void message_delta_parameters_protocol_free_registered(void); // 0x4ebd50, this module
-extern void *fopen(const char *path, char *mode); // 0x624186, fopen-shaped CRT wrapper
-extern int32_t fprintf(void *stream, const char *format, ...);
-extern void fclose(void *stream);
+extern void *_fopen(const char *path, char *mode); // 0x624186, fopen-shaped CRT wrapper
+extern int32_t _fprintf(void *stream, const char *format, ...);
+extern void _fclose(void *stream);
 
 // Tears down every message type's field bindings and, if the dynamic-parameters protocol is
 // enabled, writes the current formatted parameter values out to parameters.cfg and frees the
@@ -37,10 +37,10 @@ void message_delta_parameters_protocol_dump_to_config_file(void)
         message_delta_unknown_table_0069a304[i][0] = 0;
     }
     if (message_delta_parameters_enabled == 1) {
-        file = fopen("parameters.cfg", message_delta_config_write_mode_string);
+        file = _fopen("parameters.cfg", message_delta_config_write_mode_string);
         if (file != 0) {
-            fprintf(file, message_delta_config_text_buffer);
-            fclose(file);
+            _fprintf(file, message_delta_config_text_buffer);
+            _fclose(file);
         }
         message_delta_parameters_protocol_free_registered();
     }

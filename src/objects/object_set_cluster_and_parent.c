@@ -13,9 +13,9 @@
 //   global 0x008603b0 object_data; global 0x0087a478 (the same BSP PVS source used in
 //   objects_update, this batch); callees object_mark_pending_delete (0x4f50f0, this batch) and
 //   object_delete (0x4f5bd0, this batch).
-// register convention: object index in EAX (param_1), an optional {leaf_index, cluster_index}
-//   location pointer in ECX (param_2, NULL to have this function probe the object's own
-//   position for it).
+// FIXED (objdump 0x4f5c30): both arguments are on the stack -- the object index ([esp+4]) and an optional
+//   {leaf_index, cluster_index} location pointer ([esp+0x20] after the frame; NULL to probe the object's own
+//   position for it). Neither EAX nor ECX is an input.
 // UNSURE: the write of a full 32-bit value at object+0x9c straddles the documented
 //   location_cluster_index (int16 at 0x09c) and the undocumented unknown_09e that immediately
 //   follows it; preserved exactly as a dword store rather than split into two fields, since
@@ -36,7 +36,7 @@ extern uint8_t *global_structure_bsp; // 0x00746f9c, UNSURE: foreign module, +0x
                                            //   this is the same DAT_00746f9c base object_update
                                            //   reads at +0x134, here read at +0xe4
 
-extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index); // 0x5013a0, UNSURE: unexamined; a leaf/visibility probe
+extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
 extern void scenario_location_from_point(void); // 0x53e780, UNSURE: unexamined
 extern datum_index *noncollideable_cluster_first; // 0x008603c0, the per-cluster list descriptor
 extern void cluster_reference_add_within_radius(uint32_t light_or_object_handle, datum_index *placement_slot, real_point3d *position,
@@ -49,8 +49,8 @@ extern void cluster_reference_add_within_radius(uint32_t light_or_object_handle,
 extern void object_mark_pending_delete(uint32_t object_index); // 0x4f50f0, this batch
 extern void object_delete(uint32_t object_index); // 0x4f5bd0, this batch
 
+// blam-cc: stack -> object_index, location
 void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location)
-    // blam-cc: EAX -> object_index, ECX -> location
 {
     object_header *header = (object_header *)object_data->data + (object_index & 0xffff);
     object *obj = header->data;
@@ -59,7 +59,7 @@ void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *lo
         bsp_leaf_reference local_location;
 
         if (location == 0) {
-            int32_t leaf = bsp3d_node_find_leaf(global_collision_bsp, &obj->bounding_center, 0);
+            int32_t leaf = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, &obj->bounding_center); // 0x4f5ca2
             if (leaf == -1) {
                 local_location.cluster_index = -1;
             } else {

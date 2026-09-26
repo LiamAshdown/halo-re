@@ -45,10 +45,10 @@ extern char error_file_no_timestamp[];      // 0x00660100 "<TIME UNAVAILABLE>  "
 extern char *network_log_path_resolve(char *requested_path); // 0x4e40a0, foreign (networking,
     // src/networking/network_log_path_resolve.c); blam-cc: ESI -> requested_path. Formats the
     // name into the static char[0x104] at 0x006b85b8 and returns that buffer.
-extern void *fopen(const char *path, const char *mode); // 0x624186, fopen-shaped CRT wrapper
+extern void *_fopen(const char *path, const char *mode); // 0x624186, fopen-shaped CRT wrapper
 extern int32_t _fprintf(void *stream, const char *format, ...);              // 0x623de2
 extern int32_t _sprintf(char *dest, const char *format, ...);                // 0x623693
-extern void fclose(void *file);                                              // 0x6241e5 _fclose
+extern void _fclose(void *file);                                              // 0x6241e5 _fclose
 // _time32(__time32_t *) is declared by <time.h> above, matching the retail binary's
 // 0x6240f1 FID_conflict:__time32 exactly (the 32-bit time() entry point, not the plain 64-bit
 // time_t used elsewhere on this host).
@@ -84,7 +84,7 @@ void write_to_error_file(char *message, uint8_t with_timestamp)
 
     if (error_file_enabled != 0) {
         path = network_log_path_resolve(error_file_name); // ESI = "debug.txt"
-        file = fopen(path, error_file_open_mode);
+        file = _fopen(path, error_file_open_mode);
         if (file != 0) {
             if (with_timestamp != 0) {
                 _time32(&time_value);
@@ -98,7 +98,7 @@ void write_to_error_file(char *message, uint8_t with_timestamp)
                 }
             }
             _fprintf(file, "%s", message);
-            fclose(file);
+            _fclose(file);
         }
     }
 }

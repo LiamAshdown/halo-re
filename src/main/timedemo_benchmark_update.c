@@ -36,6 +36,10 @@
 #include "rasterizer.h"
 #include "main.h"
 #include <stdio.h>
+extern int _fclose(void *file);                                           // game CRT
+extern void *_fopen(const char *path, const char *mode);                 // 0x624186 (game CRT)
+extern int _fprintf(void *file, const char *format, ...);                // game CRT
+extern int _fseek(void *file, long offset, int origin);                   // game CRT
 
 extern main_globals main_globals_data;              // 0x00719700
 extern timedemo_globals timedemo_globals_data;      // 0x00719afc
@@ -196,12 +200,12 @@ void timedemo_benchmark_update(void)
         break;
     case _timedemo_step_report:
         main_globals_data.quit = 1;
-        file = (FILE *)fopen("timedemo.txt", "a");
+        file = (FILE *)_fopen("timedemo.txt", "a");
         GetModuleFileNameA(0, module_path, 0x104);
-        fseek(file, 0, SEEK_END);
+        _fseek(file, 0, SEEK_END);
         GetDateFormatA(0x400 /* LOCALE_USER_DEFAULT */, 0, 0, 0, date, 0x20);
         GetTimeFormatA(0x400, 0, 0, 0, time, 0x20);
-        fprintf(file, "Date / Time: %s %s (%dms)\n", date, time, shell_startup_tick_count);
+        _fprintf(file, "Date / Time: %s %s (%dms)\n", date, time, shell_startup_tick_count);
 
         if (config_force_shader == 9999) {
             shader = "2.0a";
@@ -214,21 +218,21 @@ void timedemo_benchmark_update(void)
             shader = timedemo_pixel_shader_version;
         }
         if (graphics_device_id != 0) {
-            fprintf(file, "%dMHz, %dMB, %dM %s %s (DeviceID=0x%04x) Driver=%d.%d.%d.%d Shader=%s\n",
+            _fprintf(file, "%dMHz, %dMB, %dM %s %s (DeviceID=0x%04x) Driver=%d.%d.%d.%d Shader=%s\n",
                 cpu_speed, physical_memory, video_memory >> 20, graphics_vendor_name,
                 graphics_device_name, graphics_device_id,
                 (uint32_t)graphics_driver_version[3], (uint32_t)graphics_driver_version[2],
                 (uint32_t)graphics_driver_version[1], (uint32_t)graphics_driver_version[0], shader);
         } else {
-            fprintf(file, "%dMHz, %dMB\n", cpu_speed, physical_memory);
+            _fprintf(file, "%dMHz, %dMB\n", cpu_speed, physical_memory);
         }
 
-        fprintf(file, "%s %s", module_path, shell_command_line);
+        _fprintf(file, "%s %s", module_path, shell_command_line);
         version_size = GetFileVersionInfoSizeA(module_path, &version_handle);
         version_data = GlobalAlloc(0, version_size);
         GetFileVersionInfoA(module_path, 0, version_size, version_data);
         VerQueryValueA(version_data, "\\", (void **)&fixed_file_info, &version_handle);
-        fprintf(file, "   (Version=%d.%d.%d.%d)\n",
+        _fprintf(file, "   (Version=%d.%d.%d.%d)\n",
             fixed_file_info[2] >> 16, fixed_file_info[2] & 0xffff,   // dwFileVersionMS
             fixed_file_info[3] >> 16, fixed_file_info[3] & 0xffff);  // dwFileVersionLS
         GlobalFree(version_data);
@@ -237,7 +241,7 @@ void timedemo_benchmark_update(void)
         total_time = (double)timedemo_globals_data.total_time_ms;
         slow_time = (float)timedemo_globals_data.buckets[8].time_ms;
         frame_count = (double)timedemo_globals_data.frame_count;
-        fprintf(file,
+        _fprintf(file,
             "Frames=%d\nTotal Time=%.2fs\nAverage frame rate=%.2ffps\n"
             "Below  5fps=% 2d%% (time)  %d%% (frames) (%.3fs spent in %d frame%s\n"
             "Below 10fps=% 2d%% (time)  %d%% (frames)\n"
@@ -274,7 +278,7 @@ void timedemo_benchmark_update(void)
             timedemo_globals_data.buckets[0].frames * 100 / timedemo_globals_data.frame_count);
 
         if (shell_nosound != 0) {
-            fprintf(file, "###Sound Options###\nSound Disabled\n");
+            _fprintf(file, "###Sound Options###\nSound Disabled\n");
         } else {
             if (sound_permutation_limit == 2) {
                 sound_variety = "High";
@@ -296,7 +300,7 @@ void timedemo_benchmark_update(void)
                 sound_quality = "Low";
             }
             hardware_acceleration = directsound_eax_enabled == 1 ? "Yes" : "No";
-            fprintf(file,
+            _fprintf(file,
                 "###Sound Options###\nHardware Acceleration= %s\nSound Quality= %s\n"
                 "Environmental Sound= %s\nSound Variety= %s\n",
                 hardware_acceleration, sound_quality, environmental_sound, sound_variety);
@@ -319,7 +323,7 @@ void timedemo_benchmark_update(void)
         decals = decals_for_all_responses != 0 ? "Yes" : "No";
         shadows = console_debug_toggle_6893f2 != 0 ? "Yes" : "No";
         specular = console_debug_toggle_6893fa != 0 ? "Yes" : "No";
-        fprintf(file,
+        _fprintf(file,
             "###Video Options###\nResolution= %d x %d\nRefresh rate= %d Hz\n"
             "Framerate throttle= No Vsync\nSpecular= %s\nShadows= %s\nDecals= %s\nParticles= %s\n"
             "Texture Quality= %s\n\nFor further information, please visit the timedemo FAQ at: "
@@ -327,7 +331,7 @@ void timedemo_benchmark_update(void)
             rasterizer_present_parameters.back_buffer_width,
             rasterizer_present_parameters.back_buffer_height,
             os_platform_refresh_default, specular, shadows, decals, particles, texture_quality);
-        fclose(file);
+        _fclose(file);
         break;
     default:
         break;

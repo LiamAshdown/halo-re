@@ -20,6 +20,9 @@
 #include "networking.h"
 #include <stdio.h>
 #include <time.h>
+extern int _fclose(void *file);                                           // game CRT
+extern void *_fopen(const char *path, const char *mode);                 // 0x624186 (game CRT)
+extern int _fprintf(void *file, const char *format, ...);                // game CRT
 
 extern growable_array ban_list; // 0x006b859c, element_size 0x38; see UNSURE note above
 extern char network_ban_file_mode_string[]; // 0x0065fd30, UNSURE: exact text unresolved (fopen mode)
@@ -42,17 +45,17 @@ void network_banlist_save(void)
     char date_buf[31];
     time_t expiry;
 
-    file = (FILE *)fopen(network_log_path_resolve(network_banlist_full_path),
+    file = (FILE *)_fopen(network_log_path_resolve(network_banlist_full_path),
                                  network_ban_file_mode_string);
     if (file != 0) {
-        fprintf(file, "# Name, CD key hash, ban count, ban end date\r\n");
+        _fprintf(file, "# Name, CD key hash, ban count, ban end date\r\n");
         entries = (ban_list_entry *)ban_list.data;
         row = 0;
         if (0 < ban_list.count) {
             i = 0;
             do {
                 ban_list_entry *entry = &entries[i];
-                fprintf(file, "%s,%s,%d,", entry->name, entry->cd_key_hash, entry->ban_count);
+                _fprintf(file, "%s,%s,%d,", entry->name, entry->cd_key_hash, entry->ban_count);
                 if (entry->indefinite == 0) {
                     expiry = entry->expiry_time;
                     zero_tm.tm_min = 0;
@@ -72,15 +75,15 @@ void network_banlist_save(void)
                     time_buf[0x1f] = 0;
                     snprintf(date_buf, 0x1f, "%04d-%02d-%02d", tm_now->tm_year + 0x76c, tm_now->tm_mon + 1, tm_now->tm_mday);
                     date_buf[0x1f] = 0;
-                    fprintf(file, "%s %s\r\n", date_buf, time_buf);
+                    _fprintf(file, "%s %s\r\n", date_buf, time_buf);
                 } else {
-                    fprintf(file, "--\r\n");
+                    _fprintf(file, "--\r\n");
                 }
                 row = row + 1;
                 i = i + 1;
             } while (row < ban_list.count);
         }
-        fclose(file);
+        _fclose(file);
     }
 }
 

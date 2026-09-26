@@ -36,6 +36,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
+extern void *_fopen(const char *path, const char *mode);                 // 0x624186 (game CRT)
+extern int _fprintf(void *file, const char *format, ...);                // game CRT
 
 extern uint8_t debug_log_level;                  // 0x0087ac06, byte-wide (R01)
 extern uint8_t network_statistics_logging_enabled; // 0x006f14b4
@@ -73,8 +75,8 @@ void network_stats_summary_log_open(void)
             strcat(path_buf, date_buf);
             strcat(path_buf, ".xls");
 
-            network_summary_log_file = fopen(path_buf, network_summary_log_mode_string);
-            fprintf((FILE *)network_summary_log_file,
+            network_summary_log_file = _fopen(path_buf, network_summary_log_mode_string);
+            _fprintf((FILE *)network_summary_log_file,
                     "Map\tLength (seconds)\tAvg # Players\tPackets Sent\tPackets Received\t"
                     "Packets Sent/sec\tPackets Received/sec\tBytes Sent\tBytes Received\t"
                     "Bytes Sent/sec\tBytes Received/sec\tBits Sent/sec/conn\t"

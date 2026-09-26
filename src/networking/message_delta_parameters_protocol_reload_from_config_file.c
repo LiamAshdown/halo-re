@@ -18,11 +18,11 @@ extern uint8_t message_delta_parameters_enabled; // 0x0071cfa8
 extern char message_delta_config_mode_string[];  // 0x0066e660, fopen mode, UNSURE exact text
 extern char message_delta_config_text_buffer[];  // 0x00860b40, shared parameters.cfg text
 
-extern void *fopen(const char *path, char *mode); // 0x624186, fopen-shaped CRT wrapper
-extern int32_t fseek(void *stream, int32_t offset, int32_t origin);
-extern int32_t ftell(void *stream);
-extern int32_t fread(void *buffer, int32_t size, int32_t count, void *stream);
-extern void fclose(void *stream);
+extern void *_fopen(const char *path, char *mode); // 0x624186, fopen-shaped CRT wrapper
+extern int32_t _fseek(void *stream, int32_t offset, int32_t origin);
+extern int32_t _ftell(void *stream);
+extern int32_t _fread(void *buffer, int32_t size, int32_t count, void *stream);
+extern void _fclose(void *stream);
 
 // Reads the whole of parameters.cfg into the shared config text buffer, NUL-terminated, so
 // message_delta_parameters_protocol_parse_value_from_config can scan values out of it later.
@@ -32,14 +32,14 @@ void message_delta_parameters_protocol_reload_from_config_file(void)
     int32_t length;
 
     if (message_delta_parameters_enabled == 1) {
-        file = fopen("parameters.cfg", message_delta_config_mode_string);
+        file = _fopen("parameters.cfg", message_delta_config_mode_string);
         if (file != 0) {
-            fseek(file, 0, 2);
-            length = ftell(file);
-            fseek(file, 0, 0);
-            fread(message_delta_config_text_buffer, 1, length, file);
+            _fseek(file, 0, 2);
+            length = _ftell(file);
+            _fseek(file, 0, 0);
+            _fread(message_delta_config_text_buffer, 1, length, file);
             message_delta_config_text_buffer[length] = 0;
-            fclose(file);
+            _fclose(file);
         }
     }
 }

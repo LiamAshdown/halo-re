@@ -23,9 +23,9 @@
 
 extern director directors[1]; // 0x006ac560
 
-extern void *fopen(const char *path, const char *mode);   // 0x624186, CRT fopen wrapper
-extern int32_t fscanf(void *file, const char *format, ...);       // 0x624435, CRT
-extern int32_t fclose(void *file);                                // 0x6241e5, CRT
+extern void *_fopen(const char *path, const char *mode);   // 0x624186, CRT fopen wrapper
+extern int32_t _fscanf(void *file, const char *format, ...);       // 0x624435, CRT
+extern int32_t _fclose(void *file);                                // 0x6241e5, CRT
 // blam-cc: EAX -> out, ECX -> direction, EDX -> position
 extern void editor_camera_set_position_and_direction(editor_camera_data *out, Vector3D *direction,
     Point3D *position);                                           // 0x446e30, this module
@@ -47,16 +47,16 @@ void camera_debug_load_from_file(void)
     Vector3D computed_up;
     Vector3D forward;
     Point3D position;
-    void *file = fopen("camera.txt", "r");
+    void *file = _fopen("camera.txt", "r");
 
     if (file == 0) {
         return;
     }
-    fscanf(file, "%f %f %f\n", &position.x, &position.y, &position.z);
-    fscanf(file, "%f %f %f\n", &forward.i, &forward.j, &forward.k);
-    fscanf(file, "%f %f %f\n", &saved_up.i, &saved_up.j, &saved_up.k);
-    fscanf(file, "%f\n", &field_of_view);
-    fclose(file);
+    _fscanf(file, "%f %f %f\n", &position.x, &position.y, &position.z);
+    _fscanf(file, "%f %f %f\n", &forward.i, &forward.j, &forward.k);
+    _fscanf(file, "%f %f %f\n", &saved_up.i, &saved_up.j, &saved_up.k);
+    _fscanf(file, "%f\n", &field_of_view);
+    _fclose(file);
 
     editor_camera_set_position_and_direction(&directors[0].data.editor, &forward, &position);
     vector3d_compute_up_from_forward(&forward, &computed_up);

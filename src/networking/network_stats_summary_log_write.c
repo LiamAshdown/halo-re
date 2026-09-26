@@ -20,6 +20,8 @@
 #include "game.h"
 #include "networking.h"
 #include <stdio.h>
+extern int _fflush(void *file);                                          // game CRT
+extern int _fprintf(void *file, const char *format, ...);                // game CRT
 
 extern uint8_t debug_log_level;                   // 0x0087ac06, byte-wide (R01)
 extern uint8_t network_statistics_logging_enabled; // 0x006f14b4
@@ -63,23 +65,23 @@ void network_stats_summary_log_write(void)
                                 (float)network_summary_stats.packets_sent;
         bytes_received_per_packet = bytes_received_f / (float)network_summary_stats.packets_received;
 
-        fprintf((FILE *)network_summary_log_file, "%f\t", (double)(elapsed_ms * 0.001f));
-        fprintf((FILE *)network_summary_log_file, "%f\t", (double)avg_players);
-        fprintf((FILE *)network_summary_log_file, "%d\t", network_summary_stats.packets_sent);
-        fprintf((FILE *)network_summary_log_file, "%d\t", network_summary_stats.packets_received);
-        fprintf((FILE *)network_summary_log_file, "%f\t", (double)packets_sent_rate);
-        fprintf((FILE *)network_summary_log_file, "%f\t", (double)packets_received_rate);
-        fprintf((FILE *)network_summary_log_file, "%d\t", network_summary_stats.bytes_sent);
-        fprintf((FILE *)network_summary_log_file, "%d\t", network_summary_stats.bytes_received);
-        fprintf((FILE *)network_summary_log_file, "%f\t", (double)bytes_sent_rate);
-        fprintf((FILE *)network_summary_log_file, "%f\t", (double)bytes_received_rate);
+        _fprintf((FILE *)network_summary_log_file, "%f\t", (double)(elapsed_ms * 0.001f));
+        _fprintf((FILE *)network_summary_log_file, "%f\t", (double)avg_players);
+        _fprintf((FILE *)network_summary_log_file, "%d\t", network_summary_stats.packets_sent);
+        _fprintf((FILE *)network_summary_log_file, "%d\t", network_summary_stats.packets_received);
+        _fprintf((FILE *)network_summary_log_file, "%f\t", (double)packets_sent_rate);
+        _fprintf((FILE *)network_summary_log_file, "%f\t", (double)packets_received_rate);
+        _fprintf((FILE *)network_summary_log_file, "%d\t", network_summary_stats.bytes_sent);
+        _fprintf((FILE *)network_summary_log_file, "%d\t", network_summary_stats.bytes_received);
+        _fprintf((FILE *)network_summary_log_file, "%f\t", (double)bytes_sent_rate);
+        _fprintf((FILE *)network_summary_log_file, "%f\t", (double)bytes_received_rate);
 
         avg_players_inv = 1.0f / avg_players;
-        fprintf((FILE *)network_summary_log_file, "%f\t", (double)(avg_players_inv * bytes_sent_rate * 8.0f));
-        fprintf((FILE *)network_summary_log_file, "%f\t", (double)(avg_players_inv * bytes_received_rate * 8.0f));
-        fprintf((FILE *)network_summary_log_file, "%f\t", (double)bytes_sent_per_packet);
-        fprintf((FILE *)network_summary_log_file, "%f\n", (double)bytes_received_per_packet);
-        fflush((FILE *)network_summary_log_file);
+        _fprintf((FILE *)network_summary_log_file, "%f\t", (double)(avg_players_inv * bytes_sent_rate * 8.0f));
+        _fprintf((FILE *)network_summary_log_file, "%f\t", (double)(avg_players_inv * bytes_received_rate * 8.0f));
+        _fprintf((FILE *)network_summary_log_file, "%f\t", (double)bytes_sent_per_packet);
+        _fprintf((FILE *)network_summary_log_file, "%f\n", (double)bytes_received_per_packet);
+        _fflush((FILE *)network_summary_log_file);
     }
 }
 
