@@ -25,7 +25,7 @@ SYS_LIBS = ["kernel32.lib", "user32.lib", "gdi32.lib", "advapi32.lib", "ole32.li
 # ---- what the sources say about each external name
 def extern_map():
     addr = collections.defaultdict(collections.Counter); kind = {}
-    ext = re.compile(r"^[ \t]*extern\s[^;{}]*?\b([A-Za-z_]\w*)\s*(\(|\[[^\]]*\]\s*;|;)", re.M)
+    ext = re.compile(r"^[ \t]*extern\s[^;{}]*?\b([A-Za-z_]\w*)\s*(\(|(?:\[[^\]]*\]\s*)+;|;)", re.M)
     for p in glob.glob(os.path.join(ROOT, "src", "*", "*.c")):
         t = open(p, encoding="utf-8", errors="replace").read()
         b = t[:t.rfind("#if 0")] if "#if 0" in t else t
@@ -96,7 +96,8 @@ def game_crt():
     fj = os.path.join(ROOT, "out", "functions.json")
     if not os.path.exists(fj): return {}
     crt = {x["name"].lstrip("_"): int(x["addr"], 16) for x in json.load(open(fj)) if x.get("lib") or x.get("fid")}
-    crt.setdefault("fopen", 0x624186)   # not FID-matched: push 0x40 (_SH_DENYNO); call __fsopen(path, mode, shflag)
+    crt.setdefault("fopen", 0x624186)
+    crt.setdefault("wcscpy", 0x625bba)  # not FID-matched: copies words through the NUL, returns dest   # not FID-matched: push 0x40 (_SH_DENYNO); call __fsopen(path, mode, shflag)
     return crt
 
 FORCE = "--force" in __import__("sys").argv   # link even with unresolved names (they point at 0 until fixed)

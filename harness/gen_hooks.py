@@ -372,6 +372,9 @@ def void_functions_with_eax_readers(addrs):
             if not mm: break
             op, args = mm.group(1), mm.group(2)
             parts = [x.strip() for x in re.split(r",(?![^\[]*\])", args)] if args else []
+            if op in ("xor", "sub") and len(parts) == 2 and parts[0] == parts[1]:   # zeroing idiom: a write, not a read
+                if re.fullmatch(r"eax|ax|al", parts[0]): break
+                continue
             srcs = parts if op in ("push", "test", "cmp") else parts[1:]
             if any(rd.search(s) for s in srcs) or (parts and "[" in parts[0] and rd.search(parts[0])):
                 used.add(int(m.group(1), 16)); break
