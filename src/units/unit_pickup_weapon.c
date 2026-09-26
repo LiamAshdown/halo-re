@@ -25,17 +25,17 @@ extern int32_t game_connection_role; // 0x00719720
 
 extern object * object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);         // 0x4f5de0, UNSURE signature
-extern void object_for_each_light_attachment(uint32_t object_index, uint32_t flag); // 0x4f9a20, UNSURE signature  // real signature (object_for_each_light_attachment.c): void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback); Ghidra recovered 2 of 3 args at this call site
+extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback); // 0x4f9a20, EAX object
 extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_label, char *weapon_label, uint8_t test_only); // 0x5651e0
 extern char * unit_get_seat_or_state_name(uint32_t unit_index);                                    // 0x56c2f0, UNSURE signature
 extern void unit_detach_from_seat(uint32_t unit_index, uint8_t suppress_trigger, uint8_t require_client_flag, uint8_t fire_trigger_event); // 0x56c640
 extern void unit_drop_inventory_weapons_except_current(uint32_t unit_index);        // 0x56d360
 extern int16_t unit_find_empty_weapon_slot(uint32_t unit_index);                                  // 0x56d660, UNSURE signature
-extern uint8_t unit_check_weapon_use_permission(uint32_t unit_index);                                  // 0x56da00, UNSURE signature
-extern int16_t unit_find_next_zone_permitted_weapon_slot(int16_t start_slot, uint8_t direction);                // 0x56dba0, UNSURE signature  // real signature (unit_find_next_zone_permitted_weapon_slot.c): int16_t unit_find_next_zone_permitted_weapon_slot(uint32_t unit_index, int32_t start_slot, int16_t direction); Ghidra recovered 2 of 3 args at this call site
+extern uint8_t unit_check_weapon_use_permission(uint32_t unit_index, uint32_t weapon_index); // 0x56da00, ESI unit, EDI weapon
+extern int16_t unit_find_next_zone_permitted_weapon_slot(uint32_t unit_index, int32_t start_slot, int16_t direction); // 0x56dba0, EAX unit
 extern uint8_t game_engine_notify_weapon_ready_state_change(datum_index unit_index, datum_index weapon_index);                                // 0x462000, UNSURE signature
-extern void item_set_holder(datum_index object_index);                                // 0x4bcfc0, UNSURE signature
-extern void unit_set_local_player_weapon_index(int16_t slot);                                           // 0x472100, UNSURE signature
+extern void item_set_holder(uint32_t item_index, datum_index holder_index); // 0x4bcfc0, ECX item, EDX holder
+extern void unit_set_local_player_weapon_index(datum_index unit, int16_t weapon_index); // 0x472100, EAX unit
 
 uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t unit_index)
     // blam-cc: EAX -> weapon_index, ECX -> unit_index, stack -> pickup_mode
@@ -62,7 +62,7 @@ uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t 
     }
 
     if (((weapon_obj->flags & 0x800) != 0) && (weapon_obj->parent_object == k_datum_index_none)) {
-        if (unit_check_weapon_use_permission(unit_index) != 0) {
+        if (unit_check_weapon_use_permission(unit_index, weapon_index) != 0 /* 0x56d4c7: ESI unit, EDI weapon */) {
             if (game_engine_notify_weapon_ready_state_change(unit_index, weapon_index) != 0 /* push edi (weapon); push esi (unit) at 0x56d4d4 */) {
                 if (pickup_mode == 2) {
                     unit_drop_inventory_weapons_except_current(unit_index);
@@ -73,18 +73,18 @@ uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t 
                     Object *weapon_def = (Object *)tag_instances[weapon_obj->definition_tag & 0xffff].data;
                     if ((*(uint32_t *)&weapon_def->model.tag_id != 0xffffffff) &&   // tag + 0x34
                         ((weapon_obj->flags & 1) == 0)) {                          // puVar2[4], object + 0x10
-                        object_for_each_light_attachment(weapon_index, 0);
+                        object_for_each_light_attachment(weapon_index, 1, 0); // 0x56d54e: EAX = edi = weapon, push 0, push 1
                     }
                     weapon_obj->flags |= 1;
                     ((object_header *)object_data->data)[weapon_index & 0xffff].flags &= 0xfd;
-                    item_set_holder(weapon_index);
+                    item_set_holder(weapon_index, unit_index); // 0x56d56f: EDX = esi = the unit (ECX at entry), ECX = edi = weapon
                     unit->weapons[slot] = weapon_index;
                     unit->weapon_ready_ticks[slot] = 0;
 
                     if (pickup_mode != 0) {
                         if (pickup_mode == 1) {
                             if ((unit->control_flags & 0x800) == 0) {
-                                unit_set_local_player_weapon_index(slot);
+                                unit_set_local_player_weapon_index(unit_index, slot); // 0x56d5ba: EAX = esi unit, push ebp = slot
                             }
                         } else if (pickup_mode != 2) {
                             return 1;
@@ -92,7 +92,7 @@ uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t 
                         unit->desired_weapon_index = slot;
                         return 1;
                     }
-                    unit->desired_weapon_index = unit_find_next_zone_permitted_weapon_slot(unit->current_weapon_index, 0);
+                    unit->desired_weapon_index = unit_find_next_zone_permitted_weapon_slot(unit_index, unit->current_weapon_index, 0); // 0x56d5df: EAX unit
                     return 1;
                 }
             }
