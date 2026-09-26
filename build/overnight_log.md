@@ -782,3 +782,9 @@ Remaining step-1 code gap:
   the ground surface, pick the nearest walkable neighbour the velocity heads into, step over onto it when within 2r,
   dot <= 0.0533 and |height| <= r/2, push velocity by 1/30, synthesize contact[0]) written and checked; compiles.
   Next: section 3 (ground contact choice, 0x55fce7..0x560088).
+- [firing 6] Item 3, section 3/4 (0x55fce7..0x560088): ground contact choice written and checked -- lateral
+  direction normalized (1e-8 guard), best contact = walkable first (snap surface / highest along velocity), else
+  highest normal.k; 'moving' flag from flag-8 or non-scenery object contacts; landing rejected when steeper than
+  cos_max_slope (NaN too) or by the unknown_5c/unknown_60 distance test; airborne writes k_default_resting_plane.
+  Quirk kept as documented: the snap-surface test reads the CURRENT BEST's surface (contacts[-1] slot with no best).
+  Compiles. Next: section 4 (0x560088..0x5603f5).

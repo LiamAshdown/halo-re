@@ -6,7 +6,7 @@
 // Section status:
 //   [x] 1. target velocity (0x55efd0..0x55f6d6)
 //   [x] 2. capsule sweep + ground-edge snapping (0x55f6d6..0x55fce4)
-//   [ ] 3. ground contact choice (0x55fce4..0x560088)
+//   [x] 3. ground contact choice (0x55fce4..0x560088)
 //   [ ] 4. ground object / result tail (0x560088..0x5603f5)
 //
 // NOTE: biped_movement_solver_flags bit 0 is used as "airborne" here (2D air control with
@@ -25,6 +25,9 @@ extern const real_vector3d *global_up3d_pointer;      // 0x00696720
 extern float world_gravity_scale;                     // 0x0069c52c
 extern double sqrt(double x);
 extern double fabs(double x);
+extern data_array *object_data;                      // 0x008603b0
+extern float k_default_resting_plane[4];             // 0x0069c53c
+extern real vector3d_length(real_vector3d *v);       // 0x401960, blam-cc: EAX v
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 
 extern void real_matrix4x3_rotation_from_forward(real_vector3d *forward, real_vector3d *left,
@@ -367,5 +370,117 @@ void biped_movement_solve(biped_movement_solver_data *solve)
         }
     }
 
-    // ---- section 3 (0x55fce7..): TODO
+    // ---- section 3: choose the ground contact (0x55fce7..0x560088)
+    {
+        float lateral_squared = lateral_y * lateral_y + lateral_x * lateral_x;
+        int16_t best = -1;                                  // [esp+0x80] local_af30
+        uint8_t best_walkable = 0;                          // [esp+0x13] bVar8
+        uint8_t best_is_snap_surface = 0;                   // [esp+0x23] local_af8d
+        float best_k = -3.4028235e+38f;                     // [esp+0x3c] local_af74
+        float best_height = -3.4028235e+38f;                // [esp+0x40] local_af70
+        uint8_t landed = 0;
+
+        if (lateral_squared > 9.999999e-09f) {              // 0x673178
+            float inverse = (float)(1.0 / sqrt((double)lateral_squared));
+            lateral_x = lateral_x * inverse;
+            lateral_y = inverse * lateral_y;
+        }
+
+        if ((flags & 0x10) == 0 && contact_count > 0) {
+            uint8_t dead = (flags & 0x80) != 0;
+            int16_t i;
+
+            for (i = 0; i < contact_count; i++) {
+                physics_model_contact *contact = &contacts[i];
+                uint8_t walkable = !dead && (climbs_any_surface || (contact->surface_flags & 4) != 0);
+                // 0x55fd99: compares the CURRENT BEST's surface (not contact i) with the snap surface.
+                // With no best yet the original reads the slot before contacts[0] (section 2's plane d
+                // bits), which never equals a surface index; treated as "no".
+                uint8_t is_snap_surface = solve->unknown_a8 != 0xffffffff && best >= 0 &&
+                                          (uint32_t)contacts[best].surface_index == solve->unknown_a8;
+                float height = -(solve->result_velocity.i * contact->plane_i + contact->plane_j * solve->result_velocity.j +
+                                 contact->plane_k * solve->result_velocity.k);
+                uint8_t take;
+
+                if (walkable) {
+                    take = (climbs_any_surface || !(lateral_y * contact->plane_j + lateral_x * contact->plane_i > 0.5f)) &&
+                           (!best_walkable || is_snap_surface || (!best_is_snap_surface && height > best_height));
+                } else {
+                    take = !best_walkable && contact->plane_k > best_k;
+                }
+                if (take) {
+                    best_walkable = walkable;
+                    best = i;
+                    best_is_snap_surface = is_snap_surface;
+                    best_k = contact->plane_k;
+                    best_height = height;
+                }
+
+                // 0x55fe63: anything dynamic in contact keeps the biped "moving"
+                if ((*result_flags & 0x10) == 0) {
+                    uint8_t dynamic = (contact->surface_flags & 8) != 0;
+                    if (!dynamic && contact->object_index != 0xffffffff) {
+                        uint8_t type = ((uint8_t *)&((object_header *)object_data->data)[contact->object_index & 0xffff])[3];
+                        dynamic = ((1u << (type & 0x1f)) & 0x40) == 0; // everything but scenery
+                    }
+                    if (dynamic) {
+                        *result_flags = (uint16_t)(*result_flags | 0x10);
+                    }
+                }
+            }
+
+            if (best != -1) {
+                physics_model_contact *ground = &contacts[best];
+                real_plane3d plane;                         // [esp+0x84]
+                float penetration;                          // [esp+0x48] (reuses lateral_x's slot)
+
+                plane.normal.i = ground->plane_i;
+                plane.normal.j = ground->plane_j;
+                plane.normal.k = ground->plane_k;
+                plane.d = ground->plane_d;
+                penetration = -(plane.normal.j * e.j + plane.normal.k * e.k + plane.normal.i * e.i);
+                landed = 1;
+                if (!best_walkable && !best_is_snap_surface) {
+                    if (!(best_k >= solve->cosine_maximum_slope_angle)) {
+                        landed = 0;                         // 0x55ff57 test ah,1: too steep (or NaN)
+                    } else if ((flags & 1) != 0 && solve->unknown_5c < 3.4028235e+38f) {
+                        real_vector3d projected;
+                        float r = solve->unknown_5c;
+                        projected.i = plane.normal.i * penetration + e.i;
+                        projected.j = plane.normal.j * penetration + e.j;
+                        projected.k = plane.normal.k * penetration + e.k;
+                        if (r * r < projected.i * projected.i + projected.j * projected.j + projected.k * projected.k &&
+                            penetration / vector3d_length(&e) < solve->unknown_60) {
+                            landed = 0;
+                        }
+                    }
+                }
+                if (landed) {
+                    uint32_t surface = (uint32_t)ground->surface_index;
+                    solve->result_flags &= 0xfe;
+                    solve->ground_normal = plane.normal;
+                    *(float *)&solve->ground_plane = plane.d;
+                    solve->result_ground_surface_index = surface;
+                    if (surface != 0xffffffff && surface == solve->unknown_a8) {
+                        solve->result_impact_speed = 0.0f;
+                    } else {
+                        solve->result_impact_speed = -(e.j * solve->ground_normal.j + e.k * solve->ground_normal.k +
+                                                       e.i * solve->ground_normal.i);
+                    }
+                }
+            }
+        }
+        if (!landed) {
+            // 0x560044: airborne
+            solve->result_flags |= 0x01;
+            solve->ground_normal.i = k_default_resting_plane[0];
+            solve->ground_normal.j = k_default_resting_plane[1];
+            solve->ground_normal.k = k_default_resting_plane[2];
+            *(float *)&solve->ground_plane = k_default_resting_plane[3];
+            solve->result_ground_surface_index = 0xffffffff;
+            solve->result_impact_speed = 0.0f;
+        }
+    }
+
+    // ---- section 4 (0x560088..): TODO
 }
