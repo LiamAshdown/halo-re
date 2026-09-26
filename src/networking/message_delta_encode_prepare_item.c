@@ -25,7 +25,9 @@ extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
 // one item's fields: when the message is flagged, precomputes the item's static-field bit range;
 // either way, computes the item's total (static + array) bit range against the message's
 // remaining budget.
-int32_t message_delta_encode_prepare_item(uint8_t *ctx)
+// FIXED (objdump 0x4ecb60): the context arrives in EAX and the result is AL only (mov al,1); the body already matched.
+// blam-cc: EAX -> ctx
+uint8_t message_delta_encode_prepare_item(uint8_t *ctx)
 {
     #define CTXW(off) (*(int32_t *)(ctx + (off)))
 
