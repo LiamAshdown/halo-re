@@ -73,7 +73,6 @@ camera_observer_generate_target_candidates         # game: rewrite says 'omitted
 camera_observer_target_score                       # game: rewrite says 'not modelled'
 camera_observer_update                             # game: rewrite says 'placeholder'
 cheat_spawn_objects_near_camera                    # game: rewrite says 'placeholder'
-chimera__kill_feed                                 # game: rewrite says 'not modeled'
 game_engine_build_end_game_result_text             # game: rewrite says 'placeholder'
 game_engine_build_visible_cluster_bitmask          # game: rewrite says 'not reproduced'
 game_engine_cleanup_stray_items                    # game: rewrite says 'TODO'

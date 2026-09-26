@@ -67,7 +67,7 @@ void chimera__kill_feed(datum_index recipient, int32_t param_1, uint32_t message
             if (current_game_engine->build_message_text != 0) {
                 built = ((char (*)(int32_t, uint32_t, datum_index, wchar_t *, size_t))
                     current_game_engine->build_message_text)
-                    (param_1, message_type, subject, message, 0x400); // UNSURE: override signature
+                    (param_1, message_type, subject, message, 0x400); // 0x460aa7..0x460ac2: (param_1, type, subject, text, 0x400)
             }
             if (built == 0) {
                 built = game_engine_build_kill_feed_message_text(message, message_type, subject, 0x400);
@@ -87,7 +87,8 @@ void chimera__kill_feed(datum_index recipient, int32_t param_1, uint32_t message
         }
 
         if (network_game_mode == 2 && broadcast == 1) {
-            game_engine_notify_kill_event(0, -1, message_type, subject); // UNSURE: player_index/hash_key are unaff_EAX/unaff_ECX passthrough from chimera__kill_feed's own caller, not modeled
+            // 0x460b48..0x460b5a: EAX = the recipient (EDI), ECX = param_1, stack (message_type, subject)
+            game_engine_notify_kill_event(recipient, param_1, (int32_t)message_type, subject);
         }
     }
 }
