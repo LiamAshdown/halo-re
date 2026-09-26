@@ -7,7 +7,7 @@
 //   .desired_weapon_index (0x2f4), .current_weapon_index (0x2f2), .animation_state (0x2a3,
 //   0x1b = seat_exit); types/objects.h object.flags (0x10, bit 0x800), object.parent_object
 //   (0x11c).
-// blam-cc: param_1 -> pickup_mode, in_EAX -> weapon_index, implicit object_try_and_get handles
+// blam-cc: EAX -> weapon_index, ECX -> unit_index, stack -> pickup_mode
 //   for the unit (mask 3) and the weapon (mask 4) -- their ECX arguments are not visible here.
 // UNSURE: unit_check_weapon_use_permission/game_engine_notify_weapon_ready_state_change/unit_set_local_player_weapon_index's real roles are not recovered.
 
@@ -37,7 +37,10 @@ extern uint8_t game_engine_notify_weapon_ready_state_change(datum_index unit_ind
 extern void item_set_holder(datum_index object_index);                                // 0x4bcfc0, UNSURE signature
 extern void unit_set_local_player_weapon_index(int16_t slot);                                           // 0x472100, UNSURE signature
 
-uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t unit_index) // blam-cc: param_1, in_EAX, UNSURE ECX handles
+uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t unit_index)
+    // blam-cc: EAX -> weapon_index, ECX -> unit_index, stack -> pickup_mode
+    // FIXED (objdump 0x56d400): ECX is the unit (object_try_and_get(ECX, mask 3) at 0x56d40f), EAX the weapon (mask 4);
+    //   one stack argument, every caller cleans 4 bytes
 {
     object *unit_obj = object_try_and_get(unit_index, _object_mask_unit);
     object *weapon_obj = object_try_and_get(weapon_index, _object_mask_weapon);
