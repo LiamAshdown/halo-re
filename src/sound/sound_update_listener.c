@@ -22,6 +22,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "objects.h"
 #include "game.h"
 #include "camera.h"
 #include "sound.h"
@@ -36,8 +37,8 @@ extern SoundEnvironment sound_environment;          // 0x0072525c
 extern sound_driver *current_sound_driver;          // 0x00725208, header calls this "sound_driver";
                                                      // renamed here, sound_driver is already the type
 
-extern uint8_t scenario_location_get_water_and_weather(void *leaf_location, int32_t unknown_1); // 0x53ed60, outside this module;
-    // EBX also holds &observers[0].camera at the call (possibly a third, register argument)
+extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
+    int16_t *weather_index_out); // 0x53ed60, EBX point, stack (leaf, weather_index_out)
 extern datum_index sound_play_new(datum_index definition_index, sound_location *location, datum_index owner_index,
     sound_location_proc location_proc, void *callback_data, int32_t callback_data_size, uint32_t first_person_hint); // 0x549af0
 extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out); // 0x4cb970, math module
@@ -78,7 +79,9 @@ void sound_update_listener(void)
     listener->valid = 1;
 
     camera = &observers[0].camera;
-    underwater = scenario_location_get_water_and_weather(&camera->leaf_index, 0);
+    // 0x54b9a3..0x54b9b7: EBX = 0x6ac6d0 (camera->position), push 0, push 0x6ac6dc (&camera->leaf_index)
+    underwater = scenario_location_get_water_and_weather((real_point3d *)&camera->position,
+        (bsp_leaf_reference *)&camera->leaf_index, (int16_t *)0);
     if (listener->underwater != underwater) {
         // Underwater state just changed: play the matg enter/exit water sound if one is assigned.
         // The stack block is a full 0x40-byte sound_location ([esp+0x38], the frame's last 0x40
