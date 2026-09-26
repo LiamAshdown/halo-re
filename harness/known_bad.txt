@@ -16,10 +16,7 @@ game_engine_variant_defaults_classic_team_oddball  # game: differ 200/200: point
 hs_null_with_params_evaluate                       # hs: differ 200/200: return 0x20229100 vs 0x00009100
 input_joystick_state_process                       # input: died tester process died
 hud_state_allocate                                 # interface: differ 200/200: global 0x006e2dd4: 0xd046e3f0 vs 0xd9da9772
-animation_get_frame_orientations                   # models: differ 99/99: rewrite crashed (original did not)
-animation_get_root_node_matrix                     # models: differ 111/111: rewrite crashed (original did not)
 animation_node_get_rotation                        # models: hang no result within 20 s (a random input may loop forever in one version)
-model_nodes_get_default_transforms                 # models: differ 100/100: rewrite crashed (original did not)
 format_time_and_date_strings                       # networking: differ 19/100: pointer arg #0 +0x0: 0.50075 (0x3f00312d) vs 0.500003 (0x3f00002d)
 message_delta_decode_begin                         # networking: differ 168/168: return 0xc2c01a00 vs 0x00000000
 message_delta_sample_ring_buffer_append            # networking: differ 1/1: pointer arg #0 +0x8: 0 (0x00000000) vs -2.382 (0xc01872b0)

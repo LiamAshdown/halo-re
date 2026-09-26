@@ -6,6 +6,8 @@
 //   rotation and translation into an SQT transform array with scale fixed at 1.0"); matches
 //   types/models.h real_orientation section field-for-field (rotation from ModelNode +0x34,
 //   translation from +0x28, scale 1.0f).
+// FIXED (difftest): TagReflexive.count is uint32_t, so the loop compared unsigned; the original compares signed and
+//   skips a negative count.
 // register convention: model in ESI (unaff_ESI); output real_orientation array as the
 //   recognized stack parameter.
 //   // blam-cc: ESI -> model, stack -> out
@@ -22,7 +24,7 @@ void model_nodes_get_default_transforms(GBXModel *model, real_orientation *out)
     int16_t node;
 
     nodes = (ModelNode *)model->nodes.pointer;
-    for (node = 0; (int32_t)node < model->nodes.count; node++) { // movsx dx vs the int32 count
+    for (node = 0; (int32_t)node < (int32_t)model->nodes.count; node++) { // movsx dx vs the count, SIGNED (jle 0x4d761a, jl 0x4d767c)
         out[node].rotation = *(real_quaternion *)&nodes[node].default_rotation;
         out[node].translation = *(real_point3d *)&nodes[node].default_translation;
         out[node].scale = 1.0f;
