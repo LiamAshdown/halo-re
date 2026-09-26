@@ -9,6 +9,8 @@
 // register convention: single float stack parameter (dt); Ghidra shows a clean param_1 with no
 //   in_REG marker.
 // blam-cc: stack -> dt
+// FIXED (verified against 0x4fba00..0x4fba0e): datum_next takes the after-index in DX (-1) and the array
+//   in EDI; the old one-argument prototype passed flag_data as the index and junk as the array.
 // UNSURE: the throttle counter this increments and tests (`< 5`) lives at flag+0x06, inside
 //   what types/objects.h currently folds into the single `uint32_t unknown_04` field (0x04..
 //   0x08); this read/write refines that to a 16-bit sub-field without redefining the header.
@@ -26,14 +28,14 @@
 extern data_array *flag_data;       // 0x008603a8
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern datum_index datum_next(data_array *data); // 0x4d0630, UNSURE: implicit register
-    // argument, mirrors datum_new's calling shape; returns the first live datum_index or -1
+extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630, memory module;
+    // blam-cc: DX -> after_index, EDI -> array
 extern void flag_cloth_update(flag *entry, Flag *tag, float dt); // this module, 0x4fbae0
 
 void flags_update(float dt) // blam-cc: stack -> dt
 {
     data_array *flags = flag_data;
-    datum_index current = datum_next(flags);
+    datum_index current = datum_next(-1, flags); // 0x4fba09 or edx,-1; EDI = flag_data
 
     for (;;) {
         int32_t next_index;

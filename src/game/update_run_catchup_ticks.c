@@ -1,16 +1,17 @@
 // update_run_catchup_ticks  (Ghidra: FUN_00473310; renamed, no established name)
 // address 0x473310, size 116 bytes
-// name confidence: 0.3   rewrite confidence: 0.2
+// name confidence: 0.3   rewrite confidence: 0.85
 // evidence: out/phase4/game_functions.md ("Runs the server update-queue push/read cycle for a
 // given number of catch-up ticks"); update_client_stage_entry.c (this batch, staged 8-dword
 // record); update_server_queue_push_history.c and update_server_dispose.c /
 // update_client_distribute_staged_entry.c (this batch), both called here.
 // register convention: a tick count in BX (Ghidra's `unaff_BX`).
 //   // blam-cc: BX -> tick_count
-// UNSURE: the machine-index argument update_server_queue_push_history expects is not shown at
-// this call site (Ghidra elides it entirely); modeled as 0 pending a disassembly pass. The
-// DAT_007102d4 wraparound arithmetic (masked to a 64-wide signed range) is transcribed literally.
-
+// FIXED (verified against 0x473310..0x473383): update_server_queue_push_history gets AX = 0 (xor eax,eax),
+//   EDX = the tick count, the staged copy and the counter's value before the bump. The loop calls
+//   update_server_push_player_tick_history (no arguments) and update_server_queue_get_history_entry with
+//   ECX = 0 (queue 0, not none), EAX = a 4-byte local for the tick and the 0x304-byte record buffer on the
+//   stack; the draft passed only the buffer, so the tick was written through a null pointer.
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -19,46 +20,43 @@
 extern int32_t update_client_unknown_102d4; // 0x007102d4, UNSURE raw counter
 extern uint32_t update_client_staged[8];     // 0x006f7ea4
 
-extern uint32_t update_server_queue_push_history(int32_t machine_index, uint32_t *source, uint32_t extra); // this batch, 0x473390
-extern void update_server_push_player_tick_history(uint8_t out[0x160]); // this batch, 0x472cc0; UNSURE signature
-extern void update_server_queue_get_history_entry(uint8_t out[772]); // this batch, 0x472ea0; UNSURE signature
+extern void update_server_queue_push_history(int16_t machine_index, int32_t tick_count, uint32_t *source,
+    uint32_t extra); // 0x473390, blam-cc: EAX -> machine_index, EDX -> tick_count, stack -> source, extra
+extern void update_server_push_player_tick_history(void); // 0x472cc0
+extern void update_server_queue_get_history_entry(int32_t *out_record, int32_t *out_tick, datum_index queue_handle);
+    // 0x472ea0, blam-cc: EAX -> out_tick, ECX -> queue_handle, stack -> out_record
 
 // blam-cc: BX -> tick_count
 void update_run_catchup_ticks(int16_t tick_count)
 {
+    int32_t tick;
     uint32_t staged_copy[8];
-    uint32_t extra = (uint32_t)update_client_unknown_102d4;
+    int32_t record[0xc1];
+    int32_t previous;
+    int32_t next;
+    uint32_t remaining;
     int32_t i;
 
     if (tick_count <= 0) {
         return;
     }
-
-    update_client_unknown_102d4 = (update_client_unknown_102d4 + 1) & 0x8000003f;
-    if (update_client_unknown_102d4 < 0) {
-        update_client_unknown_102d4 = (update_client_unknown_102d4 - 1 | 0xffffffc0) + 1;
+    previous = update_client_unknown_102d4;
+    next = (previous + 1) & 0x8000003f;
+    if (next < 0) {
+        next = ((next - 1) | 0xffffffc0) + 1;
     }
-
+    update_client_unknown_102d4 = next;
     for (i = 0; i < 8; i++) {
         staged_copy[i] = update_client_staged[i];
     }
-    update_server_queue_push_history(0, staged_copy, extra); // UNSURE: machine_index
+    update_server_queue_push_history(0, tick_count, staged_copy, (uint32_t)previous);
 
-    {
-        uint8_t scratch_a[0x160]; // Ghidra's local_324 is 8 dwords (0x20) but the *second*,
-                                   // larger stack local (local_304, 772 bytes) is the one passed
-                                   // below; local_324 itself is only used for the staged copy
-                                   // above.
-        uint8_t scratch_b[772];
-        uint32_t remaining = (uint32_t)tick_count;
-
-        (void)scratch_a;
-        do {
-            update_server_push_player_tick_history(scratch_b); // UNSURE: real argument shape not recovered
-            update_server_queue_get_history_entry(scratch_b);
-            remaining = remaining - 1;
-        } while (remaining != 0);
-    }
+    remaining = (uint16_t)tick_count;
+    do {
+        update_server_push_player_tick_history();
+        update_server_queue_get_history_entry(record, &tick, 0);
+        remaining = remaining - 1;
+    } while (remaining != 0);
 }
 
 #if 0

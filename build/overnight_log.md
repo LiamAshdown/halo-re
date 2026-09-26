@@ -927,3 +927,25 @@ Remaining step-1 code gap:
   observers, weather/sound pools -> scenario object placement (0x4f3ba0, misnamed
   objects_update_control_bindings, confidence 0.35) -> object creation -> bsp3d_node_find_leaf garbage BSP.
   Next: rewrite 0x4f3ba0 as scenario placement from the disassembly and walk the object creation chain.
+
+## MAIN MENU REACHED (2026-09-26)
+- halo_rebuilt.exe (standalone: all game code runs from our C; the original .text is mapped non-executable)
+  boots through splash, UI map load and scenario placement, runs the UI scripts, and renders the main menu
+  (CAMPAIGN / MULTIPLAYER / PROFILES / SETTINGS / CREDITS / QUIT) with the animated background; 60 s with no
+  fatal fault. Screenshot: build/standalone/boot3.png (scratchpad/shot.ps1 captures the window).
+- ui.map's scripts call only three hs builtins (read from the scenario's script nodes): begin, sleep, camera_set.
+  New C: hs_evaluate_begin 0x488b90, hs_evaluate_if 0x488e60, hs_evaluate_set 0x488fd0,
+  hs_evaluate_sleep_ticks 0x489650 ("sleep"; hs_evaluate_sleep.c @0x489800 is sleep_until),
+  hs_evaluate_camera_set 0x47ee40. ~510 other hs builtin evaluators still have no C (trap on first use).
+- Sound: sound_channel_parameters_proc_default 0x54ce50 / _eax 0x54cf80, Ogg memory-stream callbacks
+  ov_read/seek/close/tell_thunk 0x544d50..0x544de0.
+- Mis-declared calls fixed: flags_update -> datum_next (1 arg instead of DX/EDI);
+  game_engine_advance_simulation_ticks -> update_run_catchup_ticks (BX ticks) and
+  network_game_server_per_frame_tick (CX, ESI); update_run_catchup_ticks rewritten (get_history_entry got a
+  null tick pointer); update_server_queue_push_history (EDX ticks dropped, fullness test inverted) and its
+  networking caller.
+- STUCK/open: object_test_in_atmosphere_zone still calls datum_next() with no arguments (UNSURE draft);
+  network_game_server_per_frame_tick.c forwards an EAX `entry` that 0x4e03c0 overwrites at entry (host path).
+  A first-chance AV at 0x30254720 (outside our image; a driver/DLL thread) is logged once per boot and handled.
+- cdb works for the real call chain: cdb -g -G -o -c "sxe -c \"r; kb 12; .kill; qd\" av; g" halo_rebuilt.exe
+  (-o follows the suspended child the loader relaunches).

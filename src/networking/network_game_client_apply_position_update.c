@@ -9,16 +9,16 @@
 // player::unknown_11c.
 // register convention: all four parameters are genuine stack (cdecl) parameters per Ghidra's
 // own signature for this function.
-// blam-cc: stack -> state, packet, param_3 (unused), object
+// blam-cc: stack -> state, packet, param_3, object
 // UNSURE: `state` (param_1) has no named type; its two touched fields (a tick at +0x04 and a
 // machine-index byte pair at +0x0c) line up with the 0x34-byte network_machine::connect_state
 // block that network_game_client_apply_received_update.c stages into a local copy before
 // calling this function with no visible arguments -- so `state` is very likely a pointer into
 // (or the base of) that staged copy, but connect_state itself is documented as fully opaque
 // in out/phase4/networking_types_notes.md, so no field names are invented for it here; raw
-// offsets are used instead. param_3 is never read in the original.
-// UNSURE: FUN_00473390's real parameter types are not established here; `object` is passed
-// through unmodified.
+// offsets are used instead.
+// FIXED (verified against 0x4e0017..0x4e0028): FUN_00473390 is update_server_queue_push_history(AX machine,
+//   EDX tick count = param_3, stack: delta record, param_4); param_3 is read after all.
 
 #include "tags.h"
 #include "memory.h"
@@ -29,7 +29,8 @@
 extern datum_index machine_to_player[16]; // 0x006b1460
 extern data_array *player_data; // 0x0087a480, stride 0x200 (game module)
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, memory module
-extern void update_server_queue_push_history(uint32_t *delta, void *object); // other module (UNSURE)
+extern void update_server_queue_push_history(int16_t machine_index, int32_t tick_count, uint32_t *source,
+    uint32_t extra); // 0x473390, blam-cc: EAX -> machine_index, EDX -> tick_count, stack -> source, extra
 
 // Applies one position/orientation delta record from `packet` onto `object`, but only if the
 // packet's tick is not older than the last one recorded in `state`, its delta-item count is 0
@@ -44,7 +45,6 @@ void network_game_client_apply_position_update(uint8_t *state, uint32_t *packet,
     datum_index player_datum;
     player *plr;
 
-    (void)param_3;
     if (*(uint32_t *)(state + 4) > (*packet & 0x7fffffff)) {
         return;
     }
@@ -72,7 +72,10 @@ void network_game_client_apply_position_update(uint8_t *state, uint32_t *packet,
         return;
     }
 
-    update_server_queue_push_history(delta, object);
+    // 0x4e0017..0x4e0028: AX = the state's machine word (+0xc), EDX = the third stack argument, then the
+    // delta record and the fourth stack argument
+    update_server_queue_push_history(*(int16_t *)(state + 0xc), (int32_t)param_3, delta,
+        (uint32_t)object);
     *(uint32_t *)(state + 4) = *packet & 0x7fffffff;
     for (i = 0; i < 8; i = i + 1) {
         delta[8 + i] = delta[i];

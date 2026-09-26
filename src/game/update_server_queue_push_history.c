@@ -5,11 +5,13 @@
 // server-side history ring buffer if space is available"); types/game.h update_server_queue
 // (queue +0x28), player_update_queue -> circular_queue (capacity, record_size, records,
 // write_index, read_index, storage); machine_to_player (0x006b1460).
-// register convention: a machine index in EAX (Ghidra's `in_EAX`).
-//   // blam-cc: EAX -> machine_index, stack -> source, extra
-// Assembles an 11-dword record (`extra` followed by 8 dwords read from `source`, matching
-// k_player_update_history_record_size == 0x2c) and pushes it into that player's
-// update_server_queue's player_update_queue.queue circular buffer if it is not full.
+// register convention: machine index in AX, tick count in EDX, source and extra on the stack.
+//   // blam-cc: EAX -> machine_index, EDX -> tick_count, stack -> source, extra
+// FIXED (verified against 0x473390..0x47342f): the record is extra (+0), the tick count twice (+4, +8,
+//   from EDX, which the draft dropped) and the 8 source dwords (+0xc). The fullness test was inverted:
+//   the used count is write - read when write > read, capacity - read + write when write < read, else
+//   0, and the record is pushed while used < capacity - 1. EAX's final value (not a result) is unused
+//   by both callers (0x473353, 0x4e0028), so this returns nothing.
 
 #include "tags.h"
 #include "memory.h"
@@ -19,47 +21,42 @@
 extern datum_index machine_to_player[16]; // 0x006b1460
 extern data_array *update_server_queues;   // 0x006f1d90
 
-// blam-cc: EAX -> machine_index, stack -> source, extra
-uint32_t update_server_queue_push_history(int32_t machine_index, uint32_t *source, uint32_t extra)
+void update_server_queue_push_history(int16_t machine_index, int32_t tick_count, uint32_t *source, uint32_t extra)
 {
     datum_index player = machine_to_player[(uint16_t)machine_index];
-    uint32_t used = 0;
+    update_server_queue *entry;
+    circular_queue *q;
+    uint32_t record[11];
+    int32_t used;
+    int32_t i;
 
-    if (player != k_datum_index_none) {
-        update_server_queue *entry = (update_server_queue *)((uint8_t *)update_server_queues->data +
-            (uint32_t)(uint16_t)player * update_server_queues->size);
-        circular_queue *q = &entry->queue.queue;
-        uint32_t record[11];
-        int32_t i;
-        int32_t write_index = q->write_index;
-        int32_t read_index = q->read_index;
-
-        record[0] = extra;
-        for (i = 0; i < 8; i++) {
-            record[3 + i] = source[i];
-        }
-
-        if (write_index < read_index) {
-            used = read_index - write_index;
-        } else if (read_index < write_index) {
-            used = (q->capacity - write_index) + read_index;
-        } else {
-            used = 0;
-        }
-
-        if ((int32_t)used < q->capacity - 1) {
-            uint8_t *dst = (uint8_t *)((uint8_t **)q->records)[write_index];
-            uint8_t *src = (uint8_t *)record;
-            int32_t record_size = q->record_size;
-
-            for (i = 0; i < record_size; i++) {
-                dst[i] = src[i];
-            }
-            used = (q->write_index + 1) % q->capacity;
-            q->write_index = (q->write_index + 1) % q->capacity;
-        }
+    if (player == k_datum_index_none) {
+        return;
     }
-    return used;
+    entry = (update_server_queue *)((uint8_t *)update_server_queues->data + (player & 0xffff) * 0x64);
+    q = &entry->queue.queue;
+    for (i = 0; i < 8; i++) {
+        record[3 + i] = source[i];
+    }
+    record[0] = extra;
+    record[1] = (uint32_t)tick_count;
+    record[2] = (uint32_t)tick_count;
+    if (q->write_index > q->read_index) {
+        used = q->write_index - q->read_index;
+    } else if (q->write_index < q->read_index) {
+        used = q->capacity - q->read_index + q->write_index;
+    } else {
+        used = 0;
+    }
+    if (used < q->capacity - 1) {
+        uint8_t *destination = (uint8_t *)q->records[q->write_index];
+        uint8_t *from = (uint8_t *)record;
+
+        for (i = 0; i < q->record_size; i++) {
+            destination[i] = from[i];
+        }
+        q->write_index = (q->write_index + 1) % q->capacity;
+    }
 }
 
 #if 0

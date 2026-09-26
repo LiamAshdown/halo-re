@@ -8,9 +8,11 @@
 // elapsed_ticks +0x14, speed +0x18); game_time_force_single_tick (0x007196d8);
 // game_engine_accumulate_simulation_ticks.c (this batch, 0x470b30); src/game/game_simulate_tick.c
 // (0x45b780, already named, `void game_simulate_tick(uint32_t predict_pass)`).
-// UNSURE: update_run_catchup_ticks (this batch, 0x473310) and network_game_server_per_frame_tick (not in this batch) are called
-// with zero visible arguments at their call sites here; both left parameterless pending their own
-// rewrites' register-convention notes.
+// FIXED (verified against 0x470c13..0x470c45): update_run_catchup_ticks takes the tick count in BX, and
+//   network_game_server_per_frame_tick the tick count in CX with network_session in ESI; both were called
+//   without arguments.
+// UNSURE: network_game_server_per_frame_tick.c models an EAX `entry` argument that 0x4e03c0 overwrites
+//   at its first instruction; host path only, not reached on the first-boot track.
 
 #include "tags.h"
 #include "memory.h"
@@ -22,8 +24,10 @@ extern int16_t network_game_mode;            // 0x00719720
 extern game_time_globals *game_time;          // 0x006f1d6c
 
 extern void game_simulate_tick(uint32_t predict_pass); // 0x45b780
-extern void update_run_catchup_ticks(void); // this batch, 0x473310
-extern void network_game_server_per_frame_tick(void); // 0x4e03c0, not in this batch
+extern void update_run_catchup_ticks(int16_t tick_count); // 0x473310, blam-cc: BX -> tick_count
+extern uint8_t *network_session; // 0x0071c2d4
+extern void network_game_server_per_frame_tick(void *entry, int16_t update_count, uint8_t *server);
+    // 0x4e03c0, blam-cc: EAX -> entry, CX -> update_count, ESI -> server
 extern void game_effects_update(float delta_time); // 0x45b4f0
 extern int32_t game_engine_accumulate_simulation_ticks(float elapsed_seconds, char keep_remainder); // this batch, 0x470b30
 
@@ -46,9 +50,11 @@ void game_engine_advance_simulation_ticks(float delta_time)
             game_time->ticks_this_frame = 0;
             return;
         }
-        update_run_catchup_ticks();
+        update_run_catchup_ticks((int16_t)tick_count); // 0x470c45: BX = the tick count
     } else if (network_game_mode == 2) {
-        network_game_server_per_frame_tick();
+        // 0x470c24..0x470c2c: ESI = network_session, CX = the tick count; EAX is 0 here (mode - 2) and
+        // 0x4e03c0 overwrites it first thing (movzx eax,[esi+4])
+        network_game_server_per_frame_tick(0, (int16_t)tick_count, network_session);
     }
 
     for (i = tick_count; i > 0; i--) {

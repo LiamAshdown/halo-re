@@ -22,10 +22,10 @@
 #include "memory.h"
 #include "sound.h"
 
-extern int32_t ov_read_thunk(void);  // 0x544d50, UNSURE role, see file header
-extern int32_t ov_seek_thunk(void);  // 0x544da0, UNSURE role, see file header
-extern int32_t ov_close_thunk(void); // 0x544dc0, UNSURE role, see file header
-extern int32_t ov_tell_thunk(void);  // 0x544de0, UNSURE role, see file header
+extern uint32_t ov_read_thunk(void *destination, uint32_t size, uint32_t count, sound_ogg_memory_file *file); // 0x544d50
+extern int32_t ov_seek_thunk(sound_ogg_memory_file *file, uint32_t offset_low, int32_t offset_high, int32_t whence); // 0x544da0
+extern int32_t ov_close_thunk(sound_ogg_memory_file *file); // 0x544dc0
+extern int32_t ov_tell_thunk(sound_ogg_memory_file *file); // 0x544de0
 
 extern int32_t ov_open_callbacks(void *datasource, void *vorbis_file, char *initial, int32_t initial_bytes,
     void *read_func, void *seek_func, void *close_func, void *tell_func); // 0x614500, libvorbisfile
