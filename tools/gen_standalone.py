@@ -167,7 +167,11 @@ def main():
                 o = off(v)
                 if v % 16 or o is None:
                     continue
-                if exe[o - 1] not in (0xcc, 0x90, 0xc3):
+                previous_dword = struct.unpack_from("<I", exe, o - 4)[0]
+                after_jump_table = text["va"] <= previous_dword < text["va"] + text["vsize"]
+                if exe[o - 1] not in (0xcc, 0x90, 0xc3) and not after_jump_table:
+                    # (a switch jump table stored in .text right before the entry also ends a function:
+                    # 0x5718e0, the vehicle notify slot, follows vehicle_update's table)
                     # after a jmp only outside library code: CRT scope tables point at handler labels that
                     # also follow a jmp (0x6293e0, 0x62d560, 0x62ef30)
                     if not (exe[o - 5] == 0xe9 or exe[o - 2] == 0xeb) or inside_library_function(v):

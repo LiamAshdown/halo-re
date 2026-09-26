@@ -56,6 +56,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "effects.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -133,7 +134,10 @@ extern void unit_update_autoaim_interaction(uint32_t unit_index);               
 extern void unit_update_random_turn_angle(void);                                       // 0x570840, UNSURE: no traced args
   // real signature (unit_update_random_turn_angle.c): void unit_update_random_turn_angle(uint32_t object_index, real_vector3d *out_axis); Ghidra recovered 0 of 2 args at this call site
 extern void actor_react_to_threat_event(datum_index self_object_index, datum_index other_object_index, int32_t event_kind, real magnitude, uint32_t extra_param, uint8_t suppress_vehicle_relay); // 0x42be40, UNSURE signature
-extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale); // 0x4507a0, UNSURE signature
+extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
+    datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
+    const ColorRGB *color, const effect_tint_source *tint_source);
+    // 0x4507a0, blam-cc: EAX -> creator_object_index, ECX -> definition_index, stack -> the other six
 
 // FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads EAX; unit_index arrive(s) on the stack (1 stack argument(s)).
 // blam-cc: stack -> unit_index
@@ -628,7 +632,9 @@ uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
                         player_effect = *(int32_t *)(*(uint8_t **)(globals_tag_data + 0x180) + 100);
                     }
                     if (player_effect != -1) {
-                        effect_new_on_object(unit_index, (uint32_t)-1, 0, 0, 0, 0);
+                        // 0x56364e..0x56365c: EAX = the unit, ECX = player_effect, stack: unit, -1, 0..
+                        effect_new_on_object(unit_index, (datum_index)player_effect, unit_index, -1, 0.0f, 0.0f,
+                            0, 0);
                     }
                     unit->flags = unit->flags ^ _unit_flag_unknown_4000000;
                 }
@@ -640,7 +646,9 @@ uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
                 obj->parent_object != (datum_index)-1) {
                 goto skip_luma_toggle;
             }
-            effect_new_on_object(unit_index, (uint32_t)-1, 0, 0, 0, 0);
+            // 0x56369b..0x5636b2: EAX = the unit, ECX = the Unit tag's +0x194 effect
+            effect_new_on_object(unit_index, *(datum_index *)((uint8_t *)obj_tag + 0x194), unit_index, -1,
+                0.0f, 0.0f, 0, 0);
             unit->flags = unit->flags ^ _unit_flag_unknown_80000;
         }
     }

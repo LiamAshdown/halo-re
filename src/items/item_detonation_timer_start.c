@@ -27,11 +27,15 @@
 #include "cache.h"
 #include "objects.h"
 #include "items.h"
+#include "effects.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern void effect_new_on_object(); // effects module, 0x4507a0; see file header
+extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
+    datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
+    const ColorRGB *color, const effect_tint_source *tint_source);
+    // 0x4507a0, blam-cc: EAX -> creator_object_index, ECX -> definition_index, stack -> the other six
 extern real random_real_range(real min, real max); // 0x401050, math module
 
 // Lazily seeds an item's detonation_countdown, exactly once, from the Item tag's
@@ -44,7 +48,9 @@ void item_detonation_timer_start(uint32_t object_index) // blam-cc: EAX -> objec
     if (item->detonation_countdown == 0) {
         Item *tag = (Item *)tag_instances[obj->definition_tag & 0xffff].data;
 
-        effect_new_on_object(); // UNSURE, see file header
+        // 0x4bd48a..0x4bd49b: EAX = the item, ECX = Item tag +0x2f4 (detonating effect), stack: the item, -1, 0..
+        effect_new_on_object(object_index, *(datum_index *)((uint8_t *)tag + 0x2f4), object_index, -1, 0.0f, 0.0f,
+            0, 0);
 
         item->detonation_countdown =
             (int16_t)(random_real_range(tag->detonation_delay[0], tag->detonation_delay[1]) * 30.0f);

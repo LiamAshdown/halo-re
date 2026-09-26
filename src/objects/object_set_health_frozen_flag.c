@@ -20,13 +20,16 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "effects.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint8_t g_0087abc0;          // 0x0087abc0, UNSURE: not owned by this module
 
-extern void effect_new_on_object();         // UNSURE: zero visible args; effects module, 0x4507a0
-                                    // (empty list, matching the other six files here)
+extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
+    datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
+    const ColorRGB *color, const effect_tint_source *tint_source);
+    // 0x4507a0, blam-cc: EAX -> creator_object_index, ECX -> definition_index, stack -> the other six
 extern void object_set_shield_depleted_flag(uint32_t object_index); // 0x4edb10, blam-cc: EDI=object_index
 
 void object_set_health_frozen_flag(uint32_t object_index)
@@ -41,8 +44,11 @@ void object_set_health_frozen_flag(uint32_t object_index)
     obj->vitality_flags |= _object_health_frozen_bit;
 
     if (((Object *)tag_instances[obj->definition_tag & 0xffff].data)->collision_model.tag_id.index != 0xffff) {
-        effect_new_on_object(); // UNSURE: Ghidra shows no visible arguments; whatever registers are
-                        // still live (object_index among them) pass through unmodeled
+        // 0x4eda73..0x4eda91: EAX = the object, ECX = the collision model's +0xb4 effect, stack: object, -1, 0..
+        effect_new_on_object(object_index,
+            *(datum_index *)((uint8_t *)tag_instances[((Object *)tag_instances[obj->definition_tag & 0xffff].data)
+                ->collision_model.tag_id.index].data + 0xb4),
+            object_index, -1, 0.0f, 0.0f, 0, 0);
     }
 
     if (obj->type == _object_type_vehicle) {

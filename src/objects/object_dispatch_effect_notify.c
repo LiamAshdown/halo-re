@@ -21,16 +21,17 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "effects.h"
 
-extern void effect_new_on_object(); // effects module, 0x4507a0
-    // The convention of this foreign callee is not established: different call sites in this
-    // module pass different numbers of visible arguments, and it also takes values in EAX
-    // and ECX that the decompiler never models. Declared with an empty parameter list so
-    // every site in the module agrees on ONE declaration without fabricating arguments.
+extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
+    datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
+    const ColorRGB *color, const effect_tint_source *tint_source);
+    // 0x4507a0, blam-cc: EAX -> creator_object_index, ECX -> definition_index, stack -> the other six
 
 void object_dispatch_effect_notify(uint32_t forwarded_eax, uint32_t forwarded_ecx)
 {
-    effect_new_on_object(forwarded_ecx, 0, 0, 0, 0, -1, forwarded_eax);
+    // 0x4efff0..0x4efffb: forwards EAX (the object, also pushed) and ECX (the effect), then -1, 0, 0, 0, 0
+    effect_new_on_object(forwarded_eax, forwarded_ecx, forwarded_eax, -1, 0.0f, 0.0f, 0, 0);
 }
 
 #if 0

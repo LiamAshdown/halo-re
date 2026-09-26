@@ -15,15 +15,15 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "effects.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern void effect_new_on_object(); // effects module, 0x4507a0
-    // The convention of this foreign callee is not established: different call sites in this
-    // module pass different numbers of visible arguments, and it also takes values in EAX
-    // and ECX that the decompiler never models. Declared with an empty parameter list so
-    // every site in the module agrees on ONE declaration without fabricating arguments.
+extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
+    datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
+    const ColorRGB *color, const effect_tint_source *tint_source);
+    // 0x4507a0, blam-cc: EAX -> creator_object_index, ECX -> definition_index, stack -> the other six
 extern void object_regions_reset_permutation_lock(uint32_t object_index, int8_t unlock); // 0x4f03e0
 
 void object_set_shield_depleted_flag(uint32_t object_index)
@@ -35,8 +35,16 @@ void object_set_shield_depleted_flag(uint32_t object_index)
         return;
     }
 
-    if (((Object *)tag_instances[obj->definition_tag & 0xffff].data)->collision_model.tag_id.index != 0xffff) {
-        effect_new_on_object(); // UNSURE: Ghidra shows no visible arguments
+    {
+        datum_index collision_model = *(datum_index *)&((Object *)tag_instances[obj->definition_tag & 0xffff].data)->collision_model.tag_id;
+
+        if (collision_model != k_datum_index_none) {
+            // 0x4edb54..0x4edb73: EAX = the object, ECX = the collision model's shield depleted effect (+0x1a4),
+            // stack: the object, -1, 0, 0, 0, 0
+            effect_new_on_object(object_index,
+                *(datum_index *)((uint8_t *)tag_instances[collision_model & 0xffff].data + 0x1a4),
+                object_index, -1, 0.0f, 0.0f, 0, 0);
+        }
     }
 
     obj->vitality_flags |= _object_shield_depleted_bit;

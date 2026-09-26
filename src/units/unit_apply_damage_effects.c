@@ -87,7 +87,7 @@ extern uint8_t unit_all_seats_unoccupied(uint32_t unit_index);                  
 extern void unit_broadcast_state_change_event(int32_t index);                                   // 0x566c00, UNSURE signature
 extern void unit_update_stance_and_jump(uint32_t unit_index, uint8_t force_ready, uint8_t allow_death_reaction,
                                         uint8_t suppress_shield_check, uint8_t ignore_disoriented, uint8_t force_reaction,
-                                        float turn_angle, int16_t weapon_class_index, int32_t fire_trigger_event,
+                                        float turn_angle, int16_t weapon_class_index, const real_vector2d *throttle,
                                         uint8_t require_still); // 0x566de0
 extern void unit_record_recent_damage_and_react(void *damage_record, uint32_t unit_index);        // 0x568230, UNSURE signature  // real signature (unit_record_recent_damage_and_react.c): void unit_record_recent_damage_and_react(uint32_t unit_index, float damage_amount, int16_t response_index, uint8_t allow_broadcast, uint32_t responsible_player, int16_t team_index, uint32_t responsible_object); Ghidra recovered 2 of 7 args at this call site
 extern void unit_release_transient_state(uint32_t unit_index, uint8_t is_light_reset);           // 0x568610, UNSURE signature

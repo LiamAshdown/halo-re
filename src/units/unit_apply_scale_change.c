@@ -18,6 +18,9 @@
 //   then a flags dword) is inferred purely from the two dereferences Ghidra shows.
 // reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
 
+// FIXED (verified against 0x562030..0x562175): unit_update_stance_and_jump gets its ten stack arguments
+//   (unit, 1, 0, 0, 0, 0, 0.0, -1, 0, 1); unit_drop_inventory_weapons_except_current EAX = the unit; object_delete
+//   EAX = the unit's +0x318 handle; object_set_shield_depleted_flag EDI = the unit. All were called without them.
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
@@ -31,11 +34,16 @@ extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
 
-extern void object_set_shield_depleted_flag(void);              // 0x4edb10, UNSURE: no traced args  // real signature (object_set_shield_depleted_flag.c): void object_set_shield_depleted_flag(uint32_t object_index); Ghidra recovered 0 of 1 args at this call site
-extern void object_delete(uint32_t object_index);                // 0x4f5bd0, UNSURE signature
+extern void object_set_shield_depleted_flag(uint32_t object_index); // 0x4edb10, blam-cc: EDI -> object_index
+  // real signature (object_set_shield_depleted_flag.c): void object_set_shield_depleted_flag(uint32_t object_index); Ghidra recovered 0 of 1 args at this call site
+extern void object_delete(uint32_t object_index); // 0x4f5bd0, blam-cc: EAX -> object_index
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0, index in a register
-extern void unit_update_stance_and_jump(void);                                  // 0x566de0, UNSURE: no traced args (unit seat overlay c)  // real signature (unit_update_stance_and_jump.c): void unit_update_stance_and_jump(uint32_t unit_index, uint8_t force_ready, uint8_t allow_death_reaction, uint8_t suppress_shield_check, uint8_t ignore_disoriented, uint8_t force_reaction, float turn_angle, int16_t weapon_class_index, int32_t fire_trigger_event, uint8_t require_still); Ghidra recovered 0 of 10 args at this call site
-extern void unit_drop_inventory_weapons_except_current(void);                                  // 0x56d360, UNSURE: no traced args  // real signature (unit_drop_inventory_weapons_except_current.c): void unit_drop_inventory_weapons_except_current(uint32_t unit_index); Ghidra recovered 0 of 1 args at this call site
+extern void unit_update_stance_and_jump(uint32_t unit_index, uint8_t force_ready, uint8_t allow_death_reaction,
+    uint8_t suppress_shield_check, uint8_t ignore_disoriented, uint8_t force_reaction, float turn_angle,
+    int16_t weapon_class_index, const real_vector2d *throttle, uint8_t require_still); // 0x566de0, all ten on the stack
+  // real signature (unit_update_stance_and_jump.c): void unit_update_stance_and_jump(uint32_t unit_index, uint8_t force_ready, uint8_t allow_death_reaction, uint8_t suppress_shield_check, uint8_t ignore_disoriented, uint8_t force_reaction, float turn_angle, int16_t weapon_class_index, int32_t fire_trigger_event, uint8_t require_still); Ghidra recovered 0 of 10 args at this call site
+extern void unit_drop_inventory_weapons_except_current(uint32_t unit_index); // 0x56d360, blam-cc: EAX -> unit_index
+  // real signature (unit_drop_inventory_weapons_except_current.c): void unit_drop_inventory_weapons_except_current(uint32_t unit_index); Ghidra recovered 0 of 1 args at this call site
 
 // unit_scale_request is declared in types/units.h (shape still UNSURE -- see the header).
 
@@ -49,13 +57,13 @@ void unit_apply_scale_change(uint32_t unit_index, unit_scale_request *request) /
         obj->body_vitality = request->scale; // UNSURE: see file header
     }
     if ((request->flags & 1) != 0) {
-        unit_update_stance_and_jump();
+        unit_update_stance_and_jump(unit_index, 1, 0, 0, 0, 0, 0.0f, -1, 0, 1); // 0x56208b..0x56209e: ten pushes
         if (unit->animation_state == 0x19) {
-            unit_drop_inventory_weapons_except_current();
+            unit_drop_inventory_weapons_except_current(unit_index); // 0x5620b4 mov eax,edi
             unit->grenade_counts[0] = 0; // clears the 0x31e int16 pair as one write
             unit->grenade_counts[1] = 0;
             if (unit->equipment_object_index != (datum_index)-1) {
-                object_delete(unit_index); // UNSURE: probably takes the equipment handle, not unit_index
+                object_delete(unit->equipment_object_index); // 0x5620c4: EAX = [unit +0x318]
                 unit->equipment_object_index = (datum_index)-1;
             }
             // Same "+0x78 flat animation array" chain as object_animation_get_frames_remaining.c,
@@ -72,7 +80,7 @@ void unit_apply_scale_change(uint32_t unit_index, unit_scale_request *request) /
             unit->unknown_41c = game_time->game_time;
             obj->body_vitality = 0.0f;
             obj->shield_vitality = 0.0f;
-            object_set_shield_depleted_flag();
+            object_set_shield_depleted_flag(unit_index); // EDI = the unit
             object_recalculate_bounding_radius_recursive(unit_index); // UNSURE: register-carried
         }
     }
@@ -113,7 +121,7 @@ void FUN_00562030(void)
       puVar1[0x107] = *(uint *)(DAT_006f1d6c + 0xc);
       puVar1[0x38] = 0;
       puVar1[0x39] = 0;
-      object_set_shield_depleted_flag();
+      object_set_shield_depleted_flag(unit_index); // EDI = the unit
       object_recalculate_bounding_radius_recursive();
     }
   }

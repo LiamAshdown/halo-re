@@ -19,13 +19,17 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "effects.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint8_t *globals_tag_data;   // 0x00746fa0
 
 extern real vector2d_normalize_with_length(real_vector2d *v);                       // 0x4018e0, UNSURE signature
-extern void effect_new_on_object(uint32_t grenade_type);                           // 0x4507a0, UNSURE signature
+extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
+    datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
+    const ColorRGB *color, const effect_tint_source *tint_source);
+    // 0x4507a0, blam-cc: EAX -> creator_object_index, ECX -> definition_index, stack -> the other six
 extern void unit_invalidate_local_player_zoom_level(uint32_t unit_index);                             // 0x4726f0, UNSURE signature
 extern void weapon_action_notify_for_unit(int32_t sound_id);                                // 0x492730, UNSURE signature
 extern uint8_t weapon_prevents_grenade_throwing(uint32_t unit_index);                          // 0x4c2f30, UNSURE signature
@@ -85,7 +89,9 @@ uint8_t unit_begin_throw_grenade(uint32_t unit_index, int32_t force_trigger) // 
         unit_invalidate_local_player_zoom_level(unit_index);
         uint8_t *grenade_table_entry = (*(uint8_t **)(globals_tag_data + 300)) + (int8_t)grenade_type * 0x44;
         if (*(int32_t *)(grenade_table_entry + 0x10) != -1) {
-            effect_new_on_object(grenade_type);
+            // 0x56e22f..0x56e23c: EAX = the unit, ECX = the grenade entry's +0x10 effect, stack: unit, -1, 0..
+            effect_new_on_object(unit_index, *(datum_index *)(grenade_table_entry + 0x10), unit_index, -1,
+                0.0f, 0.0f, 0, 0);
         }
         return 1;
     }

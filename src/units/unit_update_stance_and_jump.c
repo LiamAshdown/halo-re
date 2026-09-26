@@ -1,45 +1,22 @@
 // unit_update_stance_and_jump  (Ghidra: FUN_00566de0)
 // address 0x566de0, size 1548 bytes
-// name confidence: 0.45 (symbols/review_queue.txt candidate; matches functions.md's summary:
-//   "Decides and applies a unit's stand/crouch/jump/land animation-state transition based on
-//   its current motion and grounded state")   rewrite confidence: 0.3
-// evidence: types/units.h unit_data.animation_state (0x2a3, unit_animation_state_unknown_17 is
-//   explicitly attributed to this function), .overlays[2] (0x2b2, the third overlay slot this
-//   function owns per the header's "0x566de0 owns slot 2"), .animation_state_flags (0x298),
-//   .unknown_28c (0x28c); types/objects.h object.current_shield_damage/current_body_damage
-//   (0xe8/0xec), object.vitality_flags (0x106), object.parent_object (0x11c), object.type
-//   (0xb4), object.animation_frame (0xd2); types/tags.h Unit.soft_ping_threshold/
-//   hard_ping_threshold/hard_death_threshold (0x218/0x220/0x228), Unit.soft_ping_interrupt_ticks/
-//   hard_ping_interrupt_ticks (0x2c8/0x2ca) -- reused here as generic short thresholds rather
-//   than for network prediction, Unit.unit_flags (0x17c, don_t_reface_during_pings = 0x200),
-//   Unit.animation_graph (Object.animation_graph.tag_id at 0x44), ModelAnimations.unit_damage
-//   (0x3c count / 0x40 pointer) and .animations (0x74 count / 0x78 pointer),
-//   ModelAnimationsAnimation.frame_count (0x22) and .main_animation_index (0x42), Biped.biped_flags
-//   (has_no_dying_airborne = 0x400, verified via object.type == biped gate).
-// register convention: EAX, ECX, EDX, EBX, ESI, EDI, then stack (Ghidra recovered 6 register
-//   params and 4 stack params for this callee).
-//   // blam-cc: param_1 (EAX) -> unit_index, param_2 (ECX) -> force_ready,
-//   //   param_3 (EDX) -> allow_death_reaction, param_4 (EBX) -> suppress_shield_check,
-//   //   param_5 (ESI) -> ignore_disoriented, param_6 (EDI) -> force_reaction,
-//   //   param_7 (stack) -> turn_angle, param_8 (stack) -> weapon_class_index,
-//   //   param_9 (stack) -> fire_trigger_event, param_10 (stack) -> require_still
-// UNSURE: parameter names beyond param_1/unit_index are inferred from how each byte gates the
-//   branches below; only two of the five call sites in the whole binary pass anything other
-//   than a mix of 0/-1 defaults, so the true intent of several flags (especially
-//   suppress_shield_check, ignore_disoriented, force_reaction) is not independently confirmed.
-// UNSURE: three callee calls in this function reference registers this decompilation could not
-//   trace to a write in the caller (unit_animation_state_is_compatible's ECX/DX pair, and the DX weapon-class the
-//   `unit_get_weapon_object_index` call implies). They are modelled with the most plausible
-//   live value at that point (the unit's tag data pointer / current weapon slot) and flagged
-//   inline; a wrong guess here only affects which weapon-holster gate fires, not the animation
-//   state or overlay writes that are this function's main effect.
-// UNSURE: param_7 is typed `float` by Ghidra (it is compared with ABS() against radian
-//   constants to bucket a turn direction into 0..3), but after that bucketing the same stack
-//   slot is reused by the compiler to hold a small integer "transition class" (1..3) that feeds
-//   `transition_class * 0x2c + weapon_class_index` further down. That reuse is modelled here as
-//   two separate locals (`turn_angle`, read-only, and `transition_class`, write-only) instead of
-//   reinterpreting one float parameter's bytes, which is behaviourally identical and far clearer.
-// reconciled: R04 0x006f1d20 int32_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
+// name confidence: 0.45 (the name predates the rewrite: the function plays a unit's damage "ping" reaction --
+//   soft/hard ping or the death/ready transition -- and aims its throw direction)
+// rewrite confidence: 0.85
+// evidence: types/objects.h object current_shield_damage/current_body_damage (0xe8/0xec), vitality_flags (0x106),
+//   parent_object (0x11c), type (0xb4), animation_frame (0xd2); units.h unit animation_state_flags (0x298), 0x28c,
+//   animation_state (0x2a3), overlay slot 2 (0x2b2 animation, 0x2b4 frame), current weapon index (0x2f2);
+//   tags.h Unit soft_ping_threshold / hard_ping_threshold / hard_death_threshold (0x218 / 0x220 / 0x228),
+//   soft/hard ping interrupt ticks (0x2c8 / 0x2ca), unit_flags (0x17c), animation_graph (0x44); Biped flags
+//   (0x2f4, bit 10) and the biped's +0x4cc bit 0. ModelAnimations +0x3c/+0x40 (an int16 table the lookups
+//   index, 11 entries per facing and 4 facings per class), +0x78 animations (0xb4 each: frame count +0x22,
+//   +0x42 compared against the facing-0 entry).
+// REWRITTEN (from objdump 0x566de0..0x5673eb). All ten arguments are on the stack (the old header's EAX..EDI
+//   register list was wrong); the ninth is a pointer to a 2D throw/aim vector, not an event id. The draft called
+//   animation_choose_random_permutation without its EAX (graph) / DX (first animation) arguments (a crash on
+//   the first campaign biped), unit_set_or_test_seat_and_weapon_label with 0 instead of 1, and did not model
+//   the facing (0..3 from turn_angle), the stance class or the final aim switch.
+// blam-cc: stack -> all ten (cdecl)
 
 #include "tags.h"
 #include "memory.h"
@@ -51,252 +28,236 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
-extern int32_t game_connection_role;         // 0x00719720, 1 = client, 2 = server
-extern char *s_stand; // 0x0069fdec "stand"
-extern double fabs(double x); // ABS() is a single x87 FABS instruction
+extern game_engine_definition *current_game_engine; // 0x006f1d20
+extern int16_t game_connection_role;                // 0x00719720, word; 0 = local game
+extern char *s_stand;                                // 0x0069fdec "stand"
+extern double fabs(double x);
 
-extern int32_t random_int_range(int16_t min, int16_t max);                              // 0x405320
-extern uint32_t weapon_must_be_readied(uint32_t weapon_object_index);                              // 0x4c2ea0, UNSURE signature
-extern int32_t animation_choose_random_permutation(int32_t mode);                                               // 0x4d6280, EAX=unit_index implicit
-extern void object_delete_teardown(uint32_t object_index);                               // 0x4edc80, EAX=object_index implicit
-extern object * object_try_and_get(datum_index object_index, uint32_t type_mask);         // 0x4f6ec0
-extern void object_copy_default_node_transforms(uint32_t unit_index);                                           // 0x4f6b70, EAX=unit_index implicit  // real signature (object_copy_default_node_transforms.c): void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count); Ghidra recovered 1 of 2 args at this call site
-extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_label, char *weapon_label, uint8_t test_only); // 0x5651e0
-extern uint8_t unit_animation_state_is_compatible(const uint8_t *animation_block, int16_t requested_state);                       // 0x565be0, UNSURE registers
-extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state);      // 0x565f90
-extern int32_t unit_pick_random_spawned_actor_count(uint32_t unit_index);                                        // 0x568540, EDI=unit_index implicit
-extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); // 0x569970
-extern char *unit_get_current_weapon_label(uint32_t unit_index, uint8_t param_2);         // 0x56dfd0  // real signature (unit_get_current_weapon_label.c): char * unit_get_current_weapon_label(uint32_t unit_index); Ghidra recovered 2 of 1 args at this call site
-extern void unit_release_thrown_grenade(uint32_t object_index, uint8_t apply_throw_fraction);            // 0x56e440
-extern void unit_set_custom_animation(TagID animation_graph_tag, int16_t animation_index); // 0x56ebd0, EAX=unit_index implicit  // real signature (unit_set_custom_animation.c): void unit_set_custom_animation(uint32_t object_index, datum_index graph, int16_t animation_index); Ghidra recovered 2 of 3 args at this call site
-extern void unit_set_throw_aim_direction(uint32_t unit_index);                                            // 0x5704d0, EAX=unit_index implicit  // real signature (unit_set_throw_aim_direction.c): void unit_set_throw_aim_direction(uint32_t object_index, float direction_x, float direction_y); Ghidra recovered 1 of 3 args at this call site
+extern int32_t random_int_range(int16_t min, int16_t max); // 0x405320, blam-cc: ECX -> min, stack -> max
+extern uint32_t weapon_must_be_readied(uint32_t weapon_object_index); // 0x4c2ea0, blam-cc: EAX
+extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation,
+    int32_t stream); // 0x4d6280, blam-cc: EAX -> animation_graph_tag, DX -> first_animation, stack -> stream
+extern void object_delete_teardown(uint32_t object_index); // 0x4edc80, blam-cc: EAX
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, blam-cc: ECX, stack
+extern void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count);
+    // 0x4f6b70, blam-cc: EAX -> object_index, DX -> requested_count
+extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_label, char *weapon_label,
+    uint8_t test_only); // 0x5651e0, blam-cc: EAX -> unit_index, stack -> the rest
+extern uint8_t unit_animation_state_is_compatible(const uint8_t *animation_block, int16_t requested_state);
+    // 0x565be0, blam-cc: ECX -> animation_block, DX -> requested_state
+extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
+extern int32_t unit_pick_random_spawned_actor_count(uint32_t unit_index); // 0x568540, blam-cc: EDI
+extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); // 0x569970, blam-cc: EAX, CX
+extern char *unit_get_current_weapon_label(uint32_t unit_index); // 0x56dfd0, blam-cc: EAX
+extern void unit_release_thrown_grenade(uint32_t object_index, uint8_t apply_throw_fraction); // 0x56e440, stack
+extern void unit_set_custom_animation(uint32_t object_index, datum_index graph, int16_t animation_index);
+    // 0x56ebd0, blam-cc: EAX -> object_index, stack -> graph, animation_index
+extern void unit_set_throw_aim_direction(uint32_t object_index, real_vector2d *direction_xy);
+    // 0x5704d0, blam-cc: EAX -> object_index, ECX -> direction_xy
+
+#define OBJECT_U8(o, offset) (*(uint8_t *)((o) + (offset)))
+#define OBJECT_I16(o, offset) (*(int16_t *)((o) + (offset)))
+#define OBJECT_U16(o, offset) (*(uint16_t *)((o) + (offset)))
+#define OBJECT_I32(o, offset) (*(int32_t *)((o) + (offset)))
+#define OBJECT_F32(o, offset) (*(float *)((o) + (offset)))
+
+// The graph's int16 table (+0x40, +0x3c entries) at an index, -1 outside it.
+static int16_t animation_table_lookup(uint8_t *graph, int32_t index)
+{
+    if (index < 0 || index >= *(int32_t *)(graph + 0x3c)) {
+        return -1;
+    }
+    return (*(int16_t **)(graph + 0x40))[index];
+}
 
 void unit_update_stance_and_jump(uint32_t unit_index, uint8_t force_ready, uint8_t allow_death_reaction,
-                                 uint8_t suppress_shield_check, uint8_t ignore_disoriented, uint8_t force_reaction,
-                                 float turn_angle, int16_t weapon_class_index, int32_t fire_trigger_event,
-                                 uint8_t require_still)
+    uint8_t suppress_shield_check, uint8_t ignore_disoriented, uint8_t force_reaction, float turn_angle,
+    int16_t weapon_class_index, const real_vector2d *throttle, uint8_t require_still)
 {
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Unit *unit_tag = (Unit *)tag_instances[obj->definition_tag & 0xffff].data;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+    uint8_t *obj = *(uint8_t **)((uint8_t *)object_data->data + (unit_index & 0xffff) * 0xc + 8);
+    uint8_t *unit_tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t forced = force_ready;
+    uint8_t soft_ping;
+    uint8_t hard_ping;
+    int32_t weapon_class = weapon_class_index;
+    int32_t facing;
+    int32_t stance_class;
+    datum_index graph_tag;
+    uint8_t *graph;
+    int16_t new_state;
+    int16_t animation;
+    uint8_t allowed;
+    double turn;
 
-    uint8_t should_stand;   // bVar5
-    uint8_t is_dead_or_stunned; // bVar10
-    int16_t facing_quadrant;    // sVar8
-
-    if (!force_ready) {
-        if (!allow_death_reaction) {
-            if ((unit_tag->soft_ping_threshold < obj->current_body_damage) ||
-                (unit_tag->soft_ping_threshold < obj->current_shield_damage)) {
-                should_stand = 1;
-            } else {
-                should_stand = 0;
-            }
-            is_dead_or_stunned = unit_tag->hard_ping_threshold < obj->current_body_damage;
-            if ((!ignore_disoriented) && (-1 < (int8_t)unit->flags)) {
-                goto after_early_flags;
-            }
-        } else {
-            force_ready = 1;
-            should_stand = 1;
-        }
-        is_dead_or_stunned = 0;
-    } else {
+    if (forced) {
         allow_death_reaction = 0;
-        should_stand = 1;
-        if ((unit_tag->hard_death_threshold <= 0.0f) ||
-            (obj->current_body_damage <= unit_tag->hard_death_threshold)) {
-            is_dead_or_stunned = 0;
-            goto after_early_flags;
+        soft_ping = 1;
+        hard_ping = OBJECT_F32(unit_tag, 0x228) > 0.0f && OBJECT_F32(obj, 0xec) > OBJECT_F32(unit_tag, 0x228);
+    } else if (allow_death_reaction) {
+        forced = 1;
+        soft_ping = 1;
+        hard_ping = 0;
+    } else {
+        soft_ping = OBJECT_F32(obj, 0xec) > OBJECT_F32(unit_tag, 0x218) ||
+            OBJECT_F32(obj, 0xe8) > OBJECT_F32(unit_tag, 0x218);
+        hard_ping = OBJECT_F32(obj, 0xec) > OBJECT_F32(unit_tag, 0x220);
+        if (ignore_disoriented || (int8_t)OBJECT_U8(obj, 0x204) < 0) {
+            hard_ping = 0;
         }
-        is_dead_or_stunned = 1;
     }
-after_early_flags:
     if (force_reaction) {
-        should_stand = 1;
-        is_dead_or_stunned = 1;
+        hard_ping = 1;
+        soft_ping = 1;
     }
     if (weapon_class_index == -1) {
-        weapon_class_index = 0;
+        weapon_class = 0;
     }
-
-    if (0.7853982f <= (float)fabs((double)turn_angle)) {
-        if ((float)fabs((double)turn_angle) <= 2.159845f) {
-            facing_quadrant = 1;
-            if (turn_angle <= 0.0f) {
-                facing_quadrant = 2;
-            }
-        } else {
-            facing_quadrant = 0;
-        }
+    turn = fabs(turn_angle);
+    if (turn < 0.78539818525314331) {       // 0x672fc0
+        facing = 3;
+    } else if (turn > 2.1598450094461441) {   // 0x6731c0
+        facing = 0;
     } else {
-        facing_quadrant = 3;
+        facing = turn_angle > 0.0f ? 1 : 2;
     }
+    if (current_game_engine != 0 && (int16_t)weapon_class == 2 && hard_ping && forced) {
+        facing = 1;
+    }
+    if (require_still && !soft_ping && !forced) {
+        return;
+    }
+    graph_tag = *(datum_index *)(unit_tag + 0x44);
+    graph = (uint8_t *)tag_instances[graph_tag & 0xffff].data;
 
-    if ((current_game_engine != 0) && (weapon_class_index == 2) && is_dead_or_stunned && force_ready) {
-        facing_quadrant = 1;
-    }
-    if (require_still && !should_stand && !force_ready) {
+    if (!hard_ping && !forced) {
+        // refresh the idle overlay (slot 2) once it has run past the soft ping interrupt ticks
+        if (OBJECT_I16(obj, 0x2b2) != -1 && OBJECT_I16(obj, 0x2b4) <= OBJECT_I16(unit_tag, 0x2c8)) {
+            return;
+        }
+        animation = animation_choose_random_permutation(graph_tag,
+            animation_table_lookup(graph, (int16_t)(facing * 0xb + weapon_class)), 1);
+        if (animation == -1) {
+            return;
+        }
+        OBJECT_I16(obj, 0x2b2) = animation;
+        OBJECT_I16(obj, 0x2b4) = 0;
         return;
     }
 
-    ModelAnimations *graph = (ModelAnimations *)tag_instances[unit_tag->base.animation_graph.tag_id.index & 0xffff].data;
-
-    if ((!is_dead_or_stunned) && (!force_ready)) {
-        // fallback: refresh the third overlay slot (0x2b2/0x2b4) with a fresh idle animation
-        // when the one it is holding has run past the soft_ping_threshold-reused frame limit.
-        if ((unit->overlays[2].animation_index != -1) &&
-            (unit->overlays[2].frame <= unit_tag->soft_ping_interrupt_ticks)) {
-            return;
-        }
-        int32_t new_overlay = animation_choose_random_permutation(1);
-        if (new_overlay == -1) {
-            return;
-        }
-        unit->overlays[2].animation_index = (int16_t)new_overlay;
-        unit->overlays[2].frame = 0;
-        return;
-    }
-
-    int8_t new_state = force_ready ? 0x19 : 0x17;
-    int16_t transition_class;
-    if (!force_ready) {
-        transition_class = 1;
-        // UNSURE: the original decompilation shows this call with no visible arguments; ECX and
-        // DX are presumed to carry the unit's tag data and its current animation_state.
-        uint32_t compatible = unit_animation_state_is_compatible((const uint8_t *)unit + 0xa4, unit->animation_state) /* 0x567128: lea ecx,[esi+0x298] */;
-        if (compatible != 0) goto class_assigned;
-        should_stand = 0;
+    new_state = forced ? 0x19 : 0x17;
+    if (forced) {
+        stance_class = hard_ping + 2;
+        allowed = 1;
     } else {
-        transition_class = (int16_t)is_dead_or_stunned + 2;
-class_assigned:
-        should_stand = 1;
+        stance_class = 1;
+        allowed = unit_animation_state_is_compatible(obj + 0x298, new_state) ? 1 : 0;
     }
-
-    if ((unit->animation_state == 0x17) && (unit_tag->hard_ping_interrupt_ticks < obj->animation_frame)) {
-        should_stand = 1;
+    if (OBJECT_U8(obj, 0x2a3) == 0x17 && OBJECT_I16(obj, 0xd2) > OBJECT_I16(unit_tag, 0x2ca)) {
+        allowed = 1;
     }
-    if (!force_ready) {
-        if (obj->vitality_flags & _object_health_frozen_bit) {
-            should_stand = 0;
+    if (!forced) {
+        if (OBJECT_U8(obj, 0x106) & 4) {
+            allowed = 0;
         }
-        if (obj->parent_object != k_datum_index_none) {
+        if (OBJECT_I32(obj, 0x11c) != -1) {
             return;
         }
     }
-    if (!should_stand) {
+    if (!allowed) {
         return;
     }
-
-    if (force_ready) {
-        char *weapon_label = unit_get_current_weapon_label(unit_index, 1);
-        // UNSURE: unit_index and the test_only flag are the implicit EAX/(4th) arguments of
-        // unit_set_or_test_seat_and_weapon_label; only the two stack arguments are visible here.
-        unit_set_or_test_seat_and_weapon_label(unit_index, s_stand, weapon_label, 0);
+    if (forced) {
+        unit_set_or_test_seat_and_weapon_label(unit_index, s_stand, unit_get_current_weapon_label(unit_index), 1);
     }
-
-    if ((new_state == 0x19) && (obj->type == _object_type_biped) &&
-        (((biped_data *)((uint8_t *)obj + k_unit_object_size))->flags & 0x1) &&
-        ((((Biped *)unit_tag)->biped_flags & 0x400) == 0)) {
+    if (new_state == 0x19 && OBJECT_I16(obj, 0xb4) == 0 && (OBJECT_U8(obj, 0x4cc) & 1) &&
+        (OBJECT_I32(unit_tag, 0x2f4) & 0x400) == 0) {
         new_state = 0x18;
-        if (unit_try_set_animation_state(unit_index, 0x18) != 0) {
-            goto fire_trigger;
+        if (unit_try_set_animation_state(unit_index, 0x18)) {
+            goto aim;
         }
     }
 
-    int32_t chosen_animation = animation_choose_random_permutation(1);
-    int16_t chosen_animation_index = (int16_t)chosen_animation;
-    if (chosen_animation_index == -1) {
-        if (force_ready) {
-            unit->animation_state_flags = (unit->animation_state_flags & 0xfff7) | 4;
-            if (unit_tag->base.flags & 0x2) {
+    animation = animation_choose_random_permutation(graph_tag,
+        animation_table_lookup(graph, (int16_t)((facing + stance_class * 4) * 0xb + weapon_class)), 1);
+    if (animation == -1) {
+        if (forced) {
+            OBJECT_U16(obj, 0x298) = (uint16_t)((OBJECT_U16(obj, 0x298) & 0xfff7) | 4);
+            if (OBJECT_U8(unit_tag, 0x17c) & 2) {
                 object_delete_teardown(unit_index);
                 unit_pick_random_spawned_actor_count(unit_index);
             }
         }
-        goto fire_trigger;
-    }
+    } else {
+        uint8_t *animation_data = *(uint8_t **)(graph + 0x78) + animation * 0xb4;
 
-    if (unit->animation_state == 0x21) {
-        unit_release_thrown_grenade(unit_index, 1);
-    }
-    object_copy_default_node_transforms(unit_index);
-    unit->animation_state = new_state;
-    unit_set_custom_animation(unit_tag->base.animation_graph.tag_id, chosen_animation_index);
-    unit->animation_state_flags = (uint16_t)((uint8_t)unit->animation_state_flags | 1) | (unit->animation_state_flags & 0xff00);
+        if (OBJECT_U8(obj, 0x2a3) == 0x21) {
+            unit_release_thrown_grenade(unit_index, 1);
+        }
+        object_copy_default_node_transforms(unit_index, 3);
+        OBJECT_U8(obj, 0x2a3) = (uint8_t)new_state;
+        unit_set_custom_animation(unit_index, graph_tag, animation);
+        OBJECT_U8(obj, 0x298) |= 1;
+        if (forced) {
+            uint8_t keep_still = suppress_shield_check || allow_death_reaction;
 
-    if (force_ready) {
-        if ((!suppress_shield_check) && (!allow_death_reaction)) {
-            if (game_connection_role != 0) {
-                // UNSURE: unit_get_weapon_object_index's slot argument (CX) is not visible in the
-                // decompilation; the current weapon slot is the only value that makes sense here.
-                datum_index weapon_index = unit_get_weapon_object_index(unit_index, unit->current_weapon_index);
-                object *weapon_obj = object_try_and_get(weapon_index, _object_mask_weapon);
-                if ((weapon_obj != (object *)0) && (weapon_must_be_readied(weapon_index) == 1)) {
-                    goto clear_overlay_timer;
+            if (!keep_still && game_connection_role != 0) {
+                datum_index weapon = unit_get_weapon_object_index(unit_index, OBJECT_I16(obj, 0x2f2));
+
+                if (object_try_and_get(weapon, 4) != 0 && weapon_must_be_readied(weapon) == 1) {
+                    keep_still = 1;
                 }
             }
-            ModelAnimationsAnimation *anim_array = (ModelAnimationsAnimation *)graph->animations.pointer;
-            int16_t frame_count = anim_array[chosen_animation_index].frame_count;
-            // UNSURE: random_int_range (0x405320) takes its "max" on the stack and its "min" in
-            // an ECX this decompilation never shows being set at this call site (see the file
-            // header). Only the low 16 bits of the caller's packed CONCAT22 expression reach the
-            // callee's stack slot, which is reproduced exactly here as max_frames; min_frames is
-            // left at the callee's own implicit-register default (modelled as 0).
-            int16_t max_frames = (int16_t)((uint16_t)(frame_count >> 1) + (uint16_t)(frame_count >> 2));
-            int8_t roll = (int8_t)random_int_range(0, max_frames);
-            unit->unknown_28c = roll;
-            if (roll < 2) {
-                roll = 1;
+            if (keep_still) {
+                OBJECT_U8(obj, 0x28c) = 0;
+            } else {
+                int16_t frames = *(int16_t *)(animation_data + 0x22);
+                int8_t ticks = (int8_t)random_int_range((int16_t)(frames >> 2),
+                    (int16_t)((frames >> 1) + (frames >> 2)));
+
+                OBJECT_U8(obj, 0x28c) = (uint8_t)(ticks > 1 ? ticks : 1);
             }
-            unit->unknown_28c = roll;
-        } else {
-clear_overlay_timer:
-            unit->unknown_28c = 0;
+        }
+        if ((int16_t)facing != 0 &&
+            *(int16_t *)(animation_data + 0x42) ==
+                animation_table_lookup(graph, (int16_t)stance_class * 0x2c + (int16_t)weapon_class)) {
+            facing = 0;
+        }
+        if (forced) {
+            if ((int16_t)facing == 3) {
+                OBJECT_U8(obj, 0x298) |= 8;
+            } else {
+                OBJECT_U8(obj, 0x298) &= 0xf7;
+            }
         }
     }
 
-    if (facing_quadrant != 0) {
-        int32_t damage_index = transition_class * 0x2c + (int32_t)weapon_class_index;
-        int16_t mapped_animation;
-        if ((damage_index < 0) || (graph->unit_damage.count <= (uint32_t)damage_index)) {
-            mapped_animation = -1;
-        } else {
-            mapped_animation = ((int16_t *)graph->unit_damage.pointer)[damage_index];
-        }
-        ModelAnimationsAnimation *anim_array2 = (ModelAnimationsAnimation *)graph->animations.pointer;
-        int16_t main_animation_index = anim_array2[chosen_animation_index].main_animation_index;
-        if (main_animation_index == mapped_animation) {
-            facing_quadrant = 0;
-        }
+aim:
+    if (throttle == 0 || (OBJECT_I32(unit_tag, 0x17c) & 0x200) || OBJECT_I16(obj, 0xb4) != 0 ||
+        OBJECT_I32(obj, 0x11c) != -1 || (!hard_ping && !forced)) {
+        return;
     }
-    if (force_ready) {
-        if (facing_quadrant == 3) {
-            unit->animation_state_flags |= 0x8;
-        } else {
-            unit->animation_state_flags &= 0xfff7;
-        }
-    }
+    {
+        real_vector2d direction;
 
-fire_trigger:
-    if ((fire_trigger_event != 0) && ((unit_tag->unit_flags & 0x200) == 0) && (obj->type == _object_type_biped) &&
-        (obj->parent_object == k_datum_index_none) && (is_dead_or_stunned || force_ready)) {
-        switch (facing_quadrant) {
+        switch ((int16_t)facing) {
         case 0:
-            unit_set_throw_aim_direction(unit_index);
-            return;
-        case 1:
-            unit_set_throw_aim_direction(unit_index);
-            return;
-        case 2:
+            direction.i = -throttle->i;
+            direction.j = -throttle->j;
             break;
-        case 3:
+        case 1:
+            direction.i = -throttle->j;
+            direction.j = throttle->i;
+            break;
+        case 2:
+            direction.i = throttle->j;
+            direction.j = -throttle->i;
+            break;
+        default: // 3 (facing is always 0..3)
+            direction = *throttle;
             break;
         }
-        unit_set_throw_aim_direction(unit_index);
+        unit_set_throw_aim_direction(unit_index, &direction);
     }
-    return;
 }
 
 #if 0

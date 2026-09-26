@@ -27,6 +27,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "effects.h"
 
 extern data_array *player_data;        // 0x0087a480
 extern data_array *object_data;        // 0x008603b0
@@ -51,9 +52,10 @@ extern char scenario_trigger_volume_contains_point(int32_t trigger_volume_index,
 extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index); // 0x470d80
 extern void player_release_unit_and_reset(uint32_t player_index, int32_t previous_unit_override); // this batch, 0x4760b0
 extern void game_engine_build_visible_cluster_bitmask(void *out_bitmask, uint32_t flag); // this module's next batch, 0x4782a0
-extern void effect_new_on_object(uint32_t param1, datum_index unit_handle, uint32_t p2, uint32_t p3,
-                          uint32_t p4, uint32_t p5); // 0x4507a0, UNSURE signature (inconsistent
-                          // across this codebase); blam-cc: ECX -> param1, stack -> the rest
+extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
+    datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
+    const ColorRGB *color, const effect_tint_source *tint_source);
+    // 0x4507a0, blam-cc: EAX -> creator_object_index, ECX -> definition_index, stack -> the other six
 
 // UNSURE, best-effort: see header. Places a player's unit either exactly at target_object's
 // current root position (when that is already the player's own unit's root) or by probing
@@ -188,7 +190,11 @@ uint8_t player_find_placement_position(uint32_t player_index, datum_index target
                 if (global_globals->player_information.pointer != 0 &&
                     *(int32_t *)((uint8_t *)global_globals->player_information.pointer + 0xc4) != -1) {
                     game_engine_build_visible_cluster_bitmask((uint8_t *)local_player_globals + 0x18, 0);
-                    effect_new_on_object(0, unit_handle, 0, 0, 0, 0xffffffff); // UNSURE arg order
+                    // 0x475c11..0x475c48: EAX = the unit, ECX = player_information +0xc4 (the spawn effect),
+                    // stack: the unit, -1, 0, 0, 0, 0
+                    effect_new_on_object(unit_handle,
+                        *(datum_index *)((uint8_t *)global_globals->player_information.pointer + 0xc4),
+                        unit_handle, -1, 0.0f, 0.0f, 0, 0);
                     return placed;
                 }
             }

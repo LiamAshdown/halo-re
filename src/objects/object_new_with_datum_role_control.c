@@ -80,8 +80,7 @@ extern void object_set_collision_enabled(uint32_t object_index, uint8_t enable);
 extern void object_block_data_free(data_array *array, datum_index object_index); // 0x4f7de0, UNSURE: unexamined in this batch
 extern void object_recalculate_bounding_radius(uint32_t object_index); // 0x4f8310
 extern void object_notify_node_array_if_animated(uint32_t object_index); // 0x4f8b10, EAX object_index
-extern void object_apply_network_placement(uint32_t object_index, real_vector3d *network_vectors); // 0x4f8b70, EAX object_index
-                                                            //   likely object_set_position_network
+extern void object_initialize_change_colors(uint32_t object_index, ColorRGB *colors); // 0x4f8b70, EAX object_index
 extern void object_refresh_region_permutations(uint32_t object_index); // 0x4f8f50, EBX object_index
 extern void object_initialize_shield_stun_thresholds(uint32_t object_index,
     float *override_max_body_vitality, float *override_max_shield_vitality); // 0x4ed440.
@@ -246,7 +245,7 @@ datum_index object_new_with_datum_role_control(object_placement_data *placement,
             obj->flags &= ~(uint32_t)_object_connected_to_map_bit;
         }
 
-        object_apply_network_placement(new_index, placement->network_vectors); // 0x4f57fb: EAX = ebx, push &placement[+0x58]
+        object_initialize_change_colors(new_index, (ColorRGB *)placement->network_vectors); // 0x4f57fb: EAX = ebx, push &placement[+0x58]
         object_refresh_region_permutations(new_index); // 0x4f5809: EBX = new object
         object_initialize_shield_stun_thresholds(new_index, 0, 0);
         object_recalculate_bounding_radius(new_index);

@@ -5,7 +5,7 @@
 //   functions each tick and caches their outputs for later use by shaders/effects"; this is
 //   also the function the object struct comment cites for writing function_out_values and the
 //   function_valid_flags bit)
-// rewrite confidence: 0.4
+// rewrite confidence: 0.85
 // evidence: types/objects.h object (function_out_values 0x134/obj[0x4d+i],
 //   function_valid_flags 0x123, the 0x120+4*selector function_in/out lookup); types/tags.h
 //   Object.functions (TagReflexive), ObjectFunction (flags, scale_period_by 0x08,
@@ -17,107 +17,127 @@
 // register convention: object index in EAX. Consistent with every other single-register
 //   accessor in this module and with this function's own Ghidra signature ("in_EAX" only).
 //   // blam-cc: EAX -> object_index
-// UNSURE: periodic_function_evaluate (0x623cf0-ish, not captured by this batch's pack),
-//   FUN_00623e40 and FUN_004ccac0 are foreign/unexamined callees; their signatures are guessed
-//   from the single visible argument (or none) at each call site.
-
+// REWRITTEN (from objdump 0x4f92f0..0x4f9690; size is 0x3a1 bytes, the header's 185 was Ghidra's). Per function i
+//   (Object +0x158 count, +0x15c block, 0x168 each), starting from inverse_period (+0x144):
+//   - divided by the scale_period_by input (object +0x120 + 4*selector) when that is > 0, times the phase
+//     (object_index*0x39 + game_time) * 1/30, through periodic_function_evaluate(AX = function);
+//   - times the scale_function_by input; 1 - value when flags bit 0;
+//   - with a wobble magnitude: + 2 * (periodic(wobble_function, phase * wobble_period) - 0.5) * magnitude;
+//   - with a square wave threshold: 1 above it, else 0;
+//   - step_count > 1: floor(step_count * value) * inverse_step (+0x140);
+//   - inverse_sawtooth (+0x13c) > 0: fmod(value, inverse_sawtooth);
+//   - + the add input, capped at 1; times the scale_result_by input;
+//   - transition_function_evaluate(CX = map_to, value); times scale_by when > 0;
+//   - bounds mode 2 maps 0..1 onto the bounds; otherwise clamps to them and mode 1 renormalizes by inverse_bounds;
+//     at or under bounds[0] + 0.0001 the function is valid only if flags bit 2;
+//   - turned off when the turn_off_with function (+0x36, not -1) is not valid;
+//   - flags bit 1: fmod(value + previous output, 1.0);
+//   and the output (object +0x134 + 4*i) and valid bit (object +0x123) are written. The draft called
+//   transition_function_evaluate with no arguments (the crash), dropped floor's result and misused fmod.
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
 
-extern data_array *object_data; // 0x008603b0
+extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *game_time; // 0x006f1d6c, tick count at +0xc
+extern uint8_t *game_time;          // 0x006f1d6c, tick count at +0xc
 
-extern double periodic_function_evaluate(double phase); // UNSURE: address not captured in this batch's pack
-extern void FUN_00623e40(double stepped_value); // UNSURE
-extern double transition_function_evaluate(void); // UNSURE
-extern float FUN_00628cca(void); // 0x628cca, this batch (object_set_position_network.c)
+extern real periodic_function_evaluate(periodic_function_t type, double time);
+    // 0x4cc9b0, blam-cc: AX -> type, stack -> time
+extern real transition_function_evaluate(transition_function_t type, real phase);
+    // 0x4ccac0, blam-cc: CX -> type, stack -> phase
+extern double floor(double x);          // 0x623e40, MSVC CRT
+extern double fmod(double x, double y); // 0x628cca, MSVC CRT _CIfmod: x in ST(1), y in ST(0)
+
+static float function_scale_input(uint8_t *obj, int16_t selector)
+{
+    return *(float *)(obj + 0x120 + selector * 4);
+}
 
 void object_update_functions(uint32_t object_index) // blam-cc: EAX -> object_index
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
-    float phase_base = (float)(int32_t)((object_index & 0xffff) * 0x39 + *(int32_t *)(game_time + 0xc)) * 0.033333335f;
-    int32_t i;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    Object *definition = (Object *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    float phase = (float)(int32_t)((object_index & 0xffff) * 0x39 + *(int32_t *)(game_time + 0xc)) * 0.033333335f;
+    int16_t i;
 
-    for (i = 0; i < definition->functions.count; i++) {
+    for (i = 0; i < (int32_t)definition->functions.count; i++) {
         ObjectFunction *fn = (ObjectFunction *)((uint8_t *)definition->functions.pointer + i * 0x168);
-        float value = fn->inverse_period;
-        float result;
-        uint8_t enabled = 1;
+        float period = fn->inverse_period;
+        float value;
+        uint8_t valid = 1;
 
         if (fn->scale_period_by != 0) {
-            float divisor = *(float *)((uint8_t *)obj + 0x120 + fn->scale_period_by * 4);
-            if (divisor > 0.0f) {
-                value = value / divisor;
+            float scale = function_scale_input(obj, fn->scale_period_by);
+            if (scale > 0.0f) {
+                period = period / scale;
             }
         }
-
-        result = (float)periodic_function_evaluate((double)(value * phase_base));
-
+        value = periodic_function_evaluate(fn->function, (double)(period * phase));
         if (fn->scale_function_by != 0) {
-            float scale = *(float *)((uint8_t *)obj + 0x120 + fn->scale_function_by * 4);
-            result = scale * result;
+            value = function_scale_input(obj, fn->scale_function_by) * value;
         }
-        if ((fn->flags & 1) != 0) {
-            result = 1.0f - result;
+        if (fn->flags & 1) {
+            value = 1.0f - value;
         }
         if (fn->wobble_magnitude != 0.0f) {
-            float wobble = (float)periodic_function_evaluate((double)(phase_base * fn->wobble_period));
+            float wobble = periodic_function_evaluate(fn->wobble_function, (double)(phase * fn->wobble_period));
             wobble = (wobble - 0.5f) * fn->wobble_magnitude;
-            result = wobble + wobble + result;
+            value = wobble + wobble + value;
         }
-        if ((fn->square_wave_threshold != 0.0f) && (result <= fn->square_wave_threshold)) {
-            result = 0.0f;
-        } else if (fn->square_wave_threshold != 0.0f) {
-            result = 1.0f;
+        if (fn->square_wave_threshold != 0.0f) {
+            value = value > fn->square_wave_threshold ? 1.0f : 0.0f;
         }
         if (fn->step_count > 1) {
-            FUN_00623e40((double)((float)fn->step_count * result));
+            value = (float)(floor((double)((float)fn->step_count * value)) * fn->inverse_step);
         }
         if (fn->inverse_sawtooth > 0.0f) {
-            FUN_00628cca();
+            value = (float)fmod((double)value, (double)fn->inverse_sawtooth);
         }
-
-        result = (float)transition_function_evaluate();
+        if (fn->add != 0) {
+            value = function_scale_input(obj, fn->add) + value;
+            if (value > 1.0f) {
+                value = 1.0f;
+            }
+        }
+        if (fn->scale_result_by != 0) {
+            value = function_scale_input(obj, fn->scale_result_by) * value;
+        }
+        value = transition_function_evaluate(fn->map_to, value);
         if (fn->scale_by > 0.0f) {
-            result = result * fn->scale_by;
+            value = value * fn->scale_by;
         }
-
         if (fn->bounds_mode == 2) {
-            result = (fn->bounds[1] - fn->bounds[0]) * result + fn->bounds[0];
-            if (result <= fn->bounds[0] + 0.0001f) {
-                enabled = (fn->flags >> 2) & 1;
+            value = (fn->bounds[1] - fn->bounds[0]) * value + fn->bounds[0];
+            if (fn->bounds[0] + 0.0001f >= value) { // fcomp/test ah,1: NaN leaves it alone
+                valid = (uint8_t)((fn->flags >> 2) & 1);
             }
         } else {
-            if (result <= fn->bounds[0] + 0.0001f) {
-                result = fn->bounds[0];
-                enabled = (fn->flags >> 2) & 1;
+            if (fn->bounds[0] + 0.0001f >= value) { // fcomp/test ah,1: NaN leaves it alone
+                valid = (uint8_t)((fn->flags >> 2) & 1);
+                value = fn->bounds[0];
             }
-            if (fn->bounds[1] < result) {
-                result = fn->bounds[1];
+            if (value > fn->bounds[1]) { // fcomp/test ah,0x41
+                value = fn->bounds[1];
             }
             if (fn->bounds_mode == 1) {
-                result = (result - fn->bounds[0]) * fn->inverse_bounds;
+                value = (value - fn->bounds[0]) * fn->inverse_bounds;
             }
         }
-
-        if ((fn->turn_off_with != -1) &&
-            ((obj->function_valid_flags & (1u << (fn->turn_off_with & 0x1f))) == 0)) {
-            enabled = 0;
+        if (fn->turn_off_with != -1 &&
+            (obj[0x123] & (uint8_t)(1u << (fn->turn_off_with & 0x1f))) == 0) {
+            valid = 0;
         }
-        if ((fn->flags & 2) != 0) {
-            result = FUN_00628cca();
+        if (fn->flags & 2) {
+            value = (float)fmod((double)(value + *(float *)(obj + 0x134 + i * 4)), 1.0);
         }
-
-        obj->function_out_values[i] = result;
-        if (enabled == 0) {
-            obj->function_valid_flags &= (uint8_t)~(1u << (i & 0x1f));
+        *(float *)(obj + 0x134 + i * 4) = value;
+        if (valid) {
+            obj[0x123] = (uint8_t)(obj[0x123] | (1u << i));
         } else {
-            obj->function_valid_flags |= (uint8_t)(1u << (i & 0x1f));
+            obj[0x123] = (uint8_t)(obj[0x123] & ~(1u << i));
         }
     }
 }

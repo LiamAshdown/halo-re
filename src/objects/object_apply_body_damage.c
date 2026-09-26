@@ -32,16 +32,16 @@
 #include "game.h"
 #include "cache.h"
 #include "objects.h"
+#include "effects.h"
 
 extern data_array *object_data; // 0x008603b0
 extern game_engine_definition *current_game_engine;      // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern uint8_t g_0087abc0;      // 0x0087abc0, UNSURE: not owned by this module
 
-extern void effect_new_on_object(); // effects module, 0x4507a0
-    // The convention of this foreign callee is not established: different call sites in this
-    // module pass different numbers of visible arguments, and it also takes values in EAX
-    // and ECX that the decompiler never models. Declared with an empty parameter list so
-    // every site in the module agrees on ONE declaration without fabricating arguments. // UNSURE: effects module, 0x4507a0
+extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
+    datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
+    const ColorRGB *color, const effect_tint_source *tint_source);
+    // 0x4507a0, blam-cc: EAX -> creator_object_index, ECX -> definition_index, stack -> the other six
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
     // 0x46fe10, blam-cc: stack -> zoom_table_index, CX -> magnification (every caller passes the difficulty)
 extern uint8_t *main_game_globals; // 0x006b0b80 game globals *, +0x0e difficulty
@@ -204,7 +204,9 @@ after_vitality:
             if (0.0f <= threshold) {
                 if (threshold < geometry->body_damaged_threshold &&
                     (target->vitality_flags & 1) == 0) {
-                    effect_new_on_object(target_index, 0xffffffff, 0, 0, 0, 0);
+                    // 0x4ef762..0x4ef777: EAX = the target, ECX = geometry +0xa4 (body damaged effect)
+                    effect_new_on_object(target_index, *(datum_index *)((uint8_t *)geometry + 0xa4), target_index, -1,
+                        0.0f, 0.0f, 0, 0);
                     target->vitality_flags |= 1;
                 }
             } else if ((target->vitality_flags & _object_health_frozen_bit) == 0) {
@@ -232,7 +234,9 @@ after_vitality:
 
         if ((effect->damage_flags & 1) != 0 && geometry->area_damage_effect_threshold < raw_damage &&
             geometry->area_damage_effect.tag_id.index != 0xffff && effect->damage_category != 7) {
-            effect_new_on_object(target_index, 0xffffffff, 0, 0, 0, 0);
+            // 0x4ef7cf..0x4ef7f4: EAX = the target, ECX = geometry +0x90 (area damage effect)
+            effect_new_on_object(target_index, *(datum_index *)((uint8_t *)geometry + 0x90), target_index, -1,
+                0.0f, 0.0f, 0, 0);
         }
     }
 

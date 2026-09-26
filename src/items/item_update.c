@@ -43,6 +43,7 @@
 #include "objects.h"
 #include "items.h"
 #include "projectiles.h" // collision_result
+#include "effects.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -72,7 +73,10 @@ extern void item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t a
 extern void item_compute_rotation(uint32_t object_index); // 0x4bd500, this batch, EAX -> object_index
 extern void item_align_to_normal_and_point(real_point3d *out_position, uint32_t item_index,
     real_vector3d *normal, real_point3d *point); // 0x4bd5d0, this batch
-extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale); // 0x4507a0, opaque, see src/objects/object_dispatch_effect_notify.c
+extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
+    datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
+    const ColorRGB *color, const effect_tint_source *tint_source);
+    // 0x4507a0, blam-cc: EAX -> creator_object_index, ECX -> definition_index, stack -> the other six
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand); // 0x4052c0
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle,
@@ -357,7 +361,10 @@ int item_update(uint32_t item_index)
     if (item->detonation_countdown > 0) {
         item->detonation_countdown -= 1;
         if (item->detonation_countdown == 0) {
-            effect_new_on_object(item_index, 0xffffffff, 0, 0, 0, 0);
+            // 0x4bcf05..0x4bcf1c: EAX = the item, ECX = Item tag +0x304, stack: the item, -1, 0..
+            effect_new_on_object(item_index,
+                *(datum_index *)((uint8_t *)tag_instances[obj->definition_tag & 0xffff].data + 0x304),
+                item_index, -1, 0.0f, 0.0f, 0, 0);
             object_delete(item_index);
         }
     }

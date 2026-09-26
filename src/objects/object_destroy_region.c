@@ -16,15 +16,15 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "effects.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern void effect_new_on_object(); // effects module, 0x4507a0
-    // The convention of this foreign callee is not established: different call sites in this
-    // module pass different numbers of visible arguments, and it also takes values in EAX
-    // and ECX that the decompiler never models. Declared with an empty parameter list so
-    // every site in the module agrees on ONE declaration without fabricating arguments.
+extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
+    datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
+    const ColorRGB *color, const effect_tint_source *tint_source);
+    // 0x4507a0, blam-cc: EAX -> creator_object_index, ECX -> definition_index, stack -> the other six
 extern void object_set_permutation_by_name(uint32_t object_index, char *name, int16_t region_filter,
                                            char use_matched_index); // 0x4f6c60
     // PHASE-4 REVIEW: this was declared with only the three stack arguments Ghidra shows.
@@ -49,7 +49,9 @@ void object_destroy_region(uint32_t object_index, int32_t region_index)
                 (ModelCollisionGeometry *)tag_instances[definition->collision_model.tag_id.index].data;
             ModelCollisionGeometryRegion *region = &((ModelCollisionGeometryRegion *)geometry->regions.pointer)[region_index];
 
-            effect_new_on_object(); // UNSURE: Ghidra shows no visible arguments
+            // 0x4f032a..0x4f0351: EAX = the object, ECX = the region's +0x44 effect, stack: object, -1, 0..
+            effect_new_on_object(object_index, *(datum_index *)((uint8_t *)region + 0x44), object_index, -1,
+                0.0f, 0.0f, 0, 0);
             object_set_permutation_by_name(object_index, "~damaged", (int16_t)region_index, 1);
 
             if ((region->flags & 0x20) != 0) {
