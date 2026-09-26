@@ -875,3 +875,7 @@ Remaining step-1 code gap:
   checks the sender against network_channel_remote_address_or_default, then decodes &length-2). Rewrote join_complete
   (sender deref'd once, not twice), sync_complete (length was passed as a pointer), player_config_value (2-byte value
   -> client+0xed8) -- all hookable. New helper tools/replace_function.py. 22 callers left.
+- [firing 20] decode-packet callers, ESI-client family: and_discard_ingame_message (state 4, class 6),
+  and_discard_join_message (state 2, class 2), join_finalize_ack (state 2, class 2, then
+  network_client_timer_default_or_disconnect(EAX client)) -- all hookable. 19 callers left; next in this family:
+  join_accepted, join_finalize_message, settings_or_ack, ingame_notification, settings_request (larger bodies).
