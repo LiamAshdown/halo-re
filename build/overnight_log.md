@@ -825,3 +825,6 @@ Remaining step-1 code gap:
   (biped_integrate_movement); _with_collision's melee-lunge block (0x55de..0x55dfxx: ray_intersects_sphere_test,
   object_collision_context_build/test_segment, collision_test_movement_segment, matrix4x3_transform_plane,
   unit_process_melee_special_interaction) is largely unresolved in C -- needs its own rewrite from the binary.
+- [firing 12] Item 3 cont.: vector3d_rotate_about_axis prototyped in both integrators (EAX forward copy, ECX up,
+  stack sin, cos -- checked at 0x55c374 / 0x55d4bc); the |dyaw| >= 1e-4 guard now follows the binary's jnp (NaN
+  rotates).

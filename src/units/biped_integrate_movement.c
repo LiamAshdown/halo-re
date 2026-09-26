@@ -77,7 +77,8 @@ extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, c
 // decompilation is a Rodrigues formula over in_EAX / in_ECX / param_1 / param_2, and
 // src/math/vector3d_rotate_toward.c reads it the same way. Ghidra binds only the two stack
 // arguments at the call sites below, so the declaration is left unprototyped.
-extern void vector3d_rotate_about_axis(); // 0x4cd820  // real signature (vector3d_rotate_about_axis.c): void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); Ghidra recovered 0 of 4 args at this call site
+extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
+    // 0x4cd820, blam-cc: EAX -> v, ECX -> axis, stack -> (sin_angle, cos_angle); checked at 0x55c374 / 0x55d4bc
 
 extern real weapon_get_zoom_fov(int32_t index);   // 0x46fe10, difficulty-scaled globals lookup
 extern uint8_t actor_check_vehicle_mode_timeout(datum_index actor_index); // 0x428270, blam-cc: ECX -> actor_index (object+0x1f4 at both call sites)
@@ -224,7 +225,7 @@ void biped_integrate_movement(uint32_t object_index, object *obj, int8_t *state)
         solve.movement_delta.j = solve.movement_delta.j * speed_scale;
         solve.movement_delta.k = solve.movement_delta.k * speed_scale;
 
-        if (0.0001f <= (float)fabs((double)dyaw)) {
+        if (!((float)fabs((double)dyaw) < 0.0001f)) { // 0x55c335 jnp: only |dyaw| < eps skips (NaN rotates)
             real_vector3d new_forward = obj->forward;
             float dyaw_cos = (float)cos((double)dyaw);
             float dyaw_sin = (float)sin((double)dyaw);
