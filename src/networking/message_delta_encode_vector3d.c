@@ -28,8 +28,7 @@ extern uint32_t message_delta_vector3d_absolute_bits_mode1; // 0x0069a2cc
 extern double FUN_00623e40(double value); // 0x623e40, CRT helper; UNSURE: exact effect
 extern uint8_t bit_stream_write_bit(int32_t bit_value, bit_stream *stream); // 0x4cf9a0,
     // memory module; UNSURE: the stream operand is in a register at this call site
-extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value,
-    bit_stream *stream); // 0x4cf8f0
+extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values
 
 // Encodes a 3D position (values) either as a small quantized delta from previous (if the distance
 // between them is within range and each axis's delta fits the configured delta bit width), or as
@@ -98,8 +97,8 @@ int32_t message_delta_encode_vector3d(int32_t unused, real *previous, real *valu
                 if (level_count < quantized) {
                     quantized = level_count;
                 }
-                written_bits = bit_stream_write_bits_chunked(
-                    (int32_t)message_delta_vector3d_delta_bits, quantized, stream);
+                written_bits = bit_stream_write_bits_chunked(stream, &quantized,
+                    (int32_t)message_delta_vector3d_delta_bits); // 0x4ead86: ECX = &the quantized value
                 total_bits = total_bits + written_bits;
             }
             return total_bits;
@@ -132,7 +131,7 @@ int32_t message_delta_encode_vector3d(int32_t unused, real *previous, real *valu
         if (level_count < quantized) {
             quantized = level_count;
         }
-        written_bits = bit_stream_write_bits_chunked((int32_t)absolute_bits, quantized, stream);
+        written_bits = bit_stream_write_bits_chunked(stream, &quantized, (int32_t)absolute_bits); // 0x4eae98
         total_bits = total_bits + written_bits;
     }
     return total_bits;
