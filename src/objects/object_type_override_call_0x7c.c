@@ -23,7 +23,7 @@ void object_type_override_call_0x7c(uint32_t object_index) // blam-cc: ESI -> ob
     for (i = k_maximum_object_subdefinitions - 1; i >= 0; i--) {
         object_type_definition *sub = def->subdefinitions[i];
         if (sub != 0 && sub->override_call_7c != 0) {
-            ((void (*)(void))sub->override_call_7c)();
+            ((void (*)(uint32_t))sub->override_call_7c)(object_index); // push esi; call [eax+0x7c] (0x4f47ad)
             return;
         }
     }

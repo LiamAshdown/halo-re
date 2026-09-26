@@ -23,7 +23,7 @@ uint8_t object_type_override_call_0x74(uint32_t object_index) // blam-cc: EDI ->
     for (i = k_maximum_object_subdefinitions - 1; i >= 0; i--) {
         object_type_definition *sub = def->subdefinitions[i];
         if (sub != 0 && sub->override_call_74 != 0) {
-            return ((uint8_t (*)(void))sub->override_call_74)();
+            return ((uint8_t (*)(uint32_t))sub->override_call_74)(object_index); // push edi; call [ecx+0x74] (0x4f474e)
         }
     }
     return 1;
