@@ -37,7 +37,8 @@ extern char network_player_entry_validate(network_player_entry *entry); // 0x4de
 extern int32_t player_data_iterator_advance(int16_t step_count); // 0x4d98f0
 
 // blam-cc: stack -> client, table_index; EBX -> candidate
-int32_t network_session_player_table_index_apply(network_client_globals *client, int32_t table_index,
+// FIXED (objdump): every ret sets only AL; the upper bits of EAX are left as they were
+uint8_t network_session_player_table_index_apply(network_client_globals *client, int32_t table_index,
                                                    const uint8_t *candidate)
 {
     int32_t i;

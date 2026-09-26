@@ -18,7 +18,8 @@
 // the low byte, so the return type is kept as int for fidelity with the Ghidra signature.
 // FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
 // blam-cc: EDX -> stream, stack -> bit_value
-uint32_t bit_stream_write_bit(int32_t bit_value, bit_stream *stream)
+// FIXED (objdump): every ret sets only AL; the upper bits of EAX are left as they were
+uint8_t bit_stream_write_bit(int32_t bit_value, bit_stream *stream)
 {
     int32_t byte_cursor;
     uint32_t pos;

@@ -24,7 +24,7 @@ extern uint8_t console_active_after_movie; // 0x007193a8, UNSURE: only tested he
                                            // the console while set (movie playback? name is a guess)
 
 extern void console_deactivate(void); // this module, 0x4c64b0
-extern int32_t console_open(terminal_console *console); // 0x496510, blam-cc: EDI -> console
+extern uint8_t console_open(terminal_console *console); // 0x496510, blam-cc: EDI -> console
 extern void input_keyboard_set_capture_mode(uint8_t enable_capture); // 0x48b650, blam-cc: AL -> enable_capture
 
 // Closes the console if it is open; otherwise opens it (when enabled and not blocked by

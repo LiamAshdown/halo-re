@@ -27,7 +27,8 @@ extern void console_restore_cursor(void); // 0x496c20
 // its embedded text_edit_state to edit `input` in place, seeds the cursor at the end of
 // whatever text is already there and clears any selection, then restores the win32 console
 // cursor. Returns 1 if this call actually opened the console, 0 if one was already active.
-int32_t console_open(terminal_console *console)
+// FIXED (objdump): every ret sets only AL; the upper bits of EAX are left as they were
+uint8_t console_open(terminal_console *console)
 {
     int32_t opened;
 

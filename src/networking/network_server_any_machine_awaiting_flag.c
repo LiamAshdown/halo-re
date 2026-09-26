@@ -17,7 +17,8 @@
 
 // Returns 1 if no machine slot is both connected (id 0..15) and free of
 // k_network_machine_version_mismatch; returns 0 as soon as one is found.
-uint32_t network_server_any_machine_awaiting_flag(network_server_globals *server)
+// FIXED (objdump): every ret sets only AL; the upper bits of EAX are left as they were
+uint8_t network_server_any_machine_awaiting_flag(network_server_globals *server)
 {
     int32_t i;
 

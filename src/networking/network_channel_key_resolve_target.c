@@ -24,7 +24,8 @@ extern int16_t network_game_mode; // 0x00719720
 extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, this batch
 
 // blam-cc: ESI -> entry
-int32_t network_channel_key_resolve_target(network_player_entry *entry)
+// FIXED (objdump): every ret sets only AL; the upper bits of EAX are left as they were
+uint8_t network_channel_key_resolve_target(network_player_entry *entry)
 {
     if (entry == 0 || network_player_entry_validate(entry) == 0) {
         if (network_game_mode != 3) {

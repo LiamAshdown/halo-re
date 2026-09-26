@@ -44,7 +44,8 @@ extern void widget_text_edit_process_key(text_edit_state *state, ui_key_event *e
 // at 0x20) and feeds it to widget_text_edit_process_key against the console's edit state,
 // refreshing the caret-blink timer each time. With nothing left to drain, toggles the caret's
 // visibility once 500ms have passed since the last change.
-int32_t console_process_queued_input(void)
+// FIXED (objdump): every ret sets only AL; the upper bits of EAX are left as they were
+uint8_t console_process_queued_input(void)
 {
     large_integer counter;
     int32_t now_ms;

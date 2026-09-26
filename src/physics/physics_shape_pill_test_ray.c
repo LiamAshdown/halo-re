@@ -39,7 +39,8 @@ extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 // the clipped range is non-empty. On a hit, out_plane is the outward-facing separating plane at
 // the hit point (the component of the hit point perpendicular to the pill's axis).
 // blam-cc: ECX -> delta, EDX -> origin, EBX -> out_plane, EDI -> pill, stack -> out_t
-uint32_t physics_shape_pill_test_ray(real_vector3d *delta, real_point3d *origin,
+// FIXED (objdump): every ret sets only AL; the upper bits of EAX are left as they were
+uint8_t physics_shape_pill_test_ray(real_vector3d *delta, real_point3d *origin,
                                       real_plane3d *out_plane, physics_model_pill *pill,
                                       float *out_t)
 {

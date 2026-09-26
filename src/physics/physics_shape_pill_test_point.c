@@ -20,7 +20,8 @@
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 
 // blam-cc: EAX -> point, ESI -> pill, EDI -> out_normal, stack -> out_depth
-uint32_t physics_shape_pill_test_point(real_point3d *point, physics_model_pill *pill,
+// FIXED (objdump): every ret sets only AL; the upper bits of EAX are left as they were
+uint8_t physics_shape_pill_test_point(real_point3d *point, physics_model_pill *pill,
                                         real_plane3d *out_normal, float *out_depth)
 {
     float rel_x = point->x - pill->origin_x;

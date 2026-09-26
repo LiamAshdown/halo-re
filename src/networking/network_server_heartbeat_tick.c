@@ -38,7 +38,7 @@ extern char network_host_send_scenario_announcement(network_server_globals *serv
 extern char network_game_all_machines_have_player(network_server_globals *server); // 0x4e04f0, this batch
 extern char network_game_any_team_empty(network_server_globals *server); // 0x4e0480, this batch
 extern char network_game_server_load_scenario(void); // 0x4e0720, this batch
-extern uint32_t network_server_any_machine_awaiting_flag(network_server_globals *server); // 0x4e14e0, this batch
+extern uint8_t network_server_any_machine_awaiting_flag(network_server_globals *server); // 0x4e14e0, this batch
 extern char network_session_broadcast_to_all(network_server_globals *server, int32_t param_1,
     void *data, int32_t param_3, int32_t param_4, char force, int32_t param_6);
     // blam-cc: ECX -> server, stack -> param_1, data, param_3, param_4, force, param_6;

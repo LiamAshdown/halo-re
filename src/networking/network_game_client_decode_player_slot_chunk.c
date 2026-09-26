@@ -28,7 +28,7 @@ extern void network_channel_remote_address_or_default(network_channel *channel, 
 extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group,
     void *decoded_body, uint8_t *buffer, int16_t *out_type, byte_stream *input,
     uint16_t *out_version_used, int16_t expected_class); // 0x4d09d0
-extern char network_session_player_table_index_apply(network_client_globals *client, int32_t param_2); // 0x4d9190, elided
+extern uint8_t network_session_player_table_index_apply(network_client_globals *client, int32_t param_2); // 0x4d9190, elided
     // register args unresolved; the visible params are this function's own best-guess mapping
 extern void network_disconnect_notify_dropped_machines(void); // 0x4d9340, elided register args unresolved
 

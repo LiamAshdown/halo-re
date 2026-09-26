@@ -64,7 +64,7 @@ extern void rasterizer_light_disable_all(void); // 0x526700
 extern void rasterizer_light_set(void); // UNSURE: zero visible args; 0x526760
 extern datum_index *light_cluster_first; // 0x00860b20
 extern void cluster_reference_remove_all(uint32_t handle, datum_index *link, void *cluster_list); // out of range, 0x552020
-extern int32_t structure_bsp_collect_visible_objects(datum_index *out_list, int32_t max_count, void *lab1, void *lab2,
+extern int16_t structure_bsp_collect_visible_objects(datum_index *out_list, int32_t max_count, void *lab1, void *lab2,
     void *lab3, void *lab4, void *lab5); // UNSURE: out of range, 0x554420 (light-gathering pass;
     // the five label pointers are jump-table targets in the original binary, not reproducible)
 extern int16_t local_player_index_for_weapon(uint32_t object_index); // UNSURE: out of range, 0x494010

@@ -18,7 +18,8 @@
 extern int16_t profile_slot_id[]; // 0x00714dde
 
 // Returns 0 if `id` matches the (sole, retail-PC) profile slot's stored id, else -1.
-int32_t player_profile_find_index_by_id(int16_t id)
+// FIXED (objdump): every ret sets only AX; the upper bits of EAX are left as they were
+int16_t player_profile_find_index_by_id(int16_t id)
 {
     if (profile_slot_id[0] == id) {
         return 0;

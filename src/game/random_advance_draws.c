@@ -16,24 +16,21 @@
 
 extern int32_t __ftol(void); // 0x6391b4, MSVC runtime; UNSURE: real argument is on the x87 stack
 
-// blam-cc: EAX -> count
-// Calls __ftol() `*count` times (at least once needed -- returns 0 immediately if `*count < 1`),
-// returning the result of the last call.
-int32_t random_advance_draws(int32_t *count)
+// REWRITTEN from objdump 0x45f6e0..0x45f71c: EAX is the tag's first reflexive (count at +0, elements at +4, stride
+// 0x54). The running total starts at 0 and, for each element, becomes __ftol(total + element weight at +0x20) -- the
+// truncation happens after every add. Returns the total (0 for an empty block). The name predates this reading.
+// blam-cc: EAX -> reflexive
+int32_t random_advance_draws(TagReflexive *reflexive)
 {
-    int32_t remaining = *count;
-    int32_t result = 0;
+    int32_t count = (int32_t)reflexive->count;
+    uint8_t *element = (uint8_t *)reflexive->pointer;
+    int32_t total = 0;
+    int32_t i;
 
-    if (remaining < 1) {
-        return 0;
+    for (i = 0; i < count; i++) {
+        total = (int32_t)((float)total + *(float *)(element + i * 0x54 + 0x20)); // fild / fadd / __ftol
     }
-
-    do {
-        result = __ftol();
-        remaining = remaining - 1;
-    } while (remaining != 0);
-
-    return result;
+    return total;
 }
 
 #if 0

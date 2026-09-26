@@ -36,7 +36,8 @@ extern void *memcpy(void *dest, const void *src, uint32_t count); // CRT
 // source slot has customized bindings, copies that slot's button, action-button, axis and pov
 // bindings plus its two rate bytes from source to dest. Returns 1 if the copy was made, 0
 // otherwise.
-int32_t control_profile_copy_gamepad_bindings_by_key(controls_gamepad_record *key,
+// FIXED (objdump): every ret sets only AL; the upper bits of EAX are left as they were
+uint8_t control_profile_copy_gamepad_bindings_by_key(controls_gamepad_record *key,
     saved_player_profile *dest, saved_player_profile *source)
 {
     int32_t dest_slot;

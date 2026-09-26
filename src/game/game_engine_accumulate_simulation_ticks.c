@@ -19,7 +19,7 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern int16_t network_game_mode;     // 0x00719720
 
 extern double floor(double x); // 0x623e40, MSVC CRT
-extern int32_t __ftol(void); // 0x6391b4, MSVC runtime; UNSURE: real argument is on the x87 stack
+// (__ftol: the cast below) // 0x6391b4, MSVC runtime; UNSURE: real argument is on the x87 stack
 
 // Converts `elapsed_seconds` into a whole number of fixed 30Hz simulation ticks, using
 // game_time->speed as the time scale outside a networked client/host connection (where the scale
@@ -39,9 +39,9 @@ int32_t game_engine_accumulate_simulation_ticks(float elapsed_seconds, char keep
     scale = scale * 30.0f;
 
     elapsed_seconds = elapsed_seconds + game_time->leftover_time;
-    floor_result = floor((double)(elapsed_seconds * scale));
-    tick_count = __ftol(); // UNSURE: see header; modeled as the compiler-emitted truncation of
-                            // floor_result, still resident on the x87 stack at this point
+    floor_result = (float)floor((double)(elapsed_seconds * scale)); // 0x470b72: fst to a float slot
+    // 0x470b7c..0x470b9a: __ftol of the floored value, clamped to at most 1000
+    tick_count = (int32_t)((float)floor_result > 1000.0f ? 1000.0f : (float)floor_result);
 
     if (0.0f < scale && keep_remainder == 0) {
         elapsed_seconds = elapsed_seconds - (float)floor_result / scale;

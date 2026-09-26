@@ -26,7 +26,7 @@ extern uint32_t message_delta_vector3d_absolute_bits_mode0; // 0x0069a2dc
 extern uint32_t message_delta_vector3d_absolute_bits_mode1; // 0x0069a2cc
 
 extern double FUN_00623e40(double value); // 0x623e40, CRT helper; UNSURE: exact effect
-extern uint32_t bit_stream_write_bit(int32_t bit_value, bit_stream *stream); // 0x4cf9a0,
+extern uint8_t bit_stream_write_bit(int32_t bit_value, bit_stream *stream); // 0x4cf9a0,
     // memory module; UNSURE: the stream operand is in a register at this call site
 extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value,
     bit_stream *stream); // 0x4cf8f0

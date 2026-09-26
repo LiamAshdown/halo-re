@@ -36,7 +36,8 @@ typedef void (*structure_bsp_object_get_bounds_fn)(uint32_t handle, float *radiu
 typedef void (*structure_bsp_object_accept_fn)(uint32_t handle);
 
 // blam-cc: cdecl, 7 stack params
-int32_t structure_bsp_collect_visible_objects(
+// FIXED (objdump): every ret sets only AX; the upper bits of EAX are left as they were
+int16_t structure_bsp_collect_visible_objects(
     int32_t *out_handles, int16_t max_count,
     structure_bsp_object_iterate_begin_fn iterate_begin,
     structure_bsp_object_iterate_next_fn iterate_next,

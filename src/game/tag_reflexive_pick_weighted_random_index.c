@@ -18,31 +18,31 @@
 extern tag_instance *tag_instances; // 0x0087bc14
 extern random_seed random_seed_global; // 0x00719cd0, types/math.h
 
-extern int32_t random_advance_draws(int32_t *count); // 0x45f6e0, this batch
+extern int32_t random_advance_draws(TagReflexive *reflexive); // 0x45f6e0, EAX reflexive: the sum of the element weights
 extern int32_t __ftol(void); // 0x6391b4, MSVC runtime; UNSURE: real argument is on the x87 stack
 
+// REWRITTEN from objdump 0x45f720..0x45f7b0: total = the weight sum (16 bits used); a draw r = ((seed >> 16) * total)
+// >> 16 as int16; walking the elements, r = __ftol(r - weight) and the first element taking it below zero wins,
+// returning its dword at +0x30; -1 when none does.
 // blam-cc: EAX -> tag_id
-// Reads a TagReflexive header out of tag `tag_id`'s data, advances the global
-// PRNG, then scans the reflexive (stride 0x54, per-element weight at +0x30 read through the same
-// FPU-stack idiom as random_advance_draws) for the first negative weight, returning that
-// element's own value; returns -1 if every element's weight was non-negative.
 int32_t tag_reflexive_pick_weighted_random_index(datum_index tag_id)
 {
-    TagReflexive *reflexive; // types/tags.h; the tag's data begins with one reflexive header
+    TagReflexive *reflexive = (TagReflexive *)tag_instances[tag_id & 0xffff].data;
+    int32_t count = (int32_t)reflexive->count;
+    int16_t total = (int16_t)random_advance_draws(reflexive);
+    uint8_t *element;
+    int32_t remaining;
     int32_t i;
 
-    reflexive = (TagReflexive *)tag_instances[tag_id & 0xffff].data;
-
-    random_advance_draws((int32_t *)&reflexive->count); // UNSURE: argument not visible at this call site
-
     random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-
-    for (i = 0; i < (int32_t)reflexive->count; i++) {
-        if (__ftol() < 0) {
-            return *(int32_t *)((uint8_t *)reflexive->pointer + i * 0x54 + 0x30);
+    remaining = (int16_t)(((random_seed_global >> 0x10) * (uint32_t)(int32_t)total) >> 0x10);
+    element = (uint8_t *)reflexive->pointer;
+    for (i = 0; i < count; i++) {
+        remaining = (int32_t)((float)remaining - *(float *)(element + i * 0x54 + 0x20)); // fild / fsub / __ftol
+        if (remaining < 0) {
+            return *(int32_t *)(element + i * 0x54 + 0x30);
         }
     }
-
     return -1;
 }
 

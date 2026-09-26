@@ -167,7 +167,7 @@ extern void ui_cursor_update(void);                                         // 0
 extern void interface_tick(void);                                           // 0x497e80, foreign (interface)
 extern uint32_t time_query_performance_counter_ms(void);                    // 0x449210, foreign (math)
 extern void console_process_input_events(void);                             // 0x496c80, foreign (interface)
-extern int32_t console_process_queued_input(void);                          // 0x4965e0, foreign (interface)
+extern uint8_t console_process_queued_input(void);                          // 0x4965e0, foreign (interface)
 extern void console_message_expire_old(void);                               // 0x4966e0, foreign (interface)
 extern void console_update_display(void);                                   // 0x496d40, foreign (interface)
 extern uint8_t console_process_key_events(void);                            // this module, 0x4c65c0

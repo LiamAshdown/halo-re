@@ -17,7 +17,7 @@
 extern uint8_t message_delta_parameters_enabled;           // 0x0071cfa8
 extern uint8_t message_delta_parameters_sending;            // 0x0071cfb4
 
-extern uint32_t bit_stream_write_bit(int32_t bit_value, bit_stream *stream); // UNSURE: stream arg
+extern uint8_t bit_stream_write_bit(int32_t bit_value, bit_stream *stream); // UNSURE: stream arg
 extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value, bit_stream *stream); // UNSURE: args
 
 // Writes the leading header bit(s) of a message-delta message: whether the message is

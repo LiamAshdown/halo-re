@@ -22,7 +22,7 @@ extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
 extern uint8_t message_delta_field_changed_flags[0x40];         // 0x006b89c0
 
 typedef int32_t (*message_delta_field_encode_fn)(void *field_type, int32_t changed, int32_t offset, void *stream_or_ctx);
-extern uint32_t bit_stream_write_bit(int32_t bit_value, bit_stream *stream); // UNSURE: stream argument
+extern uint8_t bit_stream_write_bit(int32_t bit_value, bit_stream *stream); // UNSURE: stream argument
 
 // blam-cc: ESI -> ctx, EAX -> changed_offset, stack -> field_index, type_offset
 // Encodes one top-level message field via its type-specific callback. For an incremental

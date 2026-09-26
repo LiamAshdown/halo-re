@@ -31,7 +31,7 @@ extern controls_gamepad_record controls_assigned_gamepads[4];        // 0x006b53
 extern void control_profile_clear_device_slot_mappings(uint8_t *profile); // 0x53b5a0, blam-cc: ECX profile
 extern void control_profile_reset_slot(uint8_t *profile, int32_t slot); // 0x53b2b0, blam-cc: ESI profile, EDX slot
 extern uint8_t control_profile_find_or_create_gamepad_slot(const controls_gamepad_record *entry, uint8_t *profile); // 0x53b470, cdecl
-extern void control_profile_copy_gamepad_bindings_by_key(const controls_gamepad_record *entry, uint8_t *profile, const uint8_t *saved_profile); // 0x53b700, blam-cc: EAX entry
+extern uint8_t control_profile_copy_gamepad_bindings_by_key(const controls_gamepad_record *entry, uint8_t *profile, const uint8_t *saved_profile); // 0x53b700, blam-cc: EAX entry
 extern void control_profile_reestablish_device_slot_mappings(uint8_t *profile_record); // 0x53b620, blam-cc: EAX profile_record
 
 uint8_t controls_gamepad_bindings_restore(void)

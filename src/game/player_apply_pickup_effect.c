@@ -33,15 +33,15 @@ extern player_globals *local_player_globals; // 0x0087a478
 extern uint8_t *global_006b0b80;             // 0x006b0b80, UNSURE identity, see header note
 extern int16_t network_game_mode;            // 0x00719720
 
-extern int32_t __ftol(void); // 0x6391b4, MSVC 7.1 CRT float-to-int truncation
 extern uint8_t object_shield_recharge_start(uint32_t object_index); // 0x4edba0, UNSURE exact signature
 extern void player_trigger_shield_recharge_effect(uint32_t player_index); // this batch, 0x479710
 extern uint8_t object_restore_full_body_vitality(uint32_t object_index); // 0x4ed9d0, UNSURE exact signature
 extern void player_trigger_full_health_effect(uint32_t player_index); // this batch, 0x479890
 extern uint8_t player_add_kill_streak(int32_t slot, int16_t amount, uint32_t player_handle); // this batch, 0x479ba0
 extern void player_trigger_kill_streak_effect(uint32_t player_index); // this batch, 0x4797d0
-extern void hud_post_item_message(int16_t a, uint8_t b); // 0x4ae350, not in this batch
-extern void equipment_pickup_play_sound(void); // 0x4bbb50, not in this batch
+extern void hud_post_item_message(int16_t count, int32_t source, uint8_t kind, int16_t local_player_index,
+    int8_t machine_id); // 0x4ae350, EAX count, ECX source, DL kind, stack (local player, machine)
+extern void equipment_pickup_play_sound(uint32_t object_index); // 0x4bbb50, EAX object
 extern void object_delete(uint32_t object_index); // 0x4f5bd0
 
 // Applies the pickup effect of `pickup_object`'s tag (discriminated by its +0x308 field) to
@@ -49,31 +49,35 @@ extern void object_delete(uint32_t object_index); // 0x4f5bd0
 // No-op (does not delete the pickup) if the source amount (__ftol'd from an elided float) is
 // not positive, or if the specific effect's own gate (shield recharge / full vitality restore /
 // kill-streak) reports failure.
+// REWRITTEN from objdump 0x479930..0x479a98: the amount is __ftol(powerup tag +0x30c * 30) tested as a 16-bit value;
+// the shield / health calls take the player's UNIT (player+0x34) in EAX; the kill-streak effect fires when the low 16
+// bits of the slot are zero (test bp,bp); the HUD message gets count 0, the pickup's definition tag as its source,
+// kind 0, the local player index and the byte at player+0x64; the sound gets the pickup object; object_delete tail.
 void player_apply_pickup_effect(uint32_t player_index, uint32_t pickup_object)
 {
     player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
     object *pickup = (object *)((object_header *)object_headers->data)[pickup_object & 0xffff].data;
-    tag_instance *tag = &tag_instances[pickup->definition_tag & 0xffff];
+    uint8_t *tag = (uint8_t *)tag_instances[pickup->definition_tag & 0xffff].data;
+    int16_t amount = (int16_t)(int32_t)(*(float *)(tag + 0x30c) * 30.0f); // fld / fmul 30 / __ftol, then test ax
     int16_t discriminator;
-    int32_t amount = __ftol(); // UNSURE: source float is on the x87 stack, elided by Ghidra
 
     if (amount < 1) {
         return;
     }
 
-    discriminator = *(int16_t *)((uint8_t *)tag->data + 0x308);
+    discriminator = *(int16_t *)(tag + 0x308);
     if (discriminator == 1) {
-        local_player_globals->respawn_stagger = local_player_globals->respawn_stagger + (int16_t)amount;
+        local_player_globals->respawn_stagger = local_player_globals->respawn_stagger + amount;
         global_006b0b80[2] = 1;
     } else if (discriminator == 2) {
-        if (object_shield_recharge_start(player_index) == 0) {
+        if (object_shield_recharge_start(p->unit) == 0) {
             return;
         }
         if (network_game_mode == 0) {
             player_trigger_shield_recharge_effect(player_index);
         }
     } else if (discriminator == 5) {
-        if (object_restore_full_body_vitality(player_index) == 0) {
+        if (object_restore_full_body_vitality(p->unit) == 0) {
             return;
         }
         if (network_game_mode == 0) {
@@ -86,17 +90,18 @@ void player_apply_pickup_effect(uint32_t player_index, uint32_t pickup_object)
         } else if (discriminator == 4) {
             slot = 1;
         }
-        if (player_add_kill_streak(slot, (int16_t)amount, player_index) == 0) {
+        if (player_add_kill_streak(slot, amount, player_index) == 0) {
             return;
         }
-        if (slot == 0 && network_game_mode == 0) {
+        if ((int16_t)slot == 0 && network_game_mode == 0) {
             player_trigger_kill_streak_effect(player_index);
         }
     }
 
-    hud_post_item_message(p->local_player_index, *(uint8_t *)((uint8_t *)p + 100));
+    hud_post_item_message(0, (int32_t)pickup->definition_tag, 0, p->local_player_index,
+                          (int8_t)*((uint8_t *)p + 0x64));
     if (p->local_player_index != -1) {
-        equipment_pickup_play_sound();
+        equipment_pickup_play_sound(pickup_object);
     }
     object_delete(pickup_object);
 }
