@@ -769,3 +769,11 @@ Remaining step-1 code gap:
   physics_shape_vertex_to_sphere with an invented signature and dropped the transformed mass-point position.
   Now: position through the context matrix, one vertex_to_sphere per mass point (height x_offset, radius
   mass radius * scale + y_offset, material/surface -1, flags 0, breakable -1). Item 2 complete.
+- [firing 4] Item 3, section 1/4: biped solver draft in build/drafts/biped_movement_solve.c (NOT in src/ until
+  complete -- a partial C definition would replace the linked original for the C callers). Section 1 (target
+  velocity, 0x55efd0..0x55f6d6) written and checked instruction by instruction: flying (rotation frame,
+  acceleration clamp), 0x20 path, airborne (2D air control, gravity), ground (aiming frame for climbs_any_surface /
+  lift onto ground plane / steep-ground frame with the x5 vertical, slope speed scaling with exact x87 compare
+  semantics, acceleration clamp, 1/128 ground-normal push). Compiles clean. Note: flags bit 0 is "airborne", not
+  "grounded" as types/units.h says (result bit 0 too) -- fix the enum names when the solver lands.
+  Next: section 2 (sweep + ground-edge snapping, 0x55f6d6..0x55fce4).
