@@ -5,3 +5,17 @@ _FUN_00617020
 _FUN_00618350
 _FUN_0061aa50
 _ov_crosslap
+_FUN_00614f30
+_FUN_00616340
+_FUN_00616eb0
+_FUN_00617530
+_FUN_00617c10
+_FUN_0061a730
+___beginthread
+__setlocale
+_ov_clear
+_ov_open_callbacks
+_ov_read
+_thunk_FUN_0061c3e0
+_FUN_006145a0
+_thunk_FUN_0061ce80

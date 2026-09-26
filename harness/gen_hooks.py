@@ -476,18 +476,24 @@ def reads_x87_input(addr, size):
     return False
 
 _CS_MEMO = {}
+_CS_CUT = set()
 def preserves_callee_saved(addr, fsize, depth=0, busy=None):
     """True when the original at addr returns EBX/ESI/EDI/EBP unchanged on every path: each of them it writes is
     pushed and popped in its body, and every direct callee (within the game's code) does the same. Indirect calls
     (COM methods, function tables) and imports follow the standard convention. LTCG may otherwise let a function
     clobber a callee-saved register its known callers do not need, which a C caller cannot know."""
     if addr in _CS_MEMO: return _CS_MEMO[addr]
+    if 0x623000 <= addr < 0x63a000: return True       # the statically linked MSVC CRT: standard convention (its SEH
+                                                       # prologue/epilogue helpers restore what they change)
     busy = busy if busy is not None else set()
     if addr in busy: return True
-    if depth > 6 or not fsize.get(addr): return False
+    if not fsize.get(addr): return False
+    if depth > 10:
+        _CS_CUT.add(0); return False            # depth cut-off: not a real finding, so nothing above it is cached
     busy.add(addr)
     ins = _insns_of(addr, pop_limit(addr, fsize[addr]))
-    pushed = {x for _, op, x in ins if op == "push"}; popped = {x for _, op, x in ins if op == "pop"}
+    pushed = {x for _, op, x in ins if op == "push"}
+    popped = {x for _, op, x in ins if op == "pop"} | ({"ebp"} if any(op == "leave" for _, op, _ in ins) else set())
     saved = pushed & popped
     ok = True
     for _, op, args in ins:
@@ -500,7 +506,7 @@ def preserves_callee_saved(addr, fsize, depth=0, busy=None):
             t = int(args, 16)
             if 0x401000 <= t < 0x632000 and t != addr and (op == "call" or t not in range(addr, addr + fsize[addr])):
                 if t in fsize and not preserves_callee_saved(t, fsize, depth + 1, busy): ok = False; break
-    _CS_MEMO[addr] = ok
+    if ok or not _CS_CUT: _CS_MEMO[addr] = ok
     return ok
 
 def pop_limit(addr, size):
@@ -589,6 +595,7 @@ def main():
         if a is None or not fsize.get(a): continue
         FUNC_SIZES.setdefault(a, fsize[a])
         try:
+            _CS_CUT.clear()
             if not live_in(a, fsize[a]) and not reads_x87_input(a, fsize[a]) and preserves_callee_saved(a, fsize):
                 cleared.add(s)
         except Exception:

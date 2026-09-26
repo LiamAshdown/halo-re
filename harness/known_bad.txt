@@ -99,3 +99,9 @@ controls_build_device_label_table  # difftest: returns 0 where the original retu
 scenario_find_encounter_index_by_name  # difftest: rewrite crashed on every input, original did not
 encounter_definition_find_squad_index_by_name  # difftest: rewrite crashed, original did not
 encounter_definition_find_platoon_index_by_name  # difftest: rewrite crashed, original did not
+game_engine_notify_player_interaction              # overnight difftest: rewrite crashed 200/200 (original did not); the message_delta_encode_message rewrite may diverge -- review
+game_engine_send_end_game_notification             # overnight difftest: rewrite crashed 200/200 (original did not) -- review with the encoder
+game_engine_send_round_reset_message               # overnight difftest: rewrite crashed 200/200 (original did not) -- review with the encoder
+player_notify_kill_streak_update                   # overnight difftest: rewrite crashed 200/200 (original did not) -- review with the encoder
+autopatch_download_pool_initialize                 # overnight difftest: tester process died -- review
+tree_head_node_allocate                            # overnight difftest: tester process died -- review
