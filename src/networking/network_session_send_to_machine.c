@@ -25,35 +25,35 @@
 #include "game.h"
 #include "networking.h"
 
-extern uint32_t network_channel_queue_message(void *data, void *out_status, int32_t one, uint32_t param_4,
-    uint32_t param_5, uint32_t param_7); // 0x4dce40, other module (UNSURE)
+extern char network_channel_queue_message(network_channel *channel, uint32_t header_value, uint32_t body_value,
+    int32_t header_bit_count, char immediate, char flush_after, int32_t body_bit_count); // 0x4dce40, EDI channel, EBX body bits
 
 // Finds the machine slot whose machine_id matches `machine_id` and, if it has a live channel
 // that is either connected or `force` is set, forwards the send through network_channel_queue_message.
-uint32_t network_session_send_to_machine(int32_t machine_id, network_server_globals *server,
+// FIXED (objdump 0x4e1930..0x4e19b8): the send is skipped only when the channel's flag at +0xa98 is 1 AND force is 0
+// (the draft had that inverted); the queue call is (EDI channel, EBX = param_3 bits, stack data, &status, 1, reliable,
+// unknown_a) with status = (param_1 != 0); the result is AL -- 0, or the queue's result when a message was queued.
+uint8_t network_session_send_to_machine(int32_t machine_id, network_server_globals *server,
     uint32_t param_1, void *data, uint32_t param_3, uint32_t reliable, uint32_t unknown_a,
     char force, uint32_t priority)
 {
     int32_t i;
-    uint32_t result;
 
-    (void)param_1;
-    (void)param_3;
-    result = (uint32_t)machine_id & 0xffffff00;
-
+    (void)priority;   // pushed as a sixth stack argument the queue does not read
     for (i = 0; i < 16; i = i + 1) {
         if (server->machines[i].machine_id == machine_id) {
-            network_channel *channel;
+            network_channel *channel = server->machines[i].channel;
             uint8_t status;
 
-            channel = server->machines[i].channel;
-            if (channel != 0 && (channel->connected == 1 || force != 0)) {
-                result = network_channel_queue_message(data, &status, 1, reliable, unknown_a, priority);
+            if (channel == 0 || (channel->connected == 1 && force == 0)) {
+                return 0;
             }
-            return result;
+            status = (uint8_t)(param_1 != 0);
+            return (uint8_t)network_channel_queue_message(channel, (uint32_t)data, (uint32_t)&status, 1,
+                                                          (char)reliable, (char)unknown_a, (int32_t)param_3);
         }
     }
-    return result;
+    return 0;
 }
 
 #if 0

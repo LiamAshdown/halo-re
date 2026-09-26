@@ -32,9 +32,8 @@ extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
     // EDX -> destination size, then the seven stack arguments. Returns the encoded bit
     // length in EAX. `fields` is a pointer TO a pointer to the field block -- see below.
-extern void network_session_send_to_machine(uint32_t unknown_0, void *unknown_1,
-    int32_t length, uint32_t unknown_3, uint32_t unknown_4, uint32_t unknown_5,
-    uint32_t unknown_6); // 0x4e1930
+extern uint32_t network_session_send_to_machine(int32_t machine_id, void *server, uint32_t param_1, void *data,
+    uint32_t param_3, uint32_t reliable, uint32_t unknown_a, char force, uint32_t priority); // 0x4e1930, EAX machine, ESI server
 
 // blam-cc: EAX -> player_index, ECX -> hash_key, stack -> message_type, subject
 // Encodes and broadcasts a networked event 0x18 (kill notification) carrying `message_type` and
@@ -87,7 +86,9 @@ void game_engine_notify_kill_event(uint32_t player_index, int32_t hash_key, int3
             if (entry != 0) {
                 uint8_t flags = (uint8_t)*(uint16_t *)(entry + 0xe);
                 if (((flags >> 1) & 1) != 0 && ((flags >> 2) & 1) != 0) {
-                    network_session_send_to_machine(1, network_message_scratch, encoded_size, 1, 0, 0, 3);
+                    // 0x4609a3..0x4609b3: EAX = the player's machine index (0x460959), ESI = the server (0x46094a)
+                    network_session_send_to_machine((int32_t)(int8_t)player_machine_field, network_session, 1, network_message_scratch,
+                                                    (uint32_t)encoded_size, 1, 0, 0, 3);
                 }
             }
         }
