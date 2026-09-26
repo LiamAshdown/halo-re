@@ -2,7 +2,7 @@
 //   out/phase4/physics_types_notes.md section 5, which identifies this as an object-physics
 //   mass-point routine rather than the phase2 guess "debug draw an antenna object's vertices")
 // address 0x507790, size 168 bytes
-// name confidence: 0.4   rewrite confidence: 0.35
+// name confidence: 0.4   rewrite confidence: 0.85 (step 1: checked against objdump -d 0x507790..0x507837)
 // evidence: this module's own collision_gather_nearby_object_shapes (0x5061c0), which calls this
 //   function only for a vehicle (object_type == 1) under flags bit 0x400000, exactly the
 //   dispatch types/physics.h section 5 documents for the whole object_physics_* family;
@@ -30,39 +30,33 @@
 #include "physics.h"
 
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point,
-    real_matrix4x3 *m); // 0x4cbde0, math module (src/math/matrix4x3_transform_point.c)
-    // blam-cc: only m is on the stack; out and point arrive in registers Ghidra loses at every
-    //          call site in this module
-extern void physics_shape_vertex_to_sphere(float center_x, float center_y, uint32_t object_index,
-    uint32_t surface_index, int32_t margin, uint32_t flags); // 0x503360, this module (higher half)
+    real_matrix4x3 *m); // 0x4cbde0, blam-cc: EAX out, EDX point, stack m
+extern void physics_shape_vertex_to_sphere(physics_model *model, real_point3d *vertex,
+    int16_t material_type, float height_offset, float radius, uint32_t object_index,
+    int32_t surface_index, uint8_t surface_flags, int8_t breakable_surface_index);
+    // 0x503360, blam-cc: ECX model, ESI vertex, DI material_type, stack the rest
 
-// Appends one sphere proxy per Physics mass point of context's object into the physics_model,
-// each at (x_offset, mass_point.radius * context->scale + y_offset), using context->object_index
-// as the sphere's provenance (matching physics_shape_vertex_to_sphere's world/object convention). Returns whether
-// *model ended up with anything in it (its first three int16 counts, checked directly since
-// this function receives model only as an opaque short* the way physics_model_build_from_sphere_query
-// receives its own equivalent parameter).
+// blam-cc: EBX -> context, stack -> x_offset, y_offset, model_counts
+// Adds one sphere (and, for a positive x_offset, the lowered sphere and pill) proxy per Physics
+// mass point of the context's object: the mass point position through the context matrix, height
+// x_offset, radius mass_point.radius * context->scale + y_offset, no surface or material.
+// Returns whether the physics_model now holds any proxy (its three int16 counts).
+// FIXED (step 1, objdump -d 0x507790..0x507837): the draft called physics_shape_vertex_to_sphere
+// with an invented signature and dropped the transformed position.
 uint8_t object_physics_add_mass_point_shapes(float x_offset, float y_offset,
     object_physics_context *context, int16_t *model_counts)
 {
     Physics *definition = (Physics *)context->definition;
-    int32_t count = definition->mass_points.count;
-    int32_t i;
+    int16_t i;
 
-    for (i = 0; i < count; i++) {
-        PhysicsMassPoint *mass_point =
-            &((PhysicsMassPoint *)definition->mass_points.pointer)[i];
+    for (i = 0; (int32_t)i < (int32_t)definition->mass_points.count; i++) {
+        PhysicsMassPoint *mass_point = &((PhysicsMassPoint *)definition->mass_points.pointer)[i];
         real_point3d world_position;
 
-        // Ghidra's single visible argument is unaff_EBX + 2, i.e. &context->scale -- the base of
-        // the embedded matrix4x3, NOT &context->forward_i (an earlier rewrite was one field off).
-        // out and point are register arguments; reconstructed as the mass point definition
-        // position transformed into world space, matching
-        // object_physics_compute_mass_point_forces own visible three-argument call.
         matrix4x3_transform_point(&world_position, (real_point3d *)&mass_point->position,
-            (real_matrix4x3 *)&context->scale); // UNSURE: out and point are register arguments
-        physics_shape_vertex_to_sphere(x_offset, mass_point->radius * context->scale + y_offset,
-            context->object_index, 0xffffffff, 0, 0xff);
+            (real_matrix4x3 *)&context->scale);
+        physics_shape_vertex_to_sphere((physics_model *)model_counts, &world_position, -1, x_offset,
+            mass_point->radius * context->scale + y_offset, context->object_index, -1, 0, -1);
     }
 
     return !(model_counts[0] == 0 && model_counts[1] == 0 && model_counts[2] == 0);

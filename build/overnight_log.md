@@ -765,3 +765,7 @@ Remaining step-1 code gap:
   inverse / transform / sphere query radius = inverse.scale * radius_scale / proxies with the node matrix).
   TODO: siblings object_collision_context_test_pill / _test_point / _test_segment use the same
   `region_permutations[node->region]` + 0xff pattern; check each against its binary.
+- [firing 3] Item 2b: object_physics_add_mass_point_shapes (0x507790) rewritten from the binary: the draft called
+  physics_shape_vertex_to_sphere with an invented signature and dropped the transformed mass-point position.
+  Now: position through the context matrix, one vertex_to_sphere per mass point (height x_offset, radius
+  mass radius * scale + y_offset, material/surface -1, flags 0, breakable -1). Item 2 complete.
