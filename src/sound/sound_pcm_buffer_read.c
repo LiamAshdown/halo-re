@@ -18,6 +18,7 @@
 //   message's own length and some margin) is not re-derived here. The original scans for the
 //   buffer's NUL terminator twice (once to test the threshold, once to find the append point);
 //   this rewrite computes it once via strlen with no behavioral difference.
+// FIXED (overnight): the clamp is a signed compare and the cache size a signed WORD, as in the binary.
 // Phase-4 review: checked instruction by instruction against the disassembly appended in the
 // #if 0 block; no semantic difference found.
 
@@ -44,14 +45,14 @@ int32_t sound_pcm_buffer_read(uint32_t *position, SoundPermutation *permutation,
     uint32_t remaining = permutation->buffer_size - *position;
     uint32_t sample_pointer = *(uint32_t *)((uint8_t *)permutation + 0x30);
 
-    if (requested_size <= remaining) {
+    if ((int32_t)requested_size <= (int32_t)remaining) { // SIGNED: cmp ecx,eax; jg (0x545871)
         remaining = requested_size;
     }
     *bytes_read_out = remaining;
 
     if (sample_pointer >= (uint32_t)sound_cache_memory &&
         permutation->samples.size + sample_pointer <=
-            (uint32_t)sound_cache_size_megabytes * 0x100000 + (uint32_t)sound_cache_memory) {
+            ((uint32_t)(int32_t)*(int16_t *)&sound_cache_size_megabytes << 20) + (uint32_t)sound_cache_memory) { // movsx WORD (0x545886)
         uint8_t *src = (uint8_t *)(sample_pointer + (*position & 0xfffffffeu));
         uint8_t *dst = (uint8_t *)destination;
         uint32_t new_position;
