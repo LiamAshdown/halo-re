@@ -26,9 +26,9 @@ extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2
 extern void *object_try_and_get(datum_index object_index, uint32_t mask); // 0x4f6ec0, objects module
 extern int16_t camera_get_type_for_player(int16_t player_index); // 0x445ac0, module camera; blam-cc: player_index in CX (in_CX)
 extern int32_t local_player_index_for_weapon(datum_index weapon_index); // 0x494010, this module
-extern int32_t model_markers_get_by_name(uint8_t *permutation_table, uint32_t reserved,
-                                          void *node_array, uint32_t flags_arg, object_marker *out,
-                                          uint32_t name_arg); // 0x4d7850, objects module
+extern int16_t model_markers_get_by_name(datum_index model_tag_id, const char *name, uint8_t *region_permutations,
+    int16_t *node_remap, real_matrix4x3 *node_matrices, uint8_t mirrored, object_marker *out, int16_t maximum);
+    // 0x4d7850, ECX model_tag_id, EAX name
 
 // If weapon_index both exists as a live object and is the local player's current first-person
 // weapon, and the active camera is first-person, and the weapon's weapon_hud_interface tag is
@@ -36,15 +36,13 @@ extern int32_t model_markers_get_by_name(uint8_t *permutation_table, uint32_t re
 // (+0x478), looks up a named marker on the first-person weapon model and returns its transform.
 // Returns 0 on any failed gate.
 uint32_t first_person_weapon_get_marker_data(datum_index weapon_index, const char *marker_name,
-                                              object_marker *out, uint32_t name_arg)
+                                              object_marker *out, uint32_t maximum)
 {
     object *obj;
     int32_t local_player;
     int16_t camera_type;
     first_person_weapon_interface *fp;
     uint8_t *item_tag_data;
-
-    (void)marker_name; // never read by the original function
 
     obj = (object *)object_try_and_get(weapon_index, 4);
     if (obj == 0) {
@@ -67,9 +65,10 @@ uint32_t first_person_weapon_get_marker_data(datum_index weapon_index, const cha
 
     if (fp->weapon_hud_valid != 0 && *(int32_t *)(item_tag_data + 0x468) != -1 &&
         *(int32_t *)(item_tag_data + 0x478) != -1) {
-        return (uint32_t)model_markers_get_by_name(
-            (uint8_t *)0, (uint32_t)&fp->weapon_hud_element[0],
-            (void *)fp->unknown_108c, 0, out, name_arg);
+        // 0x492b50..0x492b6d: ECX = tag +0x468 (the model), EAX = marker_name, push 0, fp+0x1d8e, fp+0x108c, 0, out,
+        // maximum
+        return (uint32_t)model_markers_get_by_name(*(datum_index *)(item_tag_data + 0x468), marker_name,
+            (uint8_t *)0, fp->weapon_hud_element, (real_matrix4x3 *)fp->unknown_108c, 0, out, (int16_t)maximum);
     }
     return 0;
 }
