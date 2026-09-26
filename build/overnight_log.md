@@ -962,3 +962,6 @@ Remaining step-1 code gap:
 - Tools: tools/standalone_campaign.sh (exec route, kept for console tests), tools/standalone_ui_run.sh + scratchpad/keys.ps1
   (drive the menu with scan-code keystrokes, screenshots), scratchpad/cdb_trace.sh (breakpoint logging in the child).
 - Open: first keystroke run (ENTER x3) got no menu reaction; investigating input path.
+- NOTE FOR PLAY-TEST: hs_autocomplete_add_startup is in hooks.stable.txt and its behaviour changed (end index 4 -> 5,
+  verified: 0x483865 mov eax,5; the console autocomplete now also offers "stub", as retail does). Needs a harness
+  rebuild + re-test by the user; revert commit f8e963f's change to that file if unwanted.
