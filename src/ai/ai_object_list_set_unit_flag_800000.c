@@ -11,7 +11,7 @@
 // register convention: object_list_header handle in EAX, flag in a stack byte parameter.
 // Confirmed against objdump 0x561d50..0x561e5b (identical shape to 0x4348c0's own confirmed
 // register convention).
-//   // blam-cc: EAX -> object_list_header, stack -> flag
+//   // blam-cc: EAX -> object_list_header_handle, stack -> flag
 
 #include "tags.h"
 #include "memory.h"

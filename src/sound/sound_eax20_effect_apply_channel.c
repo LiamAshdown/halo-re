@@ -11,8 +11,8 @@
 //   which folds its near-identical 9 x 2 Set() blocks the same way; sound_eax20_underwater_direct_gain
 //   (0x0069ff24, 0.25f) and sound_eax20_buffer_property_guid (0x0064e300, this module)
 //   confirmed against the disassembly appended below.
-// register convention: __thiscall (ECX -> this), stack -> channel_index.
-// blam-cc: ECX -> this, stack -> channel_index
+// register convention: __thiscall (ECX -> this_object), stack -> channel_index.
+// blam-cc: ECX -> this_object, stack -> channel_index
 // Cleanup-pass review: the underwater gain global was 0x0069ff28 in the first draft; objdump
 //   0x54f786 reads 0x0069ff24 (same value, separate global). Fixed.
 // Phase-4 review: checked instruction by instruction against the disassembly appended below.

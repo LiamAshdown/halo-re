@@ -5,7 +5,7 @@
 // (0x432a40, this batch), setting or clearing bit 0x400 of unit_data.flags (unit_flags,
 // types/units.h; this particular bit is not yet named there) for every object in the list.
 // Unlike its siblings in this address range, it does not recurse into child objects.
-//   // blam-cc: EAX -> object_list_header, stack -> flag
+//   // blam-cc: EAX -> object_list_header_handle, stack -> flag
 
 #include "tags.h"
 #include "memory.h"

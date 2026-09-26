@@ -9,8 +9,8 @@
 //   ai_actor_type_get_morale_grade @0x434ed0 (already rewritten), which is where the name
 //   comes from. _actor_mode_flee (11) is the only mode that produces a grade above the
 //   "recently hurt" fallback.
-// register convention: EAX -> object_list_header handle; no stack arguments.
-//   // blam-cc: EAX -> object_list_header
+// register convention: EAX -> object_list_header_handle handle; no stack arguments.
+//   // blam-cc: EAX -> object_list_header_handle
 //
 // UNSURE:
 //  - actor + 0x9c and + 0xa4 / + 0xa8 are inside actor.mode_data, so the command-list lookup
@@ -40,7 +40,7 @@ extern data_array *swarm_component_data;       // 0x00880358
 
 extern int16_t ai_actor_type_get_morale_grade(void); // 0x434ed0, Ghidra shows no argument here
 
-// blam-cc: EAX -> object_list_header
+// blam-cc: EAX -> object_list_header_handle
 int16_t ai_object_list_max_flee_grade(datum_index object_list_header_handle)
 {
     int32_t tick;

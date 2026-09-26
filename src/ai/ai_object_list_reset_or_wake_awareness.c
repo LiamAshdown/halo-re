@@ -9,7 +9,7 @@
 // swarm_actor_index).
 // register convention: Ghidra fully resolved the flag parameter and left the object_list
 // header in EAX.
-//   // blam-cc: EAX -> object_list_header, stack -> flag
+//   // blam-cc: EAX -> object_list_header_handle, stack -> flag
 
 #include "tags.h"
 #include "memory.h"

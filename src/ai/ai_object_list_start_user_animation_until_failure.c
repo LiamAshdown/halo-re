@@ -12,7 +12,7 @@
 //   are loaded into EDI/EAX right before the call site and then never pushed or otherwise used --
 //   dead loads, matching Ghidra's own choice to declare `param_1`/`param_2` but never reference
 //   them in the body). Confirmed against objdump 0x561e60..0x561f72.
-//   // blam-cc: ECX -> object_list_header, stack -> (unused, unused, graph_tag_id)
+//   // blam-cc: ECX -> object_list_header_handle, stack -> (unused, unused, graph_tag_id)
 // UNSURE: unit_start_user_animation's own file documents `EAX -> object_index, EDI ->
 //   graph_tag_id, second register -> warn_if_missing` at rewrite confidence 0.3 ("the
 //   animation-name string and the graph tag id arrive in registers Ghidra could not source at

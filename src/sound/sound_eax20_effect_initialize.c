@@ -9,7 +9,7 @@
 // the exact order/values Ghidra shows -- including the apparently-redundant repeat queries for
 // listener ids 8 and 15, which are preserved rather than deduplicated. Bit 0x80000000 (property
 // id 0x80000000, "AllProperties" by EAX SDK convention) sets result bit 1.
-// register convention: __thiscall (ECX -> this), stack -> listener (directsound_channel *).
+// register convention: __thiscall (ECX -> this_object), stack -> listener (directsound_channel *).
 // Phase-4 review: checked instruction by instruction against the disassembly appended in the
 // #if 0 block; no semantic difference found.
 

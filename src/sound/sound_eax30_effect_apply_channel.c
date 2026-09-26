@@ -8,7 +8,7 @@
 // offsets (spatialized 0x06, underwater 0x07, eax_value 0x60, occlusion 0x48,
 // obstruction 0x44, types/sound.h) confirmed exactly against the global addresses used
 // (0x00725430 + those offsets).
-// register convention: __thiscall (ECX -> this), stack -> channel_index.
+// register convention: __thiscall (ECX -> this_object), stack -> channel_index.
 // The 9 x 2 near-identical Set() blocks (deferred vs non-deferred id) are folded into one loop
 // over an {id, bit, value pointer} table; the redundant nested duplicate check on id 0x14 (bit
 // 0x100000, inside the id-8 block) is preserved as its own separate table entry rather than

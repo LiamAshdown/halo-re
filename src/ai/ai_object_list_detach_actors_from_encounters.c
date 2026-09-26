@@ -7,9 +7,9 @@
 //   reference data_arrays every other ai_object_list_* function in this directory uses)
 //   instead of a packed ai reference. Only objects that are bipeds or vehicles
 //   ((1 << object.type) & 3) and whose unit has an actor already in an encounter are touched.
-// register convention: EAX -> object_list_header handle, ECX -> the reference cursor
+// register convention: EAX -> object_list_header_handle handle, ECX -> the reference cursor
 //   (Ghidra's in_ECX, overwritten immediately by the header's first_reference).
-//   // blam-cc: EAX -> object_list_header
+//   // blam-cc: EAX -> object_list_header_handle
 //
 // UNSURE: as in the reference twin, actor_movement_action_cancel is argument-less in Ghidra and is written
 // here as taking the actor it is about. The "unit_data + 0x1f4" access is rendered by Ghidra
@@ -33,7 +33,7 @@ extern void actor_movement_action_cancel(datum_index actor_index); // 0x428650, 
 extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counters); // 0x436620, blam-cc: EAX -> actor_index
 extern void encounters_recompute_dirty(void);                             // 0x435f00
 
-// blam-cc: EAX -> object_list_header
+// blam-cc: EAX -> object_list_header_handle
 // Pulls every actor controlling a unit in the object list out of its encounter and parks it
 // on the global unassigned-actor list.
 void ai_object_list_detach_actors_from_encounters(datum_index object_list_header_handle)

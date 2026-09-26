@@ -19,7 +19,7 @@
 // register convention: stack -> actor_variant_or_palette_tag, encounter_index, squad_index,
 //   use_palette_entry, unit_type_index; EAX -> placement (a caller-owned position/yaw/flags
 //   record).
-//   // blam-cc: EAX -> placement, stack -> actor_variant_or_palette_tag, encounter_index,
+//   // blam-cc: EAX -> placement_request, stack -> actor_variant_or_palette_tag, encounter_index,
 //   //   squad_index, use_palette_entry, unit_type_index
 
 #include "tags.h"
@@ -51,7 +51,7 @@ extern datum_index actor_new_and_attach_to_unit(
 // The caller-owned position/yaw/flags record this function reads via EAX; only the fields it
 // itself uses are named.
 
-// blam-cc: EAX -> placement, stack -> actor_variant_or_palette_tag, encounter_index,
+// blam-cc: EAX -> placement_request, stack -> actor_variant_or_palette_tag, encounter_index,
 //   squad_index, use_palette_entry, unit_type_index
 // Creates and places a new AI-controlled unit object at a starting-location/encounter
 // placement, applying its AI-related unit-definition properties and binding an actor to it

@@ -6,7 +6,7 @@
 // first_person_weapon_interface's weapon_hud_element/device_hud_element fields both cite this
 // address as their filler.
 // register convention: source tag id in EAX (in_EAX), target tag id in ECX (in_ECX), output
-// array as the recognized stack parameter (param_1). // blam-cc: EAX -> source, ECX -> target,
+// array as the recognized stack parameter (param_1). // blam-cc: EAX -> source_tag_ref, ECX -> target_tag_ref,
 // stack -> out
 // TYPES-GAP / UNSURE: both tag reflexives walked here (target+0xb8/+0xbc, a count/pointer pair
 // over 0x9c byte name records; source+0x68/+0x6c, a count/pointer pair over 0x40 byte name
@@ -32,7 +32,7 @@
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
-// blam-cc: EAX -> source, ECX -> target, stack -> out
+// blam-cc: EAX -> source_tag_ref, ECX -> target_tag_ref, stack -> out
 // For every entry in target's element list (target tag data + 0xb8 count, +0xbc pointer to
 // 0x9c-byte name records), searches source's element list (source tag data + 0x68 count, +0x6c
 // pointer to 0x40-byte name records, matched in name order starting after the previous match) for

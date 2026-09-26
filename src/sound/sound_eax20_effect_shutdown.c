@@ -6,7 +6,7 @@
 // object."; this (sound_eax_effect_object, types/sound.h) fields property_set (base.0x18,
 // listener) and channel_property_sets[51] (0x1c) match exactly; k_maximum_eax_channels (51)
 // matches the "0x33" channel loop count.
-// register convention: ECX -> this (thiscall).
+// register convention: ECX -> this_object (thiscall).
 // The 11/9 near-identical "if bit set, Set(id, default)" blocks are each folded into one small
 // loop over a {bit, property_id, default_bits} table, which is semantically identical to
 // Ghidra's repeated blocks.

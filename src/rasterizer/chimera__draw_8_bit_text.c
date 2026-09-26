@@ -9,7 +9,7 @@
 //   actual glyph layout/draw through text_wrap_and_draw_narrow.
 // register convention: dest position/color in param_1/param_2 (never dereferenced here, only
 //   forwarded), text in param_3 (recognized), optional clip rect in in_EAX, optional dest rect
-//   override in in_ECX. // blam-cc: EAX -> clip_rect(opt), ECX -> dest_rect_override(opt),
+//   override in in_ECX. // blam-cc: EAX -> clip_rect_override(opt), ECX -> dest_rect_override(opt),
 //   stack -> (position_or_color1, position_or_color2, text)
 // UNSURE, substantially: text_wrap_and_draw_narrow is called with a function pointer &LAB_00514ce0 as its
 //   first argument -- that label is a callback embedded inside this same original function's
@@ -50,7 +50,7 @@ extern void LAB_00514ce0_glyph_callback(void); // UNSURE: an internal label of t
                                                 // original function, not a separate Ghidra
                                                 // function -- its body is not in this pack
 
-// blam-cc: EAX -> clip_rect(opt), ECX -> dest_rect_override(opt),
+// blam-cc: EAX -> clip_rect_override(opt), ECX -> dest_rect_override(opt),
 // stack -> (position_or_color1, position_or_color2, text)
 // Draws an 8-bit (single-byte character) debug text string through the shared glyph layout
 // driver text_wrap_and_draw_narrow, using either the caller-supplied clip/dest rects or the global text safe

@@ -8,7 +8,7 @@
 // it -- so this rewrite trusts the disassembly over that summary; named generically instead.
 // register convention: confirmed by objdump (bin/halo.exe 0x432ad0..0x432b7c): ECX ->
 // object_list_header (not EAX, unlike its siblings).
-//   // blam-cc: ECX -> object_list_header
+//   // blam-cc: ECX -> object_list_header_handle
 
 #include "tags.h"
 #include "memory.h"
@@ -24,7 +24,7 @@ extern data_array *object_list_reference_data; // 0x0087a468
 
 extern void actor_delete(datum_index actor_index, uint32_t flag); // 0x427e60
 
-// blam-cc: ECX -> object_list_header
+// blam-cc: ECX -> object_list_header_handle
 void ai_object_list_clear_orders_with_weapon(datum_index object_list_header_handle)
 {
     datum_index node_index = (datum_index)k_datum_index_none;

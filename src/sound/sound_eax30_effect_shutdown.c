@@ -4,7 +4,7 @@
 // evidence: out/phase4/sound_functions.md "Restores default EAX 3.0-style listener/buffer
 // reverb parameters and releases all cached property-set interfaces held by the sound effects
 // object."; same shape as sound_eax20_effect_shutdown.c (0x54ef30), different property ids/bits.
-// register convention: ECX -> this (thiscall).
+// register convention: ECX -> this_object (thiscall).
 // The listener table includes two genuine oddities transcribed literally rather than "fixed":
 // property id 4 and id 0x16 (22) are both gated by the *same* bit (0x10), and property id 8's
 // buffer-side Set is wrapped in a redundant nested check of the same bit it is already inside.

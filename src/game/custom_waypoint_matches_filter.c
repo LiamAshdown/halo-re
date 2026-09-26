@@ -10,7 +10,7 @@
 // player-shaped record (only its team field at +0x20 is read) in EAX (in_EAX); param_1 is this
 // function's own stack parameter (a player or object handle compared against the waypoint's
 // player/owner fields).
-//   // blam-cc: EAX -> reference, unaff_EDI -> slot, stack -> candidate
+//   // blam-cc: EAX -> reference_team, unaff_EDI -> slot, stack -> candidate
 // UNSURE: the exact intent of the CTF-specific branch (including the extra game_engine_ctf_unit_is_flag_holder call)
 // is not established anywhere in this batch's evidence; transcribed literally. The final
 // "candidate == owner -> not a match" comparisons in both branches read backwards from a naive
@@ -27,7 +27,7 @@ extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints]; // 0x006f18
 
 extern uint8_t game_engine_ctf_unit_is_flag_holder(void); // 0x469780, not in this batch; UNSURE signature
 
-// blam-cc: EAX -> reference, unaff_EDI -> slot, stack -> candidate
+// blam-cc: EAX -> reference_team, unaff_EDI -> slot, stack -> candidate
 uint8_t custom_waypoint_matches_filter(int32_t candidate, custom_waypoint *slot, int32_t reference_team)
 {
     uint8_t not_matching;

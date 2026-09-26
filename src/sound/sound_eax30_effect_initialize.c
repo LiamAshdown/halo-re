@@ -6,7 +6,7 @@
 // sound_eax20_effect_initialize.c (0x54f270), different ids/bits/required-set, and unlike EAX 2.0
 // the final result is listener_supported OR channel_supported (not AND) -- confirmed directly
 // from the decompiled `if (iVar5 != 0 || iVar3 != 0) return 1;`.
-// register convention: __thiscall (ECX -> this), stack -> listener (directsound_channel *).
+// register convention: __thiscall (ECX -> this_object), stack -> listener (directsound_channel *).
 // The ~25 near-identical QuerySupport calls are folded into two loops over an {id, bit} table, in
 // the exact order/values Ghidra shows.
 // Phase-4 review: checked instruction by instruction against the disassembly appended in the

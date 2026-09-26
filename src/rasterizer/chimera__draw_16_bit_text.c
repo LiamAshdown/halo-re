@@ -8,7 +8,7 @@
 //   wcslen (likely a wide string length/bounds check, return unused) and by clamping its
 //   caller-supplied clip rect to fixed maxima (0x1e0, 0x280) instead of the safe-area bounds.
 // register convention: optional clip rect in in_EAX, optional dest rect override in in_ECX,
-//   position/color and text on the stack. // blam-cc: EAX -> clip_rect(opt),
+//   position/color and text on the stack. // blam-cc: EAX -> clip_rect_override(opt),
 //   ECX -> dest_rect_override(opt), stack -> (position_or_color1, position_or_color2, text)
 
 #include "tags.h"
@@ -35,7 +35,7 @@ extern void text_wrap_and_draw_wide(void *glyph_callback, void *dest_rect, uint3
                           void *clip_rect, uint32_t position_or_color2, const int16_t *text); // 0x556780
 extern void LAB_00514ce0_glyph_callback(void); // UNSURE: internal label, body not in this pack
 
-// blam-cc: EAX -> clip_rect(opt), ECX -> dest_rect_override(opt),
+// blam-cc: EAX -> clip_rect_override(opt), ECX -> dest_rect_override(opt),
 // stack -> (position_or_color1, position_or_color2, text)
 // Draws a 16-bit (wide character) debug text string; see chimera__draw_8_bit_text for the
 // shared draw path and its UNSURE caveats.

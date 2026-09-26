@@ -8,7 +8,7 @@
 // register convention: confirmed by objdump (bin/halo.exe 0x432e80..0x432f0d): EAX ->
 // object_list_header, EBX -> packed_reference (inherited unchanged, forwarded to
 // ai_reference_respawn_member's own EAX).
-//   // blam-cc: EAX -> object_list_header, EBX -> packed_reference
+//   // blam-cc: EAX -> object_list_header_handle, EBX -> packed_reference
 
 #include "tags.h"
 #include "memory.h"
@@ -21,7 +21,7 @@ extern data_array *object_list_reference_data; // 0x0087a468
 
 extern void ai_reference_respawn_member(uint32_t packed_reference, datum_index unit_index); // 0x432df0, this batch
 
-// blam-cc: EAX -> object_list_header, EBX -> packed_reference
+// blam-cc: EAX -> object_list_header_handle, EBX -> packed_reference
 void ai_object_list_respawn_members(datum_index object_list_header_handle, uint32_t packed_reference)
 {
     datum_index node_index = (datum_index)k_datum_index_none;

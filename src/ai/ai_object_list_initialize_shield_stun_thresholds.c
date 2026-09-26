@@ -15,7 +15,7 @@
 //   own incoming stack arguments just above (`mov edx,[esp+0x18]; mov ecx,[esp+0x14]` before the
 //   loop, i.e. copied once, not re-read every iteration -- but the value is the same every
 //   iteration regardless).
-//   // blam-cc: ECX -> object_list_header, stack -> (override_max_body_vitality, override_max_shield_vitality)
+//   // blam-cc: ECX -> object_list_header_handle, stack -> (override_max_body_vitality, override_max_shield_vitality)
 // UNSURE: EAX (the current object index in the walk) is not shown as object_initialize_shield_stun_thresholds's
 //   first argument anywhere in Ghidra's decompile of this function (it has none); this rewrite
 //   forwards it because object_initialize_shield_stun_thresholds's own established signature

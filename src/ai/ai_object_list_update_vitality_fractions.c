@@ -14,7 +14,7 @@
 //   EAX as its object_index parameter, and no other register carries a plausible object index
 //   at that call site, so this is Ghidra's usual "argument already live in a register" elision,
 //   not a genuinely fixed/ignored argument.
-//   // blam-cc: EAX -> object_list_header, stack -> (body_delta, shield_delta)
+//   // blam-cc: EAX -> object_list_header_handle, stack -> (body_delta, shield_delta)
 // UNSURE: unlike ai_object_list_set_unit_flag_800/_800000 and
 //   ai_object_list_initialize_shield_stun_thresholds, this function has no per-member type or
 //   flag filter at all -- it calls unit_update_vitality_fractions for literally every member of
