@@ -46,7 +46,6 @@ security_check_write_access                        # shell: died tester process 
 sound_channel_check_loop_boundary                  # sound: differ 100/200: return 0xa5a50000 vs 0x00000000
 sound_pcm_buffer_read                              # sound: died tester process died
 cluster_partition_new                              # structures: died tester process died
-string_convert_ascii_to_unicode                    # text: died tester process died
 effect_spawn_particles                             # calls __ftol() with no argument: the float it converts was not traced (UNSURE in the file)
 effect_update                                      # calls __ftol() with no argument: the float it converts was not traced (UNSURE in the file)
 game_engine_update_netgame_equipment               # calls __ftol() with no argument: the float it converts was not traced (UNSURE in the file)

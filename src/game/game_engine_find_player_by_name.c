@@ -26,7 +26,7 @@
 extern int16_t network_game_mode; // 0x00719720
 extern data_array *player_data;    // 0x0087a480
 
-extern void string_convert_ascii_to_unicode(uint16_t *dst, char *source, uint32_t capacity_bytes); // 0x557990, blam-cc: EAX -> dst, EBX -> source, EDI -> capacity_bytes
+extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dst, uint32_t capacity_bytes, const char *source); // 0x557990, EAX dst, EDI capacity, EBX source
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: iterator in EDI
 
 // blam-cc: EBX -> source_name
@@ -38,7 +38,7 @@ void game_engine_find_player_by_name(char *source_name)
         data_iterator iter;
         void *element;
 
-        string_convert_ascii_to_unicode((uint16_t *)name, source_name, 0x800);
+        string_convert_ascii_to_unicode((uint16_t *)name, 0x800, source_name); // 0x473441: EDI = 0x800
 
         iter.data = player_data;
         iter.next_index = 0;

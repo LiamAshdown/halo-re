@@ -23,7 +23,10 @@
 // (0x5579b6 mov [eax+ecx*2+2],0 with ecx = -2). The early-out at 0x5579cf is only
 // reachable if strlen * 2 + 2 wraps. EAX is never changed on the success path, so the
 // caller sees dst (0 on the early-out) in EAX; the source may have returned it.
-void string_convert_ascii_to_unicode(uint16_t *dst, char *source, uint32_t capacity_bytes)
+// FIXED (objdump 0x557990..0x5579d1): returns EAX -- dst, or 0 when even a truncated copy does not fit (0x5579cf);
+// the terminator is written before the copy runs backwards. Parameters ordered as every caller declares them (the
+// registers are bound by name: EAX dst, EDI capacity in bytes, EBX source).
+uint16_t *string_convert_ascii_to_unicode(uint16_t *dst, uint32_t capacity_bytes, const char *source)
 {
     int32_t count;
     int32_t i;
@@ -32,12 +35,14 @@ void string_convert_ascii_to_unicode(uint16_t *dst, char *source, uint32_t capac
     if (capacity_bytes < (uint32_t)count * 2 + 2) {
         count = (int32_t)(capacity_bytes >> 1) - 1;
     }
-    if ((uint32_t)count * 2 + 2 <= capacity_bytes) {
-        for (i = count - 1; i >= 0; i--) {
-            dst[i] = (uint16_t)(uint8_t)source[i];
-        }
-        dst[count] = 0;
+    if ((uint32_t)count * 2 + 2 > capacity_bytes) {
+        return 0;
     }
+    dst[count] = 0;
+    for (i = count - 1; i >= 0; i--) {
+        dst[i] = (uint16_t)(uint8_t)source[i];
+    }
+    return dst;
 }
 
 #if 0
