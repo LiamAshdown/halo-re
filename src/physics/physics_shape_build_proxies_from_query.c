@@ -37,10 +37,8 @@ extern void physics_shape_add_vertex_proxy(real_matrix4x3 *matrix, physics_model
                                             uint8_t surface_flags,
                                             int8_t breakable_surface_index); // 0x503a60, this batch
 extern void physics_shape_add_edge_proxy(int32_t edge_index, ModelCollisionGeometryBSP *bsp,
-                                          real_matrix4x3 *matrix, physics_model *model,
-                                          real_point3d *near_vertex, real_vector3d *edge_dir,
-                                          float height_offset, float margin,
-                                          int32_t object_index); // 0x503ae0, this batch
+    real_matrix4x3 *matrix, float height_offset, float thickness, int32_t object_index,
+    physics_model *model); // 0x503ae0: EAX edge, ECX bsp, stack (matrix, margin, thickness, object, model)
 extern void physics_shape_add_surface_proxy(ModelCollisionGeometryBSP *bsp, float *moving_frame,
                                              int32_t surface_index, float margin, float thickness,
                                              int32_t object_index,
@@ -71,18 +69,8 @@ void physics_shape_build_proxies_from_query(collision_bsp_sphere_result *result,
     }
 
     for (i = 0; i < result->edge_count; i++) {
-        int32_t edge_index = result->edges[i];
-        ModelCollisionGeometryBSPEdge *edge = &edges[edge_index];
-        real_point3d near_vertex;
-        real_vector3d edge_dir;
-        near_vertex.x = vertices[edge->start_vertex].point.x;
-        near_vertex.y = vertices[edge->start_vertex].point.y;
-        near_vertex.z = vertices[edge->start_vertex].point.z;
-        edge_dir.i = vertices[edge->end_vertex].point.x - near_vertex.x;
-        edge_dir.j = vertices[edge->end_vertex].point.y - near_vertex.y;
-        edge_dir.k = vertices[edge->end_vertex].point.z - near_vertex.z;
-        physics_shape_add_edge_proxy(edge_index, bsp, matrix, model, &near_vertex, &edge_dir,
-                                      margin, thickness, object_index);
+        // 0x503e20: the callee computes the edge's start vertex and direction itself
+        physics_shape_add_edge_proxy(result->edges[i], bsp, matrix, margin, thickness, object_index, model);
     }
 
     for (i = 0; i < result->surface_count; i++) {

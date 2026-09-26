@@ -39,12 +39,15 @@ extern void physics_shape_edge_to_pill_and_quad(
     uint8_t surface_flags, int8_t breakable_surface_index,
     int16_t material_type); // 0x503490, this batch
 
-// blam-cc: EAX -> edge_index, ECX -> bsp,
-//          stack -> matrix, model, near_vertex, edge_dir, height_offset, margin, object_index
+// REWRITTEN from objdump 0x503ae0..0x503c3c: the draft took the start vertex and edge direction as parameters,
+// but the original computes both from the BSP (vertices at bsp+0x58, edge = {start, end, ..., left_surface +0x10,
+// right_surface +0x14}), takes five stack arguments, and passes the scalar triple product (left normal on the
+// stack, right normal in EAX, direction in EDX); returns when it is <= -0.0001 (same plane sides) or >= 0.0001
+// (opposite sides). The transformed direction is written in place; the transformed start vertex goes to a local.
+// blam-cc: EAX -> edge_index, ECX -> bsp, stack -> matrix, height_offset, thickness, object_index, model
 void physics_shape_add_edge_proxy(int32_t edge_index, ModelCollisionGeometryBSP *bsp,
-                                   real_matrix4x3 *matrix, physics_model *model,
-                                   real_point3d *near_vertex, real_vector3d *edge_dir,
-                                   float height_offset, float margin, int32_t object_index)
+                                   real_matrix4x3 *matrix, float height_offset, float thickness,
+                                   int32_t object_index, physics_model *model)
 {
     ModelCollisionGeometryBSPEdge *edge =
         &((ModelCollisionGeometryBSPEdge *)bsp->edges.pointer)[edge_index];
@@ -54,50 +57,54 @@ void physics_shape_add_edge_proxy(int32_t edge_index, ModelCollisionGeometryBSP 
     ModelCollisionGeometryBSPSurface *right_surface = &surfaces[edge->right_surface];
     uint32_t left_plane = left_surface->plane;
     uint32_t right_plane = right_surface->plane;
+    real_point3d *start;
+    real_point3d *end;
+    real_vector3d direction;
+    real_point3d transformed_start;
+    real_point3d *near_vertex;
+    int32_t surface_index;
 
     if (left_plane == right_plane) {
         return;
     }
 
-    {
-        ModelCollisionGeometryBSPPlane *planes =
-            (ModelCollisionGeometryBSPPlane *)bsp->planes.pointer;
-        Plane3D *left_plane_geom = &planes[left_plane].plane;
+    start = (real_point3d *)((uint8_t *)bsp->vertices.pointer + edge->start_vertex * 0x10);
+    end = (real_point3d *)((uint8_t *)bsp->vertices.pointer + edge->end_vertex * 0x10);
+    direction.i = end->x - start->x;
+    direction.j = end->y - start->y;
+    direction.k = end->z - start->z;
 
-        if ((left_plane & 0x7fffffffu) != (right_plane & 0x7fffffffu)) {
-            Plane3D *right_plane_geom = &planes[right_plane & 0x7fffffffu].plane;
-            double triple = vector3d_scalar_triple_product(
-                (real_vector3d *)&right_plane_geom->vector, edge_dir,
-                (real_vector3d *)&left_plane_geom->vector);
-            if (((left_plane & 0x80000000u) != 0) == ((right_plane & 0x80000000u) != 0)) {
-                if (triple <= -0.0001) {
-                    return;
-                }
-            } else {
-                if (0.0001 <= triple) {
-                    return;
-                }
+    if ((left_plane & 0x7fffffffu) != (right_plane & 0x7fffffffu)) {
+        uint8_t *planes = (uint8_t *)bsp->planes.pointer;
+        real_vector3d *left_normal = (real_vector3d *)(planes + (left_plane & 0x7fffffffu) * 0x10);
+        real_vector3d *right_normal = (real_vector3d *)(planes + (right_plane & 0x7fffffffu) * 0x10);
+        real triple = vector3d_scalar_triple_product(left_normal, right_normal, &direction);
+        if (((left_plane & 0x80000000u) != 0) == ((right_plane & 0x80000000u) != 0)) {
+            if (triple <= -0.0001f) {
+                return;
             }
+        } else if (!(triple < 0.0001f)) {
+            return;
         }
     }
 
-    {
-        int32_t surface_index = -1;
-        if (object_index == -1) {
-            surface_index = (int32_t)edge->left_surface;
-        }
-
-        if (matrix != 0) {
-            matrix4x3_transform_vector(edge_dir, edge_dir, matrix);
-            matrix4x3_transform_point(near_vertex, near_vertex, matrix);
-        }
-
-        physics_shape_edge_to_pill_and_quad(model, near_vertex, edge_dir, height_offset, margin,
-                                             (uint32_t)object_index, surface_index,
-                                             left_surface->flags,
-                                             left_surface->breakable_surface,
-                                             (int16_t)left_surface->material);
+    surface_index = -1;
+    if (object_index == -1) {
+        surface_index = (int32_t)edge->left_surface;
     }
+
+    near_vertex = start;
+    if (matrix != 0) {
+        matrix4x3_transform_vector(&direction, &direction, matrix);
+        matrix4x3_transform_point(&transformed_start, start, matrix);
+        near_vertex = &transformed_start;
+    }
+
+    physics_shape_edge_to_pill_and_quad(model, near_vertex, &direction, height_offset, thickness,
+                                         (uint32_t)object_index, surface_index,
+                                         left_surface->flags,
+                                         left_surface->breakable_surface,
+                                         (int16_t)left_surface->material);
 }
 
 #if 0
