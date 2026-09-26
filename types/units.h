@@ -301,7 +301,7 @@ typedef struct unit_animation_overlay {
 // and read back by the caller on the next line, which is what marks the input / output split.
 // ---------------------------------------------------------------------------
 typedef enum biped_movement_solver_flags {
-    _biped_movement_solver_grounded = 0x0001,      // biped_data.flags bit 0
+    _biped_movement_solver_airborne = 0x0001,      // biped_data.flags bit 0; the solver's air-control branch (was misnamed grounded)
     _biped_movement_solver_jumping = 0x0002,       // biped_data.flags bit 1
     _biped_movement_solver_crouching = 0x0004,     // crouch_fraction != 0
     _biped_movement_solver_crouch_began = 0x0008,  // and the caller had not latched a landing
@@ -315,7 +315,7 @@ typedef enum biped_movement_solver_flags {
 
 // the byte the solver writes back at offset 0xa0
 typedef enum biped_movement_solver_result_flags {
-    _biped_movement_result_grounded = 0x01,   // copied into biped_data.flags bit 0
+    _biped_movement_result_airborne = 0x01,   // no ground plane found (0x560044); copied into biped_data.flags bit 0
     _biped_movement_result_jumping = 0x02,    // copied into biped_data.flags bit 1
     _biped_movement_result_landed = 0x04,     // latches the landing byte of the caller; 0x55cfd0
                                               //   also runs unit_track_target_lock_timeout

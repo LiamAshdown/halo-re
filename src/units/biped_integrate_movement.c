@@ -80,11 +80,11 @@ extern void vector3d_cross_product(); // 0x4052c0
 extern void vector3d_rotate_about_axis(); // 0x4cd820  // real signature (vector3d_rotate_about_axis.c): void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); Ghidra recovered 0 of 4 args at this call site
 
 extern real weapon_get_zoom_fov(int32_t index);   // 0x46fe10, difficulty-scaled globals lookup
-extern int8_t actor_check_vehicle_mode_timeout(void);          // 0x428270, UNSURE: actor-side predicate, no traced args
+extern uint8_t actor_check_vehicle_mode_timeout(datum_index actor_index); // 0x428270, blam-cc: ECX -> actor_index (object+0x1f4 at both call sites)
 extern void unit_get_crouch_height_offset(uint32_t object_index, float *pill_height,
                                           float *pill_radius);        // 0x55a2e0
 extern void biped_update_animation_frame_trigger(float impact_speed);  // 0x55eaa0, UNSURE args  // real signature (biped_update_animation_frame_trigger.c): void biped_update_animation_frame_trigger(float threshold, uint8_t *timing_table, object *object_base); Ghidra recovered 1 of 3 args at this call site
-extern void FUN_0055efd0(biped_movement_solver_data *solve);           // 0x55efd0, physics module (skipped)
+extern void biped_movement_solve(biped_movement_solver_data *solve);   // 0x55efd0
 extern void unit_update_up_vector(Biped *biped_tag, object *obj);      // 0x560800
 
 // Integrates one tick of biped movement against a caller-supplied object record, without
@@ -375,7 +375,7 @@ void biped_integrate_movement(uint32_t object_index, object *obj, int8_t *state)
 
     // A grounded AI actor that has only just landed gets a much tighter step allowance.
     if ((biped->flags & 1) != 0 && biped->unknown_501 < 0x16 &&
-        unit->actor_index != k_datum_index_none && actor_check_vehicle_mode_timeout() != 0) {
+        unit->actor_index != k_datum_index_none && actor_check_vehicle_mode_timeout(unit->actor_index) != 0) {
         solve.unknown_5c = 0.1f;
         solve.unknown_60 = 0.5f;
     }
@@ -406,7 +406,7 @@ step_crouch:
         uint32_t biped_state = biped->flags;
         uint16_t dead = obj->vitality_flags & _object_health_frozen_bit;
 
-        if ((biped_state & 1) != 0) solve.flags |= _biped_movement_solver_grounded;
+        if ((biped_state & 1) != 0) solve.flags |= _biped_movement_solver_airborne;
         if ((biped_state & 2) != 0) solve.flags |= _biped_movement_solver_jumping;
         if ((biped_state & 4) != 0) solve.flags |= _biped_movement_solver_unknown_20;
         if ((biped_state & 8) != 0) solve.flags |= _biped_movement_solver_unknown_40;
@@ -424,7 +424,7 @@ step_crouch:
         }
     }
 
-    FUN_0055efd0(&solve);
+    biped_movement_solve(&solve);
 
     // The last supporting surface is remembered for 60 ticks after leaving the ground.
     if (solve.result_surface_index == k_datum_index_none) {
@@ -464,7 +464,7 @@ step_crouch:
         state[1] = 1;
     }
 
-    biped->flags = ((solve.result_flags & _biped_movement_result_grounded) == 0)
+    biped->flags = ((solve.result_flags & _biped_movement_result_airborne) == 0)
                        ? (biped->flags & 0xfffffffe)
                        : (biped->flags | 1);
     biped->flags = ((solve.result_flags & _biped_movement_result_jumping) == 0)

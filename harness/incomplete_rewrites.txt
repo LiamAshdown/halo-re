@@ -126,7 +126,6 @@ console_command_context_mask                       # main: rewrite says 'not rep
 screenshot_render                                  # main: rewrite says 'simplified'
 matrix4x3_multiply_3dnow                           # math: rewrite says 'not rewritten'
 polygon2d_clip_to_plane                            # math: rewrite says 'omitted'
-real_matrix4x3_rotation_from_forward               # math: rewrite says 'simplified'
 vector3d_rotate_about_axis_perpendicular           # math: rewrite says 'simplified'
 model_render_parts                                 # models: rewrite says 'simplified'
 ban_list_find_by_name                              # networking: rewrite says 'placeholder'
@@ -174,14 +173,12 @@ object_lights_update_all                           # objects: rewrite says 'not 
 object_lights_update_all_continued                 # objects: rewrite says 'placeholder'
 objects_update                                     # objects: rewrite says 'omitted'
 breakable_surface_apply_damage                     # physics: rewrite says 'not rewritten'
-collision_bsp_query_sphere_node_recursive          # physics: rewrite says 'simplified'
 collision_bsp_surface_test_point_side_2d           # physics: rewrite says 'not reproduced'
 object_physics_compute_mass_point_forces           # physics: rewrite says 'not rewritten'
 object_physics_resolve_mass_point_overlap          # physics: rewrite says 'placeholder'
 object_physics_tick                                # physics: rewrite says 'placeholder'
 object_physics_tick_single_pass                    # physics: rewrite says 'simplified'
 physics_clamp_value_to_spring_range                # physics: rewrite says 'simplified'
-physics_model_slide_along_contacts                 # physics: rewrite says 'not rewritten'
 projectile_compute_rotation                        # projectiles: rewrite says 'not reproduced'
 projectile_detonation_message_apply                # projectiles: rewrite says 'not rewritten'
 projectile_response                                # projectiles: rewrite says 'not rewritten'
@@ -266,3 +263,4 @@ unit_dispatch_reaction_animation  # ESI unit_index added but unused: the real bo
 game_engine_ctf_notify_flag_carried_throttled  # EDI target_player added but not forwarded; callee's C signature drops it
 object_damage_effect_dispatch  # EAX/EDI added but not forwarded; callee declared argument-less
 network_channel_dispatch_bitstream_unit  # regfix batch 5: network_client_drain_queued_updates' EBX machine input still passed as 0 (UNSURE)
+biped_ground_adjust_solve                          # units: step-1 review: invented sphere-query/slide signatures; needs a rewrite from 0x558000

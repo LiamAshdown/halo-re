@@ -1,7 +1,7 @@
 // collision_bsp_query_sphere_node_recursive  (Ghidra: FUN_00501a10, still unnamed there; name
 // from out/phase2/results/physics_00.json)
 // address 0x501a10, size 632 bytes
-// name confidence: 0.4   rewrite confidence: 0.5
+// name confidence: 0.4   rewrite confidence: 0.9 (step 1: checked against objdump -d 0x501a10..0x501c87; NaN branches now exact)
 // evidence: out/phase4/physics_types_notes.md section 2 derives collision_bsp_sphere_query and
 //   collision_bsp_sphere_result from this function directly (the plane stack at query+0x1c,
 //   the leaf list at result+0xc0c, projection_axis/projection_sign/projected_center_i/j at
@@ -50,7 +50,8 @@ void collision_bsp_query_sphere_node_recursive(collision_bsp_sphere_query *query
                          plane->vector.k * center->z - plane->w;
             int front_side;
 
-            if (side <= -query->radius) {
+            // 0x501a6c: fcomp -radius / test ah,0x41 -- at or behind -radius, or NaN, goes back
+            if (!(side > -query->radius)) {
                 front_side = 0;
             } else {
                 front_side = 1;
@@ -80,7 +81,7 @@ void collision_bsp_query_sphere_node_recursive(collision_bsp_sphere_query *query
         collision_bsp_sphere_result *result = (collision_bsp_sphere_result *)query->result;
         real_point3d *center = (real_point3d *)query->center;
         int32_t reference_index = (int32_t)leaf->first_bsp2d_reference;
-        int32_t reference_count = leaf->bsp2d_reference_count;
+        int32_t reference_count = (int16_t)leaf->bsp2d_reference_count; // movsx at 0x501acb
 
         if (result->leaf_count < 0x100) {
             result->leaves[result->leaf_count] = (int32_t)(node_index & 0x7fffffffu);
@@ -110,10 +111,11 @@ void collision_bsp_query_sphere_node_recursive(collision_bsp_sphere_query *query
                             projected[1] = ref_side * ref_plane->vector.j + center->y;
                             projected[2] = ref_side * ref_plane->vector.k + center->z;
 
-                            if (((float)fabs((double)ref_plane->vector.k) < (float)fabs((double)ref_plane->vector.j)) ||
-                                ((float)fabs((double)ref_plane->vector.k) < (float)fabs((double)ref_plane->vector.i))) {
+                            // 0x501bc0..0x501bf1: each test is `test ah,1` (C0), so unordered counts as "less"
+                            if (!((float)fabs((double)ref_plane->vector.k) >= (float)fabs((double)ref_plane->vector.j)) ||
+                                !((float)fabs((double)ref_plane->vector.k) >= (float)fabs((double)ref_plane->vector.i))) {
                                 dominant_axis =
-                                    ((float)fabs((double)ref_plane->vector.j) < (float)fabs((double)ref_plane->vector.i)) ? 0 : 1;
+                                    !((float)fabs((double)ref_plane->vector.j) >= (float)fabs((double)ref_plane->vector.i)) ? 0 : 1;
                             } else {
                                 dominant_axis = 2;
                             }

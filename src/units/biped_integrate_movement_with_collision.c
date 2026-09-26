@@ -69,7 +69,7 @@ extern void vector3d_cross_product(); // 0x4052c0
 extern void vector3d_rotate_about_axis(); // 0x4cd820  // real signature (vector3d_rotate_about_axis.c): void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); Ghidra recovered 0 of 4 args at this call site
 
 extern real weapon_get_zoom_fov(int32_t index);   // 0x46fe10, difficulty-scaled globals lookup
-extern int8_t actor_check_vehicle_mode_timeout(void);          // 0x428270, UNSURE: actor-side predicate, no traced args
+extern uint8_t actor_check_vehicle_mode_timeout(datum_index actor_index); // 0x428270, blam-cc: ECX -> actor_index (object+0x1f4 at both call sites)
 extern int8_t ray_intersects_sphere_test(float radius);               // 0x4ce6c0, UNSURE: register args  // real signature (ray_intersects_sphere_test.c): uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *origin, real_vector3d *direction, real radius); Ghidra recovered 1 of 4 args at this call site
 extern void matrix4x3_transform_plane(void);                          // 0x4cbf10, UNSURE: register args  // real signature (matrix4x3_transform_plane.c): void matrix4x3_transform_plane(real_plane3d *out, real_matrix4x3 *m, real_plane3d *plane); Ghidra recovered 0 of 3 args at this call site
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30, src/objects
@@ -85,7 +85,7 @@ extern void biped_update_target_lock_timer(void);                     // 0x55e0a
 extern void unit_apply_fall_damage(uint32_t object_index, float fall_speed); // 0x55e4f0
 extern void biped_update_animation_frame_trigger(float impact_speed); // 0x55eaa0, UNSURE args  // real signature (biped_update_animation_frame_trigger.c): void biped_update_animation_frame_trigger(float threshold, uint8_t *timing_table, object *object_base); Ghidra recovered 1 of 3 args at this call site
 extern void unit_track_target_lock_timeout(uint32_t object_index);    // 0x55ec90, UNSURE: register arg
-extern void FUN_0055efd0(biped_movement_solver_data *solve);          // 0x55efd0, physics module (skipped)
+extern void biped_movement_solve(biped_movement_solver_data *solve);   // 0x55efd0
 extern void unit_update_up_vector(Biped *biped_tag, object *obj);     // 0x560800
 extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
 // real signature (unit_process_melee_special_interaction.c):
@@ -378,7 +378,7 @@ void biped_integrate_movement_with_collision(uint32_t object_index, int8_t *stat
 
     // A grounded AI actor that has only just landed gets a much tighter step allowance.
     if ((biped->flags & 1) != 0 && biped->unknown_501 < 0x16 &&
-        unit->actor_index != k_datum_index_none && actor_check_vehicle_mode_timeout() != 0) {
+        unit->actor_index != k_datum_index_none && actor_check_vehicle_mode_timeout(unit->actor_index) != 0) {
         solve.unknown_5c = 0.1f;
         solve.unknown_60 = 0.5f;
     }
@@ -420,7 +420,7 @@ step_crouch:
         uint32_t biped_state = biped->flags;
         uint16_t dead = obj->vitality_flags & _object_health_frozen_bit;
 
-        if ((biped_state & 1) != 0) solve.flags |= _biped_movement_solver_grounded;
+        if ((biped_state & 1) != 0) solve.flags |= _biped_movement_solver_airborne;
         if ((biped_state & 2) != 0) solve.flags |= _biped_movement_solver_jumping;
         if ((biped_state & 4) != 0) solve.flags |= _biped_movement_solver_unknown_20;
         if ((biped_state & 8) != 0) solve.flags |= _biped_movement_solver_unknown_40;
@@ -437,7 +437,7 @@ step_crouch:
         }
     }
 
-    FUN_0055efd0(&solve);
+    biped_movement_solve(&solve);
 
     // The last supporting surface is remembered for 60 ticks after leaving the ground.
     if (solve.result_surface_index == k_datum_index_none) {
@@ -488,7 +488,7 @@ step_crouch:
         state[1] = 1;
     }
 
-    biped->flags = ((solve.result_flags & _biped_movement_result_grounded) == 0)
+    biped->flags = ((solve.result_flags & _biped_movement_result_airborne) == 0)
                        ? (biped->flags & 0xfffffffe)
                        : (biped->flags | 1);
     biped->flags = ((solve.result_flags & _biped_movement_result_jumping) == 0)

@@ -794,3 +794,11 @@ Remaining step-1 code gap:
   crouch stand-up probe (sphere query + up ray -> result bit 4). True size 5169 (Ghidra 5157: the take block at
   0x5603ef lies past it). Whole draft compiles. Next: move into src/units, switch both integrators from FUN_0055efd0,
   rename flags bit 0 to airborne, regcheck, build.
+- [firing 8, user present] Solver moved into src/units/biped_movement_solve.c; both integrators call it; solver flag
+  bit 0 renamed airborne. Unblocked the chain: real_matrix4x3_rotation_from_forward and
+  physics_model_slide_along_contacts difftest 0 differ (400 / 57 samples) and came off harness/incomplete_rewrites.txt
+  (NOTE: gen_hooks reads harness/incomplete_rewrites.txt, not build/incomplete_rewrites.txt);
+  collision_bsp_query_sphere_node_recursive checked against 0x501a10..0x501c87 (NaN branches, signed ref count) and
+  unlisted; integrators pass unit->actor_index (ECX) to actor_check_vehicle_mode_timeout. 16 newly hookable, incl.
+  biped_movement_solve and the whole sweep/slide/sphere-query chain (build/step1_session_new.txt). Integrators still
+  blocked: they declare biped_update_animation_frame_trigger differently. hooks.txt == stable.
