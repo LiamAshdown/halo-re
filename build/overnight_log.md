@@ -814,3 +814,9 @@ Remaining step-1 code gap:
   arguments: stack impact speed, ECX = the Biped tag (EDI, reloaded from the tag slot stored at 0x55bf06 / 0x55d064),
   ESI = the object. Next integrator blockers: biped_integrate_movement declares unit_get_crouch_height_offset
   differently; _with_collision declares biped_update_target_lock_timer differently.
+- [firing 10] Item 3 cont.: (a) both integrators passed unit_get_crouch_height_offset no position -- the binary
+  passes EAX = &solve.start_position (it is what fills it); the C left start_position UNINITIALISED (real bug on the
+  C path, sweep origin garbage). Fixed. (b) biped_update_target_lock_timer (0x55e0a0) rewritten: EAX target, ECX
+  biped, callees with their register args; the caller passes solve+0x98. Next integrator blockers: vector3d_cross_product
+  declared differently (biped_integrate_movement), matrix4x3_transform_plane (_with_collision); target-lock via
+  actor_find_or_create_shared_prop (known long-standing ai blocker).

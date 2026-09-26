@@ -79,9 +79,9 @@ extern int8_t object_collision_context_test_segment(real_plane3d *out_plane, int
                             real_vector3d *delta, void *out_record);  // 0x504f60, UNSURE signature
 extern int8_t collision_test_movement_segment(int32_t mask, real_point3d *origin, real_vector3d *delta,
                             uint32_t ignore_object_index, void *out_record); // 0x505880, UNSURE signature
-extern void unit_get_crouch_height_offset(uint32_t object_index, float *pill_height,
-                                          float *pill_radius);        // 0x55a2e0
-extern void biped_update_target_lock_timer(void);                     // 0x55e0a0, UNSURE: register args  // real signature (biped_update_target_lock_timer.c): void biped_update_target_lock_timer(datum_index target, uint32_t object_index); Ghidra recovered 0 of 2 args at this call site
+extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height,
+                                          float *pill_radius_out);    // 0x55a2e0, blam-cc: EAX position, ECX object, EBX radius, stack height
+extern void biped_update_target_lock_timer(datum_index target, uint32_t object_index); // 0x55e0a0, blam-cc: EAX target, ECX object
 extern void unit_apply_fall_damage(uint32_t object_index, float fall_speed); // 0x55e4f0
 extern void biped_update_animation_frame_trigger(float threshold, uint8_t *timing_table, object *object_base);
     // 0x55eaa0, blam-cc: ECX -> timing_table (the Biped tag: EDI, reloaded from the tag slot), ESI -> object_base, stack -> threshold
@@ -145,7 +145,9 @@ void biped_integrate_movement_with_collision(uint32_t object_index, int8_t *stat
     solve.height_change = 0.0f;
     solve.maximum_acceleration = 0.0053333333f;   // 0.16 per second
     solve.airborne_acceleration = 0.0f;
-    unit_get_crouch_height_offset(object_index, &solve.pill_height, &solve.pill_radius);
+    // FIXED (0x55bf7e / 0x55d0b9): EAX = &solve.start_position -- this call is what fills it (object position
+    // plus the pill radius); the draft dropped it and left start_position uninitialised
+    unit_get_crouch_height_offset(&solve.start_position, object_index, &solve.pill_height, &solve.pill_radius);
 
     solve.cosine_maximum_slope_angle = tag->cosine_maximum_slope_angle;
     solve.negative_sine_downhill_falloff_angle = tag->negative_sine_downhill_falloff_angle;
@@ -549,7 +551,8 @@ step_crouch:
         }
     }
 
-    biped_update_target_lock_timer();
+    // 0x55dfcd: EAX = solve+0x98 (the contacted object moving fastest relative to us), ECX = the biped
+    biped_update_target_lock_timer(solve.unknown_98, object_index);
     unit_apply_fall_damage(object_index, solve.result_impact_speed);
 
     if ((solve.flags & _biped_movement_solver_flying) == 0 && (biped->flags & 1) == 0) {

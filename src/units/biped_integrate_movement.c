@@ -81,8 +81,8 @@ extern void vector3d_rotate_about_axis(); // 0x4cd820  // real signature (vector
 
 extern real weapon_get_zoom_fov(int32_t index);   // 0x46fe10, difficulty-scaled globals lookup
 extern uint8_t actor_check_vehicle_mode_timeout(datum_index actor_index); // 0x428270, blam-cc: ECX -> actor_index (object+0x1f4 at both call sites)
-extern void unit_get_crouch_height_offset(uint32_t object_index, float *pill_height,
-                                          float *pill_radius);        // 0x55a2e0
+extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height,
+                                          float *pill_radius_out);    // 0x55a2e0, blam-cc: EAX position, ECX object, EBX radius, stack height
 extern void biped_update_animation_frame_trigger(float threshold, uint8_t *timing_table, object *object_base);
     // 0x55eaa0, blam-cc: ECX -> timing_table (the Biped tag: EDI, reloaded from the tag slot), ESI -> object_base, stack -> threshold
 extern void biped_movement_solve(biped_movement_solver_data *solve);   // 0x55efd0
@@ -137,7 +137,9 @@ void biped_integrate_movement(uint32_t object_index, object *obj, int8_t *state)
     solve.height_change = 0.0f;
     solve.maximum_acceleration = 0.0053333333f;   // 0.16 per second
     solve.airborne_acceleration = 0.0f;
-    unit_get_crouch_height_offset(object_index, &solve.pill_height, &solve.pill_radius);
+    // FIXED (0x55bf7e / 0x55d0b9): EAX = &solve.start_position -- this call is what fills it (object position
+    // plus the pill radius); the draft dropped it and left start_position uninitialised
+    unit_get_crouch_height_offset(&solve.start_position, object_index, &solve.pill_height, &solve.pill_radius);
 
     solve.cosine_maximum_slope_angle = tag->cosine_maximum_slope_angle;
     solve.negative_sine_downhill_falloff_angle = tag->negative_sine_downhill_falloff_angle;
