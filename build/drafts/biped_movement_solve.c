@@ -5,7 +5,7 @@
 // Frame: Ghidra local_X lives at esp0 + (0xafb0 - X), esp0 = esp after the four register pushes.
 // Section status:
 //   [x] 1. target velocity (0x55efd0..0x55f6d6)
-//   [ ] 2. capsule sweep + ground-edge snapping (0x55f6d6..0x55fce4)
+//   [x] 2. capsule sweep + ground-edge snapping (0x55f6d6..0x55fce4)
 //   [ ] 3. ground contact choice (0x55fce4..0x560088)
 //   [ ] 4. ground object / result tail (0x560088..0x5603f5)
 //
@@ -24,6 +24,8 @@ extern const real_vector3d *global_forward3d_pointer; // 0x00696718
 extern const real_vector3d *global_up3d_pointer;      // 0x00696720
 extern float world_gravity_scale;                     // 0x0069c52c
 extern double sqrt(double x);
+extern double fabs(double x);
+extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 
 extern void real_matrix4x3_rotation_from_forward(real_vector3d *forward, real_vector3d *left,
     real_vector3d *up); // 0x55eed0, blam-cc: ESI forward, EBX left, EDI up
@@ -33,6 +35,13 @@ extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, c
     // 0x4052c0, blam-cc: EAX out, ECX a, stack b -- computes b x a
 extern void point3d_add_scaled(real_point3d *out, real_vector3d *direction, real_point3d *base, real scale);
     // 0x401930, blam-cc: EAX out, ECX direction, stack base, scale
+
+extern int16_t physics_sweep_capsule_step(real_point3d *origin, real_vector3d *delta, real_vector3d *out_velocity,
+    uint32_t exclude_object_index, uint32_t flags, float pill_height, float pill_radius,
+    real_point3d *out_position, int16_t max_contacts, physics_model_contact *contacts);
+    // 0x506fb0, blam-cc: EDI origin, ESI delta, EBX out_velocity, ECX exclude, stack the rest
+extern void structure_bsp_plane_fetch_signed(real_plane3d *out, void *planes_owner, int32_t signed_index);
+    // 0x44dad0, blam-cc: EAX out, EDX signed_index, stack planes_owner
 
 #define K_GROUND_NORMAL_OFFSET 0.0078125f   // 0x672ed0, 1/128
 #define K_FLAT_GROUND_K        0.0001f      // 0x672bbc
@@ -52,6 +61,10 @@ void biped_movement_solve(biped_movement_solver_data *solve)
     real_vector3d e;                                   // [esp+0x60] local_af50
     float speed;                                       // [esp+0x58] local_af58
     float one_minus_frozen;
+    int16_t contact_count;                             // [esp+0x58] (reuses speed's slot)
+    real_point3d swept_position;                       // [esp+0x74] local_af3c
+    real_vector3d swept_velocity;                      // [esp+0x94] local_af1c
+    physics_model_contact contacts[16];                // [esp+0xbc] local_aef4
 
     *result_flags = 0;
 
@@ -213,5 +226,146 @@ void biped_movement_solve(biped_movement_solver_data *solve)
         }
     }
 
-    // ---- section 2 (0x55f6d6..): TODO
+    // ---- section 2: capsule sweep and ground-edge snapping (0x55f6d6..0x55fce4)
+    {
+        uint32_t model_flags;
+        real_vector3d delta;
+
+        if ((flags & 0x40) != 0) {
+            model_flags = 0;
+        } else if ((flags & 0x80) != 0) {
+            model_flags = 0xc0a0;
+        } else if ((flags & 0x100) != 0) {
+            model_flags = 0xc2a0;       // 0x20c3a0 + 0xffdfff00
+        } else {
+            model_flags = 0x20c3a0;
+        }
+        a = *(real_vector3d *)&solve->start_position;
+        delta = solve->result_velocity;
+        delta.k = delta.k + solve->height_change;
+        e = delta;                                         // [esp+0x60] local_af50
+        contact_count = physics_sweep_capsule_step((real_point3d *)&a, &e, &swept_velocity, solve->object_index,
+            model_flags, solve->pill_height, solve->pill_radius, &swept_position, 16, contacts);
+        if (contact_count < 16) {
+            solve->result_flags &= 0xf7;
+        } else {
+            solve->result_flags |= 0x08;
+        }
+    }
+    solve->unknown_a8 = 0xffffffff;
+    if (contact_count == 0 && solve->ground_surface_index != 0xffffffff) {
+        ModelCollisionGeometryBSP *bsp = global_structure_collision_bsp;
+        int32_t surface_index = (int32_t)solve->ground_surface_index;
+        int32_t best_surface = -1;                          // [esp+0x6c] local_af44
+        float best_distance_squared = 3.4028235e+38f;       // [esp+0x80] local_af30
+        float best_dot = 0.0f;                              // [esp+0x4c] local_af64
+        real_plane3d best_plane;                            // [esp+0xa8] local_af08
+
+        if (surface_index >= 0 && surface_index < (int32_t)bsp->surfaces.count) {
+            ModelCollisionGeometryBSPSurface *surfaces = (ModelCollisionGeometryBSPSurface *)bsp->surfaces.pointer;
+            ModelCollisionGeometryBSPEdge *edges = (ModelCollisionGeometryBSPEdge *)bsp->edges.pointer;
+            uint32_t start_edge = surfaces[surface_index].first_edge;
+            uint32_t edge_index = start_edge;
+            real_plane3d plane;                             // [esp+0x84] local_af2c
+            float along;
+
+            structure_bsp_plane_fetch_signed(&plane, bsp, (int32_t)surfaces[surface_index].plane);
+            // a = the swept position dropped onto our ground plane
+            along = -((plane.normal.i * swept_position.x + plane.normal.k * swept_position.z +
+                       plane.normal.j * swept_position.y) - plane.d);
+            a.i = plane.normal.i * along + swept_position.x;
+            a.j = plane.normal.j * along + swept_position.y;
+            a.k = plane.normal.k * along + swept_position.z;
+
+            do {
+                ModelCollisionGeometryBSPEdge *edge = &edges[edge_index];
+                uint8_t ours_on_right = solve->ground_surface_index == edge->right_surface;
+                uint32_t other = ours_on_right ? edge->left_surface : edge->right_surface;
+
+                if (other != 0xffffffff &&
+                    ((flags & 0x200) != 0 || (surfaces[other].flags & 4) != 0)) {
+                    float dot;
+
+                    structure_bsp_plane_fetch_signed(&plane, bsp, (int32_t)surfaces[other].plane);
+                    dot = plane.normal.i * swept_velocity.i + plane.normal.j * swept_velocity.j +
+                          plane.normal.k * swept_velocity.k;
+                    if (dot > 0.0f &&
+                        solve->pill_radius * -0.5f <
+                            (plane.normal.i * swept_position.x + plane.normal.k * swept_position.z +
+                             plane.normal.j * swept_position.y) - plane.d) {
+                        ModelCollisionGeometryBSPVertex *vertices = (ModelCollisionGeometryBSPVertex *)bsp->vertices.pointer;
+                        real_point3d *v0 = (real_point3d *)&vertices[edge->start_vertex].point;
+                        real_point3d *v1 = (real_point3d *)&vertices[edge->end_vertex].point;
+                        float t;
+                        float dx, dy, dz, distance_squared;
+
+                        c.i = v1->x - v0->x;
+                        c.j = v1->y - v0->y;
+                        c.k = v1->z - v0->z;
+                        t = ((a.i - v0->x) * c.i + (a.k - v0->z) * c.k + (a.j - v0->y) * c.j) /
+                            (c.i * c.i + c.k * c.k + c.j * c.j);
+                        if (t < 0.0f) {
+                            b = *(real_vector3d *)v0;
+                        } else if (t > 1.0f) {
+                            b = *(real_vector3d *)v1;
+                        } else {
+                            point3d_add_scaled((real_point3d *)&b, &c, v0, t);
+                        }
+                        dx = b.i - a.i;
+                        dy = b.j - a.j;
+                        dz = b.k - a.k;
+                        distance_squared = dx * dx + dy * dy + dz * dz;
+                        if (distance_squared < best_distance_squared) {
+                            best_distance_squared = distance_squared;
+                            best_plane = plane;
+                            best_surface = (int32_t)other;
+                            best_dot = dot;
+                        }
+                    }
+                }
+                edge_index = ours_on_right ? edge->reverse_edge : edge->forward_edge;
+            } while (edge_index != start_edge);
+        }
+
+        // 0x55fad3: step over onto the neighbouring surface when it is close and shallow
+        if (best_surface != -1) {
+            float reach = solve->pill_radius + solve->pill_radius;
+            if (!(best_distance_squared > reach * reach) && !(best_dot > 0.053333335f)) {
+                float height = (swept_position.x * best_plane.normal.i + best_plane.normal.k * swept_position.z +
+                                best_plane.normal.j * swept_position.y) - (best_plane.d + solve->pill_radius);
+                if (!(solve->pill_radius * 0.5f < (float)fabs((double)height))) {
+                    physics_model_contact *contact = &contacts[0];
+                    float into = swept_velocity.i * best_plane.normal.i + best_plane.normal.j * swept_velocity.j +
+                                 best_plane.normal.k * swept_velocity.k;
+
+                    swept_position.x = best_plane.normal.i * -height + swept_position.x;
+                    swept_position.y = best_plane.normal.j * -height + swept_position.y;
+                    swept_position.z = best_plane.normal.k * -height + swept_position.z;
+                    if (into > -0.033333335f) {
+                        float push = -(into + 0.033333335f);
+                        swept_velocity.i = best_plane.normal.i * push + swept_velocity.i;
+                        swept_velocity.j = best_plane.normal.j * push + swept_velocity.j;
+                        swept_velocity.k = best_plane.normal.k * push + swept_velocity.k;
+                    }
+                    contact->t = 0.0f;
+                    contact->point_x = best_plane.normal.i * -solve->pill_radius + swept_position.x;
+                    contact->point_y = best_plane.normal.j * -solve->pill_radius + swept_position.y;
+                    contact->point_z = best_plane.normal.k * -solve->pill_radius + swept_position.z;
+                    contact->plane_i = best_plane.normal.i;
+                    contact->plane_j = best_plane.normal.j;
+                    contact->plane_k = best_plane.normal.k;
+                    contact->plane_d = best_plane.d;
+                    contact->object_index = 0xffffffff;
+                    contact->surface_index = best_surface;
+                    contact->surface_flags = 0;
+                    contact->breakable_surface_index = 0;
+                    contact->material_type = -1;
+                    contact_count = 1;
+                    solve->unknown_a8 = (uint32_t)best_surface;
+                }
+            }
+        }
+    }
+
+    // ---- section 3 (0x55fce7..): TODO
 }

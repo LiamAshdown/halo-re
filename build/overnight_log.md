@@ -777,3 +777,8 @@ Remaining step-1 code gap:
   semantics, acceleration clamp, 1/128 ground-normal push). Compiles clean. Note: flags bit 0 is "airborne", not
   "grounded" as types/units.h says (result bit 0 too) -- fix the enum names when the solver lands.
   Next: section 2 (sweep + ground-edge snapping, 0x55f6d6..0x55fce4).
+- [firing 5] Item 3, section 2/4 (0x55f6d6..0x55fce4): capsule sweep (model flags 0 / 0xc0a0 / 0xc2a0 / 0x20c3a0, delta
+  = result velocity + height_change, 16 contacts, result bit 3 when full) and ground-edge snapping (walk the edges of
+  the ground surface, pick the nearest walkable neighbour the velocity heads into, step over onto it when within 2r,
+  dot <= 0.0533 and |height| <= r/2, push velocity by 1/30, synthesize contact[0]) written and checked; compiles.
+  Next: section 3 (ground contact choice, 0x55fce7..0x560088).
