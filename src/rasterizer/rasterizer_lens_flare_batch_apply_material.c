@@ -19,8 +19,9 @@
 
 extern lens_flare_batch_key lens_flare_applied_key; // 0x007bf040
 
-extern uint8_t rasterizer_validate_and_rebind_texture(int16_t bitmap_tag_index, int16_t bitmap_index); // 0x5187e0
-extern uint8_t rasterizer_resolve_and_cache_submap_c(int16_t bitmap_tag_index, int16_t stage, int16_t bitmap_index); // 0x518a60
+extern uint8_t rasterizer_validate_and_rebind_texture(uint32_t bitmap_tag_id, int16_t stage, int16_t frame); // 0x5187e0, EAX tag
+extern uint8_t rasterizer_resolve_and_cache_submap_c(uint32_t bitmap_tag_id, int16_t bitmap_type, int16_t stage,
+    int16_t default_index, int16_t frame); // 0x518a60, EAX tag, DI bitmap_type
 extern void rasterizer_set_shader_stage_config(int16_t mode); // 0x519200
 
 // Finds (or LRU-evicts and reassigns) a batching slot matching the current material key for the
@@ -35,9 +36,13 @@ uint8_t rasterizer_lens_flare_batch_apply_material(lens_flare_batch_key *key)
         lens_flare_applied_key.bitmap_index != key->bitmap_index) {
         uint8_t failed;
         if (key->second_bitmap_tag_index == -1) {
-            failed = rasterizer_validate_and_rebind_texture((int16_t)key->bitmap_tag_index, (int16_t)key->bitmap_index);
+            // 0x536bb7: EAX = -1 (or eax,-1), push (uint16)key[+0], (uint16)key[+8]
+            failed = rasterizer_validate_and_rebind_texture(0xffffffffu, (int16_t)(uint16_t)key->bitmap_tag_index,
+                (int16_t)(uint16_t)key->bitmap_index);
         } else {
-            failed = rasterizer_resolve_and_cache_submap_c((int16_t)key->bitmap_tag_index, 1, (int16_t)key->bitmap_index);
+            // 0x536b92..0x536bac: EAX = key[+4], DI = 0, push (uint16)key[+0], 1, (uint16)key[+8]
+            failed = rasterizer_resolve_and_cache_submap_c((uint32_t)key->second_bitmap_tag_index, 0,
+                (int16_t)(uint16_t)key->bitmap_tag_index, 1, (int16_t)(uint16_t)key->bitmap_index);
         }
         ok = (failed == 0);
         lens_flare_applied_key.bitmap_tag_index = key->bitmap_tag_index;
