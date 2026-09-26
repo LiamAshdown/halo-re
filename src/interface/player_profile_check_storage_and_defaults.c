@@ -10,9 +10,8 @@
 // interface_tick.c since this function's storage-availability result is a plausible producer of
 // that same status code.
 // register convention: none (void); always returns 0.
-// UNSURE: this decompile shows saved_game_find_by_name called with THREE arguments (name, 0, a
-// local hard-set to 1), while player_profile_subsystem_initialize.c's already-written call to the
-// same address uses only two -- a real cross-file arity disagreement, not resolved here.
+// FIXED (objdump 0x49c6ee): saved_game_find_by_name takes TWO arguments (name, 0); Ghidra's third was the
+//   enumeration count slot (preset 1) still on the stack.
 // TYPES-GAP: need_default_profiles_pending_0069e8d0 is not documented by any header read this
 // session.
 
@@ -33,7 +32,7 @@ extern void playlist_profile_create_default_profiles_on_disk(void); // 0x53bc70
 extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
     uint16_t *capacity_and_count); // 0x53c4e0, stack (type, out, builtin_only), EBX &count
 extern uint8_t saved_game_last_profile_read(char *name_buffer); // 0x53d2b0
-extern int32_t saved_game_find_by_name(char *name, int32_t unknown, int32_t unknown2); // 0x53d4a0, UNSURE arity
+extern int32_t saved_game_find_by_name(char *name, int16_t type); // 0x53d4a0, stack (name, type)
 
 // Checks storage availability, creates the on-disk default profiles the first time this is
 // needed, refreshes both saved-game enumeration lists, and resolves the cached profile slot from
@@ -44,8 +43,6 @@ int32_t player_profile_check_storage_and_defaults(void)
 
     loading_thread_result = (uint8_t)saved_game_check_storage_availability();
     if (loading_thread_result == 0) {
-        int32_t find_flag = 1;
-
         if (need_default_profiles_pending_0069e8d0 == 1) {
             playlist_profile_create_default_profiles_on_disk();
             need_default_profiles_pending_0069e8d0 = 0;
@@ -57,7 +54,7 @@ int32_t player_profile_check_storage_and_defaults(void)
         }
         if (last_profile_name[0] == '\0') {
             if (saved_game_last_profile_read(last_profile_name) != 0) {
-                cached_profile_slot = saved_game_find_by_name(last_profile_name, 0, find_flag);
+                cached_profile_slot = saved_game_find_by_name(last_profile_name, 0); // 0x49c6ee: push 0, push name; add esp,8
             }
         }
     }
