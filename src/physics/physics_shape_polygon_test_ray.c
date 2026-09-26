@@ -3,7 +3,7 @@
 // style, local_2c/local_28 min/max) then walks the polygon's 2D edge loop (in_ECX+0x28, stride
 // 8) refining the interval per edge -- the ray counterpart of FUN_00504120.")
 // address 0x5048d0, size 731 bytes
-// name confidence: 0.5   rewrite confidence: 0.4
+// name confidence: 0.5   rewrite confidence: 0.9 (step 1: checked against objdump -d 0x5048d0..0x504baa; x87 compare semantics now exact for NaN)
 // evidence: physics_model_shape.plane_i/j/k/d (0x0c..0x18), .thickness (0x1c),
 //   .projection_axis/sign (0x20/0x22), .vertex_count (0x24) and .vertices[8][2] (0x28) match
 //   in_ECX+0xc.. exactly, the same fields physics_shape_polygon_test_point (0x504120, this
@@ -54,29 +54,31 @@ uint8_t physics_shape_polygon_test_ray(real_point3d *origin, physics_model_shape
     int32_t i;
 
     if (dot_delta_normal == 0.0f) {
-        if (!(dist >= 0.0f && dist < shape->thickness)) {
+        // 0x5049dc..0x5049f9: out only when dist < 0 or dist >= thickness (a NaN stays in)
+        if (dist < 0.0f || dist >= shape->thickness) {
             return 0;
         }
     } else {
         float t_a = -(dist * (1.0f / dot_delta_normal));
         float t_b = -((dist - shape->thickness) * (1.0f / dot_delta_normal));
 
-        if (dot_delta_normal <= 0.0f) {
-            if (0.0f < t_b) {
-                t_min = t_b;
-            }
-            if (t_a < 1.0f) {
-                t_max = t_a;
-            }
-        } else {
+        // 0x504958: only a strictly positive dot takes the entering-from-front branch
+        if (dot_delta_normal > 0.0f) {
             if (0.0f < t_a) {
                 t_min = t_a;
             }
             if (t_b < 1.0f) {
                 t_max = t_b;
             }
+        } else {
+            if (0.0f < t_b) {
+                t_min = t_b;
+            }
+            if (t_a < 1.0f) {
+                t_max = t_a;
+            }
         }
-        if (!(t_min < t_max || t_min == t_max)) {
+        if (t_min > t_max) {
             return 0;
         }
     }
@@ -113,16 +115,17 @@ uint8_t physics_shape_polygon_test_ray(real_point3d *origin, physics_model_shape
         } else {
             float t = numer / denom;
 
-            if (denom >= 0.0f) {
-                if (t < t_max) {
-                    t_max = t;
-                }
-            } else {
+            // 0x504b0f: only a strictly negative denominator raises t_min
+            if (denom < 0.0f) {
                 if (t > t_min) {
                     t_min = t;
                 }
+            } else {
+                if (t < t_max) {
+                    t_max = t;
+                }
             }
-            if (!(t_min < t_max || t_min == t_max)) {
+            if (t_min > t_max) {
                 return 0;
             }
         }
