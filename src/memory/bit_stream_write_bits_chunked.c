@@ -23,34 +23,34 @@
 
 extern uint8_t bit_stream_write_bits(uint32_t bit_count, uint32_t value, bit_stream *stream);
 
-// blam-cc: total bit count as the recognized parameter, value in EDX, stream in ESI (both
+// (superseded, see FIXED below) total bit count as the recognized parameter, value in EDX, stream in ESI (both
 // pass-through, unread by this function)
 // Writes total_bit_count bits to stream, split into 32-bit chunks via bit_stream_write_bits.
 // Returns the number of bits actually written: total_bit_count on full success, or fewer if the
 // stream ran out of room partway through.
-int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value, bit_stream *stream)
+// FIXED (objdump 0x4cf8f0..0x4cf941): EAX is the stream (forwarded to bit_stream_write_bits in ESI), ECX points at an
+// ARRAY of 32-bit values -- one per 32-bit chunk, advanced by 4 each time -- and the total bit count is the one stack
+// argument. The draft wrote the same value into every chunk and took the stream on the stack.
+// blam-cc: EAX -> stream, ECX -> values, stack -> total_bit_count
+int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count)
 {
-    int32_t remaining;
-    uint8_t ok;
+    int32_t remaining = total_bit_count;
 
-    remaining = total_bit_count;
     if (0 < total_bit_count) {
         while (0x1f < remaining) {
-            ok = (uint8_t)bit_stream_write_bits(0x20, value, stream);
-            if (ok == 0) {
-                goto fail;
+            if (bit_stream_write_bits(0x20, *values, stream) == 0) {
+                return total_bit_count - remaining;
             }
             remaining = remaining - 0x20;
+            values = values + 1;
             if (remaining < 1) {
                 return total_bit_count - remaining;
             }
         }
-        ok = (uint8_t)bit_stream_write_bits((uint32_t)remaining, value, stream);
-        if (ok != 0) {
+        if (bit_stream_write_bits((uint32_t)remaining, *values, stream) != 0) {
             remaining = 0;
         }
     }
-fail:
     return total_bit_count - remaining;
 }
 
