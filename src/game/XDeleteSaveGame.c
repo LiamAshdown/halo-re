@@ -10,8 +10,8 @@
 //   `acStack_351[0]` the original left before its own string, which nothing ever reads).
 // register convention: a validity token in EAX (in_EAX) and the save-game root path in ECX
 //   (in_ECX); no stack parameters.
-//   // blam-cc: EAX -> validity_token, ECX -> root_path
-// UNSURE: `validity_token`'s real identity (checked non-zero, never used again, same as in
+//   // blam-cc: EAX -> save_game_name, ECX -> root_path
+// (the first argument is the save name -- see FIXED below; the old "validity_token" reading was wrong)
 //   XCreateSaveGame.c); string_convert_unicode_to_ascii's exact argument list (guessed by analogy).
 
 #include "tags.h"
@@ -21,7 +21,7 @@
 
 // win32_find_dataa is types/game.h's (the Win32 WIN32_FIND_DATAA layout, 0x140 bytes).
 
-extern void string_convert_unicode_to_ascii(char *out_name, uint32_t max_length); // 0x557950, see XCreateSaveGame.c
+extern uint8_t *string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity); // 0x557950, ESI dest, EDI source, stack capacity
 extern int _sprintf(char *dest, const char *format, ...); // MSVC CRT
 extern void *FindFirstFileA(const char *pattern, win32_find_dataa *out_data); // Win32
 extern uint32_t FindNextFileA(void *find_handle, win32_find_dataa *out_data); // Win32
@@ -29,12 +29,14 @@ extern uint32_t FindClose(void *find_handle); // Win32
 extern uint32_t DeleteFileA(const char *path); // Win32
 extern uint32_t RemoveDirectoryA(const char *path); // Win32
 
-// blam-cc: EAX -> validity_token, ECX -> root_path
+// blam-cc: EAX -> save_game_name, ECX -> root_path
 // Deletes every file directly under "<root_path>\<name>\" (skipping dotfiles and an entry
 // literally named "checkpoints"), then every file under its "checkpoints\" subdirectory,
 // removes that subdirectory, and finally removes "<root_path>\<name>" itself (trailing slash
 // trimmed). Returns 0 on success (the final RemoveDirectoryA returned 1), 1 otherwise.
-uint32_t XDeleteSaveGame(uint32_t validity_token, const char *root_path)
+// FIXED (objdump 0x5519a7..0x5519cd): the first argument (EAX, kept in EDI) is the save's wide-character name -- it is
+// the source of the name conversion below -- not a validity token.
+uint32_t XDeleteSaveGame(const uint16_t *save_game_name, const char *root_path)
 {
     char name[128];
     char root_with_slash[266];
@@ -46,11 +48,11 @@ uint32_t XDeleteSaveGame(uint32_t validity_token, const char *root_path)
     uint32_t removed_checkpoints_dir;
     int32_t result;
 
-    if (root_path == 0 || validity_token == 0) {
+    if (root_path == 0 || save_game_name == 0) {
         return 0x57;
     }
 
-    string_convert_unicode_to_ascii(name, 0x80);
+    string_convert_unicode_to_ascii((uint8_t *)name, (uint16_t *)save_game_name, 0x80); // 0x5519c4: ESI = name, EDI = the argument
     _sprintf(root_with_slash, "%s\\%s\\", root_path, name);
 
     _sprintf(pattern, "%s*.*", root_with_slash);
