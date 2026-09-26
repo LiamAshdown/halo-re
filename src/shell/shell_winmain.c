@@ -154,7 +154,7 @@ extern char *shell_parse_config_txt(uint32_t adapter_index, d3d9_interface *d3d)
 extern void shell_detect_hardware_specs(void);                     // 0x57d880
 extern int32_t shell_check_previous_run_crash(void);               // 0x57e850, full EAX result
 extern void shell_registry_set_exit_flag_clean(void);              // 0x57ea10
-extern int32_t shell_display_fatal_error_dialog(uint32_t resource_id, const char *help_text, int32_t is_fatal); // 0x57ea70
+extern int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_text_or_id, int32_t is_fatal); // 0x57ea70
 extern void shell_init_localization_strings(void);                 // 0x57efa0
 extern char *shell_build_product_id_string(void);                  // 0x57f3f0
 
@@ -291,21 +291,21 @@ int32_t __stdcall shell_winmain(void *hInstance, void *hPrevInstance, char *lpCm
         d3d9_module = LoadLibraryA("d3d9.dll");
         direct3d_create9 = GetProcAddress(d3d9_module, "Direct3DCreate9");
         if (d3d9_module == 0 || direct3d_create9 == 0) {
-            shell_display_fatal_error_dialog(0x6b, (const char *)0x7a, 1);
+            shell_display_fatal_error_dialog(0x6b, (uint32_t)((const char *)0x7a), 1);
         }
         direct3d9 = (d3d9_interface *)((direct3d_create9_fn)direct3d_create9)(0x1f /* D3D_SDK_VERSION */);
         if (direct3d9 != 0) {
             config_error = shell_parse_config_txt(0, direct3d9);
             if (config_error != 0) {
-                shell_display_fatal_error_dialog(0xffffffff, config_error, 0);
+                shell_display_fatal_error_dialog(0xffffffff, (uint32_t)(config_error), 0);
             }
             shell_direct3d = direct3d9;
         } else {
-            shell_display_fatal_error_dialog(0x81, (const char *)0x82, 1);
+            shell_display_fatal_error_dialog(0x81, (uint32_t)((const char *)0x82), 1);
         }
 
         if (GetAsyncKeyState(0x11 /* VK_CONTROL */) < 0) {
-            shell_display_fatal_error_dialog(0x87, (const char *)0x7e, 0);
+            shell_display_fatal_error_dialog(0x87, (uint32_t)((const char *)0x7e), 0);
         }
         disable_d3dspy = (void (*)(void))GetProcAddress(d3d9_module, "DisableD3DSpy");
         if (disable_d3dspy != 0) {
@@ -320,22 +320,22 @@ int32_t __stdcall shell_winmain(void *hInstance, void *hPrevInstance, char *lpCm
             dsound_module = LoadLibraryA("dsound.dll");
             direct_sound_create8 = GetProcAddress(dsound_module, "DirectSoundCreate8");
             if (dsound_module == 0 || direct_sound_create8 == 0) {
-                shell_display_fatal_error_dialog(0x7b, (const char *)0x7a, 1);
+                shell_display_fatal_error_dialog(0x7b, (uint32_t)((const char *)0x7a), 1);
             }
         }
         dinput8_module = LoadLibraryA("dinput8.dll");
         direct_input8_create = GetProcAddress(dinput8_module, "DirectInput8Create");
         if (dinput8_module == 0 || direct_input8_create == 0) {
-            shell_display_fatal_error_dialog(0x7c, (const char *)0x7a, 1);
+            shell_display_fatal_error_dialog(0x7c, (uint32_t)((const char *)0x7a), 1);
         }
         shfolder_module = LoadLibraryA("shfolder.dll");
         sh_get_folder_path = GetProcAddress(shfolder_module, "SHGetFolderPathA");
         if (shfolder_module == 0 || sh_get_folder_path == 0) {
-            shell_display_fatal_error_dialog(0x7d, (const char *)0x7e, 1);
+            shell_display_fatal_error_dialog(0x7d, (uint32_t)((const char *)0x7e), 1);
         }
 
         if (shell_check_previous_run_crash() != 0) {
-            shell_display_fatal_error_dialog(0x6a, (const char *)0x73, 0);
+            shell_display_fatal_error_dialog(0x6a, (uint32_t)((const char *)0x73), 0);
         }
 
         if (integrity_ok == 0) {
@@ -348,14 +348,14 @@ int32_t __stdcall shell_winmain(void *hInstance, void *hPrevInstance, char *lpCm
 
         // minimum requirements
         if (physical_memory < (uint32_t)(required_memory - 0x10)) {
-            shell_display_fatal_error_dialog(0x65, (const char *)0x6e, 0);
+            shell_display_fatal_error_dialog(0x65, (uint32_t)((const char *)0x6e), 0);
         }
         if (cpu_speed < (uint32_t)required_cpu_speed) {
             shell_detect_hardware_specs();
             if (cpu_speed < (uint32_t)required_cpu_speed) {
                 shell_detect_hardware_specs();
                 if (cpu_speed < (uint32_t)required_cpu_speed) {
-                    shell_display_fatal_error_dialog(0x66, (const char *)0x6f, 0);
+                    shell_display_fatal_error_dialog(0x66, (uint32_t)((const char *)0x6f), 0);
                 }
             }
         }
@@ -364,12 +364,12 @@ int32_t __stdcall shell_winmain(void *hInstance, void *hPrevInstance, char *lpCm
         if (free_bytes_available.parts.high_part <= 0 &&
             (free_bytes_available.parts.high_part < 0 ||
              free_bytes_available.parts.low_part < (uint32_t)(required_disk_space << 20))) {
-            shell_display_fatal_error_dialog(0x6d, (const char *)0x76, 0);
+            shell_display_fatal_error_dialog(0x6d, (uint32_t)((const char *)0x76), 0);
         }
 
         shell_product_id = shell_build_product_id_string();
         if (*shell_product_id == 0) {
-            shell_display_fatal_error_dialog(0xa0, (const char *)0x7e, 1);
+            shell_display_fatal_error_dialog(0xa0, (uint32_t)((const char *)0x7e), 1);
         }
 
         keystone_library_load();

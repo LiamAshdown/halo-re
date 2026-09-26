@@ -76,7 +76,7 @@ extern int32_t sscanf(const char *buffer, const char *format, ...);            /
 
 extern int32_t hex_string_to_uint(char *string);                               // 0x57d7f0, string in EDX
 extern void hex_string_to_bytes(uint8_t *dest, const char *source);            // 0x57d830, dest in ECX, source in EDX
-extern int32_t shell_display_fatal_error_dialog(uint32_t resource_id, const char *help_text, int32_t is_fatal); // 0x57ea70
+extern int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_text_or_id, int32_t is_fatal); // 0x57ea70
 extern int32_t __stdcall shell_display_adapter_enumerate_callback(void *guid, char *description,
                                                                   char *driver_name, void *context,
                                                                   void *monitor); // 0x57d370, not a Ghidra function
@@ -240,11 +240,11 @@ void shell_detect_hardware_specs(void)
     ddraw_module = LoadLibraryA("ddraw.dll");
     direct_draw_create_ex = (direct_draw_create_ex_fn)GetProcAddress(ddraw_module, "DirectDrawCreateEx");
     if (direct_draw_create_ex == 0) {
-        shell_display_fatal_error_dialog(0x79, (const char *)0x7a, 1);
+        shell_display_fatal_error_dialog(0x79, (uint32_t)((const char *)0x7a), 1);
     }
     direct_draw_enumerate_ex = (direct_draw_enumerate_ex_fn)GetProcAddress(ddraw_module, "DirectDrawEnumerateExA");
     if (direct_draw_enumerate_ex == 0) {
-        shell_display_fatal_error_dialog(0x79, (const char *)0x7a, 1);
+        shell_display_fatal_error_dialog(0x79, (uint32_t)((const char *)0x7a), 1);
     }
     direct_draw_enumerate_ex((void *)shell_display_adapter_enumerate_callback, 0,
                              1 /* DDENUM_ATTACHEDSECONDARYDEVICES */);
@@ -252,7 +252,7 @@ void shell_detect_hardware_specs(void)
     for (adapter_index = 0; adapter_index < display_adapter_count; adapter_index++) {
         if (direct_draw_create_ex(adapter_index != 0 ? display_adapters[adapter_index].guid : 0, &direct_draw,
                                   iid_direct_draw7, 0) < 0) {
-            shell_display_fatal_error_dialog(0x79, (const char *)0x7a, 1);
+            shell_display_fatal_error_dialog(0x79, (uint32_t)((const char *)0x7a), 1);
         }
         direct_draw->vtable->set_cooperative_level(direct_draw, 0, 8 /* DDSCL_NORMAL */);
 

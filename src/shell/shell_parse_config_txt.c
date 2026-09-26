@@ -39,7 +39,7 @@ extern int32_t sscanf(const char *buffer, const char *format, ...); // 0x626572 
 extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 CRT
 extern hwreq_parser *hwreq_parser_create(void); // 0x57b4c0
 extern void config_reset_system_requirements(void); // 0x57cfe0
-extern int32_t shell_display_fatal_error_dialog(uint32_t resource_id, const char *help_text, int32_t is_fatal); // 0x57ea70
+extern int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_text_or_id, int32_t is_fatal); // 0x57ea70
 
 extern large_integer graphics_driver_version; // 0x00722ba0
 extern uint32_t video_memory;                 // 0x00722bb0
@@ -115,7 +115,7 @@ char *shell_parse_config_txt(uint32_t adapter_index, d3d9_interface *d3d)
                                       &identifier, &caps, physical_memory, video_memory, cpu_speed);
     if (ok == 0) {
         error_message = ((hwreq_get_string_fn)vt->get_error_message)(hardware_requirements);
-        shell_display_fatal_error_dialog(0xffffffff, error_message, 1);
+        shell_display_fatal_error_dialog(0xffffffff, (uint32_t)(error_message), 1);
     }
 
     graphics_vendor_name = ((hwreq_get_string_fn)vt->get_graphics_vendor_name)(hardware_requirements);

@@ -28,6 +28,7 @@
 // reconciled: R15 0x00722bc0 fatal_error_remember_choice added to shell.h as int32_t; extern retyped uint32 -> int32
 
 #include "tags.h"
+#include "dialogs.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
@@ -40,8 +41,8 @@ extern int32_t LoadStringA(void *instance, uint32_t id, char *buffer, int32_t bu
 extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 CRT
 extern char *strcat(char *dst, const char *src);                // CRT, statically linked
 extern void shell_registry_set_exit_flag_clean(void); // 0x57ea10
-extern int32_t dialog_box_show_localized(void *dialog_proc, void *module, uint32_t dialog_id,
-                                          void *parent_window); // 0x57e1f0, blam-cc: dialog_proc in EBX, module
+extern int32_t dialog_box_show_localized(dialog_window_proc_fn dialog_proc, void *module, const char *template_name,
+                                          void *parent_window); // 0x57e1f0, EBX proc, ESI module; the template is MAKEINTRESOURCE(id) // 0x57e1f0, blam-cc: dialog_proc in EBX, module
                                                                  // in ESI, dialog_id/parent on the stack; "dialogs"
                                                                  // module function, not in the function list
 
@@ -104,8 +105,11 @@ extern int32_t __stdcall fatal_error_dialog_proc(void *dialog, uint32_t message,
 // and, when true, skips the "remember my choice" registry short-circuit and always terminates the
 // process afterward (running engine shutdown and ExitProcess). Returns the user's dialog result
 // (0/1/2), or a remembered 0/1 answer read back from the registry without showing anything.
-int32_t shell_display_fatal_error_dialog(uint32_t resource_id, const char *help_text, int32_t is_fatal)
+// FIXED: the second argument is dual-use (0x57eaa1 reads it as the text to copy when resource_id is -1, otherwise it is
+// the help-file string's resource id); every caller passes the id form, so it is declared as an integer here
+int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_text_or_id, int32_t is_fatal)
 {
+    const char *help_text = (const char *)help_text_or_id;
     void *module;
     int32_t loaded;
     win32_wndclassexa wndclass;
@@ -219,7 +223,7 @@ int32_t shell_display_fatal_error_dialog(uint32_t resource_id, const char *help_
     }
 
     ShowCursor(1);
-    result = dialog_box_show_localized((void *)fatal_error_dialog_proc, strings_module, 0x66, window);
+    result = dialog_box_show_localized((dialog_window_proc_fn)fatal_error_dialog_proc, strings_module, (const char *)0x66, window); // 0x57ee1d
     ShowCursor(0);
 
     if (is_fatal != 0 || result == 2) {

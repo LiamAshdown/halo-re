@@ -38,7 +38,7 @@ extern uint8_t command_line_check_flag(const char *flag_name, const char **out_v
 extern int32_t printf(const char *format, ...);                       // 0x62427c _printf
 extern int32_t __snprintf(char *dest, uint32_t count, const char *format, ...); // 0x623a2d
 // strncpy (0x623a90 _strncpy) is declared by <string.h> above.
-extern int32_t shell_display_fatal_error_dialog(uint32_t resource_id, const char *help_text, int32_t is_fatal); // 0x57ea70
+extern int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_text_or_id, int32_t is_fatal); // 0x57ea70
 
 // Determines and stores the player's profile directory path into the profile_directory global:
 // a "-path" command-line override if present, otherwise "<CSIDL_PERSONAL>\My Games\Halo"; if
@@ -64,8 +64,7 @@ void profile_path_initialize(void)
     }
 
     strncpy(profile_directory, ".", k_cseries_path_length);
-    shell_display_fatal_error_dialog(k_profile_path_error_title,
-                                      (const char *)k_profile_path_error_message, 1);
+    shell_display_fatal_error_dialog(k_profile_path_error_title, (uint32_t)((const char *)k_profile_path_error_message), 1);
 }
 
 #if 0

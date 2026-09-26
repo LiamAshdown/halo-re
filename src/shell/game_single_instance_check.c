@@ -17,7 +17,7 @@ extern int32_t shell_instance_index;         // 0x00721f04
 extern void *shell_instance_mutex;           // 0x00721f00
 extern char *shell_instance_mutex_names[9];  // 0x0069eab8
 
-extern int32_t shell_display_fatal_error_dialog(uint32_t resource_id, const char *help_text, int32_t is_fatal); // 0x0057ea70
+extern int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_text_or_id, int32_t is_fatal); // 0x0057ea70
 extern void _exit(int32_t code);
 
 extern int32_t GetVersionExA(os_version_info_a *info);
@@ -103,7 +103,7 @@ find_running_instance:
             _exit(1);
         }
     }
-    shell_display_fatal_error_dialog(0x92, (const char *)0x7e, 1);
+    shell_display_fatal_error_dialog(0x92, (uint32_t)((const char *)0x7e), 1);
 }
 
 #if 0
