@@ -31,14 +31,19 @@
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
+#include "objects.h"
+#include "effects.h"
+#include "sound.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern const real_point3d *global_origin3d_pointer; // 0x00696714
 
-extern void effect_new_with_color(uint32_t effect, uint32_t param_2, void *param_3, int32_t param_4,
-    int32_t param_5, real_point3d *position); // 0x450980, effects module; see file header
-extern void sound_start_at_location(void *bundle, uint32_t param_2); // 0x543d80, sound module, out of range;
-    // see file header and src/items/item_update.c
+extern datum_index effect_new_with_color(datum_index definition_index, datum_index creator_object_index,
+    const real_vector3d *velocity, uint16_t ctx_08, uint32_t ctx_0c, real_point3d *position,
+    uint32_t ctx_14, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source,
+    uint8_t force_create); // 0x450980, 12 stack arguments
+extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale);
+    // 0x543d80, EDX definition_index, EAX placement, stack scale
 
 void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type,
     int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param,
@@ -61,8 +66,11 @@ void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t mate
             spawn_position.z = offset->k * 0.01f + position->z;
 
             if (*(uint32_t *)&entry->effect.tag_id != 0xffffffffu) {
-                effect_new_with_color(*(uint32_t *)&entry->effect.tag_id, 0xffffffff, (void *)0, 1, 0,
-                             &spawn_position);
+                // 0x453520..0x453538: (tag, -1, NULL velocity, 1, 0, &spawn_position, EDI = offset as ctx_14,
+                // EBX = this function's 4th stack argument as the a scale, 0, NULL color, NULL tint, 0)
+                effect_new_with_color(*(uint32_t *)&entry->effect.tag_id, 0xffffffff, (const real_vector3d *)0, 1, 0,
+                    &spawn_position, (uint32_t)offset, *(real *)&sound_param, 0.0f, (const ColorRGB *)0,
+                    (const effect_tint_source *)0, 0);
             }
 
             if (*(uint32_t *)&entry->sound.tag_id != 0xffffffffu) {
@@ -80,7 +88,9 @@ void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t mate
                 sound_args.bundle_word0 = location_bundle[0];
                 sound_args.bundle_word1 = location_bundle[1];
 
-                sound_start_at_location(&sound_args, sound_param);
+                // 0x453540..0x4535a0: EDX = entry's sound tag, EAX = &sound_args (a sound_placement), push the scale
+                sound_start_at_location(*(datum_index *)&entry->sound.tag_id, (sound_placement *)&sound_args,
+                    *(float *)&sound_param);
             }
         }
     }

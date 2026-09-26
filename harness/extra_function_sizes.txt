@@ -14,3 +14,6 @@
 0x441060 0x4d
 0x4410b0 0x14b
 0x441200 0xf3
+# effect_marker_node_table_resolver: the marker resolver effect_new_with_color / _with_node_table hand to
+# effect_rebuild_markers by address (push 0x451850 at 0x450a71); ends at 0x451922
+0x451850 0xd3

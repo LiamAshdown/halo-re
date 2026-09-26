@@ -52,9 +52,14 @@ extern void effect_update(datum_index effect_handle, real delta_time); // 0x451a
 
 // Creates a free-standing effect (not attached to any object) at `position`, probing its BSP
 // location and defaulting its velocity to the global origin vector when `velocity` is NULL.
+// FIXED (objdump 0x450980..0x450a99): TWELVE stack arguments (every caller cleans 0x30). Arg 6 is the position:
+//   it goes to bsp3d_node_find_leaf in EDX (0x4509e4 -> 0x450a18) and is also stored as marker-context +0x10;
+//   args 8..11 are effect_set_placement's a/b scale (stack) and color (ECX) / tint_source (EDX) (0x4509b2..0x4509d6);
+//   arg 12 is effect_new's force_create (0x450980).
 datum_index effect_new_with_color(datum_index definition_index, datum_index creator_object_index,
-    const real_vector3d *velocity, uint16_t ctx_08, uint32_t ctx_0c, uint32_t ctx_10,
-    uint32_t ctx_14, real_point3d *position, real a_scale, real b_scale, uint8_t force_create)
+    const real_vector3d *velocity, uint16_t ctx_08, uint32_t ctx_0c, real_point3d *position,
+    uint32_t ctx_14, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source,
+    uint8_t force_create)
 {
     datum_index handle = effect_new(definition_index, creator_object_index, force_create);
 
@@ -64,12 +69,12 @@ datum_index effect_new_with_color(datum_index definition_index, datum_index crea
         int32_t leaf;
         int i;
 
-        effect_set_placement(self, 0, 0, a_scale, b_scale);
+        effect_set_placement(self, color, tint_source, a_scale, b_scale);
         self->object_index = k_datum_index_none;
 
         context.unknown_08 = ctx_08;
         context.unknown_0c = ctx_0c;
-        context.unknown_10 = ctx_10;
+        context.unknown_10 = (uint32_t)position;
         context.unknown_14 = ctx_14;
         context.node_index = 0xffff; // this wrapper has no object, so no node table
         context.node_table_entry = 0;
