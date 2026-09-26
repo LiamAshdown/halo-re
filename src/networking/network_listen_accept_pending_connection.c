@@ -33,7 +33,7 @@ extern network_pending_connection network_pending_connections[k_network_pending_
 // it now lives in types/networking.h (folded from this file during the review pass).
 
 extern void network_channel_gap_441f30(void); // raw code address, see UNSURE
-extern void FUN_0044ad80(void); // out of this session's range
+extern void function_do_nothing(void); // 0x44ad80
 
 extern int32_t thunk_FUN_0061ce80(int32_t reply_socket, network_listen_accept_config *config); // foreign, GameSpy library
 extern network_receive_queue *network_receive_queue_new(void); // 0x441bf0, this module
@@ -62,7 +62,7 @@ network_receive_queue *network_listen_accept_pending_connection(void)
         config.result = 0;
         config.receive_callback = (void *)network_channel_receive_callback;
         config.error_callback = (void *)network_channel_gap_441f30;
-        config.connect_callback = (void *)FUN_0044ad80;
+        config.connect_callback = (void *)function_do_nothing;
         accepted = thunk_FUN_0061ce80(entry->reply_socket, &config);
         if (accepted == 1) {
             queue = network_receive_queue_new();

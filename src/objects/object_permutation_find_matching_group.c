@@ -1,6 +1,6 @@
 // object_permutation_find_matching_group  (Ghidra: FUN_004f8d80; renamed, Blam-style, not
 // previously named)
-// address 0x4f8d80, size 64 bytes
+// address 0x4f8d80, size 71 bytes (Ghidra split the loop tail 0x4f8dc0..0x4f8dc6 off as "object_new_with_role"; included here)
 // name confidence: 0.4 (matches functions.md's summary: "Collects the indices of a region's
 //   permutations that belong to a requested probability group"; cited by out/phase4/
 //   objects_types_notes.md as evidence for ModelRegionPermutation's flags/permutation_number

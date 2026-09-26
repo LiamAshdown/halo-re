@@ -29,6 +29,7 @@ extern void ***rasterizer_device_ptr; // 0x0071d174, foreign render module (read
 
 // TYPES-GAP: matches the callback typedefs declared in structure_leaf_faces_for_each.c.
 
+extern void function_do_nothing(void); // 0x44ad80
 extern void rasterizer_underwater_tint_set_states(void); // 0x51f030, foreign render module; UNSURE, no visible arguments
 extern void structure_leaf_faces_for_each(int32_t render_context,
     structure_lightmap_begin_callback lightmap_begin, structure_material_callback material_cb,
@@ -57,7 +58,7 @@ void structure_picked_polygon_draw(void)
 
     structure_leaf_faces_for_each(picked_surfaces_geometry,
         (structure_lightmap_begin_callback)0x511f20, (structure_material_callback)0x511f30,
-        (structure_lightmap_end_callback)0x44ad80, (structure_transparent_material_callback)0,
+        (structure_lightmap_end_callback)function_do_nothing, (structure_transparent_material_callback)0,
         visible_surface_indices, (int16_t)visible_surface_count);
 
     if (rasterizer_device_version < 0xffff0101) {

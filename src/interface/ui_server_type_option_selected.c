@@ -1,6 +1,6 @@
 // ui_server_type_option_selected  (Ghidra: FUN_004a47c0, renamed)
 // renamed from FUN_004a47c0 in the naming pass
-// address 0x4a47c0, real extent 0x4a47c0..0x4a484c plus the jump table at 0x4a4850
+// address 0x4a47c0, size 141 bytes; real extent 0x4a47c0..0x4a484c plus the jump table at 0x4a4850
 // name confidence: 0.3   rewrite confidence: 0.7
 // evidence: rewritten in the phase-4 review from objdump -d 0x4a47c0..0x4a4870. The widget
 // position among its siblings (0 based) minus one indexes a six entry jump table; the targets

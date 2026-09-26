@@ -1,0 +1,107 @@
+// unit_add_initial_weapons  (Ghidra: FUN_0056cf10; named in unit_new.c)
+// address 0x56cf10, size 361 bytes (Ghidra reports 352; the epilogue runs to the ret at 0x56d078)
+// name confidence: 0.55   rewrite confidence: 0.85
+// evidence: objdump -d 0x56cf10..0x56d078. For every entry of the unit tag's weapons block
+//   (Unit +0x2d8, 0x24-byte UnitWeapon, tag id at +0x0c) with a tag: build placement data
+//   owned by the unit (object_placement_data_initialize 0x4f53a0), create the weapon
+//   (object_new_with_datum_role_control 0x4f54b0; role 0, or 3 on a network client whose
+//   object type sends delta updates -- the same pick cheat_spawn_objects_near_camera makes),
+//   then with a game engine running delete it again if the unit already carries that weapon
+//   type (unit_has_weapon_of_type 0x56d610, EBX = the weapon's definition tag), and otherwise
+//   have the unit pick it up (unit_pickup_weapon 0x56d400, mode 0). If the pickup fails the
+//   weapon is deleted: role 0 goes through object_delete_unparented (0x4f5aa0) first, both
+//   0 and 3 then through object_delete_recursive (0x4f59d0, siblings 0); other roles stay.
+// register convention: unit index in ESI.
+//   // blam-cc: ESI -> unit_index
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "cache.h"
+#include "objects.h"
+#include "units.h"
+
+extern data_array *object_data;     // 0x008603b0
+extern tag_instance *tag_instances; // 0x0087bc14
+extern game_engine_definition *current_game_engine; // 0x006f1d20
+extern int16_t network_game_mode;   // 0x00719720
+extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc
+
+extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag,
+                                             datum_index role); // 0x4f53a0, blam-cc: EAX -> placement
+extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role); // 0x4f54b0
+extern uint8_t unit_has_weapon_of_type(uint32_t unit_index, int32_t weapon_group_tag); // 0x56d610, blam-cc: EAX, EBX
+extern void object_delete(uint32_t object_index); // 0x4f5bd0, blam-cc: EAX -> object_index
+extern uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t unit_index);
+    // 0x56d400, blam-cc: EAX -> weapon_index, ECX -> unit_index, stack -> pickup_mode
+extern void object_delete_unparented(uint32_t object_index); // 0x4f5aa0, blam-cc: EDI -> object_index
+extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings); // 0x4f59d0
+
+static object *object_from_index(uint32_t object_index)
+{
+    return ((object_header *)object_data->data)[object_index & 0xffff].data;
+}
+
+// blam-cc: ESI -> unit_index
+// Creates the unit tag's starting weapons and hands each one to the unit.
+void unit_add_initial_weapons(uint32_t unit_index)
+{
+    Unit *tag = (Unit *)tag_instances[object_from_index(unit_index)->definition_tag & 0xffff].data;
+    int32_t i;
+
+    for (i = 0; (int32_t)(int16_t)i < (int32_t)tag->weapons.count; i++) {
+        uint32_t weapon_tag = *(uint32_t *)&((UnitWeapon *)tag->weapons.pointer)[i].weapon.tag_id;
+        object_placement_data placement;
+        uint32_t role;
+        datum_index weapon_index;
+        int32_t network_role;
+
+        if (weapon_tag == 0xffffffff) {
+            continue;
+        }
+        object_placement_data_initialize(&placement, weapon_tag, unit_index);
+        // 0x56cf8e..0x56cfbc: EAX = 3, cleared to 0 only on the client-with-delta-updates path
+        role = 3;
+        if (network_game_mode == 2 &&
+            object_type_definitions[((Object *)tag_instances[placement.definition_tag & 0xffff].data)->object_type]
+                ->network_delta_message_type != -1) {
+            role = 0;
+        }
+        weapon_index = object_new_with_datum_role_control(&placement, role);
+        if (weapon_index == 0xffffffff) {
+            continue;
+        }
+        if (current_game_engine != 0 &&
+            unit_has_weapon_of_type(unit_index, (int32_t)object_from_index(weapon_index)->definition_tag)) {
+            object_delete(weapon_index);
+            continue;
+        }
+        if (unit_pickup_weapon(0, weapon_index, unit_index)) {
+            continue;
+        }
+        network_role = object_from_index(weapon_index)->network_role;
+        if (network_role == 0) {
+            object_delete_unparented(weapon_index);
+        } else if (network_role != 3) {
+            continue;
+        }
+        object_delete_recursive(weapon_index, 0);
+    }
+}
+
+#if 0
+Disassembly summary (0x56cf10..0x56d070); Ghidra's decompile lost the register arguments of
+every callee (EAX placement, EBX weapon tag, EAX/ECX pickup, EDI delete_unparented), so the
+rewrite follows the listing:
+  56cf43 ecx = tag->weapons.count; loop while (short)i < count
+  56cf6c eax = weapons[i].weapon.tag_id; == -1 -> next
+  56cf7e object_placement_data_initialize(EAX=&placement, tag, unit)
+  56cf86 role = 3; if network_game_mode == 2 && type->network_delta_message_type != -1: role = 0
+  56cfc4 edi = object_new_with_datum_role_control(&placement, role); == -1 -> next
+  56cfd7 if current_game_engine: if unit_has_weapon_of_type(EAX=unit, EBX=weapon->definition_tag)
+         { object_delete(EAX=weapon); next }
+  56d013 if unit_pickup_weapon(EAX=weapon, ECX=unit, push 0): next
+  56d035 r = weapon->network_role: 0 -> object_delete_unparented(EDI=weapon) then
+         object_delete_recursive(weapon, 0); 3 -> object_delete_recursive(weapon, 0); else next
+#endif

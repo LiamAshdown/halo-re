@@ -41,8 +41,8 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern uint8_t FUN_00565d60(void *animation_state); // 0x565d60, this module, outside this pass;
-extern uint8_t FUN_00565d00(void *animation_state); // 0x565d00, this module, outside this pass;
+extern uint8_t unit_animation_state_allows_parent_ik(uint8_t *animation_block); // 0x565d60, blam-cc: ECX -> animation_block;
+extern uint8_t unit_animation_state_allows_weapon_ik(uint8_t *animation_block); // 0x565d00, blam-cc: ECX -> animation_block;
 extern void object_solve_two_bone_ik_to_marker(uint32_t object_index, char *marker_a_name,
     uint32_t param_2, char *param_3, uint8_t *node_base); // 0x4f6d60,
 
@@ -70,7 +70,7 @@ void unit_update_ik_detail_nodes(uint32_t object_index, void *node_base)
         uint8_t *weapon_block = *(uint8_t **)(unit_record + 0x5c);
         uint8_t *weapon_record = weapon_block + (int32_t)unit->animation_weapon_index * 0xbc;
 
-        if (obj->parent_object != (datum_index)-1 && FUN_00565d60(&unit->animation_state_flags) != 0) {
+        if (obj->parent_object != (datum_index)-1 && unit_animation_state_allows_parent_ik((uint8_t *)&unit->animation_state_flags) != 0) {
             int32_t count = *(int32_t *)(unit_record + 0x4c);
             uint8_t *table = *(uint8_t **)(unit_record + 0x50);
             int32_t i;
@@ -81,7 +81,7 @@ void unit_update_ik_detail_nodes(uint32_t object_index, void *node_base)
             }
         }
 
-        if (unit->current_weapon_index != -1 && FUN_00565d00(&unit->animation_state_flags) != 0) {
+        if (unit->current_weapon_index != -1 && unit_animation_state_allows_weapon_ik((uint8_t *)&unit->animation_state_flags) != 0) {
             int32_t count = *(int32_t *)(weapon_record + 0xa4);
             uint8_t *table = *(uint8_t **)(weapon_record + 0xa8);
             int32_t i;

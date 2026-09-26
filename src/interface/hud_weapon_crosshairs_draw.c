@@ -1,6 +1,6 @@
 // hud_weapon_crosshairs_draw  (Ghidra: FUN_004b2cf0; the first rewrite called it
 // hud_weapon_crosshair_elements_build; renamed in the phase-4 review)
-// address 0x4b2cf0, real extent 0x4b2cf0..0x4b3420 (1841 bytes). Ghidra stopped at the
+// address 0x4b2cf0, size 1841 bytes; real extent 0x4b2cf0..0x4b3420 (1841 bytes). Ghidra stopped at the
 // crosshair type switch; the listed function 0x4b2f8a ("FUN_004b2f8a", decompile failure) is
 // the switch head inside this function (the target of the jmp at 0x4b2f80), not a function.
 // Jump tables: byte map 0x4b3434 (19 types) -> 4 cases at 0x4b3424.
@@ -27,7 +27,7 @@
 // overlay (the binary never computes it for 14); a type above 18 draws with the previous
 // color; without a sprite sequence the overlay sequence index is used as the bitmap index.
 // register convention: EAX hud interface tag id, ECX player record; one stack argument.
-//   // blam-cc: hud_tag -> EAX, player -> ECX
+//   // blam-cc: EAX -> hud_tag, ECX -> p, stack -> ammo
 // reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
 
 #include <string.h>
@@ -59,7 +59,7 @@ extern void hud_draw_bitmap_element(const float *uv, const hud_element_placement
                                     void *meter_parameters, BitmapData *bitmap, uint16_t *anchor,
                                     float scale, float rotation, uint32_t color, uint8_t split_screen); // 0x4acad0, blam-cc: EAX uv, EDX placement, BL pixel_uvs
 
-// blam-cc: hud_tag -> EAX, player -> ECX
+// blam-cc: EAX -> hud_tag, ECX -> p, stack -> ammo
 void hud_weapon_crosshairs_draw(datum_index hud_tag, const player *p, const weapon_hud_ammo_state *ammo)
 {
     int32_t *crosshair_state;

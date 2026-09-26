@@ -1,6 +1,6 @@
 // hud_timer_draw  (Ghidra: chimera__fix_counters_timer_begin, renamed in the phase-4 review;
 // the Chimera signature fix_counters_timer_begin_sig matches at the entry)
-// address 0x4add10, real extent 0x4add10..0x4adf9f (656 bytes; Ghidra stopped at the anchor
+// address 0x4add10, size 656 bytes; real extent 0x4add10..0x4adf9f (656 bytes; Ghidra stopped at the anchor
 // jump table at 0x4ade03 and reported 56). The five entry table at 0x4adfa0 maps anchor 0 and
 // 2 to 0x4ade22, 1 and 3 to 0x4ade0a, 4 to 0x4ade1a.
 // name confidence: 0.7 (chosen)   rewrite confidence: 0.8

@@ -89,7 +89,7 @@ extern int32_t network_random_offset(int32_t base); // 0x4403b0, this module
 extern void FUN_00616f50(void *handle, char *hostname, uint32_t port, int32_t request_id); // foreign, GameSpy library
 extern void network_join_hostname_resolved_callback(int32_t resolve_failed, uint32_t unused,
     uint8_t *hostent); // 0x4ba270, this module
-extern void FUN_0044ad80(void); // foreign callback, address only
+extern void function_do_nothing(void); // 0x44ad80
 extern int32_t FUN_00614f30(int32_t hostname, int32_t request_id, int32_t one,
     void (*progress_callback)(void), void (*complete_callback)(int32_t, uint32_t, uint8_t *),
     int32_t zero); // foreign, GameSpy library async hostname resolve
@@ -188,7 +188,7 @@ uint32_t network_join_request_resolve_host(void)
         uint32_t result;
 
         FUN_00616f50(master_server_query_engine, hostname, resolve_port, request_id);
-        result = FUN_00614f30((int32_t)resolve_handle, request_id, 1, FUN_0044ad80,
+        result = FUN_00614f30((int32_t)resolve_handle, request_id, 1, function_do_nothing,
             network_join_hostname_resolved_callback, 0);
         server_browser_join_target = 0;
         if (result == 0) {

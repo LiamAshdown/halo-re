@@ -1,5 +1,5 @@
 // hud_draw_number  (Ghidra: FUN_004ac0b0, renamed; earlier hud_draw_ammo_digit)
-// address 0x4ac0b0, real extent 0x4ac0b0..0x4ac6ce (1566 bytes; Ghidra stopped at the jump
+// address 0x4ac0b0, size 1566 bytes; real extent 0x4ac0b0..0x4ac6ce (1566 bytes; Ghidra stopped at the jump
 // table and reported 402)
 // name confidence: 0.55 (chosen)   rewrite confidence: 0.6
 // evidence: rewritten in the phase-4 review from objdump -d 0x4ac0b0..0x4ac6ce and the jump

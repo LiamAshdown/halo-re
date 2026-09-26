@@ -39,7 +39,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition,
     bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind,
     real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt); // 0x50b530, foreign (physics)
-extern void FUN_0050b9e0(PointPhysics *out, PointPhysics *from, PointPhysics *to, real fraction); // 0x50b9e0,
+extern void point_physics_interpolate(PointPhysics *out, const PointPhysics *from, const PointPhysics *to, float fraction); // 0x50b9e0, blam-cc: EAX, ECX, EDX, stack;
     // physics, outside this pass: out = from*(1-fraction) + to*fraction field by field (0x50b9e0..0x50ba76);
     // blam-cc: EAX -> out (left intact, the caller keeps using it), ECX -> from, EDX -> to, stack -> fraction
 
@@ -78,7 +78,7 @@ void particle_update_physics_default(particle_system *system, int16_t type_index
 
             radius = ((1.0f - fraction) * next_state->radius_multiplier + fraction * state->radius_multiplier) *
                      type_state->radius * particle_type->radius;
-            FUN_0050b9e0(&blended,
+            point_physics_interpolate(&blended,
                 (PointPhysics *)tag_instances[*(uint32_t *)((uint8_t *)state + 0x90) & 0xffff].data,
                 (PointPhysics *)tag_instances[*(uint32_t *)((uint8_t *)next_state + 0x90) & 0xffff].data,
                 fraction);

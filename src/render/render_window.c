@@ -149,7 +149,7 @@ extern void render_window_structure_transparent_0x512080(void *shader_data,
     int32_t surface_count);
 extern void render_window_structure_material_0x5120c0(void *shader_data, int16_t shader_permutation,
     int32_t render_context, int32_t first_surface, int32_t surface_count);
-extern void function_empty_0x44ad80(void);             // 0x44ad80: a bare ret
+extern void function_do_nothing(void);                 // 0x44ad80: a bare ret
 
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
@@ -281,13 +281,13 @@ void render_window(int16_t local_player_index, render_camera *source_camera,
         rasterizer_dynamic_light_technique_ps2_set_states();
         structure_pass(render_window_structure_lightmap_begin_0x511f90,
                        (structure_material_callback)render_window_structure_material_0x511fe0,
-                       (structure_lightmap_end_callback)function_empty_0x44ad80, 0);
+                       (structure_lightmap_end_callback)function_do_nothing, 0);
         renderer_unknown_69c67c = saved_69c67c;
         if (picked_surfaces_valid) {
             rasterizer_shader_environment_technique_multipurpose_set_states();
             structure_pass(render_window_structure_lightmap_begin_0x512010,
                            (structure_material_callback)render_window_structure_material_0x512020,
-                           (structure_lightmap_end_callback)function_empty_0x44ad80, 0);
+                           (structure_lightmap_end_callback)function_do_nothing, 0);
             rasterizer_active_environment_effect = 0;
             if (picked_surfaces_valid) {
                 rasterizer_shader_environment_technique_self_illumination_set_states();
@@ -332,8 +332,8 @@ void render_window(int16_t local_player_index, render_camera *source_camera,
     rasterizer_set_shader_stage_config(0);
 
     if (picked_surfaces_valid) {
-        structure_pass(0, (structure_material_callback)function_empty_0x44ad80, 0, 0);
-        structure_pass(0, (structure_material_callback)function_empty_0x44ad80, 0, 0);
+        structure_pass(0, (structure_material_callback)function_do_nothing, 0, 0);
+        structure_pass(0, (structure_material_callback)function_do_nothing, 0, 0);
     }
     lens_flare_render_all();
     first_person_weapon_update_screen_effects();

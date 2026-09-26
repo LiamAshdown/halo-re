@@ -1,6 +1,6 @@
 // cache_file_open_by_name  (Ghidra: FUN_00443360; named per src/cache/cache_file_request_map.c's
 // forward declaration, which already calls it this)
-// address 0x443360, TRUE size 310 bytes (0x443360-0x443496), not the 228 Ghidra reports for
+// address 0x443360, size 311 bytes (true extent 0x443360..0x443496 ret inclusive), not the 228 Ghidra reports for
 // FUN_00443360 alone -- see the misattribution note below.
 // name confidence: 0.45 (out/phase4/cache_functions.md: "Opens a named shared cache map file
 // into a free/evicted slot if not already loaded, reporting a fatal error via

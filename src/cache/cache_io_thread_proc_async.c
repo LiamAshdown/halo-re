@@ -40,7 +40,7 @@ extern void cache_io_read_file_ex_retry(void *read_file_ex, void *file, void *bu
 // runs completion.procedure instead and leaves the queue bookkeeping alone. Ghidra gives
 // 0x443ae0 no function boundary, so it is not listed in out/phase4/cache_functions.md and has
 // no file of its own; declared here only to take its address.
-extern void cache_io_request_completion_routine(uint32_t error_code, uint32_t bytes_transferred,
+extern void __stdcall cache_io_request_completion_routine(uint32_t error_code, uint32_t bytes_transferred,
     cache_io_request *overlapped); // 0x443ae0
 
 // blam-cc: unused CreateThread parameter

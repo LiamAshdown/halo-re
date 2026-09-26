@@ -1,5 +1,5 @@
 // chimera__do_show_loading_screen  (Ghidra: chimera__do_show_loading_screen, already named)
-// address 0x497410, real extent 0x497410..0x49784e (Ghidra split it at 0x4974f0, see below)
+// address 0x497410, size 1087 bytes; real extent 0x497410..0x49784e (Ghidra split it at 0x4974f0, see below)
 // name confidence: 0.5   rewrite confidence: 0.6
 // evidence: out/phase4/interface_functions.md summary: "Advances the timer-driven state machine
 // for the loading/saving/connecting progress screen each frame."; the three tag paths are the

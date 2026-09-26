@@ -100,10 +100,10 @@ extern void chat_submit_input(void);                            // 0x4aa9b0, for
 extern int32_t render_device_is_ready(void);                   // 0x511d80, foreign (render)
 extern void rasterizer_capture_and_present(const int16_t *tile, void *bitmap); // 0x518180, foreign
                                                                  // (rasterizer); EAX = tile, push = bitmap
-extern void FUN_005410d0(uint8_t inactive);                     // 0x5410d0, this module, outside this pass;
+extern void shell_handle_activate_app(uint8_t inactive);         // 0x5410d0, blam-cc: BL -> inactive;
                                                                  // blam-cc: BL -> inactive (sete bl at 0x541f63)
 extern void sound_pause(void);                                  // 0x548170, foreign (sound)
-extern void FUN_005481a0(void);                                 // 0x5481a0, this module, outside this pass
+extern void sound_resume(void);                                  // 0x5481a0
 
 extern uint8_t shell_window_proc_bypass;    // 0x00721e8d
 extern uint8_t shell_application_inactive;  // 0x00721e8c
@@ -219,7 +219,7 @@ int32_t __stdcall shell_window_procedure(HWND hwnd, uint32_t message, uint32_t w
                     }
                     if (shell_window_proc_bypass == 0) {
                         if (rasterizer_fullscreen != 0 && rasterizer_device != 0) {
-                            FUN_005481a0();
+                            sound_resume();
                             shell_window_minimized = 0;
                             shell_window_maximized = 1;
                             return DefWindowProcA(hwnd, message, wparam, lparam);
@@ -254,7 +254,7 @@ int32_t __stdcall shell_window_procedure(HWND hwnd, uint32_t message, uint32_t w
                     }
                     if (shell_window_proc_bypass == 0) {
                         if (rasterizer_fullscreen != 0 && rasterizer_device != 0) {
-                            FUN_005481a0();
+                            sound_resume();
                             shell_window_minimized = 0;
                             return DefWindowProcA(hwnd, message, wparam, lparam);
                         }
@@ -290,7 +290,7 @@ int32_t __stdcall shell_window_procedure(HWND hwnd, uint32_t message, uint32_t w
                 if (shell_window_proc_bypass == 0) {
                     if (rasterizer_fullscreen != 0 && rasterizer_device != 0) {
                     resume_focus_fast_path: // == LAB_00541f30
-                        FUN_005481a0();
+                        sound_resume();
                         return DefWindowProcA(hwnd, message, wparam, lparam);
                     }
                     if (sound_paused != 0) {
@@ -343,7 +343,7 @@ int32_t __stdcall shell_window_procedure(HWND hwnd, uint32_t message, uint32_t w
 
         case 0x1c: // WM_ACTIVATEAPP
             if (rasterizer_window_requested == 0 && game_time_force_single_tick == 0 && shell_window != 0) {
-                FUN_005410d0(wparam == 0); // BL = the application is being deactivated
+                shell_handle_activate_app(wparam == 0); // BL = the application is being deactivated
                 return DefWindowProcA(hwnd, message, wparam, lparam);
             }
             break;
@@ -431,7 +431,7 @@ int32_t __stdcall shell_window_procedure(HWND hwnd, uint32_t message, uint32_t w
                 return 1;
             }
             if (wparam == 7) { // PBT_APMRESUMESUSPEND
-                FUN_005481a0();
+                sound_resume();
                 return 1;
             }
         }
@@ -603,7 +603,7 @@ LRESULT missed_541b30(HWND param_1,uint param_2,uint param_3,uint param_4)
           return 1;
         }
         if (param_3 == 7) {
-          FUN_005481a0();
+          sound_resume();
           return 1;
         }
       }
@@ -718,7 +718,7 @@ LAB_00541d8d:
         }
         if (DAT_00721e8d == '\0') {
           if ((DAT_0071d16c != '\0') && (DAT_0071d174 != 0)) {
-            FUN_005481a0();
+            sound_resume();
             DAT_00746254 = 0;
             DAT_00746255 = 1;
             LVar1 = missed_542141(unaff_ESI,unaff_EBP,unaff_EBX);
@@ -750,7 +750,7 @@ LAB_00541d8d:
         }
         if (DAT_00721e8d == '\0') {
           if ((DAT_0071d16c != '\0') && (DAT_0071d174 != 0)) {
-            FUN_005481a0();
+            sound_resume();
             DAT_00746254 = 0;
             LVar1 = missed_542141(unaff_ESI,unaff_EBP,unaff_EBX);
             return LVar1;
@@ -784,7 +784,7 @@ LAB_005420bb:
       if (DAT_00721e8d == '\0') {
         if ((DAT_0071d16c != '\0') && (DAT_0071d174 != 0)) {
 LAB_00541f30:
-          FUN_005481a0();
+          sound_resume();
           LVar1 = missed_542141(unaff_ESI,unaff_EBP,unaff_EBX);
           return LVar1;
         }

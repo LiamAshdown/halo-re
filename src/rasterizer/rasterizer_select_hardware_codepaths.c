@@ -30,7 +30,7 @@ extern void rasterizer_shader_environment_select_draw_functions(void); // 0x52b6
 
 extern void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironment *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer); // 0x51f3e0
 extern void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer); // 0x51dc50
-extern void FUN_0044ad80(void);  // 0x44ad80, outside this session's range
+extern void function_do_nothing(void);  // 0x44ad80
 // 0x51fd80, 0x51fad0, 0x51e8f0, 0x51e570 and 0x51e2a0 are functions Ghidra never defined (they are
 //   only referenced by these immediate stores); see src/rasterizer/README.md, known gaps.
 extern uint8_t LAB_0051fd80, LAB_0051fad0, LAB_0051e8f0, LAB_0051e570, DAT_0051e2a0;
@@ -68,7 +68,7 @@ void __cdecl rasterizer_select_hardware_codepaths(void)
             }
         }
     }
-    unknown_007c0494 = (void *)FUN_0044ad80;
+    unknown_007c0494 = (void *)function_do_nothing;
 
 set_vertex_buffer_slot:
     rasterizer_water_draw_procedure = &LAB_005358b0;
