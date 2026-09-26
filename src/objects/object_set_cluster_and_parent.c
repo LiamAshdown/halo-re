@@ -39,6 +39,7 @@ extern uint8_t *global_structure_bsp; // 0x00746f9c, UNSURE: foreign module, +0x
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
 extern void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point); // 0x53e780, ESI out, EDX point
 extern datum_index *noncollideable_cluster_first; // 0x008603c0, the per-cluster list descriptor
+extern datum_index *collideable_cluster_first;    // 0x008603d0
 extern void cluster_reference_add_within_radius(uint32_t light_or_object_handle, datum_index *placement_slot, real_point3d *position,
                           float radius, void *leaf_and_cluster, void *cluster_list);
     // 0x551f00; the first four are stack arguments, the leaf/cluster pair arrives in EAX and the
@@ -91,8 +92,12 @@ void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *lo
 
         header->flags &= (uint8_t)~_object_header_unknown_80_bit;
 
+        // 0x4f5d42..0x4f5d50: EDI = 0x8603d0 (collideable) when object flag 0x2000000 is set, else 0x8603c0 -- the
+        // same choice object_unlink_cluster_or_notify_parent makes. Always using the noncollideable list linked
+        // collideable objects into one list and unlinked them from the other: campaign-entry crash in datum_delete.
         cluster_reference_add_within_radius(object_index, &obj->placement_id, &obj->bounding_center, obj->bounding_radius,
-                     &obj->location_leaf_index, &noncollideable_cluster_first);
+                     &obj->location_leaf_index,
+                     (obj->flags & 0x2000000) != 0 ? (void *)&collideable_cluster_first : (void *)&noncollideable_cluster_first);
 
         if ((header->flags & _object_header_in_pvs_pass_bit) != 0) {
             int16_t cluster = header->cluster_index;
