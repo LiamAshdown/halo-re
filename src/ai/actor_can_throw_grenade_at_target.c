@@ -30,7 +30,7 @@ extern data_array *encounter_data;     // 0x008802c8
 extern tag_instance *tag_instances;    // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c
 
-extern float weapon_get_zoom_fov_resolved(float param_1); // UNSURE: no visible argument at the call site
+extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70, ECX table, AX index: the difficulty scale
 
 extern uint8_t actor_find_grenade_landing_spot(datum_index actor_index, real_point3d *out_point, datum_index *out_target_handle, int32_t *out_relationship); // 0x410c90, this module
 extern uint8_t actor_score_blast_area_clear(datum_index actor_index, float blast_radius, float safety_radius, real_point3d *point, int16_t *out_count); // this module
@@ -62,10 +62,15 @@ uint8_t actor_can_throw_grenade_at_target(datum_index actor_index)
                                         (self->encounter_index & 0xffff) * sizeof(encounter));
         int32_t squad_deadline = enc->unknown_5c;
 
-        random_wait = *(float *)((uint8_t *)variant + 0x1a8);
-        random_wait = weapon_get_zoom_fov_resolved(random_wait);
+        // 0x40da35..0x40da6f: the variant's wait (seconds) times difficulty scale 0x18 for the encounter's team
+        // (encounter+2), doubled when actor+0x1ca is set, then converted to ticks (x30, __ftol)
+        random_wait = *(float *)((uint8_t *)variant + 0x1a8) *
+                      weapon_get_zoom_fov_resolved(0x18, *(int16_t *)((uint8_t *)enc + 2));
+        if (self->unknown_1ca != 0) {
+            random_wait = random_wait + random_wait;
+        }
         if (squad_deadline != -1) {
-            random_wait_ticks = (int16_t)random_wait; // __ftol truncation
+            random_wait_ticks = (int16_t)(int32_t)(random_wait * 30.0f); // __ftol, then movsx ax
             if (now < random_wait_ticks + squad_deadline) {
                 return 0;
             }

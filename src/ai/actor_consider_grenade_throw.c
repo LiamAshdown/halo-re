@@ -25,7 +25,7 @@ extern ai_globals *ai_globals_ptr;  // 0x00880354
 extern game_time_globals *game_time; // 0x006f1d6c
 
 extern real random_real(void);                       // 0x4019f0
-extern float weapon_get_zoom_fov_resolved(float param_1);             // UNSURE: no visible argument at the call site
+extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70, ECX table, AX index: the difficulty scale
 extern uint8_t actor_can_throw_grenade_at_target(datum_index actor_index); // 0x40d9c0, this module
 extern uint8_t actor_check_grenade_facing_and_commit(datum_index actor_index, uint8_t force_commit); // 0x40db00, this module
 
@@ -51,18 +51,19 @@ uint8_t actor_consider_grenade_throw(datum_index actor_index)
     now = game_time->game_time; // +0x0c
 
     if (self->unknown_6a4 != (uint32_t)-1 &&
-        (variant->encounter_grenade_timeout * 30.0f + (float)(int32_t)self->unknown_6a4) > (float)now) {
+        (variant->grenade_check_time * 30.0f + (float)(int32_t)self->unknown_6a4) > (float)now) { // 0x40dccc: +0x1a4
         return 0;
     }
 
     {
-        float check_time = variant->grenade_check_time;
-        float scaled = weapon_get_zoom_fov_resolved(check_time);
+        // 0x40dce5..0x40dd10: the throw probability is grenade_chance (+0x1a0) times difficulty scale 0x17 for
+        // the actor's team (actor+0x3e); a uniform roll below it proceeds
+        float scaled = variant->grenade_chance * weapon_get_zoom_fov_resolved(0x17, *(int16_t *)((uint8_t *)self + 0x3e));
         float roll;
 
         self->unknown_6a4 = now;
         roll = random_real();
-        if (roll < scaled * check_time && actor_can_throw_grenade_at_target(actor_index) != 0) {
+        if (roll < scaled && actor_can_throw_grenade_at_target(actor_index) != 0) {
             self->unknown_6a0 = 1;
             actor_check_grenade_facing_and_commit(actor_index, 1);
             return 1;
