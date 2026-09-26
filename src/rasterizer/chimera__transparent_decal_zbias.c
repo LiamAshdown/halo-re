@@ -23,17 +23,13 @@ typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t stat
 // transparent-geometry-group draw path.
 void chimera__transparent_decal_zbias(void)
 {
-    void **vtable;
-    d3d_set_render_state_fn set_render_state;
-
-    vtable = *(void ***)rasterizer_device;
-    set_render_state = (d3d_set_render_state_fn)vtable[0xe4 / 4];
-
+    // the device is only touched inside each caps test (0x51953c, 0x519562): with neither cap set the original
+    // never dereferences it
     if ((rasterizer_caps.raster_caps & 0x4000000) != 0) {
-        set_render_state(rasterizer_device, 0xc3, unknown_00722b84);
+        ((d3d_set_render_state_fn)(*(void ***)rasterizer_device)[0xe4 / 4])(rasterizer_device, 0xc3, unknown_00722b84);
     }
     if ((rasterizer_caps.raster_caps & 0x2000000) != 0) {
-        set_render_state(rasterizer_device, 0xaf, unknown_00722b8c);
+        ((d3d_set_render_state_fn)(*(void ***)rasterizer_device)[0xe4 / 4])(rasterizer_device, 0xaf, unknown_00722b8c);
     }
 }
 
