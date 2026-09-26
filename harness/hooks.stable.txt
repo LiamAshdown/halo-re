@@ -1918,3 +1918,7 @@ unit_mark_zone_list_alt_flag
 unit_mark_zone_occupants_flag
 unit_reset_velocity_and_ground_flag
 unit_scripting_set_emotion_animation
+cutscene_title_queue
+main_queue_map_change
+struct_definition_byte_swap
+struct_definition_compute_size
