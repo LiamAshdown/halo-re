@@ -21,30 +21,35 @@ extern uint32_t random_seed_global; // 0x00719cd0
 
 extern void * actor_get_actor_definition(datum_index actor_index); // 0x40fa70, this module
 extern void actor_select_stance_offset_pair(datum_index actor_index, uint8_t *base, uint8_t **out_a, uint8_t **out_b); // 0x4106b0, this module
-extern float weapon_get_zoom_fov_resolved(float param_1); // UNSURE: no visible argument at the call site
+extern float weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70: difficulty scale, ECX table, AX team
 
 // FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
 // blam-cc: stack -> actor_index
+// REWRITTEN from objdump 0x4104e0..0x4105b4: a uniform random pause between the first stance entry's bounds
+// (+0x1c, +0x20), times difficulty scale 0xe for the actor's team, times the second entry's +4 when non-zero,
+// times 1.7 when actor+0x1ca is set, converted to ticks (x30, __ftol) into actor+0x5f4.
 void actor_reseed_movement_pause_timer(datum_index actor_index)
 {
-    actor *self;
-    void *definition;
-    uint8_t *offset_a, *offset_b;
-    float stance_value;
-    float randomized;
+    actor *self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    void *definition = actor_get_actor_definition(actor_index);
+    uint8_t *entry_a = 0;           // EDI output: the pause bounds
+    uint8_t *entry_b = 0;           // ESI output: the optional multiplier
+    float lower, upper, fraction, pause;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-
-    definition = actor_get_actor_definition(actor_index);
-    // UNSURE: real argument(s)/return of the original calls are unknown; `definition` is the
-    // most plausible base pointer and only offset_a's resulting float (via a hidden read) is used.
-    actor_select_stance_offset_pair(actor_index, (uint8_t *)definition, &offset_a, &offset_b);
-    stance_value = offset_a != (uint8_t *)0 ? *(float *)offset_a : 0.0f;
-
+    actor_select_stance_offset_pair(actor_index, (uint8_t *)definition, &entry_a, &entry_b);
+    upper = *(float *)(entry_a + 0x20);
+    lower = *(float *)(entry_a + 0x1c);
     random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-    randomized = weapon_get_zoom_fov_resolved(stance_value);
-
-    self->unknown_5f4 = (int16_t)randomized; // __ftol truncation
+    fraction = (float)(int32_t)(random_seed_global >> 0x10) * 1.5259022e-05f;
+    pause = fraction * (upper - lower) + lower;
+    pause = weapon_get_zoom_fov_resolved(0xe, *(int16_t *)((uint8_t *)self + 0x3e)) * pause;
+    if (entry_b != 0 && *(float *)(entry_b + 4) != 0.0f) {
+        pause = pause * *(float *)(entry_b + 4);
+    }
+    if (self->unknown_1ca != 0) {
+        pause = pause * 1.7f;
+    }
+    self->unknown_5f4 = (int16_t)(int32_t)(pause * 30.0f); // __ftol
 }
 
 #if 0

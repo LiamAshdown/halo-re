@@ -36,7 +36,7 @@ extern void object_apply_damage(damage_data *dd, uint32_t target_object_index, i
 extern void object_dispatch_effect_notify(void); // this module, 0x4efff0
 extern void object_regions_reset_permutation_lock(uint32_t object_index, int8_t unlock); // 0x4f03e0
 
-extern real weapon_get_zoom_fov_resolved(void); // UNSURE: zero visible args; objects module (0x46fe70, out of range)
+extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70, ECX table, AX team: difficulty scale
 extern int32_t player_index_from_unit_index(datum_index object_index); // UNSURE: out of range, 0x474db0
 extern void hud_unit_meter_apply_predictive_damage(float delta); // UNSURE: out of range, 0x4b16e0. Ghidra prints one call
     // as hud_unit_meter_apply_predictive_damage(0x3a422e45); that integer literal IS the IEEE-754 encoding of
@@ -90,7 +90,7 @@ void object_update_vitality_and_regeneration(uint32_t object_index)
                         if (obj->shield_vitality < 1.0f) {
                             if (obj->shield_stun_ticks == 0) {
                                 real rate = geometry->shield_recharge_rate;
-                                real scalar = weapon_get_zoom_fov_resolved();
+                                real scalar = weapon_get_zoom_fov_resolved(3, obj->owner_team); // 0x4ed732
 
                                 if ((obj->vitality_flags & _object_shield_depleted_bit) != 0) {
                                     object_dispatch_effect_notify();

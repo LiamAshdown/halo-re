@@ -36,7 +36,7 @@ extern data_array *object_data; // 0x008603b0
 extern game_engine_definition *current_game_engine;      // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 
 extern real weapon_get_zoom_fov(int32_t param_1); // UNSURE: out of range, 0x46fe10
-extern real weapon_get_zoom_fov_resolved(void); // UNSURE: zero visible args; out of range, 0x46fe70
+extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70, ECX table, AX team: difficulty scale
 extern real transition_function_evaluate(transition_function_t type, real phase); // math
     // module, 0x4ccac0. The transition type travels in CX and is not visible at this call
     // site; the one value Ghidra shows pushed is the phase. UNSURE: type passed as 0.
@@ -78,7 +78,7 @@ void object_apply_shield_damage(uint32_t target_index, ModelCollisionGeometry *g
         uint8_t friendly_shield_immune;
 
         if (!(current_game_engine == 0 && effect->damage_category == 1 && target->owner_team == 1)) {
-            max_shield_vitality = weapon_get_zoom_fov_resolved() * max_shield_vitality;
+            max_shield_vitality = weapon_get_zoom_fov_resolved(2, target->owner_team) * max_shield_vitality; // 0x4ef8ae
         }
         inv_max_shield_vitality = (max_shield_vitality <= 0.0f) ? 0.0f : (1.0f / max_shield_vitality);
 

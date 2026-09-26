@@ -67,7 +67,8 @@ extern void ai_communication_broadcast(int32_t event_code, datum_index unit_inde
 // 0x42d340, not yet rewritten (this module). Always seven stack arguments: every call
 // site in the binary cleans up 0x1c bytes, so the shorter forms Ghidra recovers at some
 // sites are artefacts, not a reduced-arity overload.
-extern float weapon_get_zoom_fov_resolved(void);                               // 0x46fe70: difficulty scale
+extern int32_t fistp_round(float x); // harness/x87_shims.c: FISTP in the current (round-to-nearest) mode
+extern float weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70: difficulty scale, ECX table, AX team
 extern uint8_t weapon_trigger_get_aiming_vector(datum_index weapon_index, int16_t trigger_index,
     real_point3d *origin, real_point3d *target, uint8_t use_high_arc, real_vector3d *out_direction,
     real *out_time, real *out_range, uint8_t *out_used_straight_line);
@@ -187,9 +188,9 @@ void actor_update_firing_state(datum_index actor_index)
             object *weapon = ((object_header *)object_data->data)[weapon_object & 0xffff].data;
             void *weapon_tag = tag_instances[weapon->definition_tag & 0xffff].data;
             uint8_t eligible = 0;
-            weapon_get_zoom_fov_resolved();
+            weapon_get_zoom_fov_resolved(0x12, *(int16_t *)((uint8_t *)self + 0x3e)); // 0x40eae3, result discarded
             if (aim_variant->special_fire_mode == 1) {
-                weapon_get_zoom_fov_resolved();
+                weapon_get_zoom_fov_resolved(0x11, *(int16_t *)((uint8_t *)self + 0x3e)); // 0x40ebba, result discarded
                 if (*(int32_t *)((uint8_t *)weapon_tag + 0x4fc) > 0) {
                     eligible = 1;
                 }
@@ -382,7 +383,7 @@ after_switch:
             target = &((prop *)prop_data->data)[self->unknown_610 & 0xffff];
             scale = aim_variant->target_tracking;
             lead = *(float *)((uint8_t *)target + 0x114);
-            if ((weapon_get_zoom_fov_resolved() + scale >= 1.0f || weapon_get_zoom_fov_resolved() + scale > 0.0f) &&
+            if ((weapon_get_zoom_fov_resolved(0xf, *(int16_t *)((uint8_t *)self + 0x3e)) + scale >= 1.0f || weapon_get_zoom_fov_resolved(0xf, *(int16_t *)((uint8_t *)self + 0x3e)) + scale > 0.0f) && // 0x40f104
                 *(uint8_t *)((uint8_t *)self + 0x623) == 0) {
                 to_target.i = *(float *)((uint8_t *)target + 0xc8) - self->wander_unknown_64c.i;
                 to_target.j = *(float *)((uint8_t *)target + 0xcc) - self->wander_unknown_64c.j;
@@ -390,7 +391,7 @@ after_switch:
                 point3d_add_scaled((real_point3d *)aim_point, aim_variant->target_tracking);
             }
             scale = aim_variant->target_leading;
-            if (weapon_get_zoom_fov_resolved() + scale >= 1.0f || weapon_get_zoom_fov_resolved() + scale > 0.0f) {
+            if (weapon_get_zoom_fov_resolved(0x10, *(int16_t *)((uint8_t *)self + 0x3e)) + scale >= 1.0f || weapon_get_zoom_fov_resolved(0x10, *(int16_t *)((uint8_t *)self + 0x3e)) + scale > 0.0f) { // 0x40f18e
                 float flight = weapon_trigger_projectile_time_fraction(*(uint32_t *)((uint8_t *)self + 0x648));
                 float weight = aim_variant->target_leading;
                 aim_point[0] = flight * *(float *)((uint8_t *)target + 0xd4) * weight + aim_point[0];
@@ -502,14 +503,18 @@ after_switch:
                 float *burst = (float *)0;
                 fire_flag = 1;
                 fire_value = 0x3f800000; // 1.0f as a bit pattern, exactly as the original
-                weapon_get_zoom_fov_resolved();
+                // 0x40f548..0x40f59b: rate = difficulty scale 0xa x scale (x burst[2] when positive); 30 / rate
+                float rate = weapon_get_zoom_fov_resolved(0xa, *(int16_t *)((uint8_t *)self + 0x3e)) * scale;
                 actor_select_stance_offset_pair(actor_index, (uint8_t *)aim_variant,
                                                 (uint8_t **)&burst_a, (uint8_t **)&burst);
-                scale = 30.0f;
                 if (burst != (float *)0 && burst[2] > 0.0f) {
-                    scale = 30.0f / burst[2];
+                    rate = rate * burst[2];
                 }
-                self->unknown_5f8 = (scale < 2.0f) ? 2 : (int16_t)(int32_t)(scale + 0.5f);
+                scale = 30.0f / rate;
+                {   // 0x40f5a5: fistp (round to nearest), low 16 bits, then at least 2
+                    int16_t ticks = (int16_t)fistp_round(scale);
+                    self->unknown_5f8 = (ticks < 2) ? 2 : ticks;
+                }
             }
         } else {
             fire_flag = 1;

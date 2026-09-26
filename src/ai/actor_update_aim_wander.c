@@ -54,7 +54,7 @@ extern void ai_communication_broadcast(int32_t event_code, datum_index unit_inde
 // 0x42d340, not yet rewritten (this module). Always seven stack arguments: every call
 // site in the binary cleans up 0x1c bytes, so the shorter forms Ghidra recovers at some
 // sites are artefacts, not a reduced-arity overload.
-extern float weapon_get_zoom_fov_resolved(void);                                              // 0x46fe70: difficulty scale
+extern float weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70: difficulty scale, ECX table, AX team
 extern float weapon_trigger_get_average_damage(void);                                              // 0x4c12b0: weapon damage per shot
 extern real vector3d_normalize_with_length(real_vector3d *v);                // 0x401990
 
@@ -118,7 +118,7 @@ void actor_update_aim_wander(datum_index actor_index)
     self->unknown_601 = moving;
 
     new_target_time = variant->new_target_firing_pattern_time;
-    difficulty = weapon_get_zoom_fov_resolved();
+    difficulty = weapon_get_zoom_fov_resolved(0xd, *(int16_t *)((uint8_t *)self + 0x3e)); // 0x40fd58
     self->unknown_600 = (uint8_t)((float)self->unknown_61c < difficulty * new_target_time * 30.0f);
 
     // UNSURE: bare call; the block pointer it returns is what the rest of the function uses.
@@ -133,7 +133,7 @@ void actor_update_aim_wander(datum_index actor_index)
     self->unknown_5f4 = (int16_t)(int32_t)self->unknown_458;
 
     error = variant->projectile_error;
-    difficulty = weapon_get_zoom_fov_resolved();
+    difficulty = weapon_get_zoom_fov_resolved(0xb, *(int16_t *)((uint8_t *)self + 0x3e)); // 0x40fe95
     error = difficulty * error;
     if (burst != (float *)0 && burst[3] != 0.0f) {
         error = error * burst[3];
@@ -205,11 +205,11 @@ void actor_update_aim_wander(datum_index actor_index)
     pitch = (float)(random_seed_global >> 0x10) * 1.5259022e-05f * (burst[4] + burst[4]) -
             burst[4] + yaw;
 
-    difficulty = weapon_get_zoom_fov_resolved();
+    difficulty = weapon_get_zoom_fov_resolved(0xc, *(int16_t *)((uint8_t *)self + 0x3e)); // 0x410156
     radius = difficulty * burst[0];
 
     random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-    difficulty = weapon_get_zoom_fov_resolved();
+    difficulty = weapon_get_zoom_fov_resolved(0xc, *(int16_t *)((uint8_t *)self + 0x3e)); // 0x4101c9
     length = difficulty * ((float)(random_seed_global >> 0x10) * 1.5259022e-05f *
                                (burst[3] - burst[2]) + burst[2]);
 

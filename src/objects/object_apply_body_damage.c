@@ -43,7 +43,7 @@ extern void effect_new_on_object(); // effects module, 0x4507a0
     // and ECX that the decompiler never models. Declared with an empty parameter list so
     // every site in the module agrees on ONE declaration without fabricating arguments. // UNSURE: effects module, 0x4507a0
 extern real weapon_get_zoom_fov(int32_t param_1); // UNSURE: out of range, 0x46fe10
-extern real weapon_get_zoom_fov_resolved(void); // UNSURE: zero visible args; out of range, 0x46fe70
+extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70, ECX table, AX team: difficulty scale
 extern void object_set_health_frozen_flag(void); // UNSURE: zero visible args; this module (object_set_health_frozen_flag)
 extern void object_delete_teardown(void); // UNSURE: zero visible args; this module (object_delete_teardown)
 extern void damage_effect_new_at_location(datum_index effect_tag, int16_t node_index,
@@ -87,7 +87,7 @@ void object_apply_body_damage(uint32_t target_index, int32_t region_index, int32
 
     max_body_vitality = target->maximum_body_vitality;
     if (!friendly_fire_exempt) {
-        max_body_vitality = weapon_get_zoom_fov_resolved() * max_body_vitality;
+        max_body_vitality = weapon_get_zoom_fov_resolved(1, target->owner_team) * max_body_vitality; // 0x4ef32b, ECX still 1
     }
     inv_max_body_vitality = (max_body_vitality <= 0.0f) ? 0.0f : (1.0f / max_body_vitality);
 
@@ -195,7 +195,7 @@ after_vitality:
         object *self = headers[target_index & 0xffff].data;
         float max_v = self->maximum_body_vitality;
         float cur_v = self->body_vitality;
-        real scalar = weapon_get_zoom_fov_resolved();
+        real scalar = weapon_get_zoom_fov_resolved(1, self->owner_team); // 0x4ef689
         real threshold = scalar * max_v * cur_v;
 
         if (0.0f <= geometry->body_destroyed_threshold || (real)geometry->body_destroyed_threshold <= threshold) {
