@@ -26,7 +26,9 @@ extern void playlist_profile_create_default_profiles_on_disk(void); // foreign, 
 extern void saved_game_enumerate_by_type(int32_t type, int32_t *out_ids, int32_t flag); // foreign, UNSURE shape, 0x53c4e0
 extern uint8_t saved_game_get_variant(int32_t saved_game_id, uint16_t *out_name); // foreign, UNSURE shape
 extern void game_engine_apply_current_custom_variant(void); // foreign, 0x463b90
-extern void chimera__console_out(const char *format, ...); // 0x496b50
+extern void *console_color_00685214; // 0x00685214, a ColorARGB * the original loads into EAX
+extern void *console_color_00686af8; // 0x00686af8, a ColorARGB * the original loads into EAX
+extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 
 // Console command: lists installed game-variant names (an optional lowercased filter substring),
 // two per output line.
@@ -44,7 +46,7 @@ void game_variant_list_matching_substring(uint32_t argument_count, char **argume
             *p = towlower(*p);
         }
     }
-    chimera__console_out("Game types matching substring \"%ls\" :", filter);
+    chimera__console_out((ColorARGB *)console_color_00685214, "Game types matching substring \"%ls\" :", filter);
     if (playlist_default_profiles_missing == 1) {
         playlist_profile_create_default_profiles_on_disk();
         playlist_default_profiles_missing = 0;
@@ -82,7 +84,7 @@ void game_variant_list_matching_substring(uint32_t argument_count, char **argume
             i = i + 1;
         }
         if (line[0] != 0) {
-            chimera__console_out(line);
+            chimera__console_out((ColorARGB *)console_color_00686af8, line);
         }
         if (99 < i) {
             return;

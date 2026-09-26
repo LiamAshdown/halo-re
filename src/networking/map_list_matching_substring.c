@@ -32,7 +32,9 @@ extern int32_t map_list_count; // 0x00712dd0
 extern map_list_entry *map_list; // 0x00712dcc, stride 0xc
 
 extern int32_t FUN_00625430(char *map_name, char *filter); // foreign, UNSURE: case-insensitive substring test
-extern void chimera__console_out(const char *format, ...); // 0x496b50
+extern void *console_color_00685214; // 0x00685214, a ColorARGB * the original loads into EAX
+extern void *console_color_00686af8; // 0x00686af8, a ColorARGB * the original loads into EAX
+extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 
 // Console command: prints every installed map name (lowercased filter substring optional),
 // two per output line.
@@ -50,7 +52,7 @@ void map_list_matching_substring(uint32_t argument_count, char **arguments) // b
             *p = (char)tolower((uint8_t)*p);
         }
     }
-    chimera__console_out("Maps matching substring \"%s\" :", filter);
+    chimera__console_out((ColorARGB *)console_color_00685214, "Maps matching substring \"%s\" :", filter);
     i = 0;
     while (i < map_list_count) {
         char line[256];
@@ -69,7 +71,7 @@ void map_list_matching_substring(uint32_t argument_count, char **arguments) // b
             i = i + 1;
         }
         if (line[0] != 0) {
-            chimera__console_out(line);
+            chimera__console_out((ColorARGB *)console_color_00686af8, line);
         }
     }
 }

@@ -26,7 +26,9 @@ extern uint8_t network_server_notify_or_resend_challenge(int16_t reason, network
     // blam-cc: ECX -> reason, EDI -> machine, stack -> server; foreign (< this batch), 0x4e0af0
 extern uint8_t network_banlist_add_ban(int32_t identity_lookup_key, int32_t duration_override_seconds,
     network_player_entry *target_player); // this batch, 0x4e35c0
-extern void chimera__console_out(const char *format, ...); // 0x496b50
+extern void *console_color_006851fc; // 0x006851fc, a ColorARGB * the original loads into EAX
+extern void *console_color_00685218; // 0x00685218, a ColorARGB * the original loads into EAX
+extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 
 // Console command: bans (and disconnects) the client named or indexed by the first argument, for
 // the duration given by an optional second argument (parsed as d/h/m/s, default minutes) or the
@@ -38,14 +40,14 @@ void sv_ban(uint32_t argument_count, int32_t *arguments) // blam-cc: EAX -> argu
     network_machine *machine;
 
     if (network_game_mode != 2) {
-        chimera__console_out("sv_ban is a server-only function!");
+        chimera__console_out((ColorARGB *)0, "sv_ban is a server-only function!");
         return;
     }
     if (0 < (int32_t)argument_count && (int32_t)argument_count < 3) {
         if (argument_count == 2) {
             duration = parse_time_duration_string((char *)arguments[1], 'm', (uint8_t *)sv_ban_duration_arg_buffer);
             if (duration == -1) {
-                chimera__console_out("Incorrect usage. Type help sv_ban for more information.");
+                chimera__console_out((ColorARGB *)console_color_00685218, "Incorrect usage. Type help sv_ban for more information.");
                 return;
             }
         }
@@ -53,7 +55,7 @@ void sv_ban(uint32_t argument_count, int32_t *arguments) // blam-cc: EAX -> argu
         if (player != 0) {
             machine = network_machine_find_by_id(network_server, player->machine_index);
             if (machine != 0 && machine->channel != 0 && machine->channel->connected != 0) {
-                chimera__console_out("sv_ban:  Can't ban a local client!");
+                chimera__console_out((ColorARGB *)0, "sv_ban:  Can't ban a local client!");
                 return;
             }
             network_banlist_add_ban(machine->unknown_5c, duration, player);
@@ -61,7 +63,7 @@ void sv_ban(uint32_t argument_count, int32_t *arguments) // blam-cc: EAX -> argu
         }
         return;
     }
-    chimera__console_out("Incorrect usage. Type help sv_ban for more information.");
+    chimera__console_out((ColorARGB *)console_color_006851fc, "Incorrect usage. Type help sv_ban for more information.");
 }
 
 #if 0

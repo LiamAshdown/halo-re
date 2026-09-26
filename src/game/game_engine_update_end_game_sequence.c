@@ -32,7 +32,7 @@ extern uint8_t unknown_007124a1;                    // UNSURE identity/owning mo
 extern void game_engine_end_game_sequence_stage3(void); // 0x467180, not in this batch
 extern void game_engine_send_end_game_notification(void); // 0x4671d0, not in this batch
 extern char input_get_key_state(void); // 0x490b50, not in this batch
-extern void chimera__console_out(const char *text); // 0x496b50
+extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 extern void chat_close(void); // 0x4aa900
 extern void network_game_client_game_settings_updated(void *session); // 0x4df2e0
 
@@ -74,7 +74,7 @@ void game_engine_update_end_game_sequence(float delta_time)
 
         if (game_engine_dedicated_idle == 0) {
             if ((*((uint8_t *)network_session + 6) >> 2 & 1) != 0) {
-                chimera__console_out("Game Complete. Dedicated server is now idle.");
+                chimera__console_out((ColorARGB *)0, "Game Complete. Dedicated server is now idle.");
                 unknown_0071c2de = 1;
                 chat_close();
             }
