@@ -17,8 +17,12 @@ extern uint8_t event9_target;        // 0x00871de0, UNSURE
 extern int32_t network_role_0071c2d4; // 0x0071c2d4, UNSURE
 
 extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
-extern int32_t message_delta_encode_message(int32_t a, int32_t event_id, int32_t b, void *payload, int32_t c, int32_t d, uint8_t e); // 0x4ec940, UNSURE signature
-extern void network_session_broadcast_to_flagged(int32_t a, void *b, int32_t c, int32_t d, int32_t e, int32_t f, int32_t g); // 0x4e1a80, UNSURE signature
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
+extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t param_1, void *data,
+    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, EAX bits, ECX server
 
 void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key) // blam-cc: param_1, in_ECX
 {
@@ -30,10 +34,16 @@ void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key) // bla
         }
     }
 
-    struct { uint8_t byte0; int32_t *payload; } packed = { event_byte, &looked_up };
-    int32_t encoded_len = message_delta_encode_message(0, 9, 0, &packed, 0, 1, 0);
+    // 0x56c39c..0x56c3bc: the item record is {looked_up, event_byte}; the items array is one pointer to it
+    struct { int32_t looked_up; uint8_t event_byte; } item;
+    void *items[1];
+    int32_t encoded_len;
+    item.looked_up = looked_up;
+    item.event_byte = event_byte;
+    items[0] = &item;
+    encoded_len = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 9, 0, items, 0, 1, 0);
     if (0 < encoded_len) {
-        network_session_broadcast_to_flagged(1, &event9_target, 1, 0, 0, 3, 0);
+        network_session_broadcast_to_flagged(encoded_len, network_server_pointer, 1, network_message_scratch, 1, 0, 0, 3); // 0x871de0 data
     }
     return;
 }

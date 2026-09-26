@@ -23,8 +23,9 @@ extern uint8_t object_network_message_scratch[0x7ff8]; // 0x00871de0, UNSURE
 extern uint8_t *object_pooled_node_globals; // 0x00687130
 extern int32_t hash_table_get(hash_table *table, uint32_t key); // UNSURE: zero visible args; this module, 0x4f05e0 (skipped
     // as library/non-objects code, but still a valid callee here)
-extern int32_t message_delta_encode_message(uint32_t a1, uint32_t a2, uint32_t a3, void *scratch,
-    uint32_t a5, uint32_t a6, uint8_t a7); // network module, 0x4ec940
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
 extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t param_1, void *data,
@@ -54,7 +55,12 @@ void object_queue_pickup_denied_event(void *param_1, int32_t key, uint32_t *sour
     block.original_param_1 = param_1;
     block.source2 = source[2];
 
-    network_session_broadcast_to_flagged(message_delta_encode_message(0, 0x31, 0, &block.looked_up, 0, 1, 0), network_server_pointer, 1, object_network_message_scratch, 0, 0, 0, 3);
+    {   // 0x4efc37..0x4efc49: the items array is one pointer to the block (the original stores &block in its argument slot)
+        void *items[1];
+        items[0] = &block;
+        network_session_broadcast_to_flagged(message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x31, 0,
+                                             items, 0, 1, 0), network_server_pointer, 1, object_network_message_scratch, 0, 0, 0, 3);
+    }
 }
 
 #if 0

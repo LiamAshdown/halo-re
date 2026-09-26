@@ -22,8 +22,9 @@ extern uint8_t *network_message_table; // 0x00687130, PTR_DAT_00687130, UNSURE s
 extern uint8_t event9_target[];          // 0x00871de0, UNSURE shape
 
 extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
-extern int32_t message_delta_encode_message(uint32_t a, uint32_t size, uint32_t b, void *fields,
-                                             uint32_t c, uint32_t d, uint8_t e);         // 0x4ec940, UNSURE signature
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
 extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t param_1, void *data,
@@ -44,7 +45,7 @@ void unit_broadcast_state_change_event(int32_t index) // blam-cc: param_1 -> ind
     fields.value = &value;
     fields.zero = 0;
 
-    int32_t sent = message_delta_encode_message(0, 0xc, 0, &fields, 0, 1, 0);
+    int32_t sent = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0xc, 0, (void **)&fields, 0, 1, 0);
     if (sent > 0) {
         network_session_broadcast_to_flagged(sent, network_server_pointer, 1, event9_target, 1, 0, 0, 3);
     }
