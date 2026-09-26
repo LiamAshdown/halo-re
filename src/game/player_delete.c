@@ -27,6 +27,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "networking.h"
 
 extern data_array *player_data;              // 0x0087a480
 extern int16_t network_game_mode;            // 0x00719720
@@ -39,8 +40,8 @@ extern void network_queue_destroy(circular_queue *queue); // 0x47a090, this batc
     // blam-cc: ESI -> queue
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, blam-cc: EAX -> array,
     // EDX -> handle
-extern void network_machine_clear_flag_by_id(uint8_t *network_session); // 0x4e0b90, networking module, not in this
-    // batch; blam-cc: EDX -> network_session; UNSURE full behavior
+extern uint32_t network_machine_clear_flag_by_id(network_server_globals *server, int32_t machine_id); // 0x4e0b90,
+    // EDX server, EDI machine_id
 extern void *GlobalFree(void *handle); // Win32
 
 // Notifies the active game engine that this player's object is going away, then -- only while
@@ -80,7 +81,8 @@ void player_delete(uint32_t machine_index, datum_index player_handle)
         }
     } else if (network_game_mode == 2) {
         update_machine_slot = 1;
-        network_machine_clear_flag_by_id(network_session);
+        // 0x473afd: EDX = [0x71c2d4], EDI = machine_index (mov edi,eax at entry, 0x473ae2)
+        network_machine_clear_flag_by_id((network_server_globals *)network_session, (int32_t)machine_index);
     }
 
     if (update_machine_slot && machine_to_player[machine_index & 0xffff] == player_handle) {
