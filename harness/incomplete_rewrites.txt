@@ -242,7 +242,6 @@ string_pair_construct_empty                        # shell: rewrite says 'not re
 tree_node_allocate                                 # shell: rewrite says 'not rewritten'
 sound_channel_queue_source                         # sound: rewrite says 'placeholder'
 sound_directsound_probe_channel_pools              # sound: rewrite says 'not rewritten'
-sound_ogg_error_to_string                          # sound: rewrite says 'not implemented'
 structure_bsp_build_fog_environment                # structures: rewrite says 'simplified'
 structure_bsp_leaf_find_material_surface           # structures: rewrite says 'not rewritten'
 structure_debug_draw_surfaces_simple               # structures: rewrite says 'simplified'
