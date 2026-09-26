@@ -25,13 +25,15 @@ typedef int32_t (__stdcall *d3d_query_get_data_fn)(void *query, void *data, uint
 // pointer" stack slot in place with the 4-byte GetData result and returns that slot's value
 // reinterpreted as a pointer, rather than returning through a separate out-parameter; the same
 // in-place reuse is reproduced here via `slot`.
-int32_t *rasterizer_lens_flare_occlusion_query_get_result(int32_t slot_index)
+// the result is a pixel count (1 when queries are disabled, 2 when the slot has no query), not a pointer; its
+// caller multiplies it by 0xff (0x513821)
+int32_t rasterizer_lens_flare_occlusion_query_get_result(int32_t slot_index)
 {
     union { void *query; int32_t value; } slot;
     int32_t hr;
 
     if (console_debug_toggle_689424 == 0) {
-        return (int32_t *)1;
+        return 1;
     }
 
     slot.query = (slot_index < k_lens_flare_occlusion_queries) ? lens_flare_occlusion_queries[slot_index] : 0;
@@ -42,9 +44,9 @@ int32_t *rasterizer_lens_flare_occlusion_query_get_result(int32_t slot_index)
         while (hr == 1) { // S_FALSE: not ready yet
             hr = get_data(lens_flare_occlusion_queries[slot_index], &slot.value, 4, 1);
         }
-        return (int32_t *)slot.value;
+        return slot.value;
     }
-    return (int32_t *)2;
+    return 2;
 }
 
 #if 0

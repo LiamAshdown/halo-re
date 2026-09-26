@@ -87,3 +87,4 @@ encounter_definition_find_platoon_index_by_name  # difftest: rewrite crashed, or
 autopatch_download_pool_initialize                 # overnight difftest: tester process died -- review
 tree_head_node_allocate                            # overnight difftest: tester process died -- review
 data_packet_group_decode_packet                    # overnight: rewritten from 0x4d09d0 (EAX remaining, 6 stack); difftest 4/118 rewrite-only crashes on random input -- review; its 27 callers also need per-file fixes (EAX = &remaining length)
+object_recalculate_bounding_radius                 # play-test 2026-09-27: rewrite (e891407) T-poses NPCs; cause not found yet
