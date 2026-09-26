@@ -26,25 +26,23 @@ extern int32_t game_engine_resolve_netgame_flag_role(uint32_t handle); // 0x462d
 extern uint32_t game_engine_resolve_multiplayer_placement(uint32_t handle); // 0x462c30, this batch
 
 // blam-cc: EAX -> handle
-void game_engine_remap_placement_by_type(uint32_t handle)
+uint32_t game_engine_remap_placement_by_type(uint32_t handle)
 {
+    // returns EAX on every path: the handle itself when nothing is remapped (EAX is never written before the
+    // early rets at 0x4630f3), otherwise the tail-jumped resolver's result (jmp 0x462df0 / 0x462c30)
     int16_t type;
 
     if (current_game_engine == 0 || handle == 0xffffffff) {
-        return;
+        return handle;
     }
     type = **(int16_t **)&tag_instances[handle & 0xffff].data;
-    if (type == 1) {
-        return;
-    }
     if (type == 2) {
-        game_engine_resolve_netgame_flag_role(handle);
-        return;
+        return (uint32_t)game_engine_resolve_netgame_flag_role(handle);
     }
     if (type == 3) {
-        game_engine_resolve_multiplayer_placement(handle);
-        return;
+        return game_engine_resolve_multiplayer_placement(handle);
     }
+    return handle;
 }
 
 #if 0

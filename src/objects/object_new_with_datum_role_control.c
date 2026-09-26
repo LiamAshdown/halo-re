@@ -64,7 +64,7 @@ extern int16_t network_game_mode; // 0x00719720 (also used in this batch's
 extern uint8_t object_network_message_scratch[0x7ff8]; // 0x00871de0, the 0x7ff8-byte network
     // broadcast scratch buffer; the size is the literal pushed at 0x4f58d9
 
-extern datum_index game_engine_remap_placement_by_type(void); // 0x4630b0, UNSURE: unexamined; resolves a placeholder tag id
+extern uint32_t game_engine_remap_placement_by_type(uint32_t handle); // 0x4630b0, EAX handle; returns it, or the remapped tag
 extern datum_index object_block_data_new(data_array *array, int16_t element_size); // 0x4f7d50
 extern char object_block_data_grow(int16_t field_offset, int32_t byte_count); // 0x4f7e50
 extern void object_type_definitions_notify_0x24(uint32_t object_index); // 0x4f3e30, this batch
@@ -135,7 +135,7 @@ datum_index object_new_with_datum_role_control(object_placement_data *placement,
             return k_datum_index_none;
         }
         if (role != 1 && role != 2) {
-            definition_tag = game_engine_remap_placement_by_type();
+            definition_tag = game_engine_remap_placement_by_type(definition_tag); // 0x4f54ef: EAX = definition_tag
         }
     }
 
