@@ -27,7 +27,7 @@ extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
 extern uint8_t message_delta_item_count_bits[];                 // 0x0065d51f
 
 extern uint8_t message_delta_encode_prepare_item(uint8_t *ctx); // 0x4ecb60, EAX ctx
-extern int32_t message_delta_encode_all_fields(uint8_t *ctx, int32_t changed_offset, int32_t type_offset); // 0x4ecc00, this module
+extern uint8_t message_delta_encode_all_fields(uint8_t *ctx, int32_t static_base, int32_t item, int32_t type_base); // 0x4ecc00, EAX ctx
 extern uint8_t message_delta_encode_message_header(uint8_t *ctx); // 0x4ecd00, ESI ctx
 extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value, bit_stream *stream); // UNSURE: args
 
@@ -79,8 +79,7 @@ int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32
                                        : *(int32_t *)((uint8_t *)item_ptr + (type_offset - (int32_t)items));
 
             message_delta_encode_prepare_item(ctx);
-            message_delta_encode_all_fields(ctx + 0xc, item_changed_offset, item_type_offset);
-            (void)item;
+            message_delta_encode_all_fields(ctx, item_changed_offset, (int32_t)item, item_type_offset); // 0x4eca3b..0x4eca42
 
             if (0 < CTXD(0x50) || force_changed != 0) {
                 int32_t bits = CTXD(0x50) + CTXD(0x54);

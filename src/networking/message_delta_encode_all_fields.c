@@ -23,33 +23,46 @@ extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
 extern uint8_t message_delta_field_changed_flags[0x40];      // 0x006b89c0, shared scratch (16 dwords)
 
 typedef int32_t (*message_delta_field_encode_fn)(void *field_type, int32_t changed, int32_t offset, void *stream_or_ctx);
-extern char message_delta_encode_field(int32_t changed_offset, uint8_t *ctx, int32_t field_index, int32_t type_offset); // 0x4ecde0, this module
+extern uint8_t message_delta_encode_field(int32_t changed_offset, uint8_t *ctx, int32_t field_index, int32_t type_offset); // 0x4ecde0, EAX changed_offset, ESI ctx
 
 // Encodes all of one item's static fields (unconditionally, via each field type's own encode
 // callback) and then every top-level field (via message_delta_encode_field), aggregating whether
 // any field actually changed. Returns that combined changed flag in the low byte.
-int32_t message_delta_encode_all_fields(uint8_t *ctx, int32_t changed_offset, int32_t type_offset)
+// REWRITTEN from objdump 0x4ecc00..0x4eccf5. EAX = the encoder context; stack (static_base, item, type_base) --
+// the encoder pushes its per-item (baseline, item, type) values (0x4eca3b). Static fields: each binding's encode proc
+// (field_type+0x50) gets (field_type, 0, static_base + binding->destination_offset, ctx+0x64); positive sizes add to
+// ctx+0x40, a non-positive one marks failure but the loop goes on (the draft returned at once and used source_offset).
+// A failure there returns 0. Then the 16 changed-flag dwords are cleared and every field is encoded with
+// message_delta_encode_field(EAX = type_base, ESI = ctx, stack i, item); in flag mode (ctx+8 == 1) any change sets the
+// result, otherwise all must succeed -- with no early exit in either case (the draft broke out of the loop). AL result.
+// blam-cc: EAX -> ctx, stack -> static_base, item, type_base
+uint8_t message_delta_encode_all_fields(uint8_t *ctx, int32_t static_base, int32_t item, int32_t type_base)
 {
     #define CTXD(off) (*(int32_t *)(ctx + (off)))
-    message_delta_definition *definition;
-    message_delta_static_fields *statics;
-    int32_t i;
-    int32_t field_bits;
+    message_delta_definition *definition = message_delta_definitions[CTXD(4)];
+    message_delta_static_fields *statics = definition->statics;
     int32_t field_count;
-    uint8_t any_changed;
+    int32_t i;
+    uint8_t ok;
 
-    definition = message_delta_definitions[CTXD(4)];
-    statics = definition->statics;
     if (0 < statics->count) {
-        for (i = 0; i < statics->count; i++) {
-            message_delta_field_binding *binding = &statics->fields[i];
+        int32_t count = statics->count;
+        ok = 1;
+        for (i = 0; i < count; i++) {
+            message_delta_field_binding *binding =
+                &message_delta_definitions[CTXD(4)]->statics->fields[i];     // re-read each pass, as compiled
             message_delta_field_encode_fn encode =
                 *(message_delta_field_encode_fn *)((uint8_t *)binding->field_type + 0x50);
-            field_bits = encode(binding->field_type, 0, binding->source_offset + changed_offset, ctx + 100);
-            if (field_bits < 1) {
-                return 0; // matches the original's CONCAT31 low-byte-false return
+            int32_t field_bits = encode(binding->field_type, 0, static_base + binding->destination_offset, ctx + 0x64);
+            if (field_bits > 0) {
+                CTXD(0x40) = CTXD(0x40) + field_bits;
+                ok = ok ? 1 : 0;
+            } else {
+                ok = 0;
             }
-            CTXD(0x40) = CTXD(0x40) + field_bits;
+        }
+        if (!ok) {
+            return 0;
         }
     }
 
@@ -57,20 +70,16 @@ int32_t message_delta_encode_all_fields(uint8_t *ctx, int32_t changed_offset, in
     for (i = 0; i < 0x10; i++) {
         ((int32_t *)message_delta_field_changed_flags)[i] = 0;
     }
-    any_changed = (uint8_t)(CTXD(8) != 1);
+    ok = (uint8_t)(CTXD(8) != 1);
     for (i = 0; i < field_count; i++) {
-        char field_changed = message_delta_encode_field(changed_offset, ctx, i, type_offset);
+        uint8_t changed = message_delta_encode_field(type_base, ctx, i, item);
         if (CTXD(8) == 1) {
-            any_changed = (uint8_t)(any_changed != 0 || field_changed != 0);
+            ok = (ok || changed) ? 1 : 0;
         } else {
-            if (!any_changed || field_changed == 0) {
-                any_changed = 0;
-                break;
-            }
-            any_changed = 1;
+            ok = (ok && changed) ? 1 : 0;
         }
     }
-    return any_changed;
+    return ok;
     #undef CTXD
 }
 
