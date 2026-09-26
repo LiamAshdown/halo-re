@@ -48,7 +48,8 @@ extern datum_index effect_new_on_object(datum_index creator_object_index, datum_
     const ColorRGB *color, const effect_tint_source *tint_source); // EAX creator, ECX definition
 // 0x543ce0, out of range (sound-playback routine).
 //   // blam-cc: EAX = effect_creation_origin, ECX = sound_creation_origin, the rest on the stack
-extern void sound_start_at_object_marker(TagID tag_id, datum_index unknown_m1, float gain, uint32_t unknown_0);
+extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward,
+    datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint); // ESI object, ECX position, EAX forward
 
 void device_play_state_change_effect(uint32_t object_index, TagID tag_id)
 {
@@ -65,7 +66,9 @@ void device_play_state_change_effect(uint32_t object_index, TagID tag_id)
             effect_new_on_object(object_index, *(datum_index *)&tag_id, object_index, -1, dev->position, dev->power,
                 (const ColorRGB *)0, (const effect_tint_source *)0);
         } else if (group_tag == k_device_state_change_tag_sound) {
-            sound_start_at_object_marker(tag_id, (datum_index)0xffffffff, 1.0f, 0);
+            // 0x44c1de..0x44c1f3: ESI = object, ECX = [0x6966f8], EAX = [0x696718], push tag, -1, 1.0f, 0
+            sound_start_at_object_marker(object_index, (Point3D *)sound_creation_origin, (Vector3D *)effect_creation_origin,
+                *(datum_index *)&tag_id, -1, 1.0f, 0);
         }
     }
 }
