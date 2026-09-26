@@ -718,3 +718,37 @@ Baseline: hooks.stable.txt = 2,060 functions (test 112, play-tested). Nothing be
   "carried_*" also look suspect. Not touched in the step-1 commit.
 - unit_spawn_with_starting_weapons (0x572110) has rewrite confidence 0.2 (opaque decode step): on the
   incomplete list.
+
+# Session 3 (step 1: close the code gap), notes at loop start 2026-09-26
+Done and committed this session: 10 missing game functions rewritten + promoted after campaign test (d598e3e);
+players_server_catchup_on_client_updates (0x4768c0, host only, unsafe: not hooked); physics chain under the
+biped solver verified/rewritten from the binary: physics_sweep_capsule_step (real regs EDI origin, ESI delta,
+EBX out_velocity, ECX exclude; stack flags, pill_height, pill_radius, out_position, max_contacts, contacts;
+returns int16 count), physics_model_build_from_sphere_query, physics_shape_build_proxies_from_query (EDI result,
+EAX matrix, stack bsp, margin, thickness, object_index, model), physics_shape_add_vertex_proxy (stack matrix,
+height, radius, model), collision_gather_nearby_object_shapes, physics_model_slide_along_contacts (true size
+2028), vector3d_project_onto_direction (0x506760, new), physics_shape_polygon_test_ray, physics_shape_test_ray,
+physics_shape_vertex_to_sphere (memory order), real_matrix4x3_rotation_from_forward; biped_movement_solver_data
+is 0xcc (result_blocked_distance at 0xc8).
+Remaining step-1 code gap:
+- physics_shape_vertex_to_sphere and physics_shape_polygon_test_ray are still in harness/known_bad.txt (old random
+  difftest results). They were re-verified against the binary; difftest_all skipped them (not in the safe table
+  while listed). Remove their known_bad lines, rebuild, re-run difftest; keep them out only if they still differ
+  for a reason other than random-pointer artefacts.
+- biped movement solver FUN_0055efd0 (5157 bytes, callers biped_integrate_movement[_with_collision]): not written.
+  Frame: Ghidra local_X lives at esp0 + (0xafb0 - X) where esp0 = esp after the 4 register pushes; its Ghidra
+  decompile (python tools/pack.py 0x55efd0) is structurally right but lost every helper argument; take those from
+  scratchpad/annot.py-style disassembly. Helper conventions: real_matrix4x3_rotation_from_forward (ESI fwd, EBX
+  left, EDI up), vector3d_normalize_with_length (ECX), vector3d_cross_product (EAX out, ECX a, push b; b x a),
+  point3d_add_scaled (EAX out, ECX dir, push base, scale), vector2d_normalize_with_length (ECX),
+  physics_sweep_capsule_step (see above; call at 0x55f766), structure_bsp_plane_fetch_signed (0x44dad0),
+  vector3d_length (EAX), physics_model_build_from_sphere_query, physics_shape_test_ray. Contacts array
+  16 x physics_model_contact at esp0+0xbc. Writes solver +0xc8.
+- breakable surface damage FUN_00500090 (4764 bytes, callers breakable_surface_apply_damage /
+  breakable_surface_damage_in_blast_radius): not written.
+- biped_ground_adjust_solve (0x558000): calls sphere query / slide with invented signatures (model is the global
+  0x6e4d08, slide EAX = start); needs a rewrite.
+- object_collision_context_gather_sphere_shapes (0.30) and object_physics_add_mass_point_shapes (0.35): bodies
+  unverified (their call conventions match).
+- MP-client twin game_engine_players_update_client: unit_apply_control_block declared wrong (see Step 1 notes).
+- Then build/incomplete_rewrites.txt (299) and harness/known_bad.txt (90).

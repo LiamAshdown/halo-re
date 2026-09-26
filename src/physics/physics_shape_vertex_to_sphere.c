@@ -27,13 +27,19 @@ void physics_shape_vertex_to_sphere(physics_model *model, real_point3d *vertex,
                                      uint32_t object_index, int32_t surface_index,
                                      uint8_t surface_flags, int8_t breakable_surface_index)
 {
+    // Memory order follows objdump -d 0x503360..0x503482 exactly (it matters when `vertex`
+    // aliases the model, which difftest's random pointers do): the first sphere copies the
+    // vertex one coordinate at a time, the lowered z is read before the second sphere is
+    // written, and both later records read x and y before writing them.
+    float lowered_z;
+
     if (model->sphere_count < 0x100) {
         physics_model_sphere *sphere = &model->spheres[model->sphere_count];
         model->sphere_count += 1;
         sphere->object_index = object_index;
-        sphere->surface_index = surface_index;
         sphere->surface_flags = surface_flags;
         sphere->breakable_surface_index = breakable_surface_index;
+        sphere->surface_index = surface_index;
         sphere->material_type = material_type;
         sphere->center_x = vertex->x;
         sphere->center_y = vertex->y;
@@ -41,38 +47,48 @@ void physics_shape_vertex_to_sphere(physics_model *model, real_point3d *vertex,
         sphere->radius = radius;
     }
 
-    if (0.0f < height_offset) {
-        if (model->sphere_count < 0x100) {
-            physics_model_sphere *sphere = &model->spheres[model->sphere_count];
-            model->sphere_count += 1;
-            sphere->object_index = object_index;
-            sphere->surface_index = surface_index;
-            sphere->surface_flags = surface_flags;
-            sphere->breakable_surface_index = breakable_surface_index;
-            sphere->material_type = material_type;
-            sphere->center_x = vertex->x;
-            sphere->center_y = vertex->y;
-            sphere->center_z = vertex->z - height_offset;
-            sphere->radius = radius;
-        }
-        if (model->pill_count < 0x100) {
-            physics_model_pill *pill = &model->pills[model->pill_count];
-            model->pill_count += 1;
-            pill->object_index = object_index;
-            pill->surface_index = surface_index;
-            pill->surface_flags = surface_flags;
-            pill->breakable_surface_index = breakable_surface_index;
-            pill->material_type = material_type;
-            pill->origin_x = vertex->x;
-            pill->origin_y = vertex->y;
-            pill->origin_z = vertex->z - height_offset;
-            pill->extent_i = 0.0f;
-            pill->extent_j = 0.0f;
-            pill->extent_k = height_offset;
-            pill->radius = radius;
-        }
+    if (!(0.0f < height_offset)) {
+        return;
+    }
+    lowered_z = vertex->z - height_offset;
+
+    if (model->sphere_count < 0x100) {
+        physics_model_sphere *sphere = &model->spheres[model->sphere_count];
+        float x, y;
+        model->sphere_count += 1;
+        sphere->object_index = object_index;
+        sphere->surface_flags = surface_flags;
+        sphere->surface_index = surface_index;
+        sphere->breakable_surface_index = breakable_surface_index;
+        sphere->material_type = material_type;
+        x = vertex->x;
+        y = vertex->y;
+        sphere->center_x = x;
+        sphere->center_y = y;
+        sphere->center_z = lowered_z;
+        sphere->radius = radius;
+    }
+    if (model->pill_count < 0x100) {
+        physics_model_pill *pill = &model->pills[model->pill_count];
+        float x, y;
+        model->pill_count += 1;
+        pill->object_index = object_index;
+        pill->surface_index = surface_index;
+        pill->surface_flags = surface_flags;
+        pill->breakable_surface_index = breakable_surface_index;
+        pill->material_type = material_type;
+        x = vertex->x;
+        y = vertex->y;
+        pill->origin_x = x;
+        pill->origin_y = y;
+        pill->origin_z = lowered_z;
+        pill->extent_i = 0.0f;
+        pill->extent_j = 0.0f;
+        pill->extent_k = height_offset;
+        pill->radius = radius;
     }
 }
+
 
 #if 0
 Original Ghidra decompilation (0x503360):
