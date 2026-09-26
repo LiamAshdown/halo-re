@@ -33,3 +33,4 @@ saved_game_name_is_available
 ui_new_profile_name_entry_open
 ui_profile_require_existing
 unit_apply_impulse
+network_game_message_decode_ingame_notification

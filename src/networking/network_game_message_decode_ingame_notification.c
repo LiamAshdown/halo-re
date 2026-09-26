@@ -1,6 +1,6 @@
 // network_game_message_decode_ingame_notification  (Ghidra: FUN_004dc4b0; named per this rewrite)
 // address 0x4dc4b0, size 166 bytes
-// name confidence: 0.3   rewrite confidence: 0.3
+// name confidence: 0.3   rewrite confidence: 0.9 (step 1: rewritten from the disassembly; see the note above the function)
 // evidence: out/phase4/networking_functions.md: "Decodes an in-game notification and, unless a
 // particular game-engine state flag is already set, triggers the client disconnect/leave path --
 // consistent with a game-over or host-shutdown notice." Matches the code: once decoded (packet
@@ -27,38 +27,47 @@ extern data_packet_group network_game_messages_group; // 0x006994f8
 
 extern void network_channel_remote_address_or_default(network_channel *channel, network_resolved_address *out_address); // 0x4dd390, this module
 extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group,
-    void *decoded_body, uint8_t *buffer, int16_t *out_type, byte_stream *input,
-    uint16_t *out_version_used, int16_t expected_class); // 0x4d09d0
+    void *decoded_body, uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used, int16_t expected_class);
+    // 0x4d09d0, blam-cc: EAX -> remaining_length, stack -> group, decoded_body, buffer, out_type,
+    //           out_version_used, expected_class
 extern void chat_close(void); // 0x4aa900, this module's leave-game path
 
-// blam-cc: ESI -> client (unaff_ESI)
-int32_t network_game_message_decode_ingame_notification(network_client_globals *client, uint8_t *param_1,
-    int16_t *param_2, int32_t *param_3)
+// blam-cc: ESI -> client, stack -> buffer, length, sender_address
+// FIXED (step 1, objdump -d 0x4dc4b0..0x4dc555): stack (buffer, length, sender address); the decoder gets &length after
+// the 2-byte header (the draft passed the length as a pointer plus two extra arguments). Another sender -> 1; not in
+// game (state 4) -> 0; otherwise the (class 6) decode result, after defaulting +0xedc to 8 and, unless this machine is
+// hosting with bit 2, raising the handoff flag and closing chat.
+int32_t network_game_message_decode_ingame_notification(network_client_globals *client, const uint8_t *buffer,
+    int32_t length, const uint32_t *sender_address)
 {
-    int32_t decoded;
     network_resolved_address sender;
+    uint8_t decoded_body[32];
     int16_t out_type;
-    byte_stream input;
-    uint32_t decoded_body[2];
+    uint16_t out_version;
+    int32_t decoded = 0;
 
-    decoded = 0;
     network_channel_remote_address_or_default(client->channel, &sender);
-    if (sender.address.ipv4 == *param_3) {
-        if (client->state == 4) {
-            decoded = data_packet_group_decode_packet(param_2, &network_game_messages_group,
-                decoded_body, param_1 + 2, &out_type, &input, 0, 6) != 0;
-            if (client->unknown_edc == 0) {
-                client->unknown_edc = 8;
-            }
-            if (network_server == 0 || ((network_server->flags >> 2) & 1) == 0) {
-                network_host_handoff_requested = 1;
-                chat_close();
-            }
-        }
-        return decoded;
+    if (sender.address.ipv4 != *sender_address) {
+        return 1;
     }
-    return 1;
+    if (client->state != 4) {
+        return 0;
+    }
+    length = length - 2;
+    if (data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, decoded_body,
+                                        (uint8_t *)buffer + 2, &out_type, &out_version, 6) != 0) {
+        decoded = 1;
+    }
+    if (client->unknown_edc == 0) {
+        client->unknown_edc = 8;
+    }
+    if (network_server == 0 || ((network_server->flags >> 2) & 1) == 0) {
+        network_host_handoff_requested = 1;
+        chat_close();
+    }
+    return decoded;
 }
+
 
 #if 0
 Original Ghidra decompilation (0x4dc4b0):

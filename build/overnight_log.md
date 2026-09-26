@@ -888,3 +888,7 @@ Remaining step-1 code gap:
   token and converted nothing: every save path was built from an uninitialised buffer on the C path); ret 0x10
   stdcall; the Name= line converts into a scratch buffer (EAX dst, EBX src, EDI 0x80); the file receives its own path.
   Root cleared; newly hookable incl. XCreateSaveGame, saved_game_name_is_available.
+- [firing 23] decode-packet callers: network_game_message_decode_ingame_notification rewritten (ESI family; state 4,
+  class 6; returns the decode result; +0xedc default 8; handoff flag + chat_close unless hosting with bit 2).
+  Hookable. 16 decode callers left (settings_or_ack, settings_request, replicated_command, state_update_chunk,
+  the server-side 'role' handlers).
