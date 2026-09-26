@@ -17,41 +17,39 @@
 extern uint8_t message_delta_parameters_enabled;           // 0x0071cfa8
 extern uint8_t message_delta_parameters_sending;            // 0x0071cfb4
 
-extern uint8_t bit_stream_write_bit(int32_t bit_value, bit_stream *stream); // UNSURE: stream arg
-extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value, bit_stream *stream); // UNSURE: args
+extern uint8_t bit_stream_write_bit(uint8_t bit, bit_stream *stream); // 0x4cf9a0, EDX stream, stack bit
+extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values
+extern int32_t message_delta_parameters_protocol_sequence; // 0x0071cfac, written as the 2-bit parameter field
 
 // Writes the leading header bit(s) of a message-delta message: whether the message is
 // incremental, then (under protocol v2) the parameters-in-progress bit, using the encode
 // context's own scratch counters at +0x80..+0x88 as running bit-position state.
-char message_delta_encode_message_header(uint8_t *ctx)
+// REWRITTEN from objdump 0x4ecd00..0x4ecdd1. ESI is the encoder context; its bit stream is INLINE at ctx+0x1c (the draft
+// read a pointer at +0xc). Writes: the flag bit (ctx+8); the message type -- the dword at ctx+4, passed by address --
+// in ctx+0x84 + 6 bits (ctx+0x84 updated, ctx+0x80 = 1); and, when message-delta parameters are enabled, the "sending"
+// bit and the 2-bit parameter field from 0x71cfac (ctx+0x88 = 2, then incremented). Returns AL: every write succeeded.
+// blam-cc: ESI -> ctx
+uint8_t message_delta_encode_message_header(uint8_t *ctx)
 {
     #define CTXD(off) (*(int32_t *)(ctx + (off)))
-    bit_stream *stream = *(bit_stream **)(ctx + 0xc); // UNSURE: best-guess stream slot, see header
-    char header_ok;
-    char v2_ok;
+    bit_stream *stream = (bit_stream *)(ctx + 0x1c);
+    uint32_t parameters = (uint32_t)message_delta_parameters_protocol_sequence;   // 0x4ecd01: read before anything else
+    uint8_t ok;
     int32_t written;
 
-    header_ok = (char)bit_stream_write_bit(CTXD(8), stream);
-    CTXD(0x84) = CTXD(0x84) + 6;
+    ok = bit_stream_write_bit((uint8_t)CTXD(8), stream) != 0;
     CTXD(0x80) = 1;
-    written = bit_stream_write_bits_chunked(CTXD(0x84), 0, stream); // UNSURE: value argument
-    if (written == 0 || header_ok == 0) {
-        header_ok = 0;
-    } else {
-        header_ok = 1;
-    }
+    CTXD(0x84) = CTXD(0x84) + 6;
+    written = bit_stream_write_bits_chunked(stream, (const uint32_t *)(ctx + 4), CTXD(0x84));
+    ok = (written != 0 && ok) ? 1 : 0;
     if (message_delta_parameters_enabled != 1) {
-        return header_ok;
+        return ok;
     }
     CTXD(0x88) = 2;
-    v2_ok = (char)bit_stream_write_bit(message_delta_parameters_sending, stream);
-    written = bit_stream_write_bits_chunked(CTXD(0x88), 0, stream); // UNSURE: value argument
-    if (written != 0 && v2_ok != 0 && header_ok != 0) {
-        CTXD(0x88) = CTXD(0x88) + 1;
-        return 1;
-    }
+    ok = (bit_stream_write_bit(message_delta_parameters_sending, stream) != 0 && ok) ? 1 : 0;
+    written = bit_stream_write_bits_chunked(stream, &parameters, CTXD(0x88));
     CTXD(0x88) = CTXD(0x88) + 1;
-    return 0;
+    return (written != 0 && ok) ? 1 : 0;
     #undef CTXD
 }
 

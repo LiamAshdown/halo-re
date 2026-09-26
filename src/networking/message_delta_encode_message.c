@@ -28,7 +28,7 @@ extern uint8_t message_delta_item_count_bits[];                 // 0x0065d51f
 
 extern uint8_t message_delta_encode_prepare_item(uint8_t *ctx); // 0x4ecb60, EAX ctx
 extern int32_t message_delta_encode_all_fields(uint8_t *ctx, int32_t changed_offset, int32_t type_offset); // 0x4ecc00, this module
-extern char message_delta_encode_message_header(uint8_t *ctx); // 0x4ecd00, this module
+extern uint8_t message_delta_encode_message_header(uint8_t *ctx); // 0x4ecd00, ESI ctx
 extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value, bit_stream *stream); // UNSURE: args
 
 // EDX -> extra_edx (in_EDX, unresolved); EAX -> extra_eax (unresolved, cached into the context)
