@@ -30,7 +30,7 @@ extern uint8_t *network_client; // 0x0071c2d8 (networking.h network_client; rena
 extern void *matrix4x3_multiply_thunk; // 0x00696664
 
 extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);            // 0x4cc0d0, UNSURE signature
-extern uint32_t datum_get(void);                                        // 0x4d0680, UNSURE signature  // real signature (datum_get.c): void * datum_get(datum_index handle, data_array *array); Ghidra recovered 0 of 2 args at this call site
+extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, EDX handle, ESI array
 extern void player_update_history_free_all(void *history);              // 0x4e6f20, UNSURE signature
 extern void object_set_position_and_orientation(uint32_t object_index, void *a, void *b); // 0x4f51c0, UNSURE signature  // real signature (object_set_position_and_orientation.c): void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position); Ghidra recovered 3 of 4 args at this call site
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t param_4); // 0x4f6080
@@ -105,8 +105,13 @@ void unit_detach_from_seat(uint32_t unit_index, uint8_t suppress_trigger, uint8_
         if ((unit_all_seats_unoccupied(unit_index) == 1) && (object_try_and_get(unit_index, _object_mask_vehicle) != 0)) {
             // writes the current tick into vehicle_data.network_update_tick (+0x5ac)
         }
-        if ((game_connection_role == 1) && (datum_get() != 0)) {
-            uint32_t player_record = datum_get();
+        // 0x56c96e..0x56c97f: one call, EDX = unit +0x218 (controlling_player), ESI = player_data; EAX reused
+        uint32_t player_record = 0;
+        if (game_connection_role == 1) {
+            player_record = (uint32_t)datum_get(((unit_data *)((uint8_t *)self_obj + k_unit_data_offset))->controlling_player,
+                player_data);
+        }
+        if (player_record != 0) {
             if (*(int16_t *)(player_record + 2) == -1) {
                 *(uint32_t *)(player_record + 0x180) = 0;
                 *(uint32_t *)(player_record + 0x17c) = 0;
