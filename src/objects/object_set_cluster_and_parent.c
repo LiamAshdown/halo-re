@@ -37,7 +37,7 @@ extern uint8_t *global_structure_bsp; // 0x00746f9c, UNSURE: foreign module, +0x
                                            //   reads at +0x134, here read at +0xe4
 
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
-extern void scenario_location_from_point(void); // 0x53e780, UNSURE: unexamined
+extern void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point); // 0x53e780, ESI out, EDX point
 extern datum_index *noncollideable_cluster_first; // 0x008603c0, the per-cluster list descriptor
 extern void cluster_reference_add_within_radius(uint32_t light_or_object_handle, datum_index *placement_slot, real_point3d *position,
                           float radius, void *leaf_and_cluster, void *cluster_list);
@@ -73,7 +73,8 @@ void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *lo
             local_location.leaf_index = leaf;
             location = &local_location;
             if (local_location.cluster_index == -1) {
-                scenario_location_from_point(); // UNSURE: see file header
+                // 0x4f5ced: ESI = &local_location, EDX = the object's position (+0x5c)
+                scenario_location_from_point(&local_location, (real_point3d *)((uint8_t *)obj + 0x5c));
             }
         }
 

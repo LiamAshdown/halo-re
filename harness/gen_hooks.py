@@ -532,7 +532,8 @@ def main():
                         r"wcs(n?cpy|n?cat|len|n?cmp|chr|rchr|str|icmp|nicmp)|mem(cpy|move|set|cmp|chr)|"
                         r"v?s?n?w?printf|v?sw?scanf|sscanf|ato[ifl]|strto[dlu]l?|wto[il]|tolower|toupper|isalpha|isdigit|isspace|"
                         r"isalnum|isupper|islower|isnan|finite|qsort|bsearch|malloc|calloc|realloc|free|abs|labs|rand|srand|"
-                        r"time|clock|getenv|fopen|fclose|fread|fwrite|fseek|ftell|fflush|fgets|fputs|fprintf|remove|rename)")
+                        r"time|clock|getenv|fopen|fclose|fread|fwrite|fseek|ftell|fflush|fgets|fputs|fprintf|fscanf|remove|rename|"
+                        r"localtime|gmtime|mktime)")
     stubs = {s for s in stubs if not crt_ok.fullmatch(s)}
     up = os.path.join(OUT, "unresolved.txt")                                          # still unresolved: would call 0
     if os.path.exists(up): stubs |= {l.split("\t")[0] for l in open(up) if l.strip()}

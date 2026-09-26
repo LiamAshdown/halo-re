@@ -43,7 +43,8 @@ extern data_array *object_data;      // 0x008603b0
 extern uint32_t **actor_type_procs;  // 0x006853b8
 extern int16_t ai_vocalization_line_table[4]; // 0x00657194, UNSURE length
 
-extern float ai_communication_rate_player_proximity(int32_t mode, int32_t a, int32_t b); // 0x4303f0
+extern float ai_communication_rate_player_proximity(uint8_t require_line_of_sight, datum_index *out_player_object_index,
+    float *out_distance, datum_index object_index); // 0x4303f0, EBX object (the actor's unit), stack (1, 0, 0)
 extern uint8_t ai_insert_scored_candidate_pair(ai_scored_candidate *list, datum_index handle,
     float score, datum_index payload, datum_index key);            // 0x4383f0
 extern int16_t ai_pick_weighted_candidate(ai_scored_candidate *table,
@@ -128,7 +129,7 @@ void encounter_choose_vocalizations(datum_index encounter_index)
         has_unit_prop = 0;
 
         if (a->unit_index != (datum_index)k_datum_index_none) {
-            proximity = ai_communication_rate_player_proximity(1, 0, 0);
+            proximity = ai_communication_rate_player_proximity(1, 0, 0, a->unit_index); // EBX = a->unit_index
 
             next_prop = a->first_prop;
             while (next_prop != (datum_index)k_datum_index_none) {
@@ -245,7 +246,7 @@ void encounter_choose_vocalizations(datum_index encounter_index)
             a = &((actor *)actor_data->data)[current & 0xffff];
             actor_index = a->next_in_encounter;
             if (a->unit_index != (datum_index)k_datum_index_none) {
-                proximity = ai_communication_rate_player_proximity(1, 0, 0);
+                proximity = ai_communication_rate_player_proximity(1, 0, 0, a->unit_index); // EBX = a->unit_index
                 if ((actor_type_procs[a->type][4] & 2) != 0 && 2.0f < proximity &&
                     best_distance < proximity) {
                     best_distance = proximity;
