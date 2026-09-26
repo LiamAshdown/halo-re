@@ -27,8 +27,8 @@
 
 extern saved_player_profile default_player_profile; // 0x0071d280
 
-extern void saved_game_enumerate_by_type(uint16_t *capacity_and_count, uint16_t type,
-    int32_t *out_handles, uint8_t builtin_only); // 0x53c4e0, this module, blam-cc: EBX capacity_and_count
+extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
+    uint16_t *capacity_and_count); // 0x53c4e0, this module, blam-cc: EBX capacity_and_count
 extern uint8_t player_profile_get(int32_t index, saved_player_profile *out_buffer); // 0x53a770, blam-cc: ECX out_buffer
 extern uint8_t saved_game_delete_by_handle(int32_t handle); // 0x53c960, this module, blam-cc: EDI handle
 extern void input_apply_named_device_default_profile(const uint16_t *name); // 0x4901b0, blam-cc: EDI name
@@ -63,7 +63,7 @@ void saved_game_delete_by_display_name(const char *name)
     }
 
     capacity_and_count = 100;
-    saved_game_enumerate_by_type(&capacity_and_count, 0, handles, 0);
+    saved_game_enumerate_by_type(0, handles, 0, &capacity_and_count); // 0x53ba21: push 0, &handles, 0; EBX=&count
     for (i = 0; i < (int32_t)capacity_and_count; i++) {
         handle = handles[i];
         if (handle == -1) {

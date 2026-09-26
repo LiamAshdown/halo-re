@@ -42,8 +42,8 @@ extern int16_t cache_file_index; // 0x006ac494, -1 when no map is loaded
 extern void control_profile_reset_digital_bindings(saved_player_profile *profile); // 0x539ff0
 extern void control_profile_reset_analog_bindings(saved_player_profile *profile); // 0x53a0d0
 extern uint8_t player_profile_set_default_video_options(saved_player_profile *profile, uint8_t allow_display_query); // 0x53b000
-extern void saved_game_enumerate_by_type(uint16_t *capacity_and_count, uint16_t type,
-    int32_t *out_handles, uint8_t builtin_only); // 0x53c4e0, this module, blam-cc: EBX capacity_and_count
+extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
+    uint16_t *capacity_and_count); // 0x53c4e0, this module, blam-cc: EBX capacity_and_count
 extern uint8_t player_profile_get(int32_t index, saved_player_profile *out_buffer); // 0x53a770, this module
 extern void control_profile_fill_default_gamepad_slots(saved_player_profile *profile); // 0x53b7f0, this module
 extern void *memset(void *dest, int32_t value, uint32_t count);
@@ -179,7 +179,7 @@ void player_profile_initialize(saved_player_profile *profile, int32_t local_play
         if (saved_player_profile_slots_handle == -1) {
             capacity = 1;
             handles[0] = -1;
-            saved_game_enumerate_by_type(&capacity, _saved_game_type_player_profile, handles, 0);
+            saved_game_enumerate_by_type(_saved_game_type_player_profile, handles, 0, &capacity); // 0x53a543: ESI=0 type and builtin, EBX=&capacity
             handle = handles[0];
             if (capacity >= 1 && handle != -1 && player_profile_get(handle, &existing) != 0) {
                 have_existing = 1;
