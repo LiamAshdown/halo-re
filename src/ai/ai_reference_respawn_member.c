@@ -28,7 +28,8 @@ extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_refere
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator); // 0x4326d0, this batch
 extern void encounter_activate(datum_index encounter_index); // 0x437710, this batch; blam-cc: ECX -> encounter_index, UNSURE
 extern datum_index actor_find_or_create_shared_prop(datum_index unit_index, datum_index actor_index, int32_t flag_a, int32_t flag_b); // 0x43eb30, outside this rewrite's range, UNSURE signature
-extern void actor_squad_react_to_grenade(datum_index actor_index); // 0x42a3a0, blam-cc: EAX -> actor_index
+extern void actor_squad_react_to_grenade(datum_index actor_index, datum_index target_prop_index, int16_t grenade_type);
+    // 0x42a3a0, ESI actor, stack target_prop, EAX grenade_type
 
 // blam-cc: EAX -> packed_reference, EDI -> unit_index
 void ai_reference_respawn_member(uint32_t packed_reference, datum_index unit_index)
@@ -50,7 +51,9 @@ void ai_reference_respawn_member(uint32_t packed_reference, datum_index unit_ind
 
             respawned = actor_find_or_create_shared_prop(unit_index, iterator.actor_index, 1, 0);
             if (respawned != (datum_index)k_datum_index_none) {
-                actor_squad_react_to_grenade(respawned);
+                // 0x432e56..0x432e5c: ESI = the actor ([esp+0x14], also the shared-prop call's actor), push the prop,
+                // EAX = 3
+                actor_squad_react_to_grenade(iterator.actor_index, respawned, 3);
             }
 
             a = ai_reference_actor_iterator_next(&iterator);
