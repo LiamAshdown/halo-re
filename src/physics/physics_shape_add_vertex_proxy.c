@@ -1,7 +1,7 @@
 // physics_shape_add_vertex_proxy  (Ghidra: FUN_00503a60, still unnamed there; name from
 // out/phase2/results/physics_00.json)
 // address 0x503a60, size 126 bytes
-// name confidence: 0.3   rewrite confidence: 0.25
+// name confidence: 0.3   rewrite confidence: 0.85 (step 1: checked against objdump -d 0x503a60..0x503add; the stack order was model-second, it is model-last)
 // evidence: out/phase2/results/physics_00.json: "Wrapper that transforms a BSP vertex into
 //   world/local space (if a matrix is given) and appends it as a sphere collision proxy."
 // register convention: RESOLVED against objdump 0x503a60..0x503ad4 (was UNSURE/guessed before).
@@ -18,7 +18,7 @@
 //   which is why this file's very first draft could reconstruct only `vertex`/`model` and gave
 //   up on the rest. `matrix`, `model`, `height_offset` and `radius` remain genuine stack
 //   parameters, reloaded from the stack (0x503abc/0x503ac1) right before the call.
-//   // blam-cc: ECX -> bsp, EAX -> vertex_index, EBX -> object_index, stack -> matrix, model, height_offset, radius
+//   // blam-cc: ECX -> bsp, EAX -> vertex_index, EBX -> object_index, stack -> matrix, height_offset, radius, model
 // FIXED (register inputs, objdump): EAX, EBX and ECX are genuine live-ins the notes did not map;
 // this whole rewrite (previously an admitted guess, rewrite confidence 0.25) is replaced with a
 // transcription of the real disassembly now that these registers are resolved.
@@ -40,7 +40,7 @@ extern void physics_shape_vertex_to_sphere(physics_model *model, real_point3d *v
 
 void physics_shape_add_vertex_proxy(ModelCollisionGeometryBSP *bsp, uint32_t vertex_index,
                                      uint32_t object_index, real_matrix4x3 *matrix,
-                                     physics_model *model, float height_offset, float radius)
+                                     float height_offset, float radius, physics_model *model)
 {
     ModelCollisionGeometryBSPVertex *vertex_rec =
         &((ModelCollisionGeometryBSPVertex *)bsp->vertices.pointer)[vertex_index];

@@ -4,7 +4,7 @@
 // FUN_005045c0/FUN_005048d0 and requiring the hit be facing against the direction (dot <
 // -0.0001).")
 // address 0x504bb0, size 603 bytes
-// name confidence: 0.5   rewrite confidence: 0.5
+// name confidence: 0.5   rewrite confidence: 0.85 (step 1: control flow, constants (-0.0001 at 0x672bb8), record offsets and the three shape-test conventions checked against objdump -d 0x504bb0..0x504e0a)
 // evidence: out/phase4/physics_types_notes.md section 2: physics_model's three counts read as
 //   `(short *)(param_1 + type*2)`, and the sphere/pill/shape bases (0x0008, 0x1c08, 0x4408)
 //   match exactly; physics_model_contact's fields (t 0x00, point 0x04, plane 0x10, object_index

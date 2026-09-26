@@ -1,81 +1,55 @@
 // physics_shape_build_proxies_from_query  (Ghidra: FUN_00503d90, still unnamed there; name from
 // out/phase2/results/physics_00.json)
 // address 0x503d90, size 283 bytes
-// name confidence: 0.35   rewrite confidence: 0.30 (raised from 0.15: phase-4 integration pass identified param_1 as the bsp from both call sites)
-// evidence: out/phase2/results/physics_00.json: "Iterates the three geometry-list fields of a
-//   collision query record (unaff_EDI[0x202], [0x101] and [0]) calling
-//   FUN_00503a60/FUN_00503ae0/FUN_00503c50 respectively for each entry." unaff_EDI[0x202] (byte
-//   0x808, vertex_count), [0x101] (byte 0x404, edge_count) and [0] (surface_count) match
-//   collision_bsp_sphere_result exactly (out/phase4/physics_types_notes.md).
-// register convention: unaff_EDI -> result (collision_bsp_sphere_result *). param_1..param_5 are
-//   Ghidra-recognized stack parameters. param_1 is the BSP: both call sites prove it -- 0x506440
-//   passes DAT_00746f98 (structure_collision_bsp) and 0x505200 passes
-//   `(short)uVar7 * 0x60 + iVar6`, the selected ModelCollisionGeometryBSP permutation record of
-//   the collision node it is iterating. (A previous rewrite of this file guessed param_1 was a
-//   material type, which made 0x506440 pass a BSP pointer where a material index was expected;
-//   corrected by the phase-4 integration pass.) param_2..param_5 are margin, thickness,
-//   object_index and model, forwarded verbatim into physics_shape_add_surface_proxy.
-//   // blam-cc: EDI -> result, stack -> bsp, margin, thickness, object_index, model
-// UNSURE, VERY significantly: the vertex and edge loops call physics_shape_add_vertex_proxy and
-// physics_shape_add_edge_proxy with NO visible arguments at all in Ghidra's decompile -- not
-// even the loop index. This rewrite is a best-effort reconstruction of what those calls almost
-// certainly need (bsp, the matrix/moving-frame, the resolved vertex position or edge
-// start/end), assuming `bsp` and `matrix` are carried in registers this function's own decompile
-// never exposes (added here as explicit parameters). The surface loop (`local_8`, walking
-// result->surfaces[] directly and calling physics_shape_add_surface_proxy) is the one part of
-// this function Ghidra decompiled with visible arguments and is rewritten with confidence.
+// name confidence: 0.35   rewrite confidence: 0.85 (step 1: rewritten from objdump -d
+//   0x503d90..0x503eaa; the draft guessed the helper arguments and added two parameters the
+//   function does not have)
+// evidence: walks the three lists of a collision_bsp_sphere_result and turns every entry into
+//   physics_model proxies: each vertex through physics_shape_add_vertex_proxy (0x503a60: EAX
+//   vertex, ECX bsp, EBX object_index, stack matrix, margin, thickness, model), each edge
+//   through physics_shape_add_edge_proxy (0x503ae0: EAX edge, ECX bsp, stack matrix, margin,
+//   thickness, object_index, model) and each surface through physics_shape_add_surface_proxy
+//   (0x503c50: EAX bsp, ESI matrix, stack surface, margin, thickness, object_index, model).
+//   Callers: physics_model_build_from_sphere_query (0x5064f4) passes the structure BSP, EAX = 0
+//   (no matrix) and object_index -1; object_collision_context_gather_sphere_shapes (0x5052f4)
+//   passes an object's collision BSP, its node matrix in EAX and the object index.
+// register convention: EDI result, EAX matrix (may be 0), five stack arguments.
+//   // blam-cc: EDI -> result, EAX -> matrix, stack -> bsp, margin, thickness, object_index, model
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
 
-extern void physics_shape_add_vertex_proxy(real_matrix4x3 *matrix, physics_model *model,
-                                            real_point3d *vertex, int16_t material_type,
-                                            float height_offset, float radius,
-                                            uint32_t object_index, int32_t surface_index,
-                                            uint8_t surface_flags,
-                                            int8_t breakable_surface_index); // 0x503a60, this batch
+extern void physics_shape_add_vertex_proxy(ModelCollisionGeometryBSP *bsp, uint32_t vertex_index,
+    uint32_t object_index, real_matrix4x3 *matrix, float height_offset, float radius,
+    physics_model *model); // 0x503a60, blam-cc: ECX bsp, EAX vertex_index, EBX object_index
 extern void physics_shape_add_edge_proxy(int32_t edge_index, ModelCollisionGeometryBSP *bsp,
     real_matrix4x3 *matrix, float height_offset, float thickness, int32_t object_index,
-    physics_model *model); // 0x503ae0: EAX edge, ECX bsp, stack (matrix, margin, thickness, object, model)
+    physics_model *model); // 0x503ae0, blam-cc: EAX edge_index, ECX bsp
 extern void physics_shape_add_surface_proxy(ModelCollisionGeometryBSP *bsp, float *moving_frame,
-                                             int32_t surface_index, float margin, float thickness,
-                                             int32_t object_index,
-                                             physics_model *model); // 0x503c50, this batch
+    int32_t surface_index, float margin, float thickness, int32_t object_index,
+    physics_model *model); // 0x503c50, blam-cc: EAX bsp, ESI moving_frame
 
-// blam-cc: EDI -> result, stack -> bsp, margin, thickness, object_index, model
-// UNSURE: matrix and material_type are added parameters this function's own decompile never
-// shows; they are listed LAST so that the leading six match the real calling convention exactly.
-void physics_shape_build_proxies_from_query(collision_bsp_sphere_result *result,
-                                             ModelCollisionGeometryBSP *bsp,
-                                             float margin, float thickness, int32_t object_index,
-                                             physics_model *model,
-                                             real_matrix4x3 *matrix, int16_t material_type)
+// blam-cc: EDI -> result, EAX -> matrix, stack -> bsp, margin, thickness, object_index, model
+// Adds a sphere/pill proxy for every vertex, pill/quad proxies for every edge and a polygon
+// proxy for every surface the sphere query found, transformed by `matrix` when there is one.
+void physics_shape_build_proxies_from_query(collision_bsp_sphere_result *result, real_matrix4x3 *matrix,
+    ModelCollisionGeometryBSP *bsp, float margin, float thickness, int32_t object_index,
+    physics_model *model)
 {
-    ModelCollisionGeometryBSPVertex *vertices =
-        (ModelCollisionGeometryBSPVertex *)bsp->vertices.pointer;
-    ModelCollisionGeometryBSPEdge *edges = (ModelCollisionGeometryBSPEdge *)bsp->edges.pointer;
     int32_t i;
 
     for (i = 0; i < result->vertex_count; i++) {
-        real_point3d vertex;
-        uint32_t vertex_index = (uint32_t)result->vertices[i];
-        vertex.x = vertices[vertex_index].point.x;
-        vertex.y = vertices[vertex_index].point.y;
-        vertex.z = vertices[vertex_index].point.z;
-        physics_shape_add_vertex_proxy(matrix, model, &vertex, material_type, margin, thickness,
-                                        (uint32_t)object_index, -1, 0, -1);
+        physics_shape_add_vertex_proxy(bsp, (uint32_t)result->vertices[i], (uint32_t)object_index, matrix,
+                                        margin, thickness, model);
     }
-
     for (i = 0; i < result->edge_count; i++) {
-        // 0x503e20: the callee computes the edge's start vertex and direction itself
         physics_shape_add_edge_proxy(result->edges[i], bsp, matrix, margin, thickness, object_index, model);
     }
-
     for (i = 0; i < result->surface_count; i++) {
-        physics_shape_add_surface_proxy(bsp, (float *)matrix, result->surfaces[i], margin,
-                                         thickness, object_index, model);
+        physics_shape_add_surface_proxy(bsp, (float *)matrix, result->surfaces[i], margin, thickness,
+                                         object_index, model);
     }
 }
 

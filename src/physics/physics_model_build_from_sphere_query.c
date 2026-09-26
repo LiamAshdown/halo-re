@@ -1,6 +1,6 @@
 // physics_model_build_from_sphere_query  (Ghidra: FUN_00506440; renamed)
 // address 0x506440, size 659 bytes
-// name confidence: 0.35   rewrite confidence: 0.45 (raised from 0.4 by the phase-4
+// name confidence: 0.35   rewrite confidence: 0.85 (step 1: checked against objdump -d 0x506440..0x5066d3) (raised from 0.4 by the phase-4
 //   integration pass, which replaced two invented callee signatures -- FUN_00501980 and
 //   FUN_00503d90 -- with the module-wide ones)
 // evidence: types/physics.h collision_bsp_sphere_query/_result (the sphere-centre-and-radius
@@ -48,8 +48,8 @@ extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp,
 // blam-cc: EDI -> result, stack -> bsp, margin, thickness, object_index, model; matrix and
 //          material_type are reconstructed and listed last
 extern void physics_shape_build_proxies_from_query(collision_bsp_sphere_result *result,
-    ModelCollisionGeometryBSP *bsp, float margin, float thickness, int32_t object_index,
-    physics_model *model, real_matrix4x3 *matrix, int16_t material_type); // 0x503d90, this module
+    real_matrix4x3 *matrix, ModelCollisionGeometryBSP *bsp, float margin, float thickness,
+    int32_t object_index, physics_model *model); // 0x503d90, blam-cc: EDI result, EAX matrix
 extern void collision_gather_nearby_object_shapes(uint32_t flags, uint32_t start_object_index,
     real_point3d *origin, float radius, float x_offset, float y_offset,
     uint32_t exclude_object_index, physics_model *model); // 0x5061c0, this module (higher half)
@@ -79,8 +79,8 @@ uint8_t physics_model_build_from_sphere_query(uint32_t flags, real_point3d *cent
         if (found_surface && (flags & 0x20) != 0) {
             // the original passes DAT_00746f98 as the first STACK argument, which is what pins
             // physics_shape_build_proxies_from_query's param_1 down as its bsp
-            physics_shape_build_proxies_from_query(&sphere_result, global_structure_collision_bsp,
-                x_offset, y_offset, -1, model, (real_matrix4x3 *)0, -1);
+            physics_shape_build_proxies_from_query(&sphere_result, (real_matrix4x3 *)0,
+                global_structure_collision_bsp, x_offset, y_offset, -1, model); // EAX = 0
         }
 
         if ((flags & 0x80) != 0 && sphere_result.leaf_count > 0) {
@@ -98,7 +98,8 @@ uint8_t physics_model_build_from_sphere_query(uint32_t flags, real_point3d *cent
 
             for (i = 0; i < sphere_result.leaf_count; i++) {
                 int16_t cluster_index = ((ScenarioStructureBSPLeaf *)
-                    global_structure_bsp->leaves.pointer)[sphere_result.leaves[i]].cluster;
+                    global_structure_bsp->leaves.pointer)[sphere_result.leaves[i] & 0x7fffffff].cluster;
+                // FIXED (objdump 0x506593): the leaf index is masked with 0x7fffffff first
 
                 if (cluster_visit_stamp[cluster_index] != cluster_flood_fill_call_count) {
                     datum_index ref;
@@ -109,7 +110,14 @@ uint8_t physics_model_build_from_sphere_query(uint32_t flags, real_point3d *cent
                         object_cluster_reference *node = (object_cluster_reference *)
                             collideable_object_references->data + (ref & 0xffff);
                         datum_index object_index = node->object_index;
-                        object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+                        object *obj;
+
+                        // FIXED (objdump 0x5065e5, 0x506670): the walk also ends at a reference
+                        // whose object_index is -1
+                        if (object_index == k_datum_index_none) {
+                            break;
+                        }
+                        obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
 
                         if (obj->cluster_stamp != stamp) {
                             obj->cluster_stamp = stamp;

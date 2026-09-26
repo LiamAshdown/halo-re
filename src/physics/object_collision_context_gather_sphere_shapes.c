@@ -47,11 +47,8 @@ extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp,
                                                  uint32_t *breakable_surfaces, real_point3d *center,
                                                  float radius); // 0x501980, this module
 extern void physics_shape_build_proxies_from_query(collision_bsp_sphere_result *result,
-                                                     ModelCollisionGeometryBSP *bsp,
-                                                     float margin, float thickness,
-                                                     int32_t object_index, physics_model *model,
-                                                     real_matrix4x3 *matrix,
-                                                     int16_t material_type); // 0x503d90, this module
+    real_matrix4x3 *matrix, ModelCollisionGeometryBSP *bsp, float margin, float thickness,
+    int32_t object_index, physics_model *model); // 0x503d90, blam-cc: EDI result, EAX matrix
 
 // Tests a world-space sphere (origin, radius_scale) against every collision node of context's
 // object, one node at a time, building physics_model proxies (via
@@ -95,9 +92,12 @@ uint8_t object_collision_context_gather_sphere_shapes(object_collision_context *
 
                     if (collision_bsp_query_sphere_init(bsp, 0, &sphere_result, 0, &local_center,
                                                          inverse_matrix.scale * radius_scale)) {
-                        physics_shape_build_proxies_from_query(&sphere_result, bsp, margin,
-                                                                thickness, context->object_index,
-                                                                model, &inverse_matrix, -1);
+                        // FIXED (objdump 0x50529e, 0x5052f0): EAX is EBX = &nodes[node_index], the
+                        // node's own matrix -- the query runs in node space and the proxies are
+                        // carried back to world space; the draft passed the inverse
+                        physics_shape_build_proxies_from_query(&sphere_result,
+                            &((real_matrix4x3 *)context->nodes)[node_index], bsp, margin, thickness,
+                            context->object_index, model);
                         hit = 1;
                     }
                 }
