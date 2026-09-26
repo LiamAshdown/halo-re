@@ -13,7 +13,7 @@ halo.exe has no relocation table (IMAGE_FILE_RELOCS_STRIPPED), so code pointers 
 function starts (out/functions.json plus src/ headers); a coincidental integer equal to a function address would be
 a false positive, which is why the report lists every target by name for review.
 Usage: python tools/gen_standalone.py"""
-import os, re, sys, json, glob, struct, collections
+import bisect, os, re, sys, json, glob, struct, collections
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "build", "standalone")
@@ -139,6 +139,12 @@ def main():
 
     # ---- code pointers stored in data
     funcs = {int(f["addr"], 16): f for f in json.load(open(os.path.join(ROOT, "out", "functions.json")))}
+    library_ranges = sorted((int(f["addr"], 16), int(f["addr"], 16) + (f.get("size") or 0))
+                            for f in funcs.values() if f.get("lib") or f.get("fid"))
+
+    def inside_library_function(v):
+        i = bisect.bisect_right(library_ranges, (v, 0xffffffff)) - 1
+        return i >= 0 and library_ranges[i][0] < v < library_ranges[i][1]
     mods = json.load(open(os.path.join(ROOT, "modules.json")))
     rewritten = rewritten_functions()
     text = sec[".text"]
@@ -155,10 +161,17 @@ def main():
             r = rewritten.get(v)
             if not f and not r:
                 # a function entry Ghidra never created (reachable only through this table): 16-byte aligned and
-                # preceded by padding (int3 / nop) or a ret. It becomes a named trap until it has C.
+                # preceded by padding (int3 / nop), a ret, or an unconditional jmp that ends exactly there (a tail-
+                # jumping thunk right before it, e.g. 0x558d4b jmp -> 0x558d50 in the biped type definition).
+                # It becomes a named trap until it has C.
                 o = off(v)
-                if v % 16 or o is None or exe[o - 1] not in (0xcc, 0x90, 0xc3):
+                if v % 16 or o is None:
                     continue
+                if exe[o - 1] not in (0xcc, 0x90, 0xc3):
+                    # after a jmp only outside library code: CRT scope tables point at handler labels that
+                    # also follow a jmp (0x6293e0, 0x62d560, 0x62ef30)
+                    if not (exe[o - 5] == 0xe9 or exe[o - 2] == 0xeb) or inside_library_function(v):
+                        continue
                 f = {"name": "unlisted_%06x" % v}
             m = mods.get("%x" % v, {})
             module = m.get("module", "?") if isinstance(m, dict) else m

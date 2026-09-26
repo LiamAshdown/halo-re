@@ -17,6 +17,9 @@
 // resolved type second) is inferred from types/hs.h's "[destination][source]" table
 // description, not read directly off this call site (Ghidra shows it with no visible args).
 
+// FIXED (verified against 0x485a4a..0x485a7a): the function-name node's own source offset (+0xc) is both the
+//   one checked by hs_verify_source_offset and, added to hs_compiled_source, the name looked up; the draft used
+//   the call node's offset and the name node's +0x10 as a char pointer (NULL -> _stricmp fast-fail).
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
@@ -110,11 +113,12 @@ char hs_compile_postprocess(char **error_message, int32_t *error_offset)
                 hs_compile_error = "corrupt syntax tree (you need to recompile scripts.)";
                 goto fail;
             }
-            valid_offset = hs_verify_source_offset(node->source_offset);
+            valid_offset = hs_verify_source_offset(function_name_node->source_offset); // 0x485a65: ECX = name node +0xc
             if (valid_offset == 0) {
                 goto fail;
             }
-            function_index = hs_find_function_by_name((char *)function_name_node->data.string_value);
+            function_index = hs_find_function_by_name(hs_compiled_source + function_name_node->source_offset);
+                // 0x485a71: EDX = name node's source offset + hs_compiled_source
             nodes = hs_syntax_data;
             if (function_index == -1) {
                 hs_compile_error = "missing function (you need to recompile scripts.)";

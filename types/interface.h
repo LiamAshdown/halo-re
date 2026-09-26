@@ -1055,9 +1055,9 @@ typedef struct level_select_entry {
 } level_select_entry;          // size 0x08
 
 typedef struct campaign_level_entry {
-    char *path;                // 0x00 levels1010 and so on
-    int32_t unknown_04;        // 0x04
-} campaign_level_entry;        // size 0x08, table at 0x00692acc
+    char *path;                // 0x00 "levels\a10\a10" and so on
+} campaign_level_entry;        // size 0x04, table of 10 at 0x00692acc: every access is [reg*4+0x692acc]
+                               // (0x49ca50, 0x49cbb0, 0x49cd09, 0x49cf58), so there is no second field
 
 // ---------------------------------------------------------------------------
 // profile_carousel_slot  (ui_profile_carousel_slot_cache_populate @0x4a74b0,

@@ -15,6 +15,7 @@
 // register convention: source_name in EDI; name is the recognized stack parameter.
 
 #include "tags.h"
+#include <string.h>
 #include "memory.h"
 #include "math.h"
 #include "game.h"
@@ -31,16 +32,20 @@ extern void *FindFirstFileA(const char *path, win32_find_dataa *find_data); // W
 extern int32_t FindClose(void *find_handle); // Win32
 extern int16_t game_checkpoint_read_stats_file(int32_t *out_difficulty, char *name,
     int32_t *out_game_time, win32_systemtime *out_time); // 0x538c60
-extern void main_queue_map_change(void); // 0x4c8740, not in this module
+extern void main_queue_map_change(char *map_name); // 0x4c8740, blam-cc: EAX -> map_name
 extern uint8_t saved_game_copy_files_to_target(char *source_directory, char *source_name, char *target_name); // 0x5387e0
 extern int32_t strcmp(const char *a, const char *b);
 
-// blam-cc: source_name in EDI, then the recognized stack parameter (name)
-// Loads the checkpoint at "<current profile directory><name>.sav/.bin" as the active checkpoint:
-// applies its saved difficulty (if 0..3) as the pending difficulty, queues a map change/revert,
-// and -- unless source_name is already "savegame" -- promotes it by copying it onto the active
-// "savegame" slot. Returns whether the checkpoint existed and was loaded.
-uint8_t saved_game_load_checkpoint_by_name(char *source_name, char *name)
+extern char *campaign_level_paths_00696574[10]; // 0x00696574
+
+// blam-cc: stack -> name (cdecl)
+// FIXED (verified against 0x5391a0..0x53928d): the only argument is the stack name; EDI is saved and restored,
+//   not an input. The stats file reader takes &difficulty in EBX. A difficulty 0..3 becomes pending_difficulty
+//   (0x696564, a word). main_queue_map_change gets EAX = campaign_level_paths_00696574[level] for a level 0..9,
+//   otherwise NULL (the draft passed nothing). When the name is not "savegame" (9-byte compare) the files are
+//   copied onto "savegame" (ESI = directory, EDI = name). Returns whether the stats file gave a level.
+// Loads the checkpoint "<current profile directory><name>.sav" as the active checkpoint.
+uint8_t saved_game_load_checkpoint_by_name(char *name)
 {
     char directory[264];
     char path[264];
@@ -48,6 +53,7 @@ uint8_t saved_game_load_checkpoint_by_name(char *source_name, char *name)
     void *find_handle;
     int32_t difficulty;
     int16_t level;
+    char *map_path = 0;
 
     saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
     _sprintf(path, "%s%s.sav", directory, name);
@@ -61,14 +67,15 @@ uint8_t saved_game_load_checkpoint_by_name(char *source_name, char *name)
     if (level == -1) {
         return 0;
     }
-
-    if (-1 < difficulty && difficulty < 4) {
+    if ((int16_t)difficulty >= 0 && (int16_t)difficulty < 4) {
         pending_difficulty = (int16_t)difficulty;
     }
-    main_queue_map_change();
-
-    if (strcmp(source_name, "savegame") != 0) {
-        saved_game_copy_files_to_target(directory, source_name, "savegame");
+    if (level >= 0 && level < 10) {
+        map_path = campaign_level_paths_00696574[level];
+    }
+    main_queue_map_change(map_path);
+    if (memcmp(name, "savegame", 9) != 0) {
+        saved_game_copy_files_to_target(directory, name, "savegame");
     }
     return 1;
 }
