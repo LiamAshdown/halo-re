@@ -92,7 +92,6 @@ game_engine_update_custom_waypoint_navpoints       # game: rewrite says 'placeho
 game_engine_update_end_game_sequence               # game: rewrite says 'simplified'
 game_engine_update_teleporter                      # game: rewrite says 'placeholder'
 players_client_catchup_on_server_updates           # game: rewrite says 'placeholder'
-savegame_slot_handle_pack                          # game: rewrite says 'placeholder'
 team_pair_overrides_tick                           # game: rewrite says 'elided here'
 unicode_string_list_get_string                     # game: rewrite says 'placeholder'
 update_client_queue_apply_tick                     # game: rewrite says 'placeholder'
