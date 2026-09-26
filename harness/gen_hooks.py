@@ -556,6 +556,20 @@ def ret_cleanup(addr, size):
         if rets: return rets
     return rets
 
+def ret_cleanup_tail(addr, size, depth=0):
+    """ret_cleanup, but an original that never returns itself and only leaves through tail jumps (jmp to another
+    function's entry, keeping the caller's stack) inherits the ret forms of the functions it jumps to:
+    render_pregame_view_initialize (0x4c8f20) ends with jmp 0x50c590"""
+    rets = ret_cleanup(addr, size)
+    if rets or depth > 1: return rets
+    ents = set(known_entries()); out = set()
+    for _, op, args in _insns_of(addr, addr + size):
+        if op == "jmp" and re.fullmatch(r"0x[0-9a-f]+", args):
+            t = int(args, 16)
+            if not (addr <= t < addr + size) and t in ents:
+                out |= ret_cleanup_tail(t, FUNC_SIZES.get(t) or 16, depth + 1)
+    return out
+
 def coff_undefined(obj):
     d = open(obj, "rb").read()
     nsec, _, symptr, nsym = struct.unpack_from("<HHIII", d, 2)[0], 0, *struct.unpack_from("<II", d, 8)
@@ -663,10 +677,11 @@ def main():
     cache = json.load(open(cache_p)) if os.path.exists(cache_p) else {}
     key = lambda f: f"{f['addr']:x}:{f['size']}"
     FUNC_SIZES.update({f["addr"]: f["size"] for f in funcs.values()})
-    todo = [f for f in funcs.values() if key(f) not in cache or not isinstance(cache[key(f)], dict) or cache[key(f)].get("v") != 12]
+    todo = [f for f in funcs.values() if key(f) not in cache or not isinstance(cache[key(f)], dict) or cache[key(f)].get("v") != 12
+            or (not cache[key(f)]["rets"] and not cache[key(f)].get("tail"))]
     with ThreadPoolExecutor(16) as ex:
-        for f, res in zip(todo, ex.map(lambda f: (sorted(ret_cleanup(f["addr"], f["size"])), live_in(f["addr"], f["size"])), todo)):
-            cache[key(f)] = {"rets": res[0], "live_in": res[1], "v": 12}
+        for f, res in zip(todo, ex.map(lambda f: (sorted(ret_cleanup_tail(f["addr"], f["size"])), live_in(f["addr"], f["size"])), todo)):
+            cache[key(f)] = {"rets": res[0], "live_in": res[1], "v": 12, "tail": 1}
     json.dump(cache, open(cache_p, "w"))
     for f in funcs.values(): f["rets"] = cache[key(f)]["rets"]; f["live_in"] = cache[key(f)]["live_in"]
     # stack arguments the callers actually pass: the `add esp,N` that follows a call to a caller-cleans function
