@@ -1,6 +1,6 @@
 // real_matrix4x3_rotation_from_forward  (Ghidra: FUN_0055eed0; renamed for this rewrite)
 // address 0x55eed0, size 242 bytes
-// name confidence: 0.45   rewrite confidence: 0.45
+// name confidence: 0.45   rewrite confidence: 0.9 (checked against objdump -d 0x55eed0..0x55efc1 in step 1)
 // evidence: out/phase4/units_types_notes.md "0x564ae0, 0x5579e0, 0x558860, 0x55eed0, 0x5658f0,
 //   0x572a90 -- vector/basis helpers ... orthonormal rebuild". Sibling of
 //   real_matrix4x3_rotation_rebuild_orthonormal (0x558860), simplified for the case where the
@@ -15,10 +15,6 @@
 //   ESI = ECX, an incoming pointer parameter; 0x55f02d, see below), left (out) in EBX, up (out)
 //   in EDI -- both local buffers at the call sites. No stack arguments.
 //   // blam-cc: ESI -> forward, EBX -> left (out), EDI -> up (out)
-// UNSURE: the explicit vector3d_cross_product() call in the degenerate-up fallback has its
-//   arguments elided by Ghidra; this rewrite assumes it computes the same up x forward this
-//   whole function computes everywhere else (consistent with every other cross product in this
-//   file and its sibling), not independently re-derived from objdump.
 
 #include "tags.h"
 #include "math.h"
@@ -44,7 +40,9 @@ void real_matrix4x3_rotation_from_forward(real_vector3d *forward, real_vector3d 
     cross(left, up, forward); // left = up x forward
     if (vector3d_normalize_with_length(left) == 0.0f) {
         *up = *global_forward3d_pointer;
-        vector3d_cross_product(left, up, forward); // UNSURE: args elided by Ghidra; see file header
+        // FIXED (objdump 0x55ef5b..0x55ef60): EAX = left, ECX = forward, push up; the helper computes
+        // b x a, so this is up x forward like the main path (the draft passed (up, forward): forward x up)
+        vector3d_cross_product(left, forward, up);
         vector3d_normalize_with_length(left);
     }
 

@@ -371,7 +371,11 @@ typedef struct biped_movement_solver_data {
     real_vector3d result_velocity;      // 0xb8 out: the solved velocity
     float result_impact_speed;          // 0xc4 out: the landing speed the fall-damage and
                                         //      footstep-effect paths consume
-} biped_movement_solver_data;           // size 0xc8
+    float result_blocked_distance;      // 0xc8 out: 0x55efd0 stores (0x560296) the distance
+                                        //      between the swept result velocity and the
+                                        //      requested one; the struct was documented as
+                                        //      0xc8 bytes, so C callers' locals were 4 short
+} biped_movement_solver_data;           // size 0xcc
 
 
 // ---------------------------------------------------------------------------
