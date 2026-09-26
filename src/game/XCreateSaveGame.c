@@ -1,6 +1,6 @@
 // XCreateSaveGame  (Ghidra: XCreateSaveGame, already named -- CEA/PDB match)
 // address 0x551710, size 653 bytes
-// name confidence: 0.85 (CEA/PDB match)   rewrite confidence: 0.35
+// name confidence: 0.85 (CEA/PDB match)   rewrite confidence: 0.9 (step 1: checked against objdump -d 0x551710..0x55199d)
 // evidence: out/phase4/game_types_notes.md ("save games" section) attributes this address to
 //   the CEA string "XCreateSaveGame"; the strings "%s\\%s\\", "Name=%s\n", "%s\\%s" and
 //   "checkpoints\\" match the four sprintf/path-building steps below. Ghidra's own local
@@ -14,7 +14,7 @@
 // register convention: a value gating the whole call (Ghidra's `in_EAX`, checked only for
 //   non-zero, never otherwise read) in EAX; `root_path`, `mode`, `out_path` and `out_path_size`
 //   are this function's own four recognized stack parameters.
-//   // blam-cc: EAX -> validity_token, stack -> root_path, mode, out_path, out_path_size
+//   // blam-cc: EAX -> save_game_name, stack -> root_path, mode, out_path, out_path_size
 // UNSURE: `validity_token`'s real identity (a device/user handle, presumably -- checked but
 //   never used again); string_convert_unicode_to_ascii/string_convert_ascii_to_unicode's exact argument lists (their destination
 //   buffers are elided registers, modeled here as explicit parameters guessed from context);
@@ -26,9 +26,9 @@
 #include "math.h"
 #include "game.h"
 
-extern void string_convert_unicode_to_ascii(char *out_name, uint32_t max_length); // 0x557950, not in this batch;
+extern uint8_t *string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity); // 0x557950, blam-cc: ESI dest, EDI source, stack capacity
     // UNSURE: EAX -> out_name, stack -> max_length (guessed -- builds the checkpoint/save name)
-extern void string_convert_ascii_to_unicode(char *text, uint32_t length); // 0x557990, not in this batch;
+extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dst, uint32_t capacity_bytes, const char *source); // 0x557990, blam-cc: EAX dst, EDI capacity_bytes, EBX source
     // UNSURE: EAX -> text, ECX -> length (guessed -- writes the "Name=" info file)
 extern int _sprintf(char *dest, const char *format, ...); // MSVC CRT
 extern char *_strncpy(char *dest, const char *src, uint32_t count); // MSVC CRT
@@ -40,15 +40,19 @@ extern uint32_t WriteFile(void *file, const void *buffer, uint32_t bytes_to_writ
     uint32_t *bytes_written, void *overlapped); // Win32
 extern uint32_t CloseHandle(void *handle); // Win32
 
-// blam-cc: EAX -> validity_token, stack -> root_path, mode, out_path, out_path_size
+// blam-cc: EAX -> save_game_name, stack -> root_path, mode, out_path, out_path_size
+// FIXED (step 1, objdump -d 0x551710..0x55199d): EAX is the save game's Unicode name -- the source of the ASCII name
+// every path is built from (0x551762: ESI = ascii name, EDI = name, push 0x80); the draft called it an unused token
+// and converted nothing. The "Name=" line is converted into a scratch buffer (EAX dst, EBX src, EDI 0x80).
 // Builds "<root_path>\<name>\" (slot_path) and "<root_path>\<name>" (its trailing-slash-free
 // twin, reused as the file to create), and "<root_path>\<name>" 's info line "Name=<name>\n";
 // ensures root_path exists (creating it if needed); for mode 3 (open existing), just touches
 // the file; for mode 1/4, creates the slot directory (plus a "checkpoints\" subdirectory the
-// first time the slot itself is created) and writes the info line into the slot file. On
+// first time the slot itself is created) and writes the slot file's own path string into it (0x551920: the
+// "Name=" line is built and converted but never written). On
 // success, copies slot_path into *out_path. Returns 0 on success, or a Win32/HRESULT-style
 // error code.
-uint32_t XCreateSaveGame(uint32_t validity_token, const char *root_path, int32_t mode,
+uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root_path, int32_t mode,
     char *out_path, uint32_t out_path_size)
 {
     uint32_t bytes_written = 0;
@@ -64,17 +68,15 @@ uint32_t XCreateSaveGame(uint32_t validity_token, const char *root_path, int32_t
     void *file;
     int32_t i;
 
-    (void)validity_token;
-
-    if (root_path == 0 || validity_token == 0 || out_path == 0 || out_path_size == 0) {
+    if (root_path == 0 || save_game_name == 0 || out_path == 0 || out_path_size == 0) {
         return 0x57;
     }
 
-    string_convert_unicode_to_ascii(name, 0x80);
+    string_convert_unicode_to_ascii((uint8_t *)name, (uint16_t *)save_game_name, 0x80);
     _sprintf(slot_dir, "%s\\%s\\", root_path, name);
     _sprintf(slot_path, "%s%s", slot_dir, name);
     _sprintf(info_line, "Name=%s\n", name);
-    string_convert_ascii_to_unicode(info_line, 0); // UNSURE: length argument not recovered
+    string_convert_ascii_to_unicode((uint16_t *)checkpoint_dir, 0x80, info_line); // result unused (buffer reused below)
 
     _sprintf(slot_file_no_slash, "%s\\%s", root_path, name);
 

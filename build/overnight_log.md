@@ -883,3 +883,8 @@ Remaining step-1 code gap:
   ECX &decoded); sender deref'd once) and join_finalize_message (another sender -> 1; else finalize_join's result)
   rewritten; both now blocked deeper (bit_stream_write_bits_chunked declared differently in join_notify;
   network_game_scenario_load_request under finalize_join). 17 decode callers left.
+- [firing 22] object_recalculate_bounding_radius is logged STUCK (needs a runtime comparison) -> took XCreateSaveGame
+  (17): EAX is the save game's Unicode NAME, the source of the ASCII name all paths use (the draft called it an unused
+  token and converted nothing: every save path was built from an uninitialised buffer on the C path); ret 0x10
+  stdcall; the Name= line converts into a scratch buffer (EAX dst, EBX src, EDI 0x80); the file receives its own path.
+  Root cleared; newly hookable incl. XCreateSaveGame, saved_game_name_is_available.
