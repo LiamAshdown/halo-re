@@ -24,7 +24,7 @@ extern file_reference savegame_directory_file_reference; // 0x00721330
 
 extern void path_append_component(char *destination, const char *component); // 0x555ec0
 extern void path_remove_last_component(uint8_t *path); // 0x555f80
-extern uint8_t file_reference_get_size_by_path(uint32_t *out_size); // 0x555b00, not in this batch
+extern uint8_t file_reference_get_size_by_path(void *ref, uint32_t *out_size); // 0x555b00, ESI ref, stack out_size
 // CORRECTED by review: the four path/file_reference helpers above were declared argument-less
 // because Ghidra elides their register arguments. savegame_index_file_exists.c's own objdump
 // pass pins them for the whole family:
@@ -55,7 +55,7 @@ uint32_t savegame_index_get_slot_count(void)
     path_append_component((char *)&savegame_directory_file_reference + 8, saved_game_root_path);
     *flags_byte = *flags_byte | 1;
 
-    if (file_reference_get_size_by_path(&size) != 0) {
+    if (file_reference_get_size_by_path((void *)&savegame_directory_file_reference, &size) != 0) { // 0x53e473: ESI = 0x721330
         return size / 0x206;
     }
     return 0;

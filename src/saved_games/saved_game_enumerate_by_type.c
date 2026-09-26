@@ -42,7 +42,7 @@ extern uint8_t file_reference_close(file_reference_record *ref); // 0x555890, th
 extern uint32_t WaitForSingleObject(void *handle, uint32_t timeout_ms); // Win32
 extern int32_t ReleaseMutex(void *handle); // Win32
 
-// blam-cc: capacity/count in/out pointer in EBX; type, out_handles, builtin_only as stack args
+// blam-cc: EBX -> capacity_and_count, stack -> type, out_handles, builtin_only
 // Rebuilds the saved-game index first if it is marked dirty, then scans up to *capacity_and_count
 // index entries (rebuilding the count from savegame_index_get_slot_count (FUN_0053e420) as the scan bound) for ones matching
 // type, writing their packed handles into out_handles until either the scan bound or the
