@@ -117,7 +117,7 @@ int main(int argc, char **argv)
         const difftest_entry *e = &difftest_table[t];
         static unsigned char store_a[MAX_PARAMS][BUF_BYTES + 2 * GUARD], store_b[MAX_PARAMS][BUF_BYTES + 2 * GUARD];
         unsigned char *bufs_a[MAX_PARAMS], *bufs_b[MAX_PARAMS];
-        unsigned s, ran = 0, crashed_orig = 0, bad = 0; char first[256] = "";
+        unsigned s, ran = 0, crashed_orig = 0, bad = 0, crashed_rewrite = 0; char first[256] = "";
         if (!selected(e, argc, argv)) continue;
         for (s = 0; s < samples; s++) {
             unsigned long regs_a[6], regs_b[6], stack_a[2 * MAX_PARAMS], stack_b[2 * MAX_PARAMS], out_a[4] = {0}, out_b[4] = {0};
@@ -145,7 +145,7 @@ int main(int argc, char **argv)
             memcpy(data_start, data_snapshot, data_size);
             ok_b = guarded_call((void *)e->adapter, regs_b, stack_b, ns, fr, out_b);
             ran++;
-            if (!ok_b) { if (!bad++) sprintf_s(first, sizeof first, "rewrite crashed (original did not)"); continue; }
+            if (!ok_b) { crashed_rewrite++; if (!bad++) sprintf_s(first, sizeof first, "rewrite crashed (original did not)"); continue; }
             {   /* compare the return at its declared width: a bool leaves junk above AL, a short above AX */
                 unsigned long mask = e->ret == 'b' ? 0xffu : e->ret == 'w' ? 0xffffu : 0xffffffffu;
                 out_a[0] &= mask; out_b[0] &= mask;
@@ -170,6 +170,8 @@ int main(int argc, char **argv)
             printf("%-4s %-48s %-10s %3u/%3u differ%s%s  [%s]\n", bad ? "FAIL" : "ok", e->name, e->module, bad, ran,
                    crashed_orig ? " (original faulted on some inputs)" : "", "", e->shape);
         if (bad) printf("       first difference: %s\n", first);
+        if (crashed_rewrite) printf("       rewrite crashed on %u of them; %u differ in value\n",
+                                    crashed_rewrite, bad - crashed_rewrite);
     }
     printf("difftest: %u functions tested, %u differ\n", tested, fails_total);
     return fails_total ? 2 : 0;

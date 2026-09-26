@@ -25,7 +25,6 @@ antenna_tip_jitter                                 # objects: differ 200/200: po
 flag_cloth_stamp_region_split_flags                # objects: differ 3/164: rewrite crashed (original did not)
 object_color_clamp_to_intensity                    # objects: differ 115/200: pointer arg #0 +0x0: -0.88881 (0xbf638905) vs 2.22416 (0x400e5896)
 object_physics_mass_point_update_orientation       # physics: differ 200/200: pointer arg #1 +0x0: -0.644033 (0xbf24df60) vs -0.103278 (0xbdd38349)
-physics_shape_vertex_to_sphere                     # physics: differ 5/87: pointer arg #1 +0x2b8: 1.4013e-45 (0x00000001) vs -0.0427999 (0xbd2f4f00)
 chimera__rasterizer_dispose_free_memory            # rasterizer: differ 200/200: return 0x00000000 vs 0x0badf00d
 color_channel_real_to_byte                         # rasterizer: differ 200/200: return 0x0badf082 vs 0xfffffd83
 font_glyph_cache_clear_all                         # rasterizer: differ 200/200: return 0x0badf000 vs 0x00000000
@@ -46,7 +45,6 @@ object_apply_shield_damage                         # calls __ftol() with no argu
 unit_apply_damage_effects                          # calls __ftol() with no argument: the float it converts was not traced (UNSURE in the file)
 unit_update                                        # calls __ftol() with no argument: the float it converts was not traced (UNSURE in the file)
 physics_shape_pill_sweep_test_point                # physics: 6/200 differ (return value)
-physics_shape_polygon_test_ray                     # physics: rewrite crashed on 1/185 random inputs
 actor_movement_action_cancel                       # calls a function pointer with no arguments; the original pushes arguments before its indirect call(s)
 actor_update_activation_state                      # calls a function pointer with no arguments; the original pushes arguments before its indirect call(s)
 game_dispose                                       # calls a function pointer with no arguments; the original pushes arguments before its indirect call(s)

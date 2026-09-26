@@ -1,0 +1,6 @@
+physics_shape_add_vertex_proxy
+physics_shape_build_proxies_from_query
+physics_shape_polygon_test_ray
+physics_shape_test_ray
+physics_shape_vertex_to_sphere
+vector3d_project_onto_direction

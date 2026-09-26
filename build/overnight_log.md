@@ -752,3 +752,10 @@ Remaining step-1 code gap:
   unverified (their call conventions match).
 - MP-client twin game_engine_players_update_client: unit_apply_control_block declared wrong (see Step 1 notes).
 - Then build/incomplete_rewrites.txt (299) and harness/known_bad.txt (90).
+- [firing 1, 2026-09-26 afternoon] Item 1 done: removed physics_shape_vertex_to_sphere and physics_shape_polygon_test_ray
+  from known_bad.txt. difftest now reports rewrite crashes separately (harness/difftest_main.c): over 764 samples
+  both functions have 0 value differences; every failure is a crash where a random int16 count (sphere/pill count,
+  projection index) sends the write/read far outside the 1 KB buffer (the original also faults on over half the
+  inputs). Kept out of known_bad. Newly hookable (build/step1_session_new.txt, NOT in hooks.txt):
+  physics_shape_add_vertex_proxy, physics_shape_build_proxies_from_query, physics_shape_polygon_test_ray,
+  physics_shape_test_ray, physics_shape_vertex_to_sphere, vector3d_project_onto_direction. Relinked.
