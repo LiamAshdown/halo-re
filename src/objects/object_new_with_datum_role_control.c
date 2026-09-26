@@ -103,9 +103,8 @@ extern datum_index effect_new_on_object(datum_index creator_object_index, datum_
     // their own call sites show none. Unified on the empty list -- it asserts no prototype and so
     // does not contradict either set of call sites.
 extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
-extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data,
-    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, ECX server
-    // 0x4e1a80, UNSURE: unexamined
+extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t param_1, void *data,
+    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, EAX bits, ECX server
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...); // 0x4c67c0, AL clear_first
     // src/hs/hs_compile_source.c and src/hs/hs_sound_get_gain_reference.c
 extern char *strrchr(const char *str, int ch); // 0x623bc0 _strrchr
@@ -280,7 +279,9 @@ datum_index object_new_with_datum_role_control(object_placement_data *placement,
             override_count = object_type_override_get_0x64(new_index, object_network_message_scratch,
                                                            sizeof object_network_message_scratch);
             if (override_count > 0) {
-                network_session_broadcast_to_flagged(network_server_pointer, 1, object_network_message_scratch, 1, 0, 0, 3);
+                // 0x4f58eb..0x4f5904: EAX = override_count (0x4f44f0's result, untouched since the test)
+                network_session_broadcast_to_flagged(override_count, network_server_pointer, 1, object_network_message_scratch,
+                    1, 0, 0, 3);
             }
         }
     } else if (!active) {
