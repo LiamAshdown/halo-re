@@ -852,3 +852,12 @@ Remaining step-1 code gap:
   object_attach_to_object(a2, attacker, a3), flags |= 0x20, unit flags |= 0x8000, unit_try_ready_weapon(1, 0).
   NEXT: confirm the conventions of unit_cause_melee_damage, object_set_position_and_relink, object_attach_to_object,
   unit_try_ready_weapon; map a2..a4 in the caller's frame; then rewrite both.
+- [firing 16, user present] TOP BLOCKER data_packet_group_decode_packet (31): its own rewrite matches the binary (0 value
+  differences / 351 samples; the crashes come from random group->types pointers) -> off known_bad. It now shows as
+  'declares X' for 26+ network handlers, and the real problem is structural: at every one of its 34 call sites EAX is
+  &length (the handler's own STACK length argument, minus the 2-byte header at 16 of them), but the C handlers have no
+  length parameter, and the C client dispatcher network_game_message_decode_dispatch (0x4db6b0: EAX client, EDX record,
+  EDI length, stack context) calls all 18 handlers with no arguments. Handler conventions differ (beacon: EAX client,
+  EDX buffer, push length; most others push context/length/buffer) -> read each handler's own prologue.
+  Done: network_game_client_decode_beacon_reply (template). Next: remaining handlers one by one (list = the 34 call
+  sites in the firing-16 survey), then both dispatchers. Beacon is now blocked by network_game_search_results_add_or_update.

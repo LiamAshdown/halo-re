@@ -1,7 +1,7 @@
 // network_game_client_decode_beacon_reply  (Ghidra: network_game_client_decode_beacon_reply,
 // already named)
 // address 0x4db9a0, size 119 bytes
-// name confidence: 0.5   rewrite confidence: 0.3
+// name confidence: 0.5   rewrite confidence: 0.9 (step 1: rewritten from objdump -d 0x4db9a0..0x4dba0f)
 // evidence: out/phase4/networking_functions.md summary ("Decodes an incoming game-announcement
 // ('beacon') message received while idle and adds it to the discovered-games search list").
 // register convention: client in EAX (in_EAX), the incoming buffer in EDX (in_EDX).
@@ -27,25 +27,32 @@
 #include "game.h"
 #include "networking.h"
 
-extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,
-    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class); // 0x4d09d0
+extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group,
+    void *decoded_body, uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used, int16_t expected_class);
+    // 0x4d09d0, blam-cc: EAX -> remaining_length, stack -> group, decoded_body, buffer, out_type, out_version_used,
+    //           expected_class
 extern data_packet_group network_game_messages_group; // 0x006994f8
 extern int32_t network_game_search_results_add_or_update(network_game_search_entry *results,
-    const uint8_t *announcement); // 0x4da7d0, this batch
+    const uint8_t *announcement); // 0x4da7d0, blam-cc: EBX -> announcement, stack -> results
 
-// blam-cc: EAX -> client, EDX -> buffer
-int32_t network_game_client_decode_beacon_reply(network_client_globals *client, const uint8_t *buffer)
+// blam-cc: EAX -> client, EDX -> buffer, stack -> length
+// FIXED (step 1, objdump -d 0x4db9a0..0x4dba0f): the message length is the stack argument; the decoder gets
+// EAX = &length after dropping the 2-byte message header, the body is decoded from buffer + 2, and the search list is
+// updated from the DECODED announcement (EBX = &decoded_body), not the raw buffer.
+int32_t network_game_client_decode_beacon_reply(network_client_globals *client, const uint8_t *buffer, int32_t length)
 {
     uint8_t decoded_body[368];
-    int16_t out_a, out_b;
+    int16_t out_type;
+    uint16_t out_version;
 
-    if (client->state == 0) { // UNSURE: live connection-mode value, not padding
-        if (data_packet_group_decode_packet(&network_game_messages_group, decoded_body, buffer + 2,
-                                             &out_a, &out_b, 1) != 0) {
-            network_game_search_results_add_or_update(
-                (network_game_search_entry *)((uint8_t *)client + 4), buffer); // UNSURE argument
-        }
+    if (client->state != 0) {
         return 1;
+    }
+    length = length - 2;
+    if (data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, decoded_body,
+                                        (uint8_t *)buffer + 2, &out_type, &out_version, 1) != 0) {
+        network_game_search_results_add_or_update((network_game_search_entry *)((uint8_t *)client + 4),
+                                                   decoded_body);
     }
     return 1;
 }
