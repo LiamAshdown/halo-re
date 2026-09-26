@@ -27,8 +27,9 @@ extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
     // size, then the seven stack arguments. Returns the encoded bit length in EAX.
 extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
-extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data,
-    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, ECX server
+extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t param_1, void *data,
+    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, EAX bits, ECX server
 
 extern uint8_t shared_hud_text_draw_state; // 0x00871de0, UNSURE identity (see game_types_notes.md)
 
@@ -59,8 +60,7 @@ void game_engine_dispatch_item_pickup_event(int32_t machine_id, int32_t param_1,
     fields.param_2_low = (int16_t)param_2;
     fields_ptr = &fields;
 
-    message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x2f, 0, &fields_ptr, 0, 1, '\0');
-    network_session_broadcast_to_flagged(network_server_pointer, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
+    network_session_broadcast_to_flagged(message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x2f, 0, &fields_ptr, 0, 1, '\0'), network_server_pointer, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
 }
 
 #if 0

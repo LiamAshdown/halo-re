@@ -18,8 +18,9 @@ extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
-extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data,
-    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, ECX server
+extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t param_1, void *data,
+    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, EAX bits, ECX server
 
 // Encodes a one-byte (value 1) network message of type 0x17 and, if the encoder reports it was
 // actually written (return > 0), broadcasts it via network_session_broadcast_to_flagged.
@@ -31,7 +32,7 @@ void game_engine_send_round_reset_message(void)
 
     encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x17, 0, (void **)&payload, 0, 1, 0);
     if (encoded_bits > 0) {
-        network_session_broadcast_to_flagged(network_server_pointer, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
+        network_session_broadcast_to_flagged(encoded_bits, network_server_pointer, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
     }
 }
 

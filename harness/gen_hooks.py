@@ -463,6 +463,46 @@ def known_entries():
         _ENTRIES = sorted(s)
     return _ENTRIES
 
+def reads_x87_input(addr, size):
+    """True when the original's first x87 instruction (in address order) uses a value already on the FPU stack --
+    an input passed in st(0)/st(1) (the _CIpow / _CIfmod helpers) that no C declaration can express"""
+    for _, op, args in _insns_of(addr, pop_limit(addr, size)):
+        if not op.startswith("f"): continue
+        if op in ("fnstcw", "fstcw", "fldcw", "fwait", "fnstsw", "fstsw", "fnclex", "fclex"): continue   # control/status only
+        if op in ("fld", "fild", "fldz", "fld1", "fldpi", "fldl2e", "fldl2t", "fldlg2", "fldln2", "fninit",
+                  "fnsave", "frstor", "fxsave", "fxrstor"):
+            return False
+        return True
+    return False
+
+_CS_MEMO = {}
+def preserves_callee_saved(addr, fsize, depth=0, busy=None):
+    """True when the original at addr returns EBX/ESI/EDI/EBP unchanged on every path: each of them it writes is
+    pushed and popped in its body, and every direct callee (within the game's code) does the same. Indirect calls
+    (COM methods, function tables) and imports follow the standard convention. LTCG may otherwise let a function
+    clobber a callee-saved register its known callers do not need, which a C caller cannot know."""
+    if addr in _CS_MEMO: return _CS_MEMO[addr]
+    busy = busy if busy is not None else set()
+    if addr in busy: return True
+    if depth > 6 or not fsize.get(addr): return False
+    busy.add(addr)
+    ins = _insns_of(addr, pop_limit(addr, fsize[addr]))
+    pushed = {x for _, op, x in ins if op == "push"}; popped = {x for _, op, x in ins if op == "pop"}
+    saved = pushed & popped
+    ok = True
+    for _, op, args in ins:
+        parts = [p.strip() for p in re.split(r",(?![^\[]*\])", args)] if args else []
+        if op not in ("push", "pop", "cmp", "test", "call", "jmp") and not op.startswith("j") and parts:
+            if parts[0] in ("ebx", "esi", "edi", "ebp", "bx", "si", "di", "bp", "bl", "bh") and \
+               {"bx": "ebx", "bl": "ebx", "bh": "ebx", "si": "esi", "di": "edi", "bp": "ebp"}.get(parts[0], parts[0]) not in saved:
+                ok = False; break
+        if op in ("call", "jmp") and re.fullmatch(r"0x[0-9a-f]+", args):
+            t = int(args, 16)
+            if 0x401000 <= t < 0x632000 and t != addr and (op == "call" or t not in range(addr, addr + fsize[addr])):
+                if t in fsize and not preserves_callee_saved(t, fsize, depth + 1, busy): ok = False; break
+    _CS_MEMO[addr] = ok
+    return ok
+
 def pop_limit(addr, size):
     import bisect
     ents = known_entries(); i = bisect.bisect_right(ents, addr)
@@ -538,6 +578,25 @@ def main():
                         r"time|clock|getenv|fopen|fclose|fread|fwrite|fseek|ftell|fflush|fgets|fputs|fprintf|fscanf|remove|rename|"
                         r"localtime|gmtime|mktime)")
     stubs = {s for s in stubs if not crt_ok.fullmatch(s)}
+    # a stub into an original that reads no register input and hands back EBX/ESI/EDI/EBP unchanged (checked through
+    # its direct callees) is an ordinary cdecl call from C: take it off the unsafe list
+    stub_addr = dict((n, int(a, 16)) for n, a in re.findall(r"^PUBLIC (\S+)\n\S+:\n    push 0([0-9A-F]+)h\n    ret", resolve, re.M))
+    fj = os.path.join(ROOT, "out", "functions.json")
+    fsize = {int(x["addr"], 16): int(x.get("size") or 0) for x in json.load(open(fj))} if os.path.exists(fj) else {}
+    cleared = set()
+    for s in sorted(stubs):
+        a = stub_addr.get(s)
+        if a is None or not fsize.get(a): continue
+        FUNC_SIZES.setdefault(a, fsize[a])
+        try:
+            if not live_in(a, fsize[a]) and not reads_x87_input(a, fsize[a]) and preserves_callee_saved(a, fsize):
+                cleared.add(s)
+        except Exception:
+            pass
+    su = os.path.join(H, "stub_unsafe.txt")
+    if os.path.exists(su): cleared -= {l.strip() for l in open(su) if l.strip() and not l.startswith("#")}
+    stubs -= cleared
+    open(os.path.join(OUT, "stubs_cleared.txt"), "w").write("\n".join(sorted(cleared)) + "\n")
     up = os.path.join(OUT, "unresolved.txt")                                          # still unresolved: would call 0
     if os.path.exists(up): stubs |= {l.split("\t")[0] for l in open(up) if l.strip()}
     kb = os.path.join(H, "known_bad.txt")                                             # shown wrong by harness/difftest

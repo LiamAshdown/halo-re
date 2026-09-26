@@ -34,8 +34,9 @@ extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx
     // EDX -> destination size, then the seven stack arguments. Returns the encoded bit
     // length in EAX. `fields` is a pointer TO a pointer to the field block.
 extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
-extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data,
-    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, ECX server
+extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t param_1, void *data,
+    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, EAX bits, ECX server
 extern void network_session_send_to_machine(uint32_t unknown_0, void *unknown_1,
     int32_t length, uint32_t unknown_3, uint32_t unknown_4, uint32_t unknown_5,
     uint32_t unknown_6); // 0x4e1930
@@ -56,7 +57,7 @@ void game_engine_send_player_profile_update(void *has_payload, void *profile_tai
                                                  (uint32_t)profile_tail, 1, 0);
     if (encoded_size > 0) {
         if (target == -1) {
-            network_session_broadcast_to_flagged(network_server_pointer, 1, network_message_scratch, 1, 0, 0, 3); // UNSURE: args 3-6 elided by Ghidra here
+            network_session_broadcast_to_flagged(encoded_size, network_server_pointer, 1, network_message_scratch, 1, 0, 0, 3); // UNSURE: args 3-6 elided by Ghidra here
         } else {
             network_session_send_to_machine(1, network_message_scratch, encoded_size, 1, 0, 0, 3);
         }

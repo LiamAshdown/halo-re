@@ -26,8 +26,9 @@ extern int32_t hash_table_get(hash_table *table, uint32_t key); // UNSURE: zero 
 extern int32_t message_delta_encode_message(uint32_t a1, uint32_t a2, uint32_t a3, void *scratch,
     uint32_t a5, uint32_t a6, uint8_t a7); // network module, 0x4ec940
 extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
-extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data,
-    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, ECX server
+extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t param_1, void *data,
+    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, EAX bits, ECX server
 
 // FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
 // blam-cc: ECX -> key, EDI -> source, stack -> param_1
@@ -53,8 +54,7 @@ void object_queue_pickup_denied_event(void *param_1, int32_t key, uint32_t *sour
     block.original_param_1 = param_1;
     block.source2 = source[2];
 
-    message_delta_encode_message(0, 0x31, 0, &block.looked_up, 0, 1, 0);
-    network_session_broadcast_to_flagged(network_server_pointer, 1, object_network_message_scratch, 0, 0, 0, 3);
+    network_session_broadcast_to_flagged(message_delta_encode_message(0, 0x31, 0, &block.looked_up, 0, 1, 0), network_server_pointer, 1, object_network_message_scratch, 0, 0, 0, 3);
 }
 
 #if 0

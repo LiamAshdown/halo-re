@@ -25,8 +25,9 @@ extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/
 extern int32_t message_delta_encode_message(uint32_t a, uint32_t size, uint32_t b, void *fields,
                                              uint32_t c, uint32_t d, uint8_t e);         // 0x4ec940, UNSURE signature
 extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
-extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data,
-    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, ECX server
+extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t param_1, void *data,
+    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, EAX bits, ECX server
 
 void unit_broadcast_state_change_event(int32_t index) // blam-cc: param_1 -> index
 {
@@ -45,7 +46,7 @@ void unit_broadcast_state_change_event(int32_t index) // blam-cc: param_1 -> ind
 
     int32_t sent = message_delta_encode_message(0, 0xc, 0, &fields, 0, 1, 0);
     if (sent > 0) {
-        network_session_broadcast_to_flagged(network_server_pointer, 1, event9_target, 1, 0, 0, 3);
+        network_session_broadcast_to_flagged(sent, network_server_pointer, 1, event9_target, 1, 0, 0, 3);
     }
 }
 

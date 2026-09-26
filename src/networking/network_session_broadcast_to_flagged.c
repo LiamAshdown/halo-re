@@ -7,7 +7,7 @@
 // test.
 // register convention: ECX = server (network_server_globals *), stack = param_1, data,
 // param_3, param_4, force (char), param_6.
-// blam-cc: ECX -> server, stack -> param_1, data, param_3, param_4, force, param_6
+// blam-cc: EAX -> body_bit_count, ECX -> server, stack -> param_1, data, param_3, param_4, force, param_6 (see FIXED below)
 
 #include "tags.h"
 #include "memory.h"
@@ -15,12 +15,16 @@
 #include "game.h"
 #include "networking.h"
 
-extern char network_channel_queue_message(void *data, void *out_status, int32_t one, uint32_t param_3,
-    uint32_t param_4, uint32_t param_6); // 0x4dce40, other module (UNSURE)
+extern char network_channel_queue_message(network_channel *channel, uint32_t header_value, uint32_t body_value,
+    int32_t header_bit_count, char immediate, char flush_after, int32_t body_bit_count); // 0x4dce40, EDI channel, EBX body bits
 
 // Same qualifying test as network_session_broadcast_to_all, plus flags bit 0x04 (not one of
 // the enumerated network_machine_flags).
-char network_session_broadcast_to_flagged(network_server_globals *server, int32_t param_1,
+// FIXED (objdump 0x4e1a8d, 0x4e1aef..0x4e1b13): the original also takes EAX -- the message length in bits, which it
+// forwards in EBX to network_channel_queue_message -- and queues on each qualifying machine's channel (EDI) with
+// stack (data, &status, 1, param_3, param_4); the sixth push (param_6) is not read by the callee.
+// blam-cc: EAX -> body_bit_count, ECX -> server, stack -> param_1, data, param_3, param_4, force, param_6
+char network_session_broadcast_to_flagged(int32_t body_bit_count, network_server_globals *server, int32_t param_1,
     void *data, int32_t param_3, int32_t param_4, char force, int32_t param_6)
 {
     char ok;
@@ -46,7 +50,8 @@ char network_session_broadcast_to_flagged(network_server_globals *server, int32_
             char sent;
 
             status = (uint8_t)(param_1 != 0);
-            sent = network_channel_queue_message(data, &status, 1, param_3, param_4, param_6);
+            sent = network_channel_queue_message(channel, (uint32_t)data, (uint32_t)&status, 1, (char)param_3,
+                                                 (char)param_4, body_bit_count);
             if (sent == 0) {
                 ok = 0;
             }

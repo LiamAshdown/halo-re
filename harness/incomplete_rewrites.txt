@@ -145,7 +145,6 @@ network_bandwidth_direction_name_to_index          # networking: rewrite says 'o
 network_bandwidth_graph_update                     # networking: rewrite says 'placeholder'
 network_channel_delete                             # networking: rewrite says 'placeholder'
 network_channel_incoming_read_item                 # networking: rewrite says 'simplified'
-network_channel_reliable_pool_ensure_capacity      # networking: rewrite says 'simplified'
 network_channel_service                            # networking: rewrite says 'placeholder'
 network_channel_transmit                           # networking: rewrite says 'elided here'
 network_connection_stats_log_tick                  # networking: rewrite says 'not reproduced'
