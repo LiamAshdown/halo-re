@@ -1,33 +1,26 @@
 // unit_update_aiming_overlay_angles  (Ghidra: unit_update_aiming_overlay_angles)
 // address 0x563b50, size 1352 bytes
-// name confidence: 0.4 (phase2 candidate)   rewrite confidence: 0.15
-// evidence: types/units.h unit_data.overlays[3] (0x2aa/0x2ae/0x2b2), .aiming_bounds_valid/
-//   .looking_bounds_valid (0x2b6/0x2b7), .animation_definition_index/.emotion_animation_frame
-//   (0x2a0/0x2a8), .emotion_animation_index (0x21e), .unknown_2a4, .animation_blend_weight
-//   (0x2e8, ">0 blends animation 10 of the graph unit block"), .animation_state_flags (0x298,
-//   _unit_animation_flag_aiming_enabled), .animation_controls_smoothed[3] (0x364),
-//   .animation_state (0x2a3), .current_weapon_index (0x2f2), .desired_weapon_index... (see
-//   body); types/tags.h Unit.unit_flags (tag+0x17c, simple_creature bit 0x800, has_no_aiming
-//   bit 0x400); the same ModelAnimationsAnimationGraphUnitSeat (animations TagReflexive at
-//   0x40) chain used by unit_try_set_animation_state.
-// register convention: unit index in EAX, an output/blend pointer forwarded to the animation
-//   helpers in the stack parameter.
-//   // blam-cc: param_1 (EAX) -> unit_index, param_2 -> output
-// UNSURE: this is the least-recovered function in the whole batch. The three overlay-advance
-//   calls, the emotion-animation trigger and the animation_blend_weight-gated vertex-frame loop
-//   are reproduced with reasonable confidence (their destination fields and gating conditions
-//   all match named header fields exactly). The final two aiming/looking-angle blocks compute
-//   yaw/pitch via object_get_orientation, vector3d_cross_product and
-//   matrix4x3_inverse_transform_normal into locals (local_54/local_50/local_58) that are never
-//   visibly assigned in this decompilation -- they are almost certainly populated through
-//   overlapping stack slots the decompiler could not attribute to the right call, the same
-//   class of artifact as the "hidden output" calls in unit_find_weapon_marker_transform.c.
-//   Rather than invent a plausible-looking vector algebra to fill that gap, the two blocks are
-//   reproduced only up to the point where they write the four aiming_bounds/looking_bounds
-//   floats (0x2b8/0x2c8, each an int16 frame count times a float scale from the Biped/graph
-//   data, matching the header's description) and set the *_bounds_valid flags; the fpatan/
-//   animation_aiming_screen_blend calls that derive the two angles feeding those
-//   floats are left as a best-effort sketch and are very likely inexact in the small details.
+// name confidence: 0.4   rewrite confidence: 0.85
+// REWRITTEN (objdump 0x563b50..0x56409a; the draft called the aiming blend with a table pointer and two angles).
+//   Stack: unit, the node orientations being built. Graph = the unit tag's animation graph (+0x44), animations at
+//   graph +0x78 (0xb4 each).
+//   1. The three overlay slots layer onto the orientations: +0x2aa replaces (frame +0x2ac), +0x2ae and +0x2b2
+//      overlay (frames +0x2b0, +0x2b4) -- ESI = the animation, stack (frame, orientations). The aim/look flags
+//      +0x2b6/+0x2b7 are cleared.
+//   2. Units whose tag has flag 0x800 (+0x17c) or no unit block (+0x2a0 == -1) stop here. The unit block is graph
+//      units (+0x10) [+0x2a0] (0x64 each; animations +0x40 count / +0x44 int16 slots).
+//      An emotion frame (+0x2a8 unless -1) overlays the emotion animation (slot 11, or +0x21e when set) when the
+//      frame is below its frame count (+0x22). A positive weight +0x2e8 overlays slot 10 at frame 0 with that
+//      weight. With +0x298 bit 1, slots 2..4 overlay interpolated at (frame count - 1) * the weights +0x364..+0x36c.
+//   3. Tags with flag 0x400, units in states 0x17..0x23 or 0x29, or with +0x2a4 set stop here. The aim angles start
+//      as *global_zero_vector2d (0x00696730). With an aiming overlay (+0x29a): the aiming vector (+0x23c) in the
+//      unit's own frame (object_get_orientation, left = forward x up, origin) gives yaw = atan2(y, x) and pitch =
+//      atan2(z, |xy|); the weapon's aiming screen (unit block weapons +0x5c [+0x2a1], 0xbc each, +0x60) sets the
+//      limits +0x2b8..+0x2c4 (-left, right, -down, up: frames times per-frame angles) and animation_aiming_screen_blend
+//      (EDI animation, stack: screen, yaw, pitch, orientations) poses it. With a weapon or a player and a looking
+//      overlay (+0x29c): the looking vector (+0x260) gives angles relative to the aim, the unit block's own screen
+//      (+0x20) sets +0x2c8..+0x2d4 and poses the looking overlay the same way.
+// blam-cc: stack -> unit_index, orientations (cdecl)
 
 #include "tags.h"
 #include "memory.h"
@@ -38,124 +31,147 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t default_aim_angles[8]; // 0x00696730, PTR_DAT_00696730, UNSURE shape (two floats read)
-extern real_vector3d *global_up3d_and_neighbors_pointer; // 0x006966f8, PTR_DAT_006966f8, UNSURE identity
+extern float *global_zero_vector2d_pointer;      // 0x00696730
+extern real_point3d *global_origin3d_pointer_a;  // 0x006966f8
 
-extern void animation_replace_frame_orientations(uint32_t overlay_frame_and_index, void *output);       // 0x4d4dd0, UNSURE signature
-extern void animation_overlay_frame_orientations(uint32_t overlay_frame_and_index, void *output);       // 0x4d4f90, UNSURE signature
-extern void animation_overlay_frame_orientations_weighted(uint32_t zero, float blend_weight, void *output);      // 0x4d51a0, UNSURE signature
-extern void animation_overlay_interpolated_frame_orientations(float frame, void *output);   // 0x4d53f0, UNSURE signature
-extern void animation_aiming_screen_blend(float *table, float u, float v, void *output); // 0x4d5c00, UNSURE signature
-extern void object_get_orientation(void *out);                                 // 0x4f6970, UNSURE: implicit unit_index
-  // real signature (object_get_orientation.c): void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up); Ghidra recovered 1 of 3 args at this call site
-// vector3d_cross_product (0x4052c0) computes  *out = stack_operand x ecx_operand,  with out
-// in EAX, ecx_operand in ECX and stack_operand pushed -- read out of the callee own
-// decompilation (in_EAX / in_ECX / param_1) and matching
-// src/objects/object_set_position_and_orientation.c. Ghidra binds only the stack operand at
-// the call sites below, so the declaration is left unprototyped.
-extern void vector3d_cross_product(); // 0x4052c0
-extern void matrix4x3_inverse_transform_normal(void *v);                       // 0x4cc080
-  // real signature (matrix4x3_inverse_transform_normal.c): void matrix4x3_inverse_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m); Ghidra recovered 1 of 3 args at this call site
+extern void animation_replace_frame_orientations(void *animation, int16_t frame, void *out_orientations); // 0x4d4dd0, ESI, stack
+extern void animation_overlay_frame_orientations(void *animation, int16_t frame, void *out_orientations); // 0x4d4f90, ESI, stack
+extern void animation_overlay_frame_orientations_weighted(void *animation, int16_t frame, float weight,
+    void *out_orientations); // 0x4d51a0, EDI, stack
+extern void animation_overlay_interpolated_frame_orientations(void *animation, float frame, void *out_orientations);
+    // 0x4d53f0, EDI, stack
+extern void animation_aiming_screen_blend(void *animation, void *screen, real yaw, real pitch, void *orientation_out);
+    // 0x4d5c00, EDI, stack
+extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up); // 0x4f6970
+extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0
+extern void matrix4x3_inverse_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m); // 0x4cc080
+extern double atan2(double y, double x);
+extern double sqrt(double x);
 
-void unit_update_aiming_overlay_angles(uint32_t unit_index, void *output) // blam-cc: see file header
+// Builds the unit's own frame (scale 1, orientation, left = forward x up, the origin) and returns `direction`
+// expressed in it as (yaw, pitch).
+static void aiming_angles_in_unit_frame(uint32_t unit_index, real_vector3d *direction, float *yaw, float *pitch)
 {
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    Object *obj_tag = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
-    void *graph = tag_instances[obj_tag->animation_graph.tag_id.index].data;
-    uint8_t *unit_block = *(uint8_t **)((uint8_t *)graph + 0x10);
+    real_matrix4x3 frame;
+    real_vector3d local;
 
-    if (unit->overlays[0].animation_index != -1) {
-        animation_replace_frame_orientations(unit->overlays[0].frame, output);
-    }
-    if (unit->overlays[1].animation_index != -1) {
-        animation_overlay_frame_orientations(unit->overlays[1].frame, output);
-    }
-    if (unit->overlays[2].animation_index != -1) {
-        animation_overlay_frame_orientations(unit->overlays[2].frame, output);
-    }
-    unit->aiming_bounds_valid = 0;
-    unit->looking_bounds_valid = 0;
+    frame.scale = 1.0f;
+    object_get_orientation(&frame.forward, unit_index, &frame.up);
+    vector3d_cross_product(&frame.left, &frame.forward, &frame.up);
+    frame.position = *global_origin3d_pointer_a;
+    matrix4x3_inverse_transform_normal(&local, direction, &frame);
+    *yaw = (float)atan2((double)local.j, (double)local.i);
+    *pitch = (float)atan2((double)local.k, sqrt((double)(local.i * local.i + local.j * local.j)));
+}
 
-    if ((((Unit *)obj_tag)->unit_flags & 0x800) != 0 || unit->animation_definition_index == -1) {
-        return; // simple_creature, or no animation-graph unit block: nothing else to do
+// Screen limits: -left, right, -down, up (the frame counts at +0x08/+0x0a/+0x14/+0x16 times the per-frame angles at
+// +0x00/+0x04/+0x0c/+0x10).
+static void aiming_screen_limits(const uint8_t *screen, float *out)
+{
+    out[0] = -((float)*(int16_t *)(screen + 0x08) * *(float *)(screen + 0x00));
+    out[1] = (float)*(int16_t *)(screen + 0x0a) * *(float *)(screen + 0x04);
+    out[2] = -((float)*(int16_t *)(screen + 0x14) * *(float *)(screen + 0x0c));
+    out[3] = (float)*(int16_t *)(screen + 0x16) * *(float *)(screen + 0x10);
+}
+
+void unit_update_aiming_overlay_angles(uint32_t unit_index, void *output)
+{
+    uint8_t *unit = *(uint8_t **)((uint8_t *)object_data->data + (unit_index & 0xffff) * 0xc + 8);
+    uint8_t *unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
+    uint8_t *graph = (uint8_t *)tag_instances[*(datum_index *)(unit_tag + 0x44) & 0xffff].data;
+    uint8_t *animations = *(uint8_t **)(graph + 0x78);
+    uint8_t *block;
+    float aim_yaw;
+    float aim_pitch;
+    int8_t state;
+
+    if (*(int16_t *)(unit + 0x2aa) != -1) {
+        animation_replace_frame_orientations(animations + *(int16_t *)(unit + 0x2aa) * 0xb4,
+            (int16_t)*(uint16_t *)(unit + 0x2ac), output);
     }
+    if (*(int16_t *)(unit + 0x2ae) != -1) {
+        animation_overlay_frame_orientations(animations + *(int16_t *)(unit + 0x2ae) * 0xb4,
+            (int16_t)*(uint16_t *)(unit + 0x2b0), output);
+    }
+    if (*(int16_t *)(unit + 0x2b2) != -1) {
+        animation_overlay_frame_orientations(animations + *(int16_t *)(unit + 0x2b2) * 0xb4,
+            (int16_t)*(uint16_t *)(unit + 0x2b4), output);
+    }
+    unit[0x2b6] = 0;
+    unit[0x2b7] = 0;
+    if ((*(uint32_t *)(unit_tag + 0x17c) & 0x800) || unit[0x2a0] == 0xff) {
+        return;
+    }
+    block = *(uint8_t **)(graph + 0x10) + (int8_t)unit[0x2a0] * 0x64;
 
-    ModelAnimationsAnimationGraphUnitSeat *unit_seat =
-        (ModelAnimationsAnimationGraphUnitSeat *)(unit_block + unit->animation_definition_index * 100);
+    if (unit[0x2a8] != 0xff) {
+        int16_t emotion = (*(int32_t *)(block + 0x40) > 0xb) ? (*(int16_t **)(block + 0x44))[0xb] : -1;
 
-    if (unit->emotion_animation_frame != -1) {
-        int16_t emotion_animation = -1;
-        if ((int32_t)unit_seat->animations.count >= 0xc) {
-            emotion_animation = *(int16_t *)((uint8_t *)unit_seat->animations.pointer + 0x16);
+        if (*(int16_t *)(unit + 0x21e) != -1) {
+            emotion = *(int16_t *)(unit + 0x21e);
         }
-        if (unit->emotion_animation_index != -1) {
-            emotion_animation = unit->emotion_animation_index;
+        if (emotion != -1) {
+            uint8_t *record = animations + emotion * 0xb4;
+            int8_t frame = (int8_t)unit[0x2a8];
+
+            if (frame >= 0 && frame < *(int16_t *)(record + 0x22)) {
+                animation_overlay_frame_orientations(record, frame, output);
+            }
         }
-        if (emotion_animation != -1 && unit->emotion_animation_frame >= 0) {
-            uint8_t *animations = *(uint8_t **)((uint8_t *)graph + 0x78);
-            ModelAnimationsAnimation *anim =
-                (ModelAnimationsAnimation *)(animations + emotion_animation * 0xb4);
-            if (unit->emotion_animation_frame < anim->frame_count) {
-                // UNSURE: CONCAT22 packs the unit-block pointer's high 16 bits with the frame
-                // index in the original; reproduced as passing the frame index alone.
-                animation_overlay_frame_orientations((uint32_t)(uint16_t)unit->emotion_animation_frame, output);
+    }
+    if (*(float *)(unit + 0x2e8) > 0.0f && *(int32_t *)(block + 0x40) > 0xa &&
+        (*(int16_t **)(block + 0x44))[0xa] != -1) {
+        animation_overlay_frame_orientations_weighted(animations + (*(int16_t **)(block + 0x44))[0xa] * 0xb4, 0,
+            *(float *)(unit + 0x2e8), output);
+    }
+    if (unit[0x298] & 2) {
+        int32_t slot;
+
+        for (slot = 2; slot < 5; slot++) {
+            if (slot < *(int32_t *)(block + 0x40) && (*(int16_t **)(block + 0x44))[slot] != -1) {
+                uint8_t *record = animations + (*(int16_t **)(block + 0x44))[slot] * 0xb4;
+                int32_t last_frame = *(int16_t *)(record + 0x22) - 1;
+
+                animation_overlay_interpolated_frame_orientations(record,
+                    (float)last_frame * *(float *)(unit + 0x364 + (slot - 2) * 4), output);
             }
         }
     }
 
-    if (unit->animation_blend_weight > 0.0f && (int32_t)unit_seat->animations.count > 10 &&
-        *(int16_t *)((uint8_t *)unit_seat->animations.pointer + 0x14) != -1) {
-        animation_overlay_frame_orientations_weighted(0, unit->animation_blend_weight, output);
+    if (*(uint32_t *)(unit_tag + 0x17c) & 0x400) {
+        return;
+    }
+    state = (int8_t)unit[0x2a3];
+    if ((state >= 0x17 && state <= 0x23) || state == 0x29 || unit[0x2a4] != 0) {
+        return;
     }
 
-    if ((unit->animation_state_flags & _unit_animation_flag_aiming_enabled) != 0) {
-        uint8_t *animations = *(uint8_t **)((uint8_t *)graph + 0x78);
-        for (int32_t i = 0; i < 3; i++) {
-            int16_t anim_index = *(int16_t *)((uint8_t *)unit_seat->animations.pointer + 4 + i * 2);
-            if (anim_index != -1) {
-                ModelAnimationsAnimation *anim = (ModelAnimationsAnimation *)(animations + anim_index * 0xb4);
-                float frame = (float)(anim->frame_count - 1) * unit->animation_controls_smoothed[i];
-                animation_overlay_interpolated_frame_orientations(frame, output);
-            }
-        }
+    aim_yaw = global_zero_vector2d_pointer[0];
+    aim_pitch = global_zero_vector2d_pointer[1];
+    if (*(int16_t *)(unit + 0x29a) != -1) {
+        uint8_t *screen = *(uint8_t **)(block + 0x5c) + (int8_t)unit[0x2a1] * 0xbc + 0x60;
+
+        aiming_angles_in_unit_frame(unit_index, (real_vector3d *)(unit + 0x23c), &aim_yaw, &aim_pitch);
+        unit[0x2b6] = 1;
+        aiming_screen_limits(screen, (float *)(unit + 0x2b8));
+        animation_aiming_screen_blend(animations + *(int16_t *)(unit + 0x29a) * 0xb4, screen, aim_yaw, aim_pitch, output);
     }
 
-    if ((((Unit *)obj_tag)->unit_flags & 0x400) != 0) {
-        return; // has_no_aiming
+    if (*(int16_t *)(unit + 0x2f2) == -1 && *(datum_index *)(unit + 0x218) == k_datum_index_none) {
+        return;
     }
+    if (*(int16_t *)(unit + 0x29c) != -1) {
+        uint8_t *screen = block + 0x20;
+        float look_yaw;
+        float look_pitch;
 
-    if ((unit->animation_state < 0x17 || (0x23 < unit->animation_state && unit->animation_state != 0x29)) &&
-        unit->unknown_2a4 == 0) {
-        float aim_yaw = *(float *)default_aim_angles;
-        float aim_pitch = *(float *)(default_aim_angles + 4);
-
-        if (unit->animation_instance != -1) {
-            ModelAnimationsAnimationGraphWeapon *weapon_anim =
-                (ModelAnimationsAnimationGraphWeapon *)((uint8_t *)unit_seat->weapons.pointer +
-                                                         unit->animation_weapon_index * 0xbc);
-            // UNSURE: aim_yaw/aim_pitch derivation, see file header
-            unit->aiming_bounds_valid = 1;
-            unit->aiming_bounds[0] = -((float)(int16_t)weapon_anim->right_frame_count * weapon_anim->right_yaw_per_frame);
-            unit->aiming_bounds[1] = (float)(int16_t)weapon_anim->left_frame_count * weapon_anim->left_yaw_per_frame;
-            unit->aiming_bounds[2] = -((float)(int16_t)weapon_anim->down_pitch_frame_count * weapon_anim->down_pitch_per_frame);
-            unit->aiming_bounds[3] = (float)(int16_t)weapon_anim->up_pitch_frame_count * weapon_anim->up_pitch_per_frame;
-            animation_aiming_screen_blend(&weapon_anim->right_yaw_per_frame, aim_yaw, aim_pitch, output);
-        }
-
-        // Ghidra: (short)puVar2[0xa7], a *dword index* -> object + 0x29c =
-        // unit_data.unknown_29c (the seat / turret overlay gate types/units.h documents),
-        // NOT base_animation_state at 0x2a7. Corrected in the phase-4 review pass.
-        if ((unit->current_weapon_index != -1 || unit->controlling_player != (datum_index)-1) &&
-            unit->unknown_29c != -1) {
-            unit->looking_bounds_valid = 1;
-            unit->looking_bounds[0] = -((float)(int16_t)unit_seat->right_frame_count * unit_seat->right_yaw_per_frame);
-            unit->looking_bounds[1] = (float)(int16_t)unit_seat->left_frame_count * unit_seat->left_yaw_per_frame;
-            unit->looking_bounds[2] = -((float)(int16_t)unit_seat->down_pitch_frame_count * unit_seat->down_pitch_per_frame);
-            unit->looking_bounds[3] = (float)(int16_t)unit_seat->up_pitch_frame_count * unit_seat->up_pitch_per_frame;
-            // UNSURE: yaw/pitch derivation relative to aim_yaw/aim_pitch, see file header
-            animation_aiming_screen_blend(&unit_seat->right_yaw_per_frame, 0.0f, 0.0f, output);
-        }
+        aiming_angles_in_unit_frame(unit_index, (real_vector3d *)(unit + 0x260), &look_yaw, &look_pitch);
+        unit[0x2b7] = 1;
+        look_yaw -= aim_yaw;
+        look_pitch -= aim_pitch;
+        aiming_screen_limits(screen, (float *)(unit + 0x2c8));
+        animation_aiming_screen_blend(animations + *(int16_t *)(unit + 0x29c) * 0xb4, screen, look_yaw, look_pitch,
+            output);
     }
 }
 

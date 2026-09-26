@@ -48,7 +48,7 @@ extern uint8_t unit_find_placement_position(real_point3d *position, datum_index 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, in place, vector in ECX
 extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out); // 0x4cb970
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *in, real_matrix4x3 *m); // 0x4cbde0
-extern char scenario_trigger_volume_contains_point(int32_t trigger_volume_index, datum_index unit_handle); // 0x53f020
+extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point); // 0x53f020, EAX, ECX
 extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index); // 0x470d80
 extern void player_release_unit_and_reset(uint32_t player_index, int32_t previous_unit_override); // this batch, 0x4760b0
 extern void game_engine_build_visible_cluster_bitmask(void *out_bitmask, uint32_t flag); // this module's next batch, 0x4782a0
@@ -144,7 +144,9 @@ uint8_t player_find_placement_position(uint32_t player_index, datum_index target
 
         for (i = 0; i < count; i = i + 1) {
             if (volumes[i].source == (uint16_t)global_structure_bsp_index && plr->unit != (datum_index)-1 &&
-                scenario_trigger_volume_contains_point(volumes[i].trigger_volume, plr->unit) != 0) {
+                scenario_trigger_volume_contains_point((int16_t)volumes[i].trigger_volume,
+                    (real_point3d *)(*(uint8_t **)((uint8_t *)object_data->data + (plr->unit & 0xffff) * 0xc + 8) + 0xa0)) != 0) {
+                // FIXED (0x475a84..0x475a9a): ECX = the unit's centre (object +0xa0), not its handle.
                 placed = 0;
                 found_trigger = 1;
                 break;

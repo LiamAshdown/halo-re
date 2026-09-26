@@ -1,23 +1,15 @@
-// ambient_color_marker_visible  (Ghidra: FUN_0053f860, still unnamed there; named from its own
-//   summary in out/phase4/effects_functions.md: "Determines whether an effect marker's
-//   containing cluster matches a requested sky/indoor visibility filter, computing the marker's
-//   ambient color as a side effect via FUN_0053f940")
+// ambient_color_marker_visible  (Ghidra name kept; really the water/weather probe at a location)
 // address 0x53f860, size 219 bytes
-// name confidence: 0.4   rewrite confidence: 0.15 (VERY LOW -- see UNSURE)
-// evidence: out/phase4/effects_types_notes.md's own description of this address; this module's
-//   ambient_color_for_marker.c (the unconditional tail call, forwarding `position` and `flags`
-//   straight through).
-// register convention: a location pointer (leaf_index +0x00, cluster_index +0x04 -- a
-//   bsp_leaf_reference) in EAX (in_EAX); position and filter-flags are Ghidra's own recognized
-//   stack parameters (param_1, param_2), forwarded unread to ambient_color_for_marker; a third
-//   stack parameter carries the sky/indoor filter bits actually tested here (param_3).
-//   // blam-cc: in_EAX -> location, stack -> (position, out, filter_flags)
-// UNSURE (heavily): scenario_location_fog_region (cluster -> weather-row-shaped index, outside this batch) and
-//   the two nested lookups at `structure_bsp+0x188` (stride 0x28) and `structure_bsp+0x194`
-//   (stride 0x88, +0x2c a tag id) are BSP/scenario runtime structures this module has no types
-//   for; kept as raw offsets. The final tag byte test (`tag_data[0] & 1`) is assumed to be a Sky
-//   tag's indoor/outdoor flag by analogy with the function's own summary, but no header confirms
-//   the tag group or field.
+// name confidence: 0.3   rewrite confidence: 0.9
+// REWRITTEN (objdump 0x53f860..0x53f93a; the draft handed the cluster index to the fog lookup, which takes the
+//   location pointer and a point). EAX = the location, stack: position, out (the wind/current), filter flags.
+//   With a cluster (+0x04 != -1): the fog region (scenario_location_fog_region, EAX location, EBX = position, or
+//   NULL with filter bit 2) picks the weather row -- by default the cluster's own (structure bsp +0x138, 0x68 each,
+//   +0x08). A region (bsp +0x188, 0x28 each) with both palette words (+0x24 fog, +0x26 weather) set whose fog
+//   (bsp +0x194, 0x88 each, tag +0x2c) exists uses its weather row: for a fog tag with flag bit 0 (water) unless
+//   filter bit 3 is set, and then reports "in water" (1); for other fogs unless filter bit 2 is set.
+//   ambient_color_for_marker(AX = the row, stack: position, filter, EDI = out) fills the output.
+// blam-cc: EAX -> location, stack -> position, out, filter_flags
 
 #include "tags.h"
 #include "memory.h"
@@ -29,50 +21,47 @@
 extern uint8_t *global_structure_bsp; // 0x00746f9c
 extern tag_instance *tag_instances;    // 0x0087bc14
 
-extern int16_t scenario_location_fog_region(int16_t cluster_index); // 0x53ec30, UNSURE signature
-                                    // (structures/BSP module)
+extern int16_t scenario_location_fog_region(bsp_leaf_reference *leaf, real_point3d *point); // 0x53ec30, EAX, EBX
 extern void ambient_color_for_marker(int16_t weather_row, real_point3d *position, uint8_t flags,
-    real_vector3d *out); // 0x53f940, this module; UNSURE: weather_row argument is not visibly
-                                    // threaded through this function's own body, see file header
+    real_vector3d *out); // 0x53f940, blam-cc: AX, stack, stack, EDI
 
-// Tests whether the cluster a location falls in matches a requested sky (bit 3) / indoor (bit 2)
-// visibility filter, then always computes that location's ambient colour via
-// ambient_color_for_marker as a side effect.
 uint8_t ambient_color_marker_visible(bsp_leaf_reference *location, real_point3d *position,
     real_vector3d *out, uint32_t filter_flags)
 {
-    uint8_t result = 0;
+    uint8_t in_water = 0;
+    int16_t weather_row = -1;
+    int16_t cluster = *(int16_t *)((uint8_t *)location + 4);
 
-    if (location->cluster_index != -1) {
-        int16_t row = scenario_location_fog_region(location->cluster_index); // UNSURE, see file header
+    if (cluster != -1) {
+        uint32_t skip_non_water = filter_flags & 4;
+        int16_t region = scenario_location_fog_region(location, skip_non_water ? (real_point3d *)0 : position);
 
-        if (row != -1) {
-            uint8_t *cluster_row = *(uint8_t **)(global_structure_bsp + 0x188) + row * 0x28;
-            int16_t a = *(int16_t *)(cluster_row + 0x24);
-            int16_t b = *(int16_t *)(cluster_row + 0x26);
+        weather_row = *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0x138) + cluster * 0x68 + 8);
+        if (region != -1) {
+            uint8_t *fog_region = *(uint8_t **)(global_structure_bsp + 0x188) + region * 0x28;
+            int16_t fog = *(int16_t *)(fog_region + 0x24);
+            int16_t region_weather = *(int16_t *)(fog_region + 0x26);
 
-            if (a != -1 && b != -1) {
-                uint32_t tag_id = *(uint32_t *)(*(uint8_t **)(global_structure_bsp + 0x194) +
-                    (uint32_t)a * 0x88 + 0x2c);
+            if (fog != -1 && region_weather != -1) {
+                datum_index fog_tag = *(datum_index *)(*(uint8_t **)(global_structure_bsp + 0x194) + fog * 0x88 + 0x2c);
 
-                if (tag_id != 0xffffffff) {
-                    uint8_t sky_flag = *(uint8_t *)tag_instances[(uint16_t)tag_id].data;
+                if (fog_tag != k_datum_index_none) {
+                    uint8_t *fog_data = (uint8_t *)tag_instances[fog_tag & 0xffff].data;
 
-                    if ((sky_flag & 1) == 0) {
-                        if ((filter_flags & 4) == 0) {
-                            result = 0;
+                    if (fog_data[0] & 1) {
+                        if ((filter_flags & 8) == 0) {
+                            in_water = 1;
+                            weather_row = region_weather;
                         }
-                    } else if ((filter_flags & 8) == 0) {
-                        result = 1;
+                    } else if (!skip_non_water) {
+                        weather_row = region_weather;
                     }
                 }
             }
         }
     }
-
-    ambient_color_for_marker(0, position, (uint8_t)filter_flags, out); // UNSURE: weather_row
-                                    // argument, see file header
-    return result;
+    ambient_color_for_marker(weather_row, position, (uint8_t)filter_flags, out);
+    return in_water;
 }
 
 #if 0

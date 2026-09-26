@@ -50,9 +50,11 @@ extern float k_physics_gravity; // 0x0069c52c
 extern float k_water_density;   // 0x006b8d7c
 extern float k_air_density;     // 0x006b8d80
 
-extern uint8_t ambient_color_marker_visible(real_point3d *position, real_vector3d *out_wind, uint32_t wind_mode_mask); // 0x53f860,
+extern uint8_t ambient_color_marker_visible(bsp_leaf_reference *location, real_point3d *position,
+    real_vector3d *out, uint32_t filter_flags); // 0x53f860, blam-cc: EAX, stack
     // module unresolved (scenario/weather); returns medium (0 air, 1 water); UNSURE args
-extern void ambient_color_for_marker(real_point3d *position); // 0x53f940, module unresolved; UNSURE args, see
+extern void ambient_color_for_marker(int16_t weather_row, real_point3d *position, uint8_t flags,
+    real_vector3d *out); // 0x53f940, blam-cc: AX, stack, stack, EDI
     // file header
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin,
     real_vector3d *delta, uint32_t exclude_object_index,
@@ -75,7 +77,6 @@ uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPh
     uint32_t collision_flags;
     int16_t bounce;
 
-    (void)unused_param_4;
 
     if (dt == 0.0f) {
         return 0;
@@ -90,10 +91,13 @@ uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPh
         }
 
         if ((flags_arg & 1) == 0) {
-            in_water = ambient_color_marker_visible(position, &probed_wind, wind_mode_mask);
+            // FIXED (0x50b5cf..0x50b5e3): EAX = out_leaf (stack arg 2), stack (position, &probed, mask).
+            in_water = ambient_color_marker_visible(out_leaf, position, &probed_wind, wind_mode_mask);
         } else {
             in_water = (uint8_t)(flags_arg >> 1) & 1;
-            ambient_color_for_marker(position); // UNSURE: also fills probed_wind, see file header
+            // FIXED (0x50b5a6..0x50b5be): AX = stack arg 3 (a weather row, the parameter the draft thought
+            // unused), EDI = &probed, stack (position, mask).
+            ambient_color_for_marker((int16_t)unused_param_4, position, (uint8_t)wind_mode_mask, &probed_wind);
         }
     }
 

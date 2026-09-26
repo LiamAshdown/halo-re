@@ -54,7 +54,7 @@ extern void player_effect_apply_generic_damage_feedback(real fade_fraction); // 
 extern void chimera__kill_feed(datum_index recipient, int32_t param_1, uint32_t message_type,
                                 datum_index subject, char broadcast); // 0x460a30
 extern void player_kill_streak_tick(datum_index player_handle); // this batch, 0x479d10, blam-cc: EAX -> player_handle
-extern char scenario_trigger_volume_contains_point(int32_t trigger_volume_index, datum_index unit_handle);
+extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point); // 0x53f020, EAX, ECX
     // 0x53f020
 extern void console_print_va(const char *format, ...); // 0x4c6920
 extern void hud_display_loading_message(void); // 0x4aa2a0, main module, not in this batch; reads
@@ -167,7 +167,9 @@ void main_switch_structure_bsp(void)
                 for (i = 0; i < count; i = i + 1) {
                     ScenarioBSPSwitchTriggerVolume *entry = &volumes[i];
                     if (entry->source == (uint16_t)global_structure_bsp_index && plr->unit != (datum_index)-1 &&
-                        scenario_trigger_volume_contains_point(entry->trigger_volume, plr->unit) != 0) {
+                        scenario_trigger_volume_contains_point((int16_t)entry->trigger_volume,
+                            (real_point3d *)(*(uint8_t **)((uint8_t *)object_data->data + (plr->unit & 0xffff) * 0xc + 8) + 0xa0)) != 0) {
+                        // FIXED (0x474bc8..0x474be4): ECX = the unit's centre (object +0xa0), not its handle.
                         int16_t destination = (int16_t)entry->destination;
 
                         // CORRECTED by review: the first pass dropped this three-step

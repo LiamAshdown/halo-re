@@ -58,7 +58,7 @@
 #include "structures.h"
 
 // UNSURE: signature reconstructed from this call site; see file header.
-extern int32_t rasterizer_bitmap_sample_texel_cdecl(BitmapData *bitmap, float *uv, float mip_bias);
+extern int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_bias); // 0x524590 (0x4f08e0 calls it)
 extern void color_rgb_int_to_real(ColorRGB *out, uint32_t packed); // 0x43f630, EAX out, ECX packed (src/bitmaps)
 
 // blam-cc: ECX -> material, EDX -> triangle_vertex_indices, stack -> bitmap, weight_1, weight_2, out
@@ -106,7 +106,7 @@ void bsp_lightmap_sample_vertex_color(BitmapData *bitmap, float weight_1, float 
     uv[0] = (u1 - u0) * weight_1 + (u2 - u0) * weight_2 + u0;
     uv[1] = (v1 - v0) * weight_1 + (v2 - v0) * weight_2 + v0;
 
-    packed = rasterizer_bitmap_sample_texel_cdecl(bitmap, uv, 1.0f);
+    packed = rasterizer_bitmap_sample_texel(bitmap, uv, 1.0f);
     color_rgb_int_to_real(out, (uint32_t)packed);
 }
 

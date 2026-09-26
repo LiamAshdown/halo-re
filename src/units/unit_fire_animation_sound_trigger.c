@@ -31,29 +31,37 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern int32_t any_local_player_within_10_units(void);                              // UNSURE: leaf helper, no evidence of args recovered
-extern void effect_marker_environment_probe(datum_index sound_tag, uint32_t flag);  // UNSURE: args guessed from call site
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
-                                                object_marker *marker, uint32_t flags); // 0x4f6080, cdecl, all four on the stack
+extern void effect_marker_environment_probe(uint32_t definition_index, int16_t location_index,
+    real_point3d *marker_position, uint32_t sound_param); // 0x4533b0, blam-cc: stack, ESI, EAX, stack
+extern uint8_t any_local_player_within_10_units(const real_point3d *query_point); // 0x453330, EDX
+extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
+    uint32_t maximum); // 0x4f6080
 
-void unit_fire_animation_sound_trigger(uint32_t unit_index, uint32_t trigger_kind, int16_t contact_point_index) // blam-cc: see file header
+// REWRITTEN (objdump 0x560590..0x560628; the draft passed no point to the proximity test and no marker name).
+// EBX = the unit, [esp+4] = the trigger kind, [esp+8] = the contact point. A contact point below the biped tag's
+// count (+0x4e8) with a footsteps tag (+0x398) set, near a local player (any_local_player_within_10_units, EDX =
+// the unit's centre +0xa0), finds its marker (contact point +0x20 name, 0x40 each at +0x4ec; one marker) and
+// probes the environment at its position (node_transform +0x60): effect_marker_environment_probe(ESI = the
+// trigger kind, EAX = &position, stack: footsteps, 0).
+void unit_fire_animation_sound_trigger(uint32_t unit_index, uint32_t trigger_kind, int16_t contact_point_index)
 {
-    (void)trigger_kind; // param_1 in the Ghidra signature; every caller passes something (3, or a
-                         // 0/1 boolean) but the body never reads it
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Biped *biped_tag = (Biped *)tag_instances[obj->definition_tag & 0xffff].data;
+    uint8_t *unit = *(uint8_t **)((uint8_t *)object_data->data + (unit_index & 0xffff) * 0xc + 8);
+    uint8_t *biped_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
+    object_marker marker;
 
-    datum_index footsteps_tag = *(datum_index *)&biped_tag->footsteps.tag_id;
-
-    if (contact_point_index < (int32_t)biped_tag->contact_point.count && footsteps_tag != (datum_index)-1) {
-        if (any_local_player_within_10_units() != 0) {
-            object_marker marker; // UNSURE: scratch output, never read back by this function
-            int16_t ok = (int16_t)object_get_node_local_transform(unit_index, 0, &marker, 1); // UNSURE: args
-            if (ok != 0) {
-                effect_marker_environment_probe(footsteps_tag, 0);
-            }
-        }
+    if ((int32_t)contact_point_index >= *(int32_t *)(biped_tag + 0x4e8) ||
+        *(datum_index *)(biped_tag + 0x398) == k_datum_index_none) {
+        return;
     }
+    if (!any_local_player_within_10_units((real_point3d *)(unit + 0xa0))) {
+        return;
+    }
+    if ((int16_t)object_get_node_local_transform(unit_index,
+            (char *)(*(uint8_t **)(biped_tag + 0x4ec) + contact_point_index * 0x40 + 0x20), &marker, 1) == 0) {
+        return;
+    }
+    effect_marker_environment_probe(*(datum_index *)(biped_tag + 0x398), (int16_t)trigger_kind,
+        (real_point3d *)((uint8_t *)&marker + 0x60), 0);
 }
 
 #if 0
