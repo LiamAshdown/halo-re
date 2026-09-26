@@ -49,7 +49,9 @@ extern int16_t cache_io_request_new(cache_io_completion *completion, // blam-cc:
 // sound_cache_entry from the completion record and tail-calls sound_cache_decode_permutation.
 // the original 15-byte completion thunk; only its address is handed to the I/O system (never called from here), so
 // it is referenced as that address rather than as an external function (which would route through a stub)
-#define cache_io_sound_decode_thunk ((void (*)(cache_io_completion *))0x00443e00)
+extern uint8_t code_address_cache_io_sound_decode_thunk[]; // 0x00443e00: the original thunk in the hooked build,
+                                             // the C rewrite in the standalone build
+#define cache_io_sound_decode_thunk ((void (*)(cache_io_completion *))code_address_cache_io_sound_decode_thunk)
 
 // blam-cc: permutation in EAX (in_EAX), priority as the recognized stack parameter
 // Allocates a cache page for a sound permutation's sample data and kicks off an async read to

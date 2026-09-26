@@ -28,7 +28,7 @@ extern uint8_t *network_client; // 0x0071c2d8 (networking.h network_client; rena
 extern void *matrix4x3_multiply_thunk; // 0x00696664
 
 extern int32_t _tolower(int32_t c); // 0x624687
-extern int32_t FUN_00625430(uint8_t *lowered_label, char *name_filter); // 0x625430, UNSURE signature
+extern char *strstr(const char *haystack, const char *needle); // CRT strstr (0x625430: the MSVC asm strstr, haystack then needle; case-sensitive)
 extern void actor_notify_weapon_pickup_once(uint32_t object_index);                        // 0x42c370, UNSURE signature
 extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);            // 0x4cc0d0, UNSURE signature
 extern uint32_t datum_get(void);                                        // 0x4d0680, UNSURE signature  // real signature (datum_get.c): void * datum_get(datum_index handle, data_array *array); Ghidra recovered 0 of 2 args at this call site
@@ -78,7 +78,7 @@ int16_t unit_detach_child_at_named_seat(uint32_t unit_index, char *seat_marker_n
             int32_t i = 0;
             do { lowered[i] = (char)_tolower((uint8_t)src[i]); i++; } while (src[i - 1] != '\0');
 
-            if (name_is_empty || (FUN_00625430((uint8_t *)lowered, seat_marker_name) != 0)) {
+            if (name_is_empty || (strstr((const char *)lowered, seat_marker_name) != 0)) {
                 uint32_t child_index = iter.handle;
                 object *child = object_try_and_get(child_index, _object_mask_unit);
                 if ((child != (object *)0) && (game_connection_role != 1) && (child->parent_object != k_datum_index_none) &&

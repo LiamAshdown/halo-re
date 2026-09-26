@@ -26,7 +26,10 @@
 // FIXED (register inputs, objdump): notes were written as a full call signature instead of a
 // parseable "REG -> name" mapping, so ECX (read at 0x5782c5, "push ecx") looked unclaimed. Body
 // already used this correctly; reworded only.
-// UNSURE: FUN_00627dc1 (the SEH frame prolog, `_EH_prolog3` in the CRT) and FUN_0057b830
+// FIXED (first-boot track, objdump 0x627dc1..0x627dd1): FUN_00627dc1 is not `_EH_prolog3` but the base
+//   constructor std::exception::exception() -- ECX this, [this+4] = [this+8] = 0, [this] = 0x0064ef90 -- so it
+//   is inlined as those stores (the old opaque call trapped in the standalone build).
+// UNSURE (historical): FUN_0057b830
 //   (`std::string::assign(const string&, size_t, size_t)`, module=lib:crt per pack.py -- not
 //   assigned to this pass) are declared as opaque externs rather than rewritten; both are
 //   generic MSVC 7.1 runtime code, not Blam logic.
@@ -45,13 +48,15 @@ typedef struct hwreq_parse_exception {
 } hwreq_parse_exception; // size 0x28
 
 extern void *logic_error_vtable; // 0x00655080
-extern void seh_prolog3(void); // 0x627dc1, UNSURE: opaque CRT `_EH_prolog3`
 extern msvc_std_string *string_assign_substr(msvc_std_string *this, const msvc_std_string *right,
     uint32_t pos, uint32_t count); // 0x57b830, module=lib:crt, not this pass
 
 hwreq_parse_exception *hwreq_parse_exception_construct(hwreq_parse_exception *this, const msvc_std_string *message)
 {
-    seh_prolog3(); // UNSURE: SEH frame setup, opaque
+    // std::exception::exception() (0x627dc1, inlined here): clears the two base fields and stores the
+    // std::exception vtable 0x0064ef90, which the next line replaces
+    this->dofree = 0;
+    this->legacy_what = 0;
 
     this->vtable = (uint32_t)&logic_error_vtable;
     this->message.size = 0;

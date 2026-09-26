@@ -12,7 +12,7 @@
 //   zero, [12] U, [13] V (1.0 at the two ground corners, 0.2 at the two top corners), [14..16]
 //   never written. Corners 0/1 share the current boundary point's (x,y) (0 at ground, 1 raised
 //   0.8), corners 2/3 share the next point's (x,y) (2 raised 0.8, 3 at ground) -- a vertical
-//   fence quad between consecutive boundary points. FUN_00623e40 (math module, not yet
+//   fence quad between consecutive boundary points. floor(math module, not yet
 //   rewritten) is called once per total perimeter length; its result is only ever used as a
 //   reciprocal-of-reciprocal here, so it is very likely a period/tile-count helper for the U
 //   coordinate, but its own semantics are not recovered.
@@ -32,7 +32,7 @@ extern real_point3d king_hill_boundary_points[12];  // 0x006b0f54 (this batch)
 
 extern double sqrt(double x); // x87 FSQRT
 extern double fabs(double x); // ABS is a single x87 FABS instruction
-extern double FUN_00623e40(double value); // 0x623e40, math module, UNSURE exact signature/role
+extern double floor(double x); // CRT floor (0x623e40: SSE2-dispatched; its x87 path reports _FpCodeFloor 11)
 extern void game_engine_koth_submit_hill_marker_geometry(uint32_t tag_handle_as_uint,
     uint32_t *position_override, uint32_t *orientation_override, uint32_t param_4,
     uint32_t param_5, float *vertex_source); // 0x46b2f0, this batch
@@ -65,7 +65,7 @@ void game_engine_koth_build_hill_boundary_fence(void)
         }
     }
 
-    length_period = FUN_00623e40((double)(total_length + 0.5f));
+    length_period = floor((double)(total_length + 0.5f));
 
     if (count > 0) {
         float inv_scale = (float)(1.0 / length_period);

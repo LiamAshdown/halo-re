@@ -43,7 +43,7 @@ extern char network_hostname_resolve_with_timeout(char *hostname); // 0x4c8370, 
 extern uint8_t network_game_client_connect_to_address_async(char *address, char *password); // 0x4c8500, this module
 extern void *gethostbyname(const char *name);
 extern char *inet_ntoa(uint32_t addr); // Winsock, struct in_addr passed by value as uint32
-extern char *FUN_006257e0(char *s, int ch); // 0x6257e0, foreign, strchr-shaped
+extern char *strchr(const char *string, int character); // CRT strchr (0x6257e0: the MSVC asm strchr)
 extern void *GlobalFree(void *handle);
 
 // Resolves host_port_string (a "host" or "host:port" string, GlobalAlloc'd by the caller) and
@@ -61,7 +61,7 @@ uint32_t __stdcall network_game_client_connect_by_hostname(char *host_port_strin
     char *address_text;
 
     port = 0;
-    colon = FUN_006257e0(host_port_string, ':');
+    colon = strchr(host_port_string, ':');
     if (colon != 0) {
         port = (uint16_t)atol(colon + 1);
         *colon = '\0';

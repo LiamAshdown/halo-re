@@ -16,8 +16,7 @@
 
 // blam-cc: 0x627c73, Ghidra's fid-conflict placeholder name for the CRT bounded wide
 // vswprintf (_vsnwprintf): dest, count, format, forwarded va_list, all cdecl stack args
-extern void FID_conflict_vswprintf(uint16_t *dest, uint32_t count, const uint16_t *format,
-    va_list args); // 0x627c73
+extern int _vsnwprintf(uint16_t *buffer, uint32_t count, const uint16_t *format, va_list args); // CRT _vsnwprintf (0x627c73: count in characters, doubled to bytes)
 
 // blam-cc: EDX=count, stack=(dest, format, ...)
 // Forwards to the CRT's bounded wide vswprintf (writes at most count code units,
@@ -27,7 +26,7 @@ void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_
     va_list args;
 
     va_start(args, format);
-    FID_conflict_vswprintf(dest, count, format, args);
+    _vsnwprintf(dest, count, format, args);
     va_end(args);
 }
 

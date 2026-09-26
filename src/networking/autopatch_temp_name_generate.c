@@ -14,7 +14,7 @@
 
 extern uint8_t autopatch_temp_name_buffer[11]; // 0x006ef910, bytes 0..10
 extern uint8_t autopatch_temp_name_flag;       // 0x006ef91b, UNSURE: cleared here, adjacent to the buffer
-extern void FUN_006240c2(uint32_t seed); // srand-shaped CRT wrapper
+extern void srand(unsigned int seed); // CRT srand (0x6240c2: stores the seed in the per-thread data, _getptd()->_holdrand)
 extern int32_t rand(void);
 extern int32_t __time32(void *unused);
 
@@ -26,7 +26,7 @@ char *autopatch_temp_name_generate(void)
     int32_t i;
 
     now = (uint32_t)__time32(0);
-    FUN_006240c2(now ^ 0x33333333);
+    srand(now ^ 0x33333333);
     autopatch_temp_name_flag = 0;
     for (i = 10; i >= 4; i--) {
         autopatch_temp_name_buffer[i] = (uint8_t)(rand() % 0x1a) + 'a';

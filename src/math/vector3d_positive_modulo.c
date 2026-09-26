@@ -19,13 +19,13 @@
 #include "tags.h"
 #include "math.h"
 
-extern float fmodf_x87(float x, float y); // 0x628cca, `_CIfmod`, x in ST(1), y in ST(0)
+extern double fmod(double x, double y); // CRT fmod (0x628cca: _CIfmod, x87 fprem; name entry "fmod" at 0x006844f0)
 
 void vector3d_positive_modulo(const real_vector3d *v, real_vector3d *out, float period)
 {
-    out->i = fmodf_x87(v->i, period) + (v->i < 0.0f ? period : 0.0f);
-    out->j = fmodf_x87(v->j, period) + (v->j < 0.0f ? period : 0.0f);
-    out->k = fmodf_x87(v->k, period) + (v->k < 0.0f ? period : 0.0f);
+    out->i = (float)fmod(v->i, period) + (v->i < 0.0f ? period : 0.0f);
+    out->j = (float)fmod(v->j, period) + (v->j < 0.0f ? period : 0.0f);
+    out->k = (float)fmod(v->k, period) + (v->k < 0.0f ? period : 0.0f);
 }
 
 #if 0

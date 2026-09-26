@@ -40,7 +40,7 @@ extern int32_t map_list_capacity;    // 0x00712dd4
 extern void *GlobalAlloc(uint32_t flags, uint32_t bytes);
 extern void *GlobalReAlloc(void *mem, uint32_t bytes, uint32_t flags);
 extern void *GlobalFree(void *mem);
-extern char *_strstr(char *haystack, const char *needle);
+extern char *strstr(const char *haystack, const char *needle); // CRT strstr (0x625430: the MSVC asm strstr, haystack then needle; case-sensitive)
 extern char *_strrchr(const char *s, int32_t c);
 extern uint8_t cache_file_exists(char *name, cache_file_header *header_out); // 0x442bb0
 
@@ -80,7 +80,7 @@ void map_list_add_entry(char *path, int32_t map_id)
     entry->path = (char *)GlobalAlloc(0, path_length + 1);
     strcpy(entry->path, path);
 
-    extension = _strstr(entry->path, ".map"); // UNSURE: needle inferred, see header
+    extension = strstr(entry->path, ".map"); // UNSURE: needle inferred, see header
     if (extension != (char *)0) {
         *extension = '\0';
     }

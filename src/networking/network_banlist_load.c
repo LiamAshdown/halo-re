@@ -66,7 +66,7 @@ extern char network_ban_indefinite_marker[];          // 0x0066b038, "--"
 
 extern char *network_log_path_resolve(char *requested_path); // this module, 0x4e40a0
 // fopen: <stdio.h>, resolved to the game CRT at 0x624186     // 0x624186, fopen-shaped CRT wrapper
-extern char *FUN_006257e0(char *s, int ch);                  // 0x6257e0, foreign, strchr-shaped
+extern char *strchr(const char *string, int character); // CRT strchr (0x6257e0: the MSVC asm strchr)
 extern void string_trim_whitespace(char **string_ptr);       // this module, 0x4e4040, blam-cc: EDI -> string_ptr
 extern ban_list_entry *ban_list_get_or_add_entry(char *name, char *cd_key_hash); // this module, 0x4e3890
 
@@ -99,14 +99,14 @@ void network_banlist_load(void)
         if (line[0] == '#') {
             continue;
         }
-        comma = FUN_006257e0(line, ',');
+        comma = strchr(line, ',');
         if (comma == 0) {
             continue;
         }
         *comma = 0;
         name_ptr = line;
         hash_ptr = comma + 1;
-        rest = FUN_006257e0(hash_ptr, ',');
+        rest = strchr(hash_ptr, ',');
         if (rest != 0) {
             *rest = 0;
             rest = rest + 1;
@@ -121,7 +121,7 @@ void network_banlist_load(void)
             entry->indefinite = 1;
             continue;
         }
-        count_end = FUN_006257e0(rest, ',');
+        count_end = strchr(rest, ',');
         if (count_end == 0) {
             continue;
         }

@@ -24,7 +24,7 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-extern void string_throw_length_error(void); // 0x638e74, UNSURE: opaque, not this pass; noreturn
+extern void string_throw_out_of_range(void); // 0x638e74, _Xran: throws out_of_range("invalid string position")
 
 int32_t string_compare(const msvc_std_string *this, uint32_t n1, uint32_t pos, const char *s, uint32_t n2)
 {
@@ -33,7 +33,7 @@ int32_t string_compare(const msvc_std_string *this, uint32_t n1, uint32_t pos, c
     int32_t result = 0;
 
     if (this->size < pos) {
-        string_throw_length_error();
+        string_throw_out_of_range();
     }
 
     remaining = this->size - pos;

@@ -24,7 +24,7 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern float FUN_00628cca(float value, float modulus); // 0x628cca, UNSURE signature
+extern double fmod(double x, double y); // CRT fmod (0x628cca: _CIfmod, x87 fprem; name entry "fmod" at 0x006844f0)
 extern void object_physics_tick(uint32_t unit_index, uint32_t param_2, void *transform,
                           uint32_t param_4, uint32_t param_5); // 0x507840, UNSURE signature
 extern double cos(double x);
@@ -44,7 +44,7 @@ void vehicle_calculate_steering_wheel_controls(uint32_t unit_index, void *param_
     float wrapped;
 
     vehicle->wheel_rotation = vehicle->forward_velocity + vehicle->wheel_rotation;
-    wrapped = FUN_00628cca(vehicle->wheel_rotation, tag->wheel_circumference);
+    wrapped = (float)fmod(vehicle->wheel_rotation, tag->wheel_circumference);
     vehicle->wheel_rotation = wrapped;
     if (wrapped < 0.0f) {
         vehicle->wheel_rotation = wrapped + tag->wheel_circumference;

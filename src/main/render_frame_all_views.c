@@ -66,7 +66,7 @@ extern double tan(double x);
 extern double atan2(double y, double x);
 
 extern void sound_update(void); // 0x549810, foreign (sound module)
-extern char *_strstr(char *haystack, const char *needle); // CRT
+extern char *strstr(const char *haystack, const char *needle); // CRT strstr (0x625430: the MSVC asm strstr, haystack then needle; case-sensitive)
 extern void viewport_split_rect_compute(int32_t view_count, int32_t view_index,
     Rectangle2D *window, Rectangle2D *out_viewport); // 0x4c8da0, this module
 extern void render_view_camera_fill(observer_camera *observer, render_view *view); // 0x4c9050, this module
@@ -101,7 +101,7 @@ void render_frame_all_views(float time_since_tick, float time_since_frame)
     view_count = 1; // every branch of the original clamp converges on 1 here (k_maximum_local_players)
 
     if (widget_memory_pool_valid != 0 && ui_root_widget[0] != 0) {
-        _strstr(ui_root_widget[0]->name, "error_modal");
+        strstr(ui_root_widget[0]->name, "error_modal");
     }
     if (showing_results || cinematic_globals[9] != 0) {
         view_count = 1;

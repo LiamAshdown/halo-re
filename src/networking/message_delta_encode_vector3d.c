@@ -25,7 +25,7 @@ extern uint32_t message_delta_vector3d_delta_bits; // 0x0069a2d0
 extern uint32_t message_delta_vector3d_absolute_bits_mode0; // 0x0069a2dc
 extern uint32_t message_delta_vector3d_absolute_bits_mode1; // 0x0069a2cc
 
-extern double FUN_00623e40(double value); // 0x623e40, CRT helper; UNSURE: exact effect
+extern double floor(double x); // CRT floor (0x623e40: SSE2-dispatched; its x87 path reports _FpCodeFloor 11)
 extern uint8_t bit_stream_write_bit(int32_t bit_value, bit_stream *stream); // 0x4cf9a0,
     // memory module; UNSURE: the stream operand is in a register at this call site
 extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values
@@ -91,7 +91,7 @@ int32_t message_delta_encode_vector3d(int32_t unused, real *previous, real *valu
                 if ((int32_t)level_count < 0) {
                     level_count_as_float = level_count_as_float + 4.2949673e+09f;
                 }
-                scaled = FUN_00623e40((double)(level_count_as_float *
+                scaled = floor((double)(level_count_as_float *
                     (delta[i] / message_delta_vector3d_delta_range) + 0.5));
                 quantized = (uint32_t)(int32_t)scaled;
                 if (level_count < quantized) {
@@ -126,7 +126,7 @@ int32_t message_delta_encode_vector3d(int32_t unused, real *previous, real *valu
         level_count_as_float = level_count_as_float + 4.2949673e+09f;
     }
     for (i = 0; i < 3; i = i + 1) {
-        scaled = FUN_00623e40((double)(level_count_as_float * (values[i] - -5000.0) * 0.0001 + 0.5));
+        scaled = floor((double)(level_count_as_float * (values[i] - -5000.0) * 0.0001 + 0.5));
         quantized = (uint32_t)(int32_t)scaled;
         if (level_count < quantized) {
             quantized = level_count;

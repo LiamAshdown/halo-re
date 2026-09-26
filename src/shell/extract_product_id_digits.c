@@ -15,7 +15,7 @@
 #include "shell.h"
 
 extern int32_t isdigit(int32_t c); // 0x62532f CRT
-extern int32_t atol_0062589e(const char *string); // 0x62589e CRT
+extern long atol(const char *string); // CRT atol (0x62589e: skips isspace, optional sign, decimal digits)
 
 static const int32_t k_oem_digit_offsets[10] = {12, 13, 14, 15, 18, 19, 20, 21, 22, 0};
 static const int32_t k_retail_digit_offsets[10] = {6, 7, 8, 10, 11, 12, 13, 14, 15, 0};
@@ -53,7 +53,7 @@ int32_t extract_product_id_digits(const char *product_id)
         return -1;
     }
     digits[i] = 0;
-    return atol_0062589e(digits);
+    return atol(digits);
 }
 
 #if 0

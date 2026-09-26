@@ -2,7 +2,7 @@
 // address 0x4c6a80, size 320 bytes
 // name confidence: 0.8   rewrite confidence: 0.7
 // evidence: types/main.h console_globals (history ring); types/hs.h hs_preserve_token_case
-// (0x007102fd); src/networking/network_banlist_load.c's FUN_006257e0 (strchr-shaped) and
+// (0x007102fd); src/networking/network_banlist_load.c's strchr(strchr-shaped) and
 // src/hs/*.c's hs_compile_and_evaluate. Disassembly (objdump -d -M intel, bin/halo.exe,
 // 0x4c6a80..0x4c6bbf) resolves every register Ghidra otherwise drops: EDI is the command line
 // (matching main_types_notes.md); the context_flags stack argument is forwarded unchanged to
@@ -28,7 +28,7 @@
 extern console_globals console_globals_data; // 0x006b7020
 extern uint8_t hs_preserve_token_case;  // 0x007102fd
 
-extern char *FUN_006257e0(char *s, int ch); // 0x6257e0, foreign, strchr-shaped
+extern char *strchr(const char *string, int character); // CRT strchr (0x6257e0: the MSVC asm strchr)
 extern uint32_t console_command_context_mask(uint32_t context_flags); // this module, 0x4c69c0
 extern int16_t hs_autocomplete_gather(char *partial_name, uint32_t mode, uint32_t context_mask,
     int32_t max_count, char **out_names); // 0x483c90, foreign (hs module)
@@ -59,7 +59,7 @@ char console_process_command(char *command_line, uint32_t context_flags) // blam
     }
 
     strncpy(command_name, command_line, 0xff);
-    space = FUN_006257e0(command_name, ' ');
+    space = strchr(command_name, ' ');
     if (space != 0) {
         *space = 0;
     }

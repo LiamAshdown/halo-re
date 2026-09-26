@@ -39,7 +39,7 @@ extern double sqrt(double x); // see object_lights_gather_nearest.c
 // call site at 0x4f327e pushes a float from the frame and then the double constant at
 // 0x00672d58, which the image holds as exactly 0.25 -- so this is pow(x, 0.25), a fourth root,
 // NOT the random-number source an earlier draft guessed at.
-extern double crt_pow_x87(double base, double exponent); // 0x6283c0, operands on the x87 stack
+extern double pow(double x, double y); // CRT pow (0x6283c0: _CIpow, SSE2-dispatched)
 extern void object_color_clamp_to_intensity(float intensity, ColorRGB *color); // 0x4f3410, this
     // batch; UNSURE: called with no visible color pointer at this call site, see file header
 
@@ -100,7 +100,7 @@ void object_build_effect_parameter_block(uint8_t param_1, real_vector3d *param_2
     t1 = clamp01(base_color->k + base_color->k + 0.25f);
     output[0x16] = t1 * t3;
 
-    gamma = crt_pow_x87(luminance, 0.25); // UNSURE: the base is the float at [esp+0x1c];
+    gamma = pow(luminance, 0.25); // UNSURE: the base is the float at [esp+0x1c];
                                           // the exponent 0.25 is read from the image
     output[0x17] = (float)(gamma * output[7]);
     output[0x18] = (float)(gamma * output[8]);

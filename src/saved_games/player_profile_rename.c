@@ -13,7 +13,7 @@
 // player_profile_copy_files is called with the
 // truncated old directory in ESI (its source_dir) and the newly-created directory as the stack
 // argument (its dest_dir).
-// UNSURE: if FUN_00625430 (an apparent case-sensitive substring search, outside this batch)
+// UNSURE: if strstr(an apparent case-sensitive substring search, outside this batch)
 // fails to find "blam.sav" inside the resolved entry's own path, the binary skips the file copy
 // entirely and falls straight into the success path anyway (renaming the index entry without
 // ever having copied any file) -- kept exactly as found, not "fixed".
@@ -39,7 +39,7 @@ extern uint32_t player_profile_copy_files(const char *source_dir, char *dest_dir
 extern int32_t CopyFileA(const char *existing_path, const char *new_path, int32_t fail_if_exists); // Win32
 extern int32_t __snprintf(char *buffer, uint32_t count, const char *format, ...); // CRT
 extern void _strncpy(char *dest, const char *source, uint32_t count); // CRT
-extern char *FUN_00625430(char *haystack, const char *needle); // 0x625430, outside this batch (CRT-like substring search)
+extern char *strstr(const char *haystack, const char *needle); // CRT strstr (0x625430: the MSVC asm strstr, haystack then needle; case-sensitive)
 extern void _wcsncpy(uint16_t *dest, const uint16_t *source, uint32_t count); // CRT
 extern int32_t _wcscmp(const uint16_t *a, const uint16_t *b); // CRT
 
@@ -88,7 +88,7 @@ uint8_t player_profile_rename(int32_t handle, uint16_t *new_name)
 
         __snprintf(dest_path, 0xff, "%s%s", directory, "blam.sav");
         _strncpy(old_directory, entry.path, 0xff);
-        trunc = FUN_00625430(old_directory, "blam.sav");
+        trunc = strstr(old_directory, "blam.sav");
         if (trunc != 0) {
             *trunc = '\0';
             result = (uint8_t)player_profile_copy_files(old_directory, directory);

@@ -23,7 +23,7 @@ extern data_array *terminal_messages;      // 0x006b2f00, "terminal output"
 extern char console_echo_prefix[];         // 0x00669140, matched by chimera__console_out
 
 extern datum_index console_message_new(void); // 0x496420
-extern char *_strstr(char *haystack, const char *needle);
+extern char *strstr(const char *haystack, const char *needle); // CRT strstr (0x625430: the MSVC asm strstr, haystack then needle; case-sensitive)
 extern int32_t __vsnprintf(char *buffer, uint32_t limit, const char *format, va_list args);
 extern void chimera__console_out_copy(char *text); // 0x496e90
 
@@ -60,7 +60,7 @@ void chimera__console_out(ColorARGB *color, char *format, ...)
     __vsnprintf(message->text, 0xfe, format, args);
     va_end(args);
 
-    message->is_command_echo = _strstr(message->text, console_echo_prefix) != (char *)0;
+    message->is_command_echo = strstr(message->text, console_echo_prefix) != (char *)0;
     chimera__console_out_copy(message->text);
 }
 

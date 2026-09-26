@@ -2,7 +2,7 @@
 // out/phase4/rasterizer_functions.md's summary: "Renders and presents a loading/splash screen
 // resource to the device, or simply clears the screen as a fallback.")
 // address 0x5157e0, size 321 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.85
 // evidence: mode == 1 creates an offscreen surface (device vtable +0x90, 6 args matching
 //   CreateOffscreenPlainSurface's shape), loads a resource into it via FUN_0057f80c (outside
 //   this session's range), binds it as the render target (+0x98, +0x88) and presents through
@@ -10,11 +10,11 @@
 //   and mode == 0 (or a failed load) falls through to a plain ColorFill-shaped call (+0xac, 7
 //   args, color 0x3f800000 == white) around rasterizer_capture_and_present.
 // register convention: mode in in_EAX. // blam-cc: EAX -> mode
-// UNSURE: FUN_0057f80c's signature (outside this session's range) is a bare best-effort typing
-//   from its 9 literal arguments; `piVar2`/`local_8` follow the same "vtable pointer used as an
-//   object" pattern flagged elsewhere in this module (rasterizer_dynamic_index_cache_draw.c) --
-//   piVar2 is read as NULL and then its own +8 vtable slot is called, which cannot be a real
-//   Release() on a NULL object; transliterated verbatim rather than guessed.
+// FIXED (first-boot track, objdump 0x5157e0..0x515920): the object released after the two copies is the render
+//   target that GetRenderTarget(0) (+0x98) wrote into the second local -- the old transliteration read it as a
+//   never-written NULL, which crashed the standalone boot. The +0x88 calls are StretchRect(splash, NULL,
+//   render_target, NULL, D3DTEXF_NONE), made twice around the present; FUN_0057f80c is D3DXLoadSurfaceFromResourceA;
+//   the fallback's 0x3f800000 is Clear's Z (1.0), the color is 0 (black).
 
 #include "tags.h"
 #include "memory.h"
@@ -33,8 +33,12 @@ typedef int32_t (__stdcall *d3d_device_call6_fn)(void *device, uint32_t a, uint3
                                         uint32_t color, uint32_t e);
 typedef int32_t (__stdcall *d3d_release_fn)(void *object);
 
-extern int32_t FUN_0057f80c(void *surface, uint32_t a, uint32_t b, uint32_t resource_id, uint32_t c,
-                             uint32_t d, uint32_t e, uint32_t f, uint32_t g); // 0x57f80c, UNSURE signature
+// D3DXLoadSurfaceFromResourceA, statically linked D3DX at 0x57f80c: (dest surface, dest palette, dest rect, module,
+// resource, src rect, filter, color key, src info). objdump 0x57f80c..: finds the resource, then loads it from memory
+// with the last four arguments passed through. The standalone build takes it from the DirectX SDK's d3dx9.lib.
+extern int32_t D3DXLoadSurfaceFromResourceA(void *surface, void *palette, void *dest_rect, uint32_t module,
+                                            uint32_t resource, void *source_rect, uint32_t filter, uint32_t color_key,
+                                            void *source_info); // 0x57f80c
 // blam-cc: EAX -> tile, stack -> bitmap
 extern void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap); // 0x518180
 
@@ -46,47 +50,45 @@ void rasterizer_render_loading_screen(int32_t mode)
     void **vtable;
 
     if (mode != 0) {
-        if (mode != 1) {
+        void *splash = 0;        // [esp+0]
+        void *render_target = 0; // [esp+4]
+        int32_t hr;
+
+        if (mode != 1 || rasterizer_device == (void *)0) {
             return;
         }
-        if (rasterizer_device != (void *)0) {
-            void *surface = (void *)0;
-            int32_t hr;
-
-            vtable = *(void ***)rasterizer_device;
-            hr = ((d3d_create_offscreen_surface_fn)vtable[0x90 / 4])(rasterizer_device, 0x280, 0x1e0, 0x16, 0, &surface, 0);
+        vtable = *(void ***)rasterizer_device;
+        hr = ((d3d_create_offscreen_surface_fn)vtable[0x90 / 4])(rasterizer_device, 0x280, 0x1e0,
+            0x16 /* D3DFMT_X8R8G8B8 */, 0 /* D3DPOOL_DEFAULT */, &splash, 0); // CreateOffscreenPlainSurface
+        if (hr >= 0) {
+            hr = D3DXLoadSurfaceFromResourceA(splash, 0, 0, (uint32_t)shell_module_handle, 0x86 /* MAKEINTRESOURCE */, 0,
+                                              0xffffffff /* D3DX_DEFAULT */, 0, 0);
             if (hr >= 0) {
-                hr = FUN_0057f80c(surface, 0, 0, (uint32_t)shell_module_handle, 0x86, 0, 0xffffffff, 0, 0);
-                if (hr >= 0) {
-                    void *render_target_slot = 0;
+                vtable = *(void ***)rasterizer_device;
+                ((d3d_device_call2_fn)vtable[0x98 / 4])(rasterizer_device, 0, &render_target); // GetRenderTarget(0)
 
-                    vtable = *(void ***)rasterizer_device;
-                    ((d3d_device_call2_fn)vtable[0x98 / 4])(rasterizer_device, 0, &render_target_slot);
+                vtable = *(void ***)rasterizer_device;
+                ((d3d_device_call5_fn)vtable[0x88 / 4])(rasterizer_device, (uint32_t)splash, 0, render_target, 0,
+                                                        0 /* D3DTEXF_NONE */); // StretchRect
+                rasterizer_capture_and_present((const int16_t *)0, (BitmapData *)0); // EAX = 0, push 0
 
-                    vtable = *(void ***)rasterizer_device;
-                    ((d3d_device_call5_fn)vtable[0x88 / 4])(rasterizer_device, 0, 0, &render_target_slot, 0, 0);
+                // the same copy again, so both swap-chain buffers show the splash
+                vtable = *(void ***)rasterizer_device;
+                ((d3d_device_call5_fn)vtable[0x88 / 4])(rasterizer_device, (uint32_t)splash, 0, render_target, 0, 0);
 
-                    rasterizer_capture_and_present((const int16_t *)0, (BitmapData *)0); // EAX = 0, push 0
-
-                    {
-                        void *unresolved = (void *)0; // UNSURE: piVar2, see file header
-
-                        vtable = *(void ***)rasterizer_device;
-                        ((d3d_device_call5_fn)vtable[0x88 / 4])(rasterizer_device, 0, 0, (void *)0, 0, 0);
-
-                        vtable = *(void ***)unresolved;
-                        ((d3d_release_fn)vtable[2])(unresolved); // UNSURE: Release on a NULL object
-                    }
-                }
-                vtable = *(void ***)surface;
-                ((d3d_release_fn)vtable[2])(surface);
-                if (hr >= 0) {
-                    return;
-                }
+                vtable = *(void ***)render_target;
+                ((d3d_release_fn)vtable[2])(render_target);
+            }
+            vtable = *(void ***)splash;
+            ((d3d_release_fn)vtable[2])(splash);
+            if (hr >= 0) {
+                return;
             }
         }
     }
 
+    // mode 0, or the splash could not be shown: Clear(0, NULL, target|zbuffer|stencil, black, z 1.0, stencil 0)
+    // around a present
     if (rasterizer_device != (void *)0) {
         vtable = *(void ***)rasterizer_device;
         ((d3d_device_call6_fn)vtable[0xac / 4])(rasterizer_device, 0, 0, 7, 0, 0x3f800000, 0);

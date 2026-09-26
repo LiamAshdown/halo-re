@@ -16,7 +16,7 @@
 #include "memory.h"
 #include <math.h>
 
-extern double FUN_00623e40(double value); // 0x623e40, CRT helper; UNSURE: exact effect
+extern double floor(double x); // CRT floor (0x623e40: SSE2-dispatched; its x87 path reports _FpCodeFloor 11)
 
 // Maps value from [minimum, maximum] onto an integer index in [0, max_level], rounding to the
 // nearest level and clamping the result to max_level.
@@ -32,7 +32,7 @@ uint32_t message_delta_quantize_float_to_int(uint32_t max_level, real value, rea
     if ((int32_t)max_level < 0) {
         level_count_as_float = level_count_as_float + 4.2949673e+09f;
     }
-    scaled = FUN_00623e40((double)(level_count_as_float * ((value - minimum) / (maximum - minimum)) + 0.5));
+    scaled = floor((double)(level_count_as_float * ((value - minimum) / (maximum - minimum)) + 0.5));
     result = (uint32_t)(int32_t)scaled;
     if (max_level < result) {
         result = max_level;

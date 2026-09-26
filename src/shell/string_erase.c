@@ -14,7 +14,7 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-extern void string_throw_length_error(void); // 0x638e74, UNSURE: opaque, not this pass; noreturn
+extern void string_throw_out_of_range(void); // 0x638e74, _Xran: throws out_of_range("invalid string position")
 extern void *_memmove(void *dest, const void *src, uint32_t count); // 0x6236f0
 
 void string_erase(msvc_std_string *this, uint32_t pos, uint32_t count)
@@ -24,7 +24,7 @@ void string_erase(msvc_std_string *this, uint32_t pos, uint32_t count)
     uint32_t new_size;
 
     if (this->size < pos) {
-        string_throw_length_error();
+        string_throw_out_of_range();
     }
 
     remaining = this->size - pos;

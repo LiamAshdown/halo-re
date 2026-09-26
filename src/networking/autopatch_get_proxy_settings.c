@@ -70,7 +70,7 @@ extern int32_t WideCharToMultiByte(uint32_t code_page, uint32_t flags, const uin
 extern char *_strncpy(char *dest, const char *source, uint32_t count); // 0x623a90, CRT
 extern int _tolower(int c);                                  // 0x624687, CRT
 extern char *_strtok(char *string, const char *delimiters);  // 0x62553c, CRT
-extern char *_strstr(char *haystack, const char *needle);    // 0x625430, CRT
+extern char *strstr(const char *haystack, const char *needle); // CRT strstr (0x625430: the MSVC asm strstr, haystack then needle; case-sensitive)
 
 static const uint16_t k_agent_halopc[] = { 'H', 'a', 'l', 'o', 'P', 'C', 0 }; // 0x6720d0
 static const uint16_t k_bungie_url[] = { 'h', 't', 't', 'p', ':', '/', '/', 'w', 'w', 'w', '.',
@@ -166,7 +166,7 @@ char *autopatch_get_proxy_settings(void)
     }
     do {
         token_count++;
-        if (_strstr(token, "http=") == token) {
+        if (strstr(token, "http=") == token) {
             proxy = token + 5;
             if (proxy == 0) {   // kept from the original (`test esi,esi` at 0x57716d)
                 return autopatch_proxy_server;
@@ -181,7 +181,7 @@ char *autopatch_get_proxy_settings(void)
     proxy = proxy_list; // no "http=" entry: the first token (strtok has already cut it off)
 
 copy_proxy:
-    while (_strstr(proxy, "http://") == proxy) {
+    while (strstr(proxy, "http://") == proxy) {
         proxy += 7;
     }
     _strncpy(autopatch_proxy_server, proxy, 0x100);

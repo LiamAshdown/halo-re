@@ -24,9 +24,12 @@
 #include "shell.h"
 
 extern void uninit_fill_n_string_pair(hwreq_string_pair *dest, uint32_t count, const hwreq_string_pair *value); // 0x57ce80, same pass
-extern void device_list_grow_and_insert(msvc_std_vector *this, void *insert_pos, const hwreq_string_pair *value); // 0x57b920, UNSURE: signature guessed, not this pass
+extern hwreq_string_pair **hwreq_pair_vector_insert(msvc_std_vector *this, hwreq_string_pair **result,
+    hwreq_string_pair *where, const hwreq_string_pair *value); // 0x57b920, blam-cc: EDI -> this, stack -> result, where, value
 
 // blam-cc: EAX -> this, stack -> value
+// FIXED (first-boot track, objdump 0x57b651..0x57b65b): the grow path calls insert(result, where, value) with a
+// hidden result pointer (lea ecx,[esp+0x1c]; push ecx); the old extern dropped it and shifted the arguments.
 void hwreq_device_list_push_back(msvc_std_vector *this, const hwreq_string_pair *value)
 {
     if (this->first != 0 &&
@@ -37,7 +40,10 @@ void hwreq_device_list_push_back(msvc_std_vector *this, const hwreq_string_pair 
         this->last = (uint32_t)((uint8_t *)dest + 0x38);
         return;
     }
-    device_list_grow_and_insert(this, (void *)this->last, value);
+    {
+        hwreq_string_pair *result; // the original passes its own dead argument slot as the result pointer
+        hwreq_pair_vector_insert(this, &result, (hwreq_string_pair *)this->last, value);
+    }
 }
 
 #if 0

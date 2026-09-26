@@ -27,7 +27,7 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern float FUN_00628cca(float value, float modulus); // 0x628cca, UNSURE signature
+extern double fmod(double x, double y); // CRT fmod (0x628cca: _CIfmod, x87 fprem; name entry "fmod" at 0x006844f0)
 extern void object_physics_tick(uint32_t unit_index, uint32_t param_2, void *transform,
                           uint32_t param_4, uint32_t param_5); // 0x507840, UNSURE signature
 
@@ -47,14 +47,14 @@ void vehicle_calculate_turret_controls(uint32_t unit_index, void *param_2)
     float wrapped;
 
     vehicle->left_wheel_rotation = (forward - turning) + vehicle->left_wheel_rotation;
-    wrapped = FUN_00628cca(vehicle->left_wheel_rotation, tag->wheel_circumference);
+    wrapped = (float)fmod(vehicle->left_wheel_rotation, tag->wheel_circumference);
     vehicle->left_wheel_rotation = wrapped;
     if (wrapped < 0.0f) {
         vehicle->left_wheel_rotation = wrapped + tag->wheel_circumference;
     }
 
     vehicle->right_wheel_rotation = (turning + forward) + vehicle->right_wheel_rotation;
-    wrapped = FUN_00628cca(vehicle->right_wheel_rotation, tag->wheel_circumference);
+    wrapped = (float)fmod(vehicle->right_wheel_rotation, tag->wheel_circumference);
     vehicle->right_wheel_rotation = wrapped;
     if (wrapped < 0.0f) {
         vehicle->right_wheel_rotation = wrapped + tag->wheel_circumference;

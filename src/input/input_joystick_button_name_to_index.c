@@ -2,7 +2,7 @@
 // address 0x4912e0, size 82 bytes
 // name confidence: 0.5   rewrite confidence: 0.75
 // evidence: out/phase4/input_types_notes.md: "0x4912e0 parses 'buttonN' (prefix 0x0065b8f0)."
-// strstr is _strstr (see src/interface/console_printf_verbose.c's precedent); objdump of
+// strstr is strstr(see src/interface/console_printf_verbose.c's precedent); objdump of
 // 0x4912e0..0x491331 confirms the name string arrives in EAX (`push eax` as strstr's first
 // arg), the needle is joystick_button_prefix "button" (0x0065b8f0), and the trailing digits are
 // matched against decimal_suffixes[0x20][3] ("0".."31", stride 3, ending at 0x0065b9e8).
@@ -20,7 +20,7 @@
 extern char joystick_button_prefix[0x18]; // 0x0065b8f0, "button"
 extern char decimal_suffixes[0x20][3];    // 0x0065b988, "0" .. "31"
 
-extern char *_strstr(char *haystack, const char *needle); // 0x625430, libc
+extern char *strstr(const char *haystack, const char *needle); // CRT strstr (0x625430: the MSVC asm strstr, haystack then needle; case-sensitive)
 extern int32_t _stricmp(const char *a, const char *b);    // 0x628d8b, libc
 
 // blam-cc: name in EAX
@@ -33,7 +33,7 @@ int16_t input_joystick_button_name_to_index(char *name)
     char *table_entry;
     int16_t index;
 
-    suffix = _strstr(name, joystick_button_prefix);
+    suffix = strstr(name, joystick_button_prefix);
     if (suffix == (char *)0) {
         return -1;
     }

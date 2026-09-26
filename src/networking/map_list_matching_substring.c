@@ -12,7 +12,7 @@
 // "the two *_matching_substring handlers, which pass both on the stack").
 //   // blam-cc: stack -> argument_count, stack -> arguments
 // UNSURE: the map table's element type (name at +0x00, a validity byte at +0x08) is not
-// otherwise attested in this batch, so no struct is declared for it; FUN_00625430 (foreign) is
+// otherwise attested in this batch, so no struct is declared for it; strstr(foreign) is
 // read as a case-insensitive substring test from its two string-shaped arguments.
 // reconciled: R81 0x00712dcc/0x00712dd0 -> interface.h map_list_entry *map_list / int32_t map_list_count (network_map_list_entry dropped: name -> path, valid -> cache_file_exists)
 
@@ -31,7 +31,7 @@
 extern int32_t map_list_count; // 0x00712dd0
 extern map_list_entry *map_list; // 0x00712dcc, stride 0xc
 
-extern int32_t FUN_00625430(char *map_name, char *filter); // foreign, UNSURE: case-insensitive substring test
+extern char *strstr(const char *haystack, const char *needle); // CRT strstr (0x625430: the MSVC asm strstr, haystack then needle; case-sensitive)
 extern void *console_color_00685214; // 0x00685214, a ColorARGB * the original loads into EAX
 extern void *console_color_00686af8; // 0x00686af8, a ColorARGB * the original loads into EAX
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
@@ -62,7 +62,7 @@ void map_list_matching_substring(uint32_t argument_count, char **arguments) // b
         while (i < map_list_count && on_line < 2) {
             map_list_entry *entry = &map_list[i];
             if (entry->cache_file_exists != 0 && entry->path != 0 &&
-                (filter[0] == 0 || FUN_00625430(entry->path, filter) != 0)) {
+                (filter[0] == 0 || strstr(entry->path, filter) != 0)) {
                 char formatted[64];
                 sprintf(formatted, "%-36s ", entry->path);
                 strcat(line, formatted);

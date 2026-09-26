@@ -26,7 +26,7 @@
 extern char joystick_pov_prefix[0x18]; // 0x0065b920, "pov"
 extern char decimal_suffixes[0x20][3]; // 0x0065b988, "0" .. "31" (only the first 16 are scanned)
 
-extern char *_strstr(char *haystack, const char *needle); // 0x625430, libc
+extern char *strstr(const char *haystack, const char *needle); // CRT strstr (0x625430: the MSVC asm strstr, haystack then needle; case-sensitive)
 extern int16_t input_joystick_pov_direction_name_to_index(char *name); // this module, 0x491480,
     // blam-cc: name in EBX
 
@@ -45,7 +45,7 @@ int16_t input_joystick_pov_name_to_index(char *name, int16_t *out_direction)
     int32_t length;
     int16_t direction_index;
 
-    after_prefix = _strstr(name, joystick_pov_prefix);
+    after_prefix = strstr(name, joystick_pov_prefix);
     if (after_prefix == (char *)0) {
         return -1;
     }
@@ -54,7 +54,7 @@ int16_t input_joystick_pov_name_to_index(char *name, int16_t *out_direction)
     pov_index = 0;
     suffix = decimal_suffixes[0];
     while (pov_index < 0x10) { // suffix < 0x0065b9b8 in the binary
-        rest = _strstr(match, suffix);
+        rest = strstr(match, suffix);
         if (rest != (char *)0) {
             length = 0;
             while (suffix[length] != '\0') {

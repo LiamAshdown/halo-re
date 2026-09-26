@@ -27,7 +27,7 @@
 extern char joystick_axis_prefix[0x18]; // 0x0065b908, "axis"
 extern char decimal_suffixes[0x20][3];  // 0x0065b988, "0" .. "31"
 
-extern char *_strstr(char *haystack, const char *needle); // 0x625430, libc
+extern char *strstr(const char *haystack, const char *needle); // CRT strstr (0x625430: the MSVC asm strstr, haystack then needle; case-sensitive)
 extern int16_t input_axis_direction_name_to_index(char *name); // this module, 0x4911f0
 
 // blam-cc: name in EAX
@@ -43,7 +43,7 @@ int16_t input_joystick_axis_name_to_index(char *name, uint8_t *out_direction)
     int32_t axis_index;
     int16_t direction_index;
 
-    after_prefix = _strstr(name, joystick_axis_prefix);
+    after_prefix = strstr(name, joystick_axis_prefix);
     if (after_prefix == (char *)0) {
         return -1;
     }
@@ -51,7 +51,7 @@ int16_t input_joystick_axis_name_to_index(char *name, uint8_t *out_direction)
     axis_index = 0;
     suffix = decimal_suffixes[0];
     while (axis_index < 0x20) { // suffix < 0x0065b9e8 in the binary
-        match = _strstr(after_prefix, suffix);
+        match = strstr(after_prefix, suffix);
         if (match != (char *)0) {
             rest = match + strlen(suffix);
             direction_index = input_axis_direction_name_to_index(rest);

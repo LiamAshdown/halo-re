@@ -35,7 +35,7 @@ extern void weather_instance_adjust_count(int16_t instance_index, int16_t type_i
     real target_value); // 0x457fc0, this module
 extern void weather_particle_update(datum_index weather_particle_handle, int16_t type_index,
     int16_t instance_index); // 0x458630, this module
-extern float FUN_00628cca(float value, float modulus); // 0x628cca, UNSURE signature, see file header
+extern double fmod(double x, double y); // CRT fmod (0x628cca: _CIfmod, x87 fprem; name entry "fmod" at 0x006844f0)
 
 // Per-tick update for one weather instance: advances its elapsed/delta time, and for each
 // particle type slot, fades its target count in/out by camera height against the type's fade
@@ -76,7 +76,7 @@ void weather_instance_update(int16_t instance_index)
                 &((weather_particle *)weather_particle_data->data)[(uint16_t)particle_index];
 
             p->frame = p->animation_rate * instance->delta_time + p->frame;
-            p->frame = FUN_00628cca(p->frame, 1.0f); // UNSURE, see file header
+            p->frame = (float)fmod(p->frame, 1.0f); // UNSURE, see file header
             p->rotation = (real)((((particle_index & 1) != 0) ? -1 : 1)) * p->rotation_rate *
                 instance->delta_time + p->rotation;
 

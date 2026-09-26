@@ -16,7 +16,7 @@
 
 // blam-cc: 0x627d49, Ghidra: _vswprintf. The unbounded CRT wide vswprintf: dest, format,
 // forwarded va_list, all cdecl stack args.
-extern void CRT_vswprintf(uint16_t *dest, const uint16_t *format, va_list args); // 0x627d49
+extern int _vswprintf(uint16_t *buffer, const uint16_t *format, va_list args); // CRT legacy _vswprintf (0x627d49: no count, the VC7.1 non-conforming form)
 
 // blam-cc: EDX=dest, stack=(format, ...)
 // Forwards to the CRT's unbounded wide vswprintf.
@@ -25,7 +25,7 @@ void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...)
     va_list args;
 
     va_start(args, format);
-    CRT_vswprintf(dest, format, args);
+    _vswprintf(dest, format, args);
     va_end(args);
 }
 

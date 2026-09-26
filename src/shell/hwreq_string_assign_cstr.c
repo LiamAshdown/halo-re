@@ -26,7 +26,7 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-extern msvc_std_string *string_assign_cstr_n(msvc_std_string *dest, const char *s, uint32_t count); // 0x57bc90, module=lib:crt; thiscall: ECX dest, stack (s, count)
+extern msvc_std_string *msvc_string_assign_n(msvc_std_string *dest, const char *s, uint32_t count); // 0x57bc90, blam-cc: ECX dest, stack (s, count)
 
 msvc_std_string *hwreq_string_assign_cstr(msvc_std_string *dest, const char *s)
 {
@@ -36,7 +36,7 @@ msvc_std_string *hwreq_string_assign_cstr(msvc_std_string *dest, const char *s)
         // terminator so that (cursor - (s + 1)) == strlen(s)
         cursor++;
     } while (*(cursor - 1) != '\0');
-    return string_assign_cstr_n(dest, s, (uint32_t)(cursor - (s + 1)));
+    return msvc_string_assign_n(dest, s, (uint32_t)(cursor - (s + 1)));
 }
 
 #if 0

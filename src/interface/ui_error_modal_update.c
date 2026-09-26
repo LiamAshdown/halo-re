@@ -34,7 +34,7 @@ extern uint8_t widget_memory_pool_valid; // 0x00718fc2
 extern widget_instance *ui_root_widget[1]; // 0x00718f94
 extern player_globals *local_player_globals; // 0x0087a478
 
-extern char *_strstr(char *haystack, const char *needle);
+extern char *strstr(const char *haystack, const char *needle); // CRT strstr (0x625430: the MSVC asm strstr, haystack then needle; case-sensitive)
 extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect); // 0x449780, solid rectangle fill
     // blam-cc: EAX -> packed_color, ECX -> rect (objdump call sites 0x494d28, 0x4973f9, 0x498617)
 
@@ -50,7 +50,7 @@ void ui_error_modal_update(void)
     if ((current_game_engine == (void *)0 || (int32_t)game_engine_state_value < 2 || (int32_t)game_engine_state_value > 3) &&
         cinematic_globals[9] == 0) {
         if (widget_memory_pool_valid != 0 && ui_root_widget[0] != (widget_instance *)0) {
-            _strstr(ui_root_widget[0]->name, "error_modal");
+            strstr(ui_root_widget[0]->name, "error_modal");
         }
         player_count_field = *(int16_t *)((char *)local_player_globals + 0xc);
         // objdump 0x494cfd..0x494d65: opaque black split-screen dividers

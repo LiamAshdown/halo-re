@@ -56,6 +56,8 @@ extern void *shell_window;                   // 0x007461c4
 extern void *shell_instance;                 // 0x007461c0
 extern int32_t shell_show_command;           // 0x007461cc
 extern uint32_t shell_window_proc;           // 0x007461d0
+extern uint8_t code_address_shell_window_procedure[]; // 0x00541b30: the original address in the hooked build,
+                                             // shell_window_procedure itself in the standalone build
 extern void *shell_gamma_window;             // 0x007461c8
 extern uint8_t shell_window_maximized;       // 0x00746255
 extern uint8_t shell_window_minimized;       // 0x00746254
@@ -219,7 +221,7 @@ int32_t __stdcall shell_winmain(void *hInstance, void *hPrevInstance, char *lpCm
         shell_window = 0;
         shell_instance = hInstance;
         shell_show_command = nCmdShow;
-        shell_window_proc = 0x00541b30; // the window procedure (no Ghidra function; see the notes)
+        shell_window_proc = (uint32_t)code_address_shell_window_procedure; // the window procedure 0x541b30
         shell_gamma_window = 0;
         shell_window_maximized = 0;
         shell_window_minimized = 0;

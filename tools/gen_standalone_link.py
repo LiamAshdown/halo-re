@@ -98,6 +98,18 @@ def d3dx_sizes():
     return sizes
 
 
+def original_ret_bytes(address):
+    """bytes a function at an original address pops on return (the immediate of its first ret), None if not found"""
+    r = subprocess.run(["objdump", "-d", "-M", "intel", "--start-address=0x%x" % address,
+                        "--stop-address=0x%x" % (address + 0x4000), os.path.join(ROOT, "bin", "halo.exe")],
+                       capture_output=True, text=True, errors="replace")
+    for line in r.stdout.split("\n"):
+        m = re.search(r"\tret\s*(0x[0-9a-f]+)?\s*$", line)
+        if m:
+            return int(m.group(1), 16) if m.group(1) else 0
+    return None
+
+
 def stdcall_definitions():
     """function name -> argument bytes, for rewrites defined __stdcall (their symbol is _name@N)"""
     out = {}
@@ -192,6 +204,7 @@ def main():
     data_eq, strings, report, left, traps = [], [], collections.Counter(), [], []
     externs = set()
     std_defs = stdcall_definitions()
+    all_defs = {os.path.splitext(os.path.basename(x))[0] for x in glob.glob(os.path.join(ROOT, "src", "*", "*.c"))}
     nearby_used = []
     for s in unres:
         if not gl.asm_name_ok(s):
@@ -200,6 +213,30 @@ def main():
         if not dec:
             left.append((s, "not a C symbol")); continue
         n, argbytes = dec.group(1), dec.group(2)
+        if n.startswith("code_address_") and n[len("code_address_"):] in all_defs:
+            # C that stores an original function's address for someone else to call (a window procedure, an APC):
+            # the hooked build keeps the original address (an absolute symbol from the declaration's comment); here
+            # it becomes a thunk into the C function, converting when the original was __stdcall (ret N) and the C
+            # is cdecl
+            fn = n[len("code_address_"):]
+            a0 = addr[n].most_common(1)[0][0] if n in addr and addr[n] else None
+            ret_n = original_ret_bytes(a0) if a0 else None
+            target = "_%s@%d" % (fn, std_defs[fn]) if fn in std_defs else "_" + fn
+            externs.add(target)
+            if ret_n is None:
+                left.append((s, "code address: original function end not found")); continue
+            if fn in std_defs and std_defs[fn] != ret_n:
+                left.append((s, "code address: C is __stdcall@%d but the original returns %d" % (std_defs[fn], ret_n)))
+                continue
+            code += ["PUBLIC %s" % s, "%s:" % s]
+            if fn in std_defs or ret_n == 0:
+                code += ["    jmp %s" % target]
+            else:
+                code += ["    push ebp", "    mov ebp, esp"]
+                code += ["    push dword ptr [ebp+%d]" % (8 + off) for off in range(ret_n - 4, -4, -4)]
+                code += ["    call %s" % target, "    add esp, %d" % ret_n, "    pop ebp", "    ret %d" % ret_n]
+            report["code address thunk"] += 1
+            continue
         if argbytes is None and n in std_defs:
             # our C defines it __stdcall but this caller declared it cdecl: copy the arguments, call, return (the
             # callee pops its own copy; the caller pops the originals)

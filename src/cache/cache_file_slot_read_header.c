@@ -58,6 +58,8 @@ extern uint8_t cache_io_wait_for_flag(uint8_t *flag);
 // The ReadFileEx APC FUN_00442c70 installs; declared only to take its address. 0x443b00
 extern void cache_io_completion_routine(uint32_t error_code, uint32_t bytes_transferred,
     cache_io_request *overlapped);
+extern uint8_t code_address_cache_io_completion_routine[]; // 0x00443b00: the original APC in the hooked build; in the
+                                             // standalone build a __stdcall (ret 0xc) thunk into the C above
 
 // blam-cc: slot_index in EAX (in_AX)
 // Reads and validates one cache-file slot's 0x800-byte header from disk, synchronously
@@ -100,7 +102,7 @@ void cache_file_slot_read_header(int32_t slot_index)
         }
     } else {
         cache_io_read_file_ex_retry(ReadFileEx_exref, slot->file, &slot->header, &request,
-            k_cache_file_header_size, 0, (void *)0x443b00);
+            k_cache_file_header_size, 0, (void *)code_address_cache_io_completion_routine);
         // 0x443669: the APC is the ORIGINAL routine's address (mov edi,0x443b00). Windows calls it __stdcall
         // (ret 0xc); passing the cdecl C rewrite cache_io_completion_routine directly left the APC dispatcher
         // 12 bytes off and crashed at startup (EIP on the stack). 0x443b00 reaches the C rewrite through its

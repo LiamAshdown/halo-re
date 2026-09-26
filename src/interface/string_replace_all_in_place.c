@@ -20,7 +20,7 @@
 #include "interface.h"
 
 extern void *_memmove(void *dest, const void *source, uint32_t size);
-extern char *_strstr(char *haystack, const char *needle);
+extern char *strstr(const char *haystack, const char *needle); // CRT strstr (0x625430: the MSVC asm strstr, haystack then needle; case-sensitive)
 extern uint32_t strlen(const char *s);
 
 // blam-cc: EAX -> buffer, then (search, replacement) on the stack
@@ -43,7 +43,7 @@ void string_replace_all_in_place(char *buffer, char *search, char *replacement)
 
     cursor = buffer;
     if (buffer != (char *)0) {
-        while ((cursor = _strstr(cursor, search)) != (char *)0) {
+        while ((cursor = strstr(cursor, search)) != (char *)0) {
             uint32_t tail_size = (uint32_t)(buffer_end - cursor) - 1;
 
             _memmove(cursor, replacement, replacement_length);
