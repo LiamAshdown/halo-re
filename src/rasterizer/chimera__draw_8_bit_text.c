@@ -46,15 +46,8 @@ extern void rasterizer_draw_text_begin(ui_quad_render_state *state); // 0x531b80
 extern void rasterizer_draw_text_end(void); // 0x531e90
 extern void text_wrap_and_draw_narrow(void *glyph_callback, void *dest_rect, uint32_t position_or_color1,
                           void *clip_rect, uint32_t position_or_color2, const char *text); // 0x556400
-extern void LAB_00514ce0_glyph_callback(void); // UNSURE: an internal label of this same
-                                                // original function, not a separate Ghidra
-                                                // function -- its body is not in this pack
-
-// blam-cc: EAX -> clip_rect_override(opt), ECX -> dest_rect_override(opt),
-// stack -> (position_or_color1, position_or_color2, text)
-// Draws an 8-bit (single-byte character) debug text string through the shared glyph layout
-// driver text_wrap_and_draw_narrow, using either the caller-supplied clip/dest rects or the global text safe
-// area when they are NULL.
+extern void text_draw_glyph_callback(void *state, void *font, uint8_t *character, uint32_t color, int16_t x,
+    int16_t y, int16_t source_x, int16_t source_y, int16_t width, int16_t height); // 0x514ce0
 void chimera__draw_8_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override,
                                uint32_t position_or_color1, uint32_t position_or_color2,
                                const char *text)
@@ -108,7 +101,7 @@ void chimera__draw_8_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rec
     glyph_state[3] = (uint32_t)atlas;
 
     rasterizer_draw_text_begin((ui_quad_render_state *)glyph_state); // EDI = &glyph_state
-    text_wrap_and_draw_narrow((void *)LAB_00514ce0_glyph_callback, dest_rect, position_or_color1, clip_rect,
+    text_wrap_and_draw_narrow((void *)text_draw_glyph_callback, dest_rect, position_or_color1, clip_rect,
                  position_or_color2, text);
     rasterizer_draw_text_end();
 }

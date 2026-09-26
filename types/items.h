@@ -34,7 +34,7 @@
 //     Scenario.bipeds / biped_palette / sizeof(ScenarioUnit). The item and garbage rows hold
 //     -1 in all four, which is why neither type has a network delta record here.
 //     The scenario placement sweep at 0x4f3ba0 (Ghidra calls it
-//     objects_update_control_bindings, which does not match its body) walks +0x0a/+0x0c/+0x0e
+//     scenario_objects_place, which does not match its body) walks +0x0a/+0x0c/+0x0e
 //     against the scenario tag data, and FUN_004bc0f0 / FUN_004c5f10 pass +0x10 straight to
 //     message_delta_encode_message as the message type.
 //   - The 2-entry string table at 0x006961b8 is read out of .data as

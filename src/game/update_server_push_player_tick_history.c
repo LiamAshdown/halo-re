@@ -24,121 +24,93 @@ extern uint32_t update_server_history_raw[32 * (0x308 / 4)]; // 0x006f1d94, raw 
                                                               // update_server_history
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: iterator in EDI
-extern void update_client_advance_read_cursor(void); // this batch, 0x4734b0
+extern void update_client_advance_read_cursor(int32_t target_tick, const uint32_t *record); // 0x4734b0, EBX tick, EDX record
+extern data_array *update_server_queues; // 0x006f1d90
 
 // UNSURE: see header.
+// REWRITTEN (first-boot track, objdump 0x472cc0..0x472e9f): the queues iterated are update_server_queues
+//   (0x006f1d90; the old version iterated nothing and dereferenced NULL), and update_client_advance_read_cursor
+//   (EBX the tick, EDX the slot's count word) always runs at the end. Per tick: the ring slot (0x308 bytes, tick &
+//   0x1f, NULL when the tick counter overflowed) gets the tick and a zero count; then for every queue: when its
+//   ring has a record (read +0x38 != write +0x34; records at +0x30, capacity +0x28) the record's refcount (+4)
+//   drops, and at zero the record is popped (read advances modulo the capacity); either way its 11 dwords are the
+//   tick's input -- the queue's +0x44 (and +0x8) get the record's 8 input dwords (+0xc), +0x40 = 1 -- and the
+//   slot gets the 8 dwords at +8 + 0x20 * n and a summary {1, record +4 == 0, ?, ?; record +0, record +8,
+//   record +4} at +0x208 + 0x10 * n. A queue without a record copies its own +8 input and summary {0,...; -1}.
+//   The summary bytes/dwords the original leaves as stack garbage (bytes 2..3, and the last two dwords of an
+//   empty queue's summary) are written as 0 here.
+// blam-cc: none
 void update_server_push_player_tick_history(void)
 {
-    uint32_t *ring_slot;
-    uint16_t *player_count;
-    void *element;
-    data_iterator iter;
+    int32_t tick = update_server_tick;
+    uint8_t *slot;
+    uint16_t *count;
+    data_iterator iterator;
+    uint8_t *queue;
 
-    if (update_server_tick < update_server_tick + 1 && update_server_tick - 0x1f <= update_server_tick) {
-        ring_slot = &update_server_history_raw[(update_server_tick & 0x1f) * 0xc2];
-    } else {
-        ring_slot = 0;
-    }
+    update_server_tick = tick + 1;
+    slot = (tick < tick + 1 && tick >= (tick + 1) - 0x20)
+        ? (uint8_t *)update_server_history_raw + (tick & 0x1f) * 0x308 : 0;
+    *(int32_t *)slot = tick;
+    count = (uint16_t *)(slot + 4);
+    *count = 0;
 
-    ring_slot[0] = (uint32_t)update_server_tick;
-    update_server_tick = update_server_tick + 1;
+    iterator.data = update_server_queues;
+    iterator.next_index = 0;
+    iterator.index = k_datum_index_none;
+    iterator.signature = (uint32_t)update_server_queues ^ 0x69746572; // 'iter'
+    for (queue = (uint8_t *)data_iterator_next(&iterator); queue != 0; queue = (uint8_t *)data_iterator_next(&iterator)) {
+        int32_t read = *(int32_t *)(queue + 0x38);
+        uint32_t *record = 0;
+        uint8_t have = 0;
+        uint32_t *summary = (uint32_t *)(slot + 0x208 + *count * 0x10);
+        int32_t i;
 
-    player_count = (uint16_t *)(ring_slot + 1);
-    *player_count = 0;
-
-    iter.data = 0; // UNSURE: iteration source not recovered (likely update_server_queues)
-    iter.next_index = 0;
-    iter.index = k_datum_index_none;
-    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
-    element = data_iterator_next(&iter);
-
-    while (element != 0) {
-        uint32_t *entry = (uint32_t *)element;
-        uint8_t *entry_bytes = (uint8_t *)element;
-        int32_t write_index = *(int32_t *)(entry_bytes + 0x38);
-        uint8_t queue_empty = write_index == *(int32_t *)(entry_bytes + 0x34);
-        uint32_t *record_ptr = queue_empty ? 0 : *(uint32_t **)(*(int32_t *)(entry_bytes + 0x30) + write_index * 4);
-        uint8_t have_record = !queue_empty;
-        uint32_t local_record[11];
-
-        if (have_record) {
-            uint32_t *refcount = record_ptr + 1;
-
-            *refcount = *refcount - 1;
-            if (*refcount == 0) {
-                write_index = *(int32_t *)(entry_bytes + 0x38);
-                queue_empty = write_index == *(int32_t *)(entry_bytes + 0x34);
-                if (queue_empty) {
-                    record_ptr = 0;
+        if (read != *(int32_t *)(queue + 0x34)) {
+            record = ((uint32_t **)*(uint32_t *)(queue + 0x30))[read];
+            have = 1;
+            record[1] -= 1;
+            if (record[1] == 0) {
+                if (read != *(int32_t *)(queue + 0x34)) {
+                    record = ((uint32_t **)*(uint32_t *)(queue + 0x30))[read];
+                    *(int32_t *)(queue + 0x38) = (read + 1) % *(int32_t *)(queue + 0x28);
                 } else {
-                    record_ptr = *(uint32_t **)(*(int32_t *)(entry_bytes + 0x30) + write_index * 4);
-                    *(int32_t *)(entry_bytes + 0x38) = (write_index + 1) % *(int32_t *)(entry_bytes + 0x28);
+                    record = 0;
+                    have = 0;
                 }
-                have_record = !queue_empty;
             }
-
-            {
-                int32_t i;
+            if (have) {
+                uint32_t local_record[11];
 
                 for (i = 0; i < 11; i++) {
-                    local_record[i] = record_ptr[i];
+                    local_record[i] = record[i];
                 }
-            }
-            entry_bytes[0x40] = 1;
-            {
-                int32_t i;
-
                 for (i = 0; i < 8; i++) {
-                    entry[0x11 + i] = record_ptr[3 + i]; // entry+0x44, 8 dwords
+                    ((uint32_t *)(queue + 0x44))[i] = local_record[3 + i];
                 }
-            }
-
-            if (have_record) {
-                int32_t i;
-                uint32_t *dst;
-
+                queue[0x40] = 1;
                 for (i = 0; i < 8; i++) {
-                    entry[2 + i] = local_record[3 + i]; // entry+8, 8 dwords
+                    ((uint32_t *)(queue + 8))[i] = local_record[3 + i];
+                    ((uint32_t *)(slot + 8 + *count * 0x20))[i] = local_record[3 + i];
                 }
-                dst = ring_slot + (uint32_t)(uint16_t)*player_count * 8 + 2;
-                for (i = 0; i < 8; i++) {
-                    dst[i] = local_record[3 + i];
-                }
-                dst = ring_slot + (uint32_t)(uint16_t)*player_count * 4 + 0x82;
-                dst[0] = (local_record[1] == 0) ? 0x0100 : 0x0001; // UNSURE: packed byte layout,
-                    // see Ghidra's CONCAT11(local_2c[1]==0, 1) into the low word
-                dst[1] = local_record[0];
-                dst[2] = local_record[2];
-                dst[3] = local_record[1];
-                *player_count = *player_count + 1;
-                element = data_iterator_next(&iter);
+                summary[0] = 1u | (uint32_t)(local_record[1] == 0) << 8;
+                summary[1] = local_record[0];
+                summary[2] = local_record[2];
+                summary[3] = local_record[1];
+                *count += 1;
                 continue;
             }
         }
-
-        {
-            int32_t i;
-            uint32_t *dst = ring_slot + (uint32_t)(uint16_t)*player_count * 8 + 2;
-
-            for (i = 0; i < 8; i++) {
-                dst[i] = entry[2 + i]; // entry+8, 8 dwords
-            }
-            dst = ring_slot + (uint32_t)(uint16_t)*player_count * 4 + 0x82;
-            dst[0] = 0;
-            dst[1] = 0xffffffff;
-            dst[2] = 0; // UNSURE: Ghidra's local_44/local_40 here are uninitialized locals in its
-            dst[3] = 0; // own rendering; modeled as 0 pending a disassembly pass
+        for (i = 0; i < 8; i++) {
+            ((uint32_t *)(slot + 8 + *count * 0x20))[i] = ((uint32_t *)(queue + 8))[i];
         }
-
-        *player_count = *player_count + 1;
-        element = data_iterator_next(&iter);
+        summary[0] = 0;
+        summary[1] = 0xffffffff;
+        summary[2] = 0;
+        summary[3] = 0;
+        *count += 1;
     }
-
-    if (0) {
-        update_client_advance_read_cursor(); // Ghidra reaches this only when the iterator's very first call returns
-                         // NULL, which this loop's `while` structure already short-circuits;
-                         // kept here, unreachable, so the call is not silently dropped.
-    }
+    update_client_advance_read_cursor(tick, (const uint32_t *)count);
 }
 
 #if 0

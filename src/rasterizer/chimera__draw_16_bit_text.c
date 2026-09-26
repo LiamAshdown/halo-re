@@ -33,12 +33,8 @@ extern void rasterizer_draw_text_end(void); // 0x531e90
 extern void wcslen(const int16_t *text); // 0x625b7a, UNSURE: return unused, likely a wide string check
 extern void text_wrap_and_draw_wide(void *glyph_callback, void *dest_rect, uint32_t position_or_color1,
                           void *clip_rect, uint32_t position_or_color2, const int16_t *text); // 0x556780
-extern void LAB_00514ce0_glyph_callback(void); // UNSURE: internal label, body not in this pack
-
-// blam-cc: EAX -> clip_rect_override(opt), ECX -> dest_rect_override(opt),
-// stack -> (position_or_color1, position_or_color2, text)
-// Draws a 16-bit (wide character) debug text string; see chimera__draw_8_bit_text for the
-// shared draw path and its UNSURE caveats.
+extern void text_draw_glyph_callback(void *state, void *font, uint8_t *character, uint32_t color, int16_t x,
+    int16_t y, int16_t source_x, int16_t source_y, int16_t width, int16_t height); // 0x514ce0
 void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override,
                                 uint32_t position_or_color1, uint32_t position_or_color2,
                                 const int16_t *text)
@@ -93,7 +89,7 @@ void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_re
     glyph_state[3] = (uint32_t)atlas;
 
     rasterizer_draw_text_begin((ui_quad_render_state *)glyph_state); // EDI = &glyph_state
-    text_wrap_and_draw_wide((void *)LAB_00514ce0_glyph_callback, dest_rect, position_or_color1, clip_rect,
+    text_wrap_and_draw_wide((void *)text_draw_glyph_callback, dest_rect, position_or_color1, clip_rect,
                  position_or_color2, text);
     rasterizer_draw_text_end();
 }

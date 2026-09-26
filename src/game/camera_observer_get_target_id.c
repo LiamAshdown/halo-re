@@ -30,13 +30,15 @@
 #include "game.h"
 #include "camera.h"
 
-extern int16_t camera_get_type_for_player(void); // UNSURE module/address
+extern int16_t camera_get_type_for_player(int16_t local_player_index); // 0x445ac0, blam-cc: CX -> local_player_index
 extern player_globals *local_player_globals;     // 0x0087a478
 extern data_array *player_data;                  // 0x0087a480
 extern observer observers[1]; // 0x006ac65c, camera.h; observers[i].camera is the 0x006ac6d0 row (R17), an array, not a pointer
 
-extern uint32_t unit_noop_569670(void); // 0x569670, units module; returns nothing (matches src/units/unit_noop_569670.c) (see header)
-extern uint8_t unit_get_current_weapon_autoaim_cone(datum_index unit_index, int16_t require_zoomed, real *out); // this batch, 0x459e80
+extern uint32_t unit_noop_569670(uint32_t object_index); // 0x569670, EAX object (its result is kept as the excluded object)
+extern void *player_control_globals_ptr; // 0x006b145c, 0x40-byte records per local player
+extern uint8_t unit_get_current_weapon_autoaim_cone(datum_index unit_index, int16_t require_zoomed, real *out); // 0x459e80,
+    // blam-cc: EAX -> unit_index, EDX -> require_zoomed, EDI -> out
 extern char camera_observer_find_best_target(real_point3d *observer_position,
     observer_target_cone *cone, real_vector3d *facing, datum_index exclude_object, int16_t team,
     observer_target_candidate *out); // this batch, 0x459a00; observer_position travels in EBX
@@ -44,47 +46,44 @@ extern char camera_observer_find_best_target(real_point3d *observer_position,
 // Resolves the best observer target for the given local-player slot and returns its weight
 // (via camera_observer_find_best_target's candidate), writing the target's object handle
 // through `out_id`.
+// REWRITTEN (first-boot track, objdump 0x459900..0x4599f7): camera_get_type_for_player gets CX = the slot; the
+//   autoaim cone call gets EDX = the player control record's +0x34 (0x006b145c + 0x40 * slot; -1 without a slot);
+//   the stack out value is the best candidate's primary weight (+0x30) and the result its object; the facing passed
+//   is the observer camera + 0x20 even for slot -1 (then 0x20), as in the original.
+// blam-cc: stack -> out_weight, SI -> local_player_slot
 uint32_t camera_observer_get_target_id(datum_index *out_id, int16_t local_player_slot)
-    // blam-cc: stack -> out_id, unaff_SI -> local_player_slot
 {
-    int16_t camera_type;
+    int16_t camera_type = camera_get_type_for_player(local_player_slot);
     datum_index player_index;
-    int16_t team;
+    uint8_t *player_record;
+    uint32_t exclude_object;
+    int16_t zoom_requirement = -1;
     real cone_buffer[6];
     observer_target_candidate candidate;
-    uint32_t exclude_object;
+    uint8_t *observer_camera;
 
-    camera_type = camera_get_type_for_player();
     *out_id = 0;
     if (camera_type != 0 && camera_type != 1) {
         return 0xffffffff;
     }
-
-    if (local_player_slot == -1 || 0 < local_player_slot) {
-        player_index = k_datum_index_none;
-    } else {
-        player_index = local_player_globals->local_players[local_player_slot];
+    player_index = (local_player_slot != -1 && local_player_slot < 1)
+        ? local_player_globals->local_players[local_player_slot] : k_datum_index_none;
+    player_record = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;
+    exclude_object = unit_noop_569670(*(uint32_t *)(player_record + 0x34));
+    if (local_player_slot != -1) {
+        zoom_requirement = *(int16_t *)(*(uint8_t **)&player_control_globals_ptr + local_player_slot * 0x40 + 0x34);
     }
-
-    // CORRECTED (phase 4 review, objdump 0x45995a..0x459962): EAX is loaded with the local
-    // player's unit (player+0x34) before the call and 0x569670 is a true no-op, so this is
-    // the unit handle, not a return value.
-    exclude_object = ((player *)((uint8_t *)player_data->data +
-                                 (player_index & 0xffff) * sizeof(player)))->unit;
-    unit_noop_569670();
-    if (unit_get_current_weapon_autoaim_cone(exclude_object, 0, cone_buffer) != 0) {
-        uint8_t *row = (uint8_t *)&observers[local_player_slot].camera;
-        real_vector3d *facing = (local_player_slot == -1) ? (real_vector3d *)0 :
-            (real_vector3d *)(row + 0x20);
-        team = ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player)))->team; // UNSURE: see header
-        if (camera_observer_find_best_target((real_point3d *)row, (observer_target_cone *)cone_buffer,
-                                              facing, exclude_object, team, &candidate) != 0) {
-            *out_id = candidate.object;
-            return candidate.object; // matches Ghidra's `return local_38[0];` (dword 0 = object)
-        }
+    if (!unit_get_current_weapon_autoaim_cone(*(uint32_t *)(player_record + 0x34), zoom_requirement, cone_buffer)) {
         return 0xffffffff;
     }
-    return 0xffffffff;
+    observer_camera = local_player_slot == -1 ? 0 : (uint8_t *)observers + local_player_slot * 0x29c + 0x74;
+    if (!camera_observer_find_best_target((real_point3d *)observer_camera, (observer_target_cone *)cone_buffer,
+                                          (real_vector3d *)(observer_camera + 0x20), exclude_object,
+                                          *(int16_t *)(player_record + 0x20), &candidate)) {
+        return 0xffffffff;
+    }
+    *out_id = *(datum_index *)&candidate.weight_primary;
+    return candidate.object;
 }
 
 #if 0

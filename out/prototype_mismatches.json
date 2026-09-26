@@ -235,15 +235,6 @@
   ]
  },
  {
-  "caller": "src\\ai\\actor_can_throw_grenade_at_target.c",
-  "callee": "weapon_get_zoom_fov_resolved",
-  "definition": "src\\game\\weapon_get_zoom_fov_resolved.c",
-  "declared": "extern float weapon_get_zoom_fov_resolved(float param_1);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
   "caller": "src\\ai\\actor_check_melee_target_reachable.c",
   "callee": "actor_get_firing_position_group_mask",
   "definition": "src\\ai\\actor_get_firing_position_group_mask.c",
@@ -388,15 +379,6 @@
   ]
  },
  {
-  "caller": "src\\ai\\actor_consider_grenade_throw.c",
-  "callee": "weapon_get_zoom_fov_resolved",
-  "definition": "src\\game\\weapon_get_zoom_fov_resolved.c",
-  "declared": "extern float weapon_get_zoom_fov_resolved(float param_1);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
   "caller": "src\\ai\\actor_consider_target_candidate.c",
   "callee": "actor_update_target_combat_status",
   "definition": "src\\ai\\actor_update_target_combat_status.c",
@@ -536,24 +518,6 @@
   "callee": "actor_has_unshielded_threat_weapon",
   "definition": "src\\ai\\actor_has_unshielded_threat_weapon.c",
   "declared": "extern uint8_t actor_has_unshielded_threat_weapon(void);",
-  "problems": [
-   "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_evaluate_combat_state_transition.c",
-  "callee": "weapon_get_zoom_fov",
-  "definition": "src\\game\\weapon_get_zoom_fov.c",
-  "declared": "extern float weapon_get_zoom_fov(int32_t selector);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_evaluate_custom_charge_trigger.c",
-  "callee": "unit_is_in_busy_animation_state",
-  "definition": "src\\units\\unit_is_in_busy_animation_state.c",
-  "declared": "extern uint8_t unit_is_in_busy_animation_state(void);",
   "problems": [
    "0 parameters declared, 1 defined"
   ]
@@ -974,15 +938,6 @@
  },
  {
   "caller": "src\\ai\\actor_investigate_disturbance_update.c",
-  "callee": "object_try_and_get",
-  "definition": "src\\objects\\object_try_and_get.c",
-  "declared": "extern void *object_try_and_get(int32_t kind);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_investigate_disturbance_update.c",
   "callee": "unit_enter_vehicle_seat",
   "definition": "src\\units\\unit_enter_vehicle_seat.c",
   "declared": "extern char unit_enter_vehicle_seat(uint32_t unit_object_index, int16_t seat);",
@@ -1195,15 +1150,6 @@
   "declared": "extern uint8_t ray_intersects_cylinder(float *out_fraction, const real_point2d *center,\n                                       float height, float radius,\n                                       const ",
   "problems": [
    "5 parameters declared, 7 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_movement_update.c",
-  "callee": "ai_communication_broadcast",
-  "definition": "src\\ai\\ai_communication_broadcast.c",
-  "declared": "extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,\n                                       datum_index object_a, int32_t param_d,\n                                       ",
-  "problems": [
-   "parameter kinds differ at #7 (i vs p)"
   ]
  },
  {
@@ -1528,15 +1474,6 @@
   "declared": "extern float actor_compute_accuracy_scale(void);",
   "problems": [
    "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_reseed_movement_pause_timer.c",
-  "callee": "weapon_get_zoom_fov_resolved",
-  "definition": "src\\game\\weapon_get_zoom_fov_resolved.c",
-  "declared": "extern float weapon_get_zoom_fov_resolved(float param_1);",
-  "problems": [
-   "1 parameters declared, 2 defined"
   ]
  },
  {
@@ -2243,15 +2180,6 @@
   ]
  },
  {
-  "caller": "src\\ai\\actor_target_relationship_think.c",
-  "callee": "ai_communication_broadcast",
-  "definition": "src\\ai\\ai_communication_broadcast.c",
-  "declared": "extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,\n                                       datum_index object_a, int32_t param_d,\n                                       ",
-  "problems": [
-   "parameter kinds differ at #7 (i vs p)"
-  ]
- },
- {
   "caller": "src\\ai\\actor_target_reset_combat_flags.c",
   "callee": "actor_queue_sighted_target_dialogue",
   "definition": "src\\ai\\actor_queue_sighted_target_dialogue.c",
@@ -2330,15 +2258,6 @@
   "declared": "extern datum_index actor_get_threat_weapon_object_index(void);",
   "problems": [
    "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_update_aim_wander.c",
-  "callee": "weapon_get_zoom_fov_resolved",
-  "definition": "src\\game\\weapon_get_zoom_fov_resolved.c",
-  "declared": "extern float weapon_get_zoom_fov_resolved(void);",
-  "problems": [
-   "0 parameters declared, 2 defined"
   ]
  },
  {
@@ -2465,15 +2384,6 @@
   "declared": "extern int16_t actor_evaluate_engagement_reachability(uint32_t kind, uint32_t enabled, uint32_t object_index,\n                            uint32_t in_vehicle);",
   "problems": [
    "4 parameters declared, 8 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_update_firing_state.c",
-  "callee": "weapon_get_zoom_fov_resolved",
-  "definition": "src\\game\\weapon_get_zoom_fov_resolved.c",
-  "declared": "extern float weapon_get_zoom_fov_resolved(void);",
-  "problems": [
-   "0 parameters declared, 2 defined"
   ]
  },
  {
@@ -3233,15 +3143,6 @@
   ]
  },
  {
-  "caller": "src\\ai\\ai_get_difficulty_request.c",
-  "callee": "weapon_get_zoom_fov",
-  "definition": "src\\game\\weapon_get_zoom_fov.c",
-  "declared": "extern float weapon_get_zoom_fov(int32_t selector);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
   "caller": "src\\ai\\ai_initialize_for_new_map.c",
   "callee": "game_state_new",
   "definition": "src\\saved_games\\game_state_new.c",
@@ -3500,15 +3401,6 @@
   "declared": "extern int32_t encounter_squad_spawn_reinforcement(void);",
   "problems": [
    "0 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\ai_reference_respawn_member.c",
-  "callee": "actor_squad_react_to_grenade",
-  "definition": "src\\ai\\actor_squad_react_to_grenade.c",
-  "declared": "extern void actor_squad_react_to_grenade(datum_index actor_index);",
-  "problems": [
-   "1 parameters declared, 3 defined"
   ]
  },
  {
@@ -4197,24 +4089,6 @@
   ]
  },
  {
-  "caller": "src\\cache\\cache_file_open_by_name.c",
-  "callee": "shell_display_fatal_error_dialog",
-  "definition": "src\\shell\\shell_display_fatal_error_dialog.c",
-  "declared": "extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\cache\\cache_file_slot_read_header.c",
-  "callee": "shell_display_fatal_error_dialog",
-  "definition": "src\\shell\\shell_display_fatal_error_dialog.c",
-  "declared": "extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p)"
-  ]
- },
- {
   "caller": "src\\cache\\model_load_vertex_buffers.c",
   "callee": "rasterizer_index_buffer_create",
   "definition": "src\\rasterizer\\rasterizer_index_buffer_create.c",
@@ -4230,33 +4104,6 @@
   "declared": "extern int8_t rasterizer_vertex_buffer_create(void *fields, int32_t format, int32_t vertex_count,\n    void *rendered_data, void *lightmap_data, int32_t size);",
   "problems": [
    "parameter kinds differ at #5 (p vs i)"
-  ]
- },
- {
-  "caller": "src\\camera\\observer_avoid_collision.c",
-  "callee": "scenario_location_get_water_and_weather",
-  "definition": "src\\scenario\\scenario_location_get_water_and_weather.c",
-  "declared": "extern uint8_t scenario_location_get_water_and_weather(bsp_leaf_reference *location, int16_t *out_index);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\devices\\device_play_state_change_effect.c",
-  "callee": "effect_new_on_object",
-  "definition": "src\\effects\\effect_new_on_object.c",
-  "declared": "extern void effect_new_on_object(uint32_t object_index, datum_index unknown_m1, float position,\n    float power, uint32_t unknown_0, uint32_t unknown_0b);",
-  "problems": [
-   "parameter kinds differ at #3 (f vs i), #4 (f vs i), #5 (i vs f), #6 (i vs f)"
-  ]
- },
- {
-  "caller": "src\\devices\\device_play_state_change_effect.c",
-  "callee": "sound_start_at_object_marker",
-  "definition": "src\\sound\\sound_start_at_object_marker.c",
-  "declared": "extern void sound_start_at_object_marker(TagID tag_id, datum_index unknown_m1, float gain, uint32_t unknown_0);",
-  "problems": [
-   "4 parameters declared, 7 defined"
   ]
  },
  {
@@ -4297,15 +4144,6 @@
  },
  {
   "caller": "src\\effects\\contrail_generate_points.c",
-  "callee": "bsp3d_node_find_leaf",
-  "definition": "src\\physics\\bsp3d_node_find_leaf.c",
-  "declared": "extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index);",
-  "problems": [
-   "parameter kinds differ at #1 (p vs i), #3 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\effects\\contrail_refresh_lightmap.c",
   "callee": "bsp3d_node_find_leaf",
   "definition": "src\\physics\\bsp3d_node_find_leaf.c",
   "declared": "extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index);",
@@ -4379,15 +4217,6 @@
   ]
  },
  {
-  "caller": "src\\effects\\decal_rehash_object_decals.c",
-  "callee": "bsp3d_node_find_leaf",
-  "definition": "src\\physics\\bsp3d_node_find_leaf.c",
-  "declared": "extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index);",
-  "problems": [
-   "parameter kinds differ at #1 (p vs i), #3 (i vs p)"
-  ]
- },
- {
   "caller": "src\\effects\\decal_spawn_for_response.c",
   "callee": "collision_test_movement_segment",
   "definition": "src\\physics\\collision_test_movement_segment.c",
@@ -4433,15 +4262,6 @@
   ]
  },
  {
-  "caller": "src\\effects\\effect_marker_environment_probe.c",
-  "callee": "scenario_location_get_water_and_weather",
-  "definition": "src\\scenario\\scenario_location_get_water_and_weather.c",
-  "declared": "extern uint8_t scenario_location_get_water_and_weather(void *leaf_out, uint32_t mode);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
   "caller": "src\\effects\\effect_new_at_texture_coordinate.c",
   "callee": "local_player_index_for_object",
   "definition": "src\\interface\\local_player_index_for_object.c",
@@ -4457,24 +4277,6 @@
   "declared": "extern void effect_rebuild_markers(effect *self,\n    int32_t (*resolve_marker)(uint32_t, const char *, object_marker *, uint32_t));",
   "problems": [
    "parameter kinds differ at #2 (p vs i)"
-  ]
- },
- {
-  "caller": "src\\effects\\effect_new_on_object.c",
-  "callee": "local_player_index_for_object",
-  "definition": "src\\interface\\local_player_index_for_object.c",
-  "declared": "extern int16_t local_player_index_for_object(void);",
-  "problems": [
-   "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\effects\\effect_new_on_object.c",
-  "callee": "effect_first_person_screen_timer_active",
-  "definition": "src\\effects\\effect_first_person_screen_timer_active.c",
-  "declared": "extern uint8_t effect_first_person_screen_timer_active(void);",
-  "problems": [
-   "0 parameters declared, 1 defined"
   ]
  },
  {
@@ -4511,15 +4313,6 @@
   "declared": "extern void effect_rebuild_markers(effect *self,\n    int32_t (*resolve_marker)(uint32_t, const char *, object_marker *, uint32_t));",
   "problems": [
    "parameter kinds differ at #2 (p vs i)"
-  ]
- },
- {
-  "caller": "src\\effects\\effect_new_with_color.c",
-  "callee": "bsp3d_node_find_leaf",
-  "definition": "src\\physics\\bsp3d_node_find_leaf.c",
-  "declared": "extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index);",
-  "problems": [
-   "parameter kinds differ at #1 (p vs i), #3 (i vs p)"
   ]
  },
  {
@@ -4542,15 +4335,6 @@
   ]
  },
  {
-  "caller": "src\\effects\\effect_spawn_particles.c",
-  "callee": "scenario_location_get_water_and_weather",
-  "definition": "src\\scenario\\scenario_location_get_water_and_weather.c",
-  "declared": "extern uint8_t scenario_location_get_water_and_weather(void *unknown_0, int32_t unknown_1);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
   "caller": "src\\effects\\effect_update.c",
   "callee": "object_function_get_value",
   "definition": "src\\objects\\object_function_get_value.c",
@@ -4560,39 +4344,12 @@
   ]
  },
  {
-  "caller": "src\\effects\\material_effects_play_at_marker.c",
-  "callee": "effect_new_with_color",
-  "definition": "src\\effects\\effect_new_with_color.c",
-  "declared": "extern void effect_new_with_color(uint32_t effect, uint32_t param_2, void *param_3, int32_t param_4,\n    int32_t param_5, real_point3d *position);",
-  "problems": [
-   "6 parameters declared, 11 defined"
-  ]
- },
- {
-  "caller": "src\\effects\\material_effects_play_at_marker.c",
-  "callee": "sound_start_at_location",
-  "definition": "src\\sound\\sound_start_at_location.c",
-  "declared": "extern void sound_start_at_location(void *bundle, uint32_t param_2);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\effects\\object_change_color_evaluate.c",
-  "callee": "scenario_location_get_water_and_weather",
-  "definition": "src\\scenario\\scenario_location_get_water_and_weather.c",
-  "declared": "extern uint8_t scenario_location_get_water_and_weather(void *unknown_0, int32_t unknown_1);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
   "caller": "src\\effects\\particle_impact_response_dispatch.c",
   "callee": "effect_new_with_color",
   "definition": "src\\effects\\effect_new_with_color.c",
   "declared": "extern datum_index effect_new_with_color(datum_index definition_index, datum_index creator_object_index,\n    const real_vector3d *velocity, uint16_t unknown_a, uint32_t ctx_c, uint32_t ctx_10,\n    rea",
   "problems": [
-   "10 parameters declared, 11 defined"
+   "10 parameters declared, 12 defined"
   ]
  },
  {
@@ -4602,24 +4359,6 @@
   "declared": "extern void sound_start_at_location(void *bundle, uint32_t param_2);",
   "problems": [
    "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\effects\\particle_new.c",
-  "callee": "bsp3d_node_find_leaf",
-  "definition": "src\\physics\\bsp3d_node_find_leaf.c",
-  "declared": "extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index);",
-  "problems": [
-   "parameter kinds differ at #1 (p vs i), #3 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\effects\\particle_system_new_type_states.c",
-  "callee": "bsp3d_node_find_leaf",
-  "definition": "src\\physics\\bsp3d_node_find_leaf.c",
-  "declared": "extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index);",
-  "problems": [
-   "parameter kinds differ at #1 (p vs i), #3 (i vs p)"
   ]
  },
  {
@@ -4656,15 +4395,6 @@
   "declared": "extern void object_get_root_location(void);",
   "problems": [
    "0 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\effects\\particle_system_resolve_local_players.c",
-  "callee": "bsp3d_node_find_leaf",
-  "definition": "src\\physics\\bsp3d_node_find_leaf.c",
-  "declared": "extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index);",
-  "problems": [
-   "parameter kinds differ at #1 (p vs i), #3 (i vs p)"
   ]
  },
  {
@@ -4746,15 +4476,6 @@
   "declared": "extern void message_delta_decode_compound_field_staged(void);",
   "problems": [
    "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\effects\\player_effect_send_network_update.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,\n    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,\n    uint8_t unknown_6);",
-  "problems": [
-   "7 parameters declared, 9 defined"
   ]
  },
  {
@@ -4859,15 +4580,6 @@
   ]
  },
  {
-  "caller": "src\\effects\\weather_update_local_player.c",
-  "callee": "scenario_location_get_water_and_weather",
-  "definition": "src\\scenario\\scenario_location_get_water_and_weather.c",
-  "declared": "extern uint8_t scenario_location_get_water_and_weather(void *sample_point, int16_t *out_cluster_index);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
   "caller": "src\\game\\apply_remote_player_position_update.c",
   "callee": "player_update_history_log_printf_filtered",
   "definition": "src\\networking\\player_update_history_log_printf_filtered.c",
@@ -4919,15 +4631,6 @@
   "declared": "extern void saved_game_last_profile_clear(void);",
   "problems": [
    "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\game\\cache_file_switch_map_by_path.c",
-  "callee": "shell_display_fatal_error_dialog",
-  "definition": "src\\shell\\shell_display_fatal_error_dialog.c",
-  "declared": "extern void shell_display_fatal_error_dialog(uint32_t a, uint32_t b, uint32_t c);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p)"
   ]
  },
  {
@@ -5276,24 +4979,6 @@
   ]
  },
  {
-  "caller": "src\\game\\game_engine_check_bucket_scores_and_end_round.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,\n    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,\n    uint8_t unknown_6);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_check_bucket_scores_and_end_round.c",
-  "callee": "network_session_broadcast_to_flagged",
-  "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3,\n    uint32_t unknown_4, uint32_t unknown_5);",
-  "problems": [
-   "6 parameters declared, 7 defined"
-  ]
- },
- {
   "caller": "src\\game\\game_engine_compute_local_player_look_vector.c",
   "callee": "player_compute_view_forward_vector",
   "definition": "src\\game\\player_compute_view_forward_vector.c",
@@ -5304,20 +4989,11 @@
  },
  {
   "caller": "src\\game\\game_engine_ctf_broadcast_state.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,\n    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,\n    uint8_t unknown_6);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_ctf_broadcast_state.c",
   "callee": "network_session_broadcast_to_flagged",
   "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3,\n    uint32_t unknown_4, uint32_t unknown_5);",
+  "declared": "extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data,\n    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6);",
   "problems": [
-   "6 parameters declared, 7 defined"
+   "7 parameters declared, 8 defined"
   ]
  },
  {
@@ -5372,24 +5048,6 @@
   "declared": "extern int32_t network_index_cache_find_or_allocate_slot(int32_t machine_id);",
   "problems": [
    "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_dispatch_item_pickup_event.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,\n    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,\n    uint8_t unknown_6);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_dispatch_item_pickup_event.c",
-  "callee": "network_session_broadcast_to_flagged",
-  "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3,\n    uint32_t unknown_4, uint32_t unknown_5);",
-  "problems": [
-   "6 parameters declared, 7 defined"
   ]
  },
  {
@@ -5731,16 +5389,8 @@
   "definition": "src\\text\\string_convert_ascii_to_unicode.c",
   "declared": "extern void string_convert_ascii_to_unicode(wchar_t *out_name, int32_t max_chars);",
   "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_get_variant_by_name.c",
-  "callee": "saved_game_enumerate_by_type",
-  "definition": "src\\saved_games\\saved_game_enumerate_by_type.c",
-  "declared": "extern void saved_game_enumerate_by_type(int32_t type, int32_t *out_slots, int32_t unknown);",
-  "problems": [
-   "3 parameters declared, 4 defined"
+   "2 parameters declared, 3 defined",
+   "return v vs p"
   ]
  },
  {
@@ -5790,47 +5440,11 @@
  },
  {
   "caller": "src\\game\\game_engine_koth_broadcast_hill_times.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,\n    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,\n    uint8_t unknown_6);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_koth_broadcast_hill_times.c",
-  "callee": "network_session_broadcast_to_flagged",
-  "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3,\n    uint32_t unknown_4, uint32_t unknown_5);",
-  "problems": [
-   "6 parameters declared, 7 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_koth_broadcast_hill_times.c",
   "callee": "network_session_send_to_machine",
   "definition": "src\\networking\\network_session_send_to_machine.c",
   "declared": "extern void network_session_send_to_machine(uint32_t unknown_0, void *unknown_1, int32_t length,\n    uint32_t unknown_3, uint32_t unknown_4, uint32_t unknown_5, uint32_t unknown_6);",
   "problems": [
    "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_koth_broadcast_team_scores.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,\n    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,\n    uint8_t unknown_6);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_koth_broadcast_team_scores.c",
-  "callee": "network_session_broadcast_to_flagged",
-  "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3,\n    uint32_t unknown_4, uint32_t unknown_5);",
-  "problems": [
-   "6 parameters declared, 7 defined"
   ]
  },
  {
@@ -5945,66 +5559,12 @@
   ]
  },
  {
-  "caller": "src\\game\\game_engine_notify_kill_event.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,\n    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,\n    uint8_t unknown_6);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_notify_kill_event.c",
-  "callee": "network_session_send_to_machine",
-  "definition": "src\\networking\\network_session_send_to_machine.c",
-  "declared": "extern void network_session_send_to_machine(uint32_t unknown_0, void *unknown_1,\n    int32_t length, uint32_t unknown_3, uint32_t unknown_4, uint32_t unknown_5,\n    uint32_t unknown_6);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_notify_object_value_event.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,\n    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,\n    uint8_t unknown_6);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_notify_object_value_event.c",
-  "callee": "network_session_broadcast_to_flagged",
-  "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3,\n    uint32_t unknown_4, uint32_t unknown_5);",
-  "problems": [
-   "6 parameters declared, 7 defined"
-  ]
- },
- {
   "caller": "src\\game\\game_engine_notify_object_value_event.c",
   "callee": "network_session_send_to_machine",
   "definition": "src\\networking\\network_session_send_to_machine.c",
   "declared": "extern void network_session_send_to_machine(uint32_t unknown_0, void *unknown_1, int32_t length,\n    uint32_t unknown_3, uint32_t unknown_4, uint32_t unknown_5, uint32_t unknown_6);",
   "problems": [
    "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_notify_player_interaction.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,\n    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,\n    uint8_t unknown_6);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_notify_player_interaction.c",
-  "callee": "network_session_broadcast_to_flagged",
-  "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3,\n    uint32_t unknown_4, uint32_t unknown_5);",
-  "problems": [
-   "6 parameters declared, 7 defined"
   ]
  },
  {
@@ -6090,16 +5650,6 @@
  },
  {
   "caller": "src\\game\\game_engine_post_rasterize_post_game.c",
-  "callee": "string_format_wide_va_bounded",
-  "definition": "src\\text\\string_format_wide_va_bounded.c",
-  "declared": "extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...);",
-  "problems": [
-   "3 parameters declared, 4 defined",
-   "return p vs v"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_post_rasterize_post_game.c",
   "callee": "game_engine_is_tracked_object_winner",
   "definition": "src\\game\\game_engine_is_tracked_object_winner.c",
   "declared": "extern char game_engine_is_tracked_object_winner(void);",
@@ -6127,24 +5677,6 @@
  },
  {
   "caller": "src\\game\\game_engine_queue_status_sound_message.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,\n    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,\n    uint8_t unknown_6);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_queue_status_sound_message.c",
-  "callee": "network_session_broadcast_to_flagged",
-  "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3,\n    uint32_t unknown_4, uint32_t unknown_5);",
-  "problems": [
-   "6 parameters declared, 7 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_queue_status_sound_message.c",
   "callee": "network_session_send_to_machine",
   "definition": "src\\networking\\network_session_send_to_machine.c",
   "declared": "extern void network_session_send_to_machine(uint32_t unknown_0, void *unknown_1, int32_t length,\n    uint32_t unknown_3, uint32_t unknown_4, uint32_t unknown_5, uint32_t unknown_6);",
@@ -6159,16 +5691,6 @@
   "declared": "extern void *network_machine_find_by_id(int32_t machine_index);",
   "problems": [
    "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_rasterize_in_game_score.c",
-  "callee": "string_format_wide_va_bounded",
-  "definition": "src\\text\\string_format_wide_va_bounded.c",
-  "declared": "extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...);",
-  "problems": [
-   "3 parameters declared, 4 defined",
-   "return p vs v"
   ]
  },
  {
@@ -6317,73 +5839,10 @@
   ]
  },
  {
-  "caller": "src\\game\\game_engine_send_end_game_notification.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,\n    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,\n    uint8_t unknown_6);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_send_end_game_notification.c",
-  "callee": "network_session_broadcast_to_flagged",
-  "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3,\n    uint32_t unknown_4, uint32_t unknown_5);",
-  "problems": [
-   "6 parameters declared, 7 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_send_player_profile_update.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,\n    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,\n    uint8_t unknown_6);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_send_player_profile_update.c",
-  "callee": "network_session_broadcast_to_flagged",
-  "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3,\n    uint32_t unknown_4, uint32_t unknown_5);",
-  "problems": [
-   "6 parameters declared, 7 defined"
-  ]
- },
- {
   "caller": "src\\game\\game_engine_send_player_profile_update.c",
   "callee": "network_session_send_to_machine",
   "definition": "src\\networking\\network_session_send_to_machine.c",
   "declared": "extern void network_session_send_to_machine(uint32_t unknown_0, void *unknown_1,\n    int32_t length, uint32_t unknown_3, uint32_t unknown_4, uint32_t unknown_5,\n    uint32_t unknown_6);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_send_round_reset_message.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,\n    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,\n    uint8_t unknown_6);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_send_round_reset_message.c",
-  "callee": "network_session_broadcast_to_flagged",
-  "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3,\n    uint32_t unknown_4, uint32_t unknown_5);",
-  "problems": [
-   "6 parameters declared, 7 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_send_team_allegiance_message.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,\n    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,\n    uint8_t unknown_6);",
   "problems": [
    "7 parameters declared, 9 defined"
   ]
@@ -6398,21 +5857,12 @@
   ]
  },
  {
-  "caller": "src\\game\\game_engine_send_unit_weapon_loadout.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,\n    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,\n    uint8_t unknown_6);",
+  "caller": "src\\game\\game_engine_send_team_allegiance_message.c",
+  "callee": "bit_stream_write_bits_chunked",
+  "definition": "src\\memory\\bit_stream_write_bits_chunked.c",
+  "declared": "extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value,\n    bit_stream *stream);",
   "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_send_unit_weapon_loadout.c",
-  "callee": "network_session_broadcast_to_flagged",
-  "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3,\n    uint32_t unknown_4, uint32_t unknown_5);",
-  "problems": [
-   "6 parameters declared, 7 defined"
+   "parameter kinds differ at #1 (i vs p), #2 (i vs p), #3 (p vs i)"
   ]
  },
  {
@@ -6560,15 +6010,6 @@
   ]
  },
  {
-  "caller": "src\\game\\game_engine_update_end_game_sequence.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *text);",
-  "problems": [
-   "1 parameters declared, 3 defined"
-  ]
- },
- {
   "caller": "src\\game\\game_engine_update_lead_change_state.c",
   "callee": "game_engine_player_round_reset",
   "definition": "src\\game\\game_engine_player_round_reset.c",
@@ -6588,20 +6029,11 @@
  },
  {
   "caller": "src\\game\\game_engine_update_lead_change_state.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,\n    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,\n    uint8_t unknown_6);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_update_lead_change_state.c",
   "callee": "network_session_broadcast_to_flagged",
   "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2,\n    uint32_t unknown_3, uint32_t unknown_4, uint32_t unknown_5);",
+  "declared": "extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data,\n    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6);",
   "problems": [
-   "6 parameters declared, 7 defined"
+   "7 parameters declared, 8 defined"
   ]
  },
  {
@@ -6636,15 +6068,6 @@
   "callee": "player_effect_set_screen_flash_for_player",
   "definition": "src\\effects\\player_effect_set_screen_flash_for_player.c",
   "declared": "extern void player_effect_set_screen_flash_for_player(void *effect_struct, uint32_t one_point_zero);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\game\\game_engine_update_teleporter.c",
-  "callee": "console_print_error_va",
-  "definition": "src\\main\\console_print_error_va.c",
-  "declared": "extern void console_print_error_va(const char *format, ...);",
   "problems": [
    "2 parameters declared, 3 defined"
   ]
@@ -6799,9 +6222,9 @@
   "caller": "src\\game\\network_server_broadcast_object_type_changes.c",
   "callee": "network_session_broadcast_to_flagged",
   "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3, uint32_t unknown_4,\n    uint32_t unknown_5);",
+  "declared": "extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data,\n    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6);",
   "problems": [
-   "6 parameters declared, 7 defined"
+   "7 parameters declared, 8 defined"
   ]
  },
  {
@@ -6836,24 +6259,6 @@
   "callee": "network_session_autoban_player",
   "definition": "src\\networking\\network_session_autoban_player.c",
   "declared": "extern void network_session_autoban_player(void);",
-  "problems": [
-   "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\game\\player_apply_pickup_effect.c",
-  "callee": "hud_post_item_message",
-  "definition": "src\\interface\\hud_post_item_message.c",
-  "declared": "extern void hud_post_item_message(int16_t a, uint8_t b);",
-  "problems": [
-   "2 parameters declared, 5 defined"
-  ]
- },
- {
-  "caller": "src\\game\\player_apply_pickup_effect.c",
-  "callee": "equipment_pickup_play_sound",
-  "definition": "src\\items\\equipment_pickup_play_sound.c",
-  "declared": "extern void equipment_pickup_play_sound(void);",
   "problems": [
    "0 parameters declared, 1 defined"
   ]
@@ -7048,15 +6453,6 @@
   ]
  },
  {
-  "caller": "src\\game\\player_delete.c",
-  "callee": "network_machine_clear_flag_by_id",
-  "definition": "src\\networking\\network_machine_clear_flag_by_id.c",
-  "declared": "extern void network_machine_clear_flag_by_id(uint8_t *network_session);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
   "caller": "src\\game\\player_execute_pending_interaction.c",
   "callee": "unit_clear_selected_equipment",
   "definition": "src\\units\\unit_clear_selected_equipment.c",
@@ -7161,25 +6557,7 @@
   "definition": "src\\effects\\effect_new_on_object.c",
   "declared": "extern void effect_new_on_object(uint32_t param1, datum_index unit_handle, uint32_t p2, uint32_t p3,\n                          uint32_t p4, uint32_t p5);",
   "problems": [
-   "parameter kinds differ at #5 (i vs f), #6 (i vs f)"
-  ]
- },
- {
-  "caller": "src\\game\\player_notify_kill_streak_update.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type,\n    uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5,\n    uint8_t unknown_6);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\game\\player_notify_kill_streak_update.c",
-  "callee": "network_session_broadcast_to_flagged",
-  "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3,\n    uint32_t unknown_4, uint32_t unknown_5);",
-  "problems": [
-   "6 parameters declared, 7 defined"
+   "6 parameters declared, 8 defined"
   ]
  },
  {
@@ -7204,9 +6582,9 @@
   "caller": "src\\game\\player_respawn.c",
   "callee": "network_session_broadcast_to_flagged",
   "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, uint32_t unknown_2, uint32_t unknown_3,\n    uint32_t unknown_4, uint32_t unknown_5);",
+  "declared": "extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data,\n    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6);",
   "problems": [
-   "6 parameters declared, 7 defined"
+   "7 parameters declared, 8 defined"
   ]
  },
  {
@@ -7273,24 +6651,6 @@
   ]
  },
  {
-  "caller": "src\\game\\savegame_find_first.c",
-  "callee": "string_convert_ascii_to_unicode",
-  "definition": "src\\text\\string_convert_ascii_to_unicode.c",
-  "declared": "extern void string_convert_ascii_to_unicode(void);",
-  "problems": [
-   "0 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\game\\savegame_find_next.c",
-  "callee": "string_convert_ascii_to_unicode",
-  "definition": "src\\text\\string_convert_ascii_to_unicode.c",
-  "declared": "extern void string_convert_ascii_to_unicode(void);",
-  "problems": [
-   "0 parameters declared, 3 defined"
-  ]
- },
- {
   "caller": "src\\game\\savegame_index_append_slot.c",
   "callee": "file_reference_close",
   "definition": "src\\saved_games\\file_reference_close.c",
@@ -7315,69 +6675,6 @@
   "declared": "extern uint8_t file_reference_write(void);",
   "problems": [
    "0 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\game\\savegame_index_get_slot_count.c",
-  "callee": "file_reference_get_size_by_path",
-  "definition": "src\\saved_games\\file_reference_get_size_by_path.c",
-  "declared": "extern uint8_t file_reference_get_size_by_path(uint32_t *out_size);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\game\\savegame_index_remove_slot.c",
-  "callee": "file_reference_close",
-  "definition": "src\\saved_games\\file_reference_close.c",
-  "declared": "extern uint8_t file_reference_close(void);",
-  "problems": [
-   "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\game\\savegame_index_remove_slot.c",
-  "callee": "file_reference_seek",
-  "definition": "src\\saved_games\\file_reference_seek.c",
-  "declared": "extern uint8_t file_reference_seek(void);",
-  "problems": [
-   "0 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\game\\savegame_index_remove_slot.c",
-  "callee": "file_reference_read",
-  "definition": "src\\saved_games\\file_reference_read.c",
-  "declared": "extern uint8_t file_reference_read(void);",
-  "problems": [
-   "0 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\game\\savegame_index_remove_slot.c",
-  "callee": "file_reference_write",
-  "definition": "src\\saved_games\\file_reference_write.c",
-  "declared": "extern uint8_t file_reference_write(void);",
-  "problems": [
-   "0 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\game\\savegame_index_remove_slot.c",
-  "callee": "file_reference_get_size_by_path",
-  "definition": "src\\saved_games\\file_reference_get_size_by_path.c",
-  "declared": "extern uint8_t file_reference_get_size_by_path(uint32_t *out_size);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\game\\savegame_index_remove_slot.c",
-  "callee": "file_reference_set_length",
-  "definition": "src\\saved_games\\file_reference_set_length.c",
-  "declared": "extern uint8_t file_reference_set_length(void);",
-  "problems": [
-   "0 parameters declared, 2 defined"
   ]
  },
  {
@@ -7462,44 +6759,6 @@
   ]
  },
  {
-  "caller": "src\\game\\XCreateSaveGame.c",
-  "callee": "string_convert_unicode_to_ascii",
-  "definition": "src\\text\\string_convert_unicode_to_ascii.c",
-  "declared": "extern void string_convert_unicode_to_ascii(char *out_name, uint32_t max_length);",
-  "problems": [
-   "2 parameters declared, 3 defined",
-   "return v vs p"
-  ]
- },
- {
-  "caller": "src\\game\\XCreateSaveGame.c",
-  "callee": "string_convert_ascii_to_unicode",
-  "definition": "src\\text\\string_convert_ascii_to_unicode.c",
-  "declared": "extern void string_convert_ascii_to_unicode(char *text, uint32_t length);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\game\\XDeleteSaveGame.c",
-  "callee": "string_convert_unicode_to_ascii",
-  "definition": "src\\text\\string_convert_unicode_to_ascii.c",
-  "declared": "extern void string_convert_unicode_to_ascii(char *out_name, uint32_t max_length);",
-  "problems": [
-   "2 parameters declared, 3 defined",
-   "return v vs p"
-  ]
- },
- {
-  "caller": "src\\hs\\hs_compile_source.c",
-  "callee": "console_print_error_va",
-  "definition": "src\\main\\console_print_error_va.c",
-  "declared": "extern void console_print_error_va(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
   "caller": "src\\hs\\hs_damage_apply_at_location.c",
   "callee": "bsp3d_node_find_leaf",
   "definition": "src\\physics\\bsp3d_node_find_leaf.c",
@@ -7550,7 +6809,7 @@
   "definition": "src\\effects\\effect_new_with_color.c",
   "declared": "extern void effect_new_with_color(uint32_t effect, uint32_t param_2, void *param_3, int32_t param_4,\n    int32_t param_5, real_point3d *position, real_vector3d *forward, float param_8, float param_9,\n",
   "problems": [
-   "12 parameters declared, 11 defined"
+   "parameter kinds differ at #7 (p vs i), #10 (i vs p), #11 (i vs p)"
   ]
  },
  {
@@ -7761,51 +7020,12 @@
   ]
  },
  {
-  "caller": "src\\hs\\hs_sound_get_gain_reference.c",
-  "callee": "console_print_error_va",
-  "definition": "src\\main\\console_print_error_va.c",
-  "declared": "extern void console_print_error_va(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
   "caller": "src\\hs\\object_lists_initialize.c",
   "callee": "game_state_new",
   "definition": "src\\saved_games\\game_state_new.c",
   "declared": "extern data_array *game_state_new(char *name, int32_t maximum_count);",
   "problems": [
    "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\input\\chimera__axis_text.c",
-  "callee": "string_format_wide_va_bounded",
-  "definition": "src\\text\\string_format_wide_va_bounded.c",
-  "declared": "extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...);",
-  "problems": [
-   "3 parameters declared, 4 defined",
-   "return p vs v"
-  ]
- },
- {
-  "caller": "src\\input\\chimera__button_text.c",
-  "callee": "string_format_wide_va_bounded",
-  "definition": "src\\text\\string_format_wide_va_bounded.c",
-  "declared": "extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...);",
-  "problems": [
-   "3 parameters declared, 4 defined",
-   "return p vs v"
-  ]
- },
- {
-  "caller": "src\\input\\chimera__pov_text.c",
-  "callee": "string_format_wide_va_bounded",
-  "definition": "src\\text\\string_format_wide_va_bounded.c",
-  "declared": "extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...);",
-  "problems": [
-   "3 parameters declared, 4 defined",
-   "return p vs v"
   ]
  },
  {
@@ -7829,16 +7049,6 @@
  },
  {
   "caller": "src\\interface\\chat_dispatch_incoming.c",
-  "callee": "string_format_wide_va_bounded",
-  "definition": "src\\text\\string_format_wide_va_bounded.c",
-  "declared": "extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...);",
-  "problems": [
-   "3 parameters declared, 4 defined",
-   "return p vs v"
-  ]
- },
- {
-  "caller": "src\\interface\\chat_dispatch_incoming.c",
   "callee": "shell_load_localized_string",
   "definition": "src\\shell\\shell_load_localized_string.c",
   "declared": "extern int32_t shell_load_localized_string(int32_t id, char *out_buffer);",
@@ -7853,15 +7063,6 @@
   "declared": "extern void string_format_wide_va(const uint16_t *format, ...);",
   "problems": [
    "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\interface\\chat_queue_team_message.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type, uint32_t unknown_2,\n                                             void **fields, uint32_t unknown_4, uint32_t unkn",
-  "problems": [
-   "7 parameters declared, 9 defined"
   ]
  },
  {
@@ -7911,15 +7112,6 @@
  },
  {
   "caller": "src\\interface\\chat_server_relay_incoming_message.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type, uint32_t unknown_2,\n                                             void **fields, uint32_t unknown_4, uint32_t unkn",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\interface\\chat_server_relay_incoming_message.c",
   "callee": "network_session_send_to_machine",
   "definition": "src\\networking\\network_session_send_to_machine.c",
   "declared": "extern void network_session_send_to_machine(uint32_t unknown_0, void *unknown_1, int32_t length,\n                                             uint32_t unknown_3, uint32_t unknown_4, uint32_t unknown_5",
@@ -7933,7 +7125,7 @@
   "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
   "declared": "extern void network_session_broadcast_to_flagged(uint32_t unknown_0, void *unknown_1, int32_t length, uint32_t unknown_3,\n                          uint32_t unknown_4, uint32_t unknown_5);",
   "problems": [
-   "6 parameters declared, 7 defined"
+   "6 parameters declared, 8 defined"
   ]
  },
  {
@@ -7961,15 +7153,6 @@
   "declared": "extern void input_keyboard_set_capture_mode(void);",
   "problems": [
    "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\interface\\chimera__chat_out.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type, uint32_t unknown_2,\n                                             void **fields, uint32_t unknown_4, uint32_t unkn",
-  "problems": [
-   "7 parameters declared, 9 defined"
   ]
  },
  {
@@ -8033,15 +7216,6 @@
   "declared": "extern void input_last_used_binding_copy(const int16_t *record, int32_t action);",
   "problems": [
    "parameter kinds differ at #1 (p vs i), #2 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\interface\\first_person_weapon_get_marker_data.c",
-  "callee": "model_markers_get_by_name",
-  "definition": "src\\models\\model_markers_get_by_name.c",
-  "declared": "extern int32_t model_markers_get_by_name(uint8_t *permutation_table, uint32_t reserved,\n                                          void *node_array, uint32_t flags_arg, object_marker *out,\n            ",
-  "problems": [
-   "6 parameters declared, 8 defined"
   ]
  },
  {
@@ -8191,26 +7365,6 @@
   ]
  },
  {
-  "caller": "src\\interface\\interface_loading_screen_set_text.c",
-  "callee": "string_convert_ascii_to_unicode",
-  "definition": "src\\text\\string_convert_ascii_to_unicode.c",
-  "declared": "extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dest, int32_t dest_bytes, const char *source);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p), #3 (p vs i)",
-   "return p vs v"
-  ]
- },
- {
-  "caller": "src\\interface\\map_list_get_friendly_level_name.c",
-  "callee": "string_convert_ascii_to_unicode",
-  "definition": "src\\text\\string_convert_ascii_to_unicode.c",
-  "declared": "extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dest, int32_t dest_bytes, const char *source);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p), #3 (p vs i)",
-   "return p vs v"
-  ]
- },
- {
   "caller": "src\\interface\\motion_sensor_update_for_player.c",
   "callee": "game_engine_collect_matching_waypoints",
   "definition": "src\\game\\game_engine_collect_matching_waypoints.c",
@@ -8226,25 +7380,6 @@
   "declared": "extern uint16_t *text_string_list_get_string(void);",
   "problems": [
    "0 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\interface\\network_autojoin_from_command_line.c",
-  "callee": "string_convert_ascii_to_unicode",
-  "definition": "src\\text\\string_convert_ascii_to_unicode.c",
-  "declared": "extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dest, int32_t dest_bytes, const char *source);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p), #3 (p vs i)",
-   "return p vs v"
-  ]
- },
- {
-  "caller": "src\\interface\\network_autojoin_from_command_line.c",
-  "callee": "saved_game_enumerate_by_type",
-  "definition": "src\\saved_games\\saved_game_enumerate_by_type.c",
-  "declared": "extern void saved_game_enumerate_by_type(int32_t type, int32_t *out_slots, int32_t unknown,\n                                         int16_t *in_out_count);",
-  "problems": [
-   "parameter kinds differ at #1 (i vs p), #2 (p vs i), #3 (i vs p), #4 (p vs i)"
   ]
  },
  {
@@ -8294,33 +7429,6 @@
   ]
  },
  {
-  "caller": "src\\interface\\player_profile_auto_select.c",
-  "callee": "saved_game_enumerate_by_type",
-  "definition": "src\\saved_games\\saved_game_enumerate_by_type.c",
-  "declared": "extern void saved_game_enumerate_by_type(int32_t type, int32_t *out_slots, int32_t unknown);",
-  "problems": [
-   "3 parameters declared, 4 defined"
-  ]
- },
- {
-  "caller": "src\\interface\\player_profile_check_storage_and_defaults.c",
-  "callee": "saved_game_enumerate_by_type",
-  "definition": "src\\saved_games\\saved_game_enumerate_by_type.c",
-  "declared": "extern void saved_game_enumerate_by_type(int32_t type, int32_t *out_slots, int32_t unknown);",
-  "problems": [
-   "3 parameters declared, 4 defined"
-  ]
- },
- {
-  "caller": "src\\interface\\player_profile_check_storage_and_defaults.c",
-  "callee": "saved_game_find_by_name",
-  "definition": "src\\saved_games\\saved_game_find_by_name.c",
-  "declared": "extern int32_t saved_game_find_by_name(char *name, int32_t unknown, int32_t unknown2);",
-  "problems": [
-   "3 parameters declared, 2 defined"
-  ]
- },
- {
   "caller": "src\\interface\\player_profile_details_widget_refresh.c",
   "callee": "player_profile_scan_campaign_progress",
   "definition": "src\\saved_games\\player_profile_scan_campaign_progress.c",
@@ -8339,15 +7447,6 @@
   ]
  },
  {
-  "caller": "src\\interface\\player_profile_subsystem_initialize.c",
-  "callee": "saved_game_enumerate_by_type",
-  "definition": "src\\saved_games\\saved_game_enumerate_by_type.c",
-  "declared": "extern void saved_game_enumerate_by_type(int32_t type, int32_t *out_slots, int32_t unknown);",
-  "problems": [
-   "3 parameters declared, 4 defined"
-  ]
- },
- {
   "caller": "src\\interface\\restart_map_dialog_choice_handler.c",
   "callee": "game_engine_player_profile_cache_sync_all",
   "definition": "src\\game\\game_engine_player_profile_cache_sync_all.c",
@@ -8358,16 +7457,6 @@
  },
  {
   "caller": "src\\interface\\server_list_menu_update.c",
-  "callee": "string_format_wide_va_bounded",
-  "definition": "src\\text\\string_format_wide_va_bounded.c",
-  "declared": "extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...);",
-  "problems": [
-   "3 parameters declared, 4 defined",
-   "return p vs v"
-  ]
- },
- {
-  "caller": "src\\interface\\set_profile_name.c",
   "callee": "string_format_wide_va_bounded",
   "definition": "src\\text\\string_format_wide_va_bounded.c",
   "declared": "extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...);",
@@ -8404,15 +7493,6 @@
   ]
  },
  {
-  "caller": "src\\interface\\ui_build_profile_list.c",
-  "callee": "saved_game_enumerate_by_type",
-  "definition": "src\\saved_games\\saved_game_enumerate_by_type.c",
-  "declared": "extern void saved_game_enumerate_by_type(int32_t type, void *out_slots, int32_t unknown);",
-  "problems": [
-   "3 parameters declared, 4 defined"
-  ]
- },
- {
   "caller": "src\\interface\\ui_controls_populate_bind_rows.c",
   "callee": "game_variant_option_default_by_index",
   "definition": "src\\game\\game_variant_option_default_by_index.c",
@@ -8446,7 +7526,8 @@
   "definition": "src\\text\\string_convert_ascii_to_unicode.c",
   "declared": "extern void string_convert_ascii_to_unicode(void);",
   "problems": [
-   "0 parameters declared, 3 defined"
+   "0 parameters declared, 3 defined",
+   "return v vs p"
   ]
  },
  {
@@ -8493,24 +7574,6 @@
   "declared": "extern void main_queue_map_change(void);",
   "problems": [
    "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\interface\\ui_profile_require_existing.c",
-  "callee": "saved_game_enumerate_by_type",
-  "definition": "src\\saved_games\\saved_game_enumerate_by_type.c",
-  "declared": "extern void saved_game_enumerate_by_type(int32_t type, int32_t *out_slots, int32_t unknown,\n                                         int16_t *in_out_count);",
-  "problems": [
-   "parameter kinds differ at #1 (i vs p), #2 (p vs i), #3 (i vs p), #4 (p vs i)"
-  ]
- },
- {
-  "caller": "src\\interface\\ui_profile_select_or_create.c",
-  "callee": "saved_game_enumerate_by_type",
-  "definition": "src\\saved_games\\saved_game_enumerate_by_type.c",
-  "declared": "extern void saved_game_enumerate_by_type(int32_t type, int32_t *out_slots, int32_t unknown,\n                                         int16_t *in_out_count);",
-  "problems": [
-   "parameter kinds differ at #1 (i vs p), #2 (p vs i), #3 (i vs p), #4 (p vs i)"
   ]
  },
  {
@@ -8574,35 +7637,6 @@
   "declared": "extern int32_t bitmap_group_sequence_get_bitmap_data(datum_index bitmap, int16_t sequence,\n                                                     int16_t frame);",
   "problems": [
    "return i vs p"
-  ]
- },
- {
-  "caller": "src\\interface\\widget_instance_render_list_head.c",
-  "callee": "string_convert_ascii_to_unicode",
-  "definition": "src\\text\\string_convert_ascii_to_unicode.c",
-  "declared": "extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dest, int32_t dest_bytes, const char *source);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p), #3 (p vs i)",
-   "return p vs v"
-  ]
- },
- {
-  "caller": "src\\interface\\widget_instance_render_text_box.c",
-  "callee": "string_convert_ascii_to_unicode",
-  "definition": "src\\text\\string_convert_ascii_to_unicode.c",
-  "declared": "extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dest, int32_t dest_bytes, const char *source);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p), #3 (p vs i)",
-   "return p vs v"
-  ]
- },
- {
-  "caller": "src\\interface\\widget_play_sound_effect_tag.c",
-  "callee": "sound_play_new",
-  "definition": "src\\sound\\sound_play_new.c",
-  "declared": "extern void sound_play_new(datum_index sound_tag, void *position, int32_t unknown1, int32_t unknown2,\n                          int32_t unknown3, int32_t unknown4, int32_t unknown5);",
-  "problems": [
-   "parameter kinds differ at #5 (i vs p)"
   ]
  },
  {
@@ -8683,7 +7717,16 @@
   "definition": "src\\effects\\effect_new_on_object.c",
   "declared": "extern void effect_new_on_object();",
   "problems": [
-   "0 parameters declared, 6 defined"
+   "0 parameters declared, 8 defined"
+  ]
+ },
+ {
+  "caller": "src\\items\\item_update.c",
+  "callee": "effect_new_on_object",
+  "definition": "src\\effects\\effect_new_on_object.c",
+  "declared": "extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale);",
+  "problems": [
+   "6 parameters declared, 8 defined"
   ]
  },
  {
@@ -8968,75 +8011,12 @@
   ]
  },
  {
-  "caller": "src\\items\\weapon_notify_ammo_pickup.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int message_delta_encode_message(int flag, int message_type, int changed_offset,\n    void **items, int type_offset, int count, char force_changed);",
+  "caller": "src\\items\\weapon_play_trigger_tag_effect.c",
+  "callee": "effect_new_on_object",
+  "definition": "src\\effects\\effect_new_on_object.c",
+  "declared": "extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale);",
   "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\items\\weapon_notify_ammo_pickup.c",
-  "callee": "network_session_broadcast_to_flagged",
-  "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t a1, void *a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6);",
-  "problems": [
-   "6 parameters declared, 7 defined"
-  ]
- },
- {
-  "caller": "src\\items\\weapon_notify_reload_begin.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int message_delta_encode_message(int flag, int message_type, int changed_offset,\n    void **items, int type_offset, int count, char force_changed);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\items\\weapon_notify_reload_begin.c",
-  "callee": "network_session_broadcast_to_flagged",
-  "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t a1, void *a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6);",
-  "problems": [
-   "6 parameters declared, 7 defined"
-  ]
- },
- {
-  "caller": "src\\items\\weapon_notify_reload_cancel.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int message_delta_encode_message(int flag, int message_type, int changed_offset,\n    void **items, int type_offset, int count, char force_changed);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\items\\weapon_notify_reload_cancel.c",
-  "callee": "network_session_broadcast_to_flagged",
-  "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t a1, void *a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6);",
-  "problems": [
-   "6 parameters declared, 7 defined"
-  ]
- },
- {
-  "caller": "src\\items\\weapon_notify_reload_step.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int message_delta_encode_message(int flag, int message_type, int changed_offset,\n    void **items, int type_offset, int count, char force_changed);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\items\\weapon_notify_reload_step.c",
-  "callee": "network_session_broadcast_to_flagged",
-  "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t a1, void *a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6);",
-  "problems": [
-   "6 parameters declared, 7 defined"
+   "6 parameters declared, 8 defined"
   ]
  },
  {
@@ -9247,55 +8227,10 @@
   ]
  },
  {
-  "caller": "src\\networking\\ban_list_check_and_reject_player.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\build_local_player_position_update.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(int32_t flag, int32_t message_type,\n    int32_t changed_offset, void **items, int32_t type_offset, int32_t count,\n    char force_changed);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\build_local_player_vehicle_update.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(int32_t flag, int32_t message_type,\n    int32_t changed_offset, void **items, int32_t type_offset, int32_t count,\n    char force_changed);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\build_player_full_resync_update.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(int32_t flag, int32_t message_type,\n    int32_t changed_offset, void **items, int32_t type_offset, int32_t count,\n    char force_changed);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
   "caller": "src\\networking\\build_player_full_resync_update.c",
   "callee": "network_session_send_to_machine",
   "definition": "src\\networking\\network_session_send_to_machine.c",
   "declared": "extern uint8_t network_session_send_to_machine(int32_t machine_id, void *data, int32_t bits,\n    int32_t reliable, int32_t unknown_a, int32_t unknown_b, int32_t priority);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\build_remote_player_action_update.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(int32_t flag, int32_t message_type,\n    int32_t changed_offset, void **items, int32_t type_offset, int32_t count,\n    char force_changed);",
   "problems": [
    "7 parameters declared, 9 defined"
   ]
@@ -9314,24 +8249,6 @@
   "callee": "network_session_send_to_machine",
   "definition": "src\\networking\\network_session_send_to_machine.c",
   "declared": "extern uint8_t network_session_send_to_machine(int32_t machine_id, void *data, int32_t bits,\n    int32_t reliable, int32_t unknown_a, int32_t unknown_b, int32_t priority);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\build_remote_player_vehicle_attachment_update.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(int32_t flag, int32_t message_type,\n    int32_t changed_offset, void **items, int32_t type_offset, int32_t count,\n    char force_changed);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\build_remote_player_vehicle_update.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(int32_t flag, int32_t message_type,\n    int32_t changed_offset, void **items, int32_t type_offset, int32_t count,\n    char force_changed);",
   "problems": [
    "7 parameters declared, 9 defined"
   ]
@@ -9356,29 +8273,11 @@
  },
  {
   "caller": "src\\networking\\chimera__rcon_out.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(int32_t a, int32_t message_type, int32_t b,\n    void *fields, int32_t c, int32_t d, char e);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\chimera__rcon_out.c",
   "callee": "network_session_send_to_machine",
   "definition": "src\\networking\\network_session_send_to_machine.c",
   "declared": "extern uint8_t network_session_send_to_machine(int32_t machine_index, void *key, int32_t size,\n    int32_t reliable, int32_t d, int32_t e, int32_t message_kind);",
   "problems": [
    "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\console_command_bool_get_set.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
   ]
  },
  {
@@ -9397,15 +8296,6 @@
   "declared": "extern void saved_game_enumerate_by_type(int32_t type, int32_t *out_ids, int32_t flag);",
   "problems": [
    "3 parameters declared, 4 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\game_variant_list_matching_substring.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
   ]
  },
  {
@@ -9455,30 +8345,11 @@
  },
  {
   "caller": "src\\networking\\join_game_server_browser_tick.c",
-  "callee": "string_format_wide_va_bounded",
-  "definition": "src\\text\\string_format_wide_va_bounded.c",
-  "declared": "extern void string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...);",
-  "problems": [
-   "3 parameters declared, 4 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\join_game_server_browser_tick.c",
   "callee": "autopatch_download_get_result",
   "definition": "src\\networking\\autopatch_download_get_result.c",
   "declared": "extern uint8_t autopatch_download_get_result(int32_t *result_a, int32_t *result_b);",
   "problems": [
    "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\join_game_server_browser_tick.c",
-  "callee": "string_convert_ascii_to_unicode",
-  "definition": "src\\text\\string_convert_ascii_to_unicode.c",
-  "declared": "extern wchar_t *string_convert_ascii_to_unicode(wchar_t *dest, int32_t dest_bytes, const char *source);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p), #3 (p vs i)",
-   "return p vs v"
   ]
  },
  {
@@ -9497,15 +8368,6 @@
   "declared": "extern int32_t tag_lookup(const char *path);",
   "problems": [
    "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\map_list_matching_substring.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
   ]
  },
  {
@@ -9555,15 +8417,6 @@
  },
  {
   "caller": "src\\networking\\message_delta_parameters_protocol_send_update.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(int32_t flag, int32_t message_type, int32_t changed_offset,\n                                             void **items, int32_t type_offset, int32_t count,\n ",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\message_delta_parameters_protocol_send_update.c",
   "callee": "network_session_broadcast_to_all",
   "definition": "src\\networking\\network_session_broadcast_to_all.c",
   "declared": "extern char network_session_broadcast_to_all(int32_t a1, void *a2, int32_t a3, int32_t a4, int32_t a5, int32_t a6);",
@@ -9587,24 +8440,6 @@
   "declared": "extern void string_convert_unicode_to_ascii(char *dest, network_player_entry *player, int32_t dest_size);",
   "problems": [
    "return v vs p"
-  ]
- },
- {
-  "caller": "src\\networking\\network_banlist_add_ban.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\network_banlist_print.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
   ]
  },
  {
@@ -9725,15 +8560,6 @@
   ]
  },
  {
-  "caller": "src\\networking\\network_client_handle_server_text_message.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
   "caller": "src\\networking\\network_client_identity_tick.c",
   "callee": "datum_get",
   "definition": "src\\memory\\datum_get.c",
@@ -9806,30 +8632,21 @@
   ]
  },
  {
+  "caller": "src\\networking\\network_connection_finalize_join.c",
+  "callee": "bit_stream_write_bits_chunked",
+  "definition": "src\\memory\\bit_stream_write_bits_chunked.c",
+  "declared": "extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value,\n    bit_stream *stream);",
+  "problems": [
+   "parameter kinds differ at #1 (i vs p), #2 (i vs p), #3 (p vs i)"
+  ]
+ },
+ {
   "caller": "src\\networking\\network_connection_initiate.c",
   "callee": "network_channel_attempt_connect",
   "definition": "src\\networking\\network_channel_attempt_connect.c",
   "declared": "extern int16_t network_channel_attempt_connect(int32_t a, int32_t b);",
   "problems": [
    "2 parameters declared, 4 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\network_connection_retransmit_if_overdue.c",
-  "callee": "message_delta_sample_record_and_append",
-  "definition": "src\\networking\\message_delta_sample_record_and_append.c",
-  "declared": "extern void message_delta_sample_record_and_append(void *control_block);",
-  "problems": [
-   "1 parameters declared, 5 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\network_connection_retransmit_if_overdue.c",
-  "callee": "message_delta_sample_ring_buffer_average",
-  "definition": "src\\networking\\message_delta_sample_ring_buffer_average.c",
-  "declared": "extern int16_t message_delta_sample_ring_buffer_average(void);",
-  "problems": [
-   "0 parameters declared, 1 defined"
   ]
  },
  {
@@ -9867,24 +8684,6 @@
   "declared": "extern void network_bandwidth_graph_accumulate_received(int32_t enabled);",
   "problems": [
    "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\network_event_feed_flush.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(int32_t flag, int32_t message_type,\n    int32_t changed_offset, void **items, int32_t type_offset, int32_t count,\n    char force_changed);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\network_event_feed_flush.c",
-  "callee": "network_session_broadcast_to_flagged",
-  "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(int32_t machine_id, uint8_t *data, char bits_low_byte, int32_t reliable,\n    int32_t unknown_a, int32_t unknown_b);",
-  "problems": [
-   "6 parameters declared, 7 defined"
   ]
  },
  {
@@ -10302,15 +9101,6 @@
   ]
  },
  {
-  "caller": "src\\networking\\network_game_broadcast_player_set_changed.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(int32_t a, int32_t message_type, int32_t b,\n    void *record, int32_t c, int32_t d, char e);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
   "caller": "src\\networking\\network_game_broadcast_state_snapshot.c",
   "callee": "data_packet_group_encode_packet",
   "definition": "src\\memory\\data_packet_group_encode_packet.c",
@@ -10365,94 +9155,21 @@
   ]
  },
  {
-  "caller": "src\\networking\\network_game_client_connect_to_address.c",
-  "callee": "string_convert_ascii_to_unicode",
-  "definition": "src\\text\\string_convert_ascii_to_unicode.c",
-  "declared": "extern wchar_t *string_convert_ascii_to_unicode(wchar_t *dest, int32_t dest_bytes, const char *source);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p), #3 (p vs i)",
-   "return p vs v"
-  ]
- },
- {
-  "caller": "src\\networking\\network_game_client_decode_and_discard_ingame_message.c",
-  "callee": "data_packet_group_decode_packet",
-  "definition": "src\\memory\\data_packet_group_decode_packet.c",
-  "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
-  "problems": [
-   "6 parameters declared, 8 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\network_game_client_decode_and_discard_join_message.c",
-  "callee": "data_packet_group_decode_packet",
-  "definition": "src\\memory\\data_packet_group_decode_packet.c",
-  "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
-  "problems": [
-   "6 parameters declared, 8 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\network_game_client_decode_beacon_reply.c",
-  "callee": "data_packet_group_decode_packet",
-  "definition": "src\\memory\\data_packet_group_decode_packet.c",
-  "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
-  "problems": [
-   "6 parameters declared, 8 defined"
-  ]
- },
- {
   "caller": "src\\networking\\network_game_client_decode_connect_rejected.c",
   "callee": "data_packet_group_decode_packet",
   "definition": "src\\memory\\data_packet_group_decode_packet.c",
   "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
   "problems": [
-   "6 parameters declared, 8 defined"
+   "6 parameters declared, 7 defined"
   ]
  },
  {
-  "caller": "src\\networking\\network_game_client_decode_join_accepted.c",
+  "caller": "src\\networking\\network_game_client_decode_player_join_chunk.c",
   "callee": "data_packet_group_decode_packet",
   "definition": "src\\memory\\data_packet_group_decode_packet.c",
-  "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
+  "declared": "extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group,\n    void *decoded_body, uint8_t *buffer, int16_t *out_type, byte_stream *input,\n    uint16_t *out_ve",
   "problems": [
-   "6 parameters declared, 8 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\network_game_client_decode_join_complete.c",
-  "callee": "data_packet_group_decode_packet",
-  "definition": "src\\memory\\data_packet_group_decode_packet.c",
-  "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
-  "problems": [
-   "6 parameters declared, 8 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\network_game_client_decode_join_finalize_ack.c",
-  "callee": "data_packet_group_decode_packet",
-  "definition": "src\\memory\\data_packet_group_decode_packet.c",
-  "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
-  "problems": [
-   "6 parameters declared, 8 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\network_game_client_decode_join_finalize_message.c",
-  "callee": "data_packet_group_decode_packet",
-  "definition": "src\\memory\\data_packet_group_decode_packet.c",
-  "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
-  "problems": [
-   "6 parameters declared, 8 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\network_game_client_decode_player_config_value.c",
-  "callee": "data_packet_group_decode_packet",
-  "definition": "src\\memory\\data_packet_group_decode_packet.c",
-  "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
-  "problems": [
-   "6 parameters declared, 8 defined"
+   "8 parameters declared, 7 defined"
   ]
  },
  {
@@ -10475,9 +9192,18 @@
  },
  {
   "caller": "src\\networking\\network_game_client_decode_player_slot_chunk.c",
+  "callee": "data_packet_group_decode_packet",
+  "definition": "src\\memory\\data_packet_group_decode_packet.c",
+  "declared": "extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group,\n    void *decoded_body, uint8_t *buffer, int16_t *out_type, byte_stream *input,\n    uint16_t *out_ve",
+  "problems": [
+   "8 parameters declared, 7 defined"
+  ]
+ },
+ {
+  "caller": "src\\networking\\network_game_client_decode_player_slot_chunk.c",
   "callee": "network_session_player_table_index_apply",
   "definition": "src\\networking\\network_session_player_table_index_apply.c",
-  "declared": "extern char network_session_player_table_index_apply(network_client_globals *client, int32_t param_2);",
+  "declared": "extern uint8_t network_session_player_table_index_apply(network_client_globals *client, int32_t param_2);",
   "problems": [
    "2 parameters declared, 3 defined"
   ]
@@ -10492,21 +9218,21 @@
   ]
  },
  {
-  "caller": "src\\networking\\network_game_client_decode_pong_reply.c",
-  "callee": "data_packet_group_decode_packet",
-  "definition": "src\\memory\\data_packet_group_decode_packet.c",
-  "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
-  "problems": [
-   "6 parameters declared, 8 defined"
-  ]
- },
- {
   "caller": "src\\networking\\network_game_client_decode_settings_or_ack.c",
   "callee": "data_packet_group_decode_packet",
   "definition": "src\\memory\\data_packet_group_decode_packet.c",
   "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
   "problems": [
-   "6 parameters declared, 8 defined"
+   "6 parameters declared, 7 defined"
+  ]
+ },
+ {
+  "caller": "src\\networking\\network_game_client_decode_state_update_chunk.c",
+  "callee": "data_packet_group_decode_packet",
+  "definition": "src\\memory\\data_packet_group_decode_packet.c",
+  "declared": "extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group,\n    void *decoded_body, uint8_t *buffer, int16_t *out_type, byte_stream *input,\n    uint16_t *out_ve",
+  "problems": [
+   "8 parameters declared, 7 defined"
   ]
  },
  {
@@ -10561,7 +9287,7 @@
   "definition": "src\\memory\\data_packet_group_decode_packet.c",
   "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
   "problems": [
-   "6 parameters declared, 8 defined"
+   "6 parameters declared, 7 defined"
   ]
  },
  {
@@ -10570,7 +9296,7 @@
   "definition": "src\\memory\\data_packet_group_decode_packet.c",
   "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
   "problems": [
-   "6 parameters declared, 8 defined"
+   "6 parameters declared, 7 defined"
   ]
  },
  {
@@ -10579,7 +9305,7 @@
   "definition": "src\\memory\\data_packet_group_decode_packet.c",
   "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
   "problems": [
-   "6 parameters declared, 8 defined"
+   "6 parameters declared, 7 defined"
   ]
  },
  {
@@ -10610,30 +9336,12 @@
   ]
  },
  {
-  "caller": "src\\networking\\network_game_client_update.c",
-  "callee": "console_print_error_va",
-  "definition": "src\\main\\console_print_error_va.c",
-  "declared": "extern void console_print_error_va(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\network_game_client_update.c",
-  "callee": "message_delta_sample_ring_buffer_average",
-  "definition": "src\\networking\\message_delta_sample_ring_buffer_average.c",
-  "declared": "extern int16_t message_delta_sample_ring_buffer_average(void);",
-  "problems": [
-   "0 parameters declared, 1 defined"
-  ]
- },
- {
   "caller": "src\\networking\\network_game_decode_settings_request.c",
   "callee": "data_packet_group_decode_packet",
   "definition": "src\\memory\\data_packet_group_decode_packet.c",
   "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
   "problems": [
-   "6 parameters declared, 8 defined"
+   "6 parameters declared, 7 defined"
   ]
  },
  {
@@ -10643,6 +9351,87 @@
   "declared": "extern int32_t tag_lookup(const char *path);",
   "problems": [
    "1 parameters declared, 2 defined"
+  ]
+ },
+ {
+  "caller": "src\\networking\\network_game_message_decode_dispatch.c",
+  "callee": "network_game_client_decode_beacon_reply",
+  "definition": "src\\networking\\network_game_client_decode_beacon_reply.c",
+  "declared": "extern char network_game_client_decode_beacon_reply(network_client_globals *client, const uint8_t *buffer);",
+  "problems": [
+   "2 parameters declared, 3 defined"
+  ]
+ },
+ {
+  "caller": "src\\networking\\network_game_message_decode_dispatch.c",
+  "callee": "network_game_client_decode_pong_reply",
+  "definition": "src\\networking\\network_game_client_decode_pong_reply.c",
+  "declared": "extern char network_game_client_decode_pong_reply(network_client_globals *client, const uint8_t *buffer);",
+  "problems": [
+   "2 parameters declared, 4 defined"
+  ]
+ },
+ {
+  "caller": "src\\networking\\network_game_message_decode_dispatch.c",
+  "callee": "network_game_client_decode_join_accepted",
+  "definition": "src\\networking\\network_game_client_decode_join_accepted.c",
+  "declared": "extern int32_t network_game_client_decode_join_accepted(network_client_globals *client, const uint8_t *buffer,\n    void *capacity, const int32_t **expected_sequence);",
+  "problems": [
+   "parameter kinds differ at #3 (p vs i)"
+  ]
+ },
+ {
+  "caller": "src\\networking\\network_game_message_decode_dispatch.c",
+  "callee": "network_game_client_decode_join_complete",
+  "definition": "src\\networking\\network_game_client_decode_join_complete.c",
+  "declared": "extern int32_t network_game_client_decode_join_complete(network_client_globals *client, const uint8_t *buffer,\n    void *capacity, const uint32_t **expected_sequence);",
+  "problems": [
+   "parameter kinds differ at #3 (p vs i)"
+  ]
+ },
+ {
+  "caller": "src\\networking\\network_game_message_decode_dispatch.c",
+  "callee": "network_game_client_decode_player_config_value",
+  "definition": "src\\networking\\network_game_client_decode_player_config_value.c",
+  "declared": "extern int32_t network_game_client_decode_player_config_value(network_client_globals *client,\n    const uint8_t *buffer, void *capacity, int32_t *expected_sequence);",
+  "problems": [
+   "parameter kinds differ at #3 (p vs i)"
+  ]
+ },
+ {
+  "caller": "src\\networking\\network_game_message_decode_dispatch.c",
+  "callee": "network_game_client_decode_and_discard_join_message",
+  "definition": "src\\networking\\network_game_client_decode_and_discard_join_message.c",
+  "declared": "extern int32_t network_game_client_decode_and_discard_join_message(network_client_globals *client,\n    const uint8_t *buffer, void *capacity, int32_t *expected_sequence);",
+  "problems": [
+   "parameter kinds differ at #3 (p vs i)"
+  ]
+ },
+ {
+  "caller": "src\\networking\\network_game_message_decode_dispatch.c",
+  "callee": "network_game_client_decode_and_discard_ingame_message",
+  "definition": "src\\networking\\network_game_client_decode_and_discard_ingame_message.c",
+  "declared": "extern int32_t network_game_client_decode_and_discard_ingame_message(network_client_globals *client,\n    const uint8_t *buffer, void *capacity, int32_t *expected_sequence);",
+  "problems": [
+   "parameter kinds differ at #3 (p vs i)"
+  ]
+ },
+ {
+  "caller": "src\\networking\\network_game_message_decode_dispatch.c",
+  "callee": "network_game_client_decode_join_finalize_message",
+  "definition": "src\\networking\\network_game_client_decode_join_finalize_message.c",
+  "declared": "extern int32_t network_game_client_decode_join_finalize_message(uint16_t *client, const uint8_t *buffer,\n    void *capacity, int32_t *expected_sequence);",
+  "problems": [
+   "parameter kinds differ at #3 (p vs i)"
+  ]
+ },
+ {
+  "caller": "src\\networking\\network_game_message_decode_dispatch.c",
+  "callee": "network_game_client_decode_join_finalize_ack",
+  "definition": "src\\networking\\network_game_client_decode_join_finalize_ack.c",
+  "declared": "extern int32_t network_game_client_decode_join_finalize_ack(network_client_globals *client, const uint8_t *buffer,\n    void *capacity, int32_t *expected_sequence);",
+  "problems": [
+   "parameter kinds differ at #3 (p vs i)"
   ]
  },
  {
@@ -10692,6 +9481,15 @@
  },
  {
   "caller": "src\\networking\\network_game_message_decode_replicated_command.c",
+  "callee": "data_packet_group_decode_packet",
+  "definition": "src\\memory\\data_packet_group_decode_packet.c",
+  "declared": "extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group,\n    void *decoded_body, uint8_t *buffer, int16_t *out_type, byte_stream *input,\n    uint16_t *out_ve",
+  "problems": [
+   "8 parameters declared, 7 defined"
+  ]
+ },
+ {
+  "caller": "src\\networking\\network_game_message_decode_replicated_command.c",
   "callee": "network_client_timer_schedule",
   "definition": "src\\networking\\network_client_timer_schedule.c",
   "declared": "extern void network_client_timer_schedule(network_client_globals *client, int32_t delay_ms, uint32_t event_id);",
@@ -10705,7 +9503,7 @@
   "definition": "src\\memory\\data_packet_group_decode_packet.c",
   "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
   "problems": [
-   "6 parameters declared, 8 defined"
+   "6 parameters declared, 7 defined"
   ]
  },
  {
@@ -10714,7 +9512,7 @@
   "definition": "src\\memory\\data_packet_group_decode_packet.c",
   "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
   "problems": [
-   "6 parameters declared, 8 defined"
+   "6 parameters declared, 7 defined"
   ]
  },
  {
@@ -10732,7 +9530,7 @@
   "definition": "src\\memory\\data_packet_group_decode_packet.c",
   "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
   "problems": [
-   "6 parameters declared, 8 defined"
+   "6 parameters declared, 7 defined"
   ]
  },
  {
@@ -10759,7 +9557,7 @@
   "definition": "src\\memory\\data_packet_group_decode_packet.c",
   "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
   "problems": [
-   "6 parameters declared, 8 defined"
+   "6 parameters declared, 7 defined"
   ]
  },
  {
@@ -10777,7 +9575,7 @@
   "definition": "src\\memory\\data_packet_group_decode_packet.c",
   "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
   "problems": [
-   "6 parameters declared, 8 defined"
+   "6 parameters declared, 7 defined"
   ]
  },
  {
@@ -10804,7 +9602,7 @@
   "definition": "src\\memory\\data_packet_group_decode_packet.c",
   "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
   "problems": [
-   "6 parameters declared, 8 defined"
+   "6 parameters declared, 7 defined"
   ]
  },
  {
@@ -10813,7 +9611,7 @@
   "definition": "src\\memory\\data_packet_group_decode_packet.c",
   "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
   "problems": [
-   "6 parameters declared, 8 defined"
+   "6 parameters declared, 7 defined"
   ]
  },
  {
@@ -10831,7 +9629,7 @@
   "definition": "src\\memory\\data_packet_group_decode_packet.c",
   "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
   "problems": [
-   "6 parameters declared, 8 defined"
+   "6 parameters declared, 7 defined"
   ]
  },
  {
@@ -10849,7 +9647,7 @@
   "definition": "src\\memory\\data_packet_group_decode_packet.c",
   "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, void *out_a, void *out_b, int32_t expected_class);",
   "problems": [
-   "6 parameters declared, 8 defined"
+   "6 parameters declared, 7 defined"
   ]
  },
  {
@@ -11024,6 +9822,15 @@
   ]
  },
  {
+  "caller": "src\\networking\\network_game_record_message_send.c",
+  "callee": "bit_stream_write_bits_chunked",
+  "definition": "src\\memory\\bit_stream_write_bits_chunked.c",
+  "declared": "extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value,\n    bit_stream *stream);",
+  "problems": [
+   "parameter kinds differ at #1 (i vs p), #2 (i vs p), #3 (p vs i)"
+  ]
+ },
+ {
   "caller": "src\\networking\\network_game_scenario_load_request.c",
   "callee": "cache_file_switch_map_by_path",
   "definition": "src\\game\\cache_file_switch_map_by_path.c",
@@ -11092,7 +9899,7 @@
   "definition": "src\\memory\\data_packet_group_decode_packet.c",
   "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
   "problems": [
-   "6 parameters declared, 8 defined"
+   "6 parameters declared, 7 defined"
   ]
  },
  {
@@ -11119,7 +9926,7 @@
   "definition": "src\\memory\\data_packet_group_decode_packet.c",
   "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
   "problems": [
-   "6 parameters declared, 8 defined"
+   "6 parameters declared, 7 defined"
   ]
  },
  {
@@ -11164,7 +9971,7 @@
   "definition": "src\\memory\\data_packet_group_decode_packet.c",
   "declared": "extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,\n    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class);",
   "problems": [
-   "6 parameters declared, 8 defined"
+   "6 parameters declared, 7 defined"
   ]
  },
  {
@@ -11268,20 +10075,20 @@
  },
  {
   "caller": "src\\networking\\network_game_server_send_message_to_all_machines.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(int32_t a, int32_t message_type, int32_t b,\n    void *fields, int32_t c, int32_t d, char e);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\network_game_server_send_message_to_all_machines.c",
   "callee": "network_channel_stream_flush",
   "definition": "src\\networking\\network_channel_stream_flush.c",
   "declared": "extern uint8_t network_channel_stream_flush(network_channel *channel, int32_t mode);",
   "problems": [
    "2 parameters declared, 3 defined"
+  ]
+ },
+ {
+  "caller": "src\\networking\\network_game_server_send_message_to_all_machines.c",
+  "callee": "bit_stream_write_bits_chunked",
+  "definition": "src\\memory\\bit_stream_write_bits_chunked.c",
+  "declared": "extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value,\n    bit_stream *stream);",
+  "problems": [
+   "parameter kinds differ at #1 (i vs p), #2 (i vs p), #3 (p vs i)"
   ]
  },
  {
@@ -11309,6 +10116,15 @@
   "declared": "extern void network_player_assign_random_color(void);",
   "problems": [
    "0 parameters declared, 2 defined"
+  ]
+ },
+ {
+  "caller": "src\\networking\\network_game_settings_ack_send.c",
+  "callee": "bit_stream_write_bits_chunked",
+  "definition": "src\\memory\\bit_stream_write_bits_chunked.c",
+  "declared": "extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value,\n    bit_stream *stream);",
+  "problems": [
+   "parameter kinds differ at #1 (i vs p), #2 (i vs p), #3 (p vs i)"
   ]
  },
  {
@@ -11345,6 +10161,15 @@
   "declared": "extern void main_queue_map_change_by_name_or_clear(void);",
   "problems": [
    "0 parameters declared, 1 defined"
+  ]
+ },
+ {
+  "caller": "src\\networking\\network_game_settings_packet_send.c",
+  "callee": "bit_stream_write_bits_chunked",
+  "definition": "src\\memory\\bit_stream_write_bits_chunked.c",
+  "declared": "extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value,\n    bit_stream *stream);",
+  "problems": [
+   "parameter kinds differ at #1 (i vs p), #2 (i vs p), #3 (p vs i)"
   ]
  },
  {
@@ -11393,21 +10218,21 @@
   ]
  },
  {
+  "caller": "src\\networking\\network_host_presence_broadcast_tick.c",
+  "callee": "bit_stream_write_bits_chunked",
+  "definition": "src\\memory\\bit_stream_write_bits_chunked.c",
+  "declared": "extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value,\n    bit_stream *stream);",
+  "problems": [
+   "parameter kinds differ at #1 (i vs p), #2 (i vs p), #3 (p vs i)"
+  ]
+ },
+ {
   "caller": "src\\networking\\network_host_round_reset.c",
   "callee": "network_game_session_reset_defaults",
   "definition": "src\\networking\\network_game_session_reset_defaults.c",
   "declared": "extern char network_game_session_reset_defaults(void);",
   "problems": [
    "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\network_host_send_scenario_announcement.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(int32_t a, int32_t type, int32_t b, void **payload,\n    int32_t c, int32_t d, char e);",
-  "problems": [
-   "7 parameters declared, 9 defined"
   ]
  },
  {
@@ -11629,6 +10454,15 @@
   ]
  },
  {
+  "caller": "src\\networking\\network_send_join_request_packet.c",
+  "callee": "bit_stream_write_bits_chunked",
+  "definition": "src\\memory\\bit_stream_write_bits_chunked.c",
+  "declared": "extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value,\n    bit_stream *stream);",
+  "problems": [
+   "parameter kinds differ at #1 (i vs p), #2 (i vs p), #3 (p vs i)"
+  ]
+ },
+ {
   "caller": "src\\networking\\network_server_build_full_game_info_packet.c",
   "callee": "data_packet_group_encode_packet",
   "definition": "src\\memory\\data_packet_group_encode_packet.c",
@@ -11692,30 +10526,12 @@
   ]
  },
  {
-  "caller": "src\\networking\\network_server_check_machine_timeout.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(int32_t a, int32_t message_type, int32_t b,\n    void *record, int32_t c, int32_t d, char e);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
   "caller": "src\\networking\\network_server_handle_rcon_request.c",
   "callee": "console_process_rcon_command",
   "definition": "src\\main\\console_process_rcon_command.c",
   "declared": "extern uint8_t console_process_rcon_command(char *command);",
   "problems": [
    "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\network_server_handle_rcon_request.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
   ]
  },
  {
@@ -11774,15 +10590,6 @@
  },
  {
   "caller": "src\\networking\\network_session_autoban_player.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\network_session_autoban_player.c",
   "callee": "network_server_notify_or_resend_challenge",
   "definition": "src\\networking\\network_server_notify_or_resend_challenge.c",
   "declared": "extern uint8_t network_server_notify_or_resend_challenge(int16_t reason, network_machine *machine, network_server_globals *server);",
@@ -11792,15 +10599,6 @@
  },
  {
   "caller": "src\\networking\\network_session_broadcast_to_all.c",
-  "callee": "network_channel_queue_message",
-  "definition": "src\\networking\\network_channel_queue_message.c",
-  "declared": "extern char network_channel_queue_message(void *data, void *out_status, int32_t one, uint32_t param_3,\n    uint32_t param_4, uint32_t param_6);",
-  "problems": [
-   "6 parameters declared, 7 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\network_session_broadcast_to_flagged.c",
   "callee": "network_channel_queue_message",
   "definition": "src\\networking\\network_channel_queue_message.c",
   "declared": "extern char network_channel_queue_message(void *data, void *out_status, int32_t one, uint32_t param_3,\n    uint32_t param_4, uint32_t param_6);",
@@ -11845,12 +10643,30 @@
   ]
  },
  {
-  "caller": "src\\networking\\network_session_send_to_machine.c",
-  "callee": "network_channel_queue_message",
-  "definition": "src\\networking\\network_channel_queue_message.c",
-  "declared": "extern uint32_t network_channel_queue_message(void *data, void *out_status, int32_t one, uint32_t param_4,\n    uint32_t param_5, uint32_t param_7);",
+  "caller": "src\\networking\\network_session_info_packet_send.c",
+  "callee": "bit_stream_write_bits_chunked",
+  "definition": "src\\memory\\bit_stream_write_bits_chunked.c",
+  "declared": "extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value,\n    bit_stream *stream);",
   "problems": [
-   "6 parameters declared, 7 defined"
+   "parameter kinds differ at #1 (i vs p), #2 (i vs p), #3 (p vs i)"
+  ]
+ },
+ {
+  "caller": "src\\networking\\network_session_player_join_notify.c",
+  "callee": "bit_stream_write_bits_chunked",
+  "definition": "src\\memory\\bit_stream_write_bits_chunked.c",
+  "declared": "extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value,\n    bit_stream *stream);",
+  "problems": [
+   "parameter kinds differ at #1 (i vs p), #2 (i vs p), #3 (p vs i)"
+  ]
+ },
+ {
+  "caller": "src\\networking\\network_staged_message_commit.c",
+  "callee": "bit_stream_write_bits_chunked",
+  "definition": "src\\memory\\bit_stream_write_bits_chunked.c",
+  "declared": "extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value,\n    bit_stream *stream);",
+  "problems": [
+   "parameter kinds differ at #1 (i vs p), #2 (i vs p), #3 (p vs i)"
   ]
  },
  {
@@ -11990,24 +10806,6 @@
   ]
  },
  {
-  "caller": "src\\networking\\rcon.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\rcon_send_request.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
   "caller": "src\\networking\\rcon_send_request.c",
   "callee": "message_delta_encode_message",
   "definition": "src\\networking\\message_delta_encode_message.c",
@@ -12023,6 +10821,15 @@
   "declared": "extern uint8_t network_channel_stream_flush(network_channel *channel, int32_t mode);",
   "problems": [
    "2 parameters declared, 3 defined"
+  ]
+ },
+ {
+  "caller": "src\\networking\\rcon_send_request.c",
+  "callee": "bit_stream_write_bits_chunked",
+  "definition": "src\\memory\\bit_stream_write_bits_chunked.c",
+  "declared": "extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value,\n    bit_stream *stream);",
+  "problems": [
+   "parameter kinds differ at #1 (i vs p), #2 (i vs p), #3 (p vs i)"
   ]
  },
  {
@@ -12050,16 +10857,6 @@
   "declared": "extern void map_list_get_friendly_level_name(const char *map_name, wchar_t out_buffer[0x20]);",
   "problems": [
    "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\server_browser_list_row_populate.c",
-  "callee": "string_convert_ascii_to_unicode",
-  "definition": "src\\text\\string_convert_ascii_to_unicode.c",
-  "declared": "extern wchar_t *string_convert_ascii_to_unicode(wchar_t *dest, int32_t dest_bytes, const char *source);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p), #3 (p vs i)",
-   "return p vs v"
   ]
  },
  {
@@ -12118,16 +10915,6 @@
  },
  {
   "caller": "src\\networking\\server_browser_selected_variant_description_build.c",
-  "callee": "string_convert_ascii_to_unicode",
-  "definition": "src\\text\\string_convert_ascii_to_unicode.c",
-  "declared": "extern wchar_t *string_convert_ascii_to_unicode(wchar_t *dest, int32_t dest_bytes, const char *source);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p), #3 (p vs i)",
-   "return p vs v"
-  ]
- },
- {
-  "caller": "src\\networking\\server_browser_selected_variant_description_build.c",
   "callee": "multiplayer_game_variant_description_generate",
   "definition": "src\\game\\multiplayer_game_variant_description_generate.c",
   "declared": "extern void multiplayer_game_variant_description_generate(ticker_text_buffer *ticker, int32_t fraglimit,\n                                                            wchar_t *game_flags_wide, wchar_t *",
@@ -12163,37 +10950,10 @@
   ]
  },
  {
-  "caller": "src\\networking\\sv_ban.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\sv_banlist_file.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
   "caller": "src\\networking\\sv_ban_penalty.c",
   "callee": "chimera__console_out",
   "definition": "src\\interface\\chimera__console_out.c",
   "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\sv_find_client_by_name_or_index.c",
-  "callee": "string_convert_ascii_to_unicode",
-  "definition": "src\\text\\string_convert_ascii_to_unicode.c",
-  "declared": "extern void string_convert_ascii_to_unicode(uint16_t *dest, char *source);",
   "problems": [
    "2 parameters declared, 3 defined"
   ]
@@ -12217,15 +10977,6 @@
   ]
  },
  {
-  "caller": "src\\networking\\sv_kick.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
   "caller": "src\\networking\\sv_map.c",
   "callee": "game_engine_is_map_and_variant_valid",
   "definition": "src\\game\\game_engine_is_map_and_variant_valid.c",
@@ -12244,15 +10995,6 @@
   ]
  },
  {
-  "caller": "src\\networking\\sv_map.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
   "caller": "src\\networking\\sv_map_reset.c",
   "callee": "game_engine_player_profile_cache_sync_all",
   "definition": "src\\game\\game_engine_player_profile_cache_sync_all.c",
@@ -12262,31 +11004,12 @@
   ]
  },
  {
-  "caller": "src\\networking\\sv_map_reset.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\sv_maxplayers.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
   "caller": "src\\networking\\sv_name.c",
   "callee": "string_convert_ascii_to_unicode",
   "definition": "src\\text\\string_convert_ascii_to_unicode.c",
   "declared": "extern wchar_t *string_convert_ascii_to_unicode(void);",
   "problems": [
-   "0 parameters declared, 3 defined",
-   "return p vs v"
+   "0 parameters declared, 3 defined"
   ]
  },
  {
@@ -12299,31 +11022,12 @@
   ]
  },
  {
-  "caller": "src\\networking\\sv_name.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
   "caller": "src\\networking\\sv_password.c",
   "callee": "string_convert_ascii_to_unicode",
   "definition": "src\\text\\string_convert_ascii_to_unicode.c",
   "declared": "extern wchar_t *string_convert_ascii_to_unicode(void);",
   "problems": [
-   "0 parameters declared, 3 defined",
-   "return p vs v"
-  ]
- },
- {
-  "caller": "src\\networking\\sv_password.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
+   "0 parameters declared, 3 defined"
   ]
  },
  {
@@ -12345,33 +11049,6 @@
   ]
  },
  {
-  "caller": "src\\networking\\sv_players.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\sv_rcon_password.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\sv_single_flag_force_reset.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
   "caller": "src\\networking\\sv_status.c",
   "callee": "players_active_count",
   "definition": "src\\game\\players_active_count.c",
@@ -12381,34 +11058,7 @@
   ]
  },
  {
-  "caller": "src\\networking\\sv_status.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
   "caller": "src\\networking\\sv_timelimit.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\sv_tk_cooldown.c",
-  "callee": "chimera__console_out",
-  "definition": "src\\interface\\chimera__console_out.c",
-  "declared": "extern void chimera__console_out(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\networking\\sv_tk_grace.c",
   "callee": "chimera__console_out",
   "definition": "src\\interface\\chimera__console_out.c",
   "declared": "extern void chimera__console_out(const char *format, ...);",
@@ -12432,6 +11082,15 @@
   "declared": "extern void update_client_stage_entry(void);",
   "problems": [
    "0 parameters declared, 1 defined"
+  ]
+ },
+ {
+  "caller": "src\\networking\\update_server_send_update.c",
+  "callee": "bit_stream_write_bits_chunked",
+  "definition": "src\\memory\\bit_stream_write_bits_chunked.c",
+  "declared": "extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value, bit_stream *stream);",
+  "problems": [
+   "parameter kinds differ at #1 (i vs p), #2 (i vs p), #3 (p vs i)"
   ]
  },
  {
@@ -12469,15 +11128,6 @@
   "declared": "extern data_array *game_state_new(char *name, int32_t maximum_count);",
   "problems": [
    "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\antenna_apply_marker_delta.c",
-  "callee": "bsp3d_node_find_leaf",
-  "definition": "src\\physics\\bsp3d_node_find_leaf.c",
-  "declared": "extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index);",
-  "problems": [
-   "parameter kinds differ at #1 (p vs i), #3 (i vs p)"
   ]
  },
  {
@@ -12522,7 +11172,7 @@
   "definition": "src\\effects\\effect_new_with_color.c",
   "declared": "extern void effect_new_with_color(datum_index effect_tag);",
   "problems": [
-   "1 parameters declared, 11 defined"
+   "1 parameters declared, 12 defined"
   ]
  },
  {
@@ -12568,15 +11218,6 @@
   "declared": "extern void flag_cloth_init_shape_constraints(flag *entry);",
   "problems": [
    "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\flag_pole_get_marker_positions.c",
-  "callee": "bsp3d_node_find_leaf",
-  "definition": "src\\physics\\bsp3d_node_find_leaf.c",
-  "declared": "extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index);",
-  "problems": [
-   "parameter kinds differ at #1 (p vs i), #3 (i vs p)"
   ]
  },
  {
@@ -12861,15 +11502,6 @@
   ]
  },
  {
-  "caller": "src\\objects\\objects_set_ambient_cluster_override.c",
-  "callee": "bsp3d_node_find_leaf",
-  "definition": "src\\physics\\bsp3d_node_find_leaf.c",
-  "declared": "extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index);",
-  "problems": [
-   "parameter kinds differ at #1 (p vs i), #3 (i vs p)"
-  ]
- },
- {
   "caller": "src\\objects\\objects_update_control_bindings.c",
   "callee": "object_get_or_build_render_permutation",
   "definition": "src\\objects\\object_get_or_build_render_permutation.c",
@@ -12911,25 +11543,7 @@
   "definition": "src\\effects\\effect_new_on_object.c",
   "declared": "extern void effect_new_on_object();",
   "problems": [
-   "0 parameters declared, 6 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_apply_body_damage.c",
-  "callee": "weapon_get_zoom_fov",
-  "definition": "src\\game\\weapon_get_zoom_fov.c",
-  "declared": "extern real weapon_get_zoom_fov(int32_t param_1);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_apply_body_damage.c",
-  "callee": "weapon_get_zoom_fov_resolved",
-  "definition": "src\\game\\weapon_get_zoom_fov_resolved.c",
-  "declared": "extern real weapon_get_zoom_fov_resolved(void);",
-  "problems": [
-   "0 parameters declared, 2 defined"
+   "0 parameters declared, 8 defined"
   ]
  },
  {
@@ -12998,15 +11612,6 @@
  },
  {
   "caller": "src\\objects\\object_apply_damage.c",
-  "callee": "weapon_get_zoom_fov",
-  "definition": "src\\game\\weapon_get_zoom_fov.c",
-  "declared": "extern real weapon_get_zoom_fov(int32_t param_1);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_apply_damage.c",
   "callee": "object_set_health_frozen_flag",
   "definition": "src\\objects\\object_set_health_frozen_flag.c",
   "declared": "extern void object_set_health_frozen_flag(void);",
@@ -13034,47 +11639,11 @@
  },
  {
   "caller": "src\\objects\\object_apply_shield_damage.c",
-  "callee": "weapon_get_zoom_fov",
-  "definition": "src\\game\\weapon_get_zoom_fov.c",
-  "declared": "extern real weapon_get_zoom_fov(int32_t param_1);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_apply_shield_damage.c",
-  "callee": "weapon_get_zoom_fov_resolved",
-  "definition": "src\\game\\weapon_get_zoom_fov_resolved.c",
-  "declared": "extern real weapon_get_zoom_fov_resolved(void);",
-  "problems": [
-   "0 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_apply_shield_damage.c",
   "callee": "object_dispatch_effect_notify",
   "definition": "src\\objects\\object_dispatch_effect_notify.c",
   "declared": "extern void object_dispatch_effect_notify(void);",
   "problems": [
    "0 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_block_data_grow.c",
-  "callee": "block_list_reallocate",
-  "definition": "src\\memory\\block_list_reallocate.c",
-  "declared": "extern uint8_t block_list_reallocate(memory_pool *arena);",
-  "problems": [
-   "1 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_collect_local_player_relevant_objects.c",
-  "callee": "bsp3d_node_find_leaf",
-  "definition": "src\\physics\\bsp3d_node_find_leaf.c",
-  "declared": "extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index);",
-  "problems": [
-   "parameter kinds differ at #1 (p vs i), #3 (i vs p)"
   ]
  },
  {
@@ -13129,15 +11698,6 @@
   "declared": "extern int8_t teams_are_enemies(void);",
   "problems": [
    "0 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_damage_apply_line_of_sight.c",
-  "callee": "weapon_get_zoom_fov",
-  "definition": "src\\game\\weapon_get_zoom_fov.c",
-  "declared": "extern real weapon_get_zoom_fov(int32_t param_1);",
-  "problems": [
-   "1 parameters declared, 2 defined"
   ]
  },
  {
@@ -13236,25 +11796,7 @@
   "definition": "src\\effects\\effect_new_on_object.c",
   "declared": "extern void effect_new_on_object();",
   "problems": [
-   "0 parameters declared, 6 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_delete_unparented.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(uint32_t a1, uint32_t a2, uint32_t a3, void *scratch,\n                                             uint32_t a5, uint32_t a6, uint8_t a7);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_delete_unparented.c",
-  "callee": "network_session_broadcast_to_flagged",
-  "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t a1, void *a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6);",
-  "problems": [
-   "6 parameters declared, 7 defined"
+   "0 parameters declared, 8 defined"
   ]
  },
  {
@@ -13263,7 +11805,7 @@
   "definition": "src\\effects\\effect_new_on_object.c",
   "declared": "extern void effect_new_on_object();",
   "problems": [
-   "0 parameters declared, 6 defined"
+   "0 parameters declared, 8 defined"
   ]
  },
  {
@@ -13281,7 +11823,7 @@
   "definition": "src\\effects\\effect_new_on_object.c",
   "declared": "extern void effect_new_on_object();",
   "problems": [
-   "0 parameters declared, 6 defined"
+   "0 parameters declared, 8 defined"
   ]
  },
  {
@@ -13371,7 +11913,7 @@
   "caller": "src\\objects\\object_lights_update_all.c",
   "callee": "structure_bsp_collect_visible_objects",
   "definition": "src\\structures\\structure_bsp_collect_visible_objects.c",
-  "declared": "extern int32_t structure_bsp_collect_visible_objects(datum_index *out_list, int32_t max_count, void *lab1, void *lab2,\n    void *lab3, void *lab4, void *lab5);",
+  "declared": "extern int16_t structure_bsp_collect_visible_objects(datum_index *out_list, int32_t max_count, void *lab1, void *lab2,\n    void *lab3, void *lab4, void *lab5);",
   "problems": [
    "parameter kinds differ at #3 (p vs i), #4 (p vs i), #5 (p vs i), #6 (p vs i), #7 (p vs i)"
   ]
@@ -13460,114 +12002,6 @@
   ]
  },
  {
-  "caller": "src\\objects\\object_new_with_datum_role_control.c",
-  "callee": "game_engine_remap_placement_by_type",
-  "definition": "src\\game\\game_engine_remap_placement_by_type.c",
-  "declared": "extern datum_index game_engine_remap_placement_by_type(void);",
-  "problems": [
-   "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_new_with_datum_role_control.c",
-  "callee": "object_block_data_new",
-  "definition": "src\\objects\\object_block_data_new.c",
-  "declared": "extern datum_index object_block_data_new(data_array *array, int16_t element_size);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_new_with_datum_role_control.c",
-  "callee": "object_block_data_grow",
-  "definition": "src\\objects\\object_block_data_grow.c",
-  "declared": "extern char object_block_data_grow(int16_t field_offset, int32_t byte_count);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_new_with_datum_role_control.c",
-  "callee": "object_type_definitions_notify_0x24",
-  "definition": "src\\objects\\object_type_definitions_notify_0x24.c",
-  "declared": "extern void object_type_definitions_notify_0x24(uint32_t object_index);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_new_with_datum_role_control.c",
-  "callee": "object_set_collision_enabled",
-  "definition": "src\\objects\\object_set_collision_enabled.c",
-  "declared": "extern void object_set_collision_enabled(uint8_t has_model);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_new_with_datum_role_control.c",
-  "callee": "object_notify_node_array_if_animated",
-  "definition": "src\\objects\\object_notify_node_array_if_animated.c",
-  "declared": "extern void object_notify_node_array_if_animated(void);",
-  "problems": [
-   "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_new_with_datum_role_control.c",
-  "callee": "object_apply_network_placement",
-  "definition": "src\\objects\\object_apply_network_placement.c",
-  "declared": "extern void object_apply_network_placement(real_vector3d *network_vectors);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_new_with_datum_role_control.c",
-  "callee": "object_refresh_region_permutations",
-  "definition": "src\\objects\\object_refresh_region_permutations.c",
-  "declared": "extern void object_refresh_region_permutations(void);",
-  "problems": [
-   "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_new_with_datum_role_control.c",
-  "callee": "widget_new",
-  "definition": "src\\objects\\widget_new.c",
-  "declared": "extern void widget_new(void);",
-  "problems": [
-   "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_new_with_datum_role_control.c",
-  "callee": "effect_new_on_object",
-  "definition": "src\\effects\\effect_new_on_object.c",
-  "declared": "extern void effect_new_on_object();",
-  "problems": [
-   "0 parameters declared, 6 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_new_with_datum_role_control.c",
-  "callee": "network_session_broadcast_to_flagged",
-  "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t a1, void *a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6);",
-  "problems": [
-   "6 parameters declared, 7 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_new_with_datum_role_control.c",
-  "callee": "console_print_error_va",
-  "definition": "src\\main\\console_print_error_va.c",
-  "declared": "extern void console_print_error_va(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
   "caller": "src\\objects\\object_notify_node_array_if_animated.c",
   "callee": "object_type_definitions_notify_0x4c",
   "definition": "src\\objects\\object_type_definitions_notify_0x4c.c",
@@ -13587,120 +12021,11 @@
  },
  {
   "caller": "src\\objects\\object_notify_pickup_or_refresh_probe.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(uint32_t a1, uint32_t a2, uint32_t a3, void *scratch,\n    uint32_t a5, uint32_t a6, uint8_t a7);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_notify_pickup_or_refresh_probe.c",
   "callee": "network_session_send_to_machine",
   "definition": "src\\networking\\network_session_send_to_machine.c",
   "declared": "extern void network_session_send_to_machine(int32_t param_1, void *param_2, int32_t message,\n    int32_t param_4, int32_t param_5, int32_t param_6, int32_t param_7);",
   "problems": [
    "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_queue_pickup_denied_event.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(uint32_t a1, uint32_t a2, uint32_t a3, void *scratch,\n    uint32_t a5, uint32_t a6, uint8_t a7);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_queue_pickup_denied_event.c",
-  "callee": "network_session_broadcast_to_flagged",
-  "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t a1, void *a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6);",
-  "problems": [
-   "6 parameters declared, 7 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_recalculate_bounding_radius.c",
-  "callee": "matrix4x3_from_forward_up",
-  "definition": "src\\math\\matrix4x3_from_forward_up.c",
-  "declared": "extern void matrix4x3_from_forward_up();",
-  "problems": [
-   "0 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_recalculate_bounding_radius.c",
-  "callee": "matrix4x3_transform_point",
-  "definition": "src\\math\\matrix4x3_transform_point.c",
-  "declared": "extern void matrix4x3_transform_point();",
-  "problems": [
-   "0 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_recalculate_bounding_radius.c",
-  "callee": "vector3d_cross_product",
-  "definition": "src\\math\\vector3d_cross_product.c",
-  "declared": "extern void vector3d_cross_product();",
-  "problems": [
-   "0 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_recalculate_bounding_radius.c",
-  "callee": "model_nodes_get_default_transforms",
-  "definition": "src\\models\\model_nodes_get_default_transforms.c",
-  "declared": "extern void model_nodes_get_default_transforms(void *out_nodes);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_recalculate_bounding_radius.c",
-  "callee": "animation_get_frame_orientations",
-  "definition": "src\\models\\animation_get_frame_orientations.c",
-  "declared": "extern void animation_get_frame_orientations(uint32_t selector, void *out_nodes);",
-  "problems": [
-   "2 parameters declared, 4 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_recalculate_bounding_radius.c",
-  "callee": "animation_overlay_frame_orientations_weighted",
-  "definition": "src\\models\\animation_overlay_frame_orientations_weighted.c",
-  "declared": "extern void animation_overlay_frame_orientations_weighted(uint32_t selector, float t, void *out_nodes);",
-  "problems": [
-   "3 parameters declared, 4 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_recalculate_bounding_radius.c",
-  "callee": "object_type_definitions_notify_two_args_0x48",
-  "definition": "src\\objects\\object_type_definitions_notify_two_args_0x48.c",
-  "declared": "extern void object_type_definitions_notify_two_args_0x48(uint32_t object_index, void *nodes);",
-  "problems": [
-   "parameter kinds differ at #2 (p vs i)"
-  ]
- },
- {
-  "caller": "src\\objects\\object_recalculate_bounding_radius.c",
-  "callee": "matrix4x3_from_quaternion",
-  "definition": "src\\math\\matrix4x3_from_quaternion.c",
-  "declared": "extern void *matrix4x3_from_quaternion(void);",
-  "problems": [
-   "0 parameters declared, 2 defined",
-   "return p vs v"
-  ]
- },
- {
-  "caller": "src\\objects\\object_recalculate_bounding_radius.c",
-  "callee": "model_nodes_blend_transforms",
-  "definition": "src\\models\\model_nodes_blend_transforms.c",
-  "declared": "extern void model_nodes_blend_transforms(void *values, int16_t unknown_0d4, int16_t node_function_count);",
-  "problems": [
-   "3 parameters declared, 5 defined"
   ]
  },
  {
@@ -13718,16 +12043,7 @@
   "definition": "src\\effects\\effect_new_on_object.c",
   "declared": "extern void effect_new_on_object();",
   "problems": [
-   "0 parameters declared, 6 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_set_position_and_recalculate.c",
-  "callee": "bsp3d_node_find_leaf",
-  "definition": "src\\physics\\bsp3d_node_find_leaf.c",
-  "declared": "extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index);",
-  "problems": [
-   "parameter kinds differ at #1 (p vs i), #3 (i vs p)"
+   "0 parameters declared, 8 defined"
   ]
  },
  {
@@ -13746,7 +12062,7 @@
   "definition": "src\\effects\\effect_new_on_object.c",
   "declared": "extern void effect_new_on_object();",
   "problems": [
-   "0 parameters declared, 6 defined"
+   "0 parameters declared, 8 defined"
   ]
  },
  {
@@ -13808,15 +12124,6 @@
  },
  {
   "caller": "src\\objects\\object_update_vitality_and_regeneration.c",
-  "callee": "weapon_get_zoom_fov_resolved",
-  "definition": "src\\game\\weapon_get_zoom_fov_resolved.c",
-  "declared": "extern real weapon_get_zoom_fov_resolved(void);",
-  "problems": [
-   "0 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_update_vitality_and_regeneration.c",
   "callee": "hud_unit_meter_apply_predictive_damage",
   "definition": "src\\interface\\hud_unit_meter_apply_predictive_damage.c",
   "declared": "extern void hud_unit_meter_apply_predictive_damage(float delta);",
@@ -13834,39 +12141,12 @@
   ]
  },
  {
-  "caller": "src\\physics\\collision_gather_nearby_object_shapes.c",
-  "callee": "unit_get_crouch_height_offset",
-  "definition": "src\\units\\unit_get_crouch_height_offset.c",
-  "declared": "extern void unit_get_crouch_height_offset(float *out);",
-  "problems": [
-   "1 parameters declared, 4 defined"
-  ]
- },
- {
-  "caller": "src\\physics\\collision_gather_nearby_object_shapes.c",
-  "callee": "physics_shape_vertex_to_sphere",
-  "definition": "src\\physics\\physics_shape_vertex_to_sphere.c",
-  "declared": "extern void physics_shape_vertex_to_sphere(float center_x, float center_y, uint32_t object_index,\n    uint32_t surface_index, int32_t margin, uint32_t flags);",
-  "problems": [
-   "6 parameters declared, 9 defined"
-  ]
- },
- {
   "caller": "src\\physics\\collision_test_movement_pill.c",
   "callee": "collision_bsp_query_pill_init",
   "definition": "src\\physics\\collision_bsp_query_pill_init.c",
   "declared": "extern uint8_t collision_bsp_query_pill_init(real_point3d *origin, collision_bsp_pill_result *out_result);",
   "problems": [
    "2 parameters declared, 6 defined"
-  ]
- },
- {
-  "caller": "src\\physics\\object_physics_add_mass_point_shapes.c",
-  "callee": "physics_shape_vertex_to_sphere",
-  "definition": "src\\physics\\physics_shape_vertex_to_sphere.c",
-  "declared": "extern void physics_shape_vertex_to_sphere(float center_x, float center_y, uint32_t object_index,\n    uint32_t surface_index, int32_t margin, uint32_t flags);",
-  "problems": [
-   "6 parameters declared, 9 defined"
   ]
  },
  {
@@ -13996,15 +12276,6 @@
   ]
  },
  {
-  "caller": "src\\physics\\physics_shape_build_proxies_from_query.c",
-  "callee": "physics_shape_add_vertex_proxy",
-  "definition": "src\\physics\\physics_shape_add_vertex_proxy.c",
-  "declared": "extern void physics_shape_add_vertex_proxy(real_matrix4x3 *matrix, physics_model *model,\n                                            real_point3d *vertex, int16_t material_type,\n                      ",
-  "problems": [
-   "10 parameters declared, 7 defined"
-  ]
- },
- {
   "caller": "src\\physics\\point_physics_tick.c",
   "callee": "ambient_color_marker_visible",
   "definition": "src\\effects\\ambient_color_marker_visible.c",
@@ -14100,7 +12371,7 @@
   "definition": "src\\effects\\effect_new_with_color.c",
   "declared": "extern void effect_new_with_color(uint32_t effect, uint32_t target_or_index, void *param_3, int32_t kind,\n    char **labels, void *position_block, void *direction_block, real fade_in, real fade_out,\n ",
   "problems": [
-   "12 parameters declared, 11 defined"
+   "parameter kinds differ at #5 (p vs i), #7 (p vs i), #10 (i vs p), #11 (i vs p)"
   ]
  },
  {
@@ -14146,7 +12417,7 @@
   "definition": "src\\effects\\effect_new_with_color.c",
   "declared": "extern void effect_new_with_color(uint32_t effect, uint32_t target_or_index, void *param_3, int32_t kind,\n    char **labels, void *position_block, void *direction_block, real fade_in, real fade_out,\n ",
   "problems": [
-   "12 parameters declared, 11 defined"
+   "parameter kinds differ at #5 (p vs i), #7 (p vs i), #10 (i vs p), #11 (i vs p)"
   ]
  },
  {
@@ -14156,24 +12427,6 @@
   "declared": "extern void breakable_surface_apply_damage(damage_data *request, uint32_t packed_leaf_and_flags,\n                         int32_t surface_index);",
   "problems": [
    "3 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\projectiles\\projectile_send_attach.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int message_delta_encode_message(int flag, int message_type, int changed_offset,\n    void **items, int type_offset, int count, char force_changed);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\projectiles\\projectile_send_attach.c",
-  "callee": "network_session_broadcast_to_flagged",
-  "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t a1, void *a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6);",
-  "problems": [
-   "6 parameters declared, 7 defined"
   ]
  },
  {
@@ -14192,24 +12445,6 @@
   "declared": "extern int message_delta_encode_message(int flag, int message_type, int changed_offset,\n    void **items, int type_offset, int count, char force_changed);",
   "problems": [
    "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\projectiles\\projectile_send_detonation.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int message_delta_encode_message(int flag, int message_type, int changed_offset,\n    void **items, int type_offset, int count, char force_changed);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\projectiles\\projectile_send_detonation.c",
-  "callee": "network_session_broadcast_to_flagged",
-  "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t a1, void *a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6);",
-  "problems": [
-   "6 parameters declared, 7 defined"
   ]
  },
  {
@@ -14331,15 +12566,6 @@
   ]
  },
  {
-  "caller": "src\\rasterizer\\lens_flare_update_visibility.c",
-  "callee": "rasterizer_lens_flare_occlusion_query_get_result",
-  "definition": "src\\rasterizer\\rasterizer_lens_flare_occlusion_query_get_result.c",
-  "declared": "extern int32_t rasterizer_lens_flare_occlusion_query_get_result(int32_t query_index);",
-  "problems": [
-   "return i vs p"
-  ]
- },
- {
   "caller": "src\\rasterizer\\rasterizer_bitmap_sample_texel.c",
   "callee": "dxt1_decode_block_texel",
   "definition": "src\\bitmaps\\dxt1_decode_block_texel.c",
@@ -14386,93 +12612,12 @@
   ]
  },
  {
-  "caller": "src\\rasterizer\\rasterizer_device_reset.c",
-  "callee": "shell_display_fatal_error_dialog",
-  "definition": "src\\shell\\shell_display_fatal_error_dialog.c",
-  "declared": "extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\rasterizer\\rasterizer_dx9_pixel_shader_effect_load.c",
-  "callee": "shell_display_fatal_error_dialog",
-  "definition": "src\\shell\\shell_display_fatal_error_dialog.c",
-  "declared": "extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\rasterizer\\rasterizer_dx9_shaders_initialize.c",
-  "callee": "shell_display_fatal_error_dialog",
-  "definition": "src\\shell\\shell_display_fatal_error_dialog.c",
-  "declared": "extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\rasterizer\\rasterizer_dx9_vertex_shaders_initialize.c",
-  "callee": "shell_display_fatal_error_dialog",
-  "definition": "src\\shell\\shell_display_fatal_error_dialog.c",
-  "declared": "extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\rasterizer\\rasterizer_dx9_vertex_shaders_load_all.c",
-  "callee": "shell_display_fatal_error_dialog",
-  "definition": "src\\shell\\shell_display_fatal_error_dialog.c",
-  "declared": "extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p)"
-  ]
- },
- {
   "caller": "src\\rasterizer\\rasterizer_initialize_direct3d.c",
   "callee": "shell_parse_config_txt",
   "definition": "src\\shell\\shell_parse_config_txt.c",
   "declared": "extern int32_t shell_parse_config_txt(uint32_t adapter, void *direct3d);",
   "problems": [
    "return i vs p"
-  ]
- },
- {
-  "caller": "src\\rasterizer\\rasterizer_initialize_direct3d.c",
-  "callee": "shell_display_fatal_error_dialog",
-  "definition": "src\\shell\\shell_display_fatal_error_dialog.c",
-  "declared": "extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\rasterizer\\rasterizer_lens_flare_batch_apply_material.c",
-  "callee": "rasterizer_validate_and_rebind_texture",
-  "definition": "src\\rasterizer\\rasterizer_validate_and_rebind_texture.c",
-  "declared": "extern uint8_t rasterizer_validate_and_rebind_texture(int16_t bitmap_tag_index, int16_t bitmap_index);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\rasterizer\\rasterizer_lens_flare_batch_apply_material.c",
-  "callee": "rasterizer_resolve_and_cache_submap_c",
-  "definition": "src\\rasterizer\\rasterizer_resolve_and_cache_submap_c.c",
-  "declared": "extern uint8_t rasterizer_resolve_and_cache_submap_c(int16_t bitmap_tag_index, int16_t stage, int16_t bitmap_index);",
-  "problems": [
-   "3 parameters declared, 5 defined"
-  ]
- },
- {
-  "caller": "src\\rasterizer\\rasterizer_render_target_initialize.c",
-  "callee": "shell_display_fatal_error_dialog",
-  "definition": "src\\shell\\shell_display_fatal_error_dialog.c",
-  "declared": "extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p)"
   ]
  },
  {
@@ -14620,130 +12765,12 @@
   ]
  },
  {
-  "caller": "src\\saved_games\\game_state_create_persistent_storage_file.c",
-  "callee": "shell_display_fatal_error_dialog",
-  "definition": "src\\shell\\shell_display_fatal_error_dialog.c",
-  "declared": "extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\saved_games\\game_state_load_core.c",
-  "callee": "console_print_error_va",
-  "definition": "src\\main\\console_print_error_va.c",
-  "declared": "extern void console_print_error_va(const char *format, ...);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\saved_games\\game_state_open_persistent_storage.c",
-  "callee": "shell_display_fatal_error_dialog",
-  "definition": "src\\shell\\shell_display_fatal_error_dialog.c",
-  "declared": "extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\saved_games\\game_state_read_persistent_storage.c",
-  "callee": "shell_display_fatal_error_dialog",
-  "definition": "src\\shell\\shell_display_fatal_error_dialog.c",
-  "declared": "extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\saved_games\\game_state_read_persistent_storage_block.c",
-  "callee": "shell_display_fatal_error_dialog",
-  "definition": "src\\shell\\shell_display_fatal_error_dialog.c",
-  "declared": "extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\saved_games\\game_state_read_profile_file.c",
-  "callee": "shell_display_fatal_error_dialog",
-  "definition": "src\\shell\\shell_display_fatal_error_dialog.c",
-  "declared": "extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\saved_games\\game_state_save_thread_proc.c",
-  "callee": "shell_display_fatal_error_dialog",
-  "definition": "src\\shell\\shell_display_fatal_error_dialog.c",
-  "declared": "extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\saved_games\\game_state_write_persistent_storage.c",
-  "callee": "shell_display_fatal_error_dialog",
-  "definition": "src\\shell\\shell_display_fatal_error_dialog.c",
-  "declared": "extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p)"
-  ]
- },
- {
   "caller": "src\\saved_games\\player_profile_rename.c",
   "callee": "savegame_index_write_slot",
   "definition": "src\\game\\savegame_index_write_slot.c",
   "declared": "extern uint8_t savegame_index_write_slot(int32_t slot_index, saved_game_index_entry *entry);",
   "problems": [
    "2 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\saved_games\\player_profile_rename.c",
-  "callee": "XCreateSaveGame",
-  "definition": "src\\game\\XCreateSaveGame.c",
-  "declared": "extern uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root_path, int32_t mode, char *out_path,\n    uint32_t out_path_size);",
-  "problems": [
-   "parameter kinds differ at #1 (p vs i)"
-  ]
- },
- {
-  "caller": "src\\saved_games\\player_profile_rename.c",
-  "callee": "XDeleteSaveGame",
-  "definition": "src\\game\\XDeleteSaveGame.c",
-  "declared": "extern uint32_t XDeleteSaveGame(const uint16_t *save_game_name, const char *root_path);",
-  "problems": [
-   "parameter kinds differ at #1 (p vs i)"
-  ]
- },
- {
-  "caller": "src\\saved_games\\saved_game_allocate_new_slot.c",
-  "callee": "string_format_wide_va_bounded",
-  "definition": "src\\text\\string_format_wide_va_bounded.c",
-  "declared": "extern uint16_t *string_format_wide_va_bounded(uint16_t *dest, const uint16_t *format, ...);",
-  "problems": [
-   "3 parameters declared, 4 defined",
-   "return p vs v"
-  ]
- },
- {
-  "caller": "src\\saved_games\\saved_game_allocate_new_slot.c",
-  "callee": "XCreateSaveGame",
-  "definition": "src\\game\\XCreateSaveGame.c",
-  "declared": "extern uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root_path, int32_t mode, char *out_path,\n    uint32_t out_path_size);",
-  "problems": [
-   "parameter kinds differ at #1 (p vs i)"
-  ]
- },
- {
-  "caller": "src\\saved_games\\saved_game_check_storage_availability.c",
-  "callee": "savegame_find_first",
-  "definition": "src\\game\\savegame_find_first.c",
-  "declared": "extern int32_t savegame_find_first(const char *root, void *out_find_data);",
-  "problems": [
-   "return i vs p"
   ]
  },
  {
@@ -14756,52 +12783,6 @@
   ]
  },
  {
-  "caller": "src\\saved_games\\saved_game_create_slot.c",
-  "callee": "XCreateSaveGame",
-  "definition": "src\\game\\XCreateSaveGame.c",
-  "declared": "extern uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root_path, int32_t mode, char *out_path,\n    uint32_t out_path_size);",
-  "problems": [
-   "parameter kinds differ at #1 (p vs i)"
-  ]
- },
- {
-  "caller": "src\\saved_games\\saved_game_create_slot.c",
-  "callee": "XDeleteSaveGame",
-  "definition": "src\\game\\XDeleteSaveGame.c",
-  "declared": "extern uint32_t XDeleteSaveGame(const uint16_t *save_game_name, const char *root_path);",
-  "problems": [
-   "parameter kinds differ at #1 (p vs i)"
-  ]
- },
- {
-  "caller": "src\\saved_games\\saved_game_delete_by_handle.c",
-  "callee": "XDeleteSaveGame",
-  "definition": "src\\game\\XDeleteSaveGame.c",
-  "declared": "extern uint32_t XDeleteSaveGame(const uint16_t *save_game_name, const char *root_path);",
-  "problems": [
-   "parameter kinds differ at #1 (p vs i)"
-  ]
- },
- {
-  "caller": "src\\saved_games\\saved_game_list_rebuild_index.c",
-  "callee": "savegame_find_first",
-  "definition": "src\\game\\savegame_find_first.c",
-  "declared": "extern int32_t savegame_find_first(const char *root, void *out_find_data);",
-  "problems": [
-   "return i vs p"
-  ]
- },
- {
-  "caller": "src\\saved_games\\saved_game_list_rebuild_index.c",
-  "callee": "string_format_wide_va_bounded",
-  "definition": "src\\text\\string_format_wide_va_bounded.c",
-  "declared": "extern uint16_t *string_format_wide_va_bounded(uint16_t *dest, const uint16_t *format, ...);",
-  "problems": [
-   "3 parameters declared, 4 defined",
-   "return p vs v"
-  ]
- },
- {
   "caller": "src\\saved_games\\saved_game_load_checkpoint_by_name.c",
   "callee": "main_queue_map_change",
   "definition": "src\\main\\main_queue_map_change.c",
@@ -14811,39 +12792,12 @@
   ]
  },
  {
-  "caller": "src\\saved_games\\saved_game_name_is_available.c",
-  "callee": "XCreateSaveGame",
-  "definition": "src\\game\\XCreateSaveGame.c",
-  "declared": "extern uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root_path, int32_t mode, char *out_path,\n    uint32_t out_path_size);",
-  "problems": [
-   "parameter kinds differ at #1 (p vs i)"
-  ]
- },
- {
-  "caller": "src\\saved_games\\saved_game_verify_version_and_checksum.c",
-  "callee": "shell_display_fatal_error_dialog",
-  "definition": "src\\shell\\shell_display_fatal_error_dialog.c",
-  "declared": "extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);",
-  "problems": [
-   "parameter kinds differ at #2 (i vs p)"
-  ]
- },
- {
   "caller": "src\\shell\\security_check_write_access.c",
   "callee": "security_check_cleanup",
   "definition": "src\\shell\\security_check_cleanup.c",
   "declared": "extern void security_check_cleanup(void *descriptor, void *acl, void *sid, void *thread_token,\n                                    void *impersonation_token);",
   "problems": [
    "5 parameters declared, 6 defined"
-  ]
- },
- {
-  "caller": "src\\shell\\shell_display_fatal_error_dialog.c",
-  "callee": "dialog_box_show_localized",
-  "definition": "src\\dialogs\\dialog_box_show_localized.c",
-  "declared": "extern int32_t dialog_box_show_localized(void *dialog_proc, void *module, uint32_t dialog_id,\n                                          void *parent_window);",
-  "problems": [
-   "parameter kinds differ at #1 (p vs i), #3 (i vs p)"
   ]
  },
  {
@@ -14871,15 +12825,6 @@
   "declared": "extern void *game_state_new(int16_t element_size, char *name, int16_t maximum_count);",
   "problems": [
    "parameter kinds differ at #1 (i vs p), #2 (p vs i)"
-  ]
- },
- {
-  "caller": "src\\sound\\sound_update_listener.c",
-  "callee": "scenario_location_get_water_and_weather",
-  "definition": "src\\scenario\\scenario_location_get_water_and_weather.c",
-  "declared": "extern uint8_t scenario_location_get_water_and_weather(void *leaf_location, int32_t unknown_1);",
-  "problems": [
-   "2 parameters declared, 3 defined"
   ]
  },
  {
@@ -15038,96 +12983,6 @@
   ]
  },
  {
-  "caller": "src\\units\\biped_integrate_movement.c",
-  "callee": "vector3d_cross_product",
-  "definition": "src\\math\\vector3d_cross_product.c",
-  "declared": "extern void vector3d_cross_product();",
-  "problems": [
-   "0 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\units\\biped_integrate_movement.c",
-  "callee": "vector3d_rotate_about_axis",
-  "definition": "src\\math\\vector3d_rotate_about_axis.c",
-  "declared": "extern void vector3d_rotate_about_axis();",
-  "problems": [
-   "0 parameters declared, 4 defined"
-  ]
- },
- {
-  "caller": "src\\units\\biped_integrate_movement.c",
-  "callee": "weapon_get_zoom_fov",
-  "definition": "src\\game\\weapon_get_zoom_fov.c",
-  "declared": "extern real weapon_get_zoom_fov(int32_t index);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\units\\biped_integrate_movement.c",
-  "callee": "actor_check_vehicle_mode_timeout",
-  "definition": "src\\ai\\actor_check_vehicle_mode_timeout.c",
-  "declared": "extern int8_t actor_check_vehicle_mode_timeout(void);",
-  "problems": [
-   "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\units\\biped_integrate_movement.c",
-  "callee": "unit_get_crouch_height_offset",
-  "definition": "src\\units\\unit_get_crouch_height_offset.c",
-  "declared": "extern void unit_get_crouch_height_offset(uint32_t object_index, float *pill_height,\n                                          float *pill_radius);",
-  "problems": [
-   "3 parameters declared, 4 defined"
-  ]
- },
- {
-  "caller": "src\\units\\biped_integrate_movement.c",
-  "callee": "biped_update_animation_frame_trigger",
-  "definition": "src\\units\\biped_update_animation_frame_trigger.c",
-  "declared": "extern void biped_update_animation_frame_trigger(float impact_speed);",
-  "problems": [
-   "1 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\units\\biped_integrate_movement_with_collision.c",
-  "callee": "vector3d_cross_product",
-  "definition": "src\\math\\vector3d_cross_product.c",
-  "declared": "extern void vector3d_cross_product();",
-  "problems": [
-   "0 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\units\\biped_integrate_movement_with_collision.c",
-  "callee": "vector3d_rotate_about_axis",
-  "definition": "src\\math\\vector3d_rotate_about_axis.c",
-  "declared": "extern void vector3d_rotate_about_axis();",
-  "problems": [
-   "0 parameters declared, 4 defined"
-  ]
- },
- {
-  "caller": "src\\units\\biped_integrate_movement_with_collision.c",
-  "callee": "weapon_get_zoom_fov",
-  "definition": "src\\game\\weapon_get_zoom_fov.c",
-  "declared": "extern real weapon_get_zoom_fov(int32_t index);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\units\\biped_integrate_movement_with_collision.c",
-  "callee": "actor_check_vehicle_mode_timeout",
-  "definition": "src\\ai\\actor_check_vehicle_mode_timeout.c",
-  "declared": "extern int8_t actor_check_vehicle_mode_timeout(void);",
-  "problems": [
-   "0 parameters declared, 1 defined"
-  ]
- },
- {
   "caller": "src\\units\\biped_integrate_movement_with_collision.c",
   "callee": "ray_intersects_sphere_test",
   "definition": "src\\math\\ray_intersects_sphere_test.c",
@@ -15152,33 +13007,6 @@
   "declared": "extern int8_t object_collision_context_build(void);",
   "problems": [
    "0 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\units\\biped_integrate_movement_with_collision.c",
-  "callee": "unit_get_crouch_height_offset",
-  "definition": "src\\units\\unit_get_crouch_height_offset.c",
-  "declared": "extern void unit_get_crouch_height_offset(uint32_t object_index, float *pill_height,\n                                          float *pill_radius);",
-  "problems": [
-   "3 parameters declared, 4 defined"
-  ]
- },
- {
-  "caller": "src\\units\\biped_integrate_movement_with_collision.c",
-  "callee": "biped_update_target_lock_timer",
-  "definition": "src\\units\\biped_update_target_lock_timer.c",
-  "declared": "extern void biped_update_target_lock_timer(void);",
-  "problems": [
-   "0 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\units\\biped_integrate_movement_with_collision.c",
-  "callee": "biped_update_animation_frame_trigger",
-  "definition": "src\\units\\biped_update_animation_frame_trigger.c",
-  "declared": "extern void biped_update_animation_frame_trigger(float impact_speed);",
-  "problems": [
-   "1 parameters declared, 3 defined"
   ]
  },
  {
@@ -15305,42 +13133,6 @@
   "declared": "extern void vector3d_rotate_about_axis();",
   "problems": [
    "0 parameters declared, 4 defined"
-  ]
- },
- {
-  "caller": "src\\units\\biped_update_target_lock_timer.c",
-  "callee": "actor_squad_react_to_grenade_for_vehicle_occupants",
-  "definition": "src\\ai\\actor_squad_react_to_grenade_for_vehicle_occupants.c",
-  "declared": "extern void actor_squad_react_to_grenade_for_vehicle_occupants(void);",
-  "problems": [
-   "0 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\units\\biped_update_target_lock_timer.c",
-  "callee": "recorded_animation_object_is_playing",
-  "definition": "src\\cutscene\\recorded_animation_object_is_playing.c",
-  "declared": "extern char recorded_animation_object_is_playing(void);",
-  "problems": [
-   "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\units\\biped_update_target_lock_timer.c",
-  "callee": "unit_get_local_player_weapon_index",
-  "definition": "src\\game\\unit_get_local_player_weapon_index.c",
-  "declared": "extern int16_t unit_get_local_player_weapon_index(void);",
-  "problems": [
-   "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\units\\biped_update_target_lock_timer.c",
-  "callee": "local_player_set_controlled_unit",
-  "definition": "src\\game\\local_player_set_controlled_unit.c",
-  "declared": "extern void local_player_set_controlled_unit(void);",
-  "problems": [
-   "0 parameters declared, 2 defined"
   ]
  },
  {
@@ -15602,7 +13394,7 @@
   "definition": "src\\effects\\effect_new_on_object.c",
   "declared": "extern void effect_new_on_object(uint32_t grenade_type);",
   "problems": [
-   "1 parameters declared, 6 defined"
+   "1 parameters declared, 8 defined"
   ]
  },
  {
@@ -15621,24 +13413,6 @@
   "declared": "extern void unit_set_throw_aim_direction(uint32_t unit_index);",
   "problems": [
    "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_broadcast_state_change_event.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(uint32_t a, uint32_t size, uint32_t b, void *fields,\n                                             uint32_t c, uint32_t d, uint8_t e);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_broadcast_state_change_event.c",
-  "callee": "network_session_broadcast_to_flagged",
-  "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t a, void *table, uint32_t b, uint32_t c, uint32_t d, uint32_t e);",
-  "problems": [
-   "6 parameters declared, 7 defined"
   ]
  },
  {
@@ -15744,15 +13518,6 @@
  },
  {
   "caller": "src\\units\\unit_detach_and_enter_named_seat.c",
-  "callee": "object_for_each_light_attachment",
-  "definition": "src\\objects\\object_for_each_light_attachment.c",
-  "declared": "extern void object_for_each_light_attachment(uint32_t object_index, uint32_t flag);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_detach_and_enter_named_seat.c",
   "callee": "unit_update_animation_state_machine",
   "definition": "src\\units\\unit_update_animation_state_machine.c",
   "declared": "extern void unit_update_animation_state_machine(uint32_t unit_index);",
@@ -15853,30 +13618,11 @@
  },
  {
   "caller": "src\\units\\unit_detach_from_seat.c",
-  "callee": "datum_get",
-  "definition": "src\\memory\\datum_get.c",
-  "declared": "extern uint32_t datum_get(void);",
-  "problems": [
-   "0 parameters declared, 2 defined",
-   "return i vs p"
-  ]
- },
- {
-  "caller": "src\\units\\unit_detach_from_seat.c",
   "callee": "object_set_position_and_orientation",
   "definition": "src\\objects\\object_set_position_and_orientation.c",
   "declared": "extern void object_set_position_and_orientation(uint32_t object_index, void *a, void *b);",
   "problems": [
    "3 parameters declared, 4 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_detach_from_seat.c",
-  "callee": "object_for_each_light_attachment",
-  "definition": "src\\objects\\object_for_each_light_attachment.c",
-  "declared": "extern void object_for_each_light_attachment(uint32_t object_index, uint32_t flag);",
-  "problems": [
-   "2 parameters declared, 3 defined"
   ]
  },
  {
@@ -15922,42 +13668,6 @@
   "declared": "extern void object_for_each_light_attachment(uint32_t object_index, uint32_t flag);",
   "problems": [
    "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_dispatch_scripted_event_1b.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(int32_t a, int32_t event_id, int32_t b, void *payload, int32_t c, int32_t d, uint8_t e);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_dispatch_scripted_event_1b.c",
-  "callee": "network_session_broadcast_to_flagged",
-  "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(int32_t a, void *b, int32_t c, int32_t d, int32_t e, int32_t f, int32_t g);",
-  "problems": [
-   "parameter kinds differ at #1 (i vs p), #2 (p vs i), #3 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\units\\unit_dispatch_scripted_event_9.c",
-  "callee": "message_delta_encode_message",
-  "definition": "src\\networking\\message_delta_encode_message.c",
-  "declared": "extern int32_t message_delta_encode_message(int32_t a, int32_t event_id, int32_t b, void *payload, int32_t c, int32_t d, uint8_t e);",
-  "problems": [
-   "7 parameters declared, 9 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_dispatch_scripted_event_9.c",
-  "callee": "network_session_broadcast_to_flagged",
-  "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(int32_t a, void *b, int32_t c, int32_t d, int32_t e, int32_t f, int32_t g);",
-  "problems": [
-   "parameter kinds differ at #1 (i vs p), #2 (p vs i), #3 (i vs p)"
   ]
  },
  {
@@ -16107,24 +13817,6 @@
   ]
  },
  {
-  "caller": "src\\units\\unit_enter_vehicle_seat.c",
-  "callee": "ai_communication_broadcast",
-  "definition": "src\\ai\\ai_communication_broadcast.c",
-  "declared": "extern void ai_communication_broadcast(int32_t line_id);",
-  "problems": [
-   "1 parameters declared, 7 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_evaluate_flee_reaction.c",
-  "callee": "ai_communication_broadcast",
-  "definition": "src\\ai\\ai_communication_broadcast.c",
-  "declared": "extern void ai_communication_broadcast(int32_t line_id);",
-  "problems": [
-   "1 parameters declared, 7 defined"
-  ]
- },
- {
   "caller": "src\\units\\unit_exit_seat_end.c",
   "callee": "object_collision_context_test_segment",
   "definition": "src\\physics\\object_collision_context_test_segment.c",
@@ -16185,15 +13877,6 @@
   "declared": "extern uint8_t collision_bsp_query_sphere_init(int32_t leaf_key, float *out_direction, float radius);",
   "problems": [
    "3 parameters declared, 6 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_find_next_zone_permitted_weapon_slot.c",
-  "callee": "unit_check_weapon_use_permission",
-  "definition": "src\\units\\unit_check_weapon_use_permission.c",
-  "declared": "extern uint8_t unit_check_weapon_use_permission(uint32_t unit_index);",
-  "problems": [
-   "1 parameters declared, 2 defined"
   ]
  },
  {
@@ -16283,7 +13966,7 @@
   "definition": "src\\effects\\effect_marker_environment_probe.c",
   "declared": "extern void effect_marker_environment_probe(datum_index sound_tag, uint32_t flag);",
   "problems": [
-   "2 parameters declared, 3 defined"
+   "2 parameters declared, 4 defined"
   ]
  },
  {
@@ -16395,51 +14078,6 @@
   ]
  },
  {
-  "caller": "src\\units\\unit_pickup_weapon.c",
-  "callee": "object_for_each_light_attachment",
-  "definition": "src\\objects\\object_for_each_light_attachment.c",
-  "declared": "extern void object_for_each_light_attachment(uint32_t object_index, uint32_t flag);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_pickup_weapon.c",
-  "callee": "unit_check_weapon_use_permission",
-  "definition": "src\\units\\unit_check_weapon_use_permission.c",
-  "declared": "extern uint8_t unit_check_weapon_use_permission(uint32_t unit_index);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_pickup_weapon.c",
-  "callee": "unit_find_next_zone_permitted_weapon_slot",
-  "definition": "src\\units\\unit_find_next_zone_permitted_weapon_slot.c",
-  "declared": "extern int16_t unit_find_next_zone_permitted_weapon_slot(int16_t start_slot, uint8_t direction);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_pickup_weapon.c",
-  "callee": "item_set_holder",
-  "definition": "src\\items\\item_set_holder.c",
-  "declared": "extern void item_set_holder(datum_index object_index);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_pickup_weapon.c",
-  "callee": "unit_set_local_player_weapon_index",
-  "definition": "src\\game\\unit_set_local_player_weapon_index.c",
-  "declared": "extern void unit_set_local_player_weapon_index(int16_t slot);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
   "caller": "src\\units\\unit_pick_and_ready_next_weapon.c",
   "callee": "unit_find_next_zone_permitted_weapon_slot",
   "definition": "src\\units\\unit_find_next_zone_permitted_weapon_slot.c",
@@ -16467,15 +14105,6 @@
   ]
  },
  {
-  "caller": "src\\units\\unit_predict_aim_target_position.c",
-  "callee": "collision_bsp_query_segment_init",
-  "definition": "src\\physics\\collision_bsp_query_segment_init.c",
-  "declared": "extern char collision_bsp_query_segment_init(void *context, uint32_t param_2, uint32_t param_3, real_point3d *start,\n                          real_vector3d *delta, uint32_t max_distance_bits);",
-  "problems": [
-   "6 parameters declared, 8 defined"
-  ]
- },
- {
   "caller": "src\\units\\unit_process_melee_special_interaction.c",
   "callee": "unit_try_ready_weapon",
   "definition": "src\\units\\unit_try_ready_weapon.c",
@@ -16489,15 +14118,6 @@
   "callee": "object_set_position_and_recalculate",
   "definition": "src\\objects\\object_set_position_and_recalculate.c",
   "declared": "extern void object_set_position_and_recalculate(uint32_t object_index);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_ready_desired_weapon.c",
-  "callee": "item_set_holder",
-  "definition": "src\\items\\item_set_holder.c",
-  "declared": "extern void item_set_holder(datum_index object_index);",
   "problems": [
    "1 parameters declared, 2 defined"
   ]
@@ -16585,15 +14205,6 @@
   ]
  },
  {
-  "caller": "src\\units\\unit_refresh_targeting_flag_and_weapons.c",
-  "callee": "item_set_holder",
-  "definition": "src\\items\\item_set_holder.c",
-  "declared": "extern void item_set_holder(datum_index weapon_object_index);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
   "caller": "src\\units\\unit_region_damage_reaction.c",
   "callee": "unit_dispatch_reaction_animation",
   "definition": "src\\units\\unit_dispatch_reaction_animation.c",
@@ -16624,9 +14235,9 @@
   "caller": "src\\units\\unit_release_thrown_grenade.c",
   "callee": "network_session_broadcast_to_flagged",
   "definition": "src\\networking\\network_session_broadcast_to_flagged.c",
-  "declared": "extern void network_session_broadcast_to_flagged(uint32_t a1, void *a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6);",
+  "declared": "extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data,\n    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6);",
   "problems": [
-   "6 parameters declared, 7 defined"
+   "7 parameters declared, 8 defined"
   ]
  },
  {
@@ -16673,15 +14284,6 @@
   "declared": "extern void object_list_membership_set(uint32_t flag);",
   "problems": [
    "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_release_transient_state.c",
-  "callee": "object_for_each_light_attachment",
-  "definition": "src\\objects\\object_for_each_light_attachment.c",
-  "declared": "extern void object_for_each_light_attachment(uint32_t object_index, uint32_t flag);",
-  "problems": [
-   "2 parameters declared, 3 defined"
   ]
  },
  {
@@ -17058,29 +14660,11 @@
  },
  {
   "caller": "src\\units\\unit_try_select_equipment.c",
-  "callee": "object_for_each_light_attachment",
-  "definition": "src\\objects\\object_for_each_light_attachment.c",
-  "declared": "extern void object_for_each_light_attachment(uint32_t object_index, uint32_t flag);",
-  "problems": [
-   "2 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_try_select_equipment.c",
   "callee": "equipment_pickup_play_sound",
   "definition": "src\\items\\equipment_pickup_play_sound.c",
   "declared": "extern void equipment_pickup_play_sound(void);",
   "problems": [
    "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_try_select_equipment.c",
-  "callee": "item_set_holder",
-  "definition": "src\\items\\item_set_holder.c",
-  "declared": "extern void item_set_holder(datum_index object_index);",
-  "problems": [
-   "1 parameters declared, 2 defined"
   ]
  },
  {
@@ -17298,6 +14882,15 @@
   "declared": "extern void unit_update_random_turn_angle(void);",
   "problems": [
    "0 parameters declared, 2 defined"
+  ]
+ },
+ {
+  "caller": "src\\units\\unit_update.c",
+  "callee": "effect_new_on_object",
+  "definition": "src\\effects\\effect_new_on_object.c",
+  "declared": "extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale);",
+  "problems": [
+   "6 parameters declared, 8 defined"
   ]
  },
  {
@@ -17571,24 +15164,6 @@
   ]
  },
  {
-  "caller": "src\\units\\unit_update_up_vector.c",
-  "callee": "vector3d_cross_product",
-  "definition": "src\\math\\vector3d_cross_product.c",
-  "declared": "extern void vector3d_cross_product();",
-  "problems": [
-   "0 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\units\\unit_update_up_vector.c",
-  "callee": "vector3d_rotate_about_axis",
-  "definition": "src\\math\\vector3d_rotate_about_axis.c",
-  "declared": "extern void vector3d_rotate_about_axis();",
-  "problems": [
-   "0 parameters declared, 4 defined"
-  ]
- },
- {
   "caller": "src\\units\\unit_update_vitality_fractions.c",
   "callee": "object_set_health_frozen_flag",
   "definition": "src\\objects\\object_set_health_frozen_flag.c",
@@ -17622,15 +15197,6 @@
   "declared": "extern void unit_invalidate_local_player_zoom_level(void);",
   "problems": [
    "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\units\\vehicle_calculate_animation_controls.c",
-  "callee": "vector3d_project_onto_unit_axis",
-  "definition": "src\\math\\vector3d_project_onto_unit_axis.c",
-  "declared": "extern void vector3d_project_onto_unit_axis(void);",
-  "problems": [
-   "0 parameters declared, 4 defined"
   ]
  },
  {
@@ -17856,7 +15422,7 @@
   "definition": "src\\effects\\effect_new_with_color.c",
   "declared": "extern void effect_new_with_color(uint32_t effect, uint32_t param_2, void *param_3, int32_t kind,\n                          char **labels, void *normal_block, void *incident_block,\n                   ",
   "problems": [
-   "12 parameters declared, 11 defined"
+   "parameter kinds differ at #5 (p vs i), #7 (p vs i), #10 (i vs p), #11 (i vs p)"
   ]
  },
  {
@@ -17865,7 +15431,7 @@
   "definition": "src\\effects\\effect_new_with_color.c",
   "declared": "extern void effect_new_with_color(uint32_t effect, uint32_t param_2, void *param_3, int32_t kind,\n                          char **labels, void *midpoint_block, void *reflection_block,\n               ",
   "problems": [
-   "12 parameters declared, 11 defined"
+   "parameter kinds differ at #5 (p vs i), #7 (p vs i), #10 (i vs p), #11 (i vs p)"
   ]
  },
  {

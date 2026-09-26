@@ -32,12 +32,10 @@ extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: 
 uint32_t update_client_queue_apply_tick(player_action *out_actions,
     client_update_carry *out_carry)
 {
-    update_record *slot = update_client_queue_get_slot(0); // UNSURE: real tick argument not recovered
+    update_record *slot = update_client_queue_get_slot(update_client_base_tick); // 0x4730d0: EAX = the base tick
 
-    if (slot == 0 || (int32_t)update_client_unknown_ea0 > update_client_base_tick) {
-        // UNSURE: Ghidra's own high-dword check on the get_slot return (`(uVar9 >> 0x20) <=
-        // DAT_006f7ea0`) is not faithfully reproducible without the real tick argument above;
-        // this condition is a placeholder that preserves the "bail out" shape only.
+    // 0x4730e3..0x4730f1: get_slot leaves EDX alone, so the compare is the base tick itself against 0x006f7ea0
+    if (slot == 0 || update_client_base_tick > (int32_t)update_client_unknown_ea0) {
         return 0;
     }
 
@@ -47,7 +45,7 @@ uint32_t update_client_queue_apply_tick(player_action *out_actions,
         int16_t index = -1;
         uint8_t *slot_bytes = (uint8_t *)slot;
 
-        player_iter.data = 0; // UNSURE: iterator source array not recovered (likely player_data)
+        player_iter.data = update_client_queues; // 0x006f7ed0 (0x4730f8)
         player_iter.next_index = 0;
         player_iter.index = k_datum_index_none;
         player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
@@ -72,7 +70,7 @@ uint32_t update_client_queue_apply_tick(player_action *out_actions,
         }
 
         index = -1;
-        player_iter.data = 0;
+        player_iter.data = update_client_queues;
         player_iter.next_index = 0;
         player_iter.index = k_datum_index_none;
         player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;

@@ -106,7 +106,7 @@ typedef enum object_type_mask {
     _object_mask_device = 0x380,
     _object_mask_placeholder = 0x400,
     _object_mask_sound_scenery = 0x800,
-    // objects_delete_unparented_of_type_mask and objects_update_player_visibility_masks both
+    // objects_delete_unparented_of_type_mask and scenario_objects_place_for_structure_bsp both
     // iterate with 0x240, that is scenery plus device_light_fixture.
     _object_mask_scenery_and_light_fixture = 0x240,
     // object_new_with_datum_role_control skips the per-node function blocks for these types.
