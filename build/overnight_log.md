@@ -759,3 +759,9 @@ Remaining step-1 code gap:
   inputs). Kept out of known_bad. Newly hookable (build/step1_session_new.txt, NOT in hooks.txt):
   physics_shape_add_vertex_proxy, physics_shape_build_proxies_from_query, physics_shape_polygon_test_ray,
   physics_shape_test_ray, physics_shape_vertex_to_sphere, vector3d_project_onto_direction. Relinked.
+- [firing 2] Item 2a: object_collision_context_gather_sphere_shapes (0x505200) body checked against the binary.
+  Fixed: the permutation byte is zero-extended into DX and compared with 0xffff (never true), so 0xff is NOT
+  skipped -- it is clamped to the last BSP; the region index is sign-extended. Everything else matched (matrix
+  inverse / transform / sphere query radius = inverse.scale * radius_scale / proxies with the node matrix).
+  TODO: siblings object_collision_context_test_pill / _test_point / _test_segment use the same
+  `region_permutations[node->region]` + 0xff pattern; check each against its binary.

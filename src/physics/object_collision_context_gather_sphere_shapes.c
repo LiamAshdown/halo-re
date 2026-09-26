@@ -1,7 +1,7 @@
 // object_collision_context_gather_sphere_shapes  (Ghidra: FUN_00505200, still unnamed there;
 // phase-2 guessed object_nodes_apply_bsp_contact)
 // address 0x505200, size 296 bytes
-// name confidence: 0.35   rewrite confidence: 0.30 (raised from 0.2 by the phase-4
+// name confidence: 0.35   rewrite confidence: 0.85 (step 1: body checked against objdump -d 0x505200..0x505327) (raised from 0.2 by the phase-4
 //   integration pass, which resolved FUN_00503d90's param_1 from this very call site)
 //   -- still among the lower-confidence files in this
 //   batch; see the UNSURE paragraphs below, which mirror physics_shape_build_proxies_from_query's
@@ -70,9 +70,12 @@ uint8_t object_collision_context_gather_sphere_shapes(object_collision_context *
         ModelCollisionGeometryNode *node = &nodes[node_index];
 
         if (node->region != 0xffff) {
-            uint8_t permutation_byte = context->region_permutations[node->region];
+            // FIXED (objdump 0x505251..0x50525d): the region index is sign-extended, and the byte is
+            // zero-extended into DX before `cmp dx,0xffff`, which can never match -- so 0xff is not a
+            // "no permutation" marker here; it is clamped to the last BSP like any other value
+            uint8_t permutation_byte = context->region_permutations[(int16_t)node->region];
 
-            if (permutation_byte != 0xff && (int32_t)node->bsps.count > 0) {
+            if ((int32_t)node->bsps.count > 0) {
                 int32_t permutation = permutation_byte;
                 ModelCollisionGeometryBSP *bsps = (ModelCollisionGeometryBSP *)node->bsps.pointer;
                 ModelCollisionGeometryBSP *bsp;
