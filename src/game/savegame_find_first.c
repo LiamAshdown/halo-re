@@ -30,7 +30,7 @@
 // win32_find_dataa is types/game.h's (the Win32 WIN32_FIND_DATAA layout, 0x140 bytes).
 
 extern int32_t user_save_path_register(uint32_t user_id, char *path); // this batch, 0x551650
-extern void string_convert_ascii_to_unicode(void); // 0x557990, not in this batch; UNSURE args elided
+extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dst, uint32_t capacity_bytes, const char *source); // 0x557990, EAX dst, EDI capacity, EBX source
 extern int _sprintf(char *dest, const char *format, ...); // MSVC CRT
 extern void *FindFirstFileA(const char *pattern, win32_find_dataa *out_data); // Win32
 extern uint32_t FindNextFileA(void *find_handle, win32_find_dataa *out_data); // Win32
@@ -42,7 +42,9 @@ extern uint32_t FindClose(void *find_handle); // Win32
 // (attribute bit 0x10) that isn't a dotfile, building "root_path\<subdir>\" into the scratch
 // area 0x140 bytes past `find_data`. Returns the find handle on success, NULL if the arguments
 // are invalid, or (HANDLE)-1 if the search comes up empty or registration fails.
-void *savegame_find_first(win32_find_dataa *find_data, char *root_path)
+// FIXED: returns the find handle as an integer (callers compare it with -1), and the parameters are ordered as both
+// callers pass them (root, find data) -- registers are bound by name: EAX find_data, stack root_path (0x53d769..0x53d775)
+int32_t savegame_find_first(char *root_path, win32_find_dataa *find_data)
 {
     char pattern[264];
     void *handle;
@@ -54,7 +56,7 @@ void *savegame_find_first(win32_find_dataa *find_data, char *root_path)
     _sprintf(pattern, "%s\\*.*", root_path);
     handle = FindFirstFileA(pattern, find_data);
     if (handle == (void *)0xffffffff) {
-        return handle;
+        return (int32_t)handle;
     }
 
     {
@@ -62,7 +64,7 @@ void *savegame_find_first(win32_find_dataa *find_data, char *root_path)
         int32_t slot = user_save_path_register((uint32_t)handle, root_path);
         if (slot == -1) {
             FindClose(handle);
-            return (void *)0xffffffff;
+            return -1;
         }
 
         while ((find_data->dwFileAttributes & 0x10) != 0) {
@@ -77,7 +79,9 @@ void *savegame_find_first(win32_find_dataa *find_data, char *root_path)
                         i = i + 1;
                     } while (find_data->cFileName[i - 1] != '\0');
                 }
-                string_convert_ascii_to_unicode(); // UNSURE: consumes the filename just written to scratch
+                // 0x551c9a..0x551ca5: EAX = find_data + 0x244 (a wide-name buffer after the find data), EDI = 0x80,
+                // EBX = find_data->cFileName (still set from 0x551c3f)
+                string_convert_ascii_to_unicode((uint16_t *)((uint8_t *)find_data + 0x244), 0x80, find_data->cFileName);
 
                 {
                     int32_t i = 0;
@@ -103,7 +107,7 @@ void *savegame_find_first(win32_find_dataa *find_data, char *root_path)
                 scratch[end] = '\\';
                 scratch[end + 1] = '\0';
 
-                return handle;
+                return (int32_t)handle;
             }
             if (exhausted) {
                 break;
@@ -115,7 +119,7 @@ void *savegame_find_first(win32_find_dataa *find_data, char *root_path)
     }
 
     FindClose(handle);
-    return (void *)0xffffffff;
+    return -1;
 }
 
 #if 0
