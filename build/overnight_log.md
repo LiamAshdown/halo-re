@@ -871,3 +871,7 @@ Remaining step-1 code gap:
   (0x4ed3be -> 0x4ed3f4; the old difftest +0x8 difference) and the average sums SIGN-extended samples (cdq/adc).
   Off known_bad. Newly hookable: ring_buffer_append, record_and_append, retransmit_if_overdue, pong_reply.
   beacon_reply still waits on network_game_search_results_add_or_update (incomplete).
+- [firing 19] decode-packet callers: the 'ESI client; stack buffer, length, sender_address' handler family (each
+  checks the sender against network_channel_remote_address_or_default, then decodes &length-2). Rewrote join_complete
+  (sender deref'd once, not twice), sync_complete (length was passed as a pointer), player_config_value (2-byte value
+  -> client+0xed8) -- all hookable. New helper tools/replace_function.py. 22 callers left.

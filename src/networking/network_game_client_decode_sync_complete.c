@@ -1,6 +1,6 @@
 // network_game_client_decode_sync_complete  (Ghidra: FUN_004dc3a0; named per this rewrite)
 // address 0x4dc3a0, size 108 bytes
-// name confidence: 0.35   rewrite confidence: 0.35
+// name confidence: 0.35   rewrite confidence: 0.9 (step 1: rewritten from the disassembly; see the note above the function)
 // evidence: out/phase4/networking_functions.md: "Decodes the final synchronization message of the
 // join handshake and transitions the connection into the fully-connected/in-game state." Matches
 // the code exactly: on a matching sequence and client->state == 3, it decodes the (unused)
@@ -20,26 +20,31 @@ extern data_packet_group network_game_messages_group; // 0x006994f8
 
 extern void network_channel_remote_address_or_default(network_channel *channel, network_resolved_address *out_address); // 0x4dd390, this module
 extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group,
-    void *decoded_body, uint8_t *buffer, int16_t *out_type, byte_stream *input,
-    uint16_t *out_version_used, int16_t expected_class); // 0x4d09d0
+    void *decoded_body, uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used, int16_t expected_class);
+    // 0x4d09d0, blam-cc: EAX -> remaining_length, stack -> group, decoded_body, buffer, out_type,
+    //           out_version_used, expected_class
 
-// blam-cc: ESI -> client (unaff_ESI)
-int32_t network_game_client_decode_sync_complete(network_client_globals *client, uint8_t *param_1,
-    int16_t *param_2, int32_t *param_3)
+// blam-cc: ESI -> client, stack -> buffer, length, sender_address
+// FIXED (step 1, objdump -d 0x4dc3a0..0x4dc40b): stack (buffer, length, sender address); the state moves to 4 whether
+// or not the (class 4) message decodes. Always returns 1.
+int32_t network_game_client_decode_sync_complete(network_client_globals *client, const uint8_t *buffer,
+    int32_t length, const uint32_t *sender_address)
 {
     network_resolved_address sender;
+    uint8_t decoded_body[16];
     int16_t out_type;
-    byte_stream input;
-    uint32_t decoded_body;
+    uint16_t out_version;
 
     network_channel_remote_address_or_default(client->channel, &sender);
-    if (sender.address.ipv4 == *param_3 && client->state == 3) {
-        data_packet_group_decode_packet(param_2, &network_game_messages_group, &decoded_body,
-            param_1 + 2, &out_type, &input, 0, 4);
+    if (sender.address.ipv4 == *sender_address && client->state == 3) {
+        length = length - 2;
+        data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, decoded_body,
+                                        (uint8_t *)buffer + 2, &out_type, &out_version, 4);
         client->state = 4;
     }
     return 1;
 }
+
 
 #if 0
 Original Ghidra decompilation (0x4dc3a0):

@@ -1,7 +1,7 @@
 // network_game_client_decode_join_complete  (Ghidra: network_game_client_decode_join_complete,
 // already named)
 // address 0x4dbdc0, size 141 bytes
-// name confidence: 0.55   rewrite confidence: 0.4
+// name confidence: 0.55   rewrite confidence: 0.9 (step 1: rewritten from the disassembly; see the note above the function)
 // evidence: out/phase4/networking_functions.md summary ("Decodes the server's final
 // join-complete confirmation and transitions the client to the in-game connection state").
 // Same guard/decode shape as the rest of this handler cluster; client->state = 4 on success
@@ -17,32 +17,38 @@
 
 
 extern void network_channel_remote_address_or_default(network_channel *channel, network_resolved_address *out_address); // 0x4dd390, this module
-extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,
-    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class); // 0x4d09d0
+extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group,
+    void *decoded_body, uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used, int16_t expected_class);
+    // 0x4d09d0, blam-cc: EAX -> remaining_length, stack -> group, decoded_body, buffer, out_type,
+    //           out_version_used, expected_class
 extern data_packet_group network_game_messages_group; // 0x006994f8
 extern int32_t join_ui_state; // 0x00718f8c
 
-// blam-cc: ESI -> client; stack -> buffer, capacity, expected_sequence
+// blam-cc: ESI -> client, stack -> buffer, length, sender_address
+// FIXED (step 1, objdump -d 0x4dbdc0..0x4dbe4c): stack (buffer, length, sender address); the sender address is
+// dereferenced once; the decoder gets &length after the 2-byte header. Returns 0 unless the join completed.
 int32_t network_game_client_decode_join_complete(network_client_globals *client, const uint8_t *buffer,
-    void *capacity, const uint32_t **expected_sequence)
+    int32_t length, const uint32_t *sender_address)
 {
     network_resolved_address sender;
-    uint32_t decoded_body[2];
-    int16_t out_a;
+    uint8_t decoded_body[16];
+    int16_t out_type;
+    uint16_t out_version;
 
     network_channel_remote_address_or_default(client->channel, &sender);
-    if (sender.address.ipv4 == **expected_sequence) {
-        if (client->state != 0 && client->state != 4) { // UNSURE: live connection-mode value
-            if (data_packet_group_decode_packet(&network_game_messages_group, decoded_body, buffer + 2,
-                                                 &out_a, (int16_t *)expected_sequence, 2) != 0) {
-                join_ui_state = 9;
-                client->state = 4;
-                return 1;
-            }
-        }
+    if (sender.address.ipv4 != *sender_address || client->state == 0 || client->state == 4) {
+        return 0;
     }
-    return 0;
+    length = length - 2;
+    if (data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, decoded_body,
+                                        (uint8_t *)buffer + 2, &out_type, &out_version, 2) == 0) {
+        return 0;
+    }
+    join_ui_state = 9;
+    client->state = 4;
+    return 1;
 }
+
 
 #if 0
 Original Ghidra decompilation (0x4dbdc0):
