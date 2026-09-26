@@ -35,7 +35,8 @@ extern uint8_t default_profile_data[0x1ffc]; // 0x0071d280
 
 extern heap *widget_memory_pool; // 0x006926c4
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
-extern void saved_game_enumerate_by_type(int32_t type, void *out_slots, int32_t unknown); // 0x53c4e0
+extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
+    uint16_t *capacity_and_count); // 0x53c4e0, stack (type, out, builtin_only), EBX &count
 extern uint8_t saved_game_last_profile_read(char *name_buffer); // 0x53d2b0
 extern int32_t saved_game_find_by_name(char *name, int32_t unknown); // 0x53d4a0
 extern uint8_t player_profile_get(int32_t slot, void *out_profile); // 0x53a770; blam-cc: ECX -> out_profile
@@ -60,7 +61,10 @@ uint32_t ui_build_profile_list(widget_instance *widget)
         int32_t matched_profile;
         int32_t i;
 
-        saved_game_enumerate_by_type(0, slot_ids, 0);
+        {   // 0x49ddd8..0x49dddc: EBX = &count preset to 0x64
+            uint32_t count = 0x64;
+            saved_game_enumerate_by_type(0, (int32_t *)slot_ids, 0, (uint16_t *)&count);
+        }
         widget->item_count = 100;
 
         ui_lists[0].element_size = 0x10;

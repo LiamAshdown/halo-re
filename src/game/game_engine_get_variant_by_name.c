@@ -89,7 +89,8 @@ extern void string_convert_ascii_to_unicode(wchar_t *out_name, int32_t max_chars
     // blam-cc: EAX -> out_name, EDI -> max_chars. UNSURE identity, but it is what fills the
     // 24-wchar buffer the custom-variant scan then compares against (objdump 0x4629bc: EDI = 0x30).
 extern void playlist_profile_create_default_profiles_on_disk(void); // 0x53bc70
-extern void saved_game_enumerate_by_type(int32_t type, int32_t *out_slots, int32_t unknown);
+extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
+    uint16_t *capacity_and_count); // 0x53c4e0, stack (type, out, builtin_only), EBX &count
     // 0x53c4e0; blam-cc: EBX -> an in/out capacity-then-count int32 (100 in, the number of
     // enumerated slots out), then the three stack arguments
 extern uint8_t saved_game_get_variant(int32_t slot, game_variant *out); // 0x53bee0, not in this batch
@@ -174,7 +175,7 @@ uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out)
             playlist_profiles_need_defaults = 0;
         }
         // blam-cc: EBX = &slot_count
-        saved_game_enumerate_by_type(1, slots, 1);
+        saved_game_enumerate_by_type(1, slots, 1, (uint16_t *)&slot_count); // 0x4629f6
 
         for (slot_index = 0; (int32_t)(uint32_t)slot_index < slot_count; slot_index++) {
             if (slots[slot_index] == -1) {

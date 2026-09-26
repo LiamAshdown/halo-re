@@ -30,7 +30,8 @@ extern int32_t cached_profile_slot;                       // 0x0068e66c
 
 extern uint32_t saved_game_check_storage_availability(void); // 0x53d120
 extern void playlist_profile_create_default_profiles_on_disk(void); // 0x53bc70
-extern void saved_game_enumerate_by_type(int32_t type, int32_t *out_slots, int32_t unknown); // 0x53c4e0
+extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
+    uint16_t *capacity_and_count); // 0x53c4e0, stack (type, out, builtin_only), EBX &count
 extern uint8_t saved_game_last_profile_read(char *name_buffer); // 0x53d2b0
 extern int32_t saved_game_find_by_name(char *name, int32_t unknown, int32_t unknown2); // 0x53d4a0, UNSURE arity
 
@@ -49,8 +50,11 @@ int32_t player_profile_check_storage_and_defaults(void)
             playlist_profile_create_default_profiles_on_disk();
             need_default_profiles_pending_0069e8d0 = 0;
         }
-        saved_game_enumerate_by_type(1, enumeration_scratch, 1);
-        saved_game_enumerate_by_type(0, enumeration_scratch, 1);
+        {   // 0x49c699..0x49c6cb: one count (preset 1) at EBX for both calls; the second sees what the first left
+            uint32_t count = 1;
+            saved_game_enumerate_by_type(1, enumeration_scratch, 1, (uint16_t *)&count);
+            saved_game_enumerate_by_type(0, enumeration_scratch, 1, (uint16_t *)&count);
+        }
         if (last_profile_name[0] == '\0') {
             if (saved_game_last_profile_read(last_profile_name) != 0) {
                 cached_profile_slot = saved_game_find_by_name(last_profile_name, 0, find_flag);
