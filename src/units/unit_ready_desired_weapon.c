@@ -33,7 +33,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
 extern char *s_unarmed;             // "unarmed"
 
-extern void item_set_holder(datum_index object_index);                                // 0x4bcfc0, UNSURE signature
+extern void item_set_holder(uint32_t item_index, datum_index holder_index); // 0x4bcfc0, ECX item, EDX holder
 extern int32_t weapon_get_label(void);                                                 // 0x4c24d0, UNSURE signature
 extern void weapon_ready(void);                                                    // 0x4c2840, UNSURE signature
 extern uint8_t weapon_put_away(void);                                                 // 0x4c28f0, UNSURE signature
@@ -73,7 +73,7 @@ void unit_ready_desired_weapon(uint32_t unit_index)
                 }
                 weapon_obj->flags |= 1;                                        // puVar6[4] |= 1
                 ((object_header *)object_data->data)[current_weapon & 0xffff].flags &= 0xfd;
-                item_set_holder(current_weapon);
+                item_set_holder(current_weapon, unit_index); // 0x56d7fb: ECX = weapon, EDX = edi = unit_index
                 unit->current_weapon_index = -1;
             }
         }

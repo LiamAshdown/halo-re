@@ -24,7 +24,7 @@
 
 extern data_array *object_data; // 0x008603b0
 
-extern void item_set_holder(datum_index weapon_object_index); // 0x4bcfc0, UNSURE signature
+extern void item_set_holder(uint32_t item_index, datum_index holder_index); // 0x4bcfc0, ECX item, EDX holder
 extern void unit_recompute_seat_occupants(uint32_t unit_index);              // 0x56ce30
 
 void unit_refresh_targeting_flag_and_weapons(uint32_t unit_index, uint8_t initial_targeting_flag) // blam-cc: param_1, unaff_CL
@@ -50,7 +50,7 @@ void unit_refresh_targeting_flag_and_weapons(uint32_t unit_index, uint8_t initia
 
     for (int32_t i = 0; i < k_maximum_weapons_per_unit; i++) {
         if (unit->weapons[i] != k_datum_index_none) {
-            item_set_holder(unit->weapons[i]);
+            item_set_holder(unit->weapons[i], unit_index); // 0x569c77: ECX = weapon, EDX = ebx = unit_index
         }
     }
     unit_recompute_seat_occupants(unit_index);
