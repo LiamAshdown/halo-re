@@ -100,7 +100,11 @@ void cache_file_slot_read_header(int32_t slot_index)
         }
     } else {
         cache_io_read_file_ex_retry(ReadFileEx_exref, slot->file, &slot->header, &request,
-            k_cache_file_header_size, 0, (void *)cache_io_completion_routine);
+            k_cache_file_header_size, 0, (void *)0x443b00);
+        // 0x443669: the APC is the ORIGINAL routine's address (mov edi,0x443b00). Windows calls it __stdcall
+        // (ret 0xc); passing the cdecl C rewrite cache_io_completion_routine directly left the APC dispatcher
+        // 12 bytes off and crashed at startup (EIP on the stack). 0x443b00 reaches the C rewrite through its
+        // hook adapter, which does the ret 0xc.
         cache_io_wait_for_flag(&header_read_ok);
         if (header_read_ok != 0) {
 validate_header:
