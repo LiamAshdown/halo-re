@@ -240,7 +240,6 @@ tree_node_allocate                                 # shell: rewrite says 'not re
 sound_channel_queue_source                         # sound: rewrite says 'placeholder'
 sound_directsound_probe_channel_pools              # sound: rewrite says 'not rewritten'
 structure_bsp_build_fog_environment                # structures: rewrite says 'simplified'
-structure_bsp_leaf_find_material_surface           # structures: rewrite says 'not rewritten'
 structure_debug_draw_surfaces_simple               # structures: rewrite says 'simplified'
 biped_clear_ground_surface_references              # units: rewrite says 'placeholder'
 biped_reset_state                                  # units: rewrite says 'placeholder'

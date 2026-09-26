@@ -41,8 +41,8 @@ extern void structure_surface_material_locate(ScenarioStructureBSP *global_struc
     int16_t *out_material_index, int16_t *out_lightmap_index); // 0x552110, this module
 
 // math module, out of this batch. blam-cc: EAX -> v0, EDX -> v1, ECX -> v2, ESI -> point
-extern uint8_t triangle_point_barycentric_2d(real_point3d *v0, real_point3d *v1, real_point3d *v2,
-    real_point3d *point, void *param_6, void *param_7); // 0x4ce8c0
+extern uint8_t triangle_point_barycentric_2d(real_point3d *a, real_point3d *v_ecx, real_point3d *v_edx, real_point3d *p,
+    real *out_u, real *out_v); // 0x4ce8c0, src/math: EAX a, ECX v_ecx, EDX v_edx, ESI p
 
 // Walks one BSP leaf's surface references looking for a surface that lies on `accepted_plane`
 // (the collision plane the caller's segment test reported) and whose triangle actually contains
@@ -114,8 +114,10 @@ uint8_t structure_bsp_leaf_find_material_surface(real_point3d *point, int32_t ac
             continue;   // any other vertex type is skipped without testing the triangle
         }
 
-        if (triangle_point_barycentric_2d(&triangle[0], &triangle[1], &triangle[2], point,
-                                          param_6, param_7)) {
+        // 0x555141..0x55514d: EAX = &triangle[0], EDX = &triangle[1], ECX = &triangle[2] -- the definition's second
+        // parameter is the ECX one, so triangle[2] goes second
+        if (triangle_point_barycentric_2d(&triangle[0], &triangle[2], &triangle[1], point,
+                                          (real *)param_6, (real *)param_7)) {
             *out_surface = surface_index;
             return 1;
         }
