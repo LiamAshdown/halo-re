@@ -108,7 +108,8 @@ extern real effect_distribution_function_evaluate(EffectDistributionFunction_t t
     real fraction); // 0x453290, this module
 extern effect_location_marker *effect_marker_next(effect *self, datum_index *marker,
     int32_t mode); // 0x453180, this module
-extern uint8_t scenario_location_get_water_and_weather(void *unknown_0, int32_t unknown_1); // 0x53ed60, outside this batch
+extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
+    int16_t *weather_index_out); // 0x53ed60, EBX point, stack (leaf, weather_index_out)
 extern void particle_new(particle_creation_data *creation_data); // 0x455740, this module
 extern int32_t __ftol(void); // 0x6391b4, MSVC runtime float-to-int truncation, UNSURE
 extern real effect_property_random_value(uint8_t bit_index, effect *self, uint32_t a_bitset,
@@ -337,11 +338,12 @@ void effect_spawn_particles(effect *self)
                                         case effectcreatein_any_environment:
                                             create_ok = 1;
                                             break;
+                                        // 0x45262b / 0x45264c: EBX = &position ([esp+0x84]), push &self->location, 0
                                         case effectcreatein_air_only:
-                                            create_ok = !scenario_location_get_water_and_weather(&self->location, 0);
+                                            create_ok = !scenario_location_get_water_and_weather(&position, &self->location, 0);
                                             break;
                                         case effectcreatein_water_only:
-                                            create_ok = scenario_location_get_water_and_weather(&self->location, 0);
+                                            create_ok = scenario_location_get_water_and_weather(&position, &self->location, 0);
                                             break;
                                         case effectcreatein_space_only:
                                             create_ok = 0;

@@ -9,7 +9,9 @@
 //   ground probe from a marker. Confirmed against objdump -d -M intel, 0x4533b0..0x453485.
 // register convention: a tag reference recognized on the stack (param_1); a location/marker
 //   index in SI (unaff_SI); a marker world position pointer in EAX (in_EAX, 3 floats).
-//   // blam-cc: stack -> definition_index, unaff_ESI (low 16) -> location_index, in_EAX -> position
+//   // blam-cc: EAX -> marker_position, ESI -> location_index, stack -> definition_index, sound_param
+// FIXED (objdump 0x4533b0..0x45348d): a second stack argument (the caller at 0x560614 pushes 0) is forwarded as
+//   the sound parameter; the play call takes the contact point and surface normal, not the probe segment.
 // UNSURE: which tag group `definition_index` refers to was not established elsewhere in this
 //   batch; its data merely needs to begin with a TagReflexive for this function's single bounds
 //   check to make sense. UNSURE: the call to material_effects_play_at_marker at the end forwards
@@ -33,7 +35,8 @@ extern const real_vector3d *global_down3d_pointer;  // 0x0069672c, the constant 
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin,
     real_vector3d *delta, uint32_t exclude_object_index, collision_result *result); // 0x505880
 
-extern uint8_t scenario_location_get_water_and_weather(void *leaf_out, uint32_t mode); // UNSURE signature; resolves a point
+extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
+    int16_t *weather_index_out); // 0x53ed60, EBX point, stack (leaf, weather_index_out)
     // to a cluster/sky state, see the weather_instance notes in
     // out/phase4/effects_types_notes.md (unresolved offsets, weather_instance 0x10/0x14); called
     // here with the collision result's leaf field as the (probably in/out) point/leaf argument
@@ -43,7 +46,8 @@ extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16
     real_point3d *position, real_vector3d *offset); // 0x453490, this module
 
 void effect_marker_environment_probe(uint32_t definition_index, int16_t location_index,
-    real_point3d *marker_position) // blam-cc: stack, unaff_ESI, in_EAX
+    real_point3d *marker_position, uint32_t sound_param)
+    // blam-cc: EAX -> marker_position, ESI -> location_index, stack -> definition_index, sound_param
 {
     TagReflexive *reflexive = (TagReflexive *)tag_instances[definition_index & 0xffff].data;
 
@@ -62,14 +66,16 @@ void effect_marker_environment_probe(uint32_t definition_index, int16_t location
 
         hit = collision_test_movement_segment(0xc2a0, &origin, &delta, 0xffffffff, &result);
         if (hit) {
-            uint8_t in_sky = scenario_location_get_water_and_weather(&result.leaf, 0);
-            // UNSURE: 0x1c (28) when in_sky, otherwise a value read from this function's own
-            // frame that the raw disassembly (`mov eax,[esp+0x54]`) could not be tied to a named
-            // field; kept as the sky case's literal and a placeholder of 0 for the other case.
-            int16_t material_type = in_sky ? 0x1c : 0;
+            // 0x453449..0x453454: EBX = &result.point (+0x18), push &result.leaf (+0x0c), push 0
+            uint8_t in_sky = scenario_location_get_water_and_weather(&result.point, &result.leaf, 0);
+            // 0x45345f..0x453466: 0x1c when in_sky, else [esp+0x54] = result.material_type (+0x34)
+            int16_t material_type = in_sky ? 0x1c : result.material_type;
 
+            // 0x45346a..0x453480: EAX = definition, EDX = &result.point, EDI = &result.plane (its normal),
+            // push location_index, material_type, &result.leaf, and this function's second stack argument
             material_effects_play_at_marker(definition_index, material_type, location_index,
-                                             (uint32_t *)&result.leaf, 0, &origin, &delta);
+                                             (uint32_t *)&result.leaf, sound_param, &result.point,
+                                             (real_vector3d *)&result.plane);
         }
     }
 }

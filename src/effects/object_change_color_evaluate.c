@@ -62,7 +62,8 @@ extern effect_location_marker *effect_marker_next(effect *self, datum_index *mar
     int32_t mode); // 0x453180, this module
 extern real_matrix4x3 *effect_resolve_marker_transform(effect *self, int16_t marker); // 0x453220,
     // this module
-extern uint8_t scenario_location_get_water_and_weather(void *unknown_0, int32_t unknown_1); // 0x53ed60, outside this batch;
+extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
+    int16_t *weather_index_out); // 0x53ed60, EBX point, stack (leaf, weather_index_out)
     // UNSURE: presumed to test an environment/spawn-condition gate (its result is inverted for
     // EffectCreateIn air_only, used directly for water_only)
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point,
@@ -162,11 +163,11 @@ void object_change_color_evaluate(effect *self)
                         create_ok = 1;
                         break;
                     case effectcreatein_air_only:
-                        create_ok = !scenario_location_get_water_and_weather(&self->location, 0); // the raw `iVar5 + 0x10`
+                        create_ok = !scenario_location_get_water_and_weather((real_point3d *)&placement[2], &self->location, 0); // the raw `iVar5 + 0x10`
                             // is a BYTE offset; on a typed `effect *` that is &self->location
                         break;
                     case effectcreatein_water_only:
-                        create_ok = scenario_location_get_water_and_weather(&self->location, 0); // see above
+                        create_ok = scenario_location_get_water_and_weather((real_point3d *)&placement[2], &self->location, 0); // see above
                         break;
                     case effectcreatein_space_only:
                         create_ok = 0; // retail: space-only parts never create in this build
