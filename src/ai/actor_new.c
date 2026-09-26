@@ -11,9 +11,6 @@
 //   UNSURE: several fields this function writes are not individually cited by 0x426760 in
 //   types/ai.h (only by other functions), but the store shapes match the header's declared
 //   types exactly in every case checked; used directly rather than re-deriving.
-// register convention: EAX -> actor_variant_tag (the sole parameter, called "param_1" by
-//   Ghidra even though it arrives in a register at every call site checked).
-//   // blam-cc: EAX -> actor_variant_tag
 
 #include "tags.h"
 #include "memory.h"
@@ -32,7 +29,6 @@ extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX -> ar
 extern void actor_clear_recognition_history(datum_index actor_index, uint8_t keep_when_typed); // 0x414140
 extern void actor_dispatch_type_vtable_0x10(datum_index actor_index); // 0x426670
 
-// blam-cc: EAX -> actor_variant_tag
 // Allocates and default-initializes a new actor record for the unit type referenced by the
 // given ActorVariant tag: resolves the Actor tag it points at, allocates a datum, then writes
 // every field whose default the engine cares about (the great majority to -1/none, 0, or a
@@ -40,6 +36,8 @@ extern void actor_dispatch_type_vtable_0x10(datum_index actor_index); // 0x42667
 // glass-ignorance once against Actor.glass_ignorance_chance, seeds the three position caches
 // from the shared zero vector, and finally runs the per-type vtable-0x10 init callback.
 // Returns the new actor's datum index, or k_datum_index_none on failure.
+// FIXED (register inputs, objdump + difftest): the original never reads EAX; actor_variant_tag arrive(s) on the stack (1 stack argument(s)).
+// blam-cc: stack -> actor_variant_tag
 datum_index actor_new(datum_index actor_variant_tag)
 {
     ActorVariant *variant;

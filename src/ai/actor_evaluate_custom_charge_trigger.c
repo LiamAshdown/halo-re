@@ -18,8 +18,6 @@
 //   The control flow is a literal goto-preserving transliteration of the decompile rather
 //   than a restructured version, to minimize the risk of subtly changing behavior in a
 //   function this tangled.
-// register convention: EAX -> actor_index (Ghidra's own "param_1").
-//   // blam-cc: EAX -> actor_index
 
 #include "tags.h"
 #include "memory.h"
@@ -38,15 +36,15 @@ extern real random_real_range(real min, real max); // 0x401050
 extern int32_t __ftol(double x); // FISTP-based float-to-int truncation
 extern void * actor_get_actor_definition(datum_index actor_index); // 0x40fa70, UNSURE signature
 extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index); // 0x428370
-extern uint8_t unit_is_in_busy_animation_state(void); // 0x569c90, UNSURE signature (no traced args here either)
+extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index); // 0x569c90, ECX unit
 extern void actor_prop_iterator_init(datum_index actor_index, actor_prop_iterator *out_iterator);
                                     // 0x43ecd0, already rewritten as
-                                    // src/ai/actor_prop_iterator_init.c; blam-cc: EAX ->
                                     // actor_index, stack -> iterator. It seeds only the
                                     // iterator's SECOND dword (.next) from actor.first_prop,
                                     // which is the field the loop below reads.
 
-// blam-cc: EAX -> actor_index
+// FIXED (register inputs, objdump + difftest): the original never reads EAX; actor_index arrive(s) on the stack (1 stack argument(s)).
+// blam-cc: stack -> actor_index
 uint8_t actor_evaluate_custom_charge_trigger(datum_index actor_index)
 {
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
@@ -60,7 +58,7 @@ uint8_t actor_evaluate_custom_charge_trigger(datum_index actor_index)
     actor_def = actor_get_actor_definition(actor_index);
     unit_object = ((object_header *)object_data->data)[self->unit_index & 0xffff].data;
 
-    if ((unit_is_in_busy_animation_state() == 0 && self->movement_action_complete == 0) || self->awareness_level < 3) {
+    if ((unit_is_in_busy_animation_state(self->unit_index) == 0 /* 0x4240d5: ECX = actor+0x18 */ && self->movement_action_complete == 0) || self->awareness_level < 3) {
         goto return_true;
     }
     if (self->unknown_6e < 5) {

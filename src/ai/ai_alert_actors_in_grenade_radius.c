@@ -15,9 +15,6 @@
 //   pointer arithmetic rather than modeled with named types, since no BSP/collision header
 //   exists in this repo. The large unused stack array the original declares
 //   (auStackY_1040[989]) is dead and is not reproduced.
-// register convention: EAX -> source_unit_index (already resolved as a genuine parameter by
-//   Ghidra).
-//   // blam-cc: stack -> source_unit_index
 // reconciled: R27 object.unknown_00c (datum_index) -> int32_t network_update_tick (game tick stamp, -1 = never)
 
 #include "tags.h"
@@ -47,10 +44,11 @@ extern int16_t actor_target_hearing_check(uint32_t *block, uint32_t param); // 0
 extern datum_index actor_find_or_create_shared_prop(datum_index actor_index, uint32_t flag_a, uint32_t flag_b); // 0x43eb30, UNSURE signature
 extern void actor_squad_react_to_grenade(datum_index actor_index, datum_index target_prop_index, int16_t grenade_type); // 0x42a3a0, already rewritten in this module
 
-// blam-cc: stack -> source_unit_index
 // Given a grenade/threat's originating object, marks nearby pathfinding-visible clusters
 // within a ~40-unit radius and triggers a squad reaction for every actor whose cached BSP
 // cluster sits inside that set.
+// FIXED (register inputs, objdump + difftest): the original never reads EAX; source_unit_index arrive(s) on the stack (1 stack argument(s)).
+// blam-cc: stack -> source_unit_index
 void ai_alert_actors_in_grenade_radius(datum_index source_unit_index)
 {
     object *source_object = ((object_header *)object_data->data)[source_unit_index & 0xffff].data;

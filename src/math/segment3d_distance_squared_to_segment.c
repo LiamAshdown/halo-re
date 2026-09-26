@@ -9,10 +9,6 @@
 //   estimates; otherwise raw s, t solve the two-line system and are snapped to the nearest
 //   endpoint (falling back to point3d_distance_squared_to_segment @0x4cde30 against the *other*
 //   segment) whenever either falls outside [0,1].
-// register convention: b_start pointer as the recognized parameter (param_1 -> EAX per the
-//   project convention), a_start pointer in EBX (unaff_EBX), a_direction pointer in ESI
-//   (unaff_ESI), b_direction pointer in EDI (unaff_EDI), no stack arguments.
-//   // blam-cc: EAX -> b_start, EBX -> a_start, ESI -> a_direction, EDI -> b_direction
 //
 // UNSURE, significantly: the non-parallel branch calls `vector3d_scalar_triple_product` (an
 // out-of-module helper @0x44d8e0, per math_types_notes.md item 7) twice, both times showing
@@ -32,6 +28,8 @@ extern double fabs(double x); // ABS is a single x87 FABS instruction
 extern real vector3d_scalar_triple_product(const real_vector3d *a, const real_vector3d *b, const real_vector3d *c); // 0x44d8e0, a . (b x c); outside this module
 extern real point3d_distance_squared_to_segment(real_point3d *segment_start, real_vector3d *segment_direction, real_point3d *point); // 0x4cde30
 
+// FIXED (register inputs, objdump + difftest): the original never reads EAX; b_start arrive(s) on the stack (1 stack argument(s)).
+// blam-cc: EBX -> a_start, ESI -> a_direction, EDI -> b_direction, stack -> b_start
 real segment3d_distance_squared_to_segment(real_point3d *b_start, real_point3d *a_start, real_vector3d *a_direction, real_vector3d *b_direction)
 {
     real_vector3d w0; // b_start - a_start

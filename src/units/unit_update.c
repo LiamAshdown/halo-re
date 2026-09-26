@@ -17,8 +17,6 @@
 //   scalars -- see UNSURE), Biped.contact_point (tag+0x4e8, walked at line ~459); math.h
 //   global_origin3d_pointer/global_forward3d_pointer (0x696714/0x696718),
 //   vector3d_rotate_toward_with_acceleration, vector3d_cross_product, vector3d_angle_between.
-// register convention: unit index in EAX.
-//   // blam-cc: param_1 (EAX) -> unit_index
 // UNSURE: puVar4+0xae..0xb1 and +0xb2..0xb5 (the third argument of the two vector3d_rotate_toward_bounded calls,
 //   an angular-acceleration carry-over the math helper writes back) land on the same four
 //   floats types/units.h calls aiming_bounds/looking_bounds (0x2b8/0x2c8), which
@@ -84,7 +82,6 @@ extern void vector3d_angle_between_4cd4f0(void);                   // 0x4cd4f0, 
   // real signature (vector3d_angle_between_4cd4f0.c): real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b); Ghidra recovered 0 of 2 args at this call site
 extern void vector3d_rotate_toward_with_acceleration(real_vector3d *current, float turn_accel, float turn_rate);
 extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up);
-    // 0x4f6970, src/objects; blam-cc: EAX out_forward, ECX object_index, stack out_up
 // vector3d_cross_product (0x4052c0) computes  *out = stack_operand x ecx_operand,  with out
 // in EAX, ecx_operand in ECX and stack_operand pushed -- read out of the callee own
 // decompilation (in_EAX / in_ECX / param_1) and matching
@@ -138,6 +135,8 @@ extern void unit_update_random_turn_angle(void);                                
 extern void actor_react_to_threat_event(datum_index self_object_index, datum_index other_object_index, int32_t event_kind, real magnitude, uint32_t extra_param, uint8_t suppress_vehicle_relay); // 0x42be40, UNSURE signature
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale); // 0x4507a0, UNSURE signature
 
+// FIXED (register inputs, objdump + difftest): the original never reads EAX; unit_index arrive(s) on the stack (1 stack argument(s)).
+// blam-cc: stack -> unit_index
 uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
 {
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;

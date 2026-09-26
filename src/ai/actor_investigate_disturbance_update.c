@@ -9,8 +9,6 @@
 //   handle, position-changed counters, a cached "last checked" position and tick, a
 //   retry/attempt counter, and output slots for actor_evaluate_search_node
 //   (actor_evaluate_search_node)'s position/direction/extra/close/facing/flag outputs.
-// register convention: actor index in EAX, the sole real parameter.
-//   // blam-cc: EAX -> actor_index
 
 #include "tags.h"
 #include "memory.h"
@@ -26,18 +24,18 @@ extern uint8_t actor_is_within_alert_range(uint8_t always_in_range, float radius
 extern int32_t actor_evaluate_search_node(uint32_t actor_index, uint32_t from_object, uint32_t node_table, float *out_position, float *out_direction, uint32_t *out_extra, float *out_score, uint8_t *out_close, uint8_t *out_facing, uint8_t *out_flag); // 0x4091d0, this session
 extern int32_t actor_avoid_obstacle_and_project(uint32_t actor_index, real_point3d *candidate, char *out_avoided_flag, uint32_t object_index, float *out_point, uint32_t *out_extra); // 0x4095c0, this session
 extern void actor_movement_action_stop(datum_index actor_index); // 0x417570, this module,
-                                                                 // blam-cc: EDX -> actor_index
 extern uint8_t actor_movement_set_destination_point(real_point3d *destination, datum_index actor_index,
                                                     int32_t parameter, uint32_t extra); // 0x417610, this module,
-                                                    // blam-cc: EAX -> destination, stack -> the other three
-extern void *object_try_and_get(int32_t kind); // 0x4f6ec0
+extern void *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX object, stack mask
 extern char unit_enter_vehicle_seat(uint32_t unit_object_index, int16_t seat); // 0x566970
 
+// FIXED (register inputs, objdump + difftest): the original never reads EAX; actor_index arrive(s) on the stack (1 stack argument(s)).
+// blam-cc: stack -> actor_index
 int32_t actor_investigate_disturbance_update(uint32_t actor_index)
 {
     actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
     uint8_t *m = a->mode_data;
-    void *self_unit_obj = object_try_and_get(2);
+    void *self_unit_obj = object_try_and_get(*(datum_index *)m, 2); // 0x408bc5: ECX = actor+0x9c, the mode's target object
 
     if (a->active_unit_index != (datum_index)k_datum_index_none) {
         m[0xa5 - 0x9c] = 1;

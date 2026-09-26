@@ -11,8 +11,6 @@
 //   struct anywhere in types/objects.h (it belongs to whatever rendering-side "ambient sample"
 //   type consumes it), so it is kept as a flat float array indexed exactly the way the original
 //   indexes it, rather than inventing field names.
-// register convention: object index in EAX (in_EAX), output sample buffer in ECX (param_1, a
-//   flat array of 0x1d = 29 floats).
 // IMPORTANT: the accumulate and average passes do NOT cover all 29 floats. The original
 //   touches indices 0..2, 4..0x0f and 0x13..0x1c only; index 3 holds the int16 status word
 //   written as *(int16_t *)(sample + 3) = 2, and 0x10..0x12 are left alone. An earlier draft
@@ -49,6 +47,8 @@ static int object_ambient_sample_slot_is_averaged(int index)
     return index != 3 && (index < 0x10 || index > 0x12);
 }
 
+// FIXED (register inputs, objdump + difftest): the original never reads ECX; sample arrive(s) on the stack (1 stack argument(s)).
+// blam-cc: EAX -> object_index, stack -> sample
 void object_sample_ambient_lighting(uint32_t object_index, float *sample) // blam-cc: EAX -> object_index, ECX -> sample
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;

@@ -9,8 +9,6 @@
 //   unit_data.unknown_338 ("a 0..1 scalar the vehicle lean, thruster and ground-effect routines
 //   all multiply by", gating this function on being > 0, matching the functions.md summary's
 //   "gated on the unit's speed (offset 0xce > 0)"); callees as in the sibling function.
-// register convention: unit object index in EAX (param_1).
-//   // blam-cc: EAX -> unit_index
 // UNSURE: see vehicle_create_hover_thruster_effects.c's header; the same caveats apply to the
 //   raycast result field offsets and to effect_new_with_color's exact argument shape for kind == 4.
 
@@ -37,6 +35,8 @@ extern void effect_new_with_color(uint32_t effect, uint32_t param_2, void *param
 
 // Spawns hover-thruster ground-effect visuals positioned at the midpoint between each "hover
 // thrusters" marker and the surface below it, scaled by vehicle speed (unit_data.unknown_338).
+// FIXED (register inputs, objdump + difftest): the original never reads EAX; unit_index arrive(s) on the stack (1 stack argument(s)).
+// blam-cc: stack -> unit_index
 void vehicle_create_hover_thruster_midpoint_effects(uint32_t unit_index)
 {
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;

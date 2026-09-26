@@ -9,8 +9,6 @@
 //   object_get_node_local_transform (established), effect_new_with_color (established 12-argument form
 //   in src/hs/hs_effect_spawn_at_location.c, though this call site's position/forward slots
 //   instead carry a 3-vector incident/normal/reflected triple -- reproduced with void*).
-// register convention: unit object index in EAX (param_1).
-//   // blam-cc: EAX -> unit_index
 // UNSURE: the marker-transform arrays' exact per-marker stride (0x6c, smaller than
 //   object_marker's 0x6c... coincidentally equal) and collision_test_movement_segment's raycast-result field
 //   offsets (+0x6f8/0x6f4/0x6f0 normal, +0x6ec/0x6e8/0x6e4 a second normal-shaped vector,
@@ -43,6 +41,8 @@ extern void effect_new_with_color(uint32_t effect, uint32_t param_2, void *param
 // Spawns hover/jet-thruster exhaust visual effects at each "hover thrusters" and "jet
 // thrusters" marker of a vehicle, raycasting downward from each and, on a hit, spawning a
 // reflected damage-effect scaled by the unit's ground_lean/ground_contact_fraction fields.
+// FIXED (register inputs, objdump + difftest): the original never reads EAX; unit_index arrive(s) on the stack (1 stack argument(s)).
+// blam-cc: stack -> unit_index
 void vehicle_create_hover_thruster_effects(uint32_t unit_index)
 {
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;

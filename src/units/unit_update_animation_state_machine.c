@@ -12,9 +12,6 @@
 //   "destroyed_after_dying" bit 0x2), Unit.seats (TagReflexive at 0x2e4/0x2e8, UnitSeat stride
 //   0x11c, UnitSeatFlags bit 0 "invisible"), Biped.biped_flags (tag+0x2f4, "has_no_dying_airborne"
 //   bit 0x400); types/units.h biped_data.flags (0x4cc, bit 0 grounded).
-// register convention: unit index in EAX; a small external record in ECX whose byte 0 is the
-//   requested animation_state and byte 1 an extra flag consulted only when seat_command == 3.
-//   // blam-cc: param_1 (EAX) -> unit_index, in_ECX -> request (see UNSURE)
 // UNSURE: the identity and lifetime of the ECX record is not traced back to any caller in this
 //   batch (all 14 callers sit outside the address range assigned here); it is modelled as a
 //   2-byte {requested_state, extra_flag} pair passed by pointer.
@@ -71,6 +68,8 @@ extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char 
 extern void unit_cause_melee_damage(uint32_t unit_index, uint32_t a2, uint32_t a3, uint32_t a4,
                                      uint32_t a5, uint32_t a6, uint32_t a7);               // UNSURE signature
 
+// FIXED (register inputs, objdump + difftest): the original never reads EAX; unit_index arrive(s) on the stack (1 stack argument(s)).
+// blam-cc: ECX -> request, stack -> unit_index
 uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request) // blam-cc: see file header
 {
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;

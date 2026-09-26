@@ -10,8 +10,6 @@
 //   types/tags.h Vehicle.suspension_sound (tag_id at absolute 0x3bc, per the module's
 //   TagDependency-at-relative-+0xc idiom); the physics.tag_id-at-0x8c idiom (contact-point
 //   count at Physics+0x74).
-// register convention: unit object index in EAX (param_1).
-//   // blam-cc: EAX -> object_index
 // UNSURE: essentially the whole per-node transform/hit-test block (matrix4x3_from_forward_up,
 //   the two matrix4x3_transform_point/normal calls and collision_test_movement_segment) is register-resident with
 //   no visible arguments, and is reproduced as literally as Ghidra's own locals allow.
@@ -40,6 +38,8 @@ extern datum_index sound_start_at_object_marker(datum_index effect_index, void *
 // here as the effect tag) once the aggregate change exceeds 0.3.
 // UNSURE: see file header -- the node-array traversal and per-node transform are not fully
 // resolved.
+// FIXED (register inputs, objdump + difftest): the original never reads EAX; object_index arrive(s) on the stack (1 stack argument(s)).
+// blam-cc: stack -> object_index
 uint32_t unit_update_marker_traction_effects(uint32_t object_index)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;

@@ -17,8 +17,6 @@
 //   .wheel_circumference (0x310), .maximum_left_slide/.maximum_right_slide (0x330/0x334),
 //   .vehicle_a_in/.vehicle_b_in/.vehicle_c_in/.vehicle_d_in (0x31c..0x322, the four
 //   ObjectFunctionIn selectors this function evaluates).
-// register convention: unit object index in EAX (param_1).
-//   // blam-cc: EAX -> unit_index
 // UNSURE: the output array (object+0x124, four floats) has no name in types/objects.h, which
 //   documents that range only as undocumented _pad_110 padding; kept as a raw offset.
 
@@ -33,7 +31,7 @@ extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern real vector3d_length(real_vector3d *v); // 0x401960, UNSURE args at every call site here
-extern void vector3d_project_onto_unit_axis(void); // 0x4cda30, UNSURE signature  // real signature (vector3d_project_onto_unit_axis.c): void vector3d_project_onto_unit_axis(real_vector3d *parallel_out, real_vector3d *axis, real_vector3d *v, real_vector3d *perp_out); Ghidra recovered 0 of 4 args at this call site
+extern void vector3d_project_onto_unit_axis(real_vector3d *parallel_out, real_vector3d *axis, real_vector3d *v, real_vector3d *perp_out); // 0x4cda30, EAX parallel, ECX axis, EDX v, ESI perp //  // real signature (vector3d_project_onto_unit_axis.c): void vector3d_project_onto_unit_axis(real_vector3d *parallel_out, real_vector3d *axis, real_vector3d *v, real_vector3d *perp_out); Ghidra recovered 0 of 4 args at this call site
 extern float fabsf(float x);
 
 static float clamp01(float v)
@@ -47,6 +45,8 @@ static float clamp01(float v)
 // a table of physics-derived control values (speed, turn rate, vertical motion, etc., each
 // normalized to 0..1) and writes the results into the object's function-output array
 // (object+0x124), used to drive the unit's procedural animation blending.
+// FIXED (register inputs, objdump + difftest): the original never reads EAX; unit_index arrive(s) on the stack (1 stack argument(s)).
+// blam-cc: stack -> unit_index
 void vehicle_calculate_animation_controls(uint32_t unit_index)
 {
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
@@ -153,8 +153,12 @@ void vehicle_calculate_animation_controls(uint32_t unit_index)
             break;
         case 0x20: {
             real fraction;
-            vector3d_project_onto_unit_axis(); // UNSURE: no visible arguments
-            fraction = vector3d_length(&obj->velocity); // UNSURE argument
+            real_vector3d parallel, perpendicular;
+            // 0x575a63: the velocity (+0x68) split along the forward axis (+0x74); the length of the part
+            // perpendicular to it (ESI) is what gets scaled
+            vector3d_project_onto_unit_axis(&parallel, (real_vector3d *)((uint8_t *)obj + 0x74),
+                                            (real_vector3d *)((uint8_t *)obj + 0x68), &perpendicular);
+            fraction = vector3d_length(&perpendicular);
             value = fraction * 3.3333333f * fraction * 3.3333333f;
             goto store;
         }

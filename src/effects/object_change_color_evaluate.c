@@ -19,9 +19,7 @@
 // effect_marker_next 0x453180 and effect_resolve_marker_transform 0x453220; math module
 // global_forward3d_pointer (0x696718) and this module's global_down3d_pointer (0x69672c, see
 // effect_marker_environment_probe.c).
-// register convention: float parameter per Ghidra's own (mistaken) signature -- the true
 // register is effect* in EAX (in_EAX read through the whole body via casts of `param_1`).
-//   // blam-cc: EAX -> self
 // RESOLVED by the phase-4 integration pass: matrix4x3_transform_point(iVar9) is NOT decompiler
 // noise. It is the only writer of the third vector of the placement block (Ghidra's
 // local_c/local_8/local_4), which the sentinel branch fills from the marker transform's own
@@ -80,6 +78,8 @@ extern void effect_event_apply(effect *self, EffectPart *part, effect_location_m
 // object-origin sentinel, or rotated through the attached node/first-person-weapon transform
 // otherwise, or a hard-coded down/forward pair when the part is flagged
 // face_down_regardless_of_location_decals), then dispatching through effect_event_apply.
+// FIXED (register inputs, objdump + difftest): the original never reads EAX; self arrive(s) on the stack (1 stack argument(s)).
+// blam-cc: stack -> self
 void object_change_color_evaluate(effect *self)
 {
     Effect *tag = (Effect *)tag_instances[(uint16_t)self->definition_index].data;

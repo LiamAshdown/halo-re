@@ -6,10 +6,6 @@
 //   Standard three-plane intersection: p = (d1*(n2 x n3) + d2*(n3 x n1) + d3*(n2 x n1)) /
 //   det(n1,n2,n3), det = n1 . (n2 x n3) (vector3d_scalar_triple_product @0x44d8e0, outside this
 //   module); degenerate when |det| < 0.0001.
-// register convention: first plane pointer as the recognized parameter (param_1 -> EAX per the
-//   project convention), second plane pointer in EBX (unaff_EBX), third plane pointer in EDI
-//   (unaff_EDI), output point pointer in ESI (unaff_ESI), no stack arguments.
-//   // blam-cc: EAX -> p1, EBX -> p2, EDI -> p3, ESI -> out
 //
 // UNSURE: `vector3d_scalar_triple_product` shows only one visible argument (param_1); the other
 // two (p2's and p3's normals) are inferred from being the only other vectors this function has,
@@ -28,6 +24,8 @@
 extern double fabs(double x); // ABS is a single x87 FABS instruction
 extern real vector3d_scalar_triple_product(const real_vector3d *a, const real_vector3d *b, const real_vector3d *c); // 0x44d8e0, outside this module
 
+// FIXED (register inputs, objdump + difftest): the original never reads EAX; p1 arrive(s) on the stack (1 stack argument(s)).
+// blam-cc: EBX -> p2, EDI -> p3, ESI -> out, stack -> p1
 uint8_t plane3d_intersect_three(real_plane3d *p1, real_plane3d *p2, real_plane3d *p3, real_point3d *out)
 {
     real det;

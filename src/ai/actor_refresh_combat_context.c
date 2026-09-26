@@ -19,9 +19,6 @@
 //   vector3d_cross_product (0x4052c0), object_get_position (0x4f6900),
 //   object_get_node_local_transform (0x4f6080), and scenario_location_get_water_and_weather/unit_get_forward_vector_or_marker_normal, neither
 //   established elsewhere in this repo.
-// register convention: EAX -> actor_index (Ghidra's own "param_1", used throughout as a
-//   genuine parameter).
-//   // blam-cc: EAX -> actor_index
 // UNSURE: essentially every raw offset comment in this file marks a field this rewrite did
 // not independently re-derive; see individual comments below. Preserved exactly as decompiled.
 // reconciled: R04 0x006f1d20 uint8_t use_absolute_team_check -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
@@ -64,7 +61,6 @@ extern void * actor_get_actor_definition(datum_index actor_index); // 0x40fa70, 
 extern void actor_reset_squad_link_for_type_change(datum_index actor_index, datum_index encounter_index); // 0x4290f0
 extern void actor_fill_unit_position_context(datum_index unit_index, void *out_context); // 0x4296c0
 
-// blam-cc: EAX -> actor_index
 // Full per-tick recomputation of an actor's (or swarm's) combat context. For a swarm, this
 // averages every component unit's position/marker into the swarm's own aggregate fields and
 // then re-derives the position context for the swarm's lead unit. For a solo actor, this is
@@ -75,6 +71,8 @@ extern void actor_fill_unit_position_context(datum_index unit_index, void *out_c
 // the same location cluster, a pending-danger object scan, an aim-origin default from the
 // unit's own tag data, and finally the facing/aim/eye-position vectors used everywhere else
 // in this module.
+// FIXED (register inputs, objdump + difftest): the original never reads EAX; actor_index arrive(s) on the stack (1 stack argument(s)).
+// blam-cc: stack -> actor_index
 void actor_refresh_combat_context(datum_index actor_index)
 {
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
