@@ -9,7 +9,7 @@
 #include "memory.h"
 #include "hs.h"
 
-extern data_array *game_state_new(char *name, int32_t maximum_count); // 0x005380d0
+extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
 extern int32_t sprintf(char *buffer, const char *format, ...); // 0x00623693 _sprintf
 
 extern data_array *object_list_header_data;    // 0x0087a464
@@ -21,9 +21,9 @@ void object_lists_initialize(void)
 {
     char name[256];
 
-    object_list_header_data = game_state_new("object list header", k_hs_object_list_header_count);
+    object_list_header_data = game_state_new("object list header", k_hs_object_list_header_count, 0xc /* EBX at the original call */);
     sprintf(name, "%s reference", "list object");
-    object_list_reference_data = game_state_new(name, k_hs_object_list_reference_count);
+    object_list_reference_data = game_state_new(name, k_hs_object_list_reference_count, 0xc /* EBX at the original call */);
 }
 
 #if 0

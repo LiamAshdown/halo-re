@@ -10,7 +10,9 @@
 //   (0x800 for type 4, 0x2000 for 6/15, 2 for 7, 0x4000 for 8, 0 otherwise), matching the type
 //   header's own note for this exact function.
 // register convention: none -- no parameters.
-// UNSURE: rasterizer_vertex_buffer_slot_allocate (the vertex buffer slot allocator) is called here with no visible
+// FIXED (first-boot track, objdump 0x51bb90..0x51bcc0): the allocator gets EBX vertex type, ESI the type's
+//   declaration FVF (+4 of the 0x006e1a90 entry), EDI vertex size (0x0065de00) * capacity; the result is the
+//   capacity switch's success flag, not a shift of the usage word. Historical note: rasterizer_vertex_buffer_slot_allocate (the vertex buffer slot allocator) is called here with no visible
 //   arguments; almost certainly (vertex_type, byte_length) but not confirmed at this call site.
 
 #include "tags.h"
@@ -23,57 +25,55 @@ extern void *rasterizer_device;                       // 0x0071d174
 extern void *rasterizer_dynamic_index_buffer;          // 0x006e09e8
 extern rasterizer_dynamic_vertex_cache rasterizer_dynamic_vertex_caches[k_rasterizer_vertex_type_count]; // 0x006d98e8
 
-extern int32_t rasterizer_vertex_buffer_slot_allocate(void); // 0x5305f0, UNSURE: arguments not resolved here
+extern int32_t rasterizer_vertex_buffer_slot_allocate(int32_t vertex_type, uint32_t fvf, uint32_t length); // 0x5305f0,
+    // blam-cc: EBX -> vertex_type, ESI -> fvf, EDI -> length
+extern int16_t rasterizer_vertex_sizes[k_rasterizer_vertex_type_count]; // 0x0065de00
+extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count]; // 0x006e1a90
 
 typedef int32_t (__stdcall *d3d_create_index_buffer_fn)(void *device, uint32_t length, uint32_t usage, uint32_t format,
                                                 uint32_t pool, void **out_buffer, uint32_t shared_handle);
 
-// Creates the shared decal dynamic index buffer and allocates a per vertex type geometry
-// sub-cache sized according to a fixed type table.
-uint32_t rasterizer_decal_index_buffer_initialize(void)
+// Creates the shared dynamic index buffer (0x30000 bytes of D3DFMT_INDEX16, write-only | dynamic, software processing
+// when enabled, D3DPOOL_SYSTEMMEM) and, while everything succeeds, one vertex buffer slot per vertex type that has a
+// dynamic cache: vertex size * capacity bytes of that type's FVF. Returns whether all of it succeeded.
+uint8_t rasterizer_decal_index_buffer_initialize(void)
 {
-    uint32_t usage = (-(uint32_t)(rasterizer_software_vertex_processing != 0) & 0x10) | 0x208;
+    uint32_t usage = (rasterizer_software_vertex_processing != 0 ? 0x10u : 0u) | 0x208;
     void **vtable = *(void ***)rasterizer_device;
-    int32_t hr = ((d3d_create_index_buffer_fn)vtable[0x6c / 4])(rasterizer_device, 0x30000, usage,
-                                                                   0x65, 2, &rasterizer_dynamic_index_buffer, 0);
-    uint8_t ok;
-    int32_t i;
+    uint8_t ok = 1;
+    int32_t type;
 
-    if (hr < 0) {
-        usage = 0;
-    }
-    ok = (hr >= 0);
-    if (rasterizer_dynamic_index_buffer == (void *)0) {
-        usage = 0;
+    if (((d3d_create_index_buffer_fn)vtable[0x6c / 4])(rasterizer_device, 0x30000, usage, 0x65 /* D3DFMT_INDEX16 */,
+                                                       2 /* D3DPOOL_SYSTEMMEM */, &rasterizer_dynamic_index_buffer,
+                                                       0) < 0) {
         ok = 0;
-    } else if (!ok) {
+    }
+    if (rasterizer_dynamic_index_buffer == (void *)0 || !ok) {
+        ok = 0;
         rasterizer_dynamic_index_buffer = (void *)0;
     }
 
-    for (i = 0; i < k_rasterizer_vertex_type_count && ok; i++) {
+    for (type = 0; ok && (int16_t)type < k_rasterizer_vertex_type_count; type++) {
+        rasterizer_dynamic_vertex_cache *cache = &rasterizer_dynamic_vertex_caches[(int16_t)type];
         int32_t capacity;
-        switch (i) {
+
+        switch (type) {   // 0x51bc16: byte table 0x51bcc0 over types 4..15, jump table 0x51bcac
         case 4: capacity = 0x800; break;
-        case 6: case 0xf: capacity = 0x2000; break;
+        case 6: case 15: capacity = 0x2000; break;
         case 7: capacity = 2; break;
         case 8: capacity = 0x4000; break;
         default:
-            capacity = 0;
-            rasterizer_dynamic_vertex_caches[i].buffer_handle = 0;
-            rasterizer_dynamic_vertex_caches[i].capacity = capacity;
+            cache->capacity = 0;
+            cache->buffer_handle = 0;
             continue;
         }
-        {
-            int32_t handle = rasterizer_vertex_buffer_slot_allocate(); // UNSURE: arguments
-            rasterizer_dynamic_vertex_caches[i].buffer_handle = handle;
-            if (handle == 0) {
-                usage = 0;
-            }
-            ok = (uint8_t)(usage >> 0x18);
+        cache->buffer_handle = rasterizer_vertex_buffer_slot_allocate(type, rasterizer_vertex_declarations[type].fvf,
+                                                                      rasterizer_vertex_sizes[type] * capacity);
+        if (cache->buffer_handle == 0) {
+            ok = 0;
         }
-        rasterizer_dynamic_vertex_caches[i].capacity = capacity;
+        cache->capacity = capacity;
     }
-
     return ok;
 }
 

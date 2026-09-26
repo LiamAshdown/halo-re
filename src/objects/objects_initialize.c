@@ -19,6 +19,7 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "structures.h"
 
 extern data_array *object_data; // 0x008603b0
 extern memory_pool *object_memory_pool; // 0x006b8cb4
@@ -32,10 +33,12 @@ extern uint32_t game_state_crc;         // 0x006e2dd4, passed to crc32_update by
 extern void widgets_initialize(void); // 0x4ff9d0
 extern void object_type_definition_chain_build(void); // 0x4f3db0, this batch
 extern void lights_initialize(void); // 0x4f0a20
-extern data_array *game_state_new(char *name, int32_t maximum_count);
+extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
 extern memory_pool *game_state_new_pool(char *name);
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
-extern void cluster_partition_new(void);
+extern void cluster_partition_new(cluster_reference_group *out, char *name); // 0x551e30, blam-cc: ESI -> out, EDI -> name
+extern cluster_reference_group collideable_cluster_group; // 0x008603d0
+extern cluster_reference_group noncollideable_cluster_group; // 0x008603c0
 
 void objects_initialize(void)
 {
@@ -46,7 +49,7 @@ void objects_initialize(void)
     widgets_initialize();
     object_type_definition_chain_build();
     lights_initialize();
-    object_data = game_state_new("object", k_maximum_objects);
+    object_data = game_state_new("object", k_maximum_objects, 0xc /* EBX at the original call */);
     object_memory_pool = game_state_new_pool("objects");
 
     globals_region = game_state_base + game_state_cursor;
@@ -61,8 +64,9 @@ void objects_initialize(void)
     crc32_update(&game_state_crc, (uint8_t *)&size, 4);
     object_name_list = (datum_index *)name_list_region;
 
-    cluster_partition_new();
-    cluster_partition_new();
+    // 0x4f4b81..0x4f4b9a: EDI the category name, ESI the group
+    cluster_partition_new(&collideable_cluster_group, "collideable object");
+    cluster_partition_new(&noncollideable_cluster_group, "noncollideable object");
 }
 
 #if 0

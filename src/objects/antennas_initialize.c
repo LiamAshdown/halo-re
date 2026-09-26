@@ -13,11 +13,11 @@
 
 extern data_array *antenna_data; // 0x008603ac
 
-extern data_array *game_state_new(char *name, int32_t maximum_count); // memory module, 0x5380d0
+extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
 
 void antennas_initialize(void)
 {
-    antenna_data = game_state_new("antenna", k_maximum_antennas);
+    antenna_data = game_state_new("antenna", k_maximum_antennas, 0x2bc /* EBX at the original call */);
 }
 
 #if 0

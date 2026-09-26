@@ -14,6 +14,7 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "structures.h"
 
 extern data_array *light_data;  // 0x00860b14
 extern uint8_t *lights_enabled; // 0x0071cfb8
@@ -22,13 +23,14 @@ extern uint8_t *game_state_base;  // 0x006e2dc8, UNSURE: checksum region base, m
 extern int32_t game_state_cursor;  // 0x006e2dcc, UNSURE: checksum region cursor, memory/cache module
 extern uint32_t game_state_crc;  // 0x006e2dd4, UNSURE: running crc32 accumulator, memory/cache module
 
-extern data_array *game_state_new(char *name, int32_t maximum_count); // memory module, 0x5380d0
+extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // memory module, 0x4d02d0
-extern void cluster_partition_new(void); // UNSURE: zero visible args; out of range, 0x551e30
+extern void cluster_partition_new(cluster_reference_group *out, char *name); // 0x551e30, blam-cc: ESI -> out, EDI -> name
+extern cluster_reference_group light_cluster_group; // 0x00860b20 (light_cluster_first, then the two pools)
 
 void lights_initialize(void)
 {
-    data_array *new_light_data = game_state_new("lights", k_maximum_lights);
+    data_array *new_light_data = game_state_new("lights", k_maximum_lights, 0x7c /* EBX at the original call */);
     uint8_t *checksum_slot = game_state_base + game_state_cursor;
     uint32_t size_marker = 4;
 
@@ -39,7 +41,7 @@ void lights_initialize(void)
     *checksum_slot = 1;
 
     if (new_light_data != 0) {
-        cluster_partition_new(); // UNSURE: result not visibly stored anywhere in this decompile
+        cluster_partition_new(&light_cluster_group, "light"); // 0x4f0a7f: EDI "light" 0x0066e6bc, ESI 0x00860b20
     }
 }
 

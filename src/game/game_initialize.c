@@ -65,8 +65,7 @@ extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d0
 extern data_array *data_new(int16_t element_size, char *name, int16_t maximum_count); // 0x4d0370,
     // memory module; blam-cc: element size in EBX, then the stack pair (name, maximum_count)
 extern void objects_initialize(void);                           // 0x4f4ad0
-extern void *game_state_new(int16_t element_size, char *name,
-    int16_t maximum_count); // 0x5380d0; blam-cc: EBX -> element_size, stack -> name,
+extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
     // maximum_count. CORRECTED by review: the first pass dropped the EBX element size
     // (Ghidra never shows it), which is the same 3-argument form players_initialize.c
     // uses and which types/game.h's own header note derives. The sizes below come from
@@ -120,7 +119,7 @@ void game_initialize(void)
     crc32_update(&game_state_crc, (uint8_t *)&size, 4);
     *unknown_0087bc0c = 0;
 
-    object_render_state_cache = (data_array *)game_state_new(0x100, "cached object render states", 0x100);
+    object_render_state_cache = (data_array *)game_state_new("cached object render states", 0x100, 0x100);
     objects_initialize();
     detail_objects_globals_allocate();
 
@@ -138,12 +137,12 @@ void game_initialize(void)
     players_initialize();
     contrails_initialize();
 
-    particle_pool_ptr = (data_array *)game_state_new(0x70, "particle", 0x400);
-    effect_object_pool_ptr = (data_array *)game_state_new(0xfc, "effect", 0x100);
-    effect_location_pool_ptr = (data_array *)game_state_new(0x3c, "effect location", 0x200);
+    particle_pool_ptr = (data_array *)game_state_new("particle", 0x400, 0x70);
+    effect_object_pool_ptr = (data_array *)game_state_new("effect", 0x100, 0xfc);
+    effect_location_pool_ptr = (data_array *)game_state_new("effect location", 0x200, 0x3c);
     weather_particle_pool_ptr = data_new(0x54, "weather particles", 0x200); // objdump 0x45ab96: EBX = 0x54
-    particle_system_pool_ptr = game_state_new(0x158, "particle systems", 0x40);
-    particle_system_particle_pool_ptr = (data_array *)game_state_new(0x80, "particle system particles", 0x200);
+    particle_system_pool_ptr = game_state_new("particle systems", 0x40, 0x158);
+    particle_system_particle_pool_ptr = (data_array *)game_state_new("particle system particles", 0x200, 0x80);
 
     size = 0x264;
     sound_something_00746140 = (void *)(game_state_cursor + game_state_base);
@@ -162,7 +161,7 @@ void game_initialize(void)
     hs_runtime_initialize();
     hs_scripts_reload();
 
-    recorded_animations_pool_ptr = game_state_new(0x64, "recorded animations", 0x40);
+    recorded_animations_pool_ptr = game_state_new("recorded animations", 0x40, 0x64);
 
     size = 0x1c;
     saved_games_something_006f187c = (uint32_t *)(game_state_cursor + game_state_base);

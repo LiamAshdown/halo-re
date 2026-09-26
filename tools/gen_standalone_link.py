@@ -52,6 +52,11 @@ def write_tables():
     open(os.path.join(OUT, "standalone_tables.c"), "w").write("\n".join(lines) + "\n")
 
 
+# Functions the standalone build supplies itself instead of the library the name suggests (standalone/*.c)
+STANDALONE_REPLACEMENTS = {
+    "D3DXCreateEffect": "_standalone_d3dx_create_effect",   # wraps the June 2010 effect in the 2003 vtable layout
+}
+
 # Game library functions whose Ghidra name is not a libcmt symbol, mapped to the libcmt function that does the same
 # thing. Each entry was checked against the original bytes (objdump) before it went in.
 LIBCMT_ALIASES = {
@@ -183,7 +188,9 @@ def main():
     write_tables()
     extra = [compile_c(os.path.join(SA, "loader.c"), os.path.join(OUT, "loader.obj"), [SA]),
              compile_c(os.path.join(OUT, "standalone_tables.c"), os.path.join(OUT, "standalone_tables.obj"), [SA]),
-             compile_c(os.path.join(ROOT, "harness", "x87_shims.c"), os.path.join(OUT, "x87_shims.obj"))]
+             compile_c(os.path.join(ROOT, "harness", "x87_shims.c"), os.path.join(OUT, "x87_shims.obj")),
+             compile_c(os.path.join(SA, "d3dx_compat.c"), os.path.join(OUT, "d3dx_compat.obj"),
+                       [SA, os.path.join(os.path.dirname(DXSDK_LIB), "..", "Include")])]
     ext, rows = code_pointer_asm()
     pointer_asm = [".386", ".model flat", "option casemap:none"] + ext + [
         ".const", "PUBLIC _standalone_code_pointers", "PUBLIC _standalone_code_pointer_count",
@@ -213,6 +220,11 @@ def main():
         if not dec:
             left.append((s, "not a C symbol")); continue
         n, argbytes = dec.group(1), dec.group(2)
+        if n in STANDALONE_REPLACEMENTS and argbytes is None:
+            externs.add(STANDALONE_REPLACEMENTS[n])
+            code += ["PUBLIC %s" % s, "%s:" % s, "    jmp %s" % STANDALONE_REPLACEMENTS[n]]
+            report["standalone replacement"] += 1
+            continue
         if n.startswith("code_address_") and n[len("code_address_"):] in all_defs:
             # C that stores an original function's address for someone else to call (a window procedure, an APC):
             # the hooked build keeps the original address (an absolute symbol from the declaration's comment); here
@@ -297,6 +309,9 @@ def main():
             continue
         if k == "data" and a is not None:
             data_eq.append("PUBLIC %s\n%s EQU 0%Xh" % (s, s, a)); report["global (absolute)"] += 1; continue
+        if a is None and kind.get(n) == "data":
+            left.append((s, "data declared without an address"))   # never a trap: code would read or write it
+            continue
         # an engine function with no C rewrite: trap
         label = "trap_str_%d" % len(strings)
         strings.append('%s db "%s", 0' % (label, n))

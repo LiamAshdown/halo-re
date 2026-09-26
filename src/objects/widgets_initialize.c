@@ -15,13 +15,13 @@
 extern data_array *widget_data; // 0x00860398
 extern widget_type_definition widget_type_definitions[k_maximum_widget_types]; // 0x0069c010
 
-extern data_array *game_state_new(char *name, int32_t maximum_count); // memory module, 0x5380d0
+extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
 
 void widgets_initialize(void)
 {
     int32_t i;
 
-    widget_data = game_state_new("widget", k_maximum_widgets);
+    widget_data = game_state_new("widget", k_maximum_widgets, 0xc /* EBX at the original call */);
     for (i = 0; i < k_maximum_widget_types; i++) {
         if (widget_type_definitions[i].initialize != 0) {
             ((void (*)(void))widget_type_definitions[i].initialize)();

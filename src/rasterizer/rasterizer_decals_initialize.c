@@ -32,11 +32,12 @@ extern void crc32_update(uint32_t *crc, const void *data, uint32_t length); // 0
 typedef int32_t (__stdcall *d3d_create_vertex_buffer_fn)(void *device, uint32_t length, uint32_t usage, uint32_t fvf,
                                                  uint32_t pool, void **out_buffer, void *shared_handle);
 
-extern void LAB_0051a660(void); // decal vertex cache load callback, UNSURE signature
-extern void LAB_0051a670(void); // decal vertex cache verify callback, UNSURE signature
+extern void decal_vertex_cache_release(datum_index handle); // 0x51a660, the cache's release procedure
+extern uint8_t decal_vertex_cache_in_use(datum_index handle); // 0x51a670, the cache's in-use procedure
 
 // blam-cc: EBX -> name for cache_new
-extern void *cache_new(uint8_t *block, int32_t a, int32_t b, int32_t c, void *load_fn, void *verify_fn, const char *name); // 0x4d1750, UNSURE signature
+extern void cache_new(char *name, void *self, int32_t block_count, int32_t block_shift, int16_t maximum_count,
+    void *release_procedure, void *in_use_procedure); // 0x4d1750, blam-cc: EBX -> name, stack -> the rest
 
 void __cdecl rasterizer_decals_initialize(void)
 {
@@ -55,7 +56,9 @@ void __cdecl rasterizer_decals_initialize(void)
     block = game_state_base + game_state_cursor;
     game_state_cursor = game_state_cursor + 0xe07c;
     crc32_update(&game_state_crc, &region_size, 4);
-    cache_new(block, 0xa00, 6, 0x800, (void *)LAB_0051a660, (void *)LAB_0051a670, "decal vertex cache");
+    // 0x51a73a..0x51a756: EBX "decal vertex cache", stack (block, 0xa00, 6, 0x800, release 0x51a660, in use 0x51a670)
+    cache_new("decal vertex cache", block, 0xa00, 6, 0x800, (void *)decal_vertex_cache_release,
+              (void *)decal_vertex_cache_in_use);
     rasterizer_decal_vertex_cache_handle = block;
 }
 

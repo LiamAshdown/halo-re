@@ -23,7 +23,8 @@ extern uint8_t *game_state_base;   // 0x006e2dc8
 extern int32_t game_state_cursor;  // 0x006e2dcc
 extern uint32_t game_state_crc;    // 0x006e2dd4
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d02d0, foreign (memory)
-extern struct { int16_t threshold; int16_t highest; uint8_t claimed; } *ai_update_stagger; // 0x006ef910
+typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
+extern ai_update_stagger_state *ai_update_stagger; // 0x006ef910
 
 // object_type_definition "unit" row, +0x14 column. Carves an 8-byte block for ai_update_stagger
 // out of the game-state arena and folds its size into the running allocation CRC.

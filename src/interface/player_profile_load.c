@@ -41,7 +41,7 @@ extern char last_profile_name[];                    // 0x00718e80 (per player_pr
 
 extern void player_profile_refresh_settings_cache(int16_t player_index); // 0x496060, BX
 extern void control_profile_reestablish_device_slot_mappings(uint8_t *profile_record);         // 0x53b620; blam-cc: EAX -> profile_record
-extern int32_t player_profile_apply_video_options(uint8_t *settings); // 0x495580
+extern uint8_t player_profile_apply_video_options(uint8_t *settings); // 0x495580
 extern void player_profile_apply_audio_options(uint8_t *settings);     // 0x4957d0
 extern void network_channels_close(void);  // 0x441480
 extern void network_channels_open(void);   // 0x441300

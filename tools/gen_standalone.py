@@ -154,7 +154,12 @@ def main():
             f = funcs.get(v)
             r = rewritten.get(v)
             if not f and not r:
-                continue
+                # a function entry Ghidra never created (reachable only through this table): 16-byte aligned and
+                # preceded by padding (int3 / nop) or a ret. It becomes a named trap until it has C.
+                o = off(v)
+                if v % 16 or o is None or exe[o - 1] not in (0xcc, 0x90, 0xc3):
+                    continue
+                f = {"name": "unlisted_%06x" % v}
             m = mods.get("%x" % v, {})
             module = m.get("module", "?") if isinstance(m, dict) else m
             if f and (f.get("lib") or f.get("fid")):

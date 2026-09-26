@@ -34,7 +34,7 @@ extern d3d_present_parameters rasterizer_present_parameters; // 0x007c04a0
 extern uint8_t rasterizer_device_lost;     // 0x007c10b0
 extern uint32_t __stdcall BinkOpenDirectSound(uint32_t param); // import 0x6a0050 (its address is handed to BinkSetSoundSystem)
 
-extern uint32_t rasterizer_device_reset(d3d_present_parameters *present_parameters); // 0x515d90, foreign (rasterizer); stack arg
+extern uint8_t rasterizer_device_reset(d3d_present_parameters *present_parameters); // 0x515d90, foreign (rasterizer); stack arg
 extern void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap); // 0x518180, foreign (rasterizer)
     // blam-cc: EAX -> tile, stack -> bitmap
 

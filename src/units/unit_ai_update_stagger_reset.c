@@ -15,7 +15,8 @@
 #include "math.h"
 #include "units.h"
 
-extern struct { int16_t threshold; int16_t highest; uint8_t claimed; } *ai_update_stagger; // 0x006ef910
+typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
+extern ai_update_stagger_state *ai_update_stagger; // 0x006ef910
 
 // object_type_definition "unit" row, +0x1c column. Zeroes ai_update_stagger's threshold and
 // highest fields (a single dword store in the original); claimed is left as-is.

@@ -28,7 +28,8 @@
 #include "game.h"
 
 extern uint8_t DAT_0087ab18;                 // 0x0087ab18, UNSURE: "simulation in progress" reentrancy flag
-extern struct { int16_t threshold; int16_t highest; uint8_t claimed; } *ai_update_stagger; // 0x006ef910
+typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
+extern ai_update_stagger_state *ai_update_stagger; // 0x006ef910
 extern int16_t network_game_mode;            // 0x00719720
 extern uint8_t *cache_file_slot_table;        // 0x006b0b80, TYPES-GAP (byte+2 = slow-motion flag)
 extern int32_t hs_thread_recursion_depth;    // 0x00719ccc, UNSURE name (incremented/decremented around FUN_004923d0)

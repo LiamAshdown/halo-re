@@ -19,6 +19,12 @@
 //   uninitialized, and dereferenced. Every `(**(code**)(*ptr+N))(...)` COM call is a vtable slot
 //   whose exact D3D method name is not asserted, only its slot and argument count as shown.
 
+// REWRITTEN (first-boot track, objdump 0x515d90..0x515fb2): the present parameters are the stack argument (Ghidra's
+//   "uninitialized" puStack_14 is that parameter; there is no EBX input). Also fixed: SetTexture(stage, NULL),
+//   SetVertexShader(NULL) and SetPixelShader(NULL) take their NULL argument (the old calls left the __stdcall stack
+//   unbalanced); the viewport is the full D3DVIEWPORT9 {0, 0, width, height, 0.0, 1.0}; the splash is redrawn with
+//   mode 1; the result is a byte.
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -49,55 +55,57 @@ extern int32_t rasterizer_lens_flare_occlusion_queries_create(void); // 0x536f70
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
 extern void Sleep(uint32_t ms); // Win32
 
-typedef void (__stdcall *d3d_call0_fn)(void *device);
-typedef void (__stdcall *d3d_call1_fn)(void *device, uint32_t a);
-typedef int32_t (__stdcall *d3d_reset_fn)(void *device, void *present_params);
-typedef int32_t (__stdcall *d3d_call2_fn)(void *device, void *a);
+typedef int32_t (__stdcall *d3d_set_software_vertex_processing_fn)(void *device, int32_t software); // +0x134
+typedef int32_t (__stdcall *d3d_set_texture_fn)(void *device, uint32_t stage, void *texture);          // +0x104
+typedef int32_t (__stdcall *d3d_set_shader_fn)(void *device, void *shader);                          // +0x170, +0x1ac
+typedef int32_t (__stdcall *d3d_reset_fn)(void *device, void *present_params);                       // +0x40
+typedef int32_t (__stdcall *d3d_set_viewport_fn)(void *device, const void *viewport);                // +0xbc
 typedef int32_t (__stdcall *d3d_release_fn)(void *object);
 
-// blam-cc: unaff_EBX -> extra_params
-// Tears down every cached D3D resource, resets the device, and (on success) rebuilds default
-// render state and reinitializes effects/render targets/occlusion queries. Returns 1 on full
-// success, 0 on any failure (after still tearing down the loading screen / editbox UI so the
-// caller can retry).
-uint32_t rasterizer_device_reset(uint32_t *extra_params)
+typedef struct d3d_viewport9 {
+    uint32_t x, y, width, height;
+    float min_z, max_z;
+} d3d_viewport9;
+
+// stack -> present_parameters (the D3DPRESENT_PARAMETERS to reset with; rasterizer_build_present_parameters fills it)
+// Unbinds textures and shaders, releases every D3D resource the rasterizer created (vertex buffers, render
+// targets, vertex declarations, vertex and pixel shaders, occlusion queries), resets the device, then restores the
+// state: present parameters copied, a full viewport, default render states, the splash drawn, effects / render
+// targets / occlusion queries recreated and the lost vertex buffers rebuilt. Returns 1 when all of it worked. A
+// failed reset shows the fatal error dialog for D3DERR_DRIVERINTERNALERROR, otherwise sleeps 50 ms and returns 0.
+uint8_t rasterizer_device_reset(d3d_present_parameters *present_parameters)
 {
     void **vtable;
     uint32_t i;
     int32_t hr;
-    void *present_params_source; // UNSURE: uninitialized in the original, see file header
+    uint8_t ok;
+    d3d_viewport9 viewport;
 
     vtable = *(void ***)rasterizer_device;
-    ((d3d_call1_fn)vtable[0x4d])(rasterizer_device, rasterizer_software_vertex_processing); // +0x134
-
+    ((d3d_set_software_vertex_processing_fn)vtable[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
     for (i = 0; i < rasterizer_caps.max_simultaneous_textures; i++) {
         vtable = *(void ***)rasterizer_device;
-        ((d3d_call1_fn)vtable[0x104 / 4])(rasterizer_device, i); // +0x104, SetTexture(stage, NULL)?
+        ((d3d_set_texture_fn)vtable[0x104 / 4])(rasterizer_device, i, 0);
     }
-
     vtable = *(void ***)rasterizer_device;
-    ((d3d_call0_fn)vtable[0x170 / 4])(rasterizer_device); // +0x170
+    ((d3d_set_shader_fn)vtable[0x170 / 4])(rasterizer_device, 0); // SetVertexShader(NULL)
     vtable = *(void ***)rasterizer_device;
-    ((d3d_call0_fn)vtable[0x1ac / 4])(rasterizer_device); // +0x1ac
+    ((d3d_set_shader_fn)vtable[0x1ac / 4])(rasterizer_device, 0); // SetPixelShader(NULL)
 
     rasterizer_ksml_ui_shutdown();
 
     for (i = 0; i < (uint32_t)rasterizer_vertex_buffer_slot_high_water; i++) {
-        if (rasterizer_vertex_buffer_slots[i].hardware_buffer != 0) {
-            void *obj = (void *)rasterizer_vertex_buffer_slots[i].hardware_buffer;
-            void **obj_vtable = *(void ***)obj;
-            ((d3d_release_fn)obj_vtable[2])(obj);
+        void *buffer = (void *)rasterizer_vertex_buffer_slots[i].hardware_buffer;
+        if (buffer != 0) {
+            ((d3d_release_fn)(*(void ***)buffer)[2])(buffer);
             rasterizer_vertex_buffer_slots[i].hardware_buffer = 0;
         }
     }
-
     rasterizer_render_target_dispose();
-
     for (i = 0; i < k_rasterizer_vertex_type_count; i++) {
-        if (rasterizer_vertex_declarations[i].declaration != 0) {
-            void *obj = (void *)rasterizer_vertex_declarations[i].declaration;
-            void **obj_vtable = *(void ***)obj;
-            ((d3d_release_fn)obj_vtable[2])(obj);
+        void *declaration = (void *)rasterizer_vertex_declarations[i].declaration;
+        if (declaration != 0) {
+            ((d3d_release_fn)(*(void ***)declaration)[2])(declaration);
         }
     }
     for (i = 0; i < k_rasterizer_vertex_type_count; i++) {
@@ -105,69 +113,55 @@ uint32_t rasterizer_device_reset(uint32_t *extra_params)
         rasterizer_vertex_declarations[i].fvf = 0;
         rasterizer_vertex_declarations[i].usage = 0;
     }
-
-    for (i = 0; i < 64; i++) {
-        if (rasterizer_vertex_shaders[i].shader != 0) {
-            void *obj = (void *)rasterizer_vertex_shaders[i].shader;
-            void **obj_vtable = *(void ***)obj;
-            ((d3d_release_fn)obj_vtable[2])(obj);
+    for (i = 0; i < k_rasterizer_vertex_shaders; i++) {
+        void *shader = (void *)rasterizer_vertex_shaders[i].shader;
+        if (shader != 0) {
+            ((d3d_release_fn)(*(void ***)shader)[2])(shader);
             rasterizer_vertex_shaders[i].shader = 0;
         }
     }
-
     rasterizer_dx9_pixel_shaders_release();
-
-    for (i = 0; i < 0x400; i++) {
-        if (lens_flare_occlusion_queries[i] != 0) {
-            void *obj = lens_flare_occlusion_queries[i];
-            void **obj_vtable = *(void ***)obj;
-            ((d3d_release_fn)obj_vtable[2])(obj);
+    for (i = 0; i < k_lens_flare_occlusion_queries; i++) {
+        void *query = lens_flare_occlusion_queries[i];
+        if (query != 0) {
+            ((d3d_release_fn)(*(void ***)query)[2])(query);
             lens_flare_occlusion_queries[i] = 0;
         }
     }
 
     vtable = *(void ***)rasterizer_device;
-    hr = ((d3d_reset_fn)vtable[0x40 / 4])(rasterizer_device, present_params_source); // UNSURE source
-
-    if (hr >= 0 && rasterizer_device != (void *)0) {
-        uint32_t *dest = (uint32_t *)&rasterizer_present_parameters;
-        uint32_t *src = (uint32_t *)present_params_source;
-        void *swap_chain_params[4];
-
-        for (i = 0; i < 0xe; i++) {
-            dest[i] = src[i];
+    hr = ((d3d_reset_fn)vtable[0x40 / 4])(rasterizer_device, present_parameters);
+    if (hr < 0 || rasterizer_device == 0) {
+        if (hr == (int32_t)0x88760827) { // D3DERR_DRIVERINTERNALERROR
+            shell_display_fatal_error_dialog(0x81, 0x82, 1);
+            return 0;
         }
-
-        // Memory order matches the stack offsets Ghidra shows (piStack_38 lowest .. piStack_2c
-        // highest), i.e. {0, 0, *extra_params, extra_params[1]}, not declaration order.
-        swap_chain_params[0] = (void *)0;
-        swap_chain_params[1] = (void *)0;
-        swap_chain_params[2] = (void *)extra_params[0];
-        swap_chain_params[3] = (void *)extra_params[1];
-
-        vtable = *(void ***)rasterizer_device;
-        hr = ((d3d_call2_fn)vtable[0xbc / 4])(rasterizer_device, swap_chain_params); // +0xbc
-        rasterizer_pending_clear = 0;
-        rasterizer_set_default_render_states();
-        rasterizer_render_loading_screen(0);
-
-        if (hr >= 0 && rasterizer_dx9_effects_initialize() != 0 && rasterizer_render_target_initialize() != 0 &&
-            rasterizer_lens_flare_occlusion_queries_create() != 0) {
-            rasterizer_vertex_buffer_slot_recreate_lost();
-            rasterizer_editbox_log_dump();
-            return 1;
-        }
-        rasterizer_vertex_buffer_slot_recreate_lost();
-        rasterizer_editbox_log_dump();
+        Sleep(0x32);
         return 0;
     }
 
-    if (hr == -0x7789f7d9) { // D3DERR_DEVICELOST family literal
-        shell_display_fatal_error_dialog(0x81, 0x82, 1);
-        return 0;
+    rasterizer_present_parameters = *present_parameters; // 0xe dwords
+    viewport.x = 0;
+    viewport.y = 0;
+    viewport.width = ((uint32_t *)present_parameters)[0];  // BackBufferWidth
+    viewport.height = ((uint32_t *)present_parameters)[1]; // BackBufferHeight
+    viewport.min_z = 0.0f;
+    viewport.max_z = 1.0f;
+    vtable = *(void ***)rasterizer_device;
+    ok = ((d3d_set_viewport_fn)vtable[0xbc / 4])(rasterizer_device, &viewport) >= 0;
+    rasterizer_pending_clear = 0;
+    rasterizer_set_default_render_states();
+    rasterizer_render_loading_screen(1); // 0x515f29: mov eax,1
+
+    if (ok && rasterizer_dx9_effects_initialize() && rasterizer_render_target_initialize() &&
+        rasterizer_lens_flare_occlusion_queries_create()) {
+        ok = 1;
+    } else {
+        ok = 0;
     }
-    Sleep(0x32);
-    return 0;
+    rasterizer_vertex_buffer_slot_recreate_lost();
+    rasterizer_editbox_log_dump();
+    return ok;
 }
 
 #if 0

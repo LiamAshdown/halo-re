@@ -26,8 +26,12 @@
 
 extern uint8_t *light_volume_instances; // 0x006b8d70, UNSURE: raw table, no struct defined
 extern tag_instance *tag_instances;     // 0x0087bc14
-extern float camera_position_x, camera_position_y, camera_position_z; // 0x007c3114/0x007c3118/0x007c311c, UNSURE: foreign module
-extern float camera_forward_x, camera_forward_y, camera_forward_z;    // 0x007c3120/0x007c3124/0x007c3128, UNSURE: foreign module
+extern float camera_position_x; // 0x007c3114
+extern float camera_position_y; // 0x007c3118
+extern float camera_position_z; // 0x007c311c (UNSURE: foreign module)
+extern float camera_forward_x; // 0x007c3120
+extern float camera_forward_y; // 0x007c3124
+extern float camera_forward_z; // 0x007c3128 (UNSURE: foreign module)
 
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
                                                 object_marker *marker, uint32_t flags); // 0x4f6080

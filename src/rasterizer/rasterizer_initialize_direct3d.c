@@ -99,7 +99,7 @@ extern void rasterizer_set_default_render_states(void);           // 0x5160d0
 extern void rasterizer_render_loading_screen(int32_t mode);                      // 0x5157e0, EAX mode
 extern void __cdecl rasterizer_select_hardware_codepaths(void);                  // 0x516810
 extern int32_t rasterizer_dx9_effects_initialize(void);                          // 0x5300d0
-extern uint32_t rasterizer_decal_index_buffer_initialize(void);                  // 0x51bb90
+extern uint8_t rasterizer_decal_index_buffer_initialize(void);                   // 0x51bb90
 extern int32_t __cdecl transparent_geometry_pool_initialize(void);               // 0x5151c0
 extern int32_t __cdecl text_font_system_initialize(void);                        // 0x514820
 extern uint8_t rasterizer_detail_object_vertex_buffer_create(void);            // 0x51b370

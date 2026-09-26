@@ -27,7 +27,7 @@ extern uint8_t *game_state_base;   // 0x006e2dc8
 extern int32_t game_state_cursor;  // 0x006e2dcc
 extern uint32_t game_state_crc;    // 0x006e2dd4
 
-extern void *game_state_new(int16_t element_size, char *name, int16_t maximum_count); // 0x5380d0
+extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
     // blam-cc: EBX -> element_size, stack -> (name, maximum_count)
 extern void crc32_update(uint32_t *crc, void *data, int32_t length); // 0x4d02d0
 
@@ -39,8 +39,7 @@ void encounters_initialize(void)
 {
     uint32_t reserved_size;
 
-    encounter_data = (data_array *)game_state_new(k_encounter_size, "encounter",
-        k_encounter_data_maximum_count);
+    encounter_data = (data_array *)game_state_new("encounter", k_encounter_data_maximum_count, k_encounter_size);
 
     encounter_squad_states = (encounter_squad_state *)(game_state_base + game_state_cursor);
     game_state_cursor = game_state_cursor + 0x8000;
@@ -52,8 +51,7 @@ void encounters_initialize(void)
     reserved_size = 0x1000;
     crc32_update(&game_state_crc, &reserved_size, 4);
 
-    ai_pursuit_data = (data_array *)game_state_new(k_ai_pursuit_size, "ai pursuit",
-        k_ai_pursuit_data_maximum_count);
+    ai_pursuit_data = (data_array *)game_state_new("ai pursuit", k_ai_pursuit_data_maximum_count, k_ai_pursuit_size);
 }
 
 #if 0

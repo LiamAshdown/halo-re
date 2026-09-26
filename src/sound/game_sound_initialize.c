@@ -22,7 +22,7 @@ extern int32_t game_state_cursor;  // 0x006e2dcc
 extern uint32_t game_state_crc;    // 0x006e2dd4
 
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d02d0
-extern void *game_state_new(int16_t element_size, char *name, int16_t maximum_count); // 0x5380d0
+extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
     // blam-cc: EBX -> element_size, stack -> (name, maximum_count); see src/ai/actors_initialize.c
 
 // Allocates the object-looping-sounds datum array and registers the game_sound_globals block
@@ -32,8 +32,7 @@ void game_sound_initialize(void)
     int32_t size = sizeof(game_sound_globals);
     game_sound_globals *globals = (game_sound_globals *)(game_state_base + game_state_cursor);
 
-    game_looping_sound_data = (data_array *)game_state_new(sizeof(game_looping_sound),
-        "object looping sounds", k_maximum_game_looping_sounds);
+    game_looping_sound_data = (data_array *)game_state_new("object looping sounds", k_maximum_game_looping_sounds, sizeof(game_looping_sound));
 
     game_state_cursor = game_state_cursor + size;
     crc32_update(&game_state_crc, (uint8_t *)&size, 4);

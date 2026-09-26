@@ -40,6 +40,18 @@ static void log_line(const char *fmt, ...)
     fflush(g_log);
 }
 
+/* for the other standalone support files (d3dx_compat.c) */
+void __cdecl standalone_log(const char *format, ...)
+{
+    char text[1024];
+    va_list ap;
+    va_start(ap, format);
+    _vsnprintf(text, sizeof text - 1, format, ap);
+    va_end(ap);
+    text[sizeof text - 1] = 0;
+    log_line("%s", text);
+}
+
 /* every trap stub pushes its symbol name and calls this */
 void __cdecl standalone_missing_function(const char *name)
 {
@@ -48,7 +60,7 @@ void __cdecl standalone_missing_function(const char *name)
     _snprintf(text, sizeof text, "Called a function with no C rewrite yet:\n%s\n\nSee halo_standalone.log.", name);
     if (!GetEnvironmentVariableA("HALO_STANDALONE_NOBOX", NULL, 0))
         MessageBoxA(NULL, text, "Halo standalone", MB_OK | MB_ICONERROR);
-    ExitProcess(3);
+    TerminateProcess(GetCurrentProcess(), 3);   /* no DLL detach: some third-party DLLs crash there */
 }
 
 static void unresolved_import_trap(void)
@@ -188,6 +200,26 @@ static int map_image(void)
     return 1;
 }
 
+/* Data overrides: a relative path opened through CreateFileA that has a copy under <exe folder>\override\ opens
+   that copy instead. The standalone build uses it for shadersx.bin, converted by tools/convert_fx.py from the 2003
+   compiled-effect format (which only the D3DX statically linked into halo.exe could read) to fx_2_0 for d3dx9_43;
+   the Halo install itself is never modified. */
+typedef HANDLE (WINAPI *create_file_a_fn)(LPCSTR, DWORD, DWORD, LPSECURITY_ATTRIBUTES, DWORD, DWORD, HANDLE);
+static create_file_a_fn g_create_file_a;
+
+static HANDLE WINAPI standalone_create_file_a(LPCSTR name, DWORD access, DWORD share, LPSECURITY_ATTRIBUTES security,
+                                              DWORD disposition, DWORD flags, HANDLE template_file)
+{
+    char path[MAX_PATH];
+    if (name && name[0] && name[0] != '\\' && name[1] != ':' &&
+        _snprintf(path, sizeof path, "%s\\override\\%s", g_exe_dir, name) > 0 &&
+        GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES) {
+        log_line("override: %s -> %s", name, path);
+        name = path;
+    }
+    return g_create_file_a(name, access, share, security, disposition, flags, template_file);
+}
+
 static void fill_imports(void)
 {
     int i, missing = 0;
@@ -200,6 +232,10 @@ static void fill_imports(void)
             log_line("import not resolved: %s!%s", im->dll, im->name ? im->name : "(ordinal)");
             p = (FARPROC)unresolved_import_trap;
             missing++;
+        }
+        if (im->name && strcmp(im->name, "CreateFileA") == 0 && p != (FARPROC)unresolved_import_trap) {
+            g_create_file_a = (create_file_a_fn)p;
+            p = (FARPROC)standalone_create_file_a;
         }
         *(FARPROC *)im->slot = p;
         if (im->module_handle_slot && h) *(HMODULE *)im->module_handle_slot = h;

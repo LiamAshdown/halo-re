@@ -13,7 +13,7 @@
 #include "memory.h"
 #include "hs.h"
 
-extern data_array *game_state_new(char *name, int32_t maximum_count); // 0x005380d0
+extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
 extern void data_delete_all(data_array *array); // blam-cc: ESI; memory module, 0x4d0580
 extern datum_index datum_new_at_index_with_salt(datum_index requested_handle, data_array *array);
     // blam-cc: EAX -> requested_handle, EDX -> array; memory module, 0x4d03d0
@@ -28,8 +28,8 @@ void hs_runtime_initialize(void)
 {
     int32_t i;
 
-    hs_thread_data = game_state_new("hs thread", k_hs_thread_maximum_count);
-    hs_globals_data = game_state_new("hs globals", k_hs_global_maximum_count);
+    hs_thread_data = game_state_new("hs thread", k_hs_thread_maximum_count, 0x218 /* EBX at the original call */);
+    hs_globals_data = game_state_new("hs globals", k_hs_global_maximum_count, 0x8 /* EBX at the original call */);
     if (hs_thread_data != 0 && hs_globals_data != 0) {
         hs_globals_data->valid = 1;
         data_delete_all(hs_globals_data);

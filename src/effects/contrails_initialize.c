@@ -18,16 +18,15 @@
 extern data_array *contrail_data;       // 0x0087abec
 extern data_array *contrail_point_data; // 0x0087abe8
 
-extern void *game_state_new(int16_t element_size, char *name, int16_t maximum_count); // 0x5380d0
+extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
     // blam-cc: EBX -> element_size, stack -> (name, maximum_count)
 
 // Registers the contrail and contrail-point datum tables. If only one of the two allocations
 // succeeds, that handle is cleared too, so the module is left fully enabled or fully disabled.
 void contrails_initialize(void)
 {
-    contrail_data = (data_array *)game_state_new(sizeof(contrail), "contrail", k_maximum_contrails);
-    contrail_point_data = (data_array *)game_state_new(sizeof(contrail_point), "contrail point",
-        k_maximum_contrail_points);
+    contrail_data = (data_array *)game_state_new("contrail", k_maximum_contrails, sizeof(contrail));
+    contrail_point_data = (data_array *)game_state_new("contrail point", k_maximum_contrail_points, sizeof(contrail_point));
 
     if (contrail_data == 0) {
         if (contrail_point_data != 0) {

@@ -1,6 +1,6 @@
 // player_profile_apply_video_options  (Ghidra: FUN_00495580, unnamed)
 // address 0x495580, size 584 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.85
 // evidence: out/phase4/interface_functions.md "Applies a set of video/display options
 // (vsync-like mode, gamma, misc toggles) from the current profile."; src/cache/cache_file_unload.c
 // and src/cache/texture_cache_new.c's confirmed texture_cache (0x006ac540, cache::age at +0x30);
@@ -17,64 +17,73 @@
 // register that survives an untaken/taken call path; only the low byte (a success flag, always 1
 // on every path Ghidra shows: local_5c is never negative) is semantically real, so this is
 // rewritten to return a plain int32_t 1.
+// REWRITTEN (first-boot track, objdump 0x495580..0x4957c7): the old version called the display-mode check with
+//   no mode, dropped the desktop-size fallback, wrote 32-bit values over the 16-bit globals at 0x00689450 and
+//   0x0068944c (clobbering the present mode word next to them) and read the tick flag as a byte. Now:
+//   - the mode compared is built from the settings: width +0xa68, height +0xa6a, refresh +0xa6c (int16 each),
+//     vsync = +0xa6f != 0; when no device exists yet and it does not fit the desktop (unsigned compares against
+//     GetWindowRect(GetDesktopWindow())), 800x600 is used if the desktop is taller than 600, else 640x480
+//   - a differing mode (and no reset already pending) builds present parameters from it, resets the device, reads
+//     the display mode back (device vtable +0x20, GetDisplayMode(0, 0x007c11f0)) and resizes the window; the
+//     result is always 1 (the local only ever holds 0 or 1 and the return is `>= 0`)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
-#include "cache.h"
-#include "game.h"
-#include "networking.h"
+#include "rasterizer.h"
 #include "interface.h"
 
-extern int32_t profile_write_back_enabled; // 0x007196f4 (per player_profile_subsystem_initialize.c)
-extern int16_t rasterizer_present_mode;    // 0x0068944e, UNSURE: vsync/present mode cache
-extern int32_t unknown_00689450;           // 0x00689450, UNSURE: always forced to 2
-extern uint8_t unknown_007196d8;           // 0x007196d8, UNSURE
-extern uint8_t unknown_006894ba;           // 0x006894ba, UNSURE
-extern uint8_t rasterizer_device_valid; // 0x0071d16c, UNSURE
-extern void **rasterizer_device;           // 0x0071d174, UNSURE: device object, vtable slot +0x20
-extern uint8_t rasterizer_needs_reset;     // 0x0071d16d, UNSURE
-extern uint32_t present_parameters_flags;  // 0x007c11f0, UNSURE
-extern uint32_t video_triple_buffer_unsupported; // 0x00722b6c, UNSURE
-extern uint8_t unknown_006893f6;           // 0x006893f6, UNSURE
-extern uint32_t rasterizer_device_version; // 0x007c118c, UNSURE
-extern uint8_t unknown_006893f2;           // 0x006893f2, UNSURE
-extern int32_t unknown_0068944c;           // 0x0068944c, UNSURE: always forced to 2
-extern uint8_t unknown_006893ff;           // 0x006893ff, UNSURE: always forced to 1
-extern uint8_t unknown_00689404;           // 0x00689404, UNSURE: always forced to 1
-extern uint32_t rasterizer_capability_007c10e4; // 0x007c10e4, UNSURE
-extern uint8_t unknown_006893f5;           // 0x006893f5, UNSURE
-extern int32_t rasterizer_gamma; // 0x0071d1e0, UNSURE
-extern uint8_t unknown_0069c565;           // 0x0069c565, UNSURE
-extern uint8_t unknown_006893f7;           // 0x006893f7, UNSURE
-extern uint8_t unknown_006893fa;           // 0x006893fa, UNSURE
-extern uint8_t unknown_0069c566;           // 0x0069c566, UNSURE
-extern struct cache *texture_cache;        // 0x006ac540
+extern int32_t profile_write_back_enabled;   // 0x007196f4
+extern int16_t rasterizer_present_mode;      // 0x0068944e
+extern int16_t unknown_00689450;             // 0x00689450, always set to 2 here
+extern int32_t game_time_force_single_tick;  // 0x007196d8
+extern uint8_t unknown_006894ba;             // 0x006894ba
+extern uint8_t rasterizer_device_valid;      // 0x0071d16c
+extern void *rasterizer_device;              // 0x0071d174
+extern uint8_t rasterizer_needs_reset;       // 0x0071d16d
+extern uint8_t present_parameters_flags[];   // 0x007c11f0, the D3DDISPLAYMODE GetDisplayMode fills
+extern uint32_t video_triple_buffer_unsupported; // 0x00722b6c
+extern uint8_t unknown_006893f7;             // 0x006893f7
+extern uint8_t unknown_006893f6;             // 0x006893f6
+extern uint8_t unknown_006893fa;             // 0x006893fa
+extern uint32_t rasterizer_device_version;   // 0x007c118c
+extern uint8_t unknown_006893f2;             // 0x006893f2
+extern uint32_t rasterizer_capability_007c10e4; // 0x007c10e4
+extern int16_t light_count_enabled;          // 0x0068944c, always set to 2 here
+extern uint8_t unknown_006893ff;             // 0x006893ff
+extern uint8_t unknown_00689404;             // 0x00689404
+extern uint8_t decals_for_all_responses;     // 0x006893f5
+extern uint8_t particle_spawn_debug_mode;    // 0x0069c565
+extern uint8_t particle_systems_enabled;     // 0x0069c566
+extern int32_t rasterizer_gamma;             // 0x0071d1e0
+extern struct cache *texture_cache;          // 0x006ac540
 
 extern void *GetDesktopWindow(void);
 extern int32_t GetWindowRect(void *window, win32_rect *rect);
-extern uint8_t rasterizer_display_mode_differs(void);                              // 0x515d10, UNSURE
-extern void rasterizer_build_present_parameters(void *params);  // 0x515fc0, UNSURE
-extern void rasterizer_device_reset(void *params);               // 0x515d90, UNSURE
-extern void rasterizer_resize_game_window(void);                 // 0x515b20
-extern void chimera__gamma(void);                                // 0x5227a0
+extern uint8_t rasterizer_display_mode_differs(rasterizer_display_mode *requested); // 0x515d10, blam-cc: EDI -> requested
+extern void rasterizer_build_present_parameters(void *dest, rasterizer_display_mode *source); // 0x515fc0,
+    // blam-cc: EAX -> source, stack -> dest
+extern uint8_t rasterizer_device_reset(void *present_parameters); // 0x515d90, stack -> present_parameters
+extern void rasterizer_resize_game_window(int32_t height, int32_t width); // 0x515b20, blam-cc: EAX -> height, ECX -> width
+extern void chimera__gamma(void); // 0x5227a0
 extern void cache_flush(struct cache *self); // 0x4d17f0, blam-cc: ESI -> self
 
-// blam-cc: EAX -> settings
-// Applies the profile's video/display options: the present/vsync mode (settings+0xa74, a
-// tri-state that also detects whether the mode actually changed), a windowed/fullscreen-adjacent
-// flag (settings+0xa6f), and a handful of capability-gated toggles and the gamma byte
-// (settings+0xa70..0xa76) copied into the rasterizer's own globals. Resets the rasterizer device
-// first if one is pending reset, and bumps/flushes the texture cache when the present mode
-// changed.
-int32_t player_profile_apply_video_options(uint8_t *settings)
-{
-    win32_rect desktop_rect;
-    uint8_t present_parameters[56];
-    uint8_t mode_changed;
-    int16_t new_mode;
+typedef int32_t (__stdcall *d3d_get_display_mode_fn)(void *device, uint32_t swap_chain, void *mode);
 
-    mode_changed = 0;
+// blam-cc: EAX -> settings
+// Applies the profile's video options (settings is the profile's settings block): the present mode from +0xa74,
+// the display mode from +0xa68..+0xa6f (resetting the device when it differs), and the detail toggles and gamma
+// from +0xa70..+0xa76. Flushes the texture cache when the present mode changed.
+uint8_t player_profile_apply_video_options(uint8_t *settings)
+{
+    rasterizer_display_mode mode;
+    win32_rect desktop;
+    uint8_t present_parameters[0x38];
+    uint8_t mode_changed = 0;
+    int32_t reset = 0;
+    int16_t new_mode;
+    uint8_t value;
+
     if (profile_write_back_enabled != 0) {
         settings[0xa70] = 0;
         settings[0xa71] = 0;
@@ -82,57 +91,67 @@ int32_t player_profile_apply_video_options(uint8_t *settings)
         settings[0xa74] = 0;
         settings[0xa73] = 0;
     }
-
-    if (settings[0xa74] == 0) {
-        new_mode = 2;
-        mode_changed = (rasterizer_present_mode == new_mode);
-        rasterizer_present_mode = new_mode;
-        mode_changed = !mode_changed;
-    } else if (settings[0xa74] == 1) {
-        new_mode = 1;
-        mode_changed = (rasterizer_present_mode == new_mode);
-        rasterizer_present_mode = new_mode;
-        mode_changed = !mode_changed;
-    } else if (settings[0xa74] == 2) {
-        mode_changed = (rasterizer_present_mode == 0);
-        rasterizer_present_mode = 0;
-        mode_changed = !mode_changed;
+    switch (settings[0xa74]) {
+    case 0: new_mode = 2; break;
+    case 1: new_mode = 1; break;
+    case 2: new_mode = 0; break;
+    default: new_mode = -1; break;
     }
-
+    if (new_mode >= 0) {
+        mode_changed = rasterizer_present_mode != new_mode;
+        rasterizer_present_mode = new_mode;
+    }
     unknown_00689450 = 2;
-    unknown_006894ba = (unknown_007196d8 == 0) && (settings[0xa6f] == 2);
 
-    if (rasterizer_device_valid == 0 || rasterizer_device == (void **)0) {
-        GetWindowRect(GetDesktopWindow(), &desktop_rect);
+    mode.width = *(int16_t *)(settings + 0xa68);
+    mode.height = *(int16_t *)(settings + 0xa6a);
+    mode.refresh_rate = *(int16_t *)(settings + 0xa6c);
+    mode.vsync = settings[0xa6f] != 0;
+    unknown_006894ba = game_time_force_single_tick != 0 ? 0 : settings[0xa6f] == 2;
+
+    if (rasterizer_device_valid == 0 || rasterizer_device == 0) {
+        GetWindowRect(GetDesktopWindow(), &desktop);
+        if ((uint32_t)mode.height >= (uint32_t)desktop.bottom || (uint32_t)mode.width >= (uint32_t)desktop.right) {
+            if (desktop.bottom > 600) {
+                mode.width = 800;
+                mode.height = 600;
+            } else {
+                mode.width = 640;
+                mode.height = 480;
+            }
+        }
     }
+    if (rasterizer_needs_reset == 0 && rasterizer_display_mode_differs(&mode)) {
+        void **vtable;
 
-    if (rasterizer_needs_reset == 0 && rasterizer_display_mode_differs() != 0) {
-        rasterizer_build_present_parameters(present_parameters);
+        rasterizer_build_present_parameters(present_parameters, &mode);
         rasterizer_device_reset(present_parameters);
-        (*(void (**)(void **, int32_t, uint32_t *))((uint8_t *)*rasterizer_device + 0x20))(
-            rasterizer_device, 0, &present_parameters_flags);
-        rasterizer_resize_game_window();
+        vtable = *(void ***)rasterizer_device;
+        ((d3d_get_display_mode_fn)vtable[0x20 / 4])(rasterizer_device, 0, present_parameters_flags);
+        reset = 1;
+        rasterizer_resize_game_window(mode.height, mode.width);
         rasterizer_needs_reset = 0;
     }
 
-    unknown_006893f6 = (video_triple_buffer_unsupported == 0) ? settings[0xa70] : 0;
-    unknown_006893f2 = (rasterizer_device_version < 0xffff0101u) ? 0 : settings[0xa71];
-    unknown_0068944c = 2;
+    value = video_triple_buffer_unsupported != 0 ? 0 : settings[0xa70];
+    unknown_006893f7 = value;
+    unknown_006893f6 = value;
+    unknown_006893fa = value;
+    unknown_006893f2 = rasterizer_device_version < 0xffff0101u ? 0 : settings[0xa71];
+    light_count_enabled = 2;
     unknown_006893ff = 1;
     unknown_00689404 = 1;
-    unknown_006893f5 = ((rasterizer_capability_007c10e4 & 0x6000000u) == 0) ? 0 : settings[0xa72];
+    decals_for_all_responses = (rasterizer_capability_007c10e4 & 0x6000000u) != 0 ? settings[0xa72] : 0;
+    particle_spawn_debug_mode = settings[0xa73];
+    particle_systems_enabled = settings[0xa73];
     rasterizer_gamma = settings[0xa76];
-    unknown_0069c565 = settings[0xa73];
-    unknown_006893f7 = unknown_006893f6;
-    unknown_006893fa = unknown_006893f6;
-    unknown_0069c566 = unknown_0069c565;
     chimera__gamma();
 
     if (mode_changed) {
         texture_cache->age = texture_cache->age + 1;
         cache_flush(texture_cache);
     }
-    return 1;
+    return reset >= 0;
 }
 
 #if 0

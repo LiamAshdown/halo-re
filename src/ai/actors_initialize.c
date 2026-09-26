@@ -18,17 +18,16 @@ extern data_array *actor_data;           // 0x00880360
 extern data_array *swarm_data;           // 0x0088035c
 extern data_array *swarm_component_data; // 0x00880358
 
-extern void *game_state_new(int16_t element_size, char *name, int16_t maximum_count); // 0x5380d0
+extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
     // blam-cc: EBX -> element_size, stack -> (name, maximum_count)
 
 // Creates the actor, swarm, and swarm-component data arrays used by the rest of the AI actor
 // module.
 void actors_initialize(void)
 {
-    actor_data = (data_array *)game_state_new(k_actor_size, "actor", k_actor_data_maximum_count);
-    swarm_data = (data_array *)game_state_new(k_swarm_size, "swarm", k_swarm_data_maximum_count);
-    swarm_component_data = (data_array *)game_state_new(k_swarm_component_size, "swarm component",
-        k_swarm_component_data_maximum_count);
+    actor_data = (data_array *)game_state_new("actor", k_actor_data_maximum_count, k_actor_size);
+    swarm_data = (data_array *)game_state_new("swarm", k_swarm_data_maximum_count, k_swarm_size);
+    swarm_component_data = (data_array *)game_state_new("swarm component", k_swarm_component_data_maximum_count, k_swarm_component_size);
 }
 
 #if 0

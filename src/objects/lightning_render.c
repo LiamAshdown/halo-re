@@ -35,7 +35,9 @@ extern tag_instance *tag_instances;  // 0x0087bc14
 extern uint32_t widget_random_seed;  // 0x00719cd4
 extern real_vector3d *shared_constant_vector_696704; // 0x00696704, UNSURE: fallback axis
 extern real_vector3d *shared_constant_vector_686b04;  // 0x00686b04, UNSURE: default colour scale
-extern float camera_forward_x, camera_forward_y, camera_forward_z; // 0x007c3120/0x007c3124/0x007c3128
+extern float camera_forward_x; // 0x007c3120
+extern float camera_forward_y; // 0x007c3124
+extern float camera_forward_z; // 0x007c3128
 extern int16_t rasterizer_vertex_buffer_lock_state; // 0x0069c632, rasterizer.h; WORD stores (R77)
 
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,

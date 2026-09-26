@@ -101,7 +101,8 @@ set_bit:
         }
     }
 
-    rasterizer_gamma_brightness_to_exponent(0); // UNSURE: elided EAX argument, see 0x522890
+    // 0x522652: mov eax,0x6e0b18 -- the ramp just read or built; its red[128] (+0x100) sets the exponent
+    rasterizer_gamma_brightness_to_exponent((rasterizer_gamma_settings *)&rasterizer_desktop_gamma_ramp);
 
     gamma_flag = 1;
     RegCreateKeyExA(k_HKEY_CURRENT_USER, "Software\\Microsoft\\Microsoft Games\\Halo", 0, (LPSTR)0,

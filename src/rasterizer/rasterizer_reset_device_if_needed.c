@@ -23,7 +23,7 @@ extern d3d_present_parameters rasterizer_present_parameters; // 0x007c04a0
 extern void *rasterizer_device; // 0x0071d174
 extern uint8_t rasterizer_in_scene;                                 // 0x0071d16f set after BeginScene, cleared after EndScene
 
-extern uint32_t rasterizer_device_reset(uint32_t *extra_params); // 0x515d90 (this session)
+extern uint8_t rasterizer_device_reset(uint32_t *present_parameters); // 0x515d90, stack -> present_parameters
 
 typedef int32_t (__stdcall *d3d_call0_fn)(void *device);
 
