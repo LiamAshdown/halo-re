@@ -85,7 +85,7 @@ extern void chimera__hud_message(int16_t local_player_index, wchar_t *text); // 
     // blam-cc: EAX -> local_player_index, stack -> text. The EAX it consumes is the value
     // unit_get_local_player_weapon_index just returned (objdump 0x4618dc..0x4618e1: the two calls are
     // back to back with nothing in between, and the text was pushed before both).
-extern void console_print_error_va(const char *format, ...); // 0x4c67c0
+extern void console_print_error_va(uint8_t clear_first, const char *format, ...); // 0x4c67c0, AL clear_first
 extern void player_update_history_free_all(void *queue); // 0x4e6f20
 extern void object_set_position_and_orientation(datum_index object_index, real_vector3d *forward,
     real_vector3d *up, real_point3d *position); // 0x4f51c0
@@ -139,7 +139,7 @@ void game_engine_update_teleporter(uint32_t player_index)
         game_engine_find_valid_starting_locations(0, 0.0f, 0.0f, 7, entrance_usage_id, 1, &found_index);
 
         if (found_index == -1) {
-            console_print_error_va("failed to teleport %d", (int32_t)entrance_usage_id);
+            console_print_error_va(0, "failed to teleport %d", (int32_t)entrance_usage_id);
         } else {
             ScenarioNetgameFlags *exit_flag = &flags[found_index];
             real_vector3d forward;

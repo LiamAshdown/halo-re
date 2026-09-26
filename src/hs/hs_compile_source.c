@@ -18,7 +18,7 @@
 
 extern void hs_compile(int32_t source_length, char *source_text, char **error_message, int32_t *error_offset); // 0x00485770, this batch
 extern void data_delete_all(data_array *array); // 0x004d0580
-extern void console_print_error_va(const char *format, ...); // 0x004c67c0
+extern void console_print_error_va(uint8_t clear_first, const char *format, ...); // 0x4c67c0, AL clear_first
 extern void *GlobalFree(void *memory); // EXTERNAL kernel32
 
 extern Scenario *global_scenario;              // 0x00746f8c
@@ -76,7 +76,7 @@ char hs_compile_source(void)
             goto cleanup;
         }
     }
-    console_print_error_va("scripts successfully compiled.");
+    console_print_error_va(0, "scripts successfully compiled.");
 cleanup:
     if (hs_compile_release_source != 0) {
         if (hs_syntax_data_dirty != 0) {

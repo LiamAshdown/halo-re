@@ -103,7 +103,7 @@ extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
 extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data,
     int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, ECX server
     // 0x4e1a80, UNSURE: unexamined
-extern void console_print_error_va(const char *format, ...); // 0x4c67c0, same declaration as
+extern void console_print_error_va(uint8_t clear_first, const char *format, ...); // 0x4c67c0, AL clear_first
     // src/hs/hs_compile_source.c and src/hs/hs_sound_get_gain_reference.c
 extern char *strrchr(const char *str, int ch); // 0x623bc0 _strrchr
 extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 _sprintf
@@ -291,7 +291,7 @@ out_of_objects:
             tag_path = last_slash + 1;
         }
         sprintf(out_of_objects_message, "OUT OF OBJECTS: cannot create %s", tag_path);
-        console_print_error_va(out_of_objects_error_prefix, out_of_objects_message);
+        console_print_error_va(0, out_of_objects_error_prefix, out_of_objects_message);
         return new_index;
     }
 

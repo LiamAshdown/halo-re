@@ -23,7 +23,7 @@ extern uint8_t game_state_read_profile_header(char *name, int32_t size, void *bu
 extern uint8_t saved_game_verify_version_and_checksum(game_state_header *header, uint8_t report_error); // 0x538430
 extern void game_state_read_profile_file(char *name, int32_t size, void *buffer); // 0x5394e0
 extern void game_state_dispatch_load_callbacks(void); // 0x537f70
-extern void console_print_error_va(const char *format, ...); // 0x4c67c0
+extern void console_print_error_va(uint8_t clear_first, const char *format, ...); // 0x4c67c0, AL clear_first
 
 // blam-cc: name in EAX
 // Reads and validates the profile file "<core directory>\<name>" as a game state header; on a
@@ -38,11 +38,11 @@ void game_state_load_core(char *name)
         saved_game_verify_version_and_checksum(&header, 1) != 0) {
         game_state_revert_proc();
         game_state_read_profile_file(name, k_game_state_size, game_state_base);
-        console_print_error_va("loaded '%s'", name);
+        console_print_error_va(0, "loaded '%s'", name);
         game_state_dispatch_load_callbacks();
         return;
     }
-    console_print_error_va("couldn't open '%s'", name);
+    console_print_error_va(0, "couldn't open '%s'", name);
 }
 
 #if 0
