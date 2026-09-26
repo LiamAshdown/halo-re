@@ -11,7 +11,10 @@
 // forwarded to effect_set_placement/the marker context are Ghidra's own recognised stack
 // parameters.
 //   // blam-cc: EAX -> creator_object_index, ECX -> definition_index, EDX -> object_index,
-//   //   stack -> (node_index, unknown_a, ctx_c, ctx_10, ctx_8, a_scale, b_scale)
+//   //   stack -> (node_index, ctx_08, ctx_0c, ctx_10, ctx_14, a_scale, b_scale, color, tint_source)
+// FIXED (objdump 0x450870..0x450978): nine stack arguments; the last two are effect_set_placement's ECX/EDX.
+// OPEN: damage_effect_new_at_location, object_damage_effect_dispatch and projectile_response declare their own
+//   externs of this without the EAX/ECX/EDX arguments.
 // UNSURE (structural, TYPES-GAP): FUN_00451710 is called here with a resolver
 // (&LAB_00451850) that is a jump target/thunk, not a function Ghidra split out on its own; its
 // real signature and behaviour (it reads effect_marker_callback_context, per types/effects.h's
@@ -55,7 +58,7 @@ extern void effect_update(datum_index effect_handle, real delta_time); // 0x451a
 datum_index effect_new_on_object_with_node_table(datum_index creator_object_index,
     datum_index definition_index, datum_index object_index, uint16_t node_index,
     uint16_t ctx_08, uint32_t ctx_0c, uint32_t ctx_10, uint32_t ctx_14, real a_scale,
-    real b_scale)
+    real b_scale, const ColorRGB *color, const effect_tint_source *tint_source)
 {
     datum_index handle = effect_new(definition_index, creator_object_index, 1);
 
@@ -65,9 +68,8 @@ datum_index effect_new_on_object_with_node_table(datum_index creator_object_inde
         object *attach_object;
         int i;
 
-        effect_set_placement(self, 0, 0, a_scale, b_scale); // UNSURE: effect_set_placement's
-            // (color, tint_source) pair arrives in registers Ghidra dropped; only the two
-            // scales are visible stack arguments here -- see file header
+        effect_set_placement(self, color, tint_source, a_scale, b_scale); // 0x4508bb: ECX = stack arg 7,
+            // EDX = stack arg 8 (FIXED: the draft had no such parameters and passed 0, 0)
         self->object_index = object_index;
 
         if (first_person_effects_enabled != 0 && effect_first_person_screen_timer_active()) {

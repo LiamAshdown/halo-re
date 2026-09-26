@@ -1,36 +1,23 @@
 // particle_system_spawn  (Ghidra: FUN_00453b10, still unnamed there; named directly by
 //   out/phase4/effects_types_notes.md: "particle_system_spawn 0x453b10")
 // address 0x453b10, size 1085 bytes
-// name confidence: 0.4   rewrite confidence: 0.3 (the least-verified file in this batch: the
-//   three particle_creation_physics procedures Ghidra never split out, and
-//   particle_system_particle's 0x28..0x34 fields they fill, are only typed by stride per
-//   out/phase4/effects_types_notes.md section 2 and its "unresolved offsets" table; several
-//   callees below are treated as opaque per existing codebase precedent rather than
-//   re-examined)
-// evidence: types/effects.h particle_system.flags (+0x04, _particle_system_in_update_bit) and
-//   type_states[4] (+0x58); types/tags.h ParticleSystemType (flags +0x20 with
-//   do_not_draw_in_first_person 0x10000 / do_not_draw_in_third_person 0x20000,
-//   particle_creation_physics +0x54, size 0x80) and ParticleSystemTypeStates
-//   (particle_creation_physics +0xb0, size 0xc0); the .rdata dispatch table
-//   particle_creation_physics[3] at 0x00657444 (types/effects.h header comment); this module's
-//   player_weapon_locality_for_object (0x453a10); src/objects/object_lights_update_all.c
-//   establishes first_person_weapon_get_marker_data's signature; src/objects/
-//   object_get_node_local_transform.c and src/physics/collision_test_movement_segment.c /
-//   src/objects/object_set_cluster_and_parent.c establish object_get_root_location and scenario_location_from_point as
-//   already-opaque cross-module calls elsewhere in this codebase.
-// register convention: none -- self (a particle_system* record pointer, not a handle) and the
-//   type index are both Ghidra-recognized stack parameters.
-// UNSURE (extensive): render_local_player_gunner_seat_visible (a parameterless first/third-person view predicate),
-//   object_get_root_location and scenario_location_from_point are all called here exactly as Ghidra shows them, with no
-//   attempt to recover arguments Ghidra dropped, following this codebase's existing treatment
-//   of the same three functions elsewhere. The marker-lookup scratch buffer is sized as 8
-//   object_marker records (0x360 bytes) because both lookup calls pass a maximum count of 8,
-//   even though Ghidra's own frame only reserved 60 bytes for it -- a known Ghidra
-//   under-sizing, not a deliberate choice. The per-particle creation-physics dispatch call's
-//   fourth argument (a marker picked at random out of that array) and the exact meaning of the
-//   spawned particle's 0x28/0x2c/0x30/0x34 fields are left to the three opaque physics
-//   procedures, consistent with the module notes' "found through the three .rdata dispatch
-//   tables" section.
+// name confidence: 0.4   rewrite confidence: 0.85
+// REWRITTEN (from objdump 0x453b10..0x453f52; the draft was confidence 0.3 with opaque callee calls). Offsets:
+//   system +0x04 flags (bit 1: the initial burst), +0x08 definition, +0x0c object, +0x10 attachment, +0x14 burst
+//   scale, +0x18 root location (cluster word +0x1c), +0x20 position, +0x58 type states (0x40 each: state index
+//   +0x00, rate +0x30, accumulator +0x34, live count +0x3a, particle list +0x3c, +0x04 fade, +0x2c limit);
+//   ParticleSystemType (0x80 each at pctl +0x60): flags +0x20, initial count +0x24, initial creation physics
+//   +0x54, states +0x6c (0xc0 each, creation physics +0xb0).
+//   A particle system on a weapon hidden from the local player's view (type flags 0x20000/0x10000 against
+//   player_weapon_locality_for_object and render_local_player_gunner_seat_visible) spawns nothing. The target
+//   count is the initial count (times the burst scale +0.5 with flag 0x400) for the burst, else the live count
+//   plus the whole part of dt * rate, the fraction carried in the accumulator; halved when particle systems run
+//   at reduced detail (0x0069c566 == 1). Markers come from the attached object (the attachment's marker name,
+//   up to 8) with the root location, falling back to the local first person weapon; a system without an object
+//   uses its own position. Up to 0x80 particles are created per call, each at a random marker through the
+//   creation physics table, kept when scenario_location_from_point finds a cluster. A system still under its
+//   limit (+0x2c) has its +0x04 multiplied by 0.3.
+// blam-cc: stack -> system, type_index, dt (cdecl)
 
 #include "tags.h"
 #include "memory.h"
@@ -38,171 +25,150 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
-#include <stdint.h>  // uintptr_t only; this is a .c file, not a Ghidra-ingested header
 
 extern data_array *object_data;                   // 0x008603b0
 extern data_array *particle_system_particle_data; // 0x0087abd8
 extern tag_instance *tag_instances;               // 0x0087bc14
 extern uint8_t particle_systems_enabled;          // 0x0069c566
-extern int16_t current_local_player_index;        // 0x007c3108, DAT_007c3108; UNSURE name, the
-                                    // "current local player" index used across this batch
+extern int16_t current_local_player_index;        // 0x007c3108
 extern uint8_t *first_person_weapon_globals;      // 0x006b2d98, stride 0x1ea0
-extern const real_point3d *global_origin3d_pointer;     // 0x00696714
+extern const real_vector3d *global_origin3d_pointer; // 0x00696714
 extern random_seed effect_random_seed;             // 0x00719cd4
 extern void (*particle_creation_physics_table[3])(particle_system *system, int32_t type_index,
-    particle_system_particle *particle, object_marker *marker); // 0x00657444, .rdata; UNSURE
-                                    // signature, see file header
+    particle_system_particle *particle, object_marker *marker); // 0x00657444
 
-extern datum_index datum_new(data_array *array); // 0x4d0480
-extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510
-extern int32_t player_weapon_locality_for_object(datum_index weapon_object_index); // 0x453a10,
-                                    // this module
-extern uint8_t render_local_player_gunner_seat_visible(void); // 0x50fcd0, UNSURE: opaque first/third person predicate
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
-    object_marker *marker, uint32_t max_count); // 0x4f6080, objects module
-extern int16_t first_person_weapon_get_marker_data(uint32_t object_index, int32_t marker,
-    void *out_buffer, int32_t max_count); // 0x492ad0, opaque per src/objects/object_lights_update_all.c
-extern void object_get_root_location(uint32_t object_index); // 0x4f6b10, opaque per
-                                    // src/objects/object_light_recompute_transform.c
-extern void scenario_location_from_point(void *out_leaf_reference); // 0x53e780, opaque per
-                                    // src/physics/collision_test_movement_segment.c
+extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX
+extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, blam-cc: EAX, EDX
+extern int32_t player_weapon_locality_for_object(datum_index weapon_object_index); // 0x453a10
+extern int16_t render_local_player_gunner_seat_visible(int16_t local_player_index); // 0x50fcd0, blam-cc: EAX
+extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
+    uint32_t maximum); // 0x4f6080
+extern uint32_t first_person_weapon_get_marker_data(datum_index weapon_index, const char *marker_name,
+    object_marker *out, uint32_t maximum); // 0x492ad0
+extern void object_get_root_location(int32_t *out, uint32_t object_index); // 0x4f6b10, blam-cc: EAX, ECX
+extern void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point); // 0x53e780, ESI, EDX
 
-void particle_system_spawn(particle_system *self, int32_t type_index)
+static real particle_roll(void)
 {
-    particle_system_type_state *state = &self->type_states[type_index];
-    ParticleSystem *definition = (ParticleSystem *)tag_instances[self->definition_index & 0xffff].data;
-    ParticleSystemType *type =
-        &((ParticleSystemType *)definition->particle_types.pointer)[type_index];
-    uint8_t in_update = (self->flags & _particle_system_in_update_bit) != 0;
-    ParticleSystemTypeStates *current_state = (ParticleSystemTypeStates *)0;
-    int32_t weapon_locality;
+    effect_random_seed = effect_random_seed * 0x19660d + 0x3c6ef35f;
+    return (real)(effect_random_seed >> 0x10) * 1.5259022e-05f;
+}
 
-    if (!in_update) {
-        current_state =
-            &((ParticleSystemTypeStates *)type->states.pointer)[state->state_index];
+void particle_system_spawn(particle_system *system_record, int32_t type_index, float dt)
+{
+    uint8_t *system = (uint8_t *)system_record;
+    uint8_t *type_state = system + 0x58 + (int16_t)type_index * 0x40;
+    uint8_t *definition = (uint8_t *)tag_instances[*(datum_index *)(system + 8) & 0xffff].data;
+    uint8_t *type = *(uint8_t **)(definition + 0x60) + (int16_t)type_index * 0x80;
+    uint8_t initial = (uint8_t)((*(uint32_t *)(system + 4) >> 1) & 1);
+    uint8_t *state = initial ? 0 : *(uint8_t **)(type + 0x6c) + *(int16_t *)type_state * 0xc0;
+    uint32_t type_flags = *(uint32_t *)(type + 0x20);
+    datum_index object_index = *(datum_index *)(system + 0xc);
+    object_marker markers[8];
+    int16_t locality;
+    int16_t target;
+    int16_t marker_count;
+    int16_t spawned;
+
+    locality = (int16_t)player_weapon_locality_for_object(object_index);
+    if (locality != 0) {
+        if (type_flags & 0x20000) {
+            if (locality == -1 || !render_local_player_gunner_seat_visible(current_local_player_index)) {
+                return;
+            }
+        }
+        if ((type_flags & 0x10000) && locality == 1 && render_local_player_gunner_seat_visible(current_local_player_index)) {
+            return;
+        }
     }
 
-    weapon_locality = player_weapon_locality_for_object(self->object_index);
-
-    if (weapon_locality == 0 ||
-        (((type->flags & 0x20000) == 0 || (weapon_locality != -1 && render_local_player_gunner_seat_visible() != 0)) &&
-         ((type->flags & 0x10000) == 0 || (weapon_locality != 1 || render_local_player_gunner_seat_visible() == 0)))) {
-        int16_t target_count;
-
-        if (!in_update) {
-            // steady state: state->particle_creation_rate is the runtime (already
-            // scale-multiplied) copy of ParticleSystemTypeStates.particle_creation_rate, and
-            // state->creation_fraction carries the fractional remainder between ticks.
-            int32_t whole = (int32_t)state->particle_creation_rate;
-            float fraction = (state->particle_creation_rate - (float)whole) +
-                              state->creation_fraction;
-
-            target_count = state->particle_count + (int16_t)whole;
-            state->creation_fraction = fraction;
-            if (1.0f < fraction) {
-                target_count = target_count + 1;
-                state->creation_fraction = fraction - 1.0f;
-            }
-        } else if ((type->flags & 0x400) == 0) { // initial_count_scales_with_effect
-            target_count = (int16_t)type->initial_particle_count;
+    if (initial) {
+        if (type_flags & 0x400) {
+            target = (int16_t)(int32_t)((double)*(int16_t *)(type + 0x24) * *(float *)(system + 0x14) + 0.5);
         } else {
-            target_count = (int16_t)((float)type->initial_particle_count * self->scale);
+            target = *(int16_t *)(type + 0x24);
         }
+    } else {
+        double amount = (double)dt * *(float *)(type_state + 0x30);
+        int32_t whole = (int32_t)amount;
+        double accumulated = amount - (double)whole + *(float *)(type_state + 0x34);
 
-        if (particle_systems_enabled == 1) {
-            target_count = (int16_t)((float)target_count * self->scale); // UNSURE: DAT_0069c566
-                                    // guards this scale a second time in the decompile; kept
-                                    // literally
+        target = (int16_t)(*(uint16_t *)(type_state + 0x3a) + whole);
+        *(float *)(type_state + 0x34) = (float)accumulated;
+        if (accumulated > 1.0) {
+            target = (int16_t)(target + 1);
+            *(float *)(type_state + 0x34) = (float)(accumulated - 1.0);
         }
+    }
+    if (particle_systems_enabled == 1) {
+        target = (int16_t)(int32_t)((double)target * 0.5);
+    }
+    if (*(int16_t *)(type_state + 0x3a) >= target) {
+        goto done;
+    }
 
-        if (state->particle_count < target_count) {
-            datum_index object_index = self->object_index;
-            object_marker markers[8];
-            int32_t marker_count;
+    if (object_index != k_datum_index_none) {
+        uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
+        uint8_t *object_tag = (uint8_t *)tag_instances[*(datum_index *)object & 0xffff].data;
+        char *marker_name = (char *)(*(uint8_t **)(object_tag + 0x144) + *(int16_t *)(system + 0x10) * 0x48 + 0x10);
 
-            if (object_index == (datum_index)0xffffffff) {
-                // UNSURE: the decompile builds two separate 12-byte scratch blocks here
-                // (local_324.. from global_origin3d_pointer and local_300.. from self->position)
-                // that do not sit contiguously in Ghidra's frame, so which object_marker
-                // sub-fields they really land on could not be pinned down; modeled here as the
-                // marker's position, which is the one placement every caller of this path needs.
-                markers[0].node_transform.position = self->position;
-                markers[0].node_transform.left.i = global_origin3d_pointer->x;
-                markers[0].node_transform.left.j = global_origin3d_pointer->y;
-                markers[0].node_transform.left.k = global_origin3d_pointer->z;
-                marker_count = 1;
-            } else {
-                object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-                ObjectAttachment *attachment =
-                    (ObjectAttachment *)((uint8_t *)tag_instances[obj->definition_tag & 0xffff].data +
-                                          0x144) + self->attachment_index;
+        marker_count = (int16_t)object_get_node_local_transform(object_index, marker_name, markers, 8);
+        object_get_root_location((int32_t *)(system + 0x18), object_index);
+        if (marker_count == 0) {
+            datum_index weapon = *(datum_index *)(first_person_weapon_globals + current_local_player_index * 0x1ea0 + 8);
 
-                marker_count = object_get_node_local_transform(object_index, attachment->marker.string,
-                                                                markers, 8);
-                object_get_root_location(object_index);
-                if (marker_count == 0) {
-                    int32_t weapon_object = *(int32_t *)(first_person_weapon_globals +
-                        current_local_player_index * 0x1ea0 + 8);
-                    if (weapon_object != -1) {
-                        marker_count = first_person_weapon_get_marker_data(weapon_object,
-                            attachment->marker.string - (char *)0, markers, 8); // UNSURE: the
-                                    // marker name argument here is the same TagString pointer
-                                    // Ghidra shows, kept verbatim
-                        object_get_root_location(weapon_object);
-                    }
-                }
+            if (weapon != k_datum_index_none) {
+                marker_count = (int16_t)first_person_weapon_get_marker_data(weapon, marker_name, markers, 8);
+                object_get_root_location((int32_t *)(system + 0x18), weapon);
             }
+        }
+    } else {
+        markers[0].node_transform.position = *(real_point3d *)(system + 0x20);
+        *(real_vector3d *)((uint8_t *)&markers[0] + 0x3c) = *global_origin3d_pointer;
+        marker_count = 1;
+    }
 
-            if (self->scale_function_index != -1) {
-                int16_t attempts = 0;
+    if (*(int16_t *)(system + 0x1c) == -1 || *(int16_t *)(type_state + 0x3a) >= target) {
+        goto done;
+    }
+    for (spawned = 0; marker_count != 0 && spawned < 0x80; ) {
+        datum_index handle = datum_new(particle_system_particle_data);
+        uint8_t *particle;
+        int16_t physics;
+        int16_t marker_index;
 
-                while (state->particle_count < target_count && marker_count != 0 &&
-                       attempts < 0x80) {
-                    datum_index handle = datum_new(particle_system_particle_data);
-                    if (handle == (datum_index)0xffffffff) {
-                        break;
-                    }
-
-                    {
-                        particle_system_particle *particle =
-                            &((particle_system_particle *)particle_system_particle_data->data)
-                                [handle & 0xffff];
-                        ParticleSystemParticleCreationPhysics_t physics =
-                            in_update ? type->particle_creation_physics
-                                      : current_state->particle_creation_physics;
-
-                        particle->state_index = -1;
-                        particle->next_state_index = -1;
-                        particle->active = 1;
-                        particle->ping_pong_forward = 1;
-                        particle->frame = -1.0f;
-
-                        effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-                        particle->rotation = (float)(effect_random_seed >> 16) * 1.5259022e-05f *
-                                             6.2831855f;
-                        effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-
-                        particle_creation_physics_table[physics](self, type_index, particle,
-                            &markers[(int16_t)(((uint64_t)(effect_random_seed >> 16) *
-                                                 (uint32_t)marker_count) >> 16)]);
-                        scenario_location_from_point(&particle->location);
-
-                        if (particle->location.leaf_index == -1) {
-                            datum_delete(particle_system_particle_data, handle);
-                        } else {
-                            state->particle_count = state->particle_count + 1;
-                            particle->next_particle = state->first_particle;
-                            state->first_particle = handle;
-                        }
-                    }
-                    attempts = attempts + 1;
-                }
-            }
+        if (handle == k_datum_index_none) {
+            break;
+        }
+        particle = (uint8_t *)particle_system_particle_data->data + (handle & 0xffff) * 0x80;
+        physics = initial ? *(int16_t *)(type + 0x54) : *(int16_t *)(state + 0xb0);
+        *(int16_t *)(particle + 8) = -1;
+        *(int16_t *)(particle + 0xa) = -1;
+        particle[3] = 1;
+        particle[2] = 1;
+        *(float *)(particle + 0x44) = -1.0f;
+        *(float *)(particle + 0x40) = particle_roll() * 6.2831855f; // 0x672c20
+        effect_random_seed = effect_random_seed * 0x19660d + 0x3c6ef35f;
+        marker_index = (int16_t)(((effect_random_seed >> 0x10) * (uint32_t)(int32_t)marker_count) >> 0x10);
+        particle_creation_physics_table[physics](system_record, type_index, (particle_system_particle *)particle,
+            &markers[marker_index]);
+        scenario_location_from_point((bsp_leaf_reference *)(particle + 0x14), (real_point3d *)(particle + 0x1c));
+        if (*(int16_t *)(particle + 0x18) != -1) {
+            *(int16_t *)(type_state + 0x3a) += 1;
+            *(datum_index *)(particle + 4) = *(datum_index *)(type_state + 0x3c);
+            *(datum_index *)(type_state + 0x3c) = handle;
+        } else {
+            datum_delete(particle_system_particle_data, handle);
+        }
+        spawned++;
+        if (*(int16_t *)(type_state + 0x3a) >= target) {
+            break;
         }
     }
 
-    if ((float)state->particle_count < state->minimum_particle_count) {
-        state->state_time_remaining = state->state_time_remaining * 0.3f;
+done:
+    if ((float)*(int16_t *)(type_state + 0x3a) < *(float *)(type_state + 0x2c)) {
+        *(float *)(type_state + 4) = *(float *)(type_state + 4) * 0.3f; // 0x672c94
     }
 }
 

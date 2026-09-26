@@ -12,7 +12,7 @@
 //   are loaded into EDI/EAX right before the call site and then never pushed or otherwise used --
 //   dead loads, matching Ghidra's own choice to declare `param_1`/`param_2` but never reference
 //   them in the body). Confirmed against objdump 0x561e60..0x561f72.
-//   // blam-cc: ECX -> object_list_header_handle, stack -> (unused, unused, graph_tag_id)
+//   // blam-cc: ECX -> object_list_header_handle, stack -> (graph_tag_id, animation_name, interpolate)
 // UNSURE: unit_start_user_animation's own file documents `EAX -> object_index, EDI ->
 //   graph_tag_id, second register -> warn_if_missing` at rewrite confidence 0.3 ("the
 //   animation-name string and the graph tag id arrive in registers Ghidra could not source at
@@ -38,17 +38,16 @@ extern data_array *object_list_reference_data; // 0x0087a468
 
 // UNSURE: opaque call, exactly the arguments Ghidra's own decompile of this call site shows; see
 // file header. Not the same binding as unit_start_user_animation.c's own established extern.
-extern uint8_t unit_start_user_animation(uint32_t unit_index, datum_index graph_tag_id); // 0x5702a0
+extern uint8_t unit_start_user_animation(uint32_t unit_index, datum_index graph_tag, const char *animation_name,
+    uint8_t interpolate); // 0x5702a0
 
 void ai_object_list_start_user_animation_until_failure(datum_index object_list_header_handle,
-    uint32_t unused_1, uint32_t unused_2, datum_index graph_tag_id)
+    datum_index graph_tag_id, const char *animation_name, uint8_t interpolate)
 {
     datum_index node_index = (datum_index)k_datum_index_none;
     datum_index object_index = (datum_index)k_datum_index_none;
     uint8_t still_succeeding = 1;
 
-    (void)unused_1;
-    (void)unused_2;
 
     if (object_list_header_handle != (datum_index)k_datum_index_none) {
         object_list_header *header =
@@ -75,7 +74,10 @@ void ai_object_list_start_user_animation_until_failure(datum_index object_list_h
         }
 
         if (entry != 0 && ((1 << (entry->type & 0x1f)) & 3) != 0 && entry->data != 0) {
-            if (still_succeeding && unit_start_user_animation((uint32_t)object_index, graph_tag_id) != 0) {
+            if (still_succeeding && unit_start_user_animation((uint32_t)object_index, graph_tag_id, animation_name,
+                    interpolate) != 0) {
+                // FIXED (0x561f14..0x561f22): EDI = stack arg 1 (graph), EAX = stack arg 2 (name), pushed
+                // (unit, stack arg 3 interpolate); the draft took the graph from arg 3 and dropped the rest.
                 still_succeeding = 1;
             } else {
                 still_succeeding = 0;

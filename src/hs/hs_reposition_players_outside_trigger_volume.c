@@ -1,55 +1,42 @@
 // hs_reposition_players_outside_trigger_volume  (Ghidra: FUN_00487750)
-// address 0x487750, size 200 bytes
-// name confidence: 0.35 (out/phase4/hs_functions.md: "Iterates all entries of an object-related
-//   datum array and resets/detaches each one whose predicate check fails"; the array is
-//   hardcoded to `players` and the predicate is specifically trigger-volume containment)
-// rewrite confidence: 0.45
-// evidence: types/hs.h globals (players 0x0087a480 stride 0x200, unit handle at +0x34);
-//   src/memory/datum_next.c for the iteration; this module's hs_object_detach_and_place_at_location
-//   (0x487f50) for the teleport call, whose (object, detach=1, reorient=1) argument pattern
-//   matches exactly.
-// register convention: location index in AX (in_AX, passed straight through to
-//   hs_object_detach_and_place_at_location); trigger volume index in ECX (in_ECX, passed straight
-//   through to scenario_trigger_volume_contains_point). Neither is read or written locally.
-//   // blam-cc: AX -> location_index, ECX -> trigger_volume_index
-// UNSURE: both register arguments are pure pass-through with no local use, so their exact source
-//   registers are inferred from the two callees' own (also register-implicit) parameters rather
-//   than observed directly; the overall purpose (move every player whose unit has strayed outside
-//   a trigger volume back to a named location) is inferred from the combination of the two calls.
+// address 0x487750, size 203 bytes
+// name confidence: 0.5   rewrite confidence: 0.9
+// REWRITTEN (objdump 0x487750..0x48781a; the draft took both arguments in registers and handed the unit index to
+//   the containment test). cdecl: [esp+4] trigger volume, [esp+8] cutscene flag. For every player (datum_next,
+//   then the same walk inlined) with a unit, scenario_trigger_volume_contains_point(EAX volume, ECX = the unit's
+//   centre, object +0xa0); a unit outside is moved onto the flag by hs_object_detach_and_place_at_location
+//   (AX flag, stack unit, 1, 1). The only caller is the volume_teleport_players_not_inside evaluator (0x47a459).
+// blam-cc: stack -> trigger_volume_index, location_index (cdecl)
 
 #include "tags.h"
 #include "memory.h"
+#include "math.h"
 #include "hs.h"
 
-extern datum_index datum_next(int16_t after_index, data_array *array);
-    // blam-cc: DX -> after_index, EDI -> array; memory module, 0x4d0630
-extern char scenario_trigger_volume_contains_point(int32_t trigger_volume_index,
-    datum_index object_index);
-    // blam-cc: register args UNSURE, see hs_object_list_test_trigger_volume.c;
-    // scenario module, 0x53f020, not yet rewritten
+extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630, blam-cc: DX, EDI
+extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point);
+    // 0x53f020, blam-cc: EAX, ECX
 extern void hs_object_detach_and_place_at_location(int16_t location_index, datum_index object_index,
-    char detach_from_parent, char reorient); // this module, 0x487f50
+    char detach_from_parent, char reorient); // 0x487f50, blam-cc: AX, stack
 
-extern data_array *players; // 0x0087a480, stride 0x200
+extern data_array *player_data; // 0x0087a480, stride 0x200
+extern data_array *object_data; // 0x008603b0
 
-// hs_player_record: defined in types/hs.h (foreign-module slice; was a local TYPES-GAP copy)
-
-// For every live player whose unit is outside `trigger_volume_index`, detaches and repositions
-// that unit onto Scenario::cutscene_flags[location_index] (see hs_object_detach_and_place_at_location).
-void hs_reposition_players_outside_trigger_volume(int16_t location_index, int32_t trigger_volume_index)
+void hs_reposition_players_outside_trigger_volume(int32_t trigger_volume_index, int32_t location_index)
 {
-    datum_index player_index;
-    datum_index unit;
+    datum_index player_index = datum_next(-1, player_data);
 
-    player_index = datum_next(-1, players);
     while (player_index != k_datum_index_none) {
-        unit = ((hs_player_record *)((uint8_t *)players->data +
-            (player_index & 0xffff) * 0x200))->unit;
-        if (unit != k_datum_index_none &&
-            scenario_trigger_volume_contains_point(trigger_volume_index, unit) == 0) {
-            hs_object_detach_and_place_at_location(location_index, unit, 1, 1);
+        datum_index unit = *(datum_index *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200 + 0x34);
+
+        if (unit != k_datum_index_none) {
+            uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (unit & 0xffff) * 0xc + 8);
+
+            if (!scenario_trigger_volume_contains_point((int16_t)trigger_volume_index, (real_point3d *)(object + 0xa0))) {
+                hs_object_detach_and_place_at_location((int16_t)location_index, unit, 1, 1);
+            }
         }
-        player_index = datum_next((int16_t)player_index, players);
+        player_index = datum_next((int16_t)player_index, player_data);
     }
 }
 

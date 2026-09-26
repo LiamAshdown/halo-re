@@ -12,9 +12,12 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "math.h"
 #include "hs.h"
 
-extern uint32_t unit_point_within_look_cone(float angle_radians); // units(?) module, 0x56c100
+extern uint8_t unit_point_within_look_cone(float cone_angle, uint32_t unit_index, real_point3d *world_point);
+    // 0x56c100, blam-cc: stack, ECX, EDI
+extern uint8_t *global_scenario; // 0x00746f8c
 
 extern data_array *object_list_header_data;    // 0x0087a464
 extern data_array *object_list_reference_data; // 0x0087a468
@@ -65,7 +68,10 @@ uint32_t hs_object_list_any_angle_match_gated(datum_index header_index, int16_t 
                 salt = (int16_t)((uint32_t)object_index >> 0x10);
                 if ((salt == 0 || entry->identifier == salt) &&
                     (1 << (entry->type_flag & 0x1f) & 3) != 0 && entry->data != 0 &&
-                    gate != 0 && unit_point_within_look_cone(angle_degrees * 0.017453292f) != 0) {
+                    gate != 0 && unit_point_within_look_cone(angle_degrees * 0.017453292f, object_index,
+                        (real_point3d *)(*(uint8_t **)(global_scenario + 0x4e8) + gate * 0x5c + 0x24)) != 0) {
+                    // FIXED (0x487b86..0x487bac): ECX = the unit, EDI = the cutscene flag's position
+                    // (scenario +0x4e8 flags, 0x5c each, +0x24); the draft passed only the angle.
                     return 1;
                 }
             }

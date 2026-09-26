@@ -16,7 +16,7 @@
 #include "hs.h"
 
 extern char hs_object_hierarchy_test(datum_index object_index); // this module, 0x487c10
-extern void object_delete(int16_t object_name_index); // objects module, 0x4f5bd0, UNSURE args
+extern void object_delete(datum_index object_index); // 0x4f5bd0, blam-cc: EAX (0x487d56: mov eax,edi = the cached object)
 extern void object_new_from_scenario_name(int16_t object_name_index); // objects module, 0x4f7370, UNSURE args
 
 extern datum_index *object_names_to_objects; // 0x006b8cb8, 0x200 entries
@@ -35,7 +35,7 @@ void hs_object_name_cache_validate(int16_t object_name_index)
         if (object_name_index < 0x200) {
             cached = object_names_to_objects[object_name_index];
             if (cached != k_datum_index_none && hs_object_hierarchy_test(cached) == 0) {
-                object_delete(object_name_index);
+                object_delete(cached); // FIXED: the draft passed the name index
             }
         }
         if (-1 < object_name_index && object_name_index < 0x200 &&

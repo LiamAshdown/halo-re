@@ -1,56 +1,45 @@
 // hs_object_angle_predicate_helper  (Ghidra: FUN_004878f0)
 // address 0x4878f0, size 180 bytes
-// name confidence: 0.35 (out/phase4/hs_functions.md: "Per-object predicate helper that converts
-//   an angle argument from degrees to radians and forwards it to a lower-level geometry test,
-//   gated by a context validity check")
-// rewrite confidence: 0.4
-// evidence: the degrees-to-radians multiply (0.017453292 == pi/180) and the final call's result
-//   being this function's own return value.
-// register convention: object index in EAX (in_EAX); param_1 unused directly (forwarded into the
-//   discarded FUN_004f6080 call, register-implicit); angle in degrees as the recognized stack
-//   parameter (param_2).
-//   // blam-cc: EAX -> object_index, stack -> (param_1, angle_degrees)
-// UNSURE: FUN_004f6080's arguments here are entirely register-implicit and not recoverable from
-//   the decompile (unlike hs_object_detach_and_place_at_location's call to the same address,
-//   which does have explicit stack arguments) -- its return value is discarded here, only its
-//   side effect matters, and neither could be determined. unit_point_within_look_cone's own semantics (the
-//   "lower-level geometry test") are likewise not recovered; only that it takes the angle in
-//   radians and its result becomes this function's return value.
+// name confidence: 0.4   rewrite confidence: 0.9
+// REWRITTEN (objdump 0x4878f0..0x4879a3; the draft passed none of the look-cone arguments). EAX = the target
+//   object, [esp+4] = the viewing unit, [esp+8] = the cone angle in degrees. The target point is the "head" marker
+//   (0x0066bfa0) of a unit target (object_try_and_get(ECX target, 3)) -- node_transform.position, +0x60, read
+//   whatever the marker count -- otherwise the object's centre (+0xa0). Returns
+//   unit_point_within_look_cone(stack degrees * 0.017453292 (0x672c38), ECX viewer, EDI &point); -1 gives 0.
+// blam-cc: EAX -> object_index, stack -> viewer_unit, angle_degrees
 
 #include "tags.h"
 #include "memory.h"
+#include "math.h"
+#include "objects.h"
 #include "hs.h"
 
-extern void *object_try_and_get(int32_t type_mask); // objects module, 0x4f6ec0
-extern int16_t object_get_node_local_transform(datum_index object_index, void *marker_index, void *out_buffer,
-    char param_4); // UNSURE: this call site's args are register-implicit; the signature is
-    // the one hs_effect_spawn_on_marker.c and hs_object_detach_and_place_at_location.c prove;
-    // objects
-                                  // module, 0x4f6080 (compare the 4-argument call site in
-                                  // hs_object_detach_and_place_at_location.c)
-extern uint32_t unit_point_within_look_cone(float angle_radians); // units(?) module, 0x56c100
+extern data_array *object_data; // 0x008603b0
+extern char ai_marker_name_a[]; // 0x0066bfa0, "head"
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
+extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
+    uint32_t maximum); // 0x4f6080
+extern uint8_t unit_point_within_look_cone(float cone_angle, uint32_t unit_index, real_point3d *world_point);
+    // 0x56c100, blam-cc: stack, ECX, EDI
 
-// Gated by `object_index` being valid: if the object can be fetched as a type-3 control (see
-// object_try_and_get), performs an unrecovered side effect via FUN_004f6080, then always converts
-// `angle_degrees` to radians and returns the result of the geometry test unit_point_within_look_cone. Returns 0
-// (well, `object_index`'s garbage upper bytes with a zero low byte, simplified to a plain 0 here
-// since only the low byte is ever a meaningful boolean) when `object_index` is
-// k_datum_index_none.
-uint32_t hs_object_angle_predicate_helper(datum_index object_index, void *param_1, float angle_degrees)
+uint8_t hs_object_angle_predicate_helper(datum_index object_index, datum_index viewer_unit, float angle_degrees)
 {
-    void *control;
+    real_point3d point;
 
     if (object_index == k_datum_index_none) {
         return 0;
     }
-    control = object_try_and_get(3);
-    if (control != 0) {
-        /* UNSURE: all four arguments are register-implicit here (Ghidra shows a bare call).
-           The signature is the one hs_effect_spawn_on_marker.c and
-           hs_object_detach_and_place_at_location.c prove; the values are not recovered. */
-        object_get_node_local_transform(object_index, control, 0, 0);
+    if (object_try_and_get(object_index, 3) != 0) {
+        object_marker marker;
+
+        object_get_node_local_transform(object_index, ai_marker_name_a, &marker, 1);
+        point = *(real_point3d *)((uint8_t *)&marker + 0x60);
+    } else {
+        uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
+
+        point = *(real_point3d *)(object + 0xa0);
     }
-    return unit_point_within_look_cone(angle_degrees * 0.017453292f);
+    return unit_point_within_look_cone(angle_degrees * 0.017453292f, viewer_unit, &point);
 }
 
 #if 0

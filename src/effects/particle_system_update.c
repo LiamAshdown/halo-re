@@ -53,7 +53,7 @@ extern void object_get_root_object_velocities(uint32_t object_index, real_vector
     real_vector3d *out_angular_velocity); // 0x4f6aa0, objects module
 extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector,
     float *out_value); // 0x4f6e70, objects module
-extern void particle_system_spawn(particle_system *self, int32_t type_index); // 0x453b10, this module
+extern void particle_system_spawn(particle_system *self, int32_t type_index, float dt); // 0x453b10, this module
 extern void particle_system_delete(datum_index handle); // 0x453f60, this module
 extern real random_real_range_seeded(random_seed *seed, real min, real max); // 0x4cd170
 extern void particle_system_advance_type_state(particle_system_type_state *state,
@@ -214,7 +214,7 @@ void particle_system_update(float delta_time, datum_index handle)
                 uint16_t previous_particle = 0xffff;
 
                 if ((self->flags & _particle_system_emitting_bit) != 0) {
-                    particle_system_spawn(self, type_index);
+                    particle_system_spawn(self, type_index, delta_time); // 0x45481a: the third push is delta_time
                 }
 
                 particle_index = (uint16_t)state->first_particle;

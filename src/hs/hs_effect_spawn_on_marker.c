@@ -1,42 +1,40 @@
 // hs_effect_spawn_on_marker  (Ghidra: FUN_004888f0)
 // address 0x4888f0, size 97 bytes
-// name confidence: 0.3 (out/phase4/hs_functions.md: "Spawns a visual effect attached to an
-//   object's marker, gated on the object and marker both being valid")
-// rewrite confidence: 0.3
-// evidence: object_get_node_local_transform's established 4-argument shape from hs_object_detach_and_place_at_location.c.
-// register convention: object index in ESI (unaff_ESI); marker index in EDI (unaff_EDI); effect
-//   reference as the recognized stack parameter (param_1).
-//   // blam-cc: ESI -> object_index, EDI -> marker_index, stack -> effect
-// UNSURE: object_get_node_local_transform and FUN_00450870 are both called with zero visible arguments in the
-// decompile; the bindings below (object_index/marker_index into object_get_node_local_transform, the two local
-// buffers as its outputs, and the final FUN_00450870 call's argument order) are inferred from
-// the established shape of the sibling calls elsewhere in this module and are not verified
-// against disassembly.
+// name confidence: 0.5   rewrite confidence: 0.9
+// REWRITTEN (objdump 0x4888f0..0x488950; the draft swapped the effect and the marker name and dropped the
+//   register arguments of both callees). ESI = object, EDI = effect definition, [esp+4] = marker name. With both
+//   set, the first marker of that name (object_get_node_local_transform(object, name, &marker, 1)) places a new
+//   effect: effect_new_on_object_with_node_table(EAX -1, ECX effect, EDX object, stack: the marker's first dword
+//   (node index), 1, &name (a one-entry name table: the argument slot itself), &marker node_transform.position
+//   (+0x60), &node_transform.forward (+0x3c), 1.0, 1.0, 0, 0).
+// blam-cc: ESI -> object_index, EDI -> effect, stack -> marker_name
 
 #include "tags.h"
 #include "memory.h"
-#include "hs.h"
+#include "math.h"
+#include "objects.h"
+#include "effects.h"
 
-extern int16_t object_get_node_local_transform(datum_index object_index, void *marker_index, void *out_buffer,
-    char param_4);                                              // objects module, 0x4f6080
-extern void effect_new_on_object_with_node_table(uint32_t effect, int32_t param_2, void *param_3, void *position,
-    void *orientation, float param_6, float param_7, int32_t param_8, int32_t param_9);
-                                                                  // effects module, 0x450870
+extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
+    uint32_t maximum); // 0x4f6080
+extern datum_index effect_new_on_object_with_node_table(datum_index creator_object_index,
+    datum_index definition_index, datum_index object_index, uint16_t node_index,
+    uint16_t ctx_08, uint32_t ctx_0c, uint32_t ctx_10, uint32_t ctx_14, real a_scale,
+    real b_scale, const ColorRGB *color, const effect_tint_source *tint_source); // 0x450870, EAX, ECX, EDX, stack
 
-// If both `object_index` and `marker_index` are valid and object_get_node_local_transform resolves the marker's
-// transform, spawns `effect` there via FUN_00450870.
-void hs_effect_spawn_on_marker(datum_index object_index, datum_index marker_index, uint32_t effect)
+void hs_effect_spawn_on_marker(datum_index object_index, datum_index effect, char *marker_name)
 {
-    uint8_t position[12];
-    uint8_t orientation[36];
-    int16_t resolved;
+    object_marker marker;
 
-    if (object_index != k_datum_index_none && marker_index != k_datum_index_none) {
-        resolved = object_get_node_local_transform(object_index, (void *)(uint32_t)marker_index, orientation, 1);
-        if (resolved != 0) {
-            effect_new_on_object_with_node_table(effect, 1, &effect, position, orientation, 1.0f, 1.0f, 0, 0);
-        }
+    if (effect == k_datum_index_none || object_index == k_datum_index_none) {
+        return;
     }
+    if ((int16_t)object_get_node_local_transform(object_index, marker_name, &marker, 1) == 0) {
+        return;
+    }
+    effect_new_on_object_with_node_table(k_datum_index_none, effect, object_index, *(uint16_t *)&marker,
+        1, (uint32_t)&marker_name, (uint32_t)((uint8_t *)&marker + 0x60), (uint32_t)((uint8_t *)&marker + 0x3c),
+        1.0f, 1.0f, 0, 0);
 }
 
 #if 0

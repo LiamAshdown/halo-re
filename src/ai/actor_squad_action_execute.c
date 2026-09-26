@@ -103,7 +103,8 @@ extern void unit_get_primary_eye_marker_position(uint32_t object_index, real_poi
     // at 0x4058c1..0x4058cd the object index is in ECX (`push ecx` at 0x568f5f) and out in ESI
 extern void unit_get_forward_vector_or_marker_normal(void);                                                 // 0x569720, not yet rewritten
 extern void unit_set_grenade_type_and_count_delta(int32_t a);                                            // 0x56d160, not yet rewritten
-extern char unit_start_user_animation(uint32_t unit_or_object_index, uint32_t animation_selector); // 0x5702a0
+extern uint8_t unit_start_user_animation(uint32_t unit_index, datum_index graph_tag, const char *animation_name,
+    uint8_t interpolate); // 0x5702a0, blam-cc: stack, EDI, EAX, stack
 extern void _qsort(void *base, int32_t count, int32_t size, int32_t (*cmp)(const void *, const void *)); // 0x623410
 extern int32_t float_compare_ascending(const void *a, const void *b); // 0x405360, this session (skipped: library qsort comparator)
 extern const uint32_t DAT_0065512c; // 0x0065512c, a vocalization category table passed straight through to actor_play_first_valid_vocalization
@@ -549,8 +550,22 @@ char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32
         uint32_t animation_selector = 1;
         char started;
 
-        if (entry->point_2 == 0xffff) {
+        ScenarioAIAnimationReference *reference;
+        datum_index graph;
+
+        // FIXED (0x4061f0..0x406293): the atom's animation word (+0x10, not point_2) indexes
+        // scenario ai_animation_references (+0x448, 0x3c each); the graph is the reference's own
+        // (+0x2c) or else the unit tag's (+0x44, EDX = the unit), the reference record itself (its
+        // name) goes in EAX, and (unit, interpolate) are pushed.
+        if (entry->animation == 0xffff) {
             return 0;
+        }
+        reference = &((ScenarioAIAnimationReference *)global_scenario->ai_animation_references.pointer)[(int16_t)entry->animation];
+        graph = *(datum_index *)((uint8_t *)reference + 0x2c);
+        if (graph == k_datum_index_none) {
+            uint8_t *unit_object = *(uint8_t **)((uint8_t *)object_data->data + (check_object_index & 0xffff) * 0xc + 8);
+
+            graph = *(datum_index *)((uint8_t *)tag_instances[*(datum_index *)unit_object & 0xffff].data + 0x44);
         }
         switch (entry->atom_modifier) {
         case 1:
@@ -574,7 +589,7 @@ char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32
         default:
             break;
         }
-        started = unit_start_user_animation(check_object_index, animation_selector);
+        started = unit_start_user_animation(check_object_index, graph, (const char *)reference, (uint8_t)animation_selector);
         if (started == 0) {
             return 0;
         }

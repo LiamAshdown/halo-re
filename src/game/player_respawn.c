@@ -1,42 +1,23 @@
 // player_respawn  (Ghidra: player_respawn, already named)
 // address 0x477ea0, size 1010 bytes
-// name confidence: 0.55   rewrite confidence: 0.35
-// evidence: PARTIALLY VERIFIED against the disassembly (objdump -d -M intel
-//   --start-address=0x477ea0 --stop-address=0x478250). The main "spawn a fresh unit" path is
-//   confirmed instruction-by-instruction: player_pick_random_starting_location (0x4776d0, this
-//   batch) picks a starting-location index; game_get_player_starting_location (0x477640, outside this batch --
-//   already identified by out/phase4/game_types_notes.md note 3 as "the function that indexes"
-//   Scenario::player_starting_locations) resolves it to {x,y,z,facing}; the spawn tag is
-//   GlobalsPlayerInformation[0]::unit (single player) or GlobalsMultiplayerInformation::unit
-//   (current_game_engine != NULL), both TagDependency fields read straight out of the Globals
-//   tag pointed to by global_globals (0x00746fa0, TagReflexive pointers at +0x168/+0x174 --
-//   types/tags.h Globals::multiplayer_information/player_information); the placement's forward
-//   vector is (cos(facing), sin(facing), 0) and its up vector defaults from
-//   object_placement_default_up (0x00696720, already named in object_placement_data_initialize.c);
-//   game_engine_get_player_color (0x463290, already named) supplies the color
-//   object_placement_data_set_change_colors
-//   (0x477670, outside this batch) then folds into the placement; the new object's
-//   owner_linkage/network_role/name_index/controlling_player are stamped from the player exactly
-//   like the pattern already established in player_spawn_starting_profile_weapon.c and
-//   player_set_pending_interaction_action.c (this batch); unit_apply_starting_profile (0x473c50,
-//   already rewritten) is invoked with a profile index chosen from
-//   Scenario::player_starting_profile's count and the player's own death count; the closing
-//   dedicated-server-only block re-serializes the unit's weapon loadout via
-//   game_engine_send_unit_weapon_loadout (this batch) after a unit_build_network_update network encode.
-//   The LEADING "despawn an existing local-player unit first" branch (only taken when no
-//   multiplayer engine is loaded and this is a local player who somehow already has a unit) is
-//   NOT independently re-verified past Ghidra's own decompilation; it is transcribed with raw
-//   offsets and flagged UNSURE below rather than guessed at further.
-// register convention: a player index in EAX (in_EAX, saved into EBX at entry and used
-//   throughout); no stack parameters.
-//   // blam-cc: EAX -> player_index
-// UNSURE: the entire leading despawn branch (object_header/light-attachment bit twiddling on a
-//   player's already-existing unit and its held weapon) is preserved as raw offsets exactly as
-//   Ghidra decompiled it -- not independently confirmed by disassembly in this pass; local_player_
-//   set_controlled_unit's arguments there (presumably local_player_index and -1, i.e. "clear");
-//   game_get_player_starting_location / observer_new's exact signatures beyond what their one call site
-//   here requires.
-// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
+// name confidence: 0.55   rewrite confidence: 0.85
+// REWRITTEN (from objdump 0x477ea0..0x478291; the draft passed the player index to observer_new, which takes
+//   EDX = &observers[local player] (0x006ac65c, stride 0x29c), and dropped several register arguments).
+//   Player (0x200 bytes): +0x02 local player index, +0x20 team, +0x24 interaction object, +0x28 interaction
+//   type (word), +0x34 unit, +0x68 cleared at the end, +0xae deaths.
+//   Single player (no game engine) with a local player: the local player's unit slot (0x0087a478 +0x8) is
+//   cleared. A dead unit (+0x106 bit 2) is deleted and a fresh one spawned; a living one (a revert) is marked
+//   pending delete together with its held weapon (+0x2f8[+0x2f2]), each with its light attachments dropped
+//   (header flag bit 0 cleared, datum byte +2 bit 1 set) when its tag has a light (+0x34 != -1), and the
+//   local player keeps controlling it (ESI unit, DI local index) without a new spawn.
+//   Otherwise, as a local game or network server (0x00719720 == 0 or 2): a random starting location and the
+//   globals player unit tag (+0x174 -> +0xc; the multiplayer unit +0x168 -> +0x1c under a game engine) place
+//   a new unit facing (cos, sin, 0) of the location's facing with the global up vector and the player's
+//   colour; it is tied to the player (+0xc0 owner, +0xb8 team, +0x218 controlling player), refreshed with CL 1,
+//   the look state initialised for a local player, and in single player the starting profile applied (1 when
+//   there are several profiles and the player has died, else 0). A network server also sends its grenade
+//   counts, a unit update and its weapon loadout.
+// blam-cc: EAX -> player_index
 
 #include "tags.h"
 #include "memory.h"
@@ -45,115 +26,97 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "camera.h"
+#include "networking.h"
 
 extern data_array *player_data;                     // 0x0087a480
-extern data_array *object_headers;                  // 0x008603b0
-extern player_globals *local_player_globals;        // 0x0087a478
+extern data_array *object_data;                     // 0x008603b0
+extern uint8_t *local_player_globals;               // 0x0087a478
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern int16_t network_game_mode;                   // 0x00719720
-extern Globals *global_globals;                 // 0x00746fa0, UNSURE: identity as Globals*,
-    // see header evidence (TagReflexive pointers at +0x168/+0x174 match multiplayer_information/
-    // player_information)
-extern Scenario *global_scenario;                   // 0x00746f8c
-extern real_vector3d object_placement_default_up;   // 0x00696720
-extern uint8_t shared_hud_text_draw_state;           // 0x00871de0
+extern uint8_t *global_globals;                     // 0x00746fa0
+extern uint8_t *global_scenario;                    // 0x00746f8c
+extern const real_vector3d *global_up3d_pointer;    // 0x00696720
+extern uint8_t shared_hud_text_draw_state;          // 0x00871de0
 extern tag_instance *tag_instances;                 // 0x0087bc14
+extern void *network_server_pointer;                // 0x0071c2d4
+extern observer observers[];                        // 0x006ac65c, stride 0x29c
 
-extern void object_mark_pending_delete(uint32_t object_index); // 0x4f50f0
-extern void object_delete(uint32_t object_index); // 0x4f5bd0
+extern void object_mark_pending_delete(uint32_t object_index); // 0x4f50f0, blam-cc: EAX
+extern void object_delete(uint32_t object_index); // 0x4f5bd0, blam-cc: EAX
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table,
-    int32_t invoke_callback); // 0x4f9a20
-extern void local_player_set_controlled_unit(datum_index new_unit, int16_t local_player_index); // 0x474fc0
-extern int16_t player_pick_random_starting_location(datum_index player_handle); // this batch, 0x4776d0
-extern float *game_get_player_starting_location(int32_t location_index); // 0x477640, not in this batch; UNSURE exact
-    // signature; returns {x, y, z, facing}
-extern void object_placement_data_initialize(object_placement_data *placement,
-    datum_index definition_tag, datum_index role); // 0x4f53a0
-extern real *game_engine_get_player_color(uint32_t player_index, real *out_rgb); // 0x463290;
-    // returns out_rgb (mov eax,esi at 0x4632ee); blam-cc: EAX -> player_index, ESI -> out_rgb
-extern void object_placement_data_set_change_colors(real *color,
-    object_placement_data *placement); // 0x477670, this module (VERIFIED against this very
-    // call site, see that file); blam-cc: EAX -> color, ECX -> placement
-extern datum_index object_new_with_datum_role_control(object_placement_data *placement,
-    uint32_t role); // 0x4f54b0
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index); // 0x569bf0, not in this batch
-extern void game_engine_init_player_look_state_from_object(datum_index unit, int16_t local_player_index); // 0x470e80, already established (src/game/game_engine_init_player_look_state_from_object.c)
-extern double cos(double x); // x87 FCOS
-extern double sin(double x); // x87 FSIN
+    int32_t invoke_callback); // 0x4f9a20, blam-cc: EAX, stack
+extern void local_player_set_controlled_unit(datum_index new_unit, int16_t local_player_index); // 0x474fc0, ESI, DI
+extern int16_t player_pick_random_starting_location(datum_index player_handle); // 0x4776d0, stack
+extern ScenarioPlayerStartingLocation *game_get_player_starting_location(int16_t index); // 0x477640, CX
+extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag,
+    datum_index role); // 0x4f53a0, blam-cc: EAX, stack
+extern real *game_engine_get_player_color(uint32_t player_index, real *out_rgb); // 0x463290, EAX, ESI
+extern void object_placement_data_set_change_colors(real *color, object_placement_data *placement); // 0x477670, EAX, ECX
+extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role); // 0x4f54b0
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
+extern void unit_refresh_targeting_flag_and_weapons(uint32_t unit_index, uint8_t initial_targeting_flag); // 0x569bf0, stack, CL
+extern void game_engine_init_player_look_state_from_object(datum_index unit, int16_t local_player_index); // 0x470e80, EDX, AX
 extern void unit_apply_starting_profile(int16_t starting_profile_index, datum_index unit_handle,
-    uint8_t reset_stats); // 0x473c50, already rewritten (src/game/unit_apply_starting_profile.c)
-extern void game_engine_apply_player_grenade_counts(uint32_t player_index); // 0x4613c0, established
-    // (src/game/game_engine_apply_player_grenade_counts.c)
-extern void object_type_override_call_0x68(uint32_t object_index); // 0x4f4560, established
-    // (src/game/game_engine_update_netgame_equipment.c)
-extern int32_t unit_build_network_update(datum_index object_index, void *buffer, uint32_t buffer_size); // 0x55aed0, not in this batch
-extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
-extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data,
-    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, ECX server
+    uint8_t reset_stats); // 0x473c50, EAX, ECX, stack
+extern void game_engine_apply_player_grenade_counts(uint32_t player_index); // 0x4613c0, EAX
+extern void object_type_override_call_0x68(uint32_t object_index); // 0x4f4560, ESI
+// OPEN: the binary pushes (unit, buffer, 0x7ff8) and tests EAX; src/units/unit_build_network_update.c takes
+// only the unit and returns nothing. Network-server path only.
+extern int32_t unit_build_network_update(uint32_t object_index, void *buffer, uint32_t buffer_size); // 0x55aed0
+extern char network_session_broadcast_to_flagged(int32_t body_bit_count, network_server_globals *server,
+    int32_t param_1, void *data, int32_t param_3, int32_t param_4, char force, int32_t param_6); // 0x4e1a80, EAX, ECX
 extern void game_engine_send_unit_weapon_loadout(uint32_t unit_index, datum_index player_handle,
-    int32_t value, int32_t machine_index); // this batch, 0x477a80
-extern void observer_new(uint32_t player_index); // 0x447740, not in this batch; UNSURE exact signature
+    int32_t value, int32_t machine_index); // 0x477a80, EAX, stack
+extern void observer_new(observer *this); // 0x447740, blam-cc: EDX
 
-// blam-cc: EAX -> player_index
-// Respawns `player_index`'s unit. If this is a local player in single-player who already has a
-// unit (UNSURE branch, see header note), despawns it and its held weapon first and returns
-// early. Otherwise, in single-player or as the network server, picks a random starting
-// location, resolves the correct default unit tag for the current game mode, builds an
-// object_placement_data for it (position/facing from the location, color from the player) and
-// spawns it, wiring it back into the player and (in single player) applying a starting weapon
-// profile. On a dedicated server, additionally serializes the new unit's grenade counts and
-// weapon loadout to observers. Always clears the player's pending kill-streak/interaction state
-// at the end, and notifies the local-player look state on a local player.
+extern double cos(double x);
+extern double sin(double x);
+
+// Drops a pending-delete object's light attachments, as both halves of the revert branch do.
+static void player_respawn_drop_lights(datum_index object_index)
+{
+    uint8_t *header = (uint8_t *)object_data->data + (object_index & 0xffff) * 0xc;
+    uint8_t *obj = *(uint8_t **)(header + 8);
+    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+
+    if (*(int32_t *)(tag + 0x34) == -1) {
+        return;
+    }
+    if (*(uint8_t *)(obj + 0x10) & 1) {
+        object_for_each_light_attachment(object_index, 0, 1);
+    }
+    if (*(int32_t *)(tag + 0x34) != -1) {
+        *(uint32_t *)(obj + 0x10) &= ~1u;
+        header = (uint8_t *)object_data->data + (object_index & 0xffff) * 0xc; // reloaded at 0x478085
+        header[2] |= 2;
+    }
+}
+
 void player_respawn(uint32_t player_index)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+    uint8_t *p = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;
 
-    if (current_game_engine == 0 && p->local_player_index != -1) {
-        // UNSURE: this whole branch (despawning an existing local-player unit) is transcribed
-        // from Ghidra's own decompilation with raw offsets, not independently re-verified.
-        datum_index existing_unit = local_player_globals->local_player_units[p->local_player_index];
-        local_player_globals->local_player_units[p->local_player_index] = (datum_index)0xffffffff;
+    if (current_game_engine == 0 && *(int16_t *)(p + 2) != -1) {
+        datum_index *slot = (datum_index *)(local_player_globals + 8 + *(int16_t *)(p + 2) * 4);
+        datum_index existing_unit = *slot;
 
-        if (existing_unit != (datum_index)0xffffffff) {
-            object_header *existing_header = &((object_header *)object_headers->data)[existing_unit & 0xffff];
-            object *unit_obj = existing_header->data;
-            if ((*((uint8_t *)&unit_obj->vitality_flags) & 4) == 0) {
-                unit_data *unit = (unit_data *)unit_obj;
-                datum_index held_weapon = (datum_index)0xffffffff;
-                int16_t current_weapon_index = unit->current_weapon_index;
+        *slot = k_datum_index_none;
+        if (existing_unit != k_datum_index_none) {
+            uint8_t *unit = *(uint8_t **)((uint8_t *)object_data->data + (existing_unit & 0xffff) * 0xc + 8);
 
-                if (current_weapon_index != -1) {
-                    held_weapon = unit->weapons[current_weapon_index];
+            if ((unit[0x106] & 4) == 0) {
+                datum_index held_weapon = k_datum_index_none;
+                int16_t weapon_index = *(int16_t *)(unit + 0x2f2);
+
+                if (weapon_index != -1) {
+                    held_weapon = *(datum_index *)(unit + 0x2f8 + weapon_index * 4);
                 }
                 object_mark_pending_delete(existing_unit);
-
-                // UNSURE: the check here is against the Object TAG data
-                // (tag_instances[unit_obj->definition_tag].data), not the runtime object -- the
-                // tag field at +0x34 is not otherwise identified. Kept as a raw offset read
-                // exactly as Ghidra decompiled it.
-                if (*(int32_t *)((uint8_t *)tag_instances[unit_obj->definition_tag & 0xffff].data + 0x34) != -1) {
-                    if ((existing_header->flags & 1) != 0) {
-                        object_for_each_light_attachment(existing_unit, 0, 1);
-                    }
-                    if (*(int32_t *)((uint8_t *)tag_instances[unit_obj->definition_tag & 0xffff].data + 0x34) != -1) {
-                        existing_header->flags = existing_header->flags & ~1u;
-                    }
-                }
-
-                local_player_set_controlled_unit((datum_index)0xffffffff, p->local_player_index);
-
-                if (held_weapon != (datum_index)0xffffffff) {
-                    object_header *weapon_header = &((object_header *)object_headers->data)[held_weapon & 0xffff];
-                    object *weapon_obj = weapon_header->data;
-                    if (*(int32_t *)((uint8_t *)tag_instances[weapon_obj->definition_tag & 0xffff].data + 0x34) != -1) {
-                        if ((weapon_header->flags & 1) != 0) {
-                            object_for_each_light_attachment(held_weapon, 0, 1);
-                        }
-                        if (*(int32_t *)((uint8_t *)tag_instances[weapon_obj->definition_tag & 0xffff].data + 0x34) != -1) {
-                            weapon_header->flags = weapon_header->flags & ~1u;
-                        }
-                    }
+                player_respawn_drop_lights(existing_unit);
+                local_player_set_controlled_unit(existing_unit, *(int16_t *)(p + 2));
+                if (held_weapon != k_datum_index_none) {
+                    player_respawn_drop_lights(held_weapon);
                 }
                 goto reset_player_state;
             }
@@ -163,85 +126,90 @@ void player_respawn(uint32_t player_index)
 
     if (network_game_mode == 2 || network_game_mode == 0) {
         int16_t location_index = player_pick_random_starting_location(player_index);
-        if (location_index != -1) {
-            GlobalsPlayerInformation *player_info = (GlobalsPlayerInformation *)global_globals->player_information.pointer;
-            TagDependency *spawn_unit_tag = &player_info[0].unit;
-            if (*(datum_index *)&spawn_unit_tag->tag_id != (datum_index)0xffffffff) {
-            float *location = game_get_player_starting_location(location_index);
+        datum_index unit_tag;
+        ScenarioPlayerStartingLocation *location;
+        object_placement_data placement;
+        real color_buffer[3];
+        real color[3];
+        real *player_color;
+        real facing;
+        datum_index new_unit;
+        uint8_t *unit;
 
-            if (current_game_engine != 0) {
-                GlobalsMultiplayerInformation *mp_info = (GlobalsMultiplayerInformation *)global_globals->multiplayer_information.pointer;
-                spawn_unit_tag = &mp_info->unit;
+        if (location_index == -1) {
+            goto reset_player_state;
+        }
+        unit_tag = *(datum_index *)(*(uint8_t **)(global_globals + 0x174) + 0xc);
+        if (unit_tag == k_datum_index_none) {
+            goto reset_player_state;
+        }
+        location = game_get_player_starting_location(location_index);
+        if (current_game_engine != 0) {
+            unit_tag = *(datum_index *)(*(uint8_t **)(global_globals + 0x168) + 0x1c);
+        }
+        object_placement_data_initialize(&placement, unit_tag, k_datum_index_none);
+        placement.position = *(real_point3d *)location;
+        facing = *(real *)((uint8_t *)location + 0xc);
+        placement.forward.i = (real)cos(facing);
+        placement.forward.j = (real)sin(facing);
+        placement.forward.k = 0.0f;
+        placement.up = *global_up3d_pointer;
+        player_color = game_engine_get_player_color(player_index, color_buffer);
+        color[0] = player_color[0];
+        color[1] = player_color[1];
+        color[2] = player_color[2];
+        object_placement_data_set_change_colors(color, &placement);
+
+        new_unit = object_new_with_datum_role_control(&placement, 3);
+        if (new_unit == k_datum_index_none) {
+            goto reset_player_state;
+        }
+        unit = (uint8_t *)object_try_and_get(new_unit, 3);
+        if (unit == 0) {
+            goto reset_player_state;
+        }
+        p = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;
+        *(uint32_t *)(unit + 0xc0) = player_index;
+        *(int16_t *)(unit + 0xb8) = *(int16_t *)(p + 0x20);
+        *(uint32_t *)(unit + 0x218) = player_index;
+        *(datum_index *)(p + 0x34) = new_unit;
+        unit_refresh_targeting_flag_and_weapons(new_unit, 1);
+        if (*(int16_t *)(p + 2) != -1) {
+            game_engine_init_player_look_state_from_object(new_unit, *(int16_t *)(p + 2));
+        }
+        if (current_game_engine == 0) {
+            int32_t profile_count = *(int32_t *)(global_scenario + 0x348);
+
+            if (profile_count > 1 && *(int16_t *)(p + 0xae) > 0) {
+                unit_apply_starting_profile(1, *(datum_index *)(p + 0x34), 1);
+            } else if (profile_count != 0) {
+                unit_apply_starting_profile(0, *(datum_index *)(p + 0x34), 1);
             }
+        }
+        if (network_game_mode == 2) {
+            int32_t team = *(int32_t *)(p + 0x20);
+            int32_t encoded_bits;
 
-            {
-                object_placement_data placement;
-                float color[3];
-                datum_index new_unit;
-
-                object_placement_data_initialize(&placement, *(datum_index *)&spawn_unit_tag->tag_id, (datum_index)0xffffffff);
-                placement.position.x = location[0];
-                placement.position.y = location[1];
-                placement.position.z = location[2];
-                placement.forward.i = (float)cos((double)location[3]);
-                placement.forward.j = (float)sin((double)location[3]);
-                placement.forward.k = 0.0f;
-                placement.up = object_placement_default_up;
-
-                game_engine_get_player_color(player_index, color);
-                object_placement_data_set_change_colors(color, &placement);
-
-                new_unit = object_new_with_datum_role_control(&placement, 3);
-                if (new_unit != (datum_index)0xffffffff) {
-                    object *unit_obj = object_try_and_get(new_unit, 3);
-                    if (unit_obj != 0) {
-                        unit_obj->owner_linkage = player_index;
-                        unit_obj->owner_team = (int16_t)p->team;
-                        ((unit_data *)unit_obj)->controlling_player = (datum_index)player_index;
-                        p->unit = new_unit;
-                        unit_refresh_targeting_flag_and_weapons(new_unit);
-
-                        if (p->local_player_index != -1) {
-                            game_engine_init_player_look_state_from_object(new_unit, p->local_player_index);
-                        }
-
-                        {
-                            int32_t profile_count = (int32_t)global_scenario->player_starting_profile.count;
-                            if (profile_count != 0) {
-                                int16_t starting_profile_index = 0;
-                                if (profile_count > 1 && p->deaths > 0) {
-                                    starting_profile_index = 1;
-                                }
-                                unit_apply_starting_profile(starting_profile_index, new_unit, 1);
-                            }
-                        }
-
-                        if (network_game_mode == 2) {
-                            game_engine_apply_player_grenade_counts(player_index);
-                            unit_obj->network_role = 0;
-                            object_type_override_call_0x68(new_unit);
-                            {
-                                int32_t encoded_bits = unit_build_network_update(new_unit, &shared_hud_text_draw_state, 0x7ff8);
-                                if (0 < encoded_bits) {
-                                    network_session_broadcast_to_flagged(network_server_pointer, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
-                                }
-                            }
-                            p->kill_streak[0] = 0;
-                            game_engine_send_unit_weapon_loadout(new_unit, (datum_index)player_index, 0, -1);
-                        }
-                    }
-                }
+            game_engine_apply_player_grenade_counts(player_index);
+            *(uint32_t *)(unit + 4) = 0;
+            object_type_override_call_0x68(new_unit);
+            encoded_bits = unit_build_network_update(new_unit, &shared_hud_text_draw_state, 0x7ff8);
+            if (encoded_bits > 0) {
+                network_session_broadcast_to_flagged(encoded_bits, (network_server_globals *)network_server_pointer,
+                    1, &shared_hud_text_draw_state, 1, 0, 0, 3);
             }
-            }
+            *(uint32_t *)(p + 0x68) = 0;
+            game_engine_send_unit_weapon_loadout(new_unit, player_index, team, -1);
         }
     }
 
 reset_player_state:
-    p->kill_streak[0] = 0;
-    p->interaction_type = 0;
-    p->interaction_object = (datum_index)0xffffffff;
-    if (p->local_player_index != -1) {
-        observer_new(player_index);
+    p = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;
+    *(uint32_t *)(p + 0x68) = 0;
+    *(uint16_t *)(p + 0x28) = 0;
+    *(datum_index *)(p + 0x24) = k_datum_index_none;
+    if (*(int16_t *)(p + 2) != -1) {
+        observer_new(&observers[*(int16_t *)(p + 2)]);
     }
 }
 

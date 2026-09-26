@@ -16,7 +16,7 @@
 //   0x570228 before being overwritten) is unit_start_user_animation's warn_if_missing.
 //   The dead first stack slot is kept as an unused parameter to preserve the real stack layout
 //   for any future hook trampoline (frame is genuinely the second stack slot, not the first).
-//   // blam-cc: ECX -> unit_index, EAX -> warn_if_missing, EDI -> graph_tag_id, stack -> unused_legacy_param, frame
+//   // blam-cc: ECX -> unit_index, EAX -> warn_if_missing, EDI -> graph_tag_id, stack -> animation_name, frame
 // FIXED (register inputs, objdump): EAX and EDI are genuine live-ins the notes did not map,
 // forwarded to unit_start_user_animation instead of the hardcoded 0 and the dead stack value.
 
@@ -30,21 +30,21 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern uint8_t unit_start_user_animation(uint32_t object_index, datum_index graph_tag_id,
-                                          uint8_t warn_if_missing); // 0x5702a0
+extern uint8_t unit_start_user_animation(uint32_t unit_index, datum_index graph_tag, const char *animation_name,
+    uint8_t interpolate); // 0x5702a0
 
 // Sets the current playback frame of the unit's active custom animation, if valid (i.e. if
 // unit_start_user_animation reports the animation is already active/continuing, and the frame
 // falls within the graph's animation length).
 uint8_t unit_set_custom_animation_frame(uint32_t unit_index, uint8_t warn_if_missing,
-    datum_index graph_tag_id, int32_t unused_legacy_param, int16_t frame)
+    datum_index graph_tag_id, const char *animation_name, int16_t frame)
 {
     object *obj;
     uint8_t *graph_tag;
 
-    (void)unused_legacy_param; // UNSURE: real stack slot, read into EAX in the binary but never used again
-
-    if (unit_start_user_animation(unit_index, graph_tag_id, warn_if_missing) == 0) {
+    // FIXED (0x570228..0x570232): the first stack argument is the animation name, handed on in EAX; the
+    // interpolate flag (EAX here) is pushed after the unit, and the graph stays in EDI.
+    if (unit_start_user_animation(unit_index, graph_tag_id, animation_name, warn_if_missing) == 0) {
         return 0;
     }
 

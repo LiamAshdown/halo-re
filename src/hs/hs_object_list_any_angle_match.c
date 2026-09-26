@@ -10,14 +10,13 @@
 // register convention: reference-list header index in EAX (in_EAX); angle in degrees as the
 //   recognized stack parameter (param_2); param_1 unused here, forwarded verbatim as the current
 //   object index to hs_object_angle_predicate_helper's own (also unused) middle parameter.
-//   // blam-cc: EAX -> header_index, stack -> (param_1, angle_degrees)
+//   // blam-cc: EAX -> header_index, stack -> (target_object, angle_degrees)
 
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 
-extern uint32_t hs_object_angle_predicate_helper(datum_index object_index, void *param_1,
-    float angle_degrees); // this module, 0x4878f0
+extern uint8_t hs_object_angle_predicate_helper(datum_index object_index, datum_index viewer_unit, float angle_degrees); // this module, 0x4878f0
 
 extern data_array *object_list_header_data;    // 0x0087a464
 extern data_array *object_list_reference_data; // 0x0087a468
@@ -28,7 +27,7 @@ extern data_array *object_headers;             // 0x008603b0, stride 0x0c
 // Returns 1 if any object referenced by the list headed by `header_index` is a live, valid biped
 // or vehicle (per its object_headers entry) whose data pointer is set and which satisfies
 // hs_object_angle_predicate_helper for `angle_degrees`; otherwise 0.
-uint32_t hs_object_list_any_angle_match(datum_index header_index, float angle_degrees)
+uint32_t hs_object_list_any_angle_match(datum_index header_index, datum_index target_object, float angle_degrees)
 {
     object_list_header *header;
     object_list_reference *reference;
@@ -68,8 +67,9 @@ uint32_t hs_object_list_any_angle_match(datum_index header_index, float angle_de
                 salt = (int16_t)((uint32_t)object_index >> 0x10);
                 if ((salt == 0 || entry->identifier == salt) &&
                     (1 << (entry->type_flag & 0x1f) & 3) != 0 && entry->data != 0 &&
-                    hs_object_angle_predicate_helper(object_index, (void *)(uint32_t)object_index,
-                        angle_degrees) != 0) {
+                    hs_object_angle_predicate_helper(target_object, object_index, angle_degrees) != 0) {
+                    // FIXED (0x487a62..0x487a68): EAX = the target (stack arg 1), stack = (this unit,
+                    // the angle); the draft had no target parameter.
                     return 1;
                 }
             }

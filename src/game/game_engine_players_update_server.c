@@ -84,9 +84,9 @@ extern void unit_release_selected_equipment(datum_index unit_handle); // 0x56d30
 extern void unit_dispatch_scripted_event_1b(uint8_t event_byte, uint32_t unit_index); // 0x56dcd0,
     // blam-cc: param_1 -> event_byte, ECX -> unit_index
 extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force); // 0x56dec0
-extern void unit_apply_control_block(void *record_or_field, int32_t grenade_value); // 0x5639f0, units module,
-    // not in this batch; blam-cc: EDX -> record_or_field, ECX -> grenade_value; the function
-    // that block-moves a unit_control_data into the unit (types/units.h)
+extern void unit_apply_control_block(uint32_t unit_index, const unit_control_data *control, int32_t source_id);
+    // 0x5639f0, blam-cc: EAX -> unit_index, EDX -> control, stack -> source_id (0x474534: EAX = player unit,
+    // EDX = the stack control block, the carry record's +4 pushed)
 extern void game_engine_build_visible_cluster_bitmask(void *out_bitmask, uint32_t flag); // this module's next batch, 0x4782a0
 
 // Applies this tick's queued client update into a 16-entry player_action array plus a 16-entry
@@ -98,6 +98,11 @@ extern void game_engine_build_visible_cluster_bitmask(void *out_bitmask, uint32_
 // weapon/trigger input for this tick and hands a unit_control_data built from its player_action
 // record (or, for an idle non-local, non-AI unit, a default-facing one) to unit_apply_control_block. Finally
 // rebuilds the two encounter/squad-presence bitmasks and player_globals::local_player_count.
+// FIXED (objdump 0x4740a0..0x47458d): unit_apply_control_block takes the unit in EAX and the block in EDX
+//   (the draft dropped the unit); the action path fills facing, aiming and looking with the same forward vector.
+// OPEN: 0x47419b pushes (handle, carry +4, carry +8) plus the 0x20-byte player_action by value, which neither
+//   this call nor src/networking/build_remote_player_transform_update.c's signature reproduces (network server
+//   only).
 void game_engine_players_update_server(void)
 {
     player_action actions[16];
@@ -224,8 +229,10 @@ void game_engine_players_update_server(void)
                         ctrl.throttle.j = action->throttle_y;
                         ctrl.throttle.k = 0.0f;
                         ctrl.primary_trigger = action->primary_trigger;
-                        ctrl.facing_vector = forward;
-                        unit_apply_control_block(&ctrl, grenade_value);
+                        ctrl.facing_vector = forward; // 0x4743e3..0x474411: the forward vector is written
+                        ctrl.aiming_vector = forward; // straight into +0x28 and copied to +0x1c and +0x34
+                        ctrl.looking_vector = forward;
+                        unit_apply_control_block(plr->unit, &ctrl, grenade_value);
                     }
                 } else if (unit->swarm_actor_index == (datum_index)-1 && unit->actor_index == (datum_index)-1) {
                     unit_control_data ctrl;
@@ -242,7 +249,7 @@ void game_engine_players_update_server(void)
                     ctrl.facing_vector = unit->desired_facing_vector;
                     ctrl.aiming_vector = unit->desired_aiming_vector;
                     ctrl.looking_vector = unit->desired_looking_vector;
-                    unit_apply_control_block(&ctrl, grenade_value);
+                    unit_apply_control_block(plr->unit, &ctrl, grenade_value);
                 }
             }
         }

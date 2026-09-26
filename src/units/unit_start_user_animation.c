@@ -1,25 +1,17 @@
 // unit_start_user_animation  (Ghidra: already named unit_start_user_animation)
 // address 0x5702a0, size 343 bytes
-// name confidence: 0.6 (this is the real function of that name: it carries the exact
-//   "doesn't exist in the graph" string the cea-pdb hint cites; units_types_notes.md notes the
-//   pre-existing name was previously mis-assigned to 0x5739a0, a hover-vehicle physics
-//   function, and belongs here instead)
-// rewrite confidence: 0.3 -- the animation-name string and the graph tag id arrive in registers
-//   Ghidra could not source at all (not even as "unaff_" locals for the string), so
-//   animation_graph_find_animation_by_name and console_print_va are called with no arguments modeled,
-//   matching Ghidra's own decompile, rather than invented ones.
-// evidence: types/objects.h object.animation_index (0x0d0), .animation_frame (0x0d2);
-//   types/units.h unit_data.animation_state (0x2a3), .animation_state_flags (0x298, bit 0 =
-//   _unit_animation_flag_action_active); callee unit_set_custom_animation (0x56ebd0, this
-//   batch), object_recalculate_bounding_radius_recursive.
-// register convention: object index in EAX (param_1), a graph tag id in EDI (unaff_EDI), a
-//   "warn if missing" flag in a second register (param_2). The animation name string is a third
-//   register argument this decompile never names.
-//   // blam-cc: EAX -> object_index, EDI -> graph_tag_id, second register -> warn_if_missing
-// UNSURE: the "continuation" branch (matching animation type at graph offset 0x42 relative to
-//   the two records, and stepping the frame back by one when within 2 frames of the end) is
-//   reproduced with raw offsets into the graph's 0xb4-stride animation block, the same
-//   unnamed block unit_get_custom_animation_time_remaining reads.
+// name confidence: 0.6   rewrite confidence: 0.9
+// REWRITTEN (objdump 0x5702a0..0x5703f6; the draft had the unit in EAX and no animation name). EAX = the
+//   animation name, EDI = the animation graph tag, [esp+4] = the unit, [esp+8] = interpolate. With both indices
+//   set: animation_graph_find_animation_by_name(EAX graph, EBX name) -- missing prints "the animation '%s'
+//   doesn't exist in the graph '%s'" (0x0066e960, the name and the graph's tag name) and fails -- then
+//   animation_choose_random_permutation(EAX graph, DX index, stack 1). An animation whose type word (+0x20 of the
+//   0xb4-byte record at graph +0x78) is not 0 fails. A unit already in a custom animation (+0x2a3 == 0x1c,
+//   animation +0xd0 not -1) of the same +0x42 group is left alone -- two frames (+0xd2) from its end
+//   (+0x34 frame count) it steps back one frame; before the end it fails. Otherwise: interpolate copies the
+//   default node transforms (EAX unit, DX 6), the state becomes 0x1c, unit_set_custom_animation(EAX unit,
+//   stack graph, animation), the action-active bit (+0x298 bit 0) is set, the bounding radius is recomputed.
+// blam-cc: stack -> unit_index, EDI -> graph_tag, EAX -> animation_name, stack -> interpolate
 
 #include "tags.h"
 #include "memory.h"
@@ -31,71 +23,63 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern int16_t animation_graph_find_animation_by_name(void); // 0x4d6ab0, UNSURE: real args not visible
+extern int16_t animation_graph_find_animation_by_name(datum_index animation_graph_tag, const char *name);
+    // 0x4d6ab0, blam-cc: EAX, EBX
+extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation,
+    int32_t stream); // 0x4d6280, blam-cc: EAX, DX, stack
 extern void console_print_va(const char *format, ...); // 0x4c6920
-extern int16_t animation_choose_random_permutation(uint32_t flag); // 0x4d6280, UNSURE: allocates some kind of instance/token
-extern void object_copy_default_node_transforms(uint32_t unit_index); // 0x4f6b70  // real signature (object_copy_default_node_transforms.c): void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count); Ghidra recovered 1 of 2 args at this call site
+extern void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count); // 0x4f6b70, EAX, DX
 extern void unit_set_custom_animation(uint32_t object_index, datum_index graph, int16_t animation_index); // 0x56ebd0
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
 
-// Starts (or validates continuation of) a named custom animation on the unit, switching it into
-// custom-animation control state. Returns 1 if the animation was (re)started, 0 if the named
-// animation does not exist in the graph, if it is already playing and not near its end (a
-// continuation), or if either input index is -1.
-uint8_t unit_start_user_animation(uint32_t object_index, datum_index graph_tag_id, uint8_t warn_if_missing)
+uint8_t unit_start_user_animation(uint32_t unit_index, datum_index graph_tag, const char *animation_name,
+    uint8_t interpolate)
 {
-    object *obj;
-    uint8_t *graph_tag;
-    int16_t animation_index;
-    int16_t new_animation_index;
+    uint8_t *unit;
+    uint8_t *animations;
+    uint8_t *record;
+    int16_t animation;
 
-    if (object_index == 0xffffffff || graph_tag_id == 0xffffffff) {
+    if (unit_index == k_datum_index_none || graph_tag == k_datum_index_none) {
         return 0;
     }
-
-    obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    graph_tag = tag_instances[graph_tag_id & 0xffff].data;
-
-    animation_index = animation_graph_find_animation_by_name(); // UNSURE args, see file header
-    if (animation_index == -1) {
-        console_print_va("the animation '%s' doesn't exist in the graph '%s'");
+    unit = *(uint8_t **)((uint8_t *)object_data->data + (unit_index & 0xffff) * 0xc + 8);
+    animation = animation_graph_find_animation_by_name(graph_tag, animation_name);
+    if (animation == -1) {
+        console_print_va("the animation '%s' doesn't exist in the graph '%s'", animation_name,
+            *(char **)((uint8_t *)tag_instances + (int16_t)graph_tag * 0x20 + 0x10));
         return 0;
     }
+    animation = animation_choose_random_permutation(graph_tag, animation, 1);
+    animations = *(uint8_t **)((uint8_t *)tag_instances[graph_tag & 0xffff].data + 0x78);
+    record = animations + animation * 0xb4;
+    if (*(int16_t *)(record + 0x20) != 0) {
+        return 0;
+    }
+    if (unit[0x2a3] == 0x1c && *(int16_t *)(unit + 0xd0) != -1) {
+        uint8_t *current = animations + *(int16_t *)(unit + 0xd0) * 0xb4;
 
-    new_animation_index = animation_choose_random_permutation(1);
-    {
-        uint8_t *anim_block = *(uint8_t **)(graph_tag + 0x78);
-        int16_t kind = *(int16_t *)(anim_block + new_animation_index * 0xb4 + 0x20);
+        if (*(int16_t *)(current + 0x42) == *(int16_t *)(record + 0x42)) {
+            int16_t frame_count = *(int16_t *)(current + 0x34);
+            uint16_t frame = *(uint16_t *)(unit + 0xd2);
 
-        if (kind == 1 || kind != 0) {
-            return 0;
-        }
-
-        if (obj->animation_index != -1 &&
-            ((unit_data *)((uint8_t *)obj + k_unit_data_offset))->animation_state == _unit_animation_state_custom_animation) {
-            int32_t old_record = obj->animation_index * 0xb4;
-            if (*(int16_t *)(anim_block + old_record + 0x42) == *(int16_t *)(anim_block + new_animation_index * 0xb4 + 0x42)) {
-                int16_t old_frame_count = *(int16_t *)(anim_block + old_record + 0x34);
-                int16_t current_frame = obj->animation_frame;
-                if (current_frame + 2 == old_frame_count) {
-                    obj->animation_frame = current_frame - 1;
-                    return 0;
-                }
-                if (current_frame < old_frame_count) {
-                    return 0;
-                }
+            if ((int32_t)(int16_t)frame + 2 == (int32_t)frame_count) {
+                *(uint16_t *)(unit + 0xd2) = (uint16_t)(frame - 1);
+                return 0;
+            }
+            if ((int16_t)frame < frame_count) {
+                return 0;
             }
         }
-
-        if (warn_if_missing != 0) {
-            object_copy_default_node_transforms(object_index);
-        }
-        ((unit_data *)((uint8_t *)obj + k_unit_data_offset))->animation_state = _unit_animation_state_custom_animation;
-        unit_set_custom_animation(object_index, graph_tag_id, new_animation_index);
-        ((unit_data *)((uint8_t *)obj + k_unit_data_offset))->animation_state_flags |= _unit_animation_flag_action_active;
-        object_recalculate_bounding_radius_recursive(object_index);
-        return 1;
     }
+    if (interpolate) {
+        object_copy_default_node_transforms(unit_index, 6);
+    }
+    unit[0x2a3] = 0x1c;
+    unit_set_custom_animation(unit_index, graph_tag, animation);
+    unit[0x298] |= 1;
+    object_recalculate_bounding_radius_recursive(unit_index);
+    return 1;
 }
 
 #if 0
