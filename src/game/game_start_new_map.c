@@ -80,9 +80,9 @@ extern void players_dispose(void);                                   // 0x473670
 extern void hs_scripts_reload(void);                                  // 0x483250
 extern void interface_local_player_state_reset(void);                                        // UNSURE module
 extern void data_delete_all(data_array *array); // blam-cc: ESI -> array (src/memory/data_delete_all.c)                                // 0x4d0580, memory module, UNSURE arg
-extern void objects_update_control_bindings(Scenario *scenario); // 0x4f3ba0. One plain stack
+extern void scenario_objects_place(Scenario *scenario); // 0x4f3ba0. One plain stack
     // argument -- objdump shows 0x4f3ba0 reading [esp+0x24] twice and taking no register input,
-    // so src/objects/objects_update_control_bindings.c's "blam-cc: EAX -> param_1" is wrong.          // 0x4f3ba0, UNSURE arg
+    // so src/objects/scenario_objects_place.c's "blam-cc: EAX -> param_1" is wrong.          // 0x4f3ba0, UNSURE arg
 extern void objects_reset(void);                                           // 0x4f4bb0
 extern void breakable_surfaces_reset(void); // 0x4ffd40, objects (breakable_surface_globals reset, R79)
 extern void decal_and_font_system_reset(void);                                               // UNSURE module
@@ -258,7 +258,7 @@ void game_start_new_map(void)
 
     *(cache_file_slot_table + 1) = 1;
     *unknown_006b8cbc = 1;
-    objects_update_control_bindings(global_scenario);
+    scenario_objects_place(global_scenario);
     *unknown_006b8cbc = 0;
     encounters_spawn_initial();
 }
@@ -434,7 +434,7 @@ void FUN_0045b050(void)
   puVar1 = DAT_006b8cbc;
   *(undefined1 *)(DAT_006b0b80 + 1) = 1;
   *puVar1 = 1;
-  objects_update_control_bindings(uVar2);
+  scenario_objects_place(uVar2);
   *DAT_006b8cbc = 0;
   FUN_00435d50();
   return;

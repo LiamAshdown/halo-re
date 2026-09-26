@@ -54,8 +54,8 @@ extern double atan2(double y, double x);
 
 extern int16_t camera_get_type_for_player(int16_t local_player_index); // 0x445ac0, foreign (camera module)
     // blam-cc: CX -> local_player_index (0x4c90d4 mov cx,[edi], still live at 0x4c9124)
-extern void player_effect_build_camera_shake_matrix(int16_t local_player_index, void *out_shake_matrix); // 0x457390, foreign,
-    // UNSURE signature; blam-cc: CX -> local_player_index, stack -> out_shake_matrix
+extern void player_effect_build_camera_shake_matrix(void *out_shake_matrix, int16_t local_player_index); // 0x457390,
+    // blam-cc: stack -> out_shake_matrix, CX -> local_player_index (the definition's parameter order)
 extern void matrix4x3_from_forward_up_position(real_vector3d *up, real_vector3d *forward,
     real_point3d *position, real_matrix4x3 *out); // 0x4cbd60, foreign (math module)
 extern void matrix4x3_extract_forward_up_position(real_vector3d *up_out, real_vector3d *forward_out,
@@ -103,7 +103,7 @@ void render_view_camera_fill(observer_camera *observer, render_view *view)
                 uint8_t shake_matrix[56];
                 real_matrix4x3 orientation;
 
-                player_effect_build_camera_shake_matrix(view->local_player_index, shake_matrix);
+                player_effect_build_camera_shake_matrix(shake_matrix, view->local_player_index);
                 matrix4x3_from_forward_up_position((real_vector3d *)&observer->up,
                                                     (real_vector3d *)&observer->forward,
                                                     (real_point3d *)observer, &orientation);

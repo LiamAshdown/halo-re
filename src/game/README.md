@@ -1095,7 +1095,7 @@ confidence and should be hooked before they are trusted.
 
 **Cross-module discrepancies found but not fixed here** (they belong to the owning module):
 
-- `src/objects/objects_update_control_bindings.c` claims `blam-cc: EAX -> param_1`. `0x4f3ba0`
+- `src/objects/scenario_objects_place.c` claims `blam-cc: EAX -> param_1`. `0x4f3ba0`
   loads EAX from `0x0071c2d4` as its first instruction and reads its only parameter twice from
   `[esp+0x24]`, so the argument is a plain stack argument (this module passes `global_scenario`).
 - `types/memory.h`'s `data_iterator` is 0x0c bytes. Every caller in this module reserves 0x10 and

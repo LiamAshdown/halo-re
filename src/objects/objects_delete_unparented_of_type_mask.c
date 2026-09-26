@@ -2,7 +2,7 @@
 // address 0x4f47c0, size 149 bytes
 // name confidence: 0.75 (still FUN_004f47c0 in Ghidra; types/objects.h's
 //   _object_mask_scenery_and_light_fixture comment names this function explicitly: "0x240 --
-//   objects_delete_unparented_of_type_mask and objects_update_player_visibility_masks both
+//   objects_delete_unparented_of_type_mask and scenario_objects_place_for_structure_bsp both
 //   iterate with 0x240")
 // rewrite confidence: 0.6
 // evidence: types/objects.h object_iterator (type_mask/flags_mask/index/handle),

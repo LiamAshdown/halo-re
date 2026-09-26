@@ -10,7 +10,7 @@
 // via network_game_client_connect_to_address or starts an async resolve with FUN_00614f30 passing callbacks FUN_0044ad80
 // and network_join_hostname_resolved_callback (0x4ba270), setting the connect state
 // DAT_00718f8c=4"); the packed-address comparison mirrors
-// src/networking/network_channel_get_remote_address.c's identical FUN_006175f0-based idiom;
+// src/networking/network_channel_get_remote_address.c's identical gamespy_array_length-based idiom;
 // DAT_0071946c is named `master_server_query_engine` per
 // src/networking/master_server_process_pending_requests.c (same address, same GameSpy handle
 // role, reused here); DAT_0068e680/4/8, DAT_00718f8c/90 and DAT_006b2f28/68 are the
@@ -78,7 +78,7 @@ extern uint32_t FUN_00617650(int32_t handle); // alternate/"connect" port
 extern char *FUN_00617640(int32_t handle);    // alternate/"connect" address string
 extern int32_t FUN_00617620(int32_t handle);  // has-resolved-address flag
 extern int32_t FUN_00617630(int32_t handle);  // hostname-already-resolved flag
-extern uint32_t FUN_006175f0(int32_t object); // 0x6175f0: returns the uint32 at object+0x00 // address byte source, same idiom as
+extern uint32_t gamespy_array_length(int32_t object); // 0x6175f0: returns the uint32 at object+0x00 // address byte source, same idiom as
     // network_channel_get_remote_address.c's identical-named foreign accessor
 // Foreign GameSpy library accessors against master_server_query_engine.
 extern char *FUN_00617040(void *handle);      // hostname/address string
@@ -127,10 +127,10 @@ uint32_t network_join_request_resolve_host(void)
         int32_t has_resolved_address;
 
         port = FUN_00617600((int32_t)(uintptr_t)server_browser_join_target);
-        byte_a = FUN_006175f0((int32_t)(uintptr_t)server_browser_join_target);
-        FUN_006175f0((int32_t)(uintptr_t)server_browser_join_target); // discarded, kept for fidelity
-        byte_b = FUN_006175f0((int32_t)(uintptr_t)server_browser_join_target);
-        byte_c = FUN_006175f0((int32_t)(uintptr_t)server_browser_join_target);
+        byte_a = gamespy_array_length((int32_t)(uintptr_t)server_browser_join_target);
+        gamespy_array_length((int32_t)(uintptr_t)server_browser_join_target); // discarded, kept for fidelity
+        byte_b = gamespy_array_length((int32_t)(uintptr_t)server_browser_join_target);
+        byte_c = gamespy_array_length((int32_t)(uintptr_t)server_browser_join_target);
         FUN_00617060(master_server_query_engine); // discarded, kept for fidelity
         byte_d = FUN_00617060(master_server_query_engine);
         byte_e = FUN_00617060(master_server_query_engine);
@@ -180,7 +180,7 @@ uint32_t network_join_request_resolve_host(void)
     }
 
     {
-        uint32_t resolve_handle = FUN_006175f0(network_game_socket); // see file header: same
+        uint32_t resolve_handle = gamespy_array_length(network_game_socket); // see file header: same
             // accessor used elsewhere for address bytes, here against the game socket itself
         char *hostname = FUN_006175e0((int32_t)(uintptr_t)server_browser_join_target);
         uint32_t resolve_port = FUN_00617600((int32_t)(uintptr_t)server_browser_join_target);

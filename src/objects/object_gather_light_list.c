@@ -26,7 +26,8 @@
 #include "objects.h"
 
 extern int32_t light_frame_counter; // 0x008607c4
-extern int32_t light_render_unknown_7c0; // 0x008607c0
+extern uint8_t light_render_unknown_7c0; // 0x008607c0 (a byte: mov byte ptr at 0x4f2495)
+extern data_array *object_data; // 0x008603b0
 extern data_array *light_data; // 0x00860b14
 
 extern int16_t object_get_root_parent_placement(uint32_t object_index,
@@ -41,43 +42,47 @@ extern void object_lights_gather_nearest(int16_t cluster_index, uint32_t self_ob
     // definition recovers. Declared to match the definition and called with placeholders.
     // UNSURE: none of the nine arguments is recoverable here -- see file header.
 
-void object_gather_light_list(uint8_t *param_1) // blam-cc: EAX -> param_1
+// REWRITTEN (first-boot track, objdump 0x4f2430..0x4f2549): the old version took one argument and called both
+//   helpers with zeros. The object (EAX) is the first parameter and the lighting record the second (stack). The
+//   object's bounding sphere (centre +0xa0, radius +0xac) is the probe; object_get_root_parent_placement (EAX
+//   object, ESI cursor) gives the first cluster it touches and the cursor walks the rest (cursor +0 the reference
+//   group, whose +8 is the reference array; element +4 cluster, +8 next). In each cluster
+//   object_lights_gather_nearest keeps the nearest two lights in the record (count +0x40, lights +0x44). The
+//   light frame counter is bumped first and the "gathering" flag is set around the walk; finally every gathered
+//   light handle is replaced by that light's rasterizer queue slot (light +8).
+// blam-cc: EAX -> object_index, stack -> out
+void object_gather_light_list(datum_index object_index, uint8_t *out)
 {
-    int16_t *count = (int16_t *)(param_1 + 0x40);
-    int32_t *local_2c; // the "family" pointer, same convention as object_get_root_parent_placement
-    uint32_t local_28;
-    int16_t next;
-    data_array *table;
+    uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
+    real_point3d center = *(real_point3d *)(object + 0xa0);
+    float radius = *(float *)(object + 0xac);
+    int16_t *count = (int16_t *)(out + 0x40);
+    uint32_t cursor[2]; // +0 the reference group, +4 the next reference
+    float intensities[2];
+    uint32_t falloffs[2];
+    int16_t cluster;
     int16_t i;
 
     *count = 0;
     light_frame_counter = light_frame_counter + 1;
     light_render_unknown_7c0 = 1;
-
-    next = object_get_root_parent_placement(0, 0); // UNSURE: see file header
-    table = light_data;
-    while (next != -1) {
-        light_data = table;
-        object_lights_gather_nearest(0, 0, 0, 0.0f, 0, 0, 0, 0, 0); // UNSURE: see file header
-        table = light_data;
-        if (local_28 == 0xffffffff) {
-            next = -1;
-            local_28 = 0xffffffff;
+    cluster = object_get_root_parent_placement(object_index, (object_placement_cursor *)cursor);
+    while (cluster != -1) {
+        object_lights_gather_nearest(cluster, object_index, &center, radius, (uint32_t *)(out + 0x44), intensities,
+                                     (uint32_t)falloffs, count, 2);
+        if (cursor[1] == 0xffffffff) {
+            cluster = -1;
         } else {
-            uint32_t index = local_28 & 0xffff;
-            data_array *reference_table = (data_array *)local_2c[2];
-            object_cluster_reference *refs = (object_cluster_reference *)reference_table->data;
-            local_28 = refs[index].next_reference;
-            next = (int16_t)refs[index].object_index;
+            data_array *references = *(data_array **)((uint8_t *)cursor[0] + 8);
+            uint8_t *element = (uint8_t *)references->data + (cursor[1] & 0xffff) * 0xc;
+            cursor[1] = *(uint32_t *)(element + 8);
+            cluster = *(int16_t *)(element + 4);
         }
     }
-
     light_render_unknown_7c0 = 0;
-    if (*count > 0) {
-        for (i = 0; i < *count; i++) {
-            uint32_t *slot = (uint32_t *)(param_1 + 0x44 + i * 4);
-            *slot = *(uint32_t *)((uint8_t *)table->data + (*slot & 0xffff) * 0x7c + 8);
-        }
+    for (i = 0; i < *count; i++) {
+        uint32_t *slot = (uint32_t *)(out + 0x44) + i;
+        *slot = *(uint32_t *)((uint8_t *)light_data->data + (*slot & 0xffff) * 0x7c + 8);
     }
 }
 

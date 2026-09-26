@@ -7,7 +7,7 @@
 // update (0x577940) are named to match in this rewrite.
 // register convention: the __cdecl stack parameter Ghidra recognized (param_1); everything else
 // is a foreign (GameSpy-shaped) call whose arguments Ghidra elided.
-// UNSURE: nearly every callee here (FUN_006175f0, FUN_00616340, FUN_00615530, FUN_0061b6d0) is
+// UNSURE: nearly every callee here (gamespy_array_length, FUN_00616340, FUN_00615530, FUN_0061b6d0) is
 // foreign vendor-library glue outside this module; their argument lists are transcribed exactly
 // as decompiled (which is very likely incomplete -- Ghidra shows no arguments for several calls
 // that clearly need them), so this file carries an unusually high uncertainty even by this
@@ -29,7 +29,7 @@ extern int32_t network_console_connection_id;                  // 0x0069fdfc, UN
 
 extern void network_session_host_dispose(void);              // 0x5778f0, this module
 extern void network_channels_open(void);                     // 0x441300, this module
-extern int32_t FUN_006175f0(int32_t socket);                  // foreign, UNSURE
+extern int32_t gamespy_array_length(int32_t socket);                  // foreign, UNSURE
 extern void *FUN_00616340(void **object, int32_t query_result, int32_t game_type, void *host_name,
                            void *map_name, uint32_t flags, int32_t a7, void *cb1, void *cb2,
                            void *cb3, void *cb4, void *cb5, void *cb6, int32_t param_1); // foreign, UNSURE
@@ -46,7 +46,7 @@ void *network_session_host_start(int32_t param_1)
 
     network_session_host_dispose();
     network_channels_open();
-    result = (void *)FUN_006175f0(network_game_socket);
+    result = (void *)gamespy_array_length(network_game_socket);
     result = FUN_00616340(&network_session_host_object, (int32_t)(long)result,
                            network_session_start_game_type, network_session_start_host_name,
                            network_session_start_map_name, network_session_host_flags, 1,

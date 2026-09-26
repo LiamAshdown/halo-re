@@ -25,7 +25,7 @@
 #include "networking.h"
 
 extern void *FUN_00614840(void *gamespy_connection); // foreign, GameSpy library; -> network_receive_queue*
-extern uint32_t FUN_006175f0(int32_t object); // 0x6175f0: returns the uint32 at object+0x00 // foreign, GameSpy library; address byte source
+extern uint32_t gamespy_array_length(int32_t object); // 0x6175f0: returns the uint32 at object+0x00 // foreign, GameSpy library; address byte source
 extern uint16_t FUN_006147d0(int32_t object); // 0x6147d0: returns the uint16 at object+0x04 in AX // foreign, GameSpy library; port
 extern void FUN_006148b0(uint32_t address, uint16_t port, void *out_address); // 0x6148b0: fills a
     // 0x16-byte address record (stride confirmed by the imul esi,esi,0x16 at 0x6148c8) // foreign
@@ -42,7 +42,7 @@ void network_channel_receive_callback(void *handle, uint8_t *data, int32_t lengt
     queue = (network_receive_queue *)FUN_00614840(handle);
     if (queue != 0) {
         if ((queue->flags & 1) == 0) {
-            address = FUN_006175f0((int32_t)handle);
+            address = gamespy_array_length((int32_t)handle);
             port = FUN_006147d0((int32_t)handle);
             FUN_006148b0(address, port, address_buf);
         } else if (0 < length) {

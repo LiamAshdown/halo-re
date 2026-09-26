@@ -60,7 +60,7 @@ extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-N
 extern char *out_of_objects_error_prefix; // 0x0065efec, the printf-style error tag argument
 extern uint8_t object_new_server_broadcast_gate; // 0x0071c2c0, UNSURE: foreign global
 extern int16_t network_game_mode; // 0x00719720 (also used in this batch's
-                                                     //   objects_update_control_bindings)
+                                                     //   scenario_objects_place)
 extern uint8_t object_network_message_scratch[0x7ff8]; // 0x00871de0, the 0x7ff8-byte network
     // broadcast scratch buffer; the size is the literal pushed at 0x4f58d9
 

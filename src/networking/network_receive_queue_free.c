@@ -22,7 +22,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern uint32_t FUN_006175f0(int32_t object); // 0x6175f0: returns the uint32 at object+0x00 // foreign, GameSpy library
+extern uint32_t gamespy_array_length(int32_t object); // 0x6175f0: returns the uint32 at object+0x00 // foreign, GameSpy library
 extern uint16_t FUN_006147d0(int32_t object); // 0x6147d0: returns the uint16 at object+0x04 in AX // foreign, GameSpy library
 extern void FUN_00614830(int32_t socket, network_receive_queue *queue); // foreign, GameSpy library // foreign, GameSpy library
 extern void network_connection_stats_end(int32_t connection_id, int16_t connection_key); // 0x440d20, this module
@@ -36,7 +36,7 @@ void network_receive_queue_free(network_receive_queue *queue, int32_t connection
                                  int16_t connection_key)
 {
     if (queue != 0 && queue->socket != 0) {
-        FUN_006175f0(queue->socket);
+        gamespy_array_length(queue->socket);
         FUN_006147d0(queue->socket);
         network_connection_stats_end(connection_id, connection_key);
         FUN_00614830(queue->socket, 0);

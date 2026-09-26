@@ -46,57 +46,64 @@ typedef int32_t (__stdcall *d3d_unlock_fn)(void *self);
 // TYPES-GAP: params 1/2/3/4/5 are read via raw offsets below because their true meaning
 // (declaration slot, vertex_type, count, source vertex array, destination stride) is inferred
 // from context rather than a named struct; see file header.
-uint8_t rasterizer_vertex_buffer_create(int16_t *param_1, int16_t vertex_type, int32_t count,
-                                          uint32_t *source_data, int32_t param_5, uint32_t size)
+// REWRITTEN (first-boot track, objdump 0x524980..0x52500a): param_1 is the caller's vertex buffer record, which
+//   the old version never filled (every model's hardware buffer pointer stayed garbage and the first draw crashed
+//   inside Direct3D). Now: no device -> 1, record untouched. Otherwise the buffer is created (0x530570, static);
+//   with no source data the result is whether that worked and the record is left alone (0x5249d2 -> 0x524fef);
+//   with source data it is locked, filled, unlocked, and the record gets {type, count, 0, source, buffer}; any
+//   failure (create, lock, NULL lock pointer, unlock) zeroes the record and returns 0.
+//   NOT REPRODUCED (logged): on devices without ps_1_1 (0x007c118c < 0xffff0101) vertex types 12..19 are repacked
+//   through the jump table at 0x0052500c into narrower layouts; this rewrite copies the source verbatim on every
+//   device, which is only right for ps_1_1 and later (every device d3d9 still supports).
+uint8_t rasterizer_vertex_buffer_create(rasterizer_vertex_buffer *record, int16_t vertex_type, int32_t count,
+                                        uint32_t *source_data, int32_t second_stream, uint32_t size)
 {
     void *buffer;
-    uint8_t ok;
-    void **vtable;
-    d3d_lock_fn lock;
-    d3d_unlock_fn unlock;
-    void *locked_data;
-    int32_t hresult;
+    uint8_t ok = 1;
+    void *locked_data = 0;
 
-    (void)param_1;
-    (void)param_5;
-
+    (void)second_stream;
     if (rasterizer_device == 0) {
         return 1;
     }
-
-    buffer = rasterizer_dx9_create_vertex_buffer(vertex_type, size, rasterizer_vertex_declarations[vertex_type].fvf, 1); // 0x5249bc: EAX = vertex type
-    ok = buffer != 0;
-
-    if (source_data != 0) {
-        if (!ok) {
+    buffer = rasterizer_dx9_create_vertex_buffer(vertex_type, size, rasterizer_vertex_declarations[vertex_type].fvf, 1);
+    if (buffer == 0) {
+        ok = 0;
+    }
+    if (source_data == 0) {
+        if (ok) {
             return ok;
         }
-
-        vtable = *(void ***)buffer;
-        lock = (d3d_lock_fn)vtable[0xb]; // +0x2c, IDirect3DVertexBuffer9::Lock
-        hresult = lock(buffer, 0, size, &locked_data, 0);
+    } else if (ok) {
+        void **vtable = *(void ***)buffer;
+        if (((d3d_lock_fn)vtable[0xb])(buffer, 0, size, &locked_data, 0) < 0) { // +0x2c Lock
+            ok = 0;
+        }
         if (locked_data == 0) {
-            return 0;
+            ok = 0;
         }
-        if (hresult < 0) {
-            return 0;
-        }
-
-        if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
-            // UNSURE: the real function reformats `source_data` into `locked_data` here with a
-            // per-vertex-type field layout (~20 cases); not reproduced, see file header. As a
-            // safe fallback that preserves the buffer's byte count, copy the source verbatim.
+        if (ok) {
             memcpy(locked_data, source_data, (size_t)size);
-        } else {
-            memcpy(locked_data, source_data, (size_t)size);
+            vtable = *(void ***)buffer;
+            if (((d3d_unlock_fn)vtable[0xc])(buffer) < 0) { // +0x30 Unlock
+                ok = 0;
+            }
+            record->type = vertex_type;
+            record->count = count;
+            *(uint32_t *)&record->unknown_08 = 0;
+            record->data = (uint32_t)source_data;
+            record->hardware_buffer = (uint32_t)buffer;
+            if (ok) {
+                return ok;
+            }
         }
-
-        vtable = *(void ***)buffer;
-        unlock = (d3d_unlock_fn)vtable[0xc]; // +0x30, Unlock
-        unlock(buffer);
     }
-
-    (void)count;
+    record->type = 0;
+    record->unknown_02 = 0;
+    record->count = 0;
+    *(uint32_t *)&record->unknown_08 = 0;
+    record->data = 0;
+    record->hardware_buffer = 0;
     return ok;
 }
 

@@ -10,7 +10,7 @@
 // Blam struct.
 // register convention: GameSpy connection handle in EAX (in_EAX), payload byte length in ECX
 // (in_ECX), then three Ghidra-recognized stack byte flags: is_sent, is_reliable, is_resend.
-// FIXED in the review pass: FUN_006175f0 and FUN_006147d0 are one-instruction GameSpy
+// FIXED in the review pass: gamespy_array_length and FUN_006147d0 are one-instruction GameSpy
 // accessors (0x6175f0 returns the uint32 at object+0x00; 0x6147d0 returns the uint16 at
 // object+0x04 in AX), and the disassembly at 0x440b8a..0x440b9b is
 //   push edi / call 0x6175f0 / push edi / mov ebx,eax / call 0x6147d0 / movzx edi,ax
@@ -36,7 +36,7 @@ extern network_summary_statistics network_summary_stats; // 0x0087bea0
 extern void network_bandwidth_graph_accumulate_sent(int32_t enabled); // 0x4d79d0, this module (sent bandwidth graph)
 extern void network_bandwidth_graph_accumulate_received(int32_t enabled); // 0x4d7a50, this module (received bandwidth graph)
 extern void *FUN_00614840(void *gamespy_connection); // foreign, GameSpy library
-extern uint32_t FUN_006175f0(int32_t object); // 0x6175f0: returns the uint32 at object+0x00 // foreign, GameSpy library; see UNSURE
+extern uint32_t gamespy_array_length(int32_t object); // 0x6175f0: returns the uint32 at object+0x00 // foreign, GameSpy library; see UNSURE
 extern uint16_t FUN_006147d0(int32_t object); // 0x6147d0: returns the uint16 at object+0x04 in AX // foreign, GameSpy library; see UNSURE
 extern int32_t network_connection_stats_lookup_or_add(int32_t connection_id, uint16_t connection_key); // 0x440a80, this module
 extern int32_t time_query_performance_counter_ms(void); // foreign module, millisecond tick reader
@@ -62,7 +62,7 @@ void network_connection_stats_record_packet(void *gamespy_connection, int32_t pa
             stats_index_field = (int32_t *)((uint8_t *)gamespy_connection + 0x14);
             if (*stats_index_field == -1) {
                 index = network_connection_stats_lookup_or_add(
-                    (int32_t)FUN_006175f0((int32_t)(uintptr_t)gamespy_connection),
+                    (int32_t)gamespy_array_length((int32_t)(uintptr_t)gamespy_connection),
                     FUN_006147d0((int32_t)(uintptr_t)gamespy_connection));
                 *stats_index_field = index;
                 network_connection_stats[index].active = 1;

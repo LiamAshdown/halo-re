@@ -60,11 +60,9 @@ extern void render_camera_update_leaf_and_cluster(real_point3d *point); // 0x553
     // module; blam-cc: EDX -> point (passed straight on to the leaf probe 0x5013a0; the
     // src/structures rewrite reads the global 0x007c3114 instead, which is not set yet here)
 
-extern void scenario_sky_fog_state_update(int16_t local_player_index, render_camera *camera, render_fog *out_fog,
-                          int16_t cluster_sky_index); // 0x53e8c0, foreign (scenario module, not
-    // yet rewritten in this project); blam-cc: local_player_index/camera/out_fog on the stack in
-    // that order, cluster_sky_index in AX (loaded immediately before the call, after the stack
-    // arguments are already pushed)
+extern void scenario_sky_fog_state_update(int16_t sky_index, int16_t local_player_index,
+    real_point3d *camera_position, render_fog *out); // 0x53e8c0, blam-cc: AX -> sky_index, stack -> local_player_index,
+    // camera_position, out (0x50bab1..0x50babe)
 
 extern void structure_bsp_build_fog_environment(int16_t cluster_index,
                                                  structure_fog_environment *out); // 0x555330,
@@ -108,7 +106,8 @@ void render_player_frame(Point2DInt *screenshot_tile, render_view *view) // blam
     render_camera_update_leaf_and_cluster(&source_camera->position);
 
     render_fog_state.unknown_02 = 0;
-    scenario_sky_fog_state_update(view->local_player_index, source_camera, &render_fog_state, render_cluster_sky_index);
+    scenario_sky_fog_state_update(render_cluster_sky_index, view->local_player_index, &source_camera->position,
+                                  &render_fog_state);
 
     // Reuses render_fog as a structure_fog_environment for their shared "planar fog" span: the
     // fields from planar_mode (+0x1c) through planar_maximum_depth (+0x44) line up exactly

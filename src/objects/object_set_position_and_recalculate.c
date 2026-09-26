@@ -9,7 +9,7 @@
 //   object_recalculate_bounding_radius (0x4f8310).
 // register convention: position vector pointer in ESI (unaff_ESI), object index in EDI
 //   (unaff_EDI).
-// UNSURE: bsp3d_node_find_leaf (also seen in objects_update_player_visibility_masks) is called first
+// UNSURE: bsp3d_node_find_leaf (also seen in scenario_objects_place_for_structure_bsp) is called first
 //   with no visible arguments and its result is discarded; preserved for its side effect only,
 //   whatever that is.
 // reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)

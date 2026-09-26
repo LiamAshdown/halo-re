@@ -9,7 +9,7 @@
 //   sibling weapon_new_from_placement (0x4c1350) at the identical +0x2c column, byte-for-byte
 //   the same body apart from the missing magazine-count init (equipment has no magazines).
 //   types/tags.h ScenarioEquipment (misc_flags/ScenarioItemFlags at +0x22, matching
-//   object_get_or_build_render_permutation's already-established {tag_index,name_index,flags}
+//   object_new_from_scenario_placement's already-established {tag_index,name_index,flags}
 //   placement-record shape); ScenarioItemFlags bit 0x01 initially_at_rest, bit 0x04
 //   does_accelerate. types/objects.h object.flags (_object_at_rest_bit 0x20,
 //   _object_unknown_20000_bit 0x20000, _object_definition_flag0_bit 0x40000), object.position

@@ -36,9 +36,8 @@ extern int32_t render_cluster_index;   // 0x007c3348, this module
 extern uint8_t render_cluster_has_sky; // 0x007c334d, this module
 extern int16_t render_cluster_sky_index; // 0x007c334e, this module
 
-extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index); // 0x5013a0,
-    // foreign; globals in ECX, point in EDX, index in EAX ("bsp3d_node_find_leaf" per
-    // types/structures.h's globals doc)
+extern int32_t bsp3d_node_find_leaf(int32_t node_index, void *bsp, real_point3d *point); // 0x5013a0,
+    // blam-cc: EAX -> node_index, ECX -> bsp, EDX -> point
 
 // Resolves the render camera's current BSP leaf and cluster (falling back to the last-known leaf
 // when the point probe fails but that leaf is still in range), then caches whether that cluster
@@ -46,7 +45,8 @@ extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t 
 // blam-cc: EDX -> camera_position
 void render_camera_update_leaf_and_cluster(real_point3d *camera_position)
 {
-    int32_t leaf = bsp3d_node_find_leaf(global_collision_bsp, camera_position, 0);
+    // 0x553491..0x55349f: the structure BSP's own collision BSP (its pointer at +0xb4), from node 0
+    int32_t leaf = bsp3d_node_find_leaf(0, *(void **)((uint8_t *)global_structure_bsp + 0xb4), camera_position);
 
     if (leaf == -1 && render_leaf_index < global_structure_bsp->leaves.count) {
         leaf = render_leaf_index;
@@ -62,7 +62,7 @@ void render_camera_update_leaf_and_cluster(real_point3d *camera_position)
         TagID sky_tag_id;
         int have_sky_tag_id = 0;
 
-        render_cluster_index = leaves[render_leaf_index].cluster;
+        render_cluster_index = leaves[render_leaf_index & 0x7fffffff].cluster; // 0x5534e3: and eax,0x7fffffff
         render_cluster_sky_index = clusters[render_cluster_index].sky;
 
         if (render_cluster_sky_index > -1 && render_cluster_sky_index < global_scenario->skies.count) {

@@ -5,7 +5,7 @@
 // rewrite confidence: 0.6
 // evidence: types/objects.h object_zone_light_table (membership[16][8] 0x0001); global
 //   0x0069e8d8 current_local_player_index (established in
-//   objects_update_player_visibility_masks.c).
+//   scenario_objects_place_for_structure_bsp.c).
 // register convention: Ghidra shows a single unresolved `in_AX`, a 16-bit value; by the shift
 //   arithmetic (`>> 5` then `& 0x1f` to pick a bit within one of the eight dwords of a group)
 //   this is the bit index into the current local player's 256-bit membership set.

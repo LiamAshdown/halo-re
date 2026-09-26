@@ -47,7 +47,7 @@ extern uint8_t server_browser_filter_gametype;       // 0x0071948e
 extern uint8_t server_browser_filter_teamplay;       // 0x0071948f
 extern uint8_t server_browser_filter_allow_unknown_map; // 0x0071948d
 
-extern uint32_t FUN_006175f0(int32_t object); // 0x6175f0: returns the uint32 at object+0x00 // foreign, GameSpy library; entry validity check
+extern uint32_t gamespy_array_length(int32_t object); // 0x6175f0: returns the uint32 at object+0x00 // foreign, GameSpy library; entry validity check
 extern int32_t FUN_00617aa0(void *entry); // foreign, GameSpy library; ping accessor, no key
 extern int32_t FUN_00617c10(void *entry, const char *key, int32_t default_value); // foreign, GameSpy int accessor // foreign, GameSpy library; int accessor
 extern int32_t FUN_006174d0(void *entry, const char *key, int32_t default_value); // foreign, GameSpy bool accessor // foreign, GameSpy library; bool accessor
@@ -77,7 +77,7 @@ uint8_t server_browser_server_passes_filter(void *entry)
 
     if (entry == 0 ||
         (server_browser_require_valid_entry != 0 &&
-         (probe = (int32_t)FUN_006175f0((int32_t)(uintptr_t)entry), probe == 0))) {
+         (probe = (int32_t)gamespy_array_length((int32_t)(uintptr_t)entry), probe == 0))) {
         return 0;
     }
 

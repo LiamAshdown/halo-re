@@ -3,7 +3,8 @@
 // name confidence: 0.55 -- matches the phase4 summary ("Drives the recursive portal-flood
 //   visibility pass from the camera's starting cluster, then computes a clipped view frustum for
 //   every cluster it determines is visible").
-// rewrite confidence: 0.5 -- Ghidra's decompile calls FUN_0050ddc0 and the two render_camera_*
+// rewrite confidence: 0.85 (FIXED first-boot track: the per-cluster calls now pass bounds/camera/frustum as the
+//   registers at 0x554580..0x5545ae load them) -- was 0.5: Ghidra's decompile calls FUN_0050ddc0 and the two render_camera_*
 //   helpers with no visible arguments at all; objdump disassembly recovers every register load.
 // evidence: objdump -M intel disassembly of 0x5544f0..0x5545d0; types/structures.h
 //   structure_bsp_visible_cluster (screen_bounds_x/y at +4, the render-owned frustum block at
@@ -33,9 +34,11 @@ extern void camera_cluster_portal_flood_recursive(int16_t cluster_index,
 
 // render module, out of this batch. blam-cc: EAX -> camera (0x7c3114), ECX -> scratch,
 // EDX -> &visible_clusters[i].screen_bounds_x
-extern void render_camera_compute_frustum_bounds(void *camera, void *scratch, void *screen_bounds);
-// blam-cc: ECX -> camera (0x7c3114), EAX -> scratch, stack -> 0 (unused by every caller)
-extern void chimera__render_camera_build_frustum(void *camera, void *scratch, int32_t unused);
+extern uint32_t render_camera_compute_frustum_bounds(void *camera, float bounds_out[4], float bounds_in[4]); // 0x50cb70,
+    // blam-cc: EAX -> camera, ECX -> bounds_out, EDX -> bounds_in
+extern void chimera__render_camera_build_frustum(float *frustum_bounds, void *camera, void *frustum,
+    uint8_t build_projection); // 0x50cc40, blam-cc: EAX -> frustum_bounds, ECX -> camera, ESI -> frustum,
+    // stack -> build_projection
 
 void structure_bsp_camera_visibility_pass(void)
 {
@@ -68,11 +71,12 @@ void structure_bsp_camera_visibility_pass(void)
     visible_cluster_count = 0;
     camera_cluster_portal_flood_recursive(render_cluster_index, &clip_polygon);
 
+    // 0x554580..0x5545be: each visible cluster's screen bounds (+4) are narrowed against the render camera into
+    // the screen_bounds local (reused), and its frustum (+0x14) is built from them without a projection
     for (int16_t i = 0; i < visible_cluster_count; i++) {
-        void *scratch1, *scratch2;
-        render_camera_compute_frustum_bounds((void *)0x7c3114, &scratch1,
-                                              &visible_clusters[i].screen_bounds_x);
-        chimera__render_camera_build_frustum((void *)0x7c3114, &scratch2, 0);
+        uint8_t *cluster = (uint8_t *)&visible_clusters[i];
+        render_camera_compute_frustum_bounds((void *)0x7c3114, screen_bounds, (float *)(cluster + 4));
+        chimera__render_camera_build_frustum(screen_bounds, (void *)0x7c3114, cluster + 0x14, 0);
     }
 }
 

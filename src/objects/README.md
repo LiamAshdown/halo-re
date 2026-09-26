@@ -465,7 +465,7 @@ copy of it.
   module reads or writes. The two largest holes in the record.
 * **`object` `0x008`, `0x00c`, `0x0bc`, `0x0c8`, `0x108`, `0x170`** are written at create (mostly
   to -1) and never read here. `0x020` is touched only by
-  `objects_update_player_visibility_masks`, so its width and meaning rest on one site.
+  `scenario_objects_place_for_structure_bsp`, so its width and meaning rest on one site.
 * **`object` `0x178 region_vitality`** is a 0..255 accumulator compared against the region
   `damage_threshold`, but the quantity it accumulates is still unsettled. Now that `0x006391b4` is
   identified as `__ftol`, the byte is the truncation of some float - which float is the open part.
@@ -557,7 +557,7 @@ fragments) that were deliberately not translated.
 | `0x4f2df0` | `object_lights_gather_nearest` | 503 | 0.75 | 0.4 | 1 |
 | `0x4f2ff0` | `object_build_effect_parameter_block` | 1049 | 0.3 | 0.2 | 8 |
 | `0x4f3410` | `object_color_clamp_to_intensity` | 172 | 0.4 | 0.65 |  |
-| `0x4f3ba0` | `objects_update_control_bindings` | 521 | 0.3 | 0.35 | 6 |
+| `0x4f3ba0` | `scenario_objects_place` | 521 | 0.3 | 0.35 | 6 |
 | `0x4f3db0` | `object_type_definition_chain_build` | 120 | 0.8 | 0.85 |  |
 | `0x4f3e30` | `object_type_definitions_notify_0x24` | 106 | 0.6 | 0.75 | 1 |
 | `0x4f3ea0` | `object_type_definitions_query_0x28` | 80 | 0.6 | 0.8 |  |
@@ -583,7 +583,7 @@ fragments) that were deliberately not translated.
 | `0x4f4700` | `object_type_override_call_0x74` | 88 | 0.6 | 0.75 |  |
 | `0x4f4760` | `object_type_override_call_0x7c` | 83 | 0.6 | 0.75 |  |
 | `0x4f47c0` | `objects_delete_unparented_of_type_mask` | 149 | 0.75 | 0.6 | 1 |
-| `0x4f4880` | `objects_update_player_visibility_masks` | 588 | 0.75 | 0.3 | 6 |
+| `0x4f4880` | `scenario_objects_place_for_structure_bsp` | 588 | 0.75 | 0.3 | 6 |
 | `0x4f4ad0` | `objects_initialize` | 212 | 0.9 | 0.75 | 3 |
 | `0x4f4bb0` | `objects_reset` | 261 | 0.9 | 0.75 | 4 |
 | `0x4f4cc0` | `objects_flush_dirty_state` | 237 | 0.85 | 0.6 | 2 |
@@ -631,7 +631,7 @@ fragments) that were deliberately not translated.
 | `0x4f6fb0` | `object_get_root_object_index` | 43 | 0.85 | 0.85 |  |
 | `0x4f6fe0` | `object_find_in_sphere` | 400 | 0.85 | 0.5 | 5 |
 | `0x4f7180` | `object_collect_in_clusters` | 477 | 0.8 | 0.55 | 1 |
-| `0x4f7370` | `object_refresh_local_player_render_cache` | 72 | 0.2 | 0.3 | 4 |
+| `0x4f7370` | `object_new_from_scenario_name` | 72 | 0.2 | 0.3 | 4 |
 | `0x4f73c0` | `object_lookup_table_get` | 28 | 0.8 | 0.85 |  |
 | `0x4f73e0` | `object_clear_references_to_object` | 112 | 0.85 | 0.45 | 2 |
 | `0x4f7450` | `object_list_membership_set` | 150 | 0.85 | 0.6 |  |
@@ -677,7 +677,7 @@ fragments) that were deliberately not translated.
 | `0x4f9a20` | `object_for_each_light_attachment` | 146 | 0.85 | 0.55 | 2 |
 | `0x4f9ac0` | `object_reserve_render_cache_slot` | 54 | 0.85 | 0.7 |  |
 | `0x4f9b00` | `object_release_render_cache_slot` | 99 | 0.85 | 0.5 | 2 |
-| `0x4f9b70` | `object_get_or_build_render_permutation` | 234 | 0.3 | 0.2 | 6 |
+| `0x4f9b70` | `object_new_from_scenario_placement` | 234 | 0.3 | 0.2 | 6 |
 | `0x4f9c60` | `objects_garbage_collection` | 1149 | 0.9 | 0.2 | 6 |
 | `0x4fa0f0` | `object_tree_collect_matching` | 168 | 0.85 | 0.75 |  |
 | `0x4fa1a0` | `object_collect_local_player_relevant_objects` | 233 | 0.25 | 0.3 | 4 |
