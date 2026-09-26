@@ -44,7 +44,9 @@ extern void vector3d_cross_product(); // math module, 0x4052c0.
 extern real random_real(void); // math module, 0x4019f0
 
 extern int8_t teams_are_enemies(void); // UNSURE: zero visible args; 18 callers, address 0x45bd50
-extern real weapon_get_zoom_fov(int32_t param_1); // UNSURE: address 0x46fe10
+extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
+    // 0x46fe10, blam-cc: stack -> zoom_table_index, CX -> magnification (every caller passes the difficulty)
+extern uint8_t *main_game_globals; // 0x006b0b80 game globals *, +0x0e difficulty
 extern uint32_t object_get_root_object_index(uint32_t object_index); // objects module,
     // 0x4f6fb0 (out of range); shown with a stack buffer argument at one call site and with
     // none at another
@@ -201,7 +203,7 @@ void object_damage_apply_line_of_sight(damage_data *dd, datum_index target_index
                 if (((1 << (target->type & 0x1f) & _object_mask_unit) != 0) &&
                     ((((Unit *)tag_instances[target->definition_tag & 0xffff].data)->unit_flags & 0x80000) != 0) && // inconsequential
                     (target_index != dd->responsible_object)) {
-                    real difficulty = weapon_get_zoom_fov(8);
+                    real difficulty = weapon_get_zoom_fov(8, *(int16_t *)(main_game_globals + 0x0e));
 
                     has_collision = 1;
                     if (((0.0f < difficulty) || ((effect->damage_flags & 0x400) != 0)) && // only_hurts_one_infection_form

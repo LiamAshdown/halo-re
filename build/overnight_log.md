@@ -828,3 +828,9 @@ Remaining step-1 code gap:
 - [firing 12] Item 3 cont.: vector3d_rotate_about_axis prototyped in both integrators (EAX forward copy, ECX up,
   stack sin, cos -- checked at 0x55c374 / 0x55d4bc); the |dyaw| >= 1e-4 guard now follows the binary's jnp (NaN
   rotates).
+- [firing 13, user present] weapon_get_zoom_fov (0x46fe10) is a difficulty-scaled value lookup (stack index, CX
+  difficulty). All 13 external binary call sites pass CX = [0x006b0b80]+0x0e (game globals difficulty); 8 C callers
+  declared one argument and dropped it, projectile_update passed the two reversed. tools/fix_difficulty_value_callers.py
+  fixed all 9 files (no caller is in the stable set, so play is unaffected; C-to-C paths were wrong).
+  ai_get_difficulty_request newly hookable. biped_integrate_movement next blocker: unit_update_up_vector calls original
+  FUN_00628140 (CRT area).

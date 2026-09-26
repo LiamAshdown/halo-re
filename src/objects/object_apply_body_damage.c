@@ -42,7 +42,9 @@ extern void effect_new_on_object(); // effects module, 0x4507a0
     // module pass different numbers of visible arguments, and it also takes values in EAX
     // and ECX that the decompiler never models. Declared with an empty parameter list so
     // every site in the module agrees on ONE declaration without fabricating arguments. // UNSURE: effects module, 0x4507a0
-extern real weapon_get_zoom_fov(int32_t param_1); // UNSURE: out of range, 0x46fe10
+extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
+    // 0x46fe10, blam-cc: stack -> zoom_table_index, CX -> magnification (every caller passes the difficulty)
+extern uint8_t *main_game_globals; // 0x006b0b80 game globals *, +0x0e difficulty
 extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70, ECX table, AX team: difficulty scale
 extern void object_set_health_frozen_flag(void); // UNSURE: zero visible args; this module (object_set_health_frozen_flag)
 extern void object_delete_teardown(void); // UNSURE: zero visible args; this module (object_delete_teardown)
@@ -96,7 +98,7 @@ void object_apply_body_damage(uint32_t target_index, int32_t region_index, int32
     if ((flags & 0x10) != 0) {
         fVar10 = (1.0f - geometry->friendly_damage_resistance) * raw_damage;
         if ((flags & 0x20) != 0) {
-            real scalar = weapon_get_zoom_fov(0);
+            real scalar = weapon_get_zoom_fov(0, *(int16_t *)(main_game_globals + 0x0e));
             if (scalar <= 0.0f) {
                 fVar10 = fVar10;
             } else {

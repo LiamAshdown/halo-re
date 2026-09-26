@@ -91,7 +91,9 @@ extern void ai_accumulate_repeated_event(datum_index object_index, real_point3d 
     // 0x4c0a98 pushes the same shape with kind = 2. The origin pointer is `lea ecx,[esp+0x134]`
     // where the collision_result handed to projectile_response is at [esp+0x11c], i.e. exactly
     // collision_result + 0x18 = collision_result.point, the contact point.
-extern real weapon_get_zoom_fov(int16_t difficulty_word, uint32_t literal_0x13); // 0x46fe10, UNSURE
+extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
+    // 0x46fe10, blam-cc: stack -> zoom_table_index, CX -> magnification (every caller passes the difficulty)
+extern uint8_t *main_game_globals; // 0x006b0b80 game globals *, +0x0e difficulty
     // signature and role, opaque, out of range
 extern void unit_get_secondary_eye_marker_position(void); // 0x569280, opaque, out of range, no visible arguments or return
 extern real periodic_function_evaluate(periodic_function_t type, double time); // 0x4cc9b0, this
@@ -254,7 +256,7 @@ int projectile_update(uint32_t projectile_index)
             // "0x218 on bipeds and vehicles ... belong to the unit extension").
             if (((1 << (tracked->type & 0x1f)) & (_object_mask_biped | _object_mask_vehicle)) != 0 &&
                 *(int32_t *)((uint8_t *)tracked + 0x218) != -1) {
-                turn_rate *= weapon_get_zoom_fov(*(int16_t *)(unknown_006b0b80 + 0x0e), 0x13);
+                turn_rate *= weapon_get_zoom_fov(0x13, *(int16_t *)(unknown_006b0b80 + 0x0e));
             }
 
             dx = obj->bounding_center.x - tracked->bounding_center.x;

@@ -69,7 +69,9 @@ extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, c
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
     // 0x4cd820, blam-cc: EAX -> v, ECX -> axis, stack -> (sin_angle, cos_angle); checked at 0x55c374 / 0x55d4bc
 
-extern real weapon_get_zoom_fov(int32_t index);   // 0x46fe10, difficulty-scaled globals lookup
+extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
+    // 0x46fe10, blam-cc: stack -> zoom_table_index, CX -> magnification (every caller passes the difficulty)
+extern uint8_t *main_game_globals; // 0x006b0b80 game globals *, +0x0e difficulty
 extern uint8_t actor_check_vehicle_mode_timeout(datum_index actor_index); // 0x428270, blam-cc: ECX -> actor_index (object+0x1f4 at both call sites)
 extern int8_t ray_intersects_sphere_test(float radius);               // 0x4ce6c0, UNSURE: register args  // real signature (ray_intersects_sphere_test.c): uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *origin, real_vector3d *direction, real radius); Ghidra recovered 1 of 4 args at this call site
 extern void matrix4x3_transform_plane(void);                          // 0x4cbf10, UNSURE: register args  // real signature (matrix4x3_transform_plane.c): void matrix4x3_transform_plane(real_plane3d *out, real_matrix4x3 *m, real_plane3d *plane); Ghidra recovered 0 of 3 args at this call site
@@ -174,7 +176,7 @@ void biped_integrate_movement_with_collision(uint32_t object_index, int8_t *stat
     biped_flags = tag->biped_flags;
     speed_scale = 1.0f;
     if ((biped_flags & 0x00000800) != 0 && unit->aiming_speed == 0) {   // "random_speed_increase"
-        speed_scale = (float)(object_index % 0x89) * 0.00729927f * weapon_get_zoom_fov(8) + 1.0f;
+        speed_scale = (float)(object_index % 0x89) * 0.00729927f * weapon_get_zoom_fov(8, *(int16_t *)(main_game_globals + 0x0e)) + 1.0f;
     }
 
     if ((biped_flags & 0x00000004) == 0 ||                              // "flying"

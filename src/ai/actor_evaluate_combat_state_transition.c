@@ -44,7 +44,9 @@ extern uint8_t actor_handle_death(datum_index actor_index, uint8_t param_2, uint
 extern void * actor_get_actor_definition(datum_index actor_index);                                   // 0x40fa70, this session (later)
 extern void actor_set_combat_alert_flag(void);                                                    // 0x421a40, not yet rewritten
 extern uint8_t actor_has_unshielded_threat_weapon(void);                                                                // 0x428370, not yet rewritten
-extern float weapon_get_zoom_fov(int32_t selector);                                                      // 0x46fe10, not yet rewritten
+extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
+    // 0x46fe10, blam-cc: stack -> zoom_table_index, CX -> magnification (every caller passes the difficulty)
+extern uint8_t *main_game_globals; // 0x006b0b80 game globals *, +0x0e difficulty
 
 char actor_evaluate_combat_state_transition(uint32_t actor_index)
 {
@@ -84,8 +86,8 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
             }
             {
                 float reaction_base = (a->unknown_378 == 0) ? *(float *)((uint8_t *)actor_def + 0x378) /* UNSURE: puVar3[0xde] */ : 0.0f;
-                float sample_a = weapon_get_zoom_fov(0x15);
-                float sample_b = weapon_get_zoom_fov(0x14);
+                float sample_a = weapon_get_zoom_fov(0x15, *(int16_t *)(main_game_globals + 0x0e));
+                float sample_b = weapon_get_zoom_fov(0x14, *(int16_t *)(main_game_globals + 0x0e));
                 float wait = use_alt ? *(float *)((uint8_t *)unit_def + 0x170) : *(float *)((uint8_t *)unit_def + 0x160);
 
                 if ((*(int32_t *)(actor_base + 0x37c) == -1 || *(int32_t *)(actor_base + 0x37c) + 10 < now) && threat_distance <= wait) {

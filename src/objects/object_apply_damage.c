@@ -59,7 +59,9 @@ extern void player_effect_mark_damage_direction(damage_data *dd, real_vector3d *
     // uint32_t here silently converted the value instead of passing the same four bytes)
 extern int8_t teams_are_enemies(void); // UNSURE: zero visible args; out of range, 0x45bd50
 extern int32_t game_engine_compute_time_scale(void); // UNSURE: zero visible args; out of range, 0x461550
-extern real weapon_get_zoom_fov(int32_t param_1); // UNSURE: out of range, 0x46fe10
+extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
+    // 0x46fe10, blam-cc: stack -> zoom_table_index, CX -> magnification (every caller passes the difficulty)
+extern uint8_t *main_game_globals; // 0x006b0b80 game globals *, +0x0e difficulty
 extern int32_t player_index_from_unit_index(datum_index object_index); // UNSURE: out of range, 0x474db0
 extern void object_set_health_frozen_flag(void); // UNSURE: zero visible args; this module, address matches
                                 // object_set_health_frozen_flag's original name, but called bare
@@ -189,7 +191,7 @@ void object_apply_damage(damage_data *dd, uint32_t param_2, int16_t param_3, int
             }
         }
         if (!skip) {
-            real scalar = weapon_get_zoom_fov(0);
+            real scalar = weapon_get_zoom_fov(0, *(int16_t *)(main_game_globals + 0x0e));
             used_difficulty_random = 1;
             damage_amount = scalar * damage_amount;
         }

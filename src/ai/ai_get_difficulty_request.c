@@ -15,7 +15,9 @@
 #include "math.h"
 #include "ai.h"
 
-extern float weapon_get_zoom_fov(int32_t selector); // 0x46fe10, not in this rewrite range
+extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
+    // 0x46fe10, blam-cc: stack -> zoom_table_index, CX -> magnification (every caller passes the difficulty)
+extern uint8_t *main_game_globals; // 0x006b0b80 game globals *, +0x0e difficulty
 
 // blam-cc: EAX -> request_code, ECX -> out_flag_a, EDX -> out_flag_b, ESI -> out_value
 void ai_get_difficulty_request(int16_t request_code, uint8_t *out_flag_a, uint8_t *out_flag_b, float *out_value)
@@ -23,11 +25,11 @@ void ai_get_difficulty_request(int16_t request_code, uint8_t *out_flag_a, uint8_
     switch (request_code) {
     case 1:
         *out_flag_a = 1;
-        *out_value = weapon_get_zoom_fov(0x1d);
+        *out_value = weapon_get_zoom_fov(0x1d, *(int16_t *)(main_game_globals + 0x0e));
         break;
     case 2:
         *out_flag_a = 1;
-        *out_value = weapon_get_zoom_fov(0x1e);
+        *out_value = weapon_get_zoom_fov(0x1e, *(int16_t *)(main_game_globals + 0x0e));
         break;
     case 3:
         *out_flag_a = 0;
@@ -39,7 +41,7 @@ void ai_get_difficulty_request(int16_t request_code, uint8_t *out_flag_a, uint8_
         break;
     default:
         *out_flag_a = 1;
-        *out_value = weapon_get_zoom_fov(0x1c);
+        *out_value = weapon_get_zoom_fov(0x1c, *(int16_t *)(main_game_globals + 0x0e));
         break;
     }
 }
