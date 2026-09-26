@@ -28,58 +28,54 @@ extern void struct_definition_decode(struct_definition *definition, byte_stream 
     int16_t version, void *dest, int16_t *out_dest_size, struct_definition_field *fields,
     int16_t *out_field_count);
 
-int32_t data_packet_group_decode_packet_body(uint8_t *version_byte_src,
-    struct_definition *definition, int16_t remaining_length, void *dest, byte_stream *input,
-    uint16_t *out_version_used, int16_t *out_attempted_version_byte)
+// REWRITTEN from objdump 0x4d0c70..0x4d0d41. EAX is the packet buffer, ESI the struct definition; the stack holds
+// (remaining_length, dest, out_version_used, out_bytes_consumed). The original builds a byte_stream over the buffer on
+// its own frame ({buffer, 0, remaining_length, 0}), reads one version byte from it when the definition is versioned
+// (definition->version != 0; a read past the end sets the stream's overflow flag and yields version 0), decodes with
+// struct_definition_decode(definition, &stream, version, dest, 0, fields, 0) when version <= definition->version, and
+// succeeds when the stream did not overflow. It reports the version and the stream position (bytes consumed).
+// blam-cc: EAX -> buffer, ESI -> definition, stack -> remaining_length, dest, out_version_used, out_bytes_consumed
+uint8_t data_packet_group_decode_packet_body(uint8_t *buffer, struct_definition *definition, int16_t remaining_length,
+    void *dest, uint16_t *out_version_used, int16_t *out_bytes_consumed)
 {
-    int32_t decoded = 0;
-    int32_t out_of_room;
-    uint8_t version_byte;
-    uint16_t version_used;
-    int16_t attempted;
+    byte_stream stream;
+    uint16_t version = 0;
+    uint8_t decoded = 0;
 
     if (definition->size_computed == 0) {
-        struct_definition_compute_size(definition, 0, definition->fields, 0);
+        int16_t size, field_count;
+        struct_definition_compute_size(definition, &size, definition->fields, &field_count);
         definition->size_computed = 1;
     }
 
-    out_of_room = 0;
-    attempted = 0;
-    if (definition->version == 0) {
-        version_used = 0;
-    } else {
-        if (remaining_length < 1) {
-            out_of_room = 1;
-            attempted = 0;
-            version_byte = 0;
+    stream.data = buffer;
+    stream.cursor = 0;
+    stream.size = (int32_t)remaining_length;
+    stream.overflow = 0;
+
+    if (definition->version != 0) {
+        if (stream.cursor + 1 > stream.size || stream.overflow != 0) {
+            stream.overflow = 1;
+            version = 0;
         } else {
-            attempted = 1;
-            out_of_room = 0;
-            if (version_byte_src == 0) {
-                version_byte = 0; // UNSURE: Ghidra's own literal behavior when the source pointer
-                    // is NULL despite remaining_length saying a byte is available; preserved, not
-                    // "fixed" -- see the equivalent note in struct_definition_encode's case 6.
-            } else {
-                version_byte = *version_byte_src;
-            }
+            uint8_t *p = stream.data + stream.cursor;
+            stream.cursor = stream.cursor + 1;
+            version = (p != 0) ? *p : 0;
         }
-        version_used = (uint16_t)version_byte;
     }
 
-    if ((int16_t)version_used <= definition->version) {
-        // UNSURE: `input` is not evidenced by this function's own body; see the file header.
-        struct_definition_decode(definition, input, (int16_t)version_used, dest, 0,
-            definition->fields, 0);
-        if (!out_of_room) {
+    if ((int16_t)version <= definition->version) {
+        struct_definition_decode(definition, &stream, (int16_t)version, dest, 0, definition->fields, 0);
+        if (stream.overflow == 0) {
             decoded = 1;
         }
     }
 
     if (out_version_used != 0) {
-        *out_version_used = version_used;
+        *out_version_used = version;
     }
-    if (out_attempted_version_byte != 0) {
-        *out_attempted_version_byte = attempted;
+    if (out_bytes_consumed != 0) {
+        *out_bytes_consumed = (int16_t)stream.cursor;
     }
     return decoded;
 }

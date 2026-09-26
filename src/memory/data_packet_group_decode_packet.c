@@ -28,18 +28,22 @@ extern void struct_definition_byte_swap(byte_swap_definition *definition, int32_
 extern byte_swap_definition packet_header_byte_swap_definition; // 0x00696780
 // blam-cc (0x4d0c70): see data_packet_group_decode_packet_body.c for the full parameter
 // reconstruction and its UNSURE notes.
-extern int32_t data_packet_group_decode_packet_body(uint8_t *version_byte_src,
-    struct_definition *definition, int16_t remaining_length, void *dest, byte_stream *input,
-    uint16_t *out_version_used, int16_t *out_attempted_version_byte);
+extern uint8_t data_packet_group_decode_packet_body(uint8_t *buffer, struct_definition *definition, int16_t remaining_length,
+    void *dest, uint16_t *out_version_used, int16_t *out_bytes_consumed); // 0x4d0c70, EAX buffer, ESI definition
 
+// REWRITTEN from objdump 0x4d09d0..0x4d0add. EAX points at the remaining length (an int16 the function decrements
+// by the header byte); the stack holds (group, decoded_body, buffer, out_type, out_version_used, expected_class). The
+// header byte is the last byte, buffer[remaining - 1]; its type indexes group->types (8-byte entries: class, then the
+// struct definition); the body is decoded from the START of the buffer (EAX = buffer at 0x4d0a55) with the
+// decremented length. Returns 1 when no error string was set.
+// blam-cc: EAX -> remaining_length, stack -> group, decoded_body, buffer, out_type, out_version_used, expected_class
 int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group,
-    void *decoded_body, uint8_t *buffer, int16_t *out_type, byte_stream *input,
-    uint16_t *out_version_used, int16_t expected_class)
+    void *decoded_body, uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used, int16_t expected_class)
 {
     uint8_t *header_byte;
     int8_t type;
 
-    if (*remaining_length == 0) {
+    if ((uint16_t)*remaining_length < 1) {
         data_packet_group_error = "got packet with no header";
         return 0;
     }
@@ -51,41 +55,27 @@ int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_g
     }
     type = (int8_t)*header_byte;
 
-    if (-1 < type && type < group->type_count) {
+    if (type < 0 || type >= group->type_count) {
+        data_packet_group_error = "got packet with bad type";
+        return 0;
+    }
+    {
         data_packet_type *entry = &group->types[(int)type];
         if (entry->packet_class != expected_class) {
             data_packet_group_error = "got packet with mismatched class";
             return 0;
         }
         *remaining_length = *remaining_length - 1;
-        if (entry->definition != 0) {
-            // UNSURE: version_byte_src is reconstructed using the exact same
-            // `buffer + (*remaining_length - 1)` formula this function already uses for the
-            // header byte, now applied to the post-decrement remaining_length.
-            // UNSURE (open question for hook verification): Ghidra shows this call as
-            // FUN_004d0c70(*in_EAX, param_2, param_5, 0) -- four arguments. The callee's own
-            // decompile likewise never dereferences its param_2, so param_2 is EITHER the
-            // destination structure OR the byte_stream that struct_definition_decode reads from;
-            // one of the two must additionally arrive in a register Ghidra did not surface. This
-            // rewrite splits them into `decoded_body` (= param_2) and a separate `input`, but the
-            // opposite assignment is equally consistent with the decompile. A breakpoint on
-            // 0x4d0c70 reading EAX/ECX/EDX/ESI/EDI and the two stack slots settles it.
-            uint8_t *version_byte_src = buffer + (*remaining_length - 1);
-            int32_t decoded = data_packet_group_decode_packet_body(version_byte_src,
-                entry->definition, *remaining_length, decoded_body, input, out_version_used, 0);
-            if (decoded == 0) {
-                data_packet_group_error = "got packet which wouldn't decode";
-                return 0;
-            }
+        if (entry->definition != 0 &&
+            data_packet_group_decode_packet_body(buffer, entry->definition, *remaining_length, decoded_body,
+                                                 out_version_used, 0) == 0) {
+            data_packet_group_error = "got packet which wouldn't decode";
+            return 0;
         }
-        *out_type = (int16_t)(int8_t)*header_byte; // Ghidra: *param_4 = (short)*pcVar1, a
-            // SIGNED char widened -- immaterial here because the -1 < type test above already
-            // rejected any byte with bit 7 set, but kept literal.
+        *out_type = (int16_t)(int8_t)*header_byte;
         data_packet_group_error = 0;
         return 1;
     }
-    data_packet_group_error = "got packet with bad type";
-    return 0;
 }
 
 #if 0
