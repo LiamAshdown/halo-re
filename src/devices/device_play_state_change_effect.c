@@ -34,6 +34,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "devices.h"
+#include "effects.h"
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
@@ -42,8 +43,9 @@ extern void *sound_creation_origin;  // 0x006966f8, a constant pointer to .rdata
 
 // 0x4507a0, out of range (effect-creation routine).
 //   // blam-cc: EAX = object_index, ECX = tag_id, the rest on the stack
-extern void effect_new_on_object(uint32_t object_index, datum_index unknown_m1, float position,
-    float power, uint32_t unknown_0, uint32_t unknown_0b);
+extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
+    datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
+    const ColorRGB *color, const effect_tint_source *tint_source); // EAX creator, ECX definition
 // 0x543ce0, out of range (sound-playback routine).
 //   // blam-cc: EAX = effect_creation_origin, ECX = sound_creation_origin, the rest on the stack
 extern void sound_start_at_object_marker(TagID tag_id, datum_index unknown_m1, float gain, uint32_t unknown_0);
@@ -58,7 +60,10 @@ void device_play_state_change_effect(uint32_t object_index, TagID tag_id)
 
         if (group_tag == k_device_state_change_tag_effect) {
             device_data *dev = (device_data *)((uint8_t *)obj + sizeof(object));
-            effect_new_on_object(object_index, (datum_index)0xffffffff, dev->position, dev->power, 0, 0);
+            // 0x44c1fd..0x44c214: EAX = object, ECX = tag_id (entry ECX), push object, -1, position (+0x208),
+            // power (+0x1fc), 0, 0
+            effect_new_on_object(object_index, *(datum_index *)&tag_id, object_index, -1, dev->position, dev->power,
+                (const ColorRGB *)0, (const effect_tint_source *)0);
         } else if (group_tag == k_device_state_change_tag_sound) {
             sound_start_at_object_marker(tag_id, (datum_index)0xffffffff, 1.0f, 0);
         }
