@@ -17,3 +17,6 @@
 # effect_marker_node_table_resolver: the marker resolver effect_new_with_color / _with_node_table hand to
 # effect_rebuild_markers by address (push 0x451850 at 0x450a71); ends at 0x451922
 0x451850 0xd3
+# step 1: helpers with no Ghidra function
+0x506760 0x49
+0x443ae0 0x15

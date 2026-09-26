@@ -1,245 +1,257 @@
 // physics_model_slide_along_contacts  (Ghidra: FUN_005067b0; renamed)
-// address 0x5067b0, size 1257 bytes
-// name confidence: 0.3   rewrite confidence: 0.35 (raised from 0.25: phase-4 integration pass corrected the no-hit position (contact->point, not contact->plane) and split the edge direction out of the slide direction) -- the lowest-confidence file in this batch;
-//   see the UNSURE paragraphs below.
-// evidence: types/physics.h physics_model_contact (0x2c stride; "0x5067b0 keeps an array of them
-//   at the same 0x2c stride ... and reads +0x10 of entry n as the plane it slides along");
-//   physics_shape_test_ray's own documented signature (physics_model*, origin, delta, out_contact);
-//   plane3d_intersect_pair_to_line and plane3d_intersect_three (out/phase2 packs for
-//   0x4cf1e0/0x4cf040, both math module, both fully decompiled) supply the vector-rejection /
-//   line-projection / three-plane-intersection formulas this function's arithmetic matches
-//   exactly once the physics_model_contact field offsets are substituted in.
-// register convention: in_EAX (start position, real_point3d *) is Ghidra's only recognized
-//   hidden register; param_1 is the initial movement delta (real_vector3d *), param_2 the
-//   physics_model *, param_3 the out position (real_point3d *, only field actually stored),
-//   param_5 the maximum iteration count (matches k_physics_collision_iterations elsewhere in
-//   this module), param_6 the physics_model_contact[] scratch array 0x5067b0 itself owns one
-//   slot of per iteration.
-//   // blam-cc: EAX -> start_position (first C parameter by convention), then stack -> delta,
-//   //          model, out_position, unused_param, max_iterations, contact_scratch
-// UNSURE (major): param_4 is never read anywhere in this function's body; kept as an unused
-//   parameter rather than dropped, since Ghidra's own recognized signature includes it and this
-//   rewrite must not silently change the calling convention.
-// UNSURE (major): the two-plane ("edge") and three-plane ("vertex") branches call
-//   plane3d_intersect_pair_to_line() and plane3d_intersect_three() with ZERO visible arguments;
-//   Ghidra lost every register that fed them. This rewrite reconstructs the calls using each
-//   callee's own known parameter order (both already fully decompiled in a sibling math-module
-//   pack) and the ONLY locals the surrounding code actually reads afterward -- but the exact
-//   previous-plane operands (which of the up-to-two previously tracked contacts is "A" vs "B")
-//   could not be confirmed against the machine code and are a best-effort reconstruction, not a
-//   proven fact.
-//   One thing the surrounding code DOES pin down, and an earlier rewrite of this file got wrong:
-//   the edge direction the division consumes is local_64/60/5c, a local distinct from the
-//   slide direction at local_58/54/50 -- `local_50 = dot(local_64.., local_4c..) / |local_64..|^2`
-//   is computed first and only THEN does `local_58 = local_64 * local_50` overwrite the slide
-//   direction. So plane3d_intersect_pair_to_line's out_direction is its own local, and the slide
-//   direction is derived from it; this file now models that with edge_direction.
-// UNSURE (major): the function ends with an indirect jump through a jump table Ghidra could not
-//   recover ("Could not recover jumptable at 0x00506c92. Too many branches"). Every path that
-//   reaches it has already stored the final position into *param_3, so this rewrite treats the
-//   jump as a shared "return" epilogue; it is possible the real table performs additional
-//   per-active-plane-count cleanup that this rewrite does not reproduce.
+// address 0x5067b0, size 2028 bytes (Ghidra reported 1257; the velocity switch at 0x506c92, its
+//   cases and the synthetic-contact tail run to the ret at 0x506f9a, jump table at 0x506f9c)
+// name confidence: 0.4   rewrite confidence: 0.85 (step 1: rewritten from objdump -d
+//   0x5067b0..0x506f9c; the draft did not cover the tail and guessed its helpers)
+// evidence: moves a point from start_position by delta through a physics_model:
+//   - while the step is not negligible (stops once |x|, |y| and |z| are all < 0.0001, a double
+//     compare against 0x672bd8) and fewer than max_contacts are recorded, cast the step with
+//     physics_shape_test_ray (0x504bb0) into contacts[count]; a miss moves to its end point.
+//   - a hit scales the remaining delta by (1 - t), snaps the point onto the contact plane and
+//     clips the step: against the new plane alone, along the line where it meets the first
+//     remembered plane (plane3d_intersect_pair_to_line 0x4cf1e0, point3d_project_onto_line
+//     0x5066e0), or to the corner of three planes (plane3d_intersect_three 0x4cf040), falling back
+//     to the second remembered plane when the first does not clip (dot < -0.0001, 0x672bb8).
+//   - out_velocity by active plane count (table 0x506f9c): delta; delta minus its component along
+//     the last plane; delta projected onto the crease line (vector3d_project_onto_direction 0x506760);
+//     zero.
+//   - with two or three planes active and room left, one more contact is appended at the last
+//     remembered plane's contact point, with no object or surface, whose plane is a floor built
+//     from the most downward-facing active plane (lowest normal.k below 0): for a crease, the
+//     cross product of that plane with the crease line (world up minus its crease component when
+//     none faces down); for a corner, world up minus that plane's k-scaled normal (world up
+//     itself when none faces down). A degenerate normal drops the appended contact again.
+// register convention: start position in EAX, six stack arguments; the contact count in AX.
+//   // blam-cc: EAX -> start_position, stack -> delta, model, out_position, out_velocity,
+//   //          max_contacts, contacts
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
 
-extern uint8_t physics_shape_test_ray(physics_model *model, real_point3d *origin, real_vector3d *delta,
-    physics_model_contact *out_contact); // 0x504bb0, this module (higher half)
-extern uint8_t plane3d_intersect_pair_to_line(real_vector3d *out_direction, real_plane3d *plane_b,
-    real_plane3d *plane_a, real_point3d *out_point); // 0x4cf1e0, math module
-    // blam-cc: ECX -> out_direction, EDX -> plane_b, ESI -> plane_a (unaff), EDI -> out_point
-extern uint8_t plane3d_intersect_three(real_plane3d *plane_c, real_plane3d *plane_a,
-    real_plane3d *plane_b, real_point3d *out_point); // 0x4cf040, math module
-    // blam-cc: stack -> plane_c, EBX -> plane_a (unaff), EDI -> plane_b (unaff), ESI -> out_point
-extern double fabs(double x); // ABS is a single x87 FABS instruction
-extern void point3d_project_onto_line(real_point3d *point, real_vector3d *direction,
-    real_point3d *line_origin, real_point3d *out_result); // 0x5066e0, math module (misattributed
-    // to physics; not rewritten in this batch per types/physics.h section 5)
-    // blam-cc: stack -> point, EAX -> direction, ECX -> line_origin, EDX -> out_result
+extern double fabs(double x);
+extern const real_vector3d *global_up3d_pointer; // 0x00696720
 
-// Iteratively slides a moving point (start_position, delta) through up to max_iterations
-// contacts against *model, accumulating up to three simultaneously-active constraint planes
-// (a face slide, then an edge slide along two planes' intersection line, then a full stop at
-// three planes' common point), and writes the final position to *out_position. param_4 is
-// unused (see file header).
-void physics_model_slide_along_contacts(real_point3d *start_position, real_vector3d *delta,
-    physics_model *model, real_point3d *out_position, uint32_t param_4, int16_t max_iterations,
-    physics_model_contact *contact_scratch)
+extern uint32_t physics_shape_test_ray(physics_model *model, real_point3d *origin, real_vector3d *delta,
+    physics_model_contact *out_contact); // 0x504bb0
+extern uint8_t plane3d_intersect_pair_to_line(real_vector3d *direction_out, real_plane3d *p2, real_plane3d *p1,
+    real_point3d *point_out); // 0x4cf1e0, blam-cc: ECX direction_out, EDX p2, ESI p1, EDI point_out
+extern uint8_t plane3d_intersect_three(real_plane3d *p1, real_plane3d *p2, real_plane3d *p3,
+    real_point3d *out); // 0x4cf040, blam-cc: stack p1, EBX p2, EDI p3, ESI out
+extern void point3d_project_onto_line(real_point3d *point, real_vector3d *direction, real_point3d *line_origin,
+    real_point3d *out_result); // 0x5066e0, blam-cc: stack point, EAX direction, ECX line_origin, EDX out
+extern void vector3d_project_onto_direction(real_vector3d *out, const real_vector3d *axis,
+    const real_vector3d *v); // 0x506760, blam-cc: ECX out, EAX axis, EDX v
+extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
+    // 0x4052c0, blam-cc: EAX out, ECX a, stack b (computes b x a)
+extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, blam-cc: ECX v
+
+#define CONTACT_PLANE(c) ((real_plane3d *)&(c)->plane_i)
+
+static float dot3(const real_vector3d *a, const real_vector3d *b)
 {
-    real_point3d position;
-    real_vector3d remaining_delta;
-    real_vector3d slide_direction;
-    int16_t active_count = 0;
-    int16_t iteration = 0;
-    int16_t last_contact_index = -1;
-    int16_t active_planes[3] = { 0, 0, 0 };
-    int16_t prev_active_planes[3] = { 0, 0, 0 };
+    return a->i * b->i + a->j * b->j + a->k * b->k;
+}
 
-    position = *start_position;
-    remaining_delta = *delta;
-    slide_direction = *delta;
+// blam-cc: EAX -> start_position, stack -> delta, model, out_position, out_velocity, max_contacts, contacts
+// Slides a point along the world's collision proxies and reports every surface it touched.
+int16_t physics_model_slide_along_contacts(real_point3d *start_position, real_vector3d *delta,
+    physics_model *model, real_point3d *out_position, real_vector3d *out_velocity, int16_t max_contacts,
+    physics_model_contact *contacts)
+{
+    const double epsilon = (double)0.0001f;         // 0x672bd8
+    real_vector3d remaining = *delta;
+    real_point3d position = *start_position;
+    real_vector3d step = *delta;
+    int16_t contact_count = 0;
+    int16_t last_contact = -1;
+    int16_t planes[3];
+    int16_t plane_count = 0;
+    real_plane3d plane;                              // the last contact's plane
+    real_vector3d line_direction;                    // the active crease
+    real_point3d line_point;
+    real_point3d corner;
 
-    while (1) {
+    for (;;) {
         physics_model_contact *contact;
-        real_plane3d contact_plane;
-        real_point3d contact_point;
-        real_vector3d edge_direction;  // local_64/60/5c -- plane3d_intersect_pair_to_line's own
-                                       // out_direction, a DIFFERENT local from slide_direction
-                                       // (local_58/54/50), which the code overwrites from it
-        float remaining_fraction;
-        float d;
-        uint16_t new_active_count;
+        real_point3d hit_point;
+        int16_t new_planes[3];
+        int16_t new_count;
+        float scale;
+        float along;
+        int16_t i;
 
-        if ((float)fabs((double)slide_direction.i) < 0.0001f &&
-            (float)fabs((double)slide_direction.j) < 0.0001f &&
-            (float)fabs((double)slide_direction.k) < 0.0001f) {
+        if (fabs(step.i) < epsilon && fabs(step.j) < epsilon && fabs(step.k) < epsilon) {
             break;
         }
-
-        contact = &contact_scratch[iteration];
-        if (!physics_shape_test_ray(model, &position, &slide_direction, contact)) {
-            // pfVar9[1..3] is contact->point (0x04..0x0c), NOT contact->plane (0x10..0x18);
-            // physics_shape_test_ray leaves point = origin + delta on a miss, so this is the
-            // ordinary "travelled the whole way" advance. Corrected by the phase-4 pass.
+        contact = &contacts[contact_count];
+        if (!physics_shape_test_ray(model, &position, &step, contact)) {
             position.x = contact->point_x;
             position.y = contact->point_y;
             position.z = contact->point_z;
-            goto store_and_return;
+            break;
         }
+        contact_count++;
+        scale = 1.0f - contact->t;
+        remaining.i *= scale;
+        remaining.j *= scale;
+        remaining.k *= scale;
+        hit_point.x = contact->point_x;
+        hit_point.y = contact->point_y;
+        hit_point.z = contact->point_z;
 
-        remaining_fraction = 1.0f - contact->t;
-        iteration++;
-        remaining_delta.i *= remaining_fraction;
-        remaining_delta.j *= remaining_fraction;
-        remaining_delta.k *= remaining_fraction;
-        contact_point.x = contact->point_x;
-        contact_point.y = contact->point_y;
-        contact_point.z = contact->point_z;
-        last_contact_index++;
+        last_contact++;
+        plane = *CONTACT_PLANE(&contacts[last_contact]);
+        new_planes[0] = last_contact;
+        new_count = 1;
 
-        contact_plane.normal.i = contact->plane_i;
-        contact_plane.normal.j = contact->plane_j;
-        contact_plane.normal.k = contact->plane_k;
-        contact_plane.d = contact->plane_d;
+        along = -dot3(&plane.normal, &remaining);
+        step.i = plane.normal.i * along + remaining.i;
+        step.j = plane.normal.j * along + remaining.j;
+        step.k = plane.normal.k * along + remaining.k;
+        along = -((plane.normal.i * hit_point.x + plane.normal.j * hit_point.y + plane.normal.k * hit_point.z) -
+                  plane.d);
+        position.x = plane.normal.i * along + hit_point.x;
+        position.y = plane.normal.j * along + hit_point.y;
+        position.z = plane.normal.k * along + hit_point.z;
 
-        new_active_count = 1;
-        active_planes[0] = last_contact_index;
+        if (plane_count > 0) {
+            real_plane3d *plane0 = CONTACT_PLANE(&contacts[planes[0]]);
+            real_plane3d *new_plane = CONTACT_PLANE(&contacts[last_contact]);
+            uint8_t creased = 0;
 
-        // Vector rejection: slide_direction = remaining_delta - normal * dot(normal, remaining_delta)
-        d = -(contact_plane.normal.i * remaining_delta.i + contact_plane.normal.j * remaining_delta.j +
-              contact_plane.normal.k * remaining_delta.k);
-        slide_direction.i = contact_plane.normal.i * d + remaining_delta.i;
-        slide_direction.j = contact_plane.normal.j * d + remaining_delta.j;
-        slide_direction.k = contact_plane.normal.k * d + remaining_delta.k;
-
-        // Push the contact point exactly onto the plane (removes numerical drift).
-        d = -((contact_point.x * contact_plane.normal.i + contact_point.y * contact_plane.normal.j +
-               contact_point.z * contact_plane.normal.k) - contact_plane.d);
-        position.x = contact_plane.normal.i * d + contact_point.x;
-        position.y = contact_plane.normal.j * d + contact_point.y;
-        position.z = contact_plane.normal.k * d + contact_point.z;
-
-        if (active_count != 0) {
-            physics_model_contact *prev0 = &contact_scratch[prev_active_planes[0]];
-            real_plane3d prev0_plane;
-            prev0_plane.normal.i = prev0->plane_i;
-            prev0_plane.normal.j = prev0->plane_j;
-            prev0_plane.normal.k = prev0->plane_k;
-            prev0_plane.d = prev0->plane_d;
-
-            if (-0.0001f <= slide_direction.i * prev0_plane.normal.i +
-                             slide_direction.j * prev0_plane.normal.j +
-                             slide_direction.k * prev0_plane.normal.k ||
-                !plane3d_intersect_pair_to_line(&edge_direction, &contact_plane, &prev0_plane,
-                    &contact_point /* UNSURE: out_point target */)) {
-
-                active_planes[1] = prev_active_planes[1];
-                if (active_count > 1) {
-                    physics_model_contact *prev1 = &contact_scratch[prev_active_planes[1]];
-                    real_plane3d prev1_plane;
-                    prev1_plane.normal.i = prev1->plane_i;
-                    prev1_plane.normal.j = prev1->plane_j;
-                    prev1_plane.normal.k = prev1->plane_k;
-                    prev1_plane.d = prev1->plane_d;
-
-                    if (slide_direction.i * prev1_plane.normal.i + slide_direction.j * prev1_plane.normal.j +
-                            slide_direction.k * prev1_plane.normal.k < -0.0001f &&
-                        plane3d_intersect_pair_to_line(&edge_direction, &contact_plane, &prev1_plane,
-                            &contact_point)) {
-                        real_point3d line_origin = contact_point; // UNSURE: see file header
-                        real_vector3d line_dir = edge_direction;  // local_64/60/5c
-
-                        active_planes[1] = prev_active_planes[1];
-                        d = (line_dir.i * remaining_delta.i + remaining_delta.k * line_dir.k +
-                             line_dir.j * remaining_delta.j) /
-                            (line_dir.k * line_dir.k + line_dir.i * line_dir.i + line_dir.j * line_dir.j);
-                        slide_direction.i = line_dir.i * d;
-                        slide_direction.j = line_dir.j * d;
-                        slide_direction.k = d * line_dir.k;
-                        point3d_project_onto_line(&contact_point, &line_dir, &line_origin, &contact_point);
-                        new_active_count = 2;
+            if (dot3(&step, &plane0->normal) < -0.0001f &&
+                plane3d_intersect_pair_to_line(&line_direction, plane0, new_plane, &line_point)) {
+                creased = 1;
+                new_planes[1] = planes[0];
+                new_count = 2;
+                along = dot3(&line_direction, &remaining) / dot3(&line_direction, &line_direction);
+                step.i = line_direction.i * along;
+                step.j = line_direction.j * along;
+                step.k = line_direction.k * along;
+                point3d_project_onto_line(&hit_point, &line_direction, &line_point, &position);
+                if (plane_count > 1) {
+                    real_plane3d *plane1 = CONTACT_PLANE(&contacts[planes[1]]);
+                    if (dot3(&step, &plane1->normal) < -0.0001f &&
+                        plane3d_intersect_three(new_plane, plane0, plane1, &corner)) {
+                        new_planes[2] = planes[1];
+                        new_count = 3;
+                        step.i = 0.0f;
+                        step.j = 0.0f;
+                        step.k = 0.0f;
+                        position = corner;
                     }
                 }
-            } else {
-                real_point3d line_origin = contact_point; // UNSURE: see file header
-                real_vector3d line_dir = edge_direction;   // local_64/60/5c
-
-                active_planes[1] = prev_active_planes[0];
-                new_active_count = 2;
-                d = (line_dir.i * remaining_delta.i + remaining_delta.k * line_dir.k +
-                     line_dir.j * remaining_delta.j) /
-                    (line_dir.k * line_dir.k + line_dir.i * line_dir.i + line_dir.j * line_dir.j);
-                slide_direction.i = line_dir.i * d;
-                slide_direction.j = line_dir.j * d;
-                slide_direction.k = d * line_dir.k;
-                point3d_project_onto_line(&contact_point, &line_dir, &line_origin, &contact_point);
-
-                if (active_count > 1) {
-                    physics_model_contact *prev1 = &contact_scratch[prev_active_planes[1]];
-                    real_plane3d prev1_plane;
-                    prev1_plane.normal.i = prev1->plane_i;
-                    prev1_plane.normal.j = prev1->plane_j;
-                    prev1_plane.normal.k = prev1->plane_k;
-                    prev1_plane.d = prev1->plane_d;
-
-                    if (slide_direction.i * prev1_plane.normal.i + slide_direction.j * prev1_plane.normal.j +
-                            slide_direction.k * prev1_plane.normal.k < -0.0001f) {
-                        real_point3d vertex;
-                        if (plane3d_intersect_three(&contact_plane, &prev0_plane, &prev1_plane, &vertex)) {
-                            active_planes[2] = prev_active_planes[1];
-                            slide_direction.i = 0.0f;
-                            slide_direction.j = 0.0f;
-                            slide_direction.k = 0.0f;
-                            position = vertex;
-                            new_active_count = 3;
-                        }
-                    }
+            }
+            if (!creased && plane_count > 1) {
+                real_plane3d *plane1 = CONTACT_PLANE(&contacts[planes[1]]);
+                if (dot3(&step, &plane1->normal) < -0.0001f &&
+                    plane3d_intersect_pair_to_line(&line_direction, plane1, new_plane, &line_point)) {
+                    new_planes[1] = planes[1];
+                    new_count = 2;
+                    along = dot3(&line_direction, &remaining) / dot3(&line_direction, &line_direction);
+                    step.i = line_direction.i * along;
+                    step.j = line_direction.j * along;
+                    step.k = line_direction.k * along;
+                    point3d_project_onto_line(&hit_point, &line_direction, &line_point, &position);
                 }
             }
         }
 
-        active_count = new_active_count;
-        {
-            // the original copies exactly new_active_count * 2 bytes (a dword loop plus a
-            // trailing byte loop), leaving the higher prev_active_planes slots stale
-            int16_t k;
-            for (k = 0; k < (int16_t)new_active_count; k++) {
-                prev_active_planes[k] = active_planes[k];
-            }
+        for (i = 0; i < new_count; i++) {
+            planes[i] = new_planes[i];
         }
-
-        if (max_iterations <= iteration) {
+        plane_count = new_count;
+        if (contact_count >= max_contacts) {
             break;
         }
     }
 
-store_and_return:
     *out_position = position;
-    // UNSURE: original ends with an unrecoverable indirect jump keyed on active_count; see
-    // file header. Every path already stored the final position above.
-    return;
+    switch (plane_count) {
+    case 0:
+        *out_velocity = *delta;
+        break;
+    case 1: {
+        float along = -(plane.normal.i * delta->i + plane.normal.k * delta->k + plane.normal.j * delta->j);
+        out_velocity->i = plane.normal.i * along + delta->i;
+        out_velocity->j = plane.normal.j * along + delta->j;
+        out_velocity->k = plane.normal.k * along + delta->k;
+        break;
+    }
+    case 2:
+        vector3d_project_onto_direction(out_velocity, &line_direction, delta);
+        break;
+    default: // 3
+        out_velocity->i = 0.0f;
+        out_velocity->j = 0.0f;
+        out_velocity->k = 0.0f;
+        break;
+    }
+
+    if (plane_count > 1 && contact_count < max_contacts) {
+        physics_model_contact *source = &contacts[planes[plane_count - 1]];
+        physics_model_contact *floor = &contacts[contact_count];
+        real_vector3d *normal = (real_vector3d *)&floor->plane_i;
+        int16_t lowest = -1;
+        float lowest_k = 0.0f;
+        int16_t i;
+
+        floor->t = source->t;
+        floor->point_x = source->point_x;
+        floor->point_y = source->point_y;
+        floor->point_z = source->point_z;
+        contact_count++;
+        floor->object_index = 0xffffffff;
+        floor->surface_index = -1;
+        floor->surface_flags = 0;
+        floor->breakable_surface_index = 0;
+        floor->material_type = -1;
+
+        for (i = 0; i < plane_count; i++) {
+            float k = contacts[planes[i]].plane_k;
+            if (lowest_k > k) {
+                lowest = i;
+                lowest_k = k;
+            }
+        }
+
+        if (plane_count == 2) {
+            if (lowest == -1) {
+                float along = -(line_direction.k / (line_direction.j * line_direction.j +
+                    line_direction.i * line_direction.i + line_direction.k * line_direction.k));
+                normal->i = line_direction.i * along + global_up3d_pointer->i;
+                normal->j = line_direction.j * along + global_up3d_pointer->j;
+                normal->k = line_direction.k * along + global_up3d_pointer->k;
+            } else if (lowest == 0) {
+                // 0x506e18: EAX = normal, ECX = &plane.normal, push &line: line x plane
+                vector3d_cross_product(normal, &CONTACT_PLANE(&contacts[planes[0]])->normal, &line_direction);
+            } else {
+                // 0x506e2c: EAX = normal, ECX = &line, push &plane.normal: plane x line
+                vector3d_cross_product(normal, &line_direction, &CONTACT_PLANE(&contacts[planes[lowest]])->normal);
+            }
+            if (vector3d_normalize_with_length(normal) == 0.0f) {
+                return (int16_t)(contact_count - 1);
+            }
+            floor->plane_d = line_point.y * normal->j + line_point.z * normal->k + line_point.x * normal->i;
+        } else {
+            if (lowest == -1) {
+                *normal = *global_up3d_pointer;
+            } else {
+                real_plane3d *low = CONTACT_PLANE(&contacts[planes[lowest]]);
+                float along = -low->normal.k;
+                normal->i = along * low->normal.i + global_up3d_pointer->i;
+                normal->j = along * low->normal.j + global_up3d_pointer->j;
+                normal->k = along * low->normal.k + global_up3d_pointer->k;
+                if (vector3d_normalize_with_length(normal) == 0.0f) {
+                    return (int16_t)(contact_count - 1);
+                }
+            }
+            floor->plane_d = corner.y * normal->j + corner.z * normal->k + corner.x * normal->i;
+        }
+    }
+    return contact_count;
 }
 
 #if 0
