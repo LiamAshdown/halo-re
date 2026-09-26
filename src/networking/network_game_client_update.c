@@ -39,7 +39,7 @@ extern uint8_t network_ping_debug_log_enabled; // 0x00710306, UNSURE name
 extern uint32_t network_ping_debug_last_sample; // 0x0071c2c4, UNSURE name
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...); // 0x4c67c0, AL clear_first
 extern int32_t time_query_performance_counter_ms(void); // 0x449210, cseries: current time in milliseconds
-extern int16_t message_delta_sample_ring_buffer_average(void); // 0x4ed350, per network_connection_retransmit_if_overdue.c
+extern int32_t message_delta_sample_ring_buffer_average(message_delta_sample_ring_buffer *ring); // 0x4ed350, blam-cc: ECX ring
 
 
 // blam-cc: stack -> client
@@ -97,7 +97,8 @@ tail:
         console_print_error_va(0, "current ping time[%d]  samples received[%d]  samples sent[%d]\n",
             endpoint->unknown_20, endpoint->retry_count, (uint16_t)endpoint->message_count);
         server_base_time = *(int32_t *)endpoint->control_block;
-        challenge_time = message_delta_sample_ring_buffer_average();
+        // 0x4db0ca: ECX = the connection's sample ring (client + 0xad8)
+        challenge_time = message_delta_sample_ring_buffer_average((message_delta_sample_ring_buffer *)endpoint->control_block);
         now2 = time_query_performance_counter_ms();
         console_print_error_va(0, "current time delta[%d]  latency[%d]  server time[%d]\n",
             server_base_time, challenge_time, now2 + server_base_time);

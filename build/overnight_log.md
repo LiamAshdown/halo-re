@@ -861,3 +861,9 @@ Remaining step-1 code gap:
   EDX buffer, push length; most others push context/length/buffer) -> read each handler's own prologue.
   Done: network_game_client_decode_beacon_reply (template). Next: remaining handlers one by one (list = the 34 call
   sites in the firing-16 survey), then both dispatchers. Beacon is now blocked by network_game_search_results_add_or_update.
+- [firing 17] decode-packet callers, handler 2: network_game_client_decode_pong_reply (stack length + sender address;
+  decoded pong = send time, remote time) and the chain under it: network_connection_retransmit_if_overdue (0x4d93b0) has
+  a stack remote_time and calls message_delta_sample_record_and_append(EAX send, ECX now, EDX remote, stack ring) and
+  ..._ring_buffer_average(ECX ring); record_and_append's ring is its STACK argument (0x4ed328), not ESI. Also
+  network_game_client_update passes the ring to the average (0x4db0ca). Unlisted from incomplete. Now blocked by
+  message_delta_sample_ring_buffer_append (incomplete: 'simplified') -- next.

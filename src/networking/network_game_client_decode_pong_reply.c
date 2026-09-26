@@ -1,7 +1,7 @@
 // network_game_client_decode_pong_reply  (Ghidra: network_game_client_decode_pong_reply, already
 // named)
 // address 0x4dba20, size 114 bytes
-// name confidence: 0.55   rewrite confidence: 0.35
+// name confidence: 0.55   rewrite confidence: 0.9 (step 1: rewritten from objdump -d 0x4dba20..0x4dba91)
 // evidence: out/phase4/networking_functions.md summary ("Decodes an incoming ping-reply (pong)
 // message and updates the connection's round-trip-time/ping statistics").
 // register convention: client in EAX (in_EAX), the incoming buffer in EDX (in_EDX).
@@ -21,24 +21,31 @@
 #include "game.h"
 #include "networking.h"
 
-extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,
-    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class); // 0x4d09d0
+extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group,
+    void *decoded_body, uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used, int16_t expected_class);
+    // 0x4d09d0, blam-cc: EAX -> remaining_length, stack -> the rest
 extern data_packet_group network_game_messages_group; // 0x006994f8
 extern void network_connection_retransmit_if_overdue(const uint32_t *sender_address,
-    network_client_globals *client, uint32_t deadline_ms); // 0x4d93b0, this batch
+    network_client_globals *client, uint32_t deadline_ms, int32_t remote_time);
+    // 0x4d93b0, blam-cc: ECX sender_address, ESI client, EDI deadline_ms, stack remote_time
 
-// blam-cc: EAX -> client, EDX -> buffer
-int32_t network_game_client_decode_pong_reply(network_client_globals *client, const uint8_t *buffer)
+// blam-cc: EAX -> client, EDX -> buffer, stack -> length, sender_address
+// FIXED (step 1, objdump -d 0x4dba20..0x4dba91): the length and the sender's address are stack arguments; the decoder
+// gets &length after the 2-byte header; the decoded pong is (send time, remote time) and feeds the RTT sampler.
+int32_t network_game_client_decode_pong_reply(network_client_globals *client, const uint8_t *buffer, int32_t length,
+    const uint32_t *sender_address)
 {
-    uint32_t decoded_body;
-    int16_t out_a, out_b;
+    uint32_t decoded_body[2];
+    int16_t out_type;
+    uint16_t out_version;
 
-    if (client->state != 0 && client->state != 3) { // UNSURE: live connection-mode value, not padding
+    if (client->state != 0 && client->state != 3) {
         return 1;
     }
-    if (data_packet_group_decode_packet(&network_game_messages_group, &decoded_body, buffer + 2,
-                                         &out_a, &out_b, 1) != 0) {
-        network_connection_retransmit_if_overdue(&decoded_body, client, 0); // UNSURE argument
+    length = length - 2;
+    if (data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, decoded_body,
+                                        (uint8_t *)buffer + 2, &out_type, &out_version, 1) != 0) {
+        network_connection_retransmit_if_overdue(sender_address, client, decoded_body[0], (int32_t)decoded_body[1]);
     }
     return 1;
 }

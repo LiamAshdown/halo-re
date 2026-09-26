@@ -131,7 +131,6 @@ model_render_parts                                 # models: rewrite says 'simpl
 ban_list_find_by_name                              # networking: rewrite says 'placeholder'
 join_game_server_browser_tick                      # networking: rewrite says 'not modeled'
 message_delta_quantize_float_to_int                # networking: rewrite says 'simplified'
-message_delta_sample_record_and_append             # networking: rewrite says 'omitted'
 network_bandwidth_direction_name_to_index          # networking: rewrite says 'omitted'
 network_bandwidth_graph_update                     # networking: rewrite says 'placeholder'
 network_channel_delete                             # networking: rewrite says 'placeholder'
