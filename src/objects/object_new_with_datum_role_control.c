@@ -66,7 +66,7 @@ extern uint8_t object_network_message_scratch[0x7ff8]; // 0x00871de0, the 0x7ff8
 
 extern uint32_t game_engine_remap_placement_by_type(uint32_t handle); // 0x4630b0, EAX handle; returns it, or the remapped tag
 extern datum_index object_block_data_new(data_array *array, int16_t element_size); // 0x4f7d50
-extern char object_block_data_grow(int16_t field_offset, int32_t byte_count); // 0x4f7e50
+extern uint8_t object_block_data_grow(uint32_t object_index, int16_t field_offset, int16_t extra_size); // 0x4f7e50, EAX object
 extern void object_type_definitions_notify_0x24(uint32_t object_index); // 0x4f3e30, this batch
 extern uint8_t object_type_definitions_query_0x28(uint32_t object_index); // 0x4f3ea0, this batch
 extern void object_type_definitions_notify_0x30(uint32_t object_index); // 0x4f3f90, this batch
@@ -93,7 +93,7 @@ extern void object_update_change_colors(uint32_t object_index); // 0x4f9110, EAX
     // objdump 0x4f5835..0x4f583e shows `mov eax,ebx / call 0x4f92f0 / mov eax,ebx /
     // call 0x4f9110`, and EBX is the new object index; 0x4f92f0 and 0x4f9110 both open by
     // masking EAX with 0xffff into the object_data stride. The index is now passed.
-extern void widget_new(void); // 0x4ffa80, UNSURE: called with no visible args here
+extern void widget_new(uint32_t object_index); // 0x4ffa80, EAX object_index
 extern void object_create_attachments(uint32_t object_index); // 0x4f9750
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
     datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
@@ -221,12 +221,12 @@ datum_index object_new_with_datum_role_control(object_placement_data *placement,
         node_count = model->nodes.count;
     }
 
-    grew_nodes = object_block_data_grow(0x1f0, node_count * 0x34);
+    grew_nodes = object_block_data_grow(new_index, 0x1f0, (int16_t)(node_count * 0x34));
     if (grew_nodes == 0) {
         active = 0;
     } else if (((1 << (object_tag->object_type & 0x1f)) & _object_mask_no_node_functions) == 0) {
-        grew_nodes = object_block_data_grow(0x1ec, node_count << 5);
-        if (grew_nodes == 0 || (grew_nodes = object_block_data_grow(0x1e8, node_count << 5),
+        grew_nodes = object_block_data_grow(new_index, 0x1ec, (int16_t)(node_count << 5));
+        if (grew_nodes == 0 || (grew_nodes = object_block_data_grow(new_index, 0x1e8, (int16_t)(node_count << 5)),
                                  grew_nodes == 0)) {
             active = 0;
         }
@@ -254,7 +254,7 @@ datum_index object_new_with_datum_role_control(object_placement_data *placement,
         object_type_definitions_notify_0x38(new_index); // UNSURE: see file header
         object_update_functions(new_index);
         object_update_change_colors(new_index);
-        widget_new(); // UNSURE: see file header
+        widget_new(new_index); // 0x4f5843: EAX = ebx
         object_create_attachments(new_index);
 
         if (!was_connected_to_map) {

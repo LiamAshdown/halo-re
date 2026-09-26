@@ -23,31 +23,38 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include <string.h>
 
 extern data_array *object_data; // 0x008603b0
 extern memory_pool *object_memory_pool; // 0x006b8cb4
 
-extern uint8_t block_list_reallocate(memory_pool *arena); // 0x4d1de0, UNSURE: see file header
+extern int32_t block_list_reallocate(void **owner_cell, int32_t new_size, memory_pool *arena); // 0x4d1de0,
+    // EBX owner_cell, EDX new_size, stack arena
 
-void object_block_data_grow(uint32_t object_index, int16_t field_offset, int16_t extra_size)
+// FIXED (objdump 0x4f7e50..0x4f7eeb): returns AL = 1 on success, 0 when the pool cannot grow (every caller in
+//   object_new tests it); block_list_reallocate takes EBX = &header->data, EDX = block_size + extra, push pool.
+uint8_t object_block_data_grow(uint32_t object_index, int16_t field_offset, int16_t extra_size)
     // blam-cc: EAX -> object_index, stack -> field_offset, extra_size
 {
     object_header *header = (object_header *)object_data->data + (object_index & 0xffff);
+    int32_t extra = (int32_t)extra_size;
+    uint16_t old_size;
+    uint8_t *data;
+    object_block_reference *field;
 
-    if (block_list_reallocate(object_memory_pool) != 0) {
-        object_block_reference *field = (object_block_reference *)((uint8_t *)header->data + field_offset);
-        int16_t old_size = header->block_size;
-        uint8_t *new_space = (uint8_t *)header->data + old_size;
-        int16_t i;
-
-        header->block_size = old_size + extra_size;
-        field->offset = old_size;
-        field->size = extra_size;
-
-        for (i = 0; i < extra_size; i++) {
-            new_space[i] = 0;
-        }
+    if ((uint8_t)block_list_reallocate((void **)&header->data, (int32_t)header->block_size + extra,
+            object_memory_pool) == 0) {
+        return 0;
     }
+    old_size = (uint16_t)header->block_size;
+    header->block_size = (int16_t)(old_size + extra_size);
+    header = (object_header *)object_data->data + (object_index & 0xffff); // re-read, as the original does
+    data = (uint8_t *)header->data;
+    field = (object_block_reference *)(data + field_offset);
+    field->offset = (int16_t)old_size;
+    field->size = extra_size;
+    memset(data + (int16_t)old_size, 0, (size_t)extra);
+    return 1;
 }
 
 #if 0
