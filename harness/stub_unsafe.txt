@@ -12,7 +12,6 @@ _FUN_00617c10
 _FUN_0061a730
 ___beginthread
 __setlocale
-_ov_open_callbacks
 _thunk_FUN_0061c3e0
 _FUN_006145a0
 _thunk_FUN_0061ce80

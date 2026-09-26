@@ -1,0 +1,7 @@
+# code labels missing from out/functions.json, with their byte sizes read off objdump, so gen_hooks can run its
+# stub-clearing analysis (live_in / x87 input / callee-saved) on them. Format: address size
+# libvorbisfile ov_callbacks trampolines passed by address from sound_ogg_stream_open (0x544d50..0x544df9)
+0x544d50 0x4f
+0x544da0 0x1d
+0x544dc0 0x16
+0x544de0 0x1a

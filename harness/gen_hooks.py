@@ -589,6 +589,11 @@ def main():
     stub_addr = dict((n, int(a, 16)) for n, a in re.findall(r"^PUBLIC (\S+)\n\S+:\n    push 0([0-9A-F]+)h\n    ret", resolve, re.M))
     fj = os.path.join(ROOT, "out", "functions.json")
     fsize = {int(x["addr"], 16): int(x.get("size") or 0) for x in json.load(open(fj))} if os.path.exists(fj) else {}
+    xs = os.path.join(H, "extra_function_sizes.txt")    # code labels functions.json lacks (e.g. callback trampolines)
+    if os.path.exists(xs):
+        for l in open(xs):
+            f = l.split("#")[0].split()
+            if len(f) == 2: fsize.setdefault(int(f[0], 16), int(f[1], 16))
     cleared = set()
     for s in sorted(stubs):
         a = stub_addr.get(s)
