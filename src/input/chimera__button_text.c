@@ -27,7 +27,7 @@
 extern tag_instance *tag_instances; // 0x0087bc14
 extern datum_index tag_lookup(tag_group group, char *path); // cache module, 0x442550
 extern uint16_t missing_string_text[];                  // 0x00671fac, L"<missing string>" (the string itself, not a pointer)
-extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...); // 0x557910
+extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); // 0x557910, EDX count
 
 // blam-cc: button_index on the stack, out_text in EBX
 // Builds "<gamepad button name><button_index + 1>" (e.g. "Button1") into out_text (24 wide
@@ -53,7 +53,7 @@ void chimera__button_text(int16_t button_index, uint16_t *out_text)
             }
         }
     }
-    string_format_wide_va_bounded(out_text, L"%s%d", source, button_index + 1);
+    string_format_wide_va_bounded(0x17, out_text, L"%s%d", source, button_index + 1);
     out_text[0x17] = 0;
 }
 

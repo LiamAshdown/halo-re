@@ -29,7 +29,7 @@ extern uint16_t default_profile_name_suffix_00671fac[]; // 0x00671fac, UNSURE na
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550; blam-cc: group in EDI
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
-extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...); // 0x557910
+extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); // 0x557910, EDX count
 
 // blam-cc: EBX -> widget, stack -> name_source
 // Allocates a 0x80 byte (64 wide char) text buffer for `widget` and formats it as
@@ -58,7 +58,7 @@ void set_profile_name(widget_instance *widget, const uint16_t *name_source)
                 }
             }
         }
-        string_format_wide_va_bounded((wchar_t *)buffer, L"%s %s", suffix, name_source);
+        string_format_wide_va_bounded(0x3f, (wchar_t *)buffer, L"%s %s", suffix, name_source);
         ((uint16_t *)widget->text)[0x3f] = 0;
     }
 }

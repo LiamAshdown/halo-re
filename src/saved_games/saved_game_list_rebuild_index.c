@@ -61,7 +61,7 @@ extern int32_t ReleaseMutex(void *mutex); // Win32
 extern void crc32_update(uint32_t *checksum, const void *data, uint32_t size); // 0x4d02d0
 extern int32_t __snprintf(char *dest, uint32_t count, const char *format, ...); // CRT
 extern void _wcsncpy(uint16_t *dest, const uint16_t *source, uint32_t count); // CRT
-extern uint16_t *string_format_wide_va_bounded(uint16_t *dest, const uint16_t *format, ...); // 0x557910, blam-cc: EDX max chars
+extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); // 0x557910, EDX count
 
 // blam-cc: __cdecl, no parameters
 // Under saved_game_files_mutex, (re)opens the index file for writing and enumerates every entry
@@ -150,7 +150,7 @@ void saved_game_list_rebuild_index(void)
                             goto have_candidate;
                         }
                     }
-                    string_format_wide_va_bounded(log_scratch,
+                    string_format_wide_va_bounded(0xff, log_scratch,
                         (const uint16_t *)L"random crap found by XFindNextSaveGame(): display name= '%s' path= '%hs'",
                         find_data.save_game_name, find_data.find_data.cFileName);
                     entry_type = -1;

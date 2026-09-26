@@ -94,7 +94,7 @@ extern int32_t ReleaseMutex(void *handle); // Win32
 extern int32_t FUN_00616ff0(void *engine); // foreign, GameSpy library
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, memory module
 extern void join_game_ticker_string_copy(uint16_t *buffer, int32_t capacity, int32_t string_index); // 0x4b6160, this module, see UNSURE
-extern void string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...); // 0x557910;
+extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); // 0x557910, EDX count
     // the bound (0x1f at the 0x4b84e0 call sites) rides in EDX and is not modeled here // foreign, see UNSURE
 extern int32_t QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
@@ -331,7 +331,7 @@ int32_t join_game_server_browser_tick(network_ui_widget *param_1)
             w_iter->label_text = (wchar_t *)label;
             if (label != 0) {
                 join_game_ticker_string_copy(scratch_80, 0x40, 6);
-                string_format_wide_va_bounded(w_iter->label_text, L"%s %d", scratch_80, player_count);
+                string_format_wide_va_bounded(0x1f, w_iter->label_text, L"%s %d", scratch_80, player_count);
                 *(uint16_t *)((uint8_t *)w_iter->label_text + 0x3e) = 0;
             }
         }
@@ -341,7 +341,7 @@ int32_t join_game_server_browser_tick(network_ui_widget *param_1)
             w_iter->label_text = (wchar_t *)label;
             if (label != 0) {
                 join_game_ticker_string_copy(scratch_80, 0x40, 7);
-                string_format_wide_va_bounded(w_iter->label_text, L"%s %d", scratch_80, server_browser_total_players);
+                string_format_wide_va_bounded(0x1f, w_iter->label_text, L"%s %d", scratch_80, server_browser_total_players);
                 *(uint16_t *)((uint8_t *)w_iter->label_text + 0x3e) = 0;
             }
         }
@@ -361,7 +361,7 @@ int32_t join_game_server_browser_tick(network_ui_widget *param_1)
                         current_page = page_count;
                     }
                     join_game_ticker_string_copy(scratch_80, 0x40, 8);
-                    string_format_wide_va_bounded(w_iter->label_text, L"%s %d/%d", scratch_80, current_page, page_count);
+                    string_format_wide_va_bounded(0x1f, w_iter->label_text, L"%s %d/%d", scratch_80, current_page, page_count);
                     *(uint16_t *)((uint8_t *)w_iter->label_text + 0x3e) = 0;
                     w_iter->visible = 1;
                 }

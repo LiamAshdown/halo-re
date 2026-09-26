@@ -59,7 +59,7 @@ extern wchar_t empty_string;                          // 0x00660c34
 extern wchar_t missing_string_text[];          // 0x00671fac, L"<missing string>"
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
-extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...); // 0x557910
+extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); // 0x557910, EDX count
 extern wchar_t *game_engine_get_default_multiplayer_string(int16_t string_index); // 0x45ce90, this batch
 extern int32_t game_engine_get_scoreboard_place(datum_index player, int32_t mode,
     uint8_t invert_low_stat); // 0x45d440, this module; blam-cc: EDI -> player, EAX -> mode,
@@ -178,7 +178,7 @@ void game_engine_post_rasterize_post_game(void)
         for (i = 0; i < 2; i++) {
             int32_t team = i == 0 ? banner_a : banner_b;
             ((void (*)(int32_t, wchar_t *))current_game_engine->build_team_score_text)(team, score_text);
-            string_format_wide_va_bounded(line, team_name[team], score_text);
+            string_format_wide_va_bounded(0x100, line, team_name[team], score_text);
             hud_text_draw_tabstop_a = &tabstop_a;
             hud_text_draw_font_or_lines = 6;
             hud_text_draw_tabstop_b = &tabstop_b;
@@ -194,7 +194,7 @@ void game_engine_post_rasterize_post_game(void)
     col_e = game_engine_get_default_multiplayer_string(0x47); // UNSURE index role: header column
 
     ((void (*)(wchar_t *))current_game_engine->build_score_header_text)(score_text);
-    string_format_wide_va_bounded(line, L"\t%s\t%s\t%s\t%s\t%s\t%s",
+    string_format_wide_va_bounded(0x100, line, L"\t%s\t%s\t%s\t%s\t%s\t%s",
         col_a, col_b, score_text, col_c, col_d, col_e);
     hud_text_draw_tabstop_a = &tabstop_a;
     hud_text_draw_unknown_4730 = hud_text_draw_unknown_4730; // no-op, keeps analyzer quiet
@@ -238,7 +238,7 @@ void game_engine_post_rasterize_post_game(void)
             : game_engine_get_default_multiplayer_string((int16_t)rank_index + 0x24);
             // UNSURE: role of indices 0x24..0x33 (per-rank label, e.g. "1st")
 
-        string_format_wide_va_bounded(line, L" \t%s", rank_text);
+        string_format_wide_va_bounded(0x100, line, L" \t%s", rank_text);
         hud_draw_scoreboard_row_text(0, line, 0);
 
         hud_text_draw_color_tl = color_tl;
@@ -265,7 +265,7 @@ void game_engine_post_rasterize_post_game(void)
             hud_text_draw_color_bl = team_color[team * 4 + 2];
             hud_text_draw_color_br = team_color[team * 4 + 3];
         }
-        string_format_wide_va_bounded(line, L" \t \t%s", p->name);
+        string_format_wide_va_bounded(0x100, line, L" \t \t%s", p->name);
         hud_draw_scoreboard_row_text(0, line, 0);
 
         hud_text_draw_color_tl = color_tl;
@@ -281,7 +281,7 @@ void game_engine_post_rasterize_post_game(void)
         }
         ((void (*)(datum_index, wchar_t *))current_game_engine->unknown_54_build_player_text)(
             player_handle, score_text);
-        string_format_wide_va_bounded(line, L" \t \t \t%s", score_text);
+        string_format_wide_va_bounded(0x100, line, L" \t \t \t%s", score_text);
         hud_draw_scoreboard_row_text(0, line, 0);
 
         hud_text_draw_color_tl = color_tl;
@@ -295,7 +295,7 @@ void game_engine_post_rasterize_post_game(void)
             hud_text_draw_color_bl = alt_color_bl;
             hud_text_draw_color_br = alt_color_br;
         }
-        string_format_wide_va_bounded(line, L" \t \t \t \t%d", (int32_t)p->kills);
+        string_format_wide_va_bounded(0x100, line, L" \t \t \t \t%d", (int32_t)p->kills);
         hud_draw_scoreboard_row_text(0, line, 0);
 
         hud_text_draw_color_tl = color_tl;
@@ -309,7 +309,7 @@ void game_engine_post_rasterize_post_game(void)
             hud_text_draw_color_bl = alt_color_bl;
             hud_text_draw_color_br = alt_color_br;
         }
-        string_format_wide_va_bounded(line, L" \t \t \t \t \t%d", (int32_t)p->assists);
+        string_format_wide_va_bounded(0x100, line, L" \t \t \t \t \t%d", (int32_t)p->assists);
         hud_draw_scoreboard_row_text(0, line, 0);
 
         hud_text_draw_color_tl = color_tl;
@@ -323,7 +323,7 @@ void game_engine_post_rasterize_post_game(void)
             hud_text_draw_color_bl = alt_color_bl;
             hud_text_draw_color_br = alt_color_br;
         }
-        string_format_wide_va_bounded(line, L" \t \t \t \t \t \t%d", (int32_t)p->deaths);
+        string_format_wide_va_bounded(0x100, line, L" \t \t \t \t \t \t%d", (int32_t)p->deaths);
         hud_draw_scoreboard_row_text(0, line, 0);
 
         hud_text_draw_tabstop_b = &tabstop_b;

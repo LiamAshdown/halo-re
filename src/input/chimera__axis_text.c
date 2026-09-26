@@ -29,7 +29,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern datum_index tag_lookup(tag_group group, char *path); // cache module, 0x442550
 extern uint16_t missing_string_text[];                  // 0x00671fac, L"<missing string>" (the string itself, not a pointer)
 extern void input_get_axis_direction_name(int16_t direction_index, uint16_t *out_name); // this module, 0x491180
-extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...); // 0x557910
+extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); // 0x557910, EDX count
 
 // Builds "<gamepad axis name><axis_index + 1> <direction>" (e.g. "Axis1 +") into out_text (25
 // wide characters, always null-terminated), using entry 1 of the controls_gamepad_names tag as
@@ -57,7 +57,7 @@ void chimera__axis_text(int16_t axis_index, uint8_t direction, uint16_t *out_tex
             }
         }
     }
-    string_format_wide_va_bounded(out_text, L"%s%d %s", source, axis_index + 1, direction_name);
+    string_format_wide_va_bounded(0x18, out_text, L"%s%d %s", source, axis_index + 1, direction_name);
     out_text[0x18] = 0;
 }
 

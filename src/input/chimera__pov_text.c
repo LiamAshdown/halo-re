@@ -28,7 +28,7 @@
 extern tag_instance *tag_instances; // 0x0087bc14
 extern datum_index tag_lookup(tag_group group, char *path); // cache module, 0x442550
 extern uint16_t missing_string_text[];                  // 0x00671fac, L"<missing string>" (the string itself, not a pointer)
-extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...); // 0x557910
+extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); // 0x557910, EDX count
 
 // Builds "<gamepad pov name><pov_index + 1> <gamepad direction name>" (e.g. "Pov1 north") into
 // out_text (14 wide characters, always null-terminated), using controls_gamepad_names entry 2 as
@@ -70,7 +70,7 @@ void chimera__pov_text(int16_t pov_index, int16_t direction_index, uint16_t *out
         }
     }
 
-    string_format_wide_va_bounded(out_text, L"%s%d %s", pov_name, pov_index + 1, direction_name);
+    string_format_wide_va_bounded(0xe, out_text, L"%s%d %s", pov_name, pov_index + 1, direction_name);
     out_text[0xd] = 0;
 }
 

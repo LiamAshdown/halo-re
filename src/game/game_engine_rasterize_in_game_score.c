@@ -84,7 +84,7 @@ extern int32_t hud_text_draw_font_tag_id;     // 0x006e472c
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
 extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index); // 0x5578c0, blam-cc: ECX, DX
 extern wchar_t *game_engine_get_default_multiplayer_string(int16_t string_index); // 0x45ce90
-extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...); // 0x557910
+extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); // 0x557910, EDX count
 extern wchar_t *string_format_wide_va(const wchar_t *format, ...); // 0x557930
 extern uint32_t color_real_to_argb_pack(float alpha, real_vector3d *color); // 0x44da60
 extern int32_t select_players_to_display(int32_t mode, int32_t max_count,
@@ -325,9 +325,9 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float text_
             address_wide[len] = 0;
 
             if (port == 0) {
-                string_format_wide_va_bounded(row_buffer, L"%s%s", label, address_wide);
+                string_format_wide_va_bounded(0x200, row_buffer, L"%s%s", label, address_wide);
             } else {
-                string_format_wide_va_bounded(row_buffer, L"%s%s:%u", label, address_wide, port);
+                string_format_wide_va_bounded(0x200, row_buffer, L"%s%s:%u", label, address_wide, port);
             }
 
             hud_text_draw_font_tag_id = *(int32_t *)((uint8_t *)unknown_00873d40 + 0x64);

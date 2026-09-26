@@ -34,7 +34,7 @@ extern uint16_t missing_string_text[]; // 0x00671fac, the characters of L"<missi
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
-extern uint16_t *string_format_wide_va_bounded(uint16_t *dest, const uint16_t *format, ...); // 0x557910, blam-cc: EDX max chars (0x7f here)
+extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); // 0x557910, EDX count
 extern uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root_path, int32_t mode, char *out_path,
     uint32_t out_path_size); // 0x551710, blam-cc: EAX save_game_name (src/game/XCreateSaveGame.c: validity_token)
 
@@ -73,7 +73,7 @@ void saved_game_allocate_new_slot(uint16_t *out_name)
                 }
             }
             next_number = number + 1;
-            string_format_wide_va_bounded(out_name, format_string, next_number); // EDX = 0x7f
+            string_format_wide_va_bounded(0x7f, out_name, format_string, next_number); // EDX = 0x7f
             out_name[0x7f] = 0;
             create_result = XCreateSaveGame(out_name, savegames_directory, 3, scratch_path, 0x100);
             if (create_result != 0) {

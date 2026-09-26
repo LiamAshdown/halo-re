@@ -39,7 +39,7 @@ extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, blam
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc: EDI group
 extern wchar_t *text_string_list_get_string(datum_index tag, int16_t index); // 0x5578c0, blam-cc: ECX tag, DX index
 extern wchar_t *string_format_wide_va(wchar_t *dest, const wchar_t *format, ...); // 0x557930, blam-cc: EDX dest
-extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...); // 0x557910, blam-cc: EDX max chars (0x7f here)
+extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); // 0x557910, EDX count
 extern int32_t shell_load_localized_string(int32_t id, char *out_buffer); // 0x57e1a0, blam-cc: ECX module, EAX size 0x200, ESI out
 extern void chimera__multiplayer_message(const wchar_t *text); // 0x4ab4b0
 
@@ -98,7 +98,7 @@ void chat_dispatch_incoming(void *event)
         if (shell_load_localized_string(string_id, localized) == 0) {
             return;
         }
-        string_format_wide_va_bounded(short_line, L"%S", localized); // EDX 0x7f
+        string_format_wide_va_bounded(0x7f, short_line, L"%S", localized); // EDX 0x7f
         short_line[0x7f] = 0;
         chimera__multiplayer_message(short_line);
         return;
