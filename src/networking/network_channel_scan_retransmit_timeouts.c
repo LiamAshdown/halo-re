@@ -26,7 +26,7 @@ extern int32_t network_rate_override; // 0x00710308
 extern int32_t network_rate_table[]; // 0x00697edc
 
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this batch
-extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value, bit_stream *stream); // 0x4cf8f0, memory module
+extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values
 
 void network_channel_scan_retransmit_timeouts(network_channel *channel)
 {
@@ -58,11 +58,9 @@ void network_channel_scan_retransmit_timeouts(network_channel *channel)
                                     channel->retransmit.stream.bit_cursor + 1;
                         if (message_bits <= free_bits ||
                             network_channel_stream_flush(&channel->retransmit, channel, 0) != 0) {
-                            bit_stream_write_bits_chunked(slot->header_bits,
-                                *(uint32_t *)slot->header, &channel->retransmit.stream); // UNSURE: value
+                            bit_stream_write_bits_chunked(&channel->retransmit.stream, (const uint32_t *)slot->header, slot->header_bits); // 0x4ddaba: ECX = slot+0x18, the header bits // UNSURE: value
                             channel->retransmit.empty = 0;
-                            bit_stream_write_bits_chunked(slot->body_bits,
-                                *(uint32_t *)slot->body, &channel->retransmit.stream); // UNSURE: value
+                            bit_stream_write_bits_chunked(&channel->retransmit.stream, (const uint32_t *)slot->body, slot->body_bits); // 0x4ddacc: ECX = slot+0x1c // UNSURE: value
                             channel->retransmit.empty = 0;
                         }
                         channel->send_budget = channel->send_budget + message_bits;

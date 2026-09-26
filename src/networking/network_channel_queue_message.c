@@ -30,7 +30,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value, bit_stream *stream); // 0x4cf8f0, memory module
+extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values
 extern void network_channel_reliable_pool_store(network_channel *channel, uint8_t *body_data,
     uint8_t *header_data, int32_t priority, uint32_t header_bits, uint32_t body_bits); // 0x4dcdb0, this batch
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this batch
@@ -56,9 +56,9 @@ char network_channel_queue_message(network_channel *channel, uint32_t header_val
             }
         }
         channel->send_budget = channel->send_budget + body_bit_count + header_bit_count; // UNSURE: see header
-        bit_stream_write_bits_chunked(header_bit_count, header_value, &channel->outgoing.stream);
+        bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)header_value, header_bit_count); // 0x4dce9c: ECX = the header bits
         channel->outgoing.empty = 0;
-        bit_stream_write_bits_chunked(body_bit_count, body_value, &channel->outgoing.stream);
+        bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)body_value, body_bit_count);
         channel->outgoing.empty = 0;
         if (flush_after != 1) {
             return result;

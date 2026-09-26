@@ -38,7 +38,7 @@
 
 extern uint32_t GetTickCount(void);
 extern int32_t network_bit_chunk_size; // 0x0071c2cc
-extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value, bit_stream *stream); // 0x4cf8f0, memory module
+extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values
 extern int32_t FUN_006146b0(int32_t socket, uint8_t *buffer, int32_t byte_count, int32_t mode); // foreign, GameSpy/transport library
 
 // blam-cc: ESI -> stream
@@ -54,7 +54,8 @@ char network_channel_stream_flush(network_channel_stream *stream, network_channe
 
     success = 0;
     first_bit = stream->stream.first_bit;
-    used_bits = (stream->stream.last_bit + stream->stream.byte_cursor * 8) - first_bit;
+    // FIXED (0x4ddb63..0x4ddb75): the position is bit_cursor + byte_cursor * 8 (the draft used last_bit)
+    used_bits = (stream->stream.bit_cursor + stream->stream.byte_cursor * 8) - first_bit;
     rem = used_bits & 0x80000007;
     if ((int32_t)rem < 0) {
         rem = (rem - 1 | 0xfffffff8) + 1;
@@ -63,7 +64,8 @@ char network_channel_stream_flush(network_channel_stream *stream, network_channe
     if (first_bit <= stream->stream.last_bit || first_bit == stream->stream.last_bit + 1) {
         stream->stream.byte_cursor = first_bit >> 3;
         stream->stream.bit_cursor = first_bit & 7;
-        send_result = bit_stream_write_bits_chunked(network_bit_chunk_size, 0, &stream->stream); // UNSURE: value elided
+        // 0x4ddbcc: the packet's byte count goes into the header chunk (ECX = &byte_count)
+        send_result = bit_stream_write_bits_chunked(&stream->stream, (const uint32_t *)&byte_count, network_bit_chunk_size);
         if (send_result == network_bit_chunk_size) {
             do {
                 if (channel->endpoint->unknown_05 == 1) {
@@ -85,7 +87,10 @@ char network_channel_stream_flush(network_channel_stream *stream, network_channe
         stream->stream.bit_cursor = first_bit & 7;
         stream->stream.byte_cursor = first_bit >> 3;
     }
-    bit_stream_write_bits_chunked(network_bit_chunk_size, 0, &stream->stream); // UNSURE: value elided
+    {   // 0x4ddc3b..0x4ddc62: the header chunk is reset to 0
+        uint32_t zero = 0;
+        bit_stream_write_bits_chunked(&stream->stream, &zero, network_bit_chunk_size);
+    }
     channel->send_budget = channel->send_budget + 0xe0;
     channel->budget_base_tick = GetTickCount();
     return success > 0;

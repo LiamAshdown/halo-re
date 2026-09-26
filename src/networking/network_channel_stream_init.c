@@ -19,7 +19,7 @@
 #include "networking.h"
 
 extern int32_t network_bit_chunk_size; // 0x0071c2cc
-extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value, bit_stream *stream); // 0x4cf8f0, memory module
+extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values
 
 // blam-cc: EAX -> stream
 void network_channel_stream_init(network_channel_stream *stream)
@@ -35,7 +35,10 @@ void network_channel_stream_init(network_channel_stream *stream)
     stream->stream.last_bit = 0x287f;
     stream->capacity_bits = 0x2880;
     stream->empty = 1;
-    bit_stream_write_bits_chunked(network_bit_chunk_size, 0, &stream->stream); // UNSURE: value elided
+    {   // 0x4dd99d / 0x4dd9b7: ECX = &a local holding 0
+        uint32_t zero = 0;
+        bit_stream_write_bits_chunked(&stream->stream, &zero, network_bit_chunk_size);
+    }
 }
 
 #if 0

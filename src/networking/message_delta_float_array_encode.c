@@ -31,8 +31,7 @@
 #include <stdint.h>
 
 extern uint8_t bit_stream_write_bits(uint32_t bit_count, uint32_t value, bit_stream *stream); // 0x4cfa20
-extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value,
-    bit_stream *stream); // 0x4cf8f0
+extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values
 extern uint8_t bit_stream_write_bit(int32_t bit_value, bit_stream *stream); // 0x4cf9a0, memory module;
     // UNSURE: the stream operand is in a register at this call site and Ghidra drops it;
     // the signature is src/memory/bit_stream_write_bit.c's.
@@ -110,7 +109,7 @@ int32_t message_delta_float_array_encode(message_delta_field_type *field_type, f
             delta = *(float *)((uint8_t *)cursor + previous_offset) - *cursor;
             if (delta < -0.0001f || 0.0001f < delta) {
                 changed_bit = 1;
-                written_bits = bit_stream_write_bits_chunked(0x20, *(uint32_t *)cursor, stream);
+                written_bits = bit_stream_write_bits_chunked(stream, (const uint32_t *)cursor, 0x20); // 0x4e9e85: ECX = the cursor
                 total_bits = total_bits + written_bits;
             } else {
                 changed_bit = 0;
