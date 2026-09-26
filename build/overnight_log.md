@@ -839,3 +839,16 @@ Remaining step-1 code gap:
   degrees past a flip, forward = T x (forward x T)), dead bodies align to the ground via acos (0x628140 is the CRT
   _CIacos), everyone else levels to world up. biped_data.flags bit 0 comment corrected (airborne).
   biped_integrate_movement is now HOOKABLE (with the solver chain). _with_collision still needs its melee-lunge block.
+- [firing 15] INVESTIGATED (not yet rewritten): _with_collision's melee-lunge block (0x55de09..0x55dfc3) and its callee
+  unit_process_melee_special_interaction (0x56ff40; true end 0x5701a1 = 610 bytes, not 512; confidence 0.2; only caller
+  is the lunge block). Real call: EAX = attacker (the biped), 7 stack args: (target = biped+0x4f4 melee target,
+  a2, a3, a4 = dwords from the segment-test result in the caller's frame, point* = the lunge contact point, plane* =
+  the transformed contact plane, result* = the movement-segment result). Body: (1) Unit tag flags 0x2000 and target is
+  a biped (type 0) with +0xe4 > 0 and its tag flag 0x400000 -> unit_cause_melee_damage(attacker, 1, target, a2, a3,
+  a4, plane) [7 stack args; its C note says EAX = unit -- recheck], object_set_health_frozen_flag(EAX attacker),
+  object_delete(EAX attacker). (2) else tag flag 0x1000 and target type in {biped, vehicle}, alive, target's parent
+  chain not the attacker and all bipeds: zero velocity (+0x68) and angular (+0x8c) from 0x696714, forward = -plane
+  normal, up rebuilt via cross products (b x a helper), object_set_position_and_relink(ESI point?, push result*),
+  object_attach_to_object(a2, attacker, a3), flags |= 0x20, unit flags |= 0x8000, unit_try_ready_weapon(1, 0).
+  NEXT: confirm the conventions of unit_cause_melee_damage, object_set_position_and_relink, object_attach_to_object,
+  unit_try_ready_weapon; map a2..a4 in the caller's frame; then rewrite both.
