@@ -1,24 +1,19 @@
 // unit_update_up_vector  (Ghidra: unit_update_up_vector)
 // address 0x560800, size 1136 bytes
-// name confidence: 0.45 (phase2 candidate)   rewrite confidence: 0.15
-// evidence: types/objects.h object.forward/up (0x74/0x80); types/units.h
-//   biped_data.ground_surface_index/.ground_normal/.unknown_510 (0x4d8/0x514/0x510),
-//   biped_data.flags (0x4cc, bit 0 grounded); types/tags.h BipedFlags (tag+0x2f4, "flying" bit
-//   0x4, "can_climb_any_surface" bit 0x40); types/math.h global_forward3d_pointer/
-//   global_left3d_pointer/global_up3d_pointer (0x696718/0x69671c/0x696720).
-// register convention: the owning Biped tag data pointer in EAX, the unit/object pointer in
-//   ECX.
-//   // blam-cc: in_EAX -> biped_tag, in_ECX -> unit_index (folded into an object pointer)
-// UNSURE: this is one of the least certain files in the batch. Every vector3d_cross_product /
-//   vector3d_normalize_with_length / vector3d_rotate_about_axis call here is a math-module
-//   helper whose exact argument layout (single in/out vector vs. two operands via adjacent
-//   stack slots) could not be pinned down from this decompile alone -- Ghidra shows most of
-//   them with only one visible argument despite the surrounding stack locals clearly holding
-//   several vectors at once. The four branches (flying, can-climb-any-surface with an active
-//   ground plane, can-climb-any-surface while airborne, and the grounded/ungrounded fallback
-//   that levels toward ground_normal or the world up axis) are reproduced structurally with
-//   their gating conditions and final object.up/object.forward writes, but the intermediate
-//   10-degree-bounded rotation math is a best-effort sketch and is very likely inexact.
+// name confidence: 0.45 (phase2 candidate)   rewrite confidence: 0.85 (step 1: rewritten from
+//   objdump -d 0x560800..0x560c6f with every helper operand read off the call sites)
+// evidence: types/objects.h object.forward/up (0x74/0x80); types/units.h biped_data
+//   .ground_surface_index/.ground_normal/.unknown_510 (0x4d8/0x514/0x510), biped_data.flags bit 0
+//   (airborne -- the solver's result bit 0); Biped tag flags 0x2f4 ("flying" 0x4, "can climb any
+//   surface" 0x40); object.vitality_flags health-frozen bit (0x106 & 4).
+// register convention: the Biped tag data in EAX, the object pointer in ECX.
+//   // blam-cc: EAX -> biped_tag, ECX -> obj
+// Four cases:
+//   flying (alive): up = the facing frame's up rolled by biped.unknown_510;
+//   climbs any surface (alive): turn up toward the ground normal (or keep it when there is no
+//     ground surface), at most 10 degrees past a flip, and rebuild forward from it;
+//   otherwise when grounded: rotate up and forward together onto the ground normal;
+//   otherwise (airborne, or alive without either flag): flatten forward, up = world up.
 
 #include "tags.h"
 #include "memory.h"
@@ -27,124 +22,148 @@
 #include "objects.h"
 #include "units.h"
 
-extern real_vector3d *global_forward3d_pointer; // 0x00696718
-extern real_vector3d *global_left3d_pointer;    // 0x0069671c
-extern real_vector3d *global_up3d_pointer;      // 0x00696720
+extern real_vector3d *global_forward3d_pointer; // 0x00696718 (1, 0, 0)
+extern real_vector3d *global_left3d_pointer;    // 0x0069671c (0, 1, 0)
+extern real_vector3d *global_up3d_pointer;      // 0x00696720 (0, 0, 1)
 
-extern double cos(double x); // x87 FCOS
-extern double sin(double x); // x87 FSIN
-extern real vector3d_normalize_with_length(real_vector3d *v);          // 0x401990, in place, returns the original length, vector in ECX
-// vector3d_cross_product (0x4052c0) computes  *out = stack_operand x ecx_operand,  with out
-// in EAX, ecx_operand in ECX and stack_operand pushed -- read out of the callee own
-// decompilation (in_EAX / in_ECX / param_1) and matching
-// src/objects/object_set_position_and_orientation.c. Ghidra binds only the stack operand at
-// the call sites below, so the declaration is left unprototyped.
-extern void vector3d_cross_product(); // 0x4052c0
-// vector3d_rotate_about_axis (0x4cd820) rotates the vector in EAX about the axis in ECX in
-// place, by the (sin_angle, cos_angle) pair pushed on the stack -- the callee own
-// decompilation is a Rodrigues formula over in_EAX / in_ECX / param_1 / param_2, and
-// src/math/vector3d_rotate_toward.c reads it the same way. Ghidra binds only the two stack
-// arguments at the call sites below, so the declaration is left unprototyped.
-extern void vector3d_rotate_about_axis(); // 0x4cd820  // real signature (vector3d_rotate_about_axis.c): void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); Ghidra recovered 0 of 4 args at this call site
-extern float FUN_00628140(void); // 0x628140, UNSURE signature/module (returns an angle)
+extern double cos(double x);
+extern double sin(double x);
+extern double acos(double x); // 0x628140 is the CRT's x87 _CIacos (atan2(sqrt((1+x)(1-x)), x))
+extern double fabs(double x);
+extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, blam-cc: ECX v
+extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
+    // 0x4052c0, blam-cc: EAX out, ECX a, stack b -- computes b x a
+extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
+    // 0x4cd820, blam-cc: EAX v, ECX axis, stack (sin, cos)
 
-void unit_update_up_vector(Biped *biped_tag, object *obj) // blam-cc: see file header
+static void level_to_world_up(object *obj)
 {
-    biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
-    uint8_t frozen = (obj->vitality_flags & _object_health_frozen_bit) != 0;
-
-    if ((biped_tag->biped_flags & 4) != 0 && !frozen) { // flying
-        real_vector3d ref = *global_forward3d_pointer;
-        real_vector3d perp = *global_left3d_pointer;
-        vector3d_cross_product(&obj->forward, &ref);   // UNSURE: exact operand pairing
-        vector3d_cross_product(&perp, &perp);
-        if (vector3d_normalize_with_length(&perp) == 0.0f) {
-            ref = *global_forward3d_pointer;
-            perp = *global_left3d_pointer;
-        }
-        float c = (float)cos((double)biped->unknown_510);
-        float s = (float)sin((double)biped->unknown_510);
-        ref.i *= c; ref.j *= c; ref.k *= c;
-        vector3d_normalize_with_length(&perp);
-        obj->up.i = perp.i * s + ref.i;
-        obj->up.j = perp.j * s + ref.j;
-        obj->up.k = perp.k * s + ref.k;
-        return;
-    }
-
-    if ((biped_tag->biped_flags & 0x40) == 0) { // not can_climb_any_surface
-        if (!frozen) {
-            goto level_to_world_up;
-        }
-        // frozen: falls through to the grounded/ungrounded fallback below
-    } else if (!frozen) {
-        real_vector3d target;
-        if (biped->ground_surface_index == (uint32_t)-1) { // airborne; UNSURE, see unit_find_nearest_valid_surface_plane.c
-            target = obj->up;
-        } else {
-            target = biped->ground_normal;
-            real_vector3d probe = target;
-            vector3d_cross_product(&obj->up, &probe);
-            if (vector3d_normalize_with_length(&probe) == 0.0f) {
-                float dot = target.i * obj->up.i + target.j * obj->up.j + target.k * obj->up.k;
-                if (dot <= 0.0f) {
-                    real_vector3d axis = obj->forward;
-                    float c = (float)cos(0.17453292f); // ~10 degrees
-                    float s = (float)sin(0.17453292f);
-                    vector3d_rotate_about_axis(&target, &axis, s, c);
-                    vector3d_cross_product(&target, &probe);
-                    float dot2 = probe.i * axis.i + probe.j * axis.j + probe.k * axis.k;
-                    if (dot2 <= 0.0f) {
-                        target = obj->up;
-                    }
-                }
-            }
-        }
-
-        real_vector3d out = target;
-        vector3d_cross_product(&obj->forward, &out);
-        if (vector3d_normalize_with_length(&out) == 0.0f) {
-            vector3d_cross_product(&out, &out);
-            vector3d_cross_product(&out, &out);
-            if (vector3d_normalize_with_length(&out) == 0.0f) {
-                out = *global_up3d_pointer;
-                obj->forward = *global_forward3d_pointer;
-            }
-        }
-        obj->up = out;
-        return;
-    }
-
-    if ((biped->flags & 1) == 0) { // not grounded
-        float dot = obj->up.i * biped->ground_normal.i + obj->up.j * biped->ground_normal.j +
-                    obj->up.k * biped->ground_normal.k;
-        if (dot - 1.0f < 0.0001f && dot - 1.0f > -0.0001f) {
-            return;
-        }
-        float angle = FUN_00628140();
-        if (angle == 0.0f) {
-            return;
-        }
-        real_vector3d axis = obj->up;
-        vector3d_cross_product(&biped->ground_normal, &axis);
-        if (vector3d_normalize_with_length(&axis) == 0.0f) {
-            return;
-        }
-        float c = (float)cos((double)angle);
-        float s = (float)sin((double)angle);
-        vector3d_rotate_about_axis(&obj->up, &axis, s, c);
-        vector3d_rotate_about_axis(&obj->forward, &axis, s, c); // UNSURE: extraout_EDX operand
-        vector3d_normalize_with_length(&obj->up);
-        vector3d_normalize_with_length(&obj->forward);
-        return;
-    }
-
-level_to_world_up:
+    // 0x560c18
     obj->forward.k = 0.0f;
     if (vector3d_normalize_with_length(&obj->forward) == 0.0f) {
         obj->forward = *global_forward3d_pointer;
     }
     obj->up = *global_up3d_pointer;
+}
+
+// blam-cc: EAX -> biped_tag, ECX -> obj
+void unit_update_up_vector(Biped *biped_tag, object *obj)
+{
+    biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
+    uint32_t tag_flags = biped_tag->biped_flags;
+    uint8_t frozen = (obj->vitality_flags & _object_health_frozen_bit) != 0;
+
+    if ((tag_flags & 4) != 0 && !frozen) {
+        // flying (0x560823): side = forward x world up, up0 = side x forward
+        real_vector3d up0;                           // [esp+0x10]
+        real_vector3d side;                          // [esp+0x1c]
+        float c, s;
+
+        vector3d_cross_product(&side, global_up3d_pointer, &obj->forward);
+        vector3d_cross_product(&up0, &obj->forward, &side);
+        if (vector3d_normalize_with_length(&up0) == 0.0f) {
+            up0 = *global_forward3d_pointer;
+            side = *global_left3d_pointer;
+        }
+        c = (float)cos((double)biped->unknown_510);
+        s = (float)sin((double)biped->unknown_510);
+        up0.i *= c;
+        up0.j *= c;
+        up0.k *= c;
+        vector3d_normalize_with_length(&side);
+        obj->up.i = side.i * s + up0.i;
+        obj->up.j = side.j * s + up0.j;
+        obj->up.k = side.k * s + up0.k;
+        return;
+    }
+
+    if ((tag_flags & 0x40) != 0 && !frozen) {
+        // climbs any surface (0x560926)
+        real_vector3d target;                        // [esp+0x18] (4 pushes)
+        real_vector3d cross1;                        // [esp+0x3c]
+        real_vector3d frame;                         // [esp+0x30]
+
+        if (biped->ground_surface_index == 0xffffffff) {
+            target = obj->up;
+        } else {
+            real_vector3d axis;                      // [esp+0x24]
+            real_vector3d turned;                    // [esp+0x30]
+            real_vector3d check;                     // [esp+0x3c]
+            uint8_t use_target = 0;
+
+            target = biped->ground_normal;
+            vector3d_cross_product(&axis, &target, &obj->up);          // up x target
+            if (vector3d_normalize_with_length(&axis) == 0.0f) {
+                if (target.j * obj->up.j + target.k * obj->up.k + target.i * obj->up.i > 0.0f) {
+                    use_target = 1;                                     // already aligned
+                } else {
+                    axis = obj->forward;                                // flipped: turn about forward
+                }
+            }
+            if (!use_target) {
+                float c = (float)cos(0.1745329201221466);             // 0x672f18, 10 degrees
+                float s = (float)sin(0.1745329201221466);
+                turned = obj->up;
+                vector3d_rotate_about_axis(&turned, &axis, s, c);
+                vector3d_cross_product(&check, &target, &turned);       // turned x target
+                if (check.k * axis.k + check.j * axis.j + check.i * axis.i > 0.0f) {
+                    target = turned;                                    // not past the target yet
+                }
+            }
+        }
+
+        // 0x560a59: forward = target x (forward x target), falling back to target x (target x up)
+        vector3d_cross_product(&cross1, &target, &obj->forward);
+        vector3d_cross_product(&frame, &cross1, &target);
+        if (vector3d_normalize_with_length(&frame) == 0.0f) {
+            vector3d_cross_product(&cross1, &obj->up, &target);
+            vector3d_cross_product(&frame, &cross1, &target);
+            if (vector3d_normalize_with_length(&frame) == 0.0f) {
+                target = *global_up3d_pointer;
+                frame = *global_forward3d_pointer;
+            }
+        }
+        obj->up = target;
+        obj->forward = frame;
+        return;
+    }
+
+    if (!frozen) {
+        // alive without flying / climbing: 0x560b1c test cl,al -> not frozen -> level
+        level_to_world_up(obj);
+        return;
+    }
+
+    // frozen (0x560b24): align to the ground when grounded, else level
+    if ((biped->flags & 1) != 0) {
+        level_to_world_up(obj);
+        return;
+    }
+    {
+        real_vector3d *normal = &biped->ground_normal;
+        float dot = obj->up.k * normal->k + obj->up.j * normal->j + obj->up.i * normal->i;
+        float angle;
+        real_vector3d axis;                          // [esp+0x38]
+        float c, s;
+
+        if ((float)fabs((double)(dot - 1.0f)) < 0.0001f) { // 0x560b6e jnp (double compare)
+            return;
+        }
+        angle = (float)acos((double)dot);
+        if (angle == 0.0f) {
+            return;
+        }
+        vector3d_cross_product(&axis, normal, &obj->up);                // up x normal
+        if (vector3d_normalize_with_length(&axis) == 0.0f) {
+            return;
+        }
+        c = (float)cos((double)angle);
+        s = (float)sin((double)angle);
+        vector3d_rotate_about_axis(&obj->up, &axis, s, c);
+        vector3d_rotate_about_axis(&obj->forward, &axis, s, c);
+        vector3d_normalize_with_length(&obj->up);
+        vector3d_normalize_with_length(&obj->forward);
+    }
 }
 
 #if 0

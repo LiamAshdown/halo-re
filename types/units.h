@@ -602,7 +602,7 @@ typedef struct unit_data {
 // network columns 0x55aed0, 0x55b3d0, 0x55b440 and 0x55b5f0.
 // ---------------------------------------------------------------------------
 typedef struct biped_data {
-    uint32_t flags;                     // 0x4cc bit 0 = grounded (0x55ecf0 sets it, 0x560800
+    uint32_t flags;                     // 0x4cc bit 0 = AIRBORNE (the solver's result bit 0; 0x560800 levels when set) (0x55ecf0 sets it, 0x560800
                                         //       and 0x569b30 test it), bit 1 = jumping
                                         //       (0x559fa0 sets 0 and 1 together; the recorded-
                                         //       animation update also sets it, or BYTE

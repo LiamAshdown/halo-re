@@ -834,3 +834,8 @@ Remaining step-1 code gap:
   fixed all 9 files (no caller is in the stable set, so play is unaffected; C-to-C paths were wrong).
   ai_get_difficulty_request newly hookable. biped_integrate_movement next blocker: unit_update_up_vector calls original
   FUN_00628140 (CRT area).
+- [firing 14, user present] unit_update_up_vector (0x560800) rewritten from the binary (was 0.15: invented operand
+  pairings): flying frame rolled by unknown_510, climb-any-surface frame (turn toward the ground normal at most 10
+  degrees past a flip, forward = T x (forward x T)), dead bodies align to the ground via acos (0x628140 is the CRT
+  _CIacos), everyone else levels to world up. biped_data.flags bit 0 comment corrected (airborne).
+  biped_integrate_movement is now HOOKABLE (with the solver chain). _with_collision still needs its melee-lunge block.

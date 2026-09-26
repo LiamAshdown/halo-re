@@ -15,3 +15,5 @@ physics_sweep_capsule_step
 real_matrix4x3_rotation_from_forward
 vector3d_project_onto_direction
 ai_get_difficulty_request
+unit_update_up_vector
+biped_integrate_movement
