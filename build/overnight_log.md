@@ -949,3 +949,16 @@ Remaining step-1 code gap:
   A first-chance AV at 0x30254720 (outside our image; a driver/DLL thread) is logged once per boot and handled.
 - cdb works for the real call chain: cdb -g -G -o -c "sxe -c \"r; kb 12; .kill; qd\" av; g" halo_rebuilt.exe
   (-o follows the suspended child the loader relaunches).
+
+# Campaign track (2026-09-26)
+- Retail console refuses map_name: hs_gametype_flags_applicable needs definition flags bit 0 whenever the context mask
+  has bit 0 (always, unless forbidden), and only 34 hs functions have it (help, quit, cls, connect, sv_*, profile_load...).
+  So -exec/init.txt cannot load a campaign; the campaign has to be reached through the UI.
+- New C: Xbox ADPCM decoders sound_adpcm_decode_mono 0x54e920 / _stereo 0x54ea60; the 16 hs autocomplete collectors
+  0x483880..0x483c50. Fixed: hs_autocomplete_scan_globals (spurious 4th arg; flags come from the definition +0xc),
+  hs_autocomplete_add_startup (end index 5), both hs_autocomplete_gather callers (argument order).
+- Loader: preloads the system dinput8.dll so the Halo folder's harness proxy (halo_rewrite.dll) no longer loads into
+  the standalone (it was the source of the recurring AV at 0x30254720); traps now log a symbolized backtrace.
+- Tools: tools/standalone_campaign.sh (exec route, kept for console tests), tools/standalone_ui_run.sh + scratchpad/keys.ps1
+  (drive the menu with scan-code keystrokes, screenshots), scratchpad/cdb_trace.sh (breakpoint logging in the child).
+- Open: first keystroke run (ENTER x3) got no menu reaction; investigating input path.

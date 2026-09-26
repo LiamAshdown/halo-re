@@ -1,0 +1,25 @@
+// hs_autocomplete_add_starting_profile_names  (not a Ghidra function; an hs autocomplete collector)
+// address 0x483a70, size 33 bytes
+// name confidence: 0.6  rewrite confidence: 0.70
+// evidence: hs_autocomplete_procedures 0x00689380 (18 entries) slot 8 = 0x483a70; hs_autocomplete_gather
+//   0x483c90 calls entry i when bit i of its mask is set (console_process_command passes 0x28, so slots 3
+//   and 5 run for every console command). Only reachable through that table. First-boot track: the
+//   startup exec script's console command gathers the first word through it.
+// objdump 0x483a70: with a scenario loaded (global_scenario_index != -1), offers the starting profile names: the
+//   scenario's player_starting_profile block (+0x348), name at +0 of each 0x68-byte element, through hs_autocomplete_scan_globals.
+// blam-cc: (no arguments)
+
+#include "tags.h"
+#include "memory.h"
+#include "hs.h"
+
+extern void hs_autocomplete_scan_globals(TagReflexive *table, int16_t name_offset, int32_t stride); // 0x483770
+extern datum_index global_scenario_index; // 0x0069e8d4
+extern Scenario *global_scenario; // 0x00746f8c
+
+void hs_autocomplete_add_starting_profile_names(void)
+{
+    if (global_scenario_index != k_datum_index_none) {
+        hs_autocomplete_scan_globals(&global_scenario->player_starting_profile, 0, 0x68);
+    }
+}

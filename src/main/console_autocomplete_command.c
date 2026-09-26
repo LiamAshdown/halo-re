@@ -17,6 +17,9 @@
 //   past the end of the completed word; and a first-character mismatch leaves common_index -1,
 //   which clears the word. Both are what the code does; kept verbatim.
 
+// FIXED (verified against the call site): hs_autocomplete_gather is (category mask 0x28, results) on the stack with
+//   the prefix in EAX, 0x100 (the result capacity) in CX and the context mask in DX; the old prototype put the
+//   prefix first, so the prefix pointer became the category mask.
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -28,8 +31,9 @@
 
 extern console_globals console_globals_data; // 0x006b7020
 
-extern int16_t hs_autocomplete_gather(char *partial_name, uint32_t mode, uint32_t context_mask,
-    int32_t max_count, char **out_names); // 0x483c90, foreign (hs module)
+extern int16_t hs_autocomplete_gather(uint32_t category_mask, char **results, char *prefix, int16_t maximum_count,
+    uint16_t gametype_mask); // 0x483c90, blam-cc: EAX -> prefix, CX -> maximum_count, DX -> gametype_mask,
+    // stack -> category_mask, results; // 0x483c90, foreign (hs module)
     // blam-cc: EAX -> partial_name, ECX -> mode (0x100, UNSURE), EDX -> context_mask, stack -> max_count, out_names
 extern void console_out_printf(uint8_t clear_first, const char *format, ...); // this module, 0x4c6860
 
@@ -74,7 +78,7 @@ void console_autocomplete_command(void)
         word = after_quote;
     }
 
-    match_count = hs_autocomplete_gather(word, 0x100, _console_context_default_bit, 0x28, names);
+    match_count = hs_autocomplete_gather(0x28, names, word, 0x100, _console_context_default_bit);
     if (match_count == 0) {
         return;
     }

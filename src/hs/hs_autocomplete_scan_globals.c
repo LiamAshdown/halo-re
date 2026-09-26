@@ -21,8 +21,9 @@
 // but it is preserved exactly rather than "fixed", per the no-invented-behaviour rule. Given
 // this function also has zero call sites Ghidra could resolve (only reachable through the
 // hs_autocomplete_procedures table), the practical effect of this branch is unverified.
-// UNSURE: the gametype_flags parameter's true source in the real caller is not visible from
-// this function's own decompiled C.
+// FIXED (verified against 0x4837b2..0x4837c3): the flags byte hs_gametype_flags_applicable reads (BL) is the
+//   builtin definition's own +0xc (`mov bl,[eax+0xc]`), not a fourth argument; every caller (the collectors at
+//   0x483930..0x483c50) pushes exactly three.
 
 #include "tags.h"
 #include "memory.h"
@@ -39,11 +40,11 @@ extern char *hs_autocomplete_prefix;          // 0x006b14a4
 extern int16_t hs_autocomplete_count;         // 0x006b14b0
 extern char **hs_autocomplete_results;        // 0x006b14b4
 
-// blam-cc: gametype flags byte in BL (EBX), forwarded from the caller
+// blam-cc: stack -> table, name_offset, stride (cdecl)
 // Scans a (count, pointer) table of stride-`stride` records, testing the name field at
 // `name_offset` within each record as an autocomplete candidate: unconditionally if it is not
 // a known global at all, or if it is a builtin whose gametype flags allow the current gametype.
-void hs_autocomplete_scan_globals(TagReflexive *table, int16_t name_offset, int32_t stride, uint8_t gametype_flags)
+void hs_autocomplete_scan_globals(TagReflexive *table, int16_t name_offset, int32_t stride)
 {
     int32_t count;
     int32_t i;
@@ -60,7 +61,8 @@ void hs_autocomplete_scan_globals(TagReflexive *table, int16_t name_offset, int3
             if (((global_index == -1) ||
                  ((global_index < 0) &&
                   (hs_global_definitions[global_index] != 0) &&
-                  (applicable = (char)hs_gametype_flags_applicable(gametype_flags), applicable != 0))) &&
+                  (applicable = (char)hs_gametype_flags_applicable(
+                      (uint8_t)hs_global_definitions[global_index]->gametype_flags), applicable != 0))) &&
                 (hs_autocomplete_count < hs_autocomplete_maximum_count)) {
                 prefix_length = (int32_t)strlen(hs_autocomplete_prefix);
                 if (__strnicmp(candidate, hs_autocomplete_prefix, prefix_length) == 0) {

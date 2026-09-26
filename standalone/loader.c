@@ -56,7 +56,15 @@ void __cdecl standalone_log(const char *format, ...)
 void __cdecl standalone_missing_function(const char *name)
 {
     char text[512];
-    log_line("MISSING FUNCTION called: %s (no C rewrite linked; see build/standalone/traps.txt)", name);
+    void *frames[16];
+    char trace[16 * 9 + 1];
+    USHORT count = RtlCaptureStackBackTrace(1, 16, frames, NULL), i;
+    int used = 0;
+
+    trace[0] = 0;
+    for (i = 0; i < count && used < (int)sizeof trace - 9; i++)
+        used += _snprintf(trace + used, sizeof trace - used, " %08lx", (unsigned long)(ULONG_PTR)frames[i]);
+    log_line("MISSING FUNCTION called: %s (no C rewrite linked; see build/standalone/traps.txt) | stack:%s", name, trace);
     _snprintf(text, sizeof text, "Called a function with no C rewrite yet:\n%s\n\nSee halo_standalone.log.", name);
     if (!GetEnvironmentVariableA("HALO_STANDALONE_NOBOX", NULL, 0))
         MessageBoxA(NULL, text, "Halo standalone", MB_OK | MB_ICONERROR);
@@ -220,6 +228,21 @@ static HANDLE WINAPI standalone_create_file_a(LPCSTR name, DWORD access, DWORD s
     return g_create_file_a(name, access, share, security, disposition, flags, template_file);
 }
 
+/* The Halo folder holds the hook harness's dinput8.dll proxy (it loads halo_rewrite.dll). The folder has to be on
+   the DLL path for binkw32/vorbis/Keystone, so load the system dinput8.dll by full path first: later
+   LoadLibraryA("DINPUT8.dll") calls then return that module instead of the proxy. */
+static void preload_system_dinput8(void)
+{
+    char path[MAX_PATH];
+    UINT n = GetSystemDirectoryA(path, MAX_PATH - 16);
+    HMODULE h;
+
+    if (n == 0 || n >= MAX_PATH - 16) return;
+    strcat(path, "\\dinput8.dll");
+    h = LoadLibraryA(path);
+    log_line("preloaded %s: %s", path, h ? "ok" : "FAILED");
+}
+
 static void fill_imports(void)
 {
     int i, missing = 0;
@@ -277,6 +300,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous, LPSTR command_line, i
     log_line("halo standalone: child started");
     install_diagnostics();
     if (!map_image()) return 2;
+    preload_system_dinput8();
     SetDllDirectoryA(standalone_halo_folder);
     fill_imports();
     fix_code_pointers();

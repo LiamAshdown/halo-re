@@ -11,8 +11,8 @@
 // the 5-entry table (types/hs.h: startup, dormant, continuous, static, stub) -- i.e. every
 // entry except "stub" -- which is used here as start=0, end=4.
 // register convention: `table` is recognized directly by Ghidra as the sole visible argument.
-// UNSURE: the literal start/end values (0, 4) are inferred from the function's documented
-// behavior, not read directly out of this call site's instructions.
+// FIXED (verified against 0x483860..0x483872): AX = 5, CX = 0, so all five script type names are offered,
+//   "stub" included; the draft's end index 4 was inferred, not read.
 
 #include "tags.h"
 #include "memory.h"
@@ -26,7 +26,7 @@ extern char *hs_script_type_names[k_hs_script_type_count]; // 0x00688b3c
 // hs_script_type_names entry except "stub") to the autocomplete results.
 void hs_autocomplete_add_startup(void)
 {
-    hs_autocomplete_scan_candidates(hs_script_type_names, 4, 0);
+    hs_autocomplete_scan_candidates(hs_script_type_names, 5, 0); // 0x483865 mov eax,5; xor ecx,ecx
 }
 
 #if 0
