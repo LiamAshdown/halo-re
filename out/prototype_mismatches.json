@@ -856,24 +856,6 @@
   ]
  },
  {
-  "caller": "src\\ai\\actor_gather_nearby_grenade_targets.c",
-  "callee": "actor_find_prop_for_object",
-  "definition": "src\\ai\\actor_find_prop_for_object.c",
-  "declared": "extern datum_index actor_find_prop_for_object(datum_index object_index);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_get_actor_definition.c",
-  "callee": "actor_get_threat_weapon_object_index",
-  "definition": "src\\ai\\actor_get_threat_weapon_object_index.c",
-  "declared": "extern datum_index actor_get_threat_weapon_object_index(void);",
-  "problems": [
-   "0 parameters declared, 1 defined"
-  ]
- },
- {
   "caller": "src\\ai\\actor_get_body_axis_vector.c",
   "callee": "unit_get_forward_vector_or_marker_normal",
   "definition": "src\\units\\unit_get_forward_vector_or_marker_normal.c",
@@ -905,15 +887,6 @@
   "callee": "actor_get_cached_wander_position",
   "definition": "src\\ai\\actor_get_cached_wander_position.c",
   "declared": "extern uint8_t actor_get_cached_wander_position(real_vector3d *out_vector);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_get_relevant_squad_member_target.c",
-  "callee": "actor_find_prop_for_object",
-  "definition": "src\\ai\\actor_find_prop_for_object.c",
-  "declared": "extern datum_index actor_find_prop_for_object(datum_index object_index);",
   "problems": [
    "1 parameters declared, 2 defined"
   ]
@@ -952,24 +925,6 @@
   "declared": "extern uint8_t actor_firing_position_near_point();",
   "problems": [
    "0 parameters declared, 4 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_get_threat_weapon_object_index.c",
-  "callee": "unit_get_weapon_object_index",
-  "definition": "src\\units\\unit_get_weapon_object_index.c",
-  "declared": "extern datum_index unit_get_weapon_object_index(void);",
-  "problems": [
-   "0 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_grenade_avoidance_entry_init.c",
-  "callee": "unit_get_crouch_height_offset",
-  "definition": "src\\units\\unit_get_crouch_height_offset.c",
-  "declared": "extern void unit_get_crouch_height_offset(float *out_offset, float *out_time, datum_index object_index);",
-  "problems": [
-   "3 parameters declared, 4 defined"
   ]
  },
  {
@@ -1658,15 +1613,6 @@
   ]
  },
  {
-  "caller": "src\\ai\\actor_score_blast_area_clear.c",
-  "callee": "ai_reference_actor_iterator_init_cursor",
-  "definition": "src\\ai\\ai_reference_actor_iterator_init_cursor.c",
-  "declared": "extern datum_index ai_reference_actor_iterator_init_cursor(void);",
-  "problems": [
-   "0 parameters declared, 2 defined"
-  ]
- },
- {
   "caller": "src\\ai\\actor_score_firing_positions_by_history.c",
   "callee": "actor_evaluate_flank_offset",
   "definition": "src\\ai\\actor_evaluate_flank_offset.c",
@@ -2172,24 +2118,6 @@
  },
  {
   "caller": "src\\ai\\actor_target_evaluate_squad_link.c",
-  "callee": "object_try_and_get",
-  "definition": "src\\objects\\object_try_and_get.c",
-  "declared": "extern void *object_try_and_get(int32_t kind);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_target_get_relationship_object.c",
-  "callee": "unit_predict_aim_target_position",
-  "definition": "src\\units\\unit_predict_aim_target_position.c",
-  "declared": "extern int32_t unit_predict_aim_target_position(void);",
-  "problems": [
-   "0 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\actor_target_get_relationship_object.c",
   "callee": "object_try_and_get",
   "definition": "src\\objects\\object_try_and_get.c",
   "declared": "extern void *object_try_and_get(int32_t kind);",
@@ -3368,15 +3296,6 @@
   ]
  },
  {
-  "caller": "src\\ai\\ai_notify_actors_of_encounter_state_change.c",
-  "callee": "actor_target_update_active_flag",
-  "definition": "src\\ai\\actor_target_update_active_flag.c",
-  "declared": "extern uint8_t actor_target_update_active_flag(datum_index actor_index);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
   "caller": "src\\ai\\ai_object_list_max_flee_grade.c",
   "callee": "ai_actor_type_get_morale_grade",
   "definition": "src\\ai\\ai_actor_type_get_morale_grade.c",
@@ -3980,24 +3899,6 @@
   ]
  },
  {
-  "caller": "src\\ai\\encounter_choose_vocalizations.c",
-  "callee": "ai_communication_rate_player_proximity",
-  "definition": "src\\ai\\ai_communication_rate_player_proximity.c",
-  "declared": "extern float ai_communication_rate_player_proximity(int32_t mode, int32_t a, int32_t b);",
-  "problems": [
-   "3 parameters declared, 4 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\encounter_choose_vocalizations.c",
-  "callee": "actor_find_prop_for_object",
-  "definition": "src\\ai\\actor_find_prop_for_object.c",
-  "declared": "extern datum_index actor_find_prop_for_object(datum_index object_index);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
   "caller": "src\\ai\\encounter_deactivate.c",
   "callee": "actor_set_units_active",
   "definition": "src\\ai\\actor_set_units_active.c",
@@ -4076,24 +3977,6 @@
   "declared": "extern void ai_actor_unlink_from_unassigned_list(void);",
   "problems": [
    "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\encounter_release_stale_props.c",
-  "callee": "actor_replace_object_reference",
-  "definition": "src\\ai\\actor_replace_object_reference.c",
-  "declared": "extern void actor_replace_object_reference(datum_index actor_index);",
-  "problems": [
-   "1 parameters declared, 3 defined"
-  ]
- },
- {
-  "caller": "src\\ai\\encounter_release_stale_props.c",
-  "callee": "actor_unlink_prop",
-  "definition": "src\\ai\\actor_unlink_prop.c",
-  "declared": "extern void actor_unlink_prop(datum_index prop_index);",
-  "problems": [
-   "1 parameters declared, 2 defined"
   ]
  },
  {
@@ -5510,21 +5393,336 @@
   ]
  },
  {
-  "caller": "src\\game\\game_engine_get_max_look_pitch.c",
-  "callee": "weapon_clamp_zoom_fov",
-  "definition": "src\\items\\weapon_clamp_zoom_fov.c",
-  "declared": "extern real weapon_clamp_zoom_fov(datum_index weapon, real default_pitch);",
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_classic_slayer",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_slayer.c",
+  "declared": "extern void game_engine_variant_defaults_classic_slayer(game_variant *out);",
   "problems": [
-   "2 parameters declared, 3 defined"
+   "return v vs p"
   ]
  },
  {
   "caller": "src\\game\\game_engine_get_variant_by_name.c",
-  "callee": "game_engine_variant_defaults_stalker",
-  "definition": "src\\game\\game_engine_variant_defaults_stalker.c",
-  "declared": "extern game_variant *game_engine_variant_defaults_stalker(game_variant *out);",
+  "callee": "game_engine_variant_defaults_classic_slayer_pro",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_slayer_pro.c",
+  "declared": "extern void game_engine_variant_defaults_classic_slayer_pro(game_variant *out);",
   "problems": [
-   "return p vs v"
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_classic_elimination",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_elimination.c",
+  "declared": "extern void game_engine_variant_defaults_classic_elimination(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_classic_phantoms",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_phantoms.c",
+  "declared": "extern void game_engine_variant_defaults_classic_phantoms(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_classic_endurance",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_endurance.c",
+  "declared": "extern void game_engine_variant_defaults_classic_endurance(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_classic_rockets",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_rockets.c",
+  "declared": "extern void game_engine_variant_defaults_classic_rockets(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_classic_snipers",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_snipers.c",
+  "declared": "extern void game_engine_variant_defaults_classic_snipers(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_classic_team_slayer",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_team_slayer.c",
+  "declared": "extern void game_engine_variant_defaults_classic_team_slayer(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_classic_oddball",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_oddball.c",
+  "declared": "extern void game_engine_variant_defaults_classic_oddball(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_classic_team_oddball",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_team_oddball.c",
+  "declared": "extern void game_engine_variant_defaults_classic_team_oddball(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_classic_reverse_tag",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_reverse_tag.c",
+  "declared": "extern void game_engine_variant_defaults_classic_reverse_tag(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_classic_accumulation",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_accumulation.c",
+  "declared": "extern void game_engine_variant_defaults_classic_accumulation(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_classic_juggernaut",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_juggernaut.c",
+  "declared": "extern void game_engine_variant_defaults_classic_juggernaut(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_classic_stalker",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_stalker.c",
+  "declared": "extern void game_engine_variant_defaults_classic_stalker(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_classic_king",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_king.c",
+  "declared": "extern void game_engine_variant_defaults_classic_king(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_classic_king_pro",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_king_pro.c",
+  "declared": "extern void game_engine_variant_defaults_classic_king_pro(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_classic_crazy_king",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_crazy_king.c",
+  "declared": "extern void game_engine_variant_defaults_classic_crazy_king(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_classic_team_king",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_team_king.c",
+  "declared": "extern void game_engine_variant_defaults_classic_team_king(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_classic_ctf",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_ctf.c",
+  "declared": "extern void game_engine_variant_defaults_classic_ctf(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_classic_ctf_pro",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_ctf_pro.c",
+  "declared": "extern void game_engine_variant_defaults_classic_ctf_pro(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_classic_invasion",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_invasion.c",
+  "declared": "extern void game_engine_variant_defaults_classic_invasion(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_classic_iron_ctf",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_iron_ctf.c",
+  "declared": "extern void game_engine_variant_defaults_classic_iron_ctf(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_classic_race",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_race.c",
+  "declared": "extern void game_engine_variant_defaults_classic_race(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_classic_rally",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_rally.c",
+  "declared": "extern void game_engine_variant_defaults_classic_rally(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_classic_team_race",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_team_race.c",
+  "declared": "extern void game_engine_variant_defaults_classic_team_race(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_classic_team_rally",
+  "definition": "src\\game\\game_engine_variant_defaults_classic_team_rally.c",
+  "declared": "extern void game_engine_variant_defaults_classic_team_rally(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_team_slayer",
+  "definition": "src\\game\\game_engine_variant_defaults_team_slayer.c",
+  "declared": "extern void game_engine_variant_defaults_team_slayer(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_team_race",
+  "definition": "src\\game\\game_engine_variant_defaults_team_race.c",
+  "declared": "extern void game_engine_variant_defaults_team_race(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_team_oddball",
+  "definition": "src\\game\\game_engine_variant_defaults_team_oddball.c",
+  "declared": "extern void game_engine_variant_defaults_team_oddball(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_team_king",
+  "definition": "src\\game\\game_engine_variant_defaults_team_king.c",
+  "declared": "extern void game_engine_variant_defaults_team_king(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_slayer",
+  "definition": "src\\game\\game_engine_variant_defaults_slayer.c",
+  "declared": "extern void game_engine_variant_defaults_slayer(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_race",
+  "definition": "src\\game\\game_engine_variant_defaults_race.c",
+  "declared": "extern void game_engine_variant_defaults_race(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_oddball",
+  "definition": "src\\game\\game_engine_variant_defaults_oddball.c",
+  "declared": "extern void game_engine_variant_defaults_oddball(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_king",
+  "definition": "src\\game\\game_engine_variant_defaults_king.c",
+  "declared": "extern void game_engine_variant_defaults_king(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_juggernaut",
+  "definition": "src\\game\\game_engine_variant_defaults_juggernaut.c",
+  "declared": "extern void game_engine_variant_defaults_juggernaut(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_crazy_king",
+  "definition": "src\\game\\game_engine_variant_defaults_crazy_king.c",
+  "declared": "extern void game_engine_variant_defaults_crazy_king(game_variant *out);",
+  "problems": [
+   "return v vs p"
+  ]
+ },
+ {
+  "caller": "src\\game\\game_engine_get_variant_by_name.c",
+  "callee": "game_engine_variant_defaults_assault",
+  "definition": "src\\game\\game_engine_variant_defaults_assault.c",
+  "declared": "extern void game_engine_variant_defaults_assault(game_variant *out);",
+  "problems": [
+   "return v vs p"
   ]
  },
  {
@@ -7129,33 +7327,6 @@
   ]
  },
  {
-  "caller": "src\\game\\savegame_index_read_slot.c",
-  "callee": "file_reference_close",
-  "definition": "src\\saved_games\\file_reference_close.c",
-  "declared": "extern uint8_t file_reference_close(void);",
-  "problems": [
-   "0 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\game\\savegame_index_read_slot.c",
-  "callee": "file_reference_seek",
-  "definition": "src\\saved_games\\file_reference_seek.c",
-  "declared": "extern uint8_t file_reference_seek(void);",
-  "problems": [
-   "0 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\game\\savegame_index_read_slot.c",
-  "callee": "file_reference_read",
-  "definition": "src\\saved_games\\file_reference_read.c",
-  "declared": "extern uint8_t file_reference_read(void);",
-  "problems": [
-   "0 parameters declared, 3 defined"
-  ]
- },
- {
   "caller": "src\\game\\savegame_index_remove_slot.c",
   "callee": "file_reference_close",
   "definition": "src\\saved_games\\file_reference_close.c",
@@ -7929,15 +8100,6 @@
   ]
  },
  {
-  "caller": "src\\interface\\hud_draw_multitexture_overlay.c",
-  "callee": "color_interpolate",
-  "definition": "src\\bitmaps\\color_interpolate.c",
-  "declared": "extern void color_interpolate(const ColorRGB *a, const ColorRGB *b, ColorRGB *out, uint32_t flags, float t);",
-  "problems": [
-   "return v vs p"
-  ]
- },
- {
   "caller": "src\\interface\\hud_messaging_update.c",
   "callee": "color_argb_int_to_real",
   "definition": "src\\bitmaps\\color_argb_int_to_real.c",
@@ -7975,16 +8137,6 @@
   ]
  },
  {
-  "caller": "src\\interface\\hud_meter_flash_color_blend.c",
-  "callee": "color_argb_int_to_real",
-  "definition": "src\\bitmaps\\color_argb_int_to_real.c",
-  "declared": "extern ColorARGB *color_argb_int_to_real(ColorARGBInt packed, ColorARGB *out);",
-  "problems": [
-   "parameter kinds differ at #1 (i vs p), #2 (p vs i)",
-   "return p vs v"
-  ]
- },
- {
   "caller": "src\\interface\\hud_post_item_message.c",
   "callee": "message_delta_encode_message",
   "definition": "src\\networking\\message_delta_encode_message.c",
@@ -8000,15 +8152,6 @@
   "declared": "extern int32_t chimera__draw_16_bit_text(int32_t unknown_0, int32_t unknown_1, wchar_t *text);",
   "problems": [
    "3 parameters declared, 5 defined"
-  ]
- },
- {
-  "caller": "src\\interface\\hud_unit_sounds_play.c",
-  "callee": "sound_play_new",
-  "definition": "src\\sound\\sound_play_new.c",
-  "declared": "extern int32_t sound_play_new(datum_index sound_tag, void *parameters, int32_t unknown_0, int32_t unknown_1,\n                            int32_t unknown_2, int32_t unknown_3, int32_t unknown_4);",
-  "problems": [
-   "parameter kinds differ at #5 (i vs p)"
   ]
  },
  {
@@ -8398,25 +8541,7 @@
   ]
  },
  {
-  "caller": "src\\interface\\ui_widget_list_item_activate.c",
-  "callee": "sound_play_new",
-  "definition": "src\\sound\\sound_play_new.c",
-  "declared": "extern void sound_play_new(datum_index sound_tag, void *position, int32_t unknown1, int32_t unknown2,\n                          int32_t unknown3, int32_t unknown4, int32_t unknown5);",
-  "problems": [
-   "parameter kinds differ at #5 (i vs p)"
-  ]
- },
- {
   "caller": "src\\interface\\video_options_menu_update.c",
-  "callee": "string_format_wide_va",
-  "definition": "src\\text\\string_format_wide_va.c",
-  "declared": "extern uint16_t *string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);",
-  "problems": [
-   "return p vs v"
-  ]
- },
- {
-  "caller": "src\\interface\\video_resolution_add.c",
   "callee": "string_format_wide_va",
   "definition": "src\\text\\string_format_wide_va.c",
   "declared": "extern uint16_t *string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);",
@@ -13335,24 +13460,6 @@
   ]
  },
  {
-  "caller": "src\\objects\\object_light_recompute_transform.c",
-  "callee": "bsp3d_node_find_leaf",
-  "definition": "src\\physics\\bsp3d_node_find_leaf.c",
-  "declared": "extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index);",
-  "problems": [
-   "parameter kinds differ at #1 (p vs i), #3 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\objects\\object_light_recompute_transform.c",
-  "callee": "object_get_root_location",
-  "definition": "src\\objects\\object_get_root_location.c",
-  "declared": "extern void object_get_root_location(uint32_t object_index);",
-  "problems": [
-   "1 parameters declared, 2 defined"
-  ]
- },
- {
   "caller": "src\\objects\\object_new_with_datum_role_control.c",
   "callee": "game_engine_remap_placement_by_type",
   "definition": "src\\game\\game_engine_remap_placement_by_type.c",
@@ -13606,24 +13713,6 @@
   ]
  },
  {
-  "caller": "src\\objects\\object_set_cluster_and_parent.c",
-  "callee": "bsp3d_node_find_leaf",
-  "definition": "src\\physics\\bsp3d_node_find_leaf.c",
-  "declared": "extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index);",
-  "problems": [
-   "parameter kinds differ at #1 (p vs i), #3 (i vs p)"
-  ]
- },
- {
-  "caller": "src\\objects\\object_set_cluster_and_parent.c",
-  "callee": "scenario_location_from_point",
-  "definition": "src\\scenario\\scenario_location_from_point.c",
-  "declared": "extern void scenario_location_from_point(void);",
-  "problems": [
-   "0 parameters declared, 2 defined"
-  ]
- },
- {
   "caller": "src\\objects\\object_set_health_frozen_flag.c",
   "callee": "effect_new_on_object",
   "definition": "src\\effects\\effect_new_on_object.c",
@@ -13676,15 +13765,6 @@
   "declared": "extern uint32_t datum_next(void);",
   "problems": [
    "0 parameters declared, 2 defined"
-  ]
- },
- {
-  "caller": "src\\objects\\object_unlink_cluster_or_notify_parent.c",
-  "callee": "object_remove_from_sibling_list",
-  "definition": "src\\objects\\object_remove_from_sibling_list.c",
-  "declared": "extern void object_remove_from_sibling_list(uint32_t object_index);",
-  "problems": [
-   "1 parameters declared, 2 defined"
   ]
  },
  {
@@ -14613,15 +14693,6 @@
  },
  {
   "caller": "src\\saved_games\\player_profile_rename.c",
-  "callee": "savegame_index_read_slot",
-  "definition": "src\\game\\savegame_index_read_slot.c",
-  "declared": "extern uint8_t savegame_index_read_slot(int32_t slot_index, saved_game_index_entry *out_entry);",
-  "problems": [
-   "2 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\saved_games\\player_profile_rename.c",
   "callee": "savegame_index_write_slot",
   "definition": "src\\game\\savegame_index_write_slot.c",
   "declared": "extern uint8_t savegame_index_write_slot(int32_t slot_index, saved_game_index_entry *entry);",
@@ -14676,15 +14747,6 @@
   ]
  },
  {
-  "caller": "src\\saved_games\\saved_game_create_custom_variant.c",
-  "callee": "game_engine_variant_defaults_classic_slayer",
-  "definition": "src\\game\\game_engine_variant_defaults_classic_slayer.c",
-  "declared": "extern game_variant *game_engine_variant_defaults_classic_slayer(game_variant *out);",
-  "problems": [
-   "return p vs v"
-  ]
- },
- {
   "caller": "src\\saved_games\\saved_game_create_slot.c",
   "callee": "savegame_index_append_slot",
   "definition": "src\\game\\savegame_index_append_slot.c",
@@ -14713,47 +14775,11 @@
  },
  {
   "caller": "src\\saved_games\\saved_game_delete_by_handle.c",
-  "callee": "savegame_index_read_slot",
-  "definition": "src\\game\\savegame_index_read_slot.c",
-  "declared": "extern uint8_t savegame_index_read_slot(int32_t slot_index, saved_game_index_entry *out_entry);",
-  "problems": [
-   "2 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\saved_games\\saved_game_delete_by_handle.c",
   "callee": "XDeleteSaveGame",
   "definition": "src\\game\\XDeleteSaveGame.c",
   "declared": "extern uint32_t XDeleteSaveGame(const uint16_t *save_game_name, const char *root_path);",
   "problems": [
    "parameter kinds differ at #1 (p vs i)"
-  ]
- },
- {
-  "caller": "src\\saved_games\\saved_game_get_directory_by_handle.c",
-  "callee": "savegame_index_read_slot",
-  "definition": "src\\game\\savegame_index_read_slot.c",
-  "declared": "extern uint8_t savegame_index_read_slot(int32_t slot_index, saved_game_index_entry *out_entry);",
-  "problems": [
-   "2 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\saved_games\\saved_game_get_display_name.c",
-  "callee": "savegame_index_read_slot",
-  "definition": "src\\game\\savegame_index_read_slot.c",
-  "declared": "extern uint8_t savegame_index_read_slot(int32_t slot_index, saved_game_index_entry *out_entry);",
-  "problems": [
-   "2 parameters declared, 1 defined"
-  ]
- },
- {
-  "caller": "src\\saved_games\\saved_game_get_variant.c",
-  "callee": "game_engine_variant_defaults_classic_slayer",
-  "definition": "src\\game\\game_engine_variant_defaults_classic_slayer.c",
-  "declared": "extern game_variant *game_engine_variant_defaults_classic_slayer(game_variant *out);",
-  "problems": [
-   "return p vs v"
   ]
  },
  {
@@ -14791,15 +14817,6 @@
   "declared": "extern uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root_path, int32_t mode, char *out_path,\n    uint32_t out_path_size);",
   "problems": [
    "parameter kinds differ at #1 (p vs i)"
-  ]
- },
- {
-  "caller": "src\\saved_games\\saved_game_open_file_by_handle.c",
-  "callee": "savegame_index_read_slot",
-  "definition": "src\\game\\savegame_index_read_slot.c",
-  "declared": "extern uint8_t savegame_index_read_slot(int32_t slot_index, saved_game_index_entry *out_entry);",
-  "problems": [
-   "2 parameters declared, 1 defined"
   ]
  },
  {

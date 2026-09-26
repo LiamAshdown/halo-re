@@ -15,7 +15,8 @@
 // Fills a game-variant options block with this built-in multiplayer game type's
 // hardcoded default settings. The block is zeroed first (which is also the default
 // for every field not listed below) and then copied out whole.
-void game_engine_variant_defaults_classic_invasion(game_variant *variant_options)
+// FIXED: the original returns its argument in EAX (mov eax,[ebp+8] ... rep movs; callers keep it)
+game_variant * game_engine_variant_defaults_classic_invasion(game_variant *variant_options)
 {
     game_variant defaults;
     uint8_t *zero_cursor;
@@ -53,6 +54,7 @@ void game_engine_variant_defaults_classic_invasion(game_variant *variant_options
     defaults.variant_flags = 1;
 
     *variant_options = defaults;
+    return variant_options;
 }
 
 #if 0

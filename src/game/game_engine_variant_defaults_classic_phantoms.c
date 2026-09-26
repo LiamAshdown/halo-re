@@ -12,7 +12,8 @@
 #include "game.h"
 #include <string.h>
 
-void game_engine_variant_defaults_classic_phantoms(game_variant *out)
+// FIXED: the original returns its argument in EAX (mov eax,[ebp+8] ... rep movs; callers keep it)
+game_variant * game_engine_variant_defaults_classic_phantoms(game_variant *out)
 {
     memset(out, 0, sizeof(game_variant));
     out->game_engine_index = _game_engine_slayer;
@@ -30,6 +31,7 @@ void game_engine_variant_defaults_classic_phantoms(game_variant *out)
     out->ctf_option_7d = 1;
     out->ctf_option_7e = 1;
     out->variant_flags = 1;
+    return out;
 }
 
 #if 0

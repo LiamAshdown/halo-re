@@ -23,7 +23,8 @@ extern char network_default_game_name[]; // 0x0087aa40 (UNSURE name)
 // Resets `server`'s session to compiled-in defaults: copies the pending game variant, the
 // default server name, and clears the two fields between them, then marks the session and the
 // listen channel as initialized.
-void network_game_session_reset_defaults(network_server_globals *server)
+// FIXED: every ret of the original is preceded by mov eax,1 and callers test it
+int32_t network_game_session_reset_defaults(network_server_globals *server)
 {
     memcpy(&server->session.variant, &game_engine_pending_variant, sizeof(game_variant));
     strncpy(server->session.server_name, network_default_game_name, 0x3f);
@@ -32,6 +33,7 @@ void network_game_session_reset_defaults(network_server_globals *server)
     server->session.unknown_080 = 0;
     server->flags |= 1;
     server->listen_channel->listening = 1;
+    return 1;
 }
 
 #if 0

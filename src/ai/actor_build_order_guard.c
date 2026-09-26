@@ -23,7 +23,8 @@ extern data_array *actor_data; // 0x00880360
 // swarm, builds a minimal fallback guard order instead (kind 1, no point). Otherwise, if
 // guard_at_current_position is zero, builds a "guard the anchor" order (kind 0); if nonzero,
 // builds an explicit-point guard order at the actor's current position (kind 1).
-void actor_build_order_guard(uint32_t actor_index, actor_order *order, int16_t guard_at_current_position)
+// FIXED: every ret of the original is preceded by mov eax,1 and callers test it
+int32_t actor_build_order_guard(uint32_t actor_index, actor_order *order, int16_t guard_at_current_position)
 {
     actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
     int16_t *body = (int16_t *)order;
@@ -42,7 +43,7 @@ void actor_build_order_guard(uint32_t actor_index, actor_order *order, int16_t g
             *(int16_t *)((uint8_t *)order + 0x24) = 0;
             *(int16_t *)((uint8_t *)order + 0x3c) = -1;
             *(int16_t *)((uint8_t *)order + 0x3e) = -1;
-            return;
+            return 1;
         }
         *(int16_t *)((uint8_t *)order + 0x24) = 1;
         *((uint8_t *)order + 0x14) = 1;
@@ -52,11 +53,12 @@ void actor_build_order_guard(uint32_t actor_index, actor_order *order, int16_t g
         *(real_vector3d *)((uint8_t *)order + 0x18) = a->facing;
         *(int16_t *)((uint8_t *)order + 0x3c) = -1;
         *(int16_t *)((uint8_t *)order + 0x3e) = -1;
-        return;
+        return 1;
     }
     *(int16_t *)((uint8_t *)order + 0x24) = 1;
     *(int16_t *)((uint8_t *)order + 0x3c) = -1;
     *(int16_t *)((uint8_t *)order + 0x3e) = -1;
+    return 1;
 }
 
 #if 0

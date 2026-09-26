@@ -23,7 +23,8 @@ extern data_array *actor_data; // 0x00880360
 // Zeroes the leading 0x44 bytes of the caller's actor_order and fills it with a "go to a
 // fixed point" order targeting the actor's own current position (i.e. its anchor), with the
 // point-order kind selector set and no explicit end-of-list sentinel cleared.
-void actor_build_order_return_to_anchor(uint32_t actor_index, actor_order *order)
+// FIXED: every ret of the original is preceded by mov eax,1 and callers test it
+int32_t actor_build_order_return_to_anchor(uint32_t actor_index, actor_order *order)
 {
     actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
     uint32_t *body = (uint32_t *)order;
@@ -41,6 +42,7 @@ void actor_build_order_return_to_anchor(uint32_t actor_index, actor_order *order
         // rest of the module treats as a point, so the copy is kept byte for byte.
         *(real_vector3d *)((uint8_t *)order + 0x18) = a->facing;
     *(int32_t *)((uint8_t *)order + 0x3c) = -1;
+    return 1;
 }
 
 #if 0
