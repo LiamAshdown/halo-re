@@ -3,7 +3,7 @@
 The hybrid standalone plan: our exe is linked away from 0x400000 (it runs no original code), and at start-up a small
 loader maps halo.exe's .rdata/.data/.bss back at their original addresses, so every global our C references by
 absolute address (gen_link's EQU symbols) stays valid. This stage writes:
-  build/standalone/image_data.bin      .rdata followed by the initialised part of .data, as one blob
+  build/standalone/halo_image.bin      .rdata, the initialised part of .data, .tls and .rsrc, back to back
   build/standalone/layout.json         where each piece goes (virtual address, raw size, virtual size)
   build/standalone/code_pointers.json  every dword in .rdata/.data equal to a known function start, with the C
                                        symbol that replaces it (or why there is none yet)
@@ -112,11 +112,20 @@ def main():
 
     # ---- data image: .rdata then .data (initialised part); .bss is the zero tail of .data's virtual size
     rdata, data = sec[".rdata"], sec[".data"]
-    blob = exe[rdata["raw"]:rdata["raw"] + rdata["rsize"]] + exe[data["raw"]:data["raw"] + data["rsize"]]
-    open(os.path.join(OUT, "image_data.bin"), "wb").write(blob)
+    blob = b""
+    pieces = []
+    # .text goes in too, but only as data: the loader maps it without execute permission, so tables the compiler put in
+    # the code section (jump tables, handler arrays) read correctly and any jump into original code faults (DEP) at an
+    # address that names the original function
+    for name in (".text", ".rdata", ".data", ".tls", ".rsrc"):
+        if name not in sec:
+            continue
+        s = sec[name]
+        pieces.append({"name": name, "va": s["va"], "blob_offset": len(blob), "raw": s["rsize"], "virtual": s["vsize"]})
+        blob += exe[s["raw"]:s["raw"] + s["rsize"]]
+    open(os.path.join(OUT, "halo_image.bin"), "wb").write(blob)
     layout = {"image_base": base, "entry": base + struct.unpack_from("<I", exe, struct.unpack_from("<I", exe, 0x3c)[0] + 40)[0],
-              "pieces": [{"name": ".rdata", "va": rdata["va"], "blob_offset": 0, "raw": rdata["rsize"], "virtual": rdata["vsize"]},
-                         {"name": ".data", "va": data["va"], "blob_offset": rdata["rsize"], "raw": data["rsize"], "virtual": data["vsize"]}],
+              "pieces": pieces,
               "tls_directory": base + dirs[9][0] if dirs[9][1] else None,
               "tls_section": {"va": sec[".tls"]["va"], "virtual": sec[".tls"]["vsize"]} if ".tls" in sec else None,
               "resources": {"va": sec[".rsrc"]["va"], "size": sec[".rsrc"]["vsize"]} if ".rsrc" in sec else None,

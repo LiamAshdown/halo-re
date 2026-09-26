@@ -43,6 +43,7 @@
 #include "interface.h"
 
 #if defined(_MSC_VER)
+#include <excpt.h>   // GetExceptionInformation is the _exception_info intrinsic, not a function
 #define WINMAIN_TRY __try
 #define WINMAIN_EXCEPT __except (exception_filter_crash_reporter((win32_exception_pointers *)GetExceptionInformation()))
 #else
