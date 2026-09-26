@@ -14,19 +14,18 @@
 #include "tags.h"
 #include "memory.h"
 
+// FIXED (objdump 0x4d0d6c..0x4d0e0e): the per-field size lives in EAX across iterations and is only assigned
+// inside the type switch. A field skipped by the version test, or whose type is out of range, therefore records
+// (and adds to the total) the PREVIOUS field's size -- for the very first field, the low 16 bits of the `fields`
+// pointer that EAX was loaded with at 0x4d0d63. Only the low 16 bits of the total are ever stored.
 void struct_definition_compute_size(struct_definition *definition, int16_t *out_size,
     struct_definition_field *fields, int16_t *out_field_count)
 {
     struct_definition_field *field = fields;
-    int32_t total_size = 0;
-    uint16_t last_size = 0; // Ghidra: uVar4, truncated (short) running total, i.e. total_size at
-                             // the point the terminator is reached -- used only for *out_size.
+    uint16_t total_size = 0;
+    uint16_t field_size = (uint16_t)(uint32_t)fields;
 
     while (field->type != _struct_field_terminator) {
-        int32_t field_size = 0; // Ghidra: psVar3, reused both as an integer and (case 7 only) as
-                                 // a genuine struct_definition_field* -- split into separate
-                                 // variables here (nested_fields) for clarity; no behavior change.
-
         if (field->minimum_version <= definition->version &&
             (definition->version <= field->maximum_version || field->maximum_version == 0)) {
             switch (field->type) {
@@ -51,44 +50,32 @@ void struct_definition_compute_size(struct_definition *definition, int16_t *out_
                 field_size = (uint16_t)(field->count + 2);
                 break;
             case _struct_field_struct_array: {
-                struct_definition_field *nested_fields = field + 1;
-                int16_t element_count = field->count; // Ghidra: psVar3 = psVar6 + 1, i.e. this
-                    // is read from the struct_array field's OWN record, captured before `field`
-                    // gets reassigned below.
+                int16_t element_count = field->count;
                 int16_t nested_size = 0;
                 int16_t nested_field_count = 0;
-                struct_definition_compute_size(definition, &nested_size, nested_fields,
-                    &nested_field_count);
-                field = field + nested_field_count; // struct_definition_field* stride already
-                    // matches the original "psVar6 + (short)local_4 * 5" short-pointer math;
-                    // lands on the nested list's terminator record (see struct_definition_encode.c
-                    // for the full derivation of why).
-                field_size = (uint16_t)(element_count * nested_size) + 2;
+                struct_definition_compute_size(definition, &nested_size, field + 1, &nested_field_count);
+                field = field + nested_field_count; // lands on the nested list's terminator record
+                field_size = (uint16_t)(element_count * nested_size + 2);
                 break;
             }
             case _struct_field_terminator:
                 field_size = 0;
                 break;
+            default:
+                break;                          // 0x4d0d93 ja: keeps the previous size
             }
         }
-        field->computed_size = (int16_t)field_size; // written through the (possibly reassigned,
-            // struct_array case) `field` pointer, exactly like the original's `psVar6[4] = ...`
-            // executing after the switch.
+        field->computed_size = (int16_t)field_size;
         field = field + 1;
-        total_size = total_size + field_size;
-        last_size = (uint16_t)total_size;
+        total_size = (uint16_t)(total_size + field_size);
     }
 
     if (out_field_count != 0) {
         int32_t distance = (int32_t)((uint8_t *)field - (uint8_t *)fields);
-        *out_field_count = (int16_t)(distance / 10) + 1; // UNSURE: literal port of Ghidra's
-            // "(short)(iVar5/10) + (short)(iVar5>>0x1f) + 1 - (short)((longlong)iVar5*0x66666667
-            // >> 0x3f)" -- that is a compiler-generated signed-division-by-10 idiom; for the
-            // always-non-negative distances this function sees it reduces to distance/10 + 1,
-            // which is what is written here.
+        *out_field_count = (int16_t)(distance / 10) + 1;
     }
     if (out_size != 0) {
-        *out_size = (int16_t)last_size;
+        *out_size = (int16_t)total_size;
     }
 }
 
