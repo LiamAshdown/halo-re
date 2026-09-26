@@ -55,7 +55,6 @@ device_control_touched                             # devices: rewrite says 'simp
 dialog_static_hyperlink_install                    # dialogs: rewrite says 'not rewritten'
 decal_place                                        # effects: rewrite says 'omitted'
 effect_marker_environment_probe                    # effects: rewrite says 'placeholder'
-effect_rebuild_markers                             # effects: rewrite says 'not reproduced'
 effect_spawn_particles                             # effects: rewrite says 'elided here'
 particle_creation_physics_default                  # effects: rewrite says 'placeholder'
 particle_creation_physics_explosion                # effects: rewrite says 'placeholder'

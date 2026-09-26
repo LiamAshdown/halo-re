@@ -28,8 +28,8 @@ extern datum_index datum_new(data_array *array); // 0x4d0480, memory module; bla
 
 // Allocates an effect_location_marker for a marker resolved by effect_rebuild_markers, copies
 // its transform, and links it at the head of effect->location_markers[location_index].
-void effect_marker_new(effect *self, int16_t location_index, object_marker *resolved_marker,
-    uint8_t first_person)
+datum_index effect_marker_new(effect *self, int16_t location_index, object_marker *resolved_marker,
+    uint8_t first_person) // returns the new marker's handle, or -1 (EAX from datum_new, 0x4517d9..0x451844)
 {
     datum_index handle = datum_new(effect_location_data);
 
@@ -47,6 +47,7 @@ void effect_marker_new(effect *self, int16_t location_index, object_marker *reso
         marker->next_marker = self->location_markers[location_index];
         self->location_markers[location_index] = handle;
     }
+    return handle;
 }
 
 #if 0

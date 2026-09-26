@@ -28,7 +28,7 @@
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern void effect_marker_new(effect *self, int16_t location_index, object_marker *resolved_marker,
+extern datum_index effect_marker_new(effect *self, int16_t location_index, object_marker *resolved_marker,
     uint8_t first_person); // 0x4517d0, this module
 extern int32_t first_person_weapon_get_marker_data(uint32_t object_index, const char *location,
     object_marker *out, uint32_t max_count); // outside this batch's range
@@ -49,13 +49,16 @@ void effect_rebuild_markers(effect *self, effect_marker_resolver resolve_marker)
         int16_t count = resolve_marker(self->object_index, locations + location_index * 0x20,
             markers, 0x10);
         int16_t i;
+        // 0x45176e: cmp [resolver],0x492ad0 -- the ORIGINAL's address; original callers pass that, C callers the
+        // rewrite's own function, so accept either
+        uint8_t first_person = (uint8_t)((uint32_t)resolve_marker == 0x492ad0u ||
+            resolve_marker == first_person_weapon_get_marker_data);
 
         for (i = 0; i < count; i++) {
-            // UNSURE: the original breaks out of this inner loop when FUN_004517d0 "returns -1"
-            // (the datum_new failure path); effect_marker_new is written here as void since that
-            // return value is otherwise unused, so the early-exit is not reproduced.
-            effect_marker_new(self, location_index, &markers[i],
-                resolve_marker == first_person_weapon_get_marker_data);
+            // 0x451799: the inner loop stops at the first marker datum_new cannot allocate
+            if (effect_marker_new(self, location_index, &markers[i], first_person) == k_datum_index_none) {
+                break;
+            }
         }
     }
 }
