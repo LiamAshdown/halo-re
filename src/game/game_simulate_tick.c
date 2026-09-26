@@ -50,7 +50,7 @@ extern void game_engine_players_update_server(void);                    // 0x474
 extern void game_engine_players_update_client(void);                    // 0x474590, UNSURE module (client path)
 extern void main_switch_structure_bsp(void);       // 0x4749a0, UNSURE module
 extern void game_engine_server_update_player_positions(void);                    // UNSURE module
-extern void FUN_004768c0(void);                    // UNSURE module
+extern void players_server_catchup_on_client_updates(void); // 0x4768c0
 extern void players_client_catchup_on_server_updates(void); // 0x476d40, UNSURE module
 extern void first_person_weapon_interface_tick(void);                    // UNSURE module (hs-related, guarded by
                                                    //   hs_thread_recursion_depth)
@@ -109,7 +109,7 @@ after_role_update:
 
     if (network_game_mode == 2) {
         if (predict_pass == 0) {
-            FUN_004768c0();
+            players_server_catchup_on_client_updates();
         }
         game_engine_server_update_player_positions();
         network_client_send_local_player_updates();

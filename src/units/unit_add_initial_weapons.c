@@ -4,7 +4,7 @@
 // evidence: objdump -d 0x56cf10..0x56d078. For every entry of the unit tag's weapons block
 //   (Unit +0x2d8, 0x24-byte UnitWeapon, tag id at +0x0c) with a tag: build placement data
 //   owned by the unit (object_placement_data_initialize 0x4f53a0), create the weapon
-//   (object_new_with_datum_role_control 0x4f54b0; role 0, or 3 on a network client whose
+//   (object_new_with_datum_role_control 0x4f54b0; role 3, or 0 on a network host whose
 //   object type sends delta updates -- the same pick cheat_spawn_objects_near_camera makes),
 //   then with a game engine running delete it again if the unit already carries that weapon
 //   type (unit_has_weapon_of_type 0x56d610, EBX = the weapon's definition tag), and otherwise
@@ -61,7 +61,7 @@ void unit_add_initial_weapons(uint32_t unit_index)
             continue;
         }
         object_placement_data_initialize(&placement, weapon_tag, unit_index);
-        // 0x56cf8e..0x56cfbc: EAX = 3, cleared to 0 only on the client-with-delta-updates path
+        // 0x56cf8e..0x56cfbc: EAX = 3, cleared to 0 only on a host (mode 2) for types with delta updates
         role = 3;
         if (network_game_mode == 2 &&
             object_type_definitions[((Object *)tag_instances[placement.definition_tag & 0xffff].data)->object_type]
