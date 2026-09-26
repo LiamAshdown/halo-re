@@ -41,7 +41,8 @@ extern double fabs(double x); // FABS
 // blam-cc: EAX -> node_index, ECX -> bsp, EDX -> point
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp,
     real_point3d *point);                                        // 0x5013a0, physics module
-extern uint8_t scenario_location_get_water_and_weather(bsp_leaf_reference *location, int16_t *out_index); // 0x53ed60, UNSURE purpose
+extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
+    int16_t *weather_index_out); // 0x53ed60, EBX point, stack (leaf, weather_index_out)
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin,
     real_vector3d *delta, uint32_t exclude_object_index, collision_result *result); // 0x505880, physics module
 
@@ -77,7 +78,7 @@ void observer_avoid_collision(real_vector3d *forward, real_point3d *position, re
         location.cluster_index = (int16_t)((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)
             [location.leaf_index & 0x7fffffff].cluster;
     }
-    use_alternate_mask = scenario_location_get_water_and_weather(&location, 0);
+    use_alternate_mask = scenario_location_get_water_and_weather(position, &location, 0); // 0x448d98: EBX = ebp = position
 
     probe_length = radius_scale + *distance;
     pullback_point.x = position->x - probe_length * forward->i;
