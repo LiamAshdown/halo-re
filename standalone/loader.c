@@ -287,6 +287,77 @@ static void emulate_crt_startup(void)
     *(char **)0x006a32e8 = pgmname;
 }
 
+/* Test input driver (opt-in, first-boot testing only). Keystrokes injected from another process do not reach the
+   game in the environment the tools run in, but keystrokes injected from inside the process do, so with
+   HALO_STANDALONE_KEYS="delay_ms:KEY,delay_ms:KEY*count,..." a thread in this process brings the game window to the
+   front and presses the keys by scan code through the normal OS path (window messages and DirectInput both see
+   them). KEY: ENTER ESC UP DOWN LEFT RIGHT SPACE TAB. Each press is logged. */
+static char g_key_script[1024];
+
+static BOOL CALLBACK find_game_window(HWND hwnd, LPARAM out)
+{
+    DWORD pid = 0;
+    char cls[64];
+    GetWindowThreadProcessId(hwnd, &pid);
+    if (pid == GetCurrentProcessId() && IsWindowVisible(hwnd) && GetClassNameA(hwnd, cls, sizeof cls) &&
+        strcmp(cls, "Halo") == 0) {
+        *(HWND *)out = hwnd;
+        return FALSE;
+    }
+    return TRUE;
+}
+
+static void bring_to_front(HWND hwnd)
+{
+    DWORD foreground = GetWindowThreadProcessId(GetForegroundWindow(), NULL), me = GetCurrentThreadId();
+    AttachThreadInput(me, foreground, TRUE);
+    ShowWindow(hwnd, SW_SHOW);
+    SetForegroundWindow(hwnd);
+    AttachThreadInput(me, foreground, FALSE);
+}
+
+static DWORD WINAPI key_driver_thread(void *unused)
+{
+    static const struct { const char *name; BYTE scan; BOOL extended; } keys[] = {
+        {"ENTER", 0x1c, FALSE}, {"ESC", 0x01, FALSE}, {"UP", 0x48, TRUE}, {"DOWN", 0x50, TRUE},
+        {"LEFT", 0x4b, TRUE}, {"RIGHT", 0x4d, TRUE}, {"SPACE", 0x39, FALSE}, {"TAB", 0x0f, FALSE}};
+    char *step = g_key_script, *next;
+    for (; step && *step; step = next) {
+        char name[32] = {0};
+        int delay = 0, count = 1, i, k;
+        HWND hwnd = NULL;
+        next = strchr(step, ',');
+        if (next) *next++ = 0;
+        if (sscanf(step, "%d:%31[A-Z]*%d", &delay, name, &count) < 2) continue;
+        Sleep(delay);
+        EnumWindows(find_game_window, (LPARAM)&hwnd);
+        if (hwnd) bring_to_front(hwnd);
+        Sleep(200);
+        for (k = 0; k < (int)(sizeof keys / sizeof keys[0]); k++) {
+            if (strcmp(keys[k].name, name) != 0) continue;
+            for (i = 0; i < count; i++) {
+                DWORD flags = KEYEVENTF_SCANCODE | (keys[k].extended ? KEYEVENTF_EXTENDEDKEY : 0);
+                keybd_event(0, keys[k].scan, flags, 0);
+                Sleep(100);
+                keybd_event(0, keys[k].scan, flags | KEYEVENTF_KEYUP, 0);
+                Sleep(150);
+            }
+            log_line("key driver: pressed %s x%d (window %p, foreground %s)", name, count, (void *)hwnd,
+                     GetForegroundWindow() == hwnd ? "yes" : "NO");
+        }
+    }
+    return 0;
+}
+
+static void start_key_driver(void)
+{
+    if (GetEnvironmentVariableA("HALO_STANDALONE_KEYS", g_key_script, sizeof g_key_script) &&
+        g_key_script[0]) {
+        CreateThread(NULL, 0, key_driver_thread, NULL, 0, NULL);
+        log_line("key driver: script %s", g_key_script);
+    }
+}
+
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous, LPSTR command_line, int show)
 {
     char *slash;
@@ -308,6 +379,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous, LPSTR command_line, i
     if (!SetCurrentDirectoryA(standalone_halo_folder)) {
         log_line("cannot change to the Halo folder %s", standalone_halo_folder);
     }
+    start_key_driver();
     log_line("calling shell_winmain");
     return shell_winmain(instance, previous, command_line, show);
 }

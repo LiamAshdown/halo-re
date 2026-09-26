@@ -1,12 +1,16 @@
 #!/bin/sh
-# Boot the standalone exe, wait for the main menu, then drive the UI with keystrokes (scratchpad/keys.ps1 steps)
-# and screenshot after each step. usage: standalone_ui_run.sh "ENTER,WAIT:2000,DOWN" [total seconds] [menu wait seconds]
+# Boot the standalone exe with the loader's in-process key driver (HALO_STANDALONE_KEYS, see standalone/loader.c)
+# and screenshot the window at the given times (seconds after launch) to build/standalone/ui_<t>.png.
+# usage: standalone_ui_run.sh "30000:DOWN,1500:ENTER" [total seconds] "35 40 45"
 cd /c/Users/Liam-/halo-re || exit 1
 python tools/gen_standalone.py > /dev/null && python tools/gen_standalone_link.py 2>&1 | tail -1
 cd build/standalone && rm -f halo_standalone.log ui_*.png
-(HALO_STANDALONE_NOBOX=1 timeout ${2:-120} ./halo_rebuilt.exe -window -novideo; echo "exit $?" > exit.txt) &
-sleep ${3:-30}
-powershell -ExecutionPolicy Bypass -File "C:\\Users\\Liam-\\halo-re\\scratchpad\\keys.ps1" -steps "$1"
+(HALO_STANDALONE_NOBOX=1 HALO_STANDALONE_KEYS="$1" timeout ${2:-90} ./halo_rebuilt.exe -window -novideo; echo "exit $?" > exit.txt) &
+last=0
+for t in ${3:-40}; do
+  sleep $((t - last)); last=$t
+  powershell -ExecutionPolicy Bypass -File "C:\\Users\\Liam-\\halo-re\\scratchpad\\shot.ps1" -out "C:\\Users\\Liam-\\halo-re\\build\\standalone\\ui_$t.png" 2>/dev/null | head -1
+done
 wait
 cat exit.txt
 cd ../.. && python tools/standalone_symbolize.py | tail -n +6 | grep -v "^override" | head -40
