@@ -32,7 +32,7 @@ extern uint8_t *global_structure_bsp; // 0x00746f9c; +0xe4 is the per-leaf looku
     // (same name and type as the other eleven files in this module that touch it), see
                                     // src/physics/breakable_surface_damage_in_blast_radius.c
 
-extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index); // 0x5013a0
+extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
 extern real random_real_range_seeded(random_seed *seed, real min, real max); // 0x4cd170
 extern uint8_t particle_system_update(float delta_time, datum_index handle); // 0x4544f0, this
                                     // module; UNSURE of the real parameter order, see that file
@@ -47,7 +47,7 @@ uint8_t particle_system_new_type_states(datum_index handle)
     int32_t leaf_index;
     int32_t i;
 
-    leaf_index = bsp3d_node_find_leaf(global_collision_bsp, &system->position, 0);
+    leaf_index = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, &system->position);
     system->location.leaf_index = leaf_index;
     system->location.cluster_index = (leaf_index == -1) ? (int16_t)0xffff :
         *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) +

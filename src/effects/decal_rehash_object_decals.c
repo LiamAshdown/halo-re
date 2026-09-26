@@ -21,7 +21,7 @@ extern decal_grid *decal_grid_block;   // 0x006b0ad8
 extern ModelCollisionGeometryBSP *global_collision_bsp;           // 0x00746f90, passed to FUN_005013a0 in ECX
 extern uint8_t *global_structure_bsp; // 0x00746f9c; +0xe4 is the per-leaf lookup table
 
-extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index);
+extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
     // 0x5013a0; blam-cc: ECX -> globals, EDX -> point, EAX -> index
 extern void decal_link(int16_t cluster_index, datum_index decal_index, int16_t layer); // 0x44dd30,
     // this module; blam-cc: EBX -> cluster_index, ESI -> decal_index, EDI -> layer
@@ -37,7 +37,7 @@ void decal_rehash_object_decals(void)
         while (decal_index != k_datum_index_none) {
             decal *self = &((decal *)decal_data->data)[(uint16_t)decal_index];
             datum_index next = self->next_decal;
-            int32_t leaf = bsp3d_node_find_leaf(global_collision_bsp, &self->position, 0);
+            int32_t leaf = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, &self->position);
 
             if (leaf != -1) {
                 int16_t cluster = *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) +

@@ -30,7 +30,7 @@ extern wchar_t *string_convert_ascii_to_unicode(void); // foreign, presumed to r
 extern uint8_t network_name_string_is_valid_for_mode(char *name, void *dest, int32_t mode); // 0x4e4350, this module
 extern void network_password_field_set(void); // 0x4df070, this module, called here with no
     // visible arguments (UNSURE, see header)
-extern void chimera__console_out(const char *format, ...); // 0x496b50
+extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 
 // blam-cc: EAX -> argument_count, stack -> arguments
 // Console command: with no arguments, reports the current server name; with one, validates it
@@ -42,7 +42,7 @@ void sv_name(uint32_t argument_count, char **arguments)
 
     if (argument_count == 0) {
     report:
-        chimera__console_out("sv_name: %ls", network_server_name);
+        chimera__console_out((ColorARGB *)0, "sv_name: %ls", network_server_name);
         return;
     }
     if (argument_count == 1) {
@@ -62,13 +62,13 @@ void sv_name(uint32_t argument_count, char **arguments)
                     goto report;
                 }
             }
-            chimera__console_out("Server names must only contain printable ASCII characters supported by the Halo UI.");
+            chimera__console_out((ColorARGB *)0, "Server names must only contain printable ASCII characters supported by the Halo UI.");
             goto usage;
         }
-        chimera__console_out("Server names must be between 1 and %d characters.", 0x3f);
+        chimera__console_out((ColorARGB *)0, "Server names must be between 1 and %d characters.", 0x3f);
     }
 usage:
-    chimera__console_out("Incorrect usage. Type help sv_name for more information.");
+    chimera__console_out((ColorARGB *)0, "Incorrect usage. Type help sv_name for more information.");
 }
 
 #if 0

@@ -21,7 +21,7 @@
 
 extern data_array *object_data; // 0x008603b0
 
-extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index); // 0x5013a0, UNSURE: unexamined; result discarded here
+extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0, this batch
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30, this batch; NULL location probes it
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
@@ -32,7 +32,7 @@ void object_set_position_and_recalculate(real_point3d *position, uint32_t object
 {
     object *obj;
 
-    bsp3d_node_find_leaf(global_collision_bsp, position, 0); // 0x4f52c3 mov ecx,ds:0x746f90 / mov edx,esi / xor eax,eax
+    bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, position); // 0x4f52c3 mov ecx,ds:0x746f90 / mov edx,esi / xor eax,eax
     obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     object_unlink_cluster_or_notify_parent(object_index);
     *(real_point3d *)((uint8_t *)obj + 0x5c) = *position;

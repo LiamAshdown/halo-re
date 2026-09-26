@@ -23,7 +23,7 @@
 #include <time.h>
 
 extern ban_list_entry *ban_list_find_by_name(char *key); // this batch, 0x4e37d0
-extern void chimera__console_out(const char *format, ...); // 0x496b50
+extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 
 // Looks up `key` (a CD-key hash) in the ban list; if found and either indefinite or not yet
 // expired, prints a rejection message and returns 1 (reject), otherwise returns 0 (allow).
@@ -40,7 +40,7 @@ uint8_t ban_list_check_and_reject_player(char *key) // blam-cc: EDI -> key
                 return 0;
             }
         }
-        chimera__console_out("Rejecting banned player %s (%s).", entry, key);
+        chimera__console_out((ColorARGB *)0, "Rejecting banned player %s (%s).", entry, key);
         return 1;
     }
     return 0;

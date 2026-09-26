@@ -38,7 +38,7 @@ extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-N
 
 extern void console_command_bool_get_set(uint32_t argument_count, uint8_t *value, char **arguments,
     const char *name); // 0x4e2990, this module
-extern void chimera__console_out(const char *format, ...); // 0x496b50
+extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 
 // blam-cc: stack -> argument_count, arguments
 // Console command: gets or sets the "single flag force reset" boolean via the shared
@@ -52,7 +52,7 @@ void sv_single_flag_force_reset(uint32_t argument_count, char **arguments)
     console_command_bool_get_set(argument_count, &new_value, arguments, "sv_single_flag_force_reset");
 
     if (new_value != old_value && current_game_engine != 0) {
-        chimera__console_out("Game in progress...  Changes will apply to the next game.");
+        chimera__console_out((ColorARGB *)0, "Game in progress...  Changes will apply to the next game.");
     }
     network_single_flag_force_reset_value = new_value;
 }

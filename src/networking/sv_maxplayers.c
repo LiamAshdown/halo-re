@@ -20,14 +20,14 @@
 extern network_server_globals *network_server; // 0x0071c2d4
 extern int32_t sv_maxplayers_value; // 0x00699584
 
-extern void chimera__console_out(const char *format, ...); // 0x496b50
+extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 
 // Console command: gets or sets the maximum number of players (1-16) for a hosted server.
 void sv_maxplayers(uint32_t argument_count, int32_t *arguments) // blam-cc: EAX -> argument_count, stack -> arguments
 {
     if (argument_count == 0) {
     report:
-        chimera__console_out("sv_maxplayers: %d", sv_maxplayers_value);
+        chimera__console_out((ColorARGB *)0, "sv_maxplayers: %d", sv_maxplayers_value);
         return;
     }
     if (argument_count == 1) {
@@ -38,13 +38,13 @@ void sv_maxplayers(uint32_t argument_count, int32_t *arguments) // blam-cc: EAX 
                 network_server->session.maximum_players = (uint8_t)value;
             }
             if (value == 1) {
-                chimera__console_out("WARNING: sv_maxplayers set to 1, are you sure you want to do this?");
+                chimera__console_out((ColorARGB *)0, "WARNING: sv_maxplayers set to 1, are you sure you want to do this?");
             }
             goto report;
         }
-        chimera__console_out("sv_maxplayers must be between 1 and %d", 0x10);
+        chimera__console_out((ColorARGB *)0, "sv_maxplayers must be between 1 and %d", 0x10);
     }
-    chimera__console_out("Incorrect usage. Type help sv_maxplayers for more information.");
+    chimera__console_out((ColorARGB *)0, "Incorrect usage. Type help sv_maxplayers for more information.");
 }
 
 #if 0

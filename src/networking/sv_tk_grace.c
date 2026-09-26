@@ -19,7 +19,7 @@ extern int32_t sv_tk_grace_ticks; // 0x0069956c
 extern char sv_tk_grace_arg_buffer[]; // 0x0066d568, UNSURE: scratch buffer reused by 0x4e51c0
 
 extern int32_t parse_time_duration_string(char *string, char default_unit, uint8_t *unit_table); // this batch, 0x4e51c0
-extern void chimera__console_out(const char *format, ...); // 0x496b50
+extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 
 // Console command: gets or sets the team-kill grace period, stored internally in ticks (30/sec)
 // but reported/parsed in seconds (default unit 's' when a bare number is given).
@@ -27,19 +27,19 @@ void sv_tk_grace(uint32_t argument_count, int32_t *arguments) // blam-cc: EAX ->
 {
     if (argument_count != 0) {
         if (argument_count != 1) {
-            chimera__console_out("Incorrect usage. Type help sv_tk_grace for more information.");
+            chimera__console_out((ColorARGB *)0, "Incorrect usage. Type help sv_tk_grace for more information.");
             return;
         }
         {
             int32_t seconds = parse_time_duration_string((char *)arguments[0], 's', (uint8_t *)sv_tk_grace_arg_buffer);
             if (seconds < 0) {
-                chimera__console_out("Incorrect usage. Type help sv_tk_grace for more information.");
+                chimera__console_out((ColorARGB *)0, "Incorrect usage. Type help sv_tk_grace for more information.");
                 return;
             }
             sv_tk_grace_ticks = seconds * 30;
         }
     }
-    chimera__console_out("sv_tk_grace: %ds", sv_tk_grace_ticks / 30);
+    chimera__console_out((ColorARGB *)0, "sv_tk_grace: %ds", sv_tk_grace_ticks / 30);
 }
 
 #if 0

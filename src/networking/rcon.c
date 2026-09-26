@@ -27,7 +27,8 @@
 extern int16_t network_game_mode; // 0x00719720 (types/game.h), 1 == client
 
 extern void rcon_send_request(char *command, char *password); // this batch, 0x4e4dc0
-extern void chimera__console_out(const char *format, ...); // 0x496b50
+extern void *console_color_006851fc; // 0x006851fc, a ColorARGB * the original loads into EAX
+extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 
 // Console command: packages the password (first argument) and the remaining arguments -- the
 // rcon command bare, every argument after it individually quoted -- into one command line, and
@@ -43,17 +44,17 @@ void rcon(int32_t argument_count, char **arguments) // blam-cc: stack -> argumen
     int32_t i;
 
     if (network_game_mode != 1) {
-        chimera__console_out("rcon is a client-only function!");
+        chimera__console_out((ColorARGB *)console_color_006851fc, "rcon is a client-only function!");
         return;
     }
     if (argument_count < 2) {
-        chimera__console_out("Incorrect usage. Type help rcon for more information.");
+        chimera__console_out((ColorARGB *)console_color_006851fc, "Incorrect usage. Type help rcon for more information.");
         return;
     }
     password = arguments[0];
     password_len = strlen(password);
     if (password_len == 0 || 8 < password_len) {
-        chimera__console_out("rcon password must be between 1 and %d characters", 8);
+        chimera__console_out((ColorARGB *)console_color_006851fc, "rcon password must be between 1 and %d characters", 8);
         return;
     }
 
@@ -65,7 +66,7 @@ void rcon(int32_t argument_count, char **arguments) // blam-cc: stack -> argumen
 
         budget = budget + (-3 - word_len);
         if (budget < 0) {
-            chimera__console_out("rcon command can be no longer than %d characters", 0x40);
+            chimera__console_out((ColorARGB *)console_color_006851fc, "rcon command can be no longer than %d characters", 0x40);
             return;
         }
         if (command[0] != 0) {

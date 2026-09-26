@@ -31,7 +31,7 @@
 
 extern char * string_to_lowercase(char *string); // 0x4491e0, other module
 extern void string_trim_whitespace(char **string_ptr); // 0x4e4040, this module
-extern void chimera__console_out(const char *format, ...); // 0x496b50
+extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 
 // blam-cc: EAX -> argument_count, EBX -> value, stack -> arguments, name
 // Shared get/set implementation for boolean sv_* console commands: with no argument, reports
@@ -44,7 +44,7 @@ void console_command_bool_get_set(uint32_t argument_count, uint8_t *value, char 
 
     if (argument_count == 0) {
     report:
-        chimera__console_out("%s: %u", name, *value);
+        chimera__console_out((ColorARGB *)0, "%s: %u", name, *value);
         return;
     }
     if (argument_count == 1) {
@@ -65,7 +65,7 @@ void console_command_bool_get_set(uint32_t argument_count, uint8_t *value, char 
             }
         }
     }
-    chimera__console_out("Incorrect usage. Type help %s for more information.", name);
+    chimera__console_out((ColorARGB *)0, "Incorrect usage. Type help %s for more information.", name);
 }
 
 #if 0

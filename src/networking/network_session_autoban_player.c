@@ -44,7 +44,7 @@
 extern data_array *player_data;                    // 0x0087a480
 extern network_server_globals *network_server;      // 0x0071c2d4
 
-extern void chimera__console_out(const char *format, ...); // 0x496b50
+extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 extern uint8_t network_banlist_add_ban(int32_t identity_lookup_key, int32_t duration_override_seconds,
     network_player_entry *target_player); // this module, 0x4e35c0
 extern uint8_t network_server_notify_or_resend_challenge(int16_t reason, network_machine *machine, network_server_globals *server);
@@ -93,7 +93,7 @@ uint8_t network_session_autoban_player(datum_index player_handle) // blam-cc: EC
     if (machine != 0 && machine->channel != 0 && machine->channel->connected != 0) {
         return 0;
     }
-    chimera__console_out("AUTOBAN: Banning %S.", target_player->name);
+    chimera__console_out((ColorARGB *)0, "AUTOBAN: Banning %S.", target_player->name);
     if (!network_banlist_add_ban(machine->unknown_5c, 0, (network_player_entry *)target_player->name)) {
         return 0;
     }

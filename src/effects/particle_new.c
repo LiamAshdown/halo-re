@@ -49,7 +49,7 @@ extern int32_t render_tick_counter; // 0x007c3100, UNSURE: foreign module (rende
 
 extern datum_index datum_new(data_array *array); // 0x4d0480, memory module
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *in, real_matrix4x3 *m); // 0x4cbde0
-extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index);
+extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
     // 0x5013a0; blam-cc: ECX -> globals, EDX -> point, EAX -> index
 extern real random_range_real(real minimum, real maximum); // 0x444af0
 extern uint16_t effect_random_uint16(void); // 0x44da40, this module
@@ -97,7 +97,7 @@ void particle_new(particle_creation_data *creation_data)
                                     // file header
     }
 
-    leaf = bsp3d_node_find_leaf(global_collision_bsp, &position, 0);
+    leaf = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, &position);
     if (leaf == -1) {
         return;
     }

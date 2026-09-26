@@ -35,7 +35,7 @@ extern object_globals *object_globals_pointer; // 0x006b8cbc
 extern int32_t object_cluster_stamp; // 0x008603cc
 extern data_array *collideable_object_references; // 0x008603d4
 
-extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index); // 0x5013a0
+extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
 extern int32_t object_type_definitions_collect_by_flag_bits(int32_t bit_index, int32_t remaining_bits,
     int16_t range_index, int16_t range_count, int32_t *bit_array, int32_t cluster_stamp_snapshot,
     uint8_t (*filter)(uint32_t, void *), void *filter_context, int32_t count, int32_t max_count,
@@ -47,7 +47,7 @@ int32_t object_collect_local_player_relevant_objects(void)
     // objdump 0x4fa1a0..0x4fa1ae is `mov ecx,ds:0x746f90 / sub esp,0x18 / push edi / xor eax,eax /
     // xor edi,edi / call 0x5013a0`, so EDX arrives from whatever the caller left behind. Passed
     // as 0 rather than inventing a point.
-    int32_t leaf = bsp3d_node_find_leaf(global_collision_bsp, 0, 0);
+    int32_t leaf = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, 0);
     uint8_t *bsp = global_structure_bsp;
 
     if (leaf == -1) {

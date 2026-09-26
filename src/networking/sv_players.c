@@ -50,7 +50,8 @@ extern char network_player_entry_validate(void); // 0x4de9f0, other module, call
 extern uint32_t sv_players_find_by_team_index_desired(void); // this module, 0x4e2c10,
     // called with no visible arguments (UNSURE, see header)
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, memory module
-extern void chimera__console_out(const char *format, ...); // 0x496b50
+extern void *console_color_00685214; // 0x00685214, a ColorARGB * the original loads into EAX
+extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 
 // Console command: prints a formatted scoreboard header, then one row per valid player entry
 // in the session's player table, including score and team-kill statistics resolved from the
@@ -63,14 +64,14 @@ void sv_players(void)
     int32_t remaining;
 
     if (network_game_mode != 2) {
-        chimera__console_out("sv_players is a server-only function!");
+        chimera__console_out((ColorARGB *)console_color_00685214, "sv_players is a server-only function!");
         return;
     }
 
     snprintf(line, sizeof(line), "%-8s%-*s %-6s %-6s %-6s %-6s %-8s", "Number", 0xc,
              network_team_color_names[0], network_team_color_names[1], network_team_color_names[2],
              "Score", "TK Num", "TK Timer");
-    chimera__console_out(line);
+    chimera__console_out((ColorARGB *)console_color_00685214, line);
 
     entry = network_server->session.players;
     remaining = 16;
@@ -112,7 +113,7 @@ void sv_players(void)
                 snprintf(line, sizeof(line), "%-3d     %-*s %-6s %-4d   %-6ls %-3d    %-4d",
                          entry->machine_index + 1, 0xc, name_buf, team_color, score,
                          name_display, tk_num, tk_timer);
-                chimera__console_out(line);
+                chimera__console_out((ColorARGB *)console_color_00685214, line);
             }
         }
         entry = entry + 1;

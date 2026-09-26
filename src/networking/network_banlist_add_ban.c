@@ -39,7 +39,7 @@ extern ban_list_entry *ban_list_get_or_add_entry(char *name, char *cd_key_hash);
 extern void network_banlist_save(void); // this batch, 0x4e3380
 extern void format_local_time_and_date(char *date_dest, int32_t max_len, int32_t time_value,
     char *time_dest); // this batch, 0x4e52c0
-extern void chimera__console_out(const char *format, ...); // 0x496b50
+extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 
 // Bans target_player: resolves their CD-key hash and display name, adds or extends their ban
 // list entry (escalating through sv_ban_penalty_seconds when duration_override_seconds is 0,
@@ -76,7 +76,7 @@ uint8_t network_banlist_add_ban(int32_t identity_lookup_key, int32_t duration_ov
         if (duration_override_seconds == -1) {
             entry->indefinite = 1;
             entry->expiry_time = 0;
-            chimera__console_out("Banning %s (%s) indefinitely.", player_name, cd_key_hash);
+            chimera__console_out((ColorARGB *)0, "Banning %s (%s) indefinitely.", player_name, cd_key_hash);
             network_banlist_save();
             return 1;
         }
@@ -85,7 +85,7 @@ uint8_t network_banlist_add_ban(int32_t identity_lookup_key, int32_t duration_ov
         entry->expiry_time = expiry;
         entry->indefinite = 0;
         format_local_time_and_date(date_buf, 0x20, expiry, time_buf);
-        chimera__console_out("Banning %s (%s) until %s %s.", player_name, cd_key_hash, date_buf, time_buf);
+        chimera__console_out((ColorARGB *)0, "Banning %s (%s) until %s %s.", player_name, cd_key_hash, date_buf, time_buf);
         network_banlist_save();
     }
     return 1;

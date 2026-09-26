@@ -46,7 +46,7 @@ extern void effect_rebuild_markers(effect *self,
     int32_t (*resolve_marker)(uint32_t, const char *, object_marker *, uint32_t)); // 0x451710, this module
 extern int32_t effect_marker_node_table_resolver(uint32_t object_index, const char *location,
     object_marker *out, uint32_t max_count); // 0x451850, UNSURE, see effect_new_on_object_with_node_table.c
-extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index);
+extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
     // 0x5013a0; blam-cc: ECX -> globals, EDX -> point, EAX -> index
 extern void effect_update(datum_index effect_handle, real delta_time); // 0x451a30, this module
 
@@ -74,7 +74,7 @@ datum_index effect_new_with_color(datum_index definition_index, datum_index crea
         context.node_index = 0xffff; // this wrapper has no object, so no node table
         context.node_table_entry = 0;
 
-        leaf = bsp3d_node_find_leaf(global_collision_bsp, position, 0);
+        leaf = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, position);
         self->location.leaf_index = leaf;
         self->location.cluster_index = (leaf == -1) ? -1 :
             *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);

@@ -28,7 +28,7 @@ extern network_server_globals *network_server; // 0x0071c2d4
 extern wchar_t *string_convert_ascii_to_unicode(void); // foreign, presumed to return &scratch (UNSURE, see header)
 extern uint8_t network_name_string_is_valid_for_mode(char *name, void *dest, int32_t mode); // 0x4e4350, this module
 extern void network_server_password_set(const wchar_t *source, network_server_globals *server); // 0x4e0910, this module
-extern void chimera__console_out(const char *format, ...); // 0x496b50
+extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 
 // blam-cc: EAX -> argument_count, stack -> arguments
 // Console command: with no arguments, reports the current server password; with one, validates
@@ -40,7 +40,7 @@ void sv_password(uint32_t argument_count, char **arguments)
 
     if (argument_count == 0) {
     report:
-        chimera__console_out("sv_password: %ls", network_server_password);
+        chimera__console_out((ColorARGB *)0, "sv_password: %ls", network_server_password);
         return;
     }
     if (argument_count == 1) {
@@ -64,12 +64,12 @@ void sv_password(uint32_t argument_count, char **arguments)
                     goto report;
                 }
             }
-            chimera__console_out("Server passwords must only contain printable ASCII characters supported by the Halo UI.");
+            chimera__console_out((ColorARGB *)0, "Server passwords must only contain printable ASCII characters supported by the Halo UI.");
         } else {
-            chimera__console_out("Server passwords must be no more than %d characters.", 8);
+            chimera__console_out((ColorARGB *)0, "Server passwords must be no more than %d characters.", 8);
         }
     }
-    chimera__console_out("Incorrect usage. Type help sv_password for more information.");
+    chimera__console_out((ColorARGB *)0, "Incorrect usage. Type help sv_password for more information.");
 }
 
 #if 0

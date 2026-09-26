@@ -20,7 +20,8 @@
 
 extern char sv_rcon_password_value[9]; // 0x0071c410, 8 chars + forced NUL
 
-extern void chimera__console_out(const char *format, ...); // 0x496b50
+extern void *console_color_006851fc; // 0x006851fc, a ColorARGB * the original loads into EAX
+extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 
 // Console command: gets or sets the server's rcon password (empty string disables rcon),
 // enforcing an 8-character maximum.
@@ -29,10 +30,10 @@ void sv_rcon_password(uint32_t argument_count, int32_t *arguments) // blam-cc: E
     if (argument_count == 0) {
     report:
         if (sv_rcon_password_value[0] == 0) {
-            chimera__console_out("sv_rcon_password: '' (rcon is DISABLED)");
+            chimera__console_out((ColorARGB *)console_color_006851fc, "sv_rcon_password: '' (rcon is DISABLED)");
             return;
         }
-        chimera__console_out("sv_rcon_password: '%s'", sv_rcon_password_value, strlen(sv_rcon_password_value));
+        chimera__console_out((ColorARGB *)console_color_006851fc, "sv_rcon_password: '%s'", sv_rcon_password_value, strlen(sv_rcon_password_value));
         return;
     }
     if (argument_count == 1) {
@@ -41,9 +42,9 @@ void sv_rcon_password(uint32_t argument_count, int32_t *arguments) // blam-cc: E
             strcpy(sv_rcon_password_value, arg);
             goto report;
         }
-        chimera__console_out("Maximum rcon password length is %d characters", 8);
+        chimera__console_out((ColorARGB *)console_color_006851fc, "Maximum rcon password length is %d characters", 8);
     }
-    chimera__console_out("Incorrect usage. Type help sv_rcon_password for more information.");
+    chimera__console_out((ColorARGB *)console_color_006851fc, "Incorrect usage. Type help sv_rcon_password for more information.");
 }
 
 #if 0

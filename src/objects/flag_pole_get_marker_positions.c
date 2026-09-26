@@ -37,7 +37,7 @@
 extern uint8_t *global_structure_bsp; // 0x00746f9c
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
                                                 object_marker *marker, uint32_t flags); // 0x4f6080
-extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index); // 0x5013a0
+extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
 extern int32_t __ftol(); // 0x006391b4, MSVC 7.1 CRT x87 float-to-int truncation
     // (verified by disassembling 0x006391b4: fld st(0) / fst [esp+0x18] / fistp qword /
@@ -69,7 +69,7 @@ void flag_pole_get_marker_positions(flag *entry, bsp_leaf_reference *node_ref,
         // with the `marker_positions` parameter itself, so the leaf probe is taken at
         // marker_positions[0] -- the first pole attachment point. (EAX is zeroed, ECX is the
         // 0x00746f90 globals pointer, exactly as in antenna_apply_marker_delta.)
-        int32_t node_index = bsp3d_node_find_leaf(global_collision_bsp, &marker_positions[0], 0);
+        int32_t node_index = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, &marker_positions[0]);
 
         node_ref->leaf_index = node_index;
         if (node_index == -1) {
