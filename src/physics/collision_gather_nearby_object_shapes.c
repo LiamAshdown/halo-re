@@ -1,6 +1,6 @@
 // collision_gather_nearby_object_shapes  (Ghidra: FUN_005061c0; renamed)
 // address 0x5061c0, size 613 bytes
-// name confidence: 0.35   rewrite confidence: 0.35
+// name confidence: 0.35   rewrite confidence: 0.85 (step 1: rewritten from objdump -d 0x5061c0..0x506424 and its type table 0x506428/0x506434)
 // evidence: types/objects.h object (flags 0x010 with _object_no_collision_bit, bounding_center
 //   0x0a0, bounding_radius 0x0ac, type 0x0b4, vitality_flags 0x106 with
 //   _object_health_frozen_bit, next_object 0x114, first_child_object 0x118); types/units.h
@@ -38,34 +38,28 @@
 
 extern data_array *object_data; // 0x008603b0
 
-extern void unit_get_crouch_height_offset(float *out); // 0x55a2e0, foreign module, UNSURE signature
-// blam-cc: UNSURE which registers besides the visible ones carry the rest of the physics_model
-// pointer this ultimately writes into (see collision_test_movement_pill's own note on
-// FUN_00502730 for the same pattern of registers still live from an outer caller).
-extern void physics_shape_vertex_to_sphere(float center_x, float center_y, uint32_t object_index,
-    uint32_t surface_index, int32_t margin, uint32_t flags); // 0x503360, this module (higher half)
+extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index,
+    float *pill_height, float *pill_radius_out); // 0x55a2e0, blam-cc: EAX position, ECX object, EBX radius, stack height
+extern void physics_shape_vertex_to_sphere(physics_model *model, real_point3d *vertex,
+    int16_t material_type, float height_offset, float radius, uint32_t object_index,
+    int32_t surface_index, uint8_t surface_flags, int8_t breakable_surface_index);
+    // 0x503360, blam-cc: ECX model, ESI vertex, DI material_type, stack the rest
 extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context);
-    // 0x504e10, this module (lower half); UNSURE exact register convention, called with zero
-    // visible arguments in the original -- object_index is assumed still live from this loop
-extern uint8_t object_collision_context_gather_sphere_shapes(void *context,
-    real_point3d *origin, float radius_scale, float margin, float thickness,
-    physics_model *model); // 0x505200, this module. Declaration shared with every other caller;
-                           // param_4/param_5 are named margin/thickness after
-                           // physics_shape_build_proxies_from_query, which they are forwarded to
-                           // unmodified, rather than the x_offset/y_offset guess used here before. // 0x505200, this module (lower half)
-extern uint8_t object_physics_context_build(uint32_t object_index,
-    object_physics_context *out_context); // 0x5074b0, this module; same UNSURE note as
-                                           // FUN_00504e10 above
+    // 0x504e10, blam-cc: EDI object_index, ECX out_context
+extern uint8_t object_collision_context_gather_sphere_shapes(void *context, real_point3d *origin,
+    float radius_scale, float margin, float thickness, physics_model *model); // 0x505200
+extern uint8_t object_physics_context_build(uint32_t object_index, object_physics_context *out_context);
+    // 0x5074b0, blam-cc: EBX object_index, EAX out_context
 extern uint8_t object_physics_add_mass_point_shapes(float x_offset, float y_offset,
-    object_physics_context *context, int16_t *model_counts); // 0x507790, this module (higher half)
+    object_physics_context *context, int16_t *model_counts); // 0x507790, blam-cc: EBX context
 
-// Walks the object chain starting at start_object_index (following object.next_object) and,
-// for every object matching flags' type mask that overlaps the query sphere (origin, radius) and
-// is not itself excluded (exclude_object_index) or no-collision/frozen-dead, either appends it to
-// the physics_model as a single sphere proxy (bipeds, via unit_get_crouch_height_offset + physics_shape_vertex_to_sphere) or builds
-// its detailed collision-node or mass-point shape proxies (every other type, via FUN_00505200 or
-// object_physics_add_mass_point_shapes depending on flags bit 0x400000). Recurses into
-// first_child_object for every object visited, and into next_object for the walk itself.
+// Walks start_object_index and its next_object siblings (recursing into each one's children)
+// and adds physics_model proxies for every object whose bounding sphere reaches the query
+// sphere (origin, radius), whose type bit (1 << (type + 8)) is set in flags, and which is not
+// exclude_object_index, not no-collision (flags bit 0), not flagged 0x1000000 and not a dead
+// (health-frozen) biped. The type table 0x506434 maps bipeds to one sphere/pill proxy, vehicles,
+// scenery and both device kinds to their collision-node shapes (or, for vehicles with flags
+// bit 0x400000, their mass points), and weapons, equipment, garbage and projectiles to nothing.
 void collision_gather_nearby_object_shapes(uint32_t flags, uint32_t start_object_index,
     real_point3d *origin, float radius, float x_offset, float y_offset,
     uint32_t exclude_object_index, physics_model *model)
@@ -74,62 +68,72 @@ void collision_gather_nearby_object_shapes(uint32_t flags, uint32_t start_object
 
     do {
         object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+        float reach;
+        float dx, dy, dz;
 
-        if (object_index != exclude_object_index &&
-            (obj->flags & _object_no_collision_bit) == 0 &&
-            (obj->flags & 0x01000000) == 0 && // UNSURE: unnamed object flag
-            ((obj->vitality_flags & _object_health_frozen_bit) == 0 || obj->type != 0) &&
-            (radius + obj->bounding_radius) * (radius + obj->bounding_radius) >=
-                (obj->bounding_center.x - origin->x) * (obj->bounding_center.x - origin->x) +
-                (obj->bounding_center.y - origin->y) * (obj->bounding_center.y - origin->y) +
-                (obj->bounding_center.z - origin->z) * (obj->bounding_center.z - origin->z)) {
+        if (object_index == exclude_object_index ||
+            (obj->flags & _object_no_collision_bit) != 0 ||
+            (obj->flags & 0x01000000) != 0 || // UNSURE: unnamed object flag
+            ((obj->vitality_flags & _object_health_frozen_bit) != 0 && obj->type == _object_type_biped)) {
+            object_index = obj->next_object;
+            continue;
+        }
+        reach = radius + obj->bounding_radius;
+        dx = obj->bounding_center.x - origin->x;
+        dy = obj->bounding_center.y - origin->y;
+        dz = obj->bounding_center.z - origin->z;
+        if (!(reach * reach >= dx * dx + dy * dy + dz * dz)) { // fcompp: C0 (or unordered) skips
+            object_index = obj->next_object;
+            continue;
+        }
 
-            if ((flags & (1u << ((obj->type + 8) & 0x1f))) != 0) {
-                switch (obj->type) {
-                case _object_type_biped: {
-                    biped_data *biped = (biped_data *)((uint8_t *)obj + 0x4cc);
-                    unit_data *unit = (unit_data *)((uint8_t *)obj + 0x1f4);
-                    if (((flags & 0x200000) == 0 || (biped->flags & 0x10) == 0) &&
-                        (obj->first_child_object == k_datum_index_none ||
-                         unit->vehicle_seat_index == -1)) {
-                        float sample[2];
-                        unit_get_crouch_height_offset(sample);
-                        physics_shape_vertex_to_sphere(sample[0] + x_offset, sample[1] + y_offset, object_index,
-                            0xffffffff, 0, 0xff);
-                    }
-                    break;
+        if ((flags & (1u << ((obj->type + 8) & 0x1f))) != 0 && (uint32_t)obj->type <= 8) {
+            switch (obj->type) {
+            case _object_type_biped: {
+                biped_data *biped = (biped_data *)((uint8_t *)obj + 0x4cc);
+                unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+
+                // 0x5062a6..0x5062d1: skip when (flags 0x200000 and biped flag 0x10), or when the
+                // biped rides a parent in a seat
+                if (((flags & 0x200000) == 0 || (biped->flags & 0x10) == 0) &&
+                    (obj->parent_object == k_datum_index_none || unit->vehicle_seat_index == -1)) {
+                    real_point3d position;
+                    float pill_height;
+                    float pill_radius;
+
+                    unit_get_crouch_height_offset(&position, object_index, &pill_height, &pill_radius);
+                    position.z += pill_height;
+                    physics_shape_vertex_to_sphere(model, &position, -1, pill_height + x_offset,
+                        pill_radius + y_offset, object_index, -1, 0, -1);
                 }
-                case _object_type_vehicle:
-                case _object_type_scenery:
-                case _object_type_device_machine:
-                case _object_type_device_control: {
-                    // Mass-point path only for vehicles (type 1) with flag 0x400000 set;
-                    // every other type (or vehicles without that flag) uses the node path.
-                    if (obj->type != _object_type_vehicle || (flags & 0x400000) == 0) {
-                        object_collision_context node_ctx;
-                        if (object_collision_context_build(object_index, &node_ctx)) {
-                            uint8_t node_context[76];
-                            object_collision_context_gather_sphere_shapes(node_context, origin, radius, x_offset,
-                                                         y_offset, model);
-                        }
-                    } else {
-                        object_physics_context physics_ctx;
-                        if (object_physics_context_build(object_index, &physics_ctx)) {
-                            object_physics_add_mass_point_shapes(x_offset, y_offset, &physics_ctx,
-                                (int16_t *)model);
-                        }
-                    }
-                    break;
-                }
-                }
+                break;
             }
-
-            if (obj->first_child_object != k_datum_index_none) {
-                collision_gather_nearby_object_shapes(flags, obj->first_child_object, origin,
-                    radius, x_offset, y_offset, exclude_object_index, model);
+            case _object_type_vehicle:
+            case _object_type_scenery:
+            case _object_type_device_machine:
+            case _object_type_device_control:
+                if (obj->type == _object_type_vehicle && (flags & 0x400000) != 0) {
+                    object_physics_context physics_ctx;
+                    if (object_physics_context_build(object_index, &physics_ctx)) {
+                        object_physics_add_mass_point_shapes(x_offset, y_offset, &physics_ctx, (int16_t *)model);
+                    }
+                } else {
+                    object_collision_context node_ctx;
+                    if (object_collision_context_build(object_index, &node_ctx)) {
+                        object_collision_context_gather_sphere_shapes(&node_ctx, origin, radius, x_offset,
+                                                                      y_offset, model);
+                    }
+                }
+                break;
+            default:
+                break;
             }
         }
 
+        if (obj->first_child_object != k_datum_index_none) {
+            collision_gather_nearby_object_shapes(flags, obj->first_child_object, origin,
+                radius, x_offset, y_offset, exclude_object_index, model);
+        }
         object_index = obj->next_object;
     } while (object_index != k_datum_index_none);
 }
