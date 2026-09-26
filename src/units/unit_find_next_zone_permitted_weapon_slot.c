@@ -17,7 +17,7 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern uint8_t unit_check_weapon_use_permission(uint32_t unit_index); // 0x56da00
+extern uint8_t unit_check_weapon_use_permission(uint32_t unit_index, uint32_t weapon_index); // 0x56da00, ESI unit, EDI weapon
 
 int16_t unit_find_next_zone_permitted_weapon_slot(uint32_t unit_index, int32_t start_slot, int16_t direction)
     // blam-cc: in_EAX, param_1, param_2
@@ -35,7 +35,7 @@ int16_t unit_find_next_zone_permitted_weapon_slot(uint32_t unit_index, int32_t s
     int32_t cursor = start_slot;
     do {
         int16_t slot = (int16_t)cursor;
-        if ((unit->weapons[slot] != k_datum_index_none) && (unit_check_weapon_use_permission(unit_index) != 0)) {
+        if ((unit->weapons[slot] != k_datum_index_none) && (unit_check_weapon_use_permission(unit_index, unit->weapons[slot]) != 0) /* 0x56dbe7..0x56dbf7: ESI = unit (EAX at entry), EDI = weapons[slot] */) {
             if ((direction != 0) || (best_slot == -1) ||
                 (unit->weapon_ready_ticks[best_slot] < unit->weapon_ready_ticks[slot])) {
                 best_slot = slot;
