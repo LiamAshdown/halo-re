@@ -28,8 +28,9 @@ extern uint8_t *global_structure_bsp;        // 0x00746f9c; +0x1b8 is the per-cl
                                     // row table this function reads, UNSURE (foreign/BSP module)
 extern weather_instance weather_instances[1]; // 0x006b0ae4
 
-extern uint8_t scenario_location_get_water_and_weather(void *sample_point, int16_t *out_cluster_index); // 0x53ed60, UNSURE
-                                    // signature (structures/BSP module)
+extern real_point3d camera_position; // 0x007c3114
+extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
+    int16_t *weather_index_out); // 0x53ed60, EBX point, stack (leaf, weather_index_out)
 extern void weather_instance_deactivate(int16_t instance_index); // 0x457f00, this module
 extern void weather_instance_activate(datum_index definition_index, int16_t instance_index,
     real intensity); // 0x457e20, this module
@@ -48,8 +49,11 @@ void weather_update_local_player(void)
 
         instance->unknown_14 = render_weather_sample_unknown;
         instance->unknown_10 = render_weather_sample_point;
-        instance->in_sky = scenario_location_get_water_and_weather(&instance->unknown_10, &cluster_index);
-        instance->cluster_index = cluster_index;
+        // 0x458acf..0x458ae6: EBX = &camera_position (0x7c3114), push &instance->unknown_10 (the leaf),
+        // push &instance->cluster_index -- the callee writes the index straight into the instance
+        instance->in_sky = scenario_location_get_water_and_weather(&camera_position,
+            (bsp_leaf_reference *)&instance->unknown_10, &instance->cluster_index);
+        cluster_index = instance->cluster_index;
 
         if (cluster_index != -1) {
             new_definition_index = *(int32_t *)(*(uint8_t **)(global_structure_bsp + 0x1b8) +
