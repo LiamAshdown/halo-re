@@ -27,7 +27,8 @@ void object_hash_clear_flag_bit3(uint32_t key)
     uint32_t next_node;
 
     if (key != 0xffffffff) {
-        node = *(uint32_t *)((uint8_t *)g_0087a464->data + (key & 0xffff) * 0xc);
+        // objdump: mov eax,[edx+eax*4+0x8] -- the key's entry holds its first node at +8, not +0
+        node = *(uint32_t *)((uint8_t *)g_0087a464->data + (key & 0xffff) * 0xc + 8);
         if (node == 0xffffffff) {
             next_node = 0xffffffff;
         } else {
