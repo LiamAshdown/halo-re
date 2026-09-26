@@ -60,7 +60,7 @@ extern double fabs(double x); // x87 FABS
 // decompilation (in_EAX / in_ECX / param_1) and matching
 // src/objects/object_set_position_and_orientation.c. Ghidra binds only the stack operand at
 // the call sites below, so the declaration is left unprototyped.
-extern void vector3d_cross_product(); // 0x4052c0
+extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, blam-cc: EAX out, ECX a, stack b (b x a); checked at 0x55c3db/0x55c3f2 and 0x55d51e/0x55d52f
 // vector3d_rotate_about_axis (0x4cd820) rotates the vector in EAX about the axis in ECX in
 // place, by the (sin_angle, cos_angle) pair pushed on the stack -- the callee own
 // decompilation is a Rodrigues formula over in_EAX / in_ECX / param_1 / param_2, and

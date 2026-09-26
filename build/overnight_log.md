@@ -820,3 +820,8 @@ Remaining step-1 code gap:
   biped, callees with their register args; the caller passes solve+0x98. Next integrator blockers: vector3d_cross_product
   declared differently (biped_integrate_movement), matrix4x3_transform_plane (_with_collision); target-lock via
   actor_find_or_create_shared_prop (known long-standing ai blocker).
+- [firing 11] Item 3 cont.: vector3d_cross_product prototyped in both integrators (argument order checked at all
+  four call sites: EAX out, ECX forward, push desired_facing). Next integrator blockers: vector3d_rotate_about_axis
+  (biped_integrate_movement); _with_collision's melee-lunge block (0x55de..0x55dfxx: ray_intersects_sphere_test,
+  object_collision_context_build/test_segment, collision_test_movement_segment, matrix4x3_transform_plane,
+  unit_process_melee_special_interaction) is largely unresolved in C -- needs its own rewrite from the binary.
