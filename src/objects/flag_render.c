@@ -177,7 +177,7 @@ void flag_render(uint32_t *entry /*param_1, flag* */, uint32_t *submission_block
     // shape of `submission_block` / `second_geometry` was not independently verified.
     {
         void ***device = (void ***)0x006e09e8; // UNSURE: DAT_006e09e8 dereferenced as a COM-style vtable object
-        (*(void (**)(void *))((uint8_t *)(*device)[0] + 0x30 * 0))(device); // UNSURE: literal vtable slot 0x30 call, arg count guessed
+        (*(void (__stdcall **)(void *))((uint8_t *)(*device)[0] + 0x30 * 0))(device); // UNSURE: literal vtable slot 0x30 call, arg count guessed
     }
 
     {

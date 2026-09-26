@@ -80,12 +80,12 @@ extern void chimera__draw_8_bit_text(int32_t x, int32_t y, const char *text); //
 
 static void device_call1(void **device, uint32_t vtable_offset, int32_t arg1)
 {
-    (*(void (**)(void *, int32_t))((uint8_t *)device + vtable_offset))(device, arg1);
+    (*(void (__stdcall **)(void *, int32_t))((uint8_t *)device + vtable_offset))(device, arg1);
 }
 
 static void device_call2(void **device, uint32_t vtable_offset, int32_t arg1, int32_t arg2)
 {
-    (*(void (**)(void *, int32_t, int32_t))((uint8_t *)device + vtable_offset))(device, arg1, arg2);
+    (*(void (__stdcall **)(void *, int32_t, int32_t))((uint8_t *)device + vtable_offset))(device, arg1, arg2);
 }
 
 static void device_set_render_state(void **device, int32_t state, int32_t value) // vtable+0xe4
@@ -95,20 +95,20 @@ static void device_set_render_state(void **device, int32_t state, int32_t value)
 
 static void device_set_sampler_state(void **device, int32_t sampler, int32_t type, int32_t value) // vtable+0x10c
 {
-    (*(void (**)(void *, int32_t, int32_t, int32_t))((uint8_t *)device + 0x10c))(device, sampler, type, value);
+    (*(void (__stdcall **)(void *, int32_t, int32_t, int32_t))((uint8_t *)device + 0x10c))(device, sampler, type, value);
 }
 
 static void device_draw_primitive_up(void **device, int32_t primitive_type, int32_t primitive_count,
     const void *vertex_data, int32_t stride) // vtable+0x14c
 {
-    (*(void (**)(void *, int32_t, int32_t, const void *, int32_t))((uint8_t *)device + 0x14c))(
+    (*(void (__stdcall **)(void *, int32_t, int32_t, const void *, int32_t))((uint8_t *)device + 0x14c))(
         device, primitive_type, primitive_count, vertex_data, stride);
 }
 
 static void device_call_mode_ptr_count(void **device, uint32_t vtable_offset, int32_t mode,
     const void *ptr, int32_t count) // vtable+0x178's shape: (this, count, ptr, mode)
 {
-    (*(void (**)(void *, int32_t, const void *, int32_t))((uint8_t *)device + vtable_offset))(
+    (*(void (__stdcall **)(void *, int32_t, const void *, int32_t))((uint8_t *)device + vtable_offset))(
         device, count, ptr, mode);
 }
 

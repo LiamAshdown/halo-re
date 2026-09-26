@@ -62,7 +62,7 @@ void structure_picked_polygon_draw(void)
 
     if (rasterizer_device_version < 0xffff0101) {
         void **device = *rasterizer_device_ptr;
-        (*(void (**)(void *, int32_t, int32_t))((uint8_t *)device + 0xe4))(device, 0x89, 0);
+        (*(void (__stdcall **)(void *, int32_t, int32_t))((uint8_t *)device + 0xe4))(device, 0x89, 0);
     }
 
     render_force_flag = saved_render_flag;

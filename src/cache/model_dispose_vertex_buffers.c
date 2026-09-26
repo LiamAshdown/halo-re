@@ -39,7 +39,7 @@ void model_dispose_vertex_buffers(void)
     GBXModelGeometry *geometry;
     GBXModelGeometryPart *part;
     void **object;
-    void (**vtable)(void *);
+    void (__stdcall **vtable)(void *); // COM methods are __stdcall
     int32_t geometry_index;
     int32_t part_index;
 
@@ -62,7 +62,7 @@ void model_dispose_vertex_buffers(void)
                 if (d3d_device != 0 && (void *)part != (void *)-0x54) {
                     object = (void **)part->base.vertex_offset;
                     if (object != 0) {
-                        vtable = *(void (***)(void *))object;
+                        vtable = *(void (__stdcall ***)(void *))object;
                         vtable[2](object); // slot +8, Release()
                         part->base.vertex_offset = 0;
                     }
@@ -70,7 +70,7 @@ void model_dispose_vertex_buffers(void)
                 if (d3d_device != 0 && (void *)part != (void *)-0x44) {
                     object = (void **)part->base.triangle_offset_2;
                     if (object != 0) {
-                        vtable = *(void (***)(void *))object;
+                        vtable = *(void (__stdcall ***)(void *))object;
                         vtable[2](object);
                         part->base.triangle_offset_2 = 0;
                     }

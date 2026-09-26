@@ -29,7 +29,7 @@ void rasterizer_dynamic_geometry_dispose(void)
     int32_t handle;
     rasterizer_vertex_buffer_slot *slot;
     void **object;
-    void (**vtable)(void *);
+    void (__stdcall **vtable)(void *); // COM methods are __stdcall
 
     if (rasterizer_device != 0) {
         for (type_index = 0; type_index < k_rasterizer_vertex_type_count; type_index++) {
@@ -38,7 +38,7 @@ void rasterizer_dynamic_geometry_dispose(void)
                 slot = &rasterizer_vertex_buffer_slots[handle - 1];
                 object = (void **)slot->hardware_buffer;
                 if (object != 0) {
-                    vtable = *(void (***)(void *))object;
+                    vtable = *(void (__stdcall ***)(void *))object;
                     vtable[2](object); // slot +8, Release()
                 }
                 rasterizer_vertex_buffer_slot_count = rasterizer_vertex_buffer_slot_count - 1;
@@ -54,7 +54,7 @@ void rasterizer_dynamic_geometry_dispose(void)
         }
         if (rasterizer_dynamic_index_buffer != 0) {
             object = (void **)rasterizer_dynamic_index_buffer;
-            vtable = *(void (***)(void *))object;
+            vtable = *(void (__stdcall ***)(void *))object;
             vtable[2](object); // slot +8, Release()
             rasterizer_dynamic_index_buffer = 0;
         }

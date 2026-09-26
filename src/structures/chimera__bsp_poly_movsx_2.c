@@ -42,7 +42,7 @@ int32_t chimera__bsp_poly_movsx_2(int32_t *visible_surface_indices, uint32_t *su
     int16_t visible_surface_count)
     // blam-cc: EBX -> surface_bits, EDI -> visible_surface_count
 {
-    void (**vtable)(void *);
+    void (__stdcall **vtable)(void *); // COM methods are __stdcall
 
     if (visible_surface_count > 0) {
         int32_t geometry_handle = rasterizer_dynamic_index_cache_reserve(visible_surface_count);
@@ -57,7 +57,7 @@ int32_t chimera__bsp_poly_movsx_2(int32_t *visible_surface_indices, uint32_t *su
                     (ScenarioStructureBSPSurface *)vertex_buffer, visible_surface_indices);
             }
 
-            vtable = *(void (***)(void *))rasterizer_device_006e09e8;
+            vtable = *(void (__stdcall ***)(void *))rasterizer_device_006e09e8;
             vtable[0xc](rasterizer_device_006e09e8); // slot +0x30, submit
             return geometry_handle;
         }

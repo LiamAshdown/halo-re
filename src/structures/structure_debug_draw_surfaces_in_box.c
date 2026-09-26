@@ -84,7 +84,7 @@ void structure_debug_draw_surfaces_in_box(void *render_point, real_point3d *quer
                 void *vertex_buffer = rasterizer_dynamic_index_slot_lock(geometry_handle);
                 structure_leaf_faces_gather_list(surface_count,
                     (ScenarioStructureBSPSurface *)vertex_buffer, local_surface_indices);
-                (*(void (**)(void *))((uint8_t *)*rasterizer_device_006e09e8 + 0x30))(rasterizer_device_006e09e8);
+                (*(void (__stdcall **)(void *))((uint8_t *)*rasterizer_device_006e09e8 + 0x30))(rasterizer_device_006e09e8);
             }
         }
     } else {
