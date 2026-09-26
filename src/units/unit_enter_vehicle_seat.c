@@ -62,7 +62,8 @@ extern int16_t animation_choose_random_permutation(uint32_t flag);              
 extern void object_offset_node_translation(void);                                                          // 0x4f6c10, UNSURE: no traced args
   // real signature (object_offset_node_translation.c): void object_offset_node_translation(uint32_t object_index, real_vector3d *delta); Ghidra recovered 0 of 2 args at this call site
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);         // 0x4f82b0, index in a register
-extern void ai_communication_broadcast(int32_t line_id);                                 // 0x42d340
+extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a,
+    int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340, all stack
 extern void unit_validate_and_clear_weapon_switch(uint32_t unit_index);                                           // unit_validate_and_clear_weapon_switch, 0x5659c0
 extern object * object_try_and_get(datum_index object_index, uint32_t type_mask);          // 0x4f6ec0
 extern uint8_t unit_seat_is_occupied_by_other(uint32_t self_index, int16_t seat_index, uint32_t vehicle_index,
@@ -117,7 +118,7 @@ uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uin
     }
 
     if (unit->actor_index != (datum_index)-1) {
-        ai_communication_broadcast(0x24);
+        ai_communication_broadcast(0x24, unit_index, (datum_index)-1, -1, (datum_index)-1, (datum_index)-1, 0);
     }
     unit_validate_and_clear_weapon_switch(unit_index);
 
@@ -187,7 +188,7 @@ undefined4 unit_enter_vehicle_seat(uint param_1,undefined4 param_2)
       object_recalculate_bounding_radius_recursive();
     }
     if (*(int *)(*(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 + iVar7) + 500) != -1) {
-      ai_communication_broadcast(0x24);
+      ai_communication_broadcast(0x24, unit_index, (datum_index)-1, -1, (datum_index)-1, (datum_index)-1, 0);
     }
     FUN_005659c0();
     iVar5 = object_try_and_get(2);

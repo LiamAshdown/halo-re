@@ -26,7 +26,8 @@ extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 extern real vector3d_length(real_vector3d *v);                 // 0x401960, UNSURE args (mirrors vector3d_normalize_with_length)
-extern void ai_communication_broadcast(int32_t line_id);        // 0x42d340
+extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a,
+    int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340, all stack
 extern uint32_t unit_test_placement_candidate(float distance, real_point3d *out_position,
                                                real_vector3d *direction, void **out_hit_object); // 0x55aa20, this batch
 
@@ -55,22 +56,22 @@ void unit_evaluate_flee_reaction(uint32_t object_index)
 
         if (unit_test_placement_candidate(8.0f, &position, &direction, 0) == k_datum_index_none) { // UNSURE: 0x41000000 == 8.0f
             if (vector3d_normalize_with_length(&direction) <= 0.0f) {
-                ai_communication_broadcast(0x28);
+                ai_communication_broadcast(0x28, object_index, (datum_index)-1, -1, (datum_index)-1, (datum_index)-1, 0);
                 return;
             }
             if (unit_test_placement_candidate(8.0f, &position, &direction, 0) == k_datum_index_none ||
                 direction.i <= 0.3f) { // UNSURE: local_4, see file header
-                ai_communication_broadcast(0x28);
+                ai_communication_broadcast(0x28, object_index, (datum_index)-1, -1, (datum_index)-1, (datum_index)-1, 0);
                 return;
             }
         }
         if (parent->up.k > 0.6f) {
             if (vector3d_length(&direction) < 0.05235988f) {
-                ai_communication_broadcast(0x26);
+                ai_communication_broadcast(0x26, object_index, (datum_index)-1, -1, (datum_index)-1, (datum_index)-1, 0);
                 return;
             }
         }
-        ai_communication_broadcast(0x27);
+        ai_communication_broadcast(0x27, object_index, (datum_index)-1, -1, (datum_index)-1, (datum_index)-1, 0);
     }
 }
 
@@ -102,7 +103,7 @@ void FUN_0055e2d0(void)
       fVar3 = (float10)vector3d_normalize_with_length();
       if (fVar3 <= (float10)0.0) {
 LAB_0055e413:
-        ai_communication_broadcast(0x28);
+        ai_communication_broadcast(0x28, object_index, (datum_index)-1, -1, (datum_index)-1, (datum_index)-1, 0);
         return;
       }
       iVar2 = FUN_0055aa20(0x41000000,0);
@@ -111,11 +112,11 @@ LAB_0055e413:
     if (0.6 < (float)puVar1[0x22]) {
       fVar3 = (float10)vector3d_length();
       if (fVar3 < (float10)0.05235988) {
-        ai_communication_broadcast(0x26);
+        ai_communication_broadcast(0x26, object_index, (datum_index)-1, -1, (datum_index)-1, (datum_index)-1, 0);
         return;
       }
     }
-    ai_communication_broadcast(0x27);
+    ai_communication_broadcast(0x27, object_index, (datum_index)-1, -1, (datum_index)-1, (datum_index)-1, 0);
   }
   return;
 }

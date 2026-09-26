@@ -110,7 +110,7 @@ extern void actor_set_flag_bit1(datum_index actor_index); // 0x42a5b0, not yet r
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,
                                        datum_index object_a, int32_t param_d,
                                        datum_index object_b, datum_index object_c,
-                                       uint32_t param_g);
+                                       uint32_t *param_g);
 // 0x42d340, not yet rewritten (this module). Always seven stack arguments: every call
 // site in the binary cleans up 0x1c bytes, so the shorter forms Ghidra recovers at some
 // sites are artefacts, not a reduced-arity overload.

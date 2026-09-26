@@ -122,7 +122,7 @@ extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,
                                        datum_index object_a, int32_t param_d,
                                        datum_index object_b, datum_index object_c,
-                                       uint32_t param_g);
+                                       uint32_t *param_g);
 // 0x42d340, not yet rewritten (this module). Always seven stack arguments: every call
 // site in the binary cleans up 0x1c bytes, so the shorter forms Ghidra recovers at some
 // sites are artefacts, not a reduced-arity overload.
@@ -546,7 +546,7 @@ tail:
             if ((payload.is_enemy != 0 && target->seen != 0) || target->distance < dist_threshold) {
                 ai_communication_broadcast(8, self->unit_index, target->object_index,
                                             (int32_t)((payload.is_enemy != 0 ? 2 : 0) + 2),
-                                            (uint32_t)-1, 1, (uint32_t)(unsigned long long)&payload) /* the 7th argument is an opaque dword; here it is a pointer */;
+                                            (uint32_t)-1, 1, (uint32_t *)&payload); // 7th argument: extra_data, a pointer as in the definition
             }
         }
 
