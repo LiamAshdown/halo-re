@@ -14,89 +14,88 @@
 
 // FIXED (objdump): path_append_component takes (destination = the file reference's path buffer at +8, in ESI;
 //   component, in EBX); the draft passed them swapped, and read the component array as a pointer.
+// REWRITTEN (objdump 0x53e4a0..0x53e62f): every file_reference call had its register arguments elided. Verified:
+//   0x53e52a get_size_by_path(ESI ref, stack &size)   0x53e556 open(ESI ref, stack 3)
+//   0x53e568 seek(EAX slot*0x206, ECX ref)            0x53e580 seek(EAX read offset, ECX ref)
+//   0x53e590 read(EDX ref, ECX record, ESI 0x206)     0x53e5a7 seek(EAX write offset, ECX ref)
+//   0x53e5b7 write(EDX ref, ECX record, ESI 0x206)    0x53e5e2 set_length(EAX size-0x206, ESI ref)
+//   0x53e5f6 close(ESI ref). The mutex wait failing returns 0 without releasing it (0x53e625).
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
 #include "game.h"
 #include "networking.h"
+#include "interface.h"
+#include "saved_games.h"
 
 extern char saved_game_root_path[]; // 0x006e3108 (an array: the original passes its address), the appended component
-extern file_reference savegame_directory_file_reference; // 0x00721330
+extern file_reference_record savegame_directory_file_reference; // 0x00721330
 extern network_mutex_record *savegame_index_mutex; // 0x00721440, networking.h record; +0x00 is the HANDLE
 
-extern uint8_t file_reference_open(file_reference *reference, int32_t mode); // 0x5557a0
-extern uint8_t file_reference_close(void); // 0x555890
-extern uint8_t file_reference_seek(void); // 0x5558f0
-extern uint8_t file_reference_read(void); // 0x555a20
-extern uint8_t file_reference_write(void); // 0x555a90
-extern void path_append_component(char *destination, const char *component); // 0x555ec0
-extern void path_remove_last_component(uint8_t *path); // 0x555f80
-extern uint8_t file_reference_get_size_by_path(uint32_t *out_size); // 0x555b00, not in this batch
-extern uint8_t file_reference_set_length(void); // 0x555559b0... 0x5559b0, not in this batch; UNSURE: presumed truncate
+extern uint8_t file_reference_open(file_reference_record *ref, uint8_t mode); // 0x5557a0, ESI ref, stack mode
+extern uint8_t file_reference_close(file_reference_record *ref); // 0x555890, ESI ref
+extern uint8_t file_reference_seek(int32_t offset, file_reference_record *ref); // 0x5558f0, EAX offset, ECX ref
+extern uint8_t file_reference_read(file_reference_record *ref, void *buffer, uint32_t size); // 0x555a20, EDX ref, ECX buffer, ESI size
+extern uint8_t file_reference_write(file_reference_record *ref, const void *buffer, uint32_t size); // 0x555a90, EDX ref, ECX buffer, ESI size
+extern uint8_t file_reference_set_length(int32_t offset, file_reference_record *ref); // 0x5559b0, EAX offset, ESI ref
+extern void path_append_component(char *destination, const char *component); // 0x555ec0, ESI destination, EBX component
+extern void path_remove_last_component(char *path); // 0x555f80, EBX path
+extern uint8_t file_reference_get_size_by_path(file_reference_record *ref, uint32_t *out_size); // 0x555b00, ESI ref, stack out_size
 extern uint32_t WaitForSingleObject(void *handle, uint32_t timeout_ms); // Win32
 extern uint32_t ReleaseMutex(void *handle); // Win32
-// CORRECTED by review: the four path/file_reference helpers above were declared argument-less
-// because Ghidra elides their register arguments. savegame_index_file_exists.c's own objdump
-// pass pins them for the whole family:
-//   path_remove_last_component  EBX -> the file_reference's path field (reference + 8)
-//   path_append_component       EBX -> component, ESI -> reference
-//   file_reference_open         ESI -> reference, stack -> mode
-//   file_reference_get_size     EAX -> reference
-// The remaining helpers (file_reference_close / _seek / _read / _write) are still UNSURE.
 
-// Removes save-slot `slot` by shifting every following record down by one position (read each,
-// seek back, write it one record earlier) and then truncating the file, if the index is large
-// enough to contain `slot` in the first place. Returns 1 on success, 0 otherwise.
+// Removes save-slot `slot` from the index file: every 0x206-byte record after it is read and written back one record
+// earlier, then the file is truncated by one record. Returns 1 on success, 0 otherwise.
 uint8_t savegame_index_remove_slot(uint16_t slot)
 {
+    file_reference_record *ref = &savegame_directory_file_reference;
+    uint8_t record[0x206];
+    uint32_t size;
+    uint32_t read_offset, write_offset;
     uint8_t result = 0;
     uint32_t wait_result = WaitForSingleObject(savegame_index_mutex->handle, 5000);
-    uint32_t size[131]; // UNSURE: Ghidra's local_20c[131], only [0] is used (file_reference_get_size_by_path's
-                        // out-size parameter); kept at its original size for fidelity
 
     if (wait_result != 0 && wait_result != 0x80) {
         return 0;
     }
 
     {
-        uint32_t *raw = (uint32_t *)&savegame_directory_file_reference;
+        uint32_t *raw = (uint32_t *)ref;
         int32_t i;
-        uint8_t *flags_byte = (uint8_t *)&savegame_directory_file_reference + 4;
-        uint16_t *word_at_6 = (uint16_t *)((uint8_t *)&savegame_directory_file_reference + 6);
-
         for (i = 0; i < 0x43; i++) {
             raw[i] = 0;
         }
         raw[0] = 0x66696c6f;
-        *word_at_6 = 2;
-        if ((*flags_byte & 1) != 0) {
-            path_remove_last_component((uint8_t *)&savegame_directory_file_reference + 8);
+        *(uint16_t *)((uint8_t *)ref + 6) = 2;
+        if ((*((uint8_t *)ref + 4) & 1) != 0) {
+            path_remove_last_component((char *)ref + 8);
         }
-        path_append_component((char *)&savegame_directory_file_reference + 8, saved_game_root_path);
-        *flags_byte = *flags_byte | 1;
+        path_append_component((char *)ref + 8, saved_game_root_path);
+        *((uint8_t *)ref + 4) |= 1;
     }
 
-    if (file_reference_get_size_by_path(size) != 0) {
-        uint32_t offset = (uint32_t)slot * 0x206 + 0x206;
-        if (offset <= size[0] && file_reference_open(&savegame_directory_file_reference, 3) != 0) {
-            result = file_reference_seek();
+    if (file_reference_get_size_by_path(ref, &size) != 0) {
+        write_offset = (uint32_t)slot * 0x206;
+        read_offset = write_offset + 0x206;
+        if (read_offset <= size && file_reference_open(ref, 3) != 0) {
+            result = file_reference_seek((int32_t)write_offset, ref);
             if (result == 1) {
-                for (; offset < size[0]; offset = offset + 0x206) {
-                    if (file_reference_seek() == 0 || file_reference_read() == 0 ||
-                        file_reference_seek() == 0 || file_reference_write() == 0) {
+                for (; read_offset < size; read_offset += 0x206, write_offset += 0x206) {
+                    if (file_reference_seek((int32_t)read_offset, ref) == 0 ||
+                        file_reference_read(ref, record, 0x206) == 0 ||
+                        file_reference_seek((int32_t)write_offset, ref) == 0 ||
+                        file_reference_write(ref, record, 0x206) == 0) {
                         result = 0;
                         goto close_file;
                     }
                 }
-                result = file_reference_set_length();
+                result = file_reference_set_length((int32_t)(size - 0x206), ref);
             } else if (result != 0) {
-                // UNSURE: dead in practice if file_reference_seek only ever returns 0/1
-                // (preserved literally -- see original's own separate `== 1` / `!= 0` tests)
-                result = file_reference_set_length();
+                result = file_reference_set_length((int32_t)(size - 0x206), ref);
             }
         close_file:
-            if (file_reference_close() == 0) {
+            if (file_reference_close(ref) == 0) {
                 result = 0;
             }
         }
