@@ -29,7 +29,10 @@ extern void encounter_add_actor(int16_t squad_index, datum_index actor_index,
     // straight back into the same field.
 
 // blam-cc: EAX -> actor_index, EBX -> encounter_index
-void actor_reset_squad_link_for_type_change(datum_index actor_index, datum_index encounter_index)
+// FIXED (verified against 0x4290f0..0x429151): the squad is a stack argument (it becomes encounter_add_actor's DX)
+//   and encounter_add_actor keeps the actor's team (push 1).
+void actor_reset_squad_link_for_type_change(datum_index actor_index, datum_index encounter_index, int16_t squad_index)
+    // blam-cc: EAX -> actor_index, EBX -> encounter_index, stack -> squad_index
 {
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
 
@@ -47,7 +50,7 @@ void actor_reset_squad_link_for_type_change(datum_index actor_index, datum_index
         ai_actor_link_to_unassigned_list(actor_index);
         return;
     }
-    encounter_add_actor(self->squad_index, actor_index, encounter_index, 0);
+    encounter_add_actor(squad_index, actor_index, encounter_index, 1); // 0x42913f..0x429147
 }
 
 #if 0

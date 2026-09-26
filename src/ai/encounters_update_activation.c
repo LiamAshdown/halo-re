@@ -43,7 +43,7 @@ extern data_array *encounter_data;               // 0x008802c8
 extern Scenario *global_scenario;                // 0x00746f8c
 extern int16_t global_structure_bsp_index;                // 0x0069e8d8
 
-extern void actor_set_units_active(datum_index actor_index); // 0x427860, not yet rewritten
+extern void actor_set_units_active(datum_index actor_index, uint8_t activate); // 0x427860, blam-cc: EAX, BL
 extern void actor_clear_perceived_props(datum_index actor_index);    // 0x427e00, not yet rewritten
 extern void actor_create_swarm(datum_index actor_index);     // 0x427f40, not yet rewritten
 extern void actor_delete_swarm(datum_index actor_index);     // 0x4280b0, not yet rewritten
@@ -165,7 +165,7 @@ void encounters_update_activation(void)
                                       a->swarm_index != (datum_index)k_datum_index_none)) {
                     a->active = 1;
                     if (a->awareness_level == 0) {
-                        actor_set_units_active(current);
+                        actor_set_units_active(current, 0);
                     }
                 } else {
                     a->swarm_pending = 1;
@@ -176,7 +176,7 @@ void encounters_update_activation(void)
             if (a->active != 0) {
                 actor_clear_perceived_props(current);
                 actor_delete_swarm(current);
-                actor_set_units_active(current);
+                actor_set_units_active(current, 1);
                 a->active = 0;
                 a->unknown_0c = (datum_index)game_time->game_time;
             }

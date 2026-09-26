@@ -18,7 +18,7 @@
 
 extern data_array *actor_data; // 0x00880360
 
-extern void actor_set_units_active(datum_index actor_index); // 0x427860, EAX -> actor_index
+extern void actor_set_units_active(datum_index actor_index, uint8_t activate); // 0x427860, blam-cc: EAX, BL
 extern uint8_t unit_is_in_busy_animation_state(datum_index actor_index); // 0x569c90, not yet rewritten
 
 // blam-cc: EAX -> actor_index, stack -> action, stack -> payload
@@ -27,7 +27,7 @@ uint8_t actor_queue_secondary_action(datum_index actor_index, int16_t action, ui
     actor *self;
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    actor_set_units_active(actor_index);
+    actor_set_units_active(actor_index, 0);
 
     if (self->secondary_action != (int16_t)-1) {
         return 0;

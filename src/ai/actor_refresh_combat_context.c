@@ -1,292 +1,279 @@
 // actor_refresh_combat_context  (Ghidra: actor_refresh_combat_context, already named)
 // address 0x4297a0, size 1845 bytes
-// name confidence: 0.5   rewrite confidence: 0.2
-// evidence: types/ai.h actor.swarm(0x06)/unit_index(0x18)/actor_definition_tag(0x58)/
-//   flying(0x99)/active_unit_index(0x158)/unknown_15e/unknown_15c/unknown_15d/unknown_160/
-//   unknown_161/unknown_162/unknown_164..170/unknown_1b0/unknown_1b4/unknown_1b5/
-//   facing/facing_unknown_180/facing_unknown_18c(0x174/0x180/0x18c)/unknown_18c..1c4/
-//   danger_type(0x280)/danger_object_index(0x28c)/team(0x3e)/unknown_40/unknown_44/
-//   unknown_48; swarm fields (component_count, unit_index[]/component_index[]),
-//   swarm_component.position/marker_index. Given the size and the number of Unit- and
-//   ActorType-tag-shaped raw offsets this function reaches into (none of which
-//   types/tags.h or types/units.h currently name at the specific sub-fields used here), this
-//   rewrite is deliberately kept close to the Ghidra decompilation rather than fully
-//   re-derived, the same tradeoff src/ai/actor_squad_action_execute.c documents for a
-//   function of comparable scope. Calls actor_fill_unit_position_context (0x4296c0, already
-//   rewritten in this module, with its own low confidence), actor_reset_squad_link_for_type_change
-//   (0x4290f0, already rewritten in this module), actor_get_actor_definition (0x40fa70),
-//   vector2d_normalize_with_length (0x4018e0), vector3d_normalize_with_length (0x401990),
-//   vector3d_cross_product (0x4052c0), object_get_position (0x4f6900),
-//   object_get_node_local_transform (0x4f6080), and scenario_location_get_water_and_weather/unit_get_forward_vector_or_marker_normal, neither
-//   established elsewhere in this repo.
-// UNSURE: essentially every raw offset comment in this file marks a field this rewrite did
-// not independently re-derive; see individual comments below. Preserved exactly as decompiled.
-// reconciled: R04 0x006f1d20 uint8_t use_absolute_team_check -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
+// name confidence: 0.5   rewrite confidence: 0.85
+// REWRITTEN (from objdump 0x4297a0..0x429edd; the draft was confidence 0.2 with argument-less callees). Offsets
+//   are the actor's (0x724 each in actor_data):
+//   swarm actor (+0x06): every creature (swarm 0x98 each in 0x0088035c, count +0x02, units +0x18, creatures
+//   +0x58; creature 0x40 each in 0x00880358) gets its unit position (+0x04) and vehicle (+0x10: the unit's
+//   +0x4d8 when it is a biped, else -1); the swarm centre (+0x0c) is their average. The actor's context block
+//   (+0x120, 0xa8 bytes) is cleared (+0x158 vehicle and +0x164 = -1) and, with a leader unit (+0x24), filled
+//   by actor_fill_unit_position_context.
+//   otherwise: actor_fill_unit_position_context(EBX unit, +0x120); the head marker position (0x672034) gives
+//   the water/weather test (EBX point, stack: +0x144 location, NULL) into +0x15d; +0x99 is ActorVariant flag
+//   bit 21. In a vehicle (parent type 1): +0x158 = the vehicle, +0x15e seat kind (1 driver; 4 or 2/3 by
+//   Vehicle flags 0x800/0x1000/0x2000), +0x161 gunner and +0x162 = the actor definition's +0x14c > 0,
+//   +0x160 = seat kind <= 1; a vehicle that wants the actor in its own encounter/squad (+0x334/+0x336) moves
+//   it there (remembering the old one in +0x40/+0x44/+0x48) through actor_reset_squad_link_for_type_change.
+//   Out of a vehicle the remembered squad is restored. Then the attached objects are scanned (enemy bipeds
+//   set +0x1b4; a stuck projectile sets +0x1b0), the unit's aim state (+0x15c, +0x164, +0x168) is copied for
+//   an on-foot biped, and the facing (+0x174, flattened), aim (+0x180), look (+0x18c), right (+0x198) and up
+//   (+0x1a4) vectors and four unit values (+0x1b8..+0x1c4) are refreshed.
+// blam-cc: stack -> actor_index (cdecl)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
-#include "game.h"
-#include "ai.h"
-#include "cache.h"
 #include "objects.h"
-#include "units.h"
+#include "cache.h"
+#include "ai.h"
+#include "game.h"
 #include <string.h>
 
-extern data_array *actor_data;           // 0x00880360
-extern data_array *object_data;          // 0x008603b0
-extern data_array *swarm_data;           // 0x0088035c
-extern data_array *swarm_component_data; // 0x00880358
-extern data_array *encounter_data;       // 0x008802c8
+extern data_array *actor_data;        // 0x00880360
+extern data_array *swarm_data;        // 0x0088035c
+extern data_array *swarm_creature_data; // 0x00880358
+extern data_array *encounter_data;    // 0x008802c8
 extern encounter_squad_state *encounter_squad_states; // 0x008802cc
-extern tag_instance *tag_instances;      // 0x0087bc14
+extern data_array *object_data;       // 0x008603b0
+extern tag_instance *tag_instances;   // 0x0087bc14
+extern game_engine_definition *current_game_engine; // 0x006f1d20
+extern uint8_t *ai_team_relationships; // 0x006b0b84, a bitset at +0xa4 (10 x 10 teams)
+extern const real_point3d *global_zero_point3d_pointer; // 0x006966f8
+extern const real_vector3d *global_forward3d_pointer;   // 0x00696718
+extern const real_vector3d *global_up3d_pointer;        // 0x00696720
+extern char ai_marker_name_head[];    // 0x00672034
 
-extern const real_vector3d *global_forward3d_pointer; // 0x00696718
-extern const real_point3d *swarm_aggregate_seed;      // 0x006966f8, UNSURE name: a pointer to
-                                      //   three floats, read only as the seed of the swarm
-                                      //   aggregate position below
-extern const real_vector3d *global_up3d_pointer;      // 0x00696720, UNSURE name
-extern char ai_marker_name_b[];       // 0x00672034, UNSURE name/size
-extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
-extern uint8_t team_relationship_flags; // 0x006b0b84, base of the 0x2d-dword team-relationship block
+extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, blam-cc: EAX, ECX
+extern void actor_fill_unit_position_context(datum_index unit_index, actor_unit_position_context *out_context);
+    // 0x4296c0, blam-cc: EBX -> unit_index, stack -> out_context
+extern int32_t object_get_node_local_transform(datum_index object_index, char *marker_name, object_marker *marker,
+    uint32_t flags); // 0x4f6080
+extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
+    int16_t *weather_index_out); // 0x53ed60, blam-cc: EBX -> point, stack -> leaf, weather_index_out
+extern void *actor_get_actor_definition(datum_index actor_index); // 0x40fa70, blam-cc: EAX
+extern void actor_reset_squad_link_for_type_change(datum_index actor_index, datum_index encounter_index,
+    int16_t squad_index); // 0x4290f0, blam-cc: EAX, EBX, stack
+extern void unit_get_forward_vector_or_marker_normal(uint32_t unit_index, real_vector3d *out); // 0x569720, ECX, EAX
+extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, blam-cc: ECX
+extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
+    // 0x4052c0, blam-cc: EAX -> out, ECX -> a, stack -> b
+extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, blam-cc: ECX
 
-extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, UNSURE exact signature
-extern void object_get_position(real_point3d *out_position, datum_index object_index); // 0x4f6900
-extern int32_t object_get_node_local_transform(datum_index object_index, char *marker_name, object_marker *marker, uint32_t flags); // 0x4f6080
-extern uint8_t scenario_location_get_water_and_weather(void *context, int32_t param); // 0x53ed60, UNSURE signature
-extern void unit_get_forward_vector_or_marker_normal(void); // 0x569720, UNSURE signature (also called with no visible args elsewhere in this module)
-extern void * actor_get_actor_definition(datum_index actor_index); // 0x40fa70, UNSURE signature (register args not traced here)
-extern void actor_reset_squad_link_for_type_change(datum_index actor_index, datum_index encounter_index); // 0x4290f0
-extern void actor_fill_unit_position_context(datum_index unit_index, void *out_context); // 0x4296c0
+#define A_U8(offset) (*(uint8_t *)(self + (offset)))
+#define A_I16(offset) (*(int16_t *)(self + (offset)))
+#define A_I32(offset) (*(int32_t *)(self + (offset)))
 
-// Full per-tick recomputation of an actor's (or swarm's) combat context. For a swarm, this
-// averages every component unit's position/marker into the swarm's own aggregate fields and
-// then re-derives the position context for the swarm's lead unit. For a solo actor, this is
-// the much larger path: it resolves the parent object (if any), the actor's per-unit
-// position context, a lookahead transform, flying flag, current-target relationship bits
-// (aim-target / threat / leader), a possible squad-link reassignment when the ActorType
-// changes, a "nearby ally at a different position-cache index" scan across every object at
-// the same location cluster, a pending-danger object scan, an aim-origin default from the
-// unit's own tag data, and finally the facing/aim/eye-position vectors used everywhere else
-// in this module.
-// FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads EAX; actor_index arrive(s) on the stack (1 stack argument(s)).
-// blam-cc: stack -> actor_index
+static uint8_t *object_get(datum_index object_index)
+{
+    return *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
+}
+
 void actor_refresh_combat_context(datum_index actor_index)
 {
-    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
-    Actor *actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
+    uint8_t *self = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *actor_tag = (uint8_t *)tag_instances[*(datum_index *)(self + 0x58) & 0xffff].data;
+    uint8_t *unit;
+    uint8_t *parent = 0;
+    datum_index parent_index;
+    datum_index child;
 
-    if (self->swarm == 0) {
-        object *unit_object = ((object_header *)object_data->data)[self->unit_index & 0xffff].data;
-        object *parent_object = (unit_object->parent_object != (datum_index)k_datum_index_none)
-                                     ? ((object_header *)object_data->data)[unit_object->parent_object & 0xffff].data
-                                     : 0;
-
-        actor_fill_unit_position_context(self->unit_index, (uint8_t *)self + 0x120);
-        object_get_node_local_transform(self->unit_index, ai_marker_name_b,
-                                        (object_marker *)&self->unknown_15d /* UNSURE, 108-byte scratch */, 1);
-        self->unknown_15d = scenario_location_get_water_and_weather((uint8_t *)self + 0x144, 0); // UNSURE offset/signature
-        self->flying = (uint8_t)(*(uint32_t *)actor_tag >> 0x15) & 1;
-
-        if (parent_object == 0 || *(int16_t *)((uint8_t *)parent_object + 0xb4) != 1) { // UNSURE: parent object type
-            self->active_unit_index = (datum_index)k_datum_index_none;
-            self->unknown_15e = 0;
-            self->order_committed = 0;
-            self->unknown_161 = 0;
-            if (self->unknown_40[0] != 0) {
-                actor_reset_squad_link_for_type_change(actor_index, *(int16_t *)((uint8_t *)self + 0x48));
-                self->unknown_40[0] = 0;
-            }
-        } else {
-            Actor *parent_actor_tag = (Actor *)(tag_instances[*(uint16_t *)parent_object & 0xffff].data); // UNSURE
-            self->unknown_161 = 0;
-            self->unknown_162[0] = 0;
-            self->unknown_15e = 0;
-            self->active_unit_index = unit_object->parent_object;
-
-            if (*(uint32_t *)((uint8_t *)parent_object + 0xc9 * 4) == self->unit_index) { // UNSURE offset
-                self->unknown_15e = 1;
-                {
-                    uint32_t flags = *(uint32_t *)((uint8_t *)parent_actor_tag + 0x2f0); // UNSURE offset
-                    if ((flags & 0x800) != 0) {
-                        if ((flags & 0x1000) == 0) {
-                            if ((flags & 0x2000) != 0) {
-                                self->unknown_15e = ((~(flags >> 0xe)) & 1) | 2;
-                            }
-                        } else {
-                            self->unknown_15e = 4;
-                            self->flying = 1;
-                        }
-                    }
-                }
-            }
-            if (*(uint32_t *)((uint8_t *)parent_object + 0xca * 4) == self->unit_index) { // UNSURE offset
-                void *definition;
-                self->unknown_161 = 1;
-                // The original reads +0x14c out of actor_get_actor_definition's RETURN value,
-                // not out of the tag data resolved at the top of the function. The two are very
-                // likely the same pointer, but the call's result is what is used here.
-                definition = actor_get_actor_definition(actor_index);
-                self->unknown_162[0] = *(float *)((uint8_t *)definition + 0x14c) > 0.0f; // UNSURE offset
-            }
-            self->order_committed = self->unknown_15e < 2;
-
-            if (*(int16_t *)((uint8_t *)parent_object + 0xcd * 4) != -1) { // UNSURE offset
-                datum_index encounter_index = self->encounter_index;
-                uint16_t encounter_slot = (uint16_t)encounter_index;
-
-                if (encounter_slot != (uint16_t)*(int16_t *)((uint8_t *)parent_object + 0xcd * 4) ||
-                    (*(int16_t *)((uint8_t *)parent_object + 0x336) != -1 &&
-                     self->squad_index != *(int16_t *)((uint8_t *)parent_object + 0x336) &&
-                     (encounter_data && encounter_squad_states[encounter_slot].squad_delay_ticks /* UNSURE: encounter+0x62 via squad_index? */ < 1))) {
-                    if (self->unknown_40[0] == 0) {
-                        *(datum_index *)&self->unknown_40[4] = encounter_index;
-                        *(int16_t *)((uint8_t *)self + 0x48) = self->squad_index;
-                        self->unknown_40[0] = 1;
-                        if (encounter_index != (datum_index)k_datum_index_none) {
-                            ((encounter *)encounter_data->data)[encounter_index & 0xffff].dirty = 1;
-                        }
-                    }
-                    actor_reset_squad_link_for_type_change(actor_index, *(int16_t *)((uint8_t *)parent_object + 0x336));
-                }
-            }
-        }
-
-        self->unknown_1b4[1] = *(uint8_t *)((uint8_t *)unit_object + 0x28b) != 0; // offset 0x1b5
-        self->unknown_1b4[0] = 0;
-        self->unknown_1b0 = 0xffffffff;
-
-        {
-            // object+0x118 is first_child_object and object+0x114 is next_object: this is a
-            // walk of the unit's attached-object list, not of a location cluster. (The
-            // first rewrite read object.location_leaf_index at +0x98 here.)
-            datum_index cursor = unit_object->first_child_object;
-            while (cursor != (datum_index)k_datum_index_none) {
-                object *candidate = ((object_header *)object_data->data)[cursor & 0xffff].data;
-                if (candidate->type == 0) {
-                    int16_t candidate_team = *(int16_t *)((uint8_t *)candidate + 0xb8); // UNSURE offset
-                    int mismatch;
-                    if (current_game_engine == 0) {
-                        if (self->team >= 0 && self->team < 10 && candidate_team >= 0 && candidate_team < 10) {
-                            int index = candidate_team + self->team * 10;
-                            // The bitmap starts 0xa4 bytes into the block at 0x006b0b84; the
-                            // first rewrite dropped that displacement.
-                            mismatch = (((1 << (index & 0x1f)) &
-                                         *(uint32_t *)((uint8_t *)&team_relationship_flags +
-                                                       0xa4 + (index >> 5) * 4)) == 0);
-                        } else {
-                            // Ghidra falls straight through to the "set the flag" store when
-                            // either team is outside 0..9, i.e. it counts as a mismatch.
-                            mismatch = 1;
-                        }
-                    } else {
-                        mismatch = self->team != candidate_team;
-                    }
-                    if (mismatch) {
-                        self->unknown_1b4[0] = 1;
-                    }
-                } else if (candidate->type == 5 &&
-                          (*(int8_t *)((uint8_t *)candidate + 0x22c) < 0 || // UNSURE offset
-                           (self->danger_type == 2 && cursor == self->danger_object_index))) {
-                    self->unknown_1b0 = cursor;
-                }
-                cursor = candidate->next_object; // object + 0x114
-            }
-        }
-
-        self->unknown_15c = 0;
-        self->unknown_164 = 0xffffffff;
-        if (unit_object->type == 0 && self->active_unit_index == (datum_index)k_datum_index_none) {
-            object *own_unit = ((object_header *)object_data->data)[self->unit_index & 0xffff].data;
-            if (*(int8_t *)((uint8_t *)own_unit + 0x501) > 5) { // UNSURE offset
-                self->unknown_15c = 1;
-            }
-            self->unknown_164 = *(int32_t *)((uint8_t *)own_unit + 0x4dc); // UNSURE offset
-            *(int32_t *)((uint8_t *)self + 0x168) = *(int32_t *)((uint8_t *)own_unit + 0x4e0);
-            *(int32_t *)((uint8_t *)self + 0x16c) = *(int32_t *)((uint8_t *)own_unit + 0x4e4);
-            *(int32_t *)((uint8_t *)self + 0x170) = *(int32_t *)((uint8_t *)own_unit + 0x4e8);
-        }
-
-        unit_get_forward_vector_or_marker_normal();
-
-        if (self->flying == 0) {
-            // UNSURE: which vector is normalized -- the argument is register-passed and Ghidra
-            // attributes none, so actor.facing (0x174, the only vector written by both arms of
-            // the test below) is the reconstruction. What is NOT unsure is that the test is on
-            // the RETURN value (the length) and not on a component of the vector: an earlier
-            // draft tested dir.i, which inverts the branch whenever i is negative.
-            real length = vector2d_normalize_with_length((real_vector2d *)&self->facing);
-            if (length <= 0.0f) {
-                self->facing = *global_forward3d_pointer;
-            } else {
-                self->facing.k = 0.0f;
-            }
-        }
-
-        if (self->unknown_161 == 0) {
-            self->facing_unknown_180 = *(real_vector3d *)((uint8_t *)unit_object + 0x23c); // UNSURE offset
-        } else {
-            object *active_unit = ((object_header *)object_data->data)[self->active_unit_index & 0xffff].data;
-            Actor *active_tag = (Actor *)(tag_instances[*(uint16_t *)active_unit & 0xffff].data); // UNSURE
-            if ((*(uint32_t *)((uint8_t *)active_tag + 0x2f0) & 0x100) == 0) {
-                self->facing_unknown_180 = *(real_vector3d *)((uint8_t *)active_unit + 0x23c); // UNSURE offset
-            } else {
-                unit_get_forward_vector_or_marker_normal();
-            }
-        }
-
-        self->facing_unknown_18c = *(real_vector3d *)((uint8_t *)unit_object + 0x260); // UNSURE offset
-
-        {
-            real_vector3d tmp;
-            vector3d_cross_product(&tmp, global_up3d_pointer, &self->facing_unknown_18c);
-            vector3d_normalize_with_length(&tmp);
-            vector3d_cross_product(&tmp, &self->facing_unknown_18c, &self->facing_unknown_18c); // UNSURE args
-        }
-
-        *(real_point3d *)((uint8_t *)self + 0x1b8) = *(real_point3d *)((uint8_t *)unit_object + 0xe0);
-        *(float *)((uint8_t *)self + 0x1c0) = *(float *)((uint8_t *)unit_object + 0xf8);
-        *(float *)((uint8_t *)self + 0x1c4) = *(float *)((uint8_t *)unit_object + 0xf4);
-    } else {
-        swarm *s = &((swarm *)swarm_data->data)[self->swarm_index & 0xffff];
+    if (A_U8(0x06)) {
+        uint8_t *swarm = (uint8_t *)swarm_data->data + (*(datum_index *)(self + 0x28) & 0xffff) * 0x98;
+        real_point3d *center = (real_point3d *)(swarm + 0xc);
+        int16_t count = *(int16_t *)(swarm + 2);
         int16_t i;
 
-        // The original seeds all THREE aggregate floats (swarm +0x0c/+0x10/+0x14) from the
-        // three floats at 0x006966f8; an earlier draft of this file dropped the +0x0c one and
-        // started the sum at +0x10, which shifted the whole centroid by one component.
-        s->aggregate_position = *swarm_aggregate_seed;
+        *center = *global_zero_point3d_pointer;
+        for (i = 0; i < count; i++) {
+            uint8_t *creature = (uint8_t *)swarm_creature_data->data +
+                (*(datum_index *)(swarm + 0x58 + i * 4) & 0xffff) * 0x40;
+            datum_index creature_unit = *(datum_index *)(swarm + 0x18 + i * 4);
+            uint8_t *creature_object = object_get(creature_unit);
+            datum_index vehicle = *(int16_t *)(creature_object + 0xb4) == 0 ?
+                *(datum_index *)(creature_object + 0x4d8) : k_datum_index_none;
 
-        for (i = 0; i < s->component_count; i++) {
-            swarm_component *component = &((swarm_component *)swarm_component_data->data)[s->component_index[i] & 0xffff];
-            object *unit_object = ((object_header *)object_data->data)[s->unit_index[i] & 0xffff].data;
-            datum_index marker = (unit_object->type == 0) ? *(datum_index *)((uint8_t *)unit_object + 0x4d8)
-                                                           : (datum_index)k_datum_index_none;
-
-            object_get_position(&component->position, s->unit_index[i]);
-            component->marker_index = marker;
-
-            s->aggregate_position.x = s->aggregate_position.x + component->position.x;
-            s->aggregate_position.y = s->aggregate_position.y + component->position.y;
-            s->aggregate_position.z = s->aggregate_position.z + component->position.z;
+            object_get_position((real_point3d *)(creature + 4), creature_unit);
+            *(datum_index *)(creature + 0x10) = vehicle;
+            center->x = *(float *)(creature + 4) + center->x;
+            center->y = *(float *)(creature + 8) + center->y;
+            center->z = *(float *)(creature + 0xc) + center->z;
         }
+        if (count > 0) {
+            float scale = 1.0f / (float)count;
 
-        if (s->component_count > 0) {
-            float inv = 1.0f / (float)s->component_count;
-            s->aggregate_position.x = s->aggregate_position.x * inv;
-            s->aggregate_position.y = s->aggregate_position.y * inv;
-            s->aggregate_position.z = s->aggregate_position.z * inv;
+            center->x = scale * center->x;
+            center->y = scale * center->y;
+            center->z = scale * center->z;
         }
+        memset(self + 0x120, 0, 0x2a * 4);
+        A_I32(0x158) = -1;
+        A_I32(0x164) = -1;
+        if (A_I32(0x24) != -1) {
+            actor_fill_unit_position_context(A_I32(0x24), (actor_unit_position_context *)(self + 0x120));
+        }
+        return;
+    }
 
-        memset((uint8_t *)self + 0x120, 0, 0x2a * sizeof(uint32_t));
-        self->active_unit_index = (datum_index)k_datum_index_none;
-        self->unknown_164 = 0xffffffff;
+    unit = object_get(A_I32(0x18));
+    parent_index = *(datum_index *)(unit + 0x11c);
+    if (parent_index != k_datum_index_none) {
+        parent = object_get(parent_index);
+    }
+    actor_fill_unit_position_context(A_I32(0x18), (actor_unit_position_context *)(self + 0x120));
+    {
+        object_marker marker;
+        real_point3d head;
 
-        if (self->cluster_unit_index != (datum_index)k_datum_index_none) {
-            actor_fill_unit_position_context(self->cluster_unit_index, (uint8_t *)self + 0x120);
+        object_get_node_local_transform(A_I32(0x18), ai_marker_name_head, &marker, 1);
+        head = marker.node_transform.position;
+        A_U8(0x15d) = scenario_location_get_water_and_weather(&head, (bsp_leaf_reference *)(self + 0x144), 0);
+    }
+    A_U8(0x99) = (uint8_t)((*(uint32_t *)actor_tag >> 21) & 1);
+
+    if (parent != 0 && *(int16_t *)(parent + 0xb4) == 1) {
+        uint8_t *vehicle_tag = (uint8_t *)tag_instances[*(datum_index *)parent & 0xffff].data;
+        uint32_t vehicle_flags;
+
+        A_U8(0x161) = 0;
+        A_U8(0x162) = 0;
+        A_I16(0x15e) = 0;
+        A_I32(0x158) = parent_index;
+        if (*(int32_t *)(parent + 0x324) == A_I32(0x18)) {
+            A_I16(0x15e) = 1;
+            vehicle_flags = *(uint32_t *)(vehicle_tag + 0x2f0);
+            if (vehicle_flags & 0x800) {
+                if (vehicle_flags & 0x1000) {
+                    A_I16(0x15e) = 4;
+                    A_U8(0x99) = 1;
+                } else if (vehicle_flags & 0x2000) {
+                    A_I16(0x15e) = (int16_t)((~(vehicle_flags >> 14) & 1) | 2);
+                }
+            }
+        }
+        if (*(int32_t *)(parent + 0x328) == A_I32(0x18)) {
+            A_U8(0x161) = 1;
+            A_U8(0x162) = *(float *)((uint8_t *)actor_get_actor_definition(actor_index) + 0x14c) > 0.0f;
+        }
+        A_U8(0x160) = A_I16(0x15e) <= 1;
+        if (*(int16_t *)(parent + 0x334) != -1) {
+            datum_index encounter = A_I32(0x34);
+            int16_t wanted_encounter = *(int16_t *)(parent + 0x334);
+            int16_t wanted_squad = *(int16_t *)(parent + 0x336);
+            uint8_t move = 1;
+
+            if ((encounter & 0xffff) == (uint32_t)(int32_t)wanted_encounter) {
+                if (wanted_squad == -1 || A_I16(0x3a) == wanted_squad) {
+                    move = 0;
+                } else {
+                    uint8_t *encounter_record = (uint8_t *)encounter_data->data + (encounter & 0xffff) * 0x6c;
+
+                    if (*(int16_t *)(encounter_record + 0x62) > 0) {
+                        int16_t first = *(int16_t *)(encounter_record + 4);
+                        uint8_t *states = (uint8_t *)encounter_squad_states;
+
+                        if (states[(int16_t)(first + A_I16(0x3a)) * 0x20 + 0x10] != 0 &&
+                            states[(int16_t)(first + wanted_squad) * 0x20 + 0x10] != 0) {
+                            move = 0;
+                        }
+                    }
+                }
+            }
+            if (move) {
+                if (A_U8(0x40) == 0) {
+                    A_I32(0x44) = encounter;
+                    A_I16(0x48) = A_I16(0x3a);
+                    A_U8(0x40) = 1;
+                    if (encounter != k_datum_index_none) {
+                        *((uint8_t *)encounter_data->data + (encounter & 0xffff) * 0x6c + 0x1e) = 1;
+                    }
+                }
+                actor_reset_squad_link_for_type_change(actor_index, wanted_encounter, wanted_squad);
+            }
+        }
+    } else {
+        A_I32(0x158) = -1;
+        A_I16(0x15e) = 0;
+        A_U8(0x160) = 0;
+        A_U8(0x161) = 0;
+        if (A_U8(0x40)) {
+            actor_reset_squad_link_for_type_change(actor_index, A_I32(0x44), A_I16(0x48));
+            A_U8(0x40) = 0;
         }
     }
+
+    A_U8(0x1b5) = unit[0x28b] > 0;
+    A_U8(0x1b4) = 0;
+    A_I32(0x1b0) = -1;
+    for (child = *(datum_index *)(unit + 0x118); child != k_datum_index_none;
+         child = *(datum_index *)(object_get(child) + 0x114)) {
+        uint8_t *child_object = object_get(child);
+        int16_t type = *(int16_t *)(child_object + 0xb4);
+
+        if (type == 0) {
+            int16_t actor_team = A_I16(0x3e);
+            int16_t child_team = *(int16_t *)(child_object + 0xb8);
+            uint8_t enemy;
+
+            if (current_game_engine != 0) {
+                enemy = actor_team != child_team;
+            } else if (actor_team < 0 || actor_team >= 10 || child_team < 0 || child_team >= 10) {
+                enemy = 1;
+            } else {
+                int32_t bit = actor_team * 10 + child_team;
+
+                enemy = (((uint32_t *)(ai_team_relationships + 0xa4))[bit >> 5] & (1u << (bit & 0x1f))) == 0;
+            }
+            if (enemy) {
+                A_U8(0x1b4) = 1;
+            }
+        } else if (type == 5) {
+            if ((int8_t)child_object[0x22c] < 0 || (A_I16(0x280) == 2 && child == A_I32(0x28c))) {
+                A_I32(0x1b0) = child;
+            }
+        }
+    }
+
+    A_U8(0x15c) = 0;
+    A_I32(0x164) = -1;
+    if (*(int16_t *)(unit + 0xb4) == 0 && A_I32(0x158) == -1) {
+        uint8_t *unit_object = object_get(A_I32(0x18));
+
+        if ((int8_t)unit_object[0x501] >= 6) {
+            A_U8(0x15c) = 1;
+        }
+        A_I32(0x164) = *(int32_t *)(unit_object + 0x4dc);
+        *(real_vector3d *)(self + 0x168) = *(real_vector3d *)(unit_object + 0x4e0);
+    }
+    unit_get_forward_vector_or_marker_normal(A_I16(0x15e) > 0 ? A_I32(0x158) : A_I32(0x18),
+        (real_vector3d *)(self + 0x174));
+    if (A_U8(0x99) == 0) {
+        if (vector2d_normalize_with_length((real_vector2d *)(self + 0x174)) > 0.0f) {
+            *(float *)(self + 0x17c) = 0.0f;
+        } else {
+            *(real_vector3d *)(self + 0x174) = *global_forward3d_pointer;
+        }
+    }
+    if (A_U8(0x161)) {
+        uint8_t *vehicle = object_get(A_I32(0x158));
+        uint8_t *vehicle_tag = (uint8_t *)tag_instances[*(datum_index *)vehicle & 0xffff].data;
+
+        if (*(uint32_t *)(vehicle_tag + 0x2f0) & 0x100) {
+            unit_get_forward_vector_or_marker_normal(A_I32(0x18), (real_vector3d *)(self + 0x180));
+        } else {
+            *(real_vector3d *)(self + 0x180) = *(real_vector3d *)(vehicle + 0x23c);
+        }
+    } else {
+        *(real_vector3d *)(self + 0x180) = *(real_vector3d *)(unit + 0x23c);
+    }
+    *(real_vector3d *)(self + 0x18c) = *(real_vector3d *)(unit + 0x260);
+    vector3d_cross_product((real_vector3d *)(self + 0x198), (real_vector3d *)(self + 0x18c), global_up3d_pointer);
+    vector3d_normalize_with_length((real_vector3d *)(self + 0x198));
+    vector3d_cross_product((real_vector3d *)(self + 0x1a4), (real_vector3d *)(self + 0x198),
+        (real_vector3d *)(self + 0x18c));
+    A_I32(0x1b8) = *(int32_t *)(unit + 0xe0);
+    A_I32(0x1bc) = *(int32_t *)(unit + 0xe4);
+    A_I32(0x1c0) = *(int32_t *)(unit + 0xf8);
+    A_I32(0x1c4) = *(int32_t *)(unit + 0xf4);
 }
 
 #if 0

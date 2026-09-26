@@ -32,11 +32,11 @@ extern Scenario *global_scenario;                         // 0x00746f8c
 extern encounter_squad_state *encounter_squad_states;     // 0x008802cc
 extern encounter_platoon_state *encounter_platoon_states; // 0x008802c4
 
-extern void actor_propagate_unit_field(datum_index actor_index);   // 0x4276e0, not yet rewritten
-extern void actor_toggle_active_state(datum_index actor_index);   // 0x4277c0, not yet rewritten
-extern void actor_set_units_active(datum_index actor_index);          // 0x427860, not yet rewritten
-extern void ai_recompute_all_relationship_flags(datum_index actor_index);                // 0x42bbb0, not yet rewritten
-extern void ai_encounter_stamp_team_from_unit(datum_index actor_index); // 0x436710
+extern void actor_propagate_unit_field(datum_index actor_index, int16_t value); // 0x4276e0, blam-cc: EAX, ESI
+extern uint8_t actor_toggle_active_state(uint8_t activate, datum_index actor_index); // 0x4277c0, blam-cc: AL, EDI
+extern void actor_set_units_active(datum_index actor_index, uint8_t activate); // 0x427860, blam-cc: EAX, BL
+extern void ai_recompute_all_relationship_flags(void); // 0x42bbb0
+extern void ai_encounter_stamp_team_from_unit(datum_index encounter_index, datum_index unit_index); // 0x436710, blam-cc: EAX, ECX
 extern uint8_t encounter_activate(datum_index encounter_index);       // 0x437710, blam-cc: ECX -> encounter_index
 
 // blam-cc: DX -> squad_index, stack -> (actor_index, encounter_index, keep_team)
@@ -85,22 +85,22 @@ void encounter_add_actor(int16_t squad_index, datum_index actor_index,
         activated = encounter_activate(encounter_index);
     }
     if (activated == 0) {
-        actor_toggle_active_state(actor_index);
+        actor_toggle_active_state(enc->units_active, actor_index); // 0x43687d: AL = encounter +0xd, EDI = actor
         if (enc->units_active != 0) {
-            actor_set_units_active(actor_index);
+            actor_set_units_active(actor_index, 0); // 0x43688c: BL = 0
         }
     }
 
     if (a->unit_index != (datum_index)k_datum_index_none) {
-        ai_encounter_stamp_team_from_unit(actor_index);
+        ai_encounter_stamp_team_from_unit(encounter_index, a->unit_index); // 0x436899..0x4368a5: EAX encounter, ECX unit
     }
 
     if (a->team != enc->team) {
         if (keep_team == 0 || enc->unknown_2a != 0) {
-            actor_propagate_unit_field(actor_index);
+            actor_propagate_unit_field(actor_index, enc->team); // 0x4368d1: ESI = the encounter's team
         } else {
             enc->team = a->team;
-            ai_recompute_all_relationship_flags(actor_index);
+            ai_recompute_all_relationship_flags();
         }
     }
 

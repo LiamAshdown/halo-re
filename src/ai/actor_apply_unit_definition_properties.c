@@ -1,173 +1,140 @@
 // actor_apply_unit_definition_properties  (Ghidra: actor_apply_unit_definition_properties, renamed)
 // address 0x426cf0, size 901 bytes
-// name confidence: 0.4   rewrite confidence: 0.15
-// evidence: phase-4 summary "Applies a unit definition's AI-related properties (grenade
-// timing, notice range, attached weapon/child objects, shield flags) to a newly placed unit
-// object." types/objects.h object_placement_data (already established, canonical form in
-// src/game/cheat_spawn_objects_near_camera.c) and object_type_role_table (0x0069bfdc,
-// likewise). Calls object_new_with_datum_role_control / object_placement_data_initialize
-// (both established), object_initialize_shield_stun_thresholds, color_interpolate,
-// object_delete/object_delete_recursive/object_delete_unparented, and unit_try_select_equipment/
-// unit_pickup_weapon, none independently confirmed here.
-//   UNSURE: this is one of the least-confident rewrites in this pass. Every dword-indexed
-//   read off the ActorVariant tag data (puVar2[...]) and the Actor tag data (pbVar3) is kept
-//   as a raw offset -- neither types/tags.h's ActorVariant nor Actor struct is broken out to
-//   the individual fields this function reaches (shield thresholds, grenade velocity/count
-//   ranges, a child-object tag reference, a "cannot see" random-color table, a parented
-//   weapon tag reference). The object_placement_data local (`local_88`) this function builds
-//   before calling object_new_with_datum_role_control is likewise not shown in full by
-//   Ghidra (only its first dword, used for object_type_role_table's lookup, and the pointer
-//   itself passed to the two established helpers); modeled as calling
-//   object_placement_data_initialize to fill it rather than re-deriving each field.
-// register convention: EAX -> actor_variant_tag, stack -> unit_index (Ghidra's own "param_1").
-//   // blam-cc: EAX -> actor_variant_tag, stack -> unit_index
+// name confidence: 0.4   rewrite confidence: 0.85
+// REWRITTEN (from objdump 0x426cf0..0x42707c; the draft was confidence 0.15 with guessed callee signatures).
+//   With either override vitality of the ActorVariant above zero (+0x200 body, +0x204 shield),
+//   object_initialize_shield_stun_thresholds(EAX unit, ESI &body, EDI &shield). A non-zero +0x20c word goes to
+//   unit +0x176. The first four change colours (+0x22c count, 0x20 each at +0x230, color0 +0, color1 +0xc) are
+//   interpolated at a random fraction into unit +0x188 + 12i and copied to +0x1b8 + 12i. The initial weapon
+//   (+0x70) is created (role 3, or 0 on a server for a type with network deltas) and picked up
+//   (unit_pickup_weapon(EAX weapon, ECX unit, stack 2)); a weapon that is not picked up is deleted
+//   (object_delete_unparented first when its +4 role is 0; object_delete_recursive(weapon, 0) for roles 0 and 3).
+//   Grenades: type +0x180 (-1 none), count min +0x1d0 .. max +0x1d2 at random, added to unit +0x31e + type, and
+//   the type stored at +0x31c/+0x31d. Equipment (+0x1cc) whose tag +0x308 word is neither 0 nor 6 is created
+//   and selected (unit_try_select_equipment(unit, item, 1)) or deleted. Variant flags bits 4/5 set unit +0x204
+//   bits 0x10 (and 0x20 for bit 5), +0x37c = 1 and +0x380 = 1 or 0 by the Unit tag's flag bit 5.
+// blam-cc: EAX -> actor_variant_tag, stack -> unit_index
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
-#include "ai.h"
-#include "cache.h"
 #include "objects.h"
+#include "cache.h"
+#include "ai.h"
 
-extern data_array *object_data;     // 0x008603b0
-extern tag_instance *tag_instances; // 0x0087bc14
-extern uint32_t random_seed_global; // 0x00719cd0
-extern int32_t map_difficulty_or_kind; // 0x00719720, UNSURE name (compared against 2 here and in actor_place_new_unit)
-extern void **object_type_role_table; // 0x0069bfdc
+extern data_array *object_data;           // 0x008603b0
+extern tag_instance *tag_instances;       // 0x0087bc14
+extern uint32_t random_seed_global;       // 0x00719cd0
+extern int16_t network_game_mode;         // 0x00719720, word; 2 = server
+extern object_type_definition *object_type_definitions[12]; // 0x0069bfdc
 
-extern void object_initialize_shield_stun_thresholds(datum_index object_index); // 0x4ed440, UNSURE signature
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
     // 0x43f6a0, blam-cc: EAX -> color1, ECX -> color0, stack -> dest, flags, t
-extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role); // 0x4f53a0
+extern void object_initialize_shield_stun_thresholds(uint32_t object_index, float *override_max_body_vitality,
+    float *override_max_shield_vitality); // 0x4ed440, blam-cc: EAX, ESI, EDI
+extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag,
+    datum_index role); // 0x4f53a0, blam-cc: EAX -> placement, stack -> definition_tag, role
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role); // 0x4f54b0
-extern void object_delete(datum_index object_index); // 0x4f5bd0, UNSURE signature
-extern void object_delete_recursive(datum_index object_index, uint32_t flag); // 0x4f59d0, UNSURE signature
-extern void object_delete_unparented(datum_index object_index); // 0x4f5aa0, UNSURE signature
-extern uint8_t unit_pickup_weapon(int32_t param); // 0x56d400, UNSURE signature
-extern uint8_t unit_try_select_equipment(datum_index unit_index, datum_index child_object_index, int32_t param); // 0x56d1a0, UNSURE signature
+extern uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t unit_index);
+    // 0x56d400, blam-cc: EAX -> weapon_index, ECX -> unit_index, stack -> pickup_mode
+extern void object_delete_unparented(uint32_t object_index); // 0x4f5aa0, blam-cc: EDI
+extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings); // 0x4f59d0
+extern uint8_t unit_try_select_equipment(uint32_t unit_index, uint32_t new_equipment_object_index,
+    int16_t release_current); // 0x56d1a0
+extern void object_delete(uint32_t object_index); // 0x4f5bd0, blam-cc: EAX
 
-// blam-cc: EAX -> actor_variant_tag, stack -> unit_index
-// Applies a unit definition's AI-related properties to a newly placed unit object: shield
-// stun thresholds, a notice-range override, up to four randomized "cannot see" colors,
-// spawning an optional attached weapon object (retrying with a fallback role in single
-// player), a randomized grenade-count seed, spawning an optional parented child object, and,
-// for units that carry either of two type flags, initializing extra shield-related fields.
-void actor_apply_unit_definition_properties(datum_index actor_variant_tag, datum_index unit_index)
+static uint8_t *object_get(datum_index object_index)
 {
-    const uint8_t *variant_tag_data = (const uint8_t *)(tag_instances[actor_variant_tag & 0xffff].data);
-    const uint32_t *variant = (const uint32_t *)variant_tag_data;
-    const uint8_t *actor_tag_data = (const uint8_t *)(tag_instances[variant[4] & 0xffff].data); // ActorVariant.actor_definition.tag_id
-    object *unit_object = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+    return *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
+}
+
+// Creates `definition_tag` for `unit_index`: role 3, or 0 on a server when the tag's object type sends deltas.
+static datum_index actor_create_unit_item(datum_index definition_tag, datum_index unit_index)
+{
     object_placement_data placement;
+    uint32_t role = 3;
 
-    if (*(const float *)&variant[0x80] > 0.0f || *(const float *)&variant[0x81] > 0.0f) {
-        object_initialize_shield_stun_thresholds(unit_index);
-    }
-    if ((int16_t)variant[0x83] != 0) {
-        *(int16_t *)((uint8_t *)unit_object + 0x176) = (int16_t)variant[0x83]; // UNSURE offset
-    }
+    object_placement_data_initialize(&placement, definition_tag, unit_index);
+    if (network_game_mode == 2) {
+        int16_t type = *(int16_t *)tag_instances[placement.definition_tag & 0xffff].data;
 
-    {
-        int32_t i;
-        for (i = 0; i < (int32_t)variant[0x8b] && i < 4; i++) {
-            uint8_t *slot = (uint8_t *)unit_object + 0x188 + i * 0xc; // UNSURE offset/stride
-            random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-            // 0x426df1..0x426e0b: EAX = the variant change color's +0xc color, ECX = its +0 color (entries of 0x20 at
-            // variant +0x230), stack: the unit's working color, 1, the random fraction
-            {
-                uint8_t *change_color = *(uint8_t **)((uint8_t *)variant + 0x230) + i * 0x20;
-
-                color_interpolate((ColorRGB *)(change_color + 0xc), (ColorRGB *)change_color, (ColorRGB *)slot, 1,
-                    (float)(int32_t)(random_seed_global >> 0x10) * 1.5259022e-05f);
-            }
-            *(uint32_t *)(slot + 0x30) = *(uint32_t *)slot;
-            *(uint32_t *)(slot + 0x34) = *(uint32_t *)(slot + 4);
-            *(uint32_t *)(slot + 0x38) = *(uint32_t *)(slot + 8);
-        }
-    }
-
-    if (variant[0x1c] != 0xffffffff) {
-        uint32_t role = 3;
-        datum_index new_object;
-
-        object_placement_data_initialize(&placement, (datum_index)variant[0x1c], unit_index);
-        if (map_difficulty_or_kind == 2 &&
-            *(int32_t *)((uint8_t *)object_type_role_table
-                 [*(const int16_t *)(tag_instances[placement.definition_tag & 0xffff].data)] +
-             0x10) != -1) {
-            // The original indexes object_type_role_table by the OBJECT TYPE stored in the
-            // first int16 of the placement definition's tag data
-            // (Ghidra: (&PTR_PTR_0069bfdc)[**(short **)((local_88[0] & 0xffff) * 0x20 +
-            // 0x14 + DAT_0087bc14)]), not by the tag index itself.
+        if (object_type_definitions[type]->network_delta_message_type != -1) {
             role = 0;
         }
-        new_object = object_new_with_datum_role_control(&placement, role);
-        if (new_object != (datum_index)k_datum_index_none && unit_pickup_weapon(2) == 0) {
-            object *new_obj = ((object_header *)object_data->data)[new_object & 0xffff].data;
-            int32_t network_role = new_obj->network_role;
-            if (network_role == 0) {
-                object_delete_unparented(new_object);
-                object_delete_recursive(new_object, 0);
-            } else if (network_role == 3) {
-                object_delete_recursive(new_object, 0);
+    }
+    return object_new_with_datum_role_control(&placement, role);
+}
+
+void actor_apply_unit_definition_properties(datum_index actor_variant_tag, datum_index unit_index)
+{
+    uint8_t *variant = (uint8_t *)tag_instances[actor_variant_tag & 0xffff].data;
+    uint8_t *unit = object_get(unit_index);
+    uint8_t *unit_tag = (uint8_t *)tag_instances[*(datum_index *)(variant + 0x10) & 0xffff].data;
+    int16_t i;
+
+    if (*(float *)(variant + 0x200) > 0.0f || *(float *)(variant + 0x204) > 0.0f) {
+        object_initialize_shield_stun_thresholds(unit_index, (float *)(variant + 0x200), (float *)(variant + 0x204));
+    }
+    if (*(int16_t *)(variant + 0x20c) != 0) {
+        *(int16_t *)(unit + 0x176) = *(int16_t *)(variant + 0x20c);
+    }
+    for (i = 0; i < *(int32_t *)(variant + 0x22c); i++) {
+        uint8_t *change_color = *(uint8_t **)(variant + 0x230) + i * 0x20;
+
+        if (i < 4) {
+            ColorRGB *working = (ColorRGB *)(unit + 0x188 + i * 0xc);
+
+            random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+            color_interpolate((ColorRGB *)(change_color + 0xc), (ColorRGB *)change_color, working, 1,
+                (float)(int32_t)(random_seed_global >> 0x10) * 1.5259022e-05f);
+            *(ColorRGB *)(unit + 0x1b8 + i * 0xc) = *working;
+        }
+    }
+    if (*(datum_index *)(variant + 0x70) != k_datum_index_none) {
+        datum_index weapon = actor_create_unit_item(*(datum_index *)(variant + 0x70), unit_index);
+
+        if (weapon != k_datum_index_none && !unit_pickup_weapon(2, weapon, unit_index)) {
+            int32_t role = *(int32_t *)(object_get(weapon) + 4);
+
+            if (role == 0) {
+                object_delete_unparented(weapon);
+                object_delete_recursive(weapon, 0);
+            } else if (role == 3) {
+                object_delete_recursive(weapon, 0);
             }
         }
     }
-
-    if ((int16_t)variant[0x60] != -1) {
-        uint32_t grenade_count = variant[0x60];
-        uint8_t min_count = (uint8_t)(int16_t)variant[0x74]; // UNSURE offset
-        int16_t max_count = *(const int16_t *)((const uint8_t *)variant + 0x1d2); // UNSURE offset
-        uint8_t roll;
-        uint8_t *grenade_slot;
+    if (*(int16_t *)(variant + 0x180) != -1) {
+        int16_t type = *(int16_t *)(variant + 0x180);
+        int16_t minimum = *(int16_t *)(variant + 0x1d0);
+        int32_t range = (int16_t)(*(int16_t *)(variant + 0x1d2) + 1) - minimum;
+        uint8_t *object = object_get(unit_index);
 
         random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        grenade_slot = (uint8_t *)unit_object + (int16_t)grenade_count + 0x31e;
-        *grenade_slot = *grenade_slot + (uint8_t)((((int32_t)(int16_t)(max_count + 1) - (int16_t)variant[0x74]) *
-                                                   (int32_t)(random_seed_global >> 0x10)) >> 0x10) + min_count;
-        roll = (uint8_t)(int16_t)grenade_count;
-        *((uint8_t *)unit_object + 0x31d) = roll;
-        *((uint8_t *)unit_object + 0x31c) = roll;
+        object[0x31e + type] = (uint8_t)(object[0x31e + type] +
+            (uint8_t)(((uint32_t)range * (random_seed_global >> 0x10)) >> 0x10) + (uint8_t)minimum);
+        object[0x31d] = (uint8_t)type;
+        object[0x31c] = (uint8_t)type;
     }
+    if (*(datum_index *)(variant + 0x1cc) != k_datum_index_none) {
+        int16_t equipment_kind = *(int16_t *)((uint8_t *)tag_instances[*(datum_index *)(variant + 0x1cc) & 0xffff].data
+            + 0x308);
 
-    {
-        datum_index weapon_tag = (datum_index)variant[0x73]; // UNSURE offset
-        if (weapon_tag != (datum_index)k_datum_index_none) {
-            int16_t weapon_class = *(const int16_t *)((const uint8_t *)(tag_instances[weapon_tag & 0xffff].data) + 0x308); // UNSURE offset
-            if (weapon_class != 0 && weapon_class != 6) {
-                uint32_t role = 3;
-                datum_index new_object;
+        if (equipment_kind != 0 && equipment_kind != 6) {
+            datum_index equipment = actor_create_unit_item(*(datum_index *)(variant + 0x1cc), unit_index);
 
-                object_placement_data_initialize(&placement, weapon_tag, unit_index);
-                if (map_difficulty_or_kind == 2 &&
-                    *(int32_t *)((uint8_t *)object_type_role_table
-                 [*(const int16_t *)(tag_instances[placement.definition_tag & 0xffff].data)] +
-             0x10) != -1) {
-            // The original indexes object_type_role_table by the OBJECT TYPE stored in the
-            // first int16 of the placement definition's tag data
-            // (Ghidra: (&PTR_PTR_0069bfdc)[**(short **)((local_88[0] & 0xffff) * 0x20 +
-            // 0x14 + DAT_0087bc14)]), not by the tag index itself.
-                    role = 0;
-                }
-                new_object = object_new_with_datum_role_control(&placement, role);
-                if (new_object != (datum_index)k_datum_index_none && unit_try_select_equipment(unit_index, new_object, 1) == 0) {
-                    object_delete(new_object);
-                }
+            if (equipment != k_datum_index_none && !unit_try_select_equipment(unit_index, equipment, 1)) {
+                object_delete(equipment);
             }
         }
     }
-
-    if ((*(const uint32_t *)variant_tag_data & 0x30) != 0) {
-        if ((*(const uint32_t *)variant_tag_data & 0x20) != 0) {
-            *(uint32_t *)((uint8_t *)unit_object + 0x204) |= 0x20; // UNSURE offset
+    if (*(uint32_t *)variant & 0x30) {
+        if (*(uint32_t *)variant & 0x20) {
+            *(uint32_t *)(unit + 0x204) |= 0x20;
         }
-        *(uint32_t *)((uint8_t *)unit_object + 0x204) |= 0x10;
-        *(float *)((uint8_t *)unit_object + 0x37c) = 1.0f; // UNSURE offset
-        if ((*actor_tag_data & 0x20) != 0) {
-            *(float *)((uint8_t *)unit_object + 0x380) = 1.0f; // UNSURE offset
-        } else {
-            *(float *)((uint8_t *)unit_object + 0x380) = 0.0f;
-        }
+        *(uint32_t *)(unit + 0x204) |= 0x10;
+        *(float *)(unit + 0x37c) = 1.0f;
+        *(float *)(unit + 0x380) = (unit_tag[0] & 0x20) ? 1.0f : 0.0f;
     }
 }
 

@@ -1,6 +1,6 @@
 // actor_fill_unit_position_context  (Ghidra: actor_fill_unit_position_context, renamed)
 // address 0x4296c0, size 211 bytes
-// name confidence: 0.35   rewrite confidence: 0.2
+// name confidence: 0.35   rewrite confidence: 0.9
 // evidence: types/objects.h object.forward (0x74)/parent_object (0x11c)/location_leaf_index
 //   (0x098)/location_cluster_index (0x09c); types/ai.h header notes ai_marker_name_a
 //   (0x0066bfa0, already declared in src/ai/actor_target_data_refresh.c) as the marker name
@@ -19,6 +19,10 @@
 // register convention: EBX -> unit_index (unaff_EBX), stack -> out_context.
 //   // blam-cc: EBX -> unit_index, stack -> out_context
 
+// REWRITTEN (from objdump 0x4296c0..0x429792): context +0x0c = object_get_position(EAX = +0x0c, ECX = unit);
+//   +0x18 = the unit's forward (+0x74); +0x00 = the position of marker 0x66bfa0 (object_get_node_local_transform
+//   flags 1, node_transform.position); +0x2c = the root velocities (EAX unit, ESI = +0x2c, EDI = NULL); +0x24/+0x28
+//   = the root object's location dwords (+0x98/+0x9c), the root found by following parent_object (+0x11c).
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -29,42 +33,42 @@
 extern data_array *object_data; // 0x008603b0
 extern char ai_marker_name_a[]; // 0x0066bfa0
 
-// The caller-owned output block; only the fields this function itself writes are named.
+extern void object_get_position(real_point3d *out_position, datum_index object_index); // 0x4f6900, blam-cc: EAX, ECX
+extern int32_t object_get_node_local_transform(datum_index object_index, char *marker_name, object_marker *marker,
+    uint32_t flags); // 0x4f6080
+extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity,
+    real_vector3d *out_angular_velocity); // 0x4f6aa0, blam-cc: EAX, ESI, EDI
 
-extern void object_get_position(real_point3d *out_position, datum_index object_index); // 0x4f6900
-extern int32_t object_get_node_local_transform(datum_index object_index, char *marker_name, object_marker *marker, uint32_t flags); // 0x4f6080
-extern void object_get_root_object_velocities(void); // 0x4f6aa0, UNSURE signature, not established elsewhere in this repo
+static uint8_t *object_get(datum_index object_index)
+{
+    return *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
+}
 
 // blam-cc: EBX -> unit_index, stack -> out_context
 void actor_fill_unit_position_context(datum_index unit_index, actor_unit_position_context *out_context)
 {
-    object *unit_object = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    datum_index root_index;
+    uint8_t *context = (uint8_t *)out_context;
+    uint8_t *unit = object_get(unit_index);
+    object_marker marker;
+    datum_index root = k_datum_index_none;
+    uint8_t *root_object;
 
-    object_get_position(&out_context->local_transform_position, unit_index); // overwritten below; kept for side effects
-    out_context->forward = unit_object->forward;
-
-    object_get_node_local_transform(unit_index, ai_marker_name_a,
-                                    (object_marker *)&out_context->local_transform_position, 0);
-
-    object_get_root_object_velocities();
-
-    root_index = (datum_index)k_datum_index_none;
-    if (unit_index != (datum_index)k_datum_index_none) {
+    object_get_position((real_point3d *)(context + 0xc), unit_index);
+    *(real_vector3d *)(context + 0x18) = *(real_vector3d *)(unit + 0x74);
+    object_get_node_local_transform(unit_index, ai_marker_name_a, &marker, 1);
+    *(real_point3d *)context = marker.node_transform.position;
+    object_get_root_object_velocities(unit_index, (real_vector3d *)(context + 0x2c), 0);
+    if (unit_index != k_datum_index_none) {
         datum_index cursor = unit_index;
-        do {
-            root_index = cursor;
-            cursor = ((object_header *)object_data->data)[cursor & 0xffff].data
-                         ? ((object *)((object_header *)object_data->data)[cursor & 0xffff].data)->parent_object
-                         : (datum_index)k_datum_index_none;
-        } while (cursor != (datum_index)k_datum_index_none);
-    }
 
-    {
-        object *root_object = ((object_header *)object_data->data)[root_index & 0xffff].data;
-        out_context->root_position_x = *(float *)((uint8_t *)root_object + 0x98); // UNSURE offset
-        out_context->root_position_y = *(float *)((uint8_t *)root_object + 0x9c); // UNSURE offset
+        do {
+            root = cursor;
+            cursor = *(datum_index *)(object_get(cursor) + 0x11c);
+        } while (cursor != k_datum_index_none);
     }
+    root_object = object_get(root);
+    *(uint32_t *)(context + 0x24) = *(uint32_t *)(root_object + 0x98);
+    *(uint32_t *)(context + 0x28) = *(uint32_t *)(root_object + 0x9c);
 }
 
 #if 0

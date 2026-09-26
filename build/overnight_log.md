@@ -965,3 +965,20 @@ Remaining step-1 code gap:
 - NOTE FOR PLAY-TEST: hs_autocomplete_add_startup is in hooks.stable.txt and its behaviour changed (end index 4 -> 5,
   verified: 0x483865 mov eax,5; the console autocomplete now also offers "stub", as retail does). Needs a harness
   rebuild + re-test by the user; revert commit f8e963f's change to that file if unwanted.
+- Level load via CONTINUE progresses into scenario placement and AI encounter spawning. Rewritten from the binary
+  (drafts were 0.15-0.4): unit_update_stance_and_jump (unit ping reaction), effect_update, object_create_attachments,
+  object_update_functions, object_initialize_change_colors (merged 3 Ghidra fragments), vehicle_blend_animations
+  0x5718e0, device_blend_animations 0x44bc20, actor_apply_unit_definition_properties, actor_fill_unit_position_context,
+  actor_refresh_combat_context, encounter_squad_spawn_actor, ui_level_select_confirm_choice,
+  saved_game_load_checkpoint_by_name; sweeps: effect_new_on_object (13 call sites), color_interpolate (4),
+  actor_set_units_active (12, BL flag per binary site).
+- Generator: entries after a jmp or a .text jump table are now detected (27 table slots that pointed at original
+  code); gen_link reads `extern T (*name[N])(...)` as data (3 particle tables had become traps).
+- OPEN: actor_reset_squad_link_for_type_change (0x4290f0) now takes (EAX actor, EBX encounter, stack squad); its
+  callers ai_squads_merge (0x4337a0), ai_unit_remap_actor_to_squad (0x433a3b),
+  encounter_propagate_platoon_state_to_actors (0x435888) and ai_unit_set_squad_reference (0x439ede) still pass
+  guessed arguments -- trace EBX at each site before relying on squad merges/maneuvers.
+- OPEN: 0x00686b04 is a POINTER to a default colour/vector; game_engine_koth_* and lightning_render declare it as
+  an inline array (multiplayer / lightning only). decal_place's geometry packing is still not reproduced.
+- Test harness: loader key driver HALO_STANDALONE_KEYS (in-process keystrokes); CONTINUE = "30000:ENTER,3000:ENTER".
+  Profile backup: build/profile_backup/Halo_2026-09-26 (the standalone may write checkpoints to the real profile).

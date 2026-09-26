@@ -23,8 +23,9 @@ extern double fabs(double x);
 // Nudges one encounter squad's bias field (unknown_08) up or down by a random +-1 step,
 // clamped so it never drifts the global rate (ai_globals.unknown_0c) below a floor derived
 // from the squad's own current bias, and keeps the two in sync.
-void ai_drift_zone_bias(datum_index encounter_index, int16_t squad_offset, float bias)
+uint8_t ai_drift_zone_bias(datum_index encounter_index, int16_t squad_offset, float bias)
 {
+    uint8_t hit;
     encounter *enc = &((encounter *)encounter_data->data)[encounter_index & 0xffff];
     encounter_squad_state *squad = &encounter_squad_states[(int16_t)(enc->first_squad + squad_offset)];
     float floor = ai_globals_ptr->unknown_0c * -0.33333334f;
@@ -35,10 +36,12 @@ void ai_drift_zone_bias(datum_index encounter_index, int16_t squad_offset, float
     }
 
     random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-    step = (float)((float)(int32_t)(random_seed_global >> 0x10) * 1.5259022e-05f < floor + bias) - bias;
+    hit = (float)(int32_t)(random_seed_global >> 0x10) * 1.5259022e-05f < floor + bias;
+    step = (float)hit - bias;
 
     squad->unknown_08 = step + squad->unknown_08;
     ai_globals_ptr->unknown_0c = step + ai_globals_ptr->unknown_0c;
+    return hit; // 0x42aa5c..0x42aa62: AL is the roll result (encounter_squad_spawn_actor uses it)
 }
 
 #if 0

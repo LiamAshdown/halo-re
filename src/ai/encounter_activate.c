@@ -27,7 +27,7 @@ extern ai_globals *ai_global_data;   // 0x00880354
 extern data_array *actor_data;       // 0x00880360
 extern game_time_globals *game_time; // 0x006f1d6c
 
-extern void actor_set_units_active(datum_index actor_index); // 0x427860, not yet rewritten
+extern void actor_set_units_active(datum_index actor_index, uint8_t activate); // 0x427860, blam-cc: EAX, BL
 extern void actor_create_swarm(datum_index actor_index);     // 0x427f40, not yet rewritten
 
 // blam-cc: ECX -> encounter_index
@@ -70,7 +70,7 @@ uint8_t encounter_activate(datum_index encounter_index)
                                       a->swarm_index != (datum_index)k_datum_index_none)) {
                     a->active = 1;
                     if (a->awareness_level == 0) {
-                        actor_set_units_active(current);
+                        actor_set_units_active(current, 0);
                     }
                 } else {
                     a->swarm_pending = 1;

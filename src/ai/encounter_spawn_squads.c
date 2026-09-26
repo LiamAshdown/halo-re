@@ -39,8 +39,8 @@ extern uint32_t random_seed_global;  // 0x00719cd0
 extern int16_t ai_squad_resolve_actor_type(ScenarioSquad *squad); // 0x4374a0, blam-cc: ECX -> squad
 extern void encounter_recompute_morale(datum_index encounter_index); // 0x437940
 extern void encounters_update_activation(void);                      // 0x437e20
-extern void encounter_squad_spawn_actor(datum_index encounter_index, int32_t squad_index,
-    int32_t leader_chance, int32_t unit_type_index); // 0x438e20, this call site shows four arguments
+extern uint8_t encounter_squad_spawn_actor(datum_index encounter_index, int16_t squad_index, uint32_t unit_type_index,
+    uint32_t unused); // 0x438e20, four stack arguments (0x43769b..0x4376a0: encounter, squad, type, 0)
 
 // blam-cc: stack -> (encounter_index, platoon_filter, squad_filter)
 // Spawns the configured number of actors for every squad of an encounter that passes the
@@ -114,7 +114,7 @@ void encounter_spawn_squads(datum_index encounter_index, int16_t platoon_filter,
 leader_coin_flip:
                     if (actor_type == 7) {
                         random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-                        leader_chance = 100 - (int32_t)(random_seed_global >> 0x1f);
+                        leader_chance = 100 + (int32_t)(random_seed_global >> 0x1f); // 0x437663..0x437672: ((r >> 16) << 1 >> 16) + 0x64
                     }
                     break;
                 case 3:

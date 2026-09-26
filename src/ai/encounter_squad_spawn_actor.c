@@ -35,6 +35,14 @@
 // (only the low byte is cleared to 0 before use) -- kept verbatim from Ghidra rather than
 // "fixed", since actor_place_new_unit only reads it as a single byte.
 
+// REWRITTEN (from objdump 0x438e20..0x438f5b): all four arguments are on the stack (encounter, squad, unit type,
+//   an unused fourth). A starting location comes from squad_pick_random_starting_location(ECX encounter, AX
+//   squad); its actor type (+0x18) overrides the squad's (+0x20) unless -1. The actor palette entry (scenario
+//   +0x420 count, 0x10 each at +0x424) must name a variant (+0xc). When the variant has a major variant (+0x30),
+//   ai_get_difficulty_request(AX = squad +0x80, ECX &enabled, EDX &use_palette, ESI &bias) and, when enabled,
+//   use_palette = ai_drift_zone_bias(EAX encounter, stack squad, bias). actor_place_new_unit(EAX = the starting
+//   location, stack: variant, encounter, squad, use_palette, unit type) != -1 is returned. The draft had the
+//   registers backwards and called the location picker and the difficulty request with no arguments.
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -44,57 +52,56 @@
 extern Scenario *global_scenario;   // 0x00746f8c
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern int16_t squad_pick_random_starting_location(void); // 0x437220, not yet rewritten; UNSURE, see header
-extern void ai_get_difficulty_request(void);               // 0x42a950, see header for the arity mismatch
+extern int16_t squad_pick_random_starting_location(datum_index encounter_index, int16_t squad_index);
+    // 0x437220, blam-cc: AX -> squad_index, ECX -> encounter_index
+extern void ai_get_difficulty_request(int16_t request_code, uint8_t *out_flag_a, uint8_t *out_flag_b, float *out_value);
+    // 0x42a950, blam-cc: AX, ECX, EDX, ESI
+extern uint8_t ai_drift_zone_bias(datum_index encounter_index, int16_t squad_offset, float bias);
+    // 0x42a9d0, blam-cc: EAX -> encounter_index, stack -> squad_offset, bias
 extern datum_index actor_place_new_unit(datum_index actor_variant_or_palette_tag, datum_index encounter_index,
-                                        int32_t squad_index, uint8_t use_palette_entry,
-                                        uint32_t unit_type_index); // 0x427080, see header for the arity mismatch
+    int16_t squad_index, uint8_t use_palette_entry, uint16_t unit_type_index,
+    const actor_placement_request *placement_request); // 0x427080, blam-cc: EAX -> placement_request, stack -> rest
 
-// blam-cc: EAX -> encounter_index, ECX -> squad_index, stack -> unit_type_index
-uint8_t encounter_squad_spawn_actor(datum_index encounter_index, int16_t squad_index, uint32_t unit_type_index)
+uint8_t encounter_squad_spawn_actor(datum_index encounter_index, int16_t squad_index, uint32_t unit_type_index,
+    uint32_t unused)
 {
-    ScenarioEncounter *encounter_definition;
-    ScenarioSquad *squad_definition;
-    ScenarioActorStartingLocation *starting_locations;
-    ScenarioActorPalette *actor_palette;
-    ActorVariant *actor_variant_definition;
+    uint8_t *encounter_definition = (uint8_t *)global_scenario->encounters.pointer + (encounter_index & 0xffff) * 0xb0;
+    uint8_t *squad = *(uint8_t **)(encounter_definition + 0x84) + squad_index * 0xe8;
+    uint8_t *starting_location;
+    uint8_t *palette_entry;
+    datum_index variant_tag;
     int16_t location_index;
-    int16_t actor_type;
-    datum_index actor_variant_tag;
-    uint32_t use_palette_entry;
+    int16_t palette_index;
+    uint8_t use_palette = 0;
 
-    encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)[encounter_index & 0xffff];
-    squad_definition = &((ScenarioSquad *)encounter_definition->squads.pointer)[squad_index];
-
-    location_index = squad_pick_random_starting_location();
+    location_index = squad_pick_random_starting_location(encounter_index, squad_index);
     if (location_index == -1) {
         return 0;
     }
-
-    starting_locations = (ScenarioActorStartingLocation *)squad_definition->starting_locations.pointer;
-    actor_type = starting_locations[location_index].actor_type;
-    if (actor_type == -1) {
-        actor_type = squad_definition->actor_type;
+    starting_location = *(uint8_t **)(squad + 0xd4) + location_index * 0x1c;
+    palette_index = *(int16_t *)(squad + 0x20);
+    if (*(int16_t *)(starting_location + 0x18) != -1) {
+        palette_index = *(int16_t *)(starting_location + 0x18);
     }
-
-    if ((actor_type < 0) || ((int32_t)actor_type >= (int32_t)global_scenario->actor_palette.count)) {
+    if (palette_index < 0 || palette_index >= (int32_t)global_scenario->actor_palette.count) {
         return 0;
     }
-
-    actor_palette = (ScenarioActorPalette *)global_scenario->actor_palette.pointer;
-    actor_variant_tag = *(datum_index *)&actor_palette[actor_type].reference.tag_id;
-    if (actor_variant_tag == (datum_index)0xffffffff) {
+    palette_entry = (uint8_t *)global_scenario->actor_palette.pointer + palette_index * 0x10;
+    variant_tag = *(datum_index *)(palette_entry + 0xc);
+    if (variant_tag == k_datum_index_none) {
         return 0;
     }
+    if (*(datum_index *)((uint8_t *)tag_instances[variant_tag & 0xffff].data + 0x30) != k_datum_index_none) {
+        uint8_t enabled = 0;
+        float bias = 0.0f;
 
-    use_palette_entry = 0; // local_c: low byte forced to 0, upper bytes left as Ghidra shows them (UNSURE, see header)
-    actor_variant_definition = (ActorVariant *)tag_instances[actor_variant_tag & 0xffff].data;
-    if (*(uint32_t *)&actor_variant_definition->major_variant.tag_id != (uint32_t)0xffffffff) {
-        ai_get_difficulty_request();
+        ai_get_difficulty_request(*(int16_t *)(squad + 0x80), &enabled, &use_palette, &bias);
+        if (enabled) {
+            use_palette = ai_drift_zone_bias(encounter_index, squad_index, bias);
+        }
     }
-
-    return actor_place_new_unit(actor_variant_tag, encounter_index, squad_index,
-                                (uint8_t)use_palette_entry, unit_type_index) != (datum_index)0xffffffff;
+    return actor_place_new_unit(variant_tag, encounter_index, squad_index, use_palette, (uint16_t)unit_type_index,
+        (const actor_placement_request *)starting_location) != k_datum_index_none;
 }
 
 #if 0

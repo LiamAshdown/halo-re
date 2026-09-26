@@ -21,7 +21,7 @@
 
 extern data_array *actor_data; // 0x00880360
 
-extern void actor_set_units_active(datum_index actor_index); // 0x427860, EAX -> actor_index
+extern void actor_set_units_active(datum_index actor_index, uint8_t activate); // 0x427860, blam-cc: EAX, BL
 extern uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t record_distance, path_find_context *context); // 0x41a460, this module
 
 // blam-cc: EDI -> actor_index, stack -> move_position_index
@@ -31,7 +31,7 @@ uint8_t actor_movement_set_destination_move_position(datum_index actor_index, in
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
     self->firing_position_index = -1;
-    actor_set_units_active(actor_index);
+    actor_set_units_active(actor_index, 0);
 
     if (self->active_movement.type != 4 || *(int16_t *)&self->active_movement.destination != move_position_index) {
         self->queued_movement.type = 4;

@@ -27,7 +27,7 @@ extern data_array *object_list_reference_data; // 0x0087a468
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern void actor_clear_perceived_props(datum_index actor_index); // 0x427e00, outside this rewrite's range, UNSURE signature
 extern void actor_dispatch_perception_reset(void); // 0x429000, outside this rewrite's range, UNSURE signature
-extern void actor_set_units_active(datum_index actor_index); // 0x427860
+extern void actor_set_units_active(datum_index actor_index, uint8_t activate); // 0x427860, blam-cc: EAX, BL
 
 static void reset_or_wake(datum_index unit_index, char flag)
 {
@@ -49,7 +49,7 @@ static void reset_or_wake(datum_index unit_index, char flag)
             a->mode = 0;
             actor_clear_perceived_props(actor_index);
             actor_dispatch_perception_reset();
-            actor_set_units_active(actor_index);
+            actor_set_units_active(actor_index, 0); // BL = 0 at both call sites (0x43469e, 0x43473f)
         }
     }
 }

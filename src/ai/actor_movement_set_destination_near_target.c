@@ -20,7 +20,7 @@
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
 
-extern void actor_set_units_active(datum_index actor_index); // 0x427860, EAX -> actor_index
+extern void actor_set_units_active(datum_index actor_index, uint8_t activate); // 0x427860, blam-cc: EAX, BL
 extern uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t record_distance, path_find_context *context); // 0x41a460, this module
 
 // blam-cc: EAX -> target_prop_index, stack -> actor_index, stack -> radius
@@ -32,7 +32,7 @@ uint8_t actor_movement_set_destination_near_target(datum_index target_prop_index
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
     self->firing_position_index = -1;
-    actor_set_units_active(actor_index);
+    actor_set_units_active(actor_index, 0);
 
     if (self->active_movement.type == 5 && *(uint32_t *)&self->active_movement.destination.x == (uint32_t)target_prop_index) {
         if (self->active_movement.destination.y == radius) {
