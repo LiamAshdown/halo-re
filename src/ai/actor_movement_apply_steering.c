@@ -1,55 +1,16 @@
-// actor_movement_apply_steering  (Ghidra: actor_movement_apply_steering, renamed)
+// actor_movement_apply_steering  (Ghidra: FUN_004180c0; turns the movement goal into this tick's step and facing)
 // address 0x4180c0, size 2239 bytes
-// name confidence: 0.45   rewrite confidence: 0.3
-// evidence: out/phase4/ai_functions.md "Core steering/turn-smoothing routine that converts a
-//   desired movement direction into the actor's applied heading, honoring per-mode special
-//   handling and a maximum turn rate."; types/ai.h actor.unknown_524 ("steering scratch
-//   written by 0x4180c0") and actor.unknown_594[4] ("turn-smoothing scratch written by
-//   0x4180c0") are both already attributed to this function by the header, and this rewrite
-//   confirms both writes. The five output pointers this function is handed by its one caller
-//   (actor_movement_update @0x416790) land on actor.unknown_518 (input), actor.position_cache_a
-//   (0x5a4), actor.unknown_50a, actor.queued_look_vector (0x6e0) and the two flag bytes
-//   actor.unknown_506 / actor.unknown_507.
-// register convention: two register-passed inputs Ghidra could not fold into the recognized
-//   stack signature -- a cached "last chosen axis" selector in AX and a "keep the Z
-//   component" flag in CL -- ahead of the 15 recognized stack parameters, in the order the
-//   sole call site (actor_movement_update) passes them.
-//   // blam-cc: EAX -> cached_axis, ECX -> keep_z, stack -> param_1, want_avoid_check,
-//   avoid_threshold, order_failed, param_5, param_6, param_7, param_8, param_9,
-//   desired_direction, out_direction, out_axis, out_heading, out_flag_507, out_flag_506
-//
-// UNSURE, broadly -- this function needs a disassembly review pass:
-//  - cached_axis (in_AX) is read once, at entry, and the same-shaped value (0..4) is written
-//    back at the end through out_axis into actor.unknown_50a. Several of the caller's paths
-//    into this call never touch actor.unknown_50a beforehand, which is consistent with AX
-//    being loaded straight from actor.unknown_50a's *previous* tick value (a "try to keep
-//    last tick's chosen avoidance axis" cache) rather than a value the caller computes fresh.
-//    Modeled that way in the caller (actor_movement_update.c).
-//  - keep_z (in_CL) is used exactly where the function decides whether to flatten a direction
-//    to 2D. actor.flying (+0x99) gates the analogous decision everywhere else in this module,
-//    and this function itself re-reads +0x99 a few lines later for a related branch, so
-//    keep_z is modeled as actor.flying in the caller. Not proven.
-//  - param_1 is read as a truncated array index at entry (`(uint)param_1 & 0xffff`, fed the
-//    caller's own actor index) and, later, as a plain float compared against a squared
-//    distance and against a cosine-like bound, and is finally overwritten with an unrelated
-//    computed float. Both kinds of use are transcribed literally below; whether this is a
-//    genuine dual-purpose parameter or a decompiler artifact merging two distinct stack slots
-//    across the parameter's dead range is not resolved here.
-//  - The direction-dispatch block just past entry ends in an indirect call Ghidra flags as
-//    unrecoverable ("Could not recover jumptable at 0x0041818e. Too many branches", "Treating
-//    indirect jump as call"): preserved literally as a call through a 4-entry function
-//    pointer table, since nothing in this session can recover what the four targets are or
-//    whether they take arguments.
-//  - path_find_trace_bsp_boundary, actor_movement_choose_strafe_axis, actor_movement_project_into_frame, actor_movement_get_stopping_distances and actor_compute_accuracy_scale are outside this
-//    session's range; their signatures below are read off this call site only, not verified
-//    against their own bodies.
-//  - FUN_00628140 (CRT, 0x628140) is called with no visible argument at a point where the
-//    preceding comparisons already have local_54 as the live FPU top-of-stack value; modeled
-//    as acos(local_54), matching the surrounding clamp-to-[-1,1] pattern.
-//  - The unit type tag fields at unit_type_def+0x398/0x39c/0x3a0/0x3a4 have no entry in
-//    types/tags.h at this granularity (that struct belongs to the units module); left as raw
-//    offsets.
-// reconciled: R06 0x00746f9c is ScenarioStructureBSP *global_structure_bsp (was extern int32_t bsp_generation); ai.h path_find_context/actor_movement_context bsp_generation -> structure_bsp, bsp_index -> collision_bsp
+// name confidence: 0.4   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x4180c0..0x418a02 (the draft "called" the 0x418a04 case labels as functions and
+//   returned, rotated the heading instead of the aim direction, and fed the frame projection the wrong
+//   vectors). EAX: the cached strafe axis (0..3 reuses it), CL: keep the vertical component; stack (actor, avoid
+//   check, its distance squared, order failed, turn rates p5..p9, desired offset, out aim, out axis, out step,
+//   out "turning", out "arrived"). The aim direction comes from the cached axis, the strafe-axis chooser
+//   (0x418a40) or the offset itself; close to the goal with an avoid check it is projected into the facing frame
+//   (0x418c20, axis 4). A step along the chosen axis is taken only once the facing is within the turn cone (the
+//   Actor tag's cosine +0xa0 far from the goal, 0.95 when a portal is 0.4 ahead), scaled down while braking
+//   (0x4173a0). The aim is then turned towards the facing by at most the rate limits (held turn at +0x594).
+// blam-cc: EAX -> cached_axis, ECX -> keep_z, stack -> the 15 parameters in order
 
 #include "tags.h"
 #include "memory.h"
@@ -58,40 +19,35 @@
 #include "objects.h"
 #include "ai.h"
 
-extern data_array *actor_data;      // 0x00880360
-extern data_array *object_data;     // 0x008603b0
-extern tag_instance *tag_instances; // 0x0087bc14
-extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (formerly bsp_generation)
-extern const real_vector3d *global_origin3d_pointer; // 0x00696714
 
-extern double acos(double x); // 0x628140, CRT; see UNSURE above
+extern data_array *actor_data;      // 0x00880360
+extern tag_instance *tag_instances; // 0x0087bc14
+extern void *global_structure_bsp;  // 0x00746f9c
+extern const real_vector3d *global_zero_point3d_pointer; // 0x00696714
+
+extern double acos(double x); // 0x628140, CRT
 extern double sqrt(double x);
 extern double sin(double x);  // FSIN
 extern double cos(double x);  // FCOS
 extern double fabs(double x);
 
-extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX -> v
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX -> v
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, EAX->out, stack->a, ECX->b
-extern void vector3d_rotate_about_axis(real_vector3d *v, const real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820, EAX->v, ECX->axis, stack->sin,cos
-
-extern void actor_update_target_lead_position(datum_index actor_index); // 0x429570, not yet rewritten (this module)
+extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
+extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, EAX out, ECX a, stack b
+extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820, EAX, ECX, stack
+extern void actor_update_target_lead_position(datum_index actor_index); // 0x429570, EAX
 extern float actor_compute_accuracy_scale(datum_index actor_index); // 0x429620, EAX
-extern void actor_movement_get_stopping_distances(datum_index actor_index, float *out_accelerate_stop_distance, float *out_stop_distance);                       // 0x4173a0, not yet rewritten (this module): turning-radius bounds, called for its side effects only
-// Picks whichever of four candidate axis directions best matches two reference vectors;
-// writes the refined direction and the chosen axis index (0..3). UNSURE signature.
-extern void actor_movement_choose_strafe_axis(real_vector3d *direction_in_out, int32_t *axis_out); // 0x418a40, not yet rewritten (this module)
-// Rotates a direction vector into (or out of) the actor's local orientation frame. UNSURE signature.
-extern void actor_movement_project_into_frame(const real_vector3d *in, real_vector3d *out); // 0x418c20, not yet rewritten (this module)
-// Traces a straight segment across a BSP cluster's connected edges for the first portal
-// boundary it crosses. UNSURE signature, read off this call site only.
-extern uint8_t path_find_trace_bsp_boundary(int32_t structure_bsp, uint8_t ignores_glass, const real_point3d *from,
-                            int32_t surface_index, const real_point3d *to, uint32_t sentinel,
-                            uint8_t out_result[28]); // 0x43d9b0, not yet rewritten (this module)
+extern void actor_movement_get_stopping_distances(datum_index actor_index, float *out_accelerate_stop_distance,
+                                                  float *out_stop_distance); // 0x4173a0, EAX, EBX, EDI
+extern void actor_movement_choose_strafe_axis(const real_vector3d *direction, uint8_t use_3d,
+                                              const real_vector3d *facing, const real_vector3d *reference,
+                                              real_vector3d *out_axis, int16_t *out_index); // 0x418a40, EAX, BL, ESI, EDI, stack
+extern void actor_movement_project_into_frame(uint8_t use_3d, const real_vector3d *frame_axis,
+                                              const real_vector3d *v, real_vector3d *out); // 0x418c20, AL, ECX, stack
+extern uint8_t path_find_trace_bsp_boundary(void *map, uint8_t ignore_permission, real_point3d *start, int32_t start_surface,
+    real_point3d *end, int32_t target_surface, path_find_boundary_crossing *out_result); // 0x43d9b0
 
-// The four direction-dispatch targets the entry fast path calls through. Ghidra could not
-// recover this jump table (see UNSURE above); left as an opaque function-pointer table.
-extern void (*const actor_movement_apply_steering_dispatch[4])(void); // 0x418a04
+#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
 
 // blam-cc: EAX -> cached_axis, ECX -> keep_z, stack -> the 15 parameters below
 void actor_movement_apply_steering(
@@ -101,310 +57,237 @@ void actor_movement_apply_steering(
     real_vector3d *desired_direction, real_vector3d *out_direction, int16_t *out_axis,
     real_vector3d *out_heading, uint8_t *out_flag_507, uint8_t *out_flag_506)
 {
-    actor *a = &((actor *)actor_data->data)[actor_index & 0xffffu];
-    uint8_t *actor_base = (uint8_t *)a;
-    Actor *actor_def = (Actor *)tag_instances[a->actor_definition_tag & 0xffff].data;
+    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *actor_tag = TAG_DATA(*(datum_index *)(act + 0x58));
+    real_vector3d *facing = (real_vector3d *)(act + 0x174);
+    float max_turn_cos = 0.8660254f; // S+0x18, later the accelerate-then-stop distance
+    int16_t chosen_axis = -1;        // S+0x14
+    real_vector3d aim;               // S+0x24
+    real_vector3d heading;           // S+0x30
+    real_vector3d desired;           // S+0x3c
+    real_vector3d rotated;           // S+0x48
+    float dot_facing;                // S+0x1c
+    uint8_t take_step;               // S+0x13
+    float stop_distance;             // the actor-index argument slot at 0x41865b
+    float desired_length_squared;
+    float turn_limit = param_9;
 
-    real max_turn_cos = 0.8660254f; // ~30 degrees; the default max-turn bound
-    int32_t chosen_axis = -1;       // local_5c
-    real_vector3d aim_dir;          // local_4c/local_48/local_44
-    real_vector3d heading;          // local_40/local_3c/local_38 (the function's return heading)
-    real_vector3d rotated_result;   // local_28/local_24/local_20, only set (and only meaningful) when chosen_axis == 4
-    real desired_length_sq;
-    real dot_facing;                // local_54
-    uint8_t take_max_turn_path;     // bVar4 (reused by Ghidra for a second, unrelated bool later; split here)
-
-    if (a->unknown_42a != 0) {
-        a->unknown_591 = 1;
+    if (act[0x42a]) {
+        act[0x591] = 1;
     }
-
-    if (-1 < cached_axis && cached_axis < 4) {
-        heading.i = desired_direction->i;
-        heading.j = desired_direction->j;
-        heading.k = desired_direction->k;
-        if (keep_z == 0) {
+    if (cached_axis >= 0 && cached_axis <= 3) {
+        chosen_axis = cached_axis;
+        heading = *desired_direction;
+        if (!keep_z) {
             heading.k = 0.0f;
         }
         if (vector3d_normalize_with_length(&heading) == 0.0f) {
-            heading = a->facing;
+            heading = *facing;
         }
-        // UNSURE: Ghidra could not recover this jump table; preserved literally as an
-        // indirect call with no visible arguments, then an immediate return. See file header.
-        actor_movement_apply_steering_dispatch[cached_axis]();
-        return;
-    }
-
-    desired_length_sq = desired_direction->k * desired_direction->k +
-                        desired_direction->j * desired_direction->j +
-                        desired_direction->i * desired_direction->i;
-    if (0.64000005f < desired_length_sq) {
-        max_turn_cos = actor_def->cosine_begin_moving_angle;
-    }
-
-    if (want_avoid_check == 0 || avoid_threshold <= desired_length_sq) {
-        if (a->unknown_505 == 0) {
-            aim_dir.i = desired_direction->i;
-            aim_dir.j = desired_direction->j;
-            aim_dir.k = desired_direction->k;
-            if (keep_z == 0) {
-                aim_dir.k = 0.0f;
-            }
-            if (vector3d_normalize_with_length(&aim_dir) == 0.0f) {
-                aim_dir = a->facing;
-            }
-            chosen_axis = 0;
-        } else {
-            actor_movement_choose_strafe_axis(&aim_dir, &chosen_axis);
+        switch (cached_axis) { // 0x418a04
+        case 0: aim = heading; break;
+        case 1: aim.i = -heading.i; aim.j = -heading.j; aim.k = heading.k; break;
+        case 2: aim.i = -heading.j; aim.j = heading.i; aim.k = heading.k; break;
+        default: aim.i = heading.j; aim.j = -heading.i; aim.k = heading.k; break;
+        }
+        if (want_avoid_check) {
+            actor_movement_project_into_frame(keep_z, &aim, &heading, &rotated);
+            chosen_axis = 4;
         }
     } else {
-        real_vector3d desired_copy;
-        uint8_t use_steering_scratch = 0;
+        desired_length_squared = desired_direction->i * desired_direction->i +
+                                 desired_direction->j * desired_direction->j +
+                                 desired_direction->k * desired_direction->k;
+        if (desired_length_squared > 0.64000005f) {
+            max_turn_cos = *(float *)(actor_tag + 0xa0);
+        }
+        if (want_avoid_check && desired_length_squared <= avoid_threshold) {
+            uint8_t use_scratch = 0;
+            real_vector3d fallback;
 
-        desired_copy = *desired_direction;
-        if (a->unknown_505 == 0) {
-            aim_dir.i = a->facing.i;
-            aim_dir.j = a->facing.j;
-            aim_dir.k = a->facing.k;
-        } else {
-            aim_dir = a->unknown_524; // steering scratch this function itself maintains
-            if (0 < a->unknown_15e) {
-                use_steering_scratch = 1;
+            desired = *desired_direction;
+            if (act[0x505]) {
+                aim = *(real_vector3d *)(act + 0x524);
+                if (*(int16_t *)(act + 0x15e) > 0) {
+                    use_scratch = 1;
+                }
+            } else {
+                aim = *facing;
             }
-        }
-        if (keep_z == 0) {
-            desired_copy.k = 0.0f;
-            aim_dir.k = 0.0f;
-        }
-        if (vector3d_normalize_with_length(&aim_dir) == 0.0f) {
-            aim_dir = a->facing;
-        }
-        {
-            real saved_i = aim_dir.i, saved_j = aim_dir.j, saved_k = aim_dir.k;
-            if (vector3d_normalize_with_length(&desired_copy) == 0.0f) {
-                desired_copy.i = saved_i;
-                desired_copy.j = saved_j;
-                desired_copy.k = saved_k;
+            if (!keep_z) {
+                desired.k = 0.0f;
+                aim.k = 0.0f;
             }
-            if (use_steering_scratch) {
-                heading.i = a->facing.i;
-                heading.j = a->facing.j;
-                heading.k = a->facing.k;
-                if (keep_z == 0) {
+            if (vector3d_normalize_with_length(&aim) == 0.0f) {
+                aim = *facing;
+            }
+            fallback = aim;
+            if (vector3d_normalize_with_length(&desired) == 0.0f) {
+                desired = fallback;
+            }
+            if (use_scratch) {
+                heading = *facing;
+                if (!keep_z) {
                     heading.k = 0.0f;
                 }
                 if (vector3d_normalize_with_length(&heading) == 0.0f) {
-                    heading.i = saved_i;
-                    heading.j = saved_j;
-                    heading.k = saved_k;
+                    heading = fallback;
                 }
+                actor_movement_project_into_frame(keep_z, &heading, &desired, &rotated);
+            } else {
+                actor_movement_project_into_frame(keep_z, &aim, &desired, &rotated);
             }
+            chosen_axis = 4;
+        } else if (act[0x505]) {
+            actor_movement_choose_strafe_axis(desired_direction, keep_z, facing, (real_vector3d *)(act + 0x524), &aim,
+                                              &chosen_axis);
+        } else {
+            aim = *desired_direction;
+            if (!keep_z) {
+                aim.k = 0.0f;
+            }
+            if (vector3d_normalize_with_length(&aim) == 0.0f) {
+                aim = *facing;
+            }
+            chosen_axis = 0;
         }
-        actor_movement_project_into_frame(&desired_copy, &rotated_result);
-        chosen_axis = 4;
     }
 
-    dot_facing = aim_dir.i * a->facing.i + aim_dir.k * a->facing.k + aim_dir.j * a->facing.j;
-
-    take_max_turn_path = 0;
-    if (order_failed == 0 && a->unknown_6dc != 4) {
-        if (a->flying == 0) {
-            int32_t lead_target_index;
+    dot_facing = aim.j * facing->j + aim.k * facing->k + aim.i * facing->i;
+    if (order_failed || *(int16_t *)(act + 0x6dc) == 4) {
+        take_step = 1;
+    } else {
+        if (!act[0x99]) { // not flying: a portal just ahead in the stepping direction means turn tighter first
+            int32_t surface;
 
             actor_update_target_lead_position(actor_index);
-            lead_target_index = *(int32_t *)(actor_base + 0x164);
-            if (lead_target_index != -1) {
-                real_vector2d probe_dir;
-                uint8_t got_probe_dir = 0;
+            surface = *(int32_t *)(act + 0x164);
+            if (surface != -1 && chosen_axis >= 0 && chosen_axis <= 3) {
+                real_vector3d probe;
 
-                switch (chosen_axis) {
-                case 0:
-                    probe_dir.i = a->facing.i;
-                    probe_dir.j = a->facing.j;
-                    got_probe_dir = 1;
-                    break;
-                case 1:
-                    probe_dir.i = -a->facing.i;
-                    probe_dir.j = -a->facing.j;
-                    got_probe_dir = 1;
-                    break;
-                case 2:
-                    probe_dir.i = a->facing.j;
-                    probe_dir.j = -a->facing.i;
-                    got_probe_dir = 1;
-                    break;
-                case 3:
-                    probe_dir.i = -a->facing.j;
-                    probe_dir.j = a->facing.i;
-                    got_probe_dir = 1;
-                    break;
-                default:
-                    break;
+                switch (chosen_axis) { // 0x418a14
+                case 0: probe = *facing; break;
+                case 1: probe.i = -facing->i; probe.j = -facing->j; probe.k = facing->k; break;
+                case 2: probe.i = facing->j; probe.j = -facing->i; probe.k = facing->k; break;
+                default: probe.i = -facing->j; probe.j = facing->i; probe.k = facing->k; break;
                 }
-                if (got_probe_dir && 0.0f < vector2d_normalize_with_length(&probe_dir)) {
-                    real_point3d probe_point;
-                    uint8_t probe_result[28];
-                    uint8_t hit;
+                if (vector2d_normalize_with_length((real_vector2d *)&probe) > 0.0f) {
+                    real_point3d point;
+                    path_find_boundary_crossing crossing;
 
-                    probe_point.z = a->body_position.z;
-                    probe_point.x = probe_dir.i * 0.4f + a->body_position.x;
-                    probe_point.y = probe_dir.j * 0.4f + a->body_position.y;
-                    hit = path_find_trace_bsp_boundary((uint32_t)global_structure_bsp, a->ignores_glass, &a->body_position,
-                                       lead_target_index, &probe_point, 0xffffffffu, probe_result);
-                    if (hit != 0 && max_turn_cos <= 0.95f) {
+                    point.x = probe.i * 0.4f + *(float *)(act + 0x12c);
+                    point.y = probe.j * 0.4f + *(float *)(act + 0x130);
+                    point.z = *(float *)(act + 0x134);
+                    if (path_find_trace_bsp_boundary(global_structure_bsp, act[0x376], (real_point3d *)(act + 0x12c),
+                                                     surface, &point, -1, &crossing) &&
+                        !(max_turn_cos > 0.95f)) {
                         max_turn_cos = 0.95f;
                     }
                 }
             }
         }
-        if (dot_facing <= max_turn_cos) {
-            take_max_turn_path = 0;
-        } else {
-            take_max_turn_path = 1;
-        }
-    } else {
-        take_max_turn_path = 1;
+        take_step = (uint8_t)(dot_facing > max_turn_cos);
     }
 
     {
-        real accuracy_scale = actor_compute_accuracy_scale(actor_index);
-        real desired_len_sq = desired_direction->k * desired_direction->k +
-                              desired_direction->j * desired_direction->j +
-                              desired_direction->i * desired_direction->i;
-        real turn_limit = param_9;
-        float stop_distance = 0.0f;
+        float accuracy = actor_compute_accuracy_scale(actor_index);
 
-        *out_flag_506 = (uint8_t)(desired_len_sq < accuracy_scale * accuracy_scale);
-        // 0x418653: EBX = &max_turn_cos (overwritten with the accelerate-then-stop distance), EDI = the actor
-        // index argument slot, reused for the plain stop distance.
-        actor_movement_get_stopping_distances(actor_index, &max_turn_cos, &stop_distance);
+        desired_length_squared = desired_direction->i * desired_direction->i +
+                                 desired_direction->j * desired_direction->j +
+                                 desired_direction->k * desired_direction->k;
+        *out_flag_506 = (uint8_t)(desired_length_squared <= accuracy * accuracy);
+    }
+    actor_movement_get_stopping_distances(actor_index, &max_turn_cos, &stop_distance);
+    if (!act[0x46e] && stop_distance * stop_distance > desired_length_squared) {
+        float distance = (float)sqrt(desired_length_squared);
 
-        if (a->active_movement.cancelled == 0 && desired_len_sq < stop_distance * stop_distance) {
-            real dist = (real)sqrt((double)desired_len_sq);
-
-            if (dist <= max_turn_cos + 0.05f || stop_distance <= max_turn_cos) {
-                turn_limit = 0.0f;
-            } else {
-                real t = (dist - max_turn_cos) / (stop_distance - max_turn_cos);
-                if (t < turn_limit) {
-                    turn_limit = t;
-                }
-            }
-        }
-
-        heading.i = global_origin3d_pointer->i;
-        heading.j = global_origin3d_pointer->j;
-        heading.k = global_origin3d_pointer->k;
-
-        if (take_max_turn_path) {
-            switch (chosen_axis) {
-            case 0:
-                heading.i = 1.0f;
-                heading.j = 0.0f;
-                heading.k = 0.0f;
-                break;
-            case 1:
-                heading.i = -1.0f;
-                heading.j = 0.0f;
-                heading.k = 0.0f;
-                break;
-            case 2:
-                heading.i = 0.0f;
-                heading.j = -1.0f;
-                heading.k = 0.0f;
-                break;
-            case 3:
-                heading.i = 0.0f;
-                heading.j = 1.0f;
-                heading.k = 0.0f;
-                break;
-            case 4:
-                heading = rotated_result;
-                break;
-            default:
-                break;
-            }
-            heading.i *= turn_limit;
-            heading.j *= turn_limit;
-            heading.k *= turn_limit;
-            *out_flag_507 = 0;
+        if (!(max_turn_cos + 0.05f < distance) || !(stop_distance > max_turn_cos)) {
+            turn_limit = 0.0f;
         } else {
-            a->unknown_591 = 1;
-            *out_flag_507 = 1;
+            float t = (distance - max_turn_cos) / (stop_distance - max_turn_cos);
+
+            if (turn_limit > t) {
+                turn_limit = t;
+            }
         }
+    }
 
-        if (0.0f < param_5 || 0.0f < param_7) {
-            real target_angle;
-            real angle_delta;
+    heading = *global_zero_point3d_pointer;
+    if (take_step) {
+        switch (chosen_axis) { // 0x418a24
+        case 0: heading.i = 1.0f; break;
+        case 1: heading.i = -1.0f; break;
+        case 2: heading.j = -1.0f; break;
+        case 3: heading.j = 1.0f; break;
+        case 4: heading = rotated; break;
+        default: break;
+        }
+        heading.i *= turn_limit;
+        heading.j *= turn_limit;
+        heading.k *= turn_limit;
+        *out_flag_507 = 0;
+    } else {
+        act[0x591] = 1;
+        *out_flag_507 = 1;
+    }
 
-            if (dot_facing < 1.0f) {
-                if ((dot_facing < -1.0f) == (dot_facing == -1.0f)) {
-                    target_angle = (real)acos((double)dot_facing);
-                } else {
-                    target_angle = 3.1415927f;
-                }
+    if (param_5 > 0.0f || param_7 > 0.0f) {
+        float target_angle;
+        float angle;
+        float *held = (float *)(act + 0x594);
+
+        if (dot_facing >= 1.0f) {
+            target_angle = 0.0f;
+        } else if (dot_facing <= -1.0f) {
+            target_angle = 3.1415927f;
+        } else {
+            target_angle = (float)acos(dot_facing);
+        }
+        angle = target_angle;
+        if (param_5 > 0.0f) {
+            float limit = param_5 * param_8;
+            float cap = param_5;
+
+            if (param_8 > 1.0f) {
+                cap = (param_8 > 1.5f ? 1.5f : param_8) * param_5;
+            }
+            if (target_angle * 3.0f <= limit) {
+                limit = target_angle * 3.0f;
+            }
+            if (target_angle < limit) {
+                angle = limit;
+            } else if (target_angle > cap) {
+                angle = cap;
+            }
+        }
+        if (angle > *held) {
+            if (act[0x591] && angle > param_6) {
+                *held = angle <= param_7 ? angle : param_7;
+            }
+        } else if (*held > 0.0f) {
+            if (angle < param_6) {
+                *held = 0.0f;
             } else {
-                target_angle = 0.0f;
+                angle = *held;
             }
+        }
+        {
+            float step = angle - target_angle;
 
-            angle_delta = target_angle;
-            if (0.0f < param_5) {
-                real speed_b = param_8;
-                real limited = param_5 * param_8;
-                real speed_cap = param_5;
+            if (fabs(step) > 9.999999747378752e-05) {
+                real_vector3d axis;
 
-                if (1.0f < speed_b) {
-                    if (1.5f < speed_b) {
-                        speed_b = 1.5f;
-                    }
-                    speed_cap = speed_b * param_5;
-                }
-                if (target_angle * 3.0f <= limited) {
-                    limited = target_angle * 3.0f;
-                }
-                if (limited <= target_angle) {
-                    if (speed_cap < target_angle) {
-                        angle_delta = speed_cap;
-                    }
-                } else {
-                    angle_delta = limited;
-                }
-            }
-
-            if (angle_delta <= a->unknown_594[0]) {
-                if (0.0f < a->unknown_594[0]) {
-                    if (param_6 <= angle_delta) {
-                        angle_delta = a->unknown_594[0];
-                    } else {
-                        a->unknown_594[0] = 0.0f;
-                    }
-                }
-            } else if (a->unknown_591 != 0 && param_6 < angle_delta) {
-                if (angle_delta <= param_7) {
-                    a->unknown_594[0] = angle_delta;
-                } else {
-                    a->unknown_594[0] = param_7;
-                }
-            }
-
-            {
-                real step = angle_delta - target_angle;
-                if (0.0001f < fabs((double)step)) {
-                    real_vector3d axis;
-                    // UNSURE: only the third (ECX/b) operand is visible at this call site
-                    // (facing); 'a' is inferred to be the in-progress heading, by analogy
-                    // with the vector3d_cross_product(out, a, b) convention established in
-                    // src/ai/actor_get_body_axis_vector.c.
-                    vector3d_cross_product(&axis, &heading, &a->facing);
-                    if (0.0f < vector3d_normalize_with_length(&axis)) {
-                        vector3d_rotate_about_axis(&heading, &axis, (real)sin((double)step), (real)cos((double)step));
-                    }
+                // 0x418969: axis = facing x aim, then the aim itself is turned about it
+                vector3d_cross_product(&axis, &aim, facing);
+                if (vector3d_normalize_with_length(&axis) > 0.0f) {
+                    vector3d_rotate_about_axis(&aim, &axis, (real)sin(step), (real)cos(step));
                 }
             }
         }
     }
 
-    *out_axis = (int16_t)chosen_axis;
-    *out_direction = aim_dir;
+    *out_axis = chosen_axis;
+    *out_direction = aim;
     *out_heading = heading;
 }
 
