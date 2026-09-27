@@ -1265,3 +1265,22 @@ execute / is_complete / reset_entry. All three were low-confidence drafts with d
   sample interpolation with wrong arguments. actor_movement_test_obstacle_ray now returns its hit kind (AX).
 OPEN: ai_communication_broadcast (0x42d340, 5.6 KB, 0.3) and actor_update_look_target (0x415480, 0.25) are the
   remaining large low-confidence per-tick AI functions.
+
+## 2026-09-27 (loop, static only) -- actor mode callbacks (trap risk) and more per-tick fixes
+- FOUND: the actor mode table (0x65524c, 0x38 per mode: name, ?, data size, combat grade, then 9 procs at +0x10
+  enter, +0x14 process (returns AL), +0x18 tick, +0x1c update, +0x20 exit, +0x24 look weights (actor, out[4]),
+  +0x28 replace reference (actor, old, new), +0x2c movement cancelled, +0x30 target cleared; all cdecl) had 42
+  procs with NO C -- any actor entering sleep / alert / flee / uncover / guard / search / wait / vehicle / charge /
+  converse / avoid would have hit a trap and ended the game (only obey, the a10 crew's mode, and fight were
+  complete). NOTE the names sit one entry early in the table dump from 0x655254: mode 11 is obey, 9 vehicle,
+  10 charge.
+- WRITTEN from objdump (new files, 0.9): 25 small callbacks (scratchpad/modes1..4.py via newmode.py).
+  REMAINING (larger, OPEN): flee 0x4037f0 / 0x403af0 / 0x403b90, uncover 0x4081e0 / 0x408470 / 0x408680, guard
+  0x404b90 / 0x404d60, search 0x407940 / 0x407a10 / 0x407d80 / 0x407f40, wait 0x409b30 / 0x409cc0, charge
+  0x401da0 (2.9 KB) / 0x402af0, converse 0x402d70 / 0x402e70. scratchpad/modeprocs.py lists what is left.
+- Fixes: unit_update_random_turn_angle rotated the OBJECT's forward vector (bending the unit's orientation)
+  instead of the desired facing, and called the wander helper without arguments; unit_commit_speech's dead-unit
+  test; actor_update_look_target was missing the body-turn / aim-follow block (0x415fb6..0x41609a);
+  actor_update_squad_link_state's staleness test (kind 4..5 only in grade 3; active movement type +0x46c).
+- Verified: actor_update_activation_state, actor_movement_advance_waypoint, objects_update, actor_delete_or_
+  release_unit, unit_apply_scale_change (scripted kill), idle basis / fidget.
