@@ -1,6 +1,6 @@
 // actor_should_hold_position  (Ghidra: actor_should_hold_position, renamed)
 // address 0x4105c0, size 237 bytes
-// name confidence: 0.35   rewrite confidence: 0.2
+// name confidence: 0.35   rewrite confidence: 0.9
 // evidence: phase-4 summary "decides whether the actor should currently hold its position,
 // forcing a flee for dangerous-weapon threats"; prop.kind 4/5 (the "shared/vault" kinds
 // per types/ai.h) forces actor.unknown_3bc (a flag also read/cleared in
@@ -22,8 +22,10 @@ extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
 extern uint32_t random_seed_global; // 0x00719cd0
 
-// blam-cc: EAX -> actor_index
-uint8_t actor_should_hold_position(datum_index actor_index)
+// blam-cc: EAX -> actor_index, EDX -> definition
+// FIXED (objdump 0x41064d..0x41069b): EDX is the actor definition; the hold timer +0x5f4 is
+//   trunc(((def +0x84 - def +0x80) * random + def +0x80) * 30). The draft stored 0.
+uint8_t actor_should_hold_position(datum_index actor_index, uint8_t *definition)
 {
     actor *self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
 
@@ -41,8 +43,15 @@ uint8_t actor_should_hold_position(datum_index actor_index)
         return self->unknown_457 == 0;
     }
 
-    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-    self->unknown_5f4 = (int16_t)0.0f; // UNSURE: see header, real float source unknown
+    {
+        float lo = *(float *)(definition + 0x80);
+        float hi = *(float *)(definition + 0x84);
+        float r;
+
+        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+        r = (float)(int32_t)(random_seed_global >> 16) * (1.0f / 65536.0f);
+        self->unknown_5f4 = (int16_t)(int32_t)(((hi - lo) * r + lo) * 30.0f); // __ftol
+    }
     return 1;
 }
 

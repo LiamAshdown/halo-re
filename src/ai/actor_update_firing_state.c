@@ -39,7 +39,7 @@ extern void actor_get_aim_from_position(datum_index actor_index, uint32_t out_po
 extern uint8_t *actor_get_actor_definition(datum_index actor_index); // 0x40fa70, EAX
 extern void actor_update_aim_wander(datum_index actor_index);        // 0x40fcb0
 extern void actor_reseed_movement_pause_timer(datum_index actor_index); // 0x4104e0
-extern uint8_t actor_should_hold_position(datum_index actor_index);  // 0x4105c0, EAX (EDX the definition)
+extern uint8_t actor_should_hold_position(datum_index actor_index, uint8_t *definition);  // 0x4105c0, EAX, EDX
 extern void actor_select_stance_offset_pair(datum_index actor_index, uint8_t *base, uint8_t **out_a, uint8_t **out_b); // 0x4106b0
 extern uint8_t actor_action_has_queued_secondary(datum_index actor_index); // 0x417b70, EAX
 extern datum_index actor_get_threat_weapon_object_index(datum_index actor_index); // 0x4282c0, EAX
@@ -289,7 +289,7 @@ dispatch:
         }
         if (next != -1) {
             if (next == 1) {
-                if (!actor_should_hold_position(actor_index) && !fire_primary) {
+                if (!actor_should_hold_position(actor_index, def) && !fire_primary) {
                     next = 2;
                     actor_update_aim_wander(actor_index);
                 }

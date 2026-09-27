@@ -1629,3 +1629,6 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - biped_update_animation_frame_trigger 0x55eaa0 REWRITTEN (0.2 -> 0.9; jump / landing timing from the biped movement
   integrators): +0x4d1 = trunc(tag +0x3d4 / +0x3d8 * 30 * clamped fraction); the draft stored trunc(span).
 - unit_recompute_seat_occupants, unit_refresh_targeting_flag_and_weapons verified (0.9).
+- actor_should_hold_position 0x4105c0 (0.2 -> 0.9): takes the actor definition (EDX) and sets the hold timer +0x5f4 to
+  a random span of def +0x80..+0x84 seconds (the draft stored 0); actor_update_firing_state passes it.
+- actor_reseed_movement_pause_timer header updated (already a faithful rewrite).

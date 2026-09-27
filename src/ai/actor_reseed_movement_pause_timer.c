@@ -1,6 +1,6 @@
 // actor_reseed_movement_pause_timer  (Ghidra: actor_reseed_movement_pause_timer, renamed)
 // address 0x4104e0, size 213 bytes
-// name confidence: 0.4   rewrite confidence: 0.15
+// name confidence: 0.4   rewrite confidence: 0.9 (REWRITTEN from objdump; stance-pair outputs checked)
 // evidence: phase-4 summary "reseeds the actor's short movement-pause timer with a new
 // randomized value"; writes the result to actor+0x5f4.
 // UNSURE: this function's entire dataflow between actor_get_actor_definition(),
