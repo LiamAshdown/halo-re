@@ -1939,3 +1939,18 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   really radius/length), path_find_trace_cluster_boundary_from_vertex, collision_bsp_surface_clip_line_2d,
   path_find_heights_are_close, decal_plane_solve_third_axis, actor_build_path_find_request, path_find_push_start_node.
 - OPEN: a10 panel lens flares still not flashing (next).
+- CONFIRMED by the user: AI pathfinding fixed (cryo tech walks to the panel).
+- OPEN (runtime, a10 panel lights not flashing): the script does object_create looking_panel_* (name indices 0..4);
+  object_new succeeds (active 1, query_0x28 1), object_create_attachments runs and light_new_attached is called
+  with the yellow light tag 0xe9850811, owner = the panel, marker 0, function index 0, change colour -1. Yet no
+  lens flare is ever queued for them (the five flares seen in object_lights_update_all are door locklights,
+  definition levels\b30\devices\doors\door small\locklight). The yellow light colours are never black
+  (0.62/0.40/0 .. 0.94/0.57/0), so the light must be missing from light_active_list (visibility collection).
+  Verified against the binary on the way: object_lights_update_all flare section, light_new_attached,
+  object_create_attachments, object_new gate, object_new_from_scenario_name/_placement, objects_update,
+  object_update, object_update_functions, periodic/transition_function_evaluate, periodic tables init,
+  object_light_recompute_transform (attenuation/cone/cluster insert). Next: snapshot the light record
+  (+0x30 position, +0x10 cluster link, flags) and light_active_list after creation; suspects
+  cluster_reference_add_within_radius (0.6) and structure_bsp_collect_visible_objects (0.5).
+- Tooling note: cdb poi() sign-extends 32-bit values on this target, so compare with (poi(x) & 0xffffffff);
+  a bp command that runs $$< must end with the filename (put the rest in the script file).
