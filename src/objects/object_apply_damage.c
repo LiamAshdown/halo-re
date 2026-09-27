@@ -57,7 +57,7 @@ extern void player_effect_send_network_update(damage_data *dd, float random_blen
 extern void player_effect_mark_damage_direction(damage_data *dd, real_vector3d *direction, float random_blend, float damage_amount); // UNSURE: out of range, 0x456cf0
     // (param_3 is damage_data+0x40, used as a float everywhere in this function -- declaring it
     // uint32_t here silently converted the value instead of passing the same four bytes)
-extern int8_t teams_are_enemies(void); // UNSURE: zero visible args; out of range, 0x45bd50
+extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, CX, DX
 extern int32_t game_engine_compute_time_scale(void); // UNSURE: zero visible args; out of range, 0x461550
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
     // 0x46fe10, blam-cc: stack -> zoom_table_index, CX -> magnification (every caller passes the difficulty)
@@ -410,7 +410,7 @@ skip_child:
                             if (*record != 0) {
                                 int16_t salt = (int16_t)((uint32_t)controller >> 0x10);
                                 if (salt == 0 || *record == salt) {
-                                    int8_t is_ai = teams_are_enemies();
+                                    int8_t is_ai = teams_are_enemies(dd->team_index, record[0x10]); // 0x4eecd0: CX = damage team (+0x10), DX = the player's team (record +0x20)
 
                                     friendly_fire_blocked = (int8_t)(1 - (is_ai != 0));
                                     if (friendly_fire_blocked != 0) {

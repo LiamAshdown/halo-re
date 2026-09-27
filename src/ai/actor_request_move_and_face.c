@@ -1,25 +1,14 @@
 // actor_request_move_and_face  (Ghidra: actor_request_move_and_face, renamed)
 // address 0x4049d0, size 439 bytes
-// name confidence: 0.4   rewrite confidence: 0.25
-// evidence: types/ai.h actor.swarm/order_committed/needs_new_path/firing_position_index;
-//   types/tags.h Actor.guard_position_time (already-named field, used here as a random wait
-//   range exactly as its name suggests); phase-4 summary "issues a move-and-face pathfinding
-//   request ... and schedules a follow-up random wait once the move completes".
-// register convention: actor index in EAX (param_1), the sole real parameter.
-//   // blam-cc: EAX -> actor_index
-// UNSURE: actor+0xaa/0xb0/0x9c/0xc0/0xc4 all fall inside actor.mode_data (a per-mode union,
-//   see types/ai.h); read/written here as a small "move and face" sub-state (state code at
-//   0xc0, two flags at 0xaa/0xb0, a waypoint index at 0xc4, a wait-ticks counter at 0x9c),
-//   not independently confirmed.
-//   UNSURE: actor_get_firing_position_group_mask, actor_find_best_firing_position, actor_claim_firing_position and actor_push_recognition_entry are all outside this
-//   session's range and unreviewed; the request/scratch buffer sizes and layout below mirror
-//   Ghidra's stack slots as-is (see actor_update_path_if_needed.c for the same caveat about
-//   not mapping them onto a named struct).
-//   UNSURE: the return value is built as `result & 0xffffff00` in the original, i.e. its low
-//   byte is unconditionally zeroed and the early-out paths return an unrelated byte of the
-//   actor-tag pointer shifted into the high bits. This function has no observed callers in
-//   this module, so the return value's real meaning (if any) could not be cross-checked;
-//   modelled here as a plain int32_t exactly matching the bit-for-bit computation.
+// name confidence: 0.4   rewrite confidence: 0.9
+// REWRITTEN from objdump 0x4049d0..0x404b86: the "guard" mode's +0x0c process (stack actor index). Swarms and
+//   actors committed to an order (+0x160, which also asks for a new pick +0x0e) only set the guard state (+0x24) to
+//   1. A guard state 3 that lost its firing position falls back to 0 and asks for a new pick. When the actor wants
+//   a path (+0x4c) and a pick (+0x0e): the held position goes to the recognition history (type 0), a firing
+//   position is found with goal kind 4 (its group mask 0x412880, random fallback allowed) and claimed; state 3 and
+//   the position (+0x28) on success, 1 otherwise; the pick and +0x14 flags clear, and the next pick waits
+//   random(tag +0x3b8, +0x3bc) seconds (+0x9c, ticks). Returns 0.
+// blam-cc: stack -> actor_index
 
 #include "tags.h"
 #include "memory.h"
@@ -27,89 +16,73 @@
 #include "ai.h"
 #include "cache.h"
 #include <string.h>
-#include <stdint.h>
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern real random_real_range(real min, real max); // 0x401050
-extern uint32_t actor_get_firing_position_group_mask(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_get_firing_position_group_mask at 0x412880
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern uint32_t actor_find_best_firing_position(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_find_best_firing_position at 0x412ba0
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern int16_t actor_claim_firing_position(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_claim_firing_position at 0x414060
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern void actor_push_recognition_entry(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_push_recognition_entry at 0x4141a0
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
+extern uint32_t actor_get_firing_position_group_mask(datum_index actor_index, int16_t kind, int16_t search_override); // 0x412880, EAX, SI, stack
+extern uint32_t actor_find_best_firing_position(datum_index actor_index, actor_firing_position_query *query,
+    actor_firing_position_candidate *out_candidate, uint32_t *out_previous_owner, path_find_context *path_context,
+    uint8_t *out_path_ok); // 0x412ba0
+extern int16_t actor_claim_firing_position(datum_index actor_index, datum_index previous_owner,
+    path_find_context *path_context, int16_t firing_position_index, uint8_t path_ok); // 0x414060, stack, CX, AL
+extern void actor_push_recognition_entry(datum_index actor_index, int16_t firing_position_index, uint8_t type); // 0x4141a0, EAX, CX, DL
 
-int32_t actor_request_move_and_face(uint32_t actor_index)
+uint8_t actor_request_move_and_face(datum_index actor_index)
 {
-    actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
-    Actor *actor_def = (Actor *)tag_instances[a->actor_definition_tag & 0xffff].data;
-    uint8_t *mode_data = a->mode_data;
-    int16_t *state = (int16_t *)(mode_data + (0xc0 - 0x9c));
-    uint8_t *flag_aa = mode_data + (0xaa - 0x9c);
-    uint8_t *flag_b0 = mode_data + (0xb0 - 0x9c);
-    int16_t *waypoint = (int16_t *)(mode_data + (0xc4 - 0x9c));
-    int16_t *wait_ticks = (int16_t *)(mode_data + (0x9c - 0x9c));
-    uint32_t garbage_hint = ((uint32_t)(uintptr_t)actor_def >> 8) << 8; // UNSURE, see note above
-    uint32_t result;
+    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *actor_tag = (uint8_t *)tag_instances[*(datum_index *)(actor + 0x58) & 0xffff].data;
 
-    if (a->swarm != 0) {
-        *state = 1;
-        return (int32_t)garbage_hint;
+    if (actor[6] != 0) {
+        *(int16_t *)(actor + 0xc0) = 1;
+        return 0;
     }
-    if (a->order_committed != 0) {
-        *state = 1;
-        *flag_aa = 1;
-        return (int32_t)garbage_hint;
+    if (actor[0x160] != 0) {
+        *(int16_t *)(actor + 0xc0) = 1;
+        actor[0xaa] = 1;
+        return 0;
     }
-
-    result = 0;
-    if (*state == 3 && a->firing_position_index == -1) {
-        *state = 0;
-        *flag_aa = 1;
+    if (*(int16_t *)(actor + 0xc0) == 3 && *(int16_t *)(actor + 0x3b8) == -1) {
+        *(int16_t *)(actor + 0xc0) = 0;
+        actor[0xaa] = 1;
     }
+    if (actor[0x4c] == 0 || actor[0xaa] == 0) {
+        return 0;
+    }
+    if (*(int16_t *)(actor + 0xc0) == 3 && *(int16_t *)(actor + 0x3b8) != -1) {
+        actor_push_recognition_entry(actor_index, *(int16_t *)(actor + 0x3b8), 0);
+    }
+    {
+        static actor_firing_position_query query;
+        static path_find_context path_context;
+        actor_firing_position_candidate candidate;
+        uint32_t previous_owner = 0xffffffff;
+        uint8_t path_ok = 0;
+        int16_t found;
+        int16_t claimed;
 
-    if (a->needs_new_path != 0 && *flag_aa != 0) {
-        uint32_t request_block[16];
-        uint8_t buffer_a[60];
-        uint32_t out_waypoint;
-        uint8_t scratch_context[65684];
-        uint8_t out_flag;
-        int16_t result_waypoint;
-
-        if (*state == 3 && a->firing_position_index != -1) {
-            actor_push_recognition_entry();
-        }
-
-        memset(request_block, 0, sizeof(request_block));
-        request_block[1] = 4; // kind/formation selector consumed by actor_find_best_firing_position
-        request_block[0] = actor_get_firing_position_group_mask(0);
-        out_flag = 1; // matches uStack_106eb's pre-set value; likely an "in-progress" flag
-
-        actor_find_best_firing_position(actor_index, request_block, buffer_a, &out_waypoint, scratch_context, &out_flag);
-        result_waypoint = actor_claim_firing_position(actor_index, out_waypoint, scratch_context);
-        *flag_aa = 0;
-        *flag_b0 = 0;
-        if (result_waypoint == -1) {
-            *state = 1;
+        memset(&query, 0, sizeof(query));
+        memset(&candidate, 0, sizeof(candidate));
+        query.goal_kind = 4;
+        query.group_mask = actor_get_firing_position_group_mask(actor_index, 4, 0);
+        query.allow_random_fallback = 1;
+        found = (int16_t)actor_find_best_firing_position(actor_index, &query, &candidate, &previous_owner,
+            &path_context, &path_ok);
+        claimed = actor_claim_firing_position(actor_index, previous_owner, &path_context, found, path_ok);
+        actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+        actor[0xaa] = 0;
+        actor[0xb0] = 0;
+        if (claimed == -1) {
+            *(int16_t *)(actor + 0xc0) = 1;
         } else {
-            *state = 3;
-            *waypoint = result_waypoint;
-        }
-
-        {
-            float delay = random_real_range(actor_def->guard_position_time[0], actor_def->guard_position_time[1]);
-            result = (uint32_t)(int32_t)delay; // __ftol
-            *wait_ticks = (int16_t)result;
+            *(int16_t *)(actor + 0xc0) = 3;
+            *(int16_t *)(actor + 0xc4) = claimed;
         }
     }
-    return (int32_t)(result & 0xffffff00u);
+    *(int16_t *)(actor + 0x9c) = (int16_t)(int32_t)(random_real_range(*(float *)(actor_tag + 0x3b8),
+        *(float *)(actor_tag + 0x3bc)) * 30.0f); // __ftol
+    return 0;
 }
 
 #if 0

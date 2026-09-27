@@ -107,7 +107,7 @@ void ai_alert_actors_in_grenade_radius(datum_index source_unit_index)
 
     a = actor_iterator_next(&iterator);
     while (a != 0) {
-        datum_index actor_index = (datum_index)(((uint8_t *)a - (uint8_t *)actor_data->data) / sizeof(actor));
+        datum_index actor_index = iterator.actor_index /* the full handle, salt included */;
         int16_t actor_cluster = *(int16_t *)((uint8_t *)a + 0x148); // UNSURE offset (unknown_138 array)
 
         if (actor_index != owner_actor && actor_cluster != -1 &&

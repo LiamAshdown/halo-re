@@ -56,24 +56,24 @@ extern double sqrt(double x); // FSQRT, Ghidra SQRT() pseudo-function
 extern real vector3d_normalize_with_length(real_vector3d *v);                // 0x401990
 extern void actor_firing_position_run_score_rules(datum_index actor_index, uint16_t count, actor_firing_position_query *query, actor_firing_position_candidate *candidates); // 0x4126f0
 extern uint8_t actor_firing_position_run_reject_rules(datum_index actor_index, actor_firing_position_query *query, actor_firing_position_candidate *candidate); // 0x412730
-extern uint8_t actor_firing_position_probe_reject_rules(actor_firing_position_query *query); // 0x412770
+extern uint8_t actor_firing_position_probe_reject_rules(actor_firing_position_query *query, datum_index actor_index); // 0x412770, EDI, EBX
 extern void actor_report_firing_position_request(datum_index actor_index, actor_firing_position_query *query, actor_firing_position_candidate *candidate); // 0x4120f0
 extern uint8_t actor_firing_position_near_point(datum_index actor_index, real_point3d *point, int32_t start_surface_index, int16_t kind); // 0x412960
-extern void encounter_build_firing_position_claims(datum_index actor_index, uint32_t *out_claims);   // 0x4360d0, not yet rewritten
-extern void actor_build_path_find_request(void);                                            // 0x41a9c0, not yet rewritten
+extern void encounter_build_firing_position_claims(datum_index encounter_index, datum_index *out_claims); // 0x4360d0, EAX, EBX
+extern void actor_build_path_find_request(datum_index actor_index, path_find_request *request); // 0x41a9c0, EAX, EBX
 extern void actor_target_get_relationship_object(datum_index target_prop_index); // 0x41f3a0, this module,
                                                  // blam-cc: EAX -> target_prop_index
-extern uint8_t actor_get_ranged_attack_vector(real_point3d *out);                            // 0x420970, not yet rewritten
-extern uint8_t path_find_test_direct_reachability(int32_t generation, int32_t unused);           // 0x43a0a0, not yet rewritten
-extern void path_find_compute_heuristic(void *point, float *out_distance, float *out_secondary,
-                         void *out_direction);                             // 0x43a310, not yet rewritten
+extern uint8_t actor_get_ranged_attack_vector(datum_index target_prop_index, datum_index actor_index, real_vector3d *out_vector); // 0x420970, EAX, ECX, stack
+extern uint8_t path_find_test_direct_reachability(const real_point3d *point_a, const real_point3d *point_b,
+    real_point3d *out_position, void *context, uint8_t *out_success); // 0x43a0a0, EAX, ECX, ESI, stack
+extern uint8_t path_find_compute_heuristic(path_find_context *context, uint32_t vertex_id, real_point3d *point,
+    float *out_distance, float *out_secondary, real_vector3d *out_direction); // 0x43a310, EDI, EAX, stack
 extern uint8_t path_find_run(path_find_context *context);                  // 0x43a8b0, not yet rewritten
 extern void qsort_dword_array(uint32_t count, int32_t *elements, qsort_dword_compare_proc compare); // 0x449590, EAX count, ECX elements, stack compare
-extern float point3d_distance_squared_to_segment(real_point3d *point, real_point3d *origin,
-                                                 real_vector3d *delta);    // 0x4cde30
+extern real point3d_distance_squared_to_segment(real_point3d *segment_start, real_vector3d *segment_direction, real_point3d *point); // 0x4cde30, EAX, ECX, EDX
 extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t param_2, float *world_point,
     uint32_t param_4, uint32_t param_5, real_point3d *accumulator); // 0x569190, stack, EAX accumulator
-extern void unit_get_aiming_vector(real_vector3d *out);                              // 0x5696f0, not yet rewritten
+extern void unit_get_aiming_vector(uint32_t unit_index, real_vector3d *out); // 0x5696f0, ECX, EAX
 
 extern uint8_t actor_firing_position_compare(int32_t element, int32_t other); // 0x4127b0, src/ai/actor_firing_position_compare.c
 
@@ -140,7 +140,7 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
 
     // UNSURE: bare call. It fills claims[] with, per firing position, the actor that
     // currently holds it.
-    encounter_build_firing_position_claims(actor_index, claims);
+    encounter_build_firing_position_claims(self->encounter_index, (datum_index *)claims); // 0x412c52: EAX = encounter, EBX = claims
     if (self->firing_position_index != -1) {
         claims[self->firing_position_index] = 0xffffffff; // the actor does not block itself
     }
@@ -301,6 +301,7 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
             do {
                 prop *pr;
                 int16_t kind;
+                datum_index current = p;
                 if (p == (datum_index)0xffffffff) {
                     break;
                 }
@@ -310,7 +311,7 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
                 if (kind > 1 && kind < 4 && pr->is_vault == 0) {
                     if (pr->is_unit == 0 &&
                         (pr->is_parented != 0 || pr->relationship_object_index == -1) &&
-                        actor_get_ranged_attack_vector(&hazard_direction) != 0) {
+                        actor_get_ranged_attack_vector(current, actor_index, (real_vector3d *)&hazard_direction) != 0) { // 0x4132fc: EAX = the prop
                         actor_firing_position_hazard *h = &query->hazards[query->hazard_count];
                         h->kind = (int16_t)(pr->is_parented != 0);
                         h->position = pr->last_known_position;
@@ -326,7 +327,10 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
                         actor_firing_position_hazard *h = &query->hazards[query->hazard_count];
                         h->kind = 2;
                         h->position = pr->last_known_position;
-                        unit_get_aiming_vector(&h->direction);
+                        // 0x4133b7: ECX = the prop's relationship object (+0x110), else its object
+                        unit_get_aiming_vector(pr->relationship_object_index != -1 ? (uint32_t)pr->relationship_object_index
+                                                                                    : (uint32_t)pr->object_index,
+                                               &h->direction);
                         query->hazard_count = query->hazard_count + 1;
                         query->hazard_count_kind_2 = query->hazard_count_kind_2 + 1;
                     }
@@ -459,10 +463,10 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
 
                 for (i = 0; i < candidate_count; i++) {
                     actor_firing_position_candidate *c = &candidates[i];
-                    path_find_compute_heuristic((void *)c->position, &c->distance_from_target, (float *)0,
-                                 (query->want_direction_from_target != 0)
-                                     ? (void *)&c->direction_from_target
-                                     : (void *)0);
+                    // 0x4138b7: EDI = the target context, EAX = the position's surface (+0x14)
+                    path_find_compute_heuristic(&target_context, *(uint32_t *)((uint8_t *)c->position + 0x14),
+                                 (real_point3d *)c->position, &c->distance_from_target, (float *)0,
+                                 (query->want_direction_from_target != 0) ? &c->direction_from_target : 0);
                 }
             }
         } else {
@@ -473,7 +477,7 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
                 delta.j = p->y - query->target_position.y;
                 delta.k = p->z - query->target_position.z;
                 if (delta.j * delta.j + delta.k * delta.k + delta.i * delta.i < 400.0f &&
-                    path_find_test_direct_reachability((uint32_t)global_structure_bsp, 0) != 0) {
+                    path_find_test_direct_reachability(p, &query->target_position, 0, global_structure_bsp, 0) != 0) { // 0x413787
                     c->distance_from_target = vector3d_normalize_with_length(&delta);
                     if (query->want_direction_from_target != 0) {
                         c->direction_from_target = delta;
@@ -485,7 +489,7 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
 
     // ------------------------------------------------------------------ the movement pathfind
     if (query->flying == 0) {
-        actor_build_path_find_request();
+        actor_build_path_find_request(actor_index, &request); // 0x4138f8: EAX = actor, EBX = the request
         request.have_limit = 1;
         request.limit_distance = query->search_radius;
 
@@ -540,12 +544,14 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
 
         if (distance_squared < query->search_radius * query->search_radius) {
             if (query->flying == 0) {
-                path_find_compute_heuristic(p, &c->distance_from_actor, &c->segment_distance,
-                             (query->danger_active != 0) ? (void *)&c->direction_from_actor
-                                                         : (void *)0);
+                // 0x413b66: EDI = the path context argument, EAX = the position's surface (+0x14)
+                path_find_compute_heuristic(path_context, *(uint32_t *)((uint8_t *)p + 0x14), p,
+                             &c->distance_from_actor, &c->segment_distance,
+                             (query->danger_active != 0) ? &c->direction_from_actor : 0);
             } else {
+                // 0x413ae5: EAX = the body position, ECX = the delta, EDX = the target position
                 c->segment_distance = (float)sqrt((double)point3d_distance_squared_to_segment(
-                    p, &self->body_position, &delta));
+                    &self->body_position, &delta, &query->target_position));
                 length = (float)sqrt((double)distance_squared);
                 if (length < 0.0001f && length > -0.0001f) {
                     length = 0.0f;
@@ -614,7 +620,7 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
         qsort_candidate_count = candidate_count;
         qsort_dword_array((uint32_t)(int32_t)candidate_count, sort_index, actor_firing_position_compare); // 0x413cf3..0x413d0f
 
-        query->baseline_accept = actor_firing_position_probe_reject_rules(query);
+        query->baseline_accept = actor_firing_position_probe_reject_rules(query, actor_index); // 0x413d14: EBX = actor
 
         for (n = 0; n < candidate_count; n++) {
             actor_firing_position_candidate *c;

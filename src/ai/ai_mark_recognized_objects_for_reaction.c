@@ -61,7 +61,7 @@ void ai_mark_recognized_objects_for_reaction(int16_t team_a, int16_t team_b, uin
             other_team = team_a;
         }
         if ((a->team == team_a || a->team == team_b) && other_team != (int16_t)-1) {
-            actor_index = (datum_index)(((uint8_t *)a - (uint8_t *)actor_data->data) / sizeof(actor));
+            actor_index = iterator.actor_index /* the full handle, salt included */;
 
             prop_cursor = a->first_prop;
             while (prop_cursor != (datum_index)k_datum_index_none) {

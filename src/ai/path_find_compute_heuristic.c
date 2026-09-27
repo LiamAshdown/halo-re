@@ -30,12 +30,14 @@
 extern real_point3d *ai_default_forward_vector; // 0x00696714, a pointer to a constant vector (UNSURE: likely but not confirmed identical to the {1,0,0} constant at 0x00696718 referenced elsewhere in this module)
 
 extern double sqrt(double x); // FSQRT
-extern int16_t path_find_hash_lookup_vertex(path_find_context *context); // 0x43b2b0, see header UNSURE
-extern void path_find_closest_point_on_segment(void); // 0x43b2f0, math helper, not rewritten here; called exactly as Ghidra shows (no visible arguments), writing through unaff-style output locals
+extern int16_t path_find_hash_lookup_vertex(path_find_context *context, uint32_t vertex_id); // 0x43b2b0, EDX, ESI
+extern void path_find_closest_point_on_segment(const real_point3d *point, const real_point3d *segment_start,
+    const real_point3d *segment_end, real_point3d *out); // 0x43b2f0, EAX, ECX, EDX, ESI
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, see header UNSURE on its own argument
 
-// blam-cc: EDI -> context, stack -> point, out_distance, out_secondary, out_direction
-uint8_t path_find_compute_heuristic(path_find_context *context, real_point3d *point, float *out_distance,
+// blam-cc: EDI -> context, EAX -> vertex_id (the surface the point lies on), stack -> point, out_distance,
+//   out_secondary, out_direction
+uint8_t path_find_compute_heuristic(path_find_context *context, uint32_t vertex_id, real_point3d *point, float *out_distance,
                                     float *out_secondary, real_vector3d *out_direction)
 {
     int16_t node_index;
@@ -44,7 +46,7 @@ uint8_t path_find_compute_heuristic(path_find_context *context, real_point3d *po
     float leash;
     float secondary;
 
-    node_index = path_find_hash_lookup_vertex(context);
+    node_index = path_find_hash_lookup_vertex(context, vertex_id); // 0x43a314: ESI = EAX
     if (node_index == -1) {
         if (out_secondary != 0) {
             *out_secondary = 3.4028235e+38f;
@@ -64,9 +66,15 @@ uint8_t path_find_compute_heuristic(path_find_context *context, real_point3d *po
 
     secondary = 0.0f;
     if (((path_find_request *)context)->have_avoid_sphere != 0) {
-        float local_c, local_8, local_4; // path_find_closest_point_on_segment's hidden outputs
+        float local_c, local_8, local_4; // the closest point, [esp+0x14]
+        real_point3d closest;
 
-        path_find_closest_point_on_segment();
+        // 0x43a377: EAX = the avoid sphere centre (context +0x28), ECX = the node position, EDX = the point
+        path_find_closest_point_on_segment((real_point3d *)((uint8_t *)context + 0x28), &node->position, point,
+            &closest);
+        local_c = closest.x;
+        local_8 = closest.y;
+        local_4 = closest.z;
         {
             float fx = local_c - ((path_find_request *)context)->avoid_position.x;
             float fy = local_8 - ((path_find_request *)context)->avoid_position.y;

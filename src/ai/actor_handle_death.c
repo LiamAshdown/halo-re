@@ -29,9 +29,7 @@ extern uint16_t actor_consider_target_candidate(datum_index actor_index,
                                                 datum_index candidate_prop_index); // 0x4208a0, this module;
 // stack -> actor_index, EBX -> candidate_prop_index. The EBX value at 0x40ddcb is the same
 // previous-target prop handle the code has just written to the order record at +0x2c.
-extern void actor_check_melee_target_reachable(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_check_melee_target_reachable at 0x403f00
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
+extern void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order); // 0x403f00, stack, EBX order
 extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0, this module
 
 uint8_t actor_handle_death(datum_index actor_index, uint8_t param_2, uint8_t param_3)
@@ -62,7 +60,7 @@ uint8_t actor_handle_death(datum_index actor_index, uint8_t param_2, uint8_t par
         actor_consider_target_candidate(actor_index, (datum_index)previous_target);
     }
     if (self->swarm == 0) {
-        actor_check_melee_target_reachable(actor_index, local_data);
+        actor_check_melee_target_reachable(actor_index, (int16_t *)local_data); // 0x40ddde: EBX = the local order
         if (*(int16_t *)(local_data + 8) != -1) {
             actor_set_mode(actor_index, 4, local_data);
             return 1;

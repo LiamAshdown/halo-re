@@ -35,7 +35,7 @@ extern void actor_target_data_refresh(datum_index actor_index, datum_index prop_
                          uint32_t flag); // 0x41c4b0, outside this rewrite's range
 extern void actor_target_update_tracking_speed(datum_index actor_index, datum_index prop_index, void *scratch); // 0x41c8f0, outside this rewrite's range
 extern uint8_t actor_target_has_conflicting_neighbor(datum_index prop_index); // 0x41f410, outside this rewrite's range
-extern void teams_are_enemies(void); // 0x45bd50, outside this rewrite's range
+extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, CX, DX
 
 // blam-cc: EAX -> object_index, stack -> actor_index, create_if_missing, flag
 datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index,
@@ -87,8 +87,9 @@ datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_ind
             if ((create_if_missing != 0) && (self->active != 0)) {
                 uint8_t scratch[56];
 
-                teams_are_enemies();
-                result = actor_find_or_allocate_prop(actor_index, object_index, 0);
+                // 0x43ec21: the prop is allocated as an enemy when the object's team (+0xb8) is hostile to the actor's
+                result = actor_find_or_allocate_prop(actor_index, object_index,
+                    (char)teams_are_enemies(*(int16_t *)(object + 0xb8), *(int16_t *)((uint8_t *)self + 0x3e)));
                 if (result != (datum_index)0xffffffff) {
                     prop *p = (prop *)((uint8_t *)prop_data->data + (result & 0xffff) * sizeof(prop));
 

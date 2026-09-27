@@ -23,7 +23,7 @@ extern void ai_communication_broadcast(int32_t event_code, datum_index unit_inde
 // 0x42d340, not yet rewritten (this module). Always seven stack arguments: every call
 // site in the binary cleans up 0x1c bytes, so the shorter forms Ghidra recovers at some
 // sites are artefacts, not a reduced-arity overload.
-extern uint8_t team_pair_flag_test(void); // 0x45bdb0, not yet rewritten (shield-state test, register args unclear)
+extern uint8_t team_pair_flag_test(int16_t team_a, int16_t team_b); // 0x45bdb0, ECX, EDX
 
 // If this actor has not already reported for its current scripted command, maps
 // actor.unknown_1e4 (1..10, skipping 6) to a chatter event code and broadcasts it along with
@@ -70,7 +70,7 @@ int32_t actor_report_command_status(uint32_t actor_index)
             if (p->is_unit == 0) {
                 target_state = 2;
             } else {
-                target_state = (team_pair_flag_test() != 0) + 3;
+                target_state = (team_pair_flag_test(*(int16_t *)((uint8_t *)a + 0x3e), *(int16_t *)((uint8_t *)p + 0x12)) != 0) + 3; // 0x404962: ECX actor team, EDX prop team
             }
         }
         ai_communication_broadcast(event_code, a->unit_index, target_object, target_state, 0xffffffff, 0xffffffff, 0);

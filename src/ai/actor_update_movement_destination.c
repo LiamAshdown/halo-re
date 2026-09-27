@@ -1,30 +1,20 @@
 // actor_update_movement_destination  (Ghidra: actor_update_movement_destination, renamed)
 // address 0x403180, size 946 bytes
-// name confidence: 0.4   rewrite confidence: 0.2
-// evidence: types/ai.h actor.needs_new_path/order_committed/firing_position_index/
-//   encounter_index/unknown_164/unknown_168/unknown_504/unknown_1fc/target_unit_index/
-//   vitality_wait_time/target_combat_status; types/tags.h Scenario.encounters (pointer at
-//   0x430) and ScenarioEncounter.firing_positions (TagReflexive at 0x98, pointer at 0x9c,
-//   stride 0x18 matching ScenarioFiringPosition's declared size); phase-4 summary "decides
-//   whether the actor needs a new movement destination based on target visibility and
-//   morale, and if so issues a pathfinding request for one".
-//
-// Kept close to the Ghidra decompilation (original labels/variable names preserved) given
-// its size and the number of unresolved out-of-range callees; see UNSURE notes below.
-// UNSURE, broadly:
-//  - actor+0x358 (a byte gating a "use lead position" path) and actor+0x9c/0x164/0x168 (a
-//    lead-position record) are used as raw/named-where-possible offsets; 0x164/0x168 are
-//    already named in types/ai.h (as opaque unknown_164/unknown_168) but their true shape as
-//    a lead-position record is not confirmed here.
-//  - actor_firing_position_near_point, actor_compute_accuracy_scale (returns a float via ST0), vector3d_distance_squared (returns a float via
-//    ST0), actor_has_unshielded_threat_weapon, actor_target_mark_engaged and actor_update_target_lead_position are all outside
-//    this session's range; declared with the signature each call site implies.
-//  - Several float NaN/ordering comparisons in the original (the `CONCAT22(...NAN...)`
-//    patterns) are SSE/x87 flag byproducts of a single `<`/`==` comparison; simplified here
-//    to the equivalent plain comparison.
-//  - The request/scratch buffers passed to actor_select_firing_position/actor_claim_firing_position mirror
-//    actor_update_path_if_needed.c's treatment (opaque byte buffers, not claimed to be
-//    path_find_context).
+// name confidence: 0.4   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x403180..0x403531 (the fight mode's +0x0c process; the draft zeroed memory past its
+//   own buffer and called the firing-position helpers without their register arguments). Always returns 0.
+//   - nothing unless the actor wants a path (+0x4c) and has not committed to an order (+0x160);
+//   - an actor with a target (+0x358) whose tag allows it (flag 0x20) and whose lead point (+0x168, surface +0x164)
+//     is reachable (0x412960 after 0x429570) keeps moving there: it drops its firing position (+0x3b8 = -1 and
+//     stops, 0x417570) when it is not yet at that position (accuracy radius from 0x429620) -- or, while it is
+//     moving on its own (+0x504) and not suppressed (+0x1fc), when its target prop is within the definition's
+//     +0xa0 range;
+//   - otherwise it picks and claims a firing position (goal kind 0: 0x413e50, 0x414060) and, on a new one, waits
+//     random(tag +0x3c0, +0x3c4) seconds (capped by a vehicle's +0x3a8) before the next pick (+0x9c, ticks);
+//   - at combat status (+0x268) 7 or more it marks its target (+0x270) engaged (0x41fa80), except when it has an
+//     unshielded threat weapon and the target is inside +0x608, or is inside +0x608 of the actor's firing position
+//     while the actor is away from it.
+// blam-cc: stack -> actor_index
 
 #include "tags.h"
 #include "memory.h"
@@ -38,151 +28,144 @@ extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern Scenario *global_scenario;   // 0x00746f8c
+extern uint8_t *global_scenario;    // 0x00746f8c
 
-extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, src/math; blam-cc: EAX a, ECX b
-extern real random_real_range(real min, real max);  // 0x401050
-extern void * actor_get_actor_definition(datum_index actor_index); // 0x40fa70, this session (later)
-extern uint8_t actor_firing_position_near_point(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_firing_position_near_point at 0x412960
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern int16_t actor_select_firing_position(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_select_firing_position at 0x413e50
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern int16_t actor_claim_firing_position(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_claim_firing_position at 0x414060
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern void actor_movement_action_stop(datum_index actor_index); // 0x417570, this module,
-                                                                 // blam-cc: EDX -> actor_index
-extern uint8_t actor_target_mark_engaged(uint8_t want_new_destination); // 0x41fa80, not yet rewritten
-extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index);                       // 0x428370, not yet rewritten (same gate as actor_get_consideration_wait_threshold.c)
-extern void actor_update_target_lead_position(datum_index actor_index);     // 0x429570, not yet rewritten
-extern float actor_compute_accuracy_scale(datum_index actor_index);                         // 0x429620, not yet rewritten
+extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, EAX, ECX
+extern real random_real_range(real min, real max); // 0x401050
+extern void *actor_get_actor_definition(datum_index actor_index); // 0x40fa70, EAX
+extern uint8_t actor_firing_position_near_point(datum_index actor_index, real_point3d *point,
+    int32_t start_surface_index, int16_t kind); // 0x412960, EDX, stack
+extern int16_t actor_select_firing_position(datum_index actor_index, actor_firing_position_query *query,
+    actor_firing_position_candidate *out_candidate, uint32_t *out_previous_owner, path_find_context *path_context,
+    uint8_t *out_path_ok); // 0x413e50, stack, EBX query, EDI candidate
+extern int16_t actor_claim_firing_position(datum_index actor_index, datum_index previous_owner,
+    path_find_context *path_context, int16_t firing_position_index, uint8_t path_ok); // 0x414060, stack, CX, AL
+extern void actor_movement_action_stop(datum_index actor_index); // 0x417570, EDX
+extern void actor_target_mark_engaged(datum_index target_prop_index, datum_index actor_index, uint8_t mark_engaged); // 0x41fa80, EAX, EBX, stack
+extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index); // 0x428370, EAX
+extern void actor_update_target_lead_position(datum_index actor_index); // 0x429570, EAX
+extern float actor_compute_accuracy_scale(datum_index actor_index); // 0x429620, EAX
 
-// Decides whether the actor needs a new movement destination. See the file header for scope.
+#define A_B(o) (actor[(o)])
+#define A_W(o) (*(int16_t *)(actor + (o)))
+#define A_D(o) (*(uint32_t *)(actor + (o)))
+#define A_F(o) (*(float *)(actor + (o)))
+
+static real_point3d *actor_held_firing_position(uint8_t *actor)
+{
+    uint8_t *encounter = *(uint8_t **)(global_scenario + 0x430) + (A_D(0x34) & 0xffff) * 0xb0;
+
+    return (real_point3d *)(*(uint8_t **)(encounter + 0x9c) + A_W(0x3b8) * 0x18);
+}
+
 uint8_t actor_update_movement_destination(uint32_t actor_index)
 {
-    actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
-    uint8_t *actor_base = (uint8_t *)a;
-    uint8_t result = 0;
+    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *actor_tag;
+    uint8_t *definition;
 
-    if (a->needs_new_path == 0) {
+    if (A_B(0x4c) == 0) {
         return 0;
     }
+    actor_tag = (uint8_t *)tag_instances[A_D(0x58) & 0xffff].data;
+    definition = (uint8_t *)actor_get_actor_definition(actor_index);
 
-    {
-        Actor *actor_def = (Actor *)tag_instances[a->actor_definition_tag & 0xffff].data;
-        Actor *unit_actor_def;
+    if (A_B(0x160) == 0) {
+        uint8_t follow_lead = 0;
 
-        if (a->order_committed != 0) {
-            result = a->order_committed;
-            goto check_distance_gate;
+        if (A_B(0x358) != 0 && (actor_tag[0] & 0x20) != 0) {
+            actor_update_target_lead_position(actor_index);
+            follow_lead = actor_firing_position_near_point(actor_index, (real_point3d *)(actor + 0x168),
+                (int32_t)A_D(0x164), 0);
         }
+        if (follow_lead) {
+            uint8_t at_position = 0;
+            uint8_t drop = 0;
 
-        unit_actor_def = actor_get_actor_definition(actor_index);
-        if (*(actor_base + 0x358) == 0 || (((uint8_t *)actor_def)[0] & 0x20) == 0) {
-        use_direct_path:;
-            {
-                uint32_t request_block[16];
-                uint8_t scratch_context[65684];
-                uint8_t reached_exactly;
-                int16_t prior_firing_position = a->firing_position_index;
-                int32_t waypoint;
+            if (A_D(0x34) != 0xffffffff && A_W(0x3b8) != -1) {
+                float radius = actor_compute_accuracy_scale(actor_index);
 
-                memset((uint8_t *)request_block + sizeof(request_block), 0, 0x199 * 4);
-                request_block[1] = 0;
-                waypoint = actor_select_firing_position(actor_index, request_block, scratch_context, &reached_exactly);
-                (void)waypoint;
-                waypoint = actor_claim_firing_position(actor_index, request_block[0], scratch_context);
-                if ((int16_t)waypoint == -1) {
-                    *(int16_t *)(a->mode_data) = 0;
-                } else if ((int16_t)waypoint != prior_firing_position) {
-                    float delay = random_real_range(*(float *)((uint8_t *)unit_actor_def + 0x3c0), *(float *)((uint8_t *)unit_actor_def + 0x3c4));
-                    *(int16_t *)(a->mode_data) = (int16_t)delay;
+                if (radius * radius > vector3d_distance_squared(actor_held_firing_position(actor),
+                        (real_point3d *)(actor + 0x12c))) {
+                    at_position = 1;
                 }
+            }
+            if (A_B(0x504) != 0 && A_B(0x1fc) == 0) {
+                if (A_D(0x270) != 0xffffffff) {
+                    uint8_t *target = (uint8_t *)prop_data->data + (A_D(0x270) & 0xffff) * 0x138;
+
+                    drop = *(float *)(target + 0x11c) < *(float *)(definition + 0xa0);
+                }
+            } else {
+                drop = !at_position;
+            }
+            if (drop) {
+                A_W(0x3b8) = -1;
+                actor_movement_action_stop(actor_index);
             }
         } else {
-            char lead_ok;
+            // 0x403312
+            static actor_firing_position_query query;
+            static path_find_context path_context;
+            actor_firing_position_candidate candidate;
+            uint32_t previous_owner = 0xffffffff;
+            uint8_t path_ok = 0;
+            int16_t previous = A_W(0x3b8);
+            int16_t selected;
+            int16_t claimed;
 
-            actor_update_target_lead_position(actor_index);
-            lead_ok = actor_firing_position_near_point(actor_base + 0x168, *(uint32_t *)(actor_base + 0x164), 0);
-            if (lead_ok == 0) {
-                goto use_direct_path;
-            }
-            {
-                uint8_t close_enough = 0;
+            memset(&query, 0, sizeof(query));
+            memset(&candidate, 0, sizeof(candidate));
+            selected = actor_select_firing_position(actor_index, &query, &candidate, &previous_owner, &path_context,
+                &path_ok);
+            claimed = actor_claim_firing_position(actor_index, previous_owner, &path_context, selected, path_ok);
+            actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+            if (claimed == -1) {
+                A_W(0x9c) = 0;
+            } else if (claimed != previous) {
+                float wait = random_real_range(*(float *)(actor_tag + 0x3c0), *(float *)(actor_tag + 0x3c4));
 
-                if (a->encounter_index != (datum_index)k_datum_index_none && a->firing_position_index != -1) {
-                    ScenarioEncounter *encounters = (ScenarioEncounter *)global_scenario->encounters.pointer;
-                    ScenarioFiringPosition *held = &((ScenarioFiringPosition *)
-                        encounters[a->encounter_index & 0xffff].firing_positions.pointer)[a->firing_position_index];
-                    float lead_speed = actor_compute_accuracy_scale(actor_index);
-                    // 0x40324f..0x403281: EAX = the held firing position, ECX = &body_position
-                    float distance_sq = vector3d_distance_squared((real_point3d *)held, &a->body_position);
-                    if (lead_speed * lead_speed < distance_sq) {
-                        close_enough = 1;
+                if (A_W(0x15e) > 0) {
+                    uint8_t *vehicle = (uint8_t *)((object_header *)object_data->data)[A_D(0x158) & 0xffff].data;
+                    uint8_t *vehicle_tag = (uint8_t *)tag_instances[*(datum_index *)vehicle & 0xffff].data;
+                    float cap = *(float *)(vehicle_tag + 0x3a8);
+
+                    if (cap > 0.0f && wait > cap) {
+                        wait = cap;
                     }
                 }
-                // FIXED: Ghidra reads actor+0x1fc as a BYTE (`*(char *)(iVar8 + 0x1fc) != '0'`), not as a
-                // datum handle; 0x1fc is one of the byte counters inside actor.tally.
-                if (a->unknown_504 == 0 || a->tally.threat_class_5 != 0) {
-                    if (close_enough == 0) {
-                    reset_firing_position:
-                        a->firing_position_index = -1;
-                        // UNSURE: Ghidra writes this call result into the return slot, but
-                        // actor_movement_action_stop is void; the EAX it leaves is the leftover
-                        // of its own tail call to actor_movement_action_resolve. Not modelled,
-                        // so result keeps its previous value here.
-                        actor_movement_action_stop(actor_index);
-                    }
-                } else if (a->target_unit_index != (datum_index)k_datum_index_none) {
-                    prop *p = &((prop *)prop_data->data)[a->target_unit_index & 0xffff];
-                    if (p->distance < unit_actor_def->pathfinding_radius) { // UNSURE: field guess, see below
-                        goto reset_firing_position;
-                    }
-                }
+                A_W(0x9c) = (int16_t)(int32_t)(wait * 30.0f); // __ftol
             }
         }
     }
 
-check_distance_gate:
-    if (a->target_combat_status < 7) {
-        return result;
+    // 0x40341f
+    if (A_W(0x268) < 7) {
+        return 0;
     }
-    if (a->target_unit_index != (datum_index)k_datum_index_none) {
-        prop *p = &((prop *)prop_data->data)[a->target_unit_index & 0xffff];
-        uint8_t want = 1;
+    {
+        uint8_t *target = (uint8_t *)prop_data->data + (A_D(0x270) & 0xffff) * 0x138;
+        uint8_t engaged = 1;
 
-        if (actor_has_unshielded_threat_weapon(actor_index) != 0) {
-            if (p->distance < a->vitality_wait_time) {
-                want = 0;
-            } else if (a->encounter_index != (datum_index)k_datum_index_none && a->firing_position_index != -1) {
-                ScenarioEncounter *encounters = (ScenarioEncounter *)global_scenario->encounters.pointer;
-                ScenarioFiringPosition *firing_positions = (ScenarioFiringPosition *)encounters[a->encounter_index & 0xffff].firing_positions.pointer;
-                ScenarioFiringPosition *fp = &firing_positions[a->firing_position_index];
-                float lead_speed;
-                float distance_sq;
+        if (actor_has_unshielded_threat_weapon(actor_index)) {
+            if (*(float *)(target + 0x11c) < A_F(0x608)) {
+                engaged = 0;
+            } else if (A_D(0x34) != 0xffffffff && A_W(0x3b8) != -1) {
+                real_point3d *held = actor_held_firing_position(actor);
+                float radius = actor_compute_accuracy_scale(actor_index);
 
-                lead_speed = actor_compute_accuracy_scale(actor_index);
-                // 0x4034c3..0x4034d1: EAX = fp, ECX = &body_position
-                distance_sq = vector3d_distance_squared((real_point3d *)fp, &a->body_position);
-                if (lead_speed * lead_speed < distance_sq) {
-                    float vitality_distance_sq;
+                if (radius * radius < vector3d_distance_squared(held, (real_point3d *)(actor + 0x12c))) {
+                    float range = A_F(0x608);
 
-                    distance_sq = a->vitality_wait_time;
-                    // 0x4034f1..0x4034fb: EAX = prop + 0xbc (last_known_position), ECX = fp
-                    vitality_distance_sq = vector3d_distance_squared(&p->last_known_position, (real_point3d *)fp);
-                    if (vitality_distance_sq < distance_sq * distance_sq) {
-                        want = 0;
+                    if (range * range > vector3d_distance_squared((real_point3d *)(target + 0xbc), held)) {
+                        engaged = 0;
                     }
                 }
             }
         }
-        result = actor_target_mark_engaged(want);
-    } else {
-        result = actor_target_mark_engaged(1);
+        actor_target_mark_engaged(A_D(0x270), actor_index, engaged);
     }
-    return result;
+    return 0;
 }
 
 #if 0

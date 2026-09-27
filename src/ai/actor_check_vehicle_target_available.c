@@ -23,7 +23,7 @@
 extern data_array *actor_data;  // 0x00880360
 extern data_array *object_data; // 0x008603b0
 
-extern int8_t teams_are_enemies(void); // 0x45bd50, teams_are_enemies; UNSURE: no traced args here either
+extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, CX, DX
 
 // blam-cc: EAX -> vehicle_object_index, ECX -> actor_index, stack -> flag_pursue
 // Returns 1 only when vehicle_object_index is valid, its unit extension's
@@ -49,11 +49,12 @@ uint8_t actor_check_vehicle_target_available(datum_index vehicle_object_index, d
     if (vehicle_unit->controlling_player == (datum_index)k_datum_index_none) {
         return 0;
     }
-    if (teams_are_enemies() != 0) {
+    self = &((actor *)actor_data->data)[actor_index & 0xffff];
+    // 0x42b84f: CX = the actor's team (+0x3e), DX = the vehicle's (+0xb8)
+    if (teams_are_enemies(*(int16_t *)((uint8_t *)self + 0x3e), *(int16_t *)((uint8_t *)vehicle_object + 0xb8)) != 0) {
         return 0;
     }
     if (flag_pursue) {
-        self = &((actor *)actor_data->data)[actor_index & 0xffff];
         self->unknown_2ed = 1;
     }
     return 1;

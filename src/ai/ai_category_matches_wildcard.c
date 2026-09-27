@@ -1,47 +1,54 @@
-// ai_category_matches_wildcard  (Ghidra: ai_category_matches_wildcard; named for this rewrite)
+// ai_category_matches_wildcard  (Ghidra: FUN_00433ba0; really the ai_allegiance worker)
 // address 0x433ba0, size 199 bytes
-// name confidence: 0.3   rewrite confidence: 0.4
-// evidence: compares two small category/type values with a "1 means wildcard" rule (if
-// either value is 1, it adopts the other's value instead of being compared literally), with
-// values 2 and 5 given an extra symmetric special case, and reports the boolean result to
-// team_pair_override_add (outside this rewrite's range). Matches the phase-4 summary structurally.
-// register convention: Ghidra recognized param_1 as an ordinary parameter and left the
-// second value in AX.
-//   // blam-cc: AX -> other_category, stack -> category
-
+// name confidence: 0.3   rewrite confidence: 0.9
+// REWRITTEN from objdump 0x433ba0..0x433c66 (the draft dropped both teams and called team_pair_override_add with a
+//   single flag). Makes two teams allies (hs ai_allegiance). When one side is the player team (1) and the other is
+//   human (2) or sentinel (5), the alliance can be broken by betrayal: threshold 5, a difficulty-scaled forgiveness
+//   time (300/450/1200/2700 from game globals +0x0e) and, for humans, the betrayal-by-player flag; each side's
+//   "is that team" flag says which of the two is the non-player team.
+// blam-cc: stack -> team_a, AX -> team_b
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
 
-extern void team_pair_override_add(uint32_t matched); // 0x45be50, outside this rewrite's range, UNSURE signature
+extern uint8_t *main_game_globals; // 0x006b0b80 game globals *, +0x0e difficulty
 
-// blam-cc: AX -> other_category, stack -> category
+extern void team_pair_override_add(int16_t index_a, uint8_t unknown_08, int16_t index_b, uint8_t unknown_09,
+    int16_t threshold, int16_t timer_reset, uint8_t unknown_0c); // 0x45be50, EAX, stack
+
 void ai_category_matches_wildcard(int16_t category, int16_t other_category)
 {
-    int16_t resolved;
-    uint8_t special_case_hit = 0;
-    uint32_t matched;
+    static const int16_t k_forgiveness_ticks[4] = {300, 450, 1200, 2700};
+    int16_t team_a = category;
+    int16_t team_b = other_category;
+    int16_t other = -1;
+    int16_t threshold = -1;
+    int16_t timer = -1;
+    uint8_t betrayable = 0;
+    uint8_t human = 0;
+    uint8_t b_is_other = 0;
+    uint8_t a_is_other = 0;
 
-    if (category == -1 || other_category == -1) {
+    if (team_a == -1 || team_b == -1) {
         return;
     }
-
-    resolved = other_category;
-    if (category != 1) {
-        resolved = -1;
-        if (other_category == 1) {
-            resolved = category;
-        }
+    if (team_a == 1) {
+        other = team_b;
+    } else if (team_b == 1) {
+        other = team_a;
     }
-
-    if (((resolved == 2 || resolved == 5) && (special_case_hit = 1, other_category == resolved)) || special_case_hit) {
-        matched = (category == resolved) ? 1 : 0;
-    } else {
-        matched = 0;
+    if (other == 2 || other == 5) {
+        timer = k_forgiveness_ticks[*(int16_t *)(main_game_globals + 0xe) & 3];
+        human = other == 2;
+        betrayable = 1;
+        threshold = 5;
+        b_is_other = team_b == other;
     }
-
-    team_pair_override_add(matched);
+    if (betrayable && team_a == other) {
+        a_is_other = 1;
+    }
+    team_pair_override_add(team_a, a_is_other, team_b, b_is_other, threshold, timer, human);
 }
 
 #if 0

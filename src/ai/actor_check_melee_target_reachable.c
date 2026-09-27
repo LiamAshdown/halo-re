@@ -1,30 +1,15 @@
 // actor_check_melee_target_reachable  (Ghidra: actor_check_melee_target_reachable, renamed)
 // address 0x403f00, size 717 bytes
-// name confidence: 0.4   rewrite confidence: 0.2
-// evidence: types/ai.h actor.actor_definition_tag/unit_index; types/tags.h
-//   Actor.pathfinding_radius (0x8c)/max_seek_cover_distance (0x320, already-named fields);
-//   types/ai.h path_find_context (0x1008c bytes, confirmed here: the zero loop clears
-//   exactly 0x4023 dwords) and its "leading 0x48 bytes are the caller's request block"
-//   note (confirmed here too: the request fields are zeroed as exactly 0x12 dwords before
-//   path_find_run runs); phase-4 summary "computes a path to the actor's melee target and
-//   validates whether the melee attack is currently reachable".
-//
-// Given the size and the very deep, largely unnamed stack layout Ghidra produced (a request
-// block whose exact field-by-field byte offsets could not be independently confirmed here),
-// this keeps close to the decompiled locals (by name) rather than asserting a byte-precise
-// struct for the request block. See UNSURE notes below.
-// UNSURE, broadly:
-//  - `order` (unaff_EBX) is the same family of order/aim record seen elsewhere in this
-//    session (e.g. actor_build_order_grenade_or_melee.c calls this function against such a
-//    record); its offsets are used as raw shorts/bytes, not backed by a shared struct.
-//  - The internal path-find request block's exact field layout (radius, goal point, unit
-//    index, and a handful of flags) is transcribed by write order rather than confirmed byte
-//    offsets; actor_get_firing_position_group_mask, actor_find_best_firing_position, actor_claim_firing_position, path_find_find_unobstructed_ancestor and path_find_run are
-//    all outside this session's range.
-//  - prop+0xf0/0xf4/0xf8/0xec (a target's aim-offset-adjacent floats) and prop+0x110
-//    (relationship_object_index, already named) are read as a point; the exact split
-//    between prop.unknown_ec/unknown_f8 noted elsewhere applies here too.
-// reconciled: R06 0x00746f9c is ScenarioStructureBSP *global_structure_bsp (was extern int32_t bsp_generation); ai.h path_find_context/actor_movement_context bsp_generation -> structure_bsp, bsp_index -> collision_bsp
+// name confidence: 0.35   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x403f00..0x4041cc (the draft passed the firing-position helpers the wrong arguments).
+//   Picks a firing position for an order (EBX, an actor_order): an order with a target (+0x0c > 0) searches goal
+//   kind 1 (random fallback when +0x00 > 0, avoiding the target at radius 10 weight 6), otherwise goal kind 2 with
+//   the order's +0x05 as the search mode and the actor tag's +0x320 (else 6) as the search radius; +0x04 asks for
+//   the alternate aim point. The pick is claimed into +0x08, +0x0a notes a claim without a found path. With a claim
+//   and a target prop (+0x1c) a path is run from the target (its surface +0xec/+0xf0, ignoring its relationship
+//   object or object, the actor's unit too) to the claimed position, and the nearest unobstructed ancestor (0x43a220)
+//   of the position fills +0x24 with +0x20 its result. +0x06 clears.
+// blam-cc: EBX -> order, stack -> actor_index
 
 #include "tags.h"
 #include "memory.h"
@@ -33,113 +18,101 @@
 #include "cache.h"
 #include <string.h>
 
-extern data_array *actor_data; // 0x00880360
-extern data_array *prop_data;  // 0x008802c0
+extern data_array *actor_data;      // 0x00880360
+extern data_array *prop_data;       // 0x008802c0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (formerly bsp_generation)
+extern void *global_structure_bsp;  // 0x00746f9c
 
-extern uint32_t actor_get_firing_position_group_mask(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_get_firing_position_group_mask at 0x412880
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern uint32_t actor_find_best_firing_position(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_find_best_firing_position at 0x412ba0
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern int16_t actor_claim_firing_position(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_claim_firing_position at 0x414060
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern void actor_target_get_relationship_object(datum_index target_prop_index); // 0x41f3a0, this module,
-                                                 // blam-cc: EAX -> target_prop_index
-extern uint8_t path_find_find_unobstructed_ancestor(void *request, uint8_t *flag, void *out); // 0x43a220, not yet rewritten
-extern uint8_t path_find_run(path_find_context *context); // 0x43a8b0
+extern uint32_t actor_get_firing_position_group_mask(datum_index actor_index, int16_t kind, int16_t search_override); // 0x412880, EAX, SI, stack
+extern uint32_t actor_find_best_firing_position(datum_index actor_index, actor_firing_position_query *query,
+    actor_firing_position_candidate *out_candidate, uint32_t *out_previous_owner, path_find_context *path_context,
+    uint8_t *out_path_ok); // 0x412ba0
+extern int16_t actor_claim_firing_position(datum_index actor_index, datum_index previous_owner,
+    path_find_context *path_context, int16_t firing_position_index, uint8_t path_ok); // 0x414060, stack, CX, AL
+extern void actor_target_get_relationship_object(datum_index target_prop_index); // 0x41f3a0, EAX
+extern uint8_t path_find_run(path_find_context *context); // 0x43a8b0, EAX
+extern uint8_t path_find_find_unobstructed_ancestor(path_find_context *context, uint32_t vertex_id, real_point3d *point,
+    uint8_t *out_used_start, real_point3d *out_position); // 0x43a220, ECX, EAX, stack
 
-// order is the caller's short-indexed order/aim record (see UNSURE above): order[0] a
-// distance-like field, order[2] a byte, order+5 a byte, order[6] a maximum-distance-ish
-// short gating "close melee" vs "ranged melee", order[4] the resolved waypoint, order+0x10 a
-// success byte, order+0xe a target prop index (dword), order+0x12 an output record for
-// path_find_find_unobstructed_ancestor, order+3 a byte cleared unconditionally at the end.
 void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order)
 {
-    actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
-    Actor *actor_def = (Actor *)tag_instances[a->actor_definition_tag & 0xffff].data;
-    uint8_t request[0x48];
-    uint32_t formation_selector[16];
-    path_find_context context;
-    uint8_t scratch_context[65684]; // UNSURE: see actor_update_path_if_needed.c
-    uint32_t out_waypoint;
-    uint8_t reached_exactly;
-    int16_t waypoint;
-    uint8_t success;
+    uint8_t *record = (uint8_t *)order;
+    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *actor_tag = (uint8_t *)tag_instances[*(datum_index *)(actor + 0x58) & 0xffff].data;
+    static actor_firing_position_query query;
+    static path_find_context path_context;
+    actor_firing_position_candidate candidate;
+    uint32_t previous_owner = 0xffffffff;
+    uint8_t path_ok = 0;
+    int16_t found;
+    int16_t claimed;
 
-    memset(request, 0, sizeof(request));
-    request[0x1b] = *((uint8_t *)order + 4); // UNSURE: uStack_2074f, written unconditionally before the branch below; slot within `request` guessed by write order
-    if (order[6] < 1) {
-        request[0x1c] = *((uint8_t *)order + 5);
-        *(int16_t *)(request + 0) = 2; // "kind" style selector, by analogy with other requests
-        {
-            float radius = actor_def->max_seek_cover_distance;
-            *(float *)(request + 0x14) = radius > 0.0f ? radius : 6.0f;
+    memset(&query, 0, sizeof(query));
+    memset(&candidate, 0, sizeof(candidate));
+    query.unknown_41 = record[4];
+    if (*(int16_t *)(record + 0xc) > 0) {
+        query.goal_kind = 1;
+        if (*(int16_t *)record > 0) {
+            query.collect_all = 1;
+            query.allow_random_fallback = 1;
         }
+        *((uint8_t *)&query + 0x36) = 1;
+        *(float *)((uint8_t *)&query + 0x38) = 10.0f;
+        *(float *)((uint8_t *)&query + 0x3c) = 6.0f;
     } else {
-        *(int16_t *)(request + 0) = 1;
-        if (*order > 0) {
-            request[4] = 1;
-            request[5] = 1;
-        }
-        request[0x1a] = 1;
-        *(float *)(request + 0x18) = 10.0f;
-        *(float *)(request + 0x1c) = 6.0f;
+        query.goal_kind = 2;
+        *((uint8_t *)&query + 0x8) = record[5];
+        query.search_radius = *(float *)(actor_tag + 0x320) > 0.0f ? *(float *)(actor_tag + 0x320) : 6.0f;
     }
+    query.group_mask = actor_get_firing_position_group_mask(actor_index, query.goal_kind, 0);
+    found = (int16_t)actor_find_best_firing_position(actor_index, &query, &candidate, &previous_owner, &path_context,
+        &path_ok);
+    *(int16_t *)(record + 8) = found;
+    claimed = actor_claim_firing_position(actor_index, previous_owner, &path_context, found, path_ok);
+    *(int16_t *)(record + 8) = claimed;
+    record[0xa] = (claimed != -1 && path_ok == 0) ? 1 : 0;
+    record[0x20] = 0;
 
-    memset(formation_selector, 0, sizeof(formation_selector));
-    formation_selector[0] = (uint32_t)actor_get_firing_position_group_mask(0);
-    waypoint = actor_find_best_firing_position(actor_index, formation_selector, request, &out_waypoint, scratch_context, &reached_exactly);
-    order[4] = waypoint;
-    waypoint = actor_claim_firing_position(actor_index, out_waypoint, scratch_context);
-    order[4] = waypoint;
-    success = (waypoint != -1 && reached_exactly == 0);
-    *((uint8_t *)order + 5) = success;
-    *((uint8_t *)order + 0x10) = 0;
+    if (claimed != -1 && *(datum_index *)(record + 0x1c) != k_datum_index_none) {
+        datum_index prop_index = *(datum_index *)(record + 0x1c);
+        uint8_t *target = (uint8_t *)prop_data->data + (prop_index & 0xffff) * 0x138;
+        uint32_t ignore_object;
+        uint32_t request[0x12];
+        uint8_t *goal = (uint8_t *)candidate.position;
+        static path_find_context target_context;
 
-    if (waypoint != -1 && *(uint32_t *)(order + 0xe) != 0xffffffff) {
-        datum_index target_prop_index = *(uint32_t *)(order + 0xe);
-        prop *p = &((prop *)prop_data->data)[target_prop_index & 0xffff];
-
-        if (p->kind > 1 && p->kind < 4) {
-            // 0x40407a leaves EAX holding this same prop handle.
-            actor_target_get_relationship_object(target_prop_index);
+        if (*(int16_t *)(target + 0x24) >= 2 && *(int16_t *)(target + 0x24) <= 3) {
+            actor_target_get_relationship_object(prop_index);
         }
-        {
-            int32_t anchor_object = (p->relationship_object_index != -1) ? p->relationship_object_index : (int32_t)p->object_index;
-            uint8_t goal_request[0x48];
+        ignore_object = *(uint32_t *)(target + 0x110);
+        if (ignore_object == 0xffffffff) {
+            ignore_object = *(uint32_t *)(target + 0x18);
+        }
+        actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+        memset(request, 0, sizeof(request));
+        request[0] = *(uint32_t *)(actor_tag + 0x8c);           // pathfinding radius
+        ((uint8_t *)request)[4] = 0;                              // ignores glass
+        request[2] = ignore_object;
+        request[3] = *(uint32_t *)(actor + 0x18);                 // the actor's unit
+        ((uint8_t *)request)[0x10] = 1;                           // have start
+        *(real_point3d *)&request[5] = *(real_point3d *)(target + 0xf0);
+        request[8] = *(uint32_t *)(target + 0xec);
+        memset(&target_context, 0, sizeof(target_context));
+        target_context.structure_bsp = (uint32_t)global_structure_bsp;
+        memcpy(&target_context, request, sizeof(request));
+        target_context.unknown_48 = 0;
+        target_context.have_goal = 1;
+        target_context.goal_position = *(real_point3d *)goal;
+        target_context.goal_vertex_id = *(uint32_t *)(goal + 0x14);
+        *(uint32_t *)((uint8_t *)&target_context + 0x60) = 0;
+        if (path_find_run(&target_context)) {
+            uint8_t used_start = 0;
 
-            memset(goal_request, 0, sizeof(goal_request));
-            *(int32_t *)(goal_request + 4) = anchor_object;
-            *(float *)(goal_request + 0) = actor_def->pathfinding_radius;
-            *(float *)(goal_request + 0x14) = *(float *)((uint8_t *)p + 0xf4);
-            *(float *)(goal_request + 0x18) = *(float *)((uint8_t *)p + 0xf0);
-            *(float *)(goal_request + 0x10) = *(float *)((uint8_t *)p + 0xf8);
-            *(int32_t *)(goal_request + 0x2c /* uStack_2080c */) = a->unit_index;
-            *(float *)(goal_request + 0x24 /* uStack_207f8 */) = *(float *)((uint8_t *)p + 0xec);
-
-            memset(&context, 0, sizeof(context));
-            context.structure_bsp = (uint32_t)global_structure_bsp;
-            goal_request[8] = 0;
-            goal_request[0x10] = 1;
-            memcpy(&context, goal_request, sizeof(goal_request));
-            *(uint32_t *)((uint8_t *)&context + 0x48) = *(uint32_t *)request;
-            *(uint32_t *)((uint8_t *)&context + 0x4c) = ((uint32_t *)request)[1];
-            *(uint32_t *)((uint8_t *)&context + 0x50) = ((uint32_t *)request)[2];
-            *(uint32_t *)((uint8_t *)&context + 0x54) = ((uint32_t *)request)[5];
-            *(uint32_t *)((uint8_t *)&context + 0x58) = 0;
-            *(uint32_t *)((uint8_t *)&context + 0x5c) = 1;
-            *(uint32_t *)((uint8_t *)&context + 0x60) = 0;
-
-            if (path_find_run(&context) != 0) {
-                *((uint8_t *)order + 0x10) = path_find_find_unobstructed_ancestor(request, &reached_exactly, order + 0x12);
-            }
+            record[0x20] = path_find_find_unobstructed_ancestor(&target_context, *(uint32_t *)(goal + 0x14),
+                (real_point3d *)goal, &used_start, (real_point3d *)(record + 0x24));
         }
     }
-    *((uint8_t *)order + 3) = 0;
+    record[6] = 0;
 }
 
 #if 0

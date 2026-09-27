@@ -6,7 +6,7 @@
 // (unlike the firing-point setter, and without the 0x3b8 = -1 reset the other setters do).
 // register convention: actor_index in EDI (Ghidra's unaff_EDI); formation_slot is a genuine
 // stack parameter, matching actor_movement_set_destination_move_position's own layout exactly.
-// blam-cc: EDI -> actor_index, stack -> formation_slot
+// blam-cc: EDI -> actor_index, stack -> formation_slot, path_context (reused by the path request when not null)
 // UNSURE: actor.unknown_3bb has no established meaning beyond being cleared here.
 // RENAMED by the Opus module review: this setter queues movement-action type 3, and the
 // dispatcher's type-3 case (objdump jump table at 0x41a948 -> 0x41a611) indexes the owning
@@ -23,8 +23,9 @@ extern data_array *actor_data; // 0x00880360
 extern void actor_set_units_active(datum_index actor_index, uint8_t dormant); // 0x427860, blam-cc: EAX, BL
 extern uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t record_distance, path_find_context *context); // 0x41a460, this module
 
-// blam-cc: EDI -> actor_index, stack -> formation_slot
-uint8_t actor_movement_set_destination_firing_position(datum_index actor_index, int16_t formation_slot)
+// blam-cc: EDI -> actor_index, stack -> formation_slot, path_context (reused by the path request when not null)
+uint8_t actor_movement_set_destination_firing_position(datum_index actor_index, int16_t formation_slot,
+    path_find_context *path_context)
 {
     actor *self;
 
@@ -38,10 +39,10 @@ uint8_t actor_movement_set_destination_firing_position(datum_index actor_index, 
         self->queued_movement.extra = (uint32_t)-1;
         self->active_movement = self->queued_movement;
         self->unknown_3bb = 0;
-        return actor_movement_action_resolve(actor_index, 1, 0);
+        return actor_movement_action_resolve(actor_index, 1, path_context); // 0x4178e7: the second stack argument
     }
     if (self->needs_new_path != 0 && self->unknown_4a4 == 0) {
-        return actor_movement_action_resolve(actor_index, 0, 0);
+        return actor_movement_action_resolve(actor_index, 0, path_context); // 0x41788d
     }
     return 1;
 }

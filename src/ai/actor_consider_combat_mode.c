@@ -1,6 +1,16 @@
 // actor_consider_combat_mode  (Ghidra: actor_consider_combat_mode, already named)
 // address 0x401a60, size 737 bytes
-// name confidence: 0.5   rewrite confidence: 0.3
+// name confidence: 0.5   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x401a60..0x401d40 (the draft called unit_get_weapon_marker_indices without the unit, flag
+//   or outputs). Stack: actor_index, mode, out (the 0x38-byte consideration, zeroed, +0 stamped with the game time,
+//   +4 the resulting mode). Modes 4/5 succeed for a vehicle actor (+0x15e > 1). Mode 0 turns into 1 (stalking) for a
+//   use_stalking_behavior (flag 0x20000) actor at alertness (+0x6e) 5 or more that is not committed (+0x378).
+//   Mode 2 (melee) needs a non-swarm actor whose unit is not dead (+0x106 bit 7) and a target prop (+0x270): with a
+//   melee leap range/chance (+0x388/+0x390) a leap is rolled (always when the prop is pinned +0x130 or fired
+//   +0x9c, else random < chance and beyond the leap range +0x384) and turns the mode to 3; the melee animation
+//   (unit_get_weapon_marker_indices, leap flag in AL) gives the strike frame and distance (suicidal actors, flag
+//   0x8000000, strike at the end with no distance); then the wait threshold (at least 4, or 1.5 without a leap)
+//   bounds a move to the target (0x417910) and, once moving, the path is traced (0x4029e0) for success.
 // evidence: types/ai.h actor.unknown_15e/swarm/unknown_6e/unknown_378/target_unit_index;
 //   types/tags.h Actor.flags bit 17 use_stalking_behavior, bit 27 suicidal_melee_attack,
 //   Actor.melee_leap_range/melee_leap_chance (already-named fields; this function's own
@@ -39,132 +49,99 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c
 
 extern real random_real(void); // 0x4019f0
-extern float actor_get_consideration_wait_threshold(uint32_t actor_index, int16_t mode, actor_combat_consideration *consideration); // 0x4028e0
-extern int32_t actor_grenade_trace_from_source(uint32_t actor_index, real_point3d *target_point); // 0x4029e0
+extern float actor_get_consideration_wait_threshold(uint32_t actor_index, int16_t mode, actor_combat_consideration *consideration); // 0x4028e0, EAX, CX, EDI
+extern int32_t actor_grenade_trace_from_source(uint32_t actor_index, real_point3d *target_point); // 0x4029e0, EAX, ESI
 extern uint8_t actor_movement_set_destination_near_target(datum_index target_prop_index, datum_index actor_index,
-                                                          float radius); // 0x417910, this module,
-                                                          // blam-cc: EAX -> target_prop_index, stack -> the other two
-extern void actor_movement_actions_cancel(datum_index actor_index); // 0x417a30
-// 0x5642c0, a different module, not rewritten here: fills the two out-floats used below.
-extern uint8_t unit_get_weapon_marker_indices(float *out_a, float *out_b);
+    float radius); // 0x417910, EAX, stack
+extern void actor_movement_actions_cancel(datum_index actor_index); // 0x417a30, EAX
+extern uint8_t unit_get_weapon_marker_indices(uint32_t unit_index, uint8_t use_alternate, uint32_t param_1,
+    uint32_t param_2, int16_t *out_frame_count, int16_t *out_key_frame_index); // 0x5642c0, ECX, AL, stack, EBX, EDI
 
-// Evaluates whether the actor should switch to a new combat sub-mode (grenade, search,
-// guard, engage) for consideration_mode, and if so fills in out. Returns whether the caller
-// should commit to the resulting order.
 uint8_t actor_consider_combat_mode(uint32_t actor_index, int16_t consideration_mode, actor_combat_consideration *out)
 {
-    actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
-    Actor *actor_def = (Actor *)tag_instances[a->actor_definition_tag & 0xffff].data;
-    uint8_t result;
+    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *actor_tag = (uint8_t *)tag_instances[*(datum_index *)(actor + 0x58) & 0xffff].data;
+    uint8_t *record = (uint8_t *)out;
     int16_t mode = consideration_mode;
+    uint8_t result = 1;
 
-    memset(out, 0, sizeof(*out));
-    out->game_tick = game_time->game_time;
-    result = 1;
+    memset(out, 0, 0x38);
+    *(int32_t *)record = game_time->game_time;
 
     if (mode == 5 || mode == 4) {
-        out->mode = mode;
-        return a->unknown_15e > 1;
+        *(int16_t *)(record + 4) = mode;
+        return *(int16_t *)(actor + 0x15e) > 1;
     }
+    if (mode == 2) {
+        uint8_t *unit;
+        uint8_t *target;
+        uint8_t leap = 0;
+        int16_t frame_count = 0;
+        int16_t key_frame = 0;
+        float dx_to_key_frame = 0.0f;
+        float dx_total = 0.0f;
+        float wait;
+        float limit;
 
-    if (mode != 2) {
-        if (mode == 0 && (actor_def->flags & (1u << 17)) != 0 /* use_stalking_behavior */ &&
-            a->unknown_6e > 4 && a->unknown_378 == 0) {
-            out->mode = 1;
-            return 1;
-        }
-        goto write_mode;
-    }
-
-    {
-        uint8_t committed_engage = 0; // bVar5: the outcome of the swarm/target validity gate
         result = 0;
-
-        if (a->swarm != 0) {
-            goto write_mode;
+        if (actor[6] != 0) {
+            goto done;
         }
-
-        {
-            object *target_obj = ((object_header *)object_data->data)[a->unit_index & 0xffff].data;
-            if ((target_obj->vitality_flags & 0x0080) != 0 || a->target_unit_index == (datum_index)k_datum_index_none) {
-                out->mode = 2;
-                return 0;
-            }
+        unit = (uint8_t *)((object_header *)object_data->data)[*(datum_index *)(actor + 0x18) & 0xffff].data;
+        if ((unit[0x106] & 0x80) != 0 || *(datum_index *)(actor + 0x270) == k_datum_index_none) {
+            goto done;
         }
-
-        {
-            prop *target_prop = &((prop *)prop_data->data)[a->target_unit_index & 0xffff];
-
-            if (actor_def->melee_leap_range[0] == 0.0f || actor_def->melee_leap_chance == 0.0f) {
-                out->grenade_eligible = 0;
-            } else {
-                if (target_prop->unknown_130 == 0 && target_prop->unknown_9c < 1) {
-                    float roll = random_real();
-                    float chance = actor_def->melee_leap_chance;
-                    out->grenade_eligible = roll < chance;
-                    if (target_prop->distance < actor_def->melee_leap_range[0] || roll >= chance) {
-                        goto after_leap_check;
-                    }
-                } else {
-                    out->grenade_eligible = 1;
-                }
+        target = (uint8_t *)prop_data->data + (*(datum_index *)(actor + 0x270) & 0xffff) * 0x138;
+        if (*(float *)(actor_tag + 0x388) == 0.0f || *(float *)(actor_tag + 0x390) == 0.0f) {
+            record[0xa] = 0;
+        } else if (target[0x130] != 0 || *(int16_t *)(target + 0x9c) > 0) {
+            record[0xa] = 1;
+            leap = 1;
+            mode = 3;
+        } else {
+            leap = random_real() < *(float *)(actor_tag + 0x390);
+            record[0xa] = leap;
+            if (*(float *)(target + 0x11c) < *(float *)(actor_tag + 0x384)) {
+                leap = 0;
+            } else if (leap) {
                 mode = 3;
             }
         }
-    after_leap_check:
-        {
-            float local_8, local_14;
-            int16_t local_18 = 0, local_c = 0; // UNSURE: FUN_005642c0 (out-of-range) does not
-                                                // visibly initialize these two shorts; Ghidra
-                                                // shows them read uninitialized on some paths,
-                                                // kept zero-initialized here defensively.
-            uint8_t ok = unit_get_weapon_marker_indices(&local_8, &local_14);
-
-            result = committed_engage;
-            if (ok) {
-                if ((actor_def->flags & (1u << 27)) == 0 /* suicidal_melee_attack */) {
-                    if (local_c == 0) {
-                        local_8 = local_14 * 0.5f;
-                        local_c = local_18 / 2;
-                    }
-                    out->position_index = local_c;
-                    out->distance_delta = local_14 - local_8;
-                } else {
-                    out->position_index = local_18;
-                    out->distance_delta = 0.0f;
-                    out->suicidal = 1;
-                }
-
-                {
-                    float threshold = actor_get_consideration_wait_threshold(actor_index, mode, out);
-                    float limit = (mode == 3) ? 4.0f : 1.5f;
-
-                    out->wait_threshold = threshold;
-                    if (threshold < limit) {
-                        threshold = limit;
-                    }
-                    // 0x401ca1: EAX = actor.target_unit_index (the prop handle), then push
-                    // ecx (the radius) / ebx (the actor index). Ghidra hides the EAX argument.
-                    if (actor_movement_set_destination_near_target(a->target_unit_index, actor_index, threshold)) {
-                        actor_movement_actions_cancel(actor_index);
-                        // UNSURE: Ghidra shows this call with no visible arguments (the
-                        // target point rides in ESI, inherited from earlier in this
-                        // function without a traceable assignment); the actor's current
-                        // target's last known position is the most plausible candidate.
-                        {
-                            prop *target_prop = &((prop *)prop_data->data)[a->target_unit_index & 0xffff];
-                            if (actor_grenade_trace_from_source(actor_index, &target_prop->last_known_position)) {
-                                result = 1;
-                            }
-                        }
-                    }
-                }
+        if (!unit_get_weapon_marker_indices(*(datum_index *)(actor + 0x18), leap, (uint32_t)&dx_to_key_frame,
+                (uint32_t)&dx_total, &frame_count, &key_frame)) {
+            goto done;
+        }
+        if ((*(uint32_t *)actor_tag & 0x8000000) != 0) {
+            *(int16_t *)(record + 0x32) = frame_count;
+            *(float *)(record + 0x34) = 0.0f;
+            record[0x30] = 1;
+        } else if (key_frame == 0) {
+            *(int16_t *)(record + 0x32) = (int16_t)(frame_count / 2);
+            *(float *)(record + 0x34) = dx_total - dx_total * 0.5f;
+        } else {
+            *(int16_t *)(record + 0x32) = key_frame;
+            *(float *)(record + 0x34) = dx_total - dx_to_key_frame;
+        }
+        wait = actor_get_consideration_wait_threshold(actor_index, mode, out);
+        *(float *)(record + 0x2c) = wait;
+        limit = mode == 3 ? 4.0f : 1.5f;
+        if (limit > wait) {
+            wait = limit;
+        }
+        if (actor_movement_set_destination_near_target(*(datum_index *)(actor + 0x270), actor_index, wait)) {
+            actor_movement_actions_cancel(actor_index);
+            if (actor_grenade_trace_from_source(actor_index, (real_point3d *)(target + 0xc8))) {
+                result = 1;
             }
         }
+        goto done;
+    }
+    if (mode == 0 && (*(uint32_t *)actor_tag & 0x20000) != 0 && *(int16_t *)(actor + 0x6e) >= 5 && actor[0x378] == 0) {
+        mode = 1;
     }
 
-write_mode:
-    out->mode = mode;
+done:
+    *(int16_t *)(record + 4) = mode;
     return result;
 }
 

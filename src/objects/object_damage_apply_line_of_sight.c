@@ -43,7 +43,7 @@ extern void vector3d_cross_product(); // math module, 0x4052c0.
                                                        // visible argument at this call site
 extern real random_real(void); // math module, 0x4019f0
 
-extern int8_t teams_are_enemies(void); // UNSURE: zero visible args; 18 callers, address 0x45bd50
+extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, CX, DX
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
     // 0x46fe10, blam-cc: stack -> zoom_table_index, CX -> magnification (every caller passes the difficulty)
 extern uint8_t *main_game_globals; // 0x006b0b80 game globals *, +0x0e difficulty
@@ -197,7 +197,7 @@ void object_damage_apply_line_of_sight(damage_data *dd, datum_index target_index
             has_collision = 0; // does_not_hurt_owner
         }
 
-        if (((effect->damage_flags & 8) == 0) || (teams_are_enemies() != 0)) { // does_not_hurt_friends
+        if (((effect->damage_flags & 8) == 0) || (teams_are_enemies(dd->team_index, *(int16_t *)((uint8_t *)target + 0xb8)) != 0)) { // does_not_hurt_friends; 0x4ee094: CX damage team, DX target +0xb8
             if ((has_collision != 0) && ((effect->damage_flags & 0x1000) != 0)) { // infection_form_pop
                 has_collision = 0;
                 if (((1 << (target->type & 0x1f) & _object_mask_unit) != 0) &&

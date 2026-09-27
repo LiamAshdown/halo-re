@@ -25,10 +25,13 @@
 #include "ai.h"
 
 extern int16_t path_find_hash_lookup_vertex(path_find_context *context, uint32_t vertex_id); // 0x43b2b0
-extern uint8_t path_find_trace_bsp_boundary(uint32_t unknown_48, uint8_t request_byte_4, uint32_t param_1); // 0x43d9b0, see header UNSURE
+extern uint8_t path_find_trace_bsp_boundary(void *context, uint8_t ignore_permission, real_point3d *point_a,
+    int32_t start_edge, real_point3d *point_b, int32_t exclude_vertex, path_find_boundary_crossing *out_result); // 0x43d9b0, stack
 
-// blam-cc: ECX -> context, stack -> vertex_id, out_used_start, out_position
-uint8_t path_find_find_unobstructed_ancestor(path_find_context *context, uint32_t vertex_id,
+// blam-cc: ECX -> context, EAX -> vertex_id, stack -> point, out_used_start, out_position
+// Walks from the point's node (vertex_id) back towards the start until the straight line from the point to a
+// node's parent crosses no boundary (0x43d9b0 against the structure bsp at context +0x64, permission byte +4).
+uint8_t path_find_find_unobstructed_ancestor(path_find_context *context, uint32_t vertex_id, real_point3d *point,
                                              uint8_t *out_used_start, real_point3d *out_position)
 {
     int16_t node_index;
@@ -40,9 +43,16 @@ uint8_t path_find_find_unobstructed_ancestor(path_find_context *context, uint32_
     }
 
     node = &context->nodes[node_index];
-    while ((node->parent != -1) &&
-           (path_find_trace_bsp_boundary(context->unknown_48, *((uint8_t *)context + 4), vertex_id) == 0)) {
-        node = &context->nodes[node->parent];
+    while (node->parent != -1) {
+        path_find_node *parent = &context->nodes[node->parent];
+        path_find_boundary_crossing crossing;
+
+        // 0x43a260: stack bsp, permission, the point, its vertex, the parent's position and vertex, &crossing
+        if (path_find_trace_bsp_boundary((void *)context->structure_bsp, *((uint8_t *)context + 4), point,
+                (int32_t)vertex_id, &parent->position, (int32_t)parent->vertex_id, &crossing) != 0) {
+            break;
+        }
+        node = parent;
     }
 
     if (node->parent == -1) {

@@ -25,7 +25,7 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern void animation_get_frame_info_distance(uint32_t param_1, uint32_t param_2); // 0x4d4850, UNSURE signature
+extern void animation_get_frame_info_distance(ModelAnimationsAnimation *animation, float *dx_to_key_frame, float *dx_total); // 0x4d4850, ECX, stack
 
 uint8_t unit_get_weapon_marker_indices(uint32_t unit_index, uint8_t use_alternate, uint32_t param_1,
                                         uint32_t param_2, int16_t *out_frame_count,
@@ -54,7 +54,7 @@ uint8_t unit_get_weapon_marker_indices(uint32_t unit_index, uint8_t use_alternat
     uint8_t *animations = *(uint8_t **)((uint8_t *)graph + 0x78);
     ModelAnimationsAnimation *anim = (ModelAnimationsAnimation *)(animations + animation_index * 0xb4);
 
-    animation_get_frame_info_distance(param_1, param_2);
+    animation_get_frame_info_distance(anim, (float *)param_1, (float *)param_2); // 0x56435e: ECX = the animation
 
     if (out_key_frame_index != 0) {
         *out_key_frame_index = anim->key_frame_index;

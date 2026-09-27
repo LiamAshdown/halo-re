@@ -38,9 +38,7 @@ void ai_release_actors_and_swarms(void)
     ai_globals_ptr->stagger_highest = 0;
     ai_globals_ptr->stagger_claimed = 0;
 
-    if (ai_globals_ptr->actors_valid != 0) {
-        is_dead = 0xff; // see UNSURE above
-    }
+    // 0x428f0a: the release call always gets AL = 0
 
     iterator.filter_array = encounter_data;
     iterator.unknown_04 = 0;
@@ -53,7 +51,7 @@ void ai_release_actors_and_swarms(void)
 
     a = actor_iterator_next(&iterator);
     while (a != 0) {
-        datum_index actor_index = (datum_index)(((uint8_t *)a - (uint8_t *)actor_data->data) / sizeof(actor));
+        datum_index actor_index = iterator.actor_index /* the full handle, salt included */;
 
         if (a->swarm_pending == 0) {
             if (a->awareness_level > 0) {

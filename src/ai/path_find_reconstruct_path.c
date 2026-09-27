@@ -42,7 +42,7 @@
 #include "ai.h"
 
 extern void vector3d_distance(void); // 0x4088b0, established elsewhere; called here with no visible arguments (see header)
-extern int16_t path_find_hash_lookup_vertex(void); // 0x43b2b0, see header UNSURE
+extern int16_t path_find_hash_lookup_vertex(path_find_context *context, uint32_t vertex_id); // 0x43b2b0, EDX, ESI
 extern void path_find_simplify_waypoints(void); // 0x43cc00 = path_find_simplify_waypoints (this rewrite's own file), called with no visible arguments here
 extern uint8_t ai_navigate_around_obstacles(void); // 0x43be90 = path_find_search_point_graph (this rewrite's own file), called with no visible arguments here
 
@@ -63,7 +63,7 @@ uint8_t path_find_reconstruct_path(path_find_context *context, uint8_t *out_resu
         return out_result[0];
     }
 
-    node_index = path_find_hash_lookup_vertex();
+    node_index = path_find_hash_lookup_vertex(context, *(uint32_t *)((uint8_t *)context + 0x5c)); // 0x43a4ee: ESI = context +0x5c
     if (node_index == -1) {
         if (context->goal_cost <= context->best_cost) {
             return out_result[0];

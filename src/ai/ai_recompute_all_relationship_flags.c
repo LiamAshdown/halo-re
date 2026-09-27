@@ -72,7 +72,7 @@ void ai_recompute_all_relationship_flags(void)
 
     a = actor_iterator_next(&iterator);
     while (a != 0) {
-        actor_index = (datum_index)(((uint8_t *)a - (uint8_t *)actor_data->data) / sizeof(actor));
+        actor_index = iterator.actor_index /* the full handle, salt included */;
         prop_cursor = a->first_prop;
         while (prop_cursor != (datum_index)k_datum_index_none) {
             current_prop_index = prop_cursor;

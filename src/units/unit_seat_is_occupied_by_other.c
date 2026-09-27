@@ -22,7 +22,7 @@
 
 extern data_array *object_data; // 0x008603b0
 
-extern int32_t teams_are_enemies(void); // 0x45bd50, UNSURE: no traced args
+extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, CX, DX
 
 uint8_t unit_seat_is_occupied_by_other(uint32_t self_index, int16_t seat_index, uint32_t vehicle_index,
                                         uint32_t *out_occupant_index) // blam-cc: see file header
@@ -45,7 +45,7 @@ uint8_t unit_seat_is_occupied_by_other(uint32_t self_index, int16_t seat_index, 
             uint32_t reassigned = child; // in case the teams_are_enemies branch below fires
             if (!match && self_unit->controlling_player != (datum_index)-1) {
                 reassigned = found; // see file header UNSURE note
-                match = teams_are_enemies() != 0;
+                match = teams_are_enemies(*(int16_t *)((uint8_t *)child_obj + 0xb8), *(int16_t *)((uint8_t *)self_obj + 0xb8)) != 0; // 0x5668ce
             }
             if (match) {
                 not_found = 0;

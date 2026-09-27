@@ -139,7 +139,8 @@ typedef struct actor_mode_definition {
     int16_t combat_grade;             // 0x04 nonzero raises actor.awareness_level to 3, zero clamps it to 2
     uint8_t unknown_06[2];            // 0x06
     uint32_t enter_proc;              // 0x08 actor_set_mode calls it after switching in
-    uint8_t unknown_0c[8];            // 0x0c
+    uint32_t process_proc;            // 0x0c the mode's per-tick decision (fight: 0x403180)
+    uint32_t tick_proc;               // 0x10 actor_update_activation_state calls it after the transition loop
     uint32_t update_proc;             // 0x14 actor_invoke_type_handler calls it
     uint32_t exit_proc;               // 0x18 actor_set_mode calls the outgoing mode proc first
     uint8_t unknown_1c[28];           // 0x1c

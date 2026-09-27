@@ -1,6 +1,6 @@
 // actor_init_prop_from_object  (Ghidra: actor_init_prop_from_object, renamed)
 // address 0x43e640, size 504 bytes
-// name confidence: 0.4   rewrite confidence: 0.25
+// name confidence: 0.4   rewrite confidence: 0.8
 // evidence: types/ai.h prop (actor_index +0x04, pair_index +0x0c, owner_actor_index +0x1c,
 // unknown_20 "copied from the object type definition at +0x284", object_index +0x18,
 // unknown_4e "0x43e640 zeroes it", unknown_76 "0x43e640 sets 1000 for a vault prop", unknown_a0
@@ -30,9 +30,9 @@ extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int32_t game_time; // 0x006f1d6c, UNSURE: a tick/time-globals pointer
 
-extern uint8_t teams_are_enemies(void); // 0x45bd50, outside this rewrite's range
-extern uint8_t team_pair_flag_test(void); // 0x45bdb0, outside this rewrite's range
-extern uint8_t team_pair_override_get_flag(int16_t param); // 0x45be00, outside this rewrite's range
+extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, CX, DX
+extern uint8_t team_pair_flag_test(int16_t team_a, int16_t team_b); // 0x45bdb0, ECX, EDX
+extern uint8_t team_pair_override_get_flag(int16_t index_a, int16_t index_b); // 0x45be00, EBX, stack
 
 // blam-cc: EAX -> object_index, EDX -> actor_index, stack -> prop_index
 void actor_init_prop_from_object(datum_index object_index, datum_index actor_index, datum_index prop_index)
@@ -70,11 +70,13 @@ void actor_init_prop_from_object(datum_index object_index, datum_index actor_ind
         uint8_t is_vault;
 
         p->unknown_16 = *(int16_t *)(object + 0xb8);
-        p->is_unit = teams_are_enemies();
-        p->unknown_61 = team_pair_flag_test();
-        p->unknown_62 = team_pair_override_get_flag(p->unknown_16);
+        // 0x43e6fb..0x43e731: CX = the object's team, DX = the actor's (+0x3e); then DX object, CX actor; then
+        // BX actor, stack object
+        p->is_unit = teams_are_enemies(p->unknown_16, *(int16_t *)((uint8_t *)self + 0x3e));
+        p->unknown_61 = team_pair_flag_test(*(int16_t *)((uint8_t *)self + 0x3e), p->unknown_16);
+        p->unknown_62 = team_pair_override_get_flag(*(int16_t *)((uint8_t *)self + 0x3e), p->unknown_16);
 
-        is_vault = (*(uint8_t *)(object_type + 0x106) >> 2) & 1;
+        is_vault = (*(uint8_t *)(object + 0x106) >> 2) & 1; // 0x43e73d: the object's firing bit, not the tag's
         p->is_vault = is_vault;
         p->unknown_20 = *(float *)(object_type + 0x284);
         p->unknown_128 = (is_vault != 0) && (*(int16_t *)(object + 0x420) == 0);

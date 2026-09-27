@@ -29,9 +29,7 @@ extern uint16_t actor_consider_target_candidate(datum_index actor_index,
                                                 datum_index candidate_prop_index); // 0x4208a0, this module;
 // stack -> actor_index, EBX -> candidate_prop_index. The EBX value at 0x4036af is the same
 // resolved target prop handle the code has just written to the order record at +0x1c.
-extern void actor_check_melee_target_reachable(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_check_melee_target_reachable at 0x403f00
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
+extern void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order); // 0x403f00, stack, EBX order
 
 int32_t actor_build_order_grenade_or_melee(uint32_t resolved_target, uint8_t use_alt_base, uint32_t actor_index, uint16_t order_code, uint8_t byte_a, uint8_t byte_b, uint16_t *order)
 {
@@ -67,7 +65,7 @@ int32_t actor_build_order_grenade_or_melee(uint32_t resolved_target, uint8_t use
         }
     }
     if (a->swarm == 0) {
-        actor_check_melee_target_reachable(actor_index);
+        actor_check_melee_target_reachable(actor_index, (int16_t *)order); // 0x403717: EBX = the order
         if (order[4] != 0xffff) {
             return 1;
         }

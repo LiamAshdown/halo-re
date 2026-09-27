@@ -59,7 +59,7 @@ void ai_release_actors_filtered(datum_index encounter_index, datum_index platoon
 
         a = actor_iterator_next(&iterator);
         while (a != 0) {
-            datum_index actor_index = (datum_index)(((uint8_t *)a - (uint8_t *)actor_data->data) / sizeof(actor));
+            datum_index actor_index = iterator.actor_index /* the full handle, salt included */;
             actor_delete_or_release_unit(actor_index, 0);
             a = actor_iterator_next(&iterator);
         }

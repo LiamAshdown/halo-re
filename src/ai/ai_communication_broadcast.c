@@ -122,7 +122,7 @@ extern int32_t DAT_00725204;           // 0x00725204, UNSURE: a difficulty/tick 
 extern void ai_communication_record_line_played(datum_index object_index, int16_t tier,
                                                   int16_t communication_line_id,
                                                   int16_t conversation_line_id); // 0x42f9e0, already rewritten
-extern int8_t teams_are_enemies(void); // 0x45bd50, UNSURE: no traced args (established convention)
+extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, CX, DX
 extern void ai_mark_recognized_objects_for_reaction(uint32_t team_a, uint32_t team_b, uint32_t reaction_flags); // 0x42ba80, not yet rewritten
 extern void ai_propagate_communication_reaction(datum_index participant_object_index, void *queue_header); // 0x42e9c0, not yet rewritten
 extern uint32_t ai_select_communication_target(uint32_t speaker_actor_index, uint32_t order_fallback,
@@ -406,7 +406,7 @@ void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datu
                             ai_mark_recognized_objects_for_reaction(other_team_packed, self_team_packed, shout_flag);
                     }
                 }
-                if (teams_are_enemies() != 0) reason = 4;
+                if (teams_are_enemies((int16_t)self_team_packed, (int16_t)other_team_packed) != 0) reason = 4; // 0x42d7ac: CX [esp+0x14], DX [esp+0x4c] (UNSURE which local is which)
             }
         }
     }

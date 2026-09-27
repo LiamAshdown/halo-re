@@ -36,7 +36,7 @@ void ai_reset_all_actors_perception(void)
 
     a = actor_iterator_next(&iterator);
     while (a != 0) {
-        datum_index actor_index = (datum_index)(((uint8_t *)a - (uint8_t *)actor_data->data) / sizeof(actor));
+        datum_index actor_index = iterator.actor_index /* the full handle, salt included */;
         actor_dispatch_perception_reset(actor_index);
         a = actor_iterator_next(&iterator);
     }

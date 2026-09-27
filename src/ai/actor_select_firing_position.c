@@ -33,7 +33,7 @@ extern uint32_t actor_get_firing_position_group_mask(datum_index actor_index, in
 extern uint32_t actor_find_best_firing_position(datum_index actor_index, actor_firing_position_query *query, actor_firing_position_candidate *out_candidate, uint32_t *out_previous_owner, path_find_context *path_context, uint8_t *out_path_ok); // 0x412ba0, this module
 
 // blam-cc: EBX -> query, EDI -> out_candidate; stack -> actor_index, out_previous_owner,
-//          kind, out_path_ok
+//          path_context, out_path_ok (the goal kind is query +0x04)
 // Picks a firing position for the actor. When the mask for the actor current searching state
 // is a strict subset of the union of both states, the wider union becomes the hard filter and
 // the narrower own-state mask becomes a soft preference worth 8.0. If nothing is found the
@@ -44,9 +44,12 @@ extern uint32_t actor_find_best_firing_position(datum_index actor_index, actor_f
 int16_t actor_select_firing_position(datum_index actor_index,
                                      actor_firing_position_query *query,
                                      actor_firing_position_candidate *out_candidate,
-                                     uint32_t *out_previous_owner, int16_t kind,
+                                     uint32_t *out_previous_owner, path_find_context *path_context,
                                      uint8_t *out_path_ok)
 {
+    // 0x413e84: the group masks use the query's goal kind (+0x04, SI); the third stack argument is the path
+    // context handed through to actor_find_best_firing_position
+    int16_t kind = query->goal_kind;
     actor *self;
     ScenarioEncounter *encounter_definition;
     ScenarioFiringPosition *firing_positions;
@@ -79,8 +82,7 @@ int16_t actor_select_firing_position(datum_index actor_index,
 
     // UNSURE: the remaining arguments travel in registers this frame already holds.
     result = (int16_t)actor_find_best_firing_position(actor_index, query, out_candidate,
-                                                      out_previous_owner,
-                                                      (path_find_context *)0, out_path_ok);
+                                                      out_previous_owner, path_context, out_path_ok);
 
     if (result == -1) {
         held = self->firing_position_index;

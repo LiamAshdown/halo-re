@@ -19,17 +19,19 @@ extern data_array *actor_data; // 0x00880360
 
 extern void actor_movement_action_stop(datum_index actor_index); // 0x417570, this module,
                                                                  // blam-cc: EDX -> actor_index
-extern uint8_t actor_movement_set_destination_firing_position(void);      // 0x417830, not yet rewritten
+extern uint8_t actor_movement_set_destination_firing_position(datum_index actor_index, int16_t formation_slot,
+    path_find_context *path_context); // 0x417830, EDI, stack
 extern void actor_push_recognition_entry(datum_index actor_index, int16_t firing_position_index, uint8_t type);                   // 0x4141a0, rewritten in this module
 
-// blam-cc: AL -> keep_claim, CX -> firing_position_index, stack -> actor_index, previous_owner
+// blam-cc: AL -> path_ok, CX -> firing_position_index, stack -> actor_index, previous_owner, path_context
 // Moves the actor onto a firing position. Passing -1 just stops the current movement action
 // and drops the claim. Otherwise any previously claimed, different position is pushed onto
 // the recognition ring, an optional previous owner is evicted from the same slot, and the
 // actor is sent to the position; if the movement request is refused the claim is dropped
 // again. Returns the claim the actor ends up holding.
 int16_t actor_claim_firing_position(datum_index actor_index, datum_index previous_owner,
-                                    int16_t firing_position_index, uint8_t keep_claim)
+                                    path_find_context *path_context, int16_t firing_position_index,
+                                    uint8_t path_ok)
 {
     actor *self;
     actor *other;
@@ -39,18 +41,15 @@ int16_t actor_claim_firing_position(datum_index actor_index, datum_index previou
     if (firing_position_index == -1) {
         actor_movement_action_stop(actor_index);
     } else {
+        // 0x414094: the position being given up goes into the recognition history as type 1 (DL)
         if (self->firing_position_index != -1 && self->firing_position_index != firing_position_index) {
-            // UNSURE: Ghidra shows a bare actor_push_recognition_entry() here. The recognition entry it
-            // pushes must be the position being given up, with the type byte already in DL;
-            // both are register arguments this frame happens to hold.
-            actor_push_recognition_entry(actor_index, self->firing_position_index, 0);
+            actor_push_recognition_entry(actor_index, self->firing_position_index, 1);
         }
 
+        // 0x4140b1: the previous owner (EDX) stops and loses the position
         if (previous_owner != (datum_index)0xffffffff) {
-            // The base pointer is reloaded before the call in the original, so the eviction
-            // below is not disturbed by anything actor_movement_action_stop does.
             other = (actor *)((uint8_t *)actor_data->data + (previous_owner & 0xffff) * sizeof(actor));
-            actor_movement_action_stop(actor_index);
+            actor_movement_action_stop(previous_owner);
             other->firing_position_index = -1;
         }
 
@@ -59,9 +58,11 @@ int16_t actor_claim_firing_position(datum_index actor_index, datum_index previou
         }
 
         self->firing_position_index = firing_position_index;
-        self->unknown_3ba = (uint8_t)(keep_claim == 0);
+        self->unknown_3ba = (uint8_t)(path_ok == 0);
         self->unknown_3bb = 0;
-        if (actor_movement_set_destination_firing_position() != 0) {
+        // 0x41410d: a found path's context is handed on so the move reuses it
+        if (actor_movement_set_destination_firing_position(actor_index, firing_position_index,
+                path_ok ? path_context : (path_find_context *)0) != 0) {
             return self->firing_position_index;
         }
     }

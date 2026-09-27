@@ -44,7 +44,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 
 extern void object_get_position(real_point3d *out_position, datum_index object_index); // 0x4f6900
 extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point); // 0x41c1e0, this batch
-extern int8_t teams_are_enemies(void); // 0x45bd50, UNSURE: no traced args, out of this rewrite range
+extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, CX, DX
 
 // blam-cc: stack -> actor_index, object_index, unknown_byte
 // Detects a nearby object whose velocity is above a small threshold (see UNSURE above) and
@@ -139,7 +139,9 @@ uint8_t actor_danger_register_stationary_object(const float *reference, datum_in
                 self->danger_unknown_282 = 0;
 
                 if (driver_field != -1) {
-                    if (teams_are_enemies() == 0) {
+                    // 0x41ec4a: CX = the driver's team, DX = the actor's
+                    if (teams_are_enemies(*(int16_t *)((uint8_t *)((object_header *)object_data->data)[driver_field & 0xffff].data + 0xb8),
+                                          *(int16_t *)((uint8_t *)self + 0x3e)) == 0) {
                         self->danger_unknown_282 = 1;
                     }
                 }

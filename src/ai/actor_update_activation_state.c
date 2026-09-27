@@ -76,10 +76,11 @@ void actor_update_activation_state(datum_index actor_index)
 
     actor_run_mode_transition_loop(actor_index);
 
+    // 0x4291e3: the new mode's +0x10 (tick) proc, stack actor index
     {
-        uint32_t proc = actor_mode_definitions[self->mode].enter_proc;
+        uint32_t proc = actor_mode_definitions[self->mode].tick_proc;
         if (proc != 0) {
-            ((void (*)(void))proc)();
+            ((void (*)(datum_index))proc)(actor_index);
         }
     }
 

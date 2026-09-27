@@ -26,9 +26,10 @@ extern Scenario *global_scenario;   // 0x00746f8c
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (formerly bsp_generation)
 
 extern uint32_t actor_get_firing_position_group_mask(datum_index actor_index, int16_t kind, int16_t search_override); // 0x412880, this module
-extern uint8_t path_find_test_direct_reachability(int32_t generation, int32_t unused); // 0x43a0a0, not yet rewritten: direct-line reachability
-extern void path_find_compute_heuristic(void *point, float *out_distance, float *out_secondary,
-                         void *out_direction);                  // 0x43a310, not yet rewritten: path query readback
+extern uint8_t path_find_test_direct_reachability(const real_point3d *point_a, const real_point3d *point_b,
+    real_point3d *out_position, void *context, uint8_t *out_success); // 0x43a0a0, EAX, ECX, ESI, stack
+extern uint8_t path_find_compute_heuristic(path_find_context *context, uint32_t vertex_id, real_point3d *point,
+    float *out_distance, float *out_secondary, real_vector3d *out_direction); // 0x43a310, EDI, EAX, stack
 extern uint8_t path_find_run(path_find_context *context);       // 0x43a8b0, not yet rewritten
 
 // blam-cc: EDX -> actor_index, stack -> point, start_surface_index, kind
@@ -106,12 +107,14 @@ uint8_t actor_firing_position_near_point(datum_index actor_index, real_point3d *
             continue;
         }
         if (self->flying == 0) {
-            path_find_compute_heuristic(fp, &path_distance, (float *)0, (void *)0);
+            // 0x412b43: EAX = the firing position's surface (+0x14), EDI = the context
+            path_find_compute_heuristic(&context, *(uint32_t *)((uint8_t *)fp + 0x14), (real_point3d *)fp, &path_distance, 0, 0);
             if (path_distance < 4.0f) {
                 return 1;
             }
         } else {
-            if (path_find_test_direct_reachability((uint32_t)global_structure_bsp, 0) != 0) {
+            // 0x412b24: EAX = the firing position, ECX = the point, ESI = no output, stack: the bsp, no flag
+            if (path_find_test_direct_reachability((real_point3d *)fp, point, 0, global_structure_bsp, 0) != 0) {
                 return 1;
             }
         }

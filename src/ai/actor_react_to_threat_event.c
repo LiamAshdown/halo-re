@@ -20,7 +20,7 @@ extern data_array *object_data; // 0x008603b0
 
 extern void *object_try_and_get(datum_index object_index, int32_t kind); // 0x4f6ec0
 extern void actor_mark_prop_seen_with_delta(datum_index squad_index, uint32_t key, float delta); // 0x428840, not yet rewritten
-extern int8_t teams_are_enemies(void); // 0x45bd50, teams_are_enemies; UNSURE args (see other call sites in this batch)
+extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, CX, DX
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340
 extern void team_pair_override_refresh(void); // 0x45c090, not yet rewritten (game module), UNSURE args
 
@@ -81,7 +81,7 @@ no_relationship_object:
     if (self_object_index == relationship_object_index) {
         reason = 1;
     } else if (relationship_obj != 0) {
-        reason = (teams_are_enemies() != 0) + 2;
+        reason = (teams_are_enemies(*(int16_t *)((uint8_t *)relationship_obj + 0xb8), *(int16_t *)((uint8_t *)self_obj + 0xb8)) != 0) + 2; // 0x42bf00
     }
 
     if (suppress_vehicle_relay == 0 && reason == 2) {
