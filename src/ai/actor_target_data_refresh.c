@@ -1,6 +1,6 @@
 // actor_target_data_refresh  (Ghidra: actor_target_data_refresh; named from out/phase2/results/ai_02.json)
 // address 0x41c4b0, size 1075 bytes
-// name confidence: 0.4   rewrite confidence: 0.15
+// name confidence: 0.4   rewrite confidence: 0.9 (VERIFIED end to end against objdump 0x41c4b0..0x41c8e2)
 // evidence: out/phase2/results/ai_02.json -- revalidates a prop's (target-data record's)
 //   tracked object (possibly reassigning via object_find_nearest_squad_member for squad-shared
 //   targets), then fetches marker-based aim/firing offsets and root-object shield state.
