@@ -1,6 +1,6 @@
 // ai_squad_find_best_matching_member  (Ghidra: ai_squad_find_best_matching_member; named for this rewrite)
 // address 0x4333d0, size 437 bytes
-// name confidence: 0.4   rewrite confidence: 0.4
+// name confidence: 0.4   rewrite confidence: 0.9 (VERIFIED against objdump; return priority FIXED)
 // evidence: objdump (bin/halo.exe 0x4333d0..0x43358f) confirms the loop reads
 // ai_reference_squad_iterator_new/_next's (0x4324f0/0x4325b0, this batch) shared iterator
 // struct directly off this function's own stack (the "local_c" Ghidra shows with no visible
@@ -94,8 +94,9 @@ int32_t ai_squad_find_best_matching_member(uint32_t packed_reference, int16_t re
         } while (state != 0);
 
         if (best_by_index != -1) return best_by_index;
-        if (best_by_actor != -1) return best_by_actor;
+        // FIXED (objdump 0x433536..0x433568): the variant match ([esp+0xc]) is returned before the actor match
         if (best_by_variant != -1) return best_by_variant;
+        if (best_by_actor != -1) return best_by_actor;
         if (best_by_type != -1) return best_by_type;
         if (first_any != -1) return first_any;
     }

@@ -1,6 +1,6 @@
 // actor_reset_squad_link_for_type_change  (Ghidra: actor_reset_squad_link_for_type_change, renamed)
 // address 0x4290f0, size 98 bytes
-// name confidence: 0.3   rewrite confidence: 0.2
+// name confidence: 0.3   rewrite confidence: 0.9 (VERIFIED against objdump)
 // evidence: types/ai.h actor.unknown_09/encounter_index(0x34). Calls
 //   actor_movement_action_cancel (0x428650, already rewritten in this module) and
 //   squad_remove_actor/encounter_add_actor/ai_actor_link_to_unassigned_list/ai_actor_unlink_from_unassigned_list, none established elsewhere in

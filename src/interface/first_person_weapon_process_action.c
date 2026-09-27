@@ -1,6 +1,6 @@
 // first_person_weapon_process_action  (Ghidra: first_person_weapon_process_action, already named)
 // address 0x4940f0, size 453 bytes
-// name confidence: 0.5   rewrite confidence: 0.25
+// name confidence: 0.5   rewrite confidence: 0.9 (REWRITTEN from objdump)
 // evidence: types/interface.h first_person_weapon_interface names this address directly
 // ("first_person_weapon_process_action @0x4940f0"); out/phase4/interface_functions.md "Central
 // handler that applies a weapon HUD action code (charge, reload, swap, drop) to a local player's
@@ -31,7 +31,7 @@ extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2
 extern data_array *object_data; // 0x008603b0, "objects"
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern void unit_invalidate_local_player_zoom_level(void); // 0x4726f0, UNSURE args
+extern void unit_invalidate_local_player_zoom_level(datum_index unit); // 0x4726f0, EAX -> unit
 extern int16_t item_type_to_message_stage(int16_t item_type_code); // 0x4927c0, this module
 extern void first_person_weapon_set_state(int16_t local_player_index, uint8_t force_pose_snapshot,
                                            int16_t new_state); // 0x492e60
@@ -44,10 +44,18 @@ extern void first_person_weapon_interface_initialize(int16_t local_player_index)
 // "reload-family" animation state or an active magazine) and the weapon tag's +0x4e2 field
 // (first_person_weapon_set_state.c's unresolved weapon-type-shaped enum, required == 1 for
 // actions 9/10); on success, enters animation state 1. Action 12 additionally clears blend_end.
+// REWRITTEN from objdump 0x4940f0..0x4942b4. Jump table 0x4942cc/0x4942b8: 0 -> charge += 0.05, 9/10 ->
+//   unit_invalidate_local_player_zoom_level(interface unit), 12 -> interface initialize, 13 -> weapon = none.
+//   For actions 9/10 on a weapon whose tag +0x4e2 == 1 the reload marker at +0x1e94 is recomputed. Marker -1
+//   enters state 0xd and marker 0 or 2 enters state 0xf. Otherwise (marker 1, other actions or no weapon) the
+//   state is item_type_to_message_stage(action) unless that is -1. The draft dropped the zoom-invalidate unit
+//   argument and always entered state 0.
+// blam-cc: stack -> local_player_index, action_code
 void first_person_weapon_process_action(int16_t local_player_index, int16_t action_code)
 {
     first_person_weapon_interface *fp;
     uint8_t *fp_raw;
+    int16_t new_state;
 
     if (local_player_index == -1) {
         return;
@@ -61,7 +69,7 @@ void first_person_weapon_process_action(int16_t local_player_index, int16_t acti
             break;
         case 9:
         case 10:
-            unit_invalidate_local_player_zoom_level();
+            unit_invalidate_local_player_zoom_level(fp->unit_index);
             break;
         case 0xc:
             first_person_weapon_interface_initialize(local_player_index);
@@ -71,64 +79,51 @@ void first_person_weapon_process_action(int16_t local_player_index, int16_t acti
             break;
     }
 
-    if (fp->weapon_index == (datum_index)0xffffffff) {
-    retry_message_stage:
-        if (item_type_to_message_stage(action_code) == -1) {
-            goto skip_state_change;
-        }
-    } else {
-        object *weapon_obj = *(object **)((char *)object_data->data + 8 +
-                                           (uint16_t)fp->weapon_index * 0xc);
-        char *weapon_tag_data;
-        int32_t magazine_def;
-        int16_t rounds_loaded_max;
-        int16_t rounds_loaded;   // weapon_magazine_state.rounds_loaded, object+0x2b8
-        int16_t rounds_unloaded; // weapon_magazine_state.rounds_unloaded, object+0x2b6
-        int16_t magazine_state;  // weapon_magazine_state.state, object+0x2b0
-        int32_t clamped;
+    if (fp->weapon_index != (datum_index)0xffffffff) {
+        uint8_t *weapon_obj = *(uint8_t **)((char *)object_data->data + 8 + (uint16_t)fp->weapon_index * 0xc);
+        datum_index definition = *(datum_index *)weapon_obj;
 
-        if (weapon_obj->definition_tag == (datum_index)0xffffffff) {
-            goto retry_message_stage;
-        }
-        weapon_tag_data = (char *)tag_instances[(uint16_t)weapon_obj->definition_tag].data;
-        if (*(int16_t *)(weapon_tag_data + 0x4e2) != 1) { // UNSURE, see first_person_weapon_set_state.c
-            goto retry_message_stage;
-        }
-        if (action_code != 9 && action_code != 10) {
-            goto retry_message_stage;
-        }
+        if (definition != (datum_index)0xffffffff) {
+            uint8_t *weapon_tag_data = (uint8_t *)tag_instances[(uint16_t)definition].data;
 
-        magazine_def = *(int32_t *)(weapon_tag_data + 0x4f4);
-        magazine_state = *(int16_t *)((char *)weapon_obj + 0x2b0);
-        rounds_loaded = *(int16_t *)((char *)weapon_obj + 0x2b8);
-        rounds_unloaded = *(int16_t *)((char *)weapon_obj + 0x2b6);
-        rounds_loaded_max = *(int16_t *)((char *)magazine_def + 10);
+            if (*(int16_t *)(weapon_tag_data + 0x4e2) == 1 && (action_code == 9 || action_code == 10)) {
+                uint8_t *magazine_def = *(uint8_t **)(weapon_tag_data + 0x4f4);
+                int16_t rounds_loaded = *(int16_t *)(weapon_obj + 0x2b8);
+                int16_t rounds_unloaded = *(int16_t *)(weapon_obj + 0x2b6);
+                int32_t clamped = (int32_t)*(int16_t *)(magazine_def + 10) - (int32_t)rounds_loaded;
+                int16_t state = fp->state;
+                int16_t marker;
 
-        clamped = (int32_t)rounds_loaded_max - (int32_t)rounds_loaded;
-        if (rounds_unloaded < clamped) {
-            clamped = rounds_unloaded;
-        }
-
-        if (fp->state == 0xf || fp->state == 0x16 || fp->state == 0x10 || fp->state == 0x11 ||
-            fp->state == 0xd || fp->state == 0xe || magazine_state != 0) {
-            *(int16_t *)(fp_raw + 0x1e94) = (clamped == 1) ? 1 : -1;
-        } else {
-            *(int16_t *)(fp_raw + 0x1e92) = (int16_t)clamped;
-            *(uint8_t *)(fp_raw + 0x1e90) = (rounds_loaded == 0);
-            *(int16_t *)(fp_raw + 0x1e94) = (clamped == 1) ? 2 : 0;
-        }
-
-        {
-            int16_t marker = *(int16_t *)(fp_raw + 0x1e94);
-            if (marker != -1 && marker != 0 && marker != 2) {
-                goto retry_message_stage;
+                if (clamped > rounds_unloaded) {
+                    clamped = rounds_unloaded;
+                }
+                if (state == 0xf || state == 0x16 || state == 0x10 || state == 0x11 || state == 0xd ||
+                    state == 0xe || *(int16_t *)(weapon_obj + 0x2b0) != 0) {
+                    *(int16_t *)(fp_raw + 0x1e94) = (clamped == 1) ? 1 : -1;
+                } else {
+                    *(int16_t *)(fp_raw + 0x1e92) = (int16_t)clamped;
+                    *(uint8_t *)(fp_raw + 0x1e90) = (uint8_t)(rounds_loaded == 0);
+                    *(int16_t *)(fp_raw + 0x1e94) = ((int16_t)clamped == 1) ? 2 : 0;
+                }
+                marker = *(int16_t *)(fp_raw + 0x1e94);
+                if (marker == -1) {
+                    new_state = 0xd;
+                    goto set_state;
+                }
+                if (marker == 0 || marker == 2) {
+                    new_state = 0xf;
+                    goto set_state;
+                }
             }
         }
     }
 
-    first_person_weapon_set_state(local_player_index, 1, 0); // UNSURE: new_state guessed, see
-                                                               // first_person_weapon_interface_
-                                                               // initialize.c's same guess
+    new_state = item_type_to_message_stage(action_code);
+    if (new_state == -1) {
+        goto skip_state_change;
+    }
+set_state:
+    first_person_weapon_set_state(local_player_index, 1, new_state);
 skip_state_change:
     if (action_code == 0xc) {
         fp->blend_end = 0;

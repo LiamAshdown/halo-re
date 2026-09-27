@@ -1,6 +1,6 @@
 // ai_reference_squad_iterator_next  (Ghidra: ai_reference_squad_iterator_next; named for this rewrite)
 // address 0x4325b0, size 151 bytes
-// name confidence: 0.4   rewrite confidence: 0.4
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED against objdump)
 // evidence: partner of ai_reference_squad_iterator_new (0x4324f0, this batch); see that
 // file for the shared ai_reference_squad_iterator layout and the misattribution note (this
 // returns an encounter_squad_state pointer, not a starting-location record). The return

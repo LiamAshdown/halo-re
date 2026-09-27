@@ -1,6 +1,6 @@
 // ai_reference_notify_actors  (Ghidra: ai_reference_notify_actors; named for this rewrite)
 // address 0x432bd0, size 66 bytes
-// name confidence: 0.3   rewrite confidence: 0.45
+// name confidence: 0.3   rewrite confidence: 0.9 (VERIFIED against objdump; release-call argument order FIXED)
 // evidence: walks every actor named by a packed ai reference (via
 // ai_reference_actor_iterator_new/_next, 0x432650/0x4326d0, this batch) and calls
 // actor_mark_units_and_release(0, actor.actor_index) for each, with AL carrying a byte this function itself
@@ -20,7 +20,7 @@
 
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator); // 0x432650, this batch
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator); // 0x4326d0, this batch
-extern void actor_mark_units_and_release(int32_t unused, datum_index actor_index, uint8_t flag); // 0x4289c0, outside this
+extern void actor_mark_units_and_release(uint8_t use_alternate_flag, datum_index actor_index, uint8_t suppress_release); // 0x4289c0, AL, stack; outside this
                                                                                   // rewrite's range; blam-cc:
                                                                                   // AL -> flag, stack -> unused, actor_index
 
@@ -35,7 +35,7 @@ void ai_reference_notify_actors(uint32_t packed_reference, uint8_t flag)
         ai_reference_actor_iterator_new(packed_reference, &iterator);
         a = ai_reference_actor_iterator_next(&iterator);
         while (a != 0) {
-            actor_mark_units_and_release(0, iterator.actor_index, flag);
+            actor_mark_units_and_release(flag, iterator.actor_index, 0); // FIXED (0x432bf1..0x432bfa): AL = flag, stack = (actor, 0)
             a = ai_reference_actor_iterator_next(&iterator);
         }
     }

@@ -1,6 +1,6 @@
 // ai_release_inactive_encounters  (Ghidra: ai_release_inactive_encounters, already named)
 // address 0x42ae50, size 241 bytes
-// name confidence: 0.9   rewrite confidence: 0.75
+// name confidence: 0.9   rewrite confidence: 0.85 (release calls FIXED against objdump)
 // evidence: cea-pdb hint via the two format strings "encounter %s (%d units)" and
 // "encounterless-actor %s"; the caller-owned iterator record (count, cursor, then 12-byte
 // entries) is not modeled in types/ai.h, so it is handled here with explicit pointer
@@ -21,12 +21,13 @@ extern data_array *encounter_data;          // 0x008802c8
 extern tag_instance *tag_instances;         // 0x0087bc14
 extern Scenario *global_scenario;           // 0x00746f8c
 
-extern int32_t ai_release_actors_filtered(int32_t squad_filter); // 0x0042ab00, not yet rewritten
+extern void ai_release_actors_filtered(datum_index encounter_index, int32_t platoon_index, int32_t squad_index,
+    uint8_t is_dead); // 0x42ab00, EAX, EDI, stack, BL
     // UNSURE: the call site only supplies one visible stack argument (-1); the callee's own
     // decompile also reads unaff_EDI and in_EAX, which appear to be whatever this caller's
     // registers happen to hold rather than real inputs. Left as a single-argument prototype;
     // resolve together with 0x42ab00's own rewrite.
-extern int32_t actor_delete_or_release_unit(datum_index actor_index); // 0x004288e0
+extern void actor_delete_or_release_unit(datum_index actor_index, uint8_t is_dead); // 0x4288e0, stack, AL
 extern int32_t sprintf(char *buffer, const char *format, ...); // 00623693 _sprintf
 extern char *strrchr(const char *str, int ch); // 00623bc0 _strrchr
 
@@ -56,7 +57,9 @@ int32_t ai_release_inactive_encounters(char *buffer, uint8_t *has_more, int16_t 
             runtime_encounter = &((encounter *)encounter_data->data)[index & 0xffff];
             sprintf(buffer, "encounter %s (%d units)", scenario_encounter->name.string,
                     runtime_encounter->unknown_2a);
-            result = ai_release_actors_filtered(-1);
+            // FIXED (objdump 0x42af13..0x42af1d): EAX = the encounter, EDI = -1, stack = -1, BL = 1. The draft passed
+            //   only -1, which released every actor in the level instead of this encounter.
+            ai_release_actors_filtered((datum_index)index, -1, -1, 1);
         } else {
             self = &((actor *)actor_data->data)[index & 0xffff];
             path = tag_instances[(int16_t)self->actor_variant_tag].path;
@@ -67,7 +70,7 @@ int32_t ai_release_inactive_encounters(char *buffer, uint8_t *has_more, int16_t 
                 file_name = path;
             }
             sprintf(buffer, "encounterless-actor %s", file_name);
-            result = actor_delete_or_release_unit(index);
+            actor_delete_or_release_unit(index, 1); // FIXED: AL = 1 (0x42aec8)
         }
         state[1] = state[1] + 1;
         result = (result & 0xffffff00) | 1;

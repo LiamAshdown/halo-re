@@ -17,7 +17,7 @@
 extern ai_globals *ai_global_data; // 0x00880354
 extern data_array *actor_data;     // 0x00880360
 
-extern void actor_movement_action_cancel(void); // 0x428650, outside this rewrite's range, UNSURE signature
+extern void actor_movement_action_cancel(datum_index actor_index); // 0x428650, EDI -> actor_index
 
 void ai_actor_link_to_unassigned_list(datum_index actor_index)
 {
@@ -29,7 +29,7 @@ void ai_actor_link_to_unassigned_list(datum_index actor_index)
         a->unknown_09 = 1;
         *(int16_t *)a->unknown_10 = (a->active != 0) ? 0x5a : 0;
 
-        actor_movement_action_cancel();
+        actor_movement_action_cancel(actor_index); // FIXED: argument from the binary call site (the draft passed none) (EDI, 0x436984)
     }
 }
 

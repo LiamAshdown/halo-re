@@ -31,7 +31,7 @@ extern void weapon_trigger_effect_clear(datum_index item_index, int16_t trigger_
 extern void weapon_notify_reload_begin(datum_index item_index, int16_t magazine_index); // 0x4c3470
 extern int32_t weapon_set_state(datum_index item_index, int16_t new_state, int8_t force); // 0x4c5670
 extern uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, int32_t slot, int32_t sub_index); // 0x4c47d0
-extern void weapon_action_notify_for_weapon(void); // 0x492790, outside this module, UNSURE signature
+extern void weapon_action_notify_for_weapon(datum_index weapon_index, int32_t action_code); // 0x492790, EAX, EDI
 extern int16_t weapon_get_first_person_animation_time(datum_index item_index, int16_t animation_index,
     int16_t category, int16_t mode); // 0x4c2f80
 
@@ -77,7 +77,9 @@ void weapon_trigger_begin_reload(datum_index item_index, int16_t magazine_index,
             weapon_set_state(item_index, magazine_index + 5, 0);
             weapon_play_trigger_tag_effect(item_index, *(datum_index *)&magazine_tag->reloading_effect.tag_id, 0, 0); // UNSURE:
                 // tag_id (EDI) placeholder, see weapon_play_trigger_tag_effect.c
-            weapon_action_notify_for_weapon();
+            // FIXED (objdump 0x4c3724..0x4c3739): EAX = the weapon, EDI = 9 + (rounds_loaded != 0). The draft passed
+            //   nothing, so the first-person reload action ran with a garbage player index and action code.
+            weapon_action_notify_for_weapon(item_index, magazine->rounds_loaded != 0 ? 10 : 9);
 
             if (weapon_tag->weapon_type == 1) {
                 int16_t remaining = magazine_tag->rounds_loaded_maximum - magazine->rounds_loaded;

@@ -3,7 +3,7 @@
 // location" and "the object_marker array effect_rebuild_markers 0x451710 reserves 0x6c0 bytes
 // for, which is 0x10 * sizeof(object_marker)")
 // address 0x451710, size 182 bytes
-// name confidence: 0.45   rewrite confidence: 0.35
+// name confidence: 0.45   rewrite confidence: 0.9 (VERIFIED against objdump)
 // evidence: types/effects.h effect.location_markers / effect_marker_new 0x4517d0; types/tags.h
 // Effect.locations (count 0x28, pointer 0x2c, EffectLocation stride 0x20).
 // register convention: effect* and the marker-resolving callback are Ghidra's own recognised

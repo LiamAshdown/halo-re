@@ -24,9 +24,9 @@ extern data_array *actor_data;     // 0x00880360
 extern data_array *prop_data;      // 0x008802c0
 
 extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70
-extern uint8_t actor_target_update_active_flag(datum_index actor_index); // 0x41fc60, not yet rewritten
+extern uint8_t actor_target_update_active_flag(datum_index actor_index, datum_index target_prop_index); // 0x41fc60, EAX, EDI
 extern float actor_rate_potential_target(datum_index actor_index, datum_index target_prop_index); // 0x41fd50
-extern void team_pair_override_clear_flag(void); // 0x45c0f0, not yet rewritten (game module), UNSURE: no traced args
+extern void team_pair_override_clear_flag(int16_t index_b, int16_t index_a); // 0x45c0f0, EBX -> index_b, EDI -> index_a
 
 // blam-cc: stack -> team_a, team_b, status
 // For every actor whose team matches team_a or team_b, walks its prop list and, for each
@@ -72,14 +72,14 @@ void ai_mark_recognized_objects_for_reaction(int16_t team_a, int16_t team_b, uin
                     p->unknown_61 = 1;
                     p->unknown_62 = 0;
                     p->is_unit = status;
-                    p->engaged = actor_target_update_active_flag(actor_index);
+                    p->engaged = actor_target_update_active_flag(actor_index, current_prop_index); // FIXED: EDI = the prop (0x42bb29)
                     p->desirability = actor_rate_potential_target(actor_index, current_prop_index);
                 }
             }
         }
         a = actor_iterator_next(&iterator);
     }
-    team_pair_override_clear_flag();
+    team_pair_override_clear_flag(team_b, team_a); // FIXED: arguments from the binary call site (the draft passed none) (0x42bb92: EBX = arg 2, EDI = arg 1)
 }
 
 #if 0

@@ -34,7 +34,7 @@ extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 extern const real_vector3d *global_down3d_pointer; // 0x0069672c, UNSURE: see file header
 
-extern void actor_update_target_lead_position(void); // 0x429570, not this module, UNSURE: no visible args at this call site
+extern void actor_update_target_lead_position(datum_index actor_index); // 0x429570, EAX -> actor_index
 extern uint8_t path_find_test_segment_unobstructed(void *map, real_point3d *point_a, uint8_t ignore_permission,
     int32_t surface_a, real_point3d *point_b, int32_t surface_b, float radius, uint8_t flags,
     path_find_boundary_crossing *out_result); // 0x43de90, EBX map, EAX point A, stack
@@ -67,7 +67,7 @@ uint8_t actor_check_step_obstruction(datum_index actor_index, real_vector2d *dir
 
         step_point.x = step_distance * direction->i + self->body_position.x;
         step_point.y = step_distance * direction->j + self->body_position.y;
-        actor_update_target_lead_position();
+        actor_update_target_lead_position(actor_index); // FIXED: arguments from the binary call site (the draft passed none) (EAX still actor_index, 0x417c2e)
         // 0x417c33: EBX = the map (0x746f9c), EAX = actor +0x168, stack (ignores glass, +0x164, step, -1, radius, 0, out)
         trace_ok = path_find_test_segment_unobstructed(global_structure_bsp, (real_point3d *)((uint8_t *)self + 0x168),
             self->ignores_glass, (int32_t)self->unknown_164, &step_point, -1, definition->pathfinding_radius, 0,

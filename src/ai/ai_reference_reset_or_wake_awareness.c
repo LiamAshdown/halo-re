@@ -16,7 +16,7 @@
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator); // 0x432650, this batch
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator); // 0x4326d0, this batch
 extern void actor_clear_perceived_props(datum_index actor_index); // 0x427e00, outside this rewrite's range, UNSURE signature
-extern void actor_dispatch_perception_reset(void); // 0x429000, outside this rewrite's range, UNSURE signature
+extern void actor_dispatch_perception_reset(datum_index actor_index); // 0x429000, EAX -> actor_index
 extern void actor_set_units_active(datum_index actor_index, uint8_t dormant); // 0x427860, blam-cc: EAX, BL
 
 void ai_reference_reset_or_wake_awareness(uint32_t packed_reference, char flag)
@@ -35,7 +35,7 @@ void ai_reference_reset_or_wake_awareness(uint32_t packed_reference, char flag)
             a->awareness_level = 0;
             a->mode = 0;
             actor_clear_perceived_props(iterator.actor_index);
-            actor_dispatch_perception_reset();
+            actor_dispatch_perception_reset(iterator.actor_index); // FIXED: argument from the binary call site (the draft passed none) (EAX = ESI, 0x43455a)
             actor_set_units_active(iterator.actor_index, 0);
         }
         a = ai_reference_actor_iterator_next(&iterator);

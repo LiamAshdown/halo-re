@@ -1,6 +1,6 @@
 // ai_release_actors_filtered  (Ghidra: ai_release_actors_filtered, renamed)
 // address 0x42ab00, size 203 bytes
-// name confidence: 0.4   rewrite confidence: 0.2
+// name confidence: 0.4   rewrite confidence: 0.9 (REWRITTEN from objdump 0x42ab00..0x42abca)
 // evidence: types/ai.h actor.next_in_encounter(0x2c)/platoon_index(0x3c)/squad_index(0x3a).
 //   Calls actor_delete_or_release_unit (0x4288e0, already rewritten in this module),
 //   ai_reference_actor_iterator_init_cursor ("head of the unassigned actor list" per types/ai.h ai_globals+0x08,
@@ -18,7 +18,7 @@
 //   own decompile never sets AL to anything else. None of this was independently confirmed
 //   with objdump.
 // register convention: EAX -> encounter_index, EDI -> platoon_index, stack -> squad_index.
-//   // blam-cc: EAX -> encounter_index, EDI -> platoon_index, stack -> squad_index
+//   // blam-cc: EAX -> encounter_index, EDI -> platoon_index, stack -> squad_index, BL -> is_dead
 
 #include "tags.h"
 #include "memory.h"
@@ -31,12 +31,18 @@ extern data_array *actor_data;     // 0x00880360
 extern data_array *encounter_data; // 0x008802c8
 
 extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70
-extern void actor_iterator_new(int32_t filter); // 0x436a30, UNSURE signature, not in this rewrite range
-extern datum_index ai_reference_actor_iterator_init_cursor(void); // head of the unassigned actor list, UNSURE
+extern void actor_iterator_new(actor_iterator_state *out_iterator, uint8_t active_only); // 0x436a30, EAX, stack
+extern void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, datum_index *cursor); // 0x4369f0, EAX, ECX
 extern void actor_delete_or_release_unit(datum_index actor_index, uint8_t is_dead); // 0x4288e0
 
 // blam-cc: EAX -> encounter_index, EDI -> platoon_index, stack -> squad_index
-void ai_release_actors_filtered(datum_index encounter_index, datum_index platoon_index, int16_t squad_index)
+// REWRITTEN from objdump. Encounter none walks every actor (actor_iterator_new(&iterator, 0), so inactive actors
+//   too); otherwise it walks the encounter's member list (ai_reference_actor_iterator_init_cursor, cursor[2] is
+//   the first actor, +0x2c the next) filtered by platoon (+0x3c vs EDI) and squad (+0x3a vs the stack argument),
+//   -1 meaning any. Each match goes to actor_delete_or_release_unit(actor, BL). The draft built the iterator
+//   with active = 1, called the cursor setup without its encounter/cursor, and forced is_dead to 0.
+// blam-cc: EAX -> encounter_index, EDI -> platoon_index, stack -> squad_index, BL -> is_dead
+void ai_release_actors_filtered(datum_index encounter_index, int32_t platoon_index, int32_t squad_index, uint8_t is_dead)
 {
     if (ai_globals_ptr->actors_valid == 0) {
         return;
@@ -44,35 +50,24 @@ void ai_release_actors_filtered(datum_index encounter_index, datum_index platoon
 
     if (encounter_index == (datum_index)k_datum_index_none) {
         actor_iterator_state iterator;
-        actor *a;
 
-        actor_iterator_new(0);
-
-        iterator.filter_array = encounter_data;
-        iterator.unknown_04 = 0;
-        iterator.cursor = -1;
-        iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
-        iterator.unknown_10 = 0;
-        iterator.active = 1;
-        iterator.actor_index = -1;
-        iterator.unknown_18 = -1;
-
-        a = actor_iterator_next(&iterator);
-        while (a != 0) {
-            datum_index actor_index = iterator.actor_index /* the full handle, salt included */;
-            actor_delete_or_release_unit(actor_index, 0);
-            a = actor_iterator_next(&iterator);
+        actor_iterator_new(&iterator, 0);
+        while (actor_iterator_next(&iterator) != 0) {
+            actor_delete_or_release_unit(iterator.actor_index, is_dead);
         }
     } else {
-        datum_index actor_index = ai_reference_actor_iterator_init_cursor();
+        datum_index cursor[3];
+        datum_index actor_index;
 
+        ai_reference_actor_iterator_init_cursor((int32_t)encounter_index, cursor);
+        actor_index = cursor[2];
         while (ai_globals_ptr->actors_valid != 0 && actor_index != (datum_index)k_datum_index_none) {
             actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
             datum_index next = a->next_in_encounter;
 
-            if ((platoon_index == (datum_index)k_datum_index_none || a->platoon_index == (int16_t)platoon_index) &&
-                (squad_index == -1 || a->squad_index == squad_index)) {
-                actor_delete_or_release_unit(actor_index, 0);
+            if ((platoon_index == -1 || (int32_t)a->platoon_index == platoon_index) &&
+                (squad_index == -1 || (int32_t)a->squad_index == squad_index)) {
+                actor_delete_or_release_unit(actor_index, is_dead);
             }
             actor_index = next;
         }

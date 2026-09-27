@@ -3,7 +3,7 @@
 // it has a certain attachment flag, validates a linked node index, returning whether a related
 // condition (likely local/first-person player context) holds")
 // address 0x450680, size 65 bytes
-// name confidence: 0.25 (low -- name is a guess)   rewrite confidence: 0.2 (LOW -- see UNSURE)
+// name confidence: 0.25 (low -- name is a guess)   rewrite confidence: 0.9 (VERIFIED against objdump) (LOW -- see UNSURE)
 // evidence: src/objects/device_frontfacing.c and similar establish object_try_and_get(index,
 // type_mask); the type mask literal `1` here is unexplained (types/objects.h's object type mask
 // enum is not visible in this pack).

@@ -1,6 +1,6 @@
 // ai_reference_squad_iterator_new  (Ghidra: ai_reference_squad_iterator_new; named for this rewrite)
 // address 0x4324f0, size 179 bytes
-// name confidence: 0.4   rewrite confidence: 0.4
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED against objdump)
 // evidence: decodes a packed ai reference (see ai_reference_parse, 0x432320) the same way
 // as ai_reference_expand_to_platoon_range (0x432420, this batch), but one level down: a
 // squad reference becomes a single-squad range, a platoon reference becomes every squad in

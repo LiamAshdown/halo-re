@@ -1,6 +1,6 @@
 // ai_squads_merge  (Ghidra: ai_squads_merge; named for this rewrite)
 // address 0x433590, size 982 bytes
-// name confidence: 0.35   rewrite confidence: 0.2
+// name confidence: 0.35   rewrite confidence: 0.85 (REWRITTEN from objdump 0x433590..0x433965; hs ai_migrate worker)
 // evidence: phase-4 summary ("merges/reassigns live squad members from one squad into
 // another, matching by actor_variant, transferring leader status and starting-location
 // ownership") matches the overall shape: builds a 64-entry remap table (source squad index
@@ -41,7 +41,7 @@ extern void ai_reference_squad_iterator_new(uint32_t packed_reference, ai_refere
 extern encounter_squad_state *ai_reference_squad_iterator_next(ai_reference_squad_iterator *iterator); // 0x4325b0, this batch
 extern int32_t ai_squad_find_best_matching_member(uint32_t packed_reference, int16_t requested_squad_index,
     uint8_t *requested_actor_data, uint8_t *requested_actor_variant_data, char match_by_index); // 0x4333d0, this batch
-extern void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, ai_reference_actor_iterator *iterator); // 0x4369f0, this batch, UNSURE call site (see file header)
+extern void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, datum_index *cursor); // 0x4369f0, EAX, ECX
 extern void actor_iterator_new(actor_iterator_state *out_iterator, uint8_t active_only); // 0x436a30, this batch
 extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70, this batch
 extern void ai_actor_unlink_from_unassigned_list(datum_index actor_index); // 0x436990, this batch
@@ -51,123 +51,140 @@ extern void encounter_add_actor(int16_t squad_index, datum_index actor_index,
     // site, so the actor's current squad_index is passed; encounter_add_actor writes it
     // straight back into the same field.
 extern void encounters_recompute_dirty(void); // 0x435f00, this batch
-extern void actor_reset_squad_link_for_type_change(int16_t squad_index); // 0x4290f0, outside this rewrite's range, UNSURE signature
+extern void actor_reset_squad_link_for_type_change(datum_index actor_index, datum_index encounter_index,
+    int16_t squad_index); // 0x4290f0, EAX, EBX, stack
 extern void ai_recompute_all_relationship_flags(void); // 0x42bbb0, outside this rewrite's range, UNSURE signature
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340, already established elsewhere
 
+// REWRITTEN from objdump. hs ai_migrate (0x47d826) passes (EDX = source ai reference, stack = target reference, 0, 0).
+//   1. For every squad the source reference names that is populated (state +0x18 > 0) or whose encounter has
+//      +0x1e set, remap[squad] = ai_squad_find_best_matching_member(EAX = the RAW target reference, squad, actor
+//      tag data, actor variant data, source == target).
+//   2. Every member of the source encounter (init_cursor, cursor[2], chained through +0x2c) whose remapped squad
+//      is not -1 (and differs, when merging into itself) is moved with actor_reset_squad_link_for_type_change(
+//      EAX = actor, EBX = target encounter, remapped squad). When notify is set and the actor has a unit, the
+//      0x17 (or 0x16 for is_platoon_merge) communication is broadcast.
+//   3. If the source encounter +0x1e is set, every actor whose +0x44/+0x48 (a secondary encounter/squad) points
+//      at the source is remapped too, and +0x1e moves to the target unless merging into itself.
+//   4. Unassigned actors (ai globals +0x08 list) whose +0x30/+0x38 encounter/squad is the source are
+//      remapped. When not merging into itself and the target encounter's BSP (+0x7e) is the current one, they
+//      are unlinked and encounter_add_actor(DX = the new +0x38 squad, actor, target, 1) is called.
+//   5. A team change recomputes the relationship flags, then encounters_recompute_dirty.
+//   The draft walked the unassigned list in step 2, dropped the actor/encounter arguments of the squad move,
+//   masked the reference handed to find_best_matching_member, and used +0x3a as the squad in step 4.
 // blam-cc: EDX -> source_reference, stack -> target_encounter_index, notify, is_platoon_merge
 void ai_squads_merge(uint32_t source_reference, uint32_t target_encounter_index, char notify, char is_platoon_merge)
 {
-    uint32_t source_encounter_index;
-    int32_t source_squad_index; // "local_94"
+    uint32_t target_reference = target_encounter_index;
+    uint32_t source_index;
+    uint32_t target_index;
     encounter *target_enc;
     encounter *source_enc;
-    int16_t remap[64][2]; // local_80: pairs kept to match the original's stride, only [n][0] is ever read
+    ScenarioEncounter *source_definition;
+    ScenarioEncounter *target_definition;
+    int16_t remap[64];
     ai_reference_squad_iterator iterator;
     encounter_squad_state *state;
-    int32_t i;
+    datum_index cursor[3];
+    datum_index actor_index;
     uint8_t merging_into_self;
+    int32_t i;
 
-    if (source_reference == (uint32_t)k_datum_index_none || target_encounter_index == (uint32_t)k_datum_index_none) {
+    if (source_reference == (uint32_t)k_datum_index_none || target_reference == (uint32_t)k_datum_index_none) {
         return;
     }
+    source_index = source_reference & 0xffff;
+    target_index = target_reference & 0xffff;
 
-    source_encounter_index = source_reference & 0xffff;
-    target_encounter_index = target_encounter_index & 0xffff;
-    if (source_encounter_index == (uint32_t)k_datum_index_none ||
-        target_encounter_index == (uint32_t)k_datum_index_none) {
-        return;
-    }
-
-    target_enc = &((encounter *)encounter_data->data)[target_encounter_index];
-    source_enc = &((encounter *)encounter_data->data)[source_encounter_index];
-    merging_into_self = (source_encounter_index == target_encounter_index);
+    target_enc = &((encounter *)encounter_data->data)[target_index];
+    source_enc = &((encounter *)encounter_data->data)[source_index];
+    target_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)[target_index];
+    source_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)[source_index];
+    merging_into_self = (uint8_t)(source_index == target_index);
 
     for (i = 0; i < 64; i++) {
-        remap[i][0] = -1;
-        remap[i][1] = -1;
+        remap[i] = -1;
     }
 
+    // 1. squad remap table
     ai_reference_squad_iterator_new(source_reference, &iterator);
-    state = ai_reference_squad_iterator_next(&iterator);
-    while (state != 0) {
-        if (state->unknown_18 > 0 || source_enc->unknown_1e[0] != 0) {
-            ScenarioEncounter *source_definition =
-                &((ScenarioEncounter *)global_scenario->encounters.pointer)[source_encounter_index];
-            ScenarioSquad *squad = &((ScenarioSquad *)source_definition->squads.pointer)[iterator.cursor];
-            int16_t actor_palette_index = (int16_t)squad->actor_type;
-            uint8_t *actor_variant_data = 0;
-            uint8_t *actor_data = 0;
+    for (state = ai_reference_squad_iterator_next(&iterator); state != 0;
+         state = ai_reference_squad_iterator_next(&iterator)) {
+        uint8_t *squad;
+        int16_t palette_index;
+        uint8_t *variant_data = 0;
+        uint8_t *actor_tag_data = 0;
 
-            if (actor_palette_index >= 0 && actor_palette_index < global_scenario->actor_palette.count) {
-                TagDependency *entry =
-                    &((TagDependency *)global_scenario->actor_palette.pointer)[actor_palette_index];
-                datum_index actor_variant_tag = *(datum_index *)&entry->tag_id;
-                if (actor_variant_tag != (datum_index)k_datum_index_none &&
-                    tag_instances[actor_variant_tag & 0xffff].group_tag == 0x61637476 /* 'actv' */) {
-                    actor_variant_data = (uint8_t *)tag_instances[actor_variant_tag & 0xffff].data;
-                    if (*(uint32_t *)(actor_variant_data + 0x10) != (uint32_t)k_datum_index_none) {
-                        datum_index actor_tag = *(datum_index *)(actor_variant_data + 0x10);
-                        actor_data = (uint8_t *)tag_instances[actor_tag & 0xffff].data;
-                    }
+        if (!(state->unknown_18 > 0) && source_enc->unknown_1e[0] == 0) {
+            continue;
+        }
+        squad = *(uint8_t **)((uint8_t *)source_definition + 0x84) + iterator.cursor * 0xe8;
+        palette_index = *(int16_t *)(squad + 0x20);
+        if (palette_index >= 0 && (int32_t)palette_index < *(int32_t *)((uint8_t *)global_scenario + 0x420)) {
+            uint8_t *entry = *(uint8_t **)((uint8_t *)global_scenario + 0x424) + palette_index * 0x10;
+            datum_index variant_tag = *(datum_index *)(entry + 0xc);
+
+            if (variant_tag != (datum_index)k_datum_index_none &&
+                tag_instances[(int16_t)variant_tag].group_tag == 0x61637476 /* 'actv' */) {
+                datum_index actor_tag;
+
+                variant_data = (uint8_t *)tag_instances[variant_tag & 0xffff].data;
+                actor_tag = *(datum_index *)(variant_data + 0x10);
+                if (actor_tag != (datum_index)k_datum_index_none) {
+                    actor_tag_data = (uint8_t *)tag_instances[actor_tag & 0xffff].data;
                 }
             }
-
-            remap[iterator.cursor][0] = (int16_t)ai_squad_find_best_matching_member(
-                target_encounter_index, (int16_t)iterator.cursor, actor_data, actor_variant_data, merging_into_self);
         }
-        state = ai_reference_squad_iterator_next(&iterator);
+        remap[iterator.cursor] = (int16_t)ai_squad_find_best_matching_member(target_reference, (int16_t)iterator.cursor,
+            actor_tag_data, variant_data, (char)merging_into_self);
     }
 
-    // UNSURE: the remainder of this function (reassigning live actors, unassigned actors and
-    // platoon-designer member records from the source squad/encounter to the remapped
-    // target) is transliterated close to Ghidra's own raw offsets rather than re-derived,
-    // given this function has zero callers in this build. actor+0x2c next_in_encounter,
-    // actor+0x3a squad_index (types/ai.h) and the ai_globals unassigned-list head
-    // (ai_globals+0x08) are the only offsets reused from elsewhere in this rewrite; the rest
-    // (actor+0x44/+0x48, a designer-record's own +0x30/+0x38/+0x7e) have no established
-    // names.
-    {
-        ai_reference_actor_iterator scratch_iterator; // unused beyond this call; see UNSURE note above
-        datum_index cursor;
-        ai_reference_actor_iterator_init_cursor((int32_t)source_encounter_index, &scratch_iterator);
-        cursor = ai_global_data->unknown_08;
-        while (ai_global_data->actors_valid != 0 && cursor != (datum_index)k_datum_index_none) {
-            actor *a = &((actor *)actor_data->data)[cursor & 0xffff];
-            int16_t squad_of_a = a->squad_index;
-            datum_index next = a->next_in_encounter;
-            int16_t remapped = remap[squad_of_a][0];
+    // 2. members of the source encounter
+    ai_reference_actor_iterator_init_cursor((int32_t)source_index, cursor);
+    actor_index = cursor[2];
+    while (ai_global_data->actors_valid != 0 && actor_index != (datum_index)k_datum_index_none) {
+        actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
+        datum_index current = actor_index;
+        int16_t squad_index = a->squad_index;
+        int16_t remapped = remap[squad_index];
 
-            if (remapped != -1 && (!merging_into_self || remapped != squad_of_a)) {
-                actor_reset_squad_link_for_type_change(remapped);
-                if (notify != 0) {
-                    if (a->unit_index != (datum_index)k_datum_index_none) {
-                        ai_communication_broadcast(0x17 - (is_platoon_merge != 0), a->unit_index,
-                                                    (uint32_t)k_datum_index_none, (uint32_t)k_datum_index_none,
-                                                    (uint32_t)k_datum_index_none, (uint32_t)k_datum_index_none, 0);
-                    }
-                }
+        actor_index = a->next_in_encounter;
+        if (remapped == -1 || (merging_into_self && remapped == squad_index)) {
+            continue;
+        }
+        actor_reset_squad_link_for_type_change(current, (datum_index)target_index, remapped);
+        if (notify != 0) {
+            datum_index unit_index = ((actor *)actor_data->data)[current & 0xffff].unit_index;
+
+            if (unit_index != (datum_index)k_datum_index_none) {
+                ai_communication_broadcast(is_platoon_merge != 0 ? 0x16 : 0x17, unit_index,
+                    (datum_index)k_datum_index_none, -1, (datum_index)k_datum_index_none,
+                    (datum_index)k_datum_index_none, 0);
             }
-            cursor = next;
         }
     }
 
+    // 3. secondary encounter/squad references
     if (source_enc->unknown_1e[0] != 0) {
+        actor_iterator_state all;
         actor *a;
-        actor_iterator_state iter;
-        actor_iterator_new(&iter, 0);
-        a = actor_iterator_next(&iter);
-        while (a != 0) {
-            uint32_t *field_44 = (uint32_t *)((uint8_t *)a + 0x44); // UNSURE: no established actor field
-            int16_t *field_48 = (int16_t *)((uint8_t *)a + 0x48);   // UNSURE: no established actor field
-            if ((*field_44 & 0xffff) == source_encounter_index) {
-                int16_t remapped = remap[*field_48][0];
-                if (remapped != -1 && (!merging_into_self || remapped != *field_48)) {
-                    *field_44 = target_encounter_index;
-                    *field_48 = remapped;
-                }
+
+        actor_iterator_new(&all, 0);
+        while ((a = actor_iterator_next(&all)) != 0) {
+            uint8_t *raw = (uint8_t *)a;
+            int16_t squad_index;
+            int16_t remapped;
+
+            if ((*(uint32_t *)(raw + 0x44) & 0xffff) != source_index) {
+                continue;
             }
-            a = actor_iterator_next(&iter);
+            squad_index = *(int16_t *)(raw + 0x48);
+            remapped = remap[squad_index];
+            if (remapped == -1 || (merging_into_self && remapped == squad_index)) {
+                continue;
+            }
+            *(uint32_t *)(raw + 0x44) = target_index;
+            *(int16_t *)(raw + 0x48) = remapped;
         }
         if (!merging_into_self) {
             source_enc->unknown_1e[0] = 0;
@@ -175,35 +192,33 @@ void ai_squads_merge(uint32_t source_reference, uint32_t target_encounter_index,
         }
     }
 
-    {
-        datum_index cursor;
-        if (ai_global_data->actors_valid != 0) {
-            cursor = ai_global_data->unknown_08;
-        } else {
-            cursor = (datum_index)k_datum_index_none;
+    // 4. unassigned actors that name the source encounter
+    actor_index = ai_global_data->actors_valid != 0 ? ai_global_data->unknown_08 : (datum_index)k_datum_index_none;
+    while (ai_global_data->actors_valid != 0 && actor_index != (datum_index)k_datum_index_none) {
+        datum_index current = actor_index;
+        uint8_t *raw = (uint8_t *)&((actor *)actor_data->data)[current & 0xffff];
+        int16_t squad_index;
+        int16_t remapped;
+
+        actor_index = *(datum_index *)(raw + 0x2c);
+        if ((*(uint32_t *)(raw + 0x30) & 0xffff) != source_index) {
+            continue;
         }
-        while (ai_global_data->actors_valid != 0 && cursor != (datum_index)k_datum_index_none) {
-            datum_index current = cursor;
-            actor *a = &((actor *)actor_data->data)[current & 0xffff];
-            cursor = *(datum_index *)((uint8_t *)a + 0x2c);
-            if ((*(uint32_t *)((uint8_t *)a + 0x30) & 0xffff) == source_encounter_index) { // UNSURE: no established field
-                int16_t remapped = remap[*(int16_t *)((uint8_t *)a + 0x38)][0]; // UNSURE: no established field
-                if (remapped != -1 && (!merging_into_self || remapped != *(int16_t *)((uint8_t *)a + 0x38))) {
-                    *(uint32_t *)((uint8_t *)a + 0x30) = target_encounter_index;
-                    *(int16_t *)((uint8_t *)a + 0x38) = remapped;
-                    if (!merging_into_self) {
-                        ScenarioEncounter *target_definition =
-                            &((ScenarioEncounter *)global_scenario->encounters.pointer)[target_encounter_index];
-                        if (*(int16_t *)((uint8_t *)target_definition + 0x7e) == global_structure_bsp_index) {
-                            ai_actor_unlink_from_unassigned_list(current);
-                            encounter_add_actor(a->squad_index, current, target_encounter_index, 1);
-                        }
-                    }
-                }
-            }
+        squad_index = *(int16_t *)(raw + 0x38);
+        remapped = remap[squad_index];
+        if (remapped == -1 || (merging_into_self && remapped == squad_index)) {
+            continue;
         }
+        *(uint32_t *)(raw + 0x30) = target_index;
+        *(int16_t *)(raw + 0x38) = remapped;
+        if (merging_into_self || *(int16_t *)((uint8_t *)target_definition + 0x7e) != global_structure_bsp_index) {
+            continue;
+        }
+        ai_actor_unlink_from_unassigned_list(current);
+        encounter_add_actor(*(int16_t *)(raw + 0x38), current, *(datum_index *)(raw + 0x30), 1);
     }
 
+    // 5.
     if (source_enc->team != target_enc->team) {
         ai_recompute_all_relationship_flags();
     }

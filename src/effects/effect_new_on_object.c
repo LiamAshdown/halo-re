@@ -2,7 +2,7 @@
 // out/phase4/effects_functions.md: "Creates a new particle system on an object with an explicit
 // min/max scale range, binding it to the object's markers")
 // address 0x4507a0, size 201 bytes
-// name confidence: 0.3   rewrite confidence: 0.35
+// name confidence: 0.3   rewrite confidence: 0.9 (VERIFIED against objdump)
 // evidence: types/effects.h effect (object_index 0x3c, first_person_weapon_index 0x4c, flags
 // _effect_first_person_bit 0x40, location_markers[32]); types/effects.h globals list
 // first_person_effects_enabled (0x00687014).
