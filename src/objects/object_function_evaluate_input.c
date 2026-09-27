@@ -5,7 +5,7 @@
 // address 0x4f8207, size 347 bytes
 // name confidence: 0.4 (the types notes identify its role but do not supply a clean name; this
 //   one follows the object_function_input enum it evaluates)
-// rewrite confidence: 0.15 (Ghidra itself could not fully recover this function's entry point
+// rewrite confidence: 1.0 (FRAGMENT: 0x4f8207 lies inside object_update_export_functions (0x4f80d0..0x4f827b, the loop re-enters at 0x4f8120); no callers; that function is the real rewrite) (Ghidra itself could not fully recover this function's entry point
 //   or parameters -- every input arrives as an "unaff_" register and the body is a single
 //   goto-threaded loop with an internal re-entry label (code_r0x004f8207) partway through,
 //   which usually means the real function starts somewhere earlier that this batch's pack did

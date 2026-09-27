@@ -1,6 +1,6 @@
 // hud_meter_permute_node_records  (Ghidra: FUN_00493ea0, unnamed)
 // address 0x493ea0, size 84 bytes
-// name confidence: 0.3   rewrite confidence: 0.35
+// name confidence: 0.3   rewrite confidence: 0.85 (VERIFIED against objdump 0x493ea0..0x493ef3: dest[i] = source[lookup[i]] (0x34-byte node matrices) for every node of the target model (+0xb8))
 // evidence: types/interface.h first_person_weapon_interface's unknown_108c field cites this
 // address ("node scratch gathered by 0x493ea0 and 0x4924b0"); out/phase4/interface_functions.md
 // "Copies a permuted set of animation-node records (indexed via a lookup table) into a

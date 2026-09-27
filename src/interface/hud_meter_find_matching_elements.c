@@ -1,6 +1,6 @@
 // hud_meter_find_matching_elements  (Ghidra: FUN_00493f00, unnamed)
 // address 0x493f00, size 258 bytes
-// name confidence: 0.35   rewrite confidence: 0.2
+// name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED against objdump 0x493f00..0x49400a: for each target model node (+0xb8/+0xbc, 0x9c each) the first source animation-graph node (+0x68/+0x6c, 0x40 each) with the same name; out[target] = source index, unmatched targets leave out untouched and clear the result)
 // evidence: out/phase4/interface_functions.md "Scans a HUD interface's meter/element list for
 // entries matching a target table, recording matches by index for later use."; types/interface.h
 // first_person_weapon_interface's weapon_hud_element/device_hud_element fields both cite this

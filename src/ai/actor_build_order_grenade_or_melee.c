@@ -1,6 +1,6 @@
 // actor_build_order_grenade_or_melee  (Ghidra: actor_build_order_grenade_or_melee, renamed)
 // address 0x403630, size 264 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED against objdump 0x403630..0x403737 (bail on actor +0x160; clear 0x30 bytes; base 0xb4 when DL; +8 -1, +0xc code, +4/+5 flags, +0x1c target -> actor_consider_target_candidate(EBX target, stack actor); codes 9..12 roll < 0.4 -> order +2 = 0x2d; else, unless actor +6, melee reachability (EBX order) succeeds when +8 is set); FIXED the failure path clearing byte +0x0e, not +0x07)
 // evidence: types/ai.h actor.order_committed (0x160)/swarm (0x06); types/ai.h
 //   actor_order_code (grenade-throw range 9..12, matches the random-bias gate here);
 //   phase-4 summary "biasing toward a grenade throw for certain order codes and otherwise
@@ -69,7 +69,7 @@ int32_t actor_build_order_grenade_or_melee(uint32_t resolved_target, uint8_t use
         if (order[4] != 0xffff) {
             return 1;
         }
-        *((uint8_t *)order + 7) = 0;
+        *((uint8_t *)order + 0xe) = 0; // 0x403728: byte +0x0e (the draft cleared byte +0x07)
     }
     return 0;
 }

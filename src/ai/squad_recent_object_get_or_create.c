@@ -1,6 +1,6 @@
 // squad_recent_object_get_or_create  (Ghidra: squad_recent_object_get_or_create, already named)
 // address 0x436c60, size 223 bytes
-// name confidence: 0.5   rewrite confidence: 0.4
+// name confidence: 0.5   rewrite confidence: 0.85 (VERIFIED against objdump 0x436c60..0x436d3e (walk the encounter pursuit list +0x38 by type; stale = last tick < min; create via datum_new (EDX pursuit data) linked at the head; a stale or new record is reset and returned only when creating))
 // evidence: types/ai.h ai_pursuit (type 0x02, last_tick 0x04, count 0x08, cursor 0x0a,
 // object_index[6] 0x0c, next 0x24) and encounter.first_pursuit (0x38), both already
 // established. Finds the encounter's ai_pursuit record of a given type, optionally creating

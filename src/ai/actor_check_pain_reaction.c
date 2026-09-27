@@ -1,6 +1,6 @@
 // actor_check_pain_reaction  (Ghidra: actor_check_pain_reaction, renamed)
 // address 0x40de20, size 75 bytes
-// name confidence: 0.3   rewrite confidence: 0.3
+// name confidence: 0.3   rewrite confidence: 0.85 (VERIFIED against objdump 0x40de20..0x40de6a (build order: EAX target, EDX passed through as use_alt_base, stack (actor, order code, 0, 0, &order); on success actor_set_mode(actor, 4, &order) and AL 1))
 // evidence: phase-4 summary "checks a pain/reaction condition and transitions the actor
 // into the associated mode if satisfied."
 // register convention: no parameters visible in the decompiled C; actor_build_order_grenade_or_melee and

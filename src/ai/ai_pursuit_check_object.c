@@ -1,6 +1,6 @@
 // ai_pursuit_check_object  (Ghidra: ai_pursuit_check_object; named for this rewrite)
 // address 0x436b90, size 122 bytes
-// name confidence: 0.35   rewrite confidence: 0.3
+// name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED against objdump 0x436b90..0x436c0a (get_or_create with create 0; count >= 7 counts as found, else the 6 slots are searched; count/last tick written through the optional outs))
 // evidence: calls squad_recent_object_get_or_create (0x436c60, this batch) with all of its
 // own parameters forwarded (Ghidra shows a zero-argument call), then reports whether a
 // caller-supplied object is present in that ai_pursuit's ring buffer (or, once the record

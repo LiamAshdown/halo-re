@@ -1,6 +1,6 @@
 // ai_pursuit_note_object  (Ghidra: ai_pursuit_note_object; named for this rewrite)
 // address 0x436b10, size 120 bytes
-// name confidence: 0.35   rewrite confidence: 0.3
+// name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED against objdump 0x436b10..0x436b87 (get_or_create(EAX encounter, stack type, min_last_tick, 1); object recorded in the 6-slot ring unless present; last tick stamped; AL = newly added))
 // evidence: calls squad_recent_object_get_or_create (0x436c60, this batch) with all of its
 // own parameters passed straight through (Ghidra's decompile shows the call with zero
 // visible arguments), then records object_index into that ai_pursuit's 6-wide ring buffer
