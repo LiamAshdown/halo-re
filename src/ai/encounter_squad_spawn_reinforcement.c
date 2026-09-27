@@ -1,6 +1,6 @@
 // encounter_squad_spawn_reinforcement  (Ghidra: encounter_squad_spawn_reinforcement, renamed)
 // address 0x438f60, size 317 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x438f60..0x43909c; the two respawn timers rewritten)
 // evidence: types/ai.h encounter (0x6c), encounter_squad_state (0x20, addressed as
 //   encounter_squad_states[encounter.first_squad+squad_index]); types/tags.h ScenarioSquad
 //   (respawn_total confirmed at +0x88 with offsetof()). Calls
@@ -72,13 +72,28 @@ uint32_t encounter_squad_spawn_reinforcement(datum_index encounter_index, int16_
                 squad_state->respawn_budget = squad_state->respawn_budget - 1; // see header UNSURE
             }
 
+            // 0x438ff8..0x439040: encounter timer = (r * (max - min) + min) * 30 ticks with the ENCOUNTER definition's
+            // range at +0x2c / +0x30; 0x439044..0x439090: squad timer likewise from the SQUAD definition's +0x8c / +0x90.
+            // FIXED 2026-09-27: the draft computed r + 30.0 (about one second) for both.
             random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-            randomized = (float)((uint32_t)random_seed_global >> 0x10) * k_random_scale_65536 + ticks_per_second;
-            self->unknown_3e = (int16_t)randomized;
+            {
+                float lo = *(float *)((uint8_t *)encounter_definition + 0x2c);
+                float hi = *(float *)((uint8_t *)encounter_definition + 0x30);
+                float r = (float)((uint32_t)random_seed_global >> 0x10) * k_random_scale_65536;
+
+                randomized = (r * (hi - lo) + lo) * ticks_per_second;
+                self->unknown_3e = (int16_t)(int32_t)randomized;
+            }
 
             random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-            randomized = (float)((uint32_t)random_seed_global >> 0x10) * k_random_scale_65536 + ticks_per_second;
-            squad_state->unknown_0e = (int16_t)randomized;
+            {
+                float lo = *(float *)((uint8_t *)squad_definition + 0x8c);
+                float hi = *(float *)((uint8_t *)squad_definition + 0x90);
+                float r = (float)((uint32_t)random_seed_global >> 0x10) * k_random_scale_65536;
+
+                randomized = (r * (hi - lo) + lo) * ticks_per_second;
+                squad_state->unknown_0e = (int16_t)(int32_t)randomized;
+            }
         }
     }
     return result & 0xffffff00;
