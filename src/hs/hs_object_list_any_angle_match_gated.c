@@ -2,7 +2,7 @@
 // address 0x487ad0, size 308 bytes
 // name confidence: 0.25 (out/phase4/hs_functions.md: "Variant of the reference-list angle test
 //   that adds an extra caller-supplied gating flag before invoking the geometry predicate")
-// rewrite confidence: 0.4
+// rewrite confidence: 0.9 (VERIFIED against 0x487ad0 (list walk, header salt/type/data checks, cutscene flag position, EDI/ECX/stack call))
 // evidence: near-duplicate of hs_object_list_any_angle_match.c (0x4879b0), inlining
 //   unit_point_within_look_cone directly instead of going through hs_object_angle_predicate_helper.
 // register convention: reference-list header index in EAX (in_EAX); extra gating flag in BX

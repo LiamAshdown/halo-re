@@ -1,6 +1,6 @@
 // ai_conversation_resolve_participants  (Ghidra: ai_conversation_resolve_participants; named for this rewrite)
 // address 0x430fc0, size 1471 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED end to end against 0x430fc0 (both participant passes with the stack-slot roles, readiness and trigger checks, nearest-player and player-looking scans, apply loop))
 // evidence: out/phase4/ai_types_notes.md's misattribution table places the
 // 0x430830..0x431e70 block on Scenario.ai_conversations; this function clears and refills
 // ai_conversation.participant_mask / .participant_actor[8] / the int16 variant array at
