@@ -26,9 +26,13 @@ extern void ai_notify_actors_of_encounter_state_change(int16_t team_a, int16_t t
 // Updates one pair's cached `active` flag and both 10x10 relationship bitmasks (secondary_bits
 // governed by `clear_secondary`, enemy_bits governed by `active`), skipping the work entirely
 // when neither would actually change anything.
+extern void __cdecl standalone_log(const char *format, ...); // TEMPORARY play-test logging
+
 void team_pair_set(team_pair_override *entry, uint8_t active, uint8_t clear_secondary)
     // blam-cc: EAX -> entry, EBX -> active, stack -> clear_secondary
 {
+    standalone_log("DIAG team_pair_set a=%d b=%d BL=%d clear=%d entry_active=%d refcount=%d", entry->index_a,
+        entry->index_b, active, clear_secondary, entry->active, entry->refcount); // TEMPORARY
     int32_t index;
     int32_t reverse_index;
 
