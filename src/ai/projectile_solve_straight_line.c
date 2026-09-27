@@ -1,6 +1,6 @@
 // projectile_solve_straight_line  (Ghidra: FUN_004bee20; renamed)
 // address 0x4bee20, size 147 bytes
-// name confidence: 0.35   rewrite confidence: 0.6
+// name confidence: 0.35   rewrite confidence: 0.85 (REWRITTEN 2026-09-28 against objdump 0x4bee20..0x4beeb2: the direction is the normalized delta (the header UNSURE claiming otherwise was wrong).)
 // evidence: out/phase4/projectiles_types_notes.md "0x4beb30, 0x4bee20, 0x4beec0 are AI
 //   ballistic-aiming helpers, not projectile state... 0x4bee20 just returns a direction, its
 //   length and the length over the given speed"; src/projectiles/README.md "Misattributed
@@ -55,9 +55,9 @@ uint8_t projectile_solve_straight_line(real_point3d *target, real_point3d *origi
         time_fraction = length / speed;
     }
 
-    out_direction->i = target->x - origin->x;
-    out_direction->j = target->y - origin->y;
-    out_direction->k = target->z - origin->z;
+    // 0x4bee78..0x4bee89: the NORMALIZED scratch vector is the direction. FIXED 2026-09-28: the draft wrote the raw
+    // delta (length = the distance), which the aiming code downstream treats as a unit vector.
+    *out_direction = scratch;
 
     if (out_length != (real *)0) {
         *out_length = length;

@@ -1,6 +1,6 @@
 // actor_compute_accuracy_scale  (Ghidra: actor_compute_accuracy_scale, renamed)
 // address 0x429620, size 156 bytes
-// name confidence: 0.4   rewrite confidence: 0.35
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x429620..0x4296bb (0.5 default, the unit tag's +0x384, mode 11 override, mode 9 -> 0.7, floor 0.2).)
 // evidence: types/ai.h actor.active_unit_index(0x158)/mode(0x6c)/mode_data; types/objects.h
 //   object.definition_tag (0x000). Phase-4 summary: "Computes the actor's effective accuracy
 //   scale for the current tick, based on difficulty settings and special-cased combat modes
@@ -40,7 +40,7 @@ float actor_compute_accuracy_scale(datum_index actor_index)
     if (self->mode == 9) {
         return 0.7f;
     }
-    if (scale <= 0.2f) {
+    if (!(scale > 0.2f)) { // 0x4296a6: test ah,0x41 / je keeps only a strictly larger value
         scale = 0.2f;
     }
     return scale;

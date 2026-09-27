@@ -1,6 +1,6 @@
 // projectile_get_aiming_vector  (Ghidra: FUN_004beec0; renamed)
 // address 0x4beec0, size 179 bytes
-// name confidence: 0.4   rewrite confidence: 0.55
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x4beec0..0x4bef72: every register / stack slot maps onto the two solvers.)
 // evidence: out/phase4/projectiles_types_notes.md "0x4beb30, 0x4bee20, 0x4beec0 are AI
 //   ballistic-aiming helpers, not projectile state... 0x4beec0 is the dispatcher: it reads
 //   tag + 0x1e4 (initial_velocity) as the default speed when the caller passes no speed, then
