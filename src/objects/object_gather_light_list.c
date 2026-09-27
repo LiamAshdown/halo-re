@@ -3,7 +3,7 @@
 // name confidence: 0.3 (still FUN_004f2430 in Ghidra; functions.md's summary: "Gathers the
 //   visible/nearby light-datum indices for an object into its light list and resolves each to a
 //   light-record pointer")
-// rewrite confidence: 0.25
+// rewrite confidence: 0.85 (VERIFIED against 0x4f2430 (bounding sphere, cluster reference walk, gather-nearest argument slots, handle translation))
 // evidence: types/objects.h globals list (0x008607c4 light_frame_counter, 0x008607c0
 //   light_render_unknown_7c0, 0x00860b14 light_data); callees object_get_root_parent_placement
 //   (0x4f5f70, this batch) and FUN_004f2df0 (0x4f2df0, this batch).

@@ -1882,3 +1882,6 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - unit_set_facing_from_index_table (0x570de0): FIXED (0.25 -> 0.85). object_set_position_and_orientation gets EDI = the spawn record's position (the vehicle placement +0x08, or the scenario +0x37c entry in game-engine mode 5). The draft passed the vehicle's current position, so a vehicle reset only turned it in place instead of moving it back to its spawn.
 - Skipped (MP): object_apply_shield_charge_and_notify (network message-delta handler).
 - Relink: left unresolved 1, traps 128.
+- actor_targets_share_descriptor (0x40e380): FIXED (0.25 -> 0.9). In the type-0 case the binary compares the last known positions of each actor's current target prop (+0x270), within 0.7 m. The draft read a datum out of the mode data (+0xa8).
+- object_gather_light_list (0x4f2430): VERIFIED (0.85).
+- Relink: left unresolved 1, traps 128.

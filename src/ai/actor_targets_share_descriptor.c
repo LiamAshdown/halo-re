@@ -1,6 +1,6 @@
 // actor_targets_share_descriptor  (Ghidra: actor_targets_share_descriptor, renamed)
 // address 0x40e380, size 273 bytes
-// name confidence: 0.4   rewrite confidence: 0.25
+// name confidence: 0.4   rewrite confidence: 0.9 (FIXED: target props come from actor +0x270 (0x40e402/0x40e413); rest verified against 0x40e380)
 // evidence: phase-4 summary "determines whether two actors are considered to share the
 // same target/threat descriptor, with a random tie-break for the ambiguous case"; both
 // actors must be in mode 5 or 7, and the comparison reads a 2-byte "kind" and a 2-byte
@@ -40,8 +40,10 @@ uint8_t actor_targets_share_descriptor(datum_index actor_a, datum_index actor_b)
     }
 
     if (desc_a[0] == 0 && desc_b[0] == 0) {
-        datum_index datum_a = *(datum_index *)((uint8_t *)desc_a + 4); // UNSURE, see header
-        datum_index datum_b = *(datum_index *)((uint8_t *)desc_b + 4); // UNSURE, see header
+        // FIXED (0x40e402 / 0x40e413): the props are each actor's current target (+0x270), not a
+        //   datum inside the mode data.
+        datum_index datum_a = self_a->target_unit_index;
+        datum_index datum_b = self_b->target_unit_index;
         prop *prop_a = (prop *)datum_get(datum_a, prop_data);
         prop *prop_b = (prop *)datum_get(datum_b, prop_data);
         if (prop_a == (prop *)0 || prop_b == (prop *)0) return 0;
