@@ -1284,3 +1284,14 @@ OPEN: ai_communication_broadcast (0x42d340, 5.6 KB, 0.3) and actor_update_look_t
   actor_update_squad_link_state's staleness test (kind 4..5 only in grade 3; active movement type +0x46c).
 - Verified: actor_update_activation_state, actor_movement_advance_waypoint, objects_update, actor_delete_or_
   release_unit, unit_apply_scale_change (scripted kill), idle basis / fidget.
+
+## 2026-09-27 (loop, static only) -- all 42 actor mode callbacks written
+- Every proc of the actor mode table (0x65524c) now has C (scratchpad/modes1..15.py, src/ai/actor_mode_*.c, 0.9
+  each, written from objdump; relinked, 1 unresolved / 130 traps as before). Largest: charge process 0x401da0
+  (2.9 KB), guard update 0x404d60, search process 0x407a10, flee process 0x4037f0. scratchpad/modeprocs.py
+  prints nothing left.
+- Notes worth keeping: 0x422070 (actor_record_perception_event) preserves EDX, so guard update's broadcast gets 2;
+  0x407b33 leaves the marker call's five arguments pushed under the reachability call's four (harmless in C).
+NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 update proc, +0x18 / +0x1c) -- only
+  crew (0x423890) has C; elite / grunt / jackal / marine / hunter / flood / sentinel / infection / mounted weapon
+  procs are unlisted and would trap as soon as such an actor updates.
