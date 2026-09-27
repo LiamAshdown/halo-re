@@ -1,6 +1,6 @@
 // player_compute_view_forward_vector  (Ghidra: FUN_00473d70; named per this rewrite)
 // address 0x473d70, size 282 bytes
-// name confidence: 0.35   rewrite confidence: 0.35
+// name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x473d70..0x473e89 (EAX player, ECX yaw/pitch, ESI out).)
 // evidence: types/units.h unit_data (vehicle_seat_index +0x2f0); types/tags.h Unit::seats
 // (a TagReflexive of UnitSeat, matching src/game/game_engine_build_local_player_control_input.c's
 // established `((UnitSeat *)parent_definition->seats.pointer)[unit->vehicle_seat_index]` idiom)

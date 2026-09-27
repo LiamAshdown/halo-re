@@ -3,7 +3,7 @@
 // pill axis ... clamping the along-axis parameter, then finishes with point3d_add_scaled/
 // vector3d_normalize_with_length -- the ray counterpart of FUN_00503f90.")
 // address 0x5045c0, size 784 bytes
-// name confidence: 0.5   rewrite confidence: 0.35
+// name confidence: 0.5   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x5045c0..0x5048d0 (quadratic, cap clamps both signs, hit plane via two point3d_add_scaled calls).)
 // evidence: physics_model_pill.origin_x/y/z (0x0c/0x10/0x14), .extent_i/j/k (0x18/0x1c/0x20) and
 //   .radius (0x24) match unaff_EDI+0xc.. exactly, the same fields physics_shape_pill_test_point
 //   (0x503f90, this module) reads off unaff_ESI; the final normalize+d formula is identical to
