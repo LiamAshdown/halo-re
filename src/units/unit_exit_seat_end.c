@@ -1,6 +1,6 @@
 // unit_exit_seat_end  (Ghidra: already named unit_exit_seat_end)
 // address 0x56fd40, size 508 bytes
-// name confidence: 0.5 (functions.md summary matches what little is legible)
+// name confidence: 0.1   rewrite confidence: 1.0 (FRAGMENT: 0x56fd40 is inside unit_melee_lunge_damage_tick 0x56fc80..0x56ff3b, whose C covers this code; nothing calls or jumps here)
 // rewrite confidence: 0.1 -- by far the least legible function in this batch. Ghidra could not
 //   recover almost any of this function's real inputs (they show up as in_stack_/unaff_ registers
 //   pointing at addresses above the visible stack frame), which is the signature of a function

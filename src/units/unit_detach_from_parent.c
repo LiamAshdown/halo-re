@@ -1,7 +1,7 @@
 // unit_detach_from_parent  (Ghidra: already named unit_detach_from_parent)
 // address 0x570140, size 98 bytes
 // name confidence: 0.6 (functions.md summary matches)
-// rewrite confidence: 0.15 -- zero recorded callers and every input arriving as an "unaff_"
+// rewrite confidence: 1.0 (FRAGMENT: 0x570140 is the tail of unit_process_melee_special_interaction 0x56ff40, whose C holds this logic; nothing calls or jumps here) -- zero recorded callers and every input arriving as an "unaff_"
 //   register are the signature of a shared tail block Ghidra split out of a larger function
 //   rather than a real call target; unaff_EBX (the object base) cannot be resolved here.
 // evidence: types/objects.h object.flags (0x010); types/units.h unit_data.flags (0x204, bit
