@@ -2059,3 +2059,12 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   (linear sweep to the first call). 9 left, all networking/startup/vehicle-hover.
 - Skipped as networking: object_apply_shield_charge_and_notify, object_apply_linked_impulse (OPEN: its
   item_accelerate call passes 2 of 3), unit_spawn_with_starting_weapons.
+- First-person gun (OPEN), static pass: the whole draw path matches the binary -- first_person_weapon_update_lighting
+  (both render_model calls: EAX model, ECX permuted nodes, 11 stack args incl. flags 8), render_objects (0x6893ee = 1:
+  FP drawn before objects), render_model's cutoff test (+0x8 vs pixels 0), chimera__rasterizer_set_frustum_z_func,
+  render_camera_projection_zrange_push_pop_set, animation_graph_nodes_build_matrices' call (camera position /
+  forward / up at 0x7c3114 / 0x7c3120 / 0x7c312c, bound correctly), rasterizer_set_shader_stage_config (stencil:
+  mode 1 = FP writes 1, mode 2 = world only where 0; 0x6893ef = 1), D24S8 depth-stencil. The tick-time
+  "camera=(0,0,0)" in the old DIAG is a red herring (the render camera is set inside render_window before the FP
+  draw). Added TEMPORARY "DIAG fpdraw" lines (render_model, flags == 8, every 90th call): cutoff / early-out, LOD,
+  node0, bounding centre, and per region the geometry and part shader types. Read them after the next normal play.

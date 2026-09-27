@@ -58,6 +58,10 @@ extern void model_render_parts(GBXModel *model, uint8_t *region_permutations, ra
 // rasterizer_model_draw_context and hands it to model_render_parts. Substitutes the module's
 // default globals for any NULL of region_permutations/effect/change_colors/function_values,
 // and does nothing at all if the model is both too small on screen and not in immediate mode.
+// TEMPORARY (2026-09-27): first-person draw diagnostics, src/interface/debug_play_diagnostics.c
+extern void debug_fp_render_model_note(uint32_t model_tag, float pixels, int32_t lod, const float *node0,
+    const float *center, int32_t early_out);
+
 void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t *region_permutations,
                    ColorRGB *change_colors, float *function_out_values, render_lighting *lighting,
                    real_point3d *bounding_center, float bounding_radius, render_model_effect *effect,
@@ -81,6 +85,10 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
     }
 
     if ((&model->super_high_detail_cutoff)[_model_lod_super_low] > pixels && (flags & _model_render_immediate_bit) == 0) {
+        if (flags == 8) {
+            debug_fp_render_model_note(*(uint32_t *)&model_tag_id, pixels, -1, (const float *)node_matrices,
+                (const float *)bounding_center, 1); // TEMPORARY first-person diagnostics
+        }
         model_render_first_person = 0;
         return;
     }
@@ -173,6 +181,10 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
         rasterizer_object_shadow_model_active = 1;
     }
 
+    if (flags == 8) {
+        debug_fp_render_model_note(*(uint32_t *)&model_tag_id, pixels, lod, (const float *)node_matrices,
+            (const float *)bounding_center, 0); // TEMPORARY first-person diagnostics
+    }
     model_render_parts(model, region_permutations, (rasterizer_node_matrices *)&context.node_matrices,
                         lod, forced_shader_permutation, flags);
 

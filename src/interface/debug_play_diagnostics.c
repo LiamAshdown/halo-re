@@ -11,6 +11,7 @@
 #include "game.h"
 #include "ai.h"
 #include "interface.h"
+#include "cache.h"
 
 extern void __cdecl standalone_log(const char *format, ...);
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
@@ -18,6 +19,7 @@ extern data_array *object_data;  // 0x008603b0
 extern data_array *prop_data;    // 0x008802c0
 extern data_array *actor_data;   // 0x00880360
 extern team_pair_globals *team_pair_data; // 0x006b0b84
+extern tag_instance *tag_instances; // 0x0087bc14
 
 static int32_t debug_play_tick;
 
@@ -85,6 +87,57 @@ void debug_play_diagnostics(void)
             standalone_log("DIAG prop %d actor=%08x actor_team=%d prop_team(+12)=%d enemy(+60)=%d kind(+24)=%d "
                            "u61=%d u62=%d", i, owner, actor_team, *(int16_t *)(p + 0x12), p[0x60],
                 *(int16_t *)(p + 0x24), p[0x61], p[0x62]);
+        }
+    }
+}
+
+// TEMPORARY (2026-09-27): first-person model draw note, called from render_model when flags == 8 (only the
+// first-person weapon/hands draw uses that flag). Every 90th call logs the model, the LOD cutoff test, the LOD,
+// the first node matrix after the inverse-bind multiply, the bounding centre, the rasterizer camera and, for each
+// region, the geometry picked and its parts' shader types -- to find why the first-person gun is not visible.
+static int32_t debug_fp_draw_count;
+
+void debug_fp_render_model_note(uint32_t model_tag, float pixels, int32_t lod, const float *node0,
+    const float *center, int32_t early_out)
+{
+    uint8_t *model = (uint8_t *)tag_instances[model_tag & 0xffff].data;
+    int32_t r;
+
+    if ((debug_fp_draw_count++ % 90) != 0) {
+        return;
+    }
+    standalone_log("DIAG fpdraw model=%08x pixels=%.3f cutoff8=%.3f early_out=%d lod=%d nodes=%d node0 pos=(%.3f %.3f %.3f) "
+                   "left=(%.3f %.3f %.3f) center=(%.3f %.3f %.3f)",
+        model_tag, pixels, *(float *)(model + 0x8), early_out, lod, ((GBXModel *)model)->nodes.count,
+        node0 ? node0[10] : 0.0f, node0 ? node0[11] : 0.0f, node0 ? node0[12] : 0.0f,
+        node0 ? node0[4] : 0.0f, node0 ? node0[5] : 0.0f, node0 ? node0[6] : 0.0f,
+        center ? center[0] : 0.0f, center ? center[1] : 0.0f, center ? center[2] : 0.0f);
+    if (early_out) {
+        return;
+    }
+    for (r = 0; r < (int32_t)((GBXModel *)model)->regions.count && r < 4; r++) {
+        ModelRegion *region = &((ModelRegion *)((GBXModel *)model)->regions.pointer)[r];
+        ModelRegionPermutation *perm = (ModelRegionPermutation *)region->permutations.pointer;
+        int16_t geometry_index = (int16_t)(&perm->super_low)[lod];
+        int32_t p;
+
+        if (geometry_index < 0) {
+            standalone_log("DIAG fpdraw region %d geometry=-1", r);
+            continue;
+        }
+        {
+            GBXModelGeometry *geometry = &((GBXModelGeometry *)((GBXModel *)model)->geometries.pointer)[geometry_index];
+
+            standalone_log("DIAG fpdraw region %d geometry=%d parts=%d", r, geometry_index, geometry->parts.count);
+            for (p = 0; p < (int32_t)geometry->parts.count && p < 6; p++) {
+                GBXModelGeometryPart *part = &((GBXModelGeometryPart *)geometry->parts.pointer)[p];
+                ModelShaderReference *ref =
+                    &((ModelShaderReference *)((GBXModel *)model)->shaders.pointer)[(int16_t)part->base.shader_index];
+                uint8_t *shader = (uint8_t *)tag_instances[ref->shader.tag_id.index].data;
+
+                standalone_log("DIAG fpdraw   part %d shader_type=%d part_flags=%x triangles=%d", p,
+                    *(int16_t *)(shader + 0x24), part->base.flags, part->base.triangle_count);
+            }
         }
     }
 }
