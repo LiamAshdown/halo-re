@@ -1,6 +1,6 @@
 // ai_object_list_remap_units_and_children  (Ghidra: ai_object_list_remap_units_and_children; named for this rewrite)
 // address 0x433a70, size 296 bytes
-// name confidence: 0.35   rewrite confidence: 0.3
+// name confidence: 0.35   rewrite confidence: 0.8 (FIXED: the remap calls pass notify 0 (the binary pushes constants; EDX is not an input))
 // evidence: walks an object_list (types/hs.h) and, for every biped or vehicle object in it
 // (object_try_and_get with type mask 3, already established), calls
 // ai_unit_remap_actor_to_squad (0x433970, this batch) on it and then recursively on every
@@ -41,13 +41,13 @@ void ai_object_list_remap_units_and_children(datum_index object_list_header, uin
 
             if (obj != 0) {
                 datum_index child;
-                ai_unit_remap_actor_to_squad(object_index, packed_reference, notify);
+                ai_unit_remap_actor_to_squad(object_index, packed_reference, 0); // FIXED: the binary pushes (reference, 0, 0) (0x433af2 / 0x433b34)
 
                 child = obj->first_child_object;
                 while (child != (datum_index)k_datum_index_none) {
                     object_header *child_header = &((object_header *)object_data->data)[child & 0xffff];
                     if ((1 << (child_header->type & 0x1f) & 3) != 0) {
-                        ai_unit_remap_actor_to_squad(child, packed_reference, notify);
+                        ai_unit_remap_actor_to_squad(child, packed_reference, 0); // FIXED: the binary pushes (reference, 0, 0) (0x433af2 / 0x433b34)
                     }
                     child = ((object *)child_header->data)->next_object;
                 }
