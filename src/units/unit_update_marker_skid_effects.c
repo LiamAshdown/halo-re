@@ -1,7 +1,7 @@
 // unit_update_marker_skid_effects  (Ghidra: FUN_00575460; renamed from the phase2 proposal)
 // address 0x575460, size 475 bytes
 // name confidence: 0.35 (phase2 proposal at 0.35, matches functions.md summary)
-// rewrite confidence: 0.25
+// rewrite confidence: 0.85 (REWRITTEN from objdump 0x575460..0x57563a)
 // evidence: types/tags.h Vehicle.effect (tag_id at absolute 0x3dc); types/objects.h
 //   object.location_leaf_index (0x098); the physics.tag_id-at-0x8c idiom (contact-point count
 //   at Physics+0x74, per-node record base at Physics+0x78, stride 0x80, matching the sibling
@@ -23,47 +23,66 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern void material_effects_play_at_marker(int32_t material_hint, int32_t index, int32_t *location_leaf_index,
-                          float intensity); // 0x453490, UNSURE signature
+extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type,
+    int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param,
+    real_point3d *position, real_vector3d *offset); // 0x453490, EAX, stack x4, EDX, EDI
 extern double sqrt(double x);
 
-// Triggers skid/spark effects at each fast-moving (> 0.03) ground-contact marker of the vehicle,
-// scaled by speed, using Vehicle.effect as the gate (only runs when that tag reference is
-// valid).
+// REWRITTEN from objdump. For each contact point (stride 0x130) with flag bit 1 whose velocity (+0x54..+0x5c)
+//   is faster than 0.03: intensity = clamp((speed - 0.03) * 4.5454545, 0, 1); position = contact +0x04 + normal
+//   (+0x60) * (contact +0x74 - physics node +0x68 + 0.003); offset = velocity * (0.8660254 / speed) + normal * 0.5;
+//   then material_effects_play_at_marker(tag +0x3dc, 9 + (node +0x24 & 1), contact +0x70, &obj +0x98, intensity,
+//   &position, &offset). The draft passed the effect-type index as the tag and left EDX/EDI unset.
+// blam-cc: EAX -> unit_index, stack -> contact_points
 void unit_update_marker_skid_effects(uint32_t unit_index, uint8_t *contact_points)
 {
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *physics_tag;
+    int32_t count;
+    int16_t i;
 
-    if (*(int32_t *)((uint8_t *)tag + 0x3dc) == -1) {
+    if (*(int32_t *)(tag + 0x3dc) == -1) {
         return;
     }
+    physics_tag = (uint8_t *)tag_instances[*(uint32_t *)(tag + 0x8c) & 0xffff].data;
+    count = *(int32_t *)(physics_tag + 0x74);
+    for (i = 0; (int32_t)i < count; i++) {
+        uint8_t *contact = contact_points + (int32_t)i * 0x130;
+        uint8_t *node = *(uint8_t **)(physics_tag + 0x78) + (int32_t)i * 0x80;
+        real_vector3d *velocity = (real_vector3d *)(contact + 0x54);
+        real_vector3d *normal = (real_vector3d *)(contact + 0x60);
+        real_point3d *point = (real_point3d *)(contact + 0x04);
+        real_point3d position;
+        real_vector3d offset;
+        real speed, scaled, depth, k;
+        uint32_t intensity_bits;
 
-    {
-        uint8_t *physics_tag = tag_instances[*(uint32_t *)((uint8_t *)tag + 0x8c) & 0xffff].data;
-        int32_t count = *(int32_t *)(physics_tag + 0x74);
-        int32_t i;
-
-        for (i = 0; i < count; i++) {
-            uint8_t *marker = contact_points + i * 0x130;
-
-            if ((marker[0] & 2) != 0) {
-                float vx = *(float *)(marker + 0x54);
-                float vy = *(float *)(marker + 0x58);
-                float vz = *(float *)(marker + 0x5c);
-                double speed = sqrt((double)(vx * vx + vz * vz + vy * vy));
-
-                if (speed > 0.03) {
-                    float scaled = (float)((speed - 0.03) * 4.5454545);
-                    float clamped = (scaled < 0.0f) ? 0.0f : (scaled > 1.0f ? 1.0f : scaled);
-                    uint8_t *physics_node = *(uint8_t **)(physics_tag + 0x78) + i * 0x80;
-                    int32_t material_hint = ((*(uint32_t *)(physics_node + 0x24) & 1) != 0) + 9;
-
-                    material_effects_play_at_marker(material_hint, *(int16_t *)(marker + 0x70),
-                                 &obj->location_leaf_index, clamped);
-                }
-            }
+        if ((contact[0] & 2) == 0) {
+            continue;
         }
+        speed = (real)sqrt((double)(velocity->k * velocity->k + velocity->j * velocity->j +
+            velocity->i * velocity->i));
+        if (!(speed > 0.03f)) {
+            continue;
+        }
+        scaled = (speed - 0.03f) * 4.5454545f;
+        depth = *(real *)(contact + 0x74) - *(real *)(node + 0x68) + 0.003f;
+        position.x = depth * normal->i + point->x;
+        position.y = depth * normal->j + point->y;
+        position.z = depth * normal->k + point->z;
+        k = 0.8660254f / speed;
+        offset.i = normal->i * 0.5f + k * velocity->i;
+        offset.j = normal->j * 0.5f + k * velocity->j;
+        offset.k = normal->k * 0.5f + k * velocity->k;
+        if (!(scaled >= 0.0f)) {
+            scaled = 0.0f;
+        } else if (!(scaled <= 1.0f)) {
+            scaled = 1.0f;
+        }
+        intensity_bits = *(uint32_t *)&scaled;
+        material_effects_play_at_marker(*(uint32_t *)(tag + 0x3dc), (int16_t)(9 + (*(uint32_t *)(node + 0x24) & 1)),
+            *(int16_t *)(contact + 0x70), (uint32_t *)(obj + 0x98), intensity_bits, &position, &offset);
     }
 }
 

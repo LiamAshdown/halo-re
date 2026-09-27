@@ -1724,3 +1724,4 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - turret and steering_wheel: VERIFIED except that the EDI powered-mass-point buffer (vehicle_update [esp+0x88]) was a NULL stand-in written through and passed as the contact buffer. It is now a real parameter, and object_physics_tick gets (unit, buffer, contacts, 0, 0) (0.9).
   - vehicle_calculate_lean_controls (0x572df0, type 2): REWRITTEN (0.15 -> 0.85). Drive/steer entries in the ESI buffer, then the roll-correcting torque about forward.
   - vehicle_update passes node_output as the third argument.
+- unit_update_marker_skid_effects (0x575460) REWRITTEN 0.25 -> 0.85: material_effects_play_at_marker now gets EAX = tag +0x3dc, the stack args in binary order (9/10, contact +0x70, &obj +0x98, intensity) and the EDX position / EDI offset locals. The draft passed the effect index as the tag and left the position/offset unset.
