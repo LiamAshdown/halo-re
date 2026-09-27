@@ -1848,3 +1848,12 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   rasterizer_draw_text_begin copies +0x40/+0x44 into c17.xy, the scale from the glyph callback's pixel texture coordinates to 0..1, so every glyph sampled a single texel. Both fixed (0.2 -> 0.85). The rest of both functions was verified.
 - OPEN: why menu text rendered despite this. Possibly a different vertex shader or constant path in the UI pass; worth a look if menu text shifts after the fix.
 - Relink: left unresolved 1, traps 128.
+
+## 2026-09-27 (user testing) -- a10 crash in cluster_flood_fill_within_radius: FIXED (pack(1) padding)
+- The crash came after the cryo exit: the hs damage_new -> hs_damage_apply_at_location -> damage_apply_area_effect -> object_find_in_sphere -> cluster_flood_fill_within_radius chain read through a garbage cluster index (0xfde4). Log: scratchpad/cdb_crash_textfix.txt.
+- Cause: types/hs.h is #pragma pack(1) (every header is), and hs_damage_request relied on implicit alignment. After uint16 unknown_10 the int32 leaf landed at 0x12, not 0x14, and after uint16 sound_index the position landed at 0x1a, not 0x1c. damage_apply_area_effect reads the binary layout (+0x14 leaf/cluster, +0x1c epicentre), so it got garbage. Explicit pads (unknown_12, unknown_1a) were added; this also fixes hs_damage_apply_with_sound, which uses the same record.
+- New tool scratchpad/packaudit.py compiles an offsetof assert for every commented field offset (relative to the struct's first commented field) and every '// size' in types/*.h: 673 structs, 5889 checks. Besides the above:
+  - actor_placement_request unknown_13[2] -> [3]: unknown_16/_18/_1a/_1c sat one byte low. The readers use raw offsets, so there's no behaviour change.
+  - Harmless: flexible-array sizes (hs_function_definition, heap), actor_iterator_state and ai_communication_record trailing size, and networking (MP).
+- Also: chimera__draw_16/8_bit_text glyph texel scale (previous entry).
+- Relink: left unresolved 1, traps 128.

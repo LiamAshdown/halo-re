@@ -1729,7 +1729,7 @@ typedef struct actor_placement_request {
     float yaw;              // 0x0c
     uint8_t unknown_10[2];  // 0x10 UNSURE
     uint8_t unknown_12;     // 0x12 read as a signed byte
-    uint8_t unknown_13[2];  // 0x13
+    uint8_t unknown_13[3];  // 0x13 FIXED: was [2], which put unknown_16.. one byte low (pack(1) header)
     int16_t unknown_16;     // 0x16 actor.unknown_60 override when positive
     uint8_t unknown_18[2];  // 0x18
     uint8_t unknown_1a[2];  // 0x1a UNSURE

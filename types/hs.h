@@ -573,11 +573,16 @@ typedef struct hs_damage_request {
     uint32_t causer;                 // 0x08 UNSURE, set to -1 by both callers
     uint32_t attacker;               // 0x0c UNSURE, set to -1 by both callers
     uint16_t unknown_10;             // 0x10 set to 0xffff by both callers
+    uint16_t unknown_12;             // 0x12 FIXED: explicit padding. hs.h is #pragma pack(1), so
+                                     //      without it every field from sound_impulse on sat 2
+                                     //      bytes low and damage_apply_area_effect read a garbage
+                                     //      cluster (the a10 crash in cluster_flood_fill_within_radius)
     int32_t sound_impulse;           // 0x14
     uint16_t sound_index;            // 0x18 ScenarioStructureBSPLeaf.cluster of the leaf found for
                                      //      the location (global_structure_bsp->leaves.pointer at
                                      //      +0xe4, stride 0x10, cluster at +0x08; 0x488a0a), 0xffff
                                      //      when absent. This is damage_data.location_cluster_index.
+    uint16_t unknown_1a;             // 0x1a FIXED: explicit padding (pack(1) header, see unknown_12)
     Point3D position;                // 0x1c
     Point3D direction;               // 0x28 UNSURE: written with the same value as position
     uint8_t unknown_34[0x40 - 0x34]; // 0x34
