@@ -53,7 +53,7 @@ extern uint8_t ray_intersects_cylinder(float *out_fraction, const real_point2d *
 
 // blam-cc: EAX -> out_elevation, ECX -> sample, EDX -> out_end_point, EDI -> context,
 //          stack -> out_distance, out_clear_counter
-void actor_movement_test_obstacle_ray(real_vector3d *out_elevation, const float *sample,
+int16_t actor_movement_test_obstacle_ray(real_vector3d *out_elevation, const float *sample,
                                       real_point3d *out_end_point, actor_movement_context *context,
                                       float *out_distance, uint8_t *out_clear_counter)
 {
@@ -120,12 +120,13 @@ void actor_movement_test_obstacle_ray(real_vector3d *out_elevation, const float 
     if (out_clear_counter != (uint8_t *)0) {
         if (result > 0) {
             *out_clear_counter = 0;
-            return;
+            return result;
         }
         if (*out_clear_counter != 0xff) {
             *out_clear_counter = (uint8_t)(*out_clear_counter + 1);
         }
     }
+    return result; // 0x419212..0x419235: AX = 0 clear, 1 obstacle, 2 structure (0x4193d0 tests it)
 }
 
 #if 0

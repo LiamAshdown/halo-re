@@ -1,40 +1,17 @@
-// actor_movement_choose_avoidance_direction  (Ghidra: already named)
+// actor_movement_choose_avoidance_direction  (Ghidra: FUN_004193d0; steers a moving actor round obstacles)
 // address 0x4193d0, size 3829 bytes
-// name confidence: 0.55   rewrite confidence: 0.2
-// evidence: out/phase4/ai_functions.md "Core obstacle-avoidance steering computation: samples
-//   several candidate directions around the desired heading and picks the best compromise
-//   between goal direction and obstacle clearance."; types/ai.h actor_movement_context (this
-//   is the function whose stack frame fixes that struct's 0x6048 size -- the local variable
-//   Ghidra calls `local_6048` is exactly that struct, built on the stack and handed to
-//   actor_movement_collect_obstacle_candidates by address) and actor.unknown_5d8/unknown_5f0
-//   ("read by the avoidance sampler", both already attributed to this function by the header).
-// register convention: a plain stack signature Ghidra recovered in full -- no leftover
-//   in_EAX/unaff_ style registers.
-//   // blam-cc: stack -> actor_index, desired_direction, out_direction, out_speed_scale
-//
-// Kept very close to the Ghidra decompilation (original labels/variable names/control flow
-// preserved) given its size, the depth of the arithmetic, and the number of unresolved
-// out-of-range callees; see the UNSURE notes below. Only DAT_ globals, the actor pointer,
-// and the actor_movement_context stack buffer (which this function's own frame size proves)
-// have been given names; everything else keeps its Ghidra shape.
-//
-// UNSURE, broadly -- this function needs a disassembly review pass:
-//  - actor_movement_test_obstacle_ray (0x418f70) and actor_avoidance_interpolate_sample (0x419240) are outside
-//    this session's range and are each called with 0-2 visible arguments where they clearly
-//    need more (at minimum the context this function just built); their declared signatures
-//    below are read off these call sites only, and the extra implicit arguments are not
-//    reconstructed -- calls to them are left exactly as literal as the decompiled C, using
-//    only the operands Ghidra shows.
-//  - The exact geometry of the two direction-weight sampling loops (in particular the two
-//    unnamed constant tables at 0x0065586c and 0x00655868, and the raw actor-byte read at
-//    actor+0x5c9) is transcribed arithmetically but not independently understood.
-//  - Ghidra gives the actor pointer a spurious `float` type for part of the function; this
-//    rewrite keeps a real `actor *a` pointer throughout instead (the original's `local_60bc`
-//    -> `fVar2` stack-slot reuse near the end has no behavioural effect once a real pointer
-//    is used, since nothing overwrites `a`).
-//  - `local_60bc`'s *second* life (after the actor pointer is no longer needed, inside the
-//    LAB_00419e38 branch) is modeled as a fresh float local, `sample_z`.
-// reconciled: R06 0x00746f9c is ScenarioStructureBSP *global_structure_bsp (was extern int32_t bsp_generation); ai.h path_find_context/actor_movement_context bsp_generation -> structure_bsp, global_structure_collision_bsp -> collision_bsp
+// name confidence: 0.55   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x4193d0..0x41a2c4 (the draft declared both obstacle helpers with the wrong arguments,
+//   so none of its ray tests or interpolations were real). Stack (actor, desired offset, out rotation vector,
+//   out scale). Eight directions in the unit's (forward, left, up) frame are weighted: a bias towards the
+//   direction chosen last time (+0x5d8), nine near rays (a blocked one lowers the directions it covers and
+//   sets the closeness), two rays per direction (blocked: down by how close, clear: up once clear for 75
+//   ticks, counters at +0x5c8), and a penalty against sideways motion. With the best direction known, an actor
+//   facing well away from its goal (forwardness below -0.2) turns round towards the best direction (held at
+//   +0x5f0 for 90 ticks); one heading roughly the right way leans away from the blocked side; one with a
+//   clearly better direction to the side yaws towards it. The result is a rotation vector (axis * angle) and a
+//   scale 0..2; nothing to do gives zero.
+// blam-cc: stack -> (actor_index, desired, out_direction, out_scale)
 
 #include "tags.h"
 #include "memory.h"
@@ -43,456 +20,393 @@
 #include "objects.h"
 #include "ai.h"
 
+
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
-extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (formerly bsp_generation)
-extern int32_t global_structure_collision_bsp;      // 0x00746f98
-extern const real_vector3d *global_origin3d_pointer; // 0x00696714
+extern uint32_t global_structure_bsp_value; // 0x00746f9c
+extern uint32_t global_structure_collision_bsp_value; // 0x00746f98
+extern const real_vector3d *global_zero_point3d_pointer; // 0x00696714
 
 extern double sqrt(double x);
 extern double fabs(double x);
 
-extern void object_get_position(real_point3d *out_position, datum_index object_index); // 0x4f6900, EAX->out, ECX->object_index
+extern void object_get_position(real_point3d *out_position, datum_index object_index); // 0x4f6900, EAX, ECX
+extern void actor_movement_collect_obstacle_candidates(actor_movement_context *context); // 0x418ce0, stack
+extern int16_t actor_movement_test_obstacle_ray(real_vector3d *out_elevation, const float *sample,
+    real_point3d *out_end_point, actor_movement_context *context, float *out_distance,
+    uint8_t *out_clear_counter); // 0x418f70, EAX, ECX, EDX, EDI, stack; AX: 0 clear, 1 obstacle, 2 structure
+extern uint8_t actor_avoidance_interpolate_sample(const real_vector3d *direction, const real_vector3d *samples,
+    int16_t count, const float *values, float *out_index, float *out_value); // 0x419240, ECX, EBX, stack
+extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b); // 0x4cd4f0, ECX, EDX
 
-extern void actor_movement_collect_obstacle_candidates(actor_movement_context *context); // 0x418ce0, stack -> context
+extern float actor_avoidance_samples_a[16][7]; // 0x00880380, two rays per direction
+extern float actor_avoidance_circle[8][3];     // 0x00880540, the eight directions (forward, left, up frame)
+extern float actor_avoidance_samples_b[9][7];  // 0x008805a0, the near rays
+extern const float actor_avoidance_near_weights[9][8]; // 0x00655748, per near ray, its weight on each direction
+extern const float actor_avoidance_ray_weights[2];     // 0x00655868, 0.8 / 1.2
 
-// Casts a probe ray and reports a clearance fraction and a hit count. UNSURE signature: the
-// two calls below pass different visible arguments (see file header); both are transcribed
-// literally rather than unified into one reconstructed prototype.
-extern int16_t actor_movement_test_obstacle_ray(float *out_clearance, void *param_2); // 0x418f70, not yet rewritten (this module)
-
-// Finds where a direction vector crosses the boundary of the small convex polygon implied
-// by the 8 direction weights. UNSURE signature, read off these call sites only.
-extern uint8_t actor_avoidance_interpolate_sample(int32_t count, float *dir_weight, void *out_a, void *out_b); // 0x419240, not yet rewritten (this module)
-
-extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b); // 0x4cd4f0, ECX->a, EDX->b
-
-// The two constant blend-weight tables the sampling loops index into. Neither has an
-// established name or module owner; see UNSURE above.
-extern const float DAT_00655748[]; // 0x00655748, 9 rows of 8 floats (the first sampling loop)
-extern const float DAT_0065586c[]; // 0x0065586c
-extern const float DAT_00655868[]; // 0x00655868, unused directly (kept for reference only)
-
-// The 8-direction circle table (types/ai.h), reused here both as an offset source in the
-// sampling loop and as the final chosen-direction basis.
-extern float actor_avoidance_circle[8][3]; // 0x00880540, stride 0x0c (3 floats)
-
-void actor_movement_choose_avoidance_direction(uint32_t param_1, float *param_2, float *param_3, float *param_4)
+// The frame 0x4193d0 builds: F+0x20 result, F+0x3c closeness, F+0x58 the eight direction weights, F+0xa0 the
+// context handed to the obstacle helpers.
+void actor_movement_choose_avoidance_direction(uint32_t actor_index, real_vector3d *desired, real_vector3d *out_direction,
+                                               float *out_scale)
 {
-    actor *a = &((actor *)actor_data->data)[param_1 & 0xffffu];
-    actor_movement_context ctx;
-    object *unit_object = 0;
-    uint32_t unit_index;
+    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    const real_vector3d *zero = global_zero_point3d_pointer;
+    real_vector3d result = *zero;
+    float out = 0.0f;
+    datum_index unit_index = *(datum_index *)(act + 0x158);
+    uint8_t *obj;
+    actor_movement_context context;
+    float weights[8];
+    float closeness = 0.0f;
+    real_vector3d elevation;
+    real_point3d end_point;
+    float distance;
+    int16_t i;
+    int16_t k;
+    int16_t best;
+    float best_weight;
+    real_vector3d d;
+    real_vector3d e;
+    float forwardness;
+    float along;
+    float index_out;
+    float delta;
+    float scale;
+    int16_t *best_saved = (int16_t *)(act + 0x5d8);
+    int16_t *hold = (int16_t *)(act + 0x5f0);
+    int16_t held;
 
-    float fVar1, fVar2, fVar3, fVar5, fVar6;
-    uint8_t bVar7;
-    int16_t sVar10, sVar13;
-    uint16_t uVar11;
-    int32_t iVar12, iVar19;
-    uint32_t uVar14, uVar16, uVar20, uVar22, uVar23;
-    real angle;
-
-    float ax[3]; // "local_60d8" (ax[0]) followed immediately by "local_60d4[0..1]" (ax[1..2]);
-                 // kept contiguous because one read below deliberately walks 4 bytes before
-                 // ax[1] to reach ax[0] (matching the two locals' adjacency on the original
-                 // stack frame -- see UNSURE above).
-    float local_60c8, local_60c4, local_60c0;
-    float local_60b4;
-    float *dir_cursor;             // "local_60b0", pointer-walk life (the sampling loop)
-    float speed_component = 0.0f;  // "local_60b0", second life: actor_avoidance_interpolate_sample's third output
-    float local_60ac;
-    float local_60a8;
-    int16_t local_60a4[2]; // written 2 bytes at a time by actor_movement_test_obstacle_ray's second output
-    float dir_weight[18];  // "local_6090"; only [0..8] are used
-    float best_weight = 0.0f;      // "local_60b8", second life: the winning direction's weight
-    float out_scale = 0.0f;        // "puVar4"
-
-    local_60c8 = global_origin3d_pointer->i;
-    local_60c4 = global_origin3d_pointer->j;
-    local_60c0 = global_origin3d_pointer->k;
-
-    unit_index = a->active_unit_index;
-    if (unit_index == (uint32_t)-1) {
-        unit_index = a->unit_index;
-        out_scale = 0.0f;
-        if (unit_index == (uint32_t)-1) {
-            goto LAB_0041a299;
+    if (unit_index == k_datum_index_none) {
+        unit_index = *(datum_index *)(act + 0x18);
+        if (unit_index == k_datum_index_none) {
+            *out_direction = result;
+            *out_scale = 0.0f;
+            return;
         }
     }
-    unit_object = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+    obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    context.structure_bsp = global_structure_bsp_value;
+    context.collision_bsp = global_structure_collision_bsp_value;
+    context.unit_index = unit_index;
+    object_get_position(&context.position, unit_index);
+    context.forward = *(real_vector3d *)(obj + 0x74);
+    context.up = *(real_vector3d *)(obj + 0x80);
+    // 0x4194c8: left = up x forward
+    context.left.i = context.forward.k * context.up.j - context.up.k * context.forward.j;
+    context.left.j = context.up.k * context.forward.i - context.up.i * context.forward.k;
+    context.left.k = context.up.i * context.forward.j - context.forward.i * context.up.j;
+    context.search_radius = 12.0f;
+    context.unknown_6040 = 1.0f;
+    actor_movement_collect_obstacle_candidates(&context);
 
-    ctx.structure_bsp = (uint32_t)global_structure_bsp;
-    ctx.collision_bsp = global_structure_collision_bsp;
-    object_get_position(&ctx.position, unit_index);
-    ctx.forward = unit_object->forward;
-    ctx.up = unit_object->up;
-    ctx.left.i = ctx.forward.k * ctx.up.j - ctx.up.k * ctx.forward.j;
-    ctx.left.j = ctx.up.k * ctx.forward.i - ctx.up.i * ctx.forward.k;
-    ctx.left.k = ctx.up.i * ctx.forward.j - ctx.forward.i * ctx.up.j;
-    ctx.unknown_6040 = 1.0f;
-    ctx.search_radius = 12.0f;
-    ctx.unit_index = unit_index;
+    for (i = 0; i < 8; i++) {
+        weights[i] = 0.0f;
+    }
+    if (*best_saved >= 0 && *best_saved < 8) { // keep turning the way we turned last time
+        int16_t b = *best_saved;
 
-    actor_movement_collect_obstacle_candidates(&ctx);
-
-    sVar10 = a->unknown_5d8;
-    dir_weight[0] = 0.0f; dir_weight[1] = 0.0f; dir_weight[2] = 0.0f; dir_weight[3] = 0.0f;
-    dir_weight[4] = 0.0f; dir_weight[5] = 0.0f; dir_weight[6] = 0.0f; dir_weight[7] = 0.0f;
-    local_60ac = 0.0f;
-    dir_weight[8] = 0.0f;
-    if (-1 < sVar10 && sVar10 < 8) {
-        iVar12 = sVar10;
-        uVar14 = ((uint32_t)(iVar12 + 1) & 0x80000007u);
-        if ((int32_t)uVar14 < 0) { uVar14 = (uVar14 - 1 | 0xfffffff8u) + 1; }
-        uVar16 = ((uint32_t)(iVar12 + 2) & 0x80000007u);
-        if ((int32_t)uVar16 < 0) { uVar16 = (uVar16 - 1 | 0xfffffff8u) + 1; }
-        uVar20 = ((uint32_t)(iVar12 + 7) & 0x80000007u);
-        if ((int32_t)uVar20 < 0) { uVar20 = (uVar20 - 1 | 0xfffffff8u) + 1; }
-        uVar23 = ((uint32_t)(iVar12 + 6) & 0x80000007u);
-        if ((int32_t)uVar23 < 0) { uVar23 = (uVar23 - 1 | 0xfffffff8u) + 1; }
-        dir_weight[iVar12] = dir_weight[iVar12] + 0.4f;
-        dir_weight[(int16_t)uVar14] = dir_weight[(int16_t)uVar14] + 0.32000002f;
-        dir_weight[(int16_t)uVar16] = dir_weight[(int16_t)uVar16] + 0.2f;
-        dir_weight[(int16_t)uVar20] = dir_weight[(int16_t)uVar20] + 0.32000002f;
-        dir_weight[(int16_t)uVar23] = dir_weight[(int16_t)uVar23] + 0.2f;
+        weights[b] += 0.4f;
+        weights[(b + 1) & 7] += 0.32f;
+        weights[(b + 2) & 7] += 0.2f;
+        weights[(b + 7) & 7] += 0.32f;
+        weights[(b + 6) & 7] += 0.2f;
     }
 
-    {
-        const float *pfVar18 = DAT_00655748;
-        int32_t remaining = 9;
-        do {
-            sVar10 = actor_movement_test_obstacle_ray(&local_60a8, 0);
-            if (0 < sVar10) {
-                const float *pfVar17 = pfVar18;
-                float *pfVar15 = dir_weight;
-                fVar2 = 1.0f - local_60a8;
-                iVar12 = 8;
-                do {
-                    fVar3 = fVar2 + fVar2;
-                    if (1.0f < fVar2 + fVar2) { fVar3 = 1.0f; }
-                    fVar1 = *pfVar17;
-                    pfVar17 = pfVar17 + 1;
-                    iVar12 = iVar12 - 1;
-                    *pfVar15 = fVar3 * fVar1 + *pfVar15;
-                    pfVar15 = pfVar15 + 1;
-                } while (iVar12 != 0);
-                if (local_60ac <= fVar2) { local_60ac = fVar2; }
+    // 0x419640: nine near rays; a blocked one pushes the directions it covers down (weights negative in the table)
+    for (k = 0; k < 9; k++) {
+        if (actor_movement_test_obstacle_ray(&elevation, actor_avoidance_samples_b[k], &end_point, &context, &distance,
+                                             0) > 0) {
+            float v = 1.0f - distance;
+            float c = v + v;
+
+            if (c > 1.0f) {
+                c = 1.0f;
             }
-            pfVar18 = pfVar18 + 8;
-            remaining = remaining - 1;
-        } while (remaining != 0);
+            for (i = 0; i < 8; i++) {
+                weights[i] += c * actor_avoidance_near_weights[k][i];
+            }
+            if (!(closeness > v)) {
+                closeness = v;
+            }
+        }
     }
 
-    dir_cursor = dir_weight;
-    {
-        const uint8_t *local_60b8 = (const uint8_t *)a + 0x5c9; // UNSURE: raw actor bytes, see file header
-        uVar14 = 2;
-        local_60a8 = 1.12104e-44f; // reinterpreted below as a plain decrementing int counter
-        do {
-            int16_t *psVar24_hi;
-            const uint8_t *pbVar21;
-            int32_t counter2;
+    // 0x419700: two rays per direction, each with a byte counting how long it has been clear
+    for (k = 0; k < 8; k++) {
+        int16_t hit[2];
+        float ray_distance[2];
+        float acc = 0.0f;
+        uint8_t blocked = 0;
+        int16_t j;
 
-            {
-                int16_t *local_60dc = local_60a4;
-                float *pfVar18b = &ax[0];
-                pbVar21 = local_60b8 - 1;
-                counter2 = 2;
-                do {
-                    uVar11 = (uint16_t)actor_movement_test_obstacle_ray(pfVar18b, (void *)pbVar21);
-                    *local_60dc = (int16_t)uVar11;
-                    local_60dc = local_60dc + 1;
-                    pbVar21 = pbVar21 + 1;
-                    pfVar18b = pfVar18b + 1;
-                    counter2 = counter2 - 1;
-                } while (counter2 != 0);
-            }
-            fVar2 = 0.0f;
-            bVar7 = 0;
-            psVar24_hi = &local_60a4[1];
-            iVar12 = 0;
-            iVar19 = 2;
-            pbVar21 = local_60b8;
-            do {
-                fVar3 = 1.0f;
-                if (*psVar24_hi == 0) {
-                    if (bVar7) {
-                        fVar2 = fVar3 * *(const float *)((const uint8_t *)DAT_0065586c + iVar12) + fVar2;
-                    } else if (*pbVar21 < 0x4b) {
-                        fVar2 = *(const float *)((const uint8_t *)DAT_0065586c + iVar12) * 0.0f + fVar2;
-                    } else {
-                        fVar3 = 1.0f - 75.0f / (float)*pbVar21;
-                        if (0.0f <= fVar3) {
-                            if (1.0f < fVar3) { fVar3 = 1.0f; }
-                            fVar2 = fVar3 * *(const float *)((const uint8_t *)DAT_0065586c + iVar12) + fVar2;
-                        } else {
-                            fVar2 = *(const float *)((const uint8_t *)DAT_0065586c + iVar12) * 0.0f + fVar2;
+        for (j = 0; j < 2; j++) {
+            hit[j] = actor_movement_test_obstacle_ray(&elevation, actor_avoidance_samples_a[k * 2 + j], &end_point,
+                                                      &context, &ray_distance[j], act + 0x5c8 + k * 2 + j);
+        }
+        for (j = 1; j >= 0; j--) {
+            float weight = actor_avoidance_ray_weights[j];
+
+            if (hit[j] == 0) {
+                if (blocked) {
+                    acc += 1.0f * weight;
+                } else {
+                    uint8_t clear_ticks = act[0x5c8 + k * 2 + j];
+                    float v = 0.0f;
+
+                    if (clear_ticks >= 75) {
+                        v = 1.0f - 75.0f / (float)clear_ticks;
+                        if (!(v > 0.0f)) {
+                            v = 0.0f;
+                        } else if (v > 1.0f) {
+                            v = 1.0f;
                         }
                     }
-                } else {
-                    fVar3 = 1.0f - *(const float *)((const uint8_t *)&ax[1] + iVar12);
-                    fVar3 = fVar3 + fVar3;
-                    if (1.0f < fVar3) { fVar3 = 1.0f; }
-                    bVar7 = 1;
-                    fVar2 = fVar2 - fVar3 * *(const float *)((const uint8_t *)DAT_0065586c + iVar12);
+                    acc += v * weight;
                 }
-                psVar24_hi = psVar24_hi - 1;
-                pbVar21 = pbVar21 - 1;
-                iVar12 = iVar12 - 4;
-                iVar19 = iVar19 - 1;
-            } while (iVar19 != 0);
-
-            uVar16 = (uVar14 - 1) & 0x80000007u;
-            if ((int32_t)uVar16 < 0) { uVar16 = (uVar16 - 1 | 0xfffffff8u) + 1; }
-            uVar20 = uVar14 & 0x80000007u;
-            if ((int32_t)uVar20 < 0) { uVar20 = (uVar20 - 1 | 0xfffffff8u) + 1; }
-            uVar23 = (uVar14 + 5) & 0x80000007u;
-            if ((int32_t)uVar23 < 0) { uVar23 = (uVar23 - 1 | 0xfffffff8u) + 1; }
-            uVar22 = (uVar14 + 4) & 0x80000007u;
-            if ((int32_t)uVar22 < 0) { uVar22 = (uVar22 - 1 | 0xfffffff8u) + 1; }
-
-            *dir_cursor = fVar2 + *dir_cursor;
-            local_60b8 = local_60b8 + 2;
-            dir_cursor = dir_cursor + 1;
-            uVar14 = uVar14 + 1;
-            dir_weight[(int16_t)uVar16] = fVar2 * 0.8f + dir_weight[(int16_t)uVar16];
-            {
-                float half = fVar2 * 0.5f;
-                local_60a8 = (float)((int32_t)local_60a8 - 1);
-                dir_weight[(int16_t)uVar20] = half + dir_weight[(int16_t)uVar20];
-                dir_weight[(int16_t)uVar23] = fVar2 * 0.8f + dir_weight[(int16_t)uVar23];
-                dir_weight[(int16_t)uVar22] = half + dir_weight[(int16_t)uVar22];
-            }
-        } while (local_60a8 != 0.0f);
-    }
-
-    fVar2 = (real)sqrt((double)(unit_object->angular_velocity.k * unit_object->angular_velocity.k +
-                               unit_object->angular_velocity.j * unit_object->angular_velocity.j +
-                               unit_object->angular_velocity.i * unit_object->angular_velocity.i));
-    local_60a8 = 0.0f;
-    if (0.02f < fVar2) {
-        local_60a8 = (fVar2 - 0.02f) * 12.5f;
-        if (1.0f < local_60a8) { local_60a8 = 1.0f; }
-        local_60a8 = local_60a8 * 0.8f;
-        fVar2 = ctx.up.i * unit_object->angular_velocity.i + ctx.up.k * unit_object->angular_velocity.k +
-                ctx.up.j * unit_object->angular_velocity.j;
-        fVar3 = -(ctx.left.i * unit_object->angular_velocity.i + ctx.left.k * unit_object->angular_velocity.k +
-                  ctx.left.j * unit_object->angular_velocity.j);
-        fVar1 = (real)sqrt((double)(fVar2 * fVar2 + fVar3 * fVar3));
-        if (0.0001f <= (real)fabs((double)fVar1)) {
-            fVar5 = 1.0f / fVar1;
-            if (0.0f < fVar1) {
-                int32_t out_a_unused;
-                float out_b_trust;
-                uint8_t cVar9 = actor_avoidance_interpolate_sample(8, dir_weight, &out_a_unused, &out_b_trust);
-                if (cVar9 != 0 && 0.5f < out_b_trust) {
-                    const float *pfVar15 = &actor_avoidance_circle[0][1];
-                    float *pfVar18c = dir_weight;
-                    iVar12 = 8;
-                    do {
-                        fVar1 = fVar2 * fVar5 * pfVar15[0] + fVar5 * 0.0f * pfVar15[-1] + fVar5 * fVar3 * pfVar15[1];
-                        if (fVar1 < 0.0f) { *pfVar18c = fVar1 * local_60a8 + *pfVar18c; }
-                        pfVar15 = pfVar15 + 3;
-                        pfVar18c = pfVar18c + 1;
-                        iVar12 = iVar12 - 1;
-                    } while (iVar12 != 0);
-                }
-            }
-        }
-    }
-
-    // Pick the direction with the largest accumulated weight.
-    sVar10 = -1;
-    {
-        float best = -3.402823466e+38f;
-        int16_t sVar13b = 0;
-        float *pfVar18d = dir_weight;
-        do {
-            if (best < *pfVar18d) { best = *pfVar18d; sVar10 = sVar13b; }
-            sVar13b = sVar13b + 1;
-            pfVar18d = pfVar18d + 1;
-        } while (sVar13b < 8);
-        best_weight = best;
-    }
-
-    fVar2 = *param_2;
-    fVar3 = param_2[1];
-    fVar1 = param_2[2];
-    ax[0] = global_origin3d_pointer->i;
-    ax[1] = global_origin3d_pointer->j;
-    ax[2] = global_origin3d_pointer->k;
-    local_60b4 = 1.0f;
-    speed_component = 0.0f;
-    fVar5 = (real)sqrt((double)(fVar2 * fVar2 + fVar3 * fVar3 + fVar1 * fVar1));
-    if (0.0001f <= (real)fabs((double)fVar5)) {
-        fVar6 = 1.0f / fVar5;
-        fVar2 = fVar2 * fVar6;
-        fVar3 = fVar3 * fVar6;
-        fVar1 = fVar1 * fVar6;
-        if (0.0f < fVar5) {
-            ax[0] = 0.0f;
-            local_60b4 = ctx.forward.i * fVar2 + ctx.forward.j * fVar3 + ctx.forward.k * fVar1;
-            ax[1] = fVar2 * ctx.left.i + fVar1 * ctx.left.k + fVar3 * ctx.left.j;
-            ax[2] = fVar2 * ctx.up.i + fVar1 * ctx.up.k + fVar3 * ctx.up.j;
-            fVar2 = (real)sqrt((double)(ax[1] * ax[1] + ax[2] * ax[2]));
-            if (0.0001f <= (real)fabs((double)fVar2)) {
-                fVar3 = 1.0f / fVar2;
-                ax[0] = fVar3 * 0.0f;
-                ax[1] = ax[1] * fVar3;
-                ax[2] = fVar3 * ax[2];
-                if (0.0f < fVar2) {
-                    int32_t out_a_unused2;
-                    actor_avoidance_interpolate_sample(8, dir_weight, &out_a_unused2, &speed_component);
-                }
-            }
-        }
-    }
-
-    // local_60dc in the original: the byte-pointer/float-pointer bit patterns left over from
-    // the max-weight search (`best_weight`) and the actor_avoidance_interpolate_sample call just above
-    // (`speed_component`), both reinterpreted as plain floats and subtracted.
-    {
-        float weight_margin = best_weight - speed_component;
-        float turn_gate;
-
-        if (local_60ac <= 0.6f) {
-            turn_gate = local_60ac * 3.3333333f;
-            if (1.0f <= turn_gate) { turn_gate = 1.0f; }
-        } else {
-            fVar3 = (local_60ac - 0.6f) * 2.5000002f;
-            if (1.0f <= fVar3) { fVar3 = 1.0f; }
-            turn_gate = fVar3 + 1.0f;
-        }
-
-        if (local_60b4 < -0.2f) {
-            goto LAB_00419d85;
-        }
-        sVar13 = a->unknown_5f0;
-        if (sVar13 == -1 || 0x59 < sVar13) {
-            float av_sq = unit_object->angular_velocity.k * unit_object->angular_velocity.k +
-                          unit_object->angular_velocity.j * unit_object->angular_velocity.j +
-                          unit_object->angular_velocity.i * unit_object->angular_velocity.i;
-            if (av_sq <= 0.0025000002f) {
-                if (turn_gate <= 0.5f) { goto LAB_00419d85; }
-                goto LAB_00419e38;
-            }
-            if (2.0f < weight_margin && 2.0f < best_weight) {
-                goto LAB_00419e38;
-            }
-        LAB_00419d85:
-            a->unknown_5f0 = -1;
-            out_scale = turn_gate;
-            if (local_60b4 < 0.5f) {
-                if (1.3f < weight_margin &&
-                    0.5f < ax[0] * actor_avoidance_circle[sVar10][0] +
-                           ax[1] * actor_avoidance_circle[sVar10][1] +
-                           ax[2] * actor_avoidance_circle[sVar10][2]) {
-                    float scaled = weight_margin * 0.7692308f - 0.5f;
-                    if (0.0f <= scaled) {
-                        if (1.0f < scaled) { scaled = 1.0f; }
-                    } else {
-                        scaled = 0.0f;
-                    }
-                    if (scaled <= turn_gate) { scaled = turn_gate; }
-                    local_60c0 = scaled * 1.0471976f;
-                    if (0.0f < ax[2] * actor_avoidance_circle[sVar10][1] -
-                              ax[1] * actor_avoidance_circle[sVar10][2]) {
-                        local_60c0 = -local_60c0;
-                    }
-                    a->unknown_5d8 = sVar10;
-                    local_60c8 = ctx.forward.i * local_60c0;
-                    local_60c4 = ctx.forward.j * local_60c0;
-                    local_60c0 = ctx.forward.k * local_60c0;
-                    out_scale = scaled;
-                    goto LAB_0041a299;
-                }
-                a->unknown_5d8 = -1;
-                out_scale = dir_weight[8];
-                goto LAB_0041a299;
-            }
-            if (local_60ac <= 0.0f) {
-                a->unknown_5d8 = -1;
-                out_scale = dir_weight[8];
-                goto LAB_0041a299;
-            }
-            {
-                float sample_x = actor_avoidance_circle[sVar10][1];
-                float sample_y = -actor_avoidance_circle[sVar10][2];
-                local_60c8 = sample_x * ctx.up.i + ctx.left.i * sample_y + global_origin3d_pointer->i;
-                local_60c4 = ctx.up.j * sample_x + ctx.left.j * sample_y + global_origin3d_pointer->j;
-                local_60c0 = ctx.up.k * sample_x + ctx.left.k * sample_y + global_origin3d_pointer->k;
-                fVar3 = (real)sqrt((double)(local_60c8 * local_60c8 + local_60c4 * local_60c4 + local_60c0 * local_60c0));
-                if (0.0001f <= (real)fabs((double)fVar3)) {
-                    fVar1 = 1.0f / fVar3;
-                    local_60c8 = local_60c8 * fVar1;
-                    local_60c4 = local_60c4 * fVar1;
-                    local_60c0 = local_60c0 * fVar1;
-                    if (0.0f < fVar3) {
-                        fVar3 = turn_gate * 1.0471976f;
-                        local_60c8 = local_60c8 * fVar3;
-                        local_60c4 = local_60c4 * fVar3;
-                        local_60c0 = local_60c0 * fVar3;
-                    }
-                }
-            }
-        } else {
-        LAB_00419e38:
-            if (sVar13 == -1) {
-                a->unknown_5f0 = 0;
             } else {
-                a->unknown_5f0 = sVar13 + 1;
+                float v = (1.0f - ray_distance[j]) * 2.0f;
+
+                if (v > 1.0f) {
+                    v = 1.0f;
+                }
+                blocked = 1;
+                acc -= v * weight;
             }
-            {
-                float sample_x = actor_avoidance_circle[sVar10][0];
-                float sample_y = actor_avoidance_circle[sVar10][1];
-                float sample_z = actor_avoidance_circle[sVar10][2];
-                float t0, t1;
-                fVar5 = sample_z * ctx.up.i + sample_y * ctx.left.i + ctx.forward.i * sample_x + global_origin3d_pointer->i;
-                fVar6 = ctx.up.j * sample_z + ctx.left.j * sample_y + ctx.forward.j * sample_x + global_origin3d_pointer->j;
-                fVar3 = ctx.up.k * sample_z + ctx.left.k * sample_y + ctx.forward.k * sample_x + global_origin3d_pointer->k;
-                local_60a8 = fVar3 * param_2[1] - fVar6 * param_2[2];
-                t0 = fVar5 * param_2[2] - fVar3 * *param_2;
-                t1 = fVar6 * *param_2 - fVar5 * param_2[1];
-                fVar3 = (real)sqrt((double)(local_60a8 * local_60a8 + t0 * t0 + t1 * t1));
-                if (0.0001f <= (real)fabs((double)fVar3)) {
-                    real_vector3d axis, desired;
-                    ax[2] = 1.0f / fVar3;
-                    ax[0] = local_60a8 * ax[2];
-                    ax[1] = t0 * ax[2];
-                    ax[2] = t1 * ax[2];
-                    if (0.0f < fVar3) {
-                        axis.i = ax[0]; axis.j = ax[1]; axis.k = ax[2];
-                        desired.i = param_2[0]; desired.j = param_2[1]; desired.k = param_2[2];
-                        angle = vector3d_angle_between_4cd4f0(&axis, &desired);
-                        local_60c8 = ax[0] * angle;
-                        local_60c4 = ax[1] * angle;
-                        local_60c0 = ax[2] * angle;
+        }
+        weights[k] += acc;
+        weights[(k + 1) & 7] += acc * 0.8f;
+        weights[(k + 2) & 7] += acc * 0.5f;
+        weights[(k + 7) & 7] += acc * 0.8f;
+        weights[(k + 6) & 7] += acc * 0.5f;
+    }
+
+    // 0x4198e6: while moving, the directions against the sideways motion lose weight
+    {
+        float vx = *(float *)(obj + 0x8c);
+        float vy = *(float *)(obj + 0x90);
+        float vz = *(float *)(obj + 0x94);
+        float speed = (float)sqrt(vx * vx + vy * vy + vz * vz);
+
+        if (speed > 0.02f) {
+            float s = (speed - 0.02f) * 12.5f;
+            real_vector3d motion;
+            float length;
+
+            if (s > 1.0f) {
+                s = 1.0f;
+            }
+            s *= 0.8f;
+            motion.i = 0.0f;
+            motion.j = context.up.j * vy + context.up.k * vz + context.up.i * vx;
+            motion.k = -(context.left.j * vy + context.left.k * vz + context.left.i * vx);
+            length = (float)sqrt(motion.k * motion.k + motion.j * motion.j);
+            if (fabs(length) >= 9.999999747378752e-05) {
+                float inverse = 1.0f / length;
+                float value;
+
+                motion.i = 0.0f * inverse;
+                motion.j *= inverse;
+                motion.k *= inverse;
+                if (length > 0.0f &&
+                    actor_avoidance_interpolate_sample(&motion, (real_vector3d *)actor_avoidance_circle, 8, weights,
+                                                       &index_out, &value) &&
+                    value > 0.5f) {
+                    for (i = 0; i < 8; i++) {
+                        float dot = motion.k * actor_avoidance_circle[i][2] + motion.i * actor_avoidance_circle[i][0] +
+                                    motion.j * actor_avoidance_circle[i][1];
+
+                        if (dot < 0.0f) {
+                            weights[i] += dot * s;
+                        }
                     }
                 }
             }
-            {
-                float scaled = (2.0f - speed_component) * 0.5f - 0.5f;
-                if (0.0f <= scaled) {
-                    if (1.0f < scaled) { scaled = 1.0f; }
-                } else {
-                    scaled = 0.0f;
-                }
-                out_scale = scaled;
-                if (scaled <= turn_gate) {
-                    a->unknown_5d8 = sVar10;
-                    out_scale = turn_gate;
-                    goto LAB_0041a299;
+        }
+    }
+
+    best = -1;
+    best_weight = -3.4028235e38f;
+    for (i = 0; i < 8; i++) {
+        if (weights[i] > best_weight) {
+            best_weight = weights[i];
+            best = i;
+        }
+    }
+
+    // 0x419acf: the desired direction in the actor's frame
+    d = *desired;
+    e = *zero;
+    forwardness = 1.0f;
+    along = 0.0f;
+    {
+        float length = (float)sqrt(d.k * d.k + d.j * d.j + d.i * d.i);
+
+        if (fabs(length) >= 9.999999747378752e-05) {
+            float inverse = 1.0f / length;
+
+            d.i *= inverse;
+            d.j *= inverse;
+            d.k *= inverse;
+            if (length > 0.0f) {
+                float length_2;
+
+                e.i = 0.0f;
+                forwardness = context.forward.k * d.k + context.forward.j * d.j + context.forward.i * d.i;
+                e.j = d.j * context.left.j + d.k * context.left.k + d.i * context.left.i;
+                e.k = d.j * context.up.j + d.k * context.up.k + d.i * context.up.i;
+                length_2 = (float)sqrt(e.k * e.k + e.j * e.j);
+                if (fabs(length_2) >= 9.999999747378752e-05) {
+                    float inverse_2 = 1.0f / length_2;
+
+                    e.i = 0.0f * inverse_2;
+                    e.j *= inverse_2;
+                    e.k *= inverse_2;
+                    if (length_2 > 0.0f) {
+                        actor_avoidance_interpolate_sample(&e, (real_vector3d *)actor_avoidance_circle, 8, weights,
+                                                           &index_out, &along);
+                    }
                 }
             }
         }
-        a->unknown_5d8 = sVar10;
+    }
+    delta = best_weight - along;
+    if (closeness > 0.6f) {
+        float t = (closeness - 0.6f) * 2.5f;
+
+        scale = (1.0f > t ? t : 1.0f) + 1.0f;
+    } else {
+        float t = closeness * 3.3333333f;
+
+        scale = 1.0f > t ? t : 1.0f;
     }
 
-LAB_0041a299:
-    *param_3 = local_60c8;
-    param_3[1] = local_60c4;
-    param_3[2] = local_60c0;
-    *param_4 = out_scale;
+    held = *hold;
+    if (forwardness < -0.2f) {
+        uint8_t turn_around = 0;
+
+        if (held != -1 && held < 90) {
+            turn_around = 1;
+        } else {
+            float vx = *(float *)(obj + 0x8c);
+            float vy = *(float *)(obj + 0x90);
+            float vz = *(float *)(obj + 0x94);
+
+            if (vx * vx + vy * vy + vz * vz > 0.0025f) {
+                turn_around = (uint8_t)(delta > 2.0f && best_weight > 2.0f);
+            } else {
+                turn_around = (uint8_t)(scale > 0.5f);
+            }
+        }
+        if (turn_around) {
+            // 0x419e38: steer round towards the best direction, turning about desired x best
+            real_vector3d *c = (real_vector3d *)actor_avoidance_circle[best];
+            real_vector3d v;
+            real_vector3d axis;
+            float length;
+            float t;
+
+            *hold = held != -1 ? held + 1 : 0;
+            v.i = context.forward.i * c->i + zero->i + context.left.i * c->j + context.up.i * c->k;
+            v.j = context.forward.j * c->i + zero->j + context.left.j * c->j + context.up.j * c->k;
+            v.k = context.forward.k * c->i + zero->k + context.left.k * c->j + context.up.k * c->k;
+            axis.i = v.k * desired->j - v.j * desired->k;
+            axis.j = v.i * desired->k - v.k * desired->i;
+            axis.k = v.j * desired->i - v.i * desired->j;
+            length = (float)sqrt(axis.k * axis.k + axis.j * axis.j + axis.i * axis.i);
+            if (fabs(length) >= 9.999999747378752e-05) {
+                float inverse = 1.0f / length;
+
+                axis.i *= inverse;
+                axis.j *= inverse;
+                axis.k *= inverse;
+                if (length > 0.0f) {
+                    float angle = vector3d_angle_between_4cd4f0(&v, desired);
+
+                    result.i = axis.i * angle;
+                    result.j = axis.j * angle;
+                    result.k = axis.k * angle;
+                }
+            }
+            t = (2.0f - along) * 0.5f - 0.5f;
+            if (t < 0.0f) {
+                t = 0.0f;
+            } else if (t > 1.0f) {
+                t = 1.0f;
+            }
+            out = t > scale ? t : scale;
+            *best_saved = best;
+            goto done;
+        }
+    }
+
+    *hold = -1;
+    if (!(forwardness < 0.5f)) {
+        // 0x41a143: going roughly the right way; lean sideways from the blocked side
+        real_vector3d *c;
+        float length;
+
+        if (!(closeness > 0.0f)) {
+            goto reset;
+        }
+        c = (real_vector3d *)actor_avoidance_circle[best];
+        result = *zero;
+        result.i = context.left.i * -c->k + result.i;
+        result.j = context.left.j * -c->k + result.j;
+        result.k = context.left.k * -c->k + result.k;
+        result.i = c->j * context.up.i + result.i;
+        result.j = context.up.j * c->j + result.j;
+        result.k = context.up.k * c->j + result.k;
+        length = (float)sqrt(result.k * result.k + result.j * result.j + result.i * result.i);
+        if (fabs(length) >= 9.999999747378752e-05) {
+            float inverse = 1.0f / length;
+
+            result.i *= inverse;
+            result.j *= inverse;
+            result.k *= inverse;
+            if (length > 0.0f) {
+                float k2 = scale * 1.0471976f;
+
+                result.i *= k2;
+                result.j *= k2;
+                result.k *= k2;
+            }
+        }
+        out = scale;
+        *best_saved = best;
+        goto done;
+    }
+    if (delta > 1.3f) {
+        real_vector3d *c = (real_vector3d *)actor_avoidance_circle[best];
+
+        if (e.k * c->k + e.j * c->j + e.i * c->i > 0.5f) {
+            // 0x419df5: a clearly better direction to the side: yaw towards it
+            float t = delta * 0.7692308f - 0.5f;
+            float w;
+
+            if (t < 0.0f) {
+                t = 0.0f;
+            } else if (t > 1.0f) {
+                t = 1.0f;
+            }
+            out = t > scale ? t : scale;
+            w = 1.0471976f * out;
+            if (e.k * c->j - e.j * c->k > 0.0f) {
+                w = -w;
+            }
+            *best_saved = best;
+            result.i = context.forward.i * w;
+            result.j = context.forward.j * w;
+            result.k = context.forward.k * w;
+            goto done;
+        }
+    }
+reset:
+    out = 0.0f;
+    *best_saved = -1;
+done:
+    *out_direction = result;
+    *out_scale = out;
 }
 
 #if 0
