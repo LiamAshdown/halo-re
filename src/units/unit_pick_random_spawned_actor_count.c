@@ -23,7 +23,8 @@ extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern random_seed random_seed_global;   // 0x00719cd0
 
-extern int32_t actor_spawn_additional_units(int32_t count); // 0x427280, UNSURE signature
+extern int16_t actor_spawn_additional_units(datum_index actor_variant_tag, int16_t spawn_count,
+    datum_index source_actor_index, float health_scale); // 0x427280, EBX, EDX, stack
 
 int32_t unit_pick_random_spawned_actor_count(uint32_t unit_index) // blam-cc: unaff_EDI -> unit_index
 {
@@ -39,7 +40,10 @@ int32_t unit_pick_random_spawned_actor_count(uint32_t unit_index) // blam-cc: un
             result = (range * (int32_t)(random_seed_global >> 0x10) >> 0x10) +
                      (int32_t)((((uint32_t)tag_instances >> 16) << 16) | (uint16_t)unit_tag->spawned_actor_count[0]);
             if (0 < (int16_t)result) {
-                result = actor_spawn_additional_units(result);
+                // FIXED (objdump 0x5685d2..0x5685eb): EBX = the tag's spawned actor (+0x258), DX = the count,
+                //   stack = (this unit, tag +0x260 * 1/30). The draft passed only the count.
+                result = actor_spawn_additional_units(*(datum_index *)((uint8_t *)unit_tag + 0x258), (int16_t)result,
+                    unit_index, *(float *)((uint8_t *)unit_tag + 0x260) * 0.033333335f);
             }
             unit->flags |= _unit_flag_permutation_chosen;
         }

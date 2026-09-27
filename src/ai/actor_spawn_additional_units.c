@@ -1,6 +1,6 @@
 // actor_spawn_additional_units  (Ghidra: actor_spawn_additional_units, renamed)
 // address 0x427280, size 716 bytes
-// name confidence: 0.45   rewrite confidence: 0.15
+// name confidence: 0.45   rewrite confidence: 0.85 (spawn loop REWRITTEN from objdump 0x427370..0x427545)
 // evidence: phase-4 summary "Spawns one or more additional units around an existing actor's
 // position and attaches new actors to them, optionally randomizing their health/scale."
 // types/ai.h actor.unknown_334/unknown_336 (a squad/platoon-index pair the header does not
@@ -36,6 +36,8 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern uint32_t random_seed_global; // 0x00719cd0
 
 extern real random_real_range(real min, real max); // 0x401050
+extern double cos(double x);
+extern double sin(double x);
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role); // 0x4f53a0
 extern datum_index object_new(object_placement_data *placement); // 0x4f5460, UNSURE signature
 extern void object_delete(datum_index object_index); // 0x4f5bd0, UNSURE signature
@@ -45,8 +47,10 @@ extern datum_index actor_new_and_attach_to_unit(
     char reuse_existing, datum_index unit_index, datum_index actor_variant_tag,
     uint32_t encounter_or_none, int16_t squad_index, char ignore_squad, datum_index exclude_actor,
     char start_active, uint16_t unknown_60, int16_t unknown_62, uint16_t unknown_90, uint8_t unknown_68); // 0x426ac0
-extern void unit_find_placement_position(datum_index object_index, uint32_t a, uint32_t b, float c, uint32_t d, uint32_t e, uint32_t f); // 0x55a500, UNSURE signature
-extern void unit_apply_impulse(void); // 0x559fa0, UNSURE signature
+extern uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientation_object, real_point3d *out_position,
+    float radius, char grid_mode, char skip_reposition, char scale_radius, uint32_t object_index_a,
+    real_vector3d *reference_direction); // 0x55a500, stack x7, EDX
+extern void unit_apply_impulse(uint32_t object_index, real_vector3d *impulse); // 0x559fa0, EAX, EDI
 
 // blam-cc: EBX -> actor_variant_tag, EDX -> spawn_count, stack -> source_actor_index,
 //   health_scale
@@ -91,42 +95,67 @@ int16_t actor_spawn_additional_units(datum_index actor_variant_tag, int16_t spaw
             const uint8_t *actor_tag_data = (const uint8_t *)(tag_instances[variant[4] & 0xffff].data);
             int16_t i;
 
+            // REWRITTEN from objdump 0x427370..0x427545. Each spawn: a random heading from the global seed
+            //   (angle = (seed >> 16) / 65535 * 2pi), the placement's forward = (cos, sin, 0), the position = the
+            //   source object's + 0.3 * forward + 0.3 up. A unit (object +0xb4 dword 0) is then placed with
+            //   unit_find_placement_position(unit, -1, 0, 1.0, 1, 0, 0; EDX = that position). The actor attach passes
+            //   (reuse, unit, variant, encounter, squad, 0, -1, 0, 2, 0, -1, 0). With health_scale > 0 a unit gets the
+            //   impulse (forward.i * r1, forward.j * r1, r2) * health_scale, with r1 in [0.5, 1] and r2 in [0.8, 1.5].
             for (i = 0; i < spawn_count; i++) {
                 object_placement_data placement;
                 datum_index new_object;
+                float angle;
+                uint32_t random_bits;
 
                 random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-                object_placement_data_initialize(&placement, (datum_index)variant[8], (datum_index)k_datum_index_none); // UNSURE offset
+                random_bits = random_seed_global >> 16;
+                angle = (float)(int32_t)random_bits * 1.5259022e-05f * 6.2831855f;
+                object_placement_data_initialize(&placement, (datum_index)variant[8], (datum_index)k_datum_index_none);
+                placement.forward.i = (float)cos(angle);
+                placement.forward.j = (float)sin(angle);
+                placement.forward.k = 0.0f;
                 object_get_position(&placement.position, source_actor_index);
+                placement.position.x = placement.forward.i * 0.3f + placement.position.x;
+                placement.position.y = placement.forward.j * 0.3f + placement.position.y;
+                placement.position.z = placement.forward.k * 0.3f + (placement.position.z + 0.3f);
 
                 new_object = object_new(&placement);
-                if (new_object != (datum_index)k_datum_index_none) {
-                    object *new_obj = ((object_header *)object_data->data)[new_object & 0xffff].data;
+                if (new_object == (datum_index)k_datum_index_none) {
+                    continue;
+                }
+                {
+                    uint8_t *new_obj = (uint8_t *)((object_header *)object_data->data)[new_object & 0xffff].data;
+                    char reuse_existing = (char)((*(const uint32_t *)actor_tag_data >> 0x1a) & 1);
+                    datum_index new_actor;
 
-                    if (new_obj->type == 0) {
-                        unit_find_placement_position(new_object, 0xffffffff, 0, 1.0f, 1, 0, 0);
+                    if (*(uint32_t *)(new_obj + 0xb4) == 0) {
+                        unit_find_placement_position(new_object, 0xffffffff, 0, 1.0f, 1, 0, 0, 0,
+                            (real_vector3d *)&placement.position);
                     }
                     actor_apply_unit_definition_properties(actor_variant_tag, new_object);
+                    new_actor = actor_new_and_attach_to_unit(reuse_existing, new_object, actor_variant_tag,
+                        (uint32_t)(int32_t)encounter_index, squad_index, 0, (datum_index)k_datum_index_none, 0, 2, 0,
+                        0xffff, 0);
+                    if (new_actor == (datum_index)k_datum_index_none) {
+                        object_delete(new_object);
+                        continue;
+                    }
+                    if (health_scale > 0.0f) {
+                        real_vector3d impulse;
+                        float r1 = random_real_range(0.5f, 1.0f);
+                        float r2;
 
-                    {
-                        char reuse_existing = (char)((*(const uint32_t *)actor_tag_data >> 0x1a) & 1);
-                        datum_index new_actor = actor_new_and_attach_to_unit(
-                            reuse_existing, new_object, actor_variant_tag, (uint32_t)encounter_index,
-                            squad_index, 0, (datum_index)k_datum_index_none, 0, 0, 0, 0, 0);
-
-                        if (new_actor == (datum_index)k_datum_index_none) {
-                            object_delete(new_object);
-                        } else {
-                            if (health_scale > 0.0f) {
-                                random_real_range(0.5f, 1.0f);
-                                random_real_range(0.8f, 1.5f);
-                                if (new_obj->type == 0) {
-                                    unit_apply_impulse();
-                                }
-                            }
-                            spawned = spawned + 1;
+                        impulse.i = placement.forward.i * r1;
+                        impulse.j = placement.forward.j * r1;
+                        r2 = random_real_range(0.8f, 1.5f);
+                        impulse.i = impulse.i * health_scale;
+                        impulse.j = impulse.j * health_scale;
+                        impulse.k = r2 * health_scale;
+                        if (*(uint32_t *)(new_obj + 0xb4) == 0) {
+                            unit_apply_impulse(new_object, &impulse);
                         }
                     }
+                    spawned = spawned + 1;
                 }
             }
         }

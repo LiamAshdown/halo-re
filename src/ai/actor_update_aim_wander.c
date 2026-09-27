@@ -53,7 +53,7 @@ extern void ai_communication_broadcast(int32_t event_code, datum_index unit_inde
 // site in the binary cleans up 0x1c bytes, so the shorter forms Ghidra recovers at some
 // sites are artefacts, not a reduced-arity overload.
 extern float weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70: difficulty scale, ECX table, AX team
-extern float weapon_trigger_get_average_damage(void);                                              // 0x4c12b0: weapon damage per shot
+extern float weapon_trigger_get_average_damage(datum_index weapon_tag_id, float *out_max_rate_of_fire); // 0x4c12b0, EAX, ECX
 extern real vector3d_normalize_with_length(real_vector3d *v);                // 0x401990
 
 // blam-cc: the actor index arrives in the single (float-typed) parameter slot
@@ -146,9 +146,12 @@ void actor_update_aim_wander(datum_index actor_index)
         if (variant->damage_per_second > 0.0f) {
             weapon_object = actor_get_threat_weapon_object_index(actor_index);
             if (weapon_object != (datum_index)0xffffffff) {
-                damage_per_shot = weapon_trigger_get_average_damage();
-                rate = variant->rate_of_fire;
-                if (rate > 0.0f && rate < variant->rate_of_fire) {
+                // FIXED (objdump 0x40ff39..0x40ff65): EAX = the weapon's definition tag, ECX = &rate (the weapon's
+                //   maximum rate of fire), which the variant's rate_of_fire caps when positive. The draft passed
+                //   nothing and compared the variant rate with itself.
+                datum_index weapon_tag = *(datum_index *)((object_header *)object_data->data)[weapon_object & 0xffff].data;
+                damage_per_shot = weapon_trigger_get_average_damage(weapon_tag, &rate);
+                if (variant->rate_of_fire > 0.0f && rate > variant->rate_of_fire) {
                     rate = variant->rate_of_fire;
                 }
                 if (damage_per_shot * rate > 0.0f) {

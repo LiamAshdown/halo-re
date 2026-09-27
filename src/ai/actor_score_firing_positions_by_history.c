@@ -14,7 +14,8 @@
 #include "ai.h"
 
 extern void * actor_get_actor_definition(datum_index actor_index); // 0x40fa70, this module
-extern int16_t actor_evaluate_flank_offset(void); // 0x420b10, not yet rewritten: rates one candidate against one hazard
+extern int16_t actor_evaluate_flank_offset(real_vector3d *cover_direction, real_vector3d *out_offset,
+    real_point3d *threat_position, real_point3d *candidate_position); // 0x420b10, ECX, EBX, ESI, EDI
 
 // blam-cc: stack -> actor_index, query, count, candidates
 // Two desirability terms. The first rewards staying close: candidates nearer the actor score
@@ -78,9 +79,10 @@ void actor_score_firing_positions_by_history(datum_index actor_index,
                 if (kind != 0 && kind != 1) {
                     continue;
                 }
-                // UNSURE: actor_evaluate_flank_offset is called with no visible arguments; the candidate
-                // and the hazard are the only live values it can be rating.
-                rating = actor_evaluate_flank_offset();
+                // FIXED (objdump 0x41200c..0x412021): ECX = &hazard.direction, EBX = 0, ESI = the candidate firing
+                //   position (c->position), EDI = &hazard.position. The draft passed no arguments.
+                rating = actor_evaluate_flank_offset(&query->hazards[j].direction, 0,
+                    (real_point3d *)c->position, &query->hazards[j].position);
                 kind = query->hazards[j].kind;
                 if (kind == 0) {
                     if (rating > best_kind_0) {

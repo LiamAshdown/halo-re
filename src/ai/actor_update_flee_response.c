@@ -17,7 +17,8 @@
 
 extern data_array *actor_data; // 0x00880360
 
-extern uint8_t actor_resolve_flee_source_point(void); // 0x4146c0, not yet rewritten: resolves actor.flee_from_point
+extern uint8_t actor_resolve_flee_source_point(actor_flee_source_reason *reason, real_vector3d *out,
+    datum_index actor_index); // 0x4146c0, EAX, EDI, stack
 
 // blam-cc: EDX -> actor_index
 // Tracks how long the flee condition at 0x3ec has held. While it is clear and the movement
@@ -41,7 +42,9 @@ uint8_t actor_update_flee_response(datum_index actor_index)
     }
 
     if (self->vocalization_unknown_3e8 > 2 && self->vocalization_unknown_3ec != 0) {
-        result = actor_resolve_flee_source_point();
+        // FIXED (objdump 0x414274..0x4142a2): EAX = actor +0x3ec, EDI = actor +0x524, stack = the actor
+        result = actor_resolve_flee_source_point((actor_flee_source_reason *)((uint8_t *)self + 0x3ec),
+            &self->unknown_524, actor_index);
         if (result != 0) {
             self->unknown_505 = 1;
             return result;

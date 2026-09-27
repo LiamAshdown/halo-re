@@ -72,10 +72,10 @@ extern void *ai_actor_mode_dispatch_table; // 0x00655278, see header UNSURE
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX out, ECX object
 extern void *object_try_and_get(int32_t kind); // 0x4f6ec0, see header UNSURE
-extern void ai_reference_actor_iterator_new(datum_index packed_reference); // 0x432650 = actor iterator init, see header
-extern void *ai_reference_actor_iterator_next(void);                        // 0x4326d0 = actor iterator advance, see header
+extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator); // 0x432650, stack, ECX
+extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator); // 0x4326d0, EDX
 extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counters); // 0x436620, blam-cc: EAX -> actor_index, stack -> skip_counters
-extern void ai_actor_unlink_from_unassigned_list(void);                                              // 0x436990, called with no visible arguments
+extern void ai_actor_unlink_from_unassigned_list(datum_index actor_index); // 0x436990, EDI
 extern void encounter_add_actor(int16_t squad_index, datum_index actor_index,
     datum_index encounter_index, uint8_t keep_team); // 0x436770, blam-cc: DX -> squad_index
     // UNSURE: the squad index arrives in DX and Ghidra did not attribute it to this call
@@ -140,11 +140,12 @@ void encounter_redistribute_squads_toward_targets(datum_index encounter_index)
         goto have_targets;
     } else if (target_mode == 3) {
         void *member;
+        ai_reference_actor_iterator member_iterator; // FIXED (0x439509..0x43951a): the iterator at [esp+0x40]
         if (self->unknown_64 == (datum_index)0xffffffff) {
             return;
         }
-        ai_reference_actor_iterator_new(self->unknown_64);
-        member = ai_reference_actor_iterator_next();
+        ai_reference_actor_iterator_new((uint32_t)self->unknown_64, &member_iterator);
+        member = ai_reference_actor_iterator_next(&member_iterator);
         if (member == 0) {
             return;
         }
@@ -152,7 +153,7 @@ void encounter_redistribute_squads_toward_targets(datum_index encounter_index)
             if (7 < (int16_t)target_count) break;
             targets[(int16_t)target_count] = ((actor *)member)->unit_index;
             target_count = target_count + 1;
-            member = ai_reference_actor_iterator_next();
+            member = ai_reference_actor_iterator_next(&member_iterator);
         } while (member != 0);
     } else {
         return;
@@ -394,7 +395,7 @@ have_targets:
                                     encounter_remove_actor(next_actor, 0);
                                 }
                             } else {
-                                ai_actor_unlink_from_unassigned_list();
+                                ai_actor_unlink_from_unassigned_list(next_actor); // FIXED: EDI = the actor (0x439ca7)
                             }
 
                             if (encounter_index == (datum_index)0xffffffff) {

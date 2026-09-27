@@ -38,7 +38,7 @@ extern Scenario *global_scenario;              // 0x00746f8c
 extern data_array *swarm_data;                 // 0x0088035c
 extern data_array *swarm_component_data;       // 0x00880358
 
-extern int16_t ai_actor_type_get_morale_grade(void); // 0x434ed0, Ghidra shows no argument here
+extern uint32_t ai_actor_type_get_morale_grade(int16_t actor_type_index, uint8_t *command_reference); // 0x434ed0, AX, EDX
 
 // blam-cc: EAX -> object_list_header_handle
 int16_t ai_object_list_max_flee_grade(datum_index object_list_header_handle)
@@ -119,7 +119,11 @@ int16_t ai_object_list_max_flee_grade(datum_index object_list_header_handle)
                         if (component_index < component_count &&
                             (((swarm_component *)swarm_component_data->data)
                                  [sw->component_index[component_index] & 0xffff].flags & 8) != 0) {
-                            grade = (uint32_t)(uint16_t)ai_actor_type_get_morale_grade();
+                            // FIXED (objdump 0x43512c..0x435138): AX = the actor's mode-data word (+0x9c), EDX = the
+                            //   swarm component + 0x1c. The draft passed nothing.
+                            grade = (uint32_t)(uint16_t)ai_actor_type_get_morale_grade(*(int16_t *)((uint8_t *)a + 0x9c),
+                                (uint8_t *)&((swarm_component *)swarm_component_data->data)
+                                    [sw->component_index[component_index] & 0xffff] + 0x1c);
                             goto have_grade;
                         }
                     }

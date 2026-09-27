@@ -1653,3 +1653,12 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - effect_new_on_object_with_node_table: first-person check now gets its object (ECX).
   - VERIFIED (0.9): actor_mark_units_and_release (ai_kill worker), ai_reference_flee_if_ready, the ai_reference actor iterator new/next/init_cursor, unit_update_vitality_fractions (unit_set_current_vitality), effect_new_with_color, actor_squad_action_status_broadcast.
 - Script object-name chain VERIFIED against objdump (object_destroy x163, object_create_anew x119 and object_destroy_containing x21 in a10): hs_object_hierarchy_test, hs_object_name_cache_validate, object_new_from_scenario_name, object_new_from_scenario_placement, the object-name table reserve and release (0x4f9ac0/0x4f9b00; the release is called from object_delete_recursive as in the binary), object_lookup_table_get and hs_object_names_for_each. No stale-name path deletes a reused object slot.
+- Argless-call fixes (AI):
+  - encounter_update_platoon_defending_flag: evaluate_platoon_condition now gets (encounter, platoon +0x3c / +0x30 condition) (0.9).
+  - encounter_redistribute_squads_toward_targets: ai_reference actor iterator new/next now get their iterator; unlink gets its actor.
+  - actor_reject_firing_position_unreachable: flying steering and direct-reachability calls now get (actor, firing position, local) and (position, actor body position, 0, bsp, 0).
+  - actor_score_firing_positions_by_history: evaluate_flank_offset(&hazard.direction, 0, candidate position, &hazard.position).
+  - actor_update_aim_wander: weapon_trigger_get_average_damage(weapon tag, &rate), and the variant rate now caps the weapon rate (the draft compared the variant rate with itself).
+  - actor_update_flee_response: resolve_flee_source_point(actor+0x3ec, actor+0x524, actor).
+  - ai_object_list_max_flee_grade: morale grade gets (mode-data word, component+0x1c).
+  - actor_spawn_additional_units (0.15 -> 0.85): spawn loop REWRITTEN (random heading, 0.3 offset, placement start point, attach args 2/-1, impulse vector). Its caller unit_pick_random_spawned_actor_count now passes (variant, count, unit, tag+0x260/30).

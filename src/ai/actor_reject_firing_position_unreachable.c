@@ -1,6 +1,6 @@
 // actor_reject_firing_position_unreachable  (Ghidra: actor_reject_firing_position_unreachable, renamed)
 // address 0x412290, size 184 bytes
-// name confidence: 0.5   rewrite confidence: 0.7
+// name confidence: 0.5   rewrite confidence: 0.85 (call arguments FIXED against objdump)
 // evidence: row 0 of the rejection table at 0x006555f8 with the kinds mask 0xffff, so it
 //   runs for every goal kind. Its whole body is gated on query.flying (0x44), which is the
 //   case the path-based candidate filling in actor_find_best_firing_position skips, and it
@@ -17,8 +17,10 @@
 extern data_array *actor_data; // 0x00880360
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (formerly bsp_generation)
 
-extern uint8_t actor_movement_flying_needs_steering(void);                              // 0x41aab0, not yet rewritten: step / drop test
-extern uint8_t path_find_test_direct_reachability(int32_t generation, int32_t unused); // 0x43a0a0, not yet rewritten: direct-line reachability
+extern uint8_t actor_movement_flying_needs_steering(datum_index actor_index, const real_point3d *destination,
+    float *out_avoidance_distance); // 0x41aab0, EAX, ECX, EDI
+extern uint8_t path_find_test_direct_reachability(const real_point3d *point_a, const real_point3d *point_b,
+    real_point3d *out_position, void *context, uint8_t *out_success); // 0x43a0a0, EAX, ECX, ESI, stack
 
 // blam-cc: stack -> actor_index, query, candidate
 // The always-on rejection rule. Ground actors pass unconditionally because their candidates
@@ -35,9 +37,16 @@ uint8_t actor_reject_firing_position_unreachable(datum_index actor_index,
             query->baseline_penalty = query->baseline_penalty + 15.0f;
             return 1;
         }
-        // UNSURE: both helpers are called with no visible arguments. The candidate position
-        // and the actor are the only live values, so they are what is being tested.
-        if (actor_movement_flying_needs_steering() != 0 && path_find_test_direct_reachability((uint32_t)global_structure_bsp, 0) != 0) {
+        // FIXED (objdump 0x4122de..0x41230a): steering test with EAX = actor, ECX = the firing position, EDI = a
+        //   local float (0); reachability with EAX = the firing position, ECX = the actor body position (+0x12c),
+        //   ESI = 0, stack = (global_structure_bsp, 0). The draft passed no arguments to either.
+        float avoidance_distance = 0.0f;
+        actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
+        const real_point3d *position = (const real_point3d *)candidate->position;
+
+        if (actor_movement_flying_needs_steering(actor_index, position, &avoidance_distance) != 0 &&
+            path_find_test_direct_reachability(position, (const real_point3d *)((uint8_t *)self + 0x12c), 0,
+                global_structure_bsp, 0) != 0) {
             candidate->score = candidate->score + 15.0f;
             return candidate->valid;
         }

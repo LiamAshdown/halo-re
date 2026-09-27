@@ -1,6 +1,6 @@
 // encounter_update_platoon_defending_flag  (Ghidra: encounter_update_platoon_defending_flag, renamed)
 // address 0x4393b0, size 225 bytes
-// name confidence: 0.35  rewrite confidence: 0.35
+// name confidence: 0.35  rewrite confidence: 0.9 (VERIFIED against objdump; condition arguments FIXED)
 // evidence: types/ai.h encounter (platoon_count +0x0a, first_platoon +0x08, confirmed) /
 //   encounter_platoon_state; types/tags.h ScenarioEncounter.platoons (+0x8c count / +0x90
 //   pointer) and ScenarioPlatoon.flags (TagString name is 0x20 bytes, so flags is the first
@@ -25,7 +25,7 @@ extern data_array *encounter_data;  // 0x008802c8
 extern Scenario *global_scenario;   // 0x00746f8c
 extern encounter_platoon_state *encounter_platoon_states; // 0x008802c4
 
-extern uint8_t encounter_evaluate_platoon_condition(void); // 0x439f20, see that file for its real signature; called here exactly as Ghidra shows (no visible arguments)
+extern uint8_t encounter_evaluate_platoon_condition(datum_index encounter_index, const ai_platoon_condition *condition); // 0x439f20, EAX, EDI
 
 // blam-cc: stack -> encounter_index
 void encounter_update_platoon_defending_flag(datum_index encounter_index)
@@ -46,12 +46,15 @@ void encounter_update_platoon_defending_flag(datum_index encounter_index)
 
             if (0 < platoon_state->unknown_06) {
                 if (((uint8_t *)platoon_state)[1] == 0) {
-                    ((uint8_t *)platoon_state)[1] = encounter_evaluate_platoon_condition();
+                    // FIXED (0x439438..0x43943f): EAX = the encounter, EDI = platoon definition +0x3c (maneuver_when)
+                    ((uint8_t *)platoon_state)[1] = encounter_evaluate_platoon_condition(encounter_index,
+                        (const ai_platoon_condition *)((uint8_t *)encounter_definition->platoons.pointer + platoon_index * 0xac + 0x3c));
                 }
                 if ((((uint8_t *)platoon_state)[2] != 0) || (((uint8_t *)platoon_state)[1] == 0)) {
                     not_defending = ~(uint8_t)(((ScenarioPlatoon *)encounter_definition->platoons.pointer)[platoon_index].flags >> 2) & 1;
                     if ((platoon_state->unknown_00 != not_defending) &&
-                        (encounter_evaluate_platoon_condition() != 0)) {
+                        (encounter_evaluate_platoon_condition(encounter_index, // FIXED: EDI = platoon +0x30 (0x43946a)
+                            (const ai_platoon_condition *)((uint8_t *)encounter_definition->platoons.pointer + platoon_index * 0xac + 0x30)) != 0)) {
                         platoon_state->unknown_00 = not_defending;
                     }
                 }
