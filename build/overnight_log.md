@@ -1794,3 +1794,11 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - Verified 0.9: actor_select_facing_target_prop (writes {1, prop} into the caller's record), actor_resolve_flee_source_point (all 7 kinds).
 - actor_update_aim_wander (0x40fcb0, 2092 B) REWRITTEN from objdump (0.2 -> 0.85). Fixes: the burst length +0x5f4 is a random time from the burst block (+0x14..+0x18, scaled, x0.6 when +0x1ca) in ticks; the draft truncated +0x458. The bombardment randomizes a copy of the target, not +0x62c. The burst block (EDI out_a) and scale block (ESI out_b) were mixed. The wander offset (side/up plane, radius A), the per-tick return (radius B / ticks), the burst clamp against the tangent of the burst sweep at +0x638, and the firing-line broadcast are added.
 - Verified 0.9: weapon_get_zoom_fov (really the difficulty table lookup), weapon_get_zoom_fov_resolved, actor_get_actor_definition.
+
+## Static loop: verifications + ray chain + marker direction (no boot)
+- Verified 0.9-0.95 against the binary: actor_select_stance_offset_pair, actor_target_is_visible_or_object_count_ok, actor_score_blast_area_clear, actor_target_data_refresh, actor_target_scan_potential_targets (end to end); weapon_get_zoom_fov(_resolved) is really the difficulty table lookup.
+- actor_target_relationship_think: all 25 call sites agree with the binary; 0.7 (inner logic not re-derived).
+- encounter_redistribute_squads_toward_targets: FIXED the unassigned-list insert, which resets firing_position_index and a type 3/4 active movement a second time before the mode callback (0x439d05); 0.7.
+- object_collision_test_ray_nearby_chain (0x5055b0): decoded end to end; FIXED the vehicle mass-point path, which now also stores permutation_index = -1 (0x5056fa); 0.85.
+- unit_get_average_active_marker_direction (0x575e30): REWRITTEN (0.15 -> 0.85). The old C passed a pointer-sized local as the 0x3c-byte object_physics_context (stack overrun inside the build call), transformed through a zero matrix and threw the result away, and returned position - average (the wrong sign). The binary returns normalize(ctx matrix * average(active mass point positions) - unit position). actor_movement_update, movement style 4, stores -direction into +0x5a4, so AI vehicle facing in that style was reversed/garbage before.
+- Relink: left unresolved 1, traps 128.

@@ -2,91 +2,95 @@
 //   proposal)
 // address 0x575e30, size 365 bytes
 // name confidence: 0.3 (phase2 proposal at 0.3, matches functions.md summary)
-// rewrite confidence: 0.15 -- local_38 (the Physics tag data pointer this function indexes at
-//   +0x74/+0x78) is never assigned anywhere in Ghidra's own decompile, which means it comes
-//   from a hidden output of object_physics_context_build that could not be recovered; modeled here as an
-//   explicit out-parameter of that call.
-// evidence: types/units.h vehicle_data.active_marker_mask (0x520, "0x575e30 treats it as a
-//   marker bitmask"); math.h global_up3d_and_neighbors_pointer (0x006966f8); callees
-//   matrix4x3_transform_point, object_get_position, vector3d_normalize_with_length.
-// UNSURE: object_physics_context_build's real signature/output and the marker-position field offset (+0x38
-//   within an 0x80-byte physics contact record, by analogy with unit_update_marker_traction_effects.c's
-//   own 0x80-stride record) are not confirmed.
+// rewrite confidence: 0.85 -- REWRITTEN from the disassembly. The old version passed a single
+//   pointer as the 0x3c-byte object_physics_context (the build call wrote past it), transformed
+//   through an all-zero matrix and discarded the result, and returned position - average (the
+//   wrong sign). The binary averages the active mass points in physics space, transforms the
+//   average by the context matrix (ctx + 8), and returns normalize(world average - unit
+//   position).
+// evidence: 0x575e68 object_physics_context_build (EBX index, EAX context at esp+0x28);
+//   0x575e81 Physics tag (ctx + 4) +0x74 mass point count, +0x78 mass points, 0x80 stride,
+//   position at +0x38; 0x575e75 sum starts from *global_zero_vector3d_pointer (0x6966f8);
+//   0x575f00 inv = 1.0 / count (int16); 0x575f2c matrix4x3_transform_point(EAX out, EDX sum,
+//   stack ctx + 8); 0x575f3c object_get_position; 0x575f41 out = transformed - position;
+//   0x575f70 fails when the length compares equal to 0.0.
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "physics.h"
 #include "units.h"
 
 extern data_array *object_data;     // 0x008603b0
-extern real_vector3d *global_up3d_and_neighbors_pointer; // 0x006966f8, UNSURE identity
+extern real_point3d *global_zero_vector3d_pointer; // 0x006966f8 -> 0x0065c230 {0,0,0}
 
-extern uint8_t object_physics_context_build(uint32_t unit_index, uint8_t **out_physics_tag); // 0x5074b0, UNSURE signature
+extern uint8_t object_physics_context_build(uint32_t object_index,
+    object_physics_context *out_context); // 0x5074b0; EBX index, EAX context
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, in place
 
-// Computes and returns the normalized direction from the unit toward the averaged position of
-// its currently active markers (vehicle_data.active_marker_mask), or fails if no markers are
-// active or object_physics_context_build fails.
-// FIXED (register inputs, objdump: each stack slot's first use checked against the parameter): the original never reads EAX; unit_index arrive(s) on the stack (2 stack argument(s)).
+// Direction from the unit's position to the world-space average of the mass points selected by
+// vehicle_data.active_marker_mask (+0x520). Fails when no bit is set, when the object has no
+// physics, when no selected mass point exists, or when the direction has zero length.
 // blam-cc: stack -> unit_index, out_direction
 uint8_t unit_get_average_active_marker_direction(uint32_t unit_index, real_vector3d *out_direction)
 {
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    uint32_t mask = *(uint32_t *)(obj + 0x520);
+    object_physics_context ctx;
+    uint8_t *physics;
+    int32_t count;
+    int16_t active_count = 0;
+    int16_t i;
+    real_point3d sum;
+    real_point3d world;
+    real_point3d position;
+    float inv;
 
-    if (vehicle->active_marker_mask == 0) {
+    if (mask == 0) {
+        return 0;
+    }
+    if (!object_physics_context_build(unit_index, &ctx)) {
         return 0;
     }
 
-    {
-        uint8_t *physics_tag = 0;
-        uint8_t ok = object_physics_context_build(unit_index, &physics_tag);
-        real_vector3d sum;
-        int32_t active_count = 0;
-        int32_t count;
-        int32_t i;
-
-        if (!ok) {
-            return 0;
-        }
-
-        sum = *global_up3d_and_neighbors_pointer;
-        count = *(int32_t *)(physics_tag + 0x74);
-
-        for (i = 0; i < count; i++) {
-            if ((vehicle->active_marker_mask & (1u << (i & 0x1f))) != 0) {
-                real_point3d *marker_pos = (real_point3d *)(*(uint8_t **)(physics_tag + 0x78) + i * 0x80 + 0x38);
-                sum.i += marker_pos->x;
-                sum.j += marker_pos->y;
-                sum.k += marker_pos->z;
-                active_count++;
-            }
-        }
-
-        if (active_count > 0) {
-            float inv = 1.0f / (float)active_count;
-            real_matrix4x3 basis = {0}; // UNSURE: local_34, never assigned in the decompile
-            real_point3d transformed;
-            real_point3d self_position;
-            real length;
-
-            matrix4x3_transform_point(&transformed, (real_point3d *)&sum, &basis);
-            object_get_position(&self_position, unit_index);
-
-            out_direction->i = self_position.x - sum.i * inv;
-            out_direction->j = self_position.y - sum.j * inv;
-            out_direction->k = self_position.z - sum.k * inv;
-            length = vector3d_normalize_with_length(out_direction);
-            if (length != 0.0f) {
-                return 1;
-            }
-        }
+    physics = (uint8_t *)ctx.definition;
+    count = *(int32_t *)(physics + 0x74);
+    sum = *global_zero_vector3d_pointer;
+    if (count <= 0) {
+        return 0;
     }
-    return 0;
+    i = 0;
+    do {
+        if ((mask & (1u << (i & 0x1f))) != 0) {
+            real_point3d *p = (real_point3d *)(*(uint8_t **)(physics + 0x78) + (int32_t)i * 0x80 + 0x38);
+            sum.x += p->x;
+            sum.y += p->y;
+            sum.z += p->z;
+            active_count++;
+        }
+        i++;
+    } while ((int32_t)i < count);
+
+    if (active_count <= 0) {
+        return 0;
+    }
+    inv = 1.0f / (float)(int32_t)active_count;
+    sum.x *= inv;
+    sum.y *= inv;
+    sum.z *= inv;
+    matrix4x3_transform_point(&world, &sum, (real_matrix4x3 *)&ctx.scale);
+    object_get_position(&position, unit_index);
+    out_direction->i = world.x - position.x;
+    out_direction->j = world.y - position.y;
+    out_direction->k = world.z - position.z;
+    if (vector3d_normalize_with_length(out_direction) == 0.0f) {
+        return 0;
+    }
+    return 1;
 }
 
 #if 0

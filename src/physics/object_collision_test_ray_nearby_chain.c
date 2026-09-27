@@ -1,7 +1,7 @@
 // object_collision_test_ray_nearby_chain  (Ghidra: FUN_005055b0, still unnamed there; phase-2
 // guessed object_test_collision_ray_recursive)
 // address 0x5055b0, size 714 bytes
-// name confidence: 0.4   rewrite confidence: 0.15 -- among the lowest-confidence files in this
+// name confidence: 0.4   rewrite confidence: 0.85 (REWRITTEN: decoded 0x5055b0 end to end (args, sphere prefilter, vehicle mass-point path under 0x400000, node BSP path, child recursion); only change: the mass-point path now also resets permutation_index (+0x40) to -1) -- among the lowest-confidence files in this
 //   batch; see the UNSURE paragraphs below. The ray counterpart of
 //   object_collision_test_nearby_chain (0x505350, this batch).
 // evidence: out/phase4/physics_functions.md ("Recursively casts a ray/segment against a chain of
@@ -154,6 +154,7 @@ uint8_t object_collision_test_ray_nearby_chain(uint32_t start_object_index, uint
                             out_result->object_index = object_index;
                             out_result->region_index = -1;
                             out_result->node_index = -1;
+                            out_result->permutation_index = -1; // FIXED: 0x5056fa stores -1 here too
                             out_result->plane_index = 0xffffffff;
                             out_result->surface_index = -1;
                             out_result->surface_flags = 0;
