@@ -3,7 +3,7 @@
 // address 0x573100, size 962 bytes
 // name confidence: 0.45 (phase2 proposal at 0.45, matches functions.md summary; dispatched from
 //   vehicle_update's case 3)
-// rewrite confidence: 0.1 -- parallel in structure to vehicle_calculate_ground_contact_lean.c
+// rewrite confidence: 0.85 (REWRITTEN from objdump 0x573100..0x5734c1) -- parallel in structure to vehicle_calculate_ground_contact_lean.c
 //   and vehicle_calculate_ground_contact_lean_alt.c (this batch); the same matrix/quaternion
 //   caveats apply. The leading branch (vehicle_data.flags bit 2, undocumented in
 //   types/units.h) zeroes the whole per-contact-point output buffer and returns early.
@@ -32,38 +32,55 @@ extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern float DAT_0069c52c; // UNSURE global, per sibling files
 
-extern void object_physics_tick(uint32_t unit_index, uint32_t param_2, void *out_transform,
-                          void *param_4, void *param_5); // 0x507840
-extern void vehicle_create_hover_thruster_effects(uint32_t unit_index); // 0x574900, this batch
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
-extern void vector3d_rotate_about_axis_perpendicular(float sin_angle, float cos_angle); // 0x4cd700, UNSURE  // real signature (vector3d_rotate_about_axis_perpendicular.c): void vector3d_rotate_about_axis_perpendicular(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); Ghidra recovered 2 of 4 args at this call site
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out); // 0x4cb970
-extern void matrix4x3_inverse(real_matrix4x3 *out, real_matrix4x3 *in); // 0x4cb7a0, UNSURE args here
-extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x4cc0d0
-extern void quaternion_from_matrix4x3(real_matrix4x3 *m, real_quaternion *out); // 0x4cbc00, UNSURE args
-extern void quaternion_to_axis_angle(void); // 0x4cdb90, UNSURE args  // real signature (quaternion_to_axis_angle.c): void quaternion_to_axis_angle(real_quaternion *quat, real_vector3d *axis_out, real *angle_out); Ghidra recovered 0 of 3 args at this call site
-extern double sqrt(double x);
+extern void object_physics_tick(uint32_t object_index, void *powered_states, void *contact_points,
+    real_vector3d *extra_force, real_vector3d *extra_torque); // 0x507840
+extern void vehicle_create_hover_thruster_effects(uint32_t unit_index); // 0x574900
+extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+extern void vector3d_rotate_about_axis_perpendicular(real_vector3d *v, real_vector3d *axis, real sin_angle,
+    real cos_angle); // 0x4cd700, EAX, ECX, stack
+extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out); // 0x4cb970, EAX, ECX, stack
+extern void matrix4x3_inverse(real_matrix4x3 *out, real_matrix4x3 *in); // 0x4cb7a0, EAX, ECX
+extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x4cc0d0 via [0x696664]
+extern void quaternion_from_matrix4x3(real_matrix4x3 *m, real_quaternion *out); // 0x4cbc00, ECX, stack
+extern void quaternion_to_axis_angle(real_quaternion *quat, real_vector3d *axis_out, real *angle_out); // 0x4cdb90, EAX, ESI, EDI
 extern double sin(double x);
 extern double cos(double x);
 extern double fabs(double x);
-extern float fabsf(float x);
 
-// Computes ground-hugging lean/roll for a hovering vehicle each tick and triggers its hover/jet
-// thruster particle effects.
-// UNSURE: reproduced only partially; see the file header before trusting this file's math.
+// REWRITTEN from objdump. Raw object offsets: +0x68 velocity, +0x74 forward, +0x80 up, +0x8c angular velocity, +0x224
+//   the desired facing, +0x338 the throttle scale, +0x4cc vehicle flags, +0x4d4 forward speed, +0x4ec lean,
+//   +0x4f0 lean output. Vehicle tag +0x2f8 is the maximum forward speed; physics tag +0x00 and +0x08 are the
+//   radius and mass.
+//   Flag bit 1 (disabled) clears the contact buffer (physics +0x74 entries of 0x130) and only spawns the
+//   thruster effects. Otherwise the lean eases toward k * (1 - f^2) * throttle (k = 0.25 / 1.0 / 0.75 by flags
+//   bit 2 / bit 3) by at most 0.05 per tick, with f = clamp(speed, 0, max) / max. The desired basis is
+//   forward = the desired facing and up = normalize(-fx*fz, -fy*fz, 1 - fz^2), rotated about the facing by the
+//   side-slip angle. The torque is the axis-angle from the current basis to it (per tick) less the angular
+//   velocity, times radius^2 * mass * 0.05; the force is forward * X + up * Y. Both are scaled by the throttle
+//   and handed to object_physics_tick, then the thruster effects run. The draft called every helper without
+//   arguments (crash at boot in the menu scene).
 void vehicle_calculate_ground_lean_controls(uint32_t unit_index, uint8_t *out_transform)
 {
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
-    vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    uint8_t *physics_tag = tag_instances[*(uint32_t *)((uint8_t *)tag + 0x8c) & 0xffff].data;
-    uint32_t flags = vehicle->flags;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *physics = (uint8_t *)tag_instances[*(datum_index *)(tag + 0x8c) & 0xffff].data;
+    uint16_t flags = *(uint16_t *)(obj + 0x4cc);
+    real max_speed = *(real *)(tag + 0x2f8);
+    real speed = *(real *)(obj + 0x4d4);
+    real throttle = *(real *)(obj + 0x338);
+    real clamped, f2, k, delta, lean_scale, dot, x_force, y_force, angle, per_tick, torque_scale;
+    real_vector3d facing, up, force, torque;
+    real_vector3d *velocity = (real_vector3d *)(obj + 0x68);
+    real_vector3d *forward = (real_vector3d *)(obj + 0x74);
+    real_vector3d *object_up = (real_vector3d *)(obj + 0x80);
+    real_vector3d *angular_velocity = (real_vector3d *)(obj + 0x8c);
+    real_matrix4x3 current, desired, relative;
+    real_quaternion rotation;
+    real_vector3d axis;
+    int32_t i;
 
-    if ((flags & 2) != 0) {
-        int32_t count = *(int32_t *)(physics_tag + 0x74);
-        int32_t bytes = count * 0x130;
-        int32_t i;
+    if (flags & 2) {
+        int32_t bytes = *(int32_t *)(physics + 0x74) * 0x130;
         for (i = 0; i < bytes; i++) {
             out_transform[i] = 0;
         }
@@ -71,96 +88,60 @@ void vehicle_calculate_ground_lean_controls(uint32_t unit_index, uint8_t *out_tr
         return;
     }
 
-    {
-        float speed_fraction;
-        float lean_target;
-        float delta;
-        real_vector3d facing = unit->desired_facing_vector;
-        real_vector3d axis;
-        real length;
-        float along;
-        float scaled;
-        real_vector3d push;
-
-        speed_fraction = (vehicle->forward_velocity >= 0.0f)
-            ? ((vehicle->forward_velocity <= tag->maximum_forward_speed) ? vehicle->forward_velocity : tag->maximum_forward_speed)
-            : 0.0f;
-        speed_fraction = speed_fraction / tag->maximum_forward_speed;
-        speed_fraction = speed_fraction * speed_fraction;
-
-        if ((flags & 4) != 0) {
-            scaled = 0.25f;
-        } else if ((flags & 8) == 0) {
-            scaled = 0.75f;
-        } else {
-            scaled = 1.0f;
-        }
-
-        delta = (1.0f - speed_fraction) * unit->unknown_338 * scaled - vehicle->ground_lean;
-        if (delta < -0.05f) delta = -0.05f;
-        else if (delta > 0.05f) delta = 0.05f;
-        vehicle->ground_lean += delta;
-
-        vehicle->ground_contact_fraction = speed_fraction * unit->unknown_338;
-
-        axis.i = -(facing.i * facing.k);
-        axis.j = -(facing.j * facing.k);
-        axis.k = 1.0f - facing.k * facing.k;
-        length = vector3d_normalize_with_length(&axis);
-        if (length == 0.0f) {
-            axis.i = 1.0f;
-            axis.j = 0.0f;
-            axis.k = 0.0f;
-        }
-
-        along = facing.i * obj->velocity.i + facing.j * obj->velocity.j + facing.k * obj->velocity.k;
-        {
-            float accel = (vehicle->forward_velocity - along) * vehicle->ground_contact_fraction *
-                          *(float *)(physics_tag + 8) * 0.05f;
-            float lateral = ((vehicle->ground_lean * 1.3f) + fabsf(along / tag->maximum_forward_speed) * 1.05f) *
-                            *(float *)(physics_tag + 8) * DAT_0069c52c;
-            push.i = accel * facing.i + lateral * obj->up.i;
-            push.j = accel * facing.j + lateral * obj->up.j;
-            push.k = accel * facing.k + lateral * obj->up.k;
-        }
-
-        {
-            double turn_angle = (((double)obj->velocity.j * facing.i - (double)facing.j * obj->velocity.i) *
-                                  1.5707964) / fabs((double)tag->maximum_forward_speed);
-            double c = cos(turn_angle);
-            double s = sin(turn_angle);
-            vector3d_rotate_about_axis_perpendicular((float)s, (float)c);
-        }
-
-        {
-            real_matrix4x3 m1, m2, m2_inv, product;
-            float quat[4];
-
-            matrix4x3_from_forward_up(&obj->up, &facing, &m1);
-            matrix4x3_from_forward_up(&obj->up, &obj->forward, &m2);
-            matrix4x3_inverse(&m2_inv, &m2);
-            matrix4x3_multiply(&m1, &m2_inv, &product);
-            quaternion_from_matrix4x3((real_matrix4x3 *)quat, (real_quaternion *)&product);
-            quaternion_to_axis_angle();
-        }
-
-        {
-            float ang_scale = vehicle->ground_contact_fraction * 0.033333335f;
-            float spin_bound = *(float *)physics_tag * *(float *)physics_tag * *(float *)(physics_tag + 8) * 0.05f;
-            real_vector3d angular;
-
-            push.i *= unit->unknown_338;
-            push.j *= unit->unknown_338;
-            push.k *= unit->unknown_338;
-
-            angular.i = unit->unknown_338 * (axis.i * ang_scale - obj->angular_velocity.i) * spin_bound;
-            angular.j = unit->unknown_338 * (axis.j * ang_scale - obj->angular_velocity.j) * spin_bound;
-            angular.k = unit->unknown_338 * (axis.k * ang_scale - obj->angular_velocity.k) * spin_bound;
-
-            object_physics_tick(unit_index, 0, out_transform, &push, &angular);
-            vehicle_create_hover_thruster_effects(unit_index);
-        }
+    clamped = !(speed >= 0.0f) ? 0.0f : (speed <= max_speed ? speed : max_speed);
+    f2 = (clamped / max_speed) * (clamped / max_speed);
+    k = (flags & 4) ? 0.25f : ((flags & 8) ? 1.0f : 0.75f);
+    delta = k * ((1.0f - f2) * throttle) - *(real *)(obj + 0x4ec);
+    if (!(delta >= -0.05f)) {
+        delta = -0.05f;
+    } else if (!(delta <= 0.05f)) {
+        delta = 0.05f;
     }
+    *(real *)(obj + 0x4ec) = delta + *(real *)(obj + 0x4ec);
+    lean_scale = f2 * throttle;
+    *(real *)(obj + 0x4f0) = lean_scale;
+
+    facing = *(real_vector3d *)(obj + 0x224);
+    up.i = -(facing.i * facing.k);
+    up.j = -(facing.j * facing.k);
+    up.k = 1.0f - facing.k * facing.k;
+    if (vector3d_normalize_with_length(&up) == 0.0f) {
+        up.i = 1.0f;
+        up.j = 0.0f;
+        up.k = 0.0f;
+    }
+
+    dot = velocity->i * forward->i + velocity->j * forward->j + velocity->k * forward->k;
+    x_force = (speed - dot) * lean_scale * *(real *)(physics + 0x8) * 0.05f;
+    y_force = ((real)fabs((double)(dot / max_speed)) * 1.05f + *(real *)(obj + 0x4ec) * 1.3f) *
+        *(real *)(physics + 0x8) * 0.0035651792f;
+    force.i = object_up->i * y_force + forward->i * x_force;
+    force.j = object_up->j * y_force + forward->j * x_force;
+    force.k = forward->k * x_force + object_up->k * y_force;
+
+    angle = (velocity->j * facing.i - facing.j * velocity->i) * 1.5707964f / (real)fabs((double)max_speed);
+    vector3d_rotate_about_axis_perpendicular(&up, &facing, (real)sin((double)angle), (real)cos((double)angle));
+    matrix4x3_from_forward_up(object_up, forward, &current);
+    matrix4x3_from_forward_up(&up, &facing, &desired);
+    matrix4x3_inverse(&desired, &desired);
+    matrix4x3_multiply(&current, &desired, &relative);
+    quaternion_from_matrix4x3(&relative, &rotation);
+    quaternion_to_axis_angle(&rotation, &axis, &angle);
+
+    per_tick = angle * 0.033333335f;
+    torque_scale = *(real *)(physics + 0x0) * *(real *)(physics + 0x0) * *(real *)(physics + 0x8) * 0.05f;
+    torque.i = (axis.i * per_tick - angular_velocity->i) * torque_scale;
+    torque.j = (axis.j * per_tick - angular_velocity->j) * torque_scale;
+    torque.k = (axis.k * per_tick - angular_velocity->k) * torque_scale;
+
+    force.i = throttle * force.i;
+    force.j = throttle * force.j;
+    force.k = throttle * force.k;
+    torque.i = throttle * torque.i;
+    torque.j = throttle * torque.j;
+    torque.k = throttle * torque.k;
+    object_physics_tick(unit_index, 0, out_transform, &force, &torque);
+    vehicle_create_hover_thruster_effects(unit_index);
 }
 
 #if 0
