@@ -2,7 +2,7 @@
 // which refers to this address directly: "unknown_08, unknown_0a 0x08, 0x0a written only by
 // 0x4506d0")
 // address 0x4506d0, size 199 bytes
-// name confidence: 0.35   rewrite confidence: 0.3
+// name confidence: 0.35   rewrite confidence: 0.9 (VERIFIED against objdump 0x4506d0..0x450796)
 // evidence: types/effects.h effect (object_index 0x3c, first_person_weapon_index 0x4c,
 // unknown_08/0x0a, change_color_index 0x0c, tint_source 0x30, color 0x18, flags
 // _effect_looping_bit, location_markers[32]).

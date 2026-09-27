@@ -1,7 +1,7 @@
 // player_effect_build_screen_flash  (Ghidra: FUN_00457000, still unnamed there; named directly
 //   by out/phase4/effects_types_notes.md: "player_effect_build_screen_flash 0x457000")
 // address 0x457000, size 529 bytes
-// name confidence: 0.5   rewrite confidence: 0.3 (low-rigor best-effort pass: the output
+// name confidence: 0.5   rewrite confidence: 0.9 (VERIFIED against objdump; transition types and tick step FIXED) (low-rigor best-effort pass: the output
 //   descriptor shape (`unaff_EBX`) is not an established struct, so it is written through raw
 //   offsets rather than a named type)
 // evidence: types/effects.h player_effect_globals (scripted_flash_color +0xec,
@@ -34,8 +34,12 @@ extern real transition_function_evaluate(int16_t type, real phase); // 0x4ccac0,
                                     // UNSURE: type argument dropped by Ghidra at both call sites
                                     // here, kept as 0 (_transition_function_linear)
 
+// FIXED (objdump 0x457000..0x457210): the scripted flash fades through transition type 5 (ECX = 5 at 0x4570d6),
+//   the player flash through its own type (flash +0x14, i.e. self +0x2c), and the player flash ticks count down by
+//   the tick length (game_time +0x10), not 1. The scripted ticks are reset only once a local player is given.
+//   The pass index is written as a word.
 void player_effect_build_screen_flash(uint32_t *out, int16_t local_player_index)
-    // blam-cc: unaff_EBX, in_CX
+    // blam-cc: EBX -> out, CX -> local_player_index
 {
     player_effect_globals *globals = player_effect_globals_pointer;
 
@@ -45,53 +49,53 @@ void player_effect_build_screen_flash(uint32_t *out, int16_t local_player_index)
 
     if (globals->scripted_flash_ticks != -1 &&
         (globals->scripted_flash_fade_in != 0 ||
-         game_time[3] - globals->scripted_flash_start_tick <= globals->scripted_flash_ticks)) {
+         game_time[3] - globals->scripted_flash_start_tick <= (int32_t)globals->scripted_flash_ticks)) {
         float fraction;
-        ColorRGB color = globals->scripted_flash_color;
 
-        out[0] = 1;
-        *(ColorRGB *)&out[3] = color;
-        out[2] = 0x3f800000; // 1.0f, UNSURE which sub-field this really is
-
+        *(uint16_t *)out = 1;
+        *(ColorRGB *)&out[3] = globals->scripted_flash_color;
+        *(float *)&out[2] = 1.0f;
         if (globals->scripted_flash_ticks < 1) {
             fraction = 1.0f;
         } else {
             float t = (float)(game_time[3] - globals->scripted_flash_start_tick) /
-                      (float)globals->scripted_flash_ticks;
-            t = (t < 0.0f) ? 0.0f : (1.0f < t ? 1.0f : t);
-            fraction = transition_function_evaluate(0, t);
-        }
+                      (float)(int32_t)globals->scripted_flash_ticks;
 
+            if (!(t >= 0.0f)) {
+                t = 0.0f;
+            } else if (!(t <= 1.0f)) {
+                t = 1.0f;
+            }
+            fraction = transition_function_evaluate(5, t);
+        }
         *(float *)&out[1] = fraction;
         if (globals->scripted_flash_fade_in == 0) {
             *(float *)&out[1] = 1.0f - fraction;
         }
-        if (*(float *)&out[1] < 0.0f) {
-            out[1] = 0;
-        } else if (1.0f < *(float *)&out[1]) {
-            out[1] = 0x3f800000;
+        if (!(*(float *)&out[1] >= 0.0f)) {
+            *(float *)&out[1] = 0.0f;
+        } else if (!(*(float *)&out[1] <= 1.0f)) {
+            *(float *)&out[1] = 1.0f;
         }
         return;
     }
 
-    globals->scripted_flash_ticks = -1;
-
     if (local_player_index != -1) {
         player_effect *self = &globals->players[local_player_index];
 
+        globals->scripted_flash_ticks = -1;
         if (0 < self->flash_ticks || (self->flags & 1) != 0) {
             self->flags &= ~(uint32_t)1;
-            out[0] = (uint32_t)(uint16_t)screen_flash_pass[self->flash.type];
-            *(ColorARGB *)&out[2] = self->flash.color; // color is +0x40 absolute
-            if (0.0f < self->flash.duration) {
-                float fraction = ((float)self->flash_ticks / self->flash.duration) *
-                                  self->flash.intensity; // UNSURE: intensity used as a scale here
-                *(float *)&out[1] = transition_function_evaluate(0, fraction);
+            *(uint16_t *)out = (uint16_t)screen_flash_pass[self->flash.type];
+            *(ColorARGB *)&out[2] = self->flash.color; // self +0x40
+            if (self->flash.duration > 0.0f) {
+                float fraction = ((float)(int32_t)self->flash_ticks / self->flash.duration) * self->flash.intensity;
+
+                *(float *)&out[1] = transition_function_evaluate(*(int16_t *)&self->flash.unknown_14, fraction);
             } else {
                 *(float *)&out[1] = self->flash.intensity;
             }
-            self->flash_ticks = self->flash_ticks - 1; // UNSURE: subtracts a tick-length field
-                                    // this batch does not establish; approximated as 1 tick
+            self->flash_ticks = (int16_t)(self->flash_ticks - *(int16_t *)((uint8_t *)game_time + 0x10));
         }
     }
 }

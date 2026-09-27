@@ -1,7 +1,7 @@
 // player_effect_apply_at_object  (Ghidra: FUN_00456900, still unnamed there; named directly by
 //   out/phase4/effects_types_notes.md: "player_effect_apply_at_object 0x456900")
 // address 0x456900, size 115 bytes
-// name confidence: 0.5   rewrite confidence: 0.4
+// name confidence: 0.5   rewrite confidence: 0.9 (VERIFIED against objdump 0x456900..0x456972)
 // evidence: types/game.h player_globals.local_players (+0x04) and player.unit (+0x34); this
 //   module's player_effect_apply_continuous_damage (0x4567c0), whose (tag_reference,
 //   local_player_index, distance) signature this function's tail call feeds.
@@ -9,7 +9,7 @@
 //   player index this function passes straight through to player_effect_apply_continuous_damage
 //   are never read here, so they must themselves be live-through register parameters of this
 //   function (EAX, DX) rather than something it computes.
-//   // blam-cc: in_EAX -> tag_reference (pass-through), in_DX -> local_player_index
+//   // blam-cc: stack -> tag_reference, ESI -> origin; local_player_index is always 0 (xor edx,edx at 0x456943)
 //   //   (pass-through), unaff_ESI -> origin
 // UNSURE: the pass-through register parameters are inferred from player_effect_apply_continuous_damage's
 //   own established signature, not from anything visible in this function's own decompile.

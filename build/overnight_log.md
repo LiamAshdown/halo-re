@@ -1763,3 +1763,5 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - flash is {type 1, +2 = 2, duration 1, max = fraction, weight 0, white}; shake is {duration 1, +8 = fraction * 0.01}.
   - Its caller main_switch_structure_bsp now passes the player in EDX; it had passed only the fraction, so the player index was garbage.
 - player_effect_set_camera_shake verified 0.9.
+- player_effect_build_screen_flash (0x457000) verified 0.9. Scripted fades use transition type 5, player flashes use their own type (flash +0x14), flash ticks count down by the tick length, and scripted ticks reset only for a real local player.
+- Verified 0.9: player_effect_apply_at_object (blam-cc corrected: stack tag, ESI origin, player index always 0), effect_new_at_texture_coordinate.
