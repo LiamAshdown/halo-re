@@ -1,6 +1,6 @@
 // actor_probe_step_direction  (Ghidra: actor_probe_step_direction, renamed)
 // address 0x417e50, size 304 bytes
-// name confidence: 0.3   rewrite confidence: 0.4
+// name confidence: 0.3   rewrite confidence: 0.9 (VERIFIED against 0x417e50 (jump table 0x417f80, argument slots, flip loop); fixed the swapped random side in variant 4)
 // evidence: dispatches *variant on a 2D base direction (ECX, a register argument Ghidra
 // dropped along with the whole body of cases 0-3, which its own decompilation rendered as
 // empty `break`s) to one of five 2D transforms -- left-perpendicular (0), right-perpendicular
@@ -61,14 +61,16 @@ uint8_t actor_probe_step_direction(datum_index actor_index, float step_distance,
         uint32_t rng;
         random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
         rng = (uint32_t)random_seed_global;
+        // FIXED (0x417ed4 jbe 0x417ef3): a roll <= 0x8000 takes the right-hand side (index 1),
+        //   a larger roll the left-hand side (index 0); the draft had them swapped.
         if ((uint16_t)(rng >> 0x10) <= 0x8000) {
-            probe.i = -direction->j;
-            probe.j = direction->i;
-            index = 0;
-        } else {
             probe.i = direction->j;
             probe.j = -direction->i;
             index = 1;
+        } else {
+            probe.i = -direction->j;
+            probe.j = direction->i;
+            index = 0;
         }
         attempts = 2;
         break;
