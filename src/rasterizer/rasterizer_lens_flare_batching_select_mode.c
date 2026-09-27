@@ -117,7 +117,7 @@ void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags)
         set_texture_stage_state(0, 2, 2);
         set_texture_stage_state(0, 3, 0);
         set_texture_stage_state(0, 4, 2);
-        set_texture_stage_state(0, 5, 1);
+        set_texture_stage_state(0, 5, 0); // 0x537425: ALPHAARG1 = D3DTA_DIFFUSE (push ebx = 0)
         set_texture_stage_state(1, 1, 1);
         set_texture_stage_state(1, 4, 1);
         ((d3d_call1_fn)device_vtable()[0x1ac / 4])(rasterizer_device, 0); // SetPixelShader(NULL)
