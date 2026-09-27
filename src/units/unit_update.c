@@ -540,24 +540,21 @@ uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
             unit->animation_controls_smoothed[2] = unit->animation_controls_smoothed[2] * 0.7f + unit->animation_controls[2] * 0.3f;
         }
 
-        // Biped.contact_point wear/traction bookkeeping. The per-entry accumulator this writes
-        // is a run of floats starting at absolute object offset 0x338 (types/units.h names only
-        // the first of them, unit_data.unknown_338); when contact_point.count is 1 (the common
-        // case) this only ever touches that one field, which is presumably why it was named as
-        // a scalar rather than an array. UNSURE: reproduced via raw offsets rather than the
-        // named field to preserve the multi-entry behaviour for models with more than one
-        // contact point.
-        Biped *biped_tag = (Biped *)obj_tag;
-        int32_t contact_count = (int32_t)biped_tag->contact_point.count;
+        // Unit.powered_seats (tag +0x2cc/+0x2d0, 0x44 each; 0x56334d): seat 0 (driver) is powered while
+        // the unit has a driver or flag bit 0 is set, seat 1 (gunner) while it has a gunner who is not
+        // the driver. The per-seat power level is the float run at object +0x338 (0x5633ae), ramped
+        // over the seat's powerup time (+0x04) or powerdown time (+0x08) in seconds.
+        Unit *unit_tag = (Unit *)obj_tag;
+        int32_t contact_count = (int32_t)unit_tag->powered_seats.count;
         for (int32_t i = 0; i < contact_count; i++) {
-            uint8_t *entry = (uint8_t *)biped_tag->contact_point.pointer + i * 0x44;
+            uint8_t *entry = (uint8_t *)unit_tag->powered_seats.pointer + i * 0x44;
             uint8_t active;
             if (i == 0) {
                 active = (unit->driver_unit_index != (datum_index)-1) || (unit->flags & 1) != 0;
             } else {
                 active = (unit->gunner_unit_index != (datum_index)-1) && unit->gunner_unit_index != unit->driver_unit_index;
             }
-            float *wear = (float *)((uint8_t *)obj + 0x338 + i * 4); // UNSURE: see comment above
+            float *wear = (float *)((uint8_t *)obj + 0x338 + i * 4);
             if ((obj->vitality_flags & _object_health_frozen_bit) == 0 && active) {
                 if (*(uint32_t *)wear != 0x3f800000) {
                     float v = *wear + 1.0f / (*(float *)(entry + 4) * 30.0f);
