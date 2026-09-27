@@ -1,56 +1,19 @@
-// projectile_update  (Ghidra: FUN_004bdc00; renamed per
-// out/phase4/projectiles_types_notes.md "Renames this pass establishes". Ghidra separately
-// promoted 0x4be1b0 to a bogus second "function" it named
-// resolution_list_add_resolution; that address is NOT rewritten as its own file -- it is the
-// mid-body loop of THIS function (same LAB_004be5ad / LAB_004be5c1 labels appear in both
-// decompilations, 0x4be1b0 has zero callers, and it decompiles with unaff_EBX/unaff_ESI/
-// unaff_EDI/in_stack_... inputs and no prologue of its own, Ghidra's signature for a promoted
-// label). The pack for 0x4bdc00 already contains the complete decompiled function body,
-// including everything Ghidra separately re-printed at 0x4be1b0; that second printout was used
-// only to cross-check field offsets (it prints them as absolute object-relative numbers where
-// this function prints `puVar3[0x8b]`-style dword indices).
-// address 0x4bdc00, size 3873 bytes (0xf21, 0x4bdc00..0x4beb20, final `ret` at 0x4beb20; orphan pass 4
-// corrected the earlier "0xd30" typo so tools/coverage_audit.py reads this header; the "size=1456" the batch metadata
-// reports is the truncated boundary Ghidra used before it mis-split 0x4be1b0 off; confirmed by
-// disassembling straight through to the padding int3s at 0x4beb21).
-// name confidence: 0.85   rewrite confidence: 0.7 (raised by the phase-4 verification pass, which re-derived
-//   this function from `objdump -d -M intel bin/halo.exe` rather than from the decompilation;
-//   the corrections it made are listed in src/projectiles/README.md)
-//   in this batch -- see the UNSURE blocks below for the guided-projectile "wander" steering,
-//   the flyby-sound listener check and the two mid-loop calls to projectile_request_state whose
-//   "return value" is really just whatever float was already sitting on the x87 stack)
-// evidence: every projectile_data field below is established in out/phase4/projectiles_types_notes.md's
-//   "projectile_data" table with this function cited as (co-)establishing it; types/projectiles.h
-//   documents the same fields with the same evidence. `objdump -d -M intel bin/halo.exe` for the
-//   whole 0x4bdc00..0x4beb30 range resolved every call Ghidra printed with empty parentheses
-//   (hidden register arguments) and the true target of the vector3d project/normalize/rotate
-//   helpers; anywhere Ghidra's own pseudo-C already showed concrete non-empty arguments for an
-//   opaque out-of-range callee, that reading is trusted as-is (Ghidra's x87 comparison-to-boolean
-//   resolution is reliable throughout this function; only its call-argument recovery needed
-//   disassembly help).
-// register convention: already a plain stack parameter in Ghidra's own output (`mov eax,[ebp+8]`
-//   is the function's first real instruction), the same shape as item_update's own
-//   `int __cdecl item_update(uint item_index)` -- this is the analogous projectile-row vtable
-//   column (projectile row +0x34; the item row +0x34 is item_update itself, 0x4bc5c0).
-// UNSURE (function-wide, same tradeoff item_update.c documents for FUN_00401a20 and friends):
-//   weapon_get_zoom_fov (a difficulty/perception scalar keyed off global 0x006b0b80, called with a
-//   literal stack argument of 0x13), unit_get_secondary_eye_marker_position (no visible arguments or return, called every
-//   guided tick right before the two periodic_function_evaluate phase samples -- almost
-//   certainly advances or reads the per-object noise phase state, not otherwise identified),
-//   sound_definition_maximum_distance (EAX = tag->flyby_sound.tag_id, returns a float10 range in ST0; treated as the
-//   sound's audible radius), and sound_start_at_location (the same opaque effect/sound bundle dispatcher
-//   item_update.c already treats as opaque, called here with a five-vector bundle instead of
-//   that function's three-vector one) are all out of this module's address range and preserved
-//   as opaque calls with the exact arguments the disassembly shows.
-//   Two local scratch areas are read with `+=`/by-address before this function (or, on later
-//   iterations of the per-tick loop, the previous iteration) ever writes them: the wander target
-//   accumulator (wander_target below) and the bsp_leaf_reference passed to
-//   object_set_cluster_and_parent at the very end of a settled sub-step. Both are preserved
-//   literally as ordinary uninitialized locals -- exactly what the original stack frame is --
-//   rather than invented-zero-initialized, per this task's "no invented behaviour" rule. In
-//   practice the tick loop runs at the same call depth every frame, so the same physical stack
-//   words are likely being read back tick over tick; this is retail behaviour, not a rewrite bug.
-// reconciled: R23 collision_result: normal -> plane.normal, unknown_30 -> plane.d, unknown_04 -> first_leaf/first_cluster, unknown_3c -> region_index, marker_index -> node_index, unknown_40 -> permutation_index (int16), unknown_48 -> plane_index, unknown_4d -> breakable_surface_index, unknown_4e -> collision_material_index
+// projectile_update  (Ghidra: FUN_004bdc00; renamed per out/phase4/projectiles_types_notes.md; 0x4be1b0 is a
+//   mid-function address Ghidra promoted to a bogus "resolution_list_add_resolution", not a function)
+// address 0x4bdc00, size 3873 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x4bdc00..0x4beb20. The draft's homing crossed the vectors the wrong way round (turning
+//   away from the target) and never fetched the target's eye, rotated nothing (argless rotate calls), called the
+//   cross product with NULL pointers when orienting a projectile along its velocity (a crash on the first such
+//   shot), built the fly-by sound from a guessed bundle, relinked with an uninitialised leaf and advanced the
+//   contrail without its handle. Per step: drop the contrail of a non-tracer, advance arming / deceleration delay /
+//   detonation timer (raising the state to 1), then while flying (or arming) and free: homing (tag +0x1ec rad/s,
+//   difficulty-scaled against players, wander around the target's eye within 10), deceleration to the final
+//   velocity (+0x1e8, rate +0x25c) or vanishing when nothing can happen (state 2), gravity (air +0x1cc / water
+//   +0x1d8), the maximum range (+0x1c8, state 1), up to 10 collisions (0x4c0450 / 0x4bf390, impact noise), the
+//   travelled distance, the local player's fly-by sound (+0x210), orientation along the velocity or the spin
+//   (+0x264 axis, +0x270 / +0x274 sin/cos), commit and contrail. Then detonate (state 1, armed) and delete.
+// blam-cc: stack -> projectile_index
 
 #include "tags.h"
 #include "memory.h"
@@ -58,549 +21,430 @@
 #include "cache.h"
 #include "objects.h"
 #include "projectiles.h"
+#include "game.h"
+#include "sound.h"
+#include "physics.h"
+#include <string.h>
 
-extern data_array *object_data; // 0x008603b0
-extern tag_instance *tag_instances; // 0x0087bc14
-extern void *game_time; // 0x006f1d6c, +0x0c is the game tick
-extern void *local_player_globals; // 0x0087a478
-extern data_array *player_data; // 0x0087a480
-extern real_point3d *global_origin3d_pointer; // 0x00696714, see src/items/item_update.c
-extern uint8_t *unknown_006b0b80; // 0x006b0b80, UNSURE: some difficulty/skill globals block;
-    // weapon_get_zoom_fov reads a word at +0x0e from it
+extern data_array *object_data;        // 0x008603b0
+extern tag_instance *tag_instances;    // 0x0087bc14
+extern game_time_globals *game_time;   // 0x006f1d6c
+extern uint8_t *local_player_globals;  // 0x0087a478, +0x4 the first local player
+extern data_array *player_data;        // 0x0087a480
+extern real_vector3d *global_zero_vector3d_pointer; // 0x00696714
+extern uint8_t *main_game_globals;     // 0x006b0b80, +0x0e the difficulty
+extern float global_gravity;           // 0x0069c52c
 
 extern void contrail_delete(datum_index attachment_handle); // 0x44cad0
-extern void projectile_update_function_values(datum_index projectile_index); // 0x4c0250, this
-    // module, out of range (>0x4bf390), not rewritten this pass
-extern void projectile_request_state(datum_index projectile_index, int16_t requested_state); // 0x4bf0f0, this batch
-extern uint8_t projectile_collision_test(datum_index projectile_index, real_point3d *swept_target,
-    collision_result *out_hit); // 0x4c0450, this module, out of range, not rewritten this pass.
-    // blam-cc: EAX -> projectile_index, EDI -> swept_target, stack -> out_hit (resolved from the
-    // disassembly at the call site: `mov eax,esi; lea edi,[esp+0x6c]; push edx(&hit); call`)
-extern void projectile_response(datum_index projectile_index, collision_result *hit,
-    real_point3d *swept_target, real_vector3d *velocity_at_impact); // 0x4bf390, this batch (see
-    // projectile_response.c). blam-cc: projectile_index/hit/swept_target on the stack (pushed in
-    // that reverse order), velocity_at_impact in EAX. UNSURE: velocity_at_impact's identity --
-    // resolved only as far as "a 12-byte record read as three floats and used, together with the
-    // global up vector as a zero-length fallback, to build an effect coordinate system", which
-    // matches types/projectiles.h's description of projectile_response's incident/reflection
-    // vectors; not traced back to its exact source slot in this function's frame.
+extern void projectile_update_function_values(datum_index projectile_index); // 0x4c0250
+extern void projectile_request_state(datum_index projectile_index, int16_t requested_state); // 0x4bf0f0, EAX, ECX
+extern uint8_t projectile_collision_test(uint32_t object_index, real_point3d *target, void *out_record); // 0x4c0450, EAX, EDI, stack
+extern void projectile_response(datum_index projectile_index, collision_result *hit, real_point3d *out_position,
+    real_vector3d *velocity); // 0x4bf390, stack + EAX
 extern void ai_accumulate_repeated_event(datum_index object_index, real_point3d *origin, int32_t kind,
-    ObjectNoise_t noise, int32_t param_5); // 0x42c610, opaque, out of range (plays the impact
-    // noise at a world point). Five stack arguments, not four: 0x4be55f..0x4be572 pushes
-    // 1 / impact_noise / 1 / &origin / projectile_index, and projectile_detonate's own call at
-    // 0x4c0a98 pushes the same shape with kind = 2. The origin pointer is `lea ecx,[esp+0x134]`
-    // where the collision_result handed to projectile_response is at [esp+0x11c], i.e. exactly
-    // collision_result + 0x18 = collision_result.point, the contact point.
-extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
-    // 0x46fe10, blam-cc: stack -> zoom_table_index, CX -> magnification (every caller passes the difficulty)
-extern uint8_t *main_game_globals; // 0x006b0b80 game globals *, +0x0e difficulty
-    // signature and role, opaque, out of range
-extern void unit_get_secondary_eye_marker_position(void); // 0x569280, opaque, out of range, no visible arguments or return
-extern real periodic_function_evaluate(periodic_function_t type, double time); // 0x4cc9b0, this
-    // codebase's math module (src/math/periodic_function_evaluate.c); type is
-    // _periodic_function_wander at both call sites here
-extern double fcos(double x); // CRT
-extern double fsin(double x); // CRT
-extern double sqrt(double x); // a single x87 FSQRT instruction
-extern real vector3d_magnitude_squared(real_vector3d *v); // 0x401000, opaque helper confirmed by disassembly to
-    // return dot(v, v) (squared length), EAX -> v
-extern real sound_definition_maximum_distance(TagID sound_tag_id); // 0x545460, UNSURE signature (audible-radius
-    // lookup for a sound tag?), opaque, out of range. blam-cc: EAX -> sound_tag_id
-extern void vector3d_project_onto_axis(real_vector3d *parallel_out, real_vector3d *axis,
-    real_vector3d *v, real_vector3d *perp_out); // 0x4cda90, src/math/vector3d_project_onto_axis.c
-    // blam-cc: ECX -> parallel_out, EDX -> axis, ESI -> v, EDI -> perp_out
-extern void sound_start_at_location(void *bundle); // 0x543d80, opaque effect/sound dispatcher, see
-    // src/items/item_update.c; called here with a five real_vector3d bundle instead of that
-    // call site's three-vector one
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
-extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand); // 0x4052c0, out = stack_operand x ecx_operand
-extern void vector3d_rotate_about_axis(real sin_angle, real cos_angle); // 0x4cd820, UNSURE args,
-    // see src/items/item_update.c
-extern void vector3d_build_perpendicular(void); // 0x4cd670, UNSURE args, opaque
+    int16_t noise, int32_t unused); // 0x42c610
+extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification); // 0x46fe10, stack, CX
+extern void unit_get_secondary_eye_marker_position(uint32_t object_index, real_point3d *out); // 0x569280, ECX, ESI
+extern real periodic_function_evaluate(periodic_function_t type, double time); // 0x4cc9b0, EAX, stack
+extern double cos(double x);
+extern double sin(double x);
+extern double sqrt(double x);
+extern real vector3d_magnitude_squared(real_vector3d *v); // 0x401000, EAX
+extern float sound_definition_maximum_distance(datum_index sound_definition); // 0x545460, EAX
+extern void vector3d_project_onto_axis(real_vector3d *parallel_out, real_vector3d *axis, real_vector3d *v,
+    real_vector3d *perp_out); // 0x4cda90, ECX, EDX, ESI, EDI
+extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale); // 0x543d80, EDX, EAX, stack
+extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, EAX, ECX, stack
+extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820, EAX, ECX, stack
+extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir); // 0x4cd670, ECX, EDX
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30
 extern void object_recalculate_bounding_radius(uint32_t object_index); // 0x4f8310
-extern void contrail_advance(int32_t kind, real elapsed_seconds); // 0x44ca60, opaque, out of range.
-    // blam-cc: EDI -> the contrail attachment handle
-    // obj->attachment_handles[pd->contrail_attachment_index], reloaded at 0x4bea33 immediately
-    // before the call; the two stack arguments are the literal 0 and (1 - remaining_fraction)/30,
-    // i.e. how far into the tick the sub-step ended, in seconds. projectile_detonate's call at
-    // 0x4c08ab is byte-for-byte the same idiom.
-extern void projectile_send_detonation(datum_index projectile_index); // 0x4bda60, this batch
-extern void projectile_detonate(uint32_t object_index, char first_collision,
-                                real remaining_tick_fraction); // 0x4c0670, this module, out of range, see src/projectiles/projectile_detonation_message_apply.c
-extern void object_delete_unparented(uint32_t object_index); // 0x4f5aa0
+extern void contrail_advance(datum_index contrail_handle, uint8_t detach, real delta_time); // 0x44ca60, EDI, stack
+extern void projectile_send_detonation(datum_index projectile_index); // 0x4bda60
+extern void projectile_detonate(uint32_t object_index, char first_collision, real remaining_tick_fraction); // 0x4c0670, EBX, stack
+extern void object_delete_unparented(uint32_t object_index); // 0x4f5aa0, EDI
 extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings); // 0x4f59d0
 
-// Per-tick update for a flying projectile: retires a spent tracer contrail, advances the arming
-// and deceleration-delay timers, advances the detonation timer once it is allowed to start,
-// refreshes the tag function-in values, then -- while still flying (or still armed-pending while
-// "detonating") and not attached/resting/parented -- runs the ballistic integrator: guided
-// steering toward a tracked object with a periodic "wander" wobble, velocity decay against the
-// tag's damage range, gravity, a range-limit / velocity-floor check that can request
-// _projectile_state_detonating or _projectile_state_disappearing outright, up to
-// k_projectile_maximum_collisions_per_tick collision responses (each running
-// projectile_collision_test then projectile_response), the flyby-sound listener check, the
-// rotation-valid spin, and finally committing the new position/velocity and relinking the
-// object's cluster. Once the sub-tick loop stops, a projectile requesting
-// _projectile_state_detonating detonates (unless still arming) and a projectile requesting
-// either terminal state is deleted (recursively if it has children, non-recursively otherwise).
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define F(p, o) (*(float *)((p) + (o)))
+
+static void projectile_raise_state(uint32_t projectile_index, int16_t state)
+{
+    uint8_t *o = OBJECT_DATA(projectile_index);
+
+    if (*(int16_t *)(o + 0x230) < state) {
+        *(int16_t *)(o + 0x230) = state;
+    }
+}
+
 int projectile_update(uint32_t projectile_index)
 {
-    object *obj = ((object_header *)object_data->data)[projectile_index & 0xffff].data;
-    Projectile *tag = (Projectile *)tag_instances[obj->definition_tag & 0xffff].data;
-    projectile_data *pd = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
+    uint8_t *obj = OBJECT_DATA(projectile_index);                 // ebx
+    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data; // [esp+0x38]
+    real_vector3d *velocity = (real_vector3d *)(obj + 0x68);
+    real_vector3d *forward = (real_vector3d *)(obj + 0x74);
+    real_vector3d *up = (real_vector3d *)(obj + 0x80);
+    real remaining = 1.0f;          // [esp+0x18]
+    int16_t collisions = 0;         // [esp+0x3c]
+    uint8_t flyby_played = 0;       // [esp+0x2f]
+    collision_result hit;           // [esp+0x118]; its leaf relinks the projectile every step
 
-    real remaining_fraction = 1.0f;   // local_158: fraction of this tick still left to integrate
-    int16_t collision_count = 0;      // sVar17
-    uint8_t flyby_sound_played = 0;   // bVar13: has the flyby sound already fired this tick
+    memset(&hit, 0, sizeof(hit));
 
-    // A tracer whose flag has been cleared (by the weapon, for a non-tracer round) loses its
-    // contrail attachment the first tick after creation.
-    if ((pd->flags & _projectile_tracer_bit) == 0 && pd->contrail_attachment_index != -1) {
-        if (obj->attachment_handles[pd->contrail_attachment_index] != (datum_index)0xffffffff) {
-            contrail_delete(obj->attachment_handles[pd->contrail_attachment_index]);
+    // 0x4bdc3d: a non-tracer round drops its contrail
+    if (!(*(uint32_t *)(obj + 0x22c) & 2) && *(int32_t *)(obj + 0x23c) != -1) {
+        int32_t slot = *(int32_t *)(obj + 0x23c);
+
+        if (*(datum_index *)(obj + 0x14c + slot * 4) != k_datum_index_none) {
+            contrail_delete(*(datum_index *)(obj + 0x14c + slot * 4));
         }
-        obj->attachment_handles[pd->contrail_attachment_index] = (datum_index)0xffffffff;
-        pd->contrail_attachment_index = -1;
+        *(datum_index *)(obj + 0x14c + *(int32_t *)(obj + 0x23c) * 4) = k_datum_index_none;
+        *(int32_t *)(obj + 0x23c) = -1;
     }
-
-    pd->arming_timer += pd->arming_timer_rate;
-    pd->deceleration_delay += pd->deceleration_delay_rate;
-
+    F(obj, 0x248) += F(obj, 0x24c); // arming
+    F(obj, 0x254) = F(obj, 0x258) + F(obj, 0x254); // deceleration delay
     {
-        // detonation_timer only counts while it is "allowed to start": already started, or
-        // attached, or the tag's detonation_timer_starts condition (at-rest / after first
-        // bounce) is currently true.
-        uint8_t at_rest_condition_met;
-        if (tag->detonation_timer_starts == projectiledetonationtimerstarts_after_first_bounce ||
-            tag->detonation_timer_starts == projectiledetonationtimerstarts_when_at_rest) {
-            at_rest_condition_met = (pd->flags & _projectile_at_rest_bit) != 0;
-        } else {
-            at_rest_condition_met = 1; // "immediately"
-        }
-        if ((pd->flags & _projectile_detonation_timer_started_bit) != 0 ||
-            (pd->flags & _projectile_attached_bit) != 0 ||
-            at_rest_condition_met) {
-            if ((pd->flags & _projectile_detonation_timer_started_bit) == 0) {
-                pd->flags |= _projectile_detonation_timer_started_bit;
+        int16_t starts = *(int16_t *)(tag + 0x180);
+        uint8_t condition = (starts == 1 || starts == 2) ? (uint8_t)((*(uint32_t *)(obj + 0x22c) >> 4) & 1) : 1;
+        uint32_t flags = *(uint32_t *)(obj + 0x22c);
+
+        if ((flags & 0x20) || (flags & 8) || condition) {
+            if (!(flags & 0x20)) {
+                *(uint32_t *)(obj + 0x22c) = flags | 0x20;
             }
-            pd->detonation_timer += pd->detonation_timer_rate;
-            if (1.0f <= pd->detonation_timer) {
-                projectile_request_state(projectile_index, _projectile_state_detonating);
+            F(obj, 0x240) = F(obj, 0x244) + F(obj, 0x240);
+            if (!(F(obj, 0x240) < 1.0f)) {
+                projectile_raise_state(projectile_index, 1);
             }
         }
     }
-
     projectile_update_function_values(projectile_index);
 
-    // Uninitialized until the guided-steering branch below first writes it -- see the file
-    // header's UNSURE note. This is the accumulating "wander" target the guided branch nudges
-    // the projectile toward every tick it has a tracked object with a positive
-    // guided_angular_velocity.
-    real_point3d wander_target;
-
     for (;;) {
-        int16_t state_blocks_flight;
-        real_vector3d velocity;         // fStack_150/14c + fVar2
-        real speed;                     // fVar8
-        real_vector3d aim_point;        // fStack_114/110/10c: the point the integrator steers
-                                        //   the velocity toward this sub-step (copy of velocity
-                                        //   direction, nudged by the guided/wander block)
-        real turn_rate = 0.0f;          // fStack_154
-        uint8_t collision_attempted = 0; // bVar12, reset every iteration
-        real_vector3d new_velocity;     // fStack_150/14c/148 after friction is applied
-        real_point3d swept_target;      // fStack_108/104/100 (auStack_58): the full-step end
-                                        //   point projectile_collision_test sweeps toward and
-                                        //   projectile_response is handed
-        real avg_speed_for_range;       // fStack_130 ([esp+0x40]): the speed the range check
-                                        //   integrates with
-        real speed_after_decay;         // fStack_13c ([esp+0x34]): the end-of-sub-step speed the
-                                        //   post-collision rescale divides by
+        int16_t state = *(int16_t *)(obj + 0x230);
+        real_vector3d vel;          // [esp+0x20], the velocity carried out of this step
+        real_vector3d step;         // [esp+0x5c], this step's displacement per tick
+        real_point3d swept;         // [esp+0x68]
+        real speed;                 // [esp+0x14]
+        real speed_after;           // [esp+0x34]
+        real average_speed;         // [esp+0x40]
+        real gravity;               // [esp+0x10]
+        real vel_k;                 // st(0) carried from the deceleration branches
+        real step_k;
+        real scale;
+        uint8_t collision_attempted = 0; // [esp+0x2e]
+        datum_index shooter;        // [esp+0x54]
 
-        state_blocks_flight = pd->state != _projectile_state_flying &&
-            (pd->state != _projectile_state_detonating ||
-             pd->arming_timer_rate == 0.0f || 1.0f <= pd->arming_timer);
-        if (state_blocks_flight ||
-            (pd->flags & _projectile_attached_bit) != 0 ||
-            (obj->flags & _object_at_rest_bit) != 0 ||
-            obj->parent_object != (datum_index)0xffffffff) {
+        if (state != 0 && !(state == 1 && F(obj, 0x24c) != 0.0f && F(obj, 0x248) < 1.0f)) {
             break;
         }
+        if ((*(uint32_t *)(obj + 0x22c) & 8) || (*(uint32_t *)(obj + 0x10) & 0x20) ||
+            *(datum_index *)(obj + 0x11c) != k_datum_index_none) {
+            break;
+        }
+        vel = *velocity;
+        speed = (real)sqrt(vel.i * vel.i + vel.j * vel.j + vel.k * vel.k);
+        speed_after = speed;
+        average_speed = speed;
+        step = vel;
+        shooter = *(datum_index *)(obj + 0x234);
 
-        velocity = obj->velocity;
-        speed = (real)sqrt((double)(velocity.k * velocity.k + velocity.j * velocity.j + velocity.i * velocity.i));
-        aim_point = velocity;      // fStack_114/110/10c: steering may rotate this copy in place
-        new_velocity = velocity;   // fStack_150/14c/148: the default -- only a blend branch
-                                   //   below (always scaling *this* struct's own current value,
-                                   //   never aim_point) changes it
+        // 0x4bde1c: homing toward the tracked object's eye, wandering as it closes in
+        if (*(datum_index *)(obj + 0x238) != k_datum_index_none && F(tag, 0x1ec) > 0.0f) {
+            datum_index tracked_index = *(datum_index *)(obj + 0x238);
+            uint8_t *tracked = OBJECT_DATA(tracked_index);
+            real turn = F(tag, 0x1ec) * 0.033333335f;   // [esp+0x1c]
+            real fade;                                  // [esp+0x30]
+            real distance;
+            real_point3d target;                        // [esp+0x74]
+            real_vector3d to_target;                    // [esp+0x80]
+            real_vector3d axis;                         // [esp+0xf4]
+            int32_t salt = (int32_t)projectile_index >> 16;
+            int32_t tick = game_time->game_time;
+            real angle_a;
+            real angle_b;
 
-        // ---------------- guided steering + periodic "wander" wobble ----------------
-        // UNSURE (whole block): weapon_get_zoom_fov, unit_get_secondary_eye_marker_position and sound_definition_maximum_distance's exact roles are
-        // not resolved beyond what the disassembly and the surrounding arithmetic show; see the
-        // file header. The shape is preserved literally: while there is a tracked object and a
-        // positive guided_angular_velocity, accumulate a slowly-drifting wander_target from two
-        // independent periodic_function_evaluate("wander") phases keyed off the tick and the
-        // projectile's own datum salt, fading in with distance to the tracked object, then turn
-        // the aim point toward (wander_target - position) by turn_rate radians if that turn
-        // would move toward the target at all.
-        if (pd->tracked_object_index != (datum_index)0xffffffff && 0.0f < tag->guided_angular_velocity) {
-            object *tracked = ((object_header *)object_data->data)[pd->tracked_object_index & 0xffff].data;
-            real distance_to_target, fade;
-            real dx, dy, dz;
-
-            turn_rate = tag->guided_angular_velocity * 0.033333335f; // /30, ticks per second
-
-            // UNSURE: `1 << (tracked->type & 0x1f) & 3` tests _object_mask_biped|_object_mask_vehicle;
-            // tracked+0x218 is a unit-extension field types/objects.h does not name (see its note
-            // "0x218 on bipeds and vehicles ... belong to the unit extension").
-            if (((1 << (tracked->type & 0x1f)) & (_object_mask_biped | _object_mask_vehicle)) != 0 &&
-                *(int32_t *)((uint8_t *)tracked + 0x218) != -1) {
-                turn_rate *= weapon_get_zoom_fov(0x13, *(int16_t *)(unknown_006b0b80 + 0x0e));
+            if (((1u << (tracked[0xb4] & 0x1f)) & 3) && *(datum_index *)(tracked + 0x218) != k_datum_index_none) {
+                turn *= weapon_get_zoom_fov(0x13, *(int16_t *)(main_game_globals + 0xe));
             }
+            {
+                real dx = F(obj, 0xa0) - F(tracked, 0xa0);
+                real dy = F(obj, 0xa4) - F(tracked, 0xa4);
+                real dz = F(obj, 0xa8) - F(tracked, 0xa8);
 
-            dx = obj->bounding_center.x - tracked->bounding_center.x;
-            dy = obj->bounding_center.y - tracked->bounding_center.y;
-            dz = obj->bounding_center.z - tracked->bounding_center.z;
-            distance_to_target = (real)sqrt((double)(dy * dy + dz * dz + dx * dx));
-            if (distance_to_target <= 10.0f) {
-                if (distance_to_target <= 2.0f) {
-                    fade = 0.0f;
-                } else {
-                    fade = (distance_to_target - 2.0f) * 0.125f;
-                    if (fade < 0.0f) {
-                        fade = 0.0f;
-                    } else if (1.0f < fade) {
-                        fade = 1.0f;
-                    }
-                }
-            } else {
+                distance = (real)sqrt(dx * dx + dy * dy + dz * dz);
+            }
+            if (!(distance <= 10.0f)) {
                 fade = 1.0f;
-            }
-
-            unit_get_secondary_eye_marker_position();
-            {
-                int32_t game_tick = *(int32_t *)((uint8_t *)game_time + 0x0c);
-                int32_t salt_high = (int32_t)projectile_index >> 0x10;
-                real phase_a = periodic_function_evaluate(_periodic_function_wander,
-                    (double)((real)(int32_t)((uint16_t)(salt_high * 7 + game_tick)) * 0.011111111));
-                real phase_b = periodic_function_evaluate(_periodic_function_wander,
-                    (double)((real)(int32_t)((uint16_t)(game_tick + salt_high * 3)) * 0.011111111));
-                real angle_b = 3.1415927f - phase_b * 1.5707964f;
-                real cos_b = (real)fcos((double)angle_b);
-                real cos_a = (real)fcos((double)(phase_a * 6.2831855f));
-                real sin_a = (real)fsin((double)(phase_a * 6.2831855f));
-                real sin_b = (real)fsin((double)angle_b);
-                real wander_x = cos_a * cos_b;
-                real wander_y = sin_a * cos_b;
-                real wander_z = sin_b;
-
-                wander_target.x += wander_x * fade;
-                wander_target.y += wander_y * fade;
-                wander_target.z += wander_z * fade;
-            }
-
-            {
-                real to_wander_x = wander_target.x - obj->position.x;
-                real to_wander_y = wander_target.y - obj->position.y;
-                real to_wander_z = wander_target.z - obj->position.z;
-                real_vector3d cross;
-                vector3d_cross_product(&cross, &aim_point, (real_vector3d *)&to_wander_x); // UNSURE operand order
-                if (0.0f < to_wander_x * aim_point.i + to_wander_y * aim_point.j + to_wander_z * aim_point.k &&
-                    0.0f < vector3d_normalize_with_length(&cross)) {
-                    vector3d_rotate_about_axis((real)fsin((double)turn_rate), (real)fcos((double)turn_rate));
+            } else if (distance <= 2.0f) {
+                fade = 0.0f;
+            } else {
+                fade = (distance - 2.0f) * 0.125f;
+                if (fade < 0.0f) {
+                    fade = 0.0f;
+                } else if (!(fade <= 1.0f)) {
+                    fade = 1.0f;
                 }
             }
+            unit_get_secondary_eye_marker_position(tracked_index, &target);
+            angle_a = periodic_function_evaluate(_periodic_function_wander,
+                (double)((real)(int32_t)((salt * 7 + tick) & 0xffff) * 0.011111111f)) * 6.2831855f;
+            angle_b = 3.1415927f - periodic_function_evaluate(_periodic_function_wander,
+                (double)((real)(int32_t)((tick + salt * 3) & 0xffff) * 0.011111111f)) * 1.5707964f;
+            {
+                real cos_b = (real)cos(angle_b);
+                real wander_x = (real)cos(angle_a) * cos_b;
+                real wander_y = (real)sin(angle_a) * cos_b;
+                real wander_z = (real)sin(angle_b);
+
+                target.x += wander_x * fade;
+                target.y += wander_y * fade;
+                target.z += wander_z * fade;
+            }
+            to_target.i = target.x - F(obj, 0x5c);
+            to_target.j = target.y - F(obj, 0x60);
+            to_target.k = target.z - F(obj, 0x64);
+            vector3d_cross_product(&axis, &to_target, velocity);
+            if (to_target.k * velocity->k + to_target.j * velocity->j + to_target.i * velocity->i > 0.0f &&
+                vector3d_normalize_with_length(&axis) > 0.0f) {
+                vector3d_rotate_about_axis(&vel, &axis, (real)sin(turn), (real)cos(turn));
+            }
         }
 
-        // ---------------- velocity decay against the tag's damage range ----------------
-        // Every branch below either leaves new_velocity (i, j and the not-yet-gravity-adjusted
-        // k already seeded above) exactly as read from the object, or scales its OWN current
-        // value by a blend fraction -- never aim_point's. aim_point is left as the (possibly
-        // steering-rotated) direction copy unless the two-part branch explicitly recomputes it
-        // from new_velocity and the raw `velocity` reading (matching the original, which always
-        // re-reads *pfVar1 / object.velocity for this, never the steering-rotated copy).
-        avg_speed_for_range = speed; // fStack_130 default, overwritten by most branches below
-        speed_after_decay = speed;   // fStack_13c default, likewise
-        if (pd->deceleration_delay < 1.0f) {
-            goto apply_gravity;
+        // 0x4be11e: slow down to the final velocity once the deceleration delay has run
+        vel_k = vel.k;
+        if (!(F(obj, 0x254) < 1.0f)) {
+            real final_speed = F(tag, 0x1e8);
+
+            if (speed > final_speed && F(obj, 0x25c) != 0.0f) {
+                real drop = remaining * F(obj, 0x25c);
+
+                speed_after = speed - drop;
+                if (!(speed_after > final_speed)) {
+                    // reaches the final velocity inside this step
+                    real f = (speed - final_speed) / drop;   // [esp+0x1c]
+                    real g = 1.0f - f;                      // [esp+0x10]
+                    real ratio;
+
+                    speed_after = final_speed * 0.99f;
+                    average_speed = (speed_after + speed) * f * 0.5f + g * final_speed;
+                    ratio = speed_after / speed;
+                    vel.i *= ratio;
+                    vel.j *= ratio;
+                    vel_k = ratio * vel.k;
+                    step.i = (vel.i + velocity->i) * f * 0.5f + g * vel.i;
+                    step.j = (vel.j + velocity->j) * f * 0.5f + g * vel.j;
+                    step.k = (vel_k + velocity->k) * f * 0.5f + g * vel_k;
+                } else {
+                    real ratio;
+
+                    average_speed = speed - drop * 0.5f;
+                    ratio = speed_after / speed;
+                    vel.i *= ratio;
+                    vel.j *= ratio;
+                    vel_k = ratio * vel.k;
+                    step.i = (vel.i + velocity->i) * 0.5f;
+                    step.j = (vel.j + velocity->j) * 0.5f;
+                    step.k = (vel_k + velocity->k) * 0.5f;
+                }
+            } else if (F(tag, 0x1c8) == 0.0f && F(tag, 0x1c0) == 0.0f && !(F(tag, 0x1c4) > F(tag, 0x1e8)) &&
+                       (F(obj, 0x25c) != 0.0f || !(F(obj, 0x250) < F(obj, 0x260)))) {
+                // 0x4be31c: nothing left to do but vanish
+                projectile_request_state(projectile_index, 2);
+            } else if (speed < final_speed && speed > 0.0f) {
+                // 0x4be364: back up to the final velocity
+                real ratio = final_speed / speed * 0.99f;
+
+                vel.i *= ratio;
+                vel.j *= ratio;
+                vel_k = ratio * vel.k;
+            }
         }
-        if (speed <= tag->final_velocity || pd->deceleration == 0.0f) {
-            if (tag->maximum_range != 0.0f ||
-                tag->timer[1] != 0.0f ||
-                tag->minimum_velocity > tag->final_velocity || // 0x4be2e1 `fcomp`/`test ah,0x41`/
-                                                              // `jp`: Ghidra prints this as the
-                                                              // garbled `(a < b) == (a == b)`
-                (pd->deceleration == 0.0f && pd->distance_travelled < pd->deceleration_end_range)) {
-                if (speed < tag->final_velocity && 0.0f < speed) {
-                    real blend = (tag->final_velocity / speed) * 0.99f;
-                    new_velocity.i = velocity.i * blend;
-                    new_velocity.j = velocity.j * blend;
-                    new_velocity.k = velocity.k * blend;
-                    avg_speed_for_range = speed;
-                    speed_after_decay = speed;
-                    goto apply_gravity;
+
+        // 0x4be32d: gravity
+        gravity = global_gravity * ((*(uint32_t *)(obj + 0x10) & 0x10) ? F(tag, 0x1d8) : F(tag, 0x1cc));
+        vel.k = vel_k - gravity * remaining;
+        step_k = step.k - gravity * remaining * 0.5f;
+
+        // 0x4be3b2: the maximum range
+        scale = 1.0f;
+        if (F(tag, 0x1c8) != 0.0f && !(average_speed * remaining + F(obj, 0x250) <= F(tag, 0x1c8))) {
+            if (average_speed == 0.0f) {
+                scale = 0.0f;
+            } else {
+                scale = (F(tag, 0x1c8) - F(obj, 0x250)) / average_speed * remaining;
+            }
+            projectile_request_state(projectile_index, 1);
+        }
+        scale *= remaining;
+        swept.x = step.i * scale + F(obj, 0x5c);
+        swept.y = step.j * scale + F(obj, 0x60);
+        swept.z = scale * step_k + F(obj, 0x64);
+
+        // 0x4be462: collide
+        {
+            uint8_t hit_something = 0;
+
+            if (collisions == 10) {
+                projectile_raise_state(projectile_index, 1);
+            } else if (*(int16_t *)(obj + 0x230) != 2) {
+                collision_attempted = 1;
+                hit_something = projectile_collision_test(projectile_index, &swept, &hit);
+            }
+            if (hit_something) {
+                remaining = 1.0f - hit.t;
+                vel.k += gravity * remaining;
+                if (speed_after != 0.0f) {
+                    real s = remaining * F(obj, 0x25c) + speed_after;
+                    real ratio;
+
+                    if (!(s <= speed)) {
+                        s = speed;
+                    }
+                    ratio = s / speed_after;
+                    vel.i *= ratio;
+                    vel.j *= ratio;
+                    vel.k *= ratio;
+                }
+                if (hit.plane.normal.k > 0.3f) {
+                    *(uint32_t *)(obj + 0x22c) |= 4;
+                }
+                *(datum_index *)(obj + 0x234) = k_datum_index_none;
+                projectile_response(projectile_index, &hit, &swept, &vel);
+                collisions++;
+                ai_accumulate_repeated_event(projectile_index, &hit.point, 1, *(int16_t *)(tag + 0x182), 1);
+                if (*(uint32_t *)(obj + 0x22c) & 8) {
+                    goto next_step;
                 }
             } else {
-                // UNSURE: Ghidra shows this as `item_update_max_permutation_reached()` returning
-                // a float10 "consumed" by the next line; 0x4bf0f0 (projectile_request_state) is a
-                // 6-instruction void function that never touches the FPU, so this is almost
-                // certainly a decompiler artifact -- the real x87 value flowing into the velocity
-                // blend below is whatever was already on the stack from the comparison chain
-                // just above, not a genuine return. The two real, disassembly-confirmed effects
-                // are: request _projectile_state_disappearing, and leave new_velocity untouched
-                // (no blend) for this sub-step.
-                projectile_request_state(projectile_index, _projectile_state_disappearing);
-            }
-            avg_speed_for_range = speed;
-            goto apply_gravity;
-        }
-        {
-            real decel_step = remaining_fraction * pd->deceleration;
-            real speed_after = speed - decel_step;
-            speed_after_decay = speed_after;
-            if (speed_after > tag->final_velocity) { // same garbled-compare idiom as above
-                real blend = speed_after / speed;
-                new_velocity.i = velocity.i * blend;
-                new_velocity.j = velocity.j * blend;
-                new_velocity.k = velocity.k * blend;
-                aim_point.i = (new_velocity.i + velocity.i) * 0.5f;
-                aim_point.j = (new_velocity.j + velocity.j) * 0.5f;
-                aim_point.k = (new_velocity.k + velocity.k) * 0.5f;
-                avg_speed_for_range = speed - decel_step * 0.5f;
-            } else {
-                real fraction_to_floor = (speed - tag->final_velocity) / decel_step;
-                real remainder = 1.0f - fraction_to_floor;
-                real floor_speed = tag->final_velocity * 0.99f;
-                speed_after_decay = floor_speed; // fStack_13c is reassigned in this branch
-                real blend = floor_speed / speed;
-                new_velocity.i = velocity.i * blend;
-                new_velocity.j = velocity.j * blend;
-                new_velocity.k = velocity.k * blend;
-                aim_point.i = remainder * new_velocity.i + (new_velocity.i + velocity.i) * fraction_to_floor * 0.5f;
-                aim_point.j = remainder * new_velocity.j + (new_velocity.j + velocity.j) * fraction_to_floor * 0.5f;
-                aim_point.k = remainder * new_velocity.k + (new_velocity.k + velocity.k) * fraction_to_floor * 0.5f;
-                // 0x4be1b8..0x4be1d6: the first term multiplies the UNSCALED
-                // Projectile.final_velocity (`fmul [esi+0x1e8]`), while only the term inside the
-                // average uses the 0.99-scaled floor speed. An earlier rewrite of this file used
-                // floor_speed in both places; that was wrong.
-                avg_speed_for_range = remainder * tag->final_velocity +
-                                      (floor_speed + speed) * fraction_to_floor * 0.5f;
-            }
-        }
-
-    apply_gravity:
-        {
-            real gravity_scale = (obj->flags & _object_in_water_bit) == 0 ? tag->air_gravity_scale : tag->water_gravity_scale;
-            real gravity_step = 0.00356518f * gravity_scale * remaining_fraction; // k_gravity_per_tick_squared
-            real aim_k = aim_point.k - gravity_step * 0.5f;
-            real blend_frac; // fVar19/fVar18-equivalent "how far this sub-step actually goes"
-
-            new_velocity.k -= gravity_step;
-
-            if (tag->maximum_range == 0.0f ||
-                avg_speed_for_range * remaining_fraction + pd->distance_travelled <= tag->maximum_range) {
-                blend_frac = 1.0f;
-            } else if (avg_speed_for_range == 0.0f) {
-                // See the UNSURE note above: request _projectile_state_detonating (the tick
-                // clips exactly at the range limit) and treat the fraction as 0.0.
-                projectile_request_state(projectile_index, _projectile_state_detonating);
-                blend_frac = 0.0f;
-            } else {
-                real numerator = tag->maximum_range - pd->distance_travelled;
-                blend_frac = (numerator / avg_speed_for_range) * remaining_fraction;
-                projectile_request_state(projectile_index, _projectile_state_detonating);
-            }
-            blend_frac *= remaining_fraction;
-            swept_target.x = aim_point.i * blend_frac + obj->position.x;
-            swept_target.y = aim_point.j * blend_frac + obj->position.y;
-            swept_target.z = aim_k * blend_frac + obj->position.z;
-
-            if (collision_count == k_projectile_maximum_collisions_per_tick) {
-                projectile_request_state(projectile_index, _projectile_state_detonating);
-                remaining_fraction = 0.0f;
+                remaining = 0.0f;
                 if (!collision_attempted) {
                     break;
                 }
-                goto settle_sub_step;
             }
-            if (pd->state == _projectile_state_disappearing) {
-                goto give_up_sub_step;
-            }
-            {
-                collision_result hit;
-                collision_attempted = 1;
-                if (projectile_collision_test(projectile_index, &swept_target, &hit) == 0) {
-                    goto give_up_sub_step;
-                }
-                remaining_fraction = 1.0f - hit.t;
-                // The raw (pre-friction, pre-gravity) velocity.k scaled by the fraction of the
-                // sub-step left after the hit, blended on top of the already gravity-adjusted
-                // new_velocity.k.
-                new_velocity.k = velocity.k * remaining_fraction + new_velocity.k;
-                // 0x4be4ef `fdiv [esp+0x34]`: this rescale is driven by fStack_13c
-                // (speed_after_decay), NOT by the range check's fStack_130.
-                if (speed_after_decay != 0.0f) {
-                    real ratio = remaining_fraction * pd->deceleration + speed_after_decay;
-                    if (speed < ratio) {
-                        ratio = speed;
+        }
+
+        // 0x4be5c1: distance travelled and the fly-by sound
+        {
+            real_vector3d moved;    // [esp+0x44]
+
+            moved.i = swept.x - F(obj, 0x5c);
+            moved.j = swept.y - F(obj, 0x60);
+            moved.k = swept.z - F(obj, 0x64);
+            F(obj, 0x250) = (real)sqrt(moved.k * moved.k + moved.j * moved.j + moved.i * moved.i) + F(obj, 0x250);
+            if (!flyby_played && *(datum_index *)(tag + 0x210) != k_datum_index_none &&
+                *(datum_index *)(local_player_globals + 0x4) != k_datum_index_none) {
+                datum_index player = *(datum_index *)(local_player_globals + 0x4);
+                datum_index listener = *(datum_index *)((uint8_t *)player_data->data + (player & 0xffff) * 0x200 + 0x34);
+
+                if (listener != k_datum_index_none && listener != shooter) {
+                    real_point3d *center = (real_point3d *)(OBJECT_DATA(listener) + 0xa0);
+                    real radius = sound_definition_maximum_distance(*(datum_index *)(tag + 0x210));
+                    real_vector3d to_listener;  // [esp+0xa4]
+                    real_vector3d projected;    // [esp+0xb0]
+                    real_vector3d perpendicular; // [esp+0x98]
+                    real along;
+
+                    to_listener.i = center->x - F(obj, 0x5c);
+                    to_listener.j = center->y - F(obj, 0x60);
+                    to_listener.k = center->z - F(obj, 0x64);
+                    vector3d_project_onto_axis(&projected, &moved, &to_listener, &perpendicular);
+                    along = projected.k * moved.k + projected.j * moved.j + projected.i * moved.i;
+                    if (!(along < 0.0f) && vector3d_magnitude_squared(&moved) > along &&
+                        radius * radius > vector3d_magnitude_squared(&perpendicular)) {
+                        sound_placement placement;  // [esp+0xc8]
+
+                        placement.position.x = center->x - perpendicular.i;
+                        placement.position.y = center->y - perpendicular.j;
+                        placement.position.z = center->z - perpendicular.k;
+                        *(real_vector3d *)&placement.forward = moved;
+                        vector3d_normalize_with_length((real_vector3d *)&placement.forward);
+                        *(real_vector3d *)&placement.velocity = *global_zero_vector3d_pointer;
+                        placement.leaf_index = *(int32_t *)&hit.leaf;
+                        *(int32_t *)&placement.cluster_index = *(int32_t *)((uint8_t *)&hit.leaf + 4);
+                        sound_start_at_location(*(datum_index *)(tag + 0x210), &placement, 1.0f);
+                        flyby_played = 1;
                     }
-                    ratio /= speed_after_decay;
-                    new_velocity.i *= ratio;
-                    new_velocity.j *= ratio;
-                    new_velocity.k *= ratio;
-                }
-                if (0.3f < hit.plane.normal.k) {
-                    pd->flags |= _projectile_hit_ground_bit;
-                }
-                pd->ignore_object_index = (datum_index)0xffffffff;
-                projectile_response(projectile_index, &hit, &swept_target, (real_vector3d *)&new_velocity);
-                collision_count++;
-                ai_accumulate_repeated_event(projectile_index, &hit.point, 1, tag->impact_noise, 1);
-                // 0x4be577 `mov al,[ebx+0x22c]` / `test al,8` / `je LAB_004be5c1`: the settle
-                // tail runs when the response did NOT attach the projectile. If it did attach,
-                // the tail is skipped and the loop falls straight to its `0.0 < remaining`
-                // test, whose next top-of-loop check then breaks on the attached bit.
-                if ((pd->flags & _projectile_attached_bit) == 0) {
-                    goto settle_sub_step;
-                }
-            }
-            continue;
-
-        give_up_sub_step:
-            remaining_fraction = 0.0f;
-            if (!collision_attempted) {
-                break;
-            }
-
-        settle_sub_step:
-            {
-                real moved_i = swept_target.x - obj->position.x;
-                real moved_j = swept_target.y - obj->position.y;
-                real moved_k = swept_target.z - obj->position.z;
-                pd->distance_travelled += (real)sqrt((double)(moved_i * moved_i + moved_j * moved_j + moved_k * moved_k));
-
-                // ---------------- flyby-sound listener check ----------------
-                // UNSURE: see the file header. Plays tag->flyby_sound once per tick, at most
-                // once, when the local player's own unit is the one this projectile is ignoring
-                // and it is not the local player itself.
-                if (!flyby_sound_played && *(int32_t *)&tag->flyby_sound.tag_id != -1 &&
-                    *(uint32_t *)((uint8_t *)local_player_globals + 4) != (uint32_t)0xffffffff) {
-                    uint32_t local_player_unit = *(uint32_t *)(((*(uint32_t *)((uint8_t *)local_player_globals + 4)) & 0xffff) * 0x200 + 0x34 +
-                        *(int32_t *)((uint8_t *)player_data + 0x34));
-                    if (local_player_unit != (uint32_t)0xffffffff && local_player_unit != pd->ignore_object_index) {
-                        object *listener = ((object_header *)object_data->data)[local_player_unit & 0xffff].data;
-                        real radius = sound_definition_maximum_distance(tag->flyby_sound.tag_id);
-                        real_vector3d to_listener = {
-                            listener->bounding_center.x - obj->position.x,
-                            listener->bounding_center.y - obj->position.y,
-                            listener->bounding_center.z - obj->position.z
-                        };
-                        real along;
-                        real_vector3d projected, projected_perp;
-                        // 0x4be692..0x4be6cf: ECX = &projected ([esp+0xb0]), EDX = the step
-                        // displacement ([esp+0x44]) as the axis, ESI = &to_listener ([esp+0xa4]),
-                        // EDI = &projected_perp ([esp+0x98]).
-                        vector3d_project_onto_axis(&projected, (real_vector3d *)&moved_i,
-                                                   &to_listener, &projected_perp);
-                        along = projected.i * moved_i + projected.j * moved_j + projected.k * moved_k;
-                        if (0.0f <= along && along < vector3d_magnitude_squared((real_vector3d *)&moved_i) &&
-                            vector3d_magnitude_squared((real_vector3d *)&moved_i) < radius * radius) { // UNSURE:
-                            // both comparisons reuse the moved_* vector per the disassembly
-                            real_vector3d incident, up_or_scratch;
-                            struct { real_point3d position; real_vector3d normal; real_point3d reference; datum_index leaf; int16_t cluster; } bundle;
-                            incident.i = listener->bounding_center.x - swept_target.x;
-                            incident.j = listener->bounding_center.y - swept_target.y;
-                            incident.k = listener->bounding_center.z - swept_target.z;
-                            vector3d_normalize_with_length(&incident);
-                            bundle.position = *global_origin3d_pointer; // UNSURE: bundle shape guessed
-                                // by analogy with item_update.c's sound_start_at_location bundle; not traced
-                                // field-by-field here
-                            sound_start_at_location(&bundle);
-                            flyby_sound_played = 1;
-                            (void)up_or_scratch;
-                        }
-                    }
-                }
-
-                // ---------------- rotation-valid spin ----------------
-                if ((tag->projectile_flags & _projectile_definition_oriented_along_velocity_bit) == 0 ||
-                    (obj->velocity.i == 0.0f && obj->velocity.j == 0.0f && obj->velocity.k == 0.0f)) {
-                    if ((pd->flags & _projectile_rotation_valid_bit) != 0) {
-                        vector3d_rotate_about_axis(pd->rotation_sine, pd->rotation_cosine);
-                        vector3d_rotate_about_axis(pd->rotation_sine, pd->rotation_cosine);
-                        vector3d_normalize_with_length(&obj->forward);
-                        vector3d_cross_product(&obj->up, 0, 0); // UNSURE, see src/items/item_update.c's identical tail
-                        vector3d_cross_product(0, 0, 0); // UNSURE
-                        vector3d_normalize_with_length(0);
-                    }
-                } else {
-                    real_vector3d saved_velocity = obj->velocity;
-                    if (0.0f < vector3d_normalize_with_length(&saved_velocity)) {
-                        obj->forward = saved_velocity;
-                        vector3d_cross_product(0, 0, 0); // UNSURE
-                        vector3d_cross_product(0, 0, 0); // UNSURE
-                        if (vector3d_normalize_with_length(0) == 0.0f) {
-                            vector3d_build_perpendicular();
-                            vector3d_normalize_with_length(0);
-                        }
-                    }
-                    vector3d_rotate_about_axis(pd->rotation_sine, pd->rotation_cosine);
-                }
-
-                // ---------------- commit position, relink cluster ----------------
-                object_unlink_cluster_or_notify_parent(projectile_index);
-                obj->position = swept_target;
-                {
-                    // UNSURE: passed by address without being initialized anywhere in this
-                    // function -- see the file header's note on the second leftover-stack read.
-                    bsp_leaf_reference location_hint;
-                    object_set_cluster_and_parent(projectile_index, &location_hint);
-                }
-                obj->velocity = new_velocity;
-
-                if (remaining_fraction != 0.0f && collision_count != 0 &&
-                    pd->contrail_attachment_index != -1 &&
-                    obj->attachment_handles[pd->contrail_attachment_index] != (datum_index)0xffffffff) {
-                    object_recalculate_bounding_radius(projectile_index);
-                    // EDI = obj->attachment_handles[pd->contrail_attachment_index]
-                    contrail_advance(0, (1.0f - remaining_fraction) * 0.033333335f);
                 }
             }
         }
 
-        if (remaining_fraction <= 0.0f ||
-            (pd->state != _projectile_state_flying &&
-             (pd->state != _projectile_state_detonating || pd->arming_timer_rate == 0.0f || 1.0f <= pd->arming_timer)) ||
-            (pd->flags & _projectile_attached_bit) != 0 || (obj->flags & _object_at_rest_bit) != 0 ||
-            obj->parent_object != (datum_index)0xffffffff) {
+        // 0x4be809: orientation
+        if ((*(uint32_t *)(tag + 0x17c) & 1) &&
+            (velocity->i != 0.0f || velocity->j != 0.0f || velocity->k != 0.0f)) {
+            real_vector3d direction = *velocity;
+
+            if (vector3d_normalize_with_length(&direction) > 0.0f) {
+                real_vector3d side;
+
+                *forward = direction;
+                vector3d_cross_product(&side, forward, up);
+                vector3d_cross_product(up, &side, forward);
+                if (vector3d_normalize_with_length(up) == 0.0f) {
+                    vector3d_build_perpendicular(up, forward);
+                    vector3d_normalize_with_length(up);
+                }
+            }
+            vector3d_rotate_about_axis(up, forward, F(obj, 0x270), F(obj, 0x274));
+        } else if (*(uint32_t *)(obj + 0x22c) & 1) {
+            real_vector3d *axis = (real_vector3d *)(obj + 0x264);
+            real_vector3d side;
+
+            vector3d_rotate_about_axis(forward, axis, F(obj, 0x270), F(obj, 0x274));
+            vector3d_rotate_about_axis(up, axis, F(obj, 0x270), F(obj, 0x274));
+            vector3d_normalize_with_length(forward);
+            vector3d_cross_product(&side, forward, up);
+            vector3d_cross_product(up, &side, forward);
+            vector3d_normalize_with_length(up);
+        }
+
+        // 0x4be99b: commit the step
+        object_unlink_cluster_or_notify_parent(projectile_index);
+        *(real_point3d *)(obj + 0x5c) = swept;
+        object_set_cluster_and_parent(projectile_index, &hit.leaf);
+        *velocity = vel;
+        if (remaining != 0.0f && collisions != 0 && *(int32_t *)(obj + 0x23c) != -1 &&
+            *(datum_index *)(obj + 0x14c + *(int32_t *)(obj + 0x23c) * 4) != k_datum_index_none) {
+            object_recalculate_bounding_radius(projectile_index);
+            contrail_advance(*(datum_index *)(obj + 0x14c + *(int32_t *)(obj + 0x23c) * 4), 0,
+                             (1.0f - remaining) * 0.033333335f);
+        }
+    next_step:
+        if (!(remaining > 0.0f)) {
             break;
         }
     }
 
-    if (pd->state == _projectile_state_detonating) {
-        if (pd->arming_timer_rate != 0.0f && pd->arming_timer < 1.0f) {
+    // 0x4bea68: detonate / vanish
+    switch (*(int16_t *)(obj + 0x230)) {
+    case 1:
+        if (F(obj, 0x24c) != 0.0f && F(obj, 0x248) < 1.0f) {
             return 1;
         }
-        if (obj->network_role == 1) {
+        if (*(int32_t *)(obj + 0x4) == 1) {
             return 1;
         }
-        if (obj->network_role == 0 && pd->thrown_grenade == 1) {
+        if (*(int32_t *)(obj + 0x4) == 0 && obj[0x278] == 1) {
             projectile_send_detonation(projectile_index);
         }
-        // 0x4beac7..0x4bead9: `sete al` (collision_count == 0) and `mov edx,[esp+0x18]`
-        // (remaining_fraction) are the two stack arguments; EBX carries the object index.
-        projectile_detonate(projectile_index, collision_count == 0, remaining_fraction);
-    } else if (pd->state != _projectile_state_disappearing) {
-        return 1;
-    }
+        projectile_detonate(projectile_index, (char)(collisions == 0), remaining);
+        // fall through: a detonated projectile is removed like a vanished one
+    case 2: {
+        int32_t role = *(int32_t *)(OBJECT_DATA(projectile_index) + 0x4);
 
-    if (obj->network_role == 0) {
-        object_delete_unparented(projectile_index);
-    } else if (obj->network_role != 3) {
-        return 1;
+        if (role == 0) {
+            object_delete_unparented(projectile_index);
+            object_delete_recursive(projectile_index, 0);
+        } else if (role == 3) {
+            object_delete_recursive(projectile_index, 0);
+        }
+        break;
     }
-    object_delete_recursive(projectile_index, 0);
+    default:
+        break;
+    }
     return 1;
 }
 

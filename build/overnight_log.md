@@ -1368,3 +1368,8 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - weapon_update 0x4c1530: animation_state_advance gets (graph, object +0xd0 state, 0, 1) (was one int);
   effect_stop gets its handle (overheat +0x2cc / trigger +0x20) instead of "1"; overheat notify gets (weapon,
   0xf / 0x10); blur permutation goes to the holder when the weapon is hidden+attached, with (-1, on) args.
+- projectile_update 0x4bdc00 REWRITTEN from objdump (every projectile, every tick). Fixed: vector3d_cross_product
+  called with NULLs when orienting along velocity (crash on the first oriented shot), homing cross product
+  reversed (turned away) and argless rotate / eye-marker calls, deceleration/speed-up/vanish/gravity/range paths
+  re-derived (the committed velocity is the steered copy), fly-by sound placement (closest point, direction,
+  leaf), relink with the collision record's leaf (was uninitialised), contrail advance with its handle.
