@@ -40,7 +40,7 @@ extern void matrix4x3_inverse(real_matrix4x3 *out, real_matrix4x3 *in); // 0x4cb
 extern void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); // 0x4cbe50, EAX, EDX, stack
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820, EAX, ECX, stack
 extern uint8_t physics_point_refresh_leaf(real_point3d *point, float radius); // 0x505540, EDX point, stack radius
-extern double acos(double x); // 0x628140
+extern double acos(double x); // CRT (the original calls _CIacos at 0x628140)
 extern double sin(double x);  // fsin
 extern double fabs(double x);
 
