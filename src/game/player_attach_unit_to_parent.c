@@ -1,24 +1,14 @@
 // player_attach_unit_to_parent  (Ghidra: FUN_00475c60; named per this rewrite)
 // address 0x475c60, size 1096 bytes
-// name confidence: 0.3   rewrite confidence: 0.25
-// evidence: out/phase4/game_functions.md ("Attaches a player's unit as a child of a target
-//   parent object at a given local offset, updating its transform, light attachments, and
-//   bounding radius"); shares almost all of its field mapping with
-//   src/game/game_engine_reattach_player_unit_unused.c (this batch, 0x475270, callers=0), which
-//   is clearly an earlier/superseded version of this same operation -- see that file's header
-//   for the underlying types/units.h and types/objects.h evidence, not repeated here.
-// objdump -d -M intel --start-address=0x475c60 --stop-address=0x475e40 bin/halo.exe confirms
-// the stack-parameter convention (matching FUN_00475270 exactly) and that
-// object_set_position_and_orientation is called with two literal 0 (NULL) arguments here, not
-// the freshly computed position delta -- see UNSURE below.
-// register convention: stack -> player_index, target_object, local_offset.
-//
-// UNSURE: a position delta (seat-local transform position minus the unit's current
-// object.position, offset by object+0x5c/0x60/0x64) is computed into locals that are never read
-// again anywhere in the disassembly reachable from this function; transcribed as dead
-// computation exactly as Ghidra shows it, since "fixing" it would be inventing behavior. Also
-// UNSURE, as in FUN_00475270: the node-local-transform math, the Vehicle/Unit tag field at
-// +0x34/+0xbc, and the weapon-marker offset at unit+0x1ea.
+// name confidence: 0.3   rewrite confidence: 0.9
+// REWRITTEN from objdump 0x475c60..0x4760a7. Stack: (player, target object, point). When the player's biped rides
+//   something (and this is not a network client), it is first taken out of its seat exactly like the seat-exit
+//   inline elsewhere (marker-relative position, seat bookkeeping, exit animation, placement around the vehicle,
+//   empty-vehicle stamp), then the scripted event 9 fires for a non-networked unit and a client drops its
+//   prediction history; finally 0x4757b0 places the player with all three arguments. Returns its result (0 when
+//   the player has no biped). The draft read the driver field as the parent and called the seat / weapon
+//   helpers without operands.
+// blam-cc: stack -> player_index, target_object, local_offset
 
 #include "tags.h"
 #include "memory.h"
@@ -29,200 +19,171 @@
 #include "game.h"
 #include <string.h>
 
-extern data_array *player_data; // 0x0087a480
-extern data_array *object_data; // 0x008603b0
-extern tag_instance *tag_instances; // 0x0087bc14
-extern int16_t network_game_mode; // 0x00719720
+extern data_array *object_data;      // 0x008603b0
+extern tag_instance *tag_instances;  // 0x0087bc14
+extern data_array *player_data;      // 0x0087a480
+extern int16_t game_connection_role; // 0x00719720: 1 = client
 extern game_time_globals *game_time; // 0x006f1d6c
-extern uint8_t *network_client; // 0x0071c2d8
+extern uint8_t *network_client;      // 0x0071c2d8, +0xf48 the prediction history
 
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern void object_get_node_local_transform(datum_index object_index, int32_t node_index,
-                                             void *out_transform, int32_t unknown); // 0x4f6080, UNSURE args
-extern void unit_try_set_animation_state(datum_index unit_handle, int32_t state); // 0x565f90
-extern void object_snap_to_parent_marker_and_detach(datum_index object_index); // 0x4f6610, not in this batch
-extern void object_set_position_and_orientation(datum_index object_index,
-    real_vector3d *forward, real_vector3d *up, real_point3d *position); // 0x4f51c0, canonical
-    // 4-parameter form (cheat_teleport_to_camera.c / game_engine_update_teleporter.c);
-    // UNSURE at the call site below, where Ghidra shows fewer arguments.
-extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x4cc0d0
+extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, EDX, ESI
+extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x4cc0d0 (via 0x696664)
+extern void player_update_history_free_all(void *history); // 0x4e6f20
+extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward, real_vector3d *up,
+    real_point3d *position); // 0x4f51c0, stack, EDI position
+extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
+    uint32_t flags); // 0x4f6080
+extern void object_snap_to_parent_marker_and_detach(uint32_t object_index); // 0x4f6610
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
+extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table,
-                                              int32_t invoke_callback); // 0x4f9a20
-extern void unit_recompute_seat_occupants(void); // 0x56ce30, units module, not in this batch
-extern void unit_pick_and_ready_next_weapon(void); // 0x56d6a0, units module, not in this batch
-extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, stack unit, ECX request
-static const int8_t k_unit_exit_seat_request[2] = {0x14, 0}; // every caller builds these two bytes on its stack
+    int32_t invoke_callback); // 0x4f9a20, EAX, stack
 extern void unit_reset_orientation_and_find_position(uint32_t object_index, uint32_t vehicle_index); // 0x55add0, stack, EDI
-extern void object_recalculate_bounding_radius_recursive(datum_index object_index); // 0x4f82b0
-extern uint8_t unit_all_seats_unoccupied(void); // 0x566910, units module, not in this batch
-extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, memory
-    // module's canonical form; blam-cc: EDX -> handle, ESI -> array. UNSURE at the call site
-    // below: Ghidra elides both register arguments there.
-extern void player_update_history_free_all(void *queue); // 0x4e6f20
-extern void unit_dispatch_scripted_event_9(uint8_t flag); // 0x56c370, units module, not in this batch
-extern uint8_t player_find_placement_position(uint32_t player_index, uint32_t target_object, void *local_offset); // this batch
+extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, stack, ECX
+extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
+extern uint8_t unit_all_seats_unoccupied(uint32_t unit_index); // 0x566910, EAX
+extern void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key); // 0x56c370, stack, ECX
+extern void unit_recompute_seat_occupants(uint32_t unit_index); // 0x56ce30, EAX
+extern void unit_pick_and_ready_next_weapon(uint32_t unit_index); // 0x56d6a0, ESI
+extern uint8_t player_find_placement_position(uint32_t player_index, datum_index target_object,
+    real_point3d *point); // 0x4757b0
 
-// UNSURE, best-effort (see header): attaches player_index's unit as a child of target_object's
-// current parent chain unless already there or this machine is a network client, recomputing
-// its transform from the parent's seat marker, resetting its embedded seat/animation
-// bookkeeping, propagating light attachments, recalculating its bounding radius, and clearing
-// the driving player's update-history queues while hosting. Always finishes by forwarding to
-// FUN_004757b0 with the same three parameters and returning its result.
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT_HEADER(h) (((object_header *)object_data->data)[(h) & 0xffff])
+#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+
+// 0x475cf9..0x476002: the seat-exit inline (same as unit_detach_from_seat's biped_detach_from_seat).
+static void player_unit_exit_seat(uint32_t object_index, datum_index vehicle_index)
+{
+    uint8_t *self = OBJECT_DATA(object_index);
+    uint8_t *vehicle = OBJECT_DATA(vehicle_index);
+    uint8_t *nodes = self + *(int16_t *)(self + 0x1f2);
+    uint8_t *seat = *(uint8_t **)(TAG_DATA(*(datum_index *)vehicle) + 0x2e8) + *(int16_t *)(self + 0x2f0) * 0x11c;
+    uint8_t *model_nodes;
+    object_marker marker;
+    real_point3d offset;
+    real_point3d default_translation;
+    real_point3d position;
+    real_matrix4x3 basis;
+
+    object_get_node_local_transform(vehicle_index, (char *)(seat + 0x24), &marker, 1);
+    offset.x = *(float *)(nodes + 0x28) - marker.node_transform.position.x;
+    offset.y = *(float *)(nodes + 0x2c) - marker.node_transform.position.y;
+    offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
+    model_nodes = *(uint8_t **)(TAG_DATA(*(datum_index *)(TAG_DATA(*(datum_index *)self) + 0x34)) + 0xbc);
+    default_translation = *(real_point3d *)(model_nodes + 0x28);
+    if (*(datum_index *)(vehicle + 0x324) == object_index && vehicle[0x2a3] != 0x25 &&
+        *(datum_index *)(self + 0x11c) != k_datum_index_none) {
+        unit_try_set_animation_state(*(datum_index *)(self + 0x11c), 0x25);
+    }
+    *(datum_index *)(self + 0x32c) = vehicle_index;
+    *(int32_t *)(self + 0x330) = game_time->game_time;
+    if (*(datum_index *)(self + 0x324) == object_index) {
+        *(datum_index *)(self + 0x324) = k_datum_index_none;
+    }
+    if (*(datum_index *)(self + 0x328) == object_index) {
+        *(datum_index *)(self + 0x328) = k_datum_index_none;
+    }
+    object_snap_to_parent_marker_and_detach(object_index);
+    position.x = offset.x + *(float *)(self + 0x5c);
+    position.y = offset.y + *(float *)(self + 0x60);
+    position.z = offset.z + *(float *)(self + 0x64) - default_translation.z;
+    object_set_position_and_orientation(object_index, 0, 0, &position);
+    {
+        uint8_t *reloaded = OBJECT_DATA(object_index);
+
+        matrix4x3_multiply((real_matrix4x3 *)(reloaded + *(int16_t *)(reloaded + 0x1f2)),
+            (real_matrix4x3 *)(model_nodes + 0x68), &basis);
+    }
+    *(real_vector3d *)(self + 0x74) = basis.forward;
+    *(real_vector3d *)(self + 0x80) = basis.up;
+    {
+        uint8_t *object = OBJECT_DATA(object_index);
+        uint8_t *object_tag = TAG_DATA(*(datum_index *)object);
+
+        if (*(int32_t *)(object_tag + 0x34) != -1 && (object[0x10] & 1) != 0) {
+            object_for_each_light_attachment(object_index, 0, 1);
+        }
+        if (*(int32_t *)(object_tag + 0x34) != -1) {
+            *(uint32_t *)(object + 0x10) &= ~1u;
+            OBJECT_HEADER(object_index).flags |= 2;
+        }
+    }
+    *(int16_t *)(self + 0x2f0) = -1;
+    self[0x2a7] = 2;
+    if (*(datum_index *)(vehicle + 0x324) == object_index) {
+        *(datum_index *)(vehicle + 0x324) = k_datum_index_none;
+    }
+    if (*(datum_index *)(vehicle + 0x328) == object_index) {
+        *(datum_index *)(vehicle + 0x328) = k_datum_index_none;
+    }
+    unit_recompute_seat_occupants(vehicle_index);
+    unit_pick_and_ready_next_weapon(object_index);
+    {
+        int8_t request[2] = { 0x14, 0 };
+
+        unit_update_animation_state_machine(object_index, request);
+    }
+    *(real_point3d *)(self + *(int16_t *)(self + 0x1ea) + 0x10) = default_translation;
+    if (*(int16_t *)(self + 0xb4) == 0) {
+        unit_reset_orientation_and_find_position(object_index, vehicle_index);
+    }
+    object_recalculate_bounding_radius_recursive(object_index);
+    if (unit_all_seats_unoccupied(vehicle_index) == 1) {
+        uint8_t *empty = (uint8_t *)object_try_and_get(vehicle_index, 2);
+
+        if (empty != 0) {
+            *(int32_t *)(empty + 0x5ac) = game_time->game_time;
+        }
+    }
+    if (game_connection_role == 1) {
+        uint8_t *player = (uint8_t *)datum_get(*(datum_index *)(self + 0x218), player_data);
+
+        if (player != 0 && *(int16_t *)(player + 2) == -1) {
+            *(int32_t *)(player + 0x180) = 0;
+            *(int32_t *)(player + 0x17c) = 0;
+            *(int32_t *)(player + 0x1e0) = 0;
+            *(int32_t *)(player + 0x1dc) = 0;
+        }
+    }
+}
+
 uint8_t player_attach_unit_to_parent(uint32_t player_index, uint32_t target_object, void *local_offset)
 {
-    player *plr;
-    datum_index unit_handle;
-    object *target_obj;
-    uint8_t result;
+    uint32_t unit_index = *(datum_index *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200 + 0x34);
+    uint8_t *biped = (uint8_t *)object_try_and_get(unit_index, 1);
 
-    plr = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
-    unit_handle = plr->unit;
-    target_obj = object_try_and_get((datum_index)target_object, _object_mask_biped);
-    if (target_obj == (object *)0) {
+    if (biped == 0) {
         return 0;
     }
+    if (*(datum_index *)(biped + 0x11c) != k_datum_index_none && game_connection_role != 1) {
+        uint8_t *self = OBJECT_DATA(unit_index);
+        datum_index parent = *(datum_index *)(self + 0x11c);
 
-    if (target_obj->parent_object != (datum_index)-1 && network_game_mode != 1) {
-        object *unit_obj = ((object_header *)object_data->data)[unit_handle & 0xffff].data;
-        unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
-        datum_index driver = unit->driver_unit_index;
-
-        if (driver != (datum_index)-1 && *((int16_t *)((uint8_t *)unit_obj + 0x2f0)) != -1) {
-            object *driver_obj = ((object_header *)object_data->data)[driver & 0xffff].data;
-            unit_data *driver_unit = (unit_data *)((uint8_t *)driver_obj + k_unit_data_offset);
-            Unit *driver_tag = (Unit *)tag_instances[driver_obj->definition_tag & 0xffff].data;
-            real_matrix4x3 local_transform;
-            real_matrix4x3 result_transform;
-            Unit *unit_tag;
-            Vehicle *unit_as_vehicle_tag;
-            real_point3d new_position;
-
-            object_get_node_local_transform(
-                driver, (int32_t)((uint8_t *)driver_tag->seats.pointer + 0x24 +
-                                   *((int16_t *)((uint8_t *)unit_obj + 0x2f0)) * 0x11c),
-                &local_transform, 1);
-            // CORRECTED by review. This is NOT a dead computation: objdump 0x475e25..0x475e4e
-            // builds a real_point3d at [ebp-0x38] out of these three sums and hands it to
-            // object_set_position_and_orientation in EDI. Note the operator -- the original is
-            // "fld [ebp-0x2c] ; fadd [ebx+0x5c]", an ADD onto the unit's own position, not the
-            // subtraction the first pass wrote.
-            new_position.x = local_transform.position.x + unit_obj->position.x;
-            new_position.y = local_transform.position.y + unit_obj->position.y;
-
-            unit_tag = (Unit *)tag_instances[unit_obj->definition_tag & 0xffff].data;
-            unit_as_vehicle_tag = (Vehicle *)tag_instances[
-                ((TagID *)((uint8_t *)unit_tag + 0x34))->index & 0xffff].data; // UNSURE offset
-            {
-                uint8_t *unknown_block = (uint8_t *)unit_as_vehicle_tag + 0xbc;
-                new_position.z = (local_transform.position.z + unit_obj->position.z) -
-                                   *(float *)(unknown_block + 8); // UNSURE exact field
-
-                if (driver_unit->driver_unit_index == unit_handle &&
-                    *((int8_t *)driver_obj + 0x2a3) != '%' && unit_obj->parent_object != (datum_index)-1) {
-                    unit_try_set_animation_state(unit_obj->parent_object, 0x25);
-                }
-
-                unit->last_parent_object_index = driver;
-                unit->last_seat_change_tick = game_time->game_time;
-                if (unit->driver_unit_index == unit_handle) {
-                    unit->driver_unit_index = (datum_index)-1;
-                }
-                if (unit->gunner_unit_index == unit_handle) {
-                    unit->gunner_unit_index = (datum_index)-1;
-                }
-
-                object_snap_to_parent_marker_and_detach(unit_handle);
-                // objdump 0x475e2e..0x475e4e: "push 0 ; push 0 ; push esi" plus
-                // "lea edi,[ebp-0x38]", i.e. (object_index, forward=NULL, up=NULL, position).
-                object_set_position_and_orientation(unit_handle, 0, 0, &new_position);
-
-                matrix4x3_multiply(&local_transform, (real_matrix4x3 *)(unknown_block + 0xac),
-                                    &result_transform);
-                unit_obj->forward = result_transform.forward;
-                unit_obj->up = result_transform.up;
-
-                {
-                    uint8_t *unit_tag_data = (uint8_t *)tag_instances[unit_obj->definition_tag & 0xffff].data;
-                    if (*(int32_t *)(unit_tag_data + 0x34) != -1) {
-                        if ((unit_obj->flags & 1) != 0) {
-                            object_for_each_light_attachment(0, 1, 0); // UNSURE arg shapes
-                        }
-                        if (*(int32_t *)(unit_tag_data + 0x34) != -1) {
-                            object_header *unit_header = &((object_header *)object_data->data)[unit_handle & 0xffff];
-                            unit_obj->flags = unit_obj->flags & ~1u;
-                            unit_header->flags = unit_header->flags | 2;
-                        }
-                    }
-                }
-
-                *((int16_t *)((uint8_t *)unit_obj + 0x2f0)) = -1; // vehicle_seat_index = -1
-                *((uint8_t *)unit_obj + 0x2a7) = 2; // UNSURE
-                if (driver_unit->driver_unit_index == unit_handle) {
-                    driver_unit->driver_unit_index = (datum_index)-1;
-                }
-                if (driver_unit->gunner_unit_index == unit_handle) {
-                    driver_unit->gunner_unit_index = (datum_index)-1;
-                }
-            }
-
-            unit_recompute_seat_occupants();
-            unit_pick_and_ready_next_weapon();
-            unit_update_animation_state_machine(unit_handle, k_unit_exit_seat_request);
-
-            {
-                uint8_t *marker_ptr = (uint8_t *)unit_obj + *((int16_t *)((uint8_t *)unit_obj + 0x1ea)) + 0x10;
-                memcpy(marker_ptr, &result_transform.forward, sizeof(result_transform.forward));
-            }
-
-            if (unit_obj->type == _object_type_biped) {
-                unit_reset_orientation_and_find_position(unit_handle, driver); // EDI = the seat parent (PENDING full rewrite)
-            }
-            object_recalculate_bounding_radius_recursive(unit_handle);
-
-            if (unit_all_seats_unoccupied() == 1) {
-                object *local_obj = object_try_and_get((datum_index)-1, _object_mask_vehicle); // UNSURE arg
-                if (local_obj != (object *)0) {
-                    *(int32_t *)((uint8_t *)local_obj + 0x5ac) = game_time->game_time; // UNSURE offset
-                }
-            }
-
-            if (network_game_mode == 1) {
-                void *datum = datum_get(unit_handle, object_data); // UNSURE: both arguments are
-                        // register-elided by Ghidra; modeled as the object lookup the
-                        // surrounding code performs.
-                if (datum != (void *)0 && *(int16_t *)((uint8_t *)datum + 2) == -1) {
-                    circular_queue *cq1 = (circular_queue *)((uint8_t *)datum + 0x170);
-                    circular_queue *cq2 = (circular_queue *)((uint8_t *)datum + 0x1d0);
-                    cq1->read_index = 0;
-                    cq1->write_index = 0;
-                    cq2->read_index = 0;
-                    cq2->write_index = 0;
-                }
-            }
+        if (parent != k_datum_index_none && *(int16_t *)(self + 0x2f0) != -1) {
+            player_unit_exit_seat(unit_index, parent);
         }
-
-        if (unit_obj->network_role == 0) {
-            unit_dispatch_scripted_event_9(1);
+        // 0x476005
+        if (*(int32_t *)(self + 0x4) == 0) {
+            unit_dispatch_scripted_event_9(1, (int32_t)unit_index);
         }
+        if (game_connection_role == 1) {
+            datum_index player_handle = *(datum_index *)(self + 0x218);
+            int16_t index = (int16_t)player_handle;
+            int16_t salt = (int16_t)(player_handle >> 16);
 
-        if (network_game_mode == 1) {
-            datum_index controlling_player = unit->controlling_player;
-            if (controlling_player != (datum_index)-1) {
-                int16_t index = (int16_t)controlling_player;
-                if (index >= 0 && index < player_data->maximum_count) {
-                    player *cp = (player *)((uint8_t *)player_data->data + (uint32_t)(uint16_t)index * player_data->size);
-                    int16_t salt = (int16_t)(controlling_player >> 16);
-                    if (cp->identifier != 0 && (salt == 0 || cp->identifier == salt) &&
-                        cp->local_player_index == -1 && network_client != (uint8_t *)0) {
-                        player_update_history_free_all(*(void **)(network_client + 0xf48));
-                    }
+            if (player_handle != k_datum_index_none && index >= 0 &&
+                index < *(int16_t *)((uint8_t *)player_data + 0x20)) {
+                uint8_t *player = (uint8_t *)player_data->data + *(int16_t *)((uint8_t *)player_data + 0x22) * index;
+
+                if (*(int16_t *)player != 0 && (salt == 0 || *(int16_t *)player == salt) &&
+                    *(int16_t *)(player + 2) != -1 && network_client != 0) {
+                    player_update_history_free_all(*(void **)(network_client + 0xf48));
                 }
             }
         }
     }
-
-    result = player_find_placement_position(player_index, target_object, local_offset);
-    return result;
+    return player_find_placement_position(player_index, target_object, (real_point3d *)local_offset);
 }
 
 #if 0

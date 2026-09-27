@@ -1501,3 +1501,8 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   player reattach) is garbled -- argless seat/weapon calls, reads the driver field as the parent. Stopgap: passes
   `driver` to the placement reset. Same for game_engine_reattach_player_unit_unused. REWRITE NEXT.
 - OPEN (MP): unit_spawn_with_starting_weapons 0x572110 (network game action) set_position argless.
+- player_attach_unit_to_parent 0x475c60 REWRITTEN (0.25 -> 0.9): seat-exit inline (same as unit_detach_from_seat),
+  scripted event 9, client history drop, then 0x4757b0 with all 3 args. Closes the stopgap OPEN.
+- player_find_placement_position 0x4757b0 REWRITTEN (0.25 -> 0.9): third argument (the point) was missing; ring of 9
+  around the target's root (3 x collision radius + bounding radius), 8 random jitters each, trigger-volume veto,
+  facing / look angles / teleport effect. Callers: hs detach-and-place, BSP-switch reattach.

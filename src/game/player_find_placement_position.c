@@ -1,24 +1,15 @@
-// player_find_placement_position  (Ghidra: FUN_004757b0; named per this rewrite)
+// player_find_placement_position  (Ghidra: FUN_004757b0)
 // address 0x4757b0, size 1181 bytes
-// name confidence: 0.3   rewrite confidence: 0.25
-// evidence: out/phase4/game_functions.md ("Searches nearby candidate positions, including
-//   randomized jitter, for a placement where a player's unit does not collide with the world,
-//   used when attaching/respawning a unit"); types/objects.h object (velocity +0x68, forward
-//   +0x74, up +0x80, parent_object +0x11c); types/units.h unit_data (desired_facing_vector
-//   +0x224, desired_aiming_vector +0x230, desired_looking_vector +0x254, biped_data
-//   last_ground_object_index +0x4d4 / unknown_4d3); types/game.h player (bsp_cluster +0x3c,
-//   local_player_index +0x02); game_engine_compute_look_angles_from_vector.c (this module) for
-//   the tail-call shape. objdump -d -M intel --start-address=0x4757b0 --stop-address=0x475c60
-//   bin/halo.exe was read for the register conventions of object_get_root_object_index (ECX)
-//   and FUN_0055a500 (EDX -> a position pointer, plus 7 stack arguments).
-// register convention: stack -> player_index, target_object.
-//
-// UNSURE (pervasive): the collision-probe routine FUN_0055a500, the random offset table at
-// 0x006b7af4 (indexed via the global PRNG and a bounds value at 0x006b7af8), the tag-data float
-// at absolute offset 0x42c, and effect_new_on_object's real signature are not established anywhere else
-// in this codebase (existing files declare several mutually-incompatible signatures for
-// effect_new_on_object); all are transcribed as literally as possible with raw offsets.
-// reconciled: R46 biped_data +0x4d4 last_ground_surface_index -> last_ground_object_index (an object datum); the raw +0x4d4/+0x4d3 copies now go through biped_data
+// name confidence: 0.35   rewrite confidence: 0.9
+// REWRITTEN from objdump 0x4757b0..0x475c58. Stack: (player, target object, point). Places the player's unit:
+//   with no target (or a target that is its own root) around the point (unit_find_placement_position, radius 2 x
+//   pill); otherwise on a ring around the target's root -- 3 x the unit's collision radius + the root's bounding
+//   radius, facing away from the root's flat velocity (else its forward, or its up when the forward points up)
+//   -- at the 9 offsets of 0x6574c0, each retried from 8 random jitters (0x6b7af4). A placement inside a trigger
+//   volume of the current BSP counts as a failure; failures release the unit (0x4760b0). On success with a
+//   target the unit stops, copies the target's facing (+0x224 / +0x230 / +0x254; a biped target also its +0x4d3 /
+//   +0x4d4), gets matching look angles and the globals' teleport effect. The draft lacked the point argument.
+// blam-cc: stack -> player_index, target_object, point
 
 #include "tags.h"
 #include "memory.h"
@@ -29,180 +20,153 @@
 #include "game.h"
 #include "effects.h"
 
-extern data_array *player_data;        // 0x0087a480
-extern data_array *object_data;        // 0x008603b0
-extern tag_instance *tag_instances;    // 0x0087bc14
-extern Scenario *global_scenario;      // 0x00746f8c
-extern Globals *global_globals;        // 0x00746fa0
+extern data_array *object_data;      // 0x008603b0
+extern tag_instance *tag_instances;  // 0x0087bc14
+extern data_array *player_data;      // 0x0087a480
+extern Scenario *global_scenario;    // 0x00746f8c
+extern uint8_t *global_globals_bytes; // 0x00746fa0 (+0x174 -> +0xc4 the teleport effect)
+extern uint8_t *local_player_globals_bytes; // 0x0087a478
 extern int16_t global_structure_bsp_index; // 0x0069e8d8
-extern player_globals *local_player_globals; // 0x0087a478
-extern real_vector3d global_origin3d;  // 0x0065c230
-extern random_seed random_seed_global;    // 0x00719cd0
-extern int16_t random_point_table_count; // 0x006b7af8 (read with movsx from a word)
+extern real_vector3d *global_up3d_pointer; // 0x00696720
+extern real_vector3d *global_zero_vector3d_pointer; // 0x00696714
+extern uint32_t random_seed_global; // 0x00719cd0
 extern real_point3d *random_point_table; // 0x006b7af4, a POINTER
+extern int16_t random_point_table_count; // 0x006b7af8
+extern real_point3d player_placement_ring[9]; // 0x006574c0
 
-extern datum_index object_get_root_object_index(datum_index object_index); // 0x4f6fb0, blam-cc: ECX -> object_index
-extern uint8_t unit_find_placement_position(real_point3d *position, datum_index unit_handle, datum_index exclude_object,
-                             int32_t p3, uint32_t flags, int32_t p5, int32_t p6, int32_t p7);
-    // 0x55a500, units module, not in this batch; blam-cc: EDX -> position, stack -> the rest; UNSURE
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, in place, vector in ECX
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out); // 0x4cb970
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *in, real_matrix4x3 *m); // 0x4cbde0
+extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out); // 0x4cb970, EAX, ECX, stack
+extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0, EAX, EDX, stack (EAX still = out after it)
+extern uint32_t object_get_root_object_index(uint32_t object_index); // 0x4f6fb0, ECX
 extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point); // 0x53f020, EAX, ECX
-extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index); // 0x470d80
-extern void player_release_unit_and_reset(uint32_t player_index, int32_t previous_unit_override); // this batch, 0x4760b0
-extern void game_engine_build_visible_cluster_bitmask(void *out_bitmask, uint32_t flag); // this module's next batch, 0x4782a0
+extern uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientation_object,
+    real_point3d *out_position, float radius, char grid_mode, char skip_reposition, char scale_radius,
+    uint32_t object_index_a, real_vector3d *reference_direction); // 0x55a500, stack, EDX
+extern void player_release_unit_and_reset(uint32_t player_index, int32_t previous_unit_override); // 0x4760b0, EAX, stack
+extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index); // 0x470d80, EAX, CX
+extern void game_engine_build_visible_cluster_bitmask(uint32_t *out_bitmask, uint8_t local_players_only); // 0x4782a0
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
     datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
-    const ColorRGB *color, const effect_tint_source *tint_source);
-    // 0x4507a0, blam-cc: EAX -> creator_object_index, ECX -> definition_index, stack -> the other six
+    const ColorRGB *color, const effect_tint_source *tint_source); // 0x4507a0, EAX, ECX, stack
 
-// UNSURE, best-effort: see header. Places a player's unit either exactly at target_object's
-// current root position (when that is already the player's own unit's root) or by probing
-// nearby offsets -- first straight ahead of the root object, then eight random jittered points
-// -- for a collision-free spot (FUN_0055a500). On success, seeds the unit's velocity to zero,
-// resets its bsp_cluster, checks a bsp-switch trigger volume covering the new position, and
-// seeds its desired facing/aiming/looking vectors and ground-surface cache from the target when
-// given; on failure, forwards to FUN_004760b0.
-uint8_t player_find_placement_position(uint32_t player_index, datum_index target_object)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+
+uint8_t player_find_placement_position(uint32_t player_index, datum_index target_object, real_point3d *point)
 {
-    player *plr;
-    datum_index unit_handle;
-    object *unit_obj;
-    uint8_t placed;
-    int32_t final_target = (int32_t)target_object;
+    uint8_t *player = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;   // [ebp-0x14]
+    uint32_t unit_index = *(datum_index *)(player + 0x34);                              // [ebp-0xc]
+    uint8_t *unit = OBJECT_DATA(unit_index);                                             // [ebp-0x4]
+    uint8_t placed = 0;                                                                  // bl
+    real_vector3d facing;                                                                // [ebp-0x24]
 
-    plr = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
-    unit_handle = plr->unit;
-    unit_obj = ((object_header *)object_data->data)[unit_handle & 0xffff].data;
-    placed = 0;
-
-    if (target_object == (uint32_t)-1 || object_get_root_object_index(target_object) == target_object) {
-        placed = unit_find_placement_position(0, unit_handle, target_object, 0, 0x40000000, 0, 0, 1); // UNSURE: position arg
-        final_target = (int32_t)target_object;
+    if (target_object == k_datum_index_none ||
+        object_get_root_object_index(target_object) == target_object) {
+        placed = (uint8_t)unit_find_placement_position(unit_index, target_object, 0, 2.0f, 0, 0, 1, 0,
+            (real_vector3d *)point);
     } else {
-        datum_index root = object_get_root_object_index(target_object);
-        object *root_obj = ((object_header *)object_data->data)[root & 0xffff].data;
-        real_vector3d away;
-        real_vector3d forward_probe;
-        real_matrix4x3 basis;
-        real_point3d probe;
-        int32_t attempt;
-        // UNSURE: tag-data float at absolute offset 0x42c
-        float scale = *(float *)((uint8_t *)tag_instances[unit_obj->definition_tag & 0xffff].data + 0x42c);
+        uint32_t root = object_get_root_object_index(target_object);
+        uint8_t *root_object = OBJECT_DATA(root);
+        float collision_radius;                     // [ebp-0x8]
+        real_matrix4x3 ring;                        // [ebp-0x78]
+        int16_t i;
 
-        away.i = root_obj->velocity.i;
-        away.j = root_obj->velocity.j;
-        if (away.i * away.i + away.j * away.j <= 0.0f) {
-            if (root_obj->up.k >= 0.70710677f) {
-                away.i = root_obj->up.i;
-                away.j = root_obj->up.j;
+        target_object = root;
+        facing = *(real_vector3d *)(root_object + 0x68);
+        if (!(facing.j * facing.j + facing.i * facing.i > 0.0f)) {
+            if (*(float *)(root_object + 0x7c) >= 0.70710677f) {
+                facing = *(real_vector3d *)(root_object + 0x80);
             } else {
-                away.i = root_obj->forward.i;
-                away.j = root_obj->forward.j;
+                facing = *(real_vector3d *)(root_object + 0x74);
             }
         }
-        away.i = -away.i;
-        away.j = -away.j;
-        away.k = 0.0f;
-        vector3d_normalize_with_length(&away);
-        matrix4x3_from_forward_up(&global_origin3d, &away, &basis); // UNSURE: up argument
-        basis.forward.i = scale * 3.0f + root_obj->velocity.k; // UNSURE mapping of local_7c[0]
+        collision_radius = *(float *)((uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data + 0x42c);
+        facing.k = 0.0f;
+        facing.i = -facing.i;
+        facing.j = -facing.j;
+        vector3d_normalize_with_length(&facing);
+        matrix4x3_from_forward_up(global_up3d_pointer, &facing, &ring);
+        ring.position = *(real_point3d *)(root_object + 0xa0);
+        ring.scale = collision_radius * 3.0f + *(float *)(root_object + 0xac);
+        for (i = 0; !placed && (uint16_t)i < 9; i++) {
+            real_point3d spot;                      // [ebp-0x30]
+            int16_t attempt;
 
-        for (attempt = 0; attempt < 9 && placed == 0; attempt = attempt + 1) {
-            matrix4x3_transform_point(&probe, (real_point3d *)&basis, &basis);
-            placed = unit_find_placement_position(&probe, unit_handle, target_object, 0, 0x40000000, 0, 0, 1);
-            if (placed == 0) {
-                int16_t retry;
-                for (retry = 0; retry < 8 && placed == 0; retry = retry + 1) {
-                    int32_t index;
-                    real_vector3d *rand_vec;
+            matrix4x3_transform_point(&spot, &player_placement_ring[i], &ring);
+            placed = (uint8_t)unit_find_placement_position(unit_index, root, 0, 2.0f, 0, 0, 1, 0,
+                (real_vector3d *)&spot);
+            for (attempt = 0; !placed && attempt < 8; attempt++) {
+                real_point3d jittered;              // [ebp-0x3c]
+                int16_t index;
 
-                    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-                    index = (int16_t)(((int32_t)(random_seed_global >> 16) * (int32_t)random_point_table_count) >> 16);
-                    rand_vec = (real_vector3d *)(random_point_table + index); // 12-byte entries; the draft scaled the index twice
-                    probe.x = rand_vec->i * scale + basis.up.i; // UNSURE exact field mapping
-                    probe.y = rand_vec->j * scale + basis.up.j;
-                    probe.z = rand_vec->k * scale + basis.up.k;
-                    placed = unit_find_placement_position(&probe, unit_handle, target_object, 0, 0x40000000, 0, 0, 1);
-                }
+                random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+                index = (int16_t)(((random_seed_global >> 16) * (int32_t)random_point_table_count) >> 16);
+                facing = *(real_vector3d *)&random_point_table[index];
+                jittered.x = facing.i * collision_radius + spot.x;
+                jittered.y = facing.j * collision_radius + spot.y;
+                jittered.z = facing.k * collision_radius + spot.z;
+                placed = (uint8_t)unit_find_placement_position(unit_index, root, 0, 2.0f, 0, 0, 1, 0,
+                    (real_vector3d *)&jittered);
             }
         }
-        final_target = (int32_t)target_object;
     }
+    *(int16_t *)(player + 0x3c) = -1;
+    if (placed) {
+        uint8_t *volumes = *(uint8_t **)((uint8_t *)global_scenario + 0x3a0);
+        int16_t v;
 
-    plr->bsp_cluster = -1;
+        for (v = 0; (int32_t)v < *(int32_t *)((uint8_t *)global_scenario + 0x39c); v++) {
+            uint8_t *volume = *(uint8_t **)((uint8_t *)global_scenario + 0x3a0) + v * 8;
+            datum_index player_unit = *(datum_index *)(player + 0x34);
 
-    if (placed == 0) {
-        player_release_unit_and_reset(player_index, final_target);
-    } else {
-        int32_t i;
-        int32_t count = global_scenario->bsp_switch_trigger_volumes.count;
-        ScenarioBSPSwitchTriggerVolume *volumes =
-            (ScenarioBSPSwitchTriggerVolume *)global_scenario->bsp_switch_trigger_volumes.pointer;
-        uint8_t found_trigger = 0;
-
-        for (i = 0; i < count; i = i + 1) {
-            if (volumes[i].source == (uint16_t)global_structure_bsp_index && plr->unit != (datum_index)-1 &&
-                scenario_trigger_volume_contains_point((int16_t)volumes[i].trigger_volume,
-                    (real_point3d *)(*(uint8_t **)((uint8_t *)object_data->data + (plr->unit & 0xffff) * 0xc + 8) + 0xa0)) != 0) {
-                // FIXED (0x475a84..0x475a9a): ECX = the unit's centre (object +0xa0), not its handle.
+            (void)volumes;
+            if (*(int16_t *)(volume + 0x2) == global_structure_bsp_index && player_unit != k_datum_index_none &&
+                scenario_trigger_volume_contains_point(*(int16_t *)volume, (real_point3d *)(OBJECT_DATA(player_unit) + 0xa0))) {
                 placed = 0;
-                found_trigger = 1;
                 break;
             }
         }
+    }
+    if (!placed) {
+        player_release_unit_and_reset(player_index, (int32_t)target_object);
+        return 0;
+    }
+    *(real_vector3d *)(unit + 0x68) = *global_zero_vector3d_pointer;
+    if (target_object == k_datum_index_none) {
+        return placed;
+    }
+    facing = *(real_vector3d *)(OBJECT_DATA(target_object) + 0x74);
+    {
+        // 0x475b05: an inline object datum_try_and_get of the target; a biped target lends its +0x4d3 / +0x4d4
+        int16_t index = (int16_t)target_object;
+        int16_t salt = (int16_t)(target_object >> 16);
 
-        if (!found_trigger) {
-            unit_obj->velocity = global_origin3d;
+        if (index >= 0 && index < *(int16_t *)((uint8_t *)object_data + 0x20)) {
+            uint8_t *header = (uint8_t *)object_data->data + *(int16_t *)((uint8_t *)object_data + 0x22) * index;
 
-            if (final_target != -1) {
-                object *target_obj = ((object_header *)object_data->data)[final_target & 0xffff].data;
-                unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
-                real_vector3d facing = target_obj->forward;
+            if (*(int16_t *)header != 0 && (salt == 0 || *(int16_t *)header == salt) && header[0x3] == 0) {
+                uint8_t *target = *(uint8_t **)(header + 0x8);
 
-                int16_t index = (int16_t)final_target;
-                object_header *target_header = 0;
-                if (index >= 0 && index < object_data->maximum_count) {
-                    object_header *candidate = &((object_header *)object_data->data)[index];
-                    int16_t salt = (int16_t)((uint32_t)final_target >> 16);
-                    if (candidate->identifier != 0 && (salt == 0 || candidate->identifier == salt)) {
-                        target_header = candidate;
-                    }
-                }
-                if (target_header != 0 && (1u << (target_header->type & 0x1f) & _object_mask_biped) != 0 &&
-                    target_header->data != 0) {
-                    object *biped_obj = target_header->data;
-                    biped_data *source = (biped_data *)((uint8_t *)biped_obj + k_unit_object_size);
-                    biped_data *dest = (biped_data *)((uint8_t *)unit_obj + k_unit_object_size);
-                    if (source->last_ground_object_index != k_datum_index_none) {
-                        dest->last_ground_object_index = source->last_ground_object_index;
-                        dest->unknown_4d3 = source->unknown_4d3;
-                    }
-                }
-
-                unit->desired_facing_vector = facing;
-                unit->desired_aiming_vector = facing;
-                unit->desired_looking_vector = facing;
-
-                if (plr->local_player_index != -1) {
-                    game_engine_compute_look_angles_from_vector(&facing, plr->local_player_index);
-                }
-
-                if (global_globals->player_information.pointer != 0 &&
-                    *(int32_t *)((uint8_t *)global_globals->player_information.pointer + 0xc4) != -1) {
-                    game_engine_build_visible_cluster_bitmask((uint8_t *)local_player_globals + 0x18, 0);
-                    // 0x475c11..0x475c48: EAX = the unit, ECX = player_information +0xc4 (the spawn effect),
-                    // stack: the unit, -1, 0, 0, 0, 0
-                    effect_new_on_object(unit_handle,
-                        *(datum_index *)((uint8_t *)global_globals->player_information.pointer + 0xc4),
-                        unit_handle, -1, 0.0f, 0.0f, 0, 0);
-                    return placed;
+                if (target != 0 && *(int32_t *)(target + 0x4d4) != -1) {
+                    *(int32_t *)(unit + 0x4d4) = *(int32_t *)(target + 0x4d4);
+                    unit[0x4d3] = target[0x4d3];
                 }
             }
         }
     }
+    *(real_vector3d *)(unit + 0x224) = facing;
+    *(real_vector3d *)(unit + 0x230) = facing;
+    *(real_vector3d *)(unit + 0x254) = facing;
+    if (*(int16_t *)(player + 0x2) != -1) {
+        game_engine_compute_look_angles_from_vector(&facing, *(int16_t *)(player + 0x2));
+    }
+    {
+        datum_index effect = *(datum_index *)(*(uint8_t **)(global_globals_bytes + 0x174) + 0xc4);
 
+        if (effect != k_datum_index_none) {
+            game_engine_build_visible_cluster_bitmask((uint32_t *)(local_player_globals_bytes + 0x18), 0);
+            effect_new_on_object(unit_index, effect, unit_index, -1, 0.0f, 0.0f, 0, 0);
+        }
+    }
     return placed;
 }
 
