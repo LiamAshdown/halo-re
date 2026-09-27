@@ -1,7 +1,7 @@
 // chimera__draw_16_bit_text  (Ghidra: chimera__draw_16_bit_text, already named -- Chimera name,
 // hint only)
 // address 0x514ab0, size 511 bytes
-// name confidence: 0.55  rewrite confidence: 0.2
+// name confidence: 0.55  rewrite confidence: 0.85 (FIXED: glyph state +0x28/+0x2c = 1.0 and +0x40/+0x44 = 1/atlas size (c17 texel scale); rest verified against the binary (gates, dest/clip rects, text_wrap_and_draw call))
 // evidence: wide-character sibling of chimera__draw_8_bit_text @0x5148b0 (see that file for the
 //   shared UNSURE caveats: the &LAB_00514ce0 glyph callback body is not in this pack, and the
 //   007c3140..007c314c globals are undocumented). Differs by validating the string with
@@ -87,6 +87,15 @@ void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_re
     }
     glyph_state[0] = 0;
     glyph_state[3] = (uint32_t)atlas;
+    // FIXED (0x514c42..0x514c77 / 0x514a42..0x514a77): +0x28 / +0x2c (map_scales[0]) = 1.0 and
+    //   +0x40 / +0x44 (map_texel_scales[0]) = 1 / atlas width, 1 / atlas height (atlas +0x04 / +0x06).
+    //   rasterizer_draw_text_begin copies +0x40 / +0x44 into shader constant c17.xy, the scale that
+    //   turns the callback's pixel texture coordinates into 0..1; left at 0 every glyph sampled one
+    //   texel and the text drew invisibly (the a10 HUD help text).
+    ((float *)glyph_state)[10] = 1.0f;
+    ((float *)glyph_state)[11] = 1.0f;
+    ((float *)glyph_state)[16] = 1.0f / (float)(int32_t)*(int16_t *)((uint8_t *)atlas + 4);
+    ((float *)glyph_state)[17] = 1.0f / (float)(int32_t)*(int16_t *)((uint8_t *)atlas + 6);
 
     rasterizer_draw_text_begin((ui_quad_render_state *)glyph_state); // EDI = &glyph_state
     text_wrap_and_draw_wide((void *)text_draw_glyph_callback, dest_rect, position_or_color1, clip_rect,

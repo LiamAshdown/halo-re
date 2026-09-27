@@ -1839,3 +1839,12 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - hud_anchor_offset_to_screen_position (0x4ab690): REWRITTEN (0.3 -> 0.85). The ECX child-placement jump table (0x4ab8b8) was an argument-less function-pointer call. All callers pass ECX = 0, so it's not the cause.
 - OPEN, needs a runtime check (user present): break in hud_messaging_update at the tutorial_action prompt. Check help_shown (hud_flags +1, hud_messaging +0x46c), the message panel_count, and whether chimera__draw_16_bit_text (0.2) is reached with the tutorial text. Menus draw through the same text call, so a HUD-context render state (font or colour alpha) is the next suspect.
 - Relink: left unresolved 1, traps 128.
+
+## 2026-09-27 (user testing) -- HUD help text invisible: FIXED (chimera__draw_16/8_bit_text glyph state)
+- A cdb trace (scratchpad/cdb_hud_trace.txt) showed hud_messaging_update drawing the help text correctly: "Self-Diagnostic Software Enabled", rect top 68 / left 8 / bottom 89 / right 304, colour a 0.50, rgb (0.46, 0.73, 1.0). The user's YouTube reference shows exactly that light-blue top-left help text ("Look around"). So the HUD logic was right and the draw was invisible.
+- chimera__draw_16_bit_text (0x514ab0) and chimera__draw_8_bit_text (0x5148b0) left four glyph-state fields zero that the binary sets before rasterizer_draw_text_begin:
+  - +0x28 / +0x2c = 1.0;
+  - +0x40 / +0x44 = 1 / atlas width, 1 / atlas height.
+  rasterizer_draw_text_begin copies +0x40/+0x44 into c17.xy, the scale from the glyph callback's pixel texture coordinates to 0..1, so every glyph sampled a single texel. Both fixed (0.2 -> 0.85). The rest of both functions was verified.
+- OPEN: why menu text rendered despite this. Possibly a different vertex shader or constant path in the UI pass; worth a look if menu text shifts after the fix.
+- Relink: left unresolved 1, traps 128.
