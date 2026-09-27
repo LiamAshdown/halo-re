@@ -1,6 +1,6 @@
 // actor_select_move_position  (Ghidra: actor_select_move_position, renamed)
 // address 0x4014c0, size 744 bytes
-// name confidence: 0.4   rewrite confidence: 0.35
+// name confidence: 0.4   rewrite confidence: 0.9
 // evidence: types/ai.h actor.encounter_index/squad_index/order_committed/first_prop/
 //   unknown_68, prop.kind/next_in_actor/last_known_position; types/tags.h Scenario.encounters,
 //   ScenarioEncounter.squads, ScenarioSquad.move_positions (ScenarioMovePosition, stride
@@ -21,169 +21,136 @@
 #include "ai.h"
 #include "game.h"
 
-extern data_array *actor_data;       // 0x00880360
-extern data_array *prop_data;        // 0x008802c0
-extern Scenario *global_scenario;    // 0x00746f8c
+extern data_array *actor_data;      // 0x00880360
+extern data_array *prop_data;       // 0x008802c0
+extern Scenario *global_scenario;   // 0x00746f8c
 extern game_time_globals *game_time; // 0x006f1d6c
 
-// 0x432100, not yet rewritten (outside this session's range): weighted-random pick over an
-// array of move positions, skipping indices flagged in the exclude bitmask.
-extern int32_t ai_weighted_random_index(ScenarioMovePosition *positions, int32_t stride, uint16_t count, uint32_t *exclude_mask);
+extern int32_t ai_weighted_random_index(int16_t weight_offset, void *base, int16_t stride, uint16_t count,
+    uint32_t *exclude_mask); // 0x432100, EDX, stack
 
-// Selects a formation ("move position") slot from the actor's current squad. select_mode:
-//   1 - use position_index directly if it is already a valid slot, otherwise search from 0
-//   2 - the next free slot after position_index
-//   3 - the slot before position_index
-//   4 - forward or backward depending on the low bit of the current game tick
-//   5 - a weighted-random free slot (delegates to ai_weighted_random_index)
-// A slot claimed by a nearby squadmate (a prop of kind 2 or 3 within 0.5 units of the slot)
-// is treated as taken. Returns the chosen index, or -1 if the actor has already committed to
-// an order, has no encounter, has no move positions, or every slot is taken.
-int32_t actor_select_move_position(uint32_t actor_index, int16_t select_mode, int32_t position_index, uint8_t *direction_flag)
+// REWRITTEN from objdump 0x4014c0..0x4017a7. EAX: actor; stack: (mode, current index, direction byte *). Picks one
+//   of the actor's squad move positions (ScenarioSquad +0xc4 count / +0xc8 block, 0x50 each). A position is taken
+//   out (mask bit) when it is the current one, within 0.5 of the actor, of another group letter (+0x1e vs actor
+//   +0x68) or within 0.5 of an ally prop (kind 2..3, +0xbc). None left: -1. Mode 5 picks by weight (+0x10); the
+//   others step from the current index -- forward (mode 2 / default), alternating (4: the tick's low bit) or
+//   ping-pong (3: the direction byte, reversed at the ends) -- to the next unmasked one. Mode 1 keeps a valid
+//   current index. The draft passed no weight offset to the weighted pick.
+// blam-cc: EAX -> actor_index, stack -> select_mode, position_index, direction_flag
+int32_t actor_select_move_position(uint32_t actor_index, int16_t select_mode, int32_t position_index,
+    uint8_t *direction_flag)
 {
-    actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
-    int32_t result;
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;       // ebp
+    uint8_t *squad;                                                                   // esi
+    uint8_t *positions;                                                               // [esp+0x20]
+    int32_t count;                                                                    // [esp+0x24]
+    uint32_t mask = 0;                                                                // [esp+0x1c]
+    uint8_t found = 0;                                                                // [esp+0x13]
+    int16_t current = (int16_t)position_index;
+    int16_t i;
+    int16_t index;
 
-    if (a->order_committed != 0 || select_mode == 0) {
+    if (a[0x160] || select_mode == 0) {
         return -1;
     }
+    if (*(datum_index *)(a + 0x34) == k_datum_index_none) {
+        return -1;
+    }
+    squad = *(uint8_t **)(*(uint8_t **)((uint8_t *)global_scenario + 0x430) +
+        (*(datum_index *)(a + 0x34) & 0xffff) * 0xb0 + 0x84) + *(int16_t *)(a + 0x3a) * 0xe8;
+    if (select_mode == 1 && current != -1) {
+        return position_index;
+    }
+    count = *(int32_t *)(squad + 0xc4);
+    if (count <= 0) {
+        return -1;
+    }
+    positions = *(uint8_t **)(squad + 0xc8);
+    for (i = 0; (int32_t)i < count; i++) {
+        float *pos = (float *)(positions + i * 0x50);
+        uint8_t eligible = (i != current);                                            // bl
+        uint8_t occupied = 0;
+        datum_index prop_index;
 
-    result = -1;
-    if (a->encounter_index != (datum_index)k_datum_index_none) {
-        ScenarioEncounter *encounters = (ScenarioEncounter *)global_scenario->encounters.pointer;
-        ScenarioEncounter *enc = &encounters[a->encounter_index & 0xffff];
-        ScenarioSquad *squad = (ScenarioSquad *)enc->squads.pointer + a->squad_index;
-        int16_t target = (int16_t)position_index;
+        if (current != -1) {
+            float dx = pos[0] - *(float *)(a + 0x12c);
+            float dy = pos[1] - *(float *)(a + 0x130);
+            float dz = pos[2] - *(float *)(a + 0x134);
 
-        if (select_mode != 1 || (result = position_index, target == -1)) {
-            uint8_t found_free = 0;
-            // local_c in the original: [0]/[1] hold a 64-bit occupancy bitmask for the scan
-            // below, but the array is only 3 dwords and slot [1]/[2] are reused as the move
-            // positions pointer/count once the scan starts -- preserved exactly as decompiled.
-            uint32_t scratch[3];
-            int16_t cursor = 0;
-            int32_t count;
+            if (!(dz * dz + dy * dy + dx * dx >= 0.25f)) {
+                eligible = 0;
+            }
+        }
+        if (((uint8_t *)pos)[0x1e] && ((uint8_t *)pos)[0x1e] != a[0x68]) {
+            eligible = 0;
+        }
+        for (prop_index = *(datum_index *)(a + 0x50); prop_index != k_datum_index_none;) {
+            uint8_t *pr = (uint8_t *)prop_data->data + (prop_index & 0xffff) * 0x138;
+            int16_t kind = *(int16_t *)(pr + 0x24);
 
-            scratch[0] = 0;
-            count = squad->move_positions.count;
-            scratch[2] = (uint32_t)count;
-            if (0 < count) {
-                ScenarioMovePosition *positions = (ScenarioMovePosition *)squad->move_positions.pointer;
-                int32_t i = 0;
-                scratch[1] = (uint32_t)positions;
-                do {
-                    ScenarioMovePosition *p = &positions[i];
-                    uint8_t candidate_ok = (cursor != target);
+            prop_index = *(datum_index *)(pr + 0x8);
+            if (kind >= 2 && kind <= 3) {
+                float dx = pos[0] - *(float *)(pr + 0xbc);
+                float dy = pos[1] - *(float *)(pr + 0xc0);
+                float dz = pos[2] - *(float *)(pr + 0xc4);
 
-                    if (target != -1) {
-                        float dx = p->position.x - a->body_position.x;
-                        float dy = p->position.y - a->body_position.y;
-                        float dz = p->position.z - a->body_position.z;
-                        if (dx * dx + dy * dy + dz * dz < 0.25f) {
-                            candidate_ok = 0;
-                        }
-                    }
-                    if (p->sequence_id != 0 && p->sequence_id != (int8_t)a->unknown_68) {
-                        candidate_ok = 0;
-                    }
-
-                    {
-                        datum_index prop_index = a->first_prop;
-                        uint8_t occupied = 0;
-                        for (;;) {
-                            prop *pr;
-                            int16_t kind;
-                            float dx, dy, dz;
-
-                            if (prop_index == (datum_index)k_datum_index_none) {
-                                if (candidate_ok) {
-                                    found_free = 1;
-                                    goto next_slot;
-                                }
-                                break;
-                            }
-                            pr = &((prop *)prop_data->data)[prop_index & 0xffff];
-                            kind = pr->kind;
-                            prop_index = pr->next_in_actor;
-                            if (kind >= 2 && kind <= 3) {
-                                dx = p->position.x - pr->last_known_position.x;
-                                dy = p->position.y - pr->last_known_position.y;
-                                dz = p->position.z - pr->last_known_position.z;
-                                if (dx * dx + dy * dy + dz * dz < 0.25f) {
-                                    occupied = 1;
-                                    break;
-                                }
-                            }
-                        }
-                        if (occupied || !candidate_ok) {
-                            scratch[i >> 5] |= 1u << (i & 0x1f);
-                        }
-                    }
-                next_slot:
-                    cursor++;
-                    i = cursor;
-                } while (i < count);
-
-                if (found_free) {
-                    uint8_t take;
-
-                    if (select_mode == 5) {
-                        return ai_weighted_random_index(positions, 0x50, (uint16_t)count, scratch);
-                    }
-                    if (target < 0 || count <= target) {
-                        position_index = 0;
-                    }
-                    for (;;) {
-                        take = 1;
-                        if (select_mode == 2) {
-                        forward:
-                            take = 1;
-                        report:
-                            if (direction_flag != 0) {
-                                *direction_flag = take;
-                            }
-                            if (take != 0) {
-                                goto advance;
-                            }
-                            position_index--;
-                            if ((int16_t)position_index < 0) {
-                                position_index = count - 1;
-                            }
-                        } else if (select_mode == 3) {
-                            if ((int16_t)position_index == 0) {
-                                goto forward;
-                            }
-                            if ((int16_t)position_index == count - 1) {
-                                take = 0;
-                                goto report;
-                            }
-                            if (direction_flag != 0) {
-                                take = *direction_flag;
-                                goto report;
-                            }
-                            goto advance;
-                        } else {
-                            if (select_mode == 4) {
-                                take = (uint8_t)(game_time->game_time & 1);
-                            }
-                            goto report;
-                        }
-                        goto check;
-                    advance:
-                        position_index++;
-                        if (count <= (int16_t)position_index) {
-                            position_index = 0;
-                        }
-                    check:
-                        if ((scratch[(int16_t)position_index >> 5] & (1u << ((uint8_t)position_index & 0x1f))) == 0) {
-                            return position_index;
-                        }
-                    }
+                if (!(dz * dz + dy * dy + dx * dx >= 0.25f)) {
+                    occupied = 1;
+                    break;
                 }
             }
         }
+        if (occupied || !eligible) {
+            (&mask)[i >> 5] |= 1u << (i & 0x1f);
+        } else {
+            found = 1;
+        }
     }
-    return result;
+    if (!found) {
+        return -1;
+    }
+    if (select_mode == 5) {
+        return ai_weighted_random_index(0x10, positions, 0x50, (uint16_t)*(int32_t *)(squad + 0xc4), &mask);
+    }
+    index = current;
+    if (index < 0 || (int32_t)index >= count) {
+        index = 0;
+    }
+    do {
+        uint8_t forward = 1;                                                          // cl
+        uint8_t store = 1;
+
+        if (select_mode == 2) {
+            forward = 1;
+        } else if (select_mode == 3) {
+            if (index == 0) {
+                forward = 1;
+            } else if ((int32_t)index == *(int32_t *)(squad + 0xc4) - 1) {
+                forward = 0;
+            } else if (direction_flag != 0) {
+                forward = *direction_flag;
+            } else {
+                store = 0;                                                            // 0x401744: straight on
+            }
+        } else if (select_mode == 4) {
+            forward = (uint8_t)(game_time->game_time & 1);
+        }
+        if (store && direction_flag != 0) {
+            *direction_flag = forward;
+        }
+        if (forward) {
+            index++;
+            if ((int32_t)index >= *(int32_t *)(squad + 0xc4)) {
+                index = 0;
+            }
+        } else {
+            index--;
+            if (index < 0) {
+                index = (int16_t)(*(int32_t *)(squad + 0xc4) - 1);
+            }
+        }
+    } while ((&mask)[index >> 5] & (1u << (index & 0x1f)));
+    return index;
 }
 
 #if 0

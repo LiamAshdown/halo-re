@@ -1547,3 +1547,9 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   0x80000 save/restore + inactive-delete check. Our C sets 0x80000 nowhere the binary does not.
   Runtime check for the user: if the cryo tech vanishes, is his object deleted (datum freed) or only inactive (header +2
   bit 0 clear)? And is his object +0x9c cluster -1 at that moment?
+- actor_dispatch_type_vtable_0x1c 0x4266d0: forwards its three stack arguments to the actor type's proc (swarm actor
+  velocity: param_1, speed_limit, out_velocity); the draft passed only the actor. actor_get_requested_velocity fixed.
+- actor_select_move_position 0x4014c0 REWRITTEN (0.35 -> 0.9): squad move positions (mask: current, within 0.5, other
+  group letter, ally-occupied), weighted pick (mode 5, weight +0x10 -- the draft dropped it) or forward / alternate /
+  ping-pong stepping.
+- game_engine_players_update_server reviewed around the visibility-bitmap rebuild: matches (header still says 0.2).

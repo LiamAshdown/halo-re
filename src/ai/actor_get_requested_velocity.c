@@ -24,8 +24,7 @@ extern data_array *actor_data; // 0x00880360
 
 extern double sqrt(double x); // FSQRT, Ghidra SQRT() pseudo-function
 
-extern void actor_dispatch_type_vtable_0x1c(uint32_t param_1, float speed_limit,
-                                            real_vector3d *out_velocity); // 0x4266d0, not yet rewritten
+extern void actor_dispatch_type_vtable_0x1c(datum_index actor_index, uint32_t a, uint32_t b, uint32_t c); // 0x4266d0, ECX, stack
 
 // blam-cc: AL -> skip_clamp, ECX -> actor_index, EDX -> out_velocity, stack -> param_1, speed_limit
 uint8_t actor_get_requested_velocity(uint8_t skip_clamp, datum_index actor_index,
@@ -40,7 +39,8 @@ uint8_t actor_get_requested_velocity(uint8_t skip_clamp, datum_index actor_index
 
     if (self->active_unit_index == (datum_index)k_datum_index_none) {
         if (self->swarm != 0) {
-            actor_dispatch_type_vtable_0x1c(param_1, speed_limit, out_velocity);
+            // 0x417fd6: ECX = actor, stack (param_1, speed_limit, EDX = out_velocity)
+            actor_dispatch_type_vtable_0x1c(actor_index, param_1, *(uint32_t *)&speed_limit, (uint32_t)out_velocity);
             self->unknown_530[0] = 0; // 0x530
             return 1;
         }
