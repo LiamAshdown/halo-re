@@ -1,10 +1,10 @@
 // object_recalculate_bounding_radius  (Ghidra: object_recalculate_bounding_radius, already
 // named)
-// address 0x4f8310, size 485 bytes
+// address 0x4f8310, size 2027 bytes (0x4f8310..0x4f8afa; 0x4f84e2 / 0x4f8834 / 0x4f8a70 are its fragments)
 // name confidence: 0.85 (already carries this name from an earlier phase; matches
 //   functions.md's summary: "Recomputes an object's world node transforms and derives its
 //   current bounding radius from them")
-// rewrite confidence: 0.15 (this is the single most complex function in the module: a full
+// rewrite confidence: 0.9 (REWRITTEN e891407 from objdump; the text below describes the replaced draft: this is the single most complex function in the module: a full
 //   skeletal animation evaluation -- default node transforms, per-node animation blending with
 //   quaternion interpolation, and a node-tree walk composing matrix4x3 transforms -- built from
 //   ModelAnimation/ModelNode tag layouts that no other function in this module establishes.

@@ -5,7 +5,7 @@
 // 0x4f8834, 0x4f8a70: compiler-cloned variants of object_recalculate_bounding_radius 0x4f8310;
 // all three end with the same write to object+0xac scaled by object+0xb0, and all three have
 // zero recorded callers. Their inherited names ... do not match.")
-// rewrite confidence: n/a -- not independently rewritten
+// rewrite confidence: 1.0 (FRAGMENT: 0x4f84e2 lies inside object_recalculate_bounding_radius 0x4f8310..0x4f8afa, whose C covers it; only jumps reach here)
 //
 // This is not a real, independently-callable function: it has zero recorded callers, and every
 // input arrives as an unresolved "unaff_"/"in_" register (in_AX, in_ECX, unaff_EBX, unaff_EBP,

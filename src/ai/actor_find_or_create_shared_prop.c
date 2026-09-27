@@ -1,6 +1,6 @@
 // actor_find_or_create_shared_prop  (Ghidra: actor_find_or_create_shared_prop, renamed)
 // address 0x43eb30, size 411 bytes
-// name confidence: 0.4   rewrite confidence: 0.2
+// name confidence: 0.4   rewrite confidence: 0.9
 // evidence: types/ai.h actor.first_prop(+0x50), prop.next_in_actor(+0x08)/pair_index(+0x0c)/
 // has_parent(+0x14)/object_index(+0x18)/owner_actor_index(+0x1c)/kind(+0x24)/is_vault(+0x127,
 // used here as `+0x126` for a related "seen while vaulted"-style flag)/unknown_30/unknown_6a
@@ -29,12 +29,13 @@ extern data_array *actor_data;  // 0x00880360
 extern data_array *object_data; // 0x008603b0
 extern data_array *prop_data;   // 0x008802c0
 
-extern void actor_target_reset_combat_flags(datum_index actor_index, uint32_t param2, uint32_t param3); // 0x41baf0
+extern void actor_target_reset_combat_flags(datum_index target_prop_index, datum_index actor_index, uint32_t unused,
+    uint8_t already_noticed); // 0x41baf0, ECX, stack
 extern datum_index actor_find_or_allocate_prop(datum_index actor_index, uint32_t param_2, char kind); // 0x43e270
 extern void actor_target_data_refresh(datum_index actor_index, datum_index prop_index, void *scratch, uint32_t param4,
                          uint32_t flag); // 0x41c4b0, outside this rewrite's range
 extern void actor_target_update_tracking_speed(datum_index actor_index, datum_index prop_index, void *scratch); // 0x41c8f0, outside this rewrite's range
-extern uint8_t actor_target_has_conflicting_neighbor(datum_index prop_index); // 0x41f410, outside this rewrite's range
+extern uint8_t actor_target_has_conflicting_neighbor(datum_index actor_index, datum_index target_prop_index); // 0x41f410, EAX, stack
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, CX, DX
 
 // blam-cc: EAX -> object_index, stack -> actor_index, create_if_missing, flag
@@ -97,10 +98,10 @@ datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_ind
                     p->unknown_6a = 0x1e;
                     p->unknown_126 = 1;
 
-                    if ((flag != 0) && (actor_target_update_tracking_speed(actor_index, result, scratch), 1 < p->unknown_30)) {
-                        uint8_t seen_flag = actor_target_has_conflicting_neighbor(result);
+                    if ((uint8_t)flag != 0 && (actor_target_update_tracking_speed(actor_index, result, scratch), 1 < p->unknown_30)) {
+                        uint8_t seen_flag = actor_target_has_conflicting_neighbor(actor_index, result); // 0x43eca0: EAX = actor
                         p->kind = 3;
-                        actor_target_reset_combat_flags(actor_index, 0, (uint32_t)seen_flag);
+                        actor_target_reset_combat_flags(result, actor_index, 0, seen_flag); // 0x43ecb4: ECX = prop
                     }
                 }
             }

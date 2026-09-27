@@ -3,7 +3,7 @@
 // address 0x4f96a0, size 70 bytes
 // name confidence: 0.25 (matches functions.md's summary: "Stores a value on an object's
 //   attachment node and, if certain status flags are unset, invokes a follow-up handler")
-// rewrite confidence: 0.3 (zero recorded callers)
+// rewrite confidence: 0.95 (zero recorded callers)
 // evidence: types/objects.h object (scale 0x0b0, type 0x0b4, _object_mask_no_node_functions ==
 //   0xfe0); global 0x008603b0 object_data; callee object_copy_default_node_transforms
 //   (0x4f6b70, this batch).
@@ -22,13 +22,15 @@ extern data_array *object_data; // 0x008603b0
 
 extern void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count); // 0x4f6b70, this batch, UNSURE: see file header
 
-void object_set_scale_and_refresh_nodes(uint32_t object_index, float scale) // blam-cc: EAX -> object_index, stack -> scale
+// FIXED (objdump 0x4f96dc): a second stack argument (the script's tick count) is tail-passed in DX to 0x4f6b70;
+//   the draft passed 0.
+void object_set_scale_and_refresh_nodes(uint32_t object_index, float scale, int16_t ticks) // blam-cc: EAX -> object_index, stack -> scale, ticks
 {
     if (object_index != k_datum_index_none) {
         object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
         obj->scale = scale;
         if (((1u << (obj->type & 0x1f)) & _object_mask_no_node_functions) == 0) {
-            object_copy_default_node_transforms(object_index, 0);
+            object_copy_default_node_transforms(object_index, ticks);
         }
     }
 }

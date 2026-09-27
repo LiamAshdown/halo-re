@@ -17,7 +17,7 @@ extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first); // 0x48a850
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern void object_set_scale_and_refresh_nodes(uint32_t object_index, float scale); // 0x4f96a0, blam-cc: EAX, stack
+extern void object_set_scale_and_refresh_nodes(uint32_t object_index, float scale, int16_t ticks); // 0x4f96a0, EAX, stack
 
 void hs_evaluate_object_set_scale(int16_t function_index, uint32_t thread_index, char first)
 {
@@ -26,7 +26,8 @@ void hs_evaluate_object_set_scale(int16_t function_index, uint32_t thread_index,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    object_set_scale_and_refresh_nodes((uint32_t)arguments[0], *(float *)&arguments[1]);
+    object_set_scale_and_refresh_nodes((uint32_t)arguments[0], *(float *)&arguments[1],
+        (int16_t)*(uint16_t *)&arguments[2]); // 0x47b2ef: the tick word, zero-extended
     hs_thread_return(0, thread_index);
     }
 }

@@ -1515,3 +1515,12 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   1692-byte function is still 0.30: OPEN.
 - OPEN: object_physics_check_impact_damage 0x508b70 (0.35; crouch / context point test / unit_apply_impulse argless),
   object_physics_handle_nearby_object_impacts 0x508a10 (0.3), object_physics_resolve_mass_point_overlap.
+- object_recalculate_bounding_radius: header was stale (already fully rewritten in e891407, 2027 bytes); the three
+  "clones" 0x4f84e2 / 0x4f8834 / 0x4f8a70 are its fragments (marked).
+- object_set_scale_and_refresh_nodes 0x4f96a0 (a10 script object_set_scale): the script's tick count is a second stack
+  argument tail-passed in DX to 0x4f6b70; the draft passed 0. hs_evaluate_object_set_scale passes it.
+- actor_find_or_create_shared_prop 0x43eb30 (0.2 -> 0.9): conflicting-neighbour check gets the actor (EAX); the combat
+  flag reset gets (prop ECX, actor, 0, noticed).
+- actor_target_reset_combat_flags 0x41baf0 REWRITTEN (0.6 -> 1.0): tail-calls actor_queue_sighted_target_dialogue(actor,
+  prop, noticed); the draft called it with no arguments.
+- actor_find_prop_for_object verified (0.9).

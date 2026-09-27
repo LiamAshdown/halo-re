@@ -1,6 +1,6 @@
 // actor_find_prop_for_object  (Ghidra: actor_find_prop_for_object, renamed)
 // address 0x43ea80, size 166 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.9 (verified against objdump 0x43ea80..0x43eb25)
 // evidence: types/ai.h actor.first_prop(+0x50), prop.next_in_actor(+0x08)/has_parent(+0x14)/
 // owner_actor_index(+0x1c)/object_index(+0x18)/kind(+0x24); object+0x1f4/+0x1f8 ("the
 // controlling actor handle" / "actor cluster links" per the module header). phase-4 summary

@@ -6,7 +6,7 @@
 // all three end with the same write to object+0xac scaled by object+0xb0, and all three have
 // zero recorded callers. Their inherited names (objects_initialize_for_new_map_mod_processed_bsps,
 // objects_update__object_in_player_pvs_nop1, object_reset) do not match.")
-// rewrite confidence: n/a -- not independently rewritten
+// rewrite confidence: 1.0 (FRAGMENT: 0x4f8a70 lies inside object_recalculate_bounding_radius 0x4f8310..0x4f8afa, whose C covers it; only jumps reach here)
 //
 // This is not a real, independently-callable function: it has zero recorded callers, and every
 // input arrives as an unresolved "unaff_"/"in_" register with no call site to check the
