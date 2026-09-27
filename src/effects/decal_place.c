@@ -92,7 +92,7 @@ extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operan
 extern long lrint(double x); // x87 fistp under the default control word (round-half-to-even)
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
     // 0x43f6a0, blam-cc: EAX -> color1, ECX -> color0, stack -> dest, flags, t
-extern void *texture_cache_get(uint32_t unknown_0); // 0x444550, UNSURE signature
+extern void *texture_cache_get(void *bitmap, uint8_t wait, uint8_t allocate_if_missing); // 0x444550, EAX bitmap, stack (wait, allocate_if_missing)
 extern int16_t vector3d_major_axis_index(real_vector3d *v); // 0x44d820, math module (misattributed)
 extern void structure_lightmap_uv_rect_build(uint32_t sequence_index, uint32_t unknown_1, real radius, void *out_rect);
     // 0x44db30, bitmaps/structures module (misattributed); UNSURE signature, everything guessed
@@ -125,6 +125,8 @@ extern int32_t FUN_00623e40(double value); // 0x623e40, UNSURE: looks like a rou
 // rasterizer_decal_vertex_cache_lock) and finally creates and links the decal datum (decal_new) with its position,
 // lifetime, colour and triangle count. See the file header for the very large set of UNSURE
 // notes this rewrite carries.
+static const uint8_t decal_place_stopgap_enabled = 1; // see the STOPGAP note in the body
+
 void decal_place(datum_index decal_tag_index, uint8_t *placement, real_vector3d *surface_normal,
     real radius_scale, uint8_t permanent, uint16_t marker_index)
 {
@@ -239,10 +241,31 @@ void decal_place(datum_index decal_tag_index, uint8_t *placement, real_vector3d 
             real roll = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f;
             real radius = (roll * (tag->radius[1] - tag->radius[0]) + tag->radius[0]) * radius_scale;
 
-            if (!permanent && texture_cache_get(0) == 0) {
-                return;
+            if (!permanent) {
+                // 0x44f359..0x44f437: the bitmap is the decal's map (tag +0xe4, material_tag here); a sprite
+                // bitmap (type word 3) uses sequences[sequence_index] (+0x58, 0x40 each) sprites[0] (+0x38, 0x20
+                // each) bitmap index, any other bitmap index 0. texture_cache_get(EAX = &bitmaps[index] (+0x64,
+                // 0x30 each), wait 0, allocate 1); a miss abandons the decal. The draft passed a bare 0 (crash).
+                uint8_t *bitmap_tag = (uint8_t *)material_tag;
+                int16_t bitmap_index = 0;
+
+                if (*(int16_t *)bitmap_tag == 3 && sequence_index >= 0) {
+                    uint8_t *sequence = *(uint8_t **)(bitmap_tag + 0x58) + sequence_index * 0x40;
+
+                    bitmap_index = **(int16_t **)(sequence + 0x38);
+                }
+                if (texture_cache_get(*(uint8_t **)(bitmap_tag + 0x64) + bitmap_index * 0x30, 0, 1) == 0) {
+                    return;
+                }
             }
 
+            // STOPGAP (2026-09-27): the geometry below is not a faithful reconstruction (decal_build_projection
+            // gets the projection as its box; the binary passes EDX = the placement matrix [ebp-0xe0], box =
+            // {-r, r, -r*aspect, r*aspect} [ebp-0x20c], out = [ebp-0x2a8]; ~450 lines of the original are not
+            // reproduced) and crashed in play. Decals are skipped until decal_place is rewritten from objdump.
+            if (decal_place_stopgap_enabled) {
+                return;
+            }
             // UNSURE: decal_build_projection's real (placement, box) arguments -- see file header.
             decal_build_projection((real_matrix4x3 *)placement, (real *)&projection, &projection);
 
