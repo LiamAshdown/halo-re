@@ -1,6 +1,6 @@
 // ai_broadcast_communication_event  (Ghidra: ai_broadcast_communication_event, renamed)
 // address 0x429fc0, size 275 bytes
-// name confidence: 0.35   rewrite confidence: 0.2
+// name confidence: 0.35   rewrite confidence: 0.9
 // evidence: phase-4 summary "Broadcasts an AI communication/order event (selected by
 // event_type) to every eligible active actor, gating delivery per-actor through a relevance
 // test." Calls actor_get_firing_positions (0x41c1e0, already established:
@@ -20,66 +20,70 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "objects.h"
+#include "physics.h"
 #include <stdint.h>
 
-extern ai_globals *ai_globals_ptr; // 0x00880354
-extern data_array *actor_data;     // 0x00880360
+extern uint8_t *ai_globals_ptr;     // 0x00880354
 extern data_array *encounter_data; // 0x008802c8
+extern ModelCollisionGeometryBSP *broadcast_collision_bsp_root; // 0x00746f90
+extern uint8_t *broadcast_structure_bsp_bytes; // 0x00746f9c (+0xe4 leaves, 0x10 each, +0x8 cluster word)
 
-extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70
-extern int32_t bsp3d_node_find_leaf(void); // 0x5013a0, UNSURE signature (resolves a local player index)
-extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point); // 0x41c1e0
-extern int16_t actor_target_hearing_check(uint32_t *block, uint32_t param); // 0x41c030, UNSURE signature
-extern void actor_queue_point_reaction_dialogue(const real_point3d *point, datum_index actor_index); // 0x422780
-extern void actor_react_to_registered_danger(const real_point3d *point, datum_index actor_index, int32_t danger_object_index); // 0x422930
-extern void actor_react_to_flee_point(datum_index actor_index, int32_t flee_source_object, const real_point3d *point); // 0x422c00
+extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70, EAX
+extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX, ECX, EDX
+extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point); // 0x41c1e0, EAX, ECX, EDX
+extern uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_index actor_index, void *target_ref,
+    int16_t gate, real_point3d *listener_position); // 0x41c030, stack, EAX, ECX, EBX, ESI
+extern void actor_queue_point_reaction_dialogue(const real_point3d *point, datum_index actor_index); // 0x422780, EAX, ECX
+extern void actor_react_to_registered_danger(const real_point3d *point, datum_index actor_index, int32_t danger_object_index); // 0x422930, EAX, stack
+extern void actor_react_to_flee_point(datum_index actor_index, int32_t flee_source_object, const real_point3d *point); // 0x422c00, stack
 
-// blam-cc: stack -> point, event_type
-void ai_broadcast_communication_event(const real_point3d *point, int16_t event_type)
+// REWRITTEN from objdump 0x429fc0..0x42a0d2. EAX: the sound's gate (loudness); ECX: its point; stack: (source object,
+//   event type, an unused word). Finds the point's leaf and cluster, then every actor under 7 (+0x6e) that hears it
+//   (0x41c030 from its firing-position block, stance 0) reacts: type 0 queues the point dialogue, 1 the registered
+//   danger reaction (with the source), 2 the flee reaction. The draft had neither the gate, the point nor the source.
+// blam-cc: EAX -> gate, ECX -> point, stack -> source_object, event_type, unused
+void ai_broadcast_communication_event(int16_t gate, real_point3d *point, int32_t source_object, int16_t event_type,
+    int16_t unused)
 {
-    actor_iterator_state iterator;
+    bsp_leaf_reference location;        // [esp+0xc]
+    actor_iterator_state iterator;      // [esp+0x14]
     actor *a;
-    int16_t local_player_team = -1;
-    int32_t local_player = bsp3d_node_find_leaf();
+    int32_t leaf;
 
-    if (local_player != -1) {
-        local_player_team = 0; // UNSURE: original reads a per-player team byte this rewrite
-                                // could not independently locate; see file header
-        (void)local_player_team;
-    }
-
-    if (ai_globals_ptr->actors_valid) {
+    (void)unused;
+    leaf = (int32_t)bsp3d_node_find_leaf(0, broadcast_collision_bsp_root, point);
+    location.leaf_index = leaf;
+    location.cluster_index = leaf == -1 ? -1 :
+        *(int16_t *)(*(uint8_t **)(broadcast_structure_bsp_bytes + 0xe4) + (leaf & 0x7fffffff) * 0x10 + 0x8);
+    if (ai_globals_ptr[0x1]) {
         iterator.filter_array = encounter_data;
         iterator.unknown_04 = 0;
         iterator.cursor = -1;
-        iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
+        iterator.signature = (uint32_t)encounter_data ^ 0x69746572;
         iterator.unknown_10 = 0;
         iterator.active = 1;
-        iterator.actor_index = -1;
+        iterator.actor_index = k_datum_index_none;
         iterator.unknown_18 = -1;
     }
+    for (a = actor_iterator_next(&iterator); a != 0; a = actor_iterator_next(&iterator)) {
+        datum_index actor_index = iterator.actor_index;
+        uint32_t block[14];             // [esp+0x30]
 
-    a = actor_iterator_next(&iterator);
-    while (a != 0) {
-        datum_index actor_index = iterator.actor_index /* the full handle, salt included */;
-
-        if (a->unknown_6e < 7) {
-            uint32_t block[16]; // UNSURE size/layout, see file header
-            int16_t count;
-
-            actor_get_firing_positions(actor_index, block, 0);
-            count = actor_target_hearing_check(block, 0);
-            if (count > 1) {
-                if (event_type == 0) {
-                    actor_queue_point_reaction_dialogue(point, actor_index);
-                } else if (event_type == 1) {
-                    actor_react_to_registered_danger(point, actor_index, 0); // UNSURE: danger_object_index
-                } else if (event_type == 2) {
-                    actor_react_to_flee_point(actor_index, 0, point); // UNSURE: flee_source_object
-                }
-            }
+        if (*(int16_t *)((uint8_t *)a + 0x6e) >= 7) {
+            continue;
         }
-        a = actor_iterator_next(&iterator);
+        actor_get_firing_positions(actor_index, block, point);
+        if ((int16_t)actor_target_hearing_check(&location, 0, actor_index, block, gate, point) < 2) {
+            continue;
+        }
+        if (event_type == 0) {
+            actor_queue_point_reaction_dialogue(point, actor_index);
+        } else if (event_type == 1) {
+            actor_react_to_registered_danger(point, actor_index, source_object);
+        } else if (event_type == 2) {
+            actor_react_to_flee_point(actor_index, source_object, point);
+        }
     }
 }
 

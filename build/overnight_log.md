@@ -1553,3 +1553,9 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   group letter, ally-occupied), weighted pick (mode 5, weight +0x10 -- the draft dropped it) or forward / alternate /
   ping-pong stepping.
 - game_engine_players_update_server reviewed around the visibility-bitmap rebuild: matches (header still says 0.2).
+- actor_target_hearing_check 0x41c030 REWRITTEN (0.2 -> 0.9): range scaling (behind 0.8, awareness 0.7 / 0.4, gate
+  0.2 / 0.45 / 0.7, deafening 0.25, stance 0.7) and the cluster sound distance; the draft called the deafening test and
+  the PAS lookup with no operands.
+- ai_broadcast_communication_event 0x429fc0 REWRITTEN (0.2 -> 0.9): (gate EAX, point ECX, source, type) -- noise events
+  (projectile impacts / detonations via ai_accumulate_repeated_event) now reach nearby actors' dialogue, danger and flee
+  reactions. ai_accumulate_repeated_event passes (gate, &entry position, source, id, count); it was (type, id, count).

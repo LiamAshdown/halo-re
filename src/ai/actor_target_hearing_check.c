@@ -1,6 +1,6 @@
 // actor_target_hearing_check  (Ghidra: actor_target_hearing_check; named from out/phase2/results/ai_02.json)
 // address 0x41c030, size 429 bytes
-// name confidence: 0.35   rewrite confidence: 0.2
+// name confidence: 0.35   rewrite confidence: 0.9
 // evidence: out/phase2/results/ai_02.json -- computes squared planar (really full 3D here)
 //   distance to a target and compares it against a stealth/crouch-scaled hearing radius, then
 //   calls cluster_sound_distance_lookup (0x552210, named from this batch's callee list; phase2
@@ -29,6 +29,8 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "cache.h"
+#include "objects.h"
 
 // sqrt/fabs are single x87 instructions (FSQRT/FABS) in the original code, which
 // Ghidra renders as the pseudo-functions SQRT()/ABS(); declared locally instead of via
@@ -36,69 +38,91 @@
 extern double sqrt(double x); // FSQRT
 static float sqrt_f(float x) { return (float)sqrt((double)x); }
 
-extern data_array *actor_data; // 0x00880360
+extern data_array *actor_data;      // 0x00880360
+extern tag_instance *tag_instances; // 0x0087bc14
+extern ScenarioStructureBSP *hearing_structure_bsp; // 0x00746f9c
 
-// UNSURE: see file header -- scenario_location_background_sound_is_deafening_to_ais returns both a bool (AL) and a float (ST0);
-// that shape is types/ai.h bool_float_return, shared with actor_rate_potential_target.c.
-extern bool_float_return scenario_location_background_sound_is_deafening_to_ais(void); // 0x53e810, UNSURE signature, no args recovered
-extern int32_t cluster_sound_distance_lookup(void); // 0x552210, UNSURE signature, no args recovered
+extern uint8_t scenario_location_background_sound_is_deafening_to_ais(bsp_leaf_reference *location); // 0x53e810, EAX
+extern uint8_t cluster_sound_distance_lookup(int16_t cluster_a, int16_t cluster_b,
+    ScenarioStructureBSP *structure_bsp); // 0x552210, EAX, ECX, EDI
 
+// REWRITTEN from objdump 0x41c030..0x41c1dc. EAX: actor; ECX: the listener block (+0x0 position, +0x18 facing, +0x24
+//   location, +0x28 cluster word); EBX: the sound's gate (0 = silent); ESI: the sound position; stack: the sound's
+//   location (cluster at +0x4) and stance. The Actor tag's hearing distance (+0x4c) is scaled by 0.8 for a sound
+//   behind the listener, 0.7 / 0.4 by awareness 2 / 1, 0.2 / 0.45 / 0.7 for gates 4 / 1 / 3, 0.25 when either
+//   location is deafening, 0.7 for a stance past 1. Heard (2, or 3 for gate >= 3) when inside that range and inside
+//   the clusters' sound distance (PAS byte * 2.0157 * 2, at least the straight distance). The draft called both
+//   helpers without operands.
 // blam-cc: EAX -> actor_index, ECX -> target_ref, EBX -> gate, ESI -> listener_position,
 //   stack -> record, stance
-// Determines whether the actor can hear a nearby target based on distance and acoustic cluster
-// propagation, returning a graded detection level.
-uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_index actor_index,
-                                    void *target_ref, int16_t gate, real_point3d *listener_position)
+uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_index actor_index, void *target_ref,
+    int16_t gate, real_point3d *listener_position)
 {
-    float dx, dy, dz;
-    float distance_squared;
-    float radius;
-    bool_float_return r;
-    int32_t lookup;
-    float acoustic_distance;
-    float actual_distance;
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *listener = (uint8_t *)target_ref;                                    // ecx
+    int16_t listener_cluster;                                                     // [esp+0xc]
+    int16_t source_cluster;                                                       // [esp+0x10]
+    float range;
+    float dx, dy, dz, distance_squared;
+    uint8_t pas;
+    float sound_distance;
+    float distance;
 
-    (void)actor_index; // read by Ghidra only to compute an unused actor base pointer
-
-    if (gate == 0 || *(int16_t *)((uint8_t *)target_ref + 40) == -1 ||
-        *(int16_t *)((uint8_t *)record + 4) == -1) {
+    if (gate == 0) {
         return 0;
     }
-
-    dx = listener_position->x - ((real_point3d *)target_ref)->x;
-    dy = listener_position->y - ((real_point3d *)target_ref)->y;
-    dz = listener_position->z - ((real_point3d *)target_ref)->z;
+    listener_cluster = *(int16_t *)(listener + 0x28);
+    if (listener_cluster == -1) {
+        return 0;
+    }
+    source_cluster = *(int16_t *)((uint8_t *)record + 0x4);
+    if (source_cluster == -1) {
+        return 0;
+    }
+    range = *(float *)((uint8_t *)tag_instances[*(datum_index *)(a + 0x58) & 0xffff].data + 0x4c);
+    dx = listener_position->x - *(float *)(listener + 0x0);
+    dy = listener_position->y - *(float *)(listener + 0x4);
+    dz = listener_position->z - *(float *)(listener + 0x8);
     distance_squared = dz * dz + dy * dy + dx * dx;
-
-    r = scenario_location_background_sound_is_deafening_to_ais();
-    radius = r.value;
-    if (r.truthy == 0) {
-        r = scenario_location_background_sound_is_deafening_to_ais();
-        radius = r.value;
+    if (!(dz * *(float *)(listener + 0x20) + dy * *(float *)(listener + 0x1c) + dx * *(float *)(listener + 0x18) >= 0.0f)) {
+        range = range * 0.8f;
     }
-    if (r.truthy != 0) {
-        radius = radius * 0.25f;
+    if (*(int16_t *)(a + 0x6a) == 2) {
+        range = range * 0.7f;
+    } else if (*(int16_t *)(a + 0x6a) == 1) {
+        range = range * 0.4f;
     }
-
+    if (gate == 4) {
+        range = range * 0.2f;
+    } else if (gate == 1) {
+        range = range * 0.45f;
+    } else if (gate == 3) {
+        range = range * 0.7f;
+    }
+    if (scenario_location_background_sound_is_deafening_to_ais((bsp_leaf_reference *)(listener + 0x24)) ||
+        scenario_location_background_sound_is_deafening_to_ais((bsp_leaf_reference *)record)) {
+        range = range * 0.25f;
+    }
     if (stance != 0 && stance != 1) {
-        radius = radius * 0.7f;
+        range = range * 0.7f;
     }
-
-    if (distance_squared < radius * radius) {
-        lookup = cluster_sound_distance_lookup();
-        if (-1 < (int8_t)lookup) {
-            acoustic_distance = (float)(lookup & 0x7f) * 2.015748f;
-            acoustic_distance = acoustic_distance + acoustic_distance;
-            actual_distance = sqrt_f(distance_squared);
-            if (acoustic_distance <= actual_distance) {
-                acoustic_distance = actual_distance;
-            }
-            if (acoustic_distance < radius) {
-                return (uint16_t)((2 < gate) + 2);
-            }
-        }
+    if (!(range * range > distance_squared)) {
+        return 0;
     }
-    return 0;
+    pas = cluster_sound_distance_lookup(listener_cluster, source_cluster, hearing_structure_bsp);
+    if (pas & 0x80) {
+        return 0;
+    }
+    sound_distance = (float)(int32_t)(pas & 0x7f) * 2.0157480f;
+    sound_distance = sound_distance + sound_distance;
+    distance = (float)sqrt((double)distance_squared);
+    if (!(sound_distance > distance)) {
+        sound_distance = distance;
+    }
+    if (sound_distance >= range) {
+        return 0;
+    }
+    return (uint16_t)((gate >= 3) + 2);
 }
 
 #if 0
