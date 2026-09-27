@@ -1,7 +1,7 @@
 // weapon_get_zoom_magnification  (Ghidra: FUN_004c2d70; renamed per items_types_notes.md:
 // "Weapon.zoom_levels 0x3da and zoom_magnification_range 0x3dc/0x3e0")
 // address 0x4c2d70, size 219 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop: objdump 0x4c2d70..0x4c2e4a; Weapon +0x3da / +0x3dc offsets probed)
 // evidence: types/tags.h Weapon.zoom_levels (0x3da), zoom_magnification_range (0x3dc/0x3e0).
 // register convention: item index in EAX; zoom level in DX.
 // blam-cc: EAX -> item_index, DX -> zoom_level

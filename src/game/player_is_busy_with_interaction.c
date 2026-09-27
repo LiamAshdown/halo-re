@@ -2,7 +2,7 @@
 // out/phase4/game_functions.md: "Returns true when the player is currently busy with another
 // action, so a new interaction prompt (board/swap/assassinate) should not be shown.")
 // address 0x478820, size 114 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop: objdump 0x478820..0x478891, helper conventions match)
 // evidence: VERIFIED against the disassembly (objdump -d -M intel --start-address=0x478820
 //   --stop-address=0x478890): two register-passed inputs (ESI, EDI), no stack parameters;
 //   types/objects.h _object_mask_weapon (4).

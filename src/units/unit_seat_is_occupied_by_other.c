@@ -1,6 +1,6 @@
 // unit_seat_is_occupied_by_other  (Ghidra: unit_seat_is_occupied_by_other)
 // address 0x566840, size 189 bytes
-// name confidence: 0.4 (phase2 candidate)   rewrite confidence: 0.3
+// name confidence: 0.4 (phase2 candidate)   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x566840..0x5668fc; unit_data offsets probed)
 // evidence: types/objects.h object.type (0xb4), .first_child_object (0x118), .next_object
 //   (0x114); types/units.h unit_data.vehicle_seat_index (0x2f0), .controlling_player (0x218).
 // register convention: unit index (self) in EAX, seat index in DX, the vehicle/parent object

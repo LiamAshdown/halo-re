@@ -1,5 +1,5 @@
 // unit_weapon_is_best_of_type  (Ghidra: FUN_0056dae0)
-// address 0x56dae0, size 189 bytes, name confidence 0.4, rewrite confidence 0.3
+// address 0x56dae0, size 189 bytes, name confidence 0.4, rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x56dae0..0x56db9c; unit_data offsets probed)
 // functions.md: "Compares a reference weapon against every weapon the unit carries of the same
 // type, checking whether it is the current weapon and has the lowest score field."
 // evidence: types/units.h unit_data.weapons[4] (0x2f8), .current_weapon_index (0x2f2);
@@ -21,12 +21,14 @@ uint8_t unit_weapon_is_best_of_type(uint32_t reference_weapon_index, uint32_t un
     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
     object *reference_obj = ((object_header *)object_data->data)[reference_weapon_index & 0xffff].data;
 
+    // FIXED 2026-09-27 (static loop): 0x56db05..0x56db27 / 0x56db97: no current weapon (index -1 or an empty slot)
+    // returns 0 (xor al,al); the draft returned 1.
     if (unit->current_weapon_index == -1) {
-        return 1; // UNSURE: original returns garbage-adjacent bits here too; low byte is this
+        return 0;
     }
     datum_index current_weapon = unit->weapons[unit->current_weapon_index];
     if (current_weapon == k_datum_index_none) {
-        return 1;
+        return 0;
     }
 
     uint8_t result = 1;
