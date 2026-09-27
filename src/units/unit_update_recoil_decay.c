@@ -2,7 +2,7 @@
 // address 0x574780, size 379 bytes
 // name confidence: 0.5 (functions.md summary matches; matches vehicle_update's call site
 //   `if (0 < vehicle->unknown_4ce) { unit_update_recoil_decay(); FUN_00575170(); }`)
-// rewrite confidence: 0.4
+// rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x574780..0x5748fa; 0.835 decay)
 // evidence: types/objects.h object.velocity (0x068), .angular_velocity (0x08c), .position
 //   (0x05c), .forward (0x074), .up (0x080); types/units.h vehicle_data.unknown_4ce (0x4ce,
 //   "reloaded with 0xf while the controls move; unit_update_recoil_decay counts it down and

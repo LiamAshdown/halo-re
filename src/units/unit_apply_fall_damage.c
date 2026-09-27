@@ -1,7 +1,7 @@
 // unit_apply_fall_damage  (Ghidra: already named unit_apply_fall_damage)
 // address 0x55e4f0, size 444 bytes
 // name confidence: 0.55 (already carried this name; matches functions.md's summary)
-// rewrite confidence: 0.4
+// rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x55e4f0..0x55e6ab)
 // evidence: damage_data (types/objects.h, size 0x54) matches the locally built record
 //   field-for-field (damage_effect_tag 0x00, responsible_player/_object 0x08/0x0c -1,
 //   team_index 0x10, location_cluster_index 0x18, random_blend 0x40, multiplier 0x44,
