@@ -1,6 +1,6 @@
 // team_pair_set  (Ghidra: FUN_0045c130; renamed per symbols/review_queue.txt)
 // address 0x45c130, size 400 bytes
-// name confidence: 0.25   rewrite confidence: 0.35
+// name confidence: 0.25   rewrite confidence: 0.85 (VERIFIED against objdump 0x45c130..0x45c2bf: BL = 0 sets the +0xa4 allied bits both ways, 1 clears them; the stack flag 0 sets / 1 clears the +0x94 bits; +0x0b = 1 and the AI is notified (a, b, BL, flag))
 // evidence: types/game.h team_pair_override (index_a 0x00, index_b 0x02, active 0x0a, status
 //   0x0b) and team_pair_globals (secondary_bits 0x94, enemy_bits 0xa4); updates both 10x10
 //   bitmasks for a pair in both index orders.

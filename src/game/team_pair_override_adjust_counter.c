@@ -1,6 +1,6 @@
 // team_pair_override_adjust_counter  (Ghidra: FUN_0045bfc0; renamed per symbols/review_queue.txt)
 // address 0x45bfc0, size 198 bytes
-// name confidence: 0.35   rewrite confidence: 0.4
+// name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED against objdump 0x45bfc0..0x45c085 (+1/+3/-1 by selector, timer refresh, threshold -> team_pair_set BL 1, out flag = !+0x0c))
 // evidence: types/game.h team_pair_override (unknown_09 0x09, unknown_08 0x08, refcount 0x0e,
 //   timer_reset 0x06, timer 0x10, threshold 0x04, unknown_0c 0x0c).
 // register convention: first index in EAX (in_AX); the rest are the recognized stack

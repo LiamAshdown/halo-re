@@ -1,6 +1,6 @@
 // team_pair_override_remove  (Ghidra: FUN_0045bf10; renamed per symbols/review_queue.txt)
 // address 0x45bf10, size 162 bytes
-// name confidence: 0.35   rewrite confidence: 0.5
+// name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED against objdump 0x45bf10..0x45bfab; FIXED: team_pair_set gets BL = 1, stack 1 (break the alliance) -- the draft passed (0, 1), which re-allied the teams)
 // evidence: types/game.h team_pair_override / team_pair_globals::override_count; the trailing
 //   4-dword-plus-word copy is exactly sizeof(team_pair_override) (0x12 bytes), i.e. compacting
 //   the list by moving the last entry into the removed slot.
@@ -43,7 +43,7 @@ uint32_t team_pair_override_remove(int16_t index_a, int16_t index_b)
         }
     }
 
-    team_pair_set(entry, 0, 1); // UNSURE: see header
+    team_pair_set(entry, 1, 1); // 0x45bf59..0x45bf5f: BL = 1 (break the alliance), stack 1 (clear the secondary bits)
     team_pair_data->override_count = team_pair_data->override_count - 1;
     if (i < team_pair_data->override_count) {
         *entry = team_pair_data->overrides[team_pair_data->override_count];

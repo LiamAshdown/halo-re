@@ -1,6 +1,6 @@
 // team_pair_override_add  (Ghidra: FUN_0045be50; renamed per symbols/review_queue.txt)
 // address 0x45be50, size 179 bytes
-// name confidence: 0.35   rewrite confidence: 0.45
+// name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED against objdump 0x45be50..0x45bf02; FIXED: team_pair_set gets BL = 0 (ally) -- the draft passed 1, so ai_allegiance made the teams enemies (marines attacked the player))
 // evidence: types/game.h team_pair_override (every field offset below matches the struct
 //   exactly: unknown_08 0x08, index_b 0x02, unknown_09 0x09, threshold 0x04, timer_reset 0x06,
 //   unknown_0c 0x0c, active 0x0a, status 0x0b).
@@ -61,7 +61,10 @@ void team_pair_override_add(int16_t index_a, uint8_t unknown_08, int16_t index_b
         entry->timer_reset = timer_reset;
         entry->unknown_0c = unknown_0c;
         entry->active = 1;
-        team_pair_set(entry, 1, 0); // UNSURE: see header
+        // 0x45bee0..0x45befc: EAX = entry, BL = 0 (xor bl,bl), stack 0. BL = 0 SETS the pair's +0xa4 bits,
+        // which teams_are_enemies reads as allied; BL = 1 (the betrayal path, 0x45c05f) clears them. The draft
+        // passed 1, so (ai_allegiance player human) made the player and the marines enemies.
+        team_pair_set(entry, 0, 0);
         entry->status = 0;
     }
 }
