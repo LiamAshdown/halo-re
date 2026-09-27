@@ -1790,3 +1790,5 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - actor_look_randomize_direction (0x414f50): the target goes into record +0x57c (was a local), and the cone pick passes BL = 0.
   - actor_point_in_directional_lane (0x414990): normalizes a COPY of the 2D forward. The draft normalized cone_axis in place, rewriting the actor's facing cache on every call. Comparisons are now <=.
   - Verified 0.9-0.95: actor_look_pick_random_point_in_cone, point3d_within_horizontal_cone, actor_get_idle_facing_range, actor_reset_queued_look_vector.
+- actor_update_facing_change_timer: clamps +0x354 UP to 1.8 (the draft stored 0.9); verified 0.9.
+- Verified 0.9: actor_select_facing_target_prop (writes {1, prop} into the caller's record), actor_resolve_flee_source_point (all 7 kinds).

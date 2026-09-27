@@ -1,6 +1,6 @@
 // actor_select_facing_target_prop  (Ghidra: actor_select_facing_target_prop, renamed)
 // address 0x414a90, size 613 bytes
-// name confidence: 0.35  rewrite confidence: 0.35
+// name confidence: 0.35  rewrite confidence: 0.9 (VERIFIED against objdump 0x414a90..0x414cf4)
 // evidence: phase-4 summary "scans nearby recognized threats for the best-weighted one
 // matching lane/direction criteria, used to pick which threat to react or dodge to"; its two
 // callees in this address range are actor_point_in_directional_lane (0x414990, the full

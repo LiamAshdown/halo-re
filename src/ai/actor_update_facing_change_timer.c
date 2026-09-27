@@ -1,6 +1,6 @@
 // actor_update_facing_change_timer  (Ghidra: actor_update_facing_change_timer, renamed)
 // address 0x423670, size 208 bytes
-// name confidence: 0.3   rewrite confidence: 0.4
+// name confidence: 0.3   rewrite confidence: 0.9 (VERIFIED against objdump 0x423670..0x42373f; stored constant FIXED)
 // evidence: types/tags.h Actor.change_facing_stand_time (byte-counted to offset 0x334, the
 //   same field family as Actor.surprise_distance at 0x2b0 and Actor.event_look_time_modifier
 //   at 0xd4/0xd8 -- all confirmed the same way by hand-counting the struct). Actor tag pointer
@@ -52,7 +52,7 @@ void actor_update_facing_change_timer(datum_index actor_index)
             prop *target = &((prop *)prop_data->data)[self->target_unit_index & 0xffff];
             if (target->distance < 4.0f) {
                 if (*smoothing_field <= 1.8f) {
-                    *smoothing_field = 0.9f;
+                    *smoothing_field = 1.8f; // FIXED (0x423732): the same constant 0x672c9c is stored (was 0.9)
                 }
                 // else: *smoothing_field already <= 1.8 is false, i.e. it exceeds 1.8; the
                 // original leaves it unchanged here (a self-assignment in the decompile).

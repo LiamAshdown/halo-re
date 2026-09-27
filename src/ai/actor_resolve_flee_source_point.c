@@ -1,6 +1,6 @@
 // actor_resolve_flee_source_point  (Ghidra: actor_resolve_flee_source_point, renamed)
 // address 0x4146c0, size 555 bytes
-// name confidence: 0.4   rewrite confidence: 0.55
+// name confidence: 0.4   rewrite confidence: 0.9 (VERIFIED against objdump 0x4146c0..0x4148ea (jump table decoded))
 // evidence: phase-4 summary "resolves the source point/direction to flee away from, based on
 // a caller-selected flee-reason code"; the one caller inside this address range
 // (actor_update_flee_response @0x414250, src/ai/actor_update_flee_response.c) passes
