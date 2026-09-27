@@ -39,8 +39,8 @@ extern double sin(double x); // MSVC CRT
 extern void decal_evict_object_decals(int32_t cluster_slot); // 0x44e310, foreign; UNSURE
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin,
     real_vector3d *delta, uint32_t exclude_object_index, collision_result *result); // 0x505880, foreign; UNSURE
-extern void decal_place(TagID shader_tag_id, collision_result *placement, real_vector3d *orientation,
-    float scale, int32_t one, uint32_t color); // 0x44edc0, foreign; UNSURE
+extern void decal_place(datum_index decal_tag_index, collision_result *placement, real_vector3d *direction,
+    real radius_scale, uint8_t object_attached, int16_t sequence_index); // 0x44edc0
 
 // Detects, for each of `cluster_count` clusters, a bit transition between `switch_group_a` and
 // `switch_group_b` (two one-bit-per-cluster arrays), and either notifies of an object entering
@@ -134,7 +134,7 @@ void structure_decals_update_switch_transitions(uint32_t *switch_group_a, uint32
                                 &placement) != 0 &&
                             placement.type == _collision_result_type_structure &&
                             (*(uint8_t *)tag_instances[shader_tag_id.index].data & 0x10) == 0) {
-                            decal_place(shader_tag_id, &placement, &orientation, 1.0f, 1, 0xffffffff);
+                            decal_place(*(datum_index *)&shader_tag_id, &placement, &orientation, 1.0f, 1, -1);
                         }
                     }
                     cseries_random_seed = saved_seed;

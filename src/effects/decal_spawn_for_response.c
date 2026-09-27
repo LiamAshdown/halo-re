@@ -29,8 +29,8 @@ extern random_seed effect_random_seed;     // 0x00719cd4
 
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
     uint32_t exclude_object_index, collision_result *result); // 0x505880
-extern void decal_place(datum_index decal_tag_index, uint8_t *placement, real_vector3d *surface_normal,
-    real radius_scale, uint8_t permanent, uint16_t marker_index); // 0x44edc0
+extern void decal_place(datum_index decal_tag_index, collision_result *placement, real_vector3d *direction,
+    real radius_scale, uint8_t object_attached, int16_t sequence_index); // 0x44edc0
 
 void decal_spawn_for_response(datum_index response_tag_index, uint8_t deterministic, real_point3d *origin,
     real_vector3d *direction, real radius, int32_t marker_index)
@@ -56,8 +56,7 @@ void decal_spawn_for_response(datum_index response_tag_index, uint8_t determinis
     if (collision_test_movement_segment(0x100061, origin, direction, 0xffffffff, &result) &&
         result.type == 2 &&
         (*(uint8_t *)tag_instances[response_tag_index & 0xffff].data & 0x10) == 0) {
-        decal_place(response_tag_index, (uint8_t *)&result, direction, radius, deterministic,
-            (uint16_t)marker_index);
+        decal_place(response_tag_index, &result, direction, radius, deterministic, (int16_t)marker_index);
     }
     if (deterministic != 0) {
         effect_random_seed = saved_seed;

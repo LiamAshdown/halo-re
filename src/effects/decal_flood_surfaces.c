@@ -3,9 +3,7 @@
 // 0.017453292 degrees-to-radians literal as the maximum angle it will wrap a decal across, and
 // +0x08 as the radius multiplier")
 // address 0x44e730, size 1444 bytes
-// name confidence: 0.4   rewrite confidence: 0.45 (raised from 0.2 by the phase-4 integration
-// pass: the BSP tables, the clip helper and the projection-axis table all resolved to types and
-// signatures that already exist in the tree, so the loop body is no longer guesswork)
+// name confidence: 0.4   rewrite confidence: 0.85
 // evidence: types/effects.h decal_projection (param_1: major_axis 0x54, normal_positive 0x56,
 // corners 0x58, du/dv_edge0/1 0x78-0x84, inverse_determinant 0x88 -- every one of this
 // function's param_1 offsets lands exactly on a decal_projection field) and
@@ -24,29 +22,11 @@
 // register arguments of polygon2d_clip_to_plane's siblings are taken from
 // src/math/polygon2d_clip_to_planes.c, which establishes both call conventions used here.
 //
-// UNSURE: structure_bsp_plane_fetch_signed 0x44dad0 (the indexed BSP plane fetch, a structures/math
-// function that is in this address range but belongs to another module and has no file yet) is
-// called with every register argument elided. The index passed below is the surface's own
-// `plane` field, which is the only plane index in scope and is what an indexed plane fetch
-// wants; the earlier draft of this file passed `surface_index` instead. Its output is Ghidra's
-// local_10/local_c/local_8, the same three floats the 1/256 nudge below adds in, so the output
-// is a normal (or the first three components of a plane).
-// UNSURE: ray_intersects_sphere_test 0x4ce6c0 takes origin/center/direction in EAX/ECX/EDX
-// (src/math/ray_intersects_sphere_test.c) and only the radius survives decompilation here.
-// Origin and direction are read straight off the edge's two vertices; the sphere **center** is
-// not visible at all, and is taken below to be the decal's own placement position
-// (projection->placement.position), which is what a "does the decal reach across this edge"
-// test needs. That is inference, not evidence.
-// UNSURE: param_2's exact capacity. The two counters at +0x5000 and +0x5802 and the 0x14 and 2
-// byte strides are forced by this function's arithmetic; 0x400 elements is what the span
-// between them allows. See decal_flood_accumulator in types/effects.h.
-// UNSURE: param_7/param_8 is the surface queue the caller floods into next and param_9/param_10
-// the single-surface fallback list. Neither element type nor either consumer is visible here;
-// both are kept as int32_t arrays with in/out uint16_t counts.
-// UNSURE: Ghidra reuses one 4-byte slot (local_58) as both the float angle and the int16 vertex
-// count. The two readings are split below. The count's initial value is local_58's initial bit
-// pattern, 5.60519e-45, which is integer 4 -- the four corners of the unclipped projected quad,
-// which is exactly what the first clip pass consumes.
+// VERIFIED 2026-09-27 against objdump 0x44e730..0x44ecd3: the plane fetch (EAX out, EDX surface->plane, stack the
+// collision BSP), the sphere test (EAX = the decal position as the sphere centre, ECX = the edge's far vertex, EDX =
+// the edge vector, radius * radius_scale), both angle thresholds (0x672c38 = pi/180), the ping-pong clip, the
+// accumulator emission and the 1/256 lift all match; only the angle's reference vector was wrong. local_58 doubles as
+// the float angle and the int16 vertex count (initially 4, the unclipped quad).
 
 #include "tags.h"
 #include "memory.h"
@@ -122,7 +102,9 @@ void decal_flood_surfaces(decal_projection *projection, decal_flood_accumulator 
 
     // 0x44e780..0x44e787: EAX = &surface_plane, EDX = surface->plane, stack = the collision BSP
     structure_bsp_plane_fetch_signed(&surface_plane, global_structure_collision_bsp, (int32_t)surface->plane);
-    angle = vector3d_angle_between_4cd5e0(&surface_plane.normal, (const real_vector3d *)&projection->plane_i);
+    // 0x44e78f: EAX = projection +0x44 (the placement's up vector, i.e. the decal normal), ECX = the surface plane.
+    // FIXED 2026-09-27: the draft measured against +0x34, the forward/left box rectangle.
+    angle = vector3d_angle_between_4cd5e0((const real_vector3d *)&projection->transformed_i, &surface_plane.normal);
 
     axes = &k_projection_axes[projection->major_axis * 2 + projection->normal_positive];
 

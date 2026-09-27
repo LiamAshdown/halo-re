@@ -2154,3 +2154,20 @@ reachability, ranged attack vector, platoon propagation, engagement range, squad
   placeholder CX: weapon_ready now passes 0xa (was 0 -> the ready cooldown used the wrong animation's frame count),
   weapon_trigger_begin_reload passes 7 (was the magazine index -> reload length wrong). weapon_ready and
   weapon_trigger_begin_reload verified -> 0.85. Relinked: unresolved 1, traps 127.
+## static loop: the decal pipeline (2026-09-27)
+decal_place (0x44edc0, 6111 bytes) was a 0.15 skeleton with a STOPGAP that returned before any geometry, so no
+bullet holes, blood or scorch decals ever appeared. The whole chain is rewritten from objdump and set to 0.85:
+- decal_new (0x44dd90) now takes EAX requested_handle, the geometry cache block handle; the decal datum shares its
+  index and salt. The draft passed -1, which always fails. The eviction scan now restarts the iterator when it runs
+  dry (up to 100 times). The insert-before `self->previous = self` quirk is preserved.
+- decal_build_projection (0x44e460): only the |i| == |j| major-axis tie-break was wrong.
+- decal_flood_surfaces (0x44e730): the surface angle is measured against the decal normal (+0x44), not the box (+0x34).
+- 0x44db30 (named structure_lightmap_uv_rect_build, really the DECAL SPRITE rect): two outputs, EDX = the raw
+  sprite rectangle and the stack pointer = the world extent box. It is typed against Decal / Bitmap now.
+- decal_place: tangent basis (random / no_random_rotation / sapien_snap_to_axis), sequence and radius rolls, sprite
+  box, texture preload, flood, fold-over-edge wrapping of steep fallback surfaces, 1/256 lift, uv bytes, 6-vertex fan
+  blocks into the vertex cache (64 bytes/block allocated, locked x1.5), record fields, Unlock (vtable +0x30),
+  next_decal_in_chain with geometry inheritance.
+- Callers' externs updated (decal_spawn_for_response verified 0.85; structure_decals_update_switch_transitions passes -1).
+- OPEN (runtime): decals are now live. If shooting walls crashes, set a breakpoint in decal_place / the lock.
+Relinked: unresolved 1, traps 127.

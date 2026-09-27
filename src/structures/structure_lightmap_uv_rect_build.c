@@ -2,62 +2,59 @@
 // address 0x44db30, size 253 bytes
 // name confidence: 0.3 (out/phase4/effects_types_notes.md: "builds a lightmap uv rectangle
 //   from a ScenarioStructureBSPLightmap material row")
-// rewrite confidence: 0.25 (control flow and arithmetic transcribed literally from the
-//   decompilation; the tag/material record layout it walks does not match this pass's own
-//   ScenarioStructureBSPMaterial/ScenarioStructureBSPLightmap field offsets closely enough to
-//   claim those types, so every offset is left raw -- see UNSURE)
-// evidence: out/phase4/effects_types_notes.md "0x44db30 | bitmaps or structures | ...". Global
-//   0x0087bc14 tag_instances (matches the same `(tag_id & 0xffff) * 0x20 + 0x14 + tag_instances`
-//   dereference pattern used throughout this codebase, e.g. antenna_new.c).
-// register convention: EDX = float *out_uv_rect (in_EDX, 4 floats), stack arguments = int16_t
-//   lightmap_index (param_1), int16_t material_index (param_2), float scale (param_3); EDI =
-//   a struct with a tag id at +0xe4, a flag byte at +1, and a value at +0xfc (unaff_EDI).
-// blam-cc: structure_lightmap_uv_rect_build(int16_t lightmap_index /*stack*/, int16_t material_index /*stack*/,
-//   float scale /*stack*/, float *out_uv_rect /*EDX*/)
-// UNSURE (function-wide): every struct offset below (tag+0x58, lightmap_row+0x38, the 0x40-byte
-//   lightmap-row stride, the 0x30-byte per-material record, the vertex-rect fields at +8/+0xc/
-//   +0x10/+0x14/+0x18/+0x1c) is preserved as a raw byte offset rather than a named field,
-//   because it does not cleanly match this pass's own ScenarioStructureBSPMaterial /
-//   ScenarioStructureBSPLightmap layout (types/tags.h) closely enough to claim those types.
+// rewrite confidence: 0.85
+// MISNAMED (kept for the hook lists): this is the DECAL SPRITE rectangle builder. REWRITTEN 2026-09-27 (static
+// loop) from objdump 0x44db30..0x44dc2c. EDI is the Decal tag: +0xe4 map.tag_id (a bitmap), flags bit 8
+// preserve_aspect, +0xfc maximum_sprite_extent. The bitmap's sequence (0x40 stride at +0x58) -> sprite (0x20 stride,
+// sprites.pointer at sequence +0x38) -> BitmapData (0x30 stride at bitmap +0x64) width / height.
+// Two outputs: EDX receives the sprite's raw {left, right, top, bottom}; the stack pointer receives the sprite's
+// extent in world units around its registration point:
+//   {-reg_x * su, (right - reg_x - left) * su, -reg_y * sv, (bottom - reg_y - top) * sv}
+//   with su = width * scale / maximum_sprite_extent, sv = height * scale / maximum_sprite_extent * aspect,
+//   aspect = (right - left) / (bottom - top) * height / width when preserve_aspect, else 1.
+// The draft wrote both outputs into one array (losing the raw rectangle).
+// blam-cc: EDX -> out_sprite_rect, EDI -> decal_definition, stack -> (sequence_index, sprite_index, scale,
+//   out_extent)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
-#include "structures.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
-void structure_lightmap_uv_rect_build(int16_t lightmap_index, int16_t material_index, float scale,
-                                       float *out_uv_rect, uint8_t *owner /*EDI, UNSURE: see file header*/)
+void structure_lightmap_uv_rect_build(int16_t sequence_index, int16_t sprite_index, real scale, real *out_extent,
+    real *out_sprite_rect, const Decal *decal_definition)
 {
-    float aspect = 1.0f;
-    uint8_t *tag_data = tag_instances[*(uint16_t *)(owner + 0xe4)].data;
-    uint8_t *lightmap_row = *(uint8_t **)(*(uint32_t *)(tag_data + 0x58) + lightmap_index * 0x40 + 0x38);
-    uint8_t *material_row = lightmap_row + material_index * 0x20;
-    uint8_t *material_record = *(uint8_t **)(tag_data + 100) + *(int16_t *)(lightmap_row + material_index * 0x20) * 0x30;
+    const Bitmap *bitmap =
+        (const Bitmap *)tag_instances[*(const uint16_t *)&decal_definition->map.tag_id].data;
+    const BitmapGroupSequence *sequence =
+        &((const BitmapGroupSequence *)bitmap->bitmap_group_sequence.pointer)[sequence_index];
+    const BitmapGroupSprite *sprite = &((const BitmapGroupSprite *)sequence->sprites.pointer)[sprite_index];
+    const BitmapData *data = &((const BitmapData *)bitmap->bitmap_data.pointer)[(int16_t)sprite->bitmap_index];
+    real aspect = 1.0f;
+    real extent_scale;
+    real scale_u;
+    real scale_v;
 
-    float *rect = (float *)(material_row + 8); // {min_u, min_v, max_u, max_v}
-    out_uv_rect[0] = rect[0];
-    out_uv_rect[1] = rect[1];
-    out_uv_rect[2] = rect[2];
-    out_uv_rect[3] = rect[3];
+    out_sprite_rect[0] = sprite->left;
+    out_sprite_rect[1] = sprite->right;
+    out_sprite_rect[2] = sprite->top;
+    out_sprite_rect[3] = sprite->bottom;
 
-    if (owner[1] & 1) {
-        aspect = ((float)(int32_t)*(int16_t *)(material_record + 6) / (float)(int32_t)*(int16_t *)(material_record + 4)) *
-                 ((rect[1] - rect[0]) / (rect[3] - rect[2]));
+    if ((decal_definition->flags & 0x100) != 0) { // preserve_aspect (byte +1 bit 0)
+        aspect = ((sprite->right - sprite->left) / (sprite->bottom - sprite->top)) *
+            ((real)(int32_t)(int16_t)data->height / (real)(int32_t)(int16_t)data->width);
     }
 
-    scale = scale / *(float *)(owner + 0xfc);
-    {
-        float scale_u = (float)(int32_t)*(int16_t *)(material_record + 4) * scale;
-        float scale_v = (float)(int32_t)*(int16_t *)(material_record + 6) * scale * aspect;
+    extent_scale = scale / decal_definition->maximum_sprite_extent;
+    scale_u = (real)(int32_t)(int16_t)data->width * extent_scale;
+    scale_v = (real)(int32_t)(int16_t)data->height * extent_scale * aspect;
 
-        out_uv_rect[0] = -*(float *)(material_row + 0x18) * scale_u;
-        out_uv_rect[1] = ((rect[1] - *(float *)(material_row + 0x18)) - rect[0]) * scale_u;
-        out_uv_rect[2] = -*(float *)(material_row + 0x1c) * scale_v;
-        out_uv_rect[3] = ((rect[3] - *(float *)(material_row + 0x1c)) - rect[2]) * scale_v;
-    }
+    out_extent[0] = -sprite->registration_point.x * scale_u;
+    out_extent[1] = ((sprite->right - sprite->registration_point.x) - sprite->left) * scale_u;
+    out_extent[2] = -sprite->registration_point.y * scale_v;
+    out_extent[3] = ((sprite->bottom - sprite->registration_point.y) - sprite->top) * scale_v;
 }
 
 #if 0

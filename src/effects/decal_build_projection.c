@@ -2,7 +2,7 @@
 // which refers to this address directly: "decal_build_projection 0x44e460 reads major_axis at
 // 0x54, normal_positive at 0x56 and takes 0x58 as the base of the corner array")
 // address 0x44e460, size 705 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.85
 // evidence: types/effects.h decal_projection (every field, sizes match exactly: placement 0x00,
 // plane_i..d 0x34, transformed_i..d 0x44, major_axis 0x54, normal_positive 0x56, corners 0x58,
 // edge gradients 0x78-0x88, inverse_determinant 0x88); types/math.h projection_axis_pair /
@@ -11,16 +11,9 @@
 // parameter; the placement matrix is in EDX (in_EDX); the output decal_projection* is Ghidra's
 // second recognised stack parameter (param_2).
 //   // blam-cc: EDX -> placement, stack -> (box, out)
-// UNSURE: despite the field names plane_i/j/k/d (fixed by types/effects.h's offsets, not by
-// this function), the four floats this function actually reads out of `box` are used as a
-// {forward_min, forward_max, left_min, left_max} rectangle in the placement's own forward/left
-// plane to build the four world-space corners -- not as a plane equation. They are copied into
-// plane_i..d verbatim regardless, matching the header's fixed offsets; whether a caller later
-// treats those same bytes as a genuine plane is outside this function.
-// UNSURE: transformed_i/j/k are set here to a plain copy of the placement matrix's `up` basis
-// vector (not a transform of `box`), and transformed_d to dot(up, placement.position). This is
-// preserved exactly as computed; it does not match types/effects.h's "the same plane rotated
-// into placement space" gloss for that field, which may describe a different call path.
+// VERIFIED 2026-09-27 against objdump 0x44e460..0x44e720 (only the |i| == |j| tie-break differed). `box` is a
+// {forward_min, forward_max, left_min, left_max} rectangle in the placement's forward/left plane, copied verbatim to
+// +0x34; +0x44 is the placement's up vector (the decal plane normal) and its plane distance.
 
 #include "tags.h"
 #include "memory.h"
@@ -60,7 +53,7 @@ void decal_build_projection(real_matrix4x3 *placement, real *box, decal_projecti
         real ak = out->transformed_k < 0.0f ? -out->transformed_k : out->transformed_k;
 
         if (ak < aj || ak < ai) {
-            major_axis = (ai < aj) ? 1 : 0;
+            major_axis = (aj < ai) ? 0 : 1; // 0x44e4f2: a tie between |i| and |j| picks j
         } else {
             major_axis = 2;
         }
