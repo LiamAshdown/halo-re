@@ -1,6 +1,6 @@
 // path_find_set_goal  (Ghidra: path_find_set_goal, renamed)
 // address 0x43a730, size 40 bytes
-// name confidence: 0.55  rewrite confidence: 0.6
+// name confidence: 0.55  rewrite confidence: 0.9 (VERIFIED against the binary (register/stack mapping and struct offsets asserted))
 // evidence: types/ai.h path_find_context.have_goal (+0x4c) / goal_position (+0x50) /
 //   goal_vertex_id (+0x5c) / goal_cost (+0x60) -- this function writes exactly those four
 //   fields and nothing else, which is the strongest possible match for their names.

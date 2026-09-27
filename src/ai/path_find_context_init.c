@@ -1,6 +1,6 @@
 // path_find_context_init  (Ghidra: path_find_context_init, already named)
 // address 0x43a700, size 44 bytes
-// name confidence: 0.5   rewrite confidence: 0.7
+// name confidence: 0.5   rewrite confidence: 0.9 (VERIFIED against the binary (register/stack mapping and struct offsets asserted))
 // evidence: types/ai.h path_find_context (0x1008c bytes = 0x4023 dwords, confirmed by this
 //   function's own zero loop); path_find_request (0x48 bytes = 0x12 dwords, confirmed by the
 //   copy loop here); (uint32_t)global_structure_bsp global and path_find_context.structure_bsp (+0x64 =

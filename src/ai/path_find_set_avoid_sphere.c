@@ -1,6 +1,6 @@
 // path_find_set_avoid_sphere  (Ghidra: path_find_set_avoid_sphere, renamed)
 // address 0x43a070, size 47 bytes
-// name confidence: 0.55  rewrite confidence: 0.55
+// name confidence: 0.55  rewrite confidence: 0.9 (VERIFIED against the binary (register/stack mapping and struct offsets asserted))
 // evidence: types/ai.h path_find_request.have_avoid_sphere(+0x24)/avoid_position(+0x28)/
 //   avoid_object_index(+0x34)/avoid_radius(+0x38)/avoid_weight(+0x3c) -- this function
 //   writes exactly those five fields (through path_find_context's copy of the request block,
