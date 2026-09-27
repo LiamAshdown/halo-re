@@ -1,6 +1,6 @@
 // actor_propagate_unit_field  (Ghidra: actor_propagate_unit_field, renamed)
 // address 0x4276e0, size 214 bytes
-// name confidence: 0.45   rewrite confidence: 0.4
+// name confidence: 0.45   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x4276e0..0x4277bc (EAX actor, SI value).)
 // evidence: types/ai.h actor.swarm(0x06)/unit_index(0x18)/swarm_index(0x28)/
 //   cluster_unit_index(0x24); types/units.h unit_data.swarm_next_unit_index (object+0x1fc).
 //   Phase-4 summary: "Propagates a caller-provided value into the object-header field of

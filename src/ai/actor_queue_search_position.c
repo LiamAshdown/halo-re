@@ -1,6 +1,6 @@
 // actor_queue_search_position  (Ghidra: actor_queue_search_position; named from out/phase2/results/ai_02.json)
 // address 0x421af0, size 199 bytes
-// name confidence: 0.4   rewrite confidence: 0.4
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x421af0..0x421bb6.)
 // evidence: out/phase2/results/ai_02.json -- only updates when the actor is not already deep
 //   in combat (awareness_level<3) and the new priority is >= the stored one
 //   (actor.search_priority), then records up to two optional position/velocity vectors plus

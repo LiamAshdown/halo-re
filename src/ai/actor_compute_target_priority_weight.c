@@ -1,6 +1,6 @@
 // actor_compute_target_priority_weight  (Ghidra: actor_compute_target_priority_weight, renamed)
 // address 0x414590, size 301 bytes
-// name confidence: 0.4   rewrite confidence: 0.4
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x414590..0x4146bc (all constants).)
 // evidence: phase-4 summary "computes a numeric priority weight for how attractive a
 // potential threat/target is, combining class, distance, occupancy and relationship
 // factors"; its only caller (0x41d75f, inside the recognition-refresh routine around

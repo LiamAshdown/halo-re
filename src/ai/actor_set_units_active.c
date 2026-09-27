@@ -1,6 +1,6 @@
 // actor_set_units_active  (Ghidra: actor_set_units_active, already named)
 // address 0x427860, size 305 bytes
-// name confidence: 0.5   rewrite confidence: 0.4
+// name confidence: 0.5   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x427860..0x427990 (EAX actor, BL dormant).)
 // evidence: types/ai.h actor.active(0x08)/keep_unit_alive(0x13)/swarm(0x06)/
 //   swarm_index(0x28)/cluster_unit_index(0x24)/idle_counter(0x4a per the 0x14 clear, see
 //   UNSURE); types/objects.h object_header (stride 0xc, flags at +0x02,
