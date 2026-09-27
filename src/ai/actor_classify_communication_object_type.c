@@ -1,6 +1,6 @@
 // actor_classify_communication_object_type  (Ghidra: actor_classify_communication_object_type; named for this rewrite)
 // address 0x42f9a0, size 58 bytes
-// name confidence: 0.3   rewrite confidence: 0.4
+// name confidence: 0.3   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump.)
 // evidence: phase-4 summary ("classifies an object's type for communication purposes into
 // one of three categories based on its type-definition flag bits"); types/ai.h's
 // actor_type_procs[16] table at 0x006853b8, indexed by actor.type.

@@ -1,6 +1,6 @@
 // actor_unlink_prop  (Ghidra: actor_unlink_prop, renamed)
 // address 0x43ea20, size 95 bytes
-// name confidence: 0.45  rewrite confidence: 0.4
+// name confidence: 0.45  rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump.)
 // evidence: types/ai.h actor.first_prop(+0x50) and prop.next_in_actor(+0x08). phase-4
 // summary "removes a firing-position node from its owning object's linked list of nodes"
 // (the list is actually the owning actor's prop list, chained through next_in_actor).

@@ -1,6 +1,6 @@
 // actor_combat_status_should_hold  (Ghidra: actor_combat_status_should_hold, renamed)
 // address 0x40d520, size 93 bytes
-// name confidence: 0.4   rewrite confidence: 0.4
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump.)
 // evidence: phase-4 summary "determines whether the actor should stay at its current
 // combat status level rather than escalating, based on morale and scripted command
 // restrictions"; reads actor.mode_data bytes at +8 and +5 (mode-specific), the "vitality

@@ -1,6 +1,6 @@
 // actor_build_order_wait_byte  (Ghidra: actor_build_order_wait_byte, renamed)
 // address 0x4080c0, size 75 bytes
-// name confidence: 0.35   rewrite confidence: 0.4
+// name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump.)
 // evidence: types/ai.h actor.order_committed (0x160)/swarm (0x06); phase-4 summary "builds a
 //   simple wait order carrying a single caller-supplied byte parameter".
 // register convention: actor index in EAX, order pointer in ESI, a caller byte in the

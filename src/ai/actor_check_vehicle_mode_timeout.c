@@ -1,6 +1,6 @@
 // actor_check_vehicle_mode_timeout  (Ghidra: actor_check_vehicle_mode_timeout, renamed)
 // address 0x428270, size 76 bytes
-// name confidence: 0.35   rewrite confidence: 0.4
+// name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump.)
 // evidence: types/ai.h actor.mode(0x6c)==_actor_mode_vehicle(10) and actor.mode_data (the
 //   per-mode union at 0x9c..0x11f); offsets 0xa0/0xa7/0xac used here fall inside that union
 //   at mode_data[4]/[0xb]/[0x10] and have no individual names since they are only meaningful

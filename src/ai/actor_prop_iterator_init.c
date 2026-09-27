@@ -1,6 +1,6 @@
 // actor_prop_iterator_init  (Ghidra: actor_prop_iterator_init, renamed)
 // address 0x43ecd0, size 32 bytes
-// name confidence: 0.4   rewrite confidence: 0.4
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump.)
 // evidence: types/ai.h actor.first_prop(+0x50). phase-4 summary "returns the head index of
 // the current object's firing-position node linked list" (actually the owning actor's own
 // prop list, chained through prop.next_in_actor, per the sibling functions in this cluster).

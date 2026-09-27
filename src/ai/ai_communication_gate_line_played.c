@@ -1,6 +1,6 @@
 // ai_communication_gate_line_played  (Ghidra: ai_communication_gate_line_played; named for this rewrite)
 // address 0x42e970, size 50 bytes
-// name confidence: 0.3   rewrite confidence: 0.4
+// name confidence: 0.3   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump.)
 // evidence: phase-4 summary ("gates whether a communication-played timestamp should be
 // recorded for a given event id, skipping a handful of event types and silenced records").
 // register convention: CX -> event_id, EDX -> record (both unresolved registers in Ghidra's

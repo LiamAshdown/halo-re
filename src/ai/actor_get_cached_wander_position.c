@@ -1,6 +1,6 @@
 // actor_get_cached_wander_position  (Ghidra: actor_get_cached_wander_position, renamed)
 // address 0x4281f0, size 126 bytes
-// name confidence: 0.35   rewrite confidence: 0.4
+// name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump.)
 // evidence: types/ai.h actor.target_combat_status(0x268)/facing_unknown_180(0x180)/
 //   unknown_6a0/unknown_60c; actor_mode_definitions[16] (0x00655254, combat_grade at +0x04)
 //   already established elsewhere in this module. Phase-4 summary: "Writes one of two cached

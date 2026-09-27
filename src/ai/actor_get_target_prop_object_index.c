@@ -1,6 +1,6 @@
 // actor_get_target_prop_object_index  (Ghidra: actor_get_target_prop_object_index, renamed)
 // address 0x4283d0, size 66 bytes
-// name confidence: 0.3   rewrite confidence: 0.4
+// name confidence: 0.3   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump.)
 // evidence: types/ai.h actor.target_unit_index (0x270); prop.object_index (0x18). As
 //   actor_update_facing_change_timer @0x423670 already notes, this module reuses
 //   actor.target_unit_index (a *unit* handle everywhere else) as a *prop* index at this
