@@ -1,6 +1,6 @@
 // actor_get_body_axis_vector  (Ghidra: actor_get_body_axis_vector, renamed)
 // address 0x405390, size 376 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.9 (verified against objdump 0x405390..0x405507)
 // evidence: types/ai.h actor.unit_index (0x18); types/objects.h object.up (0x80); types/
 //   math.h global_forward3d_pointer (0x696718)/global_up3d_pointer (0x696720); phase-4
 //   summary "one of the actor's four body-relative axis vectors (forward, back, or a
@@ -38,7 +38,7 @@ extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0
 // 0x569720, not yet rewritten (a different module): fetches the reference vector for a unit
 // other than the actor's own, by pointer (see UNSURE above).
-extern void unit_get_forward_vector_or_marker_normal(uint32_t actor_index, uint32_t unit_index, real_vector3d *out);
+extern void unit_get_forward_vector_or_marker_normal(uint32_t unit_index, real_vector3d *out); // 0x569720, ECX, EAX
 
 void actor_get_body_axis_vector(uint32_t actor_index, uint32_t unit_index, actor_axis_request *request)
 {
@@ -50,7 +50,9 @@ void actor_get_body_axis_vector(uint32_t actor_index, uint32_t unit_index, actor
         reference.j = a->facing.j;
         reference.k = a->facing.k;
     } else {
-        unit_get_forward_vector_or_marker_normal(actor_index, unit_index, &reference);
+        // 0x4053d3: ECX = the unit (esi), EAX = &reference; the draft passed three arguments to this two-argument
+        //   function, so it wrote the vector through the unit index as a pointer
+        unit_get_forward_vector_or_marker_normal(unit_index, &reference);
     }
 
     switch (request->axis) {

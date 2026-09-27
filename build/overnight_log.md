@@ -1588,3 +1588,7 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   jump sound triggers.
 - unit_pick_and_ready_next_weapon: the slot finder gets the unit (EAX); the draft dropped it (runs on every seat exit).
 - unit_pickup_weapon verified (0.9; index zero-extended like the binary).
+- unit_get_forward_vector_or_marker_normal 0x569720: a seated unit's forward is transformed by its parent marker node
+  (EAX out, EDX forward, stack matrix); the draft passed only the matrix.
+- actor_get_body_axis_vector 0x405390 (0.3 -> 0.9): called that two-argument function with THREE arguments, so it wrote
+  the vector through the unit index as a pointer (memory corruption whenever an actor rated another unit's axis).

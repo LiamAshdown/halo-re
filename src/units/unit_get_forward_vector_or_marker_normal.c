@@ -1,5 +1,5 @@
 // unit_get_forward_vector_or_marker_normal  (Ghidra: FUN_00569720)
-// address 0x569720, size 113 bytes, name confidence 0.35, rewrite confidence 0.3
+// address 0x569720, size 113 bytes, name confidence 0.35, rewrite confidence 0.95
 // functions.md: "Returns a unit's stored direction/offset vector, transformed into world space
 // through its parent object's skeleton node when attached."
 // evidence: types/objects.h object.forward (0x74), object.parent_object (0x11c),
@@ -18,7 +18,7 @@
 
 extern data_array *object_data; // 0x008603b0
 
-extern void matrix4x3_transform_normal(real_matrix4x3 *node_matrix); // 0x4cbec0, UNSURE signature (out=EAX, in=ECX presumably)  // real signature (matrix4x3_transform_normal.c): void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m); Ghidra recovered 1 of 3 args at this call site
+extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m); // 0x4cbec0, EAX, EDX, stack
 
 void unit_get_forward_vector_or_marker_normal(uint32_t unit_index, real_vector3d *out) // blam-cc: in_ECX, in_EAX
 {
@@ -34,7 +34,8 @@ void unit_get_forward_vector_or_marker_normal(uint32_t unit_index, real_vector3d
     object *parent = ((object_header *)object_data->data)[unit_obj->parent_object & 0xffff].data;
     if (out != (real_vector3d *)0) {
         real_matrix4x3 *node = (real_matrix4x3 *)((uint8_t *)parent + parent->nodes.offset) + unit_obj->parent_marker_index;
-        matrix4x3_transform_normal(node);
+        // 0x569783: EAX = out, EDX = the unit's forward (+0x74), stack = the parent's marker node matrix
+        matrix4x3_transform_normal(out, &unit_obj->forward, node);
     }
     return;
 }
