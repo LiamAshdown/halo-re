@@ -1,6 +1,6 @@
 // actor_update_special_mode  (Ghidra: actor_update_special_mode, renamed)
 // address 0x40d820, size 162 bytes
-// name confidence: 0.3   rewrite confidence: 0.35
+// name confidence: 0.3   rewrite confidence: 0.95 (verified vs objdump 0x40d820..0x40d8c1; the alert stages get their prop / actor)
 // evidence: phase-4 summary "checks whether the actor's current special mode (5, 7, or 8)
 // is ready to proceed and, if so, invokes the matching per-mode helper before a common
 // cleanup step"; every path that proceeds falls through to
@@ -18,9 +18,9 @@
 
 extern data_array *actor_data; // 0x00880360
 extern uint8_t actor_update_melee_combat_action(datum_index actor_index); // 0x40cdf0, this module
-extern void actor_set_target_alert_stage1(void); // UNSURE: no visible args
-extern void actor_set_target_alert_stage2(void); // UNSURE: no visible args
-extern void actor_set_target_alert_stage3(void); // UNSURE: no visible args
+extern void actor_set_target_alert_stage1(datum_index target_prop_index, datum_index actor_index); // ECX prop, ESI actor
+extern void actor_set_target_alert_stage2(datum_index target_prop_index, datum_index actor_index); // ECX prop, ESI actor
+extern void actor_set_target_alert_stage3(datum_index target_prop_index, datum_index actor_index); // EDX prop, ESI actor
 
 // blam-cc: EAX -> actor_index
 uint8_t actor_update_special_mode(datum_index actor_index)
@@ -36,21 +36,21 @@ uint8_t actor_update_special_mode(datum_index actor_index)
             return 0;
         }
         if (*(int16_t *)&self->mode_data[8] == 0) {
-            actor_set_target_alert_stage1();
+            actor_set_target_alert_stage1(self->target_unit_index, actor_index);
         }
     } else if (mode == 7) {
         if (self->mode_data[0] == 0) {
             return 0;
         }
         if (*(int16_t *)&self->mode_data[8] == 0) {
-            actor_set_target_alert_stage2();
+            actor_set_target_alert_stage2(self->target_unit_index, actor_index);
             return actor_update_melee_combat_action(actor_index);
         }
     } else if (mode == 8) {
         if (self->mode_data[0] == 0) {
             return 0;
         }
-        actor_set_target_alert_stage3();
+        actor_set_target_alert_stage3(self->target_unit_index, actor_index);
         return actor_update_melee_combat_action(actor_index);
     } else {
         return 0;

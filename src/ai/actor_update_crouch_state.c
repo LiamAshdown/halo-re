@@ -44,14 +44,15 @@ extern int32_t __ftol(double x); // 0x6391b4, MSVC float-to-long (truncating)
 
 extern float vector3d_magnitude_squared(const real_vector3d *v); // 0x401000, EAX -> v
 extern real vector3d_normalize_with_length(real_vector3d *v);    // 0x401990, ECX -> v
-extern void actor_push_recognition_entry(void);                                  // 0x4141a0, not yet rewritten
-extern uint8_t actor_get_ranged_attack_vector(real_point3d *out);                  // 0x420970, not yet rewritten
+extern void actor_push_recognition_entry(datum_index actor_index, int16_t firing_position_index, uint8_t type); // 0x4141a0, EAX, CX, DL
+extern uint8_t actor_get_ranged_attack_vector(datum_index target_prop_index, datum_index actor_index,
+    real_vector3d *out_vector); // 0x420970, EAX, ECX, stack
 extern int16_t actor_evaluate_flank_offset(const real_vector3d *cover_direction,
                                            real_vector3d *out_offset,
                                            const real_point3d *threat_position,
                                            const real_point3d *candidate_position); // 0x420b10, this module
 extern void actor_scan_allies_for_backup_request(datum_index actor_index); // 0x420ec0, this module
-extern void actor_set_combat_alert_flag(void);                   // 0x421a40, this module
+extern void actor_set_combat_alert_flag(datum_index actor_index, uint8_t new_flag); // 0x421a40, EAX, BL
 extern uint8_t actor_evaluate_custom_charge_trigger(datum_index actor_index);            // 0x424090, not yet rewritten
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 // 0x42d340, not yet rewritten (this module). Always seven stack arguments: every call
@@ -107,7 +108,7 @@ void actor_update_crouch_state(datum_index actor_index)
     if (self->unknown_378 != 0 &&
         (self->unknown_6e == 0 || self->awareness_level < 3 ||
          (*(int32_t *)&self->unknown_1bc == 0x3f800000 && self->unknown_6e < 3))) {
-        actor_set_combat_alert_flag();
+        actor_set_combat_alert_flag(actor_index, 0); // 0x42141b: BL = 0
     }
 
     platoon_flag = self->unknown_1c9;
@@ -178,7 +179,7 @@ void actor_update_crouch_state(datum_index actor_index)
 
                     // objdump: the 12 bytes 0x420970 fills at [esp+0x58] are the same slot
                     // ECX points at for every 0x420b10 call below.
-                    if (actor_get_ranged_attack_vector((real_point3d *)&cover_direction) != 0) {
+                    if (actor_get_ranged_attack_vector(prop_index, actor_index, (real_vector3d *)&cover_direction) != 0) {
                         grade = actor_evaluate_flank_offset(&cover_direction, &flank_offset,
                                                             &self->body_position,
                                                             &p->last_known_position);
@@ -248,7 +249,7 @@ void actor_update_crouch_state(datum_index actor_index)
             *countdown_360 = (int16_t)(*countdown_360 - 1);
         }
     } else {
-        actor_push_recognition_entry();
+        actor_push_recognition_entry(actor_index, *(int16_t *)((uint8_t *)self + 0x3b8), 1); // 0x42186f
         *countdown_360 = 0x16;
     }
 

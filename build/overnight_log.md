@@ -1420,3 +1420,8 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - glow_render 0x4fe570 REWRITTEN: fills the sprite batch and passes it to build_sprite / build_sprites_end (the
   draft never initialised it).
 - OPEN (not in a10's opening): antenna_render_wire build_sprite registers, lightning_render cross product.
+- actor_update_special_mode 0x40d820 verified; the three target-alert stages get (prop, actor) (were argless).
+- actor_update_crouch_state 0x4213b0: combat alert flag (actor, 0), ranged attack vector (prop, actor, out),
+  recognition entry (actor, +0x3b8, 1) now get their operands.
+- actor_schedule_grenade_throw 0x402f80 REWRITTEN (0.3 -> 0.9; misnamed: queues a look toward whatever last
+  damaged the actor): find-prop / eye-marker / datum_get were argless.

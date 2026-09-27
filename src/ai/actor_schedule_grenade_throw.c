@@ -1,6 +1,6 @@
 // actor_schedule_grenade_throw  (Ghidra: actor_schedule_grenade_throw, already named)
 // address 0x402f80, size 499 bytes
-// name confidence: 0.5   rewrite confidence: 0.3
+// name confidence: 0.5   rewrite confidence: 0.9
 // evidence: types/ai.h actor.conversation_index/conversation_participant/awareness_level/
 //   mode/vocalization_line/vocalization_variant/vocalization_state/vocalization_unknown_54c/
 //   _550/_554/_558 (actor_clear_vocalization zeroes exactly the first three, which this
@@ -32,69 +32,76 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include <string.h>
 #include "cache.h"
 
 extern data_array *actor_data;      // 0x00880360
+extern data_array *prop_data;       // 0x008802c0
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern real random_real_range(real min, real max); // 0x401050
-// 0x43ea80, not yet rewritten: resolves an ai_conversation participant to a speaker handle,
-// or -1 if none is currently resolved.
-extern datum_index actor_find_prop_for_object(datum_index object_index);
-// 0x568f50, not yet rewritten (a different module), called with no visible arguments here.
-extern void unit_get_primary_eye_marker_position(void);
-// 0x4d0680, a generic engine helper, called with no visible arguments here (see UNSURE).
-extern int32_t datum_get(void);
+extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, stack, ECX
+extern void unit_get_primary_eye_marker_position(uint32_t object_index, real_point3d *out); // 0x568f50, ECX, ESI
+extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, EDX, ESI
+extern int32_t fistp_round(float x); // harness/x87_shims.c
 
+// REWRITTEN from objdump 0x402f80..0x403172 (misnamed: it schedules a look at whatever last hurt the actor). ECX:
+//   actor. With a damage source (+0x1dc, object +0x1e0) the target is the actor's prop for it (kind 1) or the
+//   object's eye (kind 3). An awake actor (+0x6a > 1) without a higher pending look (+0x544 <= 8), not
+//   hiding in cover mode 11 without +0x9f, queues look 8 at priority 5 (+0x544 / +0x546 / +0x54c..) after
+//   1.2 s (2.4 s when unalerted), scaled by a random factor in the Actor tag's [+0xd4 (>= 0.5), +0xd8 (<= 2)].
+// blam-cc: ECX -> actor_index
 void actor_schedule_grenade_throw(uint32_t actor_index)
 {
-    actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *actor_tag;
+    datum_index source;
+    uint8_t request[0x10];      // [esp+0x18]: kind word, then a prop or a point
+    datum_index prop;
+    float delay;
+    int32_t ticks;
 
-    if (a->conversation_index != (datum_index)k_datum_index_none && a->conversation_participant != (datum_index)k_datum_index_none) {
-        int32_t speaker = actor_find_prop_for_object(a->conversation_participant);
-        int16_t status;      // low 16 bits of vocalization_unknown_54c
-        int16_t status_hi;   // UNSURE: upper 16 bits, never assigned in the original
-        int32_t speaker_handle; // vocalization_unknown_550
-        uint32_t scratch_a;  // vocalization_unknown_554, UNSURE: uninitialized in the original
-        uint32_t scratch_b;  // vocalization_unknown_558, UNSURE: uninitialized in the original
-
-        if (speaker == -1) {
-            status = 3;
-            unit_get_primary_eye_marker_position();
-        } else {
-            status = 1;
-            speaker_handle = speaker;
-        }
-
-        if (a->awareness_level > 1 && a->vocalization_line < 9 &&
-            (a->mode != _actor_mode_flee || *(uint8_t *)(a->mode_data + 3) != 0) &&
-            (status != 1 || datum_get() != 0)) {
-            Actor *actor_def = (Actor *)tag_instances[a->actor_definition_tag & 0xffff].data;
-            float delay = 1.2f;
-            int32_t ticks;
-
-            if (a->awareness_level < 3 || a->unknown_6e == 0) {
-                delay = 2.4f;
-            }
-            if (actor_def->event_look_time_modifier[0] != 0.0f || actor_def->event_look_time_modifier[1] != 0.0f) {
-                float lo = actor_def->event_look_time_modifier[0] <= 0.5f ? 0.5f : actor_def->event_look_time_modifier[0];
-                float hi = actor_def->event_look_time_modifier[1] <= 2.0f ? actor_def->event_look_time_modifier[1] : 2.0f;
-                delay = random_real_range(lo, hi) * delay;
-            }
-
-            ticks = (int32_t)(delay * 30.0f + 0.5f); // ROUND()
-            if (ticks > 0x7fff) {
-                ticks = 0x7fff;
-            }
-            a->vocalization_state = (int16_t)ticks;
-            a->vocalization_line = 8;
-            a->vocalization_variant = 5;
-            a->vocalization_unknown_54c = (uint32_t)(uint16_t)status | ((uint32_t)(uint16_t)status_hi << 16);
-            a->vocalization_unknown_550 = speaker_handle;
-            a->vocalization_unknown_554 = scratch_a;
-            a->vocalization_unknown_558 = scratch_b;
-        }
+    if (*(datum_index *)(a + 0x1dc) == k_datum_index_none) {
+        return;
     }
+    source = *(datum_index *)(a + 0x1e0);
+    if (source == k_datum_index_none) {
+        return;
+    }
+    memset(request, 0, sizeof(request));
+    prop = actor_find_prop_for_object(source, actor_index);
+    if (prop != k_datum_index_none) {
+        *(int16_t *)request = 1;
+        *(datum_index *)(request + 0x4) = prop;
+    } else {
+        *(int16_t *)request = 3;
+        unit_get_primary_eye_marker_position(source, (real_point3d *)(request + 0x4));
+    }
+    actor_tag = (uint8_t *)tag_instances[*(datum_index *)(a + 0x58) & 0xffff].data;
+    if (!(*(int16_t *)(a + 0x6a) > 1) || *(int16_t *)(a + 0x544) > 8) {
+        return;
+    }
+    if (*(int16_t *)(a + 0x6c) == 0xb && !a[0x9f]) {
+        return;
+    }
+    if (*(int16_t *)request == 1 && datum_get(*(datum_index *)(request + 0x4), prop_data) == 0) {
+        return;
+    }
+    delay = (*(int16_t *)(a + 0x6a) < 3 || *(int16_t *)(a + 0x6e) == 0) ? 2.4f : 1.2f;
+    if (*(float *)(actor_tag + 0xd4) != 0.0f || *(float *)(actor_tag + 0xd8) != 0.0f) {
+        float lo = *(float *)(actor_tag + 0xd4) > 0.5f ? *(float *)(actor_tag + 0xd4) : 0.5f;
+        float hi = *(float *)(actor_tag + 0xd8) > 2.0f ? 2.0f : *(float *)(actor_tag + 0xd8);
+
+        delay = random_real_range(lo, hi) * delay;
+    }
+    ticks = fistp_round(delay * 30.0f);
+    if (ticks > 0x7fff) {
+        ticks = 0x7fff;
+    }
+    *(int16_t *)(a + 0x548) = (int16_t)ticks;
+    *(int16_t *)(a + 0x544) = 8;
+    *(int16_t *)(a + 0x546) = 5;
+    memcpy(a + 0x54c, request, 0x10);
 }
 
 #if 0
