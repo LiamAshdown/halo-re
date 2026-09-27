@@ -62,6 +62,7 @@ extern void model_render_parts(GBXModel *model, uint8_t *region_permutations, ra
 extern void debug_fp_render_model_note(uint32_t model_tag, float pixels, int32_t lod, const float *node0,
     const float *center, int32_t early_out);
 extern void debug_fp_clip_note(const float *world, int32_t effect_type);
+extern void debug_fp_state_arm(int32_t armed); // TEMPORARY
 
 void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t *region_permutations,
                    ColorRGB *change_colors, float *function_out_values, render_lighting *lighting,
@@ -188,8 +189,10 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
             (const float *)bounding_center, 0); // TEMPORARY first-person diagnostics
         debug_fp_clip_note(node_matrices ? (const float *)node_matrices + 10 : 0, effect->type);
     }
+    if (flags == 8) debug_fp_state_arm(1); // TEMPORARY first-person diagnostics
     model_render_parts(model, region_permutations, (rasterizer_node_matrices *)&context.node_matrices,
                         lod, forced_shader_permutation, flags);
+    debug_fp_state_arm(0); // TEMPORARY
 
     if ((flags & _model_render_immediate_bit) != 0) {
         rasterizer_object_shadow_model_context = 0;

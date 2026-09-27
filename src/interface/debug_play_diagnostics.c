@@ -169,3 +169,63 @@ void debug_fp_clip_note(const float *world, int32_t effect_type)
         clip[3] != 0.0f ? clip[0] / clip[3] : 0.0f, clip[3] != 0.0f ? clip[1] / clip[3] : 0.0f,
         clip[3] != 0.0f ? clip[2] / clip[3] : 0.0f, projection[2 * 4 + 2], projection[3 * 4 + 2]);
 }
+
+// TEMPORARY (2026-09-27): D3D state at each first-person model draw call. render_model arms
+// debug_fp_state_armed around model_render_parts for the first-person flags (8); the two indexed-draw wrappers
+// call this with the DrawIndexedPrimitive HRESULT. Logs the first 3 armed frames' draws (capped at 40 lines).
+extern void *rasterizer_device; // 0x0071d174
+int32_t debug_fp_state_armed;
+static int32_t debug_fp_state_lines;
+
+typedef int32_t (__stdcall *debug_get_render_state_fn)(void *self, uint32_t state, uint32_t *value);
+typedef int32_t (__stdcall *debug_get_viewport_fn)(void *self, uint32_t *viewport);
+typedef int32_t (__stdcall *debug_get_pointer_fn)(void *self, void **out);
+typedef int32_t (__stdcall *debug_get_texture_fn)(void *self, uint32_t stage, void **out);
+
+void debug_fp_draw_state_note(const char *site, int32_t hresult, uint32_t primitive_type, uint32_t vertex_count,
+    uint32_t primitive_count)
+{
+    void **vtable;
+    uint32_t rs[16];
+    static const uint32_t states[16] = {
+        7, 14, 23, 22, 27, 19, 20, 15, 24, 25, 52, 56, 57, 58, 59, 168
+    }; // ZENABLE ZWRITE ZFUNC CULL ABLEND SRC DST ATEST AREF AFUNC STENCIL SFUNC SREF SMASK SWMASK COLORWRITE
+    uint32_t viewport[6];
+    void *vs = 0;
+    void *ps = 0;
+    void *tex0 = 0;
+    int32_t i;
+
+    if (!debug_fp_state_armed || debug_fp_state_lines >= 40 || rasterizer_device == 0) {
+        return;
+    }
+    debug_fp_state_lines++;
+    vtable = *(void ***)rasterizer_device;
+    for (i = 0; i < 16; i++) {
+        rs[i] = 0xdeadbeef;
+        ((debug_get_render_state_fn)vtable[0xe8 / 4])(rasterizer_device, states[i], &rs[i]);
+    }
+    for (i = 0; i < 6; i++) {
+        viewport[i] = 0;
+    }
+    ((debug_get_viewport_fn)vtable[0xc0 / 4])(rasterizer_device, viewport);
+    ((debug_get_pointer_fn)vtable[0x174 / 4])(rasterizer_device, &vs);
+    ((debug_get_pointer_fn)vtable[0x1b0 / 4])(rasterizer_device, &ps);
+    ((debug_get_texture_fn)vtable[0x100 / 4])(rasterizer_device, 0, &tex0);
+    standalone_log("DIAG fpstate %s hr=%08x prim=%u verts=%u count=%u z=%u zw=%u zf=%u cull=%u ab=%u src=%u dst=%u "
+                   "at=%u aref=%u af=%u st=%u sf=%u sref=%u smask=%x swmask=%x cw=%x vp=(%u %u %u %u %.3f %.3f) "
+                   "vs=%p ps=%p tex0=%p",
+        site, (uint32_t)hresult, primitive_type, vertex_count, primitive_count,
+        rs[0], rs[1], rs[2], rs[3], rs[4], rs[5], rs[6], rs[7], rs[8], rs[9], rs[10], rs[11], rs[12], rs[13], rs[14],
+        rs[15], viewport[0], viewport[1], viewport[2], viewport[3], *(float *)&viewport[4], *(float *)&viewport[5],
+        vs, ps, tex0);
+    // GetVertexShader / GetPixelShader / GetTexture AddRef what they return
+    if (vs != 0) ((int32_t (__stdcall *)(void *))(*(void ***)vs)[2])(vs);
+    if (ps != 0) ((int32_t (__stdcall *)(void *))(*(void ***)ps)[2])(ps);
+    if (tex0 != 0) ((int32_t (__stdcall *)(void *))(*(void ***)tex0)[2])(tex0);
+}
+
+void debug_fp_state_arm(int32_t armed)
+{
+    debug_fp_state_armed = armed;
+}

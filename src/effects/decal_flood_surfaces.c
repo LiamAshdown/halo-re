@@ -39,7 +39,7 @@ extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98,
 
 // 0x006b0a18, the two ping-pong clip buffers; 0x60 bytes each, indexed by the low bit of the
 // edge ordinal. Ghidra sees the individual floats as DAT_006b0a18/1c/20/24.
-extern real_point2d decal_clip_buffers[2][12];
+extern real_point2d decal_clip_buffers[2][12]; // 0x006b0a18
 
 extern void structure_bsp_plane_fetch_signed(real_plane3d *out, void *planes_owner, int32_t signed_index);
     // 0x44dad0, src/structures; blam-cc: EAX out, stack planes_owner, EDX signed_index

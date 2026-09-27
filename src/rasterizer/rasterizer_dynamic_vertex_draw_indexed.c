@@ -17,6 +17,8 @@
 #include "rasterizer.h"
 
 extern void *rasterizer_device;                                     // 0x0071d174
+extern void debug_fp_draw_state_note(const char *site, int32_t hresult, uint32_t primitive_type,
+    uint32_t vertex_count, uint32_t primitive_count); // TEMPORARY first-person diagnostics
 extern uint8_t rasterizer_software_vertex_processing;               // 0x0069c680
 extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count]; // 0x006e1a90
 extern int16_t rasterizer_vertex_sizes[k_rasterizer_vertex_type_count]; // 0x0065de00
@@ -62,10 +64,13 @@ void rasterizer_dynamic_vertex_draw_indexed(rasterizer_index_buffer *index_buffe
         buffer = handle == 0 ? 0 : (void *)rasterizer_vertex_buffer_slots[handle - 1].hardware_buffer;
         ((d3d_set_stream_source_fn)device_vtable()[0x190 / 4])(rasterizer_device, 0, buffer, 0, stride);
         ((d3d_set_pointer_fn)device_vtable()[0x1a0 / 4])(rasterizer_device, (void *)index_buffer->hardware_buffer);
-        ((d3d_draw_indexed_primitive_fn)device_vtable()[0x148 / 4])(rasterizer_device,
+        {
+            int32_t debug_hr = ((d3d_draw_indexed_primitive_fn)device_vtable()[0x148 / 4])(rasterizer_device,
                                                                     rasterizer_triangle_buffer_primitive_types[index_buffer->type],
                                                                     vertex_slot->first_vertex, 0, (uint32_t)vertex_slot->vertex_count,
                                                                     start_index, (uint32_t)chunk);
+            debug_fp_draw_state_note("vdi", debug_hr, 0, (uint32_t)vertex_slot->vertex_count, (uint32_t)chunk); // TEMPORARY
+        }
         primitive_count -= chunk;
         switch (index_buffer->type) {
         case 0:                                                 // triangle list
