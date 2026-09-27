@@ -1,6 +1,6 @@
 // actor_target_is_visible_or_object_count_ok  (Ghidra: actor_target_is_visible_or_object_count_ok, renamed)
 // address 0x40f700, size 145 bytes
-// name confidence: 0.35   rewrite confidence: 0.4
+// name confidence: 0.35   rewrite confidence: 0.9 (VERIFIED against objdump 0x40f700..0x40f790)
 // evidence: phase-4 summary "for grenade-target kind 3, revalidates that the previously
 // chosen target is still a good throw candidate"; the only kind handled specially (3)
 // checks the recognized prop's relationship_object_index, then, failing that, counts

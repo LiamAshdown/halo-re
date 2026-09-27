@@ -1,6 +1,6 @@
 // actor_score_blast_area_clear  (Ghidra: actor_score_blast_area_clear, renamed)
 // address 0x410da0, size 979 bytes
-// name confidence: 0.35   rewrite confidence: 0.2
+// name confidence: 0.35   rewrite confidence: 0.9 (VERIFIED against objdump 0x410da0..0x411172)
 // evidence: phase-4 summary "scores hostiles within a blast radius of a point and checks
 // no friendlies are within a safety radius, returning whether the spot is clear to throw
 // at"; confirmed callers actor_can_throw_grenade_at_target (0x40d9c0),

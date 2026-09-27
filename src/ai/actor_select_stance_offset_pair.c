@@ -1,6 +1,6 @@
 // actor_select_stance_offset_pair  (Ghidra: actor_select_stance_offset_pair, renamed)
 // address 0x4106b0, size 95 bytes
-// name confidence: 0.3   rewrite confidence: 0.4
+// name confidence: 0.3   rewrite confidence: 0.95 (VERIFIED against objdump 0x4106b0..0x41070e)
 // evidence: phase-4 summary "selects which stance-specific offset pair (crouching,
 // in-cover, leaning) to use for subsequent position math"; types/ai.h actor+0x378 is
 // documented as "stance selector read by 0x4106b0" already.
