@@ -1,6 +1,6 @@
 // actor_get_relevant_squad_member_target  (Ghidra: actor_get_relevant_squad_member_target; named from out/phase2/results/ai_02.json)
 // address 0x41f550, size 345 bytes
-// name confidence: 0.4   rewrite confidence: 0.25
+// name confidence: 0.4   rewrite confidence: 0.9 (VERIFIED against 0x41f550 (recent damage records, gunner/driver resolution, prop lookup ECX actor, kind/unit filters, newest tick))
 // evidence: out/phase2/results/ai_02.json -- iterates a squad member's fixed 4-entry
 //   recent-attacker table (unit.recent_damage[4] at unit+0x430, types/units.h), resolving each
 //   attacker (preferring a vehicle's gunner, then driver, then the attacker itself) via
