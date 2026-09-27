@@ -1,6 +1,6 @@
 // encounter_evaluate_platoon_condition  (Ghidra: encounter_evaluate_platoon_condition, renamed)
 // address 0x439f20, size 285 bytes
-// name confidence: 0.35  rewrite confidence: 0.45
+// name confidence: 0.35  rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x439f20..0x43a03c (jump table 0x43a040 codes 0..9; 0.75/0.5/0.25).)
 // evidence: types/ai.h encounter (platoon_count +0x0a, first_platoon +0x08, confirmed) /
 //   encounter_platoon_state (member_count +0x04, confirmed by this function reading it right
 //   after the (first_platoon+index)*0x10 address computation). phase-4 summary "evaluates

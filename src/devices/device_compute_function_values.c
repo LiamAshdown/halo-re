@@ -2,7 +2,7 @@
 // out/phase4/devices_types_notes.md: "device_get_change_function_values" was phase 2's guess,
 // but this fills object.function_in_values, the input side)
 // address 0x44ba10, size 501 bytes
-// name confidence: 0.5   rewrite confidence: 0.45
+// name confidence: 0.5   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x44ba10..0x44bc03 (jump table 0x44bc08; locked: machine type 7, group flags bits 0+1, position bitwise 1.0 or never-locked).)
 // evidence: types/tags.h DeviceIn (the six selector values switched on, already documented in
 //   that exact order in types/tags.h's own comment), Device (device_a_in..device_d_in 0x198,
 //   inverse_power_transition_time 0x278, inverse_position_transition_time 0x288,
@@ -81,7 +81,7 @@ void device_compute_function_values(uint32_t object_index)
             }
             break;
         case devicein_delay:
-            if (tag->delay_time_ticks > 0.0f && (float)dev->delay_ticks != tag->delay_time_ticks) {
+            if (!(tag->delay_time_ticks <= 0.0f) && (float)dev->delay_ticks != tag->delay_time_ticks) { // 0x44bbd8: test ah,0x41 / jnp
                 value = (float)dev->delay_ticks / tag->delay_time_ticks;
             }
             break;
