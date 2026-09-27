@@ -67,7 +67,8 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void object_list_membership_set(uint32_t object_index, char add); // 0x4f7450, objects module
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
     object_marker *marker, uint32_t flags); // 0x4f6080
-extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index); // 0x4f5350, UNSURE convention, see item_accelerate.c
+extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index,
+    bsp_leaf_reference *location); // 0x4f5350, ESI, EDI, stack (location may be 0)
 extern void object_delete(uint32_t object_index); // 0x4f5bd0
 extern void item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_detonation_timer); // 0x4bd080, this batch
 extern void item_compute_rotation(uint32_t object_index); // 0x4bd500, this batch, EAX -> object_index
@@ -283,7 +284,7 @@ int item_update(uint32_t item_index)
             // argument here, on top of ESI = &predicted and EDI = item_index. The extern below
             // keeps the two-argument shape the rest of the codebase uses for this function, so
             // that third argument is not expressible; it is the same block material_effects_play_at_marker gets.
-            object_set_position_and_relink(&predicted, item_index);
+            object_set_position_and_relink(&predicted, item_index, (bsp_leaf_reference *)(hit_record + 0x0c)); // [esp+0x3c]
         } else if ((tag->item_flags & 0x04) == 0) {
             // ---------------- resting: re-validate the surface/object ----------------
             object_marker marker;

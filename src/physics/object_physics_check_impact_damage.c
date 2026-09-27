@@ -85,7 +85,8 @@ extern uint8_t physics_shape_test_point(physics_model *model, real_point3d *poin
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, math module
     // (src/math/vector3d_normalize_with_length.c); normalizes in place, returns the old length
 extern void unit_apply_impulse(void); // 0x559fa0, units module, UNSURE args
-extern void object_set_position_and_relink(uint32_t param_1); // 0x4f5350, objects module; UNSURE
+extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index,
+    bsp_leaf_reference *location); // 0x4f5350, ESI, EDI, stack (location may be 0)
                                                                 // args, see file header
 extern void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t node_index,
     int16_t param_4, int16_t material_index, uint32_t param_6); // 0x4ee5e0, objects module
@@ -176,7 +177,8 @@ uint8_t object_physics_check_impact_damage(uint32_t *self_object_index, uint32_t
             &recovered_position);
         if (recovered) {
             recovered_position.z = recovered_position.z - sample[1];
-            object_set_position_and_relink(0); // UNSURE args, see file header
+            // 0x508de2: ESI = the recovered position, EDI = the candidate, no location
+            object_set_position_and_relink(&recovered_position, candidate_object_index, 0);
 
             // candidate +0x32c / +0x330 are unit_data.last_parent_object_index and
             // last_seat_change_tick (types/units.h): a unit that just dismounted from this very

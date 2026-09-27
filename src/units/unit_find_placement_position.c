@@ -33,8 +33,9 @@ extern real_vector3d *global_up3d_pointer; // 0x00696720
 extern real_vector3d unit_placement_candidate_offsets[]; // 0x0065e660/64/68 interleaved as 3 floats per candidate; UNSURE bound
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
-extern void object_set_position_and_relink(void *position_and_flags); // 0x4f5350, UNSURE exact args
-  // real signature (object_set_position_and_relink.c): void object_set_position_and_relink(real_point3d *position, uint32_t object_index); Ghidra recovered 1 of 2 args at this call site
+extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index,
+    bsp_leaf_reference *location); // 0x4f5350, ESI, EDI, stack (location may be 0)
+
 extern void *memcpy(void *dst, const void *src, uint32_t n);
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
 extern void unit_get_crouch_height_offset(uint32_t object_index, float *pill_height,
@@ -181,7 +182,9 @@ have_reference:
                                         if (reference_index != k_datum_index_none && skip_reposition == 0) {
                                             reference->position = candidate;
                                             object_recalculate_bounding_radius_recursive(reference_index);
-                                            object_set_position_and_relink(creation_snapshot);
+                                            // 0x55a9b5: ESI = candidate, EDI = reference, stack = the leaf the
+                                            // argless scenario_location_from_point above fills ([esp+0x68]); OPEN
+                                            object_set_position_and_relink(&candidate, reference_index, 0);
                                         }
                                         if (out_position != 0) {
                                             *out_position = candidate;

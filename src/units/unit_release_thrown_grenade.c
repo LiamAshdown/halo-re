@@ -54,7 +54,8 @@ extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operan
 extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);  // 0x4f6610
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX=out, ECX=object_index
 extern void unit_get_camera_position(uint32_t unit_index, real_point3d *out); // 0x568f80, UNSURE signature
-extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index); // 0x4f5350
+extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index,
+    bsp_leaf_reference *location); // 0x4f5350, ESI, EDI, stack (location may be 0)
 extern void actor_compute_grenade_throw_vector(real_point3d *target, real_vector3d *out); // 0x410a60, UNSURE signature
 extern real random_real_range(real min, real max); // 0x401050
 extern void object_apply_impulse_and_spin(uint32_t object_index, real_vector3d *impulse); // 0x4bef80, UNSURE signature
@@ -116,7 +117,7 @@ void unit_release_thrown_grenade(uint32_t object_index, uint8_t apply_throw_frac
             launch_point.x += true_up.i * up_offset + right.i * right_offset + aim.i * forward_offset;
             launch_point.y += true_up.j * up_offset + right.j * right_offset + aim.j * forward_offset;
             launch_point.z += true_up.k * up_offset + right.k * right_offset + aim.k * forward_offset;
-            object_set_position_and_relink(&launch_point, projectile_index);
+            object_set_position_and_relink(&launch_point, projectile_index, 0);
         }
 
         {

@@ -52,7 +52,8 @@ extern void item_compute_rotation(uint32_t object_index); // 0x4bd500, this batc
 extern void object_list_membership_set(uint32_t object_index, char add); // 0x4f7450, objects module
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
     object_marker *marker, uint32_t flags); // 0x4f6080
-extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index); // 0x4f5350, UNSURE convention at this call site, see file header
+extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index,
+    bsp_leaf_reference *location); // 0x4f5350, ESI, EDI, stack (location may be 0)
 extern void structure_bsp_plane_fetch_signed(real_plane3d *out, void *planes_owner, int32_t signed_index); // 0x44dad0, src/structures;
     // blam-cc: EAX out, EDX signed_index, stack planes_owner
     // UNSURE signature (EAX -> out, EDX -> plane_index, stack -> bsp_globals, per disassembly);
@@ -107,7 +108,7 @@ void item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_de
             corrected_position.y = plane.normal.j * correction + marker_position.y;
             corrected_position.z = plane.normal.k * correction + marker_position.z;
 
-            object_set_position_and_relink(&corrected_position, item_index);
+            object_set_position_and_relink(&corrected_position, item_index, 0);
         }
         obj->flags &= ~(uint32_t)_object_at_rest_bit;
         item->flags &= ~(uint32_t)_item_at_rest_on_structure_bit;

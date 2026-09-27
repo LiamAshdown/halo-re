@@ -1354,3 +1354,12 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   order helpers without operands. Runs after every spoken line (unit_update_animation_timers).
 - ai_dispatch_queued_order 0x42f840 REWRITTEN (-> 0.9): takes the actor on the stack (was dropped); count is the
   header word +0xe, target +0x10, variant +0xc; both vocalize calls now get their register operands.
+- unit_process_melee_special_interaction 0x56ff40 REWRITTEN as the whole 610-byte function with its 7 stack args
+  (infection forms: die on frying shields / attach to the struck node). biped_integrate_movement_with_collision's
+  lunge trace (0x55de09) passed a float as a pointer to ray_intersects_sphere_test (crash on any biped melee lunge
+  that reaches it) and no operands to the context build / plane transform / special interaction: fixed.
+- object_set_position_and_relink 0x4f5350 takes a third (stack) arg, the leaf location, passed to 0x4f5c30 (was
+  always 0). Callers fixed: item_update (record leaf), impact damage 0x508e04 and the aim-teleport 0x56bfc0 (both
+  relinked a NULL position -> crash when reached), placement 0x55a9c3 (wrong buffer; OPEN: pass its leaf once
+  unit_find_placement_position is rewritten), accelerate / detonate / grenade release (0).
+- unit_sample_camera_shake_from_velocity 0x56bfc0 is really "teleport to the aim point" (rewritten, 0.95).

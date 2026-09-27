@@ -1,5 +1,5 @@
 // unit_sample_camera_shake_from_velocity  (Ghidra: FUN_0056bfc0)
-// address 0x56bfc0, size 168 bytes, name confidence 0.3, rewrite confidence 0.3
+// address 0x56bfc0, size 168 bytes, name confidence 0.1 (really a teleport to the aim point), rewrite confidence 0.95
 // functions.md: "Samples a value derived from the unit's scaled velocity and, above a 0.95
 // threshold, bumps an accumulator and triggers FUN_004f5350 (likely a camera or effect
 // trigger)."
@@ -15,30 +15,38 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+#include "physics.h"
+#include "projectiles.h"
 
 extern data_array *object_data; // 0x008603b0
 
-extern void unit_get_camera_position(uint32_t unit_index, real_point3d *out); // 0x568f80
-extern uint8_t collision_test_movement_segment(int32_t kind, uint8_t *out_block, real_vector3d *scaled_velocity); // 0x505880, UNSURE signature
-extern void object_set_position_and_relink(uint32_t param_1); // 0x4f5350, UNSURE signature  // real signature (object_set_position_and_relink.c): void object_set_position_and_relink(real_point3d *position, uint32_t object_index); Ghidra recovered 1 of 2 args at this call site
+extern void unit_get_camera_position(uint32_t unit_index, real_point3d *out); // 0x568f80, ECX, EDI
+extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
+    uint32_t exclude_object_index, collision_result *result); // 0x505880
+extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index,
+    bsp_leaf_reference *location); // 0x4f5350, ESI, EDI, stack (location may be 0)
 
-void unit_sample_camera_shake_from_velocity(uint32_t unit_index) // blam-cc: unaff_EBX
+// REWRITTEN from objdump 0x56bfc0..0x56c067: casts 25 along the aim from the camera (mask 0x22, ignoring the unit);
+// on a floor (normal.k > 0.95) the unit is moved 0.25 above the hit point. A debug "teleport to aim" reached from
+// game_engine_update_local_player_control; the draft relinked a NULL position.
+void unit_sample_camera_shake_from_velocity(uint32_t unit_index) // blam-cc: EBX -> unit_index
 {
-    object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
     real_point3d camera_position;
-    unit_get_camera_position(unit_index, &camera_position);
+    real_vector3d delta;
+    collision_result hit;
 
-    real_vector3d scaled = { unit->aiming_vector.i * 25.0f, unit->aiming_vector.j * 25.0f, unit->aiming_vector.k * 25.0f };
-    uint8_t out_block[44];
-    uint8_t result = collision_test_movement_segment(0x22, out_block, &scaled);
-    float sampled = *(float *)(out_block + 24); // local_24, UNSURE exact field
-    if ((result != 0) && (0.95f < sampled)) {
-        float *accumulator = (float *)(out_block + 0); // local_30, UNSURE exact field
-        *accumulator = *accumulator + 0.25f;
-        object_set_position_and_relink(0);
+    unit_get_camera_position(unit_index, &camera_position);
+    delta.i = *(float *)(obj + 0x23c) * 25.0f;
+    delta.j = *(float *)(obj + 0x240) * 25.0f;
+    delta.k = *(float *)(obj + 0x244) * 25.0f;
+    if (collision_test_movement_segment(0x22, &camera_position, &delta, unit_index, &hit) &&
+        hit.plane.normal.k > 0.95f) {
+        real_point3d position = hit.point;
+
+        position.z += 0.25f;
+        object_set_position_and_relink(&position, unit_index, 0);
     }
-    return;
 }
 
 #if 0

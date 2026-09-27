@@ -1,26 +1,17 @@
-// unit_process_melee_special_interaction  (Ghidra: FUN_0056ff40; renamed from the phase2
-//   proposal)
-// address 0x56ff40, size 512 bytes
+// unit_process_melee_special_interaction  (Ghidra: FUN_0056ff40; renamed from the phase2 proposal)
+// address 0x56ff40, size 610 bytes
 // name confidence: 0.3 (phase2 proposal at 0.3, matches functions.md summary)
-// rewrite confidence: 0.2
-// evidence: types/tags.h UnitFlags bit 0x1000 = impact_melee_attaches_to_unit, bit 0x2000 =
-//   impact_melee_dies_on_shields, bit 0x400000 = shields_fry_infection_forms (the attacker's
-//   own tag flags, at absolute tag offset 0x17c = Unit.unit_flags); types/objects.h object.type
-//   (0x0b4), .shield_vitality (0x0e4), .vitality_flags (0x106), .parent_object (0x11c),
-//   .flags (0x010), .up (0x080); types/units.h unit_data.flags (0x204); callees
-//   unit_cause_melee_damage (0x56f2d0, this batch), object_set_health_frozen_flag,
-//   object_delete, vector3d_cross_product (0x4052c0, established elsewhere in this module).
-// register convention: attacking unit index in EAX (in_EAX), target unit index on the stack
-//   (param_1).
-//   // blam-cc: EAX -> attacker_index, stack -> target_index
-// UNSURE: the three zero-argument calls in the first branch (unit_cause_melee_damage,
-//   object_set_health_frozen_flag, object_delete) are guessed to act on the target and the
-//   attacker respectively, matching the "attacker dies from touching a shielded target that
-//   fries infection forms" reading of the flag combination.
-// UNSURE: the orthonormal-basis rebuild (the two vector3d_cross_product/normalize pairs) and the
-//   final object_set_position_and_relink / object_attach_to_object calls are register-only in
-//   the decompile; the basis construction is reproduced with raw offsets into the attacker
-//   object rather than named fields, since it is only partially legible.
+// rewrite confidence: 0.9
+// REWRITTEN from objdump 0x56ff40..0x5701a1 (the whole function; 0x570140 "unit_detach_from_parent" is its tail).
+//   EAX: attacker, stack: (target, node word pair, region word pair, material dword, contact point, contact plane,
+//   contact leaf) as the biped lunge trace (0x55dfbe) builds them. A melee that dies on shields (Unit flag 0x2000,
+//   an infection form) against a shielded biped whose tag fries infection forms (0x400000) deals its melee damage
+//   and deletes the attacker. One that attaches (0x1000) to a biped or vehicle (not dying, not already carrying the
+//   attacker through a vehicle chain) stops, faces into the contact plane (forward = -normal, left from forward x up,
+//   falling back to global up then global forward), moves to the contact point in its leaf, attaches to the target at
+//   the struck node, is flagged (object 0x20, unit 0x8000) and readies its weapon.
+// blam-cc: EAX -> attacker_index, stack -> target_index, node_pair, region_pair, material, contact_point,
+//   contact_plane, contact_leaf
 
 #include "tags.h"
 #include "memory.h"
@@ -28,90 +19,85 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "physics.h"
 
-extern data_array *object_data;      // 0x008603b0
-extern tag_instance *tag_instances;  // 0x0087bc14
-extern real_vector3d *global_up3d_pointer; // 0x00696720
+extern data_array *object_data;     // 0x008603b0
+extern tag_instance *tag_instances; // 0x0087bc14
+extern real_vector3d *global_zero_vector3d_pointer; // 0x00696714
+extern real_vector3d *global_forward3d_pointer;     // 0x00696718
+extern real_vector3d *global_up3d_pointer;          // 0x00696720
 
-extern void unit_cause_melee_damage(uint32_t unit_index, uint8_t suppress_effect,
-    uint32_t target_object_index, int16_t p4, int16_t p5, int16_t p6, uint32_t p7); // 0x56f2d0
-extern void object_set_health_frozen_flag(uint32_t object_index); // 0x4eda20, UNSURE signature
-extern void object_delete(uint32_t object_index); // 0x4f5bd0, UNSURE exact signature
-extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand,
-                                    real_vector3d *stack_operand); // 0x4052c0
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, in place
-extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index); // 0x4f5350
-extern void object_attach_to_object(uint32_t parent_index, uint32_t child_index,
-                                     uint32_t marker_word); // 0x4f6440
-extern void unit_try_ready_weapon(int32_t a, int32_t b); // 0x569a20, sets melee_state per other files' evidence  // real signature (unit_try_ready_weapon.c): uint8_t unit_try_ready_weapon(uint32_t unit_index, uint8_t is_melee, int32_t fire_trigger_event); Ghidra recovered 2 of 3 args at this call site
+extern void unit_cause_melee_damage(uint32_t unit_index, uint8_t suppress_effect, uint32_t target_object_index,
+    int16_t damage_param4, int16_t damage_param5, int16_t damage_param6, uint32_t damage_param7); // 0x56f2d0
+extern void object_set_health_frozen_flag(uint32_t object_index); // 0x4eda20, EAX
+extern void object_delete(uint32_t object_index); // 0x4f5bd0, EAX
+extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0
+extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index,
+                                           bsp_leaf_reference *location); // 0x4f5350, ESI, EDI, stack
+extern void object_attach_to_object(uint32_t parent_index, uint32_t child_index, int16_t marker_index); // 0x4f6440
+extern uint8_t unit_try_ready_weapon(uint32_t unit_index, uint8_t forced, const real_vector2d *direction); // 0x569a20, EDI, stack
 
-// Handles special melee interactions between two units based on the attacker's own tag flags:
-// impact_melee_dies_on_shields (kills the attacker and freezes/melees the target when the
-// target is a shielded biped whose own tag fries infection forms), or
-// impact_melee_attaches_to_unit (climbs the target's vehicle-parent chain and, if it reaches a
-// distinct root, repositions and attaches the attacker onto it).
-void unit_process_melee_special_interaction(uint32_t attacker_index, uint32_t target_index)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+
+void unit_process_melee_special_interaction(uint32_t attacker_index, uint32_t target_index, uint32_t node_pair,
+                                            uint32_t region_pair, uint32_t material, real_point3d *contact_point,
+                                            real_plane3d *contact_plane, bsp_leaf_reference *contact_leaf)
 {
-    object *attacker = ((object_header *)object_data->data)[attacker_index & 0xffff].data;
-    UnitFlags attacker_flags = ((Unit *)tag_instances[attacker->definition_tag & 0xffff].data)->unit_flags;
-    object *target = ((object_header *)object_data->data)[target_index & 0xffff].data;
+    uint8_t *attacker = OBJECT_DATA(attacker_index);
+    uint32_t unit_flags = *(uint32_t *)(TAG_DATA(*(datum_index *)attacker) + 0x17c);
+    uint8_t *target = OBJECT_DATA(target_index);
 
-    if ((attacker_flags & 0x2000) != 0 && target->type == 0 && target->shield_vitality > 0.0f &&
-        (((Unit *)tag_instances[target->definition_tag & 0xffff].data)->unit_flags & 0x400000) != 0) {
-        unit_cause_melee_damage(target_index, 0, 0xffffffff, -1, -1, -1, 0);
+    if ((unit_flags & 0x2000) && *(int16_t *)(target + 0xb4) == 0 && *(float *)(target + 0xe4) > 0.0f &&
+        (*(uint32_t *)(TAG_DATA(*(datum_index *)target) + 0x17c) & 0x400000)) {
+        // 0x56ffc6: an infection form touching a frying shield
+        unit_cause_melee_damage(attacker_index, 1, target_index, (int16_t)node_pair, (int16_t)region_pair,
+                                (int16_t)material, (uint32_t)contact_plane);
         object_set_health_frozen_flag(attacker_index);
         object_delete(attacker_index);
         return;
     }
+    if (!(unit_flags & 0x1000) || !((1u << (target[0xb4] & 0x1f)) & 3) || (target[0x106] & 4)) {
+        return;
+    }
+    {
+        datum_index parent = *(datum_index *)(target + 0x11c);
 
-    if ((attacker_flags & 0x1000) != 0 && (1 << (target->type & 0x1f) & 3) != 0 &&
-        (target->vitality_flags & 4) == 0) {
-        uint32_t chain = target->parent_object;
+        while (parent != k_datum_index_none) {
+            uint8_t *p = OBJECT_DATA(parent);
 
-        if (chain != k_datum_index_none) {
-            do {
-                object *link = ((object_header *)object_data->data)[chain & 0xffff].data;
-                if (chain == attacker_index) {
-                    return;
-                }
-                if (link->type != 1) {
-                    return;
-                }
-                chain = link->parent_object;
-            } while (chain != k_datum_index_none);
-        }
-
-        {
-            // UNSURE: this rebuilds attacker->up (0x080) and attacker->forward (0x074) from
-            // the target's position/forward via the world-up constant, mirroring the
-            // orthonormal-basis idiom used elsewhere; the exact registers are not recoverable.
-            real_vector3d *up = (real_vector3d *)((uint8_t *)attacker + 0x80);
-            real_vector3d *forward = (real_vector3d *)((uint8_t *)attacker + 0x74);
-            real_point3d target_forward_negated;
-
-            *up = *global_up3d_pointer;
-            target_forward_negated.x = -target->forward.i;
-            target_forward_negated.y = -target->forward.j;
-            target_forward_negated.z = -target->forward.k;
-            *forward = *(real_vector3d *)&target_forward_negated;
-
-            vector3d_cross_product(up, forward, up);
-            if (vector3d_normalize_with_length(up) == 0.0f) {
-                *up = *global_up3d_pointer;
-                vector3d_normalize_with_length(up);
+            if (parent == attacker_index || *(int16_t *)(p + 0xb4) != 1) {
+                return;
             }
-            vector3d_cross_product(forward, up, forward);
-
-            object_set_position_and_relink(&target->position, attacker_index); // UNSURE: position source
-            object_attach_to_object(target_index, attacker_index, 0); // UNSURE: marker word
-            attacker->flags |= 0x20;
-            {
-                unit_data *attacker_unit = (unit_data *)((uint8_t *)attacker + k_unit_data_offset);
-                attacker_unit->flags |= 0x8000;
-            }
-            unit_try_ready_weapon(1, 0);
+            parent = *(datum_index *)(p + 0x11c);
         }
     }
+    {
+        real_vector3d *forward = (real_vector3d *)(attacker + 0x74);
+        real_vector3d *up = (real_vector3d *)(attacker + 0x80);
+        real_vector3d left;
+
+        *(real_vector3d *)(attacker + 0x68) = *global_zero_vector3d_pointer;
+        *(real_vector3d *)(attacker + 0x8c) = *global_zero_vector3d_pointer;
+        *forward = contact_plane->normal;
+        forward->i = -forward->i;
+        forward->j = -forward->j;
+        forward->k = -forward->k;
+        vector3d_cross_product(&left, forward, up);
+        if (vector3d_normalize_with_length(&left) == 0.0f) {
+            vector3d_cross_product(&left, forward, global_up3d_pointer);
+            if (vector3d_normalize_with_length(&left) == 0.0f) {
+                left = *global_forward3d_pointer;
+            }
+        }
+        vector3d_cross_product(up, &left, forward);
+    }
+    object_set_position_and_relink(contact_point, attacker_index, contact_leaf);
+    object_attach_to_object(target_index, attacker_index, (int16_t)node_pair);
+    *(uint32_t *)(attacker + 0x10) |= 0x20;
+    *(uint32_t *)(attacker + 0x204) |= 0x8000;
+    unit_try_ready_weapon(attacker_index, 1, 0);
 }
 
 #if 0

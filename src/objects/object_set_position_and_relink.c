@@ -21,14 +21,16 @@ extern data_array *object_data; // 0x008603b0
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0, this batch
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30, this batch; NULL location probes it
 
-void object_set_position_and_relink(real_point3d *position, uint32_t object_index)
-    // blam-cc: ESI -> position, EDI -> object_index
+// FIXED (objdump 0x4f5379): the stack argument is the new leaf location, passed straight to 0x4f5c30 (0 there
+//   means "find the leaf from the bounding centre"); the draft always passed 0.
+void object_set_position_and_relink(real_point3d *position, uint32_t object_index, bsp_leaf_reference *location)
+    // blam-cc: ESI -> position, EDI -> object_index, stack -> location
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
 
     object_unlink_cluster_or_notify_parent(object_index);
     *(real_point3d *)((uint8_t *)obj + 0x5c) = *position;
-    object_set_cluster_and_parent(object_index, 0); // UNSURE: flag argument not visible here
+    object_set_cluster_and_parent(object_index, location);
 }
 
 #if 0

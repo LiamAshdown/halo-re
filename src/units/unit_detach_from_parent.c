@@ -34,7 +34,8 @@
 
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand,
                                     real_vector3d *stack_operand); // 0x4052c0, UNSURE args here
-extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index); // 0x4f5350
+extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index,
+    bsp_leaf_reference *location); // 0x4f5350
 extern void object_attach_to_object(uint32_t parent_index, uint32_t child_index,
                                      uint32_t marker_word); // 0x4f6440
 extern void unit_try_ready_weapon(int32_t a, int32_t b); // 0x569a20  // real signature (unit_try_ready_weapon.c): uint8_t unit_try_ready_weapon(uint32_t unit_index, uint8_t is_melee, int32_t fire_trigger_event); Ghidra recovered 2 of 3 args at this call site
@@ -46,7 +47,7 @@ void unit_detach_from_parent(object *obj, uint32_t unit_index, real_vector3d *cr
                               real_point3d *reposition_target)
 {
     vector3d_cross_product(cross_out, cross_ecx_operand, cross_stack_operand);
-    object_set_position_and_relink(reposition_target, unit_index);
+    object_set_position_and_relink(reposition_target, unit_index, 0);
     object_attach_to_object(unit_index, unit_index, 0); // UNSURE: real arguments not recoverable
 
     obj->flags |= 0x20;

@@ -72,7 +72,8 @@ extern real_vector3d *global_down3d_pointer; // 0x0069672c, PTR_DAT_0069672c
 extern real random_real(void); // 0x4019f0, math module
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900
 extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up); // 0x4f6970
-extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index); // 0x4f5350
+extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index,
+    bsp_leaf_reference *location); // 0x4f5350, ESI, EDI, stack (location may be 0)
 extern void object_recalculate_bounding_radius(uint32_t object_index); // 0x4f8310
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t param_3,
@@ -173,7 +174,7 @@ void projectile_detonate(uint32_t object_index, char first_collision, real remai
             object_get_position(&relink_position, object_index); // UNSURE elided destination
             object_snap_to_parent_marker_and_detach(object_index); // UNSURE signature
             relink_position = obj->position; // the raw re-read the original does here
-            object_set_position_and_relink(&relink_position, object_index);
+            object_set_position_and_relink(&relink_position, object_index, 0);
             object_reposition_to_spawn_location(); // UNSURE: zero visible args, see file header
             object_recalculate_bounding_radius_recursive(object_index);
         }

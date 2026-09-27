@@ -40,6 +40,8 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "physics.h"
+#include "projectiles.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -73,13 +75,14 @@ extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification)
     // 0x46fe10, blam-cc: stack -> zoom_table_index, CX -> magnification (every caller passes the difficulty)
 extern uint8_t *main_game_globals; // 0x006b0b80 game globals *, +0x0e difficulty
 extern uint8_t actor_check_vehicle_mode_timeout(datum_index actor_index); // 0x428270, blam-cc: ECX -> actor_index (object+0x1f4 at both call sites)
-extern int8_t ray_intersects_sphere_test(float radius);               // 0x4ce6c0, UNSURE: register args  // real signature (ray_intersects_sphere_test.c): uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *origin, real_vector3d *direction, real radius); Ghidra recovered 1 of 4 args at this call site
-extern void matrix4x3_transform_plane(void);                          // 0x4cbf10, UNSURE: register args  // real signature (matrix4x3_transform_plane.c): void matrix4x3_transform_plane(real_plane3d *out, real_matrix4x3 *m, real_plane3d *plane); Ghidra recovered 0 of 3 args at this call site
+extern uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *origin, real_vector3d *direction,
+    real radius); // 0x4ce6c0, ECX center, EAX origin, EDX direction, stack radius
+extern void matrix4x3_transform_plane(real_plane3d *out, real_matrix4x3 *m, real_plane3d *plane); // 0x4cbf10, EAX, ECX, EDX
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30, src/objects
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0, EAX -> object_index (src/objects)
-extern int8_t object_collision_context_build(void);                                     // 0x504e10, collision module
-extern int8_t object_collision_context_test_segment(real_plane3d *out_plane, int32_t mask, real_point3d *origin,
-                            real_vector3d *delta, void *out_record);  // 0x504f60, UNSURE signature
+extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context); // 0x504e10, EDI, ECX
+extern uint8_t object_collision_context_test_segment(object_collision_context *context, uint32_t flags,
+    real_point3d *origin, real_vector3d *delta, object_node_collision_result *out_result); // 0x504f60
 extern int8_t collision_test_movement_segment(int32_t mask, real_point3d *origin, real_vector3d *delta,
                             uint32_t ignore_object_index, void *out_record); // 0x505880, UNSURE signature
 extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height,
@@ -95,8 +98,9 @@ extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_sta
 // real signature (unit_process_melee_special_interaction.c):
 //   void unit_process_melee_special_interaction(uint32_t attacker_index, uint32_t target_index);
 // Ghidra shows five arguments at this call site; they are reproduced verbatim.
-extern void unit_process_melee_special_interaction(datum_index target_object_index, uint32_t a, uint32_t b, uint32_t c,
-                          real_point3d *point, real_plane3d *plane, void *record); // 0x56ff40, UNSURE signature
+extern void unit_process_melee_special_interaction(uint32_t attacker_index, uint32_t target_index,
+    uint32_t node_pair, uint32_t region_pair, uint32_t material, real_point3d *contact_point,
+    real_plane3d *contact_plane, bsp_leaf_reference *contact_leaf); // 0x56ff40, EAX, stack
 
 // Integrates one tick of a live biped's movement, resolves it against the BSP, and applies
 // everything that falls out of the result.
@@ -514,43 +518,44 @@ step_crouch:
         unit_track_target_lock_timeout(object_index);
     }
 
-    // --- melee lunge trace --------------------------------------------------------------
+    // --- melee lunge trace (0x55de09): a lunging unit whose step crossed its target's bounding sphere and hit
+    // the target's collision model before any structure hands the contact to the special melee interaction
     if (unit->melee_state == _unit_melee_state_unknown_3 &&
         biped->melee_target_index != k_datum_index_none) {
-        real_vector3d lunge = {0.0f, 0.0f, 0.0f};
-        real_plane3d contact_plane;
-        uint8_t trace_record[68];   // local_468
-        uint8_t trace_scratch[12];  // local_474
-        uint16_t trace_ids[3];      // local_424 / uStack_422 / uStack_420
-        float trace_fraction;       // local_41c
-        int32_t trace_side;         // local_410
-        uint32_t trace_tail;        // local_40a
+        datum_index target_index = biped->melee_target_index;
+        uint8_t *target = (uint8_t *)((object_header *)object_data->data)[target_index & 0xffff].data;
+        real_vector3d lunge;
+        object_collision_context context;           // [esp+0x24], later the contact plane
+        object_node_collision_result node_hit;      // [esp+0x260]
+        collision_result structure_hit;             // [esp+0x210]
 
         lunge.i = solve.result_position.x - solve.start_position.x;
         lunge.j = solve.result_position.y - solve.start_position.y;
         lunge.k = solve.result_position.z - solve.start_position.z;
-
-        if (ray_intersects_sphere_test(
-                ((object_header *)object_data->data)[biped->melee_target_index & 0xffff].data->bounding_radius) != 0 &&
-            object_collision_context_build() != 0 &&
-            object_collision_context_test_segment(&contact_plane, 3, &solve.start_position, &lunge, trace_ids) != 0 &&
-            collision_test_movement_segment(0xc2a0, &solve.start_position, &lunge, object_index, trace_scratch) == 0) {
+        if (ray_intersects_sphere_test(&solve.start_position, (real_point3d *)(target + 0xa0), &lunge,
+                                       *(float *)(target + 0xac)) &&
+            object_collision_context_build(target_index, &context) &&
+            object_collision_context_test_segment(&context, 3, &solve.start_position, &lunge, &node_hit) &&
+            !collision_test_movement_segment(0xc2a0, &solve.start_position, &lunge, object_index, &structure_hit)) {
             real_point3d contact_point;
+            real_plane3d contact_plane;
+            uint8_t *hit = (uint8_t *)&node_hit;
 
-            contact_point.x = lunge.i * trace_fraction + solve.start_position.x;
-            contact_point.y = lunge.j * trace_fraction + solve.start_position.y;
-            contact_point.z = lunge.k * trace_fraction + solve.start_position.z;
-            matrix4x3_transform_plane();
-            if (trace_side < 0) {
+            contact_point.x = lunge.i * node_hit.segment.t + solve.start_position.x;
+            contact_point.y = lunge.j * node_hit.segment.t + solve.start_position.y;
+            contact_point.z = lunge.k * node_hit.segment.t + solve.start_position.z;
+            matrix4x3_transform_plane(&contact_plane,
+                                      (real_matrix4x3 *)((uint8_t *)context.nodes + *(int16_t *)hit * 0x34),
+                                      (real_plane3d *)node_hit.segment.plane);
+            if (node_hit.segment.plane_index < 0) {
                 contact_plane.normal.i = -contact_plane.normal.i;
                 contact_plane.normal.j = -contact_plane.normal.j;
                 contact_plane.normal.k = -contact_plane.normal.k;
                 contact_plane.d = -contact_plane.d;
             }
-            unit_process_melee_special_interaction(biped->melee_target_index,
-                         ((uint32_t)trace_ids[1] << 16) | trace_ids[0],
-                         ((uint32_t)trace_ids[2] << 16) | trace_ids[1],
-                         trace_tail, &contact_point, &contact_plane, trace_record);
+            unit_process_melee_special_interaction(object_index, target_index, *(uint32_t *)(hit + 0x0),
+                                                   *(uint32_t *)(hit + 0x2), *(uint32_t *)(hit + 0x1a),
+                                                   &contact_point, &contact_plane, &structure_hit.leaf);
         }
     }
 
