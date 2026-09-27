@@ -29,9 +29,9 @@ extern data_array *actor_data;      // 0x00880360, stride 0x724 (ai module)
 
 extern real random_real(void); // 0x4019f0
 extern void ai_refresh_unit_stimulus_and_alert(void); // 0x42c2a0, UNSURE: no traced args
-extern int32_t unit_animation_change_priority_check(uint32_t unit_index, int16_t requested_priority,
-                                                      uint8_t allow_repeat, uint32_t *out_unknown_3f0,
-                                                      int16_t *dialogue_index, int32_t *chain_value); // 0x560d00
+extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback,
+    int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index,
+    int32_t *chain_value); // 0x560d00, EAX, DL, stack
 extern int32_t unit_commit_speech(uint32_t unit_index, const unit_speech *source, int16_t mode); // 0x560f20
 
 uint8_t unit_choose_combat_reaction_animation(uint32_t unit_index, const datum_index *reaction_source,
@@ -124,8 +124,9 @@ have_reaction_id:
         int16_t priority = is_scripted ? 10 : (use_second_tier ? 7 : 2);
         int32_t out3f0 = -1;
         int32_t commit_chain = -1;
-        int32_t result = unit_animation_change_priority_check(unit_index, priority, 0, (uint32_t *)&out3f0,
-                                                                &reaction_id, &commit_chain);
+        // 0x561390: EAX unit, DL 1, stack (priority, 0, 0, &index, &chain)
+        int32_t result = unit_animation_change_priority_check(unit_index, 1, priority, 0, 0, &reaction_id,
+                                                                &commit_chain);
         if (result > 0) {
             unit_speech line = {0};
             line.priority = priority;
@@ -137,7 +138,7 @@ have_reaction_id:
             line.ai_line_index = -1;
             line.unknown_18 = -1;
 
-            unit_commit_speech(unit_index, &line, 3); // UNSURE: mode guessed, see unit_play_default_reaction_sound
+            unit_commit_speech(unit_index, &line, (int16_t)result); // 0x5613af: DX = the check result
             success = 1;
 
             if (low_damage) {

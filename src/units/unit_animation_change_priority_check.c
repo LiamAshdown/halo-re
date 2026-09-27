@@ -1,31 +1,20 @@
 // unit_animation_change_priority_check  (Ghidra: unit_animation_change_priority_check)
 // address 0x560d00, size 539 bytes
-// name confidence: 0.4 (phase2 candidate)   rewrite confidence: 0.25
-// evidence: types/units.h unit_data.dialogue_tag_index (0x384), .current_speech/.pending_speech
-//   (unit_speech at 0x388/0x3b8, .priority the first int16), .speech_started (0x3f4),
-//   .speech_duration_ticks (0x3fa), .speech_tail_ticks (0x3fe), .unknown_3f0 (0x3f0).
-// register convention: unit index in EAX; requested_priority in DX-sized stack param_1, an
-//   allow-repeat flag in param_2, and three output pointers.
-//   // blam-cc: in_EAX -> unit_index, stack params in order -> requested_priority,
-//   //   allow_repeat, out_unknown_3f0, dialogue_index (in/out), chain_value (in/out)
-// UNSURE: the dialogue tag record read at dialogue_tag_data + 0x1c + dialogue_index*0x10 has no
-//   named struct in types/tags.h (UnitDialogueVariant is 0x18 bytes, not 0x10) -- kept as a raw
-//   int32 "chain" field. The global tables at 0x0065e7a8/0x0065e94c/0x0065e964 (fallback chain,
-//   priority table, minimum repeat interval) are declared as bare arrays since their element
-//   counts are not established. __ftol's real argument arrives on the x87 stack (see
-//   src/objects/antenna_apply_marker_delta.c for the established convention in this codebase);
-//   it is modelled here as converting the repeat-interval seconds value into ticks via the
-//   game clock's seconds-per-tick global, which is the only quantity in scope that makes the
-//   surrounding tick comparison meaningful, but this is a guess.
-// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
+// name confidence: 0.4   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x560d00..0x560f1a: the unit speech arbiter. EAX = unit, DL = follow_fallback; stack:
+//   requested priority, allow_repeat, out_unknown_3f0, dialogue index (in/out), chain value (in/out).
+//   Without a chain value yet, the unit dialogue tag (+0x384) entry for the index (+0x1c + index * 16) is read,
+//   following the fallback table (0x65e7a8) while follow_fallback is set and the entry is missing. A unit
+//   flagged +0x106 bit 2 only speaks priority 0xa; a missing line returns 0. Otherwise, against the current
+//   (+0x388) and pending (+0x3b8) speech priorities (a finished line of priority 2/7/10 with its duration
+//   +0x3fa elapsed counts as nothing current when outranked): 2 = speak now (nothing current, or a priority >= 7
+//   that the table priority 0x65e94c does not beat), 3 = the table priority beats both, 1 = replace (with
+//   allow_repeat, the minimum repeat interval 0x65e964 in seconds -- FLT_MAX always, 0 never -- elapsed since the
+//   last line, and the request above the current/pending, or the current being 2/7 or the request 6), else 0.
+//   The index and chain are written back and out_unknown_3f0 receives +0x3f0.
+// blam-cc: EAX -> unit_index, DL -> follow_fallback, stack -> requested_priority, allow_repeat, out_unknown_3f0,
+//   dialogue_index, chain_value
 
-// VERIFIED CONVENTION (objdump 0x560d00, 2026-09-24; the definition below is NOT yet updated):
-//   EAX = unit_index; DL = follow_fallback (the `test dl,dl` in the fallback-chain loop); stack arg 1 =
-//   requested_priority (word), arg 2 = allow_repeat (byte, gates the minimum-repeat-interval check at
-//   0x560e3e), arg 3 = out_unknown_3f0, arg 4 = dialogue_index (in/out), arg 5 = chain_value (in/out).
-//   The draft merges the two flags into one parameter and so reads every stack argument one slot early;
-//   hooked, it crashed on a null chain_value. Listed in harness/known_bad.txt until it and its six C
-//   callers (five different prototypes) are reconciled.
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
@@ -37,91 +26,81 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern int16_t dialogue_fallback_chain[];      // 0x0065e7a8, UNSURE element count
-extern int16_t dialogue_priority_table[];      // 0x0065e94c, UNSURE element count
-extern float dialogue_min_repeat_interval[];   // 0x0065e964, UNSURE element count
-extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
-extern int32_t __ftol(); // 0x6391b4, MSVC 7.1 CRT float-to-int truncation; the double is on the x87 stack
+extern int16_t unit_speech_fallback_index[];   // 0x0065e7a8
+extern int16_t unit_speech_priority_table[];   // 0x0065e94c
+extern float unit_speech_repeat_seconds[];     // 0x0065e964
 
-int32_t unit_animation_change_priority_check(uint32_t unit_index, int16_t requested_priority,
-                                              uint8_t allow_repeat, uint32_t *out_unknown_3f0,
-                                              int16_t *dialogue_index, int32_t *chain_value) // blam-cc: see file header
+int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback,
+    int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index,
+    int32_t *chain_value)
 {
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
     int32_t chain = *chain_value;
     int16_t index = *dialogue_index;
-    int32_t result = 0;
+    int16_t result = 0;
 
-    if (chain == -1 && unit->dialogue_tag_index != (datum_index)-1 && index != -1) {
-        uint8_t *dialogue_data = (uint8_t *)tag_instances[unit->dialogue_tag_index & 0xffff].data;
-        do {
-            chain = *(int32_t *)(dialogue_data + 0x1c + index * 0x10); // UNSURE: raw record field
-            if (!allow_repeat || chain != -1) {
+    if (chain == -1 && *(datum_index *)(obj + 0x384) != k_datum_index_none && index != -1) {
+        uint8_t *dialogue = (uint8_t *)tag_instances[*(datum_index *)(obj + 0x384) & 0xffff].data;
+
+        for (;;) {
+            chain = *(int32_t *)(dialogue + index * 16 + 0x1c);
+            if (!follow_fallback || chain != -1) {
                 break;
             }
-            index = dialogue_fallback_chain[index];
-        } while (index != -1);
-    }
-
-    if (((obj->vitality_flags & _object_health_frozen_bit) == 0 || requested_priority == 10) && chain != -1) {
-        int16_t playing_priority = unit->current_speech.priority;
-
-        if (playing_priority == 0) {
-            result = 2;
-        } else {
-            int16_t queued_priority = unit->pending_speech.priority;
-            int16_t max_priority = (playing_priority <= queued_priority) ? queued_priority : playing_priority;
-
-            if ((requested_priority == 2 || requested_priority == 7 || requested_priority == 10) &&
-                unit->speech_started != 0 && unit->speech_duration_ticks == 0 &&
-                max_priority < requested_priority) {
-                playing_priority = 0;
-                max_priority = queued_priority;
-            }
-
-            if (dialogue_priority_table[requested_priority] < max_priority) {
-                if (requested_priority < 7 || dialogue_priority_table[requested_priority] < playing_priority) {
-                    if (allow_repeat && dialogue_min_repeat_interval[requested_priority] != 0.0f) {
-                        uint8_t ok = 1;
-                        if (dialogue_min_repeat_interval[requested_priority] != 3.4028235e+38f) {
-                            int32_t min_repeat_ticks =
-                                __ftol((double)(dialogue_min_repeat_interval[requested_priority] /
-                                                 game_time->leftover_time)); // UNSURE
-                            ok = (int32_t)unit->speech_tail_ticks + (int32_t)unit->speech_duration_ticks <
-                                 min_repeat_ticks;
-                            if (!ok) {
-                                goto done;
-                            }
-                        }
-                        if (requested_priority <= max_priority) {
-                            if (requested_priority <= unit->pending_speech.priority) {
-                                goto done;
-                            }
-                            if (playing_priority == 2 || playing_priority == 7) {
-                                ok = 1;
-                            }
-                            if (requested_priority != 6 && !ok) {
-                                goto done;
-                            }
-                        }
-                        result = 1;
-                    }
-                } else {
-                    result = 2;
-                }
-            } else {
-                result = 3;
+            index = unit_speech_fallback_index[index];
+            if (index == -1) {
+                break;
             }
         }
     }
+    if (((obj[0x106] & 4) == 0 || requested_priority == 0xa) && chain != -1) {
+        int16_t current = *(int16_t *)(obj + 0x388);
 
-done:
+        if (current == 0) {
+            result = 2;
+        } else {
+            int16_t pending = *(int16_t *)(obj + 0x3b8);
+            int16_t highest = (current > pending) ? current : pending;
+            int16_t table;
+            uint8_t allowed = 0;
+
+            if ((requested_priority == 2 || requested_priority == 7 || requested_priority == 10) &&
+                obj[0x3f4] != 0 && *(int16_t *)(obj + 0x3fa) == 0 && requested_priority > highest) {
+                highest = pending;
+                current = 0;
+            }
+            table = unit_speech_priority_table[requested_priority];
+            if (table >= highest) {
+                result = 3;
+            } else if (requested_priority >= 7 && table >= current) {
+                result = 2;
+            } else if (allow_repeat) {
+                float interval = unit_speech_repeat_seconds[requested_priority];
+
+                if (interval != 0.0f) {
+                    if (interval == 3.4028235e+38f) {
+                        allowed = 1;
+                    } else {
+                        allowed = (uint8_t)(*(int16_t *)(obj + 0x3fe) + *(int16_t *)(obj + 0x3fa) <
+                            (int16_t)(int32_t)(interval * 30.0f));
+                    }
+                    if (allowed) {
+                        if (requested_priority > highest) {
+                            result = 1;
+                        } else if (requested_priority > *(int16_t *)(obj + 0x3b8)) {
+                            if (current == 2 || current == 7 || requested_priority == 6 || allowed) {
+                                result = 1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
     *dialogue_index = index;
     *chain_value = chain;
     if (out_unknown_3f0 != 0) {
-        *out_unknown_3f0 = unit->unknown_3f0;
+        *out_unknown_3f0 = *(uint32_t *)(obj + 0x3f0);
     }
     return result;
 }

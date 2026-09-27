@@ -80,7 +80,7 @@ extern uint8_t actor_movement_set_destination_point(real_point3d *destination, d
                                                     // blam-cc: EAX -> destination, stack -> the other three
 extern void actor_movement_actions_cancel(void);                                 // 0x417a30
 extern void actor_fill_unit_position_context(void *position);                                       // 0x4296c0, not yet rewritten
-extern void ai_communication_target_result_reset(void);                                                 // 0x42d310, not yet rewritten
+extern void ai_communication_target_result_reset(ai_communication_target_result *record);                                                 // 0x42d310, not yet rewritten
 extern datum_index actor_find_prop_for_object(datum_index object_index);                                        // 0x43ea80, not yet rewritten
 extern void actor_prop_iterator_init(datum_index actor_index, actor_prop_iterator *out_iterator); // 0x43ecd0, rewritten as src/ai/actor_prop_iterator_init.c; blam-cc: EAX -> actor_index, stack -> iterator
 extern prop *actor_prop_iterator_next(actor_prop_iterator *iterator);                      // 0x43ecf0, rewritten as src/ai/actor_prop_iterator_next.c; blam-cc: EDX -> iterator
@@ -97,8 +97,10 @@ extern void object_get_position(real_point3d *out, uint32_t object_index);      
 extern void *object_try_and_get(int32_t kind);                                  // 0x4f6ec0
 extern int32_t object_iterator_next(void *iterator);                            // 0x4f6f20
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
-extern int16_t unit_animation_change_priority_check(int32_t a, int32_t b, int32_t c, void *d, void *e); // 0x560d00, not yet rewritten
-extern void unit_commit_speech(void);                                                 // 0x560f20, not yet rewritten
+extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback,
+    int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index,
+    int32_t *chain_value); // 0x560d00, not yet rewritten
+extern int32_t unit_commit_speech(uint32_t unit_index, const unit_speech *source, int16_t mode);                                                 // 0x560f20, not yet rewritten
 extern void unit_get_primary_eye_marker_position(uint32_t object_index, real_point3d *out);             // 0x568f50, src/units;
     // at 0x4058c1..0x4058cd the object index is in ECX (`push ecx` at 0x568f5f) and out in ESI
 extern void unit_get_forward_vector_or_marker_normal(void);                                                 // 0x569720, not yet rewritten
@@ -649,18 +651,21 @@ char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32
         aim_state[0x30] = 1;
         return (char)aim_state[0x30];
     case 0x10: {
-        uint16_t recording = (uint16_t)entry->atom_modifier;
-        float duration = -1.0f;
-        int16_t placed = unit_animation_change_priority_check(6, 1, 0, &recording, &duration);
+        // 0x40644e: the unit (arg 2) speaks the entry's line (priority 6, repeats allowed)
+        int16_t dialogue_index = (int16_t)entry->atom_modifier;
+        int32_t chain = -1;
+        int16_t placed = (int16_t)unit_animation_change_priority_check(check_object_index, 1, 6, 1, 0,
+            &dialogue_index, &chain);
 
         if (placed > 0) {
-            uint8_t block[48];
-            memset(block, 0, sizeof(block));
-            *(float *)(block + 0x18) = duration;      // local_ac
-            *(int16_t *)(block + 2) = recording;       // local_b0._2_2_
-            *(int16_t *)block = 6;                      // local_b0._0_2_
-            ai_communication_target_result_reset();
-            unit_commit_speech();
+            unit_speech line;
+
+            memset(&line, 0, sizeof(line));
+            line.sound_tag = (datum_index)chain;
+            line.scream_type = dialogue_index;
+            line.priority = 6;
+            ai_communication_target_result_reset((ai_communication_target_result *)&line.unknown_10);
+            unit_commit_speech(check_object_index, &line, placed);
             return 1;
         }
         break;

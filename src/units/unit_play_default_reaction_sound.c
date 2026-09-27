@@ -1,6 +1,6 @@
 // unit_play_default_reaction_sound  (Ghidra: unit_play_default_reaction_sound)
 // address 0x561030, size 261 bytes
-// name confidence: 0.3 (phase2 candidate)   rewrite confidence: 0.25
+// name confidence: 0.3 (phase2 candidate)   rewrite confidence: 0.85 (objdump 0x561030; was 0.25)
 // evidence: types/units.h unit_speech (built here as a stack literal: priority 6, scream_type
 //   -1, sound_tag = the caller's sound, tail_ticks 0x18, the rest -1/0); unit_data
 //   .current_speech.suppress_line_record (0x388 + 0x1a = 0x3a2), .current_speech.ai_line_index
@@ -28,22 +28,23 @@
 
 extern data_array *object_data; // 0x008603b0
 
-extern int32_t unit_animation_change_priority_check(uint32_t unit_index, int16_t requested_priority,
-                                                      uint8_t allow_repeat, uint32_t *out_unknown_3f0,
-                                                      int16_t *dialogue_index, int32_t *chain_value); // 0x560d00
+extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback,
+    int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index,
+    int32_t *chain_value); // 0x560d00, EAX, DL, stack
 extern int32_t unit_commit_speech(uint32_t unit_index, const unit_speech *source, int16_t mode); // 0x560f20
-extern void ai_communication_record_line_played(uint32_t line_id, int16_t ai_line_index, uint32_t unknown); // 0x42f9e0
+extern void ai_communication_record_line_played(datum_index object_index, int16_t tier,
+    int16_t communication_line_id, int16_t conversation_line_id); // 0x42f9e0, EAX, stack
 
-void unit_play_default_reaction_sound(uint32_t unit_index, datum_index sound_tag, datum_index sound_handle) // blam-cc: see file header
+void unit_play_default_reaction_sound(uint32_t unit_index, datum_index sound_tag, datum_index sound_handle)
 {
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-
-    int16_t dialogue_index = (int16_t)sound_tag; // UNSURE: see file header
-    int32_t chain = -1;
-    unit_animation_change_priority_check(unit_index, 6, 0, 0, &dialogue_index, &chain);
-
+    int16_t dialogue_index = -1;
+    int32_t chain = (int32_t)sound_tag; // 0x561061: the sound is handed in as the chain value
+    int32_t result;
     unit_speech line = {0};
+
+    result = unit_animation_change_priority_check(unit_index, 0, 6, 0, 0, &dialogue_index, &chain);
     line.priority = 6;
     line.scream_type = -1;
     line.sound_tag = sound_tag;
@@ -52,14 +53,13 @@ void unit_play_default_reaction_sound(uint32_t unit_index, datum_index sound_tag
     line.unknown_14 = -1;
     line.ai_line_index = -1;
     line.unknown_18 = -1;
-
-    unit_commit_speech(unit_index, &line, 3); // UNSURE: see file header
+    unit_commit_speech(unit_index, &line, (int16_t)(((int16_t)result > 2) ? result : 2)); // 0x56107c: max(r, 2)
 
     unit->speech_sound_handle = sound_handle;
     unit->speech_started = 1;
     unit->speech_delay_ticks = 0;
     if (unit->current_speech.suppress_line_record == 0) {
-        ai_communication_record_line_played(6, unit->current_speech.ai_line_index, (uint32_t)-1);
+        ai_communication_record_line_played(unit_index, 6, (int16_t)unit->current_speech.ai_line_index, -1);
     }
 }
 

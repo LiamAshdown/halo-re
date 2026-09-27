@@ -23,8 +23,10 @@ extern data_array *actor_data;     // 0x00880360
 extern ai_globals *ai_globals_ptr; // 0x00880354
 
 extern void actor_recompute_grenade_eligibility(datum_index actor_index); // 0x42f260, this batch
-extern int16_t unit_animation_change_priority_check(int32_t a, int32_t b, int32_t c, void *d, void *e); // 0x560d00, not yet rewritten; UNSURE args
-extern void unit_commit_speech(void); // 0x560f20, not yet rewritten; UNSURE args
+extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback,
+    int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index,
+    int32_t *chain_value); // 0x560d00, EAX, DL, stack
+extern int32_t unit_commit_speech(uint32_t unit_index, const void *source, int16_t mode); // 0x560f20, EAX, ECX, DX
 extern void ai_communication_target_result_reset(void *record); // 0x42d310, this batch
 
 // blam-cc: EAX -> actor_index
@@ -37,8 +39,8 @@ void actor_update_grenade_eligibility_state(datum_index actor_index)
     actor *self;
     uint8_t eligible;
     uint32_t buffer[12];
-    uint32_t out_a;
-    uint32_t out_b;
+    int16_t out_a;
+    int32_t out_b;
     int16_t result;
 
     self = &((actor *)actor_data->data)[actor_index & 0xffff];
@@ -55,9 +57,10 @@ void actor_update_grenade_eligibility_state(datum_index actor_index)
     if (0 < self->grenade_recheck_ticks) {
         self->grenade_recheck_ticks = self->grenade_recheck_ticks - 1;
         if (self->grenade_recheck_ticks == 0) {
-            out_a = (eligible != 0);
-            out_b = 0xffffffff;
-            result = unit_animation_change_priority_check(1, 0, 0, &out_a, &out_b);
+            // 0x42f3f9: the unit (actor +0x18) says line index "eligible" at priority 1
+            out_a = (int16_t)(eligible != 0);
+            out_b = -1;
+            result = (int16_t)unit_animation_change_priority_check(self->unit_index, 1, 1, 0, 0, &out_a, &out_b);
             if (0 < result) {
                 int i;
                 for (i = 0; i < 12; i++) {
@@ -66,8 +69,8 @@ void actor_update_grenade_eligibility_state(datum_index actor_index)
                 *(int16_t *)((uint8_t *)buffer + 2) = (int16_t)out_a;
                 *((uint32_t *)((uint8_t *)buffer + 4)) = out_b;
                 *(int16_t *)buffer = 1;
-                ai_communication_target_result_reset(buffer);
-                unit_commit_speech();
+                ai_communication_target_result_reset((uint8_t *)buffer + 0x10); // 0x42f44c: EAX = speech + 0x10
+                unit_commit_speech(self->unit_index, buffer, result);
             }
         }
     }

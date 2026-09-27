@@ -1114,3 +1114,17 @@ OPEN (units, by size, all < 0.5): unit_update 0x5625b0 (0.15, 4765 B) -- next; u
   0x5674a0 (0.2, 3199 B; inlines the seat exit again); vehicle_update chain; unit_release_transient_state;
   unit_seat_candidates_from_zone_and_enter; unit_detach_and_enter_named_seat; unit_can_see_point (0.1).
   AI copies of the exit block: actor_process_vehicle_seat_exit, ai_reference_units_exit_vehicles.
+
+## 2026-09-27 (loop) -- unit_update + speech arbiter
+- unit_update (0x5625b0, 4765 B, was 0.15) REWRITTEN; smoke test OK.
+- unit_dispatch_reaction_animation (0x5614a0): Ghidra split it at its jump table and the draft called labels
+  inside it; REWRITTEN (355 B). unit_animation_change_priority_check (0x560d00) REWRITTEN with its DL
+  follow_fallback argument; callers fixed: unit_play_default_reaction_sound (chain = the sound, commit mode
+  max(r,2), record line with the unit), unit_choose_combat_reaction_animation (call + mode only),
+  actor_squad_action_execute case 0x10, actor_update_grenade_eligibility_state.
+OPEN:
+- ai_communication_* (broadcast 0x42d340, play_event_line 0x42eee0, line_fade_multiplier 0x42f8c0 -- own
+  convention EAX priority / ECX chain ptr / BX range, conversation_current_line_is_ready 0x431e70) still call
+  0x560d00 with the old argument layouts: needs a subsystem pass.
+- unit_choose_combat_reaction_animation (0x561140, 0.2): the low-damage tail differs (+0x3ee = 0x3c).
+- unit_commit_speech (0x560f20, 0.35) not yet verified.
