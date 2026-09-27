@@ -1,7 +1,7 @@
 // player_apply_pickup_effect  (Ghidra: FUN_00479930; renamed -- applies the effect of an
 // "equipment" pickup (health, shield, kill-streak boost) and deletes the picked-up object)
 // address 0x479930, size 361 bytes
-// name confidence: 0.3   rewrite confidence: 0.25
+// name confidence: 0.3   rewrite confidence: 0.85
 // evidence: out/functions.json callee list (object_restore_full_body_vitality,
 //   object_shield_recharge_start, object_delete, all already established); types/game.h
 //   player_globals::respawn_stagger (0x0e); this batch's player_add_kill_streak (cases 3/4 map
@@ -53,6 +53,8 @@ extern void object_delete(uint32_t object_index); // 0x4f5bd0
 // the shield / health calls take the player's UNIT (player+0x34) in EAX; the kill-streak effect fires when the low 16
 // bits of the slot are zero (test bp,bp); the HUD message gets count 0, the pickup's definition tag as its source,
 // kind 0, the local player index and the byte at player+0x64; the sound gets the pickup object; object_delete tail.
+// VERIFIED 2026-09-27 (static loop): 0x672ac8 = 30.0f; player_add_kill_streak takes EBX player (blam-cc) and stack
+// (slot, amount); the three player_trigger_* effects take EDX player; all callee conventions match.
 void player_apply_pickup_effect(uint32_t player_index, uint32_t pickup_object)
 {
     player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));

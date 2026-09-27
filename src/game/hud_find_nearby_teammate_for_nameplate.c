@@ -1,21 +1,15 @@
 // hud_find_nearby_teammate_for_nameplate  (Ghidra: FUN_0045e340; named per
 // out/phase4/game_functions.md)
 // address 0x45e340, size 474 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
-// evidence: out/phase4/game_functions.md ("Searches nearby units for the closest one within the
-// player's aim cone and short range, used to pick a HUD nameplate target"); types/game.h player
-// (local_player_index +0x02, unit +0x34, unknown_7c "read by the nameplate HUD (0x45e520)").
-// register convention: player handle is this function's one explicit stack parameter.
-// RESOLVED (phase 4 review): Ghidra's "local_player_index * 0x40 + DAT_006b145c + 0x38/0x3c" IS
-// player_control_globals->local_players[local_player_index].nameplate_target / _weight -- the
-// compiler folded the 0x10-byte header into the field offset (0x10 + 0x28 == 0x38,
-// 0x10 + 0x2c == 0x3c). game_engine_init_player_look_state_from_object (0x470e80) writes the
-// same slot: "puVar1 = in_AX * 0x40 + 0x10 + DAT_006b145c" then "puVar1[10] = 0xffffffff",
-// i.e. record +0x28 seeded to -1, with +0x2c left 0.0 by the zeroing loop. Both fields are now
-// named in types/game.h local_player_control.
-// UNSURE: game_engine_compute_local_player_look_vector, object_collect_local_player_relevant_objects, camera_observer_target_direction and player_index_from_unit_index are outside this batch's
-// assigned range and are called here exactly as Ghidra shows them, including the elided/implicit
-// arguments noted inline.
+// name confidence: 0.4   rewrite confidence: 0.85
+// REWRITTEN 2026-09-27 (static loop) from objdump 0x45e340..0x45e51f. The draft dropped every register argument:
+//   game_engine_compute_local_player_look_vector takes EAX = the look vector out (local +0x20) and CX = the local
+//   player index; the PVS collect (0x4fa1a0) takes EDX = the camera point (EDI kept from unit_get_camera_position)
+//   with stack (filter 0x45e2e0, &player_handle, 32, candidates); camera_observer_target_direction takes EAX = the
+//   closest-point out, ECX = the look vector, ESI = the camera, stack (candidate, player unit, direction out,
+//   distance out, angle out). Constants: 0x672ac0 0.0, 0x672ac4 1.0, 0x673158 (double) 0.13083334, 0x673150 400.0,
+//   0x672f98 900.0. With no candidates the function returns -1 directly (0x45e512).
+// blam-cc: stack -> player_handle
 
 #include "tags.h"
 #include "memory.h"
@@ -27,79 +21,82 @@ extern data_array *player_data;                          // 0x0087a480
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 extern data_array *object_headers;                        // 0x008603b0
 
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern void unit_get_camera_position(datum_index unit_index, real_point3d *out); // 0x568f80,
-    // blam-cc: ECX -> unit_index, EDI -> out (matches src/units/unit_get_camera_position.c)
-extern void game_engine_compute_local_player_look_vector(void);                           // 0x471f40, not in this batch
-extern int object_collect_local_player_relevant_objects(void *callback, datum_index *player_handle, int32_t max_count,
-    datum_index *out_candidates); // 0x4fa1a0, not in this batch; UNSURE exact signature
-extern char camera_observer_target_direction(datum_index candidate, datum_index reference_unit, void *out1,
-    void *out2, float *out_angle); // 0x459cc0, not in this batch
-extern datum_index player_index_from_unit_index(datum_index object_or_unit); // 0x474db0, not in this batch
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX object, stack mask
+extern void unit_get_camera_position(datum_index unit_index, real_point3d *out); // 0x568f80, ECX unit, EDI out
+extern void game_engine_compute_local_player_look_vector(real_vector3d *out_forward,
+    int16_t local_player_index); // 0x471f40, EAX out, CX local player
+extern int32_t object_collect_local_player_relevant_objects(real_point3d *point, uint8_t (*filter)(uint32_t, void *),
+    void *filter_context, int32_t max_count, datum_index *out); // 0x4fa1a0, EDX point, stack
+extern uint32_t camera_observer_target_direction(real_point3d *candidate_point, real_vector3d *facing,
+    real_point3d *reference_position, datum_index object, datum_index exclude_object,
+    real_vector3d *out_direction, real *out_distance, real *out_angle); // 0x459cc0, EAX, ECX, ESI, stack
+extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x474db0
+extern uint8_t hud_nameplate_candidate_filter(uint32_t object_index, void *player_handle); // 0x45e2e0
 
-// Ghidra could not resolve the callback address used by object_collect_local_player_relevant_objects; kept as an opaque symbol.
-extern void LAB_0045e2e0(void);
-
-// Finds the nearest visible teammate within a short cone/range of `player`'s aim, preferring the
-// player's own last-frame local look-target when it is still valid.
+// Finds the teammate biped the player is aiming at (within the 0.1308 aim cone and 20 world units) to show its
+// nameplate, preferring the player's cached nameplate target while its weight is positive. Returns the target's
+// player index, or -1.
 datum_index hud_find_nearby_teammate_for_nameplate(datum_index player_handle)
 {
-    player *p;
-    local_player_control *track;
+    player *p = (player *)((uint8_t *)player_data->data + (player_handle & 0xffff) * sizeof(player));
+    datum_index best = (datum_index)0xffffffff;
     real_point3d camera;
+    real_vector3d look;
+    real_vector3d direction;
+    real_point3d closest_point;
+    real distance;
+    real angle;
     datum_index candidates[32];
-    int candidate_count;
-    int i;
-    datum_index best;
-    object *obj;
-
-    p = (player *)((uint8_t *)player_data->data + (player_handle & 0xffff) * sizeof(player));
-    best = (datum_index)0xffffffff;
+    int32_t candidate_count;
+    int32_t i;
 
     if (p->local_player_index != -1) {
-        track = &player_control_globals_ptr->local_players[p->local_player_index];
-        if (0.0f < track->nameplate_weight) {
-            best = track->nameplate_target;
-            obj = object_try_and_get(best, 0xffffffff); // UNSURE: type_mask 0xffffffff (_object_mask_all)
-            if (obj == 0) {
-                best = (datum_index)0xffffffff;
-            }
+        local_player_control *track = &player_control_globals_ptr->local_players[p->local_player_index];
+
+        if (track->nameplate_weight > 0.0f) {
+            datum_index target = track->nameplate_target;
+
+            best = object_try_and_get(target, 0xffffffff) != 0 ? target : (datum_index)0xffffffff;
             if (best != (datum_index)0xffffffff) {
                 return player_index_from_unit_index(best);
             }
         }
     }
 
-    // objdump 0x45e3bc..0x45e3c3: ECX = p->unit, EDI = &camera. Both arguments are registers
-    // Ghidra drops; the out-parameter reading is confirmed by src/units/unit_get_camera_position.c.
     unit_get_camera_position(p->unit, &camera);
-    game_engine_compute_local_player_look_vector();
-    candidate_count = object_collect_local_player_relevant_objects(&LAB_0045e2e0, &player_handle, 0x20, candidates);
+    game_engine_compute_local_player_look_vector(&look, p->local_player_index);
+    candidate_count = object_collect_local_player_relevant_objects(&camera, hud_nameplate_candidate_filter,
+        &player_handle, 0x20, candidates);
+    if (candidate_count <= 0) {
+        return best;
+    }
 
     for (i = 0; i < candidate_count; i++) {
-        object *candidate_obj = ((object_header *)object_headers->data)[candidates[i] & 0xffff].data;
-        float dx = candidate_obj->position.x - camera.x; // UNSURE camera fields (see note above)
-        float dy = candidate_obj->position.y - camera.y;
-        float dz = candidate_obj->position.z - camera.z;
-        float dist2 = dy * dy + dx * dx + dz * dz; // order preserved from Ghidra
+        uint8_t *candidate = (uint8_t *)((object_header *)object_headers->data)[candidates[i] & 0xffff].data;
+        real dx = *(real *)(candidate + 0x5c) - camera.x;
+        real dy = *(real *)(candidate + 0x60) - camera.y;
+        real dz = *(real *)(candidate + 0x64) - camera.z;
+        real distance_squared = dz * dz + dx * dx + dy * dy;
 
-        void *unused1;
-        void *unused2;
-        float angle;
-
-        if ((*(float *)((uint8_t *)candidate_obj + 0x37c) < 1.0f ||
-             p->unknown_7c == player_index_from_unit_index(candidates[i])) &&
-            camera_observer_target_direction(candidates[i], p->unit, &unused1, &unused2, &angle) != 0 &&
-            (angle < 0.0f ? -angle : angle) < 0.13083334f &&
-            dist2 < 400.0f && dist2 < 900.0f) {
+        // 0x45e454..0x45e475: a unit whose +0x37c is below 1.0 qualifies outright; otherwise only the player the
+        // HUD already tracks (+0x7c).
+        if (!(*(real *)(candidate + 0x37c) < 1.0f) &&
+            p->unknown_7c != player_index_from_unit_index(candidates[i])) {
+            continue;
+        }
+        if (camera_observer_target_direction(&closest_point, &look, &camera, candidates[i], p->unit, &direction,
+                &distance, &angle) == 0) {
+            continue;
+        }
+        if ((double)(angle < 0.0f ? -angle : angle) < 0.13083334267139435 && distance_squared < 400.0f && distance_squared < 900.0f) {
             best = candidates[i];
         }
     }
 
-    if (best != (datum_index)0xffffffff) {
-        return player_index_from_unit_index(best);
+    if (best == (datum_index)0xffffffff) {
+        return best;
     }
-    return best;
+    return player_index_from_unit_index(best);
 }
 
 #if 0

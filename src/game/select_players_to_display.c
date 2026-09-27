@@ -43,7 +43,7 @@ int32_t select_players_to_display(int32_t mode, int32_t max_count, scoreboard_en
     uint8_t debug = (debug_print_enabled_flag == 0x45);
 
     if (debug) {
-        console_printf_verbose("player_count=%d, maxcount=%d", total);
+        console_printf_verbose("player_count=%d, maxcount=%d", total, max_count); // 0x45d4d9 pushes ebx, esi
     }
 
     if (max_count < total) {
@@ -111,6 +111,9 @@ int32_t select_players_to_display(int32_t mode, int32_t max_count, scoreboard_en
             out[i] = entries[i];
         }
     }
+    // FIXED 2026-09-27 (static loop): 0x45d650..0x45d65f returns min(max_count, total) in EAX ([esp+0x10] is the
+    // total again after `pop ebp`); the draft fell off the end, so post_game's `test eax,eax` read junk.
+    return total;
 }
 
 #if 0

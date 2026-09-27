@@ -1,28 +1,20 @@
 // object_collect_local_player_relevant_objects  (Ghidra: FUN_004fa1a0; renamed, Blam-style,
-// not previously named)
+// not previously named -- the name is historical: the function collects every object in the clusters
+// potentially visible from a point, filtered, into an array)
 // address 0x4fa1a0, size 233 bytes
-// name confidence: 0.25 (matches functions.md's summary: "Finds the local player's object and,
-//   if any bit is set in a per-definition flag bitfield, hands off to object_get_orientation
-//   for that bit range")
-// rewrite confidence: 0.3 (raised from 0.2 by the phase-4 review pass: the leaf/cluster lookup was corrected against the disassembly) (this function and object_type_definitions_collect_by_flag_bits
-//   (0x4fa280, this batch, formerly misnamed "object_get_orientation") share a set of
-//   in_stack_*/unaff_* values Ghidra could not cleanly separate, meaning the two are almost
-//   certainly one algorithm split at an arbitrary point; each is transliterated close to its
-//   own decompiled shape rather than merged, since merging risks inventing behaviour neither
-//   Ghidra output actually shows.)
-// evidence: global 0x00746f90 global_collision_bsp, 0x00746f9c global_structure_bsp (leaf table at
-//   +0xe4, per src/objects/object_set_cluster_and_parent.c), 0x006b8cbc
-//   object_globals_pointer, 0x008603cc object_cluster_stamp, 0x008603d4
-//   collideable_object_references; callees bsp3d_node_find_leaf (leaf/visibility probe, established
-//   call shape from object_set_cluster_and_parent.c), object_type_definitions_collect_by_flag_bits
-//   (0x4fa280, this batch).
-// register convention: UNRESOLVED (no parameters visible at all; every value in the body is
-//   either a global or a callee return). Matches Ghidra's own "FUN_004fa1a0(void)".
-// UNSURE: the {leaf-bit-array, cluster-object-reference} pair this walks resembles
-//   object_globals's cluster PVS bitset (cluster_pvs_current, 16 dwords) but is read through
-//   global_structure_bsp (+0x134 count, +0x14c array) rather than object_globals_pointer, so
-//   it is not mapped onto that field here.
-// reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
+// name confidence: 0.25
+// rewrite confidence: 0.85
+// REWRITTEN 2026-09-27 (static loop) from objdump 0x4fa1a0..0x4fa39e, merged with the body Ghidra split off at
+//   0x4fa280 (object_type_definitions_collect_by_flag_bits, a FRAGMENT: the word loop at 0x4fa35b jumps back to
+//   0x4fa237 and 0x4fa278 simply jumps into it). The draft had no parameters: EDX is the probe POINT (never
+//   written before the 0x5013a0 call) and the stack carries (filter, filter_context, max_count, out), which
+//   0x4fa2ef..0x4fa305 forwards to object_tree_collect_matching(object, filter, context, count, max_count, out).
+//   Algorithm: leaf = bsp3d_node_find_leaf(0, global_collision_bsp, point); cluster = structure bsp leaves (+0xe4,
+//   0x10 each) +8; the cluster's PVS row is structure bsp +0x14c + cluster * words * 4 with words =
+//   (cluster_count(+0x134) + 31) >> 5; for every set bit (cluster) walk the cluster's object references
+//   (0x008603d0[cluster], next at +8, object at +4) and collect each object tree once (object +0x14 cluster stamp
+//   against the bumped 0x008603cc). object_globals +1 is raised during the walk. Returns the count.
+// blam-cc: EDX -> point, stack -> filter, filter_context, max_count, out
 
 #include "tags.h"
 #include "memory.h"
@@ -33,66 +25,87 @@ extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
 extern uint8_t *global_structure_bsp; // 0x00746f9c
 extern object_globals *object_globals_pointer; // 0x006b8cbc
 extern int32_t object_cluster_stamp; // 0x008603cc
+extern datum_index *collideable_cluster_first; // 0x008603d0
 extern data_array *collideable_object_references; // 0x008603d4
+extern data_array *object_data; // 0x008603b0
 
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
-extern int32_t object_type_definitions_collect_by_flag_bits(int32_t bit_index, int32_t remaining_bits,
-    int16_t range_index, int16_t range_count, int32_t *bit_array, int32_t cluster_stamp_snapshot,
-    uint8_t (*filter)(uint32_t, void *), void *filter_context, int32_t count, int32_t max_count,
-    datum_index *out); // 0x4fa280, this batch, UNSURE: see file header and that file's own header
+extern int32_t object_tree_collect_matching(uint32_t object_index, uint8_t (*filter)(uint32_t, void *),
+    void *filter_context, int32_t count, int32_t max_count, datum_index *out); // 0x4fa0f0
 
-int32_t object_collect_local_player_relevant_objects(void)
+int32_t object_collect_local_player_relevant_objects(real_point3d *point, uint8_t (*filter)(uint32_t, void *),
+    void *filter_context, int32_t max_count, datum_index *out)
 {
-    // UNSURE: the EDX operand (the probe point) is genuinely never written in this function --
-    // objdump 0x4fa1a0..0x4fa1ae is `mov ecx,ds:0x746f90 / sub esp,0x18 / push edi / xor eax,eax /
-    // xor edi,edi / call 0x5013a0`, so EDX arrives from whatever the caller left behind. Passed
-    // as 0 rather than inventing a point.
-    int32_t leaf = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, 0);
-    uint8_t *bsp = global_structure_bsp;
+    int32_t count = 0;
+    uint32_t leaf = bsp3d_node_find_leaf(0, global_collision_bsp, point);
+    uint8_t *bsp;
+    int16_t cluster;
+    int32_t words;
+    int32_t *row;
+    int32_t *word;
+    int16_t word_index;
 
-    if (leaf == -1) {
+    if (leaf == 0xffffffff) {
+        return 0;
+    }
+    bsp = global_structure_bsp;
+    cluster = *(int16_t *)(*(uint8_t **)(bsp + 0xe4) + (leaf & 0x7fffffff) * 0x10 + 8);
+    if (cluster == -1) {
         return 0;
     }
 
-    {
-        // PHASE-4 REVIEW: 0x4fa1bc..0x4fa1d1 is `and eax,0x7fffffff / mov ecx,[ebx+0xe4] /
-        // shl eax,4 / mov ax,[eax+ecx+8]` -- global_structure_bsp+0xe4 is a POINTER to the
-        // ScenarioStructureBSPLeaf array and the leaf index is masked before scaling. The
-        // earlier rewrite folded 0xe4 into the byte offset and dropped the mask.
-        int16_t cluster = *(int16_t *)(*(uint8_t **)(bsp + 0xe4) +
-                                       (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
-        if (cluster == -1) {
-            return 0;
+    object_globals_pointer->collecting_in_clusters = 1;
+    words = (*(int32_t *)(bsp + 0x134) + 0x1f) >> 5;
+    row = (int32_t *)(*(uint8_t **)(bsp + 0x14c)) + (int32_t)cluster * words;
+    object_cluster_stamp = object_cluster_stamp + 1;
+
+    word = row;
+    for (word_index = 0; word_index < (int16_t)words; word_index++, word++) {
+        int32_t cluster_count;
+        int32_t lo;
+        int32_t hi;
+        int32_t bit;
+        int32_t remaining;
+
+        if (*word == 0) {
+            continue;
         }
+        cluster_count = *(int32_t *)(global_structure_bsp + 0x134);
+        lo = (int16_t)(word_index << 5);
+        hi = lo + 0x20;
+        if (hi > cluster_count) {
+            hi = cluster_count;
+        }
+        if ((int16_t)lo >= (int16_t)hi) {
+            continue;
+        }
+        remaining = (uint16_t)((int16_t)hi - (int16_t)lo);
+        bit = lo;
+        do {
+            if ((row[bit >> 5] & (1u << (bit & 0x1f))) != 0) {
+                datum_index ref = collideable_cluster_first[bit];
 
-        object_globals_pointer->collecting_in_clusters = 1;
-        {
-            int32_t bit_count = (*(int32_t *)(bsp + 0x134) + 0x1f) >> 5;
-            int32_t *bits = (int32_t *)(*(int32_t *)(bsp + 0x14c) + cluster * bit_count * 4);
-            int16_t i;
+                while (ref != 0xffffffff) {
+                    object_cluster_reference *node =
+                        (object_cluster_reference *)collideable_object_references->data + (ref & 0xffff);
+                    datum_index object_index = node->object_index;
+                    object *obj;
 
-            object_cluster_stamp = object_cluster_stamp + 1;
-
-            for (i = 0; i < (int16_t)bit_count; i++) {
-                if (bits[i] != 0) {
-                    int32_t hi = i * 0x20 + 0x20;
-                    if (hi > *(int32_t *)(bsp + 0x134)) {
-                        hi = *(int32_t *)(bsp + 0x134);
-                    }
-                    if (i * 0x20 < hi) {
-                        // UNSURE: the real arguments (a filter callback, its context, an output
-                        // array and a limit) are not available at this call site either; see
-                        // both files' headers.
-                        return object_type_definitions_collect_by_flag_bits(i * 0x20, hi - i * 0x20,
-                            i, (int16_t)bit_count, bits, object_cluster_stamp, 0, 0, 0, 0, 0);
+                    ref = node->next_reference;
+                    obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+                    if (obj->cluster_stamp != object_cluster_stamp) {
+                        obj->cluster_stamp = object_cluster_stamp;
+                        count = object_tree_collect_matching(object_index, filter, filter_context, count, max_count,
+                            out);
                     }
                 }
             }
-        }
+            bit++;
+        } while (--remaining != 0);
     }
 
     object_globals_pointer->collecting_in_clusters = 0;
-    return 0;
+    return count;
 }
 
 #if 0

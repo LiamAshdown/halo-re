@@ -1,7 +1,9 @@
 // physics_shape_add_edge_proxy  (Ghidra: FUN_00503ae0, still unnamed there; name from
 // out/phase2/results/physics_00.json)
 // address 0x503ae0, size 355 bytes
-// name confidence: 0.3   rewrite confidence: 0.2
+// name confidence: 0.3   rewrite confidence: 0.85
+// VERIFIED 2026-09-27 (static loop) against objdump 0x503ae0..0x503c3c: 0x672bb8/bc = -/+0.0001; triple product
+// (stack a = left plane, EAX b = right plane, EDX c = direction); edge_to_pill_and_quad push order all match.
 // evidence: out/phase2/results/physics_00.json: "Reads a leaf-edge's two adjacent surfaces,
 //   uses FUN_0044d8e0 (a dot/angle threshold of +/-0.0001) to skip near-coplanar or
 //   matching-side edges, transforms endpoints, and forwards to FUN_00503490 (edge-to-pill/quad

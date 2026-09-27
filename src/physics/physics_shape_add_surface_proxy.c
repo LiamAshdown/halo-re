@@ -1,7 +1,10 @@
 // physics_shape_add_surface_proxy  (Ghidra: FUN_00503c50, still unnamed there; name from
 // out/phase2/results/physics_00.json)
 // address 0x503c50, size 307 bytes
-// name confidence: 0.3   rewrite confidence: 0.2
+// name confidence: 0.3   rewrite confidence: 0.85
+// VERIFIED 2026-09-27 (static loop) against objdump 0x503c50..0x503d82: vertex fetch (EDI bsp), plane fetch, the
+// plane transform (new normal = rotation columns, d = new_normal . translation + d * scale) and the 11-argument
+// physics_shape_surface_to_polygon push order all match.
 // evidence: out/phase2/results/physics_00.json: "Fetches a surface's vertex loop via
 //   FUN_00501400, transforms each vertex with matrix4x3_transform_point, applies an
 //   angular+linear velocity correction (13-float unaff_ESI matrix) via structure_bsp_plane_fetch_signed, then

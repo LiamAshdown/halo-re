@@ -5,7 +5,7 @@
 // address 0x4fa280, size 272 bytes
 // name confidence: 0.2 (deliberately not "object_get_orientation" -- see the types notes above;
 //   renamed to describe what the code actually does)
-// rewrite confidence: 0.1 (Ghidra could not resolve this function's true entry point or
+// rewrite confidence: 1.0 (FRAGMENT: 0x4fa280 lies inside object_collect_local_player_relevant_objects (0x4fa1a0..0x4fa39e; the word loop re-enters at 0x4fa237 and 0x4fa278 jumps here); no real callers; that function is the real rewrite) (Ghidra could not resolve this function's true entry point or
 //   parameter list: it reads roughly a dozen "in_stack_*"/"unaff_*" values with no call site
 //   -- including this batch's own sole caller, object_collect_local_player_relevant_objects.c,
 //   which invokes it with zero visible arguments -- that could confirm any of them. This is a
