@@ -3,7 +3,7 @@
 // name confidence: 0.75 (still FUN_004f2df0 in Ghidra; types/objects.h's light.radius comment
 //   names this function directly: "the object_lights_gather_nearest falloff denominator";
 //   matches functions.md's summary)
-// rewrite confidence: 0.4
+// rewrite confidence: 0.85
 // evidence: types/objects.h light (owner_object 0x2c, position 0x30, creation_tick 0x0c, radius
 //   0x54); global 0x00860b20 light_cluster_first, 0x00860b24 light_cluster_references, 0x00860b14
 //   light_data, 0x008607c4 light_frame_counter; types/tags.h Object.flags bit 2
@@ -21,6 +21,9 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+// REWRITTEN 2026-09-28 against objdump 0x4f2df0..0x4f2fe6: the own-object exclusion reads the light
+//   tag's flags byte (+0x00, bit 2 "don't light own object"); the draft cast it to Object and tested
+//   Object.flags (+0x02). Distance and luma sums follow the original order (z, x, y / b, g, r).
 
 extern datum_index *light_cluster_first; // 0x00860b20
 extern data_array *light_cluster_references; // 0x00860b24
@@ -57,21 +60,22 @@ void object_lights_gather_nearest(int16_t cluster_index, uint32_t self_object_in
                 if (entry->owner_object != self_object_index) {
                     eligible = 1;
                 } else {
-                    Object *owner_tag = (Object *)tag_instances[*(uint32_t *)((uint8_t *)entry + 4) & 0xffff].data;
-                    eligible = (owner_tag->flags & 4) == 0;
+                    // 0x4f2e79: the LIGHT's own tag (light +0x04), flags byte +0x00 bit 2 "don't light own object"
+                    uint8_t *light_tag = (uint8_t *)tag_instances[*(uint32_t *)((uint8_t *)entry + 4) & 0xffff].data;
+                    eligible = (light_tag[0] & 4) == 0;
                 }
 
                 if (eligible) {
                     float dx = probe_point->x - entry->position.x;
                     float dy = probe_point->y - entry->position.y;
                     float dz = probe_point->z - entry->position.z;
-                    float distance = (float)sqrt((double)(dy * dy + dx * dx + dz * dz));
+                    float distance = (float)sqrt((double)(dz * dz + dx * dx + dy * dy)); // 0x4f2eac order
                     if (distance < search_margin + entry->radius) {
                         int16_t used = *count;
                         float attenuation = 1.0f - (distance * distance) / (entry->radius * entry->radius);
-                        float luminance = (*(float *)((uint8_t *)entry + 0x14) * 0.299f +
+                        float luminance = (*(float *)((uint8_t *)entry + 0x1c) * 0.114f +
                                            *(float *)((uint8_t *)entry + 0x18) * 0.587f +
-                                           *(float *)((uint8_t *)entry + 0x1c) * 0.114f) * attenuation;
+                                           *(float *)((uint8_t *)entry + 0x14) * 0.299f) * attenuation;
                         int16_t slot;
 
                         if (used < max_count) {
