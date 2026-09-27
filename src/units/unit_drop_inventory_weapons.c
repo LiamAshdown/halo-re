@@ -1,7 +1,7 @@
 // unit_drop_inventory_weapons  (Ghidra: already named unit_drop_inventory_weapons)
 // address 0x56f060, size 141 bytes
 // name confidence: 0.75 (cea-pdb hint 'unit_drop_inventory_weapons'; functions.md matches)
-// rewrite confidence: 0.5
+// rewrite confidence: 0.85 (REWRITTEN 2026-09-28 against objdump 0x56f060..0x56f0ec: the dropped handle (ESI) is what gets tested and deleted.)
 // evidence: types/units.h unit_data.weapons[4] (0x2f8), .current_weapon_index (0x2f2),
 //   .desired_weapon_index (0x2f4); callee unit_drop_object_from_hand (0x56ed00, this batch).
 // UNSURE: weapon_is_out_of_ammo()'s register argument is not visible; guessed as the dropped weapon's
@@ -16,7 +16,7 @@
 extern data_array *object_data;      // 0x008603b0
 extern int16_t game_connection_role; // 0x00719720 (a WORD; 0x719722 is the screenshot counter)
 
-extern uint8_t weapon_is_out_of_ammo(uint32_t object_index); // 0x4c2c70, UNSURE signature
+extern uint8_t weapon_is_out_of_ammo(uint32_t object_index); // 0x4c2c70, EAX; AL result
 extern void object_delete(uint32_t object_index);   // 0x4f5bd0, UNSURE exact signature
 extern void unit_drop_object_from_hand(uint32_t unit_index, uint32_t dropped_object_index); // 0x56ed00
 
@@ -34,15 +34,19 @@ void unit_drop_inventory_weapons(uint32_t unit_index)
     for (slot = 0; slot < 4; slot++) {
         datum_index *weapon = &unit->weapons[slot];
 
-        if (*weapon != k_datum_index_none && slot != unit->current_weapon_index) {
-            unit_drop_object_from_hand(unit_index, *weapon);
+        datum_index dropped = *weapon; // ESI
+
+        if (dropped != k_datum_index_none && slot != unit->current_weapon_index) {
+            unit_drop_object_from_hand(unit_index, dropped);
             if (slot == unit->desired_weapon_index) {
                 unit->desired_weapon_index = unit->current_weapon_index;
             }
             *weapon = k_datum_index_none;
 
-            if (weapon_is_out_of_ammo(*weapon) == 0 && game_connection_role == 0) {
-                object_delete(*weapon);
+            // 0x56f0bb / 0x56f0d7: EAX = the dropped weapon (ESI). FIXED 2026-09-28: the draft passed the slot after
+            // clearing it (-1), which crashed in weapon_is_out_of_ammo when the player died holding two weapons.
+            if (weapon_is_out_of_ammo(dropped) == 0 && game_connection_role == 0) {
+                object_delete(dropped);
             }
         }
     }

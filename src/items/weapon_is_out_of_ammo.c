@@ -1,7 +1,7 @@
 // weapon_is_out_of_ammo  (Ghidra: FUN_004c2c70; renamed per items_types_notes.md:
 // "age < 1.0 plus both magazine counters")
 // address 0x4c2c70, size 118 bytes
-// name confidence: 0.4   rewrite confidence: 0.4
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x4c2c70..0x4c2ce5 (tests current_game_engine 0x6f1d20; AL result).)
 // evidence: types/items.h weapon_data.age (0x240), .magazines[0]; types/tags.h Weapon.magazines
 //   (0x4f0), WeaponMagazine.rounds_loaded_maximum (0x0a); global 0x006f1d20 network_game_mode.
 // register convention: item index in EAX.
@@ -21,12 +21,11 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern int16_t network_game_mode; // 0x00719720 -- UNSURE: pack.py reports the referenced global
-                                   // as 0x006f1d20; kept as a plain int32_t either way
+extern void *current_game_engine; // 0x006f1d20, non-NULL = multiplayer engine loaded
 
 // Reports whether an item's weapon (per the odd combination above) should be treated as out of
 // ammo/charge.
-int32_t weapon_is_out_of_ammo(datum_index item_index)
+uint8_t weapon_is_out_of_ammo(datum_index item_index) // blam-cc: EAX -> item_index; AL result
 {
     object *item_obj;
     weapon_data *wd;
@@ -37,7 +36,7 @@ int32_t weapon_is_out_of_ammo(datum_index item_index)
     weapon_tag = (Weapon *)tag_instances[(uint16_t)item_obj->definition_tag].data;
 
     if (wd->age < 1.0f) {
-        if (network_game_mode == 0) return 1;
+        if (current_game_engine == 0) return 1; // 0x4c2caf
         if (weapon_tag->magazines.count < 1) return 1;
         {
             WeaponMagazine *magazine_tag = (WeaponMagazine *)weapon_tag->magazines.pointer;

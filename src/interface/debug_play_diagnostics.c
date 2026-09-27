@@ -146,6 +146,7 @@ void debug_fp_render_model_note(uint32_t model_tag, float pixels, int32_t lod, c
 // 4 rows of 3) and projection (0x7c13c0, 4x4) -- the same pair chimera__rasterizer_set_frustum_z_func uploads as
 // c0..c3 -- plus the effect type (1 = active camouflage path) and the camera near/far.
 static int32_t debug_fp_clip_count;
+static float debug_fp_node0[13]; // TEMPORARY: scale, forward, left, up, position of the first FP node
 
 void debug_fp_clip_note(const float *world, int32_t effect_type)
 {
@@ -154,6 +155,11 @@ void debug_fp_clip_note(const float *world, int32_t effect_type)
     float v[3], clip[4];
     int32_t i;
 
+    if (world != 0) {
+        for (i = 0; i < 13; i++) {
+            debug_fp_node0[i] = world[i - 10]; // the whole first node matrix (world points at its position)
+        }
+    }
     if ((debug_fp_clip_count++ % 90) != 0 || world == 0) {
         return;
     }
@@ -212,6 +218,35 @@ void debug_fp_draw_state_note(const char *site, int32_t hresult, uint32_t primit
     ((debug_get_pointer_fn)vtable[0x174 / 4])(rasterizer_device, &vs);
     ((debug_get_pointer_fn)vtable[0x1b0 / 4])(rasterizer_device, &ps);
     ((debug_get_texture_fn)vtable[0x100 / 4])(rasterizer_device, 0, &tex0);
+    if (debug_fp_state_lines <= 4) {
+        // GetVertexShaderConstantF(0, c, 4): the view-projection rows the model vertex shaders use
+        typedef int32_t (__stdcall *debug_get_vs_constants_fn)(void *self, uint32_t start, float *data, uint32_t count);
+        float c[16];
+        float point[3][3];
+        int32_t k;
+        int32_t j;
+
+        for (k = 0; k < 16; k++) {
+            c[k] = 0.0f;
+        }
+        ((debug_get_vs_constants_fn)vtable[0x17c / 4])(rasterizer_device, 0, c, 4);
+        standalone_log("DIAG fpvs c0=(%.3f %.3f %.3f %.3f) c1=(%.3f %.3f %.3f %.3f) c2=(%.3f %.3f %.3f %.3f) "
+                       "c3=(%.3f %.3f %.3f %.3f)", c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7], c[8], c[9], c[10],
+            c[11], c[12], c[13], c[14], c[15]);
+        for (k = 0; k < 3; k++) {
+            float along = (k == 0) ? 0.0f : ((k == 1) ? 0.3f : -0.3f);
+
+            for (j = 0; j < 3; j++) {
+                point[k][j] = debug_fp_node0[10 + j] + along * debug_fp_node0[1 + j];
+            }
+            standalone_log("DIAG fpvs point%d (node0 %+.1f fwd)=(%.3f %.3f %.3f) clip=(%.3f %.3f %.3f %.3f)", k, along,
+                point[k][0], point[k][1], point[k][2],
+                c[0] * point[k][0] + c[1] * point[k][1] + c[2] * point[k][2] + c[3],
+                c[4] * point[k][0] + c[5] * point[k][1] + c[6] * point[k][2] + c[7],
+                c[8] * point[k][0] + c[9] * point[k][1] + c[10] * point[k][2] + c[11],
+                c[12] * point[k][0] + c[13] * point[k][1] + c[14] * point[k][2] + c[15]);
+        }
+    }
     standalone_log("DIAG fpstate %s hr=%08x prim=%u verts=%u count=%u z=%u zw=%u zf=%u cull=%u ab=%u src=%u dst=%u "
                    "at=%u aref=%u af=%u st=%u sf=%u sref=%u smask=%x swmask=%x cw=%x vp=(%u %u %u %u %.3f %.3f) "
                    "vs=%p ps=%p tex0=%p",

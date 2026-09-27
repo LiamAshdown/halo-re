@@ -19,7 +19,7 @@ extern int16_t game_connection_role; // 0x00719720 (a WORD; 0x719722 is the scre
 
 extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code); // 0x492730, EAX, stack
 extern int32_t weapon_put_away(datum_index item_index, int8_t force); // 0x4c28f0, ESI, AL
-extern int32_t weapon_is_out_of_ammo(datum_index item_index); // 0x4c2c70, EAX
+extern uint8_t weapon_is_out_of_ammo(datum_index item_index); // 0x4c2c70, EAX; AL result
 extern void object_delete(uint32_t object_index);                              // 0x4f5bd0, UNSURE signature
 extern int16_t unit_find_next_zone_permitted_weapon_slot(uint32_t unit_index, int32_t start_slot, int16_t direction); // 0x56dba0
 extern void unit_drop_object_from_hand(uint32_t unit_index, uint32_t dropped_object_index); // 0x56ed00
