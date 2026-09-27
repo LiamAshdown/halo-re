@@ -3,7 +3,7 @@
 // address 0x4f7c40, size 270 bytes
 // name confidence: 0.25 (matches functions.md's summary: "Nudges a position by a
 //   velocity-scaled amount over time, gated on several object state flags")
-// rewrite confidence: 0.25 (three gating byte flags and the three-float position this reads
+// rewrite confidence: 0.85 (VERIFIED against 0x4f7c40 (network extrapolation: flags, unsigned elapsed ms, speed gate, point3d_add_scaled EAX/ECX/stack)) (three gating byte flags and the three-float position this reads
 //   fall inside object's unresolved 0x022..0x05b range per types/objects.h, and time_query_performance_counter_ms /
 //   FUN_006391b4 are foreign, unexamined callees; preserved as raw offsets, not renamed fields)
 // evidence: types/objects.h object (unknown_018 0x018, unknown_022[0x3a] 0x022, velocity

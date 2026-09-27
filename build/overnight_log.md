@@ -1878,3 +1878,7 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - VERIFIED: actor_get_aim_from_position (0x40f9b0, 0.9) and actor_handle_death (0x40dd50, 0.9).
 - Skipped: unit_spawn_with_starting_weapons (only caller is network_game_action_apply, MP).
 - Relink: left unresolved 1, traps 128.
+- VERIFIED (no change): hs_object_list_any_angle_match_gated (0x487ad0, 0.9), ai_conversation_resolve_participants (0x430fc0, 0.3 -> 0.85, end to end), actor_find_grenade_landing_spot (0x410c90, 0.9), object_nudge_position_by_velocity (0x4f7c40, network extrapolation, 0.85), unit_update_ground_contact_counter (0x575640, 0.9, offsets asserted).
+- unit_set_facing_from_index_table (0x570de0): FIXED (0.25 -> 0.85). object_set_position_and_orientation gets EDI = the spawn record's position (the vehicle placement +0x08, or the scenario +0x37c entry in game-engine mode 5). The draft passed the vehicle's current position, so a vehicle reset only turned it in place instead of moving it back to its spawn.
+- Skipped (MP): object_apply_shield_charge_and_notify (network message-delta handler).
+- Relink: left unresolved 1, traps 128.

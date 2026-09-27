@@ -1,7 +1,7 @@
 // unit_update_ground_contact_counter  (Ghidra: FUN_00575640; renamed from the phase2 proposal)
 // address 0x575640, size 169 bytes
 // name confidence: 0.4 (phase2 proposal at 0.4, matches functions.md summary)
-// rewrite confidence: 0.25 -- the contact-point array pointer (unaff_EDI) is register-only and
+// rewrite confidence: 0.9 (VERIFIED against 0x575640 (saturating airborne/landing counters, contact flags 2 / 0x10; offsets asserted)) -- the contact-point array pointer (unaff_EDI) is register-only and
 //   not recoverable; passed in explicitly here as a parameter instead.
 // evidence: types/units.h vehicle_data.airborne_ticks (0x4d0), .landing_ticks (0x4d3); the
 //   physics.tag_id-at-0x8c double-tag_instances-lookup idiom (Vehicle tag -> Physics tag,

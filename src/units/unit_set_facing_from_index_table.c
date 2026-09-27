@@ -1,7 +1,7 @@
 // unit_set_facing_from_index_table  (Ghidra: FUN_00570de0; renamed from the phase2 proposal)
 // address 0x570de0, size 244 bytes
 // name confidence: 0.3 (phase2 proposal at 0.3, matches functions.md summary)
-// rewrite confidence: 0.25
+// rewrite confidence: 0.85 (REWRITTEN: position argument is the spawn record's position (EDI), from 0x570e44..0x570e92; rest verified)
 // evidence: types/units.h vehicle_data.cinematic_facing_index (0x5b0, "0x570de0 indexes the
 //   cinematic direction table of the scenario with it"); types/tags.h Object's physics
 //   TagDependency lands at absolute tag offset 0x80..0x90, so tag+0x8c is its tag_id and tag+4
@@ -58,20 +58,31 @@ void unit_set_facing_from_index_table(uint32_t object_index)
 
     object_reset_velocity_and_wake(object_index);
 
-    if (DAT_006f1cb8 == 5) {
-        uint8_t *array_base = *(uint8_t **)(global_scenario + 0x37c); // reflexive pointer field
-        angle = *(float *)(array_base + facing_index * 0x94 + 0xc); // UNSURE
-    } else {
-        int16_t stride = *(int16_t *)(object_type_definitions_ex + 0xe);       // UNSURE
-        int16_t base_field_offset = *(int16_t *)(object_type_definitions_ex + 10); // UNSURE
-        uint8_t *base = *(uint8_t **)(global_scenario + 4 + base_field_offset);    // UNSURE
-        angle = *(float *)(base + facing_index * stride + 0x14); // UNSURE
-    }
+    // FIXED (0x570e44..0x570e92): EDI = the spawn record's position (scenario +0x37c entry, 0x94
+    //   bytes, yaw +0xc, in game-engine mode 5; otherwise the vehicle placement's +0x08, yaw +0x14),
+    //   so the vehicle is moved back to its spawn. The draft passed its current position.
+    {
+        real_point3d *spawn_position;
 
-    forward.i = (float)cos((double)angle);
-    forward.j = (float)sin((double)angle);
-    forward.k = 0.0f;
-    object_set_position_and_orientation(object_index, &forward, global_up3d_pointer, &obj->position);
+        if (DAT_006f1cb8 == 5) {
+            uint8_t *entry = *(uint8_t **)(global_scenario + 0x37c) + facing_index * 0x94;
+
+            spawn_position = (real_point3d *)entry;
+            angle = *(float *)(entry + 0xc);
+        } else {
+            int16_t stride = *(int16_t *)(object_type_definitions_ex + 0xe);
+            int16_t base_field_offset = *(int16_t *)(object_type_definitions_ex + 10);
+            uint8_t *base = *(uint8_t **)(global_scenario + 4 + base_field_offset);
+
+            spawn_position = (real_point3d *)(base + facing_index * stride + 0x8);
+            angle = *(float *)((uint8_t *)spawn_position + 0xc);
+        }
+
+        forward.i = (float)cos((double)angle);
+        forward.j = (float)sin((double)angle);
+        forward.k = 0.0f;
+        object_set_position_and_orientation(object_index, &forward, global_up3d_pointer, spawn_position);
+    }
 
     if (*(int32_t *)((uint8_t *)tag + 0x8c) == -1) { // tag->physics.tag_id
         obj->flags |= 0x20;

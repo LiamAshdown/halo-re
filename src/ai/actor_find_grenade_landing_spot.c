@@ -1,6 +1,6 @@
 // actor_find_grenade_landing_spot  (Ghidra: actor_find_grenade_landing_spot, renamed)
 // address 0x410c90, size 263 bytes
-// name confidence: 0.4   rewrite confidence: 0.25
+// name confidence: 0.4   rewrite confidence: 0.9 (VERIFIED against 0x410c90 (range gates, last known position +0.2 z, outputs, ESI/stack scatter call))
 // evidence: phase-4 summary "finds a suitable grenade landing point at the current threat's
 // position when it is within the actor's configured grenade range"; on success writes the
 // target's last_known_position (z nudged by +0.2) through a point out-parameter, the
