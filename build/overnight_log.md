@@ -2018,3 +2018,18 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - New checkers: scratchpad/callcount.py (call sites whose argument count differs from the definition; 279 sites,
   mostly networking -- OPEN queue for the static loop), scratchpad/alret_scan.py (byte-returning functions typed
   32-bit), scratchpad/protofilter.py.
+
+## 2026-09-27 play-test diagnostics (TEMPORARY logging: src/interface/debug_play_diagnostics.c + a log line in team_pair_set)
+- Marines still hostile after both fixes: the diagnostic shows the (player 1, human 2) override with active=1,
+  status=0, no allied bits (+0xa4) and no secondary bits, and NO team_pair_set call this session. That is exactly
+  the state the OLD build left (team_pair_override_add set active=1 then called team_pair_set(entry, 1, 0), which
+  early-returns because active already equals 1). The user is playing from a checkpoint saved by an older build, so
+  the saved game state carries the broken team table; ai_allegiance does not run again. Workaround for the user:
+  console `ai_allegiance player human` after loading (the add finds the existing entry and re-runs team_pair_set
+  with BL 0), or start a10 fresh. The code fix stands.
+- First-person gun invisible after the node-table fix: the weapon is attached (weapon_hud=1, device_hud=1),
+  state 0, animation 1 with the frame advancing, and node 0 sits at world coordinates near the player (e.g.
+  -43.4 21.4 0.55). So the pose is built; the draw fails. OPEN: first_person_weapon_update_lighting (0.55) /
+  render_model path.
+- REMOVE the temporary logging (debug_play_diagnostics.c, its call in first_person_weapon_update and the
+  standalone_log line in team_pair_set) once these are settled.
