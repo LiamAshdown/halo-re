@@ -2,7 +2,7 @@
 // out/phase4/items_functions.md, "Per-tick decision routine for a weapon trigger that fires it,
 // forces a reload, or plays an idle/overheat cue depending on ammo and heat state")
 // address 0x4c3280, size 485 bytes
-// name confidence: 0.35   rewrite confidence: 0.4
+// name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x4c3280..0x4c3464; the effect-state durations now scale seconds to ticks)
 // evidence: types/items.h weapon_data.flags (_weapon_overheated_bit), weapon_trigger_state
 //   .flags (_weapon_trigger_charge_effect_bit 0x20), weapon_data.age (0x240); types/tags.h
 //   Weapon.weapon_flags (bit 11 = 0x800, UNSURE which flag), WeaponTrigger.charging_time (0x48),
@@ -75,13 +75,15 @@ void weapon_trigger_fire_or_reload(datum_index item_index, int16_t trigger_index
                         weapon_play_trigger_tag_effect(item_index, *(datum_index *)&tag_trigger->charging_effect.tag_id, 0, 0); // UNSURE:
                             // tag_id (EDI) placeholder, see weapon_play_trigger_tag_effect.c
                 }
+                // 0x4c33e1..0x4c33ea: seconds * 30.0 (0x672ac8) -> ticks. FIXED 2026-09-27: the draft passed the raw
+                // seconds, so a charge / overload lasted 1/30 as long.
                 weapon_trigger_effect_set_state(item_index, trigger_index, _weapon_trigger_effect_charging,
-                    (int16_t)tag_trigger->charging_time);
+                    (int16_t)(int32_t)(tag_trigger->charging_time * 30.0f));
                 return;
             }
             if (tag_trigger->overload_time > 0.0f) {
                 weapon_trigger_effect_set_state(item_index, trigger_index, _weapon_trigger_effect_overloading,
-                    (int16_t)tag_trigger->overload_time);
+                    (int16_t)(int32_t)(tag_trigger->overload_time * 30.0f)); // 0x4c341e..0x4c342a
                 return;
             }
         }

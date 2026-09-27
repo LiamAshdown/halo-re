@@ -1,6 +1,6 @@
 // ai_communication_record_line_played  (Ghidra: ai_communication_record_line_played, already named)
 // address 0x42f9e0, size 421 bytes
-// name confidence: 0.5   rewrite confidence: 0.45
+// name confidence: 0.5   rewrite confidence: 0.85 (REWRITTEN 2026-09-27 static loop from objdump 0x42f9e0..0x42fb84)
 // evidence: out/phase4/ai_functions.md signature and summary ("records the current tick as
 // the last-played time for a spoken line across the relevant per-unit, per-class, and
 // per-line-id timestamp tables"). types/ai.h already attributes ai_globals.unknown_3f0 and
@@ -46,27 +46,27 @@ extern int32_t actor_classify_communication_object_type(datum_index actor_index)
 void ai_communication_record_line_played(datum_index object_index, int16_t tier,
                                           int16_t communication_line_id, int16_t conversation_line_id)
 {
-    object *obj;
-    unit_data *unit;
+    uint8_t *obj;
     datum_index actor_index;
     int32_t current_tick;
     int32_t decay;
+    int32_t stamp;
     int32_t category;
     int32_t *entry;
-    int32_t *tier1;
-    int32_t *tier2;
-    int32_t *tier3;
+    int32_t *slot;
 
-    obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    actor_index = unit->actor_index;
+    obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    actor_index = *(datum_index *)(obj + 0x1f4); // unit_data.actor_index
 
+    // 0x42fa21..0x42fa47: the stamp is the SPEAKING UNIT's +0x3fa (minus 45, floored at 0) plus the game tick, stored
+    // in the unit's +0x3f0. FIXED 2026-09-27: the draft read and wrote ai_globals +0x3fa / +0x3f0 instead.
     current_tick = game_time->game_time;
-    decay = ai_globals_ptr->unknown_3fa - 0x2d;
+    decay = *(int16_t *)(obj + 0x3fa) - 0x2d;
     if (decay < 0) {
         decay = 0;
     }
-    ai_globals_ptr->unknown_3f0 = decay + current_tick;
+    stamp = decay + current_tick;
+    *(int32_t *)(obj + 0x3f0) = stamp;
 
     if (actor_index == (datum_index)k_datum_index_none) {
         return;
@@ -78,37 +78,44 @@ void ai_communication_record_line_played(datum_index object_index, int16_t tier,
         return;
     }
 
-    if (tier < 6) {
-        tier1 = (int32_t *)&ai_globals_ptr->unknown_14 + category;
-        if (*tier1 <= current_tick) {
-            *tier1 = current_tick;
+    // 0x42fa99..0x42fadf: the tier slots keep the max of themselves and the STAMP (the draft used the bare tick)
+    if (tier <= 5) {
+        slot = (int32_t *)&ai_globals_ptr->unknown_14 + category;
+        if (*slot <= stamp) {
+            *slot = stamp;
         }
-        if (2 < tier) {
-            tier2 = (int32_t *)&ai_globals_ptr->unknown_1c + category;
-            if (*tier2 <= current_tick) {
-                *tier2 = current_tick;
+        if (tier >= 3) {
+            slot = (int32_t *)&ai_globals_ptr->unknown_1c + category;
+            if (*slot <= stamp) {
+                *slot = stamp;
             }
         }
-        if (4 < tier) {
-            tier3 = (int32_t *)&ai_globals_ptr->unknown_24 + category;
-            if (*tier3 <= current_tick) {
-                *tier3 = current_tick;
+        if (tier >= 5) {
+            slot = (int32_t *)&ai_globals_ptr->unknown_24 + category;
+            if (*slot <= stamp) {
+                *slot = stamp;
             }
         }
     }
 
+    // 0x42fae3..0x42fb2e / 0x42fb31..0x42fb7c: [0] = the tick, [1] (when the line's delay is positive) =
+    // __ftol(delay * 30.0 + stamp). The draft stored the tick in [1].
     if (communication_line_id != -1) {
+        float delay = DAT_00655ab4[communication_line_id * 0x28 / 4];
+
         entry = (int32_t *)(communication_line_base + (category + communication_line_id * 2) * 8);
         entry[0] = current_tick;
-        if (0.0f < DAT_00655ab4[communication_line_id * 0x28 / 4]) {
-            entry[1] = current_tick; // UNSURE: real value is an untraced __ftol result
+        if (delay > 0.0f) {
+            entry[1] = (int32_t)(delay * 30.0f + (float)stamp);
         }
     }
     if (conversation_line_id != -1) {
+        float delay = DAT_00656b24[conversation_line_id * 0x24 / 4];
+
         entry = (int32_t *)(conversation_line_base + (category + conversation_line_id * 2) * 8);
         entry[0] = current_tick;
-        if (0.0f < DAT_00656b24[conversation_line_id * 0x24 / 4]) {
-            entry[1] = current_tick; // UNSURE: real value is an untraced __ftol result
+        if (delay > 0.0f) {
+            entry[1] = (int32_t)(delay * 30.0f + (float)stamp);
         }
     }
 }
