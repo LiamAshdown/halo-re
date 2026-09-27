@@ -1,6 +1,6 @@
 // actor_is_within_alert_range  (Ghidra: actor_is_within_alert_range, already named)
 // address 0x408f30, size 319 bytes
-// name confidence: 0.5   rewrite confidence: 0.35
+// name confidence: 0.5   rewrite confidence: 0.9 (checked against objdump 0x408f30..0x40906e)
 // evidence: types/ai.h actor.position-cache offsets (0x12c/0x130/0x134, the same "cached
 //   position" pattern used throughout this session); types/objects.h object.vitality_flags
 //   (_object_health_frozen_bit)/velocity/up; phase-4 summary "returns whether a point or
@@ -41,9 +41,10 @@ uint8_t actor_is_within_alert_range(uint8_t always_in_range, float radius_a, flo
             object_get_position(&obj_position, object_index);
 
             if (vitality_only != 0 ||
-                ((obj_position.x - a->body_position.x) * (obj_position.x - a->body_position.x) +
-                 (obj_position.y - a->body_position.y) * (obj_position.y - a->body_position.y) +
-                 (obj_position.z - a->body_position.z) * (obj_position.z - a->body_position.z) < radius * radius)) {
+                // 0x408fd4..0x40900a: (dz*dz + dx*dx) + dy*dy against radius*radius
+                ((obj_position.z - a->body_position.z) * (obj_position.z - a->body_position.z) +
+                 (obj_position.x - a->body_position.x) * (obj_position.x - a->body_position.x) +
+                 (obj_position.y - a->body_position.y) * (obj_position.y - a->body_position.y) < radius * radius)) {
                 result = 1;
                 if (vitality_only != 0) {
                     return 1;
@@ -61,10 +62,10 @@ uint8_t actor_is_within_alert_range(uint8_t always_in_range, float radius_a, flo
         return result;
     }
 check_upright:
-    if (obj->up.k >= 0.5f) {
-        return result;
+    if (obj->up.k < 0.5f) { // 0x408f7d: a tipped vehicle (up.k below 0.5) never qualifies; NaN keeps the result
+        return 0;
     }
-    return 0;
+    return result;
 }
 
 #if 0

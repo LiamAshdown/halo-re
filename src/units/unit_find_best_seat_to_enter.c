@@ -29,9 +29,8 @@ extern tag_instance *tag_instances; // 0x0087bc14
 
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction, see src/math/quaternion_normalize.c
 extern uint8_t actor_check_vehicle_target_available(uint32_t flag); // 0x42b810, UNSURE signature
-extern uint8_t unit_find_weapon_marker_transform(uint32_t seat_unit_index, int16_t seat_index,
-                                                  real_vector3d *out_a, real_vector3d *out_b,
-                                                  real_point3d *out_c); // 0x5640a0
+extern uint8_t unit_find_weapon_marker_transform(uint32_t unit_index, uint32_t vehicle_index, int16_t seat_index,
+    real_point3d *out_entry, real_point3d *out_seat, real_point3d *out_hint); // 0x5640a0, EAX unit, stack
 extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_label,
                                                      char *weapon_label, uint8_t test_only); // 0x5651e0,
 // unit_index in EAX; this matches the definition in unit_set_or_test_seat_and_weapon_label.c.
@@ -70,7 +69,8 @@ uint16_t unit_find_best_seat_to_enter(uint32_t unit_index, uint32_t vehicle_inde
         UnitSeat *seat = (UnitSeat *)((uint8_t *)vehicle_tag->seats.pointer + seat_i * 0x11c);
 
         real_vector3d marker_a, marker_b;
-        if (unit_find_weapon_marker_transform(vehicle_index, seat_i, &marker_a, &marker_b, 0) != 0) {
+        if (unit_find_weapon_marker_transform(unit_index, vehicle_index, seat_i, (real_point3d *)&marker_a,
+                (real_point3d *)&marker_b, 0) != 0) { // 0x566622: EAX = the unit
             float dx = unit_obj->bounding_center.x - marker_a.i;
             float dy = unit_obj->bounding_center.y - marker_a.j;
             float dz = unit_obj->bounding_center.z - marker_a.k;

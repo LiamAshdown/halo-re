@@ -20,7 +20,7 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern int32_t actor_evaluate_search_node(uint32_t actor_index, uint32_t from_object, uint32_t node_table, float *out_position, float *out_direction, uint32_t *out_extra, float *out_score, uint8_t *out_close, uint8_t *out_facing, uint8_t *out_flag); // 0x4091d0, this session
+extern uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_index, int16_t seat_index, void *out_entry, void *out_direction, void *out_hint, float *out_score, uint8_t *out_close, uint8_t *out_facing, uint8_t *out_in_front); // 0x4091d0, returns AL
 
 // Scans candidate search-node indices 0..count-1 (count from the target unit's type
 // definition at +0x2e4) via actor_evaluate_search_node, keeping the highest-scoring one, and

@@ -1,24 +1,18 @@
-// actor_evaluate_search_node  (Ghidra: actor_evaluate_search_node, renamed)
+// actor_evaluate_search_node  (Ghidra: FUN_004091d0; it evaluates a vehicle SEAT for an actor about to board)
 // address 0x4091d0, size 1003 bytes
-// name confidence: 0.4   rewrite confidence: 0.15
-// evidence: types/ai.h actor.actor_variant_tag (0x5c)/position-cache (0x12c/0x130); actor
-//   mode (0x6c) compared against _actor_mode_vocalize (9); prop.is_unit (0x60)/
-//   next_in_actor (0x08)/unknown_1c (0x2c); data_array.maximum_count/size (already-named
-//   fields, reused here to resolve a raw datum_index into an actor pointer with a salt
-//   check -- the standard pattern, just inlined rather than going through a helper); phase-4
-//   summary "evaluates one candidate search/junction node against a from-to object pair,
-//   returning its direction, orientation, and a visibility-based score".
-//
-// Given the size and depth of unresolved offsets (a from/to node table this function reads
-// via param_2/param_3 that is not identified anywhere in types/ai.h or types/tags.h, plus
-// six out-of-range callees), this is kept close to the Ghidra decompilation rather than
-// fully re-derived. Confidence is low; treat this file as a starting point for a future
-// pass, not a settled rewrite.
-// UNSURE, broadly: the "candidate actor" struct walked near the end (psVar14) is resolved as
-// an actor pointer via the datum_index pattern above, but its offsets beyond mode (0x6c) and
-// mode_data (0x9c) are read as a distinct 0x9c-based sub-record (psVar14+0x9c..0xd8-ish) that
-// does not obviously correspond to any named actor field at those absolute offsets; kept as
-// raw offsets from psVar14 rather than reusing the `actor` struct for that part.
+// name confidence: 0.2   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x4091d0..0x4095ba. Stack: (actor, vehicle, seat, out_entry, out_direction, out_hint,
+//   out_score, out_close, out_facing, out_in_front); returns 1 when the seat can be approached. A seat that is
+//   occupied (0x56cc10), refused by the seat permission test for actors whose tag has flag 8 (0x56cdd0), or
+//   without entry points for the actor's unit (0x5640a0: entry point, seat marker, "enter-hint" marker) is out.
+//   The approach direction is seat - entry in xy (the actor's facing when degenerate); the target is whichever
+//   of the entry point / seat marker is nearer in xy. Another actor already boarding this seat (mode 9 at +0x6c,
+//   +0x9c vehicle, +0xa0 seat) that is nearer to its own target rules the seat out. Flags: close = xy distance
+//   below 0.7, facing = (seat - actor) . facing above 0.6, in_front = distance below 1.1 and that dot positive;
+//   score = 10 / (distance + 1), plus 3.5 when the seat flag 3 test (0x56cd70) disagrees with the actor
+//   variant's flag bit 7.
+// blam-cc: stack -> (actor_index, vehicle_index, seat_index, out_entry, out_direction, out_hint, out_score,
+//   out_close, out_facing, out_in_front)
 
 #include "tags.h"
 #include "memory.h"
@@ -27,182 +21,137 @@
 #include "cache.h"
 #include "objects.h"
 
-extern data_array *actor_data; // 0x00880360
-extern data_array *prop_data;  // 0x008802c0
-extern tag_instance *tag_instances; // 0x0087bc14
+extern data_array *actor_data;       // 0x00880360
+extern data_array *prop_data;        // 0x008802c0
+extern data_array *object_data;      // 0x008603b0
+extern tag_instance *tag_instances;  // 0x0087bc14
 
-extern char unit_is_seat_occupied(void); // 0x56cc10, not yet rewritten
-extern char unit_seat_flag_bit10(void); // 0x56cdd0, not yet rewritten
-extern char unit_find_weapon_marker_transform(int32_t node_table, uint32_t node_index, float *out_a, float *out_b, uint32_t *out_c); // 0x5640a0, not yet rewritten
-extern void object_get_position(real_point3d *out_position, datum_index object_index); // 0x4f6900, objects module
-extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0
-extern char unit_seat_flag_bit3(void); // 0x56cd70, not yet rewritten (result discriminated by which branch calls it)
-extern double sqrt(double x); // FSQRT, Ghidra's SQRT() pseudo-function; see src/math for the convention
+extern double sqrt(double x);
+extern uint8_t unit_is_seat_occupied(int32_t parent_index, int16_t seat_index); // 0x56cc10, EDI, SI
+extern uint8_t unit_seat_flag_bit10(uint32_t unit_index, int16_t seat_index); // 0x56cdd0, EAX, CX
+extern uint8_t unit_seat_flag_bit3(uint32_t unit_index, int16_t seat_index); // 0x56cd70, EAX, CX
+extern uint8_t unit_find_weapon_marker_transform(uint32_t unit_index, uint32_t vehicle_index, int16_t seat_index,
+    real_point3d *out_entry, real_point3d *out_seat, real_point3d *out_hint); // 0x5640a0, EAX unit, stack
+extern void object_get_position(real_point3d *out_position, datum_index object_index); // 0x4f6900, EAX, ECX
+extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
 
-int32_t actor_evaluate_search_node(uint32_t actor_index, uint32_t from_object, uint32_t node_table, float *out_position, float *out_direction, uint32_t *out_extra, float *out_score, uint8_t *out_close, uint8_t *out_facing, uint8_t *out_flag)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+
+static uint8_t *actor_try_get(datum_index handle)
 {
-    actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
-    ActorVariant *variant = (ActorVariant *)tag_instances[a->actor_variant_tag & 0xffff].data;
-    char ok;
+    int16_t index = (int16_t)handle;
+    int16_t salt = (int16_t)(handle >> 16);
+    uint8_t *record;
 
-    ok = unit_is_seat_occupied();
-    if (ok != 0) {
+    if (index < 0 || index >= actor_data->maximum_count) {
         return 0;
     }
-
-    {
-        Actor *actor_def = (Actor *)tag_instances[a->actor_definition_tag & 0xffff].data;
-        if ((((uint8_t *)actor_def)[4] & 8) != 0 && unit_seat_flag_bit10() == 0) {
-            return 0;
-        }
+    record = (uint8_t *)actor_data->data + actor_data->size * index;
+    if (*(int16_t *)record == 0 || (salt != 0 && *(int16_t *)record != salt)) {
+        return 0;
     }
+    return record;
+}
 
-    {
-        float node_x, node_y, node_z_out;
-        uint32_t extra;
+uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_index, int16_t seat_index,
+    real_point3d *out_entry, real_vector3d *out_direction, real_point3d *out_hint, float *out_score,
+    uint8_t *out_close, uint8_t *out_facing, uint8_t *out_in_front)
+{
+    uint8_t *act = ACTOR(actor_index);
+    uint8_t *variant = TAG_DATA(*(datum_index *)(act + 0x5c));
+    real_point3d entry;
+    real_point3d seat;
+    real_point3d hint;
+    real_vector3d direction;
+    real_vector2d to_seat;
+    float ax;
+    float ay;
+    float distance;
+    float dot;
+    float score;
+    uint8_t close;
+    uint8_t facing;
+    uint8_t in_front;
+    datum_index prop_index;
 
-        if (unit_find_weapon_marker_transform((int32_t)node_table, from_object, &node_x, &node_y, &extra) == 0) {
-            return 0;
-        }
-        {
-            real_point3d self_position;
-            real_vector2d dir2;
-            real_vector3d dir3;
-            float best_dx, best_dy;
-            float score;
-            datum_index prop_index;
-            uint8_t is_close;
-            uint8_t facing_ok;
+    if (unit_is_seat_occupied((int32_t)vehicle_index, seat_index)) {
+        return 0;
+    }
+    if ((TAG_DATA(*(datum_index *)(act + 0x58))[0x4] & 8) && !unit_seat_flag_bit10(vehicle_index, seat_index)) {
+        return 0;
+    }
+    if (!unit_find_weapon_marker_transform(*(datum_index *)(act + 0x18), vehicle_index, seat_index, &entry, &seat,
+                                           &hint)) {
+        return 0;
+    }
+    object_get_position((real_point3d *)&direction, vehicle_index); // 0x40927a: overwritten right away
+    direction.i = seat.x - entry.x;
+    direction.k = 0.0f;
+    direction.j = seat.y - entry.y;
+    if (vector2d_normalize_with_length((real_vector2d *)&direction) == 0.0f) {
+        direction = *(real_vector3d *)(act + 0x174);
+    }
+    ax = *(float *)(act + 0x12c);
+    ay = *(float *)(act + 0x130);
+    if (sqrt((seat.y - ay) * (seat.y - ay) + (seat.x - ax) * (seat.x - ax)) <
+        sqrt((entry.y - ay) * (entry.y - ay) + (entry.x - ax) * (entry.x - ax))) {
+        distance = (float)sqrt((seat.y - ay) * (seat.y - ay) + (seat.x - ax) * (seat.x - ax));
+    } else {
+        distance = (float)sqrt((entry.y - ay) * (entry.y - ay) + (entry.x - ax) * (entry.x - ax));
+    }
+    for (prop_index = *(datum_index *)(act + 0x50); prop_index != k_datum_index_none;) {
+        uint8_t *prop = (uint8_t *)prop_data->data + (prop_index & 0xffff) * 0x138;
+        datum_index other_index = *(datum_index *)(prop + 0x1c);
 
-            object_get_position(&self_position, actor_index);
-            dir2.i = node_y - node_x; // UNSURE: local_1c/local_34 pairing per the original
-            dir2.j = 0.0f;
-            (void)dir3;
+        prop_index = *(datum_index *)(prop + 0x8);
+        if (prop[0x60] == 0 && other_index != k_datum_index_none) {
+            uint8_t *other = actor_try_get(other_index);
 
-            if (vector2d_normalize_with_length(&dir2) == 0.0f) {
-                dir3.i = a->facing.i;
-                dir3.j = a->facing.j;
-                dir3.k = a->facing.k;
-            }
+            if (other != 0 && *(int16_t *)(other + 0x6c) == 9 && *(datum_index *)(other + 0x9c) == vehicle_index &&
+                *(int16_t *)(other + 0xa0) == seat_index) {
+                float dx = *(float *)(other + 0xcc) - *(float *)(other + 0x12c);
+                float dy = *(float *)(other + 0xd0) - *(float *)(other + 0x130);
 
-            {
-                float d_from_x = node_x - a->body_position.x;
-                float d_from_y = node_y - a->body_position.y;
-                float d_to_x = node_y - a->body_position.x; // UNSURE: mirrors the original's reuse of local_1c for both ends
-                float d_to_y = node_y - a->body_position.y;
-
-                if ((float)sqrt((double)(d_from_x * d_from_x + d_from_y * d_from_y)) <= (float)sqrt((double)(d_to_x * d_to_x + d_to_y * d_to_y))) {
-                    best_dx = d_from_x;
-                    best_dy = node_y;
-                } else {
-                    best_dx = d_to_x;
-                    best_dy = node_y;
+                if (distance * distance > dy * dy + dx * dx) {
+                    return 0;
                 }
-                best_dy -= a->body_position.y;
-                score = (float)sqrt((double)(best_dx * best_dx + best_dy * best_dy));
-            }
-
-            prop_index = *(datum_index *)((uint8_t *)a + 0x50);
-            for (;;) {
-                if (prop_index == (datum_index)k_datum_index_none) {
-                    float fx = a->body_position.x;
-                    float fy = a->body_position.y;
-                    float facing_dot;
-                    float visibility;
-
-                    vector2d_normalize_with_length(&dir2);
-                    facing_dot = (node_y - fx) * a->facing.i + (node_y - fy) * a->facing.j;
-
-                    facing_ok = !(score >= 1.1f || facing_dot <= 0.0f);
-
-                    if (*(int8_t *)variant < 0) { // pcVar3: the low byte of ActorVariant.flags, i.e. bit 7 of it
-                        ok = unit_seat_flag_bit3();
-                        if (ok != 0) {
-                            visibility = 0.0f;
-                            goto have_score;
-                        }
-                    } else {
-                        ok = unit_seat_flag_bit3();
-                        if (ok == 0) {
-                            visibility = 0.0f;
-                            goto have_score;
-                        }
-                    }
-                    visibility = 3.5f;
-                have_score:
-                    if (out_position != 0) {
-                        out_position[0] = node_x;
-                        out_position[1] = node_y;
-                        out_position[2] = 0.0f; // UNSURE: local_2c, never assigned on this path in the original
-                    }
-                    if (out_direction != 0) {
-                        out_direction[0] = dir2.i;
-                        out_direction[1] = dir2.j;
-                        out_direction[2] = 0.0f;
-                    }
-                    if (out_extra != 0) {
-                        out_extra[0] = extra;
-                        out_extra[1] = 0;
-                        out_extra[2] = 0;
-                    }
-                    if (out_score != 0) {
-                        *out_score = visibility;
-                    }
-                    if (out_close != 0) {
-                        *out_close = score < 0.7f;
-                    }
-                    if (out_facing != 0) {
-                        *out_facing = best_dy > 0.6f; // UNSURE: reuses fVar1 from the block above per the original
-                    }
-                    if (out_flag != 0) {
-                        *out_flag = facing_ok;
-                    }
-                    return 1;
-                }
-
-                {
-                    prop *p = &((prop *)prop_data->data)[prop_index & 0xffff];
-                    datum_index next = p->next_in_actor;
-                    int32_t candidate;
-
-                    if (p->is_unit == 0 || (candidate = p->owner_actor_index, candidate == -1)) {
-                        prop_index = next;
-                        continue;
-                    }
-                    prop_index = next;
-
-                    {
-                        int16_t idx = (int16_t)candidate;
-                        actor *cand = 0;
-
-                        if (idx >= 0 && idx < actor_data->maximum_count) {
-                            actor *maybe = &((actor *)actor_data->data)[idx];
-                            int16_t salt = (int16_t)((uint32_t)candidate >> 16);
-                            if (maybe->identifier != 0 && (salt == 0 || maybe->identifier == salt)) {
-                                cand = maybe;
-                            }
-                        }
-                        if (cand == 0 || cand->mode != _actor_mode_vocalize ||
-                            *(int32_t *)((uint8_t *)cand->mode_data) != (int32_t)from_object ||
-                            *(int16_t *)((uint8_t *)cand->mode_data + 4) != (int16_t)node_table) {
-                            continue;
-                        }
-                        {
-                            float ex = *(float *)((uint8_t *)cand->mode_data + (0x66 * 2 - 0x9c));
-                            float ey = *(float *)((uint8_t *)cand->mode_data + (0x68 * 2 - 0x9c));
-                            float fx2 = cand->body_position.x;
-                            float fy2 = cand->body_position.y;
-                            if (score * score <= (ex - fx2) * (ex - fx2) + (ey - fy2) * (ey - fy2)) {
-                                continue;
-                            }
-                        }
-                    }
-                }
-                break;
             }
         }
     }
-    return 0;
+    to_seat.i = seat.x - ax;
+    to_seat.j = seat.y - ay;
+    vector2d_normalize_with_length(&to_seat);
+    dot = to_seat.j * *(float *)(act + 0x178) + to_seat.i * *(float *)(act + 0x174);
+    close = (uint8_t)(distance < 0.7f);
+    facing = (uint8_t)(dot > 0.6f);
+    in_front = (uint8_t)(distance < 1.1f && dot > 0.0f);
+    score = 10.0f / (distance + 1.0f);
+    if ((unit_seat_flag_bit3(vehicle_index, seat_index) != 0) != ((variant[0] & 0x80) != 0)) {
+        score = score + 3.5f;
+    }
+    if (out_entry != 0) {
+        *out_entry = entry;
+    }
+    if (out_direction != 0) {
+        *out_direction = direction;
+    }
+    if (out_hint != 0) {
+        *out_hint = hint;
+    }
+    if (out_score != 0) {
+        *out_score = score;
+    }
+    if (out_close != 0) {
+        *out_close = close;
+    }
+    if (out_facing != 0) {
+        *out_facing = facing;
+    }
+    if (out_in_front != 0) {
+        *out_in_front = in_front;
+    }
+    return 1;
 }
 
 #if 0
