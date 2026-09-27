@@ -34,9 +34,7 @@ extern void unit_drop_inventory_weapons_except_current(datum_index unit_handle);
 extern datum_index player_spawn_starting_profile_weapon(TagDependency *weapon_tag, datum_index owner_unit_handle); // 0x477810,
     // this module's next batch; blam-cc: ESI -> weapon_tag, stack -> owner_unit_handle;
     // "Creates a new object attached to an owning unit..." per out/phase4/game_functions.md
-extern uint8_t unit_pickup_weapon(datum_index unit_handle, uint8_t is_primary); // 0x56d400, units module,
-    // not in this batch; blam-cc: ECX -> unit_handle, stack -> is_primary; UNSURE full behavior
-    // (attempts to give/equip the just-created weapon; false means it failed)
+extern uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t unit_index); // 0x56d400, stack, EAX weapon, ECX unit
 
 // Applies ScenarioPlayerStartingProfile[starting_profile_index] to unit_handle: optionally (when
 // reset_stats is set) resets the unit's vitality and zeroes its accumulated shield/health
@@ -80,7 +78,7 @@ void unit_apply_starting_profile(int16_t starting_profile_index, datum_index uni
     if (profile->primary_weapon.tag_id.index != 0xffff || profile->primary_weapon.tag_id.id != 0xffff) {
         weapon_object = player_spawn_starting_profile_weapon(&profile->primary_weapon, unit_handle);
         if (weapon_object != (datum_index)-1) {
-            if (unit_pickup_weapon(unit_handle, (uint8_t)(reset_stats != 0)) == 0) {
+            if (unit_pickup_weapon((int16_t)(reset_stats != 0), weapon_object, unit_handle) == 0) { // 0x473cd7
                 object_delete(weapon_object);
             }
         }
@@ -89,7 +87,7 @@ void unit_apply_starting_profile(int16_t starting_profile_index, datum_index uni
     if (profile->secondary_weapon.tag_id.index != 0xffff || profile->secondary_weapon.tag_id.id != 0xffff) {
         weapon_object = player_spawn_starting_profile_weapon(&profile->secondary_weapon, unit_handle);
         if (weapon_object != (datum_index)-1) {
-            if (unit_pickup_weapon(unit_handle, 0) == 0) {
+            if (unit_pickup_weapon(0, weapon_object, unit_handle) == 0) { // 0x473d11
                 object_delete(weapon_object);
             }
         }

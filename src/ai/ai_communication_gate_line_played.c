@@ -23,17 +23,20 @@ extern void ai_communication_record_line_played(datum_index object_index, int16_
                                                  int16_t communication_line_id,
                                                  int16_t conversation_line_id); // 0x42f9e0
 
-// blam-cc: CX -> event_id, EDX -> record
-// Skips recording a communication-played timestamp for event ids 0, 1, 2, 7 and 10, and for
-// any record marked silenced; otherwise forwards to ai_communication_record_line_played.
-void ai_communication_gate_line_played(int16_t event_id, ai_communication_record *record)
+// blam-cc: CX -> event_id, EDX -> record, stack -> object_index
+// FIXED from objdump 0x42e970..0x42e9a1: the speaker is the first STACK argument ([esp+4], its only caller
+// unit_update_animation_timers pushes the unit), and the line recorded is the record's +0x06 word.
+// Skips event ids 0, 1, 2, 7 and 10 (table 0x42e9ac) and silenced records (+0x0a); otherwise
+// ai_communication_record_line_played(speaker, event, record +0x06, -1).
+void ai_communication_gate_line_played(int16_t event_id, ai_communication_record *record, datum_index object_index)
 {
     switch (event_id) {
         case 0: case 1: case 2: case 7: case 10:
             break;
         default:
             if (record->silenced == 0) {
-                ai_communication_record_line_played(record->object_index, event_id, -1, -1);
+                ai_communication_record_line_played(object_index, event_id,
+                    *(int16_t *)((uint8_t *)record + 0x6), -1);
             }
             break;
     }

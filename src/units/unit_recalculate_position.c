@@ -1,34 +1,13 @@
-// unit_recalculate_position  (Ghidra: unit_recalculate_position, renamed)
+// unit_recalculate_position  (Ghidra: FUN_00558eb0)
 // address 0x558eb0, size 494 bytes
-// name confidence: 0.4   rewrite confidence: 0.55
-// evidence: object.position is object+0x05c/0x060/0x064 (objects.h; Ghidra spells the Z offset
-//   as decimal 100). The only *effect* the function has is calling
-//   object_set_position_and_recalculate (0x4f52c0), once unconditionally and once more if that
-//   call moved the object's position by more than 2 world units -- an unrolled two-step
-//   convergence. Its sole caller, biped_update (0x5590a0), invokes it only for an object whose
-//   network_role == 1, whose object+0x18 byte == 1 and which has no parent object, i.e. a
-//   locally simulated root biped.
-// RENAME: the previous name in this repo was unit_refresh_anchor_position, which asserts a write
-//   this function never performs -- the cached point at object+0x1c is only ever *read* here, and
-//   every value derived from it feeds calls whose results are discarded. Renamed and logged in
-//   symbols/agent_phase4_units.txt.
-// register convention: object index in EAX (Ghidra's in_EAX), preserved across both
-//   object_set_position_and_recalculate calls, which are themselves EAX-based and show no
-//   bound arguments.
-//   // blam-cc: EAX -> object_index
-// UNSURE: the first block is dead in a release build. real_is_valid (0x4476c0) and __isnan are
-//   called and their results dropped, and the chained `x < 5000.0 != (x == 5000.0)` idiom is how
-//   MSVC 7.1 emits `x < 5000.0f` from an x87 compare -- i.e. this is a compiled-in ASSERT chain
-//   on the midpoint of the anchor and the current position, not a computation.
-// UNSURE: local_c/local_8/local_4 are assigned *only* on the object_nudge_position_by_velocity() == 0 path and are
-//   read unconditionally afterwards. The likely original is
-//   `if (!object_nudge_position_by_velocity(&local_c, &local_8, &local_4)) { fall back to the anchor point; }` --
-//   a predicate with three register/stack output pointers Ghidra could not bind. That reading is
-//   recorded but NOT assumed: the code below keeps Ghidra's structure exactly, so the fallback
-//   assignment is the only one present and the other path leaves the midpoint undefined. Since
-//   the block is assert-only this does not change behaviour, but it does mean the three floats
-//   must not be trusted as "equal to the anchor".
-// UNSURE: object_nudge_position_by_velocity and DAT_00689471 belong to other, not-yet-processed modules.
+// name confidence: 0.4   rewrite confidence: 0.9
+// REWRITTEN from objdump 0x558eb0..0x55909d (the draft called the nudge and the position setter without their
+//   registers: 0x4f7c40 takes EAX object + stack out, 0x4f52c0 takes ESI position + EDI object). EAX: unit.
+//   The unit is moved back towards its anchor (+0x1c) from its position (+0x5c): straight onto the anchor when
+//   more than 5 away or when the smoothing toggle (0x689471) is off, else onto the midpoint of the position and
+//   the nudged anchor (0x4f7c40; the anchor when that fails) provided the midpoint is a valid number within
+//   +-5000 on every axis. A resulting jump of more than 2 snaps it onto the anchor after all.
+// blam-cc: EAX -> object_index
 
 #include "tags.h"
 #include "memory.h"
@@ -38,61 +17,48 @@
 #include "units.h"
 
 extern data_array *object_data; // 0x008603b0
-extern uint8_t DAT_00689471;    // 0x00689471, UNSURE: unresolved global (a debug/assert toggle;
-                                //   the whole block it gates has no side effects)
+extern uint8_t DAT_00689471;    // 0x00689471, the smoothing toggle
 
-extern char object_nudge_position_by_velocity(void); // 0x4f7c40, UNSURE signature/module; see file header  // real signature (object_nudge_position_by_velocity.c): uint8_t object_nudge_position_by_velocity(uint32_t object_index); Ghidra recovered 0 of 1 args at this call site
-extern void object_set_position_and_recalculate(uint32_t object_index); // 0x4f52c0, UNSURE args:  // real signature (object_set_position_and_recalculate.c): void object_set_position_and_recalculate(real_point3d *position, uint32_t object_index); Ghidra recovered 1 of 2 args at this call site
-                                                                        //   EAX-based, none bound
-extern double sqrt(double x);      // a single x87 FSQRT instruction in the original (Ghidra's SQRT())
+extern uint8_t object_nudge_position_by_velocity(uint32_t object_index, real_point3d *out); // 0x4f7c40, EAX, stack
+extern void object_set_position_and_recalculate(real_point3d *position, uint32_t object_index); // 0x4f52c0, ESI, EDI
+extern double sqrt(double x);      // a single x87 FSQRT
 extern int __isnan(double x);      // 0x624494, msvcrt
-extern int real_is_valid(float x); // 0x4476c0, math module
+extern uint8_t real_is_valid(float value); // 0x4476c0
 
-// Re-derives a locally simulated root biped's object position through
-// object_set_position_and_recalculate, and repeats the call once if the first one displaced the
-// object by more than 2 world units. When the cached anchor point at object+0x1c is already
-// within 5 units of the current position and the DAT_00689471 toggle is set, it first runs a
-// (result-discarding, assert-only) validity check on the midpoint of the two points.
+static uint8_t coordinate_in_range(float value)
+{
+    return (uint8_t)(!(value < -5000.0f) && value <= 5000.0f);
+}
+
 void unit_recalculate_position(uint32_t object_index)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    // unit_object_anchor (types/units.h) names object+0x1c, which types/objects.h leaves inside
-    // unknown_019/unknown_022 because the objects module never reads it.
-    real_point3d *anchor = &((unit_object_anchor *)obj)->cached_anchor_point;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    real_point3d *current = (real_point3d *)(obj + 0x5c);
+    real_point3d anchor = *(real_point3d *)(obj + 0x1c);
+    real_point3d previous = *current;
+    real_point3d *target = &anchor;
+    real_point3d midpoint;
+    real_point3d nudged;
 
-    float anchor_x = anchor->x, anchor_y = anchor->y, anchor_z = anchor->z;
-    float position_x = obj->position.x, position_y = obj->position.y, position_z = obj->position.z;
-    float dx = anchor_x - position_x, dy = anchor_y - position_y, dz = anchor_z - position_z;
-
-    if (sqrt(dx * dx + dy * dy + dz * dz) <= 5.0 && DAT_00689471 != 0) {
-        float mid_source_x;  // local_c -- see the UNSURE note in the file header
-        float mid_source_y;  // local_8
-        float mid_source_z;  // local_4
-
-        if (object_nudge_position_by_velocity() == 0) {
-            mid_source_x = anchor_x;
-            mid_source_y = anchor_y;
-            mid_source_z = anchor_z;
+    // 0x558eeb..0x558f26: the differences stay on the x87 stack (z*z + y*y + x*x)
+    if (!(sqrt((anchor.z - previous.z) * (anchor.z - previous.z) + (anchor.y - previous.y) * (anchor.y - previous.y) +
+               (anchor.x - previous.x) * (anchor.x - previous.x)) > 5.0) && DAT_00689471) {
+        if (!object_nudge_position_by_velocity(object_index, &nudged)) {
+            nudged = anchor;
         }
-        {
-            float mid_x = (position_x + mid_source_x) * 0.5f;
-            float mid_y = (mid_source_y + position_y) * 0.5f;
-            // assert-only: every result below is discarded
-            if (!__isnan((double)mid_x) && mid_x >= -5000.0f && mid_x < 5000.0f &&
-                real_is_valid(mid_y) && mid_y >= -5000.0f && mid_y < 5000.0f) {
-                real_is_valid((mid_source_z + position_z) * 0.5f);
-            }
+        midpoint.x = (previous.x + nudged.x) * 0.5f;
+        midpoint.y = (previous.y + nudged.y) * 0.5f;
+        midpoint.z = (previous.z + nudged.z) * 0.5f;
+        if (!__isnan((double)midpoint.x) && coordinate_in_range(midpoint.x) &&
+            real_is_valid(midpoint.y) && coordinate_in_range(midpoint.y) &&
+            real_is_valid(midpoint.z) && coordinate_in_range(midpoint.z)) {
+            target = &midpoint;
         }
     }
-
-    object_set_position_and_recalculate(object_index);
-
-    // position *after* the recalculation against the position captured before it
-    dx = obj->position.x - position_x;
-    dy = obj->position.y - position_y;
-    dz = obj->position.z - position_z;
-    if (sqrt(dx * dx + dy * dy + dz * dz) > 2.0) {
-        object_set_position_and_recalculate(object_index);
+    object_set_position_and_recalculate(target, object_index);
+    if (sqrt((current->z - previous.z) * (current->z - previous.z) + (current->y - previous.y) * (current->y - previous.y) +
+             (current->x - previous.x) * (current->x - previous.x)) > 2.0) {
+        object_set_position_and_recalculate(&anchor, object_index);
     }
 }
 

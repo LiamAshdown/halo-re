@@ -1,20 +1,16 @@
-// unit_update_animation_timers  (Ghidra: unit_update_animation_timers)
+// unit_update_animation_timers  (Ghidra: FUN_00561620)
 // address 0x561620, size 700 bytes
-// name confidence: 0.35 (phase2 candidate)   rewrite confidence: 0.25
-// evidence: types/units.h unit_data.flags (0x204, _unit_flag_permutation_dirty),
-//   .unknown_3e8/.unknown_3ea/.unknown_3ec (0x3e8/0x3ea/0x3ec), .current_speech/.pending_speech
-//   (.priority), .speech_delay_ticks/.speech_started/.speech_lipsync_ticks/
-//   .speech_duration_ticks/.speech_finished/.speech_tail_ticks/.speech_lipsync_stopped/
-//   .speech_sound_handle (0x3f8/0x3f4/0x3fc/0x3fa/0x3f6/0x3fe/0x3f5/0x400).
-//   unit_choose_dialogue_variant (0x561990), unit_commit_speech (0x560f20).
-// register convention: unit index in EAX.
-//   // blam-cc: in_EAX -> unit_index
-// UNSURE: the double decrement of unknown_3ec (two identical `if (0 < ...) --` blocks back to
-//   back) is reproduced literally -- it looks like a genuine quirk of the original rather than
-//   decompiler noise, since both instances have their own distinct address range in the pack.
-//   object_get_node_local_transform and sound_start_at_object_marker are called with argument counts Ghidra
-//   could not fully recover; the local that carries a position between them is modelled as a
-//   scratch object_marker, matching the convention used in unit_fire_animation_sound_trigger.
+// name confidence: 0.35 (phase2 candidate; it is the unit speech tick)   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x561620..0x5618db (the draft called the sound and AI communication helpers without
+//   their register / stack arguments). EAX: unit. A pending dialogue variant (+0x204 bit 0x100) is chosen
+//   (0x561990). Timers: +0x3e8 (reloading 22 while +0x3ea has repeats), +0x3ec (twice a tick). While a line
+//   plays (+0x388 priority > 0): its delay (+0x3f8) runs out first; then, once, the sound (+0x38c) starts at
+//   the "head" marker (0x543ce0, else the origin facing forward) into +0x400 and the line is gated
+//   (0x42e970: CX priority, EDX the speech record +0x398, stack the unit); +0x3fc counts down; +0x3fa counts
+//   the sound out (clearing +0x400 at 0); after it the event line plays once (0x42eee0) and the tail
+//   (+0x3fe) runs out, zeroing +0x3fc. When +0x3fc is 0 the reaction propagates once (0x42e9c0). A finished
+//   line clears the priority and a queued one (+0x3b8) is committed (0x560f20, DX 3).
+// blam-cc: EAX -> unit_index
 
 #include "tags.h"
 #include "memory.h"
@@ -22,111 +18,111 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "ai.h"
 
-extern data_array *object_data; // 0x008603b0
+extern data_array *object_data;     // 0x008603b0
+extern real_point3d *global_zero_point3d_pointer; // 0x006966f8
+extern real_vector3d *global_forward3d_pointer; // 0x00696718
 
-extern void ai_communication_gate_line_played(void);  // 0x42e970, UNSURE: no traced args
-extern void ai_propagate_communication_reaction(datum_index object_index, void *order); // 0x42e9c0, stack (cdecl)
-extern void ai_communication_play_event_line(void);  // 0x42eee0, UNSURE: no traced args
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
-                                                object_marker *marker, uint32_t flags); // 0x4f6080, UNSURE args
+extern void unit_choose_dialogue_variant(uint32_t unit_index); // 0x561990, EAX
+extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
+    uint32_t flags); // 0x4f6080
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward,
     datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint); // 0x543ce0, ESI, ECX, EAX, stack
-extern const real_point3d *global_zero_point3d_pointer; // 0x006966f8
-extern const real_vector3d *global_forward3d_pointer;   // 0x00696718
-extern void unit_choose_dialogue_variant(uint32_t unit_index); // 0x561990, UNSURE: implicit unit_index
-extern int32_t unit_commit_speech(uint32_t unit_index, const unit_speech *source, int16_t mode); // 0x560f20
+extern void ai_communication_gate_line_played(int16_t event_id, ai_communication_record *record,
+    datum_index object_index); // 0x42e970, CX, EDX, stack
+extern void ai_communication_play_event_line(datum_index object_index, int16_t event_id, uint8_t force,
+    datum_index explicit_speaker_actor_index, uint32_t *event_record); // 0x42eee0
+extern void ai_propagate_communication_reaction(datum_index object_index, ai_communication_order *order); // 0x42e9c0
+extern int32_t unit_commit_speech(uint32_t unit_index, const void *source, int16_t mode); // 0x560f20, EAX, ECX, DX
 
-void unit_update_animation_timers(uint32_t unit_index) // blam-cc: in_EAX -> unit_index
+static void count_down(uint8_t *field)
 {
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+    int16_t value = *(int16_t *)field;
 
-    if ((unit->flags & _unit_flag_permutation_dirty) != 0) {
+    if (value > 0) {
+        *(int16_t *)field = (int16_t)(value - 1);
+    }
+}
+
+void unit_update_animation_timers(uint32_t unit_index)
+{
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+
+    if (obj[0x205] & 0x1) {
         unit_choose_dialogue_variant(unit_index);
-        unit->flags = unit->flags & ~(uint32_t)_unit_flag_permutation_dirty;
+        *(uint32_t *)(obj + 0x204) &= 0xfffffeff;
     }
+    if (*(int16_t *)(obj + 0x3e8) > 0) {
+        int16_t value = (int16_t)(*(int16_t *)(obj + 0x3e8) - 1);
 
-    if (unit->unknown_3e8 > 0) {
-        unit->unknown_3e8 = unit->unknown_3e8 - 1;
-        if (unit->unknown_3e8 == 0 && unit->unknown_3ea > 0) {
-            unit->unknown_3ea = unit->unknown_3ea - 1;
-            unit->unknown_3e8 = 0x16;
+        *(int16_t *)(obj + 0x3e8) = value;
+        if (value == 0 && *(int16_t *)(obj + 0x3ea) > 0) {
+            *(int16_t *)(obj + 0x3ea) = (int16_t)(*(int16_t *)(obj + 0x3ea) - 1);
+            *(int16_t *)(obj + 0x3e8) = 0x16;
         }
     }
-    if (unit->unknown_3ec > 0) {
-        unit->unknown_3ec = unit->unknown_3ec - 1;
-    }
-    if (unit->unknown_3ec > 0) { // see file header: reproduced literally, twice in the original
-        unit->unknown_3ec = unit->unknown_3ec - 1;
-    }
+    count_down(obj + 0x3ec);
+    count_down(obj + 0x3ec);
+    if (*(int16_t *)(obj + 0x388) > 0) {
+        if (*(int16_t *)(obj + 0x3f8) > 0) {
+            *(int16_t *)(obj + 0x3f8) = (int16_t)(*(int16_t *)(obj + 0x3f8) - 1);
+            goto tail;
+        }
+        if (obj[0x3f4] == 0) {
+            object_marker marker;
+            Point3D position;
+            Vector3D forward;
+            int16_t node = 0;
 
-    if (unit->current_speech.priority > 0) {
-        if (unit->speech_delay_ticks < 1) {
-            if (unit->speech_started == 0) {
-                // 0x5616f8..0x561799: the "head" marker (0x0066bfa0) gives the node, the local position (+0x2c)
-                // and forward (+0x08); without it the sound sits on node 0 at the zero point facing forward
-                object_marker marker;
-                Point3D position;
-                Vector3D forward;
-                int16_t node_index = 0;
+            if ((int16_t)object_get_node_local_transform(unit_index, "head", &marker, 1) != 0) {
+                uint8_t *raw = (uint8_t *)&marker;
 
-                if ((int16_t)object_get_node_local_transform(unit_index, "head", &marker, 1) != 0) {
-                    node_index = marker.node_index;
-                    position = *(Point3D *)&marker.transform.position;
-                    forward = *(Vector3D *)&marker.transform.forward;
-                } else {
-                    position = *(const Point3D *)global_zero_point3d_pointer;
-                    forward = *(const Vector3D *)global_forward3d_pointer;
-                }
-                if (unit->current_speech.sound_tag != (datum_index)-1) {
-                    unit->speech_sound_handle = sound_start_at_object_marker(unit_index, &position, &forward,
-                        unit->current_speech.sound_tag, node_index, 1.0f, 0);
-                }
-                ai_communication_gate_line_played();
-                unit->speech_started = 1;
-            }
-            if (unit->speech_lipsync_ticks > 0) {
-                unit->speech_lipsync_ticks = unit->speech_lipsync_ticks - 1;
-            }
-            if (unit->speech_duration_ticks < 1) {
-                if (unit->speech_finished == 0) {
-                    ai_communication_play_event_line();
-                    unit->speech_finished = 1;
-                }
-                if (unit->speech_tail_ticks > 0) {
-                    unit->speech_tail_ticks = unit->speech_tail_ticks - 1;
-                }
-                if (unit->speech_tail_ticks == 0) {
-                    unit->speech_lipsync_ticks = 0;
-                }
+                position = *(Point3D *)(raw + 0x2c);
+                forward = *(Vector3D *)(raw + 0x8);
+                node = *(int16_t *)raw;
             } else {
-                unit->speech_duration_ticks = unit->speech_duration_ticks - 1;
-                if (unit->speech_duration_ticks == 0) {
-                    unit->speech_sound_handle = (datum_index)-1;
-                }
+                position = *(Point3D *)global_zero_point3d_pointer;
+                forward = *(Vector3D *)global_forward3d_pointer;
             }
-        } else {
-            unit->speech_delay_ticks = unit->speech_delay_ticks - 1;
+            if (*(datum_index *)(obj + 0x38c) != k_datum_index_none) {
+                *(datum_index *)(obj + 0x400) = sound_start_at_object_marker(unit_index, &position, &forward,
+                    *(datum_index *)(obj + 0x38c), node, 1.0f, 0);
+            }
+            ai_communication_gate_line_played(*(int16_t *)(obj + 0x388), (ai_communication_record *)(obj + 0x398),
+                unit_index);
+            obj[0x3f4] = 1;
+        }
+        count_down(obj + 0x3fc);
+        if (*(int16_t *)(obj + 0x3fa) > 0) {
+            int16_t value = (int16_t)(*(int16_t *)(obj + 0x3fa) - 1);
+
+            *(int16_t *)(obj + 0x3fa) = value;
+            if (value == 0) {
+                *(datum_index *)(obj + 0x400) = k_datum_index_none;
+            }
+            goto tail;
+        }
+        if (obj[0x3f6] == 0) {
+            ai_communication_play_event_line(unit_index, (int16_t)*(uint16_t *)(obj + 0x38a), 0, k_datum_index_none,
+                (uint32_t *)(obj + 0x398));
+            obj[0x3f6] = 1;
+        }
+        count_down(obj + 0x3fe);
+        if (*(int16_t *)(obj + 0x3fe) == 0) {
+            *(int16_t *)(obj + 0x3fc) = 0;
         }
     }
-
-    if (unit->speech_lipsync_ticks == 0 && unit->speech_lipsync_stopped == 0) {
-        // FIXED (0x56186f..0x561877): pushes (ESI = the unit, &unit object +0x398, inside the playing speech line
-        // at +0x388); the draft passed nothing.
-        ai_propagate_communication_reaction(unit_index, (uint8_t *)obj + 0x398);
-        unit->speech_lipsync_stopped = 1;
+tail:
+    if (*(int16_t *)(obj + 0x3fc) == 0 && obj[0x3f5] == 0) {
+        ai_propagate_communication_reaction(unit_index, (ai_communication_order *)(obj + 0x398));
+        obj[0x3f5] = 1;
     }
-
-    int16_t current_priority = unit->current_speech.priority;
-    if (current_priority > 0) {
-        if (unit->speech_duration_ticks == 0 && unit->speech_tail_ticks == 0) {
-            unit->current_speech.priority = 0;
-        }
-        current_priority = unit->current_speech.priority;
+    if (*(int16_t *)(obj + 0x388) > 0 && *(int16_t *)(obj + 0x3fa) == 0 && *(int16_t *)(obj + 0x3fe) == 0) {
+        *(int16_t *)(obj + 0x388) = 0;
     }
-    if (current_priority == 0 && unit->pending_speech.priority > 0) {
-        unit_commit_speech(unit_index, 0, 1); // UNSURE: promotes pending_speech; see unit_commit_speech mode 1
+    if (*(int16_t *)(obj + 0x388) == 0 && *(int16_t *)(obj + 0x3b8) > 0) {
+        unit_commit_speech(unit_index, obj + 0x3b8, 3);
     }
 }
 
