@@ -12,6 +12,7 @@
 #include "ai.h"
 #include "game.h"
 #include "objects.h"
+#include "cache.h"
 
 extern data_array *actor_data; // 0x00880360
 
