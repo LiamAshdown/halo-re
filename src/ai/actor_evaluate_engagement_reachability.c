@@ -25,7 +25,9 @@
 extern double sqrt(double x);
 
 extern const real_vector3d *global_forward3d_pointer; // 0x00696718
-extern const real_vector3d *global_up3d_pointer;      // 0x0069672c
+// FIXED 2026-09-27 (static loop): 0x42b45e reads 0x0069672c, which points at (0, 0, -1); the name
+// global_up3d_pointer is bound to 0x00696720 (0, 0, 1) by every other file, so the draft offset the point UP.
+extern const real_vector3d *global_down3d_pointer;    // 0x0069672c -> 0x0065c25c (0, 0, -1)
 
 extern uint8_t scenario_cluster_visibility_test(int16_t row_cluster, int16_t column_cluster); // 0x53eb60, stack, CX
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
@@ -108,7 +110,7 @@ int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t tar
             b.x = target_position->x - offset.i;
             b.y = target_position->y - offset.j;
             b.z = target_position->z - offset.k;
-            point3d_add_scaled(&raised, (real_vector3d *)global_up3d_pointer, target_position, 0.1f);
+            point3d_add_scaled(&raised, (real_vector3d *)global_down3d_pointer, target_position, 0.1f);
             if (collision_test_movement_segment_between_points(&a, self_position, mask, exclude_object_index, result) ||
                 collision_test_movement_segment_between_points(&b, self_position, mask, exclude_object_index, result) ||
                 collision_test_movement_segment_between_points(&raised, self_position, mask, exclude_object_index, result)) {

@@ -22,7 +22,10 @@ extern data_array *encounter_data;   // 0x008802c8
 extern data_array *prop_data;        // 0x008802c0
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern uint8_t *actor_type_definitions[]; // 0x006853b8
-extern uint8_t actor_mode_definitions[];  // 0x0065524c, 0x38 per mode, +0xc combat grade
+// FIXED 2026-09-27 (static loop, scratchpad/equcheck.py): this file declared the table at 0x0065524c with the
+// combat grade at +0xc, but the linker binds actor_mode_definitions to 0x00655254 (16 other files), so the
+// read landed on process_proc's low word. Binary: [mode * 0x38 + 0x655258] == definitions[mode].combat_grade.
+extern actor_mode_definition actor_mode_definitions[16]; // 0x00655254
 
 extern void ai_starting_location_derive_placement_flags(datum_index encounter_index, int16_t starting_location_index,
     uint8_t *out_a, int16_t *out_b, uint8_t *out_c, int16_t *out_d, int16_t *out_edx, int16_t *out_esi); // 0x436d40, EAX, stack, EDX, ESI
@@ -93,7 +96,7 @@ uint8_t actor_update_melee_combat_action(datum_index actor_index)
     if (W(a, 0x1e4) > 0 && W(a, 0x6e) <= 2 && W(a, 0x74) == 0) {
         searching = 1;
     }
-    if (W(a, 0x6a) < 3 && W(actor_mode_definitions, W(a, 0x6c) * 0x38 + 0xc) == 0) {
+    if (W(a, 0x6a) < 3 && actor_mode_definitions[W(a, 0x6c)].combat_grade == 0 /* 0x40ceb7 */) {
         return 1;
     }
     if (a[0x160] || searching || regroup) {
@@ -262,7 +265,7 @@ uint8_t actor_update_melee_combat_action(datum_index actor_index)
 
 guard:
     // 0x40d445: otherwise guard
-    if (W(actor_mode_definitions, W(a, 0x6c) * 0x38 + 0xc) == 1) {
+    if (actor_mode_definitions[W(a, 0x6c)].combat_grade == 1 /* 0x40d45a */) {
         return result;
     }
     {

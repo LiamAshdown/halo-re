@@ -44,7 +44,10 @@ extern float ai_communication_selector_delay_seconds[]; // 0x00655a68, by partic
 extern uint8_t *ai_communication_line_history; // 0x006f0c9c, 8-byte records per (row, side)
 extern uint32_t random_seed_global;    // 0x00719cd0
 extern int32_t ai_communication_quiet_until_tick; // 0x00725204
-extern uint8_t actor_mode_definitions[]; // 0x0065524c, 0x38 per mode, +0xc combat grade
+// FIXED 2026-09-27 (static loop, scratchpad/equcheck.py): this file declared the table at 0x0065524c with the
+// combat grade at +0xc, but the linker binds actor_mode_definitions to 0x00655254 (16 other files), so the
+// read landed on process_proc's low word. Binary: [mode * 0x38 + 0x655258] == definitions[mode].combat_grade.
+extern actor_mode_definition actor_mode_definitions[16]; // 0x00655254
 extern char s_primary_eye_marker[];      // 0x0066bfa0
 
 extern double sqrt(double x);
@@ -675,7 +678,7 @@ void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datu
                 } else {
                     int16_t mode = *(int16_t *)(ACTOR_DATA(speaker_actor) + 0x6c);
 
-                    if (*(int16_t *)(actor_mode_definitions + mode * 0x38 + 0xc) != 2 &&
+                    if (actor_mode_definitions[mode].combat_grade != 2 /* 0x42e3cb */ &&
                         *(int16_t *)(speaker + 0x6a) != 1) {
                         animation_factor = 2.0f;
                     }

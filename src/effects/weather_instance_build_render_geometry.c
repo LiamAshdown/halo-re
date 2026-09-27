@@ -36,7 +36,9 @@ extern weather_instance weather_instances[1]; // 0x006b0ae4
 extern data_array *weather_particle_data;     // 0x0087abcc
 extern tag_instance *tag_instances;           // 0x0087bc14
 extern uint8_t *global_structure_bsp;        // 0x00746f9c
-extern float camera_position_x, camera_position_y, camera_position_z; // 0x007c3114/18/1c
+extern float camera_position_x; // 0x007c3114 (render_camera_global.position; one declaration per line -- the
+extern float camera_position_y; // 0x007c3118  standalone linker resolves a line by its single address, so the old
+extern float camera_position_z; // 0x007c311c  "x, y, z; // 0x007c3114/18/1c" line bound z to 0x7c3114)
 extern const real *k_camera_axis_table;       // 0x00696720
 extern const uint32_t k_particle_render_constant[3]; // 0x006966f8
 
