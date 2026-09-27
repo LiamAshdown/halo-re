@@ -34,7 +34,7 @@ extern void widgets_initialize(void); // 0x4ff9d0
 extern void object_type_definition_chain_build(void); // 0x4f3db0, this batch
 extern void lights_initialize(void); // 0x4f0a20
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
-extern memory_pool *game_state_new_pool(char *name);
+extern memory_pool *game_state_new_pool(char *name, int32_t pool_size); // 0x538150, stack name, EBX pool_size
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
 extern void cluster_partition_new(cluster_reference_group *out, char *name); // 0x551e30, blam-cc: ESI -> out, EDI -> name
 extern cluster_reference_group collideable_cluster_group; // 0x008603d0
@@ -50,7 +50,9 @@ void objects_initialize(void)
     object_type_definition_chain_build();
     lights_initialize();
     object_data = game_state_new("object", k_maximum_objects, 0xc /* EBX at the original call */);
-    object_memory_pool = game_state_new_pool("objects");
+    // FIXED (objdump 0x4f4af7..0x4f4b06): EBX = 0x200000, the 2 MB object pool. The draft passed no size, so the pool
+    //   (and every game-state allocation after it) got a garbage size.
+    object_memory_pool = game_state_new_pool("objects", 0x200000);
 
     globals_region = game_state_base + game_state_cursor;
     game_state_cursor = game_state_cursor + 0x98;
