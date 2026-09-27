@@ -1972,3 +1972,25 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - The panel pulse chain (object function A cosine period 1 -> light t -> flare intensity +0x23 -> reflection
   brightness/radius lerp in lens_flare_render_all) was verified against the binary end to end.
 - OPEN (runtime, when the user next plays): do the a10 panel flares now show and pulse?
+
+## 2026-09-27 lens flares drawn again (CONFIRMED by the user: the a10 panel lights now flash)
+- ROOT CAUSE: rasterizer_lens_flare_set_current_key (0x5120f0) ends with xor al,al and both callers test only AL
+  (lens_flare_render_all 0x5143f8, light_volume_render_procedure 0x4fed19). The C returned the whole EAX (the
+  bitmap tag id with its low byte cleared), so every real flare took the skip branch: no lens flare and no light
+  volume was ever drawn. Now returns uint8_t 0.
+- The user's screenshot showed the five panel squares with no glow at all, which pointed at the draw path.
+- Verified on the way: rasterizer_lens_flare_quad_add (all 6 vertices), batch_find_slot, batch_draw_slot,
+  batch_apply_material (inverted: non-zero from the binder = failure), rasterizer_validate_and_rebind_texture,
+  rasterizer_lens_flare_occlusion_test_issue, occlusion_queries_create, lens_flare_get_visibility_byte,
+  the reflection colour animation (the yellow panel flare pulses its tint orange <-> dark red, cosine 0.75 s),
+  periodic_function_build_table. rasterizer_lens_flare_batching_select_mode mode 5 ALPHAARG1 fixed (0 = diffuse).
+- New scanner scratchpad/alret_scan.py (+ alret_review.py): C functions typed 32-bit whose binary returns only AL.
+  148 candidates, mostly networking; the gameplay ones reviewed return clean 0/1 or keep the right low byte.
+  encounter_squad_spawn_reinforcement returns AL = 0 in the binary too and its callers cast to int8_t: fine.
+- Crashes found while the user tested, all FIXED: rasterizer_sun_glow_render passed (target, rect) swapped to
+  rasterizer_sun_glow_capture (crash with the sun on screen); chimera__draw_16/8_bit_text called with 3 args by
+  the HUD text queue, in-game score, scoreboard row, teammate nameplate, world-relative text and the console
+  overlay (text landed in the position slot; crash in the HUD text queue). OPEN: network_stats_overlay_draw has the
+  same 3-arg draw call (networking debug overlay, skipped).
+- NEW C: the five missing firing-position rule procs, trapped once the AI started choosing positions:
+  rejection rows 0x4124c0, 0x412570 and scoring rows 0x411840, 0x411980, 0x411b60 (unlisted pointers 535 -> 530).
