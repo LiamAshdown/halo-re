@@ -5,7 +5,7 @@
 // address 0x5756f0, size 1217 bytes
 // name confidence: 0.55 (units_types_notes.md's identification, +0.0 for the name itself which
 //   was already wrong)
-// rewrite confidence: 0.2 -- four of the "vector3d_length()"/"vector3d_project_onto_unit_axis()"
+// rewrite confidence: 0.85 -- four of the "vector3d_length()"/"vector3d_project_onto_unit_axis()"
 //   calls (cases 0xe, 0x10, 0x20, 0x24) have no visible argument at all; object.velocity is used
 //   as the best-available guess and flagged UNSURE at each site.
 // evidence: types/units.h vehicle_data.forward_velocity/.sideways_velocity/.turning_velocity
@@ -34,161 +34,171 @@ extern real vector3d_length(real_vector3d *v); // 0x401960, UNSURE args at every
 extern void vector3d_project_onto_unit_axis(real_vector3d *parallel_out, real_vector3d *axis, real_vector3d *v, real_vector3d *perp_out); // 0x4cda30, EAX parallel, ECX axis, EDX v, ESI perp //  // real signature (vector3d_project_onto_unit_axis.c): void vector3d_project_onto_unit_axis(real_vector3d *parallel_out, real_vector3d *axis, real_vector3d *v, real_vector3d *perp_out); Ghidra recovered 0 of 4 args at this call site
 extern float fabsf(float x);
 
-static float clamp01(float v)
-{
-    if (v < 0.0f) return 0.0f;
-    if (v > 1.0f) return 1.0f;
-    return v;
-}
-
 // Evaluates the four ObjectFunctionIn selectors on the Vehicle tag (vehicle_a_in..d_in) against
 // a table of physics-derived control values (speed, turn rate, vertical motion, etc., each
 // normalized to 0..1) and writes the results into the object's function-output array
 // (object+0x124), used to drive the unit's procedural animation blending.
 // FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads EAX; unit_index arrive(s) on the stack (1 stack argument(s)).
+// REWRITTEN 2026-09-28 from objdump 0x5756f0..0x575bb0 (jump table 0x575bb4, 36 entries). The draft stored
+//   selectors 0x20 (lateral slide), 0x21 (+0x4ec) and 0x22 (+0x4f0) unclamped; the original clamps them to
+//   [0, 1] like every computed value (only 0xb/0xc/0xf/0x10 early-outs and the default store unclamped).
+//   The vector3d_length arguments are the velocity (+0x68, EAX) -- not UNSURE any more. Dot products keep
+//   the original k, j, i summation order.
 // blam-cc: stack -> unit_index
 void vehicle_calculate_animation_controls(uint32_t unit_index)
 {
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
-    vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
-    float max_forward = fabsf(tag->maximum_forward_speed);
-    float max_reverse = fabsf(tag->maximum_reverse_speed);
-    float max_speed = (max_reverse < max_forward) ? max_forward : max_reverse;
-    float max_left_slide = fabsf(tag->maximum_left_slide);
-    float max_right_slide = fabsf(tag->maximum_right_slide);
-    float max_slide = (max_right_slide < max_left_slide) ? max_left_slide : max_right_slide;
-    float max_left_turn = fabsf(tag->maximum_left_turn);
-    float max_right_turn = fabsf(tag->maximum_right_turn);
-    float max_turn = (max_right_turn < max_left_turn) ? max_left_turn : max_right_turn;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    Vehicle *tag = (Vehicle *)tag_instances[*(uint32_t *)obj & 0xffff].data;
+    real_vector3d *velocity = (real_vector3d *)(obj + 0x68);
+    real_vector3d *forward = (real_vector3d *)(obj + 0x74);
+    real_vector3d *up = (real_vector3d *)(obj + 0x80);
+    float forward_velocity = *(float *)(obj + 0x4d4);
+    float sideways_velocity = *(float *)(obj + 0x4d8);
+    float turning_velocity = *(float *)(obj + 0x4dc);
+    float max_forward = fabsf(tag->maximum_forward_speed);     // esp+0x14
+    float max_reverse = fabsf(tag->maximum_reverse_speed);     // esp+0x18
+    float max_speed = (max_forward > max_reverse) ? max_forward : max_reverse;           // esp+0x10
+    float max_left_slide = fabsf(tag->maximum_left_slide);     // esp+0x1c
+    float max_right_slide = fabsf(tag->maximum_right_slide);   // esp+0x20
+    float max_slide = (max_left_slide > max_right_slide) ? max_left_slide : max_right_slide; // esp+0x24
+    float max_left_turn = fabsf(tag->maximum_left_turn);       // esp+0x28
+    float max_right_turn = fabsf(tag->maximum_right_turn);     // esp+0x2c
+    float max_turn = (max_left_turn > max_right_turn) ? max_left_turn : max_right_turn;     // esp+0x38
     int16_t *selectors = (int16_t *)((uint8_t *)tag + 0x31c);
-    float *outputs = (float *)((uint8_t *)obj + 0x124);
+    float *outputs = (float *)(obj + 0x124);
     int i;
 
     for (i = 0; i < 4; i++) {
-        float value = 0.0f;
+        float value;
 
+        if (selectors[i] == 0) {
+            continue; // 0x5757fa: the output is left untouched
+        }
         switch (selectors[i]) {
-        case 0: goto next; // selector 0 means "unused", leaves outputs[i] untouched
         case 1: case 0x1c: case 0x1d: case 0x1e: case 0x1f:
-            value = fabsf(vehicle->forward_velocity) / max_speed;
+            value = fabsf(forward_velocity) / max_speed;
             break;
-        case 2:
-            value = (vehicle->forward_velocity >= 0.0f) ? vehicle->forward_velocity / max_forward : 0.0f;
+        case 2: // 0x57582d: test ah,5 / jp -- not below zero (or NaN) divides the velocity, else 0 / max
+            value = !(forward_velocity < 0.0f) ? forward_velocity / max_forward : 0.0f / max_forward;
             break;
-        case 3:
-            value = (vehicle->forward_velocity <= 0.0f) ? fabsf(vehicle->forward_velocity) / max_reverse : 0.0f;
+        case 3: // 0x575860: test ah,0x41 / jne -- at most zero (or NaN) divides |velocity|, else |0| / max
+            value = (forward_velocity > 0.0f) ? 0.0f / max_reverse : fabsf(forward_velocity) / max_reverse;
             break;
         case 4:
-            value = fabsf(vehicle->sideways_velocity) / max_slide;
+            value = fabsf(sideways_velocity) / max_slide;
             break;
         case 5:
-            value = fabsf(vehicle->sideways_velocity) / max_left_slide;
+            value = fabsf(sideways_velocity) / max_left_slide;
             break;
         case 6:
-            value = fabsf(vehicle->sideways_velocity) / max_right_slide;
+            value = fabsf(sideways_velocity) / max_right_slide;
             break;
         case 7: {
-            float a = fabsf(vehicle->forward_velocity) / max_speed;
-            float b = fabsf(vehicle->sideways_velocity) / max_slide;
+            float a = fabsf(forward_velocity) / max_speed;
+            float b = fabsf(sideways_velocity) / max_slide;
+
             value = (a > b) ? a : b;
             break;
         }
         case 8:
-            value = fabsf(vehicle->turning_velocity) / max_turn;
+            value = fabsf(turning_velocity) / max_turn;
             break;
         case 9:
-            value = fabsf(vehicle->turning_velocity) / max_left_turn;
+            value = fabsf(turning_velocity) / max_left_turn;
             break;
         case 10:
-            value = fabsf(vehicle->turning_velocity) / max_right_turn;
+            value = fabsf(turning_velocity) / max_right_turn;
             break;
-        case 0xb:
-            if ((vehicle->flags & 4) == 0) {
-                value = 0.0f;
-                goto store;
-            }
-            value = 1.0f;
-            goto store;
+        case 0xb: // stored unclamped
+            outputs[i] = (obj[0x4cc] & 4) ? 1.0f : 0.0f;
+            continue;
         case 0xc:
-            if ((vehicle->flags & 8) != 0) {
-                value = 1.0f;
-                goto store;
-            }
-            value = 0.0f;
-            break;
+            outputs[i] = (obj[0x4cc] & 8) ? 1.0f : 0.0f;
+            continue;
         case 0xe:
-            value = vector3d_length(&obj->velocity) / max_speed; // UNSURE argument
+            value = vector3d_length(velocity) / max_speed;
             break;
         case 0xf:
-            if (((uint8_t)obj->flags & 0x1c) == 0) { value = 0.0f; break; }
-            value = vector3d_length(&obj->velocity) / max_speed; // UNSURE argument
+            if ((obj[0x10] & 0x1c) == 0) {
+                outputs[i] = 0.0f;
+                continue;
+            }
+            value = vector3d_length(velocity) / max_speed;
             break;
         case 0x10:
-            if (((uint8_t)obj->flags & 2) == 0) { value = 0.0f; break; }
-            value = vector3d_length(&obj->velocity) / max_speed; // UNSURE argument
+            if ((obj[0x10] & 2) == 0) {
+                outputs[i] = 0.0f;
+                continue;
+            }
+            value = vector3d_length(velocity) / max_speed;
             break;
-        case 0x11:
-            value = fabsf(obj->velocity.i * obj->forward.i + obj->velocity.j * obj->forward.j +
-                          obj->velocity.k * obj->forward.k) / max_speed;
+        case 0x11: // 0x5759a9: summed k, j, i
+            value = fabsf(velocity->k * forward->k + velocity->j * forward->j + velocity->i * forward->i) / max_speed;
             break;
         case 0x12: case 0x13:
-            value = fabsf(obj->up.i * obj->velocity.i + obj->up.j * obj->velocity.j +
-                          obj->up.k * obj->velocity.k) / max_speed;
+            value = fabsf(up->k * velocity->k + up->j * velocity->j + up->i * velocity->i) / max_speed;
             break;
         case 0x14:
-            value = vehicle->left_wheel_rotation / tag->wheel_circumference;
+            value = *(float *)(obj + 0x4e4) / tag->wheel_circumference;
             break;
         case 0x15:
-            value = vehicle->right_wheel_rotation / tag->wheel_circumference;
+            value = *(float *)(obj + 0x4e8) / tag->wheel_circumference;
             break;
         case 0x16:
-            value = fabsf(vehicle->forward_velocity - vehicle->turning_velocity) / max_speed;
+            value = fabsf(forward_velocity - turning_velocity) / max_speed;
             break;
         case 0x17:
-            value = fabsf(vehicle->turning_velocity + vehicle->forward_velocity) / max_speed;
+            value = fabsf(turning_velocity + forward_velocity) / max_speed;
             break;
         case 0x18: case 0x19: case 0x1a: case 0x1b:
-            value = vehicle->wheel_rotation / tag->wheel_circumference;
+            value = *(float *)(obj + 0x4e0) / tag->wheel_circumference;
             break;
         case 0x20: {
-            real fraction;
-            real_vector3d parallel, perpendicular;
-            // 0x575a63: the velocity (+0x68) split along the forward axis (+0x74); the length of the part
-            // perpendicular to it (ESI) is what gets scaled
-            vector3d_project_onto_unit_axis(&parallel, (real_vector3d *)((uint8_t *)obj + 0x74),
-                                            (real_vector3d *)((uint8_t *)obj + 0x68), &perpendicular);
-            fraction = vector3d_length(&perpendicular);
-            value = fraction * 3.3333333f * fraction * 3.3333333f;
-            goto store;
+            real_vector3d parallel;      // esp+0x54
+            real_vector3d perpendicular; // esp+0x48
+            float slide;
+
+            // 0x575a63: the velocity split along the forward axis; the perpendicular part's length, x 10/3, squared
+            vector3d_project_onto_unit_axis(&parallel, forward, velocity, &perpendicular);
+            slide = vector3d_length(&perpendicular) * 3.3333333f;
+            value = slide * slide;
+            break;
         }
         case 0x21:
-            value = vehicle->ground_lean;
-            goto store;
+            value = *(float *)(obj + 0x4ec);
+            break;
         case 0x22:
-            value = vehicle->ground_contact_fraction;
-            goto store;
+            value = *(float *)(obj + 0x4f0);
+            break;
         case 0x23: {
-            float blend = clamp01(((float)vehicle->airborne_ticks * 0.2f + 1.0f) * 0.5f);
-            float speed_term = fabsf(vehicle->forward_velocity) / max_forward;
-            float lean_term = fabsf(obj->forward.i * obj->velocity.i + obj->forward.j * obj->velocity.j +
-                                    obj->forward.k * obj->velocity.k) / max_speed;
-            value = blend * speed_term + (1.0f - blend) * lean_term;
+            float lean = fabsf(forward->k * velocity->k + forward->j * velocity->j + forward->i * velocity->i) / max_speed;
+            float speed = fabsf(forward_velocity) / max_forward;
+            float blend = ((float)obj[0x4d0] * 0.2f + 1.0f) * 0.5f;
+
+            if (blend < 0.0f) {
+                blend = 0.0f;
+            } else if (blend > 1.0f) {
+                blend = 1.0f;
+            }
+            value = lean * (1.0f - blend) + blend * speed;
             break;
         }
-        case 0x24: {
-            real speed = vector3d_length(&obj->velocity); // UNSURE argument
-            value = ((speed / tag->maximum_forward_speed) * vehicle->ground_contact_fraction - 0.05f) * 1.1764706f;
+        case 0x24:
+            value = ((vector3d_length(velocity) / tag->maximum_forward_speed) * *(float *)(obj + 0x4f0) - 0.05f) *
+                1.1764706f;
             break;
-        }
-        default:
-            goto store;
+        default: // 0xd and anything past 0x24: 0, unclamped
+            outputs[i] = 0.0f;
+            continue;
         }
 
-        value = clamp01(value);
-    store:
+        // 0x575b53: every computed value is clamped to [0, 1] (NaN passes through)
+        if (value < 0.0f) {
+            value = 0.0f;
+        } else if (value > 1.0f) {
+            value = 1.0f;
+        }
         outputs[i] = value;
-    next:;
     }
 }
 
