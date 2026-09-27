@@ -1954,3 +1954,21 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   cluster_reference_add_within_radius (0.6) and structure_bsp_collect_visible_objects (0.5).
 - Tooling note: cdb poi() sign-extends 32-bit values on this target, so compare with (poi(x) & 0xffffffff);
   a bp command that runs $$< must end with the filename (put the rest in the script file).
+
+## 2026-09-27 lens flare occlusion fix (static; the user will not run more traces)
+- Correction to the earlier panel note: the object-flare trace armed at list 13 and stopped after 400 hits (~2.7 s),
+  before the script created the panel objects, so it never showed the panel lights lacking flares.
+- FIXED lens_flare_update_samples (0x513ba0, was 0.4 -> 0.85): it moved each flare instance itself every frame
+  (the binary builds the occlusion sample point in a stack local), used the flare normal for offset type 0 (the binary
+  uses the camera forward 0x7c1234, scale -radius), and called 0x512190 with only the radius. 0x512190
+  (render_rasterizer_dispatch_537800) returned void. So every flare's sample count (+0x24, which lens_flare_render_all
+  requires > 0 at 0x513dad) was garbage: flares were skipped, or occlusion-tested at a garbage point, which also broke
+  lens_flare_update_visibility's fade. Now: EDI slot = instance index, ECX = &sample point, stack radius, EAX returned.
+- FIXED rasterizer_lens_flare_occlusion_query_get_result (0.6 -> 0.85): result starts at -1 (the draft returned the
+  query pointer bits on a failed GetData).
+- FIXED structure_bsp_portal_sphere_test (0.45 -> 0.85): the 2D tolerance is sqrt(tol^2 - distance * projected.x)
+  as in the binary ([esp+0x14] at 0x554c6a), not distance^2. polygon2d_point_inside_tolerance rounds tol^2 first.
+- VERIFIED: cluster_reference_add_within_radius, cluster_flood_fill_within_radius, lens_flare_update_visibility.
+- The panel pulse chain (object function A cosine period 1 -> light t -> flare intensity +0x23 -> reflection
+  brightness/radius lerp in lens_flare_render_all) was verified against the binary end to end.
+- OPEN (runtime, when the user next plays): do the a10 panel flares now show and pulse?
