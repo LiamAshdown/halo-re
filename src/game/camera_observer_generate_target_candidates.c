@@ -1,7 +1,7 @@
 // camera_observer_generate_target_candidates  (Ghidra: FUN_00459f70; renamed per
 // symbols/review_queue.txt)
 // address 0x459f70, size 347 bytes
-// name confidence: 0.3   rewrite confidence: 0.2
+// name confidence: 0.3   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x459f70..0x45a0ca; flood fill start cluster restored)
 // evidence: symbols/review_queue.txt 0x459f70 "samples directions with fsin/fcos across the
 //   largest field-of-view axis, calls cluster_flood_fill_with_predicate then object_collect_in_clusters to build a
 //   batch, and accumulates results from camera_observer_collect_target_candidates"; the cone
@@ -45,9 +45,7 @@
 extern double sin(double x); // x87 FSIN
 extern double cos(double x); // x87 FCOS
 extern int16_t cluster_flood_fill_with_predicate(real_point3d *position, real_vector3d *facing, real max_distance,
-    real sin_angle, real cos_angle, uint32_t flags, int16_t *out_cluster_indices); // 0x554e30,
-    // UNSURE signature; also takes `start_cluster` in EAX, which cannot be expressed here.
-    // Its EAX result is passed straight into object_collect_in_clusters' cluster_count slot.
+    real sin_angle, real cos_angle, int16_t max_count, int16_t *output, int16_t start_cluster); // 0x554e30, AX start
 extern int16_t object_collect_in_clusters(uint32_t search_mask, int16_t cluster_count,
     int16_t *cluster_indices, int16_t max_output, datum_index *out_objects); // 0x4f7180,
     // all five are plain stack arguments; prototype taken from src/objects/object_collect_in_clusters.c.
@@ -92,10 +90,10 @@ int16_t camera_observer_generate_target_candidates(observer_target_cone *cone,
 
     sin_max_angle = (real)sin((double)max_angle);
     cos_max_angle = (real)cos((double)max_angle);
-    // 0x554e30 also receives `start_cluster` in EAX; see the note in its extern above.
-    (void)start_cluster;
+    // 0x459fdd..0x45a01a: AX = start_cluster (FIXED 2026-09-27: the draft dropped it), stack (observer_position,
+    // facing, max_distance, sin, cos, 0x200, cluster_indices)
     collected_clusters = cluster_flood_fill_with_predicate(observer_position, facing, max_distance,
-                                      sin_max_angle, cos_max_angle, 0x200, cluster_indices);
+                                      sin_max_angle, cos_max_angle, 0x200, cluster_indices, start_cluster);
     cluster_count = object_collect_in_clusters(1, collected_clusters, cluster_indices, 0x800,
                                                cluster_heads);
 

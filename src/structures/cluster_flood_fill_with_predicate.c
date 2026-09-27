@@ -2,7 +2,7 @@
 // address 0x554e30, size 364 bytes
 // name confidence: 0.5 -- matches the phase4 summary ("Iteratively flood-fills through cluster
 //   portals using a caller-supplied predicate to decide which neighboring clusters to include").
-// rewrite confidence: 0.4 -- an iterative (stack-based, not recursive) sibling of
+// rewrite confidence: 0.85 -- an iterative (stack-based, not recursive) sibling of
 //   cluster_flood_fill_within_radius; param_1/param_2 are declared but never read anywhere in
 //   Ghidra's decompile, matching this batch's recurring "forwarded-but-unread" pattern, though
 //   here there is no recursive self-call or resolved callee signature to confirm what they would
@@ -30,52 +30,61 @@ extern uint8_t cluster_flood_in_progress;   // 0x006e3f01
 extern int32_t cluster_flood_stamps[0x200]; // 0x006e3f08
 
 // math module, out of this batch.
-extern uint8_t vector3d_projection_band_test(float value, void *param_3, void *param_4,
-                                              void *param_5);
+extern uint8_t vector3d_projection_band_test(real_vector3d *axis, real_point3d *point_a, real_point3d *point_b,
+    real radius, real max_distance, real sin_angle, real cos_angle); // 0x4cef90, EAX axis, ECX point_a, EDX point_b, stack
 
-// blam-cc: AX -> start_cluster, stack -> the rest
-int16_t cluster_flood_fill_with_predicate(void *param_1, void *param_2, void *predicate_param_3,
-                                           void *predicate_param_4, void *predicate_param_5,
-                                           int16_t start_cluster, int16_t max_count,
-                                           int16_t *output)
+// REWRITTEN 2026-09-27 (static loop) from objdump 0x554e30..0x554f9b. Stack: position, facing, max_distance, sin_angle,
+// cos_angle, max_count, output; AX = start_cluster. A LIFO flood over the structure BSP clusters (+0x138, 0x68 each:
+// portal count +0x5c, portal index array +0x60) through the cluster portals (+0x158, 0x40 each: front +0, back +2,
+// centroid +8, radius +0x14) whose sphere passes vector3d_projection_band_test against the view cone
+// (EAX facing, ECX position, EDX centroid, stack radius, max_distance, sin, cos). The draft never used position or
+// facing and called the 7-argument band test with 4 arguments.
+// blam-cc: AX -> start_cluster, stack -> position, facing, max_distance, sin_angle, cos_angle, max_count, output
+int16_t cluster_flood_fill_with_predicate(real_point3d *position, real_vector3d *facing, real max_distance,
+                                           real sin_angle, real cos_angle, int16_t max_count, int16_t *output,
+                                           int16_t start_cluster)
 {
-    // A stack-based (not recursive) flood: `stack` holds clusters queued for expansion, LIFO.
     int16_t stack[0x200];
-    int32_t stack_top = 0;
-
+    int16_t stack_top = 1;
     int16_t written = 0;
+
     cluster_flood_stamp++;
     cluster_flood_in_progress = 1;
-    stack[stack_top++] = start_cluster;
     cluster_flood_stamps[start_cluster] = cluster_flood_stamp;
+    stack[0] = start_cluster;
 
-    while (stack_top > 0 && written < max_count) {
-        int16_t cluster_index = stack[--stack_top];
+    do {
+        int16_t cluster_index;
+        uint8_t *cluster;
+        int32_t portal_count;
+        int16_t *portal_indices;
+        int16_t i;
+
+        if (written >= max_count) {
+            break;
+        }
+        cluster_index = stack[--stack_top];
+        cluster = (uint8_t *)global_structure_bsp->clusters.pointer + (int32_t)cluster_index * 0x68;
         output[written++] = cluster_index;
+        portal_count = *(int32_t *)(cluster + 0x5c);
+        portal_indices = *(int16_t **)(cluster + 0x60);
 
-        ScenarioStructureBSPCluster *cluster =
-            &((ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer)[cluster_index];
-        ScenarioStructureBSPClusterPortalIndex *portal_refs =
-            (ScenarioStructureBSPClusterPortalIndex *)cluster->portals.pointer;
-        ScenarioStructureBSPClusterPortal *portals =
-            (ScenarioStructureBSPClusterPortal *)global_structure_bsp->cluster_portals.pointer;
+        for (i = 0; i < portal_count; i++) {
+            uint8_t *portal = (uint8_t *)global_structure_bsp->cluster_portals.pointer +
+                              (int32_t)portal_indices[i] * 0x40;
+            int16_t neighbor = (*(int16_t *)portal == cluster_index) ? *(int16_t *)(portal + 2) : *(int16_t *)portal;
 
-        for (int32_t i = 0; i < (int32_t)cluster->portals.count; i++) {
-            ScenarioStructureBSPClusterPortal *portal = &portals[portal_refs[i].portal];
-            int16_t neighbor = (portal->front_cluster == (uint16_t)cluster_index)
-                                    ? (int16_t)portal->back_cluster
-                                    : (int16_t)portal->front_cluster;
             if (cluster_flood_stamps[neighbor] == cluster_flood_stamp) {
                 continue;
             }
-            if (!vector3d_projection_band_test(portal->bounding_radius, predicate_param_3,
-                                                predicate_param_4, predicate_param_5)) {
+            if (!vector3d_projection_band_test(facing, position, (real_point3d *)(portal + 8),
+                    *(real *)(portal + 0x14), max_distance, sin_angle, cos_angle)) {
                 continue;
             }
             cluster_flood_stamps[neighbor] = cluster_flood_stamp;
             stack[stack_top++] = neighbor;
         }
-    }
+    } while (stack_top > 0);
 
     cluster_flood_in_progress = 0;
     return written;
