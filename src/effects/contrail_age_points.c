@@ -30,9 +30,9 @@ extern random_seed effect_random_seed;  // 0x00719cd4
 
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510,
     // blam-cc: EAX -> array, EDX -> handle
-extern void point_physics_tick(int32_t unknown_a, void *point_physics_tag, bsp_leaf_reference *location,
-    int32_t unknown_b, real_point3d *position, int32_t unknown_c, int32_t unknown_d,
-    int32_t unknown_e, real half_width, real delta_time); // 0x50b530, outside this batch
+extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition,
+    bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind,
+    real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt); // 0x50b530, ESI velocity, stack
 
 // Advances the age/state machine of every point on all four of a contrail's point lists,
 // submitting a render segment for each live, non-transitional point, and trims fully-expired
@@ -129,8 +129,12 @@ render:
                 ContrailPointState *current_state = &states[point->state_index];
 
                 if (current_state->physics.tag_id.index != 0xffff || current_state->physics.tag_id.id != 0xffff) {
-                    point_physics_tick(0, tag_instances[current_state->physics.tag_id.index].data,
-                        &point->location, -1, &point->position, 0, 0, 0,
+                    // 0x44d6f3..0x44d715: ESI = &point->velocity (+0x28), stack (0, the physics tag, &location,
+                    // -1, &position, 0, 0, 0, width * 0.5, dt). The draft dropped the ESI velocity, shifting every
+                    // argument one slot (crash: out_leaf -1, position NULL in the ambient probe).
+                    point_physics_tick(&point->velocity, 0,
+                        (PointPhysics *)tag_instances[current_state->physics.tag_id.index].data,
+                        &point->location, 0xffffffff, &point->position, 0, 0, 0,
                         current_state->width * 0.5f, delta_time);
                 }
             }

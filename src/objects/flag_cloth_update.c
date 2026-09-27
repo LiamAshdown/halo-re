@@ -132,7 +132,7 @@ void flag_cloth_update(flag *entry, Flag *tag, float dt) // blam-cc: stack -> en
 
                     target = *vertex;
 
-                    point_physics_tick(0 /*ESI, UNSURE*/, mode,
+                    point_physics_tick((real_vector3d *)((uint8_t *)vertex + 0x0c) /* 0x4fbd68: ESI = vertex +0xc, its velocity */, mode,
                         tag_instances[tag->physics.tag_id.index].data, &node_ref,
                         physics_b, &target, &wind_dir, 0, 0, 0.02f, dt);
 
