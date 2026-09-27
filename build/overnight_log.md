@@ -1349,3 +1349,8 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   passed invented operand lists (speaker searches, proximity, team-pair counter, commit speech, follow-up order).
   Kept byte offsets of the 0x38 candidate record; header padding bytes (+0x0b, +0x16) now zero instead of stale
   stack bytes.
+- ai_propagate_communication_reaction 0x42e9c0 REWRITTEN (0.25 -> 0.9): never advanced its actor index (every
+  prop lookup used none), called the prop lookup without the object, and the firing-position / hearing / squad
+  order helpers without operands. Runs after every spoken line (unit_update_animation_timers).
+- ai_dispatch_queued_order 0x42f840 REWRITTEN (-> 0.9): takes the actor on the stack (was dropped); count is the
+  header word +0xe, target +0x10, variant +0xc; both vocalize calls now get their register operands.

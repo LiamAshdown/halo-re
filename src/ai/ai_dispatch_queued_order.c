@@ -1,6 +1,10 @@
 // ai_dispatch_queued_order  (Ghidra: ai_dispatch_queued_order; named for this rewrite)
 // address 0x42f840, size 126 bytes
-// name confidence: 0.4   rewrite confidence: 0.4
+// name confidence: 0.4   rewrite confidence: 0.9
+// REWRITTEN from objdump 0x42f840..0x42f8bd: the actor comes on the stack; the count is the word at +0xe (the
+//   broadcast header's look kind), the target +0x10, the variant +0xc. One target: 0x4302e0 (EAX -1, EBX actor, EDI
+//   target, stack line 8 when the target is the prop's own object else 9, variant). Two: 0x4303a0 (EDI actor, BX
+//   variant, ESI target, stack line 9).
 // evidence: phase-4 summary ("dispatches a queued AI order record to either the single-target
 // or multi-target order-issuing routine based on its target count").
 // register convention: ECX -> order, EDX -> prop_index (both unresolved registers in
@@ -17,31 +21,32 @@
 
 extern data_array *prop_data; // 0x008802c0
 
-extern void actor_issue_order_or_vocalize(uint32_t reason, int16_t single_target); // 0x4302e0, this batch
-extern void actor_issue_multi_target_vocalization(uint32_t reason, ai_queued_order *order); // 0x4303a0, this batch; UNSURE second arg
+extern void actor_issue_order_or_vocalize(datum_index prop_index, datum_index actor_index,
+    datum_index vehicle_object_index, int16_t line, int16_t variant); // 0x4302e0, EAX, EBX, EDI, stack
+extern void actor_issue_multi_target_vocalization(int16_t line, datum_index actor_index, int16_t variant,
+    datum_index vehicle_object_index); // 0x4303a0, stack, EDI, BX, ESI
 
-// blam-cc: ECX -> order, EDX -> prop_index
-// If order has any targets, issues it: a single-target order goes to actor_issue_order_or_vocalize (reason 8
-// if its stored object handle matches prop_index's own tracked object, else 9), a
-// multi-target order (count == 2) goes to actor_issue_multi_target_vocalization with reason 9.
-void ai_dispatch_queued_order(ai_queued_order *order, datum_index prop_index)
+// blam-cc: ECX -> order, EDX -> prop_index, stack -> actor_index
+void ai_dispatch_queued_order(ai_queued_order *order, datum_index prop_index, datum_index actor_index)
 {
-    uint32_t reason;
-    prop *p;
+    uint8_t *o = (uint8_t *)order;
+    int16_t count = *(int16_t *)(o + 0xe);
+    datum_index target = *(datum_index *)(o + 0x10);
+    int16_t variant = (int16_t)*(uint16_t *)(o + 0xc);
+    int16_t line = 9;
 
-    if (0 < order->target_count) {
-        reason = 9;
-        if (order->target_count == 1) {
-            p = &((prop *)prop_data->data)[prop_index & 0xffff];
-            if (order->object_a == p->object_index) {
-                reason = 8;
-            }
+    if (count <= 0) {
+        return;
+    }
+    if (count == 1) {
+        prop *p = &((prop *)prop_data->data)[prop_index & 0xffff];
+
+        if (target == p->object_index) {
+            line = 8;
         }
-        if (order->target_count == 1) {
-            actor_issue_order_or_vocalize(reason, order->single_target);
-        } else if (order->target_count == 2) {
-            actor_issue_multi_target_vocalization(reason, order);
-        }
+        actor_issue_order_or_vocalize(k_datum_index_none, actor_index, target, line, variant);
+    } else if (count == 2) {
+        actor_issue_multi_target_vocalization(line, actor_index, variant, target);
     }
 }
 
