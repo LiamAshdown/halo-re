@@ -1,6 +1,6 @@
 // team_pair_override_refresh  (Ghidra: FUN_0045c090; renamed per symbols/review_queue.txt)
 // address 0x45c090, size 92 bytes
-// name confidence: 0.3   rewrite confidence: 0.4
+// name confidence: 0.3   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x45c090..0x45c0eb (EBX index_b, EDI index_a).)
 // evidence: types/game.h team_pair_override (unknown_09 0x09, unknown_08 0x08, refcount 0x0e,
 //   timer_reset 0x06, timer 0x10); same directional-match pattern as
 //   team_pair_override_adjust_counter.c (0x45bfc0).

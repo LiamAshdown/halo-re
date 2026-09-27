@@ -1,7 +1,7 @@
 // collision_bsp_query_sphere_collect_geometry  (Ghidra: FUN_00501d20, still unnamed there; name
 // from out/phase2/results/physics_00.json)
 // address 0x501d20, size 830 bytes
-// name confidence: 0.4   rewrite confidence: 0.4
+// name confidence: 0.4   rewrite confidence: 0.85 (REWRITTEN 2026-09-28 against objdump 0x501d20..0x50205d: pass 2's segment starts at the surface-oriented near vertex.)
 // evidence: out/phase4/physics_types_notes.md section 2 (collision_bsp_sphere_result's three
 //   dedupe-and-append lists, vertices at 0x808/0x80c, edges at 0x404/0x408, surfaces at
 //   0x000/0x004, all capped at 256 -- exactly the three append loops here);
@@ -87,17 +87,20 @@ void collision_bsp_query_sphere_collect_geometry(collision_bsp_sphere_query *que
         edge_index = start_edge;
         do {
             ModelCollisionGeometryBSPEdge *edge = &edges[edge_index];
-            real_point3d edge_origin;
+            int owns_right_side = ((int32_t)edge->right_surface == surface_index);
+            // 0x501e4f..0x501e9d: the segment runs from this surface's near vertex (edge[owns_right]: the end vertex
+            // when the surface is on the right) to the other one, and the vertex itself is passed as the origin.
+            // FIXED 2026-09-28: the draft always started at start_vertex (the ray test is not symmetric).
+            uint32_t near_vertex = owns_right_side ? edge->end_vertex : edge->start_vertex;
+            uint32_t far_vertex = owns_right_side ? edge->start_vertex : edge->end_vertex;
+            real_point3d *edge_origin = (real_point3d *)&vertex_floats[near_vertex * 4];
             real_vector3d edge_direction;
 
-            edge_origin.x = vertex_floats[edge->start_vertex * 4 + 0];
-            edge_origin.y = vertex_floats[edge->start_vertex * 4 + 1];
-            edge_origin.z = vertex_floats[edge->start_vertex * 4 + 2];
-            edge_direction.i = vertex_floats[edge->end_vertex * 4 + 0] - edge_origin.x;
-            edge_direction.j = vertex_floats[edge->end_vertex * 4 + 1] - edge_origin.y;
-            edge_direction.k = vertex_floats[edge->end_vertex * 4 + 2] - edge_origin.z;
+            edge_direction.i = vertex_floats[far_vertex * 4 + 0] - edge_origin->x;
+            edge_direction.j = vertex_floats[far_vertex * 4 + 1] - edge_origin->y;
+            edge_direction.k = vertex_floats[far_vertex * 4 + 2] - edge_origin->z;
 
-            if (ray_intersects_sphere_test(center, &edge_origin, &edge_direction,
+            if (ray_intersects_sphere_test(center, edge_origin, &edge_direction,
                                             query->radius)) {
                 int32_t i;
                 int found = 0;

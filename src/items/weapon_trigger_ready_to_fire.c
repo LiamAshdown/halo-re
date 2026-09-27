@@ -2,7 +2,7 @@
 // "weapon_trigger_ready_to_fire (0x4c3190) compares idle_ticks + 1.0 against
 // 30.0 / lerp(maximum_rate_of_fire[0], [1], firing_rate)")
 // address 0x4c3190, size 233 bytes
-// name confidence: 0.4   rewrite confidence: 0.4
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x4c3190..0x4c3278 (rate lerp, 30 / rate, age penalty, idle + 1 >= ticks, the not-repeating gate).)
 // evidence: types/items.h weapon_trigger_state.idle_ticks/.firing_rate/.flags,
 //   item_data.flags (_item_held_by_player_bit); types/tags.h WeaponTrigger
 //   .maximum_rate_of_fire[2] (0x04), Weapon.age_rate_of_fire_penalty (0x444),

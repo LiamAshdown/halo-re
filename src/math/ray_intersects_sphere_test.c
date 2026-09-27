@@ -1,6 +1,6 @@
 // ray_intersects_sphere_test  (Ghidra: ray_intersects_sphere_test, already named)
 // address 0x4ce6c0, size 263 bytes
-// name confidence: 0.55   rewrite confidence: 0.4
+// name confidence: 0.55   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x4ce6c0..0x4ce7c6 (EAX centre, ECX origin, EDX direction).)
 // evidence: math_functions.md: "Boolean-only ray/sphere intersection test against a sphere of
 //   radius param_1, returning whether the ray hits without computing hit details." Structurally
 //   mirrors ray_intersects_sphere @0x4ce3a0 (origin-inside-sphere fast path, then a quadratic

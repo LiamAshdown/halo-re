@@ -1,7 +1,7 @@
 // collision_bsp_surface_closest_edge_point_2d  (Ghidra: FUN_005015a0, still unnamed there; name
 // from out/phase2/results/physics_00.json)
 // address 0x5015a0, size 576 bytes
-// name confidence: 0.35   rewrite confidence: 0.4
+// name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x5015a0..0x5017e0 (flag logic re-derived; the gotos are equivalent).)
 // evidence: same ModelCollisionGeometryBSP surfaces/edges/vertices layout and
 //   k_projection_axes usage as collision_bsp_surface_get_vertices (0x501400) and
 //   collision_bsp_surface_test_point_side_2d (0x5014a0).

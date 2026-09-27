@@ -3,7 +3,7 @@
 // the same struct collision_bsp_query_segment_node_recursive (0x502140) walks, so this rewrite
 // is named to match that.)
 // address 0x502060, size 216 bytes
-// name confidence: 0.5   rewrite confidence: 0.4
+// name confidence: 0.5   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x502060..0x502137 (query layout, three-way t_max clamp).)
 // evidence: out/phase4/physics_types_notes.md section 2: "0x502060 writes 0x04, 0x08, 0x0c,
 //   0x10, 0x14, 0x1c, 0x20, 0x24; 0x00 (flags) and 0x18 (result) come in registers" -- exactly
 //   the fields param_1..param_5 and the -1/-1/0/-1 seeding below cover, with flags and result
