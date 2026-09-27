@@ -1326,3 +1326,12 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   skid/steering/ground-contact updaters get the contact buffer and the pre-physics velocity.
 - OPEN: vehicle_calculate_turret/steering_wheel/lean_controls (0x572b60/0x572cd0/0x572df0) also take a buffer in
   EDI/ESI (esp+0x88) that their C signatures lack.
+- unit_choose_combat_reaction_animation 0x561140 verified vs objdump (0.2 -> 0.85); fixed the 0x42c2a0 call (EDX
+  unit, BX 1/4, DI 2; was argless).
+- unit_test_placement_candidate 0x55aa20 REWRITTEN: really a ground probe (ECX unit, ESI dir = global down in
+  every caller, EBX normal out, stack distance / out point) returning the BSP surface or -1. The draft took no
+  unit and returned the hit flag, so biped_get_cached_look_at_position stored 0/1 as the ground surface
+  (+0x4dc) instead of -1/surface. All four callers fixed (cached look-at, evade 0x55e190 incl. its landing-speed
+  test, flee 0x55e2d0 incl. velocity probe and angular-velocity test, ai_reference_face_starting_location).
+- biped_get_cached_look_at_position declared object_get_position with swapped args (fixed).
+- unit_spawn_with_starting_weapons 0x572110 is a network message handler (skipped, MP).

@@ -33,9 +33,9 @@ extern real_point3d *collision_bsp_surface_solve_third_axis(ModelCollisionGeomet
 extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign,
     int32_t dominant_axis, const real_plane3d *plane, const real_point2d *known);
     // 0x44d860, src/math; blam-cc: stack out, AL component_sign, SI dominant_axis, EBX plane, EDI known
-extern real_point3d *object_get_position(uint32_t object_index, real_point3d *out); // 0x4f6900; blam-cc: ECX object_index, EAX out
-extern char unit_test_placement_candidate(float distance, real_point3d *out_position,
-    real_vector3d *direction, void **out_hit_object); // 0x55aa20, this module
+extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900; blam-cc: EAX out, ECX object_index
+extern int32_t unit_test_placement_candidate(uint32_t unit_index, const real_vector3d *direction,
+    real_vector3d *out_normal, float distance, real_point3d *out_position); // 0x55aa20, ECX, ESI, EBX, stack
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 extern real_vector3d *global_down3d_pointer;           // 0x0069672c
 
@@ -63,7 +63,7 @@ datum_index biped_get_cached_look_at_position(uint32_t object_index, real_point3
 
     if ((tag->biped_flags & 4) != 0 && (*((uint8_t *)obj + 0x106) & 4) == 0) {
         biped->unknown_4dc = k_datum_index_none;
-        object_get_position(object_index, out_position);
+        object_get_position(out_position, object_index);
     } else if (biped->unknown_4dc == k_datum_index_none && game_time->game_time > (int32_t)biped->unknown_4ec) {
         ModelCollisionGeometryBSP *bsp = global_structure_collision_bsp;
         int32_t surface = (int32_t)biped->ground_surface_index;
@@ -94,11 +94,9 @@ datum_index biped_get_cached_look_at_position(uint32_t object_index, real_point3
         }
 
         if (biped->unknown_4dc == k_datum_index_none) {
-            // UNSURE: 0x55ac85..0x55ac9b also pass ECX = object_index, ESI = global_down3d_pointer
-            // and EBX = 0 (no hit object); unit_test_placement_candidate's own rewrite does not
-            // model ECX, and it returns a char where this caller stores the full EAX as a datum.
-            biped->unknown_4dc = (datum_index)(int32_t)unit_test_placement_candidate(2.0f, &point,
-                global_down3d_pointer, 0);
+            // 0x55ac85: the ground surface within 2 below (ECX unit, ESI global down, EBX 0)
+            biped->unknown_4dc = (datum_index)unit_test_placement_candidate(object_index, global_down3d_pointer, 0,
+                                                                            2.0f, &point);
         }
         if (biped->unknown_4dc != k_datum_index_none) {
             biped->unknown_4e0 = point;

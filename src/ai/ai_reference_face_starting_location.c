@@ -34,7 +34,8 @@ extern const real_vector3d *global_down3d_pointer; // 0x0069672c
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference,
     ai_reference_actor_iterator *out_iterator);                             // 0x432650
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator); // 0x4326d0
-extern int32_t unit_test_placement_candidate(uint32_t flags, int32_t unused); // 0x55aa20, not yet rewritten
+extern int32_t unit_test_placement_candidate(uint32_t unit_index, const real_vector3d *direction,
+    real_vector3d *out_normal, float distance, real_point3d *out_position); // 0x55aa20, ECX, ESI, EBX, stack
 extern int16_t squad_pick_random_starting_location(datum_index encounter_index,
     int16_t squad_index); // 0x437220, blam-cc: EAX -> squad_index, ECX -> encounter_index
 extern void object_set_position_and_orientation(datum_index object_index,
@@ -62,7 +63,7 @@ void ai_reference_face_starting_location(uint32_t packed_reference, uint8_t idle
         if (a->unit_index != (datum_index)k_datum_index_none &&
             (idle_only == 0 ||
              (a->active_unit_index == (datum_index)k_datum_index_none &&
-              unit_test_placement_candidate(2.0f, 0) == -1)) &&
+              unit_test_placement_candidate(a->unit_index, global_down3d_pointer, 0, 2.0f, 0) == -1)) && // 0x434a19
             a->encounter_index != (datum_index)k_datum_index_none) {
 
             squad_index = a->squad_index;

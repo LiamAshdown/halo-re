@@ -1,6 +1,6 @@
 // biped_check_evade_reaction  (Ghidra: biped_check_evade_reaction, renamed)
 // address 0x55e190, size 313 bytes
-// name confidence: 0.3   rewrite confidence: 0.3
+// name confidence: 0.3   rewrite confidence: 0.85 (FIXED from objdump 0x55e190..0x55e2c8: ground probe args, landing-speed test)
 // evidence: unit_data.flags bit 0x1000 "gates evade (0x55e190) and fall damage" and
 //   biped_data.unknown_4f8 "0x55e190 and 0x55e2d0 rate-limit their reactions to once every 15
 //   ticks" -- both already attributed to this function by types/units.h. object.velocity at
@@ -29,9 +29,10 @@ extern float unit_evade_scale;      // 0x0069c52c, UNSURE
 // object position through the pointer in EAX and leaves that same pointer in EAX on return;
 // the object index is in ECX. Ghidra binds a different subset of the two operands at each call
 // site in this module, so the declaration is left unprototyped.
-extern real_point3d *object_get_position();
-extern uint32_t unit_test_placement_candidate(float distance, real_point3d *out_position,
-                                               real_vector3d *direction, void **out_hit_object); // 0x55aa20, this batch
+extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX, ECX
+extern int32_t unit_test_placement_candidate(uint32_t unit_index, const real_vector3d *direction,
+    real_vector3d *out_normal, float distance, real_point3d *out_position); // 0x55aa20, ECX, ESI, EBX, stack
+extern real_vector3d *global_down3d_pointer; // 0x0069672c
 extern void unit_dispatch_reaction_animation(int32_t unit_index, int16_t reaction_code); // 0x5614a0, ESI unit, stack code, next batch: reaction dispatcher
 
 // Rate-limited (every 15 ticks) evasion check: if the unit is unattached, not a special weapon
@@ -52,24 +53,21 @@ void biped_check_evade_reaction(uint32_t object_index)
         (biped->unknown_4f8 == -1 ||
          (int32_t)(biped->unknown_4f8 + 0xf) < game_time->game_time)) {
         void *table = *(void **)(globals_tag_data + 0x18c);
-        real_point3d position;
-        real_vector3d direction = {0};
-        uint32_t found;
+        real_point3d ground;   // [esp+0x1c]
+        real_point3d position; // [esp+0x10]
 
         biped->unknown_4f8 = game_time->game_time;
-        found = unit_test_placement_candidate(6.0f, &position, &direction, 0); // UNSURE: 0x40c00000 == 6.0f
-
-        if (found == k_datum_index_none) {
+        // 0x55e245: no ground within 6 below, or falling fast enough that the landing speed
+        // (v^2 + 2 g h) reaches the globals' evade speed (+0x94): evade
+        if (unit_test_placement_candidate(object_index, global_down3d_pointer, 0, 6.0f, &ground) == -1) {
             unit_dispatch_reaction_animation((int32_t)object_index, 0);
         } else {
-            object_get_position(&position);
-            {
-                float radius = *(float *)((uint8_t *)table + 0x94);
-                float dz = (position.z - 0.0f) * unit_evade_scale; // UNSURE: local_10/local_4 pairing, see file header
-                if (obj->velocity.k <= 0.0f &&
-                    radius * radius <= obj->velocity.k * obj->velocity.k + dz + dz) {
-                    unit_dispatch_reaction_animation((int32_t)object_index, 0);
-                }
+            float radius = *(float *)((uint8_t *)table + 0x94);
+            float v = obj->velocity.k;
+
+            object_get_position(&position, object_index);
+            if (v <= 0.0f && !(radius * radius > (position.z - ground.z) * unit_evade_scale * 2.0f + v * v)) {
+                unit_dispatch_reaction_animation((int32_t)object_index, 0);
             }
         }
     }

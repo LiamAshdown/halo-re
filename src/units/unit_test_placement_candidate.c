@@ -1,16 +1,12 @@
 // unit_test_placement_candidate  (Ghidra: unit_test_placement_candidate, renamed)
 // address 0x55aa20, size 267 bytes
-// name confidence: 0.35   rewrite confidence: 0.25
-// evidence: global_up3d indirect pointer 0x00696720 (see the ground-adjust cluster's notes);
-//   matches functions.md's summary, "Tests a candidate position offset from a base point
-//   against level collision and returns it if valid."
-// register convention: a base position in ESI (the callee, object_get_position, writes its
-//   result through it per this module's convention) and an output object-index pointer in EBX;
-//   param_1/param_2 are Ghidra-recognized stack parameters.
-//   // blam-cc: ESI -> base_position (in/out), EBX -> out_hit_object, stack -> distance, out_position
-// UNSURE: object_get_position's own implicit output channel (modeled here as writing through
-//   base_position directly, consistent with this rewrite's other callers of it); FUN_00502060's
-//   exact signature (a line/ray collision test against DAT_00746f98, given six visible args).
+// name confidence: 0.35   rewrite confidence: 0.9
+// REWRITTEN from objdump 0x55aa20..0x55ab2a. ECX: unit, ESI: direction, EBX: out plane normal (may be 0), stack:
+//   (distance, out_position (may be 0)). Casts direction * distance from 0.4 above the unit (along global up)
+//   against the structure BSP (0x502060, flags 1). Returns the surface hit, or -1; on a hit writes the point
+//   and the plane's normal. Every caller passes global_down3d (0x69672c): "is there ground within distance".
+//   The draft took no unit, returned the hit flag instead of the surface, and had no result buffer.
+// blam-cc: ECX -> unit_index, ESI -> direction, EBX -> out_normal, stack -> distance, out_position
 
 #include "tags.h"
 #include "memory.h"
@@ -18,53 +14,43 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "physics.h"
 
-extern void *DAT_00746f98; // UNSURE global, passed straight through to FUN_00502060
+extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 extern real_vector3d *global_up3d_pointer; // 0x00696720
 
-// object_get_position (0x4f6900, defined in src/objects/object_get_position.c) writes the
-// object position through the pointer in EAX and leaves that same pointer in EAX on return;
-// the object index is in ECX. Ghidra binds a different subset of the two operands at each call
-// site in this module, so the declaration is left unprototyped.
-extern real_point3d *object_get_position();
-extern char collision_bsp_query_segment_init(void *context, uint32_t param_2, uint32_t param_3, real_point3d *start,
-                          real_vector3d *delta, uint32_t max_distance_bits); // UNSURE signature
+extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX, ECX
+extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result,
+    ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, uint32_t *breakable_surfaces,
+    real_point3d *origin, real_vector3d *delta, float max_fraction); // 0x502060
 
-// Casts a short ray from 0.4 units above the unit's position along direction*distance, and if
-// it hits something within range, writes the hit position (scaled back by the hit fraction)
-// through out_position and the hit object/surface reference through out_hit_object.
-char unit_test_placement_candidate(float distance, real_point3d *out_position, real_vector3d *direction,
-                                    void **out_hit_object)
+int32_t unit_test_placement_candidate(uint32_t unit_index, const real_vector3d *direction,
+                                      real_vector3d *out_normal, float distance, real_point3d *out_position)
 {
-    real_point3d base_position;
+    static collision_bsp_segment_result result;
+    real_point3d origin;
     real_vector3d delta;
-    char hit;
-    float hit_fraction;
-    void *hit_reference[3];
 
-    object_get_position(&base_position);
-    base_position.x += global_up3d_pointer->i * 0.4f;
-    base_position.y += global_up3d_pointer->j * 0.4f;
-    base_position.z += global_up3d_pointer->k * 0.4f;
+    object_get_position(&origin, unit_index);
+    origin.x += global_up3d_pointer->i * 0.4f;
+    origin.y += global_up3d_pointer->j * 0.4f;
+    origin.z += global_up3d_pointer->k * 0.4f;
     delta.i = distance * direction->i;
     delta.j = distance * direction->j;
     delta.k = distance * direction->k;
-
-    hit = collision_bsp_query_segment_init(DAT_00746f98, 0, 0, &base_position, &delta, 0x7f7fffff);
-    if (!hit) {
-        return 0;
+    if (!collision_bsp_query_segment_init(1, &result, global_structure_collision_bsp, 0, 0, &origin, &delta,
+                                          3.4028235e+38f)) {
+        return -1;
     }
     if (out_position != 0) {
-        out_position->x = delta.i * hit_fraction + base_position.x;
-        out_position->y = delta.j * hit_fraction + base_position.y;
-        out_position->z = delta.k * hit_fraction + base_position.z;
+        out_position->x = delta.i * result.t + origin.x;
+        out_position->y = delta.j * result.t + origin.y;
+        out_position->z = delta.k * result.t + origin.z;
     }
-    if (out_hit_object != 0) {
-        out_hit_object[0] = hit_reference[0];
-        out_hit_object[1] = hit_reference[1];
-        out_hit_object[2] = hit_reference[2];
+    if (out_normal != 0) {
+        *out_normal = *(real_vector3d *)result.plane;
     }
-    return hit;
+    return result.surface_index;
 }
 
 #if 0

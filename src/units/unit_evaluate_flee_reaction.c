@@ -1,6 +1,9 @@
 // unit_evaluate_flee_reaction  (Ghidra: unit_evaluate_flee_reaction, renamed)
 // address 0x55e2d0, size 450 bytes
-// name confidence: 0.3   rewrite confidence: 0.25
+// name confidence: 0.3   rewrite confidence: 0.85
+// FIXED from objdump 0x55e2d0..0x55e491: EDI -> object_index; both ground probes get the unit, the direction
+//   (global down, then the parent's velocity * 60 less gravity * 1800) and the normal out; the 0x26 test is the
+//   parent's angular velocity (+0x8c).
 // evidence: unit_data.actor_index (0x1f4/500 decimal, types/units.h), unit_data.unknown_322
 //   ("flees above 120" -- 0x78 hex == 120, types/units.h), biped_data.unknown_4f8 ("0x55e190
 //   and 0x55e2d0 rate-limit their reactions to once every 15 ticks", types/units.h). Parent
@@ -25,11 +28,13 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
-extern real vector3d_length(real_vector3d *v);                 // 0x401960, UNSURE args (mirrors vector3d_normalize_with_length)
+extern real vector3d_length(real_vector3d *v);                 // 0x401960, EAX
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a,
     int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340, all stack
-extern uint32_t unit_test_placement_candidate(float distance, real_point3d *out_position,
-                                               real_vector3d *direction, void **out_hit_object); // 0x55aa20, this batch
+extern int32_t unit_test_placement_candidate(uint32_t unit_index, const real_vector3d *direction,
+    real_vector3d *out_normal, float distance, real_point3d *out_position); // 0x55aa20, ECX, ESI, EBX, stack
+extern real_vector3d *global_down3d_pointer; // 0x0069672c
+extern float global_gravity; // 0x0069c52c
 
 // Evaluates whether a (typically vehicle-mounted) unit should flee or evade: gated on the
 // parent vehicle's Unit-tag flag 0x40 (UNSURE), the unit having an actor and not being mid
@@ -49,27 +54,27 @@ void unit_evaluate_flee_reaction(uint32_t object_index)
         (int8_t)unit->unknown_322 > 0x78 && *(uint8_t *)((uint8_t *)parent + 0x4d0) > 0x1e &&
         (biped->unknown_4f8 == -1 ||
          (int32_t)(biped->unknown_4f8 + 0xf) < game_time->game_time)) {
-        real_point3d position;
         real_vector3d direction;
+        real_vector3d normal;
 
         biped->unknown_4f8 = game_time->game_time;
-
-        if (unit_test_placement_candidate(8.0f, &position, &direction, 0) == k_datum_index_none) { // UNSURE: 0x41000000 == 8.0f
-            if (vector3d_normalize_with_length(&direction) <= 0.0f) {
-                ai_communication_broadcast(0x28, object_index, (datum_index)-1, -1, (datum_index)-1, (datum_index)-1, 0);
-                return;
-            }
-            if (unit_test_placement_candidate(8.0f, &position, &direction, 0) == k_datum_index_none ||
-                direction.i <= 0.3f) { // UNSURE: local_4, see file header
+        // 0x55e37e: no ground within 8 below; then along the parent's velocity (per second, less 1800 g):
+        // nothing there, or too steep (normal.k <= 0.3), and the rider screams 0x28
+        if (unit_test_placement_candidate(object_index, global_down3d_pointer, 0, 8.0f, 0) == -1) {
+            direction.i = parent->velocity.i * 60.0f;
+            direction.j = parent->velocity.j * 60.0f;
+            direction.k = parent->velocity.k * 60.0f - global_gravity * 1800.0f;
+            if (!(vector3d_normalize_with_length(&direction) > 0.0f) ||
+                unit_test_placement_candidate(object_index, &direction, &normal, 8.0f, 0) == -1 ||
+                !(normal.k > 0.3f)) {
                 ai_communication_broadcast(0x28, object_index, (datum_index)-1, -1, (datum_index)-1, (datum_index)-1, 0);
                 return;
             }
         }
-        if (parent->up.k > 0.6f) {
-            if (vector3d_length(&direction) < 0.05235988f) {
-                ai_communication_broadcast(0x26, object_index, (datum_index)-1, -1, (datum_index)-1, (datum_index)-1, 0);
-                return;
-            }
+        // 0x55e42f: upright and barely spinning (angular velocity < 3 degrees) is 0x26, else 0x27
+        if (parent->up.k > 0.6f && vector3d_length(&parent->angular_velocity) < 0.05235988f) {
+            ai_communication_broadcast(0x26, object_index, (datum_index)-1, -1, (datum_index)-1, (datum_index)-1, 0);
+            return;
         }
         ai_communication_broadcast(0x27, object_index, (datum_index)-1, -1, (datum_index)-1, (datum_index)-1, 0);
     }

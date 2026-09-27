@@ -1,6 +1,10 @@
 // unit_choose_combat_reaction_animation  (Ghidra: unit_choose_combat_reaction_animation)
 // address 0x561140, size 854 bytes
-// name confidence: 0.35 (phase2 candidate)   rewrite confidence: 0.2
+// name confidence: 0.35 (phase2 candidate)   rewrite confidence: 0.85
+// VERIFIED against objdump 0x561140..0x561495: EAX -> reaction_source (the damage_data; its effect tag's +0x1c6
+//   category and +0x1f4 force), stack -> (unit_index, is_scripted, allow_second_tier, distance_bias). Every branch,
+//   constant (0.6, 2.0, 0.2, 0.4) and the speech record match; FIXED the closing 0x42c2a0 call, which gets EDX unit,
+//   BX 1 / 4 and DI 2 (was called without arguments). The register notes below predate this check.
 // evidence: types/units.h unit_data.dialogue_tag_index (0x384), .swarm_actor_index (0x1f8),
 //   .actor_index (0x1f4), .unknown_3ee/.unknown_3ec/.unknown_3ea/.unknown_3e8 (0x3ee/0x3ec/
 //   0x3ea/0x3e8), .current_speech.priority (0x388); types/objects.h object.recent_body_damage
@@ -28,7 +32,8 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *actor_data;      // 0x00880360, stride 0x724 (ai module)
 
 extern real random_real(void); // 0x4019f0
-extern void ai_refresh_unit_stimulus_and_alert(void); // 0x42c2a0, UNSURE: no traced args
+extern void ai_refresh_unit_stimulus_and_alert(datum_index object_index, int16_t priority,
+                                              int16_t stimulus_value); // 0x42c2a0, EDX, BX, DI
 extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback,
     int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index,
     int32_t *chain_value); // 0x560d00, EAX, DL, stack
@@ -153,9 +158,9 @@ have_reaction_id:
 
 done:
     if (chain != -1) {
-        ai_refresh_unit_stimulus_and_alert();
+        // 0x56146b: EDX unit, BX [esp+0x24] (1, or 4 for reaction 0x12), DI [esp+0x20] (2)
+        ai_refresh_unit_stimulus_and_alert(unit_index, (int16_t)out_unknown_3f0, (int16_t)chain);
     }
-    (void)out_unknown_3f0;
     return success;
 }
 
