@@ -2,7 +2,7 @@
 //   types/effects.h: "ambient_color_sample 0x53fc80 samples and dithers three entries from the
 //   ambient color probe grid to produce a smoothed, intensity-scaled RGB color")
 // address 0x53fc80, size 219 bytes
-// name confidence: 0.6   rewrite confidence: 0.2 (see UNSURE)
+// name confidence: 0.6   rewrite confidence: 0.85
 // evidence: types/effects.h ambient_noise_grid (3 by 8 by 8 real_vector3d at 0x00746284, band
 //   stride 0x300, row stride 0x60), "weights the three by 0.1, 0.2 and 0.07 literals and scales
 //   the sum by one third of the caller intensity"; src/math's global_origin3d_pointer default.
@@ -32,37 +32,43 @@ extern int32_t weather_frame_counter;      // 0x00746f88
 extern ambient_noise_grid ambient_noise;   // 0x00746284
 extern const real_point3d *global_origin3d_pointer; // 0x00696714 -> 0x0065c230, math module
 
-// Hashes a position and the current frame counter into one grid column per band (0.1/0.2/0.07
-// weighted), sums the three sampled vectors on top of the default origin colour, and scales the
-// result by one third of `intensity`.
+// REWRITTEN 2026-09-27 (static loop) from objdump 0x53fc80..0x53fd5a. For each of the three bands i:
+//   hashed = position[i] + weather_frame_counter * w[i] * hash_scale   (w = 0.1, 0.2, 0.07 -- TIME factors)
+//   column = low 6 bits of (float)(|hashed * 8| + 2^23)                (the 2^23 trick: round to nearest)
+//   out   += noise_grid[band i][column]                                 (unweighted)
+// then out *= intensity / 3. The draft used the weights as accumulation weights, mixed in the NEXT position
+// component and truncated the column.
 void ambient_color_sample(ColorRGB *out, real_point3d *position, real hash_scale, real intensity)
+    // blam-cc: EAX -> out, EDX -> position, stack -> hash_scale, intensity
 {
-    static const real k_band_weight[3] = {0.1f, 0.2f, 0.07f};
+    static const real k_band_time_scale[3] = {0.1f, 0.2f, 0.07f};
     const real *pos = (const real *)position;
+    const real_vector3d *grid = &ambient_noise.entries[0][0][0];
+    real scale = intensity * 0.33333334f; // 0x672b5c
     int band;
-    // types/math.h declares this as const real_point3d *; the three floats are the same.
-    real accum_r = global_origin3d_pointer->x;
-    real accum_g = global_origin3d_pointer->y;
-    real accum_b = global_origin3d_pointer->z;
+
+    out->red = global_origin3d_pointer->x;
+    out->green = global_origin3d_pointer->y;
+    out->blue = global_origin3d_pointer->z;
 
     for (band = 0; band < 3; band++) {
-        real next_component = pos[(band + 1) % 3]; // UNSURE, see file header
-        real hashed = pos[band] + (real)weather_frame_counter * next_component * hash_scale;
-        int32_t column = ((int32_t)((hashed < 0.0f ? -hashed : hashed) * 8.0f)) & 0x3f;
-        int32_t index = band * 0x40 + column;
-        const real_vector3d *entry = &ambient_noise.entries[0][0][0] + index;
+        real hashed = ((real)weather_frame_counter * k_band_time_scale[band] * hash_scale + pos[band]) * 8.0f;
+        real rounded;
+        uint32_t bits;
+        int32_t index;
 
-        accum_r += entry->i * k_band_weight[band]; // UNSURE, see file header
-        accum_g += entry->j * k_band_weight[band];
-        accum_b += entry->k * k_band_weight[band];
+        hashed = hashed < 0.0f ? -hashed : hashed; // and dword,0x7fffffff
+        rounded = hashed + 8388608.0f;             // 0x672b58
+        bits = *(uint32_t *)&rounded;
+        index = band * 0x40 + (int32_t)(bits & 0x3f);
+        out->red += grid[index].i;
+        out->green += grid[index].j;
+        out->blue += grid[index].k;
     }
 
-    {
-        real scale = intensity * (1.0f / 3.0f);
-        out->red = scale * accum_r;
-        out->green = scale * accum_g;
-        out->blue = scale * accum_b;
-    }
+    out->red = scale * out->red;
+    out->green = scale * out->green;
+    out->blue = scale * out->blue;
 }
 
 #if 0

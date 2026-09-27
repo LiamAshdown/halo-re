@@ -2,7 +2,7 @@
 //   types/effects.h: "ambient_color_for_marker 0x53f940 blends that against the wind colour of
 //   the weather palette row the marker sits in")
 // address 0x53f940, size 303 bytes
-// name confidence: 0.5   rewrite confidence: 0.2 (see UNSURE)
+// name confidence: 0.5   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x53f940..0x53fa6e; offsets probed) (see UNSURE)
 // evidence: types/effects.h weather_particle_system_state (active, magnitude, direction_i/j/k);
 //   types/tags.h Wind (local_variation_weight +0x10, local_variation_rate +0x14, damping +0x18);
 //   src/math's global_origin3d_pointer default.
