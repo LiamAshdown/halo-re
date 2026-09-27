@@ -1,7 +1,7 @@
 // particle_advance_frame  (Ghidra: FUN_00456000, still unnamed there; named directly by
 //   types/effects.h: "particle_advance_frame 0x456000 (frame_index)")
 // address 0x456000, size 184 bytes
-// name confidence: 0.6   rewrite confidence: 0.55
+// name confidence: 0.6   rewrite confidence: 0.9 (VERIFIED against objdump 0x456000..0x4560b7)
 // evidence: types/effects.h particle.animation_timer (+0x1c), frame_index (+0x26); types/tags.h
 //   Particle.bitmap (TagDependency), Bitmap.bitmap_group_sequence (TagReflexive of
 //   BitmapGroupSequence), BitmapGroupSequence.sprites (TagReflexive, its count is the per

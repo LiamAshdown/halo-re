@@ -3,7 +3,7 @@
 //   first_sequence_index at 0x98, initial_sequence_count at 0x9a, looping_sequence_count at
 //   0x9c and final_sequence_count at 0x9e")
 // address 0x455e60, size 406 bytes
-// name confidence: 0.6   rewrite confidence: 0.5
+// name confidence: 0.6   rewrite confidence: 0.9 (VERIFIED against objdump 0x455e60..0x455ff5; initial->looping fallthrough FIXED)
 // evidence: types/effects.h particle.sequence_state (+0x0e), sequence_index (+0x24),
 //   particle_sequence_state enum (_new/_initial/_looping/_final/_finished); types/tags.h
 //   Particle.first_sequence_index/initial_sequence_count/looping_sequence_count/
@@ -51,10 +51,13 @@ uint8_t particle_next_sequence(datum_index particle_handle)
         self->sequence_state = _particle_sequence_state_initial;
     }
 
+    // FIXED (0x455eeb..0x455f08): leaving the initial state falls straight into the looping pick in the same
+    //   call; the draft's `else if` skipped it, so a particle without initial sequences got -1 and was impacted.
     if (self->sequence_index == -1 && self->sequence_state == _particle_sequence_state_initial) {
         self->sequence_state = _particle_sequence_state_looping;
-    } else if (self->sequence_state == _particle_sequence_state_looping) {
-        if (self->lifespan <= self->age || tag->looping_sequence_count < 1) {
+    }
+    if (self->sequence_state == _particle_sequence_state_looping) {
+        if (!(self->age < self->lifespan) || tag->looping_sequence_count < 1) {
             self->sequence_state = self->sequence_state + 1;
         } else {
             effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;

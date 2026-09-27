@@ -2,7 +2,7 @@
 //   types/effects.h: "particle_advance_animation 0x4560c0 (animation_timer against
 //   inverse_animation_period)")
 // address 0x4560c0, size 223 bytes
-// name confidence: 0.6   rewrite confidence: 0.45
+// name confidence: 0.6   rewrite confidence: 0.9 (VERIFIED against objdump 0x4560c0..0x45619e)
 // evidence: types/effects.h particle.animation_timer (+0x1c, "-1.0 at create so the first
 //   update forces a frame advance") and inverse_animation_period (+0x20); ParticleFlags bit
 //   layout comment in types/tags.h (bit 1 animation_stops_at_rest, bit 3

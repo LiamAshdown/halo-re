@@ -1770,3 +1770,5 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - effect_start_event picks the global seed only for tag flag 4, otherwise the effect seed.
   - effect_random_velocity_vector passes its a/b bitsets into the property roll (they were zeros).
 - Verified 0.9: effect_new, effect_marker_new.
+- particle_next_sequence (0x455e60) FIXED: leaving the initial state falls straight into the looping pick in the same call. The draft's `else if` skipped it, so any particle without initial sequences got sequence -1 and was impacted (deleted) at its first pick, meaning such particles vanished at spawn.
+- Verified 0.9: particle_advance_animation, particle_advance_frame.
