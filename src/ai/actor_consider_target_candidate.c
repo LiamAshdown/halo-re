@@ -1,6 +1,6 @@
 // actor_consider_target_candidate  (Ghidra: actor_consider_target_candidate, already named)
 // address 0x4208a0, size 196 bytes
-// name confidence: 0.55   rewrite confidence: 0.5
+// name confidence: 0.55   rewrite confidence: 0.85 (VERIFIED against objdump 0x4208a0..0x420963 (rate(stack actor, candidate); store at candidate +0x50; positive and not below the current target's rating -> take it, reset +0x268/+0x26c, update combat status and awareness (EAX actor)))
 // evidence: out/phase2/results/ai_02.json -- rates a single candidate prop (unaff_EBX) with
 //   actor_rate_potential_target, stores the score into the candidate's own desirability field,
 //   and only replaces the actor's current target (actor.target_unit_index) if the new score

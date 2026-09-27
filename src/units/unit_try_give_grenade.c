@@ -1,5 +1,5 @@
 // unit_try_give_grenade  (Ghidra: FUN_0056d080)
-// address 0x56d080, size 214 bytes, name confidence 0.3, rewrite confidence 0.2
+// address 0x56d080, size 214 bytes, name confidence 0.3, rewrite confidence 0.85 (VERIFIED against objdump 0x56d080..0x56d155 (grenade type = pickup tag +0x30a; limit = globals grenades block (+0x12c, 0x44 each) +0; count at unit +0x31e; flags +0x10 |= 0x4000000; pickup sound for a local player (player +0x2 != -1); pickup deleted; AL 1))
 // functions.md: "Attempts to give the unit one more grenade of its currently selected type, up
 // to the type's maximum, updating related UI/HUD state."
 // evidence: types/units.h unit_data.grenade_counts[2] (0x31e); types/objects.h object.flags

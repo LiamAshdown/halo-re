@@ -1,7 +1,7 @@
 // unit_has_must_be_readied_weapon  (Ghidra: FUN_00463300; renamed -- despite its summary, the
 // decompilation walks a unit's four weapon slots, not team members)
 // address 0x463300, size 148 bytes
-// name confidence: 0.3   rewrite confidence: 0.3
+// name confidence: 0.3   rewrite confidence: 0.85 (REWRITTEN from objdump 0x463300..0x463393: player -> unit (+0x34) -> the four weapon slots at object +0x2f8; any weapon whose tag +0x308 has bit 3 -> AL 1. FIXED the slot base (the draft read object +0x4ec))
 // evidence: out/phase4/game_functions.md's summary for this address ("Checks whether any of up
 // to four registered members of a player team currently satisfy a status bit") does not match
 // the actual body, which indexes unit_data's own 4-entry weapon handle array (types/units.h
@@ -42,8 +42,9 @@ uint8_t unit_has_must_be_readied_weapon(uint32_t player_index)
         return 0;
     }
 
-    unit = (unit_data *)((uint8_t *)
-        ((object_header *)object_headers->data)[p->unit & 0xffff].data + k_unit_data_offset);
+    // 0x463340..0x463347: the four weapon slots are at OBJECT +0x2f8 (unit::weapons); the draft added the unit
+    // data offset (0x1f4) first and read object +0x4ec.
+    unit = (unit_data *)((uint8_t *)((object_header *)object_headers->data)[p->unit & 0xffff].data);
 
     for (i = 0; i < 4; i++) {
         datum_index weapon = *(datum_index *)((uint8_t *)unit + 0x2f8 + i * 4);
