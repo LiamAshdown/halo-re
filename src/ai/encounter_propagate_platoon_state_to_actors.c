@@ -1,6 +1,6 @@
 // encounter_propagate_platoon_state_to_actors  (Ghidra: encounter_propagate_platoon_state_to_actors, renamed)
 // address 0x439d80, size 397 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x439d80..0x439f0e, tail-jumps into the argless 0x435f00; offsets probed)
 // evidence: types/ai.h ai_globals.unknown_08 ("also the head of the unassigned actor list"),
 //   encounter.first_actor (+0x14), actor.next_in_encounter (+0x2c), actor.platoon_index
 //   (+0x3c), actor.squad_index (+0x3a), encounter_platoon_state (unknown_00/01/02);

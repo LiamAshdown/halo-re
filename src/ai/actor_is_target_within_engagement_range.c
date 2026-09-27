@@ -1,6 +1,6 @@
 // actor_is_target_within_engagement_range  (Ghidra: actor_is_target_within_engagement_range, renamed)
 // address 0x403dc0, size 305 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x403dc0..0x403ef0; offsets probed)
 // evidence: types/ai.h actor.encounter_index (0x34)/firing_position_index (0x3b8)/
 //   active_movement (0x46c)/movement_action_complete (0x4a8)/movement_completed (0x484);
 //   types/tags.h Scenario.encounters (pointer at 0x430), ScenarioEncounter.firing_positions
