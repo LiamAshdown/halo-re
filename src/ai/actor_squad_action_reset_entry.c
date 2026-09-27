@@ -1,6 +1,6 @@
 // actor_squad_action_reset_entry  (Ghidra: actor_squad_action_reset_entry, renamed)
 // address 0x406c50, size 312 bytes
-// name confidence: 0.4   rewrite confidence: 0.25
+// name confidence: 0.4   rewrite confidence: 0.9 (checked against objdump 0x406c50..0x406d83)
 // evidence: types/ai.h actor.unit_index; types/tags.h Scenario.command_lists/
 //   ScenarioCommandList.commands/ScenarioCommand (same layout as actor_squad_action_execute.c
 //   and actor_squad_action_is_complete.c); phase-4 summary "resets/cleans up per-entry state
@@ -23,7 +23,7 @@ extern Scenario *global_scenario; // 0x00746f8c
 extern void actor_clear_vocalization(uint32_t actor_index);   // 0x414560
 extern void actor_movement_action_stop(datum_index actor_index); // 0x417570, this module,
                                                                  // blam-cc: EDX -> actor_index
-extern void *object_try_and_get(int32_t kind);                 // 0x4f6ec0
+extern void *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
 
 void actor_squad_action_reset_entry(uint32_t actor_index, uint32_t check_object_index, uint8_t *state, int16_t command_list_index, uint8_t *aim_state, uint8_t *next_action_index_out)
 {
@@ -78,7 +78,7 @@ void actor_squad_action_reset_entry(uint32_t actor_index, uint32_t check_object_
             state[9] = 0;
             return;
         case 0xd: {
-            uint32_t *obj = (uint32_t *)object_try_and_get(1);
+            uint32_t *obj = (uint32_t *)object_try_and_get(check_object_index, 1); // 0x406d52: ECX = the unit
             if (obj != 0) {
                 uint32_t *flags = (uint32_t *)((uint8_t *)obj + 0x4cc);
                 *flags &= 0xfffffff3;
