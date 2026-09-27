@@ -83,6 +83,7 @@ datum_index actor_place_new_unit(datum_index actor_variant_or_palette_tag, datum
 
     object_placement_data_initialize(&placement, (datum_index)actor_variant[8], (datum_index)k_datum_index_none); // UNSURE offset: ActorVariant.unit tag
     placement.position = placement_request->position;
+    placement.permutation_group = (int16_t)unit_type_index; // 0x4270f8..0x427117: placement +0x16
     placement.forward.i = (float)cos((double)placement_request->yaw);
     placement.forward.j = (float)sin((double)placement_request->yaw);
 
@@ -123,15 +124,15 @@ datum_index actor_place_new_unit(datum_index actor_variant_or_palette_tag, datum
         if (placement_request->unknown_16 > 0) {
             unknown_60 = (uint16_t)placement_request->unknown_16;
         }
-        if (placement_request->unknown_1c > 0) {
-            unknown_62 = placement_request->unknown_1c;
+        if (*(int16_t *)((const uint8_t *)placement_request + 0x14) > 0) { // 0x4271e5: the return state word
+            unknown_62 = *(int16_t *)((const uint8_t *)placement_request + 0x14);
         }
 
         result = actor_new_and_attach_to_unit(reuse_existing, unit_index, actor_variant_tag,
                                               encounter_index, squad_index, 0, (datum_index)k_datum_index_none,
                                               start_active, unknown_60, unknown_62,
                                               *(const uint16_t *)&placement_request->unknown_1a,
-                                              (uint8_t)placement_request->unknown_12);
+                                              (uint8_t)(int8_t)placement_request->unknown_12); // 0x4271f0 movsx
     }
 
     if (result == (datum_index)k_datum_index_none) {

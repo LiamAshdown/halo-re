@@ -21,37 +21,48 @@
 
 extern data_array *object_data; // 0x008603b0
 
-extern void object_set_health_frozen_flag(void);  // 0x4eda20, UNSURE: no traced args  // real signature (object_set_health_frozen_flag.c): void object_set_health_frozen_flag(uint32_t object_index); Ghidra recovered 0 of 1 args at this call site
-extern void object_set_shield_depleted_flag(void); // 0x4edb10, UNSURE: no traced args  // real signature (object_set_shield_depleted_flag.c): void object_set_shield_depleted_flag(uint32_t object_index); Ghidra recovered 0 of 1 args at this call site
+extern void object_set_health_frozen_flag(uint32_t object_index); // 0x4eda20, EAX
+extern void object_set_shield_depleted_flag(uint32_t object_index); // 0x4edb10, EDI
 
+// REWRITTEN from objdump 0x561b80..0x561cab: each fraction is the value over its maximum (maximum body
+//   +0xd8, shield +0xdc), 1 when the value reaches the maximum, 0 when the maximum is not positive; a
+//   positive current shield (+0xe4) or body (+0xe0) that the new fraction takes to zero (or below) first
+//   calls object_set_shield_depleted_flag (EDI unit) / object_set_health_frozen_flag (EAX unit). The draft
+//   called both with no unit and with the conditions inverted.
 void unit_update_vitality_fractions(uint32_t unit_index, float body_delta, float shield_delta) // blam-cc: see file header
 {
+    object *obj;
+    float shield_fraction;
+    float body_fraction;
+
     if (unit_index == (uint32_t)-1) {
         return;
     }
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+    obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     if ((obj->vitality_flags & _object_health_frozen_bit) != 0) {
         return;
     }
+    if (!(obj->maximum_shield_vitality > 0.0f)) {
+        shield_fraction = 0.0f;
+    } else if (!(shield_delta < obj->maximum_shield_vitality)) {
+        shield_fraction = 1.0f;
+    } else {
+        shield_fraction = shield_delta / obj->maximum_shield_vitality;
+    }
+    if (!(obj->maximum_body_vitality > 0.0f)) {
+        body_fraction = 0.0f;
+    } else if (!(body_delta < obj->maximum_body_vitality)) {
+        body_fraction = 1.0f;
+    } else {
+        body_fraction = body_delta / obj->maximum_body_vitality;
+    }
 
-    float shield_fraction = (obj->maximum_shield_vitality > 0.0f)
-                                 ? ((shield_delta < obj->maximum_shield_vitality)
-                                        ? shield_delta / obj->maximum_shield_vitality
-                                        : 1.0f)
-                                 : 0.0f;
-    float body_fraction = (obj->maximum_body_vitality > 0.0f)
-                               ? ((body_delta < obj->maximum_body_vitality)
-                                      ? body_delta / obj->maximum_body_vitality
-                                      : 1.0f)
-                               : 0.0f;
-
-    if (obj->shield_vitality > 0.0f && shield_fraction != 0.0f) {
-        object_set_shield_depleted_flag();
+    if (obj->shield_vitality > 0.0f && !(shield_fraction > 0.0f)) {
+        object_set_shield_depleted_flag(unit_index);
     }
     obj->shield_vitality = shield_fraction;
-
-    if (obj->body_vitality > 0.0f && body_fraction != 0.0f) {
-        object_set_health_frozen_flag();
+    if (obj->body_vitality > 0.0f && !(body_fraction > 0.0f)) {
+        object_set_health_frozen_flag(unit_index);
     }
     obj->body_vitality = body_fraction;
 }

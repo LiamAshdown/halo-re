@@ -1,6 +1,6 @@
 // actor_new_and_attach_to_unit  (Ghidra: actor_new_and_attach_to_unit, already named)
 // address 0x426ac0, size 553 bytes
-// name confidence: 0.55   rewrite confidence: 0.3
+// name confidence: 0.55   rewrite confidence: 0.85
 // evidence: types/ai.h actor.swarm(0x06)/cluster_count(0x1e)/actor_variant_tag(0x5c)/
 //   squad_index(0x3a)/next_in_encounter(0x2c)/active(0x08)/type(0x04)/awareness_level(0x6a)/
 //   unknown_60/unknown_62/unknown_68/unknown_8e/unknown_90/unknown_92; actor_type_table_entry
@@ -17,6 +17,13 @@
 //   is a much stronger signal than the "()"-truncated calls seen elsewhere in this module, so
 //   it was trusted directly.
 
+// REWRITTEN from objdump 0x426ac0..0x426ce8. The draft called object_try_and_get(1) -- the literal 1 as the
+//   object handle -- so every non-swarm placement failed and actor_place_new_unit deleted the new unit (the
+//   a10 crewmen placed by ai_place vanished on spawn). The binary checks the unit itself (ECX unit, mask 1)
+//   and refuses one whose +0x106 has bit 2. Also: encounter_add_actor takes the squad argument (DX), the
+//   small-table lookup takes unknown_60 (CX), the reuse scan starts at the iterator cursor's third dword.
+// blam-cc: stack -> the twelve arguments
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -26,145 +33,119 @@
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *encounter_data;  // 0x008802c8
-extern ai_globals *ai_globals_ptr;      // 0x00880354
+extern ai_globals *ai_globals_ptr;  // 0x00880354
 extern void *actor_type_procs[16];  // 0x006853b8
 
-extern datum_index actor_new(datum_index actor_variant_tag); // 0x426760
-extern void actor_attach_to_unit(datum_index actor_index, datum_index unit_index); // 0x427560, UNSURE signature
-extern void actor_set_units_active(datum_index actor_index, uint8_t activate); // 0x427860, blam-cc: EAX, BL
-extern void actor_delete(datum_index actor_index, uint32_t flag); // 0x427e60
-extern void *object_try_and_get(int32_t kind); // 0x4f6ec0
-extern int32_t actor_lookup_small_table_entry(int16_t index); // 0x40e790, UNSURE which index this call site passes
-extern datum_index ai_reference_actor_iterator_init_cursor(void); // 0x4369f0
-    // UNSURE: returns the head of the unassigned actor list per types/ai.h ai_globals+0x08;
-    // ai_actor_link_to_unassigned_list at 0x436940 is its sibling.
-extern void ai_actor_link_to_unassigned_list(void); // 0x436940, UNSURE signature, not in this rewrite range
-extern void encounter_add_actor(int16_t squad_index, datum_index actor_index,
-    datum_index encounter_index, uint8_t keep_team); // 0x436770, blam-cc: DX -> squad_index
-    // UNSURE: the squad index arrives in DX and Ghidra did not attribute it to this call
-    // site, so the actor's current squad_index is passed; encounter_add_actor writes it
-    // straight back into the same field.
-extern char actor_link_to_unit_cluster(datum_index actor_index, datum_index unit_index); // 0x4279f0, in this rewrite range (actor_link_to_unit_cluster), not yet written when this file was authored
+extern datum_index actor_new(datum_index actor_variant_tag); // 0x426760, stack
+extern void actor_attach_to_unit(datum_index actor_index, datum_index unit_index); // 0x427560, stack
+extern void actor_set_units_active(datum_index actor_index, uint8_t activate); // 0x427860, EAX, BL
+extern void actor_delete(datum_index actor_index, uint32_t flag); // 0x427e60, EBX, stack
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
+extern int32_t actor_lookup_small_table_entry(int16_t index); // 0x40e790, CX
+extern void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, datum_index *cursor); // 0x4369f0, EAX, ECX
+extern void ai_actor_link_to_unassigned_list(datum_index actor_index); // 0x436940, EAX
+extern void encounter_add_actor(int16_t squad_index, datum_index actor_index, datum_index encounter_index,
+    uint8_t keep_team); // 0x436770, DX, stack
+extern uint8_t actor_link_to_unit_cluster(datum_index actor_index, datum_index unit_index); // 0x4279f0
 
-// Creates a brand-new actor (or, when reuse_existing is set, reuses a compatible existing
-// squad member instead) and binds it to a newly placed unit, or deletes it again on failure.
-// UNSURE: parameter roles below are inferred from usage, not independently confirmed.
+#define ACTOR_AT(index) ((uint8_t *)actor_data->data + ((index) & 0xffff) * 0x724)
+
 datum_index actor_new_and_attach_to_unit(
-    char reuse_existing,           // param_1: 0 = always create a new actor; else scan for a reusable one
-    datum_index unit_index,        // param_2: the unit object to attach to
-    datum_index actor_variant_tag, // param_3: tag passed to actor_new / matched against actor.actor_variant_tag
-    uint32_t encounter_or_none,    // param_4: an encounter datum_index, or a raw next_in_encounter value already carrying its salt
-    int16_t squad_index,           // param_5: required actor.squad_index unless ignore_squad is set
-    char ignore_squad,             // param_6: skip the squad_index match in the reuse scan
-    datum_index exclude_actor,     // param_7: an actor index the reuse scan must not pick
-    char start_active,             // param_8: 0 = leave inactive (awareness 2); else awareness 0 and activate if already active
-    uint16_t unknown_60,           // param_9
-    int16_t unknown_62,            // param_10: falls back to actor_lookup_small_table_entry() when -1 or 0
-    uint16_t unknown_90,           // param_11
-    uint8_t unknown_68)            // param_12
+    char reuse_existing,           // swarm actors: join a compatible existing actor instead of a new one
+    datum_index unit_index,        // the unit object to attach to
+    datum_index actor_variant_tag,
+    uint32_t encounter_or_none,    // an encounter index (salt added here when missing) or -1
+    int16_t squad_index,
+    char ignore_squad,             // skip the squad match in the reuse scan
+    datum_index exclude_actor,     // an actor the reuse scan must not pick
+    char start_active,
+    uint16_t unknown_60,
+    int16_t unknown_62,
+    uint16_t unknown_90,
+    uint8_t unknown_68)
 {
-    datum_index actor_index;
-    actor *self;
+    datum_index actor_index = k_datum_index_none;
+    uint8_t *self;
 
-    if (unit_index == (datum_index)k_datum_index_none) {
-        return (datum_index)k_datum_index_none;
-    }
-    if (actor_variant_tag == (datum_index)k_datum_index_none) {
-        return (datum_index)k_datum_index_none;
+    if (unit_index == k_datum_index_none || actor_variant_tag == k_datum_index_none) {
+        return k_datum_index_none;
     }
 
-    if (reuse_existing == 0) {
-    create_new:
-        if (object_try_and_get(1) == 0) {
-            return (datum_index)k_datum_index_none;
-        }
-        // UNSURE: the vitality-flags-bit-4 gate above is read from the local player object
-        // (object_try_and_get(1)) but its result pointer is otherwise unused here; kept
-        // exactly as the original, which discards the pointer after the flag test.
-        goto make_actor;
+    if (reuse_existing != 0) {
+        datum_index cursor[4];
+        datum_index candidate;
 
-    make_actor:
-        actor_index = actor_new(actor_variant_tag);
-        if (actor_index == (datum_index)k_datum_index_none) {
-            return (datum_index)k_datum_index_none;
-        }
-        self = &((actor *)actor_data->data)[actor_index & 0xffff];
+        ai_reference_actor_iterator_init_cursor((int32_t)encounter_or_none, cursor);
+        candidate = cursor[2];
+        while (ai_globals_ptr->actors_valid != 0 && candidate != k_datum_index_none) {
+            uint8_t *actor = ACTOR_AT(candidate);
 
-        if (encounter_or_none == (uint32_t)k_datum_index_none) {
-            ai_actor_link_to_unassigned_list();
-        } else {
-            if ((encounter_or_none & 0xffff0000) == 0) {
-                encounter *enc = &((encounter *)encounter_data->data)[encounter_or_none & 0xffff];
-                encounter_or_none = ((uint32_t)enc->identifier << 0x10) | (encounter_or_none & 0xffff);
+            actor_index = candidate;
+            candidate = *(datum_index *)(actor + 0x2c);
+            if (actor[6] == 0 || actor_index == exclude_actor || *(int16_t *)(actor + 0x1e) >= 0x10 ||
+                *(datum_index *)(actor + 0x5c) != actor_variant_tag ||
+                (ignore_squad == 0 && *(int16_t *)(actor + 0x3a) != squad_index)) {
+                continue;
             }
-            encounter_add_actor(self->squad_index, actor_index, encounter_or_none, 0);
-        }
-
-        if (start_active == 0) {
-            self->awareness_level = 2;
-        } else {
-            self->awareness_level = 0;
-            if (self->active != 0) {
-                actor_set_units_active(actor_index, 0);
-            }
-        }
-
-        self->unknown_60 = unknown_60;
-        self->unknown_62 = unknown_62;
-        if (unknown_62 == -1 || unknown_62 == 0) {
-            self->unknown_62 = (int16_t)actor_lookup_small_table_entry(self->type); // UNSURE index
-        }
-        self->unknown_68 = unknown_68;
-        self->unknown_8e = 0;
-        self->unknown_92 = 2;
-        self->unknown_90 = unknown_90;
-
-        {
-            actor_type_table_entry *type_entry = (actor_type_table_entry *)actor_type_procs[self->type];
-            if (self->swarm != ((uint8_t *)type_entry)[0xd]) { // UNSURE: type_entry+0xd, not individually named
-                goto delete_and_fail;
-            }
+            goto attach;
         }
     } else {
-        datum_index candidate = ai_reference_actor_iterator_init_cursor();
+        uint8_t *unit = (uint8_t *)object_try_and_get(unit_index, 1);
 
-        for (;;) {
-            actor_index = candidate;
-            if (ai_globals_ptr->actors_valid == 0 || actor_index == (datum_index)k_datum_index_none) {
-                goto make_actor;
-            }
-            self = &((actor *)actor_data->data)[actor_index & 0xffff];
-            candidate = self->next_in_encounter;
-
-            if (self->swarm != 0 &&
-                actor_index != exclude_actor &&
-                self->cluster_count <= 0xf &&
-                self->actor_variant_tag == actor_variant_tag &&
-                (ignore_squad != 0 || self->squad_index == squad_index)) {
-                break;
-            }
-        }
-        if (actor_index == (datum_index)k_datum_index_none) {
-            goto make_actor;
+        if (unit == 0 || (unit[0x106] & 4) != 0) {
+            return k_datum_index_none;
         }
     }
 
+    actor_index = actor_new(actor_variant_tag);
+    if (actor_index == k_datum_index_none) {
+        return k_datum_index_none;
+    }
+    self = ACTOR_AT(actor_index);
+    if (encounter_or_none == (uint32_t)k_datum_index_none) {
+        ai_actor_link_to_unassigned_list(actor_index);
+    } else {
+        if ((encounter_or_none & 0xffff0000) == 0) {
+            uint8_t *enc = (uint8_t *)encounter_data->data + (encounter_or_none & 0xffff) * 0x6c;
+
+            encounter_or_none = ((uint32_t)(int32_t)*(int16_t *)enc << 0x10) | (encounter_or_none & 0xffff);
+        }
+        encounter_add_actor(squad_index, actor_index, encounter_or_none, 0);
+    }
+    if (start_active == 0) {
+        *(int16_t *)(self + 0x6a) = 2;
+    } else {
+        *(int16_t *)(self + 0x6a) = 0;
+        if (self[8] != 0) {
+            actor_set_units_active(actor_index, 0);
+        }
+    }
+    *(uint16_t *)(self + 0x60) = unknown_60;
+    *(int16_t *)(self + 0x62) = unknown_62;
+    if (unknown_62 == -1 || unknown_62 == 0) {
+        *(int16_t *)(self + 0x62) = (int16_t)actor_lookup_small_table_entry((int16_t)unknown_60);
+    }
+    self[0x68] = unknown_68;
+    self[0x8e] = 0;
+    *(int16_t *)(self + 0x92) = 2;
+    *(uint16_t *)(self + 0x90) = unknown_90;
+    if (self[6] != ((uint8_t *)actor_type_procs[*(int16_t *)(self + 4)])[0xd]) {
+        actor_delete(actor_index, 0);
+        return k_datum_index_none;
+    }
+
+attach:
     if (reuse_existing == 0) {
         actor_attach_to_unit(actor_index, unit_index);
         return actor_index;
     }
-
     if (actor_link_to_unit_cluster(actor_index, unit_index) != 0) {
         return actor_index;
     }
-    self = &((actor *)actor_data->data)[actor_index & 0xffff];
-    if (self->cluster_count != 0) {
-        return (datum_index)k_datum_index_none;
+    if (*(int16_t *)(ACTOR_AT(actor_index) + 0x1e) == 0) {
+        actor_delete(actor_index, 0);
     }
-
-delete_and_fail:
-    actor_delete(actor_index, 0);
-    return (datum_index)k_datum_index_none;
+    return k_datum_index_none;
 }
 
 #if 0

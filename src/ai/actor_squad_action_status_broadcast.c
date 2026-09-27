@@ -31,7 +31,7 @@ extern uint16_t global_structure_bsp_index; // 0x0069e8d8, UNSURE: compared agai
 
 extern void actor_swarm_for_each_component(uint32_t actor_index, char reset_first, actor_swarm_member_callback callback, uint32_t callback_extra, uint16_t *caller_record); // 0x407040, this session
 extern void actor_clear_vocalization(uint32_t actor_index); // 0x414560
-extern void actor_lab_00406dd0_callback(uint32_t actor_index, datum_index unit_index, uint16_t extra, void *component_record, int32_t unused, uint32_t callback_extra); // internal label, see UNSURE
+extern void actor_command_list_reset_record(uint32_t actor_index, datum_index unit_index, uint16_t extra, void *component_record, int32_t secondary_record, uint32_t callback_extra); // 0x406dd0
 
 // FIXED (register inputs, objdump: each stack slot's first use checked against the parameter): the original never reads EAX; actor_index arrive(s) on the stack (2 stack argument(s)).
 // blam-cc: ESI -> record, stack -> actor_index, command_list_index
@@ -68,7 +68,11 @@ int32_t actor_squad_action_status_broadcast(uint32_t actor_index, int16_t comman
                 *((uint8_t *)record + 4) = allow_communication;
                 *((uint8_t *)record + 2) = allow_initiative;
                 *((uint8_t *)record + 3) = allow_look;
-                actor_swarm_for_each_component(actor_index, 1, actor_lab_00406dd0_callback, (uint32_t)(uintptr_t)((uint8_t *)record + 3), record);
+                // 0x4071cc..0x40722a: the callback's extra is a local byte holding flag bit 1, not a record field
+                uint8_t flag_bit_1 = (uint8_t)((list->flags >> 1) & 1);
+
+                actor_swarm_for_each_component(actor_index, 1, actor_command_list_reset_record,
+                    (uint32_t)(uintptr_t)&flag_bit_1, (uint16_t *)record);
                 return 1;
             }
         } else if (a->active == 0) {
