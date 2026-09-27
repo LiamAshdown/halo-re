@@ -1,6 +1,6 @@
 // unit_throw_grenade_release  (Ghidra: already named unit_throw_grenade_release -- per
 //   out/phase4/units_types_notes.md this name is WRONG: the real grenade-release function is
-//   unit_release_thrown_grenade (0x56e440, this batch); this address is vehicle physics)
+// name confidence: 0.1   rewrite confidence: 1.0 (FRAGMENT: 0x571b40 is inside vehicle_blend_animations 0x5718e0..0x571c6f, whose C covers this code; nothing calls or jumps here)
 // address 0x571b40, size 309 bytes
 // name confidence: 0.4 (pre-existing name kept per the task's renaming rule -- it already
 //   carries a name, even though the notes file says it is misleading)
