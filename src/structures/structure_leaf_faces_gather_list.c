@@ -20,11 +20,11 @@
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 
-// TYPES-GAP: the 32-byte comparator routine at 0x552c00 (immediately before this batch's first
-// function), not examined by this pass.
-extern int qsort_dword_array_leaf_index_compare(const void *a, const void *b); // 0x552c00, UNSURE
-extern void qsort_dword_array(int32_t *base, int32_t count, int (*compare)(const void *, const void *));
-    // 0x449590, foreign (CRT-shaped) sort; blam-cc: ECX -> base, EAX -> count, stack -> compare
+#include "cseries.h"
+
+extern uint8_t structure_leaf_face_index_compare(int32_t element, int32_t other); // 0x552c00
+extern void qsort_dword_array(uint32_t count, int32_t *elements, qsort_dword_compare_proc compare);
+    // 0x449590; blam-cc: EAX -> count, ECX -> elements, stack -> compare (0x552d01..0x552d0b)
 
 // Sorts `face_indices` (ascending) and then copies each named surface's vertex/index record into
 // `out_faces`, in the sorted order.
@@ -35,7 +35,7 @@ void structure_leaf_faces_gather_list(int16_t face_count, ScenarioStructureBSPSu
     ScenarioStructureBSPSurface *surfaces = (ScenarioStructureBSPSurface *)global_structure_bsp->surfaces.pointer;
     int32_t i;
 
-    qsort_dword_array(face_indices, face_count, qsort_dword_array_leaf_index_compare);
+    qsort_dword_array((uint32_t)(int32_t)face_count, face_indices, structure_leaf_face_index_compare);
 
     for (i = 0; i < face_count; i = i + 1) {
         out_faces[i] = surfaces[face_indices[i]];

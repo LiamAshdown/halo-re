@@ -32,6 +32,7 @@
 // reconciled: R06 0x00746f9c is ScenarioStructureBSP *global_structure_bsp (was extern int32_t bsp_generation); ai.h path_find_context/actor_movement_context bsp_generation -> structure_bsp, bsp_index -> collision_bsp
 
 #include "tags.h"
+#include "cseries.h"
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
@@ -67,16 +68,14 @@ extern uint8_t path_find_test_direct_reachability(int32_t generation, int32_t un
 extern void path_find_compute_heuristic(void *point, float *out_distance, float *out_secondary,
                          void *out_direction);                             // 0x43a310, not yet rewritten
 extern uint8_t path_find_run(path_find_context *context);                  // 0x43a8b0, not yet rewritten
-extern void qsort_dword_array(void *comparator);                           // 0x449590
+extern void qsort_dword_array(uint32_t count, int32_t *elements, qsort_dword_compare_proc compare); // 0x449590, EAX count, ECX elements, stack compare
 extern float point3d_distance_squared_to_segment(real_point3d *point, real_point3d *origin,
                                                  real_vector3d *delta);    // 0x4cde30
 extern void unit_add_marker_relative_offset(datum_index unit_index, uint32_t mode, void *point, void *direction,
                          void *offset);                                    // 0x569190, not yet rewritten
 extern void unit_get_aiming_vector(real_vector3d *out);                              // 0x5696f0, not yet rewritten
 
-// The firing-position comparator, 0x004127b0. Ghidra never created a function there, so it
-// has no rewrite; the sort is by descending actor_firing_position_candidate.score.
-extern int actor_firing_position_compare(const void *a, const void *b); // 0x004127b0, qsort comparator
+extern uint8_t actor_firing_position_compare(int32_t element, int32_t other); // 0x4127b0, src/ai/actor_firing_position_compare.c
 
 // blam-cc: stack -> actor_index, query, out_candidate, out_previous_owner, path_context, out_path_ok
 // Gathers, scores and picks the actor best firing position. Returns the index of the winning
@@ -612,7 +611,7 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
         }
         qsort_candidate_base = candidates;
         qsort_candidate_count = candidate_count;
-        qsort_dword_array((void *)actor_firing_position_compare);
+        qsort_dword_array((uint32_t)(int32_t)candidate_count, sort_index, actor_firing_position_compare); // 0x413cf3..0x413d0f
 
         query->baseline_accept = actor_firing_position_probe_reject_rules(query);
 
