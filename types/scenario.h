@@ -84,10 +84,16 @@ typedef enum scenario_tag_flag_bits {
 // structure bsp procedure tables
 // 0x53e680 and 0x53e660 call every slot in order with no arguments and ignore any result, so
 // the slot type is a plain void(void). The tables sit back to back in .data: activate at
-// 0x0069e8dc (13 slots) then deactivate at 0x0069e910 (10 slots). Slot 9 of the activate table
-// is observer_update_location 0x447a60 (see types/camera.h), slot 0 is 0x4f7570, slot 1
-// object_lights_refresh_transforms 0x4f2d50; deactivate slot 0 is 0x4f4860, slot 1
-// objects_delete_unparented_of_type_mask 0x4f47c0.
+// 0x0069e8dc (13 slots) then deactivate at 0x0069e910 (10 slots), read from bin/halo.exe:
+//   activate:   0x4f7570 objects_recompute_cluster_membership, 0x4f2d50 object_lights_refresh_transforms,
+//               0x42ce90 ai_unassigned_actors_attach_to_structure_bsp, 0x450e80 effects_refresh_structure_locations,
+//               0x455d20 particles_refresh_structure_locations, 0x454080, 0x44cda0, 0x44e000
+//               decal_rehash_object_decals, 0x553060 structure_runtime_decals_mark_dirty, 0x447a60
+//               observer_update_location, 0x4762f0 players_structure_bsp_switch_regroup, 0x549a00
+//               sounds_refresh_structure_locations, 0x4f4860 scenario_objects_place_for_structure_bsp_on_activate
+//   deactivate: 0x4f47c0 objects_delete_unparented_of_type_mask, 0x4f74f0, 0x4f2cb0
+//               object_lights_detach_from_structure_bsp, 0x42c940, 0x44ad80 x4 (do nothing), 0x553070
+//               structure_runtime_decals_evict, 0x44e140 decals_detach_from_structure_bsp.
 // ---------------------------------------------------------------------------
 typedef void (*structure_bsp_procedure)(void);
 
