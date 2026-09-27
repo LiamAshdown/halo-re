@@ -1,6 +1,6 @@
 // ai_select_communication_target  (Ghidra: ai_select_communication_target; named for this rewrite)
 // address 0x42ec90, size 585 bytes
-// name confidence: 0.3   rewrite confidence: 0.2
+// name confidence: 0.3   rewrite confidence: 0.85 (REWRITTEN/verified against 0x42ec90: kind 3 reads param_b's object +0x1f4, the speaker select gets DI = param_a's team (+0xb8), and the classifier is given the selected speaker)
 // evidence: phase-4 summary ("selects a target object matching a given communication-order
 // definition, applying probability and recency weighting, for use by the AI communication
 // system"). This is one of the module's more heavily register-aliased functions (Ghidra
@@ -29,6 +29,7 @@
 #include "ai.h"
 
 extern game_time_globals *game_time; // 0x006f1d6c
+extern data_array *object_data;       // 0x008603b0
 extern ai_communication_event_definition ai_communication_event_definitions[]; // 0x00656b08, stride 0x24
 extern ai_globals *ai_globals_ptr;    // 0x00880354
 extern uint32_t random_seed_global;    // 0x00719cd0
@@ -36,10 +37,10 @@ extern int32_t ai_communication_warmup_tick; // 0x00725204, the tick before whic
 extern int16_t communication_class_line[8]; // 0x006558c4, per-class communication line id
 extern int32_t conversation_line_base; // 0x006f0ca4
 
-extern int16_t actor_classify_communication_object_type(int32_t object_or_type); // 0x42f9a0, this batch
-extern int32_t ai_communication_select_speaker_by_team(uint32_t kind, uint32_t param_1, uint32_t param_c, uint32_t param_d,
-                             uint32_t param_e, uint32_t packed_a, uint32_t packed_b,
-                             int16_t candidate_b, int16_t candidate_a, uint32_t param_last); // 0x4300d0, this batch, UNSURE args
+extern int32_t actor_classify_communication_object_type(datum_index actor_index); // 0x42f9a0, EAX
+extern datum_index ai_communication_select_speaker_by_team(int16_t match_mode, datum_index object_a,
+    datum_index object_b, float radius, int16_t allow_unreachable, uint32_t fade_limit, uint32_t line_class,
+    uint32_t line_id, int16_t seat_filter, uint8_t flags, int16_t team); // 0x4300d0, stack, DI
 extern void *object_try_and_get(datum_index object_index, int32_t kind); // 0x4f6ec0
 
 // blam-cc: stack -> param_a, param_b, line_id, sub_id, out_weight
@@ -91,21 +92,27 @@ int32_t ai_select_communication_target(uint32_t param_a, uint32_t param_b, int16
                             candidate_a = *(int16_t *)(entry + 2);
                             candidate_b = *(int16_t *)(entry + 3);
                             search_kind = (target_kind == 2) ? 1u : 2u;
-                            result = ai_communication_select_speaker_by_team(search_kind, param_a, 0xffffffff, 9.0f,
-                                                   0xffffffff,
-                                                   (uint32_t)comm_kind,
-                                                   (uint32_t)communication_class_line[comm_kind],
-                                                   candidate_a, candidate_b, 0);
+                            // FIXED (0x42edfd): DI = the team word at +0xb8 of param_a's object; the
+                            //   old call left the 11th (register) argument unset
+                            result = ai_communication_select_speaker_by_team((int16_t)search_kind, param_a,
+                                                   0xffffffff, 9.0f, -1,
+                                                   (uint32_t)(uint16_t)comm_kind,
+                                                   (uint32_t)(uint16_t)communication_class_line[comm_kind],
+                                                   (uint32_t)(uint16_t)candidate_a, candidate_b, 0,
+                                                   *(int16_t *)((uint8_t *)((object_header *)object_data->data)[param_a & 0xffff].data + 0xb8));
                         } else if (target_kind == 3) {
-                            vehicle_obj = object_try_and_get(param_a, 3);
+                            // FIXED (0x42edae): the object is param_b ([esp+0x24]), not param_a
+                            vehicle_obj = object_try_and_get(param_b, 3);
                             result = -1;
                             if (vehicle_obj != 0) {
-                                result = ((unit_data *)((uint8_t *)vehicle_obj + k_unit_data_offset))->driver_unit_index;
+                                result = *(int32_t *)((uint8_t *)vehicle_obj + 0x1f4);
                             }
                         }
 
                         if (result != -1) {
-                            int16_t comm_index = actor_classify_communication_object_type(comm_kind);
+                            // FIXED (0x42ee17): classifies the selected speaker (EAX = result), not
+                            //   the line kind
+                            int16_t comm_index = (int16_t)actor_classify_communication_object_type((datum_index)result);
                             if (comm_index != -1) {
                                 now = game_time->game_time;
                                 timestamp_pair = (int32_t *)(conversation_line_base +

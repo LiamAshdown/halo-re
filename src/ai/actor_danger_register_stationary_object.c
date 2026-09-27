@@ -1,6 +1,6 @@
 // actor_danger_register_stationary_object  (Ghidra: actor_danger_register_stationary_object; named from out/phase2/results/ai_02.json)
 // address 0x41ea60, size 557 bytes
-// name confidence: 0.45   rewrite confidence: 0.2
+// name confidence: 0.45   rewrite confidence: 0.9 (VERIFIED end to end against 0x41ea60 (gates, block rebuild, distance test, danger record layout, team check))
 // evidence: out/phase2/results/ai_02.json -- checks an object's flag byte and object velocity,
 //   then registers it into the actor's danger record (danger_type=3) if closer/newer than the
 //   current one. Matches actor.danger_* fields and object.velocity in types/ai.h /

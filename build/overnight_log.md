@@ -1813,3 +1813,11 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 
 ## Static loop: swarm leap offset (no boot)
 - actor_compute_swarm_avoidance_offset (0x425c70): REWRITTEN leap branch (0.25 -> 0.85). The old C called projectile_solve_ballistic_arc without its register arguments (EAX = target prop +0xc8, ECX = component +4, ESI = out leap, EDI = 0) and with the wrong stack layout, then always steered along the actor facing. The binary uses the solved leap direction (2D-normalized, falling back to facing +0x174 and then the global forward) times the horizontal speed. z is the half-gravity term, capped at 0.075 unless prop +0x130, and the result is clamped to length max(radius, 0.12).
+
+## Static loop: danger register + communication target (no boot)
+- actor_danger_register_stationary_object (0x41ea60): verified end to end, 0.9, no change. The EAX `reference` is listed in the header blam-cc, which gen_hooks merges.
+- ai_select_communication_target (0x42ec90): three fixes (0.2 -> 0.85).
+  - Kind 3 looks up param_b's object (+0x1f4), not param_a's.
+  - The 11-argument ai_communication_select_speaker_by_team was called with 10 arguments. Its DI team (param_a object +0xb8) was stack garbage, so the team filter picked random speakers.
+  - actor_classify_communication_object_type is given the selected speaker (EAX = result), not the line kind.
+- Relink: left unresolved 1, traps 128.
