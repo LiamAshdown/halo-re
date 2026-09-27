@@ -1,39 +1,17 @@
 // trigger_create_projectiles  (Ghidra: trigger_create_projectiles, already named)
 // address 0x4c4c40, size 2193 bytes
 // name confidence: 0.85 (cea-pdb hint, strings "primary trigger"/"secondary trigger")
-// rewrite confidence: 0.2 (by far the least complete function in this module: one whole
-//   behavioural block is deliberately absent, see below)
-// evidence: types/items.h weapon_data/item_data/WeaponTrigger fields used for the clearly
-//   identified pieces (magazine/ammo bookkeeping, first_person_offset at WeaponTrigger 0x84,
-//   projectile.tag_id at 0xa0, WeaponTriggerFlags bit 5 = projectiles_use_weapon_origin);
-//   types/objects.h object_placement_data, object.parent_object.
-// The marker walk IS resolved: object_get_node_local_transform fills an array of 0x40
-// object_marker records (0x40 * 0x6c == 0x1b00, exactly Ghidra's local_1b00 block), and Ghidra's
-// `local_1c10 = local_1c10 + 0x1b` walk reading [0..2] and [-9..-7] is
-// markers[i].node_transform.position and .node_transform.forward. See the loop below.
-//
-// NOT PORTED -- the autoaim / magnetism block. In the #if 0 decompilation this is everything
-// from `local_1bdc = (uint *)0x0;` down to the `local_1be4 = camera_observer_update(...)` assignment. It
-// resolves the holder's autoaim target by walking the object data_array by hand (local_1c18's
-// index and salt are validated against DAT_008603b0 + 0x20 / +0x22 before the header at +0x34 is
-// indexed), follows the target's own 0xca handle when it has one, reads a unit field at 0x218
-// and one at 0x1f4, consults actor_data (0x00880360, stride 0x724, the int16 at +0x5f2 against
-// 4), and then calls unit_project_onto_aiming_axis / actor_compute_grenade_aim_direction / camera_observer_update to produce three outputs this
-// function does use: spread_gain (local_1c14), error_bias (local_1c08) and
-// projectile_type_index (local_1be4). Porting it needs the units and ai headers, and the three
-// callees' argument shapes are not established. All three outputs are therefore initialized to
-// their "no target" values below and the projectile aim is the raw marker basis. That is a real
-// behavioural gap, not a naming gap: on this code path a weapon with autoaim would fire
-// perfectly straight and would not apply its per-target spread. Everything else in the function
-// -- the marker walk, the round count, the per-shot placement loop, the spread and
-// perpendicular-basis maths, the velocity inheritance from the root parent, and the
-// object_new_with_datum_role_control bookkeeping -- is ported.
-// UNSURE: FUN_004c54e0 (this module, the barrel spread offset helper) and object_reposition_to_spawn_location argument
-// shapes; the WeaponTrigger offsets 0x1b4, 0x6e and 0x26 read through raw casts below.
-// register convention: item index, trigger index and the new object's role are all
-// Ghidra-recognized parameters.
+// rewrite confidence: 0.85
+// REWRITTEN from objdump 0x4c4c40..0x4c54c9 (the draft left out the whole autoaim block and mis-called the
+//   reposition, spread, randomise and perpendicular helpers). Stack: (weapon, trigger, role). For each trigger
+//   marker (all of them with trigger flag 0x20, else one): start at the marker; a live unit holder projects the
+//   shot onto its aiming axis (0x5658f0, giving the inherited speed), a player adds the trigger's first-person
+//   offset (+0x84..+0x8c) and resolves its autoaim target (0x4593b0), an actor its aim direction and error
+//   (0x40f7e0). Then per projectile (+0x6e, or the charged count with trigger 1's projectile): placement at the
+//   origin along the aim, every n-th a tracer (+0x26), randomised by the error (min +0x7c / max +0x80 by the
+//   weapon's error / heat), the barrel spread, inherited velocity (the root parent's for projectile flag 0x10),
+//   created (0x4f54b0); a player's shot is swept back from the camera (0x4f7b70) and all get the autoaim target.
 // blam-cc: stack -> (item_index, trigger_index, role)
-// reconciled: R28 object.unknown_0c4 -> datum_index creator_object (same offset 0xc4)
 
 #include "tags.h"
 #include "memory.h"
@@ -43,233 +21,271 @@
 #include "units.h"
 #include "items.h"
 
-extern data_array *object_data;     // 0x008603b0
-extern tag_instance *tag_instances; // 0x0087bc14
+extern data_array *object_data;        // 0x008603b0
+extern data_array *actor_data;         // 0x00880360
+extern tag_instance *tag_instances;    // 0x0087bc14
 extern random_seed random_seed_global; // 0x00719cd0
+extern real_vector3d *global_up3d_pointer;   // 0x00696720
+extern real_vector3d *global_left3d_pointer; // 0x0069671c
+extern char s_primary_trigger_marker[];   // 0x006600a0 "primary trigger"
+extern char s_secondary_trigger_marker[]; // 0x0066b1bc "secondary trigger"
 
-// sqrt is a single x87/SSE instruction sequence in the original code (Ghidra's SQRT());
-// declared locally instead of via <math.h> because -I types shadows that header name with
-// types/math.h.
-extern double sqrt(double x);
-// These three are read only by the autoaim/magnetism block that this rewrite does NOT port
-// (see the file header); they are declared with the names the rest of the repo already uses so
-// that whoever finishes that block does not have to re-establish them. types/math.h names the
-// first two; src/ai and src/units name the third.
-extern real_vector3d *global_up3d_pointer;   // 0x00696720 -> 0x0065c224, (0, 0, 1)
-extern real_vector3d *global_left3d_pointer; // 0x0069671c -> 0x0065c218, (0, 1, 0); the fallback
-    // basis vector when the up x forward cross product degenerates
-extern data_array *actor_data;               // 0x00880360, stride 0x724 (ai module); the
-    // unported block reads the int16 at actor + 0x5f2 and compares it against 4
-
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern int16_t object_get_node_local_transform(datum_index object_index, char *marker_name,
-    void *out_transforms, int32_t max_count); // 0x4f6080
-extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand); // 0x4052c0
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
-extern int32_t actor_compute_grenade_aim_direction(real_vector3d *v); // 0x40f7e0, outside this module, UNSURE signature
-extern int32_t camera_observer_update(real_point3d *origin, real_vector3d *forward); // 0x4593b0, outside this module, UNSURE signature
-extern void unit_project_onto_aiming_axis(datum_index target_index, real *out_gain, uint32_t flags1, uint32_t flags2); // 0x5658f0, outside this module, UNSURE signature
-extern real_vector3d *vector3d_randomize_direction(real angle, real_vector3d *out); // 0x4cd1b0, UNSURE argument order at this call site
-extern void *vector3d_build_perpendicular(void); // 0x4cd670, UNSURE: this call site shows no visible arguments
-extern void weapon_trigger_barrel_spread_offset(real_vector3d *v, real_vector3d *axis, uint16_t barrel_index,
-    int16_t distribution_function, real distribution_angle, uint32_t flags); // 0x4c54e0
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
+extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *markers,
+    uint32_t max_count); // 0x4f6080, returns the marker count
+extern void unit_project_onto_aiming_axis(datum_index unit_index, real *out_speed, uint8_t project_point,
+    uint8_t use_unit_aiming_vector, real_point3d *point, real_vector3d *axis); // 0x5658f0, stack, EAX, EBX
+extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0
+extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+extern uint32_t camera_observer_update(datum_index player_index, real_point3d *observer_position,
+    real_vector3d *fallback_facing); // 0x4593b0, EAX, stack
+extern uint32_t actor_compute_grenade_aim_direction(datum_index actor_index, real_point3d *target_point,
+    real_vector3d *out_direction, float *out_698); // 0x40f7e0, EAX, EDX, EDI, stack
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag,
-    datum_index role); // 0x4f53a0
+    datum_index role); // 0x4f53a0, EAX, stack
+extern real_vector3d *vector3d_randomize_direction(real_point3d *direction, real_vector3d *out, random_seed *seed,
+    real lo, real hi); // 0x4cd1b0, EAX, EBX, EDI, stack
+extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir); // 0x4cd670, ECX, EDX
+extern void weapon_trigger_barrel_spread_offset(real_vector3d *v, real_vector3d *axis, uint16_t barrel_index,
+    int16_t distribution_function, real distribution_angle, uint32_t flags); // 0x4c54e0, stack + AX
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role); // 0x4f54b0
-extern void unit_get_camera_position(datum_index unit_index, real_point3d *out); // 0x568f80
-extern void object_reposition_to_spawn_location(datum_index new_object_index, datum_index camera_unit_index); // 0x4f7b70, outside this module, UNSURE signature
+extern void unit_get_camera_position(uint32_t unit_index, real_point3d *out); // 0x568f80, ECX, EDI
+extern uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d *target_position,
+    uint32_t ignore_object_index); // 0x4f7b70, stack, ECX
 
-// Computes the firing origin/spread for a weapon's trigger and spawns the resulting projectile
-// object(s), one per marker matching the trigger's tag-defined attachment marker. See the file
-// header for the substantial UNSURE caveats on the autoaim/marker-transform machinery.
-void trigger_create_projectiles(datum_index item_index, int16_t trigger_index, uint32_t role)
+extern double fabs(double x);
+extern double sqrt(double x);
+
+#define F(p, o) (*(float *)((p) + (o)))
+#define W(p, o) (*(int16_t *)((p) + (o)))
+#define D(p, o) (*(datum_index *)((p) + (o)))
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+
+// blam-cc: stack -> (item_index, trigger_index, role)
+void trigger_create_projectiles(uint32_t item_index, int16_t trigger_index, uint32_t role)
 {
-    object *item_obj;
-    weapon_data *wd;
-    item_data *id;
-    Weapon *weapon_tag;
-    WeaponTrigger *tag_trigger;
-    weapon_trigger_state *trigger;
-    datum_index holder_index;
-    datum_index effective_item_index;
-    char *marker_names[2];
-    // The output buffer is 0x40 object_marker records: 0x40 * 0x6c is exactly 0x1b00, which is
-    // exactly the span of Ghidra's local_1b00 frame block, and Ghidra's own marker walk
-    // (`local_1c10 = local_1c10 + 0x1b`, i.e. +0x6c bytes, reading [0..2] and [-9..-7]) lands on
-    // object_marker.node_transform.position (marker + 0x60) and .forward (marker + 0x3c) for
-    // every record. Ghidra's local_1aa0 is simply local_1b00 + 0x60, i.e. markers[0]'s position,
-    // which is why its indices go negative.
-    object_marker markers[0x40];
+    uint8_t *item = OBJECT_DATA(item_index);                          // [esp+0x2c]
+    uint8_t *weapon_tag = TAG_DATA(*(datum_index *)item);             // [esp+0x8c]
+    uint8_t *trigger = *(uint8_t **)(weapon_tag + 0x500) + trigger_index * 0x114; // ebp, the WeaponTrigger
+    uint8_t *state = item + 0x260 + trigger_index * 0x28;             // [esp+0x90]
+    datum_index holder = k_datum_index_none;                          // [esp+0x20]
+    uint32_t marker_object = item_index;
+    static object_marker markers[0x40];                               // [esp+0x138]
     int16_t marker_count;
-    int16_t marker_index;
-    object_marker *marker;
+    int16_t m;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
-    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
-    id = (item_data *)((uint8_t *)item_obj + k_item_data_offset);
-    weapon_tag = (Weapon *)tag_instances[(uint16_t)item_obj->definition_tag].data;
-    tag_trigger = (WeaponTrigger *)weapon_tag->triggers.pointer + trigger_index;
-    trigger = &wd->triggers[trigger_index];
-
-    holder_index = (datum_index)0xffffffff;
-    if (item_obj->parent_object != (datum_index)0xffffffff &&
-        object_try_and_get(item_obj->parent_object, _object_mask_unit) != 0) {
-        holder_index = item_obj->parent_object;
+    if (D(item, 0x11c) != k_datum_index_none && object_try_and_get(D(item, 0x11c), 3) != 0) {
+        holder = D(item, 0x11c);
     }
-
-    marker_names[0] = "primary trigger";
-    marker_names[1] = "secondary trigger";
-
-    // If the item itself has no collision and is attached, markers are read off the holder.
-    effective_item_index = item_index;
-    if ((item_obj->flags & _object_no_collision_bit) != 0 && item_obj->parent_object != (datum_index)0xffffffff) {
-        effective_item_index = item_obj->parent_object;
+    if ((*(uint32_t *)(item + 0x10) & 1) && D(item, 0x11c) != k_datum_index_none) {
+        marker_object = D(item, 0x11c);
     }
-
-    marker_count = object_get_node_local_transform(effective_item_index, marker_names[trigger_index],
-        markers, 0x40);
+    marker_count = (int16_t)object_get_node_local_transform(marker_object,
+        trigger_index == 0 ? s_primary_trigger_marker : s_secondary_trigger_marker, markers, 0x40);
     if (marker_count == 0) {
         marker_count = 1;
     }
-    if ((tag_trigger->flags & 0x20) == 0) { // !projectiles_use_weapon_origin
+    if (!(*(uint32_t *)trigger & 0x20)) {
         marker_count = 1;
     }
 
-    // The original guards the marker walk with `if (0 < (short)uVar6)` and counts down a
-    // separate copy, so a negative count runs the body zero times. A `(uint16_t)` widening here
-    // would instead run it 0xffff times.
-    for (marker_index = 0; marker_index < marker_count; marker_index++) {
-        real_point3d origin;
-        real_vector3d forward, up, left;
-        datum_index autoaim_target; // UNSURE: local_1bdc's real type (object* vs a wider record)
-        int32_t autoaim_available;
-        real spread_gain; // local_1c14
-        real error_bias;  // local_1c08
-        int32_t projectile_type_index; // local_1be4
-        int16_t projectile_tag_index; // UNSURE
-        int16_t round_count; // local_1c04
-        datum_index projectile_tag; // uVar17 in the two branches
-        datum_index attachment_role;
+    for (m = 0; m < marker_count; m++) {
+        real_point3d origin = markers[m].node_transform.position;      // [esp+0x14]
+        real_vector3d forward = markers[m].node_transform.forward;     // [esp+0x38]
+        real speed = 0.0f;                                             // [esp+0x24]
+        float error = 0.0f;                                            // [esp+0x30]
+        uint8_t *holder_object = 0;                                    // [esp+0x5c]
+        datum_index target = k_datum_index_none;                       // [esp+0x54]
+        datum_index projectile_tag;
+        int16_t count;                                                 // [esp+0x34]
+        datum_index owner = k_datum_index_none;                        // [esp+0x4c]
         int16_t shot;
 
-        marker = &markers[marker_index];
-        origin = marker->node_transform.position;
-        forward = marker->node_transform.forward;
+        // the holder, if it is a live unit
+        if (holder != k_datum_index_none) {
+            int16_t index = (int16_t)holder;
+            int16_t salt = (int16_t)(holder >> 16);
 
-        autoaim_target = (datum_index)0xffffffff; // UNSURE: local_1bdc resolution (autoaim /
-            // magnetism target lookup through holder_index) is not ported; every downstream use
-            // of it below is therefore forced down its "no target" path.
-        autoaim_available = 0;
-        spread_gain = 0.0f;
-        error_bias = 0.0f;
-        projectile_type_index = -1;
-        (void)autoaim_available;
+            if (index >= 0 && index < *(int16_t *)((uint8_t *)object_data + 0x20)) {
+                uint8_t *header = (uint8_t *)object_data->data + *(int16_t *)((uint8_t *)object_data + 0x22) * index;
 
-        if ((tag_trigger->flags & 0x20) != 0) {
-            origin = marker->node_transform.position;
-        }
-
-        if (trigger_index == 0 && wd->alternate_shots_loaded > 0) {
-            round_count = (int16_t)(*(int16_t *)((uint8_t *)tag_trigger + 0x6e) *
-                (weapon_tag->secondary_trigger_mode == 4 ? wd->alternate_shots_loaded + 1 : wd->alternate_shots_loaded));
-            wd->alternate_shots_loaded = 0;
-            projectile_tag = *(datum_index *)((uint8_t *)weapon_tag->triggers.pointer + 0x1b4); // UNSURE offset
-        } else {
-            projectile_tag = *(datum_index *)&tag_trigger->projectile.tag_id;
-            round_count = *(int16_t *)((uint8_t *)tag_trigger + 0x6e);
-        }
-
-        if (projectile_tag != (datum_index)0xffffffff) {
-            attachment_role = (datum_index)0xffffffff;
-            if (item_obj->parent_object != (datum_index)0xffffffff) {
-                object *parent = object_try_and_get(item_obj->parent_object, _object_mask_unit);
-                if (parent != 0) {
-                    attachment_role = item_obj->parent_object;
-                    if (parent->creator_object != (uint32_t)0xffffffff) { // UNSURE: object 0x328 vs 0x0c4
-                        attachment_role = (datum_index)parent->creator_object;
-                    }
+                if (*(int16_t *)header != 0 && (salt == 0 || *(int16_t *)header == salt) &&
+                    ((1u << (header[3] & 0x1f)) & 3)) {
+                    holder_object = *(uint8_t **)(header + 0x8);
                 }
             }
+        }
 
-            for (shot = 0; shot < round_count; shot++) {
-                object_placement_data placement;
-                real spread[3];
-                real spread_axis[3];
-                real spawn_velocity[3];
-                int32_t report_projectile_flags;
-                int32_t is_first_shot_this_tick;
-                int32_t hit_something;
-                datum_index new_index;
+        // 0x4c4e05: autoaim for a player, aim direction for an actor
+        if (!(*(uint32_t *)trigger & 0x800) && holder_object != 0 && !(holder_object[0x106] & 4)) {
+            uint8_t *holder_tag = TAG_DATA(*(datum_index *)holder_object);
+            datum_index player = D(holder_object, 0x218);
+            datum_index actor = D(holder_object, 0x1f4);
+            uint8_t use_aiming_vector;
+            uint8_t project_point = 1;
 
-                is_first_shot_this_tick = 0;
-                object_placement_data_initialize(&placement, projectile_tag, attachment_role);
-                spread[0] = origin.x; spread_axis[0] = forward.i;
-                spread[1] = origin.z; spread_axis[1] = up.i; // UNSURE: mirrors local_1b78/local_1b60
-                spread[2] = origin.y; spread_axis[2] = forward.k;
+            if (D(holder_object, 0x328) != k_datum_index_none) {
+                uint8_t *controller = OBJECT_DATA(D(holder_object, 0x328));
 
-                if (trigger->firing_effect_rounds != 0 ||
-                    (*(int16_t *)((uint8_t *)tag_trigger + 0x26) <= *(int16_t *)((uint8_t *)&item_obj[0] + 0xe))) {
-                    is_first_shot_this_tick = 1;
+                player = D(controller, 0x218);
+                actor = D(controller, 0x1f4);
+            }
+            use_aiming_vector = (uint8_t)((*(uint32_t *)(holder_tag + 0x17c) >> 3) & 1);
+            if (actor != k_datum_index_none &&
+                W((uint8_t *)actor_data->data + (actor & 0xffff) * 0x724, 0x5f2) == 4) {
+                project_point = 0;
+            }
+            if (D(holder_object, 0x328) != k_datum_index_none) {
+                project_point = 0;
+            }
+            unit_project_onto_aiming_axis(holder, &speed, use_aiming_vector, project_point, &origin, &forward);
+            if (player != k_datum_index_none) {
+                real_vector3d left;     // [esp+0x64]
+                real_vector3d up;       // [esp+0x94]
+                real x = F(trigger, 0x84);
+                real y = F(trigger, 0x88);
+                real z = F(trigger, 0x8c);
+
+                vector3d_cross_product(&left, &forward, global_up3d_pointer);
+                if (vector3d_normalize_with_length(&left) == 0.0f) {
+                    left = *global_left3d_pointer;
                 }
+                vector3d_cross_product(&up, &left, &forward);
+                vector3d_normalize_with_length(&up);
+                // the first-person offset: forward x, left y, up z
+                origin.x = origin.x + forward.i * x + left.i * y + up.i * z;
+                origin.y = origin.y + forward.j * x + left.j * y + up.j * z;
+                origin.z = origin.z + forward.k * x + left.k * y + up.k * z;
+                target = camera_observer_update(player, &origin, &forward);
+            } else if (actor != k_datum_index_none) {
+                target = actor_compute_grenade_aim_direction(actor, &origin, &forward, &error);
+            }
+        }
+        if (*(uint32_t *)trigger & 0x20) {
+            origin = markers[m].node_transform.position;
+        }
 
-                if (error_bias == 0.0f) {
-                    real fraction = ((tag_trigger->flags & 0x200) == 0) ? *(real *)((uint8_t *)&item_obj[0] + 0x1c) : wd->primary_trigger; // UNSURE offsets
-                    error_bias = fraction * *(real *)((uint8_t *)tag_trigger + 0x80) +
-                                 (1.0f - fraction) * *(real *)((uint8_t *)tag_trigger + 0x7c); // UNSURE: error_angle[0..1]
+        // 0x4c5052: how many projectiles, of which kind
+        if (trigger_index == 0 && W(item, 0x25c) > 0) {
+            int16_t charge = W(item, 0x25c);
+
+            if (W(weapon_tag, 0x32c) == 4) {
+                charge++;
+            }
+            projectile_tag = D(*(uint8_t **)(weapon_tag + 0x500), 0x1b4);
+            count = (int16_t)((uint16_t)W(trigger, 0x6e) * charge);
+            W(item, 0x25c) = 0;
+        } else {
+            count = W(trigger, 0x6e);
+            projectile_tag = D(trigger, 0xa0);
+        }
+        if (projectile_tag == k_datum_index_none) {
+            continue;
+        }
+        {
+            datum_index parent = D(OBJECT_DATA(item_index), 0x11c);
+            object *parent_object = parent != k_datum_index_none ? object_try_and_get(parent, 3) : 0;
+
+            if (parent_object != 0) {
+                owner = parent;
+                if (D((uint8_t *)parent_object, 0x328) != k_datum_index_none) {
+                    owner = D((uint8_t *)parent_object, 0x328);
                 }
+            }
+        }
 
-                if ((tag_trigger->flags & 0x400) == 0 || (wd->control_flags & 0x40) == 0) {
-                    vector3d_randomize_direction(error_bias, &forward); // UNSURE argument order
+        for (shot = 0; shot < count; shot++) {
+            object_placement_data placement;       // [esp+0xa0]
+            uint8_t tracer = 0;                     // [esp+0x13]
+            uint8_t from_player;
+            datum_index projectile;
+            uint8_t *projectile_definition;
+
+            object_placement_data_initialize(&placement, D(trigger, 0xa0), owner);
+            placement.position = origin;
+            placement.forward = forward;
+            // every n-th round (trigger +0x26) is a tracer
+            if (F(state, 0x10) == 0.0f) {
+                tracer = 1;
+                W(state, 0xe) = 0;
+            } else {
+                int16_t n = W(state, 0xe);
+
+                W(state, 0xe) = n + 1;
+                if (!(n < W(trigger, 0x26))) {
+                    tracer = 1;
+                    W(state, 0xe) = 0;
                 }
+            }
+            if (error == 0.0f) {
+                real e = (*(uint32_t *)trigger & 0x200) ? F(item, 0x234) : F(state, 0x1c);
 
-                {
-                    real *perp = (real *)vector3d_build_perpendicular(); // UNSURE: no visible args
-                    real length = (real)sqrt((double)(perp[2] * perp[2] + perp[1] * perp[1] + perp[0] * perp[0]));
-                    if (length >= 0.0001f) {
-                        real inv = 1.0f / length;
-                        perp[0] *= inv; perp[1] *= inv; perp[2] *= inv;
-                    }
-                    weapon_trigger_barrel_spread_offset((real_vector3d *)&forward, (real_vector3d *)perp,
-                        (uint16_t)shot, tag_trigger->distribution_function, tag_trigger->distribution_angle,
-                        (uint32_t)round_count);
+                error = (1.0f - e) * F(trigger, 0x7c) + e * F(trigger, 0x80);
+            }
+            if (!(*(uint32_t *)trigger & 0x400) || !(item[0x230] & 0x40)) {
+                vector3d_randomize_direction((real_point3d *)&placement.forward, &placement.forward, &random_seed_global,
+                                             F(trigger, 0x78), error);
+            }
+            {
+                static real_vector3d first_direction;   // [esp+0x7c]
+
+                if (shot == 0) {
+                    first_direction = placement.forward;
                 }
-
-                if (holder_index == (datum_index)0xffffffff ||
-                    (((Unit *)tag_instances[(uint16_t)holder_index].data)->unit_flags & 0x10) == 0) { // UNSURE: object 0x17c bit 4
-                    spawn_velocity[0] = forward.i * spread_gain;
-                    spawn_velocity[1] = forward.j * spread_gain;
-                    spawn_velocity[2] = forward.k * spread_gain;
-                } else {
-                    object *root = item_obj;
-                    while (root->parent_object != (datum_index)0xffffffff) {
-                        root = ((object_header *)object_data->data)[(uint16_t)root->parent_object].data;
-                    }
-                    spawn_velocity[0] = root->velocity.i;
-                    spawn_velocity[1] = root->velocity.j;
-                    spawn_velocity[2] = root->velocity.k;
+                if (*(uint32_t *)trigger & 0x1000) {
+                    placement.forward = first_direction;
                 }
+            }
+            vector3d_build_perpendicular(&placement.up, &placement.forward);
+            {
+                real length = (real)sqrt(placement.up.i * placement.up.i + placement.up.j * placement.up.j +
+                                         placement.up.k * placement.up.k);
 
-                hit_something = (autoaim_target != (datum_index)0xffffffff); // UNSURE placeholder,
-                    // real predicate is `local_1bdc == 0 || local_1bdc[0x86] == -1`
-                report_projectile_flags = hit_something ? 2 : 0;
+                if (!(fabs(length) < 9.999999747378752e-05)) {
+                    real inverse = 1.0f / length;
 
-                new_index = object_new_with_datum_role_control(&placement, role);
-                if (new_index != (datum_index)0xffffffff) {
-                    if (report_projectile_flags & 2) {
-                        real_point3d camera_position;
-                        unit_get_camera_position(holder_index, &camera_position);
-                        object_reposition_to_spawn_location(new_index, holder_index);
-                    }
-                    {
-                        object *new_obj = ((object_header *)object_data->data)[(uint16_t)new_index].data;
-                        if (projectile_type_index != -1) {
-                            *(int32_t *)((uint8_t *)new_obj + 0x238) = projectile_type_index;
-                        }
-                        if (!is_first_shot_this_tick) {
-                            new_obj->flags = new_obj->flags & ~(uint32_t)2;
-                        }
-                    }
+                    placement.up.i *= inverse;
+                    placement.up.j *= inverse;
+                    placement.up.k *= inverse;
                 }
+            }
+            weapon_trigger_barrel_spread_offset(&placement.forward, &placement.up, (uint16_t)shot, W(trigger, 0x6c),
+                                                F(trigger, 0x70), (uint32_t)count);
+            projectile_definition = TAG_DATA(projectile_tag);
+            if (projectile_definition != 0 && (*(uint32_t *)(projectile_definition + 0x17c) & 0x10) &&
+                holder != k_datum_index_none) {
+                // inherit the root parent's velocity
+                uint8_t *root = OBJECT_DATA(holder);
+
+                while (D(root, 0x11c) != k_datum_index_none) {
+                    root = OBJECT_DATA(D(root, 0x11c));
+                }
+                placement.velocity = *(real_vector3d *)(root + 0x68);
+            } else {
+                placement.velocity.i = placement.forward.i * speed;
+                placement.velocity.j = placement.forward.j * speed;
+                placement.velocity.k = placement.forward.k * speed;
+            }
+            from_player = (uint8_t)(holder_object != 0 && D(holder_object, 0x218) != k_datum_index_none);
+            if (from_player) {
+                placement.flags |= 2;
+            }
+            projectile = object_new_with_datum_role_control(&placement, role);
+            if (projectile == k_datum_index_none) {
+                continue;
+            }
+            if (from_player) {
+                real_point3d camera;    // [esp+0x12c]
+
+                unit_get_camera_position(holder, &camera);
+                object_reposition_to_spawn_location(projectile, &camera, holder);
+            }
+            if (target != k_datum_index_none) {
+                D(OBJECT_DATA(projectile), 0x238) = target;
+            }
+            if (!tracer) {
+                *(uint32_t *)(OBJECT_DATA(projectile) + 0x22c) &= ~2u;
             }
         }
     }

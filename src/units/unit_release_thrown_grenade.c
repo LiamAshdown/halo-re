@@ -59,7 +59,8 @@ extern void object_set_position_and_relink(real_point3d *position, uint32_t obje
 extern void actor_compute_grenade_throw_vector(real_point3d *target, real_vector3d *out); // 0x410a60, UNSURE signature
 extern real random_real_range(real min, real max); // 0x401050
 extern void object_apply_impulse_and_spin(uint32_t object_index, real_vector3d *impulse); // 0x4bef80, UNSURE signature
-extern uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d *target_position); // 0x4f7b70, UNSURE args, see header
+extern uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d *target_position,
+    uint32_t ignore_object_index); // 0x4f7b70, stack, ECX
 extern void object_delete(uint32_t object_index);            // 0x4f5bd0, UNSURE exact signature
 extern uint8_t object_is_delete_pending(uint32_t object_index); // 0x4f5c10
 extern void object_type_override_call_0x68(uint32_t object_index); // 0x4f4560
@@ -158,11 +159,16 @@ void unit_release_thrown_grenade(uint32_t object_index, uint8_t apply_throw_frac
     unit->throwing_grenade_state = 3;
 
     {
-        real_point3d discard;
-        unit_get_camera_position(object_index, &discard); // UNSURE: result unused by the original, call kept for its side effect
-    }
+        // 0x56e764: the grenade is swept back from the thrower's camera (ECX), ignoring nothing
+        real_point3d camera;
 
-    if (object_reposition_to_spawn_location(projectile_index, (real_point3d *)0xffffffff) == 0) {
+        unit_get_camera_position(object_index, &camera);
+        if (object_reposition_to_spawn_location(projectile_index, &camera, k_datum_index_none) == 0) {
+            object_delete(projectile_index);
+            return;
+        }
+    }
+    if (0) {
         object_delete(projectile_index);
         return;
     }

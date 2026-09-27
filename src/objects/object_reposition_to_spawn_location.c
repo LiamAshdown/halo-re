@@ -26,44 +26,47 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "projectiles.h"
 
 extern data_array *object_data; // 0x008603b0
 
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30
 extern void object_recalculate_bounding_radius(uint32_t object_index); // 0x4f8310
-extern uint8_t collision_test_movement_segment(); // out of range, 0x505880, a BSP ray/segment test.
+extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
+    uint32_t exclude_object_index, collision_result *result); // 0x505880
     // No prototype is asserted: Ghidra models fewer or differently-typed arguments here than
     // the other call site(s) of the same address, because the missing operands travel in
     // registers it could not source. The empty parameter list is the convention this module
     // already uses for FUN_00450870 -- one declaration per symbol, no invented signature.
 
-uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d *target_position)
-    // blam-cc: ECX -> target_position, stack -> object_index
+// REWRITTEN from objdump 0x4f7b70..0x4f7c32: the draft dropped the stack object to ignore, so the collision
+//   sweep got the result buffer as its exclude object and wrote through garbage; the result fields were misread.
+//   Sweeps from target_position back to the object (mask 0x1000e9, ignoring `ignore`); an unobstructed object
+//   already in a cluster stays; otherwise it moves to the hit point in the hit leaf (0 when that leaf has no
+//   cluster).
+// blam-cc: ECX -> target_position, stack -> object_index, ignore_object_index
+uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d *target_position,
+                                            uint32_t ignore_object_index)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
     real_vector3d delta;
-    uint8_t scratch[24];
-    uint8_t moved;
+    collision_result hit;
 
-    delta.i = obj->position.x - target_position->x;
-    delta.j = obj->position.y - target_position->y;
-    delta.k = obj->position.z - target_position->z;
-
-    moved = collision_test_movement_segment(0x1000e9, target_position, &delta, scratch);
-
-    if ((moved == 0) && (obj->location_cluster_index != -1)) {
+    delta.i = *(float *)(obj + 0x5c) - target_position->x;
+    delta.j = *(float *)(obj + 0x60) - target_position->y;
+    delta.k = *(float *)(obj + 0x64) - target_position->z;
+    if (!collision_test_movement_segment(0x1000e9, target_position, &delta, ignore_object_index, &hit) &&
+        *(int16_t *)(obj + 0x9c) != -1) {
         return 1;
     }
-    if (*(int16_t *)(scratch + 4) == -1) { // UNSURE: see file header (Ghidra's uninitialized-looking local_44)
+    if (hit.leaf.cluster_index == -1) {
         return 0;
     }
-
     object_unlink_cluster_or_notify_parent(object_index);
-    obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    obj->position = *(real_point3d *)(scratch + 0xc);
-
-    object_set_cluster_and_parent(object_index, (bsp_leaf_reference *)scratch);
+    obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    *(real_point3d *)(obj + 0x5c) = hit.point;
+    object_set_cluster_and_parent(object_index, &hit.leaf);
     object_recalculate_bounding_radius(object_index);
     return 1;
 }

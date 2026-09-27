@@ -1387,3 +1387,12 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - actor_update_melee_combat_action 0x40cdf0 (really "choose the next combat mode"; every combat tick via
   actor_update_combat_behavior) REWRITTEN (0.3 -> 0.85): the alert stages, pursuit note, placement flags,
   support evaluation and target state helpers were called without operands; firing-position query rebuilt.
+- trigger_create_projectiles 0x4c4c40 (every shot) REWRITTEN from objdump (0.2 -> 0.85), including the autoaim /
+  first-person offset / actor aim block the draft left out.
+- object_reposition_to_spawn_location 0x4f7b70 REWRITTEN: takes a second stack arg (object to ignore); the draft
+  passed its result buffer as the sweep's exclude object (garbage result pointer -> crash on the first player
+  shot / weapon drop / grenade throw). Callers fixed: trigger_create_projectiles (camera, holder),
+  unit_drop_object_from_hand + unit_release_thrown_grenade (were passing (point *)0xffffffff; now the camera, -1),
+  projectile_detonate (relink at the parent's position, sweep back to the stuck point).
+- unit_drop_object_from_hand 0x56ed00 REWRITTEN (0.25 -> 0.9): item_accelerate lacked the item, the root velocity
+  helper lacked its operands.

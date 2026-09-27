@@ -79,7 +79,8 @@ extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t param_3,
                                  int16_t param_4, int16_t param_5, uint32_t param_6); // 0x4ee5e0
 extern void object_snap_to_parent_marker_and_detach(uint32_t object_index); // 0x4f6610, objects module, UNSURE signature
-extern void object_reposition_to_spawn_location(void); // 0x4f7b70, objects module, UNSURE signature at this call site,
+extern uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d *target_position,
+    uint32_t ignore_object_index); // 0x4f7b70, stack, ECX
     // see file header
 extern void contrail_advance(int32_t kind, real elapsed_seconds); // 0x44ca60, foreign module.
     // blam-cc: EDI -> the contrail attachment handle
@@ -171,11 +172,15 @@ void projectile_detonate(uint32_t object_index, char first_collision, real remai
 
             // The relink uses its OWN point buffer (Ghidra's local_90/8c/88), not the effect
             // position block at local_a8 that object_get_position refills further down.
-            object_get_position(&relink_position, object_index); // UNSURE elided destination
-            object_snap_to_parent_marker_and_detach(object_index); // UNSURE signature
-            relink_position = obj->position; // the raw re-read the original does here
-            object_set_position_and_relink(&relink_position, object_index, 0);
-            object_reposition_to_spawn_location(); // UNSURE: zero visible args, see file header
+            // 0x4c0803: hold the parent's position, detach, then relink inside the parent and sweep back
+            // out to where the projectile was stuck
+            real_point3d parent_position;   // [esp+0xa4]
+
+            object_get_position(&parent_position, obj->parent_object);
+            object_snap_to_parent_marker_and_detach(object_index);
+            relink_position = ((object_header *)object_data->data)[object_index & 0xffff].data->position;
+            object_set_position_and_relink(&parent_position, object_index, 0);
+            object_reposition_to_spawn_location(object_index, &relink_position, k_datum_index_none);
             object_recalculate_bounding_radius_recursive(object_index);
         }
     }
