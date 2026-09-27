@@ -1308,3 +1308,14 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   flood carrier 0x423740, sentinel 0x4264d0, mounted weapon 0x4263f0 (not in a10's opening).
 - OPEN (verify): actor_process_vehicle_seat_exit 0x40b080 (0.35) is now on every marine / grunt / jackal / elite
   tick.
+
+## 2026-09-27 (loop, static only) -- player melee scan
+- unit_melee_attack_scan 0x56f550 REWRITTEN from objdump as the whole function (1839 bytes; the old 681-byte
+  header stopped mid-loop). Fixed: the 5x5 cone used perp components in the wrong order and a bogus cross product
+  (now aim*0.8 + (row*perp + col*(aim x perp))*0.1); vehicle impulse now aim * accel scale * 0.035 on the struck
+  object; damage record now carries flags 1 / controlling player +0x218; breakable surfaces get the damage record
+  plus both stack args; 0x44b5d0 gets the machine; 0x56f210 gets (material, effect tag, unit); secondary push
+  sets flags 8.
+- unit_can_see_point 0x56f800 marked FRAGMENT (tail of the above).
+- breakable_surface_apply_damage 0x4ffde0: takes a second stack arg (collision surface) passed on to 0x500090
+  (was 0).

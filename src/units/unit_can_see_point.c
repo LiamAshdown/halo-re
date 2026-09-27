@@ -1,5 +1,6 @@
 // unit_can_see_point  (Ghidra: already named unit_can_see_point)
 // address 0x56f800, size 1151 bytes
+// name confidence: 0.1   rewrite confidence: 1.0 (FRAGMENT: 0x56f800 is inside unit_melee_attack_scan 0x56f550..0x56fc7e, whose C covers this code; only jumps from inside that function land here)
 // name confidence: 0.55 (functions.md summary: structurally plausible visibility/line-of-sight
 //   raycast helper)
 // rewrite confidence: 0.1 -- shares its entire tail (the weapon-response damage-effect lookup,

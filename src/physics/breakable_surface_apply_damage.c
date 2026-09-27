@@ -39,8 +39,10 @@ extern void physics_point_spawn_contact_effect(uint16_t surface_index, damage_da
                                     // physics (out/phase4/physics_types_notes.md); not rewritten
                                     // here.
 
-// blam-cc: EBX -> damage, stack -> surface_index
-void breakable_surface_apply_damage(damage_data *damage, int32_t surface_index)
+// blam-cc: EBX -> damage, stack -> (surface_index, collision_surface_index)
+// FIXED (objdump 0x4fff02): the second stack argument ([esp+0x14]) is passed through as the third
+//   argument of 0x500090; projectile_response and unit_melee_attack_scan both push it.
+void breakable_surface_apply_damage(damage_data *damage, int32_t surface_index, int32_t collision_surface_index)
 {
     int16_t index;
     float *extension;
@@ -83,7 +85,7 @@ void breakable_surface_apply_damage(damage_data *damage, int32_t surface_index)
                     // the analogous context pointer is the second argument); the third
                     // (collision_surface_index there) has no equivalent value visible in this
                     // function and is passed as 0 pending confirmation from the effects module.
-                    physics_point_spawn_contact_effect((uint16_t)index, damage, 0);
+                    physics_point_spawn_contact_effect((uint16_t)index, damage, collision_surface_index);
                 }
             }
         }
