@@ -2068,3 +2068,25 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   "camera=(0,0,0)" in the old DIAG is a red herring (the render camera is set inside render_window before the FP
   draw). Added TEMPORARY "DIAG fpdraw" lines (render_model, flags == 8, every 90th call): cutoff / early-out, LOD,
   node0, bounding centre, and per region the geometry and part shader types. Read them after the next normal play.
+
+## 2026-09-27 (loop, static only) -- vanishing cryo tech: prime suspect FIXED (degenerate up vector)
+- object_placement_data_initialize (0x4f53a0, STABLE but proven different) copied the POINTER bits at 0x696718 /
+  0x696720 as the default forward / up (the binary loads the pointer and copies [ptr]..[ptr+8] = (1,0,0) /
+  (0,0,1)); object_reset_velocity_and_wake had the same defect for the zero vector at 0x696714. Found by the new
+  scratchpad/ptrform.py (same address declared as a pointer in some files and as an object in others).
+- actor_place_new_unit (the ai_place path that creates the a10 crewmen e3f80001 / e3f90003) sets placement.forward
+  from the yaw but never the up vector, and object_new copies placement->up into the object. So every AI-placed unit
+  started with up ~ (9e-39, 9e-39, 9e-39): the root matrix (left = up x forward) collapses and the model is drawn
+  degenerate -- invisible without being deleted, which is exactly what the traces showed. Moving bipeds presumably
+  get up rebuilt by physics; the scripted, standing cryo techs would not. Fixed in commit a9a8bc2.
+- OPEN (runtime, next user session): confirm the cryo tech stays visible. This also affects every other object
+  created without an explicit orientation (weapons, items, garbage).
+- Also this session: scratchpad/equcheck.py (extern address vs the linker's EQU; fixed actor_mode_definitions
+  combat grade 0x65524c/0x655254, the (0,0,-1) vector in engagement reachability, camera_position_z),
+  scratchpad/fnaddrcheck.py (9150 prototype address comments all agree with their definitions), scratchpad/livein.py
+  and scratchpad/valptr.py. OPEN: the water draw procedure (0x7bf050 -> 0x535fd0 for ps_1_1) points into original
+  code (no C), would fault on any map with water; a10 has none.
+- First-person gun (OPEN): runtime log shows render_model called every frame for the FP model (lod 4, 8 parts: 2
+  soso + schi), node matrices at the camera with orthonormal axes. HALO_FP_PLAIN (draw without the FP depth range)
+  was inconclusive (the normal near plane clips it). Diagnostics now also log clip-space position and the effect
+  type (DIAG fpclip) at the draw; read them after the next session.
