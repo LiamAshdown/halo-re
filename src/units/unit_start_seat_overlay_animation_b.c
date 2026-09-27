@@ -21,7 +21,8 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern int16_t animation_choose_random_permutation(uint32_t flag); // 0x4d6280
+extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation,
+    int32_t stream); // 0x4d6280, EAX graph, DX animation, stack
 
 void unit_start_seat_overlay_animation_b(uint32_t unit_index, int16_t command) // blam-cc: see file header
 {
@@ -65,7 +66,9 @@ void unit_start_seat_overlay_animation_b(uint32_t unit_index, int16_t command) /
 
     if (raw_index < (int32_t)weapon_type->animations.count &&
         *(int16_t *)((uint8_t *)weapon_type->animations.pointer + raw_index * 2) != -1) {
-        unit->overlays[1].animation_index = animation_choose_random_permutation(1);
+        unit->overlays[1].animation_index = animation_choose_random_permutation(                // 0x5664fd
+            *(datum_index *)&obj_tag->animation_graph.tag_id,
+            *(int16_t *)((uint8_t *)weapon_type->animations.pointer + raw_index * 2), 1);
         unit->overlays[1].frame = 0;
         unit->unknown_2a5 = (int8_t)command;
     }

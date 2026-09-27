@@ -1,6 +1,7 @@
 // weapon_set_state  (Ghidra: weapon_set_state, already named)
 // address 0x4c5670, size 381 bytes
-// name confidence: 0.55   rewrite confidence: 0.55
+// name confidence: 0.55   rewrite confidence: 0.85 (objdump 0x4c5670: permutation EAX graph / DX animation, overlay command EAX
+//   parent unit / CX state)
 // evidence: types/items.h weapon_state (the exact 11-entry animation-index mapping table is
 //   quoted there verbatim); types/objects.h object.animation_graph/animation_index/
 //   animation_frame/parent_object; types/tags.h ModelAnimations.weapons (TagReflexive 0x18) ->
@@ -25,9 +26,10 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern int16_t animation_choose_random_permutation(int32_t param); // 0x4d6280, outside this module; resolves/starts an
+extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation,
+    int32_t stream); // 0x4d6280, EAX graph, DX animation, stack
                                              // animation index, UNSURE signature
-extern void unit_dispatch_seat_overlay_command(void); // 0x567400, outside this module, UNSURE signature
+extern void unit_dispatch_seat_overlay_command(uint32_t unit_index, int16_t command); // 0x567400, EAX unit, CX command
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 
 // Transitions a weapon into a new state/animation mode. Refuses the transition (returns 0)
@@ -74,10 +76,13 @@ int32_t weapon_set_state(datum_index item_index, int16_t new_state, int8_t force
                     default: goto skip_animation;
                     }
 
-                    if ((animation_index < weapon_anims->animations.count &&
-                         ((ModelAnimationsWeaponAnimation *)weapon_anims->animations.pointer)[animation_index].animation != 0xffff) ||
-                        new_state == 0) {
-                        item_obj->animation_index = animation_choose_random_permutation(1);
+                    int16_t animation = (animation_index < weapon_anims->animations.count)
+                        ? (int16_t)((ModelAnimationsWeaponAnimation *)weapon_anims->animations.pointer)[animation_index].animation
+                        : -1;
+
+                    if (animation != -1 || new_state == 0) {
+                        // 0x4c5776: EAX = the graph tag, DX = the animation (or -1)
+                        item_obj->animation_index = animation_choose_random_permutation(graph_tag_id, animation, 1);
                         item_obj->animation_frame = 0;
                         wd->state = (int8_t)new_state;
                     }
@@ -86,11 +91,17 @@ int32_t weapon_set_state(datum_index item_index, int16_t new_state, int8_t force
         }
     }
 skip_animation:
-    if (item_obj->parent_object != (datum_index)0xffffffff) {
-        object_try_and_get(item_obj->parent_object, _object_mask_unit); // result discarded, see header
-    }
-    if (object_try_and_get(item_obj->parent_object, _object_mask_unit) != 0) {
-        unit_dispatch_seat_overlay_command();
+    {
+        // 0x4c57a1: the parent when it is a unit, else none; EAX = that unit, CX = the new state
+        datum_index parent = ((object_header *)object_data->data)[(uint16_t)item_index].data->parent_object;
+        datum_index unit_index = (datum_index)0xffffffff;
+
+        if (parent != (datum_index)0xffffffff && object_try_and_get(parent, _object_mask_unit) != 0) {
+            unit_index = parent;
+        }
+        if (object_try_and_get(unit_index, _object_mask_unit) != 0) {
+            unit_dispatch_seat_overlay_command(unit_index, new_state);
+        }
     }
     return 1;
 }

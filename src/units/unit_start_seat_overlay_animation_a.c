@@ -21,8 +21,9 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern void object_copy_default_node_transforms(void);              // 0x4f6b70  // real signature (object_copy_default_node_transforms.c): void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count); Ghidra recovered 0 of 2 args at this call site
-extern int16_t animation_choose_random_permutation(uint32_t flag);  // 0x4d6280
+extern void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count); // 0x4f6b70, EAX, DX
+extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation,
+    int32_t stream); // 0x4d6280, EAX graph, DX animation, stack
 
 // FIXED (register inputs, objdump: each stack slot's first use checked against the parameter): the original never reads EAX; unit_index arrive(s) on the stack (2 stack argument(s)).
 // blam-cc: stack -> unit_index, command
@@ -78,9 +79,10 @@ void unit_start_seat_overlay_animation_a(uint32_t unit_index, int16_t command) /
 
     if (animation_index != -1) {
         if (command != 7) {
-            object_copy_default_node_transforms();
+            object_copy_default_node_transforms(unit_index, 6); // 0x565f24: EAX unit, DX 6
         }
-        unit->overlays[0].animation_index = animation_choose_random_permutation(1);
+        unit->overlays[0].animation_index = animation_choose_random_permutation(
+            *(datum_index *)&obj_tag->animation_graph.tag_id, animation_index, 1); // 0x565f2d
         unit->overlays[0].frame = 0;
         unit->unknown_2a4 = (int8_t)command;
     }
