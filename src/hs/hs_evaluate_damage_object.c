@@ -1,0 +1,31 @@
+// hs_evaluate_damage_object  (not a Ghidra function; the evaluate handler of hs "damage_object" (damage, object -> void))
+// address 0x47aab0, size 72 bytes
+// name confidence: 0.9  rewrite confidence: 0.9
+// evidence: hs_function_definitions 0x688b58[i] evaluate (+0xc) 0x47aab0, only reachable through that pointer.
+//   Campaign track: 34 uses across the campaign scripts (not a10); it had no C and would have trapped
+//   (unlisted callback).
+// objdump 0x47aab0: stack = the damage effect (+0x0), EBX = the object (+0x4); returns 0.
+// blam-cc: stack -> function_index, thread_index, first (cdecl)
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "hs.h"
+
+extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
+extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
+    int16_t *expected_types, char first); // 0x48a850
+extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
+extern void hs_damage_apply_with_sound(datum_index object_index, uint32_t damage_effect); // 0x488a40, EBX object, stack effect
+
+void hs_evaluate_damage_object(int16_t function_index, uint32_t thread_index, char first)
+{
+    hs_function_definition *definition = hs_function_definitions[function_index];
+    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+        (int16_t *)definition->parameters, first);
+
+    if (arguments != 0) {
+        hs_damage_apply_with_sound((datum_index)arguments[1], (uint32_t)arguments[0]);
+        hs_thread_return(0, thread_index);
+    }
+}
