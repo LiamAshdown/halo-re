@@ -2033,3 +2033,29 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   render_model path.
 - REMOVE the temporary logging (debug_play_diagnostics.c, its call in first_person_weapon_update and the
   standalone_log line in team_pair_set) once these are settled.
+
+## 2026-09-27 static loop (no boots): register-argument and arity fixes
+- AI/units: actor_build_order_grenade_or_melee failure path cleared order +7 instead of +0xe;
+  unit_has_must_be_readied_weapon read weapon slots at object +0x4ec (binary +0x2f8). Verified at 0.85:
+  ai_pursuit_note/check_object, squad_recent_object_get_or_create, actor_check_pain_reaction,
+  actor_consider_target_candidate, try_give_grenade, player_apply_pickup_effect, physics_shape_add_surface/edge_proxy.
+- game_engine_compute_local_player_look_vector (0x471f40) takes EAX = the OUT vector and forwards it in ESI to
+  player_compute_view_forward_vector; the C dropped it (12-byte write through a stale pointer every time the HUD
+  nameplate search ran).
+- object_collect_local_player_relevant_objects (0x4fa1a0) rewritten: EDX point + stack (filter, context, max, out),
+  collects objects in the point cluster's PVS; merged with the 0x4fa280 fragment (marked FRAGMENT).
+  hud_find_nearby_teammate_for_nameplate rewritten; new hud_nameplate_candidate_filter (0x45e2e0, was a trap).
+- select_players_to_display returned nothing (MSVC C4716); binary returns min(max_count, total).
+- object_physics_check_impact_damage called object_collision_context_test_point(point) -- the binary passes EBX =
+  context + stack point; test_point also skipped permutation 0xff, which the binary cannot (movzx byte vs 0xffff).
+  Impact damage verified end to end (0.85).
+- savegame_index_write_slot / append_slot never wrote the 0x206-byte entry (seek/write/close had no arguments; the
+  entry parameter was missing / named unused) -- profile rename / create never updated the index.
+- ui_build_level_select_list, ui_build_level_select_list_coop, player_profile_details_widget_refresh called
+  game_state_read_checkpoint_summary / player_profile_scan_campaign_progress with no arguments (both write through
+  register pointers: memory corruption on the campaign menu); the unlock test used 0x712f00 instead of the scan's
+  last level; the co-op list lost the "next level" tests; profile details rewritten (missed the ninth widget).
+- New checker scratchpad/livein.py: definitions with fewer C parameters than the binary's live-in registers
+  (linear sweep to the first call). 9 left, all networking/startup/vehicle-hover.
+- Skipped as networking: object_apply_shield_charge_and_notify, object_apply_linked_impulse (OPEN: its
+  item_accelerate call passes 2 of 3), unit_spawn_with_starting_weapons.
