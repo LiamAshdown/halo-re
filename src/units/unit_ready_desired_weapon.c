@@ -1,22 +1,22 @@
 // unit_ready_desired_weapon  (Ghidra: unit_ready_desired_weapon, already named)
-// address 0x56d6e0, size 679 bytes, name confidence 0.6, rewrite confidence 0.2
-// functions.md: "Switches the unit from its current weapon to its desired inventory slot (or to
-// being unarmed if none is available), updating attachment and animation state accordingly."
+// address 0x56d6e0, size 679 bytes, name confidence 0.6, rewrite confidence 0.85
+// REWRITTEN from objdump 0x56d6e0..0x56d986 (the draft dropped the second argument, called
+//   unit_set_or_test_seat_and_weapon_label with one argument and most callees without theirs).
+//   Stack: unit, force (every caller passes 1; it goes to weapon_put_away in AL).
+//   The desired weapon is weapons[+0x2f4]. A current weapon (+0x2f2) that weapon_put_away(ESI weapon, AL force)
+//   accepts is detached (0x4f6610 stack, 0x4f5de0 EAX, 0x4f50f0 pending delete EAX), its lights unregistered
+//   (0x4f9a20 EAX, stack 1, 0) when it has a model (tag +0x34) and was visible (object +0x10 bit 0 clear), hidden
+//   (+0x10 |= 1, header flag 2 cleared), handed to the unit as holder (ECX weapon, EDX unit) and +0x2f2 = -1.
+//   With no current weapon left: a desired weapon sets the seat/weapon animation labels
+//   (unit_set_or_test_seat_and_weapon_label(unit, seat name 0x56c2f0, weapon label 0x4c24d0, 1)), is placed with no
+//   location (0x4f5c30 stack weapon, 0), shown again (lights registered EAX, stack 0, 1; +0x10 bit 0 cleared and
+//   header flag 2 set when it has a model), attached to the unit's hand (0x4f6180 stack unit, weapon anim +0x40;
+//   ESI weapon, EDI weapon anim +0x20), becomes current with its ready tick (+0x308[i] = game time) and is readied
+//   (0x4c2840 EAX); otherwise the labels go to "unarmed" and +0x2f2 = -1. Both end in 0x5659c0 (stack unit).
 // evidence: types/units.h unit_data.desired_weapon_index (0x2f4), .current_weapon_index (0x2f2),
 //   .weapons[4] (0x2f8), .animation_weapon_index (0x2a1), .animation_definition_index (0x2a0),
-//   .weapon_ready_ticks[4] (0x308, "puVar3[seat+0xc2]" lands here); cea-pdb confirms the name via
-//   the "unarmed" string.
-// blam-cc: param_1 -> unit_index.
-// UNSURE: unit_get_seat_or_state_name is called here with two visible arguments (a value and a literal 1, or a
-// literal "unarmed" string and 1), which contradicts that same address's own decompilation
-// elsewhere in this module (a single-argument, EAX-only function returning the unit's current
-// seat/state name -- see unit_get_seat_or_state_name.c). This rewrite reproduces the call
-// exactly as shown, with a 2-argument extern local to this file, rather than reconciling the two
-// readings; whichever is correct, the visible effect is limited to which string
-// unit_set_or_test_seat_and_weapon_label receives as its seat label, not the weapon-switch
-// bookkeeping this function performs directly.
-// UNSURE: weapon_put_away, weapon_get_label and weapon_ready's real roles are not recovered.
-// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
+//   .weapon_ready_ticks[4] (0x308).
+// blam-cc: stack -> unit_index, force
 
 #include "tags.h"
 #include "memory.h"
@@ -28,98 +28,103 @@
 #include "units.h"
 #include <stdint.h>
 
-extern data_array *object_data;     // 0x008603b0
-extern tag_instance *tag_instances; // 0x0087bc14
-extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
-extern char *s_unarmed;             // "unarmed"
+extern data_array *object_data;       // 0x008603b0
+extern tag_instance *tag_instances;   // 0x0087bc14
+extern game_time_globals *game_time;  // 0x006f1d6c
 
 extern void item_set_holder(uint32_t item_index, datum_index holder_index); // 0x4bcfc0, ECX item, EDX holder
-extern int32_t weapon_get_label(void);                                                 // 0x4c24d0, UNSURE signature
-extern void weapon_ready(void);                                                    // 0x4c2840, UNSURE signature
-extern uint8_t weapon_put_away(void);                                                 // 0x4c28f0, UNSURE signature
-extern void object_mark_pending_delete(uint32_t object_index);                     // 0x4f50f0, UNSURE signature
-extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location);   // 0x4f5c30, UNSURE signature
-extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);         // 0x4f5de0, UNSURE signature
-extern void object_reorient_relative_to_marker(uint32_t unit_index, uint8_t *marker); // 0x4f6180, UNSURE signature
-extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);                                   // 0x4f6610, UNSURE signature
-extern void object_for_each_light_attachment(uint32_t object_index, uint32_t flag); // 0x4f9a20, UNSURE signature  // real signature (object_for_each_light_attachment.c): void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback); Ghidra recovered 2 of 3 args at this call site
-extern uint8_t unit_set_or_test_seat_and_weapon_label(char *seat_label);           // 0x5651e0, UNSURE 1-arg call site  // real signature (unit_set_or_test_seat_and_weapon_label.c): uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_label, char *weapon_label, uint8_t test_only); Ghidra recovered 1 of 4 args at this call site
-extern void unit_validate_and_clear_weapon_switch(uint32_t unit_index);                                     // 0x5659c0, UNSURE signature
-extern char *unit_get_seat_or_state_name(int32_t a, int32_t b);                                   // 0x56c2f0, UNSURE 2-arg call site, see header  // real signature (unit_get_seat_or_state_name.c): char * unit_get_seat_or_state_name(uint32_t unit_index); Ghidra recovered 2 of 1 args at this call site
+extern char *weapon_get_label(datum_index item_index); // 0x4c24d0, ECX
+extern void weapon_ready(datum_index item_index); // 0x4c2840, EAX
+extern int32_t weapon_put_away(datum_index item_index, int8_t force); // 0x4c28f0, ESI, AL
+extern void object_mark_pending_delete(uint32_t object_index); // 0x4f50f0, EAX
+extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30, stack
+extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0, EAX
+extern void object_reorient_relative_to_marker(uint32_t parent_index, char *parent_marker_name,
+    uint32_t object_index, char *object_marker_name); // 0x4f6180, stack, stack, ESI, EDI
+extern void object_snap_to_parent_marker_and_detach(uint32_t object_index); // 0x4f6610, stack
+extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table,
+    int32_t invoke_callback); // 0x4f9a20, EAX, stack, stack
+extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_label, char *weapon_label,
+    uint8_t apply); // 0x5651e0
+extern void unit_validate_and_clear_weapon_switch(uint32_t unit_index); // 0x5659c0, stack
+extern char *unit_get_seat_or_state_name(uint32_t unit_index); // 0x56c2f0, EAX
 
-void unit_ready_desired_weapon(uint32_t unit_index)
+#define OBJECT_HEADER(h) (((object_header *)object_data->data)[(h) & 0xffff])
+#define OBJECT_TAG(o) ((uint8_t *)tag_instances[*(datum_index *)(o) & 0xffff].data)
+
+void unit_ready_desired_weapon(uint32_t unit_index, uint8_t force)
 {
-    object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
-    Unit *unit_tag = (Unit *)tag_instances[unit_obj->definition_tag & 0xffff].data;
-
+    uint8_t *unit = (uint8_t *)OBJECT_HEADER(unit_index).data;
+    uint8_t *unit_tag = OBJECT_TAG(unit);
     datum_index desired_weapon = k_datum_index_none;
-    if (unit->desired_weapon_index != -1) {
-        desired_weapon = unit->weapons[unit->desired_weapon_index];
-    }
+    int16_t current = *(int16_t *)(unit + 0x2f2);
 
-    if (unit->current_weapon_index != -1) {
-        datum_index current_weapon = unit->weapons[unit->current_weapon_index];
-        if (current_weapon != k_datum_index_none) {
-            if (weapon_put_away() != 0) {
-                object_snap_to_parent_marker_and_detach(current_weapon);
-                object_unlink_cluster_or_notify_parent(current_weapon);
-                object_mark_pending_delete(current_weapon);
-                object *weapon_obj = ((object_header *)object_data->data)[current_weapon & 0xffff].data;
-                Object *weapon_def = (Object *)tag_instances[weapon_obj->definition_tag & 0xffff].data;
-                if ((*(uint32_t *)&weapon_def->model.tag_id != 0xffffffff) &&   // tag + 0x34
-                    ((weapon_obj->flags & 1) == 0)) {                          // puVar6[4], object + 0x10
-                    object_for_each_light_attachment(current_weapon, 0);
-                }
-                weapon_obj->flags |= 1;                                        // puVar6[4] |= 1
-                ((object_header *)object_data->data)[current_weapon & 0xffff].flags &= 0xfd;
-                item_set_holder(current_weapon, unit_index); // 0x56d7fb: ECX = weapon, EDX = edi = unit_index
-                unit->current_weapon_index = -1;
+    if (*(int16_t *)(unit + 0x2f4) != -1) {
+        desired_weapon = *(datum_index *)(unit + 0x2f8 + *(int16_t *)(unit + 0x2f4) * 4);
+    }
+    if (current != -1) {
+        datum_index weapon = *(datum_index *)(unit + 0x2f8 + current * 4);
+
+        if (weapon != k_datum_index_none && weapon_put_away(weapon, (int8_t)force) != 0) {
+            uint8_t *weapon_obj;
+
+            object_snap_to_parent_marker_and_detach(weapon);
+            object_unlink_cluster_or_notify_parent(weapon);
+            object_mark_pending_delete(weapon);
+            weapon_obj = (uint8_t *)OBJECT_HEADER(weapon).data;
+            if (*(int32_t *)(OBJECT_TAG(weapon_obj) + 0x34) != -1 && (weapon_obj[0x10] & 1) == 0) {
+                object_for_each_light_attachment(weapon, 1, 0);
             }
+            *(uint32_t *)(weapon_obj + 0x10) |= 1;
+            OBJECT_HEADER(weapon).flags &= 0xfd;
+            item_set_holder(weapon, unit_index);
+            *(int16_t *)(unit + 0x2f2) = -1;
         }
     }
-
-    if (unit->current_weapon_index == -1) {
-        if (desired_weapon != k_datum_index_none) {
-            int32_t a = weapon_get_label();
-            char *label = unit_get_seat_or_state_name(a, 1);
-            unit_set_or_test_seat_and_weapon_label(label);
-
-            int8_t weapon_index_in_seat = unit->animation_weapon_index;
-            uint8_t *graph = (uint8_t *)tag_instances[unit_tag->base.animation_graph.tag_id.index & 0xffff].data;
-            uint8_t *units_block = *(uint8_t **)(graph + 0x10);
-            uint8_t *weapons_array = *(uint8_t **)(units_block + 0x5c + unit->animation_definition_index * 100);
-
-            object_set_cluster_and_parent(desired_weapon, 0);
-            object *weapon_obj = ((object_header *)object_data->data)[desired_weapon & 0xffff].data;
-            Object *weapon_def = (Object *)tag_instances[weapon_obj->definition_tag & 0xffff].data;
-            if (*(uint32_t *)&weapon_def->model.tag_id != 0xffffffff) {        // tag + 0x34
-                if ((weapon_obj->flags & 1) != 0) {                            // puVar6[4]
-                    object_for_each_light_attachment(desired_weapon, 1);
-                }
-                if (*(uint32_t *)&weapon_def->model.tag_id != 0xffffffff) {
-                    weapon_obj->flags &= ~1u;                                  // puVar6[4] &= 0xfffffffe
-                    ((object_header *)object_data->data)[desired_weapon & 0xffff].flags |= 0x02;
-                }
-            }
-            uint8_t *ready_marker = weapons_array + weapon_index_in_seat * 0xbc + 0x40;
-            object_reorient_relative_to_marker(unit_index, ready_marker);
-
-            int16_t new_current = unit->desired_weapon_index;
-            unit->current_weapon_index = new_current;
-            if (new_current != -1) {
-                unit->weapon_ready_ticks[new_current] = game_time->game_time;
-            }
-            weapon_ready();
-            unit_validate_and_clear_weapon_switch(unit_index);
-            return;
-        }
-        char *label = unit_get_seat_or_state_name((int32_t)(intptr_t)s_unarmed, 1);
-        unit_set_or_test_seat_and_weapon_label(label);
-        unit->current_weapon_index = -1;
+    if (*(int16_t *)(unit + 0x2f2) != -1) {
+        unit_validate_and_clear_weapon_switch(unit_index);
+        return;
     }
-    unit_validate_and_clear_weapon_switch(unit_index);
-    return;
+    if (desired_weapon == k_datum_index_none) {
+        unit_set_or_test_seat_and_weapon_label(unit_index, unit_get_seat_or_state_name(unit_index), "unarmed", 1);
+        *(int16_t *)(unit + 0x2f2) = -1;
+        unit_validate_and_clear_weapon_switch(unit_index);
+        return;
+    }
+    {
+        char *weapon_label = weapon_get_label(desired_weapon);
+        uint8_t *graph;
+        uint8_t *weapon_anim;
+        uint8_t *weapon_obj;
+        uint8_t *weapon_tag;
+        int16_t desired;
+
+        unit_set_or_test_seat_and_weapon_label(unit_index, unit_get_seat_or_state_name(unit_index), weapon_label, 1);
+        graph = (uint8_t *)tag_instances[*(datum_index *)(unit_tag + 0x44) & 0xffff].data;
+        weapon_anim = *(uint8_t **)(*(uint8_t **)(graph + 0x10) + (int8_t)unit[0x2a0] * 0x64 + 0x5c) +
+            (int8_t)unit[0x2a1] * 0xbc;
+        object_set_cluster_and_parent(desired_weapon, 0);
+        weapon_obj = (uint8_t *)OBJECT_HEADER(desired_weapon).data;
+        weapon_tag = OBJECT_TAG(weapon_obj);
+        if (*(int32_t *)(weapon_tag + 0x34) != -1) {
+            if ((weapon_obj[0x10] & 1) != 0) {
+                object_for_each_light_attachment(desired_weapon, 0, 1);
+            }
+            if (*(int32_t *)(weapon_tag + 0x34) != -1) {
+                *(uint32_t *)(weapon_obj + 0x10) &= ~1u;
+                OBJECT_HEADER(desired_weapon).flags |= 2;
+            }
+        }
+        object_reorient_relative_to_marker(unit_index, (char *)(weapon_anim + 0x40), desired_weapon,
+            (char *)(weapon_anim + 0x20));
+        desired = *(int16_t *)(unit + 0x2f4);
+        *(int16_t *)(unit + 0x2f2) = desired;
+        if (desired != -1) {
+            *(int32_t *)(unit + 0x308 + desired * 4) = game_time->game_time;
+        }
+        weapon_ready(desired_weapon);
+        unit_validate_and_clear_weapon_switch(unit_index);
+    }
 }
 
 #if 0

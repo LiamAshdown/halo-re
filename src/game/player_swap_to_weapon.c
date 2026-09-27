@@ -23,7 +23,7 @@ extern data_array *player_data;    // 0x0087a480
 extern data_array *object_headers; // 0x008603b0
 
 extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force); // 0x56dec0
-extern void unit_ready_desired_weapon(uint32_t unit_index); // 0x56d6e0
+extern void unit_ready_desired_weapon(uint32_t unit_index, uint8_t force); // 0x56d6e0, stack (unit, force)
 extern uint8_t unit_pickup_weapon(uint8_t is_primary); // 0x56d400, not in this batch
 extern void hud_add_item_message(uint32_t a); // 0x4ae400, not in this batch
 extern void unit_invalidate_local_player_zoom_level(void); // 0x4726f0, not in this batch
@@ -58,7 +58,7 @@ uint8_t player_swap_to_weapon(uint32_t player_index, datum_index target_weapon)
             for (i = 0; i < 4; i++) {
                 if (unit->weapons[i] == target_weapon) {
                     unit->desired_weapon_index = (int16_t)i;
-                    unit_ready_desired_weapon((uint32_t)p->unit);
+                    unit_ready_desired_weapon((uint32_t)p->unit, 1);
                     break;
                 }
             }

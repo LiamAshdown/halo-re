@@ -14,7 +14,7 @@
 extern data_array *object_data; // 0x008603b0
 
 extern int16_t unit_find_next_zone_permitted_weapon_slot(int16_t start_slot, uint8_t direction); // 0x56dba0, UNSURE signature  // real signature (unit_find_next_zone_permitted_weapon_slot.c): int16_t unit_find_next_zone_permitted_weapon_slot(uint32_t unit_index, int32_t start_slot, int16_t direction); Ghidra recovered 2 of 3 args at this call site
-extern void unit_ready_desired_weapon(uint32_t unit_index); // 0x56d6e0
+extern void unit_ready_desired_weapon(uint32_t unit_index, uint8_t force); // 0x56d6e0, stack (unit, force)
 
 void unit_pick_and_ready_next_weapon(uint32_t unit_index) // blam-cc: unaff_ESI
 {
@@ -22,7 +22,7 @@ void unit_pick_and_ready_next_weapon(uint32_t unit_index) // blam-cc: unaff_ESI
     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
 
     unit->desired_weapon_index = unit_find_next_zone_permitted_weapon_slot(unit->current_weapon_index, 0);
-    unit_ready_desired_weapon(unit_index);
+    unit_ready_desired_weapon(unit_index, 1);
     return;
 }
 

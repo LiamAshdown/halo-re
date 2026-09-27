@@ -1,34 +1,21 @@
 // hs_object_detach_and_place_at_location  (Ghidra: FUN_00487f50)
 // address 0x487f50, size 1568 bytes
-// name confidence: 0.35 (out/phase4/hs_functions.md: "Detaches an object from its current parent
-//   object using full 3D-transform math, then repositions and reorients it based on a scenario
-//   location-table entry")
-// rewrite confidence: 0.35 -- SEE THE DISCLAIMER BELOW.
-// evidence: types/hs.h globals list (object_headers 0x008603b0 stride 0x0c data-at-+8, tag_instances
-//   0x0087bc14 stride 0x20 data-at-0x14) and out/phase4/hs_types_notes.md's object field offsets
-//   (0xb4 type, 0x114/0x118/0x11c sibling/child/parent -- 0x11c matches index 0x47 here exactly);
-//   the location_index * 0x5c + Scenario+0x4e8 addressing matches Scenario::cutscene_flags'
-//   documented stride/offset exactly, even though hs_types_notes.md's evidence table only cites
-//   0x488870/0x488960 as readers of that table; src/math's already-rewritten matrix4x3_inverse,
-//   matrix4x3_transform_normal and matrix4x3_multiply_procedure (0x00696664) fix that stack
-//   buffer's shape as a full real_matrix4x3.
-// register convention: cutscene_flags index in AX (in_AX); object index, detach flag and reorient
-//   flag as the three recognized stack parameters (param_1, param_2, param_3).
-//   // blam-cc: AX -> location_index, stack -> (object_index, detach_from_parent, reorient)
-//
-// DISCLAIMER: this function reaches deep into the (not yet type-recovered) objects/units/game
-// modules -- 22 distinct callees, most still FUN_xxxxxx, and dozens of field offsets on records
-// this module does not own. Only the offsets out/phase4/hs_types_notes.md or types/cache.h
-// directly document are given names; everything else is left as the same raw word-indexed access
-// Ghidra produced (`object[N]` on a `uint32_t *`, matching Ghidra's own `puVar2[N]`), each with a
-// best-effort comment. Several callees (matrix4x3_inverse's `in`, the bare
-// game_engine_compute_look_angles_from_vector()/datum_get()/unit_all_seats_unoccupied()/unit_recompute_seat_occupants()/
-// unit_pick_and_ready_next_weapon() calls) had one or more arguments living in registers Ghidra's decompile dropped
-// entirely (no in_/unaff_ variable at all); those are marked UNSURE at the call site with the
-// best inference available from surrounding code, not a verified fact. Control flow, arithmetic
-// and every write this function performs are preserved exactly as decompiled; only naming and
-// call-argument reconstruction carry the reduced confidence above.
-// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
+// name confidence: 0.4   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x487f50..0x48856f (the draft called most helpers without their arguments; object_teleport
+//   crashed in object_set_position_and_orientation). Places an object on a cutscene flag (scenario +0x4e8, 0x5c
+//   bytes: position +0x24, yaw +0x30, pitch +0x34). AX = the flag, stack: object, teleport, face.
+//   - teleport with a parent: a unit (object_try_and_get mask 3) is taken out of its seat -- unless this is a network
+//     client -- keeping it where the seat marker put it: the seat (parent tag +0x2e8, 0x11c each; +0x24 marker)
+//     marker offset from the unit's root node (+0x1f2 node matrices) and the model's root node (unit tag +0x34 model,
+//     +0xbc nodes; translation +0x28, matrix +0x68) give the new position and basis; a driver leaving puts the
+//     vehicle in state 0x25; seat bookkeeping (+0x32c/+0x330, +0x324/+0x328 both ways, +0x2f0, +0x2a7 = 2), light
+//     attachments, seat occupants, weapon, the exit animation request {0x14, 0}, the biped ground fix-up, bounds, the
+//     vehicle's empty time (+0x5ac), a client's cleared player input and the scripted event 9; a non-unit just snaps
+//     off its parent marker;
+//   - then the object is woken, and a unit faces the flag (desired facing/aiming/looking +0x224/+0x230/+0x254 when
+//     `face`; its seat-relative facing when parented) and, for a player's unit, the player is moved (0x475c60) and
+//     its look angles set (0x470d80); objects without a player take the flag's position/forward directly.
+// blam-cc: AX -> location_index, stack -> object_index, teleport, face
 
 #include "tags.h"
 #include "memory.h"
@@ -36,316 +23,236 @@
 #include "math.h"
 #include "game.h"
 #include "hs.h"
+#include "objects.h"
 
-extern double fcos(double x); // 0x0062xxxx CRT (float10 in the original; narrowed to float on store)
-extern double fsin(double x);
-
-extern datum_index datum_new(data_array *array);              // memory module, 0x4d0480
-extern void *datum_get(datum_index handle, data_array *array); // memory module, 0x4d0680
-
-extern void *object_try_and_get(int32_t type_mask);           // objects module, 0x4f6ec0
-extern void object_snap_to_parent_marker_and_detach(datum_index object_index);            // objects module, 0x4f6610
-extern void object_set_position_and_orientation(datum_index object_index, void *param_2, int32_t param_3);
-                                                                 // objects module, 0x4f51c0
-extern int16_t object_get_node_local_transform(datum_index location_object, void *marker_or_location, void *out_buffer,
-    char param_4);                                              // objects module, 0x4f6080
-extern void object_reset_velocity_and_wake(datum_index object_index);             // objects module, 0x4f5160
-extern uint32_t player_index_from_unit_index(datum_index object_index);         // game module, 0x474db0
-extern void player_attach_unit_to_parent(uint32_t unit_or_player, uint32_t param_2, void *param_3);
-                                                                 // game module, 0x475c60
-extern void unit_reset_orientation_and_find_position(datum_index object_index);             // objects module, 0x55add0
-extern void object_recalculate_bounding_radius_recursive(datum_index object_index);
-                                                                 // objects module, 0x4f82b0
-extern void object_for_each_light_attachment(datum_index object_index, int32_t param_2,
-    int32_t param_3); // blam-cc: EAX -> object_index (UNSURE, not visible in the decompile);
-                       // objects module, 0x4f9a20
-extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, stack unit, ECX request
-static const int8_t k_unit_exit_seat_request[2] = {0x14, 0}; // every caller builds these two bytes on its stack
-extern void unit_try_set_animation_state(uint32_t unit_index, int32_t state);
-                                                                 // units module, 0x565f90
-extern char unit_all_seats_unoccupied(void); // UNSURE: zero visible arguments; units module, 0x566910
-extern void unit_dispatch_scripted_event_9(int32_t param_1);                      // units module, 0x56c370
-extern void unit_recompute_seat_occupants(void); // UNSURE: zero visible arguments; units module, 0x56ce30
-extern void unit_pick_and_ready_next_weapon(void); // UNSURE: zero visible arguments; units module, 0x56d6a0
-extern void player_update_history_free_all(void *history);      // game module, 0x4e6f20
-extern void game_engine_compute_look_angles_from_vector(void);
-    // UNSURE: zero visible arguments; game module, 0x470d80
-extern void matrix4x3_inverse(real_matrix4x3 *out, real_matrix4x3 *in);   // math module, 0x4cb7a0
-extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal,
-    real_matrix4x3 *m);                                                   // math module, 0x4cbec0
-extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b,
-    real_matrix4x3 *out);                                                 // 0x00696664
-
-extern data_array *object_headers;   // 0x008603b0, stride 0x0c, object data pointer at +0x08
+extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
-extern Scenario *global_scenario;    // 0x00746f8c
-extern data_array *players;          // 0x0087a480, stride 0x200
-extern uint8_t network_game_active;  // 0x00719720, DAT_00719720: nonzero in a network game
-
-// game_time_globals: defined in types/game.h (R32 replaced hs.h's partial game_time_globals)
+extern uint8_t *global_scenario;     // 0x00746f8c
+extern data_array *player_data;      // 0x0087a480
+extern int16_t game_connection_role; // 0x00719720 (1 = client)
 extern game_time_globals *game_time; // 0x006f1d6c
-extern void *unknown_0071c2d8;       // 0x0071c2d8, UNSURE: some per-game(?) record; +0xf48 passed
-                                      // to player_update_history_free_all when nonzero
+extern uint8_t *network_game_client; // 0x0071c2d8, +0xf48 the update history
 
-// Detaches `object_index` from its parent object (if any), computing the exact position/rotation
-// it needs so it keeps its world-space placement, then always repositions/reorients it onto
-// Scenario::cutscene_flags[location_index] (used as a facing direction, and -- when `reorient` is
-// set -- also as an absolute placement for a "control" object obtained via object_try_and_get).
-// `detach_from_parent` gates the parent-detach half of the function; `reorient` gates the second
-// half's placement writes. See the DISCLAIMER above: most object/unit field names below are the
-// same raw word offsets Ghidra decompiled, not recovered struct fields.
+extern double cos(double x);
+extern double sin(double x);
+
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
+extern void object_snap_to_parent_marker_and_detach(uint32_t object_index); // 0x4f6610
+extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward, real_vector3d *up,
+    real_point3d *position); // 0x4f51c0, stack, EDI position
+extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
+    uint32_t param_4); // 0x4f6080
+extern void object_reset_velocity_and_wake(uint32_t object_index); // 0x4f5160
+extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x474db0
+extern uint8_t player_attach_unit_to_parent(uint32_t player_index, uint32_t target_object, void *local_offset); // 0x475c60
+extern void unit_reset_orientation_and_find_position(uint32_t object_index); // 0x55add0
+extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
+extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback); // 0x4f9a20
+extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, stack, ECX
+extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
+extern uint8_t unit_all_seats_unoccupied(uint32_t unit_index); // 0x566910, EAX
+extern void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key); // 0x56c370, stack, ECX
+extern void unit_recompute_seat_occupants(uint32_t unit_index); // 0x56ce30, EAX
+extern void unit_pick_and_ready_next_weapon(uint32_t unit_index); // 0x56d6a0, ESI
+extern void player_update_history_free_all(void *history); // 0x4e6f20
+extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, EDX, ESI
+extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index); // 0x470d80, EAX, CX
+extern void matrix4x3_inverse(real_matrix4x3 *out, real_matrix4x3 *in); // 0x4cb7a0, EAX, ECX
+extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m); // 0x4cbec0, EAX, EDX, stack
+extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x00696664
+
+static const int8_t k_unit_exit_seat_request[2] = {0x14, 0};
+
+#define OBJ(i) ((uint8_t *)((object_header *)object_data->data)[(i) & 0xffff].data)
+
+// 0x487f96..0x4883c4: take a unit out of its seat, keeping its world placement
+static void hs_unit_leave_seat(uint32_t object_index)
+{
+    uint8_t *unit = OBJ(object_index);
+    datum_index parent_index = *(datum_index *)(unit + 0x11c);
+
+    if (parent_index != k_datum_index_none && *(int16_t *)(unit + 0x2f0) != -1) {
+        uint8_t *parent = OBJ(parent_index);
+        uint8_t *parent_tag = (uint8_t *)tag_instances[*(datum_index *)parent & 0xffff].data;
+        uint8_t *seat = *(uint8_t **)(parent_tag + 0x2e8) + *(int16_t *)(unit + 0x2f0) * 0x11c;
+        real_matrix4x3 *nodes = (real_matrix4x3 *)(unit + *(int16_t *)(unit + 0x1f2));
+        uint8_t *unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
+        uint8_t *model = (uint8_t *)tag_instances[*(datum_index *)(unit_tag + 0x34) & 0xffff].data;
+        uint8_t *root_node = *(uint8_t **)(model + 0xbc);
+        real_vector3d root_offset = *(real_vector3d *)(root_node + 0x28);
+        real_matrix4x3 *root_matrix = (real_matrix4x3 *)(root_node + 0x68);
+        object_marker marker;
+        real_vector3d delta;
+        real_point3d position;
+        real_matrix4x3 basis;
+
+        object_get_node_local_transform(parent_index, (char *)(seat + 0x24), &marker, 1);
+        delta.i = nodes->position.x - marker.node_transform.position.x;
+        delta.j = nodes->position.y - marker.node_transform.position.y;
+        delta.k = nodes->position.z - marker.node_transform.position.z;
+        if (*(datum_index *)(parent + 0x324) == object_index && (int8_t)parent[0x2a3] != 0x25 &&
+            *(datum_index *)(unit + 0x11c) != k_datum_index_none) {
+            unit_try_set_animation_state(*(datum_index *)(unit + 0x11c), 0x25);
+        }
+        *(datum_index *)(unit + 0x32c) = parent_index;
+        *(int32_t *)(unit + 0x330) = game_time->game_time;
+        if (*(datum_index *)(unit + 0x324) == object_index) {
+            *(datum_index *)(unit + 0x324) = k_datum_index_none;
+        }
+        if (*(datum_index *)(unit + 0x328) == object_index) {
+            *(datum_index *)(unit + 0x328) = k_datum_index_none;
+        }
+        object_snap_to_parent_marker_and_detach(object_index);
+        position.x = delta.i + *(float *)(unit + 0x5c);
+        position.y = delta.j + *(float *)(unit + 0x60);
+        position.z = delta.k + *(float *)(unit + 0x64) - root_offset.k;
+        object_set_position_and_orientation(object_index, 0, 0, &position);
+
+        unit = OBJ(object_index);
+        matrix4x3_multiply_procedure((real_matrix4x3 *)(unit + *(int16_t *)(unit + 0x1f2)), root_matrix, &basis);
+        *(real_vector3d *)(unit + 0x74) = basis.forward;
+        *(real_vector3d *)(unit + 0x80) = basis.up;
+
+        unit = OBJ(object_index);
+        unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
+        if (*(datum_index *)(unit_tag + 0x34) != k_datum_index_none) {
+            if ((*(uint32_t *)(unit + 0x10) & 1) != 0) {
+                object_for_each_light_attachment(object_index, 0, 1);
+            }
+            if (*(datum_index *)(unit_tag + 0x34) != k_datum_index_none) {
+                *(uint32_t *)(unit + 0x10) &= ~1u;
+                ((uint8_t *)&((object_header *)object_data->data)[object_index & 0xffff])[2] |= 2;
+            }
+        }
+        *(int16_t *)(unit + 0x2f0) = -1;
+        unit[0x2a7] = 2;
+        if (*(datum_index *)(parent + 0x324) == object_index) {
+            *(datum_index *)(parent + 0x324) = k_datum_index_none;
+        }
+        if (*(datum_index *)(parent + 0x328) == object_index) {
+            *(datum_index *)(parent + 0x328) = k_datum_index_none;
+        }
+        unit_recompute_seat_occupants(parent_index);
+        unit_pick_and_ready_next_weapon(object_index);
+        unit_update_animation_state_machine(object_index, k_unit_exit_seat_request);
+        unit = OBJ(object_index);
+        *(real_vector3d *)(unit + *(int16_t *)(unit + 0x1ea) + 0x10) = root_offset;
+        if (*(int16_t *)(unit + 0xb4) == 0) {
+            unit_reset_orientation_and_find_position(object_index);
+        }
+        object_recalculate_bounding_radius_recursive(object_index);
+        if (unit_all_seats_unoccupied(parent_index) == 1) {
+            uint8_t *vehicle = (uint8_t *)object_try_and_get(parent_index, 2);
+
+            if (vehicle != 0) {
+                *(int32_t *)(vehicle + 0x5ac) = game_time->game_time;
+            }
+        }
+        unit = OBJ(object_index);
+        if (game_connection_role == 1) {
+            uint8_t *player = (uint8_t *)datum_get(*(datum_index *)(unit + 0x218), player_data);
+
+            if (player != 0 && *(int16_t *)(player + 2) == -1) {
+                *(uint32_t *)(player + 0x180) = 0;
+                *(uint32_t *)(player + 0x17c) = 0;
+                *(uint32_t *)(player + 0x1e0) = 0;
+                *(uint32_t *)(player + 0x1dc) = 0;
+            }
+        }
+    }
+
+    // 0x488345
+    {
+        uint8_t *unit = OBJ(object_index);
+
+        if (*(int32_t *)(unit + 4) == 0) {
+            unit_dispatch_scripted_event_9(1, (int32_t)object_index);
+            unit = OBJ(object_index);
+        }
+        if (game_connection_role == 1) {
+            datum_index player_index = *(datum_index *)(unit + 0x218);
+            int16_t index = (int16_t)player_index;
+            int16_t salt = (int16_t)(player_index >> 16);
+
+            if (player_index != k_datum_index_none && index >= 0 && index < player_data->maximum_count) {
+                uint8_t *player = (uint8_t *)player_data->data + index * player_data->size;
+                int16_t identifier = *(int16_t *)player;
+
+                if (identifier != 0 && (salt == 0 || identifier == salt) && *(int16_t *)(player + 2) != -1 &&
+                    network_game_client != 0) {
+                    player_update_history_free_all(*(void **)(network_game_client + 0xf48));
+                }
+            }
+        }
+    }
+}
+
 void hs_object_detach_and_place_at_location(int16_t location_index, datum_index object_index,
     char detach_from_parent, char reorient)
 {
-    uint32_t *object;
-    uint32_t *parent;
-    uint32_t *parent_record; // re-fetched `object` after calls that may reallocate object_headers
-    ScenarioCutsceneFlag *location;
-    int32_t child_data_offset;
-    real_vector3d facing;          // local_dc/local_d8/local_d4 (first use: world facing vector)
-    real_point3d parent_position;  // local_dc/local_d8/local_d4 (second use, after detach: parent
-                                    // object's own position, read via the seat/marker lookup)
-    datum_index parent_handle;     // local_d0
-    int32_t unit_data;             // local_cc: nonzero once resolved to a live unit's data array element
-    real_vector3d delta;           // local_c8/local_c4/local_c0
-    real_vector3d combined_delta;  // local_bc/local_b8/local_b4
-    uint8_t seat_transform[96];    // local_78[96], out buffer for object_get_node_local_transform
-    real_point3d seat_position;    // local_18/local_14/local_10, read back out of seat_transform's
-                                    // tail by the caller (UNSURE of the exact sub-offset)
-    real_matrix4x3 scratch_matrix; // local_b0..uStack_8c
-    uint32_t player_or_unit;       // uVar10
-    void *control;                 // iVar15 after object_try_and_get(3)
-    real_vector3d *place_out;      // pfVar11
+    uint8_t *flag;
+    uint8_t *placed;
+    uint8_t *player = 0;
+    real_vector3d forward;
+    real_vector3d local_forward;
+    object *unit;
 
-    object = (uint32_t *)((uint8_t *)object_headers->data + (object_index & 0xffff) * 0x0c + 8);
     if (object_index == k_datum_index_none) {
         return;
     }
+    flag = *(uint8_t **)(global_scenario + 0x4e8) + location_index * 0x5c;
+    placed = OBJ(object_index);
 
-    location = (ScenarioCutsceneFlag *)((uint8_t *)global_scenario->cutscene_flags.pointer +
-        location_index * 0x5c);
-    unit_data = 0;
-
-    if (detach_from_parent != 0) {
-        child_data_offset = (object_index & 0xffff) * 0x0c;
-        object = *(uint32_t **)((uint8_t *)object_headers->data + child_data_offset + 8);
-        if (object[0x47] != 0xffffffff) { // object->parent (0x11c) is valid
-            control = object_try_and_get(3);
-            if (control == 0) {
-                object_snap_to_parent_marker_and_detach(object_index);
-            } else if (network_game_active != 1) {
-                parent_handle = object[0x47];
-                if (parent_handle != k_datum_index_none && (int16_t)object[0xbc] != -1) {
-                    // parent's object record, and this object's seat/marker index (object[0xbc])
-                    parent = *(uint32_t **)((uint8_t *)object_headers->data +
-                        (parent_handle & 0xffff) * 0x0c + 8);
-                    parent_record = *(uint32_t **)((uint8_t *)object_headers->data +
-                        child_data_offset + 8);
-                    parent_record = (uint32_t *)((int16_t)((uint8_t *)parent_record)[0x1f2] +
-                        (uint32_t)parent_record); // UNSURE: byte at object+0x1f2 reinterpreted as
-                                                   // a signed offset applied to the object pointer
-                                                   // itself; preserved exactly as decompiled
-                    object_get_node_local_transform(parent_handle,
-                        (uint8_t *)tag_instances[(*parent & 0xffff) & 0xffff].data + 0x2e8 + 0x24 +
-                            (int16_t)object[0xbc] * 0x11c,
-                        seat_transform, 1);
-                    delta.i = *(float *)((uint8_t *)parent_record + 0x28) - seat_position.x;
-                    delta.j = *(float *)((uint8_t *)parent_record + 0x2c) - seat_position.y;
-                    child_data_offset = *(int32_t *)((uint8_t *)tag_instances[
-                        (*(uint32_t *)((uint8_t *)tag_instances[(*object & 0xffff) & 0xffff].data +
-                            0x34) & 0xffff) & 0xffff].data + 0xbc);
-                    delta.k = *(float *)((uint8_t *)parent_record + 0x30) - seat_position.z;
-                    parent_position.x = *(float *)((uint8_t *)(uint32_t)child_data_offset + 0x28);
-                    parent_position.y = *(float *)((uint8_t *)(uint32_t)child_data_offset + 0x2c);
-                    parent_position.z = *(float *)((uint8_t *)(uint32_t)child_data_offset + 0x30);
-
-                    if (parent[0xc9] == object_index && ((uint8_t *)parent)[0x2a3] != '%' &&
-                        object[0x47] != 0xffffffff) {
-                        unit_try_set_animation_state(object[0x47], 0x25);
-                    }
-
-                    object[0xcb] = parent_handle;
-                    object[0xcc] = game_time->game_time; // UNSURE: field name guessed from
-                                                              // types/tags.h game_time_globals
-                    if (object[0xc9] == object_index) {
-                        object[0xc9] = 0xffffffff;
-                    }
-                    if (object[0xca] == object_index) {
-                        object[0xca] = 0xffffffff;
-                    }
-                    object_snap_to_parent_marker_and_detach(object_index);
-
-                    combined_delta.i = delta.i + *(float *)&object[0x17];
-                    combined_delta.j = delta.j + *(float *)&object[0x18];
-                    combined_delta.k = (delta.k + *(float *)&object[0x19]) - parent_position.z;
-
-                    object_set_position_and_orientation(object_index, (void *)0, 0);
-
-                    parent_record = *(uint32_t **)((uint8_t *)object_headers->data +
-                        child_data_offset + 8); // NOTE: reuses child_data_offset, matching the
-                                                  // decompile exactly (see UNSURE below)
-                    matrix4x3_multiply_procedure(
-                        (real_matrix4x3 *)((int16_t)((uint8_t *)parent_record)[0x1f2] +
-                            (uint32_t)parent_record),
-                        (real_matrix4x3 *)((uint8_t *)&parent_position + 0x68), &scratch_matrix);
-                    object[0x1d] = ((uint32_t *)&scratch_matrix)[0];
-                    object[0x1e] = ((uint32_t *)&scratch_matrix)[1];
-                    object[0x1f] = ((uint32_t *)&scratch_matrix)[2];
-                    object[0x20] = ((uint32_t *)&scratch_matrix)[3];
-                    object[0x21] = ((uint32_t *)&scratch_matrix)[4];
-                    object[0x22] = ((uint32_t *)&scratch_matrix)[5];
-
-                    parent = *(uint32_t **)((uint8_t *)object_headers->data + child_data_offset + 8);
-                    control = tag_instances[(*parent & 0xffff) & 0xffff].data;
-                    if (*(int32_t *)((uint8_t *)control + 0x34) != -1) {
-                        if ((parent[4] & 1) != 0) {
-                            object_for_each_light_attachment(object_index, 0, 1);
-                        }
-                        if (*(int32_t *)((uint8_t *)control + 0x34) != -1) {
-                            parent[4] = parent[4] & 0xfffffffe;
-                            *((uint8_t *)object_headers->data + child_data_offset + 2) |= 2;
-                        }
-                    }
-                    *(int16_t *)&object[0xbc] = -1;
-                    ((uint8_t *)object)[0x2a7] = 2;
-                    if (parent[0xc9] == object_index) {
-                        parent[0xc9] = 0xffffffff;
-                    }
-                    if (parent[0xca] == object_index) {
-                        parent[0xca] = 0xffffffff;
-                    }
-                    unit_recompute_seat_occupants();
-                    unit_pick_and_ready_next_weapon();
-                    unit_update_animation_state_machine(object_index, k_unit_exit_seat_request);
-                    place_out = (real_vector3d *)((int16_t)((uint8_t *)object)[0x1ea] + 0x10 +
-                        (uint32_t)object);
-                    *place_out = *(real_vector3d *)&parent_position; // stored as (dc, d8, d4) triple
-                    if ((int16_t)object[0x2d] == 0) { // object->type (0xb4) == biped
-                        unit_reset_orientation_and_find_position(object_index);
-                    }
-                    object_recalculate_bounding_radius_recursive(object_index);
-                    if (unit_all_seats_unoccupied() == 1) {
-                        control = object_try_and_get(2);
-                        if (control != 0) {
-                            *(uint32_t *)((uint8_t *)control + 0x5ac) = game_time->game_time;
-                        }
-                    }
-                    if (network_game_active == 1) {
-                        control = datum_get(k_datum_index_none, players);
-                        // UNSURE: the handle argument (EDX) is not visible anywhere in the
-                        // decompile; `players` (ESI) is confirmed by an otherwise-dead
-                        // `iVar9 = DAT_0087a480` load immediately before this call. This is the
-                        // one call in the function whose semantics could not be recovered.
-                        if (control != 0 && *(int16_t *)((uint8_t *)control + 2) == -1) {
-                            *(uint32_t *)((uint8_t *)control + 0x180) = 0;
-                            *(uint32_t *)((uint8_t *)control + 0x17c) = 0;
-                            *(uint32_t *)((uint8_t *)control + 0x1e0) = 0;
-                            *(uint32_t *)((uint8_t *)control + 0x1dc) = 0;
-                        }
-                    }
-                }
-                if (object[1] == 0) {
-                    unit_dispatch_scripted_event_9(1);
-                }
-                if (network_game_active == 1) {
-                    player_or_unit = object[0x86];
-                    if (player_or_unit != 0xffffffff) {
-                        int16_t slot = (int16_t)player_or_unit;
-                        if (slot >= 0 && slot < players->maximum_count) {
-                            int16_t *element = (int16_t *)((uint8_t *)players->data +
-                                slot * players->size);
-                            int16_t identifier = *element;
-                            if (identifier != 0) {
-                                int16_t salt = (int16_t)(player_or_unit >> 0x10);
-                                if ((salt == 0 || identifier == salt) &&
-                                    *(int16_t *)((uint8_t *)element + 2) != -1 &&
-                                    unknown_0071c2d8 != 0) {
-                                    player_update_history_free_all(
-                                        *(void **)((uint8_t *)unknown_0071c2d8 + 0xf48));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+    if (detach_from_parent && *(datum_index *)(placed + 0x11c) != k_datum_index_none) {
+        if (object_try_and_get(object_index, 3) == 0) {
+            object_snap_to_parent_marker_and_detach(object_index);
+        } else if (game_connection_role != 1) {
+            hs_unit_leave_seat(object_index);
         }
     }
 
-    facing.k = (float)fsin((double)location->facing.pitch);
-    {
-        double cos_pitch = fcos((double)location->facing.pitch);
-        double cos_yaw = fcos((double)location->facing.yaw);
-        double sin_yaw = fsin((double)location->facing.yaw);
-        facing.i = (float)(cos_yaw * cos_pitch);
-        facing.j = (float)(sin_yaw * cos_pitch);
-    }
-    // UNSURE: `location->facing.pitch`/`.j` above stand in for the two source
-    // floats read at cutscene_flag+0x30/+0x34 (yaw, pitch); the actual ScenarioCutsceneFlag
-    // field names may not match this module's use.
-
+    // 0x4883d4
+    forward.i = (float)(cos((double)*(float *)(flag + 0x30)) * cos((double)*(float *)(flag + 0x34)));
+    forward.j = (float)(sin((double)*(float *)(flag + 0x30)) * cos((double)*(float *)(flag + 0x34)));
+    forward.k = (float)sin((double)*(float *)(flag + 0x34));
     object_reset_velocity_and_wake(object_index);
-    control = object_try_and_get(3);
-    if (control == 0) {
-        if (reorient != 0 && unit_data == 0) {
-            place_out = &facing;
-            goto place;
-        }
-    } else {
-        player_or_unit = player_index_from_unit_index(object_index);
-        if (*(int32_t *)((uint8_t *)control + 0x11c) == -1) {
-            delta = facing;
+
+    unit = object_try_and_get(object_index, 3);
+    if (unit != 0) {
+        uint8_t *unit_bytes = (uint8_t *)unit;
+        datum_index player_index = player_index_from_unit_index(object_index);
+
+        if (*(datum_index *)(unit_bytes + 0x11c) != k_datum_index_none) {
+            uint8_t *parent = OBJ(*(datum_index *)(unit_bytes + 0x11c));
+            real_matrix4x3 *node = (real_matrix4x3 *)(parent + *(int16_t *)(parent + 0x1f2) +
+                (int8_t)unit_bytes[0x120] * 0x34);
+            real_matrix4x3 inverse;
+
+            matrix4x3_inverse(&inverse, node);
+            matrix4x3_transform_normal(&local_forward, &forward, &inverse);
         } else {
-            matrix4x3_inverse(&scratch_matrix, (real_matrix4x3 *)control);
-            // UNSURE: `control` reinterpreted directly as a real_matrix4x3* for the `in` argument
-            // is a guess -- the true offset of a matrix inside whatever object_try_and_get(3)
-            // returns could not be recovered.
-            matrix4x3_transform_normal(&delta, &facing, &scratch_matrix);
+            local_forward = forward;
         }
-        if (reorient != 0) {
-            *(float *)((uint8_t *)control + 0x224) = delta.i;
-            *(float *)((uint8_t *)control + 0x228) = delta.j;
-            *(float *)((uint8_t *)control + 0x22c) = delta.k;
-            *(float *)((uint8_t *)control + 0x230) = delta.i;
-            *(float *)((uint8_t *)control + 0x254) = delta.i;
-            *(float *)((uint8_t *)control + 0x234) = delta.j;
-            *(float *)((uint8_t *)control + 600)   = delta.j;
-            *(float *)((uint8_t *)control + 0x238) = delta.k;
-            *(float *)((uint8_t *)control + 0x25c) = delta.k;
+        if (reorient) {
+            *(real_vector3d *)(unit_bytes + 0x224) = forward;
+            *(real_vector3d *)(unit_bytes + 0x230) = forward;
+            *(real_vector3d *)(unit_bytes + 0x254) = forward;
         }
-        if (player_or_unit == 0xffffffff) {
-            if (reorient != 0 && unit_data == 0) {
-                place_out = &facing;
-                goto place;
+        if (player_index != k_datum_index_none) {
+            player = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;
+            if (detach_from_parent) {
+                player_attach_unit_to_parent(player_index, 0xffffffff, flag + 0x24);
             }
-            return;
-        }
-        unit_data = (player_or_unit & 0xffff) * 0x200 + (uint32_t)players->data;
-        if (detach_from_parent != 0) {
-            player_attach_unit_to_parent(player_or_unit, 0xffffffff,
-                (uint8_t *)location + 0x24);
-        }
-        if (reorient != 0) {
-            if (*(int16_t *)((uint8_t *)unit_data + 2) != -1) {
-                game_engine_compute_look_angles_from_vector();
-                // UNSURE: zero visible arguments; presumably (unit_data, &facing) or similar.
+            if (reorient && *(int16_t *)(player + 2) != -1) {
+                game_engine_compute_look_angles_from_vector(&local_forward, *(int16_t *)(player + 2));
             }
-            if (reorient != 0 && unit_data == 0) {
-                place_out = &facing;
-                goto place;
-            }
-            object_set_position_and_orientation(object_index, (void *)0, 0);
-            return;
         }
-        if (reorient != 0 && unit_data == 0) {
-            place_out = &facing;
-            goto place;
-        }
-        object_set_position_and_orientation(object_index, (void *)0, 0);
-        return;
     }
-    place_out = (real_vector3d *)0;
-place:
-    object_set_position_and_orientation(object_index, place_out, 0);
+
+    // 0x488529
+    object_set_position_and_orientation(object_index,
+        (reorient && player == 0) ? &forward : 0, 0,
+        (detach_from_parent && player == 0) ? (real_point3d *)(flag + 0x24) : 0);
 }
 
 #if 0

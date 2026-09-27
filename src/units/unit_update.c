@@ -118,7 +118,7 @@ extern int32_t unit_find_next_grenade_type_with_count(uint32_t unit_index, int32
   // real signature (unit_find_next_grenade_type_with_count.c): int32_t unit_find_next_grenade_type_with_count(uint32_t unit_index, int32_t start_index, int16_t direction); Ghidra recovered 1 of 3 args at this call site
 extern void unit_refresh_targeting_flag_and_weapons(uint32_t unit_index, uint8_t initial_targeting_flag); // 0x569bf0, stack, CL
   // real signature (unit_refresh_targeting_flag_and_weapons.c): void unit_refresh_targeting_flag_and_weapons(uint32_t unit_index, uint8_t initial_targeting_flag); Ghidra recovered 1 of 2 args at this call site
-extern void unit_ready_desired_weapon(uint32_t unit_index, uint32_t flag); // 0x56d6e0
+extern void unit_ready_desired_weapon(uint32_t unit_index, uint8_t force); // 0x56d6e0
   // real signature (unit_ready_desired_weapon.c): void unit_ready_desired_weapon(uint32_t unit_index); Ghidra recovered 2 of 1 args at this call site
 extern uint8_t unit_check_weapon_use_permission(uint32_t unit_index, uint32_t weapon_index); // 0x56da00, ESI, EDI
   // real signature (unit_check_weapon_use_permission.c): uint8_t unit_check_weapon_use_permission(uint32_t unit_index); Ghidra recovered 0 of 1 args at this call site

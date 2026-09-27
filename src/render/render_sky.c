@@ -70,9 +70,9 @@ extern void *rasterizer_device;                      // 0x0071d174
 
 extern void model_nodes_get_default_transforms(GBXModel *model, void *nodes);
     // 0x4d7610, models; blam-cc: ESI -> model, stack -> nodes
-extern void model_vertices_get_interpolated_frame(ModelAnimationsAnimation *animation, float frame,
-                                                  void *nodes);
-    // 0x4d53f0, models; blam-cc: EDI -> animation, stack -> (frame, nodes)
+extern void animation_overlay_interpolated_frame_orientations(ModelAnimationsAnimation *animation, float frame,
+                                                             void *out_orientations);
+    // 0x4d53f0, models (Ghidra: model_vertices_get_interpolated_frame); blam-cc: EDI -> animation, stack -> (frame, nodes)
 extern void model_nodes_build_matrices(real_point3d *position, real_vector3d *forward, GBXModel *model,
                          real_matrix4x3 *matrices, void *nodes, real_vector3d *up);
     // 0x4d7690, models; blam-cc: EAX -> position, ECX -> forward, stack -> (model, matrices,
@@ -155,7 +155,7 @@ void render_sky(void)
                                              sky_animation_times[i], 1.0);
 
                     sky_animation_times[i] = time;
-                    model_vertices_get_interpolated_frame(animation,
+                    animation_overlay_interpolated_frame_orientations(animation,
                         (float)(int32_t)(int16_t)animation->frame_count * time, nodes);
                 }
             }

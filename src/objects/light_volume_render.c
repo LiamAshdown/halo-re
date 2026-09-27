@@ -3,7 +3,8 @@
 //   column for light volume (row 3) calls this indirectly)
 // name confidence: 0.7 (out/phase4/objects_types_notes.md misattribution table: "0x4fe900 |
 //   light_volume_new | light_volume_render (widget type 3 render column)")
-// rewrite confidence: 0.3
+// rewrite confidence: 0.8 (queue call fixed from objdump 0x4fea2c: it passes the 0x4fea80 procedure and the marker
+//   position; the draft passed only the two ids)
 // evidence: types/tags.h LightVolume (count 0x6e, frames TagReflexive 0x120, far_fade_distance
 //   0x38, brightness_scale_source 0x44); global 0x006b8d70 light_volume_instances (table shape
 //   matches the same data_array validation idiom as glow_render_dispatch.c, glow_render.c);
@@ -35,7 +36,9 @@ extern float camera_forward_z; // 0x007c3128 (UNSURE: foreign module)
 
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
                                                 object_marker *marker, uint32_t flags); // 0x4f6080
-extern void rasterizer_lens_flare_occlusion_sample_add(uint32_t object_index, uint32_t light_volume_handle); // out of module scope, unexamined
+extern void rasterizer_lens_flare_occlusion_sample_add(void *procedure, const real_point3d *position, uint32_t id_1,
+    uint32_t id_2); // 0x536ff0, EAX procedure, EDX position, stack ids
+extern void light_volume_render_procedure(uint32_t object_index, datum_index light_volume_handle); // 0x4fea80
 
 void light_volume_render(uint32_t object_index, datum_index light_volume_handle, uint32_t unused,
                           uint8_t *function_context)
@@ -80,7 +83,9 @@ void light_volume_render(uint32_t object_index, datum_index light_volume_handle,
                 camera_forward_x * (marker.node_transform.position.x - camera_position_x) +
                 camera_forward_z * (marker.node_transform.position.z - camera_position_z) <
                 *(float *)(tag + 0x38)) {
-                rasterizer_lens_flare_occlusion_sample_add(object_index, light_volume_handle);
+                // 0x4fea2c: EAX = 0x4fea80, EDX = the marker position, stack (object, light volume)
+                rasterizer_lens_flare_occlusion_sample_add((void *)light_volume_render_procedure,
+                    &marker.node_transform.position, object_index, light_volume_handle);
             }
         }
     }

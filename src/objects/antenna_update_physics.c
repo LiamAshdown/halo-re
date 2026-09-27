@@ -11,7 +11,7 @@
 //   AntennaVertex (spring_strength_coefficient 0x00, length 0x24, offset Point3D 0x74);
 //   antenna_apply_marker_delta 0x4fb1c0 (this function's own first call); vector3d_* register
 //   conventions from src/math/ (normalize: v in ECX; angle_between: a,b in ECX,EDX; rotate:
-//   v in EAX, axis in ECX, sin/cos on the stack); point_physics_update 0x50b530 (module=physics,
+//   v in EAX, axis in ECX, sin/cos on the stack); point_physics_tick 0x50b530 (module=physics,
 //   modules.json), whose own decompile shows an implicit float* velocity in/out via unaff_ESI.
 // register convention: resolved by disassembling 0x4fae10 directly (objdump -d -M intel
 //   bin/halo.exe, 0x4fae10..0x4fb1be). All three parameters are plain cdecl stack arguments
@@ -47,7 +47,7 @@ extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, re
     // 0x4cd820, v in EAX, axis in ECX, sin/cos on the stack
 extern void antenna_apply_marker_delta(real_vector3d *out_forward, real_point3d *out_position,
                                         antenna *ant, Antenna *antenna_tag, bsp_leaf_reference *node_ref); // 0x4fb1c0
-extern uint32_t point_physics_update(real_vector3d *velocity /*ESI*/, uint32_t mode, void *physics_tag_data,
+extern uint32_t point_physics_tick(real_vector3d *velocity /*ESI*/, uint32_t mode, void *physics_tag_data,
                                       bsp_leaf_reference *node_ref, uint32_t flags, real_point3d *position,
                                       real_vector3d *wind_direction, void *unused_c, void *unused_d,
                                       float damping_constant, float dt);
@@ -101,7 +101,7 @@ void antenna_update_physics(antenna *ant, Antenna *antenna_tag, float dt)
 
                     new_position = vertex->position;
 
-                    point_physics_update(&vertex->velocity, 0,
+                    point_physics_tick(&vertex->velocity, 0,
                         tag_instances[antenna_tag->physics.tag_id.index].data,
                         &node_ref, 0xffffffff, &new_position, 0, 0, 0, 0.02f, dt);
                         // 0.02f matches the literal bit pattern 0x3ca3d70a in the original

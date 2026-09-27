@@ -1,99 +1,84 @@
-// particle_system_resolve_local_players  (Ghidra: FUN_00454080, still unnamed there; named
-//   directly by types/effects.h: "particle_system_resolve_local_players 0x454080 (location
-//   only)")
+// particle_system_resolve_local_players  (Ghidra: FUN_00454080; really the particle systems' structure bsp activate
+//   proc, slot 5 of structure_bsp_activate_procedures 0x69e8dc)
 // address 0x454080, size 456 bytes
-// name confidence: 0.4   rewrite confidence: 0.2 (LOW -- dead code, callers=0)
-// evidence: out/phase4/effects_functions.md: "Unused routine that would re-resolve local-player
-//   associations for every particle system and its particle-type slots" (0 callers in this
-//   batch); types/effects.h particle_system.location (+0x18), object_index (+0x0c),
-//   type_states[4] (+0x58, particle_system_type_state.first_particle at +0x3c, matching this
-//   function's +0x94 = +0x58 + 0*0x40 + 0x3c); particle_system_particle.location (+0x14),
-//   next_particle (+0x04); types/tags.h ParticleSystem.particle_types (TagReflexive, +0x5c).
-// register convention: __cdecl, no arguments.
-// UNSURE (lower rigor -- dead code): object_get_root_location, called for an object-attached system in
-//   place of the free-standing system's leaf/cluster probe, is not established anywhere in this
-//   batch (0 callees resolved); declared opaque and called with no arguments, matching the
-//   decompile. The tail of the original decompile inlines datum_next 0x4d0630's own body
-//   instead of calling it, exactly as src/effects/contrail_update.c documents for the same
-//   pattern; this rewrite calls datum_next directly since it is semantically identical.
-// reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
+// name confidence: 0.3   rewrite confidence: 0.9
+// REWRITTEN from objdump 0x454080..0x45424e (the draft was a guess at a "dead" routine; it runs on every bsp
+//   switch). For every particle system (0x87abd4, 0x158 bytes): an attached one (+0x0c) takes its object's root
+//   location (+0x18); a free one finds its leaf/cluster from its position (+0x20), and is deleted when outside the
+//   new bsp. Then each particle type's list (tag +0x5c types; heads at +0x94 + 0x40 * type, particles 0x80 bytes in
+//   0x87abd8, next +0x04) re-resolves every particle's location (+0x14 leaf, +0x18 cluster from +0x1c) and unlinks
+//   and deletes the ones that fall outside.
+// blam-cc: none
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
-#include "objects.h"
 #include "cache.h"
-#include "effects.h"
+#include "structures.h"
 
-extern data_array *particle_system_data;          // 0x0087abd4
-extern data_array *particle_system_particle_data; // 0x0087abd8
-extern tag_instance *tag_instances;                // 0x0087bc14
-extern ModelCollisionGeometryBSP *global_collision_bsp;                       // 0x00746f90, passed to FUN_005013a0 in ECX
-extern uint8_t *global_structure_bsp;             // 0x00746f9c; +0xe4 is the per-leaf lookup table
+extern data_array *particle_system_data;               // 0x0087abd4
+extern data_array *particle_system_particle_data;      // 0x0087abd8
+extern tag_instance *tag_instances;                    // 0x0087bc14
+extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
+extern uint8_t *global_structure_bsp;                   // 0x00746f9c
 
-extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630, memory module
-extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, memory module
-extern void particle_system_delete(datum_index particle_system_handle); // 0x453f60, this module
-extern void object_get_root_location(void); // 0x4f6b10, module unresolved (objects?); UNSURE, dead code
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
-    // 0x5013a0; blam-cc: ECX -> globals, EDX -> point, EAX -> index
+extern datum_index datum_next(int16_t index, data_array *array); // 0x4d0630, DX, EDI
+extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, EAX, EDX
+extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX, ECX, EDX
+extern void object_get_root_location(int32_t *out, uint32_t object_index); // 0x4f6b10, EAX, ECX
+extern void particle_system_delete(datum_index handle); // 0x453f60
 
-// Dead code (0 callers): would re-resolve every particle system's BSP location (and, for a
-// free-standing system whose new cluster fails to resolve, delete it), then walk every particle
-// type slot's particle list re-resolving each particle's own location and dropping any whose
-// cluster also fails to resolve.
+static int16_t particle_leaf_cluster(uint32_t leaf)
+{
+    if (leaf == 0xffffffff) {
+        return -1;
+    }
+    return *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (leaf & 0x7fffffff) * 0x10 + 8);
+}
+
 void particle_system_resolve_local_players(void)
 {
-    datum_index system_index = datum_next(-1, particle_system_data);
+    datum_index handle;
 
-    while (system_index != k_datum_index_none) {
-        particle_system *system =
-            &((particle_system *)particle_system_data->data)[(uint16_t)system_index];
-        ParticleSystem *tag = (ParticleSystem *)tag_instances[(uint16_t)system->definition_index].data;
-        uint8_t deleted = 0;
+    for (handle = datum_next(-1, particle_system_data); handle != k_datum_index_none;
+         handle = datum_next((int16_t)handle, particle_system_data)) {
+        uint8_t *system = (uint8_t *)particle_system_data->data + (handle & 0xffff) * 0x158;
+        uint8_t *definition = (uint8_t *)tag_instances[*(datum_index *)(system + 8) & 0xffff].data;
+        int32_t type_index;
 
-        if (system->object_index == k_datum_index_none) {
-            int32_t leaf = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, &system->position);
-
-            system->location.leaf_index = leaf;
-            system->location.cluster_index = (leaf == -1) ? -1 :
-                *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (uint32_t)leaf * 0x10 + 8);
-
-            if (system->location.cluster_index == -1) {
-                particle_system_delete(system_index);
-                deleted = 1;
-            }
+        if (*(datum_index *)(system + 0xc) != k_datum_index_none) {
+            object_get_root_location((int32_t *)(system + 0x18), *(datum_index *)(system + 0xc));
         } else {
-            object_get_root_location(); // UNSURE, see file header
+            uint32_t leaf = bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)(system + 0x20));
+            int16_t cluster = particle_leaf_cluster(leaf);
+
+            *(uint32_t *)(system + 0x18) = leaf;
+            *(int16_t *)(system + 0x1c) = cluster;
+            if (cluster == -1) {
+                particle_system_delete(handle);
+                continue;
+            }
         }
+        for (type_index = 0; type_index < *(int32_t *)(definition + 0x5c); type_index++) {
+            datum_index *link = (datum_index *)(system + 0x94 + type_index * 0x40);
 
-        if (!deleted) {
-            int32_t i;
+            while (*link != k_datum_index_none) {
+                uint8_t *particle = (uint8_t *)particle_system_particle_data->data + (*link & 0xffff) * 0x80;
+                uint32_t leaf = bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)(particle + 0x1c));
+                int16_t cluster = particle_leaf_cluster(leaf);
 
-            for (i = 0; i < (int32_t)tag->particle_types.count; i++) {
-                datum_index *link = &system->type_states[i].first_particle;
+                *(uint32_t *)(particle + 0x14) = leaf;
+                *(int16_t *)(particle + 0x18) = cluster;
+                if (cluster == -1) {
+                    datum_index doomed = *link;
 
-                while (*link != k_datum_index_none) {
-                    particle_system_particle *p =
-                        &((particle_system_particle *)particle_system_particle_data->data)[(uint16_t)*link];
-                    int32_t leaf = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, (real_point3d *)&p->position);
-
-                    p->location.leaf_index = leaf;
-                    p->location.cluster_index = (leaf == -1) ? -1 :
-                        *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (uint32_t)leaf * 0x10 + 8);
-
-                    if (p->location.cluster_index == -1) {
-                        datum_index next = p->next_particle;
-                        datum_delete(particle_system_particle_data, *link);
-                        *link = next;
-                    } else {
-                        link = &p->next_particle;
-                    }
+                    datum_delete(particle_system_particle_data, doomed);
+                    *link = *(datum_index *)(particle + 4);
+                } else {
+                    link = (datum_index *)(particle + 4);
                 }
             }
         }
-
-        system_index = datum_next((int16_t)system_index, particle_system_data);
     }
 }
 

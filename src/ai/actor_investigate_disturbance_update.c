@@ -27,7 +27,7 @@ extern void actor_movement_action_stop(datum_index actor_index); // 0x417570, th
 extern uint8_t actor_movement_set_destination_point(real_point3d *destination, datum_index actor_index,
                                                     int32_t parameter, uint32_t extra); // 0x417610, this module,
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX object, stack mask
-extern char unit_enter_vehicle_seat(uint32_t unit_object_index, int16_t seat); // 0x566970
+extern uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index); // 0x566970, EAX unit, stack
 
 // FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads EAX; actor_index arrive(s) on the stack (1 stack argument(s)).
 // blam-cc: stack -> actor_index
@@ -110,7 +110,8 @@ int32_t actor_investigate_disturbance_update(uint32_t actor_index)
                         facing_flag = 1;
                         done_flag = 1;
                     enter_seat:
-                        unit_enter_vehicle_seat(target, (int16_t)node_table);
+                        // 0x408d4f: stack actor+0x9c (vehicle), +0xa0 (seat), EAX = actor+0x18 (its unit)
+                        unit_enter_vehicle_seat(*(uint32_t *)m, *(int16_t *)(m + (0xa0 - 0x9c)), a->unit_index);
                         m[0xa4 - 0x9c] = 1;
                     }
 

@@ -24,7 +24,7 @@ extern uint8_t message_delta_decode_compound_field(void); // 0x4ec590, UNSURE si
 extern void message_delta_decode_compound_field_staged(void);    // 0x4ec670, UNSURE signature
 extern object * object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); // 0x569970
-extern void unit_ready_desired_weapon(uint32_t unit_index); // 0x56d6e0
+extern void unit_ready_desired_weapon(uint32_t unit_index, uint8_t force); // 0x56d6e0, stack (unit, force)
 extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force); // 0x56dec0
 
 void unit_scripting_set_or_drop_weapon(int32_t *message, int32_t target_slot, int32_t from_slot, uint8_t force)
@@ -59,7 +59,7 @@ void unit_scripting_set_or_drop_weapon(int32_t *message, int32_t target_slot, in
         for (int32_t i = 0; i < k_maximum_weapons_per_unit; i++) {
             if (unit->weapons[i] == from_weapon) {
                 unit->desired_weapon_index = (int16_t)i;
-                unit_ready_desired_weapon(unit_index);
+                unit_ready_desired_weapon(unit_index, 1);
                 break;
             }
         }

@@ -1,19 +1,14 @@
 // ai_process_vehicle_entry_queue  (Ghidra: ai_process_vehicle_entry_queue, already named)
 // address 0x42bf90, size 423 bytes
-// name confidence: 0.9   rewrite confidence: 0.4
-// evidence: out/phase4/ai_functions.md signature; types/tags.h Unit.seats (TagReflexive at
-// Unit+0x2e4, inherited by Vehicle) and UnitSeat.built_in_gunner (TagDependency at
-// UnitSeat+0xf8, its tag_id therefore at +0x104) account for the seat-walk and the
-// built-in-gunner tag id test; types/objects.h object.parent_object (0x11c) accounts for the
-// vehicle's carrier lookup before the marker-transform call.
-// register convention: plain __cdecl, no parameters (drains ai_globals's own queue).
+// name confidence: 0.9   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x42bf90..0x42c136 (the draft left the placement request out of actor_place_new_unit,
+//   never used the transformed point and entered the seat without the gunner's unit).
+//   For every queued vehicle (ai_globals +0x8bc, count +0x8b8), every seat (tag +0x2e4/+0x2e8, 0x11c each) with a
+//   built-in gunner (seat +0x104) gets a zeroed placement request (+0x1a = -1) at the vehicle's position (+0x5c),
+//   or that position through its parent's node matrix (parent +0x1f2 node array, vehicle +0x120 node) when it is
+//   carried; the gunner actor is placed (actor_place_new_unit(tag, -1, -1, 0, 0, EAX request)) and its unit
+//   (actor +0x18) enters the seat (EAX unit, stack vehicle, seat). The queue is then emptied.
 // blam-cc: (no arguments)
-//
-// UNSURE: matrix4x3_transform_point's EAX (out point) and EDX (source point) registers are
-// not traced by this function -- its own result is never read back here, so the call is
-// reproduced for its side effect only, with UNSURE placeholders for out/point.
-// UNSURE: object+0x1f2 (an int16 read as a node/point count) and object+0x120 (a per-vehicle
-// byte, the placed unit's assigned marker/node index) are not named in types/objects.h.
 
 #include "tags.h"
 #include "memory.h"
@@ -21,77 +16,57 @@
 #include "cache.h"
 #include "objects.h"
 #include "ai.h"
+#include <string.h>
 
 extern ai_globals *ai_globals_ptr;  // 0x00880354
 extern data_array *object_data;     // 0x008603b0
+extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern datum_index actor_place_new_unit(datum_index actor_variant_tag_id, datum_index param_2,
-                                         datum_index param_3, uint32_t param_4, uint32_t param_5); // 0x427080, not yet rewritten
-extern void matrix4x3_transform_point(real_point3d *out, const real_point3d *point,
-                                      const real_matrix4x3 *matrix); // 0x4cbde0, UNSURE: EAX/EDX not traced here
-extern char unit_enter_vehicle_seat(uint32_t unit_object_index, int16_t seat); // 0x566970, not yet rewritten
+extern datum_index actor_place_new_unit(datum_index actor_variant_or_palette_tag, datum_index encounter_index,
+    int16_t squad_index, uint8_t use_palette_entry, uint16_t unit_type_index,
+    const actor_placement_request *placement_request); // 0x427080, stack, EAX request
+extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0
+extern uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index); // 0x566970
 
-// blam-cc: (no arguments)
-// Drains ai_globals's queued "unit wants to enter this vehicle" requests. For each queued
-// vehicle, walks its Vehicle/Unit tag's seat list; every seat with a built-in gunner
-// actor_variant assigned gets a freshly placed unit (optionally repositioning the vehicle's
-// carrying parent object's matching node first), which then boards that seat.
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+
 void ai_process_vehicle_entry_queue(void)
 {
     int16_t queue_index;
-    datum_index vehicle_object_index;
-    object *vehicle_object;
-    Vehicle *vehicle_tag;
-    int32_t seat_count;
-    int32_t seat_index;
-    UnitSeat *seats;
-    datum_index built_in_gunner_tag_id;
-    datum_index parent_object_index;
-    object *parent_object;
-    datum_index placed_unit;
-    real_point3d out_point;
-    real_point3d source_point;
 
-    if (ai_globals_ptr->vehicle_entry_count < 1) {
-        ai_globals_ptr->vehicle_entry_count = 0;
-        return;
-    }
+    for (queue_index = 0; queue_index < ai_globals_ptr->vehicle_entry_count; queue_index++) {
+        datum_index vehicle_index = ai_globals_ptr->vehicle_entry_queue[queue_index];
+        uint8_t *vehicle_tag = (uint8_t *)tag_instances[*(datum_index *)OBJECT_DATA(vehicle_index) & 0xffff].data;
+        int16_t seat_index;
 
-    queue_index = 0;
-    do {
-        vehicle_object_index = ai_globals_ptr->vehicle_entry_queue[queue_index];
-        vehicle_object = ((object_header *)object_data->data)[vehicle_object_index & 0xffff].data;
-        vehicle_tag = (Vehicle *)tag_instances[vehicle_object->definition_tag & 0xffff].data;
+        for (seat_index = 0; seat_index < *(int32_t *)(vehicle_tag + 0x2e4); seat_index++) {
+            datum_index gunner_tag = *(datum_index *)(*(uint8_t **)(vehicle_tag + 0x2e8) + seat_index * 0x11c + 0x104);
+            actor_placement_request request;
+            uint8_t *vehicle;
+            datum_index actor_index;
 
-        seat_count = vehicle_tag->base.seats.count;
-        if (0 < seat_count) {
-            seats = (UnitSeat *)vehicle_tag->base.seats.pointer;
-            seat_index = 0;
-            do {
-                built_in_gunner_tag_id = *(datum_index *)&seats[seat_index].built_in_gunner.tag_id;
-                if (built_in_gunner_tag_id != (datum_index)k_datum_index_none) {
-                    vehicle_object = ((object_header *)object_data->data)[vehicle_object_index & 0xffff].data;
-                    parent_object_index = vehicle_object->parent_object;
-                    if (parent_object_index != (datum_index)k_datum_index_none) {
-                        parent_object = ((object_header *)object_data->data)[parent_object_index & 0xffff].data;
-                        matrix4x3_transform_point(&out_point, &source_point,
-                            (real_matrix4x3 *)((uint8_t *)parent_object +
-                                *(int16_t *)((uint8_t *)parent_object + 0x1f2) +
-                                (int32_t)*(int8_t *)((uint8_t *)vehicle_object + 0x120) * 0x34));
-                    }
-                    placed_unit = actor_place_new_unit(built_in_gunner_tag_id, (datum_index)k_datum_index_none,
-                                                        (datum_index)k_datum_index_none, 0, 0);
-                    if (placed_unit != (datum_index)k_datum_index_none) {
-                        unit_enter_vehicle_seat(vehicle_object_index, seat_index);
-                    }
-                }
-                seat_index = seat_index + 1;
-            } while ((int16_t)seat_index < seat_count);
+            if (gunner_tag == k_datum_index_none) {
+                continue;
+            }
+            memset(&request, 0, 0x1c);
+            *(int16_t *)((uint8_t *)&request + 0x1a) = -1;
+            vehicle = OBJECT_DATA(vehicle_index);
+            if (*(datum_index *)(vehicle + 0x11c) == k_datum_index_none) {
+                request.position = *(real_point3d *)(vehicle + 0x5c);
+            } else {
+                uint8_t *parent = OBJECT_DATA(*(datum_index *)(vehicle + 0x11c));
+
+                matrix4x3_transform_point(&request.position, (real_point3d *)(vehicle + 0x5c),
+                    (real_matrix4x3 *)(parent + *(int16_t *)(parent + 0x1f2) + (int8_t)vehicle[0x120] * 0x34));
+            }
+            actor_index = actor_place_new_unit(gunner_tag, k_datum_index_none, -1, 0, 0, &request);
+            if (actor_index != k_datum_index_none) {
+                unit_enter_vehicle_seat(vehicle_index, seat_index,
+                    *(datum_index *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724 + 0x18));
+            }
         }
-        queue_index = queue_index + 1;
-    } while (queue_index < ai_globals_ptr->vehicle_entry_count);
-
+    }
     ai_globals_ptr->vehicle_entry_count = 0;
 }
 

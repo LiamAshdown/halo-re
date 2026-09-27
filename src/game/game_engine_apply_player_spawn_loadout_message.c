@@ -51,7 +51,7 @@ extern void unit_apply_starting_profile(int16_t starting_profile_index, datum_in
     uint8_t reset_stats); // 0x473c50, already rewritten
 extern void game_engine_apply_player_grenade_counts(uint32_t player_index); // 0x4613c0
 extern void unit_pickup_weapon(datum_index unit_handle, uint8_t is_primary); // 0x56d400, units module;
-extern void unit_enter_vehicle_seat(datum_index vehicle_index, int32_t seat); // 0x566970, UNSURE exact signature
+extern uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index); // 0x566970, EAX unit, stack vehicle, seat
 extern uint8_t player_add_kill_streak(int32_t slot, int16_t amount, uint32_t player_handle); // this batch, 0x479ba0
 
 // Decodes an incoming spawn-loadout message and, once the target player and unit are both
@@ -159,7 +159,7 @@ void game_engine_apply_player_spawn_loadout_message(void **envelope, uint32_t pl
                             datum_index vehicle = *(datum_index *)((uint8_t *)object_pooled_node_globals +
                                 0x28 + message.seat_vehicle_pooled_id * 4);
                             if (vehicle != (datum_index)0xffffffff) {
-                                unit_enter_vehicle_seat(vehicle, message.seat_number);
+                                unit_enter_vehicle_seat(vehicle, (int16_t)message.seat_number, p->unit); // 0x477e4b: EAX = player +0x34
                             }
                         }
 

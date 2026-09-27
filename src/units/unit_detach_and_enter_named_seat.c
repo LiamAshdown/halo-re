@@ -47,7 +47,7 @@ extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const i
 static const int8_t k_unit_exit_seat_request[2] = {0x14, 0}; // every caller builds these two bytes on its stack
 extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
 extern uint8_t unit_all_seats_unoccupied(uint32_t unit_index);                      // 0x566910
-extern void unit_enter_vehicle_seat(uint32_t target_parent_index, int32_t seat_index); // 0x566970  // real signature (unit_enter_vehicle_seat.c): uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index); Ghidra recovered 2 of 3 args at this call site
+extern uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index); // 0x566970, EAX unit, stack vehicle, seat
 extern void unit_dispatch_scripted_event_9(uint32_t param_1);                            // 0x56c370, UNSURE signature  // real signature (unit_dispatch_scripted_event_9.c): void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key); Ghidra recovered 1 of 2 args at this call site
 extern uint8_t unit_is_seat_occupied(int32_t parent_index, int16_t seat_index); // 0x56cc10, UNSURE signature
 extern void unit_recompute_seat_occupants(uint32_t unit_index);                         // 0x56ce30
@@ -171,7 +171,7 @@ void unit_detach_and_enter_named_seat(uint32_t unit_index, uint32_t target_paren
                     return;
                 }
             }
-            unit_enter_vehicle_seat(target_parent_index, found_index);
+            unit_enter_vehicle_seat(target_parent_index, (int16_t)found_index, unit_index); // 0x56a26d: EAX = unit
         }
     }
     return;

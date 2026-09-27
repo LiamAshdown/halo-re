@@ -2,7 +2,9 @@
 // already named)
 // address 0x5651e0, size 564 bytes
 // name confidence: 0.75 (already carries this name; cea-pdb hint agrees)   rewrite
-//   confidence: 0.3
+//   confidence: 0.85 (REWRITTEN from objdump 0x5651e0..0x565413: the draft skipped weapon slot 0 and stopped at
+//   the first match; the binary keeps searching every seat/weapon so the last match wins, and param 3 means
+//   apply -- 0 only tests)
 // evidence: types/tags.h ModelAnimationsAnimationGraphUnitSeat (label TagString at +0x0,
 //   animations TagReflexive at 0x40, weapons TagReflexive at 0x58),
 //   ModelAnimationsAnimationGraphWeapon (weapon_types TagReflexive at 0xb0),
@@ -30,6 +32,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include <string.h>
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -38,112 +41,79 @@ extern char *unit_base_animation_state_names[6]; // 0x0069fde4, PTR_DAT_0069fde4
 extern int32_t __stricmp(const char *a, const char *b); // 0x628d8b
 
 uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_label, char *weapon_label,
-                                                uint8_t test_only) // blam-cc: see file header
+                                                uint8_t apply) // blam-cc: see file header
 {
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     Object *obj_tag = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
-    void *graph = tag_instances[obj_tag->animation_graph.tag_id.index].data;
-    uint8_t *unit_block = *(uint8_t **)((uint8_t *)graph + 0x10);
-    int32_t unit_count = *(int32_t *)((uint8_t *)graph + 0xc);
-
+    uint8_t *graph = (uint8_t *)tag_instances[obj_tag->animation_graph.tag_id.index].data;
     uint8_t found = 0;
-    int16_t seat_i = 0;          // local_c
-    int16_t weapon_slot = 0;     // sVar4
-    int16_t weapon_type_i = 0;   // sVar3
-    ModelAnimationsAnimationGraphUnitSeat *seat = 0; // _Str2
-    ModelAnimationsAnimationGraphWeapon *weapon_anim = 0;
-    uint8_t aiming_animations_present = 0; // bVar12
+    int16_t seat_i;
 
-    if (unit_count <= 0) {
-        return 0;
-    }
+    for (seat_i = 0; seat_i < *(int32_t *)(graph + 0xc); seat_i++) {
+        ModelAnimationsAnimationGraphUnitSeat *seat =
+            (ModelAnimationsAnimationGraphUnitSeat *)(*(uint8_t **)(graph + 0x10) + seat_i * 0x64);
+        int16_t weapon_slot;
 
-    for (seat_i = 0; seat_i < unit_count; seat_i++) {
-        seat = (ModelAnimationsAnimationGraphUnitSeat *)(unit_block + seat_i * 100);
-        if ((seat_label == 0 || __stricmp(seat_label, seat->label.string) == 0) &&
-            (weapon_slot = 0, (int32_t)seat->weapons.count > 0)) {
-            goto try_weapon_slot;
+        if (seat_label != 0 && __stricmp(seat_label, seat->label.string) != 0) {
+            continue;
+        }
+        for (weapon_slot = 0; weapon_slot < (int32_t)seat->weapons.count; weapon_slot++) {
+            ModelAnimationsAnimationGraphWeapon *weapon_anim =
+                (ModelAnimationsAnimationGraphWeapon *)((uint8_t *)seat->weapons.pointer + weapon_slot * 0xbc);
+            int16_t weapon_type_i;
 
-        weapon_slot_loop:
-            weapon_anim = (ModelAnimationsAnimationGraphWeapon *)((uint8_t *)seat->weapons.pointer +
-                                                                    weapon_slot * 0xbc);
-            weapon_type_i = 0;
-            if ((int32_t)weapon_anim->weapon_types.count > 0) {
-                for (weapon_type_i = 0; weapon_type_i < (int32_t)weapon_anim->weapon_types.count; weapon_type_i++) {
-                    ModelAnimationsAnimationGraphWeaponType *weapon_type =
-                        (ModelAnimationsAnimationGraphWeaponType *)((uint8_t *)weapon_anim->weapon_types.pointer +
-                                                                     weapon_type_i * 0x3c);
-                    uint8_t matched = 0;
-                    if (weapon_label == 0) {
-                        matched = 1;
-                    } else {
-                        uint8_t is_unarmed = 1;
-                        const char *a = weapon_label;
-                        const char *b = "unarmed";
-                        for (int32_t k = 8; k != 0; k--) {
-                            is_unarmed = (*a == *b);
-                            if (!is_unarmed) {
-                                break;
-                            }
-                            a++;
-                            b++;
-                        }
-                        if ((is_unarmed && weapon_type->label.string[0] == '\0') ||
-                            __stricmp(weapon_label, weapon_type->label.string) == 0) {
-                            matched = 1;
-                        }
-                    }
-                    if (matched) {
-                        if (test_only == 0) {
-                            found = 1;
-                            goto done;
-                        }
-                        int32_t animation_count = (int32_t)seat->animations.count;
-                        int16_t *seat_animations = (int16_t *)seat->animations.pointer;
-                        if ((animation_count < 3 || seat_animations[2] == -1) &&
-                            (animation_count < 4 || seat_animations[3] == -1) &&
-                            (animation_count < 5 || seat_animations[4] == -1)) {
-                            aiming_animations_present = 0;
-                        } else {
-                            aiming_animations_present = 1;
-                        }
-                        if (unit->animation_state != 0x1c) {
-                            unit->animation_state = -1;
-                        }
-                        unit->animation_definition_index = (int8_t)seat_i;
-                        goto name_lookup;
-                    }
+            for (weapon_type_i = 0; weapon_type_i < (int32_t)weapon_anim->weapon_types.count; weapon_type_i++) {
+                ModelAnimationsAnimationGraphWeaponType *weapon_type =
+                    (ModelAnimationsAnimationGraphWeaponType *)((uint8_t *)weapon_anim->weapon_types.pointer +
+                                                                 weapon_type_i * 0x3c);
+
+                if (weapon_label == 0) {
+                    break;
+                }
+                // 0x5652c2: repz cmpsb against "unarmed" (8 bytes, case-sensitive, NUL included)
+                if (strcmp(weapon_label, "unarmed") == 0 && weapon_type->label.string[0] == '\0') {
+                    break;
+                }
+                if (__stricmp(weapon_label, weapon_type->label.string) == 0) {
+                    break;
                 }
             }
-        try_weapon_slot:
-            weapon_slot++;
-            if (weapon_slot < (int32_t)seat->weapons.count) {
-                goto weapon_slot_loop;
+            if (weapon_type_i >= (int32_t)weapon_anim->weapon_types.count) {
+                continue; // 0x5653d6: no weapon type matched (or the weapon has none)
             }
-        }
-    }
-    return found;
+            if (apply) {
+                int32_t animation_count = (int32_t)seat->animations.count;
+                int16_t *seat_animations = (int16_t *)seat->animations.pointer;
+                uint8_t aiming = (uint8_t)((animation_count > 2 && seat_animations[2] != -1) ||
+                                           (animation_count > 3 && seat_animations[3] != -1) ||
+                                           (animation_count > 4 && seat_animations[4] != -1));
+                int8_t base_state = -1;
+                int16_t i;
 
-name_lookup: // matches LAB_00565370: reached only via the goto above
-    for (int16_t i = 0; i < 6; i++) {
-        if (__stricmp(seat_label, unit_base_animation_state_names[i]) == 0) {
-            unit->base_animation_state = (int8_t)i;
-            break;
-        }
-        if (i == 5) {
-            unit->base_animation_state = -1; // no match: the original leaves sVar8 at -1
+                if ((uint8_t)unit->animation_state != 0x1c) {
+                    unit->animation_state = -1;
+                }
+                unit->animation_definition_index = (int8_t)seat_i;
+                for (i = 0; i < 6; i++) {
+                    if (__stricmp(seat_label, unit_base_animation_state_names[i]) == 0) {
+                        base_state = (int8_t)i;
+                        break;
+                    }
+                }
+                unit->animation_weapon_type_index = (int8_t)weapon_type_i;
+                unit->base_animation_state = base_state;
+                unit->animation_weapon_index = (int8_t)weapon_slot;
+                if (aiming) {
+                    *((uint8_t *)&unit->animation_state_flags) |= 2;
+                } else {
+                    *((uint8_t *)&unit->animation_state_flags) &= 0xfd;
+                }
+            }
+            // 0x5653d1: a match never ends the search; the last matching seat/weapon wins
+            found = 1;
         }
     }
-    unit->animation_weapon_type_index = (int8_t)weapon_type_i;
-    unit->animation_weapon_index = (int8_t)weapon_slot;
-    if (aiming_animations_present) {
-        unit->animation_state_flags = unit->animation_state_flags | _unit_animation_flag_aiming_enabled;
-    } else {
-        unit->animation_state_flags = unit->animation_state_flags & (uint16_t)~_unit_animation_flag_aiming_enabled;
-    }
-    found = 1;
-done:
     return found;
 }
 

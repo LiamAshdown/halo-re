@@ -1052,3 +1052,27 @@ OPEN:
   starts) and 0x404cb4 (a dormant call) are inside unwritten functions.
 - 17 AI files still carry SIGNATURE-CONFLICT externs (grep SIGNATURE-CONFLICT); 420 (void)-extern calls to
   functions that take arguments remain (scratchpad/voidext.py).
+
+## 2026-09-27 (loop) -- a10 intro cinematic plays, purple tint fixed
+Result: from the pristine save (sandboxed profile) CONTINUE loads a10 and the opening cinematic plays with
+correct lighting (Keyes on the bridge, NAV displays); 200 s under cdb with no crash (the only exception is
+keystone.dll faulting in its DLL detach after `timeout` kills cdb, exit code 143).
+- PURPLE TINT: object_build_effect_parameter_block (0x4f2ff0) had its parameters in a different order from its
+  caller; rewritten (ambient 0.4*lm+0.03, distant lights from the lightmap and base colours, shadow vector).
+- particle systems bsp activate proc (0x454080), AI bsp deactivate proc (0x42c940), sky animation call,
+  hs object teleport (0x487f50), effect marker node table resolver (0x451850/0x451930) -- as before, now committed.
+- unit_set_or_test_seat_and_weapon_label (0x5651e0) REWRITTEN: the draft skipped weapon slot 0 and stopped at the
+  first match, so single-weapon graphs (vehicles) never got +0x2a0/+0x2a1 and unit_try_set_animation_state indexed
+  block -1 (the block_animation crash). Param 3 is "apply" (0 = test only).
+- unit_ready_desired_weapon (0x56d6e0) REWRITTEN (stack unit, force; every caller passes 1); 4 callers fixed.
+- unit_enter_vehicle_seat (0x566970) REWRITTEN (EAX unit, stack vehicle, seat): position delta into the seat
+  marker frame, enter animation slot 7, occupant recompute on the vehicle. Callers fixed: actor enter-vehicle mode
+  (0x408d4f), ai_process_vehicle_entry_queue (REWRITTEN, placement request was dropped), spawn loadout, named seat.
+- light_volume_render (0x4fe900) queued the wrong arguments; NEW light_volume_render_procedure (0x4fea80, the
+  lens flare callback, was unwritten). object_attachment_get_blended_marker really blends a frame with itself in
+  the binary (edx on both sides) -- the draft is right.
+- NEW antenna_render_geometry (0x4fb340); antenna_update_physics called point_physics_tick by another name (trap).
+OPEN:
+- point_physics_tick (0x50b530) is 0.45 confidence and now runs for antennas/particles/flags -- verify.
+- ~345k first-chance access violations per 200 s run under cdb (handled somewhere); find the source.
+- real profile still holds saves written by earlier standalone runs; backup in build/profile_backup (not restored).

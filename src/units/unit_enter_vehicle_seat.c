@@ -1,27 +1,20 @@
 // unit_enter_vehicle_seat  (Ghidra: unit_enter_vehicle_seat, already named)
 // address 0x566970, size 652 bytes
-// name confidence: 0.7 (already carries this name)   rewrite confidence: 0.2
-// evidence: types/tags.h Unit.seats (TagReflexive at 0x2e4/0x2e8, UnitSeat stride 0x11c,
-//   marker_name TagString at +0x24), Object.animation_graph (tag+0x44) -> the same
-//   +0x0c/+0x10 unit-block chain used by unit_try_set_animation_state (frame_count at
-//   ModelAnimationsAnimation+... via the unit-seat animations table, count/pointer at 0x40/
-//   0x44); types/objects.h object.parent_object (0x11c), .definition_tag (0x000),
-//   .animation_graph/animation_index/animation_frame (0xcc/0xd0/0xd2); types/units.h
-//   unit_data.vehicle_seat_index (0x2f0), .actor_index (0x1f4), .animation_state (0x2a3),
-//   .current_weapon_index/.desired_weapon_index (0x2f2/0x2f4). unit_seat_is_occupied_by_other
-//   (0x566840), unit_set_or_test_seat_and_weapon_label (0x5651e0), unit_get_current_weapon_label
-//   (0x56dfd0), unit_ready_desired_weapon (0x56d6e0), object_get_node_local_transform,
-//   object_reorient_relative_to_marker (resolved signature: see src/objects/
-//   object_reorient_relative_to_marker.c).
-// register convention: vehicle index in the recognized parameter, seat index in the second
-//   parameter, entering-unit index in EAX.
-//   // blam-cc: param_1 -> vehicle_index, param_2 -> seat_index, in_EAX -> unit_index
-// UNSURE: object_get_position, matrix4x3_inverse_transform_vector and unit_find_next_zone_permitted_weapon_slot/
-//   unit_recompute_seat_occupants/object_offset_node_translation are called with argument counts or outputs Ghidra could not
-//   fully recover; reproduced with the visible arguments only, output discarded where the
-//   original never captured one. unit_seat_is_occupied_by_other (unit_seat_is_occupied_by_other) is called with
-//   only its seat-index and out-pointer parameters visible; self_index/vehicle_index are
-//   modelled as this function's own unit_index/vehicle_index.
+// name confidence: 0.7 (already carries this name)   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x566970..0x566bfb (the draft discarded object_get_position's output, called the marker
+//   inverse transform, occupant recompute, weapon slot search, default transforms, permutation and node offset
+//   without their arguments). EAX = unit, stack: vehicle, seat.
+//   Refused (returns 0) when unit_seat_is_occupied_by_other(EAX unit, EDX vehicle, stack seat, 0) says the seat is
+//   taken. Otherwise the unit's position minus the seat marker's world position (object_get_node_local_transform
+//   of the vehicle's seat marker, tag seat +0x24) is brought into the marker frame (0x4cc010, EAX = EDX = delta,
+//   stack marker +0x38), the unit is attached at the marker (0x4f6180 stack vehicle, marker; ESI unit, EDI ""),
+//   takes the seat (+0x2f0) and parent (+0x11c), the vehicle's occupants are recomputed (EAX vehicle), the unit
+//   readies the next zone-permitted weapon from its current one and its animation labels become the seat's
+//   label (+4) with its weapon, falling back to the seat label alone. When the unit's seat animations (graph
+//   units[+0x2a0]) have an enter animation (slot 7), the unit restarts it (default transforms, 6; state 0x1a)
+//   and is offset back by the delta so it animates from where it stood (0x4f6c10, 0x4f82b0). An AI-driven unit
+//   (+0x1f4) broadcasts 0x24, the weapon switch is validated, and the vehicle's +0x5ac is cleared.
+// blam-cc: EAX -> unit_index, stack -> vehicle_index, seat_index
 
 #include "tags.h"
 #include "memory.h"
@@ -33,98 +26,100 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-// object_get_position (0x4f6900, defined in src/objects/object_get_position.c) writes the
-// object position through the pointer in EAX and leaves that same pointer in EAX on return;
-// the object index is in ECX. Ghidra binds a different subset of the two operands at each call
-// site in this module, so the declaration is left unprototyped.
-extern real_point3d *object_get_position();
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
-                                                object_marker *marker, uint32_t flags);   // 0x4f6080
-extern void matrix4x3_inverse_transform_vector(void *out);                               // 0x4cc010, UNSURE signature
-  // real signature (matrix4x3_inverse_transform_vector.c): void matrix4x3_inverse_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); Ghidra recovered 1 of 3 args at this call site
+extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX out, ECX object
+extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
+    uint32_t flags); // 0x4f6080, stack
+extern void matrix4x3_inverse_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); // 0x4cc010
 extern void object_reorient_relative_to_marker(uint32_t parent_index, char *parent_marker_name,
-                                                uint32_t object_index, char *object_marker_name); // 0x4f6180
-extern void unit_recompute_seat_occupants(void);                                                          // 0x56ce30, UNSURE: no traced args
-  // real signature (unit_recompute_seat_occupants.c): void unit_recompute_seat_occupants(uint32_t unit_index); Ghidra recovered 0 of 1 args at this call site
-extern int16_t unit_find_next_zone_permitted_weapon_slot(int16_t current_weapon_index, uint32_t flag);                // 0x56dba0, UNSURE signature
-  // real signature (unit_find_next_zone_permitted_weapon_slot.c): int16_t unit_find_next_zone_permitted_weapon_slot(uint32_t unit_index, int32_t start_slot, int16_t direction); Ghidra recovered 2 of 3 args at this call site
-extern void unit_ready_desired_weapon(uint32_t unit_index, uint32_t flag);                // 0x56d6e0, UNSURE: Ghidra bound no arguments here
-  // real signature (unit_ready_desired_weapon.c): void unit_ready_desired_weapon(uint32_t unit_index); Ghidra recovered 2 of 1 args at this call site
-extern char * unit_get_current_weapon_label(uint32_t unit_index);                               // 0x56dfd0
-extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_label,
-                                                     char *weapon_label, uint8_t test_only); // 0x5651e0,
-// unit_index in EAX; this matches the definition in unit_set_or_test_seat_and_weapon_label.c.
-// The phase-4 review pass corrected the arity (Ghidra binds only the stack arguments at these
-// call sites) and the return type (the callee returns a byte, tested in AL).
-extern void object_copy_default_node_transforms(void);                                                          // 0x4f6b70
-  // real signature (object_copy_default_node_transforms.c): void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count); Ghidra recovered 0 of 2 args at this call site
-extern int16_t animation_choose_random_permutation(uint32_t flag);                                              // 0x4d6280
-extern void object_offset_node_translation(void);                                                          // 0x4f6c10, UNSURE: no traced args
-  // real signature (object_offset_node_translation.c): void object_offset_node_translation(uint32_t object_index, real_vector3d *delta); Ghidra recovered 0 of 2 args at this call site
-extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);         // 0x4f82b0, index in a register
+    uint32_t object_index, char *object_marker_name); // 0x4f6180, stack, stack, ESI, EDI
+extern void unit_recompute_seat_occupants(uint32_t unit_index); // 0x56ce30, EAX
+extern int16_t unit_find_next_zone_permitted_weapon_slot(uint32_t unit_index, int32_t start_slot,
+    int16_t direction); // 0x56dba0, EAX, stack
+extern void unit_ready_desired_weapon(uint32_t unit_index, uint8_t force); // 0x56d6e0, stack (unit, force)
+extern char *unit_get_current_weapon_label(uint32_t unit_index); // 0x56dfd0, EAX
+extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_label, char *weapon_label,
+    uint8_t apply); // 0x5651e0, EAX, stack
+extern void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count); // 0x4f6b70, EAX, DX
+extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation,
+    int32_t stream); // 0x4d6280, EAX, DX, stack
+extern void object_offset_node_translation(uint32_t object_index, real_vector3d *delta); // 0x4f6c10, EAX, EDX
+extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0, stack
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a,
     int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340, all stack
-extern void unit_validate_and_clear_weapon_switch(uint32_t unit_index);                                           // unit_validate_and_clear_weapon_switch, 0x5659c0
-extern object * object_try_and_get(datum_index object_index, uint32_t type_mask);          // 0x4f6ec0
+extern void unit_validate_and_clear_weapon_switch(uint32_t unit_index); // 0x5659c0, stack
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
 extern uint8_t unit_seat_is_occupied_by_other(uint32_t self_index, int16_t seat_index, uint32_t vehicle_index,
-                                               uint32_t *out_occupant_index);             // 0x566840
+    uint32_t *out_occupant_index); // 0x566840, EAX self, EDX vehicle, stack seat, out
 
-uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index) // blam-cc: see file header
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+
+uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index)
 {
+    uint8_t *unit;
+    uint8_t *seat;
+    uint8_t *unit_tag;
+    uint8_t *unit_seat;
+    char *marker_name;
+    real_point3d position;
+    real_vector3d delta;
+    object_marker marker;
+
     if (unit_seat_is_occupied_by_other(unit_index, seat_index, vehicle_index, 0) == 0) {
         return 0;
     }
+    seat = *(uint8_t **)(TAG_DATA(*(datum_index *)OBJECT_DATA(vehicle_index)) + 0x2e8) + seat_index * 0x11c;
+    object_get_position(&position, unit_index);
+    marker_name = (char *)(seat + 0x24);
+    object_get_node_local_transform(vehicle_index, marker_name, &marker, 1);
+    delta.i = position.x - marker.node_transform.position.x;
+    delta.j = position.y - marker.node_transform.position.y;
+    delta.k = position.z - marker.node_transform.position.z;
+    matrix4x3_inverse_transform_vector(&delta, &delta, &marker.node_transform);
+    object_reorient_relative_to_marker(vehicle_index, marker_name, unit_index, (char *)"");
 
-    object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
-    Unit *vehicle_tag = (Unit *)tag_instances[((object_header *)object_data->data)[vehicle_index & 0xffff].data->definition_tag & 0xffff].data;
-    UnitSeat *seat = (UnitSeat *)((uint8_t *)vehicle_tag->seats.pointer + seat_index * 0x11c);
+    unit = OBJECT_DATA(unit_index);
+    *(int16_t *)(unit + 0x2f0) = seat_index;
+    *(datum_index *)(unit + 0x11c) = vehicle_index;
+    unit_recompute_seat_occupants(vehicle_index);
 
-    object_get_position(vehicle_index); // UNSURE: output discarded, see file header
-
-    object_marker marker = {0};
-    object_get_node_local_transform(vehicle_index, seat->marker_name.string, &marker, 1);
-    matrix4x3_inverse_transform_vector(&marker); // UNSURE
-    object_reorient_relative_to_marker(vehicle_index, seat->marker_name.string, unit_index, 0);
-
-    unit->vehicle_seat_index = seat_index;
-    unit_obj->parent_object = (datum_index)vehicle_index;
-    unit_recompute_seat_occupants();
-
-    unit->desired_weapon_index = unit_find_next_zone_permitted_weapon_slot(unit->current_weapon_index, 0);
-    unit_ready_desired_weapon(unit_index, 0); // UNSURE: Ghidra bound no arguments at this call site
-
-    char *weapon_label = unit_get_current_weapon_label(1);
-    if (unit_set_or_test_seat_and_weapon_label(unit_index, seat->label.string, weapon_label, 0) == 0) {
-        unit_set_or_test_seat_and_weapon_label(unit_index, seat->label.string, 0, 1);
+    unit = OBJECT_DATA(unit_index);
+    *(int16_t *)(unit + 0x2f4) =
+        unit_find_next_zone_permitted_weapon_slot(unit_index, *(uint16_t *)(unit + 0x2f2), 0);
+    unit_ready_desired_weapon(unit_index, 1);
+    if (unit_set_or_test_seat_and_weapon_label(unit_index, (char *)(seat + 4), unit_get_current_weapon_label(unit_index),
+            1) == 0) {
+        unit_set_or_test_seat_and_weapon_label(unit_index, (char *)(seat + 4), 0, 1);
     }
 
-    Object *obj_tag = (Object *)tag_instances[unit_obj->definition_tag & 0xffff].data;
-    void *graph = tag_instances[obj_tag->animation_graph.tag_id.index].data;
-    uint8_t *unit_block = *(uint8_t **)((uint8_t *)graph + 0x10);
-    ModelAnimationsAnimationGraphUnitSeat *unit_seat =
-        (ModelAnimationsAnimationGraphUnitSeat *)(unit_block + unit->animation_definition_index * 100);
+    unit_tag = TAG_DATA(*(datum_index *)unit);
+    unit_seat = *(uint8_t **)(TAG_DATA(*(datum_index *)(unit_tag + 0x44)) + 0x10) + (int8_t)unit[0x2a0] * 0x64;
+    if (*(int32_t *)(unit_seat + 0x40) > 7 && (*(int16_t **)(unit_seat + 0x44))[7] != -1) {
+        int16_t enter_animation = (*(int16_t **)(unit_seat + 0x44))[7];
+        uint8_t *reloaded;
+        int16_t animation;
 
-    if ((int32_t)unit_seat->animations.count > 7 &&
-        *(int16_t *)((uint8_t *)unit_seat->animations.pointer + 0xe) != -1) {
-        object_copy_default_node_transforms();
-        int16_t instance = animation_choose_random_permutation(1);
-        unit_obj->animation_graph = *(datum_index *)&obj_tag->animation_graph.tag_id;
-        unit_obj->animation_index = instance;
-        unit_obj->animation_frame = 0;
-        unit->animation_state = 0x1a;
-        object_offset_node_translation();
-        object_recalculate_bounding_radius_recursive(unit_index); // UNSURE: register-carried
+        object_copy_default_node_transforms(unit_index, 6);
+        animation = animation_choose_random_permutation(*(datum_index *)(unit_tag + 0x44), enter_animation, 1);
+        reloaded = OBJECT_DATA(unit_index);
+        *(datum_index *)(reloaded + 0xcc) = *(datum_index *)(unit_tag + 0x44);
+        *(int16_t *)(reloaded + 0xd0) = animation;
+        *(int16_t *)(reloaded + 0xd2) = 0;
+        unit[0x2a3] = 0x1a;
+        object_offset_node_translation(unit_index, &delta);
+        object_recalculate_bounding_radius_recursive(unit_index);
     }
 
-    if (unit->actor_index != (datum_index)-1) {
-        ai_communication_broadcast(0x24, unit_index, (datum_index)-1, -1, (datum_index)-1, (datum_index)-1, 0);
+    if (*(datum_index *)(OBJECT_DATA(unit_index) + 0x1f4) != k_datum_index_none) {
+        ai_communication_broadcast(0x24, unit_index, k_datum_index_none, -1, k_datum_index_none, k_datum_index_none, 0);
     }
     unit_validate_and_clear_weapon_switch(unit_index);
+    {
+        uint8_t *vehicle = (uint8_t *)object_try_and_get(vehicle_index, 2);
 
-    object *player = object_try_and_get((datum_index)2, 2); // UNSURE: literal `2` reproduced as both args, see original
-    if (player != 0) {
-        *(int32_t *)((uint8_t *)player + 0x5ac) = -1;
+        if (vehicle != 0) {
+            *(int32_t *)(vehicle + 0x5ac) = -1;
+        }
     }
     return 1;
 }

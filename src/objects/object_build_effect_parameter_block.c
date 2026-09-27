@@ -1,159 +1,112 @@
-// object_build_effect_parameter_block
+// object_build_effect_parameter_block  (FUN_004f2ff0; really builds an object's render_lighting from a lightmap sample)
 // address 0x4f2ff0, size 1049 bytes
-// name confidence: 0.3 (still FUN_004f2ff0 in Ghidra; functions.md's summary: "Builds a
-//   per-effect parameter block (color, randomized direction, saturation thresholds) from an
-//   object's base/damage colors and normal vector, likely feeding a decal or particle-effect
-//   spawn")
-// rewrite confidence: 0.2
-// evidence: callee object_color_clamp_to_intensity (0x4f3410, this batch, matched onto the four
-//   FUN_004f3410 calls at the end, though the ColorRGB* each call targets is not visible here
-//   and is not guessed at). Nothing else in this function is covered by types/objects.h -- the
-//   four hidden pointers (in_EAX/in_ECX/in_EDX/unaff_ESI) and the output block's true type
-//   belong to whatever decal/particle/effect system consumes this block, entirely outside this
-//   module's recovered types.
-// register convention: flags byte in EAX (param_1), a 3-float vector in ECX (in_ECX, used as a
-//   base color), a 3-float vector in EDX (in_EDX, used as a damage color), a 3-float vector in
-//   EAX... -- Ghidra could not resolve which physical registers carry in_EAX/in_ECX/in_EDX/
-//   unaff_ESI at all; they are listed here in the order Ghidra printed them, not a verified
-//   register assignment. param_2 (a 3-float vector) and param_3 (a scalar) are the two visible
-//   stack/register parameters.
-// UNSURE: essentially this entire function. It is transliterated close to line-for-line from
-//   the decompilation, with the output block kept as a flat float array (matching the indices
-//   Ghidra itself used) and the four hidden input vectors kept as real_vector3d* rather than
-//   guessing a named struct. The DAT_00689474/78/7c constants are preserved as opaque named
-//   externs (a small "effect blend constants" table) since their exact values/meaning were not
-//   examined.
+// name confidence: 0.3   rewrite confidence: 0.9
+// REWRITTEN from objdump 0x4f2ff0..0x4f3408. The draft took its seven arguments in a different order from its one
+//   caller (object_lighting_sample_point 0x4f2550), so lightmap directions landed in the light colour slots -- the
+//   dark blue/purple tint on every object. Registers: ECX the lightmap colour, EAX the lightmap normal, EDX the
+//   base map colour, ESI the render_lighting out; stack flags, the shading normal, the lightmap intensity.
+//   - ambient = 0.4 * lightmap colour + 0.03 (globals 0x689478 / 0x689474); two distant lights:
+//     0: the lightmap colour from the negated lightmap normal; 1: base map colour x luminance (x 0x68947c) from the
+//        shading normal;
+//   - reflection tint: alpha clamp01(luminance * 1.5 + 0.25), rgb clamp01(base * 3 + 0.5) * clamp01(lightmap * 2 + 0.25);
+//   - shadow: the light-0 direction's xy scaled by intensity^0.25, with z = -sqrt(1 - h^2) (h < 0.707) or the xy
+//     rescaled to 0.707 and z = -0.7071; shadow colour clamp(1 - 1.3 * light-0 colour + (1 - intensity) / 2, 0.03, 1);
+//   - flag 4 (brighter than it should be) clamps ambient 0.2, light 0 0.3, light 1 0.2, tint 0.5 (0x4f3410) and the
+//     tint alpha becomes 1.
+// blam-cc: stack -> flags, shading_normal, intensity; ECX -> lightmap_color, EAX -> lightmap_normal,
+//   EDX -> base_map_color, ESI -> lighting
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
-#include "objects.h"
+#include "rasterizer.h"
 
-extern float effect_blend_constant_474; // 0x00689474, UNSURE: unexamined
-extern float effect_blend_constant_478; // 0x00689478, UNSURE: unexamined
-extern float effect_blend_constant_47c; // 0x0068947c, UNSURE: unexamined
+extern double pow(double x, double y);
+extern double sqrt(double x);
 
-extern double sqrt(double x); // see object_lights_gather_nearest.c
-// 0x6283c0 is the MSVC x87 pow intrinsic (_CIpow): it checks MXCSR/the FPU control word and
-// tail-jumps to 0x6328a0, taking both operands off the x87 stack rather than the C stack. The
-// call site at 0x4f327e pushes a float from the frame and then the double constant at
-// 0x00672d58, which the image holds as exactly 0.25 -- so this is pow(x, 0.25), a fourth root,
-// NOT the random-number source an earlier draft guessed at.
-extern double pow(double x, double y); // CRT pow (0x6283c0: _CIpow, SSE2-dispatched)
-extern void object_color_clamp_to_intensity(float intensity, ColorRGB *color); // 0x4f3410, this
-    // batch; UNSURE: called with no visible color pointer at this call site, see file header
+extern float object_lighting_ambient_bias;      // 0x00689474 (0.03)
+extern float object_lighting_ambient_scale;     // 0x00689478 (0.4)
+extern float object_lighting_base_light_scale;  // 0x0068947c (1.0)
 
-static float clamp01(float v)
+extern void object_color_clamp_to_intensity(float intensity, ColorRGB *color); // 0x4f3410, stack, ECX
+
+static float clamp_range(float value, float low, float high)
 {
-    if (v < 0.0f) {
-        return 0.0f;
+    if (!(value >= low)) {
+        return low;
     }
-    if (v > 1.0f) {
-        return 1.0f;
+    if (value > high) {
+        return high;
     }
-    return v;
+    return value;
 }
 
-void object_build_effect_parameter_block(uint8_t param_1, real_vector3d *param_2, float param_3,
-    real_vector3d *hidden_eax, real_vector3d *base_color, real_vector3d *damage_color,
-    float *output)
-    // blam-cc: EAX -> param_1, stack -> param_2, param_3; UNSURE: hidden_eax/base_color/
-    //          damage_color/output are Ghidra's in_EAX/in_ECX/in_EDX/unaff_ESI, register
-    //          assignment not verified (see file header)
+void object_build_effect_parameter_block(uint8_t flags, real_vector3d *shading_normal, float intensity,
+    ColorRGB *lightmap_color, real_vector3d *lightmap_normal, ColorRGB *base_map_color, render_lighting *lighting)
 {
-    float luminance = base_color->j * 0.587f + base_color->k * 0.114f + base_color->i * 0.299f;
-    float t1, t2, t3, t4;
-    float len;
-    double gamma; // pow(x, 0.25)
+    float luminance = lightmap_color->red * 0.299f + lightmap_color->blue * 0.114f + lightmap_color->green * 0.587f;
+    float tint_red, tint_green;
+    float shadow_scale;
+    float x, y, h;
+    float half_dark;
 
-    output[0] = effect_blend_constant_478 * base_color->i + effect_blend_constant_474;
-    output[1] = effect_blend_constant_478 * base_color->j + effect_blend_constant_474;
-    t1 = effect_blend_constant_478 * base_color->k + effect_blend_constant_474;
-    *(int16_t *)(output + 3) = 2;
-    output[2] = t1;
-    output[4] = base_color->i;
-    output[5] = base_color->j;
-    output[6] = base_color->k;
-    output[7] = -hidden_eax->i;
-    output[8] = -hidden_eax->j;
-    output[9] = -hidden_eax->k;
-    output[10] = effect_blend_constant_47c * damage_color->i * luminance;
-    output[11] = effect_blend_constant_47c * damage_color->j * luminance;
-    output[12] = effect_blend_constant_47c * luminance * damage_color->k;
-    output[13] = param_2->i;
-    output[14] = param_2->j;
-    luminance = luminance * 1.5f + 0.25f;
-    output[15] = param_2->k;
-    output[0x13] = clamp01(luminance);
+    lighting->ambient_color.red = object_lighting_ambient_scale * lightmap_color->red + object_lighting_ambient_bias;
+    lighting->ambient_color.green = object_lighting_ambient_scale * lightmap_color->green + object_lighting_ambient_bias;
+    lighting->ambient_color.blue = object_lighting_ambient_scale * lightmap_color->blue + object_lighting_ambient_bias;
+    lighting->distant_light_count = 2;
 
-    t1 = clamp01(base_color->i * 3.0f + 0.5f);
-    output[0x14] = t1;
-    t2 = clamp01(base_color->j * 3.0f + 0.5f);
-    output[0x15] = t2;
-    t3 = clamp01(base_color->k * 3.0f + 0.5f);
-    output[0x16] = t3;
+    lighting->distant_lights[0].color = *lightmap_color;
+    lighting->distant_lights[0].direction.i = -lightmap_normal->i;
+    lighting->distant_lights[0].direction.j = -lightmap_normal->j;
+    lighting->distant_lights[0].direction.k = -lightmap_normal->k;
 
-    t4 = clamp01(base_color->i + base_color->i + 0.25f);
-    output[0x14] = t4 * t1;
-    t1 = clamp01(base_color->j + base_color->j + 0.25f);
-    output[0x15] = t1 * t2;
-    t1 = clamp01(base_color->k + base_color->k + 0.25f);
-    output[0x16] = t1 * t3;
+    lighting->distant_lights[1].color.red = object_lighting_base_light_scale * base_map_color->red * luminance;
+    lighting->distant_lights[1].color.green = object_lighting_base_light_scale * base_map_color->green * luminance;
+    lighting->distant_lights[1].color.blue = object_lighting_base_light_scale * luminance * base_map_color->blue;
+    lighting->distant_lights[1].direction = *shading_normal;
 
-    gamma = pow(luminance, 0.25); // UNSURE: the base is the float at [esp+0x1c];
-                                          // the exponent 0.25 is read from the image
-    output[0x17] = (float)(gamma * output[7]);
-    output[0x18] = (float)(gamma * output[8]);
-    len = (float)sqrt((double)(output[0x18] * output[0x18] + output[0x17] * output[0x17]));
-    if (len >= 0.707f) {
-        output[0x19] = -0.707f;
-        output[0x17] = (float)(gamma * output[7]) * (0.707f / len);
-        output[0x18] = (float)(gamma * output[8]) * (0.707f / len);
+    lighting->reflection_tint.alpha = clamp_range(luminance * 1.5f + 0.25f, 0.0f, 1.0f);
+    tint_red = clamp_range(base_map_color->red * 3.0f + 0.5f, 0.0f, 1.0f);
+    lighting->reflection_tint.red = tint_red;
+    tint_green = clamp_range(base_map_color->green * 3.0f + 0.5f, 0.0f, 1.0f);
+    lighting->reflection_tint.green = tint_green;
+    lighting->reflection_tint.blue = clamp_range(base_map_color->blue * 3.0f + 0.5f, 0.0f, 1.0f);
+    lighting->reflection_tint.red = clamp_range(lightmap_color->red + lightmap_color->red + 0.25f, 0.0f, 1.0f) * tint_red;
+    lighting->reflection_tint.green = clamp_range(lightmap_color->green + lightmap_color->green + 0.25f, 0.0f, 1.0f) * tint_green;
+    lighting->reflection_tint.blue = clamp_range(lightmap_color->blue + lightmap_color->blue + 0.25f, 0.0f, 1.0f) *
+        lighting->reflection_tint.blue;
+
+    // 0x4f3274: _CIpow(intensity, 0.25)
+    shadow_scale = (float)pow((double)intensity, 0.25);
+    x = shadow_scale * lighting->distant_lights[0].direction.i;
+    y = shadow_scale * lighting->distant_lights[0].direction.j;
+    lighting->shadow_vector.i = x;
+    lighting->shadow_vector.j = y;
+    h = (float)sqrt((double)(x * x + y * y));
+    if (h < 0.707f) {
+        lighting->shadow_vector.k = -(float)sqrt((double)(1.0f - h * h));
     } else {
-        output[0x19] = -(float)sqrt((double)(1.0f - len * len));
+        float rescale = 0.707f / h;
+
+        lighting->shadow_vector.k = -0.70710677f;
+        lighting->shadow_vector.i = x * rescale;
+        lighting->shadow_vector.j = y * rescale;
     }
 
-    t1 = (1.0f - param_3) * 0.5f;
-    t2 = (1.0f - output[4] * 1.3f) + t1;
-    t3 = effect_blend_constant_474;
-    if (effect_blend_constant_474 <= t2) {
-        t3 = t2;
-        if (t2 > 1.0f) {
-            t3 = 1.0f;
-        }
-    }
-    output[0x1a] = t3;
+    half_dark = (1.0f - intensity) * 0.5f;
+    lighting->shadow_color.red = clamp_range(1.0f - lighting->distant_lights[0].color.red * 1.3f + half_dark,
+        object_lighting_ambient_bias, 1.0f);
+    lighting->shadow_color.green = clamp_range(1.0f - lighting->distant_lights[0].color.green * 1.3f + half_dark,
+        object_lighting_ambient_bias, 1.0f);
+    lighting->shadow_color.blue = clamp_range(1.0f - lighting->distant_lights[0].color.blue * 1.3f + half_dark,
+        object_lighting_ambient_bias, 1.0f);
 
-    t2 = (1.0f - output[5] * 1.3f) + t1;
-    t3 = effect_blend_constant_474;
-    if (effect_blend_constant_474 <= t2) {
-        t3 = t2;
-        if (t2 > 1.0f) {
-            t3 = 1.0f;
-        }
-    }
-    output[0x1b] = t3;
-
-    t1 = (1.0f - output[6] * 1.3f) + t1;
-    t2 = effect_blend_constant_474;
-    if (effect_blend_constant_474 <= t1) {
-        t2 = t1;
-        if (t1 > 1.0f) {
-            t2 = 1.0f;
-        }
-    }
-    output[0x1c] = t2;
-
-    if ((param_1 & 4) != 0) {
-        // UNSURE: none of the four ColorRGB* targets are visible at these call sites. The
-        // guesses below pick the four 3-float regions this function itself produced, in roughly
-        // the order they were computed, purely because the count (4) and shapes line up; there
-        // is no direct evidence tying a given call to a given region.
-        object_color_clamp_to_intensity(0.2f, (ColorRGB *)(output + 0));
-        object_color_clamp_to_intensity(0.3f, (ColorRGB *)(output + 4));
-        object_color_clamp_to_intensity(0.2f, (ColorRGB *)(output + 10));
-        object_color_clamp_to_intensity(0.5f, (ColorRGB *)(output + 0x1a));
-        output[0x13] = 1.0f;
+    if ((flags & 4) != 0) {
+        object_color_clamp_to_intensity(0.2f, &lighting->ambient_color);
+        object_color_clamp_to_intensity(0.3f, &lighting->distant_lights[0].color);
+        object_color_clamp_to_intensity(0.2f, &lighting->distant_lights[1].color);
+        object_color_clamp_to_intensity(0.5f, (ColorRGB *)&lighting->reflection_tint.red);
+        lighting->reflection_tint.alpha = 1.0f;
     }
 }
 
