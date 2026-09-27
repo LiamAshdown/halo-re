@@ -1,5 +1,5 @@
 // unit_throw_grenade_move_to_hand  (Ghidra: unit_throw_grenade_move_to_hand, already named)
-// address 0x56e280, size 446 bytes, name confidence 0.65, rewrite confidence 0.2
+// address 0x56e280, size 446 bytes, name confidence 0.65, rewrite confidence 0.85 (placement block REWRITTEN from objdump; gate verified)
 // functions.md: "Spawns the grenade projectile object for a throw and attaches it to the unit's
 // left-hand marker, advancing the throw-state machine."
 // evidence: types/units.h unit_data.controlling_player (0x218), .actor_index (0x1f4),
@@ -59,25 +59,23 @@ void unit_throw_grenade_move_to_hand(uint32_t unit_index)
         return;
     }
 
+    // REWRITTEN from objdump 0x56e344..0x56e3d6: the placement (a full 0x88-byte object_placement_data) gets
+    //   position = the world "left hand" marker position (marker +0x60), forward = the unit's aiming vector
+    //   (+0x23c) and up = normalize(perpendicular(forward)). The draft wrote a perpendicular into +0x20 and
+    //   left the position at the unit origin.
     object_marker hand_marker;
     object_get_node_local_transform(unit_index, "left hand", &hand_marker, 1);
 
-    uint8_t placement[0x60]; // UNSURE: object_placement_data's real size/layout
-    TagID projectile_tag = *(TagID *)(grenade_table + grenade_type * 0x44 + 0x40);
-    // UNSURE-CALL: Ghidra shows two arguments (the projectile tag id and the unit index); the
-    // placement buffer itself is register-passed and was not recovered, so it is supplied here
-    // in the position the real signature gives it.
-    object_placement_data_initialize((object_placement_data *)placement,
-                                     *(datum_index *)&projectile_tag, unit_index);
-    *(uint32_t *)(placement + 4) |= 2; // UNSURE: local_f4 flags field
+    object_placement_data placement;
+    object_placement_data_initialize(&placement, *(datum_index *)(grenade_table + grenade_type * 0x44 + 0x40),
+                                     unit_index);
+    placement.flags |= 2;
+    placement.forward = *(real_vector3d *)((uint8_t *)unit_obj + 0x23c);
+    vector3d_build_perpendicular(&placement.up, &placement.forward);
+    vector3d_normalize_with_length(&placement.up);
+    placement.position = *(real_point3d *)((uint8_t *)&hand_marker + 0x60); // node_transform.position
 
-    real_vector3d aiming = unit->aiming_vector;
-    real_vector3d perpendicular;
-    vector3d_build_perpendicular(&perpendicular, &aiming);
-    vector3d_normalize_with_length(&perpendicular);
-    *(real_vector3d *)(placement + 0x20) = perpendicular; // UNSURE: local_e0/dc/d8 target field
-
-    uint32_t projectile_index = object_new_with_datum_role_control((object_placement_data *)placement, 3);
+    uint32_t projectile_index = object_new_with_datum_role_control(&placement, 3);
     if (projectile_index != 0xffffffff) {
         object_attach_to_object(unit_index, projectile_index, hand_marker.node_index);
         unit->throwing_grenade_projectile = projectile_index;

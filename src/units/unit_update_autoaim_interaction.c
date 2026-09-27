@@ -1,7 +1,7 @@
 // unit_update_autoaim_interaction  (Ghidra: FUN_00570720; renamed from the phase2 proposal)
 // address 0x570720, size 277 bytes
 // name confidence: 0.25 (phase2 proposal at 0.25, matches functions.md summary)
-// rewrite confidence: 0.3
+// rewrite confidence: 0.9 (REWRITTEN from objdump)
 // evidence: types/units.h unit_data.flags (0x204, bits 0x2000000 and 0x80 cleared),
 //   .unknown_410 (0x410, "stored by 0x5705a0, read back by 0x570720"); types/objects.h
 //   object.vitality_flags (0x106), object.owner_linkage (0x0c0), .creator_object (0x0c4),
@@ -15,6 +15,7 @@
 // reconciled: R28 object.unknown_0c4 -> datum_index creator_object (same offset 0xc4)
 // reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
 
+#include <string.h>
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -29,47 +30,51 @@ extern object * object_try_and_get(datum_index object_index, uint32_t type_mask)
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t param_3,
                                  int16_t param_4, int16_t param_5, uint32_t param_6); // 0x4ee5e0
 
-// Clears the disoriented and idle-turn-seeded flags for the unit each tick and, if a global
-// interaction target device is set, applies a damage/interaction tick to it.
-// FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
+// REWRITTEN from objdump 0x570720..0x570834 (raw object offsets). Clears unit +0x204 bits 0x2000000 and 0x80 and
+//   object +0x107 bit 3. When globals +0x18c is set and its +0x78 damage effect is not none, builds a damage_data
+//   (damage_data_initialize sentinels) whose responsible player / object / team come from the unit's +0x410
+//   object (creator falling back to +0x410 itself) and applies it to this unit. Finally, unless object +0x106
+//   bit 2 is set, sets +0x106 bit 5. The draft looked up the damage effect as an object and cleared +0x106 bit 3.
 // blam-cc: stack -> unit_index
 void unit_update_autoaim_interaction(uint32_t unit_index)
 {
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
     uint8_t *tracked = *(uint8_t **)(globals_tag_data + 0x18c);
 
-    unit->flags &= ~0x02000000u;
-    obj->vitality_flags &= 0xfff7; // UNSURE: clears object+0x107 bit 3
-    unit->flags &= ~0x00000080u;
+    *(uint32_t *)(obj + 0x204) &= ~0x02000000u;
+    obj[0x107] &= 0xf7;
+    *(uint32_t *)(obj + 0x204) &= ~0x00000080u;
 
     if (tracked != 0) {
-        datum_index target_object = *(datum_index *)(tracked + 0x78);
-        if (target_object != k_datum_index_none) {
-            object *target = object_try_and_get(target_object, 0xffffffff);
-            damage_data dd = {0};
+        datum_index damage_effect = *(datum_index *)(tracked + 0x78);
+        if (damage_effect != k_datum_index_none) {
+            uint8_t *source = (uint8_t *)object_try_and_get(*(datum_index *)(obj + 0x410), 0xffffffff);
+            damage_data dd;
 
-            dd.team_index = -1;
+            memset(&dd, 0, sizeof(dd));
+            dd.damage_effect_tag = damage_effect;
+            dd.material_type = -1;
+            dd.responsible_player = k_datum_index_none;
             dd.responsible_object = k_datum_index_none;
-            dd.responsible_player = -1;
+            dd.team_index = -1;
+            dd.location_cluster_index = -1;
             dd.random_blend = 1.0f;
             dd.multiplier = 1.0f;
-
-            if (target != 0) {
-                dd.responsible_player = target->owner_linkage;
-                dd.responsible_object = target->creator_object;
-                if (dd.responsible_object == k_datum_index_none) {
-                    dd.responsible_object = unit->unknown_410;
+            if (source != 0) {
+                datum_index creator = *(datum_index *)(source + 0xc4);
+                dd.responsible_player = *(datum_index *)(source + 0xc0);
+                if (creator == k_datum_index_none) {
+                    creator = *(datum_index *)(obj + 0x410);
                 }
-                dd.team_index = target->owner_team;
+                dd.responsible_object = creator;
+                dd.team_index = *(int16_t *)(source + 0xb8);
             }
-            dd.damage_effect_tag = target_object; // literal reuse of the same value, see header
             object_apply_damage(&dd, unit_index, -1, -1, -1, 0);
         }
     }
 
-    if ((obj->vitality_flags & 4) == 0) {
-        obj->vitality_flags |= 0x20;
+    if ((*(uint16_t *)(obj + 0x106) & 4) == 0) {
+        *(uint16_t *)(obj + 0x106) |= 0x20;
     }
 }
 

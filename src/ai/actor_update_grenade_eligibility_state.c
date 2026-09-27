@@ -1,6 +1,6 @@
 // actor_update_grenade_eligibility_state  (Ghidra: actor_update_grenade_eligibility_state; named for this rewrite)
 // address 0x42f370, size 261 bytes
-// name confidence: 0.35   rewrite confidence: 0.3
+// name confidence: 0.35   rewrite confidence: 0.9 (verified against objdump 0x42f370..0x42f474)
 // evidence: phase-4 summary ("periodically re-evaluates an actor's grenade-eligibility state
 // and, once a countdown expires, queues a corresponding communication/behavior event").
 // register convention: EAX -> actor_index (in_EAX, the only register Ghidra's own decompile

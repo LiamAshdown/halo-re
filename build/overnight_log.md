@@ -1632,3 +1632,6 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - actor_should_hold_position 0x4105c0 (0.2 -> 0.9): takes the actor definition (EDX) and sets the hold timer +0x5f4 to
   a random span of def +0x80..+0x84 seconds (the draft stored 0); actor_update_firing_state passes it.
 - actor_reseed_movement_pause_timer header updated (already a faithful rewrite).
+- unit_update_autoaim_interaction (0x570720): REWRITTEN from objdump. Clears object +0x107 bit 3 (draft cleared +0x106 bit 3); damage_data source is the unit's +0x410 object (draft looked up the damage effect index as an object); added the location_cluster/material -1 sentinels. 0.3 -> 0.9.
+- unit_throw_grenade_move_to_hand (0x56e280): placement block REWRITTEN. Full object_placement_data (draft used a 0x60 buffer, overflowing into the stack); position = left-hand marker world position, forward = aiming vector, up = normalized perpendicular. The draft spawned grenades at the unit origin with garbage orientation. 0.2 -> 0.85.
+- actor_update_grenade_eligibility_state header marked verified (0.9).
