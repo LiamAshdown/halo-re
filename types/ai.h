@@ -746,7 +746,7 @@ typedef struct prop {
     float distance;                   // 0x11c the ascending sort key of ai_target_distance_qsort_compare
     uint8_t unknown_120;              // 0x120
     uint8_t unknown_121;              // 0x121
-    uint8_t unknown_122;              // 0x122
+    int8_t unknown_122;               // 0x122 signed: every ordered compare in the binary is jg / jle (2026-09-28)
     uint8_t unknown_123;              // 0x123
     uint8_t unknown_124;              // 0x124
     uint8_t unknown_125;              // 0x125

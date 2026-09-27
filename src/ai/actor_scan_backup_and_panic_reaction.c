@@ -1,6 +1,6 @@
 // actor_scan_backup_and_panic_reaction  (Ghidra: actor_scan_backup_and_panic_reaction, renamed)
 // address 0x423220, size 423 bytes
-// name confidence: 0.35   rewrite confidence: 0.35
+// name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x423220..0x4233c6 (+0x122 compared as a signed byte).)
 // evidence: types/ai.h actor.unknown_8d, actor.unknown_308/unknown_30c (danger-slot pair,
 //   shared with the whole 0x423220..0x423670 family), actor.unknown_39c; prop.is_unit (0x60),
 //   prop.actor_type (0x10), prop.distance (0x11c), prop.unknown_32/unknown_122,
@@ -79,7 +79,7 @@ void actor_scan_backup_and_panic_reaction(datum_index target_prop_index, datum_i
         prop *ally = &((prop *)prop_data->data)[relevant & 0xffff];
 
         if (ally->is_unit != 0) {
-            if (ally->unknown_32 > 0 && ally->unknown_122 < 3) {
+            if (ally->unknown_32 > 0 && (int8_t)ally->unknown_122 <= 2) { // 0x42333d: signed byte compare
                 float chance = actor_tag->friend_killed_panic_chance;
                 int roll_ok;
 
