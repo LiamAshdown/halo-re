@@ -982,3 +982,19 @@ Remaining step-1 code gap:
   an inline array (multiplayer / lightning only). decal_place's geometry packing is still not reproduced.
 - Test harness: loader key driver HALO_STANDALONE_KEYS (in-process keystrokes); CONTINUE = "30000:ENTER,3000:ENTER".
   Profile backup: build/profile_backup/Halo_2026-09-26 (the standalone may write checkpoints to the real profile).
+
+## 2026-09-27 play-test session (campaign a10 via CONTINUE)
+Fixed in this stretch: transparent group lighting source; the 10 unlisted structure bsp activate/deactivate
+procs; the game state revert hook and after-load procs 5/8/10/12; the ECX request buffer for
+unit_update_animation_state_machine (11 callers); unit_update powered seats; the limp body solve chain
+(0x557a90/0x557b80/0x558000/0x558a20) rewritten from objdump; effect_event_apply (0x452cf0) and
+decal_spawn_for_response (0x44ece0) rewritten; every sound_start_at_object_marker caller on the 7-argument
+stable prototype.
+OPEN:
+- STUCK unit_can_see_point (0x56f800) / unit_melee_attack_scan (0x56f550): 0x56f800 starts mid-function
+  (reads [esp+0x13c] first), so the two files look like a mis-split of one melee scan; the material hit
+  effect call at 0x56fb73 passes ECX ebx / EDX [esp+0x144], not traced -- both C callers pass -1 for now
+  (no sound). Needs a boundary check and rewrite.
+- vehicle_update (0x570ee0) is a draft: unit_update_steering_deviation_effects is called with only the
+  object (0x57162f also passes EAX = a frame array and ECX = a direction), unit_update_marker_skid_effects
+  and unit_update_ground_contact_counter lack their arguments. Rewrite from objdump before driving.

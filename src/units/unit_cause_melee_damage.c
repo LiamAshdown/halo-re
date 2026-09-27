@@ -45,7 +45,7 @@ extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *orig
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t param_3,
                                  int16_t param_4, int16_t param_5, uint32_t param_6); // 0x4ee5e0
 extern void damage_apply_area_effect(damage_data *request, uint32_t param_2); // 0x4edd30  // real signature (damage_apply_area_effect.c): void damage_apply_area_effect(damage_data *dd); Ghidra recovered 2 of 1 args at this call site
-extern void unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_tag_id); // 0x56f210
+extern void unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_tag_id, datum_index object_index); // 0x56f210
 
 // Performs the unit's melee attack: locates the "melee" marker (falling back to the unit's
 // bounding center, and re-checking line of sight from the center to the marker), resolves the
@@ -123,7 +123,7 @@ void unit_cause_melee_damage(uint32_t unit_index, uint8_t suppress_effect, uint3
         }
 
         if (suppress_effect == 0 && dd.material_type != -1) {
-            unit_trigger_material_hit_effect(dd.material_type, k_datum_index_none);
+            unit_trigger_material_hit_effect(dd.material_type, damage_effect, unit_index); // 0x56f513: ECX the damage effect, EDX the unit
         }
 
         unit->melee_state = 0;

@@ -30,7 +30,10 @@ extern void ai_propagate_communication_reaction(datum_index object_index, void *
 extern void ai_communication_play_event_line(void);  // 0x42eee0, UNSURE: no traced args
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
                                                 object_marker *marker, uint32_t flags); // 0x4f6080, UNSURE args
-extern datum_index sound_start_at_object_marker(datum_index sound_tag, void *position, float volume, uint32_t flag); // 0x543ce0, UNSURE signature
+extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward,
+    datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint); // 0x543ce0, ESI, ECX, EAX, stack
+extern const real_point3d *global_zero_point3d_pointer; // 0x006966f8
+extern const real_vector3d *global_forward3d_pointer;   // 0x00696718
 extern void unit_choose_dialogue_variant(uint32_t unit_index); // 0x561990, UNSURE: implicit unit_index
 extern int32_t unit_commit_speech(uint32_t unit_index, const unit_speech *source, int16_t mode); // 0x560f20
 
@@ -61,11 +64,24 @@ void unit_update_animation_timers(uint32_t unit_index) // blam-cc: in_EAX -> uni
     if (unit->current_speech.priority > 0) {
         if (unit->speech_delay_ticks < 1) {
             if (unit->speech_started == 0) {
-                object_marker marker = {0}; // UNSURE: scratch, see file header
-                int16_t ok = (int16_t)object_get_node_local_transform(unit_index, 0, &marker, 1);
+                // 0x5616f8..0x561799: the "head" marker (0x0066bfa0) gives the node, the local position (+0x2c)
+                // and forward (+0x08); without it the sound sits on node 0 at the zero point facing forward
+                object_marker marker;
+                Point3D position;
+                Vector3D forward;
+                int16_t node_index = 0;
+
+                if ((int16_t)object_get_node_local_transform(unit_index, "head", &marker, 1) != 0) {
+                    node_index = marker.node_index;
+                    position = *(Point3D *)&marker.transform.position;
+                    forward = *(Vector3D *)&marker.transform.forward;
+                } else {
+                    position = *(const Point3D *)global_zero_point3d_pointer;
+                    forward = *(const Vector3D *)global_forward3d_pointer;
+                }
                 if (unit->current_speech.sound_tag != (datum_index)-1) {
-                    unit->speech_sound_handle =
-                        sound_start_at_object_marker(unit->current_speech.sound_tag, ok != 0 ? (void *)&marker : 0, 1.0f, 0);
+                    unit->speech_sound_handle = sound_start_at_object_marker(unit_index, &position, &forward,
+                        unit->current_speech.sound_tag, node_index, 1.0f, 0);
                 }
                 ai_communication_gate_line_played();
                 unit->speech_started = 1;

@@ -30,8 +30,10 @@ extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal
 extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta,
                              uint32_t exclude_object, void *scratch); // 0x505880
 extern uint8_t lerp_find_threshold_byte(real lo, real hi, real threshold); // 0x4cf7a0, UNSURE signature
-extern datum_index sound_start_at_object_marker(datum_index effect_index, void *position, float intensity,
-                                 uint32_t flag); // 0x543ce0, UNSURE signature
+extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward,
+    datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint); // 0x543ce0, ESI, ECX, EAX, stack
+extern const real_point3d *global_zero_point3d_pointer; // 0x006966f8
+extern const real_vector3d *global_forward3d_pointer;   // 0x00696718
 
 // Updates a per-marker traction/wear value for each of the unit's contact points via surface
 // material tests, triggering a friction-spark light effect (Vehicle.suspension_sound, reused
@@ -119,7 +121,8 @@ uint32_t unit_update_marker_traction_effects(uint32_t object_index)
             if (*(int32_t *)((uint8_t *)tag + 0x3bc) != -1 && max_delta > 0.3f) {
                 float scaled = (float)((max_delta - 0.3f) * 1.6666667f);
                 float clamped = (scaled < 0.0f) ? 0.0f : (scaled > 1.0f ? 1.0f : scaled);
-                sound_start_at_object_marker(*(int32_t *)((uint8_t *)tag + 0x3bc), (void *)0xffffffff, clamped, 0);
+                sound_start_at_object_marker(object_index, (Point3D *)global_zero_point3d_pointer, (Vector3D *)global_forward3d_pointer,
+                    *(int32_t *)((uint8_t *)tag + 0x3bc), -1, clamped, 0); // 0x575424: ESI the object (stack arg), ECX *0x006966f8, EAX *0x00696718
                 return 1;
             }
         }

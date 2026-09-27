@@ -43,7 +43,7 @@ extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *orig
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t param_3,
                                  int16_t param_4, int16_t param_5, uint32_t param_6); // 0x4ee5e0
 extern void unit_apply_impulse_to_seat(uint32_t unit_index, real_vector3d *impulse); // 0x571cb0, this batch
-extern void unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_tag_id); // 0x56f210, this batch
+extern void unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_tag_id, datum_index object_index); // 0x56f210, this batch
 extern void breakable_surface_apply_damage(int16_t a, int32_t b); // 0x4ffde0, UNSURE signature
 extern void device_machine_melee_attacked(void); // 0x44b5d0, UNSURE signature
 
@@ -167,7 +167,7 @@ void unit_can_see_point(uint32_t unit_index, real_vector3d *target_direction,
         }
 
         if ((int16_t)best_object_distance != -1) {
-            unit_trigger_material_hit_effect((int16_t)best_object_distance, k_datum_index_none);
+            unit_trigger_material_hit_effect((int16_t)best_object_distance, k_datum_index_none, k_datum_index_none); // STUCK: 0x56fb73 passes ECX ebx / EDX [esp+0x144], not yet traced (see build/overnight_log.md)
             if (secondary_damage_effect != -1) {
                 damage_data dd2 = {0};
                 dd2.damage_effect_tag = secondary_damage_effect;

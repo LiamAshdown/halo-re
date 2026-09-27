@@ -2,9 +2,7 @@
 // address 0x452cf0, size 1156 bytes
 // name confidence: 0.7 (already carries this name; out/phase4/effects_functions.md: "Applies a
 //   single effect event/part by tag group, spawning the corresponding object, decal, damage,
-//   light, particle system, or sound")   rewrite confidence: 0.25 (the 'obje', 'deca' and 'snd!'
-//   branches reuse one on-stack scratch region across mutually exclusive cases in ways this pass
-//   could only partly resolve; see UNSURE notes throughout)
+//   light, particle system, or sound")   rewrite confidence: 0.85
 // evidence: types/tags.h EffectPart (location 0x04, type_class 0x14 -- the fourcc dispatch key,
 //   type.tag_id 0x24, radius_modifier_bounds 0x54, angular_velocity_bounds 0x4c); types/objects.h
 //   object_placement_data (owner_linkage 0x08=role source, position 0x18, velocity 0x28, forward
@@ -18,35 +16,30 @@
 //   particle_system_new_at_point.c; src/effects/decal_spawn_for_response.c (whose own,
 //   already-established signature is entirely register-passed -- see the UNSURE note on the
 //   'deca' branch below, where THIS call site's decompile disagrees with that signature).
-// register convention: this function's own 5 parameters (self, part, marker, up, scale) are
-//   Ghidra-recognized stack parameters (__cdecl-shaped). Two ADDITIONAL vectors are read through
-//   in_EAX/in_ECX. RESOLVED by the phase-4 integration pass, from the 'obje' branch's own
-//   writes: with the scratch struct based where the 'jpt!' branch's damage_data is based,
-//   in_ECX lands on object_placement_data.position (+0x18), in_EAX on .forward (+0x34) and
-//   param_4 on .up (+0x40). The only caller, object_change_color_evaluate 0x4529d0, builds those
-//   three as ONE contiguous 9-float stack block (its local_24 / local_18 / local_c) and passes
-//   the address of the first, so the register pair is simply the second and third slot of the
-//   same block.
-//   // blam-cc: EAX -> forward, ECX -> position, stack -> (self, part, marker, up, scale)
-// UNSURE (major, 'obje' branch): object_placement_data_initialize and object_new are each called
-//   here with only their stack argument(s) visible; their pointer/register arguments (the
-//   placement struct itself, and object_new's role) are reconstructed from the writes that
-//   immediately follow, which land exactly on object_placement_data's position/velocity/forward/
-//   up fields when the placement struct is assumed to start where damage_data starts in the
-//   'jpt!' branch (i.e. this function keeps one scratch object_placement_data/damage_data union
-//   on its stack, reused per branch). effect_random_velocity_vector and
-//   effect_random_direction_vector are each called with only their seed argument visible; every
-//   other argument (direction, bounds, bitsets, self, out) is a guess based on which fields nc
-//   the result ends up in.
-// UNSURE (major, 'deca' branch): FUN_0044ece0 is decal_spawn_for_response, whose own file
-//   establishes a fully register-passed signature (ESI/BL/ECX, no stack arguments at all). This
-//   call site's decompile instead shows four stack-shaped arguments, which cannot both be true;
-//   most likely Ghidra mis-attributed unrelated stack slots (leftover from the immediately
-//   preceding, mostly-elided effect_random_velocity_vector call) as this call's arguments. Kept
-//   as a best-effort call with a random radius-modifier roll preserved (the one part of this
-//   branch that is unambiguous) and the decal call itself heavily flagged.
-// UNSURE ('snd!' branch): sound_start_at_object_marker and sound_start_at_location are outside this batch's address range;
-//   their signatures are modeled minimally from this call site alone.
+// REWRITTEN from objdump 0x452cf0..0x453173 (the draft guessed the sound, decal, object and
+//   particle calls; the sound branch passed the tag as the object).
+// blam-cc: EAX -> forward, ECX -> position, stack -> self, part, marker, up, scale (object_change_color_evaluate
+//   0x452c77 passes one block {up, forward, position}: stack, EAX, ECX)
+// Dispatch on the part tag group (+0x14), tag at +0x24:
+//   ligh (with 0x0068944c > 0): light_new_positioned(tag, self object +0x3c, marker index, marker
+//     position +0x30, scale; EBX marker forward +0x0c). A marker index 0xffff is -1, else & 0x7fff.
+//   jpt!: damage_data_initialize(tag); with a creator (self +0x40, object_try_and_get -1) its +0xc0 goes
+//     to +0x08, the creator to +0x0c and its +0xb8 word to +0x10; scale +0x40, self location +0x10/+0x14
+//     to +0x14/+0x18, position to +0x1c and +0x28, forward to +0x34; damage_apply_area_effect.
+//   deca: effect_random_velocity_vector (EAX self, effect seed 0x00719cd4, forward, part +0x40 +0x44
+//     +0x48 +0x60 +0x64) gives a direction; radius = random_range_real(+0x54, +0x58);
+//     decal_spawn_for_response(ESI tag, BL 0, ECX position, direction, radius, -1).
+//   obje: object_placement_data_initialize(tag, creator); position +0x18, forward +0x34, up +0x40;
+//     velocity +0x28 from effect_random_velocity_vector (global seed 0x00719cd0) plus the effect velocity
+//     (+0x24); angular velocity +0x4c from effect_random_direction_vector (global seed, +0x4c, +0x50);
+//     object_new (ECX placement).
+//   pctl: color {1, self +0x18..+0x20}; velocity from effect_random_velocity_vector (effect seed) plus
+//     the effect velocity; particle_system_new_at_point(tag, position, ECX velocity, EAX color, scale).
+//   snd!: attached (self object != -1): the flag is 1 when the creator is a unit (mask 3) whose player
+//     (+0x218, datum_get on player_data) is local (+0x02 != -1); sound_start_at_object_marker(ESI object,
+//     ECX marker position, EAX marker forward, tag, marker index, scale, flag). Free: a sound_placement
+//     {position, forward, *0x00696714, self location +0x10/+0x14} for sound_start_at_location (EDX tag,
+//     EAX placement, scale).
 
 #include "tags.h"
 #include "memory.h"
@@ -54,176 +47,151 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "sound.h"
 
 extern random_seed random_seed_global;               // 0x00719cd0
 extern random_seed effect_random_seed;                // 0x00719cd4
-extern data_array *object_data;                       // 0x008603b0
-extern int32_t light_count_enabled;                   // 0x0068944c, UNSURE name: gates the
-                                                       // 'ligh' branch, ">0" required
-extern const real_point3d *global_origin3d_pointer;   // 0x00696714, math module
+extern data_array *player_data;                       // 0x0087a480
+extern int16_t light_count_enabled;                   // 0x0068944c, the ligh gate (word, > 0)
+extern const real_vector3d *global_origin3d_pointer;  // 0x00696714
 
 extern real random_range_real(real min, real max); // 0x444af0
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, blam-cc: EDX/ESI
+extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, EDX handle, ESI array
 extern void damage_data_initialize(damage_data *dd, datum_index damage_effect_tag); // 0x4ed990
-extern void damage_apply_area_effect(damage_data *dd); // 0x4edd30
+extern void damage_apply_area_effect(damage_data *dd); // 0x4edd30 (the caller also pushes an unread -1)
 extern datum_index light_new_positioned(datum_index light_tag, int32_t marker_index,
     int16_t marker_sub_index, real_point3d *position, uint32_t param_5, real_vector3d *direction); // 0x4f0c10
 extern void object_placement_data_initialize(object_placement_data *placement,
     datum_index definition_tag, datum_index role); // 0x4f53a0
-extern void object_new(void); // 0x4f5460; UNSURE: real (placement, role) args not visible here,
-    // same as object_new.c's own note about its call to object_new_with_datum_role_control
+extern datum_index object_new(object_placement_data *placement); // 0x4f5460, ECX
 extern void effect_random_velocity_vector(effect *self, random_seed *seed,
     real_vector3d *direction, real_vector3d *out_direction, real_vector3d *out_velocity,
-    real min, real max, real angle_max, uint32_t a_bitset, uint8_t b_bitset);
-    // 0x451310, this module; self in EAX. Every argument except the seed is elided at both call
-    // sites below, so only the seed and where the output lands are evidence here.
+    real min, real max, real angle_max, uint32_t a_bitset, uint8_t b_bitset); // 0x451310, EAX self
 extern void effect_random_direction_vector(random_seed *seed, real_point3d *out, real min,
-    real max); // 0x451450, this module; UNSURE, see file header
+    real max); // 0x451450
 extern datum_index particle_system_new_at_point(uint32_t definition_index, real_point3d *position,
-    real_vector3d *velocity, ColorARGB *color, float scale); // 0x453600, this module
-extern void decal_spawn_for_response(datum_index response_tag_index, uint8_t deterministic,
-    uint32_t *seed_words); // 0x44ece0, this module; UNSURE, see file header
-extern void sound_start_at_object_marker(datum_index sound_tag, uint32_t marker_index, real scale,
-    uint8_t is_valid_unit); // 0x543ce0, outside this batch; UNSURE signature
-extern void sound_start_at_location(void *world_placement, real scale); // 0x543d80, outside this batch;
-    // UNSURE signature: only `scale` is a visible stack argument, the placement block is passed
-    // in a register
+    real_vector3d *velocity, ColorARGB *color, float scale); // 0x453600
+extern void decal_spawn_for_response(datum_index response_tag_index, uint8_t deterministic, real_point3d *origin,
+    real_vector3d *direction, real radius, int32_t marker_index); // 0x44ece0, ESI, BL, ECX, stack
+extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward,
+    datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint); // 0x543ce0, ESI, ECX, EAX, stack
+extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement,
+    float scale); // 0x543d80, EDX, EAX, stack
 
-// Resolves the marker_index field's "no first-person bit, or 0xffff sentinel" convention shared
-// by the light and sound branches.
-static uint32_t effect_event_apply_resolve_marker(effect_location_marker *marker)
+static int32_t effect_event_apply_marker_index(effect_location_marker *marker)
 {
     if (marker->marker_index == 0xffff) {
-        return (uint32_t)0xffffffff;
+        return -1;
     }
-    return (uint32_t)(marker->marker_index & 0x7fff);
+    return marker->marker_index & 0x7fff;
 }
 
-// Dispatches on the EffectPart's referenced tag group (object/decal/damage/light/particle
-// system/sound), spawning the corresponding instance at the resolved marker placement.
+#define PART_FIELD(type, offset) (*(type *)((uint8_t *)part + (offset)))
+#define SELF_FIELD(type, offset) (*(type *)((uint8_t *)self + (offset)))
+
 void effect_event_apply(effect *self, EffectPart *part, effect_location_marker *marker,
     real_vector3d *up, real_vector3d *forward, real_point3d *position, real scale)
 {
     uint32_t group = part->type_class;
+    datum_index tag = PART_FIELD(datum_index, 0x24);
+    real_point3d *marker_position = (real_point3d *)((uint8_t *)marker + 0x30);
+    real_vector3d *marker_forward = (real_vector3d *)((uint8_t *)marker + 0x0c);
 
-    if (group < 0x6f626a66u) {
-        if (group == 0x6f626a65u) { // "obje"
-            // UNSURE: shared scratch object_placement_data, see file header.
-            object_placement_data scratch;
-
-            object_placement_data_initialize(&scratch, part->type.tag_id.index, self->creator_object_index);
-            scratch.position = *position;         // in_ECX
-            scratch.forward = *forward;            // in_EAX
-            scratch.up = *up;                      // param_4
-
-            {
-                real_vector3d scratch_direction; // the call's other output, unused here
-                effect_random_velocity_vector(self, &random_seed_global, 0, &scratch_direction,
-                    &scratch.velocity, 0.0f, 0.0f, 0.0f, 0, 0); // UNSURE, see file header
-            }
-            scratch.velocity.i += self->velocity.i;
-            scratch.velocity.j += self->velocity.j;
-            scratch.velocity.k += self->velocity.k;
-
-            effect_random_direction_vector(&random_seed_global, (real_point3d *)&scratch.angular_velocity,
-                part->angular_velocity_bounds[0], part->angular_velocity_bounds[1]); // UNSURE
-
-            object_new(); // UNSURE: real (placement=&scratch, role) args not visible here
-            return;
+    if (group == 0x6c696768u) { // ligh
+        if (light_count_enabled > 0) {
+            light_new_positioned(tag, (int32_t)SELF_FIELD(datum_index, 0x3c),
+                (int16_t)effect_event_apply_marker_index(marker), marker_position, *(uint32_t *)&scale,
+                marker_forward);
         }
-        if (group == 0x64656361u) { // "deca"
-            real radius_modifier = random_range_real(part->radius_modifier_bounds[0],
-                part->radius_modifier_bounds[1]);
-            uint32_t seed_words[3] = {0, 0xffffffff, 0}; // UNSURE: see file header
-            (void)radius_modifier;
-            decal_spawn_for_response(part->type.tag_id.index, 0, seed_words); // UNSURE, see file header
-            return;
-        }
-        if (group == 0x6a707421u) { // "jpt!"
-            damage_data dd;
-            object *unit = object_try_and_get(self->object_index, _object_mask_all); // UNSURE:
-                // object index reconstructed as self->object_index, see file header
+    } else if (group == 0x6a707421u) { // jpt!
+        damage_data dd;
+        uint8_t *raw = (uint8_t *)&dd;
+        uint8_t *creator = (uint8_t *)object_try_and_get(SELF_FIELD(datum_index, 0x40), 0xffffffff);
 
-            damage_data_initialize(&dd, part->type.tag_id.index);
-            if (unit != (object *)0) {
-                dd.responsible_player = *(uint32_t *)((uint8_t *)unit + 0xc0); // owner_linkage
-                dd.responsible_object = self->creator_object_index;
-                dd.team_index = *(int16_t *)((uint8_t *)unit + 0xb8); // name_index
-            }
-            dd.location_leaf_index = self->location.leaf_index;
-            dd.random_blend = scale;
-            dd.location_cluster_index = self->location.cluster_index;
-            dd.epicentre = *position;   // in_ECX, written twice in the original (see below)
-            dd.origin = *position;      // in_ECX again
-            dd.direction = *forward;    // in_EAX
+        damage_data_initialize(&dd, tag);
+        if (creator != 0) {
+            *(uint32_t *)(raw + 0x08) = *(uint32_t *)(creator + 0xc0);
+            *(datum_index *)(raw + 0x0c) = SELF_FIELD(datum_index, 0x40);
+            *(int16_t *)(raw + 0x10) = *(int16_t *)(creator + 0xb8);
+        }
+        *(real *)(raw + 0x40) = scale;
+        *(uint32_t *)(raw + 0x14) = SELF_FIELD(uint32_t, 0x10);
+        *(uint32_t *)(raw + 0x18) = SELF_FIELD(uint32_t, 0x14);
+        *(real_point3d *)(raw + 0x28) = *position;
+        *(real_point3d *)(raw + 0x1c) = *position;
+        *(real_vector3d *)(raw + 0x34) = *forward;
+        damage_apply_area_effect(&dd);
+    } else if (group == 0x64656361u) { // deca
+        real_vector3d out_direction;
+        real_vector3d direction;
+        real radius;
 
-            damage_apply_area_effect(&dd);
-            return;
-        }
-        if (group == 0x6c696768u && 0 < light_count_enabled) { // "ligh"
-            uint32_t marker_index = effect_event_apply_resolve_marker(marker);
-            light_new_positioned(part->type.tag_id.index, self->object_index, (int16_t)marker_index,
-                &marker->transform.position, scale, 0); // UNSURE: last argument (direction) not
-                    // established at this call site
-            return;
-        }
-    } else if (group == 0x7063746cu) { // "pctl"
+        effect_random_velocity_vector(self, &effect_random_seed, forward, &out_direction, &direction,
+            PART_FIELD(real, 0x40), PART_FIELD(real, 0x44), PART_FIELD(real, 0x48), PART_FIELD(uint32_t, 0x60),
+            PART_FIELD(uint8_t, 0x64));
+        radius = random_range_real(PART_FIELD(real, 0x54), PART_FIELD(real, 0x58));
+        decal_spawn_for_response(tag, 0, position, &direction, radius, -1);
+    } else if (group == 0x6f626a65u) { // obje
+        object_placement_data placement;
+        uint8_t *raw = (uint8_t *)&placement;
+        real_vector3d out_direction;
+        real_vector3d *velocity = (real_vector3d *)(raw + 0x28);
+
+        object_placement_data_initialize(&placement, tag, SELF_FIELD(datum_index, 0x40));
+        *(real_point3d *)(raw + 0x18) = *position;
+        *(real_vector3d *)(raw + 0x34) = *forward;
+        *(real_vector3d *)(raw + 0x40) = *up;
+        effect_random_velocity_vector(self, &random_seed_global, forward, &out_direction, velocity,
+            PART_FIELD(real, 0x40), PART_FIELD(real, 0x44), PART_FIELD(real, 0x48), PART_FIELD(uint32_t, 0x60),
+            PART_FIELD(uint8_t, 0x64));
+        velocity->i = velocity->i + SELF_FIELD(real, 0x24);
+        velocity->j = velocity->j + SELF_FIELD(real, 0x28);
+        velocity->k = velocity->k + SELF_FIELD(real, 0x2c);
+        effect_random_direction_vector(&random_seed_global, (real_point3d *)(raw + 0x4c), PART_FIELD(real, 0x4c),
+            PART_FIELD(real, 0x50));
+        object_new(&placement);
+    } else if (group == 0x7063746cu) { // pctl
         ColorARGB color;
+        real_vector3d out_direction;
         real_vector3d velocity;
 
-        color.red = self->color.red;
-        color.green = self->color.green;
-        color.blue = self->color.blue;
         color.alpha = 1.0f;
+        color.red = SELF_FIELD(real, 0x18);
+        color.green = SELF_FIELD(real, 0x1c);
+        color.blue = SELF_FIELD(real, 0x20);
+        effect_random_velocity_vector(self, &effect_random_seed, forward, &out_direction, &velocity,
+            PART_FIELD(real, 0x40), PART_FIELD(real, 0x44), PART_FIELD(real, 0x48), PART_FIELD(uint32_t, 0x60),
+            PART_FIELD(uint8_t, 0x64));
+        velocity.i = velocity.i + SELF_FIELD(real, 0x24);
+        velocity.j = velocity.j + SELF_FIELD(real, 0x28);
+        velocity.k = velocity.k + SELF_FIELD(real, 0x2c);
+        particle_system_new_at_point(tag, position, &velocity, &color, scale);
+    } else if (group == 0x736e6421u) { // snd!
+        datum_index object_index = SELF_FIELD(datum_index, 0x3c);
 
-        {
-            real_vector3d scratch_direction; // the call's other output, unused here
-            effect_random_velocity_vector(self, &effect_random_seed, 0, &scratch_direction,
-                &velocity, 0.0f, 0.0f, 0.0f, 0, 0); // UNSURE, see file header
-        }
-        velocity.i += self->velocity.i;
-        velocity.j += self->velocity.j;
-        velocity.k += self->velocity.k;
+        if (object_index != k_datum_index_none) {
+            uint8_t first_person = 0;
+            uint8_t *creator = (uint8_t *)object_try_and_get(SELF_FIELD(datum_index, 0x40), 3);
 
-        particle_system_new_at_point(part->type.tag_id.index, &marker->transform.position,
-            &velocity, &color, scale); // UNSURE: position/scale reconstructed, see file header
-    } else if (group == 0x736e6421u) { // "snd!"
-        if (self->object_index != k_datum_index_none) {
-            uint32_t marker_index = effect_event_apply_resolve_marker(marker);
-            uint8_t is_valid_unit = 0;
-            object *unit = object_try_and_get(self->object_index, _object_mask_unit);
+            if (creator != 0) {
+                uint8_t *owner = (uint8_t *)datum_get(*(datum_index *)(creator + 0x218), player_data);
 
-            if (unit != (object *)0) {
-                // UNSURE: datum_get's handle/array are not visible at this call site.
-                void *record = datum_get(k_datum_index_none, (data_array *)0);
-                if (record != (void *)0 && *(int16_t *)((uint8_t *)record + 2) != -1) {
-                    is_valid_unit = 1;
+                if (owner != 0 && *(int16_t *)(owner + 2) != -1) {
+                    first_person = 1;
                 }
             }
-
-            sound_start_at_object_marker(part->type.tag_id.index, marker_index, scale, is_valid_unit);
+            sound_start_at_object_marker(object_index, (Point3D *)marker_position, (Vector3D *)marker_forward, tag,
+                (int16_t)effect_event_apply_marker_index(marker), scale, first_person);
         } else {
-            // A free standing effect: the sound is placed in the world instead of on an object.
-            // The original builds a five field block on its own stack (Ghidra local_a8 down to
-            // local_80) and passes only the scale visibly, so the block is the elided register
-            // argument.
-            struct {
-                real_point3d position;      // 0x00 in_ECX
-                real_vector3d forward;      // 0x0c in_EAX
-                real_vector3d velocity;     // 0x18 global_origin3d, i.e. stationary
-                int16_t leaf_index;         // 0x24 effect.location
-                int16_t cluster_index;      // 0x26
-            } sound_placement;
+            sound_placement placement;
 
-            sound_placement.position = *position;
-            sound_placement.forward = *forward;
-            sound_placement.velocity = *(const real_vector3d *)global_origin3d_pointer;
-            sound_placement.leaf_index = self->location.leaf_index;
-            sound_placement.cluster_index = self->location.cluster_index;
-
-            sound_start_at_location(&sound_placement, scale); // UNSURE: the block is register passed, see
-                // file header
+            placement.position = *(Point3D *)position;
+            placement.forward = *(Vector3D *)forward;
+            placement.velocity = *(const Vector3D *)global_origin3d_pointer;
+            *(uint32_t *)&placement.leaf_index = SELF_FIELD(uint32_t, 0x10);
+            *(uint32_t *)&placement.cluster_index = SELF_FIELD(uint32_t, 0x14);
+            sound_start_at_location(tag, &placement, scale);
         }
     }
 }

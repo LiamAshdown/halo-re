@@ -2,21 +2,17 @@
 // out/phase4/effects_functions.md: "Decides whether a decal should be spawned for the current
 // collision/damage response ... and, if so, invokes the decal placement algorithm")
 // address 0x44ece0, size 209 bytes
-// name confidence: 0.4   rewrite confidence: 0.2 (LOW -- see UNSURE notes)
-// evidence: types/effects.h decals_enabled (0x00687004) and decals_for_all_responses (0x006893f5)
-// globals list; collision_test_movement_segment (0x100061) matches the "tunable check" pattern used elsewhere in
-// this codebase (an in-game console tunable id).
-// register convention: everything here is register-passed and elided by Ghidra --
-// unaff_ESI (a tag/response index), unaff_BL (a "deterministic" flag), in_ECX (a 3-int seed
-// triple) -- with no stack arguments recovered at all.
-//   // blam-cc: ESI -> response_tag_index, BL -> deterministic, ECX -> seed_words
-// UNSURE: `local_54` is read in the original decompile without ever being written inside this
-// function -- Ghidra lost whatever set it (most likely a field collision_test_movement_segment or an earlier,
-// un-shown call actually fills). Preserved as a local the compiler leaves uninitialized rather
-// than invented a value for; the real value can only come from re-disassembling this function.
-// UNSURE: the deterministic-seed reshuffle (`effect_random_seed = seed[2]^seed[1]^seed[0]^
-// 0xdeadc0de`, saved and restored around the call) is preserved exactly despite not being able
-// to confirm what `seed_words` points at.
+// name confidence: 0.4   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x44ece0..0x44edb0 (the draft had no origin/direction/radius and called the
+//   segment test and decal_place without them).
+// blam-cc: ESI -> response_tag_index, BL -> deterministic, ECX -> origin, stack -> direction, radius,
+//   marker_index (effect_event_apply 0x452e95 pushes a fourth, unread 0)
+// Spawns the decal of a response: allowed when decals are on for every response (0x006893f5), or for a
+//   deterministic spawn of a response whose tag +0x04 is 3; with decals enabled (0x00687004) the effect
+//   seed is (for a deterministic spawn) replaced by the origin words xor 0xdeadc0de and restored after;
+//   the segment origin..origin+direction is tested (collision_test_movement_segment 0x100061, -1), and a
+//   structure hit (type 2) on a tag without flag 0x10 places the decal (decal_place: tag, the result,
+//   direction, radius, deterministic, marker_index).
 
 #include "tags.h"
 #include "memory.h"
@@ -24,47 +20,47 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "projectiles.h"
 
 extern uint8_t decals_enabled;             // 0x00687004
 extern uint8_t decals_for_all_responses;   // 0x006893f5
 extern tag_instance *tag_instances;        // 0x0087bc14
 extern random_seed effect_random_seed;     // 0x00719cd4
 
-extern uint8_t collision_test_movement_segment(int32_t tunable_id); // 0x505880, outside this batch
-extern void decal_place(void); // 0x44edc0, this module; UNSURE full signature, see decal_place.c
+extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
+    uint32_t exclude_object_index, collision_result *result); // 0x505880
+extern void decal_place(datum_index decal_tag_index, uint8_t *placement, real_vector3d *surface_normal,
+    real radius_scale, uint8_t permanent, uint16_t marker_index); // 0x44edc0
 
-// Gates a decal spawn for the current collision/damage response: only proceeds when decals are
-// enabled and either every response spawns decals or this specific response tag requests type 3,
-// then (optionally reseeding the RNG deterministically first) checks the decals tunable and a
-// response flag before invoking decal_place.
-void decal_spawn_for_response(datum_index response_tag_index, uint8_t deterministic,
-    uint32_t *seed_words)
+void decal_spawn_for_response(datum_index response_tag_index, uint8_t deterministic, real_point3d *origin,
+    real_vector3d *direction, real radius, int32_t marker_index)
 {
     uint8_t allowed = 1;
-    int16_t local_54; // UNSURE: never written in the original decompile, see file header
+    random_seed saved_seed = 0;
+    collision_result result;
 
     if (decals_for_all_responses == 0 &&
         (deterministic != 1 ||
-            *(int16_t *)((uint8_t *)tag_instances[(uint16_t)response_tag_index].data + 4) != 3)) {
+            *(int16_t *)((uint8_t *)tag_instances[response_tag_index & 0xffff].data + 4) != 3)) {
         allowed = 0;
     }
+    if (decals_enabled == 0 || !allowed) {
+        return;
+    }
+    if (deterministic != 0) {
+        uint32_t *words = (uint32_t *)origin;
 
-    if (decals_enabled != 0 && allowed) {
-        random_seed saved_seed = 0;
-
-        if (deterministic != 0) {
-            saved_seed = effect_random_seed;
-            effect_random_seed = seed_words[2] ^ seed_words[1] ^ seed_words[0] ^ 0xdeadc0de;
-        }
-
-        if (collision_test_movement_segment(0x100061) != 0 && local_54 == 2 &&
-            (*(uint8_t *)tag_instances[(uint16_t)response_tag_index].data & 0x10) == 0) {
-            decal_place();
-        }
-
-        if (deterministic != 0) {
-            effect_random_seed = saved_seed;
-        }
+        saved_seed = effect_random_seed;
+        effect_random_seed = words[2] ^ words[1] ^ words[0] ^ 0xdeadc0de;
+    }
+    if (collision_test_movement_segment(0x100061, origin, direction, 0xffffffff, &result) &&
+        result.type == 2 &&
+        (*(uint8_t *)tag_instances[response_tag_index & 0xffff].data & 0x10) == 0) {
+        decal_place(response_tag_index, (uint8_t *)&result, direction, radius, deterministic,
+            (uint16_t)marker_index);
+    }
+    if (deterministic != 0) {
+        effect_random_seed = saved_seed;
     }
 }
 

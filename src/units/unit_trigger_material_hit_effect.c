@@ -6,7 +6,7 @@
 //   callee sound_start_at_object_marker established elsewhere in this module as an effect-trigger helper.
 // register convention: material index in AX (in_AX), a tag id in ECX (in_ECX) -- no stack
 //   arguments at all.
-//   // blam-cc: AX -> material_index, ECX -> unit_tag_id
+//   // blam-cc: AX -> material_index, ECX -> unit_tag_id, EDX -> object_index
 // UNSURE: DAT_006e3208 is a fallback material-effect record this function initializes once
 //   (via the DAT_00721e4c latch and DAT_006e3578) when the index is out of range; only its
 //   +0x370 field (the effect tag) is touched here, so it is declared as an opaque byte array.
@@ -26,14 +26,18 @@ extern int32_t DAT_006e3578;        // UNSURE: a field of the fallback record, z
 extern uint8_t DAT_006e3208[0x374]; // UNSURE: fallback material-effect record, this module only
                                      //   reads +0x370 of it
 
-extern datum_index sound_start_at_object_marker(datum_index effect_index, void *position, float intensity,
-                                 uint32_t flag); // 0x543ce0, UNSURE signature
+extern const real_point3d *global_zero_point3d_pointer; // 0x006966f8
+extern const real_vector3d *global_forward3d_pointer;   // 0x00696718
+extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward,
+    datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint); // 0x543ce0, ESI, ECX, EAX, stack
 
 // Triggers a material/impact visual effect associated with a given material index (looked up in
 // the global material-effects table, or a per-material fallback record when the index is out of
 // range), and, if a tag id is also given, a second effect from that tag's own +0x120 field --
 // used after melee hits.
-void unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_tag_id)
+// FIXED (objdump 0x56f210..0x56f2cc): EDX carries the object the sounds play on (0x56f21d mov esi,edx); both
+//   sounds are sound_start_at_object_marker(ESI object, ECX *0x006966f8, EAX *0x00696718, tag, -1, 1.0, 0).
+void unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_tag_id, datum_index object_index)
 {
     uint8_t *material_record;
 
@@ -48,14 +52,16 @@ void unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_t
     }
 
     if (*(datum_index *)(material_record + 0x370) != k_datum_index_none) {
-        sound_start_at_object_marker(*(datum_index *)(material_record + 0x370), (void *)0xffffffff, 1.0f, 0);
+        sound_start_at_object_marker(object_index, (Point3D *)global_zero_point3d_pointer,
+            (Vector3D *)global_forward3d_pointer, *(datum_index *)(material_record + 0x370), -1, 1.0f, 0);
     }
 
     if (unit_tag_id != k_datum_index_none) {
         uint8_t *tag_data = tag_instances[unit_tag_id & 0xffff].data;
         datum_index effect = *(datum_index *)(tag_data + 0x120);
         if (effect != k_datum_index_none) {
-            sound_start_at_object_marker(effect, (void *)0xffffffff, 1.0f, 0);
+            sound_start_at_object_marker(object_index, (Point3D *)global_zero_point3d_pointer,
+                (Vector3D *)global_forward3d_pointer, effect, -1, 1.0f, 0);
         }
     }
 }

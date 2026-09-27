@@ -32,8 +32,10 @@ extern uint8_t *globals_tag_data;   // 0x00746fa0
 
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t param_3,
                                  int16_t param_4, int16_t param_5, uint32_t param_6); // 0x4ee5e0
-extern datum_index sound_start_at_object_marker(datum_index effect_index, void *position, float intensity,
-                                 uint32_t flag); // 0x543ce0, UNSURE signature
+extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward,
+    datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint); // 0x543ce0, ESI, ECX, EAX, stack
+extern const real_point3d *global_zero_point3d_pointer; // 0x006966f8
+extern const real_vector3d *global_forward3d_pointer;   // 0x00696718
 extern double sqrt(double x);
 
 // Applies a steering-deviation based damage/light-intensity effect while at least one of the
@@ -92,7 +94,8 @@ void unit_update_steering_deviation_effects(uint32_t unit_index, real_vector3d *
                 }
 
                 if (*(int32_t *)((uint8_t *)tag + 0x3cc) != -1) {
-                    sound_start_at_object_marker(*(int32_t *)((uint8_t *)tag + 0x3cc), (void *)0xffffffff, clamped, 0);
+                    sound_start_at_object_marker(unit_index, (Point3D *)global_zero_point3d_pointer, (Vector3D *)global_forward3d_pointer,
+                    *(int32_t *)((uint8_t *)tag + 0x3cc), -1, clamped, 0); // 0x575141: ESI the unit (stack arg), ECX *0x006966f8, EAX *0x00696718, node -1
                 }
             }
         }
