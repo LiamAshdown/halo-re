@@ -1,7 +1,7 @@
 // unit_set_custom_animation_frame  (Ghidra: already named unit_set_custom_animation_frame)
 // address 0x570220, size 124 bytes
 // name confidence: 0.5 (functions.md summary matches the code)
-// rewrite confidence: 0.35
+// rewrite confidence: 0.9 (VERIFIED against objdump 0x570220..0x57029b)
 // evidence: types/objects.h object.animation_graph (0x0cc), object.animation_index (0x0d0),
 //   object.animation_frame (0x0d2); callee unit_start_user_animation (0x5702a0, this batch).
 // register convention: unit object index in ECX (in_ECX). Re-examined against objdump

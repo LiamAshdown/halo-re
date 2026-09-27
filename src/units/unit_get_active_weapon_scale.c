@@ -1,6 +1,6 @@
 // unit_get_active_weapon_scale  (Ghidra: unit_get_active_weapon_scale)
 // address 0x565ab0, size 67 bytes
-// name confidence: 0.3 (phase2 candidate)   rewrite confidence: 0.4
+// name confidence: 0.3 (phase2 candidate)   rewrite confidence: 0.95 (VERIFIED against objdump)
 // evidence: types/units.h unit_data.current_weapon_index (0x2f2), .weapons[4] (0x2f8).
 // register convention: unit index in EAX.
 //   // blam-cc: in_EAX -> unit_index

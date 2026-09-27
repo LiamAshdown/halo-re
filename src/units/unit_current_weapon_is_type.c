@@ -1,6 +1,6 @@
 // unit_current_weapon_is_type  (Ghidra: unit_current_weapon_is_type, already named)
 // address 0x561f80, size 86 bytes
-// name confidence: 0.5 (already carries this name)   rewrite confidence: 0.4
+// name confidence: 0.5 (already carries this name)   rewrite confidence: 0.95 (VERIFIED against objdump)
 // evidence: types/units.h unit_data.current_weapon_index (0x2f2), unit_data.weapons[4] (0x2f8);
 //   types/objects.h object.definition_tag (0x000, the Object tag every object carries).
 // register convention: unit index in ECX, comparison tag id in EDI (unaff_EDI, i.e. carried

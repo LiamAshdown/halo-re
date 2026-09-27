@@ -1,6 +1,6 @@
 // unit_state_is_scripted_animation  (Ghidra: unit_state_is_scripted_animation)
 // address 0x565c60, size 31 bytes
-// name confidence: 0.35 (phase2 candidate)   rewrite confidence: 0.35
+// name confidence: 0.35 (phase2 candidate)   rewrite confidence: 0.95 (VERIFIED against objdump (jump tables decoded))
 // evidence: types/units.h unit_data.animation_state (0x2a3). Same ECX-offset-by-0xb pattern as
 //   unit_animation_state_is_compatible (0x565be0) and unit_state_allows_control (0x565ca0);
 //   see that file's header for the ECX -> unit_data identity argument.

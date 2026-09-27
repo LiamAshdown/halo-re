@@ -1777,3 +1777,5 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - unit_update_footstep_and_idle_triggers now resets the idle counter after the idle trigger fires; it had retriggered every tick.
   - Verified 0.9: unit_fire_animation_sound_trigger, biped_advance_frame_counter_trigger, biped_trigger_on_velocity_threshold.
 - Verified 0.9: particles_update, particle_update_physics_default.
+- unit_seat_index_is_valid tests the entering object's labels (EAX), not the vehicle's. unit_check_weapon_use_permission now calls the game engine permission callback.
+- Verified 0.9-0.95: unit_state_allows_control, unit_state_is_scripted_animation, unit_animation_state_is_compatible (jump tables decoded), unit_get_tag_flag_bit7, unit_is_look_target_valid, unit_get_active_weapon_scale, unit_current_weapon_is_type, unit_local_player_weapon_flag_check, unit_all_seats_unoccupied, unit_set_custom_animation_frame, unit_get_custom_animation_time_remaining.

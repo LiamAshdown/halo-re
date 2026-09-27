@@ -1,6 +1,6 @@
 // unit_local_player_weapon_flag_check  (Ghidra: unit_local_player_weapon_flag_check)
 // address 0x565b00, size 87 bytes
-// name confidence: 0.25 (phase2 candidate)   rewrite confidence: 0.2
+// name confidence: 0.25 (phase2 candidate)   rewrite confidence: 0.95 (VERIFIED against objdump)
 // evidence: units.h globals note "0x0087a478 the local player globals; count at +0x0c, handles
 //   from +0x04"; players module data_array at 0x0087a480, stride 0x200, unit handle at +0x34
 //   (per units.h globals note); unit_current_weapon_has_flag (0x565b60).

@@ -1,6 +1,6 @@
 // unit_seat_index_is_valid  (Ghidra: unit_seat_index_is_valid)
 // address 0x565150, size 137 bytes
-// name confidence: 0.4 (phase2 candidate)   rewrite confidence: 0.4
+// name confidence: 0.4 (phase2 candidate)   rewrite confidence: 0.9 (VERIFIED against objdump; label test object FIXED)
 // evidence: types/tags.h Unit.seats (TagReflexive at 0x2e4/0x2e8, UnitSeat stride 0x11c,
 //   UnitSeat.label TagString at +0x4); types/objects.h object.type (0xb4);
 //   unit_set_or_test_seat_and_weapon_label (0x5651e0).
@@ -35,7 +35,8 @@ uint8_t unit_seat_index_is_valid(uint32_t other_object_index, uint32_t unit_inde
             return 1;
         }
         UnitSeat *seat = (UnitSeat *)((uint8_t *)unit_tag->seats.pointer + seat_index * 0x11c);
-        if (unit_set_or_test_seat_and_weapon_label(unit_index, seat->label.string, 0, 0) != 0) {
+        // FIXED (0x5651c5): EAX is still the other object (the one entering), not the vehicle
+        if (unit_set_or_test_seat_and_weapon_label(other_object_index, seat->label.string, 0, 0) != 0) {
             return 1;
         }
     }

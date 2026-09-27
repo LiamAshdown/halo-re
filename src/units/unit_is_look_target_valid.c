@@ -1,6 +1,6 @@
 // unit_is_look_target_valid  (Ghidra: unit_is_look_target_valid)
 // address 0x562570, size 61 bytes
-// name confidence: 0.3 (phase2 candidate)   rewrite confidence: 0.35
+// name confidence: 0.3 (phase2 candidate)   rewrite confidence: 0.95 (VERIFIED against objdump (jump tables decoded))
 // evidence: types/units.h unit_data.controlling_player (0x218), unit_data.vehicle_seat_index
 //   (0x2f0); types/objects.h object.parent_object (0x11c).
 // register convention: unit index in ECX.

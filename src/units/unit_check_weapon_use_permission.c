@@ -1,5 +1,5 @@
 // unit_check_weapon_use_permission  (Ghidra: FUN_0056da00)
-// address 0x56da00, size 113 bytes, name confidence 0.35, rewrite confidence 0.4
+// address 0x56da00, size 113 bytes, name confidence 0.35, rewrite confidence: 0.9 (VERIFIED against objdump; engine callback FIXED)
 // functions.md: "Checks whether the unit's current seat allows using its equipped weapon,
 // consulting an optional scripted permission callback."
 // evidence: unit_get_seat_or_state_name.c (0x56c2f0, single-argument EAX form, confirmed here
@@ -40,14 +40,15 @@ uint8_t unit_check_weapon_use_permission(uint32_t unit_index, uint32_t weapon_in
     if (unit_set_or_test_seat_and_weapon_label(unit_index, seat_name, weapon_label, 0) == 0) {
         return 0;
     }
-    uint8_t result = 1;
-    if ((current_game_engine != 0) && (*(void **)((uint8_t *)current_game_engine + 0x60) != (void *)0)) {
-        // UNSURE-CALL: original calls through a function pointer at
-        // *(code**)((uint8_t *)current_game_engine + 0x60); this rewrite cannot invoke it directly
-        // without a recovered signature, so the permission callback's own result is not folded in.
-        result = 1;
+    // FIXED (0x56da56..0x56da6b): the game engine's weapon permission callback (+0x60) decides when present;
+    //   it is cdecl (unit, weapon) and its AL is the result
+    if (current_game_engine != 0 && *(void **)((uint8_t *)current_game_engine + 0x60) != (void *)0) {
+        uint8_t (*permission)(uint32_t, uint32_t) =
+            *(uint8_t (**)(uint32_t, uint32_t))((uint8_t *)current_game_engine + 0x60);
+
+        return permission(unit_index, weapon_index);
     }
-    return result;
+    return 1;
 }
 
 #if 0

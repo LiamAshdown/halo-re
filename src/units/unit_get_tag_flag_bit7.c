@@ -1,7 +1,7 @@
 // unit_get_tag_flag_bit7  (Ghidra: FUN_00571c70; renamed from the phase2 proposal)
 // address 0x571c70, size 55 bytes
 // name confidence: 0.3 (phase2 proposal at 0.3, matches functions.md summary)
-// rewrite confidence: 0.4
+// rewrite confidence: 0.95 (VERIFIED against objdump (jump tables decoded))
 // evidence: types/tags.h VehicleFlags bit 7 = causes_collision_damage; this function's only
 //   caller (unit_melee_attack_scan.c) reaches it after confirming the target is a vehicle, so
 //   tag+0x2f0 (the byte immediately after Unit's own 0x2f0 bytes) is read as Vehicle.vehicle_flags

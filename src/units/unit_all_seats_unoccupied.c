@@ -1,6 +1,6 @@
 // unit_all_seats_unoccupied  (Ghidra: unit_all_seats_unoccupied)
 // address 0x566910, size 95 bytes
-// name confidence: 0.3 (phase2 candidate)   rewrite confidence: 0.25
+// name confidence: 0.3 (phase2 candidate)   rewrite confidence: 0.95 (VERIFIED against objdump)
 // evidence: types/tags.h Unit.seats (TagReflexive count at 0x2e4).
 // register convention: unit index in EAX.
 //   // blam-cc: in_EAX -> unit_index

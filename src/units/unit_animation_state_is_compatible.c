@@ -1,6 +1,6 @@
 // unit_animation_state_is_compatible  (Ghidra: unit_animation_state_is_compatible)
 // address 0x565be0, size 61 bytes
-// name confidence: 0.3 (phase2 candidate)   rewrite confidence: 0.25
+// name confidence: 0.3 (phase2 candidate)   rewrite confidence: 0.95 (VERIFIED against objdump (jump tables decoded))
 // evidence: types/units.h unit_data.animation_state (0x2a3). Ghidra shows this taking a
 //   pointer in ECX and reading a byte at ECX+0xb with no traceable mov before either call site
 //   in unit_update_animation_state_machine (0x565420); at both call sites ECX is not reloaded

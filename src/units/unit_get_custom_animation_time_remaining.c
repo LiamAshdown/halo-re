@@ -2,7 +2,7 @@
 //   unit_get_custom_animation_time_remaining)
 // address 0x5701b0, size 106 bytes
 // name confidence: 0.5 (functions.md summary matches the code)
-// rewrite confidence: 0.4
+// rewrite confidence: 0.9 (VERIFIED against objdump 0x5701b0..0x570219)
 // evidence: types/objects.h object.animation_graph (0x0cc), object.animation_index (0x0d0),
 //   object.animation_frame (0x0d2); types/units.h unit_data.animation_state (0x2a3,
 //   _unit_animation_state_custom_animation = 0x1c); types/cache.h tag_instance.
