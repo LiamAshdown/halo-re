@@ -1,6 +1,6 @@
 // actor_build_order_look  (Ghidra: actor_build_order_look, renamed)
 // address 0x4046c0, size 345 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x4046c0..0x404818; offsets probed)
 // evidence: types/ai.h actor.order_committed/swarm/actor_definition_tag/unknown_3a8;
 //   types/tags.h Actor.hide_behind_cover_time/cowering_time (already-named fields, selected
 //   by the request's "combat" flag exactly as their names suggest); phase-4 summary
@@ -76,7 +76,9 @@ int32_t actor_build_order_look(uint32_t actor_index, actor_order *order, actor_l
             min = actor_def->cowering_time[0];
             max = actor_def->cowering_time[1];
         }
-        *(int16_t *)(o + 0x0c) = (int16_t)random_real_range(min, max);
+        // 0x40476a..0x40477d: random seconds * 30.0 (0x672ac8) -> ticks, then __ftol. FIXED 2026-09-27: the draft
+        // dropped the * 30, so look durations were 1/30 of the original.
+        *(int16_t *)(o + 0x0c) = (int16_t)(int32_t)(random_real_range(min, max) * 30.0f);
     }
 
     if (request->explicit_direction == -1) {
@@ -89,15 +91,16 @@ int32_t actor_build_order_look(uint32_t actor_index, actor_order *order, actor_l
     *(int16_t *)(o + 0x24) = 3;
     *(int16_t *)(o + 0x28) = request->explicit_direction;
     if (request->has_target_point != 0) {
-        real_vector3d delta;
+        real_vector3d *direction = (real_vector3d *)(o + 0x18);
 
         o[0x14] = 1;
         o[0x15] = 1;
-        delta.i = request->target_point.x - a->body_position.x;
-        delta.j = request->target_point.y - a->body_position.y;
-        delta.k = request->target_point.z - a->body_position.z;
-        *(real_vector3d *)(o + 0x18) = delta;
-        if (vector3d_normalize_with_length(&delta) == 0.0f) {
+        direction->i = request->target_point.x - a->body_position.x;
+        direction->j = request->target_point.y - a->body_position.y;
+        direction->k = request->target_point.z - a->body_position.z;
+        // 0x4047c6..0x4047e3: normalized IN PLACE (ECX = order + 0x18). FIXED 2026-09-27: the draft normalized a
+        // local copy and left the stored direction unnormalized.
+        if (vector3d_normalize_with_length(direction) == 0.0f) {
             o[0x14] = 0;
             *(int32_t *)(o + 0x3c) = -1;
             return 1;

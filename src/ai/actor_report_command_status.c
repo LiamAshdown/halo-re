@@ -1,6 +1,6 @@
 // actor_report_command_status  (Ghidra: actor_report_command_status, renamed)
 // address 0x4048b0, size 243 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop: objdump 0x4048b0..0x4049a2 incl. the jump table at 0x4049a4; prop offsets probed)
 // evidence: types/ai.h actor.unit_index (0x18)/unknown_1e4 (0x1e4, the same command/category
 //   field read by actor_build_order_search_wait.c); prop.object_index (0x18)/is_unit (0x60);
 //   phase-4 summary "reports the actor's scripted command-list status as a chatter/status

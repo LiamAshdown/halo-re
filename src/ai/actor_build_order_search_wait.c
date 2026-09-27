@@ -1,6 +1,6 @@
 // actor_build_order_search_wait  (Ghidra: actor_build_order_search_wait, renamed)
 // address 0x4045a0, size 260 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x4045a0..0x4046a3 and the jump table at 0x4046a4)
 // evidence: types/ai.h actor.unknown_15e/order_committed/swarm/unknown_1e8/unknown_1e4;
 //   actor_order's opaque tail (order kind at +0x24, seen in the other order builders in
 //   this session); phase-4 summary "a search-and-wait order at a scenario search position,
