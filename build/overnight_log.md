@@ -1898,3 +1898,10 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - projectile_create_from_network: network_index_cache_insert_if_free container (MP).
   False positives: actor_data (a coincidental 'or eax,imm'). Networking-module hits were left alone (MP).
 - Relink: left unresolved 1, traps 128.
+- scratchpad/addrscan2.py generalizes the scan to non-pointer externs. After filtering struct-typed hits (field access), no new real bugs: controls_gamepad_list_find loads through the immediate (same as reading the value), and the other hits are MP or coincidental immediates.
+- unit_record_recent_damage_and_react (0x568230): REWRITTEN attacker/callout section (0.25 -> 0.85). The recent-damage bookkeeping (4 records at +0x430; a free slot, else the oldest that isn't the largest-damage record) and the hostility gate were verified. FIXED:
+  - the attacker link (+0x324 for response 9, else +0x328) is read from the attacker OBJECT, not its tag definition;
+  - the callout counter (+0x42a / +0x42c, 120-tick window) and the 3/5 threshold (+0x218 controlling player) live on the attacker, not the damaged unit;
+  - ai_communication_broadcast gets the attacker HANDLE (the draft float-converted the raw parameter).
+  This drives "taking fire" AI callouts.
+- Relink: left unresolved 1, traps 128.

@@ -2,7 +2,7 @@
 // address 0x568230, size 778 bytes
 // name confidence: 0.3 (functions.md: "Records a recent damage or contact event into a small
 //   per-unit cache, used to avoid repeating an associated response too often")
-// rewrite confidence: 0.25
+// rewrite confidence: 0.85 (REWRITTEN attacker/callout section from 0x5683dd..0x568531 (link on the attacker object, counters and threshold on the attacker, handle broadcast); record bookkeeping and hostility verified)
 // evidence: types/units.h unit_recent_damage (0x430, four of them, tick/damage/
 //   responsible_unit/responsible_player); types/memory.h data_array (0x0087a480 player_data,
 //   0x008603b0 object_data); types/objects.h object.vitality_flags (0x106), object.owner_team
@@ -118,54 +118,72 @@ void unit_record_recent_damage_and_react(uint32_t unit_index, float damage_amoun
     }
 
 broadcast_check:
+    // REWRITTEN (0x5683dd..0x568531): the attacker is the responsible player's unit, else the
+    // responsible object when it is a unit; its link at +0x324 (response 9) or +0x328, when set,
+    // replaces it. The callout counter (+0x42a, reset after 120 ticks at +0x42c) and the 3/5
+    // threshold (5 while the attacker has a controlling player, +0x218) live on that attacker
+    // object, and its HANDLE is broadcast. The draft read the link from the tag definition,
+    // counted on the damaged unit and passed the handle through a float conversion.
     {
-        object *responsible_obj = (object *)0;
-        if ((responsible_player != 0xffffffff) &&
-            (*(uint32_t *)((uint8_t *)player_data->data + (responsible_player & 0xffff) * 0x200 + 0x34) != 0xffffffff)) {
-            uint32_t controlled_unit = *(uint32_t *)((uint8_t *)player_data->data + (responsible_player & 0xffff) * 0x200 + 0x34);
-            responsible_obj = ((object_header *)object_data->data)[controlled_unit & 0xffff].data;
+        uint8_t *attacker = 0;
+        uint32_t attacker_handle = 0xffffffff;
+
+        if (responsible_player != 0xffffffff) {
+            uint32_t controlled_unit = *(uint32_t *)((uint8_t *)player_data->data +
+                                                     (responsible_player & 0xffff) * 0x200 + 0x34);
+
+            if (controlled_unit != 0xffffffff) {
+                attacker = (uint8_t *)((object_header *)object_data->data)[controlled_unit & 0xffff].data;
+                attacker_handle = controlled_unit;
+            }
         }
-        if (responsible_obj == (object *)0) {
-            object *by_index = (object *)0;
+        if (attacker == 0) {
+            object_header *hdr = 0;
+
+            attacker_handle = responsible_object;
             if ((responsible_object != 0xffffffff) && (0 <= (int16_t)responsible_object) &&
                 ((int16_t)responsible_object < object_data->maximum_count)) {
-                object_header *hdr = (object_header *)object_data->data + (int16_t)responsible_object;
-                if ((hdr->identifier != 0) &&
-                    (((int16_t)(responsible_object >> 16) == 0) || (hdr->identifier == (int16_t)(responsible_object >> 16)))) {
-                    by_index = hdr->data;
+                object_header *candidate = (object_header *)((uint8_t *)object_data->data +
+                                                             (int16_t)responsible_object * object_data->size);
+
+                if ((candidate->identifier != 0) &&
+                    (((int16_t)(responsible_object >> 16) == 0) ||
+                     (candidate->identifier == (int16_t)(responsible_object >> 16)))) {
+                    hdr = candidate;
                 }
             }
-            if ((by_index != (object *)0) && ((_object_mask_unit & (1 << (by_index->type & 0x1f))) != 0)) {
-                responsible_obj = by_index;
+            if (hdr != 0 && ((1 << (((uint8_t *)hdr)[3] & 0x1f)) & 3) != 0) {
+                attacker = (uint8_t *)hdr->data;
             }
-            if (responsible_obj == (object *)0) {
+            if (attacker == 0) {
                 return;
             }
         }
 
-        uint8_t *responsible_def = (uint8_t *)tag_instances[responsible_obj->definition_tag & 0xffff].data;
-        // UNSURE: the -1.0f sentinel below is `-NAN`'s bit pattern (0xffffffff) reinterpreted;
-        // `broadcast_datum` carries a datum_index throughout even though the original spells it
-        // as a float once it shares a register with genuine floats.
-        uint32_t broadcast_datum = responsible_object;
-        float indirect = response_index == 9 ? *(float *)(responsible_def + 0x324) : *(float *)(responsible_def + 0x328);
-        if (*(uint32_t *)&indirect != 0xffffffff) {
-            broadcast_datum = *(uint32_t *)&indirect;
-        }
-        object *target_obj = ((object_header *)object_data->data)[broadcast_datum & 0xffff].data;
+        {
+            uint32_t link = *(uint32_t *)(attacker + (response_index == 9 ? 0x324 : 0x328));
 
-        if ((target_obj->vitality_flags & _object_health_frozen_bit) == 0) {
-            int32_t tick = game_time->game_time;
-            if ((unit->ai_communication_tick == -1) || (unit->ai_communication_tick + 0x78 < tick)) {
-                unit->ai_communication_count = 0;
+            if (link != 0xffffffff) {
+                attacker_handle = link;
+                attacker = (uint8_t *)((object_header *)object_data->data)[link & 0xffff].data;
             }
-            unit->ai_communication_count++;
-            unit->ai_communication_tick = tick;
-            unit_data *target_unit = (unit_data *)((uint8_t *)target_obj + k_unit_data_offset);
-            int16_t threshold = (target_unit->controlling_player != k_datum_index_none) ? 5 : 3;
-            if (threshold <= unit->ai_communication_count) {
-                ai_communication_broadcast(1, *(float *)&broadcast_datum, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0);
-                unit->ai_communication_count = 0;
+        }
+
+        if ((attacker[0x106] & 4) == 0) {
+            int32_t tick = game_time->game_time;
+            int32_t last = *(int32_t *)(attacker + 0x42c);
+            int16_t threshold;
+
+            if (last == -1 || !(last + 0x78 >= tick)) {
+                *(int16_t *)(attacker + 0x42a) = 0;
+            }
+            *(int16_t *)(attacker + 0x42a) = (int16_t)(*(int16_t *)(attacker + 0x42a) + 1);
+            *(int32_t *)(attacker + 0x42c) = tick;
+            threshold = (*(uint32_t *)(attacker + 0x218) != 0xffffffff) ? 5 : 3;
+            if (*(int16_t *)(attacker + 0x42a) >= threshold) {
+                ai_communication_broadcast(1, (datum_index)attacker_handle, 0xffffffff, -1, 0xffffffff,
+                                           0xffffffff, 0);
+                *(int16_t *)(attacker + 0x42a) = 0;
             }
         }
     }
