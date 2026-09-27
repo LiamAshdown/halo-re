@@ -1,6 +1,6 @@
 // actor_clear_target_state  (Ghidra: actor_clear_target_state, renamed)
 // address 0x4286c0, size 212 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x4286c0..0x428793; swarm / movement offsets match; the mode proc tail call now gets the actor)
 // evidence: types/ai.h actor.unknown_164/search_unknown_324/unknown_494; swarm.component_count/
 //   component_index; swarm_component.marker_index (0x10). Fields 0x144/0x148 fall inside
 //   actor.unknown_138[0x20] (unnamed) and are accessed as raw offsets. The mode-table call at
@@ -53,9 +53,12 @@ void actor_clear_target_state(datum_index actor_index)
     }
 
     {
-        uint32_t proc = *(uint32_t *)((uint8_t *)&actor_mode_definitions[self->mode] + 0x28); // UNSURE offset
+        // 0x428774..0x428791: the mode's target-cleared procedure (definition +0x28: 0x401490 alert, 0x405180 guard,
+        // 0x4112b0) is TAIL-JUMPED to with this function's own stack argument still in place, so it receives the
+        // actor index at [esp+4]. FIXED 2026-09-27: the draft called it with no argument (garbage actor).
+        uint32_t proc = *(uint32_t *)((uint8_t *)&actor_mode_definitions[self->mode] + 0x28);
         if (proc != 0) {
-            ((void (*)(void))proc)();
+            ((void (*)(datum_index))proc)(actor_index);
         }
     }
 }
