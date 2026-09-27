@@ -1,6 +1,6 @@
 // first_person_weapon_interface_tick  (Ghidra: FUN_004923d0, unnamed)
 // address 0x4923d0, size 96 bytes
-// name confidence: 0.4   rewrite confidence: 0.55
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x4923d0..0x49242f)
 // evidence: out/phase4/interface_functions.md "Per-frame entry point for local player 0's
 // first-person weapon interface: re-initializes the cached weapon-interface block when the
 // controlled unit changed, then runs its tick update." Reads player_globals::local_players[0]

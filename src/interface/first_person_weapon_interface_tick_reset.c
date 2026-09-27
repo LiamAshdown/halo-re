@@ -1,6 +1,6 @@
 // first_person_weapon_interface_tick_reset  (Ghidra: FUN_004942e0, unnamed)
 // address 0x4942e0, size 90 bytes
-// name confidence: 0.35   rewrite confidence: 0.3
+// name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x4942e0..0x494339; offsets probed)
 // evidence: out/phase4/interface_functions.md "Tears down/resets a local player's first-person
 // weapon interface state and reseeds its interface timer."; types/interface.h
 // first_person_weapon_interface::shutdown_countdown ("reseeded to 0x1e by 0x4942e0") is an exact

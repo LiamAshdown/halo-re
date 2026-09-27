@@ -1,6 +1,6 @@
 // first_person_weapon_snapshot_pose  (Ghidra: FUN_004930b0, renamed per types/interface.h)
 // address 0x4930b0, size 160 bytes
-// name confidence: 0.4   rewrite confidence: 0.4
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x4930b0..0x49314f)
 // evidence: types/interface.h first_person_weapon_interface comment: "+0x88 / +0x8a and the two
 // 0x800 byte blocks -- first_person_weapon_snapshot_pose @0x4930b0 copies from +0x8c to +0x88c
 // and updates the two shorts at +0x88/+0x8a. 0x800 is the gap between the two block bases, not a
