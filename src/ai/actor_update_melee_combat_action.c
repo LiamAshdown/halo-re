@@ -1,349 +1,278 @@
-// actor_update_melee_combat_action  (Ghidra: actor_update_melee_combat_action, renamed)
+// actor_update_melee_combat_action  (Ghidra: actor_update_melee_combat_action; really "choose the next combat mode")
 // address 0x40cdf0, size 1742 bytes
-// name confidence: 0.35   rewrite confidence: 0.3
-// evidence: phase-4 summary "chooses and commits the actor's next melee/close-combat
-// action (charge, retreat, wait, or reposition) based on its behavior type and target
-// state"; calls actor_process_order_request / actor_get_target_state_flags / actor_set_mode.
-// register convention: actor_index in EAX (Ghidra's param_1, a datum_index into actor_data).
-//
-// This function is left very close to the Ghidra decompilation on purpose: it reuses one
-// scratch value (uVar12/puVar13, cVar7, cStack_107f9 etc.) for several different purposes
-// across branches, which is exactly the kind of thing that is easy to break by renaming.
-// Only the pointer-offset arithmetic is replaced with named field accesses; the original
-// variable and label names are kept so this file can be diffed line-for-line against the
-// #if 0 block below.
-//
-// UNSURE: several callees in the 0x404xxx-0x409xxx range (order builders, owned by the
-// other half of this session's split) are invoked by Ghidra with fewer visible arguments
-// than their one-line summaries suggest ("builds a ... order for the actor"), which almost
-// always means Ghidra failed to show an actor_index argument already sitting in a register.
-// Declared here exactly as the call sites show them; flagged individually below.
-// UNSURE: self->target_unit_index (0x270) is indexed here into prop_data (stride 0x138),
-// but types/ai.h calls that field a raw unit datum_index on the strength of a different
-// function (actor_choose_best_target). One of the two readings is wrong; kept as Ghidra
-// has it (a prop_data index) since that is what this function actually does.
+// name confidence: 0.2   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x40cdf0..0x40d4bd. The draft called the target-alert stages, the pursuit note, the placement
+//   flags and support evaluation with missing operands. Stack: actor. Returns 1 when a mode was set. Searching
+//   actors (+0x1e4) take a search-wait (mode 6), regrouping ones process their order; otherwise, in combat grade
+//   2+, the type (+0x6..+0xc), starting location (0x436d40), encounter support (0x436dc0) and target state (0x40cc70)
+//   decide between advancing (a wait order, mode 5), retreating (mode 7), taking a firing position (0x412ba0 query,
+//   mode 5 / committed mode 7, counted in +0x3c4 and noted for pursuit) or a random wait (mode 8); the fallback is
+//   guard (mode 6, at the current position for search / wait modes).
+// blam-cc: stack -> actor_index
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#include <string.h>
 
-extern data_array *actor_data;             // 0x00880360
-extern data_array *encounter_data;         // 0x008802c8
-extern data_array *prop_data;              // 0x008802c0
-extern tag_instance *tag_instances;        // 0x0087bc14
-extern void *actor_type_procs[16];         // 0x006853b8
-extern actor_mode_definition actor_mode_definitions[16]; // 0x00655254
+extern data_array *actor_data;       // 0x00880360
+extern data_array *encounter_data;   // 0x008802c8
+extern data_array *prop_data;        // 0x008802c0
+extern tag_instance *tag_instances;  // 0x0087bc14
+extern uint8_t *actor_type_definitions[]; // 0x006853b8
+extern uint8_t actor_mode_definitions[];  // 0x0065524c, 0x38 per mode, +0xc combat grade
 
-extern void actor_build_order_guard(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_build_order_guard at 0x404510
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern int32_t actor_build_order_search_wait(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_build_order_search_wait at 0x4045a0
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern int32_t actor_build_order_flee(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_build_order_flee at 0x4077d0
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern uint32_t actor_build_order_face_seat_marker_committed(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_build_order_face_seat_marker_committed at 0x407820
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern int32_t actor_build_order_minimal_stop(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_build_order_minimal_stop at 0x4078f0
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern int32_t actor_build_order_wait_byte(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_build_order_wait_byte at 0x4080c0
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern uint32_t actor_build_order_face_seat_marker(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_build_order_face_seat_marker at 0x408110
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern int32_t actor_build_order_random_wait(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_build_order_random_wait at 0x409a90
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code);
-extern void actor_get_target_state_flags(int16_t ax_mode, int16_t cx_mode, uint8_t shared_flag, uint32_t actor_index, int16_t mode_b, char force_c, char force_d, uint8_t *out_a, char *out_in_e, uint8_t *out_f, uint8_t *out_g, uint8_t *out_h, uint8_t *out_i); // 0x40cc70
-extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0, this module
-extern uint32_t actor_get_firing_position_group_mask(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_get_firing_position_group_mask at 0x412880
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern uint32_t actor_find_best_firing_position(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_find_best_firing_position at 0x412ba0
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern void actor_set_target_alert_stage1(void); // UNSURE: no visible args
-extern void actor_set_target_alert_stage2(void); // UNSURE: no visible args
-extern void actor_set_target_alert_stage3(void); // UNSURE: no visible args
-extern uint32_t actor_get_target_prop_object_index(uint32_t a, uint32_t b, uint32_t c, uint32_t d);
-extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
-// 0x42d340, not yet rewritten (this module). Always seven stack arguments: every call
-// site in the binary cleans up 0x1c bytes, so the shorter forms Ghidra recovers at some
-// sites are artefacts, not a reduced-arity overload.
-extern uint8_t ai_pursuit_note_object(datum_index encounter_index);  // SIGNATURE-CONFLICT: this call site disagrees with the form the rest of
-  // src/ai uses for this address; kept local. See src/ai/README.md.
-// src/ai/ai_release_inactive_encounters.c declares 0x436b10 as returning void; this call
-// site tests its AL, so the return type is not settled.
-extern void ai_starting_location_derive_placement_flags(int16_t squad_index, void *out_a, void *out_b, void *out_c, void *out_d);
-extern void encounter_evaluate_support_needs(datum_index actor_index, uint32_t param_2, uint32_t param_3, void *out_a, void *out_b,
-                          void *out_c, void *out_d, void *out_e, void *out_f, void *out_g);
+extern void ai_starting_location_derive_placement_flags(datum_index encounter_index, int16_t starting_location_index,
+    uint8_t *out_a, int16_t *out_b, uint8_t *out_c, int16_t *out_d, int16_t *out_edx, int16_t *out_esi); // 0x436d40, EAX, stack, EDX, ESI
+extern void encounter_evaluate_support_needs(datum_index encounter_index, datum_index self_actor_index, int16_t mode,
+    uint8_t phase, uint8_t *out_crowded, uint8_t *out_flanked, uint8_t *out_a, uint8_t *out_b,
+    uint8_t *out_reachable_a, uint8_t *out_reachable_b, uint8_t *out_any); // 0x436dc0, EAX, stack
+extern void actor_get_target_state_flags(int16_t ax_mode, int16_t cx_mode, uint8_t shared_flag, uint32_t actor_index,
+    int16_t mode_b, char force_c, char force_d, uint8_t *out_a, char *out_in_e, uint8_t *out_f, uint8_t *out_g,
+    uint8_t *out_h, uint8_t *out_i); // 0x40cc70, EAX, ECX, EDX, stack
+extern int32_t actor_build_order_wait_byte(uint32_t actor_index, uint8_t byte_a, uint32_t *order); // 0x4080c0, EAX, stack, ESI
+extern void actor_set_target_alert_stage1(datum_index target_prop_index, datum_index actor_index); // 0x41fb00, ECX, ESI
+extern int32_t actor_build_order_flee(uint32_t actor_index, uint8_t byte_a, uint32_t *order); // 0x4077d0, EAX, stack, EDX
+extern void actor_set_target_alert_stage2(datum_index target_prop_index, datum_index actor_index); // 0x41fb60, ECX, ESI
+extern datum_index actor_get_target_prop_object_index(datum_index actor_index); // 0x4283d0, EAX
+extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
+    datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340
+extern int32_t actor_build_order_minimal_stop(uint32_t actor_index, uint32_t *order); // 0x4078f0, EAX, ESI
+extern uint32_t actor_get_firing_position_group_mask(datum_index actor_index, int16_t kind, int16_t search_override); // 0x412880, EAX, SI, stack
+extern uint32_t actor_find_best_firing_position(datum_index actor_index, actor_firing_position_query *query,
+    actor_firing_position_candidate *out_candidate, uint32_t *out_previous_owner, path_find_context *path_context,
+    uint8_t *out_path_ok); // 0x412ba0
+extern uint32_t actor_build_order_face_seat_marker(uint32_t actor_index, int16_t firing_position_index, uint32_t *order); // 0x408110, EAX, stack, EDX
+extern uint32_t actor_build_order_face_seat_marker_committed(uint32_t actor_index, int16_t firing_position_index,
+    uint8_t byte_a, uint32_t *order); // 0x407820, EAX, stack, EDX
+extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0
+extern uint8_t ai_pursuit_note_object(datum_index object_index, datum_index encounter_index, int16_t type,
+    int32_t min_last_tick); // 0x436b10, EDX, stack, ECX, EAX
+extern int32_t actor_build_order_random_wait(uint32_t actor_index, uint8_t byte_a, uint32_t *order); // 0x409a90, EAX, stack, ECX
+extern int32_t actor_build_order_search_wait(uint32_t actor_index, actor_order *order); // 0x4045a0, EAX, ESI
+extern uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code); // 0x409ea0
+extern void actor_set_target_alert_stage3(datum_index target_prop_index, datum_index actor_index); // 0x41fbc0, EDX, ESI
+extern int32_t actor_build_order_guard(uint32_t actor_index, actor_order *order, int16_t guard_at_current_position); // 0x404510, EAX, EDX, EBX
 
-// TYPES (folded into types/ai.h by the review pass): the per-ActorType records actor_type_procs points at are only partially
-// resolved in types/ai.h (vtable slots +0x10/+0x18/+0x1c, the swarm byte at +0x0d). This
-// function additionally reads three int16s and a byte at +0x06/+0x08/+0x0a/+0x0c.
+#define W(p, o) (*(int16_t *)((p) + (o)))
+#define D(p, o) (*(datum_index *)((p) + (o)))
 
-// blam-cc: actor_index in EAX
-uint8_t actor_update_melee_combat_action(datum_index actor_index)
+// 0x40d32a: a firing position was taken; note it for the encounter's pursuit and count the moves
+static uint8_t actor_combat_commit_position(datum_index actor_index, uint8_t *a, uint8_t *target, int16_t position)
 {
-    actor *self;
-    Actor *actor_def;
-    encounter *enc;
-    datum_index encounter_index_val;
-    prop *target_prop; // iStack_107e8, 0 when there is none
-    uint8_t cVar7, cVar8;
-    uint8_t bVar4;
-    uint8_t cStack_107fb, cStack_107fa, cStack_107f9;
-    uint8_t uStack_107f8, cStack_107f7;
-    uint8_t acStack_107f6[2];
-    uint32_t uStack_107f4, uStack_107f0, uStack_107ec;
-    int16_t auStack_107d8[2];
-    int32_t uStack_107d4, uStack_107d0, uStack_107e0;
-    int32_t uVar12;
-    // UNSURE: on the LAB_0040d4a6 paths the original leaves the mode-data pointer in whatever
-    // register the preceding order builder returned (extraout_ECX / extraout_EDX_02); modelled
-    // as a null pointer here rather than inventing a source.
-    void *puVar13 = (void *)0;
-    int16_t sVar9;
-    actor_type_table_entry *type_entry;
+    datum_index object = target != 0 ? D(target, 0x7c) : k_datum_index_none;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    encounter_index_val = self->encounter_index;
-    actor_def = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
-    enc = (encounter_index_val == (datum_index)k_datum_index_none)
-              ? (encounter *)0
-              : (encounter *)((uint8_t *)encounter_data->data + (encounter_index_val & 0xffff) * sizeof(encounter));
-
-    cVar7 = 0;
-    bVar4 = 0;
-    cStack_107fb = 0;
-    cStack_107fa = 0;
-
-    if (enc != (encounter *)0 && enc->unknown_42 != 0 && self->unknown_6e < 3 &&
-        self->unknown_72 == 0 && self->unknown_74 == 0) {
-        cVar7 = 1;
-        cStack_107fa = 1;
-    }
-    if (0 < self->unknown_1e4 && self->unknown_6e < 3 && self->unknown_74 == 0) {
-        bVar4 = 1;
-    }
-    if (self->awareness_level < 3 && actor_mode_definitions[self->mode].combat_grade == 0) {
-        return 1;
-    }
-
-    if (self->order_committed == 0) {
-        if (bVar4) goto LAB_0040d3fb;
-        if (cVar7 != 0) goto LAB_0040d432;
-        if (1 < self->unknown_6e) {
-            target_prop = (self->target_unit_index == (datum_index)k_datum_index_none)
-                              ? (prop *)0
-                              : (prop *)((uint8_t *)prop_data->data + (self->target_unit_index & 0xffff) * sizeof(prop));
-            uStack_107ec &= 0xffffff00;
-            cStack_107f7 = 0;
-            uStack_107f8 = 0;
-            uStack_107f4 &= 0xffffff00;
-            uStack_107f0 &= 0xffffff00;
-            cStack_107f9 = 0;
-            acStack_107f6[0] = 0;
-            if (target_prop == (prop *)0 || target_prop->noticed_c == 0) {
-                uStack_107f8 = (target_prop != (prop *)0);
-                type_entry = (actor_type_table_entry *)actor_type_procs[self->type];
-                auStack_107d8[0] = type_entry->unknown_06;
-                auStack_107d8[1] = type_entry->unknown_08; // uStack_107dc, adjacent to auStack_107d8[0]
-                uStack_107d4 = type_entry->unknown_0a;
-                uStack_107e0 = type_entry->unknown_0c;
-                uStack_107d0 = 0;
-                cStack_107fa = 0;
-                acStack_107f6[1] = 0;
-                uStack_107f0 = 1;
-                uStack_107f4 = 1;
-                cStack_107f9 = 1;
-                cStack_107f7 = uStack_107f8;
-                if (encounter_index_val != (datum_index)k_datum_index_none) {
-                    ai_starting_location_derive_placement_flags(self->squad_index, &uStack_107ec, &uStack_107d0, &uStack_107e0, auStack_107d8);
-                    if (self->swarm == 0) {
-                        encounter_evaluate_support_needs(actor_index, uStack_107d0, uStack_107e0, &uStack_107f8, &uStack_107f4,
-                                     &uStack_107f0, &cStack_107f9, &cStack_107fa, acStack_107f6 + 1, acStack_107f6);
-                    } else {
-                        uStack_107f4 = 1;
-                        uStack_107f8 = 1;
-                        cStack_107f7 = 1;
-                        cStack_107f9 = 1;
-                        uStack_107f0 = 1;
-                    }
-                }
-                // UNSURE: the original shows ten stack arguments. actor_get_target_state_flags
-                // also takes two mode selectors in EAX / ECX and a flag byte in EDX, which
-                // Ghidra drops at this call site; zero is passed for all three.
-                actor_get_target_state_flags(0, 0, 0,
-                                              actor_index, uStack_107d4, 0, self->unknown_375,
-                                              &cStack_107f7, (char *)&uStack_107f8, (uint8_t *)&uStack_107f4, (uint8_t *)&uStack_107f0,
-                                              &cStack_107f9, acStack_107f6);
-            }
-            if (self->unknown_3c0 != self->target_unit_index) {
-                *(int16_t *)&self->unknown_3c4 = 0;
-                self->unknown_3c0 = self->target_unit_index;
-                self->unknown_3bc = 0;
-                self->unknown_3bd[0] = 0;
-            }
-            if (cStack_107f7 != 0) {
-                cVar7 = actor_build_order_wait_byte((uint8_t)uStack_107f4);
-                if (cVar7 != 0) {
-                    uVar12 = 5;
-                    goto LAB_0040d4a6;
-                }
-            }
-            actor_set_target_alert_stage1();
-            if ((uint8_t)uStack_107f4 != 0) {
-                cVar7 = actor_build_order_flee(self->unknown_375);
-                if (cVar7 != 0) {
-                    uVar12 = 7;
-                    goto LAB_0040d4a6;
-                }
-            }
-            actor_set_target_alert_stage2();
-            if (self->unknown_3bc != 0 && self->unknown_3bd[0] == 0) {
-                uVar12 = actor_get_target_prop_object_index(-1, -1, -1, 0);
-                // The call site at 0x40d13b pushes seven arguments; Ghidra only recovered three.
-                ai_communication_broadcast(0xd, self->unit_index, uVar12, -1, -1, -1, 0);
-                self->unknown_3bd[0] = 1;
-            }
-            if ((uint8_t)uStack_107f0 != 0) {
-                cStack_107fa = 0;
-                self->unknown_98 = 1;
-                if (self->swarm == 0) {
-                    if (self->mode == 5 && cStack_107f9 != 0 && target_prop->engaged == 1) {
-                        uVar12 = (int32_t)(uint16_t)target_prop->unknown_a6 | (int32_t)0xffff0000u;
-                        cStack_107fa = 1;
-                        if (target_prop->unknown_a6 == -1) goto LAB_0040d1e3;
-LAB_0040d2fe:
-                        if (cStack_107f9 != 0) {
-                            cVar7 = actor_build_order_face_seat_marker_committed((int16_t)uVar12, (uint8_t)uStack_107ec);
-                            if (cVar7 != 0) {
-                                uVar12 = 7;
-                                goto LAB_0040d32a;
-                            }
-                        }
-                    } else {
-LAB_0040d1e3:
-                        if (self->unknown_1d0 == (datum_index)k_datum_index_none) {
-                            sVar9 = actor_def->num_positions__normal_;
-                        } else {
-                            sVar9 = actor_def->num_positions__coord_;
-                        }
-                        if ((uint8_t)uStack_107ec != 0 || self->unknown_3c0 != self->target_unit_index ||
-                            *(int16_t *)&self->unknown_3c4 < sVar9) {
-                            uint32_t local_context[0x199];      // uStack_10700.. block, zeroed as 0x199 dwords
-                            uint8_t local_scratch[60];          // auStack_1073c
-                            for (uint32_t i = 0; i < 0x199; i++) local_context[i] = 0;
-                            *(int32_t *)((uint8_t *)local_context + 0x08) = self->target_unit_index; // iStack_106f8
-                            *(int16_t *)((uint8_t *)local_context + 0x04) = 5;                        // uStack_106fc
-                            if (target_prop == (prop *)0) {
-                                *(int32_t *)((uint8_t *)local_context + 0x0c) = -1; // uStack_106f4
-                            } else {
-                                *(int32_t *)((uint8_t *)local_context + 0x0c) = target_prop->unknown_7c;
-                            }
-                            *((uint8_t *)local_context + 0x21) = (self->target_unit_index != (datum_index)k_datum_index_none); // uStack_106bd
-                            *((uint8_t *)local_context + 0x18) = (uint8_t)uStack_107ec; // cStack_106f0
-                            *(int32_t *)((uint8_t *)local_context + 0x00) = actor_get_firing_position_group_mask(0); // uStack_10700
-                            *(uint32_t *)((uint8_t *)local_context + 0x1c) = 0x41a00000; // uStack_106e4
-                            uVar12 = actor_find_best_firing_position(actor_index, local_context, local_scratch,
-                                                   &actor_def, (void *)0, acStack_107f6 + 1);
-                            // UNSURE: actor_find_best_firing_position is called here with the same argument shape
-                            // as the Ghidra decompilation (actor_index, &uStack_10700,
-                            // auStack_1073c, &iStack_107e4, auStack_10098, acStack_107f6+1); the
-                            // huge auStack_10098[65684] scratch buffer is passed through as NULL
-                            // here because its true size makes it implausible as a real stack
-                            // buffer -- almost certainly Ghidra mis-sized an out-parameter or a
-                            // pointer into caller-owned memory. Needs the disassembly review pass.
-                            if ((int16_t)uVar12 != -1) {
-                                if (cStack_107fa == 0) {
-                                    cVar7 = actor_build_order_face_seat_marker(uVar12);
-                                    if (cVar7 != 0) {
-                                        uVar12 = 5;
-                                        goto LAB_0040d32a;
-                                    }
-                                }
-                                goto LAB_0040d2fe;
-                            }
-                        }
-                    }
-                } else if (cStack_107f9 != 0) {
-                    cVar7 = actor_build_order_minimal_stop();
-                    if (cVar7 != 0) {
-                        uVar12 = 7;
-                        goto LAB_0040d32a;
-                    }
-                }
-            }
-            if (0 < *(int16_t *)&self->unknown_3c4 && self->unit_index != (datum_index)k_datum_index_none) {
-                ai_communication_broadcast(0x13, self->unit_index, -1, -1, -1, -1, 0);
-            }
-            if (self->swarm == 0 && acStack_107f6[0] != 0) {
-                cVar7 = actor_build_order_random_wait((uint8_t)uStack_107f0);
-                if (cVar7 != 0) {
-                    uVar12 = 8;
-                    goto LAB_0040d4a6;
-                }
-            }
+    if (D(a, 0x34) != k_datum_index_none &&
+        ai_pursuit_note_object(actor_index, D(a, 0x34), position, (int32_t)object)) {
+        if (W(a, 0x3c4) == 0) {
+            ai_communication_broadcast(0x10, D(a, 0x18), k_datum_index_none, -1, k_datum_index_none, k_datum_index_none, 0);
         }
-    } else {
-        if (bVar4) goto LAB_0040d3fb;
-        goto LAB_0040d42b;
-LAB_0040d3fb:
-        if (self->mode == 6 && self->mode_data[5] != 0) {
-            return 1;
-        }
-        cVar8 = actor_build_order_search_wait(actor_index);
-        cVar7 = cStack_107fa;
-        if (cVar8 != 0) {
-            uVar12 = 6;
-            goto LAB_0040d4a6;
-        }
-LAB_0040d42b:
-        if (cVar7 != 0) {
-LAB_0040d432:
-            cStack_107fb = actor_process_order_request(actor_index, -1);
-            if (cStack_107fb != 0) {
-                return cStack_107fb;
-            }
-        }
-    }
-
-    if (actor_mode_definitions[self->mode].combat_grade == 1) {
-        return cStack_107fb;
-    }
-    actor_set_target_alert_stage3();
-    actor_build_order_guard(actor_index);
-    uVar12 = 6;
-    puVar13 = (void *)0;
-    goto LAB_0040d4a6;
-
-    // Two distinct shared tails in the original, NOT one: only LAB_0040d32a (the
-    // face-seat-marker / minimal-stop paths) goes on to poke the encounter; LAB_0040d4a6
-    // (the search-wait, random-wait and guard paths) sets the mode and returns immediately.
-LAB_0040d32a:
-    puVar13 = (void *)0;
-    actor_set_mode(actor_index, uVar12, puVar13);
-    if (self->encounter_index == (datum_index)k_datum_index_none) {
-        return 1;
-    }
-    if (ai_pursuit_note_object(self->encounter_index) != 0) {
-        if (*(int16_t *)&self->unknown_3c4 == 0) {
-            ai_communication_broadcast(0x10, self->unit_index, -1, -1, -1, -1, 0);
-        }
-        *(int16_t *)&self->unknown_3c4 = *(int16_t *)&self->unknown_3c4 + 1;
+        W(a, 0x3c4) += 1;
     }
     return 1;
+}
 
-LAB_0040d4a6:
-    actor_set_mode(actor_index, uVar12, puVar13);
+uint8_t actor_update_melee_combat_action(datum_index actor_index)
+{
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;   // ebx
+    uint8_t *actor_tag = (uint8_t *)tag_instances[D(a, 0x58) & 0xffff].data;     // [esp+0x24]
+    datum_index encounter_index = D(a, 0x34);
+    uint8_t *encounter = encounter_index != k_datum_index_none
+        ? (uint8_t *)encounter_data->data + (encounter_index & 0xffff) * 0x6c : 0;
+    uint8_t result = 0;                 // [esp+0xd]
+    uint8_t regroup = 0;                // [esp+0xe] (dl)
+    uint8_t searching = 0;              // cl
+    uint8_t order[0x8c];                // [esp+0x40]
+
+    memset(order, 0, sizeof(order));
+    if (encounter != 0 && encounter[0x42] && W(a, 0x6e) <= 2 && W(a, 0x72) == 0 && W(a, 0x74) == 0) {
+        regroup = 1;
+    }
+    if (W(a, 0x1e4) > 0 && W(a, 0x6e) <= 2 && W(a, 0x74) == 0) {
+        searching = 1;
+    }
+    if (W(a, 0x6a) < 3 && W(actor_mode_definitions, W(a, 0x6c) * 0x38 + 0xc) == 0) {
+        return 1;
+    }
+    if (a[0x160] || searching || regroup) {
+        // 0x40d3f7
+        if (searching) {
+            if (W(a, 0x6c) == 6 && a[0xa1]) {
+                return 1;
+            }
+            if (actor_build_order_search_wait(actor_index, (actor_order *)order)) {
+                actor_set_mode(actor_index, 6, order);
+                return 1;
+            }
+        }
+        if (regroup) {
+            result = actor_process_order_request(actor_index, 0xffff);
+            if (result) {
+                return result;
+            }
+        }
+        goto guard;
+    }
+    if (W(a, 0x6e) < 2) {
+        goto guard;
+    }
+
+    {
+        uint8_t *target = D(a, 0x270) != k_datum_index_none
+            ? (uint8_t *)prop_data->data + (D(a, 0x270) & 0xffff) * 0x138 : 0;   // [esp+0x20]
+        uint8_t hold = 0;           // [esp+0x1c]
+        uint8_t advance = 0;        // [esp+0x11]
+        uint8_t pressed = 0;        // [esp+0x10]
+        uint8_t retreat = 0;        // [esp+0x14]
+        uint8_t reposition = 0;     // [esp+0x18]
+        uint8_t move_ok = 0;        // [esp+0xf]
+        uint8_t wait_ok = 0;        // [esp+0x12]
+
+        if (target == 0 || !target[0xbb]) {
+            // 0x40cf4e: what the type, the encounter and the target say
+            uint8_t *type = actor_type_definitions[W(a, 0x4)];
+            int16_t ax_mode = W(type, 0x6);         // [esp+0x30]
+            int16_t cx_mode = W(type, 0x8);         // [esp+0x2c]
+            int16_t mode_b = W(type, 0xa);          // [esp+0x34]
+            uint8_t phase = type[0xc];              // [esp+0x28]
+            int16_t support_mode = 0;               // [esp+0x38]
+            uint8_t reachable_b = 0;                // [esp+0x13]
+
+            regroup = 0;
+            if (target != 0) {
+                pressed = 1;
+                advance = 1;
+            }
+            reposition = 1;
+            retreat = 1;
+            move_ok = 1;
+            if (encounter_index != k_datum_index_none) {
+                ai_starting_location_derive_placement_flags(encounter_index, (int16_t)*(uint16_t *)(a + 0x3a), &hold,
+                                                            &support_mode, &phase, &ax_mode, &mode_b, &cx_mode);
+                if (a[0x6]) {
+                    retreat = 1;
+                    pressed = 1;
+                    advance = 1;
+                    move_ok = 1;
+                    reposition = 1;
+                } else {
+                    encounter_evaluate_support_needs(encounter_index, actor_index, support_mode, phase, &pressed,
+                                                     &retreat, &reposition, &move_ok, &regroup, &reachable_b, &wait_ok);
+                }
+            }
+            actor_get_target_state_flags(ax_mode, cx_mode, regroup, actor_index, mode_b, 0, (char)a[0x375], &advance,
+                                         (char *)&pressed, &retreat, &reposition, &move_ok, &wait_ok);
+        }
+
+        // 0x40d08c: a new target resets the move count
+        if (D(a, 0x3c0) != D(a, 0x270)) {
+            W(a, 0x3c4) = 0;
+            D(a, 0x3c0) = D(a, 0x270);
+            a[0x3bc] = 0;
+            a[0x3bd] = 0;
+        }
+        if (advance && actor_build_order_wait_byte(actor_index, retreat, (uint32_t *)order)) {
+            actor_set_mode(actor_index, 5, order);
+            return 1;
+        }
+        actor_set_target_alert_stage1(D(a, 0x270), actor_index);
+        if (retreat && actor_build_order_flee(actor_index, a[0x375], (uint32_t *)order)) {
+            actor_set_mode(actor_index, 7, order);
+            return 1;
+        }
+        actor_set_target_alert_stage2(D(a, 0x270), actor_index);
+        if (a[0x3bc] && !a[0x3bd]) {
+            ai_communication_broadcast(0xd, D(a, 0x18), actor_get_target_prop_object_index(actor_index), -1,
+                                       k_datum_index_none, k_datum_index_none, 0);
+            a[0x3bd] = 1;
+        }
+
+        if (reposition) {
+            // 0x40d16c: take a firing position
+            int16_t position = -1;
+            uint8_t have_position = 0;  // [esp+0xe]
+
+            a[0x98] = 1;
+            if (a[0x6]) {
+                if (move_ok && actor_build_order_minimal_stop(actor_index, (uint32_t *)order)) {
+                    actor_set_mode(actor_index, 7, order);
+                    return actor_combat_commit_position(actor_index, a, target, position);
+                }
+            } else {
+                int16_t limit;
+
+                if (W(a, 0x6c) == 5 && move_ok && W(a, 0xa4) == 1) {
+                    position = W(a, 0xa6);
+                    have_position = 1;
+                }
+                if (!(have_position && position != -1)) {
+                    limit = D(a, 0x1d0) == k_datum_index_none ? W(actor_tag, 0x356) : W(actor_tag, 0x354);
+                    if (!hold && D(a, 0x3c0) == D(a, 0x270) && W(a, 0x3c4) >= limit) {
+                        goto no_position;
+                    }
+                    {
+                        static uint8_t query[0x664];            // [esp+0x108]
+                        static uint8_t candidate[0x3c];         // [esp+0xcc]
+                        static path_find_context path_context;   // [esp+0x770]
+                        uint32_t previous_owner = 0;            // [esp+0x24]
+                        uint8_t path_ok = 0;                    // [esp+0x13]
+
+                        memset(query, 0, sizeof(query));
+                        W(query, 0x4) = 5;
+                        D(query, 0x8) = D(a, 0x270);
+                        D(query, 0xc) = target != 0 ? D(target, 0x7c) : k_datum_index_none;
+                        query[0x43] = (uint8_t)(D(a, 0x270) != k_datum_index_none);
+                        query[0x14] = hold;
+                        *(uint32_t *)query = actor_get_firing_position_group_mask(actor_index, 5, 0);
+                        *(float *)(query + 0x1c) = 20.0f;
+                        position = (int16_t)actor_find_best_firing_position(actor_index, (actor_firing_position_query *)query,
+                            (actor_firing_position_candidate *)candidate, &previous_owner,
+                            &path_context, &path_ok);
+                    }
+                    if (position == -1) {
+                        goto no_position;
+                    }
+                    if (!have_position &&
+                        actor_build_order_face_seat_marker(actor_index, position, (uint32_t *)order)) {
+                        actor_set_mode(actor_index, 5, order);
+                        return actor_combat_commit_position(actor_index, a, target, position);
+                    }
+                }
+                if (move_ok &&
+                    actor_build_order_face_seat_marker_committed(actor_index, position, hold, (uint32_t *)order)) {
+                    actor_set_mode(actor_index, 7, order);
+                    return actor_combat_commit_position(actor_index, a, target, position);
+                }
+            }
+        }
+
+    no_position:
+        // 0x40d39d
+        if (W(a, 0x3c4) > 0 && D(a, 0x18) != k_datum_index_none) {
+            ai_communication_broadcast(0x13, D(a, 0x18), k_datum_index_none, -1, k_datum_index_none,
+                                       k_datum_index_none, 0);
+        }
+        if (!a[0x6] && wait_ok && actor_build_order_random_wait(actor_index, reposition, (uint32_t *)order)) {
+            actor_set_mode(actor_index, 8, order);
+            return 1;
+        }
+    }
+
+guard:
+    // 0x40d445: otherwise guard
+    if (W(actor_mode_definitions, W(a, 0x6c) * 0x38 + 0xc) == 1) {
+        return result;
+    }
+    {
+        int16_t mode = W(a, 0x6c);
+        int16_t guard_at = ((mode == 7 && !a[0x9d]) || mode == 8) ? 0 : 0x5a;
+
+        actor_set_target_alert_stage3(D(a, 0x270), actor_index);
+        actor_build_order_guard(actor_index, (actor_order *)order, guard_at);
+        actor_set_mode(actor_index, 6, order);
+    }
     return 1;
 }
 

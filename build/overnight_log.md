@@ -1384,3 +1384,6 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   argless unit_get_camera_position (vehicle firing origin written through garbage), grenade top-up / lead /
   drift / line-of-fire / override-target helpers without operands, aim point fields, the "friend in the way"
   logic (0x42b190 returns clear, not blocked), burst timer via fistp.
+- actor_update_melee_combat_action 0x40cdf0 (really "choose the next combat mode"; every combat tick via
+  actor_update_combat_behavior) REWRITTEN (0.3 -> 0.85): the alert stages, pursuit note, placement flags,
+  support evaluation and target state helpers were called without operands; firing-position query rebuilt.
