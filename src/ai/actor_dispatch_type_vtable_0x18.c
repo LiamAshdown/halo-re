@@ -1,6 +1,6 @@
 // actor_dispatch_type_vtable_0x18  (Ghidra: actor_dispatch_type_vtable_0x18, already named)
 // address 0x4266a0, size 41 bytes
-// name confidence: 0.55   rewrite confidence: 0.45
+// name confidence: 0.55   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop: objdump 0x4266a0..0x4266c8, EAX actor pushed to the proc)
 // evidence: types/ai.h actor_type_table_entry.proc_18 (0x18); same shape as
 //   actor_dispatch_type_vtable_0x10 @0x426670, but this one calls the slot unconditionally
 //   with no NULL check -- preserved exactly, including the resulting crash if a type has no

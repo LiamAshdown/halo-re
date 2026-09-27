@@ -1,6 +1,6 @@
 // actor_dispatch_type_vtable_0x10  (Ghidra: actor_dispatch_type_vtable_0x10, already named)
 // address 0x426670, size 46 bytes
-// name confidence: 0.55   rewrite confidence: 0.45
+// name confidence: 0.55   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop: objdump 0x426670..0x42669d, ECX actor pushed to the proc)
 // evidence: types/ai.h actor_type_table_entry.proc_10 (0x10) and the global comment for
 //   0x006853b8 actor_type_procs[16], indexed by actor.type (0x04). Phase-4 summary: "Invokes
 //   the per-actor-type virtual callback at vtable slot 0x10, if one is registered for this
