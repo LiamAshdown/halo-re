@@ -1592,3 +1592,7 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   (EAX out, EDX forward, stack matrix); the draft passed only the matrix.
 - actor_get_body_axis_vector 0x405390 (0.3 -> 0.9): called that two-argument function with THREE arguments, so it wrote
   the vector through the unit index as a pointer (memory corruption whenever an actor rated another unit's axis).
+- NEW check: callers passing MORE arguments than the definition (misalignment class). actor_reassign_vehicle_seat's
+  tail call tidied (EAX = self); actor_delete / damage_apply_area_effect / ai_accumulate_repeated_event extras are
+  harmless (first argument right, cdecl).
+- unit_initialize_random_turn_angle (flee enter / tick): actor_resolve_wander_or_look_direction gets (actor, scratch).

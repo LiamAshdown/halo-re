@@ -20,7 +20,7 @@ extern data_array *object_data;     // 0x008603b0
 extern random_seed random_seed_global;   // 0x00719cd0
 
 extern double atan2(double y, double x); // fpatan
-extern int8_t actor_resolve_wander_or_look_direction(void); // 0x4287a0, UNSURE: actor-side predicate, no traced args
+extern uint8_t actor_resolve_wander_or_look_direction(datum_index actor_index, real_vector3d *out_direction); // 0x4287a0, EAX, ECX
 
 // One-time initialization of the unit's random idle-turn target angle: seeded from its current
 // heading (or zero, for an AI-controlled unit where actor_resolve_wander_or_look_direction applies) plus a small random
@@ -36,7 +36,9 @@ void unit_initialize_random_turn_angle(uint32_t object_index)
     }
     unit->flags |= _unit_flag_idle_turn_seeded;
 
-    if (unit->actor_index == k_datum_index_none || actor_resolve_wander_or_look_direction() == 0) {
+    real_vector3d direction; // [esp+0x8], unused afterwards
+    // 0x570690: EAX = the actor, ECX = a scratch direction; the draft passed neither
+    if (unit->actor_index == k_datum_index_none || actor_resolve_wander_or_look_direction(unit->actor_index, &direction) == 0) {
         float angle = (float)atan2((double)obj->forward.j, (double)obj->forward.i);
         if (angle > 3.1415927f) {
             angle -= 6.2831855f;
