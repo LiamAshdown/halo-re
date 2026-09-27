@@ -1319,3 +1319,10 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - unit_can_see_point 0x56f800 marked FRAGMENT (tail of the above).
 - breakable_surface_apply_damage 0x4ffde0: takes a second stack arg (collision surface) passed on to 0x500090
   (was 0).
+- vehicle_update 0x570ee0 REWRITTEN from objdump (0.15 -> 0.85). Big one: the draft inverted the parent test, so
+  every FREE vehicle had its velocity zeroed and skipped physics while attached ones ran it (the cryotube and
+  any a10 vehicle). Also fixed: flip test uses up.k <= 0.9 (was +0x4dc), altitude band uses position.z / vel.k
+  (was +0x338 / +0x4dc), hard-landing damage tests vel.k, scalar helpers get their rates/range/value pointers,
+  skid/steering/ground-contact updaters get the contact buffer and the pre-physics velocity.
+- OPEN: vehicle_calculate_turret/steering_wheel/lean_controls (0x572b60/0x572cd0/0x572df0) also take a buffer in
+  EDI/ESI (esp+0x88) that their C signatures lack.

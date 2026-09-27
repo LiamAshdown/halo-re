@@ -1,44 +1,25 @@
 // vehicle_update  (Ghidra: already named vehicle_update)
 // address 0x570ee0, size 2531 bytes
 // name confidence: 0.85 (cea-pdb hint 'vehicle_update' confirmed by decompilation)
-// rewrite confidence: 0.15 -- by far the largest and most register-dense function in this
-//   batch. Fields with a clear struct match are named; everything else (the turret/steering
-//   dispatch buffers, the "~blur" impact-damage table, the 0x746f9c table) is preserved as raw
-//   offsets with UNSURE notes, and the seven per-vehicle-type physics functions this dispatches
-//   to (0x572b60..0x574780/0x507840) are declared with only the argument counts Ghidra shows at
-//   this call site -- their own files (this batch) may refine the signatures.
-// evidence: types/units.h vehicle_data (flags 0x4cc as both a byte and a uint16, network_update_tick
-//   0x5ac); types/objects.h object.parent_object (0x11c), .flags (0x010), .velocity (0x068),
-//   .angular_velocity (0x08c), .forward/.up (0x074/0x080), .first_child_object (0x118),
-//   .next_object (0x114); types/units.h unit_data.control_flags (0x208), .throttle (0x278),
-//   .desired_facing_vector (0x224), .unknown_338/.unknown_33c (0x338/0x33c); types/tags.h
-//   Vehicle.vehicle_flags (0x2f0), .maximum_forward_speed (0x2f8), .maximum_left_turn/
-//   .maximum_right_turn (0x308/0x30c), .wheel_circumference (0x310), .turn_rate (0x314),
-//   .blur_speed (0x318), .maximum_left_slide/.maximum_right_slide (0x330/0x334),
-//   .minimum_flipping_angular_velocity/.maximum_flipping_angular_velocity (0x340/0x344), and
-//   the animation_graph TagDependency inherited from Object (tag_id at absolute 0x44); callees
-//   unit_get_recently_updated_flag (0x570c80), unit_has_child_of_type5 (0x570d70),
-//   unit_set_facing_from_index_table (0x570de0), unit_update_recoil_decay (0x574780),
-//   object_set_permutation_by_name (0x4f6c60, established 4-argument form),
-//   object_apply_damage.
-// register convention: vehicle object index in EAX (param_1).
-//   // blam-cc: EAX -> object_index
-// UNSURE: both vector3d_cross_product calls in the flipping-turn branch are followed, in
-//   Ghidra's own decompile, by code that reuses the *already-computed* "V = up x forward"
-//   vector (fVar17/fVar10/fVar11) rather than either call's result -- i.e. both calls are
-//   reproduced for fidelity but their outputs go unused here, exactly as decompiled.
-// UNSURE: vector3d_distance's two point arguments are register-only; guessed as the object's
-//   current position against unit_data.unknown_34c (the same "cached reference point" field
-//   0x56e820 maintains), since no other per-vehicle "last synced position" field is documented.
-// UNSURE: DAT_00746f9c+0x10/+0x14 (a two-float table used to bias turning_velocity, gated on a
-//   vehicle-type bitmask of 0x28 = types 3 and 5) and globals_tag_data+0x18c+0x38/+0x8c (an
-//   "excess speed impact" damage effect and threshold) are not named in any header available to
-//   this module.
-// UNSURE: the seven vehicle-type dispatch targets (FUN_00572b60.. object_physics_tick) and the small
-//   foreign helpers physics_scalar_move_toward_target/physics_scalar_step_to_target_clamped/unit_any_flagged_seat_occupied are declared with exactly the
-//   argument counts visible at their call sites here.
-// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
-// reconciled: R25 damage_data.unknown_4c -> material_type (int16 collision material of the damaged surface, 0xffff = none; indexes DamageEffect +0x200)
+// rewrite confidence: 0.85
+// REWRITTEN from objdump 0x570ee0..0x5718c2. The draft had the parent test inverted (every free vehicle had
+//   its velocity zeroed and skipped physics, attached ones ran it), used the wrong fields in the flip, altitude
+//   band and impact-damage branches, and called the scalar helpers and effect updaters without their operands.
+//   Stack: object_index. A network client (role 2) resyncs a stale vehicle (+0x5ac + period 0x6f1cf0) whose
+//   position moved more than 1.5 from +0x5b4. An attached vehicle (+0x11c) is frozen. Otherwise: control bit 1
+//   -> vehicle flag 4; bit 2 (or a throttle against the current speed with tag flag 0x10) -> brake flag 8; the
+//   signed angle between facing and the desired facing (+0x224) about up x forward; a flipping vehicle (flag
+//   0x10, +0x4d1 direction, under 30 ticks, up.k <= 0.9) spins at clamp(-2 up.k, tag +0x340..+0x344) * 0.3;
+//   the forward / sideways speeds (+0x4d4 / +0x4d8) step toward the throttle (0x50b460, rates +0x2f8 / +0x330)
+//   and turning (+0x4dc) toward the clamped angle (0x50b2f0, range +0x308) or, for type 0, the angle * 2/pi
+//   times the top speed. With physics (+0x8c) and not at rest (0x20) the type's control solver runs (jump table
+//   0x5718c4) followed by the skid, traction, steering-deviation and ground-contact updates, and types 3 / 5
+//   are held inside the altitude band (0x746f9c +0x10 / +0x14); at rest the recoil decays. Tag flag 0x40
+//   damages the riders on hard landings (matg +0x18c). Then the animation state machine and the "~blur"
+//   permutation (|forward speed| >= tag +0x318). Returns 1.
+// OPEN: vehicle_calculate_turret_controls / steering_wheel / lean (types 0..2) also receive a buffer in EDI /
+//   ESI (esp+0x88) that their C signatures do not take.
+// blam-cc: stack -> object_index
 
 #include "tags.h"
 #include "memory.h"
@@ -48,325 +29,295 @@
 #include "objects.h"
 #include "hs.h"
 #include "units.h"
+#include <string.h>
 
-extern data_array *object_data;      // 0x008603b0
-extern tag_instance *tag_instances;  // 0x0087bc14
-extern int32_t game_connection_role; // 0x00719720
-extern int32_t DAT_006f1cf0;         // the vehicle network update period (types/units.h)
-extern game_time_globals *game_time; // 0x006f1d6c
+extern data_array *object_data;         // 0x008603b0
+extern tag_instance *tag_instances;     // 0x0087bc14
+extern int16_t game_connection_role;    // 0x00719720
+extern int32_t vehicle_network_update_period; // 0x006f1cf0
+extern game_time_globals *game_time;    // 0x006f1d6c
 extern uint8_t unit_updates_suppressed; // 0x0071c419
-extern uint8_t *global_structure_bsp;  // 0x00746f9c, UNSURE
+extern uint8_t *vehicle_altitude_band;  // 0x00746f9c, +0x10 floor / +0x14 ceiling (0 = none)
 extern uint8_t *globals_tag_data;       // 0x00746fa0
 
 extern double atan2(double y, double x); // fpatan
-extern float fabsf(float x);
+extern double fabs(double x);
 
-extern real vector3d_distance(real_point3d *a, real_point3d *b); // 0x4088b0
-extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand,
-                                    real_vector3d *stack_operand); // 0x4052c0
-extern uint8_t unit_get_recently_updated_flag(uint32_t object_index);       // 0x570c80, this batch
-extern uint8_t unit_has_child_of_type5(uint32_t unit_index);                // 0x570d70, this batch
-extern void unit_set_facing_from_index_table(uint32_t object_index);        // 0x570de0, this batch
-extern void unit_update_recoil_decay(uint32_t object_index);                  // 0x574780, this batch
-extern uint32_t unit_update_marker_traction_effects(uint32_t object_index);                           // 0x575170, this batch
-extern void unit_update_steering_deviation_effects(uint32_t unit_index);                              // 0x574f30, this batch
-  // real signature (unit_update_steering_deviation_effects.c): void unit_update_steering_deviation_effects(uint32_t unit_index, real_vector3d *reference_direction, uint8_t *contact_points); Ghidra recovered 1 of 3 args at this call site
-extern void unit_update_marker_skid_effects(void *transform);                                  // 0x575460, this batch
-  // real signature (unit_update_marker_skid_effects.c): void unit_update_marker_skid_effects(uint32_t unit_index, uint8_t *contact_points); Ghidra recovered 1 of 2 args at this call site
-extern void unit_update_ground_contact_counter(void);                                             // 0x575640, this batch, UNSURE args
-  // real signature (unit_update_ground_contact_counter.c): void unit_update_ground_contact_counter(uint32_t unit_index, uint8_t *contact_points); Ghidra recovered 0 of 2 args at this call site
-extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, stack unit, ECX request
-  // real signature (unit_update_animation_state_machine.c): uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); Ghidra recovered 1 of 2 args at this call site
-extern int8_t unit_any_flagged_seat_occupied(void); // 0x56cc80, UNSURE: zero visible args
-  // real signature (unit_any_flagged_seat_occupied.c): uint8_t unit_any_flagged_seat_occupied(uint32_t unit_index); Ghidra recovered 0 of 1 args at this call site
-extern void physics_scalar_move_toward_target(uint32_t param_1, float angle, float rate); // 0x50b2f0, UNSURE signature
-extern void physics_scalar_step_to_target_clamped(float value, float scale); // 0x50b460, UNSURE signature
+extern real vector3d_distance(real_point3d *a, real_point3d *b); // 0x4088b0, EAX, ECX
+extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0
+extern uint8_t unit_get_recently_updated_flag(uint32_t object_index); // 0x570c80, EAX
+extern uint8_t unit_has_child_of_type5(uint32_t unit_index); // 0x570d70, ECX
+extern void unit_set_facing_from_index_table(uint32_t object_index); // 0x570de0
+extern uint8_t unit_any_flagged_seat_occupied(uint32_t unit_index); // 0x56cc80, EAX
+extern uint8_t physics_scalar_step_to_target_clamped(void *rates, float *value, float target, float step); // 0x50b460, EDX, ECX
+extern uint8_t physics_scalar_move_toward_target(void *range, float *value, uint8_t wrap, float target,
+                                                 float rate); // 0x50b2f0, ESI, EDX, stack
+extern void vehicle_calculate_turret_controls(uint32_t unit_index, void *param_2); // 0x572b60 (+ EDI)
+extern void vehicle_calculate_steering_wheel_controls(uint32_t unit_index, void *param_2); // 0x572cd0 (+ EDI)
+extern void vehicle_calculate_lean_controls(uint32_t unit_index, void *param_2); // 0x572df0 (+ ESI)
+extern void vehicle_calculate_ground_lean_controls(uint32_t unit_index, uint8_t *out_transform); // 0x573100
+extern void vehicle_calculate_wing_flex_controls(uint32_t unit_index, float angle, uint8_t *node_output,
+                                                 uint8_t *contact_points); // 0x5734d0
+extern void vehicle_calculate_mounted_controls_dispatch(uint32_t unit_index, void *out_transform,
+                                                        void *out_record); // 0x573ee0, ESI, ECX, EDX
+extern void object_physics_tick(uint32_t object_index, void *powered_states, void *param_3,
+                                real_vector3d *extra_force, real_vector3d *extra_torque); // 0x507840
+extern void unit_update_marker_skid_effects(uint32_t unit_index, uint8_t *contact_points); // 0x575460
+extern uint32_t unit_update_marker_traction_effects(uint32_t object_index); // 0x575170
+extern void unit_update_steering_deviation_effects(uint32_t unit_index, real_vector3d *reference_direction,
+                                                   uint8_t *contact_points); // 0x574f30
+extern void unit_update_ground_contact_counter(uint32_t unit_index, uint8_t *contact_points); // 0x575640
+extern void unit_update_recoil_decay(uint32_t object_index); // 0x574780
+extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420
 extern void object_set_permutation_by_name(uint32_t object_index, char *name, int16_t region_filter,
                                            char use_matched_index); // 0x4f6c60
-extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t param_3,
-                                 int16_t param_4, int16_t param_5, uint32_t param_6); // 0x4ee5e0
+extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index,
+                                int16_t region_index, int16_t material_index, uint32_t plane); // 0x4ee5e0
+extern char s_blur_permutation[]; // 0x00672080 "~blur"
 
-extern void vehicle_calculate_turret_controls(uint32_t unit_index, void *param_2);              // 0x572b60, this batch
-extern void vehicle_calculate_steering_wheel_controls(uint32_t unit_index, void *param_2);              // 0x572cd0, this batch
-extern void vehicle_calculate_lean_controls(uint32_t unit_index, void *param_2);              // 0x572df0, this batch
-extern void vehicle_calculate_ground_lean_controls(uint32_t unit_index, uint8_t *out_transform);      // 0x573100, this batch
-extern void vehicle_calculate_wing_flex_controls(uint32_t unit_index, float angle, void *scratch3072,
-                          uint8_t *out_transform);                                  // 0x5734d0, this batch
-extern void vehicle_calculate_mounted_controls_dispatch(uint32_t unit_index);    // 0x573ee0, this batch
-extern void object_physics_tick(uint32_t unit_index, uint32_t param_2, void *transform,
-                          uint32_t param_4, uint32_t param_5);                    // 0x507840, UNSURE signature
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define F(p, o) (*(float *)((p) + (o)))
 
-// Per-tick update for vehicle-type units: resyncs position/orientation over the network when
-// stale, zeroes velocity while parentless, tracks the "braking" and "over blur speed" flags,
-// computes the flipping angular-velocity clamp and turret-limit lean, dispatches to the
-// per-vehicle-type control/animation calculation, applies excess-speed impact damage to
-// attached children, drives the animation state machine, and updates the "~blur" motion
-// permutation.
 uint32_t vehicle_update(uint32_t object_index)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
-    vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    uint8_t scratch_transform[9724]; // local_2608, UNSURE exact shape
-    uint8_t scratch_3072[3072];      // local_3208, UNSURE exact shape
-    float aim_angle;
-    real_vector3d v; // up x forward (component-wise); reused by the flipping-turn branch below
+    uint8_t *obj = OBJECT_DATA(object_index);
+    uint8_t *tag = TAG_DATA(*(datum_index *)obj);
+    real_vector3d *forward = (real_vector3d *)(obj + 0x74);
+    real_vector3d *up = (real_vector3d *)(obj + 0x80);
+    static uint8_t node_output[0xc00];     // [esp+0x88]
+    static uint8_t contact_points[0x2600]; // [esp+0xc88]
 
-    if (game_connection_role == 2 && vehicle->network_update_tick != -1 && DAT_006f1cf0 != 0 &&
-        (int32_t)(vehicle->network_update_tick + DAT_006f1cf0) <= game_time->game_time) {
-        real vect_dist = vector3d_distance(&obj->position, (real_point3d *)&unit->unknown_34c); // UNSURE args
-        if (vect_dist > 1.5f && unit_get_recently_updated_flag(object_index) == 1 &&
-            unit_has_child_of_type5(object_index) == 0) {
+    if (game_connection_role == 2 && *(int32_t *)(obj + 0x5ac) != -1 && vehicle_network_update_period != 0 &&
+        game_time->game_time >= *(int32_t *)(obj + 0x5ac) + vehicle_network_update_period) {
+        if (vector3d_distance((real_point3d *)(obj + 0x5b4), (real_point3d *)(obj + 0x5c)) > 1.5f &&
+            unit_get_recently_updated_flag(object_index) == 1 && !unit_has_child_of_type5(object_index)) {
             unit_set_facing_from_index_table(object_index);
         }
-        vehicle->network_update_tick = game_time->game_time;
+        *(int32_t *)(obj + 0x5ac) = game_time->game_time;
     }
 
-    if (obj->parent_object == k_datum_index_none) {
-        obj->angular_velocity.i = 0.0f;
-        obj->angular_velocity.j = 0.0f;
-        obj->angular_velocity.k = 0.0f;
-        obj->velocity.i = 0.0f;
-        obj->velocity.j = 0.0f;
-        obj->velocity.k = 0.0f;
-        obj->flags &= ~0x20u;
-        goto after_physics;
-    }
-
-    if ((unit->control_flags & _unit_control_flag_crouch) == 0) {
-        vehicle->flags &= ~4;
+    if (*(datum_index *)(obj + 0x11c) != k_datum_index_none) {
+        // 0x570fa7: riding something, frozen
+        F(obj, 0x8c) = 0.0f;
+        F(obj, 0x90) = 0.0f;
+        F(obj, 0x94) = 0.0f;
+        F(obj, 0x68) = 0.0f;
+        F(obj, 0x6c) = 0.0f;
+        F(obj, 0x70) = 0.0f;
+        *(uint32_t *)(obj + 0x10) &= ~0x20u;
     } else {
-        vehicle->flags |= 4;
-    }
+        uint32_t control = *(uint32_t *)(obj + 0x208);
+        real_vector3d a;     // [esp+0x18]
+        real_vector3d b;     // [esp+0x24]
+        float angle;         // [esp+0x10]
+        float throttle = F(obj, 0x278);
+        float speed = F(obj, 0x4d4);
 
-    if ((unit->control_flags & _unit_control_flag_jump) != 0 ||
-        ((tag->vehicle_flags & 0x10) != 0 &&
-         ((unit->throttle.i > 0.0f && vehicle->forward_velocity < 0.0f) ||
-          (unit->throttle.i < 0.0f && vehicle->forward_velocity > 0.0f)))) {
-        vehicle->flags |= 8;
-    } else {
-        vehicle->flags &= ~8;
-    }
-
-    {
-        // V = up x forward (component-wise, matching the Ghidra arithmetic exactly), used as a
-        // reference axis so the angle between "forward" and "desired_facing_vector" comes out
-        // signed. The flipping-turn branch below reuses this same vector as its rotation axis.
-        v.i = obj->forward.k * obj->up.j - obj->up.k * obj->forward.j;
-        v.j = obj->up.k * obj->forward.i - obj->forward.k * obj->up.i;
-        v.k = obj->up.i * obj->forward.j - obj->forward.i * obj->up.j;
-
-        aim_angle = (float)atan2(
-            (double)(v.i * unit->desired_facing_vector.i + v.k * unit->desired_facing_vector.k +
-                     v.j * unit->desired_facing_vector.j),
-            (double)(unit->desired_facing_vector.i * obj->forward.i +
-                     unit->desired_facing_vector.j * obj->forward.j +
-                     unit->desired_facing_vector.k * obj->forward.k));
-    }
-
-    if ((obj->network_role == 2 || obj->network_role == 1) && *((int8_t *)obj + 0x18) == 1) {
-        unit_any_flagged_seat_occupied();
-    }
-
-    if (((vehicle->flags & 0x10) == 0) || (vehicle->unknown_4d1 == 0) ||
-        (vehicle->unknown_4d2 > 0x1d) ||
-        ((vehicle->turning_velocity < 0.9f) == (vehicle->turning_velocity == 0.9f))) {
-        vehicle->unknown_4d2 = 0;
-        vehicle->unknown_4d1 = 0;
-        vehicle->flags &= ~0x10;
-    } else {
-        float sign = (vehicle->unknown_4d1 == 2 || vehicle->unknown_4d1 == 4) ? 0.3f : -0.3f;
-        real_vector3d axis;
-
-        if (vehicle->unknown_4d1 == 4 || vehicle->unknown_4d1 == 3) {
-            real_vector3d unused_out;
-            vector3d_cross_product(&unused_out, &obj->up, &obj->forward); // UNSURE: result unused, see header
-            axis = v; // reuses the up x forward vector computed above
+        if (control & 1) {
+            obj[0x4cc] |= 4;
         } else {
-            axis = obj->forward;
+            obj[0x4cc] &= ~4;
+        }
+        if ((control & 2) ||
+            ((*(uint32_t *)(tag + 0x2f0) & 0x10) &&
+             ((throttle > 0.0f && speed < 0.0f) || (throttle < 0.0f && speed > 0.0f)))) {
+            obj[0x4cc] |= 8;
+        } else {
+            obj[0x4cc] &= ~8;
+        }
+
+        a.i = forward->k * up->j - up->k * forward->j;
+        a.j = up->k * forward->i - forward->k * up->i;
+        a.k = up->i * forward->j - forward->i * up->j;
+        b = a;
+        angle = (float)atan2(b.j * F(obj, 0x228) + b.k * F(obj, 0x22c) + b.i * F(obj, 0x224),
+                             F(obj, 0x22c) * forward->k + F(obj, 0x228) * forward->j + F(obj, 0x224) * forward->i);
+        if ((*(int32_t *)(obj + 0x4) == 2 || *(int32_t *)(obj + 0x4) == 1) && obj[0x18] == 1) {
+            unit_any_flagged_seat_occupied(object_index);
         }
 
         {
-            float clamp = vehicle->turning_velocity * -2.0f;
-            if (tag->minimum_flipping_angular_velocity <= clamp) {
-                if (tag->maximum_flipping_angular_velocity < clamp) {
-                    clamp = tag->maximum_flipping_angular_velocity;
+            uint8_t direction = obj[0x4d1];
+
+            if ((*(uint16_t *)(obj + 0x4cc) & 0x10) && direction != 0 && obj[0x4d2] < 0x1e && up->k <= 0.9f) {
+                // 0x571130: flipping back over
+                float sign = (direction == 2 || direction == 4) ? 0.3f : -0.3f;
+                float spin;
+
+                if (direction == 4 || direction == 3) {
+                    vector3d_cross_product(&a, up, forward);
+                } else {
+                    a = *forward;
                 }
+                spin = up->k * -2.0f;
+                if (!(spin >= F(tag, 0x340))) {
+                    spin = F(tag, 0x340);
+                } else if (!(spin <= F(tag, 0x344))) {
+                    spin = F(tag, 0x344);
+                }
+                spin *= sign;
+                *(uint32_t *)(obj + 0x10) &= ~0x20u;
+                if (direction == 2 || direction == 1) {
+                    float k = -forward->k;
+
+                    vector3d_cross_product(&b, up, forward);
+                    a.i += b.i * k;
+                    a.j += b.j * k;
+                    a.k += k * b.k;
+                }
+                F(obj, 0x8c) = a.i * spin;
+                F(obj, 0x90) = a.j * spin;
+                F(obj, 0x94) = a.k * spin;
+                if (*(int16_t *)(tag + 0x2f4) == 0) {
+                    float along = forward->k * F(obj, 0x70) + forward->j * F(obj, 0x6c) + F(obj, 0x68) * forward->i;
+
+                    F(obj, 0x68) = along * forward->i;
+                    F(obj, 0x6c) = along * forward->j;
+                    F(obj, 0x70) = along * forward->k;
+                } else if (*(int16_t *)(tag + 0x2f4) == 5) {
+                    if (-0.01f <= F(obj, 0x70)) {
+                        F(obj, 0x70) = -0.01f;
+                    }
+                }
+                obj[0x4d2]++;
             } else {
-                clamp = tag->minimum_flipping_angular_velocity;
-            }
-            clamp *= sign;
-            obj->flags &= ~0x20u;
-
-            if (vehicle->unknown_4d1 == 2 || vehicle->unknown_4d1 == 1) {
-                real_vector3d unused_out;
-                float f = -obj->forward.k;
-                vector3d_cross_product(&unused_out, &obj->forward, &obj->up); // UNSURE: result unused, see header
-                axis.i = v.i * f + axis.i;
-                axis.j = v.j * f + axis.j;
-                axis.k = f * v.k + axis.k;
-            }
-
-            obj->angular_velocity.i = axis.i * clamp;
-            obj->angular_velocity.j = axis.j * clamp;
-            obj->angular_velocity.k = axis.k * clamp;
-
-            if (tag->vehicle_type == 0) {
-                // Reproject the object's own velocity fully onto its forward direction (no
-                // sideways slip for this vehicle type).
-                float along = obj->velocity.i * obj->forward.i + obj->velocity.j * obj->forward.j +
-                              obj->velocity.k * obj->forward.k;
-                obj->velocity.i = along * obj->forward.i;
-                obj->velocity.j = along * obj->forward.j;
-                obj->velocity.k = along * obj->forward.k;
-            } else if (tag->vehicle_type == 5) {
-                // Clamp the vertical velocity component to a slow minimum fall rate.
-                obj->velocity.k = (obj->velocity.k >= -0.01f) ? -0.01f : obj->velocity.k;
+                *(uint16_t *)(obj + 0x4cc) &= 0xffef;
+                obj[0x4d2] = 0;
+                obj[0x4d1] = 0;
             }
         }
-        vehicle->unknown_4d2 += 1;
-    }
 
-    if ((vehicle->flags & 8) == 0) {
-        physics_scalar_step_to_target_clamped(unit->throttle.i, 1.0f);
-        physics_scalar_step_to_target_clamped(unit->throttle.j, 1.0f);
-    } else {
-        physics_scalar_step_to_target_clamped(0.0f, 1.0f);
-    }
-
-    if (tag->vehicle_type == 0) {
-        float rate, angle;
-        if (vehicle->sideways_velocity == 0.0f) {
-            rate = 1.0f; angle = 0.0f;
+        // 0x5712d3: speeds toward the throttle
+        if (obj[0x4cc] & 8) {
+            physics_scalar_step_to_target_clamped(tag + 0x2f8, (float *)(obj + 0x4d4), 0.0f, 1.0f);
         } else {
-            angle = aim_angle * 0.63661975f;
-            if (angle < -1.0f) angle = -1.0f;
-            else if (angle > 1.0f) angle = 1.0f;
-            angle *= tag->maximum_forward_speed;
-            rate = 2.0f;
+            physics_scalar_step_to_target_clamped(tag + 0x2f8, (float *)(obj + 0x4d4), F(obj, 0x278), 1.0f);
+            physics_scalar_step_to_target_clamped(tag + 0x330, (float *)(obj + 0x4d8), F(obj, 0x27c), 1.0f);
         }
-        physics_scalar_step_to_target_clamped(angle, rate);
-    } else {
-        float signed_angle = (vehicle->sideways_velocity < 0.0f) ? -aim_angle : aim_angle;
-        float limit = tag->maximum_right_turn * 0.017453292f;
-        if (limit <= signed_angle) {
-            float other = tag->maximum_left_turn * 0.017453292f;
-            limit = signed_angle;
-            if (other < signed_angle) limit = other;
-        }
-        physics_scalar_move_toward_target(0, limit, tag->turn_rate * 0.017453292f * 0.033333335f);
-    }
+        if (*(int16_t *)(tag + 0x2f4) != 0) {
+            float target = F(obj, 0x4d4) >= 0.0f ? angle : -angle;
+            float low = F(tag, 0x30c) * 0.017453292f;
 
-    if (*(int32_t *)((uint8_t *)tag + 0x8c) == -1) { // tag->physics.tag_id
-        goto recoil_only;
-    }
+            if (!(target >= low)) {
+                target = low;
+            } else {
+                float high = F(tag, 0x308) * 0.017453292f;
 
-    {
-        uint32_t flags = tag->vehicle_flags;
-        if ((((flags & 1) != 0 && vehicle->forward_velocity != 0.0f) ||
-             ((flags & 2) != 0 && vehicle->turning_velocity != 0.0f) ||
-             ((flags & 4) != 0 && unit->unknown_338 != 0.0f) ||
-             ((flags & 8) != 0 && unit->unknown_33c != 0.0f) ||
-             ((flags & 0x20) != 0 && vehicle->sideways_velocity != 0.0f))) {
-            obj->flags &= ~0x20u;
-        }
+                if (!(target <= high)) {
+                    target = high;
+                }
+            }
+            physics_scalar_move_toward_target(tag + 0x308, (float *)(obj + 0x4dc), 0, target,
+                                              F(tag, 0x314) * 0.017453292f * 0.033333335f);
+        } else if (F(obj, 0x4d4) == 0.0f) {
+            physics_scalar_step_to_target_clamped(tag + 0x2f8, (float *)(obj + 0x4dc), 0.0f, 1.0f);
+        } else {
+            float target = angle * 0.63661975f;
 
-        if (*(int32_t *)((uint8_t *)tag + 0x8c) == -1 || (obj->flags & 0x20) != 0) {
-            goto recoil_only;
+            if (!(target >= -1.0f)) {
+                target = -1.0f;
+            } else if (!(target <= 1.0f)) {
+                target = 1.0f;
+            }
+            physics_scalar_step_to_target_clamped(tag + 0x2f8, (float *)(obj + 0x4dc), target * F(tag, 0x2f8), 2.0f);
         }
 
-        switch (tag->vehicle_type) {
-        case 0: vehicle_calculate_turret_controls(object_index, scratch_transform); break;
-        case 1: vehicle_calculate_steering_wheel_controls(object_index, scratch_transform); break;
-        case 2: vehicle_calculate_lean_controls(object_index, scratch_transform); break;
-        case 3: vehicle_calculate_ground_lean_controls(object_index, scratch_transform); break;
-        case 4: vehicle_calculate_wing_flex_controls(object_index, aim_angle, scratch_3072, scratch_transform); break;
-        case 5: vehicle_calculate_mounted_controls_dispatch(object_index); break;
-        case 6: object_physics_tick(object_index, 0, scratch_transform, 0, 0); break;
-        }
+        if (*(datum_index *)(tag + 0x8c) != k_datum_index_none) {
+            uint32_t flags = *(uint32_t *)(tag + 0x2f0);
 
-        if (unit_updates_suppressed == 0) {
-            unit_update_marker_skid_effects(scratch_transform);
-        }
-
-        {
-            uint8_t had_traction = unit_update_marker_traction_effects(object_index);
-            if (had_traction == 0 && unit_updates_suppressed == 0) {
-                unit_update_steering_deviation_effects(object_index);
+            if (((flags & 1) && F(obj, 0x4d4) != 0.0f) || ((flags & 2) && F(obj, 0x4dc) != 0.0f) ||
+                ((flags & 4) && F(obj, 0x338) != 0.0f) || ((flags & 8) && F(obj, 0x33c) != 0.0f) ||
+                ((flags & 0x20) && F(obj, 0x4d8) != 0.0f)) {
+                *(uint32_t *)(obj + 0x10) &= ~0x20u;
             }
         }
-        unit_update_ground_contact_counter();
+        if (*(datum_index *)(tag + 0x8c) != k_datum_index_none && !(*(uint32_t *)(obj + 0x10) & 0x20)) {
+            // 0x571505: run the physics
+            b = *(real_vector3d *)(obj + 0x68);
+            switch (*(int16_t *)(tag + 0x2f4)) {
+            case 0: vehicle_calculate_turret_controls(object_index, contact_points); break;
+            case 1: vehicle_calculate_steering_wheel_controls(object_index, contact_points); break;
+            case 2: vehicle_calculate_lean_controls(object_index, contact_points); break;
+            case 3: vehicle_calculate_ground_lean_controls(object_index, contact_points); break;
+            case 4: vehicle_calculate_wing_flex_controls(object_index, angle, node_output, contact_points); break;
+            case 5: vehicle_calculate_mounted_controls_dispatch(object_index, contact_points, node_output); break;
+            case 6: object_physics_tick(object_index, 0, contact_points, 0, 0); break;
+            default: break;
+            }
+            if (!unit_updates_suppressed) {
+                unit_update_marker_skid_effects(object_index, contact_points);
+            }
+            if (!(uint8_t)unit_update_marker_traction_effects(object_index) && !unit_updates_suppressed) {
+                unit_update_steering_deviation_effects(object_index, &b, contact_points);
+            }
+            unit_update_ground_contact_counter(object_index, contact_points);
+            if (*(uint32_t *)(obj + 0x10) & 0x20) {
+                *(int16_t *)(obj + 0x4ce) = 15;
+            }
+            if (!(*(uint32_t *)(obj + 0x10) & 0x1000000) &&
+                ((1u << (*(uint8_t *)(tag + 0x2f4) & 0x1f)) & 0x28)) {
+                // 0x571686: stay inside the altitude band
+                float floor_z = F(vehicle_altitude_band, 0x10);
+                float ceiling_z = F(vehicle_altitude_band, 0x14);
 
-        if ((obj->flags & 0x20) != 0) {
-            vehicle->unknown_4ce = 0xf;
+                if (floor_z != 0.0f && F(obj, 0x64) < floor_z) {
+                    F(obj, 0x70) += ((floor_z - F(obj, 0x64)) * 0.015625f - F(obj, 0x70) * 0.0625f) * F(obj, 0x338);
+                }
+                if (ceiling_z != 0.0f && F(obj, 0x64) > ceiling_z) {
+                    F(obj, 0x70) -= ((F(obj, 0x64) - ceiling_z) * 0.015625f + F(obj, 0x70) * 0.0625f) * F(obj, 0x338);
+                }
+            }
+        } else if (*(int16_t *)(obj + 0x4ce) > 0) {
+            unit_update_recoil_decay(object_index);
+            unit_update_marker_traction_effects(object_index);
         }
 
-        if ((obj->flags & 0x1000000) == 0 && (1 << (tag->vehicle_type & 0x1f) & 0x28) != 0) {
-            float lo = *(float *)(global_structure_bsp + 0x10);
-            float hi = *(float *)(global_structure_bsp + 0x14);
+        // 0x571744: hard landings hurt the riders
+        if ((*(uint32_t *)(tag + 0x2f0) & 0x40) && !unit_updates_suppressed) {
+            uint8_t *impact = *(uint8_t **)(globals_tag_data + 0x18c);
 
-            if (lo != 0.0f && unit->unknown_338 < lo) {
-                vehicle->turning_velocity = ((lo - unit->unknown_338) * 0.015625f -
-                                             vehicle->turning_velocity * 0.0625f) * unit->unknown_338 +
-                                            vehicle->turning_velocity;
-            }
-            if (hi != 0.0f && hi < unit->unknown_338) {
-                vehicle->turning_velocity = vehicle->turning_velocity -
-                    (vehicle->turning_velocity * 0.0625f + (unit->unknown_338 - hi) * 0.015625f) * unit->unknown_338;
-            }
-        }
-        goto skip_recoil_label;
-    }
+            if (F(obj, 0x70) < -F(impact, 0x8c)) {
+                datum_index child = *(datum_index *)(obj + 0x118);
 
-recoil_only:
-    if (vehicle->unknown_4ce > 0) {
-        unit_update_recoil_decay(object_index);
-        unit_update_marker_traction_effects(object_index);
-    }
+                while (child != k_datum_index_none) {
+                    uint8_t *child_obj = OBJECT_DATA(child);
+                    damage_data dd;
 
-skip_recoil_label:
-    if ((tag->vehicle_flags & 0x40) != 0 && unit_updates_suppressed == 0) {
-        uint8_t *impact_table = *(uint8_t **)(globals_tag_data + 0x18c);
-        if (vehicle->turning_velocity < -*(float *)(impact_table + 0x8c)) {
-            datum_index child = obj->first_child_object;
-            while (child != k_datum_index_none) {
-                object *child_obj = ((object_header *)object_data->data)[child & 0xffff].data;
-                damage_data dd = {0};
-
-                dd.damage_effect_tag = *(datum_index *)(impact_table + 0x38);
-                dd.team_index = -1;
-                dd.responsible_player = k_datum_index_none;
-                dd.responsible_object = k_datum_index_none;
-                dd.random_blend = 1.0f;
-                dd.multiplier = 1.0f;
-                dd.material_type = -1;
-                object_apply_damage(&dd, child, -1, -1, -1, 0);
-
-                child = child_obj->next_object;
+                    memset(&dd, 0, sizeof(dd));
+                    dd.damage_effect_tag = *(datum_index *)(impact + 0x38);
+                    dd.material_type = -1;
+                    dd.responsible_player = k_datum_index_none;
+                    dd.responsible_object = k_datum_index_none;
+                    dd.team_index = -1;
+                    dd.location_cluster_index = -1;
+                    dd.random_blend = 1.0f;
+                    dd.multiplier = 1.0f;
+                    object_apply_damage(&dd, child, -1, -1, -1, 0);
+                    child = *(datum_index *)(child_obj + 0x114);
+                }
             }
         }
     }
 
-after_physics:
-    if (*(int32_t *)((uint8_t *)tag + 0x44) != -1) { // tag->animation_graph.tag_id
-        int8_t request[2] = {0, 0}; // 0x571836..0x57183f: ECX = two zeroed bytes on the stack
+    // 0x571828
+    if (*(datum_index *)(tag + 0x44) != k_datum_index_none) {
+        int8_t request[2] = {0, 0};
 
         unit_update_animation_state_machine(object_index, request);
     }
-
     {
-        uint8_t over_blur = fabsf(vehicle->forward_velocity) > tag->blur_speed;
-        if (over_blur != ((vehicle->flags & 1) != 0)) {
-            object_set_permutation_by_name(object_index, "~blur", -1, over_blur);
+        uint8_t over_blur = (uint8_t)(F(tag, 0x318) <= (float)fabs(F(obj, 0x4d4)));
+
+        if (over_blur != (obj[0x4cc] & 1)) {
+            object_set_permutation_by_name(object_index, s_blur_permutation, -1, (char)over_blur);
             if (over_blur) {
-                vehicle->flags |= 1;
+                obj[0x4cc] |= 1;
             } else {
-                vehicle->flags &= ~1;
+                obj[0x4cc] &= ~1;
             }
         }
     }
-
     return 1;
 }
 
