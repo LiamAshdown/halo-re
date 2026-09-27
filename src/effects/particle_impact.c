@@ -26,8 +26,8 @@
 extern data_array *particle_data;   // 0x0087abd0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern void particle_impact_response_dispatch(tag_group fourcc, real intensity); // 0x4565a0,
-                                    // this module
+extern void particle_impact_response_dispatch(particle *self, tag_group fourcc, datum_index definition_index,
+    real intensity); // 0x4565a0, EAX self, ECX fourcc, ESI definition_index, stack intensity
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, memory module
 
 // Fires the particle's death effect or sound (if its Particle tag has one) and then always
@@ -38,9 +38,9 @@ void particle_impact(datum_index particle_handle)
     Particle *tag = (Particle *)tag_instances[(uint16_t)self->definition_index].data;
 
     if (*(uint32_t *)&tag->death_effect.tag_id != 0xffffffffu) {
-        tag_group fourcc = tag_instances[tag->death_effect.tag_id.index].group_tag; // UNSURE,
-                                    // see file header
-        particle_impact_response_dispatch(fourcc, 0.0f); // UNSURE, see file header
+        // 0x456550..0x456589: ECX = the dependency's group (tag +0x58), ESI = its tag index (+0x64), EAX = self
+        particle_impact_response_dispatch(self, *(tag_group *)&tag->death_effect.tag_fourcc,
+            *(datum_index *)&tag->death_effect.tag_id, 0.0f);
     }
 
     datum_delete(particle_data, particle_handle);
