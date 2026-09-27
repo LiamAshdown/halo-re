@@ -1193,3 +1193,18 @@ OPEN:
 OPEN: an a10 NPC "randomly disappears" (user report). Not a script deletion (traced: only two object_destroy
   calls, both intro objects); render collection / cull sphere / bounding sphere / biped cluster relink all match
   the binary.
+
+## 2026-09-27 -- the vanishing cryo tech (STUCK without a runtime trace; user asked not to boot the game)
+- User: the yellow-suited cryo tech vanishes at gameplay start. Traces: no object_delete / ai_erase / ai_kill / death
+  touches him; the only deletions then are two steam-jet emitters (e3fa0005, e3fb0007, script object_destroy).
+  tutorial_setup's ai_place creates crewmen e3f80001 / e3f90003 at that moment (the ones earlier notes found with
+  object +0x10 bit 0 set = model not drawn, 0x50eebd).
+- In the binary bit 0 is set only by 0x4f6850 (object set visible; STABLE, matches): at creation (visible when the
+  tag has a model) and by unit_update_animation_state_machine state 0x1a (seat enter: visible = !seat flag bit 0,
+  reading the PARENT's seat -- garbage for an unparented unit). Plus weapons being holstered / picked up.
+  No C writes bit 0 on the wrong object (checked all |= 1 sites).
+- NEXT (needs one unattended trace): break on 0x4f6850 with visible == 0 and on unit_try_set_animation_state
+  (0x565f90) with state 0x1a for e3f8/e3f9; dump the caller. Suspects: actor_new_and_attach_to_unit (0x426ac0),
+  actor_apply_unit_definition_properties (0x426cf0), the tutorial's ai_command_list animation commands.
+- actor_place_new_unit (0x427080, 0.15) decoded: matches except the host-only role table index (tag index used
+  instead of the object type) -- not the cause.
