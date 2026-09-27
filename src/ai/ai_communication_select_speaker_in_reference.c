@@ -1,6 +1,8 @@
 // ai_communication_select_speaker_in_reference  (Ghidra: ai_communication_select_speaker_in_reference; named for this rewrite)
 // address 0x42ff80, size 326 bytes
-// name confidence: 0.45   rewrite confidence: 0.55
+// name confidence: 0.45   rewrite confidence: 0.85
+// VERIFIED 2026-09-27 (static loop) against objdump 0x42ff80..0x4300c5: marker position = node_transform +0x60, the
+// 10-argument push order, strict best-score test, -1 on an empty or invalid reference.
 // evidence: phase-4 summary ("iterates the actors of a squad (or reference), scoring each as
 // a candidate speaker and returning the best match"). The iterator pair it drives
 // (ai_reference_actor_iterator_new / ai_reference_actor_iterator_next) is the ai-reference actor iterator, and the scorer is

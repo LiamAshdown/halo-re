@@ -1,5 +1,7 @@
 // unit_scripted_action_animation_exists  (Ghidra: FUN_00569470)
-// address 0x569470, size 184 bytes, name confidence 0.35, rewrite confidence 0.3
+// address 0x569470, size 184 bytes, name confidence 0.35, rewrite confidence: 0.85
+// VERIFIED 2026-09-27 (static loop) against objdump 0x569470..0x569527: unit_data fields are absolute object offsets
+// (0x2a0 / 0x2a1); EDX to 0x5692b0 is only a scratch priority out (NULL allowed).
 // functions.md: "Checks whether the animation corresponding to a given scripted action currently
 // exists for the unit's type."
 // evidence: types/units.h unit_data.animation_weapon_index (0x2a1), .animation_definition_index

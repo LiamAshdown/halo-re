@@ -1,6 +1,6 @@
 // ai_starting_location_derive_placement_flags  (Ghidra: ai_starting_location_derive_placement_flags; named for this rewrite)
 // address 0x436d40, size 128 bytes
-// name confidence: 0.3   rewrite confidence: 0.2
+// name confidence: 0.3   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop: objdump 0x436d40..0x436dbf and the one caller 0x40cfd9, every out slot matches)
 // evidence: reads a squad's ScenarioActorStartingLocation attribute bits and derives a set
 // of output flags across six distinct output pointers (matching the phase-4 summary), four
 // of which are caller-inherited registers/stack slots Ghidra could not resolve at all; kept

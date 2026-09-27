@@ -1,6 +1,8 @@
 // ai_communication_select_speaker_by_team  (Ghidra: ai_communication_select_speaker_by_team; named for this rewrite)
 // address 0x4300d0, size 522 bytes
-// name confidence: 0.45   rewrite confidence: 0.5
+// name confidence: 0.45   rewrite confidence: 0.85
+// VERIFIED 2026-09-27 (static loop) against objdump 0x4300d0..0x4302d9: iterator init, team filter (+0xa4 bits via the
+// 0x6b0b84 pointer, game engine inequality), match modes, the 10-argument push order, the shared position slot.
 // evidence: phase-4 summary ("iterates all actors matching a team filter, scoring each as a
 // candidate speaker/target and returning the best match"). Same scorer
 // (ai_communication_rate_speaker, 0x42fb90) and same hostility bitmap

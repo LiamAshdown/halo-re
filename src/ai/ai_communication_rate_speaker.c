@@ -1,6 +1,8 @@
 // ai_communication_rate_speaker  (Ghidra: ai_communication_rate_speaker; named for this rewrite)
 // address 0x42fb90, size 1002 bytes
-// name confidence: 0.4   rewrite confidence: 0.35
+// name confidence: 0.4   rewrite confidence: 0.85
+// VERIFIED 2026-09-27 (static loop) against objdump 0x42fb90..0x42ff79 end to end (frame, subject range tests, EBX unit
+// for the player-proximity gate, 5.0 / 10.0 constants, the fade call registers, both prop branches, final accept).
 // evidence: phase-4 summary ("computes a priority score for how suitable a given actor is to
 // speak a particular communication line"). Its only two callers are the two speaker pickers
 // in this same block (ai_communication_select_speaker_in_reference 0x42ff80 and
