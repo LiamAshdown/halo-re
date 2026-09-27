@@ -28,6 +28,8 @@ extern int16_t rasterizer_active_model_mode;                // 0x0071d1f8
 extern uint8_t rasterizer_render_target_capture_requested;  // 0x0071d1b1
 extern void *shader_environment_draw_simple;                // 0x007c0470 procedure for shader_type 3
 extern void *shader_environment_draw;                       // 0x007c0474 procedure for the other types
+extern void debug_fp_dispatch_note(int32_t toggle, int32_t mode, int32_t shader_type, int32_t primitives,
+    void *draw, void *draw_simple, void *overlay); // TEMPORARY
 
 // blam-cc: EAX -> link, stack -> (shader, frame, index_buffer, dynamic_index_slot, primitive_count, vertex_buffer, dynamic_vertex_slot, position)
 extern transparent_geometry_group *rasterizer_transparent_geometry_group_build(
@@ -48,6 +50,10 @@ void rasterizer_shader_environment_draw_dispatch(int32_t dynamic_vertex_slot, ui
     rasterizer_model_draw_context *context;
     uint8_t *overlay;
 
+    debug_fp_dispatch_note(console_debug_toggle_6893ec, rasterizer_active_model_mode, *(int16_t *)(shader + 0x24),
+        primitive_count, shader_environment_draw, shader_environment_draw_simple,
+        rasterizer_active_model_context ? (void *)(uintptr_t)rasterizer_active_model_context->group_parameters.shader : 0);
+        // TEMPORARY first-person diagnostics
     if (!console_debug_toggle_6893ec) {
         return;
     }

@@ -20,6 +20,8 @@
 #include "rasterizer.h"
 
 extern void *rasterizer_device;                                     // 0x0071d174
+extern void debug_fp_draw_state_note(const char *site, int32_t hresult, uint32_t primitive_type,
+    uint32_t vertex_count, uint32_t primitive_count); // TEMPORARY first-person diagnostics
 extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c0
 extern uint8_t rasterizer_software_vertex_processing;               // 0x0069c680
 extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count]; // 0x006e1a90
@@ -68,9 +70,12 @@ void chimera__rasterizer_draw_dynamic_triangles_static_vertices2(int32_t primiti
                                                                    second_stride);
         }
         ((d3d_set_pointer_fn)device_vtable()[0x1a0 / 4])(rasterizer_device, rasterizer_dynamic_index_buffer);
-        ((d3d_draw_indexed_primitive_fn)device_vtable()[0x148 / 4])(rasterizer_device, 4, 0, 0, (uint32_t)vertex_buffer->count,
+        {
+            int32_t debug_hr = ((d3d_draw_indexed_primitive_fn)device_vtable()[0x148 / 4])(rasterizer_device, 4, 0, 0, (uint32_t)vertex_buffer->count,
                                                                     (uint32_t)((slot->first_index + first_primitive) * 3),
                                                                     (uint32_t)chunk);
+            debug_fp_draw_state_note("st2", debug_hr, 0, (uint32_t)vertex_buffer->count, (uint32_t)chunk); // TEMPORARY
+        }
         first_primitive += chunk;
         primitive_count -= chunk;
     }

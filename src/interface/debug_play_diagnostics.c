@@ -229,3 +229,18 @@ void debug_fp_state_arm(int32_t armed)
 {
     debug_fp_state_armed = armed;
 }
+
+// TEMPORARY (2026-09-27): what rasterizer_shader_environment_draw_dispatch does with each first-person part
+// (mode 0 draws through the procedure pointers, 1 queues a transparent group, anything else drops the part).
+static int32_t debug_fp_dispatch_lines;
+
+void debug_fp_dispatch_note(int32_t toggle, int32_t mode, int32_t shader_type, int32_t primitives, void *draw,
+    void *draw_simple, void *overlay)
+{
+    if (!debug_fp_state_armed || debug_fp_dispatch_lines >= 40) {
+        return;
+    }
+    debug_fp_dispatch_lines++;
+    standalone_log("DIAG fpdispatch toggle=%d mode=%d shader_type=%d primitives=%d draw=%p draw_simple=%p overlay=%p",
+        toggle, mode, shader_type, primitives, draw, draw_simple, overlay);
+}
