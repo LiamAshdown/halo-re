@@ -60,7 +60,7 @@ extern void ui_widget_draw_prompt_span(const uint16_t *text, Rectangle2D *cursor
     // blam-cc: EAX -> cursor, ECX -> origin
 extern uint8_t input_get_last_used_binding(int16_t key, uint8_t *out_binding); // 0x48bde0; blam-cc: EAX -> key, stack -> 12 byte out
 extern void input_get_binding_display_name(uint8_t *binding, uint16_t *out_name); // 0x48c7f0; blam-cc: EAX -> binding, ECX -> out_name
-extern void color_argb_int_to_real(uint32_t packed, ColorARGB *out); // 0x43f5a0; blam-cc: ECX -> packed, EAX -> out
+extern void color_argb_int_to_real(ColorARGB *out, uint32_t packed); // 0x43f5a0; blam-cc: EAX -> out, ECX -> packed
 extern void ui_button_prompt_draw_icon(HUDGlobalsButtonIcon *icon); // 0x49ac80; blam-cc: ESI -> icon
 
 // Draws one span at the running cursor: clip offset is the non-negative distance the cursor has

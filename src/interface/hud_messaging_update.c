@@ -70,7 +70,7 @@ extern int32_t __ftol(double x); // 0x006391b4, MSVC 7.1 CRT float-to-int trunca
 extern double pow(double base, double exponent); // 0x6283c0, MSVC 7.1 CRT _CIpow
 extern void qsort(void *base, uint32_t count, uint32_t size, int32_t (*compare)(const void *, const void *)); // 0x623410
 extern uint8_t game_engine_local_player_score_is_nonpositive(datum_index player_index); // 0x466340, blam-cc: EAX player_index; UNSURE: a per player HUD visibility test
-extern void color_argb_int_to_real(uint32_t packed, ColorARGB *out); // 0x43f5a0; blam-cc: ECX -> packed, EAX -> out
+extern void color_argb_int_to_real(ColorARGB *out, uint32_t packed); // 0x43f5a0; blam-cc: EAX -> out, ECX -> packed
 extern uint32_t color_pack_argb_from_real(ColorARGB *color); // 0x497900
 extern void hud_anchor_offset_to_screen_position(uint16_t *anchor, uint8_t has_scale, float scale,
                                                  const int16_t *offset, int16_t *out, int32_t selector); // 0x4ab690, blam-cc: AL has_scale, EDX offset, ECX child placement (selector)
@@ -193,7 +193,7 @@ void hud_messaging_update(int16_t local_player_index)
             packed_color = hud_meter_flash_color_blend(
                 (const hud_flash_parameters *)&globals->objective_default_color,
                 hud_messaging->objective_text_ticks - globals->objective_uptime_ticks - globals->objective_fade_ticks + now);
-            color_argb_int_to_real(packed_color, &color);
+            color_argb_int_to_real(&color, packed_color);
             fraction = (float)hud_messaging->objective_text_ticks / (float)globals->objective_fade_ticks;
             if (fraction > 1.0f) {
                 fraction = 1.0f;
@@ -210,7 +210,7 @@ void hud_messaging_update(int16_t local_player_index)
             } else {
                 packed_color = *(uint32_t *)&hud_globals_tag_data->hud_help_default_color;
             }
-            color_argb_int_to_real(packed_color, &color);
+            color_argb_int_to_real(&color, packed_color);
         } else {
             color = parameters->icon_color;
             packed_color = color_pack_argb_from_real(&color);
