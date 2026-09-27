@@ -1,9 +1,9 @@
 // actor_update_look_target  (Ghidra: actor_update_look_target, renamed)
 // address 0x415480, size 3896 bytes
 // name confidence: 0.3   rewrite confidence: 0.25 (LEAST VERIFIED function in this module --
+// read the UNSURE block below before trusting any single branch)
 // FIXED 2026-09-27: the body-turn / aim-follow block at 0x415fb6..0x41609a was missing (added after the look
 //   selection; unit_is_in_busy_animation_state takes the unit in ECX). The rest is still unverified.
-// read the UNSURE block below before trusting any single branch)
 // evidence: ai_02.json's evidence for this address: "Reads actor look-mode field at +0x6dc,
 // branches on unit posture/vehicle seat (+0x6a==3) selecting different unit orientation
 // fields (0xbc/0xb4 etc.), and calls the look-direction helpers 00414910/00414990/00414d00/
