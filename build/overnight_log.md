@@ -1344,3 +1344,8 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   object); its callers actor_dispatch_squad_order (looked the ordered prop up in actor_data with the owner
   handle), actor_forward_target_object_reference (passed 2 of 4 args) and actor_react_to_seen_target (passed
   the seen unit's pointer instead of the player's +0x40 handle; 90-tick window is inclusive) fixed.
+- ai_communication_broadcast 0x42d340 (5.6 KB, every AI dialogue event) REWRITTEN from objdump (0.3 -> 0.85). The
+  draft's front half (team-pair recognition, gates, recency table) did not follow the binary and 6 of its calls
+  passed invented operand lists (speaker searches, proximity, team-pair counter, commit speech, follow-up order).
+  Kept byte offsets of the 0x38 candidate record; header padding bytes (+0x0b, +0x16) now zero instead of stale
+  stack bytes.
