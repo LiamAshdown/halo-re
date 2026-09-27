@@ -16,16 +16,18 @@
 
 extern data_array *object_data; // 0x008603b0
 
-extern float weapon_get_zoom_magnification(void); // 0x4c2d70, UNSURE: no traced args
+extern real weapon_get_zoom_magnification(datum_index item_index, int16_t zoom_level); // 0x4c2d70, EAX, DX
 
-float unit_get_active_weapon_scale(uint32_t unit_index) // blam-cc: in_EAX -> unit_index
+// FIXED (objdump 0x565ae7): a stack argument (the zoom level) goes on to weapon_get_zoom_magnification in DX with
+//   the weapon in EAX (tail jump); the draft called it with nothing and its caller passed the zoom level as the unit.
+float unit_get_active_weapon_scale(uint32_t unit_index, int16_t zoom_level) // blam-cc: EAX -> unit_index, stack -> zoom_level
 {
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     int16_t slot = unit->current_weapon_index;
 
     if (slot != -1 && unit->weapons[slot] != (datum_index)-1) {
-        return weapon_get_zoom_magnification();
+        return weapon_get_zoom_magnification(unit->weapons[slot], zoom_level);
     }
     return 1.0f;
 }

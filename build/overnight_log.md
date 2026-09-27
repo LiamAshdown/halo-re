@@ -1524,3 +1524,9 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - actor_target_reset_combat_flags 0x41baf0 REWRITTEN (0.6 -> 1.0): tail-calls actor_queue_sighted_target_dialogue(actor,
   prop, noticed); the draft called it with no arguments.
 - actor_find_prop_for_object verified (0.9).
+- NEW scan scratchpad/tailscan.py: tail jumps whose C call passes fewer arguments than the target takes. Fixed:
+  - unit_get_active_weapon_scale 0x565ab0: (unit EAX, zoom level stack) -> weapon_get_zoom_magnification(weapon, zoom);
+    game_engine_build_local_player_control_input passed the ZOOM LEVEL as the unit (zoomed look sensitivity).
+  - ai_reference_resolve_squad_datum 0x432c80 (0.4 -> 0.9): reinforcement tail call gets (encounter ECX, squad AX).
+  - 0x565a70 "unit_clear_weapon_switch_state" is the tail of unit_validate_and_clear_weapon_switch (C already complete;
+    marked FRAGMENT, header size fixed to 226).

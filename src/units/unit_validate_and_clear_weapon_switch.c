@@ -1,5 +1,5 @@
 // unit_validate_and_clear_weapon_switch  (Ghidra: unit_validate_and_clear_weapon_switch)
-// address 0x5659c0, size 176 bytes
+// address 0x5659c0, size 226 bytes (0x5659c0..0x565aa1; 0x565a70 is its tail)
 // name confidence: 0.35 (phase2 candidate: "unit_clear_weapon_change_flags")   rewrite
 //   confidence: 0.9
 // REWRITTEN from objdump 0x5659c0..0x565aa2 (the draft lost the zoom-out sound tag, EDX, and the tail call's

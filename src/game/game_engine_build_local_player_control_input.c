@@ -87,7 +87,7 @@ extern uint32_t camera_observer_get_target_angles(real *out_weight_primary,
     int16_t local_player_slot);                                              // this batch, 0x4596f0
 extern uint32_t camera_observer_get_target_id(datum_index *out_id, int16_t local_player_slot);
                                                                               // this batch, 0x459900
-extern real unit_get_active_weapon_scale(uint32_t zoom_level); // 0x565ab0, units module; see header
+extern float unit_get_active_weapon_scale(uint32_t unit_index, int16_t zoom_level); // 0x565ab0, EAX, stack
                                                               // blam-cc: EAX -> unit_index
 
 extern double sqrt(double x); // x87 FSQRT
@@ -228,7 +228,7 @@ void game_engine_build_local_player_control_input(int16_t local_player_index, re
             out->throttle_y = input->throttle_y;
             if (plr->unit != (datum_index)-1 && control->desired_zoom_level != -1) {
                 // blam-cc: EAX -> plr->unit
-                scale = 1.0f / unit_get_active_weapon_scale((uint32_t)control->desired_zoom_level);
+                scale = 1.0f / unit_get_active_weapon_scale(plr->unit, control->desired_zoom_level);
             }
             if (plr->unit != (datum_index)-1) {
                 unit_data *unit = (unit_data *)((uint8_t *)
@@ -268,7 +268,7 @@ void game_engine_build_local_player_control_input(int16_t local_player_index, re
             if (plr->unit != (datum_index)-1 && control->desired_zoom_level != -1) {
                 // blam-cc: EAX -> plr->unit
                 real inverse_scale =
-                    1.0f / unit_get_active_weapon_scale((uint32_t)control->desired_zoom_level);
+                    1.0f / unit_get_active_weapon_scale(plr->unit, control->desired_zoom_level);
 
                 yaw_delta = yaw_delta * inverse_scale;
                 pitch_delta = inverse_scale * pitch_delta;

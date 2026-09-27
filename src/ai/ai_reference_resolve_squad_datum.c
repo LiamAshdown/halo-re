@@ -1,6 +1,6 @@
 // ai_reference_resolve_squad_datum  (Ghidra: ai_reference_resolve_squad_datum; named for this rewrite)
 // address 0x432c80, size 171 bytes
-// name confidence: 0.3   rewrite confidence: 0.4
+// name confidence: 0.3   rewrite confidence: 0.9
 // evidence: resolves a packed ai reference to a concrete actor-placement slot index within
 // the owning encounter's squad definition (matching the phase-4 summary) by calling
 // encounter_squad_spawn_reinforcement (outside this rewrite's range) once the squad is known. Two conditions in
@@ -28,7 +28,7 @@
 extern ai_globals *ai_global_data; // 0x00880354
 extern Scenario *global_scenario;  // 0x00746f8c
 
-extern int32_t encounter_squad_spawn_reinforcement(void); // 0x438f60, outside this rewrite's range, UNSURE signature
+extern uint32_t encounter_squad_spawn_reinforcement(datum_index encounter_index, int16_t squad_index); // 0x438f60, ECX, AX
 
 // blam-cc: stack -> packed_reference
 int32_t ai_reference_resolve_squad_datum(uint32_t packed_reference)
@@ -37,10 +37,9 @@ int32_t ai_reference_resolve_squad_datum(uint32_t packed_reference)
 
     if (ai_global_data->actors_valid != 0 && packed_reference != (uint32_t)k_datum_index_none) {
         if (packed_reference >> 0x1e == 2) {
-            int8_t squad_index = (int8_t)(packed_reference >> 0x10);
-            if (squad_index != (int8_t)0xffff) { // always true; see file header
-                return encounter_squad_spawn_reinforcement();
-            }
+            // 0x432cb2: the squad byte, zero-extended (never 0xffff); tail jump with ECX = encounter, AX = squad
+            return (int32_t)encounter_squad_spawn_reinforcement(packed_reference & 0xffff,
+                (int16_t)((packed_reference >> 0x10) & 0xff));
         }
         if (packed_reference >> 0x1e == 1) {
             ScenarioEncounter *encounter_definition =
@@ -55,7 +54,8 @@ int32_t ai_reference_resolve_squad_datum(uint32_t packed_reference)
                         if ((int16_t)squad_index == -1) { // never true in practice; see file header
                             return squad_index;
                         }
-                        return encounter_squad_spawn_reinforcement();
+                        return (int32_t)encounter_squad_spawn_reinforcement(packed_reference & 0xffff,
+                            (int16_t)squad_index); // 0x432d26: ECX = encounter, AX = the first matching squad
                     }
                     squad_index = squad_index + 1;
                 } while (squad_index < squad_count);

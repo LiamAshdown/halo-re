@@ -1,6 +1,7 @@
 // unit_clear_weapon_switch_state  (Ghidra: unit_update, wrongly named)
 // address 0x565a70, size 50 bytes
 // name confidence: 0.2 (out/phase4/units_types_notes.md: "50 bytes that duplicate the tail of
+// rewrite confidence: 1.0 (FRAGMENT: 0x565a70 is the tail of unit_validate_and_clear_weapon_switch 0x5659c0..0x565aa1, whose C covers it; only its jumps reach here)
 //   0x5659c0; it clears the weapon-switch flags and the 0x348 timer. Nothing to do with
 //   updating a unit" -- renamed away from the misleading Ghidra name "unit_update", which
 //   belongs to 0x5625b0 per the object_type_definition vtable correction)   rewrite
