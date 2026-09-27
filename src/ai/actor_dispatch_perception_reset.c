@@ -1,6 +1,6 @@
 // actor_dispatch_perception_reset  (Ghidra: actor_dispatch_perception_reset, renamed)
 // address 0x429000, size 120 bytes
-// name confidence: 0.4   rewrite confidence: 0.45
+// name confidence: 0.4   rewrite confidence: 0.9 (FIXED against objdump)
 // evidence: types/ai.h actor.swarm(0x06)/unknown_07/swarm_index(0x28); swarm.component_count.
 //   Calls actor_reset_perception_scratch (0x428f40, already rewritten in this module, though
 //   with low confidence).
@@ -24,12 +24,12 @@ extern void actor_reset_perception_scratch(datum_index unit_index); // 0x428f40
 // preserved here), then marks the actor as initialized.
 void actor_dispatch_perception_reset(datum_index actor_index)
 {
+    // FIXED (objdump 0x429000..0x429077): the reset takes a UNIT in ESI -- the actor's unit (+0x18) or, for a swarm,
+    //   each component unit (swarm +0x18 + i*4). The draft passed the actor index every time.
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
 
     if (self->swarm == 0) {
-        actor_reset_perception_scratch(actor_index); // UNSURE: ESI expects a unit index; the
-                                                       // original passes this same unaff_ESI
-                                                       // through unexamined
+        actor_reset_perception_scratch(self->unit_index);
         self->unknown_07 = 1;
         return;
     }
@@ -38,7 +38,7 @@ void actor_dispatch_perception_reset(datum_index actor_index)
         swarm *s = &((swarm *)swarm_data->data)[self->swarm_index & 0xffff];
         int16_t i;
         for (i = 0; i < s->component_count; i++) {
-            actor_reset_perception_scratch(actor_index); // UNSURE, see above
+            actor_reset_perception_scratch(s->unit_index[i]);
         }
     }
     self->unknown_07 = 1;

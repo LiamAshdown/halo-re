@@ -47,9 +47,8 @@ extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_se
                                                 uint32_t *breakable_surfaces, real_point3d *origin,
                                                 real_vector3d *delta, float max_fraction);
     // 0x502060, src/physics/collision_bsp_query_segment_init.c; flags in EAX, result in ECX
-extern uint8_t ray_intersects_cylinder(float *out_fraction, const real_point2d *center,
-                                       float height, float radius,
-                                       const real_vector3d *delta); // 0x4ce4e0, EAX/ECX + stack
+extern uint8_t ray_intersects_cylinder(real height, real radius, real_vector3d *hit_out, real *t_out,
+    real_point3d *center, real_point3d *origin, real_vector3d *direction); // 0x4ce4e0, stack x3, EAX, ECX, EBX, ESI // 0x4ce4e0, EAX/ECX + stack
 
 // blam-cc: EAX -> out_elevation, ECX -> sample, EDX -> out_end_point, EDI -> context,
 //          stack -> out_distance, out_clear_counter
@@ -109,8 +108,11 @@ int16_t actor_movement_test_obstacle_ray(real_vector3d *out_elevation, const flo
     for (i = 0; i < context->obstacle_count; i++) {
         actor_movement_obstacle *obstacle = &context->obstacles[i];
 
-        if (ray_intersects_cylinder(&hit_fraction, &obstacle->position, obstacle->height,
-                                    obstacle->radius, &segment) != 0 &&
+        // FIXED (objdump 0x4191b0..0x4191ce): stack = (height, radius, &segment as the hit buffer), EAX = &hit_fraction,
+        //   ECX = &obstacle->position (x, y, bottom), EBX = the ray origin (out_end_point), ESI = the direction
+        //   (out_elevation). The draft passed five arguments in the wrong order.
+        if (ray_intersects_cylinder(obstacle->height, obstacle->radius, &segment, &hit_fraction,
+                                    (real_point3d *)&obstacle->position, out_end_point, out_elevation) != 0 &&
             hit_fraction < *out_distance) {
             result = 1;
             *out_distance = hit_fraction;

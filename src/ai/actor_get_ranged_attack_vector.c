@@ -30,7 +30,7 @@ extern data_array *prop_data;   // 0x008802c0
 extern data_array *object_data; // 0x008603b0
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
-extern uint8_t actor_get_cached_wander_position(real_vector3d *out_vector);        // 0x4281f0, UNSURE signature
+extern uint8_t actor_get_cached_wander_position(datum_index actor_index, real_vector3d *out_position); // 0x4281f0, EAX, EDX
 
 // blam-cc: EAX -> target_prop_index, ECX -> actor_index, stack -> out_vector
 // Produces an aim/attack direction for the actor's controlled unit (vehicle hardpoint or
@@ -57,7 +57,7 @@ uint8_t actor_get_ranged_attack_vector(datum_index target_prop_index, datum_inde
 
     if (target->is_parented == 0) {
         if (target->owner_actor_index != k_datum_index_none) {
-            return actor_get_cached_wander_position(out_vector);
+            return actor_get_cached_wander_position(target->owner_actor_index, out_vector); // FIXED: EAX = prop +0x1c
         }
         return 0;
     }

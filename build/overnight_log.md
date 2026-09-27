@@ -1687,3 +1687,10 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - ai_unit_flee_if_ready: the status-broadcast record is the flee mode data (0.9). ai_reference_for_each_squad: clear_spawn_delay(encounter, cursor) (0.9).
   - encounter_set_team: actor_propagate_unit_field(actor, team); the "encounter none" test compares the full handle (0.9).
   - ai_recompute_all_relationship_flags: active flag gets the prop (EDI). actor_target_update_tracking_speed: mark_engaged(prop, actor, 0) x2. encounter_gather_occupied_clusters: group mask (actor, 0, 0).
+- actor_reset_perception_scratch (0x428f40; really "reset a unit's controls to neutral") REWRITTEN (0.2 -> 0.9). It builds the 0x40-byte control block (facing from the unit, aim +0x23c, look +0x260) and applies it with unit_apply_control_block(unit, block, -1); the draft passed no unit or block. Its caller actor_dispatch_perception_reset (reached from ai_braindead / ai_magically_see / wake) passed the ACTOR where the binary passes the unit (actor +0x18, or each swarm component unit). Both fixed.
+- More partial-argument fixes:
+  - actor_squad_action_execute random_int_range(p1, p2 + 1);
+  - actor_get_ranged_attack_vector cached wander (prop owner actor, out);
+  - actor_movement_action_resolve path_find_validate_and_record_goal(&self+0x4a8, bsp, &body, 0, &dest);
+  - actor_movement_test_obstacle_ray: ray_intersects_cylinder gets all 7 arguments (the draft passed 5 in the wrong order, so obstacle avoidance tested garbage);
+  - actor_score_firing_positions_by_threat: point3d_distance_squared_to_segment was declared (point, origin, segment) but is (start, direction, point), so both calls were wrong; segment3d_distance_squared_to_segment now gets its 4 arguments.

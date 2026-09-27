@@ -1,6 +1,6 @@
 // actor_reset_perception_scratch  (Ghidra: actor_reset_perception_scratch, renamed)
 // address 0x428f40, size 190 bytes
-// name confidence: 0.4   rewrite confidence: 0.2
+// name confidence: 0.4   rewrite confidence: 0.9 (REWRITTEN from objdump)
 // evidence: phase-4 summary "Resets a per-actor perception/aim scratch structure, seeding it
 // from the current unit's orientation fields before clearing related lookahead state."
 // Calls unit_get_forward_vector_or_marker_normal (fills a caller-owned request block, itself taking no visible
@@ -14,6 +14,7 @@
 // register convention: ESI -> unit_index (unaff_ESI).
 //   // blam-cc: ESI -> unit_index
 
+#include <string.h>
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -27,36 +28,34 @@ extern data_array *object_data; // 0x008603b0
 // The caller-owned request block unit_get_forward_vector_or_marker_normal fills; only the fields this function itself
 // writes are named.
 
-extern void unit_get_forward_vector_or_marker_normal(actor_perception_request *request); // 0x569720, UNSURE signature
-extern void unit_apply_control_block(uint32_t param); // 0x5639f0, UNSURE signature
+extern void unit_get_forward_vector_or_marker_normal(uint32_t unit_index, real_vector3d *out); // 0x569720, ECX, EAX
+extern void unit_apply_control_block(uint32_t unit_index, const void *control, int32_t source_id); // 0x5639f0, EAX, EDX, stack
 extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index, uint8_t initial_targeting_flag); // 0x569bf0, stack, CL
 
 // blam-cc: ESI -> unit_index
+// REWRITTEN from objdump 0x428f40..0x428ffd. Builds a neutral 0x40-byte unit control block: bytes 0/1 = 1, word 2 = 0,
+//   words 4/6/8 = -1, +0x0c = the global origin (zero throttle), +0x1c = the unit's forward (or marker normal),
+//   +0x28 = unit +0x23c (aim), +0x34 = unit +0x260 (look). It then applies the block to the unit
+//   (unit_apply_control_block: EAX unit, EDX block, stack -1) and refreshes targeting (CL = 0). The draft
+//   passed no unit or block to the helpers, so the unit received garbage controls.
+// blam-cc: ESI -> unit_index
 void actor_reset_perception_scratch(datum_index unit_index)
 {
-    actor_perception_request request;
-    uint32_t cached[6];
-    object *unit_object = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+    uint8_t block[0x40];
+    uint8_t *unit_object = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
 
-    request.flag_a = 1;
-    request.flag_b = 1;
-    request.unknown_02 = 0;
-    request.unknown_04 = -1;
-    request.unknown_06 = -1;
-    request.unknown_08 = -1;
-    request.origin = *global_origin3d_pointer;
-
-    unit_get_forward_vector_or_marker_normal(&request);
-
-    cached[0] = *(uint32_t *)((uint8_t *)unit_object + 0x23c);
-    cached[1] = *(uint32_t *)((uint8_t *)unit_object + 0x240);
-    cached[2] = *(uint32_t *)((uint8_t *)unit_object + 0x244);
-    cached[3] = *(uint32_t *)((uint8_t *)unit_object + 0x260);
-    cached[4] = *(uint32_t *)((uint8_t *)unit_object + 0x264);
-    cached[5] = *(uint32_t *)((uint8_t *)unit_object + 0x268);
-    (void)cached;
-
-    unit_apply_control_block(0xffffffff);
+    memset(block, 0, sizeof(block));
+    block[0] = 1;
+    block[1] = 1;
+    *(int16_t *)(block + 0x2) = 0;
+    *(int16_t *)(block + 0x4) = -1;
+    *(int16_t *)(block + 0x6) = -1;
+    *(int16_t *)(block + 0x8) = -1;
+    *(real_vector3d *)(block + 0xc) = *(const real_vector3d *)global_origin3d_pointer;
+    unit_get_forward_vector_or_marker_normal(unit_index, (real_vector3d *)(block + 0x1c));
+    *(real_vector3d *)(block + 0x28) = *(real_vector3d *)(unit_object + 0x23c);
+    *(real_vector3d *)(block + 0x34) = *(real_vector3d *)(unit_object + 0x260);
+    unit_apply_control_block(unit_index, block, -1);
     unit_refresh_targeting_flag_and_weapons(unit_index, 0); // CL = 0
 }
 

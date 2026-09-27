@@ -36,7 +36,7 @@ extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x40
 extern real random_real_range(real min, real max);             // 0x401050
 extern real vector2d_normalize_with_length(real_vector2d *v);  // 0x4018e0, ECX
 extern real vector3d_normalize_with_length(real_vector3d *v);  // 0x401990, ECX
-extern int32_t random_int_range(int32_t exclusive_max);        // 0x405320
+extern int32_t random_int_range(int16_t min, int16_t max);      // 0x405320, ECX -> min, stack -> max
 extern void actor_get_body_axis_vector(uint32_t actor_index, uint32_t unit_index, actor_axis_request *request); // 0x405390, EAX, EDX, ECX
 extern uint8_t actor_play_first_valid_vocalization(int16_t *seat_list, datum_index vehicle_index, datum_index actor_index,
                                                    char *seat_name, int16_t seat_flags, int16_t count); // 0x40e260, EAX, ECX, stack
@@ -205,7 +205,7 @@ char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32
             int16_t p2 = (int16_t)entry->point_2;
 
             if (p1 >= 0 && p1 < point_count && p2 >= 0 && p2 < point_count) {
-                look_point = random_int_range((uint16_t)p2 + 1);
+                look_point = random_int_range(p1, (int16_t)(p2 + 1)); // FIXED: ECX = point_1 (0x40574d)
                 if (entry->parameter1 == 0.0f && entry->parameter2 == 0.0f) {
                     duration = random_real_range(*(float *)(actor_tag + 0xec), *(float *)(actor_tag + 0xf0));
                 } else {

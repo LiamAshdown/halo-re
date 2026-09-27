@@ -28,9 +28,10 @@ extern data_array *object_data; // 0x008603b0
 
 extern double sqrt(double x); // FSQRT, Ghidra SQRT() pseudo-function
 
-extern float point3d_distance_squared_to_segment(real_point3d *point, real_point3d *origin,
-                                                 real_vector3d *delta);   // 0x4cde30
-extern float segment3d_distance_squared_to_segment(real_point3d *origin); // 0x4cdef0
+extern float point3d_distance_squared_to_segment(real_point3d *segment_start, real_vector3d *segment_direction,
+    real_point3d *point); // 0x4cde30, EAX, ECX, EDX   // 0x4cde30
+extern float segment3d_distance_squared_to_segment(real_point3d *b_start, real_point3d *a_start,
+    real_vector3d *a_direction, real_vector3d *b_direction); // 0x4cdef0, stack, EBX, ESI, EDI
 extern void object_get_position(real_point3d *out_position, datum_index object_index); // 0x4f6900, EAX -> out, ECX -> object_index
 
 // blam-cc: stack -> actor_index (in a float slot), query, count, candidates
@@ -95,8 +96,8 @@ void actor_score_firing_positions_by_threat(datum_index actor_index,
             dz = p->z - self->danger_center.z;
             radius = self->danger_radius + 2.5f;
             if (dx * dx + dy * dy + dz * dz < radius * radius) {
-                distance_squared = point3d_distance_squared_to_segment(p, &self->flee_from_point,
-                                                                       &segment);
+                // FIXED (0x4113ca..0x4113d0): EAX = flee_from_point (segment start), ECX = &segment, EDX = the point
+                distance_squared = point3d_distance_squared_to_segment(&self->flee_from_point, &segment, p);
                 bonus = 0.0f;
                 if (self->danger_unknown_294 * self->danger_unknown_294 <= distance_squared) {
                     radius = self->danger_unknown_294 + 2.5f;
@@ -117,6 +118,11 @@ void actor_score_firing_positions_by_threat(datum_index actor_index,
 
             // Second test: the actor own body position against the same danger, this time
             // rejecting candidates whose own short segment crosses the danger segment.
+            real_vector3d scaled_direction; // [esp+0x28]: the candidate direction * 3 (0x411505..0x411527)
+
+            scaled_direction.i = c->direction_from_actor.i * 3.0f;
+            scaled_direction.j = c->direction_from_actor.j * 3.0f;
+            scaled_direction.k = c->direction_from_actor.k * 3.0f;
             dx = self->body_position.x - self->danger_center.x;
             dy = self->body_position.y - self->danger_center.y;
             dz = self->body_position.z - self->danger_center.z;
@@ -124,12 +130,14 @@ void actor_score_firing_positions_by_threat(datum_index actor_index,
             if (dx * dx + dy * dy + dz * dz < radius * radius &&
                 self->danger_unknown_294 < self->danger_unknown_2d4 &&
                 self->danger_unknown_294 * self->danger_unknown_294 <
-                    point3d_distance_squared_to_segment(&self->body_position,
-                                                        &self->flee_from_point, &segment) &&
+                    point3d_distance_squared_to_segment(&self->flee_from_point, &segment, &self->body_position) &&
                 0.0001f < (c->direction_from_actor.i * 3.0f) * (c->direction_from_actor.i * 3.0f) +
                           (c->direction_from_actor.j * 3.0f) * (c->direction_from_actor.j * 3.0f) +
                           (c->direction_from_actor.k * 3.0f) * (c->direction_from_actor.k * 3.0f) &&
-                segment3d_distance_squared_to_segment(&self->flee_from_point) <
+                // FIXED (0x411550..0x411563): stack = flee_from_point, EBX = the body position, ESI = the candidate
+                //   direction * 3, EDI = &segment
+                segment3d_distance_squared_to_segment(&self->flee_from_point, &self->body_position, &scaled_direction,
+                    &segment) <
                     self->danger_unknown_294 * self->danger_unknown_294) {
                 c->rejected = 1;
                 if (query->collect_all == 0) {

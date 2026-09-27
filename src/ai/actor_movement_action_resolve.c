@@ -53,8 +53,8 @@ extern void actor_target_get_relationship_object(datum_index target_prop_index);
                                                  // blam-cc: EAX -> target_prop_index
 extern void path_find_set_avoid_sphere(path_find_request *request, const real_point3d *center, float radius,
                          datum_index object_index, float weight);       // 0x43a070, not yet rewritten, EAX -> request, ECX -> center
-extern uint8_t path_find_validate_and_record_goal(int32_t generation, const real_point3d *from, int32_t unknown,
-                            const real_point3d *to);                    // 0x43a190, not yet rewritten, EBX -> out_reachable
+extern uint8_t path_find_validate_and_record_goal(void *candidate, void *context, uint32_t unused_b,
+    uint32_t unused_c, const real_point3d *position);                    // 0x43a190, not yet rewritten, EBX -> out_reachable
 extern uint8_t path_find_reconstruct_path(path_find_context *context, uint8_t *out_reachable); // 0x43a4d0, not yet rewritten, EBX -> context
 extern void path_find_context_init(path_find_context *context, const path_find_request *request,
                                    int32_t flags);                      // 0x43a700, EDX -> context
@@ -202,7 +202,9 @@ uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t record_di
 
     if (self->flying != 0) {
         // EBX = &self->movement_action_complete, the out-parameter this variant writes.
-        result = path_find_validate_and_record_goal((uint32_t)global_structure_bsp, &self->body_position, 0, &self->unknown_488);
+        // FIXED (objdump 0x41a798..0x41a7a7): EBX = &self +0x4a8, stack = (bsp, &body_position, 0, &unknown_488)
+        result = path_find_validate_and_record_goal((uint8_t *)self + 0x4a8, (void *)global_structure_bsp,
+            (uint32_t)&self->body_position, 0, &self->unknown_488);
     } else if (context != (path_find_context *)0) {
         path_find_set_goal(context, &self->unknown_488, self->unknown_494, self->unknown_498);
         result = path_find_reconstruct_path(context, &self->movement_action_complete);
