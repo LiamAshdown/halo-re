@@ -1,6 +1,6 @@
 // ai_conversation_current_line_is_ready  (Ghidra: ai_conversation_current_line_is_ready; named for this rewrite)
 // address 0x431e70, size 646 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.9
 // evidence: out/phase4/ai_types_notes.md's misattribution table: "whether the activated
 // squad member is ready to be placed" is actually "whether the participant is ready to
 // speak". Only caller is ai_conversation_update (0x430a70, already rewritten), which passes
@@ -47,141 +47,130 @@ extern data_array *actor_data;           // 0x00880360
 extern data_array *object_data;          // 0x008603b0
 extern Scenario *global_scenario;        // 0x00746f8c
 extern game_time_globals *game_time;     // 0x006f1d6c
-extern int32_t DAT_00725204;             // 0x00725204, UNSURE: a tick threshold before conversations can proceed
+extern int32_t ai_communication_quiet_until_tick; // 0x00725204
 
-// blam-cc: ECX -> sound_ref, EAX -> unused (-1), stack -> volume
-extern int32_t sound_impulse_start(uint32_t sound_ref, uint32_t unused, float volume); // 0x543e10, UNSURE args
-extern int32_t sound_impulse_time(void); // 0x543fc0, UNSURE args/return
-// blam-cc: stack -> reachability_kind, unit_query, unused, out_a, out_b
-extern int16_t unit_animation_change_priority_check(int32_t reachability_kind, int32_t unit_query, int32_t unused,
-                             uint32_t *out_a, uint32_t *out_b); // 0x560d00, this session (also called
-                             // from actor_squad_action_execute.c with the same signature)
-// blam-cc: EAX -> object_index (unit index), ECX -> request
-extern void unit_commit_speech(ai_conversation_speech_request *request); // 0x560f20, UNSURE args (see file header)
+extern void sound_impulse_start(datum_index object_index, datum_index definition_index, float scale); // 0x543e10, EAX, ECX, stack
+extern int32_t sound_impulse_time(datum_index sound_tag_handle); // 0x543fc0, ECX
+extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback, int16_t requested_priority,
+    uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index, int32_t *chain_value); // 0x560d00, EAX, DL, stack
+extern int32_t unit_commit_speech(uint32_t unit_index, const void *source, int16_t mode); // 0x560f20, EAX, ECX, DX
 
-// blam-cc: EAX -> instance_handle
-// Gates whether the current line of a live ai_conversation instance is ready to play: first
-// (once per instance, cached in unknown_61) whether every participant that needs to be
-// physically present has arrived (mode 12, "in conversation", and settled per its mode
-// data), and if so, whether the speaker's unit needs to travel to speak (issuing the
-// movement/speech request via unit_commit_speech when it does); then (cached in unknown_62)
-// whether the speaking unit's current-speech category allows a new line; then counts down
-// the line's delay in unknown_4c; and finally, if the line waits for an external
-// confirmation (flag 8), holds at not-ready until that confirmation flag is set.
+// REWRITTEN from objdump 0x431e70..0x4320f5. EAX: the conversation. Returns its +0x63 (the current line is done).
+//   Start (once, +0x61): unless a participant (all with flag 0x20, the +0x50 one with 0x10) is mid-conversation
+//   (mode 12 with +0xa8 and neither +0xa0 / +0xa1), the communication quiet period (0x725204) is over and there is a
+//   sound (+0x5c): the speaker unit (+0x54, unless +0x60) claims speech priority 6 (0x560d00: 1 = wait, <= 0 = give
+//   up) and commits a 0x30-byte speech record (0x560f20, mode = that result, listener +0x58); without a speaker the
+//   sound just plays (0x543e10). Then: done speaking (+0x62: the unit's +0x388 no longer 6, or the sound finished),
+//   the post-line delay (+0x4c), and with +0x4e bit 3 the +8 / +9 handshake. The draft called every helper without
+//   operands.
 uint8_t ai_conversation_current_line_is_ready(datum_index instance_handle)
 {
-    ai_conversation *instance = &((ai_conversation *)ai_conversation_data->data)[instance_handle & 0xffff];
-    ScenarioAIConversation *definition =
-        &((ScenarioAIConversation *)global_scenario->ai_conversations.pointer)[instance->definition_index];
+    uint8_t *inst = (uint8_t *)ai_conversation_data->data + (instance_handle & 0xffff) * 0x64;     // esi
+    uint8_t *definition = *(uint8_t **)((uint8_t *)global_scenario + 0x46c) + *(int16_t *)(inst + 0x2) * 0x74;
 
-    if (instance->unknown_63 != 0) {
-        return instance->unknown_63;
+    if (inst[0x63]) {
+        return inst[0x63];
     }
+    if (!inst[0x61]) {
+        uint8_t blocked = 0;                                                                        // [esp+0x13]
+        datum_index sound = *(datum_index *)(inst + 0x5c);
 
-    if (instance->unknown_61 == 0) {
-        uint8_t someone_still_arriving = 0;
+        if (sound != k_datum_index_none) {
+            uint16_t flags = *(uint16_t *)(inst + 0x4e);
 
-        if (instance->unknown_5c != (uint32_t)k_datum_index_none) {
-            uint16_t line_flags = instance->unknown_4e;
-            uint16_t wait_speaker_nearby = line_flags & 0x10;
+            if (flags & 0x30) {
+                int16_t i;
 
-            if ((line_flags & 0x10) != 0 || (line_flags & 0x20) != 0) {
-                int32_t participant_count = definition->participants.count;
-                int32_t i;
-                for (i = 0; i < participant_count; i++) {
-                    datum_index participant_actor_handle = instance->participant_actor[i];
-                    if (participant_actor_handle != (datum_index)k_datum_index_none) {
-                        actor *a = &((actor *)actor_data->data)[participant_actor_handle & 0xffff];
-                        if (((line_flags & 0x20) != 0 ||
-                             (wait_speaker_nearby != 0 && participant_actor_handle == instance->unknown_50)) &&
-                            a->mode == _actor_mode_conversation) {
-                            uint8_t *mode_data = a->mode_data;
-                            if (*(int32_t *)(mode_data + 0xc) != (int32_t)k_datum_index_none &&
-                                mode_data[5] == 0 && mode_data[4] == 0) {
-                                someone_still_arriving = 1;
-                            }
-                        }
+                for (i = 0; (int32_t)i < *(int32_t *)(definition + 0x50); i++) {
+                    datum_index actor_index = *(datum_index *)(inst + 0x28 + i * 4);
+                    uint8_t *a;
+
+                    if (actor_index == k_datum_index_none) {
+                        continue;
+                    }
+                    if (!(flags & 0x20) && !((flags & 0x10) && actor_index == *(datum_index *)(inst + 0x50))) {
+                        continue;
+                    }
+                    a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+                    if (*(int16_t *)(a + 0x6c) == 0xc && *(datum_index *)(a + 0xa8) != k_datum_index_none &&
+                        !a[0xa1] && !a[0xa0]) {
+                        blocked = 1;
                     }
                 }
             }
-        }
+            if (game_time->game_time < ai_communication_quiet_until_tick || blocked) {
+                return inst[0x63];
+            }
+            if (*(datum_index *)(inst + 0x54) != k_datum_index_none && !inst[0x60]) {
+                int16_t dialogue_index = -1;                                                        // [esp+0x14]
+                int32_t chain_value = (int32_t)sound;                                               // [esp+0x18]
+                int16_t result = (int16_t)unit_animation_change_priority_check(*(datum_index *)(inst + 0x54), 0, 6, 1, 0,
+                    &dialogue_index, &chain_value);
 
-        if (game_time->game_time < DAT_00725204 || someone_still_arriving != 0) {
-            goto check_second_stage;
-        }
+                if (result == 1) {
+                    return inst[0x63];
+                }
+                if (result > 0) {
+                    uint8_t speech[0x30];                                                           // [esp+0x1c]
 
-        if (instance->unknown_54 == (uint32_t)k_datum_index_none || instance->unknown_60 != 0) {
-            sound_impulse_start(instance->unknown_5c, (uint32_t)k_datum_index_none, 1.0f);
+                    memset(speech, 0, sizeof(speech));
+                    *(int16_t *)(speech + 0x0) = 6;
+                    *(int16_t *)(speech + 0x2) = -1;
+                    *(datum_index *)(speech + 0x4) = sound;
+                    *(datum_index *)(speech + 0x10) = *(datum_index *)(inst + 0x58);
+                    *(int16_t *)(speech + 0x14) = -1;
+                    *(int16_t *)(speech + 0x18) = -1;
+                    *(int16_t *)(speech + 0x16) = -1;
+                    *(int16_t *)(speech + 0x1c) = 1;
+                    *(int16_t *)(speech + 0x1e) = 1;
+                    *(datum_index *)(speech + 0x20) = *(datum_index *)(inst + 0x54);
+                    *(int16_t *)(speech + 0x24) = 0;
+                    unit_commit_speech(*(datum_index *)(inst + 0x54), speech, result);
+                }
+            } else {
+                sound_impulse_start(k_datum_index_none, sound, 1.0f);
+            }
+        }
+        inst[0x61] = 1;
+        inst[0x5] = 1;
+    }
+    // 0x432046
+    if (!inst[0x61]) {
+        return inst[0x63];
+    }
+    if (!inst[0x62]) {
+        uint8_t done;
+
+        if (*(datum_index *)(inst + 0x54) == k_datum_index_none) {
+            done = !(*(datum_index *)(inst + 0x5c) != k_datum_index_none &&
+                     sound_impulse_time(*(datum_index *)(inst + 0x5c)) != 0);
         } else {
-            uint32_t out_a = (uint32_t)k_datum_index_none;
-            uint32_t out_b = instance->unknown_5c;
-            int16_t reach_result = unit_animation_change_priority_check(6, 1, 0, &out_a, &out_b);
+            uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[*(datum_index *)(inst + 0x54) & 0xffff].data;
 
-            if (reach_result == 1) {
-                goto check_second_stage;
-            }
-            if (reach_result > 0) {
-                ai_conversation_speech_request request;
-                memset(&request, 0, sizeof(request));
-                request.sound_tag = instance->unknown_5c;
-                request.unknown_10 = instance->unknown_58;
-                request.unsure_unit_index = instance->unknown_54;
-                request.priority = 6;
-                request.scream_type = (int16_t)k_datum_index_none;
-                request.unknown_14 = (int16_t)k_datum_index_none;
-                request.ai_line_index = (int16_t)k_datum_index_none;
-                request.unknown_18 = (int16_t)k_datum_index_none;
-                request.unsure_flag_a = 1;
-                request.unsure_flag_b = 1;
-                unit_commit_speech(&request);
-            }
+            done = *(int16_t *)(unit + 0x388) != 6;
         }
-
-        instance->unknown_61 = 1;
-        instance->unknown_05 = 1;
-    }
-
-check_second_stage:
-    if (instance->unknown_61 == 0) {
-        return instance->unknown_63;
-    }
-
-    if (instance->unknown_62 == 0) {
-        uint8_t ready2;
-        if (instance->unknown_54 == (uint32_t)k_datum_index_none) {
-            ready2 = (instance->unknown_5c == (uint32_t)k_datum_index_none || sound_impulse_time() == 0) ? 1 : 0;
-        } else {
-            object_header *header = &((object_header *)object_data->data)[instance->unknown_54 & 0xffff];
-            unit_data *unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
-            ready2 = (*(int16_t *)((uint8_t *)unit + 0x388) != 6) ? 1 : 0; // UNSURE: unit_data.current_speech.sound_tag category
-        }
-        instance->unknown_62 = ready2;
-        if (ready2 == 0) {
-            return instance->unknown_63;
+        inst[0x62] = done;
+        if (!done) {
+            return inst[0x63];
         }
     }
-
-    {
-        int16_t wait_ticks = instance->unknown_4c;
-        if (wait_ticks > 0) {
-            instance->unknown_4c = wait_ticks - 1;
-            return instance->unknown_63;
-        }
-        instance->unknown_63 = 1;
-        if ((instance->unknown_4e & 8) != 0) {
-            if (instance->unknown_07[1] == 0) {
-                instance->unknown_07[1] = 1;
-                instance->unknown_07[2] = 0;
-            }
-            if (instance->unknown_07[2] != 0) {
-                instance->unknown_07[1] = 0;
-                return instance->unknown_63;
-            }
-            instance->unknown_63 = 0;
-        }
+    if (*(int16_t *)(inst + 0x4c) > 0) {
+        *(int16_t *)(inst + 0x4c) = (int16_t)(*(int16_t *)(inst + 0x4c) - 1);
+        return inst[0x63];
     }
-
-    return instance->unknown_63;
+    inst[0x63] = 1;
+    if (*(uint16_t *)(inst + 0x4e) & 0x8) {
+        if (!inst[0x8]) {
+            inst[0x8] = 1;
+            inst[0x9] = 0;
+        }
+        if (inst[0x9]) {
+            inst[0x8] = 0;
+            return inst[0x63];
+        }
+        inst[0x63] = 0;
+    }
+    return inst[0x63];
 }
 
 #if 0

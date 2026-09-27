@@ -50,10 +50,9 @@ extern data_array *prop_data;   // 0x008802c0
 extern int16_t actor_dispatch_look_handler_by_posture(int16_t posture, uint32_t actor_index, void *origin, void *target,
     uint8_t stance_a, uint8_t check_facing, uint16_t range_class); // 0x41bb30, EBX, stack
 extern uint16_t actor_target_get_priority_class(datum_index actor_index, datum_index target_prop_index); // 0x41be10, EAX, ECX
-extern int32_t ai_communication_line_fade_multiplier(datum_index unit_index, uint32_t kind,
-                                                     uint32_t param_3, uint32_t param_4,
-                                                     uint8_t apply_fade_window, float *volume,
-                                                     int16_t short_range_limit); // 0x42f8c0
+extern int16_t ai_communication_line_fade_multiplier(uint32_t unit_index, int16_t priority, int16_t extra_delay,
+    uint8_t follow_fallback, uint8_t apply_fade, float *volume, int32_t *chain_value, int16_t *dialogue_index,
+    int16_t line_class); // 0x42f8c0, stack, EAX, ECX, BX
 extern float ai_communication_rate_player_proximity(uint8_t require_line_of_sight,
                                                     datum_index *out_player_object_index,
                                                     float *out_distance,
@@ -145,9 +144,12 @@ float ai_communication_rate_speaker(datum_index actor_index, datum_index object_
     if ((int16_t)line_id != -1) {
         // The original tests only AX of the returned status, so the result is narrowed
         // to int16 before the comparison.
-        if ((int16_t)ai_communication_line_fade_multiplier(a->unit_index, line_class, 0,
-                                                           flags & 1u, 1, &scratch.score,
-                                                           (int16_t)fade_limit) == 0) {
+        // 0x42fd41: EAX = &chain (-1), ECX = &a copy of line_id, BX = fade_limit
+        int32_t chain_value = -1;                    // [esp+0x18]
+        int16_t dialogue_index = (int16_t)line_id;   // [esp+0x1c]
+
+        if (ai_communication_line_fade_multiplier(a->unit_index, (int16_t)line_class, 0, (uint8_t)(flags & 1u), 1,
+                &scratch.score, &chain_value, &dialogue_index, (int16_t)fade_limit) == 0) {
             return 0.0f;
         }
     }

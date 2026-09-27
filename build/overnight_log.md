@@ -1565,3 +1565,9 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   STOPPED (the draft instead fell into the participant pass, so conversations never ended -- scripts waiting on
   ai_conversation_status would hang); participants get their conversation / partner refs while it is active (the
   draft did that only once finished). a10's opening conversations run through this.
+- ai_conversation_current_line_is_ready 0x431e70 REWRITTEN (0.3 -> 0.9): speech priority claim (0x560d00 priority 6)
+  and the 0x30-byte speech commit for the speaker unit, unspatialized sound otherwise, done-speaking test, post-line
+  delay, bit-3 handshake. The draft called all four helpers without operands -- conversation lines never started.
+- ai_communication_line_fade_multiplier 0x42f8c0 REWRITTEN (0.2 -> 0.9): the speech priority query gets its 7
+  operands (EAX chain / ECX index pass through, BX = line class); repeat-delay silence / 60-tick fade-in.
+  ai_communication_rate_speaker passes them.

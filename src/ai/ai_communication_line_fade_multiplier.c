@@ -1,6 +1,6 @@
 // ai_communication_line_fade_multiplier  (Ghidra: ai_communication_line_fade_multiplier; named for this rewrite)
 // address 0x42f8c0, size 220 bytes
-// name confidence: 0.3   rewrite confidence: 0.2
+// name confidence: 0.3   rewrite confidence: 0.9
 // evidence: phase-4 summary ("computes a fade/volume multiplier for a currently-playing or
 // about-to-play communication line based on its type and elapsed time").
 // register convention: BX -> some short threshold (unaff_BX, unresolved in Ghidra's own
@@ -21,44 +21,44 @@
 #include "ai.h"
 
 extern game_time_globals *game_time; // 0x006f1d6c
+extern float ai_communication_class_repeat_delay[]; // 0x00655930, stride 0x28 (10 floats) per class
 
-extern int16_t unit_animation_change_priority_check(uint32_t param_1, uint32_t kind, int32_t *out_last_played_tick); // 0x560d00, UNSURE args (2-out-param form; see other call sites in this batch)
+extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback, int16_t requested_priority,
+    uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index, int32_t *chain_value); // 0x560d00, EAX, DL, stack
 
-// blam-cc: BX -> short_range_limit (UNSURE), stack -> param_1, kind, param_3, param_4,
-// apply_fade_window, volume
-// Looks up the line's status via unit_animation_change_priority_check; if it reports "already playing" (1), halves
-// volume to 0.3x. If apply_fade_window is set and short_range_limit is small and the line
-// has a recorded last-played tick, computes how long ago it played and, within a 60-tick
-// fade-in window, scales volume down proportionally (or to 0 once the window has fully
-// elapsed).
-int32_t ai_communication_line_fade_multiplier(uint32_t param_1, uint32_t kind, uint32_t param_3,
-                                               uint32_t param_4, uint8_t apply_fade_window,
-                                               float *volume, int16_t short_range_limit)
+// REWRITTEN from objdump 0x42f8c0..0x42f99b. Stack: (unit, priority, extra delay ticks, follow_fallback, apply_fade,
+//   volume *); EAX: the chain value (in/out); ECX: the dialogue index (in/out); BX: the line class. Asks the unit's
+//   speech priority (0x560d00, allow_repeat 1; the tick it last spoke comes back in the slot that held ECX) and scales
+//   *volume by 0.3 when it answers 1. With apply_fade, a class under 5 and a known tick: inside the class repeat delay
+//   (0x655930[class * 10] * 30 + extra) the volume becomes 0 and 0 is returned; over the next 60 ticks it fades in.
+//   The draft called the priority check with 3 guessed arguments and had no chain / index / class inputs.
+int16_t ai_communication_line_fade_multiplier(uint32_t unit_index, int16_t priority, int16_t extra_delay,
+    uint8_t follow_fallback, uint8_t apply_fade, float *volume, int32_t *chain_value, int16_t *dialogue_index,
+    int16_t line_class)
 {
-    int32_t last_played_tick;
+    uint32_t last_spoke = (uint32_t)dialogue_index;          // [esp+0x8]: the pushed ECX, reused as the out slot
     int16_t status;
-    int16_t elapsed;
 
-    status = unit_animation_change_priority_check(kind, 1, &last_played_tick);
-    if (status != 0 && status == 1) {
+    status = (int16_t)unit_animation_change_priority_check(unit_index, follow_fallback, priority, 1, &last_spoke,
+        dialogue_index, chain_value);
+    if (status == 1) {
         *volume = *volume * 0.3f;
     }
+    if (apply_fade && line_class < 5 && last_spoke != 0xffffffff) {
+        int32_t elapsed = game_time->game_time - (int32_t)last_spoke;
+        int16_t limit;
 
-    if (apply_fade_window != 0 && short_range_limit < 5 && last_played_tick != -1) {
-        // The original is `*(int *)(DAT_006f1d6c + 0xc)`, i.e. game_time->game_time, not the
-        // pointer itself; the first rewrite of this file dropped the + 0xc.
-        int32_t ticks_ago = game_time->game_time - last_played_tick;
-        uint16_t clamped = (ticks_ago < 0) ? 0 : (uint16_t)ticks_ago;
-        // UNSURE: elapsed's real source (an untraced __ftol result) is not reconstructed.
-        elapsed = 0;
-        if (clamped <= (uint16_t)elapsed) {
+        if (elapsed < 0) {
+            elapsed = 0;
+        }
+        limit = (int16_t)(int32_t)(ai_communication_class_repeat_delay[line_class * 10] * 30.0f + (float)(int32_t)extra_delay);
+        if ((int16_t)elapsed <= limit) {
             *volume = 0.0f;
             return 0;
         }
-        if (clamped < elapsed + 0x3c) {
-            *volume = (float)(clamped - elapsed) * *volume * 0.016666668f;
+        if ((int32_t)(int16_t)elapsed < (int32_t)limit + 0x3c) {
+            *volume = (float)((int32_t)(int16_t)elapsed - (int32_t)limit) * *volume * (1.0f / 60.0f);
         }
-        return status;
     }
     return status;
 }
