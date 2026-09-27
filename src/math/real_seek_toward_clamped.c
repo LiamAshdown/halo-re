@@ -1,6 +1,6 @@
 // real_seek_toward_clamped  (Ghidra: FUN_004cf360; renamed per math_types_notes.md)
 // address 0x4cf360, size 457 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 against objdump 0x4cf360..0x4cf528 (DL wrap, ESI velocity, EDI value); the range comparisons now follow the binary's orderings exactly.)
 // evidence: math_functions.md: "Advances a tracked scalar value and its velocity toward a
 //   target, clamped (and optionally wrapped) to a [param_4,param_5] range -- used for smoothly
 //   seeking a value such as an aim or turn angle." out/phase4/math_types_notes.md item 6: "keeps
@@ -94,40 +94,29 @@ uint8_t real_seek_toward_clamped(int wrap, real *velocity, real *value, real tar
         new_value = clamped_velocity_delta * 0.5f + new_velocity + *value;
 
         if (wrap) {
-            if (range_min <= new_value) {
-                if (range_max < new_value) {
-                    new_value = new_value - (range_max - range_min);
-                }
-            } else {
+            if (new_value < range_min) {
                 new_value = (range_max - range_min) + new_value;
+            } else if (new_value > range_max) {
+                new_value = new_value - (range_max - range_min);
             }
         }
 
         *velocity = new_velocity;
-        if (new_value >= range_min) {
-            real clamped_value = new_value;
-            if (range_max <= new_value) {
-                clamped_value = range_max;
-            }
-            *value = clamped_value;
-        } else {
+        if (new_value < range_min) {
             *value = range_min;
+        } else {
+            *value = (new_value <= range_max) ? new_value : range_max;
         }
         return 0;
     }
 
     // within one step's reach: snap straight to the (range-clamped) target
-    if (target >= range_min) {
-        real clamped_target = target;
-        if (range_max <= target) {
-            clamped_target = range_max;
-        }
-        *velocity = 0.0f;
-        *value = clamped_target;
-        return 1;
-    }
     *velocity = 0.0f;
-    *value = range_min;
+    if (target < range_min) {
+        *value = range_min;
+    } else {
+        *value = (target <= range_max) ? target : range_max;
+    }
     return 1;
 }
 

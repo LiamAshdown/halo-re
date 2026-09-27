@@ -1,7 +1,7 @@
 // unit_update_ik_detail_nodes  (Ghidra: no function created; the phase-4 types agent carved a
 //   placeholder "missed_5643f0" from the object_type_definition vtable evidence)
 // address 0x5643f0, size 379 bytes
-// name confidence 0.3, rewrite confidence 0.35 (see the UNSURE notes)
+// name confidence 0.3, rewrite confidence: 0.85 (VERIFIED 2026-09-27 against objdump 0x5643f0..0x564573 (parent and weapon IK chains; ECX object for 0x4f6d60).) (see the UNSURE notes)
 // evidence: out/phase4/units_types_notes.md: "The unit row's other columns are ... 0x5643f0
 //   (+0x4c) ...". Both loops in this function call object_solve_two_bone_ik_to_marker (0x4f6d60,
 //   already rewritten this pass), which is exactly a "walk a marker's node up two levels and

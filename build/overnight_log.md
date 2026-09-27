@@ -2178,3 +2178,10 @@ Relinked: unresolved 1, traps 127.
   Relinked: unresolved 1, traps 127.
 - cache_allocate_block (0x4d1840) rewritten cleanly from objdump -> 0.85 (ring of gap windows, LRU, overlap eviction, link); cache_evict_entry verified -> 0.85. Both now carry every decal allocation. Relinked OK.
 - hud_text_message_queue_update_and_draw (0x4a3e30, scrolling text widget) rewritten -> 0.85: new lines are queued at the running bottom (EBX), not at y = string index; elapsed = (uint32)dms * 0.08. hud_text_message_queue_add verified -> 0.85.
+## static loop: a10-coverage pass (build/_called.txt x confidence; scratchpad/a10low.py)
+- 413 functions that ran in the recorded a10 session are below 0.8; working lowest-first (skipping networking).
+- game_engine_digitize_control_input, real_seek_toward_clamped (exact NaN orderings), unit_choose_dialogue_variant,
+  unit_pick_random_dialogue_variant, unit_update_ik_detail_nodes verified -> 0.85.
+- object_solve_two_bone_ik_to_marker FIXED -> 0.85: the IK target is marker_b.node_transform (+0x38, world) *
+  inverse(marker_a.transform), in place; the draft used marker_b.transform (+0x04), so every unit's hand/parent IK
+  aimed at a node-relative matrix.

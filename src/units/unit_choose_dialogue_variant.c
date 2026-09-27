@@ -1,8 +1,8 @@
 // unit_choose_dialogue_variant  (Ghidra: unit_choose_dialogue_variant)
 // address 0x561990, size 104 bytes
+// rewrite confidence: 0.85 (VERIFIED 2026-09-27 against objdump 0x561990..0x5619f7 (EAX unit; EBX unit tag for the callee).)
 // name confidence: 0.3 (renamed from phase2's "unit_choose_random_permutation"; see
-//   unit_pick_random_dialogue_variant, 0x561a00, for the shared evidence)   rewrite
-//   confidence: 0.4
+//   unit_pick_random_dialogue_variant, 0x561a00, for the shared evidence)   
 // evidence: types/objects.h object_placement_data.permutation_group (0x16, "goes to object
 //   0xbe" -- the field this function prefers); types/units.h unit_data.dialogue_tag_index
 //   (0x384, the destination of the chosen tag id).

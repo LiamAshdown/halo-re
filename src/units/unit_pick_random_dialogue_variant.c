@@ -1,7 +1,7 @@
 // unit_pick_random_dialogue_variant  (Ghidra: unit_pick_random_dialogue_variant)
 // address 0x561a00, size 168 bytes
 // name confidence: 0.35 (renamed from phase2's "unit_pick_random_permutation_index"; see
-//   evidence)   rewrite confidence: 0.45
+//   evidence)   rewrite confidence: 0.85 (VERIFIED 2026-09-27 against objdump 0x561a00..0x561aa7 (EBX unit tag, stack variant; -1 matches all; seed 0x719cd0).)
 // evidence: types/tags.h UnitDialogueVariant (0x18 bytes, variant_number at +0x0, dialogue
 //   TagDependency at +0x8, tag_id at +0x14), Unit.dialogue_variants (TagReflexive at 0x2b4/
 //   0x2b8, right after Unit.new_hud_interfaces at 0x2a8). types/math.h random_seed_global.

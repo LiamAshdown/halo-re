@@ -4,7 +4,7 @@
 // name confidence: 0.25 (zero recorded callers -- functions.md flags this as a two-bone IK
 //   setup: resolves two markers, walks their nodes' parent chain two levels, and hands the
 //   result to model_ik_solve_two_bone; the specific caller/use site is not recovered)
-// rewrite confidence: 0.3
+// rewrite confidence: 0.85 (REWRITTEN 2026-09-27 against objdump 0x4f6d60..0x4f6e68: the IK target is marker_b.node_transform (+0x38) * inverse(marker_a.transform), computed in place.)
 // evidence: types/tags.h Object.model, GBXModel.nodes (TagReflexive, pointer at +0xbc,
 //   confirmed elsewhere in this batch at 0x4f6b70/0x4f6c60 reading GBXModel+0xb8 as the node
 //   count); global 0x008603b0 object_data, global 0x0087bc14 tag_instances, global 0x00696664
@@ -75,12 +75,14 @@ void object_solve_two_bone_ik_to_marker(uint32_t object_index, char *marker_a_na
             int16_t node_c = *(int16_t *)(nodes + node_b * 0x9c + 0x24);
             if (node_c != -1) {
                 real_matrix4x3 inverse;
-                real_matrix4x3 combined;
 
+                // 0x4f6e1a..0x4f6e37: inverse = inverse(marker_a node-relative matrix), then in place
+                // inverse = marker_b.node_transform (+0x38, the WORLD marker matrix) * inverse. FIXED 2026-09-27:
+                // the draft multiplied marker_b.transform (+0x04) into a separate local.
                 matrix4x3_inverse(&inverse, &marker_a.transform);
-                matrix4x3_multiply_procedure(&marker_b.transform, &inverse, &combined);
+                matrix4x3_multiply_procedure(&marker_b.node_transform, &inverse, &inverse);
 
-                model_ik_solve_two_bone(&combined,
+                model_ik_solve_two_bone(&inverse,
                     node_base + node_c * 0x34,
                     node_base + node_b * 0x34,
                     node_base + marker_a.node_index * 0x34);

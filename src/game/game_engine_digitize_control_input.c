@@ -1,6 +1,6 @@
 // game_engine_digitize_control_input  (Ghidra: FUN_00472760; renamed, no established name)
 // address 0x472760, size 543 bytes
-// name confidence: 0.3   rewrite confidence: 0.3
+// name confidence: 0.3   rewrite confidence: 0.85 (VERIFIED 2026-09-27 against objdump 0x472760..0x47297e: every flag bit, field offset and both edge-detection branches.)
 // evidence: out/phase4/game_functions.md ("Converts a raw unit-control input structure into
 // digitized action-flag bits accumulated in the global local-player control header");
 // types/game.h player_action_flags enum, whose own comment names this exact function
