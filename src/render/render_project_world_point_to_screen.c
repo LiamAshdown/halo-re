@@ -1,7 +1,7 @@
 // render_project_world_point_to_screen  (Ghidra: render_project_world_point_to_screen, already
 // named)
 // address 0x50de30, size 234 bytes
-// name confidence: 0.5   rewrite confidence: 0.6
+// name confidence: 0.5   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x50de30..0x50df19: z / clip range tests, 640 x 480 virtual screen, viewport left/top at camera +0x2e/+0x2c)
 // evidence: src/interface/hud_waypoint_draw_one.c already documents this exact call site: "then
 //   projected by 0x50de30 (ECX screen point out, EDX view point, ESI 0x007c3168, EDI the camera at
 //   0x007c3114)", i.e. ECX=screen_out, EDX=world_point, ESI=frustum, EDI=camera. The projection
