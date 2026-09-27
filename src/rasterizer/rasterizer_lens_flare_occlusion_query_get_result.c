@@ -1,6 +1,6 @@
 // rasterizer_lens_flare_occlusion_query_get_result  (Ghidra: rasterizer_lens_flare_occlusion_query_get_result, already named)
 // address 0x537b40, size 104 bytes
-// name confidence: 0.55   rewrite confidence: 0.6
+// name confidence: 0.55   rewrite confidence: 0.85 (REWRITTEN from objdump 0x537b40..0x537bad: result local starts at -1 (the draft reused a union holding the query pointer, so a failed GetData returned pointer bits = a huge visible count); disabled toggle -> 1; no query or slot >= 0x400 -> 2; GetData(query, &value, 4, 1) retried while S_FALSE)
 // evidence: functions.md summary ("Polls the occlusion query for one lens-flare slot until a
 //   result is available, returning the query's visible-pixel-count result"); GetData(pData,
 //   dwSize=4, dwGetDataFlags) at query vtable +0x1c matches IDirect3DQuery9, looping while it
@@ -29,22 +29,25 @@ typedef int32_t (__stdcall *d3d_query_get_data_fn)(void *query, void *data, uint
 // caller multiplies it by 0xff (0x513821)
 int32_t rasterizer_lens_flare_occlusion_query_get_result(int32_t slot_index)
 {
-    union { void *query; int32_t value; } slot;
+    int32_t value = -1; // 0x537b48: the result local starts at -1 and is only written by a successful GetData
+    void *query;
     int32_t hr;
 
     if (console_debug_toggle_689424 == 0) {
         return 1;
     }
 
-    slot.query = (slot_index < k_lens_flare_occlusion_queries) ? lens_flare_occlusion_queries[slot_index] : 0;
-    if (slot.query != 0 && slot_index < k_lens_flare_occlusion_queries) {
-        void **vt = *(void ***)slot.query;
+    query = lens_flare_occlusion_queries[slot_index]; // 0x537b51 reads the slot before the bounds check
+    if (query != 0 && slot_index < k_lens_flare_occlusion_queries) {
+        void **vt = *(void ***)query;
         d3d_query_get_data_fn get_data = (d3d_query_get_data_fn)vt[0x1c / 4];
-        hr = get_data(slot.query, &slot.value, 4, 1);
-        while (hr == 1) { // S_FALSE: not ready yet
-            hr = get_data(lens_flare_occlusion_queries[slot_index], &slot.value, 4, 1);
+
+        hr = get_data(query, &value, 4, 1);
+        while (hr == 1) { // S_FALSE: not ready yet; the slot is re-read each time (0x537b80)
+            query = lens_flare_occlusion_queries[slot_index];
+            hr = get_data(query, &value, 4, 1);
         }
-        return slot.value;
+        return value;
     }
     return 2;
 }

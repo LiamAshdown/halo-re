@@ -24,6 +24,7 @@ uint8_t polygon2d_point_inside_tolerance(real_point2d *vertices, int16_t count, 
     int16_t i;
     int16_t next;
     real edge_dx, edge_dy, dist_sq, cross;
+    real tolerance_sq = tolerance * tolerance; // 0x4cad81..0x4cad96, rounded to a float local
 
     if (0 < count) {
         for (i = 0; i < count; i++) {
@@ -37,7 +38,7 @@ uint8_t polygon2d_point_inside_tolerance(real_point2d *vertices, int16_t count, 
             if (dist_sq != 0.0f) {
                 cross = (point->x - vertices[i].x) * edge_dy - edge_dx * (point->y - vertices[i].y);
                 if (0.0f < cross) {
-                    if (dist_sq * tolerance * tolerance < cross * cross) {
+                    if (dist_sq * tolerance_sq < cross * cross) { // 0x4cae1b: dist_sq * the float tol^2 from entry
                         return 0;
                     }
                 }

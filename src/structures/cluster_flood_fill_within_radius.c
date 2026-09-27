@@ -2,7 +2,7 @@
 // address 0x554d10, size 281 bytes
 // name confidence: 0.6 -- already named; matches its body (recursive portal flood, gated by a
 //   sphere-vs-portal test, collecting cluster indices).
-// rewrite confidence: 0.55 -- Ghidra recovered a clean, fully-stack, 5-parameter signature with no
+// rewrite confidence: 0.85 (VERIFIED against objdump 0x554d10..0x554e28: writes the cluster when the budget allows, stamps it, then for each cluster portal (bsp+0x158, 0x40 each; front/back words) recurses into the unstamped far cluster when structure_bsp_portal_sphere_test passes; returns 1 + the children's counts) -- Ghidra recovered a clean, fully-stack, 5-parameter signature with no
 //   in_stack/extraout artifacts; the only thing not visible in the decompile (calls shown with no
 //   arguments) is which registers feed FUN_00554b00, resolved by disassembly.
 // evidence: objdump -M intel disassembly of 0x554d10..0x554e30, cross-checked against the sibling

@@ -1,7 +1,7 @@
 // lens_flare_update_visibility  (Ghidra: decal_shadow_value_update, misnamed; renamed per
 // out/phase4/rasterizer_types_notes.md's lens flare misattribution table)
 // address 0x513780, size 277 bytes
-// name confidence: 0.5   rewrite confidence: 0.45
+// name confidence: 0.5   rewrite confidence: 0.85 (VERIFIED against objdump 0x513780..0x513894: per instance the visibility byte (BSP marker table 0x6be810 / object table 0x6bc512) is 0 without samples, else round(result*255/samples) capped at 255, 0 clears, rising blends (3*old+new)/4, falling (old+new)/2; the count is reset)
 // evidence: walks lens_flare_instances[0..lens_flare_instance_count) (types/rasterizer.h),
 //   re-deriving the same visibility-byte pointer as lens_flare_get_visibility_byte.c inline
 //   (the array strides in the original -- ushort index*0x14, byte index*0x28, int32 index*10 --

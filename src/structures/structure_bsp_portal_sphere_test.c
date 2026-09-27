@@ -2,7 +2,7 @@
 // address 0x554b00, size 420 bytes
 // name confidence: 0.55 -- matches the phase4 summary ("Tests whether a sphere intersects a
 //   specific portal polygon by combining a plane-distance check with a 2D point-in-polygon test").
-// rewrite confidence: 0.45 -- 3 of its 4 inputs are register-passed with no visible call-site
+// rewrite confidence: 0.85 (VERIFIED against objdump 0x554b00..0x554ca3 (plane distance vs tolerance, centroid sphere, major-axis projection through k_projection_axes, portal vertices to 2D, polygon2d_point_inside_tolerance); FIXED the 2D tolerance: the binary takes sqrt(tol*tol - distance * projected.x) ([esp+0x14] at 0x554c6a), not distance * distance) -- 3 of its 4 inputs are register-passed with no visible call-site
 //   arguments in Ghidra's decompile; resolved from the caller (cluster_flood_fill_within_radius.c,
 //   this batch: EAX -> structure_bsp, ECX -> point, DX -> portal_index) and from the already-
 //   written math module (vector3d_major_axis_index, polygon2d_point_inside_tolerance,
@@ -89,7 +89,10 @@ uint8_t structure_bsp_portal_sphere_test(ScenarioStructureBSP *structure_bsp, re
         polygon_2d[i].y = ((float *)&vertices[i])[axis_j];
     }
 
-    float remaining = tolerance * tolerance - distance * distance;
+    // 0x554c51..0x554c72: fld tol; fmul tol; fld [esp+0x10] (the signed plane distance); fmul [esp+0x14] --
+    // with four registers pushed [esp+0x14] is projected.x (stored at 0x554bf5), not the distance again. The
+    // original really multiplies the distance by the projected point's x; kept for fidelity.
+    float remaining = tolerance * tolerance - distance * projected.x;
     float radius_2d = (real)sqrt((double)remaining);
     return polygon2d_point_inside_tolerance(polygon_2d, (int16_t)portal->vertices.count, &point_2d,
                                              radius_2d);

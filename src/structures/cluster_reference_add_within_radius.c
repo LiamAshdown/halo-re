@@ -1,7 +1,7 @@
 // cluster_reference_add_within_radius  (Ghidra: FUN_00551f00; named here, still referenced as
 //   FUN_00551f00 by the three consuming files in src/objects/ that predate this rewrite)
 // address 0x551f00, size 279 bytes
-// name confidence: 0.6 (still FUN_00551f00 upstream)   rewrite confidence: 0.6
+// name confidence: 0.6 (still FUN_00551f00 upstream)   rewrite confidence: 0.85 (VERIFIED against objdump 0x551f00..0x552016: cluster from leaf+4 (-1 -> none), radius <= 0 -> that cluster alone, else flood fill (stamp 0x6e3f04++, busy flag 0x6e3f01) into up to 0x40 clusters; per cluster the object's chain (group+8, +4 = cluster sign-extended) and the cluster's chain (group+4 head group+0[cluster], +4 = handle))
 // evidence: src/objects/object_light_recompute_transform.c and object_set_cluster_and_parent.c
 //   already resolved and documented the four stack arguments plus the EAX (leaf_and_cluster) and
 //   EDI (cluster_list) register arguments from disassembly. This file resolves the one thing
