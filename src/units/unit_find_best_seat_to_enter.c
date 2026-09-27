@@ -1,6 +1,6 @@
 // unit_find_best_seat_to_enter  (Ghidra: unit_find_best_seat_to_enter, already named)
 // address 0x566560, size 722 bytes
-// name confidence: 0.6 (already carries this name)   rewrite confidence: 0.25
+// name confidence: 0.6 (already carries this name)   rewrite confidence: 0.9 (VERIFIED end to end against 0x566560 (gates, seat loop, min marker distance, driver/label/occupancy ranking, 1.5 weighting, selection))
 // evidence: types/objects.h object.vitality_flags (0x106, _object_health_frozen_bit),
 //   object.bounding_center (0xa0); types/units.h unit_data.flags (0x204), .actor_index (0x1f4),
 //   .driver_unit_index (0x324); types/tags.h Unit.seats (TagReflexive at 0x2e4/0x2e8, UnitSeat

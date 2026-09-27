@@ -1905,3 +1905,6 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - ai_communication_broadcast gets the attacker HANDLE (the draft float-converted the raw parameter).
   This drives "taking fire" AI callouts.
 - Relink: left unresolved 1, traps 128.
+- unit_find_best_seat_to_enter (0x566560): VERIFIED end to end (0.25 -> 0.9).
+- player_check_vehicle_interaction (0x478600): FIXED (0.4 -> 0.9). The upside-down vehicle's "flip" interaction (action 0xb) passes EBX = the vehicle; the draft passed -1, so the flip prompt had no target.
+- Relink: left unresolved 1, traps 128.

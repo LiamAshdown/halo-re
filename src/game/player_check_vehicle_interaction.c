@@ -1,7 +1,7 @@
 // player_check_vehicle_interaction  (Ghidra: FUN_00478600; renamed -- dispatched for object_type
 // vehicle candidates by the sibling scanners FUN_00478400/FUN_00478500, this batch)
 // address 0x478600, size 366 bytes
-// name confidence: 0.4   rewrite confidence: 0.4
+// name confidence: 0.4   rewrite confidence: 0.9 (VERIFIED against 0x478600; fixed the flip action's object (EBX = the vehicle))
 // evidence: types/objects.h object::vitality_flags (0x106), object::up (0x080, hence up.z at
 //   0x088), object::velocity (0x068), object::angular_velocity (0x08c); types/tags.h
 //   GlobalsPlayerControl::minimum_angle_for_vehicle_flipping (0x70, confirmed by exact offset
@@ -50,7 +50,8 @@ void player_check_vehicle_interaction(uint32_t player_index, uint32_t candidate_
         if ((double)vehicle->up.k <= flip_threshold) {
             if ((*(uint8_t *)((uint8_t *)vehicle + 0x4cc) & 0x10) == 0 &&
                 *(int32_t *)((uint8_t *)vehicle + 0x324) == -1) {
-                player_set_pending_interaction_action(0xb, (int16_t)0xffff, player_index, (uint32_t)0xffffffff);
+                // FIXED (0x47875f): EBX = the vehicle (ebp), the flip target; the draft passed -1
+                player_set_pending_interaction_action(0xb, (int16_t)0xffff, player_index, candidate_object);
             }
         } else {
             player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
