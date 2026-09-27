@@ -3,7 +3,7 @@
 // object_release_render_cache_slot 0x4f9b00")
 // address 0x4f9b00, size 99 bytes
 // name confidence: 0.85 (fixed by the types notes' own citation of this address by this name)
-// rewrite confidence: 0.5
+// rewrite confidence: 0.9 (VERIFIED against objdump)
 // evidence: types/objects.h object (render_cache_slot 0x0ba); global 0x008603b0 object_data,
 //   global 0x006b8cb8 object_name_list (reused as the render-cache slot table).
 // register convention: object index in EDI. Confirmed against objdump-consistent pattern:

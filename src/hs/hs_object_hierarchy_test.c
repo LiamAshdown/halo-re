@@ -2,7 +2,7 @@
 // address 0x487c10, size 218 bytes
 // name confidence: 0.3 (out/phase4/hs_functions.md: "Recursively checks whether an object or any
 //   of its attached child objects matches a small object-type bitmask or a specific flag")
-// rewrite confidence: 0.45
+// rewrite confidence: 0.9 (VERIFIED against objdump)
 // evidence: out/phase4/hs_types_notes.md object field offsets (0xb4 type, 0x114/0x118/0x11c
 //   sibling/child/parent).
 // register convention: none (void); object index is the recognized stack parameter (param_1).

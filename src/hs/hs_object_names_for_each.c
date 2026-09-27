@@ -2,7 +2,7 @@
 // address 0x487ef0, size 79 bytes
 // name confidence: 0.5 (out/phase4/hs_functions.md: "Enumerates every scenario object_names entry
 //   and invokes a callback for each one that satisfies a predicate check")
-// rewrite confidence: 0.7
+// rewrite confidence: 0.9 (VERIFIED against objdump)
 // evidence: types/tags.h Scenario::object_names (TagReflexive, ScenarioObjectName size 0x24),
 //   matching out/phase4/hs_types_notes.md's documented 0x204/0x208 offsets exactly.
 // register convention: EBX -> predicate_arg; callback pointer is the recognized stack parameter

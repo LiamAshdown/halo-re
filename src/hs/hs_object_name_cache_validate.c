@@ -2,7 +2,7 @@
 // address 0x487d20, size 98 bytes
 // name confidence: 0.25 (out/phase4/hs_functions.md: "Validates a cached object-slot reference
 //   against a type-mask test, resetting it via a fallback path when invalid or absent")
-// rewrite confidence: 0.5
+// rewrite confidence: 0.9 (VERIFIED against objdump)
 // evidence: types/hs.h globals list (object_names_to_objects, 0x006b8cb8, objects module, 0x200
 //   entries); this module's hs_object_hierarchy_test (0x487c10) as the "type-mask test".
 // register convention: none (void); object_names index is the recognized stack parameter
