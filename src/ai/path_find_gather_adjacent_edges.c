@@ -1,6 +1,7 @@
 // path_find_gather_adjacent_edges  (Ghidra: path_find_gather_adjacent_edges, renamed)
 // address 0x43b1c0, size 227 bytes
-// name confidence: 0.45  rewrite confidence: 0.2
+// name confidence: 0.45  rewrite confidence: 0.8 (checked against objdump 0x43b1c0..0x43b2a5: matches; EAX is the
+//   path find map at path_find_context +0x64, not the context)
 // evidence: phase-4 summary "gathers the navigation-mesh edges adjacent to a given vertex for
 // expansion during pathfinding search." The base pointer this reads (`context+0xb4` as a
 // structure_bsp-shaped pointer, +0x40 edge-index-by-vertex table, +0x4c edge records at

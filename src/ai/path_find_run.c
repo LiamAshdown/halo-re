@@ -1,46 +1,27 @@
 // path_find_run  (Ghidra: path_find_run, already named)
 // address 0x43a8b0, size 1716 bytes
-// name confidence: 0.55  rewrite confidence: 0.2
-// evidence: types/ai.h path_find_context (node_count +0x80, heap_count +0xd084, heap
-//   +0xd086, vertex_hash +0xe08a, best_node +0x68, best_cost +0x6c, unknown_70, best_position
-//   +0x74, have_goal +0x4c, goal_position +0x50, goal_vertex_id +0x5c, goal_cost +0x60,
-//   bsp_generation +0x64) and path_find_node (parent, unknown_04, vertex_id, position, cost,
-//   unknown_1c/unknown_20/unknown_24, distance, key, waypoint, heap_index) -- every offset
-//   below is one of those fields, cross-checked against the "in_EAX[K]" float-array indexing
-//   Ghidra used throughout via `node_byte_offset = 4*(K-0x21)` (confirmed independently at
-//   several of the K values, e.g. K=0x23 is vertex_id, matched by its use as the argument to
-//   path_find_gather_adjacent_edges). Calls path_find_push_start_node, path_find_heap_sift_up,
-//   path_find_heap_sift_down, path_find_vertex_distance (path_find_vertex_distance),
-//   path_find_gather_adjacent_edges (path_find_gather_adjacent_edges) and path_find_score_avoidance_penalty (this rewrite,
-//   obstacle-avoidance cost penalty), all in this module.
-//
-// This is the module's main A*-style search loop and by far its largest function. Kept
-// close to the Ghidra decompilation and at low confidence: the surface-permission lookup
-// (DAT_006b8d78/DAT_0069e8d8, gating whether an edge can be crossed at all) belongs to a
-// different, un-established subsystem and is preserved as raw offsets; `context->
-// bsp_generation` is dereferenced here as a pointer into a structure_bsp-shaped record
-// (matching the module header's own note that it is "the structure BSP pointer, used here
-// as an opaque handle" despite its int32 declaration), not used as a counter.
-//
-// register convention: EAX -> context (the only register Ghidra's decompile shows; ESI/EDI
-//   appear as `unaff_` registers in one call, forwarded to path_find_heap_sift_down, but the
-//   values needed there -- the just-popped heap slot and its replacement -- are computed in
-//   this function and passed explicitly here instead of literally forwarding unknown
-//   registers).
-//   // blam-cc: EAX -> context
-//
-// UNSURE, broadly:
-//  - The permission-bitmap test (`DAT_006b8d78`/`DAT_0069e8d8`) is reproduced verbatim as
-//    raw offsets; its real meaning (a per-material or per-team crossing permission, by the
-//    shape of the lookup) is not established here.
-//  - `__ftol()` is called with no visible operand; by analogy with every other user of this
-//    pattern in this module, it almost certainly rounds `local_834` (the just-computed f-cost
-//    estimate) to get the heap sort key, and is modeled that way here rather than as an
-//    unresolved 0.0.
-//  - path_find_gather_adjacent_edges and path_find_score_avoidance_penalty are called here with fewer arguments
-//    than elsewhere (context not shown); called explicitly with this function's own context.
-// reconciled: R06 path_find_context.bsp_generation -> structure_bsp (0x00746f9c, the resident ScenarioStructureBSP pointer)
-// reconciled: R79 0x006b8d78 ai_path_permission_table -> physics.h breakable_surface_globals *breakable_surface_state (the code took the global's ADDRESS; the binary loads the pointer: mov edx,ds:0x6b8d78) and 0x0069e8d8 local_command_list_generation -> global_structure_bsp_index; the row is active[bsp index] (intact breakable surfaces)
+// name confidence: 0.55  rewrite confidence: 0.85
+// REWRITTEN from objdump 0x43a8b0..0x43af63: 0x43a8b0 resets the search (node count 0, heap count 1, the vertex
+//   hash to -1, best node -1, best cost and +0x70 FLT_MAX) and, when path_find_push_start_node (ESI) accepts the
+//   start, tail-jumps into the search loop at 0x43a900 (path_find_search below). The draft handed the context
+//   itself to path_find_gather_adjacent_edges instead of the map at +0x64 (crash reading its tables).
+// The search: the radius is max(request radius +0x00, 0.2). Pop heap[1] (the last entry moves to the top and
+//   sifts down, ECX 1); with a goal, reaching the goal vertex (+0x5c) finishes with the goal position as best, and a
+//   node whose f (+0x28) exceeds 10 * max(best cost, 5) + best f (+0x70) ends the search. For each adjacent
+//   edge (gathered from the map, up to 64): skip the surface the node came from (+0x04), edges without flag 0x40,
+//   and (unless the request ignores glass, +0x04) glass edges (0x80) whose breakable surface (map bsp +0x40 record
+//   +8 bit 8, index +9) is still intact. The candidate is the edge midpoint or, with a goal on a long edge
+//   (length^2 > 16 and > (2r)^2), the projection of the goal onto the edge clamped to [r/len, 1 - r/len].
+//   step = |candidate - node|; travelled = step + node +0x20; cost = step, times (1 + avoid penalty) with the
+//   avoid sphere (+0x24; the running minimum avoid distance is kept at +0x1c); g = cost + node +0x24; f = g +
+//   |goal - candidate| with a goal; key = (int)(f * 10) must stay below 0x7fff; a travel limit (+0x40/+0x44)
+//   applies. The vertex hash (512 buckets of 8, probed modulo 0x1000) finds an existing node (only improved while
+//   open and when the key drops) or a new one (at most 0x400). The node gets parent, came-from surface, vertex,
+//   position, step, avoid distance, travelled, g, f, key and waypoint + 1, and is pushed or re-keyed in the heap
+//   (sift up, EAX ctx, DX slot). With a goal, candidates within 4 of it measure the goal distance on their surface
+//   (0x43b130), and a closer one becomes the best (cost, position, node, f).
+//   Returns best cost <= goal cost with a goal, else 1.
+// blam-cc: EAX -> context
 
 #include "tags.h"
 #include "memory.h"
@@ -49,283 +30,242 @@
 #include <stdint.h> // uintptr_t
 #include "physics.h"
 
-extern void path_find_heap_sift_up(path_find_context *context, int16_t index);   // 0x43af70
-extern void path_find_heap_sift_down(path_find_context *context, int16_t index); // 0x43b010
-extern uint8_t path_find_push_start_node(path_find_context *context);            // 0x43a760
+extern void path_find_heap_sift_up(path_find_context *context, int16_t index);   // 0x43af70, EAX, DX
+extern void path_find_heap_sift_down(path_find_context *context, int16_t index); // 0x43b010, EAX, ECX
+extern uint8_t path_find_push_start_node(path_find_context *context);            // 0x43a760, ESI
 extern float path_find_vertex_distance(ScenarioStructureBSP *structure_bsp, int32_t surface, real_point3d *point_a,
     real_point3d *out_point); // 0x43b130; blam-cc: EAX structure_bsp, ECX surface, stack point_a, out_point
-
-// TYPES-GAP: duplicated from path_find_gather_adjacent_edges.c (each rewritten file is
-// compiled independently, so the shared shape is repeated here rather than shared through a
-// header this task's rules do not let this rewrite add).
-extern int16_t path_find_gather_adjacent_edges(path_find_context *context, int32_t vertex_id,
-                                               path_find_adjacent_edge *out_edges); // 0x43b1c0
-extern float path_find_score_avoidance_penalty(path_find_context *context, float *out_distance); // 0x43b3b0, called here with context forwarded explicitly instead of Ghidra's no-argument call
-
-extern int32_t __ftol(double x); // FISTP-based float-to-int truncation
+extern int16_t path_find_gather_adjacent_edges(void *map, int32_t vertex_id,
+    path_find_adjacent_edge *out_edges); // 0x43b1c0, EAX map, stack
+extern float path_find_score_avoidance_penalty(path_find_context *context, const real_point3d *segment_start,
+    const real_point3d *segment_end, float *out_distance); // 0x43b3b0, EBX, ECX, EDX, stack
 extern double sqrt(double x); // FSQRT
-extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78, physics.h
-extern int16_t global_structure_bsp_index; // 0x0069e8d8, physics.h (the structure BSP index)
+extern uint8_t *breakable_surface_state; // 0x006b8d78
+extern int16_t global_structure_bsp_index; // 0x0069e8d8
 
-// blam-cc: EAX -> context
-// Runs the A*-style search to completion: repeatedly pops the cheapest open node, expands
-// its adjacent navmesh edges into new or improved candidate nodes, and re-heapifies, until
-// either the exact goal vertex is reached, the open list empties, or the node/heap budget is
-// exhausted. Returns 1 if a usable path (exact or best-effort) was found, 0 otherwise.
+static uint8_t path_find_search(path_find_context *context)
+{
+    path_find_request *request = (path_find_request *)context;
+    float radius = (0.2f > request->pathfinding_radius) ? 0.2f : request->pathfinding_radius;
+    path_find_adjacent_edge edges[64];
+
+    while (context->heap_count > 1) {
+        int16_t current = context->heap[1].node;
+        path_find_node *node = &context->nodes[current];
+        int16_t edge_count;
+        int16_t e;
+
+        node->heap_index = -1;
+        context->heap_count--;
+        if (context->heap_count > 1) {
+            context->heap[1] = context->heap[context->heap_count];
+            path_find_heap_sift_down(context, 1);
+        }
+        if (current == -1) {
+            break;
+        }
+        if (context->have_goal) {
+            float limit;
+
+            if (node->vertex_id == context->goal_vertex_id) {
+                context->best_position = context->goal_position;
+                context->best_node = current;
+                context->best_cost = 0.0f;
+                break;
+            }
+            limit = (5.0f > context->best_cost) ? 5.0f : context->best_cost;
+            if (node->distance > limit * 10.0f + context->unknown_70) {
+                break;
+            }
+        }
+        edge_count = path_find_gather_adjacent_edges((void *)(uintptr_t)context->structure_bsp, node->vertex_id, edges);
+        for (e = 0; e < edge_count; e++) {
+            path_find_adjacent_edge *edge = &edges[e];
+            uint8_t passable = (uint8_t)((uint32_t)edge->edge_id != (uint32_t)node->unknown_04);
+            real_point3d candidate;
+            float step;
+            float travelled;
+            float cost;
+            float avoid_distance;
+            float g;
+            float f;
+            float goal_distance = 0.0f;
+            int32_t key;
+            int16_t slot;
+            int16_t index = -1;
+            path_find_node *next;
+
+            if ((edge->flag & 0x40) == 0) {
+                passable = 0;
+            }
+            if (request->ignores_glass == 0 && (edge->flag & 0x80) != 0) {
+                uint8_t *map = (uint8_t *)(uintptr_t)context->structure_bsp;
+                uint8_t *record = *(uint8_t **)(*(uint8_t **)(map + 0xb4) + 0x40) + edge->edge_id * 12;
+
+                if ((record[8] & 8) != 0) {
+                    uint32_t bit = record[9];
+                    uint32_t word = *(uint32_t *)(breakable_surface_state + 1 +
+                        ((bit >> 5) + global_structure_bsp_index * 8) * 4);
+
+                    if ((word & (1u << (bit & 0x1f))) == 0) {
+                        continue; // 0x43aa82: the glass is still intact
+                    }
+                }
+            }
+            if (!passable) {
+                continue;
+            }
+            candidate.x = edge->direction_x * 0.5f + edge->start_x;
+            candidate.y = edge->direction_y * 0.5f + edge->start_y;
+            candidate.z = edge->direction_z * 0.5f + edge->start_z;
+            if (context->have_goal) {
+                float dx2 = edge->direction_x * edge->direction_x;
+                float length2 = edge->direction_z * edge->direction_z + edge->direction_y * edge->direction_y + dx2;
+
+                if (length2 > 16.0f && length2 > (radius + radius) * (radius + radius)) {
+                    float length = (float)sqrt(length2);
+                    float t = ((context->goal_position.x - edge->start_x) * edge->direction_x +
+                        (context->goal_position.z - edge->start_z) * edge->direction_z +
+                        (context->goal_position.y - edge->start_y) * edge->direction_y) /
+                        (edge->direction_z * edge->direction_z + edge->direction_y * edge->direction_y + dx2);
+                    float margin = radius / length;
+
+                    if (t < margin) {
+                        t = margin;
+                    } else if (t > 1.0f - margin) {
+                        t = 1.0f - margin;
+                    }
+                    candidate.x = t * edge->direction_x + edge->start_x;
+                    candidate.y = t * edge->direction_y + edge->start_y;
+                    candidate.z = t * edge->direction_z + edge->start_z;
+                }
+            }
+            {
+                float dx = candidate.x - node->position.x;
+                float dy = candidate.y - node->position.y;
+                float dz = candidate.z - node->position.z;
+
+                step = (float)sqrt(dz * dz + dy * dy + dx * dx);
+            }
+            travelled = step + node->unknown_20;
+            if (request->have_avoid_sphere) {
+                cost = (path_find_score_avoidance_penalty(context, &node->position, &candidate, &avoid_distance) + 1.0f) *
+                    step;
+                if (!(node->unknown_1c > avoid_distance)) {
+                    avoid_distance = node->unknown_1c;
+                }
+            } else {
+                cost = step;
+                avoid_distance = 0.0f;
+            }
+            g = cost + node->unknown_24;
+            f = g;
+            if (context->have_goal) {
+                float dx = context->goal_position.x - candidate.x;
+                float dy = context->goal_position.y - candidate.y;
+                float dz = context->goal_position.z - candidate.z;
+
+                goal_distance = (float)sqrt(dz * dz + dy * dy + dx * dx);
+                f = goal_distance + g;
+            }
+            key = (int32_t)(f * 10.0f);
+            if (key >= 0x7fff) {
+                continue;
+            }
+            if (request->have_limit && travelled > request->limit_distance) {
+                continue;
+            }
+
+            // 0x43aced: the vertex hash
+            slot = (int16_t)((edge->edge_id & 0x1ff) << 3);
+            while (context->vertex_hash[slot] != -1) {
+                path_find_node *existing = &context->nodes[context->vertex_hash[slot]];
+
+                if (existing->vertex_id == (uint32_t)edge->edge_id) {
+                    if (key >= existing->key || existing->heap_index == -1) {
+                        index = -2; // no improvement, or already closed
+                    } else {
+                        index = context->vertex_hash[slot];
+                    }
+                    break;
+                }
+                slot = (int16_t)((slot + 1) & 0xfff);
+            }
+            if (index == -2) {
+                continue;
+            }
+            if (index == -1) {
+                if (context->node_count >= 0x400) {
+                    continue;
+                }
+                index = context->node_count++;
+                context->vertex_hash[slot] = index;
+                context->nodes[index].heap_index = -1;
+            }
+
+            next = &context->nodes[index];
+            next->parent = current;
+            next->unknown_04 = (int32_t)node->vertex_id;
+            next->vertex_id = (uint32_t)edge->edge_id;
+            next->position = candidate;
+            next->cost = step;
+            next->unknown_1c = avoid_distance;
+            next->unknown_20 = travelled;
+            next->unknown_24 = g;
+            next->distance = f;
+            next->key = (int16_t)key;
+            next->waypoint = (int16_t)(node->waypoint + 1);
+            if (next->heap_index != -1) {
+                context->heap[next->heap_index].key = (int16_t)key;
+                path_find_heap_sift_up(context, next->heap_index);
+            } else if (context->heap_count < 0x400) {
+                int16_t heap_slot = context->heap_count++;
+
+                context->heap[heap_slot].key = (int16_t)key;
+                context->heap[heap_slot].node = index;
+                path_find_heap_sift_up(context, heap_slot);
+            }
+
+            if (context->have_goal) {
+                real_point3d best_point = next->position;
+                float distance = goal_distance;
+
+                if (distance < 4.0f) {
+                    distance = path_find_vertex_distance((ScenarioStructureBSP *)(uintptr_t)context->structure_bsp,
+                        edge->edge_id, &context->goal_position, &best_point);
+                }
+                if (distance < context->best_cost) {
+                    context->best_cost = distance;
+                    context->best_position = best_point;
+                    context->best_node = index;
+                    context->unknown_70 = f;
+                }
+            }
+        }
+    }
+
+    if (context->have_goal) {
+        return (uint8_t)(context->best_cost <= context->goal_cost);
+    }
+    return 1;
+}
+
 uint8_t path_find_run(path_find_context *context)
 {
-    float step_radius;
-    path_find_adjacent_edge edges[64];
+    int32_t i;
 
     context->node_count = 0;
     context->heap_count = 1;
-    {
-        int16_t *hash = context->vertex_hash;
-        int32_t i;
-        for (i = 0; i < 4096; i = i + 1) {
-            hash[i] = -1;
-        }
+    for (i = 0; i < 0x1000; i++) {
+        context->vertex_hash[i] = -1;
     }
     context->best_node = -1;
     context->best_cost = 3.4028235e+38f;
     context->unknown_70 = 3.4028235e+38f;
-
-    if (path_find_push_start_node(context) == 0) {
+    if (!path_find_push_start_node(context)) {
         return 0;
     }
-
-    step_radius = (0.2f <= *(float *)context) ? *(float *)context : 0.2f;
-
-    for (;;) {
-        int16_t popped_node_index;
-        int16_t edge_count;
-        int32_t current_index; // local_804
-
-        if (context->heap_count < 2) {
-            if (context->have_goal == 0) {
-                return 1;
-            }
-            return (context->best_cost < context->goal_cost) != (context->best_cost == context->goal_cost);
-        }
-
-        popped_node_index = context->heap[1].node;
-        current_index = popped_node_index;
-        context->nodes[popped_node_index].heap_index = -1;
-        context->heap_count = context->heap_count - 1;
-
-        if (1 < context->heap_count) {
-            context->heap[1] = context->heap[context->heap_count];
-            path_find_heap_sift_down(context, 1);
-        }
-
-        if (popped_node_index == -1) {
-            if (context->have_goal == 0) {
-                return 1;
-            }
-            return (context->best_cost < context->goal_cost) != (context->best_cost == context->goal_cost);
-        }
-
-        if (context->have_goal != 0) {
-            if (context->nodes[popped_node_index].vertex_id == context->goal_vertex_id) {
-                context->best_position.x = context->goal_position.x;
-                context->best_position.y = context->goal_position.y;
-                context->best_node = popped_node_index;
-                context->best_cost = 0.0f;
-                context->best_position.z = context->goal_position.z;
-                if (context->have_goal == 0) {
-                    return 1;
-                }
-                return (context->best_cost < context->goal_cost) != (context->best_cost == context->goal_cost);
-            }
-
-            {
-                float leash = (5.0f <= context->best_cost) ? context->best_cost : 5.0f;
-                if (leash * 10.0f + context->unknown_70 < context->nodes[popped_node_index].distance) {
-                    if (context->have_goal == 0) {
-                        return 1;
-                    }
-                    return (context->best_cost < context->goal_cost) != (context->best_cost == context->goal_cost);
-                }
-            }
-        }
-
-        edge_count = path_find_gather_adjacent_edges(context, context->nodes[popped_node_index].vertex_id, edges);
-        if (0 < edge_count) {
-            int16_t i;
-            for (i = 0; i < edge_count; i = i + 1) {
-                path_find_adjacent_edge *edge = &edges[i];
-                uint8_t crosses_edge;
-
-                crosses_edge = 0;
-                if ((*(uint8_t *)((uint8_t *)context + 4) != 0) || (0 <= (int8_t)edge->flag)) {
-                    crosses_edge = 1;
-                } else {
-                    int32_t table_entry = *(int32_t *)(*(int32_t *)(context->structure_bsp + 0xb4) + 0x40) + edge->edge_id * 0xc;
-                    if ((*(uint8_t *)(table_entry + 8) & 8) == 0) {
-                        crosses_edge = 1;
-                    } else {
-                        uint8_t permission_index = *(uint8_t *)(table_entry + 9);
-                        uint32_t bits = breakable_surface_state->active[global_structure_bsp_index][permission_index >> 5];
-                        uint8_t denied = 1 - (uint8_t)((bits & (1u << (permission_index & 0x1f))) != 0);
-                        if (denied == 0) {
-                            crosses_edge = 1;
-                        }
-                    }
-                }
-
-                if (crosses_edge && ((edge->flag & 0x40) != 0) &&
-                    (edge->edge_id != context->nodes[popped_node_index].unknown_04)) {
-                    float new_x = edge->direction_x * 0.5f + edge->start_x;
-                    float new_y = edge->direction_y * 0.5f + edge->start_y;
-                    float new_z = edge->direction_z * 0.5f + edge->start_z;
-
-                    if (context->have_goal != 0) {
-                        float dir_len2 = edge->direction_x * edge->direction_x + edge->direction_y * edge->direction_y +
-                                        edge->direction_z * edge->direction_z;
-                        if ((16.0f < dir_len2) && ((step_radius + step_radius) * (step_radius + step_radius) < dir_len2)) {
-                            float dir_len = (float)sqrt(dir_len2);
-                            float t = ((context->goal_position.y - edge->start_y) * edge->direction_y +
-                                      (context->goal_position.z - edge->start_z) * edge->direction_z +
-                                      (context->goal_position.x - edge->start_x) * edge->direction_x) / dir_len2;
-                            float min_t = step_radius / dir_len;
-                            float max_t = 1.0f - min_t;
-                            if (min_t <= t) {
-                                t = (t < max_t) ? t : max_t;
-                            } else {
-                                t = min_t;
-                            }
-                            new_x = t * edge->direction_x + edge->start_x;
-                            new_y = t * edge->direction_y + edge->start_y;
-                            new_z = t * edge->direction_z + edge->start_z;
-                        }
-                    }
-
-                    {
-                        float step_cost = (float)sqrt(
-                            (new_x - context->nodes[popped_node_index].position.x) * (new_x - context->nodes[popped_node_index].position.x) +
-                            (new_y - context->nodes[popped_node_index].position.y) * (new_y - context->nodes[popped_node_index].position.y) +
-                            (new_z - context->nodes[popped_node_index].position.z) * (new_z - context->nodes[popped_node_index].position.z));
-                        float g_cost = step_cost + context->nodes[popped_node_index].unknown_20;
-                        float avoid_distance;
-                        float adjusted_cost;
-                        float f_cost;
-
-                        if (((path_find_request *)context)->have_avoid_sphere == 0) {
-                            adjusted_cost = step_cost;
-                            avoid_distance = 0.0f;
-                        } else {
-                            adjusted_cost = (path_find_score_avoidance_penalty(context, &avoid_distance) + 1.0f) * step_cost;
-                            if (context->nodes[popped_node_index].unknown_1c <= avoid_distance) {
-                                avoid_distance = context->nodes[popped_node_index].unknown_1c;
-                            }
-                        }
-                        f_cost = adjusted_cost + context->nodes[popped_node_index].unknown_24;
-
-                        {
-                            float total_estimate = f_cost;
-                            float dist_to_goal = 0.0f;
-                            if (context->have_goal != 0) {
-                                dist_to_goal = (float)sqrt(
-                                    (context->goal_position.x - new_x) * (context->goal_position.x - new_x) +
-                                    (context->goal_position.y - new_y) * (context->goal_position.y - new_y) +
-                                    (context->goal_position.z - new_z) * (context->goal_position.z - new_z));
-                                total_estimate = dist_to_goal + f_cost;
-                            }
-
-                            {
-                                int32_t rounded_key = __ftol((double)total_estimate);
-                                if ((rounded_key < 0x7fff) &&
-                                    ((*(uint8_t *)((uint8_t *)context + 0x40) == 0) ||
-                                     (g_cost <= *(float *)((uint8_t *)context + 0x44)))) {
-                                    uint32_t bucket = (uint32_t)(edge->edge_id & 0x1ff) << 3;
-                                    int16_t found = context->vertex_hash[bucket];
-                                    int16_t target_index = -1;
-                                    uint8_t skip = 0;
-                                    uint8_t update_in_place = 0;
-
-                                    while (found != -1) {
-                                        if (context->nodes[found].vertex_id == edge->edge_id) {
-                                            if ((context->nodes[found].key <= (int16_t)rounded_key) ||
-                                                (context->nodes[found].heap_index == -1)) {
-                                                skip = 1;
-                                            } else {
-                                                target_index = found;
-                                                update_in_place = 1;
-                                            }
-                                            break;
-                                        }
-                                        bucket = (bucket + 1) & 0xfff;
-                                        found = context->vertex_hash[bucket];
-                                    }
-
-                                    if (!skip) {
-                                        if (!update_in_place) {
-                                            int16_t new_slot = context->node_count;
-                                            if (new_slot < k_path_find_maximum_nodes) {
-                                                context->node_count = new_slot + 1;
-                                                context->vertex_hash[bucket] = new_slot;
-                                                context->nodes[new_slot].heap_index = -1;
-                                                target_index = new_slot;
-                                            } else {
-                                                target_index = -1;
-                                            }
-                                        }
-
-                                        if (target_index != -1) {
-                                            path_find_node *node = &context->nodes[target_index];
-                                            node->parent = (int16_t)current_index;
-                                            node->unknown_04 = context->nodes[popped_node_index].vertex_id;
-                                            node->vertex_id = edge->edge_id;
-                                            node->position.x = new_x;
-                                            node->position.y = new_y;
-                                            node->position.z = new_z;
-                                            node->cost = step_cost;
-                                            node->unknown_1c = avoid_distance;
-                                            node->unknown_20 = g_cost;
-                                            node->unknown_24 = adjusted_cost;
-                                            node->distance = total_estimate;
-                                            node->key = (int16_t)rounded_key;
-                                            node->waypoint = context->nodes[popped_node_index].waypoint + 1;
-
-                                            if (node->heap_index == -1) {
-                                                if (context->heap_count < k_path_find_maximum_heap) {
-                                                    int16_t heap_slot = context->heap_count;
-                                                    context->heap_count = heap_slot + 1;
-                                                    context->heap[heap_slot].key = (int16_t)rounded_key;
-                                                    context->heap[heap_slot].node = target_index;
-                                                    path_find_heap_sift_up(context, heap_slot);
-                                                }
-                                            } else {
-                                                context->heap[node->heap_index].key = (int16_t)rounded_key;
-                                                path_find_heap_sift_up(context, node->heap_index);
-                                            }
-
-                                            if (context->have_goal != 0) {
-                                                float refined_estimate = dist_to_goal;
-                                                real_point3d refined_position = node->position;
-                                                if (dist_to_goal < 4.0f) {
-                                                    // 0x43aea1..0x43aeb2: EAX = context->structure_bsp, ECX = edge->edge_id
-                                                    refined_estimate = path_find_vertex_distance(
-                                                        (ScenarioStructureBSP *)(uintptr_t)context->structure_bsp, edge->edge_id,
-                                                        &context->goal_position, &refined_position);
-                                                }
-                                                if (refined_estimate < context->best_cost) {
-                                                    context->best_cost = refined_estimate;
-                                                    context->best_position = refined_position;
-                                                    context->best_node = target_index;
-                                                    context->unknown_70 = total_estimate;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    return path_find_search(context);
 }
 
 #if 0

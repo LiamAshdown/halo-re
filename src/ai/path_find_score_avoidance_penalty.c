@@ -1,6 +1,6 @@
 // path_find_score_avoidance_penalty  (Ghidra: path_find_score_avoidance_penalty, renamed)
 // address 0x43b3b0, size 150 bytes
-// name confidence: 0.5   rewrite confidence: 0.5
+// name confidence: 0.5   rewrite confidence: 0.85 (objdump 0x43b3b0: the segment arrives in ECX/EDX)
 // evidence: types/ai.h path_find_request.avoid_position(+0x28)/avoid_radius(+0x38)/
 //   avoid_weight(+0x3c), confirmed by path_find_set_avoid_sphere.c writing exactly these
 //   fields. phase-4 summary "computes a linear-falloff proximity penalty (and outputs the
@@ -8,8 +8,8 @@
 //   inside the AI point search" (also used by path_find_run.c, this rewrite, for the A*
 //   search's own obstacle-avoidance branch). Calls path_find_closest_point_on_segment
 //   (0x43b2f0, a math helper this task's skip list excludes from rewriting).
-// register convention: EBX -> context; stack -> out_distance.
-//   // blam-cc: EBX -> context, stack -> out_distance
+// register convention: EBX -> context, ECX/EDX the segment (passed straight to 0x43b2f0); stack -> out_distance.
+//   // blam-cc: EBX -> context, ECX -> segment_start, EDX -> segment_end, stack -> out_distance
 //
 // UNSURE: path_find_closest_point_on_segment is called here with no visible arguments,
 // writing through Ghidra's `local_c/local_8/local_4` outputs -- the same hidden-output
@@ -21,33 +21,33 @@
 #include "ai.h"
 
 extern double sqrt(double x); // FSQRT
-extern void path_find_closest_point_on_segment(void); // 0x43b2f0, math helper, not rewritten here
+extern void path_find_closest_point_on_segment(const real_point3d *point, const real_point3d *segment_start,
+    const real_point3d *segment_end, real_point3d *out); // 0x43b2f0, EAX point, ECX start, EDX end, ESI out
 
-// blam-cc: EBX -> context, stack -> out_distance
-// Scores how much a candidate point should be penalized for passing near the context's
-// avoid-sphere: 0 outside twice the radius, rising linearly to `avoid_weight` at the sphere
-// center. Always reports the raw distance to the closest point on the segment through
-// `out_distance`, clamped to FLT_MAX when the point is outside the radius.
-float path_find_score_avoidance_penalty(path_find_context *context, float *out_distance)
+// blam-cc: EBX -> context, ECX -> segment_start, EDX -> segment_end, stack -> out_distance
+// Scores how much the segment [segment_start, segment_end] passes near the context's avoid sphere (+0x28,
+// radius +0x38, weight +0x3c): the closest point of the segment to the sphere centre (0x43b2f0, EAX = centre)
+// gives the distance; inside the radius the penalty is (1 - distance / radius) * weight and the distance is
+// reported, otherwise 0 and FLT_MAX.
+float path_find_score_avoidance_penalty(path_find_context *context, const real_point3d *segment_start,
+    const real_point3d *segment_end, float *out_distance)
 {
     path_find_request *request = (path_find_request *)context;
-    float local_c, local_8, local_4; // path_find_closest_point_on_segment's hidden outputs
+    real_point3d closest;
     float dx, dy, dz;
     float distance2;
 
-    path_find_closest_point_on_segment();
-
-    dx = local_c - request->avoid_position.x;
-    dy = local_8 - request->avoid_position.y;
-    dz = local_4 - request->avoid_position.z;
-    distance2 = dy * dy + dx * dx + dz * dz;
-
+    path_find_closest_point_on_segment(&request->avoid_position, segment_start, segment_end, &closest);
+    dx = closest.x - request->avoid_position.x;
+    dy = closest.y - request->avoid_position.y;
+    dz = closest.z - request->avoid_position.z;
+    distance2 = dx * dx + dy * dy + dz * dz;
     if (distance2 < request->avoid_radius * request->avoid_radius) {
         float distance = (float)sqrt(distance2);
+
         *out_distance = distance;
         return (1.0f - distance / request->avoid_radius) * request->avoid_weight;
     }
-
     *out_distance = 3.4028235e+38f;
     return 0.0f;
 }
