@@ -1,6 +1,6 @@
 // actor_movement_check_arrival  (Ghidra: actor_movement_check_arrival, renamed)
 // address 0x416700, size 138 bytes
-// name confidence: 0.35  rewrite confidence: 0.5
+// name confidence: 0.35  rewrite confidence: 0.9 (VERIFIED against 0x416700 (type gate, radius from actor_compute_accuracy_scale, squared-distance compare))
 // evidence: reads actor.active_movement.type (0x46c) and, for any type other than 0
 // (stop) or 1, compares the squared distance from actor.body_position to actor.unknown_488
 // against actor_compute_accuracy_scale()'s squared engagement-range radius; if still outside that radius it

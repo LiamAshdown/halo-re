@@ -1,11 +1,11 @@
 // path_find_validate_and_record_goal  (Ghidra: path_find_validate_and_record_goal, renamed)
 // address 0x43a190, size 136 bytes
-// name confidence: 0.35  rewrite confidence: 0.3
+// name confidence: 0.35  rewrite confidence: 0.9 (REWRITTEN: reachability call arguments from 0x43a1a5 (EAX goal, ECX point_b, ESI local out, stack context/&byte); success-only copy)
 // evidence: phase-4 summary "attempts to validate and record a candidate pathfinding goal
 // point". Calls path_find_test_direct_reachability @0x43a0a0 (this rewrite).
 // register convention: EBX -> candidate record (output, zeroed then filled in); stack ->
 //   context, two unused words, position.
-//   // blam-cc: EBX -> candidate, stack -> context, unused_b, unused_c, position
+//   // blam-cc: EBX -> candidate, stack -> context, point_b, unused_c, position
 //
 // UNSURE: param_2/param_3 (Ghidra's recognized stack parameters 2 and 3) are never read
 // anywhere in this function's body; declared here to match the call site's arity but marked
@@ -30,14 +30,19 @@
 extern uint8_t path_find_test_direct_reachability(const real_point3d *point_a, const real_point3d *point_b,
                                                    real_point3d *out_position, void *context, uint8_t *out_success); // 0x43a0a0
 
-// blam-cc: EBX -> candidate, stack -> context, unused_b, unused_c, position
+// blam-cc: EBX -> candidate, stack -> context, point_b, unused_c, position
+// REWRITTEN (0x43a190..0x43a217): the reachability test runs from the goal (EAX = position) to
+//   the second argument (ECX, the flying actor's body position -- not unused) with ESI = a local
+//   out point and stack (context, &local reachable byte); only on success are the locals copied
+//   to +0x20 / +0x18 and the goal recorded. The draft passed two NULL points.
 uint8_t path_find_validate_and_record_goal(ai_path_candidate_goal *candidate, void *context,
-                                           uint32_t unused_b, uint32_t unused_c, const real_point3d *position)
+                                           uint32_t point_b, uint32_t unused_c, const real_point3d *position)
 {
     uint32_t *clear;
     int32_t i;
+    real_point3d reached;
+    uint8_t reachable;
 
-    (void)unused_b;
     (void)unused_c;
 
     clear = (uint32_t *)candidate;
@@ -46,13 +51,13 @@ uint8_t path_find_validate_and_record_goal(ai_path_candidate_goal *candidate, vo
         clear = clear + 1;
     }
 
-    // UNSURE: point_a/point_b/out_position are register-forwarded from this function's own
-    // caller in the original (see header); not recoverable here, so this call cannot be
-    // faithfully reproduced beyond the `context`/`out_success` operands Ghidra does show.
-    if (path_find_test_direct_reachability(0, 0, &candidate->alt_position, context, &candidate->reachable) != 0) {
+    if (path_find_test_direct_reachability(position, (const real_point3d *)point_b, &reached, context,
+                                           &reachable) != 0) {
+        candidate->alt_position = reached;
         candidate->flag_19 = 1;
         candidate->unknown_1c = 0xffffffff;
         candidate->flag_1a = 0;
+        candidate->reachable = reachable;
         candidate->position = *position;
         candidate->unknown_10 = 0xffffffff;
         candidate->unknown_14 = 0;
