@@ -1807,3 +1807,6 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - actor_evaluate_custom_charge_trigger (0x424090): REWRITTEN (0.15 -> 0.85, raw offsets). The old C set the retry timer +0x364 with __ftol(0.0), dropping the random_real_range result, so it was always 0 and wrapped to -1 on the next decrement, freezing the decision for ~65k ticks. The binary stores max(random * 30, 31) truncated. The ally split in the new-roll path also read +0x378 where the binary reads +0x358.
 - actor_compute_grenade_aim_direction (0x40f7e0): REWRITTEN clamp (0.2 -> 0.85). When the throw direction is >= 30 degrees from the actor's aim forward, the binary returns the forward turned 30 degrees about normalize(D x F). The old C returned the cross product rotated about the forward, i.e. grenades thrown sideways.
 - Relink: left unresolved 1, traps 128.
+
+## Static loop: actor_rate_potential_target (no boot)
+- actor_rate_potential_target (0x41fd50): verified end to end (0.25 -> 0.85). Two fixes. No threat weapon, same team: the binary scores 2 beyond the melee threshold and 3 within it; the old C left 0/5 for the far case. Threat path with a NULL threat weapon definition: it falls through to the team/range checks instead of scoring 2. The score is now summed in the binary's order.

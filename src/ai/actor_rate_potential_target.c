@@ -1,6 +1,6 @@
 // actor_rate_potential_target  (Ghidra: actor_rate_potential_target, already named)
 // address 0x41fd50, size 888 bytes
-// name confidence: 0.6   rewrite confidence: 0.25
+// name confidence: 0.6   rewrite confidence: 0.85 (REWRITTEN/verified end to end against 0x41fd50: fixed the far-melee case (2, not unchanged) and the NULL threat-weapon case (falls to the team check); score summed in the binary order)
 // evidence: out/phase2/results/ai_02.json -- given an actor and a candidate prop (target-data
 //   record), combines several bonus categories into a float score with a 1/(dist*0.1+1)
 //   falloff term; callers (actor_choose_best_target, actor_consider_target_candidate) store the
@@ -90,11 +90,9 @@ float actor_rate_potential_target(datum_index actor_index, datum_index target_pr
                 if (target->relationship_object_index == -1) {
                     if (target->unknown_130 == 0 || *(float *)((uint8_t *)actor_def + 0x38c) != 0.0f) {
                         if (target->unknown_118 == self->unknown_15d) {
-                            if (threshold <= target->distance) {
-                                bonus_a = 3;
-                            }
-                            // else: falls through, bonus_a keeps whatever it already was
-                            //   (0 or 5), matching the original's `goto LAB_0041ff0a` skip.
+                            // FIXED (0x41fec2): beyond the melee threshold -> 2 (0x41ff0a),
+                            //   within it -> 3; the old C left 0 / 5 in place for the far case
+                            bonus_a = (target->distance >= threshold) ? 2 : 3;
                         } else {
                             bonus_a = 1;
                         }
@@ -110,13 +108,16 @@ float actor_rate_potential_target(datum_index actor_index, datum_index target_pr
             extra = 0.0f; // UNSURE: extraout_ST0_00, source unresolved -- see file header
             variant_def = (ActorVariant *)actor_get_actor_definition(actor_index);
 
-            if (override_tag == (uint8_t *)0 || *(float *)(override_tag + 0x40c) <= target->distance) {
+            // FIXED (0x41fef1): a NULL threat weapon definition skips the range test and falls
+            //   through to the team check; the old C returned 2 for it
+            if (override_tag != (uint8_t *)0 && target->distance >= *(float *)(override_tag + 0x40c)) {
                 bonus_a = 2;
             } else if (target->unknown_118 == self->unknown_15d) {
                 if (2.0f <= target->distance || (bonus_a = 5, target->kind == 5)) {
-                    if (variant_def->desired_combat_range[1] <= target->distance) {
+                    // 0x41ff44 / 0x41ff5e: definition +0xa0 and +0x74
+                    if (target->distance >= *(const float *)((const uint8_t *)variant_def + 0xa0)) {
                         bonus_a = 2;
-                        if (variant_def->maximum_firing_distance <= target->distance) {
+                        if (target->distance >= *(const float *)((const uint8_t *)variant_def + 0x74)) {
                             bonus_a = 1;
                         }
                     } else {
@@ -162,8 +163,9 @@ float actor_rate_potential_target(datum_index actor_index, datum_index target_pr
         bonus_c = 2;
     }
 
-    return (float)(uint8_t)(bonus_c + bonus_b + bonus_a + bonus_d) * 10.0f +
-           5.0f / (target->distance * 0.1f + 1.0f) + extra;
+    // 0x420074: (extra + 5 / (distance * 0.1 + 1)) + (int)(c + b + a + d) * 10, in that order
+    return extra + 5.0f / (target->distance * 0.1f + 1.0f) +
+           (float)((int32_t)bonus_c + (int32_t)bonus_b + (int32_t)bonus_a + (int32_t)bonus_d) * 10.0f;
 }
 
 #if 0
