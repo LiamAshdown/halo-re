@@ -1425,3 +1425,6 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   recognition entry (actor, +0x3b8, 1) now get their operands.
 - actor_schedule_grenade_throw 0x402f80 REWRITTEN (0.3 -> 0.9; misnamed: queues a look toward whatever last
   damaged the actor): find-prop / eye-marker / datum_get were argless.
+- actor_evaluate_grenade_target_position 0x40de70 REWRITTEN (0.25 -> 0.9; misnamed: sidestep out of the
+  target's line of fire), actor_find_nearest_grenade_ally 0x40e540 REWRITTEN (0.25 -> 0.9): both called their
+  helpers (step probe, dodge animation check, secondary action, ally validation, cursor, prop lookups) argless.

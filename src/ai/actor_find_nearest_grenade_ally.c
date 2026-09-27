@@ -1,6 +1,6 @@
 // actor_find_nearest_grenade_ally  (Ghidra: actor_find_nearest_grenade_ally, renamed)
 // address 0x40e540, size 530 bytes
-// name confidence: 0.35   rewrite confidence: 0.25
+// name confidence: 0.35   rewrite confidence: 0.9
 // evidence: phase-4 summary "counts and finds the nearest eligible ally actor for a
 // coordinated grenade attack and records it on the actor"; walks actor.first_prop looking
 // for eligible props, then falls back to walking the unassigned-actor list (chained through
@@ -20,92 +20,98 @@
 #include "math.h"
 #include "ai.h"
 
-extern double sqrt(double x); // FSQRT, Ghidra's SQRT() pseudo-function; see src/math for the convention
-extern data_array *actor_data; // 0x00880360
-extern data_array *prop_data;  // 0x008802c0
-extern ai_globals *ai_globals_ptr; // 0x00880354
+extern data_array *actor_data;   // 0x00880360
+extern data_array *prop_data;    // 0x008802c0
+extern uint8_t *ai_globals_ptr;  // 0x00880354
 
-extern uint8_t actor_validate_grenade_ally_candidate(datum_index candidate_actor, uint8_t caller_type_flag); // 0x40e4a0, this module
-extern datum_index ai_reference_actor_iterator_init_cursor(void); // UNSURE: "head of the unassigned actor list" per types/ai.h ai_globals+0x08
-extern datum_index actor_find_prop_for_object(datum_index object_index); // UNSURE signature
-extern datum_index actor_find_or_create_shared_prop(datum_index actor_index, uint32_t flag_a, uint32_t flag_b); // UNSURE signature
+extern uint8_t actor_validate_grenade_ally_candidate(datum_index candidate_actor, uint8_t caller_type_flag); // 0x40e4a0, ECX, BL
+extern void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, datum_index *cursor); // 0x4369f0, EAX, ECX
+extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, stack, ECX
+extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index,
+    char create_if_missing, uint32_t flag); // 0x43eb30, EAX, stack
 
-// FIXED (register inputs, objdump: each stack slot's first use checked against the parameter): the original never reads EAX; actor_index arrive(s) on the stack (2 stack argument(s)).
+extern double sqrt(double x);
+
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+
+// REWRITTEN from objdump 0x40e540..0x40e751. Stack: (actor, units only). Picks the nearest ally the actor could
+//   team up with (0x40e4a0 validates each) into +0x1d0 and returns how many it looked at: first its own props of
+//   owned allies (kinds 2..3 only when asked, nearest by the prop's distance +0x11c), then, while fewer than 1 (2
+//   when asked) were seen, the actors of its encounter by body distance (their prop, found or created). The
+//   draft called the validator, the cursor init and the prop lookups without operands.
 // blam-cc: stack -> actor_index, widen_search
 int32_t actor_find_nearest_grenade_ally(datum_index actor_index, uint8_t widen_search)
 {
-    actor *self;
-    int32_t count;
-    int16_t minimum_needed;
-    datum_index best;
-    float best_distance;
-    datum_index prop_cursor;
+    uint8_t *self = ACTOR(actor_index);             // [esp+0x1c]
+    int32_t seen = 0;                               // [esp+0x10]
+    int32_t limit = (widen_search != 0) + 1;        // [esp+0x20]
+    datum_index best = k_datum_index_none;          // [esp+0x18]
+    float best_distance = 3.4028235e+38f;           // [esp+0x14]
+    datum_index prop_index;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    count = 0;
-    minimum_needed = (widen_search != 0) + 1;
-    best = (datum_index)k_datum_index_none;
-    best_distance = 3.4028235e+38f;
+    for (prop_index = *(datum_index *)(self + 0x50); prop_index != k_datum_index_none;) {
+        uint8_t *p = PROP(prop_index);
+        datum_index current = prop_index;
 
-    prop_cursor = self->first_prop;
-    while (prop_cursor != (datum_index)k_datum_index_none) {
-        prop *p = (prop *)((uint8_t *)prop_data->data + (prop_cursor & 0xffff) * sizeof(prop));
-        datum_index next = p->next_in_actor;
-
-        if (p->is_unit == 0 && p->is_vault == 0 && p->owner_actor_index != (datum_index)k_datum_index_none &&
-            (widen_search == 0 || (1 < p->kind && p->kind < 4)) &&
-            actor_validate_grenade_ally_candidate(p->owner_actor_index, self->swarm) != 0) {
-            count++;
-            if (p->distance < best_distance) {
-                best_distance = p->distance;
-                best = prop_cursor;
-            }
+        prop_index = *(datum_index *)(p + 0x8);
+        if (p[0x60] || p[0x127] || *(datum_index *)(p + 0x1c) == k_datum_index_none) {
+            continue;
         }
-        prop_cursor = next;
+        if (widen_search && !(*(int16_t *)(p + 0x24) >= 2 && *(int16_t *)(p + 0x24) <= 3)) {
+            continue;
+        }
+        if (!actor_validate_grenade_ally_candidate(*(datum_index *)(p + 0x1c), widen_search)) {
+            continue;
+        }
+        seen++;
+        if (*(float *)(p + 0x11c) < best_distance) {
+            best = current;
+            best_distance = *(float *)(p + 0x11c);
+        }
     }
+    if (seen < (int16_t)limit && *(datum_index *)(self + 0x34) != k_datum_index_none) {
+        datum_index cursor[3];                      // [esp+0x24]
+        datum_index candidate;
 
-    if (count < minimum_needed && self->encounter_index != (datum_index)k_datum_index_none) {
-        datum_index cursor = ai_reference_actor_iterator_init_cursor();
-        for (;;) {
-            actor *candidate;
-            datum_index unit_index;
-            datum_index membership;
+        ai_reference_actor_iterator_init_cursor(*(int32_t *)(self + 0x34), cursor);
+        candidate = cursor[2];
+        while (ai_globals_ptr[0x1] && candidate != k_datum_index_none) {
+            uint8_t *other = ACTOR(candidate);
+            datum_index unit = *(datum_index *)(other + 0x18);
+            datum_index current = candidate;
+            datum_index prop;
 
-            for (;;) {
-                if (ai_globals_ptr->actors_valid == 0 || cursor == (datum_index)k_datum_index_none) {
-                    goto done;
-                }
-                candidate = (actor *)((uint8_t *)actor_data->data + (cursor & 0xffff) * sizeof(actor));
-                unit_index = candidate->unit_index;
-                cursor = candidate->next_in_encounter;
-                if (unit_index != (datum_index)k_datum_index_none &&
-                    actor_validate_grenade_ally_candidate(unit_index, self->swarm) != 0) {
-                    membership = actor_find_prop_for_object(unit_index);
-                    if (membership != (datum_index)k_datum_index_none) break;
-                    membership = actor_find_or_create_shared_prop(actor_index, 1, 0);
-                    if (membership != (datum_index)k_datum_index_none) break;
+            candidate = *(datum_index *)(other + 0x2c);
+            if (unit == k_datum_index_none || !actor_validate_grenade_ally_candidate(current, widen_search)) {
+                continue;
+            }
+            prop = actor_find_prop_for_object(unit, actor_index);
+            if (prop == k_datum_index_none) {
+                prop = actor_find_or_create_shared_prop(unit, actor_index, 1, 0);
+                if (prop == k_datum_index_none) {
+                    continue;
                 }
             }
-
             {
-                float dx = candidate->body_position.x - self->body_position.x;
-                float dy = candidate->body_position.y - self->body_position.y;
-                float dz = candidate->body_position.z - self->body_position.z;
-                float dist;
+                float dx = *(float *)(other + 0x12c) - *(float *)(self + 0x12c);
+                float dy = *(float *)(other + 0x130) - *(float *)(self + 0x130);
+                float dz = *(float *)(other + 0x134) - *(float *)(self + 0x134);
+                float distance = (float)sqrt(dz * dz + dx * dx + dy * dy);
 
-                count++;
-                dist = (float)sqrt((double)(dy * dy + dx * dx + dz * dz));
-                if (dist < best_distance) {
-                    best_distance = dist;
-                    best = membership;
+                seen++;
+                if (distance < best_distance) {
+                    best_distance = distance;
+                    best = prop;
                 }
             }
-            if (count >= minimum_needed) break;
+            if (!(seen < (int16_t)limit)) {
+                break;
+            }
         }
     }
-done:
-    self->unknown_1d0 = best;
-    return count;
+    *(datum_index *)(self + 0x1d0) = best;
+    return seen;
 }
 
 #if 0

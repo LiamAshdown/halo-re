@@ -1,6 +1,6 @@
 // actor_evaluate_grenade_target_position  (Ghidra: actor_evaluate_grenade_target_position, renamed)
 // address 0x40de70, size 485 bytes
-// name confidence: 0.35   rewrite confidence: 0.25
+// name confidence: 0.35   rewrite confidence: 0.9
 // evidence: phase-4 summary "evaluates whether the actor's current threat is positioned
 // well enough to grenade and, if so, requests a grenade throw toward it"; ends by calling
 // actor_queue_secondary_action(6, &direction), a movement/aim request kind.
@@ -26,67 +26,78 @@ extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
 extern data_array *prop_data;       // 0x008802c0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, vector in ECX
+extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
+extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index); // 0x569c90, ECX
+extern uint8_t actor_probe_step_direction(datum_index actor_index, float step_distance, real_vector2d *direction,
+    uint16_t *variant, float step_up, uint8_t *out_flag, void *extra_param); // 0x417e50, stack, ECX
+extern uint8_t unit_scripted_action_animation_exists(uint32_t unit_index, int16_t command); // 0x569470, EAX, ECX
+extern uint8_t actor_queue_secondary_action(datum_index actor_index, int16_t action, uint32_t payload[2]); // 0x417a60, EAX, stack
 
-extern uint8_t unit_is_in_busy_animation_state(datum_index actor_index); // UNSURE: no visible arg at this call site
-extern uint8_t actor_probe_step_direction(datum_index actor_index); // UNSURE: no visible arg
-extern uint8_t unit_scripted_action_animation_exists(datum_index actor_index); // UNSURE: no visible arg
-extern uint8_t actor_queue_secondary_action(int32_t request_kind, real_vector2d *direction);
-
+// REWRITTEN from objdump 0x40de70..0x40e054 (misnamed: the actor sidesteps out of its target's line of fire).
+//   EBX: actor. On foot (+0x158), without a pending special (+0x418), not busy animating, not +0x504, with a
+//   target (+0x270) and a unit that can step (tag +0x234): when the target aims at the actor (its aim +0xe0 . our
+//   facing > 0.4, in 3D with Actor flag 0x200000, else flat), probe a sideways step across the aim (0x417e50) and
+//   queue dodge 7 (side 1) or 6 as the secondary action when the unit has it. Returns whether queued.
 // blam-cc: EBX -> actor_index
 uint8_t actor_evaluate_grenade_target_position(datum_index actor_index)
 {
-    actor *self;
-    prop *target_prop;
-    object_header *unit_header;
-    object *unit_obj;
-    void *unit_tag_data;
-    Actor *actor_def;
-    real_vector2d dir;
-    float dot;
-    uint8_t result;
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t queued = 0;         // [esp+0xe]
+    uint8_t *unit_tag;
+    uint8_t *actor_tag;
+    uint8_t *p;
+    float *facing = (float *)(a + 0x174);
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    result = 0;
+    if (*(datum_index *)(a + 0x158) != k_datum_index_none || *(int16_t *)(a + 0x418) != -1) {
+        return 0;
+    }
+    if (*(datum_index *)(a + 0x18) != k_datum_index_none && unit_is_in_busy_animation_state(*(datum_index *)(a + 0x18))) {
+        return 0;
+    }
+    if (a[0x504] || *(datum_index *)(a + 0x270) == k_datum_index_none) {
+        return 0;
+    }
+    unit_tag = (uint8_t *)tag_instances[*(datum_index *)((uint8_t *)((object_header *)object_data->data)
+        [*(datum_index *)(a + 0x18) & 0xffff].data) & 0xffff].data;
+    p = (uint8_t *)prop_data->data + (*(datum_index *)(a + 0x270) & 0xffff) * 0x138;
+    if (!(*(float *)(unit_tag + 0x234) > 0.0f)) {
+        return 0;
+    }
+    actor_tag = (uint8_t *)tag_instances[*(datum_index *)(a + 0x58) & 0xffff].data;
+    if (*(uint32_t *)actor_tag & 0x200000) {
+        float dot = *(float *)(p + 0xe8) * facing[2] + *(float *)(p + 0xe4) * facing[1] + *(float *)(p + 0xe0) * facing[0];
 
-    if (self->active_unit_index != (datum_index)k_datum_index_none) return 0;
-    if (self->secondary_action != -1) return 0;
-    if (self->unit_index != (datum_index)k_datum_index_none && unit_is_in_busy_animation_state(self->unit_index) != 0) return 0;
-    if (self->unknown_504 != 0) return 0;
-    if (self->target_unit_index == (datum_index)k_datum_index_none) return 0;
-
-    target_prop = (prop *)((uint8_t *)prop_data->data + (self->target_unit_index & 0xffff) * sizeof(prop));
-
-    unit_header = (object_header *)object_data->data + (self->unit_index & 0xffff);
-    unit_obj = unit_header->data;
-    unit_tag_data = tag_instances[unit_obj->definition_tag & 0xffff].data;
-    if (*(float *)((uint8_t *)unit_tag_data + 0x234) <= 0.0f) return 0;
-
-    actor_def = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
-
-    if ((actor_def->flags & 0x200000) == 0) {
-        // not flying: normalize the target-relative direction before dotting it with facing
-        real_vector2d n;
-        n.i = target_prop->unknown_e0.x;
-        n.j = target_prop->unknown_e0.y;
-        if (vector2d_normalize_with_length(&n) <= 0.0f) {
-            goto build_direction;
+        if (!(dot > 0.4f)) {
+            return 0;
         }
-        dot = n.i * self->facing.i + n.j * self->facing.j;
     } else {
-        dot = target_prop->unknown_e0.y * self->facing.j + target_prop->unknown_e0.z * self->facing.k;
-        dot = target_prop->unknown_e0.x * self->facing.i + dot;
-    }
-    if (dot <= 0.4f) return 0;
+        real_vector2d flat;     // [esp+0x10]
 
-build_direction:
-    dir.i = target_prop->unknown_e0.x;
-    dir.j = target_prop->unknown_e0.y;
-    vector2d_normalize_with_length(&dir);
-    if (actor_probe_step_direction(actor_index) != 0 && unit_scripted_action_animation_exists(actor_index) != 0) {
-        result = actor_queue_secondary_action(6, &dir);
+        flat.i = *(float *)(p + 0xe0);
+        flat.j = *(float *)(p + 0xe4);
+        if (vector2d_normalize_with_length(&flat) > 0.0f && !(flat.j * facing[1] + flat.i * facing[0] > 0.4f)) {
+            return 0;
+        }
     }
-    return result;
+    {
+        real_vector2d direction;    // [esp+0x18]
+        uint16_t side = 4;          // [esp+0x10]
+        uint8_t flag;               // [esp+0xf]
+        float extra[4];             // [esp+0x20]
+        int16_t action;
+
+        direction.i = *(float *)(p + 0xe0);
+        direction.j = *(float *)(p + 0xe4);
+        vector2d_normalize_with_length(&direction);
+        if (!actor_probe_step_direction(actor_index, *(float *)(unit_tag + 0x234), &direction, &side, 0.0f, &flag, extra)) {
+            return 0;
+        }
+        action = (int16_t)side == 1 ? 7 : 6;
+        if (unit_scripted_action_animation_exists(*(datum_index *)(a + 0x18), action)) {
+            queued = actor_queue_secondary_action(actor_index, action, (uint32_t *)&direction);
+        }
+    }
+    return queued;
 }
 
 #if 0
