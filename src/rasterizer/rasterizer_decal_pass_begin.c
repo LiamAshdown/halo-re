@@ -2,7 +2,7 @@
 // out/phase4/rasterizer_functions.md's summary: "Prepares fixed-function render states and
 // texture bindings for beginning a decal rendering pass on the given stage.")
 // address 0x51a810, size 562 bytes
-// name confidence: 0.4   rewrite confidence: 0.5
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 against objdump 0x51a810..0x51aa41 (DI stage); 0x6893e4 is compared as a word.)
 // evidence: gates on debug toggles, resets three decal batching trackers
 //   (0x006d98d8/e0/e4/0x0071d1c4, UNSURE names), resolves GlobalsRasterizerData's first fallback
 //   bitmap (same tag_instances/Bitmap.bitmap_data pattern as
@@ -54,7 +54,7 @@ void rasterizer_decal_pass_begin(int16_t stage)
     if (console_debug_toggle_6893f5 == 0 && stage != 3) {
         proceed = 0;
     }
-    if (console_debug_toggle_6893e4 != 0 || !proceed) {
+    if (*(int16_t *)&console_debug_toggle_6893e4 != 0 || !proceed) { // 0x51a82b: WORD compare
         rasterizer_decal_layer = stage;
         return;
     }

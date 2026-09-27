@@ -2,7 +2,7 @@
 // to this exact insertion as "decal_link 0x44dd30 own flags, cluster_index, layer and the list
 // links")
 // address 0x44dd30, size 86 bytes
-// name confidence: 0.5   rewrite confidence: 0.65
+// name confidence: 0.5   rewrite confidence: 0.85 (VERIFIED 2026-09-27 against objdump 0x44dd30..0x44dd85 (EBX cluster, ESI decal, EDI layer).)
 // evidence: types/effects.h decal (cluster_index 0x04, layer 0x06, previous_decal 0x30,
 // next_decal 0x34) and decal_grid.cluster_first[5][0x200].
 // register convention: cluster index in BX (unaff_BX), decal handle in ESI (unaff_ESI), layer in

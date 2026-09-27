@@ -2,7 +2,7 @@
 // which refers to this address directly: "decal_rehash_object_decals 0x44e000 sets +0x04 from
 // bsp3d_node_find_leaf -> ScenarioStructureBSPLeaf.cluster")
 // address 0x44e000, size 311 bytes
-// name confidence: 0.4   rewrite confidence: 0.5
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 against objdump 0x44e000..0x44e13d (decal_link inlined).)
 // evidence: types/effects.h decal_grid.first_object_decal (0x2800), decal (previous_decal 0x30,
 // next_decal 0x34, cluster_index 0x04, layer 0x06); the relink half of this function is
 // byte-for-byte decal_link 0x44dd30's own body, so it is expressed here as a call to it.

@@ -2,7 +2,7 @@
 // out/phase4/rasterizer_types_notes.md's misattribution table: "Clears the lens flare visibility
 // tables, the glyph cache, and loads GlobalsRasterizerData into 0x0071d164")
 // address 0x515740, size 148 bytes
-// name confidence: 0.55  rewrite confidence: 0.55
+// name confidence: 0.55  rewrite confidence: 0.85 (VERIFIED 2026-09-27 against objdump 0x515740..0x5157d3.)
 // evidence: 0x8c0 dwords == sizeof(lens_flare_object_visibility[0x380]) and 0x4002 dwords ==
 //   k_lens_flare_marker_visibility_size (both types/rasterizer.h); Globals+0x134/+0x138 is the
 //   rasterizer_data TagReflexive's count/pointer. The two 0x0071cfc4/0x0071cfc0 blocks are
@@ -59,7 +59,7 @@ void decal_and_font_system_reset(void)
         ((uint32_t *)cinematic_screen_effect_state)[0x1b] = 0x3f800000;
         ((uint32_t *)cinematic_screen_effect_state)[0x1c] = 0x3f800000;
     }
-    if (unknown_0071cfc0 != (uint32_t *)0) {
+    if (unknown_0071cfc0 != (float *)0) {
         unknown_0071cfc0[0] = 0;
         unknown_0071cfc0[1] = 0;
         unknown_0071cfc0[2] = 0;

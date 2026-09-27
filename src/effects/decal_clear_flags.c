@@ -2,7 +2,7 @@
 // refers to this address by this name: "decal_clear_flags 0x44e220 and decal_evict_object_decals
 // 0x44e310 walk it")
 // address 0x44e220, size 141 bytes
-// name confidence: 0.4   rewrite confidence: 0.55
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 against objdump 0x44e220..0x44e2ac (BL clear_object_attached; iterator index starts at -1).)
 // evidence: types/effects.h decal_flags (_decal_temporary_bit, _decal_object_attached_bit) and
 // decal_grid.temporary_count/object_count; src/cache/sound_cache_dispose.c establishes the
 // data_iterator full-table-scan idiom used here.
@@ -32,7 +32,7 @@ void decal_clear_flags(uint8_t clear_object_attached)
 
         iterator.data = decal_data;
         iterator.next_index = 0;
-        iterator.index = 0;
+        iterator.index = k_datum_index_none; // 0x44e243
         iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
         self = (decal *)data_iterator_next(&iterator);
 

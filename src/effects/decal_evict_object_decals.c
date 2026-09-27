@@ -2,7 +2,7 @@
 // which refers to this address directly: "decal_clear_flags 0x44e220 and decal_evict_object_decals
 // 0x44e310 walk it")
 // address 0x44e310, size 168 bytes
-// name confidence: 0.4   rewrite confidence: 0.6
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 against objdump 0x44e310..0x44e3bb.)
 // evidence: types/effects.h decal_grid.cluster_first/first_object_decal, decal_flags
 // (_decal_object_attached_bit); src/memory/cache_evict_entry.c establishes cache_evict_entry's
 // (handle EBX, cache* EDI) convention.

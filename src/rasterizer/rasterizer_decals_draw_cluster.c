@@ -1,7 +1,7 @@
 // rasterizer_decals_draw_cluster  (Ghidra: FUN_0051aa50, unnamed)
 // address 0x51aa50, size 1636 bytes (0x51aa50..0x51b0b3; Ghidra said 826 bytes, the body really runs to 0x51b0b2 and owns the jump table at
 // 0x51b0b4; Ghidra split two of its switch cases off as the fake functions 0x51acd0 and 0x51ad91)
-// name confidence: 0.55   rewrite confidence: 0.75
+// name confidence: 0.55   rewrite confidence: 0.85 (VERIFIED 2026-09-27 against objdump 0x51aa50..0x51b0b2 (loop, blend switch head, texture rebind, constants, declaration/shader tables, DrawPrimitive(list, (offset>>4)*1.5, blocks*2)).)
 // evidence: walks the singly linked decal list of one (decal layer, cluster) bucket: the head is
 //   0x006b0ad8[layer * 0x200 + cluster], every link is a datum in decal_data (0x0087abe4, 0x38
 //   byte records, next at +0x34). Per decal it switches the framebuffer blend function when the
@@ -182,10 +182,11 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
                 chimera__rasterizer_set_texture(rasterizer_decal_bitmap_tag, 0, 0, 1, rasterizer_decal_bitmap_frame);
             }
 
-            constants[0] = (float)((color >> 16) & 0xff) * (1.0f / 255.0f);
-            constants[1] = (float)((color >> 8) & 0xff) * (1.0f / 255.0f);
-            constants[2] = (float)(color & 0xff) * (1.0f / 255.0f);
-            constants[3] = (float)(uint32_t)(0xff - alpha) * (1.0f / 255.0f);
+            // 0x51af2a..0x51afc8: fild, fmul QWORD 0x673200 (1/255 as a double), fstp float
+            constants[0] = (float)((double)((color >> 16) & 0xff) * (1.0 / 255.0));
+            constants[1] = (float)((double)((color >> 8) & 0xff) * (1.0 / 255.0));
+            constants[2] = (float)((double)(color & 0xff) * (1.0 / 255.0));
+            constants[3] = (float)((double)(uint32_t)(0xff - alpha) * (1.0 / 255.0));
             if (((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 10, constants, 1) < 0) {
                 succeeded = 0;
             }

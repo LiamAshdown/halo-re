@@ -1,6 +1,6 @@
 // decal_update_fade  (Ghidra: decal_update_fade, already named)
 // address 0x44dc30, size 244 bytes
-// name confidence: 0.5   rewrite confidence: 0.6
+// name confidence: 0.5   rewrite confidence: 0.85 (VERIFIED 2026-09-27 against objdump 0x44dc30..0x44dd23: the fade byte is fistp of the float (was +0.5 truncation), expiry is !(age < lifetime).)
 // evidence: types/effects.h decal (flags, lifetime 0x1c, decay_time 0x20, alpha 0x28) and
 // decal_grid.temporary_count (0x2804); src/memory/cache_evict_entry.c establishes
 // cache_evict_entry's (handle EBX, cache* EDI) convention; the game tick at 0x006f1d6c+0x0c and
@@ -20,6 +20,7 @@ extern decal_grid *decal_grid_block; // 0x006b0ad8
 extern cache *decal_geometry_cache; // 0x0071d1c0
 extern int32_t *game_time;  // 0x006f1d6c; +0x0c is the current game tick
 
+extern long lrint(double x); // x87 fistp under the default control word
 extern void cache_evict_entry(datum_index handle, cache *self); // 0x4d1c20,
     // blam-cc: EBX -> handle, EDI -> self
 
@@ -34,7 +35,7 @@ void decal_update_fade(datum_index decal_index)
     self->alpha = 0xff;
 
     if ((self->flags & _decal_object_attached_bit) == 0) {
-        if (self->lifetime != 0.0f && self->lifetime <= age) {
+        if (self->lifetime != 0.0f && !(age < self->lifetime)) { // 0x44dc9c
             if ((self->flags & _decal_temporary_bit) != 0) {
                 self->flags = self->flags & ~_decal_temporary_bit;
                 decal_grid_block->temporary_count = decal_grid_block->temporary_count - 1;
@@ -47,7 +48,9 @@ void decal_update_fade(datum_index decal_index)
             real remaining = self->lifetime - age;
 
             if (remaining < self->decay_time) {
-                self->alpha = (uint8_t)(int)((remaining / self->decay_time) * 255.0f + 0.5f);
+                real fade = (remaining / self->decay_time) * 255.0f; // stored as a float, then fistp (0x44dd0b)
+
+                self->alpha = (uint8_t)lrint((double)fade);
             }
         }
     }

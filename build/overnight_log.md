@@ -2171,3 +2171,8 @@ bullet holes, blood or scorch decals ever appeared. The whole chain is rewritten
 - Callers' externs updated (decal_spawn_for_response verified 0.85; structure_decals_update_switch_transitions passes -1).
 - OPEN (runtime): decals are now live. If shooting walls crashes, set a breakpoint in decal_place / the lock.
 Relinked: unresolved 1, traps 127.
+- Decal support functions (now live) verified -> 0.85: decal_link, decal_delete, decal_evict_object_decals,
+  decal_rehash_object_decals; decal_update_fade (fade byte = fistp, not +0.5 truncation; expiry !(age < lifetime)),
+  decals_update_fade and decal_clear_flags (iterator index starts at -1), rasterizer_decal_pass_begin (0x6893e4 WORD
+  compare), rasterizer_decals_draw_cluster (1/255 is a double), decal_and_font_system_reset (warning fixed).
+  Relinked: unresolved 1, traps 127.

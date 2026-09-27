@@ -1,6 +1,6 @@
 // decal_delete  (Ghidra: decal_delete, already named)
 // address 0x44e3c0, size 147 bytes
-// name confidence: 0.55   rewrite confidence: 0.7
+// name confidence: 0.55   rewrite confidence: 0.85 (VERIFIED 2026-09-27 against objdump 0x44e3c0..0x44e452 (EDX decal; tail-jumps datum_delete).)
 // evidence: types/effects.h decal (previous_decal 0x30, next_decal 0x34, cluster_index 0x04,
 // layer 0x06) and decal_grid (cluster_first/first_object_decal).
 // register convention: decal handle in EDX (in_EDX).

@@ -2,7 +2,7 @@
 // signature match artifact, not part of the retail symbol -- out/phase4/effects_types_notes.md:
 // "chimera__decal_table 0x44e2b0 ... [is a] Chimera signature name for ... decals_update_fade")
 // address 0x44e2b0, size 85 bytes
-// name confidence: 0.55   rewrite confidence: 0.7
+// name confidence: 0.55   rewrite confidence: 0.85 (VERIFIED 2026-09-27 against objdump 0x44e2b0..0x44e30f (iterator index starts at -1).)
 // evidence: types/memory.h data_iterator.index (the handle of the element last returned); this
 // module's own decal_update_fade 0x44dc30 takes a decal handle, not a pointer.
 // register convention: __cdecl, no arguments.
@@ -28,7 +28,7 @@ void decals_update_fade(void)
 
         iterator.data = decal_data;
         iterator.next_index = 0;
-        iterator.index = 0;
+        iterator.index = k_datum_index_none; // 0x44e2d3
         iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
         while (data_iterator_next(&iterator) != 0) {
