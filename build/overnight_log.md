@@ -1759,3 +1759,7 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - player_effect_set_screen_flash: the weight is descriptor +0x24 and the maximum +0x20 (the draft swapped them).
 - effect_random_direction_vector: effect_property_random_value now gets bit 3 plus the caller's EBX/ESI/EDI (self and the a/b bits); the draft passed bit 0 and zeros. Its caller effect_event_apply is updated.
 - effect_property_random_value verified 0.9.
+- player_effect_apply_generic_damage_feedback (0x4569d0) verified and fixed:
+  - flash is {type 1, +2 = 2, duration 1, max = fraction, weight 0, white}; shake is {duration 1, +8 = fraction * 0.01}.
+  - Its caller main_switch_structure_bsp now passes the player in EDX; it had passed only the fraction, so the player index was garbage.
+- player_effect_set_camera_shake verified 0.9.

@@ -2,7 +2,7 @@
 //   out/phase4/effects_types_notes.md: "player_effect_set_camera_shake 0x457d50 (18 floats into
 //   +0x84)")
 // address 0x457d50, size 201 bytes
-// name confidence: 0.55   rewrite confidence: 0.5
+// name confidence: 0.55   rewrite confidence: 0.9 (VERIFIED against objdump 0x457d50..0x457e18)
 // evidence: types/effects.h player_effect.shake (player_camera_shake, +0x84), shake_ticks
 //   (+0xe2), flags (+0xe8, _player_effect_camera_shake_bit) and player_camera_shake (intensity
 //   +0x28, unknown_20 +0x20 "also multiplied by the caller scale and 30").

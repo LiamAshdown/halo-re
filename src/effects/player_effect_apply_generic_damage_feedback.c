@@ -1,6 +1,6 @@
 // player_effect_apply_generic_damage_feedback  (Ghidra: FUN_004569d0, still unnamed there)
 // address 0x4569d0, size 251 bytes
-// name confidence: 0.3   rewrite confidence: 0.3
+// name confidence: 0.3   rewrite confidence: 0.9 (VERIFIED against objdump; descriptor fields FIXED)
 // evidence: types/effects.h player_screen_flash and player_camera_shake; this module's
 //   player_effect_set_screen_flash_for_player (0x456980) and player_effect_set_camera_shake
 //   (0x457d50). out/phase4/effects_types_notes.md's misattribution table places this address in
@@ -35,8 +35,11 @@ extern void player_effect_set_screen_flash(player_effect *self, player_screen_fl
 extern void player_effect_set_camera_shake(player_effect *self, player_camera_shake *descriptor,
     float intensity_falloff, float duration_scale); // 0x457d50, this module
 
-void player_effect_apply_generic_damage_feedback(datum_index player_index, float duration)
-    // blam-cc: in_EDX, stack
+// FIXED (objdump 0x4569d0..0x456aca): the flash is {type 1, +0x02 = 2, duration 1.0, maximum (+0x20) = fraction,
+//   weight (+0x24) 0, colour opaque white} and the shake {duration 1.0, +0x08 = fraction * 0.01}; both are applied
+//   with (fraction, 1.0). The draft used type 2, the fraction as the duration, weight 1.0 and the shake's +0x04.
+// blam-cc: EDX -> player_index, stack -> fraction
+void player_effect_apply_generic_damage_feedback(datum_index player_index, float fraction)
 {
     player_screen_flash flash_descriptor;
     player_camera_shake shake_descriptor;
@@ -49,15 +52,17 @@ void player_effect_apply_generic_damage_feedback(datum_index player_index, float
     if (local_player_index != -1) {
         player_effect *self = &player_effect_globals_pointer->players[local_player_index];
 
-        shake_descriptor.unknown_04 = (uint32_t)(duration * 0.01f); // UNSURE: real field is a
-                                    // float at this offset; see file header
-        flash_descriptor.type = 2;
-        flash_descriptor.duration = duration;
+        *(float *)&shake_descriptor.unknown_08 = (float)((double)fraction * 0.01);
+        shake_descriptor.duration = 1.0f;
+        flash_descriptor.type = 1;
+        flash_descriptor.unknown_02 = 2;
+        flash_descriptor.duration = 1.0f;
+        *(float *)&flash_descriptor.unknown_20 = fraction;
+        flash_descriptor.intensity = 0.0f;
         flash_descriptor.color = *global_white_argb;
-        flash_descriptor.intensity = 1.0f;
 
-        player_effect_set_screen_flash(self, &flash_descriptor, duration, 1.0f);
-        player_effect_set_camera_shake(self, &shake_descriptor, duration, 1.0f);
+        player_effect_set_screen_flash(self, &flash_descriptor, fraction, 1.0f);
+        player_effect_set_camera_shake(self, &shake_descriptor, fraction, 1.0f);
     }
 }
 
