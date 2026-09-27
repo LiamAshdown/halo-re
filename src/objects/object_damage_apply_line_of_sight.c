@@ -1,275 +1,188 @@
 // object_damage_apply_line_of_sight
 // address 0x4eddb0, size 1294 bytes
 // name confidence: 0.5 (Ghidra-recovered name, in-range and self-recursive so kept)
-// rewrite confidence: 0.3
-// evidence: types/objects.h damage_data (flags 0x04, responsible_object 0x0c, origin 0x28,
-// direction 0x34, random_blend 0x40), object (flags 0x10, bounding_center 0xa0, type 0xb4,
-// next_object 0x114, first_child_object 0x118, parent_object 0x11c); types/tags.h
-// DamageEffect.radius[2] (0x00), .flags (0x0c), .damage_flags (0x1c8, bits 0x01
-// does_not_hurt_owner, 0x08 does_not_hurt_friends, 0x400 only_hurts_one_infection_form, 0x1000
-// infection_form_pop), .damage_aoe_core_radius (0x1cc); ModelCollisionGeometryFlags bit 0x08
-// (passes_area_damage_to_children) at the geometry tag's first dword.
-// UNSURE (large parts of this function): collision_test_movement_segment (a 1972-byte raycast/occlusion helper far
-// outside this module) is called with 4 or 5 visible arguments depending on call site, and
-// Ghidra could not resolve object_get_root_object_index's argument at one call site either
-// (it is a 43-byte, argument-less-looking function elsewhere). The perpendicular-sample block
-// (the four `local_e0`/`local_ec`-derived offsets from vector3d_build_perpendicular and
-// vector3d_cross_product) has outputs Ghidra never shows being written anywhere, meaning the
-// real stack layout is a single flat buffer these helpers write into directly that the
-// decompiler split into disconnected named locals. This is transcribed as literally as
-// possible, including the apparently-unwritten reads, rather than invented.
-// register convention: damage_data *param_1 on the stack; datum_index param_2 (target object)
-// on the stack; char param_3 (recursion continuation flag) on the stack.
-// blam-cc: stack=(dd, target_object_index, continue_flag)
+// rewrite confidence: 0.85
+// REWRITTEN from objdump 0x4eddb0..0x4ee2bd. Stack: (damage, object, siblings too). The draft called the cross
+//   product with one argument (a crash on the first explosion that reached a visible biped or vehicle) and the
+//   segment tests unprototyped. For each object (and its siblings when asked): a visible unit is hit when any of
+//   four points offset by the effect's core radius (+0x1cc) around the line from the origin sees its centre; other
+//   objects need a clear line from the origin (0x505880, mask 0xc221, ignoring the object's root). Effect flags
+//   +0x1c8: 1 spares the causer, 8 hurts only enemies, 0x1000 lets difficulty (0x46fe10 table 8) spare player
+//   bipeds. The damage falls off from +0x0 to +0x4 with distance into random_blend (unless +0xc bit 1), is applied
+//   (0x4ee5e0) when positive, and recurses into children when the object's collision model says so; flag 0x40 marks
+//   a spared player.
+// blam-cc: stack -> damage, object_index, recurse_siblings
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "projectiles.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
+extern uint8_t *main_game_globals;  // 0x006b0b80, +0x0e the difficulty
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // math module, 0x401990
-extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir); // math module, 0x4cd670
-extern void vector3d_cross_product(); // math module, 0x4052c0.
-    // No prototype is asserted: Ghidra models fewer arguments at this call site than the
-    // function really takes, because the missing operands travel in registers it could
-    // not source. The empty parameter list is the same convention this module already
-    // uses for FUN_00450870 -- it keeps one declaration per symbol without fabricating
-    // a signature that contradicts the canonical one.
-    // Original note: only one
-                                                       // visible argument at this call site
-extern real random_real(void); // math module, 0x4019f0
-
+extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir); // 0x4cd670, ECX, EDX
+extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0
+extern real random_real(void); // 0x4019f0
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, CX, DX
-extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
-    // 0x46fe10, blam-cc: stack -> zoom_table_index, CX -> magnification (every caller passes the difficulty)
-extern uint8_t *main_game_globals; // 0x006b0b80 game globals *, +0x0e difficulty
-extern uint32_t object_get_root_object_index(uint32_t object_index); // objects module,
-    // 0x4f6fb0 (out of range); shown with a stack buffer argument at one call site and with
-    // none at another
-extern uint8_t collision_test_movement_segment(); // out of range, 0x505880, a BSP ray/segment test.
-    // No prototype is asserted: Ghidra models fewer or differently-typed arguments here than
-    // the other call site(s) of the same address, because the missing operands travel in
-    // registers it could not source. The empty parameter list is the convention this module
-    // already uses for FUN_00450870 -- one declaration per symbol, no invented signature.
-extern void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t node_index,
-    int16_t param_4, int16_t material_index, uint32_t param_6); // this module, 0x4ee5e0 // 0x4ee5e0
+extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification); // 0x46fe10, stack, CX
+extern uint32_t object_get_root_object_index(uint32_t object_index); // 0x4f6fb0, ECX
+extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
+    uint32_t exclude_object_index, collision_result *result); // 0x505880
+extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index, int16_t region_index,
+    int16_t material_index, uint32_t plane); // 0x4ee5e0
+
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
 
 void object_damage_apply_line_of_sight(damage_data *dd, datum_index target_index, int8_t continue_flag)
 {
-    object_header *headers = (object_header *)object_data->data;
-    object *target;
-    Object *target_definition;
-    DamageEffect *effect;
-    uint8_t has_collision;
-    int8_t los_clear = 0;
-    int8_t did_recurse_area_damage = 0; // bVar3
-    int8_t applied_direct_damage; // bVar10, set only on the direct-hit path
-    uint32_t root_index;
-    float dx, dy, dz;              // local_c4/c0/bc and local_b8/b4/b0, aliased below
-    float basis_a_x, basis_a_y, basis_a_z;   // local_e0/dc/d8 (first perpendicular basis)
-    float basis_b_x, basis_b_y, basis_b_z;   // local_ec/e8/e4 (second perpendicular basis)
-    float sample_x, sample_y, sample_z;      // local_f8/f4/f0
-    real_point3d root_scratch;               // local_d4/d0/cc (from the first collision_test_movement_segment/root call)
-    float delta2_x, delta2_y, delta2_z;      // local_ac/a8/a4
-    uint8_t collision_result[80];            // local_50
-    uint8_t sample_scratch[24];              // local_a0
-    float local_88, local_84, local_80; // UNSURE: Ghidra never shows these three floats being
-        // written anywhere; they immediately follow sample_scratch[24] on the stack and are
-        // presumably filled in place by object_get_root_object_index/collision_test_movement_segment through a
-        // pointer this decompile lost. Kept as literal, apparently-unwritten reads rather than
-        // invented values.
-    int32_t sample_index;
-    int32_t remaining;
-    float sample_scale;
-    real length_fraction;
-    datum_index sample_root;
-    int8_t sample_ok;
+    uint8_t *effect = TAG_DATA(dd->damage_effect_tag);         // [esp+0x18]
+    real_point3d *origin = &dd->origin;                        // edi
 
-    do {
-        target = headers[target_index & 0xffff].data;
-        target_definition = (Object *)tag_instances[target->definition_tag & 0xffff].data;
-        effect = (DamageEffect *)tag_instances[dd->damage_effect_tag & 0xffff].data;
-        has_collision = (uint8_t)(~target->flags & 1);
-        did_recurse_area_damage = 0;
-        los_clear = 0;
-        applied_direct_damage = 0;
+    for (;;) {
+        uint8_t *target = OBJECT_DATA(target_index);            // esi
+        uint8_t *target_tag = TAG_DATA(*(datum_index *)target);  // [esp+0x50]
+        uint8_t apply = (uint8_t)(~target[0x10] & 1);           // bl
+        uint8_t applied = 0;                                    // [esp+0x15]
+        uint8_t spared_player = 0;                              // [esp+0x16]
+        uint8_t blocked;
+        uint32_t flags;
 
-        if ((has_collision == 0) ||
-            ((1 << (target->type & 0x1f) & _object_mask_unit) == 0) ||
-            (effect->damage_aoe_core_radius <= 0.0001f)) {
-            uint32_t walk;
+        if (apply && ((1u << (target[0xb4] & 0x1f)) & 3) && *(float *)(effect + 0x1cc) > 9.999999747378752e-05f) {
+            // 0x4ede58: four points around the line, a core radius out
+            real_vector3d to_center;        // [esp+0x54]
+            real_vector3d side_a;           // [esp+0x2c]
+            real_vector3d side_b;           // [esp+0x38]
+            int32_t i;
 
-            root_index = 0xffffffff;
-            for (walk = target_index; walk != 0xffffffff; walk = headers[walk & 0xffff].data->parent_object) {
-                root_index = walk;
-            }
+            blocked = 1;
+            to_center.i = *(float *)(target + 0xa0) - origin->x;
+            to_center.j = *(float *)(target + 0xa4) - origin->y;
+            to_center.k = *(float *)(target + 0xa8) - origin->z;
+            vector3d_build_perpendicular(&side_a, &to_center);
+            vector3d_normalize_with_length(&side_a);
+            vector3d_cross_product(&side_b, &side_a, &to_center);
+            vector3d_normalize_with_length(&side_b);
+            for (i = 0; i < 4; i++) {
+                real radius = *(float *)(effect + 0x1cc);
+                real_vector3d *side = i < 2 ? &side_a : &side_b;
+                real_vector3d offset;       // [esp+0x20]
+                real_point3d sample;        // [esp+0x44]
+                real_vector3d back;         // [esp+0x6c]
+                collision_result hit;       // [esp+0x78]
 
-            dx = target->bounding_center.x - dd->origin.x;
-            dy = target->bounding_center.y - dd->origin.y;
-            dz = target->bounding_center.z - dd->origin.z;
-            los_clear = collision_test_movement_segment(0xc221, &dd->origin, (real_vector3d *)&dx, root_index, collision_result);
-        } else {
-            real_vector3d dir;
-            real_vector3d basis_a;
-            real_vector3d basis_b;
-
-            dx = target->bounding_center.x - dd->origin.x;
-            los_clear = 1;
-            dy = target->bounding_center.y - dd->origin.y;
-            dz = target->bounding_center.z - dd->origin.z;
-
-            dir.i = dx; dir.j = dy; dir.k = dz;
-            vector3d_build_perpendicular(&basis_a, &dir); // UNSURE: output target inferred
-            vector3d_normalize_with_length(&basis_a);
-            vector3d_cross_product(&dir); // UNSURE: only one visible argument
-            vector3d_normalize_with_length(&basis_b);
-            basis_a_x = basis_a.i; basis_a_y = basis_a.j; basis_a_z = basis_a.k;
-            basis_b_x = basis_b.i; basis_b_y = basis_b.j; basis_b_z = basis_b.k;
-
-            sample_index = 0;
-            remaining = 4;
-            do {
-                switch (sample_index) {
-                case 0:
-                    sample_scale = effect->damage_aoe_core_radius;
-                    sample_x = basis_b_x * sample_scale;
-                    sample_y = basis_b_y * sample_scale;
-                    sample_z = basis_b_z;
-                    sample_z = sample_z * sample_scale;
-                    break;
-                case 1:
-                    sample_scale = -effect->damage_aoe_core_radius;
-                    sample_x = basis_b_x * sample_scale;
-                    sample_y = basis_b_y * sample_scale;
-                    sample_z = basis_b_z;
-                    sample_z = sample_z * sample_scale;
-                    break;
-                case 2:
-                    sample_scale = effect->damage_aoe_core_radius;
-                    sample_x = basis_a_x * sample_scale;
-                    sample_y = basis_a_y * sample_scale;
-                    sample_z = basis_a_z;
-                    sample_z = sample_z * sample_scale;
-                    break;
-                case 3:
-                default:
-                    sample_scale = -effect->damage_aoe_core_radius;
-                    sample_x = basis_a_x * sample_scale;
-                    sample_y = basis_a_y * sample_scale;
-                    sample_z = basis_a_z;
-                    sample_z = sample_z * sample_scale;
-                    break;
+                if (i & 1) {
+                    radius = -radius;
                 }
-
-                // PHASE-4 REVIEW: Ghidra attributes a `push ecx` to this call, but that push
-                // is collision_test_movement_segment's last argument. objdump 0x4edf3f and 0x4edf75 both load
-                // ECX -- 0x4f6fb0's only input -- from the same stack slot, which is this
-                // function's own target_index parameter.
-                sample_root = object_get_root_object_index(target_index);
-                collision_test_movement_segment(0xc221, &dd->origin, (real_vector3d *)&sample_x, sample_root, 0);
-                root_scratch.x = local_88; // local_d4 = local_88
-                root_scratch.y = local_84; // local_d0 = local_84
-                root_scratch.z = local_80; // local_cc = local_80
-                sample_root = object_get_root_object_index(target_index);
-                delta2_x = target->bounding_center.x - root_scratch.x;
-                delta2_y = target->bounding_center.y - root_scratch.y;
-                delta2_z = target->bounding_center.z - root_scratch.z;
-                sample_ok = collision_test_movement_segment(0xc221, (real_point3d *)&root_scratch, (real_vector3d *)&delta2_x,
-                    sample_root, sample_scratch);
-                if (sample_ok == 0) {
-                    los_clear = 0;
-                }
-
-                sample_index = sample_index + 1;
-                remaining = remaining - 1;
-            } while (remaining != 0);
-        }
-
-        if (los_clear != 0) {
-            has_collision = 0;
-        }
-
-        if (((effect->damage_flags & 1) != 0) && (target_index == dd->responsible_object)) {
-            has_collision = 0; // does_not_hurt_owner
-        }
-
-        if (((effect->damage_flags & 8) == 0) || (teams_are_enemies(dd->team_index, *(int16_t *)((uint8_t *)target + 0xb8)) != 0)) { // does_not_hurt_friends; 0x4ee094: CX damage team, DX target +0xb8
-            if ((has_collision != 0) && ((effect->damage_flags & 0x1000) != 0)) { // infection_form_pop
-                has_collision = 0;
-                if (((1 << (target->type & 0x1f) & _object_mask_unit) != 0) &&
-                    ((((Unit *)tag_instances[target->definition_tag & 0xffff].data)->unit_flags & 0x80000) != 0) && // inconsequential
-                    (target_index != dd->responsible_object)) {
-                    real difficulty = weapon_get_zoom_fov(8, *(int16_t *)(main_game_globals + 0x0e));
-
-                    has_collision = 1;
-                    if (((0.0f < difficulty) || ((effect->damage_flags & 0x400) != 0)) && // only_hurts_one_infection_form
-                        ((dd->flags & 0x40) != 0)) {
-                        has_collision = 0;
-                    }
-                    if ((0.0f < difficulty) && (random_real() < difficulty * 0.25f)) {
-                        has_collision = 0;
-                    }
-                    did_recurse_area_damage = 1;
+                offset.i = side->i * radius;
+                offset.j = side->j * radius;
+                offset.k = side->k * radius;
+                collision_test_movement_segment(0xc221, origin, &offset, object_get_root_object_index(target_index), &hit);
+                sample = hit.point;
+                back.i = *(float *)(target + 0xa0) - sample.x;
+                back.j = *(float *)(target + 0xa4) - sample.y;
+                back.k = *(float *)(target + 0xa8) - sample.z;
+                if (!collision_test_movement_segment(0xc221, &sample, &back, object_get_root_object_index(target_index), &hit)) {
+                    blocked = 0;
                 }
             }
         } else {
-            has_collision = 0;
+            // 0x4edffe: one line from the origin to the centre
+            datum_index root = k_datum_index_none;
+            datum_index walk = target_index;
+            real_vector3d to_center;        // [esp+0x64]
+            collision_result hit;           // [esp+0xc8]
+
+            while (walk != k_datum_index_none) {
+                root = walk;
+                walk = *(datum_index *)(OBJECT_DATA(walk) + 0x11c);
+            }
+            to_center.i = *(float *)(target + 0xa0) - origin->x;
+            to_center.j = *(float *)(target + 0xa4) - origin->y;
+            to_center.k = *(float *)(target + 0xa8) - origin->z;
+            blocked = collision_test_movement_segment(0xc221, origin, &to_center, root, &hit);
+        }
+        if (blocked) {
+            apply = 0;
         }
 
+        // 0x4ee074: who the effect may hurt
+        flags = *(uint32_t *)(effect + 0x1c8);
+        if ((flags & 1) && target_index == dd->responsible_object) {
+            apply = 0;
+        }
+        if ((flags & 8) && !teams_are_enemies(dd->team_index, *(int16_t *)(target + 0xb8))) {
+            apply = 0;
+        } else if (apply && (flags & 0x1000)) {
+            apply = 0;
+            if (((1u << (target[0xb4] & 0x1f)) & 3) &&
+                (*(uint32_t *)(TAG_DATA(*(datum_index *)target) + 0x17c) & 0x80000) &&
+                target_index != dd->responsible_object) {
+                real scale = weapon_get_zoom_fov(8, *(int16_t *)(main_game_globals + 0xe));
+
+                apply = 1;
+                if ((scale > 0.0f || (flags & 0x400)) && (dd->flags & 0x40)) {
+                    apply = 0;
+                }
+                if (scale > 0.0f && scale * 0.25f > random_real()) {
+                    apply = 0;
+                }
+                spared_player = 1;
+            }
+        }
         dd->flags |= 1;
 
-        if (has_collision != 0) {
-            real_vector3d direction;
+        if (apply) {
+            // 0x4ee189: direction and falloff
+            real distance;
+            real blend;
+            real range;
 
-            dd->direction.i = target->bounding_center.x - dd->origin.x;
-            dd->direction.j = target->bounding_center.y - dd->origin.y;
-            dd->direction.k = target->bounding_center.z - dd->origin.z;
-            direction = dd->direction;
-            length_fraction = vector3d_normalize_with_length(&direction);
-            dd->direction = direction;
-
-            if (effect->radius[1] - effect->radius[0] <= 0.0f) {
-                length_fraction = 1.0f;
+            dd->direction.i = *(float *)(target + 0xa0) - origin->x;
+            dd->direction.j = *(float *)(target + 0xa4) - origin->y;
+            dd->direction.k = *(float *)(target + 0xa8) - origin->z;
+            distance = vector3d_normalize_with_length(&dd->direction);
+            range = *(float *)(effect + 0x4) - *(float *)(effect + 0x0);
+            if (range > 0.0f) {
+                blend = 1.0f - (distance - *(float *)(effect + 0x0)) / range;
+                if (!(blend >= 0.0f)) {
+                    blend = 0.0f;
+                } else if (!(blend <= 1.0f)) {
+                    blend = 1.0f;
+                }
             } else {
-                length_fraction = 1.0f - (length_fraction - effect->radius[0]) / (effect->radius[1] - effect->radius[0]);
-                if (0.0f <= length_fraction) {
-                    if (1.0f < length_fraction) {
-                        length_fraction = 1.0f;
-                    }
-                } else {
-                    length_fraction = 0.0f;
+                blend = 1.0f;
+            }
+            if (!(effect[0xc] & 1)) {
+                dd->random_blend = blend;
+            }
+            if (blend > 0.0f) {
+                object_apply_damage(dd, target_index, -1, -1, -1, 0);
+                applied = 1;
+            }
+            {
+                datum_index model = *(datum_index *)(target_tag + 0x7c);
+
+                if (model != k_datum_index_none && (*TAG_DATA(model) & 8) &&
+                    *(datum_index *)(target + 0x118) != k_datum_index_none) {
+                    object_damage_apply_line_of_sight(dd, *(datum_index *)(target + 0x118), 1);
                 }
             }
-
-            if ((effect->flags & 1) == 0) {
-                dd->random_blend = length_fraction;
-            }
-
-            applied_direct_damage = 0.0f < length_fraction;
-            if (applied_direct_damage) {
-                object_apply_damage(dd, target_index, 0xffffffff, 0xffffffff, 0xffffffff, 0);
-            }
-
-            if ((target_definition->collision_model.tag_id.index != 0xffff) &&
-                ((*(uint8_t *)tag_instances[target_definition->collision_model.tag_id.index].data & 8) != 0) &&
-                (target->first_child_object != (datum_index)0xffffffff)) {
-                object_damage_apply_line_of_sight(dd, target->first_child_object, 1);
-            }
         }
-
-        if (did_recurse_area_damage && ((has_collision == 0) || applied_direct_damage)) {
+        if (spared_player && (!apply || !applied)) {
             dd->flags |= 0x40;
         }
-
-        if ((continue_flag == 0) || (target_index = target->next_object, target_index == (datum_index)0xffffffff)) {
+        if (!continue_flag || *(datum_index *)(target + 0x114) == k_datum_index_none) {
             return;
         }
         continue_flag = 1;
-    } while (1);
+        target_index = *(datum_index *)(target + 0x114);
+    }
 }
 
 #if 0

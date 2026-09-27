@@ -40,7 +40,7 @@ extern uint8_t *game_time; // 0x006f1d6c, tick at +0xc
 extern void *ai_gc_callback_table; // 0x0065ddd0, UNSURE: see file header
 extern void *console_error_category_objects; // 0x0065efec, UNSURE: a console category tag
 
-extern void block_list_compact(); // memory module, 0x4d1eb0. src/memory/block_list_compact.c
+extern void block_list_compact(memory_pool *arena); // 0x4d1eb0, EBX (the object pool at all three sites)
     // takes `memory_pool *arena`; Ghidra models no argument at the call sites in this file,
     // so no prototype is asserted here rather than inventing an arena pointer.
 extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693
@@ -66,7 +66,7 @@ void objects_garbage_collection(void)
             (int32_t)object_memory_pool->last_block + object_memory_pool->last_block->size - (int32_t)object_memory_pool->base;
 
         if (object_memory_pool->size - used_end < 0x1999a) {
-            block_list_compact();
+            block_list_compact(object_memory_pool);
             used_end = (object_memory_pool->last_block == 0) ? 0 :
                 (int32_t)object_memory_pool->last_block + object_memory_pool->last_block->size - (int32_t)object_memory_pool->base;
             if (object_memory_pool->size - used_end > 0x33333) {
@@ -213,7 +213,7 @@ report:
 
     compact_and_resample:
         critical = 1;
-        block_list_compact();
+        block_list_compact(object_memory_pool);
         goto resample;
 
     check_thresholds:
@@ -240,7 +240,7 @@ report:
 compact_and_retry:
     // UNSURE: matches the original's LAB_004f9e5c (block_list_compact, then either return when
     // critical, or fall into the AI-callback report block below when not).
-    block_list_compact();
+    block_list_compact(object_memory_pool);
     if (critical) {
         object_globals_pointer->unknown_02[0] = 0;
         return;

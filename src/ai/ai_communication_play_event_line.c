@@ -1,34 +1,15 @@
-// ai_communication_play_event_line  (Ghidra: ai_communication_play_event_line; named for this rewrite)
+// ai_communication_play_event_line  (Ghidra: FUN_0042eee0)
 // address 0x42eee0, size 888 bytes
-// name confidence: 0.4   rewrite confidence: 0.35
-// evidence: phase-4 summary ("attempts to select and queue playback of a communication line
-// for a given event id and unit, gated by probability"). The table it scans, at 0x00656b08,
-// is the same one src/ai/ai_communication_record_line_played.c already documents as "the
-// conversation-line table, stride 0x24 from &DAT_00656b08"; the stride is confirmed by the
-// two rows dumped out of the image (0x00656b08 and 0x00656b2c) and by the
-// PTR_FUN_00656b28 / PTR_FUN_00656b4c predicate slots sitting exactly 0x24 apart.
-// register convention: plain __cdecl, five stack arguments.
+// name confidence: 0.4   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x42eee0..0x42f257. The draft called the priority check, commit and record helpers
+//   without their register operands. Stack: (object, event, force, speaker actor, event record). Walks the event
+//   line table (0x656b08, 0x24 rows, ends at -1) for rows of this event (and of the record's kind +0x8 when the
+//   row names one), outside the quiet period unless flag 1. The speaker is the given actor's unit, or by the row's
+//   mode: 2 someone in the object's encounter / on its team within 9, 3 the record's object, 4 a team member for
+//   mode 2 matching. Players never speak here. Unless forced the row's probability is rolled, its predicate asked;
+//   then the priority check (0x560d00) and, when it allows, the speech is committed (0x560f20, tail 24 ticks),
+//   recorded (0x42f9e0) and the speaker's follow-up order issued (0x4302e0 line 8).
 // blam-cc: stack -> object_index, event_id, force, explicit_speaker_actor_index, event_record
-//
-// UNSURE, substantially:
-//  - The 0x24-byte table row's field names below are inferred from use only; the image
-//    carries no names for it. The three parallel per-class tables at 0x006558c4 (int16),
-//    0x006558d4 (float) and 0x006558f4 (int16) are eight entries each, indexed by the row's
-//    class_index.
-//  - Ghidra renders both float-to-int conversions as bare `__ftol()` calls with no visible
-//    operand. Recovered from the disassembly: `fld [esi+0x18]; fmul ds:0x672ac8` at
-//    0x42f126 (row.delay_seconds * 30.0 ticks/second) and
-//    `fld [eax*4+0x6558d4]; fmul ds:0x672ac8` at 0x42f1ad
-//    (communication_class_delay[class_index] * 30.0).
-//  - FUN_00560d00 / unit_commit_speech are the sound/dialogue playback pair in the units module,
-//    not rewritten here; their signatures are the five-argument form this repo already uses
-//    in src/ai/actor_squad_action_execute.c, plus the EAX/DL register arguments the
-//    disassembly shows (`mov eax,edi` / `xor dl,dl` at 0x42f15c).
-//  - The 0x28-byte playback record built on the stack is transcribed field-for-field from
-//    the stores at 0x42f19b..0x42f20d; only the four fields whose source is obvious are
-//    named.
-//  - The selection-3 branch's `object_try_and_get(3)` is shown by Ghidra with a single
-//    argument; modeled here with this repo's established two-argument signature.
 
 #include "tags.h"
 #include "memory.h"
@@ -38,198 +19,157 @@
 #include "game.h"
 #include "ai.h"
 #include <stdint.h>
+#include <string.h>
 
 extern data_array *object_data;      // 0x008603b0
 extern data_array *actor_data;       // 0x00880360
-extern ai_globals *ai_globals_ptr;   // 0x00880354
+extern data_array *encounter_data;   // 0x008802c8
+extern uint8_t *ai_globals_ptr;      // 0x00880354
 extern game_time_globals *game_time; // 0x006f1d6c
-extern int32_t ai_communication_warmup_tick; // 0x00725204, UNSURE name
-extern int16_t communication_class_line[8];  // 0x006558c4
-extern float communication_class_delay[8];   // 0x006558d4
-extern int16_t communication_class_order[8]; // 0x006558f4
-extern float ticks_per_second;               // 0x00672ac8, 30.0
+extern int32_t ai_communication_quiet_until_tick; // 0x00725204
+extern int16_t ai_communication_class_priority[]; // 0x006558c4
+extern float ai_communication_class_tail_seconds[]; // 0x006558d4
+extern int16_t ai_communication_class_follow_up[]; // 0x006558f4
+extern uint8_t ai_communication_event_lines[];    // 0x00656b08, 0x24-byte rows
 
-extern ai_communication_event_definition ai_communication_event_definitions[]; // 0x00656b08
+typedef uint8_t (*ai_communication_line_predicate)(datum_index object_index, uint32_t *event_record,
+                                                   datum_index actor_index);
 
 extern real random_real(void); // 0x4019f0
-extern void *object_try_and_get(datum_index object_index, int32_t kind); // 0x4f6ec0
-extern void ai_communication_record_line_played(datum_index object_index, int16_t tier, int16_t communication_line_id, int16_t conversation_line_id); // 0x42f9e0, blam-cc: EAX -> object_index
-extern datum_index ai_communication_select_speaker_in_reference(float radius,
-                                                                int16_t allow_unreachable,
-                                                                uint32_t fade_limit,
-                                                                uint32_t line_class,
-                                                                uint32_t line_id,
-                                                                int16_t seat_filter, uint8_t flags,
-                                                                uint32_t reference,
-                                                                datum_index object_a,
-                                                                datum_index object_b); // 0x42ff80
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
+extern datum_index ai_communication_select_speaker_in_reference(float radius, int16_t allow_unreachable,
+    uint32_t fade_limit, uint32_t line_class, uint32_t line_id, int16_t seat_filter, uint8_t flags,
+    uint32_t reference, datum_index object_a, datum_index object_b); // 0x42ff80, stack, EAX, EDI, EBX
 extern datum_index ai_communication_select_speaker_by_team(int16_t match_mode, datum_index object_a,
-                                                           datum_index object_b, float radius,
-                                                           int16_t allow_unreachable,
-                                                           uint32_t fade_limit, uint32_t line_class,
-                                                           uint32_t line_id, int16_t seat_filter,
-                                                           uint8_t flags, int16_t team); // 0x4300d0
+    datum_index object_b, float radius, int16_t allow_unreachable, uint32_t fade_limit, uint32_t line_class,
+    uint32_t line_id, int16_t seat_filter, uint8_t flags, int16_t team); // 0x4300d0, stack, DI
+extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback,
+    int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index,
+    int32_t *chain_value); // 0x560d00, EAX, DL, stack
+extern int32_t unit_commit_speech(uint32_t unit_index, const unit_speech *source, int16_t mode); // 0x560f20, EAX, ECX, DX
+extern void ai_communication_record_line_played(datum_index object_index, int16_t tier,
+    int16_t communication_line_id, int16_t conversation_line_id); // 0x42f9e0, EAX, stack
 extern void actor_issue_order_or_vocalize(datum_index prop_index, datum_index actor_index,
-                                           datum_index vehicle_object_index, int16_t line,
-                                           int16_t variant); // 0x4302e0
-extern int16_t unit_animation_change_priority_check(int32_t line_class, int32_t kind, void *out_record, void *inout_a,
-                            void *inout_b);  // SIGNATURE-CONFLICT: this call site disagrees with the form the rest of
-  // src/ai uses for this address; kept local. See src/ai/README.md.
-// src/ai/actor_squad_action_execute.c declares the third argument as an int32_t. // 0x560d00, not yet rewritten; blam-cc also EAX -> object_index, DL -> flag
-extern void unit_commit_speech(void); // 0x560f20, not yet rewritten; blam-cc: EAX -> object_index, EDX -> handle, ECX -> record
+    datum_index vehicle_object_index, int16_t line, int16_t variant); // 0x4302e0, EAX, EBX, EDI, stack
 
-// blam-cc: stack -> object_index, event_id, force, explicit_speaker_actor_index, event_record
-// Walks the communication event table for rows matching event_id, picks a speaker for the
-// first one whose gates pass (an explicit speaker when the caller supplies one, otherwise a
-// squad-mate, a fixed object or a hostile actor depending on the row's selection mode),
-// rolls the row's probability unless `force` is set, and queues the line for playback,
-// stamping the per-line cooldown and issuing the matching follow-up order.
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+
 void ai_communication_play_event_line(datum_index object_index, int16_t event_id, uint8_t force,
-                                      datum_index explicit_speaker_actor_index,
-                                      uint32_t *event_record)
+                                      datum_index explicit_speaker_actor_index, uint32_t *event_record)
 {
-    ai_communication_event_definition *row;
-    int32_t row_index;
-    datum_index actor_index;
-    actor *speaker_actor;
-    int16_t class_index;
-    int16_t line_class;
-    datum_index speaker;
-    datum_index speaker_unit;
-    object *speaker_object;
-    int16_t match_mode;
-    int16_t status;
-    uint8_t playback_record[0x28];
-    uint8_t lookup_record[4];
-    uint32_t lookup_line;
-    uint32_t lookup_handle;
-    int32_t lookup_delay;
+    uint8_t *row = ai_communication_event_lines;
+    int32_t row_index = 0;              // [esp+0x10]
 
-    if (ai_globals_ptr->communication_valid == 0 || event_id == -1) {
+    if (!ai_globals_ptr[0x10] || event_id == -1) {
         return;
     }
+    for (; *(int16_t *)row != -1; row += 0x24, row_index++) {
+        uint8_t *object;
+        datum_index object_actor;
+        int16_t class_index;
+        int16_t priority;               // bp
+        datum_index speaker_unit;       // edi
+        uint8_t *speaker;               // [esp+0x20]
+        int16_t dialogue_index;         // [esp+0x14]
+        int32_t chain = -1;             // [esp+0x18]
+        int16_t delay;                  // [esp+0x1c]
+        uint32_t unused_out = 0;        // [esp+0x24]
+        int32_t status;
 
-    row = &ai_communication_event_definitions[0];
-    row_index = 0;
-    do {
-        if (row->event_id == event_id) {
-            actor_index = ((unit_data *)((object_header *)object_data->data)
-                               [object_index & 0xffff].data)->actor_index;
-            if (actor_index == (datum_index)k_datum_index_none) {
-                speaker_actor = 0;
-            } else {
-                speaker_actor = (actor *)((uint8_t *)actor_data->data +
-                                          (actor_index & 0xffff) * k_actor_size);
-            }
-            class_index = row->class_index;
-            line_class = communication_class_line[class_index];
+        if (*(int16_t *)row != event_id) {
+            continue;
+        }
+        object = OBJECT_DATA(object_index);
+        object_actor = *(datum_index *)(object + 0x1f4);
+        class_index = *(int16_t *)(row + 0xa);
+        priority = ai_communication_class_priority[class_index];
+        if (*(int16_t *)(row + 0x2) != -1 && *(int16_t *)(row + 0x2) != *(int16_t *)((uint8_t *)event_record + 0x8)) {
+            continue;
+        }
+        if (game_time->game_time < ai_communication_quiet_until_tick && !(row[0xc] & 1)) {
+            continue;
+        }
+        if (explicit_speaker_actor_index != k_datum_index_none) {
+            speaker_unit = *(datum_index *)((uint8_t *)actor_data->data + (explicit_speaker_actor_index & 0xffff) * 0x724 + 0x18);
+        } else {
+            int16_t mode = *(int16_t *)(row + 0x4);
+            datum_index found;
 
-            if ((row->required_kind == -1 ||
-                 row->required_kind == (int16_t)event_record[2]) &&
-                (ai_communication_warmup_tick <= game_time->game_time ||
-                 (row->flags & 1) != 0)) {
-                speaker_unit = (datum_index)k_datum_index_none;
-                if (explicit_speaker_actor_index == (datum_index)k_datum_index_none) {
-                    if (row->selection == 2) {
-                        if (speaker_actor == 0 ||
-                            speaker_actor->encounter_index == (datum_index)k_datum_index_none) {
-                            match_mode = 1;
-                            goto select_by_team;
-                        }
-                        speaker = ai_communication_select_speaker_in_reference(
-                            9.0f, -1, (uint32_t)class_index, (uint32_t)line_class,
-                            (uint32_t)row->line_id, row->seat_filter, 0,
-                            /* reference */ (uint32_t)speaker_actor->encounter_index,
-                            /* object_a */ object_index,
-                            /* object_b */ (datum_index)k_datum_index_none);
-                        goto have_speaker;
-                    } else if (row->selection == 3) {
-                        // UNSURE: the fixed-object branch. event_record[0] is an object index.
-                        speaker_unit = (datum_index)event_record[0];
-                        if (object_try_and_get(speaker_unit, 3) != 0) {
-                            goto play;
-                        }
-                        goto advance;
-                    } else if (row->selection == 4) {
-                        match_mode = 2;
-select_by_team:
-                        speaker = ai_communication_select_speaker_by_team(
-                            match_mode, object_index, (datum_index)k_datum_index_none, 9.0f, -1,
-                            (uint32_t)class_index, (uint32_t)line_class, (uint32_t)row->line_id,
-                            row->seat_filter, 0,
-                            /* team */ (speaker_actor != 0) ? speaker_actor->team : (int16_t)-1);
-have_speaker:
-                        if (speaker != (datum_index)k_datum_index_none) {
-                            speaker_unit = ((actor *)((uint8_t *)actor_data->data +
-                                                      (speaker & 0xffff) * k_actor_size))->unit_index;
-                            goto play;
-                        }
-                    }
-                } else {
-                    speaker_unit = ((actor *)((uint8_t *)actor_data->data +
-                                              (explicit_speaker_actor_index & 0xffff) *
-                                                  k_actor_size))->unit_index;
-play:
-                    if (speaker_unit == (datum_index)k_datum_index_none) {
-                        goto advance;
-                    }
-                    speaker_object = ((object_header *)object_data->data)
-                                         [speaker_unit & 0xffff].data;
-                    // object+0x218 is the currently-playing dialogue handle; a speaker
-                    // already saying something is skipped.
-                    if (*(int32_t *)((uint8_t *)speaker_object + 0x218) != -1) {
-                        goto advance;
-                    }
-                    if (force == 0 &&
-                        !(0.0f < row->probability && random_real() < row->probability)) {
-                        goto advance;
-                    }
-                    if (row->predicate != 0 &&
-                        row->predicate(object_index, event_record,
-                                       ((unit_data *)speaker_object)->actor_index) == 0) {
-                        goto advance;
-                    }
-
-                    lookup_line = (uint32_t)(uint16_t)row->line_id;
-                    lookup_handle = (uint32_t)k_datum_index_none;
-                    lookup_delay = (int32_t)(row->delay_seconds * ticks_per_second);
-                    status = unit_animation_change_priority_check((int32_t)line_class, 1, lookup_record, &lookup_line,
-                                          &lookup_handle);
-                    if (0 < status) {
-                        // The 0x28-byte playback request. Offsets are from the stores at
-                        // 0x42f19b onwards; unnamed slots are transcribed verbatim.
-                        *(int16_t *)(playback_record + 0x00) = line_class;                  // esp+0x28
-                        *(int16_t *)(playback_record + 0x02) = (int16_t)lookup_line;        // esp+0x2a
-                        *(uint32_t *)(playback_record + 0x04) = lookup_handle;              // esp+0x2c
-                        *(int16_t *)(playback_record + 0x08) = (int16_t)lookup_delay;       // esp+0x30
-                        *(int16_t *)(playback_record + 0x0a) =
-                            (int16_t)(communication_class_delay[class_index] * ticks_per_second);
-                        *(int16_t *)(playback_record + 0x0c) = 0x18;                        // esp+0x34
-                        *(uint32_t *)(playback_record + 0x10) = (uint32_t)(uintptr_t)speaker_object;
-                        *(int16_t *)(playback_record + 0x14) = -1;                          // esp+0x3c
-                        *(int16_t *)(playback_record + 0x16) = -1;
-                        *(int16_t *)(playback_record + 0x18) = -1;
-                        *(int16_t *)(playback_record + 0x1c) = 0;                           // esp+0x44
-                        *(int16_t *)(playback_record + 0x1e) = 0;
-                        *(uint8_t *)(playback_record + 0x1a) = 1;                           // esp+0x42
-                        *(int16_t *)(playback_record + 0x24) = 0;                           // esp+0x4c
-                        *(uint32_t *)(playback_record + 0x28 - 4) = 0;
-                        unit_commit_speech();
-                        ai_communication_record_line_played(line_class, -1, row_index,
-                                                            speaker_unit);
-                        actor_issue_order_or_vocalize((datum_index)k_datum_index_none,
-                                                      ((unit_data *)speaker_object)->actor_index,
-                                                      (datum_index)k_datum_index_none, 8,
-                                                      communication_class_order[row->class_index]);
-                        return;
-                    }
+            if (mode == 3) {
+                speaker_unit = event_record[0];
+                if (object_try_and_get(speaker_unit, 3) == 0) {
+                    continue;
                 }
+            } else if (mode == 2 || mode == 4) {
+                uint8_t *actor = object_actor != k_datum_index_none
+                    ? (uint8_t *)actor_data->data + (object_actor & 0xffff) * 0x724 : 0;
+
+                if (mode == 2 && actor != 0 && *(datum_index *)(actor + 0x34) != k_datum_index_none) {
+                    found = ai_communication_select_speaker_in_reference(9.0f, -1, (uint16_t)class_index,
+                        (uint16_t)priority, *(uint16_t *)(row + 0x6), *(int16_t *)(row + 0x8), 0,
+                        *(datum_index *)(actor + 0x34) & 0xffff, object_index, k_datum_index_none);
+                } else {
+                    found = ai_communication_select_speaker_by_team(mode == 2 ? 1 : 2, object_index, k_datum_index_none,
+                        9.0f, -1, (uint16_t)class_index, (uint16_t)priority, *(uint16_t *)(row + 0x6),
+                        *(int16_t *)(row + 0x8), 0, *(int16_t *)(object + 0xb8));
+                }
+                if (found == k_datum_index_none) {
+                    continue;
+                }
+                speaker_unit = *(datum_index *)((uint8_t *)actor_data->data + (found & 0xffff) * 0x724 + 0x18);
+            } else {
+                continue;
             }
         }
-advance:
-        row = row + 1;
-        row_index = row_index + 1;
-    } while (row->event_id != -1);
+        if (speaker_unit == k_datum_index_none) {
+            continue;
+        }
+        speaker = OBJECT_DATA(speaker_unit);
+        if (*(datum_index *)(speaker + 0x218) != k_datum_index_none) {
+            continue;
+        }
+        if (!force) {
+            float probability = *(float *)(row + 0x10);
+
+            if (!(probability > 0.0f) || !(random_real() < probability)) {
+                continue;
+            }
+        }
+        if (*(ai_communication_line_predicate *)(row + 0x20) != 0 &&
+            !(*(ai_communication_line_predicate *)(row + 0x20))(object_index, event_record,
+                                                                 *(datum_index *)(speaker + 0x1f4))) {
+            continue;
+        }
+        dialogue_index = (int16_t)*(uint16_t *)(row + 0x6);
+        delay = (int16_t)(int32_t)(*(float *)(row + 0x18) * 30.0f);
+        status = unit_animation_change_priority_check(speaker_unit, 0, priority, 1, &unused_out, &dialogue_index, &chain);
+        if ((int16_t)status <= 0) {
+            continue;
+        }
+
+        // 0x42f18d: queue the line
+        {
+            uint8_t speech[0x30];       // [esp+0x28]
+
+            memset(speech, 0, sizeof(speech));
+            *(int16_t *)(speech + 0x00) = priority;
+            *(int16_t *)(speech + 0x02) = dialogue_index;
+            *(int32_t *)(speech + 0x04) = chain;
+            *(int16_t *)(speech + 0x08) = delay;
+            *(int16_t *)(speech + 0x0a) = (int16_t)(int32_t)(ai_communication_class_tail_seconds[class_index] * 30.0f);
+            *(int16_t *)(speech + 0x0c) = 0x18;
+            *(datum_index *)(speech + 0x10) = object_index;
+            *(int16_t *)(speech + 0x14) = -1;
+            *(int16_t *)(speech + 0x16) = -1;
+            *(int16_t *)(speech + 0x18) = -1;
+            speech[0x1a] = 1;
+            unit_commit_speech(speaker_unit, (unit_speech *)speech, (int16_t)status);
+            ai_communication_record_line_played(speaker_unit, priority, -1, (int16_t)row_index);
+            actor_issue_order_or_vocalize(k_datum_index_none, *(datum_index *)(speaker + 0x1f4), object_index, 8,
+                                          (int16_t)(uint16_t)ai_communication_class_follow_up[class_index]);
+        }
+        return;
+    }
 }
 
 #if 0

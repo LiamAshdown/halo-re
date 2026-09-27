@@ -44,9 +44,7 @@ extern double fsin(double x);
 extern double ftan(double x);
 
 extern void * actor_get_actor_definition(datum_index actor_index);     // 0x40fa70, this module
-extern uint8_t actor_target_is_visible_or_object_count_ok(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_target_is_visible_or_object_count_ok at 0x40f700
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
+extern uint8_t actor_target_is_visible_or_object_count_ok(datum_index actor_index, int16_t kind); // 0x40f700, EAX, stack
 extern void actor_choose_random_point_near(real_point3d *inout_point, float radius);                      // 0x40faf0, this module
 extern void actor_select_stance_offset_pair(datum_index actor_index, uint8_t *base, uint8_t **out_a, uint8_t **out_b); // 0x4106b0, this module
 extern datum_index actor_get_threat_weapon_object_index(datum_index actor_index);                // 0x4282c0
@@ -94,7 +92,7 @@ void actor_update_aim_wander(datum_index actor_index)
     variant = actor_get_actor_definition(actor_index);
     want_bombardment = 0;
 
-    if (self->unknown_604 != 0 && actor_target_is_visible_or_object_count_ok(variant->special_fire_situation) == 0) {
+    if (self->unknown_604 != 0 && actor_target_is_visible_or_object_count_ok(actor_index, variant->special_fire_situation) == 0) {
         self->unknown_604 = 0;
     }
     self->unknown_603 = self->unknown_604;

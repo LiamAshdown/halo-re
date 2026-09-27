@@ -1,5 +1,6 @@
 // object_damage_effect_dispatch
 // address 0x4f0250, size 56 bytes
+// rewrite confidence: 1.0 (FRAGMENT: 0x4f0250 is inside damage_effect_new_at_location 0x4f0010..0x4f028f, whose C covers this code; reached only by falling through from 0x4f024e)
 // name confidence: 0.2 (still named mdpi_encode by the inherited PDB, but
 // out/phase4/objects_types_notes.md: "Thin wrapper forwarding to the damage-effect placement
 // routine effect_new_on_object_with_node_table; despite its inherited name it performs no encoding")

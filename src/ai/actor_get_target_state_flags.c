@@ -22,9 +22,8 @@ extern data_array *prop_data;  // 0x008802c0
 
 extern void actor_target_get_relationship_object(datum_index target_prop_index); // 0x41f3a0, this module,
                                                  // blam-cc: EAX -> target_prop_index
-extern uint8_t actor_firing_position_near_point(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_firing_position_near_point at 0x412960
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
+extern uint8_t actor_firing_position_near_point(datum_index actor_index, real_point3d *point,
+    uint32_t start_surface_index, int16_t kind); // 0x412960, EDX, stack
 
 void actor_get_target_state_flags(int16_t ax_mode, int16_t cx_mode, uint8_t shared_flag, uint32_t actor_index, int16_t mode_b, char force_c, char force_d, uint8_t *out_a, char *out_in_e, uint8_t *out_f, uint8_t *out_g, uint8_t *out_h, uint8_t *out_i)
 {
@@ -64,7 +63,7 @@ void actor_get_target_state_flags(int16_t ax_mode, int16_t cx_mode, uint8_t shar
                     // 0x40cd7a loads EAX from actor.target_unit_index just before this call.
                     actor_target_get_relationship_object(a->target_unit_index);
                 }
-                *out_f = actor_firing_position_near_point((uint8_t *)p + 0xf0, *(uint32_t *)((uint8_t *)p + 0xec), 1);
+                *out_f = actor_firing_position_near_point(actor_index, (real_point3d *)((uint8_t *)p + 0xf0), *(uint32_t *)((uint8_t *)p + 0xec), 1);
             }
         } else {
             *out_a = 0;

@@ -18,11 +18,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include <string.h>
 
 extern data_array *actor_data; // 0x00880360
-extern int32_t actor_build_order_look(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_build_order_look at 0x4046c0
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
+extern int32_t actor_build_order_look(uint32_t actor_index, actor_order *order, actor_look_request *request); // 0x4046c0, EAX, ESI, EBX
 extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0, this module
 
 // blam-cc: EDI -> actor_index
@@ -34,8 +33,12 @@ uint32_t actor_flee_look_away(datum_index actor_index)
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
     result = 0;
     if (self->mode == _actor_mode_death && self->mode_data[0xab - 0x9c] != 0) {
-        actor_build_order_look(actor_index);
-        actor_set_mode(actor_index, 0, (void *)0); // UNSURE: mode/mode_data args not visible in the decompilation
+        // 0x40d4f0: a look order from the flee mode's request (+0x9c), then guard (mode 6) with it
+        uint8_t order[0x84];    // [esp+0x8]
+
+        memset(order, 0, sizeof(order));
+        actor_build_order_look(actor_index, (actor_order *)order, (actor_look_request *)((uint8_t *)self + 0x9c));
+        actor_set_mode(actor_index, 6, order);
         result = 1;
     }
     return result;

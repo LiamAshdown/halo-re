@@ -1405,3 +1405,14 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - Grenade path: actor_solve_grenade_lob 0x410780 and actor_commit_grenade_toss 0x411180 (0.15 -> 0.9) passed
   no register operands to the arc check 0x42b5d0 (velocity EAX, actor ECX, start EDX) and to the launch-velocity
   solver; fixed / rewritten. actor_get_grenade_launch_velocity 0x410980 verified.
+- NEW scan scratchpad/unproto.py: calls through unprototyped externs with the wrong argument count (14 in the
+  gameplay modules). Fixed:
+  - object_damage_apply_line_of_sight 0x4eddb0 REWRITTEN (0.3 -> 0.85): one-argument cross product (crash on the
+    first explosion reaching a visible unit), unprototyped segment tests; falloff / team / difficulty rules.
+  - object_damage_effect_dispatch 0x4f0250 is a FRAGMENT of damage_effect_new_at_location (marked).
+  - objects_garbage_collection: block_list_compact now gets the object pool (EBX) at all three sites (was argless).
+  - actor_update_aim_wander / actor_get_target_state_flags / actor_flee_look_away: missing actor operands; the
+    flee look-away now builds its look order and switches to guard (mode 6), not mode 0 with NULL.
+  - ai_communication_play_event_line 0x42eee0 REWRITTEN (0.35 -> 0.85).
+- OPEN from unproto: antenna/glow build_sprite 8 vs 11 (render), lightning_render cross product 1 vs 3,
+  light_transient_add pack-normal 0 vs 1, unit_apply_network_control_update datum_get (MP).
