@@ -23,7 +23,7 @@
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern uint8_t *globals_tag_data;    // 0x00746fa0
-extern int32_t game_connection_role; // 0x00719720
+extern int16_t game_connection_role; // 0x00719720 (a WORD; 0x719722 is the screenshot counter)
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc, an ARRAY (was a pointer variable)
 
 extern void object_placement_data_initialize(object_placement_data *placement,

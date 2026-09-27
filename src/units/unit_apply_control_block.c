@@ -20,7 +20,7 @@
 #include "units.h"
 
 extern data_array *object_data; // 0x008603b0
-extern int32_t game_connection_role; // 0x00719720, DAT_00719720 (1 = client, 2 = server)
+extern int16_t game_connection_role; // 0x00719720 (a WORD; 0x719722 is the screenshot counter), DAT_00719720 (1 = client, 2 = server)
 
 void unit_apply_control_block(uint32_t unit_index, const unit_control_data *control, int32_t source_id) // blam-cc: see file header
 {

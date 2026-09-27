@@ -38,7 +38,7 @@ extern data_array *player_data;     // 0x0087a480
 extern tag_instance *tag_instances; // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
 extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
-extern uint8_t friendly_fire_matrix[100 / 8 + 1]; // 0x006b0b84 + 0xa4, UNSURE exact shape
+extern uint8_t *team_relationship_flags; // 0x006b0b84, a POINTER; +0xa4 the 10x10 friend bit matrix (dwords)
 
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340, UNSURE signature
 
@@ -109,7 +109,7 @@ void unit_record_recent_damage_and_react(uint32_t unit_index, float damage_amoun
             goto broadcast_check;
         }
         int32_t bit_index = team_index + self_team * 10;
-        hostile = 1 - ((friendly_fire_matrix[bit_index >> 5] & (1 << (bit_index & 0x1f))) != 0);
+        hostile = 1 - ((*(uint32_t *)(team_relationship_flags + 0xa4 + (bit_index >> 5) * 4) & (1u << (bit_index & 0x1f))) != 0); // 0x5683bf
     } else {
         hostile = self_team != team_index;
     }

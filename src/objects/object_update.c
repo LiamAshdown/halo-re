@@ -35,7 +35,7 @@
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern object_globals *object_globals_pointer; // 0x006b8cbc
-extern int32_t game_mode_or_role; // 0x00719720, UNSURE: foreign global
+extern int16_t game_mode_or_role; // 0x00719720 (a WORD; 0x719722 is the screenshot counter), UNSURE: foreign global
 extern real_vector3d *shared_zero_vector; // 0x00696714, a pointer variable per types/math.h
     // ("global_origin3d_pointer"); matches src/objects/flag_new.c's declaration style for the
     // same address.

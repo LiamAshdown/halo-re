@@ -14,7 +14,7 @@
 #include "units.h"
 
 extern data_array *object_data;      // 0x008603b0
-extern int32_t game_connection_role; // 0x00719720
+extern int16_t game_connection_role; // 0x00719720 (a WORD; 0x719722 is the screenshot counter)
 
 extern uint8_t weapon_is_out_of_ammo(uint32_t object_index); // 0x4c2c70, UNSURE signature
 extern void object_delete(uint32_t object_index);   // 0x4f5bd0, UNSURE exact signature

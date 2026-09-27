@@ -39,7 +39,7 @@ extern player_globals *local_player_globals; // 0x0087a478
 extern real_vector3d global_origin3d;  // 0x0065c230
 extern random_seed random_seed_global;    // 0x00719cd0
 extern int16_t random_point_table_count; // 0x006b7af8 (read with movsx from a word)
-extern real_point3d random_point_table[]; // 0x006b7af4 (a fixed array, not a pointer variable)
+extern real_point3d *random_point_table; // 0x006b7af4, a POINTER
 
 extern datum_index object_get_root_object_index(datum_index object_index); // 0x4f6fb0, blam-cc: ECX -> object_index
 extern uint8_t unit_find_placement_position(real_point3d *position, datum_index unit_handle, datum_index exclude_object,
@@ -120,7 +120,7 @@ uint8_t player_find_placement_position(uint32_t player_index, datum_index target
 
                     random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
                     index = (int16_t)(((int32_t)(random_seed_global >> 16) * (int32_t)random_point_table_count) >> 16);
-                    rand_vec = (real_vector3d *)(random_point_table + index * 0xc);
+                    rand_vec = (real_vector3d *)(random_point_table + index); // 12-byte entries; the draft scaled the index twice
                     probe.x = rand_vec->i * scale + basis.up.i; // UNSURE exact field mapping
                     probe.y = rand_vec->j * scale + basis.up.j;
                     probe.z = rand_vec->k * scale + basis.up.k;

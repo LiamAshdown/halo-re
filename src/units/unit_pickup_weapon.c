@@ -21,7 +21,7 @@
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern char *s_no_weapon_label;      // 0x0065512c, UNSURE exact text
-extern int32_t game_connection_role; // 0x00719720
+extern int16_t game_connection_role; // 0x00719720 (a WORD; 0x719722 is the screenshot counter)
 
 extern object * object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);         // 0x4f5de0, UNSURE signature

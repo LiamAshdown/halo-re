@@ -15,7 +15,7 @@
 #include "units.h"
 
 extern data_array *object_data;      // 0x008603b0
-extern int32_t game_connection_role; // 0x00719720
+extern int16_t game_connection_role; // 0x00719720 (a WORD; 0x719722 is the screenshot counter)
 
 extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code); // 0x492730, EAX, stack
 extern int32_t weapon_put_away(datum_index item_index, int8_t force); // 0x4c28f0, ESI, AL

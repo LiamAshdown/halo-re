@@ -28,7 +28,7 @@ extern uint8_t network_toggle_0087abc2; // 0x0087abc2
 extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern uint32_t game_mode_flags_0087aa00;    // 0x0087aa00
 extern uint32_t game_flags_006f1cc0;         // 0x006f1cc0
-extern int32_t game_connection_role;         // 0x00719720
+extern int16_t game_connection_role;         // 0x00719720 (a WORD; 0x719722 is the screenshot counter)
 
 extern real vector3d_normalize_with_length(real_vector3d *v);                      // 0x401990
 extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir);    // 0x4cd670, UNSURE signature

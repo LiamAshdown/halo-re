@@ -34,7 +34,7 @@ extern data_array *actor_data;     // 0x00880360
 extern data_array *prop_data;      // 0x008802c0
 extern data_array *object_data;    // 0x008603b0
 extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
-extern uint8_t team_relationship_flags; // 0x006b0b84, base of the 0x2d-dword team-relationship block
+extern uint8_t *team_relationship_flags; // 0x006b0b84, a POINTER to the team-relationship block (+0x94 / +0xa4 10x10 bit matrices); the draft used the pointer's own address as the block
 
 extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70
 extern uint8_t actor_target_update_active_flag(datum_index actor_index); // 0x41fc60, not yet rewritten
@@ -88,7 +88,7 @@ void ai_recompute_all_relationship_flags(void)
             if (current_game_engine == 0) {
                 if (-1 < actor_team && actor_team < 10 && -1 < object_team && object_team < 10) {
                     int32_t pair = (int32_t)object_team + actor_team * 10;
-                    uint32_t bit = *(uint32_t *)(&team_relationship_flags + 0xa4 + (pair >> 5) * 4);
+                    uint32_t bit = *(uint32_t *)(team_relationship_flags + 0xa4 + (pair >> 5) * 4);
                     hostile = 1 - ((bit & (1u << (pair & 0x1f))) != 0);
                 }
             } else {
@@ -99,7 +99,7 @@ void ai_recompute_all_relationship_flags(void)
             marked = 0;
             if (-1 < actor_team && actor_team < 10 && -1 < object_team && object_team < 10) {
                 int32_t pair = (int32_t)object_team + actor_team * 10;
-                uint32_t bit = *(uint32_t *)(&team_relationship_flags + 0x94 + (pair >> 5) * 4);
+                uint32_t bit = *(uint32_t *)(team_relationship_flags + 0x94 + (pair >> 5) * 4);
                 marked = (bit & (1u << (pair & 0x1f))) != 0;
             }
             p->unknown_61 = marked;

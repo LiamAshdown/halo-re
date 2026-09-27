@@ -1470,3 +1470,19 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   the tag index, [0x719720] compared as a dword, forward.k unset, object_delete_unparented missing its EDI operand.
 - OPEN (MP): game_engine_koth_submit_hill_marker_geometry default_axis_b 0x686b0c is a pointer declared as a vector.
 - Pre-existing: select_players_to_display.c(114) C4716 must return a value (game module warning).
+- ptrscan2 widened (indexed derefs, init stores allowed). NEW real bugs, fixed:
+  - 0x6b0b84 is a POINTER to the team-relationship block. ai_recompute_all_relationship_flags (the prop hostile flag
+    +0x60 and +0x61 for EVERY actor/prop pair), ai_communication_select_speaker_by_team and
+    unit_record_recent_damage_and_react (friendly fire test) read the 10x10 bit matrices at 0x6b0b84 + 0x94 / 0xa4
+    in static memory instead of through the pointer -- AI friend/enemy classification was garbage. HIGH IMPACT on
+    AI behaviour in a10 (marines / crew vs player). Candidate for the vanishing / misbehaving NPC.
+  - 0x6b7af4 random_point_table is a POINTER (count word at 0x6b7af8): random_get_table_point returned static
+    garbage; player_find_placement_position also scaled the index twice.
+- 0x719720 (game connection word) declared int32 in 7 files (object_update, unit drop/pickup/throw, control block);
+  now int16 (0x719722 is the screenshot counter, so it only mattered after a screenshot).
+- False positives checked: cluster reference groups (struct, first field a pointer), game_time / game_state_cursor
+  (ints cast at use), rasterizer_effects slot array.
+- OPEN (widthscan.py): other WIDE / NARROW scalar globals mostly in UI / networking / rasterizer debug toggles;
+  gameplay ones left: weather_instance_count 0x6b0ae0 (int32 vs word), 0x71973c in main_switch_structure_bsp (int32
+  vs byte), 0x689450 object_compute_level_of_detail_pixels (int32 vs word), 0x7196d8 game_state_load_checkpoint
+  (uint16 vs dword).
