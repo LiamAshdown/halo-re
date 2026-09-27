@@ -1,6 +1,6 @@
 // actor_check_step_obstruction  (Ghidra: actor_check_step_obstruction, renamed)
 // address 0x417bb0, size 661 bytes
-// name confidence: 0.25  rewrite confidence: 0.25 (best-effort; several callee signatures
+// name confidence: 0.25  rewrite confidence: 0.85 (REWRITTEN/verified end to end against 0x417bb0; fixed the inverted second-probe result) (best-effort; several callee signatures
 // guessed from the visible stack args alone, no disassembly cross-check on this file)
 // evidence: only reachable when actor.flying is clear; projects a step point along a
 // caller-supplied 2D direction from body_position, runs a trace (path_find_test_segment_unobstructed) against it,
@@ -118,7 +118,9 @@ uint8_t actor_check_step_obstruction(datum_index actor_index, real_vector2d *dir
                     // uVar3 before the first branch (`uVar3 = global_structure_collision_bsp;`) and hands that same
                     // uVar3 to the second call; the first rewrite substituted DAT_00746f9c.
                     clear2 = collision_bsp_query_segment_init(3, &probe, (ModelCollisionGeometryBSP *)global_structure_collision_bsp, 0, 0, &far_point, &down_step, 3.4028235e+38f); // 0x417e12
-                    if (clear2) {
+                    // FIXED (0x417e1a..0x417e1e): a hit (nonzero) keeps the step obstructed; only a
+                    //   miss clears it (mov [esp+0xe],al with al = 0). The draft had it inverted.
+                    if (!clear2) {
                         obstructed = 0;
                     }
                 }

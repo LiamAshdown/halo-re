@@ -1885,3 +1885,6 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - actor_targets_share_descriptor (0x40e380): FIXED (0.25 -> 0.9). In the type-0 case the binary compares the last known positions of each actor's current target prop (+0x270), within 0.7 m. The draft read a datum out of the mode data (+0xa8).
 - object_gather_light_list (0x4f2430): VERIFIED (0.85).
 - Relink: left unresolved 1, traps 128.
+- actor_check_step_obstruction (0x417bb0): verified end to end (0.25 -> 0.85). FIXED the inverted second probe. After the forward midpoint segment misses (obstructed, used_point_check), the binary casts step_up downward from the far end and clears the obstruction only when that misses; the draft cleared it on a hit. This affects actor_probe_step_direction and actor_find_danger_escape (AI stepping and escaping), and is a candidate for AI failing to walk around obstacles.
+- path_find_compute_heuristic (0x43a310): VERIFIED (0.9).
+- Relink: left unresolved 1, traps 128.

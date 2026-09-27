@@ -1,6 +1,6 @@
 // path_find_compute_heuristic  (Ghidra: path_find_compute_heuristic, renamed)
 // address 0x43a310, size 439 bytes
-// name confidence: 0.45  rewrite confidence: 0.25
+// name confidence: 0.45  rewrite confidence: 0.9 (VERIFIED against 0x43a310 (hash lookup, distance + leash, avoid-sphere secondary min, reversed-chain 0.8 look-ahead, not-found defaults))
 // evidence: types/ai.h path_find_node.position(+0x0c)/cost(+0x18)/unknown_1c(FLT_MAX
 //   sentinel)/unknown_20; path_find_context's unnamed +0x24 flag and +0x28 position (see
 //   path_find_set_avoid_sphere.c / path_find_request.have_avoid_sphere/avoid_position, whose fields this function reads back, confirming
