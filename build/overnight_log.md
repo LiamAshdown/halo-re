@@ -1731,3 +1731,6 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - unit_update_marker_traction_effects (0x575170) REWRITTEN 0.15 -> 0.85 (runs every vehicle tick: 20-byte buffer, wrong mass-point fields, t never read).
   - actor_choose_random_point_near (0x40faf0) 0.2 -> 0.85 (first cast origin is the input point, 20-byte buffer, t at +0x14).
   - actor_grenade_parabolic_path_clear: scratch 64 -> 0x50 bytes.
+- game_engine_update_local_player_look (0x472160) REWRITTEN 0.15 -> 0.85: the unit/seat camera block (camera + 8) now drives the pitch limits, the auto-level target and the tilt adjustment. Autolevelling and seat pitch limits were dead code before. The 0x6c-byte seat marker had been written into a 60-byte buffer, overflowing the stack whenever the player sat in a seat with a yaw range.
+- actor_target_data_acquire: scratch 0x30 -> 0x38 (actor_get_firing_positions writes 0x38; the frame slot is [esp+0x20] to the end).
+- chimera__spectate_fp_camera_position verified 0.85.

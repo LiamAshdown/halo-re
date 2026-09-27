@@ -1,6 +1,6 @@
 // game_engine_update_local_player_look  (Ghidra: FUN_00472160; renamed, no established name)
 // address 0x472160, size 1346 bytes
-// name confidence: 0.3   rewrite confidence: 0.15
+// name confidence: 0.3   rewrite confidence: 0.85 (REWRITTEN from objdump 0x472160..0x4726a1)
 // evidence: out/phase4/game_functions.md ("Updates a local player's look yaw/pitch each tick,
 // clamping against any vehicle seat facing constraints and limiting the per-tick turn rate");
 // modules.json ("Keep game, and keep it with 0x472020. ... resolves a player's unit index, seat
@@ -33,165 +33,171 @@ extern tag_instance *tag_instances;                            // 0x0087bc14
 
 // camera_basis_out now lives in types/game.h (folded there by the phase-4 review).
 
-extern void chimera__spectate_fp_camera_position(camera_basis_out *out, int16_t local_player_index); // this batch, 0x472020
-extern void value_step_toward_target(float *value, float target, float max_step); // this batch, 0x470d40
-extern real vector3d_angle_between_4cd4f0(void); // 0x4cd4f0, not in this batch; UNSURE args (register-passed)
-extern void object_get_node_local_transform(datum_index object_index, int32_t node_index, void *out_transform, int32_t unknown); // 0x4f6080, not in this batch; UNSURE args
+extern void chimera__spectate_fp_camera_position(camera_basis_out *out, int16_t local_player_index); // 0x472020, ESI, AX
+extern void value_step_toward_target(float *value, float target, float max_step); // 0x470d40, ECX, stack
+extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b); // 0x4cd4f0, ECX, EDX
+extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
+                                                void *marker, uint32_t flags); // 0x4f6080
 
 extern double atan2(double y, double x); // x87 FPATAN
 extern double cos(double x);
 extern double sin(double x);
 extern double sqrt(double x);            // x87 FSQRT
+extern double fabs(double x);
 
+static real look_wrap_angle(real a)
+{
+    if (!(a < 3.1415927f)) {
+        a -= 6.2831855f;
+    }
+    if (a <= -3.1415927f) {
+        a += 6.2831855f;
+    }
+    return a;
+}
+
+// REWRITTEN from objdump. yaw += yaw_delta. In a seat whose definition (unit tag +0x2e8, stride 0x11c) has a
+//   yaw range (+0xf0 / +0xf4), the seat marker (name at +0x24) gives the base heading atan2(forward.j,
+//   forward.i); a yaw outside [base + min, base + max] snaps to the nearer edge. The yaw is then wrapped into
+//   [0, 2pi]. With a unit camera block (camera + 8: +0x40 auto-level pitch, +0x44 / +0x48 pitch range), a
+//   non-zero range replaces the default +-1.4922565 limits. When seated and the unit's up.k is above 0.2, the
+//   limits and target are shifted by pi/2 minus the angle between the unit's up and the horizontal yaw
+//   direction, then clamped back to +-1.4922565. A non-zero target, or autolevelling, steps the pitch toward
+//   the target by |pitch - target| * 2/pi * |velocity| * (0.08, or the globals' autolevelling scale when the
+//   target is 0). The stored pitch limits move toward the new ones by at most 0.0122718 per tick, and
+//   pitch += pitch_delta is clamped between them. The draft never read the camera block (autolevelling and
+//   seat pitch limits were dead) and wrote the 0x6c-byte seat marker into a 60-byte buffer.
 // blam-cc: AX -> local_player_index, stack -> yaw_delta, pitch_delta
-// See the header UNSURE note.
 void game_engine_update_local_player_look(int16_t local_player_index, real yaw_delta, real pitch_delta)
 {
     local_player_control *look = &player_control_globals_ptr->local_players[local_player_index];
-    // CORRECTED (phase 4 review): Globals + 0x114 is player_control.pointer, not
-    // player_information (that is + 0x174); + 0x54 in it is look_autolevelling_scale.
-    GlobalsPlayerControl *player_control =
-        (GlobalsPlayerControl *)global_globals->player_control.pointer;
+    GlobalsPlayerControl *player_control = (GlobalsPlayerControl *)global_globals->player_control.pointer;
     real pitch_min = -1.4922565f;
     real pitch_max = 1.4922565f;
-    camera_basis_out camera; // UNSURE: unit/seat_index/marker_offset/position, see header
-    int32_t *seat_constraint = 0; // "local_7c" in Ghidra
+    camera_basis_out camera;
+    uint8_t *unit_camera;
+    uint8_t *unit;
 
     chimera__spectate_fp_camera_position(&camera, local_player_index);
     look->yaw = yaw_delta + look->yaw;
 
-    // UNSURE: reading camera.unit/seat_index/marker_offset back out requires knowing
-    // camera_basis_out's exact field order; modeled via raw offsets matching that struct's
-    // documented layout (unit@0, seat_index@4, marker_offset@8).
-    {
-        int16_t *raw = (int16_t *)&camera;
-        datum_index unit = *(datum_index *)&camera;
-        int16_t seat_index = raw[2];
-        int32_t *marker = *(int32_t **)((uint8_t *)&camera + 8);
+    if (camera.seat_index != -1) {
+        uint8_t *unit_object = (uint8_t *)((object_header *)object_headers->data)[camera.unit & 0xffff].data;
+        uint8_t *unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit_object & 0xffff].data;
+        uint8_t *seat = *(uint8_t **)(unit_tag + 0x2e8) + (int32_t)camera.seat_index * 0x11c;
+        real yaw_min = *(real *)(seat + 0xf0);
+        real yaw_max = *(real *)(seat + 0xf4);
 
-        if (seat_index != -1 && marker != 0 && (marker[0x3c] != 0 || marker[0x3d] != 0)) {
-            // marker+0xf0/+0xf4 as float offsets 0x3c/0x3d dwords
-            real *markerf = (real *)marker;
-            object *u = (object *)(*(void **)((uint8_t *)object_headers->data +
-                (uint32_t)(uint16_t)unit * object_headers->size + 8));
-            void *transform_out_scratch[15]; // Ghidra's local_6c[60 bytes]
-            real tf_j, tf_i; // Ghidra's local_2c/local_30
+        if (yaw_min != 0.0f || yaw_max != 0.0f) {
+            object_marker marker;
+            real base, a, b, span, forward_delta, back_delta;
 
-            object_get_node_local_transform(unit, (int32_t)((uint8_t *)marker - (uint8_t *)0 + 0x24),
-                transform_out_scratch, 1); // UNSURE: node index argument approximate
-            tf_j = ((real *)transform_out_scratch)[0]; // UNSURE: local_2c/local_30 mapping
-            tf_i = ((real *)transform_out_scratch)[1];
-
-            {
-                real base_angle = (real)atan2((double)tf_j, (double)tf_i);
-                real a = base_angle + markerf[0x3c];
-                real b = base_angle + markerf[0x3d];
-                real delta = b - a;
-                real forward_delta, back_delta, span;
-
-                if (delta >= 3.1415927f) { delta -= 6.2831855f; }
-                if (delta <= -3.1415927f) { delta += 6.2831855f; } // reduced idiom, see header
-
-                forward_delta = b - look->yaw;
-                if (forward_delta >= 3.1415927f) { forward_delta -= 6.2831855f; }
-                if (forward_delta <= -3.1415927f) { forward_delta += 6.2831855f; }
-
-                back_delta = look->yaw - a;
-                if (back_delta >= 3.1415927f) { back_delta -= 6.2831855f; }
-                if (back_delta <= -3.1415927f) { back_delta += 6.2831855f; }
-
-                if (delta < 0.0f) { delta += 6.2831855f; }
-                span = delta;
-
-                if ((forward_delta < 0.0f || span <= forward_delta) &&
-                    (back_delta < 0.0f || span <= back_delta)) {
-                    if ((forward_delta < 0 ? -forward_delta : forward_delta) <=
-                        (back_delta < 0 ? -back_delta : back_delta)) {
-                        look->yaw = b;
-                    } else {
-                        look->yaw = a;
-                    }
+            object_get_node_local_transform(camera.unit, (char *)(seat + 0x24), &marker, 1);
+            base = (real)atan2((double)*(real *)((uint8_t *)&marker + 0x40), (double)*(real *)((uint8_t *)&marker + 0x3c));
+            a = base + yaw_min;
+            b = base + yaw_max;
+            span = look_wrap_angle(b - a);
+            forward_delta = look_wrap_angle(b - look->yaw);
+            back_delta = look_wrap_angle(look->yaw - a);
+            if (!(span >= 0.0f)) {
+                span += 6.2831855f;
+            }
+            if (!((forward_delta >= 0.0f && forward_delta < span) || (back_delta >= 0.0f && back_delta < span))) {
+                if ((real)fabs((double)forward_delta) <= (real)fabs((double)back_delta)) {
+                    look->yaw = b;
+                } else {
+                    look->yaw = a;
                 }
             }
         }
     }
 
-    if (look->yaw < 0.0f) {
-        do { look->yaw += 6.2831855f; } while (look->yaw < 0.0f);
+    if (!(look->yaw >= 0.0f)) {
+        real yaw = look->yaw;
+        do {
+            yaw += 6.2831855f;
+        } while (!(yaw >= 0.0f));
+        look->yaw = yaw;
     }
     if (look->yaw > 6.2831855f) {
-        do { look->yaw -= 6.2831855f; } while (look->yaw > 6.2831855f);
+        real yaw = look->yaw;
+        do {
+            yaw -= 6.2831855f;
+        } while (yaw > 6.2831855f);
+        look->yaw = yaw;
     }
 
-    if (seat_constraint != 0) {
-        // UNSURE: seat_constraint ("local_7c") is never actually resolved to non-NULL above in
-        // this transcription (see the marker/camera UNSURE block); this branch is preserved for
-        // fidelity to Ghidra's control flow but is effectively dead pending a full disassembly
-        // pass of this function.
-        object *u = (object *)(*(void **)((uint8_t *)object_headers->data +
-            (uint32_t)(uint16_t)0 * object_headers->size + 8));
-        real target_pitch = *(real *)((uint8_t *)seat_constraint + 0x40);
+    unit_camera = camera.marker_offset;
+    if (unit_camera != 0) {
+        real target_pitch = *(real *)(unit_camera + 0x40);
 
-        if (*(real *)((uint8_t *)seat_constraint + 0x48) != 0.0f ||
-            *(real *)((uint8_t *)seat_constraint + 0x44) != 0.0f) {
-            pitch_min = *(real *)((uint8_t *)seat_constraint + 0x44);
-            pitch_max = *(real *)((uint8_t *)seat_constraint + 0x48);
+        unit = (uint8_t *)((object_header *)object_headers->data)[camera.unit & 0xffff].data;
+        if (*(real *)(unit_camera + 0x48) != 0.0f || *(real *)(unit_camera + 0x44) != 0.0f) {
+            pitch_min = *(real *)(unit_camera + 0x44);
+            pitch_max = *(real *)(unit_camera + 0x48);
+            if (camera.seat_index != -1 && *(real *)(unit + 0x88) > 0.2f) {
+                real_vector3d heading;
+                real adjust;
 
-            if (*(real *)((uint8_t *)u + 0x88) > 0.2f) {
-                real adjust = 1.5707964f - vector3d_angle_between_4cd4f0();
-
-                pitch_min -= adjust;
-                pitch_max -= adjust;
-                target_pitch -= adjust;
+                heading.i = (real)cos((double)look->yaw) * 1.0f; // cos(0.0) of the double at 0x672c08
+                heading.j = (real)sin((double)look->yaw) * 1.0f;
+                heading.k = 0.0f;                               // sin(0.0)
+                adjust = 1.5707964f - vector3d_angle_between_4cd4f0((real_vector3d *)(unit + 0x80), &heading);
+                pitch_min = pitch_min - adjust;
+                pitch_max = pitch_max - adjust;
+                target_pitch = target_pitch - adjust;
             }
-            if (pitch_min < -1.4922565f) { pitch_min = -1.4922565f; }
-            else if (pitch_min > 1.4922565f) { pitch_min = 1.4922565f; }
-            if (pitch_max < -1.4922565f) { pitch_max = -1.4922565f; }
-            else if (pitch_max > 1.4922565f) { pitch_max = 1.4922565f; }
+            if (!(pitch_min >= -1.4922565f)) {
+                pitch_min = -1.4922565f;
+            } else if (!(pitch_min <= 1.4922565f)) {
+                pitch_min = 1.4922565f;
+            }
+            if (!(pitch_max >= -1.4922565f)) {
+                pitch_max = -1.4922565f;
+            } else if (!(pitch_max <= 1.4922565f)) {
+                pitch_max = 1.4922565f;
+            }
         }
-
-        if (target_pitch != 0.0f || look->autolevelling_active != 0) {
-            real angle_frac = (look->pitch - target_pitch < 0 ? -(look->pitch - target_pitch)
-                : (look->pitch - target_pitch)) * 0.63661975f;
-            real fx = *(real *)((uint8_t *)u + 0x68);
-            real fy = *(real *)((uint8_t *)u + 0x6c);
-            real fz = *(real *)((uint8_t *)u + 0x70);
+        if (target_pitch != 0.0f || look->autolevelling_active) {
+            real error = (real)(fabs((double)(look->pitch - target_pitch)) * 0.6366197466850281);
+            real_vector3d *velocity = (real_vector3d *)(unit + 0x68);
+            real speed = (real)sqrt((double)(velocity->i * velocity->i + velocity->j * velocity->j +
+                velocity->k * velocity->k));
             real step;
 
-            if (target_pitch == 0.0f) {
-                real len = (real)sqrt((double)(fx * fx + fy * fy + fz * fz));
-
-                step = len * player_control->look_autolevelling_scale * angle_frac;
+            if (target_pitch != 0.0f) {
+                step = speed * error * 0.08f;
             } else {
-                real len = (real)sqrt((double)(fy * fy + fz * fz + fx * fx));
-
-                step = len * angle_frac * 0.08f;
+                step = speed * player_control->look_autolevelling_scale * error;
             }
             value_step_toward_target(&look->pitch, target_pitch, step);
         }
     }
 
-    pitch_min = pitch_min - look->pitch_minimum;
-    if (pitch_min < -0.012271847f) { pitch_min = -0.012271847f; }
-    else if (pitch_min > 0.012271847f) { pitch_min = 0.012271847f; }
-    look->pitch_minimum = pitch_min + look->pitch_minimum;
-
-    pitch_max = pitch_max - look->pitch_maximum;
-    if (pitch_max < -0.012271847f) { pitch_max = -0.012271847f; }
-    else if (pitch_max > 0.012271847f) { pitch_max = 0.012271847f; }
-    look->pitch_maximum = pitch_max + look->pitch_maximum;
+    {
+        real d = pitch_min - look->pitch_minimum;
+        if (!(d >= -0.012271847f)) {
+            d = -0.012271847f;
+        } else if (!(d <= 0.012271847f)) {
+            d = 0.012271847f;
+        }
+        look->pitch_minimum = d + look->pitch_minimum;
+        d = pitch_max - look->pitch_maximum;
+        if (!(d >= -0.012271847f)) {
+            d = -0.012271847f;
+        } else if (!(d <= 0.012271847f)) {
+            d = 0.012271847f;
+        }
+        look->pitch_maximum = d + look->pitch_maximum;
+    }
 
     pitch_delta = pitch_delta + look->pitch;
     look->pitch = pitch_delta;
-    if (look->pitch_minimum <= pitch_delta) {
-        if (pitch_delta <= look->pitch_maximum) {
-            look->pitch = pitch_delta;
-            return;
-        }
+    if (!(pitch_delta >= look->pitch_minimum)) {
+        look->pitch = look->pitch_minimum;
+    } else if (!(pitch_delta <= look->pitch_maximum)) {
         look->pitch = look->pitch_maximum;
-        return;
     }
-    look->pitch = look->pitch_minimum;
 }
 
 #if 0

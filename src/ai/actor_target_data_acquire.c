@@ -49,7 +49,7 @@ uint8_t actor_target_data_acquire(datum_index actor_index, datum_index object_in
     datum_index resolved;
     datum_index current;
     prop *target;
-    uint8_t scratch[0x30]; // [esp+0x20]
+    uint8_t scratch[0x38]; // [esp+0x20] to the end of the frame: actor_get_firing_positions writes 0x38 bytes (was 0x30)
 
     resolved = actor_find_or_create_shared_prop(object_index, actor_index, 1, 0);
     if (resolved == k_datum_index_none) {

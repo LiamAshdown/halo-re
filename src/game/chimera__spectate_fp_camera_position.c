@@ -1,7 +1,7 @@
 // chimera__spectate_fp_camera_position  (Ghidra: chimera__spectate_fp_camera_position, already
 // named)
 // address 0x472020, size 222 bytes
-// name confidence: 0.5   rewrite confidence: 0.35
+// name confidence: 0.5   rewrite confidence: 0.85 (VERIFIED against objdump 0x472020..0x4720fd; +8 is the seat (+0x84) or unit (+0x1a8) camera block)
 // evidence: out/phase4/game_functions.md ("Computes the first-person camera object/offset for a
 // local player's controlled unit, preferring the currently held weapon's camera marker over the
 // unit's own"); modules.json's own evidence for this address ("resolves a player's unit index,
