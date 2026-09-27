@@ -1,39 +1,17 @@
-// item_update  (Ghidra: item_update, already named via cea-pdb hint on the shared "ground
-// point" string, and functions.md's own summary)
+// item_update  (Ghidra: item_update, already named via cea-pdb hint on the shared "ground point" string)
 // address 0x4bc5c0, size 2444 bytes
-// name confidence: 0.75   rewrite confidence: 0.60 (raised by the phase-4 verification pass, which
-//   re-derived this function against objdump disassembly rather than the decompilation; see the
-//   notes in the body) (by far the largest function in this batch)
-// evidence: types/items.h documents almost every field this function touches, field by field,
-//   in its item_data section (flags bits 0x01/0x04/0x08/0x10/0x20, detonation_countdown,
-//   resting_surface_index/resting_bsp_index, ignore_object_index, held_game_time,
-//   resting_object_index/contact_point, rotation_axis/rotation_sine/rotation_cosine) -- this
-//   rewrite follows that mapping directly; types/objects.h object (flags 0x010, position 0x05c,
-//   velocity 0x068, forward 0x074, up 0x080, angular_velocity 0x08c, parent_object 0x11c),
-//   object_type_mask (_object_mask_scenery | _object_mask_device = 0x3c0); types/tags.h Item
-//   (item_flags 0x17c bit 0 = always_maintains_z_up, bit 2 = unaffected_by_gravity;
-//   material_effects.tag_id at 0x254, collision_sound.tag_id at 0x264).
-// register convention: already a plain __cdecl `int item_update(uint item_index)` in Ghidra's
-//   own output; no unrecognized registers at the top level.
-// UNSURE (extensive, function-wide, matching the same tradeoff src/objects/object_apply_damage.c
-//   documents for its own largest/most opaque function): Ghidra elides essentially every
-//   argument to FUN_00401a20 (the swept collision test -- this codebase already treats it as
-//   opaque in src/units/unit_find_placement_position.c: "an unresolved collision/physics-module
-//   ... preserved as opaque calls with the exact arguments Ghidra shows"), to
-//   object_recompute_basis_from_marker_delta and vector3d_rotate_about_axis in the rotation-tail
-//   block, and to any_local_player_within_10_units/material_effects_play_at_marker/object_collision_test_cluster_group/sound_start_at_location/FUN_00ffda0 (sound/effect
-//   and material-lookup helpers entirely outside this module's address range). Rather than
-//   reconstructing a plausible-but-unverified register binding for each, this rewrite keeps
-//   Ghidra's own local-variable shapes (raw offset structs with a comment, not invented field
-//   names) for the collision-result record and the rotation-tail block, and preserves every
-//   opaque call with only the arguments Ghidra actually shows, per this task's priority of
-//   literal control-flow/arithmetic preservation over readability when the two are in tension.
-//   The object.flags bit this function gates on (0x800) is named _object_needs_cluster_update_bit
-//   in types/objects.h from unrelated evidence; its use as the top-level "should this item even
-//   update" gate here does not obviously match that name, and is preserved literally rather than
-//   guessed at.
-// reconciled: R04 0x006f1d20 uint8_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
-// reconciled: R04 follow-up: game.h is now included, so the local extern void *game_time_globals (0x006f1d6c) became game.h game_time_globals *game_time
+// name confidence: 0.7   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x4bc5c0..0x4bcf4b. The draft's tumble tail called the cross product and normaliser with
+//   NULL pointers and the rotations without vectors (a crash for every tumbling item: dropped weapons and
+//   equipment), and several helpers (marker address, inverse transform, material effects, cluster tests, sound)
+//   without their operands. Stack: item. For a free item: upright tags are stood up; a moving item sweeps one tick
+//   of velocity (gravity unless tag flag 4), plays its material effect near a local player and its collision
+//   sound, settles on a floor (structure or a static object, normal.k > 0.7071, approach < 0.05) or bounces
+//   (-1.4 n.v, at most 1.5 off objects), and is relinked in the swept leaf; a resting item falls when its breakable
+//   surface or supporting object goes away, else follows the support, its spin decaying. A tumbling item (flag 4)
+//   turns its basis (about the "ground point" when at rest in single player). Then the detonation countdown and
+//   the held time.
+// blam-cc: stack -> item_index
 
 #include "tags.h"
 #include "memory.h"
@@ -44,339 +22,266 @@
 #include "items.h"
 #include "projectiles.h" // collision_result
 #include "effects.h"
+#include "sound.h"
+#include "physics.h"
 
-extern data_array *object_data; // 0x008603b0
-extern tag_instance *tag_instances; // 0x0087bc14
-extern real_vector3d *global_up3d_pointer; // 0x00696720
-extern real_vector3d *global_forward3d_pointer; // 0x00696718, UNSURE name: same shape as
-    // global_up3d_pointer, used here as the "always upright" forward fallback
-extern real_point3d *global_origin3d_pointer; // 0x00696714 -> 0x0065c230, (0,0,0); named in
-    // types/math.h. Copied verbatim into the sound_start_at_location bundle's third vector slot, i.e. that
-    // slot is simply zeroed.
-extern real_vector3d *global_reference_vector_0069672c; // 0x0069672c, UNSURE name/role: scaled
-    // by a per-tick gravity-ish constant when a resting surface goes away underneath the item
-extern real gravity_per_tick_0069c52c; // 0x0069c52c, UNSURE name: 0.0035651792, subtracted from
-    // vertical velocity once per tick while the Item tag does not have unaffected_by_gravity
-extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
-extern int16_t network_game_mode; // 0x00719720, UNSURE name: 0 local/authoritative
+extern data_array *object_data;        // 0x008603b0
+extern tag_instance *tag_instances;    // 0x0087bc14
+extern game_time_globals *game_time;   // 0x006f1d6c
+extern void *current_game_engine;      // 0x006f1d20
+extern int16_t game_connection_role;   // 0x00719720
 extern int16_t global_structure_bsp_index; // 0x0069e8d8
-extern uint8_t global_structure_collision_bsp[]; // 0x00746f98, see item_accelerate.c
-extern game_time_globals *game_time; // 0x006f1d6c, game.h; +0x0c game_time is the tick
+extern uint8_t *global_structure_collision_bsp; // 0x00746f98, +0x40 the surfaces (0xc each)
+extern real_vector3d *global_zero_vector3d_pointer; // 0x00696714
+extern real_vector3d *global_forward3d_pointer;     // 0x00696718
+extern real_vector3d *global_up3d_pointer;          // 0x00696720
+extern real_vector3d *global_down3d_pointer;        // 0x0069672c
+extern float global_gravity;           // 0x0069c52c
+extern char s_ground_point_marker[];   // 0x0066b180 "ground point"
 
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern void object_list_membership_set(uint32_t object_index, char add); // 0x4f7450, objects module
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
-    object_marker *marker, uint32_t flags); // 0x4f6080
+extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, EAX, ECX, stack
+extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820
+extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t flags,
+    uint32_t exclude_object_index, collision_result *result); // 0x401a20, EAX, ECX, stack
+extern uint8_t any_local_player_within_10_units(const real_point3d *query_point); // 0x453330, EDX
+extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index,
+    uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset); // 0x453490, EAX, stack, EDX, EDI
+extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale); // 0x543d80
+extern void item_align_to_normal_and_point(real_point3d *out_position, uint32_t item_index, real_vector3d *normal,
+    real_point3d *point); // 0x4bd5d0, EAX, ECX, stack
+extern void object_list_membership_set(uint32_t object_index, char add); // 0x4f7450, ECX, stack
+extern real_matrix4x3 *object_get_node_marker_address(uint32_t object_index, int16_t node_index); // 0x4f6000, EAX, stack
+extern void matrix4x3_inverse_transform_point(real_matrix4x3 *m, real_point3d *out, real_point3d *point); // 0x4cbf80, ECX, EDX, ESI
+extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0, EAX, EDX, stack
+extern void item_compute_rotation(uint32_t object_index); // 0x4bd500, EAX
+extern uint8_t object_collision_test_cluster_group(uint32_t flags, real_point3d *position, uint32_t exclude_object_index); // 0x505490, stack, EDI
 extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index,
-    bsp_leaf_reference *location); // 0x4f5350, ESI, EDI, stack (location may be 0)
-extern void object_delete(uint32_t object_index); // 0x4f5bd0
-extern void item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_detonation_timer); // 0x4bd080, this batch
-extern void item_compute_rotation(uint32_t object_index); // 0x4bd500, this batch, EAX -> object_index
-extern void item_align_to_normal_and_point(real_point3d *out_position, uint32_t item_index,
-    real_vector3d *normal, real_point3d *point); // 0x4bd5d0, this batch
+    bsp_leaf_reference *location); // 0x4f5350, ESI, EDI, stack
+extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
+    uint32_t param_4); // 0x4f6080
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
+extern int8_t breakable_surface_is_intact(int16_t bit_index); // 0x4ffda0, AX
+extern void item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_detonation_timer); // 0x4bd080, EAX, stack
+extern void object_recompute_basis_from_marker_delta(object *obj, object_marker *marker, real_matrix4x3 *output_matrix); // 0x4f62f0, EAX, stack
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
     datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
-    const ColorRGB *color, const effect_tint_source *tint_source);
-    // 0x4507a0, blam-cc: EAX -> creator_object_index, ECX -> definition_index, stack -> the other six
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
-extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand); // 0x4052c0
-extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle,
-    real cos_angle); // 0x4cd820, the four-argument form src/math/vector3d_rotate_about_axis.c
-    // establishes. UNSURE: Ghidra recovered only the two stack arguments at both call sites
-    // below -- v in EAX and axis in ECX are hidden -- so the two pointers are passed as 0.
-extern void object_recompute_basis_from_marker_delta(void *marker, void *output_matrix); // 0x4f62f0,
-    // UNSURE args: Ghidra recovered only 2 of the real 3 (obj in EAX is hidden here); real
-    // signature: src/items/item_align_to_normal_and_point.c
-extern void object_get_node_marker_address(uint32_t param_1); // 0x4f6000, UNSURE signature
-extern void matrix4x3_inverse_transform_point(void); // 0x4cbf80, UNSURE signature, 0 args visible
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *in, real_matrix4x3 *m); // 0x4cbde0
-extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t flags,
-    uint32_t exclude_object_index, collision_result *result); // 0x401a20, src/physics; blam-cc: EAX origin, ECX target, stack rest
-    // 0x401a20, UNSURE, opaque collision/physics-module routine (the world sweep); see
-    // src/units/unit_find_placement_position.c. The first argument is the literal collision
-    // mask 0x1ff3e9 -- objdump shows `push 0x1ff3e9` at 0x4bc714, the same literal
-    // object_collision_test_cluster_group is called with twice below -- NOT the global_structure_collision_bsp pointer.
-extern uint8_t any_local_player_within_10_units(const real_point3d *query_point); // 0x453330, src/game; blam-cc: EDX query_point
-extern void material_effects_play_at_marker(uint32_t a1, uint32_t a2, void *a3, void *a4); // 0x453490, opaque, out of range
-extern char breakable_surface_is_intact(void); // 0x4ffda0, AX -> surface index (R79)
-extern char object_collision_test_cluster_group(uint32_t mask, uint32_t item_index); // 0x505490, opaque, out of range
-extern double fabs(double x); // ABS is a single x87 FABS instruction
-extern double sqrt(double x); // a single x87 FSQRT instruction
-extern void sound_start_at_location(void *bundle, real *speed_factor); // 0x543d80, opaque, out of range;
-    // UNSURE args: Ghidra recovered only the speed pointer (2nd here) at this call site, the
-    // bundle built right before the call (position/speed/normal/forward/location) is passed
-    // through a hidden register
+    const ColorRGB *color, const effect_tint_source *tint_source); // 0x4507a0
+extern void object_delete(uint32_t object_index); // 0x4f5bd0, EAX
 
-// Per-tick physics update for a dropped/loose item. Airborne items are integrated forward,
-// swept against the world, and either bounce, come fully to rest, or slide; resting items are
-// re-validated against the surface/object they are resting on and either woken back up
-// (through item_accelerate) or left to decay their spin. A rotation-valid item then has its
-// forward/up basis rotated by its stored axis/sine/cosine. Finally the detonation countdown is
-// ticked (deleting the object at zero) and, while held, held_game_time is refreshed.
-int item_update(uint32_t item_index)
+extern double fabs(double x);
+extern double sqrt(double x);
+
+#define F(p, o) (*(float *)((p) + (o)))
+
+// the item falls: accelerate by one tick of gravity along global down
+static void item_start_falling(uint32_t item_index)
 {
-    object *obj = ((object_header *)object_data->data)[item_index & 0xffff].data;
-    item_data *item = (item_data *)((uint8_t *)obj + k_item_data_offset);
-    Item *tag = (Item *)tag_instances[obj->definition_tag & 0xffff].data;
+    real_vector3d fall;
 
-    if ((obj->flags & 0x800) != 0 && obj->parent_object == (datum_index)0xffffffff) {
-        // "always maintains z-up": snap the up vector back to world-up if it has drifted.
-        if ((tag->item_flags & 0x01) != 0 && 0.0001f <= (real)fabs((double)(obj->up.k - 1.0f))) {
-            real_vector3d cross1;
-            obj->up = *global_up3d_pointer;
-            vector3d_cross_product(&cross1, &obj->up, &obj->forward); // UNSURE operand order
-            vector3d_cross_product(&obj->forward, &cross1, &obj->up); // UNSURE operand order
-            if (vector3d_normalize_with_length(&obj->forward) == 0.0f) {
-                obj->forward = *global_forward3d_pointer;
+    fall.i = global_gravity * global_down3d_pointer->i;
+    fall.j = global_gravity * global_down3d_pointer->j;
+    fall.k = global_gravity * global_down3d_pointer->k;
+    item_accelerate(item_index, &fall, 0);
+}
+
+uint8_t item_update(uint32_t item_index)
+{
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[item_index & 0xffff].data;
+    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;   // [esp+0x28]
+    real_vector3d *forward = (real_vector3d *)(obj + 0x74);
+    real_vector3d *up = (real_vector3d *)(obj + 0x80);
+
+    if ((*(uint32_t *)(obj + 0x10) & 0x800) && *(datum_index *)(obj + 0x11c) == k_datum_index_none) {
+        // 0x4bc621: items that must stay upright are stood back up
+        if ((*(uint32_t *)(tag + 0x17c) & 1) && !(fabs(F(obj, 0x88) - 1.0f) < 9.999999747378752e-05)) {
+            real_vector3d side;
+
+            *up = *global_up3d_pointer;
+            vector3d_cross_product(&side, forward, up);
+            vector3d_cross_product(forward, up, &side);
+            if (vector3d_normalize_with_length(forward) == 0.0f) {
+                *forward = *global_forward3d_pointer;
             }
         }
 
-        if ((obj->flags & _object_at_rest_bit) == 0) {
-            // ---------------- airborne: integrate, sweep, land or bounce ----------------
-            real_vector3d velocity = obj->velocity;
-            real vertical = velocity.k;
-            real_point3d predicted;
-            uint8_t hit_record[0x40]; // UNSURE shape, see file header (FUN_00401a20's output)
+        if (!(*(uint32_t *)(obj + 0x10) & 0x20)) {
+            // 0x4bc6c4: moving
+            real_vector3d velocity = *(real_vector3d *)(obj + 0x68);   // [esp+0x1c]
+            real_point3d target;                                      // [esp+0xc]
+            collision_result hit;                                     // [esp+0x30]
 
-            if ((tag->item_flags & 0x04) == 0) { // NOT unaffected_by_gravity
-                vertical -= gravity_per_tick_0069c52c;
+            if (!(*(uint32_t *)(tag + 0x17c) & 4)) {
+                velocity.k -= global_gravity;
             }
-            predicted.x = obj->position.x + velocity.i;
-            predicted.y = obj->position.y + velocity.j;
-            predicted.z = obj->position.z + vertical;
+            target.x = velocity.i + F(obj, 0x5c);
+            target.y = velocity.j + F(obj, 0x60);
+            target.z = velocity.k + F(obj, 0x64);
+            if (collision_test_movement_segment_between_points((real_point3d *)(obj + 0x5c), &target, 0x1ff3e9,
+                                                               *(datum_index *)(obj + 0x200), &hit)) {
+                real speed_factor;                                    // [esp+0x18]
+                int16_t hit_type = *(int16_t *)&hit;
 
-            // 0x4bc700..0x4bc72f: EAX = &obj->position, ECX = &predicted
-            if (collision_test_movement_segment_between_points(&obj->position, &predicted, 0x1ff3e9,
-                    item->ignore_object_index, (collision_result *)hit_record) != 0) {
-                // Offsets into the sweep result record, all read out of the disassembly (the
-                // record base is `lea ecx,[esp+0x30]` at 0x4bc706, and every [esp+N] below is
-                // that base + N - 0x30 once the intervening pushes are accounted for):
-                //   +0x00 int16   surface type: 2 = structure BSP surface, 3 = another object
-                //   +0x0c  12     UNSURE: an opaque 12-byte "location" sub-record. Nothing in
-                //                 this function writes or reads its fields; it is handed
-                //                 straight to material_effects_play_at_marker (0x4bc7ee) and to
-                //                 object_set_position_and_relink (0x4bcb87). Most likely the
-                //                 leaf/cluster pair those two need, but that is not proven.
-                //   +0x18 point3d the contact point
-                //   +0x24 vector3d the surface normal
-                //   +0x34 uint32  UNSURE: passed to material_effects_play_at_marker as its second argument
-                //   +0x38 uint32  the object the item hit, when the type is 3
-                //   +0x44 int16   the BSP surface index, when the type is 2
-                int16_t hit_type = *(int16_t *)(hit_record + 0x00);
-                void *hit_location = (void *)(hit_record + 0x0c);
-                real_point3d *hit_point = (real_point3d *)(hit_record + 0x18);
-                real_vector3d *hit_normal = (real_vector3d *)(hit_record + 0x24);
-                uint32_t material_effect_arg = *(uint32_t *)(hit_record + 0x34);
-                uint32_t hit_object_index = *(uint32_t *)(hit_record + 0x38);
-                int16_t hit_surface_index = *(int16_t *)(hit_record + 0x44);
-                real speed_factor;
-
-                predicted.x = hit_normal->i * 0.05f + predicted.x;
-                predicted.y = hit_normal->j * 0.05f + predicted.y;
-                predicted.z = hit_normal->k * 0.05f + predicted.z;
-
-                speed_factor = (real)sqrt((double)(vertical * vertical + velocity.i * velocity.i +
-                    velocity.j * velocity.j)) * 10.0f;
-                // Written exactly as the original: the >= 0 test comes first, so a NaN
-                // speed falls to the else and is clamped to 0 rather than left as NaN.
-                if (0.0f <= speed_factor) {
-                    if (1.0f < speed_factor) {
-                        speed_factor = 1.0f;
-                    }
-                } else {
+                target.x += hit.plane.normal.i * 0.05f;
+                target.y += hit.plane.normal.j * 0.05f;
+                target.z += hit.plane.normal.k * 0.05f;
+                speed_factor = (real)sqrt(velocity.j * velocity.j + velocity.i * velocity.i + velocity.k * velocity.k) * 10.0f;
+                if (!(speed_factor >= 0.0f)) {
                     speed_factor = 0.0f;
+                } else if (!(speed_factor <= 1.0f)) {
+                    speed_factor = 1.0f;
                 }
+                if (*(datum_index *)(tag + 0x254) != k_datum_index_none && any_local_player_within_10_units(&hit.point)) {
+                    material_effects_play_at_marker(*(datum_index *)(tag + 0x254), 8, *(int16_t *)&hit.material_type,
+                                                    (uint32_t *)&hit.leaf, *(uint32_t *)&speed_factor, &hit.point,
+                                                    &hit.plane.normal);
+                }
+                if (*(datum_index *)(tag + 0x264) != k_datum_index_none) {
+                    sound_placement placement;                        // [esp+0xa0]
 
-                if (*(int32_t *)&tag->material_effects.tag_id != -1 && any_local_player_within_10_units(hit_point) != 0) { // 0x4bc7d8: EDX = record + 0x18
-                    material_effects_play_at_marker(8, material_effect_arg, hit_location, &speed_factor);
+                    *(real_point3d *)&placement.position = target;
+                    *(real_vector3d *)&placement.forward = hit.plane.normal;
+                    *(real_vector3d *)&placement.velocity = *global_zero_vector3d_pointer;
+                    placement.leaf_index = *(int32_t *)(obj + 0x98);
+                    *(int32_t *)&placement.cluster_index = *(int32_t *)(obj + 0x9c);
+                    sound_start_at_location(*(datum_index *)(tag + 0x264), &placement, speed_factor);
                 }
-                if (*(int32_t *)&tag->collision_sound.tag_id != -1) {
-                    // The bundle is built at 0x4bc81e..0x4bc8a2 into [esp+0xa0..0xd0]; the
-                    // field offsets below are that block's own, and the speed is NOT one of
-                    // them -- it is pushed as the separate stack argument.
-                    struct {
-                        real_point3d position;       // 0x00 the clearance-corrected position
-                        real_vector3d normal;        // 0x0c the surface normal
-                        real_point3d reference;      // 0x18 global_origin3d, i.e. always (0,0,0)
-                        datum_index location_leaf;   // 0x24 object.location_leaf_index
-                        uint32_t pad_28;             // 0x28 left at zero
-                        int16_t location_cluster;    // 0x2c object.location_cluster_index
-                    } sound_args;
-                    sound_args.position = predicted;
-                    sound_args.normal = *hit_normal;
-                    sound_args.reference = *global_origin3d_pointer;
-                    sound_args.pad_28 = 0;
-                    sound_args.location_leaf = obj->location_leaf_index;
-                    sound_args.location_cluster = obj->location_cluster_index;
-                    sound_start_at_location(&sound_args, &speed_factor);
-                }
+                if ((hit_type == 2 ||
+                     (hit_type == 3 &&
+                      ((1u << (((uint8_t *)object_data->data)[(hit.object_index & 0xffff) * 0xc + 3] & 0x1f)) & 0x3c0))) &&
+                    hit.plane.normal.k > 0.7071f &&
+                    -(hit.plane.normal.j * velocity.j + hit.plane.normal.i * velocity.i +
+                      hit.plane.normal.k * velocity.k) < 0.05f) {
+                    // 0x4bc935: settle on a floor
+                    real spin;
 
-                if ((hit_type != 2 &&
-                     (hit_type != 3 ||
-                      (((1 << (((object_header *)object_data->data)[hit_object_index & 0xffff].type & 0x1f))
-                        & (_object_mask_scenery | _object_mask_device)) == 0))) ||
-                    hit_normal->k <= 0.7071f ||
-                    0.05f <= -(hit_normal->k * vertical + hit_normal->i * velocity.i + hit_normal->j * velocity.j)) {
-                    // Glancing hit: bounce.
-                    real bounce = (hit_normal->i * velocity.i * -1.4f - hit_normal->j * velocity.j * 1.4f) -
-                        hit_normal->k * vertical * 1.4f;
-                    if (hit_type != 2 && 1.5f <= bounce) { // 0x4bcac3 fcomp: 1.5 <= bounce
-                        bounce = 1.5f;
-                    }
-                    velocity.i += hit_normal->i * bounce;
-                    velocity.j += hit_normal->j * bounce;
-                    vertical += hit_normal->k * bounce;
-                    predicted = *hit_point;
-                    if (object_collision_test_cluster_group(0x1ff3e9, item_index) != 0) {
-                        predicted.x = hit_normal->i * 0.05f + hit_point->x;
-                        predicted.y = hit_normal->j * 0.05f + hit_point->y;
-                        predicted.z = hit_normal->k * 0.05f + hit_point->z;
-                    }
-                    object_collision_test_cluster_group(0x1ff3e9, item_index);
-                } else {
-                    // Solid hit: come to rest on the surface.
-                    real spin_dot;
-                    predicted = *hit_point;
-                    // out_position is &predicted: 0x4bc957 is `lea eax,[esp+0x14]`, which after
-                    // the two pushes at 0x4bc94d/0x4bc956 is the same slot the position is
-                    // seeded into one instruction earlier and the same slot
-                    // object_set_position_and_relink reads at the end of the branch. So this
-                    // call refines `predicted` in place; it is not a discarded output.
-                    item_align_to_normal_and_point(&predicted, item_index, hit_normal, hit_point);
-                    spin_dot = hit_normal->i * obj->angular_velocity.i +
-                        hit_normal->k * obj->angular_velocity.k + hit_normal->j * obj->angular_velocity.j;
-                    obj->angular_velocity.i = hit_normal->i * spin_dot;
-                    obj->angular_velocity.j = hit_normal->j * spin_dot;
-                    obj->angular_velocity.k = spin_dot * hit_normal->k;
+                    target = hit.point;
+                    item_align_to_normal_and_point(&target, item_index, &hit.plane.normal, &hit.point);
+                    spin = hit.plane.normal.j * F(obj, 0x90) + hit.plane.normal.k * F(obj, 0x94) +
+                           hit.plane.normal.i * F(obj, 0x8c);
                     velocity.i = 0.0f;
                     velocity.j = 0.0f;
-                    vertical = 0.0f;
-
-                    if (current_game_engine == 0 && obj->owner_linkage == (uint32_t)0xffffffff) {
+                    velocity.k = 0.0f;
+                    F(obj, 0x8c) = hit.plane.normal.i * spin;
+                    F(obj, 0x90) = hit.plane.normal.j * spin;
+                    F(obj, 0x94) = spin * hit.plane.normal.k;
+                    if (current_game_engine == 0 && *(datum_index *)(obj + 0xc0) == k_datum_index_none) {
                         object_list_membership_set(item_index, 1);
                     }
-                    obj->flags |= _object_at_rest_bit;
-                    if (hit_type == 2) {
-                        item->flags |= _item_at_rest_on_structure_bit;
-                        item->resting_surface_index = hit_surface_index;
-                        item->resting_bsp_index = global_structure_bsp_index;
+                    *(uint32_t *)(obj + 0x10) |= 0x20;
+                    if (hit_type != 2) {
+                        *(uint32_t *)(obj + 0x1f4) |= 0x10;
+                        *(datum_index *)(obj + 0x208) = hit.object_index;
+                        matrix4x3_inverse_transform_point(object_get_node_marker_address(hit.object_index, 0),
+                                                          (real_point3d *)(obj + 0x20c), &hit.point);
                     } else {
-                        item->flags |= _item_at_rest_on_object_bit;
-                        item->resting_object_index = hit_object_index;
-                        // 0x4bca0b..0x4bca29: object_get_node_marker_address(0) returns the
-                        // hit object's marker matrix in EAX, then matrix4x3_inverse_transform_point
-                        // runs with ECX = that matrix, EDX = &item->contact_point and
-                        // ESI = hit_point, i.e. it stores the contact point in the hit object's
-                        // local space. UNSURE: the exact parameter order of both callees.
-                        object_get_node_marker_address(0);
-                        matrix4x3_inverse_transform_point(); // -> item->contact_point, from hit_point
+                        *(uint32_t *)(obj + 0x1f4) |= 8;
+                        *(int16_t *)(obj + 0x1fa) = *(int16_t *)((uint8_t *)&hit + 0x44);
+                        *(int16_t *)(obj + 0x1fc) = global_structure_bsp_index;
                     }
-                    item->rotation_axis = *hit_normal;
+                    *(real_vector3d *)(obj + 0x218) = hit.plane.normal;
                     item_compute_rotation(item_index);
-                    item->ignore_object_index = (datum_index)0xffffffff;
-                }
-            }
+                    *(datum_index *)(obj + 0x200) = k_datum_index_none;
+                } else {
+                    // 0x4bca89: bounce off (at most 1.5 off an object)
+                    real impulse = hit.plane.normal.i * velocity.i * -1.4f - hit.plane.normal.j * velocity.j * 1.4f -
+                                   hit.plane.normal.k * velocity.k * 1.4f;
 
-            obj->velocity.i = velocity.i;
-            obj->velocity.j = velocity.j;
-            obj->velocity.k = vertical;
-            // UNSURE: 0x4bcb8e pushes hit_location (the record's +0x0c block) as a third
-            // argument here, on top of ESI = &predicted and EDI = item_index. The extern below
-            // keeps the two-argument shape the rest of the codebase uses for this function, so
-            // that third argument is not expressible; it is the same block material_effects_play_at_marker gets.
-            object_set_position_and_relink(&predicted, item_index, (bsp_leaf_reference *)(hit_record + 0x0c)); // [esp+0x3c]
-        } else if ((tag->item_flags & 0x04) == 0) {
-            // ---------------- resting: re-validate the surface/object ----------------
-            object_marker marker;
-            uint32_t flags = item->flags;
-            object_get_node_local_transform(item_index, "ground point", &marker, 1);
-
-            if ((flags & _item_at_rest_on_structure_bit) == 0 ||
-                item->resting_surface_index == -1 ||
-                item->resting_bsp_index != global_structure_bsp_index) {
-                if ((flags & _item_at_rest_on_object_bit) != 0) {
-                    if (object_try_and_get(item->resting_object_index, 0xffffffff) == 0) {
-                        real_vector3d fall = {
-                            gravity_per_tick_0069c52c * global_reference_vector_0069672c->i,
-                            gravity_per_tick_0069c52c * global_reference_vector_0069672c->j,
-                            gravity_per_tick_0069c52c * global_reference_vector_0069672c->k
-                        };
-                        item->flags = flags & ~(uint32_t)_item_at_rest_on_object_bit;
-                        item_accelerate(item_index, &fall, 0);
-                    } else {
-                        real_point3d world_contact;
-                        object_get_node_marker_address(0); // UNSURE args, see file header
-                        matrix4x3_transform_point(&world_contact, &item->contact_point, 0); // UNSURE args
-                        item_align_to_normal_and_point(0, item_index,
-                            &item->rotation_axis, &world_contact);
+                    if (hit_type != 2 && !(1.5f > impulse)) {
+                        impulse = 1.5f;
                     }
+                    velocity.i += hit.plane.normal.i * impulse;
+                    velocity.j += hit.plane.normal.j * impulse;
+                    velocity.k += hit.plane.normal.k * impulse;
+                    target = hit.point;
+                    if (object_collision_test_cluster_group(0x1ff3e9, &target, item_index)) {
+                        target.x = hit.plane.normal.i * 0.05f + hit.point.x;
+                        target.y = hit.plane.normal.j * 0.05f + hit.point.y;
+                        target.z = hit.plane.normal.k * 0.05f + hit.point.z;
+                    }
+                    object_collision_test_cluster_group(0x1ff3e9, &target, item_index);
                 }
-            } else if ((*(uint8_t *)(global_structure_collision_bsp + 0x40 +
-                        (uint32_t)(uint16_t)item->resting_surface_index * 0x0c + 8) & 8) != 0 &&
-                       breakable_surface_is_intact() == 0) {
-                real_vector3d fall = {
-                    gravity_per_tick_0069c52c * global_reference_vector_0069672c->i,
-                    gravity_per_tick_0069c52c * global_reference_vector_0069672c->j,
-                    gravity_per_tick_0069c52c * global_reference_vector_0069672c->k
-                };
-                item->flags = flags & ~(uint32_t)_item_at_rest_on_structure_bit;
-                item->resting_surface_index = -1;
-                item_accelerate(item_index, &fall, 0);
             }
+            // 0x4bcb78
+            *(real_vector3d *)(obj + 0x68) = velocity;
+            object_set_position_and_relink(&target, item_index, &hit.leaf);
+        } else if (!(*(uint32_t *)(tag + 0x17c) & 4)) {
+            // 0x4bcbb7: resting; fall when the support goes away
+            object_marker marker;                                     // [esp+0x30]
+            uint32_t flags = *(uint32_t *)(obj + 0x1f4);
 
-            obj->angular_velocity.i *= 0.9f;
-            obj->angular_velocity.j *= 0.9f;
-            obj->angular_velocity.k *= 0.9f;
+            object_get_node_local_transform(item_index, s_ground_point_marker, &marker, 1);
+            if ((flags & 8) && *(int16_t *)(obj + 0x1fa) != -1 && *(int16_t *)(obj + 0x1fc) == global_structure_bsp_index) {
+                uint8_t *surface = *(uint8_t **)(global_structure_collision_bsp + 0x40) + *(int16_t *)(obj + 0x1fa) * 0xc;
+
+                if ((surface[8] & 8) && !breakable_surface_is_intact((int16_t)surface[9])) {
+                    *(uint32_t *)(obj + 0x1f4) = flags & ~8u;
+                    *(int16_t *)(obj + 0x1fa) = -1;
+                    item_start_falling(item_index);
+                }
+            } else if (flags & 0x10) {
+                datum_index support = *(datum_index *)(obj + 0x208);
+
+                if (object_try_and_get(support, 0xffffffff) != 0) {
+                    real_point3d contact;
+
+                    matrix4x3_transform_point(&contact, (real_point3d *)(obj + 0x20c),
+                                              object_get_node_marker_address(support, 0));
+                    item_align_to_normal_and_point(0, item_index, (real_vector3d *)(obj + 0x218), &contact);
+                } else {
+                    *(uint32_t *)(obj + 0x1f4) = flags & ~0x10u;
+                    item_start_falling(item_index);
+                }
+            }
+            F(obj, 0x8c) *= 0.9f;
+            F(obj, 0x90) *= 0.9f;
+            F(obj, 0x94) *= 0.9f;
             item_compute_rotation(item_index);
         }
 
-        if ((item->flags & _item_rotation_valid_bit) != 0) {
-            // ---------------- rotation-valid tail ----------------
-            // UNSURE (whole block): Ghidra elides essentially every argument here; the shape
-            // (rotate a copy of the object's basis by rotation_axis/sine/cosine, optionally
-            // re-deriving it from the "ground point" marker first) is preserved, the exact
-            // buffers are not. See file header.
-            if (network_game_mode == 0 && (obj->flags & _object_at_rest_bit) != 0) {
-                object_marker marker;
-                if (object_get_node_local_transform(item_index, "ground point", &marker, 1) != 0) {
-                    vector3d_rotate_about_axis(0, 0, item->rotation_sine, item->rotation_cosine); // UNSURE: v/axis
-                    vector3d_rotate_about_axis(0, 0, item->rotation_sine, item->rotation_cosine); // UNSURE: v/axis
-                    vector3d_cross_product(0, 0, 0); // UNSURE, see file header
-                    vector3d_cross_product(0, 0, 0); // UNSURE, see file header
-                    vector3d_normalize_with_length(0);
-                    vector3d_normalize_with_length(0);
-                    vector3d_normalize_with_length(0);
-                    object_recompute_basis_from_marker_delta(&marker, 0);
-                }
+        // 0x4bcd4c: tumble
+        if (*(uint32_t *)(obj + 0x1f4) & 4) {
+            real_vector3d *axis = (real_vector3d *)(obj + 0x218);
+            real sin_angle = F(obj, 0x224);
+            real cos_angle = F(obj, 0x228);
+            object_marker marker;                                     // [esp+0xd8]
+            real_vector3d side;                                       // [esp+0x1c]
+
+            if (game_connection_role == 0 && (*(uint32_t *)(obj + 0x10) & 0x20) &&
+                (int16_t)object_get_node_local_transform(item_index, s_ground_point_marker, &marker, 1)) {
+                // resting: turn the ground point's frame and move the item so the point stays put
+                real_matrix4x3 frame = marker.node_transform;         // [esp+0xa0]
+
+                vector3d_rotate_about_axis(&frame.forward, axis, sin_angle, cos_angle);
+                vector3d_rotate_about_axis(&frame.up, axis, sin_angle, cos_angle);
+                vector3d_cross_product(&frame.left, &frame.forward, &frame.up);
+                vector3d_cross_product(&frame.forward, &frame.up, &frame.left);
+                vector3d_normalize_with_length(&frame.forward);
+                vector3d_normalize_with_length(&frame.left);
+                vector3d_normalize_with_length(&frame.up);
+                object_recompute_basis_from_marker_delta((object *)obj, &marker, &frame);
             } else {
-                vector3d_rotate_about_axis(0, 0, item->rotation_sine, item->rotation_cosine); // UNSURE: v/axis
-                vector3d_rotate_about_axis(0, 0, item->rotation_sine, item->rotation_cosine); // UNSURE: v/axis
+                vector3d_rotate_about_axis(forward, axis, sin_angle, cos_angle);
+                vector3d_rotate_about_axis(up, axis, sin_angle, cos_angle);
             }
-            vector3d_normalize_with_length(0);
-            vector3d_cross_product(&obj->up, 0, 0); // UNSURE, see file header
-            vector3d_cross_product(0, 0, 0); // UNSURE, see file header
-            vector3d_normalize_with_length(0);
+            vector3d_normalize_with_length(up);
+            vector3d_cross_product(&side, forward, up);
+            vector3d_cross_product(forward, up, &side);
+            vector3d_normalize_with_length(forward);
         }
     }
 
-    if (item->detonation_countdown > 0) {
-        item->detonation_countdown -= 1;
-        if (item->detonation_countdown == 0) {
-            // 0x4bcf05..0x4bcf1c: EAX = the item, ECX = Item tag +0x304, stack: the item, -1, 0..
-            effect_new_on_object(item_index,
-                *(datum_index *)((uint8_t *)tag_instances[obj->definition_tag & 0xffff].data + 0x304),
-                item_index, -1, 0.0f, 0.0f, 0, 0);
+    // 0x4bceea: the detonation countdown, and the held time
+    if (*(int16_t *)(obj + 0x1f8) > 0) {
+        *(int16_t *)(obj + 0x1f8) -= 1;
+        if (*(int16_t *)(obj + 0x1f8) == 0) {
+            effect_new_on_object(item_index, *(datum_index *)(tag + 0x304), item_index, -1, 0.0f, 0.0f, 0, 0);
             object_delete(item_index);
         }
     }
-
-    if ((item->flags & _item_in_inventory_bit) != 0) {
-        item->held_game_time = game_time->game_time; // +0x0c
+    if (*(uint32_t *)(obj + 0x1f4) & 1) {
+        *(int32_t *)(obj + 0x204) = game_time->game_time;
     }
-
-    // The original is `return CONCAT31((int3)(uVar7 >> 8), 1)`: only AL is meaningful, and
-    // the upper three bytes are whatever the last computation left in EAX. Every caller tests
-    // the byte, so this returns a plain 1.
     return 1;
 }
 

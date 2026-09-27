@@ -1373,3 +1373,8 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   reversed (turned away) and argless rotate / eye-marker calls, deceleration/speed-up/vanish/gravity/range paths
   re-derived (the committed velocity is the steered copy), fly-by sound placement (closest point, direction,
   leaf), relink with the collision record's leaf (was uninitialised), contrail advance with its handle.
+- item_update 0x4bc5c0 REWRITTEN from objdump (every free item, every tick). The draft's tumble tail passed NULL to
+  vector3d_cross_product / normalize and vectorless rotations (crash for any tumbling dropped weapon), and the
+  settle / bounce / support / material-effect / sound helpers lacked operands.
+- Remaining NULL-helper call in live code: unit_seat_candidates_from_zone_and_enter matrix4x3_multiply(0,0,0)
+  (OPEN, next).
