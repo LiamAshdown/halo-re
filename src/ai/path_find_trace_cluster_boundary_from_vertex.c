@@ -1,6 +1,6 @@
 // path_find_trace_cluster_boundary_from_vertex  (Ghidra: path_find_trace_cluster_boundary_from_vertex, renamed)
 // address 0x43d790, size 383 bytes
-// name confidence: 0.3   rewrite confidence: 0.6
+// name confidence: 0.3   rewrite confidence: 0.85 (verified against objdump 0x43d790..0x43d90e)
 // evidence: re-derived from the disassembly (0x43d790..0x43d90e). The function walks a 2D ray
 //   across the projected surfaces of the context's collision BSP: it clips the ray against the
 //   current surface with collision_bsp_surface_clip_line_2d (0x5017f0, physics), then crosses

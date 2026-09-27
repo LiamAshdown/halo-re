@@ -1,26 +1,18 @@
 // ai_search_step  (Ghidra: ai_search_step, renamed)
 // address 0x43bcb0, size 354 bytes
-// name confidence: 0.4   rewrite confidence: 0.15
-// evidence: types/ai.h ai_search_context (heap_count via the +0x1430/dword-0x50c
-// cross-check, heap +0x1432, nodes +0x30 stride 0x28, goal_point_id +0x1c, best_node +0x20,
-// best_cost +0x24, result_node +0x1e) and ai_search_node (position/z/direction/length/
-// point_id/cost/parent), all confirmed by this function's own dword-scaled indexing
-// matching the header's byte offsets exactly (e.g. `in_EAX + sVar2*10 + 0xc` is
-// `0x30 + sVar2*0x28`). Calls ai_search_heap_sift_down (0x43b4d0), ai_search_evaluate_edge_cost
-// (0x43b830, itself very low confidence), ai_search_add_node (0x43b5a0), path_find_heights_are_close
-// (0x43d910, this rewrite) and ai_search_expand_point_neighbors (0x43ba60, this rewrite,
-// called here with no visible arguments -- see its own file for the same gap). phase-4
-// summary "performs one iteration of the AI point search: pop the cheapest open node and
-// either connect it to the goal or expand its neighbors."
-//
-// Kept close to the Ghidra decompilation and at low confidence given how much of it forwards
-// into ai_search_evaluate_edge_cost, which is itself one of this batch's least reliable
-// rewrites.
-//
-// register convention: EAX -> context (the only recognized operand).
-//   // blam-cc: EAX -> context
-// reconciled: R53 ai_search_evaluate_edge_cost declared with its real signature (13 params, EBX = direction = node+0xc);
-//   the uninitialised locals local_c/local_8/local_4/sStack_2 were the fields of its 0x10-byte result record (edge.*)
+// name confidence: 0.45  rewrite confidence: 0.85
+// REWRITTEN from objdump 0x43bcb0..0x43be11 (the draft lost every callee's arguments). EAX = context.
+//   Pops the cheapest node (the last heap entry moves to the top and sifts down, ECX context, DX 0) and runs
+//   ai_search_evaluate_edge_cost from it toward the origin: map +0x0c, ignore +0x04, obstacles +0x08, no
+//   exclusion, the node's position and surface, radius +0x00, base cost = the node's length, the direct test
+//   skipped for the root (no parent), apply_offset 1, require_unflagged +0x2a, direction = the node's direction.
+//   A wall ends the step. With nothing in the way the origin is reached -- when the end surface is not the
+//   target surface (+0x18) only if the heights there are close (0x43d910 at the origin) -- and a node on it
+//   (position + direction * cost, base cost = the node's inherited cost + cost) becomes the result (+0x1e).
+//   Hitting an obstacle point: a point whose link is the goal (+0x1c) records the node as best when its length
+//   beats +0x24, then the point's neighbours are expanded. Returns 1 while there is no result and the heap is
+//   not empty.
+// blam-cc: EAX -> context
 
 #include "tags.h"
 #include "memory.h"
@@ -28,74 +20,59 @@
 #include "ai.h"
 #include <stdint.h> // uintptr_t
 
-extern void ai_search_heap_sift_down(void *context, int16_t index); // 0x43b4d0
-extern void ai_search_expand_point_neighbors(void); // 0x43ba60, called here with no visible arguments; see that file
+extern void ai_search_heap_sift_down(ai_search_context *context, int16_t index); // 0x43b4d0, ECX, DX
+extern void ai_search_expand_point_neighbors(ai_search_context *context, int16_t node_index,
+    int16_t start_point_id); // 0x43ba60, stack, DX
 extern uint8_t path_find_heights_are_close(ScenarioStructureBSP *structure_bsp, real_point2d *point, int32_t surface_a,
-    int32_t surface_b); // 0x43d910; blam-cc: EAX structure_bsp, EDX point, ECX surface_a, stack surface_b
-extern int32_t ai_search_add_node(real_point2d *position, int32_t point_id, uint32_t param3, int32_t param4, float extra_cost); // 0x43b5a0, see header UNSURE
+    int32_t surface_b); // 0x43d910; EAX structure_bsp, EDX point, ECX surface_a, stack surface_b
+extern int16_t ai_search_add_node(ai_search_context *context, int16_t parent, real_point2d *position,
+    int32_t surface_index, int16_t point_id, uint8_t side, float base_cost); // 0x43b5a0, EDI, BX, stack
 extern uint8_t ai_search_evaluate_edge_cost(void *context, uint8_t ignore_permission,
-                                            ai_search_obstacle_list *obstacle_list, int16_t exclude_index,
-                                            real_point2d *point, int32_t start_surface_index, float distance,
-                                            float base_cost, uint8_t skip_direct, uint8_t apply_offset,
-                                            uint8_t require_unflagged, ai_search_edge_result *out_result,
-                                            real_vector2d *direction);
-    // 0x43b830; EBX -> direction (see src/ai/ai_search_evaluate_edge_cost.c)
+    ai_search_obstacle_list *obstacle_list, int16_t exclude_index, real_point2d *point, int32_t start_surface_index,
+    float distance, float base_cost, uint8_t skip_direct, uint8_t apply_offset, uint8_t require_unflagged,
+    ai_search_edge_result *out_result, real_vector2d *direction); // 0x43b830, EBX direction, stack
 
-// blam-cc: EAX -> context
-uint8_t ai_search_step(uint32_t *context)
+uint8_t ai_search_step(ai_search_context *context)
 {
-    float local_18, local_14;
-    ai_search_edge_result edge; // [esp+0x18]: Ghidra's local_10/local_c/local_8/local_4/sStack_2
+    if (context->heap_count > 0) {
+        int16_t index;
 
-    if (0 < *(int16_t *)(context + 0x50c)) {
-        int16_t heap_count = *(int16_t *)(context + 0x50c) - 1;
-        int16_t popped;
-        *(int16_t *)(context + 0x50c) = heap_count;
-
-        popped = *(int16_t *)((uint8_t *)context + 0x1432);
-        *(int16_t *)((uint8_t *)context + 0x1432) = *(int16_t *)((uint8_t *)context + heap_count * 2 + 0x1432);
+        context->heap_count--;
+        index = context->heap[0];
+        context->heap[0] = context->heap[context->heap_count];
         ai_search_heap_sift_down(context, 0);
+        if (index != -1) {
+            ai_search_node *node = &context->nodes[index];
+            ai_search_edge_result edge;
 
-        if (popped != -1) {
-            float *node = (float *)(context + popped * 10 + 0xc);
-            uint8_t reached;
-
-            // 0x43bd0b..0x43bd3e: EBX = node+0xc (direction), 12 stack arguments, add esp,0x30
-            reached = ai_search_evaluate_edge_cost((void *)context[3], *(uint8_t *)(context + 1),
-                                                   (ai_search_obstacle_list *)context[2], -1,
-                                                   (real_point2d *)node, *(int32_t *)&node[2], *(float *)context,
-                                                   node[5], (*(int16_t *)(node + 9) == -1) ? 1 : 0, 1,
-                                                   *((uint8_t *)context + 0x2a), &edge,
-                                                   (real_vector2d *)(node + 3));
-            (void)reached;
-
+            ai_search_evaluate_edge_cost((void *)(uintptr_t)context->unknown_0c, context->unknown_04,
+                (ai_search_obstacle_list *)(uintptr_t)context->obstacles, -1, &node->position, *(int32_t *)&node->z,
+                *(float *)&context->unknown_00, node->length, (uint8_t)(node->parent == -1), 1, context->unknown_2a,
+                &edge, &node->direction);
             if (edge.edge_index == -1) {
                 if (edge.point_id == -1) {
-                    if ((edge.surface_index == (int32_t)context[6]) || 
-                        // 0x43bd5d..0x43bd6f: EAX = context[3], EDX = &context[4], ECX = context[6]
-                        (path_find_heights_are_close((ScenarioStructureBSP *)(uintptr_t)context[3],
-                             (real_point2d *)(context + 4), (int32_t)context[6], edge.surface_index) != 0)) {
-                        int32_t new_node;
-                        local_18 = edge.cost * node[3] + *node;
-                        local_14 = edge.cost * node[4] + node[1];
-                        {
-                            real_point2d p; p.x = local_18; p.y = local_14;
-                            new_node = ai_search_add_node(&p, edge.surface_index, 0xffffffff, 0, (node[8] - node[5]) + edge.cost);
-                        }
-                        *(int16_t *)((uint8_t *)context + 0x1e) = (int16_t)new_node;
+                    // 0x43bd5d: the origin is in reach
+                    if (edge.surface_index == (int32_t)context->unknown_18 ||
+                        path_find_heights_are_close((ScenarioStructureBSP *)(uintptr_t)context->unknown_0c,
+                            &context->origin, (int32_t)context->unknown_18, edge.surface_index)) {
+                        real_point2d position;
+
+                        position.x = edge.cost * node->direction.i + node->position.x;
+                        position.y = edge.cost * node->direction.j + node->position.y;
+                        context->result_node = ai_search_add_node(context, index, &position, edge.surface_index, -1, 0,
+                            (node->cost - node->length) + edge.cost);
                     }
                 } else {
-                    if ((edge.link == *(int16_t *)(context + 7)) && (node[5] < *(float *)(context + 9))) {
-                        *(float *)(context + 9) = node[5];
-                        *(int16_t *)(context + 8) = popped;
+                    if (edge.link == context->goal_point_id && node->length < context->best_cost) {
+                        context->best_cost = node->length;
+                        context->best_node = index;
                     }
-                    ai_search_expand_point_neighbors();
+                    ai_search_expand_point_neighbors(context, index, edge.point_id);
                 }
             }
         }
     }
-
-    return (*(int16_t *)((uint8_t *)context + 0x1e) == -1) && (0 < *(int16_t *)(context + 0x50c));
+    return (uint8_t)(context->result_node == -1 && context->heap_count > 0);
 }
 
 #if 0

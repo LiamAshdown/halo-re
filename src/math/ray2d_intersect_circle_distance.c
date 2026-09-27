@@ -1,6 +1,6 @@
 // ray2d_intersect_circle_distance  (Ghidra: FUN_0043c380, renamed)
 // address 0x43c380, size 125 bytes
-// name confidence: 0.5   rewrite confidence: 0.8
+// name confidence: 0.5   rewrite confidence: 0.85 (verified against objdump)
 // evidence: out/phase2/ai/08.md; caller FUN_0043c8f0 @0x43c8f0 (confirmed via objdump at the
 //   0x43c949 call site: EAX = ECX = &entry[esp+0x1c] (self position doubling as the ray
 //   direction at this particular call site), EDX = &entry.position (ebp+8), ESI = &local output

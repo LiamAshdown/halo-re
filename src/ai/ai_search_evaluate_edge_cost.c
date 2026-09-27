@@ -1,6 +1,6 @@
 // ai_search_evaluate_edge_cost  (Ghidra: ai_search_evaluate_edge_cost, renamed)
 // address 0x43b830, size 560 bytes
-// name confidence: 0.3   rewrite confidence: 0.6
+// name confidence: 0.3   rewrite confidence: 0.85 (REWRITTEN from objdump 0x43b830..0x43ba5f)
 // evidence: re-derived from the disassembly (0x43b830..0x43ba5f). Evaluates the cheapest way
 //   to leave `point` for the AI point search: a direct boundary trace along `direction`, two
 //   traces from points offset sideways by +/- distance along the perpendicular, and the nearest
@@ -28,7 +28,7 @@
 #include "ai.h"
 
 extern uint8_t ai_search_find_nearest_visible_point(ai_search_obstacle_list *list, int16_t exclude_index,
-                                                    uint32_t param_3, uint32_t param_4, float radius,
+                                                    real_point2d *origin, real_vector2d *direction, float radius,
                                                     float max_distance, uint8_t require_unflagged,
                                                     ai_search_nearest_point_result *out_result);
     // 0x43c8f0; EDI -> out_result, see its own file for the stack roles
@@ -46,84 +46,68 @@ uint8_t ai_search_evaluate_edge_cost(void *context, uint8_t ignore_permission,
                                      uint8_t require_unflagged, ai_search_edge_result *out_result,
                                      real_vector2d *direction)
 {
-    path_find_boundary_trace_result trace;  // [esp+0x1c] at the first call (orig - 0xc)
-    real_vector2d perpendicular;            // orig - 0x1c
-    real_point2d probe;                     // orig - 0x14
-    ai_search_nearest_point_result nearest; // orig - 0x1c again (EDI of the 0x43c8f0 call)
-    uint8_t reached;
+    path_find_boundary_trace_result trace;
+    ai_search_nearest_point_result nearest;
+    real_vector2d perpendicular;
+    real_point2d offset;
+    uint8_t hit;
 
     out_result->cost = base_cost;
     out_result->surface_index = -1;
     out_result->edge_index = -1;
     out_result->point_id = -1;
     out_result->link = -1;
-    if (apply_offset != 0) {
+    if (apply_offset) {
         out_result->cost = base_cost - distance;
     }
-
-    if (skip_direct == 0) {
-        // 0x43b873: the direct trace along `direction`
+    if (!skip_direct) {
+        // 0x43b873: straight ahead from the point
         if (path_find_trace_cluster_boundary_from_vertex(context, ignore_permission, point, start_surface_index,
-                                                         direction, out_result->cost, &trace) != 0 &&
-            trace.distance < out_result->cost) {
+                direction, out_result->cost, &trace) != 0 && out_result->cost > trace.distance) {
             out_result->cost = trace.distance;
             out_result->edge_index = trace.edge_index;
         }
-
-        // 0x43b8b1: perpendicular = {-direction.j, direction.i}
+        // 0x43b8b1: step sideways by +distance along the left normal, then look ahead from there
         perpendicular.i = -direction->j;
         perpendicular.j = direction->i;
-
-        // 0x43b8c4..0x43b938: find the surface under point + distance * perpendicular, then trace
-        // from there along `direction`
-        probe.x = perpendicular.i * distance + point->x;
-        probe.y = perpendicular.j * distance + point->y;
+        offset.x = perpendicular.i * distance + point->x;
+        offset.y = perpendicular.j * distance + point->y;
         path_find_trace_cluster_boundary_from_vertex(context, ignore_permission, point, start_surface_index,
-                                                     &perpendicular, distance, &trace);
-        if (path_find_trace_cluster_boundary_from_vertex(context, ignore_permission, &probe, trace.surface_index,
-                                                         direction, out_result->cost, &trace) != 0 &&
-            trace.distance < out_result->cost) {
+            &perpendicular, distance, &trace);
+        if (path_find_trace_cluster_boundary_from_vertex(context, ignore_permission, &offset, trace.surface_index,
+                direction, out_result->cost, &trace) != 0 && out_result->cost > trace.distance) {
             out_result->cost = trace.distance;
             out_result->edge_index = trace.edge_index;
         }
-
-        // 0x43b93b..0x43b9b3: the same from point - distance * perpendicular
-        probe.x = perpendicular.i * -distance + point->x;
-        probe.y = -distance * perpendicular.j + point->y;
+        // 0x43b93b: the other side's offset point; the binary traces its start surface along +normal again
+        offset.x = perpendicular.i * -distance + point->x;
+        offset.y = -distance * perpendicular.j + point->y;
         path_find_trace_cluster_boundary_from_vertex(context, ignore_permission, point, start_surface_index,
-                                                     &perpendicular, distance, &trace);
-        if (path_find_trace_cluster_boundary_from_vertex(context, ignore_permission, &probe, trace.surface_index,
-                                                         direction, out_result->cost, &trace) != 0 &&
-            trace.distance < out_result->cost) {
+            &perpendicular, distance, &trace);
+        if (path_find_trace_cluster_boundary_from_vertex(context, ignore_permission, &offset, trace.surface_index,
+                direction, out_result->cost, &trace) != 0 && out_result->cost > trace.distance) {
             out_result->cost = trace.distance;
             out_result->edge_index = trace.edge_index;
         }
     }
-
-    // 0x43b9b6: the nearest visible search point
-    if (ai_search_find_nearest_visible_point(obstacle_list, exclude_index, (uint32_t)point, (uint32_t)direction,
-                                             distance, out_result->cost, require_unflagged, &nearest) != 0 &&
-        nearest.distance < out_result->cost) {
+    // 0x43b9b6: the nearest obstacle point along the way
+    if (ai_search_find_nearest_visible_point(obstacle_list, exclude_index, point, direction, distance,
+            out_result->cost, require_unflagged, &nearest) != 0 && out_result->cost > nearest.distance) {
         out_result->cost = nearest.distance;
         out_result->edge_index = -1;
         out_result->point_id = nearest.point_id;
         out_result->link = nearest.link;
     }
-
-    // 0x43ba12: nothing found -> the base cost and a 0 result (the byte is stored back into the
-    // apply_offset argument slot and returned from there)
     if (out_result->edge_index == -1 && out_result->point_id == -1) {
-        reached = 0;
         out_result->cost = base_cost;
+        hit = 0;
     } else {
-        reached = 1;
+        hit = 1;
     }
-
-    // 0x43ba2f: one last trace along `direction` for the final cost, only to learn the surface
-    path_find_trace_cluster_boundary_from_vertex(context, ignore_permission, point, start_surface_index,
-                                                 direction, out_result->cost, &trace);
+    path_find_trace_cluster_boundary_from_vertex(context, ignore_permission, point, start_surface_index, direction,
+        out_result->cost, &trace);
     out_result->surface_index = trace.surface_index;
-    return reached;
+    return hit;
 }
 
 #if 0

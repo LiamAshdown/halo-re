@@ -1,6 +1,6 @@
 // ai_search_find_covering_point  (Ghidra: ai_search_find_covering_point, renamed)
 // address 0x43c890, size 95 bytes
-// name confidence: 0.4   rewrite confidence: 0.4
+// name confidence: 0.4   rewrite confidence: 0.85 (verified against objdump)
 // evidence: types/ai.h ai_search_obstacle_list.count(+0x02)/obstacles(+0x08, stride 0x14)
 // and ai_search_obstacle.position(+0x08)/radius(+0x10). phase-4 summary "finds a point in
 // the search's fixed point array whose coverage radius reaches a given position, or -1 if

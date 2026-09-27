@@ -1,6 +1,6 @@
 // ai_search_compute_point_tangents  (Ghidra: ai_search_compute_point_tangents, renamed)
 // address 0x43c9a0, size 149 bytes
-// name confidence: 0.4   rewrite confidence: 0.4
+// name confidence: 0.4   rewrite confidence: 0.85 (verified against objdump)
 // evidence: types/ai.h ai_search_obstacle_list.obstacles(+0x08, stride 0x14) and
 // ai_search_obstacle.position(+0x08)/radius(+0x10). phase-4 summary "computes tangent offset
 // directions for steering around a specific point-array entry, used while scoring candidate

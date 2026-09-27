@@ -1,120 +1,106 @@
 // ai_search_add_node  (Ghidra: ai_search_add_node, renamed)
 // address 0x43b5a0, size 483 bytes
-// name confidence: 0.4   rewrite confidence: 0.25
-// evidence: types/ai.h ai_search_context.node_count(+0x2c, capped at 0x80)/origin(+0x10)/
-//   goal_point_id(+0x1c)/best_cost(+0x24)/best_node(+0x20)/heap_count(+0x1430)/heap(+0x1432)/
-//   nodes(+0x30, stride 0x28); ai_search_node.position/z/direction/length/point_id/side/
-//   side_link/cost/parent. phase-4 summary "adds a new open-list node to the AI point-search
-//   graph (reusing an existing chained node when appropriate) and pushes it onto the
-//   cost-ordered min-heap." Calls vector2d_normalize_with_length (established elsewhere) and
-//   ai_search_heap_sift_up @0x43b450 (this rewrite).
-// register convention: EDI -> context, BX -> chain_head (the first node already anchored at
-//   this point, or -1); stack -> position, z, point_id, side, extra_cost.
-//   // blam-cc: EDI -> context, EBX -> chain_head, stack -> position, z, point_id, side,
-//   //   extra_cost
-//
-// UNSURE: node.parent (+0x24) is reused here as a "next node anchored at the same point_id"
-// chain link, not as the search-tree parent the header otherwise documents it as; the two
-// uses do not conflict in practice because a freshly-created node has no real parent yet.
-// The mid-loop side-compatibility test (a pair of 2D cross-product sign comparisons against
-// the direction vectors of `chain_head`'s own node and a candidate side-linked node) is
-// reproduced exactly but not independently rederived here.
+// name confidence: 0.45  rewrite confidence: 0.85
+// REWRITTEN from objdump 0x43b5a0..0x43b782. EDI = context, BX = the parent node (or -1); stack: position (2D),
+//   surface index (stored at +0x08, typed z in types/ai.h), point_id, side, base cost. Refused (-1) past 0x80 nodes. With a parent, the chain of ancestors that share
+//   the point id is walked: the same point on the same side is a duplicate (-1). At the first ancestor with
+//   another point id, a point id equal to the goal (+0x1c, not -1) marks a goal node: if that ancestor's link on
+//   the other side leads to a node facing the origin (its direction . this delta > 0) and the turn between the
+//   parent's direction and it disagrees with this delta (product of the two cross products < 0), the node is
+//   refused; that ancestor's link on this side is claimed when it is free or points back at the parent.
+//   The node stores position, z, the delta to the origin (+0x10) and its length (0x4018e0 normalises it), cost =
+//   length + base cost, point id, side, parent and no links; a goal node closer than the best (+0x24) becomes the
+//   best (+0x20). It is pushed on the heap (sift up, EDX context, CX slot) while there is room. Returns its index.
+// blam-cc: EDI -> context, BX -> parent, stack -> position, z, point_id, side, base_cost
 
-// FIXED (difftest + objdump 0x43b6f0..0x43b76b): a new node's parent is chain_head and both side links
-//   are -1 (the draft had them swapped); the best node is tracked by length, not cost; the return is
-//   the 16-bit index in AX.
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
 
-extern float vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, established elsewhere (normalizes in place, returns the pre-normalize length)
-extern void ai_search_heap_sift_up(ai_search_context *context, int16_t index); // 0x43b450
+extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
+extern void ai_search_heap_sift_up(ai_search_context *context, int16_t index); // 0x43b450, EDX context, CX index
 
-// blam-cc: EDI -> context, EBX -> chain_head, stack -> position, z, point_id, side, extra_cost
-// Returns the new or reused node's index in the low 16 bits, or -1 on failure/rejection.
-int16_t ai_search_add_node(ai_search_context *context, int16_t chain_head, real_point2d *position,
-                           float z, int16_t point_id, uint8_t side, float extra_cost)
+int16_t ai_search_add_node(ai_search_context *context, int16_t parent, real_point2d *position, int32_t surface_index,
+    int16_t point_id, uint8_t side, float base_cost)
 {
-    float dx, dy;
-    uint8_t goal_side_established;
-    int16_t cursor;
+    float dx;
+    float dy;
+    uint8_t goal = 0;
+    int16_t index;
+    ai_search_node *node;
 
-    if (0x7f < context->node_count) {
+    if (context->node_count >= 0x80) {
         return -1;
     }
-
     dx = context->origin.x - position->x;
-    goal_side_established = 0;
     dy = context->origin.y - position->y;
-    cursor = chain_head;
+    if (parent != -1) {
+        int16_t walk = parent;
+        ai_search_node *ancestor;
 
-    for (;;) {
-        ai_search_node *cur;
-
-        if (cursor == -1) {
-            int16_t new_index = context->node_count;
-            ai_search_node *node;
-
-            context->node_count = new_index + 1;
-            node = &context->nodes[new_index];
-            node->position = *position;
-            node->z = z;
-            node->direction.i = dx;
-            node->direction.j = dy;
-            node->length = vector2d_normalize_with_length(&node->direction);
-            node->point_id = point_id;
-            node->cost = node->length + extra_cost;
-            node->side = side;
-            node->parent = chain_head;          // mov [esi+0x24],bx
-            *(int32_t *)&node->side_link = -1;  // mov dword [esi+0x1c],-1: both side links (0x1c, 0x1e)
-
-            if ((goal_side_established != 0) && (node->length < context->best_cost)) { // fcomp [esi+0x14]
-                context->best_cost = node->length;
-                context->best_node = new_index;
+        for (;;) {
+            ancestor = &context->nodes[walk];
+            if (ancestor->point_id != point_id) {
+                break;
             }
-
-            if (context->heap_count < 0x80) {
-                int16_t slot = context->heap_count;
-                context->heap_count = slot + 1;
-                context->heap[slot] = new_index;
-                ai_search_heap_sift_up(context, slot);
+            if (ancestor->side == side) {
+                return -1;
             }
-
-            return new_index;
+            walk = ancestor->parent;
+            if (walk == -1) {
+                ancestor = 0;
+                break;
+            }
         }
+        if (ancestor != 0 && point_id == context->goal_point_id && context->goal_point_id != -1) {
+            int16_t *links = &ancestor->side_link;
+            int16_t other = links[side == 0];
 
-        cur = &context->nodes[cursor];
-        if (cur->point_id != point_id) {
-            if ((point_id == context->goal_point_id) && (context->goal_point_id != -1)) {
-                int16_t sibling;
-                goal_side_established = 1;
-                sibling = (side == 0) ? *(int16_t *)((uint8_t *)cur + 0x1c + 2) : *(int16_t *)((uint8_t *)cur + 0x1c);
-                if (sibling != -1) {
-                    ai_search_node *other = &context->nodes[sibling];
-                    if ((0.0f < dx * other->direction.i + dy * other->direction.j) &&
-                        ((dy * other->direction.i - dx * other->direction.j) *
-                         (context->nodes[chain_head].direction.j * other->direction.i -
-                          other->direction.j * context->nodes[chain_head].direction.i) < 0.0f)) {
+            goal = 1;
+            if (other != -1) {
+                ai_search_node *linked = &context->nodes[other];
+
+                if (dy * linked->direction.j + dx * linked->direction.i > 0.0f) {
+                    real_vector2d *parent_direction = &context->nodes[parent].direction;
+                    float turn = parent_direction->j * linked->direction.i - linked->direction.j * parent_direction->i;
+                    float delta_turn = dy * linked->direction.i - dx * linked->direction.j;
+
+                    if (delta_turn * turn < 0.0f) {
                         return -1;
                     }
                 }
-                {
-                    int16_t *slot_ptr = (side == 0) ? (int16_t *)((uint8_t *)cur + 0x1c) : (int16_t *)((uint8_t *)cur + 0x1c + 2);
-                    if ((*slot_ptr == chain_head) || (*slot_ptr == -1)) {
-                        *slot_ptr = context->node_count;
-                    }
-                }
             }
-            cursor = -1;
-            continue;
+            if (links[side] == parent || links[side] == -1) {
+                links[side] = context->node_count;
+            }
         }
-
-        if (cur->side != side) {
-            return -1;
-        }
-        cursor = cur->parent;
     }
+
+    index = context->node_count++;
+    node = &context->nodes[index];
+    node->position = *position;
+    *(int32_t *)&node->z = surface_index; // +0x08 holds a surface index (0x43b6ed dword copy)
+    node->direction.i = dx;
+    node->direction.j = dy;
+    node->length = vector2d_normalize_with_length(&node->direction);
+    node->cost = node->length + base_cost;
+    node->point_id = point_id;
+    node->side = side;
+    node->parent = parent;
+    (&node->side_link)[0] = -1;
+    (&node->side_link)[1] = -1;
+    if (goal && node->length < context->best_cost) {
+        context->best_cost = node->length;
+        context->best_node = index;
+    }
+    if (context->heap_count < 0x80) {
+        int16_t slot = context->heap_count++;
+
+        context->heap[slot] = index;
+        ai_search_heap_sift_up(context, slot);
+    }
+    return index;
 }
 
 #if 0

@@ -1,147 +1,86 @@
 // ai_search_expand_point_neighbors  (Ghidra: ai_search_expand_point_neighbors, renamed)
 // address 0x43ba60, size 579 bytes
-// name confidence: 0.35  rewrite confidence: 0.1
-// evidence: phase-4 summary "breadth-first expands a point's neighbors in the AI navigation
-// point graph, scoring and pushing viable successors onto the open list." Calls
-// ai_search_add_node (0x43b5a0), ai_search_evaluate_edge_cost (0x43b830, this rewrite's own
-// very-low-confidence file), ai_search_compute_point_tangents (this rewrite) and path_find_trace_cluster_boundary_from_vertex (this rewrite).
-//
-// Kept close to the Ghidra decompilation and at very low confidence. This function's own
-// stack frame mixes an `ai_search_obstacle_list`-sized visited bitset (`local_11c`, sized
-// from the obstacle count) with a 128-entry BFS worklist (`local_100`) and several scratch
-// floats whose exact roles are not independently confirmed; ai_search_evaluate_edge_cost is
-// itself one of this batch's least reliable rewrites, and this function's own call into it
-// passes twelve operands that only partially line up with that file's inferred signature.
-// This translation preserves the raw arithmetic and control flow rather than asserting
-// struct-level confidence it does not have.
-//
-// register convention: DX -> start_point_id (the only Ghidra-recognized register operand;
-//   `context` and `param_2` are the two recognized stack/register formal parameters).
-//   // blam-cc: EDX -> start_point_id, stack -> context, param_2
-// reconciled: R53 0x43d790 declared with its one real signature (void *context EAX, uint8_t ignore_permission, real_point2d *point, int32_t start_index, real_vector2d *direction, float max_distance, path_find_boundary_trace_result *out); the call now passes context[3] in EAX, the int32 surface index at base_position+8 (was a float arg3) and a 3-dword result. ai_search_evaluate_edge_cost is now declared and called with its real 13-parameter signature (EBX = direction) and its 0x10-byte ai_search_edge_result.
+// name confidence: 0.4   rewrite confidence: 0.8
+// REWRITTEN from objdump 0x43ba60..0x43bca2. Stack: context, node index; DX = the obstacle point to start from.
+//   A worklist (visited bits over the obstacle list) spreads from that point: for each point (its link, or -1),
+//   ai_search_compute_point_tangents gives the two tangent directions from the node's position (radius
+//   context +0x00) and the distance along them (at least the radius). Along each direction
+//   ai_search_evaluate_edge_cost(map +0x0c, ignore +0x04, obstacles +0x08, exclude the point, the node's
+//   position and surface (+0x08), radius, limit 2 * radius + distance, require_unflagged +0x2a) reports what stops
+//   it; an obstacle point it runs into joins the worklist once. When it gets past the tangent distance and does not
+//   end at the point's own link, a node is added halfway: position = node + direction * (cost + distance) / 2,
+//   its surface from a boundary trace to there, point id = the point's link, side = the direction's index and
+//   base cost = the node's inherited cost (cost - length) + that half distance.
+// blam-cc: stack -> context, node_index; DX -> start_point_id
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
 #include <stdint.h>
+#include <string.h>
 
-extern void ai_search_add_node(void *context, real_point2d *position, uint32_t param3, int16_t worklist_index, float extra_cost); // 0x43b5a0, see header UNSURE on the arity mismatch with ai_search_add_node's own file
-extern void ai_search_compute_point_tangents(float param1, void *out_a, float *out_b); // 0x43c9a0
-extern uint8_t path_find_trace_cluster_boundary_from_vertex(void *context, uint8_t ignore_permission,
-                                                            real_point2d *point, int32_t start_index,
-                                                            real_vector2d *direction, float max_distance,
-                                                            path_find_boundary_trace_result *out);
-    // 0x43d790; EAX -> context (0x43bc1e: mov eax,[ebp+0xc])
+extern void ai_search_compute_point_tangents(ai_search_obstacle_list *list, int16_t point_index, real_point2d *position,
+    real_vector2d *edge_neg, float radius, real_vector2d *out_a, real *out_b); // 0x43c9a0, ECX, AX, EDX, ESI, stack
 extern uint8_t ai_search_evaluate_edge_cost(void *context, uint8_t ignore_permission,
-                                            ai_search_obstacle_list *obstacle_list, int16_t exclude_index,
-                                            real_point2d *point, int32_t start_surface_index, float distance,
-                                            float base_cost, uint8_t skip_direct, uint8_t apply_offset,
-                                            uint8_t require_unflagged, ai_search_edge_result *out_result,
-                                            real_vector2d *direction);
-    // 0x43b830; EBX -> direction (see src/ai/ai_search_evaluate_edge_cost.c)
+    ai_search_obstacle_list *obstacle_list, int16_t exclude_index, real_point2d *point, int32_t start_surface_index,
+    float distance, float base_cost, uint8_t skip_direct, uint8_t apply_offset, uint8_t require_unflagged,
+    ai_search_edge_result *out_result, real_vector2d *direction); // 0x43b830, EBX direction, stack
+extern uint8_t path_find_trace_cluster_boundary_from_vertex(void *context, uint8_t ignore_permission,
+    real_point2d *point, int32_t start_index, real_vector2d *direction, float max_distance,
+    path_find_boundary_trace_result *out); // 0x43d790, EAX map, stack
+extern int16_t ai_search_add_node(ai_search_context *context, int16_t parent, real_point2d *position, int32_t surface_index,
+    int16_t point_id, uint8_t side, float base_cost); // 0x43b5a0, EDI, BX, stack
 
-// blam-cc: EDX -> start_point_id, stack -> context, param_2
-void ai_search_expand_point_neighbors(float *context, int16_t param_2, int16_t start_point_id)
+void ai_search_expand_point_neighbors(ai_search_context *context, int16_t node_index, int16_t start_point_id)
 {
-    uint32_t visited[4];
-    uint16_t worklist[128];
-    int16_t worklist_count;
-    float *base_position;
-    float *cur_position;
-    int32_t i;
+    ai_search_obstacle_list *list = (ai_search_obstacle_list *)(uintptr_t)context->obstacles;
+    void *map = (void *)(uintptr_t)context->unknown_0c;
+    float radius = *(float *)&context->unknown_00;
+    ai_search_node *node = &context->nodes[node_index];
+    uint32_t visited[8];
+    int16_t worklist[0x78];
+    int16_t pending = 1;
 
-    for (i = 0; i < 4; i = i + 1) {
-        visited[i] = 0;
-    }
-
-    base_position = context + param_2 * 10 + 0xc;
+    memset(visited, 0, ((list->count + 0x1f) >> 5) * 4);
     visited[start_point_id >> 5] |= 1u << (start_point_id & 0x1f);
-    worklist[0] = (uint16_t)start_point_id; // UNSURE: original never explicitly writes worklist[0]; see below
-    worklist_count = 1;
-    cur_position = context + param_2 * 10 + 0xc;
-
+    worklist[0] = start_point_id;
     do {
-        uint16_t point_id;
-        uint32_t obstacle_index;
-        int32_t obstacle_link;
-        real_point2d out_a;
-        float out_b;
-        int16_t leg;
-        float *leg_direction;
+        int16_t point = worklist[--pending];
+        int16_t link = (point != -1) ? list->obstacles[point].link : -1;
+        real_vector2d directions[2];
+        float tangent_distance;
+        int16_t side;
 
-        worklist_count = worklist_count - 1;
-        point_id = worklist[worklist_count];
-        obstacle_index = point_id;
-        if (point_id == 0xffff) {
-            obstacle_link = -1;
-        } else {
-            obstacle_link = *(int16_t *)((uint8_t *)(uintptr_t)(uint32_t)context[2] + 10 + point_id * 0x14);
+        ai_search_compute_point_tangents(list, point, &node->position, &directions[0], radius, &directions[1],
+            &tangent_distance);
+        if (tangent_distance < radius) {
+            tangent_distance = radius;
         }
+        for (side = 0; side < 2; side++) {
+            ai_search_edge_result edge;
 
-        ai_search_compute_point_tangents(*context, &out_a, &out_b);
-        if (out_b < *context) {
-            out_b = *context;
+            ai_search_evaluate_edge_cost(map, context->unknown_04, list, point, &node->position,
+                *(int32_t *)&node->z, radius, radius + radius + tangent_distance, 0, 0, context->unknown_2a, &edge,
+                &directions[side]);
+            if (edge.point_id != -1 && (visited[edge.point_id >> 5] & (1u << (edge.point_id & 0x1f))) == 0) {
+                visited[edge.point_id >> 5] |= 1u << (edge.point_id & 0x1f);
+                worklist[pending++] = edge.point_id;
+            }
+            if (edge.cost > tangent_distance && edge.link != link) {
+                float half = (edge.cost + tangent_distance) * 0.5f;
+                path_find_boundary_trace_result trace;
+                real_point2d position;
+
+                path_find_trace_cluster_boundary_from_vertex(map, context->unknown_04, &node->position,
+                    *(int32_t *)&node->z, &directions[side], half, &trace);
+                position.x = half * directions[side].i + node->position.x;
+                position.y = half * directions[side].j + node->position.y;
+                ai_search_add_node(context, node_index, &position, trace.surface_index, link, (uint8_t)side,
+                    (node->cost - node->length) + half);
+            }
         }
-
-        leg = 0;
-        leg_direction = 0; // local_12c, UNSURE (advances by 2 floats per leg)
-        do {
-            ai_search_edge_result edge_result; // [esp+0x34] (0x43bb5f), 0x10 bytes
-            uint8_t reached;
-
-            // 0x43bb52..0x43bb8c: EBX = ESI = the leg direction, 12 stack arguments, add esp,0x30
-            reached = ai_search_evaluate_edge_cost((void *)(uintptr_t)*(uint32_t *)&context[3],
-                                                   *(uint8_t *)(context + 1),
-                                                   (ai_search_obstacle_list *)(uintptr_t)*(uint32_t *)&context[2],
-                                                   (int16_t)obstacle_index, (real_point2d *)cur_position,
-                                                   *(int32_t *)&cur_position[2], *context,
-                                                   *context + *context + out_b, 0, 0,
-                                                   *((uint8_t *)context + 0x2a), &edge_result,
-                                                   (real_vector2d *)leg_direction); // UNSURE: ESI = [esp+0x44] array, see leg_direction
-            cur_position = base_position;
-
-            {
-                int16_t neighbor = (int16_t)0xffff; // UNSURE: `local_130`'s int16 half, see original
-                (void)reached;
-                if (neighbor != -1) {
-                    uint32_t bit = 1u << (neighbor & 0x1f);
-                    if ((visited[(uint16_t)neighbor >> 5] & bit) == 0) {
-                        visited[(uint16_t)neighbor >> 5] |= bit;
-                        worklist[worklist_count] = (uint16_t)neighbor;
-                        worklist_count = worklist_count + 1;
-                    }
-                }
-            }
-
-            if (out_b < edge_result.cost) {
-                if (1 /* UNSURE: original compares a companion int16 against obstacle_link here */) {
-                    float mid = (edge_result.cost + out_b) * 0.5f;
-                    path_find_boundary_trace_result trace_result; // [esp+0x64] at 0x43bc03
-                    float new_x, new_y;
-
-                    // 0x43bc03..0x43bc23: EAX = context[3], stack (byte context+4, base_position,
-                    // the int32 surface index at base_position+8, leg_direction, mid, &trace_result)
-                    path_find_trace_cluster_boundary_from_vertex((void *)(uintptr_t)(uint32_t)context[3],
-                                                                 *(uint8_t *)(context + 1),
-                                                                 (real_point2d *)base_position,
-                                                                 *(int32_t *)&base_position[2],
-                                                                 (real_vector2d *)leg_direction, mid,
-                                                                 &trace_result);
-                    new_x = mid * leg_direction[0] + cur_position[0];
-                    new_y = mid * leg_direction[1] + cur_position[1];
-                    {
-                        real_point2d p; p.x = new_x; p.y = new_y;
-                        ai_search_add_node(&p, 0, obstacle_link, leg, (cur_position[8] - cur_position[5]) + mid);
-                    }
-                }
-            }
-
-            leg_direction = leg_direction + 2;
-            leg = leg + 1;
-            cur_position = base_position;
-        } while (leg < 2);
-    } while (0 < worklist_count);
+    } while (pending > 0);
 }
 
 #if 0

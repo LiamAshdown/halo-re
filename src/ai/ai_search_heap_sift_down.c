@@ -1,6 +1,6 @@
 // ai_search_heap_sift_down  (Ghidra: ai_search_heap_sift_down, already named)
 // address 0x43b4d0, size 202 bytes
-// name confidence: 0.55  rewrite confidence: 0.55
+// name confidence: 0.55  rewrite confidence: 0.85 (verified against objdump)
 // evidence: types/ai.h ai_search_context (the heap count at +0x1430, cross-checked in the
 //   module header against the same byte read as dword index 0x50c) / heap (+0x1432) /
 //   ai_search_node.cost (+0x20), same offset arithmetic as ai_search_heap_sift_up.c.

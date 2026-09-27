@@ -1,6 +1,7 @@
 // ai_search_find_nearest_visible_point  (Ghidra: ai_search_find_nearest_visible_point, renamed)
 // address 0x43c8f0, size 163 bytes
-// name confidence: 0.4   rewrite confidence: 0.15
+// name confidence: 0.4   rewrite confidence: 0.85 (objdump 0x43c8f0..0x43c992: param 3/4 are the ray origin and
+//   direction, and the max distance slot receives the ray distance)
 // evidence: types/ai.h ai_search_obstacle_list.count(+0x02)/obstacles(+0x08, stride 0x14)
 // and ai_search_obstacle.flags(+0x00)/link(+0x02)/radius(+0x10). phase-4 summary "finds the
 // closest point in the point array visible along a given direction, optionally excluding
@@ -30,36 +31,37 @@
 #include "math.h"
 #include "ai.h"
 
-extern uint8_t ray2d_intersect_circle_distance(float radius); // 0x43c380, math helper, not rewritten here; see header UNSURE on its real return
+extern uint8_t ray2d_intersect_circle_distance(const real_vector2d *direction, const real_point2d *origin,
+    const real_point2d *center, real *out_distance, real radius); // 0x43c380, EAX, ECX, EDX, ESI, stack
 
 // blam-cc: EDI -> out_result, stack -> list, exclude_index, param_3, param_4, radius,
 //   max_distance, require_unflagged
 uint8_t ai_search_find_nearest_visible_point(ai_search_obstacle_list *list, int16_t exclude_index,
-                                             uint32_t param_3, uint32_t param_4, float radius,
+                                             real_point2d *origin, real_vector2d *direction, float radius,
                                              float max_distance, uint8_t require_unflagged,
                                              ai_search_nearest_point_result *out_result)
 {
+    float distance = max_distance; // 0x43c942: the max_distance slot doubles as the ray's out distance
     int16_t i;
-
-    (void)param_3;
-    (void)param_4;
 
     out_result->distance = max_distance;
     out_result->point_id = -1;
     out_result->link = -1;
+    for (i = 0; i < list->count; i++) {
+        ai_search_obstacle *obstacle = &list->obstacles[i];
 
-    for (i = 0; i < list->count; i = i + 1) {
-        if ((i != exclude_index) &&
-            ((require_unflagged == 0) || ((list->obstacles[i].flags & 1) == 0)) &&
-            (ray2d_intersect_circle_distance(radius + list->obstacles[i].radius) != 0) &&
-            (max_distance < out_result->distance)) {
-            out_result->distance = max_distance;
+        if (i == exclude_index || (require_unflagged && (obstacle->flags & 1) != 0)) {
+            continue;
+        }
+        if (ray2d_intersect_circle_distance(direction, origin, &obstacle->position, &distance,
+                radius + obstacle->radius) != 0 &&
+            out_result->distance > distance) {
+            out_result->distance = distance;
             out_result->point_id = i;
-            out_result->link = list->obstacles[i].link;
+            out_result->link = obstacle->link;
         }
     }
-
-    return out_result->point_id != -1;
+    return (uint8_t)(out_result->point_id != -1);
 }
 
 #if 0

@@ -1,6 +1,6 @@
 // ai_search_heap_sift_up  (Ghidra: ai_search_heap_sift_up, already named)
 // address 0x43b450, size 119 bytes
-// name confidence: 0.55  rewrite confidence: 0.5
+// name confidence: 0.55  rewrite confidence: 0.85 (verified against objdump)
 // evidence: types/ai.h ai_search_context.heap (+0x1432, plain node-index array, zero-based)
 //   and ai_search_node.cost (+0x20); the `(index+2)*0x28` arithmetic Ghidra shows algebraically
 //   simplifies to `0x30 + index*0x28 + 0x20`, i.e. `nodes[index].cost` off the context's own

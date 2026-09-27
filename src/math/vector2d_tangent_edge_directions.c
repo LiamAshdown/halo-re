@@ -1,6 +1,6 @@
 // vector2d_tangent_edge_directions  (Ghidra: FUN_0043c400, renamed)
 // address 0x43c400, size 163 bytes
-// name confidence: 0.4   rewrite confidence: 0.8
+// name confidence: 0.4   rewrite confidence: 0.85 (verified against objdump)
 // evidence: out/phase2/ai/08.md; caller FUN_0043c9a0 @0x43c9a0 (confirmed via objdump at the
 //   0x43ca2c call site) first computes the distance and unit direction between two positions,
 //   then calls this function as (distance, distance_to_edge + radii + epsilon, output_slot,

@@ -1,6 +1,6 @@
 // ai_search_context_init  (Ghidra: ai_search_context_init, renamed)
 // address 0x43b790, size 157 bytes
-// name confidence: 0.5   rewrite confidence: 0.4
+// name confidence: 0.5   rewrite confidence: 0.85 (verified against objdump)
 // evidence: types/ai.h ai_search_context, every field written here matches the header
 // exactly (obstacles, origin, goal_point_id via obstacle[goal].link, result_node, best_cost,
 // best_node, node_count, heap_count via the +0x1430/dword-0x50c cross-check the header
@@ -21,13 +21,13 @@
 extern int16_t ai_search_find_covering_point(ai_search_obstacle_list *list, real_point2d *position,
                                              int16_t exclude_index, float extra_radius); // 0x43c890
 extern int16_t ai_search_add_node(ai_search_context *context, int16_t chain_head, real_point2d *position,
-                                  float z, int16_t point_id, uint8_t side, float extra_cost); // 0x43b5a0
+                                  int32_t surface_index, int16_t point_id, uint8_t side, float extra_cost); // 0x43b5a0
 
 // blam-cc: ECX -> unknown_0c, EAX -> obstacles, EDX -> origin, stack -> context, unknown_04,
 //   unknown_00, position, z, unknown_18, unknown_29, unknown_2a
 void ai_search_context_init(ai_search_context *context, uint8_t unknown_04, uint32_t unknown_00,
                             ai_search_obstacle_list *obstacles, real_point2d *origin, uint32_t unknown_0c,
-                            real_point2d *position, float z, uint32_t unknown_18,
+                            real_point2d *position, int32_t surface_index, uint32_t unknown_18,
                             uint8_t unknown_29, uint8_t unknown_2a)
 {
     int16_t covering_point;
@@ -55,7 +55,7 @@ void ai_search_context_init(ai_search_context *context, uint8_t unknown_04, uint
     context->node_count = 0;
     context->heap_count = 0;
 
-    ai_search_add_node(context, -1, position, z, -1, 0, 0.0f);
+    ai_search_add_node(context, -1, position, surface_index, -1, 0, 0.0f); // "z" is the start surface
 }
 
 #if 0
