@@ -52,8 +52,8 @@ extern double sqrt(double x);             // FSQRT
 extern int32_t __ftol(double x);          // 0x6391b4
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0; blam-cc: ECX -> object_index
 extern void model_nodes_get_default_transforms(void *model, void *animation_control); // 0x4d7610; blam-cc: ESI -> model
-extern void animation_get_frame_orientations(int32_t zero, ModelAnimationsAnimation *animation, int32_t frame,
-                         void *animation_control); // 0x4d4a80; blam-cc: EAX -> zero, EDI -> animation
+extern void animation_get_frame_orientations(ModelAnimationsAnimation *animation, GBXModel *model,
+    int16_t frame, void *out_orientations); // 0x4d4a80; blam-cc: EDI -> animation, EAX -> model, stack (frame, out)
 extern void animation_overlay_frame_orientations(ModelAnimationsAnimation *animation, int32_t frame,
                          void *animation_control); // 0x4d4f90; blam-cc: ESI -> animation
 extern void animation_overlay_interpolated_frame_orientations_weighted(ModelAnimationsAnimation *animation, float frame, float weight,
@@ -133,8 +133,10 @@ void first_person_weapon_update_animation_controls(int16_t local_player_index)
             list_entries = (int16_t *)list->animations.pointer;
 
             if (fp->unknown_16 != -1) {
-                animation_get_frame_orientations(0, &animation_block[fp->unknown_16],
-                             (uint16_t)*(int16_t *)fp->unknown_18, animation_control);
+                // 0x4938ef..0x493918: EDI = &animations[fp +0x16], EAX = 0 (no model), stack (fp +0x18 word,
+                // fp +0x8c). The draft's extern swapped the animation and the model (NULL animation, crash).
+                animation_get_frame_orientations(&animation_block[fp->unknown_16], (GBXModel *)0,
+                             (int16_t)*(uint16_t *)fp->unknown_18, animation_control);
             } else {
                 model_nodes_get_default_transforms(model, animation_control);
             }

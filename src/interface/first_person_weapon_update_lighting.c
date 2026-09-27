@@ -19,6 +19,7 @@
 // hands model) for the device case; the earlier rewrite passed weapon tag +0x478 to both.
 // reconciled: R44 first_person_light_parameters is the first 0x20 bytes of render.h render_model_effect: armed -> type, unknown_37c/380 -> unit_37c/380, unit_handle -> object_index, camera_x/y/z -> centroid[3], zero -> modifier_shader; 0x4d6fc0 reads 0x28 bytes, so change_colors/function_values come from the next 8 stack bytes
 
+#include <stdint.h>
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -39,7 +40,7 @@ extern float camera_position_x, camera_position_y, camera_position_z; // 0x007c3
 
 extern void hud_meter_permute_node_records(uint8_t *dest, uint8_t *source,
                                             uint32_t target_tag_ref, int16_t *lookup); // 0x493ea0
-extern int32_t object_get_cached_render_lighting(int32_t max_distance); // 0x50ea00
+extern void *object_get_cached_render_lighting(datum_index object_index, real level_of_detail_pixels); // 0x50ea00, ESI object_index, stack level_of_detail_pixels
 extern void render_model(uint32_t model_tag_ref, uint8_t *node_records,
                           int32_t unknown_0, int32_t unknown_1, ColorRGB *change_colors,
                           float *function_out_values, int32_t light_sample, float *camera_position,
@@ -105,7 +106,9 @@ void first_person_weapon_update_lighting(void)
     }
 
     first_person_interface = (GlobalsFirstPersonInterface *)global_globals->first_person_interface.pointer;
-    light_sample = object_get_cached_render_lighting(0x7f7fffff);
+    // 0x49258d..0x492596: ESI = the player unit (0x49250c), stack FLT_MAX. The draft passed 0x7f7fffff as the
+    // object index and dropped the level of detail.
+    light_sample = (int32_t)(uintptr_t)object_get_cached_render_lighting((datum_index)unit_handle, 3.4028235e+38f);
     light_params.modifier_shader = 0;
 
     if ((*(uint8_t *)((char *)unit_obj + 0x204) & 0x10) != 0 ||
