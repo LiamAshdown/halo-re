@@ -1378,3 +1378,5 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   settle / bounce / support / material-effect / sound helpers lacked operands.
 - Remaining NULL-helper call in live code: unit_seat_candidates_from_zone_and_enter matrix4x3_multiply(0,0,0)
   (OPEN, next).
+- unit_seat_candidates_from_zone_and_enter 0x56a4c0 (vehicle_load_magic) REWRITTEN (0.2 -> 0.9): the re-seat path
+  relinked NULL and multiplied NULL matrices; now reuses biped_update.c's detach / history helpers.
