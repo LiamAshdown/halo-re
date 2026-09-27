@@ -1,6 +1,6 @@
 // actor_update_activation_state  (Ghidra: actor_update_activation_state, already named)
 // address 0x429160, size 265 bytes
-// name confidence: 0.5   rewrite confidence: 0.35
+// name confidence: 0.5   rewrite confidence: 0.9 (checked against objdump 0x429160..0x429268)
 // evidence: phase-4 summary "Per-tick actor combat-state update: validates via
 // actor_update_squad_link_state then refreshes threat/perception/orientation sub-state and
 // either continues an in-progress transition or performs a full combat activation." Calls

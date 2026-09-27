@@ -1,6 +1,6 @@
 // actor_delete_or_release_unit  (Ghidra: actor_delete_or_release_unit, already named)
 // address 0x4288e0, size 215 bytes
-// name confidence: 0.5   rewrite confidence: 0.25
+// name confidence: 0.5   rewrite confidence: 0.85 (checked against objdump 0x4288e0..0x4289b2)
 // evidence: types/ai.h actor.swarm(0x06)/unit_index(0x18)/cluster_unit_index(0x24). Calls
 //   actor_remove_from_unit_cluster (0x427c90) and actor_attempt_grenade_throw (0x428ab0),
 //   both already rewritten in this module, plus actor_delete (0x427e60, already rewritten)

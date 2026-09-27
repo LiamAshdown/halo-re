@@ -1,6 +1,6 @@
 // actor_movement_advance_waypoint  (Ghidra: actor_movement_advance_waypoint, renamed)
 // address 0x4163e0, size 796 bytes
-// name confidence: 0.3   rewrite confidence: 0.3
+// name confidence: 0.3   rewrite confidence: 0.9 (checked against objdump 0x4163e0..0x4166fb)
 // evidence: re-resolves the movement action when needed (actor_movement_action_resolve),
 // checks arrival (actor_movement_check_arrival), then walks a short list of 16-byte waypoint
 // records starting at actor+0x4a8 (self->movement_action_complete's own address, reused here

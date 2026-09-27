@@ -1,6 +1,6 @@
 // actor_update_squad_link_state  (Ghidra: actor_update_squad_link_state, already named)
 // address 0x429270, size 438 bytes
-// name confidence: 0.5   rewrite confidence: 0.25
+// name confidence: 0.5   rewrite confidence: 0.85 (checked against objdump 0x429270..0x429425)
 // evidence: types/ai.h actor.swarm(0x06)/swarm_index(0x28)/unknown_4a4/unknown_78/unknown_74/
 //   unknown_92/encounter_index(0x34)/keep_unit_alive(0x13)/unknown_12/target_unit_index(0x270)/
 //   secondary_action(0x46c); encounter.unknown_0c; prop.is_parented(0x12e)/is_unit(0x60)/
@@ -78,8 +78,8 @@ uint8_t actor_update_squad_link_state(datum_index actor_index)
                 prop *target = &((prop *)prop_data->data)[self->target_unit_index & 0xffff];
                 if (target->is_parented != 0 && target->is_unit != 0 && target->is_vault == 0) {
                     int16_t kind = target->kind;
-                    if ((kind >= 2 && kind <= 3) || (kind >= 4 && kind <= 5) ||
-                        combat_grade == 3) {
+                    // 0x429387: kinds 2..3 always count, kinds 4..5 only for a grade 3 (combat) mode
+                    if ((kind >= 2 && kind <= 3) || (kind >= 4 && kind <= 5 && combat_grade == 3)) {
                         stale = 0;
                     }
                 }
@@ -91,12 +91,14 @@ uint8_t actor_update_squad_link_state(datum_index actor_index)
         if (stale) {
             uint8_t movement_done = self->movement_action_complete;
             if (movement_done != 0) {
-                if (self->secondary_action == 3) {
-                    if (self->mode == 6 && enc != 0 && *(int16_t *)((uint8_t *)enc + 0x62) == 1) { // UNSURE offset
+                // 0x4293b7: the ACTIVE movement action's type (+0x46c), not the secondary action (+0x418)
+                if (self->active_movement.type == 3) {
+                    if (self->mode == 6 && enc != 0 && *(int16_t *)((uint8_t *)enc + 0x62) == 1) {
                         return 1;
                     }
-                } else if (self->secondary_action == 5) {
-                    prop *p = &((prop *)prop_data->data)[self->active_movement.parameter & 0xffff];
+                } else if (self->active_movement.type == 5) {
+                    // 0x4293c8: +0x470, the first dword after the type, holds the prop for this type
+                    prop *p = &((prop *)prop_data->data)[*(datum_index *)((uint8_t *)self + 0x470) & 0xffff];
                     if (p->is_parented != 0) {
                         return 1;
                     }

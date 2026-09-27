@@ -4,7 +4,7 @@
 //   three separate places: the object 0x04 cluster-index note, the object_header flags enum
 //   comments for 0x04/0x08/0x10/0x40, and the "objects_update" name used directly in the
 //   object_header_flags block)
-// rewrite confidence: 0.4
+// rewrite confidence: 0.85 (checked against objdump 0x4f4e90..0x4f50de)
 // evidence: types/objects.h object_globals (unknown_04, cluster_pvs_previous[16],
 //   cluster_pvs_current[16]); object_header (identifier, flags -- active/needs_update/
 //   delete_pending/just_created/connected/in_pvs_pass bits all match this function's own bit
