@@ -1,6 +1,6 @@
 // actor_recompute_grenade_eligibility  (Ghidra: actor_recompute_grenade_eligibility; named for this rewrite)
 // address 0x42f260, size 268 bytes
-// name confidence: 0.35   rewrite confidence: 0.35
+// name confidence: 0.35   rewrite confidence: 0.85
 // evidence: phase-4 summary ("recomputes and caches whether an actor currently qualifies to
 // throw/react with a grenade, along with a recheck timer"); writes actor.grenade_eligible
 // (0x6cc) and actor.grenade_recheck_ticks (0x6ce), both already named in types/ai.h.
@@ -18,29 +18,51 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "objects.h"
+#include "cache.h"
 
 extern data_array *actor_data;      // 0x00880360
+extern data_array *object_data;     // 0x008603b0
+extern tag_instance *tag_instances; // 0x0087bc14
 extern uint32_t random_seed_global; // 0x00719cd0
 extern float k_random_scale_65536; // 0x00672b84, 1.5259022e-05 = 1/65536
 extern float ticks_per_second; // 0x00672ac8, 30.0
 
 // blam-cc: EAX -> actor_index
-// Caches whether the actor currently qualifies as grenade-eligible (awareness_level == 3 and
-// unknown_72 < unknown_6e), then reseeds its recheck countdown with a new randomized value.
+// REWRITTEN 2026-09-28 from objdump 0x42f260..0x42f36b (the draft's formula was a placeholder). The recheck time is
+// a random lerp over one of two ranges in the actor definition (actor +0x58): +0x400..+0x404 when eligible, else
+// +0x3f8..+0x3fc, in seconds, times 30, plus the unit's +0x3fa ticks when its +0x388 word is positive.
 void actor_recompute_grenade_eligibility(datum_index actor_index)
 {
-    actor *self;
-    uint8_t eligible;
-    float randomized;
+    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
+    uint8_t *definition = (uint8_t *)tag_instances[*(uint32_t *)&self->actor_definition_tag & 0xffff].data;
+    uint8_t eligible = (uint8_t)(self->awareness_level == 3 && self->unknown_6e > self->unknown_72);
+    int16_t base_ticks = 0;
+    float minimum;
+    float maximum;
+    float fraction;
 
-    self = &((actor *)actor_data->data)[actor_index & 0xffff];
-    eligible = (self->awareness_level == 3 && self->unknown_72 < self->unknown_6e);
+    if (self->unit_index != (datum_index)k_datum_index_none) {
+        uint8_t *unit_obj = (uint8_t *)((object_header *)object_data->data)[self->unit_index & 0xffff].data;
+
+        if (*(int16_t *)(unit_obj + 0x388) > 0) {
+            base_ticks = *(int16_t *)(unit_obj + 0x3fa);
+        }
+    }
 
     random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+    fraction = (float)(int32_t)(random_seed_global >> 16) * k_random_scale_65536;
+    if (eligible) {
+        minimum = *(float *)(definition + 0x400);
+        maximum = *(float *)(definition + 0x404);
+    } else {
+        minimum = *(float *)(definition + 0x3f8);
+        maximum = *(float *)(definition + 0x3fc);
+    }
+
     self->grenade_eligible = eligible;
-    // UNSURE: real formula; preserved as a plausible random-range reseed (see file header).
-    randomized = (float)((uint32_t)random_seed_global >> 0x10) * k_random_scale_65536 + ticks_per_second;
-    self->grenade_recheck_ticks = (int16_t)randomized;
+    self->grenade_recheck_ticks =
+        (int16_t)(long long)((fraction * (maximum - minimum) + minimum) * ticks_per_second + (float)base_ticks);
 }
 
 #if 0

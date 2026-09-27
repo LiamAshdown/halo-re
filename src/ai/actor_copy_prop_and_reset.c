@@ -1,6 +1,6 @@
 // actor_copy_prop_and_reset  (Ghidra: actor_copy_prop_and_reset, renamed)
 // address 0x43e840, size 205 bytes
-// name confidence: 0.4   rewrite confidence: 0.35
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x43e840..0x43e90c (EAX dest, ECX src).)
 // evidence: types/ai.h prop (identifier/actor_index/next_in_actor/pair_index preserved
 // across the copy; kind(+0x24)=4 after; unknown_3a/unknown_3c reset; noticed_a/b/c(+0xb9..bb)
 // cleared; unknown_40/44/48 set to last_known_position(+0xbc) minus unknown_80(+0x80);

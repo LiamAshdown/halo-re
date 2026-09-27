@@ -2,7 +2,7 @@
 // address 0x4f5f70, size 137 bytes
 // name confidence: 0.75 (still FUN_004f5f70 in Ghidra; types/objects.h's object.placement_id
 //   comment names this exact function: "object_get_root_parent_placement 0x4f5f70 returns it")
-// rewrite confidence: 0.35
+// rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x4f5f70..0x4f5ff8.)
 // evidence: types/objects.h object_header, object (parent_object 0x11c, placement_id 0x10c,
 //   flags 0x10 with _object_has_collision_model_bit); globals 0x008603c0/0x008603c4/0x008603c8
 //   (noncollideable_cluster_first/_object_references/_cluster_partition) and

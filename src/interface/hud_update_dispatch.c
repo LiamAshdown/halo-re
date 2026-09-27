@@ -1,6 +1,6 @@
 // hud_update_dispatch  (Ghidra: FUN_004a9990, renamed)
 // address 0x4a9990, size 93 bytes
-// name confidence: 0.3 (chosen)   rewrite confidence: 0.35
+// name confidence: 0.3 (chosen)   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x4a9990..0x4a99ec.)
 // evidence: phase-4 summary "Per-frame HUD update dispatcher that drives the motion sensor,
 // meters, and messaging sub-systems"; types/interface.h hud_messaging_globals::next_sequence
 // (offset 0x465 matches exactly).
