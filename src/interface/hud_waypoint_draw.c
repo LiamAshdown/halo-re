@@ -53,7 +53,7 @@ extern void unit_get_camera_position(datum_index unit_index, real_point3d *out);
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0, blam-cc: EAX out, EDX point
 extern uint8_t render_project_world_point_to_screen(real_point2d *out, const real_point3d *point, void *frustum,
                                                     void *camera); // 0x50de30, blam-cc: ECX out, EDX point, ESI frustum, EDI camera
-extern void color_rgb_int_to_real(uint32_t packed, ColorRGB *out); // 0x43f630, blam-cc: ECX packed, EAX out
+extern void color_rgb_int_to_real(ColorRGB *out, uint32_t packed); // 0x43f630, blam-cc: EAX out, ECX packed
 extern uint32_t color_rgb_float_to_int(const float *rgb); // 0x4ab5d0
 extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
                                            void **out_data, int32_t *out_offset); // 0x4ab8d0, blam-cc: EAX frame_index
@@ -172,7 +172,7 @@ void hud_waypoint_draw(const real_point3d *position, int16_t local_player_index,
     } else {
         alpha = (uint8_t)-(int8_t)ui_real_to_int_truncate(arrow->opacity);
     }
-    color_rgb_int_to_real(*(const uint32_t *)&arrow->color, &color);
+    color_rgb_int_to_real(&color, *(const uint32_t *)&arrow->color);
     color.red = hud_clamp01(1.0f - arrow->translucency) * color.red;
     color.green = hud_clamp01(1.0f - arrow->translucency) * color.green;
     color.blue = hud_clamp01(1.0f - arrow->translucency) * color.blue;

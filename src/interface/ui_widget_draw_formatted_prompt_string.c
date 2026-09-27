@@ -147,7 +147,7 @@ void ui_widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t use_tex
                 ColorARGB text_color;
                 uint32_t packed_color;
 
-                color_argb_int_to_real(*(uint32_t *)&icon->override_icon_color, &icon_color);
+                color_argb_int_to_real(&icon_color, *(uint32_t *)&icon->override_icon_color); // EAX out, ECX packed
                 icon->flags = (HUDInterfaceMessagingFlags)(saved_flags & 0xfd);
                 if (prompt_icon_override_table[token] != 0) {
                     icon->flags = (HUDInterfaceMessagingFlags)(icon->flags & 0xfb);

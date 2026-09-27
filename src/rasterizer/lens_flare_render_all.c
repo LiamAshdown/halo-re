@@ -54,7 +54,7 @@ extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, UNSUR
 extern float lens_flare_compute_rotation(lens_flare_instance *flare, int16_t mode); // 0x513540
 extern double fpatan(double y, double x); // x87 FPATAN, atan2(y, x)
 extern uint8_t color_channel_real_to_byte(float channel); // 0x5132b0, UNSURE: return unused at this call site
-extern void color_interpolate(ColorRGB *out_color, uint32_t color_pair, float t); // 0x43f6a0
+extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t); // 0x43f6a0, EAX color1, ECX color0
 // blam-cc: AX -> type, stack -> input
 extern real periodic_function_evaluate(periodic_function_t type, double time); // 0x4cc9b0
 extern uint32_t color_pack_argb_from_real(ColorARGB *color); // 0x497900, UNSURE: return unused at this call site
@@ -219,7 +219,8 @@ void lens_flare_render_all(void)
                         float phase = (float)periodic_function_evaluate((periodic_function_t)r->animation_function,   // AX = +0x72 (0x51425e)
                             (*(float *)(raw + 0x78) + rasterizer_time.time) / *(float *)(raw + 0x74));
                         float lerp_factor = phase * *(float *)(raw + 0x60) + (1.0f - phase) * *(float *)(raw + 0x50);
-                        color_interpolate(&interpolated, r->more_flags & 3, phase);
+                        // 0x514294: EAX = reflection +0x64, ECX = +0x54, stack (dest, byte +0x70 & 3, phase)
+                        color_interpolate((ColorRGB *)(raw + 0x64), (ColorRGB *)(raw + 0x54), &interpolated, raw[0x70] & 3, phase);
                         alpha = lerp_factor * alpha;
                         red = red * interpolated.red;
                         green = green * interpolated.green;

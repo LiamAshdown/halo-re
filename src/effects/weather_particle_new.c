@@ -30,7 +30,7 @@ extern random_seed effect_random_seed;        // 0x00719cd4
 
 extern datum_index datum_new(data_array *array); // 0x4d0480, memory module
 extern void effect_random_direction_from_table(real_point3d *out); // 0x4505e0, this module
-extern void color_interpolate(void *out_color, uint32_t color_pair, float t); // 0x43f6a0, math module
+extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t); // 0x43f6a0, EAX color1, ECX color0
 
 // Creates one new weather particle (raindrop/snowflake) for the given weather instance and
 // particle type slot: a random position inside the field box, zero velocity, a random-direction
@@ -100,7 +100,9 @@ datum_index weather_particle_new(int16_t instance_index, int16_t type_index)
         }
 
         effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-        color_interpolate(&p->color, type->flags,
+        // 0x4583b4: EAX = type +0x148, ECX = type +0x138, stack (particle +0x38, type +0x20, t)
+        color_interpolate((ColorRGB *)((uint8_t *)type + 0x148), (ColorRGB *)((uint8_t *)type + 0x138),
+            (ColorRGB *)&p->color, *(uint32_t *)((uint8_t *)type + 0x20),
             (real)(int16_t)(effect_random_seed >> 16) * (1.0f / 65536.0f));
 
         effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;

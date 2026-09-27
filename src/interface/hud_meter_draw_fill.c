@@ -34,8 +34,8 @@ extern tag_instance *tag_instances; // 0x0087bc14
 
 extern int32_t ui_real_to_int_truncate(float value); // 0x4ab590
 extern uint32_t color_rgb_float_to_int(const float *rgb); // 0x4ab5d0, a ColorRGB
-extern ColorRGB *color_rgb_int_to_real(ColorARGBInt packed, ColorRGB *out); // 0x43f630, blam-cc: ECX packed, EAX out
-extern void color_interpolate(const ColorRGB *a, const ColorRGB *b, ColorRGB *out, uint32_t flags, float t); // 0x43f6a0, blam-cc: ECX a, EAX b
+extern void color_rgb_int_to_real(ColorRGB *out, uint32_t packed); // 0x43f630, blam-cc: EAX out, ECX packed
+extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t); // 0x43f6a0, EAX color1, ECX color0
 extern uint32_t color_pack_argb_from_real(ColorARGB *color); // 0x497900
 extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence); // 0x43f290, blam-cc: EAX tag, DI frame
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing); // 0x444550, blam-cc: EAX bitmap
@@ -105,7 +105,7 @@ void hud_meter_draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t 
                 t = 1.0f;
             }
         }
-        color_rgb_int_to_real(meter->flash_color, &flash);
+        color_rgb_int_to_real(&flash, *(uint32_t *)&meter->flash_color);
         flash.red *= t;
         flash.green *= t;
         flash.blue *= t;
@@ -116,9 +116,9 @@ void hud_meter_draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t 
         ColorRGB minimum, maximum, blended;
         uint32_t alpha = (uint32_t)(int16_t)alpha_a << 24;
         float t = (meter->flags & 0x10) ? 1.0f - fraction_2 : fraction_2;
-        color_rgb_int_to_real(meter->color_at_meter_minimum, &minimum);
-        color_rgb_int_to_real(meter->color_at_meter_maximum, &maximum);
-        color_interpolate(&minimum, &maximum, &blended, 0, t);
+        color_rgb_int_to_real(&minimum, *(uint32_t *)&meter->color_at_meter_minimum);
+        color_rgb_int_to_real(&maximum, *(uint32_t *)&meter->color_at_meter_maximum);
+        color_interpolate(&maximum, &minimum, &blended, 0, t); // 0x4abfb5: EAX = maximum, ECX = minimum
         block.primary = color_rgb_float_to_int((const float *)&blended) | alpha;
         block.secondary = color_rgb_float_to_int((const float *)&blended);
         block.tint = alpha;
