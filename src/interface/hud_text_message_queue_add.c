@@ -1,6 +1,6 @@
 // hud_text_message_queue_add  (Ghidra: hud_text_message_queue_add, already named)
 // address 0x4a3d90, size 145 bytes
-// name confidence: 0.55   rewrite confidence: 0.45
+// name confidence: 0.55   rewrite confidence: 0.85 (VERIFIED 2026-09-27 against objdump 0x4a3d90..0x4a3e20 (EAX text, EBX top, stack index; \s<n> spacer lines and \h hold).)
 // evidence: matches the given name; functions.md: "Appends a HUD text/chat message to the message
 // queue, recognizing embedded \s (sound) and \h escape markers." types/interface.h's
 // hud_text_message struct (text/unknown_04/hold/start_time/end_time) matches this function's
