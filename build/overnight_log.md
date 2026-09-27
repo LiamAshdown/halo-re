@@ -1600,3 +1600,10 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   draft had no actor and called a different helper argless; fistp rounding. Its 5 call sites (resolve_look_target,
   look_randomize_direction, update_look_target x3) pass the actor.
 - actor_link_to_unit_cluster: team stamp gets (encounter EAX, unit ECX).
+- Vanishing-NPC trail, recordings: a10 uses recording_play_and_delete 14x (the unit is DELETED one tick after its
+  recording ends). Verified faithful: recorded_animation_start (0.9), recorded_animations_update (0.9), the compressed
+  codec update (end only on the end marker at exactly its delay). So a play_and_delete unit vanishes only when its
+  recording really ends -- unless the decoded control data is wrong (decoders 0.8-0.9).
+  Runtime check for the user: is the cryo tech driven by a recording (recorded_animations data array 0x6b0a10) when he
+  vanishes, and is his object datum freed (deleted) at that moment?
+- OPEN: actor_update_look_target 0x415480 (0.25, 3896 bytes; AI look/aim control every tick).

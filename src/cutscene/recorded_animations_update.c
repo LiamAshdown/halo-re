@@ -1,6 +1,6 @@
 // recorded_animations_update  (Ghidra: recorded_animations_update, already named)
 // address 0x44aa90, size 550 bytes
-// name confidence: 0.6   rewrite confidence: 0.45
+// name confidence: 0.6   rewrite confidence: 0.9 (verified against objdump 0x44aa90..0x44acb5)
 // evidence: types/cutscene.h recorded_animation struct comment ("ticked by 0x44aa90") and
 //   types/units.h biped_data.flags comment: "bit 1 = jumping (0x559fa0 sets 0 and 1 together;
 //   the recorded-animation update also sets it, or BYTE [edi+0x4cc],0x2 at 0x44ac86)" -- the

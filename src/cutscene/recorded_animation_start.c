@@ -1,6 +1,6 @@
 // recorded_animation_start  (Ghidra: recorded_animation_start, already named)
 // address 0x44a930, size 342 bytes
-// name confidence: 0.6   rewrite confidence: 0.5
+// name confidence: 0.6   rewrite confidence: 0.9 (verified against objdump 0x44a930..0x44aa85)
 // evidence: types/cutscene.h recorded_animation struct comment: "Created by 0x44a930 (EAX unit,
 //   CX Scenario.recorded_animations index, stack extra flags), ticked by 0x44aa90, searched by
 //   0x44acc0 / 0x44ad20." and the module header's account of the whole address run. Confirmed
