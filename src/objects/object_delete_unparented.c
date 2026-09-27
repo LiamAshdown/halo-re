@@ -63,7 +63,7 @@ void object_delete_unparented(uint32_t object_index) // blam-cc: EDI -> object_i
 
     header = (object_header *)object_data->data + (object_index & 0xffff);
     if ((header->flags & _object_header_delete_pending_bit) == 0) {
-        network_index_cache_remove(object_pooled_node_globals_006870d8, object_index);
+        network_index_cache_remove(&object_pooled_node_globals_006870d8, object_index); // FIXED: EAX is the container ADDRESS 0x6870d8 (mov eax,imm); its dword is 0xd, not a pointer
     }
 
     if (encoded_length > 0) {

@@ -2,7 +2,7 @@
 // address 0x568120, size 263 bytes
 // name confidence: 0.5 (already carries this name; matches functions.md's summary: "Removes a
 //   unit from its current vehicle seat, resetting its pose and transient state and broadcasting
-//   the change")   rewrite confidence: 0.3
+//   the change")   rewrite confidence: 0.85 (VERIFIED against 0x568120 (really the player unit release: stance reset, transient release, state-change record, network role 3); fixed the network cache call arguments)
 // evidence: types/memory.h data_array (maximum_count 0x20, size 0x22, data 0x34); the player
 //   data_array at 0x0087a480 with the controlled-unit handle at record+0x34 (see
 //   src/units/unit_all_seats_unoccupied.c and out/phase4/units_types_notes.md).
@@ -34,7 +34,8 @@ extern void unit_update_stance_and_jump(uint32_t unit_index, uint8_t force_ready
                                         uint8_t require_still); // 0x566de0
 extern void unit_release_transient_state(uint32_t unit_index, uint8_t is_light_reset); // 0x568610, UNSURE signature
 extern void unit_broadcast_state_change_event(unit_state_change_record record); // 0x566c00, the record by value
-extern void network_index_cache_remove(uint32_t object_index);                 // 0x4e9d40, UNSURE signature
+extern uint8_t network_index_cache_container[]; // 0x006870d8, the object network index cache
+extern uint8_t network_index_cache_remove(uint8_t *container, int32_t key); // 0x4e9d40, EAX container, ESI key
 
 void unit_exit_vehicle_seat(uint32_t player_index) // blam-cc: in_EAX -> player_index
 {
@@ -71,7 +72,9 @@ void unit_exit_vehicle_seat(uint32_t player_index) // blam-cc: in_EAX -> player_
             object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
             obj->network_role = 3;
             if ((((object_header *)object_data->data)[unit_index & 0xffff].flags & 8) == 0) {
-                network_index_cache_remove(unit_index);
+                // FIXED (0x568213): EAX = the cache container 0x6870d8, ESI = the unit; the draft
+                //   passed the unit as the container.
+                network_index_cache_remove(network_index_cache_container, (int32_t)unit_index);
             }
         }
     }

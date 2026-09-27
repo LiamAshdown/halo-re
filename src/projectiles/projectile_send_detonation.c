@@ -57,7 +57,7 @@ void projectile_send_detonation(datum_index projectile_index)
 
     obj->network_role = 3;
     if ((((object_header *)object_data->data)[projectile_index & 0xffff].flags & _object_header_delete_pending_bit) == 0) {
-        network_index_cache_remove(object_pooled_node_globals_006870d8, projectile_index);
+        network_index_cache_remove(&object_pooled_node_globals_006870d8, projectile_index); // FIXED: EAX is the container ADDRESS 0x6870d8 (mov eax,imm); its dword is 0xd, not a pointer
     }
 }
 

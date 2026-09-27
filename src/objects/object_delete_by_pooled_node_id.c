@@ -58,7 +58,7 @@ void object_delete_by_pooled_node_id(int32_t **record, uint32_t pooled_node_id)
         if (object_index != 0xffffffff) {
             header = (object_header *)object_data->data + (object_index & 0xffff);
             if ((header->flags & _object_header_delete_pending_bit) == 0) {
-                network_index_cache_remove(object_pooled_node_globals_006870d8, object_index);
+                network_index_cache_remove(&object_pooled_node_globals_006870d8, object_index); // FIXED: EAX is the container ADDRESS 0x6870d8 (mov eax,imm); its dword is 0xd, not a pointer
             }
             if (object_try_and_get(object_index, _object_mask_all) != 0) {
                 // 0x4f5ba0 push -1 / mov ecx,esi
