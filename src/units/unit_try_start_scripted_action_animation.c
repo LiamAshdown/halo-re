@@ -1,5 +1,5 @@
 // unit_try_start_scripted_action_animation  (Ghidra: FUN_00569530)
-// address 0x569530, size 319 bytes, name confidence 0.4, rewrite confidence 0.3
+// address 0x569530, size 319 bytes, name confidence 0.4, rewrite confidence 0.9 (REWRITTEN from objdump)
 // functions.md: "Starts a unit's scripted action animation (e.g. melee/grenade-throw class) if
 // one exists for the requested action."
 // evidence: same graph traversal as unit_scripted_action_animation_exists.c (0x569470);
@@ -17,46 +17,62 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern uint8_t unit_is_seat_control_available(uint32_t unit_index, int16_t command); // 0x5693a0
-extern int32_t unit_map_action_command_to_animation_state(int16_t command, int16_t *out_priority); // 0x5692b0
-extern void object_copy_default_node_transforms(uint32_t unit_index);                          // 0x4f6b70, UNSURE signature  // real signature (object_copy_default_node_transforms.c): void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count); Ghidra recovered 1 of 2 args at this call site
-extern int32_t animation_choose_random_permutation(int32_t mode);                              // 0x4d6280
+extern uint8_t unit_is_seat_control_available(uint32_t unit_index, int16_t command); // 0x5693a0, EAX, DI
+extern int32_t unit_map_action_command_to_animation_state(int16_t command, int16_t *out_priority); // 0x5692b0, CX, EDX
+extern void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count); // 0x4f6b70, EAX, DX
+extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation,
+    int32_t stream); // 0x4d6280, EAX, DX, stack
 extern void unit_set_throw_aim_direction(uint32_t object_index, const real_vector2d *direction_xy); // 0x5704d0, EAX, ECX
 
+// REWRITTEN from objdump 0x569530..0x56966e. Stack: (unit, command, direction). When the unit may act and its current
+//   animation set (graph +0x10 units, +0x5c weapons, 0xbc each; +0x98 / +0x9c states) has the command's state
+//   (0x5692b0, which also yields a priority), the node transforms are reset with that priority (0x4f6b70), a random
+//   permutation of the state's animation is picked (0x4d6280: graph, animation, stream 1) and played as the object's
+//   animation (+0xcc / +0xd0 / +0xd2), the unit enters state 0x1d (+0x2a3, flag +0x298 bit 0) and a free biped turns
+//   toward the direction. The draft lost the priority and called the permutation chooser with only the stream, so
+//   the object got a garbage animation index.
 uint8_t unit_try_start_scripted_action_animation(uint32_t unit_index, int16_t command, const real_vector2d *direction)
 {
-    object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;     // esi
+    uint8_t *unit_tag;                                                                              // edi
+    uint8_t *weapon_record;                                                                         // ebp
+    int16_t priority;                                                                               // [esp+0x10]
+    int16_t state_index;
+    int16_t first_animation;
+    int16_t animation;
+    uint8_t *object;
 
     if (!unit_is_seat_control_available(unit_index, command)) {
         return 0;
     }
+    unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
+    {
+        uint8_t *graph = (uint8_t *)tag_instances[*(datum_index *)(unit_tag + 0x44) & 0xffff].data;
+        uint8_t *units_block = *(uint8_t **)(graph + 0x10);
+        uint8_t *weapons = *(uint8_t **)(units_block + (int8_t)unit[0x2a0] * 0x64 + 0x5c);
 
-    Unit *unit_tag = (Unit *)tag_instances[unit_obj->definition_tag & 0xffff].data;
-    uint8_t *graph = (uint8_t *)tag_instances[unit_tag->base.animation_graph.tag_id.index & 0xffff].data;
-    uint8_t *units_block = *(uint8_t **)(graph + 0x10);
-    uint8_t *weapons_array = *(uint8_t **)(units_block + 0x5c + unit->animation_definition_index * 100);
-    uint8_t *weapon_record = weapons_array + unit->animation_weapon_index * 0xbc;
-
-    int16_t state_index = (int16_t)unit_map_action_command_to_animation_state(command, (int16_t *)0);
-    if ((-1 < state_index) && (state_index < *(int32_t *)(weapon_record + 0x98)) &&
-        (*(int16_t *)(*(int32_t *)(weapon_record + 0x9c) + state_index * 2) != -1)) {
-        object_copy_default_node_transforms(unit_index);
-        int16_t animation = (int16_t)animation_choose_random_permutation(1);
-        unit->animation_state_flags |= 1;
-        unit->animation_state = 0x1d;
-        // NOTE: the original writes the animation graph TagID and the chosen animation index
-        // directly into the object at +0xcc/+0xd0/+0xd2, i.e. object.animation_graph /
-        // .animation_index / .animation_frame, matching unit_set_custom_animation's own body.
-        unit_obj->animation_graph = *(datum_index *)&unit_tag->base.animation_graph.tag_id;
-        unit_obj->animation_index = animation;
-        unit_obj->animation_frame = 0;
-        if ((direction != 0) && (unit_obj->type == _object_type_biped) && (unit_obj->parent_object == k_datum_index_none)) {
-            unit_set_throw_aim_direction(unit_index, direction); // 0x569623: ECX = the third argument
-        }
-        return 1;
+        weapon_record = weapons + (int8_t)unit[0x2a1] * 0xbc;
     }
-    return 0;
+    state_index = (int16_t)unit_map_action_command_to_animation_state(command, &priority);
+    if (state_index < 0 || (int32_t)state_index >= *(int32_t *)(weapon_record + 0x98)) {
+        return 0;
+    }
+    first_animation = (*(int16_t **)(weapon_record + 0x9c))[state_index];
+    if (first_animation == -1) {
+        return 0;
+    }
+    object_copy_default_node_transforms(unit_index, priority);
+    animation = animation_choose_random_permutation(*(datum_index *)(unit_tag + 0x44), first_animation, 1);
+    object = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    *(datum_index *)(object + 0xcc) = *(datum_index *)(unit_tag + 0x44);
+    *(int16_t *)(object + 0xd0) = animation;
+    *(int16_t *)(object + 0xd2) = 0;
+    unit[0x298] |= 1;
+    unit[0x2a3] = 0x1d;
+    if (direction != 0 && *(int16_t *)(unit + 0xb4) == 0 && *(datum_index *)(unit + 0x11c) == k_datum_index_none) {
+        unit_set_throw_aim_direction(unit_index, direction);
+    }
+    return 1;
 }
 
 #if 0

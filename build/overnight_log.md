@@ -1577,3 +1577,9 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   participant (the a10 cryo tech) could head for a stale target. Player look-cone test gets (unit ECX, participant
   +0x120 EDI). CANDIDATE for the vanishing / wandering cryo tech.
 - NEW scan scratchpad/setmode_scan.py: every other actor_set_mode call passes the same kind of mode data as the binary.
+- unit_try_start_scripted_action_animation 0x569530 REWRITTEN (0.3 -> 0.9): the command's priority reaches the node
+  transform reset (DX) and animation_choose_random_permutation gets (graph, first animation, 1) -- the draft passed only
+  the stream, so AI gestures (ai_communication_broadcast, actor_apply_queued_look_to_unit) set a GARBAGE animation
+  index on the unit. Bad animation index -> bad node matrices -> a unit that stops rendering: CANDIDATE for the
+  vanishing cryo tech (he gestures while talking).
+- unit_scripted_action_animation_exists verified (0.9).
