@@ -1,137 +1,120 @@
 // path_find_trace_cluster_boundary  (Ghidra: path_find_trace_cluster_boundary, renamed)
 // address 0x43d4b0, size 716 bytes
-// name confidence: 0.3   rewrite confidence: 0.1
-// evidence: phase-4 summary "walks a BSP cluster's boundary edges to find where a proposed
-// straight-line move first crosses a blocked or permission boundary." Reads the same
-// bsp-pointer-at-+0xb4 and request-block-at-+0x1e8 shape as path_find_gather_adjacent_edges.c
-// and path_find_run.c's permission-bitmap test (DAT_006b8d78/DAT_0069e8d8), reused here.
-//
-// This is a very low confidence, close-to-decompiled rewrite: the boundary-edge table this
-// walks (`context->bsp_generation + 0x4c` and `+0x58`, stride 0x18 for edge records and 0x10
-// for vertex positions) belongs to the un-established structure_bsp cluster-boundary layout,
-// not anything named in types/ai.h, and the control flow (a nested double loop with several
-// early-exit conditions on which side of the moving segment a boundary vertex falls) is
-// preserved as literally as this rewrite could manage without independent verification.
-//
-// register convention: EAX -> start_edge, ECX -> context; stack -> start, distance,
-//   want_side, ignore_permission, out_result.
-//   // blam-cc: EAX -> start_edge, ECX -> context, stack -> start, distance, want_side,
-//   //   ignore_permission, out_result
-// reconciled: R79 0x006b8d78 ai_path_permission_table -> physics.h breakable_surface_globals *breakable_surface_state (the code took the global's ADDRESS; the binary loads the pointer: mov edx,ds:0x6b8d78) and 0x0069e8d8 local_command_list_generation -> global_structure_bsp_index; the row is active[bsp index] (intact breakable surfaces)
+// name confidence: 0.35  rewrite confidence: 0.8
+// REWRITTEN from objdump 0x43d4b0..0x43d782. ECX = the path find map, EAX = a boundary edge; stack: origin
+//   (2D), radius, side, ignore_permission, out_point. Walks the boundary between passable and blocked surfaces
+//   (passable = map flag table +0x1e8 bit 0x40 and, unless ignore_permission, not intact glass) from the edge:
+//   each boundary edge is oriented by whether its first surface (+0x10) is passable; with n its left normal
+//   (normalised when longer than 0.0001), the origin offset by +/-radius along n is compared with the edge's first
+//   vertex (a "front" test on +radius when the dot sign matches the side, and a cross test on -radius). The
+//   pivot vertex (edge[0] or edge[1], from those tests, the first-surface passability and the side) is then
+//   rotated around through its edges until one whose surface on that side has passability == side, which becomes
+//   the next boundary edge. Returns 1 with the pivot's x/y in out_point when the same pivot comes up twice in a
+//   row; 0 when the walk returns to its first pivot or a rotation finds no such edge.
+// blam-cc: ECX -> map, EAX -> edge_index, stack -> origin, radius, side, ignore_permission, out_point
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
-#include "physics.h"
 
+extern uint8_t *breakable_surface_state;   // 0x006b8d78
+extern int16_t global_structure_bsp_index; // 0x0069e8d8
 extern double sqrt(double x); // FSQRT
-extern double fabs(double x); // ABS
-extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78, physics.h
-extern int16_t global_structure_bsp_index; // 0x0069e8d8, physics.h (the structure BSP index)
+extern double fabs(double x); // FABS
 
-// blam-cc: EAX -> start_edge, ECX -> context, stack -> start, distance, want_side,
-//   ignore_permission, out_result
-//
-// UNSURE: see file header -- kept close to the Ghidra decompilation throughout.
-uint8_t path_find_trace_cluster_boundary(int32_t start_edge, void *context, real_point2d *start, float distance,
-                                         uint8_t want_side, uint8_t ignore_permission, real_point2d *out_result)
+#define EDGE(bsp, i) ((int32_t *)(*(uint8_t **)((bsp) + 0x4c) + (i) * 0x18))
+#define VERTEX(bsp, i) ((float *)(*(uint8_t **)((bsp) + 0x58) + (i) * 16))
+
+static uint8_t path_find_surface_passable(uint8_t *bsp, uint8_t *walkable, uint32_t *broken, int32_t surface,
+    uint8_t ignore_permission)
 {
-    uint8_t *bsp = *(uint8_t **)((uint8_t *)context + 0xb4);
-    uint8_t *permission_row = (uint8_t *)breakable_surface_state->active[global_structure_bsp_index];
-    int32_t prev_edge = -1;
-    int32_t closed_edge = -1;
-    uint8_t *edge_table = *(uint8_t **)(bsp + 0x4c);
-    uint8_t *vertex_table = *(uint8_t **)(bsp + 0x58);
-    uint8_t *edge = edge_table + start_edge * 0x18;
-    int32_t cur_edge = start_edge;
+    uint8_t flags = walkable[surface];
+    uint8_t passable = (uint8_t)((flags >> 6) & 1);
+
+    if (!ignore_permission && passable && (flags & 0x80) != 0) {
+        uint32_t bit = (*(uint8_t **)(bsp + 0x40))[surface * 12 + 9];
+
+        passable = (uint8_t)((broken[bit >> 5] & (1u << (bit & 0x1f))) != 0);
+    }
+    return passable;
+}
+
+uint8_t path_find_trace_cluster_boundary(void *map, int32_t edge_index, real_point2d *origin, float radius,
+    uint8_t side, uint8_t ignore_permission, real_point2d *out_point)
+{
+    uint8_t *bsp = *(uint8_t **)((uint8_t *)map + 0xb4);
+    uint8_t *walkable = *(uint8_t **)((uint8_t *)map + 0x1e8);
+    uint32_t *broken = (uint32_t *)(breakable_surface_state + 1 + global_structure_bsp_index * 32);
+    int32_t first_pivot = -1;
+    int32_t previous = -1;
+    int32_t current = edge_index;
+    int32_t *edge = EDGE(bsp, current);
 
     for (;;) {
-        int32_t prev_iter_edge = cur_edge;
-        uint8_t flag_byte = *(uint8_t *)(*(int32_t *)(edge + 0x10) + *(int32_t *)((uint8_t *)context + 0x1e8));
-        uint8_t use_second = (flag_byte >> 6) & 1;
-        float *vertex_a, *vertex_b;
-        float ex, ey, ex_neg, elen;
-        float side_x, side_y;
-        uint8_t bend;
-        uint32_t which;
-        int32_t next_edge;
+        uint8_t first_passable = path_find_surface_passable(bsp, walkable, broken, edge[4], ignore_permission);
+        float *v1 = VERTEX(bsp, edge[first_passable]);
+        float *v2 = VERTEX(bsp, edge[!first_passable]);
+        float ex = v2[0] - v1[0];
+        float ey = v2[1] - v1[1];
+        float length = (float)sqrt(ey * ey + ex * ex);
+        float nx = ey;
+        float ny = -ex;
+        float w1x;
+        float w1y;
+        float w2x;
+        float w2y;
+        uint8_t turn = 0;
+        int32_t pivot;
+        int32_t rotation_start;
 
-        if ((ignore_permission == 0) && use_second && ((int8_t)flag_byte < 0)) {
-            uint8_t perm_index = *(uint8_t *)(*(int32_t *)(bsp + 0x40) + *(int32_t *)(edge + 0x10) * 0xc + 9);
-            use_second = (*(uint32_t *)(permission_row + (perm_index >> 5) * 4) & (1u << (perm_index & 0x1f))) != 0;
-        }
+        if (!((float)fabs(length) < 0.0001f)) {
+            float scale = 1.0f / length;
 
-        vertex_a = (float *)(*(int32_t *)(edge + use_second * 4) * 0x10 + vertex_table);
-        vertex_b = (float *)(*(int32_t *)(edge + (use_second == 0) * 4) * 0x10 + vertex_table);
-        ex = vertex_b[0] - vertex_a[0];
-        ey = vertex_b[1] - vertex_a[1];
-        ex_neg = -ex;
-        elen = (float)sqrt(ey * ey + ex_neg * ex_neg);
-        side_x = ex_neg;
-        side_y = ey;
-        if (0.0001 <= fabs(elen)) {
-            elen = 1.0f / elen;
-            side_x = elen * ex_neg;
-            side_y = elen * ey;
+            nx = ey * scale;
+            ny = -ex * scale;
         }
-
-        bend = 0;
-        {
-            float dx = vertex_a[0] - (side_y * distance + start->x);
-            float dy = vertex_a[1] - (side_x * distance + start->y);
-            if (((dx * ex + dy * ey < 0.0f) == (want_side != 0)) && (dx * ey - dy * ex < 0.0f)) {
-                bend = 1;
-            }
+        w1x = v1[0] - (nx * radius + origin->x);
+        w1y = v1[1] - (ny * radius + origin->y);
+        w2x = v1[0] - (-radius * nx + origin->x);
+        w2y = v1[1] - (ny * -radius + origin->y);
+        if ((uint8_t)(w1y * ey + w1x * ex < 0.0f) == side && w1x * ey - w1y * ex < 0.0f) {
+            turn = 1;
         }
-        {
-            float dx2 = vertex_a[0] - (-distance * side_y + start->x);
-            float dy2 = vertex_a[1] - (side_x * -distance + start->y);
-            if ((dx2 * ey - dy2 * ex) < 0.0f) {
-                bend = 1;
-            }
+        if (w2x * ey - w2y * ex < 0.0f) {
+            turn = 1;
         }
-        if (closed_edge == -1) {
-            bend = 1;
+        if (first_pivot == -1) {
+            turn = 1;
         }
-
-        which = (bend != use_second) != (want_side != 0);
-        next_edge = *(int32_t *)(edge + 4 + which * -4);
-
-        if (next_edge == prev_edge) {
-            out_result->x = *(float *)(vertex_table + next_edge * 0x10);
-            out_result->y = *(float *)(vertex_table + next_edge * 0x10 + 4);
+        pivot = ((uint8_t)(turn != first_passable) != side) ? edge[0] : edge[1];
+        if (pivot == previous) {
+            out_point->x = VERTEX(bsp, pivot)[0];
+            out_point->y = VERTEX(bsp, pivot)[1];
             return 1;
         }
-        if (next_edge == closed_edge) {
+        if (pivot == first_pivot) {
             return 0;
         }
-        if (closed_edge == -1) {
-            closed_edge = next_edge;
+        if (first_pivot == -1) {
+            first_pivot = pivot;
         }
 
+        // 0x43d6d0: rotate around the pivot for the next boundary edge
+        rotation_start = current;
         for (;;) {
-            uint8_t use_b = (next_edge != *(int32_t *)(edge + 4));
-            uint8_t flag2 = *(uint8_t *)(*(int32_t *)(edge + 0x10 + use_b * 4) + *(int32_t *)((uint8_t *)context + 0x1e8));
-            uint8_t side2 = (flag2 >> 6) & 1;
+            int32_t index = (pivot == edge[1]) ? 0 : 1;
 
-            if ((ignore_permission == 0) && side2 && ((int8_t)flag2 < 0)) {
-                uint8_t perm_index2 = *(uint8_t *)(*(int32_t *)(bsp + 0x40) +
-                                                   *(int32_t *)(edge + 0x10 + use_b * 4) * 0xc + 9);
-                side2 = (*(uint32_t *)(permission_row + (perm_index2 >> 5) * 4) & (1u << (perm_index2 & 0x1f))) != 0;
-            }
-
-            prev_edge = next_edge;
-            if (side2 == want_side) {
+            if (path_find_surface_passable(bsp, walkable, broken, edge[4 + index], ignore_permission) == side) {
                 break;
             }
-
-            cur_edge = *(int32_t *)(edge + 8 + use_b * 4);
-            edge = edge_table + cur_edge * 0x18;
-            if (cur_edge == prev_iter_edge) {
+            current = edge[2 + index];
+            edge = EDGE(bsp, current);
+            if (current == rotation_start) {
                 return 0;
             }
         }
+        previous = pivot;
     }
 }
 

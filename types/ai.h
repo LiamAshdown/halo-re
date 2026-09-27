@@ -1783,6 +1783,13 @@ typedef struct path_find_boundary_crossing {
     float fraction;
 } path_find_boundary_crossing;
 
+// One path waypoint as path_find_reconstruct_path (0x43a4d0) collects them from the node chain and
+// path_find_simplify_waypoints (0x43cc00) / ai_navigate_around_obstacles (0x43be90) pass them on.
+typedef struct path_find_waypoint {
+    int32_t surface_index;  // 0x00 the collision surface the point lies on, -1 for none
+    real_point3d position;  // 0x04
+} path_find_waypoint;       // size 0x10
+
 typedef struct path_find_adjacent_edge {
     int32_t edge_id;        // 0x00 the neighboring vertex id (despite the name every caller uses it as a vertex, not an edge)
     uint8_t flag;           // 0x04

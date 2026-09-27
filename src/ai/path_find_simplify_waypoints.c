@@ -1,27 +1,20 @@
 // path_find_simplify_waypoints  (Ghidra: path_find_simplify_waypoints, renamed)
 // address 0x43cc00, size 846 bytes
-// name confidence: 0.4   rewrite confidence: 0.1
-// evidence: types/ai.h path_find_context.start_position(+0x14, confirmed: `local_94`/
-// `local_90` here are its x/y) / start_vertex_id(+0x20, confirmed: `local_8c`) /
-// path_find_request.ignores_glass(+0x04) / bsp_generation(+0x64, "used as an opaque handle"
-// per the module header). phase-4 summary "simplifies a raw waypoint path into a small set
-// of shortcut points by greedily extending clear segments and snapping to occluding navmesh
-// corners." Calls ai_search_find_circle_tangent_point/0x43d100/0x43d240/0x43d4b0/0x43d9b0/0x43de90 (all this
-// rewrite) and decal_plane_solve_third_axis (outside this rewrite's range).
-//
-// This is one of the least confident rewrites in this batch: it is a greedy path-shortcut
-// search whose helper calls (path_find_trace_cluster_boundary, ai_search_choose_shorter_corner, path_find_trace_bsp_boundary, path_find_test_segment_unobstructed) each
-// have their own low-confidence, partially-guessed signatures, and several float literals
-// here are Ghidra's hex-encoded bit patterns for ordinary constants (0x3e99999a = 0.3,
-// 0x3eb33333 = 0.35) rather than raw integers. Reproduced with those constants decoded, and
-// with each helper called using the reduced arity Ghidra shows at this call site rather than
-// any other file's canonical signature for the same address, per this module's established
-// convention for that situation.
-//
-// register convention: stack -> the six Ghidra-recognized formal parameters.
-//   // blam-cc: stack -> context, waypoint_count, waypoints, out_count, out_waypoints,
-//   //   out_success
-// reconciled: R06 path_find_context.bsp_generation -> structure_bsp (0x00746f9c, the resident ScenarioStructureBSP pointer)
+// name confidence: 0.4   rewrite confidence: 0.8
+// REWRITTEN from objdump 0x43cc00..0x43cf50 (the draft had lost most arguments of every helper and was never
+//   called with its own). Stack: context, count, waypoints, out_count, out_waypoints, out_valid.
+//   One waypoint or none: it is copied and out_count = 1 (out_valid untouched). Otherwise, starting from the
+//   request's start point (+0x14, 2D) and surface (+0x20): scan the remaining waypoints with
+//   path_find_test_segment_unobstructed(map +0x64, current, surface, waypoint, radius 0.3, flags 1); the first
+//   waypoint of the trailing run that cannot be seen, and the edge that blocked it, name the obstacle. With none,
+//   the last waypoint is appended and the path is valid. Otherwise the boundary is traced both ways from the edge
+//   (path_find_trace_cluster_boundary, radius 0.3, sides 1 and 0), ai_search_choose_shorter_corner picks the corner
+//   around it (from the current point, the waypoint before the obstacle and the obstacle waypoint), the tangent
+//   points from the current point and from the obstacle waypoint around that corner (radius 0.35, opposite sides)
+//   give the portal whose crossing (ai_search_find_circle_portal_crossing, 0.35) becomes the new current point,
+//   traced from the old one to find its surface, and is emitted with its height on that surface. A fifth corner,
+//   or a failed boundary trace, ends the path unfinished: out_valid = 0.
+// blam-cc: stack -> context, count, waypoints, out_count, out_waypoints, out_valid
 
 #include "tags.h"
 #include "memory.h"
@@ -29,148 +22,126 @@
 #include "ai.h"
 #include <stdint.h> // uintptr_t
 
-extern uint8_t path_find_test_segment_unobstructed(uint8_t ignores_glass, int32_t start_vertex, real_point3d *point, uint32_t param4,
-                            float margin, uint32_t param6, void *out_result); // 0x43de90
-extern uint8_t path_find_trace_cluster_boundary(void *start, float margin, uint32_t direction, uint8_t ignores_glass,
-                            void *out_result); // 0x43d4b0
-extern uint8_t ai_search_choose_shorter_corner(void *a, real_point3d *b, void *out_result); // 0x43d240
-extern void ai_search_find_circle_tangent_point(float param1, uint32_t param2); // 0x43cf60
-extern void ai_search_find_circle_portal_crossing(float param1); // 0x43d100
-extern uint8_t path_find_trace_bsp_boundary(uint32_t bsp_generation, uint8_t ignores_glass, void *from, int32_t from_vertex,
-                            void *to, uint32_t param6, void *out_result); // 0x43d9b0
+extern uint8_t path_find_test_segment_unobstructed(void *map, real_point3d *point_a, uint8_t ignore_permission,
+    int32_t surface_a, real_point3d *point_b, int32_t surface_b, float radius, uint8_t flags,
+    path_find_boundary_crossing *out_result); // 0x43de90, EBX map, EAX point A, stack
+extern uint8_t path_find_trace_cluster_boundary(void *map, int32_t edge_index, real_point2d *origin, float radius,
+    uint8_t side, uint8_t ignore_permission, real_point2d *out_point); // 0x43d4b0, ECX map, EAX edge, stack
+extern uint8_t ai_search_choose_shorter_corner(real_point2d *p, real_point2d *corner_a, real_point2d *q,
+    real_point2d *corner_b, real_point2d *r, real_point2d *out_point); // 0x43d240, ECX, EBX, EDX, stack
+extern void ai_search_find_circle_tangent_point(real_point2d *center, real_point2d *target, real_point2d *out_point,
+    float radius, uint8_t side); // 0x43cf60, ECX, EDX, ESI, stack
+extern void ai_search_find_circle_portal_crossing(real_point2d *center, real_point2d *portal, real_point2d *out_point,
+    real_point2d *fallback_reference, float radius); // 0x43d100, ECX, EDX, ESI, EDI, stack
+extern uint8_t path_find_trace_bsp_boundary(void *map, uint8_t ignore_permission, real_point3d *start,
+    int32_t start_surface, real_point3d *end, int32_t target_surface,
+    path_find_boundary_crossing *out_result); // 0x43d9b0, stack
 extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign, int32_t dominant_axis,
-    const real_plane3d *plane, const real_point2d *known);
-    // 0x44d860, src/math; blam-cc: stack out, AL component_sign, SI dominant_axis, EBX plane, EDI known
+    const real_plane3d *plane, const real_point2d *known); // 0x44d860, stack out, AL, SI, EBX, EDI
 
-// blam-cc: stack -> context, waypoint_count, waypoints, out_count, out_waypoints, out_success
-void path_find_simplify_waypoints(path_find_context *context, int16_t waypoint_count, int32_t *waypoints,
-                                  int16_t *out_count, int32_t *out_waypoints, uint8_t *out_success)
+void path_find_simplify_waypoints(path_find_context *context, int16_t count, path_find_waypoint *waypoints,
+    int16_t *out_count, path_find_waypoint *out_waypoints, uint8_t *out_valid)
 {
-    if (waypoint_count < 2) {
+    path_find_request *request = (path_find_request *)context;
+    void *map = (void *)(uintptr_t)context->structure_bsp;
+    uint8_t ignore_permission = request->ignores_glass;
+    real_point3d current;
+    int32_t current_surface;
+    int16_t emitted = 0;
+    uint8_t valid = 0;
+    int16_t first = 1;
+
+    if (count <= 1) {
         *out_count = 1;
         out_waypoints[0] = waypoints[0];
-        out_waypoints[1] = waypoints[1];
-        out_waypoints[2] = waypoints[2];
-        out_waypoints[3] = waypoints[3];
         return;
     }
+    current = context->start_position; // only x and y are read
+    current_surface = (int32_t)context->start_vertex_id;
 
-    {
-        float start_x = *(float *)&context->start_position.x;
-        float start_y = context->start_position.y;
-        int32_t start_vertex = context->start_vertex_id;
-        int16_t out_index = 0;
-        int16_t cursor = 1;
-        uint8_t reached_end = 0;
-        uint8_t ignores_glass = *(uint8_t *)((uint8_t *)context + 4);
+    for (;;) {
+        int16_t blocked_index = -1;
+        int32_t blocked_edge = -1;
+        uint8_t blocked = 0;
+        int16_t i;
 
-        for (;;) {
-            int16_t best_index = -1;
-            int16_t best_cursor = -1;
-            uint8_t clear = 0;
-            int32_t *entry;
-            path_find_simplify_scratch trace_scratch;
+        for (i = first; i < count; i++) {
+            path_find_boundary_crossing hit;
 
-            if (waypoint_count <= cursor) {
-                break;
-            }
-
-            entry = waypoints + cursor * 4;
-            do {
-                real_point3d point;
-                point.x = *(float *)&entry[1]; point.y = *(float *)&entry[2]; point.z = *(float *)&entry[3];
-
-                if (path_find_test_segment_unobstructed(ignores_glass, start_vertex, &point, (uint32_t)entry[0], 0.3f, 1, &trace_scratch) == 0) {
-                    if (clear) {
-                        best_index = -1;
-                        best_cursor = -1;
-                        clear = 0;
-                    }
-                } else if (!clear) {
-                    best_cursor = cursor;
-                    clear = 1;
-                    best_index = trace_scratch.result;
+            if (path_find_test_segment_unobstructed(map, &current, ignore_permission, current_surface,
+                    &waypoints[i].position, waypoints[i].surface_index, 0.3f, 1, &hit) != 0) {
+                if (!blocked) {
+                    blocked_index = i;
+                    blocked_edge = hit.edge_b;
+                    blocked = 1;
                 }
-
-                cursor = cursor + 1;
-                entry = entry + 4;
-            } while (cursor < waypoint_count);
-
-            if ((!clear) || (best_index == -1)) {
-                break;
-            }
-
-            {
-                path_find_simplify_scratch scratch_a, scratch_b, corner_scratch, bend_scratch;
-                real_point3d origin;
-                real_point3d bend_point;
-                uint8_t corner_side;
-                int32_t new_vertex;
-
-                origin.x = start_x; origin.y = start_y; origin.z = 0.0f;
-
-                if ((path_find_trace_cluster_boundary(&origin, 0.3f, 1, ignores_glass, &scratch_a) == 0) ||
-                    (path_find_trace_cluster_boundary(&origin, 0.3f, 0, ignores_glass, &scratch_b) == 0)) {
-                    break;
-                }
-
-                corner_side = ai_search_choose_shorter_corner(&scratch_b, (real_point3d *)(waypoints + best_cursor * 4 + 1), &corner_scratch);
-                ai_search_find_circle_tangent_point(0.35f, corner_side);
-                ai_search_find_circle_tangent_point(0.35f, (uint32_t)(corner_side == 0));
-                ai_search_find_circle_portal_crossing(0.35f);
-
-                bend_point.x = start_x; bend_point.y = start_y; bend_point.z = 0.0f; // point_a before the bend, see header
-                start_x = corner_scratch.unknown_00[0]; // UNSURE, see header
-
-                if (start_vertex == -1) {
-                    start_vertex = -1;
-                } else {
-                    path_find_trace_bsp_boundary((uint32_t)context->structure_bsp, ignores_glass, &bend_point, start_vertex,
-                                &origin, 0xffffffff, &bend_scratch);
-                    if (bend_scratch.result != -1) {
-                        start_vertex = bend_scratch.result;
-                    }
-                }
-
-                {
-                    int32_t *out_entry = out_waypoints + out_index * 4;
-                    uint8_t *collision_bsp = (uint8_t *)(uintptr_t)*(uint32_t *)((uint8_t *)(uintptr_t)context->structure_bsp + 0xb4);
-                    const real_plane3d *planes = (const real_plane3d *)(uintptr_t)*(uint32_t *)(collision_bsp + 0x10);
-                    const uint32_t *surfaces = (const uint32_t *)(uintptr_t)*(uint32_t *)(collision_bsp + 0x40);
-
-                    out_index = out_index + 1;
-                    // 0x43ce58..0x43cea3: lift `origin` (EDI) onto the plane of surface start_vertex
-                    // (ESI, 0xc-byte surfaces of the structure BSP's collision BSP at +0xb4), solving z,
-                    // into out_entry[1..3]
-                    decal_plane_solve_third_axis((real_point3d *)(out_entry + 1), 1, 2,
-                        &planes[surfaces[start_vertex * 3] & 0x7fffffff], (const real_point2d *)&origin);
-                    out_entry[0] = start_vertex;
-                }
-
-                cursor = best_cursor;
-                if (3 < out_index) {
-                    reached_end = 0;
-                    goto done;
-                }
+            } else if (blocked) {
+                blocked_edge = -1;
+                blocked_index = -1;
+                blocked = 0;
             }
         }
-
+        if (!blocked || blocked_edge == -1) {
+            // 0x43cec9: everything left is visible
+            out_waypoints[emitted++] = waypoints[count - 1];
+            valid = 1;
+            break;
+        }
         {
-            int32_t *last = waypoints + waypoint_count * 4 - 4;
-            int32_t *out_entry = out_waypoints + out_index * 4;
-            out_entry[0] = last[0];
-            out_entry[1] = last[1];
-            out_entry[2] = last[2];
-            out_index = out_index + 1;
-            out_entry[3] = last[3];
-            reached_end = 1;
-        }
+            real_point2d corner_a;
+            real_point2d corner_b;
+            real_point2d corner;
+            real_point2d tangent[2];
+            real_point2d crossing;
+            real_point3d previous = current;
+            uint8_t side;
+            path_find_waypoint *entry;
 
-    done:
-        *out_count = out_index;
-        if (!reached_end) {
-            *out_success = 0;
+            if (!path_find_trace_cluster_boundary(map, blocked_edge, (real_point2d *)&current, 0.3f, 1, ignore_permission,
+                    &corner_a) ||
+                !path_find_trace_cluster_boundary(map, blocked_edge, (real_point2d *)&current, 0.3f, 0, ignore_permission,
+                    &corner_b)) {
+                break;
+            }
+            side = ai_search_choose_shorter_corner((real_point2d *)&current, &corner_a,
+                (real_point2d *)&waypoints[blocked_index - 1].position, &corner_b,
+                (real_point2d *)&waypoints[blocked_index].position, &corner);
+            ai_search_find_circle_tangent_point(&corner, (real_point2d *)&current, &tangent[0], 0.35f, side);
+            ai_search_find_circle_tangent_point(&corner, (real_point2d *)&waypoints[blocked_index].position, &tangent[1],
+                0.35f, (uint8_t)(side == 0));
+            ai_search_find_circle_portal_crossing(&corner, tangent, &crossing, (real_point2d *)&current, 0.35f);
+            current.x = crossing.x;
+            current.y = crossing.y;
+            if (current_surface == -1) {
+                current_surface = -1;
+            } else {
+                path_find_boundary_crossing trace;
+
+                path_find_trace_bsp_boundary(map, ignore_permission, &previous, current_surface, &current, -1, &trace);
+                current.x = trace.position.x;
+                current.y = trace.position.y;
+                if (trace.edge_a != -1) {
+                    current_surface = trace.edge_a;
+                }
+            }
+            {
+                uint8_t *bsp = *(uint8_t **)((uint8_t *)map + 0xb4);
+                uint32_t plane = *(uint32_t *)(*(uint8_t **)(bsp + 0x40) + current_surface * 12) & 0x7fffffff;
+
+                entry = &out_waypoints[emitted++];
+                decal_plane_solve_third_axis(&entry->position, 1, 2,
+                    (real_plane3d *)(*(uint8_t **)(bsp + 0x10) + plane * 16), (real_point2d *)&current);
+                entry->surface_index = current_surface;
+            }
+            if (emitted >= 4) {
+                break;
+            }
+            first = blocked_index;
         }
+    }
+    *out_count = emitted;
+    if (!valid) {
+        *out_valid = 0;
     }
 }
 

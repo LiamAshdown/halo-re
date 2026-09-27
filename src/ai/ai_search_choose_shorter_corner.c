@@ -1,45 +1,64 @@
 // ai_search_choose_shorter_corner  (Ghidra: ai_search_choose_shorter_corner, renamed)
 // address 0x43d240, size 614 bytes
-// name confidence: 0.35  rewrite confidence: 0.05
-// evidence: phase-4 summary "chooses whichever of two candidate polygon corners produces the
-// shorter combined turn when a path bends around an obstacle." Calls
-// vector2d_angle_between (0x4cd480, established elsewhere as `real vector2d_angle_between
-// (real_vector2d *a, real_vector2d *b)`).
-//
-// This is the single least confident rewrite in this whole batch. Ghidra shows all four
-// calls to vector2d_angle_between with zero visible arguments each -- a total, unrecoverable
-// loss of every operand feeding this function's actual comparison. What follows is a
-// structural guess (each candidate corner's turn measured against the same two reference
-// directions this function has in scope) offered only so the file compiles and the control
-// flow / return-value shape is preserved; the specific vectors compared are almost certainly
-// wrong and this function needs a disassembly-based rewrite before it should be trusted.
-//
-// register convention: EBX -> corner_b (the other `unaff_` register Ghidra's decompile
-//   shows); stack -> corner_a, reference_direction, out_point.
-//   // blam-cc: EBX -> corner_b, stack -> corner_a, reference_direction, out_point
+// name confidence: 0.35  rewrite confidence: 0.85
+// REWRITTEN from objdump 0x43d240..0x43d4a5 (the draft had lost ECX, EDX and the fifth argument). ECX = point p,
+//   EBX = corner A, EDX = point q; stack: corner B, point r, out. The unit directions (normalised only when longer
+//   than 0.0001) from each corner to p, q and r give the turn around that corner as the sum of the signed angles
+//   (vector2d_angle_between, ESI a, EDI b) r->q and q->p. Corner A is taken (copied to out, returns 1) when
+//   -turn(B) < turn(A); otherwise corner B (returns 0).
+// blam-cc: ECX -> p, EBX -> corner_a, EDX -> q, stack -> corner_b, r, out_point
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
 
-extern float vector2d_angle_between(real_vector2d *a, real_vector2d *b); // 0x4cd480
+extern double sqrt(double x); // FSQRT
+extern double fabs(double x); // FABS
+extern real vector2d_angle_between(real_vector2d *a, real_vector2d *b); // 0x4cd480, ESI a, EDI b
 
-// blam-cc: EBX -> corner_b, stack -> corner_a, reference_direction, out_point
-// UNSURE: see file header -- this is a structural placeholder, not a confirmed rewrite.
-uint8_t ai_search_choose_shorter_corner(real_point2d *corner_a, real_vector2d *reference_direction,
-                                        real_point2d *out_point, real_point2d *corner_b)
+static void ai_search_corner_direction(const real_point2d *point, const real_point2d *corner, real_vector2d *out)
 {
-    float turn_a = vector2d_angle_between(reference_direction, (real_vector2d *)corner_a) +
-                   vector2d_angle_between((real_vector2d *)corner_a, reference_direction);
-    float turn_b = vector2d_angle_between(reference_direction, (real_vector2d *)corner_b) +
-                   vector2d_angle_between((real_vector2d *)corner_b, reference_direction);
+    float length;
 
+    out->i = point->x - corner->x;
+    out->j = point->y - corner->y;
+    length = (float)sqrt(out->j * out->j + out->i * out->i);
+    if (!((float)fabs(length) < 0.0001f)) {
+        float scale = 1.0f / length;
+
+        out->i *= scale;
+        out->j *= scale;
+    }
+}
+
+uint8_t ai_search_choose_shorter_corner(real_point2d *p, real_point2d *corner_a, real_point2d *q,
+    real_point2d *corner_b, real_point2d *r, real_point2d *out_point)
+{
+    real_vector2d a_p;
+    real_vector2d a_q;
+    real_vector2d a_r;
+    real_vector2d b_p;
+    real_vector2d b_q;
+    real_vector2d b_r;
+    float turn_a;
+    float turn_b;
+
+    ai_search_corner_direction(p, corner_a, &a_p);
+    ai_search_corner_direction(q, corner_a, &a_q);
+    ai_search_corner_direction(r, corner_a, &a_r);
+    ai_search_corner_direction(p, corner_b, &b_p);
+    ai_search_corner_direction(q, corner_b, &b_q);
+    ai_search_corner_direction(r, corner_b, &b_r);
+    turn_a = vector2d_angle_between(&a_r, &a_q);
+    turn_a = vector2d_angle_between(&a_q, &a_p) + turn_a;
+    turn_b = vector2d_angle_between(&b_r, &b_q);
+    turn_b = vector2d_angle_between(&b_q, &b_p) + turn_b;
     if (-turn_b < turn_a) {
-        *out_point = *corner_b;
+        *out_point = *corner_a;
         return 1;
     }
-    *out_point = *corner_a;
+    *out_point = *corner_b;
     return 0;
 }
 

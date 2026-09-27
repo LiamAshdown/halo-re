@@ -1,6 +1,6 @@
 // ai_search_find_circle_portal_crossing  (Ghidra: ai_search_find_circle_portal_crossing, renamed)
 // address 0x43d100, size 308 bytes
-// name confidence: 0.35  rewrite confidence: 0.3
+// name confidence: 0.35  rewrite confidence: 0.85 (verified against objdump 0x43d100..0x43d233)
 // evidence: phase-4 summary "computes where a given-radius circle crosses a portal edge,
 // falling back to a direction-based offset if the edge geometry is degenerate."
 // register convention: ECX -> center, EDX -> portal (two 2D points), ESI -> out_point, EDI ->

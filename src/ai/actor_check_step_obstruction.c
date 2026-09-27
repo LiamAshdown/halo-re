@@ -35,8 +35,10 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern const real_vector3d *global_down3d_pointer; // 0x0069672c, UNSURE: see file header
 
 extern void actor_update_target_lead_position(void); // 0x429570, not this module, UNSURE: no visible args at this call site
-extern uint8_t path_find_test_segment_unobstructed(uint8_t ignores_glass, int32_t param2, real_point3d *point, uint32_t ignore,
-                             uint32_t param5, uint8_t param6, void *param7); // 0x43de90, not this module, UNSURE signature
+extern uint8_t path_find_test_segment_unobstructed(void *map, real_point3d *point_a, uint8_t ignore_permission,
+    int32_t surface_a, real_point3d *point_b, int32_t surface_b, float radius, uint8_t flags,
+    path_find_boundary_crossing *out_result); // 0x43de90, EBX map, EAX point A, stack
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result,
                                                 ModelCollisionGeometryBSP *bsp,
                                                 int16_t breakable_surface_count,
@@ -66,8 +68,10 @@ uint8_t actor_check_step_obstruction(datum_index actor_index, real_vector2d *dir
         step_point.x = step_distance * direction->i + self->body_position.x;
         step_point.y = step_distance * direction->j + self->body_position.y;
         actor_update_target_lead_position();
-        trace_ok = path_find_test_segment_unobstructed(self->ignores_glass, (uint32_t)self->unknown_164, &step_point, (uint32_t)-1,
-                                 *(uint32_t *)&definition->pathfinding_radius, 0, extra_param);
+        // 0x417c33: EBX = the map (0x746f9c), EAX = actor +0x168, stack (ignores glass, +0x164, step, -1, radius, 0, out)
+        trace_ok = path_find_test_segment_unobstructed(global_structure_bsp, (real_point3d *)((uint8_t *)self + 0x168),
+            self->ignores_glass, (int32_t)self->unknown_164, &step_point, -1, definition->pathfinding_radius, 0,
+            (path_find_boundary_crossing *)extra_param);
         if (!trace_ok) {
             obstructed = 1;
             {

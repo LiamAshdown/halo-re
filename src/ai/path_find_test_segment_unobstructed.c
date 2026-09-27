@@ -1,104 +1,133 @@
 // path_find_test_segment_unobstructed  (Ghidra: path_find_test_segment_unobstructed, renamed)
 // address 0x43de90, size 988 bytes
-// name confidence: 0.35  rewrite confidence: 0.05
-// evidence: phase-4 summary "determines whether a straight segment between two points is
-// unobstructed across BSP cluster portals within a margin, reporting the first blocking
-// crossing if any." Calls path_find_trace_bsp_boundary (path_find_trace_bsp_boundary, this rewrite) *nine*
-// times, every single one with zero visible arguments -- the most severe register-loss case
-// in this entire batch.
-//
-// This is, along with ai_search_choose_shorter_corner.c, one of the two least confident
-// rewrites in this batch. With none of path_find_trace_bsp_boundary's seven parameters
-// visible at any of its nine call sites, this rewrite can only preserve the *shape* of the
-// control flow (trace from each endpoint toward the other, using whichever of the two
-// resulting crossings is nearer, then measure it against the margin) using this function's
-// own in-scope operands as the most plausible stand-ins. It should be treated as
-// structurally suggestive only, not a confirmed translation, until it can be redone from a
-// disassembly.
-//
-// register convention: EAX -> point_a (the only `in_` register Ghidra's decompile shows);
-//   stack -> the seven Ghidra-recognized formal parameters.
-//   // blam-cc: EAX -> point_a, stack -> context, edge_a, point_b, edge_b, margin,
-//   //   ignore_permission, out_result
+// name confidence: 0.4   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x43de90..0x43e26b. EAX = point A, EBX = the path find map, stack: ignore_permission,
+//   surface A, point B, surface B, radius, flags, out_result. Tests the 2D segment A -> B for a body of the given
+//   radius by tracing (path_find_trace_bsp_boundary) the two parallel segments offset by +/- radius along the
+//   segment's normal (-dy, dx)/|AB|. Each side first moves its end points sideways by tracing from A (and from B)
+//   to the offset point on their surfaces (a missing surface, -1, leaves that side's start unset); then traces
+//   offset A -> offset B (target = offset B's surface). A side that hits a wall still counts as clear when the hit
+//   has a surface, flags bit 0 is clear and the hit point reaches B directly (a trace from the hit to B, target
+//   surface B). With both sides blocked the earlier hit (smaller fraction, ties to the -radius side) is taken;
+//   a hit within radius of B is ignored. Blocked: the hit goes to out_result and 1 is returned; clear: the +radius
+//   side's result is copied and 0 returned. A degenerate segment (|AB| < 0.0001) returns 0 without writing.
+// blam-cc: EBX -> map, EAX -> point_a, stack -> ignore_permission, surface_a, point_b, surface_b, radius, flags,
+//   out_result
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include <string.h>
 
 extern double sqrt(double x); // FSQRT
-extern double fabs(double x); // ABS
-extern uint8_t path_find_trace_bsp_boundary(void *context, uint8_t ignore_permission, real_point3d *point_a,
-                                            int32_t start_edge, real_point3d *point_b, int32_t exclude_vertex,
-                                            path_find_boundary_crossing *out_result); // 0x43d9b0
+extern double fabs(double x); // FABS
+extern uint8_t path_find_trace_bsp_boundary(void *map, uint8_t ignore_permission, real_point3d *start,
+    int32_t start_surface, real_point3d *end, int32_t target_surface,
+    path_find_boundary_crossing *out_result); // 0x43d9b0, stack
 
-// blam-cc: EAX -> point_a, stack -> context, edge_a, point_b, edge_b, margin,
-//   ignore_permission, out_result
-//
-// UNSURE: see file header -- this is a structural placeholder, not a confirmed rewrite.
-uint8_t path_find_test_segment_unobstructed(real_point3d *point_a, void *context, int32_t edge_a,
-                                            real_point3d *point_b, int32_t edge_b, float margin,
-                                            uint8_t ignore_permission, path_find_boundary_crossing *out_result)
+// 0x43df10..0x43e0eb: move an end point sideways onto the offset line, keeping it on the map.
+static int32_t path_find_offset_end(void *map, uint8_t ignore_permission, real_point3d *point, int32_t surface,
+    float ox, float oy, real_point3d *out_point)
+{
+    path_find_boundary_crossing scratch;
+
+    out_point->x = ox + point->x;
+    out_point->y = oy + point->y;
+    if (surface == -1) {
+        return -1;
+    }
+    path_find_trace_bsp_boundary(map, ignore_permission, point, surface, out_point, -1, &scratch);
+    out_point->x = scratch.position.x;
+    out_point->y = scratch.position.y;
+    return (scratch.edge_a == -1) ? surface : scratch.edge_a;
+}
+
+// 0x43e0ee / 0x43e154: one side of the body; returns its found flag.
+static uint8_t path_find_trace_side(void *map, uint8_t ignore_permission, real_point3d *from, int32_t from_surface,
+    real_point3d *to, int32_t to_surface, real_point3d *point_b, int32_t surface_b, uint8_t flags,
+    path_find_boundary_crossing *result)
+{
+    path_find_boundary_crossing scratch;
+
+    if (from_surface == -1) {
+        result->found = 0;
+        return 0;
+    }
+    if (path_find_trace_bsp_boundary(map, ignore_permission, from, from_surface, to, to_surface, result) != 0 &&
+        result->edge_a != -1 && (flags & 1) == 0 &&
+        path_find_trace_bsp_boundary(map, ignore_permission, &result->position, result->edge_a, point_b, surface_b,
+            &scratch) == 0) {
+        result->found = 0;
+    }
+    return result->found;
+}
+
+uint8_t path_find_test_segment_unobstructed(void *map, real_point3d *point_a, uint8_t ignore_permission,
+    int32_t surface_a, real_point3d *point_b, int32_t surface_b, float radius, uint8_t flags,
+    path_find_boundary_crossing *out_result)
 {
     float dx = point_b->x - point_a->x;
-    float dy = -(point_b->y - point_a->y);
-    float len2 = dx * dx + dy * dy;
-    float len = (float)sqrt(len2);
+    float ny_neg = -(point_b->y - point_a->y);
+    float length = (float)sqrt(ny_neg * ny_neg + dx * dx);
+    float nx;
+    float ny;
+    real_point3d a_plus;
+    real_point3d b_plus;
+    real_point3d a_minus;
+    real_point3d b_minus;
+    int32_t a_plus_surface;
+    int32_t b_plus_surface;
+    int32_t a_minus_surface;
+    int32_t b_minus_surface;
+    path_find_boundary_crossing plus_result;
+    path_find_boundary_crossing minus_result;
+    path_find_boundary_crossing *chosen;
+    uint8_t plus_hit;
+    uint8_t minus_hit;
 
-    if ((fabs(len) < 0.0001) || (len < 0.0f)) {
+    if ((float)fabs(length) < 0.0001f || !(length > 0.0f)) {
+        return 0; // 0x43e25e: degenerate
+    }
+    nx = ny_neg * (1.0f / length);
+    ny = dx * (1.0f / length);
+    memset(&plus_result, 0, sizeof(plus_result));
+    memset(&minus_result, 0, sizeof(minus_result));
+    a_plus = *point_a;
+    b_plus = *point_b;
+    a_minus = *point_a;
+    b_minus = *point_b;
+    a_plus_surface = path_find_offset_end(map, ignore_permission, point_a, surface_a, nx * radius, ny * radius, &a_plus);
+    b_plus_surface = path_find_offset_end(map, ignore_permission, point_b, surface_b, nx * radius, ny * radius, &b_plus);
+    a_minus_surface = path_find_offset_end(map, ignore_permission, point_a, surface_a, nx * -radius, ny * -radius,
+        &a_minus);
+    b_minus_surface = path_find_offset_end(map, ignore_permission, point_b, surface_b, nx * -radius, ny * -radius,
+        &b_minus);
+
+    plus_hit = path_find_trace_side(map, ignore_permission, &a_plus, a_plus_surface, &b_plus, b_plus_surface, point_b,
+        surface_b, flags, &plus_result);
+    minus_hit = path_find_trace_side(map, ignore_permission, &a_minus, a_minus_surface, &b_minus, b_minus_surface,
+        point_b, surface_b, flags, &minus_result);
+
+    if (plus_hit) {
+        chosen = (minus_hit && !(plus_result.fraction < minus_result.fraction)) ? &minus_result : &plus_result;
+    } else if (minus_hit) {
+        chosen = &minus_result;
+    } else {
+        *out_result = plus_result;
         return 0;
     }
-
     {
-        path_find_boundary_crossing crossing_from_a;
-        path_find_boundary_crossing crossing_from_b;
-        int32_t resolved_a = -1;
-        int32_t resolved_b = -1;
-        uint8_t have_a = 0;
-        uint8_t have_b = 0;
-        path_find_boundary_crossing *chosen;
-        real_point3d *chosen_position;
+        float ex = point_b->x - chosen->position.x;
+        float ey = point_b->y - chosen->position.y;
 
-        if (edge_a != -1) {
-            if (path_find_trace_bsp_boundary(context, ignore_permission, point_a, edge_a, point_b, edge_b, &crossing_from_a) != 0) {
-                have_a = (crossing_from_a.edge_b != -1) || ((ignore_permission & 1) == 0);
-            }
-            resolved_a = crossing_from_a.edge_a;
-        }
-        if (edge_b != -1) {
-            if (path_find_trace_bsp_boundary(context, ignore_permission, point_b, edge_b, point_a, edge_a, &crossing_from_b) != 0) {
-                have_b = (crossing_from_b.edge_b != -1) && (crossing_from_b.edge_a != -1) && ((ignore_permission & 1) == 0);
-            }
-            resolved_b = crossing_from_b.edge_a;
-        }
-        (void)resolved_a;
-        (void)resolved_b;
-
-        if (have_a && have_b && (crossing_from_b.fraction <= crossing_from_a.fraction)) {
-            chosen = &crossing_from_b;
-        } else if (have_a) {
-            chosen = &crossing_from_a;
-        } else if (have_b) {
-            chosen = &crossing_from_b;
-        } else {
-            *out_result = crossing_from_a;
+        if (radius * radius > ey * ey + ex * ex) {
+            *out_result = plus_result; // 0x43e240: a hit within radius of B does not count
             return 0;
         }
-
-        chosen_position = &chosen->position;
-        {
-            float ddx = point_a->x - chosen_position->x;
-            float ddy = point_a->y - chosen_position->y;
-            float dist2 = ddx * ddx + ddy * ddy;
-            if (margin * margin < dist2 || margin * margin == dist2) {
-                *out_result = *chosen;
-                return 1;
-            }
-        }
-
-        *out_result = crossing_from_a;
-        return 0;
     }
+    *out_result = *chosen;
+    return 1;
 }
 
 #if 0

@@ -1,6 +1,6 @@
 // ai_search_find_circle_tangent_point  (Ghidra: ai_search_find_circle_tangent_point, renamed)
 // address 0x43cf60, size 415 bytes
-// name confidence: 0.4   rewrite confidence: 0.35
+// name confidence: 0.4   rewrite confidence: 0.85 (verified against objdump 0x43cf60..0x43d0fe)
 // evidence: phase-4 summary "finds the tangent point where a path must bend around a
 // circular navmesh obstacle vertex, on the requested side." PTR_DAT_006966ec is a constant
 // 2D direction the fallback path uses when the two input points coincide.
