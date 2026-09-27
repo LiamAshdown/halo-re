@@ -51,8 +51,8 @@ extern datum_index *object_names_to_objects; // 0x006b8cb8, 0x200 entries
 extern void * data_iterator_next(data_iterator *iterator); // 0x4d05d0
 extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0
 extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, stack, ECX
-extern int8_t ai_conversation_get_run_to_player_range(void); // 0x402cf0, not yet rewritten; UNSURE: no traced args
-extern int8_t unit_point_within_look_cone(float cone_radians); // 0x56c100, units module; UNSURE: Ghidra dropped every other argument
+extern int32_t ai_conversation_get_run_to_player_range(ai_conversation_range_lookup *out, uint32_t conversation_index); // 0x402cf0, EDX, ESI
+extern uint8_t unit_point_within_look_cone(float cone_angle, uint32_t unit_index, real_point3d *world_point); // 0x56c100, stack, ECX, EDI
 extern int8_t ai_conversation_resolve_participant(int16_t participant_index, uint8_t *out_resolved,
                                                   uint8_t *out_wants_alternate,
                                                   uint8_t *out_blocked_by_player,
@@ -269,8 +269,11 @@ check_looking:
         }
         if (*(datum_index *)((uint8_t *)player + 0x34) != (datum_index)k_datum_index_none) {
             for (j = 0; j < (int32_t)definition->participants.count; j++) {
+                // 0x4313c0: ECX = the player's unit, EDI = the participant actor's +0x120 point
                 if (instance->participant_actor[j] != (datum_index)k_datum_index_none &&
-                    unit_point_within_look_cone(0.5235988f) != 0) {
+                    unit_point_within_look_cone(0.5235988f, *(datum_index *)((uint8_t *)player + 0x34),
+                        (real_point3d *)((uint8_t *)actor_data->data +
+                            (instance->participant_actor[j] & 0xffff) * k_actor_size + 0x120)) != 0) {
                     found_looking = 1;
                     break;
                 }
@@ -325,8 +328,14 @@ apply:
             (int32_t)object_name < (int32_t)global_scenario->object_names.count) {
             object_names_to_objects[object_name] = unit_index;
         }
-        if ((definition->flags & 0x20) != 0 && ai_conversation_get_run_to_player_range() != 0) {
-            actor_set_mode(instance->participant_actor[i], _actor_mode_conversation, 0);
+        // 0x4314f2: the conversation mode data (0x14 bytes, mode 12's data_size) comes from 0x402cf0 (EDX = out,
+        //   ESI = the conversation); the draft entered conversation mode with NULL, leaving stale mode data.
+        if ((definition->flags & 0x20) != 0) {
+            ai_conversation_range_lookup mode_data;
+
+            if (ai_conversation_get_run_to_player_range(&mode_data, conversation_index) != 0) {
+                actor_set_mode(instance->participant_actor[i], _actor_mode_conversation, &mode_data);
+            }
         }
         variant = (int16_t)participants[i].variant_numbers[variant_slots[i]];
         if (*(int16_t *)((uint8_t *)unit_object + 0xbe) != variant) {

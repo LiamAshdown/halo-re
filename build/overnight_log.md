@@ -1571,3 +1571,9 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - ai_communication_line_fade_multiplier 0x42f8c0 REWRITTEN (0.2 -> 0.9): the speech priority query gets its 7
   operands (EAX chain / ECX index pass through, BX = line class); repeat-delay silence / 60-tick fade-in.
   ai_communication_rate_speaker passes them.
+- ai_conversation_resolve_participants 0x430fc0: participants entering conversation mode (12) now get the 0x14-byte
+  mode data from ai_conversation_get_run_to_player_range (EDX out, ESI conversation); the draft passed NULL, so
+  actor_set_mode kept the PREVIOUS mode's data as the conversation's (run-to range / target unit) -- a conversation
+  participant (the a10 cryo tech) could head for a stale target. Player look-cone test gets (unit ECX, participant
+  +0x120 EDI). CANDIDATE for the vanishing / wandering cryo tech.
+- NEW scan scratchpad/setmode_scan.py: every other actor_set_mode call passes the same kind of mode data as the binary.
