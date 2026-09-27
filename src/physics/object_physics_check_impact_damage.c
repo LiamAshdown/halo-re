@@ -71,8 +71,8 @@ extern float k_impact_damage_scale_table[]; // 0x0069c54c, indexed by material t
                                              // types/physics.h's k_physics_impact_damage_scale
                                              // UNSURE note
 
-extern void unit_get_crouch_height_offset(float *out); // 0x55a2e0, foreign module, UNSURE signature (see
-                                       // collision_gather_nearby_object_shapes.c's own note)
+extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height,
+    float *pill_radius_out); // 0x55a2e0, EAX, ECX, stack, EBX
 extern uint8_t object_collision_context_test_point(real_point3d *out_point); // 0x504e90, this module (lower half);
                                                        // UNSURE args, object_index assumed still
                                                        // live from this function's own param_1
@@ -114,7 +114,9 @@ uint8_t object_physics_check_impact_damage(uint32_t *self_object_index, uint32_t
     float relative_speed;              // local_ac94 in its second role
     float clamped_speed;
 
-    unit_get_crouch_height_offset(sample);
+    // FIXED (objdump 0x508b84..0x508b99): EAX = &sample[2] (position), ECX = the candidate (ESI), stack = &sample[0]
+    //   (pill height), EBX = &sample[1] (pill radius). The draft passed only the buffer.
+    unit_get_crouch_height_offset(contact_point, candidate_object_index, &sample[0], &sample[1]);
 
     if (!object_collision_context_test_point(contact_point)) {
         physics_model model;

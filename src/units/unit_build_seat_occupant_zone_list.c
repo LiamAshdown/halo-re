@@ -21,7 +21,7 @@ extern data_array *object_data;             // 0x008603b0
 extern data_array *object_list_header_data; // 0x0087a464
 
 extern datum_index datum_new(data_array *array); // 0x4d0480
-extern void object_list_reference_add(datum_index object_index); // 0x48b2a0, UNSURE signature  // real signature (object_list_reference_add.c): void object_list_reference_add(datum_index header_index, datum_index object_index); Ghidra recovered 1 of 2 args at this call site
+extern void object_list_reference_add(datum_index header_index, datum_index object_index); // 0x48b2a0, EAX, stack
 
 datum_index unit_build_seat_occupant_zone_list(uint32_t unit_index) // blam-cc: in_ECX
 {
@@ -42,7 +42,7 @@ datum_index unit_build_seat_occupant_zone_list(uint32_t unit_index) // blam-cc: 
             object *child_obj = ((object_header *)object_data->data)[child & 0xffff].data;
             if (((_object_mask_unit & (1 << (child_obj->type & 0x1f))) != 0) &&
                 (((unit_data *)((uint8_t *)child_obj + k_unit_data_offset))->vehicle_seat_index != -1)) {
-                object_list_reference_add(child);
+                object_list_reference_add(result, child); // FIXED: EAX = the new list (EDI, 0x56bc5f)
             }
             child = child_obj->next_object;
         }

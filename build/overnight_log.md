@@ -1699,3 +1699,10 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - encounter_redistribute: object_try_and_get(self+0x64, 3).
   - actor_reject_firing_position_by_pursuit: ai_pursuit_check_object / note_object now get (actor, encounter, firing position, query+0xc, ...). The real 0x436b90 convention is EBX object, EAX min tick, CX type, stack (encounter, out_count, out_last_tick).
   - path_find_test_direct_reachability: the BSP segment query now gets (1, &result, bsp, 0, 0, point_b, a - b, FLT_MAX); the draft passed four unrelated values (0.3 -> 0.85).
+- **biped_update_facing: the vector helpers were declared without prototypes** (extern void f();), so vector3d_rotate_about_axis(v, axis, sin, cos) had its float angles promoted to double: every biped turn rotated the forward vector by garbage, and a garbage or NaN orientation can make an object stop rendering (another vanishing candidate). Real prototypes added. New scanner scratchpad/knr_float.py finds no other gameplay K&R float calls (only antenna_render_wire build_sprite). player_effect_build_camera_shake_matrix declared periodic_function_evaluate's phase as float; the definition takes a double. Fixed.
+- Units argument fixes:
+  - unit_get_look_origin_and_direction: unit_get_crouch_height_offset(out_origin, unit, &h, &r); the draft left the look origin unset on the non-marker path.
+  - object_physics_check_impact_damage: crouch height (&sample[2], candidate, &sample[0], &sample[1]).
+  - unit_detach_from_parent: unit_try_ready_weapon(unit, 1, 0).
+  - unit_build_seat_occupant_zone_list: object_list_reference_add(list, child).
+  - unit_find_best_seat_to_enter: actor_check_vehicle_target_available(unit, occupant actor, 0).

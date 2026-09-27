@@ -38,7 +38,7 @@ extern void object_set_position_and_relink(real_point3d *position, uint32_t obje
     bsp_leaf_reference *location); // 0x4f5350
 extern void object_attach_to_object(uint32_t parent_index, uint32_t child_index,
                                      uint32_t marker_word); // 0x4f6440
-extern void unit_try_ready_weapon(int32_t a, int32_t b); // 0x569a20  // real signature (unit_try_ready_weapon.c): uint8_t unit_try_ready_weapon(uint32_t unit_index, uint8_t is_melee, int32_t fire_trigger_event); Ghidra recovered 2 of 3 args at this call site
+extern uint8_t unit_try_ready_weapon(uint32_t unit_index, uint8_t forced, const void *direction); // 0x569a20, EDI, stack
 
 // Detaches the unit from its current parent/attachment object.
 // blam-cc: EBX -> obj, EDI -> unit_index
@@ -55,7 +55,7 @@ void unit_detach_from_parent(object *obj, uint32_t unit_index, real_vector3d *cr
         unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
         unit->flags |= 0x8000;
     }
-    unit_try_ready_weapon(1, 0);
+    unit_try_ready_weapon(unit_index, 1, 0); // FIXED: EDI = the unit (0x570192)
 }
 
 #if 0

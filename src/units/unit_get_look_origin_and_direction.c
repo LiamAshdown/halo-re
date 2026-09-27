@@ -24,8 +24,8 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern real_point3d *global_origin3d_pointer; // 0x00696714, math.h global_origin3d_pointer
 extern real_vector3d *global_up3d_pointer;    // 0x00696720, indirect pointer to math.h global_up3d
 
-extern void unit_get_crouch_height_offset(uint32_t object_index, float *pill_height,
-                                           float *pill_radius); // 0x55a2e0
+extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height,
+    float *pill_radius_out); // 0x55a2e0, EAX, ECX, stack, EBX // 0x55a2e0
 
 // Computes a look/aim origin and direction for a unit, preferring its pelvis and head model
 // nodes when the Biped tag names both: with the "average pelvis/head" flag (biped_flags bit
@@ -66,7 +66,9 @@ void unit_get_look_origin_and_direction(uint32_t object_index, uint32_t *param_2
 
     {
         float pill_height, pill_radius;
-        unit_get_crouch_height_offset(object_index, &pill_height, &pill_radius);
+        // FIXED (objdump 0x55a4aa..0x55a4b9): EAX = out_origin (the callee writes the unit position there),
+        //   ECX = the unit, stack = &pill_height, EBX = &pill_radius. The draft left out_origin unset.
+        unit_get_crouch_height_offset(out_origin, object_index, &pill_height, &pill_radius);
         pill_height *= 0.5f;
         out_origin->z += pill_height;
         out_direction->i = pill_height * global_up3d_pointer->i;

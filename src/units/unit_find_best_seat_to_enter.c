@@ -28,7 +28,8 @@ extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction, see src/math/quaternion_normalize.c
-extern uint8_t actor_check_vehicle_target_available(uint32_t flag); // 0x42b810, UNSURE signature
+extern uint8_t actor_check_vehicle_target_available(datum_index vehicle_object_index, datum_index actor_index,
+    uint8_t flag_pursue); // 0x42b810, EAX, ECX, stack
 extern uint8_t unit_find_weapon_marker_transform(uint32_t unit_index, uint32_t vehicle_index, int16_t seat_index,
     real_point3d *out_entry, real_point3d *out_seat, real_point3d *out_hint); // 0x5640a0, EAX unit, stack
 extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_label,
@@ -96,7 +97,8 @@ uint16_t unit_find_best_seat_to_enter(uint32_t unit_index, uint32_t vehicle_inde
                     }
                     object *occupant_obj = ((object_header *)object_data->data)[occupant & 0xffff].data;
                     unit_data *occupant_unit = (unit_data *)((uint8_t *)occupant_obj + k_unit_data_offset);
-                    if (occupant_unit->actor_index == (datum_index)-1 || actor_check_vehicle_target_available(0) == 0) {
+                    if (occupant_unit->actor_index == (datum_index)-1 || actor_check_vehicle_target_available(unit_index, occupant_unit->actor_index, 0) == 0) {
+                        // FIXED (0x566769..0x56676d): EAX = this unit (arg 0), ECX = the occupant's actor, stack = 0
                         continue;
                     }
                     rank = 1;
