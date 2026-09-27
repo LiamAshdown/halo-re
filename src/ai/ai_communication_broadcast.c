@@ -561,7 +561,7 @@ void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datu
                 }
                 else
                 {
-                    search_result = ai_communication_select_speaker_in_reference(0x41200000, event_code, (uint32_t)tier,
+                    search_result = ai_communication_select_speaker_in_reference(10.0f, event_code, (uint32_t)tier,
                                                   (uint32_t)row->table_arg_a, row->table_arg_a,
                                                   row->table_arg_b);
                     case2_pending = 0;

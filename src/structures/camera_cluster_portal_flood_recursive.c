@@ -129,7 +129,7 @@ void camera_cluster_portal_flood_recursive(int16_t cluster_index, polygon2d *vie
             int16_t clipped_count = polygon2d_clip_to_planes(
                 portal_polygon.point_count, &portal_polygon.points[0],
                 view_polygon->point_count, &view_polygon->points[0], 0x100,
-                &clipped_polygon.points[0], 0x38d1b717);
+                &clipped_polygon.points[0], 9.99999975e-05f); // 0x5547b9 pushes the float bits 0x38d1b717
             clipped_polygon.point_count = clipped_count;   // stored before the test, as in the original
             if (clipped_count < 1) {
                 if (clipped_count != -1) {

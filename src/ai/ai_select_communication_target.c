@@ -91,7 +91,7 @@ int32_t ai_select_communication_target(uint32_t param_a, uint32_t param_b, int16
                             candidate_a = *(int16_t *)(entry + 2);
                             candidate_b = *(int16_t *)(entry + 3);
                             search_kind = (target_kind == 2) ? 1u : 2u;
-                            result = ai_communication_select_speaker_by_team(search_kind, param_a, 0xffffffff, 0x41100000u,
+                            result = ai_communication_select_speaker_by_team(search_kind, param_a, 0xffffffff, 9.0f,
                                                    0xffffffff,
                                                    (uint32_t)comm_kind,
                                                    (uint32_t)communication_class_line[comm_kind],

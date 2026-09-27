@@ -223,7 +223,7 @@ void game_engine_update_teleporter(uint32_t player_index)
                     effect[4] = 0;
                     effect[5] = teleport_effect_const_00687b00;
                     effect[6] = teleport_effect_const_00687b04;
-                    player_effect_set_screen_flash_for_player(effect, 0x3f800000); // 1.0f
+                    player_effect_set_screen_flash_for_player(effect, 1.0f); // 1.0f
                 }
             }
 

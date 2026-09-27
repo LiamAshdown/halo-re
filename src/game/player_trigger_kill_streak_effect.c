@@ -51,7 +51,7 @@ void player_trigger_kill_streak_effect(uint32_t player_index)
         *(uint32_t *)(buffer + 0x30) = global_006889f0;
         *(uint32_t *)(buffer + 0x34) = global_007102f8;
 
-        player_effect_set_screen_flash_for_player(buffer, 0x3f800000); // 1.0f
+        player_effect_set_screen_flash_for_player(buffer, 1.0f); // 1.0f
     }
 }
 

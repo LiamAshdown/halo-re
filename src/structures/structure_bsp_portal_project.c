@@ -81,7 +81,7 @@ uint8_t structure_bsp_portal_project(real_plane3d *plane, void *camera_ref, real
     }
 
     clipped_count = polygon3d_clip_to_plane(vertex_count, clipped, &near_clip_plane, 0x100,
-                                            clipped, 0, 0x38d1b717, 1);
+                                            clipped, 0, 9.99999975e-05f, 1); // float bits 0x38d1b717
     out->point_count = clipped_count;
 
     if (winding == 1) {

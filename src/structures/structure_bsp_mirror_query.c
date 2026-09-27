@@ -138,7 +138,7 @@ uint8_t structure_bsp_mirror_query(void *camera_ref, void *camera,
                 if (project_result == 0) {
                     clip_result = polygon2d_clip_to_planes(project_out.point_count,
                                         &project_out.points[0], 4, clip_points, 0x100,
-                                        &clip_polygon.points[0], 0x38d1b717);
+                                        &clip_polygon.points[0], 9.99999975e-05f); // float bits 0x38d1b717
                     clip_polygon.point_count = clip_result;
                 } else if (project_result == 2) {
                     clip_result = 1; // fall straight into the "accept" path, matching the goto

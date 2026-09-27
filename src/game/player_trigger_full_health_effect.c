@@ -42,7 +42,7 @@ void player_trigger_full_health_effect(uint32_t player_index)
         *(uint32_t *)(buffer + 0x30) = 0x3f6aeaea; // 0.9238795f
         *(uint32_t *)(buffer + 0x34) = 0x3f6aeaea; // 0.9238795f
 
-        player_effect_set_screen_flash_for_player(buffer, 0x3f800000); // 1.0f
+        player_effect_set_screen_flash_for_player(buffer, 1.0f); // 1.0f
     }
 }
 

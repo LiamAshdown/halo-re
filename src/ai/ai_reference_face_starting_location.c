@@ -62,7 +62,7 @@ void ai_reference_face_starting_location(uint32_t packed_reference, uint8_t idle
         if (a->unit_index != (datum_index)k_datum_index_none &&
             (idle_only == 0 ||
              (a->active_unit_index == (datum_index)k_datum_index_none &&
-              unit_test_placement_candidate(0x40000000, 0) == -1)) &&
+              unit_test_placement_candidate(2.0f, 0) == -1)) &&
             a->encounter_index != (datum_index)k_datum_index_none) {
 
             squad_index = a->squad_index;

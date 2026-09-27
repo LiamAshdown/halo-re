@@ -58,7 +58,7 @@ void player_trigger_shield_recharge_effect(uint32_t player_index)
         *(uint32_t *)(buffer + 0x30) = global_007102ec;
         *(uint32_t *)(buffer + 0x34) = global_006889dc;
 
-        player_effect_set_screen_flash_for_player(buffer, 0x3f800000); // 1.0f
+        player_effect_set_screen_flash_for_player(buffer, 1.0f); // 1.0f
     }
 }
 
