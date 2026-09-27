@@ -1,6 +1,6 @@
 // weapon_get_zoom_fov_resolved  (Ghidra: FUN_0046fe70; renamed, no established name)
 // address 0x46fe70, size 136 bytes
-// name confidence: 0.3   rewrite confidence: 0.35
+// name confidence: 0.3   rewrite confidence: 0.9 (VERIFIED against objdump 0x46fe70..0x46fef7)
 // evidence: out/phase4/game_functions.md ("Resolves and validates a zoom-table index before
 // delegating to the zoom FOV lookup, applying a bitmask/substitution check first");
 // types/game.h current_game_engine (0x006f1d20), team_pair_globals (0x006b0b84, enemy_bits

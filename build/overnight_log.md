@@ -1792,3 +1792,5 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - Verified 0.9-0.95: actor_look_pick_random_point_in_cone, point3d_within_horizontal_cone, actor_get_idle_facing_range, actor_reset_queued_look_vector.
 - actor_update_facing_change_timer: clamps +0x354 UP to 1.8 (the draft stored 0.9); verified 0.9.
 - Verified 0.9: actor_select_facing_target_prop (writes {1, prop} into the caller's record), actor_resolve_flee_source_point (all 7 kinds).
+- actor_update_aim_wander (0x40fcb0, 2092 B) REWRITTEN from objdump (0.2 -> 0.85). Fixes: the burst length +0x5f4 is a random time from the burst block (+0x14..+0x18, scaled, x0.6 when +0x1ca) in ticks; the draft truncated +0x458. The bombardment randomizes a copy of the target, not +0x62c. The burst block (EDI out_a) and scale block (ESI out_b) were mixed. The wander offset (side/up plane, radius A), the per-tick return (radius B / ticks), the burst clamp against the tangent of the burst sweep at +0x638, and the firing-line broadcast are added.
+- Verified 0.9: weapon_get_zoom_fov (really the difficulty table lookup), weapon_get_zoom_fov_resolved, actor_get_actor_definition.

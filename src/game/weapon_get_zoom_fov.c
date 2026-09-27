@@ -1,6 +1,6 @@
 // weapon_get_zoom_fov  (Ghidra: FUN_0046fe10; renamed, no established name)
 // address 0x46fe10, size 85 bytes
-// name confidence: 0.35   rewrite confidence: 0.6
+// name confidence: 0.35   rewrite confidence: 0.9 (VERIFIED against objdump 0x46fe10..0x46fe64 (difficulty table row lookup))
 // evidence: out/phase4/game_functions.md ("Looks up the field-of-view value for a given
 // weapon/zoom-table index and magnification level, defaulting to 1.0 if no zoom data is
 // present"); types/game.h Globals *global_globals (0x00746fa0); src/math's established use of

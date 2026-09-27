@@ -1,6 +1,6 @@
 // actor_get_actor_definition  (Ghidra: actor_get_actor_definition, already named)
 // address 0x40fa70, size 127 bytes
-// name confidence: 0.5   rewrite confidence: 0.5
+// name confidence: 0.5   rewrite confidence: 0.9 (VERIFIED against objdump 0x40fa70..0x40faee)
 // evidence: phase-4 summary "returns the actor definition (tag data block) to use,
 // preferring a possessed unit's actor-type override when present"; reads
 // actor.actor_definition_tag as the default, then follows the threat weapon object's
