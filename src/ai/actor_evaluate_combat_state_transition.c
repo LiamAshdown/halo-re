@@ -1,28 +1,18 @@
 // actor_evaluate_combat_state_transition  (Ghidra: already named)
-// address 0x40c620, size 1443 bytes
-// name confidence: 0.5   rewrite confidence: 0.15
-// evidence: types/ai.h actor.target_unit_index/mode/active_unit_index/unknown_15e/
-//   unknown_378/unknown_1cb/unknown_375/position (0x174..0x17c); prop.distance (0x11c);
-//   calls actor_consider_combat_mode, actor_set_mode, actor_set_combat_alert_flag, this
-//   session's actor_get_actor_definition; phase-4 summary "decides whether the actor should
-//   transition into full combat/alert state and, if so, commits the corresponding order".
-//
-// This is the densest remaining function in this session's range (27 distinct conditions
-// across several nested gates). Kept close to the Ghidra decompilation, preserving its
-// control-flow shape (gotos and all) rather than restructuring it, given the size and the
-// number of unresolved tag/mode_data offsets. Confidence is low; treat as a starting point.
-// UNSURE, broadly: actor+0xa0/0xa3/0xa4/0xc5/0x37c/0x380/0x388/0x470 fall inside or just past
-// actor.mode_data; Actor-tag offsets read through `puVar3`/`iVar2`/`iVar10` (three different
-// tag-data pointers: the actor's own Actor tag, its ActorVariant tag, and a possibly
-// per-unit-overridden Actor tag from actor_get_actor_definition) are not individually named.
-// weapon_get_zoom_fov and actor_has_unshielded_threat_weapon are outside this session's range.
-//   Actor+0x37c/0x380/0x388 are read here as raw int32 timestamps (compared against -1
-//   and against the game tick), which conflicts with types/ai.h's typing of those three
-//   offsets as floats (search_wait_time/unknown_380/unknown_388, established by
-//   actor_get_consideration_wait_threshold.c) -- that evidence turns out to come from an
-//   Actor *tag* pointer at the same numeric offset within that function, not the runtime
-//   actor struct, so the two are likely unrelated fields sharing a coincidental offset.
-//   Read here as raw bytes rather than picking one interpretation.
+// address 0x40c620, size 1608 bytes (0x40c620..0x40cc67)
+// name confidence: 0.5   rewrite confidence: 0.9
+// REWRITTEN from objdump 0x40c620..0x40cc67 (the old header's 1443 bytes stopped short). Stack: actor. Returns
+//   whether the actor changed mode. With a target prop (+0x270):
+//   - in mode 10 / state 1, a target seen (or recently engaged) within the actor definition's +0xa0 range raises
+//     the combat alert (else 0x40dd50 may take over);
+//   - otherwise, unless busy (threat weapon, mode 10 states 2..3, +0x6, riding, +0x5f2 == 2), a target inside the
+//     variant's engage range (+0x160, +0x170 when the Actor lacks 0x20000 or no threat weapon) -- and inside
+//     +0x37c + 0.8 when +0x1cb -- enters combat (consider 2, mode 10) at most every 10 ticks and after the
+//     difficulty-scaled delay since +0x380;
+//   - riding in a vehicle (+0x15e == 4) beyond the definition's +0x160 with an unengaged prop, consider 4.
+//   Then the retreat / hold logic: mode 10 states 2..5, the vehicle's +0x394 range and facing (dot > 0.5), the
+//   Actor flag 0x1000000 and +0x375 either consider 0 (mode 10) or fall back to mode 3 (guard).
+// blam-cc: stack -> actor_index
 
 #include "tags.h"
 #include "memory.h"
@@ -32,188 +22,216 @@
 #include "objects.h"
 #include "game.h"
 
-extern data_array *actor_data;      // 0x00880360
-extern data_array *prop_data;       // 0x008802c0
-extern data_array *object_data;     // 0x008603b0
-extern tag_instance *tag_instances; // 0x0087bc14
+extern data_array *actor_data;       // 0x00880360
+extern data_array *object_data;      // 0x008603b0
+extern data_array *prop_data;        // 0x008802c0
+extern tag_instance *tag_instances;  // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c
+extern uint8_t *main_game_globals;   // 0x006b0b80, +0x0e difficulty
 
-extern uint8_t actor_consider_combat_mode(uint32_t actor_index, int16_t consideration_mode, actor_combat_consideration *out); // 0x401a60, this session
-extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data);            // 0x40d8d0, sibling session
-extern uint8_t actor_handle_death(datum_index actor_index, uint8_t param_2, uint8_t param_3);             // 0x40dd50, this session (later)
-extern void * actor_get_actor_definition(datum_index actor_index);                                   // 0x40fa70, this session (later)
-extern void actor_set_combat_alert_flag(void);                                                    // 0x421a40, not yet rewritten
-extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index);                                                                // 0x428370, not yet rewritten
-extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
-    // 0x46fe10, blam-cc: stack -> zoom_table_index, CX -> magnification (every caller passes the difficulty)
-extern uint8_t *main_game_globals; // 0x006b0b80 game globals *, +0x0e difficulty
+extern void *actor_get_actor_definition(datum_index actor_index); // 0x40fa70, EAX
+extern uint8_t actor_handle_death(datum_index actor_index, uint8_t param_2, uint8_t param_3); // 0x40dd50
+extern void actor_set_combat_alert_flag(datum_index actor_index, uint8_t new_flag); // 0x421a40, EAX, BL
+extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index); // 0x428370, EAX
+extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification); // 0x46fe10, stack, CX (difficulty value)
+extern uint8_t actor_consider_combat_mode(uint32_t actor_index, int16_t consideration_mode,
+    actor_combat_consideration *out); // 0x401a60
+extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0
+
+
+#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 
 char actor_evaluate_combat_state_transition(uint32_t actor_index)
 {
-    actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
-    uint8_t *actor_base = (uint8_t *)a;
-    Actor *actor_def = (Actor *)tag_instances[a->actor_definition_tag & 0xffff].data;
-    ActorVariant *variant = (ActorVariant *)tag_instances[a->actor_variant_tag & 0xffff].data;
-    Actor *unit_def = actor_get_actor_definition(actor_index);
-    char result = 0;
-    prop *threat = 0;
-    float threat_distance = 3.4028235e+38f;
-    uint8_t consideration[132];
-    (void)variant;
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;     // esi
+    uint8_t *actor_tag = TAG_DATA(*(datum_index *)(a + 0x58));                     // [esp+0x1c]
+    uint8_t *variant = TAG_DATA(*(datum_index *)(a + 0x5c));                       // [esp+0x20]
+    uint8_t *definition = (uint8_t *)actor_get_actor_definition(actor_index);        // [esp+0x2c]
+    uint8_t changed = 0;                                                             // [esp+0x12]
+    uint8_t fallback = 0;                                                            // [esp+0x13]
+    uint8_t *p = 0;                                                                  // [esp+0x28]
+    float distance = 3.4028235e+38f;                                                 // [esp+0x14]
+    actor_combat_consideration consideration;                                        // [esp+0x30]
+    int16_t mode;
+    uint8_t hold;
 
-    if (a->target_unit_index != (datum_index)k_datum_index_none) {
-        threat = &((prop *)prop_data->data)[a->target_unit_index & 0xffff];
-        threat_distance = threat->distance;
+    if (*(datum_index *)(a + 0x270) != k_datum_index_none) {
+        p = (uint8_t *)prop_data->data + (*(datum_index *)(a + 0x270) & 0xffff) * 0x138;
+        distance = *(float *)(p + 0x11c);
 
-        if (a->mode == 10 && *(int16_t *)(a->mode_data + (0xa0 - 0x9c)) == 1 &&
-            (((uint8_t *)threat)[0x74] != 0 ||
-             (((uint8_t *)threat)[0x12f] != 0 && ((uint8_t *)threat)[0x121] < 2) ||
-             (*(float *)((uint8_t *)actor_def + 0x328) > 0.0f && // UNSURE: puVar3[0xca] offset guessed
-              (int16_t)(*(float *)((uint8_t *)actor_def + 0x328) * 30.0f) <= *(int16_t *)(actor_base + 0xc2))) &&
-            (threat_distance <= unit_def->attacking_evasion_threshold - 0x50 /* UNSURE: iVar10+0xa0 offset guessed */ ||
-             (result = actor_handle_death(actor_index, 0, 0)) == 0)) {
-            actor_set_combat_alert_flag();
+        // 0x40c6bd: a searching actor that finds its target raises the alert
+        if (*(int16_t *)(a + 0x6c) == 0xa && *(int16_t *)(a + 0xa0) == 1) {
+            uint8_t engaged = p[0x74] || (p[0x12f] && (int8_t)p[0x121] <= 1);
+
+            if (!engaged && *(float *)(actor_tag + 0x328) > 0.0f &&
+                !(*(int16_t *)(a + 0xc2) < (int16_t)(int32_t)(*(float *)(actor_tag + 0x328) * 30.0f) /* __ftol 0x40c71b */)) {
+                engaged = 1;
+            }
+            if (engaged) {
+                if (!(distance <= *(float *)(definition + 0xa0))) {
+                    changed = actor_handle_death(actor_index, 0, 0);
+                    if (!changed) {
+                        actor_set_combat_alert_flag(actor_index, 1);
+                    }
+                } else {
+                    actor_set_combat_alert_flag(actor_index, 1);
+                }
+            }
         }
 
-        if ((actor_has_unshielded_threat_weapon(actor_index) == 0 || (threat->relationship_object_index == -1 && threat->has_parent == 0)) &&
-            (a->mode != 10 || (*(int16_t *)(a->mode_data + (0xa0 - 0x9c)) != 2 && *(int16_t *)(a->mode_data + (0xa0 - 0x9c)) != 3)) &&
-            result == 0 && a->swarm == 0 && a->active_unit_index == (datum_index)k_datum_index_none && a->unknown_5f2 != 2) {
-            int32_t now = game_time->game_time;
-            uint8_t use_alt = a->unknown_378;
+        // 0x40c75c: enter combat when the target is inside the engage range
+        if (!(actor_has_unshielded_threat_weapon(actor_index) &&
+              (*(datum_index *)(p + 0x110) != k_datum_index_none || p[0x14])) &&
+            !(*(int16_t *)(a + 0x6c) == 0xa && (*(int16_t *)(a + 0xa0) == 2 || *(int16_t *)(a + 0xa0) == 3)) &&
+            !changed && !a[0x6] && *(datum_index *)(a + 0x158) == k_datum_index_none &&
+            *(int16_t *)(a + 0x5f2) != 2) {
+            int32_t now = game_time->game_time;                                      // [esp+0x24]
+            uint8_t wide = a[0x378];                                                 // bl
+            float base_delay;
+            float delay;
+            float range;
+            int16_t difficulty = (int16_t)*(uint16_t *)(main_game_globals + 0xe);
 
-            if (actor_has_unshielded_threat_weapon(actor_index) == 0 && (actor_def->flags & 0x20000) == 0) {
-                use_alt = 1;
+            if (!actor_has_unshielded_threat_weapon(actor_index) && !(*(uint32_t *)actor_tag & 0x20000)) {
+                wide = 1;
             }
-            {
-                float reaction_base = (a->unknown_378 == 0) ? *(float *)((uint8_t *)actor_def + 0x378) /* UNSURE: puVar3[0xde] */ : 0.0f;
-                float sample_a = weapon_get_zoom_fov(0x15, *(int16_t *)(main_game_globals + 0x0e));
-                float sample_b = weapon_get_zoom_fov(0x14, *(int16_t *)(main_game_globals + 0x0e));
-                float wait = use_alt ? *(float *)((uint8_t *)unit_def + 0x170) : *(float *)((uint8_t *)unit_def + 0x160);
+            base_delay = a[0x378] ? 0.0f : *(float *)(actor_tag + 0x378);
+            delay = weapon_get_zoom_fov(0x14, difficulty) + weapon_get_zoom_fov(0x15, difficulty) * base_delay;
+            range = wide ? *(float *)(variant + 0x170) : *(float *)(variant + 0x160);
+            if (!(*(int32_t *)(a + 0x37c) != -1 && *(int32_t *)(a + 0x37c) + 0xa >= now) &&
+                distance <= range) {
+                uint8_t near_enough = 1;
 
-                if ((*(int32_t *)(actor_base + 0x37c) == -1 || *(int32_t *)(actor_base + 0x37c) + 10 < now) && threat_distance <= wait) {
-                    if (a->unknown_1cb != 0) {
-                        float berserk = *(float *)((uint8_t *)actor_def + 0x37c) /* UNSURE: puVar3[0xdf] */;
-                        if (berserk < 0.0f) berserk = 0.0f;
-                        if (berserk + 0.8f < threat_distance) {
-                            goto after_alert_check;
-                        }
+                if (a[0x1cb]) {
+                    float extra = *(float *)(actor_tag + 0x37c);
+
+                    if (!(0.0f <= extra)) {
+                        extra = 0.0f;
                     }
-                    if (*(int32_t *)(actor_base + 0x380) == -1 ||
-                        (float)now >= (sample_b + sample_a * reaction_base) * 30.0f + (float)*(int32_t *)(actor_base + 0x380)) {
-                        actor_has_unshielded_threat_weapon(actor_index);
-                        *(int32_t *)(actor_base + 0x37c) = now;
-                        if (actor_consider_combat_mode(actor_index, 2, (actor_combat_consideration *)consideration) != 0) {
-                            actor_set_mode(actor_index, 10, consideration);
-                            result = 1;
-                        }
+                    near_enough = distance <= 0.8f + extra;
+                }
+                if (near_enough &&
+                    (*(int32_t *)(a + 0x380) == -1 || (float)now > delay * 30.0f + (float)*(int32_t *)(a + 0x380))) {
+                    actor_has_unshielded_threat_weapon(actor_index);
+                    *(int32_t *)(a + 0x37c) = now;
+                    if (actor_consider_combat_mode(actor_index, 2, &consideration)) {
+                        actor_set_mode(actor_index, 0xa, &consideration);
+                        changed = 1;
                     }
                 }
             }
         }
 
-    after_alert_check:
-        if (a->mode == 10 || a->unknown_1cb != 0) {
-            if (result != 0) {
-                return result;
-            }
-        } else {
-            if (result != 0) {
-                return result;
-            }
-            if (a->unknown_15e > 0) {
-                object *unit_obj = ((object_header *)object_data->data)[a->active_unit_index & 0xffff].data;
-                Actor *unit_actor_def = (Actor *)tag_instances[unit_obj->definition_tag & 0xffff].data;
+        // 0x40c946: a vehicle gunner beyond the definition's +0x160 range with an unengaged prop
+        if (*(int16_t *)(a + 0x6c) != 0xa && !a[0x1cb]) {
+            int16_t seat_kind = *(int16_t *)(a + 0x15e);
 
-                if ((*(int32_t *)(actor_base + 0x388) == -1 ||
-                     *(float *)((uint8_t *)unit_actor_def + 0x390) * 30.0f + (float)*(int32_t *)(actor_base + 0x388) < (float)game_time->game_time) &&
-                    a->unknown_15e == 4 &&
-                    unit_def->attacking_evasion_threshold /* UNSURE: iVar10+0x160 offset guessed */ < threat_distance &&
-                    threat->unknown_38 == 0 &&
-                    actor_consider_combat_mode(actor_index, 4, (actor_combat_consideration *)consideration) != 0) {
-                    actor_set_mode(actor_index, 10, consideration);
+            if (changed) {
+                return changed;
+            }
+            if (seat_kind > 0) {
+                uint8_t ready = 1;
+
+                if (*(int32_t *)(a + 0x388) != -1) {
+                    uint8_t *vehicle_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(*(datum_index *)(a + 0x158)));
+
+                    ready = (float)game_time->game_time >
+                        *(float *)(vehicle_tag + 0x390) * 30.0f + (float)*(int32_t *)(a + 0x388);
+                }
+                if (ready && seat_kind == 4 && distance > *(float *)(definition + 0x160) &&
+                    *(int16_t *)(p + 0x38) == 0 &&
+                    actor_consider_combat_mode(actor_index, 4, &consideration)) {
+                    actor_set_mode(actor_index, 0xa, &consideration);
                     return 1;
                 }
             }
+        } else if (changed) {
+            return changed;
         }
     }
 
-    {
-        uint8_t bVar6 = (a->unknown_375 != 0 && a->unknown_1cb == 0);
-        uint8_t bVar5 = 0;
-
-        if (a->unknown_1cb == 0 && actor_has_unshielded_threat_weapon(actor_index) == 0 && (actor_def->flags & 0x1000000) != 0) {
-            bVar6 = 1;
-        }
-
-        if (a->mode == 10) {
-            int16_t sub = *(int16_t *)(a->mode_data + (0xa0 - 0x9c));
-            if (sub == 2 || sub == 3) {
-                if (a->mode_data[0xa3 - 0x9c] != 0 || a->mode_data[0xa4 - 0x9c] != 0 || a->mode_data[0xc5 - 0x9c] != 0) {
-                    bVar5 = 1;
-                    goto combined_gate;
-                }
-            } else {
-                if (a->unknown_1cb != 0) {
-                    goto finish_mode3;
-                }
-                if (sub != 4 && sub != 5) {
-                    goto combined_gate_entry;
-                }
-                if (a->mode_data[0xc5 - 0x9c] != 0 || a->unknown_15e < 2) {
-                    bVar5 = 1;
-                    goto combined_gate;
-                }
-                if (sub == 4) {
-                    uint8_t direct_hit = (a->movement_completed != 0 && a->active_movement.type == 5 &&
-                                           *(int32_t *)((uint8_t *)&a->active_movement + 4) == (int32_t)a->target_unit_index);
-                    Actor *unit_actor_def2;
-                    {
-                        object *unit_obj2 = ((object_header *)object_data->data)[a->active_unit_index & 0xffff].data;
-                        unit_actor_def2 = (Actor *)tag_instances[unit_obj2->definition_tag & 0xffff].data;
-                    }
-                    if (direct_hit ||
-                        threat_distance < *(float *)((uint8_t *)unit_actor_def2 + 0x394) ||
-                        (threat_distance < 2.0f * *(float *)((uint8_t *)unit_actor_def2 + 0x394) &&
-                         // REVIEW FIX: these three were read as uint8_t. The original reads
-                         // them as floats (prop+0xe0..0xe8, a direction), and it dots them
-                         // against actor.facing.
-                         (*(float *)((uint8_t *)threat + 0xe0) * a->facing.i +
-                          a->facing.j * *(float *)((uint8_t *)threat + 0xe4) +
-                          a->facing.k * *(float *)((uint8_t *)threat + 0xe8) < 0.5f))) {
-                        goto finish_mode3;
-                    }
-                }
-            }
-        finish_mode3_label:;
-        combined_gate_entry:
-            if (a->mode == 10) {
-                return result;
-            }
-        } else {
-        combined_gate:
-            if (!bVar6) {
-                goto finish_mode3;
-            }
-            if (!bVar5) {
-                goto combined_gate_entry;
-            }
-        }
-
-        {
-            char changed = actor_consider_combat_mode(actor_index, 0, (actor_combat_consideration *)consideration);
-            if (changed != 0) {
-                actor_set_mode(actor_index, 10, consideration);
-                return 1;
-            }
-        }
-    finish_mode3:
-        if (a->mode == 3) {
-            return result;
-        }
-        consideration[0] = 0;
-        actor_set_mode(actor_index, 3, consideration);
-        return 1;
+    // 0x40ca44: hold or fall back
+    fallback = (a[0x375] && !a[0x1cb]) ? 1 : 0;
+    hold = 0;                                                                        // bl
+    if (!a[0x1cb] && !actor_has_unshielded_threat_weapon(actor_index) && (*(uint32_t *)actor_tag & 0x1000000)) {
+        fallback = 1;
     }
+    mode = *(int16_t *)(a + 0x6c);                                                   // dx
+    if (mode == 0xa) {
+        int16_t state = *(int16_t *)(a + 0xa0);
+
+        if (state == 2 || state == 3) {
+            if (!a[0xa3] && !a[0xa4] && !a[0xc5]) {
+                fallback = 1;
+                goto consider_zero;                                                  // 0x40cbee
+            }
+            hold = 1;
+            goto decide;
+        }
+        if (a[0x1cb]) {
+            goto guard;
+        }
+        if (state == 4 || state == 5) {
+            if (a[0xc5] || *(int16_t *)(a + 0x15e) <= 1) {
+                hold = 1;
+                goto decide;
+            }
+            fallback = 1;
+            if (state != 4) {
+                goto consider_zero;
+            }
+            {
+                uint8_t *vehicle_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(*(datum_index *)(a + 0x158)));
+                float vehicle_range = *(float *)(vehicle_tag + 0x394);
+
+                if (a[0x484] && *(int16_t *)(a + 0x46c) == 5 &&
+                    *(datum_index *)(a + 0x470) == *(datum_index *)(a + 0x270)) {
+                    goto guard;
+                }
+                if (distance < vehicle_range) {
+                    goto guard;
+                }
+                if (!(vehicle_range + vehicle_range > distance)) {
+                    goto consider_zero;
+                }
+                if (*(float *)(a + 0x17c) * *(float *)(p + 0xe8) + *(float *)(a + 0x178) * *(float *)(p + 0xe4) +
+                        *(float *)(p + 0xe0) * *(float *)(a + 0x174) >= 0.5f) {
+                    goto consider_zero;
+                }
+                goto guard;
+            }
+        }
+    }
+decide:                                                                              // 0x40cbe2
+    if (!fallback) {
+        goto guard;
+    }
+    if (hold) {
+        goto consider;                                                               // 0x40cbf4
+    }
+consider_zero:                                                                       // 0x40cbee
+    if (mode == 0xa) {
+        goto settle;
+    }
+consider:
+    if (actor_consider_combat_mode(actor_index, 0, &consideration)) {
+        actor_set_mode(actor_index, 0xa, &consideration);
+        changed = 1;
+    } else {
+        goto guard;
+    }
+settle:                                                                              // 0x40cc1d
+    if (fallback || changed) {
+        return changed;
+    }
+guard:                                                                               // 0x40cc2d
+    if (*(int16_t *)(a + 0x6c) == 3) {
+        return changed;
+    }
+    *(uint32_t *)&consideration = 0;
+    actor_set_mode(actor_index, 3, &consideration);
+    return 1;
 }
 
 #if 0

@@ -5,7 +5,7 @@
 // 0x4f94e0, 0x4f9540: byte-identical copies of the per-node periodic_function_evaluate loop;
 // the inherited names object_delete_to_network, object_delete and object_reconnect_to_map do
 // not match a function-value recompute.")
-// rewrite confidence: n/a -- not independently rewritten
+// rewrite confidence: 1.0 (FRAGMENT: 0x4f93b0 lies inside object_update_functions 0x4f92f0..0x4f9690, whose C covers it; only jumps reach here)
 //
 // This is not a real, independently-callable function: it has zero recorded callers, and every
 // input arrives as an unresolved "unaff_"/"in_stack_" value with no call site anywhere to check

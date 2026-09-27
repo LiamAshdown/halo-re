@@ -1,5 +1,5 @@
 // object_update_functions  (Ghidra: object_update_functions, already named)
-// address 0x4f92f0, size 185 bytes
+// address 0x4f92f0, size 929 bytes (0x4f92f0..0x4f9690; 0x4f93b0 / 0x4f94e0 / 0x4f9540 are its fragments)
 // name confidence: 0.85 (already carries this name from an earlier phase; matches
 //   functions.md's summary: "Evaluates all of an object's model-defined periodic/scalar
 //   functions each tick and caches their outputs for later use by shaders/effects"; this is

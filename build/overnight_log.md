@@ -1530,3 +1530,12 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - ai_reference_resolve_squad_datum 0x432c80 (0.4 -> 0.9): reinforcement tail call gets (encounter ECX, squad AX).
   - 0x565a70 "unit_clear_weapon_switch_state" is the tail of unit_validate_and_clear_weapon_switch (C already complete;
     marked FRAGMENT, header size fixed to 226).
+- NEW scans scratchpad/sizescan3.py (functions whose jump-reachable code runs past the header size). Findings:
+  object_update_functions (really 929 bytes; rewrite already covered it) and object_recalculate_bounding_radius
+  headers fixed, their "clones" marked FRAGMENT.
+- actor_evaluate_combat_state_transition 0x40c620 REWRITTEN (0.15 -> 0.9; real size 1608, the header's 1443 stopped
+  short): engage-range entry into combat (consider 2), vehicle gunner consider 4, hold / fall back to guard (mode 3).
+  Called by actor_update_combat_behavior, escalate, conditional transition -- every actor.
+- OPEN (sizescan3): encounters_update_activation 0x437e20 (0.45), encounter_redistribute_squads_toward_targets (0.15),
+  actor_replace_object_reference (0.3), unit_dispatch_seat_exit_message (0.2), decal_place (0.15) extend past
+  their header sizes and are unrewritten.
