@@ -42,7 +42,7 @@ extern real_vector3d *vector3d_unpack_normal_11_11_10(real_vector3d *out, uint32
 extern uint8_t rasterizer_sun_glow_project_point(real_point3d *point, float radius, float *out_screen,
                                                       float *out_scale); // 0x525130
 // blam-cc: ESI -> rect (left, right, top, bottom), stack -> target_index
-extern void rasterizer_sun_glow_capture(int16_t target_index, const float *rect); // 0x525320
+extern void rasterizer_sun_glow_capture(const float *rect, int16_t target_index); // 0x525320, ESI rect, stack target
 extern int32_t rasterizer_sun_glow_blur(int16_t first_target_index, int16_t second_target_index,
                                                                uint16_t both_flag); // 0x525720
 // blam-cc: AX -> target_index, DX -> stage
@@ -261,8 +261,8 @@ void rasterizer_sun_glow_render(lens_flare_instance *instance)
         uint32_t pass;
 
         // blur the visibility alpha through targets 6 and 7
-        rasterizer_sun_glow_capture(6, rect);
-        rasterizer_sun_glow_capture(7, rect);
+        rasterizer_sun_glow_capture(rect, 6);
+        rasterizer_sun_glow_capture(rect, 7);
         target = rasterizer_sun_glow_blur(6, 7, 4);
         set_screen_constants(0.0f, 0.5f, 1.0f, 1.0f, 1.0f);
         set_screen_vertex_states();
