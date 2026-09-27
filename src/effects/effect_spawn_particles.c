@@ -3,7 +3,7 @@
 // particle_system_spawn_particles -> effect_spawn_particles (one EffectEvent, not a pctl
 // system)")
 // address 0x451f90, size 2600 bytes
-// name confidence: 0.5   rewrite confidence: 0.2 (LOW -- this is the densest function in the
+// name confidence: 0.5   rewrite confidence: 0.85 (REWRITTEN from objdump 0x451f90..0x4529b8; was 0.2: the densest function in the
 //   batch; several callee argument lists are only partly visible at their call sites and are
 //   reconstructed from the locals that consume their results rather than read directly. See the
 //   grouped UNSURE notes below.)
@@ -173,315 +173,225 @@ static void effect_spawn_particles_rotate_unscaled(real_vector3d *out, real x, r
 // interpolated from the type's tint bounds, and the result is hCommitted through particle_new.
 void effect_spawn_particles(effect *self)
 {
+    // REWRITTEN (objdump 0x451f90..0x4529b8). The creation record handed to particle_new (EDI) is filled as the
+    //   binary lays it out at [esp+0x24]: +0x00 the Particle tag (EffectParticle +0x60), +0x04 object, +0x08 marker,
+    //   +0x0a first person weapon (a word), +0x0c first person marker, +0x0d create == 2, +0x0e create == 1,
+    //   +0x10 position, +0x1c direction, +0x28 velocity, +0x34 the tint source vector, +0x40 initial angle,
+    //   +0x44 angular velocity roll (bit 3), +0x48 radius roll (bit 9), +0x4c alpha, +0x50 rgb. The draft dropped
+    //   the direction, angle, create flags and first person flag, rolled both properties with bit 0 and the wrong
+    //   ranges, and replaced the debug halving with a bare __ftol().
+    Effect *tag;
+    EffectEvent *event;
+    real previous_fraction;
+    real current_fraction;
+    int16_t type_index;
+
     if (particle_spawn_debug_mode == 0) {
         return;
     }
+    tag = (Effect *)tag_instances[(uint16_t)self->definition_index].data;
+    event = &((EffectEvent *)tag->events.pointer)[self->event_index];
+    previous_fraction = self->previous_event_fraction;
+    current_fraction = (self->event_duration > 0.0f) ? self->event_time / self->event_duration : 1.0f;
 
-    {
-        Effect *tag = (Effect *)tag_instances[(uint16_t)self->definition_index].data;
-        EffectEvent *event = &((EffectEvent *)tag->events.pointer)[self->event_index];
-        EffectParticle *particle_types = (EffectParticle *)event->particles.pointer;
-        real previous_fraction = self->previous_event_fraction;
-        real current_fraction = (self->event_duration <= 0.0f) ? 1.0f
-            : self->event_time / self->event_duration;
-        int32_t type_index;
+    for (type_index = 0; (int32_t)type_index < (int32_t)event->particles.count; type_index++) {
+        uint8_t *pt = (uint8_t *)event->particles.pointer + (int32_t)type_index * 0xe8;
+        int16_t location = *(int16_t *)(pt + 0x08);
+        int16_t violence_mode = *(int16_t *)(pt + 0x02);
+        uint16_t create = *(uint16_t *)(pt + 0x04);
+        real count_scale;
+        int16_t current_count;
+        int16_t spawn_count;
+        datum_index marker_handle;
+        effect_location_marker *entry;
 
-        for (type_index = 0; type_index < (int32_t)event->particles.count; type_index++) {
-            EffectParticle *particle_type = &particle_types[type_index];
-            int16_t location = particle_type->location;
-
-            if (location < 0 || (int32_t)location >= (int32_t)tag->locations.count) {
-                continue;
-            }
-
-            {
-                uint8_t skip_type;
-                if ((self->flags & _effect_first_person_bit) == 0) {
-                    skip_type = (particle_type->violence_mode == 2); // UNSURE, see object_change_color_evaluate.c's matching note
-                } else {
-                    skip_type = (particle_type->violence_mode == 1);
-                }
-                if (skip_type) {
-                    continue;
-                }
-            }
-
-            {
-                int16_t current_count = (int16_t)(int32_t)(effect_distribution_function_evaluate(
-                    particle_type->distribution_function, current_fraction) *
-                    self->particle_counts[type_index]); // UNSURE 1
-                int16_t previous_count = (int16_t)(int32_t)(effect_distribution_function_evaluate(
-                    particle_type->distribution_function, previous_fraction) *
-                    self->particle_counts[type_index]); // UNSURE 1
-                int16_t spawn_count = current_count - previous_count;
-
-                if (particle_spawn_debug_mode == 1) {
-                    spawn_count = (int16_t)__ftol(); // UNSURE 2
-                }
-
-                if (spawn_count <= 0) {
-                    continue;
-                }
-
-                {
-                    datum_index marker_handle = self->location_markers[location];
-                    effect_location_marker *entry = effect_marker_next(self, &marker_handle,
-                        particle_type->create);
-
-                    while (entry != (effect_location_marker *)0) {
-                        // Skip first-person-weapon markers unless the weapon is currently held
-                        // (globals[fp_index]+8 != -1), matching every other "first-person
-                        // marker gate" in this module.
-                        if (entry->marker_index == 0xffff || (entry->marker_index & 0x8000) == 0 ||
-                            *(int32_t *)(first_person_weapon_globals +
-                                self->first_person_weapon_index * 0x1ea0 + 8) != -1) {
-                            int16_t remaining = spawn_count;
-
-                            do {
-                                real base_radius = particle_type->distribution_radius[0];
-                                real radius_span = particle_type->distribution_radius[1] - base_radius;
-
-                                if ((particle_type->a_scales_values & 0x80) != 0) { // bit7 distribution_radius
-                                    base_radius *= self->a_scale;
-                                }
-                                if ((particle_type->b_scales_values & 0x80) != 0) {
-                                    base_radius *= self->b_scale;
-                                }
-                                if ((particle_type->a_scales_values & 0x100) != 0) { // bit8 distribution_radius_delta
-                                    radius_span *= self->a_scale;
-                                }
-                                if ((particle_type->b_scales_values & 0x100) != 0) {
-                                    radius_span *= self->b_scale;
-                                }
-
-                                // Two advances: the first word drives the radius fraction, the
-                                // second selects the sphere_point_table sample.
-                                {
-                                    uint32_t radius_word =
-                                        effect_random_seed * k_random_multiplier + k_random_increment;
-                                    int16_t sample_index;
-                                    real_point3d sample;
-                                    real radius;
-                                    real_matrix4x3 *m = &entry->transform;
-                                    real_point3d position;
-                                    real_vector3d vec1, vec2;
-                                    real_vector3d pre_node_direction, pre_node_velocity;
-
-                                    effect_random_seed =
-                                        radius_word * k_random_multiplier + k_random_increment;
-
-                                    sample_index = (int16_t)((effect_random_seed >> k_random_value_shift) *
-                                        (uint32_t)(int32_t)sphere_point_table_count >> 16);
-                                    sample = sphere_point_table[sample_index];
-                                    radius = (real)(radius_word >> k_random_value_shift) *
-                                        1.5259022e-05f * radius_span + base_radius;
-
-                                    effect_spawn_particles_transform_point(&position,
-                                        particle_type->relative_offset.x, particle_type->relative_offset.y,
-                                        particle_type->relative_offset.z, m);
-                                    position.x += sample.x * radius;
-                                    position.y += sample.y * radius;
-                                    position.z += sample.z * radius;
-
-                                    {
-                                        real_vector3d raw_direction, raw_velocity;
-                                        effect_random_velocity_vector(self, &effect_random_seed,
-                                            (real_vector3d *)&particle_type->relative_direction_vector,
-                                            &raw_direction, &raw_velocity,
-                                            particle_type->velocity[0], particle_type->velocity[1],
-                                            particle_type->velocity_cone_angle,
-                                            particle_type->a_scales_values,
-                                            (uint8_t)particle_type->b_scales_values);
-
-                                        // vec1 (the direction) is rotated WITHOUT the marker
-                                        // scale; vec2 (the velocity) is scaled first.
-                                        effect_spawn_particles_rotate_unscaled(&vec1,
-                                            raw_direction.i, raw_direction.j, raw_direction.k, m);
-                                        effect_spawn_particles_transform_normal(&vec2,
-                                            raw_velocity.i, raw_velocity.j, raw_velocity.k, m);
-                                    }
-
-                                    // The original keeps the pre-node vectors live across the
-                                    // node transform and hands THOSE to particle_new on the
-                                    // "stay attached to marker" path below.
-                                    pre_node_direction = vec1;
-                                    pre_node_velocity = vec2;
-
-                                    if (entry->marker_index != 0xffff) {
-                                        real_matrix4x3 *node;
-                                        uint16_t node_index = entry->marker_index & 0x7fff;
-
-                                        if ((entry->marker_index & 0x8000) != 0) {
-                                            node = (real_matrix4x3 *)(first_person_weapon_globals + 0x108c +
-                                                self->first_person_weapon_index * 0x1ea0 + node_index * 0x34);
-                                        } else {
-                                            object *owner = ((object_header *)object_data->data)[(uint16_t)self->object_index].data;
-                                            node = (real_matrix4x3 *)((uint8_t *)owner + owner->nodes.offset +
-                                                node_index * 0x34);
-                                        }
-
-                                        {
-                                            real_point3d p2;
-                                            real_vector3d v1b, v2b;
-                                            effect_spawn_particles_transform_point(&p2, position.x, position.y, position.z, node);
-                                            // Again: direction unscaled, velocity scaled.
-                                            effect_spawn_particles_rotate_unscaled(&v1b, vec1.i, vec1.j, vec1.k, node);
-                                            effect_spawn_particles_transform_normal(&v2b, vec2.i, vec2.j, vec2.k, node);
-                                            position = p2;
-                                            vec1 = v1b;
-                                            vec2 = v2b;
-                                        }
-                                    }
-
-                                    {
-                                        uint8_t create_ok;
-                                        switch (particle_type->create_in) {
-                                        case effectcreatein_any_environment:
-                                            create_ok = 1;
-                                            break;
-                                        // 0x45262b / 0x45264c: EBX = &position ([esp+0x84]), push &self->location, 0
-                                        case effectcreatein_air_only:
-                                            create_ok = !scenario_location_get_water_and_weather(&position, &self->location, 0);
-                                            break;
-                                        case effectcreatein_water_only:
-                                            create_ok = scenario_location_get_water_and_weather(&position, &self->location, 0);
-                                            break;
-                                        case effectcreatein_space_only:
-                                            create_ok = 0;
-                                            break;
-                                        default:
-                                            create_ok = 0;
-                                            break;
-                                        }
-
-                                        if (create_ok) {
-                                            particle_creation_data creation_data;
-                                            real_vector3d out_direction, out_velocity;
-                                            real_point3d tint_color;
-                                            real fraction, spin_angle, rolled_scale, rolled_rotation_rate;
-                                            uint32_t scale_bits;
-
-                                            // UNSURE: particle_creation_data (types/effects.h) is
-                                            // documented as "at least 0x5c bytes"; these two rolls
-                                            // (radius[2] and angular_velocity[2]) clearly feed
-                                            // the new particle's scale and rotation rate, but the
-                                            // struct has no named rotation-rate field yet, so the
-                                            // roll is computed and stored in `creation_data.scale`
-                                            // only -- the rotation-rate destination is a TYPES-GAP.
-                                            rolled_scale = effect_property_random_value(0, self, 0, 0,
-                                                &effect_random_seed, particle_type->radius[0],
-                                                particle_type->radius[1]); // UNSURE, see file header note 1
-                                            rolled_rotation_rate = effect_property_random_value(0, self, 0, 0,
-                                                &effect_random_seed, particle_type->angular_velocity[0],
-                                                particle_type->angular_velocity[1]); // UNSURE
-                                            (void)rolled_rotation_rate; // TYPES-GAP: no field to store
-                                                // this in on particle_creation_data yet
-
-                                            if ((particle_type->flags & 1) == 0) { // stay_attached_to_marker clear
-                                                if (self->tint_source.proc == 0) {
-                                                    tint_color = *global_origin3d_pointer;
-                                                } else {
-                                                    void (*tint_proc)(real_point3d *, real_point3d *, void *) =
-                                                        (void (*)(real_point3d *, real_point3d *, void *))(uintptr_t)self->tint_source.proc;
-                                                    tint_proc(&tint_color, &position, (void *)(uintptr_t)self->tint_source.data);
-                                                        // UNSURE 5: argument order/types guessed from
-                                                        // types/effects.h's tint_source note
-                                                }
-                                                // The effect's own velocity, per tick at 30 Hz,
-                                                // is added to the particle's velocity only. The
-                                                // direction passes through untouched.
-                                                out_velocity.i = self->velocity.i * 30.0f + vec2.i;
-                                                out_velocity.j = self->velocity.j * 30.0f + vec2.j;
-                                                out_velocity.k = self->velocity.k * 30.0f + vec2.k;
-                                                out_direction = vec1;
-                                            } else {
-                                                tint_color = *global_origin3d_pointer;
-                                                // flags bit 0 set: particle_new gets the vectors
-                                                // as they stood before the node transform.
-                                                out_direction = pre_node_direction;
-                                                out_velocity = pre_node_velocity;
-                                            }
-
-                                            fraction = 0.0f; // UNSURE 1-adjacent: particle_system_property_random_value
-                                                // roll for scale/animation_rate elided here, see file header
-                                            (void)fraction;
-
-                                            if ((particle_type->flags & 2) == 0) { // random_initial_angle clear
-                                                spin_angle = 0.0f;
-                                            } else {
-                                                effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-                                                spin_angle = (real)(effect_random_seed >> k_random_value_shift) *
-                                                    1.5259022e-05f * 6.2831855f;
-                                            }
-                                            (void)spin_angle; // TYPES-GAP: no rotation field on
-                                                // particle_creation_data to store this in yet
-
-                                            if ((particle_type->a_scales_values & 0x800) == 0 &&
-                                                (particle_type->b_scales_values & 0x800) == 0) {
-                                                effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-                                                fraction = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f;
-                                            } else {
-                                                fraction = 1.0f;
-                                                if ((particle_type->a_scales_values & 0x800) != 0) {
-                                                    fraction = self->a_scale;
-                                                }
-                                                if ((particle_type->b_scales_values & 0x800) != 0) {
-                                                    fraction *= self->b_scale;
-                                                }
-                                            }
-
-                                            // One dword load at EffectParticle +0x64, which is
-                                            // `flags`; both the colour-pair selector (>>3 & 3)
-                                            // and the tint-apply bit (& 4) come out of it.
-                                            scale_bits = (uint32_t)particle_type->flags;
-                                            // 0x4528a2..0x4528bd: EAX = the upper tint bound's rgb (+0xc4),
-                                            // ECX = the lower one's (+0xb4)
-                                            color_interpolate((ColorRGB *)((uint8_t *)particle_type + 0xc4),
-                                                (ColorRGB *)((uint8_t *)particle_type + 0xb4),
-                                                (ColorRGB *)&creation_data.color.red, (scale_bits >> 3) & 3, fraction);
-                                            creation_data.color.alpha =
-                                                fraction * particle_type->tint_upper_bound.alpha +
-                                                (1.0f - fraction) * particle_type->tint_lower_bound.alpha;
-                                            if ((scale_bits & 4) != 0) {
-                                                creation_data.color.red *= self->color.red;
-                                                creation_data.color.green *= self->color.green;
-                                                creation_data.color.blue *= self->color.blue;
-                                            }
-
-                                            creation_data.definition_index = particle_type->particle_type.tag_id.index;
-                                            creation_data.object_index = self->object_index;
-                                            creation_data.marker_index = -1;
-                                            creation_data.first_person_weapon_index = (uint8_t)self->first_person_weapon_index;
-                                            creation_data.first_person = (self->flags & _effect_first_person_bit) != 0;
-                                            creation_data.position = position;
-                                            creation_data.unknown_1c = tint_color;   // UNSURE 6
-                                            creation_data.velocity = out_velocity;   // UNSURE 6
-                                            (void)out_direction; // UNSURE 6: the rotated direction
-                                                // is one of the three vectors handed to
-                                                // particle_new; particle_creation_data has no
-                                                // named field for it yet
-                                            creation_data.gravity.i = 0.0f;
-                                            creation_data.gravity.j = 0.0f;
-                                            creation_data.gravity.k = 0.0f;
-                                            creation_data.scale = rolled_scale;
-
-                                            particle_new(&creation_data);
-                                        }
-                                    }
-                                }
-
-                                remaining--;
-                            } while (remaining != 0);
-                        }
-
-                        entry = effect_marker_next(self, &marker_handle, particle_type->create);
-                    }
-                }
-            }
+        if (location < 0 || (int32_t)location >= (int32_t)tag->locations.count) {
+            continue;
+        }
+        if ((((uint8_t *)self)[2] >> 6 & 1) != 0 ? violence_mode == 1 : violence_mode == 2) {
+            continue;
+        }
+        count_scale = (real)(int32_t)self->particle_counts[type_index];
+        current_count = (int16_t)(int32_t)(effect_distribution_function_evaluate(
+            (EffectDistributionFunction_t)*(uint16_t *)(pt + 0x68), current_fraction) * count_scale);
+        spawn_count = (int16_t)((uint16_t)current_count - (int32_t)(effect_distribution_function_evaluate(
+            (EffectDistributionFunction_t)*(uint16_t *)(pt + 0x68), previous_fraction) * count_scale));
+        if (particle_spawn_debug_mode == 1) {
+            spawn_count = (int16_t)(int32_t)((real)(int32_t)spawn_count * 0.5f);
+        }
+        if (spawn_count <= 0) {
+            continue;
         }
 
-        self->previous_event_fraction = current_fraction;
+        marker_handle = self->location_markers[location];
+        for (entry = effect_marker_next(self, &marker_handle, create); entry != 0;
+             entry = effect_marker_next(self, &marker_handle, create)) {
+            uint16_t remaining;
+
+            if (entry->marker_index != 0xffff && (entry->marker_index & 0x8000) != 0 &&
+                *(int32_t *)(first_person_weapon_globals + self->first_person_weapon_index * 0x1ea0 + 8) == -1) {
+                continue;
+            }
+            remaining = (uint16_t)spawn_count;
+            do {
+                uint32_t a_bits = *(uint32_t *)(pt + 0xe0);
+                uint32_t b_bits = *(uint32_t *)(pt + 0xe4);
+                real radius0 = *(real *)(pt + 0x70);
+                real base_radius = radius0;
+                real radius_span;
+                real radius;
+                uint32_t radius_word;
+                int16_t sample_index;
+                real_point3d sample;
+                real_matrix4x3 *m = &entry->transform;
+                particle_creation_data record;
+                real_point3d position;       // the node-space results the detached path uses
+                real_vector3d direction;
+                real_vector3d velocity;
+                uint8_t create_ok;
+                real frac;
+                uint32_t flags;
+
+                if ((a_bits & 0x80) != 0) {
+                    base_radius *= self->a_scale;
+                }
+                if ((b_bits & 0x80) != 0) {
+                    base_radius *= self->b_scale;
+                }
+                radius_span = *(real *)(pt + 0x74) - radius0;
+                if ((a_bits & 0x100) != 0) {
+                    radius_span *= self->a_scale;
+                }
+                if ((b_bits & 0x100) != 0) {
+                    radius_span *= self->b_scale;
+                }
+                effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
+                radius_word = effect_random_seed;
+                effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
+                sample_index = (int16_t)(((effect_random_seed >> 16) * (uint32_t)(int32_t)sphere_point_table_count) >> 16);
+                sample = sphere_point_table[sample_index];
+                radius = (real)(int32_t)(radius_word >> 16) * 1.5259022e-05f * radius_span + base_radius;
+
+                // marker space: record.position = marker * (offset * scale) + sample * radius
+                effect_spawn_particles_transform_point(&record.position, *(real *)(pt + 0x14),
+                    *(real *)(pt + 0x18), *(real *)(pt + 0x1c), m);
+                record.position.x += sample.x * radius;
+                record.position.y += sample.y * radius;
+                record.position.z += sample.z * radius;
+                {
+                    real_vector3d raw_direction, raw_velocity;
+
+                    effect_random_velocity_vector(self, &effect_random_seed, (real_vector3d *)(pt + 0x20),
+                        &raw_direction, &raw_velocity, *(real *)(pt + 0x84), *(real *)(pt + 0x88),
+                        *(real *)(pt + 0x8c), a_bits, (uint8_t)b_bits);
+                    effect_spawn_particles_rotate_unscaled((real_vector3d *)&record.unknown_1c, raw_direction.i, raw_direction.j,
+                        raw_direction.k, m);
+                    effect_spawn_particles_transform_normal(&record.velocity, raw_velocity.i, raw_velocity.j,
+                        raw_velocity.k, m);
+                }
+
+                if (entry->marker_index != 0xffff) {
+                    real_matrix4x3 *node;
+                    int16_t node_index = (int16_t)(entry->marker_index & 0x7fff);
+
+                    if ((entry->marker_index & 0x8000) != 0) {
+                        node = (real_matrix4x3 *)(first_person_weapon_globals + 0x108c +
+                            self->first_person_weapon_index * 0x1ea0 + node_index * 0x34);
+                    } else {
+                        uint8_t *owner = (uint8_t *)((object_header *)object_data->data)[(uint16_t)self->object_index].data;
+
+                        node = (real_matrix4x3 *)(owner + *(int16_t *)(owner + 0x1f2) + node_index * 0x34);
+                    }
+                    effect_spawn_particles_transform_point(&position, record.position.x, record.position.y,
+                        record.position.z, node);
+                    effect_spawn_particles_rotate_unscaled(&direction, record.unknown_1c.x, record.unknown_1c.y,
+                        record.unknown_1c.z, node);
+                    effect_spawn_particles_transform_normal(&velocity, record.velocity.i, record.velocity.j,
+                        record.velocity.k, node);
+                } else {
+                    position = record.position;
+                    direction = *(real_vector3d *)&record.unknown_1c;
+                    velocity = record.velocity;
+                }
+
+                switch (*(int16_t *)(pt + 0x00)) { // create_in, jump table 0x4529c0
+                case 0:
+                    create_ok = 1;
+                    break;
+                case 1: // air only
+                    create_ok = !scenario_location_get_water_and_weather(&position, &self->location, 0);
+                    break;
+                case 2: // water only
+                    create_ok = scenario_location_get_water_and_weather(&position, &self->location, 0);
+                    break;
+                default:
+                    create_ok = 0;
+                    break;
+                }
+                if (!create_ok) {
+                    continue; // 0x45295e: the do/while condition still counts this particle
+                }
+
+                record.definition_index = *(datum_index *)(pt + 0x60);
+                flags = *(uint32_t *)(pt + 0x64);
+                if ((flags & 1) != 0) {
+                    // stay attached to the marker: marker-space vectors, the owner and the node
+                    record.object_index = self->object_index;
+                    record.marker_index = (entry->marker_index == 0xffff) ? -1 : (int16_t)(entry->marker_index & 0x7fff);
+                    record.gravity = *(real_vector3d *)global_origin3d_pointer;
+                } else {
+                    if (self->tint_source.proc != 0) {
+                        void (*tint_proc)(real_vector3d *, real_point3d *, void *) =
+                            (void (*)(real_vector3d *, real_point3d *, void *))(uintptr_t)self->tint_source.proc;
+                        tint_proc(&record.gravity, &position, (void *)(uintptr_t)self->tint_source.data);
+                    } else {
+                        record.gravity = *(real_vector3d *)global_origin3d_pointer;
+                    }
+                    record.position = position;
+                    *(real_vector3d *)&record.unknown_1c = direction;
+                    record.object_index = 0xffffffff;
+                    record.marker_index = -1; // left stale by the binary; unused without an object
+                    record.velocity.i = self->velocity.i * 30.0f + velocity.i;
+                    record.velocity.j = self->velocity.j * 30.0f + velocity.j;
+                    record.velocity.k = self->velocity.k * 30.0f + velocity.k;
+                }
+                record.scale = effect_property_random_value(9, self, a_bits, b_bits, &effect_random_seed,
+                    *(real *)(pt + 0xa0), *(real *)(pt + 0xa4));
+                record.unknown_44 = effect_property_random_value(3, self, *(uint32_t *)(pt + 0xe0),
+                    *(uint32_t *)(pt + 0xe4), &effect_random_seed, *(real *)(pt + 0x90), *(real *)(pt + 0x94));
+                if ((pt[0x64] & 2) != 0) {
+                    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
+                    record.unknown_40 = (real)(int32_t)(effect_random_seed >> 16) * 1.5259022e-05f * 6.2831855f;
+                } else {
+                    record.unknown_40 = 0.0f;
+                }
+                if ((*(uint32_t *)(pt + 0xe0) & 0x800) == 0 && (*(uint32_t *)(pt + 0xe4) & 0x800) == 0) {
+                    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
+                    frac = (real)(int32_t)(effect_random_seed >> 16) * 1.5259022e-05f;
+                } else {
+                    frac = ((*(uint32_t *)(pt + 0xe0) & 0x800) != 0) ? self->a_scale : 1.0f;
+                    if ((*(uint32_t *)(pt + 0xe4) & 0x800) != 0) {
+                        frac *= self->b_scale;
+                    }
+                }
+                flags = *(uint32_t *)(pt + 0x64);
+                color_interpolate((ColorRGB *)(pt + 0xc4), (ColorRGB *)(pt + 0xb4),
+                    (ColorRGB *)&record.color.red, (flags >> 3) & 3, frac);
+                record.color.alpha = (1.0f - frac) * *(real *)(pt + 0xb0) + frac * *(real *)(pt + 0xc0);
+                if ((flags & 4) != 0) {
+                    record.color.red *= self->color.red;
+                    record.color.green *= self->color.green;
+                    record.color.blue *= self->color.blue;
+                }
+                *(int16_t *)&record.first_person_weapon_index = self->first_person_weapon_index;
+                record.first_person = (entry->marker_index != 0xffff && (entry->marker_index & 0x8000) != 0);
+                record.unknown_0d = (create == 2);
+                record.unknown_0e = (create == 1);
+                particle_new(&record);
+            } while (--remaining != 0);
+        }
     }
+    self->previous_event_fraction = current_fraction;
 }
 
 #if 0
