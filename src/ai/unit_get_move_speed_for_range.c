@@ -1,6 +1,6 @@
 // unit_get_move_speed_for_range  (Ghidra: unit_get_move_speed_for_range; named from out/phase2/results/ai_02.json)
 // address 0x41bed0, size 348 bytes, 0 callers in this build
-// name confidence: 0.45   rewrite confidence: 0.3
+// name confidence: 0.45   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x41bed0..0x41c02b; 0.7 / 0.8 / 3.5 constants and tag offsets probed; far-branch out_b fixed)
 // evidence: out/phase2/results/ai_02.json describes this as a "pure math helper interpolating
 //   forward/turn speed outputs from unit speed-profile thresholds at unit+0x1c/0x20/0x28/0x2c
 //   based on a distance", but tracing the base pointer shows it is not a unit at all: it is
@@ -77,7 +77,9 @@ void unit_get_move_speed_for_range(datum_index actor_index, float param_a, float
         return;
     }
 
-    *out_b = param_b;
+    // 0x41bf77..0x41bf8c: past the far threshold out_b gets the FAR value (b * tag +0x2c, stored at [esp]).
+    // FIXED 2026-09-27: the draft wrote the raw param_b.
+    *out_b = far_value;
     *out_a = far_value_07_clamped;
 }
 

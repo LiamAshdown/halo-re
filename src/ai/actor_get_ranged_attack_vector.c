@@ -1,6 +1,6 @@
 // actor_get_ranged_attack_vector  (Ghidra: actor_get_ranged_attack_vector; named from out/phase2/results/ai_02.json)
 // address 0x420970, size 404 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x420970..0x420b03; offsets probed)
 // evidence: out/phase2/results/ai_02.json -- for a vehicle unit (target prop.is_parented set)
 //   it reads the controlled unit's aiming_vector (types/units.h, unit+0x23c) into the output
 //   vector; otherwise, if the unit already has an owning actor (target.owner_actor_index !=
