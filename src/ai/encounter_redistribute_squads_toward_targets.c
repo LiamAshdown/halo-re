@@ -70,7 +70,7 @@ extern encounter_platoon_state *encounter_platoon_states; // 0x008802c4
 extern void *ai_actor_mode_dispatch_table; // 0x00655278, see header UNSURE
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
-extern void object_get_position(datum_index object_index, real_point3d *out_position); // 0x4f6900, UNSURE signature (called here with no visible arguments; see call sites)
+extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX out, ECX object
 extern void *object_try_and_get(int32_t kind); // 0x4f6ec0, see header UNSURE
 extern void ai_reference_actor_iterator_new(datum_index packed_reference); // 0x432650 = actor iterator init, see header
 extern void *ai_reference_actor_iterator_next(void);                        // 0x4326d0 = actor iterator advance, see header
@@ -227,7 +227,7 @@ have_targets:
     }
 
     if (target_count == 1) {
-        object_get_position(targets[0], &target_positions[0]);
+        object_get_position(&target_positions[0], targets[0]);
     } else {
         int16_t t;
         datum_index next_actor;
@@ -237,7 +237,7 @@ have_targets:
             best_distance_to_target[t] = 3.4028235e+38f;
         }
         for (t = 0; t < (int16_t)target_count; t = t + 1) {
-            object_get_position(targets[t], &target_positions[t]);
+            object_get_position(&target_positions[t], targets[t]);
         }
 
         have_target = 0;

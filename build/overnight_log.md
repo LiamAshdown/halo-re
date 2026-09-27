@@ -1612,3 +1612,8 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   copy (the draft passed the unit index as the point pointer -- a garbage write -- and ignored the nudge), light
   attachments (0, 1).
 - object_nudge_position_by_velocity reviewed: network-prediction only, matches.
+- NEW scan scratchpad/kindscan.py (extern parameter kinds vs the definition: int passed where a pointer is expected
+  and vice versa). Fixed: object_get_position was declared (index, out) in encounter_redistribute_squads_toward_targets
+  and hs_damage_apply_with_sound -- the callee wrote 12 bytes through the object index (crash / corruption).
+  Checked benign: effect_new_with_color (typedef only), render_objects_collect -> structure_bsp_collect_visible_objects
+  (callbacks and bounds order verified against objdump, frustum test ECX/EDX/stack).

@@ -18,7 +18,7 @@
 #include "hs.h"
 
 extern void *memset(void *dst, int32_t value, uint32_t size); // CRT
-extern void object_get_position(datum_index object_index, real_point3d *out_position);
+extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX out, ECX object
     // objects module, 0x4f6900, UNSURE args
 extern int32_t bsp3d_node_find_leaf(void); // UNSURE: zero visible args; module unknown, 0x5013a0
 extern void object_apply_damage(void *request); // objects module, 0x4ee5e0
@@ -44,7 +44,7 @@ void hs_damage_apply_with_sound(datum_index object_index, uint32_t damage_effect
         request.scale_a = 1.0f;
         request.scale_b = 1.0f;
 
-        object_get_position(object_index, (real_point3d *)&request.position);
+        object_get_position((real_point3d *)&request.position, object_index);
         *(Point3D *)&request.direction = *(Point3D *)&request.position;
 
         impulse = bsp3d_node_find_leaf();
