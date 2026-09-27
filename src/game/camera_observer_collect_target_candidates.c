@@ -1,7 +1,7 @@
 // camera_observer_collect_target_candidates  (Ghidra: FUN_0045a0e0; renamed per
 // symbols/review_queue.txt)
 // address 0x45a0e0, size 401 bytes
-// name confidence: 0.35   rewrite confidence: 0.25
+// name confidence: 0.35   rewrite confidence: 0.85 (REWRITTEN 2026-09-27 static loop against objdump 0x45a0e0..0x45a270: team test, target score arguments; offsets probed)
 // evidence: types/objects.h object (bounding_radius 0xac == puVar1[0x2b], type 0xb4 ==
 //   puVar1[0x2d], flags 0x10 == puVar1[4], vitality_flags 0x106 == puVar1[0x106/4... byte
 //   access, _object_health_frozen_bit 0x4, next_object 0x114 == puVar1[0x45], first_child_object
@@ -89,12 +89,11 @@ uint16_t camera_observer_collect_target_candidates(observer_target_cone *cone, d
                                                sin_max_angle, cos_max_angle) != 0) {
                 if ((type_bit & _object_mask_biped) != 0 && (obj->vitality_flags & _object_health_frozen_bit) == 0 &&
                     object_index != exclude_object) {
-                    candidate_team_player = ((unit_data *)((uint8_t *)obj + k_unit_data_offset))->controlling_player;
-                    candidate_team = -1;
-                    if (candidate_team_player != k_datum_index_none) {
-                        candidate_team = (int16_t)((player *)((uint8_t *)player_data->data + (candidate_team_player & 0xffff) * sizeof(player)))->team; // UNSURE: reused as player*, see note
-                    }
-                    if (teams_are_enemies(observer_team, candidate_team) != 0) {
+                    // 0x45a18d..0x45a198: CX = the object's own team (+0xb8), DX = observer_team. FIXED 2026-09-27: the
+                    // draft took the team of the controlling PLAYER (-1 for every AI unit) and swapped the arguments.
+                    (void)candidate_team_player;
+                    candidate_team = obj->owner_team;
+                    if (teams_are_enemies(candidate_team, observer_team) != 0) {
                         tag = (Item *)tag_instances[obj->definition_tag & 0xffff].data;
                         if ((tag->item_flags & 0x200000) == 0) { // UNSURE: unnamed ItemFlags bit 21
                             if (camera_observer_target_score(facing, cone, object_index, &temp, observer_position) /* 0x45a1c2..0x45a1d2 */ != 0 &&

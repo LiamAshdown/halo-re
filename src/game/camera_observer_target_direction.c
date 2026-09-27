@@ -1,6 +1,6 @@
 // camera_observer_target_direction  (Ghidra: FUN_00459cc0; renamed per symbols/review_queue.txt)
 // address 0x459cc0, size 272 bytes
-// name confidence: 0.3   rewrite confidence: 0.3
+// name confidence: 0.3   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x459cc0..0x459dcf)
 // evidence: symbols/review_queue.txt 0x459cc0 "computes a normalized direction vector between
 //   two points ..., then a clamped dot-product angle via FUN_00628140 (acos-style)"; the
 //   clamp-then-acos collapse follows the same pattern already used and documented in

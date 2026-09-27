@@ -1,6 +1,6 @@
 // unit_get_look_origin_and_direction  (Ghidra: unit_get_look_origin_and_direction, renamed)
 // address 0x55a390, size 364 bytes
-// name confidence: 0.3   rewrite confidence: 0.35
+// name confidence: 0.3   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x55a390..0x55a4fb; the second argument receives the tag's autoaim width; offsets probed)
 // evidence: Biped.pelvis_model_node_index (0x4e4) / head_model_node_index (0x4e6) per
 //   types/tags.h; object.nodes stride 0x34, position at +0x28 (real_matrix4x3, types/math.h);
 //   Biped.biped_flags 0x2f4; global_up3d indirect pointer 0x00696720 (see the ground-adjust
