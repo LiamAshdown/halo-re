@@ -25,7 +25,7 @@ extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
 extern Scenario *global_scenario; // 0x00746f8c
 
-extern float actor_compute_accuracy_scale(void); // 0x429620, not yet rewritten (an engagement-range radius)
+extern float actor_compute_accuracy_scale(datum_index actor_index); // 0x429620, not yet rewritten (an engagement-range radius)
 
 uint8_t actor_is_target_within_engagement_range(uint32_t actor_index)
 {
@@ -53,7 +53,7 @@ uint8_t actor_is_target_within_engagement_range(uint32_t actor_index)
         return 1;
     }
 
-    range = actor_compute_accuracy_scale();
+    range = actor_compute_accuracy_scale(actor_index);
     dx = fp->position.x - a->body_position.x;
     dy = fp->position.y - a->body_position.y;
     dz = fp->position.z - a->body_position.z;

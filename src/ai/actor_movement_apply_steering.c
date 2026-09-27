@@ -75,9 +75,9 @@ extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX -
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, EAX->out, stack->a, ECX->b
 extern void vector3d_rotate_about_axis(real_vector3d *v, const real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820, EAX->v, ECX->axis, stack->sin,cos
 
-extern void actor_update_target_lead_position(void); // 0x429570, not yet rewritten (this module)
-extern float actor_compute_accuracy_scale(void);                     // 0x429620, not yet rewritten (this module): per-tick accuracy scale
-extern void actor_movement_get_stopping_distances(void);                       // 0x4173a0, not yet rewritten (this module): turning-radius bounds, called for its side effects only
+extern void actor_update_target_lead_position(datum_index actor_index); // 0x429570, not yet rewritten (this module)
+extern float actor_compute_accuracy_scale(datum_index actor_index); // 0x429620, EAX
+extern void actor_movement_get_stopping_distances(datum_index actor_index, float *out_accelerate_stop_distance, float *out_stop_distance);                       // 0x4173a0, not yet rewritten (this module): turning-radius bounds, called for its side effects only
 // Picks whichever of four candidate axis directions best matches two reference vectors;
 // writes the refined direction and the chosen axis index (0..3). UNSURE signature.
 extern void actor_movement_choose_strafe_axis(real_vector3d *direction_in_out, int32_t *axis_out); // 0x418a40, not yet rewritten (this module)
@@ -96,12 +96,12 @@ extern void (*const actor_movement_apply_steering_dispatch[4])(void); // 0x418a0
 // blam-cc: EAX -> cached_axis, ECX -> keep_z, stack -> the 15 parameters below
 void actor_movement_apply_steering(
     int16_t cached_axis, uint8_t keep_z,
-    float param_1, uint8_t want_avoid_check, float avoid_threshold, uint8_t order_failed,
+    datum_index actor_index, uint8_t want_avoid_check, float avoid_threshold, uint8_t order_failed,
     float param_5, float param_6, float param_7, float param_8, float param_9,
     real_vector3d *desired_direction, real_vector3d *out_direction, int16_t *out_axis,
     real_vector3d *out_heading, uint8_t *out_flag_507, uint8_t *out_flag_506)
 {
-    actor *a = &((actor *)actor_data->data)[(uint32_t)param_1 & 0xffffu];
+    actor *a = &((actor *)actor_data->data)[actor_index & 0xffffu];
     uint8_t *actor_base = (uint8_t *)a;
     Actor *actor_def = (Actor *)tag_instances[a->actor_definition_tag & 0xffff].data;
 
@@ -210,7 +210,7 @@ void actor_movement_apply_steering(
         if (a->flying == 0) {
             int32_t lead_target_index;
 
-            actor_update_target_lead_position();
+            actor_update_target_lead_position(actor_index);
             lead_target_index = *(int32_t *)(actor_base + 0x164);
             if (lead_target_index != -1) {
                 real_vector2d probe_dir;
@@ -266,22 +266,25 @@ void actor_movement_apply_steering(
     }
 
     {
-        real accuracy_scale = actor_compute_accuracy_scale();
+        real accuracy_scale = actor_compute_accuracy_scale(actor_index);
         real desired_len_sq = desired_direction->k * desired_direction->k +
                               desired_direction->j * desired_direction->j +
                               desired_direction->i * desired_direction->i;
         real turn_limit = param_9;
+        float stop_distance = 0.0f;
 
         *out_flag_506 = (uint8_t)(desired_len_sq < accuracy_scale * accuracy_scale);
-        actor_movement_get_stopping_distances();
+        // 0x418653: EBX = &max_turn_cos (overwritten with the accelerate-then-stop distance), EDI = the actor
+        // index argument slot, reused for the plain stop distance.
+        actor_movement_get_stopping_distances(actor_index, &max_turn_cos, &stop_distance);
 
-        if (a->active_movement.cancelled == 0 && desired_len_sq < param_1 * param_1) {
+        if (a->active_movement.cancelled == 0 && desired_len_sq < stop_distance * stop_distance) {
             real dist = (real)sqrt((double)desired_len_sq);
 
-            if (dist <= max_turn_cos + 0.05f || param_1 <= max_turn_cos) {
+            if (dist <= max_turn_cos + 0.05f || stop_distance <= max_turn_cos) {
                 turn_limit = 0.0f;
             } else {
-                real t = (dist - max_turn_cos) / (param_1 - max_turn_cos);
+                real t = (dist - max_turn_cos) / (stop_distance - max_turn_cos);
                 if (t < turn_limit) {
                     turn_limit = t;
                 }

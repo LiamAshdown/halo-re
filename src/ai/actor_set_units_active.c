@@ -27,20 +27,21 @@ extern data_array *object_data; // 0x008603b0
 extern void object_mark_pending_delete(datum_index object_index); // 0x4f50f0, UNSURE signature
 extern void object_clear_pending_delete_flag(datum_index object_index); // 0x4f5130, UNSURE signature
 
-// blam-cc: EAX -> actor_index, EBX -> activate
-// Applies an activate/deactivate transition to every unit object the actor controls, whether
-// it is a lone unit, a cluster (walked through swarm_next_unit_index), or a swarm (walked
-// through its component unit_index[] array): marks each for deletion when deactivating, or
-// clears its object-header "active" bit when reactivating. No-op if the actor has no active
-// flag set or is already in the requested keep_unit_alive state.
-void actor_set_units_active(datum_index actor_index, uint8_t activate)
+// blam-cc: EAX -> actor_index, EBX -> dormant
+// Puts the actor's units to sleep (dormant = 1) or wakes them (dormant = 0), whether it has a lone unit, a cluster
+// (walked through swarm_next_unit_index) or a swarm (its component unit_index[] array). Header byte +2 bit 0 is the
+// object's active bit: waking sets it (0x4f50f0, unless the object is parented or flagged 0x100000), sleeping clears
+// it (0x4f5130). Actor +0x13 records the state (a sleeping actor's +0x14 counter resets). No-op unless the actor is
+// active (+0x08) and not already in the requested state. BL is 1 at 0x42781d (actor deactivation), 0x429406 (idle
+// timeout), 0x437918 and 0x438114 (encounter deactivation); every other call site passes 0.
+void actor_set_units_active(datum_index actor_index, uint8_t dormant)
 {
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
 
-    if (self->active != 0 && self->keep_unit_alive != activate) {
+    if (self->active != 0 && self->keep_unit_alive != dormant) {
         if (self->swarm == 0) {
             if (self->unit_index != (datum_index)k_datum_index_none) {
-                if (activate == 0) {
+                if (dormant == 0) {
                     object_mark_pending_delete(self->unit_index);
                 } else {
                     object_clear_pending_delete_flag(self->unit_index);
@@ -52,7 +53,7 @@ void actor_set_units_active(datum_index actor_index, uint8_t activate)
                 object_header *header = &((object_header *)object_data->data)[unit_index & 0xffff];
                 object *unit_object = header->data;
 
-                if (activate == 0) {
+                if (dormant == 0) {
                     object_mark_pending_delete(unit_index);
                 } else if ((header->flags & _object_header_active_bit) != 0) {
                     header->flags &= ~_object_header_active_bit;
@@ -64,7 +65,7 @@ void actor_set_units_active(datum_index actor_index, uint8_t activate)
             int16_t i;
 
             for (i = 0; i < s->component_count; i++) {
-                if (activate == 0) {
+                if (dormant == 0) {
                     object_mark_pending_delete(s->unit_index[i]);
                 } else {
                     object_header *header = &((object_header *)object_data->data)[s->unit_index[i] & 0xffff];
@@ -75,8 +76,8 @@ void actor_set_units_active(datum_index actor_index, uint8_t activate)
             }
         }
 
-        self->keep_unit_alive = activate;
-        if (activate == 0) {
+        self->keep_unit_alive = dormant;
+        if (dormant == 0) {
             *(int16_t *)((uint8_t *)self + 0x14) = 0; // UNSURE offset, see file header
         }
     }

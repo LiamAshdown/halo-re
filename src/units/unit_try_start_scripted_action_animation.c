@@ -5,7 +5,7 @@
 // evidence: same graph traversal as unit_scripted_action_animation_exists.c (0x569470);
 //   types/units.h unit_data.animation_state_flags (0x298, bit 0x1 = action_active),
 //   .animation_state (0x2a3, 0x1d = scripted_action).
-// blam-cc: param_1 -> unit_index, param_2 -> command (forwarded), param_3 -> fire_trigger_event.
+// blam-cc: param_1 -> unit_index, param_2 -> command (forwarded), param_3 -> direction (a real_vector2d pointer, ECX to unit_set_throw_aim_direction).
 
 #include "tags.h"
 #include "memory.h"
@@ -21,9 +21,9 @@ extern uint8_t unit_is_seat_control_available(uint32_t unit_index, int16_t comma
 extern int32_t unit_map_action_command_to_animation_state(int16_t command, int16_t *out_priority); // 0x5692b0
 extern void object_copy_default_node_transforms(uint32_t unit_index);                          // 0x4f6b70, UNSURE signature  // real signature (object_copy_default_node_transforms.c): void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count); Ghidra recovered 1 of 2 args at this call site
 extern int32_t animation_choose_random_permutation(int32_t mode);                              // 0x4d6280
-extern void unit_set_throw_aim_direction(uint32_t unit_index);                          // 0x5704d0, UNSURE signature  // real signature (unit_set_throw_aim_direction.c): void unit_set_throw_aim_direction(uint32_t object_index, float direction_x, float direction_y); Ghidra recovered 1 of 3 args at this call site
+extern void unit_set_throw_aim_direction(uint32_t object_index, const real_vector2d *direction_xy); // 0x5704d0, EAX, ECX
 
-uint8_t unit_try_start_scripted_action_animation(uint32_t unit_index, int16_t command, int32_t fire_trigger_event)
+uint8_t unit_try_start_scripted_action_animation(uint32_t unit_index, int16_t command, const real_vector2d *direction)
 {
     object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
@@ -51,8 +51,8 @@ uint8_t unit_try_start_scripted_action_animation(uint32_t unit_index, int16_t co
         unit_obj->animation_graph = *(datum_index *)&unit_tag->base.animation_graph.tag_id;
         unit_obj->animation_index = animation;
         unit_obj->animation_frame = 0;
-        if ((fire_trigger_event != 0) && (unit_obj->type == _object_type_biped) && (unit_obj->parent_object == k_datum_index_none)) {
-            unit_set_throw_aim_direction(unit_index);
+        if ((direction != 0) && (unit_obj->type == _object_type_biped) && (unit_obj->parent_object == k_datum_index_none)) {
+            unit_set_throw_aim_direction(unit_index, direction); // 0x569623: ECX = the third argument
         }
         return 1;
     }

@@ -43,7 +43,7 @@ extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_dat
 extern uint8_t actor_handle_death(datum_index actor_index, uint8_t param_2, uint8_t param_3);             // 0x40dd50, this session (later)
 extern void * actor_get_actor_definition(datum_index actor_index);                                   // 0x40fa70, this session (later)
 extern void actor_set_combat_alert_flag(void);                                                    // 0x421a40, not yet rewritten
-extern uint8_t actor_has_unshielded_threat_weapon(void);                                                                // 0x428370, not yet rewritten
+extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index);                                                                // 0x428370, not yet rewritten
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
     // 0x46fe10, blam-cc: stack -> zoom_table_index, CX -> magnification (every caller passes the difficulty)
 extern uint8_t *main_game_globals; // 0x006b0b80 game globals *, +0x0e difficulty
@@ -75,13 +75,13 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
             actor_set_combat_alert_flag();
         }
 
-        if ((actor_has_unshielded_threat_weapon() == 0 || (threat->relationship_object_index == -1 && threat->has_parent == 0)) &&
+        if ((actor_has_unshielded_threat_weapon(actor_index) == 0 || (threat->relationship_object_index == -1 && threat->has_parent == 0)) &&
             (a->mode != 10 || (*(int16_t *)(a->mode_data + (0xa0 - 0x9c)) != 2 && *(int16_t *)(a->mode_data + (0xa0 - 0x9c)) != 3)) &&
             result == 0 && a->swarm == 0 && a->active_unit_index == (datum_index)k_datum_index_none && a->unknown_5f2 != 2) {
             int32_t now = game_time->game_time;
             uint8_t use_alt = a->unknown_378;
 
-            if (actor_has_unshielded_threat_weapon() == 0 && (actor_def->flags & 0x20000) == 0) {
+            if (actor_has_unshielded_threat_weapon(actor_index) == 0 && (actor_def->flags & 0x20000) == 0) {
                 use_alt = 1;
             }
             {
@@ -100,7 +100,7 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
                     }
                     if (*(int32_t *)(actor_base + 0x380) == -1 ||
                         (float)now >= (sample_b + sample_a * reaction_base) * 30.0f + (float)*(int32_t *)(actor_base + 0x380)) {
-                        actor_has_unshielded_threat_weapon();
+                        actor_has_unshielded_threat_weapon(actor_index);
                         *(int32_t *)(actor_base + 0x37c) = now;
                         if (actor_consider_combat_mode(actor_index, 2, (actor_combat_consideration *)consideration) != 0) {
                             actor_set_mode(actor_index, 10, consideration);
@@ -141,7 +141,7 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
         uint8_t bVar6 = (a->unknown_375 != 0 && a->unknown_1cb == 0);
         uint8_t bVar5 = 0;
 
-        if (a->unknown_1cb == 0 && actor_has_unshielded_threat_weapon() == 0 && (actor_def->flags & 0x1000000) != 0) {
+        if (a->unknown_1cb == 0 && actor_has_unshielded_threat_weapon(actor_index) == 0 && (actor_def->flags & 0x1000000) != 0) {
             bVar6 = 1;
         }
 

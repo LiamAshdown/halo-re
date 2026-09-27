@@ -104,8 +104,8 @@ extern void actor_notify_target_engaged(void);                 // 0x4220c0, not 
 extern void actor_start_search_timer(void);                 // 0x422130, not yet rewritten (phase2 name: actor_start_search_timer); UNSURE: no visible args at this call site
 extern void actor_queue_velocity_search_from_prop(uint32_t actor_index); // 0x4221b0, not yet rewritten (phase2 name: actor_clear_search_queue)
 extern void actor_scan_backup_and_panic_reaction(uint32_t actor_index); // 0x423220, not yet rewritten (phase2 name: actor_update_search_target_for_unit)
-extern uint8_t actor_is_burst_pending(void); // 0x428180, not yet rewritten (phase2 name: actor_is_ranged_burst_active); UNSURE: no visible args at this call site
-extern uint8_t actor_check_burst_length_exceeded(void); // 0x4281b0, not yet rewritten (phase2 name: actor_should_end_burst); UNSURE: no visible args at this call site
+extern uint8_t actor_is_burst_pending(datum_index actor_index); // 0x428180, not yet rewritten (phase2 name: actor_is_ranged_burst_active); UNSURE: no visible args at this call site
+extern uint8_t actor_check_burst_length_exceeded(datum_index actor_index); // 0x4281b0, not yet rewritten (phase2 name: actor_should_end_burst); UNSURE: no visible args at this call site
 
 // blam-cc: stack -> danger_type, danger_unknown_282; EBX -> danger_source (objdump:
 // `lea ebx,[esi+0x2b0]` immediately before `call 0x4234f0`)
@@ -584,9 +584,9 @@ tail:
                         ai_communication_broadcast(0xf, target->object_index, self->unit_index, 2, (uint32_t)-1, 2, 0);
                     }
                 } else {
-                    char busy = (char)actor_is_burst_pending();
+                    char busy = (char)actor_is_burst_pending(actor_index);
                     if (busy != 0) {
-                        char should_end = (char)actor_check_burst_length_exceeded();
+                        char should_end = (char)actor_check_burst_length_exceeded(actor_index);
                         if (should_end == 0 && target->unknown_12b != 0 && target->unknown_32 > 1) {
                             ai_communication_broadcast(0xf, self->unit_index, target->object_index, 2, (uint32_t)-1, 2, 0);
                         }

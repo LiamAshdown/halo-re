@@ -51,7 +51,7 @@ extern void actor_danger_register_stationary_object(uint32_t actor_index, datum_
 extern uint8_t actor_danger_register_point(float radius, float distance, char accept_flag, uint8_t unknown_byte); // 0x41ec90 (actor_danger_register_point, this batch)
 extern datum_index actor_find_or_allocate_prop(uint32_t actor_index, datum_index object_index, char flag); // 0x43e270, UNSURE signature
 extern int8_t teams_are_enemies(void); // 0x45bd50, UNSURE: no traced args
-extern int16_t actor_get_current_mode_combat_grade(void); // 0x40e760, UNSURE: no traced args
+extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index); // 0x40e760, UNSURE: no traced args
 extern void *object_try_and_get(int32_t kind); // 0x4f6ec0
 
 // blam-cc: stack -> actor_index, object_cursor, candidates_a, candidates_b
@@ -184,7 +184,7 @@ top:
                         if (0.0f < fVar2) {
                             goto have_candidate;
                         }
-                        if ((cVar8 == 0 || sVar9 < 0x97) && (sVar9 = actor_get_current_mode_combat_grade(), sVar9 < 2)) {
+                        if ((cVar8 == 0 || sVar9 < 0x97) && (sVar9 = actor_get_current_mode_combat_grade(actor_index), sVar9 < 2)) {
                             fVar2 = 16.0f;
                             if (cVar8 == 0 && self->awareness_level < 3) {
                                 fVar2 = 64.0f;

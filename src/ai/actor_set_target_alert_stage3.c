@@ -18,8 +18,8 @@
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
 
-extern void actor_update_target_combat_status(void); // 0x4200d0, UNSURE signature
-extern void actor_update_awareness_level(void);       // 0x420290, UNSURE signature
+extern void actor_update_target_combat_status(datum_index actor_index); // 0x4200d0, UNSURE signature
+extern void actor_update_awareness_level(datum_index actor_index);       // 0x420290, UNSURE signature
 
 // blam-cc: EDX -> target_prop_index, ESI -> actor_index
 // Marks the third per-prop alert flag and promotes the prop's kind, or, when no target prop is
@@ -36,7 +36,7 @@ void actor_set_target_alert_stage3(datum_index target_prop_index, datum_index ac
         self->unknown_3bd[0] = 0;
         self->unknown_72 = 0;
         self->unknown_74 = 0;
-        actor_update_awareness_level();
+        actor_update_awareness_level(actor_index);
         return;
     }
 
@@ -48,8 +48,8 @@ void actor_set_target_alert_stage3(datum_index target_prop_index, datum_index ac
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
     if (target_prop_index == self->target_unit_index) {
-        actor_update_target_combat_status();
-        actor_update_awareness_level();
+        actor_update_target_combat_status(actor_index);
+        actor_update_awareness_level(actor_index);
     }
 }
 

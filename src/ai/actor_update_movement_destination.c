@@ -55,9 +55,9 @@ extern int16_t actor_claim_firing_position(); // SIGNATURE-CONFLICT: this call s
 extern void actor_movement_action_stop(datum_index actor_index); // 0x417570, this module,
                                                                  // blam-cc: EDX -> actor_index
 extern uint8_t actor_target_mark_engaged(uint8_t want_new_destination); // 0x41fa80, not yet rewritten
-extern uint8_t actor_has_unshielded_threat_weapon(void);                       // 0x428370, not yet rewritten (same gate as actor_get_consideration_wait_threshold.c)
-extern void actor_update_target_lead_position(void);     // 0x429570, not yet rewritten
-extern float actor_compute_accuracy_scale(void);                         // 0x429620, not yet rewritten
+extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index);                       // 0x428370, not yet rewritten (same gate as actor_get_consideration_wait_threshold.c)
+extern void actor_update_target_lead_position(datum_index actor_index);     // 0x429570, not yet rewritten
+extern float actor_compute_accuracy_scale(datum_index actor_index);                         // 0x429620, not yet rewritten
 
 // Decides whether the actor needs a new movement destination. See the file header for scope.
 uint8_t actor_update_movement_destination(uint32_t actor_index)
@@ -104,7 +104,7 @@ uint8_t actor_update_movement_destination(uint32_t actor_index)
         } else {
             char lead_ok;
 
-            actor_update_target_lead_position();
+            actor_update_target_lead_position(actor_index);
             lead_ok = actor_firing_position_near_point(actor_base + 0x168, *(uint32_t *)(actor_base + 0x164), 0);
             if (lead_ok == 0) {
                 goto use_direct_path;
@@ -116,7 +116,7 @@ uint8_t actor_update_movement_destination(uint32_t actor_index)
                     ScenarioEncounter *encounters = (ScenarioEncounter *)global_scenario->encounters.pointer;
                     ScenarioFiringPosition *held = &((ScenarioFiringPosition *)
                         encounters[a->encounter_index & 0xffff].firing_positions.pointer)[a->firing_position_index];
-                    float lead_speed = actor_compute_accuracy_scale();
+                    float lead_speed = actor_compute_accuracy_scale(actor_index);
                     // 0x40324f..0x403281: EAX = the held firing position, ECX = &body_position
                     float distance_sq = vector3d_distance_squared((real_point3d *)held, &a->body_position);
                     if (lead_speed * lead_speed < distance_sq) {
@@ -153,7 +153,7 @@ check_distance_gate:
         prop *p = &((prop *)prop_data->data)[a->target_unit_index & 0xffff];
         uint8_t want = 1;
 
-        if (actor_has_unshielded_threat_weapon() != 0) {
+        if (actor_has_unshielded_threat_weapon(actor_index) != 0) {
             if (p->distance < a->vitality_wait_time) {
                 want = 0;
             } else if (a->encounter_index != (datum_index)k_datum_index_none && a->firing_position_index != -1) {
@@ -163,7 +163,7 @@ check_distance_gate:
                 float lead_speed;
                 float distance_sq;
 
-                lead_speed = actor_compute_accuracy_scale();
+                lead_speed = actor_compute_accuracy_scale(actor_index);
                 // 0x4034c3..0x4034d1: EAX = fp, ECX = &body_position
                 distance_sq = vector3d_distance_squared((real_point3d *)fp, &a->body_position);
                 if (lead_speed * lead_speed < distance_sq) {

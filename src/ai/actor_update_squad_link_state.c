@@ -26,7 +26,7 @@ extern data_array *encounter_data; // 0x008802c8
 extern data_array *prop_data;      // 0x008802c0
 extern actor_mode_definition actor_mode_definitions[16]; // 0x00655254
 
-extern void actor_set_units_active(datum_index actor_index, uint8_t activate); // 0x427860
+extern void actor_set_units_active(datum_index actor_index, uint8_t dormant); // 0x427860
 extern void actor_delete_or_release_unit(datum_index actor_index, uint8_t is_dead); // 0x4288e0
 
 // blam-cc: stack -> actor_index
@@ -68,7 +68,7 @@ uint8_t actor_update_squad_link_state(datum_index actor_index)
     }
 
     if (self->unknown_12 == 0 || combined_flag != 0) {
-        actor_set_units_active(actor_index, 1);
+        actor_set_units_active(actor_index, 0); // 0x429414: BL = 0 (wake)
     } else if (self->keep_unit_alive == 0) {
         int16_t combat_grade = actor_mode_definitions[self->mode].combat_grade;
         int stale = 1;

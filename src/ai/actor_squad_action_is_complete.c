@@ -39,8 +39,8 @@ extern uint32_t actor_commit_grenade_toss(); // SIGNATURE-CONFLICT: this call si
                  // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
 extern void actor_movement_action_stop(datum_index actor_index); // 0x417570, this module,
                                                                  // blam-cc: EDX -> actor_index
-extern char actor_movement_action_in_progress(void);      // 0x41a980, not yet rewritten
-extern float actor_compute_accuracy_scale(void);                          // 0x429620, not yet rewritten
+extern char actor_movement_action_in_progress(datum_index actor_index);      // 0x41a980, not yet rewritten
+extern float actor_compute_accuracy_scale(datum_index actor_index);                          // 0x429620, not yet rewritten
 extern uint8_t recorded_animation_object_is_playing(datum_index unit_index);      // 0x44acc0, src/cutscene; blam-cc: ESI unit_index
 extern void object_get_position(void);                    // 0x4f6900, writes through a register-inherited pointer
 extern char unit_is_in_busy_animation_state(void);                           // 0x569c90, not yet rewritten
@@ -69,11 +69,11 @@ uint8_t actor_squad_action_is_complete(uint8_t *aim_state, uint32_t actor_index,
         case 1:
         case 2:
             if (check_object_index == a->unit_index && aim_state != 0) {
-                char done = actor_movement_action_in_progress();
+                char done = actor_movement_action_in_progress(actor_index);
                 uint8_t complete = 0;
 
                 if (done == 0 && aim_state[5] != 0 && aim_state[4] != 0) {
-                    float range = actor_compute_accuracy_scale();
+                    float range = actor_compute_accuracy_scale(actor_index);
                     real_vector3d delta;
 
                     delta.i = *(float *)(aim_state + 8) - ((actor *)actor_base)->body_position.x;

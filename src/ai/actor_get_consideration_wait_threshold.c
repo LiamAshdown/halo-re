@@ -25,7 +25,7 @@
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern uint8_t actor_has_unshielded_threat_weapon(void); // 0x428370, not yet rewritten (outside this session's range)
+extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index); // 0x428370, not yet rewritten (outside this session's range)
 
 // Computes the wait/reaction-time threshold the actor should use for consideration mode:
 //   2 or 3 - a melee-timing based search wait (mode 3 additionally floors it at the tag's
@@ -54,7 +54,7 @@ float actor_get_consideration_wait_threshold(uint32_t actor_index, int16_t mode,
             return actor_def->melee_fudge_factor;
         }
     } else if (mode == 4 || mode == 0) {
-        if (actor_has_unshielded_threat_weapon() != 0 && a->target_combat_status > 6 && a->vitality_wait_time >= 0.0f) {
+        if (actor_has_unshielded_threat_weapon(actor_index) != 0 && a->target_combat_status > 6 && a->vitality_wait_time >= 0.0f) {
             return a->vitality_wait_time;
         }
     }

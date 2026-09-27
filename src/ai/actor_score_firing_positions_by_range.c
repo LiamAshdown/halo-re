@@ -23,7 +23,7 @@ extern data_array *actor_data; // 0x00880360
 extern double sqrt(double x); // FSQRT, Ghidra SQRT() pseudo-function
 
 extern void * actor_get_actor_definition(datum_index actor_index); // 0x40fa70, this module
-extern void *actor_get_threat_weapon_definition(void);                    // 0x40f970, this module
+extern void *actor_get_threat_weapon_definition(int32_t actor_index);                    // 0x40f970, this module
 
 // blam-cc: stack -> actor_index, query, count, candidates
 // Rates candidates on distance to the threat and on clearance from the nearest avoidance
@@ -75,7 +75,7 @@ void actor_score_firing_positions_by_range(datum_index actor_index,
                 distance < variant->desired_combat_range[1]) {
                 preferred_range = (self->unknown_378 != 0) ? variant->berserk_firing_ranges[1]
                                                            : variant->desired_combat_range[1];
-                weapon_definition = actor_get_threat_weapon_definition();
+                weapon_definition = actor_get_threat_weapon_definition(actor_index);
                 // UNSURE: the original starts this from whatever was left in ST0 by the
                 // call. Zero is the only reading that makes the two guards below behave.
                 minimum_range = 0.0f;

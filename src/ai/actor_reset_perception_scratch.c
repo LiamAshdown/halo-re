@@ -29,7 +29,7 @@ extern data_array *object_data; // 0x008603b0
 
 extern void unit_get_forward_vector_or_marker_normal(actor_perception_request *request); // 0x569720, UNSURE signature
 extern void unit_apply_control_block(uint32_t param); // 0x5639f0, UNSURE signature
-extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index); // 0x569bf0, UNSURE signature
+extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index, uint8_t initial_targeting_flag); // 0x569bf0, stack, CL
 
 // blam-cc: ESI -> unit_index
 void actor_reset_perception_scratch(datum_index unit_index)
@@ -57,7 +57,7 @@ void actor_reset_perception_scratch(datum_index unit_index)
     (void)cached;
 
     unit_apply_control_block(0xffffffff);
-    unit_refresh_targeting_flag_and_weapons(unit_index);
+    unit_refresh_targeting_flag_and_weapons(unit_index, 0); // CL = 0
 }
 
 #if 0

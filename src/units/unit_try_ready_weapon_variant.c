@@ -1,45 +1,52 @@
 // unit_try_ready_weapon_variant  (Ghidra: FUN_00569b30)
-// address 0x569b30, size 116 bytes, name confidence 0.3, rewrite confidence 0.4
-// functions.md: "A variant weapon-mode gate similar to unit_try_ready_weapon, additionally
-// checking unit-type and a flag at offset 0x4cc before allowing the state change."
-// evidence: types/objects.h object.type (0xb4); types/units.h biped_data.flags (0x4cc, bit 0 =
-//   grounded) -- the same byte overlaps vehicle_data.flags for a non-biped unit, per
-//   out/phase4/units_types_notes.md's "overlap hazard" note; kept as a raw offset since the
-//   condition is meant to apply regardless of which extension actually owns it.
-// blam-cc: unaff_ESI -> unit_index, unaff_EDI -> fire_trigger_event.
+// address 0x569b30, size 116 bytes, name confidence 0.3, rewrite confidence 0.85
+// REWRITTEN from objdump 0x569b30..0x569ba3: the draft asked for state 0x19; the original asks for 0x27 (a
+//   biped in the air, object +0xb4 type 0 with +0x4cc bit 0, never gets it) and aims a non-null direction (EDI).
+//   Returns whether the state was taken.
+// blam-cc: ESI -> unit_index, EDI -> direction
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "cache.h"
 #include "objects.h"
 #include "units.h"
 
-extern data_array *object_data; // 0x008603b0
+extern data_array *object_data;     // 0x008603b0
+extern tag_instance *tag_instances; // 0x0087bc14
 
 extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
-extern void unit_set_throw_aim_direction(uint32_t unit_index); // 0x5704d0, UNSURE signature  // real signature (unit_set_throw_aim_direction.c): void unit_set_throw_aim_direction(uint32_t object_index, float direction_x, float direction_y); Ghidra recovered 1 of 3 args at this call site
+extern void unit_set_throw_aim_direction(uint32_t object_index, const real_vector2d *direction_xy); // 0x5704d0, EAX, ECX
 
-uint8_t unit_try_ready_weapon_variant(uint32_t unit_index, int32_t fire_trigger_event) // blam-cc: unaff_ESI, unaff_EDI
+// 0x17..0x29 jump table (0x569b18 / 0x569bac): only 0x1c, 0x24, 0x25, 0x26 and 0x28 inside that range let it proceed.
+static int unit_animation_state_allows_melee(int8_t state)
 {
-    object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
-    uint8_t result = 0;
-
-    switch (unit->animation_state) {
+    switch (state) {
     case 0x17: case 0x18: case 0x19: case 0x1a: case 0x1b: case 0x1d: case 0x1e: case 0x1f:
     case 0x20: case 0x21: case 0x22: case 0x23: case 0x27: case 0x29:
-        break;
+        return 0;
     default:
-        if (((unit_obj->type != _object_type_biped) ||
-             ((*(uint8_t *)((uint8_t *)unit_obj + k_unit_object_size) & 1) == 0)) &&
-            (unit_try_set_animation_state(unit_index, 0x19) != 0)) {
-            if (fire_trigger_event != 0) {
-                unit_set_throw_aim_direction(unit_index);
-            }
-            result = 1;
-        }
+        return 1;
     }
-    return result;
+}
+
+uint8_t unit_try_ready_weapon_variant(uint32_t unit_index, const real_vector2d *direction)
+{
+    uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+
+    if (!unit_animation_state_allows_melee((int8_t)unit[0x2a3])) {
+        return 0;
+    }
+    if (*(int16_t *)(unit + 0xb4) == 0 && (unit[0x4cc] & 1) != 0) {
+        return 0;
+    }
+    if (!unit_try_set_animation_state(unit_index, 0x27)) {
+        return 0;
+    }
+    if (direction != 0) {
+        unit_set_throw_aim_direction(unit_index, direction);
+    }
+    return 1;
 }
 
 #if 0

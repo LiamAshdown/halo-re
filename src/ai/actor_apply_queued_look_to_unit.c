@@ -1,16 +1,16 @@
 // actor_apply_queued_look_to_unit  (Ghidra: actor_apply_queued_look_to_unit, renamed)
 // address 0x42a640, size 384 bytes
-// name confidence: 0.4   rewrite confidence: 0.35
-// evidence: types/ai.h actor.unknown_07/unit_index(0x18)/unknown_6ec/unknown_6d4/unknown_6d8;
-//   types/units.h unit_data.controlling_player (object+0x218). Phase-4 summary: "Applies
-//   queued look-direction and state changes to the actor's unit once it is no longer held in
-//   a vehicle seat (or when a global debug flag forces it)." Calls unit_apply_control_block, unit_try_start_scripted_action_animation
-//   and unit_refresh_targeting_flag_and_weapons, none established elsewhere in this repo.
-//   UNSURE: DAT_0087a478+0x11 (a debug/force flag this rewrite could not independently name)
-//   and unknown_6f0 (inside actor.unknown_6ee[14], passed as an out-parameter to
-//   unit_try_start_scripted_action_animation) are both kept as raw offsets.
-// register convention: EAX -> actor_index.
-//   // blam-cc: EAX -> actor_index
+// name confidence: 0.4   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x42a640..0x42a7bf. The draft passed unit_apply_control_block only a -1: the original
+//   builds a unit_control_data on the stack from the actor's queued control fields and hands it over:
+//   - animation_state = the byte table 0x6558b8[actor +0x6dc * 2], aiming_speed = +0x6f8, control_flags = +0x6d0,
+//     weapon/grenade/zoom = -1, throttle = +0x6e0, primary_trigger = +0x720, facing = +0x6fc, aiming = +0x708,
+//     looking = +0x714 (+0x0a is left unset, as in the original);
+//   - applied only when the unit has no controlling player (object +0x218) or local_player_globals +0x11 is set;
+//     a pending weapon refresh (+0x07) runs first (unit_refresh_targeting_flag_and_weapons(unit, CL = 1));
+//   - a queued scripted action (+0x6ec, with +0x6f0) starts; a positive +0x6d4 is written to object +0x210 with
+//     +0x6d8 to +0x214.
+// blam-cc: EAX -> actor_index
 
 #include "tags.h"
 #include "memory.h"
@@ -20,34 +20,52 @@
 #include "objects.h"
 #include "units.h"
 
-extern data_array *actor_data;  // 0x00880360
-extern data_array *object_data; // 0x008603b0
-extern uint8_t force_look_apply_flag; // 0x0087a489 (0x0087a478 + 0x11), UNSURE name
+extern data_array *actor_data;          // 0x00880360
+extern data_array *object_data;         // 0x008603b0
+extern uint8_t *local_player_globals;   // 0x0087a478
+extern const uint8_t actor_control_animation_state_table[]; // 0x006558b8, 2 bytes per entry, the first used
 
-extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index); // 0x569bf0, UNSURE signature
-extern void unit_apply_control_block(uint32_t param); // 0x5639f0, UNSURE signature
-extern void unit_try_start_scripted_action_animation(datum_index unit_index, int16_t value, void *out); // 0x569530, UNSURE signature
+extern void unit_refresh_targeting_flag_and_weapons(uint32_t unit_index, uint8_t initial_targeting_flag); // 0x569bf0, stack, CL
+extern void unit_apply_control_block(uint32_t unit_index, const unit_control_data *control, int32_t source_id); // 0x5639f0, EAX, EDX, stack
+extern uint8_t unit_try_start_scripted_action_animation(uint32_t unit_index, int16_t command, const real_vector2d *direction); // 0x569530
 
-// blam-cc: EAX -> actor_index
 void actor_apply_queued_look_to_unit(datum_index actor_index)
 {
-    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
-    object *unit_object = ((object_header *)object_data->data)[self->unit_index & 0xffff].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
+    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint32_t unit_index = *(uint32_t *)(actor + 0x18);
+    uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    unit_control_data control;
 
-    if (unit->controlling_player == (datum_index)k_datum_index_none || force_look_apply_flag != 0) {
-        if (self->unknown_07 != 0) {
-            unit_refresh_targeting_flag_and_weapons(self->unit_index);
-            self->unknown_07 = 0;
-        }
-        unit_apply_control_block(0xffffffff);
-        if (self->unknown_6ec != -1) {
-            unit_try_start_scripted_action_animation(self->unit_index, self->unknown_6ec, &self->unknown_6ee[2]); // offset 0x6f0
-        }
-        if (self->unknown_6d4 > 0) {
-            unit->unknown_210 = self->unknown_6d4;
-            unit->unknown_214 = self->unknown_6d8;
-        }
+    control.animation_state = (int8_t)actor_control_animation_state_table[*(int16_t *)(actor + 0x6dc) * 2];
+    control.aiming_speed = (int8_t)actor[0x6f8];
+    control.control_flags = *(uint16_t *)(actor + 0x6d0);
+    control.weapon_index = -1;
+    control.grenade_index = -1;
+    control.zoom_level = -1;
+    control.unknown_0a = 0;
+    control.throttle = *(real_vector3d *)(actor + 0x6e0);
+    control.primary_trigger = *(float *)(actor + 0x720);
+    control.facing_vector = *(real_vector3d *)(actor + 0x6fc);
+    control.aiming_vector = *(real_vector3d *)(actor + 0x708);
+    control.looking_vector = *(real_vector3d *)(actor + 0x714);
+
+    if (*(uint32_t *)(unit + 0x218) != 0xffffffff && local_player_globals[0x11] == 0) {
+        return;
+    }
+    if (actor[0x07] != 0) {
+        unit_refresh_targeting_flag_and_weapons(unit_index, 1);
+        actor[0x07] = 0;
+    }
+    unit_apply_control_block(*(uint32_t *)(actor + 0x18), &control, -1);
+    if (*(int16_t *)(actor + 0x6ec) != -1) {
+        unit_try_start_scripted_action_animation(*(uint32_t *)(actor + 0x18), *(int16_t *)(actor + 0x6ec),
+            (const real_vector2d *)(actor + 0x6f0));
+    }
+    if (*(int16_t *)(actor + 0x6d4) > 0) {
+        uint8_t *object = (uint8_t *)((object_header *)object_data->data)[*(uint32_t *)(actor + 0x18) & 0xffff].data;
+
+        *(int32_t *)(object + 0x210) = *(int16_t *)(actor + 0x6d4);
+        *(uint32_t *)(object + 0x214) = *(uint32_t *)(actor + 0x6d8);
     }
 }
 

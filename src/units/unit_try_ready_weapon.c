@@ -1,11 +1,13 @@
 // unit_try_ready_weapon  (Ghidra: FUN_00569a20)
-// address 0x569a20, size 238 bytes, name confidence 0.35, rewrite confidence 0.4
-// functions.md: "Checks whether the unit's current weapon animation mode allows a state change
-// and, if so, calls FUN_00565f90 and unit_set_throw_aim_direction and updates the weapon-mode fields."
-// evidence: types/units.h unit_data.animation_state (0x2a3, _unit_animation_state_ready_weapon
-//   = 0x19 set here per the enum comment), .melee_state (0x289), .melee_damage_countdown (0x28a);
-//   types/tags.h UnitFlags melee_attack_is_fatal (0x100).
-// blam-cc: unaff_EDI -> unit_index, param_1 -> is_melee, param_2 -> fire_trigger_event.
+// address 0x569a20, size 238 bytes, name confidence 0.35, rewrite confidence 0.85
+// REWRITTEN from objdump 0x569a20..0x569b0d: this starts a melee. The draft always asked for animation state 0x19
+//   and called unit_set_throw_aim_direction without its direction; the original:
+//   - picks the state: 0x20 for a forced (param) melee, 0x29 when already in 0x28, else 0x1e, or 0x1f for an
+//     airborne biped (object +0xb4 type 0 and biped +0x4cc bit 0);
+//   - proceeds when unit_try_set_animation_state takes it or the melee is forced; a unit tag with flag 0x100
+//     (+0x17c) resets the state to 0x19; a non-null direction (ECX at 0x569ad2) aims it;
+//   - melee_state (+0x289) becomes 4 with the damage countdown (+0x28a) cleared when forced, else 1.
+// blam-cc: EDI -> unit_index, stack -> forced, direction
 
 #include "tags.h"
 #include "memory.h"
@@ -18,37 +20,57 @@ extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
-extern void unit_set_throw_aim_direction(uint32_t unit_index); // 0x5704d0, UNSURE signature  // real signature (unit_set_throw_aim_direction.c): void unit_set_throw_aim_direction(uint32_t object_index, float direction_x, float direction_y); Ghidra recovered 1 of 3 args at this call site
+extern void unit_set_throw_aim_direction(uint32_t object_index, const real_vector2d *direction_xy); // 0x5704d0, EAX, ECX
 
-uint8_t unit_try_ready_weapon(uint32_t unit_index, uint8_t is_melee, int32_t fire_trigger_event) // blam-cc: unaff_EDI, param_1, param_2
+// 0x17..0x29 jump table (0x569b18 / 0x569bac): only 0x1c, 0x24, 0x25, 0x26 and 0x28 inside that range let it proceed.
+static int unit_animation_state_allows_melee(int8_t state)
 {
-    object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
-    Unit *unit_tag = (Unit *)tag_instances[unit_obj->definition_tag & 0xffff].data;
-    uint8_t result = 0;
-
-    switch (unit->animation_state) {
+    switch (state) {
     case 0x17: case 0x18: case 0x19: case 0x1a: case 0x1b: case 0x1d: case 0x1e: case 0x1f:
     case 0x20: case 0x21: case 0x22: case 0x23: case 0x27: case 0x29:
-        break;
+        return 0;
     default:
-        if ((unit_try_set_animation_state(unit_index, 0x19) != 0) || is_melee) {
-            if ((unit_tag->unit_flags & 0x100) != 0) {
-                unit->animation_state = 0x19;
-            }
-            if (fire_trigger_event != 0) {
-                unit_set_throw_aim_direction(unit_index);
-            }
-            if (is_melee) {
-                unit->melee_state = 4;
-                unit->melee_damage_countdown = 0;
-                return 1;
-            }
-            unit->melee_state = 1;
-            result = 1;
-        }
+        return 1;
     }
-    return result;
+}
+
+uint8_t unit_try_ready_weapon(uint32_t unit_index, uint8_t forced, const real_vector2d *direction)
+{
+    uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    uint8_t *unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
+    int8_t state = (int8_t)unit[0x2a3];
+    uint8_t airborne = 0;
+    int16_t new_state;
+
+    if (!unit_animation_state_allows_melee(state)) {
+        return 0;
+    }
+    if (*(int16_t *)(unit + 0xb4) == 0) {
+        airborne = unit[0x4cc] & 1;
+    }
+    if (forced) {
+        new_state = 0x20;
+    } else if (state == 0x28) {
+        new_state = 0x29;
+    } else {
+        new_state = (int16_t)(0x1e + (airborne != 0));
+    }
+    if (!unit_try_set_animation_state(unit_index, new_state) && !forced) {
+        return 0;
+    }
+    if (*(uint32_t *)(unit_tag + 0x17c) & 0x100) {
+        unit[0x2a3] = 0x19;
+    }
+    if (direction != 0) {
+        unit_set_throw_aim_direction(unit_index, direction);
+    }
+    if (forced) {
+        unit[0x289] = 4;
+        unit[0x28a] = 0;
+        return 1;
+    }
+    unit[0x289] = 1;
+    return 1;
 }
 
 #if 0

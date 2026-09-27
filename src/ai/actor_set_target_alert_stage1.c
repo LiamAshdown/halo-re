@@ -23,8 +23,8 @@ extern data_array *prop_data;  // 0x008802c0
 
 // UNSURE signature: real functions take an actor_index (EAX, plus a CX value for the first);
 // Ghidra recovers no arguments at either call site here.
-extern void actor_update_target_combat_status(void); // 0x4200d0, UNSURE signature
-extern void actor_update_awareness_level(void);       // 0x420290, UNSURE signature
+extern void actor_update_target_combat_status(datum_index actor_index); // 0x4200d0, UNSURE signature
+extern void actor_update_awareness_level(datum_index actor_index);       // 0x420290, UNSURE signature
 
 // blam-cc: ECX -> target_prop_index, ESI -> actor_index
 // Marks a per-prop alert/notice flag (noticed_a) and, if that prop is the caller actor's
@@ -40,8 +40,8 @@ void actor_set_target_alert_stage1(datum_index target_prop_index, datum_index ac
 
         self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
         if (target_prop_index == self->target_unit_index) {
-            actor_update_target_combat_status();
-            actor_update_awareness_level();
+            actor_update_target_combat_status(actor_index);
+            actor_update_awareness_level(actor_index);
         }
     }
 }

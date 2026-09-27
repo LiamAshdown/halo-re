@@ -56,7 +56,7 @@ extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 extern actor_mode_definition actor_mode_definitions[16]; // 0x00655254
 
-extern datum_index actor_get_threat_weapon_object_index(void); // 0x4282c0
+extern datum_index actor_get_threat_weapon_object_index(datum_index actor_index); // 0x4282c0
 extern uint8_t actor_resolve_flee_source_point(actor_flee_source_reason *reason, real_vector3d *out, datum_index actor_index); // 0x4146c0, this module
 extern uint8_t point3d_within_horizontal_cone(real_point3d *to_point, real_point3d *reference, float min_cos_threshold); // 0x414910, not this module (math)
 extern uint8_t actor_point_in_directional_lane(real_point3d *to_point, real_point3d *forward, real_point3d *cone_axis,
@@ -67,7 +67,7 @@ extern void actor_look_randomize_direction(datum_index actor_index, float *devia
 extern float *actor_get_idle_facing_range(datum_index actor_index); // 0x4150f0, this module
 extern int32_t actor_look_get_wait_ticks(int16_t mode, uint32_t flags, float *deviation_table); // 0x415150, this module
 extern uint8_t actor_reset_queued_look_vector(datum_index actor_index); // 0x417ae0, this module
-extern uint8_t actor_update_facing_change_timer(void); // 0x423670, not this module, UNSURE signature (called with no visible args)
+extern uint8_t actor_update_facing_change_timer(datum_index actor_index); // 0x423670, not this module, UNSURE signature (called with no visible args)
 extern uint8_t unit_is_in_busy_animation_state(datum_index actor_index); // 0x569c90, not yet rewritten
 extern double cos(double x); // FCOS
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, vector in ECX
@@ -108,7 +108,7 @@ void actor_update_look_target(datum_index actor_index)
         if (self->unknown_161 != 0) {
             has_weapon_or_forced = 1;
         } else if (look_mode == 0 || look_mode == 2) {
-            has_weapon_or_forced = (actor_get_threat_weapon_object_index() != (datum_index)k_datum_index_none);
+            has_weapon_or_forced = (actor_get_threat_weapon_object_index(actor_index) != (datum_index)k_datum_index_none);
         } else {
             has_weapon_or_forced = 0;
         }
@@ -526,7 +526,7 @@ void actor_update_look_target(datum_index actor_index)
         }
     stationary_reset:
         self->unknown_56e[34] = 0; // 0x590
-        actor_update_facing_change_timer();
+        actor_update_facing_change_timer(actor_index);
     stationary_ok:;
     }
 stationary_check_done:

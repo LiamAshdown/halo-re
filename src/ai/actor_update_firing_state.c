@@ -56,9 +56,9 @@ extern void actor_update_aim_wander(datum_index actor_index);  // 0x40fcb0, this
 extern void actor_reseed_movement_pause_timer(datum_index actor_index); // 0x4104e0, this module
 extern uint8_t actor_should_hold_position(datum_index actor_index);               // 0x4105c0, this module
 extern void actor_select_stance_offset_pair(datum_index actor_index, uint8_t *base, uint8_t **out_a, uint8_t **out_b); // 0x4106b0
-extern uint8_t actor_action_has_queued_secondary(void);        // 0x417b70
-extern datum_index actor_get_threat_weapon_object_index(void); // 0x4282c0
-extern uint8_t actor_has_unshielded_threat_weapon(void);                             // 0x428370, not yet rewritten
+extern uint8_t actor_action_has_queued_secondary(datum_index actor_index);        // 0x417b70
+extern datum_index actor_get_threat_weapon_object_index(datum_index actor_index); // 0x4282c0
+extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index);                             // 0x428370, not yet rewritten
 extern void actor_set_override_target(uint32_t flags, uint32_t value);      // 0x42a5e0, not yet rewritten
 extern uint8_t actor_grenade_trajectory_blocked(float a, void *b, float *c);       // 0x42b190, not yet rewritten
 extern int16_t actor_evaluate_engagement_reachability(uint32_t kind, uint32_t enabled, uint32_t object_index,
@@ -118,13 +118,13 @@ void actor_update_firing_state(datum_index actor_index)
     aim_variant = actor_get_actor_definition(actor_index);
 
     weapon_definition = (void *)0;
-    weapon_object = actor_get_threat_weapon_object_index();
+    weapon_object = actor_get_threat_weapon_object_index(actor_index);
     if (weapon_object != (datum_index)0xffffffff) {
         object *weapon = ((object_header *)object_data->data)[weapon_object & 0xffff].data;
         weapon_definition = tag_instances[weapon->definition_tag & 0xffff].data;
     }
     off_target = 0;
-    weapon_object = actor_get_threat_weapon_object_index();
+    weapon_object = actor_get_threat_weapon_object_index(actor_index);
 
     if (self->unknown_5f4 > 0) { self->unknown_5f4 = self->unknown_5f4 - 1; }
     if (self->unknown_5f6 > 0) { self->unknown_5f6 = self->unknown_5f6 - 1; }
@@ -162,7 +162,7 @@ void actor_update_firing_state(datum_index actor_index)
     }
 
     self->unknown_628 = 0;
-    self->vitality_wait_time = (actor_has_unshielded_threat_weapon() == 0) ? 0.0f : aim_variant->maximum_firing_distance;
+    self->vitality_wait_time = (actor_has_unshielded_threat_weapon(actor_index) == 0) ? 0.0f : aim_variant->maximum_firing_distance;
 
     may_fire = 0;
     if (self->unknown_45c != 0) {
@@ -177,7 +177,7 @@ void actor_update_firing_state(datum_index actor_index)
         ai_communication_broadcast(9, self->unit_index, 0xffffffff, 0xffffffff, 0xffffffff,
                                    0xffffffff, 0);
         self->unknown_5f2 = 0;
-    } else if (actor_has_unshielded_threat_weapon() == 0) {
+    } else if (actor_has_unshielded_threat_weapon(actor_index) == 0) {
         self->unknown_5f2 = 0;
     } else if (self->unknown_5f2 == 4) {
         may_fire = 1;
@@ -272,7 +272,7 @@ void actor_update_firing_state(datum_index actor_index)
         hold_flag = (int8_t)*(uint8_t *)((uint8_t *)self + 0x457);
         if (self->unknown_60c == 0 || *(uint8_t *)((uint8_t *)self + 0x624) != 0 ||
             (hold_flag == 0 && self->unknown_5f6 > 0) ||
-            actor_action_has_queued_secondary() != 0 ||
+            actor_action_has_queued_secondary(actor_index) != 0 ||
             (hold_flag == 0 &&
              ((self->unknown_15c != 0 && self->flying == 0 &&
                (((uint8_t *)variant)[0] & 1) == 0) ||

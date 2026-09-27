@@ -37,7 +37,7 @@ extern void swarm_add_component(datum_index component_index, uint32_t unit_index
 extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX -> array
 extern void ai_encounter_stamp_team_from_unit(void); // 0x436710, UNSURE signature, not in this rewrite range
 extern void object_mark_pending_delete(datum_index object_index); // 0x4f50f0, UNSURE signature
-extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index); // 0x569bf0, UNSURE signature
+extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index, uint8_t initial_targeting_flag); // 0x569bf0, stack, CL
 
 // blam-cc: EAX -> actor_index, stack -> unit_index
 // Adds an actor to a unit's multi-actor cluster (linked list of controlling actors),
@@ -110,7 +110,7 @@ uint8_t actor_link_to_unit_cluster(datum_index actor_index, datum_index unit_ind
         }
     }
 
-    unit_refresh_targeting_flag_and_weapons(unit_index);
+    unit_refresh_targeting_flag_and_weapons(unit_index, 1); // CL = 1
     return 1;
 }
 

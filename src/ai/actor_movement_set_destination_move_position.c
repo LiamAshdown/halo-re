@@ -21,7 +21,7 @@
 
 extern data_array *actor_data; // 0x00880360
 
-extern void actor_set_units_active(datum_index actor_index, uint8_t activate); // 0x427860, blam-cc: EAX, BL
+extern void actor_set_units_active(datum_index actor_index, uint8_t dormant); // 0x427860, blam-cc: EAX, BL
 extern uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t record_distance, path_find_context *context); // 0x41a460, this module
 
 // blam-cc: EDI -> actor_index, stack -> move_position_index

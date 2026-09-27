@@ -48,8 +48,8 @@ datum_index actor_get_threat_weapon_object_index(datum_index actor_index)
     }
 
     if (self->unit_index != (datum_index)k_datum_index_none) {
-        Actor *actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
-        if ((*(uint8_t *)actor_tag & 0x40) == 0) {
+        uint8_t *variant_tag = (uint8_t *)tag_instances[self->actor_variant_tag & 0xffff].data; // 0x42832f: actor +0x5c
+        if ((*variant_tag & 0x40) == 0) {
             // 0x42834a: EAX = unit_index, CX = that unit's current weapon slot (+0x2f2); tail jmp
             object *own_unit = ((object_header *)object_data->data)[self->unit_index & 0xffff].data;
             return unit_get_weapon_object_index(self->unit_index, *(int16_t *)((uint8_t *)own_unit + 0x2f2));

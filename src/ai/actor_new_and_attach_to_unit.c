@@ -38,7 +38,7 @@ extern void *actor_type_procs[16];  // 0x006853b8
 
 extern datum_index actor_new(datum_index actor_variant_tag); // 0x426760, stack
 extern void actor_attach_to_unit(datum_index actor_index, datum_index unit_index); // 0x427560, stack
-extern void actor_set_units_active(datum_index actor_index, uint8_t activate); // 0x427860, EAX, BL
+extern void actor_set_units_active(datum_index actor_index, uint8_t dormant); // 0x427860, EAX, BL
 extern void actor_delete(datum_index actor_index, uint32_t flag); // 0x427e60, EBX, stack
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
 extern int32_t actor_lookup_small_table_entry(int16_t index); // 0x40e790, CX

@@ -19,7 +19,7 @@ extern data_array *actor_data;     // 0x00880360
 extern data_array *object_data;    // 0x008603b0
 extern data_array *encounter_data; // 0x008802c8
 
-extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index); // 0x569bf0, UNSURE signature
+extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index, uint8_t initial_targeting_flag); // 0x569bf0, stack, CL
 
 // blam-cc: EAX -> actor_index
 // Detaches the actor from its single bound unit, marking the object header's "in PVS pass"
@@ -43,7 +43,7 @@ void actor_unlink_unit(datum_index actor_index)
             }
         }
 
-        unit_refresh_targeting_flag_and_weapons(unit_index);
+        unit_refresh_targeting_flag_and_weapons(unit_index, 0); // CL = 0
 
         *(datum_index *)((uint8_t *)unit_object + 500) = (datum_index)k_datum_index_none; // unit_data.actor_index (object+0x1f4)
 

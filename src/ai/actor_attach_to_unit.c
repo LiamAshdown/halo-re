@@ -27,9 +27,9 @@ extern void actor_unlink_unit(datum_index actor_index); // 0x427bc0
 extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index unit_index); // 0x427c90
 extern void actor_delete(datum_index actor_index, uint32_t flag); // 0x427e60
 extern void actor_refresh_combat_context(datum_index actor_index); // 0x4297a0, in this rewrite range, not yet written when this file was authored
-extern void ai_encounter_stamp_team_from_unit(void); // 0x436710, UNSURE signature, not in this rewrite range
+extern void ai_encounter_stamp_team_from_unit(datum_index encounter_index, datum_index unit_index); // 0x436710, EAX, ECX
 extern void object_mark_pending_delete(datum_index object_index); // 0x4f50f0, UNSURE signature
-extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index); // 0x569bf0, UNSURE signature
+extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index, uint8_t initial_targeting_flag); // 0x569bf0, stack, CL
 
 // Binds an actor to a unit object as its controller, cleaning up any prior bindings (the
 // unit's existing cluster or direct controller, and this actor's own existing unit) first,
@@ -64,7 +64,7 @@ void actor_attach_to_unit(datum_index actor_index, datum_index unit_index)
 
     if (self->encounter_index != (datum_index)k_datum_index_none) {
         encounter *enc = &((encounter *)encounter_data->data)[self->encounter_index & 0xffff];
-        ai_encounter_stamp_team_from_unit();
+        ai_encounter_stamp_team_from_unit(self->encounter_index, unit_index); // 0x427616: EAX encounter, ECX unit
         *(int16_t *)((uint8_t *)unit_object + 0xb8) = enc->team; // UNSURE: object+0xb8, see actor_link_to_unit_cluster
     }
     self->team = *(int16_t *)((uint8_t *)unit_object + 0xb8);
@@ -92,7 +92,7 @@ void actor_attach_to_unit(datum_index actor_index, datum_index unit_index)
         }
     }
 
-    unit_refresh_targeting_flag_and_weapons(unit_index);
+    unit_refresh_targeting_flag_and_weapons(unit_index, 1); // 0x4276ce: CL = 1
 }
 
 #if 0

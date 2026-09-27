@@ -35,7 +35,7 @@ extern int16_t actor_select_firing_position(); // SIGNATURE-CONFLICT: this call 
 extern int16_t actor_claim_firing_position(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_claim_firing_position at 0x414060
                  // disagree on the argument list; Ghidra drops the register arguments
                  // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern float actor_compute_accuracy_scale(void); // 0x429620, not yet rewritten
+extern float actor_compute_accuracy_scale(datum_index actor_index); // 0x429620, not yet rewritten
 
 uint8_t actor_request_path_with_grenade_arc(uint32_t actor_index)
 {
@@ -74,7 +74,7 @@ uint8_t actor_request_path_with_grenade_arc(uint32_t actor_index)
                 }
             } else if (out_kind == 0) {
                 float out_distance = *(float *)((uint8_t *)request + 0xc);
-                if (out_distance < actor_compute_accuracy_scale()) {
+                if (out_distance < actor_compute_accuracy_scale(actor_index)) {
                     m[0xbc - 0x9c] = 1;
                 }
             }

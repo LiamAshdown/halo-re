@@ -27,8 +27,8 @@ extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
 
 extern float actor_rate_potential_target(datum_index actor_index, datum_index target_prop_index); // 0x41fd50
-extern void actor_update_target_combat_status(void); // 0x4200d0, UNSURE signature
-extern void actor_update_awareness_level(void);       // 0x420290, UNSURE signature
+extern void actor_update_target_combat_status(datum_index actor_index); // 0x4200d0, UNSURE signature
+extern void actor_update_awareness_level(datum_index actor_index);       // 0x420290, UNSURE signature
 
 // blam-cc: stack -> actor_index, EBX -> candidate_prop_index
 // Evaluates one specific candidate prop against the actor's current target and swaps to it as
@@ -58,8 +58,8 @@ uint16_t actor_consider_target_candidate(datum_index actor_index, datum_index ca
         self->target_combat_status = 0;
         self->target_unit_index = candidate_prop_index;
         self->unknown_26c = k_datum_index_none;
-        actor_update_target_combat_status();
-        actor_update_awareness_level();
+        actor_update_target_combat_status(actor_index);
+        actor_update_awareness_level(actor_index);
         return 1;
     }
     return 0;

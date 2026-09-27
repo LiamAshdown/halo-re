@@ -33,7 +33,7 @@ extern void actor_replace_object_reference(datum_index actor_index); // 0x428470
 extern void actor_unlink_prop(void); // 0x43ea20, this rewrite's own file; called here with no visible arguments
 extern void actor_init_prop_from_object(datum_index prop_index); // 0x43e640, this rewrite's own file
 extern datum_index datum_new(void); // 0x4d0480
-extern int16_t actor_get_current_mode_combat_grade(void); // 0x40e760, outside this rewrite's range
+extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index); // 0x40e760, outside this rewrite's range
 
 // blam-cc: stack -> actor_index, param_2, kind
 datum_index actor_find_or_allocate_prop(datum_index actor_index, uint32_t param_2, char kind)
@@ -129,7 +129,7 @@ datum_index actor_find_or_allocate_prop(datum_index actor_index, uint32_t param_
                             {
                                 uint8_t unknown_60 = p->is_unit;
                                 if (((unknown_60 == 0) || (*(int16_t *)((uint8_t *)p + 0x76) < 0x97)) &&
-                                    (actor_get_current_mode_combat_grade() < 2)) {
+                                    (actor_get_current_mode_combat_grade(actor_index) < 2)) {
                                     float threshold = 16.0f;
                                     if ((unknown_60 == 0) && (target != 0) && (target->awareness_level < 3)) {
                                         threshold = 64.0f;

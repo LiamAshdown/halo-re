@@ -1,5 +1,5 @@
 // unit_begin_throw_grenade  (Ghidra: unit_begin_throw_grenade, already named)
-// address 0x56e080, size 472 bytes, name confidence 0.5, rewrite confidence 0.2
+// address 0x56e080, size 472 bytes, name confidence 0.5, rewrite confidence 0.6
 // functions.md: "Initiates the unit's grenade-throw sequence: validates the current mode,
 // records timing/aim data, and starts the throw animation state machine."
 // evidence: types/units.h unit_data.current_weapon_index (0x2f2), .weapons[4] (0x2f8),
@@ -9,7 +9,7 @@
 //   object.animation_index (0xd0), .animation_frame (0xd2); ModelAnimationsAnimation
 //   (0xb4 stride, animations reflexive pointer at ModelAnimations+0x78, established in
 //   unit_update_stance_and_jump.c); .key_frame_index at +0x34 (confirmed via offsetof).
-// blam-cc: unaff_EDI -> unit_index, param_1 -> force_trigger.
+// blam-cc: EDI -> unit_index, stack -> direction (a real_vector2d pointer or null; the draft read it as a flag).
 // UNSURE: weapon_prevents_grenade_throwing/weapon_reset_triggers/unit_invalidate_local_player_zoom_level/effect_new_on_object's real roles are not recovered;
 // the biped-extension byte at object+0x505 is out of this module's struct coverage.
 
@@ -25,20 +25,20 @@ extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint8_t *globals_tag_data;   // 0x00746fa0
 
-extern real vector2d_normalize_with_length(real_vector2d *v);                       // 0x4018e0, UNSURE signature
+extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
     datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
     const ColorRGB *color, const effect_tint_source *tint_source);
     // 0x4507a0, blam-cc: EAX -> creator_object_index, ECX -> definition_index, stack -> the other six
 extern void unit_invalidate_local_player_zoom_level(uint32_t unit_index);                             // 0x4726f0, UNSURE signature
-extern void weapon_action_notify_for_unit(int32_t sound_id);                                // 0x492730, UNSURE signature
-extern uint8_t weapon_prevents_grenade_throwing(uint32_t unit_index);                          // 0x4c2f30, UNSURE signature
+extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code); // 0x492730, EAX, stack
+extern uint32_t weapon_prevents_grenade_throwing(datum_index item_index); // 0x4c2f30, ECX
 extern void weapon_reset_triggers(datum_index weapon_index);                        // 0x4c4b50, UNSURE signature
 extern object * object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
-extern void unit_set_throw_aim_direction(uint32_t unit_index);                             // 0x5704d0, UNSURE signature  // real signature (unit_set_throw_aim_direction.c): void unit_set_throw_aim_direction(uint32_t object_index, float direction_x, float direction_y); Ghidra recovered 1 of 3 args at this call site
+extern void unit_set_throw_aim_direction(uint32_t object_index, const real_vector2d *direction_xy); // 0x5704d0, EAX, ECX
 
-uint8_t unit_begin_throw_grenade(uint32_t unit_index, int32_t force_trigger) // blam-cc: unaff_EDI, param_1
+uint8_t unit_begin_throw_grenade(uint32_t unit_index, const real_vector2d *direction) // blam-cc: EDI, stack
 {
     object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
@@ -59,7 +59,7 @@ uint8_t unit_begin_throw_grenade(uint32_t unit_index, int32_t force_trigger) // 
     case 0x20: case 0x21: case 0x22: case 0x23: case 0x27: case 0x29:
         return 0;
     default:
-        if (weapon_prevents_grenade_throwing(unit_index) != 0) {
+        if (weapon_prevents_grenade_throwing(current_weapon) /* 0x56e11f: ECX = the weapon */ != 0) {
             return 0;
         }
         if (current_weapon != k_datum_index_none) {
@@ -82,10 +82,20 @@ uint8_t unit_begin_throw_grenade(uint32_t unit_index, int32_t force_trigger) // 
         ModelAnimationsAnimation *animations = (ModelAnimationsAnimation *)(*(uint8_t **)(graph + 0x78));
         unit->throwing_grenade_duration = (animations[unit_obj->animation_index].key_frame_index - unit_obj->animation_frame) + 1;
 
-        if ((force_trigger != 0) || (0.0f < vector2d_normalize_with_length((real_vector2d *)unit))) { // UNSURE: normalize target
-            unit_set_throw_aim_direction(unit_index);
+        // 0x56e1b9: a given direction aims the throw; without one, the unit's aiming vector (+0x23c) flattened to
+        // 2D and normalized does, when it has any length.
+        if (direction != 0) {
+            unit_set_throw_aim_direction(unit_index, direction);
+        } else {
+            real_vector2d aim;
+
+            aim.i = *(float *)((uint8_t *)unit_obj + 0x23c);
+            aim.j = *(float *)((uint8_t *)unit_obj + 0x240);
+            if (0.0f < vector2d_normalize_with_length(&aim)) {
+                unit_set_throw_aim_direction(unit_index, &aim);
+            }
         }
-        weapon_action_notify_for_unit(0x11);
+        weapon_action_notify_for_unit(unit_index, 0x11);
         unit_invalidate_local_player_zoom_level(unit_index);
         uint8_t *grenade_table_entry = (*(uint8_t **)(globals_tag_data + 300)) + (int8_t)grenade_type * 0x44;
         if (*(int32_t *)(grenade_table_entry + 0x10) != -1) {

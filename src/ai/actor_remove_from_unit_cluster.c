@@ -28,7 +28,7 @@ extern data_array *object_data;          // 0x008603b0
 extern data_array *swarm_data;           // 0x0088035c
 extern data_array *swarm_component_data; // 0x00880358
 
-extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index); // 0x569bf0, UNSURE signature
+extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index, uint8_t initial_targeting_flag); // 0x569bf0, stack, CL
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, blam-cc: EAX -> array, EDX -> handle
 
 // blam-cc: ECX -> actor_index, stack -> unit_index
@@ -54,7 +54,7 @@ void actor_remove_from_unit_cluster(datum_index actor_index, datum_index unit_in
         }
     }
 
-    unit_refresh_targeting_flag_and_weapons(unit_index);
+    unit_refresh_targeting_flag_and_weapons(unit_index, 0); // CL = 0
 
     if (self->swarm_index != (datum_index)k_datum_index_none) {
         swarm *s = &((swarm *)swarm_data->data)[self->swarm_index & 0xffff];

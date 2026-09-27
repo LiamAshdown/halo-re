@@ -95,7 +95,7 @@ extern void actor_movement_choose_avoidance_direction(datum_index actor_index,
                                                       float *out_scale); // 0x4193d0
 extern void actor_movement_apply_steering(
     int16_t cached_axis, uint8_t keep_z,
-    float actor_index_as_float, uint8_t want_avoid_check, float avoid_threshold, uint8_t order_failed,
+    datum_index actor_index, uint8_t want_avoid_check, float avoid_threshold, uint8_t order_failed,
     float steering_maximum, float oversteer_min, float oversteer_max, float avoidance_scale,
     float throttle_maximum,
     real_vector3d *desired_direction, real_vector3d *out_direction, int16_t *out_axis,
@@ -392,7 +392,7 @@ void actor_movement_update(datum_index actor_index)
     if (a->unknown_504 != 0 && a->unknown_506 == 0) {
         actor_movement_apply_steering(
             cached_axis, sidestep_mode,
-            *(const float *)&actor_index, want_avoid_check, avoid_threshold, order_failed,
+            actor_index, want_avoid_check, avoid_threshold, order_failed,
             steering_maximum, oversteer_min, oversteer_max, avoidance_scale, throttle_maximum,
             (real_vector3d *)&a->unknown_518, (real_vector3d *)&a->position_cache_a,
             &a->unknown_50a, &a->queued_look_vector, &a->unknown_507, &a->unknown_506);

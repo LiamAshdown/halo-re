@@ -22,7 +22,7 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern void actor_clear_perceived_props(datum_index actor_index); // 0x427e00
 extern void actor_delete_swarm(datum_index actor_index); // 0x4280b0
 extern datum_index actor_create_swarm(datum_index actor_index); // 0x427f40
-extern void actor_set_units_active(datum_index actor_index, uint8_t activate); // 0x427860
+extern void actor_set_units_active(datum_index actor_index, uint8_t dormant); // 0x427860
 
 // blam-cc: EAX -> activate, EDI -> actor_index
 // Toggles the actor's active/dormant flag. Deactivating clears its perceived-prop list and
@@ -41,7 +41,7 @@ uint8_t actor_toggle_active_state(uint8_t activate, datum_index actor_index)
     if (activate == 0) {
         actor_clear_perceived_props(actor_index);
         actor_delete_swarm(actor_index);
-        actor_set_units_active(actor_index, 0);
+        actor_set_units_active(actor_index, 1); // 0x42781d: BL still 1 from 0x4277e2 (dormant)
         self->active = 0;
         self->unknown_0c = (int32_t)game_time->game_time;
         return 1;
@@ -57,7 +57,7 @@ uint8_t actor_toggle_active_state(uint8_t activate, datum_index actor_index)
 
     self->active = 1;
     if (self->awareness_level == 0) {
-        actor_set_units_active(actor_index, 1);
+        actor_set_units_active(actor_index, 0); // 0x427844: BL = 0 (wake)
         return 1;
     }
     return 1;

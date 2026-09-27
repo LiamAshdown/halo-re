@@ -45,7 +45,7 @@ extern uint8_t message_delta_decode_compound_field(void *event, void *out_values
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680; UNSURE array argument
 extern data_array *player_data; // 0x0087a480
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index); // 0x569bf0
+extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index, uint8_t initial_targeting_flag); // 0x569bf0, stack, CL
 extern void game_engine_init_player_look_state_from_object(datum_index unit, int16_t local_player_index); // 0x470e80
 extern void unit_apply_starting_profile(int16_t starting_profile_index, datum_index unit_handle,
     uint8_t reset_stats); // 0x473c50, already rewritten
@@ -104,7 +104,7 @@ void game_engine_apply_player_spawn_loadout_message(void **envelope, uint32_t pl
                         unit_obj->owner_linkage = (uint32_t)owner_handle;
                         unit_obj->owner_team = (int16_t)p->team;
                         ((unit_data *)unit_obj)->controlling_player = owner_handle;
-                        unit_refresh_targeting_flag_and_weapons(new_unit);
+                        unit_refresh_targeting_flag_and_weapons(new_unit, 1); // CL = 1
 
                         if (p->local_player_index == -1) {
                             // UNSURE: raw player-record offsets, no header names these four

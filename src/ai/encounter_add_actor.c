@@ -34,7 +34,7 @@ extern encounter_platoon_state *encounter_platoon_states; // 0x008802c4
 
 extern void actor_propagate_unit_field(datum_index actor_index, int16_t value); // 0x4276e0, blam-cc: EAX, ESI
 extern uint8_t actor_toggle_active_state(uint8_t activate, datum_index actor_index); // 0x4277c0, blam-cc: AL, EDI
-extern void actor_set_units_active(datum_index actor_index, uint8_t activate); // 0x427860, blam-cc: EAX, BL
+extern void actor_set_units_active(datum_index actor_index, uint8_t dormant); // 0x427860, blam-cc: EAX, BL
 extern void ai_recompute_all_relationship_flags(void); // 0x42bbb0
 extern void ai_encounter_stamp_team_from_unit(datum_index encounter_index, datum_index unit_index); // 0x436710, blam-cc: EAX, ECX
 extern uint8_t encounter_activate(datum_index encounter_index);       // 0x437710, blam-cc: ECX -> encounter_index

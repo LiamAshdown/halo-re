@@ -25,7 +25,7 @@ extern data_array *encounter_data; // 0x008802c8
 extern void actor_queue_recognized_target_dialogue(datum_index actor_index, datum_index target_prop_index); // 0x422550
 extern void actor_react_to_seen_target(datum_index actor_index, datum_index target_prop_index); // 0x422ec0
 extern void actor_scan_backup_and_panic_reaction(datum_index target_prop_index, datum_index actor_index); // 0x423220
-extern void actor_set_units_active(datum_index actor_index, uint8_t activate); // 0x427860
+extern void actor_set_units_active(datum_index actor_index, uint8_t dormant); // 0x427860
 extern uint32_t actor_target_data_release(datum_index target_prop_index, uint32_t actor_index, uint8_t *out_conflict_flag); // 0x41b980
 
 // blam-cc: ESI -> actor_index, stack -> target_prop_index, EAX -> grenade_type
@@ -67,7 +67,7 @@ void actor_squad_react_to_grenade(datum_index actor_index, datum_index target_pr
             *(int16_t *)&target->unknown_34 = 3;
             target->unknown_30 = 3;
             if (target->is_parented != 0) {
-                actor_set_units_active(actor_index, 1);
+                actor_set_units_active(actor_index, 0); // BL = 0 at 0x42a470, 0x42a4b1, 0x42a50e
             }
             actor_react_to_seen_target(actor_index, target_prop_index);
         }
@@ -78,7 +78,7 @@ void actor_squad_react_to_grenade(datum_index actor_index, datum_index target_pr
             *(int16_t *)&target->unknown_34 = 3;
             target->unknown_30 = 3;
             target->combat_dirty = 1;
-            actor_set_units_active(actor_index, 1);
+            actor_set_units_active(actor_index, 0); // BL = 0 at 0x42a470, 0x42a4b1, 0x42a50e
             actor_scan_backup_and_panic_reaction(target_prop_index, actor_index);
         }
         break;
@@ -88,7 +88,7 @@ void actor_squad_react_to_grenade(datum_index actor_index, datum_index target_pr
             target->unknown_30 = 3;
             target->combat_dirty = 1;
             if (target->is_parented != 0) {
-                actor_set_units_active(actor_index, 1);
+                actor_set_units_active(actor_index, 0); // BL = 0 at 0x42a470, 0x42a4b1, 0x42a50e
             }
             actor_target_data_release(target_prop_index, actor_index, 0);
         }

@@ -32,7 +32,7 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern void squad_recent_object_list_clear(datum_index encounter_index); // 0x436c10
 extern void actor_clear_perceived_props(datum_index actor_index);      // 0x427e00, not yet rewritten
 extern void actor_delete_swarm(datum_index actor_index);       // 0x4280b0, not yet rewritten
-extern void actor_set_units_active(datum_index actor_index, uint8_t activate); // 0x427860, blam-cc: EAX, BL
+extern void actor_set_units_active(datum_index actor_index, uint8_t dormant); // 0x427860, blam-cc: EAX, BL
 
 // blam-cc: EAX -> encounter_index
 // Puts an encounter back to sleep: clears units_active, drops its recently-seen-object ring

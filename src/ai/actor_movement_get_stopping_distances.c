@@ -30,7 +30,7 @@ extern data_array *actor_data;       // 0x00880360
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
 
-extern void *object_try_and_get(int32_t kind); // 0x4f6ec0
+extern void *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
 
 // blam-cc: EAX -> actor_index, EBX -> out_accelerate_stop_distance, EDI -> out_stop_distance
 void actor_movement_get_stopping_distances(datum_index actor_index,
@@ -54,7 +54,7 @@ void actor_movement_get_stopping_distances(datum_index actor_index,
 
     if (self->active_unit_index == (datum_index)k_datum_index_none) {
         if (self->unit_index != (datum_index)k_datum_index_none) {
-            unit_object = (object *)object_try_and_get(1);
+            unit_object = (object *)object_try_and_get(self->unit_index, 1); // 0x417458: ECX = actor +0x18
             if (unit_object != (object *)0) {
                 biped_definition = (Biped *)tag_instances[unit_object->definition_tag & 0xffff].data;
                 speed = unit_object->velocity.i * unit_object->forward.i +

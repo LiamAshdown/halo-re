@@ -15,7 +15,7 @@
 #include "ai.h"
 
 extern data_array *actor_data; // 0x00880360
-extern float actor_compute_accuracy_scale(void); // 0x429620, not yet rewritten (an engagement-range radius)
+extern float actor_compute_accuracy_scale(datum_index actor_index); // 0x429620, not yet rewritten (an engagement-range radius)
 
 // blam-cc: EAX -> actor_index
 uint8_t actor_movement_check_arrival(datum_index actor_index)
@@ -27,7 +27,7 @@ uint8_t actor_movement_check_arrival(datum_index actor_index)
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
 
     if (self->active_movement.type != 0 && self->active_movement.type != 1) {
-        radius = actor_compute_accuracy_scale();
+        radius = actor_compute_accuracy_scale(actor_index);
         dx = self->unknown_488.x - self->body_position.x;
         dy = self->unknown_488.y - self->body_position.y;
         dz = self->unknown_488.z - self->body_position.z;
