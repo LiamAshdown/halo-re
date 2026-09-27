@@ -1,267 +1,191 @@
 // cache_allocate_block  (Ghidra: FUN_004d1840)
 // address 0x4d1840, size 984 bytes
-// name confidence: 0.8 (out/phase4/memory_types_notes.md names it directly: "cache_allocate_block
-// (0x4d1840) sets entry +0x04 = size in blocks, +0x08 = offset in blocks, +0x14 = cache->age
-// (age), and links +0x0c/+0x10... also calls cache+0x24 with a datum handle and treats a nonzero
-// return as 'cannot evict'")
-// rewrite confidence: 0.35 -- LOW. This is the single most intricate function in the module: it
-// walks the cache's entries in offset order, accumulating a sliding window of "gap" candidates
-// (evictable-space runs) in a 256-slot ring buffer, looking for the least-recently-used run of
-// contiguous space >= blocks_needed, while separately tracking the single oldest evictable entry
-// as a fallback. Every field access, arithmetic operation and the goto structure (Ghidra's single
-// LAB_004d1913, reached from two call sites) are preserved exactly as decompiled; only the ring
-// buffer (local_1000, a raw uint[1023] used as 256 groups of 4) has been given the
-// cache_allocation_gap struct/array shape types/memory.h already documents for it, and the
-// cache_entry field accesses use named fields instead of raw +0x04/+0x08/+0x0c/+0x10/+0x14
-// offsets. No control-flow path, comparison operator, or arithmetic expression has been altered.
-// The `alloca_probe`/`__chkstk` prologue Ghidra flags is simply the compiler's stack-probe for
-// the large (0x1044-byte) local frame and carries no semantic content; it is omitted.
-// evidence: types/memory.h cache/cache_entry/cache_allocation_gap layouts; the three call sites
-// this function reaches (cache_evict_entry, data_iterator_next, datum_new) all already rewritten
-// in this batch or the sibling batch below 0x4d0930.
-// register convention: cdecl, both parameters (cache* and the requested byte size) recovered
-// cleanly by Ghidra as ordinary stack parameters -- no in_EAX/in_ECX/unaff_* artifacts anywhere
-// in this function's body, unlike most of its neighbors.
-// UNSURE: the data_iterator reconstruction in the eviction loop (see inline), plus what is
-// noted inline on the ring-buffer bookkeeping.
-// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
+// name confidence: 0.8 (out/phase4/memory_types_notes.md names it directly)
+// rewrite confidence: 0.85
+// REWRITTEN 2026-09-27 (static loop) from objdump 0x4d1840..0x4d1c17 (the draft was a goto-for-goto Ghidra
+// transliteration whose ring-buffer bookkeeping could not be checked). The scan walks the entries in offset order.
+// A 256-slot ring of open windows (cache_allocation_gap) starts a new window at every step (while the ring has
+// room); free space and evictable entries grow every open window, each window remembering the newest age it
+// would evict. A window that reaches blocks_needed closes (window_start advances) and becomes the best
+// candidate when it is the first, has an older newest_age, or the same age and a smaller size. A protected entry
+// (in_use_procedure says so, or it was touched this age) closes every open window. The oldest unprotected entry is
+// remembered as the LRU. Then: every entry overlapping the chosen blocks is evicted, the LRU is evicted too when
+// the entry table is full, and a new entry is linked after the window's previous entry.
+// blam-cc: stack -> (self, requested_bytes)
 
 #include "tags.h"
 #include "memory.h"
+#include "math.h"
 #include <stdint.h>
 
-extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, below this batch's
-    // assigned range
-extern void cache_evict_entry(datum_index handle, cache *self); // this batch
-extern datum_index datum_new(data_array *array); // 0x4d0480, below this batch's assigned range;
-    // blam-cc: array in EAX (per out/phase4/memory_types_notes.md's data_array family notes)
+extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, EDI iterator
+extern void cache_evict_entry(datum_index handle, cache *self); // 0x4d1c20, EBX handle, EDI self
+extern datum_index datum_new(data_array *array); // 0x4d0480, EDX array
 
 static cache_entry *cache_entry_at(cache *self, datum_index handle)
 {
-    return (cache_entry *)((uint8_t *)self->entries->data +
-        (uint32_t)(uint16_t)handle * sizeof(cache_entry));
+    return (cache_entry *)((uint8_t *)self->entries->data + (uint32_t)(uint16_t)handle * sizeof(cache_entry));
 }
 
 datum_index cache_allocate_block(cache *self, uint32_t requested_bytes)
 {
-    cache_allocation_gap gaps[256]; // Ghidra: local_1000, a uint[1023] laid out as 256 groups of
-                                     // 4 (previous_entry, newest_age, offset, size) -- exactly
-                                     // cache_allocation_gap, per types/memory.h.
-    int32_t blocks_needed;          // local_1038
-    datum_index entry_handle;       // local_103c -- 0xffffffff means "past the last real entry"
-    uint32_t running_offset;        // uVar9
-    uint32_t boundary;              // uVar4 while scanning; reused for the datum_new() result
-    int16_t window_start;           // local_1040
-    int16_t write_cursor;           // local_1044
-    int32_t slot;                   // iVar8
-    int32_t gap_size;               // iVar5
-    uint32_t entry_age;             // local_1030
-    datum_index next_gap_previous_entry; // local_102c
-    int32_t found_window;           // bVar2
-    datum_index best_previous_entry; // local_1028
-    uint32_t best_newest_age;        // local_1024
-    uint32_t best_offset;            // local_1020
-    uint32_t best_size;              // local_101c
-    datum_index best_lru_candidate;  // local_1034
-    uint32_t best_lru_age;           // uStack_1014
-    int32_t need_evict;              // bVar1
-    int16_t next_slot;               // iVar5/iVar11 reused as the "next" ring index in a couple
-                                      // of spots; kept separate here for clarity.
+    cache_allocation_gap gaps[256];                 // esp+0x58
+    cache_allocation_gap best;                      // esp+0x30
+    int32_t blocks_needed;                          // esp+0x20
+    datum_index cursor = self->first;               // esp+0x1c
+    datum_index gap_previous = k_datum_index_none;  // esp+0x2c
+    datum_index lru = k_datum_index_none;           // esp+0x24
+    uint32_t lru_age = 0;                           // esp+0x44
+    int16_t window_start = 0;                       // esp+0x18
+    int16_t write = 0;                              // esp+0x14
+    int32_t offset = 0;                             // edi
+    uint8_t found = 0;                              // esp+0x13
+    datum_index handle;
+    cache_entry *entry;
 
     blocks_needed = (int32_t)requested_bytes >> self->block_shift;
     if ((requested_bytes & ((1u << self->block_shift) - 1u)) != 0) {
-        blocks_needed = blocks_needed + 1;
+        blocks_needed++;
+    }
+    best.previous_entry = k_datum_index_none;
+    best.newest_age = 0;
+    best.offset = 0;
+    best.size = 0;
+
+    if (self->block_count <= 0) {
+        return k_datum_index_none;
     }
 
-    entry_handle = self->first;
-    boundary = 0xffffffff;
-    slot = 0;
-    found_window = 0;
-    next_gap_previous_entry = (datum_index)0xffffffff;
-    window_start = 0;
-    write_cursor = 0;
-    best_lru_candidate = (datum_index)0xffffffff;
-    running_offset = 0;
+    do {
+        int16_t next = (write == 0xff) ? 0 : (int16_t)(write + 1);
+        int32_t gap;
+        uint32_t entry_age;                         // esp+0x28
 
-    if (0 < self->block_count) {
-        do {
-            int16_t cur_slot = (int16_t)slot;
-            next_slot = (cur_slot == (int16_t)0xff) ? 0 : (int16_t)(cur_slot + 1);
+        if (next != window_start) {
+            gaps[write].previous_entry = gap_previous;
+            gaps[write].newest_age = 0;
+            gaps[write].offset = offset;
+            gaps[write].size = 0;
+            write = next;
+        }
 
-            if (next_slot != window_start) {
-                slot = (int32_t)cur_slot;
-                gaps[slot].previous_entry = next_gap_previous_entry;
-                gaps[slot].offset = (int32_t)running_offset;
-                gaps[slot].newest_age = 0;
-                gaps[slot].size = 0;
-                if (cur_slot == (int16_t)0xff) {
-                    write_cursor = 0;
-                    slot = write_cursor;
-                } else {
-                    slot = slot + 1;
-                    write_cursor = (int16_t)slot;
-                }
-            }
-
-            if (entry_handle == (datum_index)0xffffffff) {
-                boundary = (uint32_t)self->block_count;
-                entry_age = 0;
-                gap_size = (int32_t)(boundary - running_offset);
-                goto grow_window;
-            } else {
-                cache_entry *entry = cache_entry_at(self, entry_handle);
-                if (running_offset != (uint32_t)entry->offset) {
-                    boundary = (uint32_t)entry->offset;
-                    gap_size = (int32_t)(boundary - running_offset);
-                    entry_age = 0;
-                    goto grow_window;
-                }
-                entry_age = entry->age;
-                gap_size = entry->size;
-                if (self->in_use_procedure == 0) {
-                    need_evict = 0;
-                } else {
-                    // Ghidra: cVar3 = (**(code **)(param_1+0x24))(local_103c), iVar8 = local_1044,
-                    // cVar3 == '\0'. Two details preserved: the predicate's result is tested as a
-                    // CHAR (only AL matters, so a callback returning 0x100 reads as "not in use"),
-                    // and the comma operand reloads iVar8 (== slot) from local_1044 (write_cursor)
-                    // as a side effect of taking this branch -- which matters when the ring-buffer
-                    // push above was skipped because the window was full.
-                    uint8_t in_use = (uint8_t)((int32_t (*)(datum_index))self->in_use_procedure)(entry_handle);
-                    slot = write_cursor;
-                    need_evict = (in_use != 0);
-                }
-                running_offset = entry->age;
-                if (running_offset == (uint32_t)self->age) {
-                    need_evict = 1;
-                } else if (!need_evict &&
-                    (best_lru_candidate == (datum_index)0xffffffff || running_offset < best_lru_age)) {
-                    best_lru_candidate = entry_handle;
-                    best_lru_age = running_offset;
-                }
-                boundary = (uint32_t)(entry->offset + entry->size);
-                next_gap_previous_entry = entry_handle;
-                entry_handle = entry->next;
-                next_slot = write_cursor; // Ghidra: iVar11 = iVar8, where iVar8 by this point
-                    // always mirrors local_1044/write_cursor (see the file header discussion for
-                    // why); used below only when this entry is protected (no goto grow_window).
-                if (!need_evict) {
-                    goto grow_window;
-                }
-                window_start = next_slot;
-                running_offset = boundary;
-                continue;
-            }
-
-        grow_window:
-            // Extend every open gap window in [window_start, slot) by gap_size blocks, tagging
-            // each with the newer of its own newest_age and entry_age; a window that reaches
-            // blocks_needed becomes a size candidate (preferring the oldest newest_age, then the
-            // smallest resulting total).
-            if (window_start != (int16_t)slot) {
-                int16_t scan = window_start;
-                int32_t scan_slot = window_start;
-                do {
-                    uint32_t new_size;
-                    scan_slot = (int32_t)(int16_t)scan;
-                    if (gaps[scan_slot].newest_age < entry_age) {
-                        gaps[scan_slot].newest_age = entry_age;
-                    }
-                    new_size = (uint32_t)gaps[scan_slot].size + gap_size;
-                    gaps[scan_slot].size = (int32_t)new_size;
-                    if (blocks_needed <= (int32_t)new_size) {
-                        if (!found_window || gaps[scan_slot].newest_age < best_newest_age ||
-                            (gaps[scan_slot].newest_age == best_newest_age &&
-                                (int32_t)new_size < (int32_t)best_size)) {
-                            best_previous_entry = gaps[scan_slot].previous_entry;
-                            best_newest_age = gaps[scan_slot].newest_age;
-                            best_offset = (uint32_t)gaps[scan_slot].offset;
-                            best_size = (uint32_t)gaps[scan_slot].size;
-                            found_window = 1;
-                        }
-                        if (window_start == (int16_t)0xff) {
-                            window_start = 0;
-                        } else {
-                            window_start = window_start + 1;
-                        }
-                    }
-                    scan = (scan == (int16_t)0xff) ? 0 : (int16_t)(scan_slot + 1);
-                    slot = write_cursor;
-                    next_slot = window_start;
-                } while (scan != (int16_t)write_cursor);
-            }
-            running_offset = boundary;
-        } while ((int32_t)boundary < self->block_count);
-
-        if (found_window) {
-            data_iterator iterator;
-            void *element;
-
-            // UNSURE: Ghidra shows `data_iterator_next()` with no argument list -- the iterator is
-            // a stack local it elided, so both the iterator's initialization and the handle passed
-            // to cache_evict_entry below are reconstructed from data_iterator_next's own contract
-            // (data_iterator.index holds the handle of the element just returned). The eviction
-            // loop's overlap test and call order are taken verbatim from the decompile.
-            iterator.data = self->entries;
-            iterator.next_index = 0;
-            iterator.index = 0;
-            iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-            element = data_iterator_next(&iterator);
-            while (element != 0) {
-                cache_entry *candidate = (cache_entry *)element;
-                if (candidate->offset < (int32_t)(blocks_needed + best_offset) &&
-                    (int32_t)best_offset < candidate->size + candidate->offset) {
-                    cache_evict_entry(iterator.index, self);
-                }
-                element = data_iterator_next(&iterator);
-            }
-
-            if (self->entries->actual_count == self->entries->maximum_count &&
-                best_lru_candidate != (datum_index)0xffffffff) {
-                if (best_previous_entry == best_lru_candidate) {
-                    best_previous_entry = cache_entry_at(self, best_lru_candidate)->previous;
-                }
-                cache_evict_entry(best_lru_candidate, self);
-            }
-
-            boundary = datum_new(self->entries);
-            if (boundary != 0xffffffff) {
-                cache_entry *new_entry = cache_entry_at(self, boundary);
-                if (best_previous_entry == (datum_index)0xffffffff) {
-                    datum_index old_first = self->first;
-                    new_entry->previous = (datum_index)0xffffffff;
-                    if (old_first == (datum_index)0xffffffff) {
-                        self->last = boundary;
-                        new_entry->next = self->first;
-                        self->first = boundary;
-                    } else {
-                        cache_entry_at(self, old_first)->previous = boundary;
-                        new_entry->next = self->first;
-                        self->first = boundary;
-                    }
-                } else {
-                    datum_index next_of_prev = cache_entry_at(self, best_previous_entry)->next;
-                    if (next_of_prev == (datum_index)0xffffffff) {
-                        new_entry->previous = self->last;
-                        self->last = boundary;
-                    } else {
-                        cache_entry *next_entry = cache_entry_at(self, next_of_prev);
-                        new_entry->previous = next_entry->previous;
-                        next_entry->previous = boundary;
-                    }
-                    new_entry->next = cache_entry_at(self, best_previous_entry)->next;
-                    cache_entry_at(self, best_previous_entry)->next = boundary;
-                }
-                new_entry->offset = (int32_t)best_offset;
-                new_entry->size = blocks_needed;
-                new_entry->age = self->age;
-                return boundary;
-            }
+        if (cursor == k_datum_index_none) {
+            entry_age = 0;
+            gap = self->block_count - offset;
+            offset = self->block_count;
         } else {
-            boundary = 0xffffffff;
+            entry = cache_entry_at(self, cursor);
+            if (offset != entry->offset) {
+                gap = entry->offset - offset;
+                entry_age = 0;
+                offset = entry->offset;
+            } else {
+                uint8_t protected_entry = 0;
+
+                entry_age = entry->age;
+                gap = entry->size;
+                if (self->in_use_procedure != 0 &&
+                    (uint8_t)((int32_t (*)(datum_index))self->in_use_procedure)(cursor) != 0) {
+                    protected_entry = 1;
+                }
+                if (entry->age == self->age) {
+                    protected_entry = 1;
+                } else if (!protected_entry && (lru == k_datum_index_none || entry->age < lru_age)) {
+                    lru = cursor;
+                    lru_age = entry->age;
+                }
+                offset = entry->size + entry->offset;
+                gap_previous = cursor;
+                cursor = entry->next;
+                if (protected_entry) {
+                    window_start = write; // 0x4d1a2a: every open window ends here
+                    continue;
+                }
+            }
+        }
+
+        {
+            int16_t scan = window_start;
+
+            while (scan != write) {
+                cache_allocation_gap *window = &gaps[scan];
+
+                if (entry_age > window->newest_age) {
+                    window->newest_age = entry_age;
+                }
+                window->size += gap;
+                if (window->size >= blocks_needed) {
+                    if (!found || window->newest_age < best.newest_age ||
+                        (window->newest_age == best.newest_age && window->size < best.size)) {
+                        best = *window;
+                        found = 1;
+                    }
+                    window_start = (window_start == 0xff) ? 0 : (int16_t)(window_start + 1);
+                }
+                scan = (scan == 0xff) ? 0 : (int16_t)(scan + 1);
+            }
+        }
+    } while (offset < self->block_count);
+
+    if (!found) {
+        return k_datum_index_none;
+    }
+
+    {
+        data_iterator iterator;
+        cache_entry *candidate;
+
+        iterator.data = self->entries;
+        iterator.next_index = 0;
+        iterator.index = k_datum_index_none;
+        iterator.signature = (uint32_t)(uintptr_t)self->entries ^ k_data_iterator_signature;
+        while ((candidate = (cache_entry *)data_iterator_next(&iterator)) != 0) {
+            if (candidate->offset < blocks_needed + best.offset && candidate->size + candidate->offset > best.offset) {
+                cache_evict_entry(iterator.index, self);
+            }
         }
     }
-    return boundary;
+
+    if (self->entries->actual_count == self->entries->maximum_count && lru != k_datum_index_none) {
+        if (best.previous_entry == lru) {
+            best.previous_entry = cache_entry_at(self, lru)->previous;
+        }
+        cache_evict_entry(lru, self);
+    }
+
+    handle = datum_new(self->entries);
+    if (handle == k_datum_index_none) {
+        return handle;
+    }
+    entry = cache_entry_at(self, handle);
+    if (best.previous_entry == k_datum_index_none) {
+        entry->previous = k_datum_index_none;
+        if (self->first == k_datum_index_none) {
+            self->last = handle;
+        } else {
+            cache_entry_at(self, self->first)->previous = handle;
+        }
+        entry->next = self->first;
+        self->first = handle;
+    } else {
+        cache_entry *previous = cache_entry_at(self, best.previous_entry);
+
+        if (previous->next == k_datum_index_none) {
+            entry->previous = self->last;
+            self->last = handle;
+        } else {
+            cache_entry *following = cache_entry_at(self, previous->next);
+
+            entry->previous = following->previous;
+            following->previous = handle;
+        }
+        entry->next = previous->next;
+        previous->next = handle;
+    }
+    entry->offset = best.offset;
+    entry->size = blocks_needed;
+    entry->age = self->age;
+    return handle;
 }
 
 #if 0
