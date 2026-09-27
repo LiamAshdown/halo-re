@@ -1908,3 +1908,6 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - unit_find_best_seat_to_enter (0x566560): VERIFIED end to end (0.25 -> 0.9).
 - player_check_vehicle_interaction (0x478600): FIXED (0.4 -> 0.9). The upside-down vehicle's "flip" interaction (action 0xb) passes EBX = the vehicle; the draft passed -1, so the flip prompt had no target.
 - Relink: left unresolved 1, traps 128.
+- object_start_animation (0x4fa8d0): VERIFIED (0.3 -> 0.9). Its two callers were hs evaluators with no C: scenery_animation_start (0x47b760, 11 campaign uses) and scenery_animation_start_at_frame (0x47b7b0, 3 uses). NEW src/hs files written from objdump; each would have trapped (unlisted callback).
+- Coverage check: all 195 hs functions a10 uses have C. Across the whole campaign (scratchpad/campaign_hs.txt), 73 hs evaluators still have no C and trap when a later level calls them; the list is in scratchpad/hs_missing_campaign.txt. The biggest are vehicle_unload 145 uses, ai_go_to_vehicle 143, vehicle_test_seat_list 87, ai_spawn_actor 82, ai_automatic_migration_target 72, ai_vehicle_encounter 57, recording_play_and_hover 49, ai_status 44, ai_disregard 39, unit_set_enterable_by_player 35, damage_object 34, object_set_permutation 32, object_create_containing 30. OPEN: next static work item (beyond a10).
+- Relink: left unresolved 1, traps 128.

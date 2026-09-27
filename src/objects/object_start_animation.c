@@ -3,7 +3,7 @@
 // name confidence: 0.55 (already carries this name from an earlier phase; matches
 //   functions.md's summary: "Looks up a named animation in an animation graph and starts it on
 //   the object, logging an error if the animation is not found")
-// rewrite confidence: 0.3 (zero recorded callers in this module; likely reached from units/
+// rewrite confidence: 0.9 (VERIFIED against 0x4fa8d0 (EDI graph / EBX name lookup, flags, frame clamp, error message)) (zero recorded callers in this module; likely reached from units/
 //   scenery elsewhere per the CEA hints "scenery_animation_start_private",
 //   "unit_start_user_animation")
 // evidence: types/objects.h object (flags 0x10, animation_graph 0x0cc, animation_index 0x0d0,
