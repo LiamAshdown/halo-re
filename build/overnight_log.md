@@ -2203,3 +2203,14 @@ Relinked: unresolved 1, traps 127.
   check the vitality_flags / +0x324 gates in player_check_vehicle_interaction.
 - Also written: hs_evaluate_vehicle_hover (trapped in a30), three nav-point evaluators; scratchpad/hsmissing.py shows
   the campaign's scripts need only 'inspect' and 'play_update_history' beyond what exists.
+## 2026-09-28 (loop, static only) -- a10-coverage pass continued
+- FIXED: actor_recompute_grenade_eligibility (0x42f260) rewritten -- the recheck delay is lerp(actor tag +0x400..+0x404
+  when eligible, else +0x3f8..+0x3fc) * 30 + the unit's +0x3fa ticks (when its +0x388 > 0); the draft's formula was a
+  placeholder.
+- FIXED: prop +0x122 is a signed byte (all ten ordered compares in the binary are jg/jle); types/ai.h changed, which
+  also corrects actor_target_relationship_think and actor_target_update_tracking_speed.
+- CORRECTED header: segment3d_within_radius_of_segment takes a_start on the stack (not EAX).
+- VERIFIED -> 0.85: physics_shape_pill_test_ray (biped capsule: rules out bullets passing through the player),
+  player_compute_view_forward_vector, structure_leaf_faces_for_each, path_find_push_start_node,
+  object_get_root_parent_placement, hud_update_dispatch, actor_scan_backup_and_panic_reaction and ~20 small AI helpers
+  (burst, target engagement, flank grading, grenade throw / trajectory, mode transition loop, orders, comms, search).
