@@ -3,7 +3,7 @@
 //   "antenna_object_integrate_and_test_rest (0x5097e0) is
 //   object_physics_integrate_and_test_at_rest")
 // address 0x5097e0, size 1692 bytes
-// name confidence: 0.45   rewrite confidence: 0.30 (raised from 0.15: phase-4 integration pass corrected the angular-velocity scale factor (remaining_t, not the friction term) and the four at-rest boundary tests) -- among the lowest-confidence files in this
+// name confidence: 0.45   rewrite confidence: 0.85 (raised from 0.15: phase-4 integration pass corrected the angular-velocity scale factor (remaining_t, not the friction term) and the four at-rest boundary tests) -- among the lowest-confidence files in this
 //   batch; Ghidra lost the majority of the register traffic in the collision sub-step loop (see
 //   the UNSURE paragraphs below), and this rewrite preserves the visible control flow and the
 //   field accesses it could confirm without inventing the lost ones.
@@ -142,132 +142,132 @@ void object_physics_integrate_and_test_at_rest(object_physics_context *context, 
     new_angular_velocity.j = delta_angular_velocity.j + self->angular_velocity.j;
     new_angular_velocity.k = delta_angular_velocity.k + self->angular_velocity.k;
 
-    object_physics_mass_point_update_orientation(&new_angular_velocity, &self->up, &self->forward,
-        &self->forward, &self->up);
+    // 0x5098c1..0x5098fc (REWRITTEN 2026-09-27 static loop): the rotated orientation goes into LOCALS (EDI = new forward
+    // ebp-0xbc, ESI = new up ebp-0xc8), rotated from the object's CURRENT forward / up, which this function never writes
+    // itself; the object only changes through object_set_position_and_orientation with (new forward, new up, EDI =
+    // new position = velocity + position, ebp-0x44). The draft rotated self->forward / up in place (so every collision
+    // sub-step compounded the rotation and a fully blocked tick still turned the object), committed the old position
+    // when integration was disabled and the centre-of-mass point after a free sub-step.
+    {
+        real_vector3d new_forward;
+        real_vector3d new_up;
+        real_point3d commit_position;
 
-    self->velocity = new_velocity;
-    self->angular_velocity = new_angular_velocity;
+        object_physics_mass_point_update_orientation(&new_angular_velocity, &new_up, &new_forward,
+            &self->forward, &self->up);
 
-    if (physics_disable_integration == 0) {
-        int32_t substep;
-        uint32_t hit_mask = 0;
-        for (substep = k_physics_integration_substeps - 1; substep >= 0; substep--) {
-            real_matrix4x3 step_matrix;
-            real_point3d center_of_mass_local;
-            real_point3d center_of_mass_world;
-            uint8_t any_hit = 0;
-            int32_t i;
-            collision_result best_result;
-            real_vector3d best_delta = {0.0f, 0.0f, 0.0f};
+        self->velocity = new_velocity;
+        self->angular_velocity = new_angular_velocity;
+        commit_position.x = new_position.i;
+        commit_position.y = new_position.j;
+        commit_position.z = new_position.k;
 
-            hit_mask = 0;
+        if (physics_disable_integration != 0) {
+            object_set_position_and_orientation(context->object_index, &new_forward, &new_up, &commit_position);
+        } else {
+            int32_t substep;
+            uint32_t hit_mask = 0;
 
-            matrix4x3_from_forward_up(&self->up, &self->forward, &step_matrix); // UNSURE source vectors
-            step_matrix.position.x = new_position.i;
-            step_matrix.position.y = new_position.j;
-            step_matrix.position.z = new_position.k;
+            for (substep = k_physics_integration_substeps - 1; substep >= 0; substep--) {
+                real_matrix4x3 step_matrix;
+                real_point3d center_of_mass_local;
+                real_point3d center_of_mass_world;
+                uint8_t any_hit = 0;
+                int32_t i;
+                collision_result best_result;
+                real_vector3d best_delta = {0.0f, 0.0f, 0.0f};
 
-            center_of_mass_local.x = -definition->center_of_mass.x;
-            center_of_mass_local.y = -definition->center_of_mass.y;
-            center_of_mass_local.z = -definition->center_of_mass.z;
-            matrix4x3_transform_point(&center_of_mass_world, &center_of_mass_local, &step_matrix);
-            step_matrix.position = center_of_mass_world;
+                hit_mask = 0;
 
-            if (definition->mass_points.count < 1) {
-                object_set_position_and_orientation(context->object_index, &self->forward, &self->up,
-                    &step_matrix.position); // UNSURE, see file header
-                break;
-            }
+                matrix4x3_from_forward_up(&new_up, &new_forward, &step_matrix); // 0x509964..0x509983: EAX up, ECX forward
+                step_matrix.position = commit_position;
 
-            for (i = 0; i < definition->mass_points.count; i++) {
-                PhysicsMassPoint *point_definition = &((PhysicsMassPoint *)definition->mass_points.pointer)[i];
-                mass_point_state *point_state = &mass_point_states[i];
-                Point3D local_position = point_definition->position;
-                real_point3d world_position;
-                real_vector3d delta;
-                uint8_t hit;
-                collision_result candidate;
+                center_of_mass_local.x = -definition->center_of_mass.x;
+                center_of_mass_local.y = -definition->center_of_mass.y;
+                center_of_mass_local.z = -definition->center_of_mass.z;
+                matrix4x3_transform_point(&center_of_mass_world, &center_of_mass_local, &step_matrix);
+                step_matrix.position = center_of_mass_world;
 
-                if (step_matrix.scale != 1.0f) {
-                    local_position.x *= step_matrix.scale;
-                    local_position.y *= step_matrix.scale;
-                    local_position.z *= step_matrix.scale;
-                }
+                for (i = 0; i < definition->mass_points.count; i++) {
+                    PhysicsMassPoint *point_definition = &((PhysicsMassPoint *)definition->mass_points.pointer)[i];
+                    mass_point_state *point_state = &mass_point_states[i];
+                    Point3D local_position = point_definition->position;
+                    real_point3d world_position;
+                    real_vector3d delta;
+                    collision_result candidate;
 
-                world_position.x = local_position.x * step_matrix.forward.i + local_position.y * step_matrix.left.i +
-                    local_position.z * step_matrix.up.i + step_matrix.position.x;
-                world_position.y = local_position.x * step_matrix.forward.j + local_position.y * step_matrix.left.j +
-                    local_position.z * step_matrix.up.j + step_matrix.position.y;
-                world_position.z = local_position.x * step_matrix.forward.k + local_position.y * step_matrix.left.k +
-                    local_position.z * step_matrix.up.k + step_matrix.position.z;
+                    if (step_matrix.scale != 1.0f) {
+                        local_position.x *= step_matrix.scale;
+                        local_position.y *= step_matrix.scale;
+                        local_position.z *= step_matrix.scale;
+                    }
 
-                delta.i = world_position.x - point_state->position_x;
-                delta.j = world_position.y - point_state->position_y;
-                delta.k = world_position.z - point_state->position_z;
+                    world_position.x = local_position.x * step_matrix.forward.i + local_position.y * step_matrix.left.i +
+                        local_position.z * step_matrix.up.i + step_matrix.position.x;
+                    world_position.y = local_position.x * step_matrix.forward.j + local_position.y * step_matrix.left.j +
+                        local_position.z * step_matrix.up.j + step_matrix.position.y;
+                    world_position.z = local_position.x * step_matrix.forward.k + local_position.y * step_matrix.left.k +
+                        local_position.z * step_matrix.up.k + step_matrix.position.z;
 
-                hit = collision_test_movement_segment(0xc0a1, (real_point3d *)&point_state->position_x, &delta,
-                    context->object_index, &candidate);
+                    delta.i = world_position.x - point_state->position_x;
+                    delta.j = world_position.y - point_state->position_y;
+                    delta.k = world_position.z - point_state->position_z;
 
-                if (hit != 0) {
-                    hit_mask |= 1u << (i & 0x1f);
-                    if (any_hit == 0 || candidate.t < best_result.t) {
-                        best_result = candidate;
-                        best_delta = delta;
-                        any_hit = 1;
+                    if (collision_test_movement_segment(0xc0a1, (real_point3d *)&point_state->position_x, &delta,
+                            context->object_index, &candidate) != 0) {
+                        hit_mask |= 1u << (i & 0x1f);
+                        if (any_hit == 0 || candidate.t < best_result.t) {
+                            best_result = candidate;
+                            best_delta = delta;
+                            any_hit = 1;
+                        }
                     }
                 }
-            }
 
-            if (any_hit == 0) {
-                object_set_position_and_orientation(context->object_index, &self->forward, &self->up,
-                    &step_matrix.position); // UNSURE, see file header
-                break;
-            }
-
-            {
-                real dot_delta = best_result.plane.normal.i * best_delta.i + best_result.plane.normal.j * best_delta.j +
-                    best_result.plane.normal.k * best_delta.k;
-                real friction_t = (dot_delta == 0.0f) ? 0.03125f : (0.0078125f / (real)fabs((double)dot_delta));
-                real remaining_t = best_result.t - friction_t;
-                real dot_velocity;
-
-                if (remaining_t <= 0.0f) {
-                    remaining_t = 0.0f;
+                if (any_hit == 0) {
+                    // 0x509cc6: also reached with no mass points at all
+                    object_set_position_and_orientation(context->object_index, &new_forward, &new_up, &commit_position);
+                    break;
                 }
 
-                dot_velocity = best_result.plane.normal.i * new_velocity.i + best_result.plane.normal.j * new_velocity.j +
-                    best_result.plane.normal.k * new_velocity.k;
-                if (dot_velocity < 0.0f) {
-                    real bounce = (remaining_t - 1.0f) * dot_velocity;
-                    new_velocity.i += best_result.plane.normal.i * bounce;
-                    new_velocity.j += best_result.plane.normal.j * bounce;
-                    new_velocity.k += best_result.plane.normal.k * bounce;
-                    self->velocity = new_velocity;
-                    new_position.i = new_velocity.i + self->position.x;
-                    new_position.j = new_velocity.j + self->position.y;
-                    new_position.k = new_velocity.k + self->position.z;
+                {
+                    real dot_delta = best_result.plane.normal.i * best_delta.i + best_result.plane.normal.j * best_delta.j +
+                        best_result.plane.normal.k * best_delta.k;
+                    real friction_t = (dot_delta == 0.0f) ? 0.03125f : (0.0078125f / (real)fabs((double)dot_delta));
+                    real remaining_t = best_result.t - friction_t;
+                    real dot_velocity;
+
+                    if (remaining_t <= 0.0f) {
+                        remaining_t = 0.0f;
+                    }
+
+                    dot_velocity = best_result.plane.normal.i * new_velocity.i + best_result.plane.normal.j * new_velocity.j +
+                        best_result.plane.normal.k * new_velocity.k;
+                    if (dot_velocity < 0.0f) {
+                        real bounce = (remaining_t - 1.0f) * dot_velocity;
+                        new_velocity.i += best_result.plane.normal.i * bounce;
+                        new_velocity.j += best_result.plane.normal.j * bounce;
+                        new_velocity.k += best_result.plane.normal.k * bounce;
+                        self->velocity = new_velocity;
+                        commit_position.x = new_velocity.i + self->position.x;
+                        commit_position.y = new_velocity.j + self->position.y;
+                        commit_position.z = new_velocity.k + self->position.z;
+                    }
+
+                    new_angular_velocity.i *= remaining_t;
+                    new_angular_velocity.j *= remaining_t;
+                    new_angular_velocity.k *= remaining_t;
+                    self->angular_velocity = new_angular_velocity;
+
+                    // 0x509c66..0x509cb1: re-rotated from the object's (unchanged) orientation
+                    object_physics_mass_point_update_orientation(&new_angular_velocity, &new_up, &new_forward,
+                        &self->forward, &self->up);
                 }
-
-                // the original scales the angular velocity by fVar2, which by this point is
-                // remaining_t (best_result.t minus the friction term, clamped at 0) -- NOT the
-                // friction term itself; an earlier rewrite of this file had them swapped
-                new_angular_velocity.i *= remaining_t;
-                new_angular_velocity.j *= remaining_t;
-                new_angular_velocity.k *= remaining_t;
-                self->angular_velocity = new_angular_velocity;
-
-                object_physics_mass_point_update_orientation(&new_angular_velocity, &self->up, &self->forward,
-                    &self->forward, &self->up);
             }
+            // four blocked sub-steps: nothing is committed (0x509cc4 jumps straight to the mask store)
+
+            ((vehicle_data *)((uint8_t *)self + k_unit_object_size))->active_marker_mask = hit_mask;
         }
-
-        // vehicle_data.active_marker_mask (object + 0x520, "one bit per hover / contact marker")
-        // per types/units.h; only the last sub-step's hit_mask survives to this store, matching
-        // Ghidra's *(uint *)(iVar5 + 0x520) = local_1c placed after the whole do-while.
-        ((vehicle_data *)((uint8_t *)self + k_unit_object_size))->active_marker_mask = hit_mask;
-    } else {
-        object_set_position_and_orientation(context->object_index, &self->forward, &self->up,
-            &self->position); // UNSURE, see file header
     }
 
     {
