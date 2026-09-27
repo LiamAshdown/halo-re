@@ -1,7 +1,7 @@
 // point_physics_tick  (Ghidra: FUN_0050b530, still unnamed there; named "point_physics" by
 //   types/physics.h's own section header for this exact address)
 // address 0x50b530, size 1195 bytes
-// name confidence: 0.45   rewrite confidence: 0.45 (raised by the phase-4 integration pass after
+// name confidence: 0.45   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x50b530..0x50b9d9 section by section (arguments, medium, wind nudge, gravity, drag clamp, collision flags, 3-bounce loop); offsets probed) (raised by the phase-4 integration pass after
 //   the bounce-loop exits were corrected; see the note below)
 // evidence: types/physics.h's dedicated "PointPhysics tag drives 0x0050b530 entirely through
 //   named fields" note gives every param_2[N] field name directly (flags +0x00, mass_scale
