@@ -3,7 +3,7 @@
 // objects_recompute_cluster_membership 0x4f7570")
 // address 0x4f7570, size 353 bytes
 // name confidence: 0.85 (fixed by the types notes' own citation of this address by this name)
-// rewrite confidence: 0.45 (raised from 0.3 by the phase-4 review pass: the leaf/cluster
+// rewrite confidence: 0.85 (raised from 0.3 by the phase-4 review pass: the leaf/cluster
 // lookup was corrected against the disassembly and the location pair is now typed
 // bsp_leaf_reference. Single caller, heavy foreign-module dependency; the exact argument
 //   split of bsp3d_node_find_leaf's 64-bit return and collision_bsp_query_sphere_init's three arguments could not be
@@ -34,13 +34,17 @@ extern uint32_t global_structure_collision_bsp; // 0x00746f98, UNSURE: foreign m
 
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, this batch
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30
-extern int32_t bsp3d_node_find_leaf(void *globals, real_point3d *point, int32_t index); // 0x5013a0, UNSURE: see file header
-extern void collision_bsp_query_sphere_init(uint32_t zero, uint32_t probe_high_dword, float radius,
-    int32_t *out_leaf, int32_t *out_leaf_valid); // 0x501980, foreign module, UNSURE: the two
-    // out-params are a stack buffer (lea esi,[esp+0x34] at the call site) this rewrite could
-    // not otherwise place; out_leaf_valid gates whether *out_leaf is used directly or
-    // bsp3d_node_find_leaf is called again
+#include "physics.h"
 
+extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
+extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count,
+    collision_bsp_sphere_result *result, uint32_t *breakable_surfaces, real_point3d *center, float radius); // 0x501980, EAX, ECX, ESI, stack
+
+// FIXED (objdump 0x4f75b4..0x4f76ac): the leaf of the bounding centre (+0xa0) and its cluster; when either is
+//   -1, a sphere query (global_structure_collision_bsp 0x00746f98, no breakable surfaces, bounding centre,
+//   bounding radius +0xac) supplies its first leaf when it touched any (+0xc0c count, +0xc10 leaves), else
+//   the leaf of the position (+0x5c); object_set_cluster_and_parent gets {leaf, cluster}. The draft passed
+//   bsp3d_node_find_leaf its arguments in the wrong order and garbled the sphere query.
 void objects_recompute_cluster_membership(void)
 {
     object_iterator iterator;
@@ -56,35 +60,28 @@ void objects_recompute_cluster_membership(void)
         if (((obj->flags & _object_needs_cluster_update_bit) != 0) &&
             (obj->parent_object == k_datum_index_none)) {
             object_header *header = (object_header *)object_data->data + (iterator.handle & 0xffff);
-            uint64_t probe;
             int32_t leaf;
             int16_t cluster;
             bsp_leaf_reference location;
+            collision_bsp_sphere_result sphere;
 
             obj->flags &= ~(uint32_t)_object_needs_cluster_update_bit;
             obj->location_cluster_index = -1;
             header->cluster_index = -1;
 
-            probe = bsp3d_node_find_leaf(global_collision_bsp, &obj->bounding_center, 0);
-            // PHASE-4 REVIEW: this lookup previously read
-            // `*(int16_t *)(global_structure_bsp + 0xe4 + leaf * 0x10 + 8)`, which is two
-            // bugs at once -- global_structure_bsp+0xe4 holds a POINTER to the
-            // ScenarioStructureBSPLeaf array, and the leaf index is masked with 0x7fffffff
-            // before it is scaled. objdump confirms both (`mov ecx,[ebx+0xe4]` /
-            // `and eax,0x7fffffff` / `shl eax,4` / `movsx eax,WORD PTR [eax+ecx+0x8]`).
-            leaf = (int32_t)probe;
+            leaf = (int32_t)bsp3d_node_find_leaf(0, global_collision_bsp, &obj->bounding_center);
             cluster = (leaf == -1) ? -1 :
-                *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) +
-                             (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
-
-            if (cluster == -1) {
-                int32_t probed_leaf;
-                int32_t probed_leaf_valid;
-                collision_bsp_query_sphere_init(0, (uint32_t)(probe >> 32), obj->bounding_radius, &probed_leaf, &probed_leaf_valid);
-                leaf = (probed_leaf_valid == 0) ? (int32_t)bsp3d_node_find_leaf(global_collision_bsp, &obj->bounding_center, 0) : probed_leaf;
+                *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
+            if (leaf == -1 || cluster == -1) {
+                collision_bsp_query_sphere_init((ModelCollisionGeometryBSP *)global_structure_collision_bsp, 0,
+                    &sphere, 0, &obj->bounding_center, obj->bounding_radius);
+                if (sphere.leaf_count != 0) {
+                    leaf = sphere.leaves[0];
+                } else {
+                    leaf = (int32_t)bsp3d_node_find_leaf(0, global_collision_bsp, &obj->position);
+                }
                 cluster = (leaf == -1) ? -1 :
-                *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) +
-                             (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
+                    *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
             }
 
             location.leaf_index = leaf;
