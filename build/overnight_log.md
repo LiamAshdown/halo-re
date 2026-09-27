@@ -1743,3 +1743,7 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - weapon_reload_recovery_finish plays the tag's overheat_detonation (+0x390) instead of -1 before deleting.
   - Verified 0.9: weapon_magazine_begin_chamber, weapon_trigger_become_charged, weapon_stop_object_effect.
 - Verified 0.9-0.95: unit_get_primary/secondary_eye_marker_position, object_new, unit_reset_light_effect, object_dispatch_effect_notify, physics_scalar_step_to_target_clamped, physics_scalar_move_toward_target (blam-cc: range is in ESI).
+- effect_compute_spawn_basis (0x451930) rewritten to the real (AX index, EBX context, stack out) convention. It duplicates effect_marker_from_node_table.c (same address, 0.9), so both resolutions are now correct.
+- object_collision_test_cluster_group: added the 0x7fffffff leaf mask; verified 0.9. Note: 0x746f98 and 0x746f90 are always written with the same collision BSP, so the C files that use 0x746f98 are fine.
+- Duplicate-address files verified equivalent (0.95): object_resolve_collideable_reference, object_disconnect_from_map.
+- Noted, not fixed: object_collect_local_player_relevant_objects (0x4fa1a0) is really one function spanning 0x4fa1a0..0x4fa39e (EDX point; stack filter, out, max, context), and 0x4fa280 is not a separate function. Its only caller is the MP nameplate path (gated on current_game_engine), so it's skipped.

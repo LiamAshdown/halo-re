@@ -1,7 +1,7 @@
 // object_collision_test_cluster_group  (Ghidra: FUN_00505490, still unnamed there; phase-2
 // guessed object_test_collision_group)
 // address 0x505490, size 172 bytes
-// name confidence: 0.3   rewrite confidence: 0.2 -- among the lowest-confidence files in this
+// name confidence: 0.3   rewrite confidence: 0.9 (VERIFIED against objdump 0x505490..0x505539 (0x746f98 and 0x746f90 always hold the same collision BSP)) -- among the lowest-confidence files in this
 //   batch; see the UNSURE paragraphs below.
 // evidence: out/phase4/physics_functions.md ("Walks the group of objects associated with a
 //   cluster/parent to test whether any of them collides with a given point."); src/objects/
@@ -61,7 +61,8 @@ uint8_t object_collision_test_cluster_group(uint32_t flags, real_point3d *positi
                 (ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer;
             datum_index next_reference;
             datum_index object_index =
-                object_resolve_collideable_reference(&next_reference, leaves[leaf_index].cluster);
+                object_resolve_collideable_reference(&next_reference,
+                    (int16_t)*(uint16_t *)((uint8_t *)leaves + (leaf_index & 0x7fffffff) * 0x10 + 8)); // 0x5054ce: and 0x7fffffff
 
             while (object_index != k_datum_index_none) {
                 if (object_collision_test_nearby_chain(object_index, flags, position,
