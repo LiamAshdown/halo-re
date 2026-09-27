@@ -1,5 +1,5 @@
 // unit_detach_reposition_and_nudge  (Ghidra: FUN_0056ca40)
-// address 0x56ca40, size 459 bytes, name confidence 0.2, rewrite confidence 0.2
+// address 0x56ca40, size 459 bytes, name confidence 0.2, rewrite confidence 0.9 (REWRITTEN from objdump)
 // functions.md's summary ("Smoothly steers the unit's stored aim/look direction toward a target
 // position each tick") does not match this function's actual field accesses -- it operates on
 // object.position (0x5c) and object.velocity (0x68), not unit_data.aiming_vector (0x23c) or
@@ -24,60 +24,70 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern void object_get_position(real_point3d *out, uint32_t object_index);          // 0x4f6900
-extern real vector3d_normalize_with_length(real_vector3d *v);                       // 0x401990
-extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);                                      // 0x4f6610, UNSURE signature
-extern void scenario_structure_bsp_locate_point_nudge_up(uint32_t unit_index);                                      // 0x53e870, UNSURE signature
-extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);          // 0x4f5de0, UNSURE signature
-extern void object_recalculate_bounding_radius(uint32_t object_index);              // 0x4f8310, UNSURE signature
-extern void object_set_cluster_and_parent(uint32_t object_index);                   // 0x4f5c30, UNSURE signature  // real signature (object_set_cluster_and_parent.c): void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); Ghidra recovered 1 of 2 args at this call site
-extern void object_for_each_light_attachment(uint32_t object_index, uint32_t flag); // 0x4f9a20, UNSURE signature  // real signature (object_for_each_light_attachment.c): void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback); Ghidra recovered 2 of 3 args at this call site
+extern void object_get_position(real_point3d *out, uint32_t object_index);          // 0x4f6900, EAX, ECX
+extern real vector3d_normalize_with_length(real_vector3d *v);                       // 0x401990, ECX
+extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);         // 0x4f6610, stack
+extern uint8_t scenario_structure_bsp_locate_point_nudge_up(real_point3d *point);   // 0x53e870, EDX
+extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);          // 0x4f5de0, EAX
+extern void object_recalculate_bounding_radius(uint32_t object_index);              // 0x4f8310, stack
+extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30, stack
+extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table,
+    int32_t invoke_callback); // 0x4f9a20, EAX, stack
 
-void unit_detach_reposition_and_nudge(uint32_t unit_index) // blam-cc: unaff_EDI
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+
+// REWRITTEN from objdump 0x56ca40..0x56cc0a. EDI: unit. A unit with a parent is pushed away from it: the direction
+//   from the parent's position to the unit's (else the unit's forward) times 0.02 is added to its velocity after it
+//   is detached (0x4f6610), its position nudged up onto the structure (0x53e870 on a copy) and relinked; it drops
+//   unit +0x204 bit 15 and object bit 5, sets +0x474, and its lights are reattached. The draft read the unit's own
+//   position twice (no push), handed the unit index to the point nudge as a pointer and discarded the nudge.
+void unit_detach_reposition_and_nudge(uint32_t unit_index) // blam-cc: EDI -> unit_index
 {
-    object *self_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    if (self_obj->parent_object == k_datum_index_none) {
+    uint8_t *self = OBJECT_DATA(unit_index);                                       // esi
+    real_point3d parent_position;                                                   // [esp+0x28]
+    real_point3d position;                                                          // [esp+0x1c]
+    real_vector3d push;                                                             // [esp+0x10]
+    uint8_t *object;
+    uint8_t *tag;
+
+    if (*(datum_index *)(self + 0x11c) == k_datum_index_none) {
         return;
     }
-
-    real_point3d a, b;
-    object_get_position(&a, unit_index);
-    object_get_position(&b, unit_index); // UNSURE: second target object not recovered
-    real_vector3d dir = { b.x - a.x, b.y - a.y, b.z - a.z };
-    float len = vector3d_normalize_with_length(&dir);
-    if (len == 0.0f) {
-        dir = self_obj->forward;
+    object_get_position(&parent_position, *(datum_index *)(self + 0x11c));
+    object_get_position(&position, unit_index);
+    push.i = position.x - parent_position.x;
+    push.j = position.y - parent_position.y;
+    push.k = position.z - parent_position.z;
+    if (vector3d_normalize_with_length(&push) == 0.0f) {
+        push = *(real_vector3d *)(self + 0x74);
     }
-
+    push.i = push.i * 0.02f;
+    push.j = push.j * 0.02f;
+    push.k = push.k * 0.02f;
     object_snap_to_parent_marker_and_detach(unit_index);
-    real_point3d saved_position = self_obj->position;
-    scenario_structure_bsp_locate_point_nudge_up(unit_index);
-    self_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+    position = *(real_point3d *)(self + 0x5c);
+    scenario_structure_bsp_locate_point_nudge_up(&position);
+    object = OBJECT_DATA(unit_index);
     object_unlink_cluster_or_notify_parent(unit_index);
-    self_obj->position = saved_position;
+    *(real_point3d *)(object + 0x5c) = position;
     object_recalculate_bounding_radius(unit_index);
-    object_set_cluster_and_parent(unit_index);
-
-    unit_data *unit = (unit_data *)((uint8_t *)self_obj + k_unit_data_offset);
-    unit->flags &= 0xffff7fff;
-    self_obj->flags &= 0xffffffdf;
-    unit->unknown_474 = 1;
-    self_obj->velocity.i = dir.i * 0.020000001f + self_obj->velocity.i;
-    self_obj->velocity.j = dir.j * 0.020000001f + self_obj->velocity.j;
-    self_obj->velocity.k = dir.k * 0.020000001f + self_obj->velocity.k;
-
-    // NOTE: original re-fetches the object here through the header/tag lookup a second time;
-    // we already hold `self_obj`, so the tag lookup below reuses it directly.
-    Object *self_def = (Object *)tag_instances[self_obj->definition_tag & 0xffff].data;
-    if ((*(uint32_t *)&self_def->model.tag_id != 0xffffffff) && ((self_obj->flags & 1) != 0)) {
-        object_for_each_light_attachment(unit_index, 1);
+    object_set_cluster_and_parent(unit_index, 0);
+    *(uint32_t *)(self + 0x204) &= 0xffff7fffu;
+    *(uint32_t *)(self + 0x10) &= 0xffffffdfu;
+    self[0x474] = 1;
+    *(float *)(self + 0x68) = push.i + *(float *)(self + 0x68);
+    *(float *)(self + 0x6c) = push.j + *(float *)(self + 0x6c);
+    *(float *)(self + 0x70) = push.k + *(float *)(self + 0x70);
+    object = OBJECT_DATA(unit_index);
+    tag = (uint8_t *)tag_instances[*(datum_index *)object & 0xffff].data;
+    if (*(int32_t *)(tag + 0x34) != -1 && (object[0x10] & 1)) {
+        object_for_each_light_attachment(unit_index, 0, 1);
     }
-    if (*(uint32_t *)&self_def->model.tag_id != 0xffffffff) {
-        self_obj->flags &= ~1u;                          // object + 0x10, bit 0
+    if (*(int32_t *)(tag + 0x34) != -1) {
+        *(uint32_t *)(object + 0x10) &= ~1u;
         ((object_header *)object_data->data)[unit_index & 0xffff].flags |= 0x02;
     }
     object_recalculate_bounding_radius(unit_index);
-    return;
 }
 
 #if 0

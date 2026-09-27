@@ -1607,3 +1607,8 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   Runtime check for the user: is the cryo tech driven by a recording (recorded_animations data array 0x6b0a10) when he
   vanishes, and is his object datum freed (deleted) at that moment?
 - OPEN: actor_update_look_target 0x415480 (0.25, 3896 bytes; AI look/aim control every tick).
+- unit_detach_reposition_and_nudge 0x56ca40 REWRITTEN (0.2 -> 0.9; from unit_release_transient_state): push direction
+  from the PARENT's position (the draft read the unit twice), scenario_structure_bsp_locate_point_nudge_up gets a point
+  copy (the draft passed the unit index as the point pointer -- a garbage write -- and ignored the nudge), light
+  attachments (0, 1).
+- object_nudge_position_by_velocity reviewed: network-prediction only, matches.
