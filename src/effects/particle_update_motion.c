@@ -1,7 +1,7 @@
 // particle_update_motion  (Ghidra: FUN_004561a0, still unnamed there; named directly by
 //   types/effects.h: "particle_update_motion 0x4561a0 (position, velocity, location, flags)")
 // address 0x4561a0, size 929 bytes
-// name confidence: 0.6   rewrite confidence: 0.3 (LOW -- see UNSURE)
+// name confidence: 0.6   rewrite confidence: 0.85 (VERIFIED against objdump 0x4561a0..0x456540; material call FIXED)
 // evidence: types/effects.h particle fields (flags +0x02 incl. _particle_at_rest_bit,
 //   object_index +0x08, location +0x28, position +0x30, velocity +0x48, unknown_3c/0x54/0x58);
 //   types/tags.h Particle (flags bits by enum order: dies_at_rest=0x10,
@@ -103,15 +103,14 @@ uint8_t particle_update_motion(datum_index particle_handle, real delta_time)
                     particle_impact_response_dispatch(self, *(tag_group *)&tag->collision_effect.tag_fourcc,
                         *(datum_index *)&tag->collision_effect.tag_id, speed);
                 }
-                if (*(uint32_t *)&tag->sir_marty_exchanged_his_children_for_thine.tag_id != 0u &&
+                // 0x4562e5..0x45630f: the inner test is against -1 (the outer one above is against 0), and EDI
+                //   is the collision normal
+                if (*(uint32_t *)&tag->sir_marty_exchanged_his_children_for_thine.tag_id != 0xffffffffu &&
                     any_local_player_within_10_units(&self->position) != 0) {
-                    real_vector3d zero_offset = {0.0f, 0.0f, 0.0f};
-
                     material_effects_play_at_marker(
                         *(uint32_t *)&tag->sir_marty_exchanged_his_children_for_thine.tag_id,
                         8, out_material_type, (uint32_t *)&self->location,
-                        *(uint32_t *)&speed, &self->position, &zero_offset); // UNSURE: material_type
-                                    // literal 8 and offset vector are best-effort, see file header
+                        *(uint32_t *)&speed, &self->position, &out_normal);
                 }
             }
             if ((tag->flags & 0x20) != 0) { // dies_on_contact_with_structure

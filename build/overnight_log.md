@@ -1736,3 +1736,5 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - chimera__spectate_fp_camera_position verified 0.85.
 - particle_impact_response_dispatch (0x4565a0) REWRITTEN 0.15 -> 0.85: takes the particle (EAX), fourcc (ECX), tag index (ESI) and intensity (stack). The 'effe' path spawns with {velocity, gravity} vectors at the particle position; the 'snd!' path plays at a full sound_placement. The draft spawned an effect with definition -1 at a NULL position and played a sound with a NULL placement.
   - Callers fixed: particle_impact passes death_effect (+0x58/+0x64); particle_update_motion passes collision_effect (+0x48/+0x54), where it previously passed fourcc 0, a no-op.
+- particle_update_motion (0x4561a0) verified, 0.3 -> 0.85. The material_effects call is now gated on tag id != -1 (it was != 0, so particles without material effects played tag -1 near the player) and passes the collision normal as the offset (it was zero).
+- particle_impact verified 0.9.

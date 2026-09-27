@@ -2,7 +2,7 @@
 //   out/phase4/effects_functions.md: "Triggers a particle's impact effect if one is defined,
 //   otherwise deletes the particle")
 // address 0x456550, size 78 bytes
-// name confidence: 0.5   rewrite confidence: 0.4
+// name confidence: 0.5   rewrite confidence: 0.9 (VERIFIED against objdump 0x456550..0x45659e)
 // evidence: types/tags.h Particle.death_effect (TagDependency, tag_id lands at +0x64 in the raw
 //   disassembly, matching the struct layout Particle.flags(0x00) + bitmap(0x04) + physics(0x14)
 //   + material_effects(0x24) + pad(0x34) + lifespan(0x38) + fade_in/out(0x40/0x44) +
