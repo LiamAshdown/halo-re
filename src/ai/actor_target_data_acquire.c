@@ -1,6 +1,8 @@
 // actor_target_data_acquire  (Ghidra: actor_target_data_acquire; named from out/phase2/results/ai_02.json)
 // address 0x41f7d0, size 512 bytes
-// name confidence: 0.45   rewrite confidence: 0.2
+// name confidence: 0.45   rewrite confidence: 0.9
+// REWRITTEN from objdump 0x41f7d0..0x41f9cf: the second argument is the object (EAX of 0x43eb30, which the
+//   draft passed as the actor); the copy is (EAX pair, ECX pair_reference); 0x41fc60 gets (EAX actor, EDI prop).
 // evidence: out/phase2/results/ai_02.json -- resolves or creates the prop (target-data record)
 //   for an object via actor_find_or_create_shared_prop/actor_allocate_paired_prop/actor_allocate_paired_prop_with_kind (out/phase4/ai_functions.md calls
 //   these "firing-position node" helpers, but they operate on prop_data's 0x138 stride, so they
@@ -24,88 +26,89 @@
 
 extern data_array *prop_data; // 0x008802c0
 
-extern datum_index actor_find_or_create_shared_prop(datum_index actor_index, uint32_t flag_a, uint32_t flag_b); // 0x43eb30, UNSURE signature
-extern datum_index actor_allocate_paired_prop(uint32_t actor_index, datum_index prop_index);        // 0x43e910, UNSURE signature
-extern datum_index actor_allocate_paired_prop_with_kind(uint32_t actor_index, datum_index prop_index, datum_index pair_reference); // 0x43e980, UNSURE signature
-extern void actor_copy_prop_and_reset(void); // 0x43e840, UNSURE signature, no traced args
-
-extern void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index, void *reference, char force, char allow_reassign); // 0x41c4b0, this batch, UNSURE signature
-extern void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target_prop_index, void *scratch); // 0x41c8f0, this batch, UNSURE signature
-extern uint8_t actor_target_update_active_flag(void); // 0x41fc60, UNSURE signature
+extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index,
+    uint8_t create_if_missing, uint8_t flag); // 0x43eb30, EAX, stack
+extern datum_index actor_allocate_paired_prop(datum_index actor_index, datum_index existing_prop); // 0x43e910
+extern datum_index actor_allocate_paired_prop_with_kind(datum_index actor_index, datum_index existing_prop,
+    datum_index reference_prop); // 0x43e980
+extern void actor_copy_prop_and_reset(datum_index dest_prop, datum_index src_prop); // 0x43e840, EAX, ECX
+extern void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index, void *reference, char force,
+    char allow_reassign); // 0x41c4b0
+extern void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target_prop_index,
+    void *scratch); // 0x41c8f0
+extern uint8_t actor_target_update_active_flag(datum_index actor_index, datum_index target_prop_index); // 0x41fc60, EAX, EDI
 extern float actor_rate_potential_target(datum_index actor_index, datum_index target_prop_index); // 0x41fd50
 
-// blam-cc: stack -> actor_index, unused_param, owner_reference, pair_reference
-// Finds (creating if necessary) the prop (target-data record) for a given object and refreshes
-// its tracking information, transferring ownership between squad members as needed. Returns 1
-// on most paths; 0 only when allocation genuinely failed.
-uint8_t actor_target_data_acquire(uint32_t actor_index, uint32_t unused_param, int32_t owner_reference, uint32_t pair_reference)
+#define PROP(h) ((prop *)((uint8_t *)prop_data->data + ((h) & 0xffff) * sizeof(prop)))
+
+// blam-cc: stack -> actor_index, object_index, owner_reference, pair_reference
+uint8_t actor_target_data_acquire(datum_index actor_index, datum_index object_index, datum_index owner_reference,
+                                  datum_index pair_reference)
 {
-    uint8_t result;
+    uint8_t result = 1;
     datum_index resolved;
+    datum_index current;
     prop *target;
-    prop *paired;
-    datum_index new_prop;
-    uint8_t scratch[56];
+    uint8_t scratch[0x30]; // [esp+0x20]
 
-    (void)unused_param;
-    result = 1;
-
-    resolved = actor_find_or_create_shared_prop(actor_index, 1, 0);
+    resolved = actor_find_or_create_shared_prop(object_index, actor_index, 1, 0);
     if (resolved == k_datum_index_none) {
         return 1;
     }
-
-    target = (prop *)((uint8_t *)prop_data->data + (resolved & 0xffff) * sizeof(prop));
-
-    if (target->kind < 2 || 3 < target->kind) {
-        if (target->pair_index == k_datum_index_none) {
-            if (pair_reference == 0xffffffff) {
-                actor_target_data_refresh(actor_index, resolved, scratch, 0, 0);
-                new_prop = actor_allocate_paired_prop(actor_index, resolved);
-            } else {
-                new_prop = actor_allocate_paired_prop_with_kind(actor_index, resolved, pair_reference);
-                if (new_prop != k_datum_index_none) {
-                    paired = (prop *)((uint8_t *)prop_data->data + (new_prop & 0xffff) * sizeof(prop));
-                    paired->object_index = target->object_index;
-                    paired->owner_actor_index = target->owner_actor_index;
-                    paired->has_parent = target->has_parent;
-                }
-            }
-            if (new_prop == k_datum_index_none) {
-                return 0;
-            }
-            target = (prop *)((uint8_t *)prop_data->data + (new_prop & 0xffff) * sizeof(prop));
-        } else {
-            paired = (prop *)((uint8_t *)prop_data->data + (target->pair_index & 0xffff) * sizeof(prop));
-            new_prop = target->pair_index;
-            if (pair_reference == 0xffffffff) {
-                paired->kind = 4;
-                paired->unknown_3c = 0;
-            } else {
-                actor_copy_prop_and_reset();
-                target->object_index = paired->object_index;
-            }
-            actor_target_data_refresh(actor_index, new_prop, scratch, (pair_reference == 0xffffffff), 1);
-            actor_target_update_tracking_speed(actor_index, new_prop, scratch);
-            target = paired;
-        }
-    } else {
+    target = PROP(resolved);
+    current = resolved;
+    if (target->kind >= 2 && target->kind <= 3) {
         result = 0;
-        new_prop = resolved;
-    }
+    } else if (target->pair_index != k_datum_index_none) {
+        // 0x41f84c: already paired; refresh the pair
+        datum_index pair = target->pair_index;
+        prop *paired = PROP(pair);
+        uint8_t fresh = 0;
 
-    if (target != (prop *)0) {
-        if (owner_reference == -1 ||
-            (pair_reference != 0xffffffff &&
-             1 < ((prop *)((uint8_t *)prop_data->data + (pair_reference & 0xffff) * sizeof(prop)))->unknown_32)) {
-            target->unknown_b8 = 1;
-            target->unknown_b0 = 0;
-            target->unknown_b4 = owner_reference;
+        if (pair_reference != k_datum_index_none) {
+            actor_copy_prop_and_reset(pair, pair_reference);
+            target->object_index = paired->object_index;
+        } else {
+            paired->kind = 4;
+            paired->unknown_3c = 0;
+            fresh = 1;
         }
-        target->engaged = actor_target_update_active_flag();
-        target->desirability = actor_rate_potential_target(actor_index, new_prop);
+        actor_target_data_refresh(actor_index, pair, scratch, (char)fresh, 1);
+        actor_target_update_tracking_speed(actor_index, pair, scratch);
+        current = pair;
+        target = PROP(pair);
+    } else {
+        datum_index created;
+
+        if (pair_reference != k_datum_index_none) {
+            created = actor_allocate_paired_prop_with_kind(actor_index, resolved, pair_reference);
+            if (created != k_datum_index_none) {
+                prop *copy = PROP(created);
+
+                copy->object_index = target->object_index;
+                copy->owner_actor_index = target->owner_actor_index;
+                copy->has_parent = target->has_parent;
+            }
+        } else {
+            actor_target_data_refresh(actor_index, resolved, scratch, 0, 0);
+            created = actor_allocate_paired_prop(actor_index, resolved);
+        }
+        if (created == k_datum_index_none) {
+            return 0;
+        }
+        current = created;
+        target = PROP(created);
     }
 
+    // 0x41f960
+    if (owner_reference == k_datum_index_none ||
+        (pair_reference != k_datum_index_none && PROP(pair_reference)->unknown_32 >= 2)) {
+        target->unknown_b8 = 1;
+        target->unknown_b0 = 0;
+        target->unknown_b4 = owner_reference;
+    }
+    target->engaged = actor_target_update_active_flag(actor_index, current);
+    target->desirability = actor_rate_potential_target(actor_index, current);
     return result;
 }
 

@@ -15,7 +15,8 @@
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
 
-extern void actor_target_data_acquire(uint32_t param, datum_index object_index); // 0x41f7d0, UNSURE signature
+extern uint8_t actor_target_data_acquire(datum_index actor_index, datum_index object_index,
+    datum_index owner_reference, datum_index pair_reference); // 0x41f7d0
 
 // blam-cc: ECX -> actor_index, stack -> param
 // If the actor has a target (read as a prop index; see actor_get_target_prop_object_index),
@@ -27,7 +28,8 @@ void actor_forward_target_object_reference(datum_index actor_index, uint32_t par
 
     if (self->target_unit_index != (datum_index)k_datum_index_none) {
         prop *p = &((prop *)prop_data->data)[self->target_unit_index & 0xffff];
-        actor_target_data_acquire(param, p->object_index);
+        // 0x428442: (param, the target's object, this actor, its target prop)
+        actor_target_data_acquire(param, p->object_index, actor_index, self->target_unit_index);
     }
 }
 

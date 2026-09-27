@@ -43,7 +43,8 @@ extern void actor_queue_search_position(datum_index actor_index, real_point3d *p
 extern void actor_queue_search_and_relay_perception(datum_index prop_index, datum_index actor_index); // 0x4221f0
 extern void * datum_get(datum_index handle, data_array *array); // 0x4d0680
 extern int8_t teams_are_enemies(int16_t a, int16_t b); // 0x45bd50, CX/DX
-extern void actor_target_data_acquire(datum_index actor_index, struct object *object, int32_t param_c, int32_t param_d); // 0x41f7d0, not in this rewrite range
+extern uint8_t actor_target_data_acquire(datum_index actor_index, datum_index object_index,
+    datum_index owner_reference, datum_index pair_reference); // 0x41f7d0
 extern void actor_forward_target_object_reference(datum_index actor_index, uint32_t param); // 0x428420, already rewritten in this module
 
 // Variant table paired with the sighted/recognized/directional/danger/flee dialogue families.
@@ -75,10 +76,11 @@ void actor_react_to_seen_target(datum_index actor_index, datum_index target_prop
             int32_t unknown_40 = *(int32_t *)(player + 0x40);      // UNSURE: no established name
             int32_t unknown_44 = *(int32_t *)(player + 0x44);      // UNSURE: no established name
 
-            if (unknown_40 != -1 && (int32_t)game_time->game_time < unknown_44 + 0x5a) {
+            if (unknown_40 != -1 && (int32_t)game_time->game_time <= unknown_44 + 0x5a) { // 0x422f6e: jl exits
                 object *player_unit = ((object_header *)object_data->data)[unknown_40 & 0xffff].data;
                 if (teams_are_enemies(player_unit->owner_team /* UNSURE, see file header */, self->team) != 0) {
-                    actor_target_data_acquire(actor_index, tracked, -1, -1);
+                    // 0x422faf: the player's +0x40 object, not the seen unit
+                    actor_target_data_acquire(actor_index, (datum_index)unknown_40, k_datum_index_none, k_datum_index_none);
                 }
             }
         } else if (unit->actor_index != (datum_index)k_datum_index_none) {

@@ -1335,3 +1335,12 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   test, flee 0x55e2d0 incl. velocity probe and angular-velocity test, ai_reference_face_starting_location).
 - biped_get_cached_look_at_position declared object_get_position with swapped args (fixed).
 - unit_spawn_with_starting_weapons 0x572110 is a network message handler (skipped, MP).
+- NEW static pass: tools/check_prototypes.py (existing) lists extern-vs-definition mismatches; filtered with
+  scratchpad/protocount.py (prototyped externs whose call passes a different arg count) -> 513 sites in the
+  gameplay modules (scratchpad/protocount.txt). Working through the a10-hot ones.
+- AI perception props: actor_allocate_paired_prop 0x43e910 / _with_kind 0x43e980 called datum_new with no array,
+  the prop init without its actor and the copy without operands (fixed, 0.95). actor_target_data_acquire
+  0x41f7d0 REWRITTEN (0.2 -> 0.9): arg 2 is the object (the draft ignored it and looked up the actor as an
+  object); its callers actor_dispatch_squad_order (looked the ordered prop up in actor_data with the owner
+  handle), actor_forward_target_object_reference (passed 2 of 4 args) and actor_react_to_seen_target (passed
+  the seen unit's pointer instead of the player's +0x40 handle; 90-tick window is inclusive) fixed.

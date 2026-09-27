@@ -24,7 +24,8 @@ extern data_array *actor_data; // 0x00880360
 extern void actor_queue_search_and_relay_perception(datum_index prop_index, datum_index actor_index); // 0x4221f0
 extern void actor_scan_ally_death_panic_reaction(datum_index target_prop_index, datum_index actor_index); // 0x4233d0
 extern void * datum_get(datum_index handle, data_array *array); // 0x4d0680
-extern void actor_target_data_acquire(datum_index actor_index, datum_index owner_actor_index); // 0x41f7d0, UNSURE signature
+extern uint8_t actor_target_data_acquire(datum_index actor_index, datum_index object_index,
+    datum_index owner_reference, datum_index pair_reference); // 0x41f7d0
 
 // A caller-owned order record; only the type field at +0x14 is read here.
 
@@ -41,10 +42,16 @@ void actor_dispatch_squad_order(datum_index prop_index, const actor_squad_order_
     if (order->type == 2) {
         actor_queue_search_and_relay_perception(prop_index, actor_index);
     } else if (order->type == 3) {
+        // 0x42a55d: the ordered prop (order +0x18) is looked up in prop_data; its object is acquired with this
+        // prop's owner (+0x1c) and the ordered prop as the pair reference
         prop *p = &((prop *)prop_data->data)[prop_index & 0xffff];
-        if (p->owner_actor_index != (datum_index)k_datum_index_none &&
-            datum_get(p->owner_actor_index, actor_data) != 0) { // UNSURE: array argument not confirmed
-            actor_target_data_acquire(actor_index, p->owner_actor_index);
+        if (p->owner_actor_index != (datum_index)k_datum_index_none) {
+            datum_index ordered = *(datum_index *)((uint8_t *)order + 0x18);
+            prop *other = (prop *)datum_get(ordered, prop_data);
+
+            if (other != 0) {
+                actor_target_data_acquire(actor_index, other->object_index, p->owner_actor_index, ordered);
+            }
         }
     } else if (order->type == 4) {
         actor_scan_ally_death_panic_reaction(prop_index, actor_index);

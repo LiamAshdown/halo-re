@@ -1,6 +1,8 @@
 // actor_allocate_paired_prop_with_kind  (Ghidra: actor_allocate_paired_prop_with_kind, renamed)
 // address 0x43e980, size 146 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.95
+// FIXED from objdump 0x43e980..0x43ea11: datum_new gets the prop array (EDX), the prop init its actor (EAX -1, EDX
+//   the first argument), and the copy is from the reference prop (EAX new, ECX third argument), not argless.
 // evidence: types/ai.h prop.pair_index(+0x0c)/kind(+0x24). phase-4 summary "allocates and
 // links a new firing-position node as the counterpart of an existing one, propagating a
 // bounded type value from a third reference node." Same structure as
@@ -14,35 +16,33 @@
 #include "ai.h"
 
 extern data_array *prop_data; // 0x008802c0
-extern datum_index datum_new(void); // 0x4d0480
-extern void actor_init_prop_from_object(datum_index new_prop); // 0x43e640, see actor_allocate_paired_prop.c
-extern void actor_copy_prop_and_reset(void); // 0x43e840, see actor_allocate_paired_prop.c
+extern datum_index datum_new(data_array *array); // 0x4d0480, EDX
+extern void actor_init_prop_from_object(datum_index object_index, datum_index actor_index,
+                                        datum_index prop_index); // 0x43e640, EAX, EDX, stack
+extern void actor_copy_prop_and_reset(datum_index dest_prop, datum_index src_prop); // 0x43e840, EAX, ECX
 
-// blam-cc: stack -> object_index, existing_prop, reference_prop
-datum_index actor_allocate_paired_prop_with_kind(datum_index object_index, datum_index existing_prop,
+// blam-cc: stack -> actor_index, existing_prop, reference_prop
+datum_index actor_allocate_paired_prop_with_kind(datum_index actor_index, datum_index existing_prop,
                                                  datum_index reference_prop)
 {
-    datum_index new_prop = datum_new();
-    (void)object_index;
+    datum_index new_prop = datum_new(prop_data);
 
-    actor_init_prop_from_object(new_prop);
-
-    if (new_prop == (datum_index)0xffffffff) {
-        return (datum_index)0xffffffff;
+    actor_init_prop_from_object(k_datum_index_none, actor_index, new_prop);
+    if (new_prop == k_datum_index_none) {
+        return k_datum_index_none;
     }
-
     {
         prop *existing = (prop *)((uint8_t *)prop_data->data + (existing_prop & 0xffff) * sizeof(prop));
         prop *created = (prop *)((uint8_t *)prop_data->data + (new_prop & 0xffff) * sizeof(prop));
         prop *reference = (prop *)((uint8_t *)prop_data->data + (reference_prop & 0xffff) * sizeof(prop));
+        int16_t kind;
 
-        actor_copy_prop_and_reset();
-
+        actor_copy_prop_and_reset(new_prop, reference_prop);
         existing->pair_index = new_prop;
         created->pair_index = existing_prop;
-
-        if ((3 < reference->kind) && (reference->kind < 6)) {
-            created->kind = reference->kind;
+        kind = reference->kind;
+        if (kind >= 4 && kind <= 5) {
+            created->kind = kind;
         }
     }
     return new_prop;

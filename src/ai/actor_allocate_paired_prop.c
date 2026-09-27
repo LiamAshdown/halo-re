@@ -1,6 +1,9 @@
 // actor_allocate_paired_prop  (Ghidra: actor_allocate_paired_prop, renamed)
 // address 0x43e910, size 101 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.95
+// FIXED from objdump 0x43e910..0x43e974: the draft called datum_new without the prop array (EDX), the prop init
+//   without its actor (EAX -1, EDX the first argument, which is the actor) and the copy without its operands
+//   (EAX new, ECX existing).
 // evidence: types/ai.h prop.pair_index(+0x0c, "the paired prop allocated by 0x43e910 /
 // 0x43e980"). phase-4 summary "allocates a new firing-position node and links it as the
 // paired counterpart of an existing node." Calls datum_new (established), and
@@ -16,25 +19,22 @@
 #include "ai.h"
 
 extern data_array *prop_data; // 0x008802c0
-extern datum_index datum_new(void); // 0x4d0480
-extern void actor_init_prop_from_object(datum_index new_prop); // 0x43e640, see header UNSURE on the arity mismatch
-extern void actor_copy_prop_and_reset(void); // 0x43e840, see header UNSURE (called here with no visible arguments)
+extern datum_index datum_new(data_array *array); // 0x4d0480, EDX
+extern void actor_init_prop_from_object(datum_index object_index, datum_index actor_index,
+                                        datum_index prop_index); // 0x43e640, EAX, EDX, stack
+extern void actor_copy_prop_and_reset(datum_index dest_prop, datum_index src_prop); // 0x43e840, EAX, ECX
 
-// blam-cc: stack -> object_index, existing_prop
-datum_index actor_allocate_paired_prop(datum_index object_index, datum_index existing_prop)
+// blam-cc: stack -> actor_index, existing_prop
+datum_index actor_allocate_paired_prop(datum_index actor_index, datum_index existing_prop)
 {
-    datum_index new_prop = datum_new();
-    (void)object_index;
+    datum_index new_prop = datum_new(prop_data);
 
-    actor_init_prop_from_object(new_prop);
-
-    if (new_prop != (datum_index)0xffffffff) {
+    actor_init_prop_from_object(k_datum_index_none, actor_index, new_prop);
+    if (new_prop != k_datum_index_none) {
         prop *existing = (prop *)((uint8_t *)prop_data->data + (existing_prop & 0xffff) * sizeof(prop));
-        prop *created;
+        prop *created = (prop *)((uint8_t *)prop_data->data + (new_prop & 0xffff) * sizeof(prop));
 
-        actor_copy_prop_and_reset();
-
-        created = (prop *)((uint8_t *)prop_data->data + (new_prop & 0xffff) * sizeof(prop));
+        actor_copy_prop_and_reset(new_prop, existing_prop);
         existing->pair_index = new_prop;
         created->pair_index = existing_prop;
     }
