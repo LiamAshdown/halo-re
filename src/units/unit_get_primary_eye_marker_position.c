@@ -2,7 +2,7 @@
 // address 0x568f50, size 45 bytes
 // name confidence: 0.3 (functions.md: "Retrieves the world position of a fixed named marker via
 //   FUN_004f6080 and returns it through the implicit ESI output pointer")
-// rewrite confidence: 0.3
+// rewrite confidence: 0.95 (VERIFIED against objdump 0x568f50..0x568f7c)
 // evidence: types/objects.h object_marker (transform real_matrix4x3 at 0x04); types/math.h
 //   real_matrix4x3.position (0x28, so marker.transform.position is at object_marker+0x2c).
 // register convention: object index in EAX (implicit, forwarded to the callee), destination

@@ -1,7 +1,7 @@
 // weapon_magazine_begin_chamber  (Ghidra: FUN_004c3b00; named per types/items.h
 // weapon_magazine_state_enum comment block: "weapon_magazine_begin_chamber (0x4c3b00)")
 // address 0x4c3b00, size 181 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.9 (VERIFIED against objdump 0x4c3b00..0x4c3bb4)
 // evidence: types/items.h weapon_magazine_state_enum (_weapon_magazine_chambering = 3),
 //   weapon_state (_weapon_state_chamber_primary=3/_secondary=4); types/tags.h
 //   WeaponMagazine.chamber_time (0x1c).
@@ -43,8 +43,7 @@ void weapon_magazine_begin_chamber(datum_index item_index, int16_t magazine_inde
     if ((magazine->state == 0 || magazine->state == _weapon_magazine_chamber_pending) &&
         wd->triggers[0].effect_state == 0 && wd->triggers[1].effect_state == 0 && wd->state == 0) {
         weapon_set_state(item_index, magazine_index + 3, 0);
-        weapon_play_trigger_tag_effect(item_index, *(datum_index *)&magazine_tag->chambering_effect.tag_id, 0, 0); // UNSURE:
-            // tag_id (EDI) placeholder, see weapon_play_trigger_tag_effect.c
+        weapon_play_trigger_tag_effect(item_index, *(datum_index *)&magazine_tag->chambering_effect.tag_id, 0, 0); // ECX item, EDI tag +0x54 (chambering_effect.tag_id)
         magazine->state = _weapon_magazine_chambering;
         magazine->state_ticks = (int16_t)(magazine_tag->chamber_time * 30.0f);
     }

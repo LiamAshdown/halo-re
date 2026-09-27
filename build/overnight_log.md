@@ -1738,3 +1738,8 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - Callers fixed: particle_impact passes death_effect (+0x58/+0x64); particle_update_motion passes collision_effect (+0x48/+0x54), where it previously passed fourcc 0, a no-op.
 - particle_update_motion (0x4561a0) verified, 0.3 -> 0.85. The material_effects call is now gated on tag id != -1 (it was != 0, so particles without material effects played tag -1 near the player) and passes the collision normal as the offset (it was zero).
 - particle_impact verified 0.9.
+- Weapon fixes:
+  - weapon_trigger_continue_burst fires trigger_index + 1 (it refired the same trigger).
+  - weapon_reload_recovery_finish plays the tag's overheat_detonation (+0x390) instead of -1 before deleting.
+  - Verified 0.9: weapon_magazine_begin_chamber, weapon_trigger_become_charged, weapon_stop_object_effect.
+- Verified 0.9-0.95: unit_get_primary/secondary_eye_marker_position, object_new, unit_reset_light_effect, object_dispatch_effect_notify, physics_scalar_step_to_target_clamped, physics_scalar_move_toward_target (blam-cc: range is in ESI).

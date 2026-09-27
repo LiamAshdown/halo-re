@@ -2,7 +2,7 @@
 // out/phase4/items_functions.md, "Continues a multi-round burst by firing again if rounds
 // remain and marking the trigger's effect state as 'in burst'")
 // address 0x4c3c60, size 147 bytes
-// name confidence: 0.35   rewrite confidence: 0.3
+// name confidence: 0.35   rewrite confidence: 0.9 (VERIFIED against objdump 0x4c3c60..0x4c3cf2; fires trigger_index + 1 (FIXED))
 // evidence: types/items.h weapon_trigger_effect_state (_weapon_trigger_effect_overloading=1,
 //   "re-entered by the burst continuation at 0x4c3c60"), Weapon.triggers (0x4fc).
 // register convention: item index in ECX; trigger index in EBX (unaff_EBX).
@@ -37,7 +37,7 @@ void weapon_trigger_continue_burst(datum_index item_index, int16_t trigger_index
     weapon_tag = (Weapon *)tag_instances[(uint16_t)item_obj->definition_tag].data;
 
     if (trigger_index + 1 < weapon_tag->triggers.count) {
-        weapon_fire_trigger(item_index, trigger_index);
+        weapon_fire_trigger(item_index, (int16_t)(trigger_index + 1)); // FIXED (0x4c3cad): fires the NEXT trigger
     }
 
     tag_trigger = (WeaponTrigger *)weapon_tag->triggers.pointer + trigger_index;

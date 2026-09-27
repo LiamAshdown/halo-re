@@ -2,7 +2,7 @@
 // address 0x56ec10, size 72 bytes
 // name confidence: 0.25 (phase2 proposal "unit_reset_light_effect" at 0.25, kept for lack of a
 //   better candidate)
-// rewrite confidence: 0.3
+// rewrite confidence: 0.9 (VERIFIED against objdump 0x56ec10..0x56ec57)
 // evidence: callee sound_start_at_object_marker established elsewhere in this module (0x543ce0, see
 //   src/units/unit_update_animation_timers.c) as a "set effect/sound intensity" helper; the
 //   (effect, 0, 1.0, 0) argument pattern matches the "trigger at full intensity" call sites in

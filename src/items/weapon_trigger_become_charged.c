@@ -1,7 +1,7 @@
 // weapon_trigger_become_charged  (Ghidra: FUN_004c3bc0; named per types/items.h
 // weapon_trigger_effect_state comment block: "_weapon_trigger_effect_charged = 3, // 0x4c3bc0")
 // address 0x4c3bc0, size 156 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.9 (VERIFIED against objdump 0x4c3bc0..0x4c3c5b)
 // evidence: types/items.h weapon_trigger_effect_state (_weapon_trigger_effect_charged=3),
 //   weapon_state (_weapon_state_charged_primary=7/_secondary=8).
 // register convention: item index in EAX; trigger index is a Ghidra-recognized parameter.

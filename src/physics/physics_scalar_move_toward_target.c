@@ -1,7 +1,7 @@
 // physics_scalar_move_toward_target  (Ghidra: FUN_0050b2f0, still unnamed there; name chosen to
 //   match this batch's other physics_scalar_* helpers)
 // address 0x50b2f0, size 127 bytes
-// name confidence: 0.3   rewrite confidence: 0.3
+// name confidence: 0.3   rewrite confidence: 0.9 (VERIFIED against objdump 0x50b2f0..0x50b36e)
 // evidence: out/phase4/physics_functions.md summary ("Moves a physics scalar toward a target
 //   value at a fixed rate, snapping exactly to the target once reached"); calls
 //   physics_scalar_approach_direction (0x50b4d0, this module) both before and after stepping,
@@ -17,7 +17,7 @@
 //   ECX parameter per the blam-cc ordering, matching physics_scalar_approach_direction's and
 //   physics_scalar_advance_and_wrap's own range parameter, since there is no other way for
 //   either callee to receive it.
-//   // blam-cc: ECX -> range (inferred pass-through, not visible in this function's own body)
+//   // blam-cc: ESI -> range (0x50b302 / 0x50b340 copy it into ECX for physics_scalar_approach_direction)
 // UNSURE: return type is undefined4 in Ghidra with only the low byte meaningfully set (0 or 1);
 //   declared uint8_t.
 

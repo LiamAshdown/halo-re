@@ -1,7 +1,7 @@
 // physics_scalar_step_to_target_clamped  (Ghidra: FUN_0050b460, still unnamed there; name
 //   chosen to match this batch's other physics_scalar_* helpers)
 // address 0x50b460, size 110 bytes
-// name confidence: 0.3   rewrite confidence: 0.3
+// name confidence: 0.3   rewrite confidence: 0.9 (VERIFIED against objdump 0x50b460..0x50b4cd)
 // evidence: out/phase4/physics_functions.md summary ("Attempts to move a clamped scalar value
 //   toward a target using physics_clamp_value_to_spring_range, reporting whether the target was
 //   reached"), which also supplies physics_clamp_value_to_spring_range's own name (0x50b370,

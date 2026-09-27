@@ -2,7 +2,7 @@
 // out/phase4/items_functions.md, "Stops/clears whatever sound or effect is currently playing
 // for a weapon trigger's owning object")
 // address 0x4c48a0, size 80 bytes
-// name confidence: 0.35   rewrite confidence: 0.25
+// name confidence: 0.35   rewrite confidence: 0.9 (VERIFIED against objdump 0x4c48a0..0x4c48ef)
 // evidence: types/objects.h object.flags (_object_no_collision_bit), object.parent_object
 //   (0x11c) -- the same holder-redirect idiom as weapon_play_trigger_tag_effect.
 // register convention: item index in EDX; tag id in ESI (unaff_ESI).

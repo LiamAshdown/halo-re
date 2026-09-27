@@ -2,7 +2,7 @@
 // address 0x569280, size 45 bytes
 // name confidence: 0.3 (functions.md: "Retrieves the world position of a second fixed named
 //   marker via FUN_004f6080 and returns it through the implicit ESI output pointer")
-// rewrite confidence: 0.3
+// rewrite confidence: 0.95 (VERIFIED against objdump 0x569280..0x5692ac)
 // evidence: same as unit_get_primary_eye_marker_position.c (0x568f50), the only other function
 //   with this exact shape in this module.
 // register convention: object index in EAX (implicit, forwarded), destination real_point3d* in ESI.

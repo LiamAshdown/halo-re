@@ -2,7 +2,7 @@
 // out/phase4/items_functions.md, "Runs the post-reload recovery step for a trigger, invoking a
 // holder-type-specific finish routine")
 // address 0x4c4940, size 116 bytes
-// name confidence: 0.3   rewrite confidence: 0.3
+// name confidence: 0.3   rewrite confidence: 0.9 (VERIFIED against objdump 0x4c4940..0x4c49b3; plays overheat_detonation then deletes (FIXED tag))
 // evidence: types/objects.h object.network_role (0/3 dispatch matches every other
 //   object_delete_unparented/object_delete_recursive pairing in this codebase).
 // register convention: item index in EBX (unaff_EBX); trigger index threaded through from the
@@ -14,10 +14,12 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "cache.h"
 #include "objects.h"
 #include "items.h"
 
 extern data_array *object_data; // 0x008603b0
+extern tag_instance *tag_instances; // 0x0087bc14
 
 extern uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, int32_t slot, int32_t sub_index); // 0x4c47d0
 extern void object_delete_unparented(datum_index object_index); // 0x4f5aa0
@@ -29,9 +31,11 @@ void weapon_reload_recovery_finish(datum_index item_index, int16_t trigger_index
 {
     object *item_obj;
 
-    weapon_play_trigger_tag_effect(item_index, (datum_index)0xffffffff, 0, 0); // UNSURE: tag_id placeholder
-
     item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    // FIXED (0x4c496f): EDI = the weapon tag's overheat_detonation.tag_id (+0x390); the draft passed -1
+    weapon_play_trigger_tag_effect(item_index,
+        *(datum_index *)&((Weapon *)tag_instances[(uint16_t)item_obj->definition_tag].data)->overheat_detonation.tag_id, 0, 0);
+
     if (item_obj->network_role == 0) {
         object_delete_unparented(item_index);
     } else if (item_obj->network_role != 3) {

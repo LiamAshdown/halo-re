@@ -4,7 +4,7 @@
 // a "thin wrapper that forwards to the object-changed notifier effect_new_on_object", but effect_new_on_object's
 // own body (out of this module's range) is a particle_system_new-based effect spawner, not a
 // change notifier, so that inherited description is not trusted here either)
-// rewrite confidence: 0.3
+// rewrite confidence: 0.9 (VERIFIED against objdump 0x4efff0..0x4f0003)
 // evidence: none beyond the single forwarded call.
 // register convention: EAX -> forwarded_eax, ECX -> forwarded_ecx (both pass straight through to
 // effect_new_on_object; see below).

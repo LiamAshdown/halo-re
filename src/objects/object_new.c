@@ -3,7 +3,7 @@
 // name confidence: 0.35 (still FUN_004f5460 in Ghidra; functions.md: "Thin wrapper entry point
 //   that forwards directly to object_new_with_datum_role_control" -- named as the natural public
 //   entry point for the internal constructor)
-// rewrite confidence: 0.3
+// rewrite confidence: 0.9 (VERIFIED against objdump 0x4f5460..0x4f54a2)
 // evidence: callee object_new_with_datum_role_control 0x4f54b0.
 // register convention: placement in ECX (mov edx,[ecx] at entry reads placement->definition_tag,
 //   and ecx is pushed unchanged as object_new_with_datum_role_control's first stack argument at
