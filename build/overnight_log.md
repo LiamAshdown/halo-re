@@ -1249,3 +1249,19 @@ execute / is_complete / reset_entry. All three were low-confidence drafts with d
 - Hidden-bit audit: besides the seat state (0x565787) and set-visible at creation, only weapon holsters and
   player release set object +0x10 bit 0; all match. So a unit vanishing without deletion needs either a seat
   entry or a bad transform / position -- the teleport / move atoms above are the prime static suspects.
+
+## 2026-09-27 (loop, static only) -- crew per-tick AI and movement
+- Crew type update (0x423890) helpers: actor_process_order_request REWRITTEN (default orders now use the
+  0x655590 kind table; idle fallback passes kind 0; builder results honoured); actor_wants_reload_or_swap and
+  encounter_squad_clear_spawn_delay (ECX encounter / EDX squad, ESI packed squad reference) fixed;
+  actor_update_grenade_and_morale_reactions REWRITTEN; actor_gate_jump_traversal's pain reaction gets CX / DL /
+  ESI; combat behaviour (+0xa4 word), state-transition check, swarm iterator verified.
+- unit_is_in_busy_animation_state takes the UNIT in ECX (actor +0x18): four AI callers passed the actor index
+  (actor_queue_secondary_action, actor_action_has_queued_secondary [STABLE, proven by objdump],
+  actor_check_grenade_facing_and_commit, actor_reset_queued_look_vector).
+- actor_movement_apply_steering (0x4180c0) REWRITTEN: the draft "called" the cached-axis case labels at 0x418a04
+  as functions (code addresses inside the original image) and returned; it also rotated the wrong vector.
+- actor_movement_choose_avoidance_direction (0x4193d0) REWRITTEN: the draft declared the ray test and the
+  sample interpolation with wrong arguments. actor_movement_test_obstacle_ray now returns its hit kind (AX).
+OPEN: ai_communication_broadcast (0x42d340, 5.6 KB, 0.3) and actor_update_look_target (0x415480, 0.25) are the
+  remaining large low-confidence per-tick AI functions.
