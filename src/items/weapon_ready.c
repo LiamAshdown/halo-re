@@ -26,7 +26,8 @@ extern int32_t weapon_set_state(datum_index item_index, int16_t new_state, int8_
 extern uint32_t local_player_index_for_weapon(datum_index item_index); // 0x494010, outside this module, UNSURE signature
 extern void first_person_weapon_process_action(uint32_t handle, int32_t action); // 0x4940f0
 extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code); // 0x492990, EBX, EAX
-extern uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, int32_t slot, int32_t sub_index); // 0x4c47d0
+extern uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, real scale_a,
+    real scale_b); // 0x4c47d0, ECX item, EDI tag, stack (scale_a, scale_b)
 extern int16_t weapon_get_first_person_animation_time(datum_index item_index, int16_t animation_index,
     int16_t category, int16_t mode); // 0x4c2f80
 
@@ -54,9 +55,8 @@ void weapon_ready(datum_index item_index)
         hud_play_pickup_notification(item_index, 0xc); // FIXED: EBX = the weapon, EAX = 0xc (0x4c2899)
     }
 
-    weapon_play_trigger_tag_effect(item_index, *(datum_index *)&weapon_tag->ready_effect.tag_id, 0, 0); // UNSURE:
-        // tag_id (EDI) placeholder inferred as Weapon.ready_effect, see
-        // weapon_play_trigger_tag_effect.c
+    weapon_play_trigger_tag_effect(item_index, *(datum_index *)&weapon_tag->ready_effect.tag_id, 0.0f, 0.0f);
+        // 0x4c28a3: EDI = weapon tag +0x348 (ready_effect.tag_id), verified
     wd->action_ticks = weapon_get_first_person_animation_time(item_index, 0, 0, -1); // UNSURE:
         // animation_index (CX) placeholder, see weapon_get_first_person_animation_time.c
 

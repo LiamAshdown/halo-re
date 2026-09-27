@@ -30,7 +30,8 @@ extern int32_t weapon_triggers_idle(datum_index item_index); // 0x4c30c0
 extern void weapon_trigger_effect_clear(datum_index item_index, int16_t trigger_index); // 0x4c3e40
 extern void weapon_notify_reload_begin(datum_index item_index, int16_t magazine_index); // 0x4c3470
 extern int32_t weapon_set_state(datum_index item_index, int16_t new_state, int8_t force); // 0x4c5670
-extern uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, int32_t slot, int32_t sub_index); // 0x4c47d0
+extern uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, real scale_a,
+    real scale_b); // 0x4c47d0, ECX item, EDI tag, stack (scale_a, scale_b)
 extern void weapon_action_notify_for_weapon(datum_index weapon_index, int32_t action_code); // 0x492790, EAX, EDI
 extern int16_t weapon_get_first_person_animation_time(datum_index item_index, int16_t animation_index,
     int16_t category, int16_t mode); // 0x4c2f80

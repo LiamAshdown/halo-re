@@ -2139,3 +2139,14 @@ The player's aim-assist target (game_engine_build_local_player_control_input -> 
 VERIFIED at 0.85: look origin / direction, target direction, autoaim cone, best-target search, falloff, comparator,
 clamp length, spring clamp, grenade decision chain (can_throw, facing commit, trace, ally candidate), weapon pickup
 reachability, ranged attack vector, platoon propagation, engagement range, squad reinforcement processing.
+## static loop: weapon fire trigger + effect player (2026-09-27)
+- weapon_fire_trigger (0x4c3f10) 0.3 -> 0.85. Fixes vs objdump:
+  - The FIRING effect was never played: the final call passed the damage tag and the misfire chance. It now passes
+    (EDI = firing-effect effect tag +0x30+0x10*variant, stack firing_rate or 1.0 when empty, heat/overheated_threshold).
+  - The chamber-pending check now runs whenever rounds remain after the shot, not only with infinite ammo.
+  - The camo depower test uses current_game_engine (0x6f1d20), not network_game_mode.
+  - Ejection port recovery requires trigger flag byte0 bit 0x80 clear.
+  - Holder self-damage: dd random_blend / multiplier = 1.0 (the draft had 0, so no damage).
+- weapon_play_trigger_tag_effect (0x4c47d0) verified -> 0.85; the signature now takes (real scale_a, real scale_b); externs updated.
+  All six callers' EDI tag fields checked (ready/reloading/chambering/overheat_detonation).
+- Relinked: unresolved 1, traps 127. hooks.txt == stable (only CRLF differs).

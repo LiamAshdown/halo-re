@@ -1,16 +1,16 @@
 // weapon_play_trigger_tag_effect  (Ghidra: weapon_play_trigger_tag_effect, already named)
 // address 0x4c47d0, size 198 bytes
-// name confidence: 0.5   rewrite confidence: 0.3
+// name confidence: 0.5   rewrite confidence: 0.85
 // evidence: types/objects.h object.flags (_object_no_collision_bit), object.parent_object
 //   (0x11c); types/cache.h tag_instance.group_tag; the two literal fourccs match 'effe'
 //   (effect) and 'snd!' (sound) reversed on x86, matching every "sound,effect" TagDependency
 //   comment in types/tags.h.
-// register convention: item index in ECX; the tag id to play in EDI (unaff_EDI); slot and
-// sub_index are Ghidra-recognized stack parameters threaded through to the effect player.
-// blam-cc: ECX -> item_index, EDI -> tag_id, stack -> (slot, sub_index)
-// UNSURE: effect_new_on_object is called with a literal 0xffffffff where the tag id would be expected;
-// preserved literally rather than "corrected" to tag_id. sound_start_at_object_marker and
-// effect_try_and_get's exact roles in the sound branch are not established.
+// blam-cc: ECX -> item_index, EDI -> tag_id, stack -> (scale_a, scale_b)
+// VERIFIED 2026-09-27 against objdump 0x4c47d0..0x4c4895 and all six call sites: weapon_fire_trigger passes
+// (trigger firing_rate or 1.0, heat fraction); weapon_ready (+0x348 ready_effect), fire_or_reload / begin_reload
+// (magazine +0x44 reloading_effect), begin_chamber (+0x54 chambering_effect) and reload_recovery_finish
+// (+0x390 overheat_detonation) pass (0, 0). The sound branch's early `push 0` (0x4c4848) is a fifth stack slot
+// that 0x543ce0 never reads; 0x450630 takes only EDX.
 
 #include "tags.h"
 #include "memory.h"
@@ -44,14 +44,14 @@ extern const real_vector3d *global_forward3d_pointer;   // 0x00696718
 //   sound). Effect: effect_new_on_object(EAX creator, ECX tag, stack: object, -1, a, b, 0, 0). Sound:
 //   effect_try_and_get(EDX tag) (result unused) then sound_start_at_object_marker(ESI creator, ECX = the zero
 //   point, EAX = the forward vector, stack: tag, -1, a, 0). Anything else returns -1.
-uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, int32_t slot, int32_t sub_index)
+uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, real scale_a, real scale_b)
 {
     object *item_obj;
     tag_group group;
     datum_index attach_to = item_index;
     datum_index creator = k_datum_index_none;
-    real a_scale = *(real *)&slot;
-    real b_scale = *(real *)&sub_index;
+    real a_scale = scale_a;
+    real b_scale = scale_b;
 
     if (tag_id == (datum_index)0xffffffff) {
         return 0xffffffff;

@@ -1,6 +1,6 @@
 // weapon_fire_trigger  (Ghidra: weapon_fire_trigger, already named)
 // address 0x4c3f10, size 2226 bytes
-// name confidence: 0.55   rewrite confidence: 0.3 (second largest function in this batch)
+// name confidence: 0.55   rewrite confidence: 0.85 (second largest function in this batch)
 // evidence: types/items.h weapon_data (heat/age/charged_fraction/alternate_shots_loaded/state,
 //   triggers[]), weapon_trigger_state (all fields), weapon_magazine_state; types/tags.h
 //   WeaponTrigger (magazine 0x20, rounds_per_shot 0x22, minimum_rounds_loaded 0x24,
@@ -38,6 +38,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern uint8_t weapon_infinite_ammo;              // 0x0087abc9
 extern random_seed random_seed_global;            // 0x00719cd0
 extern int16_t network_game_mode;                 // 0x00719720
+extern void *current_game_engine;                 // 0x006f1d20, non-NULL = multiplayer engine loaded
 extern uint8_t weapon_bottomless_clip;             // 0x0087abc2
 extern uint8_t weapon_client_side_projectiles;     // 0x006894c0
 extern void *game_time;                   // 0x006f1d6c, +0x0c is the game tick
@@ -57,7 +58,8 @@ extern void object_apply_damage(damage_data *dd, uint32_t target_object_index, i
     int16_t param_4, int16_t material_index, uint32_t param_6); // 0x4ee5e0
 extern void weapon_reload_recovery_finish(datum_index item_index, int16_t trigger_index); // 0x4c4940
 extern void weapon_trigger_finish_shot(datum_index item_index, int16_t trigger_index); // 0x4c48f0
-extern uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, int32_t slot, int32_t sub_index); // 0x4c47d0
+extern uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, real scale_a,
+    real scale_b); // 0x4c47d0, ECX item, EDI tag, stack (scale_a, scale_b)
 
 // Fires one round of a weapon trigger: consumes ammo (or misfires), resolves the firing effect
 // and heat/age gain, spawns projectiles (or defers to the host), applies a self-damage/knockback
@@ -77,6 +79,9 @@ uint32_t weapon_fire_trigger(datum_index item_index, int16_t trigger_index)
     int32_t has_ammo;
     int32_t is_misfire;
     int32_t effect_variant; // 0 = fire, 1 = misfire, 2 = empty
+    datum_index selected_effect_tag;  // [esp+0x34] firing / misfire / empty EFFECT of the chosen firing effect
+    real effect_scale_a;              // [esp+0x30] trigger firing_rate (1.0 when empty)
+    real effect_scale_b;              // [esp+0x28] heat / overheated_threshold (0 on misfire or empty)
 
     item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
@@ -92,6 +97,9 @@ uint32_t weapon_fire_trigger(datum_index item_index, int16_t trigger_index)
     }
 
     selected_damage_tag = (datum_index)0xffffffff;
+    selected_effect_tag = (datum_index)0xffffffff;
+    effect_scale_a = 0.0f;
+    effect_scale_b = 0.0f;
     misfire_chance = 0.0f;
     is_alternate_shot = 0;
     has_ammo = 0;
@@ -113,13 +121,19 @@ uint32_t weapon_fire_trigger(datum_index item_index, int16_t trigger_index)
             if ((tag_trigger->rounds_per_shot <= rounds_loaded || (tag_trigger->flags & 4) != 0) &&
                 ((weapon_tag->weapon_flags & 0x800) == 0 || wd->age < 1.0f) &&
                 (tag_trigger->minimum_rounds_loaded <= rounds_loaded || (trigger->flags & _weapon_trigger_not_pulled_bit) == 0)) {
+                // 0x4c4080..0x4c40b8: the chamber check runs whenever rounds REMAIN after the shot (and with infinite
+                // ammo); an emptied magazine skips it. FIXED 2026-09-27: the draft ran it only with infinite ammo.
+                uint8_t emptied = 0;
+
                 if (weapon_infinite_ammo == 0) {
-                    rounds_loaded = rounds_loaded - tag_trigger->rounds_per_shot;
+                    rounds_loaded = (int16_t)(rounds_loaded - tag_trigger->rounds_per_shot);
                     magazine->rounds_loaded = rounds_loaded;
                     if (rounds_loaded < 1) {
                         magazine->rounds_loaded = 0;
+                        emptied = 1;
                     }
-                } else {
+                }
+                if (!emptied) {
                     WeaponMagazine *magazine_tag = (WeaponMagazine *)weapon_tag->magazines.pointer + magazine_index;
                     if (magazine_tag->flags & 2) { // every_round_must_be_chambered
                         magazine->state = _weapon_magazine_chamber_pending;
@@ -189,17 +203,24 @@ uint32_t weapon_fire_trigger(datum_index item_index, int16_t trigger_index)
                 }
             }
 
+            // 0x4c429d..0x4c4324: variant 0 fire / 1 misfire / 2 empty picks the effect tag (+0x30 + 0x10 * v) and the
+            // damage tag (+0x60 + 0x10 * v); the effect is scaled by (firing_rate or 1.0 when empty, heat fraction).
             if (has_ammo) {
+                effect_scale_a = trigger->firing_rate;
                 if (is_misfire) {
                     effect_variant = 1;
-                } else if (weapon_tag->overheated_threshold == 0.0f) {
-                    effect_variant = 0;
+                    effect_scale_b = 0.0f;
                 } else {
-                    effect_variant = 0; // UNSURE: keeps sVar17=0 unless misfire; see below
+                    effect_variant = 0;
+                    effect_scale_b = (weapon_tag->overheated_threshold == 0.0f) ? 0.0f
+                        : wd->heat / weapon_tag->overheated_threshold;
                 }
             } else {
                 effect_variant = 2;
+                effect_scale_a = 1.0f;
+                effect_scale_b = 0.0f;
             }
+            selected_effect_tag = *(datum_index *)((uint8_t *)&effects[chosen_index] + (effect_variant + 3) * 0x10);
             selected_damage_tag = *(datum_index *)((uint8_t *)&effects[chosen_index] + (effect_variant + 6) * 0x10);
         }
     }
@@ -208,7 +229,7 @@ uint32_t weapon_fire_trigger(datum_index item_index, int16_t trigger_index)
         goto tail;
     }
 
-    if ((id->flags & _item_held_by_player_bit) != 0 && network_game_mode != 0) {
+    if ((id->flags & _item_held_by_player_bit) != 0 && current_game_engine != 0) { // 0x4c433d: 0x6f1d20
         // 0x4c4346: the firing player's camouflage drops
         datum_index player = player_index_from_unit_index(holder_index);
 
@@ -228,7 +249,7 @@ uint32_t weapon_fire_trigger(datum_index item_index, int16_t trigger_index)
         }
     }
 
-    if (tag_trigger->ejection_port_recovery_time > 0.0f) {
+    if (tag_trigger->ejection_port_recovery_time > 0.0f && (*(uint8_t *)&tag_trigger->flags & 0x80) == 0) { // 0x4c441e
         trigger->ejection_port_recovery = 1.0f;
     }
     if (tag_trigger->illumination_recovery_time > 0.0f) {
@@ -303,6 +324,8 @@ uint32_t weapon_fire_trigger(datum_index item_index, int16_t trigger_index)
         dd.material_type = -1;
         dd.unknown_1a = -1; // UNSURE: matches local_44 (0xffff) at damage_data+0x18 (location_cluster_index)
         dd.location_cluster_index = -1;
+        dd.random_blend = 1.0f; // 0x4c45ed / 0x4c45f8: the draft left both at 0 (no damage)
+        dd.multiplier = 1.0f;
         dd.direction.i = -*(real *)(holder_bytes + 0x23c);
         dd.direction.j = -*(real *)(holder_bytes + 0x240);
         dd.direction.k = -*(real *)(holder_bytes + 0x244);
@@ -338,7 +361,9 @@ tail:
     }
 
     trigger->flags = trigger->flags & ~(uint32_t)_weapon_trigger_not_pulled_bit;
-    return weapon_play_trigger_tag_effect(item_index, selected_damage_tag, (int32_t)misfire_chance, 0); // UNSURE, see file header  // the original returns this call's result (EAX) unchanged
+    // 0x4c479e..0x4c47af: ECX item, EDI = the chosen firing-effect EFFECT tag, stack (firing_rate, heat fraction).
+    // FIXED 2026-09-27: the draft passed the damage tag and the misfire chance, so the muzzle effect was never played.
+    return weapon_play_trigger_tag_effect(item_index, selected_effect_tag, effect_scale_a, effect_scale_b);
 }
 
 #if 0

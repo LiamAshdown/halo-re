@@ -8,8 +8,7 @@
 // register convention: item index in EBX (unaff_EBX); trigger index threaded through from the
 // caller (weapon_trigger_handle_empty).
 // blam-cc: EBX -> item_index
-// UNSURE: the tag id (EDI) for weapon_play_trigger_tag_effect is not visible at this call site;
-// no plausible tag field was identified, so -1 (no effect) is used as a placeholder.
+// EDI for weapon_play_trigger_tag_effect = weapon tag +0x390 (overheat_detonation.tag_id), 0x4c496f.
 
 #include "tags.h"
 #include "memory.h"
@@ -21,7 +20,8 @@
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, int32_t slot, int32_t sub_index); // 0x4c47d0
+extern uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, real scale_a,
+    real scale_b); // 0x4c47d0, ECX item, EDI tag, stack (scale_a, scale_b)
 extern void object_delete_unparented(datum_index object_index); // 0x4f5aa0
 extern void object_delete_recursive(datum_index object_index, uint8_t recurse_siblings); // 0x4f59d0
 

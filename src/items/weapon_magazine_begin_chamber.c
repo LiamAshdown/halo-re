@@ -22,7 +22,8 @@ extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern int32_t weapon_set_state(datum_index item_index, int16_t new_state, int8_t force); // 0x4c5670
-extern uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, int32_t slot, int32_t sub_index); // 0x4c47d0
+extern uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, real scale_a,
+    real scale_b); // 0x4c47d0, ECX item, EDI tag, stack (scale_a, scale_b)
 
 // Starts chambering a round: only when the magazine is idle or chamber-pending and every
 // trigger/weapon state is idle. Sets the magazine to "chambering" for chamber_time ticks.
