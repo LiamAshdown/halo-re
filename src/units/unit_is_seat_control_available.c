@@ -1,5 +1,5 @@
 // unit_is_seat_control_available  (Ghidra: FUN_005693a0)
-// address 0x5693a0, size 176 bytes, name confidence 0.3, rewrite confidence 0.4
+// address 0x5693a0, size 176 bytes, name confidence 0.3, rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x5693a0..0x569450 (state table 0x56945c).)
 // functions.md: "Reports whether a specific seat control is currently available to the unit,
 // depending on its animation state and seating."
 // evidence: types/units.h unit_data.animation_state (0x2a3), .vehicle_seat_index (0x2f0);

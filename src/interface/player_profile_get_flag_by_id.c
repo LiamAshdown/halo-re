@@ -1,6 +1,6 @@
 // player_profile_get_flag_by_id  (Ghidra: FUN_00495a60, unnamed)
 // address 0x495a60, size 84 bytes
-// name confidence: 0.35   rewrite confidence: 0.4
+// name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x495a60..0x495ab3 (one-slot scan of 0x714dde, byte 0x712f0a + slot*0x2004).)
 // evidence: out/phase4/interface_functions.md "Looks up a per-profile flag/byte value for the
 // profile matching the given id."; reuses player_profile_find_index_by_id.c's single-slot
 // profile_slot_id scan; the returned byte sits at profile_globals_block + slot*0x2004 + 0x132

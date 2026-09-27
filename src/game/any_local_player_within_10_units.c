@@ -3,7 +3,7 @@
 // name confidence: 0.4 (out/phase4/effects_types_notes.md: "'is any local player within 10
 //   world units'; reads the player globals at 0x0087a478 and the camera positions at
 //   0x006ac6d0")
-// rewrite confidence: 0.4 (control flow and the squared-distance test are confirmed against
+// rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x453330..0x4533ac.) (control flow and the squared-distance test are confirmed against
 //   the decompilation; the player_globals and camera-position array field offsets are not
 //   independently retyped here -- see UNSURE)
 // evidence: out/phase4/effects_types_notes.md "0x453330 | players | ...". No "players" module
