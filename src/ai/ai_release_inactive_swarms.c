@@ -1,6 +1,6 @@
 // ai_release_inactive_swarms  (Ghidra: ai_release_inactive_swarms, already named)
 // address 0x42abd0, size 178 bytes
-// name confidence: 0.9   rewrite confidence: 0.5
+// name confidence: 0.9   rewrite confidence: 0.9 (VERIFIED against objdump; iterator/flag FIXED)
 // evidence: cea-pdb string match ("%d swarm units"). types/ai.h actor.swarm(0x06)/
 //   active(0x08)/unknown_0c(0x0c, "actor_new sets none", a datum_index -- here compared
 //   against -1 to gate release). Calls actor_delete_or_release_unit (0x4288e0, already
@@ -39,17 +39,15 @@ int ai_release_inactive_swarms(char *buffer, uint8_t *has_more)
     uint8_t is_dead = 0;
     int16_t total = 0;
 
-    if (ai_globals_ptr->actors_valid) {
-        is_dead = 0xff; // matches the original's local_8 = 0xffffffff, truncated to the byte
-                         // parameter; see UNSURE above
-    }
+    // FIXED (objdump 0x42abeb..0x42ac42): the iterator walks ALL actors (+0x11 = 0) and the release passes AL = 1.
+    is_dead = 1;
 
     iterator.filter_array = encounter_data;
     iterator.unknown_04 = 0;
     iterator.cursor = -1;
     iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
     iterator.unknown_10 = 0;
-    iterator.active = 1;
+    iterator.active = 0;
     iterator.actor_index = -1;
     iterator.unknown_18 = -1;
 

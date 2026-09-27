@@ -2,7 +2,7 @@
 // object_list_membership_set 0x4f7450, the list head is object_globals +0x08")
 // address 0x4f7450, size 150 bytes
 // name confidence: 0.85 (fixed by the types notes' own citation of this address by this name)
-// rewrite confidence: 0.6
+// rewrite confidence: 0.9 (VERIFIED against objdump)
 // evidence: types/objects.h object (next_tracked_object 0x110, flags 0x10 with
 //   _object_in_tracked_list_bit, _object_unknown_20000_bit), object_globals
 //   (first_tracked_object 0x08); global 0x008603b0 object_data, global 0x006b8cbc

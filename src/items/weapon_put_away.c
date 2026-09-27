@@ -26,7 +26,7 @@ extern void weapon_reset_triggers(datum_index item_index); // 0x4c4b50
 extern void effect_delete(datum_index handle); // 0x450be0
 extern uint32_t local_player_index_for_weapon(datum_index item_index); // 0x494010, outside this module, UNSURE signature
 extern void first_person_weapon_process_action(uint32_t handle, int32_t action); // 0x4940f0
-extern void hud_play_pickup_notification(void); // 0x492990, outside this module, UNSURE signature
+extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code); // 0x492990, EBX, EAX
 
 // Puts a weapon away: refuses (returns 0) if it has active trigger/reload state and the request
 // isn't forced, otherwise clears control_flags, resets every trigger, deletes any overheat
@@ -60,7 +60,7 @@ int32_t weapon_put_away(datum_index item_index, int8_t force)
         // `push ebx` / `push esi` immediately before the call
     first_person_weapon_process_action(action_handle, 0x0b);
     if ((int16_t)action_handle == -1) {
-        hud_play_pickup_notification();
+        hud_play_pickup_notification(item_index, 0xb); // FIXED: EBX = the weapon, EAX = 0xb (0x4c2974)
     }
 
     return 1;

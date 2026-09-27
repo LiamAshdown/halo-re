@@ -45,8 +45,9 @@ extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t 
                                  int16_t param_4, int16_t param_5, uint32_t param_6); // 0x4ee5e0
 extern void unit_apply_impulse_to_seat(uint32_t unit_index, real_vector3d *impulse); // 0x571cb0, this batch
 extern void unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_tag_id, datum_index object_index); // 0x56f210, this batch
-extern void breakable_surface_apply_damage(int16_t a, int32_t b); // 0x4ffde0, UNSURE signature
-extern void device_machine_melee_attacked(void); // 0x44b5d0, UNSURE signature
+extern void breakable_surface_apply_damage(damage_data *damage, int32_t surface_index,
+    int32_t collision_surface_index); // 0x4ffde0, EBX, stack
+extern void device_machine_melee_attacked(uint32_t object_index); // 0x44b5d0, ECX
 
 // Tests line-of-sight/visibility from the unit toward a target point along a caller-supplied
 // grid basis, applying melee-response damage and decal/light effects along the trace.
@@ -145,12 +146,12 @@ void unit_can_see_point(uint32_t unit_index, real_vector3d *target_direction,
 
             if (best_object == 0xffffffff) {
                 if ((int16_t)best_decal != -1) {
-                    breakable_surface_apply_damage((int16_t)best_decal, best_decal_extra);
+                    breakable_surface_apply_damage(&dd, best_decal, best_decal_extra); // FIXED: EBX = &dd (0x56fa47)
                 }
             } else {
                 object *best_obj = ((object_header *)object_data->data)[best_object & 0xffff].data;
                 if (best_obj->type == 7) {
-                    device_machine_melee_attacked();
+                    device_machine_melee_attacked(best_object); // FIXED: ECX = the hit object (0x56fa82)
                 }
                 if (*(float *)(globals_tag_data + 0x174 + 0x34) > 0.0f) {
                     float f = (obj->forward.i * obj->velocity.i + obj->forward.j * obj->velocity.j +

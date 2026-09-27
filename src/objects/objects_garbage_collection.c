@@ -5,7 +5,7 @@
 // name confidence: 0.9 (already carries this name; matches functions.md's summary: "Periodic
 //   object-pool garbage collector that frees/evicts objects when free memory or free slots drop
 //   below thresholds, reporting via debug strings")
-// rewrite confidence: 0.2 (this is the largest and most heuristic-heavy function in the module:
+// rewrite confidence: 0.85 (REWRITTEN from objdump; previously 0.2: this is the largest and most heuristic-heavy function in the module:
 //   nested severity levels, an AI-module callback table this module does not own, and five
 //   different printf-style debug reports. Given the time available, this rewrite is a close,
 //   MECHANICAL transliteration of the decompiled C -- control flow (including its gotos) and
@@ -52,225 +52,203 @@ extern void object_list_membership_set(uint32_t object_index, char add); // 0x4f
 extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings); // 0x4f59d0, cdecl
 extern void object_delete_4f9030(uint32_t object_index, char recurse_siblings); // 0x4f9030, this batch
 
+// REWRITTEN from objdump 0x4f9c60..0x4fa0e0.
+//   Mode: object_globals +0x02 set -> 0 (no sweep). Otherwise: pool free <= 0x19999 -> compact; free > 0x33333 ->
+//   return; else 2. Free object slots (0x800 - actual_count, data_array +0x30) <= 0x66 -> 2. Garbage count
+//   (object_globals +0x04) < 0x32 -> return. Else 1.
+//   Sweep: the tracked list (object_globals +0x08, chained through object +0x110) is gathered and walked from
+//   the tail. Each object that no player can see (object_test_in_atmosphere_zone) is deleted; in mode 1 it
+//   must also be active. Stop when: mode 0 always; mode 1 once the garbage count <= 0x1e; mode 2 once pool
+//   +0x2c >= 0x33333 and free slots (0x800 - last_index) >= 0xcc. A satisfied stop condition returns after a
+//   compact. Otherwise (list exhausted) the mode-2 emergency pass runs. It reports the memory/slot state and,
+//   when critical (free <= 0xcccc or slots <= 0x33), walks the {prepare, cleanup} table at 0x65ddd0
+//   (ai_release_inactive_swarms, then ai_build_priority_target_list + ai_release_inactive_encounters) until
+//   something is removed, then retries.
+//   The draft read maximum_count (+0x20, always 0x800) for the slot test, which put every call in mode 2,
+//   and inverted the mode-2 stop test.
 void objects_garbage_collection(void)
 {
-    int32_t severity; // local_2810
-    datum_index queue[2047]; // local_2008: tracked-object handles gathered up front
-    int16_t queue_count = 0; // sVar11
-    uint8_t critical; // bVar1
+    static datum_index list[2044];      // [esp+0x820]; also the cleanup callbacks' 0x1000-byte state
+    char free_text[512];                // [esp+0x20]
+    char critical_text[512];            // [esp+0x220]
+    char removing_text[512];            // [esp+0x420]
+    char callback_text[512];            // [esp+0x620]
+    int32_t mode;
+    int16_t count = 0;
+    uint8_t done = 0;
+    int32_t used;
+    datum_index handle;
 
-    if (object_globals_pointer->unknown_02[0] != 0) { // UNSURE: byte at object_globals+0x02
-        severity = 0;
+    if (object_globals_pointer->unknown_02[0] != 0) {
+        mode = 0;
     } else {
-        int32_t used_end = (object_memory_pool->last_block == 0) ? 0 :
-            (int32_t)object_memory_pool->last_block + object_memory_pool->last_block->size - (int32_t)object_memory_pool->base;
-
-        if (object_memory_pool->size - used_end < 0x1999a) {
+        used = (object_memory_pool->last_block == 0) ? 0 :
+            (int32_t)((uint8_t *)object_memory_pool->last_block + object_memory_pool->last_block->size -
+                      (uint8_t *)object_memory_pool->base);
+        if (object_memory_pool->size - used <= 0x19999) {
             block_list_compact(object_memory_pool);
-            used_end = (object_memory_pool->last_block == 0) ? 0 :
-                (int32_t)object_memory_pool->last_block + object_memory_pool->last_block->size - (int32_t)object_memory_pool->base;
-            if (object_memory_pool->size - used_end > 0x33333) {
+            used = (object_memory_pool->last_block == 0) ? 0 :
+                (int32_t)((uint8_t *)object_memory_pool->last_block + object_memory_pool->last_block->size -
+                          (uint8_t *)object_memory_pool->base);
+            if (object_memory_pool->size - used > 0x33333) {
                 object_globals_pointer->unknown_02[0] = 0;
                 return;
             }
-            severity = 2;
-        } else if (0x800 - object_data->maximum_count < 0x67) {
-            severity = 2;
+            mode = 2;
+        } else if (0x800 - object_data->actual_count <= 0x66) {
+            mode = 2;
         } else if (object_globals_pointer->unknown_04 < 0x32) {
             object_globals_pointer->unknown_02[0] = 0;
             return;
         } else {
-            severity = 1;
+            mode = 1;
         }
     }
 
-    // Gather every object currently on the tracked-object list (the same list
-    // object_list_membership_set, this batch, maintains).
+    for (handle = object_globals_pointer->first_tracked_object; handle != k_datum_index_none;
+         handle = *(datum_index *)((uint8_t *)((object_header *)object_data->data)[handle & 0xffff].data + 0x110)) {
+        list[count++] = handle;
+    }
+
+    for (;;) {
+        object_header *header;
+        uint8_t eligible;
+
+        if (mode == 0) {
+            done = 0;
+        } else if (mode == 1) {
+            done = (uint8_t)(object_globals_pointer->unknown_04 <= 0x1e);
+            if (done) {
+                break;
+            }
+        } else if (mode == 2) {
+            if (object_memory_pool->free_bytes >= 0x33333 && 0x800 - object_data->last_index >= 0xcc) {
+                done = 1;
+                break;
+            }
+            done = 0;
+        } else if (done) {
+            break;
+        }
+        if (count == 0) {
+            break;
+        }
+        count--;
+        handle = list[count];
+        header = (object_header *)object_data->data + (handle & 0xffff);
+        eligible = (mode == 1) ? (uint8_t)(header->flags & _object_header_active_bit) : 1;
+        if (object_test_in_atmosphere_zone(handle) != 0 || eligible == 0) {
+            continue;
+        }
+        if ((header->flags & _object_header_active_bit) != 0) {
+            object_globals_pointer->unknown_04--;
+        }
+        object_list_membership_set(handle, 0);
+        object_delete_recursive(handle, 0);
+        object_delete_4f9030(handle, 0);
+    }
+
+    block_list_compact(object_memory_pool);
+    if (done) {
+        object_globals_pointer->unknown_02[0] = 0;
+        return;
+    }
+
     {
-        datum_index handle = object_globals_pointer->first_tracked_object;
-        while (handle != k_datum_index_none) {
-            queue[queue_count] = handle;
-            handle = ((object_header *)object_data->data)[handle & 0xffff].data->next_tracked_object;
-            queue_count++;
-        }
-    }
+        void **entry = (void **)&ai_gc_callback_table;
+        uint8_t prepared = 0;
+        uint8_t retried = 0;
+        uint8_t reported = 0;
+        uint8_t stale;
+        uint32_t last = object_globals_pointer->unknown_8c;
 
-sweep:
-    critical = 0;
-    if (severity == 0) {
-        critical = 0;
-    } else if (severity == 1) {
-        critical = object_globals_pointer->unknown_04 < 0x1f;
-    } else if (severity == 2) {
-        if ((object_memory_pool->free_bytes < 0x33333) || (0x800 - object_data->last_index < 0xcc)) {
-            critical = 0;
-            goto compact_and_retry;
-        }
-        critical = 1;
-        goto report;
-    } else {
-        goto after_report;
-    }
-    goto after_report;
+        stale = (uint8_t)(last == 0xffffffff || !((int32_t)last + 0x96 >= *(int32_t *)(game_time + 0xc)));
 
-report:
-    {
-        char message_a[512];   // local_2808
-        char message_b[512];   // local_2608
-        char message_c[512];   // acStack_2408
-        datum_index scratch_result_array[512]; // auStack_2208
-        uint8_t already_ran_first_stage = 0; // bVar4
-        uint8_t low_on_slots;   // bVar3
-        uint8_t need_report;    // bVar2
-        char keep_going;        // local_2811, initialized once above the label in the original
-        char stale_warning;     // local_2812
-        void **callback = (void **)&ai_gc_callback_table;
-        char last_removed;
+        for (;;) {
+            uint8_t significant = 0;
+            uint8_t critical = 0;
+            const char *qualifier;
 
-        if ((object_globals_pointer->unknown_8c == -1) ||
-            (*(int32_t *)(game_time + 0xc) > object_globals_pointer->unknown_8c + 0x96)) {
-            stale_warning = 1;
-        } else {
-            stale_warning = 0;
-        }
-        keep_going = 0;
+            if (mode == 2) {
+                int32_t free_bytes;
+                int32_t free_slots;
 
-    resample:
-        need_report = 0;
-        low_on_slots = 0;
-        if (severity == 2) {
-            int32_t used_end2 = (object_memory_pool->last_block == 0) ? 0 :
-                (int32_t)object_memory_pool->last_block + object_memory_pool->last_block->size - (int32_t)object_memory_pool->base;
-            int32_t free_bytes = object_memory_pool->size - used_end2;
-            int32_t free_slots = 0x800 - object_data->last_index;
-
-            if (free_bytes < 0xcccd) {
-                low_on_slots = 1;
-                need_report = 1;
-                sprintf(message_a, "%4.2f%% memory free", (double)((float)free_bytes * 100.0f * 4.7683716e-07f));
-            } else if (free_slots > 0x33) {
-                if (free_bytes < 0x1999a) {
-                    low_on_slots = 1;
-                    need_report = 1;
-                    sprintf(message_a, "%4.2f%% memory free", (double)((float)free_bytes * 100.0f * 4.7683716e-07f));
-                } else if (free_slots < 0x67) {
-                    need_report = 1;
-                    sprintf(message_a, "%d slots free", free_slots);
+                used = (object_memory_pool->last_block == 0) ? 0 :
+                    (int32_t)((uint8_t *)object_memory_pool->last_block + object_memory_pool->last_block->size -
+                              (uint8_t *)object_memory_pool->base);
+                free_bytes = object_memory_pool->size - used;
+                free_slots = 0x800 - object_data->last_index;
+                if (free_bytes <= 0xcccc) {
+                    critical = 1;
+                    significant = 1;
+                    sprintf(free_text, "%4.2f%% memory free", (double)((float)free_bytes * 100.0f * 4.7683716e-07f));
+                } else if (free_slots <= 0x33) {
+                    critical = 1;
+                    significant = 1;
+                    sprintf(free_text, "%d slots free", free_slots);
+                } else if (free_bytes <= 0x19999) {
+                    significant = 1;
+                    sprintf(free_text, "%4.2f%% memory free", (double)((float)free_bytes * 100.0f * 4.7683716e-07f));
+                } else if (free_slots > 0x66) {
+                    sprintf(free_text, "%4.2f%% memory free", (double)((float)free_bytes * 100.0f * 4.7683716e-07f));
                 } else {
-                    need_report = 1;
-                    sprintf(message_a, "%4.2f%% memory free", (double)((float)free_bytes * 100.0f * 4.7683716e-07f));
+                    significant = 1;
+                    sprintf(free_text, "%d slots free", free_slots);
                 }
+            }
+
+            if (critical) {
+                qualifier = retried ? "still " : "";
+            } else if (retried) {
+                qualifier = "not ";
             } else {
-                low_on_slots = 1;
-                need_report = 1;
-                sprintf(message_a, "%d slots free", free_slots);
+                if ((significant && stale) || reported) {
+                    break; // 0x4fa0a5
+                }
+                object_globals_pointer->unknown_02[0] = 0; // 0x4fa0c4: returns without stamping +0x8c
+                return;
             }
 
-            if (!low_on_slots) {
-                goto check_thresholds;
-            }
-        } else {
-            goto check_thresholds;
-        }
-
-        {
-            const char *prefix = critical ? "still " : "";
-            sprintf(message_b, "garbage collection %scritical (%s)", prefix, message_a);
-            console_print_error_va(console_error_category_objects, message_b);
-            keep_going = 1;
-
-            if ((!low_on_slots) || (callback[1] == 0)) {
-                goto mark_and_return;
+            sprintf(critical_text, "garbage collection %scritical (%s)", qualifier, free_text);
+            console_print_error_va(console_error_category_objects, critical_text);
+            reported = 1;
+            if (!critical || entry[1] == 0) {
+                break;
             }
 
-            last_removed = 0;
-            for (;;) {
-                if (last_removed != 0) {
-                    goto compact_and_resample;
-                }
-                stale_warning = last_removed; // local_2813 = cVar5 (always 0 here)
-                if ((!already_ran_first_stage) && (callback[0] != 0)) {
-                    ((void (*)(void *))callback[0])(queue);
-                    already_ran_first_stage = 1;
-                }
-                last_removed = ((char (*)(void *, char *, void *))callback[1])(scratch_result_array, &stale_warning, queue);
-                if (last_removed != 0) {
-                    sprintf(message_c, "removing objects: %s");
-                    console_print_error_va(console_error_category_objects, message_c);
-                }
-                if (stale_warning == 0) {
-                    callback += 2;
-                    already_ran_first_stage = 0;
-                }
-                if (callback[1] == 0) {
+            {
+                uint8_t removed = 0;
+
+                do {
+                    uint8_t more = 0;
+
+                    if (!prepared && entry[0] != 0) {
+                        ((void (*)(void *, int32_t))entry[0])(list, 0x1000);
+                        prepared = 1;
+                    }
+                    removed = ((uint8_t (*)(char *, uint8_t *, void *, int32_t))entry[1])(callback_text, &more,
+                        list, 0x1000);
+                    if (removed) {
+                        sprintf(removing_text, "removing objects: %s", callback_text);
+                        console_print_error_va(console_error_category_objects, removing_text);
+                    }
+                    if (!more) {
+                        entry += 2;
+                        prepared = 0;
+                    }
+                } while (!removed && entry[1] != 0);
+
+                if (!removed) {
                     break;
                 }
             }
-            if (last_removed == 0) {
-                goto mark_and_return;
-            }
-        }
-
-    compact_and_resample:
-        critical = 1;
-        block_list_compact(object_memory_pool);
-        goto resample;
-
-    check_thresholds:
-        if (!critical) {
-            if (((!need_report) || (stale_warning == 0)) && (keep_going == 0)) {
-                object_globals_pointer->unknown_02[0] = 0;
-                return;
-            }
-            goto mark_and_return;
-        }
-        {
-            sprintf(message_b, "garbage collection %scritical (%s)", "not ", message_a);
-            console_print_error_va(console_error_category_objects, message_b);
-        }
-        keep_going = 1;
-        goto mark_and_return;
-
-    mark_and_return:
-        object_globals_pointer->unknown_8c = *(int32_t *)(game_time + 0xc);
-        object_globals_pointer->unknown_02[0] = 0;
-        return;
-    }
-
-compact_and_retry:
-    // UNSURE: matches the original's LAB_004f9e5c (block_list_compact, then either return when
-    // critical, or fall into the AI-callback report block below when not).
-    block_list_compact(object_memory_pool);
-    if (critical) {
-        object_globals_pointer->unknown_02[0] = 0;
-        return;
-    }
-    goto report;
-
-after_report:
-    if (queue_count == 0) {
-        goto compact_and_retry;
-    }
-    queue_count--;
-    {
-        datum_index handle = queue[queue_count];
-        object_header *header = (object_header *)object_data->data + (handle & 0xffff);
-        uint8_t eligible = 1;
-
-        if (severity == 1) {
-            eligible = (header->flags & _object_header_active_bit) != 0;
-        }
-
-        if ((object_test_in_atmosphere_zone(handle) == 0) && (eligible != 0)) {
-            if ((header->flags & _object_header_active_bit) != 0) {
-                object_globals_pointer->unknown_04--;
-            }
-            object_list_membership_set(handle, 0);
-            object_delete_recursive(handle, 0);
-            object_delete_4f9030(handle, 0);
+            retried = 1;
+            block_list_compact(object_memory_pool);
         }
     }
-    goto sweep;
+
+    object_globals_pointer->unknown_8c = *(uint32_t *)(game_time + 0xc);
+    object_globals_pointer->unknown_02[0] = 0;
 }
 
 #if 0

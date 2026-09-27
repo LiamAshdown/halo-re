@@ -1,6 +1,6 @@
 // ai_build_priority_target_list  (Ghidra: ai_build_priority_target_list, already named)
 // address 0x42acd0, size 372 bytes
-// name confidence: 0.9   rewrite confidence: 0.45
+// name confidence: 0.9   rewrite confidence: 0.9 (VERIFIED against objdump; encounter handle FIXED)
 // evidence: types/ai.h ai_globals.unknown_08 (head of the unassigned actor list),
 //   actor.next_in_encounter(0x2c)/active(0x08)/unknown_0c(0x0c); encounter.units_active(0x0d)/
 //   unknown_2a/unknown_10. Record layout {tiebreak, pad, handle, priority} confirmed against
@@ -94,7 +94,10 @@ void ai_build_priority_target_list(ai_priority_target_list *out_list)
             if (enc->units_active == 0 && enc->unknown_2a > 0 && enc->activation_tick != (datum_index)k_datum_index_none) {
                 ai_priority_target_record *rec = &out_list->records[out_list->count];
                 rec->tiebreak = 0;
-                rec->handle = encounter_handle;
+                // FIXED (objdump 0x42adce..0x42ae07): the handle is the iterator's current encounter ([esp+0x18]).
+                //   The draft stored encounter_handle (always none), and ai_release_inactive_encounters then released
+                //   "encounter none" = every actor in the level.
+                rec->handle = iterator.index;
                 rec->priority = (int32_t)enc->activation_tick;
                 out_list->count = out_list->count + 1;
             }

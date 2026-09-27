@@ -1,7 +1,7 @@
 // weapon_reset_triggers  (Ghidra: FUN_004c4b50; named per types/items.h,
 // "_weapon_trigger_effect_reset = 8 // weapon_reset_triggers (0x4c4b50)")
 // address 0x4c4b50, size 233 bytes
-// name confidence: 0.5   rewrite confidence: 0.55
+// name confidence: 0.5   rewrite confidence: 0.9 (VERIFIED against objdump; call arguments FIXED)
 // evidence: types/items.h weapon_trigger_state.effect_state/.effect_state_ticks,
 //   weapon_magazine_state.state/.state_ticks; types/tags.h Weapon.triggers (0x4fc),
 //   Weapon.magazines (0x4f0).
@@ -22,7 +22,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern int16_t weapon_get_first_person_animation_time(datum_index item_index, int16_t animation_index,
     int16_t category, int16_t mode); // 0x4c2f80
 extern void weapon_magazine_reload_tick(datum_index item_index, int16_t magazine_index); // 0x4c3900
-extern void weapon_notify_reload_cancel(void); // 0x4c4a00, this module (see weapon_apply_ammo_correction_and_resync)
+extern void weapon_notify_reload_cancel(datum_index item_index, int16_t magazine_index); // 0x4c4a00, ECX, BX
 
 // Resets every trigger's effect state to the "reset" sentinel and every magazine back to idle,
 // nudging along any magazine that was mid-reload so its animation isn't left stranded. Used by
@@ -46,14 +46,13 @@ void weapon_reset_triggers(datum_index item_index)
         weapon_magazine_state *magazine = &wd->magazines[i];
 
         if (magazine->state == _weapon_magazine_reloading) {
-            int16_t fresh_length = weapon_get_first_person_animation_time(item_index, 0, 0, -1); // UNSURE:
-                // animation_index (CX) placeholder, see weapon_get_first_person_animation_time.c
+            int16_t fresh_length = weapon_get_first_person_animation_time(item_index, 7, 0, -1); // FIXED: CX = 7 (0x4c4bdd)
             if (magazine->state_ticks * 2 < fresh_length) {
                 if (item_obj->network_role != 1) {
                     weapon_magazine_reload_tick(item_index, i);
                 }
             } else if (item_obj->network_role == 0) {
-                weapon_notify_reload_cancel();
+                weapon_notify_reload_cancel(item_index, i); // FIXED: ECX = the weapon, BX = the magazine (0x4c4c14)
             }
         }
         magazine->state = 0;

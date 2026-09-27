@@ -39,7 +39,7 @@ extern data_array *object_data; // 0x008603b0
 extern float k_physics_gravity;           // 0x0069c52c
 extern float k_physics_collision_damping; // 0x0069c538, UNSURE, see types/physics.h
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0
-extern uint8_t unit_any_flagged_seat_occupied(void); // 0x56cc80, module unresolved; UNSURE, see file header
+extern uint8_t unit_any_flagged_seat_occupied(uint32_t unit_index); // 0x56cc80, EAX
 
 extern double sqrt(double x);
 extern double fabs(double x); // ABS is a single x87 FABS instruction
@@ -171,7 +171,8 @@ uint8_t object_physics_resolve_mass_point_overlap(object_physics_context *self, 
         object *self_object = ((object_header *)object_data->data)[self->object_index & 0xffff].data;
         object *other_object = ((object_header *)object_data->data)[other->object_index & 0xffff].data;
 
-        if (self_object->network_role != 1 || unit_any_flagged_seat_occupied() == 1) {
+        // FIXED (0x5095b1 / 0x50964d): EAX = self->object_index / other->object_index
+        if (self_object->network_role != 1 || unit_any_flagged_seat_occupied(self->object_index) == 1) {
             vehicle_data *self_vehicle = (vehicle_data *)((uint8_t *)self_object + k_unit_object_size);
             self_vehicle->accumulated_force.i += self_force.i;
             self_vehicle->accumulated_force.j += self_force.j;
@@ -184,7 +185,7 @@ uint8_t object_physics_resolve_mass_point_overlap(object_physics_context *self, 
         }
 
         if (other_definition->radius <= 0.0f &&
-            (other_object->network_role != 1 || unit_any_flagged_seat_occupied() == 1)) {
+            (other_object->network_role != 1 || unit_any_flagged_seat_occupied(other->object_index) == 1)) {
             vehicle_data *other_vehicle = (vehicle_data *)((uint8_t *)other_object + k_unit_object_size);
             other_vehicle->accumulated_force.i += other_force.i;
             other_vehicle->accumulated_force.j += other_force.j;

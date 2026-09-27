@@ -1662,3 +1662,15 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - actor_update_flee_response: resolve_flee_source_point(actor+0x3ec, actor+0x524, actor).
   - ai_object_list_max_flee_grade: morale grade gets (mode-data word, component+0x1c).
   - actor_spawn_additional_units (0.15 -> 0.85): spawn loop REWRITTEN (random heading, 0.3 offset, placement start point, attach args 2/-1, impulse vector). Its caller unit_pick_random_spawned_actor_count now passes (variant, count, unit, tag+0x260/30).
+- **VANISHING NPC, second route FIXED: garbage collection plus the emergency actor release.** objects_garbage_collection (0x4f9c60, 0.2) runs on every ai_place (actor_place_new_unit) and on scenario object placement. It was REWRITTEN from objdump (0.85):
+  - The draft's slot test read data_array.maximum_count (+0x20, always 0x800) instead of actual_count (+0x30), so every call ran in mode 2 (memory-critical), and its mode-2 stop test was inverted.
+  - In mode 2 the emergency pass walks the {prepare, cleanup} table at 0x65ddd0: ai_release_inactive_swarms, then ai_build_priority_target_list with ai_release_inactive_encounters.
+  - ai_build_priority_target_list stored encounter_handle (always none) instead of the iterator's current encounter, so the release pass released "encounter none" = every actor. Fixed (0.9).
+  - ai_release_inactive_swarms iterated active actors only (binary: all) and passed is_dead 0/0xff (binary: 1). Fixed (0.9).
+- object_test_in_atmosphere_zone (really "can any player see this object", used by garbage collection) walked the player array with argless datum_next calls. Now datum_next(prev, player_data) (0.85).
+- Garbage-list membership VERIFIED: object_list_membership_set (0.9). Its only adders are item_update and unit_release_transient_state(unit, 0). The three callers of the latter (damage effects kill/knock-down, knock-down timeout with no health, the MP player kill) match the binary, so a living unit never becomes garbage.
+- Argless fixes:
+  - items: weapon_put_away/ready/become_charged -> hud_play_pickup_notification(weapon, 0xb/0xc/0xe); weapon_reset_triggers -> animation index 7 and weapon_notify_reload_cancel(weapon, magazine) (0.9).
+  - units: unit_can_see_point -> device_machine_melee_attacked(hit object) and breakable_surface_apply_damage(&dd, ...); unit_try_give_grenade / unit_try_select_equipment -> equipment_pickup_play_sound(object).
+  - physics: object_physics_resolve_mass_point_overlap -> unit_any_flagged_seat_occupied(self/other); object_physics_check_impact_damage -> unit_apply_impulse(candidate, &impulse).
+- OPEN: the vehicle lean functions (vehicle_calculate_ground_contact_lean[_alt], vehicle_calculate_ground_lean_controls, vehicle_calculate_lean_controls, vehicle_calculate_wing_flex_controls) call every math helper without arguments and need full rewrites (not in a10).

@@ -3,7 +3,7 @@
 // address 0x4f76e0, size 607 bytes
 // name confidence: 0.3 (matches functions.md's summary: "Tests whether an object currently
 //   lies within one of the map's atmospheric/weather effect zones")
-// rewrite confidence: 0.45 (raised from 0.25 by the phase-4 review pass: the leaf/cluster lookup, the PVS base offset and the out-block type were all corrected against the disassembly) (single caller, heavy foreign-module dependency: cluster PVS bits,
+// rewrite confidence: 0.85 (VERIFIED against objdump; player iteration FIXED) (raised from 0.25 by the phase-4 review pass: the leaf/cluster lookup, the PVS base offset and the out-block type were all corrected against the disassembly) (single caller, heavy foreign-module dependency: cluster PVS bits,
 //   an unnamed BSP/weather-zone iterator (datum_next), and a trig-heavy cone/angle test
 //   against per-zone plane data at an unidentified stride-0x200 array. Preserved close to the
 //   original pointer arithmetic rather than fully re-derived; see UNSURE notes below)
@@ -45,7 +45,7 @@ extern char zone_marker_name_0066bfa0[]; // FIXED: an array ("head"); its addres
 extern int16_t object_get_root_parent_placement(uint32_t object_index,
     object_placement_cursor *out_cursor); // 0x4f5f70, blam-cc: EAX -> object_index, ESI -> out_cursor
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, v in ECX
-extern uint32_t datum_next(void); // 0x4d0630, foreign module, UNSURE: see file header
+extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630, DX, EDI
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
     object_marker *marker, uint32_t flags); // 0x4f6080, OUTSIDE this batch, UNSURE: see file header
 extern double atan2(double y, double x); // x87 FPATAN
@@ -98,7 +98,9 @@ uint8_t object_test_in_atmosphere_zone(uint32_t object_index) // blam-cc: EAX ->
 
             if ((int16_t)ref != -1) {
                 float search_radius = obj->bounding_radius;
-                uint32_t zone_index = datum_next();
+                // FIXED (objdump 0x4f77b9..0x4f77cc / 0x4f790f..0x4f7917): walk the PLAYER array (0x87a480) with
+                //   datum_next(DX = previous, EDI = the array); the draft passed nothing.
+                uint32_t zone_index = datum_next(-1, unknown_data_0087a480);
 
                 while (zone_index != 0xffffffff) {
                     uint8_t *zone_table = *(uint8_t **)((uint8_t *)unknown_data_0087a480 + 0x34);
@@ -139,12 +141,12 @@ uint8_t object_test_in_atmosphere_zone(uint32_t object_index) // blam-cc: EAX ->
                             if (delta.i * *(float *)(extended + 0x230) +
                                 delta.j * *(float *)(extended + 0x234) +
                                 delta.k * *(float *)(extended + 0x238) <= c) {
-                                zone_index = datum_next();
+                                zone_index = datum_next((int16_t)zone_index, unknown_data_0087a480);
                                 continue;
                             }
                         }
                     } else {
-                        zone_index = datum_next();
+                        zone_index = datum_next((int16_t)zone_index, unknown_data_0087a480);
                         continue;
                     }
 

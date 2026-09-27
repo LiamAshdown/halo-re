@@ -84,7 +84,7 @@ extern uint8_t physics_shape_test_point(physics_model *model, real_point3d *poin
     physics_model_contact *out_contact); // 0x504260, this module (higher half)
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, math module
     // (src/math/vector3d_normalize_with_length.c); normalizes in place, returns the old length
-extern void unit_apply_impulse(void); // 0x559fa0, units module, UNSURE args
+extern void unit_apply_impulse(uint32_t object_index, real_vector3d *impulse); // 0x559fa0, EAX, EDI
 extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index,
     bsp_leaf_reference *location); // 0x4f5350, ESI, EDI, stack (location may be 0)
                                                                 // args, see file header
@@ -162,7 +162,7 @@ uint8_t object_physics_check_impact_damage(uint32_t *self_object_index, uint32_t
     impulse.j = (impulse.j * clamped_speed + self_obj->velocity.j) * 0.5f;
     impulse.k = (clamped_speed * impulse.k + self_obj->velocity.k) * 0.5f;
 
-    unit_apply_impulse(); // UNSURE args
+    unit_apply_impulse(candidate_object_index, &impulse); // FIXED: EAX = ESI (the candidate), EDI = &impulse (0x508d28)
 
     // sample[2..4] IS contact_point; the original aliases local_ac80/7c/78 the same way
     contact_point->x = impulse.i + impulse.i + contact_point->x;

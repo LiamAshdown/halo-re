@@ -24,7 +24,7 @@ extern uint8_t *globals_tag_data;   // 0x00746fa0
 extern data_array *player_data;     // 0x0087a480
 
 extern int32_t player_index_from_unit_index(uint32_t unit_index); // 0x474db0, UNSURE signature
-extern void equipment_pickup_play_sound(void);                   // 0x4bbb50, UNSURE signature
+extern void equipment_pickup_play_sound(uint32_t object_index); // 0x4bbb50, EAX
 extern void object_delete(uint32_t object_index);  // 0x4f5bd0, UNSURE signature
 
 uint8_t unit_try_give_grenade(uint32_t tag_source_index, uint32_t unit_index) // blam-cc: param_1, unaff_EBX
@@ -43,7 +43,7 @@ uint8_t unit_try_give_grenade(uint32_t tag_source_index, uint32_t unit_index) //
         if (local_player != -1) {
             uint32_t local_player2 = (uint32_t)player_index_from_unit_index(unit_index);
             if (*(int16_t *)((uint8_t *)player_data->data + (local_player2 & 0xffff) * 0x200 + 2) != -1) {
-                equipment_pickup_play_sound();
+                equipment_pickup_play_sound(tag_source_index); // FIXED: 0x56d13e: EAX = the pickup object
             }
         }
         object_delete(tag_source_index);
