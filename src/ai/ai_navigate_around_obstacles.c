@@ -1,29 +1,20 @@
 // ai_navigate_around_obstacles  (Ghidra: ai_navigate_around_obstacles, renamed)
 // address 0x43be90, size 1196 bytes
-// name confidence: 0.35  rewrite confidence: 0.1
-// evidence: phase-4 summary "top-level AI pathfinding entry point that builds an
-// obstacle-aware point graph around a list of waypoints and searches it to produce a full
-// route." Calls ai_search_gather_obstacles (0x43c510, already named, this rewrite),
-// ai_search_context_init/ai_search_step/ai_search_run (0x43b790/0x43bcb0/0x43be20, this
-// rewrite), ai_search_partition_into_groups (this rewrite) and decal_plane_solve_third_axis (outside this rewrite's range).
-//
-// This is the module's top-level point-search driver and, like ai_search_evaluate_edge_cost
-// and ai_search_expand_point_neighbors, one of its least confidently rewritten functions.
-// It iterates the caller's waypoint list, and for each segment either reuses a cached
-// per-waypoint `ai_search_context`-shaped block hanging off a global table (when `param_1[0x12]`
-// is a live cache handle) or builds a fresh one on the stack, runs the point search between
-// the segment's two endpoints, and copies the resulting smoothed sub-path into the caller's
-// output buffer. The exact shape of the cache record (`+0x10588`/`+0x1058a`/`+0x12dac`/
-// `+0x1058c` relative to `param_1[0x12]`) and of the caller's own waypoint-list record
-// (`param_1[8]`, `param_1+5`, `param_3` as a 0x10-stride array, `param_5`/`param_4` as the
-// output cursor) are not established anywhere else in this module and are preserved as raw
-// offsets rather than asserted as named fields.
-//
-// register convention: stack -> the six Ghidra-recognized formal parameters (this function
-//   was not observed calling anything through an unresolved register operand of its own,
-//   only forwarding its parameters into callees that themselves have register gaps).
-//   // blam-cc: stack -> waypoints, waypoint_count, edges, out_cursor, out_buffer, out_flag
-// reconciled: R06 0x00746f9c is ScenarioStructureBSP *global_structure_bsp (was extern int32_t bsp_generation); ai.h path_find_context/actor_movement_context bsp_generation -> structure_bsp, bsp_index -> collision_bsp
+// name confidence: 0.4   rewrite confidence: 0.8
+// REWRITTEN from objdump 0x43be90..0x43c33b. Stack: path find context, waypoint count, waypoints, out_count,
+//   out_waypoints, out_valid. For each waypoint, from the previous point (the request's start +0x14 / surface +0x20
+//   at first): the obstacle list and search context come from the context's cache (+0x48: valid +0x10588,
+//   count +0x1058a, lists +0x1058c (0xa08 each), searches +0x12dac (0x1534 each)) or the stack. Without valid
+//   cached obstacles they are gathered around the previous point (radius 4, toward the waypoint, excluding the
+//   request's objects +0x08/+0x0c), the avoid sphere (+0x24: object +0x34, position +0x28, radius +0x38) is added
+//   flagged, and the list is grouped with the search radius (max(request radius, 0.2)). The point search starts
+//   at the previous point toward the waypoint (target surface = the waypoint's, the goal flag on the last
+//   waypoint when the path is still valid); with no result and flagged obstacles it is rerun ignoring them
+//   (unknown_2a = 1). No result fails the whole path (returns 0). A complete search continues from the waypoint
+//   itself, a best-effort one from its best node (height from its surface); the node chain (up to 0x80, heights
+//   from their surface planes) is appended in path order to out_waypoints while it holds fewer than 4. Running
+//   out of room clears out_valid and stops (returns 1).
+// blam-cc: stack -> context, count, waypoints, out_count, out_waypoints, out_valid
 
 #include "tags.h"
 #include "memory.h"
@@ -31,230 +22,180 @@
 #include "ai.h"
 #include <stdint.h>
 
-extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (formerly bsp_generation)
-extern uint8_t *global_structure_collision_bsp; // 0x00746f98, UNSURE: a per-cluster table this function reads bsp-cluster edge data from at +0x40/+0x10
-
-extern void ai_search_gather_obstacles(void *out_list, float *point, float radius, float *direction,
-                                       uint32_t self_object_a, uint32_t self_object_b); // 0x43c510
-extern void ai_search_partition_into_groups(float step_radius); // 0x43cb60
-extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign, int32_t dominant_axis,
-    const real_plane3d *plane, const real_point2d *known);
-    // 0x44d860, src/math; blam-cc: stack out, AL component_sign, SI dominant_axis, EBX plane, EDI known
-extern void ai_search_context_init(void *context, uint8_t param2, float step_radius, float *point,
-                                   float z, float distance, uint32_t flags, uint8_t param8); // 0x43b790, see header UNSURE
-extern uint8_t ai_search_step(void *context); // 0x43bcb0
-extern uint8_t ai_search_run(uint8_t param2, void *obstacle_list, float step_radius, float *point,
-                             float distance, float *direction); // 0x43be20, see header UNSURE
-
+extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
+extern ScenarioStructureBSP *global_structure_bsp;                         // 0x00746f9c
 extern double sqrt(double x); // FSQRT
-extern double fabs(double x); // ABS
+extern double fabs(double x); // FABS
+extern void ai_search_gather_obstacles(ai_search_obstacle_list *list, real_point3d *center, float radius,
+    real_vector3d *direction, uint32_t self_object_a, uint32_t self_object_b); // 0x43c510, stack
+extern void ai_search_partition_into_groups(ai_search_obstacle_list *list, float radius); // 0x43cb60, ESI, stack
+extern void ai_search_context_init(ai_search_context *context, uint8_t unknown_04, uint32_t unknown_00,
+    ai_search_obstacle_list *obstacles, real_point2d *origin, uint32_t unknown_0c, real_point2d *position,
+    int32_t surface_index, uint32_t unknown_18, uint8_t unknown_29, uint8_t unknown_2a); // 0x43b790
+extern uint8_t ai_search_step(ai_search_context *context); // 0x43bcb0, EAX
+extern uint8_t ai_search_run(ai_search_context *context, uint8_t unknown_04, ai_search_obstacle_list *obstacles,
+    uint32_t unknown_00, real_point2d *position, int32_t surface_index, real_point2d *origin, uint32_t unknown_18,
+    uint8_t unknown_29, uint8_t unknown_2a); // 0x43be20, ESI, EDX, ECX, EAX, stack
+extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign, int32_t dominant_axis,
+    const real_plane3d *plane, const real_point2d *known); // 0x44d860
 
-// blam-cc: stack -> waypoints, waypoint_count, edges, out_cursor, out_buffer, out_flag
-//
-// UNSURE: this rewrite is a close, low-confidence transcription; see the file header.
-uint8_t ai_navigate_around_obstacles(float *waypoints, int16_t waypoint_count, uint8_t *edges,
-                                     int16_t *out_cursor, uint8_t *out_buffer, uint8_t *out_flag)
+static real_plane3d *ai_navigate_surface_plane(ModelCollisionGeometryBSP *bsp, int32_t surface)
 {
-    float scratch_path[512 * 4]; // local_273c, one {surface_z, x, y, slope} record per collected point
-    uint8_t obstacle_list[1284 * 2]; // local_1f3c
-    uint8_t search_context[5424]; // local_1534
-    uint8_t *cluster_base = global_structure_collision_bsp;
-    float step_radius;
-    int32_t segment;
-    int16_t last_segment;
-    float cached_z;
-    float cache_handle;
+    uint8_t *raw = (uint8_t *)bsp;
+    uint32_t plane = *(uint32_t *)(*(uint8_t **)(raw + 0x40) + surface * 12) & 0x7fffffff;
 
-    step_radius = (*waypoints <= 0.2f) ? 0.2f : *waypoints;
-    cache_handle = waypoints[0x12];
-    if ((cache_handle != 0.0f) && (*(uint8_t *)((uint8_t *)(uintptr_t)(uint32_t)cache_handle + 0x10588) == 0)) {
-        *(int16_t *)((uint8_t *)(uintptr_t)(uint32_t)cache_handle + 0x1058a) = 0;
+    return (real_plane3d *)(*(uint8_t **)(raw + 0x10) + plane * 16);
+}
+
+uint8_t ai_navigate_around_obstacles(path_find_context *context, int16_t count, path_find_waypoint *waypoints,
+    int16_t *out_count, path_find_waypoint *out_waypoints, uint8_t *out_valid)
+{
+    path_find_request *request = (path_find_request *)context;
+    ModelCollisionGeometryBSP *collision_bsp = global_structure_collision_bsp;
+    float radius = (request->pathfinding_radius > 0.2f) ? request->pathfinding_radius : 0.2f;
+    uint8_t *cache = *(uint8_t **)((uint8_t *)context + 0x48);
+    ai_search_obstacle_list local_obstacles;
+    ai_search_context local_search;
+    path_find_waypoint path[0x80];
+    real_point3d previous;
+    int32_t previous_surface = 0;
+    int16_t i;
+
+    if (cache != 0 && cache[0x10588] == 0) {
+        *(int16_t *)(cache + 0x1058a) = 0;
     }
+    for (i = 0; i < count; i++) {
+        ai_search_obstacle_list *obstacles = &local_obstacles;
+        ai_search_context *search = &local_search;
+        uint8_t last = (uint8_t)(i == count - 1 && *out_valid != 0);
+        real_point3d *from;
+        int32_t from_surface;
+        int32_t surface = waypoints[i].surface_index;
+        real_point3d *to = &waypoints[i].position;
+        real_vector3d direction;
+        uint8_t found;
+        uint8_t overflow = 0;
+        int16_t length = 0;
+        int16_t index;
 
-    if (waypoint_count < 1) {
-        return 1;
-    }
-    last_segment = waypoint_count - 1;
-
-    for (segment = 0; ; segment = segment + 1) {
-        uint8_t *ctx = search_context;
-        void *obstacles = obstacle_list;
-        uint8_t is_last_segment;
-        float *from_point;
-        float from_z;
-        float *edge;
-        float dx, dy, dz;
-        float len;
-        float to_z;
-
-        is_last_segment = 0;
-        if (segment == last_segment) {
-            is_last_segment = (*out_flag != 0) ? 1 : 0;
-        }
-
-        if (segment < 1) {
-            cached_z = waypoints[8];
-            from_point = waypoints + 5;
+        if (i > 0) {
+            from = &previous;
+            from_surface = previous_surface;
         } else {
-            from_point = &scratch_path[0]; // UNSURE: original reuses `local_2748` across iterations, see header
+            from = &context->start_position;
+            from_surface = (int32_t)context->start_vertex_id;
         }
-
-        edge = (float *)(edges + segment * 0x10);
-        dy = edge[1] - from_point[0];
-        dz = edge[2] - from_point[1];
-        from_z = *edge;
-        dx = edge[3] - from_point[2]; // UNSURE: axis order preserved exactly, see original
-        len = (float)sqrt(dy * dy + dx * dx + dz * dz);
-        if (0.0001 <= fabs(len)) {
-            float inv = 1.0f / len;
-            dy = dy * inv;
-            dz = dz * inv;
-            dx = dx * inv;
-        }
-        to_z = from_z; // UNSURE: `local_275c = local_2774`, see original
-
-        if (cache_handle == 0.0f) {
-            /* fresh, uncached search */
-        } else if ((*(uint8_t *)((uint8_t *)(uintptr_t)(uint32_t)cache_handle + 0x10588) == 0) ||
-                  (*(int16_t *)((uint8_t *)(uintptr_t)(uint32_t)cache_handle + 0x1058a) <= (int16_t)segment)) {
-            /* cache miss: fall back to a fresh search, same as cache_handle == 0 */
-        } else {
-            ctx = (uint8_t *)(uintptr_t)(uint32_t)cache_handle + segment * 0x1534 + 0x12dac;
-            obstacles = (uint8_t *)(uintptr_t)(uint32_t)cache_handle + segment * 0xa08 + 0x1058c;
-            goto have_context;
-        }
-
+        direction.i = to->x - from->x;
+        direction.j = to->y - from->y;
+        direction.k = to->z - from->z;
         {
-            uint16_t *hdr = (uint16_t *)obstacles;
-            hdr[0] = 0; hdr[1] = 0; hdr[2] = 0;
-            ai_search_gather_obstacles(obstacles, from_point, 4.0f, &dy,
-                                       *(uint32_t *)(waypoints + 2), *(uint32_t *)(waypoints + 3));
-            if (*(uint8_t *)(waypoints + 9) != 0) {
-                int16_t count = ((int16_t *)obstacles)[1];
-                if (count != 0x80) {
-                    float radius = waypoints[0xd];
-                    float weight = waypoints[0xe];
-                    uint16_t *entry = (uint16_t *)obstacles + count * 10 + 4;
-                    ((int16_t *)obstacles)[2] = ((int16_t *)obstacles)[2] + 1;
-                    ((int16_t *)obstacles)[1] = count + 1;
-                    entry[0] = 1;
-                    entry[1] = 0xffff;
-                    *(float *)(entry + 2) = radius;
-                    *(float *)(entry + 4) = waypoints[10];
-                    *(float *)(entry + 6) = waypoints[0xb];
-                    *(float *)(entry + 8) = weight;
-                }
+            float magnitude = (float)sqrt(direction.j * direction.j + direction.k * direction.k +
+                direction.i * direction.i);
+
+            if (!((float)fabs(magnitude) < 0.0001f)) {
+                float scale = 1.0f / magnitude;
+
+                direction.i *= scale;
+                direction.j *= scale;
+                direction.k *= scale;
             }
-            ai_search_partition_into_groups(step_radius);
-            if ((cache_handle != 0.0f) && (*(uint8_t *)((uint8_t *)(uintptr_t)(uint32_t)cache_handle + 0x10588) == 0)) {
-                *(int16_t *)((uint8_t *)(uintptr_t)(uint32_t)cache_handle + 0x1058a) =
-                    *(int16_t *)((uint8_t *)(uintptr_t)(uint32_t)cache_handle + 0x1058a) + 1;
+        }
+        if (cache != 0) {
+            obstacles = (ai_search_obstacle_list *)(cache + 0x1058c + i * 0xa08);
+            search = (ai_search_context *)(cache + 0x12dac + i * 0x1534);
+        }
+        if (cache == 0 || cache[0x10588] == 0 || !(i < *(int16_t *)(cache + 0x1058a))) {
+            // 0x43c027: gather this leg's obstacles
+            obstacles->unknown_00 = 0;
+            obstacles->count = 0;
+            obstacles->flagged_count = 0;
+            ai_search_gather_obstacles(obstacles, from, 4.0f, &direction, request->unknown_08, request->unknown_0c);
+            if (request->have_avoid_sphere && obstacles->count != 0x80) {
+                ai_search_obstacle *entry = &obstacles->obstacles[obstacles->count++];
+
+                obstacles->flagged_count++;
+                entry->flags = 1;
+                entry->link = -1;
+                entry->object_index = *(uint32_t *)((uint8_t *)context + 0x34);
+                entry->position.x = request->avoid_position.x;
+                entry->position.y = request->avoid_position.y;
+                entry->radius = request->avoid_radius;
+            }
+            ai_search_partition_into_groups(obstacles, radius);
+            if (cache != 0 && cache[0x10588] == 0) {
+                (*(int16_t *)(cache + 0x1058a))++;
             }
         }
 
-    have_context:
-        ai_search_context_init(ctx, *(uint8_t *)(waypoints + 1), step_radius, from_point, to_z, from_z, 0, 0);
-        while (ai_search_step(ctx) != 0) {
+        ai_search_context_init(search, request->ignores_glass, *(uint32_t *)&radius, obstacles, (real_point2d *)to,
+            (uint32_t)(uintptr_t)global_structure_bsp, (real_point2d *)from, from_surface, (uint32_t)surface, last, 0);
+        while (ai_search_step(search) != 0) {
+        }
+        if (search->result_node != -1) {
+            search->complete = 1;
+        } else if (search->best_node != -1) {
+            search->result_node = search->best_node;
+        }
+        found = (uint8_t)(search->result_node != -1);
+        if (!found) {
+            if (obstacles->flagged_count <= 0 ||
+                !ai_search_run(search, request->ignores_glass, obstacles, *(uint32_t *)&radius, (real_point2d *)from,
+                    from_surface, (real_point2d *)to, (uint32_t)surface, last, 1)) {
+                return 0;
+            }
         }
 
-        if (*(int16_t *)(ctx + 0x1e) == -1) {
-            if (*(int16_t *)(ctx + 0x20) != -1) {
-                *(int16_t *)(ctx + 0x1e) = *(int16_t *)(ctx + 0x20);
-            }
+        if (search->complete) {
+            previous = *to;
+            previous_surface = surface;
         } else {
-            ctx[0x28] = 1;
+            ai_search_node *best = &search->nodes[search->result_node];
+
+            previous_surface = *(int32_t *)&best->z;
+            decal_plane_solve_third_axis(&previous, 1, 2, ai_navigate_surface_plane(collision_bsp, previous_surface),
+                &best->position);
         }
 
-        if ((*(int16_t *)(ctx + 0x1e) == -1) &&
-            ((((int16_t *)obstacles)[2] < 1) ||
-             (ai_search_run(*(uint8_t *)(waypoints + 1), obstacles, step_radius, from_point, to_z, edge + 1) == 0))) {
-            return 0;
-        }
+        // 0x43c1f9: collect the node chain back to the root
+        index = search->result_node;
+        while (index != 0) {
+            ai_search_node *node = &search->nodes[index];
+            real_plane3d *plane = ai_navigate_surface_plane(collision_bsp, *(int32_t *)&node->z);
+            path_find_waypoint *point = &path[length++];
 
-        {
-            uint8_t reached_end = 0;
-            float collected[512][4];
-            int32_t collected_count = 0;
-            int16_t cur;
-
-            if (ctx[0x28] == 0) {
-                uint8_t *node = ctx + *(int16_t *)(ctx + 0x1e) * 0x28;
-                int32_t surface = *(int32_t *)(node + 0x38); // a collision surface index, copied as bits
-                const real_plane3d *planes = (const real_plane3d *)(uintptr_t)*(uint32_t *)(cluster_base + 0x10);
-                const uint32_t *surfaces = (const uint32_t *)(uintptr_t)*(uint32_t *)(cluster_base + 0x40);
-
-                cached_z = *(float *)(node + 0x38);
-                // 0x43c1b3..0x43c1ed: lift the node's 2D point (EDI = node + 0x30) onto its surface's
-                // plane (EBX = &planes[surfaces[surface].plane & 0x7fffffff], 0xc-byte surfaces),
-                // solving z (AL = 1, SI = 2), into scratch_path[0..2]
-                decal_plane_solve_third_axis((real_point3d *)&scratch_path[0], 1, 2,
-                    &planes[surfaces[surface * 3] & 0x7fffffff], (const real_point2d *)(node + 0x30));
+            point->surface_index = *(int32_t *)&node->z;
+            point->position.x = node->position.x;
+            point->position.y = node->position.y;
+            if ((float)fabs(plane->normal.k) < 0.0001f) {
+                point->position.z = 0.0f;
             } else {
-                scratch_path[0] = edge[1];
-                scratch_path[1] = edge[2];
-                scratch_path[2] = edge[3];
-                cached_z = from_z;
+                point->position.z = (plane->d - node->position.x * plane->normal.i - plane->normal.j * node->position.y) /
+                    plane->normal.k;
             }
+            index = node->parent;
+            if (length >= 0x80) {
+                overflow = 1;
+                break;
+            }
+        }
+        {
+            int16_t emitted = *out_count;
 
-            cur = *(int16_t *)(ctx + 0x1e);
-            while (cur != 0) {
-                float *node = (float *)(ctx + cur * 0x28 + 0x30);
-                float surface_z = node[2];
-                int32_t table_a = *(int32_t *)(*(int32_t *)(cluster_base + 0x40) + (int32_t)surface_z * 0xc);
-                float *cluster_edge = (float *)(table_a * 0x10 + *(int32_t *)(cluster_base + 0x10));
-                float slope;
-
-                collected[collected_count][0] = surface_z;
-                collected[collected_count][1] = *node;
-                collected[collected_count][2] = node[1];
-                if (0.0001 <= fabs(cluster_edge[2])) {
-                    slope = ((cluster_edge[3] - *node * *cluster_edge) - cluster_edge[1] * node[1]) / cluster_edge[2];
-                } else {
-                    slope = 0.0f;
-                }
-                collected[collected_count][3] = slope;
-
-                collected_count = collected_count + 1;
-                if (0x80 <= collected_count) {
+            while (--length >= 0) {
+                if (emitted >= 4) {
+                    overflow = 1;
                     break;
                 }
-                cur = *(int16_t *)(node + 9);
+                out_waypoints[emitted++] = path[length];
             }
-            if (collected_count < 0x80) {
-                reached_end = 1;
-            }
-
-            {
-                int16_t cursor = *out_cursor;
-                int32_t i = collected_count - 1;
-                while (-1 < i) {
-                    if (3 < cursor) {
-                        reached_end = 1;
-                        break;
-                    }
-                    {
-                        float *slot = (float *)(out_buffer + cursor * 0x10);
-                        slot[0] = collected[i][0];
-                        slot[1] = collected[i][1];
-                        slot[2] = collected[i][2];
-                        slot[3] = collected[i][3];
-                    }
-                    cursor = cursor + 1;
-                    i = i - 1;
-                }
-                *out_cursor = cursor;
-            }
-
-            if (reached_end) {
-                *out_flag = 0;
-                return 1;
-            }
+            *out_count = emitted;
         }
-
-        if (waypoint_count <= (int16_t)(segment + 1)) {
+        if (overflow) {
+            *out_valid = 0;
             return 1;
         }
     }
+    return 1;
 }
 
 #if 0

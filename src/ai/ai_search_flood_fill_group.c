@@ -1,6 +1,6 @@
 // ai_search_flood_fill_group  (Ghidra: ai_search_flood_fill_group, renamed)
 // address 0x43ca40, size 285 bytes
-// name confidence: 0.4   rewrite confidence: 0.4
+// name confidence: 0.4   rewrite confidence: 0.85 (verified against objdump)
 // evidence: types/ai.h ai_search_obstacle_list.count(+0x02)/obstacles(+0x08, stride 0x14)
 // and ai_search_obstacle.position(+0x08)/radius(+0x10). phase-4 summary "flood-fills the set
 // of point-graph indices reachable from a starting point through pairwise proximity links."

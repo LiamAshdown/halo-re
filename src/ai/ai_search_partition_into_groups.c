@@ -1,6 +1,6 @@
 // ai_search_partition_into_groups  (Ghidra: ai_search_partition_into_groups, renamed)
 // address 0x43cb60, size 159 bytes
-// name confidence: 0.45  rewrite confidence: 0.3
+// name confidence: 0.45  rewrite confidence: 0.85 (verified against objdump)
 // evidence: types/ai.h ai_search_obstacle_list.count(+0x02)/obstacles(+0x08, stride 0x14) and
 // ai_search_obstacle.link(+0x02); phase-4 summary "partitions the point graph into connected
 // groups by repeatedly flood-filling from each ungrouped point." Calls

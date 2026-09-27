@@ -1,6 +1,6 @@
 // ai_search_append_obstacle  (Ghidra: ai_search_append_obstacle, renamed)
 // address 0x43c4b0, size 83 bytes
-// name confidence: 0.5   rewrite confidence: 0.55
+// name confidence: 0.5   rewrite confidence: 0.85 (verified against objdump)
 // evidence: types/ai.h ai_search_obstacle_list (count +0x02, flagged_count +0x04, obstacles
 // +0x08 stride 0x14) and ai_search_obstacle (flags/link/object_index/position/radius),
 // matching this function's writes exactly.

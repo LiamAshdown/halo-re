@@ -18,7 +18,7 @@ extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern uint32_t biped_ground_adjust_step(uint32_t object_index); // 0x557a90, stack (0x55e883 pushes only the object)
-extern void unit_rotate_basis_about_axis(uint32_t object_index, real_vector3d *rotation_axis);      // 0x55e6b0, this batch
+extern void unit_rotate_basis_about_axis(uint32_t object_index);      // 0x55e6b0, this batch
 extern void unit_update_up_vector(Biped *biped_tag, object *obj); // 0x560800, next batch
 
 // Selects between three per-tick basis states for an idle biped: while a ground-adjust solve is
@@ -41,7 +41,7 @@ void biped_update_idle_basis(uint32_t object_index, uint8_t *state_out)
 
     if ((int8_t)biped->unknown_501 > 2 && (tag->biped_flags & 0x400) == 0) {
         if (unit->animation_state == 0x18) {
-            unit_rotate_basis_about_axis(object_index, 0); // UNSURE: rotation_axis
+            unit_rotate_basis_about_axis(object_index); // 0x55e8b0: EAX = object
         }
         state_out[0] = 0x18;
         state_out[1] = 0;

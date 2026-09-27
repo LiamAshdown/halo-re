@@ -20,11 +20,12 @@ extern tag_instance *tag_instances; // 0x0087bc14
 
 extern real vector3d_normalize_with_length(real_vector3d *v);
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand);
+extern real_vector3d *global_up3d_pointer; // 0x00696720 (0, 0, 1)
 extern real random_real_range(real min, real max); // 0x401050
 extern double fcos(double x);
 extern double fsin(double x);
 extern uint32_t biped_is_idle_eligible(uint32_t object_index); // 0x55e8e0, this batch
-extern void unit_rotate_basis_about_axis(uint32_t object_index, real_vector3d *rotation_axis); // 0x55e6b0, this batch
+extern void unit_rotate_basis_about_axis(uint32_t object_index); // 0x55e6b0, this batch
 
 // Nudges an idle-eligible unit with a small randomized angular impulse (perpendicular to its
 // up-vector when reasonably upright, otherwise a random direction in the horizontal plane) to
@@ -52,7 +53,7 @@ void biped_apply_idle_fidget(uint32_t object_index, uint8_t *state_out)
                 impulse_dir.j = (float)fsin(angle);
                 impulse_dir.k = 0.0f;
             } else {
-                vector3d_cross_product(&impulse_dir, &obj->forward, &obj->up); // UNSURE operands
+                vector3d_cross_product(&impulse_dir, global_up3d_pointer, &obj->up); // 0x55e9d5: EAX out, ECX *0x696720, stack up
                 if (vector3d_normalize_with_length(&impulse_dir) <= 0.0f) {
                     double angle = random_real_range(0.0, 6.2831855);
                     impulse_dir.i = (float)fcos(angle);
@@ -64,7 +65,7 @@ void biped_apply_idle_fidget(uint32_t object_index, uint8_t *state_out)
             obj->angular_velocity.j += impulse_dir.j * magnitude;
             obj->angular_velocity.k += impulse_dir.k * magnitude;
         }
-        unit_rotate_basis_about_axis(object_index, 0); // UNSURE: rotation_axis
+        unit_rotate_basis_about_axis(object_index); // 0x55ea65: EAX = object
     }
 
 tail:

@@ -2,7 +2,8 @@
 // 512-bit cluster bitmask, OR-ing in the potentially-visible-cluster set of every (or every
 // local) player's root object)
 // address 0x4782a0, size 347 bytes
-// name confidence: 0.25   rewrite confidence: 0.25
+// name confidence: 0.25   rewrite confidence: 0.8 (checked against objdump 0x4782a0..0x4783fa; the final
+//   bit_vector_or had lost three of its four arguments)
 // evidence: out/functions.json callee list (bit_vector_or, data_iterator_next, objects_get_ambient_cluster);
 //   types/objects.h object::parent_object (0x11c) and object::location_cluster_index (0x09c,
 //   read here at the resolved root object as the cached BSP cluster); the 16-dword (512-bit)
@@ -31,7 +32,7 @@ extern data_array *object_headers;      // 0x008603b0
 extern int16_t objects_get_ambient_cluster(void); // 0x4f7a50, not in this batch; UNSURE exact signature
 extern data_array *player_data;         // 0x0087a480
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0; blam-cc: EDI -> iterator
-extern void bit_vector_or(uint32_t *out); // 0x4cb760, not in this batch; UNSURE exact signature
+extern void bit_vector_or(uint32_t *a, int16_t bit_count, uint32_t *b, uint32_t *dst); // 0x4cb760, EAX a, CX count, EDX b, stack dst
     // (a second operand is presumably elided, same shape as every other 1-visible-arg call here)
 
 // Zeroes a 16-dword (512-bit) output bitmask, then for every player (or, when
@@ -94,7 +95,12 @@ void game_engine_build_visible_cluster_bitmask(uint32_t *out_bitmask, uint8_t lo
     }
 
     if (player_gate_result != -1) {
-        bit_vector_or(out_bitmask);
+        // 0x4783c6: OR the ambient cluster's visibility row in (EAX row, CX cluster count, EDX = dst = out)
+        int32_t cluster_count = *(int32_t *)(bsp_info + 0x134);
+        uint32_t *row = (uint32_t *)(*(uint8_t **)(bsp_info + 0x14c) +
+            ((cluster_count + 0x1f) >> 5) * player_gate_result * 4);
+
+        bit_vector_or(row, (int16_t)cluster_count, out_bitmask, out_bitmask);
     }
 }
 

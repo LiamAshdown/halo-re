@@ -1,28 +1,17 @@
-// ai_search_gather_obstacles  (Ghidra: ai_search_gather_obstacles, already named)
+// ai_search_gather_obstacles  (Ghidra: ai_search_gather_obstacles, renamed)
 // address 0x43c510, size 883 bytes
-// name confidence: 0.5   rewrite confidence: 0.1
-// evidence: types/ai.h notes this function as the one that "fills [ai_search_obstacle_list]
-// from object_find_in_sphere plus each object's vault/cover surface points". Calls
-// point3d_within_radius (math helper, this task's skip list excludes it from rewriting),
-// ai_search_append_obstacle (ai_search_append_obstacle, this rewrite), matrix4x3_transform_point /
-// object_get_world_matrix / object_find_in_sphere (all established elsewhere with full
-// signatures the two former are called here without, per the header note below).
-//
-// Kept close to the Ghidra decompilation and at very low confidence: almost every offset
-// here reaches into the object/unit-type tag data (object flags, ActorType/vault
-// classification, a per-object-type "vault point" reflexive block with per-point radius and
-// direction fields) that belongs to types/objects.h / types/units.h / types/tags.h and is
-// not established at these specific sub-offsets anywhere in this module. Reproduced as raw
-// offsets rather than asserted as named fields.
-//
-// register convention: stack -> the six Ghidra-recognized formal parameters.
-//   // blam-cc: stack -> cluster_ref, center, radius, direction, self_object_a, self_object_b
-//
-// UNSURE: object_get_world_matrix and matrix4x3_transform_point are each called here with
-// fewer visible arguments than their established signatures take; called explicitly below
-// with the operands available in this scope (the object being examined, and its own vault
-// point / world matrix), which is the most plausible reading but not confirmed against a
-// disassembly of this function.
+// name confidence: 0.45  rewrite confidence: 0.8
+// REWRITTEN from objdump 0x43c510..0x43c882. Stack: list, center, radius, direction, self_object_a,
+//   self_object_b. object_find_in_sphere(1, types 0xc3, self_object_a's location +0x98, center, radius, 0x100)
+//   gives the candidates; the two selves, hidden objects (+0x10 bit 0), bipeds flagged +0x106 bit 2, and machines
+//   (type 7) whose tag (+0x292) does not block paths or is fully open (bit 2 with +0x208 == 1.0) are skipped, as
+//   are objects whose bounding sphere (+0xa0, +0xac) is out of reach and those without pathfinding spheres (the
+//   collision model at tag +0x7c: +0x280 count, +0x284 array of 0x20) or with tag flag +0x02 bit 3. Each sphere
+//   is placed in the world (its node's matrix, or the object's world matrix for node -1; radius scaled), dropped
+//   when it lies wholly below the center (unless the direction points down, k <= -0.2) or above it (unless
+//   k >= 0.2) with 0.5 slack, or out of reach (z counted twice), and appended; a biped moving along the direction
+//   (d . dir > 0 and velocity . dir > 1/15) is appended with flag 1.
+// blam-cc: stack -> list, center, radius, direction, self_object_a, self_object_b
 
 #include "tags.h"
 #include "memory.h"
@@ -35,111 +24,99 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern uint8_t point3d_within_radius(float value); // 0x43c340, math helper, not rewritten here
+extern int16_t object_find_in_sphere(uint32_t search_mask, uint32_t type_mask, void *location,
+    real_point3d *center, float radius, datum_index *out_objects, int16_t max_output); // 0x4f6fe0
+extern int point3d_within_radius(const real_point3d *a, const real_point3d *b, real radius); // 0x43c340, EAX, ECX, stack
+extern real_matrix4x3 *object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out); // 0x4f6a20, EAX, EDI
+extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0
 extern uint8_t ai_search_append_obstacle(ai_search_obstacle_list *list, uint16_t flags, uint32_t object_index,
-                                         real_point2d *position, float radius); // 0x43c4b0
-extern int16_t object_find_in_sphere(int32_t kind, int32_t type_mask, const void *from,
-                                     const real_point3d *center, float radius,
-                                     datum_index *out_objects, int32_t maximum_count); // 0x4f6fe0
-extern real_matrix4x3 *object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out); // 0x4f6a20
-extern void matrix4x3_transform_point(real_point3d *out, const real_point3d *point,
-                                      const real_matrix4x3 *matrix); // 0x4cbde0
+    real_point2d *position, float radius); // 0x43c4b0, EDX list, ESI position, stack
 
-// blam-cc: stack -> list, center, radius, direction, self_object_a, self_object_b
-//
-// UNSURE: `list` (Ghidra's `param_1`) is never dereferenced directly in this function's own
-// body -- it is purely forwarded into ai_search_append_obstacle's own EDX convention, which
-// this rewrite makes an explicit parameter and argument instead of an implicit
-// register pass-through.
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+
 void ai_search_gather_obstacles(ai_search_obstacle_list *list, real_point3d *center,
                                 float radius, real_vector3d *direction, uint32_t self_object_a, uint32_t self_object_b)
 {
-    datum_index candidates[256];
-    int16_t found;
+    datum_index found[0x100];
+    int16_t count;
+    int16_t f;
 
-    found = object_find_in_sphere(1, 0xc3,
-                                  (uint8_t *)(*(int32_t *)((uint8_t *)((object_header *)object_data->data) + 8 +
-                                                            (self_object_a & 0xffff) * 0xc)) + 0x98,
-                                  center, radius, candidates, 0x100);
+    count = object_find_in_sphere(1, 0xc3, OBJECT_DATA(self_object_a) + 0x98, center, radius, found, 0x100);
+    for (f = 0; f < count; f++) {
+        datum_index object_index = found[f];
+        uint8_t *object = OBJECT_DATA(object_index);
+        uint8_t *object_tag;
+        uint8_t *collision;
+        real_matrix4x3 world;
+        int32_t s;
 
-    if (0 < found) {
-        int32_t i;
-        for (i = 0; i < found; i = i + 1) {
-            uint32_t handle = candidates[i];
-            uint8_t *object = *(uint8_t **)(*(int32_t *)((uint8_t *)object_data + 0x34) + 8 + (handle & 0xffff) * 0xc);
+        if (object_index == self_object_a || object_index == self_object_b || (object[0x10] & 1) != 0) {
+            continue;
+        }
+        if (*(int16_t *)(object + 0xb4) == 0 && (object[0x106] & 4) != 0) {
+            continue; // 0x43c5d0: a biped flagged 4 at +0x106
+        }
+        if (*(int16_t *)(object + 0xb4) == 7) {
+            uint16_t machine_flags = *(uint16_t *)(TAG_DATA(*(datum_index *)object) + 0x292);
 
-            if ((handle == self_object_a) || (handle == self_object_b)) {
+            if ((machine_flags & 1) == 0) {
                 continue;
             }
-            if ((*(uint32_t *)(object + 0x10) & 1) != 0) { // object_header flags bit0
+            if ((machine_flags & 2) != 0 && *(float *)(object + 0x208) == 1.0f) {
                 continue;
             }
+        }
+        if (!point3d_within_radius((real_point3d *)(object + 0xa0), center, radius + *(float *)(object + 0xac))) {
+            continue;
+        }
+        object_tag = TAG_DATA(*(datum_index *)object);
+        collision = TAG_DATA(*(datum_index *)(object_tag + 0x7c));
+        if ((object_tag[2] & 8) != 0 || *(int32_t *)(collision + 0x280) <= 0) {
+            continue;
+        }
+        object_get_world_matrix(object_index, &world);
+        for (s = 0; s < *(int32_t *)(collision + 0x280); s++) {
+            uint8_t *sphere = *(uint8_t **)(collision + 0x284) + s * 0x20;
+            int16_t node = *(int16_t *)sphere;
+            real_point3d point;
+            float sphere_radius;
+            float dx;
+            float dy;
+            float dz;
+            float reach;
+            uint16_t flags = 0;
 
-            {
-                int32_t definition = *(int32_t *)((*(uint32_t *)object & 0xffff) * 0x20 + 0x14 + (uint32_t)(uintptr_t)tag_instances);
-                int16_t kind = *(int16_t *)(object + 0xb4); // UNSURE: unit-type "kind"/classification field
-                uint8_t vault_ok = 1;
+            object = OBJECT_DATA(object_index);
+            if (node != -1) {
+                real_matrix4x3 *matrix = (real_matrix4x3 *)(object + *(int16_t *)(object + 0x1f2) + node * 0x34);
 
-                if (kind == 0) {
-                    vault_ok = (*(uint8_t *)(object + 0x106) & 4) != 0;
-                } else if (kind == 7) {
-                    uint16_t flags292 = *(uint16_t *)(*(int32_t *)((*(uint32_t *)object & 0xffff) * 0x20 + 0x14 +
-                                                                    (uint32_t)(uintptr_t)tag_instances) + 0x292);
-                    vault_ok = (flags292 & 1) != 0 && (((flags292 & 2) == 0) || (*(float *)(object + 0x208) == 1.0f));
-                }
-
-                if (vault_ok && (point3d_within_radius(radius + *(float *)(object + 0xac)) != 0)) {
-                    int32_t obj_definition = definition;
-                    int32_t parent_definition = *(int32_t *)((*(uint32_t *)(obj_definition + 0x7c) & 0xffff) * 0x20 +
-                                                              0x14 + (uint32_t)(uintptr_t)tag_instances);
-                    if (((*(uint8_t *)(obj_definition + 2) & 8) == 0) && (0 < *(int32_t *)(parent_definition + 0x280))) {
-                        real_matrix4x3 world_matrix;
-                        int32_t point_count = *(int32_t *)(parent_definition + 0x280);
-                        int32_t point_index;
-
-                        object_get_world_matrix(handle, &world_matrix);
-
-                        for (point_index = 0; point_index < point_count; point_index = point_index + 1) {
-                            int16_t *point_def = (int16_t *)(point_index * 0x20 + *(int32_t *)(parent_definition + 0x284));
-                            real_point3d world_point;
-                            float radius_at_point;
-
-                            if (*point_def == -1) {
-                                matrix4x3_transform_point(&world_point, center, &world_matrix); // UNSURE: point argument
-                                radius_at_point = world_point.x * *(float *)(point_def + 0xe);
-                            } else {
-                                uint8_t *unit_data = *(uint8_t **)(*(int32_t *)((uint8_t *)object_data + 0x34) + 8 +
-                                                                    (handle & 0xffff) * 0xc);
-                                real_point3d *marker = (real_point3d *)((int32_t)*(int16_t *)(unit_data + 0x1f2) +
-                                                                        *point_def * 0x34 + (int32_t)(uintptr_t)unit_data);
-                                matrix4x3_transform_point(&world_point, marker, &world_matrix);
-                                radius_at_point = *(float *)(point_def + 0xe) * world_point.x;
-                            }
-
-                            if (((center->z <= world_point.z + radius_at_point + 0.5f) || (direction->k <= -0.2f)) &&
-                                (((world_point.z - radius_at_point) - 0.5f <= center->z) || (0.2f <= direction->k))) {
-                                float dx = world_point.x - center->x;
-                                float dy = world_point.y - center->y;
-                                float dz = world_point.z - center->z;
-                                if (dx * dx + dy * dy + dz * dz * 4.0f <= (radius_at_point + radius) * (radius_at_point + radius)) {
-                                    uint16_t flags = 0;
-                                    if ((kind == 0) &&
-                                        (0.0f < dz * direction->k + dx * direction->i + dy * direction->j) &&
-                                        (0.06666667f < *(float *)(object + 0x68) * direction->i +
-                                                       *(float *)(object + 0x6c) * direction->j +
-                                                       *(float *)(object + 0x70) * direction->k)) {
-                                        flags = 1;
-                                    }
-                                    {
-                                        real_point2d p; p.x = world_point.x; p.y = world_point.y;
-                                        ai_search_append_obstacle(list, flags, handle, &p, radius_at_point);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                matrix4x3_transform_point(&point, (real_point3d *)(sphere + 0x10), matrix);
+                sphere_radius = *(float *)(sphere + 0x1c) * matrix->scale;
+            } else {
+                matrix4x3_transform_point(&point, (real_point3d *)(sphere + 0x10), &world);
+                sphere_radius = world.scale * *(float *)(sphere + 0x1c);
             }
+            // 0x43c708: spheres entirely below (unless the direction points down) or above (unless it points up) skip
+            if (!(point.z + sphere_radius + 0.5f >= center->z) && direction->k > -0.2f) {
+                continue;
+            }
+            if (point.z - sphere_radius - 0.5f > center->z && direction->k < 0.2f) {
+                continue;
+            }
+            dx = point.x - center->x;
+            dy = point.y - center->y;
+            dz = point.z - center->z;
+            reach = sphere_radius + radius;
+            if (reach * reach < dz * dz * 4.0f + dy * dy + dx * dx) {
+                continue;
+            }
+            if (*(int16_t *)(object + 0xb4) == 0 && dy * direction->j + dx * direction->i + dz * direction->k > 0.0f &&
+                *(float *)(object + 0x70) * direction->k + *(float *)(object + 0x6c) * direction->j +
+                        *(float *)(object + 0x68) * direction->i > 0.06666667f) {
+                flags = 1; // 0x43c81b: a biped moving along the same way
+            }
+            ai_search_append_obstacle(list, flags, object_index, (real_point2d *)&point, sphere_radius);
         }
     }
 }
