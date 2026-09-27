@@ -44,14 +44,15 @@ extern void *game_time;                   // 0x006f1d6c, +0x0c is the game tick
 
 extern real random_real(void); // 0x4019f0, math module
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern void player_index_from_unit_index(datum_index holder_index); // 0x474db0, outside this module, UNSURE signature
-extern void unit_update_active_camouflage_depower(void); // 0x466420, outside this module, UNSURE signature
+extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x474db0, stack
+extern void unit_update_active_camouflage_depower(datum_index player_handle); // 0x466420, EBX
 extern uint32_t local_player_index_for_weapon(datum_index item_index); // 0x494010, outside this module, UNSURE signature
 extern void first_person_weapon_process_action(uint32_t handle, int32_t action); // 0x4940f0
-extern void hud_play_pickup_notification(void); // 0x492990, outside this module, UNSURE signature
+extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code); // 0x492990, EBX, EAX
 extern int32_t weapon_set_state(datum_index item_index, int16_t new_state, int8_t force); // 0x4c5670
 extern void trigger_create_projectiles(datum_index item_index, int16_t trigger_index, int32_t role); // 0x4c4c40
-extern void ai_refresh_unit_stimulus_and_alert(void); // 0x42c2a0, outside this module, UNSURE signature (post-fire cue)
+extern void ai_refresh_unit_stimulus_and_alert(datum_index object_index, int16_t priority,
+    int16_t stimulus_value); // 0x42c2a0, EDX, BX, DI (post-fire cue)
 extern void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t node_index,
     int16_t param_4, int16_t material_index, uint32_t param_6); // 0x4ee5e0
 extern void weapon_reload_recovery_finish(datum_index item_index, int16_t trigger_index); // 0x4c4940
@@ -208,8 +209,12 @@ uint32_t weapon_fire_trigger(datum_index item_index, int16_t trigger_index)
     }
 
     if ((id->flags & _item_held_by_player_bit) != 0 && network_game_mode != 0) {
-        player_index_from_unit_index(holder_index); // UNSURE signature/return use
-        unit_update_active_camouflage_depower();
+        // 0x4c4346: the firing player's camouflage drops
+        datum_index player = player_index_from_unit_index(holder_index);
+
+        if (player != (datum_index)0xffffffff) {
+            unit_update_active_camouflage_depower(player);
+        }
     }
 
     wd->last_fire_game_time = *(int32_t *)((uint8_t *)game_time + 0x0c);
@@ -219,7 +224,7 @@ uint32_t weapon_fire_trigger(datum_index item_index, int16_t trigger_index)
         uint32_t action_handle = local_player_index_for_weapon(item_index);
         first_person_weapon_process_action(action_handle, action);
         if ((int16_t)action_handle == -1) {
-            hud_play_pickup_notification();
+            hud_play_pickup_notification(item_index, (int16_t)action); // 0x4c43c3: EBX weapon, EAX action
         }
     }
 
@@ -274,7 +279,8 @@ uint32_t weapon_fire_trigger(datum_index item_index, int16_t trigger_index)
             if (create_locally) {
                 trigger_create_projectiles(item_index, trigger_index, role);
             }
-            ai_refresh_unit_stimulus_and_alert();
+            // 0x4c456a: EDX holder, BX the trigger's +0x2e word, DI 1
+            ai_refresh_unit_stimulus_and_alert(holder_index, *(int16_t *)((uint8_t *)tag_trigger + 0x2e), 1);
         }
     }
 

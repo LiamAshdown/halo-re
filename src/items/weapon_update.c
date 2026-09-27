@@ -31,19 +31,22 @@
 #include "objects.h"
 #include "units.h"
 #include "items.h"
+#include "models.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint8_t weapons_frozen;      // 0x0071c419
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern void object_set_permutation_by_name(datum_index object_index, char *name, int32_t region_filter); // 0x4f6c60
+extern void object_set_permutation_by_name(uint32_t object_index, char *name, int16_t region_filter,
+    char use_matched_index); // 0x4f6c60, EAX, stack
 extern char *weapon_blur_permutation_names[2]; // 0x006961b8
-extern void effect_stop(int32_t stop); // 0x450b20, outside this module (stops a sound/effect)
-extern void weapon_action_notify_for_weapon(void); // 0x492790, outside this module, UNSURE signature
+extern void effect_stop(datum_index effect_handle, uint8_t stop_immediately); // 0x450b20, EAX, stack
+extern void weapon_action_notify_for_weapon(datum_index weapon_index, int32_t action_code); // 0x492790, EAX, EDI
 extern uint32_t weapon_stop_object_effect(datum_index item_index, datum_index tag_id); // 0x4c48a0
 extern void item_detonation_timer_start(uint32_t object_index); // 0x4bd450, this module
-extern int16_t animation_state_advance(int32_t param); // 0x4d48d0, outside this module, UNSURE signature
+extern animation_state_advance_result animation_state_advance(uint32_t animation_graph_tag_index, animation_state *state,
+    int32_t *sound_tag_id, animation_random_stream random_stream); // 0x4d48d0, EAX, ESI, EBX, stack
 extern void weapon_set_state_indicator_flags(datum_index item_index); // 0x4c5580
 extern void weapon_force_settled_state(datum_index item_index); // 0x4c5630
 extern void weapon_trigger_begin_reload(datum_index item_index, int16_t magazine_index, int8_t is_client_predicted); // 0x4c35b0
@@ -59,6 +62,17 @@ extern void weapon_trigger_handle_empty(datum_index item_index, int16_t trigger_
 extern void weapon_trigger_effect_set_out_of_ammo(datum_index item_index, int16_t trigger_index); // 0x4c3e70
 extern void weapon_trigger_reset_tracking(datum_index item_index, int16_t trigger_index); // 0x4c3eb0
 extern void weapon_trigger_finish_shot(datum_index item_index, int16_t trigger_index); // 0x4c48f0
+
+// 0x4c1f6a: a hidden weapon (object flag 1) that is attached shows its blur on the holder
+static uint32_t weapon_blur_target(uint32_t item_index)
+{
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[item_index & 0xffff].data;
+
+    if ((*(uint32_t *)(obj + 0x10) & 1) && *(datum_index *)(obj + 0x11c) != (datum_index)0xffffffff) {
+        return *(datum_index *)(obj + 0x11c);
+    }
+    return item_index;
+}
 
 // Per-tick update for a weapon item: heat/age/charge meters, the ready_timer countdown, the
 // per-magazine recharge and reload state machines, and the per-trigger firing-decision switch.
@@ -84,7 +98,10 @@ int32_t weapon_update(datum_index item_index)
     // Animation-driven indicator/settle callbacks, only while an animation is actually playing.
     if (*(datum_index *)&weapon_tag->base.base.animation_graph.tag_id != (datum_index)0xffffffff &&
         item_obj->animation_index != -1) {
-        int16_t kind = animation_state_advance(1);
+        // 0x4c15a7: EAX the graph, ESI the object's state (+0xd0), EBX 0, stream 1
+        int16_t kind = (int16_t)animation_state_advance(*(datum_index *)&weapon_tag->base.base.animation_graph.tag_id,
+                                                        (animation_state *)((uint8_t *)item_obj + 0xd0), 0,
+                                                        (animation_random_stream)1);
         if (kind == 1) {
             weapon_set_state_indicator_flags(item_index);
         } else if (kind == 2) {
@@ -128,10 +145,13 @@ int32_t weapon_update(datum_index item_index)
     if (wd->heat > 0.0f) {
         if (weapon_tag->overheated_threshold <= wd->heat && (wd->flags & 1) == 0) {
             wd->flags = wd->flags | 1; // _weapon_overheated_bit
+            int32_t action = 0xf;
+
             if (weapon_tag->weapon_type == 3 && (wd->flags & 4) != 0) {
                 wd->flags = (wd->flags & ~(uint32_t)4) | 1; // clear alternate-shot-armed bit
+                action = 0x10;
             }
-            weapon_action_notify_for_weapon();
+            weapon_action_notify_for_weapon(item_index, action); // 0x4c16e0: EAX weapon, EDI 0xf / 0x10
             wd->overheat_effect_handle = weapon_stop_object_effect(item_index, *(datum_index *)&weapon_tag->overheated.tag_id);
         }
 
@@ -158,7 +178,7 @@ int32_t weapon_update(datum_index item_index)
         if ((wd->flags & 1) != 0 && wd->heat < weapon_tag->heat_recovery_threshold) {
             wd->flags = wd->flags & ~(uint32_t)3;
             if (wd->overheat_effect_handle != (datum_index)0xffffffff) {
-                effect_stop(1);
+                effect_stop(wd->overheat_effect_handle, 1);
             }
         }
     }
@@ -361,7 +381,7 @@ int32_t weapon_update(datum_index item_index)
                         trigger->effect_state_ticks = 0;
                     }
                     if (trigger->effect_handle != (datum_index)0xffffffff) {
-                        effect_stop(1);
+                        effect_stop(trigger->effect_handle, 1);
                         trigger->effect_handle = (datum_index)0xffffffff;
                     }
                 }
@@ -424,7 +444,8 @@ int32_t weapon_update(datum_index item_index)
                 trigger->firing_rate = (new_rate < 0.0f) ? 0.0f : new_rate;
                 if ((trigger->flags & _weapon_trigger_blur_applied_bit) != 0 &&
                     trigger->firing_rate < tag_trigger->blurred_rate_of_fire) {
-                    object_set_permutation_by_name(item_index, weapon_blur_permutation_names[local_trigger_index], 0);
+                    object_set_permutation_by_name(weapon_blur_target(item_index), weapon_blur_permutation_names[local_trigger_index],
+                                                   -1, 0);
                     trigger->flags = trigger->flags & ~(uint32_t)_weapon_trigger_blur_applied_bit;
                 }
             } else {
@@ -433,7 +454,8 @@ int32_t weapon_update(datum_index item_index)
                 if (tag_trigger->blurred_rate_of_fire != 0.0f &&
                     (trigger->flags & _weapon_trigger_blur_applied_bit) == 0 &&
                     tag_trigger->blurred_rate_of_fire < trigger->firing_rate) {
-                    object_set_permutation_by_name(item_index, weapon_blur_permutation_names[local_trigger_index], 1);
+                    object_set_permutation_by_name(weapon_blur_target(item_index), weapon_blur_permutation_names[local_trigger_index],
+                                                   -1, 1);
                     trigger->flags = trigger->flags | _weapon_trigger_blur_applied_bit;
                 }
             }

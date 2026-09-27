@@ -1363,3 +1363,8 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   relinked a NULL position -> crash when reached), placement 0x55a9c3 (wrong buffer; OPEN: pass its leaf once
   unit_find_placement_position is rewritten), accelerate / detonate / grenade release (0).
 - unit_sample_camera_shake_from_velocity 0x56bfc0 is really "teleport to the aim point" (rewritten, 0.95).
+- weapon_fire_trigger 0x4c3f10: camouflage depower gets the firing player (0x474db0 result, was discarded), the
+  non-local HUD cue gets (EBX weapon, EAX action), the post-fire AI alert gets (EDX holder, BX trigger +0x2e, DI 1).
+- weapon_update 0x4c1530: animation_state_advance gets (graph, object +0xd0 state, 0, 1) (was one int);
+  effect_stop gets its handle (overheat +0x2cc / trigger +0x20) instead of "1"; overheat notify gets (weapon,
+  0xf / 0x10); blur permutation goes to the holder when the weapon is hidden+attached, with (-1, on) args.
