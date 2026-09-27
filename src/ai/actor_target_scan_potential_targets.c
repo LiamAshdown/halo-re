@@ -2,7 +2,7 @@
 //   ai_target_distance_qsort_compare.c, which documents itself as the qsort comparator this
 //   function passes to _qsort)
 // address 0x41d7e0, size 2847 bytes
-// name confidence: 0.5   rewrite confidence: 0.3
+// name confidence: 0.5   rewrite confidence: 0.9 (VERIFIED end to end against objdump 0x41d7e0..0x41e2fe (calls, acceptance tree, both finalize passes))
 // evidence: types/ai.h actor.first_prop/swarm/swarm_index/cluster_unit_index/unknown_3a0/
 //   unknown_3a4 (already-named fields, several cross-referenced from ai_types_notes.md
 //   directly at this function's address) and prop.kind/owner_actor_index/distance/is_unit/
