@@ -1,53 +1,25 @@
-// unit_update  (Ghidra: unit_update, misattributed; out/phase4/units_types_notes.md: "the
-// unit row's +0x34 column is 0x5625b0 ... the real per-tick unit update", correcting the
-// pre-existing name "unit_update" that belonged to the *biped* row's column, 0x5590a0)
+// unit_update  (Ghidra: unit_update)
 // address 0x5625b0, size 4765 bytes
-// name confidence: 0.85 (object_type_definition vtable proof; see file header of types/units.h)
-// rewrite confidence: 0.15 -- by far the least certain file in this batch; see UNSURE notes
-//   throughout. This function is the single largest and most cross-cutting one in the module,
-//   and nearly every offset it touches is independently corroborated by a specific sentence in
-//   out/phase4/units_types_notes.md written against this exact function, which is what makes a
-//   rewrite possible at all; the parts of that documentation this file's evidence disagrees with
-//   are called out inline.
-// evidence: types/units.h unit_data (almost every field from 0x204 to 0x424, see inline
-//   comments), biped_data.flags (0x4cc, bit 0 grounded -- via game_engine_is_valid_team_player's boolean result,
-//   local_8); types/objects.h object.forward/up (0x74/0x80), .flags (0x10), .vitality_flags
-//   (0x106); types/tags.h Unit.unit_flags (tag+0x17c, simple_creature 0x800, has_no_aiming
-//   0x400), UnitFunctionIn_t fields (tag+0x264/0x268/0x270/0x274, the four turn/throttle rate
-//   scalars -- see UNSURE), Biped.contact_point (tag+0x4e8, walked at line ~459); math.h
-//   global_origin3d_pointer/global_forward3d_pointer (0x696714/0x696718),
-//   vector3d_rotate_toward_with_acceleration, vector3d_cross_product, vector3d_angle_between.
-// UNSURE: puVar4+0xae..0xb1 and +0xb2..0xb5 (the third argument of the two vector3d_rotate_toward_bounded calls,
-//   an angular-acceleration carry-over the math helper writes back) land on the same four
-//   floats types/units.h calls aiming_bounds/looking_bounds (0x2b8/0x2c8), which
-//   unit_update_aiming_overlay_angles (0x563b50) also writes every tick with a completely
-//   different meaning (a static yaw/pitch clamp box). Both are reproduced literally; whether
-//   this is a genuine field reuse across two different subsystems or a boundary this batch
-//   mapped slightly wrong is not resolved here.
-// UNSURE: the four floats at tag+0x264/0x268/0x270/0x274 (the Unit tag's per-tick
-// aiming/looking acceleration and velocity scalars fed into the two rotate-toward calls) have
-// no named fields in types/tags.h's current Unit coverage; kept as raw tag offsets.
-// UNSURE: object.flags bits 0x10000000 and 0x20000000 have no entry in object_flags
-// (types/objects.h only documents up to 0x04000000); kept as raw literals.
-// UNSURE: several zero-argument callees in this function (game_engine_is_valid_team_player, unit_check_weapon_use_permission,
-// unit_refresh_targeting_flag_and_weapons, unit_clear_ground_adjust_dirty, unit_update_random_turn_angle, unit_update_autoaim_interaction, unit_melee_lunge_damage_tick, unit_update_look_delta_controls,
-// weapon_set_ready_timer, effect_new_on_object, unit_get_weapon_object_index at line ~427) are declared with the
-// exact argument counts/types Ghidra shows at each call site, which is not always consistent
-// with how the same function is called elsewhere in this module; each call site is preserved
-// literally rather than reconciled against a single guessed prototype.
-// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
-// reconciled: R04 0x006f1d20 int32_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
-
-// PHASE-4 REVIEW CORRECTIONS (all five were field-identity errors found by re-deriving every
-// puVar4 access from the Ghidra block; puVar4 is a `uint *`, so puVar4[i] is byte offset i*4
-// while *(char *)((int)puVar4 + n) is byte offset n, and the earlier rewrite mixed the two):
-//   0x0e0 object.body_vitality      was written as unit_data.animation_blend_weight
-//   0x288 unit_data.aiming_speed    was written as unit_data.unknown_2a9
-//   0x28b unit_data.unknown_28b     was written as unit_data.melee_damage_countdown (0x28a)
-//   0x2e8 animation_blend_weight    was written as unit_data.unknown_338
-//   0x344 unit_data.unknown_344     was written as unit_data.unknown_338, and its `< 0.0f`
-//                                   test as `!= 0.0f`
-// unit_data.unknown_338 is not touched by this function at all.
+// name confidence: 0.8   rewrite confidence: 0.8
+// REWRITTEN from objdump 0x5625b0..0x56384c (the draft was 0.15). The unit row per-tick update (object type
+//   definition +0x34), run before the biped / vehicle update. Stack: unit. In order:
+//   - the per-tick AI stagger budget (0x6ef910: limit +0, peak +2, exhausted +4) against +0x20c; an update over
+//     budget later forces the luminosity sample;
+//   - control resets: a scripted random turn (+0x204 bit 25) or, without control input (bit 0), the facing /
+//     aim / look copies (+0x224/+0x230/+0x254) and throttle (+0x278);
+//   - unless the unit tag +0x17c bit 11: the scripted control flash (+0x210 ticks of +0x214 bits, 0x800
+//     pulsed every 7th tick), the driver (+0x324: team, control bits 0..5, facing, throttle) and gunner
+//     (+0x328: aim, control bits 10..14, trigger +0x284) copies, the control idle counter +0x322, the +0x37c /
+//     +0x380 ramps, the +0x428 / +0x28c (drop weapon) / +0x420 (knock-down recovery or release) timers;
+//   - unless +0x17c bit 10: weapon readying / dropping, grenade type selection, bottomless grenades, zoom change
+//     (sound for a local player), aim (+0x230 -> +0x23c, rate/accel from tag +0x264/+0x268) and look
+//     (+0x254 -> +0x260, +0x270/+0x274) following, the aim change byte +0x323, the grenade throw state (+0x28d)
+//     and the current weapon control flags;
+//   - unless +0x17c bit 11: the look delta controls blend, powered seats (+0x338, tag +0x2cc/+0x2d0);
+//   - the delayed threat reaction (+0x406), melee lunge, animation timers, luminosity, autoaim (+0x28b);
+//   - the +0x2e8 decay, the flashlight (+0x204 bit 19, energy +0x344, glow +0x340, effects from the game globals
+//     and tag +0x194) and the weapon light (+0x348). Always returns 1.
+// blam-cc: stack -> unit_index
 
 #include "tags.h"
 #include "memory.h"
@@ -60,659 +32,604 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t unit_updates_suppressed; // 0x0071c419, DAT_0071c419
-extern struct { int16_t threshold; int16_t highest; uint8_t claimed; } *ai_update_stagger; // 0x006ef910, DAT_006ef910
-extern real_vector3d *global_origin3d_pointer;  // types/math.h spells it real_point3d *; the
-                                                // same three floats, read here as a vector   // 0x00696714
-extern real_vector3d *global_forward3d_pointer;  // 0x00696718
-extern real_vector3d *global_up3d_and_neighbors_pointer; // 0x006966f8, UNSURE identity
-extern game_engine_definition *current_game_engine;   // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
-extern char *unit_base_animation_state_names[6]; // 0x0069fde4 (PTR_s_stand_0069fdec is &names[2])
-extern uint8_t network_toggle_0087abc2;   // 0x0087abc2, DAT_0087abc2
-extern data_array *player_data;                  // 0x0087a480
-extern uint8_t *globals_tag_data; // 0x00746fa0, the globals tag data; +0x180 -> player info block
+extern data_array *player_data;     // 0x0087a480
+extern uint8_t unit_updates_suppressed; // 0x0071c419
+extern uint8_t *ai_update_stagger;  // 0x006ef910
+extern void *current_game_engine;   // 0x006f1d20
+extern uint8_t weapon_bottomless_clip; // 0x0087abc2
+extern uint8_t *game_globals_pointer;  // 0x00746fa0
+extern char *s_stand;                  // 0x0069fdec "stand"
+extern real_vector3d *global_forward3d_pointer; // 0x00696718
+extern real_point3d *global_origin3d_pointer;   // 0x00696714
+extern real_point3d *global_zero_vector3d_pointer; // 0x006966f8
 
-extern int32_t __ftol(); // 0x6391b4, MSVC 7.1 CRT float-to-int truncation; the double is on the x87 stack
-extern uint8_t game_engine_is_valid_team_player(uint32_t unit_index);                  // 0x466b60, UNSURE: "is grounded" style predicate
-extern int32_t player_index_from_unit_index(uint32_t unit_index);                 // 0x474db0
-extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); // 0x569970, EAX, CX
-  // real signature (unit_get_weapon_object_index.c): datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); Ghidra recovered 1 of 2 args at this call site
-extern void weapon_set_control_flags(datum_index item_index, uint16_t control_flags, real primary_trigger); // 0x4c2990, EAX, stack
-extern void weapon_set_ready_timer(datum_index item_index, real value); // 0x4c2b20, EAX, stack
-extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b); // 0x4cd4f0, blam-cc: ECX, EDX
-  // real signature (vector3d_angle_between_4cd4f0.c): real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b); Ghidra recovered 0 of 2 args at this call site
-extern void vector3d_rotate_toward_with_acceleration(real_vector3d *direction, real_vector3d *target_direction,
-    real_vector3d *angular_velocity, real maximum_velocity, real acceleration);
-    // 0x4cf530, blam-cc: ESI, EDI, stack (0x562f1d..0x562f38 / 0x5630cc..0x5630e7)
-extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up);
-// vector3d_cross_product (0x4052c0) computes  *out = stack_operand x ecx_operand,  with out
-// in EAX, ecx_operand in ECX and stack_operand pushed -- read out of the callee own
-// decompilation (in_EAX / in_ECX / param_1) and matching
-// src/objects/object_set_position_and_orientation.c.
-extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand); // 0x4052c0
-extern void sound_start_unspatialized(float amount);                            // 0x543dd0
-extern void unit_clear_ground_adjust_dirty(uint32_t object_index);                                    // 0x55ad70, UNSURE: no traced args
-extern void unit_dispatch_reaction_animation(int32_t unit_index, int16_t reaction_code); // 0x5614a0, ESI unit, stack code
-extern void unit_update_animation_timers(uint32_t unit_index);      // 0x561620
-extern uint8_t unit_is_look_target_valid(uint32_t unit_index);      // 0x562570
-extern void vector3d_rotate_toward_bounded(real_vector3d *current, real_vector3d *velocity, float *bounds,
-                          float max_velocity, float max_acceleration, real_vector3d *target,
-                          real_matrix4x3 *transform); // 0x564ae0, src/math; blam-cc: stack (current, velocity,
-                          // bounds, max_velocity, max_acceleration), ECX target, ESI transform.
-// The third argument is the four-float (-yaw, +yaw, -pitch, +pitch) box: unit_data.aiming_bounds
-// and .looking_bounds here, a stack copy of (-PI, PI, -PI/2, PI/2) in biped_update_facing.c.
-extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_label,
-                                                     char *weapon_label, uint8_t test_only); // 0x5651e0,
-// unit_index in EAX; this matches the definition in unit_set_or_test_seat_and_weapon_label.c.
-// The phase-4 review pass corrected the arity (Ghidra binds only the stack arguments at these
-// call sites) and the return type (the callee returns a byte, tested in AL).
-extern uint8_t unit_current_weapon_has_flag(uint32_t unit_index);    // 0x565b60
-extern uint8_t unit_state_is_scripted_animation(unit_data *unit);    // 0x565c60
-extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
-extern void unit_release_transient_state(uint32_t unit_index, uint8_t is_light_reset);        // 0x568610, UNSURE signature
-extern uint8_t unit_clamp_direction_to_aim_or_look_bounds(uint32_t unit_index, real_vector3d *world_direction,
-                                                          uint32_t which_bounds); // 0x5697a0
-// UNSURE-CALL: Ghidra recovered 2 of the 3 arguments at every call site below (the unit index
-// is register-passed); it is supplied here from the surrounding context.
-extern int32_t unit_find_next_grenade_type_with_count(uint32_t unit_index, int32_t start_index, int16_t direction); // 0x5699a0, EAX, CX, stack
-  // real signature (unit_find_next_grenade_type_with_count.c): int32_t unit_find_next_grenade_type_with_count(uint32_t unit_index, int32_t start_index, int16_t direction); Ghidra recovered 1 of 3 args at this call site
-extern void unit_refresh_targeting_flag_and_weapons(uint32_t unit_index, uint8_t initial_targeting_flag); // 0x569bf0, stack, CL
-  // real signature (unit_refresh_targeting_flag_and_weapons.c): void unit_refresh_targeting_flag_and_weapons(uint32_t unit_index, uint8_t initial_targeting_flag); Ghidra recovered 1 of 2 args at this call site
-extern void unit_ready_desired_weapon(uint32_t unit_index, uint8_t force); // 0x56d6e0
-  // real signature (unit_ready_desired_weapon.c): void unit_ready_desired_weapon(uint32_t unit_index); Ghidra recovered 2 of 1 args at this call site
-extern uint8_t unit_check_weapon_use_permission(uint32_t unit_index, uint32_t weapon_index); // 0x56da00, ESI, EDI
-  // real signature (unit_check_weapon_use_permission.c): uint8_t unit_check_weapon_use_permission(uint32_t unit_index); Ghidra recovered 0 of 1 args at this call site
-extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force); // 0x56dec0
-extern uint8_t unit_begin_throw_grenade(uint32_t unit_index, int32_t force_trigger); // 0x56e080, EDI, stack
-  // real signature (unit_begin_throw_grenade.c): uint8_t unit_begin_throw_grenade(uint32_t unit_index, int32_t force_trigger); Ghidra recovered 1 of 2 args at this call site
-extern void unit_throw_grenade_move_to_hand(uint32_t unit_index);     // 0x56e280
-extern void unit_release_thrown_grenade(uint32_t object_index, uint8_t apply_throw_fraction); // 0x56e440
-extern void unit_update_look_delta_controls(uint32_t object_index); // 0x56e820, EAX
-  // real signature (unit_update_look_delta_controls.c): void unit_update_look_delta_controls(uint32_t object_index); Ghidra recovered 0 of 1 args at this call site
-extern void unit_calculate_luminosity(uint32_t object_index); // 0x56ec60, EDI
-  // real signature (unit_calculate_luminosity.c): void unit_calculate_luminosity(uint32_t object_index); Ghidra recovered 0 of 1 args at this call site
-extern void unit_melee_lunge_damage_tick(uint32_t unit_index);                        // 0x56fc80
-extern void unit_update_autoaim_interaction(uint32_t unit_index);                        // 0x570720
-extern void unit_update_random_turn_angle(uint32_t object_index, real_vector3d *out_axis); // 0x570840, EAX, EDI
-  // real signature (unit_update_random_turn_angle.c): void unit_update_random_turn_angle(uint32_t object_index, real_vector3d *out_axis); Ghidra recovered 0 of 2 args at this call site
-extern void actor_react_to_threat_event(datum_index self_object_index, datum_index other_object_index, int32_t event_kind, real magnitude, uint32_t extra_param, uint8_t suppress_vehicle_relay); // 0x42be40, UNSURE signature
+extern void actor_react_to_threat_event(datum_index self_object_index, datum_index other_object_index,
+    int32_t event_kind, real magnitude, uint32_t extra_param, uint8_t suppress_vehicle_relay); // 0x42be40
+extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
     datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
-    const ColorRGB *color, const effect_tint_source *tint_source);
-    // 0x4507a0, blam-cc: EAX -> creator_object_index, ECX -> definition_index, stack -> the other six
+    const void *color, const void *tint_source); // 0x4507a0, EAX, ECX, stack
+extern uint8_t game_engine_is_valid_team_player(uint32_t identifier); // 0x466b60
+extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x474db0
+extern void weapon_set_control_flags(datum_index item_index, uint16_t control_flags, real primary_trigger); // 0x4c2990
+extern void weapon_set_ready_timer(datum_index item_index, real value); // 0x4c2b20
+extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b); // 0x4cd4f0, ECX, EDX
+extern void vector3d_rotate_toward_with_acceleration(real_vector3d *direction, real_vector3d *target_direction,
+    real_vector3d *angular_velocity, real maximum_velocity, real acceleration); // 0x4cf530, ESI, EDI, stack
+extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up); // 0x4f6970
+extern datum_index sound_start_unspatialized(datum_index definition_index, float scale); // 0x543dd0, EDX, stack
+extern void unit_clear_ground_adjust_dirty(uint32_t object_index); // 0x55ad70, EAX
+extern void unit_dispatch_reaction_animation(int32_t unit_index, int16_t reaction_code); // 0x5614a0, ESI, stack
+extern void unit_update_animation_timers(uint32_t unit_index); // 0x561620, EAX
+extern uint8_t unit_is_look_target_valid(uint32_t unit_index); // 0x562570, ECX
+extern void vector3d_rotate_toward_bounded(real_vector3d *current, real_vector3d *velocity, real *bounds,
+    real max_velocity, real max_acceleration, real_vector3d *target, real_matrix4x3 *transform); // 0x564ae0
+extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_label, char *weapon_label,
+    uint8_t apply); // 0x5651e0, EAX, stack
+extern uint8_t unit_current_weapon_has_flag(uint32_t unit_index); // 0x565b60, ECX
+extern uint8_t unit_state_is_scripted_animation(unit_data *unit); // 0x565c60, ECX
+extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
+extern void unit_release_transient_state(uint32_t unit_index, uint8_t is_light_reset); // 0x568610
+extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); // 0x569970, EAX, CX
+extern uint8_t unit_clamp_direction_to_aim_or_look_bounds(uint32_t unit_index, real_vector3d *world_direction,
+    uint8_t use_aiming_bounds); // 0x5697a0, EDI, stack
+extern int32_t unit_find_next_grenade_type_with_count(uint32_t unit_index, int32_t start_index,
+    int16_t direction); // 0x5699a0, EAX, ECX, stack
+extern void unit_refresh_targeting_flag_and_weapons(uint32_t unit_index, uint8_t initial_targeting_flag); // 0x569bf0
+extern uint8_t unit_check_weapon_use_permission(uint32_t unit_index, uint32_t weapon_index); // 0x56da00, ESI, EDI
+extern void unit_ready_desired_weapon(uint32_t unit_index, uint8_t force); // 0x56d6e0
+extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force); // 0x56dec0
+extern uint8_t unit_begin_throw_grenade(uint32_t unit_index, const real_vector2d *direction); // 0x56e080, EDI, stack
+extern void unit_throw_grenade_move_to_hand(uint32_t unit_index); // 0x56e280
+extern void unit_release_thrown_grenade(uint32_t object_index, uint8_t apply_throw_fraction); // 0x56e440
+extern void unit_update_look_delta_controls(uint32_t object_index); // 0x56e820, EAX
+extern void unit_calculate_luminosity(uint32_t object_index); // 0x56ec60, EDI
+extern void unit_melee_lunge_damage_tick(uint32_t unit_index); // 0x56fc80
+extern void unit_update_autoaim_interaction(uint32_t unit_index); // 0x570720
+extern void unit_update_random_turn_angle(uint32_t object_index, real_vector3d *out_axis); // 0x570840, EAX, EDI
 
-// FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads EAX; unit_index arrive(s) on the stack (1 stack argument(s)).
-// blam-cc: stack -> unit_index
-uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define LOOK_BLEND_NEW 0.3f
+#define LOOK_BLEND_OLD 0.7f
+
+uint8_t unit_update(uint32_t unit_index)
 {
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    Object *obj_tag = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    uint8_t *obj = OBJECT_DATA(unit_index);
+    uint8_t *tag = TAG_DATA(*(datum_index *)obj);
+    uint8_t over_budget = 0;            // ebp-0x2
+    uint8_t valid_team_player;          // ebp-0x4
+    uint8_t riding = 0;                 // ebp-0x1
+    float speed_scale;                  // ebp-0xc
+    float rate;                         // ebp-0x18
+    float acceleration;                 // ebp-0x14
+    real_vector3d previous_aim;         // ebp-0x24
+    real_point3d *zero_vector;          // edi = *0x6966f8
 
-    uint8_t won_stagger_slot = 0;
-    uint8_t seat_control_applied = 0;
-    uint8_t is_grounded = game_engine_is_valid_team_player(unit_index); // UNSURE: see file header (local_8)
-
+    valid_team_player = game_engine_is_valid_team_player(unit_index);
     if (!unit_updates_suppressed) {
-        unit->update_tick_counter = unit->update_tick_counter + 1;
-        int16_t tick = unit->update_tick_counter;
-        if (ai_update_stagger->claimed == 0 && ai_update_stagger->threshold < tick) {
-            ai_update_stagger->claimed = 1;
-            won_stagger_slot = 1;
-            unit->update_tick_counter = 0;
-        } else {
-            if (tick < ai_update_stagger->highest) {
-                tick = ai_update_stagger->highest;
-            }
-            ai_update_stagger->highest = tick;
+        uint8_t *stagger = ai_update_stagger;
+
+        (*(int16_t *)(obj + 0x20c))++;
+        if (stagger[4] == 0 && *(int16_t *)(obj + 0x20c) > *(int16_t *)stagger) {
+            stagger[4] = 1;
+            over_budget = 1;
+            *(int16_t *)(obj + 0x20c) = 0;
+        } else if (*(int16_t *)(stagger + 2) <= *(int16_t *)(obj + 0x20c)) {
+            *(int16_t *)(stagger + 2) = *(int16_t *)(obj + 0x20c);
         }
     }
-
-    // Seed the aiming/looking/facing triad. Unattended units (no actor/swarm) drive them off the
-    // object's own basis instead of control input; idle_turn_seeded gates a one-time reseed via
-    // unit_update_random_turn_angle instead of the full reset below.
-    // Neither branch below touches aiming_velocity/looking_velocity; the only statement they
-    // share is the final throttle.k write, so each branch just repeats it rather than using a
-    // goto into a shared tail.
-    if ((unit->flags & _unit_flag_idle_turn_seeded) == 0) {
-        if ((unit->flags & _unit_flag_unattended) == 0) {
-            unit->desired_looking_vector = obj->forward;
-            unit->desired_aiming_vector = obj->forward;
-            unit->desired_facing_vector = obj->forward;
-            unit->throttle.i = global_origin3d_pointer->i;
-            unit->throttle.j = global_origin3d_pointer->j;
-            unit->control_flags = 0;
-            unit->throttle.k = global_origin3d_pointer->k;
-        }
-        // (unattended set: this whole reset is skipped, matching the original)
-    } else {
-        unit_update_random_turn_angle(unit_index, &unit->desired_facing_vector); // 0x562661: EAX unit, EDI = object +0x224
-        unit->desired_aiming_vector = unit->desired_facing_vector;
-        unit->desired_looking_vector = unit->desired_facing_vector;
-        unit->throttle.i = global_forward3d_pointer->i;
-        unit->throttle.j = global_forward3d_pointer->j;
-        unit->control_flags = 0;
-        unit->throttle.k = global_forward3d_pointer->k;
+    if ((*(uint32_t *)(obj + 0x204) & 0x2000000) != 0) {
+        unit_update_random_turn_angle(unit_index, (real_vector3d *)(obj + 0x224)); // EAX unit, EDI +0x224
+        *(real_vector3d *)(obj + 0x230) = *(real_vector3d *)(obj + 0x224);
+        *(real_vector3d *)(obj + 0x254) = *(real_vector3d *)(obj + 0x224);
+        *(real_vector3d *)(obj + 0x278) = *global_forward3d_pointer;
+        *(uint32_t *)(obj + 0x208) = 0;
+    } else if ((*(uint32_t *)(obj + 0x204) & 1) == 0) {
+        *(real_vector3d *)(obj + 0x254) = *(real_vector3d *)(obj + 0x74);
+        *(real_vector3d *)(obj + 0x230) = *(real_vector3d *)(obj + 0x74);
+        *(real_vector3d *)(obj + 0x224) = *(real_vector3d *)(obj + 0x74);
+        *(real_point3d *)(obj + 0x278) = *global_origin3d_pointer;
+        *(uint32_t *)(obj + 0x208) = 0;
     }
 
-    if ((((Unit *)obj_tag)->unit_flags & 0x800) == 0) { // not simple_creature
-        // Grenade-throw duration countdown and the driver/gunner control-input passthrough.
-        int32_t throw_duration = unit->throwing_grenade_duration;
-        uint8_t network_grenade_pending = 0;
-        if (throw_duration > 0) {
-            uint32_t flags = unit->control_flags | unit->unknown_214;
-            unit->control_flags = flags;
-            if ((unit->unknown_214 & 0x800) == 0) {
-                unit->unknown_408 = 0.0f; // UNSURE: see below
+    if ((*(uint32_t *)(tag + 0x17c) & 0x800) == 0) {
+        // 0x562742: the scripted control flash (+0x210 ticks of +0x214 bits)
+        int32_t ticks = *(int32_t *)(obj + 0x210);
+
+        if (ticks > 0) {
+            uint32_t bits = *(uint32_t *)(obj + 0x214);
+            uint32_t control = *(uint32_t *)(obj + 0x208) | bits;
+
+            if ((bits & 0x800) != 0) {
+                control = (ticks % 7 == 0) ? (control | 0x800) : (control & ~0x800u);
+                *(float *)(obj + 0x284) = 1.0f;
             } else {
-                if (throw_duration % 7 == 0) {
-                    flags = flags | 0x800;
-                } else {
-                    flags = flags & ~0x800u;
-                }
-                unit->control_flags = flags;
-                unit->unknown_408 = 1.0f;
+                *(float *)(obj + 0x284) = 0.0f;
             }
-            unit->throwing_grenade_duration = throw_duration - 1;
-            if (throw_duration - 1 == 0) {
-                unit->unknown_214 = 0;
+            *(uint32_t *)(obj + 0x208) = control;
+            *(int32_t *)(obj + 0x210) = --ticks;
+            if (ticks == 0) {
+                *(uint32_t *)(obj + 0x214) = 0;
             }
         }
+        if ((*(uint32_t *)(obj + 0x204) & 0x8000000) == 0) {
+            // 0x5627c6: a driver (+0x324) and a gunner (+0x328) control this unit
+            datum_index driver = *(datum_index *)(obj + 0x324);
+            datum_index gunner = *(datum_index *)(obj + 0x328);
 
-        if ((unit->flags & _unit_flag_unknown_8000000) == 0) {
-            if (unit->driver_unit_index != (datum_index)-1 &&
-                (obj->vitality_flags & _object_health_frozen_bit) == 0) {
-                object *driver_obj = ((object_header *)object_data->data)[unit->driver_unit_index & 0xffff].data;
-                unit_data *driver = (unit_data *)((uint8_t *)driver_obj + k_unit_data_offset);
-                obj->owner_team = driver_obj->owner_team; // puVar4+0x2e -> object 0xb8
-                network_grenade_pending = 1;
-                if (driver->controlling_player != (datum_index)-1 ||
-                    (driver->animation_state != 0x1b && driver->animation_state != 0x1a)) {
-                    unit->control_flags = unit->control_flags | (driver->control_flags & 0x3f);
-                    unit->desired_facing_vector = driver->desired_facing_vector;
-                    unit->throttle = driver->throttle;
+            if (driver != k_datum_index_none && (obj[0x106] & 4) == 0) {
+                uint8_t *d = OBJECT_DATA(driver);
+
+                *(int16_t *)(obj + 0xb8) = *(int16_t *)(d + 0xb8);
+                riding = 1;
+                if (*(datum_index *)(d + 0x218) != k_datum_index_none || (d[0x2a3] != 0x1b && d[0x2a3] != 0x1a)) {
+                    *(uint32_t *)(obj + 0x208) |= *(uint32_t *)(d + 0x208) & 0x3f;
+                    *(real_vector3d *)(obj + 0x224) = *(real_vector3d *)(d + 0x224);
+                    *(real_point3d *)(obj + 0x278) = *(real_point3d *)(d + 0x278);
                 }
             }
-            if (unit->gunner_unit_index != (datum_index)-1 &&
-                (obj->vitality_flags & _object_health_frozen_bit) == 0) {
-                object *gunner_obj = ((object_header *)object_data->data)[unit->gunner_unit_index & 0xffff].data;
-                unit_data *gunner = (unit_data *)((uint8_t *)gunner_obj + k_unit_data_offset);
-                if (!network_grenade_pending) {
-                    obj->owner_team = gunner_obj->owner_team;
+            if (gunner != k_datum_index_none && (obj[0x106] & 4) == 0) {
+                uint8_t *g = OBJECT_DATA(gunner);
+
+                if (!riding) {
+                    *(int16_t *)(obj + 0xb8) = *(int16_t *)(g + 0xb8);
                 }
-                if (gunner->controlling_player != (datum_index)-1 ||
-                    (gunner->animation_state != 0x1b && gunner->animation_state != 0x1a)) {
-                    // Both destinations copy the gunner's desired_aiming_vector (0x230), not
-                    // desired_looking_vector -- reproduced literally from the original.
-                    unit->desired_aiming_vector = gunner->desired_aiming_vector;
-                    unit->desired_looking_vector = *(real_vector3d *)&gunner->desired_aiming_vector;
-                    unit->control_flags = unit->control_flags | (gunner->control_flags & 0x7c00);
-                    unit->primary_trigger = gunner->primary_trigger;
+                if (*(datum_index *)(g + 0x218) != k_datum_index_none || (g[0x2a3] != 0x1b && g[0x2a3] != 0x1a)) {
+                    *(real_vector3d *)(obj + 0x230) = *(real_vector3d *)(g + 0x230);
+                    *(real_vector3d *)(obj + 0x254) = *(real_vector3d *)(g + 0x230);
+                    *(uint32_t *)(obj + 0x208) |= *(uint32_t *)(g + 0x208) & 0x7c00;
+                    *(float *)(obj + 0x284) = *(float *)(g + 0x284);
                 }
             }
-            if ((unit->control_flags & 0x7c00) == 0) {
-                if (unit->unknown_322 < 0x7f) {
-                    unit->unknown_322 = unit->unknown_322 + 1;
-                }
-            } else {
-                unit->unknown_322 = 0;
+            if ((*(uint32_t *)(obj + 0x208) & 0x7c00) != 0) {
+                obj[0x322] = 0;
+            } else if ((int8_t)obj[0x322] < 0x7f) {
+                obj[0x322]++;
             }
         }
-
         if (!unit_updates_suppressed) {
-            // unknown_408 (damage accumulator) and unknown_424 (stun meter) 1/120 and 1/90 ramps.
-            if ((unit->flags & 0x10) == 0) {
-                float v = unit->unknown_37c - 0.008333334f; // UNSURE: field identity, see below
-                unit->unknown_37c = (v < 0.0f) ? 0.0f : v;
-            } else {
-                float delta;
-                if (current_game_engine == 0 || unit->unknown_422 == 0 || unit->unknown_422 != 1) {
-                    delta = 0.008333334f;
-                } else {
-                    datum_index weapon = unit_get_weapon_object_index(unit_index, unit->current_weapon_index); // CX = +0x2f2
-                    if (weapon == (datum_index)-1) {
-                        delta = 0.008333334f;
-                    } else {
-                        object *weapon_obj = ((object_header *)object_data->data)[weapon & 0xffff].data;
-                        void *weapon_tag = tag_instances[weapon_obj->definition_tag & 0xffff].data;
-                        float rate = *(float *)((uint8_t *)weapon_tag + 0x4d0); // UNSURE: raw Weapon-tag field
-                        delta = (rate == 0.0f) ? 0.008333334f : rate;
-                    }
-                }
-                float sum = unit->unknown_37c + delta;
-                unit->unknown_37c = sum;
-                if (sum > 1.0f) { // 0x562a08: clamps to 1.0 (the draft reset it to 0.0)
-                    unit->unknown_37c = 1.0f;
-                    unit->unknown_422 = 0;
-                }
-            }
-            if ((unit->flags & 0x20) == 0) {
-                float v = unit->unknown_380 - 0.011111111f;
-                unit->unknown_380 = (v < 0.0f) ? 0.0f : v;
-            } else {
-                float v = unit->unknown_380 + 0.011111111f;
-                unit->unknown_380 = (v > 1.0f) ? 1.0f : v;
-            }
-            if (unit->unknown_428 > 0 && --unit->unknown_428 == 0) {
-                unit->unknown_424 = 0.0f;
-            }
+            // 0x562961: +0x37c (zoom-ish ramp, driven by +0x204 bit 4), +0x380 (bit 5)
+            if ((obj[0x204] & 0x10) != 0) {
+                float step = 0.008333334f;
 
-            if ((unit->unknown_28c < 1 || --unit->unknown_28c != 0 ||
-                 (unit_drop_current_weapon(unit_index, 1), !unit_updates_suppressed)) &&
-                unit->unknown_420 > 0 && (obj->flags & _object_at_rest_bit) != 0 &&
-                --unit->unknown_420 == 0) {
-                // Ghidra: (float)puVar4[0x38], a dword index -> object + 0xe0 =
-                // object.body_vitality. "the unit is dead" is what selects unit_release_transient_state
-                // (which clears the actor/swarm handles); an animation blend weight here
-                // was a pointer-stride mis-scale.
-                if (obj->body_vitality <= 0.0f) {
-                    unit_release_transient_state(unit_index, 0);
-                } else {
-                    uint32_t flags = unit->animation_state_flags;
-                    obj->vitality_flags = obj->vitality_flags & ~4u;
-                    unit_refresh_targeting_flag_and_weapons(unit_index, 1); // 0x562b41: CL = 1
-                    unit_set_or_test_seat_and_weapon_label(unit_index, unit_base_animation_state_names[2], 0, 1); // "stand"
-                    unit_try_set_animation_state(unit_index, (~(flags >> 3) & 1) | 0x22);
-                    unit->animation_state_flags = (uint16_t)(unit->animation_state_flags & ~4u);
-                    if (obj->type == 0) {
-                        unit_clear_ground_adjust_dirty(unit_index); // index in a register
+                if (current_game_engine != 0 && *(int16_t *)(obj + 0x422) != 0 && *(int16_t *)(obj + 0x422) == 1) {
+                    datum_index weapon = unit_get_weapon_object_index(unit_index,
+                        *(int16_t *)(OBJECT_DATA(unit_index) + 0x2f2));
+
+                    if (weapon != k_datum_index_none) {
+                        uint8_t *weapon_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(weapon));
+
+                        if (*(float *)(weapon_tag + 0x4d0) != 0.0f) {
+                            step = *(float *)(weapon_tag + 0x4d0);
+                        }
                     }
-                    unit_dispatch_reaction_animation((int32_t)unit_index, 5); // 0x562b8f: ESI unit
+                }
+                *(float *)(obj + 0x37c) += step;
+                if (*(float *)(obj + 0x37c) > 1.0f) {
+                    *(float *)(obj + 0x37c) = 1.0f;
+                    *(int16_t *)(obj + 0x422) = 0;
+                }
+            } else {
+                *(float *)(obj + 0x37c) -= 0.008333334f;
+                if (*(float *)(obj + 0x37c) < 0.0f) {
+                    *(float *)(obj + 0x37c) = 0.0f;
+                }
+            }
+            if ((obj[0x204] & 0x20) != 0) {
+                *(float *)(obj + 0x380) += 0.011111111f;
+                if (*(float *)(obj + 0x380) > 1.0f) {
+                    *(float *)(obj + 0x380) = 1.0f;
+                }
+            } else {
+                *(float *)(obj + 0x380) -= 0.011111111f;
+                if (*(float *)(obj + 0x380) < 0.0f) {
+                    *(float *)(obj + 0x380) = 0.0f;
+                }
+            }
+            if (*(int16_t *)(obj + 0x428) > 0 && --*(int16_t *)(obj + 0x428) == 0) {
+                *(int32_t *)(obj + 0x424) = 0;
+            }
+            if ((int8_t)obj[0x28c] > 0 && --obj[0x28c] == 0) {
+                unit_drop_current_weapon(unit_index, 1);
+                if (unit_updates_suppressed) {
+                    goto controls;
+                }
+            }
+            if (*(int16_t *)(obj + 0x420) > 0 && (obj[0x10] & 0x20) != 0 && --*(int16_t *)(obj + 0x420) == 0) {
+                // 0x562b11: the knock-down is over
+                if (*(float *)(obj + 0xe0) > 0.0f) {
+                    int16_t state = (int16_t)((~(obj[0x298] >> 3) & 1) | 0x22);
+
+                    *(uint16_t *)(obj + 0x106) &= 0xfffb;
+                    unit_refresh_targeting_flag_and_weapons(unit_index, 1);
+                    unit_set_or_test_seat_and_weapon_label(unit_index, s_stand, 0, 1);
+                    unit_try_set_animation_state(unit_index, state);
+                    *(uint16_t *)(obj + 0x298) &= 0xfffb;
+                    if (*(int16_t *)(obj + 0xb4) == 0) {
+                        unit_clear_ground_adjust_dirty(unit_index);
+                    }
+                    unit_dispatch_reaction_animation(unit_index, 5);
+                } else {
+                    unit_release_transient_state(unit_index, 0);
                 }
             }
         }
     }
 
-    if ((((Unit *)obj_tag)->unit_flags & 0x400) == 0) { // not has_no_aiming
-        if ((obj->vitality_flags & _object_health_frozen_bit) == 0 && !unit_updates_suppressed) {
-            if ((obj->vitality_flags & 0x400) == 0) {
-                if (unit->desired_weapon_index != unit->current_weapon_index &&
-                    !unit_state_is_scripted_animation(unit) &&
-                    unit_get_weapon_object_index(unit_index, unit->desired_weapon_index) != (datum_index)-1 &&
-                    unit_check_weapon_use_permission(unit_index,
-                        unit_get_weapon_object_index(unit_index, unit->desired_weapon_index)) != 0) { // 0x562c18..0x562c31
+controls:
+    // 0x562ba8
+    if ((*(uint32_t *)(tag + 0x17c) & 0x400) == 0) {
+        if ((obj[0x106] & 4) == 0 && !unit_updates_suppressed) {
+            if ((*(uint16_t *)(obj + 0x106) & 0x400) != 0) {
+                unit_drop_current_weapon(unit_index, 1);
+            } else if (*(int16_t *)(obj + 0x2f4) != *(int16_t *)(obj + 0x2f2) &&
+                       !unit_state_is_scripted_animation((unit_data *)(obj + k_unit_data_offset))) {
+                datum_index weapon = unit_get_weapon_object_index(unit_index,
+                    *(int16_t *)(OBJECT_DATA(unit_index) + 0x2f4));
+
+                if (weapon != k_datum_index_none && unit_check_weapon_use_permission(unit_index, weapon)) {
                     unit_ready_desired_weapon(unit_index, 1);
                 }
-            } else {
-                unit_drop_current_weapon(unit_index, 1);
             }
-            if (unit->desired_grenade_index != unit->current_grenade_index &&
-                !unit_state_is_scripted_animation(unit)) {
-                int16_t g = (int16_t)unit_find_next_grenade_type_with_count(unit_index, unit->current_grenade_index, 0); // 0x562c64: CX = +0x31d, stack 0
-                if (g != -1) {
-                    unit->current_grenade_index = (int8_t)g;
+            if (obj[0x31d] != obj[0x31c] && !unit_state_is_scripted_animation((unit_data *)(obj + k_unit_data_offset))) {
+                int16_t grenade = unit_find_next_grenade_type_with_count(unit_index, (int16_t)(int8_t)obj[0x31d], 0);
+
+                if (grenade != -1) {
+                    obj[0x31c] = (uint8_t)grenade;
                 }
             }
-            if (network_toggle_0087abc2 != 0 && unit->controlling_player != (datum_index)-1) {
-                for (int32_t i = 0; i < 2; i++) {
-                    if (unit->grenade_counts[i] < 2) {
-                        unit->grenade_counts[i] = 1;
+            if (weapon_bottomless_clip && *(datum_index *)(obj + 0x218) != k_datum_index_none) {
+                int32_t i;
+
+                for (i = 0; i < 2; i++) {
+                    if ((int8_t)obj[0x31e + i] <= 1) {
+                        obj[0x31e + i] = 1;
                     }
                 }
-                if (unit->desired_grenade_index == -1) {
-                    unit->desired_grenade_index = 0;
+                if (obj[0x31d] == 0xff) {
+                    obj[0x31d] = 0;
                 }
             }
-            if (unit->desired_zoom_level != unit->zoom_level) {
-                int8_t new_zoom = unit->desired_zoom_level;
-                unit->zoom_level = new_zoom;
-                if (new_zoom == -1) {
-                    obj->animation_frame = 0;
+            if (obj[0x321] != obj[0x320]) {
+                // 0x562ce7: zoom level changed: the weapon's zoom sound for a local player
+                obj[0x320] = obj[0x321];
+                if (obj[0x320] == 0xff) {
+                    *(int32_t *)(obj + 0x348) = 0;
                 }
-                uint32_t p1 = player_index_from_unit_index(unit_index);
-                if (p1 != (uint32_t)-1) {
-                    uint32_t p2 = player_index_from_unit_index(unit_index);
-                    if (*(int16_t *)((uint8_t *)player_data->data + (p2 & 0xffff) * 0x200 + 2) != -1) {
-                        datum_index weapon = unit_get_weapon_object_index(unit_index, unit->current_weapon_index); // CX = +0x2f2
-                        if (weapon != (datum_index)-1) {
-                            object *weapon_obj = ((object_header *)object_data->data)[weapon & 0xffff].data;
-                            void *weapon_tag = tag_instances[weapon_obj->definition_tag & 0xffff].data;
-                            int32_t zoom_entry = (new_zoom == -1)
-                                                      ? *(int32_t *)((uint8_t *)weapon_tag + 0x4bc)
-                                                      : *(int32_t *)((uint8_t *)weapon_tag + 0x4ac); // UNSURE: raw Weapon-tag fields
-                            float fraction = 1.0f;
-                            int16_t zoom_count = *(int16_t *)((uint8_t *)weapon_tag + 0x3da);        // UNSURE
-                            if (new_zoom != -1 && zoom_count > 1) {
-                                fraction = (float)new_zoom / (float)(zoom_count - 1);
-                            }
-                            if (zoom_entry != -1) {
-                                sound_start_unspatialized(fraction);
-                            }
+                if (player_index_from_unit_index(unit_index) != k_datum_index_none &&
+                    *(int16_t *)((uint8_t *)player_data->data +
+                        (player_index_from_unit_index(unit_index) & 0xffff) * 0x200 + 2) != -1) {
+                    datum_index weapon = unit_get_weapon_object_index(unit_index,
+                        *(int16_t *)(OBJECT_DATA(unit_index) + 0x2f2));
+
+                    if (weapon != k_datum_index_none) {
+                        uint8_t *weapon_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(weapon));
+                        datum_index sound = (obj[0x320] == 0xff) ? *(datum_index *)(weapon_tag + 0x4bc)
+                                                                 : *(datum_index *)(weapon_tag + 0x4ac);
+                        float fraction = 1.0f;
+
+                        if (obj[0x320] != 0xff && *(int16_t *)(weapon_tag + 0x3da) > 1) {
+                            fraction = (float)(int8_t)obj[0x320] / (float)(*(int16_t *)(weapon_tag + 0x3da) - 1);
+                        }
+                        if (sound != k_datum_index_none) {
+                            sound_start_unspatialized(sound, fraction);
                         }
                     }
                 }
             }
         }
 
-        // Facing/aiming/looking rotation toward the desired vectors, then the current->smoothed
-        // animation-control blend and the grenade throwing-state dispatch.
-        // Ghidra: (char)puVar4[0xa2] == 1, a dword index -> object + 0x288 =
-        // unit_data.aiming_speed (the low byte only, as an AL test).
-        float aim_rate = (unit->aiming_speed == 1) ? *(float *)((uint8_t *)obj_tag + 0x26c) : 1.0f;
-
-        real_vector3d *aiming = &unit->aiming_vector;
-        real_vector3d previous_aiming = unit->aiming_vector; // 0x562df6..0x562e20 ([ebp-0x24])
-        real_vector3d *aiming_velocity = &unit->aiming_velocity;
-        float turn_accel = aim_rate * *(float *)((uint8_t *)obj_tag + 0x264) * 0.033333335f;
-        float turn_rate = aim_rate * *(float *)((uint8_t *)obj_tag + 0x268) * 0.0011111111f;
-
-        if (turn_accel == 0.0f && turn_rate == 0.0f) {
-            unit->aiming_vector = unit->desired_aiming_vector;
+        // 0x562dce: aim and look follow their desired directions
+        speed_scale = (obj[0x288] == 1) ? *(float *)(tag + 0x26c) : 1.0f;
+        rate = speed_scale * *(float *)(tag + 0x264) * 0.033333335f;
+        acceleration = speed_scale * *(float *)(tag + 0x268) * 0.0011111111f;
+        previous_aim = *(real_vector3d *)(obj + 0x23c);
+        zero_vector = global_zero_vector3d_pointer;
+        if (rate == 0.0f && acceleration == 0.0f) {
+            *(real_vector3d *)(obj + 0x23c) = *(real_vector3d *)(obj + 0x230);
             if (unit_is_look_target_valid(unit_index)) {
-                unit_clamp_direction_to_aim_or_look_bounds(unit_index, aiming, 1);
+                unit_clamp_direction_to_aim_or_look_bounds(unit_index, (real_vector3d *)(obj + 0x23c), 1);
             }
-            unit->aiming_velocity = *global_origin3d_pointer;
-        } else if (!unit->aiming_bounds_valid) {
-            // FIXED (0x562f1d): ESI aiming, EDI desired aiming, stack (&aiming velocity, [ebp-0x18] from tag +0x264,
-            // [ebp-0x14] from tag +0x268); the draft passed three arguments to this five-argument function.
-            vector3d_rotate_toward_with_acceleration(aiming, &unit->desired_aiming_vector, aiming_velocity, turn_accel,
-                turn_rate);
+            *(real_point3d *)(obj + 0x248) = *global_origin3d_pointer;
+        } else if (obj[0x2b6] != 0) {
+            real_matrix4x3 basis;
+
+            basis.scale = 1.0f;
+            object_get_orientation(&basis.forward, unit_index, &basis.up);
+            vector3d_cross_product(&basis.left, &basis.forward, &basis.up);
+            basis.position = *zero_vector;
+            vector3d_rotate_toward_bounded((real_vector3d *)(obj + 0x23c), (real_vector3d *)(obj + 0x248),
+                (real *)(obj + 0x2b8), rate, acceleration, (real_vector3d *)(obj + 0x230), &basis);
         } else {
-            // 0x562e9f..0x562f13: the bounds are in the unit's own frame, built into a local
-            // matrix (scale 1, orientation, left = up x forward, position = global origin)
-            real_matrix4x3 frame;
-            frame.scale = 1.0f;
-            object_get_orientation(&frame.forward, unit_index, &frame.up);
-            vector3d_cross_product(&frame.left, &frame.forward, &frame.up);
-            frame.position = *(real_point3d *)global_origin3d_pointer;
-            vector3d_rotate_toward_bounded(aiming, aiming_velocity, &unit->aiming_bounds[0], turn_accel, turn_rate,
-                                           &unit->desired_aiming_vector, &frame);
+            vector3d_rotate_toward_with_acceleration((real_vector3d *)(obj + 0x23c), (real_vector3d *)(obj + 0x230),
+                (real_vector3d *)(obj + 0x248), rate, acceleration);
         }
-
         {
-            // FIXED (0x562f46..0x562fa0): the angle the aim moved this tick (vector3d_angle_between, ECX the aim
-            // before, EDX after) over the tag's +0x264 times 1/30, clamped to [0, 1] (NaN kept), times 255 and
-            // truncated (__ftol) into +0x323; 0 when +0x264 is 0.
-            float aim_change = 0.0f;
-            float per_tick = *(float *)((uint8_t *)obj_tag + 0x264);
+            float change = 0.0f;
 
-            if (per_tick != 0.0f) {
-                aim_change = vector3d_angle_between_4cd4f0(&previous_aiming, aiming) / (per_tick * 0.033333335f);
-                if (aim_change < 0.0f) {
-                    aim_change = 0.0f;
-                } else if (aim_change > 1.0f) {
-                    aim_change = 1.0f;
+            if (*(float *)(tag + 0x264) != 0.0f) {
+                change = vector3d_angle_between_4cd4f0(&previous_aim, (real_vector3d *)(obj + 0x23c)) /
+                    (*(float *)(tag + 0x264) * 0.033333335f);
+                if (change < 0.0f) {
+                    change = 0.0f;
+                } else if (change > 1.0f) {
+                    change = 1.0f;
                 }
             }
-            unit->unknown_323 = (int8_t)(int32_t)(aim_change * 255.0f);
+            obj[0x323] = (uint8_t)(int32_t)(change * 255.0f);
         }
+        rate = speed_scale * *(float *)(tag + 0x270) * 0.033333335f;
+        acceleration = speed_scale * *(float *)(tag + 0x274) * 0.0011111111f;
+        if (rate == 0.0f && acceleration == 0.0f) {
+            *(real_vector3d *)(obj + 0x260) = *(real_vector3d *)(obj + 0x254);
+            unit_clamp_direction_to_aim_or_look_bounds(unit_index, (real_vector3d *)(obj + 0x260), 0);
+            *(real_point3d *)(obj + 0x26c) = *global_origin3d_pointer;
+        } else if (obj[0x2b7] != 0) {
+            real_matrix4x3 basis;
 
-        float look_accel = aim_rate * *(float *)((uint8_t *)obj_tag + 0x270) * 0.033333335f;
-        float look_rate = aim_rate * *(float *)((uint8_t *)obj_tag + 0x274) * 0.0011111111f;
-        if (look_accel == 0.0f && look_rate == 0.0f) {
-            unit->looking_vector = unit->desired_looking_vector;
-            unit_clamp_direction_to_aim_or_look_bounds(unit_index, &unit->looking_vector, 0);
-            unit->looking_velocity = *global_origin3d_pointer;
-        } else if (!unit->looking_bounds_valid) {
-            // FIXED (0x5630cc): ESI looking, EDI desired looking, stack (&looking velocity, [ebp-0x14] from tag
-            // +0x270, [ebp-0x18] from tag +0x274).
-            vector3d_rotate_toward_with_acceleration(&unit->looking_vector, &unit->desired_looking_vector,
-                &unit->looking_velocity, look_accel, look_rate);
+            basis.scale = 1.0f;
+            object_get_orientation(&basis.forward, unit_index, &basis.up);
+            vector3d_cross_product(&basis.left, &basis.forward, &basis.up);
+            basis.position = *zero_vector;
+            vector3d_rotate_toward_bounded((real_vector3d *)(obj + 0x260), (real_vector3d *)(obj + 0x26c),
+                (real *)(obj + 0x2c8), rate, acceleration, (real_vector3d *)(obj + 0x254), &basis);
         } else {
-            // 0x563063..0x5630c2: the same local frame as the aiming branch
-            real_matrix4x3 frame;
-            frame.scale = 1.0f;
-            object_get_orientation(&frame.forward, unit_index, &frame.up);
-            vector3d_cross_product(&frame.left, &frame.forward, &frame.up);
-            frame.position = *(real_point3d *)global_origin3d_pointer;
-            vector3d_rotate_toward_bounded(&unit->looking_vector, &unit->looking_velocity, &unit->looking_bounds[0],
-                         look_accel, look_rate, &unit->desired_looking_vector, &frame);
+            vector3d_rotate_toward_with_acceleration((real_vector3d *)(obj + 0x260), (real_vector3d *)(obj + 0x254),
+                (real_vector3d *)(obj + 0x26c), rate, acceleration);
         }
 
         if (!unit_updates_suppressed) {
-            uint32_t grenade_action = unit->control_flags >> 13;
-            switch (unit->throwing_grenade_state) {
-            case _unit_throwing_grenade_state_none:
-                if ((grenade_action & 1) != 0) {
-                    unit_begin_throw_grenade(unit_index, 0); // 0x56311a: EDI unit
+            // 0x5630f8: grenade throw state (+0x28d)
+            uint8_t throwing = (uint8_t)((*(uint32_t *)(obj + 0x208) >> 13) & 1);
+
+            switch ((int8_t)obj[0x28d]) {
+            case 0:
+                if (throwing) {
+                    unit_begin_throw_grenade(unit_index, 0);
                 }
                 break;
-            case _unit_throwing_grenade_state_begin:
-                if (obj->animation_frame > 1) {
+            case 1:
+                if (*(int16_t *)(obj + 0xd2) >= 2) {
                     unit_throw_grenade_move_to_hand(unit_index);
                 }
                 break;
-            case _unit_throwing_grenade_state_in_hand:
-                unit->throwing_grenade_counter = unit->throwing_grenade_counter + 1;
-                if (unit->animation_state != _unit_animation_state_throwing_grenade) {
+            case 2:
+                (*(int16_t *)(obj + 0x28e))++;
+                if (obj[0x2a3] != 0x21) {
                     unit_release_thrown_grenade(unit_index, 1);
                 }
                 break;
-            case _unit_throwing_grenade_state_released:
-                if (unit->animation_state != _unit_animation_state_throwing_grenade &&
-                    (grenade_action & 1) == 0) {
-                    unit->throwing_grenade_state = (int8_t)(grenade_action & 1);
+            case 3:
+                if (obj[0x2a3] != 0x21 && !throwing) {
+                    obj[0x28d] = 0;
                 }
+                break;
+            default:
                 break;
             }
         }
+        if (*(int16_t *)(obj + 0x2f2) != -1 && !unit_updates_suppressed) {
+            // 0x563194: the current weapon's trigger / control flags
+            uint32_t control = 0;
+            float trigger = *(float *)(obj + 0x284);
+            uint8_t *unit_now;
+            datum_index weapon = k_datum_index_none;
 
-        if (unit->current_weapon_index != -1 && !unit_updates_suppressed) {
-            float trigger = unit->primary_trigger;
-            uint32_t item_flags = 0;
-            if (unit->current_weapon_index == unit->desired_weapon_index) {
-                // recent_grenade mirrors the throw-countdown block at the top of this function
-                // (unit->unknown_210/unknown_214, "local_5" in the original).
-                uint8_t recent_grenade = unit->unknown_210 > 0 && (unit->unknown_214 & 0x800) != 0;
-                if ((is_grounded != 0) && (unit->control_flags & 0x10) != 0) {
-                    item_flags = 1;
+            if (*(int16_t *)(obj + 0x2f2) == *(int16_t *)(obj + 0x2f4)) {
+                uint8_t flashing = (uint8_t)(*(int32_t *)(obj + 0x210) > 0 && (*(uint32_t *)(obj + 0x214) & 0x800) != 0);
+
+                if (valid_team_player && (obj[0x208] & 0x10) != 0) {
+                    control = 1;
                 }
-                if ((unit->control_flags & 0x800) != 0) {
-                    item_flags |= 2;
+                if ((*(uint32_t *)(obj + 0x208) & 0x800) != 0) {
+                    control |= 2;
                 }
-                if ((unit->control_flags & 0x1000) != 0) {
-                    item_flags |= 4;
+                if ((*(uint32_t *)(obj + 0x208) & 0x1000) != 0) {
+                    control |= 4;
                 }
-                if ((((Unit *)obj_tag)->unit_flags & 0x800000) != 0) {
-                    // 0x563214..0x56323a: the current weapon (EAX unit, CX +0x2f2) gets the ready timer +0x340
-                    weapon_set_ready_timer(unit_get_weapon_object_index(unit_index, unit->current_weapon_index),
-                        *(real *)&unit->unknown_340);
+                if ((*(uint32_t *)(TAG_DATA(*(datum_index *)obj) + 0x17c) & 0x800000) != 0) {
+                    weapon_set_ready_timer(unit_get_weapon_object_index(unit_index,
+                        *(int16_t *)(OBJECT_DATA(unit_index) + 0x2f2)), *(float *)(obj + 0x340));
                 }
-                if ((unit->control_flags & 0x400) != 0) {
-                    item_flags |= 8;
+                if ((*(uint32_t *)(obj + 0x208) & 0x400) != 0) {
+                    control |= 8;
                 }
-                if (unit_state_is_scripted_animation(unit) && !recent_grenade) {
-                    item_flags |= 0x10;
+                if (unit_state_is_scripted_animation((unit_data *)(obj + k_unit_data_offset)) && !flashing) {
+                    control |= 0x10;
                 }
-                if (obj->type == 0) {
-                    biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
-                    if (biped->unknown_505 > 0) {
-                        item_flags |= 0x10;
-                    }
+                if (*(int16_t *)(obj + 0xb4) == 0 && (int8_t)obj[0x505] > 0) {
+                    control |= 0x10;
                 }
-                if (unit->zoom_level != -1) {
-                    item_flags |= 0x40;
+                if (obj[0x320] != 0xff) {
+                    control |= 0x40;
                 }
             } else {
-                item_flags = 0x20;
+                control = 0x20;
             }
-            // 0x5632a3..0x5632c2: EAX = the weapon in the current slot (+0x2f8[+0x2f2]) or -1.
-            weapon_set_control_flags(unit->current_weapon_index == -1 ? k_datum_index_none :
-                unit->weapons[unit->current_weapon_index], (uint16_t)item_flags, trigger);
+            unit_now = OBJECT_DATA(unit_index);
+            if (*(int16_t *)(unit_now + 0x2f2) != -1) {
+                weapon = *(datum_index *)(unit_now + 0x2f8 + *(int16_t *)(unit_now + 0x2f2) * 4);
+            }
+            weapon_set_control_flags(weapon, (uint16_t)control, trigger);
         }
     }
 
-    if ((((Unit *)obj_tag)->unit_flags & 0x800) == 0) { // not simple_creature
-        if ((unit->animation_state_flags & _unit_animation_flag_aiming_enabled) != 0) {
+    // 0x5632ca
+    if ((*(uint32_t *)(tag + 0x17c) & 0x800) == 0) {
+        int16_t seat;
+
+        if ((obj[0x298] & 2) != 0) {
             unit_update_look_delta_controls(unit_index);
-            unit->animation_controls_smoothed[0] = unit->animation_controls_smoothed[0] * 0.7f + unit->animation_controls[0] * 0.3f;
-            unit->animation_controls_smoothed[1] = unit->animation_controls_smoothed[1] * 0.7f + unit->animation_controls[1] * 0.3f;
-            unit->animation_controls_smoothed[2] = unit->animation_controls_smoothed[2] * 0.7f + unit->animation_controls[2] * 0.3f;
+            *(float *)(obj + 0x364) = *(float *)(obj + 0x370) * LOOK_BLEND_NEW + *(float *)(obj + 0x364) * LOOK_BLEND_OLD;
+            *(float *)(obj + 0x368) = *(float *)(obj + 0x374) * LOOK_BLEND_NEW + *(float *)(obj + 0x368) * LOOK_BLEND_OLD;
+            *(float *)(obj + 0x36c) = *(float *)(obj + 0x378) * LOOK_BLEND_NEW + *(float *)(obj + 0x36c) * LOOK_BLEND_OLD;
         }
+        for (seat = 0; seat < *(int32_t *)(tag + 0x2cc); seat++) {
+            uint8_t *powered = *(uint8_t **)(tag + 0x2d0) + seat * 0x44;
+            float *power = (float *)(obj + 0x338 + seat * 4);
+            uint8_t occupied;
 
-        // Unit.powered_seats (tag +0x2cc/+0x2d0, 0x44 each; 0x56334d): seat 0 (driver) is powered while
-        // the unit has a driver or flag bit 0 is set, seat 1 (gunner) while it has a gunner who is not
-        // the driver. The per-seat power level is the float run at object +0x338 (0x5633ae), ramped
-        // over the seat's powerup time (+0x04) or powerdown time (+0x08) in seconds.
-        Unit *unit_tag = (Unit *)obj_tag;
-        int32_t contact_count = (int32_t)unit_tag->powered_seats.count;
-        for (int32_t i = 0; i < contact_count; i++) {
-            uint8_t *entry = (uint8_t *)unit_tag->powered_seats.pointer + i * 0x44;
-            uint8_t active;
-            if (i == 0) {
-                active = (unit->driver_unit_index != (datum_index)-1) || (unit->flags & 1) != 0;
+            if (seat == 0) {
+                occupied = (uint8_t)(*(datum_index *)(obj + 0x324) != k_datum_index_none || (obj[0x204] & 1) != 0);
             } else {
-                active = (unit->gunner_unit_index != (datum_index)-1) && unit->gunner_unit_index != unit->driver_unit_index;
+                occupied = (uint8_t)(*(datum_index *)(obj + 0x328) != k_datum_index_none &&
+                    *(datum_index *)(obj + 0x328) != *(datum_index *)(obj + 0x324));
             }
-            float *wear = (float *)((uint8_t *)obj + 0x338 + i * 4);
-            if ((obj->vitality_flags & _object_health_frozen_bit) == 0 && active) {
-                if (*(uint32_t *)wear != 0x3f800000) {
-                    float v = *wear + 1.0f / (*(float *)(entry + 4) * 30.0f);
-                    *wear = v;
-                    if (v > 1.0f) {
-                        *wear = 1.0f;
+            if ((obj[0x106] & 4) == 0 && occupied) {
+                if (*power != 1.0f) {
+                    *power += 1.0f / (*(float *)(powered + 4) * 30.0f);
+                    if (*power > 1.0f) {
+                        *power = 1.0f;
                     }
                 }
-            } else if (*wear != 0.0f) {
-                float v = *wear - 1.0f / (*(float *)(entry + 8) * 30.0f);
-                *wear = v;
-                if (v < 0.0f) {
-                    *wear = 0.0f;
+            } else if (*power != 0.0f) {
+                *power -= 1.0f / (*(float *)(powered + 8) * 30.0f);
+                if (*power < 0.0f) {
+                    *power = 0.0f;
                 }
             }
         }
     }
-
-    if (unit->unknown_406 > 0 && --unit->unknown_406 == 0) {
-        actor_react_to_threat_event(unit_index, unit->unknown_40c, unit->unknown_404, unit->unknown_408, 0, 1);
-        unit->unknown_404 = 0;
-        unit->unknown_40c = (datum_index)-1;
-        unit->unknown_408 = 0.0f;
+    // 0x563453: a delayed threat reaction
+    if (*(int16_t *)(obj + 0x406) > 0 && --*(int16_t *)(obj + 0x406) == 0) {
+        actor_react_to_threat_event(unit_index, *(datum_index *)(obj + 0x40c), *(uint16_t *)(obj + 0x404),
+            *(float *)(obj + 0x408), 0, 1);
+        *(int16_t *)(obj + 0x404) = 0;
+        *(datum_index *)(obj + 0x40c) = k_datum_index_none;
+        *(int32_t *)(obj + 0x408) = 0;
     }
-
     if (!unit_updates_suppressed) {
         unit_melee_lunge_damage_tick(unit_index);
         if (!unit_updates_suppressed) {
             unit_update_animation_timers(unit_index);
-            if (!unit_updates_suppressed && (won_stagger_slot || unit->controlling_player != (datum_index)-1)) {
+            if (!unit_updates_suppressed && (over_budget || *(datum_index *)(obj + 0x218) != k_datum_index_none)) {
                 unit_calculate_luminosity(unit_index);
             }
         }
     }
-
-    // Ghidra addresses this one as *(char *)((int)puVar4 + 0x28b) -- a byte offset, so
-    // unit_data.unknown_28b, not the melee_damage_countdown byte at 0x28a next to it.
-    if (unit->unknown_28b != 0) {
+    if (obj[0x28b] != 0) {
         if (unit_updates_suppressed) {
-            return 1;
+            goto done;
         }
-        int8_t remaining = unit->unknown_28b - 1;
-        unit->unknown_28b = remaining;
-        if (remaining == 0) {
+        if (--obj[0x28b] == 0) {
             unit_update_autoaim_interaction(unit_index);
+            if (unit_updates_suppressed) {
+                goto done;
+            }
         }
     } else if (unit_updates_suppressed) {
-        return 1;
+        goto done;
     }
+    // 0x563531: +0x2e8 relaxes toward 0 by at most 0.1 per tick
+    {
+        float step = -*(float *)(obj + 0x2e8);
 
-    // Relaxes unit_data.animation_blend_weight (0x2e8) toward zero at no more than 0.1 per
-    // tick. Ghidra spells it puVar4[0xba]: a dword index, so 0xba * 4 = 0x2e8 -- not 0x338.
-    float blend_delta = -unit->animation_blend_weight;
-    if (blend_delta < -0.1f) {
-        blend_delta = -0.1f;
-    } else if (blend_delta > 0.1f) {
-        blend_delta = 0.1f;
-    }
-    unit->animation_blend_weight = blend_delta + unit->animation_blend_weight;
-
-    uint32_t flags = unit->flags;
-    uint8_t network_create_seen = seat_control_applied;
-    if ((flags & _unit_flag_idle_turn_seeded) != 0) {
-        network_create_seen = 1;
-        if ((flags & _unit_flag_unknown_80000) != 0) {
-            network_create_seen = seat_control_applied;
+        if (step < -0.1f) {
+            step = -0.1f;
+        } else if (step > 0.1f) {
+            step = 0.1f;
         }
-        unit->flags = flags & ~(uint32_t)_unit_flag_idle_turn_seeded;
+        *(float *)(obj + 0x2e8) += step;
     }
-    flags = unit->flags;
-    if ((flags & 0x20000000) != 0) { // UNSURE: undocumented bit
-        if ((flags & _unit_flag_unknown_80000) != 0) {
-            network_create_seen = 1;
-        }
-        unit->flags = flags & ~0x20000000u;
-    }
+    {
+        // 0x56356b: the flashlight (+0x204 bit 19), its on/off requests (bits 28/29), energy +0x344, glow +0x340
+        uint8_t toggle = 0;           // ebp-0x3 starts at 0
+        uint32_t flags = *(uint32_t *)(obj + 0x204);
+        uint32_t button;
 
-    // Ghidra: (uVar10 & 0x10) with uVar10 = puVar4[0x82] (= 0x208 control_flags), then
-    // ((float)puVar4[0xd1] < 0.0 != ((float)puVar4[0xd1] == 0.0)) -- the MSVC 7.1 spelling of
-    // a plain `x < 0.0f` on unit_data.unknown_344 (0xd1 * 4 = 0x344). Neither operand is 0x338,
-    // and the test is "negative", not "non-zero".
-    if ((unit->control_flags & 0x10) != 0 || unit->unknown_344 < 0.0f || network_create_seen) {
-        if (!is_grounded) {
-            if ((unit->flags & _unit_flag_unknown_4000000) != 0) {
-                unit->flags = unit->flags & ~(uint32_t)_unit_flag_unknown_4000000;
+        if ((flags & 0x10000000) != 0) {
+            if ((flags & 0x80000) == 0) {
+                toggle = 1;
             }
-            if ((unit->flags & _unit_flag_unknown_80000) == 0) {
-                goto skip_luma_toggle;
+            *(uint32_t *)(obj + 0x204) = flags & 0xefffffff;
+        }
+        flags = *(uint32_t *)(obj + 0x204);
+        if ((flags & 0x20000000) != 0) {
+            if ((flags & 0x80000) != 0) {
+                toggle = 1;
             }
-            unit->flags = (unit->flags & ~(uint32_t)_unit_flag_unknown_80000) | 0x10;
+            *(uint32_t *)(obj + 0x204) = flags & 0xdfffffff;
+        }
+        button = *(uint32_t *)(obj + 0x208) & 0x10;
+        if (button != 0 || !(*(float *)(obj + 0x344) > 0.0f) || toggle) {
+            if (!valid_team_player) {
+                flags = *(uint32_t *)(obj + 0x204);
+                if ((flags & 0x4000000) != 0) {
+                    *(uint32_t *)(obj + 0x204) = flags & 0xfbffffff;
+                }
+                flags = *(uint32_t *)(obj + 0x204);
+                if ((flags & 0x80000) != 0) {
+                    *(uint32_t *)(obj + 0x204) = (flags & 0xfff7ffff) | 0x10;
+                }
+            } else {
+                uint8_t toggle_light = 1;
+
+                if (unit_current_weapon_has_flag(unit_index)) {
+                    if (button != 0) {
+                        uint8_t *effects = *(uint8_t **)(game_globals_pointer + 0x180);
+                        datum_index effect = ((*(uint32_t *)(obj + 0x204) & 0x4000000) != 0)
+                            ? *(datum_index *)(effects + 0x64) : *(datum_index *)(effects + 0x54);
+
+                        if (effect != k_datum_index_none) {
+                            effect_new_on_object(unit_index, effect, unit_index, -1, 0.0f, 0.0f, 0, 0);
+                        }
+                        *(uint32_t *)(obj + 0x204) ^= 0x4000000;
+                    }
+                    if ((obj[0x208] & 0x10) != 0) {
+                        toggle_light = 0;
+                    }
+                }
+                if (toggle_light && ((*(uint32_t *)(obj + 0x204) & 0x80000) != 0 || *(float *)(obj + 0x344) > 0.2f) &&
+                    *(datum_index *)(obj + 0x11c) == k_datum_index_none) {
+                    effect_new_on_object(unit_index, *(datum_index *)(tag + 0x194), unit_index, -1, 0.0f, 0.0f, 0, 0);
+                    *(uint32_t *)(obj + 0x204) ^= 0x80000;
+                }
+            }
+        }
+        flags = *(uint32_t *)(obj + 0x204);
+        if ((flags & 0x80000) != 0) {
+            if ((*(uint32_t *)(tag + 0x17c) & 0x1000000) == 0) {
+                *(float *)(obj + 0x344) -= 0.00027777778f;
+            }
+            if (*(datum_index *)(obj + 0x11c) != k_datum_index_none || (obj[0x106] & 4) != 0) {
+                *(uint32_t *)(obj + 0x204) = flags & 0xfff7ffff;
+            }
+            if (*(float *)(obj + 0x340) != 1.0f) {
+                *(float *)(obj + 0x340) += 0.16666667f;
+                if (*(float *)(obj + 0x340) > 1.0f) {
+                    *(float *)(obj + 0x340) = 1.0f;
+                }
+            }
         } else {
-            if (unit_current_weapon_has_flag(unit_index)) {
-                if ((unit->control_flags & 0x10) != 0) {
-                    int32_t player_effect;
-                    if ((unit->flags & _unit_flag_unknown_4000000) == 0) {
-                        player_effect = *(int32_t *)(*(uint8_t **)(globals_tag_data + 0x180) + 0x54);
-                    } else {
-                        player_effect = *(int32_t *)(*(uint8_t **)(globals_tag_data + 0x180) + 100);
-                    }
-                    if (player_effect != -1) {
-                        // 0x56364e..0x56365c: EAX = the unit, ECX = player_effect, stack: unit, -1, 0..
-                        effect_new_on_object(unit_index, (datum_index)player_effect, unit_index, -1, 0.0f, 0.0f,
-                            0, 0);
-                    }
-                    unit->flags = unit->flags ^ _unit_flag_unknown_4000000;
-                }
-                if ((unit->control_flags & 0x10) != 0) {
-                    goto skip_luma_toggle;
+            if (*(float *)(obj + 0x344) < 1.0f) {
+                *(float *)(obj + 0x344) += 0.0011111111f;
+            }
+            if (*(float *)(obj + 0x340) != 0.0f) {
+                *(float *)(obj + 0x340) -= 0.041666668f;
+                if (*(float *)(obj + 0x340) < 0.0f) {
+                    *(float *)(obj + 0x340) = 0.0f;
                 }
             }
-            if (((unit->flags & _unit_flag_unknown_80000) == 0 && unit->unknown_344 <= 0.2f) ||
-                obj->parent_object != (datum_index)-1) {
-                goto skip_luma_toggle;
-            }
-            // 0x56369b..0x5636b2: EAX = the unit, ECX = the Unit tag's +0x194 effect
-            effect_new_on_object(unit_index, *(datum_index *)((uint8_t *)obj_tag + 0x194), unit_index, -1,
-                0.0f, 0.0f, 0, 0);
-            unit->flags = unit->flags ^ _unit_flag_unknown_80000;
         }
     }
-
-skip_luma_toggle:
-    if ((unit->flags & _unit_flag_unknown_80000) == 0) {
-        if (unit->unknown_344 < 1.0f) {
-            unit->unknown_344 = unit->unknown_344 + 0.0011111111f;
-        }
-        if (unit->unknown_340 != 0.0f) {
-            float v = unit->unknown_340 - 0.041666668f;
-            unit->unknown_340 = (v < 0.0f) ? 0.0f : v;
-        }
-    } else {
-        if ((((Unit *)obj_tag)->unit_flags & 0x1000000) == 0) {
-            unit->unknown_344 = unit->unknown_344 - 0.00027777778f;
-        }
-        if (obj->parent_object != (datum_index)-1 || (obj->vitality_flags & _object_health_frozen_bit) != 0) {
-            unit->flags = unit->flags & ~(uint32_t)_unit_flag_unknown_80000;
-        }
-        if (unit->unknown_340 != 1.0f) {
-            float v = unit->unknown_340 + 0.16666667f;
-            unit->unknown_340 = (v > 1.0f) ? 1.0f : v;
-        }
-    }
-
+    // 0x5637ad: the current weapon's secondary light (+0x204 bit 26) ramps +0x348
     if (unit_current_weapon_has_flag(unit_index)) {
-        if ((unit->flags & _unit_flag_unknown_4000000) == 0) {
-            if (unit->unknown_348 != 0.0f) {
-                float v = unit->unknown_348 - 0.041666668f;
-                unit->unknown_348 = (v < 0.0f) ? 0.0f : v;
+        if ((*(uint32_t *)(obj + 0x204) & 0x4000000) != 0) {
+            if (*(float *)(obj + 0x348) != 1.0f) {
+                *(float *)(obj + 0x348) += 0.083333336f;
+                if (*(float *)(obj + 0x348) > 1.0f) {
+                    *(float *)(obj + 0x348) = 1.0f;
+                }
             }
-        } else if (unit->unknown_348 != 1.0f) {
-            float v = unit->unknown_348 + 0.083333336f;
-            if (v > 1.0f) {
-                unit->unknown_348 = 1.0f;
-                return 1;
+        } else if (*(float *)(obj + 0x348) != 0.0f) {
+            *(float *)(obj + 0x348) -= 0.041666668f;
+            if (*(float *)(obj + 0x348) < 0.0f) {
+                *(float *)(obj + 0x348) = 0.0f;
             }
-            unit->unknown_348 = v;
         }
     }
+done:
     return 1;
 }
 
