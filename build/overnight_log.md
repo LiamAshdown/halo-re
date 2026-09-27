@@ -2189,3 +2189,17 @@ Relinked: unresolved 1, traps 127.
 - FP gun: draws succeed (hr 0, sane z/stencil/cull/cw); root 4-36 deg off the view forward; alpha test on (ref 127 GREATER) -- TEMPORARY experiment forces it off for FP draws.
 - STOPGAP/OPEN: water draw procedures 0x535fd0 (pixel shader, ~3 KB) and 0x5358b0 (fixed function) have no C; the original pointer crashed in render_sky. rasterizer_select_hardware_codepaths now installs a logging no-op. TODO: rewrite 0x535fd0 and remove the stopgap.
 - 2026-09-28 play-test: marines confirmed allied (allied(p,2)=1). actor_type_mounted_weapon_update (0x4263f0) written (trap). Vehicle-physics crash: object_physics_compute_mass_point_forces wrote a real_matrix4x3 into float[9] (stack overflow) and read it one float early -- fixed. FP gun: alpha-test state matches the binary; the gun shows with alpha test forced off (TEMPORARY), so the low output alpha comes from the pixel shader side (constants match except c4). OPEN.
+## 2026-09-28 user play-test reports (a30): grunts miss, Banshee flip does nothing
+- Grunts "mostly miss, sometimes hit": FIXED a real aim bug -- projectile_solve_straight_line (0x4bee20) returned the
+  raw target-origin delta; the binary returns the NORMALIZED vector (actor +0x63c / +0x68c firing direction, used as a
+  unit vector). projectile_get_aiming_vector verified. actor_compute_accuracy_scale is misnamed (a movement arrival
+  radius) -- verified. The user was also on Easy, which legitimately lowers AI accuracy. OPEN (runtime): re-check.
+- Banshee flip: the whole chain is verified against the binary with no difference found:
+  player_update_nearby_interactions_primary (type table), player_check_vehicle_interaction (0.9, pending type 0xb),
+  player_set_pending_interaction_action, game_engine_players_update_server (action bit 0x40 -> 0x4793a0),
+  player_execute_pending_interaction case 11 (+0x4cc |= 0x10, +0x4d1 direction, +0x4d2 = 0), vehicle_update's flip
+  block (0x571105..0x5712cc, all constants). OPEN (runtime): does the HUD offer the flip prompt? If yes, the spin is set
+  but something later cancels it (object_physics_tick / mass point forces on the Banshee, or the at-rest sleep); if no,
+  check the vitality_flags / +0x324 gates in player_check_vehicle_interaction.
+- Also written: hs_evaluate_vehicle_hover (trapped in a30), three nav-point evaluators; scratchpad/hsmissing.py shows
+  the campaign's scripts need only 'inspect' and 'play_update_history' beyond what exists.

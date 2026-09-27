@@ -1,6 +1,6 @@
 // game_engine_players_update_server  (Ghidra: FUN_004740a0; named per this rewrite)
 // address 0x4740a0, size 1262 bytes
-// name confidence: 0.4   rewrite confidence: 0.2
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x4740a0..0x47458d (respawn, action / exchange / equipment / must-be-readied, control block, idle branch); the network transform-update OPEN stays.)
 // evidence: out/phase4/game_functions.md ("Main per-tick players update used on the
 //   server/single-player path: applies queued client input, handles respawning, and processes
 //   each player's action flags"); types/game.h player_action (0x20 bytes, this batch's

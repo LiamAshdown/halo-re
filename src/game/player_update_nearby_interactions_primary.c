@@ -2,7 +2,7 @@
 // out/phase4/game_functions.md: "Scans nearby objects around a unit and routes each to the
 // appropriate interaction check (vehicle flip/steal, vehicle boarding, or assassination).")
 // address 0x478400, size 212 bytes
-// name confidence: 0.35   rewrite confidence: 0.45
+// name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x478400..0x4784d3 (sphere search + the type jump table 0x4784d4: 1 vehicle, 2/3 boarding, 8 assassination).)
 // evidence: out/phase4/game_functions.md; types/tags.h ObjectType (type 1 = vehicle); types/
 //   objects.h object::location_leaf_index (0x098), object::bounding_center/bounding_radius
 //   (0x0a0/0x0ac), object::type (0x0b4); the established object_find_in_sphere signature

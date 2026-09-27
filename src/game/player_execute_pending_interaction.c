@@ -1,6 +1,6 @@
 // player_execute_pending_interaction  (Ghidra: FUN_004793a0)
 // address 0x4793a0, size 837 bytes
-// name confidence: 0.3   rewrite confidence: 0.85
+// name confidence: 0.3   rewrite confidence: 0.85 (VERIFIED 2026-09-28 (flip case 11 re-checked against objdump 0x4795b3..0x4796e4).)
 // REWRITTEN from objdump 0x4793a0..0x4796e4 (jump table 0x4796e8 on the interaction type - 5). Stack: player.
 //   5 equipment: clears the selection (0x56d2c0) and selects the object (0x56d1a0), showing it on the HUD.
 //   8 / 9 vehicle seat: a client first needs its unit and drops a stale seat-exit animation (0x1b); if the seat

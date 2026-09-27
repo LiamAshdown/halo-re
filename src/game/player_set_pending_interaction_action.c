@@ -1,7 +1,7 @@
 // player_set_pending_interaction_action  (Ghidra: player_set_pending_interaction_action,
 // already named)
 // address 0x478e00, size 262 bytes
-// name confidence: 0.5   rewrite confidence: 0.5
+// name confidence: 0.5   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x478e00..0x478f05 (EAX player, EBX candidate, stack priority / seat).)
 // evidence: out/phase4/game_types_notes.md ("player_set_pending_interaction_action 0x478e00 --
 //   0x24 interaction object, 0x28 priority type (0xb clears), 0x2a seat"), matching
 //   types/game.h player::interaction_object/interaction_type/interaction_seat exactly;
