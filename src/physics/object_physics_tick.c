@@ -2,7 +2,7 @@
 //   section 5, which resolves this whole call family to the object Physics tag rather than the
 //   phase2 antenna_* guess)
 // address 0x507840, size 503 bytes
-// name confidence: 0.4   rewrite confidence: 0.35
+// name confidence: 0.4   rewrite confidence: 0.9
 // evidence: types/physics.h section 5 ("0x00507840 picks [object_physics_tick_single_pass] when Physics.radius >
 //   0.0; the multi-mass-point path runs when the radius is 0 or less") and its
 //   powered_mass_point_state struct comment (matrix4x3_from_quaternion then the in-place 3x3
@@ -37,111 +37,79 @@
 #include "objects.h"
 #include "units.h"
 #include "physics.h"
+#include <string.h>
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern uint8_t object_physics_context_build(uint32_t object_index,
-    object_physics_context *out_context); // 0x5074b0, this module
-extern void matrix4x3_from_quaternion(void *quaternion, void *out_matrix); // 0x4cbad0, math
-    // module; blam-cc UNSURE, see file header
+    object_physics_context *out_context); // 0x5074b0, EBX, EAX
+extern void matrix4x3_from_quaternion(real_quaternion *q, real_matrix4x3 *out); // 0x4cbad0, ECX, EDX
 extern void object_physics_compute_mass_point_forces(object_physics_context *context,
     powered_mass_point_state *powered_states, uint32_t param_3, real_vector3d *out_force,
-    real_vector3d *out_torque); // 0x507cc0, this module (higher half)
+    real_vector3d *out_torque); // 0x507cc0
 extern void object_physics_integrate_and_test_at_rest(object_physics_context *context,
-    uint32_t param_3, void *torque_and_force); // 0x5097e0, this module (higher half)
-extern void object_physics_handle_nearby_object_impacts(uint32_t object_index); // 0x508a10, this module (higher half)
+    mass_point_state *mass_point_states, real_vector3d *torque, real_vector3d *force); // 0x5097e0, stack, ECX force
+extern void object_physics_handle_nearby_object_impacts(uint32_t object_index); // 0x508a10
 extern void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_state *powered_states, uint32_t param_3,
-    real_vector3d *extra_force, real_vector3d *extra_torque); // 0x509e80, this module (higher half)
+    real_vector3d *extra_force, real_vector3d *extra_torque); // 0x509e80
 
-// object_physics_tick_accumulator now lives in types/physics.h.
-
-// Dispatches one physics tick for object_index's Physics tag: object_physics_tick_single_pass (the single-mass-point
-// path) when Physics.radius > 0, otherwise the general multi-mass-point path below. That path
-// re-orients every powered mass point's driven matrix from powered_states (when powered_states !=
-// NULL), computes the total mass-point force/torque via object_physics_compute_mass_point_forces,
-// folds in the object's own accumulated_force/accumulated_torque (object +0x508/+0x514, zeroing
-// them after), optionally adds extra_force/extra_torque when non-NULL, integrates via
-// object_physics_integrate_and_test_at_rest, and finally runs object_physics_handle_nearby_object_impacts (nearby-object impact
-// handling).
+// REWRITTEN from objdump 0x507840..0x507a36. Stack: (object, powered states, mass point states, extra force, extra
+//   torque). A Physics tag with a radius takes the single-pass path (0x509e80). Otherwise: build the context; when
+//   powered states are given, each one's matrix (+0x2c) is rebuilt from its quaternion (+0x1c) and transposed;
+//   mass-point forces (0x507cc0) plus the object's accumulated force / torque (+0x508 / +0x514, then cleared)
+//   plus the extras are integrated (0x5097e0: force in ECX, torque on the stack) and nearby impacts handled.
+//   The draft rebuilt the matrices from a NULL quaternion into the Physics tag's own block.
 void object_physics_tick(uint32_t object_index, powered_mass_point_state *powered_states, uint32_t param_3,
     real_vector3d *extra_force, real_vector3d *extra_torque)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    void *object_tag_data = tag_instances[obj->definition_tag & 0xffff].data;
-    int32_t physics_tag_id = *(int32_t *)((uint8_t *)object_tag_data + 0x8c);
-    Physics *definition = (Physics *)tag_instances[(uint16_t)physics_tag_id].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    uint8_t *object_tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *physics = (uint8_t *)tag_instances[*(datum_index *)(object_tag + 0x8c) & 0xffff].data; // edi
+    object_physics_context context;     // [esp+0x2c]
+    real_vector3d torque;               // [esp+0x14]
+    real_vector3d force;                // [esp+0x20]
 
-    if (definition->radius <= 0.0f) {
-        object_physics_context context;
-        object_physics_tick_accumulator accum;
-        // types/units.h vehicle_data.accumulated_force / accumulated_torque (object +0x508 /
-        // +0x514): fadd at 0x507942..0x50798d, zeroed at 0x507993..0x5079b5.
-        vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
-        real_vector3d *accumulated_force = &vehicle->accumulated_force;
-        real_vector3d *accumulated_torque = &vehicle->accumulated_torque;
-
-        object_physics_context_build(object_index, &context);
-
-        if (powered_states != 0 && definition->powered_mass_points.count > 0) {
-            int16_t i;
-            for (i = 0; i < definition->powered_mass_points.count; i++) {
-                powered_mass_point_state *powered = &((powered_mass_point_state *)
-                    definition->powered_mass_points.pointer)[i];
-                float t;
-
-                // UNSURE: the quaternion source is not powered_states itself (that is the
-                // OUTPUT array, confirmed by object_physics_compute_mass_point_forces' own use
-                // of it at stride 0x60 = sizeof(powered_mass_point_state)); it must be some
-                // other hidden-register input this function's own decompile never shows at all.
-                matrix4x3_from_quaternion((void *)0 /* UNSURE quaternion source */,
-                    &powered->matrix_scale);
-
-                t = powered->matrix[0][1];
-                powered->matrix[0][1] = powered->matrix[1][0];
-                powered->matrix[1][0] = t;
-                t = powered->matrix[0][2];
-                powered->matrix[0][2] = powered->matrix[2][0];
-                powered->matrix[2][0] = t;
-                t = powered->matrix[1][2];
-                powered->matrix[1][2] = powered->matrix[2][1];
-                powered->matrix[2][1] = t;
-            }
-        }
-
-        object_physics_compute_mass_point_forces(&context, powered_states, param_3, &accum.force,
-            &accum.torque);
-
-        accum.force.i += accumulated_force->i;
-        accum.force.j += accumulated_force->j;
-        accum.force.k += accumulated_force->k;
-        accum.torque.i += accumulated_torque->i;
-        accum.torque.j += accumulated_torque->j;
-        accum.torque.k += accumulated_torque->k;
-        accumulated_force->i = 0.0f;
-        accumulated_force->j = 0.0f;
-        accumulated_force->k = 0.0f;
-        accumulated_torque->i = 0.0f;
-        accumulated_torque->j = 0.0f;
-        accumulated_torque->k = 0.0f;
-
-        if (extra_force != (real_vector3d *)0) {
-            accum.force.i += extra_force->i;
-            accum.force.j += extra_force->j;
-            accum.force.k += extra_force->k;
-        }
-        if (extra_torque != (real_vector3d *)0) {
-            accum.torque.i += extra_torque->i;
-            accum.torque.j += extra_torque->j;
-            accum.torque.k += extra_torque->k;
-        }
-
-        object_physics_integrate_and_test_at_rest(&context, param_3, &accum);
-        object_physics_handle_nearby_object_impacts(object_index);
+    if (*(float *)physics > 0.0f) {
+        object_physics_tick_single_pass(object_index, powered_states, param_3, extra_force, extra_torque);
         return;
     }
+    object_physics_context_build(object_index, &context);
+    if (powered_states != 0 && *(int32_t *)(physics + 0x68) > 0) {
+        int16_t i;
 
-    object_physics_tick_single_pass(object_index, powered_states, param_3, extra_force, extra_torque);
+        for (i = 0; (int32_t)i < *(int32_t *)(physics + 0x68); i++) {
+            uint8_t *state = (uint8_t *)powered_states + i * 0x60;
+            float *m = (float *)(state + 0x2c);
+            float t;
+
+            matrix4x3_from_quaternion((real_quaternion *)(state + 0x1c), (real_matrix4x3 *)m);
+            t = m[2]; m[2] = m[4]; m[4] = t;    // +0x8 <-> +0x10
+            t = m[3]; m[3] = m[7]; m[7] = t;    // +0xc <-> +0x1c
+            t = m[6]; m[6] = m[8]; m[8] = t;    // +0x18 <-> +0x20
+        }
+    }
+    object_physics_compute_mass_point_forces(&context, powered_states, param_3, &force, &torque);
+    obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    force.i += *(float *)(obj + 0x508);
+    force.j += *(float *)(obj + 0x50c);
+    force.k += *(float *)(obj + 0x510);
+    torque.i += *(float *)(obj + 0x514);
+    torque.j += *(float *)(obj + 0x518);
+    torque.k += *(float *)(obj + 0x51c);
+    memset(obj + 0x508, 0, 0x18);
+    if (extra_force != 0) {
+        force.i += extra_force->i;
+        force.j += extra_force->j;
+        force.k += extra_force->k;
+    }
+    if (extra_torque != 0) {
+        torque.i += extra_torque->i;
+        torque.j += extra_torque->j;
+        torque.k += extra_torque->k;
+    }
+    object_physics_integrate_and_test_at_rest(&context, (mass_point_state *)param_3, &torque, &force);
+    object_physics_handle_nearby_object_impacts(object_index);
 }
 
 #if 0

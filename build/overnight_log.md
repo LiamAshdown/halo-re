@@ -1506,3 +1506,12 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - player_find_placement_position 0x4757b0 REWRITTEN (0.25 -> 0.9): third argument (the point) was missing; ring of 9
   around the target's root (3 x collision radius + bounding radius), 8 random jitters each, trigger-volume veto,
   facing / look angles / teleport effect. Callers: hs detach-and-place, BSP-switch reattach.
+- physics_point_find_clear_position / physics_point_walk_toward_target: object_collision_test_cluster_group now gets
+  its EDI position (current point / each candidate / the walk state's position). These gate every placement.
+- object_physics_tick 0x507840 REWRITTEN (0.35 -> 0.9): powered mass point matrices from the caller's states
+  (+0x1c quaternion -> +0x2c matrix, transposed); the draft wrote into the Physics tag's block from a NULL quaternion.
+- object_physics_integrate_and_test_at_rest 0x5097e0: FORCE comes in ECX (linear), TORQUE on the stack (angular);
+  the draft applied one vector to both -- every rigid body got its torque as linear acceleration. The rest of this
+  1692-byte function is still 0.30: OPEN.
+- OPEN: object_physics_check_impact_damage 0x508b70 (0.35; crouch / context point test / unit_apply_impulse argless),
+  object_physics_handle_nearby_object_impacts 0x508a10 (0.3), object_physics_resolve_mass_point_overlap.

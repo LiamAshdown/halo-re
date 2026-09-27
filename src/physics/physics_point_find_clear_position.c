@@ -1,6 +1,6 @@
 // physics_point_find_clear_position  (Ghidra: FUN_00507170; renamed)
 // address 0x507170, size 695 bytes
-// name confidence: 0.35   rewrite confidence: 0.35
+// name confidence: 0.35   rewrite confidence: 0.9
 // evidence: out/phase4/physics_functions.md summary ("Searches for a nearby non-colliding
 //   position for a physics point by sampling a ring of candidate offsets when the direct
 //   position is blocked, then settles the point there"); types/physics.h globals
@@ -31,7 +31,7 @@ extern uint8_t physics_shape_test_point(physics_model *model, real_point3d *poin
     physics_model_contact *out_contact); // 0x504260, this module (higher half)
 extern uint8_t physics_shape_test_ray(physics_model *model, real_point3d *origin, real_vector3d *delta,
     physics_model_contact *out_contact); // 0x504bb0, this module (higher half)
-extern uint8_t object_collision_test_cluster_group(uint32_t flags, uint32_t exclude_object_index); // 0x505490, lower half
+extern uint8_t object_collision_test_cluster_group(uint32_t flags, real_point3d *position, uint32_t exclude_object_index); // 0x505490, EDI position, stack
 extern uint8_t physics_model_build_from_sphere_query(uint32_t flags, real_point3d *center,
     float radius, float x_offset, float y_offset, uint32_t exclude_object_index,
     physics_model *model); // 0x506440, this module (higher half)
@@ -68,7 +68,8 @@ uint8_t physics_point_find_clear_position(uint32_t flags, real_point3d *current_
         &model);
 
     if (!physics_shape_test_point(&model, current_position, &contact)) { // UNSURE: point/out_contact args, see header
-        if (!object_collision_test_cluster_group(flags, exclude_object_index)) {
+        // 0x507204: EDI = current_position
+        if (!object_collision_test_cluster_group(flags, current_position, exclude_object_index)) {
             *out_position = *current_position;
             return 1;
         }
@@ -81,7 +82,8 @@ uint8_t physics_point_find_clear_position(uint32_t flags, real_point3d *current_
         candidate.y = sample_radius * k_physics_displacement_directions[i][1] + current_position->y;
         candidate.z = sample_radius * k_physics_displacement_directions[i][2] + current_position->z;
 
-        if (!physics_shape_test_point(&model, &candidate, &contact) && !object_collision_test_cluster_group(flags, exclude_object_index)) {
+        if (!physics_shape_test_point(&model, &candidate, &contact) &&
+            !object_collision_test_cluster_group(flags, &candidate, exclude_object_index)) { // 0x5072ad: EDI = &candidate
             real_vector3d probe;
             probe.i = sample_radius * global_reference_vector_0069672c->i;
             probe.j = sample_radius * global_reference_vector_0069672c->j;

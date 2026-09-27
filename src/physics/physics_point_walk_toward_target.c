@@ -1,6 +1,6 @@
 // physics_point_walk_toward_target  (Ghidra: FUN_005070d0; renamed)
 // address 0x5070d0, size 143 bytes
-// name confidence: 0.3   rewrite confidence: 0.45
+// name confidence: 0.3   rewrite confidence: 0.95
 // evidence: out/phase4/physics_functions.md summary ("Walks a physics point step-by-step toward
 //   a target position while collision-testing each step, stopping as soon as it becomes
 //   blocked"); object_collision_test_cluster_group's own signature (uint flags, undefined4) confirmed from its own pack
@@ -24,7 +24,7 @@
 
 // physics_point_walk_state now lives in types/physics.h.
 
-extern uint8_t object_collision_test_cluster_group(uint32_t flags, uint32_t exclude_object_index); // 0x505490, this module (lower half)
+extern uint8_t object_collision_test_cluster_group(uint32_t flags, real_point3d *position, uint32_t exclude_object_index); // 0x505490, EDI position, stack
 
 // Tests state->position (initially the desired target) against nearby objects via
 // object_collision_test_cluster_group; while it is blocked and state->t > 0, backs it off by a fixed 0.03125 step along
@@ -36,7 +36,8 @@ void physics_point_walk_toward_target(physics_point_walk_state *state, real_poin
 {
     if (0.0f < state->t) {
         do {
-            if (!object_collision_test_cluster_group(flags, exclude_object_index)) {
+            // 0x5070e8: EDI = &state->position (the draft tested nothing in particular)
+            if (!object_collision_test_cluster_group(flags, &state->position, exclude_object_index)) {
                 break;
             }
             state->t -= 0.03125f;

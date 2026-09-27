@@ -98,8 +98,11 @@ extern void object_set_position_and_orientation(uint32_t object_index, real_vect
 // object_physics_compute_mass_point_forces into mass_point_states) and updates the object's own
 // at-rest, ground-contact and water-contact flags from the tallies and from how much the tick
 // actually changed velocity and angular velocity.
+// FIXED (objdump 0x509812..0x5098bc): ECX is the FORCE (linear: velocity += force / mass at 0x50981d) and the third
+//   stack argument the TORQUE (angular, 0x5098b6); the draft used one pointer for both.
+// blam-cc: stack -> context, mass_point_states, torque; ECX -> force
 void object_physics_integrate_and_test_at_rest(object_physics_context *context, mass_point_state *mass_point_states,
-    real_vector3d *torque_and_force)
+    real_vector3d *torque, real_vector3d *force)
 {
     object *self = ((object_header *)object_data->data)[context->object_index & 0xffff].data;
     Physics *definition = (Physics *)context->definition;
@@ -111,9 +114,9 @@ void object_physics_integrate_and_test_at_rest(object_physics_context *context, 
     real_vector3d delta_angular_velocity;
     real_vector3d new_angular_velocity;
 
-    delta_velocity.i = inverse_mass * torque_and_force->i;
-    delta_velocity.j = inverse_mass * torque_and_force->j;
-    delta_velocity.k = inverse_mass * torque_and_force->k;
+    delta_velocity.i = inverse_mass * force->i;
+    delta_velocity.j = inverse_mass * force->j;
+    delta_velocity.k = inverse_mass * force->k;
     new_velocity.i = delta_velocity.i + self->velocity.i;
     new_velocity.j = delta_velocity.j + self->velocity.j;
     new_velocity.k = delta_velocity.k + self->velocity.k;
@@ -133,7 +136,7 @@ void object_physics_integrate_and_test_at_rest(object_physics_context *context, 
         matrix3x3_multiply(&step1, &orientation, inverse_inertia_local);
         matrix3x3_transpose(&step1_transposed, &step1);
         matrix3x3_multiply(&world_inverse_inertia, &step1_transposed, &orientation);
-        matrix3x3_inverse_transform_vector(&delta_angular_velocity, torque_and_force, &world_inverse_inertia);
+        matrix3x3_inverse_transform_vector(&delta_angular_velocity, torque, &world_inverse_inertia);
     }
     new_angular_velocity.i = delta_angular_velocity.i + self->angular_velocity.i;
     new_angular_velocity.j = delta_angular_velocity.j + self->angular_velocity.j;
