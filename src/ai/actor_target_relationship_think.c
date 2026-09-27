@@ -1,6 +1,6 @@
 // actor_target_relationship_think  (Ghidra: actor_target_relationship_think, renamed)
 // address 0x41abd0, size 3351 bytes
-// name confidence: 0.45   rewrite confidence: 0.35
+// name confidence: 0.45   rewrite confidence: 0.7 (all 25 call sites verified against objdump 0x41abd0..0x41b8e6 (registers, stack order, payload); inner branch logic not re-derived)
 // evidence: out/phase2/results/ai_02.json -- large per-target-data state machine (prop.kind
 // states 0-5) that calls dodge/aim updates (actor_target_data_refresh,
 // actor_target_update_tracking_speed), target-data release (actor_target_data_release), squad
