@@ -59,7 +59,8 @@ extern void object_recalculate_bounding_radius_recursive(datum_index object_inde
 extern void object_for_each_light_attachment(datum_index object_index, int32_t param_2,
     int32_t param_3); // blam-cc: EAX -> object_index (UNSURE, not visible in the decompile);
                        // objects module, 0x4f9a20
-extern char unit_update_animation_state_machine(datum_index object_index);             // units module, 0x565420
+extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, stack unit, ECX request
+static const int8_t k_unit_exit_seat_request[2] = {0x14, 0}; // every caller builds these two bytes on its stack
 extern void unit_try_set_animation_state(uint32_t unit_index, int32_t state);
                                                                  // units module, 0x565f90
 extern char unit_all_seats_unoccupied(void); // UNSURE: zero visible arguments; units module, 0x566910
@@ -215,7 +216,7 @@ void hs_object_detach_and_place_at_location(int16_t location_index, datum_index 
                     }
                     unit_recompute_seat_occupants();
                     unit_pick_and_ready_next_weapon();
-                    unit_update_animation_state_machine(object_index);
+                    unit_update_animation_state_machine(object_index, k_unit_exit_seat_request);
                     place_out = (real_vector3d *)((int16_t)((uint8_t *)object)[0x1ea] + 0x10 +
                         (uint32_t)object);
                     *place_out = *(real_vector3d *)&parent_position; // stored as (dc, d8, d4) triple

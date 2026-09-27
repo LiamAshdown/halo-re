@@ -79,7 +79,8 @@ extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
 extern void object_for_each_light_attachment(uint32_t object_index);       // 0x4f9a20, UNSURE signature  // real signature (object_for_each_light_attachment.c): void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback); Ghidra recovered 1 of 3 args at this call site
 extern void unit_reset_orientation_and_find_position(uint32_t object_index);                             // 0x55add0, UNSURE signature
 extern void unit_choose_combat_reaction_animation(uint32_t unit_index, uint8_t reaction);           // 0x561140, UNSURE signature  // real signature (unit_choose_combat_reaction_animation.c): uint8_t unit_choose_combat_reaction_animation(uint32_t unit_index, const datum_index *reaction_source, uint8_t is_scripted, uint8_t allow_second_tier, float distance_bias); Ghidra recovered 2 of 5 args at this call site
-extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request);      // 0x565420, UNSURE signature
+extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, stack unit, ECX request
+static const int8_t k_unit_exit_seat_request[2] = {0x14, 0}; // every caller builds these two bytes on its stack
 extern void unit_validate_and_clear_weapon_switch(uint32_t unit_index);                             // 0x5659c0, UNSURE signature
 extern uint8_t unit_state_is_scripted_animation(unit_data *unit);                       // 0x565c60, UNSURE signature
 extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
@@ -241,7 +242,7 @@ seat_loop_reenter:
                     // UNSURE-CALL: Ghidra shows unit_update_animation_state_machine with no visible arguments; the
                     // statement before it is local_14 = CONCAT12(0x14, (uint16)local_14), i.e. the
                     // register argument is (0x14 << 16) | (previous local_14 & 0xffff).
-                    unit_update_animation_state_machine(unit_index, (const int8_t *)0x14);
+                    unit_update_animation_state_machine(unit_index, k_unit_exit_seat_request);
                     // writes the three dwords snapshotted above into the node block at
                     // self + *(int16 *)(self + 0x1ea) + 0x10
                     uint32_t *node_func = (uint32_t *)(*(int16_t *)((uint8_t *)self + 0x1ea) + 0x10 + (uint8_t *)self);

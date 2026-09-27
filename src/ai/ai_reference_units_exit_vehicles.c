@@ -62,7 +62,8 @@ extern object *object_try_and_get(uint32_t type_mask);            // 0x4f6ec0
 extern void object_recalculate_bounding_radius_recursive(datum_index object_index); // 0x4f82b0
 extern void object_for_each_light_attachment(int32_t a, int32_t b); // 0x4f9a20
 extern void unit_reset_orientation_and_find_position(datum_index object_index);               // 0x55add0, not yet rewritten
-extern void unit_update_animation_state_machine(datum_index object_index);               // 0x565420, not yet rewritten
+extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, stack unit, ECX request
+static const int8_t k_unit_exit_seat_request[2] = {0x14, 0}; // every caller builds these two bytes on its stack
 extern uint8_t unit_state_is_scripted_animation(void);            // 0x565c60, no visible argument
 extern void unit_try_set_animation_state(datum_index unit_index, int32_t state); // 0x565f90
 extern uint8_t unit_all_seats_unoccupied(void);                                // 0x566910, no visible argument
@@ -205,7 +206,7 @@ void ai_reference_units_exit_vehicles(uint32_t packed_reference)
 
                         unit_recompute_seat_occupants();
                         unit_pick_and_ready_next_weapon();
-                        unit_update_animation_state_machine(rider_index);
+                        unit_update_animation_state_machine(rider_index, k_unit_exit_seat_request);
 
                         {
                             uint32_t *marker = (uint32_t *)(rider + 0x10 +

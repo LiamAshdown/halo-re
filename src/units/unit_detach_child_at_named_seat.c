@@ -42,7 +42,8 @@ extern object * object_iterator_next(object_iterator *iterator);        // 0x4f6
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
 extern void object_for_each_light_attachment(uint32_t object_index, uint32_t flag); // 0x4f9a20, UNSURE signature  // real signature (object_for_each_light_attachment.c): void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback); Ghidra recovered 2 of 3 args at this call site
 extern void unit_reset_orientation_and_find_position(uint32_t object_index);                          // 0x55add0, UNSURE signature
-extern void unit_update_animation_state_machine(uint32_t unit_index);                         // 0x565420, UNSURE signature  // real signature (unit_update_animation_state_machine.c): uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); Ghidra recovered 1 of 2 args at this call site
+extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, stack unit, ECX request
+static const int8_t k_unit_exit_seat_request[2] = {0x14, 0}; // every caller builds these two bytes on its stack
 extern uint8_t unit_state_is_scripted_animation(unit_data *unit);                   // 0x565c60, UNSURE signature
 extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
 extern uint8_t unit_all_seats_unoccupied(uint32_t unit_index);                      // 0x566910
@@ -132,7 +133,7 @@ int16_t unit_detach_child_at_named_seat(uint32_t unit_index, char *seat_marker_n
                             if (old_parent_unit->gunner_unit_index == child_index) old_parent_unit->gunner_unit_index = k_datum_index_none;
                             unit_recompute_seat_occupants(child_index);
                             unit_pick_and_ready_next_weapon(child_index);
-                            unit_update_animation_state_machine(child_index);
+                            unit_update_animation_state_machine(child_index, k_unit_exit_seat_request);
                             uint32_t *node_func = (uint32_t *)(*(int16_t *)((uint8_t *)child + 0x1ea) + 0x10 + (uint8_t *)child);
                             node_func[0] = saved[0]; node_func[1] = saved[1]; node_func[2] = saved[2];
                             if (child->type == _object_type_biped) unit_reset_orientation_and_find_position(child_index);

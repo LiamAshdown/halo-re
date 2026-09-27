@@ -75,7 +75,7 @@ extern void unit_update_marker_skid_effects(void *transform);                   
   // real signature (unit_update_marker_skid_effects.c): void unit_update_marker_skid_effects(uint32_t unit_index, uint8_t *contact_points); Ghidra recovered 1 of 2 args at this call site
 extern void unit_update_ground_contact_counter(void);                                             // 0x575640, this batch, UNSURE args
   // real signature (unit_update_ground_contact_counter.c): void unit_update_ground_contact_counter(uint32_t unit_index, uint8_t *contact_points); Ghidra recovered 0 of 2 args at this call site
-extern void unit_update_animation_state_machine(uint32_t unit_index);                              // 0x565420, unit_update_animation_state_machine
+extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, stack unit, ECX request
   // real signature (unit_update_animation_state_machine.c): uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); Ghidra recovered 1 of 2 args at this call site
 extern int8_t unit_any_flagged_seat_occupied(void); // 0x56cc80, UNSURE: zero visible args
   // real signature (unit_any_flagged_seat_occupied.c): uint8_t unit_any_flagged_seat_occupied(uint32_t unit_index); Ghidra recovered 0 of 1 args at this call site
@@ -350,7 +350,9 @@ skip_recoil_label:
 
 after_physics:
     if (*(int32_t *)((uint8_t *)tag + 0x44) != -1) { // tag->animation_graph.tag_id
-        unit_update_animation_state_machine(object_index);
+        int8_t request[2] = {0, 0}; // 0x571836..0x57183f: ECX = two zeroed bytes on the stack
+
+        unit_update_animation_state_machine(object_index, request);
     }
 
     {

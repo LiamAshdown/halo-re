@@ -50,7 +50,8 @@ extern void object_for_each_light_attachment(uint32_t object_index, int32_t regi
                                               int32_t invoke_callback); // 0x4f9a20
 extern void unit_recompute_seat_occupants(void); // 0x56ce30, units module, not in this batch
 extern void unit_pick_and_ready_next_weapon(void); // 0x56d6a0, units module, not in this batch
-extern void unit_update_animation_state_machine(datum_index unit_handle); // 0x565420
+extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, stack unit, ECX request
+static const int8_t k_unit_exit_seat_request[2] = {0x14, 0}; // every caller builds these two bytes on its stack
 extern void unit_reset_orientation_and_find_position(datum_index unit_handle); // 0x55add0, units module, not in this batch
 extern void object_recalculate_bounding_radius_recursive(datum_index object_index); // 0x4f82b0
 extern uint8_t unit_all_seats_unoccupied(void); // 0x566910, units module, not in this batch
@@ -166,7 +167,7 @@ uint8_t player_attach_unit_to_parent(uint32_t player_index, uint32_t target_obje
 
             unit_recompute_seat_occupants();
             unit_pick_and_ready_next_weapon();
-            unit_update_animation_state_machine(unit_handle);
+            unit_update_animation_state_machine(unit_handle, k_unit_exit_seat_request);
 
             {
                 uint8_t *marker_ptr = (uint8_t *)unit_obj + *((int16_t *)((uint8_t *)unit_obj + 0x1ea)) + 0x10;
