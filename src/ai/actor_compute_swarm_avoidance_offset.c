@@ -1,6 +1,6 @@
 // actor_compute_swarm_avoidance_offset  (Ghidra: actor_compute_swarm_avoidance_offset, renamed)
 // address 0x425c70, size 755 bytes
-// name confidence: 0.35   rewrite confidence: 0.25
+// name confidence: 0.35   rewrite confidence: 0.85 (REWRITTEN: leap-solve branch decoded from 0x425d26 (register arguments, leap direction, half-gravity cap, radius clamp); flag branch verified)
 // evidence: phase-4 summary "Computes a per-swarm-member avoidance/spacing offset vector,
 // either mirroring the member's own velocity or invoking a steering helper, clamped to a
 // maximum radius." No static callers are recorded by Ghidra (out/functions.json: callers=0).
@@ -34,8 +34,12 @@ extern const real_vector2d *global_forward2d_pointer; // 0x006966e8, UNSURE name
 
 extern double sqrt(double x); // FSQRT
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0
-extern uint8_t projectile_solve_ballistic_arc(float duration, float target, float *curve, int32_t a, int32_t b,
-                            int32_t c, int32_t d, float *in_value, float *out_value); // 0x4beb30, UNSURE signature
+extern uint8_t projectile_solve_ballistic_arc(real_point3d *target, real_point3d *origin,
+    real speed_limit, real gravity_scale, real *max_time, uint8_t use_high_arc,
+    real_vector3d *out_direction, real *max_speed_override, real *out_speed,
+    real *out_time_of_flight, real *out_range, real *out_half_gravity_term,
+    real *out_horizontal_speed); // 0x4beb30, EAX, ECX, ESI, EDI, stack
+extern const real_vector3d *global_forward3d_pointer; // 0x00696718
 
 // blam-cc: stack -> actor_index, unit_index, radius, out_offset
 // For the swarm member matching `unit_index`: if its swarm_component has a still-valid
@@ -89,46 +93,47 @@ void actor_compute_swarm_avoidance_offset(datum_index actor_index, datum_index u
                         *((uint8_t *)component + 2) &= 0xef;
                     }
                 } else {
-                    prop *target_prop = &((prop *)prop_data->data)[target & 0xffff];
-                    float curve[1] = { 0.7f }; // 0x3f4ccccd
-                    float clamp_radius = radius;
-                    float curve_out;
+                    // REWRITTEN (0x425d26..0x425e9a): a leap solve from the component (+0x4) to the
+                    // target prop's +0xc8 point, speed limit = max(radius, 0.12), max time 0.7; the
+                    // offset is the leap direction (2D-normalized; actor facing +0x174, then the
+                    // global forward as fallbacks) times the horizontal speed, with the half-gravity
+                    // term (capped at 0.075 unless prop +0x130) as z, clamped to length radius.
+                    // The old C called the solver without its register arguments (EAX target,
+                    // ECX origin, ESI direction, EDI 0) and always steered along the facing.
+                    const uint8_t *target_prop = (const uint8_t *)prop_data->data + (target & 0xffff) * 0x138;
+                    real max_time = 0.7f; // 0x3f4ccccd
+                    real half_gravity;
+                    real horizontal_speed;
+                    real_vector3d leap;
 
-                    if (clamp_radius <= 0.12f) {
-                        clamp_radius = 0.12f;
+                    if (!(radius > 0.12f)) {
+                        radius = 0.12f;
                     }
-                    if (projectile_solve_ballistic_arc(clamp_radius, 1.0f, curve, 0, 0, 0, 0, &radius, &curve_out) != 0) {
-                        real_vector2d dir;
-                        float z;
+                    if (projectile_solve_ballistic_arc((real_point3d *)(target_prop + 0xc8),
+                            (real_point3d *)((uint8_t *)component + 0x4), radius, 1.0f, &max_time, 0,
+                            &leap, 0, 0, 0, 0, &half_gravity, &horizontal_speed)) {
+                        float x, y, sum_sq;
 
-                        dir.i = self->facing.i;
-                        dir.j = self->facing.j;
-                        z = self->facing.k;
-                        if (vector2d_normalize_with_length(&dir) == 0.0f) {
-                            dir.i = global_forward2d_pointer->i;
-                            dir.j = global_forward2d_pointer->j;
-                            z = *(float *)((const uint8_t *)global_forward2d_pointer + 8);
-                        }
-
-                        if (target_prop->unknown_130 == 0 && radius > 0.075f) { // UNSURE offset
-                            radius = 0.075f;
-                        }
-
-                        {
-                            float x = dir.i * curve_out;
-                            float y = dir.j * curve_out;
-                            float sum_sq = radius * radius + x * x + y * y;
-
-                            out_offset[2] = radius;
-                            out_offset[0] = x;
-                            out_offset[1] = y;
-
-                            if (clamp_radius * clamp_radius < sum_sq) {
-                                float k = clamp_radius / (float)sqrt((double)sum_sq);
-                                out_offset[0] = x * k;
-                                out_offset[1] = y * k;
-                                out_offset[2] = k * radius;
+                        if (vector2d_normalize_with_length((real_vector2d *)&leap) == 0.0f) {
+                            leap = *(real_vector3d *)((uint8_t *)self + 0x174);
+                            if (vector2d_normalize_with_length((real_vector2d *)&leap) == 0.0f) {
+                                leap = *global_forward3d_pointer;
                             }
+                        }
+                        if (target_prop[0x130] == 0 && !(half_gravity <= 0.075f)) {
+                            half_gravity = 0.075f;
+                        }
+                        x = leap.i * horizontal_speed;
+                        y = leap.j * horizontal_speed;
+                        out_offset[2] = half_gravity;
+                        out_offset[0] = x;
+                        out_offset[1] = y;
+                        sum_sq = y * y + x * x + half_gravity * half_gravity;
+                        if (!(sum_sq <= radius * radius)) {
+                            float k = radius / (float)sqrt((double)sum_sq);
+                            out_offset[0] = x * k;
+                            out_offset[1] = y * k;
+                            out_offset[2] = half_gravity * k;
                         }
                     }
                 }

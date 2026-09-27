@@ -1810,3 +1810,6 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 
 ## Static loop: actor_rate_potential_target (no boot)
 - actor_rate_potential_target (0x41fd50): verified end to end (0.25 -> 0.85). Two fixes. No threat weapon, same team: the binary scores 2 beyond the melee threshold and 3 within it; the old C left 0/5 for the far case. Threat path with a NULL threat weapon definition: it falls through to the team/range checks instead of scoring 2. The score is now summed in the binary's order.
+
+## Static loop: swarm leap offset (no boot)
+- actor_compute_swarm_avoidance_offset (0x425c70): REWRITTEN leap branch (0.25 -> 0.85). The old C called projectile_solve_ballistic_arc without its register arguments (EAX = target prop +0xc8, ECX = component +4, ESI = out leap, EDI = 0) and with the wrong stack layout, then always steered along the actor facing. The binary uses the solved leap direction (2D-normalized, falling back to facing +0x174 and then the global forward) times the horizontal speed. z is the half-gravity term, capped at 0.075 unless prop +0x130, and the result is clamped to length max(radius, 0.12).
