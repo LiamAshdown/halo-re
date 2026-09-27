@@ -23,7 +23,7 @@
 extern data_array *actor_data; // 0x00880360
 extern const real_vector3d *global_origin3d_pointer; // 0x00696714
 
-extern uint8_t unit_is_in_busy_animation_state(datum_index actor_index);   // 0x569c90, not yet rewritten
+extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index); // 0x569c90, ECX = the unit (actor +0x18)
 extern uint8_t actor_wants_reload_or_swap(datum_index actor_index);   // 0x40ab80, phase-4 name actor_wants_to_reload_or_swap_weapon, not yet rewritten
 
 // blam-cc: stack -> actor_index
@@ -37,7 +37,7 @@ uint8_t actor_reset_queued_look_vector(datum_index actor_index)
         return 0;
     }
     if (self->unit_index != (datum_index)k_datum_index_none) {
-        if (unit_is_in_busy_animation_state(actor_index)) {
+        if (unit_is_in_busy_animation_state(self->unit_index)) {
             return 0;
         }
     }

@@ -32,7 +32,7 @@ extern data_array *encounter_data;  // 0x008802c8
 extern game_time_globals *game_time; // 0x006f1d6c
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, vector in ECX
 
-extern uint8_t unit_is_in_busy_animation_state(datum_index actor_index); // UNSURE: no visible arg at the call site
+extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index); // 0x569c90, ECX = the unit (actor +0x18)
 extern uint8_t actor_can_throw_grenade_at_target(datum_index actor_index); // 0x40d9c0, this module
 
 // FIXED (register inputs, objdump: each stack slot's first use checked against the parameter): the original never reads EAX; actor_index arrive(s) on the stack (2 stack argument(s)).
@@ -48,7 +48,7 @@ uint8_t actor_check_grenade_facing_and_commit(datum_index actor_index, uint8_t f
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
     unit_index = self->unit_index;
 
-    if (unit_is_in_busy_animation_state(actor_index) != 0) {
+    if (unit_is_in_busy_animation_state(self->unit_index) != 0) {
         return 0;
     }
 

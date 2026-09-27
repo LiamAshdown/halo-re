@@ -1,6 +1,6 @@
 // actor_queue_secondary_action  (Ghidra: actor_queue_secondary_action, renamed)
 // address 0x417a60, size 127 bytes
-// name confidence: 0.4   rewrite confidence: 0.45
+// name confidence: 0.4   rewrite confidence: 0.9 (checked against objdump 0x417a60..0x417ade)
 // evidence: types/ai.h already credits this address with queuing actor.secondary_action
 // (0x418), read back by actor_action_has_queued_secondary (0x417b70, same module); refuses
 // to queue a new one while a secondary action is already pending, or while the actor's unit
@@ -19,7 +19,7 @@
 extern data_array *actor_data; // 0x00880360
 
 extern void actor_set_units_active(datum_index actor_index, uint8_t dormant); // 0x427860, blam-cc: EAX, BL
-extern uint8_t unit_is_in_busy_animation_state(datum_index actor_index); // 0x569c90, not yet rewritten
+extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index); // 0x569c90, ECX
 
 // blam-cc: EAX -> actor_index, stack -> action, stack -> payload
 uint8_t actor_queue_secondary_action(datum_index actor_index, int16_t action, uint32_t payload[2])
@@ -32,7 +32,7 @@ uint8_t actor_queue_secondary_action(datum_index actor_index, int16_t action, ui
     if (self->secondary_action != (int16_t)-1) {
         return 0;
     }
-    if (self->unit_index != (datum_index)k_datum_index_none && unit_is_in_busy_animation_state(actor_index)) {
+    if (self->unit_index != (datum_index)k_datum_index_none && unit_is_in_busy_animation_state(self->unit_index)) { // 0x417aa1: ECX = the unit
         return 0;
     }
 
