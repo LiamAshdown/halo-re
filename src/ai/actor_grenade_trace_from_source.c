@@ -25,7 +25,8 @@
 extern data_array *actor_data; // 0x00880360
 
 // 0x569190, not yet rewritten (a different module): refreshes some per-actor cached point.
-extern void unit_add_marker_relative_offset(datum_index unit_index, uint32_t mode, void *point, void *direction, void *offset);
+extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t param_2, float *world_point,
+    uint32_t param_4, uint32_t param_5, real_point3d *accumulator); // 0x569190, stack, EAX accumulator
 // 0x505880, not yet rewritten (a different module): a generic trace/raycast request.
 extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
 
@@ -45,7 +46,7 @@ int32_t actor_grenade_trace_from_source(uint32_t actor_index, real_point3d *targ
         if (a->movement_action_complete == 0) {
             return 0;
         }
-        unit_add_marker_relative_offset(a->unit_index, 1, (uint8_t *)a + 0x4ac, 0, 0);
+        unit_add_marker_relative_offset(a->unit_index, 1, (float *)((uint8_t *)a + 0x4ac), 0, 0, &source); // 0x402a83: EAX = source
     } else {
         source.x = a->aim_origin.x;
         source.y = a->aim_origin.y;

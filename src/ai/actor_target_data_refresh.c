@@ -47,12 +47,13 @@ extern int32_t object_get_node_local_transform(datum_index object_index, char *m
                                                // blam-cc: EAX -> object_index, ECX -> marker_name,
                                                // EDX -> marker, stack -> param_4 (matches src/objects)
 extern void object_get_position(real_point3d *out_position, datum_index object_index); // 0x4f6900
-extern datum_index object_get_root_object_index(void); // 0x4f6fb0, UNSURE signature, no traced args
+extern datum_index object_get_root_object_index(uint32_t object_index); // 0x4f6fb0, ECX
 extern real vector3d_magnitude_squared(real_vector3d *v); // 0x401000, src/math; blam-cc: EAX v
-extern uint8_t scenario_location_get_water_and_weather(void *context, int32_t param); // 0x53ed60, UNSURE signature
-extern char unit_get_tag_flag_bit7(void); // 0x571c70, UNSURE signature, no traced args
+extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
+    int16_t *weather_index_out); // 0x53ed60, EBX point, stack
+extern char unit_get_tag_flag_bit7(uint32_t unit_index); // 0x571c70, EAX
 extern datum_index object_find_nearest_squad_member(datum_index actor_index, void *reference, datum_index exclude_index, char stamp_group); // 0x41c2c0, this batch
-extern void actor_get_firing_positions(void); // 0x41c1e0, this batch, UNSURE: no traced args at this call site
+extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point); // 0x41c1e0, EAX, ECX, EDX
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 
 // blam-cc: stack -> actor_index, target_prop_index, reference, force, allow_reassign
@@ -112,14 +113,15 @@ void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index,
         }
     }
 
-    if (((target->has_parent != 0 && target->pair_index != -1) && allow_reassign != 0) &&
+    if (((target->has_parent != 0 && target->owner_actor_index != k_datum_index_none) && allow_reassign != 0) &&
         target->unknown_28 + 0x5a <= game_time->game_time) {
         target->unknown_28 = game_time->game_time;
         // UNSURE: real signature is object_find_nearest_squad_member(actor_index, reference,
         // exclude_index, stamp_group); called here with (&target->unknown_120-as-firing-block,
         // object_index, 0) per Ghidra's recovered args (self+0x120 through the target's own
         // record, matching object_find_nearest_squad_member's `reference` parameter shape).
-        reassigned = object_find_nearest_squad_member(actor_index, (void *)&self->aim_origin, object_index, 0);
+        // 0x41c5c5..0x41c604: EAX = the prop's owner (+0x1c, the swarm actor), stack: actor +0x120, the object, 0
+        reassigned = object_find_nearest_squad_member(target->owner_actor_index, (void *)&self->aim_origin, object_index, 0);
         if (reassigned != object_index) {
             target->object_index = reassigned;
             unit_obj = ((object_header *)object_data->data)[reassigned & 0xffff].data;
@@ -154,12 +156,13 @@ void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index,
     // wrote relationship_object_index here and again below, losing the 0xec reset entirely.
     target->path_surface_index = -1;
 
-    reassigned = object_get_root_object_index();
+    reassigned = object_get_root_object_index(target->object_index); // 0x41c71c: ECX = prop +0x18
     parent_obj = ((object_header *)object_data->data)[reassigned & 0xffff].data;
     target->unknown_fc = *(float *)&parent_obj->location_leaf_index;
     *(uint32_t *)&target->cluster_index = *(uint32_t *)&parent_obj->location_cluster_index;
 
-    target->unknown_118 = scenario_location_get_water_and_weather((uint32_t *)&target->unknown_fc, 0);
+    // 0x41c75a: EBX = prop +0xc8 (the second marker position), stack: the location at +0xfc, no weather output
+    target->unknown_118 = scenario_location_get_water_and_weather(&target->aim_offset, (bsp_leaf_reference *)&target->unknown_fc, 0);
     target->relationship_object_index = -1;
     target->unknown_135 = 0;
     target->unknown_136 = 0;
@@ -179,7 +182,7 @@ void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index,
                 target->unknown_135 = 0;
             }
             if (*(int32_t *)((uint8_t *)parent_obj + 0x324) == (int32_t)target->object_index &&
-                unit_get_tag_flag_bit7() != 0) {
+                unit_get_tag_flag_bit7(parent_index) != 0) {
                 target->unknown_136 = 1;
             } else {
                 target->unknown_136 = 0;
@@ -200,7 +203,8 @@ void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index,
     }
 
 after_reassign:
-    actor_get_firing_positions();
+    // 0x41c867: EAX = actor, ECX = the caller's block (filled here), EDX = prop +0xbc
+    actor_get_firing_positions(actor_index, (uint32_t *)reference, &target->last_known_position);
 
     target->unknown_e0.x = target->last_known_position.x - *(float *)((uint8_t *)reference + 0xc);
     target->unknown_e0.y = target->last_known_position.y - *(float *)((uint8_t *)reference + 0x10);

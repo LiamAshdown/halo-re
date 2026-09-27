@@ -17,10 +17,11 @@
 extern data_array *actor_data; // 0x00880360
 
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0
-extern void unit_add_marker_relative_offset(datum_index unit_index, uint32_t mode, void *point, void *direction,
-                         void *offset);                        // 0x569190, not yet rewritten (units)
-extern int16_t actor_evaluate_engagement_reachability(uint32_t kind, uint32_t enabled, uint32_t object_index,
-                            uint32_t in_vehicle);              // 0x42b270, not yet rewritten
+extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t param_2, float *world_point,
+    uint32_t param_4, uint32_t param_5, real_point3d *accumulator); // 0x569190, stack, EAX accumulator
+extern int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t target_cluster,
+    real_point3d *target_position, real_point3d *self_position, int16_t movement_mode, uint8_t allow_wide_mask,
+    datum_index exclude_object_index, uint8_t flying); // 0x42b270, AX, CX, ESI, EDI, stack
 
 // blam-cc: EAX -> actor_index, ECX -> query, EBX -> candidate
 // Submits the movement or aim the actor would make if it took this candidate and records
@@ -37,6 +38,7 @@ void actor_report_firing_position_request(datum_index actor_index,
     real_point3d *point;
     real_vector3d *direction;
     void *offset;
+    real_point3d marker_point;
     uint32_t mode;
     uint32_t kind;
 
@@ -44,10 +46,12 @@ void actor_report_firing_position_request(datum_index actor_index,
 
     if (query->goal_kind == 5) {
         if (candidate->distance_from_actor < 6.0f) {
-            unit_add_marker_relative_offset(self->unit_index, 1, (void *)candidate->position, (void *)0, (void *)0);
-            candidate->request_result = actor_evaluate_engagement_reachability(0, 0, 0xffffffff,
-                                                     (uint32_t)(self->active_unit_index !=
-                                                                (datum_index)0xffffffff));
+            // 0x41212b..0x41216f: from the actor's aim origin (+0x120, cluster +0x148) to the marker point
+            unit_add_marker_relative_offset(self->unit_index, 1, (float *)candidate->position, 0, 0, &marker_point);
+            candidate->request_result = (int16_t)actor_evaluate_engagement_reachability(
+                *(int16_t *)((uint8_t *)self + 0x148), *(int16_t *)((uint8_t *)candidate->position + 0xe),
+                &marker_point, (real_point3d *)((uint8_t *)self + 0x120), 0, 0, 0xffffffff,
+                self->active_unit_index != (datum_index)0xffffffff);
             return;
         }
         candidate->request_result = 4;
@@ -78,12 +82,15 @@ void actor_report_firing_position_request(datum_index actor_index,
         mode = 1;
     }
 
-    unit_add_marker_relative_offset(self->unit_index, mode, (void *)candidate->position, direction, offset);
+    unit_add_marker_relative_offset(self->unit_index, mode, (float *)candidate->position, (uint32_t)direction,
+        (uint32_t)offset, &marker_point);
 
     kind = (query->goal_kind >= 1 && query->goal_kind <= 3) ? 1 : 0;
-    candidate->request_result = actor_evaluate_engagement_reachability(kind, 1, (uint32_t)query->target_relationship_object,
-                                             (uint32_t)(self->active_unit_index !=
-                                                        (datum_index)0xffffffff));
+    // 0x41224b..0x41227d: from the marker point to the query's target (+0x61c, cluster +0x640)
+    candidate->request_result = (int16_t)actor_evaluate_engagement_reachability(
+        *(int16_t *)((uint8_t *)candidate->position + 0xe), *(int16_t *)((uint8_t *)query + 0x640),
+        (real_point3d *)((uint8_t *)query + 0x61c), &marker_point, (int16_t)kind, 1,
+        (uint32_t)query->target_relationship_object, self->active_unit_index != (datum_index)0xffffffff);
 }
 
 #if 0

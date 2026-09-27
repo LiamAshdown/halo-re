@@ -119,7 +119,9 @@ extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index); // 0
 // the callee also reads EAX/ECX (both 16-bit) at entry before those arguments are visible on
 // the stack, so the true convention is likely a register+stack mix this declaration does not
 // capture. Reused verbatim from actor_check_weapon_pickup_reachable.c ("not yet rewritten").
-extern int16_t actor_evaluate_engagement_reachability(uint32_t kind, uint32_t enabled, uint32_t object_index, uint32_t in_vehicle); // 0x42b270, not yet rewritten
+extern int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t target_cluster,
+    real_point3d *target_position, real_point3d *self_position, int16_t movement_mode, uint8_t allow_wide_mask,
+    datum_index exclude_object_index, uint8_t flying); // 0x42b270, AX, CX, ESI, EDI, stack
 
 // UNSURE: actor_dispatch_look_handler_by_posture is also called (with an incompatible 3-argument shape) elsewhere in this
 // module under the name actor_dispatch_look_handler_by_posture. Disassembling 0x41bb30 itself
@@ -303,8 +305,10 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
 
         {
             int16_t kind_flag = (!p->is_parented || !p->is_unit) ? 0 : 2;
-            p->unknown_38 = actor_evaluate_engagement_reachability(kind_flag, 0, p->relationship_object_index,
-                                          self->active_unit_index != (datum_index)k_datum_index_none);
+            p->unknown_38 = (int16_t)actor_evaluate_engagement_reachability(
+                *(int16_t *)((uint8_t *)scratch + 0x28), p->cluster_index, (real_point3d *)&p->unknown_104,
+                (real_point3d *)scratch, kind_flag, 0, p->relationship_object_index,
+                self->active_unit_index != (datum_index)k_datum_index_none); // 0x41cee5: AX = block +0x28, EDI = the block
         }
         p->unknown_120 = 2;
 
@@ -482,8 +486,10 @@ after_engage:
         }
     } else {
         int16_t kind_flag = (!p->is_parented || !p->is_unit) ? 0 : 2;
-        p->unknown_38 = actor_evaluate_engagement_reachability(kind_flag, 0, p->relationship_object_index,
-                                      self->active_unit_index != (datum_index)k_datum_index_none);
+        p->unknown_38 = (int16_t)actor_evaluate_engagement_reachability(
+            *(int16_t *)((uint8_t *)scratch + 0x28), p->cluster_index, (real_point3d *)&p->unknown_104,
+            (real_point3d *)scratch, kind_flag, 0, p->relationship_object_index,
+            self->active_unit_index != (datum_index)k_datum_index_none); // 0x41ce26
         if (p->unknown_133 || team_gate) {
             p->unknown_30 = 0;
             *(int16_t *)((uint8_t *)p + 0x36) = 0;

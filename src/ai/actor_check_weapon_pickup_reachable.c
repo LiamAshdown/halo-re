@@ -24,8 +24,11 @@ extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
 extern Scenario *global_scenario; // 0x00746f8c
 
-extern void unit_add_marker_relative_offset(datum_index unit_index, uint32_t mode, void *point, void *direction, void *offset); // 0x569190, not yet rewritten
-extern int16_t actor_evaluate_engagement_reachability(uint32_t kind, uint32_t enabled, uint32_t object_index, uint32_t in_vehicle); // 0x42b270, not yet rewritten
+extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t param_2, float *world_point,
+    uint32_t param_4, uint32_t param_5, real_point3d *accumulator); // 0x569190, stack, EAX accumulator
+extern int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t target_cluster,
+    real_point3d *target_position, real_point3d *self_position, int16_t movement_mode, uint8_t allow_wide_mask,
+    datum_index exclude_object_index, uint8_t flying); // 0x42b270, AX, CX, ESI, EDI, stack
 
 uint8_t actor_check_weapon_pickup_reachable(uint32_t actor_index, uint8_t *record)
 {
@@ -43,9 +46,15 @@ uint8_t actor_check_weapon_pickup_reachable(uint32_t actor_index, uint8_t *recor
         ScenarioEncounter *encounters = (ScenarioEncounter *)global_scenario->encounters.pointer;
         ScenarioFiringPosition *positions = (ScenarioFiringPosition *)encounters[a->encounter_index & 0xffff].firing_positions.pointer;
         int16_t status;
+        real_point3d self_position;
 
-        unit_add_marker_relative_offset(a->unit_index, 2, &positions[firing_position_index], 0, 0);
-        status = actor_evaluate_engagement_reachability(1, 0, p->relationship_object_index, a->active_unit_index != (datum_index)k_datum_index_none);
+        // 0x404258..0x40429b: the firing position seen from the unit's marker (EAX = the local) against the prop's
+        // cluster (+0x100) and position (+0x104)
+        unit_add_marker_relative_offset(a->unit_index, 2, (float *)&positions[firing_position_index], 0, 0, &self_position);
+        status = (int16_t)actor_evaluate_engagement_reachability(
+            *(int16_t *)((uint8_t *)&positions[firing_position_index] + 0xe), p->cluster_index,
+            (real_point3d *)&p->unknown_104, &self_position, 1, 0, p->relationship_object_index,
+            a->active_unit_index != (datum_index)k_datum_index_none);
 
         if (p->kind > 1 && p->kind < 4) {
             result = (status == 0);

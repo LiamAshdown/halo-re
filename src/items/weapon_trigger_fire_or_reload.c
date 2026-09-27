@@ -24,7 +24,8 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern int8_t scenario_location_get_water_and_weather(void *param, int32_t flag); // 0x53ed60, outside this module, UNSURE signature
+extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
+    int16_t *weather_index_out); // 0x53ed60, EBX point, stack
 extern void weapon_fire_trigger(datum_index item_index, int16_t trigger_index); // 0x4c3f10
 extern uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, int32_t slot, int32_t sub_index); // 0x4c47d0
 extern void weapon_trigger_effect_set_state(datum_index item_index, int16_t trigger_index, int8_t state, int16_t counter); // 0x4c49c0
@@ -52,7 +53,10 @@ void weapon_trigger_fire_or_reload(datum_index item_index, int16_t trigger_index
         ready = 0;
     }
 
-    if (scenario_location_get_water_and_weather(&wd->triggers[0], 0) == 0 && ready) {
+    // 0x4c3307: EBX = the weapon's position (+0x5c), stack: its location (+0x98), no weather output -- a weapon under
+    // water does not fire
+    if (scenario_location_get_water_and_weather((real_point3d *)((uint8_t *)item_obj + 0x5c),
+            (bsp_leaf_reference *)((uint8_t *)item_obj + 0x98), 0) == 0 && ready) {
         if (force == 0) {
             if (tag_trigger->charging_time > 0.0f) {
                 if ((weapon_tag->weapon_flags & 0x800) != 0 && wd->age >= 1.0f) {

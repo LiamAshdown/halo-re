@@ -47,9 +47,9 @@ extern data_array *prop_data;   // 0x008802c0
 // 0x41bb30 / 0x41be10: the actor target reachability / priority-class helpers, not yet
 // rewritten. UNSURE signatures at this call site (Ghidra shows actor_target_get_priority_class with no
 // arguments at all).
-extern int16_t actor_dispatch_look_handler_by_posture(datum_index actor_index, real_point3d *from, real_point3d *to,
-                            int32_t mode, int32_t flag, uint32_t priority_class); // 0x41bb30
-extern uint32_t actor_target_get_priority_class(void); // 0x41be10, UNSURE: no traced args here
+extern int16_t actor_dispatch_look_handler_by_posture(int16_t posture, uint32_t actor_index, void *origin, void *target,
+    uint8_t stance_a, uint8_t check_facing, uint16_t range_class); // 0x41bb30, EBX, stack
+extern uint16_t actor_target_get_priority_class(datum_index actor_index, datum_index target_prop_index); // 0x41be10, EAX, ECX
 extern int32_t ai_communication_line_fade_multiplier(datum_index unit_index, uint32_t kind,
                                                      uint32_t param_3, uint32_t param_4,
                                                      uint8_t apply_fade_window, float *volume,
@@ -59,8 +59,9 @@ extern float ai_communication_rate_player_proximity(uint8_t require_line_of_sigh
                                                     float *out_distance,
                                                     datum_index object_index); // 0x4303f0
 extern datum_index actor_find_prop_for_object(datum_index object_index); // 0x43ea80, UNSURE signature
-extern datum_index actor_find_or_create_shared_prop(datum_index actor_index, uint32_t flag_a, uint32_t flag_b); // 0x43eb30, UNSURE signature
-extern int8_t unit_scripted_action_animation_exists(void); // 0x569470, units module; blam-cc: EAX -> unit_index, ECX -> seat_filter (UNSURE)
+extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index,
+    char create_if_missing, uint32_t flag); // 0x43eb30, EAX, stack
+extern uint8_t unit_scripted_action_animation_exists(uint32_t unit_index, int16_t command); // 0x569470, EAX, ECX
 
 // blam-cc: EAX -> position_a, ECX -> object_a, stack -> actor_index, object_b, position_b,
 //          radius, allow_unreachable, fade_limit, line_class, line_id, seat_filter, flags
@@ -137,7 +138,7 @@ float ai_communication_rate_speaker(datum_index actor_index, datum_index object_
         return 0.0f;
     }
 
-    if (seat_filter != -1 && unit_scripted_action_animation_exists() != 0) {
+    if (seat_filter != -1 && unit_scripted_action_animation_exists(a->unit_index, (int16_t)seat_filter) != 0 /* 0x42fd1d */) {
         scratch.score = scratch.score + 5.0f;
     }
 
@@ -163,7 +164,7 @@ float ai_communication_rate_speaker(datum_index actor_index, datum_index object_
                     matched_a = 1;
                 }
             } else {
-                prop_index = actor_find_or_create_shared_prop(actor_index, 1, 0);
+                prop_index = actor_find_or_create_shared_prop(object_a, actor_index, 1, 0); // 0x42fdc2: EAX = the subject object
                 if (prop_index != (datum_index)k_datum_index_none) {
                     p = (prop *)((uint8_t *)prop_data->data + (prop_index & 0xffff) * k_prop_size);
                     if (p->distance <= radius) {
@@ -180,9 +181,11 @@ float ai_communication_rate_speaker(datum_index actor_index, datum_index object_
                                 if (*(uint8_t *)((uint8_t *)p + 0x132) == 0) {
                                     reach_mode = (int32_t)*(int8_t *)&p->unknown_120;
                                 }
-                                reach = actor_dispatch_look_handler_by_posture(actor_index, &a->aim_origin,
-                                                     (real_point3d *)((uint8_t *)p + 0x104),
-                                                     reach_mode, 1, actor_target_get_priority_class());
+                                // 0x42fe54..0x42fe76: BX = the prop's +0x38 status, range class from 0x41be10
+                                reach = actor_dispatch_look_handler_by_posture(*(int16_t *)((uint8_t *)p + 0x38),
+                                                     actor_index, &a->aim_origin, (uint8_t *)p + 0x104,
+                                                     (uint8_t)reach_mode, 1,
+                                                     actor_target_get_priority_class(actor_index, prop_index));
                                 if (reach < 2) {
                                     goto check_b;
                                 }

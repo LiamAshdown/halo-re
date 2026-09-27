@@ -1,157 +1,142 @@
-// actor_evaluate_engagement_reachability  (Ghidra: actor_evaluate_engagement_reachability; named for this rewrite)
+// actor_evaluate_engagement_reachability  (Ghidra: FUN_0042b270)
 // address 0x42b270, size 851 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
-// evidence: phase-4 summary ("determines whether and how an actor can reach or engage a
-// target, combining a pathfinding/LOS query with distance and speed checks, returning a
-// graded result code from clear (0) to unreachable (4)"). Ghidra's own decompile drops
-// every register argument to collision_test_movement_segment and collision_test_movement_segment_between_points and calls the latter four times
-// with what looks like the same three arguments -- it is not. Partially re-derived from the
-// real disassembly (objdump -d -M intel --start-address=0x42b270 --stop-address=0x42b5c3
-// bin/halo.exe): the entry gate, the collision-mask computation and the two callee's real
-// register mapping are confirmed byte-for-byte; the exact interpolated points fed to the
-// four collision_test_movement_segment_between_points calls in the middle section are reconstructed from the surrounding FPU
-// arithmetic but not independently cross-checked against a second source, so the point
-// names there (near_point / far_point) describe the arithmetic, not a confirmed meaning.
-// register convention: EAX -> self_index, ECX -> target_index, ESI -> target_position
-// (unaff_ESI), EDI -> self_position (unaff_EDI); stack -> movement_mode, allow_wide_mask,
-// exclude_object_index, flying.
-// self_position, stack -> movement_mode, allow_wide_mask, exclude_object_index, flying
-//
-// UNSURE: scenario_cluster_visibility_test's role (a relationship/compatibility gate between self_index and
-// target_index, guessed from context) is not established anywhere else in this repo.
-// UNSURE: the collision_mask base 0xc2a7 (widened to 0xc2b3 when allow_wide_mask, and with
-// bit 0x200 cleared when flying) is reproduced verbatim; no bit of it is named.
-// UNSURE: mask/exclude_object_index are ebp/ebx respectively at every call site (confirmed
-// for the one fully-traced collision_test_movement_segment call and consistent at every collision_test_movement_segment_between_points call
-// site's push order), but the two interpolation fractions (0x672b8c, 0x672bac) and which of
-// self_position/target_position plays "target" vs "origin" in the second (0x672bac) block
-// versus the first could not be fully disambiguated from the interleaved integer/FPU
-// instruction stream in the time available. Re-run `python tools/pack.py 0x42b270` and
-// compare against objdump before trusting the exact grading thresholds.
+// name confidence: 0.4   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x42b270..0x42b5c2. The register arguments are two cluster indices (AX, CX; -1 skips the
+//   visibility gate, scenario_cluster_visibility_test 0x53eb60 with CX column, stack row) and the two positions (ESI
+//   target, EDI self); the draft took actor indices and its callers passed none of the four.
+//   - blocked outright between the clusters: 4;
+//   - a direct sweep self -> target (collision_test_movement_segment 0x505880, mask 0xc2a7, or 0xc2b3 with
+//     allow_wide_mask, less 0x200 when flying) with the hit's +0x14 fraction kept;
+//   - movement_mode 1 sidesteps: from self +/- 0.25 along the horizontal perpendicular of self->target (the forward
+//     vector when degenerate) to the target. A clear direct line whose sidesteps are both clear gives 0, a blocked
+//     sidestep 1; a blocked direct line with a clear sidestep gives 1;
+//   - movement_mode 2 (only when the direct line is clear): from target +/- 0.1 along that perpendicular, and from
+//     target + 0.1 up (0x69672c), back to self: any blocked gives 1, else 0;
+//   - otherwise a clear direct line gives 0, and a blocked one is graded by its length d and hit fraction f: 4 under
+//     1 unit, 2 when d*f < 1, 3 when d*(1-f) < 4, else 4.
+// blam-cc: AX -> self_cluster, CX -> target_cluster, ESI -> target_position, EDI -> self_position,
+//   stack -> movement_mode, allow_wide_mask, exclude_object_index, flying
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
 
-extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
+extern double sqrt(double x);
 
-extern real DAT_00672b8c; // 0x00672b8c, mode-1 origin-point interpolation fraction
-extern real DAT_00672bac; // 0x00672bac, mode-2 origin-point interpolation fraction
+extern const real_vector3d *global_forward3d_pointer; // 0x00696718
+extern const real_vector3d *global_up3d_pointer;      // 0x0069672c
 
-extern uint8_t scenario_cluster_visibility_test(datum_index self_or_target_index); // 0x0053eb60, not yet rewritten (units/objects module)
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX, length returned via a caller-owned float slot
-extern void point3d_add_scaled(void); // 0x401930, called here with no visible arguments -- UNSURE
-extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta,
-                             uint32_t exclude_object, void *scratch); // 0x505880
-extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t collision_mask,
-                             uint32_t ignore_object_index, void *out_record); // 0x401a20, src/physics;
-    // (target_position) or EDI (self_position), e.g. 0x42b3e0..0x42b3ed (orphan pass 4 review:
-    // the argument order below was swapped to match)
+extern uint8_t scenario_cluster_visibility_test(int16_t row_cluster, int16_t column_cluster); // 0x53eb60, stack, CX
+extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+extern void point3d_add_scaled(real_point3d *out, real_vector3d *direction, real_point3d *base, real scale); // 0x401930, EAX, ECX, stack
+extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
+    uint32_t exclude_object, void *result); // 0x505880
+extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target,
+    uint32_t flags, uint32_t exclude_object_index, void *result); // 0x401a20, EAX, ECX, stack
 
-// self_position, stack -> movement_mode, allow_wide_mask, exclude_object_index, flying
-// Grades how reachable target_position is from self_position: 4 (unreachable) if a
-// relationship gate fails outright; otherwise runs a direct collision sweep and, if
-// movement_mode requests it, up to three more sweeps against a waypoint offset toward the
-// target (mode 1) or back toward self (mode 2). Returns 1 if any sweep hits something, 0 if
-// the direct sweep was clear and no further sweep was needed, or a distance/closing-speed
-// grade (2, 3 or 4) when the direct sweep was blocked but movement_mode was 0.
-// blam-cc: EAX -> self_index, ECX -> target_index, ESI -> target_position, EDI -> self_position, stack -> movement_mode, allow_wide_mask, exclude_object_index, flying
-int32_t actor_evaluate_engagement_reachability(datum_index self_index, datum_index target_index,
-                                                real_point3d *target_position, real_point3d *self_position,
-                                                int16_t movement_mode, uint8_t allow_wide_mask,
-                                                datum_index exclude_object_index, uint8_t flying)
+int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t target_cluster,
+    real_point3d *target_position, real_point3d *self_position, int16_t movement_mode, uint8_t allow_wide_mask,
+    datum_index exclude_object_index, uint8_t flying)
 {
-    uint32_t collision_mask;
+    uint8_t result[0x50]; // [esp+0x3c] to the end of the frame
+    uint32_t mask;
     real_vector3d delta;
-    real_vector3d direction;
-    real distance;
+    real_vector3d side;
+    real_point3d a;
+    real_point3d b;
     uint8_t direct_clear;
-    uint8_t hit;
-    ai_reachability_scratch scratch;
-    real closing_speed;
-    real_point3d candidate_point;
+    float fraction = 0.0f;
 
-    if (self_index != (datum_index)k_datum_index_none && target_index != (datum_index)k_datum_index_none &&
-        !scenario_cluster_visibility_test(self_index)) {
+    if (self_cluster != -1 && target_cluster != -1 && !scenario_cluster_visibility_test(self_cluster, target_cluster)) {
         return 4;
     }
-
-    collision_mask = (allow_wide_mask ? 0xc2b3u : 0xc2a7u);
+    mask = allow_wide_mask ? 0xc2b3 : 0xc2a7;
     if (flying) {
-        collision_mask &= 0xfffffdff;
+        mask &= 0xfffffdff;
     }
-
     delta.i = target_position->x - self_position->x;
     delta.j = target_position->y - self_position->y;
     delta.k = target_position->z - self_position->z;
-    hit = collision_test_movement_segment(collision_mask, self_position, &delta, exclude_object_index, &scratch);
-    closing_speed = 0.0f;
-    if (hit != 0) {
-        closing_speed = scratch.closing_speed;
+    if (!collision_test_movement_segment(mask, self_position, &delta, exclude_object_index, result)) {
+        direct_clear = 1;
+    } else {
+        direct_clear = 0;
+        fraction = *(float *)(result + 0x14);
     }
-    direct_clear = (hit == 0);
 
     if (movement_mode != 0) {
-        direction = delta;
-        vector3d_normalize_with_length(&direction);
-
+        side.i = self_position->y - target_position->y;
+        side.j = target_position->x - self_position->x;
+        side.k = 0.0f;
+        if (vector3d_normalize_with_length(&side) == 0.0f) {
+            side = *global_forward3d_pointer;
+        }
         if (movement_mode == 1) {
-            // UNSURE: Ghidra shows the same three-call shape for both the direct_clear and
-            // !direct_clear paths, differing only in which of two nearby origin points (both
-            // computed from DAT_00672b8c) each call uses; collapsed here to one point.
-            candidate_point.x = direction.i * DAT_00672b8c + self_position->x;
-            candidate_point.y = direction.j * DAT_00672b8c + self_position->y;
-            candidate_point.z = direction.k * DAT_00672b8c + self_position->z;
+            real_vector3d offset;
 
-            hit = collision_test_movement_segment_between_points(&candidate_point, target_position, collision_mask, exclude_object_index, &scratch);
-            if (!direct_clear && hit == 0) {
+            offset.i = side.i * 0.25f;
+            offset.j = side.j * 0.25f;
+            offset.k = side.k * 0.25f;
+            a.x = offset.i + self_position->x;
+            a.y = offset.j + self_position->y;
+            a.z = offset.k + self_position->z;
+            b.x = self_position->x - offset.i;
+            b.y = self_position->y - offset.j;
+            b.z = self_position->z - offset.k;
+            if (direct_clear) {
+                if (collision_test_movement_segment_between_points(&a, target_position, mask, exclude_object_index, result) ||
+                    collision_test_movement_segment_between_points(&b, target_position, mask, exclude_object_index, result)) {
+                    return 1;
+                }
+                return 0;
+            }
+            if (!collision_test_movement_segment_between_points(&a, target_position, mask, exclude_object_index, result) ||
+                !collision_test_movement_segment_between_points(&b, target_position, mask, exclude_object_index, result)) {
                 return 1;
             }
-            hit = collision_test_movement_segment_between_points(&candidate_point, target_position, collision_mask, exclude_object_index, &scratch);
-            if (hit != 0) {
-                return 1;
-            }
-            hit = collision_test_movement_segment_between_points(&candidate_point, target_position, collision_mask, exclude_object_index, &scratch);
-        } else {
-            if (!direct_clear) {
-                goto low_speed_grading;
-            }
-            point3d_add_scaled();
-            candidate_point.x = direction.i * DAT_00672bac + self_position->x;
-            candidate_point.y = direction.j * DAT_00672bac + self_position->y;
-            candidate_point.z = direction.k * DAT_00672bac + self_position->z;
+        } else if (direct_clear) {
+            real_vector3d offset;
+            real_point3d raised;
 
-            hit = collision_test_movement_segment_between_points(&candidate_point, self_position, collision_mask, exclude_object_index, &scratch);
-            if (hit != 0) {
+            offset.i = side.i * 0.1f;
+            offset.j = side.j * 0.1f;
+            offset.k = side.k * 0.1f;
+            a.x = offset.i + target_position->x;
+            a.y = offset.j + target_position->y;
+            a.z = offset.k + target_position->z;
+            b.x = target_position->x - offset.i;
+            b.y = target_position->y - offset.j;
+            b.z = target_position->z - offset.k;
+            point3d_add_scaled(&raised, (real_vector3d *)global_up3d_pointer, target_position, 0.1f);
+            if (collision_test_movement_segment_between_points(&a, self_position, mask, exclude_object_index, result) ||
+                collision_test_movement_segment_between_points(&b, self_position, mask, exclude_object_index, result) ||
+                collision_test_movement_segment_between_points(&raised, self_position, mask, exclude_object_index, result)) {
                 return 1;
             }
-            hit = collision_test_movement_segment_between_points(&candidate_point, self_position, collision_mask, exclude_object_index, &scratch);
-            if (hit != 0) {
-                return 1;
-            }
-            hit = collision_test_movement_segment_between_points(&candidate_point, self_position, collision_mask, exclude_object_index, &scratch);
+            return 0;
         }
-        if (hit != 0) {
-            return 1;
-        }
-    }
-
-    if (direct_clear) {
+    } else if (direct_clear) {
         return 0;
     }
 
-low_speed_grading:
-    distance = (real)sqrt((double)(delta.i * delta.i + delta.j * delta.j + delta.k * delta.k));
-    if (1.0f <= distance) {
-        if (distance * closing_speed < 1.0f) {
+    {
+        float dx = target_position->x - self_position->x;
+        float dy = target_position->y - self_position->y;
+        float dz = target_position->z - self_position->z;
+        float distance = (float)sqrt((double)(dz * dz + dy * dy + dx * dx));
+
+        if (distance < 1.0f) {
+            return 4;
+        }
+        if (distance * fraction < 1.0f) {
             return 2;
         }
-        if ((1.0f - closing_speed) * distance < 4.0f) {
+        if ((1.0f - fraction) * distance < 4.0f) {
             return 3;
         }
+        return 4;
     }
-    return 4;
 }
 
 #if 0

@@ -61,8 +61,9 @@ extern datum_index actor_get_threat_weapon_object_index(datum_index actor_index)
 extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index);                             // 0x428370, not yet rewritten
 extern void actor_set_override_target(uint32_t flags, uint32_t value);      // 0x42a5e0, not yet rewritten
 extern uint8_t actor_grenade_trajectory_blocked(float a, void *b, float *c);       // 0x42b190, not yet rewritten
-extern int16_t actor_evaluate_engagement_reachability(uint32_t kind, uint32_t enabled, uint32_t object_index,
-                            uint32_t in_vehicle);              // 0x42b270, not yet rewritten
+extern int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t target_cluster,
+    real_point3d *target_position, real_point3d *self_position, int16_t movement_mode, uint8_t allow_wide_mask,
+    datum_index exclude_object_index, uint8_t flying); // 0x42b270, AX, CX, ESI, EDI, stack
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 // 0x42d340, not yet rewritten (this module). Always seven stack arguments: every call
 // site in the binary cleans up 0x1c bytes, so the shorter forms Ghidra recovers at some
@@ -75,8 +76,8 @@ extern uint8_t weapon_trigger_get_aiming_vector(datum_index weapon_index, int16_
     // 0x4c2b40, src/items; blam-cc: EAX weapon_index, CX trigger_index, 7 stack args
 extern float weapon_trigger_projectile_time_fraction(uint32_t handle);                    // 0x4c2be0, not yet rewritten
 extern void unit_get_camera_position(void);                    // 0x568f80
-extern void unit_add_marker_relative_offset(datum_index unit_index, uint32_t mode, void *point, void *direction,
-                         void *offset);                        // 0x569190
+extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t param_2, float *world_point,
+    uint32_t param_4, uint32_t param_5, real_point3d *accumulator); // 0x569190, stack, EAX accumulator
 extern void unit_set_grenade_type_and_count_delta(int32_t a);                           // 0x56d160, not yet rewritten
 
 // blam-cc: stack -> actor_index
@@ -237,15 +238,17 @@ void actor_update_firing_state(datum_index actor_index)
                 self->wander_unknown_62c = *(float *)((uint8_t *)self + 0x610);
                 self->wander_unknown_630 = *(float *)((uint8_t *)self + 0x614);
                 self->wander_unknown_634 = *(float *)((uint8_t *)self + 0x618);
-                self->wander_unknown_638 = vector3d_distance(&self->body_position,
-                                                             (real_point3d *)&self->wander_unknown_62c);
+                // 0x40ecb8: EAX = +0x610, ECX = the aim origin (+0x120)
+                self->wander_unknown_638 = vector3d_distance((real_point3d *)((uint8_t *)self + 0x610),
+                                                             &self->aim_origin);
                 *(uint8_t *)((uint8_t *)self + 0x621) = 0;
                 *(uint8_t *)((uint8_t *)self + 0x624) = 0;
                 if (self->unknown_61c % 10 == 0) {
                     *(int16_t *)((uint8_t *)self + 0x626) =
-                        actor_evaluate_engagement_reachability(0, 0, 0xffffffff,
-                                     (uint32_t)(self->active_unit_index !=
-                                                (datum_index)0xffffffff));
+                        (int16_t)actor_evaluate_engagement_reachability(
+                            *(int16_t *)((uint8_t *)self + 0x148), -1, (real_point3d *)&self->wander_unknown_62c,
+                            &self->aim_origin, 0, 0, 0xffffffff,
+                            self->active_unit_index != (datum_index)0xffffffff); // 0x40eceb: CX = -1, ESI = +0x62c, EDI = +0x120
                 }
             }
 
@@ -446,7 +449,8 @@ after_switch:
                 } else {
                     to_target.k = 0.0f;
                 }
-                unit_add_marker_relative_offset(self->unit_index, 3, &self->body_position, &to_target, offset);
+                unit_add_marker_relative_offset(self->unit_index, 3, (float *)&self->body_position, (uint32_t)&to_target,
+                    (uint32_t)offset, &aim_from); // 0x40f3cf: EAX = aim_from
             } else {
                 aim_from.x = self->aim_origin.x;
                 aim_from.y = self->aim_origin.y;

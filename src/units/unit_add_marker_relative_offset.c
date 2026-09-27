@@ -1,53 +1,56 @@
 // unit_add_marker_relative_offset  (Ghidra: FUN_00569190)
-// address 0x569190, size 232 bytes, name confidence 0.3, rewrite confidence 0.25
-// functions.md: "Computes the offset between a given world point and the unit's camera
-// position, accumulating it into an output vector."
-// evidence: types/objects.h object.parent_object (0x11c), .vitality_flags (0x106), .type (0xb4).
-// blam-cc: param_1 -> unit_index, param_2/param_4 unused here, param_3 -> world_point,
-//   param_5 -> forwarded to unit_compute_marker_offset_position, unaff_EAX -> accumulator (in/out).
-// UNSURE: param_2 and param_4 are never read in this function's own body; kept as unused
-//   parameters rather than dropped, since the callee's signature (as Ghidra sees it) has them.
-// UNSURE: unit_predict_aim_target_position's return value is used as a marker-transform pointer/handle passed
-//   implicitly to whatever fills local_c/local_8/local_4 in the original; not fully recovered.
+// address 0x569190, size 232 bytes, name confidence 0.3, rewrite confidence 0.85
+// REWRITTEN from objdump 0x569190..0x569277: where the unit's eyes would be if it stood at world_point.
+//   - a free (no parent +0x11c, no +0x106 bit 2) biped asks unit_compute_marker_offset_position directly (ECX unit,
+//     EDX direction = param_4, BX mode = param_2, ESI out, stack: world_point, offset = param_5);
+//   - otherwise the reference is the unit's position, or for a biped seated in a vehicle the vehicle's predicted aim
+//     target (0x571de0 on the parent, when it has one), and out = camera position (0x568f80) + world_point -
+//     reference.
+// blam-cc: stack -> unit_index, mode, world_point, direction, offset; EAX -> out
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "cache.h"
 #include "objects.h"
 #include "units.h"
 
 extern data_array *object_data; // 0x008603b0
 
-extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900
-extern void unit_get_camera_position(uint32_t unit_index, real_point3d *out); // 0x568f80
-extern void unit_compute_marker_offset_position(float *world_point, uint32_t param_5); // 0x55a170, UNSURE signature  // real signature (unit_compute_marker_offset_position.c): void unit_compute_marker_offset_position(uint32_t object_index, real_vector3d *reference_direction, int16_t mode, real_point3d *out_position, float *param_1, float *param_2); Ghidra recovered 2 of 6 args at this call site
-extern int32_t unit_predict_aim_target_position(void); // 0x571de0, UNSURE signature  // real signature (unit_predict_aim_target_position.c): int32_t unit_predict_aim_target_position(uint32_t unit_index, real_point3d *out_position); Ghidra recovered 0 of 2 args at this call site
+extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX, ECX
+extern void unit_get_camera_position(uint32_t unit_index, real_point3d *out); // 0x568f80, ECX, EDI
+extern void unit_compute_marker_offset_position(uint32_t object_index, real_vector3d *reference_direction,
+    int16_t mode, real_point3d *out_position, float *param_1, float *param_2); // 0x55a170, ECX, EDX, BX, ESI, stack
+extern int32_t unit_predict_aim_target_position(uint32_t unit_index, real_point3d *out_position); // 0x571de0, ESI, EBX
 
 void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t param_2, float *world_point,
-                                     uint32_t param_4, uint32_t param_5, real_point3d *accumulator) // blam-cc: unaff_EAX -> accumulator
+                                     uint32_t param_4, uint32_t param_5, real_point3d *accumulator)
 {
-    object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+    uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    datum_index parent_index = *(datum_index *)(unit + 0x11c);
     real_point3d reference;
+    int have_reference = 0;
 
-    if ((unit_obj->parent_object == k_datum_index_none) && ((unit_obj->vitality_flags & _object_health_frozen_bit) == 0)) {
-        if (unit_obj->type == _object_type_biped) {
-            unit_compute_marker_offset_position(world_point, param_5);
+    if (parent_index == k_datum_index_none && (unit[0x106] & 4) == 0) {
+        if (*(int16_t *)(unit + 0xb4) == 0) {
+            unit_compute_marker_offset_position(unit_index, (real_vector3d *)param_4, (int16_t)param_2, accumulator,
+                world_point, (float *)param_5);
             return;
         }
-    } else if ((unit_obj->type == _object_type_biped) && (unit_obj->parent_object != k_datum_index_none) &&
-               (((object_header *)object_data->data)[unit_obj->parent_object & 0xffff].data->type == _object_type_vehicle)) {
-        if (unit_predict_aim_target_position() != -1) {
-            goto have_reference; // UNSURE: original leaves `reference` populated by unit_predict_aim_target_position's own side effects
+    } else if (*(int16_t *)(unit + 0xb4) == 0 && parent_index != k_datum_index_none) {
+        uint8_t *parent = (uint8_t *)((object_header *)object_data->data)[parent_index & 0xffff].data;
+
+        if (*(int16_t *)(parent + 0xb4) == 1 && unit_predict_aim_target_position(parent_index, &reference) != -1) {
+            have_reference = 1;
         }
     }
-    object_get_position(&reference, unit_index);
-
-have_reference:
+    if (!have_reference) {
+        object_get_position(&reference, unit_index);
+    }
     unit_get_camera_position(unit_index, accumulator);
     accumulator->x = (world_point[0] - reference.x) + accumulator->x;
     accumulator->y = (world_point[1] - reference.y) + accumulator->y;
     accumulator->z = (world_point[2] - reference.z) + accumulator->z;
-    return;
 }
 
 #if 0

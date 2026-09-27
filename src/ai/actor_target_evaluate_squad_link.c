@@ -1,313 +1,336 @@
 // actor_target_evaluate_squad_link  (Ghidra: actor_target_evaluate_squad_link; named from out/phase2/results/ai_02.json)
 // address 0x41e320, size 1849 bytes
-// name confidence: 0.4   rewrite confidence: 0.1
-// evidence: out/phase2/results/ai_02.json -- walks a squad's target linked list (a raw object
-//   tree via object.next_object/first_child_object -- puVar1[0x45]/[0x46] -- not the prop
-//   chain), for each live object checking a danger-radius overlap and calling
-//   actor_danger_register_point / actor_danger_register_stationary_object, then appending
-//   surviving candidates into one of two caller-supplied 12-byte-stride arrays. Recurses on
-//   object.first_child_object, continues on object.next_object.
-// register convention: all four parameters are Ghidra's recognized stack parameters.
-//   // blam-cc: stack -> actor_index, object_cursor, candidates_a, candidates_b
-//
-// UNSURE, extremely substantially: this rewrite is a near-literal, goto-preserving
-// transliteration rather than a restructured one, because the control flow (several
-// re-convergent gotos over partially-overlapping bool/float state) could not be safely
-// flattened without a disassembly cross-check this batch does not have. Field names are used
-// wherever this batch's headers (types/ai.h actor/encounter, types/objects.h object,
-// types/units.h unit_data) resolve the offset with confidence; every other offset -- most of
-// what the pointer `puVar15`/`far_tag` touches, and the two output arrays' internal layout --
-// is left as a raw cast, matching Ghidra's own uncertainty. object_get_position and
-// actor_get_firing_positions are called with no arguments at every site in this function,
-// exactly as Ghidra shows (their real signatures are established elsewhere in this batch, but
-// neither operand is recoverable here); the four local position buffers they are presumed to
-// fill (self/far positions for each of the two branches) are declared but their exact source is
-// unconfirmed.
+// name confidence: 0.4   rewrite confidence: 0.8
+// REWRITTEN from objdump 0x41e320..0x41ea58 (the draft was a goto transliteration with every helper called without
+//   arguments). Walks an object list (next +0x114, recursing into first children +0x118), visiting each object once
+//   per scan (object +0x14 against object_cluster_stamp 0x8603cc), and sorts what the actor perceives:
+//   - a biped (type 0): the target is the object, or for a swarm unit (+0x1f8) the member nearest the actor's
+//     firing block (0x41c2c0); the actor itself is skipped. With the unit tag's danger radius (+0x284) and the unit
+//     firing (+0x106 bit 2 without +0x420) or meleeing (state 0x1e) it registers a danger point (0x41ec90). A unit
+//     with no controlling player (+0x218) whose actor is asleep/inactive, or further than 40 (squared 1600), is
+//     skipped; a firing unit counts only when it fired after the encounter's/actor's reference time (+0x58/+0x3a0)
+//     and, with an encounter not in combat (+0x42/+0x44/+0x45), within 15; otherwise units need a danger radius, or
+//     (enemies only) to have fired within 150 ticks, the actor's combat grade at most 1, and to be within 4 (8 for a
+//     calm, +0x6a < 3, friend). Friends further than 15 are dropped; enemies further than 6 and friends that are
+//     far off (+0x6e >= 4, or unalerted +0x1cc beyond 4) go to the list's far entries, the rest become props
+//     (actor_find_or_allocate_prop + actor_target_data_refresh), counted unless firing;
+//   - a vehicle (type 1) with no driver (+0x324) is a stationary danger (0x41ea60);
+//   - a projectile (type 5) whose tag danger radius (+0x1a8) plus 10 reaches the actor becomes the actor's danger
+//     (+0x280 kind 2) unless one closer is already held, with the source object (+0xc4) as its owner (+0x282: 2 its
+//     own unit, 1 a friend).
+//   Lists (enemies: candidates_a, friends: candidates_b): +0 prop count, +2 far count, +4 far entries of 12 bytes
+//   {object, -1, distance squared}, at most 0x80.
+// blam-cc: stack -> actor_index, object_index, candidates_a, candidates_b
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "ai.h"
+#include "cache.h"
 #include "objects.h"
 #include "units.h"
-#include "cache.h"
 #include "game.h"
-#include "ai.h"
+#include <string.h>
 
-extern data_array *actor_data;      // 0x00880360
-extern data_array *object_data;     // 0x008603b0
-extern data_array *encounter_data;  // 0x008802c8
+extern data_array *actor_data;       // 0x00880360
+extern data_array *object_data;      // 0x008603b0
+extern data_array *encounter_data;   // 0x008802c8
 extern int32_t object_cluster_stamp; // 0x008603cc
-extern tag_instance *tag_instances; // 0x0087bc14
+extern tag_instance *tag_instances;  // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c
 
-extern double sqrt(double x); // FSQRT
-static float sqrt_f(float x) { return (float)sqrt((double)x); }
+extern double sqrt(double x);
 
-extern void object_get_position(void);        // 0x4f6900, UNSURE: no traced args at these call sites
-extern void actor_get_firing_positions(void);  // 0x41c1e0, this batch, UNSURE: no traced args at these call sites
-extern datum_index object_find_nearest_squad_member(void *reference, datum_index exclude_index, char stamp_group); // 0x41c2c0 (object_find_nearest_squad_member, this batch), UNSURE: EAX/actor_index not shown here
-extern void actor_target_data_refresh(uint32_t actor_index, datum_index target_prop_index, void *scratch, uint32_t flag_a, uint32_t flag_b); // 0x41c4b0 (actor_target_data_refresh, this batch)
-extern void actor_danger_register_stationary_object(uint32_t actor_index, datum_index object_index, uint8_t unknown_byte); // 0x41ea60 (actor_danger_register_stationary_object, this batch)
-extern uint8_t actor_danger_register_point(float radius, float distance, char accept_flag, uint8_t unknown_byte); // 0x41ec90 (actor_danger_register_point, this batch)
-extern datum_index actor_find_or_allocate_prop(uint32_t actor_index, datum_index object_index, char flag); // 0x43e270, UNSURE signature
-extern int8_t teams_are_enemies(void); // 0x45bd50, UNSURE: no traced args
-extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index); // 0x40e760, UNSURE: no traced args
-extern void *object_try_and_get(int32_t kind); // 0x4f6ec0
+extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX, ECX
+extern void *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
+extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point); // 0x41c1e0, EAX, ECX, EDX
+extern datum_index object_find_nearest_squad_member(datum_index actor_index, void *reference, datum_index exclude_index,
+    char stamp_group); // 0x41c2c0, EAX, stack
+extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, CX, DX
+extern uint8_t actor_danger_register_point(datum_index actor_index, datum_index source_object_index, float radius,
+    float distance, char accept_flag, uint8_t unknown_byte); // 0x41ec90, EAX, EDX, stack
+extern uint8_t actor_danger_register_stationary_object(const float *reference, datum_index actor_index,
+    datum_index object_index, uint8_t unknown_byte); // 0x41ea60, EAX, stack
+extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index); // 0x40e760, EAX
+extern datum_index actor_find_or_allocate_prop(datum_index actor_index, uint32_t object_index, char kind); // 0x43e270
+extern void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index, void *reference, char force,
+    char allow_reassign); // 0x41c4b0
 
-// blam-cc: stack -> actor_index, object_cursor, candidates_a, candidates_b
-// Iterates a squad's list of known targets evaluating danger radius and distance to select the
-// most relevant one for the actor to assist against.
-void actor_target_evaluate_squad_link(uint32_t actor_index, datum_index object_cursor, int16_t *candidates_a, int16_t *candidates_b)
+#define OBJ(i) ((uint8_t *)((object_header *)object_data->data)[(i) & 0xffff].data)
+
+static void squad_link_add_far(uint8_t *list, datum_index object_index, float distance_squared)
 {
-    actor *self;
-    uint32_t *cursor_obj;
-    uint32_t *far_obj;
-    int16_t *psVar16;
-    uint32_t uVar17, uVar20;
-    uint8_t *iVar11_tag;
-    int32_t iVar18;
-    int32_t iVar12, iVar14;
-    uint8_t bVar4, bVar5, bVar6, bVar7;
-    int8_t cVar8;
-    int16_t sVar9;
-    float fVar2, fVar3;
-    float local_7c, local_78, local_74; // far object position (object_get_position, kind==0 branch)
-    float local_64, local_60, local_5c; // self firing/aim position (actor_get_firing_positions, kind==0 branch)
-    float local_88, local_84, local_80; // far tag danger center? (object_get_position, kind==5 branch)
-    float local_2c, local_28, local_24; // self firing/aim position (actor_get_firing_positions, kind==5 branch)
+    int16_t count = *(int16_t *)(list + 2);
+    uint8_t *entry;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    if (count >= 0x80) {
+        return;
+    }
+    entry = list + 4 + count * 0xc;
+    *(datum_index *)(entry + 0) = object_index;
+    *(int32_t *)(entry + 4) = -1;
+    *(float *)(entry + 8) = distance_squared;
+    *(int16_t *)(list + 2) = (int16_t)(count + 1);
+}
 
-top:
-    if (object_cursor == k_datum_index_none) {
+// 0x41e3b1..0x41e7ed
+static void squad_link_evaluate_biped(uint32_t actor_index, uint8_t *self, datum_index object_index, uint8_t *object,
+    uint8_t *list_enemy, uint8_t *list_friend)
+{
+    real_point3d position;
+    uint32_t block[14];
+    real_point3d *block_point = (real_point3d *)&block[3];
+    datum_index target = object_index;
+    datum_index target_actor_index;
+    uint8_t *unit = object;
+    uint8_t *unit_tag;
+    uint8_t *target_actor = 0;
+    uint8_t controlled;
+    uint8_t enemies;
+    uint8_t firing;
+    uint8_t far_flag = 0;
+    int16_t since_fired;
+    float radius;
+    float distance_squared;
+    uint8_t *list;
+
+    object_get_position(&position, object_index);
+    actor_get_firing_positions(actor_index, block, &position);
+    if (*(datum_index *)(object + 0x1f8) != k_datum_index_none) {
+        target_actor_index = *(datum_index *)(object + 0x1f8);
+        target = object_find_nearest_squad_member(target_actor_index, block, k_datum_index_none, 1);
+        if (target == k_datum_index_none) {
+            return;
+        }
+        unit = OBJ(target);
+        object_get_position(&position, target);
+    } else {
+        target_actor_index = *(datum_index *)(object + 0x1f4);
+    }
+    if (target_actor_index == actor_index) {
         return;
     }
 
-    cursor_obj = (uint32_t *)((object_header *)object_data->data)[object_cursor & 0xffff].data;
+    unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
+    controlled = *(datum_index *)(unit + 0x218) != k_datum_index_none;
+    enemies = teams_are_enemies(*(int16_t *)(unit + 0xb8), *(int16_t *)(self + 0x3e));
+    if ((unit[0x106] & 4) != 0 && *(int16_t *)(unit + 0x420) == 0) {
+        int32_t fired = *(int32_t *)(unit + 0x41c);
 
-    if (cursor_obj[5] != (uint32_t)object_cluster_stamp) {
-        *(int32_t *)((uint8_t *)cursor_obj + 0x14) = object_cluster_stamp;
-        sVar9 = (int16_t)cursor_obj[0x2d]; // object.type
+        firing = 1;
+        since_fired = fired == -1 ? 0x7fff : (int16_t)((int16_t)game_time->game_time - (int16_t)fired);
+    } else {
+        firing = 0;
+        since_fired = 0;
+    }
+    radius = *(float *)(unit_tag + 0x284);
+    {
+        float dx = position.x - block_point->x;
+        float dy = position.y - block_point->y;
+        float dz = position.z - block_point->z;
 
-        if (sVar9 == 0) {
-            object_get_position();
-            actor_get_firing_positions();
-            uVar17 = cursor_obj[0x7e]; // unit.swarm_actor_index
+        distance_squared = dz * dz + dy * dy + dx * dx;
+    }
+    if (radius > 0.0f && (firing || (int8_t)unit[0x2a3] == 0x1e)) {
+        actor_danger_register_point(actor_index, target, radius, (float)sqrt((double)distance_squared), (char)enemies, 0);
+    }
+    if (target_actor_index != k_datum_index_none) {
+        target_actor = (uint8_t *)actor_data->data + (target_actor_index & 0xffff) * 0x724;
+    }
 
-            if (uVar17 == 0xffffffff) {
-                uVar17 = cursor_obj[0x7d]; // unit.actor_index
-                far_obj = cursor_obj;
+    if (!controlled) {
+        if (target_actor != 0 && (target_actor[8] == 0 || target_actor[0x13] != 0)) {
+            return;
+        }
+        if (distance_squared > 1600.0f) {
+            return;
+        }
+        if (firing) {
+            datum_index encounter_index = *(datum_index *)(self + 0x34);
+
+            if (encounter_index == k_datum_index_none) {
+                goto check_radius;
             } else {
-                object_cursor = object_find_nearest_squad_member((void *)0, k_datum_index_none, 1); // UNSURE: real args unresolved
-                if (object_cursor == k_datum_index_none) {
-                    goto after_switch;
+                uint8_t *encounter = (uint8_t *)encounter_data->data + (encounter_index & 0xffff) * 0x6c;
+                uint8_t *target_unit = OBJ(target);
+                int32_t reference = *(int32_t *)(encounter + 0x58);
+                uint8_t counts = 1;
+                uint8_t calm;
+
+                if (!(reference > *(int32_t *)(self + 0x3a0))) {
+                    reference = *(int32_t *)(self + 0x3a0);
                 }
-                far_obj = (uint32_t *)((object_header *)object_data->data)[object_cursor & 0xffff].data;
-                object_get_position();
+                if (reference != -1) {
+                    int32_t fired = *(int32_t *)(target_unit + 0x41c);
+
+                    if (fired == -1 || fired < reference) {
+                        counts = 0;
+                    }
+                }
+                calm = encounter[0x45] == 0 && encounter[0x44] == 0 && encounter[0x42] == 0;
+                if (!counts) {
+                    return;
+                }
+                if (!calm) {
+                    goto check_radius;
+                }
+                if (!(distance_squared < 225.0f)) {
+                    return;
+                }
             }
+        } else if (enemies) {
+            far_flag = distance_squared > 36.0f;
+        } else {
+            // 0x41e756: the friend's far flag is computed in AL and used directly at 0x41e66c
+            uint8_t near = distance_squared < 225.0f;
 
-            if (object_cursor != k_datum_index_none && uVar17 != actor_index) {
-                uVar20 = far_obj[0x86]; // unit.controlling_player
-                iVar11_tag = (uint8_t *)tag_instances[far_obj[0] & 0xffff].data;
-                cVar8 = teams_are_enemies();
-
-                if ((((uint8_t *)far_obj)[0x106] & 4) == 0 || *(int16_t *)((uint8_t *)far_obj + 0x420) != 0) {
-                    bVar4 = 0; bVar6 = 0; sVar9 = 0;
-                } else {
-                    bVar4 = 1; bVar6 = 1;
-                    if (far_obj[0x107] == 0xffffffff) {
-                        sVar9 = 0x7fff;
-                    } else {
-                        sVar9 = (int16_t)(game_time->game_time - (int16_t)far_obj[0x107]);
-                    }
-                }
-
-                fVar2 = *(float *)(iVar11_tag + 0x284);
-                fVar3 = (local_7c - local_64) * (local_7c - local_64) +
-                        (local_78 - local_60) * (local_78 - local_60) +
-                        (local_74 - local_5c) * (local_74 - local_5c);
-
-                if (0.0f < fVar2 && (bVar4 != 0 || *(int8_t *)((uint8_t *)far_obj + 0x2a3) == 0x1e)) {
-                    actor_danger_register_point(fVar2, sqrt_f(fVar3), (char)cVar8, 0);
-                    bVar4 = bVar6;
-                }
-
-                if (uVar17 == 0xffffffff) {
-                    iVar18 = 0;
-                } else {
-                    iVar18 = (int32_t)((uint8_t *)actor_data->data + (uVar17 & 0xffff) * sizeof(actor));
-                }
-                bVar7 = 0;
-
-                if (uVar20 != 0xffffffff) {
-                    goto have_candidate;
-                }
-                if (((iVar18 == 0) ||
-                     (((actor *)iVar18)->active != 0 && ((actor *)iVar18)->keep_unit_alive == 0)) &&
-                    (fVar3 <= 1600.0f)) {
-                    if (bVar4 != 0) {
-                        // FIXED: Ghidra reads actor+0x34, which is encounter_index, not
-                        // unit_index (0x18); the handle is then scaled by the 0x6c encounter
-                        // stride, which only makes sense for an encounter datum.
-                        uVar17 = self->encounter_index;
-                        bVar4 = 1;
-                        if (uVar17 == 0xffffffff) {
-                            goto check_flee_range;
-                        } else {
-                            iVar12 = (int32_t)((uint8_t *)encounter_data->data + (uVar17 & 0xffff) * sizeof(encounter));
-                            iVar18 = self->unknown_3a0; // datum_index, but compared as int32
-                            iVar14 = *(int32_t *)((uint8_t *)iVar12 + 0x58);
-                            if (iVar14 <= iVar18) {
-                                iVar14 = iVar18;
-                            }
-                            if (iVar14 != -1 &&
-                                (iVar18 = *(int32_t *)((uint8_t *)cursor_obj + 0x41c), iVar18 == -1 || iVar18 < iVar14)) {
-                                bVar4 = 0;
-                            }
-                            if (*(uint8_t *)((uint8_t *)iVar12 + 0x45) == 0 && *(uint8_t *)((uint8_t *)iVar12 + 0x44) == 0 &&
-                                *(uint8_t *)((uint8_t *)iVar12 + 0x42) == 0) {
-                                bVar5 = 1;
-                            } else {
-                                bVar5 = 0;
-                            }
-                            if (bVar4 != 0) {
-                                if (bVar5 == 0) {
-                                    goto check_flee_range;
-                                }
-                                if (fVar3 < 225.0f) {
-                                    goto have_candidate;
-                                }
-                            }
-                        }
-                        goto skip_append;
-                    check_flee_range:
-                        if (0.0f < fVar2) {
-                            goto have_candidate;
-                        }
-                        if ((cVar8 == 0 || sVar9 < 0x97) && (sVar9 = actor_get_current_mode_combat_grade(actor_index), sVar9 < 2)) {
-                            fVar2 = 16.0f;
-                            if (cVar8 == 0 && self->awareness_level < 3) {
-                                fVar2 = 64.0f;
-                            }
-                            if (fVar3 < fVar2) {
-                                goto have_candidate;
-                            }
-                        }
-                        goto skip_append;
-                    } else {
-                        goto check_flee_range2;
-                    }
-                }
-                goto skip_append;
-
-            check_flee_range2:
-                if (cVar8 != 0) {
-                    bVar7 = (fVar3 > 36.0f);
-                    goto have_candidate;
-                }
-                if (self->unknown_6e < 4) {
-                    bVar7 = (self->unknown_1cc == 0 && fVar3 > 16.0f);
-                } else {
-                    bVar7 = 1;
-                }
-                if (225.0f <= fVar3) {
-                    goto after_switch;
-                }
-                psVar16 = candidates_b;
-                goto append_candidate;
-
-            have_candidate:
-                psVar16 = candidates_a;
-                if (cVar8 == 0) {
-                    psVar16 = candidates_b;
-                }
-            append_candidate:
-                if (bVar7 != 0) {
-                    sVar9 = psVar16[1];
-                    if (sVar9 < 0x80) {
-                        (psVar16 + sVar9 * 6 + 4)[0] = -1;
-                        (psVar16 + sVar9 * 6 + 4)[1] = -1;
-                        *(uint32_t *)(psVar16 + psVar16[1] * 6 + 2) = object_cursor;
-                        *(float *)(psVar16 + (psVar16[1] + 1) * 6) = fVar3;
-                        psVar16[1] = psVar16[1] + 1;
-                    }
-                } else {
-                    iVar18 = actor_find_or_allocate_prop(actor_index, object_cursor, cVar8);
-                    if (iVar18 != -1) {
-                        actor_target_data_refresh(actor_index, (datum_index)iVar18, (void *)0, 0, 0);
-                        if (bVar6 == 0) {
-                            *psVar16 = *psVar16 + 1;
-                        }
-                    }
-                }
-            skip_append:;
+            if (*(int16_t *)(self + 0x6e) >= 4) {
+                far_flag = 1;
+            } else {
+                far_flag = self[0x1cc] == 0 && distance_squared > 16.0f;
             }
-        } else if (sVar9 == 1) {
-            if (cursor_obj[0xc9] == 0xffffffff) { // 0x324, unit.driver_unit_index offset reused
-                actor_danger_register_stationary_object(actor_index, object_cursor, 0);
+            if (!near) {
+                return;
             }
-        } else if (sVar9 == 5) {
-            uint8_t *tag5 = (uint8_t *)tag_instances[cursor_obj[0] & 0xffff].data;
-            if (0.0f < *(float *)(tag5 + 0x1a8) &&
-                (cursor_obj[0x47] == 0xffffffff || (cursor_obj[0x8b] & 0x20) != 0)) {
-                object_get_position();
-                actor_get_firing_positions();
-                fVar2 = sqrt_f((local_88 - local_2c) * (local_88 - local_2c) +
-                               (local_84 - local_28) * (local_84 - local_28) +
-                               (local_80 - local_24) * (local_80 - local_24));
+            list = list_friend;
+            goto add;
+        }
+        goto add_by_team;
 
-                if (fVar2 < *(float *)(tag5 + 0x1a8) + 10.0f) {
-                    if (self->danger_type < 2 ||
-                        (self->danger_type == 2 && self->danger_object_index != object_cursor &&
-                         fVar2 < self->danger_unknown_2d4)) {
-                        uint32_t *clear = (uint32_t *)&self->danger_type;
-                        int32_t i;
-                        for (i = 0x1b; i != 0; i--) {
-                            *clear = 0;
-                            clear++;
-                        }
-                        self->danger_type = 2;
-                        self->danger_object_index = object_cursor;
-                        self->danger_unknown_294 = *(float *)(tag5 + 0x1a8);
-                        self->danger_unknown_298 = local_88;
-                        self->danger_unknown_29c = local_84;
-                        self->danger_unknown_2a0 = local_80;
-                        self->danger_unknown_2a4 = cursor_obj[0x1a];
-                        self->danger_unknown_2a8 = cursor_obj[0x1b];
-                        self->danger_unknown_2ac = cursor_obj[0x1c];
-                        self->danger_unknown_284 = 0x1e;
-                        self->danger_unknown_286 = 0;
-                        self->danger_unknown_282 = 0;
+check_radius:
+        // 0x41e6b7
+        if (!(radius > 0.0f)) {
+            float limit;
 
-                        uVar17 = cursor_obj[0x31];
-                        uVar20 = 0xffffffff;
-                        if (uVar17 != 0xffffffff) {
-                            void *ctx = object_try_and_get(-1);
-                            if (ctx != (void *)0 && (1 << (*((uint8_t *)ctx + 0xb4) & 0x1f) & 3) != 0) {
-                                uVar20 = uVar17;
-                                if (self->unit_index == k_datum_index_none || uVar17 != self->unit_index) {
-                                    cVar8 = teams_are_enemies();
-                                    if (cVar8 == 0) {
-                                        self->danger_unknown_282 = 1;
-                                    }
-                                } else {
-                                    self->danger_unknown_282 = 2;
-                                }
-                            }
-                        }
-                        self->danger_unknown_290 = uVar20;
-                    }
-                }
+            if (enemies && since_fired > 0x96) {
+                return;
+            }
+            if (actor_get_current_mode_combat_grade(actor_index) > 1) {
+                return;
+            }
+            limit = 16.0f;
+            if (!enemies && *(int16_t *)(self + 0x6a) < 3) {
+                limit = 64.0f;
+            }
+            if (!(distance_squared < limit)) {
+                return;
             }
         }
     }
 
-after_switch:
-    if (cursor_obj[0x46] != 0xffffffff) { // object.first_child_object
-        actor_target_evaluate_squad_link(actor_index, cursor_obj[0x46], candidates_a, candidates_b);
+add_by_team:
+    list = enemies ? list_enemy : list_friend;
+add:
+    if (far_flag) {
+        squad_link_add_far(list, target, distance_squared);
+        return;
     }
-    object_cursor = cursor_obj[0x45]; // object.next_object
-    goto top;
+    {
+        datum_index prop_index = actor_find_or_allocate_prop(actor_index, target, (char)enemies);
+
+        if (prop_index == k_datum_index_none) {
+            return;
+        }
+        actor_target_data_refresh(actor_index, prop_index, block, 0, 0);
+        if (!firing) {
+            *(int16_t *)list = (int16_t)(*(int16_t *)list + 1);
+        }
+    }
+}
+
+// 0x41e829..0x41ea05
+static void squad_link_evaluate_projectile(uint32_t actor_index, uint8_t *self, datum_index object_index, uint8_t *object)
+{
+    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)object & 0xffff].data;
+    float radius = *(float *)(tag + 0x1a8);
+    real_point3d position;
+    uint32_t block[14];
+    real_point3d *block_point = (real_point3d *)&block[3];
+    float distance;
+    datum_index owner;
+    datum_index owner_unit = k_datum_index_none;
+
+    if (!(radius > 0.0f)) {
+        return;
+    }
+    if (*(datum_index *)(object + 0x11c) != k_datum_index_none && (object[0x22c] & 0x20) == 0) {
+        return;
+    }
+    object_get_position(&position, object_index);
+    actor_get_firing_positions(actor_index, block, &position);
+    {
+        float dx = position.x - block_point->x;
+        float dy = position.y - block_point->y;
+        float dz = position.z - block_point->z;
+
+        distance = (float)sqrt((double)(dz * dz + dy * dy + dx * dx));
+    }
+    if (!(radius + 10.0f > distance)) {
+        return;
+    }
+    if (*(int16_t *)(self + 0x280) >= 2) {
+        if (*(int16_t *)(self + 0x280) != 2 || *(datum_index *)(self + 0x28c) == object_index ||
+            !(distance < *(float *)(self + 0x2d4))) {
+            return;
+        }
+    }
+    memset(self + 0x280, 0, 0x6c);
+    *(int16_t *)(self + 0x280) = 2;
+    *(datum_index *)(self + 0x28c) = object_index;
+    *(float *)(self + 0x294) = radius;
+    *(real_point3d *)(self + 0x298) = position;
+    *(real_vector3d *)(self + 0x2a4) = *(real_vector3d *)(object + 0x68);
+    *(int16_t *)(self + 0x284) = 0x1e;
+    self[0x286] = 0;
+    *(int16_t *)(self + 0x282) = 0;
+    owner = *(datum_index *)(object + 0xc4);
+    if (owner != k_datum_index_none) {
+        uint8_t *owner_object = (uint8_t *)object_try_and_get(owner, 0xffffffff);
+
+        if (owner_object != 0 && ((1u << owner_object[0xb4]) & 3) != 0) {
+            owner_unit = owner;
+            if (*(datum_index *)(self + 0x18) != k_datum_index_none && owner == *(datum_index *)(self + 0x18)) {
+                *(int16_t *)(self + 0x282) = 2;
+            } else if (!teams_are_enemies(*(int16_t *)(object + 0xb8), *(int16_t *)(self + 0x3e))) {
+                *(int16_t *)(self + 0x282) = 1;
+            }
+        }
+    }
+    *(datum_index *)(self + 0x290) = owner_unit;
+}
+
+void actor_target_evaluate_squad_link(uint32_t actor_index, datum_index object_index, int16_t *candidates_a,
+    int16_t *candidates_b)
+{
+    uint8_t *self = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+
+    while (object_index != k_datum_index_none) {
+        uint8_t *object = OBJ(object_index);
+
+        if (*(int32_t *)(object + 0x14) != object_cluster_stamp) {
+            *(int32_t *)(object + 0x14) = object_cluster_stamp;
+            switch (*(int16_t *)(object + 0xb4)) {
+            case 0:
+                squad_link_evaluate_biped(actor_index, self, object_index, object, (uint8_t *)candidates_a,
+                    (uint8_t *)candidates_b);
+                break;
+            case 1:
+                if (*(datum_index *)(object + 0x324) == k_datum_index_none) {
+                    actor_danger_register_stationary_object(0, actor_index, object_index, 0);
+                }
+                break;
+            case 5:
+                squad_link_evaluate_projectile(actor_index, self, object_index, object);
+                break;
+            default:
+                break;
+            }
+        }
+        if (*(datum_index *)(object + 0x118) != k_datum_index_none) {
+            actor_target_evaluate_squad_link(actor_index, *(datum_index *)(object + 0x118), candidates_a, candidates_b);
+        }
+        object_index = *(datum_index *)(object + 0x114);
+    }
 }
 
 #if 0

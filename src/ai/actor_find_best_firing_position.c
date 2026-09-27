@@ -71,8 +71,8 @@ extern uint8_t path_find_run(path_find_context *context);                  // 0x
 extern void qsort_dword_array(uint32_t count, int32_t *elements, qsort_dword_compare_proc compare); // 0x449590, EAX count, ECX elements, stack compare
 extern float point3d_distance_squared_to_segment(real_point3d *point, real_point3d *origin,
                                                  real_vector3d *delta);    // 0x4cde30
-extern void unit_add_marker_relative_offset(datum_index unit_index, uint32_t mode, void *point, void *direction,
-                         void *offset);                                    // 0x569190, not yet rewritten
+extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t param_2, float *world_point,
+    uint32_t param_4, uint32_t param_5, real_point3d *accumulator); // 0x569190, stack, EAX accumulator
 extern void unit_get_aiming_vector(real_vector3d *out);                              // 0x5696f0, not yet rewritten
 
 extern uint8_t actor_firing_position_compare(int32_t element, int32_t other); // 0x4127b0, src/ai/actor_firing_position_compare.c
@@ -204,7 +204,8 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
         query->target_unknown_658 = 0.0f;
         query->target_distance = (float)sqrt((double)(delta.i * delta.i + delta.j * delta.j +
                                                       delta.k * delta.k));
-        unit_add_marker_relative_offset(self->unit_index, 1, &query->target_position, (void *)0, (void *)0);
+        unit_add_marker_relative_offset(self->unit_index, 1, (float *)&query->target_position, 0, 0,
+            &query->target_aim_position); // 0x412d5b: EAX = query +0x610
         query->target_lead_position = query->target_aim_position;
     }
 

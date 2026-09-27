@@ -1,191 +1,191 @@
-// actor_find_or_allocate_prop  (Ghidra: actor_find_or_allocate_prop, renamed)
+// actor_find_or_allocate_prop  (Ghidra: FUN_0043e270)
 // address 0x43e270, size 973 bytes
-// name confidence: 0.4   rewrite confidence: 0.2
-// evidence: types/ai.h actor.first_prop(+0x50), prop.next_in_actor(+0x08)/pair_index(+0x0c)/
-// object_index(+0x18)/owner_actor_index(+0x1c)/kind(+0x24)/distance(+0x11c)/is_parented(+0x12e)/
-// unknown_60. phase-4 summary "finds or allocates a per-actor firing-position node of the
-// requested type, reinitializing it when newly allocated or repurposed." Calls
-// actor_replace_object_reference (established elsewhere), datum_new (established elsewhere),
-// actor_init_prop_from_object (this rewrite's own prop initializer) and actor_unlink_prop (this rewrite's own
-// prop unlink) and actor_get_current_mode_combat_grade (outside this rewrite's range).
-//
-// Kept close to the Ghidra decompilation for the deep eligibility-scoring section (the many
-// distance thresholds and per-target-actor checks around `iVar11+0x1cc`/`+0x3a0`/`+0x6a`/
-// `+0x6e`, and the object-type-definition read at `object+0x41c`) since those reach into
-// actor/unit/object-type sub-fields this module does not otherwise name at these specific
-// offsets.
-//
-// register convention: stack -> actor_index, param_2 (unused in the body), kind.
-//   // blam-cc: stack -> actor_index, param_2, kind
+// name confidence: 0.4   rewrite confidence: 0.8
+// REWRITTEN from objdump 0x43e270..0x43e63c (the draft ignored the object argument, swapped the two reuse
+//   candidates, judged the prop's owner instead of the actor, and called datum_new/actor_unlink_prop/
+//   actor_init_prop_from_object without their arguments). Makes room for a new prop (0x138 bytes, prop_data) for
+//   object_index in the actor's prop list (+0x50, chained through +0x08), skipping kinds 4..5 (+0x24) and paired
+//   props (+0x0c). Each prop is judged with the same rules actor_target_evaluate_squad_link uses to admit one
+//   (distance +0x11c, owner actor +0x1c, danger radius +0x20, firing +0x127, fired ticks +0x76, +0x63/+0x6a
+//   pinned, +0x12e player-controlled, +0x60 enemy):
+//   - no longer admissible: the closest such prop is the first reuse choice;
+//   - admissible with the same enemy flag as `kind`: counted, and the closest one that would now sit in a far list
+//     is the second choice, used only once there are at least 4 (6 for enemies) such props.
+//   A reused prop is detached (actor_replace_object_reference with -1, actor_unlink_prop) and cleared (keeping its
+//   salt word); otherwise a new datum is allocated. Either way actor_init_prop_from_object fills it for the object.
+// blam-cc: stack -> actor_index, object_index, kind
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
-#include "objects.h"
 #include "ai.h"
+#include "cache.h"
+#include "objects.h"
+#include <string.h>
 
-extern data_array *actor_data; // 0x00880360
-extern data_array *prop_data;  // 0x008802c0
-extern data_array *object_data; // 0x008603b0
+extern data_array *actor_data;     // 0x00880360
+extern data_array *prop_data;      // 0x008802c0
+extern data_array *object_data;    // 0x008603b0
 extern data_array *encounter_data; // 0x008802c8
 
-extern void actor_replace_object_reference(datum_index actor_index); // 0x428470, see header UNSURE on arity
-extern void actor_unlink_prop(void); // 0x43ea20, this rewrite's own file; called here with no visible arguments
-extern void actor_init_prop_from_object(datum_index prop_index); // 0x43e640, this rewrite's own file
-extern datum_index datum_new(void); // 0x4d0480
-extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index); // 0x40e760, outside this rewrite's range
+extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference); // 0x428470, stack, ESI, EDI
+extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove); // 0x43ea20, EAX, EDI
+extern void actor_init_prop_from_object(datum_index object_index, datum_index actor_index, datum_index prop_index); // 0x43e640, EAX, EDX, stack
+extern datum_index datum_new(data_array *array); // 0x4d0480, EDX
+extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index); // 0x40e760, EAX
 
-// blam-cc: stack -> actor_index, param_2, kind
-datum_index actor_find_or_allocate_prop(datum_index actor_index, uint32_t param_2, char kind)
+enum {
+    k_prop_admit_drop,
+    k_prop_admit_keep,
+};
+
+// 0x43e308..0x43e56d: whether the prop would still be admitted; *far_out as the squad link's far flag.
+static int actor_prop_still_admitted(datum_index actor_index, uint8_t *self, uint8_t *p, float distance_squared,
+    uint8_t *far_out)
 {
-    actor *self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    datum_index cur = self->first_prop;
-    datum_index best = (datum_index)0xffffffff;
-    datum_index second_best = (datum_index)0xffffffff;
-    float best_distance = 3.4028235e+38f;
-    float second_best_distance = 3.4028235e+38f;
-    int16_t match_count = 0;
+    datum_index owner_index = *(datum_index *)(p + 0x1c);
+    float radius = *(float *)(p + 0x20);
+    int16_t pinned_ticks = *(int16_t *)(p + 0x6a);
+    int16_t since_fired = *(int16_t *)(p + 0x76);
+    uint8_t *owner = 0;
 
-    (void)param_2;
+    *far_out = 0;
+    if (p[0x12e] != 0) {
+        return k_prop_admit_keep;
+    }
+    if (owner_index != k_datum_index_none) {
+        owner = (uint8_t *)actor_data->data + (owner_index & 0xffff) * 0x724;
+    }
+    if (owner != 0 && (owner[8] == 0 || owner[0x13] != 0)) {
+        return k_prop_admit_drop;
+    }
+    if (p[0x63] != 0 || pinned_ticks > 0) {
+        return k_prop_admit_keep;
+    }
+    if (distance_squared > 1600.0f) {
+        return k_prop_admit_drop;
+    }
+    if (p[0x127] != 0) {
+        datum_index encounter_index = *(datum_index *)(self + 0x34);
 
-    for (;;) {
-        prop *p;
-        float distance2;
-        actor *target = 0;
-        uint8_t is_candidate;
+        if (encounter_index != k_datum_index_none) {
+            uint8_t *encounter = (uint8_t *)encounter_data->data + (encounter_index & 0xffff) * 0x6c;
+            uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[*(datum_index *)(p + 0x18) & 0xffff].data;
+            int32_t reference = *(int32_t *)(encounter + 0x58);
+            uint8_t counts = 1;
+            uint8_t calm;
 
-        while (cur != (datum_index)0xffffffff) {
-            p = (prop *)((uint8_t *)prop_data->data + (cur & 0xffff) * sizeof(prop));
-            if (((3 < p->kind) && (p->kind < 6)) || (p->pair_index != (datum_index)0xffffffff)) {
-                cur = p->next_in_actor;
+            if (!(reference > *(int32_t *)(self + 0x3a0))) {
+                reference = *(int32_t *)(self + 0x3a0);
+            }
+            if (reference != -1) {
+                int32_t fired = *(int32_t *)(unit + 0x41c);
+
+                if (fired == -1 || fired < reference) {
+                    counts = 0;
+                }
+            }
+            calm = encounter[0x45] == 0 && encounter[0x44] == 0 && encounter[0x42] == 0;
+            if (!counts) {
+                return k_prop_admit_drop;
+            }
+            if (calm) {
+                return distance_squared < 225.0f ? k_prop_admit_keep : k_prop_admit_drop;
+            }
+        }
+        // 0x43e48d
+        if (radius > 0.0f) {
+            return k_prop_admit_keep;
+        }
+        {
+            uint8_t enemy = p[0x60];
+            float limit;
+
+            if (enemy && since_fired > 0x96) {
+                return k_prop_admit_drop;
+            }
+            if (actor_get_current_mode_combat_grade(actor_index) > 1) {
+                return k_prop_admit_drop;
+            }
+            limit = 16.0f;
+            if (!enemy && *(int16_t *)(self + 0x6a) < 3) {
+                limit = 64.0f;
+            }
+            return distance_squared < limit ? k_prop_admit_keep : k_prop_admit_drop;
+        }
+    }
+    // 0x43e4f5
+    if (p[0x60] != 0) {
+        *far_out = distance_squared > 36.0f;
+        return k_prop_admit_keep;
+    }
+    if (*(int16_t *)(self + 0x6e) >= 4) {
+        *far_out = 1;
+    } else if (self[0x1cc] == 0) {
+        *far_out = distance_squared > 16.0f;
+    } else {
+        *far_out = 0;
+    }
+    return distance_squared < 225.0f ? k_prop_admit_keep : k_prop_admit_drop;
+}
+
+datum_index actor_find_or_allocate_prop(datum_index actor_index, uint32_t object_index, char kind)
+{
+    uint8_t *self = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    datum_index cursor = *(datum_index *)(self + 0x50);
+    datum_index drop_choice = k_datum_index_none;
+    datum_index far_choice = k_datum_index_none;
+    float drop_distance = 3.4028234663852886e+38f;
+    float far_distance = 3.4028234663852886e+38f; // 0x672be0
+    int16_t same_kind_count = 0;
+    datum_index result;
+
+    while (cursor != k_datum_index_none) {
+        datum_index current = cursor;
+        uint8_t *p = (uint8_t *)prop_data->data + (cursor & 0xffff) * 0x138;
+        int16_t prop_kind = *(int16_t *)(p + 0x24);
+        float distance = *(float *)(p + 0x11c);
+        uint8_t far_flag;
+
+        cursor = *(datum_index *)(p + 0x08);
+        if ((prop_kind >= 4 && prop_kind <= 5) || *(datum_index *)(p + 0x0c) != k_datum_index_none) {
+            continue;
+        }
+        if (actor_prop_still_admitted(actor_index, self, p, distance * distance, &far_flag) == k_prop_admit_keep) {
+            if ((char)p[0x60] != kind) {
                 continue;
             }
-            break;
-        }
-
-        if (cur == (datum_index)0xffffffff) {
-            if ((best == (datum_index)0xffffffff) &&
-                ((second_best == (datum_index)0xffffffff) || (match_count < (int16_t)((kind != 0) * 2 + 4)) ||
-                 ((best = second_best), second_best == (datum_index)0xffffffff))) {
-                best = datum_new();
-            } else {
-                prop *reuse = (prop *)((uint8_t *)prop_data->data + (best & 0xffff) * sizeof(prop));
-                int16_t identifier = reuse->identifier;
-                uint32_t *clear;
-                int32_t n;
-
-                actor_replace_object_reference(actor_index);
-                actor_unlink_prop();
-
-                clear = (uint32_t *)reuse;
-                for (n = 0x4e; n != 0; n = n - 1) {
-                    *clear = 0;
-                    clear = clear + 1;
-                }
-                reuse->identifier = identifier;
+            same_kind_count++;
+            if (far_flag && far_distance > distance) {
+                far_choice = current;
+                far_distance = distance;
             }
-            actor_init_prop_from_object(best);
-            return best;
+        } else if (distance < drop_distance) {
+            drop_choice = current;
+            drop_distance = distance;
         }
-
-        distance2 = p->distance * p->distance;
-        if (p->owner_actor_index != (datum_index)0xffffffff) {
-            target = (actor *)((uint8_t *)actor_data->data + (p->owner_actor_index & 0xffff) * sizeof(actor));
-        }
-        is_candidate = 0;
-
-        if (p->is_parented == 0) {
-            /* fall through to eligibility scoring below */
-            if (target == 0 || (target->active != 0 && target->keep_unit_alive == 0)) {
-                if ((*((uint8_t *)p + 99) != 0) || (0 < *(int16_t *)((uint8_t *)p + 0x6a))) {
-                    goto tally;
-                }
-                if (distance2 <= 1600.0f) {
-                    if (p->is_vault == 0) {
-                        if (p->is_unit == 0) {
-                            if (target != 0 && target->unknown_6e < 4) {
-                                if ((target->unknown_1cc != 0) || (is_candidate = 1, distance2 <= 16.0f)) {
-                                    is_candidate = 0;
-                                }
-                            } else if (target != 0) {
-                                is_candidate = 1;
-                            }
-                            if (225.0f <= distance2) {
-                                goto score;
-                            }
-                        } else if (distance2 <= 36.0f) {
-                            is_candidate = 0;
-                        } else {
-                            is_candidate = 1;
-                        }
-                        goto tally;
-                    } else {
-                        uint8_t within_reach = 1;
-                        if ((target == 0) || (target->encounter_index == (datum_index)0xffffffff)) {
-                        no_encounter:
-                            if (0.0f < p->unknown_20) {
-                                goto tally;
-                            }
-                            {
-                                uint8_t unknown_60 = p->is_unit;
-                                if (((unknown_60 == 0) || (*(int16_t *)((uint8_t *)p + 0x76) < 0x97)) &&
-                                    (actor_get_current_mode_combat_grade(actor_index) < 2)) {
-                                    float threshold = 16.0f;
-                                    if ((unknown_60 == 0) && (target != 0) && (target->awareness_level < 3)) {
-                                        threshold = 64.0f;
-                                    }
-                                    if (distance2 < threshold) {
-                                        goto tally;
-                                    }
-                                }
-                            }
-                        } else {
-                            encounter *enc = (encounter *)((uint8_t *)encounter_data->data +
-                                                           (target->encounter_index & 0xffff) * sizeof(encounter));
-                            int32_t limit = (enc->unknown_58 <= target->unknown_3a0) ? target->unknown_3a0 : enc->unknown_58;
-                            uint8_t no_encounter_flags;
-
-                            if (limit != -1) {
-                                object *obj = *(object **)((uint8_t *)object_data->data + 8 +
-                                                           (p->object_index & 0xffff) * 0xc); // UNSURE, see header
-                                int32_t type_field = *(int32_t *)((uint8_t *)obj + 0x41c);
-                                if ((type_field == -1) || (type_field < limit)) {
-                                    within_reach = 0;
-                                }
-                            }
-                            no_encounter_flags = (enc->unknown_45 == 0) && (enc->unknown_44 == 0) && (enc->unknown_42 == 0);
-
-                            if (within_reach) {
-                                if (!no_encounter_flags) {
-                                    goto no_encounter;
-                                }
-                                if (distance2 < 225.0f) {
-                                    goto tally;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-    score:
-        if (p->distance < second_best_distance) {
-            second_best = cur;
-            second_best_distance = p->distance;
-        }
-        cur = p->next_in_actor;
-        continue;
-
-    tally:
-        if ((p->is_unit == kind) && (match_count = match_count + 1, is_candidate)) {
-            if (p->distance < best_distance) {
-                best = cur;
-                best_distance = p->distance;
-            }
-        }
-        cur = p->next_in_actor;
     }
+
+    result = drop_choice;
+    if (result == k_datum_index_none) {
+        result = far_choice;
+        if (result != k_datum_index_none && same_kind_count < (kind != 0 ? 6 : 4)) {
+            result = k_datum_index_none;
+        }
+    }
+    if (result == k_datum_index_none) {
+        result = datum_new(prop_data);
+    } else {
+        uint8_t *p = (uint8_t *)prop_data->data + (result & 0xffff) * 0x138;
+        int16_t salt = *(int16_t *)p;
+
+        actor_replace_object_reference(actor_index, 0xffffffff, result);
+        actor_unlink_prop(actor_index, result);
+        memset(p, 0, 0x138);
+        *(int16_t *)p = salt;
+    }
+    actor_init_prop_from_object(object_index, actor_index, result);
+    return result;
 }
 
 #if 0
