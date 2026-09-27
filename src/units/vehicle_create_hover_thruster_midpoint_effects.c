@@ -1,7 +1,7 @@
 // vehicle_create_hover_thruster_midpoint_effects  (Ghidra: already named)
 // address 0x574bc0, size 860 bytes
 // name confidence: 0.5 (cea-pdb hints via the "hover thrusters"/"midpoint" strings)
-// rewrite confidence: 0.15 -- mirrors vehicle_create_hover_thruster_effects.c's treatment for
+// rewrite confidence: 0.85 (REWRITTEN from objdump 0x574bc0..0x574f1c) -- mirrors vehicle_create_hover_thruster_effects.c's treatment for
 //   the same reasons (register-only marker/raycast buffers); this variant additionally
 //   computes a marker-to-hit "midpoint" position and passes a 4-string label set (kind == 4)
 //   to effect_new_with_color.
@@ -18,88 +18,90 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "projectiles.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
+extern random_seed effect_random_seed; // 0x00719cd4, passed in EDI
 
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
                                                 void *marker, uint32_t flags); // 0x4f6080
 extern real_vector3d *vector3d_randomize_direction(real_point3d *direction, real_vector3d *out,
-    void *seed, real lo, real hi); // 0x4cd1b0, UNSURE args
-extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta,
-                             uint32_t exclude_object, void *scratch); // 0x505880
-extern void effect_new_with_color(uint32_t effect, uint32_t param_2, void *param_3, int32_t kind,
-                          char **labels, void *midpoint_block, void *reflection_block,
-                          float param_8, float param_9, int32_t param_10, int32_t param_11,
-                          int32_t param_12); // 0x450980, this call site's variant (kind == 4)
+    void *seed, real lo, real hi); // 0x4cd1b0, EAX, EBX, EDI, stack
+extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
+    uint32_t exclude_object_index, collision_result *result); // 0x505880
+extern void effect_new_with_color(uint32_t effect, uint32_t creator, void *velocity, int32_t count,
+    char **names, real_point3d *points, real_vector3d *vectors, float a_scale, float b_scale,
+    int32_t color, int32_t tint, int32_t force); // 0x450980, this call site's shape
 
-// Spawns hover-thruster ground-effect visuals positioned at the midpoint between each "hover
-// thrusters" marker and the surface below it, scaled by vehicle speed (unit_data.unknown_338).
-// FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads EAX; unit_index arrive(s) on the stack (1 stack argument(s)).
+// REWRITTEN from objdump. Runs only with tag +0x3ec set and the throttle (+0x338) above 0. For each of up to
+//   15 "hover thrusters" markers (stride 0x6c: +0x3c forward, +0x60 position) the forward is randomized
+//   (lo 0, hi 15, seed 0x719cd4) and cast one unit from the marker (flags 0x61, excluding the unit). On a hit,
+//   v = -forward.k * (1 - t) * throttle, capped at 1 and skipped unless it is above 0. The tag +0x3ec effect
+//   spawns with four names: "incident", "normal" and "reflected" at the hit point, and "midpoint" halfway
+//   between the marker and the hit, which is given the reflected direction; both scales are v. The draft
+//   cast from an uninitialized array into a 20-byte buffer (the result is 0x50 bytes, so it overwrote the
+//   stack).
 // blam-cc: stack -> unit_index
 void vehicle_create_hover_thruster_midpoint_effects(uint32_t unit_index)
 {
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t markers[15 * 0x6c];
+    int16_t count;
+    int16_t i;
+    static char *names[4] = { "incident", "normal", "reflected", "midpoint" };
 
-    if (*(int32_t *)((uint8_t *)tag + 0x3ec) == -1 || unit->unknown_338 <= 0.0f) {
+    if (*(int32_t *)(tag + 0x3ec) == -1 || !(*(real *)(obj + 0x338) > 0.0f)) {
         return;
     }
+    count = (int16_t)object_get_node_local_transform(unit_index, "hover thrusters", markers, 0xf);
+    for (i = 0; i < count; i++) {
+        uint8_t *marker = markers + (int32_t)i * 0x6c;
+        real_point3d *marker_position = (real_point3d *)(marker + 0x60);
+        real_vector3d direction;
+        real_vector3d delta;
+        collision_result result;
+        real v;
 
-    {
-        uint8_t markers[68];
-        real_point3d marker_positions[16]; // local_660, UNSURE bound (0x1b floats/marker)
-        int16_t marker_count = (int16_t)object_get_node_local_transform(unit_index, "hover thrusters", markers, 0xf);
-        int32_t i;
+        vector3d_randomize_direction((real_point3d *)(marker + 0x3c), &direction, &effect_random_seed, 0.0f, 15.0f);
+        delta = direction;
+        if (!collision_test_movement_segment(0x61, marker_position, &delta, unit_index, &result)) {
+            continue;
+        }
+        v = -*(real *)(marker + 0x44) * (1.0f - result.t) * *(real *)(obj + 0x338);
+        if (v < 0.0f) {
+            continue;
+        }
+        if (v > 1.0f) {
+            v = 1.0f;
+        } else if (!(v > 0.0f)) {
+            continue;
+        }
+        {
+            real_point3d points[4];
+            real_vector3d vectors[4];
+            real twice_dot;
 
-        for (i = 0; i < marker_count; i++) {
-            real_point3d direction; // local_78c
-            uint8_t hit_scratch[20];
-
-            vector3d_randomize_direction(0, (real_vector3d *)&direction, 0, 0.0f, 15.0f); // UNSURE args/angle
-            if (collision_test_movement_segment(0x61, &marker_positions[i], (real_vector3d *)&direction, unit_index, hit_scratch) != 0) {
-                float fraction = *(float *)(hit_scratch + 0);
-                float intensity = (1.0f - fraction) * -direction.x * unit->unknown_338;
-
-                if (intensity >= 0.0f) {
-                    if (intensity > 1.0f) {
-                        intensity = 1.0f;
-                    }
-                    if (intensity > 0.0f) {
-                        real_point3d normal;
-                        real_vector3d incident, reflected;
-                        char *labels[4] = { "incident", "normal", "reflected", "midpoint" };
-                        real_point3d midpoint;
-                        float dot;
-
-                        normal.x = *(float *)(hit_scratch + 0x38); // UNSURE
-                        normal.y = *(float *)(hit_scratch + 0x34);
-                        normal.z = *(float *)(hit_scratch + 0x30);
-                        midpoint.x = (normal.x + marker_positions[i].x) * 0.5f;
-                        midpoint.y = (normal.y + marker_positions[i].y) * 0.5f;
-                        midpoint.z = (normal.z + marker_positions[i].z) * 0.5f;
-
-                        incident.i = -direction.x;
-                        incident.j = -direction.y;
-                        incident.k = -direction.z;
-                        dot = *(float *)(hit_scratch + 0x2c) * direction.x +
-                              *(float *)(hit_scratch + 0x28) * direction.y +
-                              *(float *)(hit_scratch + 0x24) * direction.z;
-                        dot += dot;
-                        reflected.i = direction.x - *(float *)(hit_scratch + 0x2c) * dot;
-                        reflected.j = direction.y - *(float *)(hit_scratch + 0x28) * dot;
-                        reflected.k = direction.z - *(float *)(hit_scratch + 0x24) * dot;
-
-                        {
-                            real_point3d midpoint_block[3] = { normal, midpoint, normal };
-                            real_vector3d reflection_block[3] = { incident, incident, reflected };
-                            effect_new_with_color(*(uint32_t *)((uint8_t *)tag + 0x3ec), 0xffffffff, 0, 4, labels,
-                                         midpoint_block, reflection_block, intensity, intensity, 0, 0, 1);
-                        }
-                    }
-                }
-            }
+            points[0] = result.point;
+            points[1] = result.point;
+            points[2] = result.point;
+            points[3].x = (result.point.x + marker_position->x) * 0.5f;
+            points[3].y = (result.point.y + marker_position->y) * 0.5f;
+            points[3].z = (result.point.z + marker_position->z) * 0.5f;
+            vectors[0].i = -direction.i;
+            vectors[0].j = -direction.j;
+            vectors[0].k = -direction.k;
+            vectors[1] = result.plane.normal;
+            twice_dot = result.plane.normal.k * direction.k + result.plane.normal.j * direction.j +
+                result.plane.normal.i * direction.i;
+            twice_dot = twice_dot + twice_dot;
+            vectors[2].i = direction.i - result.plane.normal.i * twice_dot;
+            vectors[2].j = direction.j - result.plane.normal.j * twice_dot;
+            vectors[2].k = direction.k - result.plane.normal.k * twice_dot;
+            vectors[3] = vectors[2];
+            effect_new_with_color(*(uint32_t *)(tag + 0x3ec), 0xffffffff, 0, 4, names, points, vectors, v, v,
+                0, 0, 1);
         }
     }
 }

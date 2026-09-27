@@ -1725,3 +1725,9 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - vehicle_calculate_lean_controls (0x572df0, type 2): REWRITTEN (0.15 -> 0.85). Drive/steer entries in the ESI buffer, then the roll-correcting torque about forward.
   - vehicle_update passes node_output as the third argument.
 - unit_update_marker_skid_effects (0x575460) REWRITTEN 0.25 -> 0.85: material_effects_play_at_marker now gets EAX = tag +0x3dc, the stack args in binary order (9/10, contact +0x70, &obj +0x98, intensity) and the EDX position / EDI offset locals. The draft passed the effect index as the tag and left the position/offset unset.
+- Collision-result stack overflows fixed (collision_test_movement_segment writes a 0x50-byte collision_result):
+  - vehicle_create_hover_thruster_effects (0x574900) REWRITTEN 0.2 -> 0.85 (20-byte buffer, wrong normal offsets, randomize args unset).
+  - vehicle_create_hover_thruster_midpoint_effects (0x574bc0) REWRITTEN 0.15 -> 0.85 (cast from an uninitialized array, 20-byte buffer, wrong point/vector blocks).
+  - unit_update_marker_traction_effects (0x575170) REWRITTEN 0.15 -> 0.85 (runs every vehicle tick: 20-byte buffer, wrong mass-point fields, t never read).
+  - actor_choose_random_point_near (0x40faf0) 0.2 -> 0.85 (first cast origin is the input point, 20-byte buffer, t at +0x14).
+  - actor_grenade_parabolic_path_clear: scratch 64 -> 0x50 bytes.

@@ -1,6 +1,6 @@
 // actor_choose_random_point_near  (Ghidra: actor_choose_random_point_near, renamed)
 // address 0x40faf0, size 436 bytes
-// name confidence: 0.45   rewrite confidence: 0.2
+// name confidence: 0.45   rewrite confidence: 0.85 (VERIFIED against objdump; cast origin and result FIXED)
 // evidence: phase-4 summary "chooses a randomized point within a given radius of the
 // actor, pulling it back toward the actor if the line to it is obstructed".
 // register convention: radius in the recognized stack param_1 (float), in/out point in ESI
@@ -22,8 +22,15 @@ extern const real_vector3d *global_up3d_pointer; // 0x00696720, UNSURE identity
 extern uint32_t random_seed_global; // 0x00719cd0, types/math.h
 extern double fcos(double x); // FCOS
 extern double fsin(double x); // FSIN
-extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch); // UNSURE signature
+#include "cache.h"
+#include "objects.h"
+#include "projectiles.h"
+extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
+    uint32_t exclude_object_index, collision_result *result); // 0x505880
 
+// FIXED (objdump 0x40fb4e..0x40fc38): the first cast runs from the input point up to the raised base
+//   (the draft started it at the base), the collision result is the full 0x50-byte record (the draft's
+//   20-byte buffer let the cast write past it on the stack), and the pull-back uses its t (+0x14), not +0.
 // blam-cc: ESI -> inout_point, stack -> radius
 void actor_choose_random_point_near(real_point3d *inout_point, float radius)
 {
@@ -31,7 +38,7 @@ void actor_choose_random_point_near(real_point3d *inout_point, float radius)
     real_point3d chosen;
     real_vector3d delta;
     float cos_angle, sin_angle;
-    uint8_t line_result[20];
+    collision_result line_result;
     float clear_fraction;
 
     base.x = global_up3d_pointer->i * 1.5f + inout_point->x;
@@ -54,7 +61,7 @@ void actor_choose_random_point_near(real_point3d *inout_point, float radius)
     delta.j = base.y - inout_point->y;
     delta.k = base.z - inout_point->z;
 
-    if (collision_test_movement_segment(0x23, &base, &delta, (uint32_t)-1, line_result) != 0) {
+    if (collision_test_movement_segment(0x23, inout_point, &delta, (uint32_t)-1, &line_result) != 0) {
         base = *inout_point;
     }
 
@@ -62,8 +69,8 @@ void actor_choose_random_point_near(real_point3d *inout_point, float radius)
     delta.j = chosen.y - base.y;
     delta.k = chosen.z - base.z;
 
-    if (collision_test_movement_segment(0x23, &base, &delta, (uint32_t)-1, line_result) != 0) {
-        clear_fraction = *(float *)&line_result[0] * radius - 0.1f;
+    if (collision_test_movement_segment(0x23, &base, &delta, (uint32_t)-1, &line_result) != 0) {
+        clear_fraction = line_result.t * radius - 0.1f;
         if (clear_fraction < 0.0f) {
             clear_fraction = 0.0f;
         }

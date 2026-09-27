@@ -1,7 +1,7 @@
 // unit_update_marker_traction_effects  (Ghidra: FUN_00575170; renamed from the phase2 proposal)
 // address 0x575170, size 750 bytes
 // name confidence: 0.35 (phase2 proposal at 0.35, matches functions.md summary)
-// rewrite confidence: 0.15 -- the animation-graph node-array traversal (iVar6/local_18, its own
+// rewrite confidence: 0.85 (REWRITTEN from objdump 0x575170..0x57545d) -- the animation-graph node-array traversal (iVar6/local_18, its own
 //   nested count+pointer sub-block at +0x68/+0x6c) and the per-physics-node record it indexes
 //   into (physics_tag+0x78, stride 0x80) are not documented in any header available to this
 //   module; reproduced with Ghidra's own locals rather than invented field names.
@@ -20,6 +20,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "projectiles.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -27,105 +28,107 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out); // 0x4cb970
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0
 extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m); // 0x4cbec0
-extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta,
-                             uint32_t exclude_object, void *scratch); // 0x505880
+extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
+    uint32_t exclude_object_index, collision_result *result); // 0x505880
 extern uint8_t lerp_find_threshold_byte(real lo, real hi, real threshold); // 0x4cf7a0, UNSURE signature
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward,
     datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint); // 0x543ce0, ESI, ECX, EAX, stack
 extern const real_point3d *global_zero_point3d_pointer; // 0x006966f8
 extern const real_vector3d *global_forward3d_pointer;   // 0x00696718
 
-// Updates a per-marker traction/wear value for each of the unit's contact points via surface
-// material tests, triggering a friction-spark light effect (Vehicle.suspension_sound, reused
-// here as the effect tag) once the aggregate change exceeds 0.3.
-// UNSURE: see file header -- the node-array traversal and per-node transform are not fully
-// resolved.
-// FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads EAX; object_index arrive(s) on the stack (1 stack argument(s)).
+// REWRITTEN from objdump. Needs the animation graph (tag +0x44) with a node array (graph +0x24 count, +0x28
+//   pointer). The object basis (matrix4x3_from_forward_up(up +0x80, forward +0x74) with position +0x5c) places
+//   each suspension entry (array +0x68 count, +0x6c pointer, stride 0x14: +0 contact index, +2 node, +4/+8 the
+//   extension range). Its physics mass point (physics +0x78, stride 0x80: +0x38 point, +0x50 normal) is
+//   transformed, and a segment (flags 0xc0a0, excluding the object) is cast along the normal from
+//   point + normal * (range_lo - physics +0x14 - (range_hi - range_lo)) for 2 * (range_hi - range_lo). The
+//   compression v = clamp((1 - t) * 2, 0, 1); the per-contact traction byte (+0x4f4 + i, 0xff = 1.0) becomes
+//   lerp_find_threshold_byte(0, 1, (v + old) / 2), and the largest rise v - old drives the suspension sound
+//   (tag +0x3bc) at clamp((rise - 0.3) * 1.6667, 0, 1) once it passes 0.3; returns 1 when the sound starts.
+//   The draft transformed the wrong mass-point fields, ignored physics +0x14 and the cast's result (t was
+//   always 0), and cast into a 20-byte buffer (the result is 0x50 bytes, so it overwrote the stack).
 // blam-cc: stack -> object_index
 uint32_t unit_update_marker_traction_effects(uint32_t object_index)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *graph;
+    uint8_t *node_array;
+    uint8_t *physics;
+    real_matrix4x3 basis;
+    real max_rise = 0.0f;
+    int16_t i;
 
-    if (*(int32_t *)((uint8_t *)tag + 0x44) == -1) { // tag->animation_graph.tag_id
+    if (*(int32_t *)(tag + 0x44) == -1) {
         return 0;
     }
-    {
-        uint8_t *graph_tag = tag_instances[*(uint32_t *)((uint8_t *)tag + 0x44) & 0xffff].data;
-        if (*(int32_t *)(graph_tag + 0x24) == 0) {
-            return 0;
+    graph = (uint8_t *)tag_instances[*(uint32_t *)(tag + 0x44) & 0xffff].data;
+    if (*(int32_t *)(graph + 0x24) == 0) {
+        return 0;
+    }
+    node_array = *(uint8_t **)(graph + 0x28);
+    if (node_array == 0) {
+        return 0;
+    }
+    physics = (uint8_t *)tag_instances[*(uint32_t *)(tag + 0x8c) & 0xffff].data;
+    matrix4x3_from_forward_up((real_vector3d *)(obj + 0x80), (real_vector3d *)(obj + 0x74), &basis);
+    basis.position = *(real_point3d *)(obj + 0x5c);
+
+    for (i = 0; (int32_t)i < *(int32_t *)(node_array + 0x68); i++) {
+        uint8_t *entry = *(uint8_t **)(node_array + 0x6c) + (int32_t)i * 0x14;
+        int16_t contact_index = *(int16_t *)entry;
+        uint8_t *mass_point;
+        uint8_t old_byte;
+        real old, range, offset, v, rise;
+        real_point3d point;
+        real_vector3d normal;
+        real_point3d origin;
+        real_vector3d delta;
+        collision_result result;
+
+        if (contact_index < 0 || (int32_t)contact_index >= *(int32_t *)(physics + 0x74) ||
+            *(int16_t *)(entry + 2) == -1) {
+            continue;
         }
-        {
-            uint8_t *node_array = *(uint8_t **)(graph_tag + 0x28);
-            uint8_t *physics_tag;
-            real_matrix4x3 basis;
-            float max_delta = 0.0f;
-            int32_t node_count;
-            int32_t i;
-
-            if (node_array == 0) {
-                return 0;
-            }
-            physics_tag = tag_instances[*(uint32_t *)((uint8_t *)tag + 0x8c) & 0xffff].data;
-
-            matrix4x3_from_forward_up(&obj->up, &obj->forward, &basis);
-            basis.position = obj->position;
-            node_count = *(int32_t *)(node_array + 0x68);
-
-            for (i = 0; i < node_count; i++) {
-                uint8_t *entry = *(uint8_t **)(node_array + 0x6c) + i * 0x14;
-                int16_t marker_index = *(int16_t *)entry;
-
-                if (marker_index >= 0 && marker_index < *(int32_t *)(physics_tag + 0x74) &&
-                    *(int16_t *)(entry + 2) != -1) {
-                    uint8_t traction = ((uint8_t *)obj)[0x4f4 + i]; // vehicle_data.contact_point_traction[i]
-                    uint8_t *physics_node = *(uint8_t **)(physics_tag + 0x78) + marker_index * 0x80;
-                    float weight = (traction == 0xff) ? 1.0f : (float)traction * 0.003921569f;
-                    real_point3d world_point;
-                    real_vector3d world_normal;
-                    real_vector3d delta;
-                    float k;
-                    uint8_t hit_scratch[20];
-                    float hit_fraction = 0.0f; // UNSURE: collision_test_movement_segment's out-param, not modeled
-                    uint8_t new_traction;
-
-                    matrix4x3_transform_point(&world_point, (real_point3d *)physics_node, &basis);
-                    matrix4x3_transform_normal(&world_normal, (real_vector3d *)(physics_node + 4), &basis);
-
-                    k = (*(float *)(entry + 4) - *(float *)(entry + 8));
-                    {
-                        float mid = (*(float *)(entry + 8) - 0.0f) - k; // UNSURE: local_14+0x14 unresolved
-                        world_point.x += world_normal.i * mid; // UNSURE
-                        world_point.y += world_normal.j * mid;
-                        world_point.z += world_normal.k * mid;
-                    }
-                    k = k + k;
-                    delta.i = world_normal.i * k;
-                    delta.j = world_normal.j * k;
-                    delta.k = world_normal.k * k;
-
-                    collision_test_movement_segment(0xc0a0, &world_point, &delta, object_index, hit_scratch);
-
-                    {
-                        float fVar4 = (1.0f - hit_fraction) + (1.0f - hit_fraction);
-                        float clamped_fVar4 = (fVar4 < 0.0f) ? 0.0f : (fVar4 > 1.0f ? 1.0f : fVar4);
-                        if (max_delta < clamped_fVar4 - weight) {
-                            max_delta = clamped_fVar4 - weight;
-                        }
-                        new_traction = lerp_find_threshold_byte(0.0f, 1.0f, (clamped_fVar4 + weight) * 0.5f);
-                        ((uint8_t *)obj)[0x4f4 + i] = new_traction;
-                    }
-                }
-            }
-
-            if (*(int32_t *)((uint8_t *)tag + 0x3bc) != -1 && max_delta > 0.3f) {
-                float scaled = (float)((max_delta - 0.3f) * 1.6666667f);
-                float clamped = (scaled < 0.0f) ? 0.0f : (scaled > 1.0f ? 1.0f : scaled);
-                sound_start_at_object_marker(object_index, (Point3D *)global_zero_point3d_pointer, (Vector3D *)global_forward3d_pointer,
-                    *(int32_t *)((uint8_t *)tag + 0x3bc), -1, clamped, 0); // 0x575424: ESI the object (stack arg), ECX *0x006966f8, EAX *0x00696718
-                return 1;
-            }
+        mass_point = *(uint8_t **)(physics + 0x78) + (int32_t)contact_index * 0x80;
+        old_byte = obj[0x4f4 + i];
+        old = old_byte == 0xff ? 1.0f : (real)old_byte * 0.003921569f;
+        matrix4x3_transform_point(&point, (real_point3d *)(mass_point + 0x38), &basis);
+        matrix4x3_transform_normal(&normal, (real_vector3d *)(mass_point + 0x50), &basis);
+        range = *(real *)(entry + 4) - *(real *)(entry + 8);
+        offset = *(real *)(entry + 8) - *(real *)(physics + 0x14) - range;
+        origin.x = normal.i * offset + point.x;
+        origin.y = normal.j * offset + point.y;
+        origin.z = normal.k * offset + point.z;
+        range = range + range;
+        delta.i = normal.i * range;
+        delta.j = normal.j * range;
+        delta.k = normal.k * range;
+        collision_test_movement_segment(0xc0a0, &origin, &delta, object_index, &result);
+        v = (1.0f - result.t) + (1.0f - result.t);
+        if (!(v >= 0.0f)) {
+            v = 0.0f;
+        } else if (!(v <= 1.0f)) {
+            v = 1.0f;
         }
+        rise = v - old;
+        if (rise > max_rise) {
+            max_rise = rise;
+        }
+        obj[0x4f4 + i] = lerp_find_threshold_byte(0.0f, 1.0f, (v + old) * 0.5f);
+    }
+
+    if (*(int32_t *)(tag + 0x3bc) != -1 && max_rise > 0.3f) {
+        real scale = (max_rise - 0.3f) * 1.6666667f;
+        if (!(scale >= 0.0f)) {
+            scale = 0.0f;
+        } else if (!(scale <= 1.0f)) {
+            scale = 1.0f;
+        }
+        // 0x575424: ESI the object (stack arg), ECX *0x006966f8, EAX *0x00696718
+        sound_start_at_object_marker(object_index, (Point3D *)global_zero_point3d_pointer,
+            (Vector3D *)global_forward3d_pointer, *(datum_index *)(tag + 0x3bc), -1, scale, 0);
+        return 1;
     }
     return 0;
 }

@@ -1,7 +1,7 @@
 // vehicle_create_hover_thruster_effects  (Ghidra: already named vehicle_create_hover_thruster_effects)
 // address 0x574900, size 682 bytes
 // name confidence: 0.55 (cea-pdb hints via the "hover thrusters"/"jet thrusters" strings)
-// rewrite confidence: 0.2 -- the object_marker arrays (local_6c0/auStack_660) and
+// rewrite confidence: 0.85 (REWRITTEN from objdump 0x574900..0x574bb0) -- the object_marker arrays (local_6c0/auStack_660) and
 //   collision_test_movement_segment's scratch output (local_710) are carried as raw byte buffers; only the
 //   fields this function actually reads from them are named.
 // evidence: types/tags.h Vehicle.effect (tag_id at absolute 0x3ec); types/units.h
@@ -20,91 +20,82 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "projectiles.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
+extern random_seed effect_random_seed; // 0x00719cd4, passed in EDI
 
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
                                                 void *marker, uint32_t flags); // 0x4f6080
 extern real_vector3d *vector3d_randomize_direction(real_point3d *direction, real_vector3d *out,
-    void *seed, real lo, real hi); // 0x4cd1b0, UNSURE: called here with 0 direction (register-only)
-extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta,
-                             uint32_t exclude_object, void *scratch); // 0x505880
-extern void effect_new_with_color(uint32_t effect, uint32_t param_2, void *param_3, int32_t kind,
-                          char **labels, void *normal_block, void *incident_block,
-                          float param_8, float param_9, int32_t param_10, int32_t param_11,
-                          int32_t param_12); // 0x450980, this call site's variant (kind == 3)
-                          // of the established 12-argument shape in
-                          // src/hs/hs_effect_spawn_at_location.c; UNSURE how the two shapes
-                          // reconcile into one real prototype.
+    void *seed, real lo, real hi); // 0x4cd1b0, EAX, EBX, EDI, stack
+extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
+    uint32_t exclude_object_index, collision_result *result); // 0x505880
+extern void effect_new_with_color(uint32_t effect, uint32_t creator, void *velocity, int32_t count,
+    char **names, real_point3d *points, real_vector3d *vectors, float a_scale, float b_scale,
+    int32_t color, int32_t tint, int32_t force); // 0x450980, this call site's shape
 
-// Spawns hover/jet-thruster exhaust visual effects at each "hover thrusters" and "jet
-// thrusters" marker of a vehicle, raycasting downward from each and, on a hit, spawning a
-// reflected damage-effect scaled by the unit's ground_lean/ground_contact_fraction fields.
-// FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads EAX; unit_index arrive(s) on the stack (1 stack argument(s)).
+// REWRITTEN from objdump. Up to 15 "hover thrusters" markers then 16 - n "jet thrusters" markers
+//   (marker stride 0x6c: +0x3c forward, +0x60 position). For each one the forward is randomized by up to
+//   0.2618 rad (seed 0x719cd4) and cast (flags 0x61, excluding the unit) for (lean * 6 + 2) world units,
+//   where lean is +0x4ec for hover markers and +0x4f0 for jets. On a hit, the tag +0x3ec effect spawns with
+//   three named vectors, "incident" (-direction), "normal" (the plane normal) and "reflected", all at the hit
+//   point, scaled by 1 - t. The draft cast into a 20-byte buffer (the result is 0x50 bytes, so it overwrote
+//   the stack) and read the normal from the wrong offsets.
 // blam-cc: stack -> unit_index
 void vehicle_create_hover_thruster_effects(uint32_t unit_index)
 {
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
-    vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t markers[16 * 0x6c];
+    int16_t hover_count;
+    int16_t total;
+    int16_t i;
+    static char *names[3] = { "incident", "normal", "reflected" };
 
-    if (*(int32_t *)((uint8_t *)tag + 0x3ec) == -1) {
+    if (*(int32_t *)(tag + 0x3ec) == -1) {
         return;
     }
+    hover_count = (int16_t)object_get_node_local_transform(unit_index, "hover thrusters", markers, 0xf);
+    total = (int16_t)(hover_count + (int16_t)object_get_node_local_transform(unit_index, "jet thrusters",
+        markers + hover_count * 0x6c, 0x10 - hover_count));
 
-    {
-        uint8_t markers[1632 + 96]; // local_6c0 (96) + auStack_660 (1632), one contiguous buffer
-        int16_t hover_count = (int16_t)object_get_node_local_transform(unit_index, "hover thrusters", markers, 0xf);
-        int16_t jet_count = (int16_t)object_get_node_local_transform(unit_index, "jet thrusters",
-                                                                      markers + hover_count * 0x6c,
-                                                                      0x10 - hover_count);
-        int32_t total = hover_count + jet_count;
-        int32_t i;
+    for (i = 0; i < total; i++) {
+        uint8_t *marker = markers + (int32_t)i * 0x6c;
+        real_vector3d direction;
+        real_vector3d delta;
+        collision_result result;
+        real length;
 
-        for (i = 0; i < total; i++) {
-            real_point3d direction;
-            real_vector3d scaled;
-            uint8_t hit_scratch[20];
-            float scale = (i < hover_count) ? vehicle->ground_lean : vehicle->ground_contact_fraction;
+        vector3d_randomize_direction((real_point3d *)(marker + 0x3c), &direction, &effect_random_seed, 0.0f,
+            0.2617994f);
+        length = (i < hover_count ? *(real *)(obj + 0x4ec) : *(real *)(obj + 0x4f0)) * 6.0f + 2.0f;
+        delta.i = direction.i * length;
+        delta.j = direction.j * length;
+        delta.k = direction.k * length;
+        if (collision_test_movement_segment(0x61, (real_point3d *)(marker + 0x60), &delta, unit_index, &result)) {
+            real_point3d points[3];
+            real_vector3d vectors[3];
+            real twice_dot;
+            float scale;
 
-            vector3d_randomize_direction(0, (real_vector3d *)&direction, 0, 0.0f, 0.26179939f); // UNSURE args
-            scale = scale * 6.0f + 2.0f;
-            scaled.i = direction.x * scale;
-            scaled.j = direction.y * scale;
-            scaled.k = direction.z * scale;
-
-            if (collision_test_movement_segment(0x61, (real_point3d *)(markers + i * 0x6c), &scaled, unit_index, hit_scratch) != 0) {
-                real_vector3d incident, normal, reflected;
-                char *labels[3] = { "incident", "normal", "reflected" };
-                float dot;
-
-                incident.i = -direction.x;
-                incident.j = -direction.y;
-                incident.k = -direction.z;
-
-                normal.i = *(float *)(hit_scratch + 0x38); // UNSURE, see file header
-                normal.j = *(float *)(hit_scratch + 0x34);
-                normal.k = *(float *)(hit_scratch + 0x30);
-
-                dot = *(float *)(hit_scratch + 0x2c) * direction.x + *(float *)(hit_scratch + 0x28) * direction.y +
-                      *(float *)(hit_scratch + 0x24) * direction.z;
-                dot += dot;
-                reflected.i = direction.x - *(float *)(hit_scratch + 0x2c) * dot;
-                reflected.j = direction.y - *(float *)(hit_scratch + 0x28) * dot;
-                reflected.k = direction.z - *(float *)(hit_scratch + 0x24) * dot;
-
-                {
-                    // normal_block repeats "normal" three times and incident_block holds
-                    // {incident, a second copy of normal, reflected}, matching the original's
-                    // literal (redundant) field copies.
-                    real_vector3d normal_block[3] = { normal, normal, normal };
-                    real_vector3d incident_block[3] = { incident, normal, reflected };
-                    float fraction = *(float *)(hit_scratch + 0);
-                    effect_new_with_color(*(uint32_t *)((uint8_t *)tag + 0x3ec), 0xffffffff, 0, 3, labels,
-                                 normal_block, incident_block, 1.0f - fraction, 1.0f - fraction, 0, 0, 1);
-                }
-            }
+            points[0] = result.point;
+            points[1] = result.point;
+            points[2] = result.point;
+            vectors[0].i = -direction.i;
+            vectors[0].j = -direction.j;
+            vectors[0].k = -direction.k;
+            vectors[1] = result.plane.normal;
+            twice_dot = result.plane.normal.i * direction.i + result.plane.normal.j * direction.j +
+                result.plane.normal.k * direction.k;
+            twice_dot = twice_dot + twice_dot;
+            vectors[2].i = direction.i - result.plane.normal.i * twice_dot;
+            vectors[2].j = direction.j - result.plane.normal.j * twice_dot;
+            vectors[2].k = direction.k - result.plane.normal.k * twice_dot;
+            scale = 1.0f - result.t;
+            effect_new_with_color(*(uint32_t *)(tag + 0x3ec), 0xffffffff, 0, 3, names, points, vectors,
+                scale, scale, 0, 0, 1);
         }
     }
 }

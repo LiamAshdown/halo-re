@@ -47,7 +47,7 @@ uint8_t actor_grenade_parabolic_path_clear(real_vector3d *initial_velocity, datu
     real t;
     real previous_t;
     uint8_t clear;
-    uint8_t scratch[64];
+    uint8_t scratch[0x50]; // collision_result (0x50 bytes; [esp+0x60] in 0x42b67b), was 64 and overflowed
     int16_t i;
 
     nearby_count = actor_gather_nearby_grenade_targets(source_actor_index, 32, entries);
