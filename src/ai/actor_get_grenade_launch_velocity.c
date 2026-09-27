@@ -1,6 +1,6 @@
 // actor_get_grenade_launch_velocity  (Ghidra: actor_get_grenade_launch_velocity, renamed)
 // address 0x410980, size 221 bytes
-// name confidence: 0.4   rewrite confidence: 0.45
+// name confidence: 0.4   rewrite confidence: 0.85 (verified vs objdump 0x410980..0x410a5c)
 // evidence: indexes the 0x44-stride grenade type table hanging off the globals block at
 //   0x00746fa0+300 by the grenade type in AX, follows entry+0x40 to a projectile tag, asks
 //   the ballistics solver 0x4beec0 for a solution and then scales the caller direction

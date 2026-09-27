@@ -1,6 +1,6 @@
 // actor_solve_grenade_lob  (Ghidra: actor_solve_grenade_lob, renamed)
 // address 0x410780, size 499 bytes
-// name confidence: 0.5   rewrite confidence: 0.45
+// name confidence: 0.5   rewrite confidence: 0.85 (FIXED from objdump 0x410906: the path check gets EAX velocity, ECX actor, EDX point)
 // evidence: it reads ActorVariant.grenade_type (0x180), walks the same 0x44-stride grenade
 //   type table as actor_get_grenade_launch_velocity @0x410980 to a projectile tag, asks the
 //   ballistics solver 0x4beec0 for a throw, checks the throw is forward-facing and commits
@@ -36,9 +36,9 @@ extern uint8_t projectile_get_aiming_vector(real_point3d *target, real *speed_in
     uint8_t use_high_arc, real_vector3d *out_direction, real *out_speed,
     real *out_time_or_fraction, real *out_range_or_length, uint8_t *out_used_straight_line);
     // 0x4beec0, src/ai; blam-cc: ECX target, EAX speed_in, the rest on the stack
-extern uint8_t actor_grenade_parabolic_path_clear(float arc, float gravity, uint32_t context, uint32_t in_vehicle);  // SIGNATURE-CONFLICT: this call site disagrees with the form the rest of
-  // src/ai uses for this address; kept local. See src/ai/README.md.
-// src/ai/actor_attempt_grenade_throw.c passes a real_point3d * as the second argument.     // 0x42b5d0, not yet rewritten
+extern uint8_t actor_grenade_parabolic_path_clear(real_vector3d *initial_velocity, datum_index source_actor_index,
+    real_point3d *start_position, real total_time, real vertical_acceleration, datum_index exclude_object_index,
+    uint8_t wide_mask); // 0x42b5d0, EAX, ECX, EDX, stack
 
 // blam-cc: stack -> actor_index, point
 // Solves a grenade lob at the given point and commits it only when the resulting throw is
@@ -53,6 +53,7 @@ uint32_t actor_solve_grenade_lob(datum_index actor_index, real_point3d *point)
     void *projectile_definition;
     uint32_t projectile_tag;
     real_vector3d direction;
+    real_vector3d velocity;
     float speed;
     float arc;
     float gravity;
@@ -94,14 +95,18 @@ uint32_t actor_solve_grenade_lob(datum_index actor_index, real_point3d *point)
         return 0;
     }
 
-    // The original computes direction scaled by speed into three dead locals here; nothing
-    // ever reads them back, so they are dropped.
+    // 0x4108be: the launch velocity (direction * speed) and the gravity the arc falls under
+    velocity.i = direction.i * speed;
+    velocity.j = direction.j * speed;
+    velocity.k = direction.k * speed;
     gravity = (flat != 0) ? 0.0f
                           : -(world_gravity_scale *
                               *(float *)((uint8_t *)projectile_definition + 0x1cc));
 
-    if (actor_grenade_parabolic_path_clear(arc, gravity, *(uint32_t *)self->unknown_6b8,
-                     (uint32_t)(self->active_unit_index != (datum_index)0xffffffff)) == 0) {
+    // 0x410906: EAX the velocity, ECX the actor, EDX the throw point
+    if (actor_grenade_parabolic_path_clear(&velocity, actor_index, point, arc, gravity,
+                                           *(datum_index *)self->unknown_6b8,
+                                           (uint8_t)(self->active_unit_index != (datum_index)0xffffffff)) == 0) {
         return 0;
     }
 

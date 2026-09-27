@@ -1,6 +1,6 @@
 // actor_commit_grenade_toss  (Ghidra: actor_commit_grenade_toss, renamed)
 // address 0x411180, size 295 bytes
-// name confidence: 0.4   rewrite confidence: 0.15
+// name confidence: 0.4   rewrite confidence: 0.9
 // evidence: phase-4 summary "computes and commits the final grenade toss parameters once a
 // valid landing solution has been accepted"; on success writes actor.grenade_impact_point,
 // actor.unknown_6b4/6b8/6bc/6c0/6c4/6c8 and clears actor.unknown_6a1.
@@ -24,43 +24,45 @@ extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 
 
-extern uint8_t actor_get_grenade_launch_velocity(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_get_grenade_launch_velocity at 0x410980
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern uint8_t actor_grenade_parabolic_path_clear(float param_1, real_point3d *point, uint32_t param_3, uint32_t param_4);
+extern uint8_t actor_get_grenade_launch_velocity(int16_t grenade_type, real_vector3d *direction, void *param_1,
+    float range, real_point3d *point, int32_t param_4, float *speed, void *param_6, real_vector3d *out_velocity,
+    float *out_gravity); // 0x410980, AX, ESI, stack
+extern uint8_t actor_grenade_parabolic_path_clear(real_vector3d *initial_velocity, datum_index source_actor_index,
+    real_point3d *start_position, real total_time, real vertical_acceleration, datum_index exclude_object_index,
+    uint8_t wide_mask); // 0x42b5d0, EAX, ECX, EDX, stack
 
-// blam-cc: EBX -> actor_index; point/object handle/param_3 are Ghidra-recognized parameters
+// REWRITTEN from objdump 0x411180..0x4112a6: solve a throw from the actor's position at the point (variant grenade
+//   type +0x180, range +0x190), check its arc is clear of everything but `exclude`, then commit it: impact point
+//   +0x6a8, target prop +0x6b4, excluded object +0x6b8, direction +0x6bc, speed +0x6c8, +0x6a1 cleared. The draft
+//   called both helpers without their register operands.
+// blam-cc: EBX -> actor_index, stack -> point, target_prop, exclude_object
 uint32_t actor_commit_grenade_toss(datum_index actor_index, real_point3d *point, uint32_t object_handle, uint32_t param_3)
 {
-    actor *self;
-    ActorVariant *variant;
-    real_point3d *original_point = point;
-    real_vector3d aim_vector;
-    float out_a, out_b;
-    grenade_solution solution;
-    uint8_t ok;
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *variant = (uint8_t *)tag_instances[*(datum_index *)(a + 0x5c) & 0xffff].data;
+    real_point3d origin = *(real_point3d *)(a + 0x120);    // [esp+0x14]
+    real_vector3d direction;                               // [esp+0x20]
+    real_vector3d velocity;                                // [esp+0x2c]
+    float speed;                                           // [esp+0x10]
+    float flight_time;                                     // [esp+0xc]
+    float gravity;                                         // [esp+0x3c], the argument slot reused
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    variant = (ActorVariant *)tag_instances[self->actor_variant_tag & 0xffff].data;
-
-    aim_vector.i = self->aim_origin.x;
-    aim_vector.j = self->aim_origin.y;
-    aim_vector.k = self->aim_origin.z;
-
-    ok = actor_get_grenade_launch_velocity(&aim_vector, *(float *)((uint8_t *)variant + 400), point, 0,
-                       &out_a, &out_b, &solution, &point);
-    if (ok != 0 && actor_grenade_parabolic_path_clear(out_b, point, param_3, self->active_unit_index != (datum_index)k_datum_index_none) != 0) {
-        self->grenade_impact_point = *original_point;
-        self->unknown_6b4 = object_handle;
-        self->grenade_unknown_6bc = solution.unknown_10;
-        self->grenade_unknown_6c0 = solution.unknown_14;
-        *(uint32_t *)self->unknown_6b8 = param_3; // originally `param_3` re-stored unchanged
-        self->grenade_unknown_6c8 = out_a;
-        self->unknown_6a1[0] = 0;
-        self->grenade_unknown_6c4 = solution.unknown_0c;
-        return 1;
+    if (!actor_get_grenade_launch_velocity(*(int16_t *)(variant + 0x180), &direction, &origin,
+                                           *(float *)(variant + 0x190), point, 0, &speed, &flight_time,
+                                           &velocity, &gravity)) {
+        return 0;
     }
-    return 0;
+    if (!actor_grenade_parabolic_path_clear(&velocity, actor_index, &origin, flight_time, gravity, param_3,
+                                            (uint8_t)(*(datum_index *)(a + 0x158) != k_datum_index_none))) {
+        return 0;
+    }
+    *(real_point3d *)(a + 0x6a8) = *point;
+    *(uint32_t *)(a + 0x6b4) = object_handle;
+    *(real_vector3d *)(a + 0x6bc) = direction;
+    *(uint32_t *)(a + 0x6b8) = param_3;
+    *(float *)(a + 0x6c8) = speed;
+    a[0x6a1] = 0;
+    return 1;
 }
 
 #if 0

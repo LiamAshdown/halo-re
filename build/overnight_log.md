@@ -1402,3 +1402,6 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - actor_compute_grenade_throw_vector 0x410a60 REWRITTEN (0.35 -> 0.85): takes the grenade position (stack arg 1)
   and hands it to the lob solver (the draft passed NULL -> crash on the first AI grenade), impact check gets its
   point, the 30-degree facing clamp re-derived.
+- Grenade path: actor_solve_grenade_lob 0x410780 and actor_commit_grenade_toss 0x411180 (0.15 -> 0.9) passed
+  no register operands to the arc check 0x42b5d0 (velocity EAX, actor ECX, start EDX) and to the launch-velocity
+  solver; fixed / rewritten. actor_get_grenade_launch_velocity 0x410980 verified.
