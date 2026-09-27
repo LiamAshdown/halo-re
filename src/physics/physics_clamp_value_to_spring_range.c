@@ -2,7 +2,7 @@
 //   out/phase4/physics_functions.md's own summary of its caller, 0x50b460: "Attempts to move a
 //   clamped scalar value toward a target using physics_clamp_value_to_spring_range")
 // address 0x50b370, size 227 bytes
-// name confidence: 0.35   rewrite confidence: 0.3
+// name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x50b370..0x50b452; rate offsets probed)
 // evidence: out/phase4/physics_functions.md summary of this address ("Clamps a scalar
 //   spring-related value against direction-dependent upper and lower limits scaled by a rate
 //   parameter"); types/physics.h physics_scalar_rates field order (maximum_positive,

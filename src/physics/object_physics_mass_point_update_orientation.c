@@ -3,7 +3,7 @@
 //   call family: "object_physics_* / mass_point_*", since the fallback values this function is
 //   handed are &object->forward/&object->up, not an antenna widget)
 // address 0x5096f0, size 227 bytes
-// name confidence: 0.35   rewrite confidence: 0.3
+// name confidence: 0.35   rewrite confidence: 0.85 (REWRITTEN 2026-09-27 static loop from objdump 0x5096f0..0x5097d2: EAX axis, EDI/ESI outputs, stack source forward/up; forward renormalized)
 // evidence: out/phase4/physics_functions.md summary ("Rotates and re-orthonormalizes a vertex's
 //   forward/twist orientation vectors by a small axis-angle rotation each tick"); its one call
 //   site (out/phase2/physics/01.md, inside 0x5097e0/object_physics_integrate_and_test_at_rest)
@@ -45,12 +45,17 @@ void object_physics_mass_point_update_orientation(real_vector3d *axis, real_vect
     real length = vector3d_normalize_with_length(&local_axis);
 
     if (length != 0.0f) {
+        // 0x509728..0x50976c (REWRITTEN 2026-09-27): the rotation is applied to the SOURCE vectors (stack arguments:
+        // fallback_forward -> EDI output, fallback_up -> ESI output), and the rotated forward is renormalized
+        // (0x509760) before up is orthogonalized against it. The draft rotated the outputs in place and skipped the
+        // forward renormalization.
         real_matrix4x3 rotation;
         matrix4x3_from_axis_angle(&rotation, &local_axis, (real)sin((double)length), (real)cos((double)length));
-        matrix4x3_transform_vector(forward, forward, &rotation);
-        matrix4x3_transform_vector(up, up, &rotation);
+        matrix4x3_transform_vector(forward, fallback_forward, &rotation);
+        matrix4x3_transform_vector(up, fallback_up, &rotation);
+        vector3d_normalize_with_length(forward);
 
-        real neg_dot = -(forward->i * up->i + up->j * forward->j + forward->k * up->k);
+        real neg_dot = -(forward->k * up->k + up->j * forward->j + forward->i * up->i);
         up->i = neg_dot * forward->i + up->i;
         up->j = neg_dot * forward->j + up->j;
         up->k = neg_dot * forward->k + up->k;
