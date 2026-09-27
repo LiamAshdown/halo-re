@@ -1,6 +1,6 @@
 // vector3d_rotate_toward_bounded  (Ghidra: FUN_00564ae0 / FUN_00565040; renamed for this rewrite)
 // address 0x564ae0, size 1643 bytes (0x564ae0..0x56514a)
-// name confidence: 0.45   rewrite confidence: 0.4
+// name confidence: 0.45   rewrite confidence: 0.9 (VERIFIED end to end against objdump 0x564ae0..0x56514a)
 //
 // NOT TWO FUNCTIONS. modules.json / the phase-2 pass list this as two separate addresses,
 // 0x564ae0 (1376 bytes) and 0x565040 (267 bytes, inherited the misleading name

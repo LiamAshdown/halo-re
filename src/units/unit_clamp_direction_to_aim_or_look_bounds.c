@@ -1,5 +1,5 @@
 // unit_clamp_direction_to_aim_or_look_bounds  (Ghidra: FUN_005697a0)
-// address 0x5697a0, size 451 bytes, name confidence 0.4, rewrite confidence 0.25
+// address 0x5697a0, size 451 bytes, name confidence 0.4, rewrite confidence 0.9 (REWRITTEN from objdump 0x5697a0..0x569962 (local projection was scrambled))
 // functions.md: "Tests a world-space direction against the unit's aiming or looking angle
 // limits (selected by a flag), clamps it into range, and transforms the corrected direction
 // back through the unit's orientation."
@@ -38,74 +38,69 @@ extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal
 //   [ebp+0xc] the flag) and writes the clamped direction back through the first (EAX = ECX = [ebp+8] at the
 //   final matrix4x3_transform_normal call). The draft's third `out` parameter read the caller's stack junk.
 // blam-cc: EDI -> unit_index, stack -> world_direction, use_aiming_bounds
+// REWRITTEN from objdump 0x5697a0..0x569962. The unit basis is forward F / up U from object_get_orientation and
+//   left = U x F (at the zero position, scale 1). The direction goes into that frame as (F.d, L.d, U.d); yaw =
+//   atan2(y, x), pitch = atan2(z, |xy|). Both are clamped to the bounds (aiming +0x2b8 when use_aiming_bounds,
+//   else looking +0x2c8; valid bytes +0x2b6 / +0x2b7), and only a clamped direction is rebuilt as
+//   (cos y cos p, sin y cos p, sin p) and rotated back into world space in place. The draft projected with
+//   scrambled components (e.g. up.k * dx + forward.j * dz), so AI look/aim pitches came out wrong and pinned to
+//   the bounds: crewmen stared straight up.
 uint8_t unit_clamp_direction_to_aim_or_look_bounds(uint32_t unit_index, real_vector3d *world_direction,
                                                    uint8_t use_aiming_bounds)
 {
-    object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
     uint8_t clamped = 0;
     uint8_t valid;
     float *bounds;
+    real_matrix4x3 m;
+    real_vector3d local;
+    float x, y, z, yaw, pitch;
 
-    if (!use_aiming_bounds) {
-        valid = unit->looking_bounds_valid;
-        bounds = unit->looking_bounds;
+    if (use_aiming_bounds) {
+        valid = unit[0x2b6];
+        bounds = (float *)(unit + 0x2b8);
     } else {
-        valid = unit->aiming_bounds_valid;
-        bounds = unit->aiming_bounds;
+        valid = unit[0x2b7];
+        bounds = (float *)(unit + 0x2c8);
     }
     if (!valid) {
         return 0;
     }
 
-    real_matrix4x3 m;
     m.scale = 1.0f;
-    real_vector3d up;
-    object_get_orientation(&m.forward, unit_index, &up);
-    m.left.i = m.forward.j * up.k - m.forward.k * up.j;
-    m.left.j = up.i * m.forward.k - m.forward.i * up.k;
-    m.left.k = m.forward.i * up.j - m.forward.j * up.i;
-    m.up = up;
-    m.position = *global_zero_vector3d_pointer; // 0x56981f: ECX = [0x6966f8]
+    object_get_orientation(&m.forward, unit_index, &m.up);
+    m.left.i = m.forward.k * m.up.j - m.forward.j * m.up.k;
+    m.left.j = m.up.k * m.forward.i - m.forward.k * m.up.i;
+    m.left.k = m.forward.j * m.up.i - m.up.j * m.forward.i;
+    m.position = *global_zero_vector3d_pointer;
 
-    float dx = world_direction->i, dy = world_direction->j, dz = world_direction->k;
-    float yaw_x = up.k * dx + m.forward.j * dz + m.forward.k * dy;
-    float yaw_y = m.left.k * dz + m.left.j * dy + m.left.i * dx;
-    float yaw = (float)atan2(yaw_y, yaw_x);
-    float pitch = (float)atan2(m.up.i * dx + up.j * dz + up.k * dy,
-                                 (double)sqrt((double)(yaw_x * yaw_x + yaw_y * yaw_y)));
+    x = m.forward.j * world_direction->j + m.forward.k * world_direction->k + m.forward.i * world_direction->i;
+    y = m.left.i * world_direction->i + m.left.j * world_direction->j + m.left.k * world_direction->k;
+    z = m.up.j * world_direction->j + m.up.k * world_direction->k + m.up.i * world_direction->i;
+    yaw = (float)atan2((double)y, (double)x);
+    pitch = (float)atan2((double)z, sqrt((double)(y * y + x * x)));
 
-    if (bounds[0] <= yaw) {
-        if (yaw <= bounds[1]) {
-            goto pitch_check;
-        }
-        yaw = bounds[1];
-    } else {
+    if (!(yaw >= bounds[0])) {
         yaw = bounds[0];
-    }
-    clamped = 1;
-
-pitch_check:
-    if (bounds[2] <= pitch) {
-        if (pitch <= bounds[3]) {
-            if (!clamped) {
-                return 0;
-            }
-        } else {
-            clamped = 1;
-            pitch = bounds[3];
-        }
-    } else {
         clamped = 1;
+    } else if (!(yaw <= bounds[1])) {
+        yaw = bounds[1];
+        clamped = 1;
+    }
+    if (!(pitch >= bounds[2])) {
         pitch = bounds[2];
+        clamped = 1;
+    } else if (!(pitch <= bounds[3])) {
+        pitch = bounds[3];
+        clamped = 1;
+    } else if (!clamped) {
+        return 0;
     }
 
-    float cos_pitch = (float)fcos((double)pitch);
-    float cos_yaw = (float)fcos((double)yaw);
-    float sin_yaw = (float)fsin((double)yaw);
-    float sin_pitch = (float)fsin((double)pitch);
-    real_vector3d local_dir = { cos_yaw * cos_pitch, sin_yaw * cos_pitch, sin_pitch };
-    matrix4x3_transform_normal(world_direction, &local_dir, &m); // in place
+    local.i = (float)fcos((double)yaw) * (float)fcos((double)pitch);
+    local.j = (float)fsin((double)yaw) * (float)fcos((double)pitch);
+    local.k = (float)fsin((double)pitch);
+    matrix4x3_transform_normal(world_direction, &local, &m);
     return clamped;
 }
 
