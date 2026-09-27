@@ -29,7 +29,7 @@ extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types
 // object position through the pointer in EAX and leaves that same pointer in EAX on return;
 // the object index is in ECX. Ghidra binds a different subset of the two operands at each call
 // site in this module, so the declaration is left unprototyped.
-extern real_point3d *object_get_position();
+extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX out, ECX object
 
 // Fills out_position with a blend-mode-dependent offset position for a unit marker/attachment
 // point. Mode 0 just copies the object's position. Any other mode seeds out_position from
@@ -50,7 +50,7 @@ void unit_compute_marker_offset_position(uint32_t object_index, real_vector3d *r
     float fraction;
 
     if (mode == 0) {
-        object_get_position(object_index, out_position);
+        object_get_position(out_position, object_index); // 0x55a1a3: EAX = out (esi), ECX = the unit
     } else {
         *out_position = *(real_point3d *)param_1;
         if (mode == 3) {

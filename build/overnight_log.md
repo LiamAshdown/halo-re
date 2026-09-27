@@ -1617,3 +1617,12 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   and hs_damage_apply_with_sound -- the callee wrote 12 bytes through the object index (crash / corruption).
   Checked benign: effect_new_with_color (typedef only), render_objects_collect -> structure_bsp_collect_visible_objects
   (callbacks and bounds order verified against objdump, frustum test ECX/EDX/stack).
+- unit_compute_marker_offset_position: object_get_position (out, index) -- the unprototyped call wrote through the index.
+- object_start_animation: animation lookup gets the graph TAG (EAX) and the name (EBX), print gets its arguments.
+- NEW scan scratchpad/unproto_order.py (calls through unprototyped externs with arguments): only biped_update_facing's
+  cross products remain; its ordinary (non-flying) path was checked against objdump and matches.
+- OPEN (UI / MP, not a10): string_format_wide_va_bounded is (count EDX, dest, format, ...) but 9 files declare it
+  (dest, format, ...) and write into their format literal: game_engine_build_end_game_result_text,
+  game_engine_build_kill_feed_message_text, game_time_format_minutes_seconds, input_print_bound_controls,
+  player_profile_1wide_list_update, server_list_menu_update, ui_network_host_setup_refresh,
+  game_variant_list_matching_substring, server_browser_list_row_populate (counts per call in scratchpad/fmtcount.py).

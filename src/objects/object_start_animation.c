@@ -29,7 +29,7 @@
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern int16_t animation_graph_find_animation_by_name(void *model, char *name); // 0x4d6ab0, UNSURE: see file header
+extern int16_t animation_graph_find_animation_by_name(datum_index animation_graph_tag, const char *name); // 0x4d6ab0, EAX, EBX
 extern void console_print_va(const char *format, ...); // 0x4c6920
 
 void object_start_animation(uint32_t object_index, datum_index graph_tag, char *name, int16_t requested_frame)
@@ -38,7 +38,8 @@ void object_start_animation(uint32_t object_index, datum_index graph_tag, char *
     if ((object_index != k_datum_index_none) && (graph_tag != k_datum_index_none)) {
         object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
         void *graph = tag_instances[graph_tag & 0xffff].data;
-        int16_t animation_index = animation_graph_find_animation_by_name(graph, name);
+        // 0x4fa910: EAX = the graph TAG handle (edi), EBX = the name; the draft passed the tag data pointer
+        int16_t animation_index = animation_graph_find_animation_by_name(graph_tag, name);
 
         if (animation_index != -1) {
             uint8_t *nodes = *(uint8_t **)((uint8_t *)graph + 0x78);
@@ -63,7 +64,8 @@ void object_start_animation(uint32_t object_index, datum_index graph_tag, char *
             return;
         }
 
-        console_print_va("the animation '%s' doesn't exist in the graph '%s'");
+        console_print_va("the animation '%s' doesn't exist in the graph '%s'", name,
+            *(char **)((uint8_t *)&tag_instances[graph_tag & 0xffff] + 0x10)); // 0x4fa984: the tag instance name
     }
 }
 
