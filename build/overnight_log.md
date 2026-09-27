@@ -2090,3 +2090,30 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   soso + schi), node matrices at the camera with orthonormal axes. HALO_FP_PLAIN (draw without the FP depth range)
   was inconclusive (the normal near plane clips it). Diagnostics now also log clip-space position and the effect
   type (DIAG fpclip) at the draw; read them after the next session.
+
+## 2026-09-27 (loop, static only, user out) -- AI / weapon fixes from new checkers
+New scratchpad tools: offprobe.py (compile-time struct offset checks: `offprobe.py ai.h actor.field=0x46c ...`,
+comma-separated headers), constcheck.py (x87 constants a function uses that its C never mentions), bump.py (set a
+file's rewrite confidence with a note). All checkers now split on a line-start `#if 0` (a comment mentioning
+"#if 0" had truncated some files).
+FIXED (each proven against objdump):
+- actor_clear_target_state: the mode's target-cleared proc (+0x28: alert / guard) is tail-jumped with the actor on the
+  stack; C called it with no argument.
+- actor_replace_object_reference: tested/cleared secondary_action (+0x418) instead of active_movement.type (+0x46c),
+  so dropping a reference wiped the queued secondary action; the mode replace-reference proc (+0x20: flee, guard,
+  CONVERSE) takes (actor, old, new), C passed only the actor.
+- object_find_nearest_squad_member: swarm unit_index (+0x18) and component_index (+0x58) swapped.
+- actor_build_order_look: look duration missing the x30 seconds-to-ticks scale; direction never normalized in place.
+- weapon_trigger_fire_or_reload: charge / overload timers missing x30 (1 s charge became 1 tick).
+- ai_communication_record_line_played: speech stamp is the UNIT's +0x3f0 / +0x3fa (C wrote into ai_globals), tier
+  slots and line timers use the stamp, second timer = ftol(delay*30 + stamp).
+- encounter_squad_spawn_reinforcement: respawn timers (r*(max-min)+min)*30 from encounter +0x2c/+0x30 and squad
+  +0x8c/+0x90 (C: r+30).
+- unit_get_move_speed_for_range far branch out_b; unit_weapon_is_best_of_type returns 0 with no current weapon.
+VERIFIED at 0.85: speaker selection chain (rate_speaker, select_in_reference, select_by_team), placement flags,
+scripted action animation test, command status report, search-wait order, squad reinforcement processing, platoon
+propagation, engagement range, ranged attack vector, weapon zoom magnification, player busy test, seat occupancy,
+world-to-screen projection, actor type dispatchers 0x10 / 0x18.
+OPEN: the actor mode table +0x1c slot (get_look_weights(actor, out)) is reached through a computed base; its caller
+was not located. constcheck leftovers: hud_text_message_queue (0.08), console overlay, camera_debug (x30), vehicle
+hover / wing flex (not in a10), decal_place (stopgap).
