@@ -1,5 +1,5 @@
 // unit_recompute_seat_occupants  (Ghidra: FUN_0056ce30)
-// address 0x56ce30, size 223 bytes, name confidence 0.4, rewrite confidence 0.3
+// address 0x56ce30, size 223 bytes, name confidence 0.4, rewrite confidence 0.9 (verified against objdump 0x56ce30..0x56cf0e)
 // functions.md: "Recomputes which child object occupies the unit's primary and secondary
 // tracked seats (fields 0xc9/0xca) by scanning its list of attached children."
 // evidence: types/objects.h object.first_child_object (0x118), .next_object (0x114), .type

@@ -1,5 +1,5 @@
 // unit_refresh_targeting_flag_and_weapons  (Ghidra: FUN_00569bf0)
-// address 0x569bf0, size 158 bytes, name confidence 0.3, rewrite confidence 0.3
+// address 0x569bf0, size 158 bytes, name confidence 0.3, rewrite confidence 0.9 (verified against objdump 0x569bf0..0x569c8d)
 // functions.md: "Recomputes a control/targeting flag on the unit based on whether it has any
 // active target or seat references, then refreshes each carried weapon and the unit's occupant
 // tracking."

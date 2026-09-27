@@ -1,6 +1,6 @@
 // biped_update_animation_frame_trigger  (Ghidra: biped_update_animation_frame_trigger, renamed)
 // address 0x55eaa0, size 232 bytes
-// name confidence: 0.3   rewrite confidence: 0.2
+// name confidence: 0.3   rewrite confidence: 0.9
 // evidence: biped_data.unknown_4d0/unknown_4d1/unknown_508 match types/units.h ("frame counter
 //   0x55eb90 advances" / "the frame count it is compared against, loaded by 0x55eaa0" /
 //   "0x55eaa0 stores a 0/1 comparison result here").
@@ -17,31 +17,50 @@
 #include "objects.h"
 #include "units.h"
 
-extern int32_t __ftol(); // 0x6391b4, MSVC 7.1 CRT float-to-int truncation; the double is on the x87 stack
-
-// Compares a unit's animation timing-table entries against threshold and, if the gap between
-// them is positive, updates the biped's frame-tracking state (unknown_4d0/unknown_4d1) and a
-// comparison flag (unknown_508).
+// REWRITTEN from objdump 0x55eaa0..0x55eb87. Stack: threshold (seconds); ECX: the Biped tag; ESI: the biped object.
+//   With t0 / t1 / t2 = tag +0x3dc / +0x3e0 / +0x3e4 in ticks / 30: nothing before t0. Before t1 the fraction is
+//   (threshold - t0) / (t1 - t0) of tag +0x3d4 (phase 0); from t1 on it is threshold / (t2 - t1) of tag +0x3d8
+//   (phase 1 -- the binary does not subtract t1 there). With a positive span: +0x508 = phase, +0x4d0 = 0 and
+//   +0x4d1 = trunc(value * 30 * clamp(fraction, 0, 1)). The draft stored trunc(span) and ignored +0x3d4 / +0x3d8.
+// blam-cc: stack -> threshold, ECX -> timing_table (Biped tag), ESI -> object_base
 void biped_update_animation_frame_trigger(float threshold, uint8_t *timing_table, object *object_base)
 {
-    biped_data *biped = (biped_data *)((uint8_t *)object_base + k_unit_object_size);
+    uint8_t *biped = (uint8_t *)object_base;
     float t0 = *(float *)(timing_table + 0x3dc) * 0.033333335f;
     float t1 = *(float *)(timing_table + 0x3e0) * 0.033333335f;
-    float gap;
+    float numerator;
+    float span;
+    float value;
+    float fraction;
+    int16_t phase;
 
-    if (t0 > threshold) {
+    if (threshold < t0) {
         return;
     }
-    if (t1 > threshold) {
-        gap = t1 - t0;
+    if (!(threshold >= t1)) {
+        numerator = threshold - t0;
+        span = t1 - t0;
+        value = *(float *)(timing_table + 0x3d4);
+        phase = 0;
     } else {
-        gap = *(float *)(timing_table + 0x3e4) * 0.033333335f - t1;
+        numerator = threshold;
+        span = *(float *)(timing_table + 0x3e4) * 0.033333335f - t1;
+        value = *(float *)(timing_table + 0x3d8);
+        phase = 1;
     }
-    if (gap > 0.0f) {
-        biped->unknown_508 = (t1 <= threshold);
-        biped->unknown_4d0 = 0;
-        biped->unknown_4d1 = (int8_t)__ftol(gap);
+    value = value * 30.0f;
+    if (!(span > 0.0f)) {
+        return;
     }
+    fraction = numerator / span;
+    if (!(fraction >= 0.0f)) {
+        fraction = 0.0f;
+    } else if (!(fraction <= 1.0f)) {
+        fraction = 1.0f;
+    }
+    *(int16_t *)(biped + 0x508) = phase;
+    biped[0x4d0] = 0;
+    biped[0x4d1] = (uint8_t)(int32_t)(value * fraction); // __ftol
 }
 
 #if 0

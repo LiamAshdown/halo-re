@@ -1626,3 +1626,6 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   game_engine_build_kill_feed_message_text, game_time_format_minutes_seconds, input_print_bound_controls,
   player_profile_1wide_list_update, server_list_menu_update, ui_network_host_setup_refresh,
   game_variant_list_matching_substring, server_browser_list_row_populate (counts per call in scratchpad/fmtcount.py).
+- biped_update_animation_frame_trigger 0x55eaa0 REWRITTEN (0.2 -> 0.9; jump / landing timing from the biped movement
+  integrators): +0x4d1 = trunc(tag +0x3d4 / +0x3d8 * 30 * clamped fraction); the draft stored trunc(span).
+- unit_recompute_seat_occupants, unit_refresh_targeting_flag_and_weapons verified (0.9).
