@@ -1,6 +1,6 @@
 // main_switch_structure_bsp  (Ghidra: main_switch_structure_bsp, already named)
 // address 0x4749a0, size 902 bytes
-// name confidence: 0.8   rewrite confidence: 0.3
+// name confidence: 0.8   rewrite confidence: 0.85 (REWRITTEN 2026-09-28 against objdump 0x4749a0..0x474d2b (really the per-tick players update): all-dead test on +0x10 no_player_has_a_unit, fade-stage counter after the loop, byte store to 0x71973c.)
 // evidence: out/phase4/game_functions.md ("Per-tick handling of structure-BSP switch triggers:
 //   validates the requested BSP index and either logs an error or performs the switch"); CEA-pdb
 //   string match on this function's own two format strings. types/tags.h Scenario
@@ -44,7 +44,7 @@ extern uint16_t requested_structure_bsp_index; // 0x00719754, UNSURE name (low 1
                                                 //   larger record another module owns)
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern uint8_t global_007102d8;              // 0x007102d8, UNSURE identity
-extern int32_t global_0071973c;              // 0x0071973c, UNSURE identity
+extern uint8_t global_0071973c;              // 0x0071973c, UNSURE identity; BYTE stores (0x474cff)
 extern uint8_t global_0071974f;              // 0x0071974f, UNSURE identity
 extern uint8_t *global_006b0b80;             // 0x006b0b80, TYPES-GAP (cached_object_render_states
                                               //   elsewhere in this module; only +0x2 is touched here)
@@ -100,17 +100,6 @@ void main_switch_structure_bsp(void)
         player_handle = player_iter.index;
 
         {
-            // UNSURE: player_globals+0x17, a nibble-encoded fade-stage counter (TYPES-GAP).
-            uint8_t *stage = (uint8_t *)local_player_globals + 0x17;
-            if ((*stage & 0xf) != 0xf) {
-                *stage = ((*stage & 0xf0) + 0x10) ^ (*stage & 0xf);
-                if ((*stage & 0xf0) > 0xc0) {
-                    *stage = 0xf;
-                }
-            }
-        }
-
-        {
             // UNSURE: player+0xcc, a screen-fade tick countdown within the unresolved
             // unknown_ca[] tail (types/game.h); accessed as a raw int32 since no named field
             // covers it.
@@ -126,19 +115,9 @@ void main_switch_structure_bsp(void)
                 object *unit_obj = ((object_header *)object_data->data)[plr->unit & 0xffff].data;
                 if ((*((uint8_t *)unit_obj + 0x106) & 0x20) == 0) {
                     if (network_game_mode == 2) {
-                        data_iterator recipient_iter;
-                        player *recipient;
-
-                        recipient_iter.data = player_data;
-                        recipient_iter.next_index = 0;
-                        recipient_iter.index = (datum_index)-1;
-                        recipient_iter.signature = (uint32_t)(uintptr_t)recipient_iter.data ^ k_data_iterator_signature;
-                        recipient = (player *)data_iterator_next(&recipient_iter);
-                        while (recipient != (player *)0) {
-                            chimera__kill_feed((datum_index)recipient_iter.index, 0x1f,
-                                               (uint32_t)0xffffffff, 1, 0); // UNSURE arg shapes
-                            recipient = (player *)data_iterator_next(&recipient_iter);
-                        }
+                        // 0x474a68..0x474a7b: (player, 0x1f, -1, 1) for this player; the every-player walk at
+                        // 0x474a80 only runs for a -1 handle, which the outer iterator never yields
+                        chimera__kill_feed(player_handle, 0x1f, (uint32_t)0xffffffff, 1, 0);
                     }
                     *((uint8_t *)unit_obj + 0x106) = *((uint8_t *)unit_obj + 0x106) | 0x20;
                 }
@@ -219,7 +198,21 @@ void main_switch_structure_bsp(void)
         plr = (player *)data_iterator_next(&player_iter);
     }
 
-    if (local_player_globals->unknown_16 == 0) {
+    // 0x474cbf..0x474ce1: the fade-stage nibble counter at player_globals +0x17 advances once per tick, after
+    // the player loop (FIXED 2026-09-28: the draft advanced it inside the loop, before the BSP switch stamps it)
+    {
+        uint8_t *stage = (uint8_t *)local_player_globals + 0x17;
+        if ((*stage & 0xf) != 0xf) {
+            *stage = (uint8_t)(((*stage & 0xf0) + 0x10) ^ (*stage & 0xf));
+            if ((*stage & 0xf0) > 0xc0) {
+                *stage = 0xf;
+            }
+        }
+    }
+
+    // 0x474ce5: every player without a unit (dead) -> lost_map (0x71974f), which main_loop turns into the
+    // checkpoint revert. FIXED 2026-09-28: the draft tested +0x16 (never set), so dying never reverted.
+    if (local_player_globals->no_player_has_a_unit == 0) {
         if (global_007102d8 != 0) {
             global_007102d8 = 0;
         }

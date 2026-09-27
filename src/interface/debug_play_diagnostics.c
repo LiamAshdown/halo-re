@@ -279,3 +279,15 @@ void debug_fp_dispatch_note(int32_t toggle, int32_t mode, int32_t shader_type, i
     standalone_log("DIAG fpdispatch toggle=%d mode=%d shader_type=%d primitives=%d draw=%p draw_simple=%p overlay=%p",
         toggle, mode, shader_type, primitives, draw, draw_simple, overlay);
 }
+
+// TEMPORARY (2026-09-28) EXPERIMENT: turn D3DRS_ALPHATESTENABLE off for every first-person draw, to test whether the
+// gun's pixels are being alpha-tested away (the first-person draws run with alpha test on, ref 127, GREATER).
+void debug_fp_pre_draw(void)
+{
+    typedef int32_t (__stdcall *debug_set_render_state_fn)(void *self, uint32_t state, uint32_t value);
+
+    if (!debug_fp_state_armed || rasterizer_device == 0) {
+        return;
+    }
+    ((debug_set_render_state_fn)(*(void ***)rasterizer_device)[0xe4 / 4])(rasterizer_device, 15, 0);
+}

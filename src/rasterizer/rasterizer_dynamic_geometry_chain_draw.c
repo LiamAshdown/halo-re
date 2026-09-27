@@ -19,6 +19,7 @@
 extern void *rasterizer_device;                                     // 0x0071d174
 extern void debug_fp_draw_state_note(const char *site, int32_t hresult, uint32_t primitive_type,
     uint32_t vertex_count, uint32_t primitive_count); // TEMPORARY first-person diagnostics
+extern void debug_fp_pre_draw(void); // TEMPORARY
 extern uint8_t rasterizer_software_vertex_processing;               // 0x0069c680
 extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count]; // 0x006e1a90
 extern int16_t rasterizer_vertex_sizes[k_rasterizer_vertex_type_count]; // 0x0065de00
@@ -56,6 +57,7 @@ void rasterizer_dynamic_geometry_chain_draw(int32_t primitive_count, rasterizer_
         ((d3d_set_stream_source_fn)device_vtable()[0x190 / 4])(rasterizer_device, 0, (void *)vertex_buffer->hardware_buffer, 0, stride);
         ((d3d_set_pointer_fn)device_vtable()[0x1a0 / 4])(rasterizer_device, (void *)index_buffer->hardware_buffer);
         {
+            debug_fp_pre_draw(); // TEMPORARY: forces alpha test off for first-person draws
             int32_t debug_hr = ((d3d_draw_indexed_primitive_fn)device_vtable()[0x148 / 4])(rasterizer_device,
                                                                     rasterizer_triangle_buffer_primitive_types[index_buffer->type],
                                                                     0, 0, (uint32_t)vertex_buffer->count, start_index, (uint32_t)chunk);

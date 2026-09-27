@@ -1,6 +1,6 @@
 // player_reset_after_unit_change  (Ghidra: FUN_00474e10; named per this rewrite)
 // address 0x474e10, size 414 bytes
-// name confidence: 0.4   rewrite confidence: 0.45
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x474e10..0x474fb0 (the local / non-local network branches were swapped).)
 // evidence: out/phase4/game_functions.md ("Resets a player's per-tick state and local-player
 //   control struct after its controlled unit changes, and updates the global all-players-
 //   spawned flag"); types/game.h player (previous_unit +0x38, unit +0x34, local_player_index
@@ -104,7 +104,9 @@ void player_reset_after_unit_change(uint32_t player_index)
         *(int32_t *)((uint8_t *)entry + 0x18) = 0; // UNSURE: unknown_02 padding
     }
 
-    if (plr->local_player_index == -1) {
+    // 0x474f42: a LOCAL player frees the client's history queues; a non-local one on a client clears its cursors.
+    // FIXED 2026-09-28: the draft had the two branches swapped.
+    if (plr->local_player_index != -1) {
         if (network_client != (uint8_t *)0) {
             player_update_history_free_all(*(void **)(network_client + 0xf48));
         }

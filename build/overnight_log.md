@@ -2185,3 +2185,5 @@ Relinked: unresolved 1, traps 127.
 - object_solve_two_bone_ik_to_marker FIXED -> 0.85: the IK target is marker_b.node_transform (+0x38, world) *
   inverse(marker_a.transform), in place; the draft used marker_b.transform (+0x04), so every unit's hand/parent IK
   aimed at a node-relative matrix.
+- 2026-09-28 play-test fixes: death never reverted -- the per-tick players update (0x4749a0, misnamed main_switch_structure_bsp) tested player_globals +0x16 instead of +0x10 no_player_has_a_unit, so lost_map was never set; fade-stage counter moved after the loop; 0x71973c is a byte. unit_drop_inventory_weapons tested/deleted the cleared slot (-1) -> crash on death. decal_clip_buffers had no address (the long-standing 1 unresolved; crash in the decal flood). Decals now render in game.
+- FP gun: draws succeed (hr 0, sane z/stencil/cull/cw); root 4-36 deg off the view forward; alpha test on (ref 127 GREATER) -- TEMPORARY experiment forces it off for FP draws.
