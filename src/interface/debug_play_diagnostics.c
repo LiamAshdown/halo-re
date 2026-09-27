@@ -202,7 +202,36 @@ void debug_fp_draw_state_note(const char *site, int32_t hresult, uint32_t primit
     void *tex0 = 0;
     int32_t i;
 
-    if (!debug_fp_state_armed || debug_fp_state_lines >= 40 || rasterizer_device == 0) {
+    if (rasterizer_device == 0) {
+        return;
+    }
+    {
+        // pixel shader constants c0..c7 for the first 6 first-person draws and, for comparison, the first 6 model
+        // draws that are not first-person (the chain-draw site carries the model parts)
+        static int32_t ps_fp_lines;
+        static int32_t ps_other_lines;
+        int32_t *count = debug_fp_state_armed ? &ps_fp_lines : &ps_other_lines;
+
+        if (*count < 6 && (debug_fp_state_armed || site[0] == 'c')) {
+            typedef int32_t (__stdcall *debug_get_ps_constants_fn)(void *self, uint32_t start, float *data,
+                uint32_t count);
+            float c[32];
+            int32_t k;
+
+            (*count)++;
+            for (k = 0; k < 32; k++) {
+                c[k] = -999.0f;
+            }
+            ((debug_get_ps_constants_fn)(*(void ***)rasterizer_device)[0x1b8 / 4])(rasterizer_device, 0, c, 8);
+            standalone_log("DIAG fpps %s %s count=%u c0=(%.2f %.2f %.2f %.2f) c1=(%.2f %.2f %.2f %.2f) c2=(%.2f %.2f %.2f "
+                           "%.2f) c3=(%.2f %.2f %.2f %.2f) c4=(%.2f %.2f %.2f %.2f) c5=(%.2f %.2f %.2f %.2f) c6=(%.2f %.2f "
+                           "%.2f %.2f) c7=(%.2f %.2f %.2f %.2f)", debug_fp_state_armed ? "FP" : "other", site,
+                primitive_count, c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7], c[8], c[9], c[10], c[11], c[12], c[13],
+                c[14], c[15], c[16], c[17], c[18], c[19], c[20], c[21], c[22], c[23], c[24], c[25], c[26], c[27], c[28],
+                c[29], c[30], c[31]);
+        }
+    }
+    if (!debug_fp_state_armed || debug_fp_state_lines >= 40) {
         return;
     }
     debug_fp_state_lines++;
