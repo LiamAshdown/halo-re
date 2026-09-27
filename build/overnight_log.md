@@ -1826,3 +1826,16 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - User: "can't get out of the cryo tube when the NPC says you can come out". tutorial_action shows the help text, enables input, resets the action test, then sleep_until player_action_test_action (bit 0x1 = control_flags 0x40 = raw button 2, the action key). Only after that does it fade out and call unit_exit_vehicle player0.
 - The cdb trace (scratchpad/cdb_action_trace.txt) showed the script waiting at the test with jump/look/move bits set but no action bit, i.e. the user had not pressed the action key. The user then pressed E and the exit works.
 - Statically verified on the way (no change): game_engine_digitize_control_input (0x472760) bit mapping and edge tail, hs player_action_test_action/accept/reset, hs player_enable_input, the button suppression and copy loop in game_engine_build_local_player_control_input, and the widget_close suppression.
+
+## 2026-09-27 -- a10 "press E" help text never shown (OPEN, static checks done)
+- User: the game never showed the "press E" prompt. tutorial_action calls show_hud_help_text / enable_hud_help_flash / hud_set_help_text before the action wait.
+- Verified against the binary, no difference found:
+  - the three hs evaluators and hud_set_help_text (0x4adb30);
+  - hud_update_player (always ends in hud_messaging_update) and its caller first_person_weapon_update_screen_effects -> render_window;
+  - hud_messaging_update: setup, help-shown gate, help colour, line rectangle, element loop, button icon (bound key name in quotes), text span (extents EBX/ESI/EDI, -3 cursor, draw);
+  - game_engine_local_player_score_is_nonpositive (1 in SP); hud_state_reset (map start only);
+  - current/render_local_player_index both resolve to 0x7c3108 in resolve.asm.
+- The 20 struct offsets used (scenario hud_messages 0x5a0, HUDMessageText, message 0x40 stride, hud_messaging_globals 0x460..0x474, player record 0x460 stride, HUDGlobals 0xd0/0xd4/0xe2/0xfc, hud_flags +1) were checked with compile-time asserts (scratchpad/offchk.c, scratchpad/cchk.py).
+- hud_anchor_offset_to_screen_position (0x4ab690): REWRITTEN (0.3 -> 0.85). The ECX child-placement jump table (0x4ab8b8) was an argument-less function-pointer call. All callers pass ECX = 0, so it's not the cause.
+- OPEN, needs a runtime check (user present): break in hud_messaging_update at the tutorial_action prompt. Check help_shown (hud_flags +1, hud_messaging +0x46c), the message panel_count, and whether chimera__draw_16_bit_text (0.2) is reached with the tutorial text. Menus draw through the same text call, so a HUD-context render state (font or colour alpha) is the next suspect.
+- Relink: left unresolved 1, traps 128.

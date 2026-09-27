@@ -1,6 +1,6 @@
 // hud_anchor_offset_to_screen_position  (Ghidra: FUN_004ab690, renamed)
 // address 0x4ab690, size 315 bytes
-// name confidence: 0.35 (chosen)   rewrite confidence: 0.3
+// name confidence: 0.35 (chosen)   rewrite confidence: 0.85 (REWRITTEN: child-placement jump table (0x4ab8b8) decoded and implemented; the ECX = 0 path verified against 0x4ab690 (all callers pass 0))
 // evidence: phase-4 summary "Converts a HUD element's anchor-relative offset into an absolute
 // 640x480 screen position"; the four anchor-type constants (8, 0x278, 8, 0x1d8+8=0x1e0) bracket
 // exactly a 640x480 canvas (0x278-8=0x270=624, leaving 8px margins on each side; 0x1e0-8=0x1d8=472
@@ -28,7 +28,6 @@
 extern int32_t ROUND(float x); // MSVC round-to-nearest helper
 extern uint32_t hud_anchor_screen_offset; // 0x007c3140, UNSURE name: packed {int16 x, int16 y}
 
-extern void *hud_anchor_offset_handlers[]; // 0x4ab8b8, UNSURE: unrecovered jump table indexed by anchor value
 
 // blam-cc: see header
 // Converts a HUD element's anchor + pixel offset into an absolute 640x480-canvas screen
@@ -56,13 +55,43 @@ void hud_anchor_offset_to_screen_position(uint16_t *anchor, uint8_t has_scale, f
         y = (float)(int32_t)offset[1] * scale + (float)(0xf0 - offset_y);
     }
 
-    if (selector == 0) {
-        out[0] = (int16_t)(int32_t)ROUND(x);
-        out[1] = (int16_t)(int32_t)ROUND(y);
-        return;
-    }
+    // REWRITTEN (0x4ab78e..0x4ab8b0, jump table 0x4ab8b8): a nonzero ECX is a child placement
+    // record (+0x04 width, +0x06 height, +0x10 / +0x12 offset) added in the anchor's direction;
+    // anchor 4 (centre) adds half of +0x04 to BOTH axes, as the binary does. Every caller in
+    // this build passes ECX = 0.
+    if (selector != 0) {
+        const int16_t *child = (const int16_t *)(uint32_t)selector;
+        int32_t dx = child[8];  // +0x10
+        int32_t dy = child[9];  // +0x12
 
-    ((hud_anchor_offset_handler)hud_anchor_offset_handlers[(int16_t)anchor_value])();
+        switch ((int16_t)anchor_value) {
+        case 0:
+            break;
+        case 1:
+            dx -= child[2];     // +0x04
+            break;
+        case 2:
+            dy -= child[3];     // +0x06
+            break;
+        case 3:
+            dx -= child[2];
+            dy -= child[3];
+            break;
+        case 4: {
+            int32_t half = (int32_t)child[2] / 2;
+            dx += half;
+            dy += half;
+            break;
+        }
+        default:
+            goto store; // UNSURE: the binary's table has no bounds check
+        }
+        x = (float)dx * scale + x;
+        y = (float)dy * scale + y;
+    }
+store:
+    out[0] = (int16_t)(int32_t)ROUND(x);
+    out[1] = (int16_t)(int32_t)ROUND(y);
 }
 
 #if 0
