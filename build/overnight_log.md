@@ -1802,3 +1802,8 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - object_collision_test_ray_nearby_chain (0x5055b0): decoded end to end; FIXED the vehicle mass-point path, which now also stores permutation_index = -1 (0x5056fa); 0.85.
 - unit_get_average_active_marker_direction (0x575e30): REWRITTEN (0.15 -> 0.85). The old C passed a pointer-sized local as the 0x3c-byte object_physics_context (stack overrun inside the build call), transformed through a zero matrix and threw the result away, and returned position - average (the wrong sign). The binary returns normalize(ctx matrix * average(active mass point positions) - unit position). actor_movement_update, movement style 4, stores -direction into +0x5a4, so AI vehicle facing in that style was reversed/garbage before.
 - Relink: left unresolved 1, traps 128.
+
+## Static loop: charge trigger + grenade aim (no boot)
+- actor_evaluate_custom_charge_trigger (0x424090): REWRITTEN (0.15 -> 0.85, raw offsets). The old C set the retry timer +0x364 with __ftol(0.0), dropping the random_real_range result, so it was always 0 and wrapped to -1 on the next decrement, freezing the decision for ~65k ticks. The binary stores max(random * 30, 31) truncated. The ally split in the new-roll path also read +0x378 where the binary reads +0x358.
+- actor_compute_grenade_aim_direction (0x40f7e0): REWRITTEN clamp (0.2 -> 0.85). When the throw direction is >= 30 degrees from the actor's aim forward, the binary returns the forward turned 30 degrees about normalize(D x F). The old C returned the cross product rotated about the forward, i.e. grenades thrown sideways.
+- Relink: left unresolved 1, traps 128.

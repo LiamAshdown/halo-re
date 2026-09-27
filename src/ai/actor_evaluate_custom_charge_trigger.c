@@ -1,6 +1,6 @@
 // actor_evaluate_custom_charge_trigger  (Ghidra: actor_evaluate_custom_charge_trigger, renamed)
 // address 0x424090, size 1267 bytes
-// name confidence: 0.4   rewrite confidence: 0.15
+// name confidence: 0.4   rewrite confidence: 0.85 (REWRITTEN from the disassembly (see note above the function))
 // evidence: phase-4 summary "Evaluates the 'custom' charge-trigger condition for melee/charge
 // behavior, combining distance thresholds, aggression flags, and a randomized roll weighted
 // by nearby allies and enemies." types/ai.h actor.awareness_level(0x6a)/unknown_6e/
@@ -33,7 +33,6 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern uint32_t random_seed_global; // 0x00719cd0
 
 extern real random_real_range(real min, real max); // 0x401050
-extern int32_t __ftol(double x); // FISTP-based float-to-int truncation
 extern void * actor_get_actor_definition(datum_index actor_index); // 0x40fa70, UNSURE signature
 extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index); // 0x428370
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index); // 0x569c90, ECX unit
@@ -43,190 +42,214 @@ extern void actor_prop_iterator_init(datum_index actor_index, actor_prop_iterato
                                     // iterator's SECOND dword (.next) from actor.first_prop,
                                     // which is the field the loop below reads.
 
-// FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads EAX; actor_index arrive(s) on the stack (1 stack argument(s)).
+// REWRITTEN (0x424090..0x424582, raw offsets throughout):
+//   gates: unit busy or actor+0x4a8 -> awareness +0x6a < 3 -> true; +0x6e < 5 -> false; unit
+//   +0x2a3 == 0x17 without +0x378 -> true; target distance (prop +0x11c) > def+0x74, or with
+//   +0x378 > def+0x16c -> false; unit +0x106 sign bit -> true; +0x378 -> false; vehicle mode
+//   (+0x6c == 10) with +0xa0 in {2, 3} -> false; no threat weapon or +0x15d -> false; variant
+//   +0x4c: 0 -> false, 1 -> true; target nearer than def+0xa0 -> true.
+//   +0x362 set (a decision is live): +0x366 cooldown counts down; otherwise, with variant flag
+//   0x08 and +0x245 > 0, the charging allies within 15 are split by their offset along the
+//   target prop's +0xe0 axis (> 1.4 ahead, >= -1.4 level, else behind) and may flip +0x363
+//   early; else +0x364 counts down and flips +0x363 at zero.
+//   +0x362 clear: roll against variant+0x50, adjusted by the same-type allies (+0x6e >= 5)
+//   split on their +0x358: c - ((1 - c) * with - c * without) * 0.5 when +0x200 > 0.
+//   A new decision stores +0x363, +0x364 = max(random[variant+0x54/0x58 or 0x5c/0x60] * 30, 31)
+//   truncated, +0x366 = 30.
+//   Fixes vs the old C: the timer was __ftol(0.0) (random result dropped, no 31 floor), and the
+//   ally split read +0x378 where the binary reads +0x358.
 // blam-cc: stack -> actor_index
 uint8_t actor_evaluate_custom_charge_trigger(datum_index actor_index)
 {
-    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
-    const uint8_t *variant_tag_data = (const uint8_t *)(tag_instances[self->actor_variant_tag & 0xffff].data);
-    const uint8_t *actor_def;
-    object *unit_object;
-    prop *target = 0;
+    uint8_t *self = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    const uint8_t *variant = (const uint8_t *)tag_instances[*(uint32_t *)(self + 0x5c) & 0xffff].data;
+    const uint8_t *def = (const uint8_t *)actor_get_actor_definition(actor_index);
+    uint32_t unit_index = *(uint32_t *)(self + 0x18);
+    const uint8_t *unit;
+    const uint8_t *target = 0;
     uint8_t decision;
-    uint32_t scan_cursor;
+    int16_t variant_mode;
 
-    actor_def = actor_get_actor_definition(actor_index);
-    unit_object = ((object_header *)object_data->data)[self->unit_index & 0xffff].data;
-
-    if ((unit_is_in_busy_animation_state(self->unit_index) == 0 /* 0x4240d5: ECX = actor+0x18 */ && self->movement_action_complete == 0) || self->awareness_level < 3) {
+    if (!unit_is_in_busy_animation_state(unit_index) && self[0x4a8] == 0) {
         goto return_true;
     }
-    if (self->unknown_6e < 5) {
+    if (*(int16_t *)(self + 0x6a) < 3) {
+        goto return_true;
+    }
+    if (*(int16_t *)(self + 0x6e) < 5) {
         goto return_false;
     }
-
-    if (self->target_unit_index != (datum_index)k_datum_index_none) {
-        target = &((prop *)prop_data->data)[self->target_unit_index & 0xffff];
+    unit = (const uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    if (*(uint32_t *)(self + 0x270) != 0xffffffff) {
+        target = (const uint8_t *)prop_data->data + (*(uint32_t *)(self + 0x270) & 0xffff) * 0x138;
     }
-
-    if (*((const uint8_t *)unit_object + 0x2a3) == 0x17 && self->unknown_378 == 0) { // UNSURE offset
+    if (unit[0x2a3] == 0x17 && self[0x378] == 0) {
         goto return_true;
     }
-    if ((target != 0 && *(const float *)(actor_def + 0x74) < target->distance) ||
-        (self->unknown_378 != 0 && target != 0 && *(const float *)(actor_def + 0x16c) < target->distance)) { // UNSURE offsets
+    if (target != 0 && *(const float *)(target + 0x11c) > *(const float *)(def + 0x74)) {
         goto return_false;
     }
-    if ((int8_t)(*((const uint8_t *)unit_object + 0x106)) < 0) {
-        goto return_true;
-    }
-    if (self->unknown_378 != 0 ||
-        (self->mode == _actor_mode_vehicle && (*(int16_t *)&self->mode_data[4] == 2 || *(int16_t *)&self->mode_data[4] == 3)) ||
-        actor_has_unshielded_threat_weapon(actor_index) == 0 ||
-        (self->unknown_15d != 0 || *(const int16_t *)(variant_tag_data + 0x4c) == 0)) { // UNSURE offset
+    if (self[0x378] != 0 && target != 0 &&
+        *(const float *)(target + 0x11c) > *(const float *)(def + 0x16c)) {
         goto return_false;
     }
-    if (*(const int16_t *)(variant_tag_data + 0x4c) == 1 || // UNSURE offset
-        (target != 0 && target->distance < *(const float *)(actor_def + 0xa0))) { // UNSURE offset
+    if ((int8_t)unit[0x106] < 0) {
+        goto return_true;
+    }
+    if (self[0x378] != 0) {
+        goto return_false;
+    }
+    if (*(int16_t *)(self + 0x6c) == 10 &&
+        (*(int16_t *)(self + 0xa0) == 2 || *(int16_t *)(self + 0xa0) == 3)) {
+        goto return_false;
+    }
+    if (!actor_has_unshielded_threat_weapon(actor_index)) {
+        goto return_false;
+    }
+    if (self[0x15d] != 0) {
+        goto return_false;
+    }
+    variant_mode = *(const int16_t *)(variant + 0x4c);
+    if (variant_mode == 0) {
+        goto return_false;
+    }
+    if (variant_mode == 1) {
+        goto return_true;
+    }
+    if (target != 0 && !(*(const float *)(target + 0x11c) >= *(const float *)(def + 0xa0))) {
         goto return_true;
     }
 
-    if ((*(uint8_t *)((uint8_t *)self + 0x362)) == 0) { // UNSURE offset
-        float base_chance = *(const float *)(variant_tag_data + 0x50); // UNSURE offset
+    if (self[0x362] != 0) {
+        if (*(int16_t *)(self + 0x366) > 0) {
+            *(int16_t *)(self + 0x366) -= 1;
+        } else if ((variant[0] & 8) != 0 && (int8_t)self[0x245] > 0) {
+            // 0x424278: no -1 check on +0x270 here; the binary indexes the prop array directly
+            const uint8_t *axis_prop = (const uint8_t *)prop_data->data +
+                (*(uint32_t *)(self + 0x270) & 0xffff) * 0x138;
+            actor_prop_iterator iterator;
+            uint32_t cursor;
+            int32_t ahead = 0, level = 0, behind = 0;
 
-        if ((int8_t)(*(int8_t *)((uint8_t *)self + 0x200)) > 0) { // UNSURE: reusing unknown_1fc/0x200 area, see header
-            datum_index prop_index = self->first_prop;
-            int16_t friendly = 0, enemy = 0;
+            actor_prop_iterator_init(actor_index, &iterator);
+            cursor = iterator.next;
+            while (cursor != 0xffffffff) {
+                const uint8_t *p = (const uint8_t *)prop_data->data + (cursor & 0xffff) * 0x138;
+                int16_t kind = *(const int16_t *)(p + 0x24);
+                uint32_t owner;
+                const uint8_t *other;
+                float dot;
 
-            while (prop_index != (datum_index)k_datum_index_none) {
-                prop *p = &((prop *)prop_data->data)[prop_index & 0xffff];
-                int16_t kind = p->kind;
-                prop_index = p->next_in_actor;
-
-                if (kind > 1 && kind < 4 && p->is_unit == 0 && p->is_vault == 0 &&
-                    p->owner_actor_index != (datum_index)k_datum_index_none) {
-                    actor *other = &((actor *)actor_data->data)[p->owner_actor_index & 0xffff];
-                    if (other->type == self->type && other->unknown_6e > 4) {
-                        if (other->unknown_378 == 0) {
-                            friendly = friendly + 1;
-                        } else {
-                            enemy = enemy + 1;
-                        }
-                    }
+                cursor = *(const uint32_t *)(p + 0x8);
+                if (kind < 2 || kind > 3 || p[0x60] != 0 || p[0x127] != 0) {
+                    continue;
+                }
+                if (*(const float *)(p + 0x11c) >= 15.0f) {
+                    continue;
+                }
+                owner = *(const uint32_t *)(p + 0x1c);
+                if (owner == 0xffffffff) {
+                    continue;
+                }
+                other = (const uint8_t *)actor_data->data + (owner & 0xffff) * 0x724;
+                if (other[0x362] == 0) {
+                    continue;
+                }
+                dot = (*(const float *)(other + 0x134) - *(const float *)(self + 0x134)) * *(const float *)(axis_prop + 0xe8) +
+                      (*(const float *)(other + 0x130) - *(const float *)(self + 0x130)) * *(const float *)(axis_prop + 0xe4) +
+                      (*(const float *)(other + 0x12c) - *(const float *)(self + 0x12c)) * *(const float *)(axis_prop + 0xe0);
+                if (dot > 1.4f) {
+                    ahead++;
+                } else if (dot >= -1.4f) {
+                    level++;
+                } else {
+                    behind++;
                 }
             }
-            base_chance = base_chance - (-base_chance * (float)friendly + (1.0f - base_chance) * (float)enemy) * 0.5f;
+
+            if (self[0x363] != 0) {
+                if ((int16_t)behind == 0 && (int16_t)ahead > (int16_t)level) {
+                    decision = 0; // 0x4243c7: !+0x363 with +0x363 set
+                    goto apply_decision;
+                }
+            } else if ((int16_t)ahead == 0 && (int16_t)behind > (int16_t)level) {
+                goto flip_decision;
+            }
+        }
+        *(int16_t *)(self + 0x364) -= 1;
+        if (*(int16_t *)(self + 0x364) != 0) {
+            return self[0x363];
+        }
+    flip_decision:
+        decision = (self[0x363] == 0);
+    } else {
+        float chance = *(const float *)(variant + 0x50);
+        float roll;
+
+        if ((int8_t)self[0x200] > 0) {
+            uint32_t cursor = *(uint32_t *)(self + 0x50);
+            int16_t without = 0, with = 0;
+
+            while (cursor != 0xffffffff) {
+                const uint8_t *p = (const uint8_t *)prop_data->data + (cursor & 0xffff) * 0x138;
+                int16_t kind = *(const int16_t *)(p + 0x24);
+                uint32_t owner;
+                const uint8_t *other;
+
+                cursor = *(const uint32_t *)(p + 0x8);
+                if (kind < 2 || kind > 3 || p[0x60] != 0 || p[0x127] != 0) {
+                    continue;
+                }
+                owner = *(const uint32_t *)(p + 0x1c);
+                if (owner == 0xffffffff) {
+                    continue;
+                }
+                other = (const uint8_t *)actor_data->data + (owner & 0xffff) * 0x724;
+                if (*(const int16_t *)(other + 0x4) != *(const int16_t *)(self + 0x4) ||
+                    *(const int16_t *)(other + 0x6e) < 5) {
+                    continue;
+                }
+                if (other[0x358] != 0) {
+                    with++;
+                } else {
+                    without++;
+                }
+            }
+            chance = chance - ((1.0f - chance) * (float)(int32_t)with +
+                               (-chance) * (float)(int32_t)without) * 0.5f;
         }
 
         random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        (*(uint8_t *)((uint8_t *)self + 0x362)) = 1; // UNSURE offset
-        // The original is `if (base_chance <= rand) false; else true;`, i.e. the actor charges
-        // when the rolled value is strictly BELOW base_chance. An earlier draft had the
-        // comparison the other way round, which inverts the whole trigger.
-        decision = base_chance > (float)(random_seed_global >> 0x10) * 1.5259022e-05f;
-    } else {
-        if ((*(int16_t *)((uint8_t *)self + 0x366)) >= 1) { // UNSURE offset
-            (*(int16_t *)((uint8_t *)self + 0x366)) = (*(int16_t *)((uint8_t *)self + 0x366)) - 1;
-            goto decrement_timer;
-        }
-
-        if ((*variant_tag_data & 8) == 0 || (int8_t)(*(int8_t *)((uint8_t *)self + 0x245)) < 1) { // UNSURE offsets
-            goto decrement_timer;
-        }
-
-        {
-            actor_prop_iterator iterator;
-            int16_t far_count = 0, near_friendly = 0, near_enemy = 0;
-
-            // The cursor the original walks is the iterator's +4 dword (Ghidra's `local_4`,
-            // four bytes past the `local_8` it hands to the initializer), i.e. .next. An
-            // earlier draft read the record's first dword, which is never written at all.
-            actor_prop_iterator_init(actor_index, &iterator);
-            scan_cursor = iterator.next;
-            while (scan_cursor != 0xffffffff) {
-                prop *p = &((prop *)prop_data->data)[scan_cursor & 0xffff];
-                int16_t kind = p->kind;
-                scan_cursor = p->next_in_actor;
-
-                if (kind > 1 && kind < 4 && p->is_unit == 0 && p->is_vault == 0 &&
-                    p->distance < 15.0f && p->owner_actor_index != (datum_index)k_datum_index_none) {
-                    actor *other = &((actor *)actor_data->data)[p->owner_actor_index & 0xffff];
-                    if ((*(uint8_t *)((uint8_t *)other + 0x362)) != 0) { // UNSURE offset
-                        float dot = (other->body_position.x - self->body_position.x) * *(const float *)((const uint8_t *)target + 0xe0) // UNSURE: 0xe0 relative to target_unit_index prop, see below
-                                  + (other->body_position.y - self->body_position.y) * *(const float *)((const uint8_t *)target + 0xe4)
-                                  + (other->body_position.z - self->body_position.z) * *(const float *)((const uint8_t *)target + 0xe8);
-                        if (dot > 1.4f) {
-                            far_count = far_count + 1;
-                        } else if (dot >= -1.4f) {
-                            near_friendly = near_friendly + 1;
-                        } else {
-                            near_enemy = near_enemy + 1;
-                        }
-                    }
-                }
-            }
-
-            if ((*(uint8_t *)((uint8_t *)self + 0x363)) != 0) { // UNSURE offset
-                if (near_enemy == 0 && near_friendly < far_count) {
-                    decision = (*(uint8_t *)((uint8_t *)self + 0x363)) == 0;
-                    goto set_decision;
-                }
-                goto decrement_timer;
-            }
-            if (far_count != 0 || near_enemy <= near_friendly) {
-                goto decrement_timer;
-            }
-        }
-
-        goto set_decision_true;
-
-    decrement_timer:
-        (*(int16_t *)((uint8_t *)self + 0x364)) = (*(int16_t *)((uint8_t *)self + 0x364)) - 1; // UNSURE offset
-        if ((*(int16_t *)((uint8_t *)self + 0x364)) != 0) {
-            goto return_cached;
-        }
-        goto set_decision_from_cache;
+        self[0x362] = 1;
+        roll = (float)(int32_t)(random_seed_global >> 0x10) * 1.5259022e-05f;
+        decision = (roll >= chance) ? 0 : 1;
     }
-
-set_decision:
-    (*(uint8_t *)((uint8_t *)self + 0x363)) = decision; // UNSURE offset
-    goto apply_decision;
-
-set_decision_true:
-    decision = 1;
-    goto set_decision;
-
-set_decision_from_cache:
-    decision = (*(uint8_t *)((uint8_t *)self + 0x363)) == 0;
-    (*(uint8_t *)((uint8_t *)self + 0x363)) = decision;
 
 apply_decision:
     {
-        float lo, hi;
-        int32_t ticks;
+        float ticks;
 
+        self[0x363] = decision;
         if (decision != 0) {
-            lo = *(const float *)(variant_tag_data + 0x54); // UNSURE offset
-            hi = *(const float *)(variant_tag_data + 0x58);
+            ticks = random_real_range(*(const float *)(variant + 0x54), *(const float *)(variant + 0x58));
         } else {
-            lo = *(const float *)(variant_tag_data + 0x5c); // UNSURE offset
-            hi = *(const float *)(variant_tag_data + 0x60);
+            ticks = random_real_range(*(const float *)(variant + 0x5c), *(const float *)(variant + 0x60));
         }
-        random_real_range(lo, hi);
-        ticks = __ftol(0.0); // UNSURE: the random_real_range result Ghidra feeds __ftol here
-                             // is not tracked at this call site
-        (*(int16_t *)((uint8_t *)self + 0x364)) = (int16_t)ticks;
-        (*(int16_t *)((uint8_t *)self + 0x366)) = 0x1e;
+        ticks = ticks * 30.0f;
+        if (!(ticks > 31.0f)) {
+            ticks = 31.0f;
+        }
+        *(int16_t *)(self + 0x364) = (int16_t)(int32_t)ticks;
+        *(int16_t *)(self + 0x366) = 0x1e;
     }
-
-return_cached:
-    return (*(uint8_t *)((uint8_t *)self + 0x363));
+    return self[0x363];
 
 return_true:
-    (*(uint8_t *)((uint8_t *)self + 0x362)) = 0;
+    self[0x362] = 0;
     return 1;
 
 return_false:
-    (*(uint8_t *)((uint8_t *)self + 0x362)) = 0;
+    self[0x362] = 0;
     return 0;
 }
 

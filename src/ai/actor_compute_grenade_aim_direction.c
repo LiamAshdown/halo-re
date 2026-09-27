@@ -1,6 +1,6 @@
 // actor_compute_grenade_aim_direction  (Ghidra: actor_compute_grenade_aim_direction, renamed)
 // address 0x40f7e0, size 391 bytes
-// name confidence: 0.35   rewrite confidence: 0.2
+// name confidence: 0.35   rewrite confidence: 0.85 (REWRITTEN: 30-degree clamp decoded from 0x40f89c (see note in body); prop gate and copies verified)
 // evidence: phase-4 summary "computes the aim direction for a grenade throw, nudging it
 // away from a too-close firing line when needed".
 // register convention: actor_index in EAX, target point in EDX, output direction in EDI
@@ -57,16 +57,21 @@ uint32_t actor_compute_grenade_aim_direction(datum_index actor_index, real_point
             *out_direction = self->unknown_68c;
         }
 
+        // REWRITTEN (0x40f89c..0x40f952): the actor's aim forward F; when the throw direction D is
+        // 30 degrees or more away from it (F.D < cos 30), D is replaced by F turned 30 degrees
+        // toward D about normalize(D x F) (a perpendicular of F when that cross is degenerate;
+        // no rotation when that fails too). The old C wrote the cross product into D and rotated
+        // it about F.
         actor_get_aim_from_position(actor_index, (uint32_t *)&aim_from);
 
-        if (aim_from.i * out_direction->i + aim_from.j * out_direction->j + aim_from.k * out_direction->k < 0.8660254f) {
+        if (!(aim_from.i * out_direction->i + aim_from.j * out_direction->j + aim_from.k * out_direction->k >= 0.8660254f)) {
             uint8_t should_rotate = 1;
-            real_vector3d axis = aim_from;
+            real_vector3d axis;
 
-            vector3d_cross_product(&aim_from, &axis, out_direction);
-            if (vector3d_normalize_with_length(&aim_from) == 0.0f) {
-                vector3d_build_perpendicular(&aim_from, out_direction);
-                if (vector3d_normalize_with_length(&aim_from) == 0.0f) {
+            vector3d_cross_product(&axis, out_direction, &aim_from); // EAX axis, ECX D, stack F
+            if (vector3d_normalize_with_length(&axis) == 0.0f) {
+                vector3d_build_perpendicular(&axis, &aim_from);
+                if (vector3d_normalize_with_length(&axis) == 0.0f) {
                     should_rotate = 0;
                 }
             }
