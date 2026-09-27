@@ -32,7 +32,7 @@ extern game_time_globals *game_time;   // 0x006f1d6c
 
 extern real random_real(void); // 0x4019f0
 extern datum_index actor_get_relevant_squad_member_target(uint32_t unused_param, datum_index member_prop_index, char require_is_unit); // 0x41f550
-extern void actor_scale_value_by_ally_exposure(datum_index actor_index, float *value); // 0x420c90
+extern uint8_t actor_scale_value_by_ally_exposure(datum_index actor_index, float *value); // 0x420c90, EAX, stack
 
 // blam-cc: EAX -> target_prop_index, stack -> actor_index
 // Per-perception-tick reaction for a non-unit target prop: marks the actor "has scanned a
@@ -81,14 +81,16 @@ void actor_scan_backup_and_panic_reaction(datum_index target_prop_index, datum_i
         if (ally->is_unit != 0) {
             if (ally->unknown_32 > 0 && ally->unknown_122 < 3) {
                 float chance = actor_tag->friend_killed_panic_chance;
-                int roll_ok = 0;
+                int roll_ok;
 
+                // 0x423346..0x42338a: with panic_in_groups and the cooldown over, the chance is scaled by ally
+                //   exposure and the roll skipped when the scaler returns 1; otherwise random_real() < chance.
                 if ((actor_tag->more_flags & 0x20) != 0 /* panic_in_groups */ &&
-                    self->unknown_39c < (int32_t)game_time->game_time) {
-                    actor_scale_value_by_ally_exposure(actor_index, &chance);
+                    self->unknown_39c < (int32_t)game_time->game_time &&
+                    actor_scale_value_by_ally_exposure(actor_index, &chance)) {
                     roll_ok = 1;
-                } else if (random_real() < chance) {
-                    roll_ok = 1;
+                } else {
+                    roll_ok = random_real() < chance;
                 }
 
                 if (roll_ok && self->unknown_308 < 3) {

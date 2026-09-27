@@ -1,6 +1,6 @@
 // actor_get_squad_recent_attacker_target  (Ghidra: actor_get_squad_recent_attacker_target; named from out/phase2/results/ai_02.json)
 // address 0x41f6b0, size 274 bytes, 0 callers in this build
-// name confidence: 0.4   rewrite confidence: 0.2
+// name confidence: 0.4   rewrite confidence: 0.95
 // evidence: out/phase2/results/ai_02.json -- nearly identical structure to
 //   actor_get_relevant_squad_member_target (0x41f550) but iterates the actor's own controlled
 //   unit's recent-attacker table (unit.recent_damage[4] at unit+0x430) instead of a specific
@@ -28,77 +28,67 @@ extern data_array *actor_data;  // 0x00880360
 extern data_array *object_data; // 0x008603b0
 extern data_array *prop_data;   // 0x008802c0
 
-extern datum_index actor_find_prop_for_object(datum_index object_index); // 0x43ea80, UNSURE signature
-extern void *object_try_and_get(int32_t kind);              // 0x4f6ec0
+extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, stack, ECX
+extern void *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
 
+// REWRITTEN from objdump 0x41f6b0..0x41f7c2. Stack: (actor, require_flag). Of the 4 recent damage records on the
+//   actor's unit (+0x430, 0x10 each: +0x0 tick, +0x8 responsible object), picks the newest whose responsible unit
+//   (its gunner +0x328, else driver +0x324, else itself) the actor has a kind 2..3 prop for (with +0x60 set when
+//   require_flag). The draft called object_try_and_get and the prop lookup without the object or the actor and
+//   skipped the unit itself.
 // blam-cc: stack -> actor_index, require_is_unit
-// Selects the most relevant recent-attacker prop from the actor's own object's short-term
-// attacker memory. Returns the winning prop's datum index, or k_datum_index_none.
 datum_index actor_get_squad_recent_attacker_target(datum_index actor_index, char require_is_unit)
 {
-    actor *self;
-    datum_index unit_index;
-    unit_data *self_unit;
+    datum_index unit_index = *(datum_index *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724 + 0x18);
+    datum_index best_prop = k_datum_index_none;     // [esp+0x14]
+    uint32_t best_tick = 0;                         // ebp
+    uint8_t *record;
     int32_t i;
-    datum_index responsible;
-    object *ctx_obj;
-    datum_index gunner;
-    datum_index driver;
-    datum_index resolved_object;
-    datum_index resolved_prop;
-    prop *candidate;
-    int32_t best_tick;
-    datum_index best_prop;
-
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    unit_index = self->unit_index;
-    best_prop = k_datum_index_none;
 
     if (unit_index == k_datum_index_none) {
         return k_datum_index_none;
     }
+    record = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data + 0x430;
+    for (i = 4; i != 0; i--, record += 0x10) {
+        datum_index responsible = *(datum_index *)(record + 0x8);
+        uint8_t *unit;
+        datum_index source;
+        datum_index prop_index;
+        uint8_t *p;
 
-    best_tick = 0;
-    self_unit = (unit_data *)((uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data +
-                              k_unit_data_offset);
-
-    for (i = 0; i < k_unit_recent_damage_count; i++) {
-        responsible = self_unit->recent_damage[i].responsible_unit;
-        resolved_object = k_datum_index_none;
-
-        if (responsible != k_datum_index_none) {
-            ctx_obj = (object *)object_try_and_get(3);
-            if (ctx_obj != (object *)0) {
-                // NOTE: object_try_and_get's result is read directly at +0x328/+0x324, exactly
-                // as the original does -- these are unit_data.gunner_unit_index/
-                // driver_unit_index offsets, but applied straight to whatever
-                // object_try_and_get(3) returns rather than through k_unit_data_offset.
-                gunner = *(datum_index *)((uint8_t *)ctx_obj + 0x328);
-                if (gunner == k_datum_index_none) {
-                    driver = *(datum_index *)((uint8_t *)ctx_obj + 0x324);
-                    if (driver != k_datum_index_none) {
-                        resolved_object = driver;
-                    }
-                } else {
-                    resolved_object = gunner;
-                }
+        if (responsible == k_datum_index_none) {
+            continue;
+        }
+        unit = (uint8_t *)object_try_and_get(responsible, 3);
+        if (unit == 0) {
+            continue;
+        }
+        source = *(datum_index *)(unit + 0x328);
+        if (source == k_datum_index_none) {
+            source = *(datum_index *)(unit + 0x324);
+            if (source == k_datum_index_none) {
+                source = responsible;
             }
         }
-
-        if (resolved_object != k_datum_index_none) {
-            resolved_prop = actor_find_prop_for_object(resolved_object);
-            if (resolved_prop != k_datum_index_none) {
-                candidate = (prop *)((uint8_t *)prop_data->data + (resolved_prop & 0xffff) * sizeof(prop));
-                if ((1 < candidate->kind && candidate->kind < 4) &&
-                    ((candidate->is_unit != 0 || require_is_unit == 0) &&
-                     (best_tick < self_unit->recent_damage[i].tick))) {
-                    best_tick = self_unit->recent_damage[i].tick;
-                    best_prop = resolved_prop;
-                }
-            }
+        if (source == k_datum_index_none) {
+            continue;
+        }
+        prop_index = actor_find_prop_for_object(source, actor_index);
+        if (prop_index == k_datum_index_none) {
+            continue;
+        }
+        p = (uint8_t *)prop_data->data + (prop_index & 0xffff) * 0x138;
+        if (*(int16_t *)(p + 0x24) < 2 || *(int16_t *)(p + 0x24) > 3) {
+            continue;
+        }
+        if (!p[0x60] && require_is_unit) {
+            continue;
+        }
+        if (*(uint32_t *)record > best_tick) {
+            best_prop = prop_index;
+            best_tick = *(uint32_t *)record;
         }
     }
-
     return best_prop;
 }
 

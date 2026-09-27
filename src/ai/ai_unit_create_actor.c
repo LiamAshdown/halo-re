@@ -1,6 +1,6 @@
 // ai_unit_create_actor  (Ghidra: ai_unit_create_actor; named for this rewrite)
 // address 0x435420, size 276 bytes
-// name confidence: 0.4   rewrite confidence: 0.55
+// name confidence: 0.4   rewrite confidence: 0.95
 // evidence: phase-4 summary ("allocates and initializes a fresh actor record with default
 //   combat/status field values for a newly recognized unit"). It calls actor_new (0x426760,
 //   types/ai.h's primary evidence for the actor layout) and actor_attach_to_unit (0x427560),
@@ -32,13 +32,13 @@
 extern ai_globals *ai_global_data;   // 0x00880354
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern data_array *actor_data;       // 0x00880360
-extern uint32_t **actor_type_procs;  // 0x006853b8, one row of procedure addresses per ActorType
+extern uint8_t *actor_type_definitions[]; // 0x006853b8, one definition pointer per actor type (+0xd swarm byte)
 
-extern datum_index actor_new(void);                                   // 0x426760, this call site shows no argument
+extern datum_index actor_new(datum_index actor_variant_tag);          // 0x426760, stack
 extern void actor_attach_to_unit(datum_index actor_index, datum_index unit_index); // 0x427560
 extern void actor_delete(datum_index actor_index, uint32_t flag);     // 0x427e60, blam-cc: EBX -> actor_index, stack -> flag
 extern void ai_actor_link_to_unassigned_list(datum_index actor_index); // 0x436940
-extern object *object_try_and_get(uint32_t type_mask);                 // 0x4f6ec0
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
 
 // blam-cc: EAX -> actor_variant_tag, stack -> unit_index
 // Creates the controlling actor for a unit that has just come under AI control, unless the
@@ -66,7 +66,9 @@ void ai_unit_create_actor(datum_index actor_variant_tag, datum_index unit_index)
         return; // Actor.flags bit 26, "swarm"
     }
 
-    unit_definition = object_try_and_get(1);
+    // FIXED (0x435486..0x4354a9): ECX = the unit (ebp) and actor_new gets the variant (esi); the draft passed
+    //   neither. The type byte compared at 0x435510 is +0xd of the type definition, not uint32 [0xd].
+    unit_definition = object_try_and_get(unit_index, 1);
     if (unit_definition == 0) {
         return;
     }
@@ -74,7 +76,7 @@ void ai_unit_create_actor(datum_index actor_variant_tag, datum_index unit_index)
         return;
     }
 
-    actor_index = actor_new();
+    actor_index = actor_new(actor_variant_tag);
     if (actor_index == (datum_index)k_datum_index_none) {
         return;
     }
@@ -89,7 +91,7 @@ void ai_unit_create_actor(datum_index actor_variant_tag, datum_index unit_index)
     a->unknown_90 = -1;
     a->unknown_68 = 0;
 
-    if (a->swarm != (uint8_t)actor_type_procs[a->type][0x0d]) {
+    if (*((uint8_t *)a + 0x6) != actor_type_definitions[*(int16_t *)((uint8_t *)a + 0x4)][0xd]) {
         actor_delete(actor_index, 0);
         return;
     }

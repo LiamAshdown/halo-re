@@ -65,7 +65,7 @@ extern real random_real_range(real min, real max); // 0x401050, math module
 extern uint8_t actor_target_get_backup_priority(datum_index target_prop_index); // 0x420e50, this module
 extern int16_t ai_group_bucket_find_or_add(void *buckets, int32_t key, int16_t *count,
                                            int16_t capacity); // 0x420de0, this module
-extern datum_index actor_find_prop_for_object(datum_index object_index); // 0x43ea80, UNSURE signature
+extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, stack, ECX
 
 // ai_group_bucket_entry now lives in types/ai.h (folded from this file).
 
@@ -120,7 +120,7 @@ void actor_scan_allies_for_backup_request(datum_index actor_index) // blam-cc: s
                 (self->unknown_3a4 == k_datum_index_none ||
                  owner->unknown_3b0 >= self->unknown_3a4)) {
                 prop *requested = &props[owner->unknown_3ac & 0xffff];
-                datum_index own_prop_index = actor_find_prop_for_object(requested->object_index);
+                datum_index own_prop_index = actor_find_prop_for_object(requested->object_index, actor_index); // 0x421034: ECX = actor (arg)
 
                 if (own_prop_index != k_datum_index_none) {
                     prop *own_prop = &props[own_prop_index & 0xffff];

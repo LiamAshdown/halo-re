@@ -1,10 +1,12 @@
 // actor_target_is_close_and_recognized  (Ghidra: actor_target_is_close_and_recognized; named for this rewrite)
 // address 0x42f480, size 100 bytes
-// name confidence: 0.3   rewrite confidence: 0.6
+// name confidence: 0.3   rewrite confidence: 0.95
 // evidence: phase-4 summary ("checks whether a given unit is currently a close,
 // appropriately-categorized recognized object").
 // register convention: plain __cdecl (param_1/param_2 recognized by Ghidra but never read).
-// blam-cc: stack -> param_1 (unused), param_2 (unused), actor_index
+// blam-cc: stack -> object_index, param_2 (unused), actor_index
+// 0x42f491: EAX = the first argument (the object), stack = (actor, 1, 1). The draft passed the actor as the
+//   object and 1 as the actor.
 
 #include "tags.h"
 #include "memory.h"
@@ -13,12 +15,13 @@
 
 extern data_array *prop_data; // 0x008802c0
 
-extern datum_index actor_find_or_create_shared_prop(datum_index actor_index, uint32_t flag_a, uint32_t flag_b); // 0x43eb30, UNSURE signature
+extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index,
+    char create_if_missing, uint32_t flag); // 0x43eb30, EAX, stack
 
 // blam-cc: stack -> param_1 (unused), param_2 (unused), actor_index
 // Resolves actor_index to its prop record and returns 1 if it is within 5 world units and
 // its unknown_38 field is 0 or 1, else 0.
-uint8_t actor_target_is_close_and_recognized(uint32_t param_1, uint32_t param_2, datum_index actor_index)
+uint8_t actor_target_is_close_and_recognized(datum_index object_index, uint32_t param_2, datum_index actor_index)
 {
     datum_index prop_index;
     prop *p;
@@ -26,7 +29,7 @@ uint8_t actor_target_is_close_and_recognized(uint32_t param_1, uint32_t param_2,
     if (actor_index == (datum_index)k_datum_index_none) {
         return 0;
     }
-    prop_index = actor_find_or_create_shared_prop(actor_index, 1, 1);
+    prop_index = actor_find_or_create_shared_prop(object_index, actor_index, 1, 1);
     if (prop_index == (datum_index)k_datum_index_none) {
         return 0;
     }

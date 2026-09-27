@@ -1,6 +1,6 @@
 // actor_scale_value_by_ally_exposure  (Ghidra: actor_scale_value_by_ally_exposure; named from out/phase2/results/ai_02.json)
 // address 0x420c90, size 322 bytes
-// name confidence: 0.4   rewrite confidence: 0.35
+// name confidence: 0.4   rewrite confidence: 0.9
 // evidence: out/phase2/results/ai_02.json -- walks the actor's perceived-prop list counting
 //   allies (matching actor.type) that are either exposed or already alert/aiming (via the
 //   owning ally actor's unknown_308/mode/mode_data fields), then scales *value down as the
@@ -26,9 +26,11 @@ extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
 
 // blam-cc: EAX -> actor_index, stack -> value
+// FIXED (objdump 0x420d44..0x420dd1): returns AL = 1, leaving the value alone, when 2+ allies are already
+//   alerted (0x420d4e jg with EAX = 1); the scaling paths return 0 (xor al,al). The draft returned void.
 // Adjusts a caller-supplied probability/weight downward based on how many nearby allies of the
 // same type are already exposed or engaged, to avoid redundant reactions.
-void actor_scale_value_by_ally_exposure(datum_index actor_index, float *value)
+uint8_t actor_scale_value_by_ally_exposure(datum_index actor_index, float *value)
 {
     actor *self;
     datum_index prop_index;
@@ -62,7 +64,10 @@ void actor_scale_value_by_ally_exposure(datum_index actor_index, float *value)
         }
     }
 
-    if (alert_count < 2) {
+    if (alert_count > 1) {
+        return 1;
+    }
+    {
         if (exposed_count < 2) {
             scale = (float)(1 - exposed_count) * 0.5f + 1.0f;
         } else {
@@ -70,13 +75,14 @@ void actor_scale_value_by_ally_exposure(datum_index actor_index, float *value)
         }
         if (scale < 0.0f) {
             *value = *value * 0.0f;
-            return;
+            return 0;
         }
         if (2.0f < scale) {
             scale = 2.0f;
         }
         *value = scale * *value;
     }
+    return 0;
 }
 
 #if 0

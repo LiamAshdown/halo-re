@@ -1,6 +1,6 @@
 // ai_alert_actors_in_grenade_radius  (Ghidra: ai_alert_actors_in_grenade_radius, already named)
 // address 0x42a0e0, size 699 bytes
-// name confidence: 0.9   rewrite confidence: 0.2
+// name confidence: 0.9   rewrite confidence: 0.9
 // evidence: types/ai.h actor.unknown_138[0x20] (the raw offset 0x148 used here falls inside
 //   it, at index 0x10 -- a cached BSP cluster index, matching the same array
 //   actor_clear_target_state @0x4286c0 also reaches into). Calls actor_get_firing_positions
@@ -25,114 +25,110 @@
 #include "objects.h"
 #include <string.h>
 
-extern ai_globals *ai_globals_ptr; // 0x00880354
-extern data_array *actor_data;     // 0x00880360
+extern uint8_t *ai_globals_ptr;     // 0x00880354
 extern data_array *object_data;    // 0x008603b0
 extern data_array *prop_data;      // 0x008802c0
 extern data_array *encounter_data; // 0x008802c8
+extern uint8_t *global_structure_bsp_bytes; // 0x00746f9c (clusters.count +0x134, sound PAS +0x220)
 
-// 0x00746f9c holds a POINTER to the structure BSP tag data; Ghidra's `DAT_00746f9c + 0x134`
-// is ScenarioStructureBSP.clusters.count and `+ 0x220` is .sound_pas_data.pointer (the
-// potentially-audible-set table, which is what this sound-propagation test walks).
-extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
+extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70, EAX
+extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX, ECX
+extern uint32_t object_get_root_object_index(uint32_t object_index); // 0x4f6fb0, ECX
+extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block,
+    real_point3d *query_point); // 0x41c1e0, EAX, ECX, EDX
+extern uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_index actor_index, void *target_ref,
+    int16_t gate, real_point3d *listener_position); // 0x41c030, stack, stack, EAX, ECX, EBX, ESI
+extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index,
+    char create_if_missing, uint32_t flag); // 0x43eb30, EAX, stack
+extern void actor_squad_react_to_grenade(datum_index actor_index, datum_index target_prop_index,
+    int16_t grenade_type); // 0x42a3a0, ESI, stack, EAX
 
-extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70
-extern void object_get_position(real_point3d *out_position, datum_index object_index); // 0x4f6900
-extern datum_index object_get_root_object_index(datum_index object_index); // 0x4f6fb0, UNSURE signature
-extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point); // 0x41c1e0
-extern int16_t actor_target_hearing_check(uint32_t *block, uint32_t param); // 0x41c030, UNSURE signature
-extern datum_index actor_find_or_create_shared_prop(datum_index actor_index, uint32_t flag_a, uint32_t flag_b); // 0x43eb30, UNSURE signature
-extern void actor_squad_react_to_grenade(datum_index actor_index, datum_index target_prop_index, int16_t grenade_type); // 0x42a3a0, already rewritten in this module
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
 
-// Given a grenade/threat's originating object, marks nearby pathfinding-visible clusters
-// within a ~40-unit radius and triggers a squad reaction for every actor whose cached BSP
-// cluster sits inside that set.
-// FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads EAX; source_unit_index arrive(s) on the stack (1 stack argument(s)).
-// blam-cc: stack -> source_unit_index
-void ai_alert_actors_in_grenade_radius(datum_index source_unit_index)
+// REWRITTEN from objdump 0x42a0e0..0x42a39a. Stack: (object, stimulus, gate) -- ai_refresh_unit_stimulus_and_alert
+//   passes (unit, DI, BX). The clusters whose sound PAS byte from the object's (root's) cluster is audible and
+//   under 40 units (byte * 2.015748) are marked; every actor in a marked cluster (+0x148) other than the object's
+//   own (+0x1f8, else +0x1f4) that hears the object's location (0x41c030, stance 0) gets its prop for the object
+//   (created, flag 1) and, if it also hears that prop (+0xfc record, +0x38 stance, +0xbc position), reacts to it
+//   (0x42a3a0) with the stimulus. The draft took one argument, looked the prop up by the owner actor alone and
+//   ran both hearing checks with 2 of 6 arguments.
+// blam-cc: stack -> source_unit_index, stimulus, gate
+void ai_alert_actors_in_grenade_radius(datum_index source_unit_index, int16_t stimulus, int16_t gate)
 {
-    object *source_object = ((object_header *)object_data->data)[source_unit_index & 0xffff].data;
-    datum_index owner_actor = (datum_index)source_object->network_update_tick; // UNSURE: swarm_actor_index-style field, offset 0x1f8 in original
-    real_point3d source_position;
-    uint32_t cluster_bits[16];
+    uint8_t *source = OBJECT_DATA(source_unit_index);
+    uint8_t *location = source + 0x98;                 // [esp+0x10]: leaf, then the cluster word at +0x4
+    datum_index owner_actor = *(datum_index *)(source + 0x1f8); // [esp+0x14]
+    uint32_t cluster_bits[16];                         // [esp+0x80]
+    uint32_t firing_block[14];                         // [esp+0x48]
+    real_point3d source_position;                      // [esp+0x3c]
+    actor_iterator_state iterator;                     // [esp+0x20]
+    int32_t cluster_count;
     int16_t source_cluster;
-    actor_iterator_state iterator;
     actor *a;
 
-    owner_actor = *(datum_index *)((uint8_t *)source_object + 0x1f8);
-    if (owner_actor == (datum_index)k_datum_index_none) {
-        owner_actor = *(datum_index *)((uint8_t *)source_object + 500); // unit_data.actor_index
+    if (owner_actor == k_datum_index_none) {
+        owner_actor = *(datum_index *)(source + 0x1f4);
     }
-
-    if (source_object->parent_object != (datum_index)k_datum_index_none) {
-        datum_index root_index = object_get_root_object_index(source_object->parent_object);
-        source_object = ((object_header *)object_data->data)[root_index & 0xffff].data;
+    if (*(datum_index *)(source + 0x11c) != k_datum_index_none) {
+        location = OBJECT_DATA(object_get_root_object_index(source_unit_index)) + 0x98;
     }
-
+    cluster_count = *(int32_t *)(global_structure_bsp_bytes + 0x134);
     memset(cluster_bits, 0, sizeof(cluster_bits));
+    source_cluster = *(int16_t *)(location + 0x4);
+    if (source_cluster != -1) {
+        int16_t i;
 
-    source_cluster = source_object->location_cluster_index;
-    if (source_cluster != -1 && (int32_t)global_structure_bsp->clusters.count > 0) {
-        int32_t i;
-        for (i = 0; i < (int32_t)global_structure_bsp->clusters.count; i++) {
-            uint8_t pvs_byte;
-            if (source_cluster == (int16_t)i) {
-                pvs_byte = 0;
-            } else {
-                int16_t hi = (int16_t)i, lo = source_cluster;
-                if (source_cluster < (int16_t)i) {
-                    hi = source_cluster;
-                    lo = (int16_t)i;
-                }
-                // UNSURE: triangular PVS table index, preserved from the original arithmetic.
-                pvs_byte = ((uint8_t *)(uintptr_t)global_structure_bsp->sound_pas_data.pointer)[
-                    (int16_t)(((int32_t)global_structure_bsp->clusters.count - 1) * lo - (int16_t)(((lo + 1) * (int32_t)lo) / 2)) - 1 + hi];
+        for (i = 0; (int32_t)i < cluster_count; i++) {
+            uint8_t pas = 0;
+
+            if (source_cluster != i) {
+                int32_t lo = source_cluster < i ? source_cluster : i;
+                int32_t hi = source_cluster < i ? i : source_cluster;
+                int32_t row = (uint16_t)(*(uint16_t *)(global_structure_bsp_bytes + 0x134) - 1) * lo - ((lo + 1) * lo) / 2;
+
+                pas = (*(uint8_t **)(global_structure_bsp_bytes + 0x220))[(int16_t)(row + hi - 1)];
             }
-            if ((int8_t)pvs_byte >= 0 && (float)(pvs_byte & 0x7f) * 2.015748f < 40.0f) {
+            if (!(pas & 0x80) && (float)(int32_t)(pas & 0x7f) * 2.015748f < 40.0f) {
                 cluster_bits[i >> 5] |= 1u << (i & 0x1f);
             }
         }
     }
-
     object_get_position(&source_position, source_unit_index);
+    if (ai_globals_ptr[0x1]) {
+        iterator.filter_array = encounter_data;
+        iterator.unknown_04 = 0;
+        iterator.cursor = -1;
+        iterator.signature = (uint32_t)encounter_data ^ 0x69746572;
+        iterator.unknown_10 = 0;
+        iterator.active = 1;
+        iterator.actor_index = k_datum_index_none;
+        iterator.unknown_18 = -1;
+    }
+    for (a = actor_iterator_next(&iterator); a != 0; a = actor_iterator_next(&iterator)) {
+        datum_index actor_index = iterator.actor_index;
+        int16_t actor_cluster = *(int16_t *)((uint8_t *)a + 0x148);
+        datum_index prop_index;
+        uint8_t *p;
 
-    iterator.filter_array = encounter_data;
-    iterator.unknown_04 = 0;
-    iterator.cursor = -1;
-    iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
-    iterator.unknown_10 = 0;
-    iterator.active = 1;
-    iterator.actor_index = -1;
-    iterator.unknown_18 = -1;
-
-    a = actor_iterator_next(&iterator);
-    while (a != 0) {
-        datum_index actor_index = iterator.actor_index /* the full handle, salt included */;
-        int16_t actor_cluster = *(int16_t *)((uint8_t *)a + 0x148); // UNSURE offset (unknown_138 array)
-
-        if (actor_index != owner_actor && actor_cluster != -1 &&
-            (cluster_bits[actor_cluster >> 5] & (1u << (actor_cluster & 0x1f))) != 0) {
-            uint32_t firing_block[64]; // UNSURE size/layout, see file header
-            int16_t count;
-
-            actor_get_firing_positions(actor_index, firing_block, &source_position);
-            count = actor_target_hearing_check(firing_block, 0);
-            if (count > 1) {
-                datum_index target_prop = actor_find_or_create_shared_prop(owner_actor, 1, 1);
-                if (target_prop != (datum_index)k_datum_index_none) {
-                    prop *p = &((prop *)prop_data->data)[target_prop & 0xffff];
-                    count = actor_target_hearing_check((uint32_t *)((uint8_t *)p + 0xfc), *(uint16_t *)((uint8_t *)p + 0x38));
-                    if (count > 1) {
-                        // UNSURE: the original calls this with only one visible argument
-                        // (the resolved prop handle); actor_index and grenade_type are
-                        // guessed here (the acting actor and grenade type 0) rather than
-                        // independently confirmed with objdump.
-                        actor_squad_react_to_grenade(actor_index, target_prop, 0);
-                    }
-                }
-            }
+        if (actor_index == owner_actor || actor_cluster == -1 ||
+            !(cluster_bits[actor_cluster >> 5] & (1u << (actor_cluster & 0x1f)))) {
+            continue;
         }
-        a = actor_iterator_next(&iterator);
+        actor_get_firing_positions(actor_index, firing_block, &source_position);
+        if ((int16_t)actor_target_hearing_check(location, 0, actor_index, firing_block, gate, &source_position) < 2) {
+            continue;
+        }
+        prop_index = actor_find_or_create_shared_prop(source_unit_index, actor_index, 1, 1);
+        if (prop_index == k_datum_index_none) {
+            continue;
+        }
+        p = PROP(prop_index);
+        if ((int16_t)actor_target_hearing_check(p + 0xfc, (int16_t)*(uint16_t *)(p + 0x38), actor_index, firing_block,
+                gate, (real_point3d *)(p + 0xbc)) < 2) {
+            continue;
+        }
+        actor_squad_react_to_grenade(actor_index, prop_index, stimulus);
     }
 }
 

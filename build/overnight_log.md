@@ -1432,3 +1432,27 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   grenade pull (variant +0x94 / +0x98), grenade drop, dropped weapon ammo (+0x1d4..+0x1e2), actor_delete, morale.
   The draft called the weapon lookup / countdown / ammo setters argless. 0x428d35
   actor_died_unit_grenade_count_mod marked FRAGMENT.
+- Prop lookups (actor_find_or_create_shared_prop 0x43eb30 = object EAX + (actor, create, flag); actor_find_prop_for_object
+  0x43ea80 = object stack + actor ECX): every caller passed the actor as the object or dropped it. Fixed:
+  - actor_mark_prop_seen_with_delta 0x428840 REWRITTEN (0.2 -> 0.9): (object EAX, actor, delta, direction); marks the
+    prop and its pair seen, then the directional reaction gets (direction, prop if kind 2..3, actor) -- was
+    (NULL, actor, none). Its caller actor_react_to_threat_event passes the relationship object and extra_param.
+  - actor_squad_react_to_grenade_for_vehicle_occupants 0x42bd70 REWRITTEN (0.4 -> 0.9).
+  - actor_target_is_close_and_recognized 0x42f480: object is arg 1.
+  - ai_alert_actors_in_grenade_radius 0x42a0e0 REWRITTEN (0.2 -> 0.9): 3 stack args (object, stimulus, gate), both
+    hearing checks get all 6 operands; ai_refresh_unit_stimulus_and_alert 0x42c2a0 REWRITTEN (0.4 -> 0.95) to pass
+    them (object, DI, BX).
+  - actor_get_squad_recent_attacker_target 0x41f6b0 REWRITTEN (0.2 -> 0.95).
+  - actor_issue_order_or_vocalize 0x4302e0: prop lookup gets the actor, eye marker gets (vehicle, ctx + 4).
+  - actor_scan_ally_death_panic_reaction, ai_communication_rate_speaker, ai_conversation_resolve_participants,
+    actor_scan_allies_for_backup_request: prop lookups get their ECX actor.
+- actor_scale_value_by_ally_exposure 0x420c90 returns AL (1 = 2+ allies already alerted, roll skipped); the draft was
+  void. Callers fixed: actor_scan_ally_death_panic_reaction (the roll now happens) and STABLE
+  actor_scan_backup_and_panic_reaction (proven different at 0x423346..0x42338a: it accepted every scaled roll).
+- ai_unit_create_actor 0x435420: object_try_and_get got no unit, actor_new no variant, and the type byte was read as
+  uint32 [0xd]. 0x6853b8 is an ARRAY of type definitions: ai_unit_create_actor and encounter_choose_vocalizations
+  declared it `uint32_t **` (a pointer variable), so indexing read type 0's definition as the table. Fixed both.
+  OPEN idea: scan for other array globals declared as pointer variables.
+- actor_update_target_lead_position 0x429570 REWRITTEN (0.35 -> 0.95; the actor's cached location + point): vehicle
+  prediction and the biped lookup were argless.
+- NOTE: harness/build/hooks.txt differs from hooks.stable.txt only in line endings (CRLF vs LF); content identical.

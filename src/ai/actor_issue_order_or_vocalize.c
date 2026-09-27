@@ -1,6 +1,6 @@
 // actor_issue_order_or_vocalize  (Ghidra: actor_issue_order_or_vocalize; named for this rewrite)
 // address 0x4302e0, size 180 bytes
-// name confidence: 0.35   rewrite confidence: 0.3
+// name confidence: 0.35   rewrite confidence: 0.9
 // evidence: phase-4 summary ("issues an AI order (e.g. 'go to' or 'attack') targeting a
 // specific unit, or a randomly-chosen fallback target if the unit is unsuitable"); the third
 // argument to actor_begin_vocalization (actor_begin_vocalization, already rewritten in this repo) is
@@ -19,8 +19,8 @@
 extern data_array *prop_data; // 0x008802c0
 
 extern void *object_try_and_get(datum_index object_index, int32_t kind); // 0x4f6ec0
-extern datum_index actor_find_prop_for_object(datum_index object_index); // 0x43ea80, UNSURE signature
-extern void unit_get_primary_eye_marker_position(actor_vocalization_context *out); // 0x568f50, not yet rewritten; UNSURE signature (ESI-out per its own summary)
+extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, stack, ECX
+extern void unit_get_primary_eye_marker_position(uint32_t object_index, real_point3d *out); // 0x568f50, ECX, ESI
 extern uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t variant,
                                         actor_vocalization_context *context); // 0x4142d0
 
@@ -52,7 +52,7 @@ void actor_issue_order_or_vocalize(datum_index prop_index, datum_index actor_ind
     }
 
     if (prop_index == (datum_index)k_datum_index_none) {
-        prop_index = actor_find_prop_for_object(vehicle_object_index);
+        prop_index = actor_find_prop_for_object(vehicle_object_index, actor_index); // 0x43031b: ECX = actor (ebx)
     }
     kind = -1;
     if (prop_index != (datum_index)k_datum_index_none) {
@@ -62,7 +62,7 @@ void actor_issue_order_or_vocalize(datum_index prop_index, datum_index actor_ind
 
     if (prop_index == (datum_index)k_datum_index_none || kind < 2 || 3 < kind) {
         context.kind = 3;
-        unit_get_primary_eye_marker_position(&context);
+        unit_get_primary_eye_marker_position(vehicle_object_index, (real_point3d *)&context.handle); // 0x430367: ESI = ctx + 4
     } else {
         context.kind = 1;
         context.handle = prop_index;

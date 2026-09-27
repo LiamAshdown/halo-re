@@ -1,6 +1,6 @@
 // ai_refresh_unit_stimulus_and_alert  (Ghidra: ai_refresh_unit_stimulus_and_alert; named for this rewrite)
 // address 0x42c2a0, size 202 bytes
-// name confidence: 0.3   rewrite confidence: 0.4
+// name confidence: 0.3   rewrite confidence: 0.95
 // evidence: phase-4 summary ("refreshes a stimulus timestamp on a unit and forwards the
 // notification to its vehicle passengers, or directly if it is a biped"); types/objects.h
 // next_object (0x114) / first_child_object (0x118) account for the vehicle passenger walk.
@@ -21,49 +21,46 @@
 #include "game.h"
 #include "ai.h"
 
-extern ai_globals *ai_globals_ptr;   // 0x00880354
+extern uint8_t *ai_globals_ptr;      // 0x00880354
 extern data_array *object_data;      // 0x008603b0
 extern game_time_globals *game_time; // 0x006f1d6c
 
-extern void ai_alert_actors_in_grenade_radius(datum_index object_index); // 0x42a0e0, not yet rewritten; UNSURE signature
+extern void ai_alert_actors_in_grenade_radius(datum_index source_unit_index, int16_t stimulus, int16_t gate); // 0x42a0e0
 
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+
+// REWRITTEN from objdump 0x42c2a0..0x42c369. When the stimulus outranks the unit's (+0x21c) or that one is over
+//   30 ticks old (+0x220), restamps it and alerts nearby actors (0x42a0e0 with (object, stimulus, priority)):
+//   for a vehicle each biped among its children (+0x118, then +0x114), for a biped the unit itself.
 // blam-cc: EDX -> object_index, BX -> priority, DI -> stimulus_value
-// If priority is positive and stimulus_value outranks (or the previous stimulus has aged
-// past 30 ticks) object_index's currently recorded stimulus, restamps it and forwards the
-// alert: directly if object_index is a biped, or to every biped passenger if it is a
-// vehicle.
 void ai_refresh_unit_stimulus_and_alert(datum_index object_index, int16_t priority, int16_t stimulus_value)
 {
-    object *obj;
-    object *passenger_obj;
-    datum_index passenger_index;
-    unit_data *unit;
+    uint8_t *obj;
+    int32_t now;
 
-    if (!ai_globals_ptr->actors_valid || object_index == (datum_index)k_datum_index_none || priority <= 0) {
+    if (!ai_globals_ptr[0x1] || object_index == k_datum_index_none || priority <= 0) {
         return;
     }
-    obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+    obj = OBJECT_DATA(object_index);
+    now = game_time->game_time;
+    if (!(stimulus_value > *(int16_t *)(obj + 0x21c)) && !(now > *(int32_t *)(obj + 0x220) + 0x1e)) {
+        return;
+    }
+    *(int32_t *)(obj + 0x220) = now;
+    *(int16_t *)(obj + 0x21c) = stimulus_value;
+    if (*(int16_t *)(obj + 0xb4) == 1) {
+        datum_index child;
 
-    if (unit->unknown_21c < stimulus_value ||
-        (int32_t)unit->unknown_220 + 0x1e < game_time->game_time) {
-        unit->unknown_220 = game_time->game_time;
-        unit->unknown_21c = stimulus_value;
+        for (child = *(datum_index *)(obj + 0x118); child != k_datum_index_none;) {
+            uint8_t *c = OBJECT_DATA(child);
 
-        if (obj->type == _object_type_vehicle) {
-            passenger_index = obj->first_child_object;
-            if (passenger_index != (datum_index)k_datum_index_none) {
-                do {
-                    passenger_obj = ((object_header *)object_data->data)[passenger_index & 0xffff].data;
-                    if (passenger_obj->type == _object_type_biped) {
-                        ai_alert_actors_in_grenade_radius(passenger_index);
-                    }
-                    passenger_index = passenger_obj->next_object;
-                } while (passenger_index != (datum_index)k_datum_index_none);
+            if (*(int16_t *)(c + 0xb4) == 0) {
+                ai_alert_actors_in_grenade_radius(child, stimulus_value, priority);
             }
-        } else if (obj->type == _object_type_biped) {
-            ai_alert_actors_in_grenade_radius(object_index);
+            child = *(datum_index *)(c + 0x114);
         }
+    } else if (*(int16_t *)(obj + 0xb4) == 0) {
+        ai_alert_actors_in_grenade_radius(object_index, stimulus_value, priority);
     }
 }
 

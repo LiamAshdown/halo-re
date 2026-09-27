@@ -1,6 +1,6 @@
 // actor_scan_ally_death_panic_reaction  (Ghidra: actor_scan_ally_death_panic_reaction, renamed)
 // address 0x4233d0, size 275 bytes
-// name confidence: 0.35   rewrite confidence: 0.35
+// name confidence: 0.35   rewrite confidence: 0.9
 // evidence: types/ai.h actor.unknown_39c, actor.target_unit_index (0x270), actor.mode_data
 //   (mode==4 is _actor_mode_death); prop.is_unit (0x60), prop.owner_actor_index (0x1c),
 //   prop.object_index (0x18); types/tags.h Actor.friend_killed_panic_chance (0x2a0),
@@ -29,8 +29,8 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c
 
 extern real random_real(void); // 0x4019f0
-extern void actor_scale_value_by_ally_exposure(datum_index actor_index, float *value); // 0x420c90
-extern datum_index actor_find_prop_for_object(datum_index object_index); // 0x43ea80, UNSURE signature (established elsewhere in this module)
+extern uint8_t actor_scale_value_by_ally_exposure(datum_index actor_index, float *value); // 0x420c90, EAX, stack
+extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, stack, ECX
 
 // blam-cc: EAX -> target_prop_index, EBX -> actor_index
 // If the target prop is not a unit, the actor's tag allows group panic, and the actor's own
@@ -49,8 +49,10 @@ void actor_scan_ally_death_panic_reaction(datum_index target_prop_index, datum_i
         self->unknown_39c < (int32_t)game_time->game_time) {
         float chance = actor_tag->friend_killed_panic_chance;
 
-        actor_scale_value_by_ally_exposure(actor_index, &chance);
-        // (the roll-failure early return here never actually fires; see file header)
+        // 0x423454: the roll (0x423460) only runs when the scaler returns 0; it fails on random >= chance
+        if (!actor_scale_value_by_ally_exposure(actor_index, &chance) && !(random_real() < chance)) {
+            return;
+        }
 
         if (self->unknown_308 < 3) {
             datum_index owner_actor_index = target->owner_actor_index;
@@ -64,7 +66,7 @@ void actor_scan_ally_death_panic_reaction(datum_index target_prop_index, datum_i
                     uint32_t killer_prop = *(uint32_t *)&owner->mode_data[0x1c];
                     if (killer_prop != (uint32_t)k_datum_index_none) {
                         prop *killer = &((prop *)prop_data->data)[killer_prop & 0xffff];
-                        payload = actor_find_prop_for_object(killer->object_index);
+                        payload = actor_find_prop_for_object(killer->object_index, actor_index); // 0x4234c5: ECX = actor (ebx)
                     }
                 }
 

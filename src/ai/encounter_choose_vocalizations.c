@@ -40,7 +40,7 @@ extern data_array *actor_data;       // 0x00880360
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern data_array *prop_data;        // 0x008802c0
 extern data_array *object_data;      // 0x008603b0
-extern uint32_t **actor_type_procs;  // 0x006853b8
+extern uint8_t *actor_type_definitions[]; // 0x006853b8, one definition pointer per actor type (+0x4 flags byte)
 extern int16_t ai_vocalization_line_table[4]; // 0x00657194, UNSURE length
 
 extern float ai_communication_rate_player_proximity(uint8_t require_line_of_sight, datum_index *out_player_object_index,
@@ -247,7 +247,7 @@ void encounter_choose_vocalizations(datum_index encounter_index)
             actor_index = a->next_in_encounter;
             if (a->unit_index != (datum_index)k_datum_index_none) {
                 proximity = ai_communication_rate_player_proximity(1, 0, 0, a->unit_index); // EBX = a->unit_index
-                if ((actor_type_procs[a->type][4] & 2) != 0 && 2.0f < proximity &&
+                if ((actor_type_definitions[a->type][4] & 2) != 0 /* 0x438a6c: byte +0x4 of the type definition */ && 2.0f < proximity &&
                     best_distance < proximity) {
                     best_distance = proximity;
                     chosen_actor = current;

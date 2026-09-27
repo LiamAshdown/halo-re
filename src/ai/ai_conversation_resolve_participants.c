@@ -50,7 +50,7 @@ extern datum_index *object_names_to_objects; // 0x006b8cb8, 0x200 entries
 
 extern void * data_iterator_next(data_iterator *iterator); // 0x4d05d0
 extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0
-extern datum_index actor_find_prop_for_object(datum_index object_index); // 0x43ea80, UNSURE signature
+extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, stack, ECX
 extern int8_t ai_conversation_get_run_to_player_range(void); // 0x402cf0, not yet rewritten; UNSURE: no traced args
 extern int8_t unit_point_within_look_cone(float cone_radians); // 0x56c100, units module; UNSURE: Ghidra dropped every other argument
 extern int8_t ai_conversation_resolve_participant(int16_t participant_index, uint8_t *out_resolved,
@@ -229,7 +229,7 @@ clear_wait:
             nearest = 3.4028235e+38f;
             for (j = 0; j < (int32_t)definition->participants.count; j++) {
                 if (instance->participant_actor[j] != (datum_index)k_datum_index_none) {
-                    prop_index = actor_find_prop_for_object(player_unit);
+                    prop_index = actor_find_prop_for_object(player_unit, instance->participant_actor[j]); // 0x4312b0: ECX = participant
                     if (prop_index != (datum_index)k_datum_index_none) {
                         p = (prop *)((uint8_t *)prop_data->data +
                                      (prop_index & 0xffff) * k_prop_size);

@@ -1,6 +1,6 @@
 // actor_squad_react_to_grenade_for_vehicle_occupants  (Ghidra: actor_squad_react_to_grenade_for_vehicle_occupants; named for this rewrite)
 // address 0x42bd70, size 201 bytes
-// name confidence: 0.3   rewrite confidence: 0.4
+// name confidence: 0.3   rewrite confidence: 0.9
 // evidence: phase-4 summary ("when an object resolves to a biped, removes the current-weapon
 // object of it and of another (register-passed) unit from the AI's recognized-object
 // cache"); actor_find_or_create_shared_prop(actor_index, 1, 0) matches the established "resolve or create this
@@ -24,57 +24,57 @@
 
 extern data_array *object_data; // 0x008603b0
 
-extern void *object_try_and_get(datum_index object_index, int32_t kind); // 0x4f6ec0
-extern datum_index actor_find_or_create_shared_prop(datum_index actor_index, uint32_t flag_a, uint32_t flag_b); // 0x43eb30, UNSURE signature
-extern void actor_squad_react_to_grenade(datum_index prop_index); // 0x42a3a0, not yet rewritten; UNSURE name
+extern void *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
+extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index,
+    char create_if_missing, uint32_t flag); // 0x43eb30, EAX, stack
+extern void actor_squad_react_to_grenade(datum_index actor_index, datum_index target_prop_index,
+    int16_t grenade_type); // 0x42a3a0, ESI, stack, EAX
 
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+
+// REWRITTEN from objdump 0x42bd70..0x42be38. EAX: a unit, EBX: the other object. The unit's driver (or the unit
+//   itself) must be a biped; then the other object's actor gets its prop for that biped (0x43eb30, create 1,
+//   flag 0) and reacts to it (0x42a3a0, type 0), and the biped's actor does the same for the other object. The
+//   draft looked props up by actor alone and called the reaction with the prop as its actor.
 // blam-cc: EAX -> vehicle_object_index, EBX -> other_object_index
-// Resolves vehicle_object_index to a vehicle object (falling back to vehicle_object_index
-// itself as a plain object if its driver seat is empty or it isn't a vehicle), and if that
-// object is a biped, resolves both other_object_index's and the vehicle occupant's own
-// controlling actor to a prop via actor_find_or_create_shared_prop and reacts each one to the grenade.
 void actor_squad_react_to_grenade_for_vehicle_occupants(datum_index vehicle_object_index,
                                                           datum_index other_object_index)
 {
-    object *vehicle_obj;
+    uint8_t *vehicle;
+    uint8_t *occupant;
     datum_index occupant_index;
-    object *occupant_obj;
-    datum_index occupant_actor_index;
-    datum_index other_actor_index;
-    datum_index resolved;
+    datum_index actor;
+    datum_index prop;
 
-    if (vehicle_object_index == (datum_index)k_datum_index_none) {
+    if (vehicle_object_index == k_datum_index_none) {
         return;
     }
-    vehicle_obj = object_try_and_get(vehicle_object_index, 3);
-    if (vehicle_obj == 0) {
+    vehicle = (uint8_t *)object_try_and_get(vehicle_object_index, 3);
+    if (vehicle == 0) {
         return;
     }
-
-    occupant_index = ((unit_data *)((uint8_t *)vehicle_obj + k_unit_data_offset))->driver_unit_index;
-    if (occupant_index == (datum_index)k_datum_index_none) {
+    occupant_index = *(datum_index *)(vehicle + 0x324);
+    if (occupant_index == k_datum_index_none) {
         occupant_index = vehicle_object_index;
     }
-
-    occupant_obj = ((object_header *)object_data->data)[occupant_index & 0xffff].data;
-    if (occupant_obj->type != _object_type_biped) {
+    occupant = OBJECT_DATA(occupant_index);
+    if (*(int16_t *)(occupant + 0xb4) != 0) {
         return;
     }
-
-    other_actor_index = ((unit_data *)((uint8_t *)((object_header *)object_data->data)[other_object_index & 0xffff].data
-                                        + k_unit_data_offset))->actor_index;
-    if (other_actor_index != (datum_index)k_datum_index_none) {
-        resolved = actor_find_or_create_shared_prop(other_actor_index, 1, 0);
-        if (resolved != (datum_index)k_datum_index_none) {
-            actor_squad_react_to_grenade(resolved);
+    // 0x42bdd8: the other object's actor about the biped
+    actor = *(datum_index *)(OBJECT_DATA(other_object_index) + 0x1f4);
+    if (actor != k_datum_index_none) {
+        prop = actor_find_or_create_shared_prop(occupant_index, actor, 1, 0);
+        if (prop != k_datum_index_none) {
+            actor_squad_react_to_grenade(actor, prop, 0);
         }
     }
-
-    occupant_actor_index = ((unit_data *)((uint8_t *)occupant_obj + k_unit_data_offset))->actor_index;
-    if (occupant_actor_index != (datum_index)k_datum_index_none) {
-        resolved = actor_find_or_create_shared_prop(occupant_actor_index, 1, 0);
-        if (resolved != (datum_index)k_datum_index_none) {
-            actor_squad_react_to_grenade(resolved);
+    // 0x42be06: the biped's actor about the other object
+    actor = *(datum_index *)(occupant + 0x1f4);
+    if (actor != k_datum_index_none) {
+        prop = actor_find_or_create_shared_prop(other_object_index, actor, 1, 0);
+        if (prop != k_datum_index_none) {
+            actor_squad_react_to_grenade(actor, prop, 0);
         }
     }
 }

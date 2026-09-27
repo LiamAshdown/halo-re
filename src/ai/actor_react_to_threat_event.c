@@ -19,7 +19,8 @@
 extern data_array *object_data; // 0x008603b0
 
 extern void *object_try_and_get(datum_index object_index, int32_t kind); // 0x4f6ec0
-extern void actor_mark_prop_seen_with_delta(datum_index squad_index, uint32_t key, float delta); // 0x428840, not yet rewritten
+extern void actor_mark_prop_seen_with_delta(datum_index object_index, datum_index actor_index, float delta,
+    const real_vector3d *direction); // 0x428840, EAX, stack
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, CX, DX
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340
 extern void team_pair_override_refresh(void); // 0x45c090, not yet rewritten (game module), UNSURE args
@@ -73,7 +74,9 @@ no_relationship_object:
     if (suppress_vehicle_relay == 0 && (int16_t)event_kind != 1) {
         actor_object_index = ((unit_data *)((uint8_t *)self_obj + k_unit_data_offset))->actor_index;
         if (actor_object_index != (datum_index)k_datum_index_none) {
-            actor_mark_prop_seen_with_delta(actor_object_index, magnitude, extra_param);
+            // 0x42bee3: EAX = the relationship object (esi), stack = (our actor, magnitude, extra_param)
+            actor_mark_prop_seen_with_delta(relationship_object_index, actor_object_index, magnitude,
+                (const real_vector3d *)extra_param);
         }
     }
 

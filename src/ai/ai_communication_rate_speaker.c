@@ -58,7 +58,7 @@ extern float ai_communication_rate_player_proximity(uint8_t require_line_of_sigh
                                                     datum_index *out_player_object_index,
                                                     float *out_distance,
                                                     datum_index object_index); // 0x4303f0
-extern datum_index actor_find_prop_for_object(datum_index object_index); // 0x43ea80, UNSURE signature
+extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, stack, ECX
 extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index,
     char create_if_missing, uint32_t flag); // 0x43eb30, EAX, stack
 extern uint8_t unit_scripted_action_animation_exists(uint32_t unit_index, int16_t command); // 0x569470, EAX, ECX
@@ -208,7 +208,7 @@ check_b:
                 }
                 matched_b = 1;
             } else {
-                prop_index = actor_find_prop_for_object(object_b);
+                prop_index = actor_find_prop_for_object(object_b, actor_index); // 0x42fec6: ECX = actor (arg 1)
                 if (prop_index != (datum_index)k_datum_index_none) {
                     p = (prop *)((uint8_t *)prop_data->data + (prop_index & 0xffff) * k_prop_size);
                     if (p->distance <= radius) {

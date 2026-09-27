@@ -1,6 +1,6 @@
 // actor_update_target_lead_position  (Ghidra: actor_update_target_lead_position, already named)
 // address 0x429570, size 161 bytes
-// name confidence: 0.5   rewrite confidence: 0.35
+// name confidence: 0.5   rewrite confidence: 0.95
 // evidence: types/ai.h actor.unknown_164/168/16c/170 (a cached lead point, read/written as
 //   floats despite their int32_t typing -- the same "declared type from one accessor,
 //   written as float bits by another" pattern seen throughout this module),
@@ -18,35 +18,40 @@
 
 extern data_array *actor_data; // 0x00880360
 
-extern void *object_try_and_get(int32_t kind); // 0x4f6ec0
-extern datum_index biped_get_cached_look_at_position(uint32_t object_index, real_point3d *out_position); // 0x55ab30
-extern int32_t unit_predict_aim_target_position(void); // 0x571de0, UNSURE signature (register args not traced at this call site either)
+extern void *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
+extern datum_index biped_get_cached_look_at_position(uint32_t object_index, real_point3d *out_position); // 0x55ab30, stack
+extern int32_t unit_predict_aim_target_position(uint32_t unit_index, real_point3d *out_position); // 0x571de0, ESI, EBX
 
+// REWRITTEN from objdump 0x429570..0x429610. EAX: actor. When the cached location (+0x164) is unset, the point
+//   (+0x168) starts at the body position (+0x12c) and, unless flying (+0x99), the location comes from the vehicle
+//   the actor rides (+0x158, when its seat kind +0x15e is 2..3; 0x571de0) or from its own biped (0x55ab30),
+//   both refining the point in place. The draft called object_try_and_get and 0x571de0 without the unit or the
+//   point.
 // blam-cc: EAX -> actor_index
-// Computes and caches a predicted intercept/lead position for the actor's target: seeds the
-// cache from the actor's own body position, then, unless flying, refines it either via the
-// local player's cached look-at position (when the actor has no active unit) or via a
-// vehicle-specific aim prediction (when unknown_15e selects that path).
 void actor_update_target_lead_position(datum_index actor_index)
 {
-    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    real_point3d *point = (real_point3d *)(a + 0x168);
+    datum_index vehicle;
 
-    if (self->unknown_164 == -1) {
-        *(float *)&self->unknown_168 = self->body_position.x;
-        *(float *)&self->unknown_16c = self->body_position.y;
-        *(float *)&self->unknown_170 = self->body_position.z;
+    if (*(int32_t *)(a + 0x164) != -1) {
+        return;
+    }
+    *point = *(real_point3d *)(a + 0x12c);
+    if (a[0x99]) {
+        return;
+    }
+    vehicle = *(datum_index *)(a + 0x158);
+    if (vehicle != k_datum_index_none) {
+        int16_t seat_kind = *(int16_t *)(a + 0x15e);
 
-        if (self->flying == 0) {
-            if (self->active_unit_index == (datum_index)k_datum_index_none) {
-                if (object_try_and_get(1) != 0) {
-                    self->unknown_164 = (int32_t)biped_get_cached_look_at_position(
-                        self->unit_index, (real_point3d *)&self->unknown_168);
-                }
-            } else if (self->unknown_15e > 1 && self->unknown_15e < 4) {
-                self->unknown_164 = unit_predict_aim_target_position();
-                return;
-            }
+        if (seat_kind >= 2 && seat_kind <= 3) {
+            *(int32_t *)(a + 0x164) = unit_predict_aim_target_position(vehicle, point);
         }
+        return;
+    }
+    if (object_try_and_get(*(datum_index *)(a + 0x18), 1) != 0) {
+        *(int32_t *)(a + 0x164) = (int32_t)biped_get_cached_look_at_position(*(datum_index *)(a + 0x18), point);
     }
 }
 
