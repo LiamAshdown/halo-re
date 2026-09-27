@@ -2117,3 +2117,25 @@ world-to-screen projection, actor type dispatchers 0x10 / 0x18.
 OPEN: the actor mode table +0x1c slot (get_look_weights(actor, out)) is reached through a computed base; its caller
 was not located. constcheck leftovers: hud_text_message_queue (0.08), console overlay, camera_debug (x30), vehicle
 hover / wing flex (not in a10), decal_place (stopgap).
+
+## 2026-09-27 (loop, static only) -- aim assist / target selection chain rewritten
+The player's aim-assist target (game_engine_build_local_player_control_input -> camera_observer_get_target_angles
+-> find_best_target -> generate_target_candidates -> cluster flood fill -> collect_target_candidates -> target_score
+-> closest point on the target's pelvis-head segment) was a chain of low-confidence drafts. Fixed from objdump:
+- camera_observer_get_target_angles (0x4596f0) REWRITTEN: camera type takes the slot (CX); the autoaim cone gets the
+  player's desired_zoom_level (was 0, so "aim assist only when zoomed" weapons assisted unzoomed); the yaw / pitch
+  rates use the ROOT-OBJECT VELOCITIES of the target and the player's unit (was camera-row positions).
+- cluster_flood_fill_with_predicate (0x554e30) REWRITTEN: position / facing were never used and the 7-argument band
+  test got 4 arguments; the caller dropped AX = start cluster.
+- camera_observer_collect_target_candidates: team test is (object +0xb8 team, observer team); the draft used the
+  controlling PLAYER's team (-1 for every AI) with the arguments swapped.
+- camera_observer_target_score: EAX is a separate FACING vector (closest-point aux + angle dot product), the cone and
+  reference are on the stack; the draft merged facing and cone.
+- vector3d_closest_point_on_segment: two stack args; the nudge clamp is the target tag's autoaim width, delivered
+  through unit_get_look_origin_and_direction's second argument (callers had passed 0.0 / a cone distance).
+- Also this batch: object_physics_mass_point_update_orientation rotates the SOURCE vectors and renormalizes forward
+  (OPEN: its caller object_physics_integrate_and_test_at_rest, 0.3, writes the rotated orientation straight into the
+  mass point while the binary rotates into locals); unit_get_move_speed_for_range far branch.
+VERIFIED at 0.85: look origin / direction, target direction, autoaim cone, best-target search, falloff, comparator,
+clamp length, spring clamp, grenade decision chain (can_throw, facing commit, trace, ally candidate), weapon pickup
+reachability, ranged attack vector, platoon propagation, engagement range, squad reinforcement processing.
