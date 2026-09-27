@@ -1,6 +1,6 @@
 // actor_build_order_face_seat_marker  (Ghidra: actor_build_order_face_seat_marker, renamed)
 // address 0x408110, size 193 bytes
-// name confidence: 0.4   rewrite confidence: 0.35
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 against objdump 0x408110..0x4081d0 (EAX actor, EDX order, stack firing position).)
 // evidence: same evidence as actor_build_order_face_seat_marker_committed.c (0x407820),
 //   which this is a near-duplicate of; phase-4 summary "like
 //   actor_build_order_face_seat_marker_committed but without committing the actor to it".

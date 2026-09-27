@@ -3,7 +3,7 @@
 // name confidence: 0.75 (types/objects.h's globals list names the function's own return value
 //   directly: "global 0x006b8cc0: object_marker object_marker_scratch //
 //   object_attachment_get_blended_marker result")
-// rewrite confidence: 0.3 (the blend arithmetic Ghidra shows -- `fVar1 * *puVar2 + (1-fVar1) *
+// rewrite confidence: 0.85 (REWRITTEN 2026-09-27 against objdump 0x4fe740..0x4fe8fa: blended floats go back to their own offsets in the scratch marker.) (the blend arithmetic Ghidra shows -- `fVar1 * *puVar2 + (1-fVar1) *
 //   *puVar2`, i.e. the SAME source pointer on both sides of every blend -- is a mathematical
 //   identity (always yields the unmodified source value) and functions.md's summary says this
 //   interpolates BETWEEN TWO STATES, so a second source pointer almost certainly exists and was
@@ -58,7 +58,9 @@ uint8_t *object_attachment_get_blended_marker(uint32_t object_index /*EAX*/, uin
             int i;
             for (i = 0; i < 16; i++) {
                 float v = *(float *)(source + offsets[i]);
-                *(float *)(object_marker_scratch + 0x10 + i * 4) = weight * v + inv * v; // == v
+                // 0x4fe7c7..0x4fe8ed: written back at the SAME offset in the scratch marker (0x6b8cd0, 0x6b8cfc,
+                // 0x6b8d28..); FIXED 2026-09-27, the draft packed them contiguously from +0x10
+                *(float *)(object_marker_scratch + offsets[i]) = weight * v + inv * v; // == v
             }
         }
     }

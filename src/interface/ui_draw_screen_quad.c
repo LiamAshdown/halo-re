@@ -1,6 +1,6 @@
 // ui_draw_screen_quad  (Ghidra: FUN_00498b20, unnamed)
 // address 0x498b20, size 737 bytes
-// name confidence: 0.35   rewrite confidence: 0.3
+// name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED 2026-09-27 against objdump 0x498b20..0x498e00: rect build, clip clamps, uv scales, vertex loop and render state (the four 0.9f stores at entry are dead locals).)
 // evidence: out/phase4/interface_functions.md's sibling FUN_00494d70 @0x494d70 (out of this
 // range) is summarized as "constructs and submits a rotated, scaled screen-space quad"; this
 // function has the same shape (a bitmap-sequence-like source, an optional clip rectangle, a

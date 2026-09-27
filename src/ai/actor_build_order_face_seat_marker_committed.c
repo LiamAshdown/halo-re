@@ -1,6 +1,6 @@
 // actor_build_order_face_seat_marker_committed  (Ghidra: actor_build_order_face_seat_marker_committed, renamed)
 // address 0x407820, size 193 bytes
-// name confidence: 0.4   rewrite confidence: 0.35
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 against objdump 0x407820..0x4078e0 (EAX actor, EDX order, stack firing position, byte).)
 // evidence: types/ai.h actor.order_committed (0x160)/swarm (0x06)/encounter_index (0x34)/
 //   unknown_98; types/tags.h Scenario.encounters (pointer at 0x430),
 //   ScenarioEncounter.firing_positions (pointer at 0x9c, stride 0x18), and
