@@ -1,6 +1,6 @@
 // actor_conditional_state_transition_check  (Ghidra: actor_conditional_state_transition_check, renamed)
 // address 0x40d7a0, size 114 bytes
-// name confidence: 0.45   rewrite confidence: 0.4
+// name confidence: 0.45   rewrite confidence: 0.9 (checked against objdump 0x40d7a0..0x40d810)
 // evidence: phase-4 summary "conditionally re-runs the combat state-transition check, but
 // only while the actor is already in the relevant combat sub-state"; gated on
 // mode == _actor_mode_vehicle (10) and a mode_data sub-state at +4.

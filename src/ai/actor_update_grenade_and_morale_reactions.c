@@ -1,20 +1,15 @@
 // actor_update_grenade_and_morale_reactions  (Ghidra: actor_update_grenade_and_morale_reactions, renamed)
 // address 0x40b920, size 800 bytes
-// name confidence: 0.4   rewrite confidence: 0.2
-// evidence: types/ai.h actor.unknown_3a8/active_unit_index/unknown_36c/target_unit_index/
-//   mode/order_committed(unknown_504)/unknown_374/unknown_378/unknown_1ca; prop.engaged
-//   (0xa4)/unknown_38; types/tags.h Actor.attacking_evasion_threshold (0x310)/
-//   defending_evasion_threshold (0x314)/evasion_seek_cover_chance (0x318), already-named
-//   fields matching puVar4[0xc4]/[0xc5]/[0xc6] exactly; phase-4 summary "periodically checks
-//   for nearby grenade threats and expiring morale timers, triggering dodge or flee
-//   reactions as needed".
-//
-// Kept close to the Ghidra decompilation given the size; see UNSURE notes below.
-// UNSURE: actor+0x354/0x358/0x368/0x3ac/0x3bb fall inside actor.unknown_350's opaque
-// 28-byte run (or just past it); read/written here as raw offsets (a cached evasion
-// threshold, a "use defending threshold" flag, a flee-timer, a threatening prop index, and a
-// "flee committed" flag). ActorVariant+0x184 is not decoded (compared against 2 as some
-// grenade-reaction sub-mode selector).
+// name confidence: 0.4   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x40b920..0x40bc3f (the draft called actor_handle_death, actor_check_pain_reaction,
+//   actor_consider_grenade_throw, actor_evaluate_grenade_target_position and actor_get_target_prop_object_index
+//   without their arguments, tested Actor flag 0x40000000 instead of 0x400000, used < where the binary uses <=
+//   and set the grenade cooldown to the game time). EAX: actor. An actor on foot facing a thrown grenade
+//   (+0x3a8, prop +0x3ac of kind 0 / 1) may react to it at most every 30 ticks. Once the danger meter (+0x354)
+//   reaches the Actor tag's evasion threshold (+0x310, or +0x314 while defending; at most 1.1 when +0x1ca and
+//   the cover chance +0x318 is positive) the actor may throw a grenade (variant +0x184 == 2), take cover and
+//   tell the others (event 0x18), or pick a grenade target (cooldown Actor +0x31c seconds).
+// blam-cc: EAX -> actor_index
 
 #include "tags.h"
 #include "memory.h"
@@ -23,6 +18,7 @@
 #include "cache.h"
 #include "game.h"
 
+
 extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -30,110 +26,101 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern uint32_t random_seed_global;  // 0x00719cd0
 
 extern real random_real(void); // 0x4019f0
-extern uint8_t actor_should_throw_grenade(uint32_t actor_index, char force); // 0x40b840, this session; returns in AL only
-extern uint8_t actor_consider_grenade_throw(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_consider_grenade_throw at 0x40dc30
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern uint8_t actor_handle_death(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_handle_death at 0x40dd50
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern uint8_t actor_check_pain_reaction(datum_index actor_index); // 0x40de20, this session (later)
-extern uint8_t actor_evaluate_grenade_target_position(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_evaluate_grenade_target_position at 0x40de70
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern uint32_t actor_get_target_prop_object_index(uint32_t a, uint32_t b, uint32_t c, uint32_t d); // 0x4283d0, not yet rewritten
-extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
-// 0x42d340, not yet rewritten (this module). Always seven stack arguments: every call
-// site in the binary cleans up 0x1c bytes, so the shorter forms Ghidra recovers at some
-// sites are artefacts, not a reduced-arity overload.
+extern uint8_t actor_should_throw_grenade(uint32_t actor_index, char force); // 0x40b840, EAX, stack
+extern uint8_t actor_consider_grenade_throw(datum_index actor_index); // 0x40dc30, stack
+extern uint8_t actor_handle_death(datum_index actor_index, uint8_t param_2, uint8_t param_3); // 0x40dd50, stack
+extern uint8_t actor_check_pain_reaction(uint32_t resolved_target, uint8_t use_alt_base,
+    uint16_t order_code, datum_index actor_index); // 0x40de20, stack, DL, CX, ESI
+extern uint8_t actor_evaluate_grenade_target_position(datum_index actor_index); // 0x40de70, EBX
+extern datum_index actor_get_target_prop_object_index(datum_index actor_index); // 0x4283d0, EAX
+extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
+    datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340, seven stack arguments
+
+#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
 
 char actor_update_grenade_and_morale_reactions(uint32_t actor_index)
 {
-    actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
-    uint8_t *actor_base = (uint8_t *)a;
-    Actor *actor_def = (Actor *)tag_instances[a->actor_definition_tag & 0xffff].data;
-    ActorVariant *variant = (ActorVariant *)tag_instances[a->actor_variant_tag & 0xffff].data;
+    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *variant = TAG_DATA(*(datum_index *)(act + 0x5c));
+    uint8_t *actor_tag = TAG_DATA(*(datum_index *)(act + 0x58));
     int32_t now = game_time->game_time;
     char result = 0;
     float threshold;
+    uint8_t may_evade;
+    uint8_t may_target;
 
-    if (a->unknown_3a8 > 0 && a->active_unit_index == (datum_index)k_datum_index_none) {
-        prop *threat = &((prop *)prop_data->data)[*(uint32_t *)(actor_base + 0x3ac) & 0xffff];
+    if (*(int16_t *)(act + 0x3a8) > 0 && *(datum_index *)(act + 0x158) == k_datum_index_none) {
+        uint8_t *threat = (uint8_t *)prop_data->data + (*(datum_index *)(act + 0x3ac) & 0xffff) * 0x138;
 
-        if (threat->engaged != 0 && (threat->unknown_38 == 0 || threat->unknown_38 == 1) &&
-            (a->unknown_36c == (datum_index)k_datum_index_none || *(int32_t *)&a->unknown_36c + 0x1e <= now)) {
-            *(int32_t *)&a->unknown_36c = now;
-            if (actor_should_throw_grenade(actor_index, 1) != 0) {
-                if (actor_handle_death() != 0) {
+        if (threat[0xa4] != 0 && (*(int16_t *)(threat + 0x38) == 0 || *(int16_t *)(threat + 0x38) == 1) &&
+            (*(int32_t *)(act + 0x36c) == -1 || *(int32_t *)(act + 0x36c) + 0x1e <= now)) {
+            *(int32_t *)(act + 0x36c) = now;
+            if (actor_should_throw_grenade(actor_index, 1)) {
+                if (actor_handle_death(actor_index, 0, 1)) {
                     return 1;
                 }
-                if ((((uint8_t *)actor_def)[3] & 0x40) != 0 /* UNSURE: bit 0x400000 of Actor.flags */ &&
-                    actor_check_pain_reaction(*(uint32_t *)(actor_base + 0x3ac)) != 0) {
+                // 0x40ba13: ECX = 5, DL = 0, ESI = the actor
+                if ((*(uint32_t *)actor_tag & 0x400000) != 0 &&
+                    actor_check_pain_reaction(*(datum_index *)(act + 0x3ac), 0, 5, actor_index)) {
                     return 1;
                 }
             }
         }
     }
 
-    if (a->unknown_374 == 0 || a->unknown_378 != 0) {
-        threshold = actor_def->attacking_evasion_threshold;
+    if (act[0x374] != 0 && act[0x378] == 0) {
+        threshold = *(float *)(actor_tag + 0x314);
     } else {
-        threshold = actor_def->defending_evasion_threshold;
+        threshold = *(float *)(actor_tag + 0x310);
     }
-    if (a->unknown_1ca != 0 && actor_def->evasion_seek_cover_chance > 0.0f && threshold > 1.1f) {
+    if (act[0x1ca] != 0 && *(float *)(actor_tag + 0x318) > 0.0f && threshold > 1.1f) {
         threshold = 1.1f;
     }
+    if (!(threshold <= *(float *)(act + 0x354))) {
+        return 0;
+    }
+    if (act[0x504] == 0) {
+        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+    }
+    if (*(int16_t *)(variant + 0x184) == 2 && actor_consider_grenade_throw(actor_index)) {
+        *(float *)(act + 0x354) = 0.0f;
+        result = 1;
+    }
+    may_evade = 1;
+    may_target = 1;
+    if (act[0x358] != 0 && (*(uint32_t *)actor_tag & 0x20) != 0) {
+        datum_index target = *(datum_index *)(act + 0x270);
 
-    if (threshold < *(float *)(actor_base + 0x354)) {
-        char local_5 = 0;
+        may_evade = 0;
+        if (target != k_datum_index_none) {
+            uint8_t *target_prop = (uint8_t *)prop_data->data + (target & 0xffff) * 0x138;
 
-        if (a->unknown_504 == 0) {
-            random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        }
-        if (*(int16_t *)((uint8_t *)variant + 0x184) == 2 && actor_consider_grenade_throw() != 0) {
-            *(uint32_t *)(actor_base + 0x354) = 0;
-            local_5 = 1;
-        }
-
-        {
-            uint8_t allow_a = 1;
-            uint8_t allow_b = 1;
-
-            if (actor_base[0x358] != 0 && (((uint8_t *)actor_def)[0] & 0x20) != 0) {
-                allow_a = 0;
-                if (a->target_unit_index != (datum_index)k_datum_index_none) {
-                    prop *target = &((prop *)prop_data->data)[a->target_unit_index & 0xffff];
-                    if (target->unknown_122 < 3 && target->unknown_121 < 2) {
-                        allow_a = 1;
-                    }
-                }
-            }
-            if (a->mode == 10 && (*(int16_t *)(a->mode_data + (0xa0 - 0x9c)) == 2 || *(int16_t *)(a->mode_data + (0xa0 - 0x9c)) == 3)) {
-                allow_b = 0;
-            }
-
-            if (local_5 == 0) {
-                if (allow_a && (a->unknown_36c == (datum_index)k_datum_index_none || *(int32_t *)&a->unknown_36c + 0x1e <= now)) {
-                    *(int32_t *)&a->unknown_36c = now;
-                    if (actor_should_throw_grenade(actor_index, 0) != 0 &&
-                        random_real() < actor_def->evasion_seek_cover_chance &&
-                        actor_handle_death() != 0) {
-                        uint32_t extra = actor_get_target_prop_object_index(0xffffffff, 0xffffffff, 0xffffffff, 0);
-                        // The call site at 0x40bbb0 pushes seven arguments; Ghidra only recovered three.
-                        ai_communication_broadcast(0x18, a->unit_index, extra, -1, -1, -1, 0);
-                        *(uint32_t *)(actor_base + 0x354) = 0;
-                        return 1;
-                    }
-                }
-                if (allow_b && *(int16_t *)(actor_base + 0x368) == 0 && actor_evaluate_grenade_target_position() != 0) {
-                    *(uint32_t *)(actor_base + 0x354) = 0;
-                    *(int16_t *)(actor_base + 0x368) = (int16_t)now; // UNSURE: __ftol with no visible float operand
-                    actor_base[0x3bb] = 1;
-                    local_5 = 1;
-                }
+            if ((int8_t)target_prop[0x122] <= 2 && (int8_t)target_prop[0x121] <= 1) {
+                may_evade = 1;
             }
         }
-        result = local_5;
+    }
+    if (*(int16_t *)(act + 0x6c) == 10 && (*(int16_t *)(act + 0xa0) == 2 || *(int16_t *)(act + 0xa0) == 3)) {
+        may_target = 0;
+    }
+    if (result) {
+        return result;
+    }
+    if (may_evade && (*(int32_t *)(act + 0x36c) == -1 || *(int32_t *)(act + 0x36c) + 0x1e <= now)) {
+        *(int32_t *)(act + 0x36c) = now;
+        if (actor_should_throw_grenade(actor_index, 0) && random_real() <= *(float *)(actor_tag + 0x318) &&
+            actor_handle_death(actor_index, 0, 1)) {
+            ai_communication_broadcast(0x18, *(datum_index *)(act + 0x18), actor_get_target_prop_object_index(actor_index),
+                                       -1, -1, -1, 0);
+            *(float *)(act + 0x354) = 0.0f;
+            return 1;
+        }
+    }
+    if (may_target && *(int16_t *)(act + 0x368) == 0 && actor_evaluate_grenade_target_position(actor_index)) {
+        *(float *)(act + 0x354) = 0.0f;
+        *(int16_t *)(act + 0x368) = (int16_t)(int32_t)(*(float *)(actor_tag + 0x31c) * 30.0f);
+        act[0x3bb] = 1;
+        result = 1;
     }
     return result;
 }

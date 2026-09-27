@@ -23,7 +23,8 @@ extern void ai_communication_broadcast(int32_t event_code, datum_index unit_inde
 // 0x42d340, not yet rewritten (this module). Always seven stack arguments: every call
 // site in the binary cleans up 0x1c bytes, so the shorter forms Ghidra recovers at some
 // sites are artefacts, not a reduced-arity overload.
-extern uint8_t actor_check_pain_reaction(datum_index actor_index); // 0x40de20, this session (later)
+extern uint8_t actor_check_pain_reaction(uint32_t resolved_target, uint8_t use_alt_base,
+    uint16_t order_code, datum_index actor_index); // 0x40de20, stack, DL, CX, ESI
 
 uint8_t actor_gate_jump_traversal(uint32_t actor_index, int16_t threshold, char allow_broadcast, int16_t broadcast_threshold)
 {
@@ -53,7 +54,9 @@ uint8_t actor_gate_jump_traversal(uint32_t actor_index, int16_t threshold, char 
             a->unknown_308 = 0;
             return 0;
         }
-        result = actor_check_pain_reaction(a->unknown_30c);
+        // 0x40a7cb: CX = +0x308, DL = (+0x308 >= broadcast_threshold) from 0x40a799, ESI = the actor
+        result = actor_check_pain_reaction(a->unknown_30c, (uint8_t)(a->unknown_308 >= broadcast_threshold),
+                                           (uint16_t)a->unknown_308, actor_index);
     }
 
     a->unknown_308 = 0;

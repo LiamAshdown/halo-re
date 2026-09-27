@@ -1,6 +1,6 @@
 // actor_update_combat_behavior  (Ghidra: actor_update_combat_behavior, renamed)
 // address 0x40d610, size 374 bytes
-// name confidence: 0.45   rewrite confidence: 0.35
+// name confidence: 0.45   rewrite confidence: 0.9 (checked against objdump 0x40d610..0x40d785; +0xa4 is a word)
 // evidence: phase-4 summary "runs the combat-behavior update appropriate to the actor's
 // archetype, choosing between the state-transition check and the melee/combat decision
 // logic"; switches on actor_mode_definitions[self->mode].combat_grade and dispatches to
@@ -61,10 +61,10 @@ uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, u
                 }
                 target_prop = (prop *)((uint8_t *)prop_data->data + (self->target_unit_index & 0xffff) * sizeof(prop));
                 if (self->target_unit_index == self->unknown_3c0 &&
-                    (target_prop->noticed_a != 0 || (self->mode == 5 && self->mode_data[8] == 0)) &&
+                    (target_prop->noticed_a != 0 || (self->mode == 5 && *(int16_t *)(self->mode_data + 8) == 0)) &&
                     (target_prop->noticed_b != 0 ||
-                     ((self->mode == 5 && self->mode_data[8] == 0) ||
-                      (self->mode == 7 && self->mode_data[8] == 0)))) {
+                     ((self->mode == 5 && *(int16_t *)(self->mode_data + 8) == 0) ||
+                      (self->mode == 7 && *(int16_t *)(self->mode_data + 8) == 0)))) {
                     goto use_default;
                 }
             }
