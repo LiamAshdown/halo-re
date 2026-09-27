@@ -14,7 +14,7 @@
 #include "math.h"
 #include "game.h"
 
-extern real_vector3d object_placement_default_network_vectors[4]; // 0x00686b04
+extern const real_vector3d *global_white_color; // 0x00686b04, a POINTER (-> 0x65513c {1,1,1})
 extern king_hill_marker_history king_hill_markers; // 0x0087a9a0
 
 // Resets the moving-hill marker position history: all four slots are seeded with the same fixed
@@ -24,9 +24,9 @@ void game_engine_koth_reset_hill_marker_history(void)
 {
     int32_t i;
     for (i = 0; i < 4; i++) {
-        king_hill_markers.position[i].x = object_placement_default_network_vectors[0].i;
-        king_hill_markers.position[i].y = object_placement_default_network_vectors[0].j;
-        king_hill_markers.position[i].z = object_placement_default_network_vectors[0].k;
+        king_hill_markers.position[i].x = global_white_color[0].i;
+        king_hill_markers.position[i].y = global_white_color[0].j;
+        king_hill_markers.position[i].z = global_white_color[0].k;
         king_hill_markers.state[i] = 0;
     }
 }

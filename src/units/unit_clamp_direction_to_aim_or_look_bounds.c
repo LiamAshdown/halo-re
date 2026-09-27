@@ -25,7 +25,7 @@
 #include "units.h"
 
 extern data_array *object_data;   // 0x008603b0
-extern float global_zero_vector3d[3]; // 0x006966f8, UNSURE exact value/name
+extern const real_point3d *global_zero_vector3d_pointer; // 0x006966f8, a POINTER (-> 0x65c230 {0,0,0})
 
 extern double atan2(double y, double x); // fpatan is a single x87 FPATAN instruction
 extern double fcos(double x);
@@ -66,9 +66,7 @@ uint8_t unit_clamp_direction_to_aim_or_look_bounds(uint32_t unit_index, real_vec
     m.left.j = up.i * m.forward.k - m.forward.i * up.k;
     m.left.k = m.forward.i * up.j - m.forward.j * up.i;
     m.up = up;
-    m.position.x = global_zero_vector3d[0];
-    m.position.y = global_zero_vector3d[1];
-    m.position.z = global_zero_vector3d[2];
+    m.position = *global_zero_vector3d_pointer; // 0x56981f: ECX = [0x6966f8]
 
     float dx = world_direction->i, dy = world_direction->j, dz = world_direction->k;
     float yaw_x = up.k * dx + m.forward.j * dz + m.forward.k * dy;

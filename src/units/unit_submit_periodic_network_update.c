@@ -34,7 +34,7 @@
 // large_integer (the Win32 LARGE_INTEGER union) is declared in types/math.h; src/cache and
 // src/math use the same type for the same QueryPerformanceCounter/__allmul/__alldiv triple.
 
-extern object_type_definition **object_type_definitions; // 0x0069bfdc, PTR_PTR_0069bfdc
+extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc, an ARRAY (was a pointer variable)
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, QueryPerformanceFrequency() result,
                                       // owned by the timing/system module (same spelling as
                                       // src/cache and src/math use)

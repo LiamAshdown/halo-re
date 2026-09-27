@@ -28,7 +28,7 @@
 extern uint32_t cheat_get_target_object_index(void); // this batch, 0x45a7a0
 extern int16_t network_game_mode;   // 0x00719720
 extern tag_instance *tag_instances; // 0x0087bc14
-extern void **object_type_role_table; // 0x0069bfdc, UNSURE (TYPES-GAP): indexed by an Object
+extern void *object_type_role_table[12]; // 0x0069bfdc, an ARRAY of the 12 object type definitions (was a pointer variable)
                                        // tag's object-type byte, +0x10 tested against -1
 
 extern void object_get_position(real_point3d *out, datum_index object_index); // 0x4f6900, blam-cc: EAX -> out, ECX -> object_index (matches src/objects/object_get_position.c)

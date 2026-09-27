@@ -25,7 +25,7 @@ extern data_array *object_data;         // 0x008603b0
 extern tag_instance *tag_instances;     // 0x0087bc14
 extern void *DAT_00746f98;              // UNSURE global, passed straight through to FUN_00502060
 extern real_vector3d *global_up3d_pointer;  // 0x00696720
-extern float g_0069672c[3];             // 0x0069672c, UNSURE: a constant direction/gravity vector
+extern const real_vector3d *global_down3d_pointer; // 0x0069672c, a POINTER (-> 0x65c25c {0,0,-1})
 
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900
 extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result,
@@ -55,9 +55,9 @@ int32_t unit_predict_aim_target_position(uint32_t unit_index, real_point3d *out_
         base_position.x += global_up3d_pointer->i * 0.4f;
         base_position.y += global_up3d_pointer->j * 0.4f;
         base_position.z += global_up3d_pointer->k * 0.4f;
-        delta.i = g_0069672c[0] * 2.0f;
-        delta.j = g_0069672c[1] * 2.0f;
-        delta.k = g_0069672c[2] * 2.0f;
+        delta.i = global_down3d_pointer->i * 2.0f; // 0x571e89: EAX = [0x69672c], then [eax]
+        delta.j = global_down3d_pointer->j * 2.0f;
+        delta.k = global_down3d_pointer->k * 2.0f;
 
         // 0x571e50..0x571ec1: EAX = 1, ECX = &result, push bsp [0x746f98], 0, 0, &base, &delta, FLT_MAX (0x7f7fffff)
         {

@@ -29,7 +29,7 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
     // call site in this file.
 extern real_vector3d object_placement_default_forward; // 0x00696718
 extern real_vector3d object_placement_default_up; // 0x00696720
-extern real_vector3d object_placement_default_network_vectors[4]; // 0x00686b04
+extern const real_vector3d *global_white_color; // 0x00686b04, a POINTER (-> 0x65513c {1,1,1})
 
 void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag,
                                        datum_index role)
@@ -61,7 +61,7 @@ void object_placement_data_initialize(object_placement_data *placement, datum_in
     }
 
     for (i = 0; i < 4; i++) {
-        placement->network_vectors[i] = object_placement_default_network_vectors[i];
+        placement->network_vectors[i] = *global_white_color; // 0x4f5432: every slot copies *[0x686b04]
     }
 }
 

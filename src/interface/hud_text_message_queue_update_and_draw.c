@@ -30,8 +30,8 @@ extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern int32_t hud_text_message_time_base; // 0x0071922c
 extern growable_array hud_text_message_queue; // 0x006b37e8
 extern uint8_t hud_text_message_cycle_state_00719230; // 0x00719230, TYPES-GAP
-extern ColorARGB hud_text_message_hold_color[1];   // 0x006851f4, TYPES-GAP (guessed shape)
-extern ColorARGB hud_text_message_normal_color[1]; // 0x00685200, TYPES-GAP (guessed shape)
+extern ColorARGB *hud_text_message_hold_color;   // 0x006851f4, a POINTER (0x4a4056 loads then derefs it)
+extern ColorARGB *hud_text_message_normal_color; // 0x00685200, a POINTER (0x4a404a)
 extern int32_t hud_text_draw_font_006e472c;         // 0x006e472c, TYPES-GAP
 extern ColorARGB hud_text_draw_color_006e4738;       // 0x006e4738, TYPES-GAP
 extern uint32_t hud_text_draw_flags_006e4734;        // 0x006e4734, TYPES-GAP

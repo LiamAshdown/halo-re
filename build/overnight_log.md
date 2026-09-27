@@ -1456,3 +1456,17 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - actor_update_target_lead_position 0x429570 REWRITTEN (0.35 -> 0.95; the actor's cached location + point): vehicle
   prediction and the biped lookup were argless.
 - NOTE: harness/build/hooks.txt differs from hooks.stable.txt only in line endings (CRLF vs LF); content identical.
+- NEW scans scratchpad/arrscan.py + ptrscan2.py + derefchk.py (full .text listing in scratchpad/full.asm): data externs
+  whose declaration shape disagrees with how halo.exe uses the address. Fixed:
+  - Pointer variables declared as arrays / values (C copied the pointer bytes instead of the data):
+    0x686b04 global_white_color (object_placement_data_initialize: every object's 4 placement colours at +0x58 were
+    garbage, now *ptr = white; also koth reset), 0x69672c global_down3d_pointer (unit_predict_aim_target_position),
+    0x6966f8 global_zero_vector3d_pointer (unit_clamp_direction_to_aim_or_look_bounds), 0x6851f4 / 0x685200 HUD
+    text message colours.
+  - 0x69bfdc object_type_definitions is an ARRAY; 5 files declared it as a pointer variable and indexed it:
+    actor_place_new_unit, unit_drop_grenades, unit_submit_periodic_network_update, cheat_spawn_objects_near_camera,
+    network_game_broadcast_team_object_updates.
+- actor_place_new_unit 0x427080 REWRITTEN (0.15 -> 0.95; places every encounter actor's unit): type-table index was
+  the tag index, [0x719720] compared as a dword, forward.k unset, object_delete_unparented missing its EDI operand.
+- OPEN (MP): game_engine_koth_submit_hill_marker_geometry default_axis_b 0x686b0c is a pointer declared as a vector.
+- Pre-existing: select_players_to_display.c(114) C4716 must return a value (game module warning).

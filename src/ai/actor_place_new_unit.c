@@ -1,26 +1,17 @@
 // actor_place_new_unit  (Ghidra: actor_place_new_unit, already named)
 // address 0x427080, size 500 bytes
-// name confidence: 0.55   rewrite confidence: 0.15
-// evidence: phase-4 summary "Creates and places a new AI-controlled unit object at a
-// starting-location/encounter placement, applying its AI properties and binding an actor to
-// it." types/objects.h object_placement_data (established). Calls
-// actor_new_and_attach_to_unit (0x426ac0, already rewritten in this module),
-// actor_apply_unit_definition_properties (0x426cf0, already rewritten in this module),
-// object_placement_data_initialize / object_new_with_datum_role_control (both established),
-// object_delete_recursive / object_delete_unparented, and objects_garbage_collection.
-//   UNSURE: this is one of the least-confident rewrites in this pass. The Scenario
-//   starting-location/encounter-placement structures this reaches into (ScenarioSquad's
-//   placement block at +0x24/+0x26/+0x20, and the ActorVariant fields read via the local
-//   caller-owned real_point3d+yaw+flags block Ghidra shows only as `in_EAX`) are not modeled
-//   with named types here; kept as raw offsets. The mapping of this function's own five
-//   arguments onto actor_new_and_attach_to_unit's twelve is best-effort, following that
-//   function's already-established parameter order, not independently confirmed with
-//   objdump for this specific call site.
-// register convention: stack -> actor_variant_or_palette_tag, encounter_index, squad_index,
-//   use_palette_entry, unit_type_index; EAX -> placement (a caller-owned position/yaw/flags
-//   record).
-//   // blam-cc: EAX -> placement_request, stack -> actor_variant_or_palette_tag, encounter_index,
-//   //   squad_index, use_palette_entry, unit_type_index
+// name confidence: 0.55   rewrite confidence: 0.95
+// REWRITTEN from objdump 0x427080..0x427273. EAX: the placement request (+0x0 position, +0xc yaw, +0x12 byte,
+//   +0x14 / +0x16 state words, +0x1a word); stack: variant (or palette entry when use_palette_entry: its +0x30),
+//   encounter, squad, use_palette_entry, permutation. Creates the variant's unit (+0x20) at the position facing
+//   (cos yaw, sin yaw, 0) with role 3 (0 when [0x719720] == 2 and the unit's object type definition has a +0x10
+//   entry), applies the variant's unit properties and attaches a new actor (0x426ac0) with the squad's initial /
+//   return states (+0x24 / +0x26, overridden by the request's +0x16 / +0x14 when positive) and the encounter's
+//   flag bit 4; on failure the unit is deleted. The draft indexed the object type table (an ARRAY at 0x69bfdc,
+//   declared as a pointer variable) by the tag index, compared [0x719720] as a dword, left forward.k and
+//   object_delete_unparented's EDI operand out.
+// blam-cc: EAX -> placement_request, stack -> actor_variant_or_palette_tag, encounter_index,
+//   squad_index, use_palette_entry, unit_type_index
 
 #include "tags.h"
 #include "memory.h"
@@ -31,117 +22,97 @@
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *object_data;     // 0x008603b0
-extern Scenario *global_scenario;       // 0x00746f8c
-extern int32_t map_difficulty_or_kind; // 0x00719720, UNSURE name
-extern void **object_type_role_table;  // 0x0069bfdc
+extern Scenario *global_scenario;   // 0x00746f8c
+extern int16_t game_connection_word; // 0x00719720 (compared as a word with 2)
+extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc
 
 extern double cos(double x); // x87 FCOS
 extern double sin(double x); // x87 FSIN
 extern void objects_garbage_collection(void); // 0x4f9c60
-extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role); // 0x4f53a0
+extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag,
+    datum_index role); // 0x4f53a0, EAX, stack
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role); // 0x4f54b0
-extern void object_delete_recursive(datum_index object_index, uint32_t flag); // 0x4f59d0, UNSURE signature
-extern void object_delete_unparented(datum_index object_index); // 0x4f5aa0, UNSURE signature
-extern void actor_apply_unit_definition_properties(datum_index actor_variant_tag, datum_index unit_index); // 0x426cf0
+extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings); // 0x4f59d0
+extern void object_delete_unparented(uint32_t object_index); // 0x4f5aa0, EDI
+extern void actor_apply_unit_definition_properties(datum_index actor_variant_tag, datum_index unit_index); // 0x426cf0, EAX, stack
 extern datum_index actor_new_and_attach_to_unit(
     char reuse_existing, datum_index unit_index, datum_index actor_variant_tag,
     uint32_t encounter_or_none, int16_t squad_index, char ignore_squad, datum_index exclude_actor,
     char start_active, uint16_t unknown_60, int16_t unknown_62, uint16_t unknown_90, uint8_t unknown_68); // 0x426ac0
 
-// The caller-owned position/yaw/flags record this function reads via EAX; only the fields it
-// itself uses are named.
+#define TAG_DATA(h) ((uint8_t *)tag_instances[(h) & 0xffff].data)
 
-// blam-cc: EAX -> placement_request, stack -> actor_variant_or_palette_tag, encounter_index,
-//   squad_index, use_palette_entry, unit_type_index
-// Creates and places a new AI-controlled unit object at a starting-location/encounter
-// placement, applying its AI-related unit-definition properties and binding an actor to it
-// (or reusing a compatible existing one, for swarm-type actors), cleaning the object back up
-// again on failure.
 datum_index actor_place_new_unit(datum_index actor_variant_or_palette_tag, datum_index encounter_index,
                                  int16_t squad_index, uint8_t use_palette_entry, uint16_t unit_type_index,
                                  const actor_placement_request *placement_request)
 {
-    datum_index actor_variant_tag = actor_variant_or_palette_tag;
-    const uint32_t *actor_variant;
-    object_placement_data placement;
+    const uint8_t *request = (const uint8_t *)placement_request;   // esi
+    datum_index variant_tag = actor_variant_or_palette_tag;         // [ebp+0x8]
+    uint8_t *variant;
+    uint8_t *actor_definition;                                      // ebx
+    object_placement_data placement;                                // [esp+0x18]
+    float yaw;
     uint32_t role;
-    datum_index unit_index;
+    datum_index unit_index;                                         // [esp+0x10]
     datum_index result;
+    char swarm;                                                     // [esp+0x14]
+    char start_active = 0;                                          // [esp+0xc]
+    uint16_t initial_state = 0;                                     // ebx
+    uint16_t return_state = 0;                                      // edi
 
     objects_garbage_collection();
-
-    actor_variant = (const uint32_t *)(tag_instances[actor_variant_tag & 0xffff].data);
-    if (use_palette_entry != 0) {
-        actor_variant_tag = (datum_index)actor_variant[0xc]; // UNSURE offset: an ActorPalette-style indirection
-        actor_variant = (const uint32_t *)(tag_instances[actor_variant_tag & 0xffff].data);
+    variant = TAG_DATA(variant_tag);
+    if (use_palette_entry) {
+        variant_tag = *(datum_index *)(variant + 0x30);
+        variant = TAG_DATA(variant_tag);
     }
-
-    {
-        const uint32_t *actor_tag = (const uint32_t *)(tag_instances[actor_variant[4] & 0xffff].data); // ActorVariant.actor_definition
-        (void)actor_tag;
-    }
-
-    object_placement_data_initialize(&placement, (datum_index)actor_variant[8], (datum_index)k_datum_index_none); // UNSURE offset: ActorVariant.unit tag
-    placement.position = placement_request->position;
-    placement.permutation_group = (int16_t)unit_type_index; // 0x4270f8..0x427117: placement +0x16
-    placement.forward.i = (float)cos((double)placement_request->yaw);
-    placement.forward.j = (float)sin((double)placement_request->yaw);
+    actor_definition = TAG_DATA(*(datum_index *)(variant + 0x10));
+    object_placement_data_initialize(&placement, *(datum_index *)(variant + 0x20), k_datum_index_none);
+    yaw = *(const float *)(request + 0xc);
+    placement.position = *(const real_point3d *)request;
+    placement.permutation_group = (int16_t)unit_type_index;
+    placement.forward.i = (float)cos((double)yaw);
+    placement.forward.j = (float)sin((double)yaw);
+    placement.forward.k = 0.0f;
 
     role = 3;
-    if (map_difficulty_or_kind == 2 &&
-        *(int32_t *)((uint8_t *)object_type_role_table[*(uint16_t *)&placement.definition_tag] + 0x10) != -1) { // UNSURE
-        role = 0;
-    }
+    if (game_connection_word == 2) {
+        int16_t object_type = *(int16_t *)TAG_DATA(placement.definition_tag);
 
+        if (*(int32_t *)((uint8_t *)object_type_definitions[object_type] + 0x10) != -1) {
+            role = 0;
+        }
+    }
     unit_index = object_new_with_datum_role_control(&placement, role);
-    if (unit_index == (datum_index)k_datum_index_none) {
-        return (datum_index)k_datum_index_none;
+    if (unit_index == k_datum_index_none) {
+        return k_datum_index_none;
     }
+    swarm = (char)((*(uint32_t *)actor_definition >> 0x1a) & 1);
+    actor_apply_unit_definition_properties(variant_tag, unit_index);
+    if (encounter_index != k_datum_index_none) {
+        uint8_t *encounter = *(uint8_t **)((uint8_t *)global_scenario + 0x430) + (encounter_index & 0xffff) * 0xb0;
+        uint8_t *squad = *(uint8_t **)(encounter + 0x84) + squad_index * 0xe8;
 
-    {
-        char reuse_existing = (*(const uint32_t *)(tag_instances[actor_variant[4] & 0xffff].data) >> 0x1a) & 1; // Actor.flags bit 26 "swarm"
-        char start_active = 0;
-        uint16_t unknown_60 = 0;
-        int16_t unknown_62 = 0;
-
-        actor_apply_unit_definition_properties(actor_variant_tag, unit_index);
-
-        if (encounter_index != (datum_index)k_datum_index_none) {
-            // Raw offsets, kept exactly as decompiled: Scenario+0x430 is the encounters
-            // TagReflexive's pointer field; ScenarioEncounter is 0xb0 (+0x84 the squads
-            // TagReflexive's own pointer, +0x20 ScenarioEncounter.flags); ScenarioSquad is
-            // 0xe8 (+0x24 initial_state, +0x26 return_state).
-            const uint8_t *encounters_base = *(const uint8_t **)((const uint8_t *)global_scenario + 0x430);
-            const uint8_t *scenario_encounter = encounters_base + (encounter_index & 0xffff) * 0xb0;
-            const uint8_t *squads_base = *(const uint8_t **)(scenario_encounter + 0x84);
-            const uint8_t *squad = squads_base + squad_index * 0xe8;
-
-            unknown_60 = *(const uint16_t *)(squad + 0x24);
-            unknown_62 = *(const int16_t *)(squad + 0x26);
-            start_active = (char)((*(const uint32_t *)(scenario_encounter + 0x20) >> 4) & 1); // UNSURE bit
-        }
-
-        if (placement_request->unknown_16 > 0) {
-            unknown_60 = (uint16_t)placement_request->unknown_16;
-        }
-        if (*(int16_t *)((const uint8_t *)placement_request + 0x14) > 0) { // 0x4271e5: the return state word
-            unknown_62 = *(int16_t *)((const uint8_t *)placement_request + 0x14);
-        }
-
-        result = actor_new_and_attach_to_unit(reuse_existing, unit_index, actor_variant_tag,
-                                              encounter_index, squad_index, 0, (datum_index)k_datum_index_none,
-                                              start_active, unknown_60, unknown_62,
-                                              *(const uint16_t *)&placement_request->unknown_1a,
-                                              (uint8_t)(int8_t)placement_request->unknown_12); // 0x4271f0 movsx
+        initial_state = *(uint16_t *)(squad + 0x24);
+        return_state = *(uint16_t *)(squad + 0x26);
+        start_active = (char)((*(uint32_t *)(encounter + 0x20) >> 4) & 1);
     }
+    if (*(const int16_t *)(request + 0x16) > 0) {
+        initial_state = *(const uint16_t *)(request + 0x16);
+    }
+    if (*(const int16_t *)(request + 0x14) > 0) {
+        return_state = *(const uint16_t *)(request + 0x14);
+    }
+    result = actor_new_and_attach_to_unit(swarm, unit_index, variant_tag, encounter_index, squad_index, 0,
+        k_datum_index_none, start_active, initial_state, (int16_t)return_state, *(const uint16_t *)(request + 0x1a),
+        (uint8_t)*(const int8_t *)(request + 0x12));
+    if (result == k_datum_index_none) {
+        int32_t kind = *(int32_t *)((uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data + 0x4);
 
-    if (result == (datum_index)k_datum_index_none) {
-        object *unit_object = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-        int32_t network_role = unit_object->network_role;
-        if (network_role == 0) {
+        if (kind == 0) {
             object_delete_unparented(unit_index);
-        } else if (network_role != 3) {
-            return (datum_index)k_datum_index_none;
+        } else if (kind != 3) {
+            return result;
         }
         object_delete_recursive(unit_index, 0);
     }

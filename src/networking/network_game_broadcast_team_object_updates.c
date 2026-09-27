@@ -28,7 +28,7 @@
 #include "networking.h"
 
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, objects module
-extern void **network_object_type_table; // 0x0069bfdc, per-object-type record pointer array (UNSURE)
+extern void *network_object_type_table[12]; // 0x0069bfdc, an ARRAY of the 12 object type definitions (was a pointer variable)
 extern uint8_t network_object_update_scratch[0x7ff8]; // 0x00871de0
 extern int32_t object_type_override_get_0x64(uint8_t *out_buffer, int32_t out_buffer_size); // other module; UNSURE
 extern uint32_t network_session_send_to_machine(int32_t machine_id, uint8_t *data, int32_t bits,
