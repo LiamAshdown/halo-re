@@ -1,17 +1,12 @@
 // unit_validate_and_clear_weapon_switch  (Ghidra: unit_validate_and_clear_weapon_switch)
 // address 0x5659c0, size 176 bytes
 // name confidence: 0.35 (phase2 candidate: "unit_clear_weapon_change_flags")   rewrite
-//   confidence: 0.25
-// evidence: types/units.h unit_data.zoom_level/.desired_zoom_level (0x320/0x321),
-//   .unknown_348 (0x348), .current_weapon_index (0x2f2), .weapons[4] (0x2f8),
-//   unit_data.unknown_4bc via the target weapon *object's* saved_control source id (0x4bc).
-//   Shares its tail with unit_clear_weapon_switch_state (0x565a70).
-// register convention: unit index in EAX.
-//   // blam-cc: param_1 (EAX) -> unit_index
-// UNSURE: player_index_from_unit_index is called twice back to back with the same argument and no evidence of a
-//   side effect between the calls; both are reproduced literally rather than deduplicated.
-//   sound_start_unspatialized's argument is the float bit pattern 0x3f800000 (1.0f); its purpose and the
-//   short at player+2 it gates on are unresolved outside this batch.
+//   confidence: 0.9
+// REWRITTEN from objdump 0x5659c0..0x565aa2 (the draft lost the zoom-out sound tag, EDX, and the tail call's
+//   unit, EAX). Stack: unit. A zoomed-in (+0x320 != -1) unit of a local player plays its current weapon's
+//   zoom-out sound (weapon tag +0x4bc, unspatialized, scale 1); then the zoom level (+0x320), desired zoom
+//   (+0x321) and zoom blend (+0x348) are reset and the local player's zoom is invalidated (tail jump 0x4726f0).
+// blam-cc: stack -> unit_index
 
 #include "tags.h"
 #include "memory.h"
@@ -24,34 +19,37 @@ extern data_array *object_data;     // 0x008603b0
 extern data_array *player_data;     // 0x0087a480
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern int32_t player_index_from_unit_index(uint32_t unit_index); // 0x474db0, UNSURE: likely resolves the controlling player index
-extern void sound_start_unspatialized(float amount);           // 0x543dd0, UNSURE signature
-extern void unit_invalidate_local_player_zoom_level(void);                   // 0x4726f0, UNSURE: no traced args
+extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x474db0, stack
+extern datum_index sound_start_unspatialized(datum_index definition_index, float scale); // 0x543dd0, EDX, stack
+extern void unit_invalidate_local_player_zoom_level(datum_index unit); // 0x4726f0, EAX
 
-void unit_validate_and_clear_weapon_switch(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
+void unit_validate_and_clear_weapon_switch(uint32_t unit_index)
 {
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
 
-    int32_t player = player_index_from_unit_index(unit_index);
-    if (player != -1) {
-        uint32_t player2 = (uint32_t)player_index_from_unit_index(unit_index);
-        int16_t *player_field = (int16_t *)((uint8_t *)player_data->data + (player2 & 0xffff) * 0x200 + 2);
-        if (*player_field != -1 && unit->zoom_level != -1) {
-            int16_t slot = unit->current_weapon_index;
-            if (slot != -1 && unit->weapons[slot] != (datum_index)-1) {
-                object *weapon = ((object_header *)object_data->data)[unit->weapons[slot] & 0xffff].data;
-                void *weapon_tag = tag_instances[weapon->definition_tag & 0xffff].data;
-                if (*(int32_t *)((uint8_t *)weapon_tag + 0x4bc) != -1) { // UNSURE: raw Weapon-tag field, not in types/tags.h by this offset here
-                    sound_start_unspatialized(1.0f);
+    if (player_index_from_unit_index(unit_index) != k_datum_index_none) {
+        datum_index player_index = player_index_from_unit_index(unit_index);
+
+        if (*(int16_t *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200 + 2) != -1 &&
+            obj[0x320] != 0xff) {
+            uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+            int16_t slot = *(int16_t *)(unit + 0x2f2);
+
+            if (slot != -1 && *(datum_index *)(unit + 0x2f8 + slot * 4) != k_datum_index_none) {
+                uint8_t *weapon = (uint8_t *)((object_header *)object_data->data)
+                    [*(datum_index *)(unit + 0x2f8 + slot * 4) & 0xffff].data;
+                datum_index zoom_sound = *(datum_index *)((uint8_t *)tag_instances[*(datum_index *)weapon & 0xffff].data + 0x4bc);
+
+                if (zoom_sound != k_datum_index_none) {
+                    sound_start_unspatialized(zoom_sound, 1.0f);
                 }
             }
         }
     }
-    unit->zoom_level = -1;
-    unit->desired_zoom_level = -1;
-    unit->unknown_348 = 0.0f;
-    unit_invalidate_local_player_zoom_level();
+    obj[0x320] = 0xff;
+    obj[0x321] = 0xff;
+    *(float *)(obj + 0x348) = 0.0f;
+    unit_invalidate_local_player_zoom_level(unit_index);
 }
 
 #if 0

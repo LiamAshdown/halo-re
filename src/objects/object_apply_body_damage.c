@@ -1,30 +1,27 @@
 // object_apply_body_damage
 // address 0x4ef2a0, size 1403 bytes
 // name confidence: 0.6 (Ghidra-recovered name)
-// rewrite confidence: 0.25
-// evidence: types/objects.h object (type 0xb4, maximum_body_vitality 0xd8, body_vitality 0xe0,
-// current_body_damage 0xec, recent_body_damage 0xf8, body_damage_ticks 0x100,
-// destroyed_region_flags 0x174, region_vitality[8] 0x178, vitality_flags 0x106/0x107,
-// first_child_object 0x118, next_object 0x114), damage_data (flags 0x04); types/tags.h
-// ModelCollisionGeometry (flags, friendly_damage_resistance 0x44, regions TagReflexive 0x240),
-// ModelCollisionGeometryRegion (flags 0x20, damage_threshold 0x28), ModelCollisionGeometryMaterial
-// (flags 0x20, body_damage_multiplier 0x3c), DamageEffect (damage_category, damage_flags,
-// the per-material-type multiplier array starting at damage_instantaneous_acceleration+0xc,
-// i.e. the `dirt` field, indexed by MaterialType_t).
-// UNSURE (function-wide, same caveats as object_apply_damage.c): unit-extension fields at
-// object+0x218/+0x324/+0xb8 are not part of the common object struct; FUN_006391b4 (the
-// producer of the region-vitality byte) is explicitly unresolved even in
-// out/phase4/objects_types_notes.md; weapon_get_zoom_fov_resolved/weapon_get_zoom_fov/effect_new_on_object/FUN_004eda20/
-// FUN_004edc80 are called with only their visible arguments preserved.
-// register convention: all parameters on the stack; the 7th (`effect_offset`) is passed by the
-// caller as a pointer already offset to DamageEffect+0x1c4, but here it is received as the
-// DamageEffect base pointer instead (a consistent re-basing shared with object_apply_damage.c
-// and object_apply_shield_damage.c, so every offset below is translated by -0x1c4 relative to
-// the original decompile).
-// blam-cc: stack=(target_index, region_index, node_index, param_4_masked, geometry, material,
-//   effect, dd, notify_flags, body_damage_out, param11_out, remaining_damage, role_is_deletable)
-// reconciled: R29 raw object +0xb8 int16 read -> target->owner_team
-// reconciled: R04 0x006f1d20 uint8_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
+// rewrite confidence: 0.85
+// REWRITTEN from objdump 0x4ef2a0..0x4ef81a and its one caller, object_apply_damage (0x4eefe4). Stack:
+//   (target, region, node, hit plane or 0, collision geometry tag, material, damage effect block (tag +0x1c4),
+//   damage_data, &notify flags, &body damage out, &material multiplier out, damage, is_local).
+//   body = damage * material +0x3c (0 for a driverless vehicle when geometry flag 0x40 is set). The maximum
+//   body (+0xd8) is scaled by the difficulty table (0x46fe70, ECX 1, AX team) unless a single-player category 1
+//   hit lands on team 1. Friendly damage (notify 0x10) keeps 1 - geometry +0x44 of it, divided by the
+//   difficulty multiplier for notify 0x20. The vitality fraction taken is that over the maximum times the
+//   effect block's material table (+0x3c[material +0x24]). Unless the object ignores body damage (+0x106 bit
+//   0x800): effect flag 2 on geometry flag 1 kills outright (not single-player player bipeds; local zeroes the
+//   body, notify 0x40, 0x80 in multiplayer) and effect flag 0x800 doubles it in multiplayer (notify 0x80 when
+//   lethal); locally the body (+0xe0) is reduced. Locally a live region (+0x174 bit clear) accumulates
+//   damage * 255 in its byte (+0x178) and is destroyed past the region threshold (geometry +0x244 entries of
+//   0x54, +0x28; notify 2). The recent body damage (+0xec, +0xf8, ticks +0x100) always updates; the deathless
+//   cheat (0x87abc0) keeps player units -- and vehicles carrying one -- at 0. Locally the absolute vitality is
+//   tested against the destroyed threshold (+0xb8 when negative: teardown, notify 5), zero (regions flagged 4
+//   destroyed, object killed through 0x4eda20, notify 1) or the damaged threshold (+0x94: the damaged effect
+//   +0xa4 once, +0x106 bit 1). Damage flag 2 spawns the geometry's hit effect (+0x7c) at the hit
+//   (0x4f0010), damage flag 1 above +0x80 the body damage effect (+0x90) unless category 7.
+// blam-cc: stack=(target_index, region_index, node_index, plane, geometry, material, effect_block, dd,
+//   notify_flags, body_damage_out, material_multiplier_out, damage, is_local)
 
 #include "tags.h"
 #include "memory.h"
@@ -35,213 +32,173 @@
 #include "effects.h"
 
 extern data_array *object_data; // 0x008603b0
-extern game_engine_definition *current_game_engine;      // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
-extern uint8_t g_0087abc0;      // 0x0087abc0, UNSURE: not owned by this module
+extern game_engine_definition *current_game_engine; // 0x006f1d20
+extern uint8_t g_0087abc0;      // 0x0087abc0, the deathless-player cheat
+extern uint8_t *main_game_globals; // 0x006b0b80, +0x0e difficulty
 
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
     datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
-    const ColorRGB *color, const effect_tint_source *tint_source);
-    // 0x4507a0, blam-cc: EAX -> creator_object_index, ECX -> definition_index, stack -> the other six
-extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
-    // 0x46fe10, blam-cc: stack -> zoom_table_index, CX -> magnification (every caller passes the difficulty)
-extern uint8_t *main_game_globals; // 0x006b0b80 game globals *, +0x0e difficulty
-extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70, ECX table, AX team: difficulty scale
-extern void object_set_health_frozen_flag(void); // UNSURE: zero visible args; this module (object_set_health_frozen_flag)
-extern void object_delete_teardown(void); // UNSURE: zero visible args; this module (object_delete_teardown)
-extern void damage_effect_new_at_location(datum_index effect_tag, int16_t node_index,
-    real_vector3d *normal, real_vector3d *incident, real_point3d *impact_position,
-    uint32_t object_index); // this module, 0x4f0010. Only the first two arguments are visible
-    // at this call site; the remaining four travel in registers. UNSURE: passed as NULL/0.
-extern void object_destroy_region(uint32_t object_index, int32_t region_index); // this module,
-    // 0x4f02d0. The object index travels in EAX and is not visible at these call sites; only
-    // the region index is pushed.
-extern int32_t __ftol(); // 0x006391b4, MSVC 7.1 CRT x87 float-to-int truncation
-    // (verified by disassembling 0x006391b4: fld st(0) / fst [esp+0x18] / fistp qword /
-    // fild qword ... , the classic _ftol2 body). The value arrives on the x87 stack, so
-    // some call sites show a visible float argument and others show none; the empty
-    // parameter list asserts no prototype, the same convention this module already uses
-    // for FUN_00450870.
+    const ColorRGB *color, const effect_tint_source *tint_source); // 0x4507a0, EAX, ECX, stack
+extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification); // 0x46fe10, stack, CX
+extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70, ECX, AX
+extern void object_set_health_frozen_flag(uint32_t object_index); // 0x4eda20, EAX
+extern void object_delete_teardown(uint32_t object_index); // 0x4edc80, EAX
+extern void damage_effect_new_at_location(datum_index effect_tag, int16_t node_index, real_vector3d *normal,
+    real_vector3d *incident, real_point3d *impact_position, uint32_t object_index); // 0x4f0010, stack, EAX, ECX, EBX, EDI
+extern void object_destroy_region(uint32_t object_index, int32_t region_index); // 0x4f02d0, EAX, stack
 
-void object_apply_body_damage(uint32_t target_index, int32_t region_index, int32_t node_index,
-    uint32_t param_4, ModelCollisionGeometry *geometry, ModelCollisionGeometryMaterial *material,
-    DamageEffect *effect, damage_data *dd, uint32_t *notify_flags, float *body_damage_out,
-    uint32_t *param11_out, float remaining_damage, int8_t role_is_deletable)
+void object_apply_body_damage(uint32_t target_index, int32_t region_index, int32_t node_index, void *plane,
+    uint8_t *geometry, uint8_t *material, uint8_t *effect_block, damage_data *dd, uint32_t *notify_flags,
+    float *body_damage_out, float *material_multiplier_out, float damage, uint8_t is_local)
 {
-    object_header *headers = (object_header *)object_data->data;
-    object *target = headers[target_index & 0xffff].data;
-    float raw_damage = remaining_damage * material->body_damage_multiplier;
-    int8_t friendly_fire_exempt = 0;
-    float max_body_vitality;
-    float inv_max_body_vitality;
-    float fVar10;
-    float normalized_damage;
-    uint32_t flags;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[target_index & 0xffff].data;
+    uint8_t *vitality_flags = obj + 0x106;
+    float *vitality = (float *)(obj + 0xe0);
+    float body = damage * *(float *)(material + 0x3c);
+    float maximum;
+    float inverse_maximum;
+    float value;
+    float taken;
+    uint8_t unscaled = 0;
 
-    if ((geometry->flags & 0x40) != 0 && target->type == _object_type_vehicle &&
-        *(int32_t *)((uint8_t *)target + 0x324) == -1) { // UNSURE: unit extension field
-        raw_damage = 0.0f;
+    if ((*geometry & 0x40) && *(int16_t *)(obj + 0xb4) == 1 && *(datum_index *)(obj + 0x324) == k_datum_index_none) {
+        body = 0.0f;
     }
-
-    if (current_game_engine == 0 && effect->damage_category == 1 &&
-        target->owner_team == 1) { // UNSURE: raw object field
-        friendly_fire_exempt = 1;
+    if (current_game_engine == 0 && *(int16_t *)(effect_block + 0x2) == 1 && *(int16_t *)(obj + 0xb8) == 1) {
+        unscaled = 1;
     }
-
-    max_body_vitality = target->maximum_body_vitality;
-    if (!friendly_fire_exempt) {
-        max_body_vitality = weapon_get_zoom_fov_resolved(1, target->owner_team) * max_body_vitality; // 0x4ef32b, ECX still 1
+    maximum = *(float *)(obj + 0xd8);
+    if (!unscaled) {
+        maximum = weapon_get_zoom_fov_resolved(1, *(int16_t *)(obj + 0xb8)) * maximum;
     }
-    inv_max_body_vitality = (max_body_vitality <= 0.0f) ? 0.0f : (1.0f / max_body_vitality);
+    inverse_maximum = (maximum > 0.0f) ? 1.0f / maximum : 0.0f;
+    value = body;
+    if (*notify_flags & 0x10) {
+        value = (1.0f - *(float *)(geometry + 0x44)) * body;
+        if (*notify_flags & 0x20) {
+            real multiplier = weapon_get_zoom_fov(0, *(int16_t *)(main_game_globals + 0x0e));
 
-    fVar10 = raw_damage;
-    flags = *notify_flags;
-    if ((flags & 0x10) != 0) {
-        fVar10 = (1.0f - geometry->friendly_damage_resistance) * raw_damage;
-        if ((flags & 0x20) != 0) {
-            real scalar = weapon_get_zoom_fov(0, *(int16_t *)(main_game_globals + 0x0e));
-            if (scalar <= 0.0f) {
-                fVar10 = fVar10;
-            } else {
-                fVar10 = fVar10 / scalar;
+            if (multiplier > 0.0f) {
+                value = value / multiplier;
             }
         }
     }
+    taken = value * inverse_maximum * *(float *)(effect_block + 0x3c + *(int16_t *)(material + 0x24) * 4);
+    if (*(uint16_t *)vitality_flags & 0x800) {
+        if (is_local != 1) {
+            goto bookkeeping;
+        }
+    } else {
+        if (body > 0.0f && (*(uint8_t *)(geometry + 0x20) & 1)) {
+            uint32_t effect_flags = *(uint32_t *)(effect_block + 0x4);
 
-    normalized_damage = fVar10 * inv_max_body_vitality *
-        (&effect->dirt)[material->material_type]; // per-material-type multiplier table
-
-    if ((target->vitality_flags & _object_hash_flag_bit) == 0) {
-        if (0.0f < raw_damage && (material->flags & 1) != 0) {
-            if ((effect->damage_flags & 2) == 0) {
-                if ((effect->damage_flags & 0x800) != 0 && current_game_engine != 0) {
-                    normalized_damage = normalized_damage + normalized_damage;
-                    if (target->body_vitality < normalized_damage) {
-                        *notify_flags = flags | 0x80;
+            if (effect_flags & 2) {
+                if (!(current_game_engine == 0 && *(int16_t *)(obj + 0xb4) == 0 &&
+                      *(datum_index *)(obj + 0x218) != k_datum_index_none)) {
+                    if (is_local == 1) {
+                        *vitality = 0.0f;
+                    }
+                    *notify_flags |= 0x40;
+                    if (current_game_engine != 0) {
+                        *notify_flags |= 0x80;
                     }
                 }
-            } else if (current_game_engine != 0 || target->type != _object_type_biped ||
-                       *(int32_t *)((uint8_t *)target + 0x218) == -1) { // UNSURE: unit extension field
-                if (role_is_deletable == 1) {
-                    target->body_vitality = 0.0f;
-                }
-                flags = *notify_flags;
-                *notify_flags = flags | 0x40;
-                if (current_game_engine != 0) {
-                    *notify_flags = flags | 0xc0;
+            } else if ((effect_flags & 0x800) && current_game_engine != 0) {
+                taken = taken + taken;
+                if (taken > *vitality) {
+                    *notify_flags |= 0x80;
                 }
             }
         }
-        if (role_is_deletable != 1) {
-            goto after_vitality;
+        if (is_local != 1) {
+            goto bookkeeping;
         }
-        target->body_vitality -= normalized_damage;
-    } else if (role_is_deletable != 1) {
-        goto after_vitality;
+        *vitality = *vitality - taken;
     }
+    if ((int16_t)region_index != -1) {
+        int32_t region = (int16_t)region_index;
 
-    if (region_index != -1 &&
-        (1 << (region_index & 0x1f) & (uint32_t)target->destroyed_region_flags) == 0) {
-        ModelCollisionGeometryRegion *region = &((ModelCollisionGeometryRegion *)geometry->regions.pointer)[region_index];
-        uint8_t region_byte = __ftol();
+        if ((*(uint16_t *)(obj + 0x174) & (1u << (region & 0x1f))) == 0) {
+            uint8_t *region_block = *(uint8_t **)(geometry + 0x244) + region * 0x54;
+            uint8_t region_damage = (uint8_t)(int32_t)(taken * 255.0f + (int32_t)obj[0x178 + region]);
 
-        target->region_vitality[region_index] = region_byte;
-        if (0.0f < region->damage_threshold && region->damage_threshold < (float)region_byte * 0.003921569f) {
-            object_destroy_region(target_index, region_index);
-            *notify_flags |= 2;
+            obj[0x178 + region] = region_damage;
+            if (*(float *)(region_block + 0x28) > 0.0f &&
+                (float)region_damage * 0.0039215689f > *(float *)(region_block + 0x28)) {
+                object_destroy_region(target_index, region_index);
+                *notify_flags |= 2;
+            }
         }
     }
-
-after_vitality:
-    target->body_damage_ticks = 0;
+bookkeeping:
     {
-        float sum1 = normalized_damage + target->current_body_damage;
-        float sum2;
+        float current = taken + *(float *)(obj + 0xec);
+        float recent;
 
-        target->current_body_damage = sum1;
-        sum2 = normalized_damage + target->recent_body_damage;
-        target->recent_body_damage = sum2;
-        if (1.0f < sum1) {
-            target->current_body_damage = 1.0f;
+        *(int32_t *)(obj + 0x100) = 0;
+        *(float *)(obj + 0xec) = current;
+        recent = taken + *(float *)(obj + 0xf8);
+        *(float *)(obj + 0xf8) = recent;
+        if (current > 1.0f) {
+            *(float *)(obj + 0xec) = 1.0f;
         }
-        if (1.0f < sum2) {
-            target->recent_body_damage = 1.0f;
+        if (recent > 1.0f) {
+            *(float *)(obj + 0xf8) = 1.0f;
         }
     }
+    if (g_0087abc0 && *vitality < 0.0f && ((1u << (obj[0xb4] & 0x1f)) & 3)) {
+        if (*(datum_index *)(obj + 0x218) != k_datum_index_none) {
+            *vitality = 0.0f;
+        } else if (*(int16_t *)(obj + 0xb4) == 1) {
+            datum_index child = *(datum_index *)(obj + 0x118);
 
-    if (g_0087abc0 != 0 && target->body_vitality < 0.0f &&
-        (1 << (target->type & 0x1f) & _object_mask_unit) != 0) {
-        if (*(int32_t *)((uint8_t *)target + 0x218) == -1) { // UNSURE: unit extension field
-            if (target->type == _object_type_vehicle) {
-                uint32_t walker = target->first_child_object;
-                int8_t found = 0;
+            while (child != k_datum_index_none) {
+                uint8_t *child_obj = (uint8_t *)((object_header *)object_data->data)[child & 0xffff].data;
 
-                while (walker != (datum_index)0xffffffff) {
-                    object *child = headers[walker & 0xffff].data;
-                    if ((1 << (child->type & 0x1f) & _object_mask_unit) != 0 &&
-                        *(int32_t *)((uint8_t *)child + 0x218) != -1) { // UNSURE
-                        found = 1;
-                        break;
-                    }
-                    walker = child->next_object;
+                if (((1u << (child_obj[0xb4] & 0x1f)) & 3) &&
+                    *(datum_index *)(child_obj + 0x218) != k_datum_index_none) {
+                    *vitality = 0.0f;
+                    break;
                 }
-                if (found) {
-                    target->body_vitality = 0.0f;
-                }
+                child = *(datum_index *)(child_obj + 0x114);
             }
-        } else {
-            target->body_vitality = 0.0f;
         }
     }
+    if (is_local == 1) {
+        float absolute = weapon_get_zoom_fov_resolved(1, *(int16_t *)(obj + 0xb8)) * *(float *)(obj + 0xd8) *
+            *vitality;
+        float destroyed = *(float *)(geometry + 0xb8);
 
-    if (role_is_deletable == 1) {
-        object *self = headers[target_index & 0xffff].data;
-        float max_v = self->maximum_body_vitality;
-        float cur_v = self->body_vitality;
-        real scalar = weapon_get_zoom_fov_resolved(1, self->owner_team); // 0x4ef689
-        real threshold = scalar * max_v * cur_v;
+        if (destroyed < 0.0f && absolute < destroyed) {
+            object_delete_teardown(target_index);
+            *notify_flags |= 5;
+        } else if (absolute < 0.0f) {
+            if ((*vitality_flags & 4) == 0) {
+                int16_t i;
 
-        if (0.0f <= geometry->body_destroyed_threshold || (real)geometry->body_destroyed_threshold <= threshold) {
-            if (0.0f <= threshold) {
-                if (threshold < geometry->body_damaged_threshold &&
-                    (target->vitality_flags & 1) == 0) {
-                    // 0x4ef762..0x4ef777: EAX = the target, ECX = geometry +0xa4 (body damaged effect)
-                    effect_new_on_object(target_index, *(datum_index *)((uint8_t *)geometry + 0xa4), target_index, -1,
-                        0.0f, 0.0f, 0, 0);
-                    target->vitality_flags |= 1;
-                }
-            } else if ((target->vitality_flags & _object_health_frozen_bit) == 0) {
-                int32_t region_count = geometry->regions.count;
-                int32_t i;
-
-                for (i = 0; i < region_count; i++) {
-                    ModelCollisionGeometryRegion *region = &((ModelCollisionGeometryRegion *)geometry->regions.pointer)[i];
-                    if ((region->flags & 4) != 0) {
+                for (i = 0; i < *(int32_t *)(geometry + 0x240); i++) {
+                    if (*(*(uint8_t **)(geometry + 0x244) + i * 0x54 + 0x20) & 4) {
                         object_destroy_region(target_index, i);
                     }
                 }
-                object_set_health_frozen_flag();
+                object_set_health_frozen_flag(target_index);
                 *notify_flags |= 1;
             }
-        } else {
-            object_delete_teardown();
-            *notify_flags |= 5;
-        }
-
-        if ((effect->damage_flags & 2) != 0 && geometry->localized_damage_effect.tag_id.index != 0xffff) {
-            damage_effect_new_at_location(geometry->localized_damage_effect.tag_id.index,
-                                          (int16_t)node_index, 0, 0, 0, 0);
-        }
-
-        if ((effect->damage_flags & 1) != 0 && geometry->area_damage_effect_threshold < raw_damage &&
-            geometry->area_damage_effect.tag_id.index != 0xffff && effect->damage_category != 7) {
-            // 0x4ef7cf..0x4ef7f4: EAX = the target, ECX = geometry +0x90 (area damage effect)
-            effect_new_on_object(target_index, *(datum_index *)((uint8_t *)geometry + 0x90), target_index, -1,
-                0.0f, 0.0f, 0, 0);
+        } else if (absolute < *(float *)(geometry + 0x94) && (*vitality_flags & 1) == 0) {
+            effect_new_on_object(target_index, *(datum_index *)(geometry + 0xa4), target_index, -1, 0.0f, 0.0f, 0, 0);
+            *vitality_flags |= 1;
         }
     }
-
-    *body_damage_out = raw_damage;
-    *param11_out = *(uint32_t *)&material->body_damage_multiplier;
+    if ((dd->flags & 2) && *(datum_index *)(geometry + 0x7c) != k_datum_index_none) {
+        damage_effect_new_at_location(*(datum_index *)(geometry + 0x7c), (int16_t)node_index, &dd->direction,
+            (real_vector3d *)plane, &dd->origin, target_index);
+    }
+    if ((dd->flags & 1) && body > *(float *)(geometry + 0x80) &&
+        *(datum_index *)(geometry + 0x90) != k_datum_index_none && *(int16_t *)(effect_block + 0x2) != 7) {
+        effect_new_on_object(target_index, *(datum_index *)(geometry + 0x90), target_index, -1, 0.0f, 0.0f, 0, 0);
+    }
+    *body_damage_out = body;
+    *material_multiplier_out = *(float *)(material + 0x3c);
 }
 
 #if 0

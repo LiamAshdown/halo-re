@@ -33,7 +33,7 @@ extern void unit_update_stance_and_jump(uint32_t unit_index, uint8_t force_ready
                                         float turn_angle, int16_t weapon_class_index, const real_vector2d *throttle,
                                         uint8_t require_still); // 0x566de0
 extern void unit_release_transient_state(uint32_t unit_index, uint8_t is_light_reset); // 0x568610, UNSURE signature
-extern void unit_broadcast_state_change_event(int32_t index);                     // 0x566c00, UNSURE signature
+extern void unit_broadcast_state_change_event(unit_state_change_record record); // 0x566c00, the record by value
 extern void network_index_cache_remove(uint32_t object_index);                 // 0x4e9d40, UNSURE signature
 
 void unit_exit_vehicle_seat(uint32_t player_index) // blam-cc: in_EAX -> player_index
@@ -66,7 +66,7 @@ void unit_exit_vehicle_seat(uint32_t player_index) // blam-cc: in_EAX -> player_
             *(int32_t *)(rec_bytes + 16) = 0;
             record[7] = player_field_2c;
 
-            unit_broadcast_state_change_event((int32_t)record);
+            unit_broadcast_state_change_event(*(unit_state_change_record *)record); // 0x5681dc: rep movs, 8 dwords
 
             object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
             obj->network_role = 3;

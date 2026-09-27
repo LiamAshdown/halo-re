@@ -1,25 +1,18 @@
-// player_execute_pending_interaction  (Ghidra: FUN_004793a0; renamed -- the primary-mode
-// handler game_engine_apply_player_interaction_message.c (this batch) dispatches to; executes
-// whichever interaction is currently queued in player::interaction_type)
+// player_execute_pending_interaction  (Ghidra: FUN_004793a0)
 // address 0x4793a0, size 837 bytes
-// name confidence: 0.3   rewrite confidence: 0.2
-// evidence: types/game.h player (unit 0x34, interaction_type 0x28, interaction_object 0x24,
-//   interaction_seat 0x2a, local_player_index 0x02); types/objects.h object (forward 0x074,
-//   parent_object -- not used here but the sibling player at +0x11c pattern is); types/math.h
-//   real_matrix4x3 (position 0x28); object_get_world_matrix, vector3d_cross_product,
-//   player_update_history_free_all, unit_enter_vehicle_seat, unit_drop_current_weapon all
-//   already established elsewhere in this module/repo. The interaction_type values dispatched
-//   here (5, 8, 9, 10, 11, default-6) are this function's own switch cases; their semantic
-//   names (assassinate/board/exit/pickup/etc.) are inferred from context, not independently
-//   confirmed, and several fields this function touches (unit+0x2a3, object+0x32c/+0x330,
-//   object+0x4cc/+0x4d1/+0x4d2) are not named by any header this module owns.
-// register convention: none -- `player_index` is this function's own single stack parameter
-//   (Ghidra's own `uint param_1`).
-// UNSURE: essentially all of case 8/9 (vehicle board/exit) and case 0xb (a facing-relative
-//   direction classification, written into undocumented fields) is preserved close to
-//   literally; unit_clear_selected_equipment/unit_try_select_equipment/unit_seat_is_occupied_by_other/actor_check_vehicle_target_available/device_control_touched/unit_detach_from_seat's
-//   exact effects (each called elsewhere in this module with only some of their arguments
-//   visible to Ghidra).
+// name confidence: 0.3   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x4793a0..0x4796e4 (jump table 0x4796e8 on the interaction type - 5). Stack: player.
+//   5 equipment: clears the selection (0x56d2c0) and selects the object (0x56d1a0), showing it on the HUD.
+//   8 / 9 vehicle seat: a client first needs its unit and drops a stale seat-exit animation (0x1b); if the seat
+//   is free (0x566840) the unit enters it (0x566970) and a client drops the local player's prediction history
+//   (or zeroes the remote player's); otherwise an AI-driven occupant is asked to make room (0x42b810).
+//   10 device control: 0x44c090 on the device (the unit is pushed but never read).
+//   11 melee interaction: the unit records the target (+0x32c) and the tick (+0x330); the TARGET gets +0x4cc
+//   bit 0x10, +0x4d2 = 0 and a direction +0x4d1: 3 / 4 for a target facing up / down (|forward.k| > 0x673258),
+//   else 2 / 1 for the unit on the target's left / right ((target - unit) x up against the target's forward).
+//   6 / 7 and anything else return 0. A handled interaction of an authoritative unit notifies the game engine
+//   (0x478ff0: ECX player, EDI the object, stack 0, type, seat, -1).
+// blam-cc: stack -> player_index
 
 #include "tags.h"
 #include "memory.h"
@@ -32,152 +25,134 @@ extern data_array *player_data;    // 0x0087a480
 extern data_array *object_headers; // 0x008603b0
 extern int16_t network_game_mode;  // 0x00719720
 extern uint8_t *network_client;    // 0x0071c2d8
-extern real_vector3d object_placement_default_up; // 0x00696720 (PTR_DAT_00696720)
-extern game_time_globals *game_time; // 0x006f1d6c, already established
+extern real_vector3d *global_up3d_pointer; // 0x00696720
+extern game_time_globals *game_time; // 0x006f1d6c
 
-extern void unit_clear_selected_equipment(void); // 0x56d2c0, not in this batch
-extern uint8_t unit_try_select_equipment(uint32_t unit_index, datum_index target_object, uint32_t flags); // 0x56d1a0, not in this batch; UNSURE exact signature
-extern void hud_post_item_message(int16_t a, uint8_t b); // 0x4ae350, not in this batch
+extern double fabs(double x);
+
+extern void unit_clear_selected_equipment(uint32_t unit_index); // 0x56d2c0, ECX
+extern uint8_t unit_try_select_equipment(uint32_t unit_index, uint32_t new_equipment_object_index,
+    int16_t release_current); // 0x56d1a0
+extern void hud_post_item_message(int16_t count, int32_t source, uint8_t kind, int16_t local_player_index,
+    int8_t machine_id); // 0x4ae350, EAX, ECX, DL, stack
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern uint8_t unit_seat_is_occupied_by_other(int16_t seat, datum_index *out_vehicle); // 0x566840, not in this batch; UNSURE exact signature
-extern void unit_detach_from_seat(uint32_t unit_index, uint32_t a, uint32_t b, uint32_t c); // 0x56c640, not in this batch
-extern void unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index); // 0x566970
+extern uint8_t unit_seat_is_occupied_by_other(uint32_t self_index, int16_t seat_index, uint32_t vehicle_index,
+    uint32_t *out_occupant_index); // 0x566840, EAX, EDX vehicle, stack (seat, out)
+extern void unit_detach_from_seat(uint32_t unit_index, uint8_t suppress_trigger, uint8_t require_client_flag,
+    uint8_t fire_trigger_event); // 0x56c640
+extern uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index); // 0x566970, EAX unit, stack
 extern void player_update_history_free_all(void *queue); // 0x4e6f20
-extern void device_control_touched(uint32_t unit_handle); // 0x44c090, not in this batch
-extern real_matrix4x3 *object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out); // 0x4f6a20
-extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand); // 0x4052c0
-extern void actor_check_vehicle_target_available(uint32_t a); // 0x42b810, not in this batch
-extern void game_engine_notify_player_interaction(uint32_t primary_key, uint32_t mode, uint32_t interaction_type_and_seat,
-    int32_t secondary_key); // this batch, 0x478ff0
+extern void device_control_touched(uint32_t object_index); // 0x44c090, EAX
+extern real_matrix4x3 *object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out); // 0x4f6a20, EAX, EDI
+extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, EAX, ECX, stack
+extern uint8_t actor_check_vehicle_target_available(datum_index vehicle_object_index, datum_index actor_index,
+    uint8_t flag_pursue); // 0x42b810, EAX, ECX, stack
+extern void game_engine_notify_player_interaction(uint32_t primary_key, uint32_t edi_key,
+    uint32_t mode, int32_t interaction_type, int32_t interaction_seat, int32_t secondary_key); // 0x478ff0, ECX, EDI, stack
 
-// blam-cc: stack -> player_index
-// Executes `player_index`'s queued interaction (player::interaction_type). See header note:
-// case 8/9 (vehicle board/exit) and case 0xb (a facing-relative direction classification) are a
-// close, largely offset-preserving transcription of Ghidra's own decompilation.
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_headers->data)[(h) & 0xffff].data)
+
 uint8_t player_execute_pending_interaction(uint32_t player_index)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
-    datum_index unit_handle = p->unit;
-    object *unit_obj = (object *)((object_header *)object_headers->data)[unit_handle & 0xffff].data;
+    uint8_t *record = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;
+    datum_index unit_index = *(datum_index *)(record + 0x34);
+    uint8_t *unit = OBJECT_DATA(unit_index);
+    datum_index target_index = *(datum_index *)(record + 0x24);
+    uint16_t seat = *(uint16_t *)(record + 0x2a);
     uint8_t handled = 0;
 
-    switch (p->interaction_type) {
+    switch (*(int16_t *)(record + 0x28)) {
     case 5:
-        unit_clear_selected_equipment();
-        if (unit_try_select_equipment((uint32_t)unit_handle, p->interaction_object, 0) != 0) {
-            hud_post_item_message(p->local_player_index, *(uint8_t *)((uint8_t *)p + 100));
+        unit_clear_selected_equipment(unit_index);
+        if (unit_try_select_equipment(unit_index, target_index, 0)) {
+            hud_post_item_message(0, (int32_t)*(datum_index *)OBJECT_DATA(target_index), 0,
+                *(int16_t *)(record + 0x2), (int8_t)record[0x64]);
         }
-        handled = 1;
         break;
-
     case 8:
-    case 9:
-        {
-            object *unit_for_gate = unit_obj;
+    case 9: {
+        uint32_t occupant = k_datum_index_none;
+
+        if (network_game_mode == 1 &&
+            (unit_index == k_datum_index_none || object_try_and_get(unit_index, 3) == 0)) {
+            return 0;
+        }
+        if (network_game_mode == 1 && !unit_seat_is_occupied_by_other(unit_index, (int16_t)seat, target_index,
+                                                                      &occupant)) {
+            datum_index self_index = *(datum_index *)(record + 0x34);
+            uint8_t *self = (uint8_t *)object_try_and_get(self_index, 3);
+
+            if (self != 0 && self[0x2a3] == 0x1b) {
+                unit_detach_from_seat(self_index, 1, 1, 0);
+            }
+        }
+        if (unit_seat_is_occupied_by_other(*(datum_index *)(record + 0x34), (int16_t)*(uint16_t *)(record + 0x2a),
+                                           *(datum_index *)(record + 0x24), &occupant)) {
+            unit_enter_vehicle_seat(*(datum_index *)(record + 0x24), (int16_t)*(uint16_t *)(record + 0x2a),
+                *(datum_index *)(record + 0x34));
+            handled = 1;
             if (network_game_mode == 1) {
-                if (unit_handle == (datum_index)0xffffffff) {
-                    return 0;
-                }
-                unit_for_gate = object_try_and_get(unit_handle, 3);
-                if (unit_for_gate == 0) {
-                    return 0;
+                if (*(int16_t *)(record + 0x2) != -1) {
+                    if (network_client != 0) {
+                        player_update_history_free_all(*(void **)(network_client + 0xf48));
+                    }
+                } else {
+                    *(int32_t *)(record + 0x180) = 0;
+                    *(int32_t *)(record + 0x17c) = 0;
+                    *(int32_t *)(record + 0x1e0) = 0;
+                    *(int32_t *)(record + 0x1dc) = 0;
                 }
             }
-
-            {
-                datum_index resolved_vehicle = (datum_index)0xffffffff;
-                if (network_game_mode == 1 &&
-                    unit_seat_is_occupied_by_other(p->interaction_seat, &resolved_vehicle) == 0) {
-                    object *unit_reacquired = object_try_and_get(unit_handle, 3);
-                    if (unit_reacquired != 0 && *((int8_t *)unit_reacquired + 0x2a3) == 0x1b) {
-                        unit_detach_from_seat((uint32_t)unit_handle, 1, 1, 0);
-                    }
-                }
-
-                if (unit_seat_is_occupied_by_other(p->interaction_seat, &resolved_vehicle) == 0) {
-                    if (resolved_vehicle == (datum_index)0xffffffff) {
-                        return 0;
-                    }
-                    {
-                        object *resolved_obj = (object *)((object_header *)object_headers->data)[
-                            (uint32_t)resolved_vehicle & 0xffff].data;
-                        if (*(int32_t *)((uint8_t *)resolved_obj + 500) == -1) {
-                            return 0;
-                        }
-                    }
-                    actor_check_vehicle_target_available(1);
-                    handled = 1;
-                    break;
-                }
-
-                unit_enter_vehicle_seat((uint32_t)p->interaction_object, p->interaction_seat, (uint32_t)unit_handle);
-                handled = 1;
-                if (network_game_mode == 1) {
-                    if (p->local_player_index == -1) {
-                        *(int32_t *)((uint8_t *)p + 0x180) = 0;
-                        *(int32_t *)((uint8_t *)p + 0x17c) = 0;
-                        *(int32_t *)((uint8_t *)p + 0x1e0) = 0;
-                        *(int32_t *)((uint8_t *)p + 0x1dc) = 0;
-                    } else if (network_client != 0) {
-                        player_update_history_free_all(*(void **)((uint8_t *)network_client + 0xf48));
-                    }
-                }
-                goto notify;
-            }
+            goto notify;
         }
-
+        if (occupant == k_datum_index_none ||
+            *(datum_index *)(OBJECT_DATA(occupant) + 0x1f4) == k_datum_index_none) {
+            return 0;
+        }
+        actor_check_vehicle_target_available(*(datum_index *)(record + 0x34),
+            *(datum_index *)(OBJECT_DATA(occupant) + 0x1f4), 1);
+        break;
+    }
     case 10:
-        device_control_touched((uint32_t)unit_handle);
+        device_control_touched(target_index);
         break;
+    case 11: {
+        uint8_t *target = OBJECT_DATA(target_index);
+        int8_t direction;
 
-    case 0xb:
-        {
-            object *target = (object *)((object_header *)object_headers->data)[p->interaction_object & 0xffff].data;
-            *(uint32_t *)((uint8_t *)unit_obj + 0x32c) = (uint32_t)p->interaction_object;
-            *(int32_t *)((uint8_t *)unit_obj + 0x330) = game_time->game_time; // records the
-                // current simulation tick, per types/game.h game_time_globals::game_time (+0x0c)
-            if ((unit_obj->forward.k < 0.0f ? -unit_obj->forward.k : unit_obj->forward.k) <= 0.70710677f) {
-                real_matrix4x3 self_matrix, target_matrix;
-                real_vector3d cross;
-                float d0, d1, d2;
-                int8_t direction_code;
+        *(datum_index *)(unit + 0x32c) = target_index;
+        *(int32_t *)(unit + 0x330) = game_time->game_time;
+        if (fabs(*(float *)(target + 0x7c)) > 0.7071067690849304) { // 0x673258 (double)
+            direction = (int8_t)((*(float *)(target + 0x7c) < 0.0f) ? 4 : 3);
+        } else {
+            real_matrix4x3 target_matrix;
+            real_matrix4x3 unit_matrix;
+            real_point3d *target_position =
+                (real_point3d *)((uint8_t *)object_get_world_matrix(target_index, &target_matrix) + 0x28);
+            real_point3d *unit_position =
+                (real_point3d *)((uint8_t *)object_get_world_matrix(*(datum_index *)(record + 0x34), &unit_matrix) + 0x28);
+            real_vector3d side;
 
-                object_get_world_matrix((uint32_t)unit_handle, &self_matrix);
-                object_get_world_matrix((uint32_t)p->interaction_object, &target_matrix);
-                d0 = self_matrix.position.x - target_matrix.position.x;
-                d1 = self_matrix.position.y - target_matrix.position.y;
-                d2 = self_matrix.position.z - target_matrix.position.z;
-                // UNSURE: this cross product's EAX (out) / ECX (ecx_operand) arguments are
-                // elided by Ghidra, and its result is never read by the dot-product below
-                // either here or in Ghidra's own decompilation -- transcribed as a
-                // side-effect-only call, exactly as decompiled.
-                vector3d_cross_product(&cross, &self_matrix.forward, &object_placement_default_up);
-                direction_code = (int8_t)((0.0f < d0 * unit_obj->forward.i + d1 * unit_obj->forward.j +
-                    d2 * unit_obj->forward.k) + 1);
-                (void)target;
-                (void)cross;
-                *((uint8_t *)unit_obj + 0x4cc) |= 0x10;
-                *((int8_t *)unit_obj + 0x4d1) = direction_code;
-            } else if (0.0f <= unit_obj->forward.k) {
-                *((int8_t *)unit_obj + 0x4d1) = 3;
-                *((uint8_t *)unit_obj + 0x4cc) |= 0x10;
-            } else {
-                *((int8_t *)unit_obj + 0x4d1) = 4;
-                *((uint8_t *)unit_obj + 0x4cc) |= 0x10;
-            }
-            *((uint8_t *)unit_obj + 0x4d2) = 0;
+            side.i = target_position->x - unit_position->x;
+            side.j = target_position->y - unit_position->y;
+            side.k = target_position->z - unit_position->z;
+            vector3d_cross_product(&side, &side, global_up3d_pointer);
+            direction = (int8_t)((side.k * *(float *)(target + 0x7c) + side.j * *(float *)(target + 0x78) +
+                                  side.i * *(float *)(target + 0x74) > 0.0f) ? 2 : 1);
         }
-        handled = 1;
+        target[0x4cc] |= 0x10;
+        target[0x4d1] = (uint8_t)direction;
+        target[0x4d2] = 0;
         break;
-
+    }
     default:
         return 0;
     }
-
     handled = 1;
 notify:
-    if (unit_obj->network_role == 0) {
-        game_engine_notify_player_interaction(0, p->interaction_type, p->interaction_seat, -1);
+    if (*(int32_t *)(unit + 0x4) == 0) {
+        game_engine_notify_player_interaction(player_index, *(datum_index *)(record + 0x24), 0,
+            *(uint16_t *)(record + 0x28), *(uint16_t *)(record + 0x2a), -1);
     }
     return handled;
 }

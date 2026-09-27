@@ -595,6 +595,29 @@ typedef struct unit_data {
 } unit_data;                            // size 0x2d8 (object 0x1f4 .. 0x4cc)
 
 // ---------------------------------------------------------------------------
+// unit_state_change_record  (0x20 bytes, passed BY VALUE to 0x566c00, which replaces the unit with
+// its network id and sends the whole record as message type 0xc)
+// Built by unit_apply_damage_effects (0x567ec2..0x567f0b, ebp-0x64) and unit_exit_vehicle_seat
+// (0x5681b4..0x5681d8).
+// ---------------------------------------------------------------------------
+typedef struct unit_state_change_record {
+    datum_index unit;               // 0x00
+    uint8_t valid;                  // 0x04
+    uint8_t killed;                 // 0x05
+    uint8_t knocked_down;           // 0x06 the stun roll of unit_apply_damage_effects
+    uint8_t violent;                // 0x07 damage effect +0x30 at least 0x672be4 on a kill
+    uint8_t stunned;                // 0x08 unit tag flag 0x80 without effect flag 4, or a melee in progress
+    uint8_t special;                // 0x09 notify flags 0x8a
+    uint8_t no_direction;           // 0x0a
+    uint8_t pad_0b;                 // 0x0b
+    int16_t region_index;           // 0x0c
+    int16_t pad_0e;                 // 0x0e
+    float angle;                    // 0x10 between the unit's forward and the damage direction (xy)
+    real_vector2d direction;        // 0x14 damage direction (xy), when no_direction is clear
+    uint32_t player_value;          // 0x1c the unit's player +0x2c
+} unit_state_change_record;         // size 0x20
+
+// ---------------------------------------------------------------------------
 // biped_data  (0x84 bytes, at object + 0x4cc; a biped object is 0x550 bytes total)
 // Assigned from the functions the biped row of the object_type_definition table reaches:
 // biped_update (0x5590a0) and everything below it, the two movement solvers 0x55bea0 and

@@ -1,29 +1,26 @@
 // object_apply_shield_damage
 // address 0x4ef820, size 976 bytes
 // name confidence: 0.6 (Ghidra-recovered name)
-// rewrite confidence: 0.25
-// evidence: types/objects.h object (shield_vitality 0xe4, current_shield_damage 0xe8,
-// recent_shield_damage 0xf4, shield_damage_ticks 0xfc, shield_stun_ticks 0x104, vitality_flags
-// 0x106, maximum_shield_vitality 0xdc); types/tags.h ModelCollisionGeometry (shield_damaged_threshold
-// 0x184, shield_failure_threshold 0xf0, failing_shield_leak_fraction 0xf4, minimum_stun_damage
-// 0x108, shield_material_type 0xd2, flags bit2 == always_shields_friendly_damage),
-// ModelCollisionGeometryMaterial (shield_leak_percentage 0x28, shield_damage_multiplier 0x2c),
-// DamageEffect's per-material-type multiplier table (same as object_apply_body_damage.c, indexed
-// here by geometry->shield_material_type instead of the material's own material_type).
-// UNSURE: the decompiled entry writes through an `unaff_EBX` pointer that appears nowhere in
-// Ghidra's own parameter list (`*(undefined4*)(unaff_EBX+4)` and `*(undefined1*)(unaff_EBX+8)`),
-// meaning a 10th argument is passed in EBX by a caller further up the chain than
-// object_apply_damage itself (which never shows touching EBX either). It is modeled here as an
-// explicit trailing out-parameter, `impulse_result`, and object_apply_damage.c currently passes
-// 0 for it with its own UNSURE note, since the true source is not recoverable from this module.
-// transition_function_evaluate (0x4ccac0), weapon_get_zoom_fov, weapon_get_zoom_fov_resolved and FUN_006391b4 are opaque externals outside this
-// module (FUN_006391b4 is explicitly unresolved even in out/phase4/objects_types_notes.md).
-// register convention: all parameters on the stack; the 4th (`effect_offset`) is received here
-// as the DamageEffect base pointer under the same -0x1c4 re-basing used throughout this batch.
-// blam-cc: stack=(target_index, geometry, material, effect, notify_flags, shield_damage_out,
-//   remaining_damage_inout, role_is_deletable, attributable_to_live_player, impulse_result)
-// reconciled: R29 raw object +0xb8 int16 read -> target->owner_team
-// reconciled: R04 0x006f1d20 uint8_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
+// rewrite confidence: 0.85
+// REWRITTEN from objdump 0x4ef820..0x4efbee and its one caller, object_apply_damage (0x4eef29). EBX is the
+//   caller's damage record {object, shield damage dealt (+4), depleted this call (+8)}; the stack is (target,
+//   collision geometry tag, material, damage effect block (tag +0x1c4), &notify flags, &shield damage out,
+//   &damage in/out, is_local, apply_state). With no shield left the whole amount passes to the body. Otherwise
+//   the maximum shield (+0xdc) is scaled by the difficulty table (0x46fe70, ECX 2, AX team) unless a
+//   single-player category 1 hit lands on team 1; the damage reaching the shield is the amount less the
+//   material leak (+0x28) -- all of it for friendly damage the geometry always shields (notify 0x10 and
+//   geometry flag 4) -- raised towards the failing leak fraction (+0xf4) through the geometry's transition
+//   function (CX = +0xec) below the failure threshold (+0xf0). A recharging shield (+0x106 bit 0x10) takes it
+//   all. The scaled damage (material +0x2c, effect block +0x3c[shield material +0xd2], divided by the difficulty
+//   multiplier for notify 0x10|0x20) either depletes the shield (more than is left, or side effect 3: the
+//   overflow passes on, the shield is zeroed when local and the depleted flag / notify 8 / record +8 are set
+//   when apply_state) or is subtracted (local, +0x106 bit 0x800 clear), dispatching the shield-low effect
+//   (0x4efff0, EAX target, ECX geometry +0x194) once below +0x184. Unless negligible (< 0.0001), apply_state
+//   restarts the recent-damage bookkeeping (+0xe8, +0xf4, +0xfc) and records the dealt fraction. Locally, a hit
+//   of at least the minimum stun damage (+0x108) or an empty shield sets the stun ticks (+0x104) to
+//   (int)(stun time +0x10c * 30).
+// blam-cc: EBX -> record, stack=(target_index, geometry, material, effect_block, notify_flags,
+//   shield_damage_out, remaining_damage, is_local, apply_state)
 
 #include "tags.h"
 #include "memory.h"
@@ -33,162 +30,138 @@
 #include "objects.h"
 
 extern data_array *object_data; // 0x008603b0
-extern game_engine_definition *current_game_engine;      // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
+extern game_engine_definition *current_game_engine; // 0x006f1d20
+extern uint8_t *main_game_globals; // 0x006b0b80, +0x0e difficulty
 
-extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
-    // 0x46fe10, blam-cc: stack -> zoom_table_index, CX -> magnification (every caller passes the difficulty)
-extern uint8_t *main_game_globals; // 0x006b0b80 game globals *, +0x0e difficulty
-extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70, ECX table, AX team: difficulty scale
-extern real transition_function_evaluate(transition_function_t type, real phase); // math
-    // module, 0x4ccac0. The transition type travels in CX and is not visible at this call
-    // site; the one value Ghidra shows pushed is the phase. UNSURE: type passed as 0.
-extern void object_set_shield_depleted_flag(uint32_t object_index); // this module, 0x4edb10
-extern void object_dispatch_effect_notify(void); // this module, 0x4efff0
-extern int32_t __ftol(); // 0x006391b4, MSVC 7.1 CRT x87 float-to-int truncation
-    // (verified by disassembling 0x006391b4: fld st(0) / fst [esp+0x18] / fistp qword /
-    // fild qword ... , the classic _ftol2 body). The value arrives on the x87 stack, so
-    // some call sites show a visible float argument and others show none; the empty
-    // parameter list asserts no prototype, the same convention this module already uses
-    // for FUN_00450870.
+extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification); // 0x46fe10, stack, CX
+extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70, ECX, AX
+extern real transition_function_evaluate(transition_function_t type, real phase); // 0x4ccac0, CX, stack
+extern void object_set_shield_depleted_flag(uint32_t object_index); // 0x4edb10, EDI
+extern void object_dispatch_effect_notify(uint32_t forwarded_eax, uint32_t forwarded_ecx); // 0x4efff0, EAX, ECX
 
-void object_apply_shield_damage(uint32_t target_index, ModelCollisionGeometry *geometry,
-    ModelCollisionGeometryMaterial *material, DamageEffect *effect, uint32_t *notify_flags,
-    float *shield_damage_out, float *remaining_damage, int8_t role_is_deletable,
-    int8_t attributable_to_live_player, object_shield_impulse_result *impulse_result)
+void object_apply_shield_damage(uint32_t target_index, uint8_t *geometry, uint8_t *material, uint8_t *effect_block,
+    uint32_t *notify_flags, float *shield_damage_out, float *remaining_damage, uint8_t is_local,
+    uint8_t apply_state, object_shield_impulse_result *record)
 {
-    object_header *headers = (object_header *)object_data->data;
-    object *target = headers[target_index & 0xffff].data;
-    float total_damage = *remaining_damage;
-    float leaked_damage; // local_14
-    float body_passthrough; // local_10
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[target_index & 0xffff].data;
+    float *shield = (float *)(obj + 0xe4);
+    uint16_t *vitality_flags = (uint16_t *)(obj + 0x106);
+    float passthrough = *remaining_damage;   // [esp+0x14]
+    float to_shield = *remaining_damage;     // [esp+0x10]
+    float maximum;                           // [esp+0x18]
+    float inverse_maximum;                   // [esp+0x1c]
+    uint8_t negligible = 0;
+    uint8_t unscaled = 0;
 
-    if (impulse_result != 0) {
-        impulse_result->shield_damage_dealt = 0.0f;
-        impulse_result->depleted_this_call = 0;
+    record->shield_damage_dealt = 0.0f;
+    record->depleted_this_call = 0;
+    if (current_game_engine == 0 && *(int16_t *)(effect_block + 0x2) == 1 && *(int16_t *)(obj + 0xb8) == 1) {
+        unscaled = 1;
     }
-
-    if (target->shield_vitality <= 0.0f) {
-        leaked_damage = 0.0f;
-        body_passthrough = total_damage;
-        if (role_is_deletable != 1) {
+    if (!(*shield > 0.0f)) {
+        to_shield = 0.0f;
+        if (is_local != 1) {
             goto done;
         }
-        target->shield_vitality = 0.0f;
+        *shield = 0.0f;
+        goto stun;
+    }
+    maximum = *(float *)(obj + 0xdc);
+    if (!unscaled) {
+        maximum = weapon_get_zoom_fov_resolved(2, *(int16_t *)(obj + 0xb8)) * maximum;
+    }
+    inverse_maximum = (maximum > 0.0f) ? 1.0f / maximum : 0.0f;
+    if ((*notify_flags & 0x10) == 0 || (*geometry & 4) == 0) {
+        float threshold = *(float *)(geometry + 0xf0);
+
+        to_shield = (1.0f - *(float *)(material + 0x28)) * passthrough;
+        if (*shield <= threshold && threshold > 0.0f) {
+            real t = transition_function_evaluate(*(transition_function_t *)(geometry + 0xec), *shield / threshold);
+            float leak = *(float *)(geometry + 0xf4);
+
+            to_shield = ((1.0f - leak) * t + leak) * to_shield;
+        }
+    }
+    if (*vitality_flags & 0x10) {
+        to_shield = passthrough;
+        passthrough = 0.0f;
     } else {
-        float max_shield_vitality = target->maximum_shield_vitality;
-        float inv_max_shield_vitality;
-        uint8_t friendly_shield_immune;
+        float scaled;
+        float dealt;
 
-        if (!(current_game_engine == 0 && effect->damage_category == 1 && target->owner_team == 1)) {
-            max_shield_vitality = weapon_get_zoom_fov_resolved(2, target->owner_team) * max_shield_vitality; // 0x4ef8ae
+        if (to_shield < 0.0f) {
+            to_shield = 0.0f;
         }
-        inv_max_shield_vitality = (max_shield_vitality <= 0.0f) ? 0.0f : (1.0f / max_shield_vitality);
+        passthrough = passthrough - to_shield;
+        if ((*notify_flags & 0x10) && (*notify_flags & 0x20)) {
+            real multiplier = weapon_get_zoom_fov(0, *(int16_t *)(main_game_globals + 0x0e));
 
-        friendly_shield_immune = ((*notify_flags & 0x10) != 0) && ((geometry->flags & 4) != 0);
-        if (friendly_shield_immune) {
-            leaked_damage = total_damage;
-        } else {
-            leaked_damage = (1.0f - material->shield_leak_percentage) * total_damage;
-            if (target->shield_vitality <= geometry->shield_failure_threshold &&
-                0.0f < geometry->shield_failure_threshold) {
-                real ratio = transition_function_evaluate(0, target->shield_vitality / geometry->shield_failure_threshold);
-                leaked_damage = ((1.0f - geometry->failing_shield_leak_fraction) * ratio +
-                    geometry->failing_shield_leak_fraction) * leaked_damage;
+            if (multiplier > 0.0f) {
+                to_shield = to_shield / multiplier;
             }
         }
+        scaled = to_shield * *(float *)(material + 0x2c) *
+            *(float *)(effect_block + 0x3c + *(int16_t *)(geometry + 0xd2) * 4);
+        if (scaled < 0.0001f) {
+            negligible = 1;
+        }
+        dealt = inverse_maximum * scaled;
+        if (dealt > *shield || *(int16_t *)effect_block == 3) {
+            float overflow = scaled - maximum * *shield;
 
-        if ((target->vitality_flags & _object_shield_recharging_bit) == 0) {
-            float scaled_damage;
-
-            if (leaked_damage < 0.0f) {
-                leaked_damage = 0.0f;
+            if (overflow > 0.0f) {
+                passthrough = overflow + passthrough;
             }
-            body_passthrough = total_damage - leaked_damage;
-
-            if ((*notify_flags & 0x10) != 0 && (*notify_flags & 0x20) != 0) {
-                real scalar = weapon_get_zoom_fov(0, *(int16_t *)(main_game_globals + 0x0e));
-                if (0.0f < scalar) {
-                    leaked_damage = leaked_damage / scalar;
-                }
+            if (is_local == 1) {
+                *shield = 0.0f;
             }
-
-            scaled_damage = leaked_damage * material->shield_damage_multiplier *
-                (&effect->dirt)[geometry->shield_material_type];
-
-            if (target->shield_vitality < inv_max_shield_vitality * scaled_damage || effect->damage_side_effect == 3) {
-                float overflow = scaled_damage - max_shield_vitality * target->shield_vitality;
-
-                if (0.0f < overflow) {
-                    body_passthrough = overflow + body_passthrough;
-                }
-                if (role_is_deletable == 1) {
-                    target->shield_vitality = 0.0f;
-                }
-                if ((target->vitality_flags & _object_shield_depleted_bit) == 0 && attributable_to_live_player == 1) {
-                    object_set_shield_depleted_flag(target_index);
-                    *notify_flags |= 8;
-                    if (impulse_result != 0) {
-                        impulse_result->depleted_this_call = 1;
-                    }
-                }
-            } else {
-                if (role_is_deletable == 1 && (target->vitality_flags & _object_hash_flag_bit) == 0) {
-                    target->shield_vitality -= inv_max_shield_vitality * scaled_damage;
-                }
-                if ((target->vitality_flags & _object_shield_below_low_bit) == 0 &&
-                    target->shield_vitality < geometry->shield_damaged_threshold) {
-                    object_dispatch_effect_notify();
-                    target->vitality_flags |= _object_shield_below_low_bit;
-                }
-            }
-
-            if (0.0001f <= scaled_damage) {
-                goto shield_stun_section;
+            if ((*vitality_flags & 8) == 0 && apply_state == 1) {
+                object_set_shield_depleted_flag(target_index);
+                *notify_flags |= 8;
+                record->depleted_this_call = 1;
             }
         } else {
-            body_passthrough = 0.0f;
-            leaked_damage = total_damage;
-            goto shield_stun_section;
-        }
-        goto after_stun_section;
-
-shield_stun_section:
-        if (attributable_to_live_player == 1) {
-            float dt;
-
-            total_damage = *remaining_damage;
-            target->shield_damage_ticks = 0;
-            dt = (total_damage - body_passthrough) * inv_max_shield_vitality;
-            if ((target->vitality_flags & _object_shield_depleted_bit) == 0) {
-                target->current_shield_damage = 1.0f;
+            if (is_local == 1 && (*vitality_flags & 0x800) == 0) {
+                *shield = *shield - dealt;
             }
-            {
-                float sum = dt + target->recent_shield_damage;
-                target->recent_shield_damage = sum;
-                if (1.0f < target->current_shield_damage) {
-                    target->current_shield_damage = 1.0f;
-                }
-                if (1.0f < sum) {
-                    target->recent_shield_damage = 1.0f;
-                }
-            }
-            if (impulse_result != 0) {
-                impulse_result->shield_damage_dealt = dt;
+            if ((*vitality_flags & 2) == 0 && *shield < *(float *)(geometry + 0x184)) {
+                object_dispatch_effect_notify(target_index, *(uint32_t *)(geometry + 0x194));
+                *vitality_flags |= 2;
             }
         }
-after_stun_section:
-        if (role_is_deletable != 1) {
-            goto done;
+        if (negligible) {
+            goto local_stun;
         }
     }
+    if (apply_state == 1) {
+        float fraction = (*remaining_damage - passthrough) * inverse_maximum;
+        float recent;
 
-    if (geometry->minimum_stun_damage <= leaked_damage || target->shield_vitality == 0.0f) {
-        target->shield_stun_ticks = (int16_t)__ftol();
+        *(int32_t *)(obj + 0xfc) = 0;
+        if ((*vitality_flags & 8) == 0) {
+            *(float *)(obj + 0xe8) = 1.0f;
+        }
+        recent = fraction + *(float *)(obj + 0xf4);
+        *(float *)(obj + 0xf4) = recent;
+        if (*(float *)(obj + 0xe8) > 1.0f) {
+            *(float *)(obj + 0xe8) = 1.0f;
+        }
+        if (recent > 1.0f) {
+            *(float *)(obj + 0xf4) = 1.0f;
+        }
+        record->shield_damage_dealt = fraction;
     }
-
+local_stun:
+    if (is_local != 1) {
+        goto done;
+    }
+stun:
+    if (!(to_shield < *(float *)(geometry + 0x108)) || *shield == 0.0f) {
+        *(int16_t *)(obj + 0x104) = (int16_t)(int32_t)(*(float *)(geometry + 0x10c) * 30.0f);
+    }
 done:
-    *shield_damage_out = leaked_damage;
-    *remaining_damage = body_passthrough;
+    *shield_damage_out = to_shield;
+    *remaining_damage = passthrough;
 }
 
 #if 0

@@ -1,19 +1,14 @@
-// player_execute_weapon_drop_interaction  (Ghidra: FUN_004790d0; renamed -- handles pending
-// interaction types 6 (drop current weapon) and 7 (re-ready it) for a player, and notifies
-// observers)
+// player_execute_weapon_drop_interaction  (Ghidra: FUN_004790d0)
 // address 0x4790d0, size 353 bytes
-// name confidence: 0.3   rewrite confidence: 0.25
-// evidence: types/game.h player::unit/interaction_type/interaction_object/interaction_seat
-//   (0x34/0x28/0x24/0x2a); types/units.h unit_data::current_weapon_index/weapons[4]
-//   (0x2f2/0x2f8); unit_drop_current_weapon already established; the trailing
-//   game_engine_notify_player_interaction(1, interaction_type, interaction_seat, held_weapon) notification matches
-//   game_engine_notify_player_interaction's own field shape (this batch).
-// register convention: none -- `player_index` is this function's own single stack parameter
-//   (Ghidra's own `uint param_1`).
-// UNSURE: object+0x04 (network_role, gating the final notification) is read through a second,
-//   independently resolved object pointer in the original -- modeled here as the same `obj`
-//   already in scope, since both point at the same unit; unit_pickup_weapon/hud_add_item_message/
-//   unit_invalidate_local_player_zoom_level's exact effects.
+// name confidence: 0.3   rewrite confidence: 0.9
+// REWRITTEN from objdump 0x4790d0..0x479230 (the draft read unit fields through an object pointer cast to
+//   unit_data and dropped the pickup / HUD / zoom / notify register arguments). Stack: player. Interaction 6
+//   (swap): the held weapon is remembered and dropped; when the interaction object (+0x24) is then picked up
+//   (0x56d400: EAX weapon, ECX unit, stack 1) the HUD shows it (0x4ae400: AX local player, ECX its tag, BL 0),
+//   the zoom is reset and an authoritative unit tells the game engine (0x478ff0: ECX player, EDI the object,
+//   stack 1, type, seat, the dropped weapon); returns 1 either way. Interaction 7 (pick up) does the same with
+//   no drop and returns 0; anything else returns 0.
+// blam-cc: stack -> player_index
 
 #include "tags.h"
 #include "memory.h"
@@ -26,59 +21,57 @@ extern data_array *player_data;    // 0x0087a480
 extern data_array *object_headers; // 0x008603b0
 
 extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force); // 0x56dec0
-extern uint8_t unit_pickup_weapon(uint8_t is_primary); // 0x56d400, not in this batch
-extern void hud_add_item_message(uint32_t a); // 0x4ae400, not in this batch
-extern void unit_invalidate_local_player_zoom_level(void); // 0x4726f0, not in this batch
-extern void game_engine_notify_player_interaction(uint32_t primary_key, uint32_t mode, uint32_t interaction_type_and_seat,
-    int32_t secondary_key); // this batch, 0x478ff0 (game_engine_notify_player_interaction's
-    // own Ghidra name)
+extern uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t unit_index); // 0x56d400, stack, EAX, ECX
+extern void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind, int16_t count); // 0x4ae400, EAX, ECX, BL, stack
+extern void unit_invalidate_local_player_zoom_level(datum_index unit); // 0x4726f0, EAX
+extern void game_engine_notify_player_interaction(uint32_t primary_key, uint32_t edi_key,
+    uint32_t mode, int32_t interaction_type, int32_t interaction_seat, int32_t secondary_key); // 0x478ff0, ECX, EDI, stack
 
-// blam-cc: stack -> player_index
-// For pending interaction 6: remembers the unit's currently-held weapon, drops it (forcing),
-// and (if unit_pickup_weapon approves) notifies via hud_add_item_message/unit_invalidate_local_player_zoom_level. For interaction 7:
-// just asks unit_pickup_weapon to re-ready and notifies via hud_add_item_message. Either way, if the unit's
-// network_role is 0, broadcasts the interaction via game_engine_notify_player_interaction. Returns 1 if interaction 6
-// was handled (even if the drop failed), 0 for interaction 7 or anything else.
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_headers->data)[(h) & 0xffff].data)
+
 uint8_t player_execute_weapon_drop_interaction(uint32_t player_index)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
-    object *obj = (object *)((object_header *)object_headers->data)[p->unit & 0xffff].data;
+    uint8_t *record = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;
+    datum_index unit_index = *(datum_index *)(record + 0x34);
+    uint8_t *unit = OBJECT_DATA(unit_index);
+    datum_index held_weapon = k_datum_index_none;
     uint8_t result = 0;
-    datum_index held_weapon = (datum_index)0xffffffff;
 
-    if (p->interaction_type == 6) {
-        unit_data *unit = (unit_data *)((object_header *)object_headers->data)[p->unit & 0xffff].data;
-        int16_t current_weapon_index = unit->current_weapon_index;
-        uint8_t handled;
+    switch (*(int16_t *)(record + 0x28)) {
+    case 6: {
+        uint8_t *current = OBJECT_DATA(unit_index);
+        int16_t slot = *(int16_t *)(current + 0x2f2);
+        uint8_t picked_up = 0;
 
-        if (current_weapon_index != -1) {
-            held_weapon = unit->weapons[current_weapon_index];
+        if (slot != -1) {
+            held_weapon = *(datum_index *)(current + 0x2f8 + slot * 4);
         }
-
-        if (unit_drop_current_weapon((uint32_t)p->unit, 1) != 0 && unit_pickup_weapon(1) != 0) {
-            hud_add_item_message(0);
-            unit_invalidate_local_player_zoom_level();
-            handled = 1;
-        } else {
-            handled = 0;
+        if (unit_drop_current_weapon(unit_index, 1) &&
+            unit_pickup_weapon(1, *(datum_index *)(record + 0x24), unit_index)) {
+            hud_add_item_message(*(int16_t *)(record + 0x2),
+                (int32_t)*(datum_index *)OBJECT_DATA(*(datum_index *)(record + 0x24)), 0, 0);
+            unit_invalidate_local_player_zoom_level(unit_index);
+            picked_up = 1;
         }
-
         result = 1;
-        if (!handled) {
-            return 1;
+        if (picked_up != 1) {
+            return result;
         }
-    } else {
-        if (p->interaction_type != 7) {
-            return 0;
-        }
-        if (unit_pickup_weapon(1) == 0) {
-            return 0;
-        }
-        hud_add_item_message(0);
+        break;
     }
-
-    if (obj->network_role == 0) {
-        game_engine_notify_player_interaction(1, p->interaction_type, p->interaction_seat, (int32_t)held_weapon);
+    case 7:
+        if (!unit_pickup_weapon(1, *(datum_index *)(record + 0x24), unit_index)) {
+            return 0;
+        }
+        hud_add_item_message(*(int16_t *)(record + 0x2),
+            (int32_t)*(datum_index *)OBJECT_DATA(*(datum_index *)(record + 0x24)), 0, 0);
+        break;
+    default:
+        return 0;
+    }
+    if (*(int32_t *)(unit + 0x4) == 0) {
+        game_engine_notify_player_interaction(player_index, *(datum_index *)(record + 0x24), 1,
+            *(uint16_t *)(record + 0x28), *(uint16_t *)(record + 0x2a), (int32_t)held_weapon);
     }
     return result;
 }

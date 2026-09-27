@@ -1128,3 +1128,44 @@ OPEN:
   0x560d00 with the old argument layouts: needs a subsystem pass.
 - unit_choose_combat_reaction_animation (0x561140, 0.2): the low-damage tail differs (+0x3ee = 0x3c).
 - unit_commit_speech (0x560f20, 0.35) not yet verified.
+
+## 2026-09-27 (loop) -- movement verified; the damage pipeline
+- standalone/loader.c test key driver: W A S D E F G Q R X keys, `KEY~ms` holds, MUP/MDOWN/MLEFT/MRIGHT mouse
+  moves (40 counts each) and FIRE. Smoke test: after the a10 intro, mouse look and walking both work (the view
+  turns and the player moves through the cryo bay), no faults over the whole script.
+- object_apply_damage (0x4ee5e0, 2939 B, was 0.2) REWRITTEN from objdump, and every callee on its path checked
+  against the binary and rewritten or fixed where the draft dropped register arguments:
+  object_apply_shield_damage 0x4ef820 (EBX damage record; transition type CX; shield-low effect EAX/ECX;
+  stun ticks value), object_apply_body_damage 0x4ef2a0 (13 stack args; regions, deathless cheat, kill /
+  teardown / damaged effect, hit effect registers), object_damage_notify_and_impulse 0x4efcf0 (target in
+  EAX/ECX for every impulse call, item_accelerate target), unit_apply_damage_effects 0x5674a0 (3199 B; the
+  seated-vehicle eject is the biped_update inline, helpers copied), player_effect_mark_damage_direction
+  0x456cf0 + its network dispatch 0x456ad0, player_effect_send_network_update 0x456bc0 (EBX direction),
+  unit_point_in_front_and_asleep 0x56bc80 (EDI unit), object_notify_pickup_or_refresh_probe 0x4ee3c0 (send
+  args), unit_broadcast_state_change_event 0x566c00 (takes the new 0x20-byte unit_state_change_record BY
+  VALUE; both callers copy it with rep movs).
+OPEN:
+- network_game_action_apply (0x4da320): every handler gets EAX = the action entry (and some ESI = ECX
+  argument); the C declares ~45 of them as (void). Only case 0xb is fixed. Multiplayer only.
+- network_session_send_to_machine callers in src/game (ctf/koth broadcasts, 0x46be40
+  game_engine_queue_multiplayer_sound) pass constants where the binary passes EAX machine / ESI session.
+- ai_reference_units_exit_vehicles still calls unit_state_is_scripted_animation() with no argument.
+- damage path not yet exercised in a smoke test (a10's opening has no combat); needs a later level or a
+  scripted damage source to confirm.
+- also rewritten from objdump in this stretch: object_update_vitality_and_regeneration 0x4ed510 (shield
+  recharge / overcharge / kill requests / damage timers; unlock BL 1 was 0), damage_effect_new_at_location
+  0x4f0010 (the 12-value effect spawns; 0x69672c / 0x696718 are POINTERS), object_destroy_region's notify
+  (EBX + region index + flags), ai_reference_units_exit_vehicles 0x433ea0 (the biped_update seat-exit
+  sequence again), unit_validate_and_clear_weapon_switch 0x5659c0, player_swap_to_weapon 0x479240 and
+  player_execute_weapon_drop_interaction 0x4790d0 (both read unit fields through an object pointer cast to
+  unit_data, 0x1f4 bytes early), game_engine_notify_player_interaction 0x478ff0 (FOUR stack arguments: mode,
+  type, seat, object), player_check_vehicle_boarding_interaction 0x4788a0 (really the item-touch handler:
+  ammo, grenades, powerups, weapon pickup / swap prompt), player_execute_pending_interaction 0x4793a0 (the
+  melee interaction writes its direction into the TARGET, not the unit).
+- smoke test (a10, walk + look + fire + action key): no faults, deterministic end position.
+OPEN:
+- 0x4f0250 object_damage_effect_dispatch is a fragment of damage_effect_new_at_location (no callers).
+- game_engine_spawn_player_starting_loadout / game_engine_apply_player_spawn_loadout_message still call
+  unit_pickup_weapon with the old layout (multiplayer).
+- object_physics_check_impact_damage 0x508b70 (0.35, 1355 B, 44 KB frame): vehicle-vs-biped impacts.
+- actor_process_vehicle_seat_exit 0x40b080 (0.35, no callers in this build): another seat-exit copy.

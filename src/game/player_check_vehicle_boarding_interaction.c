@@ -1,22 +1,19 @@
-// player_check_vehicle_boarding_interaction  (Ghidra: FUN_004788a0; renamed per
-// out/phase4/game_functions.md: "Evaluates whether the player can board, swap seats in, or pick
-// up equipment from a nearby vehicle/object, and queues or commits the appropriate action.")
+// player_check_vehicle_boarding_interaction  (Ghidra: FUN_004788a0)
 // address 0x4788a0, size 926 bytes
-// name confidence: 0.4   rewrite confidence: 0.2
-// evidence: out/phase4/game_functions.md; types/game.h player::unit (0x34); types/objects.h
-//   object::parent_object (0x11c); the established object_headers / tag_instances lookup idiom
-//   used throughout this module; weapon_transfer_ammunition, object_try_and_get already
-//   established elsewhere. Most of the item/weapon-tag fields this function reads (+0x200,
-//   +0x208, +0x308, +0x318, +0x4cc) are not named by any header this module owns, and several
-//   sibling helper functions it calls (unit_invalidate_local_player_zoom_level, hud_post_item_message, hud_add_item_message, unit_try_give_grenade,
-//   unit_count_deployed_weapons, unit_check_weapon_use_permission, unit_weapon_is_best_of_type, unit_pickup_weapon) are outside this batch with
-//   unverified signatures -- this rewrite is therefore a comparatively literal, offset-preserving
-//   transcription rather than a fully named one, consistent with this module's own precedent for
-//   very low-confidence legacy paths (e.g. player_respawn.c's leading despawn branch).
-// register convention: none -- both are genuine stack parameters (Ghidra's own
-//   param_1/param_2).
-// UNSURE: essentially every field offset past player/object/object_header is unverified; see
-//   evidence note above. Preserved exactly as Ghidra decompiled it.
+// name confidence: 0.2 (it is really the player's item-touch handler; the name is kept for the symbol table)
+// rewrite confidence: 0.85
+// REWRITTEN from objdump 0x4788a0..0x478c3d (the draft dropped the register arguments of every pickup, HUD and
+//   interaction call). Stack: (player, item). Items still attached to something, or last dropped by this
+//   unit (+0x200), are ignored. Ammo: the first carried weapon that takes ammunition from the item
+//   (0x4c2610) posts the count on the HUD (0x4ae350, kind 1). Equipment (mask 8): type 6 (+0x308) gives a
+//   grenade (0x56d080) and posts it (kind 0xff); other types apply the powerup (0x479930) unless the unit
+//   holds one (+0x318). Weapons (mask 4) the unit may use (0x56da00): not while dual-flagged (+0x208 bits
+//   0x1800) for a weapon flagged 8; when the player is free to take it (0x478820) the weapon is picked up
+//   (0x56d400) and shown (host: 0x4ae350 kind 0, else 0x4ae400), the zoom reset and a host notifies the
+//   engine (0x478ff0: 1, 7, -1, -1); otherwise, unless an unflagged weapon would replace a flagged current one
+//   with two or more carried, a better weapon (0x56dae0) becomes the pending action (0x478e00): 7 when the
+//   unit carries one weapon of a different tag, else 6 (swap).
+// blam-cc: stack -> (player_index, candidate_object)
 
 #include "tags.h"
 #include "memory.h"
@@ -29,132 +26,132 @@
 extern data_array *player_data;    // 0x0087a480
 extern data_array *object_headers; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern int16_t network_game_mode;  // 0x00719720
+extern int16_t network_game_mode;  // 0x00719720, 2 = host
 
-extern void unit_invalidate_local_player_zoom_level(void); // 0x4726f0, not in this batch
-extern uint8_t player_is_busy_with_interaction(void); // this batch, 0x478820 (player_is_busy_with_interaction);
-    // UNSURE: called here with no visible arguments, unlike its own established two-register
-    // signature -- kept as a bare call, matching Ghidra
-extern void player_set_pending_interaction_action(int16_t priority_type, int16_t seat,
-    uint32_t player_index, uint32_t candidate_object); // this batch, 0x478e00
-extern void game_engine_notify_player_interaction(uint32_t primary_key, uint32_t mode,
-    uint32_t interaction_type_and_seat, int32_t secondary_key); // 0x478ff0, this module
-    // (canonical form, per player_execute_pending_interaction.c)
-extern void player_apply_pickup_effect(uint32_t player_index, uint32_t candidate_object); // this batch, 0x479930
-extern void hud_post_item_message(int16_t a, uint8_t b); // 0x4ae350, not in this batch
-extern void hud_add_item_message(uint32_t a); // 0x4ae400, not in this batch
-extern uint8_t weapon_transfer_ammunition(uint32_t weapon_index, uint32_t source_item_index,
-    int16_t amount, int16_t *out_transferred); // 0x4c2610, not in this batch; UNSURE exact signature
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern uint8_t unit_try_give_grenade(uint32_t candidate_object); // 0x56d080, not in this batch
-extern void unit_pickup_weapon(uint8_t is_primary); // 0x56d400, not in this batch; UNSURE: called with
-    // only one visible argument here, unlike unit_apply_starting_profile.c's own two-argument use
-extern int16_t unit_count_deployed_weapons(void); // 0x56d990, not in this batch
-extern uint8_t unit_check_weapon_use_permission(void); // 0x56da00, not in this batch
-extern uint8_t unit_weapon_is_best_of_type(void); // 0x56dae0, not in this batch
+extern uint32_t weapon_transfer_ammunition(datum_index target_item_index, datum_index source_item_index,
+    int16_t requesting_player_index, int16_t *out_transferred); // 0x4c2610
+extern void hud_post_item_message(int16_t count, int32_t source, uint8_t kind, int16_t local_player_index,
+    int8_t machine_id); // 0x4ae350, EAX, ECX, DL, stack
+extern void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind, int16_t count); // 0x4ae400, EAX, ECX, BL, stack
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
+extern uint8_t unit_try_give_grenade(uint32_t tag_source_index, uint32_t unit_index); // 0x56d080, stack, EBX
+extern void player_apply_pickup_effect(uint32_t player_index, uint32_t pickup_object); // 0x479930
+extern void player_set_pending_interaction_action(int16_t priority_type, int16_t seat, uint32_t player_index,
+    uint32_t candidate_object); // 0x478e00, stack, EAX, EBX
+extern uint8_t unit_check_weapon_use_permission(uint32_t unit_index, uint32_t weapon_index); // 0x56da00, ESI, EDI
+extern int16_t unit_count_deployed_weapons(uint32_t unit_index); // 0x56d990, EAX
+extern uint8_t player_is_busy_with_interaction(uint32_t candidate_object, uint32_t unit_or_player_index); // 0x478820, ESI, EDI
+extern uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t unit_index); // 0x56d400, stack, EAX, ECX
+extern uint8_t unit_weapon_is_best_of_type(uint32_t reference_weapon_index, uint32_t unit_index); // 0x56dae0, EAX, ECX
+extern void unit_invalidate_local_player_zoom_level(datum_index unit); // 0x4726f0, EAX
+extern void game_engine_notify_player_interaction(uint32_t primary_key, uint32_t edi_key,
+    uint32_t mode, int32_t interaction_type, int32_t interaction_seat, int32_t secondary_key); // 0x478ff0, ECX, EDI, stack
 
-// Evaluates a boarding/pickup/swap interaction between `player_index`'s unit and the nearby
-// object `candidate_object`. See header note: this is a literal, offset-preserving
-// transcription of Ghidra's own decompilation, not a fully re-derived one.
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_headers->data)[(h) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+
 void player_check_vehicle_boarding_interaction(uint32_t player_index, uint32_t candidate_object)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
-    datum_index unit_handle = p->unit;
-    object *unit_obj = (object *)((object_header *)object_headers->data)[unit_handle & 0xffff].data;
-    object *candidate = (object *)((object_header *)object_headers->data)[candidate_object & 0xffff].data;
+    uint8_t *record = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;
+    datum_index unit_index = *(datum_index *)(record + 0x34);
+    uint8_t *unit = OBJECT_DATA(unit_index);
+    uint8_t *item = OBJECT_DATA(candidate_object);
+    int16_t local_player_index = *(int16_t *)(record + 0x2);
+    int8_t machine = (int8_t)record[0x64];
+    uint8_t *equipment;
+    uint8_t *weapon;
+    uint8_t *weapon_tag;
+    uint8_t dual_flagged;
+    uint8_t keep_current;
+    datum_index current_weapon;
+    int32_t weapon_count;
+    int16_t i;
 
-    if (candidate->parent_object == (datum_index)0xffffffff &&
-        *(uint32_t *)((uint8_t *)candidate + 0x200) != (uint32_t)unit_handle) {
-        int16_t slot;
-        int16_t transferred = 0;
+    if (*(datum_index *)(item + 0x11c) != k_datum_index_none || *(datum_index *)(item + 0x200) == unit_index) {
+        return;
+    }
+    for (i = 0; i < 4; i++) {
+        datum_index carried = *(datum_index *)(unit + 0x2f8 + i * 4);
+        int16_t transferred;
 
-        for (slot = 0; slot < 4; slot++) {
-            datum_index weapon = *(datum_index *)((uint8_t *)unit_obj + 0x2f8 + slot * 4);
-            if (weapon != (datum_index)0xffffffff &&
-                weapon_transfer_ammunition((uint32_t)weapon, candidate_object, p->interaction_seat, &transferred)) {
-                if (0 < transferred) {
-                    hud_post_item_message(p->local_player_index, *(uint8_t *)((uint8_t *)p + 100));
-                }
-                break;
+        if (carried != k_datum_index_none &&
+            (uint8_t)weapon_transfer_ammunition(carried, candidate_object, local_player_index, &transferred)) {
+            if (transferred > 0) {
+                hud_post_item_message(transferred, (int32_t)*(datum_index *)OBJECT_DATA(carried), 1,
+                    local_player_index, machine);
+            }
+            break;
+        }
+    }
+
+    equipment = (uint8_t *)object_try_and_get(candidate_object, 8);
+    if (equipment != 0) {
+        uint8_t *equipment_tag = TAG_DATA(*(datum_index *)equipment);
+        int16_t type = *(int16_t *)(equipment_tag + 0x308);
+
+        if (type == 6) {
+            if (unit_try_give_grenade(candidate_object, unit_index)) {
+                hud_post_item_message(1, (int32_t)*(datum_index *)equipment, 0xff, local_player_index, machine);
+            }
+        } else if (type != 0) {
+            if (*(datum_index *)(OBJECT_DATA(unit_index) + 0x318) == k_datum_index_none) {
+                player_apply_pickup_effect(player_index, candidate_object);
+            } else if (type != *(int16_t *)(equipment_tag + 0x308)) {
+                // 0x478a1a compares the type with the field it was read from: never taken
+                player_set_pending_interaction_action(5, -1, player_index, candidate_object);
             }
         }
+    }
 
-        {
-            object *device = object_try_and_get(candidate_object, 8);
-            if (device != 0) {
-                tag_instance *tag = &tag_instances[device->definition_tag & 0xffff];
-                int16_t field_308 = *(int16_t *)((uint8_t *)tag->data + 0x308);
-                if (field_308 == 6) {
-                    if (unit_try_give_grenade(candidate_object) != 0) {
-                        hud_post_item_message(p->local_player_index, *(uint8_t *)((uint8_t *)p + 100));
-                    }
-                } else if (field_308 != 0) {
-                    object *unit_for_field = (object *)((object_header *)object_headers->data)[unit_handle & 0xffff].data;
-                    if (*(int32_t *)((uint8_t *)unit_for_field + 0x318) == -1) {
-                        player_apply_pickup_effect(player_index, candidate_object);
-                    } else if (field_308 != *(int16_t *)((uint8_t *)tag->data + 0x308)) {
-                        player_set_pending_interaction_action(5, (int16_t)0xffff, player_index, candidate_object);
-                    }
-                }
-            }
+    weapon = (uint8_t *)object_try_and_get(candidate_object, 4);
+    if (weapon == 0 || !unit_check_weapon_use_permission(unit_index, candidate_object)) {
+        return;
+    }
+    weapon_tag = TAG_DATA(*(datum_index *)weapon);
+    dual_flagged = (uint8_t)((*(uint32_t *)(unit + 0x208) & 0x1800) != 0);
+    {
+        uint8_t *holder = OBJECT_DATA(unit_index);
+        int16_t slot = *(int16_t *)(holder + 0x2f2);
+
+        current_weapon = (slot != -1) ? *(datum_index *)(holder + 0x2f8 + slot * 4) : k_datum_index_none;
+    }
+    weapon_count = unit_count_deployed_weapons(unit_index);
+    keep_current = 0;
+    if (weapon_count >= 2 && current_weapon != k_datum_index_none && (weapon_tag[0x308] & 0x10) == 0 &&
+        (TAG_DATA(*(datum_index *)OBJECT_DATA(current_weapon))[0x308] & 0x10) != 0) {
+        keep_current = 1;
+    }
+    if (dual_flagged && (weapon_tag[0x308] & 8)) {
+        return;
+    }
+    if (player_is_busy_with_interaction(candidate_object, unit_index)) {
+        datum_index tag;
+
+        if (!unit_pickup_weapon(1, candidate_object, unit_index)) {
+            return;
         }
+        tag = *(datum_index *)OBJECT_DATA(candidate_object);
+        if (network_game_mode == 2) {
+            hud_post_item_message(0, (int32_t)tag, 0, local_player_index, machine);
+        } else {
+            hud_add_item_message(local_player_index, (int32_t)tag, 0, 0);
+        }
+        unit_invalidate_local_player_zoom_level(unit_index);
+        if (network_game_mode == 2) {
+            game_engine_notify_player_interaction(player_index, candidate_object, 1, 7, -1, -1);
+        }
+        return;
+    }
+    if (keep_current || !unit_weapon_is_best_of_type(candidate_object, unit_index)) {
+        return;
+    }
+    {
+        uint8_t *current = (uint8_t *)object_try_and_get(current_weapon, 4);
 
-        {
-            object *weapon_candidate = object_try_and_get(candidate_object, 4);
-            if (weapon_candidate != 0 && unit_check_weapon_use_permission() != 0) {
-                tag_instance *weapon_tag = &tag_instances[weapon_candidate->definition_tag & 0xffff];
-                uint32_t flags_208 = *(uint32_t *)((uint8_t *)unit_obj + 0x208);
-                unit_data *unit2 = (unit_data *)((object_header *)object_headers->data)[unit_handle & 0xffff].data;
-                int16_t current_weapon_index = unit2->current_weapon_index;
-                datum_index current_weapon = (datum_index)0xffffffff;
-                int16_t weapon_state;
-                uint8_t assassination_target = 0;
-
-                if (current_weapon_index != -1) {
-                    current_weapon = unit2->weapons[current_weapon_index];
-                }
-                weapon_state = unit_count_deployed_weapons();
-
-                if (1 < weapon_state && current_weapon != (datum_index)0xffffffff &&
-                    (*(uint8_t *)((uint8_t *)weapon_tag->data + 0x308) & 0x10) == 0) {
-                    object *current_weapon_obj = (object *)((object_header *)object_headers->data)[current_weapon & 0xffff].data;
-                    tag_instance *current_weapon_tag = &tag_instances[current_weapon_obj->definition_tag & 0xffff];
-                    if ((*(uint8_t *)((uint8_t *)current_weapon_tag->data + 0x308) & 0x10) != 0) {
-                        assassination_target = 1;
-                    }
-                }
-
-                if ((flags_208 & 0x1800) == 0 || (*(uint8_t *)((uint8_t *)weapon_tag->data + 0x308) & 8) == 0) {
-                    if (player_is_busy_with_interaction() == 0) {
-                        if (!assassination_target && unit_weapon_is_best_of_type() != 0) {
-                            object *reacquired = object_try_and_get(candidate_object, 4);
-                            uint32_t priority;
-                            if (weapon_state == 1 && reacquired != 0 &&
-                                *(uint32_t *)reacquired != *(uint32_t *)weapon_candidate) {
-                                // UNSURE: compares the two lookups' raw first dword
-                                // (definition_tag), exactly as Ghidra decompiled it
-                                priority = 7;
-                            } else {
-                                priority = 6;
-                            }
-                            player_set_pending_interaction_action((int16_t)priority, (int16_t)0xffff,
-                                player_index, candidate_object);
-                        }
-                    }
-                } else {
-                    unit_pickup_weapon(1);
-                    if (network_game_mode == 2) {
-                        hud_post_item_message(p->local_player_index, *(uint8_t *)((uint8_t *)p + 100));
-                    } else {
-                        hud_add_item_message(0);
-                    }
-                    unit_invalidate_local_player_zoom_level();
-                    if (network_game_mode == 2) {
-                        game_engine_notify_player_interaction(1, 7, 0xffffffff, 0xffffffff);
-                        return;
-                    }
-                }
-            }
+        if (weapon_count == 1 && current != 0 && *(datum_index *)current != *(datum_index *)weapon) {
+            player_set_pending_interaction_action(7, -1, player_index, candidate_object);
+        } else {
+            player_set_pending_interaction_action(6, -1, player_index, candidate_object);
         }
     }
 }

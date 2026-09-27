@@ -47,8 +47,11 @@ extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *s
 // Broadcasts a networked event 10 carrying: a hash of `primary_key`, `mode` verbatim, a hash of
 // `edi_key`, the low 16 bits of `interaction_type_and_seat`, the low 16 bits of `secondary_key`,
 // and a hash of `secondary_key` itself.
+// 0x478ff5 / 0x479020 / 0x479040: the stack holds FOUR dwords (mode, interaction type, interaction seat,
+//   secondary object) -- every caller pushes four (0x4796ca, 0x478bc9, 0x479215); the seat word is copied
+//   into the message next to the type and the fourth dword is the object hashed into the last field.
 void game_engine_notify_player_interaction(uint32_t primary_key, uint32_t edi_key,
-    uint32_t mode, int32_t interaction_type_and_seat, int32_t secondary_key)
+    uint32_t mode, int32_t interaction_type, int32_t interaction_seat, int32_t secondary_key)
 {
     struct {
         int32_t primary_hash;
@@ -76,11 +79,11 @@ void game_engine_notify_player_interaction(uint32_t primary_key, uint32_t edi_ke
             fields.edi_hash = 0;
         }
     }
-    fields.interaction_type = (int16_t)interaction_type_and_seat;
-    fields.low_secondary_key = (int16_t)secondary_key;
+    fields.interaction_type = (int16_t)interaction_type;
+    fields.low_secondary_key = (int16_t)interaction_seat;
     fields.secondary_hash = 0;
     if (secondary_key != -1) {
-        fields.secondary_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0xc), (int32_t)secondary_key); // 0x479050..0x479064, UNSURE: EBP is the 4th stack dword, see note
+        fields.secondary_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0xc), (int32_t)secondary_key); // 0x479050..0x479064: EBP is the 4th stack dword
         if (fields.secondary_hash == -1) {
             fields.secondary_hash = 0;
         }

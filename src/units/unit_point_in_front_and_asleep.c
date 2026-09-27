@@ -1,16 +1,10 @@
 // unit_point_in_front_and_asleep  (Ghidra: FUN_0056bc80)
-// address 0x56bc80, size 215 bytes, name confidence 0.3, rewrite confidence 0.3
-// functions.md: "Tests whether a given world point lies in front of the controlled unit and
-// matches an additional name-based condition."
-// evidence: types/objects.h object.bounding_center (0xa0), .type (0xb4); types/units.h
-//   unit_data.looking_vector (0x260); types/tags.h Unit.unit_flags (0x17c, bit 0x10000 not
-//   named by this module); unit_base_animation_state_names[6] (0x0069fde4, established in
-//   src/units/unit_set_or_test_seat_and_weapon_label.c) -- the compare is against entry 0,
-//   "asleep".
-// blam-cc: in_EAX -> world_point, implicit ECX -> controlling unit handle 3 (object_try_and_get
-//   mask, resolved via whatever the caller left in ECX).
-// UNSURE: the exact object_try_and_get handle argument (ECX) is not visible in this
-// decompilation; functions.md's "the controlled unit" phrasing is the best available reading.
+// address 0x56bc80, size 215 bytes, name confidence 0.3, rewrite confidence 0.9
+// REWRITTEN from objdump 0x56bc80..0x56bd59 (the draft lost the unit handle, which arrives in EDI and is moved to
+//   ECX for object_try_and_get). EAX: world point, EDI: unit. True when the unit is a biped whose tag lacks unit
+//   flag 0x10000 and either the point lies behind its look vector (dot(centre - point, look) > 0, summed z, y, x
+//   like the binary) or its seat/state name (0x56c2f0) is "asleep" (unit_base_animation_state_names[0]).
+// blam-cc: EAX -> world_point, EDI -> unit_index
 
 #include "tags.h"
 #include "memory.h"
@@ -23,32 +17,31 @@ extern char *unit_base_animation_state_names[6]; // 0x0069fde4
 extern tag_instance *tag_instances;              // 0x0087bc14
 
 extern object * object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern char * unit_get_seat_or_state_name(uint32_t unit_index); // 0x56c2f0, UNSURE signature
+extern char * unit_get_seat_or_state_name(uint32_t unit_index); // 0x56c2f0, EAX
 
-uint8_t unit_point_in_front_and_asleep(real_point3d *world_point) // blam-cc: in_EAX
+uint8_t unit_point_in_front_and_asleep(real_point3d *world_point, uint32_t unit_index)
 {
-    object *unit_obj = object_try_and_get(k_datum_index_none /* UNSURE: implicit ECX handle */, _object_mask_unit);
-    if ((unit_obj == (object *)0) || (unit_obj->type != _object_type_biped)) {
+    uint8_t *obj = (uint8_t *)object_try_and_get(unit_index, 3);
+    float dot;
+
+    if (obj == 0 || *(int16_t *)(obj + 0xb4) != 0) {
         return 0;
     }
-    Unit *unit_tag = (Unit *)tag_instances[unit_obj->definition_tag & 0xffff].data;
-    if ((unit_tag->unit_flags & 0x10000) != 0) {
+    if (*(uint32_t *)((uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data + 0x17c) & 0x10000) {
         return 0;
     }
+    dot = (*(float *)(obj + 0xa8) - world_point->z) * *(float *)(obj + 0x268) +
+          (*(float *)(obj + 0xa4) - world_point->y) * *(float *)(obj + 0x264) +
+          (*(float *)(obj + 0xa0) - world_point->x) * *(float *)(obj + 0x260);
+    if (!(dot > 0.0f)) {
+        const char *name = unit_get_seat_or_state_name(unit_index);
+        const char *asleep = unit_base_animation_state_names[0];
 
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
-    float dot = (unit_obj->bounding_center.x - world_point->x) * unit->looking_vector.i +
-                (unit_obj->bounding_center.y - world_point->y) * unit->looking_vector.j +
-                (unit_obj->bounding_center.z - world_point->z) * unit->looking_vector.k;
-
-    if ((dot < 0.0f) || (dot == 0.0f)) {
-        char *seat_name = unit_get_seat_or_state_name(k_datum_index_none /* UNSURE: same implicit handle */);
-        char *asleep = unit_base_animation_state_names[0];
-        int32_t i = 0;
         for (;;) {
-            if (seat_name[i] != asleep[i]) return 0;
-            if (seat_name[i] == '\0') break;
-            i++;
+            if (*asleep != *name) return 0;
+            if (*asleep == 0) break;
+            asleep++;
+            name++;
         }
     }
     return 1;

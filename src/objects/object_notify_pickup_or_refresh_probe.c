@@ -4,7 +4,7 @@
 // summary, "Validates a target object then queues a UI/network event (message type 0x32),
 // falling back to a lighting-probe refresh...", though the fallback call is now known to be
 // object_throttled_multiplayer_sound_event, not a lighting probe)
-// rewrite confidence: 0.3
+// rewrite confidence: 0.8 (network lookup and send arguments fixed against objdump 0x4ee451..0x4ee4ab)
 // evidence: types/objects.h object.type (0xb4), object.network_role (0x04); the player-record
 // reads at DAT_0087a480 (+0/+2) mirror the generic data_array element header shape used
 // throughout this module, but the players module is not owned here so they are kept as raw
@@ -25,6 +25,7 @@
 #include "math.h"
 #include "objects.h"
 
+
 extern data_array *player_data;         // 0x0087a480, players module (not owned here)
 extern void *g_006870d8;                // 0x006870d8, UNSURE
 extern uint8_t object_network_message_scratch[0x7ff8];                // 0x00871de0, UNSURE
@@ -34,12 +35,14 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
     // 0x4f6ec0 (cmp ecx,-1 / test cx,cx / and param_1 & 1 << header->type) and against the
     // call site in this file.
 extern void object_throttled_multiplayer_sound_event(void); // this module, 0x4ee370 // this module, 0x4ee370 (object_throttled_multiplayer_sound_event)
-extern int32_t network_index_cache_get(void *param_1); // UNSURE: out of range, 0x4e9d20
+extern int32_t network_index_cache_get(hash_table *table, int32_t key); // 0x4e9d20, stack table, ECX key
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
-extern void network_session_send_to_machine(int32_t param_1, void *param_2, int32_t message,
-    int32_t param_4, int32_t param_5, int32_t param_6, int32_t param_7); // network module, 0x4e1930
+extern void *network_session; // 0x0071c2d4, network_server_globals *
+extern uint8_t network_session_send_to_machine(int32_t machine_id, void *server,
+    uint32_t param_1, void *data, uint32_t param_3, uint32_t reliable, uint32_t unknown_a,
+    char force, uint32_t priority); // 0x4e1930, EAX, ESI, stack
 
 void object_notify_pickup_or_refresh_probe(uint32_t object_index, datum_index player_index)
     // blam-cc: EDI -> player_index; stack -> object_index
@@ -80,11 +83,12 @@ void object_notify_pickup_or_refresh_probe(uint32_t object_index, datum_index pl
                 void *field_list[2]; // local_8/local_4: a value pointer followed by a 0 terminator
                 int32_t encoded;
 
-                encoded_value = network_index_cache_get(&g_006870d8);
+                encoded_value = network_index_cache_get((hash_table *)&g_006870d8, (int32_t)object_index); // 0x4ee451: ECX = object
                 field_list[0] = &encoded_value;
                 field_list[1] = 0;
                 encoded = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x32, 0, field_list, 0, 1, 0);
-                network_session_send_to_machine(1, object_network_message_scratch, encoded, 0, 0, 0, 9);
+                network_session_send_to_machine((int8_t)record[0x64], network_session, 1, network_message_scratch,
+                    (uint32_t)encoded, 0, 0, 0, 9); // 0x4ee49a: EAX = the player machine, ESI = network_session
                 return;
             }
 

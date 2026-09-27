@@ -2,32 +2,30 @@
 // address 0x4ee5e0, size 2939 bytes
 // name confidence: 0.75 (Ghidra-recovered name; out/phase4/objects_types_notes.md calls out
 // "chimera__apply_damage 0x4ee5e0 ... is genuinely object_apply_damage")
-// rewrite confidence: 0.2 (by far the largest and most opaque function in this batch)
-// evidence: types/objects.h damage_data (all named fields), object (network_role 0x04,
-// damage_owner 0x0f0, type 0xb4, next_object 0x114, first_child_object 0x118); types/tags.h
-// DamageEffect (damage_lower_bound, damage_upper_bound[2], damage_vehicle_passthrough_penalty,
-// damage_side_effect, damage_category, damage_flags), ModelCollisionGeometry (flags,
-// indirect_damage_material 0x04, materials TagReflexive 0x234, nodes TagReflexive 0x28c),
-// ModelCollisionGeometryMaterial (material_type 0x24), Unit.rider_damage_fraction (0x184
-// relative to the Object tag base, i.e. Unit+8); types/objects.h object_random_seed.
-// UNSURE (extensive, function-wide): this is the central damage-dispatch routine and it reaches
-// deep into the unit extension (object+0x218, +0x1f8, +0x328, +0x2f0(?), +0x2e, +0xc9, +0x38,
-// +0x39 relative to a *word*-indexed object pointer, i.e. byte offsets 0x8c8 etc — none of those
-// are part of the common `object` struct documented in types/objects.h) and into globals this
-// module does not own (the player data_array, the difficulty/team bitset at DAT_006b0b84+0xa4,
-// the friendly-fire globals at DAT_006f1cbc/DAT_006f1cf4, DAT_0087abc5/DAT_0087abc7). Every
-// FUN_00xxxxxx callee below is outside this module's address range and is treated as an opaque
-// external with only its visibly-passed arguments preserved. Local variables are kept close to
-// their Ghidra names (rather than invented semantic names) specifically because their true
-// meaning is not established with confidence; this favours literal preservation of control flow
-// and arithmetic over readability, per the task's priority when the two are in tension.
-// register convention: damage_data *param_1 on the stack; uint32_t param_2 (initial target
-// object index); int16_t param_3 (collision node index); int16_t param_4; int16_t param_5
-// (material index); uint32_t param_6, all on the stack.
-// blam-cc: stack=(dd, target_object_index, node_index, param_4, material_index, param_6)
-// reconciled: R29 raw object +0xb8 int16 read -> target->owner_team
-// reconciled: R25 damage_data.unknown_4c -> material_type (int16 collision material of the damaged surface, 0xffff = none; indexes DamageEffect +0x200)
-// reconciled: R04 0x006f1d20 uint8_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
+// rewrite confidence: 0.8
+// REWRITTEN from objdump 0x4ee5e0..0x4ef15a. Stack: (damage_data, target, node, region, material, hit plane).
+//   The responsible player is dropped when stale. The amount is the damage effect block's (tag +0x1c4) random
+//   range (+0x10..+0x14, one LCG step of random_seed_global) blended with its lower bound (+0x0c) by the random
+//   blend, times the multiplier; a responsible unit's actor (+0x1f8, else +0x1f4; via +0x328 when set) scales it
+//   by perception (0x42aa90); multiplayer applies the game engine scale between the two controlling players,
+//   single player the difficulty damage multiplier (0x46fe10) unless the damaging team is a friend of team 1.
+//   The damaged list is the target and its parents (only the target for flags 1 or 4) plus the target's damage
+//   owner (+0xf0). Without flag 1, a vehicle target first passes rider_damage_fraction (tag +0x184) of the damage
+//   (split between player riders in multiplayer) to its seated bipeds by recursion -- AI bipeds only when
+//   driving (flag 0x20) -- then the multiplier is reset to 1. Every unit in the list that belongs to a player
+//   gets the screen effects (player_effect_mark_damage_direction locally, player_effect_send_network_update to
+//   remote players; unowned units only with 0x87abc5, for the first local player). With a positive amount the
+//   list is walked from the last entry down: each object with a collision geometry (tag +0x7c) resolves
+//   friendly-fire rules (multiplayer 0x6f1cbc / 0x6f1cf4), its region from the node (+0x28c, +0x32), notify
+//   flags 0x20 (difficulty scaled) / 0x10 (same or friendly team), its material (the hit material only for the
+//   target, else the geometry's indirect material +0x04, else 0x6b8c68), instant kills (flag 4, 0x87abc7 or side
+//   effect 2 on a sleeping unit facing away), shields (object_apply_shield_damage) and -- for the target or
+//   parents whose geometry passes damage on (flag 2, the target geometry's flag 4 clear) -- the body
+//   (object_apply_body_damage, which ends the walk). The first object hurt reports its shield material and
+//   vitality into damage_data +0x4c / +0x48; the responsible player is told (0x4ee3c0), a biped hit on the shield
+//   flags +0x122, and object_damage_notify_and_impulse runs for every object; notify flag 4 deletes it. The walk
+//   stops once the amount is used up.
+// blam-cc: stack=(dd, target_object_index, node_index, region_index, material_index, plane)
 
 #include "tags.h"
 #include "memory.h"
@@ -35,544 +33,434 @@
 #include "game.h"
 #include "cache.h"
 #include "objects.h"
+#include <stdint.h>
 
 extern data_array *object_data;     // 0x008603b0
-extern data_array *player_data;     // 0x0087a480, players module
+extern data_array *player_data;     // 0x0087a480
 extern tag_instance *tag_instances; // 0x0087bc14
-extern random_seed random_seed_global; // 0x00719cd0, the engine-wide LCG state (same name and
-    // type as in src/math/random_real.c and src/hs/hs_evaluate_random.c)
-extern game_engine_definition *current_game_engine;          // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
-extern uint32_t *g_006b0b84;        // 0x006b0b84, UNSURE: difficulty/team bitset base
-extern uint8_t g_0087abc5;          // 0x0087abc5, UNSURE
-extern uint8_t g_0087abc7;          // 0x0087abc7, UNSURE
-extern ModelCollisionGeometryMaterial default_collision_material; // 0x006b8c68, the static
-    // fallback material record used when a collision model has no usable indirect_damage_material
-extern int16_t network_game_mode;          // 0x00719720, UNSURE: notify-mode selector
-extern uint8_t g_006f1cbc;          // 0x006f1cbc, UNSURE: friendly-fire related
-extern uint8_t g_006f1cf4;          // 0x006f1cf4, UNSURE: friendly-fire mode
+extern uint32_t random_seed_global; // 0x00719cd0
+extern game_engine_definition *current_game_engine; // 0x006f1d20
+extern uint8_t *g_006b0b84;         // 0x006b0b84, +0xa4: the ten-team friend bitfield (team_a * 10 + team_b)
+extern uint8_t *main_game_globals;  // 0x006b0b80, +0x0e difficulty
+extern uint8_t g_0087abc5;          // 0x0087abc5, cheat: screen effects for unowned units too
+extern uint8_t g_0087abc7;          // 0x0087abc7, cheat: player damage kills outright
+extern ModelCollisionGeometryMaterial default_collision_material; // 0x006b8c68
+extern int16_t network_game_mode;   // 0x00719720, 0 local, 1 client, 2 host
+extern uint8_t g_006f1cbc;          // 0x006f1cbc, multiplayer friendly-fire rules enabled
+extern uint8_t g_006f1cf4;          // 0x006f1cf4, multiplayer friendly-fire mode
+extern player_globals *local_player_globals; // 0x0087a478
 
-extern void actor_apply_perception_scale(damage_data *dd); // UNSURE: out of range, 0x42aa90
-extern void player_effect_send_network_update(damage_data *dd, float random_blend, float damage_amount); // UNSURE: out of range, 0x456bc0;
-    // the mode-2/non-bVar20 call site in the original passes only two arguments
-extern void player_effect_mark_damage_direction(damage_data *dd, real_vector3d *direction, float random_blend, float damage_amount); // UNSURE: out of range, 0x456cf0
-    // (param_3 is damage_data+0x40, used as a float everywhere in this function -- declaring it
-    // uint32_t here silently converted the value instead of passing the same four bytes)
+extern uint8_t actor_apply_perception_scale(datum_index actor_index, const uint8_t *zone, float *in_out_value); // 0x42aa90, EAX, stack, EDX
+extern void player_effect_send_network_update(datum_index player_handle, const real_vector3d *direction,
+    const damage_data *dd, float random_blend, float damage_amount); // 0x456bc0, EAX, EBX, stack
+extern void player_effect_mark_damage_direction(datum_index player_index, const damage_data *dd,
+    const real_vector3d *direction, float random_blend, float damage_amount); // 0x456cf0, EAX, stack
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, CX, DX
-extern int32_t game_engine_compute_time_scale(void); // UNSURE: zero visible args; out of range, 0x461550
-extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
-    // 0x46fe10, blam-cc: stack -> zoom_table_index, CX -> magnification (every caller passes the difficulty)
-extern uint8_t *main_game_globals; // 0x006b0b80 game globals *, +0x0e difficulty
-extern int32_t player_index_from_unit_index(datum_index object_index); // UNSURE: out of range, 0x474db0
-extern void object_set_health_frozen_flag(void); // UNSURE: zero visible args; this module, address matches
-                                // object_set_health_frozen_flag's original name, but called bare
-                                // here so kept as-is rather than assuming the (object_index) form
-extern int32_t object_get_controlling_player_index(datum_index object_index); // this module, 0x4ee2e0
-extern void object_notify_pickup_or_refresh_probe(uint32_t object_index, datum_index player_index); // this module, 0x4ee3c0.
-    // The original shows three values pushed here (local_54/local_50/local_4c), but 0x4ee3c0
-    // overwrites its one stack slot before reading it and takes its real inputs in ECX (the
-    // object handle) and EDI (a player handle). Declared to match the definition.
-extern void object_apply_body_damage(uint32_t target_index, int32_t region_index, int32_t node_index,
-    uint32_t param_4, ModelCollisionGeometry *geometry, ModelCollisionGeometryMaterial *material,
-    DamageEffect *effect, damage_data *dd, uint32_t *notify_flags, float *body_damage_out,
-    uint32_t *param11_out, float remaining_damage, int8_t role_is_deletable); // 0x4ef2a0
-extern void object_apply_shield_damage(uint32_t target_index, ModelCollisionGeometry *geometry,
-    ModelCollisionGeometryMaterial *material, DamageEffect *effect, uint32_t *notify_flags,
-    float *shield_damage_out, float *remaining_damage, int8_t role_is_deletable,
-    int8_t attributable_to_live_player, object_shield_impulse_result *impulse_result); // 0x4ef820; UNSURE: the 10th
-    // parameter comes from an `unaff_EBX` this decompile never sources — see
-    // object_apply_shield_damage.c's header. Passed as 0 here since the true value is not
-    // recoverable from this function's own decompile either.
+extern float game_engine_compute_time_scale(int32_t param_a, int32_t param_b); // 0x461550, EDX, ESI
+extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification); // 0x46fe10, stack, CX
+extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x474db0, stack
+extern void object_set_health_frozen_flag(uint32_t object_index); // 0x4eda20, EAX
+extern int32_t object_get_controlling_player_index(datum_index object_index); // 0x4ee2e0, EAX
+extern void object_notify_pickup_or_refresh_probe(uint32_t object_index, datum_index player_index); // 0x4ee3c0, stack, EDI
+extern void object_apply_body_damage(uint32_t target_index, int32_t region_index, int32_t node_index, void *plane,
+    uint8_t *geometry, uint8_t *material, uint8_t *effect_block, damage_data *dd, uint32_t *notify_flags,
+    float *body_damage_out, float *material_multiplier_out, float damage, uint8_t is_local); // 0x4ef2a0
+extern void object_apply_shield_damage(uint32_t target_index, uint8_t *geometry, uint8_t *material,
+    uint8_t *effect_block, uint32_t *notify_flags, float *shield_damage_out, float *remaining_damage,
+    uint8_t is_local, uint8_t apply_state, object_shield_impulse_result *record); // 0x4ef820, EBX record
 extern void object_damage_notify_and_impulse(uint32_t target_index, damage_data *dd, uint32_t notify_flags,
-    float shield_damage, float body_damage, uint32_t param_6, int32_t node_hint, uint32_t role_is_deletable); // 0x4efcf0
-    // 0x4efcf0 models arguments 4/5 as undefined4 pass-throughs to 0x5674a0; this call site is
-    // the only evidence of their type and it supplies the two damage floats.
-extern void object_delete_unparented(uint32_t object_index); // blam-cc: EDI -> object_index // UNSURE: zero visible args; objects module, 0x4f5aa0 (out of range)
-extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings); // objects module, 0x4f59d0 (out of range)
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-    // 0x4f6ec0; object handle in ECX, type mask on the stack. Verified against the body at
-    // 0x4f6ec0 (cmp ecx,-1 / test cx,cx / and param_1 & 1 << header->type) and against the
-    // call site in this file.
-extern int8_t unit_point_in_front_and_asleep(void); // UNSURE: zero visible args; out of range, 0x56bc80
+    float shield_damage, float body_damage, uint32_t unused_6, int32_t region_index, uint32_t is_local); // 0x4efcf0
+extern void object_delete_unparented(uint32_t object_index); // 0x4f5aa0, EDI
+extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings); // 0x4f59d0
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
+extern uint8_t unit_point_in_front_and_asleep(real_point3d *world_point, uint32_t unit_index); // 0x56bc80, EAX, EDI
+
+static uint8_t *object_get(datum_index object_index)
+{
+    return (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+}
+
+static uint8_t *tag_get(datum_index tag_index)
+{
+    return (uint8_t *)tag_instances[tag_index & 0xffff].data;
+}
+
+static uint8_t teams_are_friends(int32_t bit)
+{
+    return (uint8_t)((*(uint32_t *)(g_006b0b84 + 0xa4 + (bit >> 5) * 4) >> (bit & 0x1f)) & 1);
+}
+
+// the inline datum_try_and_get on the player array: the record, or 0 when stale
+static player *player_try_get(datum_index player_index)
+{
+    int16_t index = (int16_t)player_index;
+    int16_t salt = (int16_t)(player_index >> 16);
+    int16_t identifier;
+    uint8_t *record;
+
+    if (player_index == k_datum_index_none || index < 0 || index >= player_data->maximum_count) {
+        return 0;
+    }
+    record = (uint8_t *)player_data->data + player_data->size * index;
+    identifier = *(int16_t *)record;
+    if (identifier == 0 || (salt != 0 && identifier != salt)) {
+        return 0;
+    }
+    return (player *)record;
+}
 
 void object_apply_damage(damage_data *dd, uint32_t param_2, int16_t param_3, int16_t param_4,
     int16_t param_5, uint32_t param_6)
 {
-    object_header *headers = (object_header *)object_data->data;
-    object *puVar1;
-    int32_t role_is_deletable; // local_64, low byte meaningful
-    datum_index resp_player;
-    DamageEffect *effect;
-    int16_t *psVar19; // &effect->damage_side_effect, kept as a short* exactly as decompiled
-    uint32_t rand16;
-    int8_t used_difficulty_random = 0;   // local_81
-    uint8_t has_no_parent_never_takes_body_damage = 1; // local_8d
-    float damage_amount; // local_8c
-    int16_t *local_6c;
-    datum_index chain[17]; // local_44
-    int16_t chain_count = 0; // local_80
-    object *target0;
-    uint32_t target0_collision;
-    int8_t bVar20; // "no random damage range" flag
-    uint32_t local_78 = 0; // notify-flags accumulator (local_58 in the original is the
-                           // body-damage out-slot, modelled below as param11_out)
-    uint32_t local_88_bits = 0; // reused scratch for the vehicle-spread multiplier bit pattern
-    int32_t local_5c = -1; // node "name_thing" scratch / passthrough to notify
-    int8_t bVar3 = 0; // "already picked leftover impulse source" latch
+    datum_index target_index = param_2;
+    int16_t node_index = param_3;
+    int16_t region_index = param_4;
+    int16_t material_index = param_5;
+    uint8_t *target = object_get(target_index);
+    uint8_t *effect_block = tag_get(dd->damage_effect_tag) + 0x1c4;
+    int32_t target_role = *(int32_t *)(target + 0x4);
+    uint8_t target_is_local = (target_role == 0 || target_role == 3);
+    uint8_t difficulty_scaled = 0;
+    uint8_t parents_take_damage = 1;
+    uint8_t no_random_range;
+    uint8_t reported = 0;
+    datum_index list[17];
+    int16_t count = 0;
+    int16_t remaining;
+    uint32_t flags;
+    uint8_t *target_tag;
+    float amount;
 
-    puVar1 = headers[param_2 & 0xffff].data;
-    role_is_deletable = (puVar1->network_role == 0 || puVar1->network_role == 3) ? 1 : 0;
-
-    resp_player = dd->responsible_player;
-    if (resp_player != (datum_index)0xffffffff) {
-        int16_t index = (int16_t)resp_player;
-        int8_t invalid = 0;
-
-        if (index < 0 || index >= player_data->maximum_count) {
-            invalid = 1;
-        } else {
-            int16_t *record = (int16_t *)((uint8_t *)player_data->data + player_data->size * index);
-            if (*record == 0) {
-                invalid = 1;
-            } else {
-                int16_t salt = (int16_t)(resp_player >> 0x10);
-                if (salt != 0 && *record != salt) {
-                    invalid = 1;
-                }
-            }
-        }
-        if (invalid) {
-            dd->responsible_player = (datum_index)0xffffffff;
-        }
+    if (dd->responsible_player != k_datum_index_none && player_try_get(dd->responsible_player) == 0) {
+        dd->responsible_player = k_datum_index_none;
     }
-
-    effect = (DamageEffect *)tag_instances[dd->damage_effect_tag & 0xffff].data;
-    psVar19 = (int16_t *)((uint8_t *)effect + 0x1c4);
-    local_6c = psVar19;
-
     random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-    rand16 = random_seed_global >> 0x10;
+    amount = ((*(float *)(effect_block + 0x14) - *(float *)(effect_block + 0x10)) *
+              ((float)(int32_t)(random_seed_global >> 16) * 1.5259022e-05f) + *(float *)(effect_block + 0x10)) *
+             dd->random_blend + (1.0f - dd->random_blend) * *(float *)(effect_block + 0x0c);
+    amount = amount * dd->multiplier;
+    if (dd->responsible_object != k_datum_index_none) {
+        uint8_t *responsible = (uint8_t *)object_try_and_get(dd->responsible_object, 3);
 
-    damage_amount = ((1.0f - dd->random_blend) * effect->damage_lower_bound +
-        ((float)rand16 * 1.5259022e-05f * (effect->damage_upper_bound[1] - effect->damage_upper_bound[0]) +
-            effect->damage_upper_bound[0]) * dd->random_blend) * dd->multiplier;
+        if (responsible != 0) {
+            datum_index actor;
 
-    if (dd->responsible_object != (datum_index)0xffffffff) {
-        object *unit = object_try_and_get(dd->responsible_object, _object_mask_unit);
-            // 0x4ee6b6 mov ecx,[ebp+0xc] -- the handle just tested above
-        if (unit != 0) {
-            uint8_t *unit_bytes = (uint8_t *)unit;
-            if (*(uint32_t *)(unit_bytes + 0x328) != 0xffffffff) { // UNSURE: unit extension field
-                uint32_t other = *(uint32_t *)(unit_bytes + 0x328);
-                unit = headers[other & 0xffff].data;
-                unit_bytes = (uint8_t *)unit;
+            if (*(datum_index *)(responsible + 0x328) != k_datum_index_none) {
+                responsible = object_get(*(datum_index *)(responsible + 0x328));
             }
-            {
-                int32_t v = *(int32_t *)(unit_bytes + 0x1f8); // UNSURE: unit extension field
-                if (v == -1) {
-                    v = *(int32_t *)(unit_bytes + 500); // UNSURE
-                }
-                if (v != -1) {
-                    actor_apply_perception_scale(dd);
-                }
+            actor = *(datum_index *)(responsible + 0x1f8);
+            if (actor == k_datum_index_none) {
+                actor = *(datum_index *)(responsible + 0x1f4);
+            }
+            if (actor != k_datum_index_none) {
+                actor_apply_perception_scale(actor, (const uint8_t *)dd, &amount);
             }
         }
     }
+    if (current_game_engine != 0) {
+        int32_t target_player = object_get_controlling_player_index(target_index);
+        int32_t responsible_player = object_get_controlling_player_index(dd->responsible_object);
 
-    if (current_game_engine == 0) {
-        int16_t team = (int16_t)dd->team_index;
-        int8_t skip = 0;
+        amount = game_engine_compute_time_scale(responsible_player, target_player) * amount;
+    } else if (dd->team_index != -1) {
+        int16_t team = dd->team_index;
 
-        if (team == -1) {
-            skip = 1;
-        } else if (-1 < team && team < 10) {
-            int32_t bit_index = team * 10 + 1;
-            if ((1 << (bit_index & 0x1f) & g_006b0b84[7 + (bit_index >> 5)]) != 0) { // UNSURE: +0xa4/4=0x29=7+... base
-                skip = 1;
-            }
-        }
-        if (!skip) {
-            real scalar = weapon_get_zoom_fov(0, *(int16_t *)(main_game_globals + 0x0e));
-            used_difficulty_random = 1;
-            damage_amount = scalar * damage_amount;
-        }
-    } else {
-        object_get_controlling_player_index((datum_index)0); // UNSURE: argument not visible, x2 in original
-        object_get_controlling_player_index((datum_index)0);
-        {
-            int32_t scalar = game_engine_compute_time_scale();
-            damage_amount = (float)scalar * damage_amount;
+        if (team < 0 || team >= 10 || !teams_are_friends(team * 10 + 1)) {
+            amount = weapon_get_zoom_fov(0, *(int16_t *)(main_game_globals + 0x0e)) * amount;
+            difficulty_scaled = 1;
         }
     }
 
-    {
-        int8_t suppress_chain = (int8_t)(dd->flags & 1);
+    flags = dd->flags;
+    if ((flags & 1) || (flags & 4)) {
+        list[0] = target_index;
+        count = 1;
+    } else if (target_index != k_datum_index_none) {
+        datum_index id = target_index;
 
-        if (suppress_chain == 0 && (dd->flags & 4) == 0) {
-            if (param_2 != 0xffffffff) {
-                uint32_t walker = param_2;
-                do {
-                    chain[chain_count] = walker;
-                    walker = headers[walker & 0xffff].data->parent_object;
-                    chain_count = chain_count + 1;
-                } while (walker != (datum_index)0xffffffff);
-            }
-        } else {
-            chain[0] = param_2;
-            chain_count = 1;
-        }
+        do {
+            list[count++] = id;
+            id = *(datum_index *)(object_get(id) + 0x11c);
+        } while (id != k_datum_index_none);
+    }
+    target_tag = tag_get(*(datum_index *)target);
+    if (*(datum_index *)(target_tag + 0x7c) != k_datum_index_none) {
+        parents_take_damage = (uint8_t)(~(*(uint32_t *)tag_get(*(datum_index *)(target_tag + 0x7c)) >> 4) & 1);
+    }
+    if (*(datum_index *)(target + 0xf0) != k_datum_index_none) {
+        list[count++] = *(datum_index *)(target + 0xf0);
     }
 
-    target0 = puVar1;
-    target0_collision = ((Object *)tag_instances[target0->definition_tag & 0xffff].data)->collision_model.tag_id.index;
-    if (target0_collision != 0xffff) {
-        ModelCollisionGeometry *target_geometry = (ModelCollisionGeometry *)tag_instances[target0_collision].data;
-        has_no_parent_never_takes_body_damage = (uint8_t)(~(target_geometry->flags >> 4) & 1);
-    }
+    // a vehicle hands rider_damage_fraction of the damage to the bipeds seated in it
+    if ((flags & 1) == 0 && *(int16_t *)(target + 0xb4) == 1) {
+        float rider_fraction = (1.0f - *(float *)(effect_block + 0x18)) * *(float *)(target_tag + 0x184);
+        datum_index child;
 
-    if (target0->damage_owner != (datum_index)0xffffffff) {
-        chain[chain_count] = target0->damage_owner;
-        chain_count = chain_count + 1;
-    }
+        dd->multiplier = rider_fraction;
+        if (current_game_engine != 0 && *(datum_index *)(target + 0x118) != k_datum_index_none) {
+            int32_t players = 0;
 
-    if ((int8_t)(dd->flags & 1) == 0 && target0->type == _object_type_vehicle) {
-        float spread = (1.0f - effect->damage_vehicle_passthrough_penalty) *
-            *(float *)((uint8_t *)tag_instances[target0->definition_tag & 0xffff].data + 0x184); // UNSURE: Unit.rider_damage_fraction
-        local_88_bits = *(uint32_t *)&spread;
-        dd->multiplier = spread;
+            for (child = *(datum_index *)(target + 0x118); child != k_datum_index_none;
+                 child = *(datum_index *)(object_get(child) + 0x114)) {
+                uint8_t *rider = object_get(child);
 
-        if (current_game_engine != 0) {
-            uint32_t walker = target0->first_child_object;
-            int32_t seated = 0;
-
-            if (walker != (datum_index)0xffffffff) {
-                do {
-                    object *child = headers[walker & 0xffff].data;
-                    if (child->type == _object_type_biped && *((int32_t *)((uint8_t *)child + 0x218)) != -1) { // UNSURE
-                        seated = seated + 1;
-                    }
-                    walker = child->next_object;
-                } while (walker != (datum_index)0xffffffff);
-                if (seated != 0) {
-                    dd->multiplier = spread / (float)seated;
+                if (*(int16_t *)(rider + 0xb4) == 0 && *(datum_index *)(rider + 0x218) != k_datum_index_none) {
+                    players++;
                 }
             }
-        }
-
-        {
-            uint32_t walker = target0->first_child_object;
-            while (walker != (datum_index)0xffffffff) {
-                object *child = headers[walker & 0xffff].data;
-                if (child->type == _object_type_biped) {
-                    if (*((int32_t *)((uint8_t *)child + 0x218)) == -1) { // UNSURE
-                        if (walker == *(uint32_t *)((uint8_t *)target0 + 0x324)) { // UNSURE: +0xc9*4
-                            dd->flags = dd->flags | 0x20;
-                        } else {
-                            goto skip_child;
-                        }
-                    } else {
-                        dd->flags = dd->flags & 0xffffffdf;
-                    }
-                    object_apply_damage(dd, walker, -1, -1, -1, 0);
-                    dd->flags = dd->flags & 0xffffffdf;
-                }
-skip_child:
-                walker = child->next_object;
+            if (players != 0) {
+                dd->multiplier = rider_fraction / (float)players;
             }
         }
+        for (child = *(datum_index *)(target + 0x118); child != k_datum_index_none;
+             child = *(datum_index *)(object_get(child) + 0x114)) {
+            uint8_t *rider = object_get(child);
 
+            if (*(int16_t *)(rider + 0xb4) != 0) {
+                continue;
+            }
+            if (*(datum_index *)(rider + 0x218) == k_datum_index_none) {
+                if (child != *(datum_index *)(target + 0x324)) {
+                    continue;
+                }
+                dd->flags |= 0x20;
+            } else {
+                dd->flags &= ~0x20u;
+            }
+            object_apply_damage(dd, child, -1, -1, -1, 0);
+            dd->flags &= ~0x20u;
+        }
         dd->multiplier = 1.0f;
     }
 
-    bVar20 = (effect->damage_upper_bound[0] == 0.0f && effect->damage_upper_bound[1] == 0.0f) ? 1 : 0;
+    // screen effects for the players whose units are hurt
+    no_random_range = (*(float *)(effect_block + 0x10) == 0.0f && *(float *)(effect_block + 0x14) == 0.0f);
+    {
+        int16_t i;
 
-    // Notify-pickup pass over the chain array, then the per-target damage loop.
-    // STRUCTURE NOTE (phase-4 review): in the original the `joined_r0x004eeb40` damage loop
-    // sits OUTSIDE this `if (0 < chain_count)` guard, not inside it. Nesting it here is
-    // equivalent because that loop's own first test is `if (damage <= 0 || chain_count-- < 1)
-    // return`, so a zero chain_count returns on the first iteration without any side effect
-    // (the original's `DAT_0087a480 = iVar14` store on that path writes the value it just
-    // read back to the same global). Kept nested so the two passes read in source order.
-    if (0 < chain_count) {
-        int32_t remaining = chain_count;
-        int32_t i;
+        for (i = 0; i < count; i++) {
+            datum_index id = list[i];
+            int16_t index = (int16_t)id;
+            int16_t salt = (int16_t)(id >> 16);
+            uint8_t *header;
+            uint8_t *unit;
+            datum_index player_index;
 
-        for (i = 0; i < remaining; i++) {
-            uint32_t handle = chain[i];
-            object_header *resolved = 0;
-
-            if (handle != 0xffffffff) {
-                int16_t index = (int16_t)handle;
-                if (-1 < index && index < object_data->maximum_count) {
-                    object_header *candidate = &headers[(uint16_t)index];
-                    if (candidate->identifier != 0) {
-                        int16_t salt = (int16_t)(handle >> 0x10);
-                        if (salt == 0 || candidate->identifier == salt) {
-                            resolved = candidate;
-                        }
-                    }
-                }
+            if (id == k_datum_index_none || index < 0 || index >= object_data->maximum_count) {
+                continue;
             }
-
-            if (resolved != 0 && (1 << (resolved->type & 0x1f) & _object_mask_unit) != 0 && resolved->data != 0) {
-                object *unit = resolved->data;
-                if (*((int32_t *)((uint8_t *)unit + 0x218)) == -1) { // UNSURE: driver seat gate
-                    if (g_0087abc5 != 0) {
-                        if (network_game_mode == 0) {
-                            player_effect_mark_damage_direction(dd, &dd->direction, dd->random_blend, damage_amount);
-                        } else if (network_game_mode == 2) {
-                            player_effect_send_network_update(dd, dd->random_blend, damage_amount);
-                        }
+            header = (uint8_t *)object_data->data + object_data->size * index;
+            if (*(int16_t *)header == 0 || (salt != 0 && *(int16_t *)header != salt)) {
+                continue;
+            }
+            if (((1u << (header[3] & 0x1f)) & 3) == 0) {
+                continue;
+            }
+            unit = *(uint8_t **)(header + 0x8);
+            if (unit == 0) {
+                continue;
+            }
+            player_index = *(datum_index *)(unit + 0x218);
+            if (player_index != k_datum_index_none) {
+                switch (network_game_mode) {
+                case 0:
+                    player_effect_mark_damage_direction(player_index, dd, &dd->direction, dd->random_blend, amount);
+                    break;
+                case 1:
+                    if (no_random_range == 1) {
+                        player_effect_mark_damage_direction(player_index, dd, &dd->direction, dd->random_blend,
+                            amount);
                     }
-                } else if (network_game_mode == 0) {
-                    player_effect_mark_damage_direction(dd, &dd->direction, dd->random_blend, damage_amount);
-                } else if (network_game_mode == 1) {
-                    if (bVar20) {
-                        player_effect_mark_damage_direction(dd, &dd->direction, dd->random_blend, damage_amount);
-                    }
-                } else if (network_game_mode == 2) {
-                    if (bVar20) {
-                        player_effect_mark_damage_direction(dd, &dd->direction, dd->random_blend, damage_amount);
+                    break;
+                case 2:
+                    if (no_random_range) {
+                        player_effect_mark_damage_direction(player_index, dd, &dd->direction, dd->random_blend,
+                            amount);
                     } else {
-                        player_effect_send_network_update(dd, dd->random_blend, damage_amount);
+                        player_effect_send_network_update(player_index, &dd->direction, dd, dd->random_blend,
+                            amount);
                     }
+                    break;
+                }
+            } else if (g_0087abc5) {
+                datum_index first_local = local_player_globals->local_players[0];
+
+                if (network_game_mode == 0) {
+                    player_effect_mark_damage_direction(first_local, dd, &dd->direction, dd->random_blend, amount);
+                } else if (network_game_mode == 2) {
+                    player_effect_send_network_update(first_local, &dd->direction, dd, dd->random_blend, amount);
                 }
             }
         }
     }
 
-    // Main per-object damage-application pass, walking the chain array from the end.
-    {
-        uint32_t final_target = 0;
-        uint32_t final_index_bytes = 0;
+    if (!(amount > 0.0f)) {
+        return;
+    }
+    remaining = count;
+    for (;;) {
+        int16_t before = remaining;
+        int16_t i;
+        datum_index id;
+        uint8_t *obj;
+        uint8_t *object_tag;
+        uint8_t *geometry;
+        uint8_t *material;
+        uint32_t notify_flags = 0;
+        float shield_damage = 0.0f;
+        float body_damage = 0.0f;
+        float material_multiplier = 0.0f;
+        int32_t region = -1;
+        object_shield_impulse_result record;
+        uint8_t kill;
+        uint8_t friendly = 0;
+        uint8_t shield_allowed = 1;
+        uint8_t body_allowed = 1;
+        uint8_t apply_state;
 
-        for (;;) {
-            uint32_t target_handle;
-            object *target;
-            object_header *target_header;
-            uint32_t collision_tag_index;
-            float shield_damage_out;
-            float body_damage_out;
-            uint32_t param11_out;
+        remaining--;
+        if (before <= 0) {
+            break;
+        }
+        i = remaining;
+        id = list[i];
+        obj = object_get(id);
+        object_tag = tag_get(*(datum_index *)obj);
+        if (*(datum_index *)(object_tag + 0x7c) == k_datum_index_none) {
+            goto notify;
+        }
+        geometry = tag_get(*(datum_index *)(object_tag + 0x7c));
+        kill = (uint8_t)((dd->flags >> 2) & 1);
+        *(datum_index *)record.unknown_00 = id;
+        record.shield_damage_dealt = 0.0f;
+        record.depleted_this_call = 0;
+        if (*(int32_t *)(obj + 0x4) == 3 || *(int32_t *)(obj + 0x4) == 0) {
+            apply_state = 1;
+        } else {
+            player *responsible = player_try_get(dd->responsible_player);
 
-            if (damage_amount <= 0.0f || chain_count < 1) {
-                return;
-            }
-            chain_count = chain_count - 1;
-            target_handle = chain[chain_count];
-            final_index_bytes = (target_handle & 0xffff) * 0xc;
-            target_header = &headers[target_handle & 0xffff];
-            target = target_header->data;
-            final_target = target_handle;
+            apply_state = (responsible != 0 && responsible->local_player_index != -1) ? 0 : 1;
+        }
+        if (current_game_engine != 0 && g_006f1cbc) {
+            datum_index owner = player_index_from_unit_index(id);
 
-            local_78 = 0;
-            local_5c = -1;
-            shield_damage_out = 0.0f;  // local_60
-            body_damage_out = 0.0f;    // local_88, reused as a float here
-            param11_out = 0;           // local_58
+            if (owner != k_datum_index_none && owner != dd->responsible_player) {
+                player *owner_record = player_try_get(owner);
 
-            collision_tag_index = ((Object *)tag_instances[target->definition_tag & 0xffff].data)->collision_model.tag_id.index;
-
-            if (collision_tag_index != 0xffff) {
-                ModelCollisionGeometry *geometry = (ModelCollisionGeometry *)tag_instances[collision_tag_index].data;
-                uint8_t responsible_object_flag = (uint8_t)((dd->flags >> 2) & 1);
-                int8_t friendly_fire_blocked = 0;
-                int8_t apply_shield_gate = 1;
-                int8_t apply_notify_gate = 1;
-                int16_t material_type_cache = 0;
-                int32_t attributable_to_live_player;
-                ModelCollisionGeometryMaterial *material;
-                uint8_t notify_permitted = responsible_object_flag;
-
-                if (target->network_role == 3 || target->network_role == 0) {
-                    attributable_to_live_player = 1;
-                } else {
-                    attributable_to_live_player = 1;
-                    if (dd->responsible_player != (datum_index)0xffffffff) {
-                        int16_t index = (int16_t)dd->responsible_player;
-                        if (-1 < index && index < player_data->maximum_count) {
-                            int16_t *record = (int16_t *)((uint8_t *)player_data->data + player_data->size * index);
-                            if (*record != 0) {
-                                int16_t salt = (int16_t)(dd->responsible_player >> 0x10);
-                                if ((salt == 0 || *record == salt) && record[1] != -1) {
-                                    attributable_to_live_player = 0;
-                                }
+                if (owner_record != 0) {
+                    friendly = (uint8_t)(teams_are_enemies(dd->team_index,
+                        *(int16_t *)((uint8_t *)owner_record + 0x20)) == 0);
+                    if (friendly) {
+                        switch (g_006f1cf4) {
+                        case 0:
+                            shield_allowed = 0;
+                            body_allowed = 0;
+                            break;
+                        case 2:
+                            shield_allowed = 1;
+                            body_allowed = 0;
+                            break;
+                        case 3:
+                            if ((*(uint8_t *)(effect_block + 0x4) & 0x20) == 0) {
+                                shield_allowed = 0;
+                                body_allowed = 0;
                             }
+                            break;
                         }
                     }
-                }
-
-                if (current_game_engine != 0 && g_006f1cbc != 0) {
-                    int32_t controller = player_index_from_unit_index(target_handle);
-                    if (controller != -1 && (uint32_t)controller != dd->responsible_player) {
-                        int16_t index = (int16_t)controller;
-                        if (-1 < index && index < player_data->maximum_count) {
-                            int16_t *record = (int16_t *)((uint8_t *)player_data->data + player_data->size * index);
-                            if (*record != 0) {
-                                int16_t salt = (int16_t)((uint32_t)controller >> 0x10);
-                                if (salt == 0 || *record == salt) {
-                                    int8_t is_ai = teams_are_enemies(dd->team_index, record[0x10]); // 0x4eecd0: CX = damage team (+0x10), DX = the player's team (record +0x20)
-
-                                    friendly_fire_blocked = (int8_t)(1 - (is_ai != 0));
-                                    if (friendly_fire_blocked != 0) {
-                                        // 0x4eed0b clears bVar2 (apply_shield_gate) and then falls
-                                        // through to the shared bVar20 = false; both modes 0 and
-                                        // 3-without-the-0x20-flag go through it.
-                                        if (g_006f1cf4 == 0) {
-                                            apply_shield_gate = 0;
-                                            apply_notify_gate = 0;
-                                        } else if (g_006f1cf4 == 2) {
-                                            apply_shield_gate = 1;
-                                            apply_notify_gate = 0;
-                                        } else if (g_006f1cf4 == 3) {
-                                            if ((effect->damage_flags & 0x20) != 0) {
-                                                goto friendly_fire_resolved;
-                                            }
-                                            apply_shield_gate = 0;
-                                            apply_notify_gate = 0;
-                                        } else {
-                                            goto friendly_fire_resolved;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-friendly_fire_resolved:
-                if (-1 < param_3 && param_3 < geometry->nodes.count) {
-                    // CONCAT22 in the original: only the low half of local_5c is written, so the
-                    // 0xffff it was seeded with stays in the high half.
-                    local_5c = (int32_t)((local_5c & 0xffff0000) |
-                        (uint32_t)*(uint16_t *)((uint8_t *)geometry->nodes.pointer + param_3 * 0x40 + 0x32));
-                }
-
-                if (used_difficulty_random != 0) {
-                    local_78 = 0x20;
-                }
-
-                // UNSURE: `local_70[0x2e]` (object word-index 0x2e, byte offset 0xb8) is a raw
-                // field with no name in types/objects.h; team comparison kept literal.
-                if ((int16_t)dd->team_index != -1) {
-                    int16_t sVar12 = target->owner_team;
-                    int16_t sVar8 = (int16_t)dd->team_index;
-                    int8_t different_team;
-                    int8_t known = 1;
-
-                    if (current_game_engine == 0) {
-                        if (sVar12 < 0 || 9 < sVar12 || sVar8 < 0 || 9 < sVar8) {
-                            known = 0;
-                            different_team = 1;
-                        } else {
-                            int32_t bit_index = (int32_t)sVar8 + sVar12 * 10;
-                            different_team = (int8_t)(1 - ((1 << (bit_index & 0x1f) & g_006b0b84[7 + (bit_index >> 5)]) != 0));
-                        }
-                    } else {
-                        different_team = (int8_t)(sVar12 != sVar8);
-                    }
-                    if (known && different_team == 0) {
-                        local_78 = local_78 | 0x10;
-                    }
-                }
-                if (chain_count == 0 && -1 < param_5 && param_5 < geometry->materials.count) {
-                    material = &((ModelCollisionGeometryMaterial *)geometry->materials.pointer)[param_5];
-                } else {
-                    int16_t default_material = geometry->indirect_damage_material;
-                    if (default_material < 0 || geometry->materials.count <= default_material) {
-                        material = &default_collision_material;
-                    } else {
-                        material = &((ModelCollisionGeometryMaterial *)geometry->materials.pointer)[default_material];
-                    }
-                }
-                material_type_cache = material->material_type;
-                dd->material_type = material_type_cache;
-
-                if (g_0087abc7 != 0 && dd->responsible_player != (datum_index)0xffffffff) {
-                    notify_permitted = 1;
-                }
-                if (effect->damage_side_effect == 2 && unit_point_in_front_and_asleep() != 0 &&
-                    (*((uint8_t *)target + 0x107) & 8) == 0) {
-                    notify_permitted = 1;
-                }
-
-                if ((int8_t)role_is_deletable == 1 && notify_permitted != 0 &&
-                    (target->vitality_flags & _object_health_frozen_bit) == 0 &&
-                    (friendly_fire_blocked == 0 || apply_notify_gate)) {
-                    *(uint32_t *)((uint8_t *)target + 0xe0) = 0; // local_70[0x38]: a 4-byte write
-                    object_set_health_frozen_flag();
-                    local_78 = local_78 | 0x41;
-                }
-
-                if ((dd->flags & 0x20) == 0 && (effect->damage_flags & 0x200) == 0 &&
-                    target->maximum_shield_vitality > 0.0f &&
-                    (friendly_fire_blocked == 0 || apply_shield_gate) &&
-                    (chain_count == 0 || (geometry->flags & 1) != 0)) {
-                    object_apply_shield_damage(target_handle, geometry, material, effect, &local_78,
-                        &shield_damage_out, &damage_amount, (int8_t)role_is_deletable,
-                        (int8_t)attributable_to_live_player, 0);
-                }
-
-                if ((chain_count == 0 || (has_no_parent_never_takes_body_damage != 0 && (geometry->flags & 2) != 0)) &&
-                    (effect->damage_flags & 0x40) == 0) {
-                    int32_t body_node;
-                    int32_t body_param4;
-
-                    if (((geometry->flags & 0x20) != 0 && (effect->damage_flags & 0x20) == 0) ||
-                        (friendly_fire_blocked != 0 && !apply_notify_gate)) {
-                        damage_amount = 0.0f;
-                    }
-                    if (chain_count == 0) {
-                        body_node = param_3;
-                        body_param4 = param_4;
-                    } else {
-                        body_node = -1;
-                        body_param4 = -1;
-                    }
-                    object_apply_body_damage(target_handle, body_param4, body_node,
-                        ((chain_count != 0) - 1) & param_6, geometry, material, effect, dd, &local_78,
-                        &body_damage_out, &param11_out, damage_amount, (int8_t)role_is_deletable);
-                    chain_count = 0;
-                }
-
-                if (bVar3 == 0 && (0.0001f < shield_damage_out || 0.0001f < body_damage_out)) {
-                    if (shield_damage_out <= body_damage_out) {
-                        float v = *(float *)((uint8_t *)target + 0xe0); // UNSURE: local_70[0x38]
-                        if (0.0f <= v) {
-                            dd->unknown_48 = (v <= 1.0f) ? *(uint32_t *)&v : 0x3f800000;
-                        } else {
-                            dd->unknown_48 = 0;
-                        }
-                    } else {
-                        dd->material_type = *(int16_t *)((uint8_t *)geometry + 0xd2); // UNSURE
-                        dd->unknown_48 = *(uint32_t *)((uint8_t *)target + 0xe4); // UNSURE: local_70[0x39]
-                    }
-                    bVar3 = 1;
-                }
-
-                // local_54 is the object HANDLE (local_68), not the byte offset local_48.
-                object_notify_pickup_or_refresh_probe(final_target, dd->responsible_player);
-                    // UNSURE: the EDI player handle is not visible at this call site;
-                    // dd->responsible_player is the only player handle live here.
-
-                if (0.0f < shield_damage_out && target->type == _object_type_biped) {
-                    *((uint8_t *)target + 0x122) = 1;
                 }
             }
+        }
+        if (node_index >= 0 && node_index < *(int32_t *)(geometry + 0x28c)) {
+            *(int16_t *)&region = *(int16_t *)(*(uint8_t **)(geometry + 0x290) + node_index * 0x40 + 0x32);
+        }
+        if (difficulty_scaled) {
+            notify_flags = 0x20;
+        }
+        if (dd->team_index != -1) {
+            int16_t team = *(int16_t *)(obj + 0xb8);
 
-            object_damage_notify_and_impulse(final_target, dd, local_78, shield_damage_out,
-                body_damage_out, param11_out, local_5c, role_is_deletable);
-
-            if ((local_78 & 4) != 0) {
-                int32_t role = headers[final_index_bytes / 0xc].data->network_role;
-
-                // 0x4ef133: role 0 calls object_delete_unparented and then FALLS THROUGH into
-                // object_delete_recursive; only roles other than 0 and 3 skip the recursive delete.
-                if (role == 0) {
-                    object_delete_unparented(final_target); // UNSURE: EDI at 0x4ef12b
+            if (current_game_engine != 0) {
+                if (team == dd->team_index) {
+                    notify_flags |= 0x10;
                 }
-                if (role == 0 || role == 3) {
-                    object_delete_recursive(final_target, 0);
+            } else if (team >= 0 && team < 10 && dd->team_index >= 0 && dd->team_index < 10) {
+                if (teams_are_friends(team * 10 + dd->team_index)) {
+                    notify_flags |= 0x10;
                 }
             }
+        }
+        if (i == 0 && material_index >= 0 && material_index < *(int32_t *)(geometry + 0x234)) {
+            material = *(uint8_t **)(geometry + 0x238) + material_index * 0x48;
+        } else if (*(int16_t *)(geometry + 0x4) >= 0 && *(int16_t *)(geometry + 0x4) < *(int32_t *)(geometry + 0x234)) {
+            material = *(uint8_t **)(geometry + 0x238) + *(int16_t *)(geometry + 0x4) * 0x48;
+        } else {
+            material = (uint8_t *)&default_collision_material;
+        }
+        dd->material_type = *(int16_t *)(material + 0x24);
+        if (g_0087abc7 && dd->responsible_player != k_datum_index_none) {
+            kill = 1;
+        }
+        if (*(int16_t *)effect_block == 2 && unit_point_in_front_and_asleep(&dd->origin, id) &&
+            (obj[0x107] & 8) == 0) {
+            kill = 1;
+        }
+        if (target_is_local == 1 && kill && (obj[0x106] & 4) == 0 && (!friendly || body_allowed)) {
+            *(float *)(obj + 0xe0) = 0.0f;
+            object_set_health_frozen_flag(id);
+            notify_flags |= 0x41;
+        }
+        if ((dd->flags & 0x20) == 0 && (*(uint32_t *)(effect_block + 0x4) & 0x200) == 0 &&
+            *(float *)(obj + 0xdc) > 0.0f && (!friendly || shield_allowed) && (i == 0 || (*geometry & 1))) {
+            object_apply_shield_damage(id, geometry, material, effect_block, &notify_flags, &shield_damage, &amount,
+                target_is_local, apply_state, &record);
+        }
+        if ((i == 0 || (parents_take_damage && (*geometry & 2))) &&
+            (*(uint8_t *)(effect_block + 0x4) & 0x40) == 0) {
+            if (((*geometry & 0x20) && (*(uint8_t *)(effect_block + 0x4) & 0x20) == 0) ||
+                (friendly && !body_allowed)) {
+                amount = 0.0f;
+            }
+            object_apply_body_damage(id, (i == 0) ? region_index : -1, (i == 0) ? node_index : -1,
+                (void *)(uintptr_t)((i == 0) ? param_6 : 0), geometry, material, effect_block, dd, &notify_flags,
+                &body_damage, &material_multiplier, amount, target_is_local);
+            remaining = 0;
+        }
+        if (!reported && (shield_damage > 0.0001f || body_damage > 0.0001f)) {
+            if (shield_damage > body_damage) {
+                dd->material_type = *(int16_t *)(geometry + 0xd2);
+                dd->unknown_48 = *(uint32_t *)(obj + 0xe4);
+            } else {
+                float vitality = *(float *)(obj + 0xe0);
+
+                if (vitality < 0.0f) {
+                    vitality = 0.0f;
+                } else if (vitality > 1.0f) {
+                    vitality = 1.0f;
+                }
+                *(float *)&dd->unknown_48 = vitality;
+            }
+            reported = 1;
+        }
+        object_notify_pickup_or_refresh_probe(id, dd->responsible_player);
+        if (shield_damage > 0.0f && *(int16_t *)(obj + 0xb4) == 0) {
+            obj[0x122] = 1;
+        }
+notify:
+        object_damage_notify_and_impulse(id, dd, notify_flags, shield_damage, body_damage,
+            *(uint32_t *)&material_multiplier, region, target_is_local);
+        if (notify_flags & 4) {
+            int32_t role = *(int32_t *)(object_get(id) + 0x4);
+
+            if (role == 0) {
+                object_delete_unparented(id);
+                object_delete_recursive(id, 0);
+            } else if (role == 3) {
+                object_delete_recursive(id, 0);
+            }
+        }
+        if (!(amount > 0.0f)) {
+            break;
         }
     }
 }

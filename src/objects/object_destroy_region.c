@@ -32,10 +32,9 @@ extern void object_set_permutation_by_name(uint32_t object_index, char *name, in
     // masking EAX into the object_data stride, so the object index is a fourth (register)
     // argument. Matches src/objects/object_set_permutation_by_name.c's own definition.
 extern void object_set_health_frozen_flag(uint32_t object_index); // UNSURE: zero visible args at this call site; this module, 0x4eda20
-extern void object_type_definitions_notify_region_damage(uint32_t object_index); // this module,
-    // 0x4f4160. Its body reads only EBX (the object index) and forwards nothing to the +0x40
-    // hooks, so the two values Ghidra shows pushed here are not parameters it reads.
-    // UNSURE: how the region index reaches the hook.
+extern void object_type_definitions_notify_region_damage(uint32_t object_index, uint32_t argument_1,
+    uint32_t argument_2); // 0x4f4160, EBX object, stack (region index, region flags): its +0x40 hooks get all three
+    // (0x4f417f / 0x4f41a9 read both stack arguments).
 
 void object_destroy_region(uint32_t object_index, int32_t region_index)
 {
@@ -71,7 +70,8 @@ void object_destroy_region(uint32_t object_index, int32_t region_index)
             }
 
             obj->destroyed_region_flags |= (uint16_t)(1 << (region_index & 0x1f));
-            object_type_definitions_notify_region_damage(object_index);
+            object_type_definitions_notify_region_damage(object_index, (uint32_t)region_index, region->flags);
+                // 0x4f03bf: EBX object, stack (the region index dword, the region flags +0x20)
         }
     }
 }

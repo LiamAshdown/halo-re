@@ -1,23 +1,13 @@
 // player_effect_mark_damage_direction_dispatch  (Ghidra: FUN_00456ad0, still unnamed there)
 // address 0x456ad0, size 237 bytes
-// name confidence: 0.3   rewrite confidence: 0.2 (low confidence: param_1's shape, the
-//   message_delta_decode_compound_field/message_delta_decode_compound_field_staged gate and the exact fields of the local descriptor forwarded to
-//   player_effect_mark_damage_direction are none of them established elsewhere in this batch)
-// evidence: this module's player_effect_mark_damage_direction (0x456cf0), which this function's
-//   tail call feeds. out/phase4/effects_types_notes.md's misattribution table places this
-//   address in the player_effect group, not the "contrail" framing functions.md guessed at
-//   phase 2.
-// register convention: a small descriptor pointer in EAX (in_EAX, first dword tested against
-//   zero to pick between two foreign gate functions).
-//   // blam-cc: in_EAX -> descriptor
-// UNSURE (extensive): message_delta_decode_compound_field/message_delta_decode_compound_field_staged are foreign gate functions this batch does not
-//   otherwise examine; the on-stack player_data-derived value built at local_64/local_58 with
-//   the same XOR-0x69746572 pattern seen in player_weapon_locality_for_object.c is modeled the
-//   same way there -- as an ordinary data_iterator over player_data -- rather than
-//   reverse-engineered. The loop only ever uses the FIRST live player record and only reaches
-//   the tail call when the player has a valid local_player_index, matching the decompile's
-//   early `return` inside the loop body.
-// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
+// name confidence: 0.3   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x456ad0..0x456bbc: the client side of the type 0xb message that
+//   player_effect_send_network_update (0x456bc0) builds. EAX: the decode context. When **context is set the
+//   message is staged (0x4ec670); otherwise it is decoded (0x4ec590) into {tag, object network id, flags,
+//   direction, blend, amount} and the first player with a local index gets
+//   player_effect_mark_damage_direction(player, {tag, flags, object}, &direction, blend, amount), the network id
+//   mapped back to an object through object_pooled_node_globals +0x28 (-1 for id 0).
+// blam-cc: EAX -> context
 
 #include "tags.h"
 #include "memory.h"
@@ -25,43 +15,46 @@
 #include "objects.h"
 #include "game.h"
 #include <stdint.h>
+#include <string.h>
 
 extern data_array *player_data; // 0x0087a480
+extern uint8_t *object_pooled_node_globals; // 0x00687130
 
-extern uint8_t message_delta_decode_compound_field(int32_t a1, int32_t a2, int32_t a3); // 0x4ec590, UNSURE: out of range
-extern void message_delta_decode_compound_field_staged(void); // 0x4ec670, UNSURE: out of range
-extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
-extern void player_effect_mark_damage_direction(uint32_t object_index, uint32_t *descriptor,
-    void *direction_block, void *rotation_block, float falloff); // 0x456cf0, this module
+extern uint8_t message_delta_decode_compound_field(void **context, void *destination); // 0x4ec590, EAX, ECX
+extern uint8_t message_delta_decode_compound_field_staged(void **context); // 0x4ec670, EAX
+extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, EDI
+extern void player_effect_mark_damage_direction(datum_index player_index, const damage_data *dd,
+    const real_vector3d *direction, float random_blend, float damage_amount); // 0x456cf0, EAX, stack
 
-void player_effect_mark_damage_direction_dispatch(uint32_t *descriptor)
+void player_effect_mark_damage_direction_dispatch(void **context)
 {
-    if (*(int32_t *)*descriptor != 0) {
-        message_delta_decode_compound_field_staged();
+    uint32_t fields[8];
+    data_iterator iterator;
+    player *record;
+    damage_data dd;
+
+    if (**(int32_t **)context != 0) {
+        message_delta_decode_compound_field_staged(context);
         return;
     }
-
-    if (message_delta_decode_compound_field(0, 0, 0) != 0) {
-        data_iterator iterator;
-        player *record;
-        uint32_t local_descriptor[7] = {0, 0, 0, 0, 0, 0, 0};
-
-        iterator.data = player_data;
-        iterator.next_index = 0;
-        iterator.index = (datum_index)0xffffffff;
-        iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-
-        record = (player *)data_iterator_next(&iterator);
-        while (record != (player *)0) {
-            if (record->local_player_index != -1) {
-                local_descriptor[3] = 0xffffffff; // UNSURE: only ever the "no fourth object"
-                                    // case, since the counter this branches on is always 0 here
-                player_effect_mark_damage_direction((uint32_t)iterator.index, local_descriptor,
-                    &local_descriptor[3], &local_descriptor[4], 0.0f); // UNSURE: field bindings
-                                    // guessed, see file header
-                return;
-            }
-            record = (player *)data_iterator_next(&iterator);
+    memset(fields, 0, sizeof(fields));
+    if (!message_delta_decode_compound_field(context, fields)) {
+        return;
+    }
+    iterator.data = player_data;
+    iterator.next_index = 0;
+    iterator.index = (datum_index)0xffffffff;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+    for (record = (player *)data_iterator_next(&iterator); record != 0;
+         record = (player *)data_iterator_next(&iterator)) {
+        if (record->local_player_index != -1) {
+            dd.damage_effect_tag = fields[0];
+            dd.responsible_object = (fields[1] != 0) ?
+                (*(datum_index **)(object_pooled_node_globals + 0x28))[fields[1]] : k_datum_index_none;
+            dd.flags = fields[2];
+            player_effect_mark_damage_direction(iterator.index, &dd, (const real_vector3d *)&fields[3],
+                *(float *)&fields[6], *(float *)&fields[7]);
+            return;
         }
     }
 }

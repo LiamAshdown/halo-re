@@ -1,123 +1,100 @@
 // damage_effect_new_at_location
 // address 0x4f0010, size 640 bytes
-// name confidence: 0.9 (out/phase4/objects_functions.md, corroborated by the "normal"/"incident"/
-// "negative incident"/"reflection"/"gravity" strings)
-// rewrite confidence: 0.25
-// evidence: types/objects.h object.position/forward/up (0x05c/0x074/0x080, via
-// object_get_position); the five name strings themselves.
-// UNSURE (function-wide): every register parameter here is implicit (in_EAX, in_ECX, unaff_EBX,
-// unaff_EDI) with no visible assignment in the decompile, so their identities are inferred only
-// from usage (in_EAX = normal vector, in_ECX = optional incident vector, unaff_EBX = impact
-// position, unaff_EDI = object index). The 15-float block passed to effect_new_on_object_with_node_table as `&local_98`
-// is reconstructed here as one contiguous struct spanning what Ghidra shows as five separate
-// locals (local_98 through local_60), in stack order, on the theory that it is one flat array
-// paired positionally with the five name strings — the fifth "vector" turns out to be the
-// 3-float constant copied from PTR_DAT_0069672c at the top of the function, not a directly
-// computed reflection/gravity vector, so this pairing is not independently confirmed.
-// effect_new_on_object_with_node_table and effect_new_with_color are both outside this module (effects module).
-// register convention: real_vector3d *normal in EAX (in_EAX); real_vector3d *incident in ECX
-// (in_ECX, may be null); real_point3d *impact_position in EBX (unaff_EBX); uint32_t object_index
-// in EDI (unaff_EDI); datum_index effect_tag on the stack (param_1); int16_t node_index on the
-// stack (param_2).
-// blam-cc: EAX=normal, ECX=incident, EBX=impact_position, EDI=object_index,
-//   stack=(effect_tag, node_index)
+// name confidence: 0.5
+// rewrite confidence: 0.85
+// REWRITTEN from objdump 0x4f0010..0x4f02c7 and its caller object_apply_body_damage (0x4ef7ac). EAX: the
+//   damage direction, ECX: the hit plane or 0, EBX: the impact point, EDI: the object; stack (effect, node).
+//   Builds the five named effect vectors -- "normal" (the plane normal, or the impact point's direction from
+//   the object, else its forward), "incident" (-direction), "negative incident" (direction), "reflection"
+//   (direction reflected about the normal) and "gravity" (*0x69672c) -- all at the impact point, and spawns the
+//   effect on the object's node (0x450870: EAX creator, ECX effect, EDX object, scale 1 / 0) or, with no object
+//   or node, in the world (0x450980, velocity *0x696714). A zero direction falls back to *0x696718.
+// blam-cc: EAX=normal, ECX=incident, EBX=impact_position, EDI=object_index, stack=(effect_tag, node_index)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include <stdint.h>
+#include "effects.h"
 
 extern data_array *object_data; // 0x008603b0
-extern float g_0069672c[3];     // 0x0069672c, PTR_DAT_0069672c, UNSURE: a constant direction
-extern real_vector3d object_placement_default_forward; // 0x00696718, PTR_DAT_00696718, the shared "forward" constant
+extern real_vector3d *global_down3d_pointer;    // 0x0069672c, the gravity direction
+extern real_vector3d *global_forward3d_pointer; // 0x00696718
+extern real_vector3d *global_origin3d_pointer;  // 0x00696714
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // math module, 0x401990
-extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900 (out of range)
-extern void effect_new_on_object_with_node_table(); // effects module, 0x450870
-    // The convention of this foreign callee is not established: different call sites in this
-    // module pass different numbers of visible arguments, and it also takes values in EAX
-    // and ECX that the decompiler never models. Declared with an empty parameter list so
-    // every site in the module agrees on ONE declaration without fabricating arguments. // effects module, 0x450870
-extern void effect_new_with_color(datum_index effect_tag); // effects module, 0x450980
+extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX, ECX
+extern datum_index effect_new_on_object_with_node_table(datum_index creator_object_index,
+    datum_index definition_index, datum_index object_index, uint16_t node_index,
+    uint16_t ctx_08, uint32_t ctx_0c, uint32_t ctx_10, uint32_t ctx_14, real a_scale,
+    real b_scale, const ColorRGB *color, const effect_tint_source *tint_source); // 0x450870, EAX, ECX, EDX, stack
+extern datum_index effect_new_with_color(datum_index definition_index, datum_index creator_object_index,
+    const real_vector3d *velocity, uint16_t ctx_08, uint32_t ctx_0c, real_point3d *position,
+    uint32_t ctx_14, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source,
+    uint8_t force_create); // 0x450980
 
 void damage_effect_new_at_location(datum_index effect_tag, int16_t node_index, real_vector3d *normal,
     real_vector3d *incident, real_point3d *impact_position, uint32_t object_index)
 {
-    object_header *headers = (object_header *)object_data->data;
-    real gravity_constant[3];
-    real_vector3d n = *normal;
-    char *names[5];
+    static const char *const k_names[5] = { "normal", "incident", "negative incident", "reflection", "gravity" };
+    const char *names[5];
+    real_vector3d gravity = *global_down3d_pointer;
+    real_vector3d direction = *normal;
+    real_vector3d vectors[5];   // normal, incident, negative incident, reflection, gravity
     real_point3d positions[5];
-    damage_effect_vector_block vectors;
     int32_t i;
 
-    gravity_constant[0] = g_0069672c[0];
-    gravity_constant[1] = g_0069672c[1];
-    gravity_constant[2] = g_0069672c[2];
-
-    names[0] = "normal";
-    names[1] = "incident";
-    names[2] = "negative incident";
-    names[3] = "reflection";
-    names[4] = "gravity";
-
-    if (vector3d_normalize_with_length(&n) == 0.0f) {
-        n = object_placement_default_forward;
+    for (i = 0; i < 5; i++) {
+        names[i] = k_names[i];
     }
-
-    vectors.vector2.i = n.i; vectors.vector2.j = n.j; vectors.vector2.k = n.k;       // "normal"
-    vectors.vector1.i = -n.i; vectors.vector1.j = -n.j; vectors.vector1.k = -n.k;    // -normal ("negative incident"?)
-
+    if (vector3d_normalize_with_length(&direction) == 0.0f) {
+        direction = *global_forward3d_pointer;
+    }
+    vectors[1].i = direction.i * -1.0f;
+    vectors[1].j = direction.j * -1.0f;
+    vectors[1].k = direction.k * -1.0f;
+    vectors[2] = direction;
     if (incident == 0) {
         real_point3d object_position;
-        real_vector3d to_object;
+        real_vector3d away;
+        float dot2;
 
         object_get_position(&object_position, object_index);
-        to_object.i = impact_position->x - object_position.x;
-        to_object.j = impact_position->y - object_position.y;
-        to_object.k = impact_position->z - object_position.z;
-
-        if (vector3d_normalize_with_length(&to_object) == 0.0f) {
-            object *obj = headers[object_index & 0xffff].data;
-            to_object = obj->forward;
+        away.i = impact_position->x - object_position.x;
+        away.j = impact_position->y - object_position.y;
+        away.k = impact_position->z - object_position.z;
+        if (vector3d_normalize_with_length(&away) == 0.0f) {
+            away = *(real_vector3d *)((uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data + 0x74);
         }
-
-        vectors.vector0.i = to_object.i; vectors.vector0.j = to_object.j; vectors.vector0.k = to_object.k; // "incident"
-
-        {
-            real dot2 = (n.i * to_object.i + n.k * to_object.k + to_object.j * n.j);
-            dot2 = dot2 + dot2;
-            vectors.vector0.i = to_object.i * dot2; // UNSURE: reused as "reflection" scratch, see original
-            vectors.vector0.j = to_object.j * dot2;
-            vectors.vector0.k = to_object.k * dot2;
-        }
-    } else {
-        real dot2;
-
-        vectors.vector0 = *incident;
-        dot2 = n.i * incident->i + n.j * incident->j + n.k * incident->k;
+        vectors[0] = away;
+        dot2 = away.j * direction.j + direction.k * away.k + direction.i * away.i;
         dot2 = dot2 + dot2;
-        vectors.vector0.i = dot2 * incident->i;
-        vectors.vector0.j = dot2 * incident->j;
-        vectors.vector0.k = dot2 * incident->k;
+        vectors[3].i = direction.i - away.i * dot2;
+        vectors[3].j = direction.j - away.j * dot2;
+        vectors[3].k = direction.k - away.k * dot2;
+    } else {
+        float dot2;
+
+        vectors[0] = *incident;
+        dot2 = direction.k * incident->k + direction.j * incident->j + direction.i * incident->i;
+        dot2 = dot2 + dot2;
+        vectors[3].i = direction.i - dot2 * incident->i;
+        vectors[3].j = direction.j - dot2 * incident->j;
+        vectors[3].k = direction.k - dot2 * incident->k;
     }
-
-    vectors.vector3.i = n.i - vectors.vector0.i; // UNSURE: local_74/70/6c, "reflection"
-    vectors.vector3.j = n.j - vectors.vector0.j;
-    vectors.vector3.k = n.k - vectors.vector0.k;
-    vectors.vector4.i = gravity_constant[0];
-    vectors.vector4.j = gravity_constant[1];
-    vectors.vector4.k = gravity_constant[2];
-
+    vectors[4] = gravity;
     for (i = 0; i < 5; i++) {
         positions[i] = *impact_position;
     }
-
     if (object_index != 0xffffffff && node_index != -1) {
-        effect_new_on_object_with_node_table(node_index, 5, names, positions, &vectors.vector0, 0x3f800000, 0, 0, 0);
+        effect_new_on_object_with_node_table(object_index, effect_tag, object_index, (uint16_t)node_index, 5,
+            (uint32_t)(uintptr_t)names, (uint32_t)(uintptr_t)positions, (uint32_t)(uintptr_t)vectors,
+            1.0f, 0.0f, 0, 0);
         return;
     }
-    effect_new_with_color(effect_tag);
+    effect_new_with_color(effect_tag, object_index, global_origin3d_pointer, 5, (uint32_t)(uintptr_t)names,
+        positions, (uint32_t)(uintptr_t)vectors, 1.0f, 0.0f, 0, 0, 0);
 }
 
 #if 0

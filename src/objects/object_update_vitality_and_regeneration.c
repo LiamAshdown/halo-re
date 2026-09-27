@@ -1,21 +1,22 @@
 // object_update_vitality_and_regeneration
 // address 0x4ed510, size 1152 bytes
-// name confidence: 0.5 (Ghidra-recovered name)
-// rewrite confidence: 0.35
-// evidence: types/objects.h object (maximum_shield_vitality 0xdc, shield_vitality 0xe4,
-// current_shield_damage 0xe8, current_body_damage 0xec, recent_shield_damage 0xf4,
-// recent_body_damage 0xf8, shield_damage_ticks 0xfc, body_damage_ticks 0x100,
-// shield_stun_ticks 0x104, vitality_flags 0x106, network_role 0x04, type 0xb4);
-// types/tags.h ModelCollisionGeometry.shield_recharge_rate (0x1c0).
-// UNSURE: the crush/out-of-bounds gate tests vitality_flags bits 0x20 and 0x40, which are not
-// in object_vitality_flags (a documented gap in types/objects.h between 0x10 and 0x80); the
-// global chain `*(int*)(DAT_00746fa0+0x18c)+0x1c` walks into the player/local-player globals
-// this module does not own; weapon_get_zoom_fov_resolved/player_index_from_unit_index/hud_unit_meter_apply_predictive_damage are opaque externals; and the
-// trailing `object+0x538` test is a biped-specific extension field outside the common object
-// struct (gated on object.type == biped), so it is kept as a raw offset.
-// register convention: datum_index object_index on the stack (param_1).
+// name confidence: 0.6
+// rewrite confidence: 0.85
+// REWRITTEN from objdump 0x4ed510..0x4ed98f (the draft dropped the shield-depleted effect's EAX/ECX, the
+//   player of the overcharge HUD calls, and passed unlock 0 where the binary sets BL = 1). Stack: object.
+//   With a collision geometry (tag +0x7c): pending kill requests (+0x106 bits 0x20 / 0x40 / 0x2000) apply the
+//   globals' (+0x18c, +0x1c) damage effect as an instant kill (flag 4; 0x10 for bit 0x40, 0x80 for 0x2000)
+//   unless already dead (bit 4) and are cleared. Bit 0x1000 (shield charging) is cleared each tick. With a
+//   shield (+0xdc) on a live object: an overcharge (bit 0x10) grows 1/30 per tick up to 3 (then the bit is
+//   dropped); multiplayer bleeds an overcharge above 1 back by 1/1350 a tick, telling the player's HUD
+//   (0x4b16e0); a shield below 1 waits out its stun ticks (+0x104, counted down by the authoritative copy) and
+//   then recharges by geometry +0x1c0 times the difficulty table (0x46fe70, ECX 3), first clearing the
+//   depleted state (bit 8: the geometry's recharge effect +0x1b4 through 0x4efff0, regions unlocked through
+//   0x4f03e0 with BL 1). The body (+0x100 ticks, +0xec, +0xf8) and shield (+0xfc, +0xe8, +0xf4) damage timers
+//   then decay by 1/60 a tick (the recent value only after 60 ticks), clamp at 0 and stop at -1 once both are 0.
+//   Finally an authoritative biped whose stun state (+0x104 > 0) differs from +0x538 is marked for an update
+//   (+0x10 bit 0x4000000).
 // blam-cc: stack=object_index
-// reconciled: R04 0x006f1d20 uint8_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
 #include "memory.h"
@@ -26,160 +27,137 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern void *g_00746fa0;            // 0x00746fa0, UNSURE: player/local-player globals, not owned here
-extern game_engine_definition *current_game_engine;          // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
-                                    // and creation path branches on" (objects.h globals note)
+extern uint8_t *global_globals;     // 0x00746fa0, +0x18c -> +0x1c the kill damage effect
+extern game_engine_definition *current_game_engine; // 0x006f1d20
 
-extern void damage_data_initialize(damage_data *dd, datum_index damage_effect_tag); // 0x4ed990
-extern void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t node_index,
-    int16_t param_4, int16_t material_index, uint32_t param_6); // this module, 0x4ee5e0 // 0x4ee5e0
-extern void object_dispatch_effect_notify(void); // this module, 0x4efff0
-extern void object_regions_reset_permutation_lock(uint32_t object_index, int8_t unlock); // 0x4f03e0
+extern void object_apply_damage(damage_data *dd, uint32_t param_2, int16_t param_3, int16_t param_4,
+    int16_t param_5, uint32_t param_6); // 0x4ee5e0
+extern void damage_data_initialize(damage_data *dd, datum_index damage_effect_tag); // 0x4ed990, EDX, stack
+extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70, ECX, AX
+extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x474db0, stack
+extern void hud_unit_meter_apply_predictive_damage(datum_index player_index, float damage); // 0x4b16e0, ECX, stack
+extern void object_dispatch_effect_notify(uint32_t forwarded_eax, uint32_t forwarded_ecx); // 0x4efff0, EAX, ECX
+extern void object_regions_reset_permutation_lock(uint32_t object_index, int8_t unlock); // 0x4f03e0, EAX, BL
 
-extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70, ECX table, AX team: difficulty scale
-extern int32_t player_index_from_unit_index(datum_index object_index); // UNSURE: out of range, 0x474db0
-extern void hud_unit_meter_apply_predictive_damage(float delta); // UNSURE: out of range, 0x4b16e0. Ghidra prints one call
-    // as hud_unit_meter_apply_predictive_damage(0x3a422e45); that integer literal IS the IEEE-754 encoding of
-    // 0.00074074074f, so both call sites pass a float delta and the value below is exact.
+// 0x4ed7cd / 0x4ed88c: one damage timer pair decays by 1/60 a tick once running
+static void object_decay_damage_timer(int32_t *ticks, float *current, float *recent)
+{
+    int32_t t = *ticks;
+    float current_value;
+    float recent_value;
+
+    if (t == -1) {
+        return;
+    }
+    t++;
+    *ticks = t;
+    if (t >= 0) {
+        *current = *current - 0.016666668f;
+    }
+    if (t >= 0x3c) {
+        *recent = *recent - 0.016666668f;
+    }
+    current_value = (0.0f > *current) ? 0.0f : *current;
+    *current = current_value;
+    recent_value = (0.0f > *recent) ? 0.0f : *recent;
+    *recent = recent_value;
+    if (current_value == 0.0f && recent_value == 0.0f) {
+        *ticks = -1;
+    }
+}
 
 void object_update_vitality_and_regeneration(uint32_t object_index)
 {
-    object_header *headers = (object_header *)object_data->data;
-    object *obj = headers[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
-    TagID collision_model = definition->collision_model.tag_id;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    uint8_t *object_tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint16_t *vitality_flags = (uint16_t *)(obj + 0x106);
+    float *shield = (float *)(obj + 0xe4);
 
-    if (collision_model.index != 0xffff) {
-        ModelCollisionGeometry *geometry = (ModelCollisionGeometry *)tag_instances[collision_model.index].data;
+    if (*(datum_index *)(object_tag + 0x7c) != k_datum_index_none) {
+        uint8_t *geometry = (uint8_t *)tag_instances[*(datum_index *)(object_tag + 0x7c) & 0xffff].data;
 
         if (geometry != 0) {
-            uint16_t vitality = obj->vitality_flags;
+            uint16_t flags = *vitality_flags;
+            uint16_t kill_request = (uint16_t)(flags & 0x2000);
 
-            if ((vitality & 0x2000) != 0 || (vitality & 0x60) != 0) { // shield_stationary, or
-                                                                       // UNSURE 0x20/0x40 crush bits
-                if ((vitality & _object_health_frozen_bit) == 0) {
-                    int32_t *chain = *(int32_t **)((uint8_t *)g_00746fa0 + 0x18c); // UNSURE
-                    int32_t damage_effect_tag = chain[7]; // UNSURE: +0x1c
+            if (kill_request || (flags & 0x60)) {
+                datum_index effect = *(datum_index *)(*(uint8_t **)(global_globals + 0x18c) + 0x1c);
 
-                    if (damage_effect_tag != -1) {
-                        damage_data dd;
-                        uint32_t flags;
+                if ((flags & 4) == 0 && effect != k_datum_index_none) {
+                    damage_data dd;
 
-                        damage_data_initialize(&dd, (datum_index)damage_effect_tag);
-                        dd.random_blend = 1.0f;
-                        flags = dd.flags | 4;
-                        if ((vitality & 0x40) != 0) {
-                            flags = dd.flags | 0x14;
-                        }
-                        dd.flags = flags;
-                        if ((vitality & 0x2000) != 0) {
-                            dd.flags |= 0x80;
-                        }
-                        object_apply_damage(&dd, object_index, 0xffffffff, 0xffffffff, 0xffffffff, 0);
+                    damage_data_initialize(&dd, effect);
+                    dd.flags |= 4;
+                    dd.random_blend = 1.0f;
+                    if (flags & 0x40) {
+                        dd.flags |= 0x10;
                     }
+                    if (kill_request) {
+                        dd.flags |= 0x80;
+                    }
+                    object_apply_damage(&dd, object_index, -1, -1, -1, 0);
                 }
-                obj->vitality_flags &= 0xdf9f;
+                *vitality_flags &= 0xdf9f;
             }
+            obj[0x107] &= 0xef;
+            if (*(float *)(obj + 0xdc) > 0.0f && (*vitality_flags & 4) == 0) {
+                uint16_t current = *vitality_flags;
 
-            *((uint8_t *)obj + 0x107) &= 0xef; // clears _object_stunned_bit (0x1000)
-            vitality = obj->vitality_flags;
+                if (current & 0x10) {
+                    float value = *shield + 0.033333335f;
 
-            if (obj->maximum_shield_vitality > 0.0f && (vitality & _object_health_frozen_bit) == 0) {
-                if ((vitality & _object_shield_recharging_bit) == 0) {
-                    if (obj->shield_vitality <= 1.0f || current_game_engine == 0) {
-                        if (obj->shield_vitality < 1.0f) {
-                            if (obj->shield_stun_ticks == 0) {
-                                real rate = geometry->shield_recharge_rate;
-                                real scalar = weapon_get_zoom_fov_resolved(3, obj->owner_team); // 0x4ed732
-
-                                if ((obj->vitality_flags & _object_shield_depleted_bit) != 0) {
-                                    object_dispatch_effect_notify();
-                                    *((uint8_t *)obj + 0x106) &= 0xf7;
-                                    object_regions_reset_permutation_lock(object_index, 0); // UNSURE
-                                }
-                                *((uint8_t *)obj + 0x107) |= 0x10; // sets _object_stunned_bit
-
-                                obj->shield_vitality = scalar * rate + obj->shield_vitality;
-                                if (1.0f < obj->shield_vitality) {
-                                    obj->shield_vitality = 1.0f;
-                                    obj->vitality_flags &= 0xefff; // clears _object_stunned_bit
-                                }
-                            } else if (obj->network_role == 3 || obj->network_role == 0) {
-                                obj->shield_stun_ticks -= 1;
-                            }
-                        }
+                    *shield = value;
+                    if (value < 3.0f) {
+                        *vitality_flags = (uint16_t)(current | 0x1000);
                     } else {
-                        float shield = obj->shield_vitality;
-
-                        player_index_from_unit_index(object_index);
-                        if (0.00074074074f <= shield - 1.0f) {
-                            obj->shield_vitality = obj->shield_vitality - 0.00074074074f;
-                            hud_unit_meter_apply_predictive_damage(0.00074074074f);
-                        } else {
-                            obj->shield_vitality = 1.0f;
-                            hud_unit_meter_apply_predictive_damage(shield - 1.0f);
-                        }
+                        *shield = 3.0f;
+                        *vitality_flags = (uint16_t)(current & 0xffef);
                     }
-                } else {
-                    float ramp = obj->shield_vitality + 0.033333335f;
+                } else if (*shield > 1.0f && current_game_engine != 0) {
+                    datum_index player_index = player_index_from_unit_index(object_index);
+                    float excess = *shield - 1.0f;
 
-                    obj->shield_vitality = ramp;
-                    if (ramp < 3.0f) {
-                        obj->vitality_flags = vitality | 0x1000;
+                    if (0.00074074074f > excess) {
+                        *shield = 1.0f;
+                        hud_unit_meter_apply_predictive_damage(player_index, excess);
                     } else {
-                        obj->shield_vitality = 3.0f;
-                        obj->vitality_flags = vitality & 0xffef; // clears _object_shield_recharging_bit
+                        *shield = *shield - 0.00074074074f;
+                        hud_unit_meter_apply_predictive_damage(player_index, 0.00074074074f);
+                    }
+                } else if (*shield < 1.0f) {
+                    int16_t stun = *(int16_t *)(obj + 0x104);
+
+                    if (stun == 0) {
+                        float rate = weapon_get_zoom_fov_resolved(3, *(int16_t *)(obj + 0xb8)) *
+                            *(float *)(geometry + 0x1c0);
+                        float value;
+
+                        if (obj[0x106] & 8) {
+                            object_dispatch_effect_notify(object_index, *(uint32_t *)(geometry + 0x1b4));
+                            obj[0x106] &= 0xf7;
+                            object_regions_reset_permutation_lock(object_index, 1);
+                        }
+                        obj[0x107] |= 0x10;
+                        value = rate + *shield;
+                        *shield = value;
+                        if (value > 1.0f) {
+                            *shield = 1.0f;
+                            *vitality_flags &= 0xefff;
+                        }
+                    } else if (*(int32_t *)(obj + 0x4) == 3 || *(int32_t *)(obj + 0x4) == 0) {
+                        *(int16_t *)(obj + 0x104) = (int16_t)(stun - 1);
                     }
                 }
             }
-
-            if (obj->body_damage_ticks != -1) {
-                int32_t ticks = obj->body_damage_ticks + 1;
-
-                obj->body_damage_ticks = ticks;
-                if (ticks >= 0) {
-                    obj->current_body_damage -= 0.016666668f;
-                }
-                if (ticks > 0x3b) {
-                    obj->recent_body_damage -= 0.016666668f;
-                }
-                obj->current_body_damage = (obj->current_body_damage >= 0.0f) ? obj->current_body_damage : 0.0f;
-                obj->recent_body_damage = (obj->recent_body_damage >= 0.0f) ? obj->recent_body_damage : 0.0f;
-                if (obj->current_body_damage == 0.0f && obj->recent_body_damage == 0.0f) {
-                    obj->body_damage_ticks = -1;
-                }
-            }
-
-            if (obj->shield_damage_ticks != -1) {
-                int32_t ticks = obj->shield_damage_ticks + 1;
-
-                obj->shield_damage_ticks = ticks;
-                if (ticks >= 0) {
-                    obj->current_shield_damage -= 0.016666668f;
-                }
-                if (ticks > 0x3b) {
-                    obj->recent_shield_damage -= 0.016666668f;
-                }
-                obj->current_shield_damage = (obj->current_shield_damage >= 0.0f) ? obj->current_shield_damage : 0.0f;
-                obj->recent_shield_damage = (obj->recent_shield_damage >= 0.0f) ? obj->recent_shield_damage : 0.0f;
-                if (obj->current_shield_damage == 0.0f && obj->recent_shield_damage == 0.0f) {
-                    obj->shield_damage_ticks = -1;
-                }
-            }
+            object_decay_damage_timer((int32_t *)(obj + 0x100), (float *)(obj + 0xec), (float *)(obj + 0xf8));
+            object_decay_damage_timer((int32_t *)(obj + 0xfc), (float *)(obj + 0xe8), (float *)(obj + 0xf4));
         }
     }
+    if (*(int16_t *)(obj + 0xb4) == 0 && *(int32_t *)(obj + 0x4) == 0) {
+        uint8_t *object = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
 
-    if (obj->type == _object_type_biped && obj->network_role == 0) {
-        // The original re-reads the object pointer out of the data array here rather than reusing
-        // the one it loaded at the top, so the reload is kept: any of the calls above can move the
-        // object pool.
-        object *current = ((object_header *)object_data->data)[object_index & 0xffff].data;
-
-        // UNSURE: object+0x538 is a biped-extension field outside the common object struct.
-        // The original compares two booleans, so the byte is normalized with != 0 rather than
-        // widened (Ghidra prints the same thing as a (bool) cast of a char).
-        if ((0 < current->shield_stun_ticks) != (*((uint8_t *)current + 0x538) != 0)) {
-            current->flags |= _object_changed_bit;
+        if ((uint32_t)(*(int16_t *)(object + 0x104) > 0) != (uint32_t)object[0x538]) {
+            *(uint32_t *)(object + 0x10) |= 0x4000000;
         }
     }
 }

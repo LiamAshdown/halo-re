@@ -13,6 +13,7 @@
    build/standalone/resolve.asm), which logs the name to halo_standalone.log and exits. */
 #include <windows.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "standalone_tables.h"
 
@@ -323,7 +324,9 @@ static void emulate_crt_startup(void)
    game in the environment the tools run in, but keystrokes injected from inside the process do, so with
    HALO_STANDALONE_KEYS="delay_ms:KEY,delay_ms:KEY*count,..." a thread in this process brings the game window to the
    front and presses the keys by scan code through the normal OS path (window messages and DirectInput both see
-   them). KEY: ENTER ESC UP DOWN LEFT RIGHT SPACE TAB. Each press is logged. */
+   them). KEY: ENTER ESC UP DOWN LEFT RIGHT SPACE TAB W A S D E F G Q R X, or "KEY~ms" to hold a key for ms
+   milliseconds (e.g. 1000:W~2000 walks forward for 2 s). Mouse: MUP MDOWN MLEFT MRIGHT move the mouse 40 counts
+   per repeat (MUP*10), FIRE clicks the left button (FIRE~ms holds it). Each press is logged. */
 static char g_key_script[1024];
 
 static BOOL CALLBACK find_game_window(HWND hwnd, LPARAM out)
@@ -352,30 +355,55 @@ static DWORD WINAPI key_driver_thread(void *unused)
 {
     static const struct { const char *name; BYTE scan; BOOL extended; } keys[] = {
         {"ENTER", 0x1c, FALSE}, {"ESC", 0x01, FALSE}, {"UP", 0x48, TRUE}, {"DOWN", 0x50, TRUE},
-        {"LEFT", 0x4b, TRUE}, {"RIGHT", 0x4d, TRUE}, {"SPACE", 0x39, FALSE}, {"TAB", 0x0f, FALSE}};
+        {"LEFT", 0x4b, TRUE}, {"RIGHT", 0x4d, TRUE}, {"SPACE", 0x39, FALSE}, {"TAB", 0x0f, FALSE},
+        {"W", 0x11, FALSE}, {"A", 0x1e, FALSE}, {"S", 0x1f, FALSE}, {"D", 0x20, FALSE}, {"E", 0x12, FALSE},
+        {"F", 0x21, FALSE}, {"G", 0x22, FALSE}, {"Q", 0x10, FALSE}, {"R", 0x13, FALSE}, {"X", 0x2d, FALSE}};
+    static const struct { const char *name; int dx, dy; } moves[] = {
+        {"MUP", 0, -40}, {"MDOWN", 0, 40}, {"MLEFT", -40, 0}, {"MRIGHT", 40, 0}};
     char *step = g_key_script, *next;
     for (; step && *step; step = next) {
         char name[32] = {0};
-        int delay = 0, count = 1, i, k;
+        int delay = 0, count = 1, hold = 100, i, k, n = 0;
+        const char *tail;
         HWND hwnd = NULL;
         next = strchr(step, ',');
         if (next) *next++ = 0;
-        if (sscanf(step, "%d:%31[A-Z]*%d", &delay, name, &count) < 2) continue;
+        if (sscanf(step, "%d:%31[A-Z]%n", &delay, name, &n) < 2) continue;
+        tail = step + n;
+        if (*tail == '*') count = atoi(tail + 1);
+        else if (*tail == '~') hold = atoi(tail + 1);
         Sleep(delay);
         EnumWindows(find_game_window, (LPARAM)&hwnd);
         if (hwnd) bring_to_front(hwnd);
         Sleep(200);
+        for (k = 0; k < (int)(sizeof moves / sizeof moves[0]); k++) {
+            if (strcmp(moves[k].name, name) != 0) continue;
+            for (i = 0; i < count; i++) {
+                mouse_event(MOUSEEVENTF_MOVE, (DWORD)moves[k].dx, (DWORD)moves[k].dy, 0, 0);
+                Sleep(30);
+            }
+            log_line("key driver: mouse %s x%d", name, count);
+        }
+        if (strcmp(name, "FIRE") == 0) {
+            for (i = 0; i < count; i++) {
+                mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+                Sleep(hold);
+                mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+                Sleep(150);
+            }
+            log_line("key driver: fire x%d (hold %d ms)", count, hold);
+        }
         for (k = 0; k < (int)(sizeof keys / sizeof keys[0]); k++) {
             if (strcmp(keys[k].name, name) != 0) continue;
             for (i = 0; i < count; i++) {
                 DWORD flags = KEYEVENTF_SCANCODE | (keys[k].extended ? KEYEVENTF_EXTENDEDKEY : 0);
                 keybd_event(0, keys[k].scan, flags, 0);
-                Sleep(100);
+                Sleep(hold);
                 keybd_event(0, keys[k].scan, flags | KEYEVENTF_KEYUP, 0);
                 Sleep(150);
             }
-            log_line("key driver: pressed %s x%d (window %p, foreground %s)", name, count, (void *)hwnd,
-                     GetForegroundWindow() == hwnd ? "yes" : "NO");
+            log_line("key driver: pressed %s x%d hold %d ms (window %p, foreground %s)", name, count, hold,
+                     (void *)hwnd, GetForegroundWindow() == hwnd ? "yes" : "NO");
         }
     }
     return 0;

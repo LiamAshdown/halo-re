@@ -29,7 +29,7 @@ extern int16_t network_game_mode; // 0x00719720
 extern uint8_t network_action_apply_active; // 0x0071c2c0, UNSURE name
 
 // UNSURE: all zero-argument, per the file header note above.
-extern void player_effect_mark_damage_direction_dispatch(void);
+extern void player_effect_mark_damage_direction_dispatch(void **context); // 0x456ad0, EAX (0x4da3cf: the action entry)
 extern void game_engine_spawn_or_replay_netgame_equipment(void);
 extern void game_engine_handle_kill_feed_network_event(void);
 extern void game_engine_apply_player_profile_entry(void);
@@ -96,7 +96,7 @@ void network_game_action_apply(int32_t **action_entry)
         case 0xb:
         case_b:
             network_action_apply_active = 1;
-            player_effect_mark_damage_direction_dispatch();
+            player_effect_mark_damage_direction_dispatch((void **)action_entry);
             network_action_apply_active = 0;
             return;
         case 0xf:

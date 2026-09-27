@@ -1,44 +1,27 @@
 // unit_apply_damage_effects  (Ghidra: FUN_005674a0)
 // address 0x5674a0, size 3199 bytes
-// name confidence: 0.35 (matches functions.md's summary: "Applies the gameplay side effects of
-//   damage to a unit, including possible vehicle ejection, animation-state change, and
-//   impact-direction-based effects")   rewrite confidence: 0.2
-// evidence: types/objects.h damage_data (0x00 damage_effect_tag, 0x04 flags, 0x08
-//   responsible_player, 0x0c responsible_object, 0x34 direction, 0x40 random_blend);
-//   types/units.h unit_data.unknown_37c/0x404/0x406/0x408/0x40c/0x28b/0x2a3/0x2a7/0xcb-oob
-//   (driver/gunner 0x324/0x328), biped_data (vehicle exit/network fields); types/objects.h
-//   object.recent_shield_damage/recent_body_damage (0xf4/0xf8), object.body_vitality (0xe0),
-//   object.shield_vitality (0xe4), object.vitality_flags (0x106), object.parent_object (0x11c),
-//   object.forward (0x74), object.controlling_player is actually unit_data.controlling_player
-//   (0x218, read through the same object pointer since unit_data starts at object+0x1f4);
-//   types/tags.h Unit.feign_death_threshold/feign_death_time (0x22c/0x230), Unit.unit_flags
-//   (0x17c, has bit 0x40000 == definition_flag0-ish "entrance_inside_bounding_sphere"-adjacent).
-// register convention: this function has 1 caller and Ghidra recovered 7 named parameters
-//   directly (no in_EAX/in_ECX leftovers at entry), so they are taken verbatim.
-//   // blam-cc: param_1 -> unit_index, param_2 -> damage, param_3 -> flags,
-//   //   param_4 -> body_damage_amount, param_5 -> shield_damage_amount,
-//   //   param_6 -> forward_object (UNSURE), param_7 -> apply_effects
-// UNSURE: this is the single worst-decompiled function in the module. Past the first third,
-//   dozens of calls are shown with zero or one visible argument even though the immediately
-//   preceding statements plainly build a larger argument list on the stack (Ghidra even leaks
-//   raw return-address literals into several "stack variable" assignments, e.g.
-//   `puStack_144 = (uint *)0x56764b`, which is a sure sign its per-call stack-argument recovery
-//   gave up on this function). Every control-flow branch and every memory write from the
-//   original is preserved exactly, including in the vehicle-ejection block; only the *extra*
-//   arguments this rewrite could not recover for a handful of interior calls are left as the
-//   single argument Ghidra shows, each flagged UNSURE-CALL in place. Getting one of those wrong
-//   can only change a secondary notification (which node/marker a helper reads, whether a
-//   melee/seat-transition helper receives a redundant duplicate of a value it already holds via
-//   the surrounding object pointer); it cannot change unit_index, the object being modified, or
-//   any of the vitality/animation-state/seat writes this function performs directly.
-// UNSURE: several raw offsets into the parent/vehicle object (`0xbc`, `0xc9`, `0xca`, `0x1ea`,
-//   `0x1f2`, `0x2e8`) and into the DamageEffect tag (`0x1c4` response block and its own +0x04,
-//   +0x20, +0x24) are not named by this module's header; they are kept as literal byte offsets
-//   with an inline note of what the surrounding logic implies about them, rather than guessed
-//   field names.
-// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
-// reconciled: R32 follow-up: local extern player_control_globals (0x0071c2d8) renamed network_client (networking.h name) because game.h is now included and owns the player_control_globals typedef
-// reconciled: R04 0x006f1d20 int32_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
+// name confidence: 0.5   rewrite confidence: 0.8
+// REWRITTEN from objdump 0x5674a0..0x56811e and its one caller, object_damage_notify_and_impulse (0x4effc7).
+//   Stack: (unit, damage_data, notify flags, shield damage, body damage, region, is_local).
+//   Locally a unit with recent damage (+0xf4 + +0xf8) records the damage category (+0x404), a 45 tick timer
+//   (+0x406), the peak (+0x408) and the responsible object (+0x40c). Units with flag 0x10 (+0x204) lose the
+//   effect's +0x1c from +0x37c. Locally a kill is "violent" when effect +0x30 >= 2; a survivor with flag 0x2000
+//   whose recent body damage beats tag +0x22c is knocked down (+0x106 bit 4) for (random + tag +0x230) * 30 ticks,
+//   at least one (+0x420). An AI unit killed by an effect with flag 0x80 whose tag has flag 0x40000 leaves its
+//   seat: a seated vehicle (dropship cargo) is detached exactly as biped_update does (0x567729..0x567b04, the
+//   same inline sequence, helpers copied from biped_update.c), a biped not in a scripted animation plays its
+//   seat's death animation (slot 8) and then, like a unit killed outside any seat, is stunned (0x5705a0) and
+//   no longer counts as killed. Unless the damage has flag 0x10, a kill, knock-down or unit not yet knocked
+//   down (and neither +0x204 bit 0x800000 nor effect flag 0x10) builds the unit_state_change_record (direction
+//   and angle in xy against the unit's forward) and runs unit_update_stance_and_jump (0x566de0). Locally: the
+//   game engine's +0x64 callback between the two players, unit_record_recent_damage_and_react (0x568230) and
+//   unit_choose_combat_reaction_animation (0x561140); any damage clears a pending weapon switch (0x5659c0);
+//   a local biped then tells its actor (killed: 0x42b880, else unless knocked down: 0x42be40). Player units
+//   with effect +0x20 accumulate screen shake (+0x424, capped by +0x24) and a ticks counter (+0x428, between the
+//   globals +0x174 block's +0x8c and +0x90, times 30) in multiplayer or on a dedicated server. Finally a local
+//   kill or knock-down releases transient state (0x568610) and a killed authoritative unit (role 0) broadcasts
+//   the record (0x566c00), leaves the network index cache and becomes role 3.
+// blam-cc: stack=(unit_index, dd, notify_flags, shield_damage, body_damage, region_index, is_local)
 
 #include "tags.h"
 #include "memory.h"
@@ -49,390 +32,444 @@
 #include "objects.h"
 #include "units.h"
 #include <stdint.h>  // uintptr_t only; this is a .c file, not a Ghidra-ingested header
+#include <string.h>
 
-extern data_array *object_data;      // 0x008603b0
-extern tag_instance *tag_instances;  // 0x0087bc14
-extern data_array *player_data;      // 0x0087a480
-extern int32_t game_connection_role; // 0x00719720, 1 = client, 2 = server
-extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
-extern void *matrix4x3_multiply_thunk; // 0x00696664
-extern uint8_t *network_client; // 0x0071c2d8 (networking.h network_client; renamed from network_client, which collides with game.h's typedef)
-extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
+extern data_array *object_data;     // 0x008603b0
+extern tag_instance *tag_instances; // 0x0087bc14
+extern data_array *player_data;     // 0x0087a480
+extern int16_t game_connection_role; // 0x00719720: 1 = client
+extern game_time_globals *game_time; // 0x006f1d6c
+extern uint8_t *network_client;      // 0x0071c2d8, +0xf48 the prediction history
+extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern uint8_t is_dedicated_server_flag; // 0x00724a44
+extern uint8_t *global_globals;      // 0x00746fa0, +0x174 the damage shake block
+extern uint8_t network_index_cache_container[]; // 0x006870d8
 
-extern real random_real_range(real min, real max);                      // 0x401050
-extern real vector2d_normalize_with_length(real_vector2d *v);                      // 0x4018e0, UNSURE signature
-extern void actor_reassign_vehicle_seat(uint32_t unit_index);                             // 0x42b880, UNSURE signature
-extern void actor_react_to_threat_event(uint16_t a, uint32_t unit_index, int32_t b, void *forward_object); // 0x42be40, UNSURE signature
-extern void actor_notify_weapon_pickup_once(uint32_t object_index);                           // 0x42c370, UNSURE signature
-extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);               // 0x4cc0d0, UNSURE signature
-extern real vector2d_angle_between(real_vector2d *a, real_vector2d *b);                     // 0x4cd480, UNSURE signature
-extern uint32_t datum_get(void);                                           // 0x4d0680, UNSURE signature  // real signature (datum_get.c): void * datum_get(datum_index handle, data_array *array); Ghidra recovered 0 of 2 args at this call site
-extern int32_t animation_choose_random_permutation(int32_t mode);                                 // 0x4d6280
-extern void player_update_history_free_all(void);                         // 0x4e6f20
-extern void network_index_cache_remove(uint32_t object_index);                           // 0x4e9d40, UNSURE signature
-extern void object_set_position_and_orientation(uint32_t object_index, void *transform); // 0x4f51c0, UNSURE signature  // real signature (object_set_position_and_orientation.c): void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position); Ghidra recovered 2 of 4 args at this call site
-extern void object_get_node_local_transform(uint32_t object_index, uint8_t *marker); // 0x4f6080, UNSURE signature, writes local_c8/c4/c0  // real signature (object_get_node_local_transform.c): int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t param_4); Ghidra recovered 2 of 4 args at this call site
-extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);                             // 0x4f6610, UNSURE signature
-extern object * object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
+extern real random_real_range(real min, real max); // 0x401050
+extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
+extern void actor_notify_weapon_pickup_once(datum_index object_index); // 0x42c370, ECX
+extern int32_t actor_reassign_vehicle_seat(datum_index vehicle_object_index, datum_index self_object_index,
+    int32_t seat_selector); // 0x42b880, EBX, EDI, stack
+extern void actor_react_to_threat_event(datum_index self_object_index, datum_index other_object_index,
+    int32_t event_kind, real magnitude, uint32_t extra_param, uint8_t suppress_vehicle_relay); // 0x42be40
+extern real vector2d_angle_between(real_vector2d *a, real_vector2d *b); // 0x4cd480, ESI, EDI
+extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, EDX, ESI
+extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x4cc0d0 (via 0x696664)
+extern uint8_t network_index_cache_remove(uint8_t *container, int32_t key); // 0x4e9d40, EAX, ESI
+extern void player_update_history_free_all(void *history); // 0x4e6f20
+extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward, real_vector3d *up,
+    real_point3d *position); // 0x4f51c0, stack, EDI position
+extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
+    uint32_t flags); // 0x4f6080
+extern void object_snap_to_parent_marker_and_detach(uint32_t object_index); // 0x4f6610
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
-extern void object_for_each_light_attachment(uint32_t object_index);       // 0x4f9a20, UNSURE signature  // real signature (object_for_each_light_attachment.c): void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback); Ghidra recovered 1 of 3 args at this call site
-extern void unit_reset_orientation_and_find_position(uint32_t object_index);                             // 0x55add0, UNSURE signature
-extern void unit_choose_combat_reaction_animation(uint32_t unit_index, uint8_t reaction);           // 0x561140, UNSURE signature  // real signature (unit_choose_combat_reaction_animation.c): uint8_t unit_choose_combat_reaction_animation(uint32_t unit_index, const datum_index *reaction_source, uint8_t is_scripted, uint8_t allow_second_tier, float distance_bias); Ghidra recovered 2 of 5 args at this call site
-extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, stack unit, ECX request
-static const int8_t k_unit_exit_seat_request[2] = {0x14, 0}; // every caller builds these two bytes on its stack
-extern void unit_validate_and_clear_weapon_switch(uint32_t unit_index);                             // 0x5659c0, UNSURE signature
-extern uint8_t unit_state_is_scripted_animation(unit_data *unit);                       // 0x565c60, UNSURE signature
+extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table,
+    int32_t invoke_callback); // 0x4f9a20, EAX, stack
+extern void unit_reset_orientation_and_find_position(uint32_t object_index); // 0x55add0
+extern uint8_t unit_choose_combat_reaction_animation(uint32_t unit_index, const datum_index *reaction_source,
+    uint8_t is_scripted, uint8_t allow_second_tier, float distance_bias); // 0x561140, stack, EAX
+extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, stack, ECX
+extern void unit_validate_and_clear_weapon_switch(uint32_t unit_index); // 0x5659c0
+extern uint8_t unit_state_is_scripted_animation(unit_data *unit); // 0x565c60, ECX
 extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
-extern uint8_t unit_all_seats_unoccupied(uint32_t unit_index);                          // 0x566910
-extern void unit_broadcast_state_change_event(int32_t index);                                   // 0x566c00, UNSURE signature
+extern void unit_broadcast_state_change_event(unit_state_change_record record); // 0x566c00, the record by value
 extern void unit_update_stance_and_jump(uint32_t unit_index, uint8_t force_ready, uint8_t allow_death_reaction,
-                                        uint8_t suppress_shield_check, uint8_t ignore_disoriented, uint8_t force_reaction,
-                                        float turn_angle, int16_t weapon_class_index, const real_vector2d *throttle,
-                                        uint8_t require_still); // 0x566de0
-extern void unit_record_recent_damage_and_react(void *damage_record, uint32_t unit_index);        // 0x568230, UNSURE signature  // real signature (unit_record_recent_damage_and_react.c): void unit_record_recent_damage_and_react(uint32_t unit_index, float damage_amount, int16_t response_index, uint8_t allow_broadcast, uint32_t responsible_player, int16_t team_index, uint32_t responsible_object); Ghidra recovered 2 of 7 args at this call site
-extern void unit_release_transient_state(uint32_t unit_index, uint8_t is_light_reset);           // 0x568610, UNSURE signature
-extern void unit_notify_weapon_removed(uint32_t unit_index);                             // 0x56ab10  // real signature (unit_notify_weapon_removed.c): void unit_notify_weapon_removed(int32_t object_index, int16_t new_state); Ghidra recovered 1 of 2 args at this call site
-extern void unit_dispatch_scripted_event_9(uint32_t unit_index);                             // 0x56c370, UNSURE signature  // real signature (unit_dispatch_scripted_event_9.c): void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key); Ghidra recovered 1 of 2 args at this call site
-extern void unit_recompute_seat_occupants(uint32_t unit_index);                             // 0x56ce30
-extern void unit_pick_and_ready_next_weapon(uint32_t unit_index);                             // 0x56d6a0
-extern void unit_set_custom_animation(TagID animation_graph_tag, int16_t animation_index); // 0x56ebd0  // real signature (unit_set_custom_animation.c): void unit_set_custom_animation(uint32_t object_index, datum_index graph, int16_t animation_index); Ghidra recovered 2 of 3 args at this call site
-extern void unit_enter_stunned_state(uint32_t unit_index);                             // 0x5705a0, UNSURE signature  // real signature (unit_enter_stunned_state.c): void unit_enter_stunned_state(uint32_t unit_index, uint32_t responsible_object); Ghidra recovered 1 of 2 args at this call site
+    uint8_t suppress_shield_check, uint8_t ignore_disoriented, uint8_t force_reaction, float turn_angle,
+    int16_t weapon_class_index, const real_vector2d *throttle, uint8_t require_still); // 0x566de0
+extern uint8_t unit_all_seats_unoccupied(uint32_t unit_index); // 0x566910, EAX
+extern void unit_record_recent_damage_and_react(uint32_t unit_index, float damage_amount, int16_t response_index,
+    uint8_t allow_broadcast, uint32_t responsible_player, int16_t team_index, uint32_t responsible_object); // 0x568230, EAX
+extern void unit_release_transient_state(uint32_t unit_index, uint8_t is_light_reset); // 0x568610
+extern void unit_notify_weapon_removed(int32_t object_index); // 0x56ab10, EAX
+extern void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key); // 0x56c370, stack, ECX
+extern void unit_recompute_seat_occupants(uint32_t unit_index); // 0x56ce30, EAX
+extern void unit_pick_and_ready_next_weapon(uint32_t unit_index); // 0x56d6a0, ESI
+extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation,
+    int32_t stream); // 0x4d6280, EAX, DX, stack
+extern void unit_set_custom_animation(uint32_t object_index, datum_index graph, int16_t animation_index); // 0x56ebd0
+extern void unit_enter_stunned_state(uint32_t unit_index, uint32_t responsible_object); // 0x5705a0, EDI, stack
 
-void unit_apply_damage_effects(datum_index unit_index, damage_data *damage, uint8_t flags,
-                               float body_damage_amount, float shield_damage_amount,
-                               void *forward_object, uint8_t apply_effects)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT_HEADER(h) (((object_header *)object_data->data)[(h) & 0xffff])
+#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+
+// 0x5596d3.. / 0x5591a9..: take the unit out of its vehicle seat, keep it where its body was.
+static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
 {
-    uint32_t *self = (uint32_t *)((object_header *)object_data->data)[unit_index & 0xffff].data; // puVar16
-    object *self_obj = (object *)self;
-    Unit *unit_tag = (Unit *)tag_instances[self_obj->definition_tag & 0xffff].data;               // local_28
-    unit_data *unit = (unit_data *)((uint8_t *)self + k_unit_data_offset);
-    uint8_t *deffect_tag = (uint8_t *)tag_instances[damage->damage_effect_tag & 0xffff].data;      // iVar19 initially
-    uint8_t *response_block = deffect_tag + 0x1c4;                                                 // local_1c
+    uint8_t *self = OBJECT_DATA(object_index);
+    uint8_t *vehicle = OBJECT_DATA(vehicle_index);
+    uint8_t *nodes = self + *(int16_t *)(self + 0x1f2);
+    uint8_t *seat = *(uint8_t **)(TAG_DATA(*(datum_index *)vehicle) + 0x2e8) + *(int16_t *)(self + 0x2f0) * 0x11c;
+    uint8_t *model_nodes;
+    object_marker marker;
+    real_point3d offset;
+    real_point3d default_translation;
+    real_point3d position;
+    real_matrix4x3 basis;
 
-    uint32_t node_snapshot[3];                 // local_44 / local_40 / local_3c
-    uint8_t is_stun_reaction = flags & 1;      // bVar15, refined below
-    uint32_t stun_flag = flags & 1;            // local_18 low byte
-    uint32_t death_reaction_flag = 0;          // local_20 low byte
-    uint32_t shield_break_flag;                // local_2c low byte
+    object_get_node_local_transform(vehicle_index, (char *)(seat + 0x24), &marker, 1);
+    offset.x = *(float *)(nodes + 0x28) - marker.node_transform.position.x;
+    offset.y = *(float *)(nodes + 0x2c) - marker.node_transform.position.y;
+    offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
+    model_nodes = *(uint8_t **)(TAG_DATA(*(datum_index *)(TAG_DATA(*(datum_index *)self) + 0x34)) + 0xbc);
+    default_translation = *(real_point3d *)(model_nodes + 0x28);
+    if (*(datum_index *)(vehicle + 0x324) == object_index && vehicle[0x2a3] != 0x25 &&
+        *(datum_index *)(self + 0x11c) != k_datum_index_none) {
+        unit_try_set_animation_state(*(datum_index *)(self + 0x11c), 0x25);
+    }
+    *(datum_index *)(self + 0x32c) = vehicle_index;
+    *(int32_t *)(self + 0x330) = game_time->game_time;
+    if (*(datum_index *)(self + 0x324) == object_index) {
+        *(datum_index *)(self + 0x324) = k_datum_index_none;
+    }
+    if (*(datum_index *)(self + 0x328) == object_index) {
+        *(datum_index *)(self + 0x328) = k_datum_index_none;
+    }
+    object_snap_to_parent_marker_and_detach(object_index);
+    position.x = offset.x + *(float *)(self + 0x5c);
+    position.y = offset.y + *(float *)(self + 0x60);
+    position.z = offset.z + *(float *)(self + 0x64) - default_translation.z;
+    object_set_position_and_orientation(object_index, 0, 0, &position);
+    {
+        uint8_t *reloaded = OBJECT_DATA(object_index);
 
-    if ((apply_effects == 1) && (0.0f < self_obj->recent_body_damage + self_obj->recent_shield_damage)) {
-        float total = self_obj->recent_body_damage + self_obj->recent_shield_damage;
-        unit->unknown_404 = *(int16_t *)(deffect_tag + 0x1c6);
-        unit->unknown_406 = 0x2d;
-        if (total < unit->unknown_408) {
-            total = unit->unknown_408;
+        matrix4x3_multiply((real_matrix4x3 *)(reloaded + *(int16_t *)(reloaded + 0x1f2)),
+            (real_matrix4x3 *)(model_nodes + 0x68), &basis);
+    }
+    *(real_vector3d *)(self + 0x74) = basis.forward;
+    *(real_vector3d *)(self + 0x80) = basis.up;
+    {
+        uint8_t *object = OBJECT_DATA(object_index);
+        uint8_t *object_tag = TAG_DATA(*(datum_index *)object);
+
+        if (*(int32_t *)(object_tag + 0x34) != -1 && (object[0x10] & 1) != 0) {
+            object_for_each_light_attachment(object_index, 0, 1);
         }
-        unit->unknown_408 = total;
-        if (damage->responsible_object != k_datum_index_none) {
-            unit->unknown_40c = damage->responsible_object;
+        if (*(int32_t *)(object_tag + 0x34) != -1) {
+            *(uint32_t *)(object + 0x10) &= ~1u;
+            OBJECT_HEADER(object_index).flags |= 2;
         }
     }
+    *(int16_t *)(self + 0x2f0) = -1;
+    self[0x2a7] = 2;
+    if (*(datum_index *)(vehicle + 0x324) == object_index) {
+        *(datum_index *)(vehicle + 0x324) = k_datum_index_none;
+    }
+    if (*(datum_index *)(vehicle + 0x328) == object_index) {
+        *(datum_index *)(vehicle + 0x328) = k_datum_index_none;
+    }
+    unit_recompute_seat_occupants(vehicle_index);
+    unit_pick_and_ready_next_weapon(object_index);
+    {
+        int8_t request[2] = { 0x14, 0 };
 
-    uint32_t unit_flags_word = unit->flags; // local_c, reused heavily below for unrelated things
-    if ((unit_flags_word & 0x10) != 0) {
-        float v = unit->unknown_37c - *(float *)(deffect_tag + 0x1e0);
-        unit->unknown_37c = v;
-        if (v < 0.0f) {
-            unit->unknown_37c = 0.0f;
+        unit_update_animation_state_machine(object_index, request);
+    }
+    *(real_point3d *)(self + *(int16_t *)(self + 0x1ea) + 0x10) = default_translation;
+    if (*(int16_t *)(self + 0xb4) == 0) {
+        unit_reset_orientation_and_find_position(object_index);
+    }
+    object_recalculate_bounding_radius_recursive(object_index);
+    if (unit_all_seats_unoccupied(vehicle_index) == 1) {
+        uint8_t *empty = (uint8_t *)object_try_and_get(vehicle_index, 2);
+
+        if (empty != 0) {
+            *(int32_t *)(empty + 0x5ac) = game_time->game_time;
         }
     }
+    if (game_connection_role == 1) {
+        uint8_t *player = (uint8_t *)datum_get(*(datum_index *)(self + 0x218), player_data);
 
-    if (apply_effects == 1) {
-        if (((flags & 1) == 0) || (*(float *)(deffect_tag + 500) < 2.0f)) {
-            shield_break_flag = 0;
-        } else {
-            shield_break_flag = 1;
-        }
-        if (((flags & 1) == 0) && ((unit_flags_word & 0x2000) != 0) &&
-            (0.0f < unit_tag->feign_death_threshold) && (0.0f < unit_tag->feign_death_time) &&
-            (0.0f < self_obj->body_vitality) && (unit_tag->feign_death_threshold < self_obj->recent_body_damage)) {
-            random_real_range(0.0f, 1.0f); // UNSURE: result discarded in the original decompilation
-            self_obj->vitality_flags |= _object_health_frozen_bit;
-            death_reaction_flag = 1;
-            self_obj->shield_stun_ticks = 0; // UNSURE: __ftol() of the random_real_range() result
-            is_stun_reaction = (uint8_t)stun_flag;
+        if (player != 0 && *(int16_t *)(player + 2) == -1) {
+            *(int32_t *)(player + 0x180) = 0;
+            *(int32_t *)(player + 0x17c) = 0;
+            *(int32_t *)(player + 0x1e0) = 0;
+            *(int32_t *)(player + 0x1dc) = 0;
         }
     }
+}
 
-    if ((unit->controlling_player == k_datum_index_none) && (is_stun_reaction != 0) &&
-        (*(int8_t *)(response_block + 4) < 0) && ((unit_tag->base.flags & 0x40000) != 0)) {
-        if (self_obj->parent_object == k_datum_index_none) {
-            goto no_parent_dispatch;
-        }
-        object *parent = object_try_and_get(self_obj->parent_object, _object_mask_unit); // UNSURE: args recovered from context
-        if ((parent != (object *)0) && (game_connection_role != 1) &&
-            (parent->parent_object != k_datum_index_none) &&          // local_10[0x47] = object+0x11c
-            (((unit_data *)((uint8_t *)parent + k_unit_data_offset))->vehicle_seat_index != -1)) { // local_10[0xbc] = object+0x2f0
-            if (parent->type == _object_type_vehicle) {
-                self = (uint32_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-                unit_data *self_unit = (unit_data *)((uint8_t *)self + k_unit_data_offset);
-                datum_index grandparent = self_obj->parent_object;    // local_10 = puVar16[0x47]
-                if ((grandparent == k_datum_index_none) || (self_unit->vehicle_seat_index == -1)) { // puVar16[0xbc]
-seat_loop_reenter:
-                    // LAB_00567a9a: on a client (role == 1) fall into the controlling-player
-                    // block below; on anything else skip straight past it.
-                    if (game_connection_role != 1) {
-                        goto after_eject;
-                    }
-                } else {
-                    object *seat_parent = ((object_header *)object_data->data)[grandparent & 0xffff].data; // local_14
-                    // UNSURE: the marker/exit-position math below (0x2e8/0x24/0x11c stride, node
-                    // transform, and the 0x1ea/0x1f2 node-array offsets) is reproduced with raw
-                    // offsets; see out/phase4/units_types_notes.md for the UnitSeat 0x11c stride.
-                    Unit *seat_parent_tag = (Unit *)tag_instances[seat_parent->definition_tag & 0xffff].data;
-                    uint8_t *exit_marker = (uint8_t *)(*(int32_t *)((uint8_t *)seat_parent_tag + 0x2e8) + 0x24 +
-                                                       self_unit->vehicle_seat_index * 0x11c); // puVar16[0xbc]
-                    object_get_node_local_transform((uint32_t)(uintptr_t)seat_parent, exit_marker); // fills local_c8/c4/c0
-                    // iVar14: the node block the original snapshots *here*, before any of the
-                    // writes below, out of Object.model.tag_id's tag data + 0xbc.
-                    {
-                        Object *self_def0 = (Object *)tag_instances[self_obj->definition_tag & 0xffff].data;
-                        uint32_t *node_block = (uint32_t *)(*(int32_t *)((uint8_t *)tag_instances[
-                            self_def0->model.tag_id.index & 0xffff].data + 0xbc));
-                        node_snapshot[0] = node_block[0xa];  // local_44 = iVar14 + 0x28
-                        node_snapshot[1] = node_block[0xb];  // local_40 = iVar14 + 0x2c
-                        node_snapshot[2] = node_block[0xc];  // local_3c = iVar14 + 0x30
-                    }
-                    // UNSURE: local_38/34/30 (marker position minus local_c8/c4/c0) are computed by
-                    // the original but this rewrite could not confirm object_get_node_local_transform's
-                    // true output shape; preserved as an offset-only comment rather than guessed code.
-                    if ((((unit_data *)((uint8_t *)seat_parent + k_unit_data_offset))->driver_unit_index == unit_index) &&
-                        (((unit_data *)((uint8_t *)seat_parent + k_unit_data_offset))->animation_state != 0x25) &&
-                        (self_obj->parent_object != k_datum_index_none)) { // local_14+0x2a3, puVar16[0x47]
-                        unit_try_set_animation_state(unit_index, 0x1b);
-                    }
-                    self_unit->last_parent_object_index = grandparent;          // puVar16[0xcb] = local_10
-                    self_unit->last_seat_change_tick = game_time->game_time;  // puVar16[0xcc]
-                    // UNSURE: Ghidra shows this first clear pair on puVar16 (this unit) and the
-                    // second pair further down on local_14 (the vehicle). Testing a unit's own
-                    // driver/gunner handle against its own index reads oddly, but it is what the
-                    // decompilation says, so each pair is reproduced against the base Ghidra gives
-                    // rather than folded into one.
-                    if (self_unit->driver_unit_index == unit_index) {
-                        self_unit->driver_unit_index = k_datum_index_none;
-                    }
-                    if (self_unit->gunner_unit_index == unit_index) {
-                        self_unit->gunner_unit_index = k_datum_index_none;
-                    }
-                    object_snap_to_parent_marker_and_detach(unit_index);
-                    object_set_position_and_orientation(unit_index, exit_marker); // UNSURE-CALL: transform arg
-                    // UNSURE-CALL: matrix4x3_multiply's real operands (node array transform x exit
-                    // marker transform) are not reproduced field-by-field; see the #if 0 block.
-                    matrix4x3_multiply(0, 0, 0);
-                    object *self_obj2 = self_obj;
-                    Object *self_def = (Object *)tag_instances[self_obj2->definition_tag & 0xffff].data;
-                    if ((*(uint32_t *)&self_def->model.tag_id != 0xffffffff) && ((self_obj2->flags & 1) != 0)) {
-                        object_for_each_light_attachment(unit_index);
-                    }
-                    if (*(uint32_t *)&self_def->model.tag_id != 0xffffffff) {
-                        self_obj2->flags &= ~1u;                      // puVar4[4] &= 0xfffffffe
-                        ((object_header *)object_data->data)[unit_index & 0xffff].flags |= 0x02;
-                    }
-                    self_unit->vehicle_seat_index = -1;
-                    self_unit->base_animation_state = _unit_base_animation_state_stand;
-                    if (((unit_data *)((uint8_t *)seat_parent + k_unit_data_offset))->driver_unit_index == unit_index) {
-                        ((unit_data *)((uint8_t *)seat_parent + k_unit_data_offset))->driver_unit_index = k_datum_index_none;
-                    }
-                    if (((unit_data *)((uint8_t *)seat_parent + k_unit_data_offset))->gunner_unit_index == unit_index) {
-                        ((unit_data *)((uint8_t *)seat_parent + k_unit_data_offset))->gunner_unit_index = k_datum_index_none;
-                    }
-                    unit_recompute_seat_occupants(unit_index);
-                    unit_pick_and_ready_next_weapon(unit_index);
-                    // UNSURE-CALL: Ghidra shows unit_update_animation_state_machine with no visible arguments; the
-                    // statement before it is local_14 = CONCAT12(0x14, (uint16)local_14), i.e. the
-                    // register argument is (0x14 << 16) | (previous local_14 & 0xffff).
-                    unit_update_animation_state_machine(unit_index, k_unit_exit_seat_request);
-                    // writes the three dwords snapshotted above into the node block at
-                    // self + *(int16 *)(self + 0x1ea) + 0x10
-                    uint32_t *node_func = (uint32_t *)(*(int16_t *)((uint8_t *)self + 0x1ea) + 0x10 + (uint8_t *)self);
-                    node_func[0] = node_snapshot[0];
-                    node_func[1] = node_snapshot[1];
-                    node_func[2] = node_snapshot[2];
-                    if (self_obj2->type == _object_type_biped) {
-                        unit_reset_orientation_and_find_position(unit_index);
-                    }
-                    object_recalculate_bounding_radius_recursive(unit_index);
-                    if ((unit_all_seats_unoccupied(unit_index) == 1) && (object_try_and_get(unit_index, 0xffffffff) != 0)) {
-                        // UNSURE: writes the current tick into the retrieved object at +0x5ac
-                        // (vehicle_data.network_update_tick); the mask argument to object_try_and_get
-                        // is unrecovered.
-                    }
-                    if (game_connection_role != 1) {
-                        goto after_eject;                 // LAB_00567b07
-                    }
-                    uint32_t player_record = datum_get();
-                    if ((player_record != 0) && (*(int16_t *)(player_record + 2) == -1)) {
-                        *(uint32_t *)(player_record + 0x180) = 0;
-                        *(uint32_t *)(player_record + 0x17c) = 0;
-                        *(uint32_t *)(player_record + 0x1e0) = 0;
-                        *(uint32_t *)(player_record + 0x1dc) = 0;
-                        goto seat_loop_reenter;
-                    }
-                }
-seat_loop_check_deferred:
-                uint32_t controlling = ((unit_data *)((uint8_t *)self + k_unit_data_offset))->controlling_player;
-                if ((controlling != k_datum_index_none) && (-1 < (int16_t)controlling) &&
-                    ((int16_t)controlling < *(int16_t *)((uint8_t *)player_data + 0x20))) {
-                    int32_t rec_off = *(int16_t *)((uint8_t *)player_data + 0x22) * (int16_t)controlling;
-                    int16_t sanity = *(int16_t *)(rec_off + *(int32_t *)((uint8_t *)player_data + 0x34));
-                    if ((sanity != 0) &&
-                        (((int16_t)(controlling >> 16) == 0) || (sanity == (int16_t)(controlling >> 16))) &&
-                        (*(int16_t *)(rec_off + *(int32_t *)((uint8_t *)player_data + 0x34) + 2) != -1) &&
-                        (network_client != 0)) {
-                        player_update_history_free_all();
-                    }
-                }
-            } else {
-                // parent is not a vehicle: try the "melee lunge" damage-transfer path
-                object *responsible = parent; // local_10 in this branch
-                if ((unit_state_is_scripted_animation(0) == 0)) { // UNSURE-CALL: original passes no visible argument
-                    int32_t weapon_class = (int8_t)*((uint8_t *)responsible + 0x2a0 /* animation_definition_index-ish, see UNSURE */) * 100 +
-                        *(int32_t *)((uint8_t *)tag_instances[
-                            (*(uint32_t *)((uint8_t *)tag_instances[responsible->definition_tag & 0xffff].data + 0x44)) & 0xffff].data + 0x10);
-                    if (8 < *(int32_t *)(uintptr_t)(weapon_class + 0x40)) {
-                        int16_t chosen = *(int16_t *)(*(int32_t *)(uintptr_t)(weapon_class + 0x44) + 0x10);
-                        if (chosen != -1) {
-                            if (((unit_data *)((uint8_t *)((object_header *)object_data->data)[self_obj->parent_object & 0xffff].data
-                                    + k_unit_data_offset))->driver_unit_index == unit_index) {
-                                unit_notify_weapon_removed(unit_index);
-                            }
-                            int32_t new_anim = animation_choose_random_permutation(1);
-                            unit_set_custom_animation(unit_tag->base.animation_graph.tag_id, (int16_t)new_anim);
-                            object *self_obj3 = ((object_header *)object_data->data)[unit_index & 0xffff].data; // puVar4
-                            Object *self_def = (Object *)tag_instances[self_obj3->definition_tag & 0xffff].data;
-                            if ((*(uint32_t *)&self_def->model.tag_id != 0xffffffff) && ((self_obj3->flags & 1) != 0)) {
-                                object_for_each_light_attachment(unit_index);
-                            }
-                            if (*(uint32_t *)&self_def->model.tag_id != 0xffffffff) {
-                                self_obj3->flags &= ~1u;                  // puVar4[4] &= 0xfffffffe
-                                ((object_header *)object_data->data)[unit_index & 0xffff].flags |= 0x02;
-                            }
-                            *(int8_t *)((uint8_t *)responsible + 0x2a3) = 0x1b;
-                            actor_notify_weapon_pickup_once((uint32_t)(uintptr_t)responsible);
-                            if (*(uint32_t *)((uint8_t *)responsible + 4) == 0) { // puVar8[1], object + 0x04
-                                unit_dispatch_scripted_event_9(unit_index);
-                            }
-                            goto no_parent_dispatch;
-                        }
-                    }
-                }
+// 0x559505 / 0x559a59: a client drops the prediction history of a local player's unit.
+static void biped_free_local_player_history(uint8_t *self)
+{
+    datum_index player_index = *(datum_index *)(self + 0x218);
+    int16_t index = (int16_t)player_index;
+    int16_t salt = (int16_t)(player_index >> 16);
+    uint8_t *player;
+
+    if (game_connection_role != 1 || player_index == k_datum_index_none || index < 0 ||
+        index >= *(int16_t *)((uint8_t *)player_data + 0x20)) {
+        return;
+    }
+    player = (uint8_t *)player_data->data + *(int16_t *)((uint8_t *)player_data + 0x22) * index;
+    if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || *(int16_t *)(player + 2) == -1) {
+        return;
+    }
+    if (network_client != 0) {
+        player_update_history_free_all(*(void **)(network_client + 0xf48));
+    }
+}
+
+void unit_apply_damage_effects(datum_index unit_index, damage_data *dd, uint32_t flags, float shield_damage,
+    float body_damage, int32_t region_index, uint8_t is_local)
+{
+    float total = shield_damage + body_damage;
+    uint8_t *obj = OBJECT_DATA(unit_index);
+    uint8_t *unit_tag = TAG_DATA(*(datum_index *)obj);
+    uint8_t *effect_block = TAG_DATA(dd->damage_effect_tag) + 0x1c4;
+    uint8_t killed = (uint8_t)(flags & 1);
+    uint8_t knocked_down = 0;
+    uint8_t violent = 0;
+    uint32_t unit_flags;
+    unit_state_change_record record;
+
+    memset(&record, 0, sizeof(record));
+    if (is_local == 1) {
+        float recent = *(float *)(obj + 0xf8) + *(float *)(obj + 0xf4);
+
+        if (recent > 0.0f) {
+            *(int16_t *)(obj + 0x404) = *(int16_t *)(effect_block + 0x2);
+            *(int16_t *)(obj + 0x406) = 0x2d;
+            if (recent < *(float *)(obj + 0x408)) {
+                recent = *(float *)(obj + 0x408);
+            }
+            *(float *)(obj + 0x408) = recent;
+            if (dd->responsible_object != k_datum_index_none) {
+                *(datum_index *)(obj + 0x40c) = dd->responsible_object;
             }
         }
     }
-    goto after_eject;
+    unit_flags = *(uint32_t *)(obj + 0x204);
+    if (unit_flags & 0x10) {
+        float left = *(float *)(obj + 0x37c) - *(float *)(effect_block + 0x1c);
 
-no_parent_dispatch:
-    if (apply_effects == 1) {
-        unit_enter_stunned_state(unit_index);
+        *(float *)(obj + 0x37c) = left;
+        if (left < 0.0f) {
+            *(float *)(obj + 0x37c) = 0.0f;
+        }
     }
-    stun_flag = 0;
-    goto after_stance;
+    if (is_local == 1) {
+        violent = (uint8_t)(killed && !(*(float *)(effect_block + 0x30) < 2.0f));
+        if (!killed && (unit_flags & 0x2000) && *(float *)(unit_tag + 0x22c) > 0.0f &&
+            *(float *)(unit_tag + 0x230) > 0.0f && *(float *)(obj + 0xe0) > 0.0f &&
+            *(float *)(obj + 0xf8) > *(float *)(unit_tag + 0x22c)) {
+            float ticks = (random_real_range(0.0f, 1.0f) + *(float *)(unit_tag + 0x230)) * 30.0f;
 
-after_eject:
-    self = (uint32_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    self_obj = (object *)self;
-    if (((damage->flags & 0x10) == 0) &&
-        (((stun_flag != 0) || (death_reaction_flag != 0) ||
-          ((self_obj->vitality_flags & _object_health_frozen_bit) == 0)) &&
-         (((unit->flags & 0x800000) == 0) && ((*(uint32_t *)(response_block + 4) & 0x10) == 0)))) {
-        real_vector3d local_dir = { damage->direction.i, damage->direction.j, 0.0f };
-        real_vector3d fwd = { self_obj->forward.i, self_obj->forward.j, 0.0f };
-        uint8_t need_reaction = 0;
-        uint8_t use_0x8a_flag = 0;
-        uint8_t have_angle = 0;
+            obj[0x106] |= 4;
+            knocked_down = 1;
+            if (1.0f > ticks) {
+                ticks = 1.0f;
+            }
+            *(int16_t *)(obj + 0x420) = (int16_t)(int32_t)ticks;
+        }
+    }
+
+    // 0x567691: an AI unit killed in a seat leaves it
+    if (*(datum_index *)(obj + 0x218) == k_datum_index_none && killed && (effect_block[0x4] & 0x80) &&
+        (*(uint32_t *)(unit_tag + 0x17c) & 0x40000)) {
+        uint8_t *self;
+        datum_index vehicle_index;
+
+        if (*(datum_index *)(obj + 0x11c) == k_datum_index_none) {
+            goto stunned;
+        }
+        self = (uint8_t *)object_try_and_get(unit_index, 3);
+        if (self == 0 || game_connection_role == 1 ||
+            (vehicle_index = *(datum_index *)(self + 0x11c)) == k_datum_index_none ||
+            *(int16_t *)(self + 0x2f0) == -1) {
+            goto record_check;
+        }
+        if (*(int16_t *)(self + 0xb4) == 1) {
+            uint8_t *me = OBJECT_DATA(unit_index);
+
+            if (*(datum_index *)(me + 0x11c) != k_datum_index_none && *(int16_t *)(me + 0x2f0) != -1) {
+                biped_detach_from_seat(unit_index, *(datum_index *)(me + 0x11c));
+            }
+            biped_free_local_player_history(me);
+            goto record_check;
+        }
+        if (unit_state_is_scripted_animation((unit_data *)(self + k_unit_data_offset))) {
+            goto record_check;
+        }
+        {
+            uint8_t *self_tag = TAG_DATA(*(datum_index *)self);
+            datum_index graph = *(datum_index *)(self_tag + 0x44);
+            uint8_t *seat_block = *(uint8_t **)(TAG_DATA(graph) + 0x10) + (int8_t)self[0x2a0] * 0x64;
+            int16_t death_animation;
+            uint8_t *object;
+            uint8_t *object_tag;
+
+            if (*(int32_t *)(seat_block + 0x40) <= 8) {
+                goto record_check;
+            }
+            death_animation = (*(int16_t **)(seat_block + 0x44))[8];
+            if (death_animation == -1) {
+                goto record_check;
+            }
+            if (*(datum_index *)(OBJECT_DATA(vehicle_index) + 0x324) == unit_index) {
+                unit_notify_weapon_removed((int32_t)vehicle_index);
+            }
+            unit_set_custom_animation(unit_index, *(datum_index *)(self_tag + 0x44),
+                animation_choose_random_permutation(graph, death_animation, 1));
+            object = OBJECT_DATA(unit_index);
+            object_tag = TAG_DATA(*(datum_index *)object);
+            if (*(int32_t *)(object_tag + 0x34) != -1 && (object[0x10] & 1) != 0) {
+                object_for_each_light_attachment(unit_index, 0, 1);
+            }
+            if (*(int32_t *)(object_tag + 0x34) != -1) {
+                *(uint32_t *)(object + 0x10) &= ~1u;
+                OBJECT_HEADER(unit_index).flags |= 2;
+            }
+            self[0x2a3] = 0x1b;
+            actor_notify_weapon_pickup_once(unit_index);
+            if (*(int32_t *)(self + 4) == 0) {
+                unit_dispatch_scripted_event_9(0, (int32_t)unit_index);
+            }
+        }
+stunned:
+        if (is_local == 1) {
+            unit_enter_stunned_state(unit_index, dd->responsible_object);
+        }
+        killed = 0;
+        goto local_reactions;
+    }
+
+record_check:
+    if ((dd->flags & 0x10) == 0 && (killed || knocked_down || (obj[0x106] & 4) == 0) &&
+        (*(uint32_t *)(obj + 0x204) & 0x800000) == 0 && (*(uint32_t *)(effect_block + 0x4) & 0x10) == 0) {
+        uint32_t effect_flags = *(uint32_t *)(effect_block + 0x4);
+        real_vector2d direction;
+        real_vector2d forward;
+        uint8_t stunned_flag = 0;
+        uint8_t special = 0;
+        uint8_t has_direction = 0;
         float angle = 0.0f;
-        float len1 = vector2d_normalize_with_length((real_vector2d *)&local_dir);
-        if (0.0f < len1) {
-            float len2 = vector2d_normalize_with_length((real_vector2d *)&fwd);
-            if (0.0f < len2) {
-                angle = vector2d_angle_between((real_vector2d *)&local_dir, (real_vector2d *)&fwd);
-                have_angle = 1;
+
+        direction.i = dd->direction.i;
+        direction.j = dd->direction.j;
+        forward.i = *(float *)(obj + 0x74);
+        forward.j = *(float *)(obj + 0x78);
+        if (vector2d_normalize_with_length(&direction) > 0.0f && vector2d_normalize_with_length(&forward) > 0.0f) {
+            angle = vector2d_angle_between(&forward, &direction);
+            has_direction = 1;
+        }
+        if ((unit_tag[0x17c] & 0x80) && (effect_flags & 4) == 0) {
+            stunned_flag = 1;
+        }
+        if (obj[0x28b] != 0) {
+            stunned_flag = 1;
+        }
+        if (flags & 0x8a) {
+            special = 1;
+        }
+        record.valid = 1;
+        record.killed = killed;
+        record.knocked_down = knocked_down;
+        record.violent = violent;
+        record.stunned = stunned_flag;
+        record.special = special;
+        record.region_index = (int16_t)region_index;
+        record.angle = angle;
+        if (has_direction == 1) {
+            record.no_direction = 0;
+            record.direction = direction;
+        } else {
+            record.no_direction = 1;
+        }
+        record.player_value = 0;
+        if (*(datum_index *)(obj + 0x218) != k_datum_index_none) {
+            uint8_t *player = (uint8_t *)datum_get(*(datum_index *)(obj + 0x218), player_data);
+
+            if (player != 0) {
+                record.player_value = *(uint32_t *)(player + 0x2c);
             }
         }
-        if ((*(int8_t *)((uint8_t *)unit_tag + 0x17c) < 0) && ((*(uint32_t *)(response_block + 4) & 4) == 0)) {
-            need_reaction = 1;
-        }
-        if (unit->unknown_28b != 0) {
-            need_reaction = 1;
-        }
-        if ((flags & 0x8a) != 0) {
-            use_0x8a_flag = 1;
-        }
-        // UNSURE-CALL: see file header -- the original builds a larger record here (validity
-        // flag, stun/death/shield flags, need_reaction, use_0x8a_flag, !have_angle,
-        // forward_object truncated to 16 bits, angle, direction.x/y, and a player-history
-        // pointer) but the call below is the only part of it Ghidra could still show explicitly.
-        unit_update_stance_and_jump(unit_index, (uint8_t)stun_flag, 0, 0, 0, 0,
-                                    have_angle ? angle : 0.0f, (int16_t)(uintptr_t)forward_object, 0, 0);
+        unit_update_stance_and_jump(unit_index, killed, knocked_down, violent, stunned_flag, special, angle,
+            (int16_t)region_index, has_direction ? &direction : 0, is_local);
+    } else {
+        record.valid = 0;
     }
 
-after_stance:
-    if (apply_effects == 1) {
-        if ((damage->responsible_player != k_datum_index_none) && (unit->controlling_player != k_datum_index_none) &&
-            (current_game_engine != 0)) {
-            // UNSURE-CALL: calls through a function pointer at
-            // *(code**)((uint8_t *)current_game_engine + 100) with damage->responsible_player.
+local_reactions:
+    if (is_local == 1) {
+        datum_index unit_player = *(datum_index *)(obj + 0x218);
+
+        if (dd->responsible_player != k_datum_index_none && unit_player != k_datum_index_none &&
+            current_game_engine != 0 && current_game_engine->unknown_64 != 0) {
+            ((void (*)(datum_index, datum_index, uint32_t))current_game_engine->unknown_64)(
+                dd->responsible_player, unit_player, (flags >> 4) & 0xffffff01);
         }
-        if ((damage->responsible_player != k_datum_index_none) || (damage->responsible_object != k_datum_index_none)) {
-            unit_record_recent_damage_and_react(damage, unit_index);
+        if (dd->responsible_player != k_datum_index_none || dd->responsible_object != k_datum_index_none) {
+            unit_record_recent_damage_and_react(unit_index, total, (int16_t)*(uint16_t *)(effect_block + 0x2),
+                killed, dd->responsible_player, (int16_t)(uint16_t)dd->team_index, dd->responsible_object);
         }
-        if (((damage->flags & 0x10) == 0) &&
-            (((flags & 1) != 0) || (0.0f < shield_damage_amount) || (0.0f < body_damage_amount))) {
-            unit_choose_combat_reaction_animation(unit_index, (uint8_t)(death_reaction_flag | stun_flag));
+        if ((dd->flags & 0x10) == 0 && ((flags & 1) || body_damage > 0.0f || shield_damage > 0.0f)) {
+            unit_choose_combat_reaction_animation(unit_index, (const datum_index *)dd,
+                (uint8_t)(knocked_down | killed), (uint8_t)((flags >> 6) & 0xffffff01), body_damage);
         }
     }
-    if ((0.0f < shield_damage_amount) || (0.0f < body_damage_amount)) {
+    if (body_damage > 0.0f || shield_damage > 0.0f) {
         unit_validate_and_clear_weapon_switch(unit_index);
     }
-    if ((apply_effects == 1) && (self_obj->type == _object_type_biped)) {
-        if (stun_flag == 0) {
-            if ((self_obj->vitality_flags & _object_health_frozen_bit) == 0) {
-                actor_react_to_threat_event(0, unit_index, damage->unknown_4e, forward_object); // UNSURE-CALL
-            }
-        } else {
-            actor_reassign_vehicle_seat(unit_index);
-            self = (uint32_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-            self_obj = (object *)self;
+    if (is_local == 1 && *(int16_t *)(obj + 0xb4) == 0) {
+        if (killed) {
+            actor_reassign_vehicle_seat(dd->responsible_object, unit_index, *(uint16_t *)(effect_block + 0x2));
+        } else if ((obj[0x106] & 4) == 0) {
+            actor_react_to_threat_event(unit_index, dd->responsible_object, *(uint16_t *)(effect_block + 0x2), total,
+                (uint32_t)(uintptr_t)&dd->direction, 0);
         }
     }
-    if ((unit->controlling_player != k_datum_index_none) && (0.0f < *(float *)(response_block + 0x20)) &&
-        ((current_game_engine != 0) || (is_dedicated_server_flag != 0))) {
-        float a = damage->random_blend * *(float *)(response_block + 0x20);
-        float b = *(float *)(response_block + 0x24) * damage->random_blend;
-        float clamped_a = a < 0.0f ? 0.0f : a;
-        if (b < 0.0f) {
-            b = 0.0f;
-        } else if (1.0f <= b) {
-            b = 1.0f;
+
+    // 0x567f73: player screen shake
+    if (*(datum_index *)(obj + 0x218) != k_datum_index_none && *(float *)(effect_block + 0x20) > 0.0f &&
+        (current_game_engine != 0 || is_dedicated_server_flag)) {
+        uint8_t *shake = *(uint8_t **)(global_globals + 0x174);
+        float step = dd->random_blend * *(float *)(effect_block + 0x20);
+        float cap = *(float *)(effect_block + 0x24) * dd->random_blend;
+        int16_t add;
+        int16_t low;
+        int16_t high;
+
+        if (step < 0.0f) {
+            step = 0.0f;
         }
-        if (unit->unknown_424 < b) {
-            float sum = unit->unknown_424 + clamped_a;
-            unit->unknown_424 = sum;
-            if (b < sum) {
-                unit->unknown_424 = b;
+        if (cap < 0.0f) {
+            cap = 0.0f;
+        } else if (!(cap < 1.0f)) {
+            cap = 1.0f;
+        }
+        if (cap > *(float *)(obj + 0x424)) {
+            float value = step + *(float *)(obj + 0x424);
+
+            *(float *)(obj + 0x424) = value;
+            if (value > cap) {
+                *(float *)(obj + 0x424) = cap;
             }
         }
-        // UNSURE: the three __ftol() results that clamp unit+0x42a (ai_communication_count,
-        // reused here as a stun-display counter per the original) are not reproduced
-        // individually; this only affects a display/UI-adjacent counter, not vitality.
-    }
-    if ((apply_effects == 1) && ((stun_flag != 0) || (death_reaction_flag != 0))) {
-        unit_release_transient_state(unit_index, 0);
-        if ((self_obj->network_role == 0) && (stun_flag == 1)) {
-            // UNSURE-CALL: forwards this function's own 7 incoming parameters (padded to 8
-            // dwords) to unit_broadcast_state_change_event, matching the original's raw stack-to-stack copy.
-            struct { datum_index a; damage_data *b; uint8_t c; float d; float e; void *f; uint8_t g; uint8_t pad; } forward = {
-                unit_index, damage, flags, body_damage_amount, shield_damage_amount, forward_object, apply_effects, 0
-            };
-            unit_broadcast_state_change_event((int32_t)&forward);
-            if ((*(uint8_t *)((uint8_t *)object_data->data + (unit_index & 0xffff) * 0xc + 2) & 8) == 0) {
-                network_index_cache_remove(unit_index);
-            }
-            self_obj->network_role = 3;
+        add = (int16_t)(int32_t)(*(float *)(effect_block + 0x28) * 30.0f);
+        low = (int16_t)(int32_t)(*(float *)(shake + 0x8c) * 30.0f);
+        high = (int16_t)(int32_t)(*(float *)(shake + 0x90) * 30.0f);
+        if (*(int16_t *)(obj + 0x428) < low) {
+            *(int16_t *)(obj + 0x428) = low;
+        }
+        *(int16_t *)(obj + 0x428) += add;
+        if (*(int16_t *)(obj + 0x428) > high) {
+            *(int16_t *)(obj + 0x428) = high;
         }
     }
-    return;
+
+    if (is_local == 1 && (killed || knocked_down)) {
+        unit_release_transient_state(unit_index, knocked_down);
+        if (*(int32_t *)(obj + 0x4) == 0 && killed == 1) {
+            record.unit = unit_index;
+            unit_broadcast_state_change_event(record);
+            if ((OBJECT_HEADER(unit_index).flags & 8) == 0) {
+                network_index_cache_remove(network_index_cache_container, (int32_t)unit_index);
+            }
+            *(int32_t *)(obj + 0x4) = 3;
+        }
+    }
 }
 
 #if 0

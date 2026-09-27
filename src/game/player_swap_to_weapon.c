@@ -1,16 +1,14 @@
-// player_swap_to_weapon  (Ghidra: FUN_00479240; renamed -- the secondary-mode handler
-// game_engine_apply_player_interaction_message.c (this batch) dispatches to)
+// player_swap_to_weapon  (Ghidra: FUN_00479240)
 // address 0x479240, size 351 bytes
-// name confidence: 0.3   rewrite confidence: 0.3
-// evidence: types/game.h player::unit/interaction_type/interaction_object (0x34/0x28/0x24);
-//   types/units.h unit_data::current_weapon_index/desired_weapon_index/weapons[4]
-//   (0x2f2/0x2f4/0x2f8); unit_drop_current_weapon / unit_ready_desired_weapon already
-//   established (src/game/ctf_engine_flag_tick.c and src/units/unit_pick_and_ready_next_weapon.c).
-// register convention: a player index in EAX (in_EAX); `target_weapon` is this function's own
-//   stack parameter.
-//   // blam-cc: EAX -> player_index, stack -> target_weapon
-// UNSURE: unit_pickup_weapon/hud_add_item_message/unit_invalidate_local_player_zoom_level's exact effects (all called elsewhere in this
-//   module with the same one-visible-argument shape).
+// name confidence: 0.3   rewrite confidence: 0.9
+// REWRITTEN from objdump 0x479240..0x47939e (the draft read the unit fields through an object pointer cast to
+//   unit_data, 0x1f4 bytes early, and dropped every register argument of the pickup / HUD / zoom calls).
+//   EAX: player, stack: weapon. Interaction 6 (swap): the weapon becomes the desired slot (+0x2f4) and is
+//   readied unless it is already current; the current weapon is dropped and, if the interaction object
+//   (+0x24) is then picked up (0x56d400: EAX weapon, ECX unit, stack 1), the HUD shows it (0x4ae400: AX local
+//   player, ECX its tag, BL 0) and the zoom is reset (0x4726f0); returns 1. Interaction 7 (pick up) picks the
+//   object up and shows it on the HUD but returns 0, as does any other interaction.
+// blam-cc: EAX -> player_index, stack -> target_weapon
 
 #include "tags.h"
 #include "memory.h"
@@ -24,52 +22,54 @@ extern data_array *object_headers; // 0x008603b0
 
 extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force); // 0x56dec0
 extern void unit_ready_desired_weapon(uint32_t unit_index, uint8_t force); // 0x56d6e0, stack (unit, force)
-extern uint8_t unit_pickup_weapon(uint8_t is_primary); // 0x56d400, not in this batch
-extern void hud_add_item_message(uint32_t a); // 0x4ae400, not in this batch
-extern void unit_invalidate_local_player_zoom_level(void); // 0x4726f0, not in this batch
+extern uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t unit_index); // 0x56d400, stack, EAX, ECX
+extern void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind, int16_t count); // 0x4ae400, EAX, ECX, BL, stack
+extern void unit_invalidate_local_player_zoom_level(datum_index unit); // 0x4726f0, EAX
 
-// blam-cc: EAX -> player_index, stack -> target_weapon
-// If `player_index`'s pending interaction is 6 (swap weapon), makes `target_weapon` the desired
-// weapon (finding it in the unit's own inventory and calling unit_ready_desired_weapon) unless
-// it is already the current weapon, then drops the previous current weapon. If the interaction
-// is 7 instead, just re-readies the current weapon. Any other interaction type is a no-op.
-// Returns 1 (handled) for interaction 6, 0 otherwise.
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_headers->data)[(h) & 0xffff].data)
+
 uint8_t player_swap_to_weapon(uint32_t player_index, datum_index target_weapon)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
-    unit_data *unit = (unit_data *)((object_header *)object_headers->data)[p->unit & 0xffff].data;
+    player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200);
+    uint8_t *record = (uint8_t *)p;
+    datum_index unit_index = *(datum_index *)(record + 0x34);
+    datum_index interaction_object = *(datum_index *)(record + 0x24);
+    uint8_t *unit = OBJECT_DATA(unit_index);
 
-    if (p->interaction_type != 6) {
-        if (p->interaction_type == 7 && unit_pickup_weapon(1) != 0) {
-            hud_add_item_message(0);
-        }
-        return 0;
-    }
-
-    {
-        int16_t current_weapon_index = unit->current_weapon_index;
-        datum_index current_weapon = (datum_index)0xffffffff;
-        if (current_weapon_index != -1) {
-            current_weapon = unit->weapons[current_weapon_index];
-        }
+    switch (*(int16_t *)(record + 0x28)) {
+    case 6: {
+        uint8_t *current = OBJECT_DATA(unit_index);
+        int16_t slot = *(int16_t *)(current + 0x2f2);
+        datum_index current_weapon = (slot != -1) ? *(datum_index *)(current + 0x2f8 + slot * 4) : k_datum_index_none;
 
         if (current_weapon != target_weapon) {
             int32_t i;
+
             for (i = 0; i < 4; i++) {
-                if (unit->weapons[i] == target_weapon) {
-                    unit->desired_weapon_index = (int16_t)i;
-                    unit_ready_desired_weapon((uint32_t)p->unit, 1);
+                if (*(datum_index *)(unit + 0x2f8 + i * 4) == target_weapon) {
+                    *(int16_t *)(unit + 0x2f4) = (int16_t)i;
+                    unit_ready_desired_weapon(unit_index, 1);
                     break;
                 }
             }
         }
+        if (unit_drop_current_weapon(unit_index, 1) &&
+            unit_pickup_weapon(1, interaction_object, unit_index)) {
+            hud_add_item_message(*(int16_t *)(record + 0x2),
+                (int32_t)*(datum_index *)OBJECT_DATA(interaction_object), 0, 0);
+            unit_invalidate_local_player_zoom_level(unit_index);
+        }
+        return 1;
     }
-
-    if (unit_drop_current_weapon((uint32_t)p->unit, 1) != 0 && unit_pickup_weapon(1) != 0) {
-        hud_add_item_message(0);
-        unit_invalidate_local_player_zoom_level();
+    case 7:
+        if (unit_pickup_weapon(1, interaction_object, unit_index)) {
+            hud_add_item_message(*(int16_t *)(record + 0x2),
+                (int32_t)*(datum_index *)OBJECT_DATA(interaction_object), 0, 0);
+        }
+        return 0;
+    default:
+        return 0;
     }
-    return 1;
 }
 
 #if 0
