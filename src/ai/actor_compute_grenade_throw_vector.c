@@ -1,19 +1,13 @@
 // actor_compute_grenade_throw_vector  (Ghidra: actor_compute_grenade_throw_vector, renamed)
 // address 0x410a60, size 560 bytes
-// name confidence: 0.5   rewrite confidence: 0.35
-// evidence: it reads actor.unknown_6b4 (the grenade target prop handle actor_commit_grenade_toss
-//   @0x411180 writes), optionally revalidates the impact point through 0x410710, runs
-//   actor_solve_grenade_lob @0x410780 and then turns the four grenade scratch floats
-//   (grenade_unknown_6bc..6c8) into the caller aim vector, rotating it back toward the
-//   actor facing when the throw would be outside a 30 degree cone.
-// register convention: actor_index in EBX; the out-vector is a Ghidra-recognized stack
-//   parameter.
-//
-// UNSURE (high): Ghidra leaves local_18 / local_14 / local_10 uninitialized on the vehicle
-// path (actor.active_unit_index valid), and drops every argument of
-// vector3d_rotate_about_axis except the two it could see. The rewrite keeps the control
-// flow exactly and seeds the three locals from the committed throw direction, which is the
-// only reading in which the tail makes sense. Treat the vehicle path as unverified.
+// name confidence: 0.5   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x410a60..0x410c8f. EBX: actor, stack: (grenade position, out vector). The draft had no
+//   grenade position and passed NULL to the lob solver (0x410780), and called the impact check (0x410710) without
+//   its point. The grenade's target prop (+0x6b4) names the object hit (prop kinds 2..3, returned); for kinds other
+//   than 0..1 its point (+0xbc, 0.2 higher) is validated. The lob is solved from the grenade's position into
+//   +0x6bc..+0x6c8 (direction, speed). On foot, a throw more than 30 degrees off the actor's facing is turned to
+//   30 degrees either side of the facing, keeping its horizontal length. Out = direction * speed.
+// blam-cc: EBX -> actor_index, stack -> grenade_position, out_vector
 
 #include "tags.h"
 #include "memory.h"
@@ -22,84 +16,66 @@
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
-extern const real_vector3d *global_up3d_pointer; // 0x00696720
+extern real_vector3d *global_up3d_pointer; // 0x00696720
 
-extern double sqrt(double x); // FSQRT, Ghidra SQRT() pseudo-function
+extern double sqrt(double x);
+extern double fabs(double x);
+extern uint8_t actor_validate_grenade_impact_point(datum_index actor_index, real_point3d *candidate_point); // 0x410710, EAX, EDI
+extern uint32_t actor_solve_grenade_lob(datum_index actor_index, real_point3d *point); // 0x410780
+extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820
 
-extern void vector3d_rotate_about_axis(real_vector3d *v, const real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820
-extern uint8_t actor_validate_grenade_impact_point(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_validate_grenade_impact_point at 0x410710
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern uint32_t actor_solve_grenade_lob(datum_index actor_index, real_point3d *point); // 0x410780, this module
-
-// blam-cc: EBX -> actor_index, stack -> out_vector
-// Produces the final grenade throw vector and returns the object the grenade is aimed at,
-// or none. A grenade target prop whose kind is 2 or 3 contributes that object handle; any
-// kind outside 0..1 also re-runs the impact point validation. On foot, a throw direction
-// more than 30 degrees off the actor facing is rotated back by half a radian toward it.
-uint32_t actor_compute_grenade_throw_vector(datum_index actor_index, real_vector3d *out_vector)
+uint32_t actor_compute_grenade_throw_vector(datum_index actor_index, real_point3d *grenade_position,
+                                            real_vector3d *out_vector)
 {
-    actor *self;
-    prop *target;
-    real_vector3d throw_direction;
-    uint32_t target_object;
-    int16_t kind;
-    float length;
-    float unit_i;
-    float unit_j;
-    float facing_i;
-    float facing_j;
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint32_t target_object = 0xffffffff;    // ebp
+    real_vector3d direction;                // [esp+0x10]
     float speed;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    target_object = 0xffffffff;
+    if (*(datum_index *)(a + 0x6b4) != k_datum_index_none) {
+        uint8_t *p = (uint8_t *)prop_data->data + (*(datum_index *)(a + 0x6b4) & 0xffff) * 0x138;
+        int16_t kind = *(int16_t *)(p + 0x24);
 
-    if (self->unknown_6b4 != 0xffffffff) {
-        target = &((prop *)prop_data->data)[self->unknown_6b4 & 0xffff];
-        kind = target->kind;
-        if (kind > 1 && kind < 4) {
-            target_object = (uint32_t)target->object_index;
+        if (kind >= 2 && kind <= 3) {
+            target_object = *(datum_index *)(p + 0x18);
         }
         if (kind < 0 || kind > 1) {
-            // UNSURE: actor_validate_grenade_impact_point takes its arguments in registers.
-            actor_validate_grenade_impact_point();
+            real_point3d point = *(real_point3d *)(p + 0xbc);   // [esp+0x1c]
+
+            point.z += 0.2f;
+            actor_validate_grenade_impact_point(actor_index, &point);
         }
     }
+    actor_solve_grenade_lob(actor_index, grenade_position);
+    // (the binary leaves the direction uninitialised in a vehicle; seeded from the solution here)
+    direction = *(real_vector3d *)(a + 0x6bc);
+    if (*(datum_index *)(a + 0x158) == k_datum_index_none) {
+        real length = (real)sqrt(direction.j * direction.j + direction.i * direction.i);
 
-    // UNSURE: bare call in the original; actor_index is the only live value.
-    actor_solve_grenade_lob(actor_index, (real_point3d *)0);
+        if (!(fabs(length) < 9.999999747378752e-05)) {
+            real inverse = 1.0f / length;
+            real flat_i = direction.i * inverse;
+            real flat_j = direction.j * inverse;
+            real_vector3d *facing = (real_vector3d *)(a + 0x174);
 
-    throw_direction.i = self->grenade_unknown_6bc;
-    throw_direction.j = self->grenade_unknown_6c0;
-    throw_direction.k = self->grenade_unknown_6c4;
+            if (length > 0.0f && !(flat_j * facing->j + flat_i * facing->i >= 0.8660254f)) {
+                // more than 30 degrees off the facing: throw 30 degrees to that side of it
+                real_vector3d turned = *facing;     // [esp+0x1c]
+                real side = flat_j * facing->i - flat_i * facing->j;
+                real sign = side > 0.0f ? 1.0f : -1.0f;
+                real horizontal;
 
-    if (self->active_unit_index == (datum_index)0xffffffff) {
-        length = (float)sqrt((double)(throw_direction.i * throw_direction.i +
-                                      throw_direction.j * throw_direction.j));
-        if (length >= 0.0001f || length <= -0.0001f) {
-            unit_i = throw_direction.i * (1.0f / length);
-            unit_j = throw_direction.j * (1.0f / length);
-            if (length > 0.0f &&
-                unit_i * self->facing.i + unit_j * self->facing.j < 0.8660254f) {
-                facing_i = self->facing.i;
-                facing_j = self->facing.j;
-                // Half a radian, signed by which side of the facing the throw fell on.
-                vector3d_rotate_about_axis(&throw_direction, global_up3d_pointer,
-                    (float)((int32_t)((unit_j * self->facing.i -
-                                       unit_i * self->facing.j > 0.0f) * 2 - 1)) * 0.5f,
-                    0.8660254f);
-                length = (float)sqrt((double)(throw_direction.i * throw_direction.i +
-                                              throw_direction.j * throw_direction.j));
-                throw_direction.i = facing_i * length;
-                throw_direction.j = facing_j * length;
+                vector3d_rotate_about_axis(&turned, global_up3d_pointer, sign * 0.5f, 0.8660254f);
+                horizontal = (real)sqrt(direction.j * direction.j + direction.i * direction.i);
+                direction.i = turned.i * horizontal;
+                direction.j = turned.j * horizontal;
             }
         }
     }
-
-    speed = self->grenade_unknown_6c8;
-    out_vector->i = throw_direction.i * speed;
-    out_vector->j = throw_direction.j * speed;
-    out_vector->k = speed * throw_direction.k;
+    speed = *(float *)(a + 0x6c8);
+    out_vector->i = direction.i * speed;
+    out_vector->j = direction.j * speed;
+    out_vector->k = speed * direction.k;
     return target_object;
 }
 

@@ -1396,3 +1396,9 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   projectile_detonate (relink at the parent's position, sweep back to the stuck point).
 - unit_drop_object_from_hand 0x56ed00 REWRITTEN (0.25 -> 0.9): item_accelerate lacked the item, the root velocity
   helper lacked its operands.
+- unit_release_thrown_grenade 0x56e440 REWRITTEN (0.3 -> 0.9; every grenade throw): actor throw vector now gets
+  the grenade position, player launch point from the camera + globals offsets, early-release blend, reposition
+  from the camera.
+- actor_compute_grenade_throw_vector 0x410a60 REWRITTEN (0.35 -> 0.85): takes the grenade position (stack arg 1)
+  and hands it to the lob solver (the draft passed NULL -> crash on the first AI grenade), impact check gets its
+  point, the 30-degree facing clamp re-derived.

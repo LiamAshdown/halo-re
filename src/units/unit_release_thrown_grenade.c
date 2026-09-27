@@ -1,38 +1,15 @@
-// unit_release_thrown_grenade  (Ghidra: already named unit_release_thrown_grenade)
+// unit_release_thrown_grenade  (Ghidra: FUN_0056e440)
 // address 0x56e440, size 988 bytes
 // name confidence: 0.5 (functions.md summary matches; corroborated by throw-state writes)
-// rewrite confidence: 0.3 -- the two vector3d_cross_product calls, the two trailing UNSURE
-//   network helpers and one object_reposition_to_spawn_location call site could not be pinned to exact register
-//   arguments; see UNSURE notes.
-// evidence: types/units.h unit_data.throwing_grenade_state/_counter/_duration/_projectile
-//   (0x28d/0x28e/0x290/0x294), .actor_index (0x1f4), .controlling_player (0x218),
-//   .aiming_vector (0x23c); types/tags.h Unit.grenade_velocity (0x2c0, confirmed by summing
-//   the Unit tag layout: matches the *0.033333335 [1/30 tick] scale factor exactly);
-//   types/objects.h object.network_role (0x004), object.velocity (0x068); callees
-//   object_snap_to_parent_marker_and_detach (0x4f6610), object_set_position_and_relink
-//   (0x4f5350, ESI=position/EDI=object_index), vector3d_cross_product (0x4052c0,
-//   out=stack_operand x ecx_operand), object_type_override_call_0x68 (0x4f4560, ESI=object_index),
-//   object_delete, object_is_delete_pending (already so named by Ghidra).
-// register convention: object index in EAX (in_EAX / param_1), apply-throw-fraction flag in a
-//   second register (param_2, a byte).
-//   // blam-cc: EAX -> object_index, second register -> apply_throw_fraction
-// UNSURE: the two vector3d_cross_product calls are register-only in the decompile. Read as
-//   building an orthonormal (right, true_up) pair around the aim direction using the world-up
-//   constant as a reference (right = up x aim, normalized, falling back to up itself when aim
-//   is parallel to up; true_up = aim x right, normalized) -- the standard basis-rebuild idiom
-//   used elsewhere in this module (e.g. 0x558860).
-// UNSURE: globals_tag_data+0x174 (the "player information" block per types/units.h) is indexed
-//   at +0x68/+0x6c/+0x70 for the forward/right/up throw-origin offsets; not named in the header.
-// UNSURE: actor_compute_grenade_throw_vector (the AI-controlled branch's direction helper) and object_apply_impulse_and_spin (the
-//   final impulse applier) are out of this module's range and kept with the argument counts
-//   Ghidra shows at their call sites, which is not enough to assert a full prototype.
-// UNSURE: the object_reposition_to_spawn_location call site passes two stack-looking values (projectile_index,
-//   0xffffffff) that do not obviously match the (object_index, target_position) register
-//   convention established for that address in src/objects/object_reposition_to_spawn_location.c
-//   (target_position is dereferenced unconditionally there, which -1 cannot be); reproduced
-//   literally rather than forced into that signature.
-// UNSURE: projectile_send_creation's signature (object serialize into a scratch network buffer, return
-//   size) is inferred only from its own call site here.
+// rewrite confidence: 0.9
+// REWRITTEN from objdump 0x56e440..0x56e81b. Stack: (unit, early). While the unit is releasing (+0x28d == 2) its
+//   grenade (+0x294) is detached and given a velocity: an actor's from its throw solution (0x410a60 with the
+//   grenade's position), a player's along the aim from the camera plus the globals' grenade offsets (forward
+//   +0x68, right +0x6c, up +0x70, relinked there), anything else along the aim; all at the unit's grenade speed
+//   (+0x2c0 per second). An early release (arg) blends toward a weak random lob by the throw progress
+//   (+0x28e / +0x290). Then the impulse is applied (0x4bef80), the unit forgets the grenade (state 3), the grenade
+//   is swept back from the camera (deleted if that fails) and a client-authoritative grenade is sent.
+// blam-cc: stack -> unit_index, early
 
 #include "tags.h"
 #include "memory.h"
@@ -43,147 +20,128 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *globals_tag_data;   // 0x00746fa0
-extern real_vector3d *global_up3d_pointer; // 0x00696720, indirect pointer to math.h global_up3d
-extern int32_t game_connection_role;   // 0x00719720
+extern uint8_t *globals_tag_data;   // 0x00746fa0, +0x174 the player information block
+extern real_vector3d *global_up3d_pointer; // 0x00696720
+extern int16_t game_connection_role;   // 0x00719720
 extern uint8_t object_network_message_scratch[0x7ff8]; // 0x00871de0
+extern void *network_server_pointer; // 0x0071c2d4
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, in place
-extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand,
-                                    real_vector3d *stack_operand); // 0x4052c0, out = stack_operand x ecx_operand
+extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0
 extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);  // 0x4f6610
-extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX=out, ECX=object_index
-extern void unit_get_camera_position(uint32_t unit_index, real_point3d *out); // 0x568f80, UNSURE signature
+extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX, ECX
+extern void unit_get_camera_position(uint32_t unit_index, real_point3d *out); // 0x568f80, ECX, EDI
 extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index,
-    bsp_leaf_reference *location); // 0x4f5350, ESI, EDI, stack (location may be 0)
-extern void actor_compute_grenade_throw_vector(real_point3d *target, real_vector3d *out); // 0x410a60, UNSURE signature
+    bsp_leaf_reference *location); // 0x4f5350, ESI, EDI, stack
+extern uint32_t actor_compute_grenade_throw_vector(datum_index actor_index, real_point3d *grenade_position,
+    real_vector3d *out_vector); // 0x410a60, EBX, stack
 extern real random_real_range(real min, real max); // 0x401050
-extern void object_apply_impulse_and_spin(uint32_t object_index, real_vector3d *impulse); // 0x4bef80, UNSURE signature
+extern void object_apply_impulse_and_spin(uint32_t object_index, real_vector3d *delta_velocity); // 0x4bef80, EAX, EDX
 extern uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d *target_position,
     uint32_t ignore_object_index); // 0x4f7b70, stack, ECX
-extern void object_delete(uint32_t object_index);            // 0x4f5bd0, UNSURE exact signature
-extern uint8_t object_is_delete_pending(uint32_t object_index); // 0x4f5c10
-extern void object_type_override_call_0x68(uint32_t object_index); // 0x4f4560
-extern int32_t projectile_send_creation(uint32_t object_index, uint8_t *buffer, uint32_t buffer_size); // 0x4c0b10, UNSURE
-extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
-extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data,
-    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, ECX server
+extern void object_delete(uint32_t object_index);            // 0x4f5bd0, EAX
+extern uint8_t object_is_delete_pending(uint32_t object_index); // 0x4f5c10, EAX
+extern void object_type_override_call_0x68(uint32_t object_index); // 0x4f4560, ESI
+extern int32_t projectile_send_creation(uint32_t projectile_index); // 0x4c0b10 (pushes the scratch buffer too)
+extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t param_1, void *data,
+    int32_t param_3, int32_t param_4, char force, int32_t param_6); // 0x4e1a80, EAX, ECX, stack
 
-// Detaches the grenade previously attached to the unit's hand, computes its launch velocity
-// (a fixed speed along the aim direction for an AI unit, or a camera-relative toss origin plus
-// a charge-scaled blend between a slow "drop" toss and the full throw speed for a player-driven
-// unit), applies it as an impulse relative to the grenade's current velocity, marks the throw
-// finished (state 3), and -- when running as the server for a unit with no controlling player --
-// notifies the network layer of the release.
-void unit_release_thrown_grenade(uint32_t object_index, uint8_t apply_throw_fraction)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+
+void unit_release_thrown_grenade(uint32_t object_index, uint8_t early)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    Unit *tag = (Unit *)tag_instances[obj->definition_tag & 0xffff].data;
-    datum_index projectile_index;
-    real_vector3d velocity;
-    object *proj;
+    uint8_t *unit = OBJECT_DATA(object_index);                                  // ebp
+    uint8_t *unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data; // ebx
+    real_vector3d *aim = (real_vector3d *)(unit + 0x23c);
+    datum_index grenade;                        // [esp+0x18]
+    real_vector3d velocity;                     // [esp+0x1c]
 
-    if (unit->throwing_grenade_state != 2) {
+    if (unit[0x28d] != 2) {
         return;
     }
-
-    projectile_index = unit->throwing_grenade_projectile;
-    if (projectile_index == k_datum_index_none) {
-        unit->throwing_grenade_state = 3;
+    grenade = *(datum_index *)(unit + 0x294);
+    if (grenade == k_datum_index_none) {
+        unit[0x28d] = 3;
         return;
     }
+    object_snap_to_parent_marker_and_detach(grenade);
+    if (*(datum_index *)(unit + 0x1f4) != k_datum_index_none) {
+        real_point3d position;                  // [esp+0x40]
 
-    object_snap_to_parent_marker_and_detach(projectile_index);
+        object_get_position(&position, *(datum_index *)(unit + 0x294));
+        actor_compute_grenade_throw_vector(*(datum_index *)(unit + 0x1f4), &position, &velocity);
+    } else {
+        if (*(datum_index *)(unit + 0x218) != k_datum_index_none) {
+            // 0x56e4de: a player throws from the camera, offset by the globals' grenade offsets
+            uint8_t *info = *(uint8_t **)(globals_tag_data + 0x174);
+            real_vector3d forward = *aim;       // [esp+0x28]
+            real_vector3d right;                // [esp+0x34]
+            real_vector3d up;                   // [esp+0x40]
+            real_point3d launch;                // [esp+0x1c]
+            real forward_offset = *(float *)(info + 0x68);
+            real right_offset = *(float *)(info + 0x6c);
+            real up_offset = *(float *)(info + 0x70);
 
-    if (unit->actor_index == k_datum_index_none) {
-        real_vector3d aim = unit->aiming_vector;
-
-        if (unit->controlling_player != k_datum_index_none) {
-            uint8_t *player_info = globals_tag_data + 0x174;
-            real_vector3d right, true_up;
-            real_point3d launch_point;
-            float forward_offset = *(float *)(player_info + 0x68);
-            float right_offset = *(float *)(player_info + 0x6c);
-            float up_offset = *(float *)(player_info + 0x70);
-
-            vector3d_cross_product(&right, &aim, global_up3d_pointer); // right = up x aim
+            vector3d_cross_product(&right, &forward, global_up3d_pointer);
             if (vector3d_normalize_with_length(&right) == 0.0f) {
                 right = *global_up3d_pointer;
             }
-            vector3d_cross_product(&true_up, &right, &aim); // true_up = aim x right
-            vector3d_normalize_with_length(&true_up);
-
-            unit_get_camera_position(object_index, &launch_point);
-            launch_point.x += true_up.i * up_offset + right.i * right_offset + aim.i * forward_offset;
-            launch_point.y += true_up.j * up_offset + right.j * right_offset + aim.j * forward_offset;
-            launch_point.z += true_up.k * up_offset + right.k * right_offset + aim.k * forward_offset;
-            object_set_position_and_relink(&launch_point, projectile_index, 0);
+            vector3d_cross_product(&up, &right, &forward);
+            vector3d_normalize_with_length(&up);
+            unit_get_camera_position(object_index, &launch);
+            launch.x = launch.x + forward.i * forward_offset + right.i * right_offset + up.i * up_offset;
+            launch.y = launch.y + forward.j * forward_offset + right.j * right_offset + up.j * up_offset;
+            launch.z = launch.z + forward.k * forward_offset + right.k * right_offset + up.k * up_offset;
+            object_set_position_and_relink(&launch, grenade, 0);
         }
-
         {
-            float speed = tag->grenade_velocity * 0.033333335f;
-            velocity.i = speed * aim.i;
-            velocity.j = speed * aim.j;
-            velocity.k = speed * aim.k;
-        }
+            real speed = *(float *)(unit_tag + 0x2c0) * 0.033333335f;
 
-        if (apply_throw_fraction != 0) {
-            float fraction = (float)unit->throwing_grenade_counter / (float)unit->throwing_grenade_duration;
-            if (fraction < 1.0f) {
-                float toss_speed = (float)random_real_range(0.020000001, 0.046666667);
-                float remaining = 1.0f - fraction;
-                real_vector3d toss = { toss_speed * aim.i, toss_speed * aim.j, toss_speed * aim.k };
-
-                velocity.i = toss.i * remaining + velocity.i * fraction;
-                velocity.j = toss.j * remaining + velocity.j * fraction;
-                velocity.k = toss.k * remaining + velocity.k * fraction;
-            }
+            velocity.i = speed * aim->i;
+            velocity.j = speed * aim->j;
+            velocity.k = speed * aim->k;
         }
-    } else {
-        // UNSURE: both the EAX out-pointer and the ECX object_index are register-only at this
-        // call site and could not be recovered; a scratch point and this unit's own index are
-        // the best available placeholders.
-        real_point3d target_position;
-        object_get_position(&target_position, object_index);
-        actor_compute_grenade_throw_vector(&target_position, &velocity);
     }
 
-    proj = ((object_header *)object_data->data)[projectile_index & 0xffff].data;
-    velocity.i -= proj->velocity.i;
-    velocity.j -= proj->velocity.j;
-    velocity.k -= proj->velocity.k;
-    object_apply_impulse_and_spin(projectile_index, &velocity);
+    // 0x56e644: an early release lobs weaker
+    if (early) {
+        real progress = (real)*(int16_t *)(unit + 0x28e) / (real)*(int16_t *)(unit + 0x290);
 
-    unit->throwing_grenade_projectile = k_datum_index_none;
-    unit->throwing_grenade_state = 3;
+        if (progress < 1.0f) {
+            real lob = random_real_range(0.02f, 0.046666667f);
+            real rest = 1.0f - progress;
 
+            velocity.i = lob * aim->i * rest + velocity.i * progress;
+            velocity.j = lob * aim->j * rest + velocity.j * progress;
+            velocity.k = lob * aim->k * rest + velocity.k * progress;
+        }
+    }
+
+    // 0x56e711
     {
-        // 0x56e764: the grenade is swept back from the thrower's camera (ECX), ignoring nothing
+        uint8_t *object = OBJECT_DATA(grenade);
+        real_vector3d delta;
         real_point3d camera;
 
+        delta.i = velocity.i - *(float *)(object + 0x68);
+        delta.j = velocity.j - *(float *)(object + 0x6c);
+        delta.k = velocity.k - *(float *)(object + 0x70);
+        object_apply_impulse_and_spin(grenade, &delta);
+        *(datum_index *)(unit + 0x294) = k_datum_index_none;
+        unit[0x28d] = 3;
         unit_get_camera_position(object_index, &camera);
-        if (object_reposition_to_spawn_location(projectile_index, &camera, k_datum_index_none) == 0) {
-            object_delete(projectile_index);
+        if (!object_reposition_to_spawn_location(grenade, &camera, k_datum_index_none)) {
+            object_delete(grenade);
             return;
         }
     }
-    if (0) {
-        object_delete(projectile_index);
-        return;
-    }
+    if (*(int32_t *)(unit + 0x4) == 0 && game_connection_role == 2 && !object_is_delete_pending(grenade)) {
+        *(int32_t *)(OBJECT_DATA(grenade) + 0x4) = 0;
+        object_type_override_call_0x68(grenade);
+        int32_t bits = projectile_send_creation(grenade);
 
-    if (obj->network_role == 0 && game_connection_role == 2) {
-        if (object_is_delete_pending(projectile_index) == 0) {
-            proj = ((object_header *)object_data->data)[projectile_index & 0xffff].data;
-            proj->network_role = 0;
-            object_type_override_call_0x68(projectile_index);
-            {
-                int32_t encoded_size = projectile_send_creation(projectile_index, object_network_message_scratch, 0x7ff8);
-                if (encoded_size > 0) {
-                    network_session_broadcast_to_flagged(network_server_pointer, 1, object_network_message_scratch, 1, 0, 0, 3);
-                }
-            }
+        if (bits > 0) {
+            network_session_broadcast_to_flagged(bits, network_server_pointer, 1, object_network_message_scratch, 1, 0, 0, 3);
         }
     }
 }
