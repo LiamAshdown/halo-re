@@ -67,9 +67,8 @@ extern real vector2d_normalize_with_length(real_vector2d *v);  // 0x4018e0
 extern real vector3d_normalize_with_length(real_vector3d *v);  // 0x401990
 extern int32_t random_int_range(int32_t exclusive_max);         // 0x405320
 extern void actor_get_body_axis_vector(uint32_t actor_index, uint32_t unit_index, actor_axis_request *request); // 0x405390, this session
-extern uint8_t actor_play_first_valid_vocalization(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_play_first_valid_vocalization at 0x40e260
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
+extern uint8_t actor_play_first_valid_vocalization(int16_t *seat_list, datum_index vehicle_index, datum_index actor_index,
+                                                   char *seat_name, int16_t seat_flags, int16_t count); // 0x40e260, EAX, ECX, stack
 extern uint8_t actor_begin_vocalization(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_begin_vocalization at 0x4142d0
                  // disagree on the argument list; Ghidra drops the register arguments
                  // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
@@ -109,7 +108,7 @@ extern uint8_t unit_start_user_animation(uint32_t unit_index, datum_index graph_
     uint8_t interpolate); // 0x5702a0, blam-cc: stack, EDI, EAX, stack
 extern void _qsort(void *base, int32_t count, int32_t size, int32_t (*cmp)(const void *, const void *)); // 0x623410
 extern int32_t float_compare_ascending(const void *a, const void *b); // 0x405360, this session (skipped: library qsort comparator)
-extern const uint32_t DAT_0065512c; // 0x0065512c, a vocalization category table passed straight through to actor_play_first_valid_vocalization
+extern const char DAT_0065512c[]; // 0x0065512c, the empty string: a seat name filter matching every seat
 extern int32_t object_lookup_table_get(void); // 0x4f73c0, not yet rewritten (redeclared with its real return type; see case 0x19)
 
 // Executes the squad's current scripted action-list entry (command list command_list_index,
@@ -444,32 +443,36 @@ char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32
         break;
     case 9:
         if (check_object_index == a->unit_index) {
-            struct { uint32_t magic_a; uint32_t magic_b; float best; uint32_t pad; int32_t index; } it;
+            // 0x40609a..0x4061bb: every vehicle (iterator mask 2) within parameter1 of the actor (any distance when
+            //   parameter1 is 0), nearest first (at most 16), until the actor can board one of its seats: seats
+            //   named "" (any) with the atom modifier (0..4, else -1) as seat flags (0x40e260: EAX 0, ECX vehicle).
+            object_iterator it;
+            uint32_t filler = 0x86868686; // 0x4060a8: written beside the iterator, never read
             int32_t node;
-            float samples[32];
+            struct { float distance_squared; datum_index vehicle_index; } samples[16];
             int16_t sample_count = 0;
-            int16_t category = -1;
+            int16_t seat_flags = -1;
 
-            it.magic_a = 0xffffffff;
-            it.magic_b = 0x86868686;
-            it.best = 2.8026e-45f;
-            it.pad = 0;
-            it.index = -1;
+            (void)filler;
+            it.type_mask = 2;
+            it.flags_mask = 0;
+            it.index = 0;
+            it.handle = k_datum_index_none;
             node = object_iterator_next(&it);
             while (node != 0) {
-                float prior_best = it.best;
+                datum_index vehicle_index = it.handle;
                 float distance;
                 real_point3d position;
 
                 // 0x4060e0..0x4060f1: EAX = &position, ECX = the iterated object; then EAX (still
                 // &position) and ECX = actor + 0x12c (body_position)
-                object_get_position(&position, (uint32_t)node);
+                object_get_position(&position, (uint32_t)vehicle_index);
                 distance = vector3d_distance_squared(&position, &a->body_position);
-                if (entry->parameter1 == 0.0f || distance < entry->parameter1 * entry->parameter1) {
-                    samples[sample_count * 2] = distance;
-                    samples[sample_count * 2 + 1] = prior_best;
+                if (entry->parameter1 == 0.0f || distance <= entry->parameter1 * entry->parameter1) {
+                    samples[sample_count].distance_squared = distance;
+                    samples[sample_count].vehicle_index = vehicle_index;
                     sample_count++;
-                    if (sample_count > 0xf) break;
+                    if (sample_count >= 16) break;
                 }
                 node = object_iterator_next(&it);
             }
@@ -477,12 +480,13 @@ char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32
                 _qsort(samples, sample_count, 8, float_compare_ascending);
             }
             if (entry->atom_modifier >= 0 && entry->atom_modifier < 5) {
-                category = entry->atom_modifier;
+                seat_flags = entry->atom_modifier;
             }
             {
                 int16_t i;
                 for (i = 0; i < sample_count; i++) {
-                    if (actor_play_first_valid_vocalization(actor_index, &DAT_0065512c, &category, 0)) { // UNSURE: category passed by value originally
+                    if (actor_play_first_valid_vocalization(0, samples[i].vehicle_index, actor_index, (char *)DAT_0065512c,
+                                                            seat_flags, 0)) {
                         state[4] |= 4;
                         return 1;
                     }

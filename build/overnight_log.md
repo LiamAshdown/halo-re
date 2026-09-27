@@ -1208,3 +1208,25 @@ OPEN: an a10 NPC "randomly disappears" (user report). Not a script deletion (tra
   actor_apply_unit_definition_properties (0x426cf0), the tutorial's ai_command_list animation commands.
 - actor_place_new_unit (0x427080, 0.15) decoded: matches except the host-only role table index (tag index used
   instead of the object type) -- not the cause.
+
+## 2026-09-27 (loop, static only, user out) -- AI vehicle boarding chain rewritten
+Motive: the vanishing a10 cryo tech. The a10 crewmen are placed at tutorial_setup; the one route by which an AI
+unit is hidden without being deleted is unit_enter_vehicle_seat (state 0x1a copies the seat's hidden flag), and
+every AI caller of it sat in low-confidence drafts. All rewritten from objdump, ai builds 0 failed, relinked
+(1 unresolved, 130 traps, unchanged):
+- 0x5640a0 unit_find_weapon_marker_transform (seat entry / seat marker / enter-hint points), 0x4091d0
+  actor_evaluate_search_node (seat evaluation), 0x408f30 alert range (sum order, upright test).
+- 0x4095c0 actor_avoid_obstacle_and_project: really the approach point round the vehicle, dropped onto the BSP.
+  The draft read the ACTOR tag at +0x17c / +0x280 (those are vehicle tag fields) and lost EAX/ECX/EDX.
+- 0x409070 actor_find_best_search_node: best seat; the direction output was missing and the entry/hint swapped.
+- 0x408a30 / 0x408920: mode 9 order builders (EBX vehicle). Drafts had no vehicle at all.
+- 0x408ba0 actor_investigate_disturbance_update: the mode 9 per-tick update. The draft passed the close / facing /
+  in-front flags crossed, so "close" came from the in-front test and +0xc4 got the wrong flag; seat entry
+  (unit_enter_vehicle_seat) could fire when the actor was merely in front of the seat.
+- 0x40e260 (misnamed actor_play_first_valid_vocalization): board the first usable seat (EAX list, ECX vehicle).
+  Callers fixed: actor_squad_action_execute case 9 (the object iterator layout was scrambled: mask 2 = vehicles,
+  handle +8; the sample pair holds the vehicle, not a float), ai_object_process_nearby_actors (0x433cc0,
+  ai_go_to_vehicle's engine side: EAX ai reference; seat search on the vehicle).
+OPEN: whether the cryo tech is hidden this way needs the user's runtime check (no boot while they are out).
+OPEN: the command-list / think callers of 0x408920 (0x40b029) and the ai_go_to_vehicle evaluators are unlisted
+  callbacks (traps if reached).

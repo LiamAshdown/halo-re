@@ -1,14 +1,12 @@
-// actor_find_best_search_node  (Ghidra: actor_find_best_search_node, renamed)
+// actor_find_best_search_node  (Ghidra: FUN_00409070; really: pick the best vehicle seat for an actor to board)
 // address 0x409070, size 342 bytes
-// name confidence: 0.4   rewrite confidence: 0.2
-// evidence: types/tags.h Unit tag (referenced via the unit's ActorVariant.unit dependency,
-//   read here through the unit object's definition_tag); calls actor_evaluate_search_node
-//   (this session, 0x4091d0) once per candidate index up to a per-unit-type table count at
-//   offset 0x2e4; phase-4 summary "scans a cluster's list of candidate search positions and
-//   returns the index and data for the highest-scoring one".
-// register convention: already a full stack-parameter signature in the decompilation.
-// UNSURE: the table this function bounds by `unit_definition+0x2e4` is not identified in
-// types/tags.h (no Unit struct field is named at that offset here); kept as a raw offset.
+// name confidence: 0.2   rewrite confidence: 0.9
+// REWRITTEN from objdump 0x409070..0x4091c5 (the draft dropped the direction output and returned the hint
+//   where the entry point belongs). Stack (actor, vehicle, out_entry, out_direction, out_hint). Every seat of
+//   the vehicle tag (+0x2e4) is scored by 0x4091d0; the highest score above 0 wins. Returns its seat index, or
+//   -1; the optional outputs get that seat's entry point, approach direction and enter-hint point (the
+//   original leaves stale stack there when nothing qualified; zero here).
+// blam-cc: stack -> (actor_index, vehicle_index, out_entry, out_direction, out_hint)
 
 #include "tags.h"
 #include "memory.h"
@@ -20,52 +18,47 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_index, int16_t seat_index, void *out_entry, void *out_direction, void *out_hint, float *out_score, uint8_t *out_close, uint8_t *out_facing, uint8_t *out_in_front); // 0x4091d0, returns AL
+extern uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_index, int16_t seat_index,
+    real_point3d *out_entry, real_vector3d *out_direction, real_point3d *out_hint, float *out_score,
+    uint8_t *out_close, uint8_t *out_facing, uint8_t *out_in_front); // 0x4091d0
 
-// Scans candidate search-node indices 0..count-1 (count from the target unit's type
-// definition at +0x2e4) via actor_evaluate_search_node, keeping the highest-scoring one, and
-// writes its position/direction/extra data out through out_position/out_direction/
-// out_extra (each optional). Returns the winning index, or -1 if none qualified.
-int32_t actor_find_best_search_node(uint32_t actor_index, uint32_t unit_object_index, float *out_position, float *out_direction, uint32_t *out_extra)
+int16_t actor_find_best_search_node(datum_index actor_index, datum_index vehicle_index, real_point3d *out_entry,
+                                    real_vector3d *out_direction, real_point3d *out_hint)
 {
-    object *unit_obj = ((object_header *)object_data->data)[unit_object_index & 0xffff].data;
-    uint8_t *unit_definition = (uint8_t *)tag_instances[unit_obj->definition_tag & 0xffff].data;
-    int32_t count = *(int32_t *)(unit_definition + 0x2e4);
-    int16_t i;
-    int32_t best_index = -1;
+    uint8_t *vehicle_tag = (uint8_t *)tag_instances[*(datum_index *)((object_header *)object_data->data)
+                                                        [vehicle_index & 0xffff].data & 0xffff].data;
+    int16_t best_seat = -1;
     float best_score = 0.0f;
-    float best_position[3] = {0, 0, 0};
-    float best_direction[3] = {0, 0, 0};
-    uint32_t best_extra[3] = {0, 0, 0};
+    real_point3d best_entry = {0.0f, 0.0f, 0.0f};
+    real_vector3d best_direction = {0.0f, 0.0f, 0.0f};
+    real_point3d best_hint = {0.0f, 0.0f, 0.0f};
+    int16_t i;
 
-    for (i = 0; i < count; i++) {
-        float position[3];
-        float direction[3];
-        uint32_t extra[3];
+    for (i = 0; i < *(int32_t *)(vehicle_tag + 0x2e4); i++) {
+        real_point3d entry;
+        real_vector3d direction;
+        real_point3d hint;
         float score;
 
-        if (actor_evaluate_search_node(actor_index, unit_object_index, (uint32_t)i, position, direction, extra, &score, 0, 0, 0) != 0 && best_score < score) {
+        if (actor_evaluate_search_node(actor_index, vehicle_index, i, &entry, &direction, &hint, &score, 0, 0, 0) &&
+            score > best_score) {
             best_score = score;
-            best_position[0] = position[0]; best_position[1] = position[1]; best_position[2] = position[2];
-            best_direction[0] = direction[0]; best_direction[1] = direction[1]; best_direction[2] = direction[2];
-            best_extra[0] = extra[0]; best_extra[1] = extra[1]; best_extra[2] = extra[2];
-            best_index = i;
+            best_entry = entry;
+            best_direction = direction;
+            best_hint = hint;
+            best_seat = i;
         }
     }
-
-    // UNSURE/faithful: the original never writes through its "direction" out-parameter
-    // (param_4) at all -- only position (param_3) and extra (param_5) -- so out_direction is
-    // accepted (matching the recognized stack parameter) but intentionally left unused here,
-    // exactly as the decompiled function leaves it.
-    (void)out_direction;
-    (void)best_direction;
-    if (out_position != 0) {
-        out_position[0] = best_position[0]; out_position[1] = best_position[1]; out_position[2] = best_position[2];
+    if (out_entry != 0) {
+        *out_entry = best_entry;
     }
-    if (out_extra != 0) {
-        out_extra[0] = best_extra[0]; out_extra[1] = best_extra[1]; out_extra[2] = best_extra[2];
+    if (out_direction != 0) {
+        *out_direction = best_direction;
     }
-    return best_index;
+    if (out_hint != 0) {
+        *out_hint = best_hint;
+    }
+    return best_seat;
 }
 
 #if 0

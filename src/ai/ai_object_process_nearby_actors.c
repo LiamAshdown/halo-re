@@ -1,22 +1,14 @@
-// ai_object_process_nearby_actors  (Ghidra: ai_object_process_nearby_actors; named for this rewrite)
+// ai_object_process_nearby_actors  (Ghidra: FUN_00433cc0; really: the engine side of ai_go_to_vehicle /
+//   ai_go_to_vehicle_override, hs evaluators 0x47d9d0 / 0x47da20)
 // address 0x433cc0, size 335 bytes
-// name confidence: 0.35   rewrite confidence: 0.3
-// evidence: Ghidra badly misjudges this function's stack frame (declaring two ~390KB
-// phantom locals); the real locals are a reference position (object_get_position), a
-// 0x40-entry candidate array of {actor_index, distance_squared, is_type_9} records (stride
-// 0xc, matching object_sort_by_flag_then_distance's own +4/+8 reads -- that comparator is
-// library math code per out/phase4/ai_types_notes.md and is not rewritten in this batch),
-// and a 32-byte buffer unit_find_seats_matching_name_and_flags (outside this rewrite's range) fills in. Reproduced here
-// with an explicit local struct instead of chasing Ghidra's phantom stack layout. Gathers
-// every actor named by a packed ai reference, sorts them by (is-type-9-target, ascending
-// distance to the current object), and processes them nearest-first via
-// actor_play_first_valid_vocalization-style callee actor_play_first_valid_vocalization (outside this batch,
-// declared with the signature its other call site in actor_squad_action_execute.c already
-// established), stopping early at the first type-9 candidate unless allow_type_9 is set.
-// register convention: Ghidra fully resolved param_1/param_2/param_3 and left the current
-// object index in EAX.
-//   // blam-cc: EAX -> object_index, stack -> query_a, query_b, allow_type_9
-
+// name confidence: 0.2   rewrite confidence: 0.9
+// REWRITTEN from objdump 0x433cc0..0x433e1b (the draft took the ai reference from the stack and passed the
+//   seat search the wrong object). EAX: the packed ai reference (-1 = nothing); stack (vehicle, seat name,
+//   allow actors already boarding). For a biped or vehicle, the seats matching the name (any flags, at most 16)
+//   are collected (0x56a310); the referenced actors (at most 0x40) are sorted by (already boarding, distance to
+//   the vehicle) and each is sent to the first still-free listed seat it can use (0x40e260, which strikes the
+//   seat from the shared list). Without the override the first already-boarding actor ends the pass.
+// blam-cc: EAX -> ai_reference, stack -> (vehicle_index, seat_name, allow_boarding_actors)
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -32,31 +24,35 @@ extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_refere
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator); // 0x4326d0, this batch
 extern int object_sort_by_flag_then_distance(const void *a, const void *b); // 0x433c70, library code, not rewritten in this batch
 extern void _qsort(void *base, int32_t count, int32_t size, int (*compare)(const void *, const void *)); // 0x623410
-extern int16_t unit_find_seats_matching_name_and_flags(uint32_t query_a, uint32_t query_b, uint32_t unused, void *out_buffer, int32_t buffer_size); // 0x56a310, outside this rewrite's range, UNSURE signature
-extern uint8_t actor_play_first_valid_vocalization(); // 0x40e260, this module, not in this rewrite's range; SIGNATURE-CONFLICT with
-                                // actor_squad_action_execute.c's own call site, left unprototyped, see src/ai/README.md
+extern int16_t unit_find_seats_matching_name_and_flags(uint32_t unit_index, char *name_filter, uint16_t flag_selector,
+                                                       int16_t *out_indices, int16_t max_indices); // 0x56a310
+extern uint8_t actor_play_first_valid_vocalization(int16_t *seat_list, datum_index vehicle_index, datum_index actor_index,
+                                                   char *seat_name, int16_t seat_flags, int16_t count); // 0x40e260, EAX, ECX, stack
 
-// blam-cc: EAX -> object_index, stack -> query_a, query_b, allow_type_9
-void ai_object_process_nearby_actors(datum_index object_index, uint32_t query_a, uint32_t query_b,
-                                      char allow_type_9)
+void ai_object_process_nearby_actors(uint32_t ai_reference, datum_index vehicle_index, char *seat_name,
+                                      char allow_boarding_actors)
 {
-    object *obj = object_try_and_get(object_index, 3); // biped or vehicle
+    object *obj;
 
+    if (ai_reference == 0xffffffff) {
+        return;
+    }
+    obj = object_try_and_get(vehicle_index, 3); // biped or vehicle
     if (obj != 0) {
         real_point3d reference_position;
-        uint8_t query_buffer[0x10];
-        int16_t category;
+        int16_t seat_list[16];
+        int16_t seat_count;
         int16_t candidate_count = 0;
         ai_nearby_actor_candidate candidates[0x40];
 
-        object_get_position(&reference_position, object_index);
-        category = unit_find_seats_matching_name_and_flags(query_a, query_b, (uint32_t)k_datum_index_none, query_buffer, 0x10);
+        object_get_position(&reference_position, vehicle_index);
+        seat_count = unit_find_seats_matching_name_and_flags(vehicle_index, seat_name, 0xffff, seat_list, 0x10);
 
-        if (category > 0) {
+        if (seat_count > 0) {
             ai_reference_actor_iterator iterator;
             actor *a;
 
-            ai_reference_actor_iterator_new(query_a, &iterator);
+            ai_reference_actor_iterator_new(ai_reference, &iterator);
             a = ai_reference_actor_iterator_next(&iterator);
             while (a != 0) {
                 if (candidate_count < 0x40) {
@@ -65,7 +61,7 @@ void ai_object_process_nearby_actors(datum_index object_index, uint32_t query_a,
                     float dz = reference_position.z - a->body_position.z;
                     ai_nearby_actor_candidate *c = &candidates[candidate_count];
                     c->actor_index = iterator.actor_index;
-                    c->distance_squared = dy * dy + dx * dx + dz * dz;
+                    c->distance_squared = dz * dz + dx * dx + dy * dy; // 0x433d76..0x433d84
                     c->is_type_9 = (a->mode == 9);
                     candidate_count = candidate_count + 1;
                 }
@@ -77,10 +73,11 @@ void ai_object_process_nearby_actors(datum_index object_index, uint32_t query_a,
             {
                 int16_t i;
                 for (i = 0; i < candidate_count; i++) {
-                    if (candidates[i].is_type_9 != 0 && allow_type_9 == 0) {
+                    if (candidates[i].is_type_9 != 0 && allow_boarding_actors == 0) {
                         return;
                     }
-                    actor_play_first_valid_vocalization(candidates[i].actor_index, 0, (uint32_t)k_datum_index_none, category);
+                    actor_play_first_valid_vocalization(seat_list, vehicle_index, candidates[i].actor_index, 0, -1,
+                                                        seat_count);
                 }
             }
         }

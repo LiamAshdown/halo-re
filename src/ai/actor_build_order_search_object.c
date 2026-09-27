@@ -1,78 +1,69 @@
-// actor_build_order_search_object  (Ghidra: actor_build_order_search_object, already named)
+// actor_build_order_search_object  (Ghidra: FUN_00408920; really: build a mode 9 order to board the best seat of
+//   a vehicle)
 // address 0x408920, size 267 bytes
-// name confidence: 0.5   rewrite confidence: 0.3
-// evidence: types/ai.h actor.active_unit_index (0x158)/swarm (0x06)/mode (0x6c, compared
-//   against _actor_mode_vocalize); phase-4 summary "builds an order sending the actor to
-//   investigate a specific object, chaining range, waypoint, visibility, and reachability
-//   checks".
-// register convention: actor index in EAX, an unresolved value in EBX, a target point (x/y)
-//   in the two recognized stack parameters, and the order/output record in the third stack
-//   parameter.
-//   // blam-cc: EAX -> actor_index, EBX -> unknown_target, stack -> target_x/target_y/order
-// TYPES-GAP: `order`'s tail (offsets 0x20/0x24/0x30..0x48) is not defined anywhere in
-//   types/ai.h; used here as raw offsets, matching the other order-family builders' varying
-//   tails in this session.
-// UNSURE: `unknown_target` (unaff_EBX) is written into order[0] with no visible definition
-//   in this function; its real source is whatever register-allocation decision the caller
-//   made, not reproducible here.
+// name confidence: 0.2   rewrite confidence: 0.9
+// REWRITTEN from objdump 0x408920..0x408a2a (the draft lost the EBX vehicle and every register argument). EBX:
+//   the vehicle; stack (actor, alert radius a, alert radius b, order). The 0x4c-byte mode 9 order is zeroed and
+//   gets the radii at +0x20 / +0x24 (actor +0xbc / +0xc0 once set). For an actor not driving anything, not
+//   swarming and not already boarding (mode 9), with the vehicle in its alert range (0x408f30), the best seat
+//   (0x409070) is taken: +0x00 vehicle, +0x04 seat, +0x06 1 (scripted), then as 0x408a30 does the seat must be
+//   usable (0x565150), the approach point (+0x30, surface +0x48) found (0x4095c0) and made the destination.
+// blam-cc: EBX -> vehicle_index, stack -> (actor_index, radius_a, radius_b, order)
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include <string.h>
 
-extern data_array *actor_data; // 0x00880360
+extern data_array *actor_data;  // 0x00880360
 
-extern uint8_t actor_is_within_alert_range(uint8_t always_in_range, float radius_a, float radius_b, uint8_t vitality_only, uint8_t use_radius_b, uint32_t actor_index, uint32_t object_index); // 0x408f30, this session
-extern int32_t actor_find_best_search_node(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_find_best_search_node at 0x409070
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern uint8_t unit_seat_index_is_valid(void); // 0x565150, not yet rewritten
-extern int32_t actor_avoid_obstacle_and_project(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_avoid_obstacle_and_project at 0x4095c0
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
+extern uint8_t actor_is_within_alert_range(uint8_t always_in_range, float radius_a, float radius_b, uint8_t vitality_only, uint8_t use_radius_b, uint32_t actor_index, uint32_t object_index); // 0x408f30, stack, EAX, ECX
+extern int16_t actor_find_best_search_node(datum_index actor_index, datum_index vehicle_index, real_point3d *out_entry,
+                                           real_vector3d *out_direction, real_point3d *out_hint); // 0x409070
+extern uint8_t unit_seat_index_is_valid(uint32_t other_object_index, uint32_t unit_index, int16_t seat_index); // 0x565150, EAX, ECX, DX
+extern uint8_t actor_avoid_obstacle_and_project(datum_index actor_index, datum_index vehicle_index, real_point3d *entry,
+    real_point3d *hint, uint8_t *in_out_near_line, real_point3d *out_point, int32_t *out_surface_index); // 0x4095c0, EAX, ECX, EDX, stack
 extern uint8_t actor_movement_set_destination_point(real_point3d *destination, datum_index actor_index,
-                                                    int32_t parameter, uint32_t extra); // 0x417610, this module,
-                                                    // blam-cc: EAX -> destination, stack -> the other three
+                                                    int32_t parameter, uint32_t extra); // 0x417610, EAX, stack
 
-uint8_t actor_build_order_search_object(uint32_t actor_index, uint32_t unknown_target, float target_x, float target_y, uint32_t *order)
+uint8_t actor_build_order_search_object(uint32_t vehicle_index, uint32_t actor_index, float radius_a, float radius_b,
+                                        uint8_t *order)
 {
-    actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
-    uint32_t *body = order;
-    int32_t i;
-    uint8_t result = 0;
+    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    real_point3d entry;
+    real_vector3d direction;
+    real_point3d hint;
+    int16_t seat;
 
-    for (i = 0x13; i != 0; i--) {
-        *body = 0;
-        body++;
+    memset(order, 0, 0x4c);
+    *(float *)(order + 0x20) = radius_a;
+    *(float *)(order + 0x24) = radius_b;
+    if (*(datum_index *)(act + 0x158) != k_datum_index_none || act[0x6] != 0 || *(int16_t *)(act + 0x6c) == 9) {
+        return 0;
     }
-    order[8] = *(uint32_t *)&target_x;
-    order[9] = *(uint32_t *)&target_y;
-
-    if (a->active_unit_index == (datum_index)k_datum_index_none && a->swarm == 0 && a->mode != _actor_mode_vocalize) {
-        if (actor_is_within_alert_range(0, target_x, target_y, 0, 0, actor_index, unknown_target) != 0) {
-            int16_t search_slot;
-
-            order[0] = unknown_target;
-            search_slot = actor_find_best_search_node(actor_index);
-            *(int16_t *)(order + 1) = search_slot;
-            if (search_slot != -1) {
-                *((uint8_t *)order + 6) = 1;
-                if (unit_seat_index_is_valid() != 0) {
-                    uint8_t scratch[36];
-                    if (actor_avoid_obstacle_and_project(scratch, 0, order + 0xc, order + 0x12) != 0) {
-                        // 0x4089e5..0x408a0f: EAX = order + 0x30 bytes, then push ebx / edx / edi,
-                        // i.e. (&order[0xc], actor_index, order[0x12], unknown_target).
-                        if (actor_movement_set_destination_point((real_point3d *)(order + 0xc), actor_index,
-                                                                 (int32_t)order[0x12], unknown_target) != 0) {
-                            result = 1;
-                        }
-                    }
-                }
-            }
-        }
+    if (!actor_is_within_alert_range(0, radius_a, radius_b, 0, 0, actor_index, vehicle_index)) {
+        return 0;
     }
-    return result;
+    *(datum_index *)(order + 0x0) = vehicle_index;
+    seat = actor_find_best_search_node(actor_index, vehicle_index, &entry, &direction, &hint);
+    *(int16_t *)(order + 0x4) = seat;
+    if (seat == -1) {
+        return 0;
+    }
+    order[0x6] = 1;
+    if (!unit_seat_index_is_valid(*(datum_index *)(act + 0x18), vehicle_index, seat)) {
+        return 0;
+    }
+    if (!actor_avoid_obstacle_and_project(actor_index, vehicle_index, &entry, &hint, 0, (real_point3d *)(order + 0x30),
+                                          (int32_t *)(order + 0x48))) {
+        return 0;
+    }
+    if (!actor_movement_set_destination_point((real_point3d *)(order + 0x30), actor_index, *(int32_t *)(order + 0x48),
+                                              vehicle_index)) {
+        return 0;
+    }
+    return 1;
 }
 
 #if 0

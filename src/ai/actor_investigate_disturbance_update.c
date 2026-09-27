@@ -1,14 +1,18 @@
-// actor_investigate_disturbance_update  (Ghidra: actor_investigate_disturbance_update, renamed)
+// actor_investigate_disturbance_update  (Ghidra: FUN_00408ba0; really: the mode 9 "board vehicle seat" update)
 // address 0x408ba0, size 732 bytes
-// name confidence: 0.4   rewrite confidence: 0.2
-// evidence: types/ai.h actor.active_unit_index (0x158)/needs_new_path (0x4c); phase-4
-//   summary "maintains and periodically advances the actor's 'investigating a disturbance'
-//   state, abandoning the search after too many failed attempts". Every other field this
-//   function touches (0xa2..0xe4) falls inside actor.mode_data (a per-mode union, see
-//   types/ai.h) and is used here as this mode's own scratch record: a target prop/unit
-//   handle, position-changed counters, a cached "last checked" position and tick, a
-//   retry/attempt counter, and output slots for actor_evaluate_search_node
-//   (actor_evaluate_search_node)'s position/direction/extra/close/facing/flag outputs.
+// name confidence: 0.2   rewrite confidence: 0.9
+// REWRITTEN from objdump 0x408ba0..0x408e7b (the draft swapped the close / in-front flags, stored the wrong one
+//   at +0xc4 and called 0x4095c0 without its register arguments). Stack: actor. Mode data at actor +0x9c:
+//   +0x9c vehicle, +0xa0 seat, +0xa2 scripted, +0xa3 near-line flag, +0xa4 entered, +0xa5 done (driving),
+//   +0xa6 failed, +0xa8 path failures, +0xaa stuck count, +0xac / +0xb0 stuck test time / position, +0xbc / +0xc0
+//   alert radii, +0xc4 close, +0xc5 facing, +0xc6 in-front ticks, +0xc8 at entry, +0xcc approach point, +0xd8
+//   approach direction, +0xe4 approach surface. Returns 1 once the mode is over (done or failed).
+//   An actor that drives something is done; one that entered, or whose vehicle is gone, waits for that. The
+//   boarding fails when the vehicle leaves the alert range (0x408f30), the actor makes no progress (25 world
+//   units squared) over 8 checks 150 ticks apart, or the seat cannot be approached (0x4091d0). Close and facing
+//   the seat (or 30 ticks in front of it) the actor's unit enters the seat (0x566970); close but not facing it
+//   stops; otherwise a fresh approach point is taken while the actor wants a path (+0x4c).
+// blam-cc: stack -> actor_index
 
 #include "tags.h"
 #include "memory.h"
@@ -20,121 +24,93 @@ extern data_array *actor_data;       // 0x00880360
 extern game_time_globals *game_time; // 0x006f1d6c
 
 extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, src/math; blam-cc: EAX a, ECX b
-extern uint8_t actor_is_within_alert_range(uint8_t always_in_range, float radius_a, float radius_b, uint8_t vitality_only, uint8_t use_radius_b, uint32_t actor_index, uint32_t object_index); // 0x408f30, this session
-extern int32_t actor_evaluate_search_node(uint32_t actor_index, uint32_t from_object, uint32_t node_table, float *out_position, float *out_direction, uint32_t *out_extra, float *out_score, uint8_t *out_close, uint8_t *out_facing, uint8_t *out_flag); // 0x4091d0, this session
-extern int32_t actor_avoid_obstacle_and_project(uint32_t actor_index, real_point3d *candidate, char *out_avoided_flag, uint32_t object_index, float *out_point, uint32_t *out_extra); // 0x4095c0, this session
-extern void actor_movement_action_stop(datum_index actor_index); // 0x417570, this module,
+extern uint8_t actor_is_within_alert_range(uint8_t always_in_range, float radius_a, float radius_b, uint8_t vitality_only, uint8_t use_radius_b, uint32_t actor_index, uint32_t object_index); // 0x408f30, stack, EAX, ECX
+extern uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_index, int16_t seat_index,
+    real_point3d *out_entry, real_vector3d *out_direction, real_point3d *out_hint, float *out_score,
+    uint8_t *out_close, uint8_t *out_facing, uint8_t *out_in_front); // 0x4091d0
+extern uint8_t actor_avoid_obstacle_and_project(datum_index actor_index, datum_index vehicle_index, real_point3d *entry,
+    real_point3d *hint, uint8_t *in_out_near_line, real_point3d *out_point, int32_t *out_surface_index); // 0x4095c0, EAX, ECX, EDX, stack
+extern void actor_movement_action_stop(datum_index actor_index); // 0x417570, EDX
 extern uint8_t actor_movement_set_destination_point(real_point3d *destination, datum_index actor_index,
-                                                    int32_t parameter, uint32_t extra); // 0x417610, this module,
+                                                    int32_t parameter, uint32_t extra); // 0x417610, EAX, stack
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX object, stack mask
 extern uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index); // 0x566970, EAX unit, stack
 
-// FIXED (register inputs, objdump; one stack argument remains, so no ordering question): the original never reads EAX; actor_index arrive(s) on the stack (1 stack argument(s)).
-// blam-cc: stack -> actor_index
 int32_t actor_investigate_disturbance_update(uint32_t actor_index)
 {
-    actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
-    uint8_t *m = a->mode_data;
-    void *self_unit_obj = object_try_and_get(*(datum_index *)m, 2); // 0x408bc5: ECX = actor+0x9c, the mode's target object
+    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    void *vehicle = object_try_and_get(*(datum_index *)(act + 0x9c), 2);
 
-    if (a->active_unit_index != (datum_index)k_datum_index_none) {
-        m[0xa5 - 0x9c] = 1;
-        goto finish;
-    }
-    if (m[0xa4 - 0x9c] != 0) {
-        goto finish;
-    }
+    if (*(datum_index *)(act + 0x158) != k_datum_index_none) {
+        act[0xa5] = 1;
+    } else if (act[0xa4] == 0) {
+        if (vehicle == 0) {
+            *(datum_index *)(act + 0x9c) = k_datum_index_none;
+            act[0xa6] = 1;
+        } else if (!actor_is_within_alert_range(act[0xa2] == 0, *(float *)(act + 0xbc), *(float *)(act + 0xc0), 0, 1,
+                                                actor_index, *(datum_index *)(act + 0x9c))) {
+            act[0xa6] = 1;
+        } else {
+            real_point3d entry;
+            real_vector3d direction;
+            real_point3d hint;
+            uint8_t facing;
+            uint8_t close;
+            uint8_t in_front;
 
-    if (self_unit_obj == 0) {
-        *(uint32_t *)(m + (0x9c - 0x9c)) = 0xffffffff;
-    } else {
-        uint32_t target = *(uint32_t *)(m + (0x9c - 0x9c));
-        uint16_t node_table = *(uint16_t *)(m + (0xa0 - 0x9c));
-
-        if (actor_is_within_alert_range(m[0xa2 - 0x9c] == 0, *(float *)(m + (0xbc - 0x9c)), *(float *)(m + (0xc0 - 0x9c)), 0, 1, actor_index, target) != 0) {
-            if (*(int32_t *)(m + (0xac - 0x9c)) + 0x96 <= game_time->game_time) {
-                *(int32_t *)(m + (0xac - 0x9c)) = game_time->game_time;
-                // 0x408c7a..0x408c8a: EAX = actor + 0x12c, ECX = actor + 0xb0 (the remembered position)
-                if (vector3d_distance_squared(&a->body_position, (real_point3d *)(m + (0xb0 - 0x9c))) >= 25.0f) {
-                    *(int16_t *)(m + (0xaa - 0x9c)) = 0;
-                    *(float *)(m + (0xb0 - 0x9c)) = a->body_position.x;
-                    *(float *)(m + (0xb4 - 0x9c)) = a->body_position.y;
-                    *(float *)(m + (0xb8 - 0x9c)) = a->body_position.z;
+            if (game_time->game_time >= *(int32_t *)(act + 0xac) + 150) {
+                *(int32_t *)(act + 0xac) = game_time->game_time;
+                if (vector3d_distance_squared((real_point3d *)(act + 0x12c), (real_point3d *)(act + 0xb0)) <= 25.0f) {
+                    *(int16_t *)(act + 0xaa) += 1;
                 } else {
-                    *(int16_t *)(m + (0xaa - 0x9c)) = *(int16_t *)(m + (0xaa - 0x9c)) + 1;
+                    *(int16_t *)(act + 0xaa) = 0;
+                    *(real_point3d *)(act + 0xb0) = *(real_point3d *)(act + 0x12c);
                 }
             }
-
-            if (*(int16_t *)(m + (0xaa - 0x9c)) < 8) {
-                float search_position[3];  // local_20 (esp+0x20): the node's own position, compared with body_position below
-                float search_direction[3]; // local_2c/local_28/local_24: written to mode_data+0xd8/0xdc/0xe0 below
-                real_point3d search_extra; // local_14: reused below as the obstacle-avoidance candidate point
-                uint8_t close_flag = 0, facing_flag = 0, done_flag = 0;
-
-                if (actor_evaluate_search_node(actor_index, target, node_table, search_position, search_direction, (uint32_t *)&search_extra, 0, &close_flag, &facing_flag, &done_flag) != 0) {
-                    if (done_flag == 0) {
-                        *(int16_t *)(m + (0xc6 - 0x9c)) = 0;
-                    have_node:
-                        if (close_flag == 0) {
-                            if (a->needs_new_path != 0) {
-                                char avoided_flag = *(char *)(m + (0xa3 - 0x9c));
-                                uint32_t projected_extra;
-
-                                if (actor_avoid_obstacle_and_project(actor_index, &search_extra, &avoided_flag, target, (float *)(m + (0xcc - 0x9c)), &projected_extra) == 0 ||
-                                    // 0x408dc0..0x408dd1: EAX = &mode_data[0x30] (actor+0xcc), then
-                                    // push [actor+0x9c] / *[actor+0xe4] / ebx. Ghidra hides the EAX argument.
-                                    actor_movement_set_destination_point((real_point3d *)(m + (0xcc - 0x9c)), actor_index,
-                                                                         *(int32_t *)(m + (0xe4 - 0x9c)), target) == 0) {
-                                    *(int16_t *)(m + (0xa8 - 0x9c)) = *(int16_t *)(m + (0xa8 - 0x9c)) + 1;
-                                    {
-                                        int16_t limit = (int16_t)((-(uint16_t)(m[0xa2 - 0x9c] != 0) & 0xffd3) + 0x32);
-                                        if (limit < *(int16_t *)(m + (0xa8 - 0x9c))) {
-                                            m[0xa6 - 0x9c] = 1;
-                                        }
-                                    }
-                                } else {
-                                    *(int16_t *)(m + (0xa8 - 0x9c)) = 0;
-                                }
-                            }
-                        } else {
-                            if (facing_flag != 0) {
-                                goto enter_seat;
-                            }
-                            actor_movement_action_stop(actor_index);
-                        }
-                    } else {
-                        *(int16_t *)(m + (0xc6 - 0x9c)) = *(int16_t *)(m + (0xc6 - 0x9c)) + 1;
-                        if (*(int16_t *)(m + (0xc6 - 0x9c)) < 0x1e) {
-                            goto have_node;
-                        }
-                        facing_flag = 1;
-                        done_flag = 1;
-                    enter_seat:
-                        // 0x408d4f: stack actor+0x9c (vehicle), +0xa0 (seat), EAX = actor+0x18 (its unit)
-                        unit_enter_vehicle_seat(*(uint32_t *)m, *(int16_t *)(m + (0xa0 - 0x9c)), a->unit_index);
-                        m[0xa4 - 0x9c] = 1;
+            if (*(int16_t *)(act + 0xaa) >= 8 ||
+                !actor_evaluate_search_node(actor_index, *(datum_index *)(act + 0x9c), *(int16_t *)(act + 0xa0), &entry,
+                                            &direction, &hint, 0, &close, &facing, &in_front)) {
+                act[0xa6] = 1;
+            } else {
+                if (in_front) {
+                    *(int16_t *)(act + 0xc6) += 1;
+                    if (*(int16_t *)(act + 0xc6) >= 30) {
+                        facing = 1;
+                        close = 1;
                     }
-
-                    // 0x408e12..0x408e1c: EAX = &search_position (esp+0x20), ECX = actor + 0x12c
-                    *(uint8_t *)(m + (200 - 0x9c)) =
-                        vector3d_distance_squared((real_point3d *)search_position, &a->body_position) < 1.0f;
-                    *(float *)(m + (0xd8 - 0x9c)) = search_direction[0];
-                    *(float *)(m + (0xdc - 0x9c)) = search_direction[1];
-                    *(float *)(m + (0xe0 - 0x9c)) = search_direction[2];
-                    m[0xc5 - 0x9c] = facing_flag;
-                    m[0xc4 - 0x9c] = done_flag;
-                    goto finish;
+                } else {
+                    *(int16_t *)(act + 0xc6) = 0;
                 }
+                if (close) {
+                    if (facing) {
+                        unit_enter_vehicle_seat(*(datum_index *)(act + 0x9c), *(int16_t *)(act + 0xa0),
+                                                *(datum_index *)(act + 0x18));
+                        act[0xa4] = 1;
+                    } else {
+                        actor_movement_action_stop(actor_index);
+                    }
+                } else if (act[0x4c] != 0) {
+                    if (actor_avoid_obstacle_and_project(actor_index, *(datum_index *)(act + 0x9c), &entry, &hint,
+                                                         act + 0xa3, (real_point3d *)(act + 0xcc),
+                                                         (int32_t *)(act + 0xe4)) &&
+                        actor_movement_set_destination_point((real_point3d *)(act + 0xcc), actor_index,
+                                                             *(int32_t *)(act + 0xe4), *(datum_index *)(act + 0x9c))) {
+                        *(int16_t *)(act + 0xa8) = 0;
+                    } else {
+                        *(int16_t *)(act + 0xa8) += 1;
+                        if (*(int16_t *)(act + 0xa8) > (act[0xa2] != 0 ? 5 : 50)) {
+                            act[0xa6] = 1;
+                        }
+                    }
+                }
+                act[0xc8] = (uint8_t)(vector3d_distance_squared(&entry, (real_point3d *)(act + 0x12c)) <= 1.0f);
+                *(real_vector3d *)(act + 0xd8) = direction;
+                act[0xc5] = facing;
+                act[0xc4] = close;
             }
         }
     }
-    m[0xa6 - 0x9c] = 1;
-
-finish:
-    if (m[0xa5 - 0x9c] == 0 && m[0xa6 - 0x9c] == 0) {
-        return 0;
-    }
-    return 1;
+    return act[0xa5] != 0 || act[0xa6] != 0;
 }
 
 #if 0
