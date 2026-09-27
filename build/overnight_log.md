@@ -1559,3 +1559,9 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - ai_broadcast_communication_event 0x429fc0 REWRITTEN (0.2 -> 0.9): (gate EAX, point ECX, source, type) -- noise events
   (projectile impacts / detonations via ai_accumulate_repeated_event) now reach nearby actors' dialogue, danger and flee
   reactions. ai_accumulate_repeated_event passes (gate, &entry position, source, id, count); it was (type, id, count).
+- actor_get_firing_positions 0x41c1e0: a swarm actor's position context now comes from its nearest component's unit
+  (EBX) into the caller's block; the draft passed nothing.
+- ai_conversation_update 0x430a70 REWRITTEN (0.25 -> 0.9): line helpers get the conversation; a finished conversation is
+  STOPPED (the draft instead fell into the participant pass, so conversations never ended -- scripts waiting on
+  ai_conversation_status would hang); participants get their conversation / partner refs while it is active (the
+  draft did that only once finished). a10's opening conversations run through this.

@@ -1,6 +1,6 @@
 // ai_conversation_update  (Ghidra: ai_conversation_update; renamed per ai_types_notes.md)
 // address 0x430a70, size 490 bytes
-// name confidence: 0.4   rewrite confidence: 0.25
+// name confidence: 0.4   rewrite confidence: 0.9
 // evidence: out/phase4/ai_types_notes.md's misattribution table: "the per-tick conversation
 // update", not "per-tick update of every squad instance". squad_despawn renamed to
 // ai_conversation_stop, and ai_conversation_activate_next_participant/ai_conversation_current_line_is_ready keep their corrected participant-
@@ -31,114 +31,99 @@ extern data_array *ai_conversation_data; // 0x008802d4
 extern Scenario *global_scenario;    // 0x00746f8c
 extern data_array *actor_data;       // 0x00880360
 
-extern void * data_iterator_next(data_iterator *iterator); // 0x4d05d0
-extern void ai_conversation_stop(datum_index instance_handle, uint8_t reason_a, uint8_t reason_b); // 0x430ea0, this batch
-extern int8_t ai_conversation_resolve_participants(datum_index instance_index, uint8_t *out_flag); // 0x430fc0, deferred in this batch; UNSURE signature
-extern uint8_t ai_conversation_activate_next_participant(void); // 0x431d10, outside this batch; UNSURE signature (activates next participant)
-extern uint8_t ai_conversation_current_line_is_ready(void); // 0x431e70, outside this batch; UNSURE signature (participant ready to speak)
+extern void * data_iterator_next(data_iterator *iterator); // 0x4d05d0, EDI
+extern void ai_conversation_stop(datum_index instance_handle, uint8_t reason_a, uint8_t reason_b); // 0x430ea0
+extern int8_t ai_conversation_resolve_participants(datum_index instance_index, uint8_t *out_flag); // 0x430fc0
+extern uint8_t ai_conversation_activate_next_participant(datum_index instance_handle); // 0x431d10, EAX
+extern uint8_t ai_conversation_current_line_is_ready(datum_index instance_handle); // 0x431e70, EAX
 
-// blam-cc: (no arguments)
-// Per-tick update of every live ai_conversation instance: every 30 ticks, re-checks whether
-// a not-yet-fully-primed instance should keep running (stopping it if not); once primed,
-// resolves each bit-flagged participant's actor to a conversation_participant reference
-// (from the matching ScenarioAIConversationLine's leader/alternate indices), or, once fully
-// resolved, advances through the conversation's lines one activation at a time until either
-// a line is not ready or the line list is exhausted, then stops the instance.
+// REWRITTEN from objdump 0x430a70..0x430c5f. Per live conversation (definition: Scenario +0x46c, 0x74 each):
+//   - not yet active (+6): every 30 ticks since +0xc re-resolve its participants; stop (1, 0) when that fails;
+//   - active and not finished (+7): while the current line (+0x48) is ready, advance and activate the next
+//     participant (whose result says whether the new line must be waited on); past the last line mark it finished;
+//   - finished: stop (0, 1);
+//   - still active: every masked participant actor (+0x14 bits, +0x28 actors) gets the conversation (+0x1dc) and its
+//     partner (+0x1e0) from the two units +0x54 / +0x58 and the flags +0x4e.
+//   The draft called the line helpers without the conversation, never stopped a finished one and only assigned
+//   participants once finished.
 void ai_conversation_update(void)
 {
-    int32_t current_tick;
+    int32_t now = game_time->game_time;
     data_iterator iterator;
-    ai_conversation *instance;
-    datum_index handle;
-    ScenarioAIConversation *definition;
-    char ready;
-    int32_t i;
-    int32_t participant_count;
-
-    current_tick = game_time->game_time;
+    uint8_t *inst;
 
     iterator.data = ai_conversation_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+    for (inst = (uint8_t *)data_iterator_next(&iterator); inst != 0; inst = (uint8_t *)data_iterator_next(&iterator)) {
+        datum_index handle = iterator.index;                                             // ebx
+        uint8_t *definition = *(uint8_t **)((uint8_t *)global_scenario + 0x46c) + *(int16_t *)(inst + 0x2) * 0x74;
+        int32_t line_count = *(int32_t *)(definition + 0x5c);
 
-    instance = data_iterator_next(&iterator);
-    while (instance != 0) {
-        handle = iterator.index;
-        definition = &((ScenarioAIConversation *)global_scenario->ai_conversations.pointer)[instance->definition_index];
+        if (!inst[0x6]) {
+            uint8_t ok = 1;                                                              // [esp+0x13]
 
-        if (instance->unknown_06 == 0) {
-            ready = 1;
-            if ((current_tick - instance->start_tick) % 0x1e == 0) {
-                ai_conversation_resolve_participants(handle, &ready);
+            if ((now - *(int32_t *)(inst + 0xc)) % 0x1e == 0) {
+                ai_conversation_resolve_participants(handle, &ok);
             }
-            if (instance->unknown_06 != 0) {
-                goto primed;
-            }
-            if (ready == 0) {
-                ai_conversation_stop(handle, 1, 0);
-            }
-            if (instance->unknown_06 != 0) {
-                goto primed;
-            }
-            goto resolve_participants;
-        }
-
-primed:
-        if (instance->unknown_07[0] == 0) {
-            char can_advance;
-            if (instance->unknown_48 < 0 || definition->lines.count <= instance->unknown_48) {
-                can_advance = 0;
-            } else {
-                can_advance = 1;
-            }
-            while (1) {
-                if (can_advance != 0) {
-                    can_advance = ai_conversation_current_line_is_ready();
-                    if (can_advance == 0) {
-                        goto resolve_participants;
-                    }
+            if (!inst[0x6]) {
+                if (!ok) {
+                    ai_conversation_stop(handle, 1, 0);
                 }
-                instance->unknown_48 = instance->unknown_48 + 1;
-                if (definition->lines.count <= instance->unknown_48) {
+                if (!inst[0x6]) {
+                    goto finished_check;
+                }
+            }
+        }
+        if (!inst[0x7]) {
+            int16_t line = *(int16_t *)(inst + 0x48);
+            uint8_t pending = (line >= 0 && (int32_t)line < line_count);
+
+            for (;;) {
+                if (pending && !ai_conversation_current_line_is_ready(handle)) {
                     break;
                 }
-                can_advance = ai_conversation_activate_next_participant();
+                *(int16_t *)(inst + 0x48) = (int16_t)(*(int16_t *)(inst + 0x48) + 1);
+                if ((int32_t)*(int16_t *)(inst + 0x48) >= line_count) {
+                    inst[0x7] = 1;
+                    break;
+                }
+                pending = ai_conversation_activate_next_participant(handle);
             }
-            instance->unknown_07[0] = 1;
-            goto resolve_participants;
-        } else {
-            ai_conversation_stop(handle, 0, 1);
         }
-        instance = data_iterator_next(&iterator);
-        continue;
+finished_check:                                                                          // 0x430b79
+        if (inst[0x7]) {
+            ai_conversation_stop(handle, 0, 1);
+            continue;
+        }
+        if (inst[0x6]) {
+            int16_t i;
 
-resolve_participants:
-        if (instance->unknown_07[0] != 0) {
-            participant_count = definition->participants.count;
-            for (i = 0; i < participant_count; i++) {
-                if ((instance->participant_mask & (1u << (i & 0x1f))) != 0 &&
-                    instance->participant_actor[i] != (datum_index)k_datum_index_none) {
-                    actor *a = &((actor *)actor_data->data)[instance->participant_actor[i] & 0xffff];
-                    datum_index unit_index = a->unit_index;
-                    a->conversation_index = handle;
-                    a->conversation_participant = (datum_index)k_datum_index_none;
-                    if (unit_index == (datum_index)instance->unknown_54) {
-                        a->conversation_participant = instance->unknown_58;
-                    } else if (unit_index == (datum_index)instance->unknown_58 &&
-                               (instance->unknown_4e & 1) != 0) {
-                        a->conversation_participant = instance->unknown_54;
-                    } else if ((instance->unknown_4e & 2) == 0) {
-                        if ((instance->unknown_4e & 4) != 0) {
-                            a->conversation_participant = instance->unknown_58;
-                        }
-                    } else {
-                        a->conversation_participant = instance->unknown_54;
-                    }
+            for (i = 0; (int32_t)i < *(int32_t *)(definition + 0x50); i++) {
+                datum_index actor_index = *(datum_index *)(inst + 0x28 + i * 4);
+                uint8_t *a;
+                datum_index unit;
+                uint16_t flags = *(uint16_t *)(inst + 0x4e);
+
+                if (!(*(uint32_t *)(inst + 0x14) & (1u << i)) || actor_index == k_datum_index_none) {
+                    continue;
+                }
+                a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+                unit = *(datum_index *)(a + 0x18);
+                *(datum_index *)(a + 0x1dc) = handle;
+                *(datum_index *)(a + 0x1e0) = k_datum_index_none;
+                if (unit == *(datum_index *)(inst + 0x54)) {
+                    *(datum_index *)(a + 0x1e0) = *(datum_index *)(inst + 0x58);
+                } else if (unit == *(datum_index *)(inst + 0x58) && (flags & 1)) {
+                    *(datum_index *)(a + 0x1e0) = *(datum_index *)(inst + 0x54);
+                } else if (flags & 2) {
+                    *(datum_index *)(a + 0x1e0) = *(datum_index *)(inst + 0x54);
+                } else if (flags & 4) {
+                    *(datum_index *)(a + 0x1e0) = *(datum_index *)(inst + 0x58);
                 }
             }
         }
-        instance = data_iterator_next(&iterator);
     }
 }
 

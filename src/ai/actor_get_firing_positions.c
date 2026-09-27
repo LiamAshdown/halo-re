@@ -1,6 +1,6 @@
 // actor_get_firing_positions  (Ghidra: actor_get_firing_positions, already named)
 // address 0x41c1e0, size 213 bytes
-// name confidence: 0.55   rewrite confidence: 0.4
+// name confidence: 0.55   rewrite confidence: 0.9
 // evidence: out/phase2/results/ai_02.json -- when actor flag +6 (actor.swarm) is clear,
 //   bulk-copies the actor's local 14-dword firing-position block from +0x120; otherwise scans
 //   an encounter firing-point cluster table (swarm_data / swarm_component_data, per types/ai.h)
@@ -32,7 +32,7 @@ extern data_array *swarm_component_data;// 0x00880358
 // Fills a caller-provided struct with the actor's unit position/orientation plus a pair of
 // fields from the root object at the top of its parent chain. Called here with no visible
 // arguments; EAX/ECX/EDX are presumably still live from this function's own entry.
-extern void actor_fill_unit_position_context(void); // 0x4296c0, UNSURE signature
+extern void actor_fill_unit_position_context(datum_index unit_index, actor_unit_position_context *out_context); // 0x4296c0, EBX, stack
 
 // blam-cc: EAX -> actor_index, ECX -> out_block, EDX -> query_point
 // Fetches the actor's set of candidate firing positions: for a non-swarm actor this is its
@@ -65,6 +65,8 @@ void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, re
     group = (swarm *)((uint8_t *)swarm_data->data + (self->swarm_index & 0xffff) * sizeof(swarm));
     component_count = group->component_count;
     min_distance_squared = 3.4028235e+38f;
+    {
+    datum_index nearest_unit = k_datum_index_none; // ebx
 
     if (0 < component_count) {
         for (i = 0; i < component_count; i++) {
@@ -76,11 +78,14 @@ void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, re
             distance_squared = dz * dz + dy * dy + dx * dx;
             if (distance_squared < min_distance_squared) {
                 min_distance_squared = distance_squared;
+                nearest_unit = group->unit_index[i]; // 0x41c285
             }
         }
     }
 
-    actor_fill_unit_position_context();
+    // FIXED (objdump 0x41c296): EBX = the nearest component's unit, stack = the caller's block; the draft passed nothing.
+    actor_fill_unit_position_context(nearest_unit, (actor_unit_position_context *)out_block);
+    }
 }
 
 #if 0
