@@ -1,6 +1,6 @@
 // actor_died_unit_grenade_count_mod  (Ghidra: actor_died_unit_grenade_count_mod, already named)
 // address 0x428d35, size 281 bytes
-// name confidence: 0.6   rewrite confidence: 0.2
+// name confidence: 0.6   rewrite confidence: 1.0 (FRAGMENT: 0x428d35 is the tail of actor_attempt_grenade_throw 0x428ab0..0x428e4d, whose C covers it; only its jump reaches here)
 // evidence: sole caller actor_attempt_grenade_throw @0x428ab0 (this rewrite), whose own tail
 //   is byte-for-byte identical to this function's body (same ammo-randomization logic, same
 //   final actor_delete + encounter_recompute_morale cleanup). Ghidra's own decompile of this function reads

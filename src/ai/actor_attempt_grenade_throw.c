@@ -1,22 +1,15 @@
-// actor_attempt_grenade_throw  (Ghidra: actor_attempt_grenade_throw, already named)
-// address 0x428ab0, size 645 bytes
-// name confidence: 0.55   rewrite confidence: 0.2
-// evidence: types/ai.h actor.awareness_level(0x6a)/unknown_6e/unit_index(0x18)/
-//   grenade_impact_point(0x6a8)/grenade_recheck_ticks(0x6ce)/unknown_378(stance selector)/
-//   unknown_60c/unknown_648(inside unknown_63c[16]). types/units.h controlling_player-style
-//   flag at unit+0x204 bit 6 (UNSURE, no established name); unit+0x28c (a byte grenade
-//   count/timer this shares with actor_died_unit_grenade_count_mod's sibling routine). Calls
-//   random_real/random_real_range (0x4019f0/0x401050), unit_get_weapon_object_index
-//   (0x569970), actor_died_unit_grenade_count_mod (0x428d35, this rewrite) and
-//   actor_delete (0x427e60, both already established), plus unit_set_control_countdown and encounter_recompute_morale,
-//   neither established elsewhere in this repo.
-//   UNSURE: this is one of the least-confident rewrites in this pass, sharing all the
-//   caveats actor_died_unit_grenade_count_mod's header documents about the tail these two
-//   functions share. The four Actor-tag floats/int16s at +0x94/+0x1d4/+0x1d8/+0x1dc/+0x1e0/
-//   +0x1e2 fall inside that struct's large pad_14c[268] run in types/tags.h and have no
-//   individual names; accessed as raw offsets from the tag data pointer.
-// register convention: EAX -> actor_index (Ghidra's own "param_1").
-//   // blam-cc: EAX -> actor_index
+// actor_attempt_grenade_throw  (Ghidra: actor_attempt_grenade_throw; really the actor's death handling)
+// address 0x428ab0, size 926 bytes
+// name confidence: 0.2   rewrite confidence: 0.9
+// REWRITTEN from objdump 0x428ab0..0x428e4d (the whole function; 0x428d35 "actor_died_unit_grenade_count_mod" is
+//   its tail, marked FRAGMENT). Stack: actor. A fighting actor (awake 3, grade 2+) whose unit may throw (+0x204 bit
+//   6), is armed and still holds grenades (+0x28c) pulls a grenade as it dies with the variant's chance (+0x94,
+//   0.1..0.6, raised to 4x up to 0.6 when it was committed or had a target within 3), the throw timed by +0x98
+//   (0.8..1.3 s, random when 0) through the control countdown (0x563b20, flag 0x800). Its unit then drops its
+//   grenades (unless the globals keep them and the variant's +0x1d4 chance says so), its weapon's loaded fraction
+//   is drawn from +0x1d8..+0x1dc and its reserve from +0x1e0..+0x1e2, the actor is deleted (0x427e60) and its
+//   encounter's morale recomputed.
+// blam-cc: stack -> actor_index
 
 #include "tags.h"
 #include "memory.h"
@@ -29,118 +22,105 @@ extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint32_t random_seed_global; // 0x00719cd0
-extern ai_globals *ai_globals_ptr;  // 0x00880354
+extern uint8_t *ai_globals_ptr;     // 0x00880354
 
 extern real random_real(void); // 0x4019f0
 extern real random_real_range(real min, real max); // 0x401050
-extern datum_index unit_get_weapon_object_index(void); // 0x569970, UNSURE signature
-extern void unit_set_control_countdown(int32_t param_a, int32_t param_b); // 0x563b20, UNSURE signature
-extern void encounter_recompute_morale(datum_index encounter_index); // 0x437940, UNSURE signature, not in this rewrite range
-extern void actor_died_unit_grenade_count_mod(object *unit_object, const uint8_t *actor_tag_data,
-                                              datum_index weapon_object_index, datum_index actor_index,
-                                              datum_index encounter_index); // 0x428d35
-extern void actor_delete(datum_index actor_index, uint32_t flag); // 0x427e60
-extern void weapon_set_loaded_ammo_fraction(float fraction); // 0x4c58c0, UNSURE signature
-extern void weapon_set_ammo_counts(int16_t *counts); // 0x4c5820, UNSURE signature
+extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); // 0x569970, EAX, CX
+extern void unit_set_control_countdown(uint32_t unit_index, int32_t countdown, uint32_t extra_control_flags); // 0x563b20, EAX, stack
+extern void encounter_recompute_morale(datum_index encounter_index); // 0x437940
+extern void actor_delete(datum_index actor_index, uint32_t flag); // 0x427e60, EBX, stack
+extern void weapon_set_loaded_ammo_fraction(datum_index item_index, real fraction); // 0x4c58c0, EAX, stack
+extern void weapon_set_ammo_counts(datum_index item_index, int16_t *reserve_counts); // 0x4c5820, EAX, stack
 
-// blam-cc: EAX -> actor_index
-// Per-tick decision that rolls a difficulty-scaled random chance for a suitable actor (alert
-// enough, has a grenade-holding controlled unit, no active grenade timer) to throw a
-// grenade, then always randomizes that unit's ammo/grenade-count housekeeping and finally
-// deletes the actor and releases it from its encounter -- this function is a "unit is being
-// destroyed" cleanup helper, not a repeatable per-tick check (see actor_delete_or_release_unit,
-// which calls it right before deleting the unit's object).
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+
+static uint32_t actor_death_random_16(void)
+{
+    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+    return random_seed_global >> 16;
+}
+
 void actor_attempt_grenade_throw(datum_index actor_index)
 {
-    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
-    datum_index encounter_index = self->encounter_index;
-    const uint8_t *actor_tag_data = (const uint8_t *)(tag_instances[self->actor_definition_tag & 0xffff].data);
-    object *unit_object;
-    datum_index weapon_object_index = (datum_index)k_datum_index_none;
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;       // esi
+    uint8_t *variant = (uint8_t *)tag_instances[*(datum_index *)(a + 0x5c) & 0xffff].data; // ebp
+    datum_index encounter = *(datum_index *)(a + 0x34);                             // [esp+0x18]
+    uint8_t *unit;
+    datum_index weapon;
+    real roll;
 
-    if (self->awareness_level == 3 && self->unknown_6e > 1) {
-        unit_object = ((object_header *)object_data->data)[self->unit_index & 0xffff].data;
+    // 0x428ae7: a fighter may pull a grenade as it dies
+    if (*(int16_t *)(a + 0x6a) == 3 && *(int16_t *)(a + 0x6e) >= 2) {
+        unit = OBJECT_DATA(*(datum_index *)(a + 0x18));
+        if (((*(uint32_t *)(unit + 0x204) >> 6) & 1) &&
+            unit_get_weapon_object_index(*(datum_index *)(a + 0x18), *(int16_t *)(unit + 0x2f2)) != k_datum_index_none &&
+            *(int8_t *)(unit + 0x28c) > 0) {
+            float chance = *(float *)(variant + 0x94);
 
-        if ((*(uint32_t *)((uint8_t *)unit_object + 0x204) & 0x40) != 0) {
-            weapon_object_index = unit_get_weapon_object_index();
-            if (weapon_object_index != (datum_index)k_datum_index_none &&
-                *(int8_t *)((uint8_t *)unit_object + 0x28c) > 0) {
-                float chance = *(const float *)(actor_tag_data + 0x94); // UNSURE offset
-                if (chance < 0.1f) {
-                    chance = 0.1f;
-                } else if (chance > 0.6f) {
-                    chance = 0.6f;
+            if (!(chance >= 0.1f)) {
+                chance = 0.1f;
+            } else if (!(chance <= 0.6f)) {
+                chance = 0.6f;
+            }
+            if (a[0x378] || (*(int16_t *)(a + 0x60c) > 0 && *(float *)(a + 0x648) < 3.0f)) {
+                float boosted = chance * 4.0f;
+
+                if (!(boosted <= 0.6f)) {
+                    boosted = 0.6f;
                 }
-
-                if (self->unknown_378 != 0 ||
-                    (self->unknown_60c > 0 && *(float *)&self->unknown_63c[0xc] < 3.0f)) { // offset 0x648
-                    float boosted = chance * 4.0f;
-                    if (boosted > 0.6f) {
-                        boosted = 0.6f;
-                    }
-                    if (chance <= boosted) {
-                        chance = boosted;
-                    }
-                }
-
-                if (random_real() < chance) {
-                    int32_t ticks;
-                    if (self->grenade_unknown_6c8 == 0.0f) { // UNSURE: reusing a named field for the *0x98 read
-                        random_real_range(0.8f, 1.3f);
-                    }
-                    ticks = (int32_t)0; // UNSURE: __ftol's operand (the just-computed random range) is
-                                        // not tracked by Ghidra at this call site; see file header
-                    unit_set_control_countdown(ticks, 0x800);
-                    *(int8_t *)((uint8_t *)unit_object + 0x28c) = (int8_t)ticks;
+                if (!(chance > boosted)) {
+                    chance = boosted;
                 }
             }
-        }
-    } else {
-        unit_object = ((object_header *)object_data->data)[self->unit_index & 0xffff].data;
-    }
+            if (random_real() < chance) {
+                float seconds = *(float *)(variant + 0x98);
+                int16_t ticks;
 
-    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-
-    {
-        object *weapon_unit = ((object_header *)object_data->data)[self->unit_index & 0xffff].data;
-        int16_t slot = *(int16_t *)((uint8_t *)weapon_unit + 0x2f2); // UNSURE offset
-        datum_index slot_weapon = (slot != -1) ? *(datum_index *)((uint8_t *)weapon_unit + 0x2f8 + slot * 4)
-                                                : (datum_index)k_datum_index_none;
-
-        if (ai_globals_ptr->initialized == 0) {
-            *(int16_t *)((uint8_t *)weapon_unit + 0x31e) = 0;
-        } else if ((float)(int32_t)(random_seed_global >> 0x10) * 1.5259022e-05f < *(const float *)(actor_tag_data + 0x1d4)) { // UNSURE offset
-            actor_died_unit_grenade_count_mod(weapon_unit, actor_tag_data, weapon_object_index, actor_index, encounter_index);
-            return;
-        }
-
-        if (slot_weapon != (datum_index)k_datum_index_none) {
-            float min_fraction = *(const float *)(actor_tag_data + 0x1d8); // UNSURE offset
-            float max_fraction = *(const float *)(actor_tag_data + 0x1dc); // UNSURE offset
-
-            if (min_fraction > 0.0f || max_fraction > 0.0f) {
-                random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-                weapon_set_loaded_ammo_fraction(
-                    (float)(int32_t)(random_seed_global >> 0x10) * 1.5259022e-05f * (max_fraction - min_fraction) + min_fraction);
-            }
-
-            {
-                int16_t min_count = *(const int16_t *)(actor_tag_data + 0x1e0); // UNSURE offset
-                int16_t max_count = *(const int16_t *)(actor_tag_data + 0x1e2); // UNSURE offset
-
-                if (min_count > 0 || max_count > 0) {
-                    int16_t count;
-                    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-                    count = (int16_t)((((int32_t)(int16_t)(max_count + 1) - min_count) * (int32_t)(random_seed_global >> 0x10)) >> 0x10) + min_count;
-                    weapon_set_ammo_counts(&count);
+                if (seconds == 0.0f) {
+                    seconds = random_real_range(0.8f, 1.3f);
+                } else if (!(seconds >= 0.8f)) {
+                    seconds = 0.8f;
+                } else if (!(seconds <= 1.3f)) {
+                    seconds = 1.3f;
                 }
+                ticks = (int16_t)(int32_t)(seconds * 30.0f);
+                unit_set_control_countdown(*(datum_index *)(a + 0x18), ticks, 0x800);
+                unit[0x28c] = (uint8_t)ticks;
             }
         }
     }
 
+    // 0x428cab: what the corpse leaves behind
+    roll = (real)(int32_t)actor_death_random_16() * 1.5259022e-05f;
+    unit = OBJECT_DATA(*(datum_index *)(a + 0x18));
+    weapon = *(int16_t *)(unit + 0x2f2) != -1 ? *(datum_index *)(unit + 0x2f8 + *(int16_t *)(unit + 0x2f2) * 4)
+                                              : k_datum_index_none;
+    if (!ai_globals_ptr[0x3b4] || roll < *(float *)(variant + 0x1d4)) {
+        *(int16_t *)(unit + 0x31e) = 0;
+    }
+    if (weapon != k_datum_index_none) {
+        float lo = *(float *)(variant + 0x1d8);
+        float hi = *(float *)(variant + 0x1dc);
+        int16_t least = *(int16_t *)(variant + 0x1e0);
+        int16_t most = *(int16_t *)(variant + 0x1e2);
+
+        if (lo > 0.0f || hi > 0.0f) {
+            real r = (real)(int32_t)actor_death_random_16() * 1.5259022e-05f;
+
+            weapon_set_loaded_ammo_fraction(weapon, (hi - lo) * r + lo);
+        }
+        if (least > 0 || most > 0) {
+            int16_t counts[2] = {0, 0};
+            uint32_t r = actor_death_random_16();
+
+            counts[0] = (int16_t)((uint32_t)(((int32_t)(int16_t)(most + 1) - least) * (int32_t)r) >> 16) + least;
+            weapon_set_ammo_counts(weapon, counts);
+        }
+    }
     actor_delete(actor_index, 1);
-    if (encounter_index != (datum_index)k_datum_index_none) {
-        encounter_recompute_morale(encounter_index);
+    if (encounter != k_datum_index_none) {
+        encounter_recompute_morale(encounter);
     }
 }
 

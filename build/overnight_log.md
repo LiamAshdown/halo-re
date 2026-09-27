@@ -1428,3 +1428,7 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - actor_evaluate_grenade_target_position 0x40de70 REWRITTEN (0.25 -> 0.9; misnamed: sidestep out of the
   target's line of fire), actor_find_nearest_grenade_ally 0x40e540 REWRITTEN (0.25 -> 0.9): both called their
   helpers (step probe, dodge animation check, secondary action, ally validation, cursor, prop lookups) argless.
+- actor_attempt_grenade_throw 0x428ab0 REWRITTEN as the whole 926-byte actor death handler (0.2 -> 0.9): death
+  grenade pull (variant +0x94 / +0x98), grenade drop, dropped weapon ammo (+0x1d4..+0x1e2), actor_delete, morale.
+  The draft called the weapon lookup / countdown / ammo setters argless. 0x428d35
+  actor_died_unit_grenade_count_mod marked FRAGMENT.
