@@ -66,7 +66,7 @@ extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB 
 // blam-cc: AX -> type, stack -> input
 extern real periodic_function_evaluate(periodic_function_t type, double time); // 0x4cc9b0
 extern uint32_t color_pack_argb_from_real(ColorARGB *color); // 0x497900
-extern uint32_t rasterizer_lens_flare_set_current_key(int32_t second_bitmap_tag_index, int16_t bitmap_tag_index,
+extern uint8_t rasterizer_lens_flare_set_current_key(int32_t second_bitmap_tag_index, int16_t bitmap_tag_index,
     int16_t bitmap_index); // 0x5120f0, EAX, ECX, stack
 extern void rasterizer_lens_flare_set_vertex_specular(float intensity); // 0x512120, stack
 extern void rasterizer_lens_flare_quad_add(const float *scale, uint32_t diffuse, const real_point3d *position,

@@ -43,7 +43,7 @@ extern int32_t object_get_node_local_transform(uint32_t object_index, char *mark
     uint32_t flags); // 0x4f6080
 extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector, float *out_value); // 0x4f6e70
 extern void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags); // 0x537130, AX, ECX
-extern uint32_t rasterizer_lens_flare_set_current_key(int32_t second_bitmap_tag_index, int16_t bitmap_tag_index,
+extern uint8_t rasterizer_lens_flare_set_current_key(int32_t second_bitmap_tag_index, int16_t bitmap_tag_index,
     int16_t bitmap_index); // 0x5120f0, EAX, ECX, stack
 extern float curve_apply_exponent(float value, float exponent); // 0x4fea50
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest,

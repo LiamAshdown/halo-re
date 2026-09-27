@@ -1,6 +1,6 @@
 // rasterizer_lens_flare_set_current_key  (Ghidra: FUN_005120f0; new name, evidence below)
 // address 0x5120f0, size 42 bytes
-// name confidence: 0.45   rewrite confidence: 0.7
+// name confidence: 0.45   rewrite confidence: 0.9 (REWRITTEN from objdump 0x5120f0..0x512119: key+0 = sign-extended CX, key+4 = EAX or the rasterizer globals glow bitmap (+0x6c) when -1, key+8 = sign-extended stack word; returns AL = 0 (xor al,al). FIXED: the draft returned EAX with tag bits, so its callers (which test only AL) skipped every lens flare and light volume)
 // evidence: types/rasterizer.h documents 0x00746fb0 as lens_flare_current_key
 //   (lens_flare_batch_key, size 0x10: bitmap_tag_index +0x00, second_bitmap_tag_index +0x04,
 //   bitmap_index +0x08) "written by 0x5120f0". The -1 substitution reads
@@ -21,8 +21,8 @@ extern GlobalsRasterizerData *rasterizer_globals_data; // 0x0071d164
 // Latches the current lens flare batch key (bitmap_tag_index, second_bitmap_tag_index,
 // bitmap_index), substituting the glow bitmap's tag id when no second bitmap was given, and
 // returns that resolved second bitmap tag index with its low byte cleared.
-uint32_t rasterizer_lens_flare_set_current_key(int32_t second_bitmap_tag_index,
-                                                int16_t bitmap_tag_index, int16_t bitmap_index)
+uint8_t rasterizer_lens_flare_set_current_key(int32_t second_bitmap_tag_index,
+                                               int16_t bitmap_tag_index, int16_t bitmap_index)
 {
     lens_flare_current_key.bitmap_tag_index = bitmap_tag_index;
     if (second_bitmap_tag_index == -1) {
@@ -30,7 +30,10 @@ uint32_t rasterizer_lens_flare_set_current_key(int32_t second_bitmap_tag_index,
     }
     lens_flare_current_key.second_bitmap_tag_index = second_bitmap_tag_index;
     lens_flare_current_key.bitmap_index = bitmap_index;
-    return (uint32_t)second_bitmap_tag_index & 0xffffff00;
+    // 0x512117: xor al,al -- the result is AL, always 0; both callers test only AL (0x5143f8, 0x4fed19).
+    // The draft returned the whole EAX (the tag id with its low byte cleared), which every real bitmap
+    // makes non-zero, so lens_flare_render_all skipped every flare and light volumes never drew.
+    return 0;
 }
 
 #if 0
