@@ -1,6 +1,6 @@
 // actor_update_awareness_level  (Ghidra: actor_update_awareness_level, already named)
 // address 0x420290, size 258 bytes
-// name confidence: 0.5   rewrite confidence: 0.45
+// name confidence: 0.5   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump (branch-for-branch; offsets 0x6a/0x6c/0x72/0x74/0x78/0x268/0x34a, ai_globals +3/+4/+6).)
 // evidence: out/phase2/results/ai_02.json -- consumes the pending perception event recorded by
 //   0x422070 (actor.perception_event / perception_event_data), merges it with a per-target
 //   -status minimum threshold table indexed by actor.target_combat_status, and advances

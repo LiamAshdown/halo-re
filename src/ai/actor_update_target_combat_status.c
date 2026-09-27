@@ -1,6 +1,6 @@
 // actor_update_target_combat_status  (Ghidra: actor_update_target_combat_status, already named)
 // address 0x4200d0, size 415 bytes
-// name confidence: 0.55   rewrite confidence: 0.45
+// name confidence: 0.55   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x4200d0..0x42026e (jump table 0x420270 kinds 0..5; default stores the stale pushed ECX, left unset here). Distance test in the original NaN order.)
 // evidence: out/phase2/results/ai_02.json -- looks up the actor's current target prop
 //   (actor.target_unit_index, resolved with the module's 0x138 prop stride -- further
 //   confirmation that field holds a prop index, not a raw unit handle), switches on the prop's
@@ -62,7 +62,7 @@ void actor_update_target_combat_status(datum_index actor_index)
             status = 10;
         } else if (target->unknown_38 != 0 && target->unknown_38 != 1) {
             status = 7;
-        } else if (2 < (int8_t)target->unknown_122 || 6.0f <= target->distance) {
+        } else if (2 < (int8_t)target->unknown_122 || !(target->distance < 6.0f)) { // 0x4201d4: test ah,5 / jp
             status = 8;
         } else {
             status = 9;

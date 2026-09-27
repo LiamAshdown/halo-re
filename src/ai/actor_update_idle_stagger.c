@@ -1,6 +1,6 @@
 // actor_update_idle_stagger  (Ghidra: actor_update_idle_stagger, renamed)
 // address 0x429430, size 145 bytes
-// name confidence: 0.4   rewrite confidence: 0.45
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump (branch-for-branch; offsets 0x6a/0x6c/0x72/0x74/0x78/0x268/0x34a, ai_globals +3/+4/+6).)
 // evidence: types/ai.h actor.idle_counter(0x4a)/needs_new_path(0x4c)/mode(0x6c); ai_globals.
 //   stagger_claimed(0x03)/stagger_threshold(0x04)/stagger_highest(0x06). Offset 0xa0 falls
 //   inside actor.mode_data (mode_data[4], meaningful only in vehicle mode).
