@@ -6,8 +6,6 @@
 //   state"); unit_data.animation_state (0x2a3); Biped.biped_flags bit 0x400.
 // register convention: object index in ESI, a 2-byte animation-state output array in EDI.
 //   // blam-cc: ESI -> object_index, EDI -> state_out
-// UNSURE: biped_ground_adjust_step's reference_position argument (EBX further up the call
-//   chain, see src/units/biped_ground_adjust_step.c) is not recoverable here; passed as NULL.
 
 #include "tags.h"
 #include "memory.h"
@@ -19,7 +17,7 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern uint32_t biped_ground_adjust_step(uint32_t object_index, real_point3d *reference_position); // 0x557a90, this batch
+extern uint32_t biped_ground_adjust_step(uint32_t object_index); // 0x557a90, stack (0x55e883 pushes only the object)
 extern void unit_rotate_basis_about_axis(uint32_t object_index, real_vector3d *rotation_axis);      // 0x55e6b0, this batch
 extern void unit_update_up_vector(Biped *biped_tag, object *obj); // 0x560800, next batch
 
@@ -36,7 +34,7 @@ void biped_update_idle_basis(uint32_t object_index, uint8_t *state_out)
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
     if ((biped->flags & 0x20) != 0 && biped->ground_adjust_iteration < biped->ground_adjust_iteration_limit) {
-        biped_ground_adjust_step(object_index, 0); // UNSURE: reference_position, see file header
+        biped_ground_adjust_step(object_index);
         state_out[1] = 0;
         return;
     }

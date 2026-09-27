@@ -7,18 +7,13 @@
 //   (0x558a20), and snapshots node positions into the module-owned global
 //   unit_ground_adjust_node_positions (0x006e4a08, documented in types/units.h "globals this
 //   module owns").
-// register convention: object index recognized by Ghidra as a normal (stack) parameter. EBX
-//   is never read inside this function or inside biped_ground_adjust_solve (0x558000), so
-//   Ghidra shows neither as touching it -- but biped_ground_adjust_solve_node (0x557b80), three
-//   calls deep, does read it as "unaff_EBX", which is only possible if this whole chain's
-//   caller (biped_update, 0x5590a0, outside this batch) loaded it once and it survives
-//   untouched (EBX is callee-saved) all the way down. This rewrite threads it through
-//   explicitly as reference_position since plain C has no such implicit channel.
-//   // blam-cc: stack -> object_index, EBX (from the original caller) -> reference_position
+// register convention: stack -> object_index only (0x55e883 pushes one argument; 0x557a9e reads it).
+//   The EBX that biped_ground_adjust_solve_node reads is set by biped_ground_adjust_solve itself
+//   (0x558264, the slide's out position), not threaded down from here.
+//   // blam-cc: stack -> object_index
 // UNSURE: the returned value packs a throwaway upper 24 bits (CONCAT31 of an unrelated dead
 //   value) around the real 1-byte result in the original; only the low byte is ever read by
-//   callers, so this rewrite returns just that byte. reference_position's true meaning is
-//   established two call levels down (0x557b80); see that file.
+//   callers, so this rewrite returns just that byte.
 
 #include "tags.h"
 #include "memory.h"
@@ -31,8 +26,7 @@ extern data_array *object_data;                             // 0x008603b0
 extern tag_instance *tag_instances;                          // 0x0087bc14
 extern real_point3d unit_ground_adjust_node_positions[64];   // 0x006e4a08
 
-extern void biped_ground_adjust_solve(uint32_t object_index, real_point3d *reference_position,
-                                       real_matrix4x3 *nodes); // 0x558000
+extern void biped_ground_adjust_solve(uint32_t object_index, real_matrix4x3 *nodes); // 0x558000, stack (0x557b48 pushes nodes, object)
 extern void biped_ground_adjust_apply_node_rotations(uint32_t object_index, real_matrix4x3 *nodes,
                                                        real_point3d *saved_positions); // 0x558a20
 
@@ -42,7 +36,7 @@ extern void biped_ground_adjust_apply_node_rotations(uint32_t object_index, real
 // then advances the per-biped ground-adjust iteration counter, saturating at 0x7f.
 // Returns 1 once biped_data.ground_adjust_iteration has already reached
 // ground_adjust_iteration_limit (nothing done this call), 0 if an iteration ran.
-uint32_t biped_ground_adjust_step(uint32_t object_index, real_point3d *reference_position)
+uint32_t biped_ground_adjust_step(uint32_t object_index)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size); // biped_data starts at object+0x4cc
@@ -56,7 +50,7 @@ uint32_t biped_ground_adjust_step(uint32_t object_index, real_point3d *reference
         for (i = 0; i < (int32_t)graph->nodes.count; i++) {
             unit_ground_adjust_node_positions[i] = nodes[i].position;
         }
-        biped_ground_adjust_solve(object_index, reference_position, nodes);
+        biped_ground_adjust_solve(object_index, nodes);
         biped_ground_adjust_apply_node_rotations(object_index, nodes, unit_ground_adjust_node_positions);
         if (biped->ground_adjust_iteration < 0x7f) {
             biped->ground_adjust_iteration = biped->ground_adjust_iteration + 1;

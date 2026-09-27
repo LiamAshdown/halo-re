@@ -1,24 +1,27 @@
 // biped_ground_adjust_solve_node  (Ghidra: biped_ground_adjust_solve_node, renamed)
 // address 0x557b80, size 1143 bytes
-// name confidence: 0.4   rewrite confidence: 0.4
-// evidence: node hierarchy walked through ModelAnimationsAnimationGraphNode (tags.h, stride
-//   0x40: parent_node_index 0x24, node_joint_flags 0x28 -- bit 0x2 "hinge", bit 0x4
-//   "no_movement" per its bitfield comment); node transforms are real_matrix4x3 (math.h,
-//   stride 0x34: up 0x1c, position 0x28), matching object.nodes ("an array of real_matrix4x3",
-//   objects.h). Object tag chain and success bitset match the sibling functions in this
-//   cluster (0x557a90, 0x558000).
-// register convention: object index in EAX, a second position pointer in EBX (loaded once by
-//   an outer caller and carried unmodified through the whole 0x557a90/0x558000/0x557b80 call
-//   chain -- Ghidra shows it "unaff_EBX" here because nothing in this function reloads it).
-//   node_index, nodes, own_position and success_bits are Ghidra-recognized stack parameters.
-//   // blam-cc: EAX -> object_index, EBX -> reference_position, stack -> node_index, nodes,
-//   //           own_position, success_bits
-// UNSURE: reference_position's exact meaning (its caller is outside this batch); every
-//   ABS(x - 1.0) < 0.0001 test is a "these two directions already agree" cosine check and is
-//   preserved as-is rather than renamed to a helper. plane3d_from_point_and_normal, physics_point_refresh_leaf,
-//   matrix4x3_inverse/_transform_vector, vector3d_rotate_about_axis and FUN_00628140 belong to
-//   other not-yet-rewritten modules (math/physics); declared here with the signatures their
-//   call sites imply.
+// name confidence: 0.4   rewrite confidence: 0.8
+// REWRITTEN from objdump 0x557b80..0x557ff6 (the draft crossed with a NULL operand, left the matrix
+//   calls unprototyped and read the wrong vectors).
+// blam-cc: EAX -> object_index, EBX -> reference_position (biped_ground_adjust_solve's slide result,
+//   0x558264), stack -> node_index, nodes, own_position, success_bits
+// Tries to move a limp body node (own_position) to the fitted reference position under its parent
+//   joint limits (animation graph nodes, 0x40 each: parent +0x24, joint flags +0x28, base vector +0x2c,
+//   vector range +0x38; node matrices 0x34 each, forward +0x04, up +0x1c, position +0x28):
+//   - with a parent other than the root whose flags lack bit 2 (no movement): P = node - parent and
+//     R = reference - parent, both normalized; axis = normalize(cross(R, P)); when P.R is not ~1 the
+//     axis is taken into parent space (inverse parent matrix) and the parent forward into grandparent
+//     space (inverse grandparent matrix);
+//       hinge (flag bit 1): the reference is projected onto the plane through the parent with the
+//       parent up as normal; when that direction in parent space is not ~the base vector the node is
+//       marked, and moved there when it lies no higher than the node and is not embedded
+//       (physics_point_refresh_leaf, tolerance); either way it counts as updated;
+//       otherwise: the forward rotated about the axis by the P/R angle must differ from the base vector
+//       but stay within the vector range of it, and the reference must be lower than the node; then the
+//       node is marked and moved to the reference.
+//   - when not updated (or the parent cannot move), a node whose parent is marked and that is above
+//     the reference is marked and moved to the reference.
+//   Returns whether it updated.
 
 #include "tags.h"
 #include "memory.h"
@@ -30,303 +33,133 @@
 extern data_array *object_data;    // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, in place, returns length, vector in ECX (verified: src/objects/object_set_position_and_orientation.c)
-extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand); // 0x4052c0, out=stack_operand x ecx_operand (verified: src/objects/object_set_position_and_orientation.c)
-extern void plane3d_from_point_and_normal(real_plane3d *out, const real_vector3d *normal, const real_point3d *point);
-    // 0x44d9e0, src/math; blam-cc: stack out, ECX normal, EDX point
-extern void matrix4x3_inverse(real_matrix4x3 *out, real_matrix4x3 *in); // 0x4cb7a0, UNSURE signature
-// matrix4x3_transform_vector (0x4cbe50) transforms the vector in one register by the matrix in
-// another and writes the result through the third; Ghidra binds a different subset at each call
-// site in this module, so the declaration is left unprototyped.
-extern void matrix4x3_transform_vector();
-// vector3d_rotate_about_axis (0x4cd820) rotates the vector in EAX about the axis in ECX in
-// place, by the (sin_angle, cos_angle) pair pushed on the stack -- the callee own
-// decompilation is a Rodrigues formula over in_EAX / in_ECX / param_1 / param_2, and
-// src/math/vector3d_rotate_toward.c reads it the same way. Ghidra binds only the two stack
-// arguments at the call sites below, so the declaration is left unprototyped.
-extern void vector3d_rotate_about_axis(); // 0x4cd820
-  // real signature (vector3d_rotate_about_axis.c): void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); Ghidra recovered 0 of 4 args at this call site
-extern char physics_point_refresh_leaf(float threshold); // 0x505540, UNSURE signature/module
-extern float FUN_00628140(void);           // 0x628140, UNSURE signature/module (returns an angle)
+extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, EAX, ECX, stack
+extern void plane3d_from_point_and_normal(real_plane3d *out, const real_vector3d *normal, const real_point3d *point); // 0x44d9e0, stack, ECX, EDX
+extern void matrix4x3_inverse(real_matrix4x3 *out, real_matrix4x3 *in); // 0x4cb7a0, EAX, ECX
+extern void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); // 0x4cbe50, EAX, EDX, stack
+extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820, EAX, ECX, stack
+extern uint8_t physics_point_refresh_leaf(real_point3d *point, float radius); // 0x505540, EDX point, stack radius
+extern double acos(double x); // 0x628140
+extern double sin(double x);  // fsin
+extern double fabs(double x);
 
-// Computes a candidate ground-adjusted world position for skeleton node node_index against its
-// parent node's basis, validating it with either a plane-rotation test (default) or a
-// hinge-relative test (node_joint_flags bit 0x2), and records success as bit node_index in the
-// success_bits array. Returns 1 if own_position was updated with a validated position.
-// UNSURE: the exact geometric meaning of reference_position; see file header.
+static void biped_ground_adjust_mark(uint32_t *success_bits, int32_t node_index)
+{
+    success_bits[node_index >> 5] |= 1u << (node_index & 0x1f);
+}
+
+static int biped_ground_adjust_is_one(float value)
+{
+    return fabs((double)(value - 1.0f)) < 9.999999747378752e-05;
+}
+
 char biped_ground_adjust_solve_node(uint32_t object_index, real_point3d *reference_position,
                                      int32_t node_index, real_matrix4x3 *nodes,
                                      real_point3d *own_position, uint32_t *success_bits)
 {
-    Object *object_tag;
-    ModelAnimations *graph;
-    ModelAnimationsAnimationGraphNode *graph_nodes;
-    int32_t parent_index;
-    ModelAnimationsAnimationGraphNode *self_node;
-    ModelAnimationsAnimationGraphNode *parent_node;
-    float tolerance;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    uint8_t *object_tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *graph = (uint8_t *)tag_instances[*(datum_index *)(object_tag + 0x44) & 0xffff].data;
+    uint8_t *graph_nodes = *(uint8_t **)(graph + 0x6c);
+    uint8_t *self_node = graph_nodes + node_index * 0x40;
+    int16_t parent_index = *(int16_t *)(self_node + 0x24);
+    uint8_t *parent_node = graph_nodes + parent_index * 0x40;
+    float tolerance = *(float *)(graph + 0x60);
     char updated = 0;
-    real_matrix4x3 *self_transform;
-    real_matrix4x3 *parent_transform;
 
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    object_tag = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
-    graph = (ModelAnimations *)tag_instances[object_tag->animation_graph.tag_id.index].data;
-    graph_nodes = (ModelAnimationsAnimationGraphNode *)graph->nodes.pointer;
-    tolerance = graph->limp_body_node_radius;
-    if ((tolerance < 0.0001f && tolerance > -0.0001f) || tolerance < 0.0f || tolerance > 0.07f) {
+    if (fabs((double)tolerance) < 9.999999747378752e-05 || tolerance < 0.0f || tolerance > 0.07f) {
         tolerance = 0.03f;
     }
 
-    self_node = &graph_nodes[node_index];
-    parent_index = (int16_t)self_node->parent_node_index; // sign-extended, as Ghidra reads it (short)
-    parent_node = &graph_nodes[parent_index];
-    self_transform = &nodes[node_index];
-    parent_transform = &nodes[parent_index];
+    if (parent_index != 0 && (parent_node[0x28] & 4) == 0) {
+        real_matrix4x3 *parent_matrix = &nodes[parent_index];
+        real_point3d *parent_position = &parent_matrix->position;
+        real_point3d *self_position = &nodes[node_index].position;
+        real_vector3d to_self;
+        real_vector3d to_reference;
+        real_vector3d axis;
+        float cosine;
 
-    if (parent_index != 0) {
-        if ((parent_node->node_joint_flags & 4) == 0) {
-            real_vector3d self_to_parent, self_to_ref, up_delta, resolved_axis;
-            float alignment;
+        to_self.i = self_position->x - parent_position->x;
+        to_self.j = self_position->y - parent_position->y;
+        to_self.k = self_position->z - parent_position->z;
+        to_reference.i = reference_position->x - parent_position->x;
+        to_reference.j = reference_position->y - parent_position->y;
+        to_reference.k = reference_position->z - parent_position->z;
+        vector3d_normalize_with_length(&to_self);
+        vector3d_normalize_with_length(&to_reference);
+        vector3d_cross_product(&axis, &to_reference, &to_self);
+        vector3d_normalize_with_length(&axis);
+        cosine = to_reference.k * to_self.k + to_reference.j * to_self.j + to_reference.i * to_self.i;
 
-            self_to_parent.i = self_transform->position.x - parent_transform->position.x;
-            self_to_parent.j = self_transform->position.y - parent_transform->position.y;
-            self_to_parent.k = self_transform->position.z - parent_transform->position.z;
-            self_to_ref.i = reference_position->x - parent_transform->position.x;
-            self_to_ref.j = reference_position->y - parent_transform->position.y;
-            self_to_ref.k = reference_position->z - parent_transform->position.z;
+        if (!biped_ground_adjust_is_one(cosine)) {
+            float angle = (float)acos((double)cosine);
+            float *base = (float *)(parent_node + 0x2c);
+            real_matrix4x3 parent_inverse;
+            real_matrix4x3 grandparent_inverse;
+            real_vector3d local_axis;
+            real_vector3d local_forward;
 
-            vector3d_normalize_with_length(&self_to_parent);
-            vector3d_normalize_with_length(&self_to_ref);
-            vector3d_cross_product(&up_delta, &self_to_parent, 0);
-            vector3d_normalize_with_length(&up_delta);
-            alignment = self_to_parent.i * self_to_ref.i + self_to_parent.j * self_to_ref.j +
-                        self_to_parent.k * self_to_ref.k;
+            matrix4x3_inverse(&parent_inverse, parent_matrix);
+            matrix4x3_inverse(&grandparent_inverse, &nodes[*(int16_t *)(parent_node + 0x24)]);
+            matrix4x3_transform_vector(&local_axis, &axis, &parent_inverse);
+            local_forward = parent_matrix->forward;
+            matrix4x3_transform_vector(&local_forward, &local_forward, &grandparent_inverse);
 
-            if (alignment - 1.0f >= 0.0001f || alignment - 1.0f <= -0.0001f) {
-                double angle = FUN_00628140();
-                real_matrix4x3 inverse_a, inverse_b;
-                real_vector3d up_from_a, up_from_b;
+            if (parent_node[0x28] & 2) {
+                real_vector3d up = parent_matrix->up;
+                real_plane3d plane;
+                real_point3d projected;
+                real_vector3d direction;
+                real_vector3d local_direction;
+                float distance;
 
-                matrix4x3_inverse(&inverse_a, parent_transform);
-                matrix4x3_inverse(&inverse_b, parent_transform);
-                matrix4x3_transform_vector(&up_from_a, &inverse_a, &parent_transform->up);
-
-                if ((parent_node->node_joint_flags & 2) == 0) {
-                    matrix4x3_transform_vector(&up_from_b, &inverse_b, &parent_transform->up);
-                    vector3d_rotate_about_axis(&resolved_axis, (float)angle, &up_delta, &self_to_parent);
-                    alignment = up_from_a.i * parent_node->base_vector.i +
-                                up_from_a.k * parent_node->base_vector.k +
-                                up_from_a.j * parent_node->base_vector.j;
-                    if ((alignment - 1.0f >= 0.0001f || alignment - 1.0f <= -0.0001f) &&
-                        (angle = FUN_00628140(), (angle < 0 ? -angle : angle) < parent_node->vector_range) &&
-                        reference_position->z < own_position->z) {
-                        success_bits[node_index >> 5] |= 1u << (node_index & 0x1f);
-                        *own_position = *reference_position;
-                        updated = 1;
+                plane3d_from_point_and_normal(&plane, &up, parent_position);
+                distance = (plane.normal.j * reference_position->y + plane.normal.i * reference_position->x +
+                    plane.normal.k * reference_position->z - plane.d) * -1.0f;
+                projected.x = up.i * distance + reference_position->x;
+                projected.y = up.j * distance + reference_position->y;
+                projected.z = up.k * distance + reference_position->z;
+                direction.i = projected.x - parent_position->x;
+                direction.j = projected.y - parent_position->y;
+                direction.k = projected.z - parent_position->z;
+                vector3d_normalize_with_length(&direction);
+                matrix4x3_transform_vector(&local_direction, &direction, &parent_inverse);
+                if (!biped_ground_adjust_is_one(local_direction.j * base[1] + local_direction.k * base[2] +
+                        local_direction.i * base[0])) {
+                    biped_ground_adjust_mark(success_bits, node_index);
+                    if (!(own_position->z < projected.z) && !physics_point_refresh_leaf(&projected, tolerance)) {
+                        *own_position = projected;
                     }
-                } else {
-                    real_vector3d hinge_delta;
-                    float hinge_scale;
-                    real_vector3d hinge_point;
-                    real_plane3d hinge_plane;
+                    updated = 1;
+                }
+            } else {
+                float alignment;
 
-                    hinge_delta.i = *(float *)((uint8_t *)parent_transform + 0x1c);
-                    hinge_delta.j = *(float *)((uint8_t *)parent_transform + 0x20);
-                    hinge_delta.k = *(float *)((uint8_t *)parent_transform + 0x24);
-                    // 0x557d82..0x557daa: out = local plane, ECX = &hinge_delta (the parent's up,
-                    // parent_transform + 0x1c), EDX = &parent_transform->position ([esp+0x30])
-                    plane3d_from_point_and_normal(&hinge_plane, &hinge_delta, &parent_transform->position);
-                    // 0x557daf..0x557e0b: reference_position (EBX) projected onto that plane along
-                    // hinge_delta. The earlier rewrite used self_to_parent with its components
-                    // crossed; the asm reads [ebx], [ebx+4], [ebx+8] in step with the normal.
-                    hinge_scale = -((hinge_plane.normal.j * reference_position->y +
-                                     hinge_plane.normal.i * reference_position->x +
-                                     hinge_plane.normal.k * reference_position->z) - hinge_plane.d);
-                    hinge_point.i = hinge_delta.i * hinge_scale + reference_position->x;
-                    hinge_point.j = hinge_delta.j * hinge_scale + reference_position->y;
-                    hinge_point.k = hinge_delta.k * hinge_scale + reference_position->z;
-                    self_to_ref.i = hinge_point.i - parent_transform->position.x;
-                    self_to_ref.j = hinge_point.j - parent_transform->position.y;
-                    self_to_ref.k = hinge_point.k - parent_transform->position.z;
-                    vector3d_normalize_with_length(&self_to_ref);
-                    matrix4x3_transform_vector(&up_from_a, &inverse_a, &parent_transform->up);
-                    alignment = up_from_a.i * parent_node->base_vector.i +
-                                up_from_a.k * parent_node->base_vector.k +
-                                up_from_a.j * parent_node->base_vector.j;
-                    if (alignment - 1.0f >= 0.0001f || alignment - 1.0f <= -0.0001f) {
-                        success_bits[node_index >> 5] |= 1u << (node_index & 0x1f);
-                        if (hinge_point.k <= own_position->z && !physics_point_refresh_leaf(tolerance)) {
-                            own_position->x = hinge_point.i;
-                            own_position->y = hinge_point.j;
-                            own_position->z = hinge_point.k;
-                        }
-                        updated = 1;
-                    }
+                vector3d_rotate_about_axis(&local_forward, &local_axis, (real)sin((double)angle), cosine);
+                alignment = local_forward.j * base[1] + local_forward.k * base[2] + local_forward.i * base[0];
+                if (!biped_ground_adjust_is_one(alignment) &&
+                    *(float *)(parent_node + 0x38) > (float)fabs(acos((double)alignment)) &&
+                    own_position->z > reference_position->z) {
+                    biped_ground_adjust_mark(success_bits, node_index);
+                    *own_position = *reference_position;
+                    updated = 1;
                 }
             }
         }
     }
 
-    if ((parent_node->node_joint_flags & 4) == 0 && updated) {
+    if ((parent_node[0x28] & 4) == 0 && updated) {
         return updated;
     }
-
-    if (((success_bits[parent_index >> 5] &
-          (1u << (parent_index & 0x1f))) != 0) &&
-        (reference_position->z < own_position->z)) {
-        success_bits[node_index >> 5] |= 1u << (node_index & 0x1f);
-        *own_position = *reference_position;
-        return 1;
+    if ((success_bits[parent_index >> 5] & (1u << (parent_index & 0x1f))) == 0) {
+        return updated;
     }
-    return updated;
-}
-
-#if 0
-Original Ghidra decompilation (0x557b80):
-
-char FUN_00557b80(int param_1,int param_2,float *param_3,int param_4)
-
-{
-  uint *puVar1;
-  int iVar2;
-  float fVar3;
-  float fVar4;
-  float fVar5;
-  float fVar6;
-  float fVar7;
-  float fVar8;
-  short sVar9;
-  byte bVar10;
-  char cVar11;
-  uint in_EAX;
-  int iVar12;
-  int iVar13;
-  float *unaff_EBX;
-  int iVar14;
-  int iVar15;
-  float10 fVar16;
-  char local_b5;
-  float local_a8;
-  float local_a4;
-  float local_a0;
-  float local_9c;
-  float local_98;
-  int local_94;
-  float *local_90;
-  float local_8c;
-  float local_88;
-  float local_84;
-  float local_80;
-  float local_7c;
-  undefined1 local_78 [56];
-  undefined1 local_40 [60];
-
-  iVar12 = *(int *)((*(uint *)(*(int *)((**(uint **)(*(int *)(DAT_008603b0 + 0x34) + 8 +
-                                                    (in_EAX & 0xffff) * 0xc) & 0xffff) * 0x20 + 0x14
-                                       + DAT_0087bc14) + 0x44) & 0xffff) * 0x20 + 0x14 +
-                   DAT_0087bc14);
-  iVar14 = *(int *)(iVar12 + 0x6c);
-  local_98 = *(float *)(iVar12 + 0x60);
-  iVar12 = (int)*(short *)(param_1 * 0x40 + 0x24 + iVar14);
-  iVar15 = param_1 * 0x40 + iVar14;
-  iVar14 = iVar12 * 0x40 + iVar14;
-  local_b5 = '\0';
-  if (((ABS(local_98) < 0.0001) || (local_98 < 0.0)) || (0.07 < local_98)) {
-    local_98 = 0.03;
-  }
-  iVar13 = param_1 >> 5;
-  bVar10 = (byte)param_1;
-  if (*(short *)(iVar15 + 0x24) != 0) {
-    if ((*(byte *)(iVar14 + 0x28) & 4) != 0) goto LAB_00557f99;
-    iVar2 = param_1 * 0x34 + 0x28 + param_2;
-    local_94 = param_2 + iVar12 * 0x34;
-    local_90 = (float *)(local_94 + 0x28);
-    local_a8 = *(float *)(param_1 * 0x34 + 0x28 + param_2) - *local_90;
-    local_a4 = *(float *)(iVar2 + 4) - *(float *)(local_94 + 0x2c);
-    local_a0 = *(float *)(iVar2 + 8) - *(float *)(local_94 + 0x30);
-    fVar3 = *unaff_EBX;
-    fVar4 = *local_90;
-    fVar5 = unaff_EBX[1];
-    fVar6 = *(float *)(local_94 + 0x2c);
-    fVar7 = unaff_EBX[2];
-    fVar8 = *(float *)(local_94 + 0x30);
-    vector3d_normalize_with_length();
-    vector3d_normalize_with_length();
-    vector3d_cross_product(&local_a8);
-    vector3d_normalize_with_length();
-    local_9c = (fVar3 - fVar4) * local_a8 + (fVar5 - fVar6) * local_a4 + (fVar7 - fVar8) * local_a0;
-    if (0.0001 <= ABS(local_9c - 1.0)) {
-      fVar16 = (float10)FUN_00628140();
-      local_7c = (float)fVar16;
-      matrix4x3_inverse();
-      matrix4x3_inverse();
-      matrix4x3_transform_vector(local_78);
-      fVar3 = *(float *)(local_94 + 4);
-      fVar4 = *(float *)(local_94 + 8);
-      fVar5 = *(float *)(local_94 + 0xc);
-      matrix4x3_transform_vector(local_40);
-      if ((*(byte *)(iVar14 + 0x28) & 2) == 0) {
-        fVar16 = (float10)fsin((float10)local_7c);
-        vector3d_rotate_about_axis((float)fVar16,local_9c);
-        local_9c = fVar3 * *(float *)(iVar14 + 0x2c) +
-                   fVar5 * *(float *)(iVar14 + 0x34) + fVar4 * *(float *)(iVar14 + 0x30);
-        if (((0.0001 <= ABS(local_9c - 1.0)) &&
-            (fVar16 = (float10)FUN_00628140(), ABS(fVar16) < (float10)*(float *)(iVar14 + 0x38))) &&
-           (unaff_EBX[2] < param_3[2])) {
-          puVar1 = (uint *)(param_4 + iVar13 * 4);
-          *puVar1 = *puVar1 | 1 << (bVar10 & 0x1f);
-          *param_3 = *unaff_EBX;
-          param_3[1] = unaff_EBX[1];
-          param_3[2] = unaff_EBX[2];
-          goto LAB_00557f7a;
-        }
-      }
-      else {
-        local_a8 = *(float *)(local_94 + 0x1c);
-        local_a4 = *(float *)(local_94 + 0x20);
-        local_a0 = *(float *)(local_94 + 0x24);
-        FUN_0044d9e0(&local_8c);
-        fVar3 = ((local_84 * unaff_EBX[2] + local_8c * *unaff_EBX + local_88 * unaff_EBX[1]) -
-                local_80) * -1.0;
-        fVar5 = local_a8 * fVar3 + *unaff_EBX;
-        fVar4 = local_a4 * fVar3 + unaff_EBX[1];
-        fVar3 = local_a0 * fVar3 + unaff_EBX[2];
-        local_a8 = fVar5 - *local_90;
-        local_a4 = fVar4 - local_90[1];
-        local_a0 = fVar3 - local_90[2];
-        vector3d_normalize_with_length();
-        matrix4x3_transform_vector(local_78);
-        if (0.0001 <= ABS((local_8c * *(float *)(iVar14 + 0x2c) +
-                          local_84 * *(float *)(iVar14 + 0x34) +
-                          local_88 * *(float *)(iVar14 + 0x30)) - 1.0)) {
-          puVar1 = (uint *)(param_4 + iVar13 * 4);
-          *puVar1 = *puVar1 | 1 << (bVar10 & 0x1f);
-          if ((fVar3 <= param_3[2]) && (cVar11 = FUN_00505540(local_98), cVar11 == '\0')) {
-            *param_3 = fVar5;
-            param_3[1] = fVar4;
-            param_3[2] = fVar3;
-          }
-LAB_00557f7a:
-          local_b5 = '\x01';
-        }
-      }
+    if (!(own_position->z > reference_position->z)) {
+        return updated;
     }
-  }
-  if (((*(byte *)(iVar14 + 0x28) & 4) == 0) && (local_b5 != '\0')) {
-    return local_b5;
-  }
-LAB_00557f99:
-  sVar9 = *(short *)(iVar15 + 0x24);
-  if (((*(uint *)(param_4 + ((int)sVar9 >> 5) * 4) & 1 << ((byte)sVar9 & 0x1f)) != 0) &&
-     (unaff_EBX[2] < param_3[2])) {
-    puVar1 = (uint *)(param_4 + iVar13 * 4);
-    *puVar1 = *puVar1 | 1 << (bVar10 & 0x1f);
-    *param_3 = *unaff_EBX;
-    param_3[1] = unaff_EBX[1];
-    param_3[2] = unaff_EBX[2];
-    return '\x01';
-  }
-  return local_b5;
+    biped_ground_adjust_mark(success_bits, node_index);
+    *own_position = *reference_position;
+    return 1;
 }
-#endif
