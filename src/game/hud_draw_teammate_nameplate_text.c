@@ -42,7 +42,8 @@ extern float hud_text_draw_color_g;           // 0x006e4740
 extern float hud_text_draw_color_b;           // 0x006e4744
 extern int16_t hud_text_draw_background_mode; // 0x006e4748
 
-extern int32_t chimera__draw_16_bit_text(int32_t unknown_0, int32_t unknown_1, wchar_t *text);
+extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override,
+    uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text); // 0x514ab0, EAX clip, ECX dest rect, stack (0, 0, text)
     // 0x514ab0; blam-cc: EAX -> unknown (0 here), ECX -> bounds (hud_text_bounds *),
     // stack -> (unknown_0, unknown_1, text)
 
@@ -71,7 +72,7 @@ void hud_draw_teammate_nameplate_text(wchar_t *text, int32_t value)
     bounds.right = 0x278;
     // bounds.left is deliberately NOT written here -- the binary leaves that slot untouched.
     // blam-cc: EAX = 0, ECX = &bounds
-    chimera__draw_16_bit_text(0, 0, text);
+    chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text);
 
     hud_text_draw_color_or_flags = 0xffffu;
     hud_text_draw_column = 0;

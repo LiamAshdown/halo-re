@@ -65,7 +65,8 @@ extern uint32_t screen_safe_area_origin; // 0x007c3140, high16 subtracted from b
 extern uint32_t screen_safe_area_right;  // 0x007c3148, high16 is the rect's `left`
 extern uint32_t screen_safe_area_bottom; // 0x007c314c, high16 is the rect's `right`
 
-extern int32_t chimera__draw_16_bit_text(int32_t unknown_0, int32_t unknown_1, wchar_t *text);
+extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override,
+    uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text); // 0x514ab0, EAX clip, ECX dest rect, stack (0, 0, text)
     // 0x514ab0; blam-cc: EAX -> unknown (0 at both of this module's call sites),
     // ECX -> bounds (hud_text_bounds *), stack -> (unknown_0, unknown_1, text). Declared with a
     // return value because the success path below returns whatever this call leaves in EAX.
@@ -133,7 +134,7 @@ int32_t hud_draw_world_relative_text(hud_world_text_params *params, int16_t row,
         hud_text_draw_font_tag_id = font_terminal_id;
         hud_text_draw_color_alpha = params->alpha;
         // blam-cc: EAX = 0, ECX = &bounds
-        result = chimera__draw_16_bit_text(0, 0, text);
+        chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text);
     }
 
     hud_text_draw_background_mode = 0;

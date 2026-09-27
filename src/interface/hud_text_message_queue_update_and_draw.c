@@ -41,7 +41,8 @@ extern int QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac import
 extern void widget_instance_close_and_restore_previous(widget_instance *widget); // 0x49c3e0
 extern int32_t hud_text_message_queue_add(uint16_t *text, int32_t start_time, int32_t tag); // 0x4a3d90
 extern void growable_array_remove_element(growable_array *array, int32_t index); // 0x4cf890, UNSURE signature
-extern int32_t chimera__draw_16_bit_text(int32_t unknown_0, int32_t unknown_1, wchar_t *text); // 0x514ab0
+extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override,
+    uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text); // 0x514ab0, EAX clip, ECX dest rect, stack (0, 0, text) // 0x514ab0
 
 // Ages every HUD text message, deletes any that have run past their duration, pulls in new
 // messages from the widget's string-list tag until the per-update time budget (0x1af ms) is
@@ -144,7 +145,18 @@ after_expiry:
             hud_text_draw_color_006e4738 = *palette;
             hud_text_draw_flags_006e4734 = 0x0002ffff; // low16 0xffff, high16 2, see file header
             hud_text_draw_unknown_006e4730 = 0;
-            chimera__draw_16_bit_text(0, 0, (wchar_t *)entry->text);
+            {
+                // 0x4a3ff4..0x4a4015 / 0x4a4036..0x4a404f: EAX = &clip {0x32, 0, 0x1ae, 0x280}, ECX = &dest
+                // {(int16_t)entry +0x0c, 0, (int16_t)entry +0x10, 0x280} (the binary reads these two dwords as words)
+                Rectangle2D clip = { 0x32, 0, 0x1ae, 0x280 };
+                Rectangle2D dest;
+
+                dest.top = *(int16_t *)((uint8_t *)entry + 0x0c);
+                dest.left = 0;
+                dest.bottom = *(int16_t *)((uint8_t *)entry + 0x10);
+                dest.right = 0x280;
+                chimera__draw_16_bit_text(&clip, (int32_t *)&dest, 0, 0, (const int16_t *)entry->text);
+            }
             byte_offset = byte_offset + 0x14;
         }
     }

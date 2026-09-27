@@ -52,7 +52,9 @@ extern int16_t hud_text_draw_background_mode; // 0x006e4748
 extern uint32_t hud_text_draw_box_field_474a; // 0x006e474a, UNSURE: background box geometry
 extern uint32_t hud_text_draw_box_field_474e; // 0x006e474e, UNSURE: background box geometry
 
-extern void chimera__draw_8_bit_text(int32_t x, int32_t y, const char *text); // 0x5148b0
+extern void chimera__draw_8_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override,
+    uint32_t position_or_color1, uint32_t position_or_color2, const char *text); // 0x5148b0, EAX clip, ECX dest rect
+extern int16_t console_screen_safe_area[6]; // 0x007c3140: [0] top, [1] left, [5] (0x7c314a) right anchor
 
 // Draws the developer console overlay. When the terminal has been initialized: if a console is
 // active, builds "prompt + input" into a scratch line, splices in a caret glyph (0x7f) at the
@@ -108,7 +110,16 @@ void console_draw_overlay(void)
         }
 
         hud_text_draw_font_tag_id = font_terminal_id;
-        chimera__draw_8_bit_text(0, 0, line);
+        {
+            // 0x49680a..0x496887: EAX = 0, ECX = &{0x1e0 - line_height - top, [5] - left, 0x1e0 - top, 0x280 - left}
+            Rectangle2D rect;
+
+            rect.top = (int16_t)(0x1e0 - line_height - console_screen_safe_area[0]);
+            rect.left = (int16_t)(console_screen_safe_area[5] - console_screen_safe_area[1]);
+            rect.bottom = (int16_t)(0x1e0 - console_screen_safe_area[0]);
+            rect.right = (int16_t)(0x280 - console_screen_safe_area[1]);
+            chimera__draw_8_bit_text(0, (int32_t *)&rect, 0, 0, line);
+        }
     }
 
     if (console_show_messages != 0) {
@@ -137,7 +148,17 @@ void console_draw_overlay(void)
             hud_text_draw_column = 0;
             hud_text_draw_unknown_4730 = 0;
             hud_text_draw_font_tag_id = font_terminal_id;
-            chimera__draw_8_bit_text(0, 0, message->text);
+            {
+                // 0x496992..0x4969d1 (y already lowered by one line here): ECX = &{y - top, [5] - left,
+                // y + line_height - top, 0x280 - left}
+                Rectangle2D rect;
+
+                rect.top = (int16_t)(y - console_screen_safe_area[0]);
+                rect.left = (int16_t)(console_screen_safe_area[5] - console_screen_safe_area[1]);
+                rect.bottom = (int16_t)(y + line_height - console_screen_safe_area[0]);
+                rect.right = (int16_t)(0x280 - console_screen_safe_area[1]);
+                chimera__draw_8_bit_text(0, (int32_t *)&rect, 0, 0, message->text);
+            }
             hud_text_draw_background_mode = 0;
             message_handle = message->next;
         }

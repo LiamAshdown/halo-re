@@ -95,7 +95,8 @@ extern int32_t hud_draw_world_relative_text(hud_world_text_params *params, int16
     wchar_t *text, uint8_t highlighted); // 0x4653f0, this module; blam-cc: EAX -> params,
     // EDX -> row, stack -> (text, highlighted). `row` 0 means "no background box".
 extern int32_t game_engine_multiplayer_ui_state_id(void); // 0x4655d0, this batch
-extern int32_t chimera__draw_16_bit_text(int32_t unknown_0, int32_t unknown_1, wchar_t *text);
+extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override,
+    uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text); // 0x514ab0, EAX clip, ECX dest rect, stack (0, 0, text)
     // 0x514ab0; blam-cc: EAX -> unknown (0 here), ECX -> bounds (hud_text_bounds *),
     // stack -> (unknown_0, unknown_1, text)
 
@@ -285,7 +286,11 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float text_
             hud_text_draw_color_or_flags = 0xffffu;
             hud_text_draw_column = 0;
             hud_text_draw_unknown_4730 = 0;
-            chimera__draw_16_bit_text(0, 0, row_buffer);
+            {
+                Rectangle2D row_rect = { 0x1b8, 0xa, 0x1cc, 0x27b }; // 0x466027..0x46603c, ECX at 0x466071
+
+                chimera__draw_16_bit_text(0, (int32_t *)&row_rect, 0, 0, (const int16_t *)row_buffer);
+            }
         }
     }
 
@@ -341,7 +346,11 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float text_
             hud_text_draw_column = 0;
             hud_text_draw_unknown_4730 = 0;
             hud_text_draw_color_r = global_white_argb->red;
-            chimera__draw_16_bit_text(0, 0, row_buffer);
+            {
+                Rectangle2D row_rect = { 0x1cc, 0xa, 0x1e0, 0x27b }; // 0x4662a5..0x4662ba, ECX at 0x466305
+
+                chimera__draw_16_bit_text(0, (int32_t *)&row_rect, 0, 0, (const int16_t *)row_buffer);
+            }
         }
     }
 }

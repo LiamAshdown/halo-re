@@ -28,7 +28,8 @@
 #include "game.h"
 #include <wchar.h>
 
-extern int32_t chimera__draw_16_bit_text(int32_t unknown_0, int32_t unknown_1, wchar_t *text);
+extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override,
+    uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text); // 0x514ab0, EAX clip, ECX dest rect, stack (0, 0, text)
     // 0x514ab0; blam-cc: EAX -> unknown (0 here), ECX -> bounds (hud_text_bounds *),
     // stack -> (unknown_0, unknown_1, text)
 
@@ -59,7 +60,7 @@ void hud_draw_scoreboard_row_text(int16_t row, wchar_t *text, int16_t column)
     bounds.right = (int16_t)((screen_safe_area_bottom >> 16) - (uint16_t)safe_left);
 
     // blam-cc: EAX = 0, ECX = &bounds
-    chimera__draw_16_bit_text(0, 0, text);
+    chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text);
 }
 
 #if 0
