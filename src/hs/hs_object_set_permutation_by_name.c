@@ -4,14 +4,14 @@
 //   named sub-list of an object's tag data (e.g. a seat, region, or marker list) and passes the
 //   result to a setter"; the callee object_set_permutation_by_name and the 0x4c-stride table with
 //   a name at its head pin this to the model permutation list specifically)
-// rewrite confidence: 0.5
+// rewrite confidence: 0.85 (FIXED the object_set_permutation_by_name call (EAX object, stack name/region/1) and the documented convention (object and permutation on the stack, EBX region name))
 // evidence: out/phase4/hs_types_notes.md object/tag_instance chain (object data pointer at +8 of
 //   an object_headers element, tag_instance.data at +0x14 of a 0x20-stride tag_instances element);
 //   callee name object_set_permutation_by_name.
 // register convention: object index in EAX (in_EAX); permutation name string in EBX (unaff_EBX);
 //   the value forwarded unchanged to object_set_permutation_by_name (param_2) as the recognized
 //   stack parameter.
-//   // blam-cc: EAX -> object_index, EBX -> name, stack -> param_2
+//   // blam-cc: EBX -> name, stack -> object_index, param_2
 // UNSURE: the two-level tag lookup (object's own tag -> a referenced tag's permutations list at
 // definition+200/+0xc4, stride 0x4c) is preserved exactly by offset, but the intermediate tag
 // group/field names (a model tag's permutations block, most likely) are not established anywhere
@@ -23,8 +23,8 @@
 #include "hs.h"
 
 extern int32_t __stricmp(const char *a, const char *b); // 0x00628d8b
-extern void object_set_permutation_by_name(void *object_or_handle, int32_t permutation_index,
-    int32_t param_3); // objects module, 0x4f6c60
+extern void object_set_permutation_by_name(uint32_t object_index, char *name, int16_t region_filter,
+    char use_matched_index); // 0x4f6c60, EAX object, stack (name, region, use)
 
 extern data_array *object_headers;  // 0x008603b0, stride 0x0c, object data pointer at +0x08
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -65,7 +65,9 @@ void hs_object_set_permutation_by_name(datum_index object_index, void *param_2, 
                 }
             }
         }
-        object_set_permutation_by_name(param_2, match_index, 1);
+        // FIXED (0x48871d..0x488731): EAX = the object, stack (permutation name, region index, 1); the
+        //   draft dropped the object.
+        object_set_permutation_by_name(object_index, (char *)param_2, (int16_t)match_index, 1);
     }
 }
 

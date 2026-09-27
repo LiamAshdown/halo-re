@@ -1917,3 +1917,7 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   Unlisted (trapping) callbacks drop from 609 to 591.
 - Noted for later: hs_object_set_permutation_by_name calls object_set_permutation_by_name(param_2, region index, 1) without the object; check it against 0x488670.
 - Relink: left unresolved 1, traps 128.
+- hs_object_set_permutation_by_name (0x488670): FIXED (0.5 -> 0.85). object_set_permutation_by_name gets EAX = the object plus stack (permutation name, region index, 1); the draft dropped the object. The documented convention is corrected too: object and permutation on the stack, EBX = region name.
+- 18 more missing campaign hs evaluators (scratchpad/gen_hs_wrappers3.py): device_group_get, ai_nonswarm_count, ai_living_fraction, device_one_sided_set, ai_vehicle_enterable_disable, ai_vehicle_enterable_actor_type, object_set_collideable, device_group_set_immediate, volume_test_object, unit_impervious, ai_renew, ai_maneuver_enable, ai_allow_dormant, vehicle_riders, ai_erase_all, garbage_collect_now, cls, game_time. Unlisted callbacks now 573 (from 609).
+- Still missing (campaign): inspect (hs internal), fast_setup_network_server (MP host), and the lower-use tail in scratchpad/hs_missing_campaign.txt.
+- Relink: left unresolved 1, traps 128.
