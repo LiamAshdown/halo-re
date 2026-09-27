@@ -47,14 +47,16 @@ extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vecto
 // decompilation (in_EAX / in_ECX / param_1) and matching
 // src/objects/object_set_position_and_orientation.c. Ghidra binds only the stack operand at
 // the call sites below, so the declaration is left unprototyped.
-extern void vector3d_cross_product(); // 0x4052c0
+extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, EAX, ECX, stack
 
 // vector3d_rotate_about_axis (0x4cd820) rotates the vector in EAX about the axis in ECX in
 // place, by the (sin_angle, cos_angle) pair pushed on the stack -- the callee own
 // decompilation is a Rodrigues formula over in_EAX / in_ECX / param_1 / param_2, and
 // src/math/vector3d_rotate_toward.c reads it the same way. Ghidra binds only the two stack
 // arguments at the call sites below, so the declaration is left unprototyped.
-extern void vector3d_rotate_about_axis(); // 0x4cd820
+extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820
+    // FIXED: this was declared without a prototype, so the float sin/cos arguments were promoted to double and the
+    //   callee read garbage angles on every biped turn.
   // real signature (vector3d_rotate_about_axis.c): void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); Ghidra recovered 0 of 4 args at this call site
 extern void vector3d_rotate_toward_bounded(real_vector3d *current, real_vector3d *velocity, float *bounds,
                           float max_velocity, float max_acceleration, real_vector3d *target,

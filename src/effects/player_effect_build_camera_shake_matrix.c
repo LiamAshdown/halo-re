@@ -49,7 +49,7 @@ extern void matrix4x3_from_axis_angle(real_matrix4x3 *out, real_vector3d *axis, 
 extern void matrix4x3_from_euler_angles(real_matrix4x3 *out, real yaw, real pitch, real roll); // 0x4cba10
 extern real transition_function_evaluate(int16_t type, real phase); // 0x4ccac0, math module;
                                     // UNSURE: type argument dropped by Ghidra, kept as 0
-extern real periodic_function_evaluate(int16_t type, real phase); // 0x4cc9b0, math module;
+extern real periodic_function_evaluate(int16_t type, double phase); // 0x4cc9b0, math module; FIXED: the phase is a double (the definition's type; a float here pushed 4 of the 8 bytes);
                                     // UNSURE: type argument dropped by Ghidra, kept as 0
 extern void player_effect_random_shake_offset(real_matrix4x3 *out, real magnitude, real angle); // 0x457280,
                                     // this module
