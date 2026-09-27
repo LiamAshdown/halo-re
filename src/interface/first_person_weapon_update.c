@@ -88,8 +88,11 @@ static ModelAnimationsAnimationGraphFirstPersonWeaponAnimations *first_person_we
         animations->first_person_weapons.pointer;
 }
 
+extern void debug_play_diagnostics(void); // TEMPORARY play-test logging, src/interface/debug_play_diagnostics.c
+
 void first_person_weapon_update(int16_t local_player_index)
 {
+    debug_play_diagnostics(); // TEMPORARY
     first_person_weapon_interface *fp = &first_person_weapon_interfaces[local_player_index];
 
     if (fp->weapon_index != (datum_index)-1 && object_try_and_get(fp->weapon_index, 4) == 0) {
