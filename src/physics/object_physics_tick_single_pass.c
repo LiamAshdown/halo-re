@@ -63,6 +63,7 @@ extern double cos(double x);
 
 extern data_array *object_data;                              // 0x008603b0
 extern ScenarioStructureBSP *global_structure_bsp;          // 0x00746f9c
+extern ModelCollisionGeometryBSP *global_collision_bsp;    // 0x00746f90
 extern real_vector3d *global_reference_vector_0069672c;       // 0x0069672c
 extern float k_physics_gravity;                               // 0x0069c52c
 extern tag_instance *tag_instances;                           // 0x0087bc14
@@ -129,8 +130,9 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
         for (p = 0; p < definition->powered_mass_points.count; p++) {
             powered_mass_point_state *powered = &powered_states[p];
             float t;
-            // UNSURE: quaternion source not visible; see object_physics_tick.c's own identical note
-            matrix4x3_from_quaternion((void *)0 /* UNSURE quaternion source */, &powered->matrix_scale);
+            // FIXED (0x509f98..0x509f9e): ECX = the entry's quaternion (+0x1c), EDX = its matrix (+0x2c); the draft
+            //   passed NULL, which crashes for any powered vehicle
+            matrix4x3_from_quaternion((uint8_t *)powered + 0x1c, &powered->matrix_scale);
             t = powered->matrix[0][1]; powered->matrix[0][1] = powered->matrix[1][0]; powered->matrix[1][0] = t;
             t = powered->matrix[0][2]; powered->matrix[0][2] = powered->matrix[2][0]; powered->matrix[2][0] = t;
             t = powered->matrix[1][2]; powered->matrix[1][2] = powered->matrix[2][1]; powered->matrix[2][1] = t;
@@ -210,9 +212,11 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
                 mp_def->up.k * combined.up.k;
         }
 
-        mp->leaf_index = bsp3d_node_find_leaf(0, 0, (real_point3d *)&mp->position_x); // UNSURE args
+        // FIXED (0x50a300..0x50a348): ECX = the collision BSP [0x746f90] (the draft passed NULL and crashed in
+        //   bsp3d_node_find_leaf once a hover vehicle's mass points were ticked), and the leaf is masked.
+        mp->leaf_index = bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)&mp->position_x);
         mp->cluster_index = (mp->leaf_index == -1) ? -1 :
-            ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[mp->leaf_index].cluster;
+            ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[mp->leaf_index & 0x7fffffff].cluster;
 
         offset.i = mp->position_x - self->position.x;
         offset.j = mp->position_y - self->position.y;
@@ -493,9 +497,10 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
             new_position.y = self->position.y + self->velocity.j;
             new_position.z = self->position.z + self->velocity.k;
 
-            location.leaf_index = bsp3d_node_find_leaf(0, 0, &new_position); // UNSURE args
+            // FIXED (0x50af09..0x50af5d): ECX = the collision BSP [0x746f90]; the leaf is masked
+            location.leaf_index = bsp3d_node_find_leaf(0, global_collision_bsp, &new_position);
             location.cluster_index = (location.leaf_index == -1) ? -1 :
-                ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[location.leaf_index].cluster;
+                ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[location.leaf_index & 0x7fffffff].cluster;
 
             object_unlink_cluster_or_notify_parent(object_index);
             self->position = new_position;
