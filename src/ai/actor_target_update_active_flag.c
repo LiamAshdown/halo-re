@@ -2,7 +2,7 @@
 //   unit_update_active_combat_flag in out/phase2/results/ai_02.json but the record it reads
 //   is prop, addressed through prop_data with the module's 0x138 stride, not a unit record)
 // address 0x41fc60, size 240 bytes
-// name confidence: 0.35   rewrite confidence: 0.35
+// name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x41fc60..0x41fd4f (EAX actor, EDI prop).)
 // evidence: out/phase2/results/ai_02.json (offsets reinterpreted against types/ai.h's prop):
 //   computes whether the prop (target-data record) counts as currently 'active' in combat --
 //   kind 2-3, exposed (is_unit) and not a vault, and either seen by the actor's current

@@ -1,6 +1,6 @@
 // actor_grenade_trajectory_blocked  (Ghidra: actor_grenade_trajectory_blocked; named for this rewrite)
 // address 0x42b190, size 218 bytes
-// name confidence: 0.4   rewrite confidence: 0.35
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x42b190..0x42b269 (EAX direction, ECX actor, stack exclude / landing / out).)
 // evidence: phase-4 summary ("checks whether a grenade's trajectory or landing radius
 // intersects any nearby gathered actor other than the thrower") plus its two callees,
 // ray_intersects_sphere_test and segment3d_within_radius_of_segment. Ghidra's own decompile

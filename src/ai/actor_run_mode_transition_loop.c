@@ -1,6 +1,6 @@
 // actor_run_mode_transition_loop  (Ghidra: actor_run_mode_transition_loop, already named)
 // address 0x429ee0, size 216 bytes
-// name confidence: 0.5   rewrite confidence: 0.35
+// name confidence: 0.5   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x429ee0..0x429fb7.)
 // evidence: types/ai.h actor.mode_changed(0x70)/mode(0x6c)/type(0x04); actor_type_procs[16]
 //   (0x006853b8, unknown_14 slot per actor_type_table_entry); actor_mode_definitions[16]
 //   (0x00655254). Calls actor_set_mode (0x40d8d0, already established: actor_index, mode,

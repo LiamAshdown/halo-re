@@ -2,7 +2,7 @@
 //   unit_get_combat_priority in out/phase2/results/ai_02.json but the record read is prop,
 //   addressed through prop_data with the module's 0x138 stride)
 // address 0x420e50, size 106 bytes
-// name confidence: 0.45   rewrite confidence: 0.4
+// name confidence: 0.45   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x420e50..0x420eb9 (+0x122 is compared as a signed byte).)
 // evidence: out/phase2/results/ai_02.json (offsets reinterpreted against types/ai.h's prop):
 //   for a prop in active combat (kind 2-3) with the engaged flag set, returns tiered priority
 //   values: 4 if fleeing (+0x74), 2 or 3 if crouched (+0x12f, based on +0x122<2), 1 if
@@ -35,7 +35,7 @@ uint8_t actor_target_get_backup_priority(datum_index target_prop_index)
             return 4;
         }
         if (target->unknown_12f != 0) {
-            return (uint8_t)((target->unknown_122 < 2) + 2);
+            return (uint8_t)(((int8_t)target->unknown_122 <= 1) + 2); // 0x420ea3: signed byte compare
         }
         if (1 < target->unknown_32) {
             return 1;

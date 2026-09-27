@@ -1,6 +1,6 @@
 // actor_consider_grenade_throw  (Ghidra: actor_consider_grenade_throw, renamed)
 // address 0x40dc30, size 287 bytes
-// name confidence: 0.4   rewrite confidence: 0.35
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x40dc30..0x40dd4e.)
 // evidence: phase-4 summary "periodically rolls whether the actor decides to throw a
 // grenade, using a randomized cooldown/probability from its grenade tag data"; reads
 // ActorVariant.grenade_stimulus/minimum_enemy_count/grenade_check_time/

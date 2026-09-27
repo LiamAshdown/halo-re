@@ -1,6 +1,6 @@
 // actor_get_threat_weapon_object_index  (Ghidra: actor_get_threat_weapon_object_index, already named)
 // address 0x4282c0, size 176 bytes
-// name confidence: 0.5   rewrite confidence: 0.4
+// name confidence: 0.5   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x4282c0..0x42836f.)
 // evidence: types/ai.h actor.unknown_161/active_unit_index(0x158)/unit_index(0x18)/
 //   actor_definition_tag(0x5c). Calls unit_get_weapon_object_index (0x569970, UNSURE
 //   signature, not in this rewrite range).

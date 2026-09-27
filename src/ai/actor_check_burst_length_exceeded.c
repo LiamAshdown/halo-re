@@ -1,6 +1,6 @@
 // actor_check_burst_length_exceeded  (Ghidra: actor_check_burst_length_exceeded, renamed)
 // address 0x4281b0, size 56 bytes
-// name confidence: 0.3   rewrite confidence: 0.4
+// name confidence: 0.3   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x4281b0..0x4281e7.)
 // evidence: types/ai.h actor.unknown_6e/mode(0x6c); offset 0xa8 falls inside actor.mode_data
 //   (the per-mode union at 0x9c..0x11f), used here only in death mode. Phase-4 summary: "Boolean
 // check combining the actor's burst-length field (0x6e), a mode value (0x6c), and a

@@ -1,6 +1,6 @@
 // actor_evaluate_flank_offset  (Ghidra: actor_evaluate_flank_offset; named from out/phase2/results/ai_02.json)
 // address 0x420b10, size 376 bytes
-// name confidence: 0.35   rewrite confidence: 0.35
+// name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x420b10..0x420c87 (all seven constants).)
 // evidence: out/phase2/results/ai_02.json -- pure geometry helper operating on four
 //   register-passed vectors: computes a 2D perpendicular basis from cover_direction, projects
 //   the threat-to-candidate offset onto it, and tests the result against cos(30 deg) =

@@ -11,8 +11,9 @@
 //   project convention), b_start pointer in EBX (unaff_EBX), a_direction pointer in ESI
 //   (unaff_ESI), b_direction pointer in EDI (unaff_EDI); radius as the recognized stack
 //   parameter (param_2).
-//   // blam-cc: EAX -> a_start, EBX -> b_start, ESI -> a_direction, EDI -> b_direction, stack ->
-//   radius
+//   // blam-cc: EBX -> b_start, ESI -> a_direction, EDI -> b_direction, stack -> (a_start, radius)
+//   CORRECTED 2026-09-28: 0x4ceae6 reads a_start from the first stack slot (mov ebp,[esp+0x34] after sub 0x2c /
+//   push ebp); callers happen to also hold it in EAX (0x42b216).
 //
 // UNSURE, significantly: as in segment3d_distance_squared_to_segment, the raw s/t computation
 // via vector3d_scalar_triple_product is a mathematically-motivated reconstruction, not a

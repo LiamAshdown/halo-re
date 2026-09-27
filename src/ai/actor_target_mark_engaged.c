@@ -1,6 +1,6 @@
 // actor_target_mark_engaged  (Ghidra: actor_target_mark_engaged; named from out/phase2/results/ai_02.json)
 // address 0x41fa80, size 120 bytes
-// name confidence: 0.45   rewrite confidence: 0.35
+// name confidence: 0.45   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x41fa80..0x41faf7 (EAX prop, EBX actor, stack flag).)
 // evidence: out/phase2/results/ai_02.json -- sets or clears the engagement timestamp fields
 //   at target-data+0x9c/+0xa0 (using the game-time global) based on param_1, then refreshes
 //   derived fields via the functions now named actor_target_update_active_flag (0x41fc60) and
