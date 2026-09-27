@@ -1,6 +1,6 @@
 // unit_apply_control_block  (Ghidra: unit_apply_control_block)
 // address 0x5639f0, size 289 bytes
-// name confidence: 0.4 (phase2 candidate)   rewrite confidence: 0.6
+// name confidence: 0.4 (phase2 candidate)   rewrite confidence: 0.9 (VERIFIED against objdump 0x5639f0..0x563b10)
 // evidence: types/units.h unit_control_data (the whole 0x40-byte source record this function
 //   unpacks -- this IS the function the header cites as proof of that struct's layout),
 //   unit_data.saved_control/.unknown_4b8/.unknown_4bc (0x478/0x4b8/0x4bc), .throttle (0x278),

@@ -1,588 +1,488 @@
 // actor_update_look_target  (Ghidra: actor_update_look_target, renamed)
 // address 0x415480, size 3896 bytes
-// name confidence: 0.3   rewrite confidence: 0.25 (LEAST VERIFIED function in this module --
-// read the UNSURE block below before trusting any single branch)
-// FIXED 2026-09-27: the body-turn / aim-follow block at 0x415fb6..0x41609a was missing (added after the look
-//   selection; unit_is_in_busy_animation_state takes the unit in ECX). The rest is still unverified.
-// evidence: ai_02.json's evidence for this address: "Reads actor look-mode field at +0x6dc,
-// branches on unit posture/vehicle seat (+0x6a==3) selecting different unit orientation
-// fields (0xbc/0xb4 etc.), and calls the look-direction helpers 00414910/00414990/00414d00/
-// 00414f50/004150f0/00415150 plus obstacle/vector helpers" -- the central per-tick
-// look-target orchestrator. It owns actor.position_cache_a/_b/_c (0x5a4/0x5b0/0x5bc: despite
-// the name suggesting a read-only movement cache elsewhere, this function is one of their
-// writers) and, at the very end, snapshots them into snapshot_facing / snapshot_unknown_708 /
-// snapshot_unknown_714 (0x6fc/0x708/0x714) and updates actor.flags bit 0x20.
-// register convention: actor_index is a genuine stack parameter (objdump -d -M intel:
-// `mov ebp,[esp+0x58]` after 4 register pushes).
+// name confidence: 0.3   rewrite confidence: 0.85 (REWRITTEN from objdump 0x415480..0x4163b7)
+// Per-tick look / aim / facing selection for one actor. Works on three direction caches: A (+0x5a4, facing),
+//   B (+0x5b0, aiming) and C (+0x5bc, looking), which are published at the end to +0x6fc / +0x708 / +0x714
+//   (actor_apply_queued_look_to_unit hands those to the unit's control block). Sources, in order:
+//   - the flee / reason point F (+0x3e8 kind with record +0x3ec, or reason 7 = the kind-2 threat point while
+//     +0x60c > 0 and +0x5f2 == 2), gated by the aim cone (definition +0x12c cos) and the side flags +0x58d/+0x58e;
+//   - the vocalization point V (record +0x54c, priority +0x546 while +0x548 ticks run), switch on priority 2..8;
+//   - the idle look search (actor_get_idle_facing_range, actor_resolve_look_target, wait timers +0x560/+0x564/
+//     +0x568, records +0x56c/+0x57c) and the look randomizer;
+//   - the body-turn check (cone against +0x174, lane via definition +0x134 cos and the side cosines
+//     definition +0xb4/+0xb8 or +0xbc/+0xc0 when +0x6a == 3), the vertical facing flatten (not flying), the
+//     facing-change hold (+0x58f/+0x590/+0x598, definition +0x330).
+//   Finally flags +0x6d0 bit 0x20 = +0x591 and the aiming speed word +0x6f8 (0 for a flee look, look mode 4, or
+//   vocalization kinds 3/6/10/11/12, else 1).
+//   The draft swapped the two sources (it drove the first block with the vocalization priority and the switch
+//   with the reason kind), sent the vocalization point into the flee point, and tested local copies where the
+//   binary reads the actor's side flags -- so actor look / aim vectors came from the wrong source: a10 crewmen
+//   stared upward.
 // blam-cc: stack -> actor_index
-//
-// UNSURE (read first): this function calls the four register-argument helpers
-// actor_resolve_flee_source_point (0x4146c0), point3d_within_horizontal_cone (0x414910, a math-module
-// single-cone test, not rewritten in this module), actor_point_in_directional_lane
-// (0x414990) and actor_resolve_look_target (0x414d00) roughly twenty times between them.
-// Ghidra shows only each call's visible stack argument and drops every implicit register
-// argument. This rewrite is a deliberately literal, line-for-line translation of Ghidra's
-// own control flow (same gotos, same branch order, same local-variable roles) rather than a
-// restructuring, specifically to avoid introducing behavior changes while the register
-// arguments below are reconstructed from a sample of call sites, not every one:
-//   - actor_resolve_flee_source_point: objdump-verified at the 0x628-reason-2 call and the
-//     vocalization_unknown_3ec call (both target the same output local, `flee_result`, via
-//     EDI) and at the two look-wait-timer calls (0x56c-reason / 0x57c-reason, which target a
-//     second local, `candidate`, via EDI -- confirmed by what Ghidra's own source reads
-//     immediately afterward in each case). The vocalization_unknown_54c-reason call
-//     (mid-function, feeding `priority`) is assumed to share the flee_result target by
-//     analogy; not independently sampled.
-//   - point3d_within_horizontal_cone / actor_point_in_directional_lane: objdump-verified at one call each
-//     (to_point = &flee_result, reference/forward = &position_cache_b, cone_axis =
-//     &position_cache_a); assumed identical at every other call to either function in this
-//     file, since they always read the same two source locals in Ghidra's own code
-//     immediately around each call.
-//   - actor_resolve_look_target: objdump-verified in full (this is the same call site
-//     documented in actor_resolve_look_target.c's own header); preferred_direction is
-//     &position_cache_a or &position_cache_b depending on a flag pair this rewrite could not
-//     fully separate from `priority` -- modeled here as "&position_cache_a when side_flag_a
-//     and reason_kind == 1, else &position_cache_b", flagged UNSURE at that line specifically.
-// Every other field access in this file is a direct, named replacement for Ghidra's raw
-// offset with no reinterpretation.
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
-#include <stddef.h> // size_t, for the pointer-to-uint32 cast below
-
-// actor_flee_source_reason now lives in types/ai.h (folded from this file).
+#include <stddef.h>
+#include <string.h>
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
-extern actor_mode_definition actor_mode_definitions[16]; // 0x00655254
+extern actor_mode_definition actor_mode_definitions[16]; // 0x00655254, stride 0x38
 
-extern datum_index actor_get_threat_weapon_object_index(datum_index actor_index); // 0x4282c0
-extern uint8_t actor_resolve_flee_source_point(actor_flee_source_reason *reason, real_vector3d *out, datum_index actor_index); // 0x4146c0, this module
-extern uint8_t point3d_within_horizontal_cone(real_point3d *to_point, real_point3d *reference, float min_cos_threshold); // 0x414910, not this module (math)
+extern datum_index actor_get_threat_weapon_object_index(datum_index actor_index); // 0x4282c0, EAX
+extern uint8_t actor_resolve_flee_source_point(actor_flee_source_reason *reason, real_vector3d *out,
+    datum_index actor_index); // 0x4146c0, EAX reason, EDI out, stack actor
+extern uint8_t point3d_within_horizontal_cone(const real_point3d *to_point, const real_point3d *reference,
+    real min_cos_threshold); // 0x414910, EAX, EDX, stack
 extern uint8_t actor_point_in_directional_lane(real_point3d *to_point, real_point3d *forward, real_point3d *cone_axis,
-                                                float min_cos_threshold, float side_thresholds[2]); // 0x414990, this module
+    float min_cos_threshold, float side_thresholds[2]); // 0x414990, EAX, ECX, EDX, stack x2
 extern uint8_t actor_resolve_look_target(real_point3d *preferred_direction, datum_index actor_index, float *deviation_table,
-                                          uint8_t require_trust, uint8_t use_aiming_deviation, uint8_t force_fallback); // 0x414d00, this module
-extern void actor_look_randomize_direction(datum_index actor_index, float *deviation_table, real_vector3d *base_direction); // 0x414f50, this module
-extern float *actor_get_idle_facing_range(datum_index actor_index); // 0x4150f0, this module
+    uint8_t require_trust, uint8_t use_aiming_deviation, uint8_t force_fallback); // 0x414d00, EAX, stack x5
+extern void actor_look_randomize_direction(datum_index actor_index, float *deviation_table, real_vector3d *base_direction); // 0x414f50
+extern float *actor_get_idle_facing_range(datum_index actor_index); // 0x4150f0, EAX
 extern int32_t actor_look_get_wait_ticks(datum_index actor_index, int16_t mode, uint32_t flags, float *deviation_table); // 0x415150, EAX, stack, EDI
-extern uint8_t actor_reset_queued_look_vector(datum_index actor_index); // 0x417ae0, this module
-extern uint8_t actor_update_facing_change_timer(datum_index actor_index); // 0x423670, not this module, UNSURE signature (called with no visible args)
-extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index); // 0x569c90, ECX = the unit
-extern double cos(double x); // FCOS
-extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, vector in ECX
+extern uint8_t actor_reset_queued_look_vector(datum_index actor_index); // 0x417ae0
+extern void actor_update_facing_change_timer(datum_index actor_index); // 0x423670, EAX
+extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index); // 0x569c90, ECX
+extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
+extern double cos(double x);
+extern double fabs(double x);
 
-// blam-cc: stack -> actor_index
+#define ULT_V3(p) (*(real_point3d *)(p))
+
+static uint8_t ult_cone(real_point3d *point, uint8_t *reference, float cos_threshold)
+{
+    return point3d_within_horizontal_cone(point, (real_point3d *)reference, cos_threshold);
+}
+
+static uint8_t ult_lane(real_point3d *point, uint8_t *forward, uint8_t *axis, float cos_threshold, float *side)
+{
+    return actor_point_in_directional_lane(point, (real_point3d *)forward, (real_point3d *)axis, cos_threshold, side);
+}
+
 void actor_update_look_target(datum_index actor_index)
 {
-    actor *self;
-    Actor *definition;
-    int16_t look_mode;
-    uint8_t flee_priority;         // bVar24
-
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
-    look_mode = self->unknown_6dc;
-    flee_priority = 0;
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *definition = (uint8_t *)tag_instances[*(datum_index *)(a + 0x58) & 0xffff].data;
+    uint8_t *cache_a = a + 0x5a4;
+    uint8_t *cache_b = a + 0x5b0;
+    uint8_t *cache_c = a + 0x5bc;
+    int16_t look_mode = *(int16_t *)(a + 0x6dc);
+    uint8_t flee_look = 0;                                  // [esp+0x19]
+    uint8_t aim_speed_zero;
 
     if (look_mode == 1) {
-        self->position_cache_b = self->position_cache_a;
-        self->position_cache_c = self->position_cache_a;
+        ULT_V3(cache_b) = ULT_V3(cache_a);
+        ULT_V3(cache_c) = ULT_V3(cache_a);
     } else {
-        uint8_t has_weapon_or_forced;  // bVar23
-        int8_t side_flag_a;            // local_48
-        int8_t side_flag_b;            // local_45
-        float aiming_cos_threshold;    // uVar2
-        float looking_cos_threshold;   // uVar3
-        uint8_t allow_flag;            // bVar8, init true
-        uint8_t some_flag;             // bVar7, init false
-        float side_thresholds[2];      // local_14 / local_10
-        real_point3d flee_result;     // local_c / local_8 / local_4
-        real_point3d candidate;       // local_30 / local_2c / local_28
-        uint16_t reason_kind;          // uVar18
-        uint32_t priority;             // local_38
-        uint8_t rc;
-        int16_t sw;                    // sVar14, re-used here for (short)priority
-        uint8_t bVar6;                 // survives the switch into the tail below
+        uint8_t has_weapon;                                 // [esp+0x15]
+        uint8_t side_a = a[0x58d];                          // [esp+0x14]
+        uint8_t look_follows = 0;                           // [esp+0x13]
+        uint8_t free_aim = 1;                               // [esp+0x12]
+        uint8_t side_b = a[0x58e];                          // [esp+0x17]
+        uint8_t claimed = 0;                                // [esp+0x16]
+        uint8_t in_cone = 0;                                // [esp+0x18]
+        uint8_t resolved = 0;                               // [esp+0x1b]
+        uint8_t range_1, trust;
+        float cos_aim = *(float *)(definition + 0x12c);     // [esp+0x1c]
+        float cos_look = *(float *)(definition + 0x134);    // [esp+0x28]
+        float side_cos[2];                                  // [esp+0x48]
+        int16_t reason;                                     // [esp+0x20]
+        int16_t priority = 0;                               // [esp+0x24]
+        real_point3d flee_point;                            // [esp+0x50]
+        real_point3d voc_point;                             // [esp+0x2c]
+        uint8_t section_done;                               // BL at 0x415807
+        float *range;
+        actor_flee_source_reason kind2;
 
-        if (self->unknown_161 != 0) {
-            has_weapon_or_forced = 1;
+        if (a[0x161] != 0) {
+            has_weapon = 1;
         } else if (look_mode == 0 || look_mode == 2) {
-            has_weapon_or_forced = (actor_get_threat_weapon_object_index(actor_index) != (datum_index)k_datum_index_none);
+            has_weapon = actor_get_threat_weapon_object_index(actor_index) != k_datum_index_none;
         } else {
-            has_weapon_or_forced = 0;
+            has_weapon = 0;
         }
-
-        side_flag_a = self->unknown_56e[31]; // 0x58d
-        side_flag_b = self->unknown_56e[32]; // 0x58e
-        aiming_cos_threshold = definition->cosine_maximum_aiming_deviation.yaw;
-        looking_cos_threshold = definition->cosine_maximum_looking_deviation.yaw;
-        allow_flag = 1;
-        some_flag = 0;
-
-        {
-            float delta_r;
-            if (self->awareness_level == 3) {
-                side_thresholds[0] = (float)cos((double)definition->combat_look_delta_l);
-                delta_r = definition->combat_look_delta_r;
-            } else {
-                side_thresholds[0] = (float)cos((double)definition->noncombat_look_delta_l);
-                delta_r = definition->noncombat_look_delta_r;
-            }
-            side_thresholds[1] = (float)cos((double)delta_r);
-        }
-
-        if (self->unknown_60c < 1 || self->unknown_5f2 != 2 || self->unknown_455[1] != 0) {
-            goto recompute_reason;
+        look_follows = has_weapon;
+        if (*(int16_t *)(a + 0x6a) == 3) {
+            side_cos[0] = (float)cos((double)*(float *)(definition + 0xbc));
+            side_cos[1] = (float)cos((double)*(float *)(definition + 0xc0));
         } else {
-            actor_flee_source_reason literal_reason = {2};
-            rc = actor_resolve_flee_source_point(&literal_reason, (real_vector3d *)&flee_result, actor_index);
-            if (rc == 0) goto recompute_reason;
-            reason_kind = 7;
-            flee_priority = 1;
-            goto reason_kind_done;
+            side_cos[0] = (float)cos((double)*(float *)(definition + 0xb4));
+            side_cos[1] = (float)cos((double)*(float *)(definition + 0xb8));
         }
-    recompute_reason:
-        reason_kind = self->vocalization_unknown_3e8; // 0x3e8
-        if (reason_kind != 0 && reason_kind != 1) {
-            rc = actor_resolve_flee_source_point((actor_flee_source_reason *)&self->vocalization_unknown_3ec, (real_vector3d *)&flee_result, actor_index);
-            if (rc == 0) {
-                reason_kind = 0;
-            } else {
-                flee_priority = (self->vocalization_unknown_3ec == 2);
-            }
-        }
-    reason_kind_done:
 
-        priority = 0;
-        if (self->vocalization_line >= 0 && self->vocalization_state > 0) {
-            rc = actor_resolve_flee_source_point((actor_flee_source_reason *)&self->vocalization_unknown_54c, (real_vector3d *)&flee_result, actor_index);
-            if (rc != 0) {
-                priority = (uint16_t)self->vocalization_variant;
+        // the flee / reason source
+        memset(&kind2, 0, sizeof(kind2));
+        kind2.code = 2;
+        if (*(int16_t *)(a + 0x60c) > 0 && *(int16_t *)(a + 0x5f2) == 2 && a[0x456] == 0 &&
+            actor_resolve_flee_source_point(&kind2, (real_vector3d *)&flee_point, actor_index)) {
+            reason = 7;
+            flee_look = 1;
+        } else {
+            reason = (int16_t)*(uint16_t *)(a + 0x3e8);
+            if (reason != 0 && reason != 1) {
+                if (actor_resolve_flee_source_point((actor_flee_source_reason *)(a + 0x3ec),
+                        (real_vector3d *)&flee_point, actor_index)) {
+                    flee_look = *(int16_t *)(a + 0x3ec) == 2;
+                } else {
+                    reason = 0;
+                }
             }
         }
 
-        if (self->unknown_504 != 0 && actor_mode_definitions[self->mode].combat_grade == 2 && priority >= 6) {
+        // the vocalization source
+        if (*(int16_t *)(a + 0x544) >= 0 && *(int16_t *)(a + 0x548) > 0 &&
+            actor_resolve_flee_source_point((actor_flee_source_reason *)(a + 0x54c), (real_vector3d *)&voc_point,
+                actor_index)) {
+            priority = (int16_t)*(uint16_t *)(a + 0x546);
+        }
+        if (a[0x504] != 0 &&
+            *(int16_t *)((uint8_t *)actor_mode_definitions + *(int16_t *)(a + 0x6c) * 0x38 + 4) == 2 && priority > 5) {
             priority = 5;
         }
-
-        if (self->vocalization_state > 0) {
-            self->vocalization_state = self->vocalization_state - 1;
-            if (self->vocalization_state == 0) {
-                self->vocalization_line = 0;
-                self->vocalization_variant = 0;
+        if (*(int16_t *)(a + 0x548) > 0) {
+            *(int16_t *)(a + 0x548) = (int16_t)(*(int16_t *)(a + 0x548) - 1);
+            if (*(int16_t *)(a + 0x548) == 0) {
+                *(int16_t *)(a + 0x544) = 0;
+                *(int16_t *)(a + 0x546) = 0;
             }
         }
-        self->unknown_56e[30] = 0; // 0x58c
+        a[0x58c] = 0;
 
-        {
-            uint8_t bVar20; // a third flag, live into the switch below, then dead/overwritten after it
-
-            if ((int16_t)priority < 2) {
-                bVar20 = 0;
-            } else {
-                uint8_t cone_ok;
-                if ((int16_t)priority < 5 ||
-                    (side_flag_a == 0 && (cone_ok = point3d_within_horizontal_cone(&flee_result, &self->position_cache_a, aiming_cos_threshold), cone_ok == 0))) {
-                    if (2 < (int16_t)priority && side_flag_b != 0) {
-                        side_flag_b = 0;
-                        side_flag_a = 1;
-                        goto commit_flee_to_b;
-                    }
-                } else {
-                commit_flee_to_b:
-                    self->position_cache_b = flee_result;
-                    allow_flag = 0;
-                    if (6 < (int16_t)priority && has_weapon_or_forced) {
-                        some_flag = 1;
-                        self->position_cache_c = flee_result;
-                    }
-                }
-                if (priority == 2) {
-                    // Ghidra: uVar18 = -(ushort)(local_48 != '\0') & 5; -- 5 when side_flag_a set, 0 otherwise
-                    priority = (side_flag_a != 0) ? 5u : 0u;
-                }
-                if (side_flag_a != 0) {
-                    self->position_cache_a = flee_result;
-                    side_flag_a = 0;
-                    side_flag_b = 0;
-                    self->unknown_591 = (uint8_t)(self->unknown_591 | (priority == 4));
-                }
-                if ((side_flag_a == 0 && side_flag_b == 0) || 5 < (int16_t)priority) {
-                    bVar20 = 1;
-                } else {
-                    bVar20 = 0;
-                }
-            }
-
-            {
-                uint8_t cVar11 = 0;
-                uint8_t cVar12;
-
-                bVar6 = has_weapon_or_forced;
-
-                sw = (int16_t)priority;
-                switch (sw) {
-                case 2: case 3: case 4: case 5: case 6:
-                    cVar11 = point3d_within_horizontal_cone(&flee_result, &self->position_cache_a, aiming_cos_threshold);
-                    if (!bVar20) {
-                        if (some_flag) goto lane_test;
-                        if ((sw < 6 || (cVar12 = actor_reset_queued_look_vector(actor_index), cVar12 == 0)) &&
-                            (sw < 5 || (side_flag_b == 0 && side_flag_a == 0))) {
-                            if (sw < 4) goto no_cone_check;
-                            if (cVar11 != 0) goto cone_check_passed;
-                            if (side_flag_a == 0 || !allow_flag) goto lane_test;
-                        }
-                        if (self->unknown_591 == 0 || cVar11 == 0) {
-                            self->position_cache_a = candidate;
-                            self->unknown_591 = 0;
-                        }
-                        self->position_cache_b = candidate;
-                        self->position_cache_c = candidate;
-                        goto after_switch_a84;
-                    }
-                    if (!some_flag) {
-                    no_cone_check:
-                        if (cVar11 == 0) goto lane_test;
-                    cone_check_passed:
-                        if (sw < 5 && (sw < 3 || !allow_flag)) goto lane_test;
-                        self->position_cache_b = candidate;
-                        self->position_cache_c = candidate;
-                        goto after_switch_a91;
-                    }
-                lane_test:
-                    if (!has_weapon_or_forced ||
-                        (cVar12 = actor_point_in_directional_lane(&flee_result, &self->position_cache_b,
-                                                                    &self->position_cache_a, looking_cos_threshold, side_thresholds),
-                         cVar12 == 0)) {
-                        if (!allow_flag || cVar11 == 0) break;
-                        self->position_cache_b = candidate;
-                        self->position_cache_c = candidate;
-                        bVar6 = 1;
-                        goto after_switch_a9d;
-                    }
-                    self->position_cache_c = candidate;
-                    bVar6 = 0;
-                    break;
-
-                case 7: case 8: {
-                    uint8_t is8 = (sw == 8);
-                    if (self->unknown_56e[31] == 0) { // 0x58d, the ORIGINAL field, not the (possibly mutated) side_flag_a local
-                        cVar11 = point3d_within_horizontal_cone(&flee_result, &self->position_cache_a, aiming_cos_threshold);
-                        if (cVar11 == 0) {
-                            cVar12 = actor_reset_queued_look_vector(actor_index);
-                            if (cVar12 == 0) break;
-                            is8 = 1;
-                            goto commit_candidate_to_a;
-                        }
-                        if (is8) goto commit_candidate_to_a;
-                    } else {
-                    commit_candidate_to_a:
-                        self->position_cache_a = candidate;
-                        self->unknown_591 = is8;
-                    }
-                    self->position_cache_b = candidate;
-                    self->position_cache_c = candidate;
-                after_switch_a84:
-                    side_flag_a = 0;
-                after_switch_a91:
-                    self->unknown_56e[30] = 1; // 0x58c
-                    some_flag = 0;
-                after_switch_a9d:
-                    allow_flag = 0;
-                    break;
-                }
-                default:
-                    break;
-                }
-
-            if (priority == 2 && allow_flag) {
-                cVar11 = point3d_within_horizontal_cone(&flee_result, &self->position_cache_a, aiming_cos_threshold);
-                if (cVar11 != 0) {
-                    self->position_cache_b = flee_result;
-                    if (bVar6) {
-                        self->position_cache_c = flee_result;
-                    }
-                    self->unknown_56e[30] = 0; // 0x58c
-                    allow_flag = 0;
-                }
-            }
-            }
-        }
-
-        {
-            // idle_range[1]/[3]/[5] are deviation_table[0..5]'s odd (pitch) slots: mode 0's
-            // pitch bound, mode 1's pitch bound, mode 2's pitch bound (see
-            // actor_look_get_wait_ticks.c for the table layout).
-            float *idle_range = actor_get_idle_facing_range(actor_index);
-            uint8_t bVar25 = idle_range[1] <= 0.0f;
-            uint8_t bVar26 = idle_range[3] <= 0.0f;
-            uint8_t bVar20 = 0.0f < idle_range[5];
-            uint8_t cVar11;
-            uint8_t rc2;
-
-            if ((self->unknown_3fc < 1 || some_flag || (!allow_flag && !bVar6)) ||
-                (bVar25 && bVar26 && idle_range[5] <= 0.0f)) {
-                self->unknown_55c = 0;
-                self->unknown_55e[0] = 0; // 0x55e
-            goto_look_end:
-                self->unknown_55e[1] = 0; // 0x55f
-            } else {
-                uint8_t use_aiming_flag;    // local_30 reused as a byte flag in this section
-                                             // (distinct from `candidate`, which local_30 also
-                                             // names elsewhere in this function)
-                uint8_t started_new = 0;    // bVar7, re-used in this second half
-                uint8_t force_fallback_flag = 0; // bVar9
-
-                // Ghidra: local_38 (priority) has its low byte cleared, or set to 1 and then
-                // re-cleared if unknown_560 != 0 -- this directly modifies `priority`, which
-                // is still live below (both as the switch selector's already-consumed value
-                // and, from here on, only via its low byte).
-                if (bVar25 || side_flag_a == 0 || priority != 1) {
-                    priority &= 0xffffff00u;
-                } else {
-                    priority = (priority & 0xffffff00u) | 1u;
-                    if ((*(int32_t *)&self->unknown_55e[2]) != 0) {
-                        priority &= 0xffffff00u;
-                    }
-                }
-
-                if ((*(int32_t *)&self->unknown_55e[2]) > 0) {
-                    (*(int32_t *)&self->unknown_55e[2]) = (*(int32_t *)&self->unknown_55e[2]) - 1;
-                }
-
-                if (self->unknown_55c == 0) {
-                arm_new_look:
-                    use_aiming_flag = 1;
-                    if (!allow_flag || bVar26) {
-                        use_aiming_flag = 0;
-                        if (bVar6 && bVar20) goto arm_look_shared;
-                    } else {
-                        if (bVar6 && bVar20) {
-                            force_fallback_flag = 1;
-                        } else {
-                        arm_look_shared:
-                            force_fallback_flag = 0;
-                        }
-                        // UNSURE: preferred_direction selection -- see file header. objdump
-                        // shows EAX = &position_cache_a exactly when (bVar6 && bVar20), else
-                        // &position_cache_b, matching the same pair just tested above.
-                        {
-                            real_point3d *preferred = (bVar6 && bVar20) ? &self->position_cache_a : &self->position_cache_b;
-                            uint8_t committed = actor_resolve_look_target(preferred, actor_index, idle_range,
-                                                                            (uint8_t)priority, use_aiming_flag, force_fallback_flag);
-                            self->unknown_55e[0] = committed; // 0x55e
-                        }
-                        started_new = 1;
-                    }
-                } else {
-                    if (self->unknown_55d != 0 && !allow_flag) {
-                        self->unknown_55c = 1;
-                        self->unknown_564 = actor_look_get_wait_ticks(actor_index, 2, 1, idle_range);
-                        *(real_point3d *)&self->unknown_56e[2] = self->position_cache_b; // 0x570/0x574/0x578
-                        self->unknown_56c = 4;
-                    }
-                    if (self->unknown_55c == 0 || self->unknown_564 == 0) goto arm_new_look;
-                }
-
-                if (self->unknown_55c == 0) {
-                use_current:
-                    candidate = self->position_cache_b;
-                    self->unknown_55c = 0;
-                } else {
-                    self->unknown_564 = self->unknown_564 - 1;
-                    rc2 = actor_resolve_flee_source_point((actor_flee_source_reason *)&self->vocalization_unknown_3ec, (real_vector3d *)&flee_result, actor_index);
-                    if (rc2 == 0) goto use_current;
-                    if (allow_flag) {
-                        // side_flag_a=='\0' || bVar25 || !self->flying selects the
-                        // "priority low byte == 0" shortcut; priority!=0 (or the else branch)
-                        // falls through to the shared tail below.
-                        if (side_flag_a == 0 || bVar25 || self->flying == 0) {
-                            if ((uint8_t)priority == 0) {
-                                cVar11 = point3d_within_horizontal_cone(&flee_result, &self->position_cache_a, aiming_cos_threshold);
-                                if (cVar11 == 0) goto use_current;
-                                self->position_cache_b = candidate;
-                                self->unknown_56e[30] = 1; // 0x58c
-                                goto look_committed;
-                            }
-                        } else {
-                            priority = 1;
-                            force_fallback_flag = 1;
-                        }
-                        self->position_cache_a = candidate;
-                        self->position_cache_b = candidate;
-                        self->unknown_56e[30] = 1; // 0x58c
-                    } else {
-                        cVar11 = actor_point_in_directional_lane(&flee_result, &self->position_cache_b,
-                                                                   &self->position_cache_a, looking_cos_threshold, side_thresholds);
-                        if (cVar11 == 0) goto use_current;
-                        self->position_cache_c = candidate;
-                    }
-                look_committed:
-                    if (started_new && bVar20) {
-                        self->unknown_55e[1] = 1; // 0x55f
-                        (*(int32_t *)self->unknown_568) = actor_look_get_wait_ticks(actor_index, 2, self->unknown_55e[0], idle_range);
-                        // copies the whole 16-byte {code,pad,point} record at self+0x56c/0x570
-                        // to self+0x57c/0x580 (four undefined4 copies in the original)
-                        *(int16_t *)&self->unknown_56e[14] = self->unknown_56c;              // 0x57c = 0x56c
-                        *(real_point3d *)&self->unknown_56e[18] = *(real_point3d *)&self->unknown_56e[2]; // 0x580.. = 0x570..
-                        if ((uint8_t)priority != 0) {
-                            (*(int32_t *)&self->unknown_55e[2]) = actor_look_get_wait_ticks(actor_index, 0, self->unknown_55e[0], idle_range);
-                        }
-                    }
-                }
-
-                if (!allow_flag || ((!bVar6 || !bVar20) && (!force_fallback_flag || bVar26))) {
-                    goto goto_look_end;
-                }
-                if ((*(int32_t *)self->unknown_568) == 0) {
-                    actor_look_randomize_direction(actor_index, idle_range, (real_vector3d *)&candidate);
-                }
-                (*(int32_t *)self->unknown_568) = (*(int32_t *)self->unknown_568) - 1;
-                if (self->unknown_55e[1] != 0) { // 0x55f
-                    rc2 = actor_resolve_flee_source_point((actor_flee_source_reason *)&self->vocalization_unknown_3ec, (real_vector3d *)&flee_result, actor_index);
-                    if (rc2 != 0) {
-                        if (force_fallback_flag) {
-                            cVar11 = point3d_within_horizontal_cone(&flee_result, &self->position_cache_a, aiming_cos_threshold);
-                        } else {
-                            cVar11 = actor_point_in_directional_lane(&flee_result, &self->position_cache_b,
-                                                                       &self->position_cache_a, looking_cos_threshold, side_thresholds);
-                        }
-                        if (cVar11 != 0) {
-                            if (force_fallback_flag) {
-                                self->position_cache_b = flee_result;
-                            }
-                            self->position_cache_c = flee_result;
-                            goto look_scheduled;
-                        }
-                    }
-                    goto goto_look_end;
-                }
-            look_scheduled:;
-            }
-        }
-
-        // 0x415fb6..0x41609a (missing from the draft): an actor standing on its own feet, not driving and not in
-        //   a busy animation, whose new look direction (+0x5b0) left the aiming cone of its current one (+0x5a4)
-        //   but not of its body facing -- or, with a weapon, whose aim point (+0x5bc) left the looking lane of
-        //   the current look but not of the body -- must turn its body (+0x591). Without a weapon the aim point
-        //   simply follows the look direction.
-        if (self->unknown_504 == 0 && self->unknown_505 == 0 && !unit_is_in_busy_animation_state(self->unit_index) &&
-            self->active_unit_index == (datum_index)k_datum_index_none) {
-            if (point3d_within_horizontal_cone(&self->position_cache_b, &self->position_cache_a, aiming_cos_threshold) &&
-                !point3d_within_horizontal_cone(&self->position_cache_b, (real_point3d *)&self->facing,
-                                                aiming_cos_threshold)) {
-                self->unknown_591 = 1;
-            } else if (has_weapon_or_forced &&
-                       actor_point_in_directional_lane(&self->position_cache_c, &self->position_cache_b,
-                                                       &self->position_cache_a, looking_cos_threshold, side_thresholds) &&
-                       !actor_point_in_directional_lane(&self->position_cache_c, &self->position_cache_b,
-                                                        (real_point3d *)&self->facing, looking_cos_threshold,
-                                                        side_thresholds)) {
-                self->unknown_591 = 1;
-            }
-        }
-        if (!has_weapon_or_forced) {
-            self->position_cache_c = self->position_cache_b;
-        }
-    }
-
-    // UNSURE: this whole "stationary facing" refinement block was reconstructed from Ghidra's
-    // source alone (no disassembly cross-check for the three vector2d_normalize_with_length
-    // call targets); the read order below (position_cache_b.xy, then position_cache_a.xy,
-    // then the unknown_594[1]/[2] pair) follows the order Ghidra's own locals are populated
-    // in, but the exact ECX argument to each of the three calls was not independently
-    // verified.
-    if (self->flying == 0 && 0.0001f <= ((self->position_cache_a.z < 0.0f) ? -self->position_cache_a.z : self->position_cache_a.z)) {
-        self->position_cache_a.z = 0.0f;
-        if (vector2d_normalize_with_length((real_vector2d *)&self->position_cache_a) == 0.0f) {
-            self->position_cache_a.x = self->facing.i;
-            self->position_cache_a.y = self->facing.j;
-            self->position_cache_a.z = self->facing.k;
-        }
-    }
-
-    if (self->unknown_56e[33] == 0) { // 0x58f
-        self->unknown_56e[34] = 0;    // 0x590
-        goto stationary_check_done;
-    }
-    if (self->unknown_56e[34] == 0) { // 0x590
-        if (self->unknown_504 == 0 &&
-            0.9f < self->facing_unknown_180.i * self->position_cache_b.x +
-                   self->facing_unknown_180.j * self->position_cache_b.y +
-                   self->facing_unknown_180.k * self->position_cache_b.z) {
-            self->unknown_594[1] = self->position_cache_a.x; // 0x598
-            self->unknown_594[2] = self->position_cache_a.y; // 0x59c
-            self->unknown_56e[34] = 1; // 0x590
-            self->unknown_594[3] = self->position_cache_a.z; // 0x5a0
-        }
-        goto stationary_check_done;
-    }
-    if (definition->stationary_facing_angle <= 0.0f) goto stationary_check_done;
-    {
-        float cos_limit = (float)cos((double)definition->stationary_facing_angle);
-        float dot_b;
-
-        if (self->flying == 0) {
-            real_vector2d vb, va, vr;
-            vb.i = self->position_cache_b.x; vb.j = self->position_cache_b.y;
-            va.i = self->position_cache_a.x; va.j = self->position_cache_a.y;
-            vr.i = self->unknown_594[1]; vr.j = self->unknown_594[2]; // 0x598/0x59c
-
-            if (vector2d_normalize_with_length(&vb) != 0.0f &&
-                vector2d_normalize_with_length(&va) != 0.0f &&
-                vector2d_normalize_with_length(&vr) != 0.0f &&
-                cos_limit < vr.i * va.i + vr.j * va.j) {
-                dot_b = vb.j * vr.j + vb.i * vr.i;
-                if (cos_limit < dot_b) goto stationary_ok;
-                goto stationary_reset;
-            }
-            goto stationary_reset;
+        // 0x4156f5: the reason point
+        if (reason < 2) {
+            section_done = resolved;
         } else {
-            if (cos_limit < self->position_cache_a.x * self->unknown_594[1] +
-                             self->position_cache_a.y * self->unknown_594[2] +
-                             self->position_cache_a.z * self->unknown_594[3]) {
-                dot_b = self->unknown_594[2] * self->position_cache_b.y + self->unknown_594[3] * self->position_cache_b.z +
-                        self->position_cache_b.x * self->unknown_594[1];
-                if (cos_limit < dot_b) goto stationary_ok;
+            uint8_t commit = 0;
+
+            if (reason >= 5 && (side_a || ult_cone(&flee_point, cache_a, cos_aim))) {
+                commit = 1;
+            } else if (reason >= 3 && side_b) {
+                side_b = 0;
+                side_a = 1;
+                commit = 1;
             }
-            goto stationary_reset;
+            if (commit) {
+                ULT_V3(cache_b) = flee_point;
+                free_aim = 0;
+                look_follows = has_weapon;
+                if (reason >= 7) {
+                    claimed = 1;
+                    if (has_weapon) {
+                        ULT_V3(cache_c) = flee_point;
+                    }
+                }
+            }
+            if (reason == 2) {
+                reason = side_a ? 5 : 0;
+            }
+            if (side_a) {
+                ULT_V3(cache_a) = flee_point;
+                a[0x591] = (uint8_t)(a[0x591] | (reason == 4));
+                side_a = 0;
+                side_b = 0;
+            }
+            section_done = ((a[0x58d] == 0 && a[0x58e] == 0) || reason >= 6) ? 1 : 0;
         }
-    stationary_reset:
-        self->unknown_56e[34] = 0; // 0x590
-        actor_update_facing_change_timer(actor_index);
-    stationary_ok:;
+
+        // 0x415807: the vocalization point
+        if (priority >= 2 && priority <= 6) {
+            in_cone = ult_cone(&voc_point, cache_a, cos_aim);
+            if (section_done) {
+                if (claimed) {
+                    goto lane_or_take;
+                }
+                goto cone_gate;
+            }
+            if (claimed) {
+                goto lane_or_take;
+            }
+            if (priority >= 6 && actor_reset_queued_look_vector(actor_index)) {
+                goto take_all;
+            }
+            if (priority >= 5 && (side_b || a[0x58d] != 0)) {
+                goto take_all;
+            }
+            if (priority >= 4) {
+                if (in_cone) {
+                    goto priority_gate;
+                }
+                if (!side_a || !free_aim) {
+                    goto lane_or_take;
+                }
+                goto take_all;
+            }
+        cone_gate:
+            if (!in_cone) {
+                goto lane_or_take;
+            }
+        priority_gate:
+            if (priority >= 5 || (priority >= 3 && free_aim)) {
+                ULT_V3(cache_b) = voc_point;
+                ULT_V3(cache_c) = voc_point;
+                look_follows = has_weapon;
+                goto voc_claim;
+            }
+        lane_or_take:
+            if (has_weapon && ult_lane(&voc_point, cache_b, cache_a, cos_look, side_cos)) {
+                ULT_V3(cache_c) = voc_point;
+                look_follows = 0;
+            } else if (free_aim && in_cone) {
+                ULT_V3(cache_b) = voc_point;
+                ULT_V3(cache_c) = voc_point;
+                look_follows = 1;
+                free_aim = 0;
+            }
+            goto switch_done;
+        take_all:
+            if (!(a[0x591] != 0 && in_cone)) {
+                ULT_V3(cache_a) = voc_point;
+                a[0x591] = 0;
+            }
+            ULT_V3(cache_b) = voc_point;
+            ULT_V3(cache_c) = voc_point;
+            goto voc_face;
+        } else if (priority == 7 || priority == 8) {
+            resolved = in_cone = (uint8_t)(priority == 8);
+            if (a[0x58d] == 0) {
+                if (!ult_cone(&voc_point, cache_a, cos_aim)) {
+                    if (!actor_reset_queued_look_vector(actor_index)) {
+                        goto switch_done;
+                    }
+                    in_cone = 1;
+                } else if (!resolved) {
+                    goto voc_aim;
+                }
+            }
+            ULT_V3(cache_a) = voc_point;
+            a[0x591] = in_cone;
+        voc_aim:
+            ULT_V3(cache_b) = voc_point;
+            ULT_V3(cache_c) = voc_point;
+        voc_face:
+            side_a = 0;
+            look_follows = has_weapon;
+        voc_claim:
+            a[0x58c] = 1;
+            claimed = 0;
+            free_aim = 0;
+        }
+    switch_done:
+        if (reason == 2 && free_aim && ult_cone(&flee_point, cache_a, cos_aim)) {
+            ULT_V3(cache_b) = flee_point;
+            if (look_follows) {
+                ULT_V3(cache_c) = flee_point;
+            }
+            a[0x58c] = 0;
+            free_aim = 0;
+        }
+
+        // 0x415b0d: the idle look search
+        range = actor_get_idle_facing_range(actor_index);
+        range_1 = range[1] > 0.0f;
+        side_b = range[3] > 0.0f;
+        in_cone = range[5] > 0.0f;
+        if (*(int16_t *)(a + 0x3fc) > 0 && !claimed && (free_aim || look_follows) &&
+            (range_1 || side_b || in_cone)) {
+            resolved = 0;
+            claimed = 0;
+            trust = (range_1 && side_a && reason == 1 && *(int32_t *)(a + 0x560) == 0) ? 1 : 0;
+            if (*(int32_t *)(a + 0x560) > 0) {
+                *(int32_t *)(a + 0x560) -= 1;
+            }
+            if (a[0x55c] != 0 && a[0x55d] != 0 && !free_aim) {
+                a[0x55c] = 1;
+                *(int32_t *)(a + 0x564) = actor_look_get_wait_ticks(actor_index, 2, 1, range);
+                ULT_V3(a + 0x570) = ULT_V3(cache_b);
+                *(int16_t *)(a + 0x56c) = 4;
+            }
+            if (!(a[0x55c] != 0 && *(int32_t *)(a + 0x564) != 0)) {
+                uint8_t use_aiming;
+                uint8_t force = 0;
+                uint8_t *direction = 0;
+
+                if (free_aim && side_b) {
+                    use_aiming = 1;
+                    force = (look_follows && in_cone) ? 1 : 0;
+                    direction = cache_a;
+                } else {
+                    use_aiming = 0;
+                    if (look_follows && in_cone) {
+                        direction = cache_b;
+                    }
+                }
+                if (direction != 0) {
+                    a[0x55e] = actor_resolve_look_target((real_point3d *)direction, actor_index, range, trust,
+                        use_aiming, force);
+                    resolved = 1;
+                }
+            }
+            if (a[0x55c] != 0) {
+                *(int32_t *)(a + 0x564) -= 1;
+                if (actor_resolve_flee_source_point((actor_flee_source_reason *)(a + 0x56c), (real_vector3d *)&voc_point,
+                        actor_index)) {
+                    if (free_aim) {
+                        if (side_a && range_1 && a[0x99] != 0) {
+                            trust = 1;
+                            claimed = 1;
+                            goto idle_take_ab;
+                        }
+                        if (trust) {
+                            goto idle_take_ab;
+                        }
+                        if (!ult_cone(&voc_point, cache_a, cos_aim)) {
+                            goto idle_reset;
+                        }
+                        ULT_V3(cache_b) = voc_point;
+                        a[0x58c] = 1;
+                        goto idle_timers;
+                    idle_take_ab:
+                        ULT_V3(cache_a) = voc_point;
+                        ULT_V3(cache_b) = voc_point;
+                        a[0x58c] = 1;
+                        goto idle_timers;
+                    }
+                    if (!ult_lane(&voc_point, cache_b, cache_a, cos_look, side_cos)) {
+                        goto idle_reset;
+                    }
+                    ULT_V3(cache_c) = voc_point;
+                    goto idle_timers;
+                }
+            }
+        idle_reset:
+            voc_point = ULT_V3(cache_b);
+            a[0x55c] = 0;
+            goto idle_follow;
+        idle_timers:
+            if (resolved && in_cone) {
+                a[0x55f] = 1;
+                *(int32_t *)(a + 0x568) = actor_look_get_wait_ticks(actor_index, 2, a[0x55e], range);
+                memcpy(a + 0x57c, a + 0x56c, 16);
+                if (trust) {
+                    *(int32_t *)(a + 0x560) = actor_look_get_wait_ticks(actor_index, 0, a[0x55e], range);
+                }
+            }
+        idle_follow:
+            if (!free_aim) {
+                goto clear_hold;
+            }
+            if (!((look_follows && in_cone) || (claimed && side_b))) {
+                goto clear_hold;
+            }
+            if (*(int32_t *)(a + 0x568) == 0) {
+                actor_look_randomize_direction(actor_index, range, (real_vector3d *)&voc_point);
+            }
+            *(int32_t *)(a + 0x568) -= 1;
+            if (a[0x55f] == 0) {
+                goto body_turn;
+            }
+            if (!actor_resolve_flee_source_point((actor_flee_source_reason *)(a + 0x57c), (real_vector3d *)&flee_point,
+                    actor_index)) {
+                goto clear_hold;
+            }
+            if (claimed ? !ult_cone(&flee_point, cache_a, cos_aim)
+                        : !ult_lane(&flee_point, cache_b, cache_a, cos_look, side_cos)) {
+                goto clear_hold;
+            }
+            if (claimed) {
+                ULT_V3(cache_b) = flee_point;
+            }
+            ULT_V3(cache_c) = flee_point;
+            goto body_turn;
+        }
+        a[0x55c] = 0;
+        a[0x55e] = 0;
+    clear_hold:
+        a[0x55f] = 0;
+    body_turn:
+        // 0x415fb6: turning the body toward the aim
+        if (a[0x504] == 0 && a[0x505] == 0 && !unit_is_in_busy_animation_state(*(uint32_t *)(a + 0x18)) &&
+            *(datum_index *)(a + 0x158) == k_datum_index_none) {
+            if (ult_cone((real_point3d *)cache_b, cache_a, cos_aim) &&
+                !ult_cone((real_point3d *)cache_b, a + 0x174, cos_aim)) {
+                a[0x591] = 1;
+            } else if (has_weapon) {
+                if (ult_lane((real_point3d *)cache_c, cache_b, cache_a, cos_look, side_cos) &&
+                    !ult_lane((real_point3d *)cache_c, cache_b, a + 0x174, cos_look, side_cos)) {
+                    a[0x591] = 1;
+                }
+            }
+        }
+        if (!has_weapon) {
+            ULT_V3(cache_c) = ULT_V3(cache_b);
+        }
     }
-stationary_check_done:
 
-    self->snapshot_facing.i = self->position_cache_a.x;
-    self->snapshot_facing.j = self->position_cache_a.y;
-    self->snapshot_facing.k = self->position_cache_a.z;
-    self->snapshot_unknown_708.i = self->position_cache_b.x;
-    self->snapshot_unknown_708.j = self->position_cache_b.y;
-    self->snapshot_unknown_708.k = self->position_cache_b.z;
-    self->snapshot_unknown_714.i = self->position_cache_c.x;
-    self->snapshot_unknown_714.j = self->position_cache_c.y;
-    self->snapshot_unknown_714.k = self->position_cache_c.z;
+    // 0x41609a: keep the facing horizontal unless flying
+    if (a[0x99] == 0 && !(fabs((double)*(float *)(a + 0x5ac)) < 9.999999747378752e-05)) {
+        *(float *)(a + 0x5ac) = 0.0f;
+        if (vector2d_normalize_with_length((real_vector2d *)cache_a) == 0.0f) {
+            ULT_V3(cache_a) = ULT_V3(a + 0x174);
+        }
+    }
+    if (a[0x58f] != 0) {
+        if (a[0x590] == 0) {
+            if (a[0x504] == 0 &&
+                *(float *)(a + 0x188) * *(float *)(a + 0x5b8) + *(float *)(a + 0x184) * *(float *)(a + 0x5b4) +
+                *(float *)(a + 0x180) * *(float *)(a + 0x5b0) > 0.9f) {
+                ULT_V3(a + 0x598) = ULT_V3(cache_a);
+                a[0x590] = 1;
+            }
+        } else if (*(float *)(definition + 0x330) > 0.0f) {
+            float limit = (float)cos((double)*(float *)(definition + 0x330));
+            uint8_t keep = 0;
 
-    if (self->unknown_591 == 0) {
-        self->flags &= ~0x20u;
+            if (a[0x99] != 0) {
+                keep = *(float *)(a + 0x5ac) * *(float *)(a + 0x5a0) + *(float *)(a + 0x5a8) * *(float *)(a + 0x59c) +
+                       *(float *)(a + 0x5a4) * *(float *)(a + 0x598) > limit &&
+                       *(float *)(a + 0x5a0) * *(float *)(a + 0x5b8) + *(float *)(a + 0x59c) * *(float *)(a + 0x5b4) +
+                       *(float *)(a + 0x5b0) * *(float *)(a + 0x598) > limit;
+            } else {
+                real_vector2d aim2, face2, hold2;
+
+                aim2.i = *(float *)(a + 0x5b0);
+                aim2.j = *(float *)(a + 0x5b4);
+                face2.i = *(float *)(a + 0x5a4);
+                face2.j = *(float *)(a + 0x5a8);
+                hold2.i = *(float *)(a + 0x598);
+                hold2.j = *(float *)(a + 0x59c);
+                if (vector2d_normalize_with_length(&face2) != 0.0f && vector2d_normalize_with_length(&aim2) != 0.0f &&
+                    vector2d_normalize_with_length(&hold2) != 0.0f) {
+                    keep = hold2.j * face2.j + hold2.i * face2.i > limit && aim2.j * hold2.j + aim2.i * hold2.i > limit;
+                }
+            }
+            if (!keep) {
+                a[0x590] = 0;
+                actor_update_facing_change_timer(actor_index);
+            }
+        }
     } else {
-        self->flags |= 0x20u;
+        a[0x590] = 0;
     }
 
-    if (!flee_priority && self->unknown_3fc != 4) {
-        switch (self->vocalization_line) {
+    ULT_V3(a + 0x6fc) = ULT_V3(cache_a);
+    ULT_V3(a + 0x708) = ULT_V3(cache_b);
+    ULT_V3(a + 0x714) = ULT_V3(cache_c);
+    if (a[0x591] != 0) {
+        *(uint32_t *)(a + 0x6d0) |= 0x20;
+    } else {
+        *(uint32_t *)(a + 0x6d0) &= ~0x20u;
+    }
+
+    aim_speed_zero = 1;
+    if (!flee_look && *(int16_t *)(a + 0x3fc) != 4) {
+        switch (*(int16_t *)(a + 0x544)) {
         case 3: case 6: case 10: case 11: case 12:
             break;
         default:
-            *(int16_t *)&self->unknown_6ee[10] = 1; // 0x6f8
-            return;
+            aim_speed_zero = 0;
+            break;
         }
     }
-    *(int16_t *)&self->unknown_6ee[10] = 0; // 0x6f8
+    *(int16_t *)(a + 0x6f8) = aim_speed_zero ? 0 : 1;
 }
 
 #if 0
