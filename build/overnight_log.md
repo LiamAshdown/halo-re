@@ -1295,3 +1295,16 @@ OPEN: ai_communication_broadcast (0x42d340, 5.6 KB, 0.3) and actor_update_look_t
 NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 update proc, +0x18 / +0x1c) -- only
   crew (0x423890) has C; elite / grunt / jackal / marine / hunter / flood / sentinel / infection / mounted weapon
   procs are unlisted and would trap as soon as such an actor updates.
+
+## 2026-09-27 (loop, static only) -- actor type updates for a10 (marine, grunt, jackal, elite)
+- The actor type table (0x6853b8 -> records: name, flags, +0x14 update) had C only for crew. WRITTEN from objdump:
+  actor_type_marine_update 0x4261d0, actor_type_grunt_update 0x424590, actor_type_jackal_update 0x425f70,
+  actor_type_elite_update 0x423a90, and every helper they reach that had no C: escalation checks 0x40a7f0 /
+  0x40a860 / 0x40a950 / 0x40a9e0 and 0x40aa70 (EDI actor, stack threshold), 0x40ac30 (vehicle recently left),
+  0x40ac70 actor_seek_vehicle_to_board (vehicle offers in ai_globals +0x3b6/+0x3b8), 0x40b770 grenade decision
+  (EDI actor), 0x40c530 grenade evasion (EAX actor, stack allow, alt). scratchpad/uncovered.py <roots> now finds
+  nothing reachable from those four without C.
+- Still unlisted: hunter 0x424810, engineer 0x423d40, flood 0x423f30, infection 0x424980 / 0x424c20 / 0x425c70,
+  flood carrier 0x423740, sentinel 0x4264d0, mounted weapon 0x4263f0 (not in a10's opening).
+- OPEN (verify): actor_process_vehicle_seat_exit 0x40b080 (0.35) is now on every marine / grunt / jackal / elite
+  tick.
