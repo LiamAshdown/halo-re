@@ -3,7 +3,7 @@
 // address 0x573f60, size 1279 bytes
 // name confidence: 0.4 (phase2 proposal at 0.4, matches functions.md summary; dispatched from
 //   vehicle_calculate_mounted_controls_dispatch's "not > 0" branch)
-// rewrite confidence: 0.1 -- the densest function in this batch: several register-dropped
+// rewrite confidence: 0.8 (REWRITTEN from objdump 0x573f60..0x57445e) -- the densest function in this batch: several register-dropped
 //   matrix3x3/quaternion calls in the middle (matrix3x3_transpose, matrix3x3_multiply,
 //   quaternion_from_matrix3x3, quaternion_to_axis_angle) could not be bound to arguments at
 //   all, and Physics-tag fields at +8/+0x50/+0x54/+0x58/+0x68 are not documented anywhere.
@@ -23,6 +23,7 @@
 // UNSURE: essentially every field derived from the Physics tag and the quaternion section; see
 //   file header.
 
+#include <string.h>
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -34,161 +35,136 @@ extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern real_vector3d *global_up3d_pointer;      // 0x00696720
 extern real_vector3d *global_forward3d_pointer; // 0x00696718
-extern real_matrix4x3 *g_00696738;          // 0x00696738, UNSURE identity (a constant 4x3 basis)
-
-extern void object_physics_tick(uint32_t unit_index, void *out_record, void *out_transform,
-                          void *param_4, void *param_5); // 0x507840, UNSURE signature, differs
-                          // from the 5-uint32 shape used elsewhere in this batch
-extern void vector3d_delta_toward_gravity_biased_clamp_length(float a, float b); // 0x572a90, this batch (out of scope, math helper)
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
-extern void vector3d_rotate_pair_in_plane(float sin_angle, float cos_angle); // 0x4cd790, UNSURE  // real signature (vector3d_rotate_pair_in_plane.c): void vector3d_rotate_pair_in_plane(real_vector3d *a, real_vector3d *b, real sin_angle, real cos_angle); Ghidra recovered 2 of 4 args at this call site
-extern void vector3d_rotate_about_axis_perpendicular(float sin_angle, float cos_angle); // 0x4cd700, UNSURE  // real signature (vector3d_rotate_about_axis_perpendicular.c): void vector3d_rotate_about_axis_perpendicular(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); Ghidra recovered 2 of 4 args at this call site
-extern void matrix3x3_from_forward_up(void *out); // 0x4cc560, UNSURE args  // real signature (matrix3x3_from_forward_up.c): void matrix3x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix3x3 *out); Ghidra recovered 1 of 3 args at this call site
-extern void matrix3x3_transpose(void *m); // 0x4cc500, UNSURE args  // real signature (matrix3x3_transpose.c): void matrix3x3_transpose(real_matrix3x3 *out, real_matrix3x3 *in); Ghidra recovered 1 of 2 args at this call site
-extern void matrix3x3_multiply(void *m); // 0x4cc5f0, UNSURE args  // real signature (matrix3x3_multiply.c): void matrix3x3_multiply(real_matrix3x3 *out, real_matrix3x3 *a, real_matrix3x3 *b); Ghidra recovered 1 of 3 args at this call site
-extern void quaternion_from_matrix3x3(float *out_quat); // 0x4cc780, UNSURE args  // real signature (quaternion_from_matrix3x3.c): real_quaternion * quaternion_from_matrix3x3(real_matrix3x3 *m, real_quaternion *out); Ghidra recovered 1 of 2 args at this call site
-extern void quaternion_to_axis_angle(void); // 0x4cdb90, UNSURE args  // real signature (quaternion_to_axis_angle.c): void quaternion_to_axis_angle(real_quaternion *quat, real_vector3d *axis_out, real *angle_out); Ghidra recovered 0 of 3 args at this call site
+extern uint8_t *unknown_00696738;               // 0x00696738, a pointer to 16 bytes copied into the powered entries
+extern void object_physics_tick(uint32_t object_index, void *powered_states, void *contact_points,
+    real_vector3d *extra_force, real_vector3d *extra_torque); // 0x507840
+extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+extern void vector3d_delta_toward_gravity_biased_clamp_length(real_point3d *origin, real_point3d *target,
+    real_vector3d *out_delta, real max_length_aligned, real max_length_default); // 0x572a90, EAX, ECX, ESI, stack
+extern void matrix3x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix3x3 *out); // 0x4cc560, ECX, EDX, stack
+extern void vector3d_rotate_pair_in_plane(real_vector3d *a, real_vector3d *b, real sin_angle, real cos_angle); // 0x4cd790, EAX, ECX, stack
+extern void vector3d_rotate_about_axis_perpendicular(real_vector3d *v, real_vector3d *axis, real sin_angle,
+    real cos_angle); // 0x4cd700, EAX, ECX, stack
+extern void matrix3x3_transpose(real_matrix3x3 *out, real_matrix3x3 *in); // 0x4cc500, EAX, ECX
+extern void matrix3x3_multiply(real_matrix3x3 *out, real_matrix3x3 *a, real_matrix3x3 *b); // 0x4cc5f0, EAX, EDX, stack
+extern real_quaternion *quaternion_from_matrix3x3(real_matrix3x3 *m, real_quaternion *out); // 0x4cc780, ECX, stack
+extern void quaternion_to_axis_angle(real_quaternion *quat, real_vector3d *axis_out, real *angle_out); // 0x4cdb90
 extern double sqrt(double x);
 extern double sin(double x);
 extern double cos(double x);
 
-// Computes a ground-contact-relative lean transform for a vehicle when its supporting object's
-// physics type is 2, otherwise passes through unchanged (via object_physics_tick).
-// UNSURE: reproduced only partially; see the file header before trusting this file's math.
+// REWRITTEN from objdump. Physics tag +0x68 != 2: object_physics_tick(unit, 0, contacts, 0, 0). Otherwise:
+//   force = mass * throttle * the gravity-biased clamped delta from the velocity toward forward * speed (clamp
+//   lengths frac * tag +0x300 / +0x304, frac = speed / tag +0x2f8, or -speed / tag +0x2fc in reverse);
+//   desired basis (forward A = the facing +0x224, up U = world up - A.z * A normalized, left = U x A), pitched
+//   by tag +0x364 when no AI drives (the +0x324 rider or the vehicle has actor -1) and turned by the side slip
+//   ((A.x v.y - A.y v.x) / max * tag +0x308); torque = throttle * mean inertia (physics +0x50..+0x58) *
+//   (axis * -angle * tag +0x314 / pi - angular velocity) from the rotation current^T * desired; the lean
+//   (+0x4f0) follows |angular velocity| / tag +0x314, rising by at most clamp((1-lean)^2 * 0.2, 0.01, 0.05) and
+//   falling by at most max(lean^2 * 0.05, 0.005); the powered entries get the throttle (+0x18 / +0x78) and the
+//   16 bytes at [0x696738] (+0x1c / +0x7c); then object_physics_tick(unit, powered, contacts, &F, &T).
+// blam-cc: stack -> unit_index, out_record (powered mass points), out_transform (contact points)
 void vehicle_calculate_ground_contact_lean(uint32_t unit_index, void *out_record, void *out_transform)
 {
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
-    vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    uint8_t *physics_tag = tag_instances[*(uint32_t *)((uint8_t *)tag + 0x8c) & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *physics = (uint8_t *)tag_instances[*(datum_index *)(tag + 0x8c) & 0xffff].data;
+    uint8_t *powered = (uint8_t *)out_record;
+    real speed = *(real *)(obj + 0x4d4);
+    real mass = *(real *)(physics + 0x8);
+    real throttle = *(real *)(obj + 0x338);
+    real_vector3d *velocity = (real_vector3d *)(obj + 0x68);
+    real_vector3d *forward = (real_vector3d *)(obj + 0x74);
+    real_vector3d *object_up = (real_vector3d *)(obj + 0x80);
+    real_vector3d *angular_velocity = (real_vector3d *)(obj + 0x8c);
+    real_vector3d *world_up = global_up3d_pointer;
+    real_point3d target_velocity;
+    real_vector3d delta, force, torque, axis;
+    real_vector3d basis[3]; // [esp+0x2c]: forward, left, up -- one real_matrix3x3
+    real_matrix3x3 current;
+    real_matrix3x3 relative;
+    real_quaternion rotation;
+    real frac, angle, k, moment, spin_rate, lean, step;
+    uint8_t *rider;
 
-    if (*(int32_t *)(physics_tag + 0x68) != 2) {
+    if (*(int32_t *)(physics + 0x68) != 2) {
         object_physics_tick(unit_index, 0, out_transform, 0, 0);
         return;
     }
 
-    {
-        real_vector3d scaled_forward;
-        real_vector3d local_54;
-        float speed_fraction;
-        real_matrix4x3 basis; // local_48, 72 bytes -- UNSURE exact size/shape
+    target_velocity.x = speed * forward->i;
+    target_velocity.y = speed * forward->j;
+    target_velocity.z = speed * forward->k;
+    frac = speed > 0.0f ? speed / *(real *)(tag + 0x2f8) : -(speed / *(real *)(tag + 0x2fc));
+    vector3d_delta_toward_gravity_biased_clamp_length((real_point3d *)velocity, &target_velocity, &delta,
+        frac * *(real *)(tag + 0x300), frac * *(real *)(tag + 0x304));
+    force.i = delta.i * mass * throttle;
+    force.j = delta.j * mass * throttle;
+    force.k = delta.k * mass * throttle;
+    matrix3x3_from_forward_up(object_up, forward, &current);
 
-        scaled_forward.i = vehicle->forward_velocity * obj->forward.i;
-        scaled_forward.j = vehicle->forward_velocity * obj->forward.j;
-        scaled_forward.k = vehicle->forward_velocity * obj->forward.k;
+    basis[0] = *(real_vector3d *)(obj + 0x224);
+    basis[2].i = -basis[0].k * basis[0].i + world_up->i;
+    basis[2].j = -basis[0].k * basis[0].j + world_up->j;
+    basis[2].k = -basis[0].k * basis[0].k + world_up->k;
+    if (vector3d_normalize_with_length(&basis[2]) == 0.0f) {
+        basis[2] = *global_forward3d_pointer;
+    }
+    rider = obj;
+    if (*(datum_index *)(obj + 0x324) != (datum_index)0xffffffff) {
+        rider = (uint8_t *)((object_header *)object_data->data)[*(datum_index *)(obj + 0x324) & 0xffff].data;
+    }
+    if (*(datum_index *)(rider + 0x1f4) == (datum_index)0xffffffff) {
+        real pitch = *(real *)(tag + 0x364);
+        vector3d_rotate_pair_in_plane(&basis[2], &basis[0], (real)sin((double)pitch), (real)cos((double)pitch));
+    }
+    angle = (basis[0].i * velocity->j - basis[0].j * velocity->i) / *(real *)(tag + 0x2f8) * *(real *)(tag + 0x308);
+    vector3d_rotate_about_axis_perpendicular(&basis[2], &basis[0], (real)sin((double)angle), (real)cos((double)angle));
+    basis[1].i = basis[2].j * basis[0].k - basis[2].k * basis[0].j;
+    basis[1].j = basis[2].k * basis[0].i - basis[2].i * basis[0].k;
+    basis[1].k = basis[0].j * basis[2].i - basis[2].j * basis[0].i;
 
-        speed_fraction = (vehicle->forward_velocity <= 0.0f)
-            ? -(vehicle->forward_velocity / tag->maximum_reverse_speed)
-            : (vehicle->forward_velocity / tag->maximum_forward_speed);
-        vector3d_delta_toward_gravity_biased_clamp_length(speed_fraction * tag->speed_acceleration, speed_fraction * tag->speed_deceleration);
+    matrix3x3_transpose(&current, &current);
+    matrix3x3_multiply(&relative, (real_matrix3x3 *)basis, &current);
+    quaternion_from_matrix3x3(&relative, &rotation);
+    quaternion_to_axis_angle(&rotation, &axis, &angle);
 
-        {
-            float physics8 = *(float *)(physics_tag + 8);
-            local_54.i = scaled_forward.i /* UNSURE: reuses local_60/5c/58 from vector3d_delta_toward_gravity_biased_clamp_length's
-                                              output, not modeled here */ * physics8 * unit->unknown_338;
-            local_54.j = scaled_forward.j * physics8 * unit->unknown_338;
-            local_54.k = scaled_forward.k * physics8 * unit->unknown_338;
+    k = -angle * *(real *)(tag + 0x314) * 0.31830987f;
+    moment = (*(real *)(physics + 0x58) + *(real *)(physics + 0x54) + *(real *)(physics + 0x50)) * 0.33333334f;
+    torque.i = (axis.i * k - angular_velocity->i) * moment * throttle;
+    torque.j = (axis.j * k - angular_velocity->j) * moment * throttle;
+    torque.k = (axis.k * k - angular_velocity->k) * moment * throttle;
+
+    spin_rate = (real)sqrt((double)(angular_velocity->i * angular_velocity->i + angular_velocity->j * angular_velocity->j +
+        angular_velocity->k * angular_velocity->k)) / *(real *)(tag + 0x314);
+    lean = *(real *)(obj + 0x4f0);
+    if (spin_rate > lean) {
+        step = (1.0f - lean) * (1.0f - lean) * 0.2f;
+        if (!(step >= 0.01f)) {
+            step = 0.01f;
+        } else if (!(step <= 0.05f)) {
+            step = 0.05f;
         }
-
-        matrix3x3_from_forward_up(&basis);
-
-        {
-            real_vector3d facing = unit->desired_facing_vector;
-            real_vector3d axis;
-            real length;
-            uint32_t driver = unit->driver_unit_index;
-
-            axis.i = facing.i * -facing.k + global_up3d_pointer->i;
-            axis.j = facing.j * -facing.k + global_up3d_pointer->j;
-            axis.k = -facing.k * facing.k + global_up3d_pointer->k;
-            length = vector3d_normalize_with_length(&axis);
-            if (length == 0.0f) {
-                axis = *global_forward3d_pointer;
-            }
-
-            if (driver != 0xffffffff) {
-                object *driver_obj = ((object_header *)object_data->data)[driver & 0xffff].data;
-                (void)driver_obj; // UNSURE: only used to re-derive an index below
-            }
-            {
-                object *ref_obj = (driver != 0xffffffff)
-                    ? ((object_header *)object_data->data)[driver & 0xffff].data : obj;
-                unit_data *ref_unit = (unit_data *)((uint8_t *)ref_obj + k_unit_data_offset);
-                if (ref_unit->actor_index == k_datum_index_none) {
-                    double c = cos((double)tag->fixed_gun_pitch);
-                    double s = sin((double)tag->fixed_gun_pitch);
-                    vector3d_rotate_pair_in_plane((float)s, (float)c);
-                }
-            }
-
-            {
-                double turn_angle = ((double)(facing.i * obj->velocity.j - facing.j * obj->velocity.i) /
-                                      (double)tag->maximum_forward_speed) * (double)tag->maximum_left_turn;
-                double c = cos(turn_angle);
-                double s = sin(turn_angle);
-                vector3d_rotate_about_axis_perpendicular((float)s, (float)c);
-            }
-
-            {
-                real_vector3d cross;
-                cross.i = axis.j * facing.k - axis.k * facing.j;
-                cross.j = axis.k * facing.i - axis.i * facing.k;
-                cross.k = axis.j * facing.i - axis.i * facing.j; // UNSURE: matches Ghidra literally
-                matrix3x3_transpose(&basis);
-                matrix3x3_multiply(&basis);
-                quaternion_from_matrix3x3((float *)&cross);
-                quaternion_to_axis_angle();
-            }
+        if (!(spin_rate - lean > step)) {
+            step = spin_rate - lean;
         }
-
-        {
-            float scale = (float)(-unit->unknown_338 * tag->turn_rate * 0.31830987);
-            float avg = (*(float *)(physics_tag + 0x58) + *(float *)(physics_tag + 0x54) +
-                         *(float *)(physics_tag + 0x50)) * 0.33333334f;
-            real_vector3d out_vec;
-            float speed;
-
-            out_vec.k = scaled_forward.k * scale - obj->angular_velocity.k; // UNSURE ordering
-            out_vec.i = (scaled_forward.i * scale - obj->angular_velocity.i) * avg * unit->unknown_338;
-            out_vec.j = (scaled_forward.j * scale - obj->angular_velocity.j) * avg * unit->unknown_338;
-            out_vec.k = out_vec.k * avg * unit->unknown_338;
-
-            speed = (float)(sqrt((double)(obj->angular_velocity.k * obj->angular_velocity.k +
-                                          obj->angular_velocity.j * obj->angular_velocity.j +
-                                          obj->angular_velocity.i * obj->angular_velocity.i)) /
-                             tag->turn_rate);
-
-            {
-                float delta;
-                if (speed <= vehicle->ground_contact_fraction) {
-                    float bound = vehicle->ground_contact_fraction * vehicle->ground_contact_fraction * 0.05f;
-                    if (bound <= 0.005f) bound = 0.005f;
-                    bound = -bound;
-                    delta = speed - vehicle->ground_contact_fraction;
-                    if (delta <= bound) {
-                        delta = bound;
-                    }
-                } else {
-                    float bound = (1.0f - vehicle->ground_contact_fraction) * (1.0f - vehicle->ground_contact_fraction) * 0.2f;
-                    if (bound < 0.01f) bound = 0.01f;
-                    else if (bound > 0.05f) bound = 0.05f;
-                    delta = speed - vehicle->ground_contact_fraction;
-                    if (delta > bound) {
-                        delta = bound;
-                    }
-                }
-                vehicle->ground_contact_fraction += delta;
-            }
-
-            *(float *)((uint8_t *)out_record + 0x18) = unit->unknown_338;
-            *(real_matrix4x3 *)((uint8_t *)out_record + 0x1c) = *g_00696738; // UNSURE partial copy
-            *(float *)((uint8_t *)out_record + 0x78) = unit->unknown_338;
-            *(real_matrix4x3 *)((uint8_t *)out_record + 0x7c) = *g_00696738; // UNSURE partial copy
-
-            object_physics_tick(unit_index, out_record, out_transform, &local_54, &out_vec);
+    } else {
+        step = lean * lean * 0.05f;
+        if (!(step > 0.005f)) {
+            step = 0.005f;
+        }
+        step = -step;
+        if (spin_rate - lean > step) {
+            step = spin_rate - lean;
         }
     }
+    *(real *)(obj + 0x4f0) = step + lean;
+
+    *(real *)(powered + 0x18) = throttle;
+    memcpy(powered + 0x1c, unknown_00696738, 16);
+    *(real *)(powered + 0x78) = throttle;
+    memcpy(powered + 0x7c, unknown_00696738, 16);
+    object_physics_tick(unit_index, out_record, out_transform, &force, &torque);
 }
 
 #if 0

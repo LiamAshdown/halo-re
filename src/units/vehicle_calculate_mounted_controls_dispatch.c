@@ -3,7 +3,7 @@
 // address 0x573ee0, size 119 bytes
 // name confidence: 0.4 (phase2 proposal at 0.4, matches functions.md summary; dispatched from
 //   vehicle_update's case 5)
-// rewrite confidence: 0.3
+// rewrite confidence: 0.9 (VERIFIED against objdump)
 // evidence: the physics.tag_id-at-0x8c double-tag_instances-lookup idiom (Vehicle tag ->
 //   Physics tag) matches the sibling dispatch functions in this batch; callees
 //   vehicle_calculate_ground_contact_lean (0x573f60), vehicle_calculate_ground_contact_lean_alt
