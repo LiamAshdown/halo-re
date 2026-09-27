@@ -27,8 +27,12 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
     // 0x4f6ec0; object handle in ECX, type mask on the stack. Verified against the body at
     // 0x4f6ec0 (cmp ecx,-1 / test cx,cx / and param_1 & 1 << header->type) and against the
     // call site in this file.
-extern real_vector3d object_placement_default_forward; // 0x00696718
-extern real_vector3d object_placement_default_up; // 0x00696720
+// FIXED 2026-09-27 (static loop, scratchpad/ptrform.py): 0x00696718 / 0x00696720 hold POINTERS (to (1,0,0) at
+// 0x0065c20c and (0,0,1) at 0x0065c224); 0x4f53a0 / 0x4f53d8 load the pointer and copy [ptr], [ptr+4], [ptr+8].
+// The draft declared them as vectors, so every placement started with forward/up made of pointer bits
+// (~1e-38 denormals) -- a degenerate orientation for any object whose creator does not overwrite both.
+extern real_vector3d *global_forward3d_pointer; // 0x00696718
+extern real_vector3d *global_up3d_pointer; // 0x00696720
 extern const real_vector3d *global_white_color; // 0x00686b04, a POINTER (-> 0x65513c {1,1,1})
 
 void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag,
@@ -45,8 +49,8 @@ void object_placement_data_initialize(object_placement_data *placement, datum_in
 
     placement->definition_tag = definition_tag;
     placement->flags = 0;
-    placement->forward = object_placement_default_forward;
-    placement->up = object_placement_default_up;
+    placement->forward = *global_forward3d_pointer;
+    placement->up = *global_up3d_pointer;
     placement->permutation_group = 0;
 
     current = object_try_and_get(role, _object_mask_all); // 0x4f53f3 mov ecx,ebx
