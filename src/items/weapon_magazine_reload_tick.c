@@ -2,7 +2,7 @@
 // out/phase4/items_functions.md, "Advances a one-round-at-a-time reload for a trigger, either
 // loading another round or finishing the reload and notifying observers")
 // address 0x4c3900, size 284 bytes
-// name confidence: 0.4   rewrite confidence: 0.35
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x4c3900..0x4c3a1b; game-engine test fixed; offsets probed)
 // evidence: types/items.h weapon_magazine_state, weapon_control_flags (0x26 = primary|secondary
 //   trigger|inhibited bits), object.flags (_object_changed_bit); types/tags.h
 //   WeaponMagazine.flags/.rounds_reloaded (0x18)/.rounds_loaded_maximum (0x0a); globals
@@ -25,6 +25,7 @@ extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int16_t network_game_mode;   // 0x00719720
 extern uint8_t weapon_bottomless_clip; // 0x0087abc2
+extern void *current_game_engine; // 0x006f1d20, non-NULL = multiplayer engine loaded
 
 extern void weapon_trigger_begin_reload(datum_index item_index, int16_t magazine_index, int8_t is_client_predicted); // 0x4c35b0
 extern void weapon_notify_reload_step(datum_index item_index, int16_t magazine_index); // 0x4c37b0
@@ -62,7 +63,8 @@ void weapon_magazine_reload_tick(datum_index item_index, int16_t magazine_index)
 
     {
         int skip = 0;
-        if (network_game_mode == 0) {
+        // 0x4c397f..0x4c39a4: the test is on current_game_engine (0x6f1d20), not network_game_mode. FIXED 2026-09-27.
+        if (current_game_engine == 0) {
             if (weapon_bottomless_clip != 0 || (id->flags & _item_held_by_player_bit) == 0) skip = 1;
         } else if (weapon_bottomless_clip != 0) {
             skip = 1;
