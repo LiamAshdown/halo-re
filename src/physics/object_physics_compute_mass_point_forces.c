@@ -57,7 +57,7 @@ extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point,
     // blam-cc: only m is on the stack; out and point arrive in registers Ghidra loses at every
     //          call site in this module
     // module; UNSURE args -- called with only the matrix visible here, as elsewhere in this batch
-extern void matrix4x3_multiply(void *a, void *b, void *out); // 0x4cc0d0, math module
+extern void matrix4x3_multiply(void *a, void *b, real_matrix4x3 *out); // 0x4cc0d0, math module
 extern void object_physics_mass_point_resolve_ground_contact(uint32_t exclude_object_index,
     mass_point_state *mass_point, PhysicsMassPoint *definition); // 0x507ac0, this module
 extern float scenario_location_water_surface_distance(bsp_leaf_reference *location, real_point3d *point); // 0x53ee00, EAX location, EDI point
@@ -130,18 +130,21 @@ void object_physics_compute_mass_point_forces(object_physics_context *context,
             mp->up_k = mp_def->up.i * context->forward_k + mp_def->up.j * context->left_k +
                 mp_def->up.k * context->up_k;
         } else {
-            // combined = context->matrix * powered_state->matrix (both real_matrix4x3-shaped)
-            float combined[9];
-            matrix4x3_multiply(&context->scale, &powered_state->matrix_scale, combined);
-            mp->forward_i = mp_def->forward.i * combined[0] + mp_def->forward.j * combined[3] +
-                mp_def->forward.k * combined[6];
-            mp->forward_j = mp_def->forward.i * combined[1] + mp_def->forward.j * combined[4] +
-                mp_def->forward.k * combined[7];
-            mp->forward_k = mp_def->forward.i * combined[2] + mp_def->forward.j * combined[5] +
-                mp_def->forward.k * combined[8];
-            mp->up_i = mp_def->up.i * combined[0] + mp_def->up.j * combined[3] + mp_def->up.k * combined[6];
-            mp->up_j = mp_def->up.i * combined[1] + mp_def->up.j * combined[4] + mp_def->up.k * combined[7];
-            mp->up_k = mp_def->up.i * combined[2] + mp_def->up.j * combined[5] + mp_def->up.k * combined[8];
+            // 0x507dcc..0x507dd8: combined (a full real_matrix4x3 at ebp-0x94) = context matrix * the powered state's
+            // matrix, through matrix4x3_multiply_procedure. FIXED 2026-09-28: the draft used float[9] (36 bytes) for the
+            // 52-byte output, overflowing the stack (the vehicle-physics crash), and read it one float early
+            // (combined[0] is the scale).
+            real_matrix4x3 combined;
+            matrix4x3_multiply(&context->scale, &powered_state->matrix_scale, &combined);
+            mp->forward_i = mp_def->forward.i * combined.forward.i + mp_def->forward.j * combined.left.i +
+                mp_def->forward.k * combined.up.i;
+            mp->forward_j = mp_def->forward.i * combined.forward.j + mp_def->forward.j * combined.left.j +
+                mp_def->forward.k * combined.up.j;
+            mp->forward_k = mp_def->forward.i * combined.forward.k + mp_def->forward.j * combined.left.k +
+                mp_def->forward.k * combined.up.k;
+            mp->up_i = mp_def->up.i * combined.forward.i + mp_def->up.j * combined.left.i + mp_def->up.k * combined.up.i;
+            mp->up_j = mp_def->up.i * combined.forward.j + mp_def->up.j * combined.left.j + mp_def->up.k * combined.up.j;
+            mp->up_k = mp_def->up.i * combined.forward.k + mp_def->up.j * combined.left.k + mp_def->up.k * combined.up.k;
         }
 
         mp->leaf_index = bsp3d_node_find_leaf(0, global_structure_collision_bsp, (real_point3d *)&mp->position_x);
