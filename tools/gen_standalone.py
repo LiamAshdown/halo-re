@@ -186,6 +186,10 @@ def main():
                 entry["c_symbol"] = r["name"]
             pointers.append(entry)
     json.dump(pointers, open(os.path.join(OUT, "code_pointers.json"), "w"), indent=1)
+    # every rewritten function by its original address: the loader redirects a jump into original .text (a constant
+    # function address a stable rewrite still passes, e.g. structure_picked_polygon_draw's callbacks) to its C.
+    entries = [{"addr": a, "c_symbol": r["name"], "module": r["module"]} for a, r in sorted(rewritten.items())]
+    json.dump(entries, open(os.path.join(OUT, "code_entries.json"), "w"), indent=1)
 
     # ---- report
     by_kind = collections.Counter()

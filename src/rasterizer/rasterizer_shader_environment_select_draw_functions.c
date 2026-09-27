@@ -25,7 +25,7 @@ extern void *shader_environment_draw;        // 0x007c0474 procedure for the oth
 
 extern void FUN_005276c0(void);  // 0x5276c0 not a Ghidra function; environment draw, one stream
 extern void FUN_00527ae0(void);  // 0x527ae0 not a Ghidra function; environment draw, fixed function
-extern void FUN_00528050(void);  // 0x528050 not a Ghidra function; environment draw, pixel shader
+extern void rasterizer_shader_environment_draw_pixel_shader(void); // 0x528050, environment draw, pixel shader
 extern void rasterizer_shader_model_draw_limited(void);      // 0x528be0
 extern void rasterizer_shader_model_draw_fixed_function(void); // 0x529230
 extern void rasterizer_shader_model_draw_pixel_shader(void);  // 0x529e00
@@ -42,7 +42,7 @@ void rasterizer_shader_environment_select_draw_functions(void)
         shader_environment_draw = (void *)rasterizer_shader_model_draw_fixed_function;
         return;
     }
-    shader_environment_draw_simple = (void *)FUN_00528050;
+    shader_environment_draw_simple = (void *)rasterizer_shader_environment_draw_pixel_shader;
     shader_environment_draw = (void *)rasterizer_shader_model_draw_pixel_shader;
 }
 

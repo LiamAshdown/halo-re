@@ -26,6 +26,13 @@ extern const standalone_piece standalone_pieces[];
 extern const int standalone_piece_count;
 extern const standalone_import standalone_imports[];
 extern const int standalone_import_count;
+typedef struct standalone_code_entry {
+    unsigned long address;            /* an original function start */
+    void *target;                     /* our C function for it (0 when the link left it unresolved) */
+} standalone_code_entry;              /* sorted by address */
+
+extern const standalone_code_entry standalone_code_entries[];
+extern const int standalone_code_entry_count;
 extern const standalone_code_pointer standalone_code_pointers[];
 extern const int standalone_code_pointer_count;
 extern const char standalone_halo_folder[];

@@ -1,251 +1,213 @@
-// particle_system_render  (Ghidra: FUN_00454bf0, still unnamed there; named directly by
-//   types/effects.h: "particle_system_render 0x454bf0 (location, position, direction, frame)")
+// particle_system_render  (Ghidra: particle_system_render)
 // address 0x454bf0, size 1708 bytes
-// name confidence: 0.6   rewrite confidence: 0.15 (VERY LOW -- deep renderer internals, see
-//   UNSURE)
-// evidence: types/effects.h particle_system (type_states[4] +0x58, particle_system_particle
-//   +0x80 stride via 0x0087abd8), particle_system_type_state (state_index +0x00, first_particle
-//   +0x3c), particle_system_particle (active +0x03, state_index +0x08, next_state_index +0x0a,
-//   state_time_remaining +0x0c, state_duration +0x10, location +0x14, direction +0x34, frame
-//   +0x44, next_particle +0x04); types/tags.h ParticleSystem.particle_types (+0x5c, count/
-//   pointer), ParticleSystemType (size 0x80, particle_states reflexive +0x74/+0x78),
-//   ParticleSystemTypeParticleState (size 0x178, bitmaps.tag_id +0x3c, sequence_index +0x40);
-//   src/objects/glow_render.c and antenna_render_wire.c establish build_sprite
-//   and build_sprites_end's "called opaquely, no fixed prototype" idiom, reused here for
-//   build_sprite_rotational too.
-// register convention: particle system handle in EAX (in_EAX).
-//   // blam-cc: EAX -> particle_system_handle
-// UNSURE (heavily, essentially the whole render-facing half of this function): kept as a
-//   literal, offset-for-offset transliteration of the decompile past the point where fields are
-//   confidently named above, with no invented field names or reinterpreted semantics --
-//   following the same policy src/objects/object_sample_ambient_lightmap_point.c states for its
-//   own renderer-adjacent body. In particular: the ParticleSystemTypeParticleState offsets past
-//   +0xb8 (used both as comparison keys and as a write target) fall inside a range types/tags.h
-//   documents as unread padding, so tag data appears to be written here, which cannot be right;
-//   nothing in this batch identifies the real owner, so it is left as a raw offset exactly as
-//   decompiled. The two render call sites' argument shapes (`local_c8`, `&local_bc`, `&local_d8`
-//   / `&local_e8`) are passed through as opaque local buffers at the same relative stack
-//   positions Ghidra shows, not as named structures.
+// name confidence: 0.6   rewrite confidence: 0.8
+// REWRITTEN (objdump 0x454bf0..0x45529b; the draft called the sprite builders with no arguments). EAX = the
+//   particle system (particle_system_data 0x0087abd4, 0x158 each; its tag's types +0x5c count / +0x60, 0x80 each;
+//   type states at system +0x58, 0x40 each). For every type whose state is live (+0x00 != -1) and not flagged
+//   0x100 (+0x20), its particles (particle_system_particle_data 0x0087abd8, 0x80 each, chained through +0x04 from
+//   the state's +0x3c) that are visible (+0x03) in a visible cluster (+0x18 against the bit vector 0x007c3350)
+//   are drawn as sprites:
+//   the position (+0x1c) goes through the camera matrix 0x007c3178 (matrix4x3_transform_point) and the velocity
+//   (+0x34) through its rotation part. The current state (type +0x78 states, 0x178 each, particle +0x08) and, when
+//   there is one (+0x0a), the next state blend by age/duration (+0x0c/+0x10, clamped): scale (+0x48/+0x64) and color
+//   (+0x54..+0x60 / +0x70..+0x7c) scaled by the type state's +0x0c and +0x18..+0x24 -- or the current state alone
+//   when the two share bitmap sequence and shader (+0xb8 +0x2a/+0x2e, +0x40). The sprite frame (+0x44) is picked
+//   at random from the sequence's sprite count the first time (it holds -1.0), else wrapped into it. Each state
+//   with a weight above 0.01 builds a group (bitmap +0x3c, shader +0xb8, max 2 sprites, flags 4, centroid from
+//   the global origin): build_sprite_rotational for types with orientation 1 (+0x28; mode 3 with +0x20 bit 7,
+//   else 1), else build_sprite (EBX data, AX sequence, CX frame; mode +0x2a, flags 1). Colors are multiplied by
+//   the system color (+0x48..+0x50) unless the current state has +0xe2 set; the next state's sprite sits 0.001
+//   further along z. The shader's +0x98 gets the current state's +0x80 and build_sprites_end (ESI data) closes it.
+// blam-cc: EAX -> particle_system_handle
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
-#include "objects.h"
 #include "cache.h"
+#include "objects.h"
 #include "effects.h"
-#include <stdint.h> // intptr_t only; this is a .c file, not a Ghidra-ingested header
+#include "rasterizer.h"
+#include "render.h"
 
 extern data_array *particle_system_data;          // 0x0087abd4
 extern data_array *particle_system_particle_data; // 0x0087abd8
 extern tag_instance *tag_instances;                // 0x0087bc14
-extern uint8_t *visible_cluster_bitset;            // 0x007c3350, UNSURE: foreign module; a
-                                    // render-frame-scoped cluster visibility bitset, distinct
-                                    // from local_player_globals+0x58
-extern real_matrix4x3 *camera_render_basis;        // 0x007c3178, UNSURE: foreign module (render
-                                    // globals); passed whole to matrix4x3_transform_point and
-                                    // its 9 rotation floats reused individually right after
-extern random_seed effect_random_seed;             // 0x00719cd4
-extern const uint32_t k_particle_render_constant[3]; // 0x006966f8, UNSURE: 3 dwords copied
-                                    // verbatim into every quad/segment descriptor
+extern uint32_t visible_cluster_bits[];            // 0x007c3350
+extern real_matrix4x3 camera_render_basis;          // 0x007c3178
+extern random_seed effect_random_seed;              // 0x00719cd4
+extern real_point3d *global_origin_pointer_6966f8;  // 0x006966f8
 
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *in, real_matrix4x3 *m); // 0x4cbde0
-extern void build_sprite_rotational(); // 0x511b40, render module; UNSURE, no fixed
-                                    // prototype -- see file header
-extern void build_sprite(); // 0x511700, render module; UNSURE, no fixed
-                                    // prototype -- see src/objects/glow_render.c
-extern void build_sprites_end(void); // 0x511620, render module; UNSURE, called opaquely
+extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0, EAX, EDX, stack
+extern void build_sprite_rotational(build_sprite_data *data, uint32_t flags, int16_t first_sequence_index,
+    int16_t sprite_index, real_point3d *origin, real_vector3d *axis, float rotation, float scale, ColorARGB *color,
+    float fade); // 0x511b40, blam-cc: EAX, stack
+extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index, int16_t mode,
+    real_point3d *origin, real_vector3d *direction, float rotation, float scale, ColorARGB *color, float fade,
+    uint32_t flags); // 0x511700, blam-cc: EBX, AX, CX, stack
+extern void build_sprites_end(build_sprite_data *data); // 0x511620, blam-cc: ESI
 
-// Renders every live particle of every particle type slot of one particle system. See the file
-// header: this is a low confidence, offset-for-offset transliteration past the point where
-// fields are solidly named.
+static float particle_clamp01(float value)
+{
+    if (value < 0.0f) {
+        return 0.0f;
+    }
+    if (value > 1.0f) {
+        return 1.0f;
+    }
+    return value;
+}
+
+// One group of sprites for one state: bitmap/shader from `state_definition`, drawn with `weight`.
+static void particle_build_state_sprite(uint8_t *type, uint8_t *state_definition, uint8_t *current_state, int32_t frame,
+    real_point3d *position, real_vector3d *direction, float rotation, float scale, ColorARGB *color, float weight)
+{
+    build_sprite_data data;
+    uint32_t mode;
+
+    data.bitmap_group_index = *(datum_index *)(state_definition + 0x3c);
+    data.maximum_sprite_count = 2;
+    data.shader = (uint32_t)(state_definition + 0xb8);
+    data.sprite_count = 0;
+    data.flags = 4;
+    data.centroid = *global_origin_pointer_6966f8;
+    data.group_count = 0;
+    if (*(int16_t *)(type + 0x28) == 1) {
+        mode = (type[0x20] & 0x80) ? 3 : 1;
+        build_sprite_rotational(&data, mode, (int16_t)*(uint16_t *)(state_definition + 0x40), (int16_t)frame, position,
+            direction, rotation, scale, color, weight);
+    } else {
+        build_sprite(&data, *(int16_t *)(state_definition + 0x40), (int16_t)frame, (int16_t)*(uint16_t *)(type + 0x2a),
+            position, direction, rotation, scale, color, weight, 1);
+    }
+    *(uint32_t *)((uint8_t *)data.shader + 0x98) = *(uint32_t *)(current_state + 0x80);
+    build_sprites_end(&data);
+}
+
 void particle_system_render(datum_index particle_system_handle)
 {
-    particle_system *system =
-        &((particle_system *)particle_system_data->data)[(uint16_t)particle_system_handle];
-    ParticleSystem *system_tag = (ParticleSystem *)tag_instances[(uint16_t)system->definition_index].data;
-    int32_t type_index;
+    uint8_t *system = (uint8_t *)particle_system_data->data + (particle_system_handle & 0xffff) * 0x158;
+    uint8_t *definition = (uint8_t *)tag_instances[*(datum_index *)(system + 8) & 0xffff].data;
+    int16_t type_index;
 
-    for (type_index = 0; type_index < (int32_t)system_tag->particle_types.count; type_index++) {
-        particle_system_type_state *type_state = &system->type_states[type_index];
-        ParticleSystemType *type_tag =
-            (ParticleSystemType *)system_tag->particle_types.pointer + type_index;
+    for (type_index = 0; type_index < *(int32_t *)(definition + 0x5c); type_index++) {
+        uint8_t *type = *(uint8_t **)(definition + 0x60) + type_index * 0x80;
+        uint8_t *type_state = system + 0x58 + type_index * 0x40;
         uint16_t particle_index;
 
-        if (type_state->state_index == -1 || (type_tag->flags & 0x100) != 0) {
+        if (*(int16_t *)type_state == -1 || (*(uint32_t *)(type + 0x20) & 0x100)) {
             continue;
         }
+        for (particle_index = *(uint16_t *)(type_state + 0x3c); particle_index != 0xffff; ) {
+            uint8_t *particle = (uint8_t *)particle_system_particle_data->data + particle_index * 0x80;
+            int16_t cluster = *(int16_t *)(particle + 0x18);
 
-        particle_index = (uint16_t)type_state->first_particle;
-        while (particle_index != 0xffff) {
-            particle_system_particle *p =
-                &((particle_system_particle *)particle_system_particle_data->data)[particle_index];
+            if (particle[3] && (visible_cluster_bits[cluster >> 5] & (1u << (cluster & 0x1f)))) {
+                uint8_t *states = *(uint8_t **)(type + 0x78);
+                uint8_t *current = states + *(int16_t *)(particle + 8) * 0x178;
+                uint8_t *next = 0;
+                real_point3d position;
+                real_vector3d direction;
+                float fraction = 1.0f;
+                float inverse = 0.0f;
+                float scale;
+                float color[4];
+                float drawn[4];
+                uint8_t *bitmap;
+                uint8_t *sequence;
+                int16_t sequence_index;
+                int32_t frame;
+                float vx = *(float *)(particle + 0x34);
+                float vy = *(float *)(particle + 0x38);
+                float vz = *(float *)(particle + 0x3c);
+                float *m = (float *)&camera_render_basis;
 
-            if (p->active != 0 &&
-                (visible_cluster_bitset[p->location.leaf_index >> 5] &
-                    (1u << (p->location.leaf_index & 0x1f))) != 0) {
-                uint8_t *state = (uint8_t *)((ParticleSystemTypeParticleState *)
-                    type_tag->particle_states.pointer + p->state_index);
-                uint8_t *next_state = (uint8_t *)0;
-                real local_bc, local_b8, local_b4;   // camera-space direction (see below)
-                real local_120, local_11c;           // state / next-state blend fraction
-                real local_110, local_104, local_100, local_fc, local_f8; // radius, r, g, b, a
-                real local_c8[2]; // opaque 8-byte block passed to the render calls verbatim
-                int32_t local_118; // resolved frame index within the sequence
-                real fVar2 = p->direction.i, fVar3 = p->direction.j, fVar4 = p->direction.k;
+                matrix4x3_transform_point(&position, (real_point3d *)(particle + 0x1c), &camera_render_basis);
+                direction.i = vx * m[1] + vy * m[4] + vz * m[7];
+                direction.j = vx * m[2] + vy * m[5] + vz * m[8];
+                direction.k = vx * m[3] + vy * m[6] + vz * m[9];
 
-                matrix4x3_transform_point((real_point3d *)0, (real_point3d *)0, camera_render_basis);
-                    // UNSURE: out/in dropped by Ghidra; this call's own result is not visibly
-                    // used again, see file header. camera_render_basis is a real_matrix4x3
-                    // (scale at +0x00 is never referenced, matching the manual re-derivation of
-                    // its rotation below directly from forward/left/up).
-                local_bc = fVar2 * camera_render_basis->forward.i + fVar3 * camera_render_basis->left.i +
-                    fVar4 * camera_render_basis->up.i;
-                local_b8 = fVar2 * camera_render_basis->forward.j + fVar3 * camera_render_basis->left.j +
-                    fVar4 * camera_render_basis->up.j;
-                local_b4 = fVar2 * camera_render_basis->forward.k + fVar3 * camera_render_basis->left.k +
-                    fVar4 * camera_render_basis->up.k;
-
-                if (p->next_state_index == -1) {
-                    local_110 = *(real *)(state + 0x48) * type_state->scale;   // UNSURE field
-                    local_104 = *(real *)(state + 0x54) * type_state->color.red;
-                    local_100 = *(real *)(state + 0x58) * type_state->color.green;
-                    local_fc = *(real *)(state + 0x5c) * type_state->color.blue;
-                    local_f8 = *(real *)(state + 0x60) * type_state->color.alpha;
-                    local_120 = 1.0f;
-                    local_11c = 0.0f;
+                if (*(int16_t *)(particle + 0xa) == -1) {
+                    scale = *(float *)(particle + 0x48) * *(float *)(type_state + 0xc);
+                    color[0] = *(float *)(particle + 0x54) * *(float *)(type_state + 0x18);
+                    color[1] = *(float *)(particle + 0x58) * *(float *)(type_state + 0x1c);
+                    color[2] = *(float *)(particle + 0x5c) * *(float *)(type_state + 0x20);
+                    color[3] = *(float *)(particle + 0x60) * *(float *)(type_state + 0x24);
                 } else {
-                    local_120 = p->state_time_remaining / p->state_duration;
-                    next_state = (uint8_t *)((ParticleSystemTypeParticleState *)
-                        type_tag->particle_states.pointer + p->next_state_index);
-
-                    if (local_120 < 0.0f) {
-                        local_120 = 0.0f;
-                    } else if (local_120 > 1.0f) {
-                        local_120 = 1.0f;
-                    }
-                    local_11c = 1.0f - local_120;
-
-                    local_110 = (local_120 * *(real *)(state + 0x48) +
-                        local_11c * *(real *)(next_state + 0x64)) * type_state->scale;
-                    local_104 = (local_120 * *(real *)(state + 0x54) +
-                        local_11c * *(real *)(next_state + 0x70)) * type_state->color.red;
-                    local_100 = (local_120 * *(real *)(state + 0x58) +
-                        local_11c * *(real *)(next_state + 0x74)) * type_state->color.green;
-                    local_fc = (local_120 * *(real *)(state + 0x5c) +
-                        local_11c * *(real *)(next_state + 0x78)) * type_state->color.blue;
-                    local_f8 = (local_120 * *(real *)(state + 0x60) +
-                        local_11c * *(real *)(next_state + 0x7c)) * type_state->color.alpha;
-
-                    if ((intptr_t)state != -0xb8 && next_state != (uint8_t *)0 &&
-                        // UNSURE: original compares the raw pointer-shaped int against the
-                        // literal -0xb8, which reads as a sentinel/underflow guard rather than a
-                        // meaningful pointer value; preserved exactly as decompiled
-                        *(int16_t *)(state + 0xe2) == *(int16_t *)(next_state + 0xe2) &&
-                        *(int16_t *)(state + 0xe6) == *(int16_t *)(next_state + 0xe6) &&
-                        *(int16_t *)(state + 0x40) == *(int16_t *)(next_state + 0x40)) {
-                        local_120 = 1.0f;
-                        local_11c = 0.0f;
+                    next = states + *(int16_t *)(particle + 0xa) * 0x178;
+                    fraction = particle_clamp01(*(float *)(particle + 0xc) / *(float *)(particle + 0x10));
+                    inverse = 1.0f - fraction;
+                    scale = (inverse * *(float *)(particle + 0x64) + fraction * *(float *)(particle + 0x48)) *
+                        *(float *)(type_state + 0xc);
+                    color[0] = (inverse * *(float *)(particle + 0x70) + fraction * *(float *)(particle + 0x54)) *
+                        *(float *)(type_state + 0x18);
+                    color[1] = (inverse * *(float *)(particle + 0x74) + fraction * *(float *)(particle + 0x58)) *
+                        *(float *)(type_state + 0x1c);
+                    color[2] = (inverse * *(float *)(particle + 0x78) + fraction * *(float *)(particle + 0x5c)) *
+                        *(float *)(type_state + 0x20);
+                    color[3] = (inverse * *(float *)(particle + 0x7c) + fraction * *(float *)(particle + 0x60)) *
+                        *(float *)(type_state + 0x24);
+                    if (*(int16_t *)(current + 0xb8 + 0x2a) == *(int16_t *)(next + 0xb8 + 0x2a) &&
+                        *(int16_t *)(current + 0xb8 + 0x2e) == *(int16_t *)(next + 0xb8 + 0x2e) &&
+                        *(int16_t *)(current + 0x40) == *(int16_t *)(next + 0x40)) {
+                        fraction = 1.0f;
+                        inverse = 0.0f;
                     }
                 }
 
-                {
-                    int16_t sequence_index = *(int16_t *)(state + 0x40);
+                bitmap = (uint8_t *)tag_instances[*(datum_index *)(current + 0x3c) & 0xffff].data;
+                sequence_index = *(int16_t *)(current + 0x40);
+                if (*(int16_t *)(type + 0x28) == 1) {
+                    sequence_index++;
+                }
+                sequence = *(uint8_t **)(bitmap + 0x58) + sequence_index * 0x40;
+                if (*(uint32_t *)(particle + 0x44) == 0xbf800000) {
+                    int16_t count = *(int16_t *)(sequence + 0x34);
+                    int16_t picked;
 
-                    if (type_tag->complex_sprite_render_mode == 1) {
-                        sequence_index = sequence_index + 1;
-                    }
+                    effect_random_seed = effect_random_seed * 0x19660d + 0x3c6ef35f;
+                    picked = (int16_t)(((uint32_t)count * (effect_random_seed >> 0x10)) >> 0x10);
+                    *(float *)(particle + 0x44) = (float)picked;
+                    frame = picked;
+                } else {
+                    int32_t value = (int16_t)(int32_t)*(float *)(particle + 0x44);
+                    int32_t remainder = value % *(int32_t *)(sequence + 0x34);
 
-                    {
-                        Bitmap *bitmap = (Bitmap *)
-                            tag_instances[(*(uint32_t *)(state + 0x3c)) & 0xffff].data;
-                        BitmapGroupSequence *sequence =
-                            (BitmapGroupSequence *)bitmap->bitmap_group_sequence.pointer + sequence_index;
-                        int32_t sprite_count = sequence->sprites.count;
-
-                        if (*(int32_t *)(state + 0x44) == -0x40800000 /* -1.0f bit pattern */) {
-                            effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-                            *(real *)(state + 0x44) =
-                                (real)(int16_t)((int32_t)sprite_count * (int32_t)(effect_random_seed >> 16) >> 16);
-                            local_118 = (int32_t)*(real *)(state + 0x44);
-                        } else {
-                            int32_t rotation_as_int = (int32_t)*(real *)(state + 0x44);
-                            local_118 = rotation_as_int % sprite_count;
-                            if (local_118 < 0) {
-                                local_118 = local_118 + sprite_count;
-                            }
-                        }
+                    frame = remainder;
+                    if ((int16_t)remainder < 0) {
+                        frame = (int32_t)(((uint32_t)remainder & 0xffff0000u) |
+                            (uint16_t)((int16_t)remainder + *(int16_t *)(sequence + 0x34)));
                     }
                 }
 
-                if (local_120 > 0.01f) {
-                    real local_d8, local_d4, local_d0, local_cc;
-                    uint32_t quad_mode;
-
-                    local_d8 = local_104;
-                    local_d0 = local_fc;
-                    local_d4 = local_100;
-                    local_cc = local_f8;
-                    if (*(int16_t *)(state + 0xe2) == 0) {
-                        local_d4 = local_100 * system->ambient_color.red;
-                        local_d0 = local_fc * system->ambient_color.green;
-                        local_cc = local_f8 * system->ambient_color.blue;
+                if (fraction > 0.01f) {
+                    drawn[0] = color[0];
+                    drawn[1] = color[1];
+                    drawn[2] = color[2];
+                    drawn[3] = color[3];
+                    if (*(int16_t *)(current + 0xe2) == 0) {
+                        drawn[1] *= *(float *)(system + 0x48);
+                        drawn[2] *= *(float *)(system + 0x4c);
+                        drawn[3] *= *(float *)(system + 0x50);
                     }
-
-                    quad_mode = 1;
-                    if (type_tag->complex_sprite_render_mode == 1) {
-                        if (*(int8_t *)((uint8_t *)type_tag + 0x20) < 0) {
-                            quad_mode = 3;
-                        }
-                        build_sprite_rotational(quad_mode, *(int16_t *)(state + 0x40),
-                            local_118, local_c8, &local_bc, *(uint32_t *)((uint8_t *)p + 0x40),
-                            local_110, &local_d8, local_120);
-                    } else {
-                        build_sprite(*(int16_t *)((uint8_t *)type_tag + 0x2a),
-                            local_c8, &local_bc, *(uint32_t *)((uint8_t *)p + 0x40), local_110,
-                            &local_d8, local_120, 1);
-                    }
-                    *(uint32_t *)(state + 0x150) = *(uint32_t *)(state + 0x80); // UNSURE, see
-                                    // file header -- lands inside ParticleSystemTypeParticleState's
-                                    // own documented padding, both source and destination keyed
-                                    // off the CURRENT state regardless of branch
-                    build_sprites_end();
+                    particle_build_state_sprite(type, current, current, frame, &position, &direction,
+                        *(float *)(particle + 0x40), scale, (ColorARGB *)drawn, fraction);
                 }
-
-                if (local_11c > 0.01f && next_state != (uint8_t *)0) {
-                    real local_e8, local_e4, local_e0, local_dc;
-                    uint32_t quad_mode;
-
-                    local_e4 = local_100;
-                    local_dc = local_f8;
-                    local_e8 = local_104;
-                    local_e0 = local_fc;
-                    if (*(int16_t *)(state + 0xe2) == 0) {
-                        local_e4 = local_100 * system->ambient_color.red;
-                        local_e0 = local_fc * system->ambient_color.green;
-                        local_dc = local_f8 * system->ambient_color.blue;
+                if (inverse > 0.01f) {
+                    drawn[0] = color[0];
+                    drawn[1] = color[1];
+                    drawn[2] = color[2];
+                    drawn[3] = color[3];
+                    if (*(int16_t *)(current + 0xe2) == 0) {
+                        drawn[1] *= *(float *)(system + 0x48);
+                        drawn[2] *= *(float *)(system + 0x4c);
+                        drawn[3] *= *(float *)(system + 0x50);
                     }
-
-                    quad_mode = 1;
-                    if (type_tag->complex_sprite_render_mode == 1) {
-                        if ((*(uint8_t *)((uint8_t *)type_tag + 0x20) & 0x80) != 0) {
-                            quad_mode = 3;
-                        }
-                        build_sprite_rotational(quad_mode, *(int16_t *)(next_state + 0x40),
-                            local_118, local_c8, &local_bc, *(uint32_t *)((uint8_t *)p + 0x40),
-                            local_110, &local_e8, local_11c);
-                    } else {
-                        build_sprite(*(int16_t *)((uint8_t *)type_tag + 0x2a),
-                            local_c8, &local_bc, *(uint32_t *)((uint8_t *)p + 0x40), local_110,
-                            &local_e8, local_11c, 1);
-                    }
-                    *(uint32_t *)(next_state + 0x150) = *(uint32_t *)(state + 0x80); // UNSURE, see
-                                    // file header -- destination is the NEXT state's cache here,
-                                    // source is still the CURRENT state's, matching the decompile
-                    build_sprites_end();
+                    position.z += 0.001f;
+                    particle_build_state_sprite(type, next, current, frame, &position, &direction,
+                        *(float *)(particle + 0x40), scale, (ColorARGB *)drawn, inverse);
                 }
             }
-
-            particle_index = (uint16_t)p->next_particle;
+            particle_index = *(uint16_t *)(particle + 4);
         }
     }
 }

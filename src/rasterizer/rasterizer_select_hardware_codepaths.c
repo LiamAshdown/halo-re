@@ -33,7 +33,8 @@ extern void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t 
 extern void function_do_nothing(void);  // 0x44ad80
 // 0x51fd80, 0x51fad0, 0x51e8f0, 0x51e570 and 0x51e2a0 are functions Ghidra never defined (they are
 //   only referenced by these immediate stores); see src/rasterizer/README.md, known gaps.
-extern uint8_t LAB_0051fd80, LAB_0051fad0, LAB_0051e8f0, LAB_0051e570, DAT_0051e2a0;
+extern uint8_t LAB_0051fd80, LAB_0051fad0, LAB_0051e8f0, LAB_0051e570;
+extern void rasterizer_shader_environment_lightmap_draw(void); // 0x51e2a0
 extern uint8_t LAB_005358b0, DAT_00535fd0;
 
 // Selects vendor/driver-specific rendering code path function pointers based on the detected
@@ -61,7 +62,7 @@ void __cdecl rasterizer_select_hardware_codepaths(void)
     } else {
         unknown_007c0490 = &LAB_0051e570;
         if (rasterizer_caps.pixel_shader_version > 0xffff0100) {
-            unknown_007c0490 = &DAT_0051e2a0;
+            unknown_007c0490 = (void *)rasterizer_shader_environment_lightmap_draw; // 0x51e2a0
             if (rasterizer_caps.pixel_shader_version > 0xffff0100) {
                 unknown_007c0494 = (void *)rasterizer_light_cone_draw;
                 goto set_vertex_buffer_slot;

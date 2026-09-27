@@ -14,7 +14,7 @@
 // transparent_geometry_group-bitmask setter per its own name) right after.
 // register convention: shader, shader_permutation, lightmap_bitmap, dynamic_index_slot,
 // first_index, primitive_count, vertex_buffer, tint and flags as the ten recognized parameters
-// (param_9 is dead, never read in the body); EAX = world position (real_point3d*, live-in).
+// (param_9 is the render_lighting copied into the group's scratch lighting, 0x522472); EAX = world position (real_point3d*, live-in).
 // Phase 4 review: shader_is_decal takes the shader in ECX (the two sided bit of shader types 5..10)
 //   and transparent_geometry_group_set_drawn_bit 0x515370 takes the group in EAX; both call
 //   sites now pass them.
@@ -56,8 +56,6 @@ void rasterizer_transparent_geometry_group_new(Shader *shader, int16_t shader_pe
     transparent_geometry_group *group;
     float dx, dy, dz;
     ColorARGB zero_tint;
-
-    (void)param_9;
 
     if (console_debug_toggle_6893fb == 0) {
         return;
@@ -101,7 +99,7 @@ void rasterizer_transparent_geometry_group_new(Shader *shader, int16_t shader_pe
     group->unknown_04 = 0;
     group->sort_key = 0;
     group->shader = (uint32_t)shader;
-    group->unknown_12 = 0;
+    group->index_buffer = 0;          // +0x48 (0x5223dc)
     group->parameters.mode = 0;
     group->dynamic_vertex_slot = -1;
     group->lightmap_bitmap = lightmap_bitmap;
@@ -128,8 +126,8 @@ void rasterizer_transparent_geometry_group_new(Shader *shader, int16_t shader_pe
     group->node_matrices = 0;
     group->node_count = 0;
 
-    // UNSURE: elided EAX/ECX args; sized to render_lighting per types/rasterizer.h
-    group->lighting = (uint32_t)chimera__rasterizer_memory_alloc(0, sizeof(render_lighting));
+    // 0x522472..0x5224a1: EAX = argument 8 (a render_lighting to copy, or NULL), ECX = 0x74
+    group->lighting = (uint32_t)chimera__rasterizer_memory_alloc((const void *)param_9, 0x74);
     group->lighting_extra = 0;
 
     if (shader->shader_type == 8) {

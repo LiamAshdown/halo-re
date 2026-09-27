@@ -22,20 +22,21 @@
 extern uint8_t *lights_enabled;         // 0x0071cfb8
 extern game_engine_definition *current_game_engine;              // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern uint8_t g_0087aa00;              // 0x0087aa00, UNSURE: not owned by this module
-extern int32_t g_0068944c;              // 0x0068944c, UNSURE: not owned by this module
-extern int32_t light_active_list_count; // 0x008607c8
-extern datum_index *light_active_list;  // 0x008607cc
+extern int16_t g_0068944c;              // 0x0068944c, word (cmp WORD PTR at 0x4f17b3)
+extern int16_t light_active_list_count; // 0x008607c8, word (cmp di,WORD PTR at 0x4f1929)
+extern datum_index light_active_list[];  // 0x008607cc, the array itself ([ecx*4+0x8607cc] at 0x4f17df)
 extern data_array *light_data;          // 0x00860b14
 extern tag_instance *tag_instances;     // 0x0087bc14
 
 extern void rasterizer_shader_environment_technique_ps2_set_states(void); // UNSURE: zero visible args; out of range, 0x5212d0
-extern int16_t light_collect_object_references(void); // UNSURE: zero visible args at this call site
-extern void structure_debug_draw_surfaces_in_box(int32_t queue_slot, real_point3d *position, float radius,
-    int16_t marker_count, uint32_t mask); // UNSURE: out of range, 0x552980
+extern int16_t light_collect_object_references(uint32_t light_handle, int16_t max_count, int16_t *out_buffer);
+    // 0x4f1700, blam-cc: ECX, SI, EDI (0x4f1a17: EDI = the local buffer, ESI = 0x200, ECX = the light)
+extern void structure_debug_draw_surfaces_in_box(void *render_point, real_point3d *query_point, float radius,
+    int16_t cluster_count, int16_t *cluster_indices); // 0x552980
 
 void lights_apply_spot_falloff_specular(void)
 {
-    uint8_t scratch[1024]; // UNSURE: `local_400`, never visibly written in the original either
+    int16_t references[0x200]; // [esp+0x24]: filled by light_collect_object_references
 
     rasterizer_shader_environment_technique_ps2_set_states();
 
@@ -60,7 +61,7 @@ void lights_apply_spot_falloff_specular(void)
                         real_point3d position;
 
                         if (!is_cone) {
-                            marker_count = light_collect_object_references(); // UNSURE: zero visible args here
+                            marker_count = light_collect_object_references(light_active_list[i], 0x200, references);
                         }
 
                         if (((uint32_t)tag->flags & 2) == 0) {
@@ -84,7 +85,8 @@ void lights_apply_spot_falloff_specular(void)
                         }
 
                         structure_debug_draw_surfaces_in_box(queue_slot, &position, radius, marker_count,
-                            (is_cone - 1) & *(uint32_t *)scratch); // UNSURE: mask semantics
+                            is_cone ? (int16_t *)0 : references);
+                        // FIXED (0x4f1aea..0x4f1af8): the buffer, or NULL for a cone light
                     }
                 }
             }

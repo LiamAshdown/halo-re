@@ -17,7 +17,8 @@
 extern data_array *light_data;              // 0x00860b14
 extern data_array *light_object_references; // 0x00860b28
 
-void light_collect_object_references(uint32_t light_handle, int16_t max_count, int16_t *out_buffer)
+// FIXED (objdump 0x4f1700..0x4f177c): returns the count in AX (lights_apply_spot_falloff reads it at 0x4f1850).
+int16_t light_collect_object_references(uint32_t light_handle, int16_t max_count, int16_t *out_buffer)
 {
     light *l = &((light *)light_data->data)[light_handle & 0xffff];
     uint32_t node = (uint32_t)l->next_light;
@@ -36,7 +37,7 @@ void light_collect_object_references(uint32_t light_handle, int16_t max_count, i
     if (0 < max_count) {
         do {
             if ((int16_t)node == -1) {
-                return;
+                return count;
             }
             out_buffer[count] = (int16_t)node;
             count = count + 1;
@@ -50,6 +51,7 @@ void light_collect_object_references(uint32_t light_handle, int16_t max_count, i
             }
         } while (count < max_count);
     }
+    return count;
 }
 
 #if 0

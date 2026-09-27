@@ -143,6 +143,15 @@ def code_pointer_asm():
             if sym not in {x[0] for x in traps}:
                 traps.append((sym, p["name"]))
         rows.append("    dd 0%Xh, %s" % (p["slot"], sym))
+    # (original address, our function) for every rewritten function whose object was built, sorted by address
+    entry_rows = []
+    for e in json.load(open(os.path.join(OUT, "code_entries.json"))):
+        if not os.path.exists(os.path.join(ROOT, "build", "obj", e["module"], e["c_symbol"] + ".obj")):
+            continue
+        n = e["c_symbol"]
+        sym = "_%s@%d" % (n, std[n]) if n in std else "_" + n
+        names.add(sym)
+        entry_rows.append("    dd 0%Xh, %s" % (e["addr"], sym))
     for sym in sorted(names):
         ext.append("EXTERN %s:PROC" % sym)
     stubs = ["EXTERN _standalone_missing_function:PROC", ".code"]
@@ -150,7 +159,7 @@ def code_pointer_asm():
     for sym, name in traps:
         stubs += ["%s:" % sym, "    push offset %s_name" % sym, "    call _standalone_missing_function"]
         strs.append('%s_name db "%s (stored code pointer)", 0' % (sym, name))
-    return ext + stubs + strs, rows
+    return ext + stubs + strs, rows, entry_rows
 
 
 def link(objs, force):
@@ -191,10 +200,13 @@ def main():
              compile_c(os.path.join(ROOT, "harness", "x87_shims.c"), os.path.join(OUT, "x87_shims.obj")),
              compile_c(os.path.join(SA, "d3dx_compat.c"), os.path.join(OUT, "d3dx_compat.obj"),
                        [SA, os.path.join(os.path.dirname(DXSDK_LIB), "..", "Include")])]
-    ext, rows = code_pointer_asm()
+    ext, rows, entry_rows = code_pointer_asm()
     pointer_asm = [".386", ".model flat", "option casemap:none"] + ext + [
         ".const", "PUBLIC _standalone_code_pointers", "PUBLIC _standalone_code_pointer_count",
-        "_standalone_code_pointer_count dd %d" % len(rows), "_standalone_code_pointers LABEL DWORD"] + rows + ["END", ""]
+        "_standalone_code_pointer_count dd %d" % len(rows), "_standalone_code_pointers LABEL DWORD"] + rows + [
+        "PUBLIC _standalone_code_entries", "PUBLIC _standalone_code_entry_count",
+        "_standalone_code_entry_count dd %d" % len(entry_rows), "_standalone_code_entries LABEL DWORD"] + entry_rows + [
+        "END", ""]
     open(os.path.join(OUT, "code_pointers.asm"), "w").write("\n".join(pointer_asm))
     extra.append(assemble(os.path.join(OUT, "code_pointers.asm"), os.path.join(OUT, "code_pointers.obj")))
 

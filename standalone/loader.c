@@ -122,6 +122,37 @@ static LONG CALLBACK log_exception(EXCEPTION_POINTERS *info)
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
+/* A jump into original .text (the image is mapped non-executable) at the start of a function we rewrote: continue in
+   our C instead. This covers constant function addresses baked into code -- a stable rewrite that passes 0x511f20
+   as a callback is right in the harness, where the original code runs, and lands here in the standalone. Arguments
+   and return address are untouched, so a cdecl/stdcall rewrite picks up exactly what the original would have. */
+static LONG CALLBACK redirect_original_entry(EXCEPTION_POINTERS *info)
+{
+    EXCEPTION_RECORD *r = info->ExceptionRecord;
+    CONTEXT *c = info->ContextRecord;
+    int lo = 0, hi = standalone_code_entry_count - 1;
+
+    if (r->ExceptionCode != EXCEPTION_ACCESS_VIOLATION || r->NumberParameters < 2 ||
+        r->ExceptionInformation[0] != 8 || r->ExceptionInformation[1] != c->Eip)
+        return EXCEPTION_CONTINUE_SEARCH;
+    while (lo <= hi) {
+        int mid = (lo + hi) / 2;
+        unsigned long a = standalone_code_entries[mid].address;
+        if (a == c->Eip) {
+            static int logged;
+            if (!standalone_code_entries[mid].target) break;
+            if (logged < 20) {
+                logged++;
+                log_line("redirected a jump into original code at %08lx to its C rewrite", c->Eip);
+            }
+            c->Eip = (DWORD)standalone_code_entries[mid].target;
+            return EXCEPTION_CONTINUE_EXECUTION;
+        }
+        if (a < c->Eip) lo = mid + 1; else hi = mid - 1;
+    }
+    return EXCEPTION_CONTINUE_SEARCH;
+}
+
 static void install_diagnostics(void)
 {
     unsigned char *base = (unsigned char *)GetModuleHandleA(NULL);
@@ -129,6 +160,7 @@ static void install_diagnostics(void)
     g_code_begin = (unsigned long)base + nt->OptionalHeader.BaseOfCode;
     g_code_end = g_code_begin + nt->OptionalHeader.SizeOfCode;
     AddVectoredExceptionHandler(1, log_exception);
+    AddVectoredExceptionHandler(1, redirect_original_entry); /* first: before the diagnostic log */
 }
 
 static int run_reserved_child(void)
