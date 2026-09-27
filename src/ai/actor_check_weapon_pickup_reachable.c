@@ -1,6 +1,6 @@
 // actor_check_weapon_pickup_reachable  (Ghidra: actor_check_weapon_pickup_reachable, renamed)
 // address 0x4041d0, size 296 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x4041d0..0x4042f7; offsets probed)
 // evidence: types/ai.h actor.unit_index (0x18)/encounter_index (0x34)/active_unit_index
 //   (0x158); prop.kind (0x24)/relationship_object_index (0x110)/last_known_position (0xbc);
 //   types/tags.h Scenario.encounters (pointer at 0x430), ScenarioEncounter.firing_positions

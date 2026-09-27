@@ -1,6 +1,6 @@
 // actor_can_throw_grenade_at_target  (Ghidra: actor_can_throw_grenade_at_target, renamed)
 // address 0x40d9c0, size 318 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x40d9c0..0x40dafd; callee conventions and offsets checked)
 // evidence: phase-4 summary "determines whether the actor can currently throw a grenade at
 // its target by validating a clear, safe trajectory"; calls the grenade-landing helpers
 // actor_find_grenade_landing_spot / actor_score_blast_area_clear / actor_commit_grenade_toss

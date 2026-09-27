@@ -1,6 +1,6 @@
 // actor_check_grenade_facing_and_commit  (Ghidra: actor_check_grenade_facing_and_commit, renamed)
 // address 0x40db00, size 300 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x40db00..0x40dc2b; cos 30 deg threshold, offsets probed)
 // evidence: phase-4 summary "checks whether the actor is now facing closely enough toward
 // its grenade target and, if so, commits to the throw and timestamps the threat record";
 // the final commit writes actor.unknown_45c = 1, clears actor.unknown_6a0 (the

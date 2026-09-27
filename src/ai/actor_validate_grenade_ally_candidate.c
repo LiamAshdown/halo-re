@@ -1,6 +1,6 @@
 // actor_validate_grenade_ally_candidate  (Ghidra: actor_validate_grenade_ally_candidate, renamed)
 // address 0x40e4a0, size 159 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x40e4a0..0x40e53e)
 // evidence: phase-4 summary "validates a candidate actor (by handle) as eligible for a
 // grenade-related interaction based on its current mode and team"; inlines the same
 // index-and-salt validation datum_get performs against actor_data directly.

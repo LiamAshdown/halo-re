@@ -1,6 +1,6 @@
 // actor_grenade_trace_from_source  (Ghidra: actor_grenade_trace_from_source, renamed)
 // address 0x4029e0, size 184 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x4029e0..0x402a97)
 // evidence: types/ai.h actor.movement_completed (0x484)/movement_action_complete (0x4a8);
 //   phase-4 summary ("issues a trace request from a cached or newly fetched source point
 //   toward a target point, used when evaluating a grenade throw").
