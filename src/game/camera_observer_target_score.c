@@ -1,6 +1,6 @@
 // camera_observer_target_score  (Ghidra: FUN_00459b10; renamed per symbols/review_queue.txt)
 // address 0x459b10, size 419 bytes
-// name confidence: 0.3   rewrite confidence: 0.4
+// name confidence: 0.3   rewrite confidence: 0.85
 // evidence: types/game.h observer_target_candidate / observer_target_cone; the acos operand and
 //   the EAX/EBX aliasing below were read directly out of the disassembly
 //   (objdump -d -M intel --start-address=0x459b10 --stop-address=0x459cb0 bin/halo.exe), because
@@ -38,16 +38,19 @@ extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vecto
 extern double acos(double x);           // 0x628140, CRT/compiler helper; operand on the x87 stack
 extern real distance_falloff_fraction(real value, real max_range); // this batch, 0x459360
 extern void vector3d_closest_point_on_segment(datum_index unit_index, real_vector3d *aux_vector,
-    real nudge_clamp_length, real_point3d *reference_point, real_point3d *out_closest); // this batch, 0x45a280
+    real_point3d *reference_point, real_point3d *out_closest); // 0x45a280, ECX, EBX, stack
 
 // Fills in one observer_target_candidate: the closest point on the target's look ray to
 // `reference_position` (via vector3d_closest_point_on_segment), the offset/direction/distance
 // from that point, the angle formed against the cone's own bounds treated as a vector (see
 // header UNSURE note), and the two falloff-weighted scores. Returns 1 when either weight is
 // positive.
-uint32_t camera_observer_target_score(observer_target_cone *cone, datum_index target,
+// REWRITTEN 2026-09-27 (static loop) from objdump 0x459b10..0x459cb2: EAX is the FACING vector (EBX: the
+// closest-point aux vector and the angle's dot product), the stack carries (cone, reference_position). The draft
+// merged facing and cone into one pointer and took the dot product against the cone's four falloff floats.
+uint32_t camera_observer_target_score(real_vector3d *facing, observer_target_cone *cone, datum_index target,
                                        observer_target_candidate *out, real_point3d *reference_position)
-    // blam-cc: EAX -> cone, ECX -> object, ESI -> out, stack -> reference_position
+    // blam-cc: EAX -> facing, ECX -> object, ESI -> out, stack -> cone, reference_position
 {
     real dot;
     real angle;
@@ -59,8 +62,7 @@ uint32_t camera_observer_target_score(observer_target_cone *cone, datum_index ta
     // on_segment's `aux_vector`/`nudge_clamp_length`, matching the live EBX/[esp] values at this
     // call site in the disassembly (see that file's header); the clamp bound itself is not
     // otherwise named.
-    vector3d_closest_point_on_segment(target, (real_vector3d *)cone, cone->distance_a,
-                                       reference_position, &out->point);
+    vector3d_closest_point_on_segment(target, facing, reference_position, &out->point);
 
     out->offset.i = out->point.x - reference_position->x;
     out->offset.j = out->point.y - reference_position->y;
@@ -68,8 +70,7 @@ uint32_t camera_observer_target_score(observer_target_cone *cone, datum_index ta
     out->direction = out->offset;
     out->distance = vector3d_normalize_with_length(&out->direction);
 
-    dot = out->direction.i * cone->angle_a + out->direction.j * cone->distance_a +
-          out->direction.k * cone->angle_b;
+    dot = out->direction.k * facing->k + out->direction.j * facing->j + out->direction.i * facing->i;
     if (dot < -1.0f) {
         dot = -1.0f;
     } else if (1.0f < dot) {

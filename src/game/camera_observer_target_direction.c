@@ -26,7 +26,7 @@
 #include "game.h"
 
 extern void vector3d_closest_point_on_segment(datum_index unit_index, real_vector3d *aux_vector,
-    real nudge_clamp_length, real_point3d *reference_point, real_point3d *out_closest); // this batch, 0x45a280
+    real_point3d *reference_point, real_point3d *out_closest); // 0x45a280, ECX unit, EBX aux, stack (reference, out)
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
 extern char camera_observer_target_is_valid(datum_index exclude_object,
     real_point3d *observer_position, real_point3d *target_position,
@@ -47,7 +47,7 @@ uint32_t camera_observer_target_direction(real_point3d *candidate_point, real_ve
 {
     real dot;
 
-    vector3d_closest_point_on_segment(object, facing, 0.0f, reference_position, candidate_point);
+    vector3d_closest_point_on_segment(object, facing, reference_position, candidate_point); // 0x459cc9..0x459cd9: 2 stack args
     if (camera_observer_target_is_valid(exclude_object, reference_position,
                                         candidate_point, object) != 0) {
         out_direction->i = candidate_point->x - reference_position->x;

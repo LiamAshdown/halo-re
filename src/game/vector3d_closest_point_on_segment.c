@@ -1,6 +1,6 @@
 // vector3d_closest_point_on_segment  (Ghidra: FUN_0045a280; renamed per symbols/review_queue.txt)
 // address 0x45a280, size 533 bytes
-// name confidence: 0.45   rewrite confidence: 0.3
+// name confidence: 0.45   rewrite confidence: 0.85
 // evidence: disassembly (objdump -d -M intel --start-address=0x45a280 --stop-address=0x45a4a0
 //   bin/halo.exe) proves the call at the top is unit_get_look_origin_and_direction (0x55a390,
 //   already rewritten at src/units/unit_get_look_origin_and_direction.c): the "direction" and
@@ -40,15 +40,17 @@ extern void vector3d_clamp_length(real_vector3d *v, real max_length); // this ba
 // Projects `reference_point` onto the target unit's look ray (its eye origin extended along its
 // looking direction), clamping the projection to the ray's forward half, then nudges the result
 // back along `aux_vector` by the (clamp-limited) component of the raw delta along that axis.
+// REWRITTEN 2026-09-27 (static loop) from objdump 0x45a280..0x45a494: only TWO stack arguments (reference_point,
+// out_closest). The nudge clamp is the float unit_get_look_origin_and_direction writes through its second argument
+// (the target tag's autoaim width, +0x458) -- the binary passes the address of its own out_closest slot, having saved
+// out_closest in EBP. The draft took an extra clamp parameter, which the callers filled with 0.0 / a cone distance.
 void vector3d_closest_point_on_segment(datum_index unit_index, real_vector3d *aux_vector,
-                                        real nudge_clamp_length,
                                         real_point3d *reference_point, real_point3d *out_closest)
-    // blam-cc: ECX -> unit_index, EBX -> aux_vector, stack -> nudge_clamp_length,
-    //          reference_point, out_closest
+    // blam-cc: ECX -> unit_index, EBX -> aux_vector, stack -> reference_point, out_closest
 {
     real_vector3d direction;
     real_point3d origin;
-    uint32_t unused_status;
+    uint32_t autoaim_width_bits; // float bits of the target tag's autoaim width
     real_vector3d cross;
     real cross_length_squared;
     real t;
@@ -56,7 +58,7 @@ void vector3d_closest_point_on_segment(datum_index unit_index, real_vector3d *au
     real_vector3d nudge;
     real dot;
 
-    unit_get_look_origin_and_direction(unit_index, &unused_status, &direction, &origin);
+    unit_get_look_origin_and_direction(unit_index, &autoaim_width_bits, &direction, &origin);
 
     cross.i = direction.j * aux_vector->k - direction.k * aux_vector->j;
     cross.j = direction.k * aux_vector->i - direction.i * aux_vector->k;
@@ -88,7 +90,7 @@ void vector3d_closest_point_on_segment(datum_index unit_index, real_vector3d *au
     nudge.i = dot * aux_vector->i + delta.i;
     nudge.j = dot * aux_vector->j + delta.j;
     nudge.k = dot * aux_vector->k + delta.k;
-    vector3d_clamp_length(&nudge, nudge_clamp_length);
+    vector3d_clamp_length(&nudge, *(real *)&autoaim_width_bits);
 
     out_closest->x = out_closest->x - nudge.i;
     out_closest->y = out_closest->y - nudge.j;

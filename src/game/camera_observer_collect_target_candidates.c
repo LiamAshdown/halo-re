@@ -49,8 +49,9 @@ extern tag_instance *tag_instances; // 0x0087bc14
 
 extern uint8_t vector3d_projection_band_test(real_vector3d *axis, real_point3d *point_a, real_point3d *point_b,
     real param_1, real param_2, real param_3, real param_4); // 0x4cef90, math module
-extern uint32_t camera_observer_target_score(observer_target_cone *cone, datum_index object,
-    observer_target_candidate *out, real_point3d *reference_position); // this batch, 0x459b10
+extern uint32_t camera_observer_target_score(real_vector3d *facing, observer_target_cone *cone, datum_index object,
+    observer_target_candidate *out, real_point3d *reference_position); // 0x459b10, EAX facing, ECX object, ESI out,
+    // stack (cone, reference_position)
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // this batch, 0x45bd50
 
 // Walks the sibling list starting at `start_object`, scoring every biped that passes the
@@ -96,7 +97,7 @@ uint16_t camera_observer_collect_target_candidates(observer_target_cone *cone, d
                     if (teams_are_enemies(observer_team, candidate_team) != 0) {
                         tag = (Item *)tag_instances[obj->definition_tag & 0xffff].data;
                         if ((tag->item_flags & 0x200000) == 0) { // UNSURE: unnamed ItemFlags bit 21
-                            if (camera_observer_target_score(cone, object_index, &temp, observer_position) != 0 &&
+                            if (camera_observer_target_score(facing, cone, object_index, &temp, observer_position) /* 0x45a1c2..0x45a1d2 */ != 0 &&
                                 count < (uint16_t)capacity) {
                                 out[count] = temp;
                                 count = count + 1;
