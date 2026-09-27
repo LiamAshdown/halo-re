@@ -1169,3 +1169,27 @@ OPEN:
   unit_pickup_weapon with the old layout (multiplayer).
 - object_physics_check_impact_damage 0x508b70 (0.35, 1355 B, 44 KB frame): vehicle-vs-biped impacts.
 - actor_process_vehicle_seat_exit 0x40b080 (0.35, no callers in this build): another seat-exit copy.
+
+## 2026-09-27 (loop, user testing) -- a10 cryotube start fixed
+- The player started beside the cryotube instead of in it. Debugger trace: after tutorial_setup's
+  unit_enter_vehicle the player unit had no parent / seat. unit_detach_and_enter_named_seat (0x569d40, the engine
+  side of unit_enter_vehicle) REWRITTEN from objdump (seat search by label with _stricmp, occupancy test, seat
+  label, unit_enter_vehicle_seat; the already-seated exit is the biped_update inline, helpers copied). User
+  confirms: the game now starts inside the pod.
+- Marker positions: object_get_node_local_transform's marker holds the node-relative transform at +0x04 (position
+  +0x2c) and the WORLD transform at +0x38 (position +0x60). unit_get_camera_position, unit_get_primary/secondary
+  _eye_marker_position, unit_point_within_look_cone (all STABLE), object_test_in_atmosphere_zone and
+  ai_propagate_communication_reaction read +0x60 in the binary but +0x2c in C -- fixed. sound_impulse_start,
+  looping_sound_new genuinely read +0x2c / +0x08 (checked).
+- hs_object_runtime_cleanup / hs_objects_delete_by_type: role 0 objects are unparented (EDI object) AND deleted
+  recursively; the draft passed nothing and skipped the delete. block_list_compact gets the object pool (EBX).
+- unit_drop_current_weapon call arguments (weapon_put_away ESI/AL, action notify EAX, out-of-ammo EAX, zero-
+  extended start slot); unit_release_transient_state (0x568610) REWRITTEN; its sibling 0x568cb0 calls fixed
+  (object +0x334, not unit_data +0x334).
+- AI prop release: actor_replace_object_reference (stack actor, ESI new, EDI old) and actor_unlink_prop (EAX
+  actor, EDI prop) callers fixed in actor_target_scan_potential_targets (6), actor_target_data_release (+ the
+  conflict test and dialogue calls), actor_clear_perceived_props (EDI is the prop, not its object),
+  ai_clear_object_references, actor_target_relationship_think (10 call sites).
+OPEN: an a10 NPC "randomly disappears" (user report). Not a script deletion (traced: only two object_destroy
+  calls, both intro objects); render collection / cull sphere / bounding sphere / biped cluster relink all match
+  the binary.

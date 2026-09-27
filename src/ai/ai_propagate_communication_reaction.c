@@ -21,6 +21,8 @@
 // finished rewrite.
 // reconciled: R04 0x006f1d20 int32_t use_absolute_team_check -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
+// FIXED (0x42ea55: [esp+0xb4] = marker +0x60): the marker position is the WORLD position
+//   node_transform.position, not the node-relative transform at +0x2c.
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -118,9 +120,9 @@ void ai_propagate_communication_reaction(datum_index object_index, ai_communicat
             }
 
             if (hostile == 0) {
-                float dx = marker.transform.position.x - a->aim_origin.x;
-                float dy = marker.transform.position.y - a->aim_origin.y;
-                float dz = marker.transform.position.z - a->aim_origin.z;
+                float dx = marker.node_transform.position.x - a->aim_origin.x;
+                float dy = marker.node_transform.position.y - a->aim_origin.y;
+                float dz = marker.node_transform.position.z - a->aim_origin.z;
                 if (dx * dx + dy * dy + dz * dz <= 900.0f) {
                     resolved_actor = actor_find_or_create_shared_prop(actor_index, 1, 1);
                     if (resolved_actor != (datum_index)k_datum_index_none) {

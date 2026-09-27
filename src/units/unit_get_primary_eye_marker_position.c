@@ -28,7 +28,7 @@ void unit_get_primary_eye_marker_position(uint32_t object_index, real_point3d *o
 {
     object_marker marker;
     object_get_node_local_transform(object_index, s_primary_eye_marker, &marker, 1) /* FIXED: the original pushes 1, the maximum marker count */;
-    *out = marker.transform.position;
+    *out = marker.node_transform.position; // [esp+0x70] after four pushes = marker +0x60, the world position
     return;
 }
 

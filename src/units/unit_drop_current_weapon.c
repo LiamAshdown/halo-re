@@ -1,5 +1,5 @@
 // unit_drop_current_weapon  (Ghidra: unit_drop_current_weapon, already named)
-// address 0x56dec0, size 260 bytes, name confidence 0.55, rewrite confidence 0.3
+// address 0x56dec0, size 260 bytes, name confidence 0.55, rewrite confidence 0.85 (call arguments fixed against objdump 0x56dec0..0x56dfc3)
 // functions.md: "Detaches and drops the unit's current weapon object and selects a replacement
 // desired-weapon slot."
 // evidence: types/units.h unit_data.current_weapon_index (0x2f2), .weapons[4] (0x2f8),
@@ -17,9 +17,9 @@
 extern data_array *object_data;      // 0x008603b0
 extern int32_t game_connection_role; // 0x00719720
 
-extern void weapon_action_notify_for_unit(int32_t sound_id);                                    // 0x492730, UNSURE signature
-extern uint8_t weapon_put_away(void);                                             // 0x4c28f0, UNSURE signature
-extern uint8_t weapon_is_out_of_ammo(void);                                             // 0x4c2c70, UNSURE signature
+extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code); // 0x492730, EAX, stack
+extern int32_t weapon_put_away(datum_index item_index, int8_t force); // 0x4c28f0, ESI, AL
+extern int32_t weapon_is_out_of_ammo(datum_index item_index); // 0x4c2c70, EAX
 extern void object_delete(uint32_t object_index);                              // 0x4f5bd0, UNSURE signature
 extern int16_t unit_find_next_zone_permitted_weapon_slot(uint32_t unit_index, int32_t start_slot, int16_t direction); // 0x56dba0
 extern void unit_drop_object_from_hand(uint32_t unit_index, uint32_t dropped_object_index); // 0x56ed00
@@ -34,18 +34,19 @@ uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force)
         current_weapon = unit->weapons[unit->current_weapon_index];
     }
 
-    int16_t next_slot = unit_find_next_zone_permitted_weapon_slot(unit_index, unit->current_weapon_index, 1);
+    // 0x56defa: the start slot is pushed zero-extended
+    int16_t next_slot = unit_find_next_zone_permitted_weapon_slot(unit_index, (int32_t)(uint16_t)unit->current_weapon_index, 1);
 
     if ((current_weapon != k_datum_index_none) &&
         ((next_slot != unit->current_weapon_index) || force) &&
         ((((object_header *)object_data->data)[current_weapon & 0xffff].data->flags & 1) == 0)) {
-        if (weapon_put_away() != 0) {
-            weapon_action_notify_for_unit(0xd);
+        if ((uint8_t)weapon_put_away(current_weapon, (int8_t)force) != 0) { // 0x56df4c: ESI weapon, AL force
+            weapon_action_notify_for_unit(unit_index, 0xd);
             unit_drop_object_from_hand(unit_index, current_weapon);
             unit->weapons[unit->current_weapon_index] = k_datum_index_none;
             unit->current_weapon_index = -1;
             unit->desired_weapon_index = unit_find_next_zone_permitted_weapon_slot(unit_index, -1, 0);
-            if ((weapon_is_out_of_ammo() == 0) && (game_connection_role == 0)) {
+            if (((uint8_t)weapon_is_out_of_ammo(current_weapon) == 0) && (game_connection_role == 0)) {
                 object_delete(current_weapon);
             }
             return 1;

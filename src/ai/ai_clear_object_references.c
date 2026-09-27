@@ -30,8 +30,8 @@ extern data_array *prop_data;      // 0x008802c0
 
 extern void actor_release_from_cluster_or_delete(datum_index object_index); // 0x428e50, not yet rewritten
 extern void actor_delete(datum_index actor_index, uint32_t flag); // 0x427e60, blam-cc: EBX -> actor_index, stack -> flag; not yet rewritten
-extern void actor_replace_object_reference(datum_index actor_index); // 0x428470, not yet rewritten
-extern void actor_unlink_prop(void); // 0x43ea20, not yet rewritten; UNSURE signature (phase2: actor_firing_position_node_unlink)
+extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference); // 0x428470, stack, ESI, EDI
+extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove); // 0x43ea20, EAX, EDI
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510
 extern void * data_iterator_next(data_iterator *iterator); // 0x4d05d0
 extern void ai_conversation_clear_object_references(datum_index object_index, uint8_t force_full_scan); // 0x430d30
@@ -73,8 +73,9 @@ void ai_clear_object_references(datum_index object_index)
     p = data_iterator_next(&iterator);
     while (p != 0) {
         if (p->object_index == object_index) {
-            actor_replace_object_reference(p->actor_index);
-            actor_unlink_prop();
+            // 0x42c1ec: stack the prop's actor, ESI -1, EDI the prop; then EAX actor, EDI prop
+            actor_replace_object_reference(p->actor_index, 0xffffffff, iterator.index);
+            actor_unlink_prop(p->actor_index, iterator.index);
             datum_delete(prop_data, iterator.index);
         } else if (p->relationship_object_index == (int32_t)object_index) {
             p->relationship_object_index = -1;

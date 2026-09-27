@@ -12,6 +12,8 @@
 // call happens (in case it has a side effect this rewrite cannot see) but does not feed the
 // comparison.
 
+// FIXED (0x56c13e: [esp+0x90] = marker +0x60): the marker position is the WORLD position
+//   node_transform.position, not the node-relative transform at +0x2c.
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -43,9 +45,9 @@ uint8_t unit_point_within_look_cone(float cone_angle, uint32_t unit_index, real_
     vector3d_normalize_with_length(&unused_normalize_target);
 
     float cos_angle = (float)fcos((double)cone_angle);
-    float dot = (px - marker.transform.position.x) * unit->looking_vector.i +
-                (py - marker.transform.position.y) * unit->looking_vector.j +
-                (pz - marker.transform.position.z) * unit->looking_vector.k;
+    float dot = (px - marker.node_transform.position.x) * unit->looking_vector.i +
+                (py - marker.node_transform.position.y) * unit->looking_vector.j +
+                (pz - marker.node_transform.position.z) * unit->looking_vector.k;
     return cos_angle < dot;
 }
 

@@ -1,7 +1,11 @@
 // unit_get_camera_position  (Ghidra: unit_get_camera_position, already named)
 // address 0x568f80, size 516 bytes
 // name confidence: 0.6 (already carries this name; matches functions.md's summary)
-// rewrite confidence: 0.3
+// rewrite confidence: 0.85
+// FIXED against objdump 0x568f80..0x569183: every marker path copies marker +0x60..+0x68 (node_transform.position,
+//   the world position); the draft copied +0x2c (the node-relative transform), which put a seated unit's camera
+//   (the a10 cryotube) near the world origin offset instead of at the seat's camera marker. Both marker names are
+//   confirmed: "head" (0x66bfa0) and the gunner's seat +0x24 marker on this unit.
 // evidence: types/units.h biped_data.crouch_fraction (0x50c), biped_data.flags (0x4cc);
 //   types/tags.h Biped.crouch_camera_velocity (0x4cc), .standing_camera_height /
 //   .crouching_camera_height (0x400/0x404); Unit.seats (TagReflexive at 0x2e4, pointer +4 =
@@ -71,7 +75,7 @@ void unit_get_camera_position(uint32_t unit_index, real_point3d *out) // blam-cc
                 ((unit_data *)((uint8_t *)gunner + k_unit_data_offset))->vehicle_seat_index;
             object_get_node_local_transform(unit_index, seat->marker_name.string, &marker, 1);
         }
-        *out = marker.transform.position;
+        *out = marker.node_transform.position; // 0x5690b3 / 0x569160: [marker + 0x60], the WORLD marker position
         return;
     } else {
         // 0x5690d7: seated in a parent -- start from the parent's position
@@ -92,7 +96,7 @@ void unit_get_camera_position(uint32_t unit_index, real_point3d *out) // blam-cc
         }
         // 0x569147: the PARENT's marker named by the seat's camera_marker_name
         object_get_node_local_transform(unit_obj->parent_object, seat->camera_marker_name.string, &marker, 1);
-        *out = marker.transform.position;
+        *out = marker.node_transform.position; // 0x5690b3 / 0x569160: [marker + 0x60], the WORLD marker position
         return;
     }
 }

@@ -20,7 +20,7 @@ extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
 
 extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference); // 0x428470, already rewritten in this module
-extern void actor_unlink_prop(void); // 0x43ea20, not yet rewritten; UNSURE signature (phase2: actor_firing_position_node_unlink)
+extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove); // 0x43ea20, EAX, EDI
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, blam-cc: EAX -> array, EDX -> handle
 
 // Empties and frees every entry in the actor's perceived-unit (prop) list: for as long as
@@ -35,11 +35,10 @@ void actor_clear_perceived_props(datum_index actor_index)
     while (self->first_prop != (datum_index)k_datum_index_none) {
         datum_index prop_index = self->first_prop;
         prop *p = &((prop *)prop_data->data)[prop_index & 0xffff];
-        // UNSURE: old/new reference values guessed as "clear every cached reference to this
-        // prop's tracked object" (matching that this prop is about to be deleted); not
-        // independently confirmed with objdump for this call site.
-        actor_replace_object_reference(actor_index, 0xffffffff, p->object_index);
-        actor_unlink_prop();
+        // 0x427e30: ESI -1, EDI the prop itself (not its object), stack the actor; then EAX actor, EDI prop
+        (void)p;
+        actor_replace_object_reference(actor_index, 0xffffffff, prop_index);
+        actor_unlink_prop(actor_index, prop_index);
         datum_delete(prop_data, prop_index);
     }
 }

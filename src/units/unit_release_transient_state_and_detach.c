@@ -26,9 +26,9 @@ extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types
 extern random_seed random_seed_global;   // 0x00719cd0
 
 extern void actor_attempt_grenade_throw(uint32_t actor_index);          // 0x428ab0
-extern void actor_release_from_cluster_or_delete(uint32_t unit_index);                          // 0x428e50, UNSURE signature
+extern void actor_release_from_cluster_or_delete(datum_index actor_index, datum_index unit_index); // 0x428e50, EAX, stack
 extern void player_reset_after_unit_change(uint32_t controlling_player);                  // 0x474e10, UNSURE signature
-extern float transition_function_evaluate(int32_t param_1);             // 0x4ccac0, UNSURE signature  // real signature (transition_function_evaluate.c): real transition_function_evaluate(transition_function_t type, real phase); Ghidra recovered 1 of 2 args at this call site
+extern real transition_function_evaluate(transition_function_t type, real phase); // 0x4ccac0, CX, stack
 extern void unit_detach_from_seat(uint32_t unit_index, uint8_t suppress_trigger, uint8_t require_client_flag, uint8_t fire_trigger_event); // 0x56c640, UNSURE signature
 extern void unit_detach_reposition_and_nudge(uint32_t unit_index);                          // 0x56ca40, UNSURE signature
 extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force); // 0x56dec0
@@ -48,16 +48,16 @@ void unit_release_transient_state_and_detach(uint32_t unit_index, uint8_t is_lig
         }
         if (unit->actor_index != k_datum_index_none) {
             uint8_t *actor_rec = (uint8_t *)actor_data->data + (unit->actor_index & 0xffff) * 0x724;
-            *(int16_t *)((uint8_t *)unit + 0x334) = *(int16_t *)(actor_rec + 0x34);
+            *(int16_t *)((uint8_t *)self_obj + 0x334) = *(int16_t *)(actor_rec + 0x34); // object +0x334, not unit_data +0x334
             *(int16_t *)((uint8_t *)self_obj + 0x336) = *(int16_t *)(actor_rec + 0x3a);
             actor_attempt_grenade_throw(unit->actor_index);
             unit->actor_index = k_datum_index_none;
         }
         if (unit->swarm_actor_index != k_datum_index_none) {
             uint8_t *actor_rec = (uint8_t *)actor_data->data + (unit->swarm_actor_index & 0xffff) * 0x724;
-            *(int16_t *)((uint8_t *)unit + 0x334) = *(int16_t *)(actor_rec + 0x34);
+            *(int16_t *)((uint8_t *)self_obj + 0x334) = *(int16_t *)(actor_rec + 0x34); // object +0x334, not unit_data +0x334
             *(int16_t *)((uint8_t *)self_obj + 0x336) = *(int16_t *)(actor_rec + 0x3a);
-            actor_release_from_cluster_or_delete(unit_index);
+            actor_release_from_cluster_or_delete(unit->swarm_actor_index, unit_index); // 0x568d69: EAX swarm actor, stack unit
             unit->swarm_actor_index = k_datum_index_none;
         }
         unit->unknown_41c = game_time->game_time;
@@ -81,7 +81,7 @@ void unit_release_transient_state_and_detach(uint32_t unit_index, uint8_t is_lig
         }
         object *weapon_obj = ((object_header *)object_data->data)[weapon_object_index & 0xffff].data;
         *(int16_t *)((uint8_t *)weapon_obj + 0x230) = 0;
-        *(float *)((uint8_t *)weapon_obj + 0x234) = transition_function_evaluate(0);
+        *(float *)((uint8_t *)weapon_obj + 0x234) = transition_function_evaluate((transition_function_t)4, 0.0f); // CX 4, phase 0
     }
     unit->flags &= 0xfdffffff; // clears _unit_flag_idle_turn_seeded (0x02000000)
 

@@ -17,8 +17,9 @@
 #include "hs.h"
 
 extern void objects_garbage_collection(void); // objects module, 0x4f9c60
-extern void block_list_compact(void);          // memory module, 0x4d1eb0
-extern void object_delete_unparented(void);                    // UNSURE: zero visible args; objects, 0x4f5aa0
+extern void block_list_compact(memory_pool *arena); // 0x4d1eb0, EBX
+extern memory_pool *object_memory_pool; // 0x006b8cb4
+extern void object_delete_unparented(uint32_t object_index); // 0x4f5aa0, EDI
 extern void object_delete_recursive(datum_index object_index, int32_t param_2); // objects module, 0x4f59d0
 
 // hs_object_iterator_state: defined in types/hs.h (foreign-module slice; was a local TYPES-GAP copy)
@@ -46,14 +47,16 @@ void hs_objects_delete_by_type(uint32_t tag_id)
         object_index = iter.index;
         if (element == 0) {
             objects_garbage_collection();
-            block_list_compact();
+            block_list_compact(object_memory_pool); // 0x488858: EBX = the object pool
             return;
         }
         if (element->tag_id == tag_id) {
             object = *(hs_object_record **)((uint8_t *)object_headers->data +
                 (object_index & 0xffff) * 0x0c + 8);
+            // role 0 unparents (EDI object) and then deletes like role 3 (the binary falls through)
             if (object->unknown_04 == 0) {
-                object_delete_unparented();
+                object_delete_unparented(object_index);
+                object_delete_recursive(object_index, 0);
             } else if (object->unknown_04 == 3) {
                 object_delete_recursive(object_index, 0);
             }

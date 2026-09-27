@@ -29,6 +29,8 @@
 //   almost certainly incomplete for datum_next (shown with empty parens both times it is
 //   called, yet its result clearly threads iterator state).
 
+// FIXED (0x4f781b: [esp+0xa8] = marker +0x60): the marker position is the WORLD position
+//   node_transform.position, not the node-relative transform at +0x2c.
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -108,9 +110,9 @@ uint8_t object_test_in_atmosphere_zone(uint32_t object_index) // blam-cc: EAX ->
                         float dx, dy, dz;
 
                         object_get_node_local_transform(zone_cluster_head, zone_marker_name_0066bfa0, &marker, 1);
-                        dx = obj->bounding_center.x - marker.transform.position.x;
-                        dy = obj->bounding_center.y - marker.transform.position.y;
-                        dz = obj->bounding_center.z - marker.transform.position.z;
+                        dx = obj->bounding_center.x - marker.node_transform.position.x;
+                        dy = obj->bounding_center.y - marker.node_transform.position.y;
+                        dz = obj->bounding_center.z - marker.node_transform.position.z;
 
                         if (search_radius * search_radius <= dx * dx + dy * dy + dz * dz) {
                             // UNSURE: object+0x230..0x238 is past the common object header

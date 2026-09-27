@@ -1,6 +1,6 @@
 // actor_target_data_release  (Ghidra: actor_target_data_release; named from out/phase2/results/ai_02.json)
 // address 0x41b980, size 355 bytes
-// name confidence: 0.45   rewrite confidence: 0.3
+// name confidence: 0.45   rewrite confidence: 0.8 (calls fixed against objdump 0x41b980..0x41bae2; was 0.3
 // evidence: out/phase2/results/ai_02.json -- for a prop (target-data record) whose kind is
 //   outside 2..3, copies summary fields (0x50-0x5c, 0x9c-0xa8) from a linked (paired) entry,
 //   calls actor_replace_object_reference/actor_unlink_prop/datum_delete on the pair, clears the
@@ -24,10 +24,10 @@
 
 extern data_array *prop_data; // 0x008802c0
 
-extern uint8_t actor_target_has_conflicting_neighbor(void); // 0x41f410, UNSURE signature, this batch
-extern void actor_unlink_prop(void);                              // 0x43ea20, UNSURE signature
-extern void actor_replace_object_reference(uint32_t actor_index); // 0x428470
-extern void actor_queue_sighted_target_dialogue(uint32_t actor_index);               // 0x421c20, not in this rewrite range
+extern uint8_t actor_target_has_conflicting_neighbor(datum_index actor_index, datum_index target_prop_index); // 0x41f410, EAX, stack
+extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove); // 0x43ea20, EAX, EDI
+extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference); // 0x428470, stack, ESI, EDI
+extern void actor_queue_sighted_target_dialogue(datum_index actor_index, datum_index target_prop_index, uint8_t already_noticed); // 0x421c20
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510
 
 // blam-cc: EBX -> target_prop_index, stack -> actor_index, out_conflict_flag
@@ -49,7 +49,7 @@ uint32_t actor_target_data_release(datum_index target_prop_index, uint32_t actor
 
     if (target->kind < 2 || 3 < target->kind) {
         pair_index = target->pair_index;
-        conflict = actor_target_has_conflicting_neighbor();
+        conflict = actor_target_has_conflicting_neighbor(actor_index, target_prop_index); // 0x41b9c5: EAX actor, stack target
 
         if (pair_index != k_datum_index_none) {
             paired = (prop *)((uint8_t *)prop_data->data + (pair_index & 0xffff) * sizeof(prop));
@@ -64,8 +64,9 @@ uint32_t actor_target_data_release(datum_index target_prop_index, uint32_t actor
             target->unknown_a6 = paired->unknown_a6;
             target->unknown_a8 = paired->unknown_a8;
 
-            actor_replace_object_reference(actor_index);
-            actor_unlink_prop();
+            // 0x41ba61: references to the paired prop now point at the target (ESI target, EDI pair)
+            actor_replace_object_reference(actor_index, target_prop_index, pair_index);
+            actor_unlink_prop(actor_index, pair_index);
             datum_delete(prop_data, pair_index);
             target->pair_index = k_datum_index_none;
         }
@@ -75,7 +76,7 @@ uint32_t actor_target_data_release(datum_index target_prop_index, uint32_t actor
         target->noticed_a = 0;
         target->noticed_c = 0;
         target->combat_dirty = 1;
-        actor_queue_sighted_target_dialogue(actor_index);
+        actor_queue_sighted_target_dialogue(actor_index, target_prop_index, conflict); // 0x41baa6
         result = 1;
     }
 

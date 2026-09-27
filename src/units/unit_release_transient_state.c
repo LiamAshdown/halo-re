@@ -1,23 +1,18 @@
 // unit_release_transient_state  (Ghidra: FUN_00568610)
 // address 0x568610, size 1696 bytes
-// name confidence: 0.35 (functions.md: "Releases a unit's transient sound/animation handles
-//   and, when seated, performs additional vehicle-seat transition cleanup")
-// rewrite confidence: 0.2
-// evidence: types/units.h unit_data.actor_index/swarm_actor_index (0x1f4/0x1f8, "0x568610
-//   clears both"), .controlling_player (0x218), .unknown_336 (0x336, "copied from UnitSeat +0x3a
-//   ... 0x568610, 0x568cb0"), .flags (0x204, bit 0x2000 feign-death eligibility);
-//   types/tags.h Unit.feign_repeat_chance (0x248).
-// register convention: unit index in EAX/param_1, a flag in param_2.
-//   // blam-cc: param_1 -> unit_index, param_2 -> is_light_reset (UNSURE name)
-// UNSURE: this function shares almost all of its vehicle-seat-exit sequence with the ejection
-//   branch inside unit_apply_damage_effects (0x5674a0) -- same node-transform math, same
-//   0xc9/0xca/0x1ea/0x2e8/0x11c-stride offsets -- and carries the exact same recovery gaps; see
-//   that file's header for what could and could not be reconstructed. Every UNSURE-CALL here
-//   mirrors one there.
-// UNSURE: several raw offsets on the parent/vehicle object (`0x17`,`0x18`,`0x19`,`0xbc`) are not
-//   named by this module's header.
-// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
-// reconciled: R32 follow-up: local extern player_control_globals (0x0071c2d8) renamed network_client (networking.h name) because game.h is now included and owns the player_control_globals typedef
+// name confidence: 0.35   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x568610..0x568caf. Stack: (unit, knocked_down). A kill (knocked_down 0) clears the
+//   knock-down timer (+0x420), leaves the object list (0x4f7450, ECX unit, stack 1), detaches the player
+//   (+0x218, 0x474e10) and releases the actor (+0x1f4, 0x428ab0) and swarm actor (+0x1f8, 0x428e50), keeping
+//   their +0x34 / +0x3a words in +0x334 / +0x336. A knock-down instead rolls the tag's +0x248 chance into flag
+//   0x2000 (+0x204, one LCG step). Both then stamp the tick (+0x41c), clear +0x204 bits 0x11 and +0x208, reset
+//   the current weapon's +0x230 / +0x234 (transition function 4 at 0), clear +0x204 bit 0x2000000 and, for a
+//   unit in a seat (never on a client), leave it exactly as biped_update does (helpers copied from
+//   biped_update.c), or with a parent but no seat reposition it (0x56ca40). Finally the queued speech
+//   (+0x3b8) is cleared, the inventory, the held object (+0x318) and the grenades dropped, the current weapon
+//   dropped too unless +0x28c, the seat overlays (+0x2aa, +0x2ae) reset, the melee state (+0x289) and +0x28d
+//   cleared.
+// blam-cc: stack -> (unit_index, knocked_down)
 
 #include "tags.h"
 #include "memory.h"
@@ -29,230 +24,250 @@
 #include "units.h"
 #include <stdint.h>
 
-extern data_array *object_data;      // 0x008603b0
-extern data_array *actor_data;       // 0x00880360
-extern data_array *player_data;      // 0x0087a480
-extern tag_instance *tag_instances;  // 0x0087bc14
-extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
-extern int32_t game_connection_role; // 0x00719720
-extern uint8_t *network_client; // 0x0071c2d8 (networking.h network_client; renamed from network_client, which collides with game.h's typedef)
-extern random_seed random_seed_global;    // 0x00719cd0
-extern void *matrix4x3_multiply_thunk; // 0x00696664
+extern data_array *object_data;     // 0x008603b0
+extern tag_instance *tag_instances; // 0x0087bc14
+extern data_array *player_data;     // 0x0087a480
+extern data_array *actor_data;      // 0x00880360
+extern int16_t game_connection_role; // 0x00719720: 1 = client
+extern game_time_globals *game_time; // 0x006f1d6c
+extern uint8_t *network_client;      // 0x0071c2d8, +0xf48 the prediction history
+extern uint32_t random_seed_global;  // 0x00719cd0
 
-extern void actor_attempt_grenade_throw(uint32_t actor_index);          // 0x428ab0
-extern void actor_release_from_cluster_or_delete(uint32_t unit_index);                          // 0x428e50, UNSURE signature
-extern void player_reset_after_unit_change(uint32_t controlling_player);                  // 0x474e10, UNSURE signature
-extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);            // 0x4cc0d0, UNSURE signature
-extern float transition_function_evaluate(int32_t param_1);             // 0x4ccac0, UNSURE signature  // real signature (transition_function_evaluate.c): real transition_function_evaluate(transition_function_t type, real phase); Ghidra recovered 1 of 2 args at this call site
-extern uint32_t datum_get(void);                                        // 0x4d0680, UNSURE signature  // real signature (datum_get.c): void * datum_get(datum_index handle, data_array *array); Ghidra recovered 0 of 2 args at this call site
-extern void player_update_history_free_all(void *history);              // 0x4e6f20, UNSURE signature
-extern void object_set_position_and_orientation(uint32_t object_index, void *a, void *b); // 0x4f51c0, UNSURE signature  // real signature (object_set_position_and_orientation.c): void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position); Ghidra recovered 3 of 4 args at this call site
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t param_4); // 0x4f6080
-extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);                          // 0x4f6610, UNSURE signature
-extern object * object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern void object_list_membership_set(uint32_t flag);                                // 0x4f7450, UNSURE signature  // real signature (object_list_membership_set.c): void object_list_membership_set(uint32_t object_index, char add); Ghidra recovered 1 of 2 args at this call site
-extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
-extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback); // 0x4f9a20, EAX object, stack (register_in_table, invoke_callback)
-extern void unit_reset_orientation_and_find_position(uint32_t object_index);                          // 0x55add0, UNSURE signature
-extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, stack unit, ECX request
-static const int8_t k_unit_exit_seat_request[2] = {0x14, 0}; // every caller builds these two bytes on its stack
-extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
-extern uint8_t unit_all_seats_unoccupied(uint32_t unit_index);                      // 0x566910
-extern void unit_detach_reposition_and_nudge(uint32_t unit_index);                         // 0x56ca40, UNSURE signature
-extern void unit_recompute_seat_occupants(uint32_t unit_index);                         // 0x56ce30
-extern void unit_pick_and_ready_next_weapon(uint32_t unit_index);                         // 0x56d6a0
-extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force); // 0x56dec0
+extern void object_list_membership_set(uint32_t object_index, char add); // 0x4f7450, ECX, stack
+extern void player_reset_after_unit_change(uint32_t player_index); // 0x474e10, stack
+extern void actor_attempt_grenade_throw(datum_index actor_index); // 0x428ab0, stack (it releases the actor)
+extern void actor_release_from_cluster_or_delete(datum_index actor_index, datum_index unit_index); // 0x428e50, EAX, stack
+extern real transition_function_evaluate(transition_function_t type, real phase); // 0x4ccac0, CX, stack
+extern void unit_detach_reposition_and_nudge(uint32_t unit_index); // 0x56ca40, EDI
+extern void unit_drop_inventory_weapons(uint32_t unit_index); // 0x56f060
 extern void unit_drop_object_from_hand(uint32_t unit_index, uint32_t dropped_object_index); // 0x56ed00
-extern void unit_drop_grenades(uint32_t unit_index);                   // 0x56ef60
-extern void unit_drop_inventory_weapons(uint32_t unit_index);          // 0x56f060
+extern void unit_drop_grenades(uint32_t unit_index); // 0x56ef60
+extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force); // 0x56dec0
 
-void unit_release_transient_state(uint32_t unit_index, uint8_t is_light_reset) // blam-cc: param_1, param_2
+extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, EDX, ESI
+extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x4cc0d0 (via 0x696664)
+extern void player_update_history_free_all(void *history); // 0x4e6f20
+extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward, real_vector3d *up,
+    real_point3d *position); // 0x4f51c0, stack, EDI position
+extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
+    uint32_t flags); // 0x4f6080
+extern void object_snap_to_parent_marker_and_detach(uint32_t object_index); // 0x4f6610
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
+extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
+extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table,
+    int32_t invoke_callback); // 0x4f9a20, EAX, stack
+extern void unit_reset_orientation_and_find_position(uint32_t object_index); // 0x55add0
+extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, stack, ECX
+extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
+extern uint8_t unit_all_seats_unoccupied(uint32_t unit_index); // 0x566910, EAX
+extern void unit_recompute_seat_occupants(uint32_t unit_index); // 0x56ce30, EAX
+extern void unit_pick_and_ready_next_weapon(uint32_t unit_index); // 0x56d6a0, ESI
+
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT_HEADER(h) (((object_header *)object_data->data)[(h) & 0xffff])
+#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+
+// 0x5596d3.. / 0x5591a9..: take the unit out of its vehicle seat, keep it where its body was.
+static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
 {
-    object *self_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    unit_data *unit = (unit_data *)((uint8_t *)self_obj + k_unit_data_offset);
-    int32_t self_offset = (unit_index & 0xffff) * 0xc;
+    uint8_t *self = OBJECT_DATA(object_index);
+    uint8_t *vehicle = OBJECT_DATA(vehicle_index);
+    uint8_t *nodes = self + *(int16_t *)(self + 0x1f2);
+    uint8_t *seat = *(uint8_t **)(TAG_DATA(*(datum_index *)vehicle) + 0x2e8) + *(int16_t *)(self + 0x2f0) * 0x11c;
+    uint8_t *model_nodes;
+    object_marker marker;
+    real_point3d offset;
+    real_point3d default_translation;
+    real_point3d position;
+    real_matrix4x3 basis;
 
-    if (!is_light_reset) {
-        unit->unknown_420 = 0;
-        object_list_membership_set(1);
-        if (unit->controlling_player != k_datum_index_none) {
-            player_reset_after_unit_change(unit->controlling_player);
-            unit->controlling_player = k_datum_index_none;
+    object_get_node_local_transform(vehicle_index, (char *)(seat + 0x24), &marker, 1);
+    offset.x = *(float *)(nodes + 0x28) - marker.node_transform.position.x;
+    offset.y = *(float *)(nodes + 0x2c) - marker.node_transform.position.y;
+    offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
+    model_nodes = *(uint8_t **)(TAG_DATA(*(datum_index *)(TAG_DATA(*(datum_index *)self) + 0x34)) + 0xbc);
+    default_translation = *(real_point3d *)(model_nodes + 0x28);
+    if (*(datum_index *)(vehicle + 0x324) == object_index && vehicle[0x2a3] != 0x25 &&
+        *(datum_index *)(self + 0x11c) != k_datum_index_none) {
+        unit_try_set_animation_state(*(datum_index *)(self + 0x11c), 0x25);
+    }
+    *(datum_index *)(self + 0x32c) = vehicle_index;
+    *(int32_t *)(self + 0x330) = game_time->game_time;
+    if (*(datum_index *)(self + 0x324) == object_index) {
+        *(datum_index *)(self + 0x324) = k_datum_index_none;
+    }
+    if (*(datum_index *)(self + 0x328) == object_index) {
+        *(datum_index *)(self + 0x328) = k_datum_index_none;
+    }
+    object_snap_to_parent_marker_and_detach(object_index);
+    position.x = offset.x + *(float *)(self + 0x5c);
+    position.y = offset.y + *(float *)(self + 0x60);
+    position.z = offset.z + *(float *)(self + 0x64) - default_translation.z;
+    object_set_position_and_orientation(object_index, 0, 0, &position);
+    {
+        uint8_t *reloaded = OBJECT_DATA(object_index);
+
+        matrix4x3_multiply((real_matrix4x3 *)(reloaded + *(int16_t *)(reloaded + 0x1f2)),
+            (real_matrix4x3 *)(model_nodes + 0x68), &basis);
+    }
+    *(real_vector3d *)(self + 0x74) = basis.forward;
+    *(real_vector3d *)(self + 0x80) = basis.up;
+    {
+        uint8_t *object = OBJECT_DATA(object_index);
+        uint8_t *object_tag = TAG_DATA(*(datum_index *)object);
+
+        if (*(int32_t *)(object_tag + 0x34) != -1 && (object[0x10] & 1) != 0) {
+            object_for_each_light_attachment(object_index, 0, 1);
         }
-        if (unit->actor_index != k_datum_index_none) {
-            uint8_t *actor_rec = (uint8_t *)actor_data->data + (unit->actor_index & 0xffff) * 0x724;
-            *(int16_t *)((uint8_t *)unit + 0x334) = *(int16_t *)(actor_rec + 0x34);
-            *(int16_t *)((uint8_t *)self_obj + 0x336) = *(int16_t *)(actor_rec + 0x3a);
-            actor_attempt_grenade_throw(unit->actor_index);
-            unit->actor_index = k_datum_index_none;
-        }
-        if (unit->swarm_actor_index != k_datum_index_none) {
-            uint8_t *actor_rec = (uint8_t *)actor_data->data + (unit->swarm_actor_index & 0xffff) * 0x724;
-            *(int16_t *)((uint8_t *)unit + 0x334) = *(int16_t *)(actor_rec + 0x34);
-            *(int16_t *)((uint8_t *)self_obj + 0x336) = *(int16_t *)(actor_rec + 0x3a);
-            actor_release_from_cluster_or_delete(unit_index);
-            unit->swarm_actor_index = k_datum_index_none;
-        }
-        unit->unknown_41c = game_time->game_time;
-    } else {
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        Unit *unit_tag = (Unit *)tag_instances[self_obj->definition_tag & 0xffff].data;
-        if (unit_tag->feign_repeat_chance <= (float)(random_seed_global >> 16) * 1.5259022e-05f) {
-            unit->flags &= 0xffffdfff;
-        } else {
-            unit->flags |= 0x2000;
+        if (*(int32_t *)(object_tag + 0x34) != -1) {
+            *(uint32_t *)(object + 0x10) &= ~1u;
+            OBJECT_HEADER(object_index).flags |= 2;
         }
     }
+    *(int16_t *)(self + 0x2f0) = -1;
+    self[0x2a7] = 2;
+    if (*(datum_index *)(vehicle + 0x324) == object_index) {
+        *(datum_index *)(vehicle + 0x324) = k_datum_index_none;
+    }
+    if (*(datum_index *)(vehicle + 0x328) == object_index) {
+        *(datum_index *)(vehicle + 0x328) = k_datum_index_none;
+    }
+    unit_recompute_seat_occupants(vehicle_index);
+    unit_pick_and_ready_next_weapon(object_index);
+    {
+        int8_t request[2] = { 0x14, 0 };
 
-    uint32_t weapon_object_index = 0xffffffff;
-    unit->flags &= 0xffffffee;
-    unit->control_flags = 0;
-    if (unit->current_weapon_index != -1) {
-        int16_t slot = unit->current_weapon_index;
-        if (slot != -1) {
-            weapon_object_index = unit->weapons[slot];
+        unit_update_animation_state_machine(object_index, request);
+    }
+    *(real_point3d *)(self + *(int16_t *)(self + 0x1ea) + 0x10) = default_translation;
+    if (*(int16_t *)(self + 0xb4) == 0) {
+        unit_reset_orientation_and_find_position(object_index);
+    }
+    object_recalculate_bounding_radius_recursive(object_index);
+    if (unit_all_seats_unoccupied(vehicle_index) == 1) {
+        uint8_t *empty = (uint8_t *)object_try_and_get(vehicle_index, 2);
+
+        if (empty != 0) {
+            *(int32_t *)(empty + 0x5ac) = game_time->game_time;
         }
-        object *weapon_obj = ((object_header *)object_data->data)[weapon_object_index & 0xffff].data;
-        *(int16_t *)((uint8_t *)weapon_obj + 0x230) = 0;
-        *(float *)((uint8_t *)weapon_obj + 0x234) = transition_function_evaluate(0);
-    }
-    unit->flags &= 0xfdffffff; // clears _unit_flag_idle_turn_seeded (0x02000000)
-
-    if (self_obj->parent_object == k_datum_index_none) {
-        goto drop_inventory;
-    }
-    if (unit->vehicle_seat_index == -1) {
-        unit_detach_reposition_and_nudge(unit_index);
-        goto drop_inventory;
     }
     if (game_connection_role == 1) {
-        goto drop_inventory;
+        uint8_t *player = (uint8_t *)datum_get(*(datum_index *)(self + 0x218), player_data);
+
+        if (player != 0 && *(int16_t *)(player + 2) == -1) {
+            *(int32_t *)(player + 0x180) = 0;
+            *(int32_t *)(player + 0x17c) = 0;
+            *(int32_t *)(player + 0x1e0) = 0;
+            *(int32_t *)(player + 0x1dc) = 0;
+        }
     }
-    {
-        // Ghidra's puVar2 is this unit's own object and puVar11 is the vehicle it is seated in;
-        // local_c is puVar2[0x47], i.e. this unit's object.parent_object.
-        datum_index vehicle_index = self_obj->parent_object;              // local_c
-        object *vehicle;                                                  // puVar11
-        unit_data *vehicle_unit;
-seat_reenter:
-        if ((vehicle_index == k_datum_index_none) || (unit->vehicle_seat_index == -1)) { // puVar2[0xbc]
-            if (game_connection_role != 1) {
-                goto drop_inventory;
-            }
+}
+
+// 0x559505 / 0x559a59: a client drops the prediction history of a local player's unit.
+static void biped_free_local_player_history(uint8_t *self)
+{
+    datum_index player_index = *(datum_index *)(self + 0x218);
+    int16_t index = (int16_t)player_index;
+    int16_t salt = (int16_t)(player_index >> 16);
+    uint8_t *player;
+
+    if (game_connection_role != 1 || player_index == k_datum_index_none || index < 0 ||
+        index >= *(int16_t *)((uint8_t *)player_data + 0x20)) {
+        return;
+    }
+    player = (uint8_t *)player_data->data + *(int16_t *)((uint8_t *)player_data + 0x22) * index;
+    if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || *(int16_t *)(player + 2) == -1) {
+        return;
+    }
+    if (network_client != 0) {
+        player_update_history_free_all(*(void **)(network_client + 0xf48));
+    }
+}
+
+void unit_release_transient_state(uint32_t unit_index, uint8_t is_light_reset)
+{
+    uint8_t *obj = OBJECT_DATA(unit_index);
+
+    if (is_light_reset == 0) {
+        *(int16_t *)(obj + 0x420) = 0;
+        object_list_membership_set(unit_index, 1);
+        if (*(datum_index *)(obj + 0x218) != k_datum_index_none) {
+            player_reset_after_unit_change(*(datum_index *)(obj + 0x218));
+            *(datum_index *)(obj + 0x218) = k_datum_index_none;
+        }
+        if (*(datum_index *)(obj + 0x1f4) != k_datum_index_none) {
+            datum_index actor_index = *(datum_index *)(obj + 0x1f4);
+            uint8_t *actor_record = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+
+            *(int16_t *)(obj + 0x334) = *(int16_t *)(actor_record + 0x34);
+            *(int16_t *)(obj + 0x336) = *(int16_t *)(actor_record + 0x3a);
+            actor_attempt_grenade_throw(actor_index);
+            *(datum_index *)(obj + 0x1f4) = k_datum_index_none;
+        }
+        if (*(datum_index *)(obj + 0x1f8) != k_datum_index_none) {
+            datum_index swarm_index = *(datum_index *)(obj + 0x1f8);
+            uint8_t *actor_record = (uint8_t *)actor_data->data + (swarm_index & 0xffff) * 0x724;
+
+            *(int16_t *)(obj + 0x334) = *(int16_t *)(actor_record + 0x34);
+            *(int16_t *)(obj + 0x336) = *(int16_t *)(actor_record + 0x3a);
+            actor_release_from_cluster_or_delete(swarm_index, unit_index);
+            *(datum_index *)(obj + 0x1f8) = k_datum_index_none;
+        }
+    } else {
+        uint8_t *unit_tag = TAG_DATA(*(datum_index *)obj);
+
+        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+        if ((float)(int32_t)(random_seed_global >> 16) * 1.5259022e-05f < *(float *)(unit_tag + 0x248)) {
+            *(uint32_t *)(obj + 0x204) |= 0x2000;
         } else {
-            vehicle = ((object_header *)object_data->data)[vehicle_index & 0xffff].data;
-            vehicle_unit = (unit_data *)((uint8_t *)vehicle + k_unit_data_offset);
-            Unit *vehicle_tag = (Unit *)tag_instances[vehicle->definition_tag & 0xffff].data;
-            uint8_t *exit_marker = (uint8_t *)(*(int32_t *)((uint8_t *)vehicle_tag + 0x2e8) + 0x24 +
-                                               unit->vehicle_seat_index * 0x11c);
-            uint8_t local_transform[96]; // local_dc
-            object_get_node_local_transform(vehicle_index, exit_marker, (object_marker *)local_transform, 1);
-
-            // iVar10: the node block the original snapshots here, out of this unit's own
-            // Object.model.tag_id (tag + 0x34), then + 0xbc.
-            Object *self_def0 = (Object *)tag_instances[self_obj->definition_tag & 0xffff].data;
-            uint32_t *node_block = (uint32_t *)(*(int32_t *)((uint8_t *)tag_instances[
-                self_def0->model.tag_id.index & 0xffff].data + 0xbc));
-            uint32_t saved[3];
-            saved[0] = node_block[0xa];   // local_1c = iVar10 + 0x28
-            saved[1] = node_block[0xb];   // local_18 = iVar10 + 0x2c
-            saved[2] = node_block[0xc];   // local_14 = iVar10 + 0x30
-
-            if ((vehicle_unit->driver_unit_index == unit_index) &&
-                (vehicle_unit->animation_state != 0x25) && (self_obj->parent_object != k_datum_index_none)) {
-                unit_try_set_animation_state(self_obj->parent_object, 0x25);
-            }
-            unit->last_parent_object_index = vehicle_index;           // puVar2[0xcb] = local_c
-            unit->last_seat_change_tick = game_time->game_time;    // puVar2[0xcc]
-            // the first clear pair is on puVar2 (this unit); the pair further down is on puVar11
-            if (unit->driver_unit_index == unit_index) {
-                unit->driver_unit_index = k_datum_index_none;
-            }
-            if (unit->gunner_unit_index == unit_index) {
-                unit->gunner_unit_index = k_datum_index_none;
-            }
-            object_snap_to_parent_marker_and_detach(unit_index);
-            object_set_position_and_orientation(unit_index, 0, 0); // UNSURE-CALL: transform args dropped
-            matrix4x3_multiply(0, 0, 0);                           // UNSURE-CALL: operands dropped
-
-            Object *self_def = (Object *)tag_instances[self_obj->definition_tag & 0xffff].data;
-            if (*(uint32_t *)&self_def->model.tag_id != 0xffffffff) {
-                if ((self_obj->flags & 1) != 0) {
-                    object_for_each_light_attachment(unit_index, 0, 1);
-                }
-                if (*(uint32_t *)&self_def->model.tag_id != 0xffffffff) {
-                    self_obj->flags &= ~1u;                          // object + 0x10, bit 0
-                    ((object_header *)object_data->data)[unit_index & 0xffff].flags |= 0x02;
-                }
-            }
-            unit->vehicle_seat_index = -1;                            // puVar2[0xbc]
-            unit->base_animation_state = _unit_base_animation_state_stand;
-            if (vehicle_unit->driver_unit_index == unit_index) {
-                vehicle_unit->driver_unit_index = k_datum_index_none;
-            }
-            if (vehicle_unit->gunner_unit_index == unit_index) {
-                vehicle_unit->gunner_unit_index = k_datum_index_none;
-            }
-            unit_recompute_seat_occupants(unit_index);
-            unit_pick_and_ready_next_weapon(unit_index);
-            unit_update_animation_state_machine(unit_index, k_unit_exit_seat_request);
-            {
-                uint32_t *node_func = (uint32_t *)(*(int16_t *)((uint8_t *)self_obj + 0x1ea) + 0x10 + (uint8_t *)self_obj);
-                node_func[0] = saved[0];
-                node_func[1] = saved[1];
-                node_func[2] = saved[2];
-            }
-            if (self_obj->type == _object_type_biped) {
-                unit_reset_orientation_and_find_position(unit_index);
-            }
-            object_recalculate_bounding_radius_recursive(unit_index);
-            if ((unit_all_seats_unoccupied(unit_index) == 1) && (object_try_and_get(unit_index, _object_mask_vehicle) != 0)) {
-                // writes the current tick into vehicle_data.network_update_tick (+0x5ac)
-            }
-            if (game_connection_role != 1) {
-                goto drop_inventory;
-            }
-            uint32_t player_record = datum_get();
-            if ((player_record != 0) && (*(int16_t *)(player_record + 2) == -1)) {
-                *(uint32_t *)(player_record + 0x180) = 0;
-                *(uint32_t *)(player_record + 0x17c) = 0;
-                *(uint32_t *)(player_record + 0x1e0) = 0;
-                *(uint32_t *)(player_record + 0x1dc) = 0;
-                goto seat_reenter;
-            }
-        }
-        uint32_t controlling = unit->controlling_player;          // puVar2[0x86]
-        if ((controlling != k_datum_index_none) && (-1 < (int16_t)controlling) &&
-            ((int16_t)controlling < player_data->maximum_count)) {
-            int32_t rec_off = (int32_t)player_data->size * (int16_t)controlling;
-            int16_t salt = *(int16_t *)((uint8_t *)player_data->data + rec_off);
-            if ((salt != 0) &&
-                (((int16_t)(controlling >> 16) == 0) || (salt == (int16_t)(controlling >> 16))) &&
-                (*(int16_t *)((uint8_t *)player_data->data + rec_off + 2) != -1) &&
-                (network_client != 0)) {
-                player_update_history_free_all(*(void **)(network_client + 0xf48));
-            }
+            *(uint32_t *)(obj + 0x204) &= 0xffffdfff;
         }
     }
+    *(int32_t *)(obj + 0x41c) = game_time->game_time;
+    *(uint32_t *)(obj + 0x204) &= 0xffffffee;
+    *(uint32_t *)(obj + 0x208) = 0;
+    if (*(int16_t *)(obj + 0x2f2) != -1) {
+        uint8_t *unit = OBJECT_DATA(unit_index);
+        int16_t slot = *(int16_t *)(unit + 0x2f2);
+        datum_index weapon_index = (slot != -1) ? *(datum_index *)(unit + 0x2f8 + slot * 4) : k_datum_index_none;
+        uint8_t *weapon = OBJECT_DATA(weapon_index);
 
-drop_inventory:
-    unit->pending_speech.priority = 0;
+        *(int16_t *)(weapon + 0x230) = 0;
+        *(float *)(weapon + 0x234) = transition_function_evaluate((transition_function_t)4, 0.0f);
+    }
+    *(uint32_t *)(OBJECT_DATA(unit_index) + 0x204) &= 0xfdffffff;
+    if (*(datum_index *)(obj + 0x11c) != k_datum_index_none) {
+        if (*(int16_t *)(obj + 0x2f0) == -1) {
+            unit_detach_reposition_and_nudge(unit_index);
+        } else if (game_connection_role != 1) {
+            uint8_t *me = OBJECT_DATA(unit_index);
+
+            if (*(datum_index *)(me + 0x11c) != k_datum_index_none && *(int16_t *)(me + 0x2f0) != -1) {
+                biped_detach_from_seat(unit_index, *(datum_index *)(me + 0x11c));
+            }
+            biped_free_local_player_history(me);
+        }
+    }
+    *(int16_t *)(obj + 0x3b8) = 0;
     unit_drop_inventory_weapons(unit_index);
-    if (unit->equipment_object_index != k_datum_index_none) {
-        unit_drop_object_from_hand(unit_index, unit->equipment_object_index);
-        unit->equipment_object_index = k_datum_index_none;
+    {
+        uint8_t *holder = OBJECT_DATA(unit_index);
+
+        if (*(datum_index *)(holder + 0x318) != k_datum_index_none) {
+            unit_drop_object_from_hand(unit_index, *(datum_index *)(holder + 0x318));
+            *(datum_index *)(holder + 0x318) = k_datum_index_none;
+        }
     }
     unit_drop_grenades(unit_index);
-    if (unit->unknown_28c == 0) { // (char)puVar11[0xa3]
+    if (obj[0x28c] == 0) {
         unit_drop_current_weapon(unit_index, 1);
     }
-    unit->overlays[1].animation_index = -1;
-    unit->overlays[0].animation_index = -1;
-    unit->melee_state = 0;
-    if (unit->throwing_grenade_state == 1) {
-        unit->throwing_grenade_state = 0;
+    *(int16_t *)(obj + 0x2ae) = -1;
+    *(int16_t *)(obj + 0x2aa) = -1;
+    obj[0x289] = 0;
+    if (obj[0x28d] == 1) {
+        obj[0x28d] = 0;
     }
-    return;
 }
 
 #if 0

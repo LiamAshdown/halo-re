@@ -78,8 +78,8 @@ extern void actor_target_evaluate_squad_link(uint32_t actor_index, datum_index o
     int16_t *candidates_a, int16_t *candidates_b); // 0x41e320, this module
 extern datum_index actor_find_or_allocate_prop(uint32_t actor_index, datum_index object_index, char flag); // 0x43e270, UNSURE signature
 extern void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index, void *reference, char force, char allow_reassign); // 0x41c4b0, this batch, UNSURE signature
-extern void actor_replace_object_reference(uint32_t actor_index); // 0x428470
-extern void actor_unlink_prop(void);                                   // 0x43ea20, UNSURE signature
+extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference); // 0x428470, stack, ESI, EDI
+extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove); // 0x43ea20, EAX, EDI
 extern void datum_delete(data_array *array, datum_index handle);  // 0x4d0510
 
 // TYPES-GAP: the local sort record ai_target_distance_qsort_compare.c already documents
@@ -323,12 +323,12 @@ merged:
                 }
             } else {
                 if ((p->kind < 4 || 5 < p->kind) && p->pair_index != k_datum_index_none) {
-                    actor_replace_object_reference(actor_index);
-                    actor_unlink_prop();
+                    actor_replace_object_reference(actor_index, 0xffffffff, (uint32_t)(p->pair_index)); // ESI -1, EDI the prop
+                    actor_unlink_prop(actor_index, p->pair_index); // EAX actor, EDI the prop
                     datum_delete(prop_data, p->pair_index);
                 }
-                actor_replace_object_reference(actor_index);
-                actor_unlink_prop();
+                actor_replace_object_reference(actor_index, 0xffffffff, (uint32_t)(current)); // ESI -1, EDI the prop
+                actor_unlink_prop(actor_index, current); // EAX actor, EDI the prop
                 datum_delete(prop_data, current);
             }
         }
@@ -429,12 +429,12 @@ list_a_evict:
                         prop *existing = &props[list_a.entries[i].prop_index & 0xffff];
                         if ((existing->kind < 4 || 5 < existing->kind) &&
                             existing->pair_index != k_datum_index_none) {
-                            actor_replace_object_reference(actor_index);
-                            actor_unlink_prop();
+                            actor_replace_object_reference(actor_index, 0xffffffff, (uint32_t)(existing->pair_index)); // ESI -1, EDI the prop
+                            actor_unlink_prop(actor_index, existing->pair_index); // EAX actor, EDI the prop
                             datum_delete(prop_data, existing->pair_index);
                         }
-                        actor_replace_object_reference(actor_index);
-                        actor_unlink_prop();
+                        actor_replace_object_reference(actor_index, 0xffffffff, (uint32_t)(list_a.entries[i].prop_index)); // ESI -1, EDI the prop
+                        actor_unlink_prop(actor_index, list_a.entries[i].prop_index); // EAX actor, EDI the prop
                         datum_delete(prop_data, list_a.entries[i].prop_index);
                     }
                     i++;
@@ -487,12 +487,12 @@ list_b_evict:
                     prop *existing = &props[list_b.entries[i].prop_index & 0xffff];
                     if ((existing->kind < 4 || 5 < existing->kind) &&
                         existing->pair_index != k_datum_index_none) {
-                        actor_replace_object_reference(actor_index);
-                        actor_unlink_prop();
+                        actor_replace_object_reference(actor_index, 0xffffffff, (uint32_t)(existing->pair_index)); // ESI -1, EDI the prop
+                        actor_unlink_prop(actor_index, existing->pair_index); // EAX actor, EDI the prop
                         datum_delete(prop_data, existing->pair_index);
                     }
-                    actor_replace_object_reference(actor_index);
-                    actor_unlink_prop();
+                    actor_replace_object_reference(actor_index, 0xffffffff, (uint32_t)(list_b.entries[i].prop_index)); // ESI -1, EDI the prop
+                    actor_unlink_prop(actor_index, list_b.entries[i].prop_index); // EAX actor, EDI the prop
                     datum_delete(prop_data, list_b.entries[i].prop_index);
                 }
                 i++;

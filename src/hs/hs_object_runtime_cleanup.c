@@ -27,7 +27,7 @@ extern void *data_iterator_next(data_iterator *iterator);        // memory modul
 extern char hs_object_hierarchy_test(datum_index object_index);  // this module, 0x487c10
 extern void unit_detach_from_seat(datum_index object_index, int32_t param_2, int32_t param_3,
     int32_t param_4);                                             // units module, 0x56c640
-extern void object_delete_unparented(void);                    // UNSURE: zero visible args; objects, 0x4f5aa0
+extern void object_delete_unparented(uint32_t object_index); // 0x4f5aa0, EDI
 extern void object_delete_recursive(datum_index object_index, int32_t param_2); // objects module, 0x4f59d0
 
 // hs_object_iterator_state: defined in types/hs.h (foreign-module slice; was a local TYPES-GAP copy)
@@ -95,8 +95,10 @@ void hs_object_runtime_cleanup(void)
         if (((hs_object_record *)object_element)->parent == k_datum_index_none &&
             hs_object_hierarchy_test(object_index) == 0) {
             object = hs_object_record_get(object_index);
+            // role 0 unparents (EDI object) and then deletes like role 3 (the binary falls through)
             if (object->unknown_04 == 0) {
-                object_delete_unparented();
+                object_delete_unparented(object_index);
+                object_delete_recursive(object_index, 0);
             } else if (object->unknown_04 == 3) {
                 object_delete_recursive(object_index, 0);
             }

@@ -96,27 +96,27 @@ extern uint16_t actor_target_get_priority_class(datum_index actor_index, datum_i
 extern void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index, void *reference, char force, char allow_reassign); // 0x41c4b0
 extern void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target_prop_index, void *scratch); // 0x41c8f0
 
-extern uint8_t actor_target_update_active_flag(void); // 0x41fc60, not yet rewritten (phase2 name: unit_update_active_combat_flag); UNSURE: no visible args at this call site
+extern uint8_t actor_target_update_active_flag(datum_index actor_index, datum_index target_prop_index); // 0x41fc60, EAX, EDI
 
 extern float actor_rate_potential_target(datum_index actor_index, datum_index target_prop_index); // 0x41fd50
 
-extern void actor_notify_target_engaged(void);                 // 0x4220c0, not yet rewritten (phase2 name: actor_notify_target_engaged); UNSURE: no visible args at this call site
-extern void actor_start_search_timer(void);                 // 0x422130, not yet rewritten (phase2 name: actor_start_search_timer); UNSURE: no visible args at this call site
-extern void actor_queue_velocity_search_from_prop(uint32_t actor_index); // 0x4221b0, not yet rewritten (phase2 name: actor_clear_search_queue)
-extern void actor_scan_backup_and_panic_reaction(uint32_t actor_index); // 0x423220, not yet rewritten (phase2 name: actor_update_search_target_for_unit)
+extern void actor_notify_target_engaged(datum_index target_prop_index, datum_index actor_index, uint8_t alternate_event); // 0x4220c0, EAX, ECX, DL
+extern void actor_start_search_timer(datum_index actor_index, datum_index prop_index); // 0x422130, EBX, EDI
+extern void actor_queue_velocity_search_from_prop(datum_index prop_index, datum_index actor_index); // 0x4221b0, EAX, stack
+extern void actor_scan_backup_and_panic_reaction(datum_index target_prop_index, datum_index actor_index); // 0x423220, EAX, stack
 extern uint8_t actor_is_burst_pending(datum_index actor_index); // 0x428180, not yet rewritten (phase2 name: actor_is_ranged_burst_active); UNSURE: no visible args at this call site
 extern uint8_t actor_check_burst_length_exceeded(datum_index actor_index); // 0x4281b0, not yet rewritten (phase2 name: actor_should_end_burst); UNSURE: no visible args at this call site
 
 // blam-cc: stack -> danger_type, danger_unknown_282; EBX -> danger_source (objdump:
 // `lea ebx,[esi+0x2b0]` immediately before `call 0x4234f0`)
-extern void actor_notify_squad_of_threat_direction(int16_t danger_type, int16_t danger_unknown_282, real_point3d *danger_source); // 0x4234f0, not yet rewritten (phase2 name: actor_notify_grenade_or_threat_direction)
+extern void actor_notify_squad_of_threat_direction(const real_point3d *point, datum_index actor_index, int16_t event_kind, int16_t grenade_type_code); // 0x4234f0, EBX, EDI, stack
 
 extern uint32_t actor_target_data_release(datum_index target_prop_index, uint32_t actor_index, uint8_t *out_conflict_flag); // 0x41b980
 extern void actor_target_get_relationship_object(datum_index target_prop_index); // 0x41f3a0
 
 extern datum_index actor_allocate_paired_prop(uint32_t actor_index, datum_index prop_index); // 0x43e910, not yet rewritten (phase2 name: actor_firing_position_node_new)
-extern void actor_replace_object_reference(uint32_t actor_index);             // 0x428470, not yet rewritten in this batch
-extern void actor_unlink_prop(void); // 0x43ea20, UNSURE signature, not yet rewritten (phase2 name: actor_firing_position_node_unlink)
+extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference); // 0x428470, stack, ESI, EDI
+extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove); // 0x43ea20, EAX, EDI
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510
 
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,
@@ -230,7 +230,8 @@ void actor_target_relationship_think(datum_index actor_index)
                 } else {
                     self->unknown_287[1] = 0;
                 }
-                actor_notify_squad_of_threat_direction(self->danger_type, self->danger_unknown_282, &self->flee_from_point);
+                actor_notify_squad_of_threat_direction(&self->flee_from_point, actor_index, (uint16_t)self->danger_type,
+                    (uint16_t)self->danger_unknown_282); // 0x41ad9c: EBX point, EDI actor, stack (0x280, 0x282)
             }
         }
     }
@@ -456,7 +457,7 @@ restart:
                 actor_allocate_paired_prop(actor_index, target_prop_index);
             }
         replace_and_idle:
-            actor_replace_object_reference(actor_index);
+            actor_replace_object_reference(actor_index, 0xffffffff, target_prop_index); // 0x41b36d: ESI -1, EDI prop
             new_kind = 0;
         } else {
             new_kind = 3;
@@ -519,18 +520,19 @@ restart:
 tail:
     if (target->combat_dirty != 0 && target->kind > 1 && target->kind < 4) {
         if (target->unknown_129 != 0) {
-            actor_scan_backup_and_panic_reaction(actor_index);
+            actor_scan_backup_and_panic_reaction(target_prop_index, actor_index); // 0x41b570: EAX prop, stack actor
             target->unknown_129 = 0;
         }
         if (target->unknown_12a != 0 || (released != 0 && target->unknown_32 > 0)) {
-            actor_notify_target_engaged();
+            // 0x41b59b: EAX prop, ECX actor, DL = released and no conflict
+            actor_notify_target_engaged(target_prop_index, actor_index, (uint8_t)(released != 0 && had_conflict == 0));
             target->unknown_12a = 0;
         }
         if (self->unknown_377 == 0 && target->is_unit == 0 && target->is_parented != 0 &&
             target->unknown_32 > 1 && target->unknown_122 < 3 && target->distance < 7.0f) {
             self->unknown_377 = 1;
             ai_communication_broadcast(0x19, self->unit_index, target->object_index, 2, (uint32_t)-1, (uint32_t)-1, 0);
-            actor_notify_target_engaged();
+            actor_notify_target_engaged(target_prop_index, actor_index, 0); // 0x41b620: DL 0
         }
         if (self->unit_index != (datum_index)k_datum_index_none && target->is_vault == 0 &&
             target->unknown_61 != 0 && target->unknown_62 != 0) {
@@ -553,12 +555,12 @@ tail:
         if (self->awareness_level < 3) {
             if (target->is_vault != 0) {
                 if (target->is_unit != 0) goto clear_search_and_continue;
-                actor_start_search_timer();
+                actor_start_search_timer(actor_index, target_prop_index); // 0x41b70b: EBX actor, EDI prop
                 goto after_posture;
             }
             if (target->is_unit != 0) {
             clear_search_and_continue:
-                actor_queue_velocity_search_from_prop(actor_index);
+                actor_queue_velocity_search_from_prop(target_prop_index, actor_index); // 0x41b721: EAX prop, stack actor
                 goto after_posture;
             }
         } else {
@@ -619,7 +621,7 @@ apply_new_kind:
         break;
     }
     target->kind = (int16_t)new_kind;
-    target->engaged = actor_target_update_active_flag();
+    target->engaged = actor_target_update_active_flag(actor_index, target_prop_index); // 0x41b4c9: EAX actor, EDI prop
     target->desirability = actor_rate_potential_target(actor_index, target_prop_index);
 
 check_cooldown:
@@ -633,8 +635,8 @@ check_cooldown:
         prop *pair = (prop *)((uint8_t *)prop_data->data + (target->pair_index & 0xffff) * sizeof(prop));
         pair->pair_index = (datum_index)k_datum_index_none;
     }
-    actor_replace_object_reference(actor_index);
-    actor_unlink_prop();
+    actor_replace_object_reference(actor_index, 0xffffffff, target_prop_index); // 0x41b507: ESI -1, EDI prop
+    actor_unlink_prop(actor_index, target_prop_index);
     datum_delete(prop_data, target_prop_index); // UNSURE, see file header
     goto restart;
 }
