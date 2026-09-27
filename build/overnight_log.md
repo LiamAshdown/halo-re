@@ -1102,3 +1102,15 @@ OPEN:
   path_find_test_direct_reachability / validate_and_record_goal (0.3) still to verify.
 - a mis-carved function file (biped_build_update_delta_unit_grenade_count_mod1, 0x55e9ff) lies inside
   biped_apply_idle_fidget (0x55e940).
+
+## 2026-09-27 (loop) -- units: biped_update and the seat exit family
+- biped_update (0x5590a0) REWRITTEN (was 0.3 with ~12 argument-less calls); smoke test OK (crew cinematic +
+  gameplay 330 s).
+- 0x56b5f0 unit_try_exit_controlled_seat, 0x56c470 unit_try_start_seat_exit_animation, 0x56c640
+  unit_detach_from_seat, 0x56ab50 unit_detach_child_at_named_seat REWRITTEN: all share the seat exit /
+  detach code biped_update inlines (sections compared by mnemonic sequence).
+- 0x56ab10 always sets state 0x25; weapon_set_state and seat overlays a/b permutation/overlay calls fixed.
+OPEN (units, by size, all < 0.5): unit_update 0x5625b0 (0.15, 4765 B) -- next; unit_apply_damage_effects
+  0x5674a0 (0.2, 3199 B; inlines the seat exit again); vehicle_update chain; unit_release_transient_state;
+  unit_seat_candidates_from_zone_and_enter; unit_detach_and_enter_named_seat; unit_can_see_point (0.1).
+  AI copies of the exit block: actor_process_vehicle_seat_exit, ai_reference_units_exit_vehicles.

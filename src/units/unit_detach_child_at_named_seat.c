@@ -1,13 +1,10 @@
 // unit_detach_child_at_named_seat  (Ghidra: FUN_0056ab50)
-// address 0x56ab50, size 1848 bytes, name confidence 0.4, rewrite confidence 0.2
-// functions.md: "Finds the child object attached to the unit at a seat whose marker name
-// matches param_2 and detaches/repositions it at that marker."
-// evidence: types/objects.h object_iterator (0x4f6f20, type_mask/flags_mask/index/handle);
-//   shares its ejection block with unit_apply_damage_effects.c (0x5674a0) and its "not a
-//   vehicle" melee/lunge-style branch likewise (same UNSURE-CALL gaps apply here).
-// blam-cc: param_1 -> unit_index, param_2 -> seat_marker_name (may be NULL/empty, meaning "any").
-// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
-// reconciled: R32 follow-up: local extern player_control_globals (0x0071c2d8) renamed network_client (networking.h name) because game.h is now included and owns the player_control_globals typedef
+// address 0x56ab50, size 1848 bytes, name confidence 0.4, rewrite confidence 0.85
+// REWRITTEN from objdump 0x56ab50..0x56b287. Stack: unit, seat name (NULL or empty = any seat). Walks every
+//   unit (object iterator, types 3) seated in this unit whose seat label (tag seat +0x04, lowercased) contains
+//   the name, and makes it leave: the same code as unit_try_exit_controlled_seat (0x56b5f0) inlined (sections
+//   compared). Returns how many started their exit animation (a vehicle unit detached is not counted).
+// blam-cc: stack -> unit_index, seat_marker_name
 
 #include "tags.h"
 #include "memory.h"
@@ -18,192 +15,292 @@
 #include "objects.h"
 #include "units.h"
 #include <string.h>
+#include <string.h>
 
-extern data_array *object_data;      // 0x008603b0
-extern data_array *player_data;      // 0x0087a480
-extern tag_instance *tag_instances;  // 0x0087bc14
-extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
-extern int32_t game_connection_role; // 0x00719720
-extern uint8_t *network_client; // 0x0071c2d8 (networking.h network_client; renamed from network_client, which collides with game.h's typedef)
-extern void *matrix4x3_multiply_thunk; // 0x00696664
+extern data_array *object_data;     // 0x008603b0
+extern tag_instance *tag_instances; // 0x0087bc14
+extern data_array *player_data;     // 0x0087a480
+extern int16_t game_connection_role; // 0x00719720: 1 = client
+extern game_time_globals *game_time; // 0x006f1d6c
+extern uint8_t *network_client;      // 0x0071c2d8, +0xf48 the prediction history
+extern uint8_t biped_detach_from_flipped_vehicle; // 0x006893cc
+extern uint8_t unit_updates_suppressed; // 0x0071c419
+extern real_vector3d *global_forward3d_pointer; // 0x00696718
+extern real_point3d *global_origin3d_pointer;   // 0x00696714
 
-extern int32_t _tolower(int32_t c); // 0x624687
-extern char *strstr(const char *haystack, const char *needle); // CRT strstr (0x625430: the MSVC asm strstr, haystack then needle; case-sensitive)
-extern void actor_notify_weapon_pickup_once(uint32_t object_index);                        // 0x42c370, UNSURE signature
-extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);            // 0x4cc0d0, UNSURE signature
-extern uint32_t datum_get(void);                                        // 0x4d0680, UNSURE signature  // real signature (datum_get.c): void * datum_get(datum_index handle, data_array *array); Ghidra recovered 0 of 2 args at this call site
-extern int32_t animation_choose_random_permutation(int32_t mode);                              // 0x4d6280
-extern void player_update_history_free_all(void *history);              // 0x4e6f20, UNSURE signature
-extern void object_set_position_and_orientation(uint32_t object_index, void *a, void *b); // 0x4f51c0, UNSURE signature  // real signature (object_set_position_and_orientation.c): void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position); Ghidra recovered 3 of 4 args at this call site
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t param_4); // 0x4f6080
-extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);                          // 0x4f6610, UNSURE signature
-extern object * object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern object * object_iterator_next(object_iterator *iterator);        // 0x4f6f20
+extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+extern void actor_notify_weapon_pickup_once(datum_index object_index); // 0x42c370, ECX
+extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code); // 0x492730, EAX, stack
+extern uint32_t weapon_prevents_melee_attack(datum_index item_index); // 0x4c2ee0, ECX
+extern int16_t weapon_get_first_person_animation_time(datum_index item_index, int16_t animation_index, int16_t category,
+    int16_t mode); // 0x4c2f80, EAX, CX, stack
+extern void weapon_reset_triggers(datum_index item_index); // 0x4c4b50, stack
+extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, EDX, ESI
+extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x4cc0d0 (via 0x696664)
+extern void player_update_history_free_all(void *history); // 0x4e6f20
+extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward, real_vector3d *up,
+    real_point3d *position); // 0x4f51c0, stack, EDI position
+extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
+    uint32_t flags); // 0x4f6080
+extern void object_snap_to_parent_marker_and_detach(uint32_t object_index); // 0x4f6610
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
-extern void object_for_each_light_attachment(uint32_t object_index, uint32_t flag); // 0x4f9a20, UNSURE signature  // real signature (object_for_each_light_attachment.c): void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback); Ghidra recovered 2 of 3 args at this call site
-extern void unit_reset_orientation_and_find_position(uint32_t object_index);                          // 0x55add0, UNSURE signature
-extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, stack unit, ECX request
-static const int8_t k_unit_exit_seat_request[2] = {0x14, 0}; // every caller builds these two bytes on its stack
-extern uint8_t unit_state_is_scripted_animation(unit_data *unit);                   // 0x565c60, UNSURE signature
+extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table,
+    int32_t invoke_callback); // 0x4f9a20, EAX, stack
+extern void unit_recalculate_position(uint32_t object_index); // 0x558eb0, EAX
+extern void unit_reset_orientation_and_find_position(uint32_t object_index); // 0x55add0
+extern void biped_update_facing(uint32_t object_index, int8_t *out_animation_state); // 0x55b7c0, EAX, stack
+extern void biped_integrate_movement_with_collision(uint32_t object_index, int8_t *state); // 0x55cfd0
+extern void biped_check_evade_reaction(uint32_t object_index); // 0x55e190
+extern void unit_evaluate_flee_reaction(uint32_t object_index); // 0x55e2d0, EDI
+extern void unit_check_fell_off_level(uint32_t object_index); // 0x55e4a0, ECX
+extern void biped_update_idle_basis(uint32_t object_index, uint8_t *state_out); // 0x55e840, ESI, EDI
+extern void biped_apply_idle_fidget(uint32_t object_index, uint8_t *state_out); // 0x55e940, EDI, stack
+extern void biped_advance_frame_counter_trigger(uint32_t object_index, char *state_out); // 0x55eb90, EAX, stack
+extern void biped_trigger_on_velocity_threshold(uint32_t object_index); // 0x55ec20, EAX
+extern uint32_t unit_snap_to_min_ground_height(uint32_t object_index); // 0x55ecf0
+extern void unit_update_footstep_and_idle_triggers(uint32_t unit_index); // 0x560410, EAX
+extern void unit_update_up_vector(Biped *biped_tag, object *obj); // 0x560800, EAX, ECX
+extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, stack, ECX
+extern uint8_t unit_state_is_scripted_animation(unit_data *unit); // 0x565c60, ECX
+extern void unit_start_seat_overlay_animation_a(uint32_t unit_index, int16_t command); // 0x565e00
 extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
-extern uint8_t unit_all_seats_unoccupied(uint32_t unit_index);                      // 0x566910
-extern void unit_notify_weapon_removed(int32_t object_index, int16_t new_state);     // 0x56ab10
-extern void unit_dispatch_scripted_event_9(uint32_t param_1);                            // 0x56c370, UNSURE signature  // real signature (unit_dispatch_scripted_event_9.c): void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key); Ghidra recovered 1 of 2 args at this call site
-extern void unit_recompute_seat_occupants(uint32_t unit_index);                         // 0x56ce30
-extern void unit_pick_and_ready_next_weapon(uint32_t unit_index);                         // 0x56d6a0
-extern void unit_set_custom_animation(TagID animation_graph_tag, int16_t animation_index); // 0x56ebd0  // real signature (unit_set_custom_animation.c): void unit_set_custom_animation(uint32_t object_index, datum_index graph, int16_t animation_index); Ghidra recovered 2 of 3 args at this call site
+extern uint8_t unit_all_seats_unoccupied(uint32_t unit_index); // 0x566910, EAX
+extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); // 0x569970, EAX, CX
+extern void unit_notify_weapon_removed(int32_t object_index); // 0x56ab10, EAX (sets animation state 0x25)
+extern void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key); // 0x56c370, stack, ECX
+extern void unit_recompute_seat_occupants(uint32_t unit_index); // 0x56ce30, EAX
+extern void unit_pick_and_ready_next_weapon(uint32_t unit_index); // 0x56d6a0, ESI
+extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation,
+    int32_t stream); // 0x4d6280, EAX, DX, stack
+extern void unit_set_custom_animation(uint32_t object_index, datum_index graph, int16_t animation_index); // 0x56ebd0
+extern void unit_melee_attack_scan(uint32_t unit_index); // 0x56f550
+
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT_HEADER(h) (((object_header *)object_data->data)[(h) & 0xffff])
+#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+
+// 0x5596d3.. / 0x5591a9..: take the unit out of its vehicle seat, keep it where its body was.
+static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
+{
+    uint8_t *self = OBJECT_DATA(object_index);
+    uint8_t *vehicle = OBJECT_DATA(vehicle_index);
+    uint8_t *nodes = self + *(int16_t *)(self + 0x1f2);
+    uint8_t *seat = *(uint8_t **)(TAG_DATA(*(datum_index *)vehicle) + 0x2e8) + *(int16_t *)(self + 0x2f0) * 0x11c;
+    uint8_t *model_nodes;
+    object_marker marker;
+    real_point3d offset;
+    real_point3d default_translation;
+    real_point3d position;
+    real_matrix4x3 basis;
+
+    object_get_node_local_transform(vehicle_index, (char *)(seat + 0x24), &marker, 1);
+    offset.x = *(float *)(nodes + 0x28) - marker.node_transform.position.x;
+    offset.y = *(float *)(nodes + 0x2c) - marker.node_transform.position.y;
+    offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
+    model_nodes = *(uint8_t **)(TAG_DATA(*(datum_index *)(TAG_DATA(*(datum_index *)self) + 0x34)) + 0xbc);
+    default_translation = *(real_point3d *)(model_nodes + 0x28);
+    if (*(datum_index *)(vehicle + 0x324) == object_index && vehicle[0x2a3] != 0x25 &&
+        *(datum_index *)(self + 0x11c) != k_datum_index_none) {
+        unit_try_set_animation_state(*(datum_index *)(self + 0x11c), 0x25);
+    }
+    *(datum_index *)(self + 0x32c) = vehicle_index;
+    *(int32_t *)(self + 0x330) = game_time->game_time;
+    if (*(datum_index *)(self + 0x324) == object_index) {
+        *(datum_index *)(self + 0x324) = k_datum_index_none;
+    }
+    if (*(datum_index *)(self + 0x328) == object_index) {
+        *(datum_index *)(self + 0x328) = k_datum_index_none;
+    }
+    object_snap_to_parent_marker_and_detach(object_index);
+    position.x = offset.x + *(float *)(self + 0x5c);
+    position.y = offset.y + *(float *)(self + 0x60);
+    position.z = offset.z + *(float *)(self + 0x64) - default_translation.z;
+    object_set_position_and_orientation(object_index, 0, 0, &position);
+    {
+        uint8_t *reloaded = OBJECT_DATA(object_index);
+
+        matrix4x3_multiply((real_matrix4x3 *)(reloaded + *(int16_t *)(reloaded + 0x1f2)),
+            (real_matrix4x3 *)(model_nodes + 0x68), &basis);
+    }
+    *(real_vector3d *)(self + 0x74) = basis.forward;
+    *(real_vector3d *)(self + 0x80) = basis.up;
+    {
+        uint8_t *object = OBJECT_DATA(object_index);
+        uint8_t *object_tag = TAG_DATA(*(datum_index *)object);
+
+        if (*(int32_t *)(object_tag + 0x34) != -1 && (object[0x10] & 1) != 0) {
+            object_for_each_light_attachment(object_index, 0, 1);
+        }
+        if (*(int32_t *)(object_tag + 0x34) != -1) {
+            *(uint32_t *)(object + 0x10) &= ~1u;
+            OBJECT_HEADER(object_index).flags |= 2;
+        }
+    }
+    *(int16_t *)(self + 0x2f0) = -1;
+    self[0x2a7] = 2;
+    if (*(datum_index *)(vehicle + 0x324) == object_index) {
+        *(datum_index *)(vehicle + 0x324) = k_datum_index_none;
+    }
+    if (*(datum_index *)(vehicle + 0x328) == object_index) {
+        *(datum_index *)(vehicle + 0x328) = k_datum_index_none;
+    }
+    unit_recompute_seat_occupants(vehicle_index);
+    unit_pick_and_ready_next_weapon(object_index);
+    {
+        int8_t request[2] = { 0x14, 0 };
+
+        unit_update_animation_state_machine(object_index, request);
+    }
+    *(real_point3d *)(self + *(int16_t *)(self + 0x1ea) + 0x10) = default_translation;
+    if (*(int16_t *)(self + 0xb4) == 0) {
+        unit_reset_orientation_and_find_position(object_index);
+    }
+    object_recalculate_bounding_radius_recursive(object_index);
+    if (unit_all_seats_unoccupied(vehicle_index) == 1) {
+        uint8_t *empty = (uint8_t *)object_try_and_get(vehicle_index, 2);
+
+        if (empty != 0) {
+            *(int32_t *)(empty + 0x5ac) = game_time->game_time;
+        }
+    }
+    if (game_connection_role == 1) {
+        uint8_t *player = (uint8_t *)datum_get(*(datum_index *)(self + 0x218), player_data);
+
+        if (player != 0 && *(int16_t *)(player + 2) == -1) {
+            *(int32_t *)(player + 0x180) = 0;
+            *(int32_t *)(player + 0x17c) = 0;
+            *(int32_t *)(player + 0x1e0) = 0;
+            *(int32_t *)(player + 0x1dc) = 0;
+        }
+    }
+}
+
+// 0x559505 / 0x559a59: a client drops the prediction history of a local player's unit.
+static void biped_free_local_player_history(uint8_t *self)
+{
+    datum_index player_index = *(datum_index *)(self + 0x218);
+    int16_t index = (int16_t)player_index;
+    int16_t salt = (int16_t)(player_index >> 16);
+    uint8_t *player;
+
+    if (game_connection_role != 1 || player_index == k_datum_index_none || index < 0 ||
+        index >= *(int16_t *)((uint8_t *)player_data + 0x20)) {
+        return;
+    }
+    player = (uint8_t *)player_data->data + *(int16_t *)((uint8_t *)player_data + 0x22) * index;
+    if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || *(int16_t *)(player + 2) == -1) {
+        return;
+    }
+    if (network_client != 0) {
+        player_update_history_free_all(*(void **)(network_client + 0xf48));
+    }
+}
+
+extern object *object_iterator_next(void *iterator); // 0x4f6f20, stack
+extern int32_t _tolower(int32_t c); // 0x624687
+extern char *strstr(const char *haystack, const char *needle); // 0x625430
+
+// the 0x10-byte iterator this function builds on its stack (0x56abc8)
+typedef struct unit_seat_iterator {
+    uint32_t type_mask;
+    uint8_t flags_mask;
+    uint8_t unknown_05;
+    int16_t index;
+    datum_index handle;
+    uint32_t signature;
+} unit_seat_iterator;
 
 int16_t unit_detach_child_at_named_seat(uint32_t unit_index, char *seat_marker_name)
 {
-    int16_t detach_count = 0;
+    int16_t count = 0;
+    uint8_t *unit_tag;
+    uint8_t any_seat;
+    unit_seat_iterator iterator;
+    uint8_t *child;
+
     if (unit_index == 0xffffffff) {
         return 0;
     }
+    unit_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(unit_index));
+    any_seat = (uint8_t)(seat_marker_name == 0 || seat_marker_name[0] == 0);
+    iterator.signature = 0x86868686;
+    iterator.type_mask = 3;
+    iterator.flags_mask = 0;
+    iterator.index = 0;
+    iterator.handle = k_datum_index_none;
+    for (child = (uint8_t *)object_iterator_next(&iterator); child != 0;
+         child = (uint8_t *)object_iterator_next(&iterator)) {
+        datum_index child_index;
+        uint8_t *self;
+        char label[0x100];
+        char *c;
 
-    object *self_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Unit *self_tag = (Unit *)tag_instances[self_obj->definition_tag & 0xffff].data;
-    uint8_t name_is_empty = (seat_marker_name == (char *)0) || (seat_marker_name[0] == '\0');
+        if (*(datum_index *)(child + 0x11c) != unit_index) {
+            continue;
+        }
+        strcpy(label, (char *)(*(uint8_t **)(unit_tag + 0x2e8) + *(int16_t *)(child + 0x2f0) * 0x11c + 4));
+        for (c = label; *c != 0; c++) {
+            *c = (char)_tolower((uint8_t)*c);
+        }
+        if (!any_seat && strstr(label, seat_marker_name) == 0) {
+            continue;
+        }
+        child_index = iterator.handle;
+        self = (uint8_t *)object_try_and_get(child_index, 3);
+        if (self == 0 || game_connection_role == 1 || *(datum_index *)(self + 0x11c) == k_datum_index_none ||
+            *(int16_t *)(self + 0x2f0) == -1) {
+            continue;
+        }
+        if (*(int16_t *)(self + 0xb4) == 1) {
+            // 0x56ad05: a vehicle unit leaves its seat where it is (not counted)
+            uint8_t *obj = OBJECT_DATA(child_index);
+            datum_index vehicle_index = *(datum_index *)(obj + 0x11c);
 
-    object_iterator iter = { _object_mask_unit, 0, 0, 0, 0xffffffff };
-    object *candidate = object_iterator_next(&iter);
-    if (candidate == (object *)0) {
-        return 0;
-    }
+            if (vehicle_index != k_datum_index_none && *(int16_t *)(obj + 0x2f0) != -1) {
+                biped_detach_from_seat(child_index, vehicle_index);
+            }
+            biped_free_local_player_history(OBJECT_DATA(child_index));
+            continue;
+        }
+        // 0x56b125: the seat's exit animation (slot 8), counted
+        if (!unit_state_is_scripted_animation((unit_data *)(self + k_unit_data_offset))) {
+            uint8_t *self_tag = TAG_DATA(*(datum_index *)self);
+            datum_index graph = *(datum_index *)(self_tag + 0x44);
+            uint8_t *seat_block = *(uint8_t **)(TAG_DATA(graph) + 0x10) + (int8_t)self[0x2a0] * 0x64;
 
-    do {
-        if (candidate->parent_object == unit_index) {
-            int16_t seat_index = ((unit_data *)((uint8_t *)candidate + k_unit_data_offset))->vehicle_seat_index;
-            UnitSeat *seat = (UnitSeat *)self_tag->seats.pointer + seat_index;
-            char lowered[260];
-            char *src = seat->label.string;
-            int32_t i = 0;
-            do { lowered[i] = (char)_tolower((uint8_t)src[i]); i++; } while (src[i - 1] != '\0');
+            if (*(int32_t *)(seat_block + 0x40) > 8 && (*(int16_t **)(seat_block + 0x44))[8] != -1) {
+                int16_t exit_animation = (*(int16_t **)(seat_block + 0x44))[8];
+                datum_index vehicle_index = *(datum_index *)(self + 0x11c);
+                uint8_t *object;
+                uint8_t *object_tag;
 
-            if (name_is_empty || (strstr((const char *)lowered, seat_marker_name) != 0)) {
-                uint32_t child_index = iter.handle;
-                object *child = object_try_and_get(child_index, _object_mask_unit);
-                if ((child != (object *)0) && (game_connection_role != 1) && (child->parent_object != k_datum_index_none) &&
-                    (((unit_data *)((uint8_t *)child + k_unit_data_offset))->vehicle_seat_index != -1)) {
-                    if (child->type == _object_type_vehicle) {
-                        datum_index old_parent = child->parent_object;
-                        object *old_parent_obj = ((object_header *)object_data->data)[old_parent & 0xffff].data;
-                        unit_data *old_parent_unit = (unit_data *)((uint8_t *)old_parent_obj + k_unit_data_offset);
-                        if ((old_parent_obj->parent_object == k_datum_index_none) ||
-                            (((unit_data *)((uint8_t *)old_parent_obj + k_unit_data_offset))->vehicle_seat_index == -1)) {
-                            if (game_connection_role == 1) {
-                                goto refresh_history;
-                            }
-                        } else {
-                            Unit *old_parent_tag = (Unit *)tag_instances[old_parent_obj->definition_tag & 0xffff].data;
-                            uint8_t *exit_marker = (uint8_t *)(*(int32_t *)((uint8_t *)old_parent_tag + 0x2e8) + 0x24 +
-                                                               ((unit_data *)((uint8_t *)old_parent_obj + k_unit_data_offset))->vehicle_seat_index * 0x11c);
-                            uint8_t local_transform[96];
-                            object_get_node_local_transform(old_parent, exit_marker, (object_marker *)local_transform, 1);
-
-                            Unit *child_tag = (Unit *)tag_instances[child->definition_tag & 0xffff].data;
-                            uint32_t *node_data = (uint32_t *)(*(int32_t *)((uint8_t *)tag_instances[child_tag->base.model.tag_id.index & 0xffff].data + 0xbc));
-                            uint32_t saved[3] = { node_data[0xa], node_data[0xb], node_data[0xc] };
-
-                            unit_data *child_unit = (unit_data *)((uint8_t *)child + k_unit_data_offset);
-                            if ((old_parent_unit->driver_unit_index == child_index) &&
-                                (old_parent_unit->animation_state != 0x25) &&
-                                (child->parent_object != k_datum_index_none)) {   // puVar5 + 0x2a3
-                                unit_try_set_animation_state(old_parent, 0x25);
-                            }
-                            child_unit->last_parent_object_index = old_parent;           // puVar15[0xcb] = uVar4
-                            child_unit->last_seat_change_tick = game_time->game_time; // puVar15[0xcc]
-                            // the first clear pair is on puVar15 (the child); the pair below is on puVar5
-                            if (child_unit->driver_unit_index == child_index) child_unit->driver_unit_index = k_datum_index_none;
-                            if (child_unit->gunner_unit_index == child_index) child_unit->gunner_unit_index = k_datum_index_none;
-                            object_snap_to_parent_marker_and_detach(child_index);
-                            object_set_position_and_orientation(child_index, 0, 0); // UNSURE-CALL
-                            matrix4x3_multiply(0, 0, 0);                           // UNSURE-CALL
-
-                            Object *child_def = (Object *)tag_instances[child->definition_tag & 0xffff].data;
-                            if (*(uint32_t *)&child_def->model.tag_id != 0xffffffff) {
-                                if ((child->flags & 1) != 0) object_for_each_light_attachment(child_index, 1);
-                                if (*(uint32_t *)&child_def->model.tag_id != 0xffffffff) {
-                                    child->flags &= ~1u;                          // object + 0x10, bit 0
-                                    ((object_header *)object_data->data)[child_index & 0xffff].flags |= 0x02;
-                                }
-                            }
-                            child_unit->vehicle_seat_index = -1;
-                            child_unit->base_animation_state = _unit_base_animation_state_stand;
-                            if (old_parent_unit->driver_unit_index == child_index) old_parent_unit->driver_unit_index = k_datum_index_none;
-                            if (old_parent_unit->gunner_unit_index == child_index) old_parent_unit->gunner_unit_index = k_datum_index_none;
-                            unit_recompute_seat_occupants(child_index);
-                            unit_pick_and_ready_next_weapon(child_index);
-                            unit_update_animation_state_machine(child_index, k_unit_exit_seat_request);
-                            uint32_t *node_func = (uint32_t *)(*(int16_t *)((uint8_t *)child + 0x1ea) + 0x10 + (uint8_t *)child);
-                            node_func[0] = saved[0]; node_func[1] = saved[1]; node_func[2] = saved[2];
-                            if (child->type == _object_type_biped) unit_reset_orientation_and_find_position(child_index);
-                            object_recalculate_bounding_radius_recursive(child_index);
-                            if ((unit_all_seats_unoccupied(child_index) == 1) && (object_try_and_get(child_index, _object_mask_vehicle) != 0)) {
-                                // writes the current tick into vehicle_data.network_update_tick (+0x5ac)
-                            }
-                            if (game_connection_role == 1) {
-                                if (datum_get() != 0) {
-                                    // UNSURE: matches the record-clear pattern in the other ejection blocks
-                                    goto refresh_history;
-                                }
-                                goto refresh_history;
-                            }
-                        }
-refresh_history:
-                        {
-                            unit_data *cur_unit = (unit_data *)((uint8_t *)child + k_unit_data_offset);
-                            uint32_t controlling = cur_unit->controlling_player;
-                            if ((game_connection_role == 1) && (controlling != k_datum_index_none) &&
-                                (-1 < (int16_t)controlling) && ((int16_t)controlling < player_data->maximum_count)) {
-                                int32_t rec_off = (int32_t)player_data->size * (int16_t)controlling;
-                                int16_t salt = *(int16_t *)((uint8_t *)player_data->data + rec_off);
-                                if ((salt != 0) &&
-                                    (((int16_t)(controlling >> 16) == 0) || (salt == (int16_t)(controlling >> 16))) &&
-                                    (*(int16_t *)((uint8_t *)player_data->data + rec_off + 2) != -1) &&
-                                    (network_client != 0)) {
-                                    player_update_history_free_all(*(void **)(network_client + 0xf48));
-                                }
-                            }
-                        }
-                    } else {
-                        // not a vehicle: melee/lunge-style animation swap, matching
-                        // unit_apply_damage_effects.c's identical "responsible is not a vehicle" branch.
-                        if (unit_state_is_scripted_animation(0) == 0) {
-                            Unit *child_tag = (Unit *)tag_instances[child->definition_tag & 0xffff].data;
-                            uint8_t *weapon_types = *(uint8_t **)(
-                                (uint8_t *)tag_instances[child_tag->base.animation_graph.tag_id.index & 0xffff].data + 0x10);
-                            uint8_t *seat_block = weapon_types + ((unit_data *)((uint8_t *)child + k_unit_data_offset))->animation_definition_index * 100; // animation_definition_index (puVar15[0xa8])
-                            if ((8 < *(int32_t *)(seat_block + 0x40)) && (*(int16_t *)(*(int32_t *)(seat_block + 0x44) + 0x10) != -1)) {
-                                unit_data *old_parent_unit_check = (unit_data *)((uint8_t *)((object_header *)object_data->data)[child->parent_object & 0xffff].data + k_unit_data_offset);
-                                if (old_parent_unit_check->driver_unit_index == child_index) {
-                                    unit_notify_weapon_removed((int32_t)child_index, 0);
-                                }
-                                int16_t new_anim = (int16_t)animation_choose_random_permutation(1);
-                                unit_set_custom_animation(child_tag->base.animation_graph.tag_id, new_anim);
-                                Object *child_def = (Object *)tag_instances[child->definition_tag & 0xffff].data;
-                                if (*(uint32_t *)&child_def->model.tag_id != 0xffffffff) {
-                                    if ((child->flags & 1) != 0) object_for_each_light_attachment(child_index, 1);
-                                    if (*(uint32_t *)&child_def->model.tag_id != 0xffffffff) {
-                                        child->flags &= ~1u;                          // object + 0x10, bit 0
-                                        ((object_header *)object_data->data)[child_index & 0xffff].flags |= 0x02;
-                                    }
-                                }
-                                ((unit_data *)((uint8_t *)child + k_unit_data_offset))->animation_state = 0x1b;
-                                actor_notify_weapon_pickup_once(child_index);
-                                if (child->network_role == 0) {
-                                    unit_dispatch_scripted_event_9(0);
-                                }
-                                detach_count++;
-                            }
-                        }
+                if (*(datum_index *)(OBJECT_DATA(vehicle_index) + 0x324) == child_index) {
+                    unit_notify_weapon_removed((int32_t)vehicle_index);
+                }
+                unit_set_custom_animation(child_index, *(datum_index *)(self_tag + 0x44),
+                    animation_choose_random_permutation(graph, exit_animation, 1));
+                object = OBJECT_DATA(child_index);
+                object_tag = TAG_DATA(*(datum_index *)object);
+                if (*(int32_t *)(object_tag + 0x34) != -1) {
+                    if ((object[0x10] & 1) != 0) {
+                        object_for_each_light_attachment(child_index, 0, 1);
+                    }
+                    if (*(int32_t *)(object_tag + 0x34) != -1) {
+                        *(uint32_t *)(object + 0x10) &= ~1u;
+                        OBJECT_HEADER(child_index).flags |= 2;
                     }
                 }
+                self[0x2a3] = 0x1b;
+                actor_notify_weapon_pickup_once(child_index);
+                if (*(int32_t *)(self + 4) == 0) {
+                    unit_dispatch_scripted_event_9(0, (int32_t)child_index);
+                }
+                count++;
             }
         }
-        candidate = object_iterator_next(&iter);
-    } while (candidate != (object *)0);
-
-    return detach_count;
+    }
+    return count;
 }
 
 #if 0
