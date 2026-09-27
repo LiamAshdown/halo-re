@@ -69,7 +69,7 @@ extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
 extern double atan2(double y, double x); // x87 FPATAN
 extern double fcos(double radians); // a single x87 FCOS instruction
 extern double fsin(double radians); // a single x87 FSIN instruction
-extern void player_effect_set_screen_flash_for_player(void *effect_struct, uint32_t one_point_zero); // 0x456980, not in this batch
+extern void player_effect_set_screen_flash_for_player(datum_index player_index, void *descriptor, float intensity_falloff); // 0x456980, EAX player, stack (descriptor, intensity_falloff)
 extern int game_engine_find_valid_starting_locations(real_point3d *origin,
     float max_horizontal_dist, float max_height_delta, int16_t team, int16_t type,
     int32_t max_results, int32_t *results); // 0x461080, this batch
@@ -223,7 +223,7 @@ void game_engine_update_teleporter(uint32_t player_index)
                     effect[4] = 0;
                     effect[5] = teleport_effect_const_00687b00;
                     effect[6] = teleport_effect_const_00687b04;
-                    player_effect_set_screen_flash_for_player(effect, 1.0f); // 1.0f
+                    player_effect_set_screen_flash_for_player(player_index, effect, 1.0f); // FIXED: EAX = the player (the draft dropped it and passed 1.0f as an integer) // 1.0f
                 }
             }
 

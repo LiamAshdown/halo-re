@@ -1,6 +1,6 @@
 // player_effect_set_screen_flash_for_player  (Ghidra: FUN_00456980, still unnamed there)
 // address 0x456980, size 75 bytes
-// name confidence: 0.4   rewrite confidence: 0.35
+// name confidence: 0.4   rewrite confidence: 0.9 (VERIFIED against objdump; argument roles FIXED)
 // evidence: types/game.h player.local_player_index (+0x02); this module's
 //   player_effect_set_screen_flash (0x4578a0) and player_effect_globals.players[1] (+0x000).
 //   out/phase4/effects_types_notes.md's misattribution table places this address in the
@@ -28,8 +28,12 @@ extern player_effect_globals *player_effect_globals_pointer; // 0x006f1884
 extern void player_effect_set_screen_flash(player_effect *self, player_screen_flash *descriptor,
     float intensity_falloff, float duration_scale); // 0x4578a0, this module
 
-void player_effect_set_screen_flash_for_player(datum_index player_index, float duration_scale,
-    player_screen_flash *descriptor) // blam-cc: in_EAX, stack, stack
+// FIXED (objdump 0x456980..0x4569ca): stack arg 1 is the flash descriptor (forwarded in EBX) and stack arg 2 the
+//   intensity falloff (forwarded as the callee's second stack argument); the duration scale is always 1.0. Every
+//   caller pushes (descriptor, 1.0f) with the player in EAX.
+// blam-cc: EAX -> player_index, stack -> descriptor, intensity_falloff
+void player_effect_set_screen_flash_for_player(datum_index player_index, player_screen_flash *descriptor,
+    float intensity_falloff)
 {
     if (player_index != (datum_index)0xffffffff) {
         player *record = &((player *)player_data->data)[player_index & 0xffff];
@@ -37,7 +41,7 @@ void player_effect_set_screen_flash_for_player(datum_index player_index, float d
         if (record->local_player_index != -1) {
             player_effect_set_screen_flash(
                 &player_effect_globals_pointer->players[record->local_player_index],
-                descriptor, 1.0f, duration_scale);
+                descriptor, intensity_falloff, 1.0f);
         }
     }
 }

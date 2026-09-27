@@ -17,7 +17,7 @@
 
 extern data_array *player_data; // 0x0087a480
 
-extern void player_effect_set_screen_flash_for_player(void *effect_struct, uint32_t one_point_zero); // 0x456980, established
+extern void player_effect_set_screen_flash_for_player(datum_index player_index, void *descriptor, float intensity_falloff); // 0x456980, EAX player, stack (descriptor, intensity_falloff)
 
 // blam-cc: EDX -> player_index
 void player_trigger_full_health_effect(uint32_t player_index)
@@ -42,7 +42,7 @@ void player_trigger_full_health_effect(uint32_t player_index)
         *(uint32_t *)(buffer + 0x30) = 0x3f6aeaea; // 0.9238795f
         *(uint32_t *)(buffer + 0x34) = 0x3f6aeaea; // 0.9238795f
 
-        player_effect_set_screen_flash_for_player(buffer, 1.0f); // 1.0f
+        player_effect_set_screen_flash_for_player(player_index, buffer, 1.0f); // FIXED: EAX = the player (the draft dropped it and passed 1.0f as an integer) // 1.0f
     }
 }
 

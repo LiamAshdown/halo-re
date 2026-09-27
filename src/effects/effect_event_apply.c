@@ -68,8 +68,8 @@ extern datum_index object_new(object_placement_data *placement); // 0x4f5460, EC
 extern void effect_random_velocity_vector(effect *self, random_seed *seed,
     real_vector3d *direction, real_vector3d *out_direction, real_vector3d *out_velocity,
     real min, real max, real angle_max, uint32_t a_bitset, uint8_t b_bitset); // 0x451310, EAX self
-extern void effect_random_direction_vector(random_seed *seed, real_point3d *out, real min,
-    real max); // 0x451450
+extern void effect_random_direction_vector(random_seed *seed, real_point3d *out, real min, real max,
+    effect *self, uint32_t a_bitset, uint32_t b_bitset); // 0x451450, stack, EBX self, ESI a, EDI b
 extern datum_index particle_system_new_at_point(uint32_t definition_index, real_point3d *position,
     real_vector3d *velocity, ColorARGB *color, float scale); // 0x453600
 extern void decal_spawn_for_response(datum_index response_tag_index, uint8_t deterministic, real_point3d *origin,
@@ -149,7 +149,7 @@ void effect_event_apply(effect *self, EffectPart *part, effect_location_marker *
         velocity->j = velocity->j + SELF_FIELD(real, 0x28);
         velocity->k = velocity->k + SELF_FIELD(real, 0x2c);
         effect_random_direction_vector(&random_seed_global, (real_point3d *)(raw + 0x4c), PART_FIELD(real, 0x4c),
-            PART_FIELD(real, 0x50));
+            PART_FIELD(real, 0x50), self, PART_FIELD(uint32_t, 0x60), PART_FIELD(uint32_t, 0x64)); // 0x452f5e: EBX, ESI, EDI
         object_new(&placement);
     } else if (group == 0x7063746cu) { // pctl
         ColorARGB color;

@@ -3,7 +3,7 @@
 // particle_system_property_random_value -> effect_property_random_value" -- it reads
 // Effect.a_scale/b_scale (effect +0x44/+0x48), not a pctl field)
 // address 0x451290, size 122 bytes
-// name confidence: 0.5   rewrite confidence: 0.55
+// name confidence: 0.5   rewrite confidence: 0.9 (VERIFIED against objdump 0x451290..0x451309)
 // evidence: types/effects.h effect (a_scale 0x44, b_scale 0x48); the arithmetic is the same
 // {base_min, base_max} random-range shape as effect_random_scaled_range 0x44c840, but with two
 // independent multiplier bit-sets (A and B) instead of one flags word.

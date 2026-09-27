@@ -1754,3 +1754,8 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - The impulse magnitudes come from +0x8c/+0x90, and the second random offset gets the raw magnitudes.
   - The placed rotation keeps its position (the draft overwrote it).
 - particle_new verified 0.9 (leaf mask added); material_effects_play_at_marker verified 0.9; player_effect_random_shake_offset verified 0.9.
+- Screen flash chain fixed:
+  - player_effect_set_screen_flash_for_player takes (EAX player, descriptor, falloff) and forwards duration 1.0. Its four callers (shield recharge, full health, kill streak, teleporter) now pass the player; they had dropped it and passed 1.0f as an integer.
+  - player_effect_set_screen_flash: the weight is descriptor +0x24 and the maximum +0x20 (the draft swapped them).
+- effect_random_direction_vector: effect_property_random_value now gets bit 3 plus the caller's EBX/ESI/EDI (self and the a/b bits); the draft passed bit 0 and zeros. Its caller effect_event_apply is updated.
+- effect_property_random_value verified 0.9.

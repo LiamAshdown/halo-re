@@ -26,7 +26,7 @@ extern uint32_t global_006889f0; // 0x006889f0
 extern uint32_t global_006889ec; // 0x006889ec
 extern uint32_t global_007102f8; // 0x007102f8
 
-extern void player_effect_set_screen_flash_for_player(void *effect_struct, uint32_t one_point_zero); // 0x456980, established
+extern void player_effect_set_screen_flash_for_player(datum_index player_index, void *descriptor, float intensity_falloff); // 0x456980, EAX player, stack (descriptor, intensity_falloff)
 
 // blam-cc: EDX -> player_index
 void player_trigger_kill_streak_effect(uint32_t player_index)
@@ -51,7 +51,7 @@ void player_trigger_kill_streak_effect(uint32_t player_index)
         *(uint32_t *)(buffer + 0x30) = global_006889f0;
         *(uint32_t *)(buffer + 0x34) = global_007102f8;
 
-        player_effect_set_screen_flash_for_player(buffer, 1.0f); // 1.0f
+        player_effect_set_screen_flash_for_player(player_index, buffer, 1.0f); // FIXED: EAX = the player (the draft dropped it and passed 1.0f as an integer) // 1.0f
     }
 }
 

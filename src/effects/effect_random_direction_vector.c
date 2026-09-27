@@ -3,7 +3,7 @@
 // particle system from a precomputed direction table, scaled by a random magnitude, or a
 // default direction if the magnitude is zero")
 // address 0x451450, size 168 bytes
-// name confidence: 0.4   rewrite confidence: 0.3 (see UNSURE)
+// name confidence: 0.4   rewrite confidence: 0.9 (VERIFIED against objdump 0x451450..0x4514f7; property call FIXED) (see UNSURE)
 // evidence: src/math/vector3d_randomize_direction.c establishes sphere_point_table /
 // sphere_point_table_count; types/math.h global_origin3d_pointer (0x00696714 -> 0x0065c230).
 // register convention: effect* and the two random-value bit-set/self arguments this forwards to
@@ -27,9 +27,14 @@ extern real effect_property_random_value(uint8_t bit_index, effect *self, uint32
 
 // Rolls a random magnitude in [min, max); if non-zero, scales a random unit vector out of
 // sphere_point_table by it, otherwise returns the global origin point.
-void effect_random_direction_vector(random_seed *seed, real_point3d *out, real min, real max)
+// FIXED (objdump 0x451450..0x451469): effect_property_random_value is called with EDX = 3 (the property bit)
+//   and EBX / ESI / EDI passed straight through from the caller (the effect and its part's a / b scale bits;
+//   effect_event_apply 0x452f5e..0x452f61). The draft passed bit 0 and zeros.
+// blam-cc: stack -> seed, out, min, max; EBX -> self, ESI -> a_bitset, EDI -> b_bitset
+void effect_random_direction_vector(random_seed *seed, real_point3d *out, real min, real max,
+    effect *self, uint32_t a_bitset, uint32_t b_bitset)
 {
-    real magnitude = effect_property_random_value(0, 0, 0, 0, seed, min, max); // UNSURE, see file header
+    real magnitude = effect_property_random_value(3, self, a_bitset, b_bitset, seed, min, max);
 
     if (magnitude != 0.0f) {
         int16_t index;

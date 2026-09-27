@@ -2,7 +2,7 @@
 //   out/phase4/effects_types_notes.md: "player_effect_set_screen_flash 0x4578a0 (14 dwords into
 //   +0x18)")
 // address 0x4578a0, size 264 bytes
-// name confidence: 0.55   rewrite confidence: 0.4
+// name confidence: 0.55   rewrite confidence: 0.9 (VERIFIED against objdump 0x4578a0..0x4579a7; weight/maximum FIXED)
 // evidence: types/effects.h player_effect.flash (player_screen_flash, +0x18) and flash_ticks
 //   (+0xde); global 0x00687218 screen_flash_pass[8] (types/effects.h globals list). The source
 //   descriptor is modeled as another player_screen_flash because the 14-dword copy exactly
@@ -38,25 +38,21 @@ void player_effect_set_screen_flash(player_effect *self, player_screen_flash *de
         self->flash.duration = duration_scale * 30.0f * descriptor->duration;
         self->flash_ticks = (int16_t)self->flash.duration;
 
+        // FIXED (objdump 0x457916..0x4579a3): the weight is descriptor +0x24 (intensity) and the clamp maximum is
+        //   +0x20; the result lands in the copied flash's +0x24. The draft swapped the two fields.
         {
-            float weight = *(float *)&descriptor->unknown_20; // UNSURE: types/effects.h currently
-                                    // types this field as uint32_t; this function reads it as a
-                                    // float, so it is reinterpreted here rather than widening
-                                    // the header's declared type
+            float weight = descriptor->intensity;
+            float maximum = *(float *)&descriptor->unknown_20;
+
             blended = (1.0f - weight) * intensity_falloff + weight;
-        }
-        // UNSURE: unknown_20 reused here as a [0,1] weight, matching the field's role in
-        // player_camera_impulse/player_camera_shake's own "blend the next X must beat this one"
-        // framing, but this specific field has no established name.
-        if (blended < 0.0f) {
-            self->flash.intensity = 0.0f;
+            if (!(blended >= 0.0f)) {
+                self->flash.intensity = 0.0f;
+            } else if (!(blended <= maximum)) {
+                self->flash.intensity = maximum;
+            } else {
+                self->flash.intensity = blended;
+            }
             self->flags |= _player_effect_screen_flash_bit;
-        } else if (descriptor->intensity < blended) {
-            self->flash.intensity = descriptor->intensity;
-            self->flags |= _player_effect_screen_flash_bit;
-        } else {
-            self->flags |= _player_effect_screen_flash_bit;
-            self->flash.intensity = blended;
         }
     }
 }
