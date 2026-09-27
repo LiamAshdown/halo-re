@@ -1,15 +1,15 @@
 // weapon_ready  (Ghidra: FUN_004c2840; named from out/phase4/items_functions.md, "Starts an
 // item's action animation/sound (e.g. ready/deploy) and its associated cooldown timer")
 // address 0x4c2840, size 161 bytes
-// name confidence: 0.35   rewrite confidence: 0.4
+// name confidence: 0.35   rewrite confidence: 0.85
 // evidence: types/items.h weapon_data.action_ticks (0x23a; seeded from
 //   weapon_get_first_person_animation_time(0,-1) per the weapon_data comment block);
 //   types/objects.h object.flags (_object_changed_bit 0x04000000), object.network_role (0x004).
 // register convention: item index in EAX, threaded through to every callee below.
 // blam-cc: EAX -> item_index
-// UNSURE: local_player_index_for_weapon and hud_play_pickup_notification are outside this module; their true signatures and
-// whether they also take item_index implicitly are not established, so they are declared with
-// only the arguments Ghidra shows.
+// VERIFIED 2026-09-27 against objdump 0x4c2840..0x4c28e0: reset triggers, set_state(9, force), fp action 0xc for the
+// holding local player (else the HUD pickup notification with EBX item / EAX 0xc), ready_effect, action_ticks from
+// fp animation 0xa, and the changed bit when authoritative.
 
 #include "tags.h"
 #include "memory.h"
@@ -57,8 +57,7 @@ void weapon_ready(datum_index item_index)
 
     weapon_play_trigger_tag_effect(item_index, *(datum_index *)&weapon_tag->ready_effect.tag_id, 0.0f, 0.0f);
         // 0x4c28a3: EDI = weapon tag +0x348 (ready_effect.tag_id), verified
-    wd->action_ticks = weapon_get_first_person_animation_time(item_index, 0, 0, -1); // UNSURE:
-        // animation_index (CX) placeholder, see weapon_get_first_person_animation_time.c
+    wd->action_ticks = weapon_get_first_person_animation_time(item_index, 10, 0, -1); // 0x4c28b8: CX = 0xa (ready)
 
     if (item_obj->network_role == 0) {
         item_obj->flags = item_obj->flags | _object_changed_bit;

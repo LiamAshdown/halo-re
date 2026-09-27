@@ -2150,3 +2150,7 @@ reachability, ranged attack vector, platoon propagation, engagement range, squad
 - weapon_play_trigger_tag_effect (0x4c47d0) verified -> 0.85; the signature now takes (real scale_a, real scale_b); externs updated.
   All six callers' EDI tag fields checked (ready/reloading/chambering/overheat_detonation).
 - Relinked: unresolved 1, traps 127. hooks.txt == stable (only CRLF differs).
+- weapon fp animation lengths: weapon_get_first_person_animation_time (0x4c2f80) verified -> 0.85. Callers passed a
+  placeholder CX: weapon_ready now passes 0xa (was 0 -> the ready cooldown used the wrong animation's frame count),
+  weapon_trigger_begin_reload passes 7 (was the magazine index -> reload length wrong). weapon_ready and
+  weapon_trigger_begin_reload verified -> 0.85. Relinked: unresolved 1, traps 127.

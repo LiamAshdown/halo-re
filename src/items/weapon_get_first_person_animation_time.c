@@ -4,7 +4,7 @@
 // that address is one of the shell/main fragments and is not a real function; this is the
 // genuine owner)
 // address 0x4c2f80, size 225 bytes
-// name confidence: 0.45   rewrite confidence: 0.45
+// name confidence: 0.45   rewrite confidence: 0.85
 // evidence: types/tags.h Weapon.first_person_animations (tag_id 0x478), ModelAnimations
 //   .first_person_weapons (TagReflexive 0x48) and .animations (TagReflexive 0x74),
 //   ModelAnimationsAnimation (frame_count 0x22, key_frame_index 0x34, size 0xb4),
@@ -13,13 +13,10 @@
 // register convention: item index in EAX; animation index in CX; category and mode are
 //   Ghidra-recognized stack parameters.
 // blam-cc: EAX -> item_index, CX -> animation_index, stack -> (category, mode)
-// UNSURE: the weapon_type == 1 override branch's exact purpose (which weapon type 1 names, and
-// why index 0x17 specifically) is not chased down further; preserved literally. Two call sites
-// in this module (weapon_ready, weapon_reset_triggers) invoke this function showing only the
-// category/mode stack arguments, with EAX and CX apparently unchanged from whatever the caller
-// last left them as; this module's own callers pass item_index explicitly there and 0 for
-// animation_index as a placeholder -- the true CX value at those call sites is not recoverable
-// from the decompilation.
+// VERIFIED 2026-09-27 against objdump 0x4c2f80..0x4c3060. Call-site CX values: weapon_ready 0xa (0x4c28b8),
+// weapon_trigger_begin_reload 7 (0x4c3781), weapon_reset_triggers 7 (0x4c4bdd), biped_update 0xd (0x559d45,
+// 0x559d73). The weapon_type 1 override (fp animation slot 0x17, used for modes 0 / 2) is preserved literally,
+// including the original's read of animations[-1] when the weapon has fewer than 0x18 fp animations.
 
 #include "tags.h"
 #include "memory.h"

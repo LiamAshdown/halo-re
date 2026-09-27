@@ -1,6 +1,6 @@
 // weapon_trigger_begin_reload  (Ghidra: weapon_trigger_begin_reload, already named)
 // address 0x4c35b0, size 510 bytes
-// name confidence: 0.5   rewrite confidence: 0.35
+// name confidence: 0.5   rewrite confidence: 0.85
 // evidence: types/items.h weapon_magazine_state (state/state_ticks/state_ticks_total,
 //   rounds_unloaded/rounds_loaded), weapon_data.predicted_rounds_unloaded/_loaded,
 //   weapon_state (_weapon_state_reload_primary=5/_secondary=6), weapon_flags
@@ -9,11 +9,8 @@
 // register convention: item index, magazine/trigger index and a client/predicted flag are all
 // Ghidra-recognized __cdecl parameters.
 // blam-cc: stack -> (item_index, magazine_index, is_client_predicted)
-// UNSURE: weapon_play_trigger_tag_effect and weapon_get_first_person_animation_time are called
-// here with literal (0,0)/(0,mode) arguments in the decompilation; item_index and the animation
-// index are threaded through as this module's own convention requires, but the true animation
-// index (CX at the second call) is not recoverable -- passed as magazine_index here since that
-// is the only in-scope value that plausibly maps to "which reload animation".
+// REWRITTEN 2026-09-27 (static loop) against objdump 0x4c35b0..0x4c37ad: every branch, offset and call matches;
+// the reload animation length uses CX = 7 (0x4c3781), not the magazine index as the draft guessed.
 
 #include "tags.h"
 #include "memory.h"
@@ -76,8 +73,8 @@ void weapon_trigger_begin_reload(datum_index item_index, int16_t magazine_index,
                 weapon_notify_reload_begin(item_index, magazine_index);
             }
             weapon_set_state(item_index, magazine_index + 5, 0);
-            weapon_play_trigger_tag_effect(item_index, *(datum_index *)&magazine_tag->reloading_effect.tag_id, 0, 0); // UNSURE:
-                // tag_id (EDI) placeholder, see weapon_play_trigger_tag_effect.c
+            weapon_play_trigger_tag_effect(item_index, *(datum_index *)&magazine_tag->reloading_effect.tag_id,
+                0.0f, 0.0f); // 0x4c3714: EDI = magazine tag +0x44 (reloading_effect.tag_id)
             // FIXED (objdump 0x4c3724..0x4c3739): EAX = the weapon, EDI = 9 + (rounds_loaded != 0). The draft passed
             //   nothing, so the first-person reload action ran with a garbage player index and action code.
             weapon_action_notify_for_weapon(item_index, magazine->rounds_loaded != 0 ? 10 : 9);
@@ -89,7 +86,7 @@ void weapon_trigger_begin_reload(datum_index item_index, int16_t magazine_index,
             }
 
             magazine->state = _weapon_magazine_reloading;
-            ticks = weapon_get_first_person_animation_time(item_index, magazine_index, 0, mode);
+            ticks = weapon_get_first_person_animation_time(item_index, 7, 0, mode); // 0x4c3781: CX = 7 (reload)
             magazine->state_ticks = ticks;
             magazine->state_ticks_total = ticks;
         }
