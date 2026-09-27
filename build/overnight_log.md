@@ -1539,3 +1539,11 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - OPEN (sizescan3): encounters_update_activation 0x437e20 (0.45), encounter_redistribute_squads_toward_targets (0.15),
   actor_replace_object_reference (0.3), unit_dispatch_seat_exit_message (0.2), decal_place (0.15) extend past
   their header sizes and are unrewritten.
+- Vanishing-NPC trail (static): verified against objdump, all faithful -- encounters_update_activation (header fixed,
+  0.9; actors outside every player-visible cluster for 90 ticks get their units' header active bit cleared),
+  actor_set_units_active, object_mark_pending_delete / object_clear_pending_delete_flag,
+  game_engine_build_visible_cluster_bitmask (player root clusters' PVS rows at +0x14c), object_set_position_and_relink,
+  object_set_cluster_and_parent (relink into a non-visible cluster DELETES objects flagged 0x80000), and the constructor's
+  0x80000 save/restore + inactive-delete check. Our C sets 0x80000 nowhere the binary does not.
+  Runtime check for the user: if the cryo tech vanishes, is his object deleted (datum freed) or only inactive (header +2
+  bit 0 clear)? And is his object +0x9c cluster -1 at that moment?

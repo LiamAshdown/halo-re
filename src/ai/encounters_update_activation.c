@@ -1,6 +1,6 @@
 // encounters_update_activation  (Ghidra: encounters_update_activation; named for this rewrite)
-// address 0x437e20, size 1139 bytes
-// name confidence: 0.5   rewrite confidence: 0.45
+// address 0x437e20, size 1163 bytes (0x437e20..0x4382aa)
+// name confidence: 0.5   rewrite confidence: 0.9 (verified branch by branch against objdump 0x437e20..0x4382aa)
 // evidence: phase-4 summary ("master per-tick pass that updates every actor's
 //   cluster-visibility/active state and decides which squads should be activated or
 //   deactivated based on player-relevant BSP clusters and dependent squads"). The mask it
