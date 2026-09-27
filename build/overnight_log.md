@@ -1076,3 +1076,29 @@ OPEN:
 - point_physics_tick (0x50b530) is 0.45 confidence and now runs for antennas/particles/flags -- verify.
 - ~345k first-chance access violations per 200 s run under cdb (handled somewhere); find the source.
 - real profile still holds saves written by earlier standalone runs; backup in build/profile_backup (not restored).
+
+## 2026-09-27 (loop, later) -- a10 reaches gameplay, 400 s without a crash
+Result: CONTINUE -> the full opening cinematic (bridge, cryo bay crew) -> first-person gameplay in the cryo
+bay; the run stays up 400 s (screenshots scratchpad/shot_270.png / shot_400.png: correct lighting, crew visible).
+The view is static because the level's calibration sequence waits for player input.
+Fixed this stretch (all rewritten or checked against objdump):
+- structure surface callbacks passed literal original addresses (0x511f20..0x511f80) -> ~1000 exceptions/s
+  through the harness redirect; now the C rewrites.
+- colour helpers: HUD meter / waypoint int->real (out, packed) order, HUD meter / weather / lens flare
+  color_interpolate (EAX color1, ECX color0, dest, flags, t) -- the HUD crash on the first gameplay frame.
+- AI pathfinding end to end: path_find_run + search loop (map at +0x64), avoidance penalty segment,
+  trace_bsp_boundary, test_segment_unobstructed, trace_cluster_boundary, choose_shorter_corner,
+  simplify_waypoints, the obstacle point search (add_node, nearest_visible_point, evaluate_edge_cost,
+  expand_point_neighbors, step, gather_obstacles, navigate_around_obstacles) and reconstruct_path.
+  Verified unchanged: heaps, context_init/run, covering point, tangents, ray/circle, flood fill, partition,
+  append, trace_from_vertex, heights_are_close, circle tangent/portal crossing. types/ai.h path_find_waypoint.
+- game_engine_build_visible_cluster_bitmask: bit_vector_or lost 3 of 4 arguments.
+- unit_rotate_basis_about_axis (0x55e6b0) takes only the object (axis = angular velocity); idle fidget cross
+  product (global up x unit up).
+OPEN:
+- 0x43c5d0..: evaluate_edge_cost's second side pair traces +normal twice (binary quirk, reproduced).
+- actor_check_step_obstruction calls 0x429570 with no arguments (check its registers).
+- point_physics_tick (0.45), path_find_push_start_node (0.35), path_find_compute_heuristic (0.25),
+  path_find_test_direct_reachability / validate_and_record_goal (0.3) still to verify.
+- a mis-carved function file (biped_build_update_delta_unit_grenade_count_mod1, 0x55e9ff) lies inside
+  biped_apply_idle_fidget (0x55e940).
