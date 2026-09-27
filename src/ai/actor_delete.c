@@ -1,6 +1,6 @@
 // actor_delete  (Ghidra: actor_delete, already named)
 // address 0x427e60, size 216 bytes
-// name confidence: 0.6   rewrite confidence: 0.4
+// name confidence: 0.6   rewrite confidence: 0.9 (VERIFIED against objdump)
 // evidence: types/ai.h actor.unknown_09/swarm(0x06)/cluster_unit_index(0x24); already
 //   established elsewhere in this module: actor_delete's own signature
 //   (EBX -> actor_index, stack -> flag, per src/ai/ai_clear_object_references.c),
@@ -27,7 +27,7 @@ extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
 
 extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counters); // 0x436620, blam-cc: EAX -> actor_index, stack -> skip_counters
-extern void ai_actor_unlink_from_unassigned_list(datum_index actor_index, uint32_t flag); // 0x436990, UNSURE signature, not in this rewrite range
+extern void ai_actor_unlink_from_unassigned_list(datum_index actor_index); // 0x436990, EDI -> actor_index
 extern void actor_unlink_unit(datum_index actor_index); // 0x427bc0
 extern void actor_delete_swarm(datum_index actor_index); // 0x4280b0
 extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index unit_index); // 0x427c90
@@ -51,7 +51,7 @@ void actor_delete(datum_index actor_index, uint32_t flag)
     if (self->unknown_09 == 0) {
         encounter_remove_actor(actor_index, (uint8_t)flag);
     } else {
-        ai_actor_unlink_from_unassigned_list(actor_index, flag);
+        ai_actor_unlink_from_unassigned_list(actor_index);
     }
 
     if (self->swarm == 0) {

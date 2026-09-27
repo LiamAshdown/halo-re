@@ -4,7 +4,7 @@
 // out/phase4/objects_functions.md: "Tears down an object's active links: clears stun state,
 // notifies any linked object, recurses through its children, and runs type-specific cleanup for
 // lifecycle states 0 and 3.")
-// rewrite confidence: 0.5
+// rewrite confidence: 0.9 (FIXED role-0 fallthrough; rest VERIFIED against objdump)
 // evidence: types/objects.h object.network_role (0x004, "object_delete dispatches on 0 versus
 // 3"); types/tags.h Object.collision_model (0x7c).
 // register convention: uint32_t object_index in EAX (in_EAX).
@@ -27,7 +27,7 @@ extern datum_index effect_new_on_object(datum_index creator_object_index, datum_
     const ColorRGB *color, const effect_tint_source *tint_source);
     // 0x4507a0, blam-cc: EAX -> creator_object_index, ECX -> definition_index, stack -> the other six
 extern void object_delete_unparented(uint32_t object_index); // blam-cc: EDI -> object_index // UNSURE: zero visible args; objects module, 0x4f5aa0 (out of range)
-extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings); // UNSURE: zero visible args; objects module, 0x4f59d0 (out of range)
+extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings); // 0x4f59d0, stack -> object_index, recurse_siblings
 
 void object_delete_teardown(uint32_t object_index)
 {
@@ -46,10 +46,15 @@ void object_delete_teardown(uint32_t object_index)
 
     object_children_recurse_prune(object_index);
 
-    if (obj->network_role == 0) {
-        object_delete_unparented(object_index); // EDI carries the handle
-    } else if (obj->network_role == 3) {
-        object_delete_recursive(object_index, 0); // UNSURE: the second argument is not visible here
+    // FIXED (objdump 0x4edcff..0x4edd1f): role 0 runs object_delete_unparented and then falls through into
+    //   object_delete_recursive(object, 0); role 3 runs only object_delete_recursive. The draft never deleted
+    //   role-0 objects (single player), leaving them alive after the teardown.
+    obj = headers[object_index & 0xffff].data;
+    if (obj->network_role == 0 || obj->network_role == 3) {
+        if (obj->network_role == 0) {
+            object_delete_unparented(object_index); // EDI carries the handle
+        }
+        object_delete_recursive(object_index, 0);
     }
 }
 

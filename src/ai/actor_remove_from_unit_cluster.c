@@ -1,6 +1,6 @@
 // actor_remove_from_unit_cluster  (Ghidra: actor_remove_from_unit_cluster, already named)
 // address 0x427c90, size 360 bytes
-// name confidence: 0.5   rewrite confidence: 0.45
+// name confidence: 0.5   rewrite confidence: 0.9 (VERIFIED against objdump)
 // evidence: types/ai.h swarm.unit_index[16]/component_index[16]/component_count,
 //   actor.cluster_count (0x1e), actor.swarm_index (0x28); types/objects.h object_header,
 //   object.parent_object (0x11c)/location_cluster_index (0x9c); types/units.h

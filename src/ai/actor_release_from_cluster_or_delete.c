@@ -1,6 +1,6 @@
 // actor_release_from_cluster_or_delete  (Ghidra: actor_release_from_cluster_or_delete, renamed)
 // address 0x428e50, size 80 bytes
-// name confidence: 0.4   rewrite confidence: 0.4
+// name confidence: 0.4   rewrite confidence: 0.9 (VERIFIED against objdump)
 // evidence: types/ai.h actor.cluster_count(0x1e)/encounter_index(0x34). Calls
 //   actor_remove_from_unit_cluster (0x427c90) and actor_delete (0x427e60), both already
 //   rewritten in this module, plus encounter_recompute_morale (outside this rewrite's range, UNSURE
