@@ -1,6 +1,6 @@
 // actor_squad_action_list_process  (Ghidra: actor_squad_action_list_process, already named)
 // address 0x406e30, size 246 bytes
-// name confidence: 0.5   rewrite confidence: 0.4
+// name confidence: 0.5   rewrite confidence: 0.9 (checked against objdump 0x406e30..0x406f25)
 // evidence: types/tags.h Scenario.command_lists/ScenarioCommandList.commands (same layout as
 //   the other squad-action functions in this session); calls actor_squad_action_is_complete,
 //   actor_squad_action_reset_entry (actor_squad_action_reset_entry) and actor_squad_action_execute in

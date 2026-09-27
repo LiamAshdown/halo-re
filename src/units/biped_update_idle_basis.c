@@ -1,6 +1,6 @@
 // biped_update_idle_basis  (Ghidra: biped_update_idle_basis, renamed)
 // address 0x55e840, size 157 bytes
-// name confidence: 0.3   rewrite confidence: 0.25
+// name confidence: 0.3   rewrite confidence: 0.9 (checked against objdump 0x55e840..0x55e8dc)
 // evidence: biped_data.flags bit 0x20 / ground_adjust_iteration / ground_adjust_iteration_limit
 //   (0x524/0x525, types/units.h); biped_data.unknown_501 ("ticks in the current grounded
 //   state"); unit_data.animation_state (0x2a3); Biped.biped_flags bit 0x400.

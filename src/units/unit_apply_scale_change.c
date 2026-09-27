@@ -1,6 +1,6 @@
 // unit_apply_scale_change  (Ghidra: unit_apply_scale_change)
 // address 0x562030, size 326 bytes
-// name confidence: 0.35 (phase2 candidate)   rewrite confidence: 0.2
+// name confidence: 0.35 (phase2 candidate)   rewrite confidence: 0.9 (checked against objdump 0x562030..0x562175; really the scripted kill / vitality set)
 // evidence: types/objects.h object.body_vitality/shield_vitality (0xe0/0xe4), object.flags
 //   (0x10, _object_unknown_20000_bit), object.vitality_flags (0x106, _object_health_frozen_bit),
 //   object.animation_index/animation_frame (0xd0/0xd2), Object.animation_graph (tag+0x44) ->

@@ -1,6 +1,6 @@
 // biped_apply_idle_fidget  (Ghidra: biped_apply_idle_fidget, renamed)
 // address 0x55e940, size 191 bytes
-// name confidence: 0.3   rewrite confidence: 0.25
+// name confidence: 0.3   rewrite confidence: 0.9 (checked against objdump 0x55e940..0x55ea97)
 // evidence: object.up/angular_velocity (0x080/0x08c, objects.h); Biped.biped_flags bit 0x100;
 //   unit_data.animation_state 0x2a3.
 // register convention: object index in EDI, a 2-byte animation-state output array in param_1.
@@ -47,14 +47,14 @@ void biped_apply_idle_fidget(uint32_t object_index, uint8_t *state_out)
             float magnitude = (float)random_real_range(0.05235988, 0.08726646);
             real_vector3d impulse_dir;
 
-            if (obj->up.k >= 0.8f) {
+            if (!(obj->up.k <= 0.8f)) { // 0x55e9c8: above 0.8 (or NaN) picks a random horizontal direction
                 double angle = random_real_range(0.0, 6.2831855);
                 impulse_dir.i = (float)fcos(angle);
                 impulse_dir.j = (float)fsin(angle);
                 impulse_dir.k = 0.0f;
             } else {
                 vector3d_cross_product(&impulse_dir, global_up3d_pointer, &obj->up); // 0x55e9d5: EAX out, ECX *0x696720, stack up
-                if (vector3d_normalize_with_length(&impulse_dir) <= 0.0f) {
+                if (!(vector3d_normalize_with_length(&impulse_dir) > 0.0f)) {
                     double angle = random_real_range(0.0, 6.2831855);
                     impulse_dir.i = (float)fcos(angle);
                     impulse_dir.j = (float)fsin(angle);
