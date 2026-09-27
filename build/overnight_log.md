@@ -1871,3 +1871,10 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - FIXED on the way: path_find_validate_and_record_goal (0x43a190, 0.3 -> 0.9, flying actors only) called path_find_test_direct_reachability with two NULL points. It is now EAX goal, ECX the body position (second argument, not unused), ESI local out, with a success-only copy.
   - OPEN: why the tech doesn't reach point 0. Next suspects are actor_movement_action_resolve's ground path (path_find_set_avoid_sphere 0.55, path_find_set_goal 0.6, path_find_context_init 0.7) or the go_to_and_face completion. A runtime check would show whether active_movement (+0x46c) holds point 0 after moving_1_3 starts.
 - Relink: left unresolved 1, traps 128.
+
+## Static loop: movement resolver, look cone, small AI verifications
+- actor_movement_action_resolve (0x41a460): the ground-path branch (request, extra override, avoid sphere, context init, goal, run, reconstruct, completion checks) and the destination gate match the binary. 19 scenario/actor offsets were asserted (scratchpad/offchk5.c). The moving_1_3 point 0 surface index is 0x484 (valid), so the cryo tech's go_to_and_face reaches path_find_run. The tech-position OPEN item stays OPEN (runtime).
+- unit_point_within_look_cone (0x56c100, hooked/stable, proven different): FIXED (0.25 -> 0.9). The binary normalizes (point - eye marker world position) before the dot with the unit look vector. The draft normalized an unused zero vector and dotted the raw difference, so the cone widened with distance. This affects objects_can_see_object, which gates the a10 look-tutorial panels, and the conversation participant checks.
+- VERIFIED: actor_get_aim_from_position (0x40f9b0, 0.9) and actor_handle_death (0x40dd50, 0.9).
+- Skipped: unit_spawn_with_starting_weapons (only caller is network_game_action_apply, MP).
+- Relink: left unresolved 1, traps 128.

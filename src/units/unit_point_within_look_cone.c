@@ -1,5 +1,5 @@
 // unit_point_within_look_cone  (Ghidra: FUN_0056c100)
-// address 0x56c100, size 208 bytes, name confidence 0.4, rewrite confidence 0.25
+// address 0x56c100, size 208 bytes, name confidence 0.4, rewrite confidence 0.9 (FIXED: normalize the eye-to-point vector before the look dot product (0x56c184); rest verified against 0x56c100)
 // functions.md: "Returns whether a given world point lies within a cone of half-angle param_1
 // around the unit's forward direction." (evidence below shows it is actually the *looking*
 // vector, not the raw object forward.)
@@ -40,14 +40,21 @@ uint8_t unit_point_within_look_cone(float cone_angle, uint32_t unit_index, real_
     object_marker marker;
     object_get_node_local_transform(unit_index, s_primary_eye_marker, &marker, 1) /* FIXED: the original pushes 1, the maximum marker count */;
 
-    float px = world_point->x, py = world_point->y, pz = world_point->z;
-    real_vector3d unused_normalize_target = { 0.0f, 0.0f, 0.0f }; // UNSURE: see file header
-    vector3d_normalize_with_length(&unused_normalize_target);
+    // FIXED (0x56c13c..0x56c1c4): the eye-to-point vector is normalized before the dot product
+    //   with the look vector; the draft normalized an unused zero vector and dotted the raw
+    //   difference, so the cone widened with distance (objects_can_see_object, the a10 look
+    //   tutorial panels).
+    real_vector3d to_point;
+    float cos_angle;
+    float dot;
 
-    float cos_angle = (float)fcos((double)cone_angle);
-    float dot = (px - marker.node_transform.position.x) * unit->looking_vector.i +
-                (py - marker.node_transform.position.y) * unit->looking_vector.j +
-                (pz - marker.node_transform.position.z) * unit->looking_vector.k;
+    to_point.i = world_point->x - marker.node_transform.position.x;
+    to_point.j = world_point->y - marker.node_transform.position.y;
+    to_point.k = world_point->z - marker.node_transform.position.z;
+    vector3d_normalize_with_length(&to_point);
+    dot = to_point.k * unit->looking_vector.k + to_point.j * unit->looking_vector.j +
+          to_point.i * unit->looking_vector.i;
+    cos_angle = (float)fcos((double)cone_angle);
     return cos_angle < dot;
 }
 

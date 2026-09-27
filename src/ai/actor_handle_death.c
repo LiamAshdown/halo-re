@@ -1,6 +1,6 @@
 // actor_handle_death  (Ghidra: actor_handle_death, renamed)
 // address 0x40dd50, size 198 bytes
-// name confidence: 0.3   rewrite confidence: 0.25
+// name confidence: 0.3   rewrite confidence: 0.9 (VERIFIED against 0x40dd50 (order record layout, EBX target / order registers, mode 4))
 // evidence: phase-4 summary "one-time actor death handling that clears its current threat
 // and transitions it into mode 4 (death handling)"; builds a scratch block, calls
 // actor_consider_target_candidate and actor_check_melee_target_reachable ("clears the current threat"), then

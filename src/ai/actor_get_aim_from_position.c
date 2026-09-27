@@ -1,6 +1,6 @@
 // actor_get_aim_from_position  (Ghidra: actor_get_aim_from_position, renamed)
 // address 0x40f9b0, size 177 bytes
-// name confidence: 0.4   rewrite confidence: 0.25
+// name confidence: 0.4   rewrite confidence: 0.9 (VERIFIED against 0x40f9b0 (vehicle-forward path under +0x161 and tag flag 0x100, aim +0x23c fallback on the active unit, clamp EDI/stack))
 // evidence: phase-4 summary "returns the 3D position to aim/look from for the actor (its
 // eye offset if flagged, otherwise its object's base position)".
 // register convention: actor_index in EAX, output real_point3d pointer in ECX.
