@@ -57,7 +57,7 @@ extern void player_kill_streak_tick(datum_index player_handle); // this batch, 0
 extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point); // 0x53f020, EAX, ECX
     // 0x53f020
 extern void console_print_va(const char *format, ...); // 0x4c6920
-extern void hud_display_loading_message(void); // 0x4aa2a0, main module, not in this batch; reads
+extern void hud_display_loading_message(uint8_t is_begin); // 0x4aa2a0, AL
     // requested_structure_bsp_index
 extern void player_update_nearby_interactions_primary(datum_index player_handle); // this batch, 0x478400, blam-cc: EDI -> player_handle
 extern void player_update_nearby_interactions_secondary(datum_index player_handle); // this batch, 0x478500, blam-cc: EDI -> player_handle
@@ -200,7 +200,7 @@ void main_switch_structure_bsp(void)
                             // loop's advance, which wrongly skipped the interaction reset and
                             // the player_update_nearby_interactions_primary/00478500 dispatch below for that player.
                             requested_structure_bsp_index = (uint16_t)destination;
-                            hud_display_loading_message();
+                            hud_display_loading_message(1); // FIXED: AL = 1 (0x474c39)
                         }
                     }
                 }

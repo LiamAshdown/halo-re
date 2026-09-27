@@ -77,7 +77,7 @@ extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vecto
 extern void vector3d_project_onto_axis(real_vector3d *parallel_out, real_vector3d *axis,
     real_vector3d *v, real_vector3d *perp_out); // 0x4cda90, src/math/vector3d_project_onto_axis.c
     // blam-cc: ECX -> parallel_out, EDX -> axis, ESI -> v, EDI -> perp_out
-extern real vector3d_angle_between_4cd4f0(void); // 0x4cd4f0, UNSURE args, opaque
+extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b); // 0x4cd4f0, ECX, EDX
 extern void vector3d_randomize_direction(real_vector3d *out, real spread); // 0x4cd1b0
 extern void effect_new_on_object_with_node_table(int16_t marker_index, int32_t kind, char **labels, void *position_block,
     void *direction_block, real fade_in, real fade_out, int32_t param_8, int32_t param_9); // 0x450870,
@@ -196,7 +196,8 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
             -response->velocity_noise) - hit->plane.normal.k * velocity->k) - hit->plane.normal.j * velocity->j -
             hit->plane.normal.i * velocity->i;
         angle_score = (real)((random_seed_global >> 0x10) * 1.5259022e-05 * (double)(angular_noise - -angular_noise) +
-            -angular_noise) + (vector3d_angle_between_4cd4f0() - 1.5707964f);
+            -angular_noise) + (vector3d_angle_between_4cd4f0((real_vector3d *)&hit->plane.normal, (real_vector3d *)velocity) - 1.5707964f);
+        // FIXED (0x4bf637..0x4bf675): ECX = &hit->plane.normal (+0x24), EDX = the velocity (ESI)
     }
 
     if (response->potential_response == 0 ||

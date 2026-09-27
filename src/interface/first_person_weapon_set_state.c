@@ -36,7 +36,7 @@ extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2
 
 extern int16_t item_type_to_animation_stage(int16_t message_stage); // 0x492880, this module
 extern void first_person_weapon_snapshot_pose(int16_t local_player_index, int16_t blend_gap); // 0x4930b0, this module
-extern void sound_impulse_fade_out(void); // 0x549ee0, foreign; UNSURE args (called with no visible arguments here)
+extern void sound_impulse_fade_out(datum_index sound_index); // 0x549ee0, ECX
 
 // Validates and applies a first-person weapon animation state transition. new_state (AX) is
 // first remapped 0x13->2 / 0x14->0x15 while the current weapon is overheated
@@ -157,7 +157,7 @@ void first_person_weapon_set_state(int16_t local_player_index, uint8_t force_pos
     }
 
     if (force_pose_snapshot != 0 && fp->unknown_1e98 != -1 && fp->unknown_1e9c != 1) {
-        sound_impulse_fade_out();
+        sound_impulse_fade_out((datum_index)fp->unknown_1e98); // FIXED: ECX = fp +0x1e98 (0x49301f)
         fp->unknown_1e98 = -1;
         fp->unknown_1e9c = -1;
     }

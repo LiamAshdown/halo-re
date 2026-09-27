@@ -35,7 +35,7 @@ extern uint8_t unknown_006f1cbc; // UNSURE
 extern uint8_t *unknown_006f187c; // UNSURE: byte 9 tested
 extern game_time_globals *game_time; // 0x006f1d6c
 
-extern int16_t camera_get_type_for_player(void); // established in src/game/
+extern int16_t camera_get_type_for_player(int16_t local_player_index); // 0x445ac0, CX
 extern void hud_draw_weapon_interface(player *p); // 0x4b1e20, cdecl
 extern void hud_update_interaction_prompt(datum_index player_index); // 0x4a9b80, blam-cc: player_index -> EDX
 extern void hud_unit_sounds_update(player *p, uint8_t hud_enabled); // 0x4afee0, blam-cc: EAX player
@@ -62,7 +62,7 @@ void hud_update_player(void)
     } else {
         player_index = local_player_globals->local_players[local_player_index];
     }
-    camera_type = camera_get_type_for_player();
+    camera_type = camera_get_type_for_player(local_player_index); // FIXED: CX = the local player index (0x4a99f0)
 
     if (player_index == (datum_index)-1) {
         return;

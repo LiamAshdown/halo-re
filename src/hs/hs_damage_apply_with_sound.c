@@ -20,8 +20,10 @@
 extern void *memset(void *dst, int32_t value, uint32_t size); // CRT
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX out, ECX object
     // objects module, 0x4f6900, UNSURE args
-extern int32_t bsp3d_node_find_leaf(void); // UNSURE: zero visible args; module unknown, 0x5013a0
-extern void object_apply_damage(void *request); // objects module, 0x4ee5e0
+extern int32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX, ECX, EDX
+extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
+extern void object_apply_damage(void *dd, uint32_t object_index, int16_t param_3, int16_t param_4,
+    int16_t param_5, uint32_t param_6); // 0x4ee5e0
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (formerly global_matg_multiplayer)
 
@@ -43,17 +45,23 @@ void hs_damage_apply_with_sound(datum_index object_index, uint32_t damage_effect
         request.sound_index = 0xffff;
         request.scale_a = 1.0f;
         request.scale_b = 1.0f;
+        request.unknown_4c = 0xffff; // FIXED: material type -1 (0x488a6b)
 
         object_get_position((real_point3d *)&request.position, object_index);
         *(Point3D *)&request.direction = *(Point3D *)&request.position;
 
-        impulse = bsp3d_node_find_leaf();
+        // FIXED (objdump 0x488aa7..0x488ac2): EAX = 0, ECX = the collision BSP, EDX = &request.position; the leaf
+        //   is stored at +0x14.
+        impulse = bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)&request.position);
+        request.sound_impulse = impulse;
         if (impulse == -1) {
             request.sound_index = 0xffff;
         } else {
             request.sound_index = ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[impulse & 0x7fffffff].cluster;
         }
-        object_apply_damage(&request);
+        // FIXED (objdump 0x488aee..0x488af9): (&dd, object, -1, -1, -1, 0); the draft passed only the record, so
+        //   the damage went to whatever object index was on the stack.
+        object_apply_damage(&request, object_index, -1, -1, -1, 0);
     }
 }
 

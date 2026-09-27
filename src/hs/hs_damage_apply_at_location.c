@@ -24,7 +24,7 @@
 #include "hs.h"
 
 extern void *memset(void *dst, int32_t value, uint32_t size); // CRT
-extern int32_t bsp3d_node_find_leaf(void); // UNSURE: zero visible args; module unknown, 0x5013a0
+extern int32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX, ECX, EDX
 extern void damage_apply_area_effect(void *request, uint32_t param_2); // effects module, 0x4edd30
 
 extern Scenario *global_scenario;      // 0x00746f8c
@@ -53,10 +53,14 @@ void hs_damage_apply_at_location(int16_t location_index, uint32_t damage_effect)
     request.sound_index = 0xffff;
     request.scale_a = 1.0f;
     request.scale_b = 1.0f;
+    request.unknown_4c = 0xffff; // FIXED: material type -1 (0x488993)
     *(Point3D *)&request.position = location->position;
     *(Point3D *)&request.direction = location->position;
 
-    impulse = bsp3d_node_find_leaf();
+    // FIXED (objdump 0x4889d4..0x4889eb): EAX = 0, ECX = the collision BSP, EDX = &location->position; the leaf
+    //   is stored in the record (+0x14). The draft passed nothing and dropped the leaf.
+    impulse = bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)&location->position);
+    request.sound_impulse = impulse;
     if (impulse == -1) {
         request.sound_index = 0xffff;
         damage_apply_area_effect(&request, 0xffffffff);

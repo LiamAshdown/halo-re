@@ -1674,3 +1674,9 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - units: unit_can_see_point -> device_machine_melee_attacked(hit object) and breakable_surface_apply_damage(&dd, ...); unit_try_give_grenade / unit_try_select_equipment -> equipment_pickup_play_sound(object).
   - physics: object_physics_resolve_mass_point_overlap -> unit_any_flagged_seat_occupied(self/other); object_physics_check_impact_damage -> unit_apply_impulse(candidate, &impulse).
 - OPEN: the vehicle lean functions (vehicle_calculate_ground_contact_lean[_alt], vehicle_calculate_ground_lean_controls, vehicle_calculate_lean_controls, vehicle_calculate_wing_flex_controls) call every math helper without arguments and need full rewrites (not in a10).
+- player_check_vehicle_boarding_interaction_lightweight (0x478c40; really the weapon-pickup prompt check) REWRITTEN from objdump (0.25 -> 0.9):
+  - four helpers had been called without arguments;
+  - the current weapon was requested with slot -1;
+  - the candidate was re-fetched where the binary fetches the current weapon.
+- hs_damage_apply_at_location (damage_new, used in a10) and hs_damage_apply_with_sound (damage_object): bsp3d_node_find_leaf now gets (0, bsp, point); the leaf is stored at +0x14 and the material at +0x4c = -1. damage_object now calls object_apply_damage(&dd, object, -1, -1, -1, 0); the draft passed only &dd, so the damage hit a garbage object index.
+- Argless fixes: unit_get_current_weapon_autoaim_cone -> weapon_get_zoom_magnification(weapon, zoom); main_switch_structure_bsp -> hud_display_loading_message(1); first_person_weapon_set_state -> sound_impulse_fade_out(fp+0x1e98); hud_update_player -> camera_get_type_for_player(local player); projectile_response -> vector3d_angle_between(&hit->plane.normal, velocity).
