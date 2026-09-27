@@ -27,8 +27,7 @@ extern tag_instance *tag_instances;           // 0x0087bc14
 extern uint8_t DAT_007c310a;                  // UNSURE: not owned by this module
 
 extern uint32_t color_real_to_argb_pack(float alpha, real_vector3d *color); // 0x44da60
-extern uint32_t vector3d_pack_normal_11_11_10(); // 0x5132d0; clamps the float at ESI into
-    // [the constant at 0x00672ba8, 1.0]. The operand is register-passed and not modelled here.
+extern uint32_t vector3d_pack_normal_11_11_10(real_vector3d *direction); // 0x5132d0, ESI
 
 void light_transient_add(datum_index light_tag, real_vector3d *color, real_point3d *position,
     uint32_t param_2, uint32_t param_3, float intensity)
@@ -41,8 +40,9 @@ void light_transient_add(datum_index light_tag, real_vector3d *color, real_point
         slot->intensity = (uint8_t)(int32_t)(intensity * 255.0f + 0.5f); // UNSURE: ROUND()
         slot->definition = tag_instances[light_tag & 0xffff].data;
         slot->position = *position;
-        slot->unknown_10 = vector3d_pack_normal_11_11_10(); // UNSURE: zero visible args
-        slot->unknown_14 = vector3d_pack_normal_11_11_10(); // UNSURE: zero visible args
+        // 0x4f16a4: ESI = the second and third stack arguments (the light's forward and up)
+        slot->unknown_10 = vector3d_pack_normal_11_11_10((real_vector3d *)param_2);
+        slot->unknown_14 = vector3d_pack_normal_11_11_10((real_vector3d *)param_3);
         slot->unknown_22 = DAT_007c310a;
         slot->unknown_1e = -1;
         slot->unknown_1c = -1;

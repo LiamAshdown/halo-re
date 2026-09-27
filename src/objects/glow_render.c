@@ -2,7 +2,7 @@
 // address 0x4fe570, size 259 bytes
 // name confidence: 0.7 (out/phase4/objects_types_notes.md misattribution table: "0x4fe570 |
 //   lightning_render | glow_render")
-// rewrite confidence: 0.5
+// rewrite confidence: 0.85 (REWRITTEN from objdump, see below)
 // evidence: types/objects.h globals list (glow_data 0x008603a0), glow_particle (t 0x28 doubles
 //   as the vertex-position argument here via +0x2c, flags 0x54, next 0x5c); types/memory.h
 //   data_array (size 0x22, last_index 0x2e, data 0x34); resolved against
@@ -16,47 +16,58 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "cache.h"
+#include "rasterizer.h"
+#include "render.h"
+#include <string.h>
 
 extern data_array *glow_data; // 0x008603a0
+extern tag_instance *tag_instances; // 0x0087bc14
+extern real_point3d *global_origin3d_pointer; // 0x006966f8
+extern uint8_t glow_sprite_shader[]; // 0x0069e940
 
-extern void build_sprite(); // 0x511700, eight stack arguments.
-    // The two call sites in this module disagree on the types of arguments 3 and 7
-    // (a vector versus a marker record, a float versus a pointer), so no prototype is
-    // asserted -- see the FUN_00450870 convention used elsewhere in this module.
-extern void build_sprites_end(void); // 0x511620, unexamined, called once at the end unconditionally
+extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index, int16_t mode,
+    real_point3d *origin, real_vector3d *direction, float rotation, float scale, ColorARGB *color, float fade,
+    uint32_t flags); // 0x511700, EBX, AX, CX, stack
+extern void build_sprites_end(build_sprite_data *data); // 0x511620, ESI
 
+// REWRITTEN from objdump 0x4fe570..0x4fe672: the draft never filled the sprite batch (bitmap from the glow tag
+//   +0x150, sprite cap +0x24c, the glow shader 0x69e940, flags 4, centroid at the origin) and called build_sprite
+//   and build_sprites_end without it. Each particle of the glow is one sprite at its position (+0x2c) along its
+//   marker (+0x2 into the 0x6c-byte marker array at +0x44), scale +0x24, colour +0xc, fade +0x58.
 void glow_render(datum_index glow_handle /*ECX*/) // blam-cc: ECX -> glow_handle
 {
-    glow *entry = 0;
+    uint8_t *entry = 0;
+    build_sprite_data data;         // [esp+0x8]
+    uint8_t *particle;
+    int16_t index = (int16_t)glow_handle;
+    int16_t salt = (int16_t)(glow_handle >> 16);
 
-    {
-        int16_t index = (int16_t)glow_handle;
+    if (index >= 0 && index < *(int16_t *)((uint8_t *)glow_data + 0x2e)) {
+        uint8_t *candidate = (uint8_t *)glow_data->data + *(int16_t *)((uint8_t *)glow_data + 0x22) * index;
 
-        if (index >= 0 && index < glow_data->last_index) {
-            glow *candidate = (glow *)((uint8_t *)glow_data->data + glow_data->size * index);
-            int16_t salt = (int16_t)(glow_handle >> 16);
-            if (candidate->identifier != 0 && (salt == 0 || salt == candidate->identifier)) {
-                entry = candidate;
-            }
+        if (*(int16_t *)candidate != 0 && (salt == 0 || salt == *(int16_t *)candidate)) {
+            entry = candidate;
         }
     }
-
-    {
-        glow_particle *p;
-        // UNSURE: on an invalid handle the original falls through to iVar2=0 and still
-        // dereferences *(int*)(0 + 0x250), i.e. reads through a null pointer; guarded here as
-        // "no particles" instead of reproducing that read.
-        for (p = (entry != 0) ? entry->first_particle : 0; p != 0;
-             p = *(glow_particle **)((uint8_t *)p + 0x5c)) {
-            uint8_t *pb = (uint8_t *)p;
-            uint8_t *marker = (uint8_t *)entry + *(int16_t *)(pb + 2) * 0x6c + 0x44;
-
-            build_sprite(0, pb + 0x2c, marker, 0,
-                                         *(void **)(pb + 0x24), pb + 0xc, *(void **)(pb + 0x58), 0);
-        }
+    // (with an invalid handle the binary reads through a null glow; nothing is drawn here)
+    if (entry == 0) {
+        return;
     }
-
-    build_sprites_end();
+    memset(&data, 0, sizeof(data));
+    data.bitmap_group_index = *(datum_index *)((uint8_t *)tag_instances[*(datum_index *)(entry + 0x224) & 0xffff].data + 0x150);
+    data.maximum_sprite_count = *(int16_t *)(entry + 0x24c);
+    data.shader = (uint32_t)glow_sprite_shader;
+    data.sprite_count = 0;
+    data.flags = 4;
+    data.centroid = *global_origin3d_pointer;
+    data.group_count = 0;
+    for (particle = *(uint8_t **)(entry + 0x250); particle != 0; particle = *(uint8_t **)(particle + 0x5c)) {
+        build_sprite(&data, 0, 0, 0, (real_point3d *)(particle + 0x2c),
+                     (real_vector3d *)(entry + *(int16_t *)(particle + 0x2) * 0x6c + 0x44), 0.0f,
+                     *(float *)(particle + 0x24), (ColorARGB *)(particle + 0xc), *(float *)(particle + 0x58), 0);
+    }
+    build_sprites_end(&data);
 }
 
 #if 0

@@ -1416,3 +1416,7 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - ai_communication_play_event_line 0x42eee0 REWRITTEN (0.35 -> 0.85).
 - OPEN from unproto: antenna/glow build_sprite 8 vs 11 (render), lightning_render cross product 1 vs 3,
   light_transient_add pack-normal 0 vs 1, unit_apply_network_control_update datum_get (MP).
+- light_transient_add: the two normal packs get the light's forward / up (stack args 2 / 3; were argless).
+- glow_render 0x4fe570 REWRITTEN: fills the sprite batch and passes it to build_sprite / build_sprites_end (the
+  draft never initialised it).
+- OPEN (not in a10's opening): antenna_render_wire build_sprite registers, lightning_render cross product.
